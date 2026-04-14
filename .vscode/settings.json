@@ -1,0 +1,38 @@
+{
+  "workbench.colorCustomizations": {
+    "activityBar.activeBackground": "#d8d7ea",
+    "activityBar.background": "#d8d7ea",
+    "activityBar.foreground": "#15202b",
+    "activityBar.inactiveForeground": "#15202b99",
+    "activityBarBadge.background": "#bd8582",
+    "activityBarBadge.foreground": "#15202b",
+    "commandCenter.border": "#15202b99",
+    "sash.hoverBorder": "#d8d7ea",
+    "statusBar.background": "#b8b5d9",
+    "statusBar.foreground": "#15202b",
+    "statusBarItem.hoverBackground": "#9893c8",
+    "statusBarItem.remoteBackground": "#b8b5d9",
+    "statusBarItem.remoteForeground": "#15202b",
+    "tab.activeBorder": "#d8d7ea",
+    "titleBar.activeBackground": "#b8b5d9",
+    "titleBar.activeForeground": "#15202b",
+    "titleBar.inactiveBackground": "#b8b5d999",
+    "titleBar.inactiveForeground": "#15202b99"
+  },
+  "peacock.color": "#b8b5d9",
+  "python-envs.pythonProjects": [
+    {
+      "path": ".",
+      "envManager": "ms-python.python:venv",
+      "packageManager": "ms-python.python:pip"
+    }
+  ],
+  "cSpell.words": [
+    "gbcr",
+    "gcba",
+    "gcbr",
+    "ptncs",
+    "pyrb",
+    "pcomp",
+  ]
+}

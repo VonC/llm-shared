@@ -27,7 +27,7 @@ defined in the prompt.
 
 ## Contents
 
-```
+```txt
 .github/
 ├─ blacklist.md                          instruction: words to avoid in all responses
 ├─ markdown.instructions.md              instruction: markdown formatting rules
