@@ -97,3 +97,5 @@ a.git-describe-cache.json
 /flags/
 *upgrade-report.json
 *.egg-info/
+
+senv.local.bat
