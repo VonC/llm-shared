@@ -25,16 +25,51 @@ Usage:
 Reads from clipboard by default. If filename is provided, reads from file.
 Processes git add/commit operations interactively unless --dry-run is used.
 
-Standalone shared variant: no external dependencies.
-Project root is detected via 'git rev-parse --show-toplevel'.
-Cross-platform git dispatch: Linux uses '/bin/sh -c command git ...',
-Windows uses 'git' directly.
+Fix: Reduce complexity in _parse_commit_message and git_add_files by splitting
+into smaller helper functions. Remove magic numbers. Fix logging calls.
+
+Fix: Add noqa for intentional try-except in loop. Use try-except-else pattern in main().
+
+Fix: Skip markdown and other non-relevant lines when parsing clipboard content.
+Find git commands first, then find commit title pattern, then parse message.
+
+Fix: Parse git add options like '-A <path>' correctly and validate missing
+files in dry-run without git reset/add/commit.
+
+Fix: Add --root-a-commit option to run a strict two-phase workflow on
+<project-root>/a.commit: validate first (fail fast on error), then commit.
+
+Fix: Vendor the cross-platform Git helper into `tools/` so this script no
+longer depends on the `pdfss` package from another repository.
+
+Fix: Route every Git subprocess through the cached cross-platform helper so
+Linux uses `command git` while Windows uses `git` directly.
+
+Fix: Run `git commit` with live stdout and stderr so Git prompts, post-commit
+messages, and trace lines remain visible instead of stalling behind captured
+pipes.
+
+Fix: Fail fast when an interactive Git command is started without an attached
+console, which gives a clear error instead of a wait that looks like a hang.
+
+Fix: Add optional commit-only Git tracing so stuck post-commit work can be
+diagnosed without turning on trace output for every Git subprocess.
+
+Fix: Refuse to replay project-root a.commit when the working tree is already
+clean, so reruns fail early with a clear already-applied message.
+
+Fix: Skip a commit block before git commit when its listed paths stage no diff,
+which avoids misleading "nothing to commit" failures for already-applied groups.
+
+Fix: Return a non-zero exit code when the user stops after a Git operation
+failure, so shell status matches the interrupted run.
 """
 
 
 from __future__ import annotations
 
 import argparse
+import contextlib
 import logging
 import os
 import re
@@ -46,13 +81,30 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import NoReturn
 
+if __name__ == "__main__":
+    with contextlib.suppress(Exception):
+        _project_root = Path(__file__).parent.parent.resolve()
+        sys.path.insert(0, str(_project_root))
+        sys.path.insert(0, str((_project_root / "src").resolve()))
+
+with contextlib.suppress(Exception):
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from git_command import GitCommandOptions, run_cross_platform_git_command
+
 LOGGER = logging.getLogger("git_batch_commit")
 
-_IS_WINDOWS = os.name == "nt"
-_GIT_LINUX_SHELL = ("/bin/sh", "-c")
+ROOT_MARKERS_DIR: tuple[str, ...] = (".git",)
+ROOT_MARKERS_FILE: tuple[str, ...] = (
+    "pyproject.toml",
+    "setup.cfg",
+    "setup.py",
+    "tox.ini",
+)
 
 # Constants for git add command parsing
 _GIT_ADD_MIN_PARTS: int = 3
+_GIT_TRACE_ENABLED_VALUE = "1"
 
 # Regex patterns for parsing
 _COMMIT_TITLE_PATTERN = re.compile(r"^[^\(]+\([^\)]+\):\s+\S.*$")
@@ -114,44 +166,14 @@ class _ParseState:
     lines_read: list[str]
 
 
-# ----------------------------
-# Cross-platform git helper
-# ----------------------------
+@dataclass(frozen=True)
+class _GitCommandOptions:
+    """Options for one Git subprocess invocation."""
 
-
-def _run_cross_platform_git_command(
-    git_args: list[str],
-    *,
-    cwd: Path | None = None,
-    check: bool = True,
-    capture_output: bool = False,
-) -> subprocess.CompletedProcess[str]:
-    """Run a Git command using the platform-specific invocation path.
-
-    On Windows runs ``git`` directly; on Linux runs through
-    ``/bin/sh -c 'command git ...'`` to bypass shell aliases without
-    spawning a login shell.
-    """
-    if _IS_WINDOWS:
-        return subprocess.run(  # noqa: S603
-            ["git", *git_args],
-            cwd=cwd,
-            check=check,
-            capture_output=capture_output,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-        )
-    shell_cmd = f"command git {shlex.join(git_args)}"
-    return subprocess.run(  # noqa: S603
-        [*_GIT_LINUX_SHELL, shell_cmd],
-        cwd=cwd,
-        check=check,
-        capture_output=capture_output,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-    )
+    check: bool = True
+    capture_output: bool = True
+    require_tty: bool = False
+    trace_git: bool = False
 
 
 # ----------------------------
@@ -160,18 +182,18 @@ def _run_cross_platform_git_command(
 
 
 def find_project_root(start: Path) -> Path:
-    """Return the git repository root via 'git rev-parse --show-toplevel'."""
-    try:
-        result = _run_cross_platform_git_command(
-            ["rev-parse", "--show-toplevel"],
-            cwd=start,
-            check=True,
-            capture_output=True,
-        )
-        return Path(result.stdout.strip())
-    except subprocess.SubprocessError as e:
-        msg = f"Failed to find git root from {start}: not a git repository"
-        raise GitBatchCommitError(msg) from e
+    """Scan upward for project root markers and return the discovered root path."""
+    cur = start.resolve()
+    while True:
+        for d in ROOT_MARKERS_DIR:
+            if (cur / d).is_dir():
+                return cur
+        for f in ROOT_MARKERS_FILE:
+            if (cur / f).is_file():
+                return cur
+        if cur == cur.parent:
+            return cur
+        cur = cur.parent
 
 
 # ----------------------------
@@ -406,6 +428,25 @@ def _parse_git_adds(lines: list[str], start_idx: int) -> tuple[list[str], int]:
     return git_adds, idx
 
 
+def _parse_git_add_command(cmd: str) -> list[str] | None:
+    """Parse a git add command into argv form.
+
+    Use POSIX-style shlex parsing so quoted repo-relative paths with spaces are
+    kept as a single argument and surrounding quotes are stripped.
+    """
+    try:
+        parts = shlex.split(cmd, posix=True)
+    except ValueError:
+        LOGGER.warning("Invalid git add command: %s", cmd)
+        return None
+
+    if len(parts) < _GIT_ADD_MIN_PARTS or parts[0] != "git" or parts[1] != "add":
+        LOGGER.warning("Invalid git add command: %s", cmd)
+        return None
+
+    return parts
+
+
 def parse_clipboard_content(
     content: str,
     *,
@@ -484,23 +525,55 @@ def _run_git_command(
     args: list[str],
     *,
     cwd: Path,
-    check: bool = True,
+    options: _GitCommandOptions | None = None,
 ) -> subprocess.CompletedProcess[str]:
     """Run a git command and return the result."""
     if not args or args[0] != "git":
         msg = f"Git command failed: {' '.join(args)}"
         raise GitOperationError(msg)
 
+    git_options = options or _GitCommandOptions()
+
+    if git_options.require_tty and not _has_interactive_console():
+        msg = (
+            "Git command requires an interactive console. Re-run the tool in a "
+            "foreground terminal with stdin, stdout, and stderr attached."
+        )
+        raise GitOperationError(msg)
+
+    trace_env = _build_git_trace_environment() if git_options.trace_git else None
+
+    if not git_options.capture_output:
+        sys.stdout.flush()
+        sys.stderr.flush()
+
     try:
-        return _run_cross_platform_git_command(
+        return run_cross_platform_git_command(
             args[1:],
             cwd=cwd,
-            capture_output=True,
-            check=check,
+            options=GitCommandOptions(
+                check=git_options.check,
+                capture_output=git_options.capture_output,
+                env=trace_env,
+            ),
         )
     except subprocess.SubprocessError as e:
         msg = f"Git command failed: {' '.join(args)}"
         raise GitOperationError(msg) from e
+
+
+def _has_interactive_console() -> bool:
+    """Return True when stdin, stdout, and stderr are attached to a console."""
+    return sys.stdin.isatty() and sys.stdout.isatty() and sys.stderr.isatty()
+
+
+def _build_git_trace_environment() -> dict[str, str]:
+    """Build a one-command Git trace environment for commit diagnostics."""
+    env = os.environ.copy()
+    env.setdefault("GIT_TRACE", _GIT_TRACE_ENABLED_VALUE)
+    env.setdefault("GIT_TRACE_SETUP", _GIT_TRACE_ENABLED_VALUE)
+    env.setdefault("GIT_TRACE_PERFORMANCE", _GIT_TRACE_ENABLED_VALUE)
+    return env
 
 
 def git_reset(root: Path) -> None:
@@ -510,11 +583,16 @@ def git_reset(root: Path) -> None:
     LOGGER.info("Git reset completed.")
 
 
+def _is_worktree_clean(root: Path) -> bool:
+    """Return True when the repository has no staged, unstaged, or untracked changes."""
+    result = _run_git_command(["git", "status", "--short"], cwd=root)
+    return not bool((result.stdout or "").strip())
+
+
 def _extract_file_path(cmd: str) -> str | None:
     """Extract file path from 'git add <path>' command."""
-    parts = shlex.split(cmd, posix=False)
-    if len(parts) < _GIT_ADD_MIN_PARTS or parts[0] != "git" or parts[1] != "add":
-        LOGGER.warning("Invalid git add command: %s", cmd)
+    parts = _parse_git_add_command(cmd)
+    if parts is None:
         return None
 
     add_args = parts[2:]
@@ -543,7 +621,7 @@ def _is_tracked_path(root: Path, file_path_str: str) -> bool:
     result = _run_git_command(
         ["git", "ls-files", "--error-unmatch", "--", file_path_str],
         cwd=root,
-        check=False,
+        options=_GitCommandOptions(check=False),
     )
     return result.returncode == 0
 
@@ -557,7 +635,7 @@ def _is_path_in_head(root: Path, file_path_str: str) -> bool:
     result = _run_git_command(
         ["git", "cat-file", "-e", f"HEAD:{file_path_str}"],
         cwd=root,
-        check=False,
+        options=_GitCommandOptions(check=False),
     )
     return result.returncode == 0
 
@@ -581,6 +659,30 @@ def _check_missing_files(git_adds: list[str], root: Path) -> list[str]:
             LOGGER.warning("File not found: %s", file_path_str)
 
     return missing_files
+
+
+def _collect_git_add_paths(git_adds: list[str]) -> list[str]:
+    """Collect the repo-relative paths targeted by git add commands."""
+    paths: list[str] = []
+
+    for cmd in git_adds:
+        file_path_str = _extract_file_path(cmd)
+        if file_path_str is not None:
+            paths.append(file_path_str)
+
+    return paths
+
+
+def _block_has_staged_changes(git_adds: list[str], root: Path) -> bool:
+    """Return True when the current commit block staged at least one diff."""
+    paths = _collect_git_add_paths(git_adds)
+    args = ["git", "diff", "--cached", "--name-only"]
+
+    if paths:
+        args.extend(["--", *paths])
+
+    result = _run_git_command(args, cwd=root)
+    return bool((result.stdout or "").strip())
 
 
 def _validate_missing_files_for_blocks(blocks: list[CommitBlock], root: Path) -> None:
@@ -634,13 +736,16 @@ def _execute_git_adds(git_adds: list[str], root: Path) -> list[str]:
     failed_adds: list[str] = []
 
     for cmd in git_adds:
-        args = shlex.split(cmd, posix=False)
-        if len(args) < _GIT_ADD_MIN_PARTS or args[0] != "git" or args[1] != "add":
-            LOGGER.warning("Invalid git add command: %s", cmd)
+        args = _parse_git_add_command(cmd)
+        if args is None:
             failed_adds.append(cmd)
             continue
 
-        result = _run_git_command(args, cwd=root, check=False)
+        result = _run_git_command(
+            args,
+            cwd=root,
+            options=_GitCommandOptions(check=False),
+        )
         if result.returncode != 0:
             failed_adds.append(cmd)
             stderr_text = (result.stderr or "").strip()
@@ -672,10 +777,26 @@ def git_add_files(git_adds: list[str], root: Path) -> bool:
     return True
 
 
-def git_commit(commit_message: str, commit_title: str, root: Path) -> None:
+def git_commit(
+    commit_message: str,
+    commit_title: str,
+    root: Path,
+    *,
+    trace_git_commit: bool = False,
+) -> None:
     """Execute git commit with the provided message."""
     LOGGER.info("Committing: %s", commit_title)
-    _run_git_command(["git", "commit", "-m", commit_message], cwd=root)
+    if trace_git_commit:
+        LOGGER.info("Git commit trace is enabled for this run.")
+    _run_git_command(
+        ["git", "commit", "-m", commit_message],
+        cwd=root,
+        options=_GitCommandOptions(
+            capture_output=False,
+            require_tty=True,
+            trace_git=trace_git_commit,
+        ),
+    )
     LOGGER.info("Commit completed.")
 
 
@@ -728,10 +849,19 @@ def _get_arg_parser() -> argparse.ArgumentParser:
             "exit non-zero on validation failure, then run commits immediately."
         ),
     )
+    parser.add_argument(
+        "--trace-git-commit",
+        action="store_true",
+        help="Show Git trace output for commit commands only.",
+    )
     return parser
 
 
-def _run_root_a_commit_workflow(root: Path) -> int:
+def _run_root_a_commit_workflow(
+    root: Path,
+    *,
+    trace_git_commit: bool = False,
+) -> int:
     """Run validate-then-commit workflow on <root>/a.commit."""
     LOGGER.info("Reading root commit plan: %s", root / "a.commit")
     blocks = _read_and_parse_content(
@@ -748,8 +878,21 @@ def _run_root_a_commit_workflow(root: Path) -> int:
     _validate_missing_files_for_blocks(blocks, root)
     LOGGER.info("Validation phase passed.")
 
+    if _is_worktree_clean(root):
+        msg = (
+            "Refusing to replay project root a.commit because the working tree "
+            "is clean. The commit plan is already applied or there is nothing "
+            "to commit."
+        )
+        raise GitBatchCommitError(msg)
+
     LOGGER.info("Commit phase: applying commit plan now...")
-    _process_all_commits(blocks, root)
+    if not _process_all_commits(
+        blocks,
+        root,
+        trace_git_commit=trace_git_commit,
+    ):
+        return 1
     return 0
 
 
@@ -796,6 +939,8 @@ def _process_commit_block(
     i: int,
     total: int,
     root: Path,
+    *,
+    trace_git_commit: bool = False,
 ) -> bool:
     """Process a single commit block. Returns True to continue, False to stop."""
     LOGGER.info("\n--- Processing commit %d/%d ---", i, total)
@@ -808,12 +953,33 @@ def _process_commit_block(
         LOGGER.warning("Skipping commit %d.", i)
         return True
 
+    if not _block_has_staged_changes(block.git_adds, root):
+        LOGGER.warning(
+            "Skipping commit %d/%d for '%s': the listed paths stage no diff. "
+            "The group looks already applied or the tree is clean for those "
+            "paths.",
+            i,
+            total,
+            block.commit_title,
+        )
+        return True
+
     # Commit
-    git_commit(block.commit_message, block.commit_title, root)
+    git_commit(
+        block.commit_message,
+        block.commit_title,
+        root,
+        trace_git_commit=trace_git_commit,
+    )
     return True
 
 
-def _process_all_commits(blocks: list[CommitBlock], root: Path) -> None:
+def _process_all_commits(
+    blocks: list[CommitBlock],
+    root: Path,
+    *,
+    trace_git_commit: bool = False,
+) -> bool:
     """Process all commit blocks."""
     LOGGER.info("Found %d commit block(s).", len(blocks))
 
@@ -821,9 +987,15 @@ def _process_all_commits(blocks: list[CommitBlock], root: Path) -> None:
 
     for i, block in enumerate(blocks, 1):
         try:
-            should_continue = _process_commit_block(block, i, len(blocks), root)
+            should_continue = _process_commit_block(
+                block,
+                i,
+                len(blocks),
+                root,
+                trace_git_commit=trace_git_commit,
+            )
             if not should_continue:
-                return
+                return False
         except GitOperationError:  # noqa: PERF203
             # Note: try-except in loop is intentional for interactive error handling
             LOGGER.exception("Git operation failed")
@@ -833,9 +1005,11 @@ def _process_all_commits(blocks: list[CommitBlock], root: Path) -> None:
                 .lower()
             )
             if response == "stop":
-                return
+                LOGGER.info("Stopping after Git operation failure.")
+                return False
 
     LOGGER.info("\n=== All commits processed successfully ===")
+    return True
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -858,7 +1032,10 @@ def main(argv: list[str] | None = None) -> int:
             if args.dry_run:
                 msg = "Cannot combine --root-a-commit with --dry-run"
                 raise GitBatchCommitError(msg)
-            _run_root_a_commit_workflow(root)
+            exit_code = _run_root_a_commit_workflow(
+                root,
+                trace_git_commit=args.trace_git_commit,
+            )
         else:
             blocks = _read_and_parse_content(
                 root,
@@ -871,8 +1048,12 @@ def main(argv: list[str] | None = None) -> int:
                 LOGGER.info("clean content")
             elif not blocks:
                 LOGGER.warning("No valid commit blocks found in clipboard.")
-            else:
-                _process_all_commits(blocks, root)
+            elif not _process_all_commits(
+                blocks,
+                root,
+                trace_git_commit=args.trace_git_commit,
+            ):
+                exit_code = 1
     except ClipboardError:
         LOGGER.exception("Failed to read clipboard")
         exit_code = 1
