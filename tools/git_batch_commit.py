@@ -39,6 +39,9 @@ files in dry-run without git reset/add/commit.
 Fix: Add --root-a-commit option to run a strict two-phase workflow on
 <project-root>/a.commit: validate first (fail fast on error), then commit.
 
+Fix: Use the shared project-root helper so `PRJ_DIR` can point batch commits
+at the calling project before the local upward scan runs.
+
 Fix: Vendor the cross-platform Git helper into `tools/` so this script no
 longer depends on the `pdfss` package from another repository.
 
@@ -90,17 +93,10 @@ if __name__ == "__main__":
 with contextlib.suppress(Exception):
     sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from git_command import GitCommandOptions, run_cross_platform_git_command
+from tools import find_project_root
+from tools.git_command import GitCommandOptions, run_cross_platform_git_command
 
 LOGGER = logging.getLogger("git_batch_commit")
-
-ROOT_MARKERS_DIR: tuple[str, ...] = (".git",)
-ROOT_MARKERS_FILE: tuple[str, ...] = (
-    "pyproject.toml",
-    "setup.cfg",
-    "setup.py",
-    "tox.ini",
-)
 
 # Constants for git add command parsing
 _GIT_ADD_MIN_PARTS: int = 3
@@ -174,26 +170,6 @@ class _GitCommandOptions:
     capture_output: bool = True
     require_tty: bool = False
     trace_git: bool = False
-
-
-# ----------------------------
-# Project root detection
-# ----------------------------
-
-
-def find_project_root(start: Path) -> Path:
-    """Scan upward for project root markers and return the discovered root path."""
-    cur = start.resolve()
-    while True:
-        for d in ROOT_MARKERS_DIR:
-            if (cur / d).is_dir():
-                return cur
-        for f in ROOT_MARKERS_FILE:
-            if (cur / f).is_file():
-                return cur
-        if cur == cur.parent:
-            return cur
-        cur = cur.parent
 
 
 # ----------------------------
@@ -996,7 +972,7 @@ def _process_all_commits(
             )
             if not should_continue:
                 return False
-        except GitOperationError:  # noqa: PERF203
+        except GitOperationError:
             # Note: try-except in loop is intentional for interactive error handling
             LOGGER.exception("Git operation failed")
             response = (
