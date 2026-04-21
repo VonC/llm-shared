@@ -1,0 +1,22 @@
+-c requirements.txt
+-r requirements.in
+build
+hypothesis
+packaging
+pip-review
+pip-tools
+pyinstrument
+pyproject_hooks
+pyright
+pytest
+pytest-asyncio
+pytest-cov
+pytest-rerunfailures
+pytest-testmon
+pytest-timeout
+pytest-watcher
+radon
+ruff
+ty
+vulture
+wheel

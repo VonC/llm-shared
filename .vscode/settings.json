@@ -28,11 +28,19 @@
     }
   ],
   "cSpell.words": [
+    "cffi",
     "gbcr",
     "gcba",
     "gcbr",
-    "ptncs",
-    "pyrb",
+    "gcmp",
+    "itsdangerous",
+    "markupsafe",
+    "passlib",
     "pcomp",
+    "ptncs",
+    "pycparser",
+    "pyrb",
+    "techo",
+    "uvloop"
   ]
 }

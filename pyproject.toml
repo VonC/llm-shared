@@ -1,0 +1,216 @@
+[project]
+name = "Copilot-Shared"
+description = "Shared tools and workflows for Copilot projects"
+readme = "README.md"
+authors = [
+  { name = "VonC", email = "vonc@laposte.net" },
+]
+requires-python = ">=3.13, <3.14"
+dynamic = ["dependencies"]
+[tool.setuptools.dynamic]
+dependencies = { file = "requirements.txt" }
+
+[tool.setuptools.package-data]
+"tools.data" = ["wordlist.txt"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+  "-v",
+  "-p",
+  "no:anyio",
+  "--strict-markers",
+  "--tb=short",
+  "--cov=tools",
+  "--cov-report=term-missing",
+  "--cov-report=html:htmlcov",
+  "--cov-fail-under=100",
+]
+# Filter out noisy deprecation warnings from dependencies (e.g., pymupdf/swig)
+filterwarnings = [
+    "ignore:builtin type SwigPyObject has no __module__ attribute:DeprecationWarning",
+    "ignore:builtin type SwigPyPacked has no __module__ attribute:DeprecationWarning",
+    "ignore:builtin type swigvarlink has no __module__ attribute:DeprecationWarning",
+  "ignore:Accessing argon2.__version__ is deprecated:DeprecationWarning",
+]
+
+[tool.coverage.run]
+source = ["tools"]
+omit = [
+    "*/tests/*",
+    "*/__init__.py",            # Usually empty or just pass-through imports
+    "*/ports/*",                # Interfaces/Protocols contain no executable logic
+    "*/typing/protocols.py",    # Pure type definitions
+    "*/constants.py"            # Static variables
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+fail_under = 100
+
+[tool.coverage.html]
+directory = "htmlcov"
+
+[tool.hypothesis]
+profile = "dev"
+max_examples = 100
+derandomize = false
+print_blob = true
+verbosity = "normal"
+
+# https://github.com/microsoft/pyright/blob/main/docs/configuration.md
+[tool.pyright]
+include = ["tools", "tests"]
+exclude = ["**/__pycache__", "legacy", "**/node_modules", "**/.*", "**/venvs/**", "**/venv/**", ".venv"]
+ignore=["whitelist.py", "decoupe_rct.py", "legacy/**"]
+typeCheckingMode = "strict"
+reportMissingImports = true
+reportMissingTypeStubs = false
+pythonVersion = "3.13"
+pythonPlatform = "Windows"
+
+# Extra: surface all 'Unknown' diagnostics in CLI as errors,
+# matching what Pylance is warning about.
+reportUnknownParameterType = "error"
+reportUnknownArgumentType = "error"
+reportUnknownLambdaType = "error"
+reportUnknownVariableType = "error"
+reportUnknownMemberType = "error"
+
+executionEnvironments= [
+  { "root" = "tests", extraPaths = [".", "tools"], "reportPrivateUsage" = false },
+]
+
+
+# https://pypi.org/project/vulture/#:~:text=Sequence)%3A%0A%20%20%20%20...-,Configuration
+[tool.vulture]
+exclude = [ "venvs/", "legacy/" ]
+ignore_decorators = ["@app.route", "@require_*"]
+ignore_names = ["visit_*", "do_*"]
+make_whitelist = true
+min_confidence = 80
+paths = ["tools", "tests", "whitelist.py"]
+sort_by_size = true
+verbose = false
+
+# https://docs.astral.sh/ruff/configuration/
+[tool.ruff]
+include = ["pyproject.toml", "tools/**/*.py", "scripts/**/*.py", "tests/**/*.py"]
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".ipynb_checkpoints",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pyenv",
+    ".pytest_cache",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    ".vscode",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "decoupe_rct.py",
+    "dist",
+    "node_modules",
+    "site-packages",
+    "venv",
+    "venvs",
+    "legacy",
+]
+
+# https://www.reddit.com/r/Python/comments/1kttfst/ruff_users_what_rules_are_using_and_what_are_you/
+[tool.ruff.lint]
+# Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`) codes by default.
+# Unlike Flake8, Ruff doesn't enable pycodestyle warnings (`W`) or
+# McCabe complexity (`C901`) by default.
+#"ALL", # all rules
+select = [
+    "ALL", # all rules
+]
+# preview = true
+ignore=[
+  "E501",  # Ignore line length (E501) - handled by Black
+  "D401",  # Ignore docstring First line of docstring should be in imperative mood (D401) - too noisy
+  "D203",  # Incompatible with D211 (no-blank-line-before-class)
+  "D213",  # Incompatible with D212 (multi-line-summary-first-line)
+]
+task-tags = ["TODO", "FIXME", "XXX", "HACK"]
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = [
+  "S101",  # Ignore assert (S101) warnings in tests
+  "B010",  # Ignore mutable default arguments in tests
+  "SLF001", # "SLF001": Allow private and protected member access in tests,
+  "RUF100", # "RUF100": Allow unused imports in tests (e.g., fixtures or test utilities)
+]
+
+[tool.ruff.lint.flake8-annotations]
+# suppress ANN401 for *args and **kwargs
+allow-star-arg-any = true
+
+[tool.ruff.lint.pylint]
+# Enforce a strict limit on function arguments to prevent complexity (PLR0913)
+max-args = 5
+
+[tool.ruff.lint.pydocstyle]
+# https://github.com/google/styleguide/blob/gh-pages/pyguide.md#38-comments-and-docstrings
+convention = "google"
+
+# https://radon.readthedocs.io/en/master/commandline.html
+[tool.radon]
+show_complexity = true
+show_closures = true
+show_maintainability = true
+exclude = ["venvs/*", "tests/*", "legacy/*"]
+cc_min = "C"
+mi_min = "B"
+show_mi = true
+average = true
+total_average = true
+
+[tool.pytest-watcher]
+now = false
+clear = true
+delay = 2.0
+runner = "pytest"
+runner_args = []
+patterns = ["*.py"]
+ignore_patterns = []
+
+[dependency-groups]
+dev = [
+    "ty>=0.0.30",
+]
+
+[tool.ty.src]
+exclude = [
+    "**/__pycache__", 
+    "legacy", 
+    "**/node_modules", 
+    "**/.*", 
+    "venvs", 
+    ".venv",
+    "whitelist.py"
+]
