@@ -1,0 +1,8 @@
+gcb=python "%COPILOT_SHARED_DIR%\tools\git_batch_commit.py" $*$techo %PRJ_DIR_NAME%: git batch commit done
+gbc=python "%COPILOT_SHARED_DIR%\tools\git_batch_commit.py" $*$techo %PRJ_DIR_NAME%: git batch commit done
+gcbr=python "%COPILOT_SHARED_DIR%\tools\git_batch_commit.py" --root-a-commit $*$techo %PRJ_DIR_NAME%: git batch commit --root-a-commit done
+gbcr=python "%COPILOT_SHARED_DIR%\tools\git_batch_commit.py" --root-a-commit  $*$techo %PRJ_DIR_NAME%: git batch commit --root-a-commit done
+gcba=python "%COPILOT_SHARED_DIR%\tools\git_batch_commit.py" --root-a-commit $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: git batch commit --root-a-commit done
+gbca=python "%COPILOT_SHARED_DIR%\tools\git_batch_commit.py" --root-a-commit $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: git batch commit --root-a-commit done
+
+gcmp=python "%COPILOT_SHARED_DIR%\tools\group_commit_message_prompt.py" $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: group commit message prompt done

@@ -18,6 +18,7 @@ REM ******************************************************************
 for %%i in ("%~dp0") do SET "PRJ_DIR=%%~fi"
 set "PRJ_DIR=%PRJ_DIR:~0,-1%"
 for %%i in ("%PRJ_DIR%") do SET "PRJ_DIR_NAME=%%~nxi"
+set "COPILOT_SHARED_DIR=%PRJ_DIR%"
 
 if defined NO_MORE_SENV_%PRJ_DIR_NAME% ( goto:eof )
 
@@ -96,11 +97,11 @@ doskey pts=pytest --no-header --no-cov -rxX $* ^& echo %PRJ_DIR_NAME%: pytest no
 doskey ptf=pytest --no-header --last-failed --lfnf=none --no-cov $* ^& echo %PRJ_DIR_NAME%: pytest done
 doskey ptfn=pytest --no-header --last-failed --lfnf=none --no-cov $* ^| grep FAILED ^| cut -d " " -f 2 ^| cut -d ":" -f 1 ^| sort ^| uniq ^& echo %PRJ_DIR_NAME%: pytest last-failed test names done
 
-doskey vmw=vulture "%PRJ_DIR%\bin" --make-whitelist --min-confidence 60 $* ^> whitelist.py ^& echo %PRJ_DIR_NAME%: vulture whitelist done
-doskey vult=vulture "%PRJ_DIR%\bin" whitelist.py $* ^& echo %PRJ_DIR_NAME%: vulture done
-doskey radcc=radon cc --show-closures -a --total-average -s "%PRJ_DIR%\bin" $* ^& echo %PRJ_DIR_NAME%: radon Cyclomatic Complexity done
-doskey radmi=radon mi -s "%PRJ_DIR%\bin" $* ^& echo %PRJ_DIR_NAME%: radon Maintainability Index done
-doskey radr=radon raw -s "%PRJ_DIR%\bin" $* ^& echo %PRJ_DIR_NAME%: radon Raw Metrics done
+doskey vmw=vulture "%PRJ_DIR%\tools" --make-whitelist --min-confidence 60 $* ^> whitelist.py ^& echo %PRJ_DIR_NAME%: vulture whitelist done
+doskey vult=vulture "%PRJ_DIR%\tools" whitelist.py $* ^& echo %PRJ_DIR_NAME%: vulture done
+doskey radcc=radon cc --show-closures -a --total-average -s "%PRJ_DIR%" $* ^& echo %PRJ_DIR_NAME%: radon Cyclomatic Complexity done
+doskey radmi=radon mi -s "%PRJ_DIR%" $* ^& echo %PRJ_DIR_NAME%: radon Maintainability Index done
+doskey radr=radon raw -s "%PRJ_DIR%" $* ^& echo %PRJ_DIR_NAME%: radon Raw Metrics done
 doskey ruffc=ruff check $* ^& echo %PRJ_DIR_NAME%: ruff check done
 doskey ruffcf=ruff check --fix $* ^& echo %PRJ_DIR_NAME%: ruff check --fix done
 doskey ruffcuf=ruff check --unsafe-fixes --fix $* ^& echo %PRJ_DIR_NAME%: ruff check --unsafe-fixes --fix done
@@ -110,12 +111,7 @@ doskey switchp=switchpy %PYTHON_VERSION% local $* ^& echo %PRJ_DIR_NAME%: switch
 doskey c="%PRJ_DIR%\bin\python_check.bat" $* ^& echo %PRJ_DIR_NAME%: python check done
 doskey cbf="%PRJ_DIR%\bin\check_big_files.bat" $* ^& echo %PRJ_DIR_NAME%: check big files done
 
-doskey gcb=python "%PRJ_DIR%\tools\git_batch_commit.py" $* ^& echo %PRJ_DIR_NAME%: git batch commit done
-doskey gbc=python "%PRJ_DIR%\tools\git_batch_commit.py" $* ^& echo %PRJ_DIR_NAME%: git batch commit done
-doskey gcbr=python "%PRJ_DIR%\tools\git_batch_commit.py" --root-a-commit $* ^& echo %PRJ_DIR_NAME%: git batch commit --root-a-commit done
-doskey gbcr=python "%PRJ_DIR%\tools\git_batch_commit.py" --root-a-commit  $* ^& echo %PRJ_DIR_NAME%: git batch commit --root-a-commit done
-doskey gcba=python "%PRJ_DIR%\tools\git_batch_commit.py" --root-a-commit $* ^&^& echo %PRJ_DIR_NAME%: git batch commit --root-a-commit done
-doskey gbca=python "%PRJ_DIR%\tools\git_batch_commit.py" --root-a-commit $* ^&^& echo %PRJ_DIR_NAME%: git batch commit --root-a-commit done
+doskey /MACROFILE="%COPILOT_SHARED_DIR%\senv.doskey"
 
 doskey fga=python "%PRJ_DIR%\tools\flamegraph_analyzer.py" $1 ^& echo %PRJ_DIR_NAME%: flamegraph analyzer done
 
