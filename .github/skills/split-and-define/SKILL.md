@@ -33,3 +33,5 @@ In addition of a key title, provide two to three words to describe the topic of 
 They will be used for the future filenames of the feature-request and issue documents, as well as for the future branch names in which commits will be created to implement the feature or fix the issue.
 
 Again, do not create documents, do not write feature-request or issue in full, only regroup topics from the draft document into a list of feature-requests and issues, and define a key title for each one, with arguments for this choice of title, and two to three words to describe the topic of the feature-request or issue.
+
+Once the list is complete, review that list and change the order of the items, to list the most independent ones first, and the most dependent ones last. The most dependent ones are the ones that will be created last, and that will depend on the implementation of the most independent ones. The most independent ones are the ones that will be created first, and that will not depend on the implementation of any other feature-request or issue.
