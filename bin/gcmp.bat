@@ -15,4 +15,4 @@ if not defined LATEST_PYTHON (
 
 set "PATH=%PYTHON_BASE%\%LATEST_PYTHON%\Scripts;%PATH%"
 
-python "%~dp0..\tools\git_batch_commit.py" %*
+python "%~dp0..\tools\group_commit_message_prompt.py" %*
