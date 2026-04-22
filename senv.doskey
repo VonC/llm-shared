@@ -3,6 +3,7 @@ gbc="%COPILOT_SHARED_DIR%\bin\gcba.bat" $*$techo %PRJ_DIR_NAME%: git batch commi
 gcbr="%COPILOT_SHARED_DIR%\bin\gcba.bat" --root-a-commit $*$techo %PRJ_DIR_NAME%: git batch commit --root-a-commit done
 gbcr="%COPILOT_SHARED_DIR%\bin\gcba.bat" --root-a-commit  $*$techo %PRJ_DIR_NAME%: git batch commit --root-a-commit done
 gcba="%COPILOT_SHARED_DIR%\bin\gcba.bat" --root-a-commit $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: git batch commit --root-a-commit done
+gcab="%COPILOT_SHARED_DIR%\bin\gcba.bat" --root-a-commit $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: git batch commit --root-a-commit done
 gbca="%COPILOT_SHARED_DIR%\bin\gcba.bat" --root-a-commit $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: git batch commit --root-a-commit done
 
 gcmp="%COPILOT_SHARED_DIR%\bin\gcmp.bat" $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: group commit message prompt done
