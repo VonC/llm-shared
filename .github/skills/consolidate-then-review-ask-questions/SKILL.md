@@ -14,6 +14,8 @@ Consolidate `docs\<type>.vX.Y.Z.<topic>.md` by integrating answers given to exis
 
 You need to remove `Qxx:` sections and integrate their answers within the document. Make sure all the questions are removed and their decision integrated before adding any new question.
 
+Create a decision table in the "Design decisions" section of the document, summarizing all the design choices that have been made, with their arguments and the alternatives that were rejected. Do reference the number of the question (Qxx) that led to each design choice, as well as the section of the document where the design choice is integrated.
+
 Be mindful of the type of the document you are reviewing: 
 
 - a feature-request or an issue document should not include any design choice question, but only questions about clarifying the feature or the issue.
