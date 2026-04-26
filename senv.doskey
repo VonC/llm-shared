@@ -7,3 +7,5 @@ gcab="%COPILOT_SHARED_DIR%\bin\gcba.bat" --root-a-commit $*$tif not errorlevel 1
 gbca="%COPILOT_SHARED_DIR%\bin\gcba.bat" --root-a-commit $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: git batch commit --root-a-commit done
 
 gcmp="%COPILOT_SHARED_DIR%\bin\gcmp.bat" $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: group commit message prompt done
+
+grmc=bash -c "%COPILOT_SHARED_DIR%\.github\skills\update-merge-commit-msg\git-reword-merge.sh" $*$*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: Git rework merge commit done
