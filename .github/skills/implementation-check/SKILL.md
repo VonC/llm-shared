@@ -19,3 +19,8 @@ Look for your prompt and your context to find the step to check, for example "st
 Is there any new computation which could be O(n2) or O(nlog(n))?
 
 Is there any existing feature or reporting capability impaired?
+
+At the end of the "Architecture check for Step x", add a simple short phrase stating if, yes or no, there is anything possibly needed fixing (architecture smell, or violation, or girth too big, or anything else).  
+Again, if anything is mentioned, even "acceptable", even "for later", even if "minor", it counts as "yes, there is something that needs to be addressed". If nothing is mentioned, it counts as "no, there is nothing that needs to be addressed".
+
+At the end of the "Performance check for Step x", add a simple short phrase stating if, yes or no, there is any performance issue that needs to be addressed.
