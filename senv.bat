@@ -19,6 +19,9 @@ for %%i in ("%~dp0") do SET "PRJ_DIR=%%~fi"
 set "PRJ_DIR=%PRJ_DIR:~0,-1%"
 for %%i in ("%PRJ_DIR%") do SET "PRJ_DIR_NAME=%%~nxi"
 set "COPILOT_SHARED_DIR=%PRJ_DIR%"
+if defined GCYGPATH (
+  for /f "usebackq tokens=*" %%i in (`%GCYGPATH% -u "%COPILOT_SHARED_DIR%"`) do  set "COPILOT_SHARED_DIR_UNIX=%%i"
+)
 
 if defined NO_MORE_SENV_%PRJ_DIR_NAME% ( goto:eof )
 
@@ -87,6 +90,10 @@ call switchpy %PYTHON_VERSION% local
 popd
 REM restore echos macros unset by switchpy
 call "%PRJ_DIR%\tools\batcolors\echos_macros.bat" export
+
+set "GIT_HOME=%PRGS%\gits\current"
+set "GCYGPATH=%GIT_HOME%\usr\bin\cygpath.exe"
+for /f "usebackq tokens=*" %%i in (`%GCYGPATH% -u "%COPILOT_SHARED_DIR%"`) do  set "COPILOT_SHARED_DIR_UNIX=%%i"
 
 doskey pt=pytest --no-header --cov-report term-missing:skip-covered $* ^& echo %PRJ_DIR_NAME%: pytest done
 doskey pta=pytest --testmon --cov-append --no-header --cov-report term-missing:skip-covered $* ^& echo %PRJ_DIR_NAME%: pytest affected done
