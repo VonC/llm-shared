@@ -5,10 +5,12 @@ TARGET_MERGE=${1:-HEAD}
 MESSAGE_FILE="a.commit"
 
 # --- Validation: Project Directory ---
-if [[ -z "$project_dir" || ! -d "$project_dir" ]]; then
-    echo "Error: project_dir is undefined or not a valid directory." >&2
+if [[ -z "$PRJ_DIR_unix" || ! -d "$PRJ_DIR_unix" ]]; then
+    echo "Error: PRJ_DIR_unix is undefined or not a valid directory." >&2
     exit 1
 fi
+
+cd "$PRJ_DIR_unix" || { echo "Error: Failed to change directory to '$PRJ_DIR_unix'." >&2; exit 1; }
 
 # --- Validation: a.commit (Existence and Content) ---
 if [[ ! -f "$MESSAGE_FILE" ]]; then
