@@ -99,3 +99,4 @@ a.git-describe-cache.json
 *.egg-info/
 
 senv.local.bat
+uv.lock
