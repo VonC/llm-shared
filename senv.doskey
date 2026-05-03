@@ -11,3 +11,5 @@ gcmp="%COPILOT_SHARED_DIR%\bin\gcmp.bat" $*$tif not errorlevel 1 echo %PRJ_DIR_N
 grmc=bash -c "%COPILOT_SHARED_DIR_UNIX%/.github/skills/update-merge-commit-msg/git-reword-merge.sh" $*$*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: Git rework merge commit done
 
 uv="%PRGS%\uvs\latest\uv.exe" $*
+
+covg="%COPILOT_SHARED_DIR%\bin\covg.bat" $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: coverage_gap_functions done
