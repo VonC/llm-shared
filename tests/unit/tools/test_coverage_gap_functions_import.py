@@ -1,6 +1,7 @@
-"""Tests for coverage gap helper module import coverage.
+"""Tests for coverage gap helper hub import coverage.
 
-Fix: Cover the module-scope initialization in `tools.coverage_gap_functions`.
+Fix: Cover the module-scope initialization in the split
+`tools.coverage_gap_functions` hub.
 """
 
 from __future__ import annotations

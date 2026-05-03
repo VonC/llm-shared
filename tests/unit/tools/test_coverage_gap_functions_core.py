@@ -1,8 +1,9 @@
-"""Tests for coverage gap helper core branches.
+"""Tests for split coverage gap shared and mapping helpers.
 
 Fix: Cover exception messages, line-range parsing, project-root lookup, AST
 helpers, branch collection, JSON helpers, mapping helpers, and rendering in
-`tools.coverage_gap_functions`.
+`tools.coverage_gap_functions_shared` and
+`tools.coverage_gap_functions_mapping`.
 """
 
 from __future__ import annotations
@@ -13,7 +14,8 @@ from pathlib import Path
 
 import pytest
 
-from tools import coverage_gap_functions as gap_functions
+from tools import coverage_gap_functions_mapping as gap_mapping
+from tools import coverage_gap_functions_shared as gap_shared
 
 # pyright: reportPrivateUsage=false
 # ruff: noqa: SLF001
@@ -69,44 +71,44 @@ def _sample_function_node() -> tuple[list[str], ast.FunctionDef]:
 
 def test_exception_messages_are_stable(tmp_path: Path) -> None:
     """Exception helpers should keep their user-facing messages stable."""
-    assert str(gap_functions.InvalidRangeError("bad")) == (
+    assert str(gap_shared.InvalidRangeError("bad")) == (
         "Invalid range 'bad' (expected N or N-M)"
     )
-    assert str(gap_functions.InputFileNotFoundError(tmp_path / "missing.py")) == (
+    assert str(gap_shared.InputFileNotFoundError(tmp_path / "missing.py")) == (
         f"File not found: {tmp_path / 'missing.py'}"
     )
-    assert str(gap_functions.CoverageJsonNotFoundError(tmp_path / "coverage.json")) == (
+    assert str(gap_shared.CoverageJsonNotFoundError(tmp_path / "coverage.json")) == (
         f"Coverage JSON not found: {tmp_path / 'coverage.json'}"
     )
-    assert str(gap_functions.CoverageJsonFormatError("broken")) == (
+    assert str(gap_shared.CoverageJsonFormatError("broken")) == (
         "coverage.json format error: broken"
     )
-    assert str(gap_functions.CoverageJsonFileMatchError("ambiguous")) == (
+    assert str(gap_shared.CoverageJsonFileMatchError("ambiguous")) == (
         "coverage.json file match error: ambiguous"
     )
 
 
 def test_line_range_helpers_cover_single_swap_invalid_and_compression() -> None:
     """Line-range helpers should parse single values, swapped ranges, and compress runs."""
-    assert gap_functions.LineRange.parse("7,") == gap_functions.LineRange(7, 7)
-    assert gap_functions.LineRange.parse("9-3,") == gap_functions.LineRange(3, 9)
-    assert gap_functions.LineRange(2, 6).covers(3, 5) is True
-    assert gap_functions.LineRange(2, 6).covers(1, 5) is False
+    assert gap_shared.LineRange.parse("7,") == gap_shared.LineRange(7, 7)
+    assert gap_shared.LineRange.parse("9-3,") == gap_shared.LineRange(3, 9)
+    assert gap_shared.LineRange(2, 6).covers(3, 5) is True
+    assert gap_shared.LineRange(2, 6).covers(1, 5) is False
 
-    with pytest.raises(gap_functions.InvalidRangeError, match="expected N or N-M"):
-        gap_functions.LineRange.parse("oops")
+    with pytest.raises(gap_shared.InvalidRangeError, match="expected N or N-M"):
+        gap_shared.LineRange.parse("oops")
 
-    assert gap_functions.compress_lines_to_ranges([]) == []
-    assert gap_functions.compress_lines_to_ranges([1, 2, 4, 7, 8]) == [
-        gap_functions.LineRange(1, 2),
-        gap_functions.LineRange(4, 4),
-        gap_functions.LineRange(7, 8),
+    assert gap_shared.compress_lines_to_ranges([]) == []
+    assert gap_shared.compress_lines_to_ranges([1, 2, 4, 7, 8]) == [
+        gap_shared.LineRange(1, 2),
+        gap_shared.LineRange(4, 4),
+        gap_shared.LineRange(7, 8),
     ]
 
 
 def test_branch_block_contains_and_size() -> None:
     """Branch blocks should report containment and span size."""
-    branch_block = gap_functions.BranchBlock("if flag", 2, 5)
+    branch_block = gap_shared.BranchBlock("if flag", 2, 5)
     assert branch_block.contains(4) is True
     assert branch_block.contains(6) is False
     assert branch_block.size == _BRANCH_BLOCK_SIZE
@@ -120,44 +122,45 @@ def test_find_project_root_handles_git_file_markers_and_fallback(
     git_start = git_root / "nested" / "deeper"
     git_start.mkdir(parents=True)
     (git_root / ".git").mkdir()
-    assert gap_functions.find_project_root(git_start) == git_root.resolve()
+    assert gap_shared.find_project_root(git_start) == git_root.resolve()
 
     file_root = tmp_path / "file-root"
     file_start = file_root / "child"
     file_start.mkdir(parents=True)
     (file_root / "pyproject.toml").write_text(
-        "[project]\nname = 'demo'\n", encoding="utf-8",
+        "[project]\nname = 'demo'\n",
+        encoding="utf-8",
     )
-    assert gap_functions.find_project_root(file_start) == file_root.resolve()
+    assert gap_shared.find_project_root(file_start) == file_root.resolve()
 
     fallback_start = tmp_path / "plain" / "nested"
     fallback_start.mkdir(parents=True)
-    assert gap_functions.find_project_root(fallback_start) == fallback_start.resolve()
+    assert gap_shared.find_project_root(fallback_start) == fallback_start.resolve()
 
 
 def test_ast_text_helpers_cover_compact_unparse_and_headers(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """AST text helpers should normalize whitespace, unparse expressions, and detect header lines."""
-    assert gap_functions._compact(" alpha\n  beta\tgamma ") == "alpha beta gamma"
+    assert gap_mapping._compact(" alpha\n  beta\tgamma ") == "alpha beta gamma"
 
     expression_stmt = ast.parse("value + 1").body[0]
     assert isinstance(expression_stmt, ast.Expr)
-    assert gap_functions._unparse(expression_stmt.value) == "value + 1"
+    assert gap_mapping._unparse(expression_stmt.value) == "value + 1"
 
     def fake_unparse(_node: ast.AST) -> str:
         msg = "cannot unparse"
         raise TypeError(msg)
 
-    monkeypatch.setattr(gap_functions.ast, "unparse", fake_unparse)
-    assert gap_functions._unparse(expression_stmt.value) == "<expr>"
+    monkeypatch.setattr(gap_mapping.ast, "unparse", fake_unparse)
+    assert gap_mapping._unparse(expression_stmt.value) == "<expr>"
 
-    assert gap_functions._stmt_list_span([]) is None
+    assert gap_mapping._stmt_list_span([]) is None
     statements = ast.parse("first = 1\nsecond = 2\n").body
-    assert gap_functions._stmt_list_span(statements) == (1, 2)
-    assert gap_functions._maybe_prev_header_line(["line"], 1, keywords=("else",)) == 1
+    assert gap_mapping._stmt_list_span(statements) == (1, 2)
+    assert gap_mapping._maybe_prev_header_line(["line"], 1, keywords=("else",)) == 1
     assert (
-        gap_functions._maybe_prev_header_line(
+        gap_mapping._maybe_prev_header_line(
             ["else:", "    value = 1"],
             2,
             keywords=("else",),
@@ -165,7 +168,7 @@ def test_ast_text_helpers_cover_compact_unparse_and_headers(
         == 1
     )
     assert (
-        gap_functions._maybe_prev_header_line(
+        gap_mapping._maybe_prev_header_line(
             ["plain:", "    value = 1"],
             2,
             keywords=("else",),
@@ -190,7 +193,7 @@ def test_func_collector_and_collect_functions_capture_methods_and_async_function
         "    return 3\n",
     )
 
-    collector = gap_functions._FuncCollector()
+    collector = gap_mapping._FuncCollector()
     collector.visit(tree)
 
     assert [func.qualname for func in collector.funcs] == [
@@ -202,7 +205,7 @@ def test_func_collector_and_collect_functions_capture_methods_and_async_function
     assert collector._class_stack == []
     assert collector._func_stack == []
 
-    collected = gap_functions.collect_functions(tree)
+    collected = gap_mapping.collect_functions(tree)
     assert [func.qualname for func in collected] == [
         "Example.method",
         "Example.async_method",
@@ -210,10 +213,10 @@ def test_func_collector_and_collect_functions_capture_methods_and_async_function
     ]
 
 
-def _collected_branch_labels() -> tuple[gap_functions.BranchCollector, set[str]]:
+def _collected_branch_labels() -> tuple[gap_mapping.BranchCollector, set[str]]:
     source_lines, function_node = _sample_function_node()
-    collector = gap_functions.BranchCollector(source_lines)
-    collector._blocks.append(gap_functions.BranchBlock("stale", 0, 0))
+    collector = gap_mapping.BranchCollector(source_lines)
+    collector._blocks.append(gap_shared.BranchBlock("stale", 0, 0))
 
     blocks = collector.collect(function_node)
     return collector, {block.label for block in blocks}
@@ -247,17 +250,17 @@ def test_branch_collector_collects_try_and_match_labels() -> None:
 
 def test_branch_collector_add_ignores_missing_bounds_and_normalizes_order() -> None:
     """Direct block insertion should ignore missing bounds and normalize reversed spans."""
-    collector = gap_functions.BranchCollector([])
+    collector = gap_mapping.BranchCollector([])
 
     collector._add("ignored", None, 4)
     collector._add("normalized", 5, 2)
 
-    assert collector._blocks == [gap_functions.BranchBlock("normalized", 2, 5)]
+    assert collector._blocks == [gap_shared.BranchBlock("normalized", 2, 5)]
 
 
 def test_branch_collector_handles_sparse_manual_nodes_for_uncommon_paths() -> None:
     """Manual AST nodes should cover the fallback branches in each branch handler."""
-    collector = gap_functions.BranchCollector(["if flag:", "match subject:"])
+    collector = gap_mapping.BranchCollector(["if flag:", "match subject:"])
 
     empty_if = ast.If(test=ast.Name(id="flag", ctx=ast.Load()), body=[], orelse=[])
     empty_if.lineno = 5
@@ -277,56 +280,58 @@ def test_branch_collector_handles_sparse_manual_nodes_for_uncommon_paths() -> No
     empty_match.end_lineno = 7
     collector._handle_match(empty_match)
 
-    assert collector._blocks == [gap_functions.BranchBlock("if flag (then)", 5, 5)]
+    assert collector._blocks == [gap_shared.BranchBlock("if flag (then)", 5, 5)]
 
 
 def test_json_shape_helpers_validate_dicts_lists_and_keys() -> None:
     """JSON shape helpers should accept valid containers and reject invalid key types."""
-    assert gap_functions._is_obj_dict({}) is True
-    assert gap_functions._is_obj_dict([]) is False
-    assert gap_functions._is_obj_list([]) is True
-    assert gap_functions._is_obj_list({}) is False
+    assert gap_shared._is_obj_dict({}) is True
+    assert gap_shared._is_obj_dict([]) is False
+    assert gap_shared._is_obj_list([]) is True
+    assert gap_shared._is_obj_list({}) is False
 
-    assert gap_functions._ensure_dict({"key": "value"}, "root") == {"key": "value"}
+    assert gap_shared._ensure_dict({"key": "value"}, "root") == {"key": "value"}
     with pytest.raises(
-        gap_functions.CoverageJsonFormatError, match="root is not a dict",
+        gap_shared.CoverageJsonFormatError,
+        match="root is not a dict",
     ):
-        gap_functions._ensure_dict([], "root")
+        gap_shared._ensure_dict([], "root")
 
-    assert gap_functions._ensure_str_dict({"a": 1}, "ctx") == {"a": 1}
-    with pytest.raises(gap_functions.CoverageJsonFormatError, match="non-string key"):
-        gap_functions._ensure_str_dict({1: "bad"}, "ctx")
+    assert gap_shared._ensure_str_dict({"a": 1}, "ctx") == {"a": 1}
+    with pytest.raises(gap_shared.CoverageJsonFormatError, match="non-string key"):
+        gap_shared._ensure_str_dict({1: "bad"}, "ctx")
 
-    assert gap_functions._ensure_str_obj_dict({"a": 1}, "ctx") == {"a": 1}
-    with pytest.raises(gap_functions.CoverageJsonFormatError, match="non-string key"):
-        gap_functions._ensure_str_obj_dict({1: "bad"}, "ctx")
+    assert gap_shared._ensure_str_obj_dict({"a": 1}, "ctx") == {"a": 1}
+    with pytest.raises(gap_shared.CoverageJsonFormatError, match="non-string key"):
+        gap_shared._ensure_str_obj_dict({1: "bad"}, "ctx")
 
 
 def test_coverage_json_helpers_parse_match_and_load_ranges(tmp_path: Path) -> None:
     """Coverage JSON helpers should read files, normalize paths, and load missing ranges."""
-    assert gap_functions._parse_json_root_obj('{"files": {}}') == {"files": {}}
-    with pytest.raises(gap_functions.CoverageJsonFormatError, match="invalid JSON"):
-        gap_functions._parse_json_root_obj("{")
+    assert gap_shared._parse_json_root_obj('{"files": {}}') == {"files": {}}
+    with pytest.raises(gap_shared.CoverageJsonFormatError, match="invalid JSON"):
+        gap_shared._parse_json_root_obj("{")
 
-    assert gap_functions._normalize_rel_path("./pkg\\module.py") == "pkg/module.py"
+    assert gap_shared._normalize_rel_path("./pkg\\module.py") == "pkg/module.py"
 
-    single_match = gap_functions._find_matching_file_entries(
+    single_match = gap_shared._find_matching_file_entries(
         {"other/pkg/module.py": {"missing_lines": [2, 3, 5]}},
         "pkg/module.py",
     )
     assert single_match[0][0] == "other/pkg/module.py"
 
-    with pytest.raises(gap_functions.CoverageJsonFileMatchError, match="no entry for"):
-        gap_functions._pick_single_file_entry(
+    with pytest.raises(gap_shared.CoverageJsonFileMatchError, match="no entry for"):
+        gap_shared._pick_single_file_entry(
             [],
             target_rel_file="pkg/module.py",
             coverage_json_path=tmp_path / "coverage.json",
         )
 
     with pytest.raises(
-        gap_functions.CoverageJsonFileMatchError, match="ambiguous match",
+        gap_shared.CoverageJsonFileMatchError,
+        match="ambiguous match",
     ):
-        gap_functions._pick_single_file_entry(
+        gap_shared._pick_single_file_entry(
             [
                 ("one/pkg/module.py", {"missing_lines": [1]}),
                 ("two/pkg/module.py", {"missing_lines": [2]}),
@@ -335,16 +340,17 @@ def test_coverage_json_helpers_parse_match_and_load_ranges(tmp_path: Path) -> No
             coverage_json_path=tmp_path / "coverage.json",
         )
 
-    assert gap_functions._extract_missing_lines({"missing_lines": [2, 3]}) == [2, 3]
-    with pytest.raises(gap_functions.CoverageJsonFormatError, match="not a list"):
-        gap_functions._extract_missing_lines({"missing_lines": "bad"})
-    with pytest.raises(gap_functions.CoverageJsonFormatError, match="non-integer"):
-        gap_functions._extract_missing_lines({"missing_lines": [1, "two"]})
+    assert gap_shared._extract_missing_lines({"missing_lines": [2, 3]}) == [2, 3]
+    with pytest.raises(gap_shared.CoverageJsonFormatError, match="not a list"):
+        gap_shared._extract_missing_lines({"missing_lines": "bad"})
+    with pytest.raises(gap_shared.CoverageJsonFormatError, match="non-integer"):
+        gap_shared._extract_missing_lines({"missing_lines": [1, "two"]})
 
     with pytest.raises(
-        gap_functions.CoverageJsonNotFoundError, match="Coverage JSON not found",
+        gap_shared.CoverageJsonNotFoundError,
+        match="Coverage JSON not found",
     ):
-        gap_functions._read_text_or_raise(tmp_path / "missing.json")
+        gap_shared._read_text_or_raise(tmp_path / "missing.json")
 
     coverage_json_path = tmp_path / "coverage.json"
     coverage_json_path.write_text(
@@ -358,12 +364,12 @@ def test_coverage_json_helpers_parse_match_and_load_ranges(tmp_path: Path) -> No
         encoding="utf-8",
     )
 
-    assert gap_functions.load_missing_ranges_from_coverage_json(
+    assert gap_shared.load_missing_ranges_from_coverage_json(
         coverage_json_path,
         "pkg/module.py",
     ) == [
-        gap_functions.LineRange(2, 3),
-        gap_functions.LineRange(5, 5),
+        gap_shared.LineRange(2, 3),
+        gap_shared.LineRange(5, 5),
     ]
 
 
@@ -375,31 +381,31 @@ def test_parse_python_file_handles_success_and_syntax_errors(tmp_path: Path) -> 
         encoding="utf-8",
     )
 
-    source_lines, tree = gap_functions._parse_python_file(python_file)
+    source_lines, tree = gap_mapping._parse_python_file(python_file)
     assert source_lines[0] == "if flag:"
     assert isinstance(tree, ast.AST)
 
     broken_file = tmp_path / "broken.py"
     broken_file.write_text("def broken(:\n", encoding="utf-8")
-    with pytest.raises(gap_functions.CoverageGapError, match="Cannot parse"):
-        gap_functions._parse_python_file(broken_file)
+    with pytest.raises(gap_shared.CoverageGapError, match="Cannot parse"):
+        gap_mapping._parse_python_file(broken_file)
 
 
 def test_snippet_helpers_cover_truncate_md_and_anchor_selection() -> None:
     """Snippet helpers should normalize whitespace and select a stable anchor line."""
-    assert gap_functions._truncate(" alpha\n beta ", limit=20) == "alpha beta"
-    assert gap_functions._truncate("word " * 20, limit=10).endswith("…")
-    assert gap_functions._md_inline_code("`quoted`") == "'quoted'"
+    assert gap_mapping._truncate(" alpha\n beta ", limit=20) == "alpha beta"
+    assert gap_mapping._truncate("word " * 20, limit=10).endswith("…")
+    assert gap_mapping._md_inline_code("`quoted`") == "'quoted'"
     assert (
-        gap_functions._pick_anchor_line(
-            gap_functions.LineRange(1, 3),
+        gap_mapping._pick_anchor_line(
+            gap_shared.LineRange(1, 3),
             ["", "    # comment", "value = 1"],
         )
         == _ANCHOR_LINE
     )
     assert (
-        gap_functions._pick_anchor_line(
-            gap_functions.LineRange(1, 2),
+        gap_mapping._pick_anchor_line(
+            gap_shared.LineRange(1, 2),
             ["", "   # comment"],
         )
         == 1
@@ -408,19 +414,21 @@ def test_snippet_helpers_cover_truncate_md_and_anchor_selection() -> None:
 
 def test_physical_snippet_helpers_cover_line_and_span_fallbacks() -> None:
     """Physical snippet helpers should join spans, trim lines, and fall back when no AST statement exists."""
-    assert gap_functions._physical_span_snippet([], start=1, end=2) is None
+    assert gap_mapping._physical_span_snippet([], start=1, end=2) is None
     assert (
-        gap_functions._physical_span_snippet(
+        gap_mapping._physical_span_snippet(
             [" first = 1 ", " second = 2 "],
             start=1,
             end=2,
         )
         == "first = 1 second = 2"
     )
-    assert gap_functions._physical_line_snippet(["  value = 1  "], 1) == "value = 1"
-    assert gap_functions._physical_line_snippet(["value = 1"], _SECOND_LINE) is None
-    assert gap_functions._best_stmt_snippet_for_line(
-        ast.parse(""), 1, ["  value = 1  "],
+    assert gap_mapping._physical_line_snippet(["  value = 1  "], 1) == "value = 1"
+    assert gap_mapping._physical_line_snippet(["value = 1"], _SECOND_LINE) is None
+    assert gap_mapping._best_stmt_snippet_for_line(
+        ast.parse(""),
+        1,
+        ["  value = 1  "],
     ) == ("value = 1")
 
 
@@ -434,26 +442,22 @@ def test_statement_selection_helpers_cover_smallest_stmt_and_unparse_fallback(
         "if flag:\n    value = 1\nelse:\n    value = 2\n",
         encoding="utf-8",
     )
-    source_lines, tree = gap_functions._parse_python_file(python_file)
+    source_lines, tree = gap_mapping._parse_python_file(python_file)
 
     dummy_statement = ast.Pass()
-    assert gap_functions._stmt_span(dummy_statement, default_line=7) == (7, 7)
+    assert gap_mapping._stmt_span(dummy_statement, default_line=7) == (7, 7)
 
-    smallest_statement = gap_functions._pick_smallest_spanning_stmt(tree, 2)
+    smallest_statement = gap_mapping._pick_smallest_spanning_stmt(tree, 2)
     assert isinstance(smallest_statement, ast.Assign)
-    assert gap_functions._pick_smallest_spanning_stmt(tree, 99) is None
+    assert gap_mapping._pick_smallest_spanning_stmt(tree, 99) is None
 
-    assert (
-        gap_functions._best_stmt_snippet_for_line(tree, 2, source_lines) == "value = 1"
-    )
+    assert gap_mapping._best_stmt_snippet_for_line(tree, 2, source_lines) == "value = 1"
 
     def fake_unparse(_node: ast.AST) -> str:
         return "<expr>"
 
-    monkeypatch.setattr(gap_functions, "_unparse", fake_unparse)
-    assert (
-        gap_functions._best_stmt_snippet_for_line(tree, 2, source_lines) == "value = 1"
-    )
+    monkeypatch.setattr(gap_mapping, "_unparse", fake_unparse)
+    assert gap_mapping._best_stmt_snippet_for_line(tree, 2, source_lines) == "value = 1"
 
 
 def test_find_containing_func_prefers_smallest_match_and_falls_back() -> None:
@@ -461,21 +465,17 @@ def test_find_containing_func_prefers_smallest_match_and_falls_back() -> None:
     outer_node = ast.parse("pass")
     inner_node = ast.parse("pass")
     funcs = [
-        gap_functions.FuncInfo("outer", 1, 20, outer_node, is_method=False),
-        gap_functions.FuncInfo("inner", 5, 10, inner_node, is_method=False),
+        gap_shared.FuncInfo("outer", 1, 20, outer_node, is_method=False),
+        gap_shared.FuncInfo("inner", 5, 10, inner_node, is_method=False),
     ]
     assert (
-        gap_functions.find_containing_func(funcs, gap_functions.LineRange(6, 7))
-        == funcs[1]
+        gap_mapping.find_containing_func(funcs, gap_shared.LineRange(6, 7)) == funcs[1]
     )
     assert (
-        gap_functions.find_containing_func(funcs, gap_functions.LineRange(11, 11))
+        gap_mapping.find_containing_func(funcs, gap_shared.LineRange(11, 11))
         == funcs[0]
     )
-    assert (
-        gap_functions.find_containing_func(funcs, gap_functions.LineRange(30, 30))
-        is None
-    )
+    assert gap_mapping.find_containing_func(funcs, gap_shared.LineRange(30, 30)) is None
 
 
 def test_map_range_to_group_item_covers_module_full_branch_and_code_paths(
@@ -483,19 +483,19 @@ def test_map_range_to_group_item_covers_module_full_branch_and_code_paths(
 ) -> None:
     """Range mapping should handle module fallbacks, full coverage, branch labels, and code snippets."""
     source_lines, function_node = _sample_function_node()
-    collector = gap_functions.BranchCollector(source_lines)
-    function_info = gap_functions.FuncInfo(
+    collector = gap_mapping.BranchCollector(source_lines)
+    function_info = gap_shared.FuncInfo(
         "sample",
         function_node.lineno,
         getattr(function_node, "end_lineno", function_node.lineno),
         function_node,
         is_method=False,
     )
-    branch_cache: dict[str, list[gap_functions.BranchBlock]] = {}
+    branch_cache: dict[str, list[gap_shared.BranchBlock]] = {}
 
     assert (
-        gap_functions._best_branch_label_for_range(
-            gap_functions.LineRange(3, 3),
+        gap_mapping._best_branch_label_for_range(
+            gap_shared.LineRange(3, 3),
             qual="sample",
             fi=function_info,
             collector=collector,
@@ -504,8 +504,8 @@ def test_map_range_to_group_item_covers_module_full_branch_and_code_paths(
         == "if value (then)"
     )
     assert (
-        gap_functions._best_branch_label_for_range(
-            gap_functions.LineRange(99, 99),
+        gap_mapping._best_branch_label_for_range(
+            gap_shared.LineRange(99, 99),
             qual="sample",
             fi=function_info,
             collector=collector,
@@ -515,8 +515,8 @@ def test_map_range_to_group_item_covers_module_full_branch_and_code_paths(
     )
     assert "sample" in branch_cache
 
-    module_mapping = gap_functions._map_range_to_group_item(
-        gap_functions.LineRange(1, 1),
+    module_mapping = gap_mapping._map_range_to_group_item(
+        gap_shared.LineRange(1, 1),
         funcs=[],
         collector=collector,
         branch_cache={},
@@ -524,10 +524,10 @@ def test_map_range_to_group_item_covers_module_full_branch_and_code_paths(
     )
     assert module_mapping[0] == "<module>"
     assert module_mapping[2] is False
-    assert module_mapping[3] == gap_functions.Detail("code", "value = 1")
+    assert module_mapping[3] == gap_shared.Detail("code", "value = 1")
 
-    full_mapping = gap_functions._map_range_to_group_item(
-        gap_functions.LineRange(function_info.start, function_info.end),
+    full_mapping = gap_mapping._map_range_to_group_item(
+        gap_shared.LineRange(function_info.start, function_info.end),
         funcs=[function_info],
         collector=collector,
         branch_cache={},
@@ -535,27 +535,27 @@ def test_map_range_to_group_item_covers_module_full_branch_and_code_paths(
     )
     assert full_mapping == (
         "sample",
-        gap_functions.LineRange(function_info.start, function_info.end),
+        gap_shared.LineRange(function_info.start, function_info.end),
         True,
         None,
     )
 
-    branch_mapping = gap_functions._map_range_to_group_item(
-        gap_functions.LineRange(3, 3),
+    branch_mapping = gap_mapping._map_range_to_group_item(
+        gap_shared.LineRange(3, 3),
         funcs=[function_info],
         collector=collector,
         branch_cache={},
         source_lines=source_lines,
     )
-    assert branch_mapping[3] == gap_functions.Detail("branch", "if value (then)")
+    assert branch_mapping[3] == gap_shared.Detail("branch", "if value (then)")
 
     def fake_best_branch_label_for_range(
-        rng: gap_functions.LineRange,
+        rng: gap_shared.LineRange,
         *,
         qual: str,
-        fi: gap_functions.FuncInfo,
-        collector: gap_functions.BranchCollector,
-        branch_cache: dict[str, list[gap_functions.BranchBlock]],
+        fi: gap_shared.FuncInfo,
+        collector: gap_mapping.BranchCollector,
+        branch_cache: dict[str, list[gap_shared.BranchBlock]],
     ) -> str | None:
         del rng, qual, fi, collector, branch_cache
         return None
@@ -569,48 +569,44 @@ def test_map_range_to_group_item_covers_module_full_branch_and_code_paths(
         return "value = 1"
 
     monkeypatch.setattr(
-        gap_functions,
-        "_best_branch_label_for_range",
-        fake_best_branch_label_for_range,
+        gap_mapping, "_best_branch_label_for_range", fake_best_branch_label_for_range,
     )
     monkeypatch.setattr(
-        gap_functions,
-        "_best_stmt_snippet_for_line",
-        fake_best_stmt_snippet_for_line,
+        gap_mapping, "_best_stmt_snippet_for_line", fake_best_stmt_snippet_for_line,
     )
 
-    code_mapping = gap_functions._map_range_to_group_item(
-        gap_functions.LineRange(3, 3),
+    code_mapping = gap_mapping._map_range_to_group_item(
+        gap_shared.LineRange(3, 3),
         funcs=[function_info],
         collector=collector,
         branch_cache={},
         source_lines=source_lines,
     )
-    assert code_mapping[3] == gap_functions.Detail("code", "value = 1")
+    assert code_mapping[3] == gap_shared.Detail("code", "value = 1")
 
 
 def test_format_grouped_mapping_and_render_mapping_produce_expected_text(
     tmp_path: Path,
 ) -> None:
     """Grouped mapping text should render module, method, branch, and file-relative output."""
-    formatted = gap_functions._format_grouped_mapping(
+    formatted = gap_mapping._format_grouped_mapping(
         {
-            "<module>": [(gap_functions.LineRange(1, 1), False, None)],
+            "<module>": [(gap_shared.LineRange(1, 1), False, None)],
             "demo": [
                 (
-                    gap_functions.LineRange(2, 2),
+                    gap_shared.LineRange(2, 2),
                     False,
-                    gap_functions.Detail("branch", "if flag (then)"),
+                    gap_shared.Detail("branch", "if flag (then)"),
                 ),
                 (
-                    gap_functions.LineRange(3, 3),
+                    gap_shared.LineRange(3, 3),
                     False,
-                    gap_functions.Detail("code", "value = 1"),
+                    gap_shared.Detail("code", "value = 1"),
                 ),
                 (
-                    gap_functions.LineRange(4, 5),
+                    gap_shared.LineRange(4, 5),
                     False,
-                    gap_functions.Detail("code", "value = 2"),
+                    gap_shared.Detail("code", "value = 2"),
                 ),
             ],
         },
@@ -632,9 +628,9 @@ def test_format_grouped_mapping_and_render_mapping_produce_expected_text(
         "    return 0\n",
         encoding="utf-8",
     )
-    rendered = gap_functions.render_mapping(
+    rendered = gap_mapping.render_mapping(
         render_file,
-        [gap_functions.LineRange(2, 3)],
+        [gap_shared.LineRange(2, 3)],
         root=tmp_path,
     )
     assert "In `demo.py`:" in rendered
