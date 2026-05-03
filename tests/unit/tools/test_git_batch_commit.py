@@ -10,6 +10,9 @@ Fix: Verify root a.commit replay fails early on a clean tree, commit blocks skip
 clean path sets instead of calling `git commit`, and interactive stop paths
 return a non-zero CLI result.
 
+Fix: Verify add-phase stop choices stop the batch instead of being treated as
+skips, and that Git pathspec targets are accepted during missing-file checks.
+
 Fix: Import the shared Git helper types through the `tools` package so test
 imports stay consistent with the repository package layout.
 """
@@ -243,10 +246,16 @@ def test_process_commit_block_skips_when_group_has_no_staged_diff(
         commit_title="refactor(example): title",
     )
 
-    def fake_git_add_files(git_adds: list[str], root: Path) -> bool:
+    def fake_git_add_files(
+        git_adds: list[str],
+        root: Path,
+    ) -> git_batch_commit._GitAddOutcome:
         assert git_adds == block.git_adds
         assert root == tmp_path
-        return True
+        return git_batch_commit._GitAddOutcome(
+            should_continue=True,
+            should_skip_commit=False,
+        )
 
     def fake_block_has_staged_changes(git_adds: list[str], root: Path) -> bool:
         assert git_adds == block.git_adds
@@ -289,6 +298,87 @@ def test_process_commit_block_skips_when_group_has_no_staged_diff(
 
     assert should_continue is True
     assert "already applied or the tree is clean" in caplog.text
+
+
+def test_process_commit_block_stops_when_add_phase_requests_stop(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """A stop choice in the add phase should stop the batch instead of skipping."""
+    block = git_batch_commit.CommitBlock(
+        git_adds=["git add -A src/example.py"],
+        commit_message="refactor(example): title",
+        commit_title="refactor(example): title",
+    )
+
+    def fake_git_add_files(
+        git_adds: list[str],
+        root: Path,
+    ) -> git_batch_commit._GitAddOutcome:
+        assert git_adds == block.git_adds
+        assert root == tmp_path
+        return git_batch_commit._GitAddOutcome(
+            should_continue=False,
+            should_skip_commit=False,
+        )
+
+    def fail_block_has_staged_changes(git_adds: list[str], root: Path) -> bool:
+        assert git_adds == block.git_adds
+        assert root == tmp_path
+        pytest.fail("_block_has_staged_changes should not be called")
+
+    monkeypatch.setattr(git_batch_commit, "git_add_files", fake_git_add_files)
+    monkeypatch.setattr(
+        git_batch_commit,
+        "_block_has_staged_changes",
+        fail_block_has_staged_changes,
+    )
+
+    caplog.set_level("INFO")
+
+    should_continue = git_batch_commit._process_commit_block(
+        block,
+        2,
+        4,
+        tmp_path,
+    )
+
+    assert should_continue is False
+    assert "Stopping at commit 2 on user request." in caplog.text
+
+
+def test_check_missing_files_ignores_git_pathspec_targets(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Git pathspec targets should not be treated as missing disk paths."""
+    tracked_checks: list[str] = []
+    head_checks: list[str] = []
+
+    def fake_is_tracked_path(root: Path, file_path_str: str) -> bool:
+        assert root == tmp_path
+        tracked_checks.append(file_path_str)
+        return False
+
+    def fake_is_path_in_head(root: Path, file_path_str: str) -> bool:
+        assert root == tmp_path
+        head_checks.append(file_path_str)
+        return False
+
+    monkeypatch.setattr(git_batch_commit, "_is_tracked_path", fake_is_tracked_path)
+    monkeypatch.setattr(git_batch_commit, "_is_path_in_head", fake_is_path_in_head)
+
+    missing_files = git_batch_commit._check_missing_files(
+        [
+            'git add -A ":(glob)src/**/test_job_restore_request_sidecar/**"',
+        ],
+        tmp_path,
+    )
+
+    assert missing_files == []
+    assert tracked_checks == []
+    assert head_checks == []
 
 
 def test_process_all_commits_returns_false_when_user_stops_after_git_error(

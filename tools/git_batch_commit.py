@@ -66,6 +66,13 @@ which avoids misleading "nothing to commit" failures for already-applied groups.
 
 Fix: Return a non-zero exit code when the user stops after a Git operation
 failure, so shell status matches the interrupted run.
+
+Fix: Preserve the difference between `skip` and `stop` when `git add` review
+finds missing paths or failed add commands, so interactive stop choices really
+stop the batch run.
+
+Fix: Treat Git pathspec targets such as `:(glob)...` as valid `git add`
+arguments during precheck instead of rejecting them as missing disk paths.
 """
 
 
@@ -170,6 +177,14 @@ class _GitCommandOptions:
     capture_output: bool = True
     require_tty: bool = False
     trace_git: bool = False
+
+
+@dataclass(frozen=True)
+class _GitAddOutcome:
+    """Outcome of one git-add phase, including whether the batch should stop."""
+
+    should_continue: bool
+    should_skip_commit: bool = False
 
 
 # ----------------------------
@@ -592,6 +607,11 @@ def _extract_file_path(cmd: str) -> str | None:
     return path_args[-1]
 
 
+def _is_git_pathspec(file_path_str: str) -> bool:
+    """Return True when the git-add target uses Git pathspec magic syntax."""
+    return file_path_str.startswith(":(")
+
+
 def _is_tracked_path(root: Path, file_path_str: str) -> bool:
     """Return True when git tracks the given path in the current repository."""
     result = _run_git_command(
@@ -623,6 +643,9 @@ def _check_missing_files(git_adds: list[str], root: Path) -> list[str]:
     for cmd in git_adds:
         file_path_str = _extract_file_path(cmd)
         if file_path_str is None:
+            continue
+
+        if _is_git_pathspec(file_path_str):
             continue
 
         file_path = root / file_path_str
@@ -686,7 +709,7 @@ def _validate_missing_files_for_blocks(blocks: list[CommitBlock], root: Path) ->
 def _prompt_add_issues_action(
     missing_files: list[str],
     failed_adds: list[str],
-) -> str:
+) -> _GitAddOutcome:
     """Prompt user for action when files are missing or git-add failed."""
     if missing_files:
         LOGGER.warning("\nThe following files are missing:")
@@ -698,13 +721,19 @@ def _prompt_add_issues_action(
         for cmd in failed_adds:
             LOGGER.warning("  - %s", cmd)
 
-    return (
+    response = (
         input(
             "\nConfirm commit anyway, skip this commit, or stop? [confirm/skip/stop]: ",
         )
         .strip()
         .lower()
     )
+
+    if response == "confirm":
+        return _GitAddOutcome(should_continue=True, should_skip_commit=False)
+    if response == "stop":
+        return _GitAddOutcome(should_continue=False, should_skip_commit=False)
+    return _GitAddOutcome(should_continue=True, should_skip_commit=True)
 
 
 def _execute_git_adds(git_adds: list[str], root: Path) -> list[str]:
@@ -736,21 +765,19 @@ def _execute_git_adds(git_adds: list[str], root: Path) -> list[str]:
     return failed_adds
 
 
-def git_add_files(git_adds: list[str], root: Path) -> bool:
+def git_add_files(git_adds: list[str], root: Path) -> _GitAddOutcome:
     """Execute git add commands.
 
-    Returns True if all files were added successfully, False otherwise.
+    Returns an outcome that distinguishes continue, skip, and stop.
     Logs warnings for missing files and asks for user confirmation.
     """
     missing_files = _check_missing_files(git_adds, root)
     failed_adds = _execute_git_adds(git_adds, root)
 
     if missing_files or failed_adds:
-        response = _prompt_add_issues_action(missing_files, failed_adds)
-        if response in ("stop", "skip"):
-            return False
+        return _prompt_add_issues_action(missing_files, failed_adds)
 
-    return True
+    return _GitAddOutcome(should_continue=True, should_skip_commit=False)
 
 
 def git_commit(
@@ -925,7 +952,11 @@ def _process_commit_block(
     LOGGER.info("Git add commands: %d", len(block.git_adds))
 
     # Add files
-    if not git_add_files(block.git_adds, root):
+    add_outcome = git_add_files(block.git_adds, root)
+    if not add_outcome.should_continue:
+        LOGGER.info("Stopping at commit %d on user request.", i)
+        return False
+    if add_outcome.should_skip_commit:
         LOGGER.warning("Skipping commit %d.", i)
         return True
 
