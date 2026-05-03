@@ -37,6 +37,8 @@
     "grmc",
     "itsdangerous",
     "markupsafe",
+    "monkeypatched",
+    "noninteractive",
     "passlib",
     "pcomp",
     "ptncs",
