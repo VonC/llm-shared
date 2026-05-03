@@ -1,4 +1,4 @@
-"""Tests for the git batch commit helper-backed command dispatch.
+"""Tests for the split git batch commit helper-backed command dispatch.
 
 Fix: Verify the tool routes parsed Git commands through the shared cached
 cross-platform helper instead of spawning plain `git` directly.
@@ -24,7 +24,9 @@ from pathlib import Path
 
 import pytest
 
-from tools import git_batch_commit
+from tools import git_batch_commit_git as git_batch_git
+from tools import git_batch_commit_models as git_batch_models
+from tools import git_batch_commit_workflow as git_batch_workflow
 from tools.git_command import GitCommandOptions
 
 # pyright: reportPrivateUsage=false
@@ -47,12 +49,12 @@ def test_run_git_command_strips_leading_git_before_helper_dispatch(
         captured_kwargs.update(kwargs)
         return subprocess.CompletedProcess(git_args, 0, stdout="ok")
 
-    monkeypatch.setattr(git_batch_commit, "run_cross_platform_git_command", fake_run)
+    monkeypatch.setattr(git_batch_git, "run_cross_platform_git_command", fake_run)
 
-    result = git_batch_commit._run_git_command(
+    result = git_batch_git._run_git_command(
         ["git", "commit", "-m", "message"],
         cwd=tmp_path,
-        options=git_batch_commit._GitCommandOptions(check=False),
+        options=git_batch_models._GitCommandOptions(check=False),
     )
 
     assert result.stdout == "ok"
@@ -69,8 +71,8 @@ def test_run_git_command_strips_leading_git_before_helper_dispatch(
 
 def test_run_git_command_rejects_non_git_commands(tmp_path: Path) -> None:
     """The wrapper should fail fast when a parsed command does not start with git."""
-    with pytest.raises(git_batch_commit.GitOperationError):
-        git_batch_commit._run_git_command(["python", "-V"], cwd=tmp_path)
+    with pytest.raises(git_batch_models.GitOperationError):
+        git_batch_git._run_git_command(["python", "-V"], cwd=tmp_path)
 
 
 def test_run_git_command_rejects_missing_console_for_interactive_git(
@@ -78,16 +80,16 @@ def test_run_git_command_rejects_missing_console_for_interactive_git(
     tmp_path: Path,
 ) -> None:
     """Interactive Git commands should fail fast without a real console."""
-    monkeypatch.setattr(git_batch_commit, "_has_interactive_console", lambda: False)
+    monkeypatch.setattr(git_batch_git, "_has_interactive_console", lambda: False)
 
     with pytest.raises(
-        git_batch_commit.GitOperationError,
+        git_batch_models.GitOperationError,
         match="interactive console",
     ):
-        git_batch_commit._run_git_command(
+        git_batch_git._run_git_command(
             ["git", "commit", "-m", "message"],
             cwd=tmp_path,
-            options=git_batch_commit._GitCommandOptions(
+            options=git_batch_models._GitCommandOptions(
                 capture_output=False,
                 require_tty=True,
             ),
@@ -108,17 +110,17 @@ def test_run_git_command_adds_trace_environment_when_requested(
         captured_kwargs.update(kwargs)
         return subprocess.CompletedProcess(git_args, 0, stdout="ok")
 
-    monkeypatch.setattr(git_batch_commit, "run_cross_platform_git_command", fake_run)
+    monkeypatch.setattr(git_batch_git, "run_cross_platform_git_command", fake_run)
     monkeypatch.setattr(
-        git_batch_commit,
+        git_batch_git,
         "_build_git_trace_environment",
         lambda: {"GIT_TRACE": "1"},
     )
 
-    git_batch_commit._run_git_command(
+    git_batch_git._run_git_command(
         ["git", "commit", "-m", "message"],
         cwd=tmp_path,
-        options=git_batch_commit._GitCommandOptions(trace_git=True),
+        options=git_batch_models._GitCommandOptions(trace_git=True),
     )
 
     assert captured_kwargs["options"] == GitCommandOptions(
@@ -144,9 +146,9 @@ def test_git_commit_uses_live_output_and_trace_toggle(
         captured_kwargs.update(kwargs)
         return subprocess.CompletedProcess(args, 0)
 
-    monkeypatch.setattr(git_batch_commit, "_run_git_command", fake_run_git_command)
+    monkeypatch.setattr(git_batch_git, "_run_git_command", fake_run_git_command)
 
-    git_batch_commit.git_commit(
+    git_batch_git.git_commit(
         "message body",
         "title",
         tmp_path,
@@ -155,7 +157,7 @@ def test_git_commit_uses_live_output_and_trace_toggle(
 
     assert captured_args == ["git", "commit", "-m", "message body"]
     assert captured_kwargs["cwd"] == tmp_path
-    assert captured_kwargs["options"] == git_batch_commit._GitCommandOptions(
+    assert captured_kwargs["options"] == git_batch_models._GitCommandOptions(
         capture_output=False,
         require_tty=True,
         trace_git=True,
@@ -167,7 +169,7 @@ def test_run_root_a_commit_workflow_rejects_clean_tree_before_commit_phase(
     tmp_path: Path,
 ) -> None:
     """The root a.commit workflow should fail early when there is nothing left to replay."""
-    block = git_batch_commit.CommitBlock(
+    block = git_batch_models.CommitBlock(
         git_adds=["git add -A src/example.py"],
         commit_message="refactor(example): title\n\nWhy:\n\nreason\n\nmore reason\n\nWhat:\n\n- change",
         commit_title="refactor(example): title",
@@ -179,14 +181,14 @@ def test_run_root_a_commit_workflow_rejects_clean_tree_before_commit_phase(
         *,
         filename: str | None,
         interactive: bool,
-    ) -> list[git_batch_commit.CommitBlock]:
+    ) -> list[git_batch_models.CommitBlock]:
         assert root == tmp_path
         assert filename == "a.commit"
         assert interactive is False
         return [block]
 
     def fake_validate_missing_files_for_blocks(
-        blocks: list[git_batch_commit.CommitBlock],
+        blocks: list[git_batch_models.CommitBlock],
         root: Path,
     ) -> None:
         assert blocks == [block]
@@ -198,7 +200,7 @@ def test_run_root_a_commit_workflow_rejects_clean_tree_before_commit_phase(
         return True
 
     def fail_process_all_commits(
-        blocks: list[git_batch_commit.CommitBlock],
+        blocks: list[git_batch_models.CommitBlock],
         root: Path,
         *,
         trace_git_commit: bool = False,
@@ -209,27 +211,29 @@ def test_run_root_a_commit_workflow_rejects_clean_tree_before_commit_phase(
         return pytest.fail("commit phase should not run")
 
     monkeypatch.setattr(
-        git_batch_commit,
+        git_batch_workflow,
         "_read_and_parse_content",
         fake_read_and_parse_content,
     )
     monkeypatch.setattr(
-        git_batch_commit,
+        git_batch_workflow,
         "_validate_missing_files_for_blocks",
         fake_validate_missing_files_for_blocks,
     )
-    monkeypatch.setattr(git_batch_commit, "_is_worktree_clean", fake_is_worktree_clean)
     monkeypatch.setattr(
-        git_batch_commit,
+        git_batch_workflow, "_is_worktree_clean", fake_is_worktree_clean,
+    )
+    monkeypatch.setattr(
+        git_batch_workflow,
         "_process_all_commits",
         fail_process_all_commits,
     )
 
     with pytest.raises(
-        git_batch_commit.GitBatchCommitError,
+        git_batch_models.GitBatchCommitError,
         match="working tree is clean",
     ):
-        git_batch_commit._run_root_a_commit_workflow(tmp_path)
+        git_batch_workflow._run_root_a_commit_workflow(tmp_path)
 
     assert validation_calls == ["validated"]
 
@@ -240,7 +244,7 @@ def test_process_commit_block_skips_when_group_has_no_staged_diff(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """A clean group should be skipped with a clear already-applied message."""
-    block = git_batch_commit.CommitBlock(
+    block = git_batch_models.CommitBlock(
         git_adds=["git add -A src/example.py"],
         commit_message="refactor(example): title",
         commit_title="refactor(example): title",
@@ -249,10 +253,10 @@ def test_process_commit_block_skips_when_group_has_no_staged_diff(
     def fake_git_add_files(
         git_adds: list[str],
         root: Path,
-    ) -> git_batch_commit._GitAddOutcome:
+    ) -> git_batch_models._GitAddOutcome:
         assert git_adds == block.git_adds
         assert root == tmp_path
-        return git_batch_commit._GitAddOutcome(
+        return git_batch_models._GitAddOutcome(
             should_continue=True,
             should_skip_commit=False,
         )
@@ -275,21 +279,21 @@ def test_process_commit_block_skips_when_group_has_no_staged_diff(
         assert trace_git_commit is False
         pytest.fail("git_commit should not be called")
 
-    monkeypatch.setattr(git_batch_commit, "git_add_files", fake_git_add_files)
+    monkeypatch.setattr(git_batch_workflow, "git_add_files", fake_git_add_files)
     monkeypatch.setattr(
-        git_batch_commit,
+        git_batch_workflow,
         "_block_has_staged_changes",
         fake_block_has_staged_changes,
     )
     monkeypatch.setattr(
-        git_batch_commit,
+        git_batch_workflow,
         "git_commit",
         fail_git_commit,
     )
 
     caplog.set_level("WARNING")
 
-    should_continue = git_batch_commit._process_commit_block(
+    should_continue = git_batch_workflow._process_commit_block(
         block,
         1,
         3,
@@ -306,7 +310,7 @@ def test_process_commit_block_stops_when_add_phase_requests_stop(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """A stop choice in the add phase should stop the batch instead of skipping."""
-    block = git_batch_commit.CommitBlock(
+    block = git_batch_models.CommitBlock(
         git_adds=["git add -A src/example.py"],
         commit_message="refactor(example): title",
         commit_title="refactor(example): title",
@@ -315,10 +319,10 @@ def test_process_commit_block_stops_when_add_phase_requests_stop(
     def fake_git_add_files(
         git_adds: list[str],
         root: Path,
-    ) -> git_batch_commit._GitAddOutcome:
+    ) -> git_batch_models._GitAddOutcome:
         assert git_adds == block.git_adds
         assert root == tmp_path
-        return git_batch_commit._GitAddOutcome(
+        return git_batch_models._GitAddOutcome(
             should_continue=False,
             should_skip_commit=False,
         )
@@ -328,16 +332,16 @@ def test_process_commit_block_stops_when_add_phase_requests_stop(
         assert root == tmp_path
         pytest.fail("_block_has_staged_changes should not be called")
 
-    monkeypatch.setattr(git_batch_commit, "git_add_files", fake_git_add_files)
+    monkeypatch.setattr(git_batch_workflow, "git_add_files", fake_git_add_files)
     monkeypatch.setattr(
-        git_batch_commit,
+        git_batch_workflow,
         "_block_has_staged_changes",
         fail_block_has_staged_changes,
     )
 
     caplog.set_level("INFO")
 
-    should_continue = git_batch_commit._process_commit_block(
+    should_continue = git_batch_workflow._process_commit_block(
         block,
         2,
         4,
@@ -366,10 +370,10 @@ def test_check_missing_files_ignores_git_pathspec_targets(
         head_checks.append(file_path_str)
         return False
 
-    monkeypatch.setattr(git_batch_commit, "_is_tracked_path", fake_is_tracked_path)
-    monkeypatch.setattr(git_batch_commit, "_is_path_in_head", fake_is_path_in_head)
+    monkeypatch.setattr(git_batch_git, "_is_tracked_path", fake_is_tracked_path)
+    monkeypatch.setattr(git_batch_git, "_is_path_in_head", fake_is_path_in_head)
 
-    missing_files = git_batch_commit._check_missing_files(
+    missing_files = git_batch_git._check_missing_files(
         [
             'git add -A ":(glob)src/**/test_job_restore_request_sidecar/**"',
         ],
@@ -386,7 +390,7 @@ def test_process_all_commits_returns_false_when_user_stops_after_git_error(
     tmp_path: Path,
 ) -> None:
     """Stopping after a Git operation failure should report an unsuccessful run."""
-    block = git_batch_commit.CommitBlock(
+    block = git_batch_models.CommitBlock(
         git_adds=["git add -A src/example.py"],
         commit_message="refactor(example): title",
         commit_title="refactor(example): title",
@@ -395,10 +399,10 @@ def test_process_all_commits_returns_false_when_user_stops_after_git_error(
     def fake_git_reset(root: Path) -> None:
         assert root == tmp_path
 
-    monkeypatch.setattr(git_batch_commit, "git_reset", fake_git_reset)
+    monkeypatch.setattr(git_batch_workflow, "git_reset", fake_git_reset)
 
     def fake_process_commit_block(
-        block_arg: git_batch_commit.CommitBlock,
+        block_arg: git_batch_models.CommitBlock,
         index: int,
         total: int,
         root: Path,
@@ -411,20 +415,20 @@ def test_process_all_commits_returns_false_when_user_stops_after_git_error(
         assert root == tmp_path
         assert trace_git_commit is False
         msg = "boom"
-        raise git_batch_commit.GitOperationError(msg)
+        raise git_batch_models.GitOperationError(msg)
 
     def fake_input(prompt: str) -> str:
         assert prompt == "\nContinue with next commit or stop? [continue/stop]: "
         return "stop"
 
     monkeypatch.setattr(
-        git_batch_commit,
+        git_batch_workflow,
         "_process_commit_block",
         fake_process_commit_block,
     )
     monkeypatch.setattr("builtins.input", fake_input)
 
-    assert git_batch_commit._process_all_commits([block], tmp_path) is False
+    assert git_batch_workflow._process_all_commits([block], tmp_path) is False
 
 
 def test_main_returns_non_zero_when_commit_processing_stops(
@@ -432,7 +436,7 @@ def test_main_returns_non_zero_when_commit_processing_stops(
     tmp_path: Path,
 ) -> None:
     """The CLI should return a failing exit code when commit processing aborts."""
-    block = git_batch_commit.CommitBlock(
+    block = git_batch_models.CommitBlock(
         git_adds=["git add -A src/example.py"],
         commit_message="refactor(example): title",
         commit_title="refactor(example): title",
@@ -447,14 +451,14 @@ def test_main_returns_non_zero_when_commit_processing_stops(
         *,
         filename: str | None,
         interactive: bool,
-    ) -> list[git_batch_commit.CommitBlock]:
+    ) -> list[git_batch_models.CommitBlock]:
         assert root == tmp_path
         assert filename == "commit-plan.txt"
         assert interactive is True
         return [block]
 
     def fake_process_all_commits(
-        blocks: list[git_batch_commit.CommitBlock],
+        blocks: list[git_batch_models.CommitBlock],
         root: Path,
         *,
         trace_git_commit: bool = False,
@@ -464,19 +468,19 @@ def test_main_returns_non_zero_when_commit_processing_stops(
         assert trace_git_commit is False
         return False
 
-    monkeypatch.setattr(git_batch_commit, "find_project_root", fake_find_project_root)
+    monkeypatch.setattr(git_batch_workflow, "find_project_root", fake_find_project_root)
     monkeypatch.setattr(
-        git_batch_commit,
+        git_batch_workflow,
         "_read_and_parse_content",
         fake_read_and_parse_content,
     )
     monkeypatch.setattr(
-        git_batch_commit,
+        git_batch_workflow,
         "_process_all_commits",
         fake_process_all_commits,
     )
 
-    assert git_batch_commit.main(["commit-plan.txt"]) == 1
+    assert git_batch_workflow.main(["commit-plan.txt"]) == 1
 
 
 # eof
