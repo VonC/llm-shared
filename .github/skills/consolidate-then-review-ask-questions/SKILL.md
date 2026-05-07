@@ -37,9 +37,15 @@ Follow the template:
 
 #### Options
 
-- Option X1: (with pros and cons)
+- Option X1: (with pros and cons: you can list multiple pros and cons for each option, but at least one pro and one con for each option)
+   - pro:
+   - con:
 - Option X2: (with pros and cons)
+   - pro:
+   - con:
 - Option X3: (with pros and cons)
+   - pro:
+   - con:
 
 #### Recommended option (with arguments for this choice)
 
