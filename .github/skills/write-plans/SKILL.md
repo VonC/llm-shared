@@ -1,23 +1,25 @@
 ---
 name: write-plans
-description: 'Write two plan markdown documents. A plan to details what needs to be implemented, file by file, and the rollout steps to be followed. An implementation plan to review what has been implemented, file by file, and the rollout steps followed. Both documents should not include any design choice, but only implementation details.'
+description: 'Write two plan markdown documents. A plan to details what needs to be implemented, file by file, and the rollout steps to be followed. An implementation validation plan to review what has been implemented, file by file, and the rollout steps followed. Both documents should not include any design choice, but only implementation details.'
 user-invocable: true
 metadata:
-  - "This skill is used to write two plan markdown documents. A plan to details what needs to be implemented, file by file, and the rollout steps to be followed. An implementation plan to review what has been implemented, file by file, and the rollout steps followed. Both documents should not include any design choice, but only implementation details."
+  - "This skill is used to write two plan markdown documents. A plan to details what needs to be implemented, file by file, and the rollout steps to be followed. An implementation validation plan to review what has been implemented, file by file, and the rollout steps followed. Both documents should not include any design choice, but only implementation details."
   - "The argument hint for this skill is 'Provide the version vX.Y.Z and topic, for example "v9.3.0 sentinels".'"
 argument-hint: 'Provide the version vX.Y.Z and topic, for example "v9.3.0 sentinels".'
 ---
+
+ultrathink: To write the two plan documents, I will first need to gather information from the design document `docs\design.vX.Y.Z.<topic>.md` and the issue document `docs\issue/feature_request.vX.Y.Z.{topic}.md`. I will analyze the design and issue documents to extract the necessary implementation details, file modifications, and rollout steps.
 
 Check your prompt for version vX.Y.Z and topic (for instance "v9.3.0 sentinels")
 
 Write two plan documents:
 
 - a plan document named `docs\plan.vX.Y.Z.<topic>.md`, in markdown format, from a design document `docs\design.vX.Y.Z.<topic>.md` included in your context. It will describes what needs to be implemented, file by file, and the rollout steps to be followed. It should not include any design choice, but only implementation details.
-- an implementation plan document named `docs\plan.vX.Y.Z.<topic>.implementation.md`, in markdown format, from the same design document `docs\design.vX.Y.Z.<topic>.md` included in your context. It will review what has been implemented, file by file, and the rollout steps followed. It should not include any design choice, but only implementation review details.
+- an implementation validation plan document named `docs\plan.vX.Y.Z.<topic>.validation.md`, in markdown format, from the same design document `docs\design.vX.Y.Z.<topic>.md` included in your context. It will review what has been implemented, file by file, and the rollout steps followed. It should not include any design choice, but only implementation review details.
 
 For the first plan document, follow the template from #file:./plan.template.md to write the plan document, and adapt it as needed if some sections are not relevant for the specific design you are writing.
 
-For the second implementation plan document, follow the template from #file:./plan.implementation.template.md to write the implementation plan document, and adapt it as needed if some sections are not relevant for the specific design you are writing.
+For the second implementation validation plan document, follow the template from #file:./plan.validation.template.md to write the implementation validation plan document, and adapt it as needed if some sections are not relevant for the specific design you are writing.
 
 Notes for the writer:
 
@@ -44,7 +46,7 @@ Add in each step a reference to a new section which describe how to do the "exec
 
 Mutualize your "ready-to-run-command", and add a reference to it in each step. Said command must include `.\check.bat` and pytest on the step's tests: do both until everything passes.
 
-Prepare also a `docs\plan.vX.Y.Z.{topic}.implementation.md` skeleton (similar to docs\plan.v8.11.perf_complexity.implementation.md), with subsections Goal for step x (you can fill out this one), "Step x improvement expectations" (you can fill out this one), "What was implemented for Step x" (leave it empty for now), "New types/classes introduced for Step x" (leave it empty), "Architecture check for Step x" (empty), "Performance check for step" (empty), "Feature integrity for step" (empty).
+Prepare also a `docs\plan.vX.Y.Z.{topic}.validation.md` skeleton (similar to docs\plan.v8.11.perf_complexity.validation.md), with subsections Goal for step x (you can fill out this one), "Step x improvement expectations" (you can fill out this one), "What was implemented for Step x" (leave it empty for now), "New types/classes introduced for Step x" (leave it empty), "Architecture check for Step x" (empty), "Performance check for step" (empty), "Feature integrity for step" (empty).
 
 Follow the steps detailed in `docs\plan.vX.Y.Z.{topic}.md`
 
