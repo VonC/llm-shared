@@ -5,6 +5,8 @@ user-invocable: true
 argument-hint: 'Provide the version vX.Y.Z and topic, for example "v9.3.0 sentinels".'
 ---
 
+ultrathink: take the time to reason through the user story, bug report, or feature request deeply before drafting the design document, so you can identify all the relevant information and constraints, and provide a clear and concise design that addresses the need.
+
 Check your prompt for version vX.Y.Z and topic (for instance "v9.3.0 sentinels")
 
 Write a design document named `docs\design.vX.Y.Z.<topic>.md`, in markdown format, from a user story, a bug report, or a feature request included in your context. The generated document should stay at design level: describe scope, confirmed facts, constraints, target behavior, and major design areas. Do not turn the document into an implementation plan.
