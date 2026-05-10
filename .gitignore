@@ -100,3 +100,9 @@ a.git-describe-cache.json
 
 senv.local.bat
 uv.lock
+
+**/claude/versions/
+*.exe
+*.exe.*
+**/.local/bin/
+
