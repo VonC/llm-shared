@@ -5,6 +5,8 @@ user-invocable: true
 argument-hint: 'Provide the version and topic of the design document, for example "v9.3.0" and "sentinels".'
 ---
 
+ultrathink: take the time to reason through the document deeply before drafting questions, so each question targets a real ambiguity rather than a surface-level prompt for elaboration.
+
 Check your prompt for type (feature-request, issue, design or plan), vX.Y.Z and topic (for instance "design v9.3.0 sentinels")
 
 Consolidate `docs\<type>.vX.Y.Z.<topic>.md` by integrating answers given to existing questions in the "Open questions for the vX.Y.Z design" section. Do not leave the question and their recommended options, "consolidate" means integrate the answers chosen into the document (with a summary of the question and its options).
@@ -23,24 +25,10 @@ Once all the questions are removed and their decision integrated, you now have m
 
 If you have no more questions, say so, and we will proceed with the implementation plan document.
 
+Do not try to ask too many questions, but ask as many as you can, as long as they are relevant and not redundant with already answered questions. The only reason to add new questions is that you think you cannot start the next step (design or implementation) without having answers to those questions, and that those questions are not already answered in the document. If you think you have enough information to start the next step, say so, and do not ask any new question.
+
 Otherwise, review that `docs\<type>.vX.Y.Z.<topic>.md` document (see other `docs\<other_type>.vX.Y.Z.<topic>.md` documents in your context if provided), and leave your new questions directly edited in that document. Each question must comes with options (and their pros and cons), as well as a recommended choice (with arguments) from those options, as well as "Answer to Qxx: option Y" repeating the recommended option, but adding a reason why it must be accepted as the answer.
 
-Follow the template:
-
-```md
-## Open questions for the vX.Y.Z design
-
-### Qxx: <question title>
-
-#### Options
-
-- Option X1: (with pros and cons)
-- Option X2: (with pros and cons)
-- Option X3: (with pros and cons)
-
-#### Recommended option (with arguments for this choice)
-
-#### Answer to Qxx: option Y (with reason why it must be accepted as the answer)
-```
+Follow the template defined in [`templates/open-question.template.md`](../../../templates/open-question.template.md).
 
 Always ask as many questions as possible on different parts of the document. The only reason to ask only one question would be the impossibility to ask other questions without first answering that one question.
