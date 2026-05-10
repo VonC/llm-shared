@@ -45,6 +45,7 @@
     "pycparser",
     "pyrb",
     "techo",
+    "ultrathink",
     "uvloop"
   ]
 }
