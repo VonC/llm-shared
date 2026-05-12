@@ -16,7 +16,9 @@ Replace every placeholder with topic-specific content and keep section titles sp
 
 ### Feature-request template for `<topic>`
 
-Use this template when the CDC adds or changes a requested behavior and the document still needs open questions with options and a recommended direction.
+Use this template when the CDC adds or changes a requested behavior with options and a recommended direction.
+
+Do not include open questions yet: they will be added later by a separate skill, in a separate step, in that same document, after the requirement is written. The open questions will be based on the content of the requirement, but they will be written independently from the requirement writing step, and they will be added in a separate section at the end of the document. This separation allows to keep the requirement document focused on describing the requested behavior and its rationale, while still providing a clear and structured way to capture any open questions that may arise during the requirement writing process or later during the implementation process.
 
 ```md
 # <Short title for <topic>>
