@@ -1,7 +1,7 @@
 @echo off
 setlocal EnableDelayedExpansion
 
-set "PYTHON_BASE=%COPILOT_SHARED_DIR%\venvs"
+set "PYTHON_BASE=%LLM_SHARED_DIR%\venvs"
 set "LATEST_PYTHON="
 
 for /f "delims=" %%d in ('dir /b /ad /o-n "%PYTHON_BASE%\python_3*" 2^>nul') do (

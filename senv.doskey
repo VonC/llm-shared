@@ -1,16 +1,16 @@
-gcb="%COPILOT_SHARED_DIR%\bin\gcba.bat" $*$techo %PRJ_DIR_NAME%: git batch commit done
-gbc="%COPILOT_SHARED_DIR%\bin\gcba.bat" $*$techo %PRJ_DIR_NAME%: git batch commit done
-gcbr="%COPILOT_SHARED_DIR%\bin\gcba.bat" --root-a-commit $*$techo %PRJ_DIR_NAME%: git batch commit --root-a-commit done
-gbcr="%COPILOT_SHARED_DIR%\bin\gcba.bat" --root-a-commit  $*$techo %PRJ_DIR_NAME%: git batch commit --root-a-commit done
-gcba="%COPILOT_SHARED_DIR%\bin\gcba.bat" --root-a-commit $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: git batch commit --root-a-commit done
-gcab="%COPILOT_SHARED_DIR%\bin\gcba.bat" --root-a-commit $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: git batch commit --root-a-commit done
-gbca="%COPILOT_SHARED_DIR%\bin\gcba.bat" --root-a-commit $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: git batch commit --root-a-commit done
+gcb="%LLM_SHARED_DIR%\bin\gcba.bat" $*$techo %PRJ_DIR_NAME%: git batch commit done
+gbc="%LLM_SHARED_DIR%\bin\gcba.bat" $*$techo %PRJ_DIR_NAME%: git batch commit done
+gcbr="%LLM_SHARED_DIR%\bin\gcba.bat" --root-a-commit $*$techo %PRJ_DIR_NAME%: git batch commit --root-a-commit done
+gbcr="%LLM_SHARED_DIR%\bin\gcba.bat" --root-a-commit  $*$techo %PRJ_DIR_NAME%: git batch commit --root-a-commit done
+gcba="%LLM_SHARED_DIR%\bin\gcba.bat" --root-a-commit $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: git batch commit --root-a-commit done
+gcab="%LLM_SHARED_DIR%\bin\gcba.bat" --root-a-commit $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: git batch commit --root-a-commit done
+gbca="%LLM_SHARED_DIR%\bin\gcba.bat" --root-a-commit $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: git batch commit --root-a-commit done
 
-gcmp="%COPILOT_SHARED_DIR%\bin\gcmp.bat" $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: group commit message prompt done
+gcmp="%LLM_SHARED_DIR%\bin\gcmp.bat" $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: group commit message prompt done
 
-grmc=bash -c "%COPILOT_SHARED_DIR_UNIX%/scripts/update-merge-commit-msg/git-reword-merge.sh" $*$*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: Git rework merge commit done
+grmc=bash -c "%LLM_SHARED_DIR_UNIX%/scripts/update-merge-commit-msg/git-reword-merge.sh" $*$*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: Git rework merge commit done
 
 uv="%PRGS%\uvs\latest\uv.exe" $*
-claude=claude.exe --add-dir=..\copilot-shared $*
+claude=claude.exe --add-dir=..\llm-shared $*
 
-covg="%COPILOT_SHARED_DIR%\bin\covg.bat" $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: coverage_gap_functions done
+covg="%LLM_SHARED_DIR%\bin\covg.bat" $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: coverage_gap_functions done

@@ -7,7 +7,7 @@ Your goal is to write an `a.commit` with a conventional commit message explainin
 For that, call the helper script [`git-extract-merge-docs.sh`](../scripts/update-merge-commit-msg/git-extract-merge-docs.sh) shipped under `scripts/update-merge-commit-msg/`:
 
 ```bash
-bash -c "%COPILOT_SHARED_DIR_UNIX%/scripts/update-merge-commit-msg/git-extract-merge-docs.sh"
+bash -c "%LLM_SHARED_DIR_UNIX%/scripts/update-merge-commit-msg/git-extract-merge-docs.sh"
 ```
 
 No parameter is needed, can be called from anywhere, but you need to resolve the full path of the script.
