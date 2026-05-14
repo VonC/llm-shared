@@ -203,7 +203,7 @@ landed with the branch.
   documents to `a.docs`, then writes one conventional commit message to
   `a.commit` for you to review and edit if needed.
 3. Once `a.commit` is ready, run `grmc`, which is the local Doskey alias to
-  `.github\skills\update-merge-commit-msg\git-reword-merge.sh`.
+  `scripts\update-merge-commit-msg\git-reword-merge.sh`.
 4. `grmc` rewrites the current merge commit so its message matches the final
   content of `a.commit`.
 

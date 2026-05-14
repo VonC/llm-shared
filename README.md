@@ -84,6 +84,10 @@ templates/                                shared markdown templates referenced b
 ├─ write-plans.template.md                implementation plan skeleton
 ├─ write-plans.validation.template.md     validation plan skeleton
 └─ write-requirement.template.md          feature-request and issue document skeletons
+scripts/                                  shared helper scripts grouped by skill
+└─ update-merge-commit-msg/
+   ├─ git-extract-merge-docs.sh           dump the merged branch docs to a.docs
+   └─ git-reword-merge.sh                 rewrite the current merge commit from a.commit
 tools/
 ├─ git_batch_commit.py                    validate and replay grouped commits
 └─ git_command.py                         local cross-platform Git helper
