@@ -9,6 +9,41 @@ A shared collection of GitHub Copilot prompts, skills, and instructions.
 
 ---
 
+## Goal: avoid vibe-coding
+
+The point of this workflow is to keep the creative expression of an idea
+while refusing to short-circuit it into code. Vibe-coding — "I got an
+idea, here it is, now generate me some code for it, I'll figure out the
+details later" — is what these skills are built to prevent.
+
+Each skill draws a clear line between phases:
+
+- **Define and refine** what is actually needed, in plain text first
+  (`/split-and-define`, `/write-requirement`, `/review-ask-questions`,
+  `/consolidate-then-review-ask-questions`).
+- **Design** a solution with explicit acceptance scenarios
+  (`/write-design` and the same review loop).
+- **Plan** the implementation as a numbered list of steps. The first
+  step adds gate tests that fail on purpose; the following steps make
+  those tests pass one by one. The last step adds the acceptance tests
+  that close the loop on the original requirement
+  (`/write-plans`, `/implement-step`, `/implementation-check`).
+
+See [DEVELOPMENT.md — Goal: avoid vibe-coding](DEVELOPMENT.md#goal-avoid-vibe-coding)
+for the full rationale, what each phase costs up front, and the short
+path when the draft is genuinely one self-contained requirement.
+
+A side benefit: the workflow leaves a written trail. Each phase produces
+artifacts — the draft, the requirement, the design with its acceptance
+scenarios, the plan and validation plan, the per-step grouped commits —
+and each merge keeps a conventional commit message that ties them
+together. That trail is read later by humans returning to old code, and
+it is also the context an LLM needs when asked to extend, debug, or
+explain that code in a future session. The history carries not just the
+code, but the reasoning that produced it.
+
+---
+
 ## Main focus: shared Copilot workflows
 
 The first goal of this repository is still to pin down a reliable workflow for
@@ -27,6 +62,93 @@ local helper scripts for analysis, implementation checks, refactors, and
   is fully implemented.
 - `tools/git_batch_commit.py` — validate and replay grouped commits from
   `a.commit`.
+
+---
+
+## Development workflow overview
+
+The skills in this repository fit a single end-to-end workflow that takes a
+raw idea from a draft note all the way to a tagged release. The diagram below
+shows the main phases and which skill triggers each transition. See
+[DEVELOPMENT.md](DEVELOPMENT.md) for per-phase details and helper diagrams.
+
+```txt
+                  +-----------------+
+                  |   draft (EdB)   |
+                  +--------+--------+
+                           |
+              +------------+------------+
+              |                         |
+       single requirement?       multiple items?
+       /write-requirement        /split-and-define
+       (skip the split)                  |
+              |                          v
+              |                  +-----------------+
+              |                  | requirement     |
+              |                  | items list      |
+              |                  +--------+--------+
+              |                           |
+              |                  /write-requirement
+              |                     (one per item)
+              |                           |
+              +------------+--------------+
+                           v
+                  +-----------------+
+                  |                 |----+
+                  | requirement doc |    |  /review-ask-questions
+                  |                 |<---+  /consolidate-then-review-ask-questions
+                  +--------+--------+       (loop while open questions remain)
+                           |
+                           |  /write-design
+                           v
+                  +-----------------+
+                  |                 |----+
+                  |   design doc    |    |  /review-ask-questions
+                  |                 |<---+  /consolidate-then-review-ask-questions
+                  +--------+--------+       (loop while open questions remain)
+                           |
+                           |  /write-plans
+                           v
+                  +-----------------+
+                  |     plan +      |
+                  | validation plan |
+                  +--------+--------+
+                           |
+                           |  /implement-step N
+                           |  /implementation-check N
+                           v
+                  +-----------------+
+                  | step N          |----+
+                  | committed       |    |  /group-commits-msg + gcba
+                  |                 |<---+  (loop for next step)
+                  +--------+--------+
+                           |
+                           |  last step done
+                           |  git merge --no-ff <branch>
+                           |  /update-merge-commit-msg
+                           v
+                  +-----------------+
+                  |                 |----+
+                  |  main updated   |    |  (loop for next requirement)
+                  |                 |<---+
+                  +--------+--------+
+                           |
+                           |  after several merges
+                           |  /write-release-notes-summary
+                           |  git tag vX.Y.Z
+                           v
+                  +-----------------+
+                  |     release     |
+                  +-----------------+
+```
+
+The `/split-and-define` phase is optional. When the draft already
+describes a single, self-contained requirement, the author can call
+`/write-requirement` directly and pass the type (`feature-request` or
+`issue`), version, and topic — no split step is needed. Reach for
+`/split-and-define` when the draft mixes several distinct items, when
+the items differ in dependency order, or when the author wants the skill
+to suggest a slug per item.
 
 ---
 
