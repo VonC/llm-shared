@@ -101,8 +101,8 @@ related items in the
   plan: step order, file lists, rollout notes, line-budget checkpoints,
   command checklists, and acceptance-test expectations.
 8. The same skill also creates
-  `docs\plan.vX.Y.Z.<topic>.implementation.md`, which is the implementation
-  review journal updated later by the execution and checking steps.
+  `docs\plan.vX.Y.Z.<topic>.validation.md`, which is the implementation
+  validation document updated later by the execution and checking steps.
 9. If the plan still has open implementation questions, run the same
   review-and-consolidation loop on the plan document before coding.
 
@@ -145,7 +145,7 @@ fully completed implementation step.
 7. Once the code and tests are green, run `/implementation-check` with the
   step number, version, topic, relevant markdown docs, and `a.diff` when
   available.
-8. That skill updates `docs\plan.vX.Y.Z.<topic>.implementation.md` and checks
+8. That skill updates `docs\plan.vX.Y.Z.<topic>.validation.md` and checks
   whether the step is actually complete, including architecture smells,
   dependency issues, and hot-path performance risks.
 9. If a file is getting too large or is doing too many unrelated things, use
