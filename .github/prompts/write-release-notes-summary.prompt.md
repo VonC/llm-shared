@@ -22,7 +22,7 @@ The titles and sub-titles must be witty, based on concrete elements, not on abst
 
 For instance: title "Putting Time in its Place" / subtitle "It was time for a major clean-up."
 
-You write a markdown document, so respect instructions for markdown lists in #file:./../markdown.instructions.md , but with lines of at most 80 characters.
+You write a markdown document, so respect instructions for markdown lists in #file:../../rules/markdown.md , but with lines of at most 80 characters.
 
 Your markdown document must follow the structure:
 

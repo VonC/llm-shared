@@ -16,7 +16,7 @@ Always consider if you also need to write PBT tests in addition of extending TDD
 
 You rewrite the test class (or classes) in full, and you must separate properly with empty lines each code block with empty lines, before writing the next block (preceded with Files, as instructed in #file:..\copilot-instructions.md ).
 
-Do respect existing code, comment and docstrings, as instructed in #file:../preserve_code.md .
+Do respect existing code, comment and docstrings, as instructed in #file:../../rules/preserve_code.md .
 
 For each class rewritten, check also if the imports for that class are compliant with a DDD-Hexagonal (port-adapter) architecture, but only if said imports have changed as part of your fix.
 

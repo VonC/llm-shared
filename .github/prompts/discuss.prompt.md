@@ -12,4 +12,4 @@ Do request any source file that might help you in your answer by looking source 
 
 It is about challenging and debating the current point, not about writing code.
 
-You write a answer in markdown, so respect instructions for markdown lists in #file:./../markdown.instructions.md .
+You write a answer in markdown, so respect instructions for markdown lists in #file:../../rules/markdown.md .

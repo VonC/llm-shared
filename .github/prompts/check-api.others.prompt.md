@@ -40,4 +40,4 @@ Replace `<number of smell/violation detected>` with the number of smell/violatio
 - a list of said violations or smells, or a single section to explain why there are none.
 ```
 
-You write a markdown document, so respect instructions for markdown lists in #file:./../markdown.instructions.md , and make sure to add an empty line before and after any list, and use only one space between a list maker and its content.
+You write a markdown document, so respect instructions for markdown lists in #file:../../rules/markdown.md , and make sure to add an empty line before and after any list, and use only one space between a list maker and its content.

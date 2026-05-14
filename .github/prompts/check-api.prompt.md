@@ -20,4 +20,4 @@ Use those questions and your own analysis to provide:
 - a detailed analysis of the architecture for the requested layer, 
 - then a section about violation and smells.
 
-You write a markdown document, so respect instructions for markdown lists in #file:./../markdown.instructions.md .
+You write a markdown document, so respect instructions for markdown lists in #file:../../rules/markdown.md .

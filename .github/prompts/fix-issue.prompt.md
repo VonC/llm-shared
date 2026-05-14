@@ -19,9 +19,9 @@ Ask first for any file missing in your context, but also mention in your answer 
 Always update the docstring at the very top of the modified classes to explain the fix. That applies to test classes as well.
 
 Preserve existing code and docstrings and comments, only update them to explain and accommodate your fixes.
-Do not remove comments like `# Act` unless the all section has been removed as part of your fix. Read and follow instructions from #file:../preserve_code.md .
+Do not remove comments like `# Act` unless the all section has been removed as part of your fix. Read and follow instructions from #file:../../rules/preserve_code.md .
 
-If you rewrite any existing code, start, before each code, by recognizing the instructions from #file:../preserve_code.md , that is the need to preserve comments (unless they need to be amended in the context of your refactoring): say "I will preserve existing comments, unless they need to be amended as part of the refactoring" before writing any code, then rewrite the existing code you were about to write, respecting that directive.  
+If you rewrite any existing code, start, before each code, by recognizing the instructions from #file:../../rules/preserve_code.md , that is the need to preserve comments (unless they need to be amended in the context of your refactoring): say "I will preserve existing comments, unless they need to be amended as part of the refactoring" before writing any code, then rewrite the existing code you were about to write, respecting that directive.  
 Do not put "I will preserve existing comments, unless they need to be amended as part of the refactoring" as a comment in the code. Only say it and respect that directive when writing code.
 
 You must separate properly with empty lines each code block with empty lines, before writing the next block (preceded with Files, as instructed in #file:..\copilot-instructions.md ).  

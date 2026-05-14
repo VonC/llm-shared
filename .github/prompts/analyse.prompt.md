@@ -13,4 +13,4 @@ You need to provide an analysis, asking for possible additional files in your co
 
 It is about challenging and debating the current point, not about writing code.
 
-You write a answer in markdown, so respect instructions for markdown lists in #file:./../markdown.instructions.md .
+You write a answer in markdown, so respect instructions for markdown lists in #file:../../rules/markdown.md .
