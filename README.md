@@ -1,6 +1,15 @@
-# copilot-shared
+# llm-shared
 
-A shared collection of GitHub Copilot prompts, skills, and instructions.
+A shared development workflow that takes a draft note from "raw idea" to
+"tagged release" without skipping the requirement, design, plan, and
+acceptance-test phases. The repository ships the prompts, skills,
+instructions, templates, and helper scripts that drive that workflow.
+
+The skills are tested with GitHub Copilot in VS Code and with Claude Code
+in both the VS Code extension and the CLI. They are designed to work with
+any LLM that can read files in the workspace and write files back: every
+slash command resolves to a plain markdown body in [`instructions/`](instructions/)
+that another model can be handed directly as context.
 
 > **Work in progress.** These are drafts. Content is being extracted from
 > project-specific repositories and generalized for reuse across projects.
@@ -44,24 +53,24 @@ code, but the reasoning that produced it.
 
 ---
 
-## Main focus: shared Copilot workflows
+## At a glance: phases, skills, artifacts
 
-The first goal of this repository is still to pin down a reliable workflow for
-writing good conventional commit messages and grouping staged changes into
-coherent commits. It now also carries reusable prompts, skills, an agent, and
-local helper scripts for analysis, implementation checks, refactors, and
-`a.commit` replay.
+One row per phase, in execution order. The "Trigger" column is what the
+author types or runs; the "Output artifact" column is what lands on disk
+after the trigger completes.
 
-- `.github/prompts/write-commit-message.prompt.md` — write a single commit
-  message from a diff in context.
-- `.github/skills/group-commits-msg/SKILL.md` — group staged files by topic
-  and produce one commit message per group, saved to `a.commit`.
-- `.github/skills/implement-step/SKILL.md` — implement one step from a design
-  or plan document.
-- `.github/skills/implementation-check/SKILL.md` — check whether a plan step
-  is fully implemented.
-- `tools/git_batch_commit.py` — validate and replay grouped commits from
-  `a.commit`.
+| Phase | Trigger | Output artifact |
+| --- | --- | --- |
+| Draft capture | Author writes free-form notes | `docs\draft.vX.Y.Z.<topic>.md` |
+| Split (optional) | `/split-and-define` | `List of feature-requests and issues to create` section appended to the draft |
+| Define each item | `/write-requirement <type> vX.Y.Z <topic>` | `docs\feature-request.vX.Y.Z.<topic>.md` or `docs\issue.vX.Y.Z.<topic>.md` |
+| Review loop | `/review-ask-questions` then `/consolidate-then-review-ask-questions` | Open questions folded into a decision table; document approved |
+| Design | `/write-design` | `docs\design.vX.Y.Z.<topic>.md` with acceptance scenarios |
+| Plan | `/write-plans` | `docs\plan.vX.Y.Z.<topic>.md` + `docs\plan.vX.Y.Z.<topic>.validation.md` |
+| Implement and check | `/implement-step N` then `/implementation-check N` | Code, tests, and updates to the validation document |
+| Group commits | `gcmp` then `/group-commits-msg` then `gcba` | One conventional commit per logical group |
+| Merge and reword | `git merge --no-ff` then `/update-merge-commit-msg` then `grmc` | Merge commit with a conventional message tied to the merged docs |
+| Release | `/write-release-notes-summary` then `git tag` | Release notes + version tag on `main` |
 
 ---
 
@@ -142,6 +151,13 @@ shows the main phases and which skill triggers each transition. See
                   +-----------------+
 ```
 
+Each looping box in the diagram above has its own zoomed-in diagram in
+[DEVELOPMENT.md](DEVELOPMENT.md), under the section named after the phase
+(draft capture, requirement breakdown, review loop, design and planning,
+grouped commit loop, step execution, and merge). Read the top-level
+diagram for the route, then jump to the per-phase diagram for the
+detail.
+
 The `/split-and-define` phase is optional. When the draft already
 describes a single, self-contained requirement, the author can call
 `/write-requirement` directly and pass the type (`feature-request` or
@@ -154,8 +170,13 @@ to suggest a slug per item.
 
 ## Contents
 
+### Agent entry points
+
+Two folders, one per agent — same skills, same instruction bodies, two
+discovery mechanisms. Pick the one your agent reads.
+
 ```txt
-.github/
+.github/                                  GitHub Copilot picks up prompts, skills, and agents from here
 ├─ agents/
 │  └─ split-large-file.agent.md         split a large file or class
 ├─ copilot-instructions.md               shared chat and code-writing rules (Copilot)
@@ -175,11 +196,22 @@ to suggest a slug per item.
 └─ skills/
    ├─ <skill>/SKILL.md                   frontmatter + reference to instructions/<skill>.md
    └─ ...                                same per-skill SKILL.md layout for every skill
-.claude/
+.claude/                                  Claude Code picks up project rules and skills from here
 ├─ CLAUDE.md                              shared chat and code-writing rules (Claude Code)
 └─ skills/
    ├─ <skill>/SKILL.md                   frontmatter + reference to instructions/<skill>.md
    └─ ...                                mirrors .github/skills/ with one extra: write-release-notes-summary
+```
+
+### Shared bodies referenced by both agents
+
+Both `.github/skills/<skill>/SKILL.md` and `.claude/skills/<skill>/SKILL.md`
+delegate to the same markdown body under `instructions/`. A third LLM
+that does not read either folder can still run the same skill by being
+handed the matching `instructions/<skill>.md` file as part of its
+context.
+
+```txt
 instructions/                             shared skill bodies (one file per skill)
 ├─ consolidate-then-review-ask-questions.md
 ├─ group-commits-msg.md
@@ -218,15 +250,23 @@ senv.bat                                  local shell aliases for the tooling
 
 ---
 
-## How to use copilot-shared from another project
+## How to use llm-shared from another project
 
-The intended setup is to reference this repository from an existing project's
-workspace. Keep the real project as the first folder in the workspace and add
-`copilot-shared` as the second folder. Do not make `copilot-shared` the main
-workspace folder when the goal is to use its prompts inside another codebase.
+The intended setup is to reference this repository from an existing
+project's workspace or `~/.claude/` directory. The three subsections
+below cover the three common entry points: VS Code (Copilot Chat or
+Claude Code extension), Claude Code CLI, and any other LLM that reads
+files in a workspace.
 
-In the existing project's `.code-workspace` file, the `folders` section should
-look like this:
+### From VS Code (Copilot Chat or Claude Code extension)
+
+Keep the real project as the first folder in the workspace and add
+`llm-shared` as the second folder. Do not make `llm-shared` the main
+workspace folder when the goal is to use its prompts inside another
+codebase.
+
+In the existing project's `.code-workspace` file, the `folders` section
+should look like this:
 
 ```json
 {
@@ -235,31 +275,94 @@ look like this:
       "path": ".."
     },
     {
-      "path": "../../copilot-shared"
+      "path": "../../llm-shared"
     }
   ]
 }
 ```
 
 With this layout, `..` points to the existing project and
-`../../copilot-shared` points to the shared repository. VS Code will discover
-the prompts under `.github/prompts/`, the skills under `.github/skills/`, and
-the agent definitions under `.github/agents/` from both workspace folders.
+`../../llm-shared` points to the shared repository. Copilot Chat
+discovers the prompts under `.github/prompts/`, the skills under
+`.github/skills/`, and the agent definitions under `.github/agents/`
+from both workspace folders. The Claude Code VS Code extension, opened
+on the same multi-root workspace, picks up `.claude/skills/` from the
+shared folder.
 
 The checked-in
-[`.vscode/copilot-shared.code-workspace`](.vscode/copilot-shared.code-workspace)
-file in this repository is only for working on `copilot-shared` itself. When
-you want to use the shared prompts in another codebase, the other project's
-workspace file should own the multi-root setup.
+[`.vscode/llm-shared.code-workspace`](.vscode/llm-shared.code-workspace)
+file in this repository is only for working on `llm-shared` itself.
+When you want to use the shared prompts in another codebase, the other
+project's workspace file should own the multi-root setup.
+
+### From Claude Code (CLI)
+
+Claude Code reads `.claude/` from the current working directory. To run
+the shared skills inside a project that does not have its own
+`.claude/` folder, point Claude at the shared one with `--add-dir`:
+
+```bash
+claude --add-dir=../llm-shared
+```
+
+Adjust the path so it points to where the repository sits on disk
+(`..\llm-shared` from Windows `cmd.exe`, `../../llm-shared` from a
+deeper subfolder, etc.).
+
+To make the shared skills available in every project on the machine
+without `--add-dir`, copy or symlink `.claude/skills/` into
+`~/.claude/skills/`:
+
+```bash
+ln -s "$(pwd)/.claude/skills" ~/.claude/skills
+```
+
+After that, the same slash commands resolve in any directory.
+
+### From another LLM (any model that reads files)
+
+Every slash command resolves to a plain markdown body under
+[`instructions/`](instructions/) (for example,
+`instructions/write-design.md`). When an agent that does not understand
+`.github/skills/` or `.claude/skills/` is used, hand it the matching
+file in `instructions/` as context together with the inputs the body
+expects (a draft, a requirement document, a plan, etc.). The slash
+command name and the instruction file name are always the same.
 
 ---
 
 ## Status of main areas
 
-| Area | Status | Notes |
-| ---- | ---- | ---- |
-| Shared writing rules | draft | Includes blacklist, markdown rules, and full-file rewrite rules. |
-| Commit message workflow | draft | Main focus, with `a.commit` planning and replay support. |
-| Analysis and review prompts | draft | Covers API review, plan checks, discussions, and issue work. |
-| Step-based skills and agent | draft | Includes step implementation, implementation checks, and file splitting. |
-| Local helper scripts | draft | Includes `senv.bat`, `git_batch_commit.py`, and `git_command.py`. |
+| Area | Status | Tested with | Notes |
+| --- | --- | --- | --- |
+| Shared writing rules | draft | Copilot (VS Code), Claude Code (VS Code + CLI) | Includes blacklist, markdown rules, and full-file rewrite rules. |
+| Commit message workflow | draft | Copilot (VS Code), Claude Code (VS Code + CLI) | Main focus, with `a.commit` planning and replay support. |
+| Analysis and review prompts | draft | Copilot (VS Code), Claude Code (VS Code + CLI) | Covers API review, plan checks, discussions, and issue work. |
+| Step-based skills and agent | draft | Copilot (VS Code), Claude Code (VS Code + CLI) | Includes step implementation, implementation checks, and file splitting. |
+| Local helper scripts | draft | Windows (`cmd.exe` with Doskey) | Includes `senv.bat`, `git_batch_commit.py`, and `git_command.py`. |
+
+---
+
+## Glossary
+
+Shorthand used across this README, [DEVELOPMENT.md](DEVELOPMENT.md), and
+the shared skill bodies. The Doskey aliases are documented in detail in
+[DEVELOPMENT.md — Local command reference for this workflow](DEVELOPMENT.md#local-command-reference-for-this-workflow).
+
+| Term | Stands for |
+| --- | --- |
+| `a.commit` | Grouped-commit plan file, one block per logical group, replayed by `gcba`. |
+| `a.diff` | Snapshot of the staged diff written by `gcmp` so the agent can justify the grouping. |
+| `a.docs` | Dump of the merged branch documents, written by the merge-doc extraction script. |
+| `c` | Doskey alias to `bin\python_check.bat`. |
+| `covg` | Doskey alias that maps uncovered lines to functions and builds a clipboard prompt. |
+| `gate test` | A failing test added before the implementation step that makes it pass. |
+| `gcba` | Doskey alias to `git_batch_commit.py --root-a-commit`; validates and replays `a.commit`. |
+| `gcmp` | Doskey alias to `group_commit_message_prompt.py`; writes `a.diff` and the clipboard prompt. |
+| `gp` | Local Doskey alias to `git push`. |
+| `grmc` | Local Doskey alias to `git-reword-merge.sh`; rewrites the current merge commit. |
+| `pta` | Doskey alias to `pytest --testmon --cov-append ...`; reruns affected tests. |
+| `ptr` | Doskey alias that resets `.testmondata` then reruns the suite with coverage. |
+| `Qxx` block | An open-question block appended by the review skills (options + recommended choice). |
+| `ruffc` | Doskey alias to `ruff check`. |
+| `vX.Y.Z` | Working version slug used in every artifact filename (draft, requirement, design, plan). |

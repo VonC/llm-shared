@@ -2,14 +2,40 @@
 
 This workflow takes one raw topic from draft notes to reviewed documents,
 implemented plan steps, and grouped commits. It uses the skills in
-`.github\skills` together with the local helper scripts in `bin\` and `tools\`.
+`.github\skills` (Copilot) and `.claude\skills` (Claude Code) together
+with the local helper scripts in `bin\` and `tools\`. Both folders
+delegate to the same markdown bodies under `instructions\`, so the same
+slash command produces the same output regardless of the agent.
 
-This is geared toward Python projects, but the general flow and some of the
-helpers can be adapted to other languages and ecosystems.
+This is geared toward Python projects, but the general flow and some of
+the helpers can be adapted to other languages and ecosystems.
+
+## Agent prerequisites
+
+The workflow itself is agent-agnostic; only the prerequisites differ.
+
+### Copilot in VS Code — prerequisites
 
 Make sure the setting "Chat Permissions Default" is set to "Bypass Approval".  
 And "chat.notifyWindowOnConfirmation" is set to "always".  
 And "chat.notifyWindowOnResponseReceived" is set to "always".
+
+### Claude Code — prerequisites
+
+Run Claude Code in a permission mode that does not block every tool
+call (for example `claude --permission-mode acceptEdits`, or
+`bypassPermissions` when the worktree is disposable). Configure a
+`Stop` hook in `~/.claude/settings.json` if you want the desktop to
+chime when a long prompt completes, which is the Claude-side equivalent
+of the VS Code `chat.notifyWindowOnResponseReceived` setting.
+
+### Any other LLM — prerequisites
+
+The slash-command names used below map one-to-one to markdown bodies in
+`instructions\<name>.md`. An LLM that does not auto-discover those
+files can still run the same step by being handed the matching
+instruction file as part of its context, together with the input files
+the body expects (a draft, a requirement, a plan, etc.).
 
 ## Goal: avoid vibe-coding
 
@@ -108,6 +134,13 @@ That script switches to the project Python version, adds `bin\` to `PATH`,
 and loads the Doskey macros declared in `senv.bat` and `senv.doskey`.
 
 The rest of this document assumes those macros are available.
+
+The Doskey macros and the `senv.bat` wrapper are Windows-only. The
+Python entry points they call (`tools\group_commit_message_prompt.py`,
+`tools\git_batch_commit.py`, `tools\coverage_gap_functions.py`,
+`tools\git_command.py`) run on Linux and macOS as well; wire them into
+bash functions or shell aliases as needed. The slash commands and the
+skill bodies in `instructions\` do not depend on Windows at all.
 
 ## Local command reference for this workflow
 
@@ -390,16 +423,18 @@ document. Only the input document changes.
 1. Stage only the files that belong to the current slice. Use `git add .` only
   if the worktree contains nothing unrelated.
 2. Run `gcmp`.
-3. Paste the generated clipboard prompt into Copilot. The prompt already
-  starts with `/group-commits-msg ...` and ends with `Context:`. Add the
-  topic at the end of that `Context:` line.
+3. Paste the generated clipboard prompt into your agent (Copilot, Claude
+  Code, or another LLM that can write files in the workspace). The
+  prompt already starts with `/group-commits-msg ...` and ends with
+  `Context:`. Add the topic at the end of that `Context:` line.
 4. Review the generated `a.commit` file. `a.diff` is the staged diff snapshot
   used to justify the groups, and `a.commit` is the grouped commit plan that
   will be replayed later.
 5. If the grouping or wording is off, edit `a.commit`.
   Rerun the `gcmp` -> `/group-commits-msg` generation pass only if you need
-  Copilot to regroup files or rewrite the commit messages again. If your
-  manual edits are enough, do not rerun that pass; go straight to `gcba`.
+  your agent to regroup files or rewrite the commit messages again. If
+  your manual edits are enough, do not rerun that pass; go straight to
+  `gcba`.
 6. When `a.commit` is ready, either say `go ahead` in the same chat flow or
   run `gcba` directly.
 7. `gcba` validates `a.commit` and creates the commits from the least
@@ -464,7 +499,7 @@ fully completed implementation step.
 5. If `pta` shows a small number of uncovered lines, copy the uncovered
   coverage lines and run `covg`. That helper maps the missing lines to the
   enclosing functions or methods, then prepares a clipboard prompt you can
-  paste back into Copilot to ask for the smallest missing tests.
+  paste back into your agent to ask for the smallest missing tests.
 6. If `pta` is not enough, or if `testmon` state looks stale, run `ptr` for a
   wider rerun after resetting `.testmondata`.
 7. Once the code and tests are green, run `/implementation-check` with the
