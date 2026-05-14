@@ -36,14 +36,10 @@ local helper scripts for analysis, implementation checks, refactors, and
 .github/
 ├─ agents/
 │  └─ split-large-file.agent.md         split a large file or class
-├─ blacklist.md                          instruction: words to avoid in all responses
-├─ copilot-instructions.md               shared chat and code-writing rules
-├─ markdown.instructions.md              instruction: markdown formatting rules
-├─ preserve_code.md                      instruction: never truncate code when rewriting
+├─ copilot-instructions.md               shared chat and code-writing rules (Copilot)
 ├─ prompts/
 │  ├─ analyse.prompt.md                  guide read-only analysis
 │  ├─ check-api*.prompt.md               review API dumps for architecture smells
-│  ├─ check-plan-implementation.prompt.md check whether a plan step landed
 │  ├─ continue-analyse.prompt.md         continue a prior analysis thread
 │  ├─ discuss.prompt.md                  answer and challenge without code
 │  ├─ extend-test-coverage.prompt.md     extend tests around selected code
@@ -55,17 +51,43 @@ local helper scripts for analysis, implementation checks, refactors, and
 │  ├─ write-release-notes-summary.prompt.md summarize a release from commit subjects
 │  └─ write-plan.prompt.md               write a numbered implementation plan
 └─ skills/
-   ├─ group-commits-msg/
-   │  ├─ SKILL.md                        group staged files and write one commit each
-   │  └─ TEMPLATE.md                     template for the a.commit file format
-   ├─ implement-step/
-   │  └─ SKILL.md                        implement one plan step from markdown context
-   └─ implementation-check/
-      └─ SKILL.md                        check whether one plan step is complete
+   ├─ <skill>/SKILL.md                   frontmatter + reference to instructions/<skill>.md
+   └─ ...                                same per-skill SKILL.md layout for every skill
+.claude/
+├─ CLAUDE.md                              shared chat and code-writing rules (Claude Code)
+└─ skills/
+   ├─ <skill>/SKILL.md                   frontmatter + reference to instructions/<skill>.md
+   └─ ...                                mirrors .github/skills/ with one extra: write-release-notes-summary
+instructions/                             shared skill bodies (one file per skill)
+├─ consolidate-then-review-ask-questions.md
+├─ group-commits-msg.md
+├─ implement-step.md
+├─ implementation-check.md
+├─ review-and-update-project-docs.md
+├─ review-ask-questions.md
+├─ split-and-define.md
+├─ split-large-file.md
+├─ update-merge-commit-msg.md
+├─ write-design.md
+├─ write-plans.md
+├─ write-release-notes-summary.md
+└─ write-requirement.md
+rules/                                    shared writing and code-style rules
+├─ blacklist.md                           words to avoid in all responses
+├─ markdown.md                            markdown formatting rules (lists, tables, titles)
+└─ preserve_code.md                       never truncate code when rewriting
+templates/                                shared markdown templates referenced by instructions/
+├─ group-commits-msg.template.md          a.commit file format for grouped commits
+├─ implementation-step-analysis.template.md output structure for implementation-check
+├─ open-question.template.md              Qxx/BBQ/Options block for review skills
+├─ write-design.template.md               design document skeleton
+├─ write-plans.template.md                implementation plan skeleton
+├─ write-plans.validation.template.md     validation plan skeleton
+└─ write-requirement.template.md          feature-request and issue document skeletons
 tools/
-├─ git_batch_commit.py                   validate and replay grouped commits
-└─ git_command.py                        local cross-platform Git helper
-senv.bat                                 local shell aliases for the tooling
+├─ git_batch_commit.py                    validate and replay grouped commits
+└─ git_command.py                         local cross-platform Git helper
+senv.bat                                  local shell aliases for the tooling
 ```
 
 ---
