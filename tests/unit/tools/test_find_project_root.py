@@ -31,7 +31,7 @@ def test_find_project_root_prefers_prj_dir_git_root(
     prj_dir_root = tmp_path / "consumer-project"
     (prj_dir_root / ".git").mkdir(parents=True)
 
-    fallback_root = tmp_path / "copilot-shared"
+    fallback_root = tmp_path / "llm-shared"
     (fallback_root / ".git").mkdir(parents=True)
     nested_start = fallback_root / "tools" / "nested"
     nested_start.mkdir(parents=True)
@@ -49,7 +49,7 @@ def test_find_project_root_falls_back_when_prj_dir_has_no_git(
     invalid_prj_dir = tmp_path / "not-a-root"
     invalid_prj_dir.mkdir()
 
-    fallback_root = tmp_path / "copilot-shared"
+    fallback_root = tmp_path / "llm-shared"
     (fallback_root / ".git").mkdir(parents=True)
     nested_start = fallback_root / "tools" / "nested"
     nested_start.mkdir(parents=True)
