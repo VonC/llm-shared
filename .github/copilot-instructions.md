@@ -17,9 +17,10 @@ applyTo: "**"
 - When asked to write code, always update the tests associated to the modified classes to cover the fix. If the tests are not in your context, ask for the test files first, before writing any code. If the code requested is a new class, then write the tests for that new class first, then the new class.
 - Always update the `__init_.py` files to include the new classes or test classes you created.
 - Always update the docstring at the very top of the modified classes to explain the fix. That applies to test classes as well.
-- When writing an answer in markdown, follow instructions from #file:./markdown.instructions.md
+- When writing an answer in markdown, follow instructions from #file:../rules/markdown.md
+- When writing or rewriting any file, follow instructions from #file:../rules/preserve_code.md
 
 ## Blacklist of words to avoid in the response
 
-In your answer (except for code snippets/code blocks), avoid the following terms or expressions listed in #file:./blacklist.md
+In your answer (except for code snippets/code blocks), avoid the following terms or expressions listed in #file:../rules/blacklist.md
 
