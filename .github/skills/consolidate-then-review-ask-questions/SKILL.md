@@ -8,31 +8,4 @@ metadata:
 argument-hint: 'Provide the version and topic of the design document, for example "v9.3.0" and "sentinels".'
 ---
 
-ultrathink: take the time to reason through the document deeply before drafting questions, so each question targets a real ambiguity rather than a surface-level prompt for elaboration.
-
-Check your prompt for type (feature-request, issue, design or plan), vX.Y.Z and topic (for instance "design v9.3.0 sentinels")
-
-Consolidate `docs\<type>.vX.Y.Z.<topic>.md` by integrating answers given to existing questions in the "Open questions for the vX.Y.Z design" section. Do not leave the question and their recommended options, "consolidate" means integrate the answers chosen into the document (with a summary of the question and its options).
-
-You need to remove `Qxx:` sections and integrate their answers within the document. Make sure all the questions are removed and their decision integrated before adding any new question.
-
-Create a decision table in the "Design decisions" section of the document, summarizing all the design choices that have been made, with their arguments and the alternatives that were rejected. Do reference the number of the question (Qxx) that led to each design choice, as well as the section of the document where the design choice is integrated.
-
-Be mindful of the type of the document you are reviewing: 
-
-- a feature-request or an issue document should not include any design choice question, but only questions about clarifying the feature or the issue.
-- a design document should not include any implementation detail, and should not include any question about implementation details, but only questions about design choices.
-- an implementation plan document should not include any design choice question, but only questions about implementation details.
-
-Once all the questions are removed and their decision integrated, you now have many questions already and previously answered: ask yourself, do you have enough to start the implementation plan document?
-
-If you have no more questions, say so, and we will proceed with the implementation plan document.
-
-Do not try to ask too many questions, but ask as many as you can, as long as they are relevant and not redundant with already answered questions. The only reason to add new questions is that you think you cannot start the next step (design or implementation) without having answers to those questions, and that those questions are not already answered in the document. If you think you have enough information to start the next step, say so, and do not ask any new question.
-
-Otherwise, review that `docs\<type>.vX.Y.Z.<topic>.md` document (see other `docs\<other_type>.vX.Y.Z.<topic>.md` documents in your context if provided), and leave your new questions directly edited in that document. Each question must comes with options (and their pros and cons), as well as a recommended choice (with arguments) from those options, as well as "Answer to Qxx: option Y" repeating the recommended option, but adding a reason why it must be accepted as the answer.
-
-Follow the template defined in [`templates/open-question.template.md`](../../../templates/open-question.template.md).
-
-Always ask as many questions as possible on different parts of the document. The only reason to ask only one question would be the impossibility to ask other questions without first answering that one question.
-
+[Instruction](../../../instructions/consolidate-then-review-ask-questions.md)
