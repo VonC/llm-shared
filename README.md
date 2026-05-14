@@ -21,9 +21,9 @@ that another model can be handed directly as context.
 ## Goal: avoid vibe-coding
 
 The point of this workflow is to keep the creative expression of an idea
-while refusing to short-circuit it into code. Vibe-coding — "I got an
-idea, here it is, now generate me some code for it, I'll figure out the
-details later" — is what these skills are built to prevent.
+while refusing to short-circuit it into code. Vibe-coding  --  "I got an
+idea, here it is, now generate me some code for it, I will figure out the
+details later"  --  is what these skills are built to prevent.
 
 Each skill draws a clear line between phases:
 
@@ -38,18 +38,29 @@ Each skill draws a clear line between phases:
   that close the loop on the original requirement
   (`/write-plans`, `/implement-step`, `/implementation-check`).
 
-See [DEVELOPMENT.md — Goal: avoid vibe-coding](DEVELOPMENT.md#goal-avoid-vibe-coding)
+See [DEVELOPMENT.md  --  Goal: avoid vibe-coding](DEVELOPMENT.md#goal-avoid-vibe-coding)
 for the full rationale, what each phase costs up front, and the short
 path when the draft is genuinely one self-contained requirement.
 
 A side benefit: the workflow leaves a written trail. Each phase produces
-artifacts — the draft, the requirement, the design with its acceptance
-scenarios, the plan and validation plan, the per-step grouped commits —
+artifacts  --  the draft, the requirement, the design with its acceptance
+scenarios, the plan and validation plan, the per-step grouped commits  --
 and each merge keeps a conventional commit message that ties them
 together. That trail is read later by humans returning to old code, and
 it is also the context an LLM needs when asked to extend, debug, or
 explain that code in a future session. The history carries not just the
 code, but the reasoning that produced it.
+
+### Key insight: Always make the LLM review its own work
+
+- review to ask questions about your requirement or design;
+- review to confirm (or infirm) the code generated does indeed match what was planned.
+
+If your blindly trust what the LLM generates as a first pass (even in terms of documentation), you are missing out.
+
+The review loop is where the LLM gets to challenge the inputs it was given and the outputs it produced, and to ask for clarifications or point out contradictions. It is also where you get to see if the LLM actually understands the requirement and design, or if it just generated something that superficially looks like it.
+
+The "implementation check" phase is where the LLM gets to confirm that the code it just generated actually implements the plan and meets the acceptance criteria. If it does not, you get to iterate on the implementation until it does.
 
 ---
 
@@ -161,7 +172,7 @@ detail.
 The `/split-and-define` phase is optional. When the draft already
 describes a single, self-contained requirement, the author can call
 `/write-requirement` directly and pass the type (`feature-request` or
-`issue`), version, and topic — no split step is needed. Reach for
+`issue`), version, and topic  --  no split step is needed. Reach for
 `/split-and-define` when the draft mixes several distinct items, when
 the items differ in dependency order, or when the author wants the skill
 to suggest a slug per item.
@@ -172,7 +183,7 @@ to suggest a slug per item.
 
 ### Agent entry points
 
-Two folders, one per agent — same skills, same instruction bodies, two
+Two folders, one per agent  --  same skills, same instruction bodies, two
 discovery mechanisms. Pick the one your agent reads.
 
 ```txt
@@ -347,7 +358,7 @@ command name and the instruction file name are always the same.
 
 Shorthand used across this README, [DEVELOPMENT.md](DEVELOPMENT.md), and
 the shared skill bodies. The Doskey aliases are documented in detail in
-[DEVELOPMENT.md — Local command reference for this workflow](DEVELOPMENT.md#local-command-reference-for-this-workflow).
+[DEVELOPMENT.md  --  Local command reference for this workflow](DEVELOPMENT.md#local-command-reference-for-this-workflow).
 
 | Term | Stands for |
 | --- | --- |
