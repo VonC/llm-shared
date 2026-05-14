@@ -19,8 +19,10 @@ for %%i in ("%~dp0") do SET "PRJ_DIR=%%~fi"
 set "PRJ_DIR=%PRJ_DIR:~0,-1%"
 for %%i in ("%PRJ_DIR%") do SET "PRJ_DIR_NAME=%%~nxi"
 set "COPILOT_SHARED_DIR=%PRJ_DIR%"
+set "LLM_SHARED_DIR=%PRJ_DIR%"
 if defined GCYGPATH (
   for /f "usebackq tokens=*" %%i in (`%GCYGPATH% -u "%COPILOT_SHARED_DIR%"`) do  set "COPILOT_SHARED_DIR_UNIX=%%i"
+  for /f "usebackq tokens=*" %%i in (`%GCYGPATH% -u "%LLM_SHARED_DIR%"`) do  set "LLM_SHARED_DIR_UNIX=%%i"
 )
 
 if defined NO_MORE_SENV_%PRJ_DIR_NAME% ( goto:eof )
@@ -94,6 +96,7 @@ call "%PRJ_DIR%\tools\batcolors\echos_macros.bat" export
 set "GIT_HOME=%PRGS%\gits\current"
 set "GCYGPATH=%GIT_HOME%\usr\bin\cygpath.exe"
 for /f "usebackq tokens=*" %%i in (`%GCYGPATH% -u "%COPILOT_SHARED_DIR%"`) do  set "COPILOT_SHARED_DIR_UNIX=%%i"
+for /f "usebackq tokens=*" %%i in (`%GCYGPATH% -u "%LLM_SHARED_DIR%"`) do  set "LLM_SHARED_DIR_UNIX=%%i"
 
 doskey pt=pytest --no-header --cov-report term-missing:skip-covered $* ^& echo %PRJ_DIR_NAME%: pytest done
 doskey pta=pytest --testmon --cov-append --no-header --cov-report term-missing:skip-covered $* ^& echo %PRJ_DIR_NAME%: pytest affected done
@@ -118,7 +121,7 @@ doskey switchp=switchpy %PYTHON_VERSION% local $* ^& echo %PRJ_DIR_NAME%: switch
 doskey c="%PRJ_DIR%\bin\python_check.bat" $* ^& echo %PRJ_DIR_NAME%: python check done
 doskey cbf="%PRJ_DIR%\bin\check_big_files.bat" $* ^& echo %PRJ_DIR_NAME%: check big files done
 
-doskey /MACROFILE="%COPILOT_SHARED_DIR%\senv.doskey"
+doskey /MACROFILE="%LLM_SHARED_DIR%\senv.doskey"
 
 doskey fga=python "%PRJ_DIR%\tools\flamegraph_analyzer.py" $1 ^& echo %PRJ_DIR_NAME%: flamegraph analyzer done
 
