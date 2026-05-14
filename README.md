@@ -85,6 +85,46 @@ after the trigger completes.
 
 ---
 
+## Conventional commits with a why/what body
+
+Every commit in this workflow follows the
+[Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/)
+spec for the title line (`type(scope): subject`, 52 characters max).
+That title is what tools read to generate changelogs and release
+notes.
+
+The spec stops at the title. The body is freeform. This repository
+extends the spec with a fixed body template,
+[`templates/group-commits-msg.template.md`](templates/group-commits-msg.template.md),
+that adds two structured sections under the title:
+
+- `Why:`  --  two short paragraphs separated by an empty line. The
+  first paragraph states why the commit is needed (what was broken,
+  missing, or unclear). The second paragraph states how the code is
+  better after the commit lands.
+- `What:`  --  a dash-prefixed list of the actual modifications, one
+  line per change.
+
+The reason for the extension: the title alone feeds a changelog
+generator, but it does not help the next reader  --  human or LLM  --
+understand *why* the code looks the way it does. The body template
+fills that gap.
+
+The matching skill, `/group-commits-msg`, automates the harder half.
+By the time a developer is ready to commit, they often no longer
+remember every change they made in the working tree, nor which
+changes depend on which others. The skill reads the staged diff,
+groups files from the least dependent group to the most dependent
+one, and writes one commit message per group into `a.commit` for the
+author to review and edit. `gcba` then replays `a.commit` as a
+sequence of real commits.
+
+See [DEVELOPMENT.md  --  Conventional commit message template](DEVELOPMENT.md#conventional-commit-message-template-why-and-what-beyond-changelog)
+for the template fields in detail, the 52/80 character rules, and
+the rationale behind the least-to-most-dependent grouping pass.
+
+---
+
 ## Development workflow overview
 
 The skills in this repository fit a single end-to-end workflow that takes a

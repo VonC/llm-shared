@@ -446,6 +446,123 @@ as open questions before they become code.
 9. If the plan still has open implementation questions, run the same
   review-and-consolidation loop on the plan document before coding.
 
+## Conventional commit message template: why and what beyond changelog
+
+The grouped commit loop below builds on the
+[Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/)
+spec. The spec covers the title line only:
+`<type>[optional scope]: <description>`. That title is the input that
+changelog generators read, and it is the only part of the message
+the spec defines.
+
+This repository extends the spec with a body template,
+[`templates/group-commits-msg.template.md`](templates/group-commits-msg.template.md),
+that captures the rationale and the change list under the title.
+
+### Body template structure for a single commit
+
+```log
+type(scope): subject
+
+Why:
+
+A detailed reason for the change. Multiple sentences. Use specific
+terms, not generalities.
+
+A detailed description of the "now" state that this commit produces.
+Multiple sentences. Use specific terms, not generalities.
+
+What:
+
+- list of changes...
+- ... done for that commit
+```
+
+Title line rules (the spec part):
+
+- 52 characters max, including the type, the optional scope, the
+  colon, and the space.
+- `type` is one of `feat`, `fix`, `docs`, `chore`, `refactor`,
+  `test`, `build`, `ci`, `perf`, `style`, or any other type the
+  project declares.
+- `(scope)` is optional and names the area touched (a module name,
+  a feature slug, etc.).
+- `subject` is a short imperative description.
+
+Body and footer rules (the extension on top of the spec):
+
+- Body and footer lines wrap at 80 characters and are never
+  indented.
+- The `Why:` section is two paragraphs separated by an empty line:
+  the reason for the change first, the "now" state second.
+- The `What:` section is a dash-prefixed list, one item per
+  modification.
+- Words listed in [`rules/blacklist.md`](rules/blacklist.md) are
+  forbidden in the body, same as in any other prose in the project.
+
+### Why the body extension matters beyond changelog generation
+
+The Conventional Commits spec only standardizes the title. That is
+enough to generate a changelog from a git log, which is the spec's
+stated goal. It is not enough for the other readers of the commit
+history:
+
+- The original author, six months later, looking at why a function
+  looks the way it does.
+- A new contributor trying to follow the order in which decisions
+  were made.
+- An LLM asked to extend, refactor, or debug the code, with only the
+  current files and the git history as context.
+
+Those readers need the `Why:` section. The diff already tells them
+what changed; the title tells them what kind of change it was; only
+the body tells them what the change was for and how the code reads
+better afterwards.
+
+### Why automating the grouping matters at commit time
+
+By the time a slice of work is ready to commit, the working tree
+usually contains several distinct changes:
+
+- The code change that was the goal of the slice.
+- One or more small fixes the author noticed along the way.
+- Test updates that pair with one of the above.
+- A documentation tweak or a configuration change.
+
+Two real problems show up at that point:
+
+- The author often no longer remembers every change they made,
+  especially the small fixes picked up along the way. Squashing the
+  whole working tree into one "WIP" commit hides those changes from
+  the history for good.
+- The order in which changes are committed matters: a commit that
+  modifies a file used by a later commit must land first, or the
+  intermediate state of the repository becomes incoherent (tests
+  fail at a midway commit, bisect lands on a broken state, etc.).
+
+The `/group-commits-msg` skill handles both problems. It reads
+`git diff --cached`, groups files from the least dependent group to
+the most dependent one, and writes one commit message per group
+into `a.commit`. The author reviews and edits `a.commit`, then
+`gcba` replays the file as a sequence of real commits in that order.
+
+The skill does more than save typing. It rebuilds the change story
+from the diff itself, so the resulting commits read like the author
+made them carefully, even when the author no longer remembers every
+detail. The grouping pass also catches changes that should not have
+been mixed: an unrelated fix that landed in the same slice gets its
+own commit, instead of being absorbed silently into a feature
+commit.
+
+### Trade-off worth knowing for the grouping skill
+
+The skill is only as good as the staged diff. If the staged set
+mixes a feature with an unrelated refactor, the skill produces two
+well-formed commits, but the split is the only one the diff
+supports. When the diff itself is incoherent, edit `a.commit` by
+hand before running `gcba`, or stage in two passes (commit one
+slice, then stage the rest).
+
 ## Grouped commit loop for documents and code
 
 ```txt
