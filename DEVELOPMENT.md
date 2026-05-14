@@ -127,6 +127,60 @@ to reverse-engineer the intent from the implementation. Code with the
 trail short-circuits that reverse-engineering, which is the same reason
 this workflow exists in the first place.
 
+### Why LLM self-review matters
+
+Two phases in this workflow exist specifically because the LLM should
+review its own output, never ship its first pass:
+
+- The review loop (`/review-ask-questions` followed by
+  `/consolidate-then-review-ask-questions`) challenges the requirement
+  document and the design document before any code is written.
+- The implementation check (`/implementation-check`) challenges the code
+  produced by `/implement-step` against the plan and the design's
+  acceptance scenarios.
+
+Trusting the first pass blindly is exactly what these phases protect
+against. A first-pass document usually reads well, and a first-pass
+step usually compiles and passes the tests it shipped with — which is
+the reason a separate review pass is needed in the first place. The
+same model that wrote the artifact gets a fresh chance, with the
+surrounding documents as context, to spot contradictions, ambiguity,
+missing acceptance criteria, or gaps between what was planned and what
+was actually written.
+
+What the review loop on a document catches:
+
+- Contradictions inside the requirement, for example two paragraphs
+  that imply different behavior for the same input.
+- Open questions the author did not see, because the draft assumed a
+  shared context that is not written down.
+- Acceptance criteria that sound obvious in English but turn out to be
+  untestable when phrased as a scenario.
+- Cases where the model only understood the requirement on the
+  surface: the open questions it raises (or fails to raise) are a
+  visible signal of how deep the model actually went.
+
+What the implementation check catches:
+
+- Code that compiles, passes its own tests, and still does not match
+  the plan: a sub-step skipped, a side condition not handled, a test
+  that proves the wrong claim.
+- Architecture smells, dependency issues, and hot-path performance
+  risks that are easier to spot from outside the step than from inside
+  it.
+- Gaps between the acceptance scenarios captured in the design and
+  what the code actually demonstrates.
+
+When the implementation check reports gaps, the next move is to iterate
+on `/implement-step N` (and on the tests) until a fresh check comes
+back clean. The validation document keeps the trace of what each
+iteration changed, so a later reader (human or model) can see not just
+the final state but the corrections that produced it.
+
+The pattern is the same on both sides: ask the model to look again at
+work it just produced, with the surrounding artifacts as context, and
+treat the first pass as a draft, not a deliverable.
+
 ## Shell setup for the IA workflow
 
 Before you use the aliases below, load the project shell with `senv.bat`.
@@ -285,6 +339,12 @@ related items in the
 
 The same loop is used later on the design document and, if needed, on the plan
 document. Only the input document changes.
+
+This loop is the document-side half of LLM self-review (see
+[Why LLM self-review matters](#why-llm-self-review-matters)): each
+pass gives the model a fresh chance to find contradictions or missing
+context in a document it just helped to shape, and to point those out
+as open questions before they become code.
 
 ```txt
    +---------------------------------+
@@ -513,6 +573,14 @@ fully completed implementation step.
 10. Stage the finished slice and reuse the grouped commit loop.
 11. Do not start the next step until the current one is implemented, tested,
   checked, and committed. And pushed. (use `gp` for `git push`)
+
+The `/implementation-check` call in step 7 is the code-side half of LLM
+self-review (see [Why LLM self-review matters](#why-llm-self-review-matters)):
+the model that just wrote the step gets a fresh pass, with the plan, the
+design, and `a.diff` in context, to confirm or refute that the code
+actually implements the plan and meets the acceptance scenarios. When
+the check reports gaps, iterate on the step until a fresh check is
+clean — that is the moment the step can be committed and pushed.
 
 ## Decision rule for architecture and performance findings
 
