@@ -84,6 +84,6 @@ These facts were confirmed by inspecting the current codebase before writing thi
 {Add this section when concrete examples, edge cases, or boundary cases are needed to make the design testable and unambiguous.}
 
 | Scenario | Expected outcome | Reason |
-| ---- | ---- | ---- |
+| --- | --- | --- |
 | `{Example 1}` | `{Expected outcome}` | `{Reason}` |
 | `{Example 2}` | `{Expected outcome}` | `{Reason}` |
