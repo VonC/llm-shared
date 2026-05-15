@@ -8,6 +8,13 @@ Fix: Keep parser monkeypatches compatible with keyword-based
 
 Fix: Cover the workflow missing-input branch and direct fatal-exit handling
 without growing the process and root-workflow test files.
+
+Fix: Cover `_ends_what_section` and the wrapped-continuation-line handling in
+`_parse_list_items`, so a multi-line What item is parsed in full.
+
+Fix: Patch `find_project_root` on the workflow module instead of the `tools`
+package, so the root-workflow fatal test stays isolated from the real
+repository `a.commit`.
 """
 
 from __future__ import annotations
@@ -34,6 +41,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 _EXPECTED_TWO = 2
+_EXPECTED_THREE = 3
 _EXPECTED_GIT_ADD_START = 2
 _EXPECTED_NEXT_GIT_ADD_INDEX = 5
 _EXPECTED_TITLE_INDEX = 6
@@ -199,9 +207,9 @@ def test_parse_non_empty_section_returns_lines_and_raises_when_empty() -> None:
 
 
 def test_parse_list_items_returns_items_and_raises_when_empty() -> None:
-    """List-item parsing should collect `- item` lines and reject empty sections."""
+    """List-item parsing should collect `- item` lines and stop at the closing fence."""
     state = git_batch_models._ParseState(
-        lines=["- one", "- two", "tail"],
+        lines=["- one", "- two", "```"],
         idx=0,
         lines_read=[],
     )
@@ -217,9 +225,42 @@ def test_parse_list_items_returns_items_and_raises_when_empty() -> None:
         git_batch_parsing._parse_list_items(empty_state)
 
 
+def test_parse_list_items_keeps_wrapped_continuation_lines() -> None:
+    """List-item parsing should keep continuation lines of wrapped What items."""
+    state = git_batch_models._ParseState(
+        lines=[
+            "- first change that wraps onto",
+            "a second physical line",
+            "- second change",
+            "```",
+        ],
+        idx=0,
+        lines_read=[],
+    )
+
+    expected_items = [
+        "- first change that wraps onto",
+        "a second physical line",
+        "- second change",
+    ]
+    assert git_batch_parsing._parse_list_items(state) == expected_items
+    assert state.idx == _EXPECTED_THREE
+    assert state.lines_read == expected_items
+
+
+def test_ends_what_section_detects_section_boundaries() -> None:
+    """The What-section terminator should flag boundaries and keep plain text."""
+    assert git_batch_parsing._ends_what_section("") is True
+    assert git_batch_parsing._ends_what_section("```") is True
+    assert git_batch_parsing._ends_what_section("## Group 2: topic") is True
+    assert git_batch_parsing._ends_what_section("git add -A file.py") is True
+    assert git_batch_parsing._ends_what_section("fix(scope): title") is True
+    assert git_batch_parsing._ends_what_section("a wrapped continuation line") is False
+
+
 def test_parse_commit_message_returns_text_title_and_next_index() -> None:
     """Commit-message parsing should rebuild the message body and stop at the next line."""
-    lines = [*_valid_commit_lines(), "trailing"]
+    lines = [*_valid_commit_lines(), "```"]
 
     commit_message, commit_title, next_idx = git_batch_parsing._parse_commit_message(
         lines,
@@ -573,7 +614,14 @@ def test_git_batch_commit_script_logs_fatal_for_root_workflow_errors(
     """Script execution should translate root-workflow failures into exit code 2."""
     script_path = Path(git_batch_commit_script.__file__)
 
-    monkeypatch.setattr(tools, "find_project_root", _return_project_root(tmp_path))
+    # Patch the name the workflow module actually calls: it binds
+    # find_project_root at import time, so patching tools.find_project_root
+    # alone would leave the test reading the real repository a.commit.
+    monkeypatch.setattr(
+        git_batch_workflow,
+        "find_project_root",
+        _return_project_root(tmp_path),
+    )
     monkeypatch.setattr(sys, "argv", [str(script_path), "--root-a-commit"])
 
     with pytest.raises(SystemExit) as excinfo:

@@ -3,6 +3,10 @@
 Fix: Split clipboard, commit-message, and git-add parsing helpers out of
 `tools.git_batch_commit` so the workflow and git-operation code can stay in
 smaller files without changing parsing behavior.
+
+Fix: Keep wrapped continuation lines when parsing the What section, so a
+multi-line `- ` item no longer truncates the commit message at its first
+physical line.
 """
 
 from __future__ import annotations
@@ -145,12 +149,41 @@ def _parse_non_empty_section(
     return section_lines
 
 
+def _ends_what_section(line: str) -> bool:
+    """Check if a line ends the What list section.
+
+    The What section is the last section of a commit message, and its
+    list items may wrap onto continuation lines that do not start with
+    '- '. The section only ends at a structural boundary: an empty line,
+    a code fence, a markdown header, the next git add command, or the
+    next commit title.
+    """
+    stripped = line.strip()
+    if not stripped:
+        return True
+    if stripped.startswith(("```", "#")):
+        return True
+    if stripped.startswith("git add "):
+        return True
+    return _is_commit_title(stripped)
+
+
 def _parse_list_items(state: _ParseState) -> list[str]:
-    """Parse list items starting with '- ' in What section."""
+    """Parse the What section, keeping wrapped continuation lines.
+
+    A What item may span several physical lines: only the first line
+    starts with '- ', and the following continuation lines do not. The
+    section ends at the first boundary reported by `_ends_what_section`,
+    or at the end of input. Continuation lines are kept so a multi-line
+    item is not truncated at its first physical line.
+    """
     items: list[str] = []
+    started = False
     while state.idx < len(state.lines):
         line = state.lines[state.idx]
-        if not _is_list_item(line):
+        if _is_list_item(line):
+            started = True
+        elif not started or _ends_what_section(line):
             break
         items.append(line)
         state.lines_read.append(line)
@@ -358,6 +391,7 @@ parse_git_add_command = _parse_git_add_command
 
 
 __all__ = [
+    "_ends_what_section",
     "_expect_empty_line",
     "_expect_keyword",
     "_get_clipboard_text",
