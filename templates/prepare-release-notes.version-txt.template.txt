@@ -1,0 +1,35 @@
+X.Y.Z-SNAPSHOT -- Release notes summary for version X.Y.Z
+
+- witty title 1
+  -- witty sub-title 1
+- witty title 2
+  -- witty sub-title 2
+- witty title 3
+  -- witty sub-title 3
+
+Main theme for this release, using multiple sentences and specific terms
+(no generalities) to describe the main focus of this release, the key
+features, improvements, and any significant changes that users should be
+aware of.
+
+Main secondary theme for this release, if applicable, using multiple
+sentences to describe any additional focus areas, features, or
+improvements that are part of this release but are not the main theme.
+
+### Key changes for vX.Y.Z
+
+- **Key change 1**: A brief description of the key change, its impact,
+  and any relevant details. Specific terms and features should be
+  mentioned to provide clarity on what the change entails and how it
+  benefits users. No generalities, focus on the specifics of the change
+  and its implications for users.
+- **Key change 2**: A brief description of the key change, its impact,
+  and any relevant details. Specific terms and features should be
+  mentioned to provide clarity on what the change entails and how it
+  benefits users. No generalities, focus on the specifics of the change
+  and its implications for users.
+- **Key change 3**: A brief description of the key change, its impact,
+  and any relevant details. Specific terms and features should be
+  mentioned to provide clarity on what the change entails and how it
+  benefits users. No generalities, focus on the specifics of the change
+  and its implications for users.
