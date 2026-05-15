@@ -452,3 +452,15 @@ the shared skill bodies. The Doskey aliases are documented in detail in
 | `Qxx` block | An open-question block appended by the review skills (options + recommended choice). |
 | `ruffc` | Doskey alias to `ruff check`. |
 | `vX.Y.Z` | Working version slug used in every artifact filename (draft, requirement, design, plan). |
+
+---
+
+## License for llm-shared
+
+This repository is released under the MIT License. The full text is in
+[LICENSE.md](LICENSE.md): use, copy, modify, and redistribute the
+prompts, skills, instructions, templates, and helper scripts, in your
+own projects or forks, as long as the copyright notice stays in place.
+
+See [DEVELOPMENT.md  --  License rationale: why MIT fits llm-shared](DEVELOPMENT.md#license-rationale-why-mit-fits-llm-shared)
+for why MIT was picked over a copyleft license.

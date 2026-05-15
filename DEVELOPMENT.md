@@ -933,3 +933,37 @@ template. `senv_dev_workflow` owns the build side: `t_build.bat`,
 `update-version.bat`, `update-changelog.bat`, and the `senv.bat` wiring
 that `brel` runs through. A project that uses the release stage of this
 workflow needs both repositories wired into its `tools\` directory.
+
+## License rationale: why MIT fits llm-shared
+
+`llm-shared` is released under the MIT License ([LICENSE.md](LICENSE.md)).
+The reasons MIT was picked, rather than a copyleft license such as the
+GPL:
+
+- **The repository exists to be copied into other projects.** The
+  README section "How to use llm-shared from another project" tells the
+  reader to copy or symlink `.claude/skills/` into `~/.claude/skills/`,
+  or to hand a single `instructions/<skill>.md` file to another LLM as
+  context. MIT puts no condition on those copies beyond keeping the
+  copyright notice, so a downstream project can take one skill without
+  having to think about license terms.
+- **No copyleft reach into downstream documents.** Running these skills
+  produces drafts, requirements, designs, plans, and commit messages
+  inside someone else's repository. A copyleft license would raise an
+  unclear question about whether those generated documents inherit the
+  license. MIT removes that question: the workflow artifacts belong to
+  the project that ran the workflow.
+- **It matches the code already in the tree.** The bundled
+  `tools\batcolors` helper already ships under the MIT License with the
+  same copyright holder. Using MIT for the whole repository keeps one
+  license across the tree and avoids any compatibility check between
+  `batcolors` and the rest of the files.
+- **The content is small, adaptable parts.** Most files are prompts,
+  markdown instructions, templates, and short helper scripts meant to be
+  forked and edited per project. A short, widely understood, attribution-only
+  license fits a toolbox whose value is in being reused, not in
+  restricting what people build from it.
+
+The MIT choice covers only `llm-shared` itself. The build tooling from
+`senv_dev_workflow` (see the section above) lives in its own repository
+under its own license terms, and is not affected by this decision.
