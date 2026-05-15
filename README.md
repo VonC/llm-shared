@@ -81,7 +81,8 @@ after the trigger completes.
 | Implement and check | `/implement-step N` then `/implementation-check N` | Code, tests, and updates to the validation document |
 | Group commits | `gcmp` then `/group-commits-msg` then `gcba` | One conventional commit per logical group |
 | Merge and reword | `git merge --no-ff` then `/update-merge-commit-msg` then `grmc` | Merge commit with a conventional message tied to the merged docs |
-| Release | `/write-release-notes-summary` then `git tag` | Release notes + version tag on `main` |
+| Prepare release notes | `/prepare_release_notes` | `a.md`, a release-notes summary in `version.txt`, an updated `CHANGELOG.md` |
+| Release | `brel` | Version tag `vX.Y.Z` on `main`, marked `[valid]` after a green build |
 
 ---
 
@@ -194,8 +195,14 @@ shows the main phases and which skill triggers each transition. See
                   +--------+--------+
                            |
                            |  after several merges
-                           |  /write-release-notes-summary
-                           |  git tag vX.Y.Z
+                           |  /prepare_release_notes
+                           v
+                  +-----------------+
+                  | release notes   |
+                  | prepared        |
+                  +--------+--------+
+                           |
+                           |  brel  (build + tag)
                            v
                   +-----------------+
                   |     release     |
@@ -216,6 +223,31 @@ describes a single, self-contained requirement, the author can call
 `/split-and-define` when the draft mixes several distinct items, when
 the items differ in dependency order, or when the author wants the skill
 to suggest a slug per item.
+
+---
+
+## Prepare release notes before tagging a release
+
+A release is more than a git tag. Before `main` is tagged, the
+`/prepare_release_notes` skill turns the commit history since the last
+tag into release notes a reader can use.
+
+The skill runs
+[`scripts/prepare_release_notes.sh`](scripts/prepare_release_notes.sh):
+it reads the `X.Y.Z-SNAPSHOT` version from `version.txt`, collects every
+conventional-commit title since the last tag, and writes `a.md` with
+those titles grouped by type. From `a.md`, the skill writes a
+release-notes summary back into `version.txt`  --  a main theme, a short
+list of key changes, and three witty title / subtitle pairs for the
+author to pick from. Once a title is picked, the skill calls
+`update-changelog.bat` to fold the summary into `CHANGELOG.md`.
+
+This skill stops before the tag. Creating the release is a separate
+step: the author runs `brel`, which drives the project build with the
+`rel` parameter. See
+[DEVELOPMENT.md  --  Prepare release notes and create the release](DEVELOPMENT.md#prepare-release-notes-and-create-the-release)
+for the six-step workflow and the dependency on the `senv_dev_workflow`
+build tooling.
 
 ---
 
@@ -268,6 +300,7 @@ instructions/                             shared skill bodies (one file per skil
 ├─ group-commits-msg.md
 ├─ implement-step.md
 ├─ implementation-check.md
+├─ prepare-release-notes.md
 ├─ review-and-update-project-docs.md
 ├─ review-ask-questions.md
 ├─ split-and-define.md
@@ -285,11 +318,13 @@ templates/                                shared markdown templates referenced b
 ├─ group-commits-msg.template.md          a.commit file format for grouped commits
 ├─ implementation-step-analysis.template.md output structure for implementation-check
 ├─ open-question.template.md              Qxx/BBQ/Options block for review skills
+├─ prepare-release-notes.version-txt.template.txt version.txt release-notes summary skeleton
 ├─ write-design.template.md               design document skeleton
 ├─ write-plans.template.md                implementation plan skeleton
 ├─ write-plans.validation.template.md     validation plan skeleton
 └─ write-requirement.template.md          feature-request and issue document skeletons
 scripts/                                  shared helper scripts grouped by skill
+├─ prepare_release_notes.sh               build a.md from the git history since the last tag
 └─ update-merge-commit-msg/
    ├─ git-extract-merge-docs.sh           dump the merged branch docs to a.docs
    └─ git-reword-merge.sh                 rewrite the current merge commit from a.commit

@@ -758,8 +758,8 @@ Repeat this sequence until every planned step is committed in your branch.
    +-------+-------------------------+
            |
            |  after several merges
-           |  /write-release-notes-summary
-           |  git tag vX.Y.Z
+           |  /prepare_release_notes
+           |  brel
            v
    +---------------------------------+
    |  release                        |
@@ -812,36 +812,124 @@ Publish only after the merge commit message has been rewritten.
 2. If `gp` is not defined in your shell, run `git push` directly to update
   `main`.
 
-## Release notes and version tag
+## Prepare release notes and create the release
+
+A release on `main` takes two moves. First `/prepare_release_notes`
+turns the commit history into release notes; then `brel` runs the build
+that creates the tag. The skill never tags anything itself.
 
 ```txt
-   main with several merge commits
-                |
-                | /write-release-notes-summary
-                | (reads merge commit subjects and docs\plan.*.md files)
-                v
-   release notes draft
-   +-- summary bullets grouped by topic
-   +-- three witty title / subtitle pairs to pick from
-                |
-                | pick one title pair, finalize the notes
-                v
-   release notes ready to publish
-                |
-                | git tag vX.Y.Z
-                | git push --tags
-                v
-   tagged release on main
+   +---------------------------------+
+   |  main with several merge        |
+   |  commits                        |
+   +-------+-------------------------+
+           |
+           |  /prepare_release_notes  (step 1)
+           |  runs scripts\prepare_release_notes.sh
+           v
+   +---------------------------------+
+   |  a.md - release-preparation     |
+   |  notes                          |
+   |  - commit titles grouped by type|
+   |  - full commit list since tag   |
+   +-------+-------------------------+
+           |
+           |  step 2: summary written into
+           |  version.txt (main theme, key
+           |  changes, three title pairs)
+           v
+   +---------------------------------+
+   |  version.txt - release-notes    |
+   |  summary draft                  |
+   +-------+-------------------------+
+           |
+           |  step 3: author picks one title pair
+           |  step 4: version.txt rewritten with title
+           v
+   +---------------------------------+
+   |  version.txt finalized          |
+   +-------+-------------------------+
+           |
+           |  step 5: tools\dev_workflow\update-changelog.bat
+           v
+   +---------------------------------+
+   |  CHANGELOG.md updated with      |
+   |  vX.Y.Z and the summary         |
+   +-------+-------------------------+
+           |
+           |  brel  ->  tools\dev_workflow\t_build.bat rel
+           |        ->  update-version.bat drops -SNAPSHOT
+           |        ->  git tag vX.Y.Z, marked [valid] on success
+           v
+   +---------------------------------+
+   |  tagged release on main         |
+   +---------------------------------+
 ```
 
-1. After several merges have landed on `main`, run
-  `/write-release-notes-summary` so the skill reads the recent merge commit
-  subjects and any `docs\plan.*.md` files in context.
-2. Review the generated bullet summary and pick one of the three proposed
-  title / subtitle pairs.
-3. Edit the notes if needed, then publish them through the project's usual
-  release channel.
-4. Run `git tag vX.Y.Z` on the latest commit of `main`, where `vX.Y.Z`
-  matches the working version used for the recent draft, design, and plan
-  documents.
-5. Run `git push --tags` to publish the tag.
+### Six steps of /prepare_release_notes
+
+`/prepare_release_notes` resolves to the mutualized body
+[`instructions/prepare-release-notes.md`](instructions/prepare-release-notes.md).
+Run it from the project directory once the `-SNAPSHOT` development cycle
+is over and the release is ready to cut. The skill works in six steps:
+
+1. **Generate `a.md`.** The skill runs
+  [`scripts/prepare_release_notes.sh`](scripts/prepare_release_notes.sh),
+  which reads the `X.Y.Z-SNAPSHOT` version from the first line of
+  `version.txt`, finds the last git tag, and writes `a.md` with the
+  conventional-commit titles since that tag grouped by type, plus the
+  full commit list. The script stops with a fatal error when the version
+  is not a `-SNAPSHOT`, or when the last tag already matches `X.Y.Z`
+  (the notes are already prepared).
+2. **Write the summary into `version.txt`.** The skill reads `a.md` and
+  writes a release-notes summary following
+  [`templates/prepare-release-notes.version-txt.template.txt`](templates/prepare-release-notes.version-txt.template.txt):
+  a first line `X.Y.Z-SNAPSHOT -- <title>`, three witty title / subtitle
+  pairs, a main theme paragraph, an optional secondary theme, and a
+  `Key changes` list of three items.
+3. **Pause for a title choice.** The skill stops and shows the three
+  title / subtitle pairs, then asks the author to pick one.
+4. **Finalize `version.txt`.** The chosen title becomes the release
+  title on the first line; the two other pairs stay in the list below.
+5. **Update the changelog.** The skill calls
+  `tools\dev_workflow\update-changelog.bat`, which folds the
+  `version.txt` summary into `CHANGELOG.md` under the new version.
+6. **Report and hand off.** The skill confirms `version.txt` and
+  `CHANGELOG.md` are written, and points the author at the next step:
+  `brel`.
+
+### Create the release with brel
+
+`/prepare_release_notes` stops before the tag on purpose. To cut the
+release, the author runs `brel`, which drives the project build with the
+`rel` parameter:
+
+1. `brel` calls `tools\dev_workflow\t_build.bat rel`.
+2. `t_build.bat` reads `rel` as an update-version argument and calls
+  `update-version.bat`, which drops the `-SNAPSHOT` suffix, commits the
+  release version, and creates the `vX.Y.Z` git tag.
+3. When the build succeeds, `t_build.bat` marks the `vX.Y.Z` tag with a
+  `[valid]` marker. When it fails, `t_build.bat` resets the pre-release
+  state and deletes the tag, so a failed release leaves no half-tagged
+  `main` behind.
+
+### Dependency on the senv_dev_workflow build tooling
+
+Step 5 above and the whole `brel` path are not part of `llm-shared`.
+They depend on the project carrying the build tooling from
+[`senv_dev_workflow`](https://github.com/VonC/senv_dev_workflow) under
+its own `tools\dev_workflow\` directory:
+
+- `update-changelog.bat`  --  called in step 5 to write `CHANGELOG.md`.
+- `t_build.bat`  --  called by `brel`; the `rel` parameter selects the
+  release path of the build.
+- `update-version.bat`  --  called by `t_build.bat` to turn the
+  `-SNAPSHOT` version into the release version and tag it.
+
+The split of ownership is clean. `llm-shared` owns the release-notes
+side: the `prepare_release_notes` skill, its instruction body, the
+`prepare_release_notes.sh` script, and the `version.txt` summary
+template. `senv_dev_workflow` owns the build side: `t_build.bat`,
+`update-version.bat`, `update-changelog.bat`, and the `senv.bat` wiring
+that `brel` runs through. A project that uses the release stage of this
+workflow needs both repositories wired into its `tools\` directory.
