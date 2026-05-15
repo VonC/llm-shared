@@ -23,11 +23,13 @@ improvements that are part of this release but are not the main theme.
   mentioned to provide clarity on what the change entails and how it
   benefits users. No generalities, focus on the specifics of the change
   and its implications for users.
+
 - **Key change 2**: A brief description of the key change, its impact,
   and any relevant details. Specific terms and features should be
   mentioned to provide clarity on what the change entails and how it
   benefits users. No generalities, focus on the specifics of the change
   and its implications for users.
+
 - **Key change 3**: A brief description of the key change, its impact,
   and any relevant details. Specific terms and features should be
   mentioned to provide clarity on what the change entails and how it
