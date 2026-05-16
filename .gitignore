@@ -106,3 +106,4 @@ uv.lock
 *.exe.*
 **/.local/bin/
 
+build/
