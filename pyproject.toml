@@ -1,17 +1,15 @@
 [project]
-name = "Copilot-Shared"
-description = "Shared tools and workflows for Copilot projects"
+name = "LLM-Shared"
+description = "Shared tools and workflows for LLM projects"
 readme = "README.md"
 authors = [
   { name = "VonC", email = "vonc@laposte.net" },
 ]
 requires-python = ">=3.13, <3.14"
-dynamic = ["dependencies", "version"]
-[tool.setuptools.dynamic]
-dependencies = { file = "requirements.dev.txt" }
+dynamic = ["version"]
 
-[tool.setuptools.package-data]
-"tools.data" = ["wordlist.txt"]
+[tool.setuptools]
+packages = ["tools"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
