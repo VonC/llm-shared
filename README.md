@@ -330,8 +330,99 @@ scripts/                                  shared helper scripts grouped by skill
    └─ git-reword-merge.sh                 rewrite the current merge commit from a.commit
 tools/
 ├─ git_batch_commit.py                    validate and replay grouped commits
-└─ git_command.py                         local cross-platform Git helper
+├─ git_command.py                         local cross-platform Git helper
+└─ uv_run.py                              cert-aware uv launcher (personal/corporate networks)
 senv.bat                                  local shell aliases for the tooling
+```
+
+---
+
+## Development environment
+
+Using the shared skills needs no Python environment — they are plain
+markdown. A Python environment is only needed to **work on llm-shared
+itself**: to run the helper scripts under `tools/` and the test suite
+under `tests/`.
+
+Dependencies are declared in [`pyproject.toml`](pyproject.toml) (the
+`[dependency-groups]` `dev` group) and pinned in `uv.lock`. The
+repository is managed with [uv](https://docs.astral.sh/uv/); there are
+no longer any `requirements*.txt` files.
+
+```bash
+# Create and activate a virtual environment
+python -m venv venv
+source venv/bin/activate        # Linux
+venv\Scripts\activate           # Windows
+```
+
+`uv` is the installer. On a fresh checkout it is not yet present, but it
+ships on PyPI as a wheel with the binary bundled in, so the `pip` that
+comes with every `venv` can bootstrap it:
+
+```bash
+# Inside the activated virtual environment, when `uv` is not installed
+python -m pip install uv
+
+# Then install the development tooling from the lockfile
+uv sync
+```
+
+That two-step replaces the former `pip install -r requirements.dev.txt`.
+If `uv` is already installed system-wide, the first command can be
+skipped and `uv sync` run directly.
+
+### Dependency maintenance
+
+```bash
+uv lock              # refresh uv.lock after editing pyproject.toml
+uv lock --upgrade    # bump every dependency to its newest allowed version
+uv sync              # apply the lockfile to the venv
+uv add --dev <package>   # add a development dependency
+```
+
+`uv` is not aliased — it runs the venv's `uv.exe` directly. The
+`pcomp` / `pupg` / `psync` aliases are shortcuts for the first three
+commands; they route through [`tools/uv_run.py`](tools/uv_run.py), a
+cert-aware launcher. `uv` reads the `SSL_CERT_FILE` environment
+variable: behind a corporate TLS-intercepting proxy it must point at
+the corporate CA bundle, on a personal network it must be unset.
+`uv_run.py` picks the matching TLS trust roots and retries on a
+certificate error — a safety net for these network-heavy commands. It
+is project-agnostic; any repository that loads this `senv.bat` gets the
+same shortcuts.
+
+### Checking dependency state
+
+Three read-only commands answer "is everything in order?" without
+changing anything:
+
+```bash
+uv sync --locked --check     # venv matches uv.lock, and uv.lock matches pyproject.toml
+uv lock --upgrade --dry-run  # whether any locked version could move to a newer release
+uv pip list --outdated       # installed packages with a newer release on PyPI
+```
+
+| Command | Network | Reports |
+| --- | --- | --- |
+| `uv sync --locked --check` | no | venv ↔ `uv.lock` ↔ `pyproject.toml` consistency; exits non-zero on any drift |
+| `uv lock --upgrade --dry-run` | yes | which locked versions a `uv lock --upgrade` *would* move, writing nothing |
+| `uv pip list --outdated` | yes | installed packages with a newer PyPI release |
+
+`uv lock --upgrade --dry-run` honours the constraints of the whole
+dependency graph; `uv pip list --outdated` does not. A package can
+appear "outdated" there yet be unmovable — for example `mando` is held
+below `0.8` by `radon` (`Requires-Dist: mando (<0.8,>=0.6)`), and `pip`
+is the virtual environment's own seed package, not a tracked
+dependency. Only what `uv lock --upgrade --dry-run` reports can be
+upgraded by `pupg`.
+
+`pip` is unmanaged by uv, so `pupg` never moves it. Upgrade the venv's
+seed `pip` directly when `uv pip list --outdated` flags it — this
+touches neither `pyproject.toml` nor `uv.lock`:
+
+```bash
+uv pip install --upgrade pip
 ```
 
 ---
