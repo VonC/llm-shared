@@ -128,8 +128,19 @@ doskey fga=python "%PRJ_DIR%\tools\flamegraph_analyzer.py" $1 ^& echo %PRJ_DIR_N
 doskey pyr=pyright $* ^& echo %PRJ_DIR_NAME%: pyright done
 doskey pyrb=pyright "%PRJ_DIR%\bin" $* ^& echo %PRJ_DIR_NAME%: pyright bin done
 
-doskey pcomp=pip-compile --strip-extras requirements.in $* ^&^& pip-compile --strip-extras requirements.dev.in $* ^& echo %PRJ_DIR_NAME%: pip-compile runtime+dev upgrade done
-doskey pupg=pip-compile --strip-extras --upgrade requirements.in $* ^&^& pip-compile --strip-extras --upgrade requirements.dev.in $* ^& echo %PRJ_DIR_NAME%: pip-compile upgrade runtime+dev upgrade done
+rem pcomp/pupg/psync route uv through tools\uv_run.py, which picks the
+rem right TLS trust roots for a personal vs corporate (proxy) network.
+doskey pcomp=python "%LLM_SHARED_DIR%\tools\uv_run.py" lock $* ^& echo %PRJ_DIR_NAME%: uv lock ^(refresh uv.lock from pyproject.toml^) done
+doskey pupg=python "%LLM_SHARED_DIR%\tools\uv_run.py" lock --upgrade $* ^& echo %PRJ_DIR_NAME%: uv lock --upgrade ^(bump dev deps^) done
+doskey psync=python "%LLM_SHARED_DIR%\tools\uv_run.py" sync $* ^& echo %PRJ_DIR_NAME%: uv sync ^(install dev deps from uv.lock^) done
+
+rem uv / uvw / uvx are left unaliased so they resolve to the venv binaries
+rem on PATH. uv honours SSL_CERT_FILE directly: on a non-corporate machine
+rem unset it in bin\senv.local.bat, or uv rejects the PyPI certificate.
+doskey uv=
+doskey uvw=
+doskey uvx=
+set "UV_PROJECT_ENVIRONMENT=%VIRTUAL_ENV%"
 
 doskey gdca=git diff --cached ^> a.diff ^& grep "^diff " a.diff ^| wc -l ^& git status --porcelain ^| grep -v "^[ \?]"
 doskey gcma=gcm.bat a ^& git commit --amend

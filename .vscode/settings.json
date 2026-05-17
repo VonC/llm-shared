@@ -42,6 +42,7 @@
     "noninteractive",
     "passlib",
     "pcomp",
+    "psync",
     "ptncs",
     "pycparser",
     "pyrb",
