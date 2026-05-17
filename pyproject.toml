@@ -6,7 +6,14 @@ authors = [
   { name = "VonC", email = "vonc@laposte.net" },
 ]
 requires-python = ">=3.13, <3.14"
-dynamic = ["version"]
+version = "0.1.0"
+
+# Tooling-only repository: the helper scripts under tools/ are run in
+# place (see senv.bat), not installed. `package = false` makes
+# `uv sync` provision the dev environment from the dependency group
+# below without building Copilot-Shared itself.
+[tool.uv]
+package = false
 
 [tool.setuptools]
 packages = ["tools"]
@@ -42,7 +49,8 @@ omit = [
     "*/__init__.py",            # Usually empty or just pass-through imports
     "*/ports/*",                # Interfaces/Protocols contain no executable logic
     "*/typing/protocols.py",    # Pure type definitions
-    "*/constants.py"            # Static variables
+    "*/constants.py",           # Static variables
+    "*/uv_run.py"               # Thin subprocess wrapper around the external uv binary
 ]
 
 [tool.coverage.report]
@@ -199,7 +207,25 @@ ignore_patterns = []
 
 [dependency-groups]
 dev = [
+    "build",
+    "hypothesis",
+    "packaging",
+    "pyinstrument",
+    "pyproject-hooks",
+    "pyright",
+    "pytest",
+    "pytest-asyncio",
+    "pytest-cov",
+    "pytest-rerunfailures",
+    "pytest-testmon",
+    "pytest-timeout",
+    "pytest-watcher",
+    "radon",
+    "ruff",
     "ty>=0.0.30",
+    "uv",
+    "vulture",
+    "wheel",
 ]
 
 [tool.ty.src]
