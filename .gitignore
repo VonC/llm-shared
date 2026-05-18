@@ -80,6 +80,7 @@ docs/plan.current.*.md
 /logs.ini
 /config/logs.ini
 /.env.local
+/certs/
 Attendu_Fichiers_Tests.txt
 run.env*
 source.list
