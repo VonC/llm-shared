@@ -381,15 +381,42 @@ uv sync              # apply the lockfile to the venv
 uv add --dev <package>   # add a development dependency
 ```
 
-`uv` is not aliased — it runs the venv's `uv.exe` directly. The
-`pcomp` / `pupg` / `psync` aliases are shortcuts for the first three
-commands; they route through [`tools/uv_run.py`](tools/uv_run.py), a
-cert-aware launcher. `uv` reads the `SSL_CERT_FILE` environment
-variable: behind a corporate TLS-intercepting proxy it must point at
-the corporate CA bundle, on a personal network it must be unset.
-`uv_run.py` picks the matching TLS trust roots and retries on a
-certificate error — a safety net for these network-heavy commands. It
-is project-agnostic; any repository that loads this `senv.bat` gets the
+`uv` is not aliased — it runs the venv's `uv.exe` directly. That means a
+plain `uv lock`, `uv lock --upgrade`, or `uv sync` uses only the
+environment prepared by `senv.bat`: if a corporate PEM is found,
+`SSL_CERT_FILE`, `CURL_CA_BUNDLE`, and `UV_CERT` point at it; if no PEM
+is found, those variables stay unset.
+
+The `pcomp` / `pupg` / `psync` aliases are shortcuts for the first three
+commands, but they do not call `uv.exe` directly: they route through
+[`tools/uv_run.py`](tools/uv_run.py), a cert-aware launcher. On a
+corporate machine, `senv.bat` looks for the newest bundle-like `*.pem`
+first in a local ignored `certs/` folder under the repo, then in the
+parent folder of the repository, and only falls back to a generic
+`*.pem` when no bundle-like PEM exists. `uv_run.py` then tries `uv`
+with that explicit PEM first; if the command still fails with a
+certificate error, it retries with `--system-certs`, and only after
+that falls back to `uv`'s default trust roots.
+
+The public nature of this repository is a separate concern. It does not
+change how local `uv` commands trust a corporate proxy. Instead,
+`senv.bat` installs a local git clean filter for `uv.lock`. That filter
+rewrites any staged registry URL to `https://pypi.org/simple/` and any
+staged package URL to `https://files.pythonhosted.org/packages/`, so
+committed `uv.lock` content stays free of corporate mirror references
+even when local `uv` commands use a corporate index. After clearing any
+stale inherited value from an older activation, `senv.bat` derives
+`UV_INDEX_URL` from `PYPI_HOST` when that variable is present in the
+shell.
+
+So when plain `uv` already works on a corporate machine, the usual reason
+is that `senv.bat` has already populated `SSL_CERT_FILE` with the
+corporate PEM and `uv.exe` can use that bundle directly, without needing
+the wrapper retry path.
+
+If you want the automatic TLS fallback path, use `pcomp`, `pupg`,
+`psync`, or call `python tools/uv_run.py ...` yourself. It is
+project-agnostic; any repository that loads this `senv.bat` gets the
 same shortcuts.
 
 ### Checking dependency state
