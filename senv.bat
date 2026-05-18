@@ -134,13 +134,40 @@ doskey pcomp=python "%LLM_SHARED_DIR%\tools\uv_run.py" lock $* ^& echo %PRJ_DIR_
 doskey pupg=python "%LLM_SHARED_DIR%\tools\uv_run.py" lock --upgrade $* ^& echo %PRJ_DIR_NAME%: uv lock --upgrade ^(bump dev deps^) done
 doskey psync=python "%LLM_SHARED_DIR%\tools\uv_run.py" sync $* ^& echo %PRJ_DIR_NAME%: uv sync ^(install dev deps from uv.lock^) done
 
+rem Recompute the corporate CA bundle on each activation so stale values from
+rem a previous repo shell do not survive a fresh `fsenv`.
+rem Prefer a bundle-like PEM in an ignored certs\ folder under the repo,
+rem else in the parent folder. Fall back to the newest generic PEM only when
+rem no bundle-like PEM exists. If neither exists, leave unset.
+set "UV_CERT="
+set "SSL_CERT_FILE="
+set "CURL_CA_BUNDLE="
+set "DEFAULT_CA_BUNDLE="
+for %%i in ("%PRJ_DIR%\..") do set "PARENT_DIR=%%~fi"
+if exist "%PRJ_DIR%\certs\" (
+  for /f "delims=" %%f in ('dir /b /a:-d /o:-d "%PRJ_DIR%\certs\*bundle*.pem" 2^>nul') do if not defined DEFAULT_CA_BUNDLE set "DEFAULT_CA_BUNDLE=%PRJ_DIR%\certs\%%f"
+  for /f "delims=" %%f in ('dir /b /a:-d /o:-d "%PRJ_DIR%\certs\*.pem" 2^>nul') do if not defined DEFAULT_CA_BUNDLE set "DEFAULT_CA_BUNDLE=%PRJ_DIR%\certs\%%f"
+)
+if not defined DEFAULT_CA_BUNDLE (
+  for /f "delims=" %%f in ('dir /b /a:-d /o:-d "%PARENT_DIR%\*bundle*.pem" 2^>nul') do if not defined DEFAULT_CA_BUNDLE set "DEFAULT_CA_BUNDLE=%PARENT_DIR%\%%f"
+  for /f "delims=" %%f in ('dir /b /a:-d /o:-d "%PARENT_DIR%\*.pem" 2^>nul') do if not defined DEFAULT_CA_BUNDLE set "DEFAULT_CA_BUNDLE=%PARENT_DIR%\%%f"
+)
+if defined DEFAULT_CA_BUNDLE set "UV_CERT=%DEFAULT_CA_BUNDLE%"
+if defined UV_CERT set "SSL_CERT_FILE=%UV_CERT%"
+if defined UV_CERT set "CURL_CA_BUNDLE=%UV_CERT%"
+
 rem uv / uvw / uvx are left unaliased so they resolve to the venv binaries
 rem on PATH. uv honours SSL_CERT_FILE directly: on a non-corporate machine
-rem unset it in bin\senv.local.bat, or uv rejects the PyPI certificate.
+rem if no PEM is found, assume a personal machine where no extra cert is needed.
 doskey uv=
 doskey uvw=
 doskey uvx=
-set "UV_PROJECT_ENVIRONMENT=%VIRTUAL_ENV%"
+set "EXPECTED_VENV_NAME=python_%PYTHON_VERSION%_%PRJ_DIR_NAME%"
+if exist "%PRJ_DIR%\venvs\%EXPECTED_VENV_NAME%" (
+  set "UV_PROJECT_ENVIRONMENT=%PRJ_DIR%\venvs\%EXPECTED_VENV_NAME%"
+) else (
+  set "UV_PROJECT_ENVIRONMENT=%VIRTUAL_ENV%"
+)
 
 doskey gdca=git diff --cached ^> a.diff ^& grep "^diff " a.diff ^| wc -l ^& git status --porcelain ^| grep -v "^[ \?]"
 doskey gcma=gcm.bat a ^& git commit --amend
@@ -152,6 +179,11 @@ set "INSPECT_API_MAXSIZE_KB=150"
 REM Set the line limit for big python file check
 set "PYTHON_BIG_FILE_LINE_LIMIT=650"
 
+REM Recompute uv index settings on each activation so stale values from a
+REM previous shell do not survive a fresh `fsenv`.
+set "UV_INDEX_URL="
+set "UV_EXTRA_INDEX_URL="
+
 if exist "%PRJ_DIR%\bin\senv.local.bat" (
   REM Can override variables from senv.bat
   %_info% "Loading local environment variables from '%PRJ_DIR%\bin\senv.local.bat'"
@@ -159,6 +191,23 @@ if exist "%PRJ_DIR%\bin\senv.local.bat" (
 ) else (
   %_info% "No local environment variables file (senv.local.bat) found in '%PRJ_DIR%\bin\'. Skipping."
 )
+
+REM llm-shared is a public repository: keep local uv usage unchanged, but
+REM rewrite staged uv.lock URLs to public hosts before commit.
+if not defined UV_INDEX_URL if defined PYPI_HOST set "UV_INDEX_URL=https://%PYPI_HOST%"
+
+set "lock_filter_smudge="
+for /f "tokens=* delims=" %%i in ('git -C "%PRJ_DIR%" config filter."uv-lock-public".smudge') do set "lock_filter_smudge=%%i"
+if not defined lock_filter_smudge (
+  %_task% "[senv.bat] Must set git config filter.uv-lock-public for public uv.lock content"
+  git -C "%PRJ_DIR%" config filter.uv-lock-public.smudge "cat"
+  git -C "%PRJ_DIR%" config filter.uv-lock-public.clean "sed -E 's#https://[^[:space:]]+/simple/#https://pypi.org/simple/#g; s#https://[^[:space:]]+/packages/#https://files.pythonhosted.org/packages/#g'"
+  if errorlevel 1 (
+    %_fatal% "[senv.bat] git -C '%PRJ_DIR%' config filter.uv-lock-public failed" 232
+  )
+  %_ok% "[senv.bat] git -C '%PRJ_DIR%' config filter.uv-lock-public set for public uv.lock content"
+)
+set "lock_filter_smudge="
 
 REM check.bat and other scripts in the root of the project should be in the %PATH% for direct calling from anywhere,
 REM but only if not already present (to avoid duplicates in case of multiple calls to senv.bat from the same command prompt)
