@@ -48,6 +48,7 @@
     "pyrb",
     "techo",
     "ultrathink",
+    "unaliased",
     "uvloop"
   ]
 }
