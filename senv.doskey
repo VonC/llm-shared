@@ -16,3 +16,5 @@ claude=claude.exe --add-dir=..\llm-shared $*
 covg="%LLM_SHARED_DIR%\bin\covg.bat" $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: coverage_gap_functions done
 
 ghd="%LLM_SHARED_DIR%\bin\ghd.bat" $*$tif not errorlevel 1 start "" "%PRJ_DIR%\docs\git_history_dashboard\dashboard.html"$techo %PRJ_DIR_NAME%: git history dashboard done
+
+wac="%LLM_SHARED_DIR%\bin\wac.bat" $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: a.commit wrapped
