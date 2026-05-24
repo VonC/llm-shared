@@ -27,6 +27,9 @@ a
 a.*
 repomix*
 
+# Pipe-separated git-history export written by the git_history_dashboard tool
+git_history.csv
+
 tmp.*
 .testmondata*
 
