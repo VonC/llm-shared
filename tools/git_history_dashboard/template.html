@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>pdfsplitter — commit history</title>
+<style>
+:root {
+  color-scheme: light dark;
+  --color-background-primary: #ffffff;
+  --color-background-secondary: #f5f3ed;
+  --color-background-page: #faf9f5;
+  --color-text-primary: #1f1e1c;
+  --color-text-secondary: #5f5e5a;
+  --color-text-tertiary: #888780;
+  --color-border-tertiary: rgba(0, 0, 0, 0.08);
+  --color-border-secondary: rgba(0, 0, 0, 0.15);
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "SF Pro Text", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "SF Mono", "JetBrains Mono", Monaco, "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
+  --accent: #185FA5;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background-primary: #1c1c1a;
+    --color-background-secondary: #252523;
+    --color-background-page: #161614;
+    --color-text-primary: #f0efe9;
+    --color-text-secondary: #b8b6af;
+    --color-text-tertiary: #888780;
+    --color-border-tertiary: rgba(255, 255, 255, 0.08);
+    --color-border-secondary: rgba(255, 255, 255, 0.18);
+    --accent: #5DA5E8;
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--font-sans);
+  background: var(--color-background-page);
+  color: var(--color-text-primary);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+.page {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 56px 24px 64px;
+}
+header { margin-bottom: 2.5rem; }
+header h1 {
+  font-size: 26px;
+  font-weight: 500;
+  margin: 0 0 8px;
+  letter-spacing: -0.01em;
+}
+header .lead {
+  color: var(--color-text-secondary);
+  margin: 0;
+  font-size: 15px;
+}
+header .lead strong { color: var(--color-text-primary); font-weight: 500; }
+section.dashboard { margin: 0; }
+.observations {
+  background: var(--color-background-secondary);
+  border-radius: var(--border-radius-lg);
+  padding: 24px 28px;
+  margin: 3rem 0 1rem;
+}
+.observations h2 {
+  font-size: 12px;
+  font-weight: 500;
+  margin: 0 0 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-secondary);
+}
+.observations ul { margin: 0; padding-left: 18px; }
+.observations li {
+  margin: 0 0 12px;
+  font-size: 14px;
+  color: var(--color-text-primary);
+  line-height: 1.6;
+}
+.observations li:last-child { margin-bottom: 0; }
+.observations strong { font-weight: 500; }
+.observations code {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  background: var(--color-background-primary);
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 0.5px solid var(--color-border-tertiary);
+}
+footer {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 0.5px solid var(--color-border-tertiary);
+  color: var(--color-text-tertiary);
+  font-size: 12px;
+  line-height: 1.6;
+}
+footer code {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  background: var(--color-background-secondary);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--color-text-primary);
+}
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+
+/* === widget styles === */
+.metric-card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.875rem 1rem; }
+.metric-label { font-size: 12px; color: var(--color-text-secondary); margin: 0 0 4px; }
+.metric-value { font-size: 22px; font-weight: 500; margin: 0; line-height: 1.1; color: var(--color-text-primary); }
+.metric-sub { font-size: 11px; color: var(--color-text-tertiary); margin: 4px 0 0; }
+.section-h { font-size: 14px; font-weight: 500; margin: 0 0 10px; color: var(--color-text-primary); }
+.section-sub { font-size: 12px; color: var(--color-text-secondary); margin: 0 0 12px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; border: 0.5px solid var(--color-border-tertiary); background: transparent; font-size: 12px; cursor: pointer; user-select: none; color: var(--color-text-secondary); transition: opacity 0.15s; font-family: inherit; }
+.chip:hover { border-color: var(--color-border-secondary); }
+.chip.off { opacity: 0.35; }
+.chip-dot { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
+.cal-cell { stroke: var(--color-background-page); stroke-width: 0.5; }
+.cal-l0 { fill: var(--color-background-secondary); }
+.cal-l1 { fill: #B5D4F4; }
+.cal-l2 { fill: #85B7EB; }
+.cal-l3 { fill: #378ADD; }
+.cal-l4 { fill: #185FA5; }
+@media (prefers-color-scheme: dark) {
+  .cal-l0 { fill: rgba(255,255,255,0.05); }
+  .cal-l1 { fill: #042C53; }
+  .cal-l2 { fill: #0C447C; }
+  .cal-l3 { fill: #185FA5; }
+  .cal-l4 { fill: #378ADD; }
+}
+.cal-text { font-size: 10px; fill: var(--color-text-tertiary); font-family: var(--font-sans); }
+.scope-pill { display: inline-flex; align-items: baseline; gap: 6px; padding: 5px 10px; margin: 0 6px 6px 0; border-radius: var(--border-radius-md); background: var(--color-background-secondary); font-size: 12px; color: var(--color-text-primary); }
+.scope-pill .count { color: var(--color-text-secondary); font-size: 11px; }
+.recent-row { display: flex; gap: 10px; padding: 8px 0; border-top: 0.5px solid var(--color-border-tertiary); font-size: 12px; align-items: baseline; }
+.recent-row:first-child { border-top: none; }
+.recent-date { color: var(--color-text-tertiary); font-family: var(--font-mono); font-size: 11px; min-width: 90px; flex-shrink: 0; }
+.recent-type { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 500; min-width: 56px; text-align: center; flex-shrink: 0; }
+.recent-msg { color: var(--color-text-primary); }
+.tooltip { position: absolute; background: var(--color-background-primary); border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); padding: 6px 10px; font-size: 12px; pointer-events: none; opacity: 0; transition: opacity 0.1s; z-index: 10; white-space: nowrap; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.tooltip.show { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header>
+  <h1>pdfsplitter — commit history</h1>
+  <p class="lead"><strong>__TOTAL_COMMITS__</strong> commits from <strong>__START__</strong> to <strong>__END__</strong>.</p>
+</header>
+
+<section class="dashboard">
+<h2 class="sr-only">Interactive visualization of pdfsplitter commits, showing weekly activity, daily calendar heatmap, and breakdowns by commit type, weekday, and hour of day.</h2>
+
+<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1.75rem;">
+  <div class="metric-card">
+    <p class="metric-label">Total commits</p>
+    <p class="metric-value">__TOTAL_COMMITS__</p>
+    <p class="metric-sub">over __MONTHS__ months</p>
+  </div>
+  <div class="metric-card">
+    <p class="metric-label">Active days</p>
+    <p class="metric-value">__ACTIVE_DAYS__</p>
+    <p class="metric-sub">of __TOTAL_DAYS__ (__ACTIVE_PCT__)</p>
+  </div>
+  <div class="metric-card">
+    <p class="metric-label">Peak day</p>
+    <p class="metric-value">__PEAK_DAY_COUNT__</p>
+    <p class="metric-sub">__PEAK_DAY_DATE__</p>
+  </div>
+  <div class="metric-card">
+    <p class="metric-label">Peak week</p>
+    <p class="metric-value">__PEAK_WEEK_COUNT__</p>
+    <p class="metric-sub">week of __PEAK_WEEK_START__</p>
+  </div>
+</div>
+
+<div style="margin-bottom: 2rem;">
+  <h3 class="section-h">Weekly commit activity</h3>
+  <p class="section-sub">Stacked by conventional commit type. Click a chip to toggle that series.</p>
+  <div id="type-filter" style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px;"></div>
+  <div style="position: relative; width: 100%; height: 260px;">
+    <canvas id="timeline" role="img" aria-label="Stacked bar chart of weekly commits, grouped by commit type"></canvas>
+  </div>
+</div>
+
+<div style="margin-bottom: 2rem;">
+  <h3 class="section-h">Daily activity</h3>
+  <p class="section-sub">Each square is one day. Hover for details.</p>
+  <div id="calendar-wrap" style="position: relative; overflow-x: auto;">
+    <svg id="calendar" width="680" height="120" role="img" aria-label="Calendar heatmap of daily commits"></svg>
+    <div id="cal-tip" class="tooltip"></div>
+  </div>
+  <div style="display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 11px; color: var(--color-text-tertiary);">
+    <span>Less</span>
+    <svg width="80" height="12"><rect class="cal-cell cal-l0" x="0" y="0" width="12" height="12" rx="2"/><rect class="cal-cell cal-l1" x="16" y="0" width="12" height="12" rx="2"/><rect class="cal-cell cal-l2" x="32" y="0" width="12" height="12" rx="2"/><rect class="cal-cell cal-l3" x="48" y="0" width="12" height="12" rx="2"/><rect class="cal-cell cal-l4" x="64" y="0" width="12" height="12" rx="2"/></svg>
+    <span>More</span>
+    <span style="margin-left: auto;">1–3 / 4–7 / 8–15 / 16+ commits</span>
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 2rem;">
+  <div>
+    <h3 class="section-h">By weekday</h3>
+    <div style="position: relative; width: 100%; height: 160px;">
+      <canvas id="wd-chart" role="img" aria-label="Bar chart of commits by day of week"></canvas>
+    </div>
+  </div>
+  <div>
+    <h3 class="section-h">By hour of day</h3>
+    <div style="position: relative; width: 100%; height: 160px;">
+      <canvas id="hour-chart" role="img" aria-label="Bar chart of commits by hour of day"></canvas>
+    </div>
+  </div>
+</div>
+
+<div style="margin-bottom: 2rem;">
+  <h3 class="section-h">Top focus areas</h3>
+  <p class="section-sub">Conventional commit scopes — what the work touched.</p>
+  <div id="scopes"></div>
+</div>
+
+<div>
+  <h3 class="section-h">Most recent commits</h3>
+  <div id="recent"></div>
+</div>
+</section>
+
+<section class="observations">
+  <h2>Observations</h2>
+  <ul>
+    <li>The first year (June 2024 to mid-2025) is almost completely empty — the project barely moved, then activity exploded around the week of <strong>8 Sep 2025</strong> and never let up.</li>
+    <li><strong>Tests and refactors track each other</strong> through late 2025 (the <code>_tdd.py</code> discipline shows up in the data), then <strong>docs</strong> takes over as the dominant type in early 2026 — matching the v9.5.0 and v9.7.0 polluted-PDF work, which is heavy on <code>plan</code> / <code>design</code> / <code>proposal</code> markdown.</li>
+    <li><strong>Hour 21:00 is the single biggest commit hour</strong>, with a clear evening peak from 20:00–23:00. Mornings 8:00–11:00 are the secondary push. Almost nothing between 02:00 and 07:00.</li>
+    <li><strong>Thursday</strong> edges out Tuesday as the most productive weekday, but the spread is remarkably flat — including weekends. This is a 7-day-a-week project.</li>
+    <li>Top scopes confirm the focus areas the v9.5.0 proposal alludes to: <code>domain</code>, <code>workflow</code>, <code>sentinel</code>, <code>adapter</code>, <code>bootstrap</code> — the hexagonal/ports-and-adapters split is visible in commit-scope frequency.</li>
+  </ul>
+</section>
+
+<footer>
+  <p style="margin: 0 0 6px;">Regenerate from the repo root:</p>
+  <p style="margin: 0;"><code>python tools/git_history_dashboard/build.py</code></p>
+  <p style="margin: 12px 0 0;">Chart.js is loaded from cdnjs at view time. The dashboard itself is fully static — no server required.</p>
+</footer>
+
+</div>
+
+<script id="git-data" type="application/json">__DATA__</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+(function(){
+  const D = JSON.parse(document.getElementById('git-data').textContent);
+
+  const TYPE_COLORS = {
+    feat:     { color: '#7F77DD' },
+    fix:      { color: '#E24B4A' },
+    docs:     { color: '#378ADD' },
+    test:     { color: '#1D9E75' },
+    refactor: { color: '#EF9F27' },
+    chore:    { color: '#888780' },
+    build:    { color: '#B4B2A9' },
+    style:    { color: '#B4B2A9' },
+    perf:     { color: '#B4B2A9' },
+    ci:       { color: '#B4B2A9' },
+    other:    { color: '#D3D1C7' }
+  };
+
+  const DISPLAY_TYPES = ['feat','fix','docs','test','refactor','chore','other'];
+  function bucketize(t) { return DISPLAY_TYPES.includes(t) ? t : 'other'; }
+
+  const weekBuckets = {};
+  DISPLAY_TYPES.forEach(t => weekBuckets[t] = new Array(D.week_starts.length).fill(0));
+  D.types_order.forEach(t => {
+    const b = bucketize(t);
+    const arr = D.week_by_type[t];
+    for (let i = 0; i < arr.length; i++) weekBuckets[b][i] += arr[i];
+  });
+
+  const enabledTypes = new Set(DISPLAY_TYPES);
+  const filterEl = document.getElementById('type-filter');
+  DISPLAY_TYPES.forEach(t => {
+    const ext = (t === 'other')
+      ? (D.by_type.build||0) + (D.by_type.style||0) + (D.by_type.perf||0) + (D.by_type.ci||0) + (D.by_type.other||0)
+      : (D.by_type[t] || 0);
+    const chip = document.createElement('button');
+    chip.className = 'chip';
+    chip.dataset.type = t;
+    chip.innerHTML = '<span class="chip-dot" style="background:' + TYPE_COLORS[t].color + '"></span>' + t + ' <span style="opacity:0.6">' + ext.toLocaleString() + '</span>';
+    chip.addEventListener('click', () => {
+      if (enabledTypes.has(t)) { enabledTypes.delete(t); chip.classList.add('off'); }
+      else { enabledTypes.add(t); chip.classList.remove('off'); }
+      updateTimeline();
+    });
+    filterEl.appendChild(chip);
+  });
+
+  let timelineChart = null;
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function formatWeekLabel(s) {
+    const parts = s.split('-');
+    return months[parseInt(parts[1])-1] + ' ' + parts[0].slice(2);
+  }
+  function buildDatasets() {
+    return DISPLAY_TYPES.filter(t => enabledTypes.has(t)).map(t => ({
+      label: t,
+      data: weekBuckets[t],
+      backgroundColor: TYPE_COLORS[t].color,
+      borderWidth: 0,
+      barPercentage: 1.0,
+      categoryPercentage: 0.95,
+      stack: 's'
+    }));
+  }
+  function updateTimeline() {
+    if (!timelineChart) return;
+    timelineChart.data.datasets = buildDatasets();
+    timelineChart.update();
+  }
+
+  timelineChart = new Chart(document.getElementById('timeline').getContext('2d'), {
+    type: 'bar',
+    data: { labels: D.week_starts, datasets: buildDatasets() },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false,
+      scales: {
+        x: {
+          stacked: true,
+          ticks: {
+            autoSkip: true, maxRotation: 0,
+            callback: function(v, i) {
+              const ws = D.week_starts[i]; if (!ws) return '';
+              const step = Math.ceil(D.week_starts.length / 8);
+              return (i % step !== 0) ? '' : formatWeekLabel(ws);
+            },
+            color: '#888780', font: { size: 11 }
+          },
+          grid: { display: false }
+        },
+        y: {
+          stacked: true, beginAtZero: true,
+          ticks: { color: '#888780', font: { size: 11 } },
+          grid: { color: 'rgba(128,128,128,0.12)' }
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          mode: 'index', intersect: false,
+          callbacks: {
+            title: (items) => {
+              if (!items.length) return '';
+              const ws = items[0].label;
+              const monday = new Date(ws + 'T00:00:00');
+              const sun = new Date(monday); sun.setDate(monday.getDate() + 6);
+              const fmt = (d) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+              return 'Week of ' + fmt(monday) + ' – ' + fmt(sun) + ', ' + monday.getFullYear();
+            },
+            label: (item) => item.dataset.label + ': ' + item.parsed.y,
+            footer: (items) => 'Total: ' + items.reduce((a, i) => a + i.parsed.y, 0)
+          }
+        }
+      }
+    }
+  });
+
+  (function buildCalendar(){
+    const svg = document.getElementById('calendar');
+    const tip = document.getElementById('cal-tip');
+    const wrap = document.getElementById('calendar-wrap');
+    const cell = 5, gap = 1, leftPad = 24, topPad = 16;
+    const dates = D.dates, totals = D.totals;
+    function bucket(c) {
+      if (c === 0) return 0;
+      if (c <= 3) return 1;
+      if (c <= 7) return 2;
+      if (c <= 15) return 3;
+      return 4;
+    }
+    const firstDate = new Date(dates[0] + 'T00:00:00');
+    const firstWeekday = (firstDate.getDay() + 6) % 7;
+    const numWeeks = Math.ceil((dates.length + firstWeekday) / 7);
+    const width = leftPad + numWeeks * (cell + gap);
+    const height = topPad + 7 * (cell + gap);
+    svg.setAttribute('width', width);
+    svg.setAttribute('height', height);
+    svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
+
+    const weekdayLabels = ['Mon','','Wed','','Fri','',''];
+    for (let i = 0; i < 7; i++) {
+      if (!weekdayLabels[i]) continue;
+      const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      t.setAttribute('x', 0);
+      t.setAttribute('y', topPad + i * (cell + gap) + cell - 1);
+      t.setAttribute('class', 'cal-text');
+      t.textContent = weekdayLabels[i];
+      svg.appendChild(t);
+    }
+
+    for (let i = 0; i < dates.length; i++) {
+      const dayOfSeries = i + firstWeekday;
+      const col = Math.floor(dayOfSeries / 7);
+      const row = dayOfSeries % 7;
+      const x = leftPad + col * (cell + gap);
+      const y = topPad + row * (cell + gap);
+      const total = totals[i];
+      const r = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      r.setAttribute('x', x); r.setAttribute('y', y);
+      r.setAttribute('width', cell); r.setAttribute('height', cell);
+      r.setAttribute('rx', 1.5);
+      r.setAttribute('class', 'cal-cell cal-l' + bucket(total));
+      r.dataset.date = dates[i];
+      r.dataset.total = total;
+      r.addEventListener('mouseenter', () => {
+        const d = new Date(r.dataset.date + 'T00:00:00');
+        const label = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+        const tot = parseInt(r.dataset.total, 10);
+        const cs = tot === 0 ? 'No commits' : (tot === 1 ? '1 commit' : tot + ' commits');
+        tip.innerHTML = '<div style="font-weight:500">' + cs + '</div><div style="color:var(--color-text-secondary);font-size:11px">' + label + '</div>';
+        tip.classList.add('show');
+        const rect = wrap.getBoundingClientRect();
+        const cellRect = r.getBoundingClientRect();
+        let tx = (cellRect.left - rect.left) + cell + 8;
+        let ty = (cellRect.top - rect.top) - 6;
+        if (tx + 180 > rect.width) tx = (cellRect.left - rect.left) - 180;
+        tip.style.left = tx + 'px'; tip.style.top = ty + 'px';
+      });
+      r.addEventListener('mouseleave', () => tip.classList.remove('show'));
+      svg.appendChild(r);
+    }
+
+    let prevMonth = -1, prevYear = -1, lastLabelCol = -3;
+    for (let i = 0; i < dates.length; i++) {
+      const dt = new Date(dates[i] + 'T00:00:00');
+      const m = dt.getMonth(), yr = dt.getFullYear();
+      if (m !== prevMonth || yr !== prevYear) {
+        const col = Math.floor((i + firstWeekday) / 7);
+        const x = leftPad + col * (cell + gap);
+        if (i === 0 || col >= lastLabelCol + 3) {
+          const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          t.setAttribute('x', x);
+          t.setAttribute('y', 11);
+          t.setAttribute('class', 'cal-text');
+          t.textContent = (m === 0) ? months[0] + " '" + String(yr).slice(2) : months[m];
+          svg.appendChild(t);
+          lastLabelCol = col;
+        }
+        prevMonth = m; prevYear = yr;
+      }
+    }
+  })();
+
+  new Chart(document.getElementById('wd-chart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+      datasets: [{
+        data: D.by_weekday,
+        backgroundColor: ['#378ADD','#378ADD','#378ADD','#378ADD','#378ADD','#888780','#888780'],
+        borderWidth: 0, barPercentage: 0.75
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false,
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#888780', font: { size: 11 } } },
+        y: { beginAtZero: true, ticks: { color: '#888780', font: { size: 11 } }, grid: { color: 'rgba(128,128,128,0.12)' } }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: (i) => i.parsed.y.toLocaleString() + ' commits' } }
+      }
+    }
+  });
+
+  new Chart(document.getElementById('hour-chart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: Array.from({length:24}, (_,i) => i),
+      datasets: [{
+        data: D.by_hour,
+        backgroundColor: '#1D9E75',
+        borderWidth: 0, barPercentage: 0.9, categoryPercentage: 1.0
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false,
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: {
+            color: '#888780', font: { size: 10 },
+            callback: function(v, i) { return ([0, 6, 12, 18, 23].includes(i)) ? i + 'h' : ''; }
+          }
+        },
+        y: { beginAtZero: true, ticks: { color: '#888780', font: { size: 11 } }, grid: { color: 'rgba(128,128,128,0.12)' } }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: {
+          title: (items) => items[0].label + ':00–' + items[0].label + ':59',
+          label: (i) => i.parsed.y.toLocaleString() + ' commits'
+        } }
+      }
+    }
+  });
+
+  const scopesEl = document.getElementById('scopes');
+  Object.entries(D.by_scope).forEach(([scope, count]) => {
+    const pill = document.createElement('span');
+    pill.className = 'scope-pill';
+    pill.innerHTML = scope + ' <span class="count">' + count + '</span>';
+    scopesEl.appendChild(pill);
+  });
+
+  const recentEl = document.getElementById('recent');
+  D.recent.forEach(c => {
+    const row = document.createElement('div');
+    row.className = 'recent-row';
+    const col = TYPE_COLORS[c.type] ? TYPE_COLORS[c.type].color : '#888780';
+    row.innerHTML =
+      '<span class="recent-date">' + c.date.slice(0,10) + '</span>' +
+      '<span class="recent-type" style="background:' + col + '22; color:' + col + '">' + c.type + '</span>' +
+      '<span class="recent-msg">' + c.msg.replace(/[<>&]/g, ch => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[ch])) + '</span>';
+    recentEl.appendChild(row);
+  });
+})();
+</script>
+</body>
+</html>
