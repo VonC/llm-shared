@@ -34,15 +34,26 @@ The context that can inform how you will group those files can be:
 
 5. Replace the content of `a.commit` with the generated groups and commit messages. Each group must be separated by an empty line in `a.commit`.
 
-6. Once `a.commit` is generated, display it for user review, and ask the user if they want to edit it. If the user wants to edit it, allow them to edit it, and then save the final version of the groups and commit messages in `a.commit`.
+6. Format `a.commit` with the `wrap_commit` tool so each ```log block fits within 80 characters and follows the inline-backtick rules. This keeps the file canonically formatted before the user reviews it.
 
-7. When the user says "go ahead", validate the `a.commit` file, and if it is not valid, fix any issue reported by the validation.
+   Execute the following sequence of bat commands (default parameters: 80-character width, ```log fence delimiters, backtick pass on):
+
+   ```bat
+   cd "%PRJ_DIR%"
+   python "%LLM_SHARED_DIR%\tools\wrap_commit.py"
+   ```
+
+   The tool rewrites `a.commit` in place. An exit status of 0 means the file is now canonically formatted (whether or not changes were applied); a non-zero status means the file is missing or unreadable and the underlying issue must be fixed before proceeding.
+
+7. Once `a.commit` is generated and formatted, display it for user review, and ask the user if they want to edit it. If the user wants to edit it, allow them to edit it, and then save the final version of the groups and commit messages in `a.commit`.
+
+8. When the user says "go ahead", validate the `a.commit` file, and if it is not valid, fix any issue reported by the validation.
 
    To validate the `a.commit` file, you can use the following sequence of bat commands:
 
    ```bat
    cd "%PRJ_DIR%"
-   python tools\git_batch_commit.py --root-a-commit
+   python "%LLM_SHARED_DIR%\tools\git_batch_commit.py" --root-a-commit
    ```
 
    An exit status of 0 means the `a.commit` file is valid, while a non-zero exit status means there is an issue with the `a.commit` file that needs to be fixed.
