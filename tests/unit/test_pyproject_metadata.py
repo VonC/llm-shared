@@ -9,8 +9,8 @@ folder in the repository as an installable package.
 
 from __future__ import annotations
 
-from pathlib import Path
 import tomllib
+from pathlib import Path
 
 
 def test_pyproject_does_not_export_dev_lockfile_as_runtime_dependencies() -> None:
