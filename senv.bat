@@ -199,13 +199,16 @@ if not defined UV_INDEX_URL if defined PYPI_HOST set "UV_INDEX_URL=https://%PYPI
 set "lock_filter_smudge="
 for /f "tokens=* delims=" %%i in ('git -C "%PRJ_DIR%" config filter."uv-lock-public".smudge') do set "lock_filter_smudge=%%i"
 if not defined lock_filter_smudge (
-  %_task% "[senv.bat] Must set git config filter.uv-lock-public for public uv.lock content"
+  %_task% "Must set git config filter.uv-lock-public for public uv.lock content"
   git -C "%PRJ_DIR%" config filter.uv-lock-public.smudge "cat"
-  git -C "%PRJ_DIR%" config filter.uv-lock-public.clean "sed -E 's#https://[^[:space:]]+/simple/#https://pypi.org/simple/#g; s#https://[^[:space:]]+/packages/#https://files.pythonhosted.org/packages/#g'"
+  git -C "%PRJ_DIR%" config filter.uv-lock-public.clean "sed -E 's#https://[^[:space:]/]+/simple/#https://pypi.org/simple/#g; s#https://[^[:space:]]+/packages/#https://files.pythonhosted.org/packages/#g; s/, size = [0-9]+, upload-time = \"[^\\\"]+\"//g'"
   if errorlevel 1 (
-    %_fatal% "[senv.bat] git -C '%PRJ_DIR%' config filter.uv-lock-public failed" 232
+    %_fatal% "git -C '%PRJ_DIR%' config filter.uv-lock-public failed" 232
   )
-  %_ok% "[senv.bat] git -C '%PRJ_DIR%' config filter.uv-lock-public set for public uv.lock content"
+  %_ok% "git -C '%PRJ_DIR%' config filter.uv-lock-public set for public uv.lock content"
+) else
+(
+  %_info% "git config filter.uv-lock-public.smudge already set to '%lock_filter_smudge%', skipping"
 )
 set "lock_filter_smudge="
 
