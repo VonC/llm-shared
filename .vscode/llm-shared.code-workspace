@@ -25,6 +25,7 @@
 			"titleBar.inactiveBackground": "#86a1fc99",
 			"titleBar.inactiveForeground": "#15202b99"
 		},
-		"peacock.color": "#86a1fc"
+		"peacock.color": "#86a1fc",
+		"github.copilot.chat.otel.dbSpanExporter.enabled": true
 	}
 }
