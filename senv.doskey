@@ -20,3 +20,7 @@ ghd="%LLM_SHARED_DIR%\bin\ghd.bat" $*$tif not errorlevel 1 start "" "%PRJ_DIR%\d
 wac="%LLM_SHARED_DIR%\bin\wac.bat" $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: a.commit wrapped
 
 oqm="%LLM_SHARED_DIR%\bin\oqm.bat" $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: open questions done
+
+pw="%LLM_SHARED_DIR%\bin\pw.bat" $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: prompt workflow done
+
+pwi=set "PW_PROFILE=1"$t"%LLM_SHARED_DIR%\bin\pw.bat" $*$tset "PW_PROFILE="$techo %PRJ_DIR_NAME%: prompt workflow profiled
