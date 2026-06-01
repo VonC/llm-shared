@@ -206,8 +206,7 @@ if not defined lock_filter_smudge (
     %_fatal% "git -C '%PRJ_DIR%' config filter.uv-lock-public failed" 232
   )
   %_ok% "git -C '%PRJ_DIR%' config filter.uv-lock-public set for public uv.lock content"
-) else
-(
+) else (
   %_info% "git config filter.uv-lock-public.smudge already set to '%lock_filter_smudge%', skipping"
 )
 set "lock_filter_smudge="
