@@ -1,0 +1,125 @@
+{
+  "_comment": "Static per-step prompt configuration for prompt_workflow.py (Q13/Q14). Keyed by step number; each step lists one or more alternatives, each with an instruction file, a body intent line, and the ordered context roles. Roles: draft, requirement, design, plan, validation_plan, git_status, git_history.",
+  "steps": [
+    {
+      "number": 1,
+      "alternatives": [
+        {
+          "instruction": "split-and-define.md",
+          "body": "Split and define the features and issues for this topic, based on the draft.",
+          "context": ["draft"]
+        },
+        {
+          "instruction": "write-requirement.md",
+          "body": "Write the feature-request or issue for this topic, based on the draft.",
+          "context": ["draft"]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "alternatives": [
+        {
+          "instruction": "review-ask-questions.md",
+          "body": "Review the most recent feature or issue and ask open questions, based on the draft and the requirement.",
+          "context": ["draft", "requirement"]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "alternatives": [
+        {
+          "instruction": "consolidate-then-review-ask-questions.md",
+          "body": "Consolidate the answers in the most recent feature or issue, then review and ask new questions, based on the draft and the requirement.",
+          "context": ["draft", "requirement"]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "alternatives": [
+        {
+          "instruction": "write-design.md",
+          "body": "Write the design for this topic, based on the draft and the requirement.",
+          "context": ["draft", "requirement"]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "alternatives": [
+        {
+          "instruction": "review-ask-questions.md",
+          "body": "Review the most recent design and ask open questions, based on the draft, the requirement and the design.",
+          "context": ["draft", "requirement", "design"]
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "alternatives": [
+        {
+          "instruction": "consolidate-then-review-ask-questions.md",
+          "body": "Consolidate the answers in the most recent design, then review and ask new questions, based on the draft, the requirement and the design.",
+          "context": ["draft", "requirement", "design"]
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "alternatives": [
+        {
+          "instruction": "write-plans.md",
+          "body": "Write the implementation plan and validation plan, based on the draft, the requirement and the design.",
+          "context": ["draft", "requirement", "design"]
+        }
+      ]
+    },
+    {
+      "number": 8,
+      "alternatives": [
+        {
+          "instruction": "implement-step.md",
+          "body": "Implement the next step of the plan, based on the design and the plan.",
+          "context": ["draft", "requirement", "design", "plan"]
+        }
+      ]
+    },
+    {
+      "number": 9,
+      "alternatives": [
+        {
+          "instruction": "implementation-check.md",
+          "body": "Check the current step implementation, based on the plan and the validation plan.",
+          "context": ["draft", "requirement", "design", "plan", "validation_plan"]
+        }
+      ]
+    },
+    {
+      "number": 10,
+      "alternatives": [
+        {
+          "instruction": "group-commits-msg.md",
+          "body": "Group the changed files and write one conventional commit message per group.",
+          "context": ["plan", "git_status"]
+        }
+      ]
+    },
+    {
+      "number": 11,
+      "alternatives": [
+        {
+          "instruction": "implement-step.md",
+          "body": "Implement the next step of the plan, based on the design and the plan.",
+          "context": ["draft", "requirement", "design", "plan"]
+        },
+        {
+          "instruction": "prepare-release-notes.md",
+          "body": "Prepare the release notes for this version, based on the plan and the git history since the last tag.",
+          "context": ["draft", "requirement", "design", "plan", "git_history"]
+        }
+      ]
+    }
+  ]
+}

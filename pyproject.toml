@@ -50,7 +50,8 @@ omit = [
     "*/ports/*",                # Interfaces/Protocols contain no executable logic
     "*/typing/protocols.py",    # Pure type definitions
     "*/constants.py",           # Static variables
-    "*/uv_run.py"               # Thin subprocess wrapper around the external uv binary
+    "*/uv_run.py",              # Thin subprocess wrapper around the external uv binary
+    "*/prompt_workflow_menu.py" # Thin questionary wrapper; needs a TTY to exercise
 ]
 
 [tool.coverage.report]
@@ -211,6 +212,7 @@ dev = [
     "hypothesis",
     "packaging",
     "pyinstrument",
+    "questionary",
     "pyproject-hooks",
     "pyright",
     "pytest",
@@ -230,11 +232,12 @@ dev = [
 
 [tool.ty.src]
 exclude = [
-    "**/__pycache__", 
-    "legacy", 
-    "**/node_modules", 
-    "**/.*", 
-    "venvs", 
+    "**/__pycache__",
+    "legacy",
+    "**/node_modules",
+    "**/.*",
+    "venvs",
     ".venv",
-    "whitelist.py"
+    "whitelist.py",
+    "tools/prompt_workflow_menu.py"  # optional questionary dep; UI seam, see pyright/coverage
 ]
