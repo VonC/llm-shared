@@ -1,0 +1,161 @@
+"""Topic and document resolution for prompt_workflow.
+
+This module turns the raw git signals into topics and resolves the documents a
+prompt needs. It parses the version and slug from a draft name, detects the
+relevant drafts on the current branch (Q07), matches requirement, design and
+plan documents to a topic by shared version and slug prefix (Q02), picks the
+most recently modified match (Q01), and detects a ``## Open questions`` section
+(Q04). It reads files; it never writes.
+"""
+
+from __future__ import annotations
+
+import re
+from pathlib import Path
+
+from tools import prompt_workflow_git as git
+from tools.prompt_workflow_models import (
+    ROLE_DOC_TYPES,
+    VALIDATION_SUFFIX,
+    Topic,
+)
+
+# A version token such as ``v9.8.0`` or ``v8.11`` (same shape as oqm uses).
+VERSION_RE = re.compile(r"v\d+(?:\.\d+)+")
+# A line opening the open-questions section, matching oqm's marker.
+OPEN_QUESTIONS_RE = re.compile(r"^## Open questions")
+# The docs folder name and the draft prefix and markdown suffix.
+DOCS_DIR_NAME = "docs"
+DRAFT_PREFIX = "draft."
+MD_SUFFIX = ".md"
+
+
+def parse_draft_name(name: str) -> tuple[str, str] | None:
+    """Return the (version, slug) parsed from a draft file name, or None.
+
+    Args:
+        name: A file name such as ``draft.v9.8.0.resources_isolation.md``.
+
+    Returns:
+        The version token and topic slug, or None when the name is not a draft
+        or carries no version token.
+    """
+    if not name.startswith(DRAFT_PREFIX) or not name.endswith(MD_SUFFIX):
+        return None
+    core = name[len(DRAFT_PREFIX) : -len(MD_SUFFIX)]
+    match = VERSION_RE.match(core)
+    if match is None:
+        return None
+    version = match.group(0)
+    rest = core[len(version) :]
+    if not rest.startswith(".") or not rest[1:]:
+        return None
+    return version, rest[1:]
+
+
+def _draft_relpath_topic(relpath: Path) -> tuple[str, str] | None:
+    """Return the (version, slug) for a repo-relative draft path under docs/."""
+    if not relpath.parts or relpath.parts[0] != DOCS_DIR_NAME:
+        return None
+    return parse_draft_name(relpath.name)
+
+
+def relevant_drafts(root: Path, cwd: Path) -> list[Topic]:
+    """Return the topics from drafts modified or committed on the branch (Q07).
+
+    Args:
+        root: The project root, used to resolve absolute draft paths.
+        cwd: The git working directory.
+
+    Returns:
+        One Topic per relevant draft that still exists on disk, de-duplicated by
+        version and slug and ordered by repo-relative path.
+    """
+    candidates: set[str] = set(git.working_tree_changed_files(cwd))
+    base = git.fork_point(cwd)
+    if base is not None:
+        candidates.update(git.changed_files_since(cwd, base))
+
+    topics: list[Topic] = []
+    seen: set[tuple[str, str]] = set()
+    for relpath_text in sorted(candidates):
+        relpath = Path(relpath_text)
+        parsed = _draft_relpath_topic(relpath)
+        if parsed is None:
+            continue
+        absolute = root / relpath
+        if not absolute.is_file():
+            continue
+        version, slug = parsed
+        if (version, slug) in seen:
+            continue
+        seen.add((version, slug))
+        topics.append(Topic(version=version, slug=slug, draft_path=absolute.resolve()))
+    return topics
+
+
+def docs_dirs(root: Path) -> list[Path]:
+    """Return the docs directories to scan: ``docs/`` and its ``docs/vX.Y.Z/``."""
+    docs = root / DOCS_DIR_NAME
+    if not docs.is_dir():
+        return []
+    dirs = [docs]
+    dirs.extend(
+        sub
+        for sub in sorted(docs.iterdir())
+        if sub.is_dir() and VERSION_RE.fullmatch(sub.name)
+    )
+    return dirs
+
+
+def _doc_matches(name: str, role: str, version: str, slug: str) -> bool:
+    """Return whether a file name matches the role, version and topic slug (Q02)."""
+    for doc_type in ROLE_DOC_TYPES[role]:
+        prefix = f"{doc_type}.{version}."
+        if not name.startswith(prefix) or not name.endswith(MD_SUFFIX):
+            continue
+        if role == "plan" and name.endswith(VALIDATION_SUFFIX):
+            continue
+        if role == "validation_plan":
+            if not name.endswith(VALIDATION_SUFFIX):
+                continue
+            topic_part = name[len(prefix) : -len(VALIDATION_SUFFIX)]
+        else:
+            topic_part = name[len(prefix) : -len(MD_SUFFIX)]
+        if topic_part == slug or topic_part.startswith(slug + "_"):
+            return True
+    return False
+
+
+def find_matching_documents(root: Path, topic: Topic, role: str) -> list[Path]:
+    """Return every document under docs/ matching the topic for the given role."""
+    matches: list[Path] = []
+    for directory in docs_dirs(root):
+        matches.extend(
+            entry
+            for entry in sorted(directory.iterdir())
+            if entry.is_file()
+            and _doc_matches(entry.name, role, topic.version, topic.slug)
+        )
+    return matches
+
+
+def most_recent(paths: list[Path]) -> Path | None:
+    """Return the most recently modified path, or None when the list is empty (Q01)."""
+    if not paths:
+        return None
+    return max(paths, key=lambda path: path.stat().st_mtime)
+
+
+def select_document(root: Path, topic: Topic, role: str) -> Path | None:
+    """Return the most recent document for a topic and role, or None."""
+    return most_recent(find_matching_documents(root, topic, role))
+
+
+def has_open_questions(path: Path) -> bool:
+    """Return whether the document carries a ``## Open questions`` section (Q04)."""
+    text = path.read_text(encoding="utf-8")
+    return any(OPEN_QUESTIONS_RE.match(line) for line in text.splitlines())
+
+
+# eof

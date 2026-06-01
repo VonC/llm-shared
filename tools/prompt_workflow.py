@@ -1,0 +1,254 @@
+"""prompt_workflow.py.
+
+Generate the next-step LLM prompt for the current general topic and copy it to
+the clipboard.
+
+From the project root, the tool detects the relevant drafts on the current
+branch, resolves the general topic, derives the workflow state from the
+documents on disk and the persisted step, offers an interactive menu to repeat
+the current step or pick a next step, then builds the prompt, writes it to
+``a.prompt.txt``, copies it to the clipboard (falling back to stdout), and
+records the chosen step in ``a.prompt_memory``.
+
+See ``tools/Prompt tool specs.md`` for the full specification and the design
+decisions (Q01 to Q14) behind this tool.
+"""
+
+from __future__ import annotations
+
+import argparse
+import contextlib
+import logging
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+from typing import TYPE_CHECKING, NoReturn
+
+if __name__ == "__main__":
+    with contextlib.suppress(Exception):
+        _bootstrap_root = Path(__file__).parent.parent.resolve()
+        sys.path.insert(0, str(_bootstrap_root))
+
+from tools import find_project_root
+from tools import prompt_workflow_docs as docs
+from tools import prompt_workflow_git as git
+from tools import prompt_workflow_memory as memory
+from tools import prompt_workflow_menu as menu
+from tools import prompt_workflow_steps as steps
+from tools.prompt_workflow_models import MemoryRecord, PromptWorkflowError
+
+if TYPE_CHECKING:
+    from tools.prompt_workflow_models import StepAlternative, Topic
+
+LOGGER = logging.getLogger("prompt_workflow")
+# Name of the file the prompt is always written to, beside the clipboard (Q05).
+PROMPT_FILENAME = "a.prompt.txt"
+# Exit code used by the entry point for fatal errors.
+EXIT_FATAL = 2
+
+
+class ClipboardError(PromptWorkflowError):
+    """Raised when the clipboard write fails."""
+
+
+def _configure_logging(*, debug: bool) -> None:
+    """Configure logging to stdout with message-only formatting."""
+    level = logging.DEBUG if debug else logging.INFO
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setFormatter(logging.Formatter("%(message)s"))
+    root_logger = logging.getLogger()
+    root_logger.handlers.clear()
+    root_logger.addHandler(handler)
+    root_logger.setLevel(level)
+
+
+def set_clipboard_text(text: str) -> None:
+    """Set text content to the Windows clipboard via PowerShell (Q05).
+
+    Args:
+        text: The prompt text to place on the clipboard.
+
+    Raises:
+        ClipboardError: When the PowerShell clipboard command fails.
+    """
+    pwsh = shutil.which("pwsh") or shutil.which("powershell") or "powershell"
+    try:
+        subprocess.run(  # noqa: S603
+            [
+                pwsh,
+                "-noprofile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-command",
+                "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; "
+                "$Input | Set-Clipboard",
+            ],
+            input=text,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=True,
+        )
+    except subprocess.SubprocessError as err:
+        msg = f"Failed to write clipboard: {err}"
+        raise ClipboardError(msg) from err
+
+
+def deliver_prompt(root: Path, prompt: str) -> None:
+    """Write the prompt to ``a.prompt.txt`` and copy it, falling back to stdout."""
+    (root / PROMPT_FILENAME).write_text(prompt, encoding="utf-8")
+    try:
+        set_clipboard_text(prompt)
+    except ClipboardError as err:
+        LOGGER.warning("Clipboard unavailable (%s); prompt follows.", err)
+        LOGGER.info(prompt)
+
+
+def _memory_matches(record: MemoryRecord | None, topic: Topic, branch: str) -> bool:
+    """Return whether the memory record still applies to this topic and branch."""
+    return (
+        record is not None
+        and record.branch == branch
+        and record.version == topic.version
+        and record.topic == topic.slug
+    )
+
+
+def _order_topics(
+    topics: list[Topic],
+    record: MemoryRecord | None,
+    branch: str,
+) -> list[Topic]:
+    """Return the topics with the memorized one first when it is still valid."""
+    preferred = [topic for topic in topics if _memory_matches(record, topic, branch)]
+    others = [topic for topic in topics if not _memory_matches(record, topic, branch)]
+    return preferred + others
+
+
+def choose_topic(
+    topics: list[Topic],
+    record: MemoryRecord | None,
+    branch: str,
+) -> Topic | None:
+    """Return the chosen topic: the only one, or the user's menu pick (or None)."""
+    if len(topics) == 1:
+        return topics[0]
+    ordered = _order_topics(topics, record, branch)
+    options = [(f"{topic.version} {topic.slug}", topic) for topic in ordered]
+    return menu.select("Choose the general topic:", options)
+
+
+def build_menu_options(
+    current: StepAlternative | None,
+    next_alternatives: list[StepAlternative],
+) -> list[tuple[str, StepAlternative]]:
+    """Build the (label, alternative) menu options: repeat current, then next."""
+    options: list[tuple[str, StepAlternative]] = []
+    if current is not None:
+        label = f"Repeat current step {current.number}: {current.instruction}"
+        options.append((label, current))
+    options.extend(
+        (f"Step {alternative.number}: {alternative.instruction}", alternative)
+        for alternative in next_alternatives
+    )
+    return options
+
+
+def _ready_line(alternative: StepAlternative) -> str:
+    """Return the single line shown after the prompt is delivered."""
+    return (
+        f"Prompt for step {alternative.number} ({alternative.instruction}) ready: "
+        f"on the clipboard and in {PROMPT_FILENAME}."
+    )
+
+
+def run(root: Path) -> int:
+    """Drive one interactive run: resolve topic, pick a step, deliver the prompt."""
+    branch = git.current_branch(root)
+    topics = docs.relevant_drafts(root, root)
+    if not topics:
+        LOGGER.info("No relevant draft or general topic detected.")
+        return 0
+
+    record = memory.read_memory(root)
+    topic = choose_topic(topics, record, branch)
+    if topic is None:
+        LOGGER.info("No general topic selected; exiting.")
+        return 0
+
+    matches = _memory_matches(record, topic, branch)
+    memory_step = record.step if matches and record is not None else None
+    instruction = record.instruction if matches and record is not None else None
+
+    config = steps.load_steps()
+    state = steps.compute_state(root, topic, memory_step)
+    current = steps.current_alternative(config, memory_step, instruction)
+    next_alternatives = steps.alternatives_for(config, steps.next_step_numbers(state))
+
+    chosen = menu.select(
+        "Choose the prompt to generate:",
+        build_menu_options(current, next_alternatives),
+    )
+    if chosen is None:
+        LOGGER.info("No step selected; exiting.")
+        return 0
+
+    prompt = steps.build_prompt(steps.instruction_prefix(root), chosen, root, topic, state)
+    deliver_prompt(root, prompt)
+    memory.write_memory(
+        root,
+        MemoryRecord(
+            branch=branch,
+            version=topic.version,
+            topic=topic.slug,
+            step=chosen.number,
+            instruction=chosen.instruction,
+        ),
+    )
+    LOGGER.info(_ready_line(chosen))
+    return 0
+
+
+def _get_arg_parser() -> argparse.ArgumentParser:
+    """Create and return the argument parser."""
+    parser = argparse.ArgumentParser(
+        description="Generate and copy the next-step LLM prompt for the current topic.",
+    )
+    parser.add_argument(
+        "--root",
+        default=None,
+        help="Project root override. If not provided, scan upward for the root.",
+    )
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Enable debug logging.",
+    )
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    """CLI entry point."""
+    parser = _get_arg_parser()
+    args = parser.parse_args(argv)
+    _configure_logging(debug=args.debug)
+    root = Path(args.root).resolve() if args.root else find_project_root(Path.cwd())
+    return run(root)
+
+
+def _log_fatal(err: Exception) -> NoReturn:
+    """Log a fatal error and exit with EXIT_FATAL."""
+    _configure_logging(debug=False)
+    LOGGER.error("ERROR: %s", err)
+    raise SystemExit(EXIT_FATAL) from err
+
+
+if __name__ == "__main__":
+    try:
+        raise SystemExit(main())
+    except (PromptWorkflowError, OSError) as err:
+        _log_fatal(err)
+
+
+# eof
