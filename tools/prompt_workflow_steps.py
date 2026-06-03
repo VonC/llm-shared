@@ -3,8 +3,9 @@
 This module loads the static per-step configuration (Q13/Q14), computes the
 header path prefix (Q10), derives the workflow state from the documents on disk
 and the persisted step (Q04/Q11), decides the available next steps from the
-precondition rules of the spec, and assembles the three-part prompt: header,
-per-step body, and Context section (Q09).
+precondition rules of the spec, and assembles the three-part prompt: a header
+ending with a colon, the per-step body, and the Context section, the three
+separated by a blank line (Q09, Q28).
 """
 
 from __future__ import annotations
@@ -33,8 +34,9 @@ STEPS_CONFIG_NAME = "prompt_workflow.steps.json"
 INSTRUCTIONS_DIR = "instructions"
 # Default llm-shared sub-folder name when it is not under the project root (Q10).
 DEFAULT_SHARED_PREFIX = "llm-shared"
-# Header template; the prefix already ends with the instructions directory.
-HEADER_TEMPLATE = "Follow the instructions from {prefix}/{instruction} and do the following"
+# Header template ending with a colon (Q28); the prefix already ends with the
+# instructions directory.
+HEADER_TEMPLATE = "Follow the instructions from {prefix}/{instruction} and do the following:"
 
 # Map a file role to the WorkflowState attribute that holds its resolved path.
 _ROLE_ATTRGETTER: dict[str, Callable[[WorkflowState], Path | None]] = {
@@ -130,26 +132,11 @@ def _step_below(step: int | None, threshold: int) -> bool:
     return step is None or step < threshold
 
 
-def _tail_step_numbers(memory_step: int | None) -> list[int]:
-    """Return the next steps for the document-less tail (steps 8 to 11, Q11)."""
-    step = memory_step or 0
-    if step < 8:  # noqa: PLR2004
-        return [8]
-    if step == 8:  # noqa: PLR2004
-        return [9]
-    if step == 9:  # noqa: PLR2004
-        return [10]
-    if step == 10:  # noqa: PLR2004
-        return [11]
-    return [8, 11]
-
-
 def next_step_numbers(state: WorkflowState) -> list[int]:
-    """Return the step numbers available next, from the precondition rules.
+    """Return the document-phase step numbers (1 to 7).
 
-    The rules mirror the workflow table: requirement first, its open-questions
-    consolidate, then design, its review and consolidate, then plans, then the
-    implement/check/commit/release tail tracked by the persisted step.
+    The implement, check and commit cycle (steps 8 to 10) is handled separately
+    once a plan exists (Q21), so this only covers the path up to write-plans.
     """
     if state.requirement is None:
         return [1]
@@ -159,9 +146,7 @@ def next_step_numbers(state: WorkflowState) -> list[int]:
         return [2] if _step_below(state.memory_step, 2) else [4]
     if state.design_has_open_questions:
         return [6]
-    if state.plan is None:
-        return [5] if _step_below(state.memory_step, 5) else [7]
-    return _tail_step_numbers(state.memory_step)
+    return [5] if _step_below(state.memory_step, 5) else [7]
 
 
 def alternatives_for(

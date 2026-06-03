@@ -138,4 +138,44 @@ def working_tree_changed_files(cwd: Path) -> list[str]:
     return paths
 
 
+def status_entries(cwd: Path) -> list[tuple[str, str]]:
+    """Return ``(status, path)`` pairs from ``git status --porcelain``.
+
+    ``status`` is the two-character porcelain code (index column then work-tree
+    column); ``path`` is the target path (the new name for a rename). Used by the
+    implement cycle to classify staged versus non-staged and code versus docs
+    changes.
+    """
+    output = run_git(["status", "--porcelain", "--untracked-files=all"], cwd=cwd)
+    entries: list[tuple[str, str]] = []
+    for line in output.splitlines():
+        if len(line) < _PORCELAIN_PREFIX_LEN:
+            continue
+        path = _porcelain_path(line)
+        if path:
+            entries.append((line[:2], path))
+    return entries
+
+
+def staged_files(cwd: Path) -> list[str]:
+    """Return the repo-relative paths currently staged for commit."""
+    return _non_empty_lines(run_git(["diff", "--cached", "--name-only"], cwd=cwd))
+
+
+def has_step_commit(cwd: Path, step: int, base: str | None) -> bool:
+    """Return whether a ``record step <n> validation`` commit exists in range (Q16).
+
+    The range is ``base..HEAD`` when a branch start is known, otherwise the whole
+    history of HEAD. The grep is case-insensitive.
+    """
+    args = ["log", "-i", f"--grep=record step {step} validation", "--format=%H"]
+    args.append(f"{base}..HEAD" if base is not None else "HEAD")
+    return bool(_non_empty_lines(run_git(args, cwd=cwd)))
+
+
+def stage_all(cwd: Path) -> None:
+    """Stage every change with ``git add -A`` (the only git write the tool makes)."""
+    run_git(["add", "-A"], cwd=cwd)
+
+
 # eof

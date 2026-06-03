@@ -2,7 +2,8 @@
 
 Fix: Cover config loading, the header prefix in all three layouts, state
 computation, the next-step precondition rules and the document-less tail, the
-alternative lookups, and the Context resolution and prompt assembly.
+alternative lookups, and the Context resolution and prompt assembly with the
+do-the-following colon (Q28).
 """
 
 from __future__ import annotations
@@ -134,25 +135,6 @@ def test_next_step_numbers_document_phase() -> None:
     ) == [7]
 
 
-def test_next_step_numbers_tail() -> None:
-    """With a plan present, the tail steps follow the persisted step cursor."""
-    def tail(step: int | None) -> list[int]:
-        return steps.next_step_numbers(
-            _state(
-                requirement=Path("r"),
-                design=Path("d"),
-                plan=Path("p"),
-                memory_step=step,
-            ),
-        )
-
-    assert tail(None) == [8]
-    assert tail(8) == [9]
-    assert tail(9) == [10]
-    assert tail(10) == [11]
-    assert tail(11) == [8, 11]
-
-
 def test_alternatives_for_skips_unknown_numbers() -> None:
     """Flattening alternatives ignores numbers absent from the config."""
     config = steps.load_steps()
@@ -208,7 +190,7 @@ def test_build_prompt_resolves_context(tmp_path: Path) -> None:
 
     assert prompt.startswith(
         "Follow the instructions from llm-shared/instructions/implementation-check.md "
-        "and do the following\n\nCheck the current step implementation.\n\nContext:",
+        "and do the following:\n\nCheck the current step implementation.\n\nContext:",
     )
     assert "this is about v9.8.0 iso." in prompt
     assert "docs/draft.v9.8.0.iso.md" in prompt

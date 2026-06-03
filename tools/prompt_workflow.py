@@ -11,7 +11,7 @@ the current step or pick a next step, then builds the prompt, writes it to
 records the chosen step in ``a.prompt_memory``.
 
 See ``tools/Prompt tool specs.md`` for the full specification and the design
-decisions (Q01 to Q14) behind this tool.
+decisions (Q01 to Q32) behind this tool.
 """
 
 from __future__ import annotations
@@ -35,11 +35,13 @@ from tools import prompt_workflow_docs as docs
 from tools import prompt_workflow_git as git
 from tools import prompt_workflow_memory as memory
 from tools import prompt_workflow_menu as menu
+from tools import prompt_workflow_plan as plan
 from tools import prompt_workflow_steps as steps
 from tools.prompt_workflow_models import MemoryRecord, PromptWorkflowError
 
 if TYPE_CHECKING:
-    from tools.prompt_workflow_models import StepAlternative, Topic
+    from tools.prompt_workflow_models import StepAlternative, Topic, WorkflowState
+    from tools.prompt_workflow_plan import CycleAction, CycleState
 
 LOGGER = logging.getLogger("prompt_workflow")
 # Name of the file the prompt is always written to, beside the clipboard (Q05).
@@ -163,6 +165,65 @@ def _ready_line(alternative: StepAlternative) -> str:
     )
 
 
+def _cycle_ready_line(cycle: CycleState, action: CycleAction) -> str:
+    """Return the single line shown after a cycle prompt is delivered."""
+    label = (
+        "release notes" if action.kind == "release" else f"step {cycle.x} ({action.kind})"
+    )
+    return f"Prompt for {label} ready: on the clipboard and in {PROMPT_FILENAME}."
+
+
+def _run_implement_cycle(
+    root: Path,
+    topic: Topic,
+    branch: str,
+    state: WorkflowState,
+    config: dict[int, list[StepAlternative]],
+) -> int:
+    """Drive the implement, check and commit cycle for the current plan step (Q15-Q21)."""
+    branch_start = git.fork_point(root)
+    cycle = plan.compute_cycle(root, state, branch_start)
+    if cycle is None:
+        LOGGER.info("No plan steps found in the validation plan; nothing to do.")
+        return 0
+
+    if not cycle.terminal:
+        LOGGER.info(plan.cycle_intro(root, state, cycle))
+    action = menu.select(
+        f"Choose the prompt for step {cycle.x}:",
+        plan.build_cycle_options(cycle),
+    )
+    if action is None:
+        LOGGER.info("No action selected; exiting.")
+        return 0
+
+    if action.stage_all:
+        git.stage_all(root)
+    prompt, workflow_step, instruction = plan.build_cycle_prompt(
+        steps.instruction_prefix(root),
+        config,
+        root,
+        topic,
+        state,
+        cycle,
+        action,
+    )
+    deliver_prompt(root, prompt)
+    memory.write_memory(
+        root,
+        MemoryRecord(
+            branch=branch,
+            version=topic.version,
+            topic=topic.slug,
+            step=workflow_step,
+            instruction=instruction,
+            plan_step=cycle.x,
+        ),
+    )
+    LOGGER.info(_cycle_ready_line(cycle, action))
+    return 0
+
+
 def run(root: Path) -> int:
     """Drive one interactive run: resolve topic, pick a step, deliver the prompt."""
     branch = git.current_branch(root)
@@ -183,6 +244,9 @@ def run(root: Path) -> int:
 
     config = steps.load_steps()
     state = steps.compute_state(root, topic, memory_step)
+    if state.plan is not None:
+        return _run_implement_cycle(root, topic, branch, state, config)
+
     current = steps.current_alternative(config, memory_step, instruction)
     next_alternatives = steps.alternatives_for(config, steps.next_step_numbers(state))
 
