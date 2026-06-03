@@ -98,7 +98,7 @@ The body line and the Context documents for each step are fixed as below (Q13). 
 | 7 | write-plans.md | Write the implementation plan and validation plan, based on the draft, the requirement and the design. | draft, requirement, design |
 | 8 | implement-step.md | Implement step {x} "{title}" of the plan "{plan_doc}", based on the design and the plan. | draft, requirement, design, plan |
 | 9 | implementation-check.md | Check step {x} "{title}" implementation, based on the plan "{plan_doc}" and the validation plan. | draft, requirement, design, plan, validation plan |
-| 10 | group-commits-msg.md | Group the changed files and write one conventional commit message per group. | plan, current git status |
+| 10 | group-commits-msg.md | Group the changed files and write one conventional commit message per group for those {n} files, per step {x} ("{title}") evolutions of the implementation plan "{plan_doc}": | draft, requirement, design, plan, validation plan |
 | 11 | implement-step.md | Implement step {x} "{title}" of the plan "{plan_doc}", based on the design and the plan. | draft, requirement, design, plan |
 | 11 | prepare-release-notes.md | Prepare the release notes for this version, based on the plan and the git history since the last tag. | draft, requirement, design, plan |
 
@@ -142,7 +142,7 @@ If a.prompt_memory file already exists, the tool should check if the branch memo
 
 ## Design decisions
 
-The table summarizes the choices made from the answered questions Q01 to Q37, the section that carries each one, and the alternatives that were dropped.
+The table summarizes the choices made from the answered questions Q01 to Q40, the section that carries each one, and the alternatives that were dropped.
 
 | Question | Decision | Integrated in section | Main argument | Rejected alternatives |
 | --- | --- | --- | --- | --- |
@@ -169,7 +169,7 @@ The table summarizes the choices made from the answered questions Q01 to Q37, th
 | Q21 | Re-derive steps 8 to 10 from git and the validation plan; supersede Q11; memory is a cache | Step state re-derived from the documents on disk | One consistent rule for the cycle | Warn-only cross-check; keep both counters |
 | Q22 | List the staged files in the body as porcelain `XY path` lines, the `git status --short` shape, inside a fenced log block | Embedding the staged file list in the prompt body | Matches the example and the commit template; the status letter signals add, modify or delete | Paths only; `git diff --cached --name-status` tab form |
 | Q23 | List the staged set read after the optional `git add -A`, every staged file whatever its folder, only the staged ones | Embedding the staged file list in the prompt body | The printed list then matches the `git diff --cached` the instruction runs, for both variants | Always all changes; only index-staged; filter by folder |
-| Q24 | Drop the `git_status` Context role from step 10; its Context stays `["plan"]` | Embedding the staged file list in the prompt body | The body already carries the concrete list, so a Context entry would only restate it | Keep `git_status`; put the list under Context |
+| Q24 | Drop the `git_status` Context role from step 10; the document Context is later expanded by Q40 | Embedding the staged file list in the prompt body | The body already carries the file list, so a git-status entry would only restate it | Keep `git_status`; put the list under Context |
 | Q25 | Empty `a.commit` for both commit variants at prompt-delivery time | Emptying a.commit before delivering the commit prompt | The grouping always rewrites `a.commit`, so one reset rule clears stale groups | Only the `(git add -A)` variant; also wrap or validate |
 | Q26 | Name the check body by step number, and add the step title so the check prompt reads on its own | Naming the implement and check steps by their plan number | Matches the check instruction's "check step x" shape; the title makes the check prompt self-describing | Number only like implement; no title |
 | Q27 | Implement body named the step by number only; superseded by Q33, which adds the title and the plan document | Naming the implement and check steps by their plan number | Was the first wording; the Context resolved the plan path | of the `<topic>`; inline the title in the body |
@@ -182,7 +182,10 @@ The table summarizes the choices made from the answered questions Q01 to Q37, th
 | Q34 | Title-missing fallback for the implement body and the menu introduction: drop the `"{title}"` segment, like Q31 | Naming the implement and check steps by their plan number | One drop rule across the menu, implement and check; no empty quotes | An `(untitled)` placeholder |
 | Q35 | Plan-document-missing fallback: drop the `"{plan_doc}"` segment, degrading to the number-only shape | Naming the implement and check steps by their plan number | Never renders an empty path or `None`; an edge guard | Name the validation plan instead |
 | Q36 | Print the menu introduction as its own stdout line before `menu.select`; the menu message is unchanged | Proposing the prompts for step x | Matches the layout; keeps the wording unit-tested outside the `questionary` wrapper | Fold the introduction into the questionary message |
-| Q37 | One introduction before the whole cycle menu (implement, check, commit); title and plan doc in the implement and check bodies only; commit body and release prompt unchanged | Proposing the prompts for step x | Follows the examples; the commit body is a file list and release has no step `x` | Title and plan in the commit body; an introduction for release |
+| Q37 | One introduction before the whole cycle menu (implement, check, commit); title and plan in the implement and check bodies; the commit body is named by Q38; release prompt unchanged | Proposing the prompts for step x | Follows the examples; release has no step `x` to name | An introduction for the release prompt |
+| Q38 | Reverse Q37 for the commit body: name the step number, title and plan after the file count, reusing the shared read (Q33) | Completing the group-commits prompt with the staged file list and a.commit reset | The requested wording; the read is shared, so it costs nothing | Keep the commit body a bare file list |
+| Q39 | Commit-body fallback: granular drops of the `("{title}")` and `of the implementation plan "{plan_doc}"` segments, like Q34 and Q35 | Completing the group-commits prompt with the staged file list and a.commit reset | One drop rule across every cycle prompt; the no-plan case is rare | Drop the whole clause back to the file list |
+| Q40 | The step-10 Context lists the five check documents: draft, requirement, design, plan and the validation plan | Embedding the staged file list in the prompt body | The validation plan is relevant to the commit that records its step | The four implement documents; keep `["plan"]` |
 
 ## Implement-validate-group commit message
 
@@ -242,9 +245,11 @@ Each line is the two-character `git status --porcelain` code, a space, then the 
 
 The list is the staged set, produced by `git status --short` run at the project root that `find_project_root` resolves — the repository the tool is invoked in, not the llm-shared folder that holds the tool — and read at prompt-build time after the optional `git add -A` (Q23). It lists every staged file whatever its folder, `docs/` changes included and never restricted to a subfolder such as `src/`, and only the staged files: the `(cached)` variant lists the already-staged files, and the `(git add -A)` variant, which stages everything first, lists every change as staged. So the printed list always agrees with the `git diff --cached` the instruction tells the LLM to run. The count `N` is the length of that list; because the menu only offers a commit prompt when step `x` is verified and there is at least one staged or non-staged change, `N` is always at least 1.
 
-Since the body now carries the list, the `git_status` Context role is dropped from the step-10 alternative, leaving its Context at `["plan"]` (Q24). The validation-commit appendix of [Proposing the prompts for step x](#proposing-the-prompts-for-step-x) (the `docs(<topic>): record step x validation` requirement) is unchanged.
+Since the body now carries the list, the `git_status` Context role is dropped from the step-10 alternative (Q24); the remaining Context lists the same documents as the check prompt, `draft, requirement, design, plan, validation_plan` (Q40), even though the plan is then named both in the body and the Context. The validation-commit appendix of [Proposing the prompts for step x](#proposing-the-prompts-for-step-x) (the `docs(<topic>): record step x validation` requirement) is unchanged.
 
-The body stays in `tools/prompt_workflow.steps.json` as a static template with `{n}` and `{files}` placeholders, interpolated when the prompt is built the same way `{x}` already is (Q14), so the wording keeps living in the JSON file rather than in code.
+The commit body also names the plan step it groups (Q38): after the file count it reads `... for those {n} files, per step {x} ("{title}") evolutions of the implementation plan "{plan_doc}":`, reusing the step title and plan path already read for the menu and the implement and check prompts (Q33). The `("{title}")` and `of the implementation plan "{plan_doc}"` segments drop when the title or the plan is missing, the same granular drop as the implement body (Q34, Q35), so a missing plan degrades to `... for those {n} files, per step {x} evolutions:` (Q39).
+
+The body stays in `tools/prompt_workflow.steps.json` as a static template with `{n}`, `{x}`, `{title}`, `{plan_doc}` and `{files}` placeholders, interpolated when the prompt is built (Q14), so the wording keeps living in the JSON file rather than in code.
 
 ### Emptying a.commit before delivering the commit prompt
 
