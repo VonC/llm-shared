@@ -77,6 +77,7 @@ def read_memory(root: Path) -> MemoryRecord | None:
         topic=section["topic"],
         step=_parse_step(section.get("step")),
         instruction=instruction,
+        plan_step=_parse_step(section.get("plan_step")),
     )
 
 
@@ -89,6 +90,7 @@ def write_memory(root: Path, record: MemoryRecord) -> None:
         "topic": record.topic,
         "step": "" if record.step is None else str(record.step),
         "instruction": record.instruction or "",
+        "plan_step": "" if record.plan_step is None else str(record.plan_step),
     }
     with memory_path(root).open("w", encoding="utf-8") as handle:
         parser.write(handle)

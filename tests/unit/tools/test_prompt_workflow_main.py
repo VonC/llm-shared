@@ -2,7 +2,9 @@
 
 Fix: Cover logging setup, the clipboard wrapper and its fallback, topic choice
 and ordering, the menu options, and the run/main entry points across the
-no-topic, cancelled, mismatched-memory and happy paths.
+no-topic, cancelled, mismatched-memory and happy paths. Also cover the cycle
+introduction line shown above a non-terminal menu and skipped on a terminal one
+(Q33, Q36, Q37).
 """
 
 from __future__ import annotations
@@ -24,6 +26,7 @@ from tools.prompt_workflow_models import (
     Topic,
     WorkflowState,
 )
+from tools.prompt_workflow_plan import CycleAction, CycleState
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -40,7 +43,7 @@ def _state(**overrides: object) -> WorkflowState:
     base: dict[str, object] = {
         "requirement": Path("r"),
         "design": Path("d"),
-        "plan": Path("p"),
+        "plan": None,
         "validation_plan": None,
         "requirement_has_open_questions": False,
         "design_has_open_questions": False,
@@ -242,13 +245,13 @@ def test_run_happy_path_with_matching_memory(
 
     assert prompt_workflow.run(tmp_path) == 0
     written = (tmp_path / "a.prompt.txt").read_text(encoding="utf-8")
-    assert "implement-step.md" in written
+    assert "review-ask-questions.md" in written
     assert memory.read_memory(tmp_path) == MemoryRecord(
         branch="main",
         version="v9.8.0",
         topic="iso",
-        step=8,
-        instruction="implement-step.md",
+        step=5,
+        instruction="review-ask-questions.md",
     )
 
 
@@ -268,6 +271,177 @@ def test_run_with_mismatched_memory(
 
     assert prompt_workflow.run(tmp_path) == 0
     assert all("Repeat" not in label for label in labels)
+
+
+_CYCLE = CycleState(
+    x=2,
+    verified=True,
+    terminal=False,
+    has_code_changes=True,
+    cached=True,
+    non_cached=False,
+)
+
+
+def _wire_cycle(
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    cycle: CycleState | None,
+    select: Callable[[str, list[tuple[str, object]]], object],
+) -> None:
+    monkeypatch.setattr(prompt_workflow.git, "current_branch", lambda _root: "main")
+    monkeypatch.setattr(prompt_workflow.docs, "relevant_drafts", lambda _root, _cwd: [_TOPIC])
+    monkeypatch.setattr(
+        prompt_workflow.steps,
+        "compute_state",
+        lambda _root, _topic, _step: _state(plan=Path("p"), validation_plan=Path("vp")),
+    )
+    monkeypatch.setattr(prompt_workflow.git, "fork_point", lambda _root: "base")
+    monkeypatch.setattr(prompt_workflow.plan, "compute_cycle", lambda _root, _state, _base: cycle)
+    monkeypatch.setattr(prompt_workflow.plan, "build_cycle_options", lambda _cycle: [("Implement step 2", _CYCLE)])
+    monkeypatch.setattr(prompt_workflow.menu, "select", select)
+    monkeypatch.setattr(prompt_workflow, "set_clipboard_text", lambda _text: None)
+
+
+def test_cycle_ready_line_labels() -> None:
+    """The cycle ready line names the plan step, or the release notes."""
+    implement = CycleAction(kind="implement", stage_all=False)
+    release = CycleAction(kind="release", stage_all=False)
+    assert "step 2 (implement)" in prompt_workflow._cycle_ready_line(_CYCLE, implement)
+    assert "release notes" in prompt_workflow._cycle_ready_line(_CYCLE, release)
+
+
+def test_run_implement_cycle_no_steps(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """A plan with no validation steps exits the cycle without a prompt."""
+    _wire_cycle(monkeypatch, cycle=None, select=lambda _m, _o: None)
+    assert prompt_workflow.run(tmp_path) == 0
+    assert not (tmp_path / "a.prompt.txt").exists()
+
+
+def test_run_implement_cycle_cancelled(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Pressing ESC in the cycle menu exits without a prompt."""
+    _wire_cycle(monkeypatch, cycle=_CYCLE, select=lambda _m, _o: None)
+    assert prompt_workflow.run(tmp_path) == 0
+    assert not (tmp_path / "a.prompt.txt").exists()
+
+
+def test_run_implement_cycle_delivers(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """An implement action writes the prompt and records the plan step."""
+    action = CycleAction(kind="implement", stage_all=False)
+    staged_calls: list[str] = []
+
+    def build(*_args: object) -> tuple[str, int, str]:
+        return ("PROMPT-BODY", 8, "implement-step.md")
+
+    monkeypatch.setattr(prompt_workflow.git, "stage_all", lambda _root: staged_calls.append("x"))
+    monkeypatch.setattr(prompt_workflow.plan, "build_cycle_prompt", build)
+    _wire_cycle(monkeypatch, cycle=_CYCLE, select=lambda _m, opts: opts[0][1])
+    monkeypatch.setattr(prompt_workflow.plan, "build_cycle_options", lambda _cycle: [("Implement step 2", action)])
+
+    assert prompt_workflow.run(tmp_path) == 0
+    assert (tmp_path / "a.prompt.txt").read_text(encoding="utf-8") == "PROMPT-BODY"
+    assert staged_calls == []
+    assert memory.read_memory(tmp_path) == MemoryRecord(
+        branch="main",
+        version="v9.8.0",
+        topic="iso",
+        step=8,
+        instruction="implement-step.md",
+        plan_step=2,
+    )
+
+
+def test_run_implement_cycle_stage_all(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """A git-add-A commit action stages everything before building the prompt."""
+    action = CycleAction(kind="commit", stage_all=True)
+    staged_calls: list[str] = []
+
+    def build(*_args: object) -> tuple[str, int, str]:
+        return ("COMMIT-PROMPT", 10, "group-commits-msg.md")
+
+    monkeypatch.setattr(prompt_workflow.git, "stage_all", lambda _root: staged_calls.append("x"))
+    monkeypatch.setattr(prompt_workflow.plan, "build_cycle_prompt", build)
+    _wire_cycle(monkeypatch, cycle=_CYCLE, select=lambda _m, opts: opts[0][1])
+    monkeypatch.setattr(prompt_workflow.plan, "build_cycle_options", lambda _cycle: [("Commit", action)])
+
+    assert prompt_workflow.run(tmp_path) == 0
+    assert staged_calls == ["x"]
+    assert memory.read_memory(tmp_path) == MemoryRecord(
+        branch="main",
+        version="v9.8.0",
+        topic="iso",
+        step=10,
+        instruction="group-commits-msg.md",
+        plan_step=2,
+    )
+
+
+def test_run_implement_cycle_prints_intro(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """A non-terminal cycle prints the 'Regarding step' introduction (Q33, Q36)."""
+    action = CycleAction(kind="implement", stage_all=False)
+    infos: list[str] = []
+
+    def build(*_args: object) -> tuple[str, int, str]:
+        return ("PROMPT-BODY", 8, "implement-step.md")
+
+    monkeypatch.setattr(prompt_workflow.plan, "build_cycle_prompt", build)
+    _wire_cycle(monkeypatch, cycle=_CYCLE, select=lambda _m, opts: opts[0][1])
+    monkeypatch.setattr(
+        prompt_workflow.plan,
+        "build_cycle_options",
+        lambda _cycle: [("Implement step 2", action)],
+    )
+    monkeypatch.setattr(prompt_workflow.LOGGER, "info", infos.append)
+
+    assert prompt_workflow.run(tmp_path) == 0
+    assert any("Regarding step 2" in message for message in infos)
+
+
+def test_run_implement_cycle_terminal_skips_intro(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """A terminal cycle shows no 'Regarding step' introduction (Q37)."""
+    action = CycleAction(kind="release", stage_all=False)
+    terminal = CycleState(
+        x=2,
+        verified=True,
+        terminal=True,
+        has_code_changes=False,
+        cached=False,
+        non_cached=False,
+    )
+    infos: list[str] = []
+
+    def build(*_args: object) -> tuple[str, int, str]:
+        return ("RELEASE-PROMPT", 11, "prepare-release-notes.md")
+
+    monkeypatch.setattr(prompt_workflow.plan, "build_cycle_prompt", build)
+    _wire_cycle(monkeypatch, cycle=terminal, select=lambda _m, opts: opts[0][1])
+    monkeypatch.setattr(
+        prompt_workflow.plan,
+        "build_cycle_options",
+        lambda _cycle: [("Prepare release notes", action)],
+    )
+    monkeypatch.setattr(prompt_workflow.LOGGER, "info", infos.append)
+
+    assert prompt_workflow.run(tmp_path) == 0
+    assert all("Regarding step" not in message for message in infos)
 
 
 def test_main_uses_root_argument(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:

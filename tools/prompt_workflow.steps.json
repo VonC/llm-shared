@@ -81,7 +81,7 @@
       "alternatives": [
         {
           "instruction": "implement-step.md",
-          "body": "Implement the next step of the plan, based on the design and the plan.",
+          "body": "Implement step {x} \"{title}\" of the plan \"{plan_doc}\", based on the design and the plan.",
           "context": ["draft", "requirement", "design", "plan"]
         }
       ]
@@ -91,7 +91,7 @@
       "alternatives": [
         {
           "instruction": "implementation-check.md",
-          "body": "Check the current step implementation, based on the plan and the validation plan.",
+          "body": "Check step {x} \"{title}\" implementation, based on the plan \"{plan_doc}\" and the validation plan.",
           "context": ["draft", "requirement", "design", "plan", "validation_plan"]
         }
       ]
@@ -101,8 +101,8 @@
       "alternatives": [
         {
           "instruction": "group-commits-msg.md",
-          "body": "Group the changed files and write one conventional commit message per group.",
-          "context": ["plan", "git_status"]
+          "body": "Group the changed files and write one conventional commit message per group for those {n} files:\n\n```log\n{files}\n```",
+          "context": ["plan"]
         }
       ]
     },
@@ -111,7 +111,7 @@
       "alternatives": [
         {
           "instruction": "implement-step.md",
-          "body": "Implement the next step of the plan, based on the design and the plan.",
+          "body": "Implement step {x} \"{title}\" of the plan \"{plan_doc}\", based on the design and the plan.",
           "context": ["draft", "requirement", "design", "plan"]
         },
         {

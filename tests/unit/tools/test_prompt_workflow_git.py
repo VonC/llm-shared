@@ -176,4 +176,64 @@ def test_working_tree_changed_files_parses_status(
     ]
 
 
+def test_status_entries_pairs_status_and_path(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Each porcelain line becomes a (status, path) pair; short lines drop."""
+    status = "M  tools/a.py\n D docs/x.md\n?? new.py\nXY\n\nR  old.py -> new2.py\n"
+    monkeypatch.setattr(git, "run_git", lambda _args, **_kwargs: status)
+
+    assert git.status_entries(tmp_path) == [
+        ("M ", "tools/a.py"),
+        (" D", "docs/x.md"),
+        ("??", "new.py"),
+        ("R ", "new2.py"),
+    ]
+
+
+def test_staged_files_lists_cached_paths(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Staged files come from the cached name-only diff."""
+    monkeypatch.setattr(git, "run_git", lambda _args, **_kwargs: "docs/a.md\ntools/b.py\n")
+    assert git.staged_files(tmp_path) == ["docs/a.md", "tools/b.py"]
+
+
+def test_has_step_commit_with_and_without_base(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """The grep range is base..HEAD when known, otherwise the whole history."""
+    calls: list[list[str]] = []
+
+    def fake(args: list[str], **_kwargs: object) -> str:
+        calls.append(args)
+        return "abc123\n" if "base..HEAD" in args else ""
+
+    monkeypatch.setattr(git, "run_git", fake)
+
+    assert git.has_step_commit(tmp_path, 2, "base") is True
+    assert git.has_step_commit(tmp_path, 3, None) is False
+    assert calls[0] == ["log", "-i", "--grep=record step 2 validation", "--format=%H", "base..HEAD"]
+    assert calls[1] == ["log", "-i", "--grep=record step 3 validation", "--format=%H", "HEAD"]
+
+
+def test_stage_all_runs_git_add(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Staging everything runs ``git add -A``."""
+    calls: list[list[str]] = []
+
+    def fake(args: list[str], **_kwargs: object) -> str:
+        calls.append(args)
+        return ""
+
+    monkeypatch.setattr(git, "run_git", fake)
+    git.stage_all(tmp_path)
+    assert calls == [["add", "-A"]]
+
+
 # eof
