@@ -188,8 +188,9 @@ def test_main_returns_one_on_clipboard_errors(
 def test_main_returns_one_on_commit_message_errors(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """Commit-message failures should become a non-zero CLI exit code."""
+    """Commit-message failures should print no traceback by default."""
     monkeypatch.setattr(
         git_batch_workflow,
         "find_project_root",
@@ -213,6 +214,45 @@ def test_main_returns_one_on_commit_message_errors(
     )
 
     assert git_batch_workflow.main(["plan.txt"]) == 1
+    output = capsys.readouterr().out
+    assert "Stopped due to invalid commit message" in output
+    assert "bad message" in output
+    assert "Traceback" not in output
+
+
+def test_main_shows_traceback_for_commit_message_errors_in_verbose_mode(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Verbose mode should keep tracebacks for handled commit-message errors."""
+    monkeypatch.setattr(
+        git_batch_workflow,
+        "find_project_root",
+        _return_project_root(tmp_path),
+    )
+
+    def fake_read_and_parse_content(
+        root: Path,
+        *,
+        filename: str | None,
+        interactive: bool,
+    ) -> list[git_batch_models.CommitBlock]:
+        del root, filename, interactive
+        msg = "bad message"
+        raise git_batch_models.CommitMessageError(msg, [])
+
+    monkeypatch.setattr(
+        git_batch_workflow,
+        "_read_and_parse_content",
+        fake_read_and_parse_content,
+    )
+
+    assert git_batch_workflow.main(["plan.txt", "--verbose"]) == 1
+    output = capsys.readouterr().out
+    assert "Stopped due to invalid commit message" in output
+    assert "Traceback" in output
+    assert "bad message" in output
 
 
 def test_main_returns_one_on_git_operation_errors(

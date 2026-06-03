@@ -3,6 +3,7 @@ gbc="%LLM_SHARED_DIR%\bin\gcba.bat" $*$techo %PRJ_DIR_NAME%: git batch commit do
 gcbr="%LLM_SHARED_DIR%\bin\gcba.bat" --root-a-commit $*$techo %PRJ_DIR_NAME%: git batch commit --root-a-commit done
 gbcr="%LLM_SHARED_DIR%\bin\gcba.bat" --root-a-commit  $*$techo %PRJ_DIR_NAME%: git batch commit --root-a-commit done
 gcba="%LLM_SHARED_DIR%\bin\gcba.bat" --root-a-commit $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: git batch commit --root-a-commit done
+gcbav="%LLM_SHARED_DIR%\bin\gcba.bat" --root-a-commit --verbose $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: git batch commit --root-a-commit verbose done
 gcab="%LLM_SHARED_DIR%\bin\gcba.bat" --root-a-commit $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: git batch commit --root-a-commit done
 gbca="%LLM_SHARED_DIR%\bin\gcba.bat" --root-a-commit $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: git batch commit --root-a-commit done
 

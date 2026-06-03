@@ -3,6 +3,9 @@
 Fix: Split the CLI setup, root-plan replay, input reading, and commit loop out
 of `tools.git_batch_commit` so the main script stays below the repository size
 limit while keeping the same behavior.
+
+Fix: Hide tracebacks for clear handled errors by default while keeping a verbose
+flag for diagnostic runs.
 """
 
 from __future__ import annotations
@@ -79,6 +82,12 @@ def _get_arg_parser() -> argparse.ArgumentParser:
         "--debug",
         action="store_true",
         help="Enable debug logging.",
+    )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="Show Python tracebacks for handled errors.",
     )
     parser.add_argument(
         "-n",
@@ -177,6 +186,15 @@ def _read_and_parse_content(
 
     LOGGER.info("Parsing input content...")
     return parse_clipboard_content(content, interactive=interactive)
+
+
+def _log_handled_error(label: str, err: Exception, *, verbose: bool) -> None:
+    """Log a handled CLI error with an optional traceback."""
+    if verbose:
+        LOGGER.exception(label)
+        return
+    LOGGER.error(label)
+    LOGGER.error("%s", err)
 
 
 def _process_commit_block(
@@ -303,14 +321,26 @@ def main(argv: list[str] | None = None) -> int:
                 trace_git_commit=args.trace_git_commit,
             ):
                 exit_code = 1
-    except ClipboardError:
-        LOGGER.exception("Failed to read clipboard")
+    except ClipboardError as err:
+        _log_handled_error(
+            "Failed to read clipboard",
+            err,
+            verbose=args.verbose,
+        )
         exit_code = 1
-    except CommitMessageError:
-        LOGGER.exception("Stopped due to invalid commit message")
+    except CommitMessageError as err:
+        _log_handled_error(
+            "Stopped due to invalid commit message",
+            err,
+            verbose=args.verbose,
+        )
         exit_code = 1
-    except GitOperationError:
-        LOGGER.exception("Git operation failed")
+    except GitOperationError as err:
+        _log_handled_error(
+            "Git operation failed",
+            err,
+            verbose=args.verbose,
+        )
         exit_code = 1
 
     return exit_code
@@ -327,6 +357,7 @@ __all__ = [
     "_configure_logging",
     "_get_arg_parser",
     "_log_fatal",
+    "_log_handled_error",
     "_process_all_commits",
     "_process_commit_block",
     "_read_and_parse_content",
