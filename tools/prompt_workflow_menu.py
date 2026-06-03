@@ -13,6 +13,8 @@ from __future__ import annotations
 # strict unknown-type and missing-import checks are disabled for this seam only.
 # pyright: reportMissingImports=false, reportUnknownMemberType=false
 # pyright: reportUnknownVariableType=false, reportUnknownArgumentType=false
+# pyright: reportAttributeAccessIssue=false, reportOptionalMemberAccess=false
+# pyright: reportUntypedFunctionDecorator=false, reportUnusedFunction=false
 
 
 def select[T](message: str, options: list[tuple[str, T]]) -> T | None:
@@ -27,9 +29,20 @@ def select[T](message: str, options: list[tuple[str, T]]) -> T | None:
         The value of the selected option, or None when the user presses ESC.
     """
     import questionary  # noqa: PLC0415
+    from prompt_toolkit.keys import Keys  # noqa: PLC0415
 
     choices = [questionary.Choice(title=label, value=value) for label, value in options]
-    return questionary.select(message, choices=choices).ask()
+    question = questionary.select(message, choices=choices)
+
+    # questionary's select ignores ESC by default; bind it to cancel so ESC
+    # exits with None, which the caller treats as "exit without a prompt".
+    application = question.application
+
+    @application.key_bindings.add(Keys.Escape, eager=True)
+    def _cancel_on_escape(_event: object) -> None:
+        application.exit(result=None)
+
+    return question.ask()
 
 
 # eof
