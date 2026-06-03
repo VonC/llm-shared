@@ -7,6 +7,10 @@ smaller files without changing parsing behavior.
 Fix: Keep wrapped continuation lines when parsing the What section, so a
 multi-line `- ` item no longer truncates the commit message at its first
 physical line.
+
+Fix: Fail fast when a git-add block is followed by an unscoped conventional
+commit title, so validation does not pair those paths with the next scoped
+title later in the plan.
 """
 
 from __future__ import annotations
@@ -78,6 +82,17 @@ def _get_clipboard_text() -> str:
 def _is_commit_title(line: str) -> bool:
     """Check if a line matches the commit title pattern xxxx(yyyy): zzz."""
     return bool(_COMMIT_TITLE_PATTERN.match(line))
+
+
+def _is_probable_unscoped_commit_title(line: str) -> bool:
+    """Return whether a line looks like a title but misses the required scope."""
+    stripped = line.strip()
+    if _is_commit_title(stripped):
+        return False
+    if ": " not in stripped:
+        return False
+    title_type, _subject = stripped.split(": ", 1)
+    return bool(title_type) and "(" not in title_type and " " not in title_type
 
 
 def _is_list_item(line: str) -> bool:
@@ -261,10 +276,20 @@ def _skip_until_git_add(lines: list[str], start_idx: int) -> int:
 def _skip_until_commit_title(lines: list[str], start_idx: int) -> int:
     """Skip lines until we find a commit title or reach EOF."""
     idx = start_idx
+    lines_read: list[str] = []
     while idx < len(lines):
         line = lines[idx].strip()
         if _is_commit_title(line):
             return idx
+        if _is_probable_unscoped_commit_title(line):
+            msg = (
+                "Invalid commit title format after git add commands: expected "
+                "'type(scope): subject'. Add a scope instead of letting this "
+                f"block bind to a later title. Found: {line!r}"
+            )
+            raise CommitMessageError(msg, lines_read, line)
+        if line:
+            lines_read.append(line)
         idx += 1
     return idx
 
@@ -397,6 +422,7 @@ __all__ = [
     "_get_clipboard_text",
     "_is_commit_title",
     "_is_list_item",
+    "_is_probable_unscoped_commit_title",
     "_parse_commit_message",
     "_parse_git_add_command",
     "_parse_git_adds",
