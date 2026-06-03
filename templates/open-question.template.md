@@ -26,8 +26,8 @@ Short section reformulating the question description in BBQ-style, to clarify th
 
 #### Recommended option for Qxx (with arguments for this choice)
 
-Do list the arguments for the recommended option, and explain why it is the best choice among the options, taking into account the pros and cons of each option, as well as the overall goals and constraints of the design or feature request or issue.
+Option XY: Do list the arguments for the recommended option, and explain why it is the best choice among the options, taking into account the pros and cons of each option, as well as the overall goals and constraints of the design or feature request or issue.
 
-#### Answer to Qxx: option Y (with reason why it must be accepted as the answer)
+#### Answer to Qxx: option XY (with reason why it must be accepted as the answer)
 
-Do not leave empty, but explain why the user should consider the recommended option as the answer to the question, and why it should be accepted as the answer, taking into account the arguments for the recommended option, as well as the overall goals and constraints of the design or feature request or issue.
+Option XY: Do not leave empty, but explain why the user should consider the recommended option as the answer to the question, and why it should be accepted as the answer, taking into account the arguments for the recommended option, as well as the overall goals and constraints of the design or feature request or issue.
