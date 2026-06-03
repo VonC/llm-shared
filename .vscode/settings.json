@@ -47,6 +47,7 @@
     "pycparser",
     "pyrb",
     "techo",
+    "tset",
     "ultrathink",
     "unaliased",
     "uvloop"
