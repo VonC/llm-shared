@@ -119,6 +119,14 @@ def test_commit_title_and_list_item_matchers_cover_true_and_false_cases() -> Non
     """Title and list-item matchers should accept valid lines and reject invalid ones."""
     assert git_batch_parsing._is_commit_title("fix(scope): title") is True
     assert git_batch_parsing._is_commit_title("not a commit title") is False
+    assert (
+        git_batch_parsing._is_probable_unscoped_commit_title("build: update lock")
+        is True
+    )
+    assert (
+        git_batch_parsing._is_probable_unscoped_commit_title("fix(scope): title")
+        is False
+    )
     assert git_batch_parsing._is_list_item("- item") is True
     assert git_batch_parsing._is_list_item("item") is False
 
@@ -305,6 +313,36 @@ def test_skip_helpers_return_end_of_input_when_no_match_exists() -> None:
     assert git_batch_parsing._skip_until_commit_title(lines, 0) == len(lines)
 
 
+def test_skip_until_commit_title_rejects_unscoped_title_before_later_block() -> None:
+    """Unscoped titles should fail instead of binding paths to a later block."""
+    lines = [
+        "",
+        "```log",
+        "build: update pyright lock",
+        "",
+        "Why:",
+        "",
+        "reason before",
+        "",
+        "reason after",
+        "",
+        "What:",
+        "",
+        "- change",
+        "```",
+        "git add -A src/registry.py",
+        "refactor(web): split shm recovery",
+    ]
+
+    with pytest.raises(
+        git_batch_models.CommitMessageError,
+        match="Invalid commit title format after git add commands",
+    ) as exc_info:
+        git_batch_parsing._skip_until_commit_title(lines, 0)
+
+    assert exc_info.value.faulty_line == "build: update pyright lock"
+
+
 def test_parse_git_add_command_handles_split_errors_and_invalid_commands(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -379,6 +417,40 @@ def test_parse_clipboard_content_re_raises_invalid_messages_in_noninteractive_mo
 
     with pytest.raises(git_batch_models.CommitMessageError):
         git_batch_parsing.parse_clipboard_content(content, interactive=False)
+
+
+def test_parse_clipboard_content_rejects_unscoped_title_before_next_commit() -> None:
+    """Root plan validation should fail before a git-add block drifts forward."""
+    content = "\n".join(
+        [
+            "git add -A uv.lock",
+            "",
+            "```log",
+            "build: update pyright lock",
+            "",
+            "Why:",
+            "",
+            "reason before",
+            "",
+            "reason after",
+            "",
+            "What:",
+            "",
+            "- change one",
+            "```",
+            "",
+            "git add -A src/registry.py",
+            *_valid_commit_lines("refactor(web): split shm recovery"),
+        ],
+    )
+
+    with pytest.raises(
+        git_batch_models.CommitMessageError,
+        match="expected 'type\\(scope\\): subject'",
+    ) as exc_info:
+        git_batch_parsing.parse_clipboard_content(content, interactive=False)
+
+    assert exc_info.value.faulty_line == "build: update pyright lock"
 
 
 def test_parse_clipboard_content_warns_when_commit_message_is_missing(
