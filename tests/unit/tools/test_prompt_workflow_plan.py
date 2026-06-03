@@ -8,7 +8,8 @@ porcelain file list, and the a.commit reset (Q22-Q25). Also cover the plan step
 title read for the check prompt, with the separator tolerance and the number-only
 fallback (Q26, Q30-Q32). Also cover the implement body and the menu introduction
 carrying the title and the plan document, with the title and plan-document drops
-(Q33-Q37).
+(Q33-Q37), and the commit body naming the step with its check-document Context
+(Q38-Q40).
 """
 
 from __future__ import annotations
@@ -428,7 +429,7 @@ def test_build_cycle_prompt_commit_lists_staged_files(
     )
 
     # The body states the staged count and lists only the two staged files (Q22, Q23).
-    assert "for those 2 files:" in prompt
+    assert "for those 2 files, per step 2 evolutions of the implementation plan" in prompt
     assert "M  docs/x.md" in prompt
     assert "A  tools/a.py" in prompt
     assert "tools/b.py" not in prompt
@@ -437,6 +438,56 @@ def test_build_cycle_prompt_commit_lists_staged_files(
     assert "the current git status" not in prompt
     # a.commit is truncated to empty, not deleted (Q25).
     assert a_commit.read_text(encoding="utf-8") == ""
+
+
+def test_build_cycle_prompt_commit_names_step(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """The commit body names the step, title and plan after the file count (Q38, Q40)."""
+    config = steps.load_steps()
+    topic = Topic(version="v9.8.0", slug="iso", draft_path=tmp_path / "docs" / "draft.v9.8.0.iso.md")
+    state = _prompt_state(tmp_path)
+    state.plan.write_text("### Step 2. Reporter routing\n", encoding="utf-8")
+    action = plan.CycleAction(kind="commit", stage_all=False)
+    monkeypatch.setattr(plan.git, "status_entries", lambda _root: [("M ", "tools/a.py")])
+    monkeypatch.setattr(plan.git, "staged_files", lambda _root: ["tools/a.py"])
+
+    prompt, _workflow_step, _instruction = plan.build_cycle_prompt(
+        "llm-shared/instructions", config, tmp_path, topic, state, _cycle(), action,
+    )
+
+    assert (
+        'for those 1 files, per step 2 ("Reporter routing") evolutions '
+        'of the implementation plan "docs/plan.v9.8.0.iso.md":'
+    ) in prompt
+    # The Context now lists the validation plan too (Q40).
+    assert "docs/plan.v9.8.0.iso.validation.md" in prompt
+
+
+def test_build_cycle_prompt_commit_without_plan(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """With no plan, the commit clause drops to per step x evolutions (Q39)."""
+    config = steps.load_steps()
+    topic = Topic(version="v9.8.0", slug="iso", draft_path=tmp_path / "docs" / "draft.v9.8.0.iso.md")
+    state = _state(
+        requirement=tmp_path / "docs" / "feature-request.v9.8.0.iso.md",
+        design=tmp_path / "docs" / "design.v9.8.0.iso.md",
+        plan=None,
+        validation_plan=tmp_path / "docs" / "plan.v9.8.0.iso.validation.md",
+    )
+    action = plan.CycleAction(kind="commit", stage_all=False)
+    monkeypatch.setattr(plan.git, "status_entries", lambda _root: [("M ", "tools/a.py")])
+    monkeypatch.setattr(plan.git, "staged_files", lambda _root: ["tools/a.py"])
+
+    prompt, _workflow_step, _instruction = plan.build_cycle_prompt(
+        "llm-shared/instructions", config, tmp_path, topic, state, _cycle(), action,
+    )
+
+    assert "for those 1 files, per step 2 evolutions:" in prompt
+    assert "implementation plan" not in prompt
 
 
 def test_staged_listing_filters_to_staged(
