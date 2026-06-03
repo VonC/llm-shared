@@ -9,11 +9,16 @@ These tests cover the pure helpers (version extraction, companion naming,
 section strip/extract/append), the document lookup under ``docs`` and
 ``docs/<vX.Y.Z>``, and the three CLI modes including their fatal preconditions.
 The shared ``find_project_root`` helper is monkeypatched to a temporary project
-root so the tool stays self-contained, mirroring the EOF tool tests.
+root so the tool stays self-contained, mirroring the EOF tool tests. The
+``__main__`` script guard is run with ``runpy`` for both the success exit and the
+fatal exit through ``_log_fatal``, and the append helper is covered for a section
+with no trailing newline.
 """
 
 from __future__ import annotations
 
+import runpy
+import sys
 from typing import TYPE_CHECKING
 
 import pytest
@@ -32,6 +37,15 @@ def _patch_root(monkeypatch: pytest.MonkeyPatch, root: Path) -> None:
         return root
 
     monkeypatch.setattr(open_questions_md, "find_project_root", fake_find_project_root)
+
+
+def _patch_shared_root(monkeypatch: pytest.MonkeyPatch, root: Path) -> None:
+    """Point the package-level helper the script re-imports under runpy at a root."""
+
+    def fake_find_project_root(_start: Path) -> Path:
+        return root
+
+    monkeypatch.setattr("tools.find_project_root", fake_find_project_root)
 
 
 def _write_doc(
@@ -150,6 +164,15 @@ def test_append_section_collapses_trailing_blank_lines() -> None:
 
     # Assert: only one empty line survives before the section.
     assert combined == "a\n\n## Open questions\n"
+
+
+def test_append_section_adds_trailing_newline() -> None:
+    """A section with no trailing newline gets exactly one appended."""
+    # Act
+    combined = open_questions_md._append_section("a\n", "## Open questions\nbody")
+
+    # Assert: the missing trailing newline is added.
+    assert combined == "a\n\n## Open questions\nbody\n"
 
 
 # ---------------------------
@@ -382,6 +405,49 @@ def test_main_rejects_non_md_document_name(
     # Act / Assert
     with pytest.raises(open_questions_md.OpenQuestionsError, match="Expected a"):
         open_questions_md.main(["design.v1.2.3.topic.txt", "--create"])
+
+
+# ---------------------------
+# __main__ script guard
+# ---------------------------
+
+
+def test_script_runs_as_main_and_creates_companion(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Running as __main__ executes a mode and exits 0 through the script guard."""
+    # Arrange
+    _patch_shared_root(monkeypatch, tmp_path)
+    _write_doc(tmp_path, "design.v1.2.3.topic.md", "# Body\n")
+    script_path = open_questions_md.__file__
+    monkeypatch.setattr(sys, "argv", [script_path, "design.v1.2.3.topic.md", "--create"])
+
+    # Act
+    with pytest.raises(SystemExit) as excinfo:
+        runpy.run_path(script_path, run_name="__main__")
+
+    # Assert
+    assert excinfo.value.code == 0
+    assert (tmp_path / "a.design.v1.2.3.topic.open.questions.md").is_file()
+
+
+def test_script_logs_fatal_on_error(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """A fatal error in __main__ exits with EXIT_FATAL through _log_fatal."""
+    # Arrange
+    _patch_shared_root(monkeypatch, tmp_path)
+    script_path = open_questions_md.__file__
+    monkeypatch.setattr(sys, "argv", [script_path, "not-a-doc-name", "--create"])
+
+    # Act
+    with pytest.raises(SystemExit) as excinfo:
+        runpy.run_path(script_path, run_name="__main__")
+
+    # Assert
+    assert excinfo.value.code == open_questions_md.EXIT_FATAL
 
 
 # eof
