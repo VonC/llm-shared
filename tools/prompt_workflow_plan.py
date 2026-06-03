@@ -11,10 +11,11 @@ Fix: the group-commits prompt (step 10) is now completed with the count and the
 porcelain ``XY path`` list of the staged files, read after the optional
 ``git add -A`` (Q22, Q23); its Context drops the ``git_status`` role since the
 body carries the list (Q24); and ``a.commit`` is emptied before the prompt is
-delivered so the grouping starts from a clean file (Q25). The check and implement
-prompts and a menu introduction line inline the plan step title and the plan
-document, read once from the plan's ``### Step N.`` heading, dropping a segment
-when the title or the plan is missing (Q26, Q30-Q37).
+delivered so the grouping starts from a clean file (Q25), and its Context lists
+the five check documents (Q40). The implement, check and commit prompts and a
+menu introduction line inline the plan step title and the plan document, read
+once from the plan's ``### Step N.`` heading, dropping a segment when the title
+or the plan is missing (Q26, Q30-Q40).
 """
 
 from __future__ import annotations
@@ -329,8 +330,8 @@ def build_cycle_prompt(  # noqa: PLR0913
     The body interpolates the plan step ``x`` (Q17). For an implement or check
     action the body also inlines the step title ``{title}`` and the plan document
     ``{plan_doc}`` read from the plan, dropping a segment when either is missing
-    (Q26, Q30-Q35). For a commit action
-    the body is also completed with the count ``{n}`` and the porcelain ``{files}`` list of
+    (Q26, Q30-Q35). For a commit action the body also names the step title and
+    plan (Q38) and is completed with the count ``{n}`` and the porcelain ``{files}`` list of
     the staged files read at this point (Q22, Q23), and ``a.commit`` is emptied so
     the grouping starts from a clean file (Q25). When the staged set includes the
     validation plan, the prompt is completed with the required
@@ -343,6 +344,9 @@ def build_cycle_prompt(  # noqa: PLR0913
         body = _fill_optional(body, title, "{title}", ' "{title}"')
         body = _fill_optional(body, plan_doc, "{plan_doc}", ' "{plan_doc}"')
     elif action.kind == "commit":
+        title, plan_doc = _title_and_plan(root, state, cycle.x)
+        body = _fill_optional(body, title, "{title}", ' ("{title}")')
+        body = _fill_optional(body, plan_doc, "{plan_doc}", ' of the implementation plan "{plan_doc}"')
         count, files = staged_listing(root)
         body = body.replace("{n}", str(count)).replace("{files}", files)
         reset_a_commit(root)

@@ -101,8 +101,8 @@
       "alternatives": [
         {
           "instruction": "group-commits-msg.md",
-          "body": "Group the changed files and write one conventional commit message per group for those {n} files:\n\n```log\n{files}\n```",
-          "context": ["plan"]
+          "body": "Group the changed files and write one conventional commit message per group for those {n} files, per step {x} (\"{title}\") evolutions of the implementation plan \"{plan_doc}\":\n\n```log\n{files}\n```",
+          "context": ["draft", "requirement", "design", "plan", "validation_plan"]
         }
       ]
     },
