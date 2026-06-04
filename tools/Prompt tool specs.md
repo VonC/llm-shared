@@ -142,7 +142,7 @@ If a.prompt_memory file already exists, the tool should check if the branch memo
 
 ## Design decisions
 
-The table summarizes the choices made from the answered questions Q01 to Q40, the section that carries each one, and the alternatives that were dropped.
+The table summarizes the choices made from the answered questions Q01 to Q45, the section that carries each one, and the alternatives that were dropped.
 
 | Question | Decision | Integrated in section | Main argument | Rejected alternatives |
 | --- | --- | --- | --- | --- |
@@ -186,6 +186,11 @@ The table summarizes the choices made from the answered questions Q01 to Q40, th
 | Q38 | Reverse Q37 for the commit body: name the step number, title and plan after the file count, reusing the shared read (Q33) | Completing the group-commits prompt with the staged file list and a.commit reset | The requested wording; the read is shared, so it costs nothing | Keep the commit body a bare file list |
 | Q39 | Commit-body fallback: granular drops of the `("{title}")` and `of the implementation plan "{plan_doc}"` segments, like Q34 and Q35 | Completing the group-commits prompt with the staged file list and a.commit reset | One drop rule across every cycle prompt; the no-plan case is rare | Drop the whole clause back to the file list |
 | Q40 | The step-10 Context lists the five check documents: draft, requirement, design, plan and the validation plan | Embedding the staged file list in the prompt body | The validation plan is relevant to the commit that records its step | The four implement documents; keep `["plan"]` |
+| Q41 | Carry the plan step id as a `\d+[A-Za-z]*` string across the models and memory | Sub-step id representation and grammar | The id is text at every stage and round-trips to the `record step <id> validation` commit and grep | `int` plus a `suffix` field; a derived fractional number |
+| Q42 | Read the id token as `\d+[A-Za-z]*` from the validation and plan headings | Sub-step id representation and grammar | Smallest pattern that matches `4` and `4A` and stops at the separator | `\d\S+` (skips a lonely `4`, swallows separators); `\d+[A-Za-z0-9]*` |
+| Q43 | Order steps and sub-steps by document order | Sub-step ordering and granularity | `derive_x` already walks the parsed list in order; the plan is authored in running order | Sort by numeric part then suffix |
+| Q44 | Treat each sub-step as first-class with its own `record step <id> validation` commit | Sub-step ordering and granularity | The validation plan analyses each sub-step on its own; the space-delimited grep keeps ids apart | Parent-covers-children single commit |
+| Q45 | Key the parsed status by full id; current id is the last `Yes` in document order, advanced only past its validation commit | Detecting the current step among its sub-steps | Stops a sub-step `Not started` from hiding the parent `Yes`; keeps sub-steps addressable | Int-keyed OR-merge of same-number statuses |
 
 ## Implement-validate-group commit message
 
@@ -196,7 +201,7 @@ Once the plan and its validation plan exist (write-plans done, step 7), the impl
 The plan step `x` is recomputed at startup on every run:
 
 1. Read the validation plan `docs/plan.vX.Y.Z.<topic>.validation.md`. Each plan step carries an `Analysis of Step N` heading whose next non-empty line starts with `Yes` (step N is implemented and verified) or `No` (Q15). The exact heading wording differs between sources — `### Analysis of Step N implementation state` from [`write-plans.validation.template.md`](../templates/write-plans.validation.template.md) and `## Analysis of Step x Implementation` from [`implementation-check.md`](../instructions/implementation-check.md) — so the tool matches the heading loosely on `Analysis of Step <N>` and the status line on a leading `Yes`/`No`, both case-insensitive.
-2. `x` is the number of the last `Analysis of Step N` section whose status line starts with `Yes`. When no section is `Yes` yet, `x` is the number of the first such section, so the plan owns its own numbering (it may start at 0 or 1) (Q19).
+2. `x` is the id of the last `Analysis of Step N` section whose status line starts with `Yes`. When no section is `Yes` yet, `x` is the id of the first such section, so the plan owns its own numbering (it may start at 0 or 1) (Q19). An id is the `\d+[A-Za-z]*` token of the heading, so it may carry a letter suffix such as `4A` (Q41, Q42), and the status is keyed by the full id so a sub-step never overwrites its parent (Q45, see [Sub-steps of a plan step in the implement cycle](#sub-steps-of-a-plan-step-in-the-implement-cycle)).
 3. Compute the branch start fresh each run as the fork point (the single `git rev-list`, not stored in the memory file) (Q18). Run `git log --grep "record step x validation"` between the branch start and HEAD. When that per-step validation commit exists, step `x` is already committed, so move `x` to the next plan step; otherwise keep `x` (Q16).
 
 ### Proposing the prompts for step x
@@ -267,6 +272,44 @@ Both bodies stay in `tools/prompt_workflow.steps.json` as static templates carry
 - No plan document is resolved, so `{plan_doc}` is missing (and `{title}` with it): the `"{plan_doc}"` segment and its leading space are dropped too (Q35), degrading to `Implement step {x} of the plan, based on the design and the plan.` and `Check step {x} implementation, based on the plan and the validation plan.`. In practice the plan and the validation plan are matched together, so this is an edge guard.
 
 This matches the `implement-step.md` and `implementation-check.md` instructions, which already expect prompts shaped like "implement step 2 of the ..." and "check step 2 implementation of ...".
+
+## Sub-steps of a plan step in the implement cycle
+
+A plan may split one numbered step into lettered sub-steps. `docs/plan.vX.Y.Z.<topic>.md` then carries `### Step 4.` followed by `### Step 4A.` and `### Step 4B.`, and the validation plan mirrors them with `### Analysis of Step 4`, `### Analysis of Step 4A` and `### Analysis of Step 4B`. The implement cycle of [Deriving the plan step x](#deriving-the-plan-step-x) was written for whole-number steps, so a sub-step id is mis-read at every stage that handles a step number. The decisions below (Q41 to Q45) settle how a sub-step id is represented, parsed, ordered, committed and detected.
+
+### The sub-step collision today
+
+[`parse_validation_steps`](tools/prompt_workflow_plan.py#L107) matches the heading on `Analysis of Step <N>` with `ANALYSIS_RE` capturing only `\d+` ([prompt_workflow_plan.py:39](tools/prompt_workflow_plan.py#L39)), so `Step 4A` and `Step 4B` are both read as the number `4`. [`derive_x`](tools/prompt_workflow_plan.py#L127) then keys its `verified` map by that number, and the dict comprehension keeps the last entry, so the `Not started` status of `Step 4B` overwrites the `Yes` of the real `Step 4`. Step 4 reads as not verified, and the `group-commits-msg.md` choice (the commit prompt) is withheld, even though step 4 is implemented and analyzed while 4A and 4B are still empty.
+
+### Stages a step id flows through
+
+A step id is read, stored, compared or printed at these stages; each must accept a sub-step id such as `4A`:
+
+- validation parse: [`parse_validation_steps`](tools/prompt_workflow_plan.py#L107) and `ANALYSIS_RE` read the id from the `Analysis of Step <id>` heading.
+- cycle derivation: [`derive_x`](tools/prompt_workflow_plan.py#L127) builds the id list and the verified map, picks the current id, and advances past a committed id.
+- cycle state: [`CycleState.x`](tools/prompt_workflow_plan.py#L66) carries the current id.
+- commit detection: [`has_step_commit`](tools/prompt_workflow_git.py#L165) greps `record step <id> validation`.
+- menu labels: [`build_cycle_options`](tools/prompt_workflow_plan.py#L188) prints `Implement`, `Check` and `Commit step <id>`.
+- prompt bodies: [`build_cycle_prompt`](tools/prompt_workflow_plan.py#L319) interpolates `{x}` into the implement, check and commit bodies, and appends the `record step <id> validation` requirement.
+- title read: [`read_step_title`](tools/prompt_workflow_plan.py#L252) matches the plan `### Step <id>.` heading.
+- intro line: [`cycle_intro`](tools/prompt_workflow_plan.py#L307) prints `Regarding step <id> ...`.
+- memory: [`MemoryRecord.plan_step`](tools/prompt_workflow_models.py#L121) with [`_parse_step`](tools/prompt_workflow_memory.py#L33) store and re-read the id.
+
+### Sub-step id representation and grammar
+
+Q41 asked how to carry a step id that can hold a letter suffix, weighing a string id, a `number` plus `suffix` pair, and a derived fractional number. The decision is to carry `x` as a string id at every stage, in `PlanStep.number`, `CycleState.x` and `MemoryRecord.plan_step`, because the id is used as text at the heading match, the menu label, the commit subject, the grep and the memory, and the cycle never sorts by numeric value (it orders by document order, Q43). The `int`-plus-`suffix` pair and the fractional encoding were dropped: the pair re-joins two fields at every stage, and the fraction cannot rebuild `4A` for the commit subject or the heading match.
+
+Q42 asked for the id token grammar, after the proposed `\d\S+` was found to skip a lonely `4` (it needs a trailing non-space) and to swallow the `.` or `,` separator. The decision is `\d+[A-Za-z]*`, one or more digits then zero or more ASCII letters, read from both the validation `Analysis of Step <id>` heading and the plan `### Step <id>.` heading. It matches `4`, `4A` and `4B`, stops at the first non-letter, and its digit-then-letter shape lets `read_step_title` keep `4` apart from `4A` with a `\b` boundary, since there is no word boundary between a digit and a letter. The `\d+\S*` and `\d+[A-Za-z0-9]*` variants were dropped as still-greedy or wider than the plans need.
+
+### Sub-step ordering and granularity
+
+Q43 asked how to order `4`, `4A`, `4B`, `5` once integer order no longer applies. The decision is document order: `derive_x` already walks the parsed list in the order the `Analysis of Step` sections appear, and the plan and the validation plan are authored in the running order, so only the key type changes, not the traversal. A numeric-then-suffix sort was dropped as code to rebuild an order the document already states.
+
+Q44 asked whether a sub-step is a first-class cycle step or part of its parent. The decision is first-class: each sub-step gets its own implement, check and commit, and its own `record step 4A validation` commit, so after step 4 is committed the cycle moves to 4A, then 4B, then 5. The space-delimited grep keeps the ids apart, since `record step 4 validation` never matches `record step 4A validation`, so `has_step_commit` tracks each id on its own. The parent-covers-children option was dropped because it would record empty sub-steps as done with step 4 and never let the cycle land on 4A.
+
+### Detecting the current step among its sub-steps
+
+Q45 asked how to read step 4 as current and offer its commit while 4A and 4B are empty. The decision is to key the parsed status by the full id, the fix for [The sub-step collision today](#the-sub-step-collision-today): `derive_x` reads the current id as the last id whose status is `Yes` in document order, offers implement, check and commit for it, and advances to the next id only once its `record step <id> validation` commit exists. Keyed by id, `Step 4B`'s `Not started` no longer overwrites `Step 4`'s `Yes`, so the group-commits prompt is offered for the finished step 4 while 4A and 4B stay pending. The int-keyed OR-merge was dropped because it still collapses 4, 4A and 4B into one step and would commit empty sub-steps.
 
 ## Blank lines between prompt parts and the do-the-following colon
 
