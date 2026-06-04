@@ -162,11 +162,14 @@ def staged_files(cwd: Path) -> list[str]:
     return _non_empty_lines(run_git(["diff", "--cached", "--name-only"], cwd=cwd))
 
 
-def has_step_commit(cwd: Path, step: int, base: str | None) -> bool:
-    """Return whether a ``record step <n> validation`` commit exists in range (Q16).
+def has_step_commit(cwd: Path, step: str, base: str | None) -> bool:
+    """Return whether a ``record step <id> validation`` commit exists in range (Q16).
 
     The range is ``base..HEAD`` when a branch start is known, otherwise the whole
-    history of HEAD. The grep is case-insensitive.
+    history of HEAD. The grep is case-insensitive. The ``step`` id may carry a
+    letter suffix such as ``4A``; because the grep is space-delimited, ``record
+    step 4 validation`` does not match ``record step 4A validation``, so a parent
+    step and its sub-steps are tracked apart (Q44).
     """
     args = ["log", "-i", f"--grep=record step {step} validation", "--format=%H"]
     args.append(f"{base}..HEAD" if base is not None else "HEAD")

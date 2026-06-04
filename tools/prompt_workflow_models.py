@@ -112,7 +112,9 @@ class MemoryRecord:
         topic: The resolved topic slug.
         step: The current step number, or None when no step ran yet.
         instruction: The chosen instruction file for the current step, or None.
-        plan_step: The plan step ``x`` reached in the implement cycle, or None.
+        plan_step: The plan step id ``x`` reached in the implement cycle, or None.
+            It is a string because it may carry a letter suffix such as ``4A``
+            for a sub-step (Q41); only the workflow ``step`` stays an int.
     """
 
     branch: str
@@ -120,7 +122,7 @@ class MemoryRecord:
     topic: str
     step: int | None = None
     instruction: str | None = None
-    plan_step: int | None = None
+    plan_step: str | None = None
 
 
 # eof

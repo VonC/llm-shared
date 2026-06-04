@@ -2,7 +2,9 @@
 
 Fix: Cover the absent-file case, a full round trip, the empty-instruction
 normalization, and the three malformed-file errors (no section, missing key,
-non-integer step).
+non-integer step). Also cover the lettered ``plan_step`` id, which round-trips as
+a string and normalizes an empty value to None, while the workflow ``step`` stays
+int-parsed (Q41).
 """
 
 from __future__ import annotations
@@ -50,6 +52,26 @@ def test_read_memory_empty_instruction_becomes_none(tmp_path: Path) -> None:
     assert loaded is not None
     assert loaded.step is None
     assert loaded.instruction is None
+    assert loaded.plan_step is None
+
+
+def test_plan_step_round_trips_substep_id(tmp_path: Path) -> None:
+    """A lettered plan_step id round-trips as a string, not an int (Q41)."""
+    record = MemoryRecord(
+        branch="feature/iso",
+        version="v9.8.0",
+        topic="iso",
+        step=10,
+        instruction="group-commits-msg.md",
+        plan_step="4A",
+    )
+
+    memory.write_memory(tmp_path, record)
+
+    loaded = memory.read_memory(tmp_path)
+    assert loaded is not None
+    assert loaded.plan_step == "4A"
+    assert loaded == record
 
 
 def test_read_memory_without_section_errors(tmp_path: Path) -> None:
