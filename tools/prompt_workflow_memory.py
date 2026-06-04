@@ -5,6 +5,10 @@ single ``[topic]`` section (Q03): the branch, the version, the topic slug, the
 current step number, and the chosen instruction. The step is stored as a number
 because the same instruction recurs at different steps. Parsing uses the
 standard-library ``configparser`` so the file stays easy to read and hand-edit.
+
+The cycle's ``plan_step`` id is read back as a raw string, not an int, because it
+may carry a letter suffix such as ``4A`` for a sub-step (Q41); only the workflow
+``step`` is parsed as an int.
 """
 
 from __future__ import annotations
@@ -77,7 +81,7 @@ def read_memory(root: Path) -> MemoryRecord | None:
         topic=section["topic"],
         step=_parse_step(section.get("step")),
         instruction=instruction,
-        plan_step=_parse_step(section.get("plan_step")),
+        plan_step=(section.get("plan_step") or "").strip() or None,
     )
 
 

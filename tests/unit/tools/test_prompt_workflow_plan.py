@@ -9,7 +9,10 @@ title read for the check prompt, with the separator tolerance and the number-onl
 fallback (Q26, Q30-Q32). Also cover the implement body and the menu introduction
 carrying the title and the plan document, with the title and plan-document drops
 (Q33-Q37), and the commit body naming the step with its check-document Context
-(Q38-Q40).
+(Q38-Q40). Also cover lettered sub-step ids: parsing keeps the full id, the
+derivation keeps a verified parent step from being hidden by a sub-step ``Not
+started``, the menu labels carry the id, and the title read tells a parent from
+its sub-step (Q41-Q45).
 """
 
 from __future__ import annotations
@@ -75,34 +78,64 @@ def test_parse_validation_steps() -> None:
     """Headings match loosely; the next non-empty line decides verified."""
     steps_found = plan.parse_validation_steps(_VALIDATION)
     assert steps_found == [
-        PlanStep(number=0, verified=True),
-        PlanStep(number=1, verified=False),
-        PlanStep(number=2, verified=False),
+        PlanStep(number="0", verified=True),
+        PlanStep(number="1", verified=False),
+        PlanStep(number="2", verified=False),
+    ]
+
+
+def test_parse_validation_steps_keeps_substep_ids() -> None:
+    """Lettered sub-steps keep their full id and never collapse to the number (Q42)."""
+    text = (
+        "# Plan validation\n\n"
+        "### Analysis of Step 4 implementation state\n\nYes. Step 4 is done.\n\n"
+        "### Analysis of Step 4A implementation state\n\nNot started.\n\n"
+        "### Analysis of Step 4B implementation state\n\nNot started.\n"
+    )
+    assert plan.parse_validation_steps(text) == [
+        PlanStep(number="4", verified=True),
+        PlanStep(number="4A", verified=False),
+        PlanStep(number="4B", verified=False),
     ]
 
 
 def test_status_is_yes_at_end_of_file() -> None:
     """A heading with no following non-empty line is not verified."""
     text = "### Analysis of Step 5 implementation state\n\n"
-    assert plan.parse_validation_steps(text) == [PlanStep(number=5, verified=False)]
+    assert plan.parse_validation_steps(text) == [PlanStep(number="5", verified=False)]
 
 
 def test_derive_x_keeps_base_without_commit() -> None:
     """With no commit, x is the last verified step (or the first when none)."""
-    none_yes = [PlanStep(0, verified=False), PlanStep(1, verified=False)]
-    assert plan.derive_x(none_yes, lambda _n: False) == (0, False, False)
+    none_yes = [PlanStep("0", verified=False), PlanStep("1", verified=False)]
+    assert plan.derive_x(none_yes, lambda _n: False) == ("0", False, False)
 
-    some_yes = [PlanStep(0, verified=True), PlanStep(1, verified=True), PlanStep(2, verified=False)]
-    assert plan.derive_x(some_yes, lambda _n: False) == (1, True, False)
+    some_yes = [PlanStep("0", verified=True), PlanStep("1", verified=True), PlanStep("2", verified=False)]
+    assert plan.derive_x(some_yes, lambda _n: False) == ("1", True, False)
 
 
 def test_derive_x_advances_and_terminates() -> None:
     """A recorded commit advances x, or marks the cycle terminal at the last step."""
-    steps_mid = [PlanStep(0, verified=True), PlanStep(1, verified=True), PlanStep(2, verified=False)]
-    assert plan.derive_x(steps_mid, lambda n: n == 1) == (2, False, False)
+    steps_mid = [PlanStep("0", verified=True), PlanStep("1", verified=True), PlanStep("2", verified=False)]
+    assert plan.derive_x(steps_mid, lambda n: n == "1") == ("2", False, False)
 
-    steps_last = [PlanStep(0, verified=True), PlanStep(1, verified=True)]
-    assert plan.derive_x(steps_last, lambda n: n == 1) == (1, True, True)
+    steps_last = [PlanStep("0", verified=True), PlanStep("1", verified=True)]
+    assert plan.derive_x(steps_last, lambda n: n == "1") == ("1", True, True)
+
+
+def test_derive_x_substep_collision_keeps_parent_verified() -> None:
+    """A sub-step 'Not started' must not hide the parent step's 'Yes' (Q45)."""
+    plan_steps = [
+        PlanStep("3", verified=True),
+        PlanStep("4", verified=True),
+        PlanStep("4A", verified=False),
+        PlanStep("4B", verified=False),
+    ]
+    # With no validation commit yet, the cycle sits on the verified parent step 4,
+    # so the group-commits prompt is offered (verified stays True).
+    assert plan.derive_x(plan_steps, lambda _id: False) == ("4", True, False)
+    # Once step 4 is committed, the cycle advances to the empty sub-step 4A.
+    assert plan.derive_x(plan_steps, lambda step_id: step_id == "4") == ("4A", False, False)
 
 
 def test_compute_cycle_none_cases(tmp_path: Path) -> None:
@@ -131,7 +164,7 @@ def test_compute_cycle_classifies_working_tree(
     cycle = plan.compute_cycle(tmp_path, _state(validation_plan=validation), "base")
 
     assert cycle is not None
-    assert cycle.x == 0
+    assert cycle.x == "0"
     assert cycle.verified is True
     assert cycle.terminal is False
     assert cycle.has_code_changes is True
@@ -142,7 +175,7 @@ def test_compute_cycle_classifies_working_tree(
 def test_build_cycle_options_terminal() -> None:
     """A terminal cycle offers only the release-notes prompt."""
     cycle = plan.CycleState(
-        x=2,
+        x="2",
         verified=True,
         terminal=True,
         has_code_changes=False,
@@ -157,7 +190,7 @@ def test_build_cycle_options_terminal() -> None:
 def test_build_cycle_options_full() -> None:
     """Code changes add a check; a verified step adds both commit variants."""
     cycle = plan.CycleState(
-        x=3,
+        x="3",
         verified=True,
         terminal=False,
         has_code_changes=True,
@@ -176,7 +209,7 @@ def test_build_cycle_options_full() -> None:
 def test_build_cycle_options_minimal() -> None:
     """No code change drops the check; an unverified step drops the commit."""
     cycle = plan.CycleState(
-        x=1,
+        x="1",
         verified=False,
         terminal=False,
         has_code_changes=False,
@@ -186,9 +219,25 @@ def test_build_cycle_options_minimal() -> None:
     assert [label for label, _ in plan.build_cycle_options(cycle)] == ["Implement step 1"]
 
 
+def test_build_cycle_options_substep_label() -> None:
+    """The menu labels carry the full sub-step id (Q41)."""
+    cycle = plan.CycleState(
+        x="4A",
+        verified=False,
+        terminal=False,
+        has_code_changes=True,
+        cached=False,
+        non_cached=False,
+    )
+    assert [label for label, _ in plan.build_cycle_options(cycle)] == [
+        "Implement step 4A",
+        "Check step 4A",
+    ]
+
+
 def _cycle(**overrides: object) -> plan.CycleState:
     base: dict[str, object] = {
-        "x": 2,
+        "x": "2",
         "verified": True,
         "terminal": False,
         "has_code_changes": True,
@@ -322,20 +371,33 @@ def test_read_step_title_heading_and_separators(tmp_path: Path) -> None:
         encoding="utf-8",
     )
 
-    assert plan.read_step_title(plan_doc, 2) == "Reporter routing"
-    assert plan.read_step_title(plan_doc, 3) == "Metrics"
-    assert plan.read_step_title(plan_doc, 4) == "Budgets"
+    assert plan.read_step_title(plan_doc, "2") == "Reporter routing"
+    assert plan.read_step_title(plan_doc, "3") == "Metrics"
+    assert plan.read_step_title(plan_doc, "4") == "Budgets"
+
+
+def test_read_step_title_distinguishes_substep(tmp_path: Path) -> None:
+    """A parent id reads its own title, not a sub-step's, and the reverse (Q42)."""
+    plan_doc = tmp_path / "plan.v9.8.0.iso.md"
+    plan_doc.write_text(
+        "## Numbered steps\n\n"
+        "### Step 4. Duration breakdown\n\n### Step 4A. User log phase set\n",
+        encoding="utf-8",
+    )
+
+    assert plan.read_step_title(plan_doc, "4") == "Duration breakdown"
+    assert plan.read_step_title(plan_doc, "4A") == "User log phase set"
 
 
 def test_read_step_title_missing_returns_none(tmp_path: Path) -> None:
     """A missing plan, an absent file, or a title-less heading yields None (Q31)."""
-    assert plan.read_step_title(None, 2) is None
-    assert plan.read_step_title(tmp_path / "absent.md", 2) is None
+    assert plan.read_step_title(None, "2") is None
+    assert plan.read_step_title(tmp_path / "absent.md", "2") is None
 
     present = tmp_path / "plan.md"
     present.write_text("### Step 2.\n\n# Other heading\n", encoding="utf-8")
-    assert plan.read_step_title(present, 2) is None
-    assert plan.read_step_title(present, 9) is None
+    assert plan.read_step_title(present, "2") is None
+    assert plan.read_step_title(present, "9") is None
 
 
 def test_cycle_intro_full(tmp_path: Path) -> None:

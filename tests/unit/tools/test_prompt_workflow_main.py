@@ -274,7 +274,7 @@ def test_run_with_mismatched_memory(
 
 
 _CYCLE = CycleState(
-    x=2,
+    x="2",
     verified=True,
     terminal=False,
     has_code_changes=True,
@@ -356,7 +356,7 @@ def test_run_implement_cycle_delivers(
         topic="iso",
         step=8,
         instruction="implement-step.md",
-        plan_step=2,
+        plan_step="2",
     )
 
 
@@ -384,7 +384,7 @@ def test_run_implement_cycle_stage_all(
         topic="iso",
         step=10,
         instruction="group-commits-msg.md",
-        plan_step=2,
+        plan_step="2",
     )
 
 
@@ -419,7 +419,7 @@ def test_run_implement_cycle_terminal_skips_intro(
     """A terminal cycle shows no 'Regarding step' introduction (Q37)."""
     action = CycleAction(kind="release", stage_all=False)
     terminal = CycleState(
-        x=2,
+        x="2",
         verified=True,
         terminal=True,
         has_code_changes=False,

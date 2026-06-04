@@ -16,6 +16,13 @@ the five check documents (Q40). The implement, check and commit prompts and a
 menu introduction line inline the plan step title and the plan document, read
 once from the plan's ``### Step N.`` heading, dropping a segment when the title
 or the plan is missing (Q26, Q30-Q40).
+
+Fix (sub-steps): a plan step id may carry a letter suffix, such as ``4A`` (Q41,
+Q42). The id is parsed from the ``Analysis of Step`` heading and kept as a string
+through ``PlanStep.number`` and ``CycleState.x`` (Q41), so ``derive_x`` keys each
+status by the full id and a sub-step ``Not started`` no longer overwrites its
+parent ``Yes`` (Q45). Steps run in document order (Q43) and each sub-step is
+committed on its own (Q44).
 """
 
 from __future__ import annotations
@@ -35,8 +42,10 @@ if TYPE_CHECKING:
     from tools.prompt_workflow_models import StepAlternative, Topic, WorkflowState
 
 # A heading naming a plan step's analysis, matched loosely and case-insensitively
-# to cover both the validation template and implementation-check.md wordings.
-ANALYSIS_RE = re.compile(r"analysis of step\s+(\d+)", re.IGNORECASE)
+# to cover both the validation template and implementation-check.md wordings. The
+# captured id is the \d+[A-Za-z]* token, so a lettered sub-step such as 4A is kept
+# whole and never read as the bare number 4 (Q42).
+ANALYSIS_RE = re.compile(r"analysis of step\s+(\d+[A-Za-z]*)", re.IGNORECASE)
 # A status line that marks the step implemented and verified.
 STATUS_YES_RE = re.compile(r"^\s*yes", re.IGNORECASE)
 # The docs folder prefix; changes outside it count as code changes (Q20).
@@ -54,11 +63,14 @@ class PlanStep:
     """One plan step parsed from the validation plan.
 
     Attributes:
-        number: The plan step number read from the ``Analysis of Step N`` heading.
+        number: The plan step id read from the ``Analysis of Step N`` heading. It
+            is the digits-then-optional-letters token (``ANALYSIS_RE``), kept as a
+            string so a lettered sub-step such as ``4A`` round-trips whole and
+            never collapses to the bare number ``4`` (Q41, Q42).
         verified: Whether its status line starts with ``Yes``.
     """
 
-    number: int
+    number: str
     verified: bool
 
 
@@ -67,7 +79,8 @@ class CycleState:
     """The derived state of the implement cycle for the current plan step.
 
     Attributes:
-        x: The plan step the cycle is on.
+        x: The plan step id the cycle is on, a string that may carry a letter
+            suffix such as ``4A`` for a sub-step (Q41).
         verified: Whether step ``x`` is marked implemented and verified.
         terminal: Whether every plan step is done (propose release notes).
         has_code_changes: Whether any changed path lies outside ``docs/``.
@@ -75,7 +88,7 @@ class CycleState:
         non_cached: Whether any change is unstaged or untracked.
     """
 
-    x: int
+    x: str
     verified: bool
     terminal: bool
     has_code_changes: bool
@@ -119,21 +132,23 @@ def parse_validation_steps(text: str) -> list[PlanStep]:
         if match is None:
             continue
         found.append(
-            PlanStep(number=int(match.group(1)), verified=_status_is_yes(lines, index + 1)),
+            PlanStep(number=match.group(1), verified=_status_is_yes(lines, index + 1)),
         )
     return found
 
 
 def derive_x(
     plan_steps: list[PlanStep],
-    has_commit: Callable[[int], bool],
-) -> tuple[int, bool, bool]:
+    has_commit: Callable[[str], bool],
+) -> tuple[str, bool, bool]:
     """Return ``(x, verified, terminal)`` for the cycle from the plan steps.
 
-    ``x`` is the last verified step, or the first step when none is verified
-    (Q19). When that step already has a ``record step x validation`` commit it
-    advances to the next step, or marks the cycle terminal when it was the last
-    step (Q16, Q19).
+    ``x`` is the id of the last verified step, or the first step when none is
+    verified (Q19). When that step already has a ``record step x validation``
+    commit it advances to the next step in document order (Q43), or marks the
+    cycle terminal when it was the last step (Q16, Q19). The ``verified`` map is
+    keyed by the full id, so a sub-step ``Not started`` never overwrites the
+    ``Yes`` of its parent step (Q45).
     """
     numbers = [step.number for step in plan_steps]
     verified = {step.number: step.verified for step in plan_steps}
@@ -170,7 +185,7 @@ def compute_cycle(
     if not plan_steps:
         return None
 
-    def _has_commit(number: int) -> bool:
+    def _has_commit(number: str) -> bool:
         return git.has_step_commit(root, number, branch_start)
 
     x, verified, terminal = derive_x(plan_steps, _has_commit)
@@ -249,7 +264,7 @@ def reset_a_commit(root: Path) -> None:
     (root / A_COMMIT_FILENAME).write_text("", encoding="utf-8")
 
 
-def read_step_title(plan_path: Path | None, x: int) -> str | None:
+def read_step_title(plan_path: Path | None, x: str) -> str | None:
     """Return the title of plan step ``x`` from the plan document, or None.
 
     The title is the trailing text of the first heading line that names
@@ -258,16 +273,24 @@ def read_step_title(plan_path: Path | None, x: int) -> str | None:
     the title is tolerated (Q32). None is returned when the plan is missing or
     carries no such heading, so the check body falls back to the number only (Q31).
 
+    The id ``x`` is escaped before it joins the pattern and a word-boundary check
+    follows it, so ``4`` matches ``### Step 4.`` but not ``### Step 4A.`` (there is
+    no word boundary between a digit and a letter), keeping a parent step apart
+    from its sub-steps (Q42).
+
     Args:
         plan_path: The plain plan document, or None when it is not resolved.
-        x: The plan step number whose title is read.
+        x: The plan step id whose title is read, such as ``4`` or ``4A``.
 
     Returns:
         The step title text, or None when it cannot be read.
     """
     if plan_path is None or not plan_path.is_file():
         return None
-    pattern = re.compile(rf"^#+\s*step\s+{x}\b[\s.:\-]*([^\s.:\-].*?)\s*$", re.IGNORECASE)
+    pattern = re.compile(
+        rf"^#+\s*step\s+{re.escape(x)}\b[\s.:\-]*([^\s.:\-].*?)\s*$",
+        re.IGNORECASE,
+    )
     for line in plan_path.read_text(encoding="utf-8").splitlines():
         stripped = line.strip()
         if not stripped.startswith("#"):
@@ -293,7 +316,7 @@ def _fill_optional(text: str, value: str | None, placeholder: str, segment: str)
 def _title_and_plan(
     root: Path,
     state: WorkflowState,
-    x: int,
+    x: str,
 ) -> tuple[str | None, str | None]:
     """Return the step ``x`` title and the repo-relative plan path, or None each.
 

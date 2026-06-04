@@ -1,7 +1,8 @@
 """Tests for the shared dataclasses and role constants of prompt_workflow.
 
 Fix: Instantiate each frozen dataclass and check the role vocabulary so the
-models module is exercised directly.
+models module is exercised directly. Also check that ``MemoryRecord.plan_step``
+holds a lettered sub-step id as a string (Q41).
 """
 
 from __future__ import annotations
@@ -39,12 +40,17 @@ def test_dataclasses_carry_their_fields() -> None:
         memory_step=None,
     )
     record = MemoryRecord(branch="main", version="v9.8.0", topic="resources_isolation")
+    sub_record = MemoryRecord(
+        branch="main", version="v9.8.0", topic="resources_isolation", plan_step="4A",
+    )
 
     assert alternative.number == step_number
     assert topic.slug == "resources_isolation"
     assert state.memory_step is None
     assert record.step is None
     assert record.instruction is None
+    assert record.plan_step is None
+    assert sub_record.plan_step == "4A"
 
 
 def test_role_vocabulary_is_consistent() -> None:

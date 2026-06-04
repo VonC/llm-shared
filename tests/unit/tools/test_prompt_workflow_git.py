@@ -3,7 +3,8 @@
 Fix: Cover the git command wrapper (success and both error-message branches),
 the current-branch query, the fork-point walk (found and not found), the
 changed-files diff, and the porcelain path parsing including renames and short
-lines.
+lines. Also cover the validation-commit grep, including a lettered sub-step id
+whose space-delimited subject stays apart from its parent step (Q44).
 """
 
 from __future__ import annotations
@@ -214,10 +215,33 @@ def test_has_step_commit_with_and_without_base(
 
     monkeypatch.setattr(git, "run_git", fake)
 
-    assert git.has_step_commit(tmp_path, 2, "base") is True
-    assert git.has_step_commit(tmp_path, 3, None) is False
+    assert git.has_step_commit(tmp_path, "2", "base") is True
+    assert git.has_step_commit(tmp_path, "3", None) is False
     assert calls[0] == ["log", "-i", "--grep=record step 2 validation", "--format=%H", "base..HEAD"]
     assert calls[1] == ["log", "-i", "--grep=record step 3 validation", "--format=%H", "HEAD"]
+
+
+def test_has_step_commit_substep_id_is_space_delimited(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """A lettered sub-step id greps its own subject, kept apart from the parent (Q44)."""
+    calls: list[list[str]] = []
+
+    def fake(args: list[str], **_kwargs: object) -> str:
+        calls.append(args)
+        return ""
+
+    monkeypatch.setattr(git, "run_git", fake)
+
+    assert git.has_step_commit(tmp_path, "4A", "base") is False
+    assert calls[0] == [
+        "log",
+        "-i",
+        "--grep=record step 4A validation",
+        "--format=%H",
+        "base..HEAD",
+    ]
 
 
 def test_stage_all_runs_git_add(
