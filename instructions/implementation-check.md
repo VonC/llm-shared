@@ -26,6 +26,10 @@ Again, if anything is mentioned, even "acceptable", even "for later", even if "m
 
 At the end of the "Performance check for Step x", add a simple short phrase stating if, yes or no, there is any performance issue that needs to be addressed.
 
+Then write a sub-section `### Unit test coverage check for Step x`, focused on unit tests only, the ones under `src\pdfss\tests\unit`, not integration, smoke, regression, or acceptance tests. For each class file impacted by the step, check that its unit tests sit in a test file, or a test folder named after the class, designed to reach 100% coverage of that one class file. If a legacy unit test impacted by the step does not reach 100% of its class, say so and note it must be completed. Other test types carry no coverage target and may cover several classes at once, so do not hold them to 100%. Do not run `ptr` to confirm this: reason from the code and the tests in your context.
+
+At the end of the "Unit test coverage check for Step x", add a simple short phrase stating if, yes or no, there is any unit-tested class below 100% that needs completing.
+
 When writing an answer in markdown, follow instructions from [`markdown.md`](../rules/markdown.md).
 
 Note how each list item uses only one space between a list item marker and the list item content: `- **Change 2**: explain ...`, not `-   **Change 2**: explain ...` (3 spaces after the list item marker dash).
