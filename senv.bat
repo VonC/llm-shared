@@ -99,7 +99,7 @@ for /f "usebackq tokens=*" %%i in (`%GCYGPATH% -u "%COPILOT_SHARED_DIR%"`) do  s
 for /f "usebackq tokens=*" %%i in (`%GCYGPATH% -u "%LLM_SHARED_DIR%"`) do  set "LLM_SHARED_DIR_UNIX=%%i"
 
 doskey pt=pytest --no-header --cov-report term-missing:skip-covered $* ^& echo %PRJ_DIR_NAME%: pytest done
-doskey pta=pytest --testmon --cov-append --no-header --cov-report term-missing:skip-covered $* ^& echo %PRJ_DIR_NAME%: pytest affected done
+doskey pta=pytest --testmon --no-header --no-cov -rxX $* ^& echo %PRJ_DIR_NAME%: pytest affected done
 doskey ptr=del .testmondata 2>nul ^& pytest --testmon --no-header --cov-report term-missing:skip-covered $* ^& echo %PRJ_DIR_NAME%: pytest reset done
 doskey ptnc=pytest --testmon --no-header --no-cov -rxX ^& echo %PRJ_DIR_NAME%: pytest no-cov done
 doskey ptncs=pytest --no-header --no-cov -rxX $* ^& echo %PRJ_DIR_NAME%: pytest no-cov single done
