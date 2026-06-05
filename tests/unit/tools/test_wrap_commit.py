@@ -3,9 +3,11 @@
 Cover ``tools.wrap_commit``: list-item detection, greedy word wrapping,
 empty-line preservation, bullet-continuation merging, the adjacent
 backtick-span merge that folds a whitespace-separated run of code spans
-into one span, the per-block and whole-file driver, and the CLI entry
-point in normal, ``--check``, and ``--no-delimiters`` modes. A ``runpy``
-test exercises the ``__main__`` script path end to end.
+into one span, the wrap-list pass that backticks configured string
+literals loaded from ``wrap-list.backtick`` files, the per-block and
+whole-file driver, and the CLI entry point in normal, ``--check``, and
+``--no-delimiters`` modes. A ``runpy`` test exercises the ``__main__``
+script path end to end.
 
 The tool resolves the default target file under the calling project's
 root through the shared ``find_project_root`` helper; the relevant test
@@ -33,6 +35,25 @@ if TYPE_CHECKING:
 _EXIT_CHANGES_PENDING = 1
 _EXIT_FATAL = 2
 _EXPECTED_BLOCK_COUNT = 2
+
+# Capture the real wrap-list collector before the autouse neutralizer
+# patches it, so the dedicated collector tests can still reach the real
+# function.
+_REAL_COLLECT_WRAP_LIST_LITERALS = wrap_commit._collect_wrap_list_literals
+
+
+@pytest.fixture(autouse=True)
+def _neutralize_ambient_wrap_list(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Keep ``main`` deterministic regardless of real wrap-list files.
+
+    A ``wrap-list.backtick`` in the repo, the tool folder, or the user
+    home would otherwise feed ``main`` and shift the exact-output
+    assertions. The dedicated collector tests use
+    ``_REAL_COLLECT_WRAP_LIST_LITERALS`` to exercise the real function.
+    """
+    monkeypatch.setattr(
+        wrap_commit, "_collect_wrap_list_literals", lambda _start: [],
+    )
 
 
 class TestListItemDetection:
@@ -1370,6 +1391,392 @@ class TestProcessTextSubjectSkip:
         assert "feat(tools): xxx foo_bar" in result
         # Content lines have no backticks added either, by the flag.
         assert "`foo_bar`" not in result
+
+
+class TestAddBackticksToLiterals:
+    """Validate the wrap-list literal backticking pass."""
+
+    def test_no_literals_leaves_text_unchanged(self) -> None:
+        """An empty literal list returns the text verbatim."""
+        assert wrap_commit._add_backticks_to_literals("foo bar", []) == "foo bar"
+
+    def test_single_word_literal_is_wrapped(self) -> None:
+        """A configured single-word literal gets backticked."""
+        assert wrap_commit._add_backticks_to_literals(
+            "please optimize this",
+            ["optimize"],
+        ) == "please `optimize` this"
+
+    def test_multi_word_literal_is_wrapped_as_one_span(self) -> None:
+        """A multi-word literal is wrapped as a single span."""
+        assert wrap_commit._add_backticks_to_literals(
+            "we make better cars",
+            ["make better"],
+        ) == "we `make better` cars"
+
+    def test_literal_inside_larger_word_is_not_matched(self) -> None:
+        """A literal embedded in a larger word is left alone."""
+        # ``cat`` must not match inside ``concatenate``.
+        assert wrap_commit._add_backticks_to_literals(
+            "concatenate the cat",
+            ["cat"],
+        ) == "concatenate the `cat`"
+
+    def test_literal_already_in_backtick_zone_is_skipped(self) -> None:
+        """An occurrence already inside a backtick span is not re-wrapped."""
+        assert wrap_commit._add_backticks_to_literals(
+            "use `foo` and foo",
+            ["foo"],
+        ) == "use `foo` and `foo`"
+
+    def test_longer_literal_wins_over_shorter_substring(self) -> None:
+        """A multi-word literal is wrapped before a shorter overlapping one."""
+        # ``del .testmondata`` is wrapped first; the standalone ``del``
+        # literal then only matches the separate trailing ``del``.
+        assert wrap_commit._add_backticks_to_literals(
+            "run del .testmondata then del",
+            ["del", "del .testmondata"],
+        ) == "run `del .testmondata` then `del`"
+
+    def test_literal_with_punctuation_keeps_punct_outside(self) -> None:
+        """Trailing punctuation stays outside the wrapped literal."""
+        assert wrap_commit._add_backticks_to_literals(
+            "edit a.commit, then go",
+            ["a.commit"],
+        ) == "edit `a.commit`, then go"
+
+    def test_blank_literal_entries_are_ignored(self) -> None:
+        """Empty-string literals wrap nothing."""
+        assert wrap_commit._add_backticks_to_literals(
+            "leave it be",
+            [""],
+        ) == "leave it be"
+
+
+class TestApplyInlineBackticks:
+    """Validate the combined wrap-list, code-like, and merge pass."""
+
+    def test_add_backticks_false_returns_text_unchanged(self) -> None:
+        """With backticks off, the segment is returned verbatim."""
+        assert wrap_commit._apply_inline_backticks(
+            "use foo_bar and make better",
+            add_backticks=False,
+            literals=["make better"],
+        ) == "use foo_bar and make better"
+
+    def test_runs_literal_then_code_then_merge(self) -> None:
+        """Literals and code-like tokens are wrapped, then spans merge."""
+        # ``--a`` and ``--b`` are code-like and adjacent, so they merge;
+        # ``make better`` is wrapped from the wrap-list.
+        assert wrap_commit._apply_inline_backticks(
+            "run --a --b for make better",
+            add_backticks=True,
+            literals=["make better"],
+        ) == "run `--a --b` for `make better`"
+
+
+class TestWrapListSearchDirs:
+    """Validate the wrap-list directory search order and de-duplication."""
+
+    def test_includes_tool_calling_root_and_home_in_order(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        """The four roles appear in tool, calling, root, home order."""
+        tool = tmp_path / "tool"
+        root = tmp_path / "proj"
+        sub = root / "a" / "b"
+        home = tmp_path / "home"
+        for directory in (tool, sub, home):
+            directory.mkdir(parents=True)
+
+        dirs = wrap_commit._wrap_list_search_dirs(tool, sub, root, home)
+
+        assert dirs[0] == tool
+        assert dirs[1] == sub
+        assert root in dirs
+        assert dirs[-1] == home
+        # The walk from sub stops at root: nothing above root is scanned.
+        assert root.parent not in dirs
+
+    def test_deduplicates_repeated_roles(self, tmp_path: Path) -> None:
+        """A directory that plays several roles is listed once."""
+        only = tmp_path / "only"
+        only.mkdir()
+
+        dirs = wrap_commit._wrap_list_search_dirs(only, only, only, only)
+
+        assert dirs == [only]
+
+    def test_walk_stops_at_filesystem_root_when_root_not_ancestor(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        """When the project root is not an ancestor, the walk reaches fs root."""
+        start = tmp_path / "x" / "y"
+        start.mkdir(parents=True)
+        unrelated_root = tmp_path / "other"
+        unrelated_root.mkdir()
+        home = tmp_path / "home"
+        home.mkdir()
+
+        dirs = wrap_commit._wrap_list_search_dirs(
+            tmp_path / "tool",
+            start,
+            unrelated_root,
+            home,
+        )
+
+        # The walk climbed all the way to the filesystem root.
+        anchor = start
+        while anchor != anchor.parent:
+            anchor = anchor.parent
+        assert anchor in dirs
+
+
+class TestLoadWrapListLiterals:
+    """Validate reading ``wrap-list.backtick`` files across directories."""
+
+    def test_missing_files_yield_no_literals(self, tmp_path: Path) -> None:
+        """Directories without the file contribute nothing."""
+        assert wrap_commit._load_wrap_list_literals([tmp_path]) == []
+
+    def test_reads_non_blank_lines_as_literals(self, tmp_path: Path) -> None:
+        """Each non-blank, stripped line becomes one literal."""
+        (tmp_path / wrap_commit.WRAP_LIST_FILE_NAME).write_text(
+            "make better\n\n  know your fleet  \n",
+            encoding="utf-8",
+        )
+
+        assert wrap_commit._load_wrap_list_literals([tmp_path]) == [
+            "make better",
+            "know your fleet",
+        ]
+
+    def test_concatenates_across_directories_in_order(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        """Literals from several files are concatenated in directory order."""
+        first = tmp_path / "first"
+        second = tmp_path / "second"
+        first.mkdir()
+        second.mkdir()
+        (first / wrap_commit.WRAP_LIST_FILE_NAME).write_text(
+            "alpha\n", encoding="utf-8",
+        )
+        (second / wrap_commit.WRAP_LIST_FILE_NAME).write_text(
+            "beta\n", encoding="utf-8",
+        )
+
+        assert wrap_commit._load_wrap_list_literals([first, second]) == [
+            "alpha",
+            "beta",
+        ]
+
+    def test_unreadable_file_is_skipped(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """A file that raises OSError on read is skipped, not fatal."""
+        (tmp_path / wrap_commit.WRAP_LIST_FILE_NAME).write_text(
+            "x\n", encoding="utf-8",
+        )
+
+        def boom(*_args: object, **_kwargs: object) -> str:
+            raise OSError
+
+        monkeypatch.setattr(wrap_commit.Path, "read_text", boom)
+
+        assert wrap_commit._load_wrap_list_literals([tmp_path]) == []
+
+    def test_directory_named_like_file_is_skipped(self, tmp_path: Path) -> None:
+        """A ``wrap-list.backtick`` that is a directory is not read."""
+        (tmp_path / wrap_commit.WRAP_LIST_FILE_NAME).mkdir()
+
+        assert wrap_commit._load_wrap_list_literals([tmp_path]) == []
+
+
+class TestCollectWrapListLiterals:
+    """Validate the wrap-list collector across the search roots."""
+
+    def test_collects_from_start_dir_when_root_resolves(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """A wrap-list in the calling folder is collected."""
+        (tmp_path / wrap_commit.WRAP_LIST_FILE_NAME).write_text(
+            "frobnicate widget\n",
+            encoding="utf-8",
+        )
+        monkeypatch.setattr(wrap_commit, "find_project_root", lambda _s: tmp_path)
+        # Point HOME at an empty folder so the real home is not scanned.
+        monkeypatch.setenv("HOME", str(tmp_path / "empty_home"))
+
+        result = _REAL_COLLECT_WRAP_LIST_LITERALS(tmp_path)
+
+        assert "frobnicate widget" in result
+
+    def test_falls_back_when_project_root_not_found(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """A missing project root falls back to the calling folder."""
+        (tmp_path / wrap_commit.WRAP_LIST_FILE_NAME).write_text(
+            "frobnicate gadget\n",
+            encoding="utf-8",
+        )
+
+        def no_root(_s: Path) -> Path:
+            raise FileNotFoundError
+
+        monkeypatch.setattr(wrap_commit, "find_project_root", no_root)
+        monkeypatch.setenv("HOME", str(tmp_path / "empty_home"))
+
+        result = _REAL_COLLECT_WRAP_LIST_LITERALS(tmp_path)
+
+        assert "frobnicate gadget" in result
+
+    def test_reads_the_home_env_folder(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """The ``HOME`` env folder is scanned, matching ``%HOME%``/``$HOME``."""
+        home = tmp_path / "myhome"
+        home.mkdir()
+        (home / wrap_commit.WRAP_LIST_FILE_NAME).write_text(
+            "frobnicate from home\n",
+            encoding="utf-8",
+        )
+        monkeypatch.setenv("HOME", str(home))
+        monkeypatch.setattr(wrap_commit, "find_project_root", lambda _s: tmp_path)
+
+        result = _REAL_COLLECT_WRAP_LIST_LITERALS(tmp_path)
+
+        assert "frobnicate from home" in result
+
+    def test_uses_os_home_when_home_env_unset(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """With ``HOME`` unset, the OS home (``Path.home()``) is used."""
+        fake_home = tmp_path / "oshome"
+        fake_home.mkdir()
+        (fake_home / wrap_commit.WRAP_LIST_FILE_NAME).write_text(
+            "frobnicate os home\n",
+            encoding="utf-8",
+        )
+        monkeypatch.delenv("HOME", raising=False)
+        monkeypatch.setattr(
+            wrap_commit.Path, "home", classmethod(lambda _cls: fake_home),
+        )
+        monkeypatch.setattr(wrap_commit, "find_project_root", lambda _s: tmp_path)
+
+        result = _REAL_COLLECT_WRAP_LIST_LITERALS(tmp_path)
+
+        assert "frobnicate os home" in result
+
+
+class TestReflowLinesWrapList:
+    """Validate wrap-list literals flowing through ``reflow_lines``."""
+
+    def test_paragraph_literal_is_backticked(self) -> None:
+        """A configured literal in a paragraph is wrapped."""
+        assert wrap_commit.reflow_lines(
+            ["we make better cars today"],
+            80,
+            literals=["make better"],
+        ) == ["we `make better` cars today"]
+
+    def test_bullet_literal_is_backticked(self) -> None:
+        """A configured literal in a bullet is wrapped too."""
+        assert wrap_commit.reflow_lines(
+            ["- we make better cars"],
+            80,
+            literals=["make better"],
+        ) == ["- we `make better` cars"]
+
+    def test_no_backticks_flag_skips_literals(self) -> None:
+        """With backticks off, wrap-list literals are left alone."""
+        assert wrap_commit.reflow_lines(
+            ["we make better cars"],
+            80,
+            add_backticks=False,
+            literals=["make better"],
+        ) == ["we make better cars"]
+
+    def test_no_literals_matches_prior_behaviour(self) -> None:
+        """Without literals, output matches the no-wrap-list behaviour."""
+        assert wrap_commit.reflow_lines(
+            ["we make better cars"],
+            80,
+        ) == ["we make better cars"]
+
+
+class TestProcessTextWrapList:
+    """Validate wrap-list literals applied to block bodies only."""
+
+    def test_literal_wrapped_in_body_not_in_subject(self) -> None:
+        """A literal is backticked in the body but never in the subject."""
+        text = (
+            "```log\n"
+            "feat(x): make better today\n"
+            "\n"
+            "we make better cars\n"
+            "```\n"
+        )
+
+        result = wrap_commit.process_text(
+            text,
+            80,
+            "```log",
+            "```",
+            literals=["make better"],
+        )
+
+        assert "feat(x): make better today" in result
+        assert "we `make better` cars" in result
+
+    def test_no_literals_leaves_block_unchanged(self) -> None:
+        """Without literals the block body keeps its plain words."""
+        text = "```log\nwe make better cars\n```\n"
+
+        result = wrap_commit.process_text(text, 80, "```log", "```")
+
+        assert result == "```log\nwe make better cars\n```\n"
+
+
+class TestMainWrapList:
+    """Validate ``main`` applies collected wrap-list literals."""
+
+    def test_main_applies_collected_literals(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """Literals from the collector are backticked in the body."""
+        target = tmp_path / "custom.txt"
+        target.write_text(
+            "```log\nwe make better cars\n```\n",
+            encoding="utf-8",
+        )
+        monkeypatch.setattr(
+            wrap_commit,
+            "_collect_wrap_list_literals",
+            lambda _s: ["make better"],
+        )
+
+        exit_code = wrap_commit.main(["--file", str(target)])
+
+        assert exit_code == 0
+        assert target.read_text(encoding="utf-8") == (
+            "```log\nwe `make better` cars\n```\n"
+        )
 
 
 class TestScriptExecution:
