@@ -43,6 +43,14 @@ backtick wrap altogether: any word starting with ``v\d+\.`` (version
 literals like ``v1.0``, ``v2.5.3``) or ``[Oo]\(`` (big-O notation like
 ``O(n)``, ``o(log n)``) is left bare.
 
+In a paragraph (not a bullet item list, and not the commit subject),
+one more rule applies before the adjacent-span merge: any word holding a
+forward slash ``/`` or a backslash ``\`` mixed with other characters is
+wrapped too (path-shaped tokens like ``src/pdfss`` or ``C:\Users\vonc``,
+and ``and/or``; a bare ``/`` or ``\`` separator stays bare). Bullet
+items keep the regular code-like rules only, so this path-separator rule
+never reaches a list line.
+
 A wrap-list pass runs first, before the inline-backtick pass, whenever
 one or more ``wrap-list.backtick`` files are found. Each file is looked
 up in the wrap tool's own folder, in the calling folder and every parent
@@ -98,7 +106,10 @@ import os
 import re
 import sys
 from pathlib import Path
-from typing import NoReturn
+from typing import TYPE_CHECKING, NoReturn
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 if __name__ == "__main__":
     with contextlib.suppress(Exception):
@@ -335,6 +346,32 @@ def _word_is_camelcase(word: str) -> bool:
     return any(ch.islower() for ch in word)
 
 
+def _word_has_path_separator(word: str) -> bool:
+    r"""Return True if ``word`` carries a path separator mixed with content.
+
+    A word qualifies when it contains a forward slash ``/`` or a
+    backslash ``\`` plus at least one character that is neither, so
+    path-shaped tokens like ``src/pdfss``, ``C:\Users\vonc``, or
+    ``and/or`` qualify while bare separators (``/``, ``\``, ``//``)
+    stay bare. This mirrors the mixed-content rule used for ``=`` and
+    ``_`` so a lone separator is never wrapped on its own.
+    """
+    has_separator = "/" in word or "\\" in word
+    has_other = any(ch not in "/\\" for ch in word)
+    return has_separator and has_other
+
+
+def _word_needs_backticks_in_paragraph(word: str) -> bool:
+    r"""Return True if ``word`` needs backticks under the paragraph rules.
+
+    Paragraph bodies use the regular ``_word_needs_backticks`` rules plus
+    the path-separator rule: a word holding a ``/`` or ``\`` is wrapped
+    too. Bullets (the item list) keep the regular rules only, so this
+    extra rule never reaches a list item.
+    """
+    return _word_needs_backticks(word) or _word_has_path_separator(word)
+
+
 def _split_outer_punctuation(word: str) -> tuple[str, str, str]:
     """Split a word into ``(leading, core, trailing)`` at outer punctuation.
 
@@ -387,19 +424,32 @@ def _split_outer_punctuation(word: str) -> tuple[str, str, str]:
     return leading, core, trailing
 
 
-def _add_backticks_to_words(text: str) -> str:
+def _add_backticks_to_words(
+    text: str,
+    needs_backticks: Callable[[str], bool] = _word_needs_backticks,
+) -> str:
     """Wrap rule-matching words with backticks, skipping existing spans.
 
     Inline backtick spans in ``text`` are detected first and any
     whitespace-separated token whose character range overlaps one of
     those spans is left untouched. Other tokens are passed through
-    ``_word_needs_backticks``; matching ones come back wrapped in a
-    single pair of backticks. Outer punctuation is then split off via
+    ``needs_backticks`` (``_word_needs_backticks`` by default; the
+    paragraph caller passes ``_word_needs_backticks_in_paragraph`` to add
+    the path-separator rule); matching ones come back wrapped in a single
+    pair of backticks. Outer punctuation is then split off via
     ``_split_outer_punctuation``: a trailing run of ``.,;:`` plus any
     unbalanced trailing ``)`` sits outside the closing backtick, and
     any unbalanced leading ``(`` sits outside the opening backtick.
     Balanced parens (``foo(bar)``, ``(foo_bar)``) stay inside.
     Whitespace runs are preserved verbatim.
+
+    Args:
+        text: The text whose qualifying words should be backticked.
+        needs_backticks: The predicate that decides whether a word
+            qualifies for wrapping.
+
+    Returns:
+        The text with each qualifying free-standing word backticked.
     """
     regions = _find_backtick_regions(text)
     parts: list[str] = []
@@ -422,7 +472,7 @@ def _add_backticks_to_words(text: str) -> str:
             word = text[i:j]
             if (
                 not _word_overlaps_region(i, j, regions)
-                and _word_needs_backticks(word)
+                and needs_backticks(word)
             ):
                 leading, core, trailing = _split_outer_punctuation(word)
                 if core:
@@ -509,29 +559,35 @@ def _apply_inline_backticks(
     *,
     add_backticks: bool,
     literals: list[str],
+    needs_backticks: Callable[[str], bool] = _word_needs_backticks,
 ) -> str:
     """Run the wrap-list, code-like, and merge passes on one segment.
 
     When ``add_backticks`` is False the text is returned unchanged.
     Otherwise the configured wrap-list ``literals`` are backticked first
-    (multi-word literals as one span), then code-like tokens, and finally
-    adjacent backtick spans are merged into one. Running the wrap-list
-    pass before the code-like pass keeps a multi-word literal whole and
-    lets the code-like pass skip the words it already wrapped.
+    (multi-word literals as one span), then the words matched by
+    ``needs_backticks``, and finally adjacent backtick spans are merged
+    into one. Running the wrap-list pass before the word pass keeps a
+    multi-word literal whole and lets the word pass skip the words it
+    already wrapped. The merge always runs last, so the path-separator
+    spans added under the paragraph predicate can still fold together.
 
     Args:
         text: One merged paragraph or bullet segment, on a single line.
         add_backticks: When False, skip every backtick pass.
-        literals: The wrap-list literals to backtick before the code-like
+        literals: The wrap-list literals to backtick before the word
             pass.
+        needs_backticks: The word predicate. Paragraphs pass
+            ``_word_needs_backticks_in_paragraph`` (regular rules plus the
+            path-separator rule); bullets keep the default regular rules.
 
     Returns:
-        The segment after the wrap-list, code-like, and merge passes.
+        The segment after the wrap-list, word, and merge passes.
     """
     if not add_backticks:
         return text
     text = _add_backticks_to_literals(text, literals)
-    text = _add_backticks_to_words(text)
+    text = _add_backticks_to_words(text, needs_backticks)
     return _merge_adjacent_backtick_spans(text)
 
 
@@ -627,7 +683,9 @@ def reflow_lines(
     with ``literals``, so any configured wrap-list literal that is not
     already inside a span gets wrapped, then through
     ``_add_backticks_to_words``, so code-like tokens get wrapped in single
-    backticks unless they already live inside an inline backtick span.
+    backticks unless they already live inside an inline backtick span. A
+    paragraph also wraps any word holding a ``/`` or ``\`` path separator
+    (the bullet item list keeps the regular rules only).
     The same content then goes through ``_merge_adjacent_backtick_spans``,
     so a run of whitespace-separated spans like ``\`a\` \`b\` \`c\```
     (including spans that the source split across two lines, now joined
@@ -680,11 +738,16 @@ def reflow_lines(
             i = j
         else:
             # Paragraph: collect everything until the next blank or
-            # bullet, merge, then wrap at column 0.
+            # bullet, merge, then wrap at column 0. Paragraphs add the
+            # path-separator rule (a ``/`` or ``\`` word gets backticked);
+            # the bullet branch above keeps the regular rules only.
             j, cont_parts = _collect_continuation(lines, i + 1)
             merged = " ".join(p for p in (line.strip(), *cont_parts) if p)
             merged = _apply_inline_backticks(
-                merged, add_backticks=add_backticks, literals=wrap_literals,
+                merged,
+                add_backticks=add_backticks,
+                literals=wrap_literals,
+                needs_backticks=_word_needs_backticks_in_paragraph,
             )
             words = _tokenize_keeping_backticks(merged)
             out.extend(_wrap_words(words, width, "", ""))
