@@ -1,10 +1,11 @@
 """Tests for the commit-text width enforcer.
 
 Cover ``tools.wrap_commit``: list-item detection, greedy word wrapping,
-empty-line preservation, bullet-continuation merging, the per-block and
-whole-file driver, and the CLI entry point in normal, ``--check``, and
-``--no-delimiters`` modes. A ``runpy`` test exercises the ``__main__``
-script path end to end.
+empty-line preservation, bullet-continuation merging, the adjacent
+backtick-span merge that folds a whitespace-separated run of code spans
+into one span, the per-block and whole-file driver, and the CLI entry
+point in normal, ``--check``, and ``--no-delimiters`` modes. A ``runpy``
+test exercises the ``__main__`` script path end to end.
 
 The tool resolves the default target file under the calling project's
 root through the shared ``find_project_root`` helper; the relevant test
@@ -963,6 +964,72 @@ class TestAddBackticksToWords:
         assert wrap_commit._add_backticks_to_words("a .,") == "a .,"
 
 
+class TestMergeAdjacentBacktickSpans:
+    """Validate the adjacent backtick-span merge helper."""
+
+    def test_text_without_spans_is_unchanged(self) -> None:
+        """Plain text with no backtick spans is returned verbatim."""
+        assert wrap_commit._merge_adjacent_backtick_spans(
+            "foo bar baz",
+        ) == "foo bar baz"
+
+    def test_single_span_is_unchanged(self) -> None:
+        """A lone backtick span has nothing to merge."""
+        assert wrap_commit._merge_adjacent_backtick_spans(
+            "use `foo` here",
+        ) == "use `foo` here"
+
+    def test_two_spans_one_space_merge(self) -> None:
+        """Two spans separated by one space fold into one span."""
+        assert wrap_commit._merge_adjacent_backtick_spans("`a` `b`") == "`a b`"
+
+    def test_three_spans_collapse_to_one(self) -> None:
+        """A run of three spans collapses in the fixpoint loop."""
+        assert wrap_commit._merge_adjacent_backtick_spans(
+            "`zone 1` `zone 2` `zone 3`",
+        ) == "`zone 1 zone 2 zone 3`"
+
+    def test_spans_with_prose_between_do_not_merge(self) -> None:
+        """Spans with words between them are left apart."""
+        assert wrap_commit._merge_adjacent_backtick_spans(
+            "`a` and `b`",
+        ) == "`a` and `b`"
+
+    def test_spans_across_single_newline_merge(self) -> None:
+        """A span pair split across one newline with indent merges."""
+        assert wrap_commit._merge_adjacent_backtick_spans(
+            "`--no-cov`\n  `-rxX`",
+        ) == "`--no-cov -rxX`"
+
+    def test_spans_across_blank_line_do_not_merge(self) -> None:
+        """A blank line (paragraph break) keeps the spans apart."""
+        assert wrap_commit._merge_adjacent_backtick_spans(
+            "`a`\n\n`b`",
+        ) == "`a`\n\n`b`"
+
+    def test_spans_across_bullet_marker_do_not_merge(self) -> None:
+        """A following ``- `` bullet marker keeps the spans apart."""
+        assert wrap_commit._merge_adjacent_backtick_spans(
+            "`a`\n- `b`",
+        ) == "`a`\n- `b`"
+
+    def test_tab_between_spans_merges(self) -> None:
+        """A tab counts as inter-span whitespace and merges."""
+        assert wrap_commit._merge_adjacent_backtick_spans("`a`\t`b`") == "`a b`"
+
+    def test_directly_adjacent_spans_do_not_merge(self) -> None:
+        """Spans with no whitespace between them stay as-is."""
+        # ``\`a\`\`b\``` has no separator, so the rule (which needs
+        # inter-span whitespace) does not fire.
+        assert wrap_commit._merge_adjacent_backtick_spans("`a``b`") == "`a``b`"
+
+    def test_surrounding_prose_is_preserved(self) -> None:
+        """Prose around a merged run stays intact."""
+        assert wrap_commit._merge_adjacent_backtick_spans(
+            "run `--a` `--b` now",
+        ) == "run `--a --b` now"
+
+
 class TestReflowLinesBackticks:
     """Validate the backtick pass through ``reflow_lines``."""
 
@@ -1012,6 +1079,39 @@ class TestReflowLinesBackticks:
 
         assert result == ["- a", "  `xx yyy zzz`", "  b"]
 
+    def test_adjacent_spans_merge_in_paragraph(self) -> None:
+        """Code spans the backtick pass wraps side by side fold into one."""
+        # ``--testmon`` and ``--no-cov`` each get backticked, then the
+        # merge folds the pair into a single span.
+        assert wrap_commit.reflow_lines(
+            ["run --testmon --no-cov here"],
+            80,
+        ) == ["run `--testmon --no-cov` here"]
+
+    def test_adjacent_spans_merge_in_bullet(self) -> None:
+        """The merge runs on list-item content too."""
+        assert wrap_commit.reflow_lines(
+            ["- pass --testmon --no-cov today"],
+            80,
+        ) == ["- pass `--testmon --no-cov` today"]
+
+    def test_spans_split_across_input_lines_merge(self) -> None:
+        """Spans the source split across two lines merge after the collapse."""
+        # The two paragraph lines collapse into one first, so the spans
+        # land side by side and fold into a single span.
+        assert wrap_commit.reflow_lines(
+            ["existing `--a`", "`--b` tail"],
+            80,
+        ) == ["existing `--a --b` tail"]
+
+    def test_no_backticks_flag_skips_the_merge(self) -> None:
+        """``add_backticks=False`` leaves existing adjacent spans apart."""
+        assert wrap_commit.reflow_lines(
+            ["use `--a` `--b` now"],
+            80,
+            add_backticks=False,
+        ) == ["use `--a` `--b` now"]
+
 
 class TestProcessTextBacktickFlag:
     """Validate that ``process_text`` forwards ``add_backticks``."""
@@ -1055,6 +1155,14 @@ class TestProcessTextBacktickFlag:
         result = wrap_commit.process_text(text, 80, None, None)
 
         assert result == "use `foo_bar` here\n"
+
+    def test_process_text_merges_adjacent_spans_in_block(self) -> None:
+        """The default run folds adjacent code spans inside a block."""
+        text = "```log\nrun --testmon --no-cov now\n```\n"
+
+        result = wrap_commit.process_text(text, 80, "```log", "```")
+
+        assert result == "```log\nrun `--testmon --no-cov` now\n```\n"
 
 
 class TestMainNoBackticksFlag:

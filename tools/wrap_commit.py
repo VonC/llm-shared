@@ -43,6 +43,18 @@ backtick wrap altogether: any word starting with ``v\d+\.`` (version
 literals like ``v1.0``, ``v2.5.3``) or ``[Oo]\(`` (big-O notation like
 ``O(n)``, ``o(log n)``) is left bare.
 
+After the inline-backtick pass and before the width wrap, an
+adjacent-span merge runs on each merged paragraph or bullet: two
+```` `...` ```` spans separated only by inter-span whitespace -- a run
+of spaces, or a single newline with optional surrounding indentation --
+are folded into one span whose contents are joined by a single space,
+so ```` `a` `b` `c` ```` becomes ```` `a b c` ````. The merge repeats
+to a fixpoint, so a whole run collapses at once. A blank line or a
+following ``- `` bullet marker breaks the run, so spans in different
+paragraphs or list items never merge. Because each paragraph or bullet
+is collapsed to a single line first, spans that were split across two
+lines in the input land side by side and merge here too.
+
 The width wrap treats each inline backtick span as one indivisible
 token, so a span like ```` `xx yyy zzz` ```` is never split across
 lines even if it contains internal whitespace.
@@ -123,6 +135,16 @@ WRAP_EXCEPTION_PATTERNS: tuple[re.Pattern[str], ...] = (
 # pulled outside only when unbalanced, so ``(FlagValidationStatus,``
 # extracts the lone ``(`` but ``(foo_bar)`` keeps both parens inside.
 SENTENCE_TRAILING_PUNCTUATION = (".", ",", ":", ";")
+
+# Two inline backtick spans separated only by inter-span whitespace --
+# a run of spaces/tabs, or a single newline with optional surrounding
+# indentation -- are merged into one span by
+# ``_merge_adjacent_backtick_spans``. Allowing at most one newline keeps
+# a blank line (a paragraph break) or a following ``- `` bullet marker
+# from joining spans that belong to different paragraphs or list items.
+ADJACENT_BACKTICK_SPANS_PATTERN = re.compile(
+    r"`([^`\r\n]+)`(?:[ \t]*\r?\n[ \t]*|[ \t]+)`([^`\r\n]+)`",
+)
 
 LOGGER = logging.getLogger("wrap_commit")
 
@@ -394,6 +416,35 @@ def _add_backticks_to_words(text: str) -> str:
     return "".join(parts)
 
 
+def _merge_adjacent_backtick_spans(text: str) -> str:
+    r"""Fold runs of whitespace-separated backtick spans into one span.
+
+    Two inline ``\`...\``` spans separated only by inter-span whitespace
+    -- a run of spaces or tabs, or a single newline with optional
+    surrounding indentation -- are merged into a single span whose two
+    contents are joined by one space. The substitution repeats until it
+    reaches a fixpoint, so a whole run such as ``\`a\` \`b\` \`c\```
+    collapses to ``\`a b c\```.
+
+    The separator allows at most one newline and no other characters, so
+    a blank line (a paragraph break) or a following ``- `` bullet marker
+    never pulls two spans together: spans living in different paragraphs
+    or list items are left apart.
+
+    Args:
+        text: The text whose adjacent backtick spans should be merged.
+
+    Returns:
+        The text with each whitespace-separated run of backtick spans
+        folded into a single span.
+    """
+    while True:
+        merged = ADJACENT_BACKTICK_SPANS_PATTERN.sub(r"`\1 \2`", text)
+        if merged == text:
+            return text
+        text = merged
+
+
 def _wrap_words(
     words: list[str],
     width: int,
@@ -484,6 +535,11 @@ def reflow_lines(
     or bullet content is passed through ``_add_backticks_to_words``
     before the width wrap, so code-like tokens get wrapped in single
     backticks unless they already live inside an inline backtick span.
+    The same content then goes through ``_merge_adjacent_backtick_spans``,
+    so a run of whitespace-separated spans like ``\`a\` \`b\` \`c\```
+    (including spans that the source split across two lines, now joined
+    by the paragraph collapse) folds into one ``\`a b c\``` span before
+    the width wrap re-flows it as a single token.
 
     The width wrap tokenises through ``_tokenize_keeping_backticks``,
     so any inline backtick span (whether pre-existing or just added) is
@@ -520,6 +576,7 @@ def reflow_lines(
             merged = " ".join(p for p in (head_content, *cont_parts) if p)
             if add_backticks:
                 merged = _add_backticks_to_words(merged)
+                merged = _merge_adjacent_backtick_spans(merged)
             words = _tokenize_keeping_backticks(merged)
             first_prefix = f"{indent}- "
             cont_prefix = " " * (len(indent) + 2)
@@ -532,6 +589,7 @@ def reflow_lines(
             merged = " ".join(p for p in (line.strip(), *cont_parts) if p)
             if add_backticks:
                 merged = _add_backticks_to_words(merged)
+                merged = _merge_adjacent_backtick_spans(merged)
             words = _tokenize_keeping_backticks(merged)
             out.extend(_wrap_words(words, width, "", ""))
             i = j
