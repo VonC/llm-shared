@@ -1,5 +1,7 @@
 # vX.Y.Z {topic} implementation tracking and validation
 
+{Yes/No this step was implemented}. (no detail, just Yes or No is it implemented, based on the current diff and repository state).
+(empty line)
 {One-line theme sentence that explains what this implementation review is tracking.}
 
 ---
