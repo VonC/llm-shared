@@ -43,6 +43,22 @@ backtick wrap altogether: any word starting with ``v\d+\.`` (version
 literals like ``v1.0``, ``v2.5.3``) or ``[Oo]\(`` (big-O notation like
 ``O(n)``, ``o(log n)``) is left bare.
 
+A wrap-list pass runs first, before the inline-backtick pass, whenever
+one or more ``wrap-list.backtick`` files are found. Each file is looked
+up in the wrap tool's own folder, in the calling folder and every parent
+up to and including the project root, and in the user home folder (the
+``HOME`` environment variable when set, otherwise the OS home); the
+contents are concatenated, and every non-blank line is one string
+literal (a word or a run of words separated by single spaces). Each
+free-standing occurrence of a literal in a commit body -- bounded by a
+non-word character or a line edge, so ``cat`` never matches inside
+``concatenate`` -- is wrapped in backticks unless it already sits inside
+a backtick span. Multi-word literals are wrapped as one span, and the
+later adjacent-span merge can still fold neighbouring spans together.
+The wrap-list pass touches commit bodies only, never a group line or a
+commit subject. With no ``wrap-list.backtick`` file anywhere, this pass
+does nothing and the output matches the earlier no-config behaviour.
+
 After the inline-backtick pass and before the width wrap, an
 adjacent-span merge runs on each merged paragraph or bullet: two
 ```` `...` ```` spans separated only by inter-span whitespace -- a run
@@ -78,6 +94,7 @@ from __future__ import annotations
 import argparse
 import contextlib
 import logging
+import os
 import re
 import sys
 from pathlib import Path
@@ -98,6 +115,10 @@ DEFAULT_OPEN = "```log"
 DEFAULT_CLOSE = "```"
 # Default file name relative to the project root.
 DEFAULT_FILE_NAME = "a.commit"
+# Config file name whose lines are extra string literals to backtick in
+# commit bodies. Searched in the tool folder, the calling folder and its
+# parents up to the project root, and the user home folder.
+WRAP_LIST_FILE_NAME = "wrap-list.backtick"
 # Exit code returned by ``--check`` when the file would be rewritten.
 EXIT_CHANGES_PENDING = 1
 # Exit code used by the script entry point for fatal errors.
@@ -416,6 +437,44 @@ def _add_backticks_to_words(text: str) -> str:
     return "".join(parts)
 
 
+def _add_backticks_to_literals(text: str, literals: list[str]) -> str:
+    r"""Wrap each configured wrap-list literal in backticks.
+
+    Every literal is matched as a free-standing token or token run --
+    bounded on each side by a non-word character or a string edge, so
+    ``cat`` never matches inside ``concatenate`` -- and each occurrence
+    that does not overlap an existing inline backtick span is wrapped in
+    a single backtick pair. Longer literals are handled first (ties
+    broken alphabetically for a stable result), so a multi-word literal
+    such as ``del .testmondata`` wins over a shorter literal that is also
+    one of its words.
+
+    Args:
+        text: The text whose configured literals should be backticked.
+        literals: The wrap-list literal strings, in any order. Empty
+            strings and duplicates are ignored.
+
+    Returns:
+        The text with each free-standing literal occurrence backticked.
+    """
+    for literal in sorted({lit for lit in literals if lit}, key=lambda s: (-len(s), s)):
+        pattern = re.compile(rf"(?<!\w){re.escape(literal)}(?!\w)")
+        regions = _find_backtick_regions(text)
+        parts: list[str] = []
+        last = 0
+        for match in pattern.finditer(text):
+            start, end = match.start(), match.end()
+            # Skip an occurrence that already lives inside a backtick span.
+            if _word_overlaps_region(start, end, regions):
+                continue
+            parts.append(text[last:start])
+            parts.append(f"`{literal}`")
+            last = end
+        parts.append(text[last:])
+        text = "".join(parts)
+    return text
+
+
 def _merge_adjacent_backtick_spans(text: str) -> str:
     r"""Fold runs of whitespace-separated backtick spans into one span.
 
@@ -443,6 +502,37 @@ def _merge_adjacent_backtick_spans(text: str) -> str:
         if merged == text:
             return text
         text = merged
+
+
+def _apply_inline_backticks(
+    text: str,
+    *,
+    add_backticks: bool,
+    literals: list[str],
+) -> str:
+    """Run the wrap-list, code-like, and merge passes on one segment.
+
+    When ``add_backticks`` is False the text is returned unchanged.
+    Otherwise the configured wrap-list ``literals`` are backticked first
+    (multi-word literals as one span), then code-like tokens, and finally
+    adjacent backtick spans are merged into one. Running the wrap-list
+    pass before the code-like pass keeps a multi-word literal whole and
+    lets the code-like pass skip the words it already wrapped.
+
+    Args:
+        text: One merged paragraph or bullet segment, on a single line.
+        add_backticks: When False, skip every backtick pass.
+        literals: The wrap-list literals to backtick before the code-like
+            pass.
+
+    Returns:
+        The segment after the wrap-list, code-like, and merge passes.
+    """
+    if not add_backticks:
+        return text
+    text = _add_backticks_to_literals(text, literals)
+    text = _add_backticks_to_words(text)
+    return _merge_adjacent_backtick_spans(text)
 
 
 def _wrap_words(
@@ -521,6 +611,7 @@ def reflow_lines(
     width: int,
     *,
     add_backticks: bool = True,
+    literals: list[str] | None = None,
 ) -> list[str]:
     r"""Reflow ``lines`` to enforce a maximum line width.
 
@@ -532,8 +623,10 @@ def reflow_lines(
     ``len(indent) + 2`` spaces to line up under the bullet text.
 
     When ``add_backticks`` is True (the default), each merged paragraph
-    or bullet content is passed through ``_add_backticks_to_words``
-    before the width wrap, so code-like tokens get wrapped in single
+    or bullet content is first passed through ``_add_backticks_to_literals``
+    with ``literals``, so any configured wrap-list literal that is not
+    already inside a span gets wrapped, then through
+    ``_add_backticks_to_words``, so code-like tokens get wrapped in single
     backticks unless they already live inside an inline backtick span.
     The same content then goes through ``_merge_adjacent_backtick_spans``,
     so a run of whitespace-separated spans like ``\`a\` \`b\` \`c\```
@@ -551,10 +644,13 @@ def reflow_lines(
         width: The maximum allowed line width, in characters.
         add_backticks: When True, auto-wrap code-like tokens in
             backticks before the width wrap.
+        literals: Extra wrap-list string literals to backtick before the
+            code-like pass. ``None`` (the default) means no wrap-list.
 
     Returns:
         The reflowed lines, without terminating newlines.
     """
+    wrap_literals = literals or []
     out: list[str] = []
     i = 0
     n = len(lines)
@@ -574,9 +670,9 @@ def reflow_lines(
             head_content = line[match.end():].strip()
             j, cont_parts = _collect_continuation(lines, i + 1)
             merged = " ".join(p for p in (head_content, *cont_parts) if p)
-            if add_backticks:
-                merged = _add_backticks_to_words(merged)
-                merged = _merge_adjacent_backtick_spans(merged)
+            merged = _apply_inline_backticks(
+                merged, add_backticks=add_backticks, literals=wrap_literals,
+            )
             words = _tokenize_keeping_backticks(merged)
             first_prefix = f"{indent}- "
             cont_prefix = " " * (len(indent) + 2)
@@ -587,9 +683,9 @@ def reflow_lines(
             # bullet, merge, then wrap at column 0.
             j, cont_parts = _collect_continuation(lines, i + 1)
             merged = " ".join(p for p in (line.strip(), *cont_parts) if p)
-            if add_backticks:
-                merged = _add_backticks_to_words(merged)
-                merged = _merge_adjacent_backtick_spans(merged)
+            merged = _apply_inline_backticks(
+                merged, add_backticks=add_backticks, literals=wrap_literals,
+            )
             words = _tokenize_keeping_backticks(merged)
             out.extend(_wrap_words(words, width, "", ""))
             i = j
@@ -602,33 +698,46 @@ def _reflow_block(
     width: int,
     *,
     add_backticks: bool,
+    literals: list[str] | None = None,
 ) -> list[str]:
     r"""Reflow a delimited block, preserving a leading commit subject.
 
     When the first line of ``block_lines`` matches
     ``COMMIT_SUBJECT_PATTERN`` (``^\S+\(.*?\):\s`` -- e.g.
     ``feat(tools): add cert-aware uv launcher``), that line is emitted
-    verbatim, skipping both the backtick pass and the width wrap. The
+    verbatim, skipping the backtick passes and the width wrap. The
     remaining lines go through ``reflow_lines`` as usual. When the
     first line does not match, the whole block is reflowed normally.
+
+    Because the subject line is emitted verbatim, the wrap-list
+    ``literals`` reach only the block body, never the commit subject.
     """
     if block_lines and COMMIT_SUBJECT_PATTERN.match(block_lines[0]):
         return [
             block_lines[0],
             *reflow_lines(
-                block_lines[1:], width, add_backticks=add_backticks,
+                block_lines[1:],
+                width,
+                add_backticks=add_backticks,
+                literals=literals,
             ),
         ]
-    return reflow_lines(block_lines, width, add_backticks=add_backticks)
+    return reflow_lines(
+        block_lines, width, add_backticks=add_backticks, literals=literals,
+    )
 
 
-def process_text(
+def process_text(  # noqa: PLR0913
+    # Driver routes text through both fence delimiters plus the two
+    # inline-backtick knobs (add_backticks, literals); six parameters is
+    # the natural shape for this seam, so PLR0913 is suppressed here.
     text: str,
     width: int,
     open_delim: str | None,
     close_delim: str | None,
     *,
     add_backticks: bool = True,
+    literals: list[str] | None = None,
 ) -> str:
     r"""Reflow ``text`` either as a whole or only inside delimited blocks.
 
@@ -651,6 +760,9 @@ def process_text(
             or ``None`` to disable fence detection.
         add_backticks: When True, auto-wrap code-like tokens in
             backticks before the width wrap.
+        literals: Extra wrap-list string literals to backtick in block
+            bodies. ``None`` (the default) means no wrap-list. Group
+            lines and commit subjects are never touched.
 
     Returns:
         The rewritten text. The presence of a trailing newline is
@@ -664,6 +776,7 @@ def process_text(
             text.splitlines(),
             width,
             add_backticks=add_backticks,
+            literals=literals,
         )
         return "\n".join(out_lines) + ("\n" if has_trailing_newline else "")
 
@@ -678,7 +791,12 @@ def process_text(
                 # End of block: reflow the collected body (preserving
                 # a leading commit subject), then emit the close-fence.
                 out_lines.extend(
-                    _reflow_block(block_lines, width, add_backticks=add_backticks),
+                    _reflow_block(
+                        block_lines,
+                        width,
+                        add_backticks=add_backticks,
+                        literals=literals,
+                    ),
                 )
                 out_lines.append(line)
                 in_block = False
@@ -694,10 +812,125 @@ def process_text(
     # Unterminated block: still flush its content so nothing is lost.
     if in_block:
         out_lines.extend(
-            _reflow_block(block_lines, width, add_backticks=add_backticks),
+            _reflow_block(
+                block_lines,
+                width,
+                add_backticks=add_backticks,
+                literals=literals,
+            ),
         )
 
     return "\n".join(out_lines) + ("\n" if has_trailing_newline else "")
+
+
+def _wrap_list_search_dirs(
+    tool_dir: Path,
+    start_dir: Path,
+    project_root: Path,
+    home: Path,
+) -> list[Path]:
+    """Return the ordered, de-duplicated dirs to scan for wrap-list files.
+
+    The order is: the wrap tool's own folder, then the calling folder and
+    each parent up to and including the project root, then the project
+    root, then the user home folder. The walk also stops at the
+    filesystem root, so a calling folder that is not under the project
+    root still terminates. Duplicates are dropped while keeping the first
+    occurrence, so a directory that plays several of these roles is
+    scanned once.
+
+    Args:
+        tool_dir: The folder that holds this wrap tool.
+        start_dir: The calling folder (already resolved).
+        project_root: The resolved project root.
+        home: The resolved user home folder.
+
+    Returns:
+        The de-duplicated directories to scan, in scan order.
+    """
+    candidates: list[Path] = [tool_dir]
+    current = start_dir
+    while True:
+        candidates.append(current)
+        parent = current.parent
+        # Stop at the project root, or at the filesystem root when the
+        # calling folder is not under the project root.
+        if current in (project_root, parent):
+            break
+        current = parent
+    candidates.append(project_root)
+    candidates.append(home)
+
+    ordered: list[Path] = []
+    seen: set[Path] = set()
+    for directory in candidates:
+        if directory not in seen:
+            seen.add(directory)
+            ordered.append(directory)
+    return ordered
+
+
+def _load_wrap_list_literals(directories: list[Path]) -> list[str]:
+    """Read every ``wrap-list.backtick`` found across ``directories``.
+
+    Each file contributes one literal per non-blank line, with leading
+    and trailing whitespace stripped. The literals from all files are
+    concatenated in directory order. A directory without the file is
+    skipped, and a file that cannot be read is skipped too, so one
+    unreadable config never aborts the format.
+
+    Args:
+        directories: The folders to scan, in scan order.
+
+    Returns:
+        The concatenated list of literal strings.
+    """
+    literals: list[str] = []
+    for directory in directories:
+        path = directory / WRAP_LIST_FILE_NAME
+        try:
+            if not path.is_file():
+                continue
+            content = path.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        for line in content.splitlines():
+            stripped = line.strip()
+            if stripped:
+                literals.append(stripped)
+    return literals
+
+
+def _collect_wrap_list_literals(start_dir: Path) -> list[str]:
+    """Gather wrap-list literals visible from ``start_dir``.
+
+    Scans the wrap tool folder, the calling folder and its parents up to
+    the project root, the project root, and the user home folder. The
+    home folder is taken from the ``HOME`` environment variable when it
+    is set (matching ``%HOME%`` / ``$HOME``), otherwise from the OS home
+    (``Path.home()``). When the project root cannot be located, the
+    search falls back to the calling folder as the upper bound, so the
+    tool folder, the calling folder and its parents, and the home folder
+    are still scanned.
+
+    Args:
+        start_dir: The calling folder (typically the current directory).
+
+    Returns:
+        The concatenated wrap-list literals, possibly empty.
+    """
+    tool_dir = Path(__file__).resolve().parent
+    home_env = os.environ.get("HOME")
+    home = Path(home_env).resolve() if home_env else Path.home()
+    resolved_start = start_dir.resolve()
+    try:
+        project_root = find_project_root(start_dir).resolve()
+    except (FileNotFoundError, OSError, ValueError):
+        project_root = resolved_start
+    directories = _wrap_list_search_dirs(
+        tool_dir, resolved_start, project_root, home,
+    )
+    return _load_wrap_list_literals(directories)
 
 
 def _configure_logging() -> None:
@@ -810,6 +1043,7 @@ def main(argv: list[str] | None = None) -> int:
     original = target.read_text(encoding="utf-8")
     open_delim = None if args.no_delimiters else args.open
     close_delim = None if args.no_delimiters else args.close
+    literals = _collect_wrap_list_literals(Path.cwd())
 
     updated = process_text(
         original,
@@ -817,6 +1051,7 @@ def main(argv: list[str] | None = None) -> int:
         open_delim,
         close_delim,
         add_backticks=not args.no_backticks,
+        literals=literals,
     )
 
     if updated == original:
