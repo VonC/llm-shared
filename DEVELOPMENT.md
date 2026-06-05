@@ -209,13 +209,21 @@ skill bodies in `instructions\` do not depend on Windows at all.
 - `ruffc`: Doskey alias to `ruff check`. Use it right after code generation
   or manual edits.
 - `pta`: Doskey alias to
-  `pytest --testmon --cov-append --no-header --cov-report term-missing:skip-covered`.
-  It reruns only the tests affected by the current changes and appends
-  coverage data.
+  `pytest --testmon --no-header --no-cov -rxX`.
+  It reruns only the tests affected by the current changes and reports pass
+  or fail. `--no-cov` turns coverage off, which overrides the `--cov`,
+  `--cov-report`, and `--cov-fail-under=100` defaults in `pyproject.toml`, so
+  the run never rewrites the recorded `.coverage` and never fails on the
+  100% gate. Use it to confirm the focused tests are green, not to read a
+  coverage report.
+- `pts`: Doskey alias to `pytest --no-header --no-cov -rxX`. Same coverage-off
+  behaviour as `pta`, but without `--testmon`: pass the exact test paths to run
+  one test, one class, or one file. It does not erase the recorded coverage.
 - `ptr`: Doskey alias to
   `del .testmondata 2>nul & pytest --testmon --no-header --cov-report term-missing:skip-covered`.
-  It resets `testmon` state and then reruns the suite with coverage output,
-  which is the wider safety check when `pta` is not enough.
+  It resets `testmon` state and reruns the suite with the coverage report. This
+  is the full coverage recording pass, and the user runs it by hand only: it is
+  slow and burns tokens, so the step flow relies on `pta` and `pts` instead.
 - `covg`: alias to
   `python "tools\coverage_gap_functions.py" $*`.
   It maps uncovered coverage lines to the enclosing function or method, adds
@@ -635,9 +643,9 @@ fully completed implementation step.
    +-------+-------------------------+
            |
            |  ruffc                  (lint pass)
-           |  pta                    (affected tests)
-           |  covg + extra tests     (only if gaps)
-           |  ptr                    (wider reset pass)
+           |  pta                    (focused tests pass/fail)
+           |  pts <path>             (single test, when needed)
+           |  ptr                    (manual only, by the user)
            v
    +---------------------------------+
    |  step N green                   |
@@ -672,13 +680,16 @@ fully completed implementation step.
 2. Run `/implement-step <step-number>` with the plan, design, and related
   requirement documents in context.
 3. Run `ruffc`.
-4. Run `pta` on the touched tests first.
-5. If `pta` shows a small number of uncovered lines, copy the uncovered
-  coverage lines and run `covg`. That helper maps the missing lines to the
-  enclosing functions or methods, then prepares a clipboard prompt you can
-  paste back into your agent to ask for the smallest missing tests.
-6. If `pta` is not enough, or if `testmon` state looks stale, run `ptr` for a
-  wider rerun after resetting `.testmondata`.
+4. Run `pta` to confirm the focused tests (created, modified, or impacted by
+  the step) pass. It prints no coverage, so it stays fast and leaves the
+  recorded `.coverage` untouched.
+5. Run `pts <test path>` when you want a single test, class, or file on its
+  own. It is coverage-off too, so it never erases the recorded coverage.
+6. `ptr` is the full coverage recording pass. The user runs it by hand only,
+  because it is slow and token-heavy, so the step flow does not call it. After
+  the user produces a fresh `.coverage` with `ptr`, `covg` can map the missing
+  lines to the enclosing functions and build a clipboard prompt for the
+  smallest tests still needed.
 7. Once the code and tests are green, run `/implementation-check` with the
   step number, version, topic, relevant markdown docs, and `a.diff` when
   available.
@@ -775,8 +786,10 @@ merge commit exists, and rerun the same checks you used during step execution.
 1. Run `git fetch` to refresh your remote references.
 2. Run `git rebase origin/main` and resolve any conflict before continuing.
 3. Run `c`, which is the local Doskey alias to `bin\python_check.bat`.
-4. Run `pta` and then `ptr` so both the affected-test pass and the wider
-  reset pass are green before you merge.
+4. Run `pta` to confirm the focused tests pass. The full coverage pass at
+  merge time is `ptr`, which the user runs by hand: it resets `.testmondata`,
+  reruns the whole suite with the coverage report, and is the one place the
+  100% gate from `pyproject.toml` is checked before the merge.
 
 ### Create the merge commit on main
 

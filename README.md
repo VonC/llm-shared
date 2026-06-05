@@ -565,8 +565,9 @@ the shared skill bodies. The Doskey aliases are documented in detail in
 | `gcmp` | Doskey alias to `group_commit_message_prompt.py`; writes `a.diff` and the clipboard prompt. |
 | `gp` | Local Doskey alias to `git push`. |
 | `grmc` | Local Doskey alias to `git-reword-merge.sh`; rewrites the current merge commit. |
-| `pta` | Doskey alias to `pytest --testmon --cov-append ...`; reruns affected tests. |
-| `ptr` | Doskey alias that resets `.testmondata` then reruns the suite with coverage. |
+| `pta` | Doskey alias to `pytest --testmon --no-header --no-cov -rxX`; reruns the focused tests for pass/fail, coverage off, recorded `.coverage` untouched. |
+| `pts` | Doskey alias to `pytest --no-header --no-cov -rxX <path>`; runs a single named test, coverage off, recorded `.coverage` untouched. |
+| `ptr` | Doskey alias that resets `.testmondata` then reruns the suite with coverage; full coverage pass, run by the user by hand only. |
 | `Qxx` block | An open-question block appended by the review skills (options + recommended choice). |
 | `ruffc` | Doskey alias to `ruff check`. |
 | `vX.Y.Z` | Working version slug used in every artifact filename (draft, requirement, design, plan). |
