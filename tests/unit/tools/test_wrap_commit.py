@@ -4,10 +4,11 @@ Cover ``tools.wrap_commit``: list-item detection, greedy word wrapping,
 empty-line preservation, bullet-continuation merging, the adjacent
 backtick-span merge that folds a whitespace-separated run of code spans
 into one span, the wrap-list pass that backticks configured string
-literals loaded from ``wrap-list.backtick`` files, the per-block and
-whole-file driver, and the CLI entry point in normal, ``--check``, and
-``--no-delimiters`` modes. A ``runpy`` test exercises the ``__main__``
-script path end to end.
+literals loaded from ``wrap-list.backtick`` files, the paragraph-only
+path-separator rule that backticks words holding a slash or backslash,
+the per-block and whole-file driver, and the CLI entry point in normal,
+``--check``, and ``--no-delimiters`` modes. A ``runpy`` test exercises
+the ``__main__`` script path end to end.
 
 The tool resolves the default target file under the calling project's
 root through the shared ``find_project_root`` helper; the relevant test
@@ -1474,6 +1475,15 @@ class TestApplyInlineBackticks:
             literals=["make better"],
         ) == "run `--a --b` for `make better`"
 
+    def test_paragraph_predicate_wraps_slash_word(self) -> None:
+        """The paragraph predicate backticks a path-separator word."""
+        assert wrap_commit._apply_inline_backticks(
+            "see a/b now",
+            add_backticks=True,
+            literals=[],
+            needs_backticks=wrap_commit._word_needs_backticks_in_paragraph,
+        ) == "see `a/b` now"
+
 
 class TestWrapListSearchDirs:
     """Validate the wrap-list directory search order and de-duplication."""
@@ -1777,6 +1787,126 @@ class TestMainWrapList:
         assert target.read_text(encoding="utf-8") == (
             "```log\nwe `make better` cars\n```\n"
         )
+
+
+class TestWordHasPathSeparator:
+    """Validate the path-separator word predicate."""
+
+    def test_forward_slash_word_qualifies(self) -> None:
+        """A word with a forward slash and other chars qualifies."""
+        assert wrap_commit._word_has_path_separator("src/pdfss")
+
+    def test_backslash_word_qualifies(self) -> None:
+        """A word with a backslash and other chars qualifies."""
+        assert wrap_commit._word_has_path_separator(r"C:\Users\vonc")
+
+    def test_and_or_qualifies(self) -> None:
+        """A prose token like ``and/or`` qualifies."""
+        assert wrap_commit._word_has_path_separator("and/or")
+
+    def test_bare_forward_slash_does_not_qualify(self) -> None:
+        """A lone ``/`` separator stays bare."""
+        assert not wrap_commit._word_has_path_separator("/")
+
+    def test_bare_backslash_does_not_qualify(self) -> None:
+        r"""A lone ``\`` separator stays bare."""
+        assert not wrap_commit._word_has_path_separator("\\")
+
+    def test_repeated_separators_do_not_qualify(self) -> None:
+        """Runs made only of separators stay bare."""
+        assert not wrap_commit._word_has_path_separator("//")
+        assert not wrap_commit._word_has_path_separator("\\\\")
+
+    def test_plain_word_does_not_qualify(self) -> None:
+        """A word without a separator does not qualify."""
+        assert not wrap_commit._word_has_path_separator("paragraph")
+
+
+class TestWordNeedsBackticksInParagraph:
+    """Validate the paragraph predicate (code-like plus path-separator)."""
+
+    def test_code_like_word_qualifies(self) -> None:
+        """A code-like word qualifies via the regular rules."""
+        assert wrap_commit._word_needs_backticks_in_paragraph("foo_bar")
+
+    def test_path_separator_word_qualifies(self) -> None:
+        """A slash word qualifies via the path-separator rule."""
+        assert wrap_commit._word_needs_backticks_in_paragraph("src/pdfss")
+
+    def test_plain_word_does_not_qualify(self) -> None:
+        """A plain word qualifies under neither rule."""
+        assert not wrap_commit._word_needs_backticks_in_paragraph("paragraph")
+
+
+class TestAddBackticksToWordsPredicate:
+    """Validate the custom-predicate form of the word backticker."""
+
+    def test_default_predicate_is_code_like(self) -> None:
+        """With no predicate, the code-like rules apply."""
+        assert wrap_commit._add_backticks_to_words(
+            "use foo_bar",
+        ) == "use `foo_bar`"
+
+    def test_path_predicate_wraps_slash_words(self) -> None:
+        """A custom predicate can target path-separator words."""
+        assert wrap_commit._add_backticks_to_words(
+            "see src/pdfss here",
+            wrap_commit._word_has_path_separator,
+        ) == "see `src/pdfss` here"
+
+    def test_path_predicate_leaves_plain_words(self) -> None:
+        """A custom predicate leaves non-matching words alone."""
+        assert wrap_commit._add_backticks_to_words(
+            "plain words here",
+            wrap_commit._word_has_path_separator,
+        ) == "plain words here"
+
+
+class TestReflowLinesPathSeparator:
+    """Validate the paragraph-only path-separator backticking."""
+
+    def test_paragraph_wraps_forward_slash_word(self) -> None:
+        """A paragraph backticks a forward-slash path word."""
+        assert wrap_commit.reflow_lines(
+            ["edit src/pdfss/tests today"],
+            80,
+        ) == ["edit `src/pdfss/tests` today"]
+
+    def test_paragraph_wraps_backslash_word(self) -> None:
+        """A paragraph backticks a backslash path word."""
+        assert wrap_commit.reflow_lines(
+            [r"open C:\Users\vonc now"],
+            80,
+        ) == [r"open `C:\Users\vonc` now"]
+
+    def test_bullet_does_not_wrap_slash_word(self) -> None:
+        """The item list keeps the regular rules, so a slash word stays bare."""
+        assert wrap_commit.reflow_lines(
+            ["- edit src/pdfss/tests today"],
+            80,
+        ) == ["- edit src/pdfss/tests today"]
+
+    def test_no_backticks_flag_skips_the_slash_rule(self) -> None:
+        """With backticks off, slash words are left alone."""
+        assert wrap_commit.reflow_lines(
+            ["edit src/pdfss/tests today"],
+            80,
+            add_backticks=False,
+        ) == ["edit src/pdfss/tests today"]
+
+    def test_slash_word_already_in_span_is_not_rewrapped(self) -> None:
+        """A slash word already inside a span is left as-is."""
+        assert wrap_commit.reflow_lines(
+            ["edit `src/pdfss` today"],
+            80,
+        ) == ["edit `src/pdfss` today"]
+
+    def test_slash_words_merge_after_wrapping(self) -> None:
+        """Adjacent slash words wrap, then the merge folds them into one span."""
+        assert wrap_commit.reflow_lines(
+            ["paths a/b c/d here"],
+            80,
+        ) == ["paths `a/b c/d` here"]
 
 
 class TestScriptExecution:
