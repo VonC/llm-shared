@@ -23,6 +23,16 @@ through ``PlanStep.number`` and ``CycleState.x`` (Q41), so ``derive_x`` keys eac
 status by the full id and a sub-step ``Not started`` no longer overwrites its
 parent ``Yes`` (Q45). Steps run in document order (Q43) and each sub-step is
 committed on its own (Q44).
+
+Fix (implement-missing): when the validation plan marks step ``x`` ``No`` (the
+status line starts with ``No``), the implement entry switches to the
+implement-missing variant (Q46). ``parse_validation_steps`` records that ``No``
+state on ``PlanStep`` and ``compute_cycle`` carries it on ``CycleState`` (Q46);
+``build_cycle_options`` relabels the entry ``Implement missing for step <id>`` and
+sets ``CycleAction.missing`` (Q47); and the prompt is built from the second step-8
+alternative, ``implement-missing-step.md``, which points at the validation plan's
+``Missing work for Step x`` section and carries a split-large-file line-budget
+reminder interpolated with the header ``{prefix}`` (Q48-Q52).
 """
 
 from __future__ import annotations
@@ -48,6 +58,9 @@ if TYPE_CHECKING:
 ANALYSIS_RE = re.compile(r"analysis of step\s+(\d+[A-Za-z]*)", re.IGNORECASE)
 # A status line that marks the step implemented and verified.
 STATUS_YES_RE = re.compile(r"^\s*yes", re.IGNORECASE)
+# A status line that marks the step explicitly not implemented (Q46). The word
+# boundary keeps "No, ..." apart from "Not started", which stays a placeholder.
+STATUS_NO_RE = re.compile(r"^\s*no\b", re.IGNORECASE)
 # The docs folder prefix; changes outside it count as code changes (Q20).
 _DOCS_PREFIX = "docs/"
 # Workflow step number per cycle action kind (kept internal, never shown, Q17).
@@ -68,10 +81,14 @@ class PlanStep:
             string so a lettered sub-step such as ``4A`` round-trips whole and
             never collapses to the bare number ``4`` (Q41, Q42).
         verified: Whether its status line starts with ``Yes``.
+        not_implemented: Whether its status line starts with ``No`` (Q46), distinct
+            from a placeholder status (neither ``Yes`` nor ``No``) that leaves both
+            flags False and keeps the plain implement body.
     """
 
     number: str
     verified: bool
+    not_implemented: bool = False
 
 
 @dataclass(frozen=True)
@@ -86,6 +103,8 @@ class CycleState:
         has_code_changes: Whether any changed path lies outside ``docs/``.
         cached: Whether any change is staged.
         non_cached: Whether any change is unstaged or untracked.
+        not_implemented: Whether step ``x``'s status line starts with ``No`` (Q46),
+            so the implement entry becomes the implement-missing variant.
     """
 
     x: str
@@ -94,6 +113,7 @@ class CycleState:
     has_code_changes: bool
     cached: bool
     non_cached: bool
+    not_implemented: bool = False
 
 
 @dataclass(frozen=True)
@@ -103,18 +123,38 @@ class CycleAction:
     Attributes:
         kind: ``implement``, ``check``, ``commit`` or ``release``.
         stage_all: Whether to run ``git add -A`` before building the prompt.
+        missing: Whether an implement action is the implement-missing variant,
+            built from the ``implement-missing-step.md`` alternative (Q47).
     """
 
     kind: str
     stage_all: bool
+    missing: bool = False
+
+
+def _first_status_line(lines: list[str], start: int) -> str | None:
+    """Return the first non-empty line at or after ``start``, or None at the end."""
+    cursor = start
+    while cursor < len(lines) and not lines[cursor].strip():
+        cursor += 1
+    return lines[cursor] if cursor < len(lines) else None
 
 
 def _status_is_yes(lines: list[str], start: int) -> bool:
     """Return whether the first non-empty line from ``start`` begins with Yes."""
-    cursor = start
-    while cursor < len(lines) and not lines[cursor].strip():
-        cursor += 1
-    return cursor < len(lines) and STATUS_YES_RE.match(lines[cursor]) is not None
+    line = _first_status_line(lines, start)
+    return line is not None and STATUS_YES_RE.match(line) is not None
+
+
+def _status_is_no(lines: list[str], start: int) -> bool:
+    """Return whether the first non-empty line from ``start`` begins with No (Q46).
+
+    A leading ``No`` with a word boundary marks the step not implemented; a
+    ``No``-prefixed word such as ``Not started`` does not, so it stays a
+    placeholder that keeps the plain implement body.
+    """
+    line = _first_status_line(lines, start)
+    return line is not None and STATUS_NO_RE.match(line) is not None
 
 
 def parse_validation_steps(text: str) -> list[PlanStep]:
@@ -132,7 +172,11 @@ def parse_validation_steps(text: str) -> list[PlanStep]:
         if match is None:
             continue
         found.append(
-            PlanStep(number=match.group(1), verified=_status_is_yes(lines, index + 1)),
+            PlanStep(
+                number=match.group(1),
+                verified=_status_is_yes(lines, index + 1),
+                not_implemented=_status_is_no(lines, index + 1),
+            ),
         )
     return found
 
@@ -189,6 +233,7 @@ def compute_cycle(
         return git.has_step_commit(root, number, branch_start)
 
     x, verified, terminal = derive_x(plan_steps, _has_commit)
+    not_implemented = {step.number: step.not_implemented for step in plan_steps}[x]
     entries = git.status_entries(root)
     return CycleState(
         x=x,
@@ -197,6 +242,7 @@ def compute_cycle(
         has_code_changes=any(not path.startswith(_DOCS_PREFIX) for _, path in entries),
         cached=any(_is_staged(status) for status, _ in entries),
         non_cached=any(_is_unstaged(status) for status, _ in entries),
+        not_implemented=not_implemented,
     )
 
 
@@ -205,8 +251,16 @@ def build_cycle_options(cycle: CycleState) -> list[tuple[str, CycleAction]]:
     if cycle.terminal:
         return [("Prepare release notes", CycleAction(kind="release", stage_all=False))]
 
+    label = (
+        f"Implement missing for step {cycle.x}"
+        if cycle.not_implemented
+        else f"Implement step {cycle.x}"
+    )
     options: list[tuple[str, CycleAction]] = [
-        (f"Implement step {cycle.x}", CycleAction(kind="implement", stage_all=False)),
+        (
+            label,
+            CycleAction(kind="implement", stage_all=False, missing=cycle.not_implemented),
+        ),
     ]
     if cycle.has_code_changes:
         options.append((f"Check step {cycle.x}", CycleAction(kind="check", stage_all=False)))
@@ -234,10 +288,17 @@ def _cycle_alternative(
     config: dict[int, list[StepAlternative]],
     action: CycleAction,
 ) -> StepAlternative:
-    """Return the step alternative backing a cycle action."""
+    """Return the step alternative backing a cycle action.
+
+    The implement-missing action takes the second step-8 alternative, the
+    ``implement-missing-step.md`` body, in place of the plain implement body (Q48).
+    """
     if action.kind == "release":
         return config[_WORKFLOW_STEP["release"]][1]
-    return config[_WORKFLOW_STEP[action.kind]][0]
+    alternatives = config[_WORKFLOW_STEP[action.kind]]
+    if action.kind == "implement" and action.missing:
+        return alternatives[1]
+    return alternatives[0]
 
 
 def staged_listing(root: Path) -> tuple[int, str]:
@@ -353,7 +414,9 @@ def build_cycle_prompt(  # noqa: PLR0913
     The body interpolates the plan step ``x`` (Q17). For an implement or check
     action the body also inlines the step title ``{title}`` and the plan document
     ``{plan_doc}`` read from the plan, dropping a segment when either is missing
-    (Q26, Q30-Q35). For a commit action the body also names the step title and
+    (Q26, Q30-Q35). The implement-missing action uses the ``implement-missing-step.md``
+    body, whose ``{prefix}`` placeholder is filled with the header prefix so its
+    split-large-file line resolves to a real path (Q47, Q48, Q50). For a commit action the body also names the step title and
     plan (Q38) and is completed with the count ``{n}`` and the porcelain ``{files}`` list of
     the staged files read at this point (Q22, Q23), and ``a.commit`` is emptied so
     the grouping starts from a clean file (Q25). When the staged set includes the
@@ -361,7 +424,7 @@ def build_cycle_prompt(  # noqa: PLR0913
     ``docs(<topic>): record step x validation`` final commit (Q16).
     """
     alternative = _cycle_alternative(config, action)
-    body = alternative.body.replace("{x}", str(cycle.x))
+    body = alternative.body.replace("{x}", str(cycle.x)).replace("{prefix}", prefix)
     if action.kind in ("implement", "check"):
         title, plan_doc = _title_and_plan(root, state, cycle.x)
         body = _fill_optional(body, title, "{title}", ' "{title}"')
