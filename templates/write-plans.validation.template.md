@@ -1,8 +1,8 @@
 # vX.Y.Z {topic} implementation tracking and validation
 
-{Yes/No this step was implemented}. (no detail, just Yes or No is it implemented, based on the current diff and repository state).
+{Yes/No this step was implemented}. (no detail, the first sentence MUST be "Yes, it is implemented" or "No, it is not implemented", as based on the current diff and repository state, and followed by an empty line).
 (empty line)
-{One-line theme sentence that explains what this implementation review is tracking.}
+{One-line theme sentence that explains what this implementation review is tracking. And, if it is not yet implemented, what is missing as a short summary (a more complete section will follow in the detailed analysis).}
 
 ---
 
@@ -52,6 +52,10 @@ Every implemented step should be reviewed against this bound in its Performance 
 - **{Area 2}**: {What changed and why it matters}.
 - **Validation evidence**: {Focused tests, grep checks, or repo gate results that support the conclusion}.
 
+### Missing work for Step N
+
+To be done only if the first sentence of the all step N sections is "No, it is not implemented". Otherwise, skip this section.
+
 ### New types or classes introduced for Step N
 
 - `{Type, class, helper, or test suite}`: {Role}.
@@ -75,6 +79,20 @@ Every implemented step should be reviewed against this bound in its Performance 
 - **Plan-bound alignment**: {Explain whether the step stays inside the bound promised by the plan}.
 
 {Close the section with a short conclusion that states whether the step stays inside the plan's complexity target.}
+
+### Unit test coverage check for Step N
+
+{This is only for unit test, not for integration, smoke, regression or acceptance tests.}
+
+- **{Class or function}**: {State whether it is covered at 100% or not, and if not, what is missing}.
+- **{Class or function}**: {State whether it is covered at 100% or not, and if not, what is missing}.
+- ...
+
+No, there is no unit-tested class below 100% that needs completing for Step N.
+
+Or
+
+Yes, there is a unit-tested class below 100% that needs completing for Step N: {Class or function} is covered at {coverage percentage}%, missing tests for {missing cases or lines}.
 
 ### Feature integrity for Step N
 
