@@ -97,6 +97,7 @@ The body line and the Context documents for each step are fixed as below (Q13). 
 | 6 | consolidate-then-review-ask-questions.md | Consolidate the answers in the most recent design, then review and ask new questions, based on the draft, the requirement and the design. | draft, requirement, design |
 | 7 | write-plans.md | Write the implementation plan and validation plan, based on the draft, the requirement and the design. | draft, requirement, design |
 | 8 | implement-step.md | Implement step {x} "{title}" of the plan "{plan_doc}", based on the design and the plan. | draft, requirement, design, plan |
+| 8 (missing) | implement-missing-step.md | Implement the missing work of step {x} "{title}" of the plan "{plan_doc}", focusing on the "Missing work for Step {x}" section of the validation plan, based on the design, the plan and the validation plan. (plus the line-budget sentence; see [Implementing missing work when a step validation reads No](#implementing-missing-work-when-a-step-validation-reads-no)) | draft, requirement, design, plan, validation plan |
 | 9 | implementation-check.md | Check step {x} "{title}" implementation, based on the plan "{plan_doc}" and the validation plan. | draft, requirement, design, plan, validation plan |
 | 10 | group-commits-msg.md | Group the changed files and write one conventional commit message per group for those {n} files, per step {x} ("{title}") evolutions of the implementation plan "{plan_doc}": | draft, requirement, design, plan, validation plan |
 | 11 | implement-step.md | Implement step {x} "{title}" of the plan "{plan_doc}", based on the design and the plan. | draft, requirement, design, plan |
@@ -142,7 +143,7 @@ If a.prompt_memory file already exists, the tool should check if the branch memo
 
 ## Design decisions
 
-The table summarizes the choices made from the answered questions Q01 to Q45, the section that carries each one, and the alternatives that were dropped.
+The table summarizes the choices made from the answered questions Q01 to Q52, the section that carries each one, and the alternatives that were dropped.
 
 | Question | Decision | Integrated in section | Main argument | Rejected alternatives |
 | --- | --- | --- | --- | --- |
@@ -191,6 +192,13 @@ The table summarizes the choices made from the answered questions Q01 to Q45, th
 | Q43 | Order steps and sub-steps by document order | Sub-step ordering and granularity | `derive_x` already walks the parsed list in order; the plan is authored in running order | Sort by numeric part then suffix |
 | Q44 | Treat each sub-step as first-class with its own `record step <id> validation` commit | Sub-step ordering and granularity | The validation plan analyses each sub-step on its own; the space-delimited grep keeps ids apart | Parent-covers-children single commit |
 | Q45 | Key the parsed status by full id; current id is the last `Yes` in document order, advanced only past its validation commit | Detecting the current step among its sub-steps | Stops a sub-step `Not started` from hiding the parent `Yes`; keeps sub-steps addressable | Int-keyed OR-merge of same-number statuses |
+| Q46 | Trigger the implement-missing body on the `Analysis of Step x` status line starting with `No` | Trigger and menu entry for the implement-missing body | Reuses the status line `derive_x` already reads; fires when the check has marked the step incomplete | `No` plus a non-empty missing-work section; offer both prompts |
+| Q47 | Replace the implement entry with one relabelled `Implement missing for step <id>` | Trigger and menu entry for the implement-missing body | Matches "replace implement with implement missing"; one implement action per menu state | Add a second entry next to the plain implement |
+| Q48 | Point the variant header at a new `implement-missing-step.md` that references `implement-step.md` and `split-large-file.md` | The implement-missing instruction file | A dedicated page names the implement-or-split (never reduce) choice by gap nature; body and Context still carry the per-step focus | Reuse `implement-step.md`, body and Context only |
+| Q49 | Body names the `Missing work for Step {x}` section of the validation plan | The implement-missing body and its line-budget sentence | Points the LLM at the gap the check recorded; reuses the implement placeholders and drops | Generic "what is missing" phrasing |
+| Q50 | Carry the split-large-file reminder as a standing conditional sentence in the body | The implement-missing body and its line-budget sentence | Matches the prompt need; no file scan, no second copy of the 650 threshold | Tool scans for over-650 files and adds it only then |
+| Q51 | Context `draft, requirement, design, plan, validation_plan` for the variant | Context documents for the implement-missing body | The body points at the validation plan, so that file joins the reading list; reuses the check and commit set | Keep the four implement documents |
+| Q52 | Apply the variant at workflow steps 8 and 11, keyed by the step status | Trigger and menu entry for the implement-missing body | A `No` step surfaces at either row; both share the implement body and title read | Only step 8 |
 
 ## Implement-validate-group commit message
 
@@ -208,7 +216,7 @@ The plan step `x` is recomputed at startup on every run:
 
 Once `x` is fixed, the menu offers, labelled by the plan step `x`:
 
-- `implement-step.md` for step `x` (always).
+- `implement-step.md` for step `x` (always); on a `No` status its header, body and menu label switch to the `implement-missing-step.md` variant (see [Implementing missing work when a step validation reads No](#implementing-missing-work-when-a-step-validation-reads-no), Q46, Q47, Q48).
 - `implementation-check.md` for step `x` as well, when any tracked file outside `docs/` is changed in `git status` (Q20).
 - `group-commits-msg.md` as well, when the `Analysis of Step x` status line starts with `Yes` (step `x` is verified and ready to commit). The commit prompt is offered in a cached and a git-add-A variant chosen from the working-tree state:
   - cached files only: a `group-commits-msg.md (cached)` prompt.
@@ -310,6 +318,40 @@ Q44 asked whether a sub-step is a first-class cycle step or part of its parent. 
 ### Detecting the current step among its sub-steps
 
 Q45 asked how to read step 4 as current and offer its commit while 4A and 4B are empty. The decision is to key the parsed status by the full id, the fix for [The sub-step collision today](#the-sub-step-collision-today): `derive_x` reads the current id as the last id whose status is `Yes` in document order, offers implement, check and commit for it, and advances to the next id only once its `record step <id> validation` commit exists. Keyed by id, `Step 4B`'s `Not started` no longer overwrites `Step 4`'s `Yes`, so the group-commits prompt is offered for the finished step 4 while 4A and 4B stay pending. The int-keyed OR-merge was dropped because it still collapses 4, 4A and 4B into one step and would commit empty sub-steps.
+
+## Implementing missing work when a step validation reads No
+
+The implement cycle offers `implement-step.md` for step `x` on every run (see [Proposing the prompts for step x](#proposing-the-prompts-for-step-x)), with the body of [Naming the implement and check steps by their plan number](#naming-the-implement-and-check-steps-by-their-plan-number). That one body restates the whole step, even after [`implementation-check.md`](../instructions/implementation-check.md) has run, written "No, it is not implemented" on the `Analysis of Step x` status line, and filled a `### Missing work for Step x` section in the validation plan. A second implement body, the "implement missing" variant, points the LLM at that recorded gap instead of restating the whole step.
+
+### Trigger and menu entry for the implement-missing body
+
+The variant is selected by the `Analysis of Step x` status line, the same line `parse_validation_steps` already reads for `derive_x` (Q15, Q46): when that line starts with `No`, the implement entry becomes the implement-missing body; on any other status — the template placeholder of a never-checked step, or `Yes` — the plain implement body of [Naming the implement and check steps by their plan number](#naming-the-implement-and-check-steps-by-their-plan-number) stays. So `parse_validation_steps` records the `No` state of a step, not only its `Yes` state, keeping the placeholder and the `No` cases apart.
+
+The variant replaces the implement entry rather than adding a second one (Q47): on a `No` status the single implement choice `build_cycle_options` shows is relabelled `Implement missing for step <id>`, so the cycle keeps one implement action per menu state. The full-step prompt is still reached on a placeholder or `Yes` status, and the implement-missing body still covers a wide gap when the missing-work section is broad.
+
+The variant fires wherever the implement body is built for a step whose status reads `No`: the cycle implement (workflow step 8) and the post-commit implement of the next plan step (workflow step 11), since both rows share the same implement body and the same `read_step_title` read (Q33, Q52). The step status, not the workflow row, picks the body.
+
+### The implement-missing instruction file
+
+The variant points its header at a new instruction file, `instructions/implement-missing-step.md` (Q48), not at `implement-step.md`. That new file is short and references both [`implement-step.md`](../instructions/implement-step.md) and [`split-large-file.md`](../instructions/split-large-file.md): it tells the LLM to implement and/or split — never reduce — the missing work, the choice depending on the nature of the gap (write the missing code by the implement-step flow, or split an over-budget file by the split-large-file flow). The body and the Context still carry the per-step focus (the step name and the missing-work section), so the instruction file stays a thin pointer to the two flows rather than a copy of `implement-step.md`.
+
+### The implement-missing body and its line-budget sentence
+
+Only the body and the Context change from the plain implement step; they are stored as a second alternative for step 8 in `tools/prompt_workflow.steps.json`, next to the plain implement body, and chosen in code by the `No` status (Q14). The cycle routes every implement action — the first-pass step-8 implement and the post-commit next-step implement — through that one step-8 config, so both pick the missing body on a `No` status (Q52). The body names the step the way the plain implement body does and points at the recorded gap (Q49):
+
+`Implement the missing work of step {x} "{title}" of the plan "{plan_doc}", focusing on the "Missing work for Step {x}" section of the validation plan, based on the design, the plan and the validation plan.`
+
+It keeps the `{x}`, `{title}` and `{plan_doc}` placeholders and the same segment-drop fallbacks as the plain implement body (Q34, Q35); the validation plan is always present for this variant, since the `No` status that triggers it is read from that plan.
+
+The body also carries a standing line-budget sentence (Q50), kept in the same body block after the line above, as an inline reminder of the split flow the instruction file describes:
+
+`If the missing work is a line-budget overflow, follow <prefix>/split-large-file.md and split the over-budget files line-wise; do not reduce or compress them.`
+
+The sentence is always present, not gated on a file scan: it does no harm when no file is over budget, the LLM acts on it only when a file passes the limit, and it reuses the header `<prefix>` (Q10), which already ends with the instructions directory, so the `split-large-file.md` path opens in both the llm-shared and the submodule layout. "Split, not reduce" keeps every responsibility of the over-budget file rather than trimming code to fit the 650-line limit.
+
+### Context documents for the implement-missing body
+
+The variant's Context lists the five documents the check and commit bodies already resolve, `draft, requirement, design, plan, validation_plan` (Q40, Q51), one more than the four of the plain implement body, because the body points at the validation plan's missing-work section and that file must be on the reading list. The plan is named in both the body and the Context, the same repetition the commit body already carries (Q40).
 
 ## Blank lines between prompt parts and the do-the-following colon
 
