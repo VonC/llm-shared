@@ -12,7 +12,11 @@ carrying the title and the plan document, with the title and plan-document drops
 (Q38-Q40). Also cover lettered sub-step ids: parsing keeps the full id, the
 derivation keeps a verified parent step from being hidden by a sub-step ``Not
 started``, the menu labels carry the id, and the title read tells a parent from
-its sub-step (Q41-Q45).
+its sub-step (Q41-Q45). Also cover the implement-missing variant: parsing records
+the ``No`` status apart from ``Not started`` (Q46), the cycle state carries it, the
+menu relabels the implement entry ``Implement missing for step <id>`` (Q47), and the
+prompt is built from the ``implement-missing-step.md`` step-8 alternative with the
+missing-work focus and the split-large-file line-budget reminder (Q48-Q52).
 """
 
 from __future__ import annotations
@@ -79,7 +83,7 @@ def test_parse_validation_steps() -> None:
     steps_found = plan.parse_validation_steps(_VALIDATION)
     assert steps_found == [
         PlanStep(number="0", verified=True),
-        PlanStep(number="1", verified=False),
+        PlanStep(number="1", verified=False, not_implemented=True),
         PlanStep(number="2", verified=False),
     ]
 
@@ -96,6 +100,20 @@ def test_parse_validation_steps_keeps_substep_ids() -> None:
         PlanStep(number="4", verified=True),
         PlanStep(number="4A", verified=False),
         PlanStep(number="4B", verified=False),
+    ]
+
+
+def test_parse_validation_steps_records_not_implemented() -> None:
+    """A 'No' status sets not_implemented; 'Not started' and a placeholder do not (Q46)."""
+    text = (
+        "### Analysis of Step 1 implementation state\n\nNo, it is not implemented.\n\n"
+        "### Analysis of Step 2 implementation state\n\nNot started.\n\n"
+        "### Analysis of Step 3 implementation state\n\n{placeholder}\n"
+    )
+    assert plan.parse_validation_steps(text) == [
+        PlanStep(number="1", verified=False, not_implemented=True),
+        PlanStep(number="2", verified=False, not_implemented=False),
+        PlanStep(number="3", verified=False, not_implemented=False),
     ]
 
 
@@ -170,6 +188,28 @@ def test_compute_cycle_classifies_working_tree(
     assert cycle.has_code_changes is True
     assert cycle.cached is True
     assert cycle.non_cached is True
+    assert cycle.not_implemented is False
+
+
+def test_compute_cycle_not_implemented(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """The cycle flags not_implemented when step x's status line starts with No (Q46)."""
+    validation = tmp_path / "plan.v9.8.0.iso.validation.md"
+    validation.write_text(
+        "### Analysis of Step 1 implementation state\n\nNo, it is not implemented.\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(plan.git, "has_step_commit", lambda _root, _n, _base: False)
+    monkeypatch.setattr(plan.git, "status_entries", lambda _root: [])
+
+    cycle = plan.compute_cycle(tmp_path, _state(validation_plan=validation), "base")
+
+    assert cycle is not None
+    assert cycle.x == "1"
+    assert cycle.verified is False
+    assert cycle.not_implemented is True
 
 
 def test_build_cycle_options_terminal() -> None:
@@ -233,6 +273,24 @@ def test_build_cycle_options_substep_label() -> None:
         "Implement step 4A",
         "Check step 4A",
     ]
+
+
+def test_build_cycle_options_implement_missing() -> None:
+    """A 'No' status relabels the implement entry and flags the missing action (Q47)."""
+    cycle = plan.CycleState(
+        x="2",
+        verified=False,
+        terminal=False,
+        has_code_changes=False,
+        cached=False,
+        non_cached=False,
+        not_implemented=True,
+    )
+    options = plan.build_cycle_options(cycle)
+    assert [label for label, _ in options] == ["Implement missing for step 2"]
+    action = options[0][1]
+    assert action.kind == "implement"
+    assert action.missing is True
 
 
 def _cycle(**overrides: object) -> plan.CycleState:
@@ -360,6 +418,33 @@ def test_build_cycle_prompt_without_plan_document(tmp_path: Path) -> None:
 
     assert "Implement step 2 of the plan, based on the design and the plan." in implement_prompt
     assert "Check step 2 implementation, based on the plan and the validation plan." in check_prompt
+
+
+def test_build_cycle_prompt_implement_missing(tmp_path: Path) -> None:
+    """The implement-missing prompt focuses on the missing work and carries the split reminder (Q48-Q51)."""
+    config = steps.load_steps()
+    topic = Topic(version="v9.8.0", slug="iso", draft_path=tmp_path / "docs" / "draft.v9.8.0.iso.md")
+    state = _prompt_state(tmp_path)
+    state.plan.write_text("### Step 2. Reporter routing\n", encoding="utf-8")
+    action = plan.CycleAction(kind="implement", stage_all=False, missing=True)
+
+    prompt, workflow_step, instruction = plan.build_cycle_prompt(
+        "llm-shared/instructions", config, tmp_path, topic, state, _cycle(), action,
+    )
+
+    assert instruction == "implement-missing-step.md"
+    assert "llm-shared/instructions/implement-missing-step.md" in prompt
+    assert (
+        'Implement the missing work of step 2 "Reporter routing" of the plan '
+        '"docs/plan.v9.8.0.iso.md", focusing on the "Missing work for Step 2" section '
+        "of the validation plan, based on the design, the plan and the validation plan."
+    ) in prompt
+    assert (
+        "follow llm-shared/instructions/split-large-file.md and split the over-budget "
+        "files line-wise; do not reduce or compress them."
+    ) in prompt
+    assert "docs/plan.v9.8.0.iso.validation.md" in prompt
+    assert workflow_step == _IMPLEMENT_STEP
 
 
 def test_read_step_title_heading_and_separators(tmp_path: Path) -> None:

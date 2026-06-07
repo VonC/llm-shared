@@ -83,6 +83,11 @@
           "instruction": "implement-step.md",
           "body": "Implement step {x} \"{title}\" of the plan \"{plan_doc}\", based on the design and the plan.",
           "context": ["draft", "requirement", "design", "plan"]
+        },
+        {
+          "instruction": "implement-missing-step.md",
+          "body": "Implement the missing work of step {x} \"{title}\" of the plan \"{plan_doc}\", focusing on the \"Missing work for Step {x}\" section of the validation plan, based on the design, the plan and the validation plan.\n\nIf the missing work is a line-budget overflow, follow {prefix}/split-large-file.md and split the over-budget files line-wise; do not reduce or compress them.",
+          "context": ["draft", "requirement", "design", "plan", "validation_plan"]
         }
       ]
     },
