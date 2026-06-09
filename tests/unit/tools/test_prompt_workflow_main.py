@@ -5,6 +5,10 @@ and ordering, the menu options, and the run/main entry points across the
 no-topic, cancelled, mismatched-memory and happy paths. Also cover the cycle
 introduction line shown above a non-terminal menu and skipped on a terminal one
 (Q33, Q36, Q37).
+
+Fix (branch lock): cover the auto-lock that skips the topic menu when the memory
+still matches one detected topic on the branch, the ``--pick`` flag that reopens
+the menu, and the flag threading through ``run`` and ``main`` (Q53).
 """
 
 from __future__ import annotations
@@ -161,6 +165,35 @@ def test_choose_topic_single_and_menu(monkeypatch: pytest.MonkeyPatch) -> None:
     assert prompt_workflow.choose_topic([_OTHER, _TOPIC], None, "main") == _OTHER
 
 
+def test_choose_topic_locks_to_memory(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A memory matching one of several topics auto-selects it, no menu (Q53)."""
+    record = MemoryRecord(branch="main", version="v9.8.0", topic="iso")
+    messages: list[str] = []
+    monkeypatch.setattr(
+        prompt_workflow.menu,
+        "select",
+        lambda message, _options: messages.append(message),
+    )
+
+    # The locked topic is returned and the menu is never shown.
+    assert prompt_workflow.choose_topic([_OTHER, _TOPIC], record, "main") == _TOPIC
+    assert messages == []
+
+
+def test_choose_topic_pick_forces_menu(monkeypatch: pytest.MonkeyPatch) -> None:
+    """--pick reopens the menu even when the memory matches a topic (Q53)."""
+    record = MemoryRecord(branch="main", version="v9.8.0", topic="iso")
+    monkeypatch.setattr(
+        prompt_workflow.menu,
+        "select",
+        lambda _message, options: options[0][1],
+    )
+
+    # With pick, the menu is shown; _order_topics floats the match to the front.
+    chosen = prompt_workflow.choose_topic([_OTHER, _TOPIC], record, "main", pick=True)
+    assert chosen == _TOPIC
+
+
 def test_build_menu_options_with_and_without_current() -> None:
     """Menu options prepend the repeat row only when a current step exists."""
     current = StepAlternative(4, "write-design.md", "b", ("draft",))
@@ -271,6 +304,32 @@ def test_run_with_mismatched_memory(
 
     assert prompt_workflow.run(tmp_path) == 0
     assert all("Repeat" not in label for label in labels)
+
+
+def test_run_locks_topic_to_memory(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """With several topics, a matching memory skips the topic menu (Q53)."""
+    record = MemoryRecord(
+        branch="main",
+        version="v9.8.0",
+        topic="iso",
+        step=4,
+        instruction="write-design.md",
+    )
+    messages: list[str] = []
+
+    def select(message: str, options: list[tuple[str, object]]) -> object:
+        messages.append(message)
+        return options[-1][1]
+
+    _wire_run(monkeypatch, tmp_path, topics=[_TOPIC, _OTHER], record=record, select=select)
+
+    assert prompt_workflow.run(tmp_path) == 0
+    # Only the step menu is shown; the topic menu is skipped by the lock.
+    assert all("Choose the general topic" not in message for message in messages)
+    assert (tmp_path / "a.prompt.txt").exists()
 
 
 _CYCLE = CycleState(
@@ -445,16 +504,32 @@ def test_run_implement_cycle_terminal_skips_intro(
 
 
 def test_main_uses_root_argument(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
-    """The --root argument is passed through to run."""
-    seen: dict[str, Path] = {}
+    """The --root argument is passed through to run; pick defaults to False."""
+    seen: dict[str, object] = {}
 
-    def fake_run(root: Path) -> int:
+    def fake_run(root: Path, *, pick: bool = False) -> int:
         seen["root"] = root
+        seen["pick"] = pick
         return 0
 
     monkeypatch.setattr(prompt_workflow, "run", fake_run)
     assert prompt_workflow.main(["--root", str(tmp_path), "--debug"]) == 0
     assert seen["root"] == tmp_path.resolve()
+    assert seen["pick"] is False
+
+
+def test_main_pick_flag(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """The --pick flag is forwarded to run as pick=True (Q53)."""
+    seen: dict[str, object] = {}
+
+    def fake_run(root: Path, *, pick: bool = False) -> int:
+        seen["root"] = root
+        seen["pick"] = pick
+        return 0
+
+    monkeypatch.setattr(prompt_workflow, "run", fake_run)
+    assert prompt_workflow.main(["--root", str(tmp_path), "--pick"]) == 0
+    assert seen["pick"] is True
 
 
 def test_main_defaults_to_found_root(
@@ -463,7 +538,7 @@ def test_main_defaults_to_found_root(
 ) -> None:
     """Without --root the project root is discovered."""
     monkeypatch.setattr(prompt_workflow, "find_project_root", lambda _start: tmp_path)
-    monkeypatch.setattr(prompt_workflow, "run", lambda _root: 0)
+    monkeypatch.setattr(prompt_workflow, "run", lambda _root, *, pick=False: 0)  # noqa: ARG005
     assert prompt_workflow.main([]) == 0
 
 
