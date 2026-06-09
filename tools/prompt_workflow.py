@@ -4,9 +4,10 @@ Generate the next-step LLM prompt for the current general topic and copy it to
 the clipboard.
 
 From the project root, the tool detects the relevant drafts on the current
-branch, resolves the general topic, derives the workflow state from the
-documents on disk and the persisted step, offers an interactive menu to repeat
-the current step or pick a next step, then builds the prompt, writes it to
+branch, resolves the general topic (auto-selecting the one the memory locks to
+the branch, unless ``--pick`` reopens the menu, Q53), derives the workflow state
+from the documents on disk and the persisted step, offers an interactive menu to
+repeat the current step or pick a next step, then builds the prompt, writes it to
 ``a.prompt.txt``, copies it to the clipboard (falling back to stdout), and
 records the chosen step in ``a.prompt_memory``.
 
@@ -128,14 +129,46 @@ def _order_topics(
     return preferred + others
 
 
-def choose_topic(
+def _locked_topic(
     topics: list[Topic],
     record: MemoryRecord | None,
     branch: str,
 ) -> Topic | None:
-    """Return the chosen topic: the only one, or the user's menu pick (or None)."""
+    """Return the topic the memory still locks to on this branch, or None (Q53).
+
+    Topics are unique by version and slug, so at most one matches the record.
+    """
+    matches = [topic for topic in topics if _memory_matches(record, topic, branch)]
+    return matches[0] if matches else None
+
+
+def choose_topic(
+    topics: list[Topic],
+    record: MemoryRecord | None,
+    branch: str,
+    *,
+    pick: bool = False,
+) -> Topic | None:
+    """Return the chosen topic: the only one, the branch-locked one, or a menu pick.
+
+    A single detected topic is used directly. Otherwise, when ``pick`` is False and
+    the memory still matches one detected topic on this branch, that topic is
+    auto-selected and the menu is skipped (the branch lock, Q53); a one-line notice
+    names it and points at ``pw --pick`` to choose another. With ``pick`` True, or
+    when no memory matches, the menu is shown with the matching topic listed first.
+    """
     if len(topics) == 1:
         return topics[0]
+    if not pick:
+        locked = _locked_topic(topics, record, branch)
+        if locked is not None:
+            LOGGER.info(
+                "Topic %s %s locked to branch %s; run pw --pick to choose another.",
+                locked.version,
+                locked.slug,
+                branch,
+            )
+            return locked
     ordered = _order_topics(topics, record, branch)
     options = [(f"{topic.version} {topic.slug}", topic) for topic in ordered]
     return menu.select("Choose the general topic:", options)
@@ -224,8 +257,12 @@ def _run_implement_cycle(
     return 0
 
 
-def run(root: Path) -> int:
-    """Drive one interactive run: resolve topic, pick a step, deliver the prompt."""
+def run(root: Path, *, pick: bool = False) -> int:
+    """Drive one interactive run: resolve topic, pick a step, deliver the prompt.
+
+    With ``pick`` True the topic menu is always shown, even when the memory locks a
+    topic to this branch, so a different topic can be chosen (Q53).
+    """
     branch = git.current_branch(root)
     topics = docs.relevant_drafts(root, root)
     if not topics:
@@ -233,7 +270,7 @@ def run(root: Path) -> int:
         return 0
 
     record = memory.read_memory(root)
-    topic = choose_topic(topics, record, branch)
+    topic = choose_topic(topics, record, branch, pick=pick)
     if topic is None:
         LOGGER.info("No general topic selected; exiting.")
         return 0
@@ -289,6 +326,11 @@ def _get_arg_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Enable debug logging.",
     )
+    parser.add_argument(
+        "--pick",
+        action="store_true",
+        help="Reopen the topic menu even when a topic is locked to the branch.",
+    )
     return parser
 
 
@@ -298,7 +340,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     _configure_logging(debug=args.debug)
     root = Path(args.root).resolve() if args.root else find_project_root(Path.cwd())
-    return run(root)
+    return run(root, pick=args.pick)
 
 
 def _log_fatal(err: Exception) -> NoReturn:
