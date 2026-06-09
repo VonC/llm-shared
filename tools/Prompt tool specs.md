@@ -54,7 +54,17 @@ A draft is relevant only when it is modified in the working tree (git status) or
 
 ### Choosing among several drafts
 
-If you have several drafts, you should propose to choose one of them as the general topic for the prompt. If there is only one draft, you should use it as the general topic for the prompt. Once a choice is done, persist it in a (project root folder)/a.prompt_memory file, so that the next time the tool is used, it can directly propose to continue with the same general topic, or to choose another one if there are several.
+If you have several drafts, you should propose to choose one of them as the general topic for the prompt. If there is only one draft, you should use it as the general topic for the prompt. Once a choice is done, persist it in a (project root folder)/a.prompt_memory file, so that the next time the tool is used on the same branch it reuses the same general topic without asking again, the branch lock of [Locking the topic to the branch](#locking-the-topic-to-the-branch) (Q53).
+
+### Locking the topic to the branch
+
+Once a general topic is recorded in `a.prompt_memory`, the next run on the same branch reuses it without showing the topic menu, as long as the memory still matches one detected draft by branch, version and slug (Q53). The tool prints a one-line notice naming the locked topic, so the skipped menu is never silent:
+
+```text
+Topic v9.9.0 cleanup_fixes locked to branch cleanup_fixes; run pw --pick to choose another.
+```
+
+A single detected draft is still used directly, since there is nothing to lock against. The lock releases on its own when the memorized draft no longer matches the detected ones — a different branch, a removed draft, or a new version — and the menu comes back. To switch topics while the lock holds, run `pw --pick`: it reopens the menu with the locked topic listed first and pre-highlighted, and the new choice becomes the next lock. The flag has no effect when a single draft leaves nothing to choose.
 
 ### Matching documents to the general topic
 
@@ -139,7 +149,7 @@ The document-producing steps (requirement at step 1, design at step 4, plan at s
 
 ### Startup validation logic for the memory file
 
-If a.prompt_memory file already exists, the tool should check if the branch memorized in it is still the current branch, and if the general topic is still relevant (the draft file still exists and is still modified or created since the start of the branch). If not, it should propose to choose another general topic among the relevant ones, or to exit saying that no general topic is relevant anymore or detected. If the branch and general topic are still relevant, it should propose to continue with the same general topic, or to choose another one among the relevant ones, or to exit (ESC to exit).
+If a.prompt_memory file already exists, the tool should check if the branch memorized in it is still the current branch, and if the general topic is still relevant (the draft file still exists and is still modified or created since the start of the branch). If not, it should propose to choose another general topic among the relevant ones, or to exit saying that no general topic is relevant anymore or detected. If the branch and general topic are still relevant, the tool reuses the memorized topic without asking, the branch lock of [Locking the topic to the branch](#locking-the-topic-to-the-branch), and prints the lock notice (Q53); `pw --pick` reopens the menu to continue with another relevant topic or to exit (ESC to exit).
 
 ## Design decisions
 
@@ -199,6 +209,7 @@ The table summarizes the choices made from the answered questions Q01 to Q52, th
 | Q50 | Carry the split-large-file reminder as a standing conditional sentence in the body | The implement-missing body and its line-budget sentence | Matches the prompt need; no file scan, no second copy of the 650 threshold | Tool scans for over-650 files and adds it only then |
 | Q51 | Context `draft, requirement, design, plan, validation_plan` for the variant | Context documents for the implement-missing body | The body points at the validation plan, so that file joins the reading list; reuses the check and commit set | Keep the four implement documents |
 | Q52 | Apply the variant at workflow steps 8 and 11, keyed by the step status | Trigger and menu entry for the implement-missing body | A `No` step surfaces at either row; both share the implement body and title read | Only step 8 |
+| Q53 | Auto-select the memorized topic on the same branch, `pw --pick` to reopen the menu | Locking the topic to the branch | Once chosen, the topic sticks per branch so the menu stops asking; the flag and the self-release on mismatch keep an escape hatch | Keep proposing the menu every run; a `locked=true` memory flag |
 
 ## Implement-validate-group commit message
 
