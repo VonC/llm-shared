@@ -13,7 +13,7 @@ Start with a general short confirmation in the first `## Analysis of Step x Impl
 
 Then, in case it is fully implemented, write also a sub-section `### Architecture check for Step x`, in which you assess if you detect any DDD-Hexagonal (adapters-ports) architecture violation or smell, any layer using other layers it should not, or other internal lib it should not. In particular, is there any class which is importing another class it should not (either a layer importing another wrong layer, or importing a technical lib when it should be business-only). Is there any function whose intent should not be in a particular class or layer?
 
-Follow the template defined in [`implementation-step-analysis.template.md`](../templates/implementation-step-analysis.template.md).
+Follow the per-step section structure defined in [`write-plans.validation.template.md`](../templates/write-plans.validation.template.md), which is the template of the `docs\plan.vX.Y.Z.<topic>.validation.md` document you update.
 
 `a.diff` in your context is updated: do you see any DDD-Hexagonal smell or violation?
 
