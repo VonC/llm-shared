@@ -316,7 +316,6 @@ rules/                                    shared writing and code-style rules
 └─ preserve_code.md                       never truncate code when rewriting
 templates/                                shared markdown templates referenced by instructions/
 ├─ group-commits-msg.template.md          a.commit file format for grouped commits
-├─ implementation-step-analysis.template.md output structure for implementation-check
 ├─ open-question.template.md              Qxx/BBQ/Options block for review skills
 ├─ prepare-release-notes.version-txt.template.txt version.txt release-notes summary skeleton
 ├─ write-design.template.md               design document skeleton
