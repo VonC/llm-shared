@@ -251,6 +251,10 @@ build tooling.
 
 ---
 
+## Groundhog: the pytest reset loop
+
+The test side of the workflow is driven by groundhog (`ghog`), one tool replacing the old `ptr`/`pta`/`pts` aliases: `ghog day` walks compile check, affected tests, then the full suite with a fresh coverage measure, stopping at the first non-green step with the exact fix to apply; `ghog init` registers the fixing loop in a project for both Claude Code (`/groundhog`) and ChatGPT Codex (AGENTS.md section plus a `/groundhog` custom prompt). The full manual is [GROUNDHOG.md](GROUNDHOG.md).
+
 ## Contents
 
 ### Agent entry points
@@ -297,6 +301,7 @@ context.
 ```txt
 instructions/                             shared skill bodies (one file per skill)
 ├─ consolidate-then-review-ask-questions.md
+├─ groundhog.md                           the groundhog fixing loop (see GROUNDHOG.md)
 ├─ group-commits-msg.md
 ├─ implement-step.md
 ├─ implementation-check.md
@@ -330,6 +335,7 @@ scripts/                                  shared helper scripts grouped by skill
 tools/
 ├─ git_batch_commit.py                    validate and replay grouped commits
 ├─ git_command.py                         local cross-platform Git helper
+├─ groundhog/                             pytest reset tool behind ghog/ptr/pta/ptanc/pts (see GROUNDHOG.md)
 └─ uv_run.py                              cert-aware uv launcher (personal/corporate networks)
 senv.bat                                  local shell aliases for the tooling
 ```
@@ -543,6 +549,7 @@ command name and the instruction file name are always the same.
 | Analysis and review prompts | draft | Copilot (VS Code), Claude Code (VS Code + CLI) | Covers API review, plan checks, discussions, and issue work. |
 | Step-based skills and agent | draft | Copilot (VS Code), Claude Code (VS Code + CLI) | Includes step implementation, implementation checks, and file splitting. |
 | Local helper scripts | draft | Windows (`cmd.exe` with Doskey) | Includes `senv.bat`, `git_batch_commit.py`, and `git_command.py`. |
+| Groundhog pytest loop | draft | Claude Code (VS Code + CLI), ChatGPT Codex | `ghog day` walk, `ghog init` registration, LLM fixing loop; see `GROUNDHOG.md`. |
 
 ---
 
@@ -562,11 +569,13 @@ the shared skill bodies. The Doskey aliases are documented in detail in
 | `gate test` | A failing test added before the implementation step that makes it pass. |
 | `gcba` | Doskey alias to `git_batch_commit.py --root-a-commit`; validates and replays `a.commit`. |
 | `gcmp` | Doskey alias to `group_commit_message_prompt.py`; writes `a.diff` and the clipboard prompt. |
+| `ghog` | Doskey alias to `bin\ghog.bat`, the groundhog pytest reset tool; `ghog day` walks check + affected + full, `ghog init` registers the LLM fixing loop (see `GROUNDHOG.md`). |
 | `gp` | Local Doskey alias to `git push`. |
 | `grmc` | Local Doskey alias to `git-reword-merge.sh`; rewrites the current merge commit. |
-| `pta` | Doskey alias to `pytest --testmon --no-header --no-cov -rxX`; reruns the focused tests for pass/fail, coverage off, recorded `.coverage` untouched. |
-| `pts` | Doskey alias to `pytest --no-header --no-cov -rxX <path>`; runs a single named test, coverage off, recorded `.coverage` untouched. |
-| `ptr` | Doskey alias that resets `.testmondata` then reruns the suite with coverage; full coverage pass, run by the user by hand only. |
+| `pta` | Doskey alias to `ghog affected`: testmon-selected tests with appended coverage, key=value report, exit-code contract. |
+| `ptanc` | Doskey alias to `ghog affected --no-cov`: the fast focused pass with coverage off. |
+| `pts` | Doskey alias to `ghog single <test files>`: named test files in focus, coverage off, compared with the last full-run baseline. |
+| `ptr` | Doskey alias to `ghog full`: resets `.testmondata`, reruns the suite with coverage against the gate; the objective verdict. |
 | `Qxx` block | An open-question block appended by the review skills (options + recommended choice). |
 | `ruffc` | Doskey alias to `ruff check`. |
 | `vX.Y.Z` | Working version slug used in every artifact filename (draft, requirement, design, plan). |

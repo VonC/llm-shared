@@ -192,9 +192,10 @@ The rest of this document assumes those macros are available.
 The Doskey macros and the `senv.bat` wrapper are Windows-only. The
 Python entry points they call (`tools\group_commit_message_prompt.py`,
 `tools\git_batch_commit.py`, `tools\coverage_gap_functions.py`,
-`tools\git_command.py`) run on Linux and macOS as well; wire them into
-bash functions or shell aliases as needed. The slash commands and the
-skill bodies in `instructions\` do not depend on Windows at all.
+`tools\git_command.py`, `tools\groundhog\cli.py`) run on Linux and macOS
+as well; wire them into bash functions or shell aliases as needed. The
+slash commands and the skill bodies in `instructions\` do not depend on
+Windows at all.
 
 ## Local command reference for this workflow
 
@@ -208,27 +209,64 @@ skill bodies in `instructions\` do not depend on Windows at all.
   `gbc`, `gcbr`, `gbcr`, `gcab`, and `gbca` are the same family of helpers.
 - `ruffc`: Doskey alias to `ruff check`. Use it right after code generation
   or manual edits.
-- `pta`: Doskey alias to
-  `pytest --testmon --no-header --no-cov -rxX`.
-  It reruns only the tests affected by the current changes and reports pass
-  or fail. `--no-cov` turns coverage off, which overrides the `--cov`,
-  `--cov-report`, and `--cov-fail-under=100` defaults in `pyproject.toml`, so
-  the run never rewrites the recorded `.coverage` and never fails on the
-  100% gate. Use it to confirm the focused tests are green, not to read a
-  coverage report.
-- `pts`: Doskey alias to `pytest --no-header --no-cov -rxX`. Same coverage-off
-  behaviour as `pta`, but without `--testmon`: pass the exact test paths to run
-  one test, one class, or one file. It does not erase the recorded coverage.
-- `ptr`: Doskey alias to
-  `del .testmondata 2>nul & pytest --testmon --no-header --cov-report term-missing:skip-covered`.
-  It resets `testmon` state and reruns the suite with the coverage report. This
-  is the full coverage recording pass, and the user runs it by hand only: it is
-  slow and burns tokens, so the step flow relies on `pta` and `pts` instead.
+- `ghog`: Doskey alias to `bin\ghog.bat`, the groundhog pytest reset tool that
+  backs every pytest alias below. `ghog day` walks the whole chain — check,
+  affected tests, full suite with coverage — stopping at the first non-green
+  step; `ghog init` registers the LLM fixing loop in a consuming project. The
+  manual is [GROUNDHOG.md](GROUNDHOG.md).
+- `ptanc`: Doskey alias to `ghog affected --no-cov`. It reruns only the tests
+  affected by the current changes (testmon) and reports pass or fail, coverage
+  off, so the run stays fast and never fails on the 100% gate. Use it to
+  confirm the focused tests are green, not to read a coverage report.
+- `pta`: Doskey alias to `ghog affected`. Same testmon selection, with
+  appended coverage: this is how a coverage gap is re-verified after adding
+  tests, without paying a full run; when it reports the gate is reached, no
+  `ptr` is needed.
+- `pts`: Doskey alias to `ghog single <test files>`. Runs the named test
+  files in focus, coverage off, and compares the result with the failing
+  tests of the last full run (`a.ghog.failures`), splitting plain failures
+  from test-interaction suspects.
+- `ptr`: Doskey alias to `ghog full`. It resets `.testmondata` and reruns the
+  suite with the coverage report measured against the gate. Still the slow,
+  authoritative pass — but its output is now budgeted (progress lines and a
+  final report instead of raw pytest output), so the LLM fixing loop can run
+  it through `ghog day` instead of leaving it to the user only.
 - `covg`: alias to
   `python "tools\coverage_gap_functions.py" $*`.
   It maps uncovered coverage lines to the enclosing function or method, adds
   branch context when possible, logs the report, and copies a ready-to-paste
-  test coverage prompt to the clipboard.
+  test coverage prompt to the clipboard. On a coverage gap (`exit=3`), ghog
+  replays the term-missing rows whose `Missing` column is exactly the covg
+  input.
+
+## Groundhog: the test loop behind the pytest aliases
+
+All the pytest aliases above are one tool, groundhog, and `ghog day` is the
+single command that walks them in order, gating each step on the previous
+one:
+
+```txt
+   +---------------------------------+
+   |  ghog day                       |
+   +-------+-------------------------+
+           |
+           |  check.bat              (exit 0, no ERROR lines)
+           |  ptanc                  (affected tests green)
+           |  ptr                    (full suite green, cov at gate)
+           v
+   +---------------------------------+
+   |  exit 0: objective reached      |
+   |  (else: stop at the first       |
+   |   non-green step, with the      |
+   |   exact fix to apply)           |
+   +---------------------------------+
+```
+
+An LLM can drive the same walk in a fixing loop — run `ghog day`, apply the
+fix the report names, run it again — registered per project with `ghog init`
+for both Claude Code (`/groundhog`) and ChatGPT Codex. The exit codes, the
+report grammar, the coverage-gap flow with `covg`, and the registration are
+all detailed in [GROUNDHOG.md](GROUNDHOG.md).
 
 ## Draft capture for a feature or fix
 
@@ -643,9 +681,9 @@ fully completed implementation step.
    +-------+-------------------------+
            |
            |  ruffc                  (lint pass)
-           |  pta                    (focused tests pass/fail)
+           |  ptanc                  (focused tests pass/fail)
            |  pts <path>             (single test, when needed)
-           |  ptr                    (manual only, by the user)
+           |  ptr / ghog day         (full pass, budgeted output)
            v
    +---------------------------------+
    |  step N green                   |
@@ -680,16 +718,18 @@ fully completed implementation step.
 2. Run `/implement-step <step-number>` with the plan, design, and related
   requirement documents in context.
 3. Run `ruffc`.
-4. Run `pta` to confirm the focused tests (created, modified, or impacted by
+4. Run `ptanc` to confirm the focused tests (created, modified, or impacted by
   the step) pass. It prints no coverage, so it stays fast and leaves the
   recorded `.coverage` untouched.
 5. Run `pts <test path>` when you want a single test, class, or file on its
-  own. It is coverage-off too, so it never erases the recorded coverage.
-6. `ptr` is the full coverage recording pass. The user runs it by hand only,
-  because it is slow and token-heavy, so the step flow does not call it. After
-  the user produces a fresh `.coverage` with `ptr`, `covg` can map the missing
-  lines to the enclosing functions and build a clipboard prompt for the
-  smallest tests still needed.
+  own. It is coverage-off too, and it compares the result with the failing
+  tests of the last full run.
+6. `ptr` (or the whole `ghog day` walk) is the full coverage pass. It is still
+  the slow step, but its output is budgeted — progress lines and a final
+  report instead of raw pytest output — so an LLM can run it too. On a
+  coverage gap it replays the uncovered lines; `covg` maps them to the
+  enclosing functions and builds a clipboard prompt for the smallest tests
+  still needed, re-verified with `pta` only (see [GROUNDHOG.md](GROUNDHOG.md)).
 7. Once the code and tests are green, run `/implementation-check` with the
   step number, version, topic, relevant markdown docs, and `a.diff` when
   available.
@@ -733,7 +773,7 @@ Repeat this sequence until every planned step is committed in your branch.
            |
            |  git fetch
            |  git rebase origin/main
-           |  c (python_check) + pta + ptr
+           |  ghog day (check + ptanc + ptr)
            v
    +---------------------------------+
    |  branch rebased and green       |
@@ -785,11 +825,12 @@ merge commit exists, and rerun the same checks you used during step execution.
 
 1. Run `git fetch` to refresh your remote references.
 2. Run `git rebase origin/main` and resolve any conflict before continuing.
-3. Run `c`, which is the local Doskey alias to `bin\python_check.bat`.
-4. Run `pta` to confirm the focused tests pass. The full coverage pass at
-  merge time is `ptr`, which the user runs by hand: it resets `.testmondata`,
-  reruns the whole suite with the coverage report, and is the one place the
-  100% gate from `pyproject.toml` is checked before the merge.
+3. Run `ghog day`: it walks the compile check (check.bat), the affected tests
+  without coverage, and the full suite with the coverage report — stopping at
+  the first non-green step with the fix to apply. This is the one place the
+  100% gate from `pyproject.toml` is checked before the merge; the individual
+  aliases (`c`, `ptanc`, `ptr`) remain available to re-run a single step (see
+  [GROUNDHOG.md](GROUNDHOG.md)).
 
 ### Create the merge commit on main
 
