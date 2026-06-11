@@ -28,6 +28,7 @@
     }
   ],
   "cSpell.words": [
+    "behaviour",
     "cffi",
     "frontmatter",
     "gbcr",
@@ -36,21 +37,32 @@
     "gcbav",
     "gcbr",
     "gcmp",
+    "ghog",
+    "glovebox",
+    "greppable",
     "grmc",
+    "INTERNALERROR",
     "itsdangerous",
+    "lastfailed",
+    "loopable",
+    "macrofile",
     "markupsafe",
     "monkeypatched",
     "noninteractive",
+    "parseability",
     "passlib",
     "pcomp",
     "psync",
+    "ptanc",
     "ptncs",
     "pycparser",
     "pyrb",
+    "robustification",
     "techo",
     "tset",
     "ultrathink",
     "unaliased",
-    "uvloop"
+    "uvloop",
+    "xdist"
   ]
 }
