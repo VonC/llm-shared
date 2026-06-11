@@ -25,3 +25,9 @@ oqm="%LLM_SHARED_DIR%\bin\oqm.bat" $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: 
 pw="%LLM_SHARED_DIR%\bin\pw.bat" $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: prompt workflow done
 
 pwi=set "PW_PROFILE=1"$t"%LLM_SHARED_DIR%\bin\pw.bat" $*$tset "PW_PROFILE="$techo %PRJ_DIR_NAME%: prompt workflow profiled
+
+ghog="%LLM_SHARED_DIR%\bin\ghog.bat" $*
+ptr="%LLM_SHARED_DIR%\bin\ptr.bat" $*
+pta="%LLM_SHARED_DIR%\bin\pta.bat" $*
+ptanc="%LLM_SHARED_DIR%\bin\ptanc.bat" $*
+pts="%LLM_SHARED_DIR%\bin\pts.bat" $*
