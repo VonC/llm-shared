@@ -55,7 +55,10 @@ Every implemented step should be reviewed against this bound in its Performance 
 
 ### Missing work for Step N
 
-To be done only if the first sentence of the all step N sections is "No, it is not implemented". Otherwise, skip this section.
+{Omit this whole section when writing the initial empty skeleton of this document: no check has taken place yet, since no step is implemented. Only an implementation check that concludes "No, it is not implemented" adds this section, as the work list of the missing elements; the check that later finds the step implemented removes it again.}
+
+- {Missing element 1: code, test, wiring, or a file over the line budget — concrete enough to implement without re-deriving the analysis}.
+- {Missing element 2}.
 
 ### New types or classes introduced for Step N
 
