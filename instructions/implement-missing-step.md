@@ -8,14 +8,18 @@ Include "Step XXXX" in the title of this conversation (replace XXXX with the ste
 
 The missing work falls into two kinds, and one step may need both. Decide, for each item of the `Missing work for Step N` list, which kind it is, then apply the matching flow:
 
-- missing code or tests: follow [`implement-step.md`](implement-step.md) and write only what the `Missing work for Step N` section reports as absent. Run `check.bat` (or `c`) until it is clean, then run the focused `pta` tests as that instruction describes.
+- missing code or tests: follow [`implement-step.md`](implement-step.md) and write only what the `Missing work for Step N` section reports as absent. Verify with one `ghog day` walk as that instruction describes — do not run `check.bat` or `pytest` directly; groundhog is in charge of check and tests.
 - a file over the line budget: follow [`split-large-file.md`](split-large-file.md) and split the over-budget file by responsibility. Split it, do not reduce it: never trim code, docstrings or comments to fit the 650-line limit. Splitting keeps every responsibility in its own smaller file; reducing would drop behaviour the step still needs.
 
 When a step is incomplete only because a file grew too big, the split alone closes the gap. When code or tests are genuinely absent, write them. When both are true, split first so the new code lands in a file that is already under budget.
 
+Both flows end with a `ghog day` walk, and that is fine: a walk right after a green one, with no file changed since, is a noop (one notice, exit 0), so duplicate groundhog calls cost nothing.
+
 ## Project rules for the missing-work step
 
 Read first your project instructions (`CLAUDE.md`; `copilot-instructions.md` for Copilot users).
+
+Do not update the validation plan itself: its `Missing work for Step N` list is this step's input, and recording the new state of the step is the separate implementation-check step.
 
 Then, if you have files under the `src\` or `tools\` folder or subfolders in your context, check that those Python files end with `# eof`. If they do not, stop right there and list those incomplete files. If they do, go on.
 

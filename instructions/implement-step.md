@@ -4,13 +4,15 @@ Include "Step XXXX" in the title of this conversation (replace XXXX with the ste
 
 Read carefully the markdown files in your context to understand the context.
 
-Based on the design markdown and the plan markdown, follow instructions from [`implement-plan.prompt.md`](../.github/prompts/implement-plan.prompt.md), and implement step XXXX (see your prompt), doing a `check.bat` to see if there is any error or linter warning to fix, then (once there is no more error or warning), running `pta` to check that the focused tests pass. Focused tests are the tests created, modified, or impacted by this step. See [Run the focused tests with pta](#run-the-focused-tests-with-pta) below for the exact command and why it is coverage-safe.
+Based on the design markdown and the plan markdown, follow instructions from [`implement-plan.prompt.md`](../.github/prompts/implement-plan.prompt.md), and implement step XXXX (see your prompt). Once the implementation is done, verify it with one groundhog walk — `ghog day` — which runs check.bat, the focused tests, and the full coverage pass in order and stops at the first non-green step with the fix to apply. Do not call `check.bat` or `pytest` directly: groundhog is in charge of check and tests. See [Verify the step with groundhog](#verify-the-step-with-groundhog) below.
 
 Make sure no new computation would introduce any O(n^2) or O(n log(n)) process.
 
 Make sure DDD-Hexagonal architecture is strictly respected: no violation, no smell.
 
 Make sure no existing feature or reporting capability is impaired.
+
+Do not update the validation plan (`docs\plan.vX.Y.Z.<topic>.validation.md`): recording the step's state there is the separate implementation-check step. This step writes code and tests only.
 
 Each new test must follow the convention `...\tests\unit\xxx\yyy\...\test_filename\test_filename_tdd.py`, and you must check if a pbt is needed as well. And do not forget the `__init__.py` to create or to update, for test and non-test code.
 
@@ -22,18 +24,17 @@ Preserve existing code and docstrings and comments; only update them to explain 
 
 When writing an answer in markdown, follow instructions from [`markdown.md`](../rules/markdown.md).
 
-## Run the focused tests with pta
+## Verify the step with groundhog
 
-At the end of the step, once `check.bat` (or `c`) is clean, run `pta` to check that the focused tests pass. Focused tests are the tests created, modified, or impacted by this step.
+At the end of the step, run `ghog day` once — the groundhog walk (manual in [`GROUNDHOG.md`](../GROUNDHOG.md), fixing loop in [`groundhog.md`](groundhog.md)). It runs, in order, stopping at the first non-green step:
 
-`pta` is `pytest --testmon --no-header --no-cov -rxX`:
+- check.bat: the compile and lint gate;
+- `ghog affected --no-cov` (the old ptanc): the focused tests — created, modified, or impacted by this step — selected by testmon, coverage off;
+- `ghog full` (the old ptr): the full suite with a fresh coverage measure against the gate.
 
-- `--testmon` selects only the tests affected by the changes, so the run stays on the focused tests.
-- `--no-cov` turns coverage off. It overrides the `--cov=tools`, `--cov-report`, and `--cov-fail-under=100` defaults from `pyproject.toml`, so the run reports pass or fail, does not rewrite the `.coverage` the user already recorded, and does not fail on the 100% gate.
+Apply the fix named by the final report, then run `ghog day` again, until it reports the objective (`exit=0`). When the full run lists failing files, run `ghog single <those files>` first, as the report says: it separates the tests still failing in focus (fix first) from the ones failing only in the full suite (test interaction, fix second).
 
-To run one test, one class, or one file on its own, use `pts <test path>`, which is `pytest --no-header --no-cov -rxX <path>`. It is coverage-off too, so it never erases the recorded coverage.
-
-Do not run the full coverage pass during the step. `ptr` (`del .testmondata & pytest --testmon --no-header --cov-report term-missing:skip-covered`) records full coverage, but the user runs it by hand only: it is too slow and uses too many tokens for the step flow. Never call a plain `pytest`, or any command that records coverage without `--cov-append`, because the `--cov=tools` default would erase the coverage the user already recorded.
+Never run `check.bat` or a plain `pytest` yourself: groundhog owns check and tests, budgets their output for the token window, and protects the recorded coverage (a plain `pytest` would erase it through the `--cov` defaults of `pyproject.toml`). The historical aliases (`ptr`, `pta`, `ptanc`, `pts`) route to groundhog subcommands, so the report's next-step instructions are the only commands you need.
 
 ## Reach 100% coverage on each unit-tested class
 

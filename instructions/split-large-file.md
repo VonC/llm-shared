@@ -43,21 +43,16 @@ For each class rewritten, check also if the imports for that class are compliant
 
 Diagnostic:
 
-- execute `check.bat` (from the root of the project) to check that all compiler and linters passes without errors. If there is an error, fix it and run `check.bat` again until it passes without errors. Ignore any "Check for files too big" error from check.bat, as it is expected in this case.
+- execute `ghog day` (from the root of the project): the groundhog walk runs check.bat, the tests affected by the split, and the full suite with coverage, stopping at the first non-green step with the fix to apply. Do not call `check.bat` or `pytest` directly; groundhog is in charge of check and tests (see [`GROUNDHOG.md`](../GROUNDHOG.md) and [`groundhog.md`](groundhog.md)).
 
   ```bat
   cd "%PRJ_DIR%"
-  check.bat
+  ghog day
   ```
 
-- once there is no more error, execute pytest on the modified files to check that all tests pass. If there is an error, fix it and run pytest again until all tests pass.
+- a "Check for files too big" failure from check.bat is expected while the split is in progress (the original file still exists): finish the split first, then run `ghog day` again.
 
-  ```bat
-  cd "%PRJ_DIR%"
-  pytest <modified_file_or_folder>
-  ```
-
-Repeat those two steps until there is no more error and all tests pass.
+Repeat fix-and-walk until `ghog day` reports the objective (`exit=0`).
 
 Finally, prepare a commit message following the structure described in [`write-commit-message.prompt.md`](../.github/prompts/write-commit-message.prompt.md), with a "Why:" section having two detailed parts (multiple sentences per part) using specific terms (no generalities). Consider for that commit message only the files you have modified as part of your split, and not any other file in your context that you have not modified. Do not mention in the commit message any file you have not modified, even if it is in your context.
 
