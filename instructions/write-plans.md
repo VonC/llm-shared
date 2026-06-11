@@ -36,9 +36,9 @@ Add to the plan a compact "line budget checkpoint" checklist to each step so it 
 
 Add in each step a reference to a new section which describes how to do the "execution command checklist" per step (count lines before/after, run targeted tests, run grep check). That way, you can detail that process, while mutualizing it for all steps, and reference it in each step.
 
-Mutualize your "ready-to-run-command", and add a reference to it in each step. Said command must include `.\check.bat` and pytest on the step's tests: do both until everything passes.
+Mutualize your "ready-to-run-command", and add a reference to it in each step. Said command is one `ghog day` walk — groundhog runs check.bat, the step's affected tests, and the full coverage pass in order, stopping at the first non-green step (see `GROUNDHOG.md`) — repeated fix-and-walk until it reports the objective. Do not plan direct `check.bat` or `pytest` calls; groundhog is in charge of check and tests.
 
-Prepare also a `docs\plan.vX.Y.Z.{topic}.validation.md` skeleton (similar to `docs\plan.v8.11.perf_complexity.validation.md`), with subsections Goal for step x (you can fill out this one), "Step x improvement expectations" (you can fill out this one), "What was implemented for Step x" (leave it empty for now), "New types/classes introduced for Step x" (leave it empty), "Architecture check for Step x" (empty), "Performance check for step" (empty), "Feature integrity for step" (empty).
+Prepare also a `docs\plan.vX.Y.Z.{topic}.validation.md` skeleton (similar to `docs\plan.v8.11.perf_complexity.validation.md`), with subsections Goal for step x (you can fill out this one), "Step x improvement expectations" (you can fill out this one), "What was implemented for Step x" (leave it empty for now), "New types/classes introduced for Step x" (leave it empty), "Architecture check for Step x" (empty), "Performance check for step" (empty), "Feature integrity for step" (empty). Do not include a "Missing work for Step x" section in the skeleton: no check has taken place yet, and only an implementation check that concludes "No, it is not implemented" adds that section.
 
 Follow the steps detailed in `docs\plan.vX.Y.Z.{topic}.md`.
 

@@ -130,9 +130,9 @@ Apply this checklist for every numbered step, filling in the step-specific paths
 Use these template forms in each step, substituting actual paths.
 
 - Line count before: `{line-count command}`
-- Targeted tests: `{pytest command}`
+- Targeted tests: `ghog single {step test files}` (groundhog runs the tests; never a direct `pytest`)
 - Grep checks: `{rg command}`
-- Shared gate loop: `{focused tests}; {repo gate command}`
+- Shared gate loop: `ghog day`, repeated fix-and-walk until it reports the objective (`exit=0`): check.bat, affected tests, full suite with coverage, in order
 - Line count after: `{line-count command}`
 
 ---
@@ -197,7 +197,7 @@ Step framing:
 
 **Completion criteria**:
 
-- `{pytest command}`.
+- `ghog day` reports the objective (`exit=0`).
 - `{rg command}`.
 - {Observable outcome that proves the step is done}.
 
