@@ -102,7 +102,10 @@ if defined PYTHON_BIG_FILE_LINE_LIMIT (
   set "python_big_file_msg= (default: 700 lines, set PYTHON_BIG_FILE_LINE_LIMIT to override)"
 )
 %_info% "Check for files too big in '%PRJ_DIR%\tools' and '%PRJ_DIR%\tests' %python_big_file_msg%"
-find tools tests -name "*.py" -print0 | xargs -0 wc -l | awk "$1 > %python_big_file_line_limit% && $2 != \"total\" { print $0; found=1 } END { if (found) exit 1 }"
+REM Python instead of find/xargs/wc/awk: on a PATH where System32 precedes
+REM Git usr\bin, `find` is the Windows text-search tool, the pipeline scans
+REM nothing and the check passes vacuously ("Access denied - TOOLS").
+python -c "import pathlib,sys; limit=int(sys.argv[1]); rows=[(sum(1 for _ in p.open(encoding='utf-8', errors='ignore')), p) for root in sys.argv[2:] for p in pathlib.Path(root).rglob('*.py')]; bad=[(n,p) for n,p in rows if n>limit]; [print(f'{n:6} {p}') for n,p in bad]; sys.exit(1 if bad else 0)" %python_big_file_line_limit% tools tests
 set "big_file_status=%ERRORLEVEL%"
 if "%big_file_status%"=="0" (
   %_ok% "No big files found in project '%PRJ_DIR_NAME%'"
@@ -148,14 +151,15 @@ if defined failed_steps (
 
 if defined did_push popd
 
+if defined failed_steps %_error% "Check failed for project '%PRJ_DIR_NAME%' with status '%check_status%'."
+
+REM Preserve the exit code across the cleanup: :check_unset clears
+REM check_status, so stash it first; the last line clears the stash and
+REM exits with it in one go (cmd expands the line before running it).
+set "check_exit=%check_status%"
 call :check_unset
-
-if defined failed_steps (
-  %_error% "Check failed for project '%PRJ_DIR_NAME%'. Failed steps: %failed_steps%"
-  exit /b %check_status%
-)
-
-exit /b 0
+if "%check_exit%"=="" set "check_exit=0"
+set "check_exit=" & exit /b %check_exit%
 goto:eof
 
 ::##################################################
