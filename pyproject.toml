@@ -51,7 +51,8 @@ omit = [
     "*/typing/protocols.py",    # Pure type definitions
     "*/constants.py",           # Static variables
     "*/uv_run.py",              # Thin subprocess wrapper around the external uv binary
-    "*/prompt_workflow_menu.py" # Thin questionary wrapper; needs a TTY to exercise
+    "*/prompt_workflow_menu.py", # Thin questionary wrapper; needs a TTY to exercise
+    "*/groundhog/render.py"     # Thin tqdm wrapper; needs a TTY to exercise
 ]
 
 [tool.coverage.report]
@@ -224,6 +225,7 @@ dev = [
     "pytest-watcher",
     "radon",
     "ruff",
+    "tqdm",
     "ty>=0.0.30",
     "uv",
     "vulture",
@@ -239,5 +241,6 @@ exclude = [
     "venvs",
     ".venv",
     "whitelist.py",
-    "tools/prompt_workflow_menu.py"  # optional questionary dep; UI seam, see pyright/coverage
+    "tools/prompt_workflow_menu.py",  # optional questionary dep; UI seam, see pyright/coverage
+    "tools/groundhog/render.py"  # dynamic tqdm import; UI seam, see coverage omit
 ]
