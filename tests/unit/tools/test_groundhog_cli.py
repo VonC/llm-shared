@@ -6,6 +6,10 @@ and the user-mode bar flow against a fake bar.
 
 Fix: follow the cli.py line-budget split — the classification, reason,
 label and postfix helpers now live in ``tools.groundhog.commands``.
+
+Fix: the bar finish now tops the bar off — a completed run fills it to
+the collected total even when some result lines escaped the parser, and
+a crashed run only catches up to the parsed count; both paths covered.
 """
 
 from __future__ import annotations
@@ -19,6 +23,7 @@ from tools.groundhog.models import (
     EXIT_SETUP_ERROR,
     EXIT_SUITE_CRASH,
     EXIT_TEST_FAILURES,
+    PYTEST_INTERNAL_ERROR,
     PYTEST_NO_TESTS,
     PYTEST_USAGE_ERROR,
     Mode,
@@ -35,6 +40,7 @@ if TYPE_CHECKING:
 _GATE_FULL = 100.0
 _GATE_LOW = 90.0
 _TWO_TESTS = 2
+_THREE_TESTS = 3
 
 
 class _FakeProcess:
@@ -265,6 +271,44 @@ def test_user_mode_drives_the_bar(
     assert bars[0].closed is True
     assert bars[0].postfixes[-1] == "fail=0 warn=0 xfail=0 cov=100"
     assert "exit=0" in capsys.readouterr().out
+
+
+def test_user_mode_tops_off_the_bar_on_completion(tmp_path: Path) -> None:
+    """A finished run fills the bar to the collected total (Q20).
+
+    The third result line carries a parameterized node id with a space,
+    which the parser pattern does not count; the final top-off still
+    leaves the bar at 100%.
+    """
+    lines = [
+        "collected 3 items",
+        "tests/test_a.py::test_one PASSED [ 33%]",
+        "tests/test_a.py::test_two PASSED [ 66%]",
+        "tests/test_a.py::test_three[two words] PASSED [100%]",
+        "TOTAL    10    0   100%",
+        "====== 3 passed in 0.10s ======",
+    ]
+    bars: list[_FakeBar] = []
+    deps = _deps(lines, 0, bars)
+    code = cli.main(["full", "--root", str(tmp_path), "--user"], deps)
+    assert code == EXIT_OBJECTIVE_MET
+    assert sum(bars[0].updates) == _THREE_TESTS
+    assert bars[0].closed is True
+
+
+def test_user_mode_keeps_the_bar_short_on_a_crash(tmp_path: Path) -> None:
+    """A crashed run closes the bar at the parsed count, not full (Q06)."""
+    lines = [
+        "collected 3 items",
+        "tests/test_a.py::test_one PASSED [ 33%]",
+        "INTERNALERROR> Traceback (most recent call last):",
+    ]
+    bars: list[_FakeBar] = []
+    deps = _deps(lines, PYTEST_INTERNAL_ERROR, bars)
+    code = cli.main(["full", "--root", str(tmp_path), "--user"], deps)
+    assert code == EXIT_SUITE_CRASH
+    assert sum(bars[0].updates) == 1
+    assert bars[0].closed is True
 
 
 def test_affected_no_cov_failure_message(

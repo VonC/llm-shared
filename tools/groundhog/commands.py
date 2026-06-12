@@ -53,6 +53,8 @@ class _Progress:
     In LLM mode the cadence governor decides when a key=value line goes
     out (Q04, Q16). In user mode a tqdm bar advances per finished test
     and its postfix carries the same counters to the end of the run (Q20).
+    A run that ended without crashing tops the bar off to its total, so
+    the bar always closes full instead of just short of 100%.
     """
 
     def __init__(self, invocation: Invocation, deps: Deps) -> None:
@@ -87,15 +89,28 @@ class _Progress:
                 self._seen = stats.done
             self._bar.set_postfix_str(postfix(stats))
 
-    def finish(self, stats: RunStats) -> None:
-        """Close the user bar with the final counters (Q20).
+    def finish(self, stats: RunStats, *, completed: bool) -> None:
+        """Top the bar off and close it with the final counters (Q20).
+
+        The per-test advances can undercount: a ``-v`` result line whose
+        node id contains spaces (a parameterized test) escapes the parser
+        pattern. A run that ended without crashing therefore fills the
+        bar to its total before closing, so it reads 100% instead of
+        stopping just short; a crashed run only catches up to the parsed
+        count, keeping the bar honest about the interruption (Q06).
 
         Args:
             stats: The final counters of the run.
+            completed: Whether the child ended without crashing.
         """
-        if self._bar is not None:
-            self._bar.set_postfix_str(postfix(stats))
-            self._bar.close()
+        if self._bar is None:
+            return
+        target = stats.total if completed else stats.done
+        if target > self._seen:
+            self._bar.update(target - self._seen)
+            self._seen = target
+        self._bar.set_postfix_str(postfix(stats))
+        self._bar.close()
 
 
 def run_check(invocation: Invocation, deps: Deps) -> int:
@@ -171,7 +186,7 @@ def run_tests(invocation: Invocation, deps: Deps) -> int:
         popen_factory=deps.popen_factory,
     )
     result = runner.run_pytest(config, progress.update)
-    progress.finish(result.stats)
+    progress.finish(result.stats, completed=not result.crashed)
     if invocation.sub == runner.SUB_FULL and not result.crashed:
         baseline.write_baseline(invocation.root, result.stats.failed_ids)
     gate_value = (
