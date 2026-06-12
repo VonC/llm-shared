@@ -253,7 +253,7 @@ build tooling.
 
 ## Groundhog: the pytest reset loop
 
-The test side of the workflow is driven by groundhog (`ghog`), one tool replacing the old `ptr`/`pta`/`pts` aliases: `ghog day` walks compile check, affected tests, then the full suite with a fresh coverage measure, stopping at the first non-green step with the exact fix to apply; `ghog init` registers the fixing loop in a project for both Claude Code (`/groundhog`) and ChatGPT Codex (AGENTS.md section plus a `/groundhog` custom prompt). The full manual is [GROUNDHOG.md](GROUNDHOG.md).
+The test side of the workflow is driven by groundhog (`ghog`), one tool replacing the old `ptr`/`pta`/`pts` aliases: `ghog day` walks compile check, affected tests, then the full suite with a fresh coverage measure, stopping at the first non-green step with the exact fix to apply; `ghog init` registers the fixing loop in a project for both Claude Code (`/groundhog`) and ChatGPT Codex (AGENTS.md section plus a `/groundhog` custom prompt). LLM-driven runs go through a project-root `a.ghog.log` (overwritten per run, never deleted): the model branches on exit codes and reads only the log tail, while the user follows the run live from a second console; direct console runs keep the usual stdout. The full manual is [GROUNDHOG.md](GROUNDHOG.md).
 
 ## Contents
 

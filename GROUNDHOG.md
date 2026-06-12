@@ -88,6 +88,8 @@ The walk never fixes anything: it walks, gates, and reports. The fixing belongs 
           coverage not higher), and never beyond 10 iterations
 ```
 
+The walk is also the loop's only re-entry point. After a fix, the next command is `ghog day` itself — never a standalone subcommand run first as a confirmation: a `ghog check` right before a walk pays check.bat twice, since the walk opens with that same check. The subcommands the branches name (`ghog single`, `ghog affected --no-cov`, covg plus `ghog affected`) are inner verifiers, cheaper than a walk while one branch is being fixed, and each inner loop ends by handing back to `ghog day`. One exception closes the loop without a walk: on the coverage branch, `ghog affected` reaching the gate plus a single green `ghog check` meets the objective.
+
 ## Subcommands and console aliases
 
 | Alias | Subcommand | Behavior |
@@ -132,6 +134,20 @@ The mode is picked by TTY auto-detection, with `--user` and `--llm` force flags:
 
 Both modes end with the same next-step message and closing line, so a user reading over the LLM's shoulder sees the same numbers.
 
+## The LLM redirect: a.ghog.log
+
+The redirect lives in the invocation, not in the tool. [instructions/groundhog.md](instructions/groundhog.md) makes every LLM-driven ghog call one redirected shell call — `cmd /d /c "<llm-shared>\bin\ghog.bat <subcommand> > a.ghog.log 2>&1"` — while ghog itself keeps writing to stdout: a user typing `ghog day` in a console sees the usual bar and report, with no log file involved.
+
+The redirected form buys three things at once:
+
+- **A small token bill.** Whatever a harness captures from a command lands in the LLM context and stays there for every later turn of the loop. Redirected, a run hands back only its exit code; the model branches on it and reads just the log tail — the last 5 lines on a green run (closing and nag lines), the last 100 on a stop. Ten loop iterations cost ten bounded tail reads instead of ten full reports sitting in the conversation.
+- **Live following.** A harness shows a command's output only once the call returns; the log fills while the run progresses. Watching `a.ghog.log` from a second console shows the LLM-mode progress lines in real time — the same numbers the model itself skips.
+- **Truncation immunity.** When a sandboxed harness cuts long output, the full report still sits on disk; the tail read never loses the verdict lines at the end of the report.
+
+Lifecycle of the file: each run overwrites it (`>`, not append), so its tail is always the current run; it is never deleted, so the last report stays readable after the loop ends; the `a.*` ignore pattern keeps it out of git; and the day snapshot never digests it (Python files and gate configuration only), so writing it cannot re-arm a walk.
+
+covg runs are the one exception: their output is exactly the data the model needs in full, so they are never redirected.
+
 ## What success looks like
 
 A green `ghog day` walk prints one closing line per step and ends on the full run's objective report:
@@ -150,14 +166,16 @@ The nag line appears only on success, when warnings or expected failures remain 
 
 | Stop | Report carries | Next-step message |
 | --- | --- | --- |
-| check.bat failing | the check.bat output | `Next: fix the compile errors above, re-run ghog check` |
-| affected failing | full failure context | `Next: fix these, re-run ghog affected --no-cov until green, then ghog full` |
+| check.bat failing | the check.bat output | `Next: fix the compile errors above, re-run ghog day (the walk opens with this check)` |
+| affected failing | full failure context | `Next: fix these, re-run ghog affected --no-cov until green, then ghog day` |
 | full failing | full tracebacks, baseline written to `a.ghog.failures` | `Next: ghog single <failing test files>` |
-| focus run (`ghog single`) | the two lists: still failing in focus (fix first), passing in focus but failing in the full suite (interaction suspects, fix second) | `Stay on ghog single until green, then restart at ghog check` |
+| focus run (`ghog single`) | the two lists: still failing in focus (fix first), passing in focus but failing in the full suite (interaction suspects, fix second) | `Stay on ghog single until green, then restart the walk: ghog day` |
 | coverage gap | the term-missing rows under `Uncovered lines` — the covg input | `Next: covg <file> <ranges> ... add tests, verify with ghog affected` |
 | affected at the gate | — | `Coverage gate reached - no ghog full needed; finish with ghog check (new tests are code too)` |
 | crash | last 5 started tests, stack tail | the immediate-fix instruction: make the suite robust against that exception |
 | nothing affected | — | `0 tests ran in this step (testmon: nothing affected since the last run) - treated as green` |
+
+Every next-step message that follows a fix names `ghog day` directly (Q30): the walk is the loop's only re-entry point and its first step is the check, so no standalone `ghog check` run is ever needed before it (see [instructions/groundhog.md](instructions/groundhog.md)).
 
 ## Registering groundhog in a project: ghog init
 
@@ -195,7 +213,7 @@ Codex sandbox notes, also spelled out in the instruction file:
 
 - ghog and covg calls need real filesystem access (senv.bat reads user-profile paths); run them with escalated (approved) execution from the start.
 - Output containing `Access is denied`, `gum choose` or `Unable to create virtual env` means the sandbox blocked senv.bat: re-run the exact same command escalated; never debug senv.bat, never create a virtual environment, never pick a Python version.
-- When the harness truncates long output, redirect one run to a log and read its tail, then delete the log.
+- Harness output truncation is a non-event: every LLM-driven run is redirected to `a.ghog.log` by the standard invocation form, so the full report is always on disk; the model reads the tail and never deletes the file.
 
 ## Coverage gaps and covg
 
@@ -215,7 +233,7 @@ covg names the enclosing functions and branches of those lines and builds a read
 | `a.ghog.failures` | the failing node ids of the last full run, the focus-comparison baseline; emptied on a green full run |
 | `a.ghog.day.ok` | the source snapshot of the last green `ghog day` walk; an unchanged snapshot makes the next walk a noop |
 | `pyproject.toml` / `.coveragerc` / `setup.cfg` | where the coverage gate (`fail_under`) is read from, default 100 |
-| `a.ghog.log` (optional) | the redirect target suggested to sandboxed harnesses; delete it when the loop ends |
+| `a.ghog.log` | the redirect target of every LLM-driven run; overwritten per run, never deleted, so the user can follow the loop live (direct human runs keep stdout) |
 
 All of them are covered by the usual `a.*` and `.testmondata*` ignore patterns.
 
