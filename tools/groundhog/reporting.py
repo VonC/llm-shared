@@ -5,6 +5,12 @@ lines (Q16), the progress cadence governor (Q04), the next-step messages of
 the run-state table, the crash block (Q06), the focus comparison lists
 (Q07) and the warnings nag line (Q09). Everything here is pure text
 building, so the whole report contract is unit-testable.
+
+Every next-step message that follows a fix names ``ghog day`` as the
+restart (Q30): the walk is the loop's only re-entry point and opens with
+the compile check, so the older ``re-run ghog check`` wording made a real
+session pay check.bat twice — once standalone, once inside the resumed
+walk.
 """
 
 from __future__ import annotations
@@ -30,7 +36,10 @@ SILENCE_FLOOR_SECONDS: Final = 60.0
 
 # Next-step messages of the run-state table in the spec.
 MSG_CHECK_OK: Final = "Next: ghog affected --no-cov"
-MSG_CHECK_FAIL: Final = "Next: fix the compile errors above, re-run ghog check"
+MSG_CHECK_FAIL: Final = (
+    "Next: fix the compile errors above, re-run ghog day "
+    "(the walk opens with this check)"
+)
 MSG_CHECK_MISSING: Final = (
     "check.bat not found - skipped; pytest collection will catch compile errors"
 )
@@ -48,7 +57,7 @@ MSG_DAY_NOOP: Final = (
     "do (use --force to walk anyway)"
 )
 MSG_AFFECTED_NOCOV_FAIL: Final = (
-    "Next: fix these, re-run ghog affected --no-cov until green, then ghog full"
+    "Next: fix these, re-run ghog affected --no-cov until green, then ghog day"
 )
 MSG_COVERAGE_GAP: Final = (
     "Next: covg <file> <ranges> to name the uncovered functions "
@@ -62,10 +71,10 @@ MSG_AFFECTED_COV_OK: Final = (
     "finish with ghog check (new tests are code too)"
 )
 MSG_SINGLE_RESTART: Final = (
-    "Stay on ghog single until green, then restart at ghog check"
+    "Stay on ghog single until green, then restart the walk: ghog day"
 )
 MSG_SINGLE_GREEN: Final = (
-    "Next: ghog check, then ghog affected --no-cov, then ghog full"
+    "Next: ghog day (the walk re-proves check, affected and full)"
 )
 MSG_NO_BASELINE: Final = (
     "no full-run baseline, comparison skipped; run ghog full for suite-level truth"
@@ -74,7 +83,7 @@ _MSG_CRASH_HEADER: Final = "ghog: the test suite crashed mid-run."
 _MSG_CRASH_INSTRUCTION: Final = (
     "Fix the test suite now: make it robust against this exception, based on "
     "the tests and stack above, so it cannot break the suite again. "
-    "Then re-run ghog check."
+    "Then re-run ghog day."
 )
 # Coverage placeholders of the closing line (Q16).
 COV_SKIPPED: Final = "skipped"

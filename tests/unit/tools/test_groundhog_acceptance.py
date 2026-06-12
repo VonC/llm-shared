@@ -126,7 +126,7 @@ def test_at4_green_focus_run_restarts_the_chain(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """AT4: a green focus run with a baseline restarts at check."""
+    """AT4: a green focus run restarts the walk with ghog day (Q30)."""
     baseline.write_baseline(tmp_path, ["tests/test_a.py::test_two"])
     transcript = [
         "collected 1 items",
