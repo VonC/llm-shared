@@ -94,7 +94,8 @@ The walk is also the loop's only re-entry point. After a fix, the next command i
 
 | Alias | Subcommand | Behavior |
 | --- | --- | --- |
-| (none) | `ghog day` | walk the chain: check, then `affected --no-cov`, then `full`, stopping at the first non-green step; a noop when nothing changed since the last green walk (`--force` overrides) |
+| (none) | `ghog day` | walk the chain: check, then `affected --no-cov`, then `full`, stopping at the first non-green step; a noop when nothing changed since the last green walk (`--force` overrides); `--detach` runs the walk as a survivor process polled through `ghog status` |
+| (none) | `ghog status` | replay the run lifecycle recorded in `a.ghog.status` without starting anything: the recorded exit code once done, 6 while a run is live, 7 when the last run is lost |
 | (none) | `ghog check` | run check.bat from the project root, exit code passed through |
 | ptr | `ghog full` | delete `.testmondata`, full suite with `--testmon` and coverage |
 | pta | `ghog affected` | testmon-selected tests, `--cov-append`, coverage report |
@@ -121,6 +122,8 @@ The keys are the contract; `cov=` reads `skipped` (not measured), `withheld` (fa
 | 3 | coverage gap | covg on the replayed Missing rows, add tests, `ghog affected` to the gate, `ghog check` |
 | 4 | suite crash | act on the crash block: make the suite robust against that exception |
 | 5 | environment or setup error | read the printed reason; looping cannot fix it |
+| 6 | a run is live (Q32) | wait; poll `ghog status` until `state=done`, start nothing |
+| 7 | the last run is lost (Q32) | only from `ghog status`: the run was killed or never recorded; relaunch `ghog day` |
 | other | `ghog check` passthrough | check.bat's own exit code: fix the compile errors |
 
 A check.bat that prints `ERROR :` lines yet exits 0 is treated as failed (exit 1) with an explicit mismatch notice, so a broken check script can never green-light the walk.
@@ -148,7 +151,37 @@ Lifecycle of the file: each run overwrites it (`>`, not append), so its tail is 
 
 The tool also backstops a forgotten redirect (Q31): when stdout turns out to be a harness capture — a pipe, or a regular file other than the project's own `a.ghog.log` — the run writes its full report to `a.ghog.log` anyway and hands the capture only an envelope: one notice naming the log, then the next-step and closing lines, so the caller still branches on the exit code without one unbounded line landing in its context. The senv.bat preamble of ghog.bat is parked in a side file, `a.ghog.senv.log`, that the tool replays into the report stream and deletes; ghog.bat types a leftover side file itself when the tool never ran, keeping the sandbox-block markers visible. The redirected call above stays the form to type — the guard is the safety net, not the contract.
 
-covg runs are the one exception: their output is exactly the data the model needs in full, so they are never redirected.
+covg runs are the one exception: their output is exactly the data the model needs in full, so they are never redirected. `ghog status` is the other one: its two-line envelope needs no redirect, and a redirect to `a.ghog.log` would truncate the live walk's log before the tool could refuse.
+
+## The run lifecycle: a.ghog.status and ghog status
+
+A growing `a.ghog.log` does not prove a walk is alive, and a quiet one does not prove it finished: a real session lost a walk to a harness tool timeout while the orphaned pytest child kept feeding the log, and the agent — left guessing from tail reads and process listings — replayed the whole walk. Completion is a file contract instead (Q32). Every run subcommand (check, full, affected, single, day) brackets itself in `a.ghog.status` at the project root, atomically:
+
+```txt
+my-project: ghog day state=running pid=18244 started=2026-06-12T20:40:12+02:00
+my-project: ghog day state=done exit=3 ended=2026-06-12T21:02:41+02:00
+```
+
+The `done` line lands on every exit path, a crashing run included; a hard kill is the one event that leaves `state=running` behind with a dead pid. `ghog status` reads that file — and nothing else — without starting anything:
+
+| ghog status sees | Exit | Meaning and next move |
+| --- | --- | --- |
+| `state=done exit=N` | N | the run finished; branch on N exactly like on a foreground walk, read the log tail |
+| `state=running`, pid alive | 6 | the run is still working; poll again, start nothing |
+| `state=running`, pid dead | 7 | the run was killed mid-walk; relaunch `ghog day` |
+| no status file | 7 | nothing recorded; run `ghog day` |
+
+The same exit 6 protects the walk itself: any run command started while another run is alive refuses before spawning anything, so a second walk can never truncate the first one's log or corrupt its testmon state.
+
+When the harness kills long calls (tool timeouts you do not control), run the walk detached:
+
+```txt
+cmd /d /c "..\llm-shared\bin\ghog.bat day --detach"
+```
+
+No redirect: the tool opens `a.ghog.log` itself for a survivor process — no console, broken away from the harness job object when allowed — folds the senv preamble in, waits for the child's first status write, and returns exit 6 at once. From there the loop is: poll `ghog status`, branch on its exit code. No timeout to pick, no upper bound to guess — across projects, a portable one does not exist.
+
+One caveat: a recycled pid can keep a killed run reading as live; that conservative verdict is broken by deleting `a.ghog.status`.
 
 ## What success looks like
 
@@ -216,6 +249,7 @@ Codex sandbox notes, also spelled out in the instruction file:
 - ghog and covg calls need real filesystem access (senv.bat reads user-profile paths); run them with escalated (approved) execution from the start.
 - Output containing `Access is denied`, `gum choose` or `Unable to create virtual env` means the sandbox blocked senv.bat: re-run the exact same command escalated; never debug senv.bat, never create a virtual environment, never pick a Python version.
 - Harness output truncation is a non-event: every LLM-driven run is redirected to `a.ghog.log` by the standard invocation form — and the Q31 guard writes the log even when the redirect was forgotten — so the full report is always on disk; the model reads the tail and never deletes the file.
+- Harness tool timeouts on long walks are covered by `ghog day --detach` plus `ghog status` polls (Q32): the walk runs as a survivor process the timeout cannot reach, and completion is read from `a.ghog.status`, never guessed from the log.
 
 ## Coverage gaps and covg
 
@@ -237,6 +271,7 @@ covg names the enclosing functions and branches of those lines and builds a read
 | `pyproject.toml` / `.coveragerc` / `setup.cfg` | where the coverage gate (`fail_under`) is read from, default 100 |
 | `a.ghog.log` | the redirect target of every LLM-driven run, written by the Q31 guard even when the caller forgot the redirect; overwritten per run, never deleted, so the user can follow the loop live (direct human runs keep stdout) |
 | `a.ghog.senv.log` | the parked senv.bat preamble of one ghog.bat call; replayed into the report stream and deleted by the tool, typed by ghog.bat itself when the tool never ran |
+| `a.ghog.status` | the run lifecycle line (Q32): `state=running pid=` while a run works, `state=done exit=` after; read by `ghog status` and by the live-run refusal; cleared by a detached launch before its spawn |
 
 All of them are covered by the usual `a.*` and `.testmondata*` ignore patterns.
 
@@ -248,9 +283,11 @@ All of them are covered by the usual `a.*` and `.testmondata*` ignore patterns.
 - **`cov=unread` with exit 5**: the coverage TOTAL line was missing from the pytest output; the gate cannot be judged, on purpose loudly.
 - **First run is slow**: the first `ghog affected` after a reset starts from an empty testmon database and runs everything once; that rebuild is what makes every later affected run cheap.
 - **`/groundhog` unknown in Codex**: re-run `ghog init` (it writes `~/.codex/prompts/groundhog.md` when `~/.codex` exists) and start a fresh session.
+- **The log kept growing after my command timed out, then went quiet without a report**: the harness killed the walk and an orphaned test runner kept writing until it finished; the walk is over only when `a.ghog.status` reads `state=done`. Run `ghog status`: exit 7 confirms the kill, and `ghog day --detach` relaunches out of the timeout's reach (Q32).
+- **Every ghog command answers `a run is already live (pid=...)` with exit 6**: a previous run is still working — poll `ghog status` instead of relaunching. If that pid is provably not a ghog run (a recycled pid), delete `a.ghog.status` and relaunch.
 
 ## Related groundhog documents
 
-- [tools/Pytest reset specs.md](tools/Pytest%20reset%20specs.md) — the full specification with its decision table (Q01-Q27) and acceptance tests (AT1-AT15).
+- [tools/Pytest reset specs.md](tools/Pytest%20reset%20specs.md) — the full specification with its decision table (Q01-Q32) and acceptance tests (AT1-AT19).
 - [instructions/groundhog.md](instructions/groundhog.md) — the fixing loop both LLM harnesses follow.
 - [DEVELOPMENT.md](DEVELOPMENT.md) — where the walk fits in the overall step-based workflow.
