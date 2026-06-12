@@ -7,3 +7,5 @@ Before any tool call that runs a shell command, follow `rules/run_commands.md`: 
 ## groundhog (pytest reset loop)
 
 To drive the test suite to its global objective (every test passing, coverage at the project gate), follow the instructions from `instructions/groundhog.md`. Trigger this whenever the user asks to run groundhog, ghog, or to fix tests and coverage.
+
+A walk is finished only when `a.ghog.status` at the project root reads `state=done` - a growing `a.ghog.log` proves nothing. Poll with `ghog status` (never redirected: exit 6 while the walk is live, 7 when it was killed), and when the harness can kill long calls, run the walk detached (`ghog day --detach`, no redirect) as that instruction describes - never size a timeout around a walk, never rerun one that may still be alive.
