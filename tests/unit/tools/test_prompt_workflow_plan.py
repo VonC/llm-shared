@@ -31,7 +31,8 @@ parsing, derivation, working-tree classification and menu scenarios.
 
 Fix (menu order): the cycle menu lists its options higher workflow step first —
 commit, then check, then implement — so the full and sub-step scenarios assert
-the reversed label order (Q54).
+the reversed label order (Q54). The implement-missing entry is the exception
+and tops the menu when a ``No`` status offers it (Q55).
 """
 
 from __future__ import annotations
@@ -291,6 +292,23 @@ def test_build_cycle_options_implement_missing() -> None:
     action = options[0][1]
     assert action.kind == "implement"
     assert action.missing is True
+
+
+def test_build_cycle_options_implement_missing_tops_menu() -> None:
+    """The implement-missing entry comes before the check when offered (Q55)."""
+    cycle = plan.CycleState(
+        x="2",
+        verified=False,
+        terminal=False,
+        has_code_changes=True,
+        cached=False,
+        non_cached=False,
+        not_implemented=True,
+    )
+    assert [label for label, _ in plan.build_cycle_options(cycle)] == [
+        "Implement missing for step 2",
+        "Check step 2",
+    ]
 
 
 # eof
