@@ -268,6 +268,15 @@ for both Claude Code (`/groundhog`) and ChatGPT Codex. The exit codes, the
 report grammar, the coverage-gap flow with `covg`, and the registration are
 all detailed in [GROUNDHOG.md](GROUNDHOG.md).
 
+In that LLM loop, no ghog output reaches the conversation: the instruction
+file routes every ghog call through `> a.ghog.log 2>&1` at the project root.
+The exit code alone drives the branching; the model then reads only the log
+tail (5 lines on green, 100 on a stop), so the chat context carries bounded
+tail reads instead of full reports. The log is overwritten by each run and
+never deleted — watch it from a second console to follow a run live. The
+redirect belongs to the LLM invocation only: ghog itself writes to stdout,
+and console runs (`ghog day`, `ptr`, `pta`, ...) are untouched.
+
 ## Draft capture for a feature or fix
 
 ```txt
