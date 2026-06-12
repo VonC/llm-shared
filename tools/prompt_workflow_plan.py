@@ -33,6 +33,11 @@ sets ``CycleAction.missing`` (Q47); and the prompt is built from the second step
 alternative, ``implement-missing-step.md``, which points at the validation plan's
 ``Missing work for Step x`` section and carries a split-large-file line-budget
 reminder interpolated with the header ``{prefix}`` (Q48-Q52).
+
+Fix (menu order): ``build_cycle_options`` lists the cycle options higher
+workflow step first — the commit variants (10), then the check (9), then the
+implement entry (8) — so the usual follow-up of the step just done is the
+pre-highlighted top row (Q54).
 """
 
 from __future__ import annotations
@@ -247,23 +252,16 @@ def compute_cycle(
 
 
 def build_cycle_options(cycle: CycleState) -> list[tuple[str, CycleAction]]:
-    """Return the menu options for the cycle, labelled by the plan step (Q17, Q20)."""
+    """Return the menu options for the cycle, labelled by the plan step (Q17, Q20).
+
+    The options are listed higher workflow step first — commit (10), then check
+    (9), then implement (8) — so the usual follow-up of the step just done sits
+    at the top of the menu, pre-highlighted (Q54).
+    """
     if cycle.terminal:
         return [("Prepare release notes", CycleAction(kind="release", stage_all=False))]
 
-    label = (
-        f"Implement missing for step {cycle.x}"
-        if cycle.not_implemented
-        else f"Implement step {cycle.x}"
-    )
-    options: list[tuple[str, CycleAction]] = [
-        (
-            label,
-            CycleAction(kind="implement", stage_all=False, missing=cycle.not_implemented),
-        ),
-    ]
-    if cycle.has_code_changes:
-        options.append((f"Check step {cycle.x}", CycleAction(kind="check", stage_all=False)))
+    options: list[tuple[str, CycleAction]] = []
     if cycle.verified:
         if cycle.cached:
             options.append(
@@ -276,6 +274,19 @@ def build_cycle_options(cycle: CycleState) -> list[tuple[str, CycleAction]]:
                     CycleAction(kind="commit", stage_all=True),
                 ),
             )
+    if cycle.has_code_changes:
+        options.append((f"Check step {cycle.x}", CycleAction(kind="check", stage_all=False)))
+    label = (
+        f"Implement missing for step {cycle.x}"
+        if cycle.not_implemented
+        else f"Implement step {cycle.x}"
+    )
+    options.append(
+        (
+            label,
+            CycleAction(kind="implement", stage_all=False, missing=cycle.not_implemented),
+        ),
+    )
     return options
 
 

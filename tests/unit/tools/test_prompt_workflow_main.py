@@ -9,6 +9,11 @@ introduction line shown above a non-terminal menu and skipped on a terminal one
 Fix (branch lock): cover the auto-lock that skips the topic menu when the memory
 still matches one detected topic on the branch, the ``--pick`` flag that reopens
 the menu, and the flag threading through ``run`` and ``main`` (Q53).
+
+Fix (menu order): the step menu lists its rows higher step number first, so the
+next-step rows come above the repeat-current row; the menu-options scenarios
+assert the descending order and the happy path picks the first row to advance
+(Q54).
 """
 
 from __future__ import annotations
@@ -195,7 +200,7 @@ def test_choose_topic_pick_forces_menu(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_build_menu_options_with_and_without_current() -> None:
-    """Menu options prepend the repeat row only when a current step exists."""
+    """Menu options list the higher step first; the repeat row follows (Q54)."""
     current = StepAlternative(4, "write-design.md", "b", ("draft",))
     nxt = [StepAlternative(8, "implement-step.md", "b", ("plan",))]
 
@@ -203,10 +208,22 @@ def test_build_menu_options_with_and_without_current() -> None:
     assert [label for label, _ in without] == ["Step 8: implement-step.md"]
 
     with_current = prompt_workflow.build_menu_options(current, nxt)
-    assert with_current[0][0] == "Repeat current step 4: write-design.md"
+    assert with_current[0][0] == "Step 8: implement-step.md"
     assert [label for label, _ in with_current] == [
-        "Repeat current step 4: write-design.md",
         "Step 8: implement-step.md",
+        "Repeat current step 4: write-design.md",
+    ]
+
+
+def test_build_menu_options_keeps_higher_current_first() -> None:
+    """A current step above the next one stays first: higher step first (Q54)."""
+    current = StepAlternative(7, "write-plans.md", "b", ("design",))
+    nxt = [StepAlternative(3, "consolidate-then-review-ask-questions.md", "b", ("draft",))]
+
+    labels = [label for label, _ in prompt_workflow.build_menu_options(current, nxt)]
+    assert labels == [
+        "Repeat current step 7: write-plans.md",
+        "Step 3: consolidate-then-review-ask-questions.md",
     ]
 
 
@@ -262,7 +279,11 @@ def test_run_happy_path_with_matching_memory(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    """A matching memory shows the repeat row and a chosen step is delivered."""
+    """A matching memory shows the repeat row and a chosen step is delivered.
+
+    The next-step row sits first (Q54), so picking the first row advances to
+    step 5 while the repeat row stays below it.
+    """
     record = MemoryRecord(
         branch="main",
         version="v9.8.0",
@@ -272,7 +293,7 @@ def test_run_happy_path_with_matching_memory(
     )
 
     def select(_message: str, options: list[tuple[str, object]]) -> object:
-        return options[-1][1]
+        return options[0][1]
 
     _wire_run(monkeypatch, tmp_path, topics=[_TOPIC], record=record, select=select)
 
