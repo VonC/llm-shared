@@ -51,6 +51,8 @@ Every LLM tool call runs in a fresh shell process, and sandboxed harnesses (the 
 
 The skill instruction file (Q13) must spell out this contract, so Claude and Codex both invoke the tool the self-contained way; when a sandbox blocks senv.bat side effects entirely, the run surfaces as exit code 5, the environment error (Q12), to be reported rather than looped on.
 
+The `a.ghog.log` redirect of the instruction file is part of that contract, and a real pdfsplitter session showed a docs-only contract does not survive a consumer project whose own instructions predate it: the agent ran `ghog day` unredirected five times, paying the full report per walk into its context and losing one run to a harness timeout. The tool therefore guards itself (Q31). When stdout is a harness capture — a pipe, or a regular file other than the project's `a.ghog.log` (some harnesses capture into a temp file) — the run writes its full report to `a.ghog.log` at the project root and hands the capture only an envelope: a notice naming the log, then the next-step, setup-reason, nag and closing lines, so exit-code branching and the next step never need a log read. A stdout that already is the project's `a.ghog.log` streams as before, the caller redirect and the guard landing in the same file; a terminal stays user mode (Q03). The senv.bat preamble of ghog.bat streams before the tool starts, so the wrapper parks it in a side file, `a.ghog.senv.log`, that cli.py replays into the report stream and deletes; a side file surviving the python call means the tool never ran, and the wrapper types it itself so the sandbox-block markers (`Access is denied`, `gum choose`) stay visible for the escalation rule.
+
 ## Constraints inherited from the tools package
 
 The tool follows the house style of the other `tools/` scripts: Python 3.13, `from tools import find_project_root` to locate the project root (with a `--root` override), `argparse` for arguments, message-only logging to stdout, a `# eof` final line, and unit tests reaching the repo 100% coverage gate. Its one runtime dependency is tqdm for the user-mode bar (Q20), isolated in a thin rendering wrapper excluded from coverage like `tools/uv_run.py`.
@@ -145,6 +147,7 @@ The tool is a package, `tools/groundhog/`, following the house constraints alrea
 - `baseline.py`: `a.ghog.failures` read/write and the focus comparison lists (Q07, Q18).
 - `gate.py`: coverage gate from `fail_under` in pyproject.toml, .coveragerc or setup.cfg, default 100 (Q14).
 - `reporting.py`: key=value progress and closing lines (Q16), progress cadence governor (Q04), next-step messages, crash block, nag line.
+- `redirect.py`: the Q31 self-redirect guard — capture detection (pipe or non-log file), the `a.ghog.log` file-handler swap, the envelope mirror behind `commands.emit_summary`, and the senv side-log replay.
 - `runner.py`: child-process spawning and live streaming (Q17), pytest command per subcommand, `.testmondata` reset for full runs.
 - `render.py`: the tqdm thin wrapper for user mode (Q20), excluded from coverage like `tools/uv_run.py`.
 - `cli.py`: argparse subcommands, TTY mode pick (Q03), orchestration and exit-code classification; runnable as a script via the sys.path bootstrap the other tools use.
@@ -172,6 +175,7 @@ The acceptance tests drive `cli.main` end to end; the one faked element is the p
 - AT15 nothing affected: an affected transcript running no tests (pytest exit 5) stays green, prints the explicit zero-test note (Q27), and the day walk continues to the full step.
 - AT16 day noop: a green day walk writes `a.ghog.day.ok`; an immediately repeated walk spawns no child and exits 0 with the noop notice; `--force` walks again; touching a Python file walks again; a failing walk records no snapshot (Q28).
 - AT17 colored check and encoding: a check transcript whose `ERROR :` lines are wrapped in ANSI color codes still trips the Q26 mismatch guard, the re-emitted lines carry no escape sequences, and a line with characters outside an ascii stdout stream is logged with placeholders instead of crashing the handler (Q29).
+- AT18 self-redirect guard: an LLM run whose stdout is a pipe or a capture file writes its full report to `a.ghog.log` and hands the captured stdout only the notice, next-step and closing lines; a stdout that already is the project log, a user-mode run, and an unwritable log all keep streaming as before, and the parked senv side log is replayed into the report stream then deleted (Q31).
 
 ## Design decisions for groundhog
 
@@ -209,6 +213,7 @@ The table summarizes the choices made from the answered questions Q01 to Q21, th
 | Q28 | A green `ghog day` records a source snapshot (`a.ghog.day.ok`); an unchanged snapshot makes the next walk a noop, `--force` overrides | CLI use without the loop | Chained instructions may each end with a walk; duplicates become free instead of a second full run | Always re-walk; rely on testmon selection alone (the full step resets it) |
 | Q29 | The check guard matches and re-emits ANSI-stripped lines; the stdout logger replaces unencodable characters | The ghog command and its subcommands | A colored check.bat hid its ERROR lines from the Q26 guard, and ty's box-drawing output crashed the cp1252 logging stream (both seen in one real run) | Match the raw colored lines; let encoding errors drop lines |
 | Q30 | Every post-fix next-step message names `ghog day`, the loop's only re-entry point | Next-step messages per run state | A real session obeyed `re-run ghog check`, then resumed the walk, paying check.bat twice; the walk opens with that same check | Keep the subcommand wording and translate it in the instruction files alone |
+| Q31 | An unredirected LLM run self-redirects: full report to `a.ghog.log`, envelope (notice, next-step, closing lines) to the captured stdout; ghog.bat parks the senv preamble in `a.ghog.senv.log` for the CLI to replay | Invoking groundhog from LLM shells | A real session ran the walk unredirected five times — the redirect contract lived in docs a stale consumer AGENTS.md overrode; a tool-side guard cannot be skipped | Docs-only contract; failing hard on a missing redirect |
 
 ## Questions
 
