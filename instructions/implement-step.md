@@ -4,7 +4,7 @@ Include "Step XXXX" in the title of this conversation (replace XXXX with the ste
 
 Read carefully the markdown files in your context to understand the context. Read them with your file tools, one document at a time — never by chaining an environment wrapper (such as `senv.bat`) with a file-dump command: the project environment is only for toolchain commands like `ghog`. For every shell command of this step, follow [`run_commands.md`](../rules/run_commands.md), so the first attempt is the one that works: one shell per command, no nested quoting, targeted reads, and no verbatim retry of a command that failed with a quoting or parse error.
 
-Based on the design markdown and the plan markdown, implement step XXXX (see your prompt). Once the implementation is done, verify it with one groundhog walk — `ghog day` — which runs check.bat, the focused tests, and the full coverage pass in order and stops at the first non-green step with the fix to apply. Do not call `check.bat` or `pytest` directly: groundhog is in charge of check and tests. See [Verify the step with groundhog](#verify-the-step-with-groundhog) below.
+Based on the design markdown and the plan markdown, implement step XXXX (see your prompt). Once the implementation is done, verify it with one groundhog walk — `ghog day`, always the redirected call `cmd /d /c "<llm-shared>\bin\ghog.bat day > a.ghog.log 2>&1"` from the project root — which runs check.bat, the focused tests, and the full coverage pass in order and stops at the first non-green step with the fix to apply. Do not call `check.bat` or `pytest` directly: groundhog is in charge of check and tests. See [Verify the step with groundhog](#verify-the-step-with-groundhog) below.
 
 Make sure no new computation would introduce any O(n^2) or O(n log(n)) process.
 
@@ -26,7 +26,13 @@ When writing an answer in markdown, follow instructions from [`markdown.md`](../
 
 ## Verify the step with groundhog
 
-At the end of the step, run `ghog day` once — the groundhog walk (manual in [`GROUNDHOG.md`](../GROUNDHOG.md), fixing loop in [`groundhog.md`](groundhog.md)). It runs, in order, stopping at the first non-green step:
+At the end of the step, run `ghog day` once — the groundhog walk (manual in [`GROUNDHOG.md`](../GROUNDHOG.md), fixing loop in [`groundhog.md`](groundhog.md)). Every ghog call is one redirected shell call from the project root:
+
+```bat
+cmd /d /c "<llm-shared>\bin\ghog.bat day > a.ghog.log 2>&1"
+```
+
+`<llm-shared>` is the llm-shared folder of the workspace (`..\llm-shared` in a sibling layout). Branch on the exit code first, then read only the tail of `a.ghog.log` — the last 5 lines on exit 0, the last 100 otherwise; never load the whole log, never delete it. The walk runs, in order, stopping at the first non-green step:
 
 - check.bat: the compile and lint gate;
 - `ghog affected --no-cov` (the old ptanc): the focused tests — created, modified, or impacted by this step — selected by testmon, coverage off;
