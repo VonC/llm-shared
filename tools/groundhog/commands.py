@@ -5,7 +5,10 @@ budget: this module runs the subcommands — check (Q10, Q26, Q29), the
 pytest runs, the day walk (Q22, Q28) and init (Q23, Q25) — classifies
 their results into the exit-code contract (Q12), and assembles the final
 reports (next-step messages, crash block, coverage-gap rows, nag and
-closing lines).
+closing lines). The envelope lines — next step, setup reason, nag and
+closing — go through ``emit_summary``, which mirrors them to the captured
+stdout when the Q31 self-redirect guard armed, so an unredirected LLM
+caller still branches without reading the log.
 """
 
 from __future__ import annotations
@@ -15,7 +18,15 @@ import re
 from dataclasses import replace
 from typing import TYPE_CHECKING
 
-from tools.groundhog import baseline, gate, init_files, reporting, runner, snapshot
+from tools.groundhog import (
+    baseline,
+    gate,
+    init_files,
+    redirect,
+    reporting,
+    runner,
+    snapshot,
+)
 from tools.groundhog.models import (
     EXIT_COVERAGE_GAP,
     EXIT_OBJECTIVE_MET,
@@ -144,9 +155,9 @@ def run_check(invocation: Invocation, deps: Deps) -> int:
 
         code = runner.run_streaming(config, _stream_check_line)
         if code == 0 and error_lines_seen:
-            emit([reporting.MSG_CHECK_EXIT_MISMATCH])
+            emit_summary([reporting.MSG_CHECK_EXIT_MISMATCH])
             code = 1
-    emit(reporting.next_after_check(code=code, missing=missing))
+    emit_summary(reporting.next_after_check(code=code, missing=missing))
     closing = reporting.closing_line(
         invocation.root.name,
         runner.SUB_CHECK,
@@ -154,7 +165,7 @@ def run_check(invocation: Invocation, deps: Deps) -> int:
         code,
         reporting.COV_SKIPPED,
     )
-    emit([closing])
+    emit_summary([closing])
     return code
 
 
@@ -217,7 +228,7 @@ def run_day(invocation: Invocation, deps: Deps) -> int:
         The exit code of the first non-green step, or the full run's.
     """
     if not invocation.force and snapshot.is_unchanged(invocation.root):
-        emit([reporting.MSG_DAY_NOOP])
+        emit_summary([reporting.MSG_DAY_NOOP])
         closing = reporting.closing_line(
             invocation.root.name,
             runner.SUB_DAY,
@@ -225,7 +236,7 @@ def run_day(invocation: Invocation, deps: Deps) -> int:
             EXIT_OBJECTIVE_MET,
             reporting.COV_SKIPPED,
         )
-        emit([closing])
+        emit_summary([closing])
         return EXIT_OBJECTIVE_MET
     code = run_check(replace(invocation, sub=runner.SUB_CHECK), deps)
     if code != EXIT_OBJECTIVE_MET:
@@ -259,7 +270,7 @@ def run_init(invocation: Invocation, deps: Deps) -> int:
     try:
         lines = init_files.run_init(invocation.root, deps.home())
     except GroundhogError as error:
-        LOGGER.info("ghog: %s", error)
+        emit_summary([f"ghog: {error}"])
         code = EXIT_SETUP_ERROR
     else:
         emit(lines)
@@ -271,7 +282,7 @@ def run_init(invocation: Invocation, deps: Deps) -> int:
         code,
         reporting.COV_SKIPPED,
     )
-    emit([closing])
+    emit_summary([closing])
     return code
 
 
@@ -284,9 +295,11 @@ def _setup_exit_no_pytest(invocation: Invocation) -> int:
     Returns:
         ``EXIT_SETUP_ERROR``.
     """
-    LOGGER.info(
-        "ghog: pytest not found on PATH; "
-        "run through the ghog wrapper so senv.bat loads the project venv (Q21).",
+    emit_summary(
+        [
+            "ghog: pytest not found on PATH; "
+            "run through the ghog wrapper so senv.bat loads the project venv (Q21).",
+        ],
     )
     closing = reporting.closing_line(
         invocation.root.name,
@@ -295,7 +308,7 @@ def _setup_exit_no_pytest(invocation: Invocation) -> int:
         EXIT_SETUP_ERROR,
         reporting.COV_SKIPPED,
     )
-    emit([closing])
+    emit_summary([closing])
     return EXIT_SETUP_ERROR
 
 
@@ -398,13 +411,13 @@ def _report(
     """
     measured = gate_value is not None
     _report_run_context(invocation, result, exit_code)
-    emit(_next_steps(invocation, result, exit_code))
+    emit_summary(_next_steps(invocation, result, exit_code))
     if exit_code == EXIT_SETUP_ERROR and not result.crashed:
-        emit([setup_reason(result, measured=measured)])
+        emit_summary([setup_reason(result, measured=measured)])
     if exit_code == EXIT_OBJECTIVE_MET and measured:
         nag = reporting.nag_line(result.stats)
         if nag is not None:
-            emit([nag])
+            emit_summary([nag])
     closing = reporting.closing_line(
         invocation.root.name,
         sub_label(invocation),
@@ -412,7 +425,7 @@ def _report(
         exit_code,
         reporting.cov_text(result.stats, measured=measured),
     )
-    emit([closing])
+    emit_summary([closing])
 
 
 def _report_run_context(
@@ -554,6 +567,21 @@ def emit(lines: Sequence[str]) -> None:
     """
     for line in lines:
         emit_line(line)
+
+
+def emit_summary(lines: Sequence[str]) -> None:
+    """Print envelope lines: the report stream plus the Q31 mirror.
+
+    The next-step, setup-reason, nag and closing lines are the branching
+    material of the caller; when the self-redirect guard armed, they are
+    mirrored to the captured stdout so the caller never needs a log read
+    to pick its next move.
+
+    Args:
+        lines: The lines to print.
+    """
+    emit(lines)
+    redirect.mirror(lines)
 
 
 def emit_line(line: str) -> None:
