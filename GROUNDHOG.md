@@ -136,7 +136,7 @@ Both modes end with the same next-step message and closing line, so a user readi
 
 ## The LLM redirect: a.ghog.log
 
-The redirect lives in the invocation, not in the tool. [instructions/groundhog.md](instructions/groundhog.md) makes every LLM-driven ghog call one redirected shell call — `cmd /d /c "<llm-shared>\bin\ghog.bat <subcommand> > a.ghog.log 2>&1"` — while ghog itself keeps writing to stdout: a user typing `ghog day` in a console sees the usual bar and report, with no log file involved.
+The redirect starts in the invocation. [instructions/groundhog.md](instructions/groundhog.md) makes every LLM-driven ghog call one redirected shell call — `cmd /d /c "<llm-shared>\bin\ghog.bat <subcommand> > a.ghog.log 2>&1"` — while ghog itself keeps writing to stdout: a user typing `ghog day` in a console sees the usual bar and report, with no log file involved.
 
 The redirected form buys three things at once:
 
@@ -145,6 +145,8 @@ The redirected form buys three things at once:
 - **Truncation immunity.** When a sandboxed harness cuts long output, the full report still sits on disk; the tail read never loses the verdict lines at the end of the report.
 
 Lifecycle of the file: each run overwrites it (`>`, not append), so its tail is always the current run; it is never deleted, so the last report stays readable after the loop ends; the `a.*` ignore pattern keeps it out of git; and the day snapshot never digests it (Python files and gate configuration only), so writing it cannot re-arm a walk.
+
+The tool also backstops a forgotten redirect (Q31): when stdout turns out to be a harness capture — a pipe, or a regular file other than the project's own `a.ghog.log` — the run writes its full report to `a.ghog.log` anyway and hands the capture only an envelope: one notice naming the log, then the next-step and closing lines, so the caller still branches on the exit code without one unbounded line landing in its context. The senv.bat preamble of ghog.bat is parked in a side file, `a.ghog.senv.log`, that the tool replays into the report stream and deletes; ghog.bat types a leftover side file itself when the tool never ran, keeping the sandbox-block markers visible. The redirected call above stays the form to type — the guard is the safety net, not the contract.
 
 covg runs are the one exception: their output is exactly the data the model needs in full, so they are never redirected.
 
@@ -213,7 +215,7 @@ Codex sandbox notes, also spelled out in the instruction file:
 
 - ghog and covg calls need real filesystem access (senv.bat reads user-profile paths); run them with escalated (approved) execution from the start.
 - Output containing `Access is denied`, `gum choose` or `Unable to create virtual env` means the sandbox blocked senv.bat: re-run the exact same command escalated; never debug senv.bat, never create a virtual environment, never pick a Python version.
-- Harness output truncation is a non-event: every LLM-driven run is redirected to `a.ghog.log` by the standard invocation form, so the full report is always on disk; the model reads the tail and never deletes the file.
+- Harness output truncation is a non-event: every LLM-driven run is redirected to `a.ghog.log` by the standard invocation form — and the Q31 guard writes the log even when the redirect was forgotten — so the full report is always on disk; the model reads the tail and never deletes the file.
 
 ## Coverage gaps and covg
 
@@ -233,7 +235,8 @@ covg names the enclosing functions and branches of those lines and builds a read
 | `a.ghog.failures` | the failing node ids of the last full run, the focus-comparison baseline; emptied on a green full run |
 | `a.ghog.day.ok` | the source snapshot of the last green `ghog day` walk; an unchanged snapshot makes the next walk a noop |
 | `pyproject.toml` / `.coveragerc` / `setup.cfg` | where the coverage gate (`fail_under`) is read from, default 100 |
-| `a.ghog.log` | the redirect target of every LLM-driven run; overwritten per run, never deleted, so the user can follow the loop live (direct human runs keep stdout) |
+| `a.ghog.log` | the redirect target of every LLM-driven run, written by the Q31 guard even when the caller forgot the redirect; overwritten per run, never deleted, so the user can follow the loop live (direct human runs keep stdout) |
+| `a.ghog.senv.log` | the parked senv.bat preamble of one ghog.bat call; replayed into the report stream and deleted by the tool, typed by ghog.bat itself when the tool never ran |
 
 All of them are covered by the usual `a.*` and `.testmondata*` ignore patterns.
 
