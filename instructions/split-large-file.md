@@ -43,11 +43,10 @@ For each class rewritten, check also if the imports for that class are compliant
 
 Diagnostic:
 
-- execute `ghog day` (from the root of the project): the groundhog walk runs check.bat, the tests affected by the split, and the full suite with coverage, stopping at the first non-green step with the fix to apply. Do not call `check.bat` or `pytest` directly; groundhog is in charge of check and tests (see [`GROUNDHOG.md`](../GROUNDHOG.md) and [`groundhog.md`](groundhog.md)).
+- execute `ghog day` (from the root of the project): the groundhog walk runs check.bat, the tests affected by the split, and the full suite with coverage, stopping at the first non-green step with the fix to apply. Do not call `check.bat` or `pytest` directly; groundhog is in charge of check and tests (see [`GROUNDHOG.md`](../GROUNDHOG.md) and [`groundhog.md`](groundhog.md)). An LLM runs it as one redirected shell call from the project root, then branches on the exit code and reads only the tail of `a.ghog.log`:
 
   ```bat
-  cd "%PRJ_DIR%"
-  ghog day
+  cmd /d /c "<llm-shared>\bin\ghog.bat day > a.ghog.log 2>&1"
   ```
 
 - a "Check for files too big" failure from check.bat is expected while the split is in progress (the original file still exists): finish the split first, then run `ghog day` again.
