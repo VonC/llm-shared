@@ -23,11 +23,17 @@ backs the live-run refusal: no run command starts while another one is
 alive, so a second walk can never trample the first one's log or
 testmon state.
 
-``ghog day --detach`` spawns the walk as a survivor process — no
-console, broken away from the harness job object when allowed — wired
-by the tool itself to ``a.ghog.log`` (the parked senv preamble folded
-in first), and acknowledges with exit 6 once the child has written its
-first status line.
+``ghog day --detach`` spawns the walk as a survivor process — a
+hidden console, broken away from the harness job object when
+allowed — wired by the tool itself to ``a.ghog.log`` (the parked senv
+preamble folded in first), and acknowledges with exit 6 once the
+child has written its first status line.
+
+Fix: the survivor used to start with DETACHED_PROCESS — no console at
+all — so its console children (check.bat, pytest) allocated a fresh
+visible console window on the user's desktop for the whole walk.
+CREATE_NO_WINDOW gives the survivor a hidden console those children
+inherit: a detached walk no longer pops any window.
 """
 
 from __future__ import annotations
@@ -135,8 +141,7 @@ def write_done(root: Path, label: str, exit_code: int) -> None:
     """
     _write(
         root,
-        f"{root.name}: ghog {label} state={STATE_DONE} "
-        f"exit={exit_code} ended={_now()}",
+        f"{root.name}: ghog {label} state={STATE_DONE} exit={exit_code} ended={_now()}",
     )
 
 
@@ -405,6 +410,11 @@ def _spawn_survivor(
 ) -> subprocess.Popen[bytes]:
     """Start the detached child, breaking away from the job if allowed.
 
+    The Windows spawn hides the console with CREATE_NO_WINDOW instead
+    of dropping it with DETACHED_PROCESS: a console-free survivor
+    hands its console children (check.bat, pytest) a fresh visible
+    console window, while a hidden console is inherited silently.
+
     Args:
         command: The survivor command line.
         log: The opened report log receiving stdout and stderr.
@@ -422,7 +432,7 @@ def _spawn_survivor(
             stderr=subprocess.STDOUT,
             start_new_session=True,
         )
-    flags = subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP
+    flags = subprocess.CREATE_NO_WINDOW | subprocess.CREATE_NEW_PROCESS_GROUP
     try:
         return subprocess.Popen(  # noqa: S603
             command,
