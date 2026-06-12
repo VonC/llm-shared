@@ -4,6 +4,11 @@ Cover the skill pointer writing (with a relative link resolving to the
 real instruction file), the AGENTS.md creation, append and
 already-registered cases, the CLI exit codes, and the missing
 instruction-file setup error.
+
+Fix: the generated AGENTS.md section and Codex prompt now name the Q32
+lifecycle (the ``a.ghog.status`` completion proof, the ``ghog status``
+poll, the detached walk), so both creation tests assert that wording —
+a consumer registered after Q32 must route the timeout case correctly.
 """
 
 from __future__ import annotations
@@ -39,13 +44,20 @@ def test_skill_pointer_links_back_to_the_instruction(tmp_path: Path) -> None:
 
 
 def test_agents_md_is_created_with_the_section(tmp_path: Path) -> None:
-    """Without an AGENTS.md, init creates one with a title and section."""
+    """Without an AGENTS.md, init creates one with a title and section.
+
+    The section carries the Q32 lifecycle wording: the completion
+    proof, the status poll and the detached walk.
+    """
     path, added = init_files.update_agents_md(tmp_path)
     assert added is True
     text = path.read_text(encoding="utf-8")
     assert text.startswith("# Agent instructions")
     assert init_files.AGENTS_MARKER in text
     assert "instructions/groundhog.md" in text
+    assert "a.ghog.status" in text
+    assert "ghog status" in text
+    assert "ghog day --detach" in text
 
 
 def test_agents_md_is_appended_not_clobbered(tmp_path: Path) -> None:
@@ -128,6 +140,8 @@ def test_codex_prompt_written_when_codex_is_set_up(tmp_path: Path) -> None:
     text = prompt.read_text(encoding="utf-8")
     assert "AGENTS.md" in text
     assert "no `groundhog` executable" in text
+    assert "a.ghog.status" in text
+    assert "ghog day --detach" in text
 
 
 def test_cli_init_exits_zero_with_the_grammar(
