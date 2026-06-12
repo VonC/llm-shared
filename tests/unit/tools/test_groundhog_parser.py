@@ -4,6 +4,9 @@ Cover the collected count, the -v result statuses, the warnings summary,
 the TOTAL coverage line (Q19), the FAILURES/ERRORS block capture (Q08),
 the last started tests, the output tail and the INTERNALERROR crash
 marker (Q06).
+
+Fix: the collect line of a testmon run now subtracts its deselected
+count, so the bar total counts only the tests that will actually run.
 """
 
 from __future__ import annotations
@@ -16,6 +19,7 @@ _EXPECTED_FAILED = 2
 _EXPECTED_WARNINGS = 3
 _FULL_COVERAGE = 100.0
 _PARTIAL_COVERAGE = 97.4
+_SELECTED = 128
 
 
 def _feed_lines(parser: PytestOutputParser, lines: list[str]) -> None:
@@ -66,6 +70,13 @@ def test_skipped_and_xpass_count_as_done_only() -> None:
     assert parser.stats.done == _EXPECTED_FAILED
     assert parser.stats.failed == 0
     assert parser.stats.xfailed == 0
+
+
+def test_deselected_tests_reduce_the_total() -> None:
+    """A testmon collect line counts only the selected tests (Q20)."""
+    parser = PytestOutputParser()
+    parser.feed("collected 5238 items / 5110 deselected / 128 selected")
+    assert parser.stats.total == _SELECTED
 
 
 def test_total_line_sets_coverage_percent() -> None:
