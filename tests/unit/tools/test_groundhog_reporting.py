@@ -3,7 +3,10 @@
 Cover the key=value progress and closing lines, the coverage placeholder
 rules, the cadence governor (percent step and silence floor), the
 next-step messages of the run-state table, the crash block (Q06), the
-focus comparison lines (Q07) and the nag line (Q09).
+focus comparison lines (Q07) and the nag line (Q09). Also cover the Q30
+rule: every next-step message that follows a fix names ghog day, the
+loop's only re-entry point, never a standalone subcommand to re-run
+first (a real session paid check.bat twice that way).
 """
 
 from __future__ import annotations
@@ -196,6 +199,26 @@ def test_next_after_check() -> None:
     assert reporting.next_after_check(code=1, missing=False) == [
         reporting.MSG_CHECK_FAIL,
     ]
+
+
+def test_post_fix_messages_restart_at_ghog_day() -> None:
+    """Every post-fix next-step message names ghog day (Q30).
+
+    The walk is the loop's only re-entry point and opens with the
+    compile check, so no message may prescribe a standalone subcommand
+    re-run before it.
+    """
+    post_fix_messages = (
+        reporting.MSG_CHECK_FAIL,
+        reporting.MSG_AFFECTED_NOCOV_FAIL,
+        reporting.MSG_SINGLE_RESTART,
+        reporting.MSG_SINGLE_GREEN,
+    )
+    for message in post_fix_messages:
+        assert "ghog day" in message
+        assert "re-run ghog check" not in message
+    crash = reporting.crash_block(_stats(), ())
+    assert crash[-1].endswith("Then re-run ghog day.")
 
 
 def test_comparison_lines_without_baseline() -> None:

@@ -96,14 +96,14 @@ A real Codex session showed the bare phrase is not enough (Q25): AGENTS.md is pa
 3. `ghog affected --no-cov`: confirm the recently modified files pass, the fast feedback step.
 4. `ghog full`: full suite, fresh testmon data, coverage measured against the gate, failure baseline written to `a.ghog.failures` (Q18).
 5. Branch on the exit code (Q12):
-   - `4` (crash): act on the crash block immediately — fix the suite robustness based on the last started tests and the call stack (Q06), then go back to step 2.
-   - `2` (failures): run one `ghog single test_file1.py test_file2.py ...` call with every failing test file (files, not functions). The tool prints the comparison against the `a.ghog.failures` baseline per test node id (Q07, Q18). Fix first the tests failing in focus; then the ones passing in focus but failing in the full suite, which point at test interaction or ordering issues, harder to fix. While fixing, stay on `ghog single` until the focus run is green — do not re-run `ghog full` per fix — then go back to step 2.
-   - `3` (coverage gap): the report replays the term-missing rows (Q24); feed each file and its Missing ranges to covg (never a coverage.json export), write the tests covg points at, and verify with `ghog affected` only (coverage appends across runs). When `ghog affected` reports the gate is reached, finish with `ghog check` — new tests are code too, and ruff gates them (Q24) — and the objective is met without another `ghog full` once that check is green. On a check failure, or when production code (not only tests) changed, go back to step 2.
+   - `4` (crash): act on the crash block immediately — fix the suite robustness based on the last started tests and the call stack (Q06), then restart the walk (`ghog day`, Q30).
+   - `2` (failures): run one `ghog single test_file1.py test_file2.py ...` call with every failing test file (files, not functions). The tool prints the comparison against the `a.ghog.failures` baseline per test node id (Q07, Q18). Fix first the tests failing in focus; then the ones passing in focus but failing in the full suite, which point at test interaction or ordering issues, harder to fix. While fixing, stay on `ghog single` until the focus run is green — do not re-run `ghog full` per fix — then restart the walk (`ghog day`, Q30).
+   - `3` (coverage gap): the report replays the term-missing rows (Q24); feed each file and its Missing ranges to covg (never a coverage.json export), write the tests covg points at, and verify with `ghog affected` only (coverage appends across runs). When `ghog affected` reports the gate is reached, finish with `ghog check` — new tests are code too, and ruff gates them (Q24) — and the objective is met without another `ghog full` once that check is green. On a check failure, fix what it names and restart the walk directly — no standalone `ghog check` re-run first (Q30); same when production code (not only tests) changed.
    - `5` (environment or setup error): report it; this is not a test problem to loop on.
    - `0`: objective reached; final report, including the warnings and xfail nag line (Q09).
 6. Stop conditions (Q11): besides exit code 0, the loop stops when an iteration makes no progress — failure count not lower and coverage not higher than the previous iteration — and reports the stuck state; a hard cap of 10 iterations backs that rule as a safety net.
 
-After any applied fix, the sequence restarts at step 2 (check, then affected without coverage, then full), so every fix is re-proven by the whole chain.
+After any applied fix, the sequence restarts with one `ghog day` walk (check, then affected without coverage, then full), so every fix is re-proven by the whole chain — never through a standalone subcommand run first as a confirmation, which would pay the same step twice (Q30).
 
 ### CLI use without the loop
 
@@ -115,24 +115,24 @@ A fully green walk records a source snapshot, `a.ghog.day.ok` at the project roo
 
 ## Next-step messages per run state
 
-The final report of every run closes with a next-step message naming the workflow state the run landed in, before the key=value done line (Q16). A user entering the workflow at any point, and the skill looping over it, both read the same contract:
+The final report of every run closes with a next-step message naming the workflow state the run landed in, before the key=value done line (Q16). A user entering the workflow at any point, and the skill looping over it, both read the same contract. Every message that follows a fix names `ghog day` as the restart (Q30): the walk is the loop's only re-entry point, and its first step is the compile check, so the older `re-run ghog check` wording made a real session pay check.bat twice — once standalone, once again inside the walk it resumed.
 
 | Run state | Exit code | Next-step message |
 | --- | --- | --- |
 | `ghog check` green | 0 | `Next: ghog affected --no-cov` |
-| `ghog check` failing | check.bat code | `Next: fix the compile errors above, re-run ghog check` |
+| `ghog check` failing | check.bat code | `Next: fix the compile errors above, re-run ghog day (the walk opens with this check)` (Q30) |
 | `ghog check`, check.bat absent | 0 | `check.bat not found - skipped; pytest collection will catch compile errors` (Q10) |
 | `ghog affected --no-cov` green | 0 | `Next: ghog full` |
 | `ghog affected` green with 0 tests | 0 | `0 tests ran in this step (testmon: nothing affected since the last run) - treated as green`, then the green next step (Q27) |
-| `ghog affected --no-cov` failing | 2 | `Next: fix these, re-run ghog affected --no-cov until green, then ghog full` |
+| `ghog affected --no-cov` failing | 2 | `Next: fix these, re-run ghog affected --no-cov until green, then ghog day` (Q30) |
 | `ghog full` crash | 4 | the crash block: last 5 started tests, stack tail, immediate-fix instruction (Q06) |
 | `ghog full` failures | 2 | `Next: ghog single <failing test files>`, baseline written (Q18), coverage withheld |
 | `ghog full` coverage gap | 3 | the term-missing rows under `Uncovered lines` (Q24), then the covg message naming the Missing column as its input |
 | `ghog full` objective met | 0 | `Objective reached`, plus the nag line when warnings or xfails remain (Q09) |
 | `ghog affected` (coverage) at gate | 0 | `Coverage gate reached - no ghog full needed; finish with ghog check (new tests are code too)` (Q24) |
 | `ghog affected` (coverage) below gate | 3 | the same covg message as the full coverage gap |
-| `ghog single`, baseline present, failing | 2 | the two Q07 lists, then `stay on ghog single until green, then restart at ghog check` |
-| `ghog single`, baseline present, green | 0 | `Next: ghog check, then ghog affected --no-cov, then ghog full` |
+| `ghog single`, baseline present, failing | 2 | the two Q07 lists, then `Stay on ghog single until green, then restart the walk: ghog day` (Q30) |
+| `ghog single`, baseline present, green | 0 | `Next: ghog day (the walk re-proves check, affected and full)` (Q30) |
 | `ghog single`, no baseline | 0 or 2 | `no full-run baseline, comparison skipped; run ghog full for suite-level truth` |
 | any subcommand, setup error | 5 | the failing precondition (pytest not found, unreadable TOTAL line, blocked senv.bat) |
 
@@ -158,7 +158,7 @@ The acceptance tests drive `cli.main` end to end; the one faked element is the p
 - AT1 green full run: a passing transcript with `TOTAL ... 100%` exits 0; the report carries the objective message and the closing line keys `fail=0`, `cov=100`, `exit=0`.
 - AT2 full run with failures: exits 2, prints the FAILURES block in full (Q08), withholds coverage (`cov=withheld`), writes the failing node ids to `a.ghog.failures` (Q18), and names the failing files in the `Next: ghog single ...` message.
 - AT3 focus run with a baseline: a `ghog single` transcript where one baseline test still fails and one passes exits 2 and prints both Q07 lists (still failing in focus; passing in focus but failing in the full suite).
-- AT4 focus run green with a baseline: exits 0 and instructs to restart at `ghog check`.
+- AT4 focus run green with a baseline: exits 0 and instructs to restart the walk with `ghog day` (Q30).
 - AT5 coverage gap: a passing transcript with `TOTAL ... 97%` against a gate of 100 exits 3, replays the term-missing rows under the `Uncovered lines` header (Q24) and points at covg; an `ghog affected` transcript reaching the gate exits 0 with the no-full-needed message ending on the final `ghog check` (Q24).
 - AT6 crash: a transcript cut mid-run with an INTERNALERROR (or a crash exit code) exits 4 and prints the crash block with the last started tests and the immediate-fix instruction (Q06).
 - AT7 setup errors: pytest missing from PATH exits 5; a covered run whose transcript lacks a readable TOTAL line exits 5 (Q19).
@@ -208,6 +208,7 @@ The table summarizes the choices made from the answered questions Q01 to Q21, th
 | Q27 | A green affected step that ran 0 tests says so explicitly | Next-step messages per run state | An invisible no-op step reads as a skipped step in a day walk (seen in a real log) | Stay silent and let the closing line carry the zeros |
 | Q28 | A green `ghog day` records a source snapshot (`a.ghog.day.ok`); an unchanged snapshot makes the next walk a noop, `--force` overrides | CLI use without the loop | Chained instructions may each end with a walk; duplicates become free instead of a second full run | Always re-walk; rely on testmon selection alone (the full step resets it) |
 | Q29 | The check guard matches and re-emits ANSI-stripped lines; the stdout logger replaces unencodable characters | The ghog command and its subcommands | A colored check.bat hid its ERROR lines from the Q26 guard, and ty's box-drawing output crashed the cp1252 logging stream (both seen in one real run) | Match the raw colored lines; let encoding errors drop lines |
+| Q30 | Every post-fix next-step message names `ghog day`, the loop's only re-entry point | Next-step messages per run state | A real session obeyed `re-run ghog check`, then resumed the walk, paying check.bat twice; the walk opens with that same check | Keep the subcommand wording and translate it in the instruction files alone |
 
 ## Questions
 
