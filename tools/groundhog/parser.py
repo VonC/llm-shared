@@ -2,10 +2,11 @@
 
 The parent process reads the pytest child output live (Q17) and feeds it
 line by line to :class:`PytestOutputParser`, which accumulates the run
-statistics: collected count, per-test results and node ids (the ``-v``
-format), the warnings summary, the TOTAL coverage line (Q19), the verbatim
-FAILURES/ERRORS block (Q08), the most recent test ids and the INTERNALERROR
-marker used for crash detection (Q06).
+statistics: collected count (minus the tests a testmon run deselects, so
+the user bar total counts only the tests that will actually run), per-test
+results and node ids (the ``-v`` format), the warnings summary, the TOTAL
+coverage line (Q19), the verbatim FAILURES/ERRORS block (Q08), the most
+recent test ids and the INTERNALERROR marker used for crash detection (Q06).
 """
 
 from __future__ import annotations
@@ -23,6 +24,9 @@ TAIL_LINES_KEPT: Final = 15
 
 # "collected 250 items" (possibly "collected 1 item").
 _COLLECTED_RE: Final = re.compile(r"\bcollected (\d+) items?\b")
+# The deselected count of the same collect line, subtracted from the
+# total: "collected 250 items / 240 deselected / 10 selected" (testmon).
+_DESELECTED_RE: Final = re.compile(r"\b(\d+) deselected\b")
 # One -v result line: "tests/test_a.py::test_one PASSED [ 10%]".
 _RESULT_RE: Final = re.compile(
     r"^(?P<node>\S+::\S+) (?P<status>PASSED|FAILED|ERROR|SKIPPED|XFAIL|XPASS)\b",
@@ -132,7 +136,9 @@ class PytestOutputParser:
         """
         collected = _COLLECTED_RE.search(line)
         if collected is not None:
-            self.stats.total = int(collected.group(1))
+            deselected = _DESELECTED_RE.search(line)
+            dropped = 0 if deselected is None else int(deselected.group(1))
+            self.stats.total = int(collected.group(1)) - dropped
         result = _RESULT_RE.match(line)
         if result is not None:
             self._record_result(result.group("node"), result.group("status"))
