@@ -5,18 +5,24 @@ Subcommands (Q02, Q15): ``check`` runs check.bat from the project root,
 coverage (ptr), ``affected`` runs the testmon-selected tests (pta, with
 ``--no-cov`` for ptanc), ``single`` runs named test files in focus (pts),
 ``day`` walks the whole chain — check, then affected --no-cov, then
-full — stopping at the first non-green step (Q22), and ``init`` registers
+full — stopping at the first non-green step (Q22), ``init`` registers
 the skill pointers (Claude skill, AGENTS.md section) in the consuming
-project (Q23).
+project (Q23), and ``status`` replays the run lifecycle recorded in
+``a.ghog.status`` (Q32).
 
 The output mode is picked by TTY auto-detection with ``--user``/``--llm``
 force flags (Q03). Every run ends with the next-step message of the
 run-state table and the key=value closing line (Q16), and exits with the
 contract codes: 0 objective met, 2 test failures, 3 coverage gap, 4 suite
-crash, 5 environment or setup error (Q12). An LLM run whose stdout is an
-unredirected harness capture self-redirects its report to ``a.ghog.log``
-and hands the capture only the envelope lines (Q31), through the
-``redirect`` guard armed right after the invocation is parsed.
+crash, 5 environment or setup error (Q12), plus the two lifecycle codes
+of Q32: 6 a run is live, 7 the last run is lost. An LLM run whose stdout
+is an unredirected harness capture self-redirects its report to
+``a.ghog.log`` and hands the capture only the envelope lines (Q31),
+through the ``redirect`` guard armed right after the invocation is
+parsed. Every run also brackets itself in ``a.ghog.status`` (Q32):
+``status`` reports it without starting anything, a run started while
+another one is alive refuses with exit 6, and ``day --detach`` spawns
+the walk as a survivor process polled through ``ghog status``.
 
 Split for the repo line budget: this module keeps the argument parsing,
 the mode pick, the logging setup and the dispatch; the subcommand
@@ -47,7 +53,7 @@ if __name__ == "__main__":
         sys.path.insert(0, str(_bootstrap_root))
 
 from tools import find_project_root
-from tools.groundhog import commands, redirect, runner
+from tools.groundhog import commands, redirect, runner, status
 from tools.groundhog.context import Deps, Invocation
 from tools.groundhog.models import EXIT_SETUP_ERROR, Mode
 
@@ -101,16 +107,25 @@ def main(argv: Sequence[str] | None = None, deps: Deps | None = None) -> int:
         mode=pick_mode(user=args.user, llm=args.llm, tty=_stdout_is_tty()),
         root=root,
         force=bool(getattr(args, "force", False)),
+        detach=bool(getattr(args, "detach", False)),
     )
+    # The Q32 paths keep their bounded envelope on stdout: no guard, no
+    # senv replay, and no mirror left armed by an earlier in-process run.
+    redirect.disarm()
+    if invocation.sub == runner.SUB_STATUS:
+        redirect.consume_senv_log()
+        return status.run_status(invocation)
+    live = status.live_run(invocation.root)
+    if live is not None:
+        redirect.consume_senv_log()
+        return status.refuse_live_run(live)
+    if invocation.sub == runner.SUB_DAY and invocation.detach:
+        return status.run_day_detached(invocation, active)
     redirect.activate_if_captured(invocation.mode, invocation.root)
     redirect.replay_senv_log()
-    if invocation.sub == runner.SUB_CHECK:
-        return commands.run_check(invocation, active)
-    if invocation.sub == runner.SUB_DAY:
-        return commands.run_day(invocation, active)
     if invocation.sub == runner.SUB_INIT:
         return commands.run_init(invocation, active)
-    return commands.run_tests(invocation, active)
+    return status.run_with_lifecycle(invocation, active)
 
 
 def _build_arg_parser() -> argparse.ArgumentParser:
@@ -178,12 +193,28 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Walk even when nothing changed since the last green walk (Q28).",
     )
+    day.add_argument(
+        "--detach",
+        action="store_true",
+        help=(
+            "Spawn the walk as a survivor process wired to a.ghog.log and "
+            "return at once; poll ghog status until state=done (Q32)."
+        ),
+    )
     subparsers.add_parser(
         runner.SUB_INIT,
         parents=[common],
         help=(
             "Register the groundhog skill pointers in the project: "
             ".claude skill and AGENTS.md section (Q23)."
+        ),
+    )
+    subparsers.add_parser(
+        runner.SUB_STATUS,
+        parents=[common],
+        help=(
+            "Replay the run lifecycle recorded in a.ghog.status without "
+            "starting anything (Q32)."
         ),
     )
     return parser

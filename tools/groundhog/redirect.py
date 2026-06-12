@@ -22,6 +22,13 @@ it back into the report stream — stdout normally, ``a.ghog.log`` when
 the guard armed — and deletes it. A side file still present after the
 python call tells ghog.bat this process never ran, and the wrapper
 types it itself so the sandbox-block markers stay visible.
+
+Fix: the side-log consumption is split out as :func:`consume_senv_log`
+so the Q32 paths can reuse it — the detach launcher folds the preamble
+into the log it opens for the survivor child, and the status reporter
+discards it to keep its envelope bounded — and :func:`disarm` drops a
+mirror left armed by an earlier in-process run, since those paths never
+call :func:`activate_if_captured` themselves.
 """
 
 from __future__ import annotations
@@ -145,6 +152,18 @@ def activate_if_captured(mode: Mode, root: Path) -> bool:
     return True
 
 
+def disarm() -> None:
+    """Drop the envelope mirror of an earlier in-process run (Q32).
+
+    The status, refusal and detach paths never arm the guard; a mirror
+    left armed by a previous :func:`activate_if_captured` call in the
+    same process (tests, embedders) must not leak into their bounded
+    envelopes.
+    """
+    global _summary  # noqa: PLW0603 - the one process-wide guard state
+    _summary = None
+
+
 def mirror(lines: Sequence[str]) -> None:
     """Echo envelope lines to the captured stdout of an armed guard.
 
@@ -159,27 +178,38 @@ def mirror(lines: Sequence[str]) -> None:
         _summary.flush()
 
 
-def replay_senv_log() -> None:
-    """Fold the senv side log of ghog.bat back into the report stream.
+def consume_senv_log() -> str:
+    """Read and delete the parked senv side log of ghog.bat (Q31, Q32).
 
     The wrapper parks the senv.bat output in the ``GHOG_SENV_LOG`` file
-    because that output streams before this process exists. The replay
-    sends it wherever the report goes — stdout normally, ``a.ghog.log``
-    when the guard armed — and deletes the side file, telling ghog.bat
-    it was consumed.
+    because that output streams before this process exists. Deleting it
+    tells ghog.bat it was consumed; an unreadable file is left for the
+    wrapper to type, so the sandbox-block markers stay visible.
+
+    Returns:
+        The side-log text, empty when absent or unreadable.
     """
     path_text = os.environ.get(SENV_LOG_ENV, "")
     if not path_text:
-        return
+        return ""
     path = Path(path_text)
     try:
         text = path.read_text(encoding="utf-8", errors="replace")
     except OSError:
-        return
-    for line in text.splitlines():
-        LOGGER.info("%s", line)
+        return ""
     with contextlib.suppress(OSError):
         path.unlink()
+    return text
+
+
+def replay_senv_log() -> None:
+    """Fold the senv side log of ghog.bat back into the report stream.
+
+    The replay sends the consumed text wherever the report goes —
+    stdout normally, ``a.ghog.log`` when the guard armed.
+    """
+    for line in consume_senv_log().splitlines():
+        LOGGER.info("%s", line)
 
 
 # eof
