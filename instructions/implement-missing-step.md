@@ -17,7 +17,7 @@ Both flows end with a `ghog day` walk, and that is fine: a walk right after a gr
 
 ## Project rules for the missing-work step
 
-Read first your project instructions (`CLAUDE.md`; `copilot-instructions.md` for Copilot users).
+Read first your project instructions (`CLAUDE.md`; `copilot-instructions.md` for Copilot users). Read them and the context documents with your file tools, never through an environment wrapper, and follow [`run_commands.md`](../rules/run_commands.md) for every shell command: one shell per command, no nested quoting, targeted reads, no verbatim retry after a quoting or parse error.
 
 Do not update the validation plan itself: its `Missing work for Step N` list is this step's input, and recording the new state of the step is the separate implementation-check step.
 

@@ -19,6 +19,7 @@ applyTo: "**"
 - Always update the docstring at the very top of the modified classes to explain the fix. That applies to test classes as well.
 - When writing an answer in markdown, follow instructions from #file:../rules/markdown.md
 - When writing or rewriting any file, follow instructions from #file:../rules/preserve_code.md
+- When running any shell command, follow instructions from #file:../rules/run_commands.md: get the command right on the first attempt — no environment wrapper around file reads, one shell per command with no nested quoting, targeted reads instead of whole-document dumps, and rewrite (never re-run or escalate) a command that failed with a quoting or parse error.
 
 ## Blacklist of words to avoid in the response
 

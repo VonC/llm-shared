@@ -2,9 +2,9 @@
 
 Include "Step XXXX" in the title of this conversation (replace XXXX with the step mentioned in the prompt, for example '2', for "Step 2 of the CDC gap feature").
 
-Read carefully the markdown files in your context to understand the context.
+Read carefully the markdown files in your context to understand the context. Read them with your file tools, one document at a time — never by chaining an environment wrapper (such as `senv.bat`) with a file-dump command: the project environment is only for toolchain commands like `ghog`. For every shell command of this step, follow [`run_commands.md`](../rules/run_commands.md), so the first attempt is the one that works: one shell per command, no nested quoting, targeted reads, and no verbatim retry of a command that failed with a quoting or parse error.
 
-Based on the design markdown and the plan markdown, follow instructions from [`implement-plan.prompt.md`](../.github/prompts/implement-plan.prompt.md), and implement step XXXX (see your prompt). Once the implementation is done, verify it with one groundhog walk — `ghog day` — which runs check.bat, the focused tests, and the full coverage pass in order and stops at the first non-green step with the fix to apply. Do not call `check.bat` or `pytest` directly: groundhog is in charge of check and tests. See [Verify the step with groundhog](#verify-the-step-with-groundhog) below.
+Based on the design markdown and the plan markdown, implement step XXXX (see your prompt). Once the implementation is done, verify it with one groundhog walk — `ghog day` — which runs check.bat, the focused tests, and the full coverage pass in order and stops at the first non-green step with the fix to apply. Do not call `check.bat` or `pytest` directly: groundhog is in charge of check and tests. See [Verify the step with groundhog](#verify-the-step-with-groundhog) below.
 
 Make sure no new computation would introduce any O(n^2) or O(n log(n)) process.
 
@@ -34,7 +34,7 @@ At the end of the step, run `ghog day` once — the groundhog walk (manual in [`
 
 Apply the fix named by the final report, then run `ghog day` again, until it reports the objective (`exit=0`). When the full run lists failing files, run `ghog single <those files>` first, as the report says: it separates the tests still failing in focus (fix first) from the ones failing only in the full suite (test interaction, fix second).
 
-Never run `check.bat` or a plain `pytest` yourself: groundhog owns check and tests, budgets their output for the token window, and protects the recorded coverage (a plain `pytest` would erase it through the `--cov` defaults of `pyproject.toml`). The historical aliases (`ptr`, `pta`, `ptanc`, `pts`) route to groundhog subcommands, so the report's next-step instructions are the only commands you need.
+Never run `check.bat` or a plain `pytest` yourself: groundhog owns check and tests, budgets their output for the token window, and protects the recorded coverage (a plain `pytest` would erase it through the `--cov` defaults of `pyproject.toml`). The historical aliases (`ptr`, `pta`, `ptanc`, `pts`) route to groundhog subcommands, so the report's next-step instructions are the only commands you need — and after a fix they name `ghog day` itself: never chain a standalone `ghog check` before the walk, that would run check.bat twice.
 
 ## Reach 100% coverage on each unit-tested class
 
