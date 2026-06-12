@@ -28,6 +28,10 @@ step-title reads, the cycle introductions and the commit-body scenarios
 moved to ``test_prompt_workflow_plan_prompts.py``, and the shared state
 builder to ``prompt_workflow_plan_test_support.py``. This file keeps the
 parsing, derivation, working-tree classification and menu scenarios.
+
+Fix (menu order): the cycle menu lists its options higher workflow step first —
+commit, then check, then implement — so the full and sub-step scenarios assert
+the reversed label order (Q54).
 """
 
 from __future__ import annotations
@@ -221,7 +225,10 @@ def test_build_cycle_options_terminal() -> None:
 
 
 def test_build_cycle_options_full() -> None:
-    """Code changes add a check; a verified step adds both commit variants."""
+    """Code changes add a check; a verified step adds both commit variants.
+
+    The options come higher workflow step first: commit, check, implement (Q54).
+    """
     cycle = plan.CycleState(
         x="3",
         verified=True,
@@ -232,10 +239,10 @@ def test_build_cycle_options_full() -> None:
     )
     labels = [label for label, _ in plan.build_cycle_options(cycle)]
     assert labels == [
-        "Implement step 3",
-        "Check step 3",
         "Commit step 3 (cached)",
         "Commit step 3 (git add -A)",
+        "Check step 3",
+        "Implement step 3",
     ]
 
 
@@ -253,7 +260,7 @@ def test_build_cycle_options_minimal() -> None:
 
 
 def test_build_cycle_options_substep_label() -> None:
-    """The menu labels carry the full sub-step id (Q41)."""
+    """The menu labels carry the full sub-step id (Q41), check before implement (Q54)."""
     cycle = plan.CycleState(
         x="4A",
         verified=False,
@@ -263,8 +270,8 @@ def test_build_cycle_options_substep_label() -> None:
         non_cached=False,
     )
     assert [label for label, _ in plan.build_cycle_options(cycle)] == [
-        "Implement step 4A",
         "Check step 4A",
+        "Implement step 4A",
     ]
 
 

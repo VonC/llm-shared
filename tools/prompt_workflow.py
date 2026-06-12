@@ -11,8 +11,12 @@ repeat the current step or pick a next step, then builds the prompt, writes it t
 ``a.prompt.txt``, copies it to the clipboard (falling back to stdout), and
 records the chosen step in ``a.prompt_memory``.
 
+Fix (menu order): ``build_menu_options`` sorts its rows by step number,
+descending and stable, so the next-step rows come above the repeat-current row
+and the usual forward move is the pre-highlighted top row (Q54).
+
 See ``tools/Prompt tool specs.md`` for the full specification and the design
-decisions (Q01 to Q32) behind this tool.
+decisions (Q01 to Q54) behind this tool.
 """
 
 from __future__ import annotations
@@ -178,7 +182,12 @@ def build_menu_options(
     current: StepAlternative | None,
     next_alternatives: list[StepAlternative],
 ) -> list[tuple[str, StepAlternative]]:
-    """Build the (label, alternative) menu options: repeat current, then next."""
+    """Build the (label, alternative) menu options, higher step number first (Q54).
+
+    The repeat-current row and the next-step rows are sorted by step number,
+    descending and stable, so the usual forward move is the pre-highlighted top
+    row and repeating the current step stays one arrow press away.
+    """
     options: list[tuple[str, StepAlternative]] = []
     if current is not None:
         label = f"Repeat current step {current.number}: {current.instruction}"
@@ -187,6 +196,7 @@ def build_menu_options(
         (f"Step {alternative.number}: {alternative.instruction}", alternative)
         for alternative in next_alternatives
     )
+    options.sort(key=lambda option: option[1].number, reverse=True)
     return options
 
 
