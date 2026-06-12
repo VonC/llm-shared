@@ -120,7 +120,7 @@ For each step, the tool shows an interactive menu with arrow-key selection and E
 - to choose the next step among the possible ones (if any)
 - to repeat the prompt of the current step
 
-The rows are listed higher step number first (Q54): after finishing a step the usual move is forward, so the likeliest choice is the pre-highlighted top row, and repeating the current step stays one arrow press away. The same rule orders the implement cycle menu (see [Proposing the prompts for step x](#proposing-the-prompts-for-step-x)). When there is no current step yet (start of the workflow), only the next steps are shown; ESC exits the tool at any point. The `questionary` call is isolated in a thin wrapper so the rest of the logic stays unit-testable and the wrapper can be excluded from coverage like `tools/uv_run.py`.
+The rows are listed higher step number first (Q54): after finishing a step the usual move is forward, so the likeliest choice is the pre-highlighted top row, and repeating the current step stays one arrow press away. The same rule orders the implement cycle menu, with one exception for the implement-missing entry (Q55; see [Proposing the prompts for step x](#proposing-the-prompts-for-step-x)). When there is no current step yet (start of the workflow), only the next steps are shown; ESC exits the tool at any point. The `questionary` call is isolated in a thin wrapper so the rest of the logic stays unit-testable and the wrapper can be excluded from coverage like `tools/uv_run.py`.
 
 ## The a.prompt_memory file
 
@@ -153,7 +153,7 @@ If a.prompt_memory file already exists, the tool should check if the branch memo
 
 ## Design decisions
 
-The table summarizes the choices made from the answered questions Q01 to Q54, the section that carries each one, and the alternatives that were dropped.
+The table summarizes the choices made from the answered questions Q01 to Q55, the section that carries each one, and the alternatives that were dropped.
 
 | Question | Decision | Integrated in section | Main argument | Rejected alternatives |
 | --- | --- | --- | --- | --- |
@@ -211,6 +211,7 @@ The table summarizes the choices made from the answered questions Q01 to Q54, th
 | Q52 | Apply the variant at workflow steps 8 and 11, keyed by the step status | Trigger and menu entry for the implement-missing body | A `No` step surfaces at either row; both share the implement body and title read | Only step 8 |
 | Q53 | Auto-select the memorized topic on the same branch, `pw --pick` to reopen the menu | Locking the topic to the branch | Once chosen, the topic sticks per branch so the menu stops asking; the flag and the self-release on mismatch keep an escape hatch | Keep proposing the menu every run; a `locked=true` memory flag |
 | Q54 | List menu rows higher step first: commit, check, implement in the cycle; next-step rows above the repeat row | Per-step interaction | After an implementation the usual next action is the check, then the commit, so the likeliest choice is the pre-highlighted top row | Workflow order with implement first; move the default cursor on an unchanged list |
+| Q55 | Exception to Q54: the `Implement missing for step <id>` entry tops the menu when offered | Proposing the prompts for step x | Moving forward is best served when what was missing is no longer missing; a `No` step is never verified, so no commit row competes | Keep the strict descending order; drop the check row on a `No` status |
 
 ## Implement-validate-group commit message
 
@@ -236,7 +237,7 @@ Once `x` is fixed, the menu offers, labelled by the plan step `x`:
   - non-cached files only: only the `(git add -A)` prompt.
 - The `(git add -A)` prompt makes the tool run `git add -A` before generating the prompt, so the prompt reads every change as staged; the `(cached)` prompt stages nothing and the prompt reads only the already-staged files.
 
-The cycle menu lists these options higher workflow step first (Q54): the commit variants (step 10), then the check (step 9), then the implement entry (step 8). After an implementation the usual next action is the check, and after a verified check the commit, so the likeliest follow-up is the pre-highlighted top row; going back to more implementation stays an arrow press away. An example, on a step with code changes and no `Yes` status yet:
+The cycle menu lists these options higher workflow step first (Q54): the commit variants (step 10), then the check (step 9), then the implement entry (step 8). After an implementation the usual next action is the check, and after a verified check the commit, so the likeliest follow-up is the pre-highlighted top row; going back to more implementation stays an arrow press away. One exception (Q55): when a `No` status offers the `Implement missing for step <id>` entry, that entry tops the menu — moving forward is best served when what was missing is no longer missing, and a `No` step is never verified, so no commit row competes with it. An example, on a step with code changes and no `Yes` status yet:
 
 ```text
 ? Choose the prompt for step 6: (Use arrow keys)
@@ -347,7 +348,7 @@ The implement cycle offers `implement-step.md` for step `x` on every run (see [P
 
 The variant is selected by the `Analysis of Step x` status line, the same line `parse_validation_steps` already reads for `derive_x` (Q15, Q46): when that line starts with `No`, the implement entry becomes the implement-missing body; on any other status — the template placeholder of a never-checked step, or `Yes` — the plain implement body of [Naming the implement and check steps by their plan number](#naming-the-implement-and-check-steps-by-their-plan-number) stays. So `parse_validation_steps` records the `No` state of a step, not only its `Yes` state, keeping the placeholder and the `No` cases apart.
 
-The variant replaces the implement entry rather than adding a second one (Q47): on a `No` status the single implement choice `build_cycle_options` shows is relabelled `Implement missing for step <id>`, so the cycle keeps one implement action per menu state. The full-step prompt is still reached on a placeholder or `Yes` status, and the implement-missing body still covers a wide gap when the missing-work section is broad.
+The variant replaces the implement entry rather than adding a second one (Q47): on a `No` status the single implement choice `build_cycle_options` shows is relabelled `Implement missing for step <id>`, so the cycle keeps one implement action per menu state. The full-step prompt is still reached on a placeholder or `Yes` status, and the implement-missing body still covers a wide gap when the missing-work section is broad. The relabelled entry also moves to the top of the menu, ahead of the check row, as the exception to the higher-step-first order (Q55): the step moves forward by filling its recorded gap first.
 
 The variant fires wherever the implement body is built for a step whose status reads `No`: the cycle implement (workflow step 8) and the post-commit implement of the next plan step (workflow step 11), since both rows share the same implement body and the same `read_step_title` read (Q33, Q52). The step status, not the workflow row, picks the body.
 
