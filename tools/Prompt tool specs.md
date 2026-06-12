@@ -117,10 +117,10 @@ The body line and the Context documents for each step are fixed as below (Q13). 
 
 For each step, the tool shows an interactive menu with arrow-key selection and ESC to exit (Q08), using the `questionary` library (Q12), offering:
 
-- to repeat the prompt of the current step
 - to choose the next step among the possible ones (if any)
+- to repeat the prompt of the current step
 
-When there is no current step yet (start of the workflow), only the next steps are shown; ESC exits the tool at any point. The `questionary` call is isolated in a thin wrapper so the rest of the logic stays unit-testable and the wrapper can be excluded from coverage like `tools/uv_run.py`.
+The rows are listed higher step number first (Q54): after finishing a step the usual move is forward, so the likeliest choice is the pre-highlighted top row, and repeating the current step stays one arrow press away. The same rule orders the implement cycle menu (see [Proposing the prompts for step x](#proposing-the-prompts-for-step-x)). When there is no current step yet (start of the workflow), only the next steps are shown; ESC exits the tool at any point. The `questionary` call is isolated in a thin wrapper so the rest of the logic stays unit-testable and the wrapper can be excluded from coverage like `tools/uv_run.py`.
 
 ## The a.prompt_memory file
 
@@ -153,7 +153,7 @@ If a.prompt_memory file already exists, the tool should check if the branch memo
 
 ## Design decisions
 
-The table summarizes the choices made from the answered questions Q01 to Q52, the section that carries each one, and the alternatives that were dropped.
+The table summarizes the choices made from the answered questions Q01 to Q54, the section that carries each one, and the alternatives that were dropped.
 
 | Question | Decision | Integrated in section | Main argument | Rejected alternatives |
 | --- | --- | --- | --- | --- |
@@ -210,6 +210,7 @@ The table summarizes the choices made from the answered questions Q01 to Q52, th
 | Q51 | Context `draft, requirement, design, plan, validation_plan` for the variant | Context documents for the implement-missing body | The body points at the validation plan, so that file joins the reading list; reuses the check and commit set | Keep the four implement documents |
 | Q52 | Apply the variant at workflow steps 8 and 11, keyed by the step status | Trigger and menu entry for the implement-missing body | A `No` step surfaces at either row; both share the implement body and title read | Only step 8 |
 | Q53 | Auto-select the memorized topic on the same branch, `pw --pick` to reopen the menu | Locking the topic to the branch | Once chosen, the topic sticks per branch so the menu stops asking; the flag and the self-release on mismatch keep an escape hatch | Keep proposing the menu every run; a `locked=true` memory flag |
+| Q54 | List menu rows higher step first: commit, check, implement in the cycle; next-step rows above the repeat row | Per-step interaction | After an implementation the usual next action is the check, then the commit, so the likeliest choice is the pre-highlighted top row | Workflow order with implement first; move the default cursor on an unchanged list |
 
 ## Implement-validate-group commit message
 
@@ -234,6 +235,14 @@ Once `x` is fixed, the menu offers, labelled by the plan step `x`:
   - both cached and non-cached files: both a `(cached)` and a `(git add -A)` prompt.
   - non-cached files only: only the `(git add -A)` prompt.
 - The `(git add -A)` prompt makes the tool run `git add -A` before generating the prompt, so the prompt reads every change as staged; the `(cached)` prompt stages nothing and the prompt reads only the already-staged files.
+
+The cycle menu lists these options higher workflow step first (Q54): the commit variants (step 10), then the check (step 9), then the implement entry (step 8). After an implementation the usual next action is the check, and after a verified check the commit, so the likeliest follow-up is the pre-highlighted top row; going back to more implementation stays an arrow press away. An example, on a step with code changes and no `Yes` status yet:
+
+```text
+? Choose the prompt for step 6: (Use arrow keys)
+ » Check step 6
+   Implement step 6
+```
 
 Before any non-terminal cycle menu (the menu that offers the implement, check and commit prompts for step `x`), the tool prints one introduction line, `Regarding step {x} ("{title}") from {plan_doc}:`, as its own stdout line above the menu, then shows the menu choices unchanged (Q33, Q36, Q37). The `{title}` and `{plan_doc}` are the values the bodies use (see [Naming the implement and check steps by their plan number](#naming-the-implement-and-check-steps-by-their-plan-number)), with the same drops when missing: `Regarding step {x} from {plan_doc}:` with no title (Q34) and `Regarding step {x}:` with no plan document (Q35). The terminal menu, which offers only the release-notes prompt, shows no introduction, since it names no plan step (Q37).
 
@@ -308,7 +317,7 @@ A step id is read, stored, compared or printed at these stages; each must accept
 - cycle derivation: [`derive_x`](tools/prompt_workflow_plan.py#L127) builds the id list and the verified map, picks the current id, and advances past a committed id.
 - cycle state: [`CycleState.x`](tools/prompt_workflow_plan.py#L66) carries the current id.
 - commit detection: [`has_step_commit`](tools/prompt_workflow_git.py#L165) greps `record step <id> validation`.
-- menu labels: [`build_cycle_options`](tools/prompt_workflow_plan.py#L188) prints `Implement`, `Check` and `Commit step <id>`.
+- menu labels: [`build_cycle_options`](tools/prompt_workflow_plan.py#L188) prints `Commit`, `Check` and `Implement step <id>`, in that order (Q54).
 - prompt bodies: [`build_cycle_prompt`](tools/prompt_workflow_plan.py#L319) interpolates `{x}` into the implement, check and commit bodies, and appends the `record step <id> validation` requirement.
 - title read: [`read_step_title`](tools/prompt_workflow_plan.py#L252) matches the plan `### Step <id>.` heading.
 - intro line: [`cycle_intro`](tools/prompt_workflow_plan.py#L307) prints `Regarding step <id> ...`.
