@@ -277,6 +277,13 @@ never deleted — watch it from a second console to follow a run live. The
 redirect belongs to the LLM invocation only: ghog itself writes to stdout,
 and console runs (`ghog day`, `ptr`, `pta`, ...) are untouched.
 
+Run completion is a file contract, not a log guess: every run brackets
+itself in `a.ghog.status` (`state=running pid=` then `state=done exit=`),
+`ghog status` replays it without starting anything, and a harness whose
+tool timeouts kill long calls runs the walk with `ghog day --detach` — a
+survivor process the timeout cannot reach, polled through `ghog status`
+(see GROUNDHOG.md, Q32).
+
 ## Draft capture for a feature or fix
 
 ```txt

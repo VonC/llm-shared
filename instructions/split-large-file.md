@@ -49,6 +49,7 @@ Diagnostic:
   cmd /d /c "<llm-shared>\bin\ghog.bat day > a.ghog.log 2>&1"
   ```
 
+- the walk is finished only when `a.ghog.status` reads `state=done`; a growing log proves nothing. When the harness can kill long calls, run `cmd /d /c "<llm-shared>\bin\ghog.bat day --detach"` (no redirect) instead, then poll `cmd /d /c "<llm-shared>\bin\ghog.bat status"` (never redirected) until its exit code is no longer 6: exit 7 means the run was lost (relaunch), any other code is the walk's own.
 - a "Check for files too big" failure from check.bat is expected while the split is in progress (the original file still exists): finish the split first, then run `ghog day` again.
 
 Repeat fix-and-walk until `ghog day` reports the objective (`exit=0`).
