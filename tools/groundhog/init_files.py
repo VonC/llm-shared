@@ -7,6 +7,12 @@ a Claude skill at ``.claude/skills/groundhog/SKILL.md`` and a section in
 pointer is fully owned by groundhog and rewritten on every init; the
 AGENTS.md content of the project is preserved, the section is appended
 once and recognized on later runs.
+
+Fix: both generated texts now name the Q32 lifecycle — completion is
+``a.ghog.status`` reading ``state=done``, polled with ``ghog status``,
+and ``ghog day --detach`` covers harnesses that kill long calls — so a
+consumer registered (or refreshed) after Q32 routes the timeout case
+correctly instead of replaying a killed walk.
 """
 
 from __future__ import annotations
@@ -213,7 +219,14 @@ def _agents_section(root: Path) -> str:
         "senv.bat must never be run as a separate step. Read and follow "
         f"`{link}` instead; it drives the test suite to its global objective "
         "(every test passing, coverage at the project gate) through the ghog "
-        "wrapper, which loads senv.bat itself.\n"
+        "wrapper, which loads senv.bat itself. A walk is finished only when "
+        "`a.ghog.status` at the project root reads `state=done` - a growing "
+        "`a.ghog.log` proves nothing. Poll with `ghog status` (never "
+        "redirected: exit 6 while the walk is live, 7 when it was killed), "
+        "and when the harness can kill long calls, run the walk detached "
+        "(`ghog day --detach`, no redirect) as that instruction describes - "
+        "never size a timeout around a walk, never rerun one that may still "
+        "be alive.\n"
     )
 
 
@@ -229,7 +242,12 @@ def _codex_prompt_text() -> str:
         "follow the llm-shared instruction file it references "
         "(instructions/groundhog.md). There is no `groundhog` executable or "
         "alias to run, and senv.bat must never be run as a separate step - "
-        "the ghog wrapper named in the instruction loads it itself.\n"
+        "the ghog wrapper named in the instruction loads it itself. A walk "
+        "is finished only when `a.ghog.status` reads `state=done`: poll it "
+        "with `ghog status` (exit 6 while the walk is live, 7 when it was "
+        "killed) instead of watching the log or the processes, and prefer "
+        "`ghog day --detach` when your tool calls can time out - never "
+        "rerun a walk while `ghog status` answers 6.\n"
     )
 
 
