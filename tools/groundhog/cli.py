@@ -13,7 +13,10 @@ The output mode is picked by TTY auto-detection with ``--user``/``--llm``
 force flags (Q03). Every run ends with the next-step message of the
 run-state table and the key=value closing line (Q16), and exits with the
 contract codes: 0 objective met, 2 test failures, 3 coverage gap, 4 suite
-crash, 5 environment or setup error (Q12).
+crash, 5 environment or setup error (Q12). An LLM run whose stdout is an
+unredirected harness capture self-redirects its report to ``a.ghog.log``
+and hands the capture only the envelope lines (Q31), through the
+``redirect`` guard armed right after the invocation is parsed.
 
 Split for the repo line budget: this module keeps the argument parsing,
 the mode pick, the logging setup and the dispatch; the subcommand
@@ -44,7 +47,7 @@ if __name__ == "__main__":
         sys.path.insert(0, str(_bootstrap_root))
 
 from tools import find_project_root
-from tools.groundhog import commands, runner
+from tools.groundhog import commands, redirect, runner
 from tools.groundhog.context import Deps, Invocation
 from tools.groundhog.models import EXIT_SETUP_ERROR, Mode
 
@@ -99,6 +102,8 @@ def main(argv: Sequence[str] | None = None, deps: Deps | None = None) -> int:
         root=root,
         force=bool(getattr(args, "force", False)),
     )
+    redirect.activate_if_captured(invocation.mode, invocation.root)
+    redirect.replay_senv_log()
     if invocation.sub == runner.SUB_CHECK:
         return commands.run_check(invocation, active)
     if invocation.sub == runner.SUB_DAY:
@@ -225,6 +230,8 @@ def _configure_logging() -> None:
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(logging.Formatter("%(message)s"))
     root_logger = logging.getLogger()
+    for old_handler in root_logger.handlers:
+        old_handler.close()
     root_logger.handlers.clear()
     root_logger.addHandler(handler)
     root_logger.setLevel(logging.INFO)
