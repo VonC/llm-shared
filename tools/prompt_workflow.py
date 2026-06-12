@@ -16,7 +16,7 @@ descending and stable, so the next-step rows come above the repeat-current row
 and the usual forward move is the pre-highlighted top row (Q54).
 
 See ``tools/Prompt tool specs.md`` for the full specification and the design
-decisions (Q01 to Q54) behind this tool.
+decisions (Q01 to Q55) behind this tool.
 """
 
 from __future__ import annotations

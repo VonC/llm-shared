@@ -37,7 +37,9 @@ reminder interpolated with the header ``{prefix}`` (Q48-Q52).
 Fix (menu order): ``build_cycle_options`` lists the cycle options higher
 workflow step first — the commit variants (10), then the check (9), then the
 implement entry (8) — so the usual follow-up of the step just done is the
-pre-highlighted top row (Q54).
+pre-highlighted top row (Q54). The implement-missing entry is the exception:
+when a ``No`` status offers it, it tops the menu, since the step moves forward
+by filling its recorded gap first (Q55).
 """
 
 from __future__ import annotations
@@ -256,7 +258,9 @@ def build_cycle_options(cycle: CycleState) -> list[tuple[str, CycleAction]]:
 
     The options are listed higher workflow step first — commit (10), then check
     (9), then implement (8) — so the usual follow-up of the step just done sits
-    at the top of the menu, pre-highlighted (Q54).
+    at the top of the menu, pre-highlighted (Q54). One exception: when a ``No``
+    status offers the implement-missing entry, that entry tops the menu, since
+    moving forward is best served by filling the recorded gap first (Q55).
     """
     if cycle.terminal:
         return [("Prepare release notes", CycleAction(kind="release", stage_all=False))]
@@ -281,12 +285,14 @@ def build_cycle_options(cycle: CycleState) -> list[tuple[str, CycleAction]]:
         if cycle.not_implemented
         else f"Implement step {cycle.x}"
     )
-    options.append(
-        (
-            label,
-            CycleAction(kind="implement", stage_all=False, missing=cycle.not_implemented),
-        ),
+    implement = (
+        label,
+        CycleAction(kind="implement", stage_all=False, missing=cycle.not_implemented),
     )
+    if cycle.not_implemented:
+        options.insert(0, implement)
+    else:
+        options.append(implement)
     return options
 
 
