@@ -55,7 +55,7 @@ Every implemented step should be reviewed against this bound in its Performance 
 
 ### Missing work for Step N
 
-{Omit this whole section when writing the initial empty skeleton of this document: no check has taken place yet, since no step is implemented. Only an implementation check that concludes "No, it is not implemented" adds this section, as the work list of the missing elements; the check that later finds the step implemented removes it again.}
+{This section is mandatory whenever the `Analysis of Step N implementation state` status above is anything other than a full "Yes, it is implemented": "No, it is not fully implemented", "partially implemented", "mostly implemented" all require it, even when the section was absent from the document before this check. Gather here every gap, even those already described in the Architecture, Performance, Unit test coverage, or Feature integrity sections: this is the single work list read by `implement-missing-step.md`. Omit this whole section only when writing the initial empty skeleton of this document (no check has taken place yet, since no step is implemented), and remove it when a later check finds the step implemented, since its work list is then done.}
 
 - {Missing element 1: code, test, wiring, or a file over the line budget — concrete enough to implement without re-deriving the analysis}.
 - {Missing element 2}.
