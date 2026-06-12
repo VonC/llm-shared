@@ -171,6 +171,8 @@ The `done` line lands on every exit path, a crashing run included; a hard kill i
 | `state=running`, pid dead | 7 | the run was killed mid-walk; relaunch `ghog day` |
 | no status file | 7 | nothing recorded; run `ghog day` |
 
+The command is also the only reader: a direct read of `a.ghog.status` cannot probe the pid, so a killed run keeps reading `state=running` forever — the exit-7 verdict exists only through `ghog status`.
+
 The same exit 6 protects the walk itself: any run command started while another run is alive refuses before spawning anything, so a second walk can never truncate the first one's log or corrupt its testmon state.
 
 When the harness kills long calls (tool timeouts you do not control), run the walk detached:
@@ -179,7 +181,7 @@ When the harness kills long calls (tool timeouts you do not control), run the wa
 cmd /d /c "..\llm-shared\bin\ghog.bat day --detach"
 ```
 
-No redirect: the tool opens `a.ghog.log` itself for a survivor process — no console, broken away from the harness job object when allowed — folds the senv preamble in, waits for the child's first status write, and returns exit 6 at once. From there the loop is: poll `ghog status`, branch on its exit code. No timeout to pick, no upper bound to guess — across projects, a portable one does not exist.
+No redirect: the tool opens `a.ghog.log` itself for a survivor process — a hidden console (its console children inherit it instead of popping a visible window), broken away from the harness job object when allowed — folds the senv preamble in, waits for the child's first status write, and returns exit 6 at once. From there the loop is: poll `ghog status`, branch on its exit code — no closer than 60 seconds apart, preferring minutes on a full walk: the progress cadence is one line per 10% with a 60-second silence floor, so a tighter poll cannot show anything new, and a progress report needs at most the last 5 lines of `a.ghog.log`. No timeout to pick, no upper bound to guess — across projects, a portable one does not exist.
 
 One caveat: a recycled pid can keep a killed run reading as live; that conservative verdict is broken by deleting `a.ghog.status`.
 
@@ -249,7 +251,7 @@ Codex sandbox notes, also spelled out in the instruction file:
 - ghog and covg calls need real filesystem access (senv.bat reads user-profile paths); run them with escalated (approved) execution from the start.
 - Output containing `Access is denied`, `gum choose` or `Unable to create virtual env` means the sandbox blocked senv.bat: re-run the exact same command escalated; never debug senv.bat, never create a virtual environment, never pick a Python version.
 - Harness output truncation is a non-event: every LLM-driven run is redirected to `a.ghog.log` by the standard invocation form — and the Q31 guard writes the log even when the redirect was forgotten — so the full report is always on disk; the model reads the tail and never deletes the file.
-- Harness tool timeouts on long walks are covered by `ghog day --detach` plus `ghog status` polls (Q32): the walk runs as a survivor process the timeout cannot reach, and completion is read from `a.ghog.status`, never guessed from the log.
+- Harness tool timeouts on long walks are covered by `ghog day --detach` plus `ghog status` polls (Q32): the walk runs as a survivor process the timeout cannot reach, and completion is read through `ghog status`, never guessed from the log or from a direct read of `a.ghog.status`.
 
 ## Coverage gaps and covg
 
