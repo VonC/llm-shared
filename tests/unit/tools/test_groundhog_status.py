@@ -7,12 +7,11 @@ around a real dispatch, and the detached day walk: command shape,
 senv preamble hand-off, stale-status clearing, start handshake, spawn
 fallbacks and failures.
 
-Fix: new test module for the Q32 lifecycle — a harness timeout killed
-a real ``ghog day`` walk mid-suite while the orphaned runner kept
-feeding ``a.ghog.log``; with no completion proof, the agent guessed
-from tails and process listings, then replayed the whole walk. The
-status file and the ``ghog status`` reporter make run completion a
-file contract instead of a log guess.
+Fix: the survivor spawn switched from DETACHED_PROCESS to
+CREATE_NO_WINDOW — a console-free survivor made its console children
+(check.bat, pytest) pop a visible console window during a detached
+walk. The spawn tests now pin the hidden-console flags on the
+breakaway try and on its fallback, and reject DETACHED_PROCESS.
 """
 
 from __future__ import annotations
@@ -603,11 +602,39 @@ def test_default_detach_factory_keeps_a_terminated_preamble(
     assert log_path.read_text(encoding="utf-8") == "preamble\n"
 
 
+def test_spawn_survivor_hides_the_console_window(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """The survivor spawns with a hidden console, never console-free.
+
+    DETACHED_PROCESS would make the walk's console children
+    (check.bat, pytest) allocate a fresh visible console window;
+    CREATE_NO_WINDOW hands them a hidden console to inherit.
+    """
+    kwargs_seen: dict[str, object] = {}
+
+    def _fake_popen(*args: object, **kwargs: object) -> subprocess.Popen[bytes]:
+        del args
+        kwargs_seen.update(kwargs)
+        return cast("subprocess.Popen[bytes]", _FakeSurvivor(_DETACHED_PID))
+
+    monkeypatch.setattr(subprocess, "Popen", _fake_popen)
+    log_path = tmp_path / "detached.log"
+    pid = status.default_detach_factory(["child"], log_path, "", tmp_path)
+    assert pid == _DETACHED_PID
+    flags = cast("int", kwargs_seen.get("creationflags", 0))
+    assert flags & subprocess.CREATE_NO_WINDOW
+    assert flags & subprocess.CREATE_NEW_PROCESS_GROUP
+    assert flags & subprocess.CREATE_BREAKAWAY_FROM_JOB
+    assert flags & subprocess.DETACHED_PROCESS == 0
+
+
 def test_spawn_survivor_falls_back_when_breakaway_is_denied(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    """A job that forbids breakaway gets the plain detached flags."""
+    """A job that forbids breakaway gets the plain no-window flags."""
     attempts: list[int] = []
 
     def _fake_popen(*args: object, **kwargs: object) -> subprocess.Popen[bytes]:
@@ -626,7 +653,8 @@ def test_spawn_survivor_falls_back_when_breakaway_is_denied(
     expected_attempts = 2
     assert len(attempts) == expected_attempts
     assert attempts[1] & subprocess.CREATE_BREAKAWAY_FROM_JOB == 0
-    assert attempts[1] & subprocess.DETACHED_PROCESS
+    assert attempts[1] & subprocess.CREATE_NO_WINDOW
+    assert attempts[1] & subprocess.DETACHED_PROCESS == 0
 
 
 def test_spawn_survivor_uses_a_new_session_off_windows(
