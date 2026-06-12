@@ -11,6 +11,10 @@ restart (Q30): the walk is the loop's only re-entry point and opens with
 the compile check, so the older ``re-run ghog check`` wording made a real
 session pay check.bat twice — once standalone, once inside the resumed
 walk.
+
+Fix: the module also owns the Q32 lifecycle words — the four ``ghog
+status`` verdicts, the live-run refusal and the detached-walk lines —
+so the status contract reads from one place like the run-state table.
 """
 
 from __future__ import annotations
@@ -78,6 +82,23 @@ MSG_SINGLE_GREEN: Final = (
 )
 MSG_NO_BASELINE: Final = (
     "no full-run baseline, comparison skipped; run ghog full for suite-level truth"
+)
+# Lifecycle verdicts of the ghog status reporter (Q32).
+MSG_STATUS_NONE: Final = "ghog: no run recorded in a.ghog.status - Next: ghog day"
+MSG_STATUS_RUNNING: Final = (
+    "ghog: run in progress - poll ghog status until state=done; "
+    "never start a second run while this one is alive"
+)
+MSG_STATUS_KILLED: Final = (
+    "ghog: the recorded pid is gone without state=done - the run was killed; "
+    "Next: ghog day (--detach when the harness kills long calls)"
+)
+MSG_STATUS_DONE: Final = (
+    "ghog: run finished - branch on the exit= above, then read the a.ghog.log tail"
+)
+MSG_DETACH_SILENT: Final = (
+    "ghog: the detached walk wrote no a.ghog.status in time; "
+    "read a.ghog.log and a.ghog.status before retrying"
 )
 _MSG_CRASH_HEADER: Final = "ghog: the test suite crashed mid-run."
 _MSG_CRASH_INSTRUCTION: Final = (
@@ -220,6 +241,36 @@ def nag_line(stats: RunStats) -> str | None:
     if stats.warnings == 0 and stats.xfailed == 0:
         return None
     return f"nag: warn={stats.warnings} xfail={stats.xfailed} worth a look"
+
+
+def run_live_line(pid: int | None) -> str:
+    """Build the refusal line of a run started over a live one (Q32).
+
+    Args:
+        pid: The recorded pid of the live run.
+
+    Returns:
+        The refusal line; nothing was started.
+    """
+    return (
+        f"ghog: a run is already live (pid={pid}) - nothing started; "
+        "poll ghog status until state=done"
+    )
+
+
+def detached_line(pid: int) -> str:
+    """Build the acknowledgment of a detached day walk (Q32).
+
+    Args:
+        pid: The survivor pid.
+
+    Returns:
+        The acknowledgment naming the log and the poll to run.
+    """
+    return (
+        f"ghog: day walk detached (pid={pid}) - report streams to a.ghog.log; "
+        "poll ghog status until state=done, then branch on its exit="
+    )
 
 
 def crash_block(stats: RunStats, tail: Sequence[str]) -> list[str]:

@@ -5,6 +5,10 @@ subcommands of one entry point, per ``tools/Pytest reset specs.md``. This
 module carries the exit-code contract (Q12), the pytest exit-code names used
 to classify a child run, the run statistics accumulated while streaming the
 child output, and the error type shared by the other groundhog modules.
+
+Fix: the contract gains the two lifecycle codes of Q32 — a live run to
+wait on (6) and a lost run to relaunch (7) — used by the ``ghog status``
+reporter and the live-run refusal, never by a run's own classification.
 """
 
 from __future__ import annotations
@@ -19,6 +23,11 @@ EXIT_TEST_FAILURES: Final = 2
 EXIT_COVERAGE_GAP: Final = 3
 EXIT_SUITE_CRASH: Final = 4
 EXIT_SETUP_ERROR: Final = 5
+# Lifecycle codes of the Q32 status contract: a run is live (wait and
+# poll ghog status), or the last run is lost — killed mid-walk or never
+# recorded — and the walk must be relaunched.
+EXIT_RUN_LIVE: Final = 6
+EXIT_RUN_LOST: Final = 7
 
 # pytest's own exit codes, used to classify the child run.
 PYTEST_OK: Final = 0

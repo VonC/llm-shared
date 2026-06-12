@@ -4,6 +4,10 @@ Split out of ``cli.py`` so the entry point stays under the repo line
 budget: this module carries the two dataclasses every command executor
 receives — the ``Deps`` seams faked by the tests, and the ``Invocation``
 parsed from the command line.
+
+Fix: the Q32 lifecycle adds two seams — the detached-walk spawn and the
+handshake sleep — and the ``detach`` flag of the day walk to the
+invocation.
 """
 
 from __future__ import annotations
@@ -14,7 +18,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from tools.groundhog import render, runner
+from tools.groundhog import render, runner, status
 
 if TYPE_CHECKING:
     import subprocess
@@ -34,6 +38,8 @@ class Deps:
         bar_factory: User-mode bar factory, the tqdm seam (Q20).
         which: Executable lookup for the project pytest.
         home: User home lookup, for the Codex prompt of init (Q25).
+        detach_factory: Survivor spawn of the detached day walk (Q32).
+        sleep: Handshake pause of the detached launch (Q32).
     """
 
     popen_factory: Callable[[list[str], Path], subprocess.Popen[str]] = (
@@ -43,6 +49,10 @@ class Deps:
     bar_factory: Callable[[int, str], ProgressBar] = render.make_bar
     which: Callable[[str], str | None] = shutil.which
     home: Callable[[], Path] = Path.home
+    detach_factory: Callable[[list[str], Path, str, Path], int] = (
+        status.default_detach_factory
+    )
+    sleep: Callable[[float], None] = time.sleep
 
 
 @dataclass(frozen=True)
@@ -57,6 +67,8 @@ class Invocation:
         root: The consuming project root.
         force: Whether a ``day`` walk runs even when the source matches
             the last green walk (Q28).
+        detach: Whether a ``day`` walk runs as a survivor process,
+            polled through ``ghog status`` (Q32).
     """
 
     sub: str
@@ -65,6 +77,7 @@ class Invocation:
     mode: Mode
     root: Path
     force: bool = False
+    detach: bool = False
 
 
 # eof

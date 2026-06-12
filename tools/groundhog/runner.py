@@ -36,6 +36,7 @@ SUB_SINGLE: Final = "single"
 SUB_CHECK: Final = "check"
 SUB_DAY: Final = "day"
 SUB_INIT: Final = "init"
+SUB_STATUS: Final = "status"
 
 
 @dataclass(frozen=True)
