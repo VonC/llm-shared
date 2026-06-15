@@ -1,6 +1,6 @@
 # v0.1.0 pw handoff implementation tracking and validation
 
-Steps 1 and 2 are implemented and verified; steps 3 to 4 are not started yet.
+Steps 1 to 3 are implemented and verified; step 4 is not started yet.
 
 This document tracks the implementation of the pw handoff feature step by step. Each step's status is filled by the separate implementation-check, against the current diff and repository state.
 
@@ -159,9 +159,9 @@ No existing feature or reporting capability appears impaired by Step 2.
 
 ### Analysis of Step 3 implementation state
 
-Not started. Step 3 is not implemented because the three cycle instructions carry no `## Handoff` section yet.
+Yes. Step 3 has been fully implemented.
 
-This status is updated by the implementation-check once the sections are added.
+The three cycle instructions each carry one `## Handoff` section as their final section: `instructions/implement-step.md` and `instructions/implement-missing-step.md` name `pw handoff check <x>`, and `instructions/implementation-check.md` names `pw handoff after-check <x>` (Q58, Q62, Q64). Each section gives the call, the `<x>` it uses, its purpose, and the order to read `a.prompt.txt` and follow the returned prompt, matching the design wiring. The files stay well under their markdown budgets and, since no Python changed, the last full `ghog day` walk passed at 100% coverage.
 
 ### Goal for Step 3
 
@@ -175,27 +175,44 @@ Add a clear, detailed `## Handoff` section to `instructions/implement-step.md`, 
 
 ### What was implemented for Step 3
 
-Not started -- filled by the implementation-check step.
+- **`instructions/implement-step.md` (Q62, Q64)**: a `## Handoff` section naming `pw handoff check <x>` to hand the just-implemented step to the implementation check, with `<x>` the "Step XXXX" of the conversation, and the order to read `a.prompt.txt` and follow it.
+- **`instructions/implement-missing-step.md` (Q62, Q64)**: a `## Handoff` section naming the same `pw handoff check <x>` to re-check after the recorded gap is filled.
+- **`instructions/implementation-check.md` (Q58, Q62, Q64)**: a `## Handoff` section naming `pw handoff after-check <x>`, stating that pw reads the `Analysis of Step x` status line and routes to the `implement-missing-step.md` prompt on `No` or the commit prompt (`group-commits-msg.md`, the `git add -A` variant) on `Yes`, so the caller cannot mis-branch.
+- **Validation evidence**: `grep -c "## Handoff"` returns one hit per file (three total); `pw handoff check <x>` appears in the two implement instructions and `pw handoff after-check <x>` in the check instruction; no list marker carries more than one space; the files measure 62, 38 and 56 lines, under the 80, 55 and 75 budgets; the last `ghog day` walk reached the objective with the suite at 100% coverage.
 
 ### New types or classes introduced for Step 3
 
-Not started -- filled by the implementation-check step.
+The step introduced no new type, class or function. It is a documentation-only change: each of the three cycle instruction files gains one `## Handoff` section that wires the existing `pw handoff` subcommand built in Step 2, so there is no production or test code to introduce.
 
 ### Architecture check for Step 3
 
-Not started -- filled by the implementation-check step.
+- **Documentation layer**: the change touches only `instructions/*.md` files, which sit outside the `tools/` code, so no module, layer or import is added or moved.
+- **Boundary direction**: the sections name the existing `pw handoff` CLI surface and point at `a.prompt.txt`; they add no new dependency and no code path.
+- **Markdown rule note**: each file carries the single `## Handoff` heading the plan's completion criteria require, unique within its own document, with single-space list markers and blank lines around the one-item list, per `markdown.md`.
+
+No DDD-Hexagonal violation or adapter smell is possible in a documentation-only step; there is nothing that needs to be addressed.
 
 ### Performance check for Step 3
 
-Not started -- filled by the implementation-check step.
+- **No new `O(n^2)` or `O(n log n)` path**: no code changed, so no computation is added; the step edits three markdown files.
+- **Hot-path bound**: not applicable -- an instruction document carries no runtime path.
+- **Plan-bound alignment**: the plan marks no perf gate for Step 3, and none is touched.
+
+No, there is no performance issue that needs to be addressed for Step 3.
 
 ### Unit test coverage check for Step 3
 
-Not started -- filled by the implementation-check step.
+- **No unit-tested class**: Step 3 adds no Python class or function, so it carries no unit test and no coverage target; the plan states the instruction sections are documents, verified by the grep checks and proven end to end by the Step 4 acceptance scenario.
+
+No, there is no unit-tested class below 100% that needs completing for Step 3.
 
 ### Feature integrity for Step 3
 
-Not started -- filled by the implementation-check step.
+- **Existing feature behavior**: the three instructions gain one trailing section and keep all prior content unchanged, so no existing instruction step is altered; the wired `pw handoff` subcommand already exists from Step 2.
+- **Reporting or diagnostics**: unchanged -- the sections add guidance only, with no log or status output.
+- **Compatibility note**: the change is additive and document-only; the `## Handoff` token routing (`check` for the implement instructions, `after-check` for the check) matches the `TASK_TOKENS` the subcommand accepts.
+
+No existing feature or reporting capability appears impaired by Step 3.
 
 ---
 
