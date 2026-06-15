@@ -2,11 +2,13 @@
 
 Cover the collected count, the -v result statuses, the warnings summary,
 the TOTAL coverage line (Q19), the FAILURES/ERRORS block capture (Q08),
-the last started tests, the output tail and the INTERNALERROR crash
-marker (Q06).
+the slowest-durations block capture (Q36, Q39), the last started tests,
+the output tail and the INTERNALERROR crash marker (Q06).
 
-Fix: the collect line of a testmon run now subtracts its deselected
-count, so the bar total counts only the tests that will actually run.
+Fix: the slowest-durations block of a full run is now captured into
+stats.durations, call phase only, keyed by node and kept whole for a
+parametrized id with spaces (Q49); the block opens on its banner and
+closes on the next banner, the final summary line included.
 """
 
 from __future__ import annotations
@@ -20,6 +22,9 @@ _EXPECTED_WARNINGS = 3
 _FULL_COVERAGE = 100.0
 _PARTIAL_COVERAGE = 97.4
 _SELECTED = 128
+_SLOW_CALL_SECS = 1.83
+_FAST_CALL_SECS = 0.02
+_PARAM_CALL_SECS = 0.5
 
 
 def _feed_lines(parser: PytestOutputParser, lines: list[str]) -> None:
@@ -207,6 +212,73 @@ def test_tail_skips_blank_lines() -> None:
     parser = PytestOutputParser()
     _feed_lines(parser, ["first", "", "second"])
     assert parser.tail == ("first", "second")
+
+
+def test_durations_block_captures_call_phase_only() -> None:
+    """The slowest-durations block records only call-phase seconds (Q36).
+
+    The setup and teardown phases are skipped, and a call line after the
+    next banner is left out, so the block stops at that banner (Q39).
+    """
+    parser = PytestOutputParser()
+    _feed_lines(
+        parser,
+        [
+            "================= slowest durations =================",
+            "1.83s call     tests/test_a.py::test_one",
+            "0.40s setup    tests/test_a.py::test_one",
+            "0.02s teardown tests/test_a.py::test_one",
+            "0.02s call     tests/test_b.py::test_two",
+            "============ short test summary info ============",
+            "9.99s call     tests/test_c.py::test_after_banner",
+        ],
+    )
+    assert parser.stats.durations == {
+        "tests/test_a.py::test_one": _SLOW_CALL_SECS,
+        "tests/test_b.py::test_two": _FAST_CALL_SECS,
+    }
+
+
+def test_durations_block_stops_at_the_summary_line() -> None:
+    """The final tally line, itself a banner, closes the capture (Q39)."""
+    parser = PytestOutputParser()
+    _feed_lines(
+        parser,
+        [
+            "================= slowest durations =================",
+            "1.83s call     tests/test_a.py::test_one",
+            "====== 2 passed in 2.31s ======",
+            "0.50s call     tests/test_late.py::test_late",
+        ],
+    )
+    assert parser.stats.durations == {"tests/test_a.py::test_one": _SLOW_CALL_SECS}
+
+
+def test_no_durations_block_leaves_the_map_empty() -> None:
+    """A duration line with no opening banner is ignored (Q39)."""
+    parser = PytestOutputParser()
+    _feed_lines(
+        parser,
+        [
+            "collected 1 items",
+            "tests/test_a.py::test_one PASSED [100%]",
+            "1.83s call     tests/test_a.py::test_one",
+        ],
+    )
+    assert parser.stats.durations == {}
+
+
+def test_durations_keep_a_parametrized_id_with_spaces() -> None:
+    """A space-bearing parametrized id is captured whole, not chopped (Q49)."""
+    parser = PytestOutputParser()
+    _feed_lines(
+        parser,
+        [
+            "================= slowest durations =================",
+            "0.50s call     tests/test_p.py::test_x[a b]",
+        ],
+    )
+    assert parser.stats.durations == {"tests/test_p.py::test_x[a b]": _PARAM_CALL_SECS}
 
 
 # eof

@@ -53,6 +53,10 @@ class GroundhogError(Exception):
 class RunStats:
     """Counters accumulated while a pytest child run streams its output.
 
+    Fix: a full run now also keeps each test's call-phase seconds in
+    ``durations`` (Q36), the input the later true-outlier rule judges; any
+    other run never sets the ``--durations`` flags, so the map stays empty.
+
     Attributes:
         total: Number of collected tests, 0 until the collect line is seen.
         done: Number of finished tests.
@@ -62,6 +66,8 @@ class RunStats:
         cov_percent: TOTAL coverage percentage, None until parsed (Q19).
         failed_ids: Node ids of the failing tests, in completion order.
         last_started: The most recent test node ids, the crash context (Q06).
+        durations: Node id to call-phase seconds, parsed from the slowest
+            durations block of a full run; empty on any other run (Q36, Q39).
     """
 
     total: int = 0
@@ -72,6 +78,7 @@ class RunStats:
     cov_percent: float | None = None
     failed_ids: list[str] = field(default_factory=list[str])
     last_started: list[str] = field(default_factory=list[str])
+    durations: dict[str, float] = field(default_factory=dict[str, float])
 
 
 @dataclass(frozen=True)
