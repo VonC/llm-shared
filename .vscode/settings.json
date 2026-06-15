@@ -69,6 +69,7 @@
     "unredirected",
     "unwritable",
     "uvloop",
+    "wacnd",
     "xdist"
   ]
 }
