@@ -32,8 +32,9 @@ Every implemented step should be reviewed against this bound in its Performance 
 
 ### Analysis of Step N implementation state
 
-{Start with a direct status statement such as `Yes. Step N has been fully implemented.` or `No. Step N is still incomplete because ...`. Base the conclusion on the current diff, repository state, and focused validation results.}
-{On the first write, the sentence must be: "Not started. Step N is not implemented because ...". On subsequent writes, the sentence must be updated to reflect the current state.}
+{Start with a direct status statement: `Yes. Step N has been fully implemented.` or `No. Step N has NOT been fully implemented.` Base the conclusion on the current diff, repository state, and focused validation results. On the first write, the sentence must be: "Not started. Step N is not implemented because ...". On subsequent writes, the sentence must be updated to reflect the current state.}
+(empty line)
+{short summary of why the step is considered implemented or not, and what is missing if it is not yet implemented, knowing that a detailed list of what is missing is provided in the `Missing work for Step N` section.}
 
 ### Goal for Step N
 
