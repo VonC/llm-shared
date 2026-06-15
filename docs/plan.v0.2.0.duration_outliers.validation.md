@@ -1,13 +1,16 @@
 # v0.2.0 duration-outliers implementation tracking and validation
 
-No, it is not implemented.
+Partially implemented: steps 1 to 4 are done, steps 5 to 6 remain.
 
 This document tracks the duration-outliers feature (decisions Q34 to Q47 of
 `design.v0.2.0.duration_outliers.md`) step by step against the repository state.
 Steps 1 (per-call duration capture into `RunStats`), 2 (the pure true-outlier
 rule in `durations.py`) and 3 (the two-line `a.ghog.outliers` floor file in
-`floor.py`) are done; steps 4 to 6 remain, so there is still no
-`EXIT_DURATION_OUTLIERS` and no outlier output wired into a run.
+`floor.py`) are done, and step 4 (classification, progress output and report
+wiring) is now done too: `EXIT_DURATION_OUTLIERS` (8) is wired through the run,
+the `avg=`/`outliers=` output and the windowed report are emitted, and the auto
+floor is persisted. Steps 5 (the skill exit-8 playbook) and 6 (acceptance tests)
+remain.
 
 ---
 
@@ -265,9 +268,16 @@ No existing feature or reporting capability appears impaired by Step 3.
 
 ### Analysis of Step 4 implementation state
 
-Not started. Step 4 is not implemented because there is no `EXIT_DURATION_OUTLIERS`,
-`classify` ignores outliers, the progress and closing lines carry no `avg=` or
-`outliers=`, and no outlier report is emitted.
+Yes. Step 4 has been fully implemented.
+
+`EXIT_DURATION_OUTLIERS` (8) exists and is exported; `run_tests` reads the
+override, persists the auto floor and judges the call durations only on a run
+already green on tests and coverage; `classify` returns exit 8 last; the final
+progress line, the closed bar and the closing line carry `avg=`/`outliers=`; and
+the windowed list with its fix step and floor-override hint is emitted. The
+`ghog day` walk is green in one pass (`exit=0`, `state=done`, `cov=100`,
+`fail=0` over 767 tests), and the feature reads correctly on llm-shared's own
+uniformly-fast suite (`avg=0.008s outliers=0`).
 
 ### Goal for Step 4
 
@@ -285,27 +295,58 @@ the auto floor after the run -- keeping `commands.py` under its budget.
 
 ### What was implemented for Step 4
 
-(empty -- to be filled after the step is implemented.)
+- **exit code (models, `__init__`)**: `EXIT_DURATION_OUTLIERS = 8`, placed with the run-classification codes (0, 2, 3, 4, 5, 8), apart from the Q32 lifecycle codes (6, 7); `__init__.py` exports it. The module docstring records that it is judged last so it never masks a failure or a coverage gap (Q34).
+- **classification (commands.classify)**: a new `outlier_count` argument; the run returns exit 8 only when it is not crashed, not failing, coverage-clear and `outlier_count > 0`, so outliers are judged after failures and coverage (Q34).
+- **run wiring (commands.run_tests)**: the coverage gate is read before the bar closes; the base code is computed, the durations judged (`durations_summary.judge`), the progress finished with the verdict, the run re-classified with the outlier count, and the report given the verdict.
+- **progress output (reporting, commands._Progress)**: `progress_line` gains an optional summary and the `avg=`/`outliers=` suffix (`progress_suffix`); `_Progress.finish` emits exactly one final LLM line for a full run (Q52) and the closed user bar carries the same verdict, `postfix` gaining the summary (Q37).
+- **closing line (reporting)**: a `ClosingMetrics` value object carries `cov=` and `outliers=`; `outliers_text` reads `skipped`/`withheld`/the count, mirroring `cov_text`; the five `closing_line` callers pass `ClosingMetrics`.
+- **report (commands._report_run_context, reporting.next_after_full)**: every green full run emits the bounded window (`durations_report.window_lines`) -- the flagged outliers, the marked floor and the runners-up, or a single green slowest-call line; exit 8 adds `MSG_OUTLIERS` and the floor-override hint (`_override_hint`).
+- **floor persistence (durations_summary, new)**: a green full run reads the override, recomputes and writes the auto floor (line 1 a write-only record, Q48) and resolves the active floor; a failure, a gap or a crash forms no verdict and writes nothing, so the timing verdict is withheld.
+- **tidy-suite fix (durations._is_outlier, cross-step)**: the Step 4 integration walk exposed that a uniformly-fast suite (every call rounding to `0.00s`, so the median and the `k * median` floor are zero) flagged every call; the rule now spares every call when the floor is non-positive, so a tidy suite is green from the start (Q41), as the design promises.
+- **pre-existing lint unblock**: two committed Step 2 test files were failing the strict gate after toolchain drift -- `test_groundhog_durations.py` used `pytest.approx` (strict pyright `reportUnknownMemberType`) and `test_groundhog_durations_pbt.py` tripped ruff `TC002`; both were fixed minimally (`math.isclose` like the property test; `SearchStrategy` moved to a `TYPE_CHECKING` block) so the walk could reach the test steps.
+- **tests**: `test_groundhog_reporting.py` adds the progress suffix, `outliers_text`, `ClosingMetrics`, the closing-line grammar, the exit-8 next step with its override hint, and the Q30 restart rule; `test_groundhog_commands.py` (new) drives `cli.main` over a durations transcript for the green-but-slow exit-8 run (window, fix, floor seeded), the tidy exit-0 run, the raised-override exit-0 run, the failing withheld exit-2 run, the user-bar verdict and the bar-less no-tests run, plus the `classify` precedence and `postfix` verdict directly; `test_groundhog_durations.py` adds the zero-floor spares-every-call case.
+- **validation evidence**: `ghog day` reports `exit=0`, `state=done`, `cov=100`, `fail=0` over 767 tests; the final line reads `avg=0.008s outliers=0` and the closing line `cov=100 outliers=0 exit=0`; `rg "EXIT_DURATION_OUTLIERS|outliers=" tools/groundhog` finds the code and the output keys.
 
 ### New types or classes introduced for Step 4
 
-(empty.)
+- `reporting.ClosingMetrics`: a frozen value object carrying the `cov=` and `outliers=` values of the closing line, so `closing_line` stays within the project's five-argument limit (PLR0913); the `outliers` field defaults to `skipped`, so the simple callers (check, init, day-noop, setup-error) pass only the coverage value.
+- `tools/groundhog/durations_summary.py` (new module): the application seam between a run and the pure rule -- `measures_durations` (a `full` run only, Q39), `judge` (the gating: a `full` run already green, judged last) and the private `_judge_map` (read the override, persist the auto floor, resolve the active floor, summarize). It carries no behavior-bearing class; it is function-style like `gate.py` and `floor.py`.
+- No other production class. The rest of the step is functions and constants: `EXIT_DURATION_OUTLIERS`, `MSG_OUTLIERS`, `OUTLIERS_SKIPPED`/`OUTLIERS_WITHHELD`, `progress_suffix`, `outliers_text`, `_override_hint`.
 
 ### Architecture check for Step 4
 
-(empty.)
+- **layering**: `commands.py`, the orchestration root, calls `durations_summary` (composition), `durations_report` (rendering) and `reporting` (text). `durations_summary` composes the pure rule (`durations`) and the IO helper (`floor`); `durations.py` stays pure -- no IO, no `floor` import. The dependencies run one way (`durations_summary` imports `durations`, `floor`, `runner`, `models`; nothing but `commands` imports it back), so there is no cycle.
+- **boundary direction**: the report keeps its value objects (`ClosingMetrics`, `DurationSummary`); `commands` passes them down and never the reverse. The tidy-suite fix sits in the pure rule (`durations._is_outlier`), the correct home, with no IO leaked in.
+- **placement of the split**: per the plan's split guidance, the full-run post-processing (read floor, judge, persist floor) was extracted to `durations_summary.py` rather than left in `commands.py` or pushed into the pure `durations.py`, so the orchestration layer and the rule each keep their concern.
+- **girth**: `commands.py` is 647 lines and `reporting.py` 513, both under the project's hard 650-line gate (`PYTHON_BIG_FILE_LINE_LIMIT=650`) but over the plan's soft targets (<= 545, <= 395). Those targets were set from pre-Q32 baselines (499, 325) that intervening lifecycle work had already overshot (596, 401) before Step 4 began, so the soft numbers are stale; the hard gate holds. The `commands.py` margin is only three lines.
+
+Yes -- `commands.py` sits three lines under the 650-line gate, a girth watch a later step should relieve by splitting the report-assembly helpers out before the next addition; there is no DDD-Hexagonal violation or adapter smell.
 
 ### Performance check for Step 4
 
-(empty.)
+- **no new `O(n^2)` path**: the verdict is computed once per full run, reusing the Step 2 single sort (`O(n log n)` over the collected test count); the floor read and write are two-line `O(1)` operations, `classify` is `O(1)`, and the report builds bounded strings (the window is capped at the outliers plus three runners-up).
+- **hot-path bound**: the live per-line path is unchanged -- the governor still emits during the run; the `avg=`/`outliers=` verdict is an end-of-run value (Q37), so the streamed-line loop adds nothing.
+- **startup or background path**: none added; the floor file is read once at run start and written once at run end, no directory scan, matching the plan's file-IO classification.
+- **plan-bound alignment**: the work stays in the `O(n) to O(n log n) once per full run` band the plan allows.
+
+No, there is no performance issue that needs to be addressed for Step 4.
 
 ### Unit test coverage check for Step 4
 
-(empty.)
+- **`tools/groundhog/reporting.py`**: `progress_suffix`, `outliers_text` (skipped, withheld, count), `ClosingMetrics`, the closing-line `outliers=` key, and the `next_after_full` exit-8 branch with `_override_hint` are reached by `test_groundhog_reporting.py`; the live progress and closing paths by the acceptance and cli suites. Covered at 100%.
+- **`tools/groundhog/commands.py`**: the `finish` LLM and user verdict branches, the `run_tests` judging, the `classify` exit-8 branch, the `_report` window and `ClosingMetrics` wiring, and the bar-less no-tests early return are reached by `test_groundhog_commands.py` and the existing acceptance and cli tests. Covered at 100%.
+- **`tools/groundhog/durations_summary.py`**: `measures_durations`, `judge` and `_judge_map` -- every branch (not a full run, not green, an empty map, an override set and an override absent) -- are reached by the `test_groundhog_commands.py` integration runs, the same way the orchestration layer (`commands.py`) is covered. Covered at 100%.
+- **`tools/groundhog/durations.py`**: the new non-positive-floor branch of `_is_outlier` is reached by the added `test_zero_floor_spares_every_call`; the other branches by the existing vectors. Covered at 100%.
+
+The `ghog day` walk reports `cov=100`. No, there is no unit-tested class below 100% that needs completing for Step 4.
 
 ### Feature integrity for Step 4
 
-(empty.)
+- **existing feature behavior**: a full run with no durations block (the legacy acceptance transcripts) forms no verdict, so the bar postfix, the cadence count and the LLM lines are unchanged; the only new closing-line text is `outliers=skipped`. The affected, single and check runs read `outliers=skipped` and are otherwise untouched, and a covered affected run keeps `cov=` with no durations.
+- **reporting or diagnostics**: the new keys sit beside the existing ones (`cov=` then `outliers=` then `exit=`); the failure block, crash block and coverage-gap rows are unchanged. Failures and coverage keep priority -- outliers are judged last -- so a red run withholds the timing verdict (`outliers=withheld`).
+- **the day walk**: a green-but-slow full step now returns exit 8 and withholds the green snapshot, so the loop re-enters until the slow call is trimmed or the floor override raised, the intended driver; a tidy suite stays green (`outliers=0`, exit 0) and records its snapshot as before.
+
+No existing feature or reporting capability appears impaired by Step 4.
 
 ---
 
