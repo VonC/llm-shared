@@ -1,8 +1,13 @@
 """Unit tests for the groundhog child-process runner (Q17).
 
-Cover the per-subcommand pytest command lines, the testmon reset of a
-full run, the live streaming loop (with the real process factory), and
-the crash classification of a pytest child (Q06).
+Cover the per-subcommand pytest command lines, the full run's
+``--durations`` timing flags (Q39), the testmon reset of a full run, the
+live streaming loop (with the real process factory), and the crash
+classification of a pytest child (Q06).
+
+Fix: the full command now also carries --durations=0 and
+--durations-min=0 so the full run times every call; the affected and
+single commands stay untimed.
 """
 
 from __future__ import annotations
@@ -68,7 +73,11 @@ def _config(
 
 
 def test_full_command_is_alias_faithful() -> None:
-    """The full command keeps the ptr alias flags plus -v."""
+    """The full command keeps the ptr alias flags, -v and the timing flags.
+
+    The full run alone times every call (Q39), so it carries
+    --durations=0 and --durations-min=0 after the alias flags.
+    """
     command = runner.pytest_command("pytest", runner.SUB_FULL, no_cov=False, files=())
     assert command == [
         "pytest",
@@ -77,7 +86,29 @@ def test_full_command_is_alias_faithful() -> None:
         "--cov-report",
         "term-missing:skip-covered",
         "-v",
+        "--durations=0",
+        "--durations-min=0",
     ]
+
+
+def test_only_the_full_command_times_durations() -> None:
+    """The affected and single commands carry no --durations flags (Q39)."""
+    affected = runner.pytest_command(
+        "pytest",
+        runner.SUB_AFFECTED,
+        no_cov=False,
+        files=(),
+    )
+    single = runner.pytest_command(
+        "pytest",
+        runner.SUB_SINGLE,
+        no_cov=False,
+        files=("tests/test_a.py",),
+    )
+    assert "--durations=0" not in affected
+    assert "--durations-min=0" not in affected
+    assert "--durations=0" not in single
+    assert "--durations-min=0" not in single
 
 
 def test_affected_command_appends_coverage() -> None:

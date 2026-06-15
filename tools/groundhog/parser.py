@@ -7,6 +7,10 @@ the user bar total counts only the tests that will actually run), per-test
 results and node ids (the ``-v`` format), the warnings summary, the TOTAL
 coverage line (Q19), the verbatim FAILURES/ERRORS block (Q08), the most
 recent test ids and the INTERNALERROR marker used for crash detection (Q06).
+
+Fix: a full run also prints a ``slowest durations`` block (Q39); the parser
+captures each test's call-phase seconds from it into ``stats.durations``
+(Q36), the input the later true-outlier rule judges.
 """
 
 from __future__ import annotations
@@ -49,6 +53,16 @@ _INTERNAL_ERROR_PREFIX: Final = "INTERNALERROR"
 _FAILING_STATUSES: Final = ("FAILED", "ERROR")
 # Result status counted as an expected failure.
 _XFAIL_STATUS: Final = "XFAIL"
+# The slowest-durations banner title, opening the durations capture (Q36).
+# pytest prints exactly this (no count) under --durations=0.
+_DURATIONS_TITLE: Final = "slowest durations"
+# One durations line: "1.83s call     tests/test_a.py::test_one". The node
+# group is ``.+`` so a parametrized id with spaces stays whole (Q49).
+_DURATION_RE: Final = re.compile(
+    r"^\s*(?P<secs>\d+\.\d+)s\s+(?P<phase>setup|call|teardown)\s+(?P<node>.+\S)",
+)
+# The durations phase the outlier rule measures: the test body (Q36).
+_CALL_PHASE: Final = "call"
 
 
 class PytestOutputParser:
@@ -62,6 +76,7 @@ class PytestOutputParser:
         self._capturing_failures = False
         self._coverage_lines: list[str] = []
         self._capturing_coverage = False
+        self._capturing_durations = False
         self._last_started: deque[str] = deque(maxlen=LAST_STARTED_KEPT)
         self._tail: deque[str] = deque(maxlen=TAIL_LINES_KEPT)
 
@@ -92,6 +107,7 @@ class PytestOutputParser:
             self.internal_error = True
         self._feed_failure_block(line)
         self._feed_coverage_table(line)
+        self._feed_durations(line)
         self._feed_counters(line)
 
     def _feed_failure_block(self, line: str) -> None:
@@ -127,6 +143,27 @@ class PytestOutputParser:
         self._coverage_lines.append(line)
         if _TOTAL_RE.match(line):
             self._capturing_coverage = False
+
+    def _feed_durations(self, line: str) -> None:
+        """Capture the slowest-durations block, call phase only (Q36).
+
+        A ``slowest durations`` banner opens the capture; each call-phase
+        line records its seconds keyed by node, the node kept whole so a
+        parametrized id with spaces survives (Q49); the next banner — the
+        final summary line included, itself a banner — closes it (Q39).
+
+        Args:
+            line: The raw line being parsed.
+        """
+        banner = _BANNER_RE.match(line)
+        if banner is not None:
+            self._capturing_durations = banner.group("title") == _DURATIONS_TITLE
+            return
+        if not self._capturing_durations:
+            return
+        duration = _DURATION_RE.match(line)
+        if duration is not None and duration.group("phase") == _CALL_PHASE:
+            self.stats.durations[duration.group("node")] = float(duration.group("secs"))
 
     def _feed_counters(self, line: str) -> None:
         """Update the run statistics from one output line.
