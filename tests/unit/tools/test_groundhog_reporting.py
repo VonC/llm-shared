@@ -7,14 +7,21 @@ focus comparison lines (Q07) and the nag line (Q09). Also cover the Q30
 rule: every next-step message that follows a fix names ghog day, the
 loop's only re-entry point, never a standalone subcommand to re-run
 first (a real session paid check.bat twice that way).
+
+Fix: cover the duration-outlier additions (Q37, Q47) — the ``avg=``/
+``outliers=`` suffix of the final progress line and the bar, the
+``outliers=`` value of the closing line through ``ClosingMetrics``, and the
+exit-8 next step with its floor-override hint.
 """
 
 from __future__ import annotations
 
 from tools.groundhog import reporting
 from tools.groundhog.baseline import FocusComparison
+from tools.groundhog.durations import DurationCall, DurationSummary
 from tools.groundhog.models import (
     EXIT_COVERAGE_GAP,
+    EXIT_DURATION_OUTLIERS,
     EXIT_OBJECTIVE_MET,
     EXIT_SUITE_CRASH,
     EXIT_TEST_FAILURES,
@@ -22,6 +29,28 @@ from tools.groundhog.models import (
 )
 
 _PARTIAL_COVERAGE = 97.4
+# A duration verdict with one flagged outlier, for the suffix and exit-8 cases.
+_AVERAGE = 0.012
+_FLOOR = 1.65
+_OUTLIER = DurationCall(node="tests/test_slow.py::test_freak", seconds=5.0, ratio=30.0)
+
+
+def _summary(*, outliers: tuple[DurationCall, ...]) -> DurationSummary:
+    """Build a duration verdict for the report-line tests.
+
+    Args:
+        outliers: The flagged outliers carried by the verdict.
+
+    Returns:
+        The summary, with a fixed average, floor and median.
+    """
+    return DurationSummary(
+        average=_AVERAGE,
+        outliers=outliers,
+        runners_up=(),
+        floor=_FLOOR,
+        median=0.1,
+    )
 
 
 class _FakeClock:
@@ -74,6 +103,47 @@ def test_progress_line_with_unknown_total() -> None:
     assert line.startswith("ghog full: 0% (0/0)")
 
 
+def test_progress_line_appends_the_summary_on_the_final_line() -> None:
+    """The final full-run line carries the avg= and outliers= verdict (Q37)."""
+    stats = _stats(total=250, done=250)
+    plain = reporting.progress_line("full", stats)
+    assert "avg=" not in plain
+    judged = reporting.progress_line("full", stats, _summary(outliers=(_OUTLIER,)))
+    assert judged == "ghog full: 100% (250/250) fail=0 warn=0 xfail=0 avg=0.012s outliers=1"
+
+
+def test_progress_suffix_is_the_avg_and_count() -> None:
+    """The shared suffix builds the avg= and outliers= keys (Q37)."""
+    suffix = reporting.progress_suffix(_summary(outliers=(_OUTLIER,)))
+    assert suffix == "avg=0.012s outliers=1"
+
+
+def test_outliers_text_rules() -> None:
+    """outliers= reads skipped, withheld or the count (Q37)."""
+    # An unmeasured run (any subcommand but full) skips the verdict.
+    assert (
+        reporting.outliers_text(_stats(), None, measured=False)
+        == reporting.OUTLIERS_SKIPPED
+    )
+    # A failing full run withholds the verdict, judged last.
+    assert (
+        reporting.outliers_text(_stats(failed=1), None, measured=True)
+        == reporting.OUTLIERS_WITHHELD
+    )
+    # A full run that captured no durations skips the verdict.
+    assert (
+        reporting.outliers_text(_stats(), None, measured=True)
+        == reporting.OUTLIERS_SKIPPED
+    )
+    # A judged full run reports the flagged count.
+    counted = reporting.outliers_text(
+        _stats(),
+        _summary(outliers=(_OUTLIER,)),
+        measured=True,
+    )
+    assert counted == "1"
+
+
 def test_cov_text_rules() -> None:
     """cov= reads skipped, withheld, unread or the percentage (Q16)."""
     assert reporting.cov_text(_stats(), measured=False) == reporting.COV_SKIPPED
@@ -87,17 +157,30 @@ def test_cov_text_rules() -> None:
 
 
 def test_closing_line_grammar() -> None:
-    """The closing line merges the alias echo with the keys (Q16)."""
+    """The closing line merges the alias echo with the keys (Q16, Q37)."""
     line = reporting.closing_line(
         "pdfss",
         "full",
         _stats(failed=2, warnings=1),
         EXIT_TEST_FAILURES,
-        reporting.COV_WITHHELD,
+        reporting.ClosingMetrics(reporting.COV_WITHHELD, reporting.OUTLIERS_WITHHELD),
     )
     assert line == (
-        "pdfss: ghog full done fail=2 warn=1 xfail=0 cov=withheld exit=2"
+        "pdfss: ghog full done fail=2 warn=1 xfail=0 "
+        "cov=withheld outliers=withheld exit=2"
     )
+
+
+def test_closing_metrics_defaults_outliers_to_skipped() -> None:
+    """A run that times no calls leaves outliers= as skipped (Q37)."""
+    line = reporting.closing_line(
+        "pdfss",
+        "check",
+        _stats(),
+        EXIT_OBJECTIVE_MET,
+        reporting.ClosingMetrics(reporting.COV_SKIPPED),
+    )
+    assert "cov=skipped outliers=skipped exit=0" in line
 
 
 def test_nag_line_only_with_material() -> None:
@@ -163,6 +246,22 @@ def test_next_after_full_per_exit_code() -> None:
     assert reporting.next_after_full(EXIT_SUITE_CRASH, ()) == []
 
 
+def test_next_after_full_outliers_names_the_fix_and_the_override() -> None:
+    """Exit 8 lists the outlier fix step and the floor-override hint (Q47)."""
+    summary = _summary(outliers=(_OUTLIER,))
+    lines = reporting.next_after_full(EXIT_DURATION_OUTLIERS, (), summary)
+    assert lines[0] == reporting.MSG_OUTLIERS
+    assert "a.ghog.outliers" in lines[1]
+    assert f"{_FLOOR:.2f}s" in lines[1]
+
+
+def test_next_after_full_outliers_without_a_summary() -> None:
+    """The override hint falls back to a zero floor without a summary (Q47)."""
+    lines = reporting.next_after_full(EXIT_DURATION_OUTLIERS, ())
+    assert lines[0] == reporting.MSG_OUTLIERS
+    assert "0.00s" in lines[1]
+
+
 def test_next_after_affected_cov_per_exit_code() -> None:
     """The covered affected-run next step follows the table."""
     assert reporting.next_after_affected_cov(EXIT_OBJECTIVE_MET) == [
@@ -213,6 +312,7 @@ def test_post_fix_messages_restart_at_ghog_day() -> None:
         reporting.MSG_AFFECTED_NOCOV_FAIL,
         reporting.MSG_SINGLE_RESTART,
         reporting.MSG_SINGLE_GREEN,
+        reporting.MSG_OUTLIERS,
     )
     for message in post_fix_messages:
         assert "ghog day" in message

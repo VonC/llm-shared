@@ -9,6 +9,10 @@ child output, and the error type shared by the other groundhog modules.
 Fix: the contract gains the two lifecycle codes of Q32 — a live run to
 wait on (6) and a lost run to relaunch (7) — used by the ``ghog status``
 reporter and the live-run refusal, never by a run's own classification.
+
+Fix: a full run green on tests and coverage that still hides a true
+duration outlier returns the new ``EXIT_DURATION_OUTLIERS`` (8), judged
+last so it never masks a failure or a coverage gap (Q34).
 """
 
 from __future__ import annotations
@@ -23,6 +27,10 @@ EXIT_TEST_FAILURES: Final = 2
 EXIT_COVERAGE_GAP: Final = 3
 EXIT_SUITE_CRASH: Final = 4
 EXIT_SETUP_ERROR: Final = 5
+# A full run green on tests and coverage that still hides a true duration
+# outlier (Q34): a run-classification code judged last, only on an
+# otherwise-green full run, so it never masks a failure or a coverage gap.
+EXIT_DURATION_OUTLIERS: Final = 8
 # Lifecycle codes of the Q32 status contract: a run is live (wait and
 # poll ghog status), or the last run is lost — killed mid-walk or never
 # recorded — and the walk must be relaunched.
