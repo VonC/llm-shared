@@ -23,6 +23,7 @@ set "LLM_SHARED_DIR=%PRJ_DIR%"
 if defined GCYGPATH (
   for /f "usebackq tokens=*" %%i in (`%GCYGPATH% -u "%COPILOT_SHARED_DIR%"`) do  set "COPILOT_SHARED_DIR_UNIX=%%i"
   for /f "usebackq tokens=*" %%i in (`%GCYGPATH% -u "%LLM_SHARED_DIR%"`) do  set "LLM_SHARED_DIR_UNIX=%%i"
+  for /f "usebackq tokens=*" %%i in (`%GCYGPATH% -u "%PRJ_DIR%"`) do  set "PRJ_DIR_unix=%%i"
 )
 
 if defined NO_MORE_SENV_%PRJ_DIR_NAME% ( goto:eof )
@@ -97,6 +98,7 @@ set "GIT_HOME=%PRGS%\gits\current"
 set "GCYGPATH=%GIT_HOME%\usr\bin\cygpath.exe"
 for /f "usebackq tokens=*" %%i in (`%GCYGPATH% -u "%COPILOT_SHARED_DIR%"`) do  set "COPILOT_SHARED_DIR_UNIX=%%i"
 for /f "usebackq tokens=*" %%i in (`%GCYGPATH% -u "%LLM_SHARED_DIR%"`) do  set "LLM_SHARED_DIR_UNIX=%%i"
+for /f "usebackq tokens=*" %%i in (`%GCYGPATH% -u "%PRJ_DIR%"`) do  set "PRJ_DIR_unix=%%i"
 
 doskey pt=pytest --no-header --cov-report term-missing:skip-covered $* ^& echo %PRJ_DIR_NAME%: pytest done
 doskey pta=pytest --testmon --no-header --no-cov -rxX $* ^& echo %PRJ_DIR_NAME%: pytest affected done
