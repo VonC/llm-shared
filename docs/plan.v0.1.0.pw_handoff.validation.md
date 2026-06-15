@@ -1,6 +1,6 @@
 # v0.1.0 pw handoff implementation tracking and validation
 
-Not started. No step is implemented yet, since this is the initial skeleton.
+Step 1 is implemented and verified; steps 2 to 4 are not started yet.
 
 This document tracks the implementation of the pw handoff feature step by step. Each step's status is filled by the separate implementation-check, against the current diff and repository state.
 
@@ -32,9 +32,9 @@ Every implemented step is reviewed against this bound in its Performance check s
 
 ### Analysis of Step 1 implementation state
 
-Not started. Step 1 is not implemented because no `tools/prompt_workflow_handoff.py` module exists yet.
+Yes. Step 1 has been fully implemented.
 
-This status is updated by the implementation-check once the resolution core is written.
+The new `tools/prompt_workflow_handoff.py` module carries the pure resolution core the plan asked for -- `find_plan_step`, `action_for_task`, `cycle_state_for_step`, `derived_mismatch`, `resolve_topic` and the `TASK_TOKENS` set -- and `tests/unit/tools/test_prompt_workflow_handoff.py` exercises every branch. The module owns no terminal IO and reuses the parsing, derivation and dataclasses of `prompt_workflow_plan` and the read-only git helpers, matching the design and the plan's step 1.
 
 ### Goal for Step 1
 
@@ -48,27 +48,45 @@ Add `tools/prompt_workflow_handoff.py` with the pure resolution core: the task-t
 
 ### What was implemented for Step 1
 
-Not started -- filled by the implementation-check step.
+- **The resolution module**: `tools/prompt_workflow_handoff.py` adds the four task tokens and the `find_plan_step`, `action_for_task`, `cycle_state_for_step`, `derived_mismatch` and `resolve_topic` functions.
+- **Task-to-action mapping (Q57, Q58, Q62)**: `action_for_task` maps `check`, `implement-missing` and `commit` to their `CycleAction`, and routes `after-check` to implement-missing on a `No` step and commit on a `Yes` step, raising on an unknown task or a placeholder status.
+- **Named-step build (Q59)**: `find_plan_step` reads the named step from the validation plan and raises on a missing plan or unknown id; `cycle_state_for_step` builds the carrier `CycleState`, with only `x`, `verified` and `not_implemented` populated and the working-tree flags left False; `derived_mismatch` reports the `derive_x` step when it differs.
+- **Non-interactive topic resolution (Q63)**: `resolve_topic` returns the single draft or the branch-locked topic, and None for the caller to refuse; the module-private `_topic_matches` mirrors `prompt_workflow._memory_matches` so the module never imports the interactive entry point.
+- **Validation evidence**: `tests/unit/tools/test_prompt_workflow_handoff.py` covers every function and branch, and the last full `ghog day` walk passed with the suite at 100% coverage.
 
 ### New types or classes introduced for Step 1
 
-Not started -- filled by the implementation-check step.
+The step introduced no new production type. The module is a set of module-level functions plus the module-private `_topic_matches` helper, and it reuses the `CycleState`, `CycleAction` and `PlanStep` dataclasses of `prompt_workflow_plan` rather than defining its own. The `TASK_TOKENS` tuple names the four accepted task words.
 
 ### Architecture check for Step 1
 
-Not started -- filled by the implementation-check step.
+- **Resolution layer**: `prompt_workflow_handoff` sits beside `prompt_workflow_plan` as a pure resolution module; it reuses the plan parsing, derivation and dataclasses and the read-only git helpers, writes no files and touches no terminal, so the menu-less path stays unit-testable.
+- **Dependency direction**: the module imports `prompt_workflow_plan`, `prompt_workflow_git` and the shared models, but never `prompt_workflow`, the interactive entry point, so there is no circular import; the small `_topic_matches` helper is the deliberate mirror that keeps that direction clean (design Q02).
+- **No technical leak**: the module holds only resolution logic, while the git and clipboard side effects stay in the git helpers and the entry point.
+
+No DDD-Hexagonal violation or adapter smell is visible in this step; there is nothing that needs to be addressed.
 
 ### Performance check for Step 1
 
-Not started -- filled by the implementation-check step.
+- **No new `O(n^2)` or `O(n log n)` path**: the task-to-action mapping and the topic resolution are constant-time; `find_plan_step` and `derived_mismatch` scan the validation-plan lines once through `parse_validation_steps`, which is `O(n)` in the document line count.
+- **Hot-path bound**: there is no hot path -- the module runs once per handoff call, not in a loop.
+- **Plan-bound alignment**: the step stays inside the plan's bound, `O(1)` per call for the mapping and `O(n)` for the single document scan the cycle already performs.
+
+No, there is no performance issue that needs to be addressed for Step 1.
 
 ### Unit test coverage check for Step 1
 
-Not started -- filled by the implementation-check step.
+- **`tools/prompt_workflow_handoff.py`**: covered at 100% by `tests/unit/tools/test_prompt_workflow_handoff.py`, which exercises each function and branch -- the three direct task tokens, the `after-check` Yes/No routing and its placeholder raise, the unknown-task raise, the missing-plan and unknown-id raises of `find_plan_step`, the carrier state, the `derived_mismatch` match, difference and empty-plan cases, and the `resolve_topic` single, lock and refusal paths.
+
+No, there is no unit-tested class below 100% that needs completing for Step 1.
 
 ### Feature integrity for Step 1
 
-Not started -- filled by the implementation-check step.
+- **Existing feature behavior**: the step adds a new module and its tests; the only change to an existing file is the `prompt_workflow.py` module docstring repointed to the moved design, so no route, service or workflow behaviour changed.
+- **Reporting or diagnostics**: unchanged; the module raises `PromptWorkflowError` for its refusals, the same error type the tool already uses.
+- **Compatibility note**: the interactive menu cycle is untouched; the resolution core stays dormant until the step-2 subcommand calls it.
+
+No existing feature or reporting capability appears impaired by Step 1.
 
 ---
 
