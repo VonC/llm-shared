@@ -14,6 +14,12 @@ Fix (menu order): the step menu lists its rows higher step number first, so the
 next-step rows come above the repeat-current row; the menu-options scenarios
 assert the descending order and the happy path picks the first row to advance
 (Q54).
+
+Fix (handoff dispatch): the parser now carries a ``handoff`` subcommand; this
+file only asserts that ``main`` routes the subcommand to ``run_handoff`` with the
+task and step, while the no-subcommand path still routes to ``run`` (Q56). The
+``run_handoff`` orchestration itself is covered in
+``test_prompt_workflow_handoff.py``.
 """
 
 from __future__ import annotations
@@ -551,6 +557,21 @@ def test_main_pick_flag(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None
     monkeypatch.setattr(prompt_workflow, "run", fake_run)
     assert prompt_workflow.main(["--root", str(tmp_path), "--pick"]) == 0
     assert seen["pick"] is True
+
+
+def test_main_dispatches_handoff(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """The handoff subcommand routes to run_handoff with the task and step (Q56)."""
+    seen: dict[str, object] = {}
+
+    def fake_handoff(root: Path, task: str, step: str) -> int:
+        seen["root"] = root
+        seen["task"] = task
+        seen["step"] = step
+        return 0
+
+    monkeypatch.setattr(prompt_workflow, "run_handoff", fake_handoff)
+    assert prompt_workflow.main(["handoff", "check", "2", "--root", str(tmp_path)]) == 0
+    assert seen == {"root": tmp_path.resolve(), "task": "check", "step": "2"}
 
 
 def test_main_defaults_to_found_root(
