@@ -212,7 +212,7 @@ def test_handoff_check_delivers_check_prompt(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    """check hands off to the implementation-check prompt for the named step."""
+    """Check hands off to the implementation-check prompt for the named step."""
     _build_project(tmp_path, _PLACEHOLDER)
     staged_calls = _wire_handoff(monkeypatch)
 

@@ -84,10 +84,21 @@ def fork_point(cwd: Path) -> str | None:
     --boundary HEAD --not <other branches>``. The boundary commit (prefixed with
     ``-`` in the output) is the newest commit the current branch shares with
     another local branch, and is returned as the diff base for files created on
-    the branch. When there is no other branch, or no shared commit (for example
-    on the default branch), None is returned and the caller falls back to the
-    working-tree drafts (Q07). This replaces the previous per-commit
-    ``git branch --contains`` walk, which spawned one git process per commit.
+    the branch.
+
+    Fix: when that rev-list is empty, ``HEAD`` carries no commit unique to this
+    branch -- a branch freshly created on a commit it shares with another branch,
+    with zero commits of its own. Its start is ``HEAD`` itself, so ``HEAD`` is
+    returned and ``base..HEAD`` stays empty. Returning None here instead (the old
+    behavior) sent ``has_step_commit`` to grep the whole history, where it matched
+    the ``record step N validation`` commits left by other branches' features and
+    skipped step 1 on a zero-commit branch.
+
+    None is still returned when there is no other branch (the default branch
+    alone) or when the branch diverges with no shared commit; the caller then
+    falls back to the working-tree drafts (Q07). This replaces the previous
+    per-commit ``git branch --contains`` walk, which spawned one git process per
+    commit.
     """
     current = current_branch(cwd)
     others = _other_branches(cwd, current)
@@ -97,9 +108,12 @@ def fork_point(cwd: Path) -> str | None:
         ["rev-list", "--first-parent", "--boundary", "HEAD", "--not", *others],
         cwd=cwd,
     )
-    for line in _non_empty_lines(output):
+    lines = _non_empty_lines(output)
+    for line in lines:
         if line.startswith("-"):
             return line[1:]
+    if not lines:
+        return run_git(["rev-parse", "HEAD"], cwd=cwd).strip()
     return None
 
 
