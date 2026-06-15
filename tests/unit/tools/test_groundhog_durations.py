@@ -5,11 +5,15 @@ the MAD-zero fallback (Q50), the average over the non-outlier calls (Q37),
 the empty-map summary, and the median-zero ratio guard. The bounded report
 window (Q47) is rendered by ``durations_report.py`` and covered in
 ``test_groundhog_durations_report.py``.
+
+Fix: float comparisons use ``math.isclose`` like the property test, so the
+strict pyright gate (``reportUnknownMemberType`` on ``pytest.approx``) stays
+green.
 """
 
 from __future__ import annotations
 
-import pytest
+import math
 
 from tools.groundhog import durations
 
@@ -79,7 +83,7 @@ def test_tidy_suite_has_no_outliers() -> None:
     summary = durations.summarize(_TIDY, durations.auto_floor(_TIDY))
     assert summary.outliers == ()
     assert len(summary.runners_up) == _EXPECTED_RUNNERS
-    assert summary.average == pytest.approx(_TIDY_AVG)
+    assert math.isclose(summary.average, _TIDY_AVG)
 
 
 def test_one_freak_is_the_single_outlier() -> None:
@@ -90,13 +94,13 @@ def test_one_freak_is_the_single_outlier() -> None:
     assert _NEAR_NODE not in flagged
     outlier = summary.outliers[0]
     assert outlier.seconds == _FREAK_SECS
-    assert outlier.ratio == pytest.approx(_FREAK_RATIO)
+    assert math.isclose(outlier.ratio, _FREAK_RATIO)
 
 
 def test_average_excludes_the_outliers() -> None:
     """avg= is the mean over the calls left unflagged, the freak left out."""
     summary = durations.summarize(_FREAK, durations.auto_floor(_FREAK))
-    assert summary.average == pytest.approx(_FREAK_AVG)
+    assert math.isclose(summary.average, _FREAK_AVG)
 
 
 def test_mad_zero_drops_the_z_condition() -> None:
@@ -111,6 +115,24 @@ def test_mad_zero_drops_the_z_condition() -> None:
     summary = durations.summarize(tied, durations.auto_floor(tied))
     flagged = {call.node for call in summary.outliers}
     assert flagged == {_FREAK_NODE}
+
+
+def test_zero_floor_spares_every_call() -> None:
+    """A uniformly-fast suite (zero median, zero floor) flags nothing (Q41).
+
+    Most calls round to ``0.00s``, so the median and the ``k * median`` auto
+    floor are zero; with no scale to judge against, even a lone slower call is
+    spared and the tidy suite is green from the start.
+    """
+    fast = {
+        "tests/test_a.py::test_one": 0.0,
+        "tests/test_b.py::test_two": 0.0,
+        "tests/test_c.py::test_three": 0.0,
+        "tests/test_d.py::test_four": _SPIKE_SECS,
+    }
+    summary = durations.summarize(fast, durations.auto_floor(fast))
+    assert summary.floor == 0.0
+    assert summary.outliers == ()
 
 
 def test_median_zero_yields_a_zero_ratio() -> None:

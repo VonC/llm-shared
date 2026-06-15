@@ -9,12 +9,15 @@ proportionally, and a call below the active floor is never flagged.
 from __future__ import annotations
 
 import math
+from typing import TYPE_CHECKING
 
 from hypothesis import given, settings
 from hypothesis import strategies as st
-from hypothesis.strategies import SearchStrategy
 
 from tools.groundhog import durations
+
+if TYPE_CHECKING:
+    from hypothesis.strategies import SearchStrategy
 
 # Bounded so the property run stays tiny (Time-gated status for Step 2).
 _MAX_EXAMPLES = 50

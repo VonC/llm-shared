@@ -12,7 +12,10 @@ module stays under its line budget.
 The aim is the call truly outside the norm, not the merely slower test: a
 call two or three times the median is slower, never an outlier (Q46). When
 more than half the calls tie and the MAD collapses to zero, the modified
-z-score is undefined, so the rule falls back to the floor alone (Q50).
+z-score is undefined, so the rule falls back to the floor alone (Q50). A
+uniformly-fast suite — every call rounding to ``0.00s``, so the median and the
+``k * median`` floor are zero — has no scale to judge against, so nothing is
+flagged and the tidy suite is green from the start (Q41).
 """
 
 from __future__ import annotations
@@ -125,6 +128,12 @@ def summarize(durations: Mapping[str, float], floor: float) -> DurationSummary:
 def _is_outlier(secs: float, median: float, mad: float, floor: float) -> bool:
     """Tell whether one call is a true outlier (Q46, Q50).
 
+    A non-positive floor means the suite is uniformly fast — its median, and so
+    the ``k * median`` auto floor, is zero, the case where pytest rounds every
+    call to ``0.00s``. There is then no scale to define "an order of magnitude
+    slower", so every call is spared and the tidy suite is green from the start
+    (Q41); a project with a genuine slow call sets a positive line-2 override.
+
     Args:
         secs: The call-phase seconds.
         median: The run median.
@@ -132,10 +141,11 @@ def _is_outlier(secs: float, median: float, mad: float, floor: float) -> bool:
         floor: The active floor.
 
     Returns:
-        True when the call is at or above the floor and far out; when the
-        MAD is zero the floor alone decides (Q50).
+        True when the call is at or above a positive floor and far out; when
+        the MAD is zero the floor alone decides (Q50); a non-positive floor
+        spares every call (Q41).
     """
-    if secs < floor:
+    if floor <= 0 or secs < floor:
         return False
     if mad <= 0:
         return True
