@@ -4,9 +4,9 @@ No, it is not implemented.
 
 This document tracks the duration-outliers feature (decisions Q34 to Q47 of
 `design.v0.2.0.duration_outliers.md`) step by step against the repository state.
-Step 1 (per-call duration capture into `RunStats`) is done; steps 2 to 6 remain,
-so there is still no `durations.py` or `floor.py`, no `EXIT_DURATION_OUTLIERS`,
-and no outlier output.
+Steps 1 (per-call duration capture into `RunStats`) and 2 (the pure true-outlier
+rule in `durations.py`) are done; steps 3 to 6 remain, so there is still no
+`floor.py`, no `EXIT_DURATION_OUTLIERS`, and no outlier output wired into a run.
 
 ---
 
@@ -111,8 +111,15 @@ No existing feature or reporting capability appears impaired by Step 1.
 
 ### Analysis of Step 2 implementation state
 
-Not started. Step 2 is not implemented because there is no `durations.py`: no rule,
-no average, no window builder.
+Yes. Step 2 has been fully implemented.
+
+A new pure `durations.py` carries the auto floor (`k * median`), the two-condition
+true-outlier rule (modified z-score at least 3.5 AND at or above the floor), the
+MAD-zero fallback to the floor alone, and the average over the non-outlier calls; a
+companion `durations_report.py` renders the bounded report window. Both import only
+the standard library -- no IO and no import from `commands`, `reporting`, `floor` or
+even `models` -- so the rule is judged in isolation. Their deterministic tests reach
+100% of each module and the `ghog day` walk is green in one pass.
 
 ### Goal for Step 2
 
@@ -129,27 +136,52 @@ outliers and the bounded window line builders, with the MAD-zero fallback.
 
 ### What was implemented for Step 2
 
-(empty -- to be filled after the step is implemented.)
+- **durations.py rule module (new)**: the constants `K_DEFAULT` (10.0), `MODZ_CUTOFF` (3.5), `_MODZ_SCALE` (0.6745) and `_RUNNERS_UP_MAX` (3); `auto_floor(durations)` returns `k * median`, or `0.0` for an empty map; `summarize(durations, floor)` applies the two-condition rule, drops the z-condition when the MAD is zero so the floor alone decides (Q50), builds the uncapped outlier list slowest-first, up to three runners-up, and the average over the calls left unflagged (Q37).
+- **durations_report.py window builder (new)**: `window_lines(summary)` renders the bounded report window (Q47) -- a header, the outlier lines, the marked floor, then up to three runners-up; a single slowest-call line on a green run; a no-durations notice on an empty map. The window text lives here, split out of `durations.py` so the rule stays under its line budget and kept out of `reporting.py` so that module keeps its own.
+- **value objects**: two frozen dataclasses in `durations.py`, `DurationCall` (node, seconds, ratio) and `DurationSummary` (average, outliers, runners_up, floor, median); the ratio is guarded to `0.0` when the median is zero, so a zero-median run never divides by zero.
+- **Tests**: `test_groundhog_durations.py` holds nine deterministic rule vectors (empty-map summary, tidy suite, one freak with a spared ~2.7x call, average-excludes-outliers, MAD-zero floor-only, median-zero ratio guard, empty-map auto floor, odd and even median) reaching 100% of `durations.py`; `test_groundhog_durations_report.py` holds the three window shapes reaching 100% of `durations_report.py`; `test_groundhog_durations_pbt.py` adds two bounded hypothesis properties (the auto floor scales with the durations; a call below the floor is never flagged), capped at 50 examples and a 400 ms deadline so the property run stays tiny.
+- **Validation evidence**: `ghog day` reports `exit=0`, `state=done`, `cov=100`, `fail=0` over 728 tests; `rg "K_DEFAULT|MODZ_CUTOFF|def summarize|def auto_floor" tools/groundhog/durations.py` finds the constants and both functions; `durations.py` (177 lines) and `durations_report.py` (87 lines) carry no IO and no import from `commands`, `reporting` or `floor`.
 
 ### New types or classes introduced for Step 2
 
-(empty.)
+- `DurationCall`: a frozen dataclass for one timed call -- `node`, `seconds`, and `ratio` (the seconds as a multiple of the run median).
+- `DurationSummary`: a frozen dataclass for the run verdict -- `average`, `outliers`, `runners_up`, `floor`, and `median`.
+- `auto_floor`, `summarize`: the public functions of the rule in `durations.py`, with the private helpers `_is_outlier`, `_call` and `_median`.
+- `window_lines`: the public window builder in `durations_report.py`, with the private helpers `_green_line`, `_call_line` and `_floor_line`.
+
+Neither module adds a class with behavior beyond the two value objects; both are pure functions, matching the function-style placement of `gate.py`.
 
 ### Architecture check for Step 2
 
-(empty.)
+- **durations.py (pure domain rule)**: the module imports only the standard library (`dataclasses`, `typing`, and `collections.abc` under `TYPE_CHECKING`); it holds no IO and no import from `commands`, `reporting`, `floor`, `runner`, `parser` or even `models`, so the rule is decoupled from the parsing adapter and the IO modules. Correct placement beside `gate.py`, the other pure helper.
+- **boundary direction**: the rule defines its own value objects (`DurationCall`, `DurationSummary`) instead of reaching into `RunStats`, so the adapter's accumulator does not leak into the rule and the rule does not depend back on the adapter; `commands.py` will call these modules in Step 4, never the reverse.
+- **split note**: the first draft of `durations.py` reached 242 lines, over the step's 230 target, so the window rendering moved to a new `durations_report.py` (87 lines), per the plan's split guidance; `durations.py` is now 177 lines. `durations_report.py` imports only the `DurationCall`/`DurationSummary` value objects (under `TYPE_CHECKING`) from `durations.py`, a one-way report-over-rule dependency with no cycle, and stays out of `reporting.py` so that module keeps its own budget.
+
+No DDD-Hexagonal violation or adapter smell is visible in Step 2. No, there is nothing that needs to be addressed for Step 2.
 
 ### Performance check for Step 2
 
-(empty.)
+- **No new `O(n^2)` path**: `summarize` sorts at most three times -- the median of the values, the median of the deviations (the MAD), and the runners-up -- and scans the calls once; `auto_floor` sorts once for its median. Each sort is `O(n log n)` over the collected test count, the outlier scan `O(n)`.
+- **Hot-path bound**: none -- the rule runs once at end of run, not per streamed line, so it adds nothing to the live parsing path.
+- **Startup or background path**: none added; the rule is computed once per full run, on data the parent already parsed, with no file or directory access.
+- **Plan-bound alignment**: the work is `O(n) to O(n log n) once per full run`, the band the plan's complexity clarification allows; no path is `O(n^2)`.
+
+Step 2 stays inside the plan's complexity target. No, there is no performance issue that needs to be addressed for Step 2.
 
 ### Unit test coverage check for Step 2
 
-(empty.)
+- **`tools/groundhog/durations.py`**: the deterministic `test_groundhog_durations.py` reaches every statement -- `auto_floor` empty and non-empty, `summarize` empty-map early return and the populated path, `_is_outlier` (below the floor, MAD-zero floor-only, and the modified z-score branch), `_call` for a positive and a zero median, and `_median` odd and even counts. Covered at 100%.
+- **`tools/groundhog/durations_report.py`**: `test_groundhog_durations_report.py` reaches `window_lines` in all three shapes (outliers with the marked floor and runners, the single green line, the empty-map notice), so `_green_line`, `_call_line` and `_floor_line` are all hit. Covered at 100%.
+
+The `ghog day` walk reports `cov=100`. No, there is no unit-tested class below 100% that needs completing for Step 2.
 
 ### Feature integrity for Step 2
 
-(empty.)
+- **Existing feature behavior**: `durations.py` and `durations_report.py` are new and not yet called by any command -- `commands.py` wires them in at Step 4 -- so no run, route or output changes; `RunStats`, `parser.py`, `runner.py`, `reporting.py` and `commands.py` are untouched.
+- **Reporting or diagnostics**: the progress lines, closing line, failure block and coverage capture are unchanged; no `avg=` or `outliers=` is emitted yet, which is Step 4's job.
+- **Compatibility or rollout note**: a pure addition with no caller, so no behavior reaches the full, affected, single or check paths; the rule is exercised only by its own tests.
+
+No existing feature or reporting capability appears impaired by Step 2.
 
 ---
 
