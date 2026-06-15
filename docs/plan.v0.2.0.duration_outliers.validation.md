@@ -4,9 +4,10 @@ No, it is not implemented.
 
 This document tracks the duration-outliers feature (decisions Q34 to Q47 of
 `design.v0.2.0.duration_outliers.md`) step by step against the repository state.
-Steps 1 (per-call duration capture into `RunStats`) and 2 (the pure true-outlier
-rule in `durations.py`) are done; steps 3 to 6 remain, so there is still no
-`floor.py`, no `EXIT_DURATION_OUTLIERS`, and no outlier output wired into a run.
+Steps 1 (per-call duration capture into `RunStats`), 2 (the pure true-outlier
+rule in `durations.py`) and 3 (the two-line `a.ghog.outliers` floor file in
+`floor.py`) are done; steps 4 to 6 remain, so there is still no
+`EXIT_DURATION_OUTLIERS` and no outlier output wired into a run.
 
 ---
 
@@ -189,45 +190,74 @@ No existing feature or reporting capability appears impaired by Step 2.
 
 ### Analysis of Step 3 implementation state
 
-Not started. Step 3 is not implemented because there is no `floor.py` and no
-`a.ghog.outliers` read/write or active-floor resolution.
+Yes. Step 3 has been fully implemented.
+
+A new pure-IO `floor.py` beside `gate.py`, `snapshot.py` and `status.py` reads the
+user override from line 2 of the two-line `a.ghog.outliers`, resolves the active
+floor (the override when set, else this run's freshly computed auto -- line 1 is
+write-only and never read for gating, Q48), and writes both lines through the atomic
+side-file replace the tool already uses. A missing, partial, malformed or binary file
+falls back to the auto floor without crashing. Nine deterministic tests reach 100% of
+the module and the `ghog day` walk is green in one pass.
 
 ### Goal for Step 3
 
-A `floor.py` beside `gate.py` and `snapshot.py` that reads the two-line
-`a.ghog.outliers`, resolves the active floor (line 2 when not `-1`, else line 1),
-and writes line 1 from the run with line 2 reset to `-1` when the file is absent,
-using the atomic side-file replace.
+A `floor.py` beside `gate.py` and `snapshot.py` that reads the user override from
+line 2 of the two-line `a.ghog.outliers`, resolves the active floor (the override
+when set, else this run's freshly computed auto `k * median` -- line 1 is write-only
+and never read for gating, Q48), and writes line 1 from the run with line 2 preserved
+(`-1` when none), using the atomic side-file replace.
 
 ### Step 3 improvement expectations
 
-- a missing file resolves to the auto value with override `-1`.
-- a positive line 2 overrides line 1; line 1 is still read.
-- the write is atomic and round-trips; a malformed file falls back, never crashing.
+- a missing file resolves to this run's auto value, with no override read.
+- a positive line 2 is the active floor; line 1 is never read for gating (Q48).
+- the write is atomic and round-trips; a malformed or partial file falls back to the
+  auto value, never crashing the run.
 
 ### What was implemented for Step 3
 
-(empty -- to be filled after the step is implemented.)
+- **floor.py file helper (new)**: the constants `FLOOR_FILE` (`a.ghog.outliers`), `NO_OVERRIDE` (`-1.0`) and `_LINE_COUNT` (2); `floor_path(root)` returns the project-root path; `read_floor(root)` reads only line 2 and returns the override seconds when it parses to a number `>= 0`, else `None` for a missing, unreadable, partial, malformed or `-1`/negative file (Q48); `active_floor(override, auto)` returns the override when set (`>= 0`), else this run's auto floor (Q48); `write_floor(root, auto, override)` writes line 1 = auto and line 2 = override atomically through a `.tmp` side-file replace, logging an `OSError` instead of raising so a write failure cannot crash the run.
+- **line-1 write-only rule (Q48)**: `read_floor` never reads line 1, so each run gates against its own freshly computed `k * median` and the convergence of Q43 never lags a run behind; this is the plan's Q48 refinement of the design's earlier "else line 1" wording, which the pre-filled goal text above now reflects.
+- **atomic write reuse**: the side-file replace mirrors `snapshot.py` (`a.ghog.day.ok`) and `status.py` (`a.ghog.status`); `_read_text` suppresses `OSError`/`UnicodeDecodeError`, so an absent or binary file reads as "no override".
+- **.gitignore coverage**: `a.ghog.outliers` and its `.tmp` side file are already ignored by the existing `a.*` pattern (`git check-ignore` reports `.gitignore:27:a.*`), matching the `a.ghog.*` family; no `.gitignore` change was needed.
+- **Tests**: `test_groundhog_floor.py` holds nine deterministic cases -- missing-file no-override, `-1` resolving to the fresh auto with the stale line 1 ignored, a positive override replacing the auto, the two-line atomic round-trip with no side file left behind, a partial one-line file, a non-numeric line 2, a binary file, a negative override resolving to auto, and a write onto a non-directory root logged not raised -- reaching 100% of `floor.py`.
+- **Validation evidence**: the implement step's `ghog day` walk reported `exit=0`, `state=done`, `cov=100`, `fail=0` over 728 tests; `floor.py` is 130 lines (target <= 130) and `test_groundhog_floor.py` is 94 lines (target <= 150).
 
 ### New types or classes introduced for Step 3
 
-(empty.)
+- No new production class or type. Step 3 is a function-style file helper, matching `gate.py`: the module constants `FLOOR_FILE`, `NO_OVERRIDE` and `_LINE_COUNT`; the public functions `floor_path`, `read_floor`, `active_floor` and `write_floor`; and the private helper `_read_text`. No dataclass or behavior-bearing class was added.
 
 ### Architecture check for Step 3
 
-(empty.)
+- **floor.py (IO helper)**: the module sits beside `gate.py`, `snapshot.py` and `status.py`, the project-root file helpers; it imports only the standard library (`contextlib`, `logging`, `typing`, and `pathlib.Path` under `TYPE_CHECKING`) and nothing from `commands`, `reporting`, `durations`, `runner`, `parser` or `models`. Correct placement: file IO, no rule.
+- **boundary direction**: the true-outlier rule stays in the pure `durations.py`; `floor.py` carries only the file's own contract -- read line 2, resolve override-else-auto, write two lines -- so no median, MAD or z-score logic leaked into the IO module and the IO module does not reach back into the rule. `commands.py` calls both in Step 4, never the reverse.
+- **split or size note**: `floor.py` is 130 lines, on the plan's `<= 130` target; the module is small and self-contained, so no split is needed.
+
+No DDD-Hexagonal violation or adapter smell is visible in Step 3. No, there is nothing that needs to be addressed for Step 3.
 
 ### Performance check for Step 3
 
-(empty.)
+- **No new `O(n^2)` or `O(n log n)` path**: `read_floor` parses a two-line file (one `splitlines`, one `float`) and `write_floor` writes two lines; both are O(1), with no scan and no sort.
+- **Hot-path bound**: none -- the floor is read once at run start and written once at run end, off the streamed-line path, so the live parsing loop is untouched.
+- **Startup or background path**: the run-start read is a tiny index-read of a two-line file and the run-end write a single side-file replace; no directory scan is added on any path, matching the plan's file-IO classification.
+- **Plan-bound alignment**: the plan states the floor read and write are two-line operations, not scans; the implementation holds to that.
+
+Step 3 stays inside the plan's complexity target. No, there is no performance issue that needs to be addressed for Step 3.
 
 ### Unit test coverage check for Step 3
 
-(empty.)
+- **`tools/groundhog/floor.py`**: `test_groundhog_floor.py` reaches every statement -- `floor_path` (used throughout), `read_floor` in all five outcomes (absent/unreadable text, a sub-two-line file, a non-numeric line 2, a `>= 0` override, and a negative override), `active_floor` in its three branches (`None`, a non-negative override, a negative override), `write_floor` on both the success and the `OSError` paths, and `_read_text` on the success, the suppressed-error and the `None`-fallthrough paths. Covered at 100%, consistent with the walk's `cov=100`.
+
+No, there is no unit-tested class below 100% that needs completing for Step 3.
 
 ### Feature integrity for Step 3
 
-(empty.)
+- **Existing feature behavior**: `floor.py` is new and not yet called by any command -- `commands.py` wires it in at Step 4 -- so no run, route or output changes; `RunStats`, `parser.py`, `runner.py`, `reporting.py`, `commands.py`, `durations.py` and `durations_report.py` are untouched.
+- **Reporting or diagnostics**: the progress lines, closing line, failure block and coverage capture are unchanged; no `avg=` or `outliers=` is emitted yet and no run writes the floor file yet, which is Step 4's job.
+- **Compatibility or rollout note**: a pure addition with no caller and no `.gitignore` change (the `a.*` pattern already covers the new file); the helper is exercised only by its own tests, so no behavior reaches the full, affected, single or check paths.
+
+No existing feature or reporting capability appears impaired by Step 3.
 
 ---
 
