@@ -50,3 +50,13 @@ This rule is for unit tests only, the ones under `src\pdfss\tests\unit`. It does
 - Design the class file to be easy to test first: small methods, injected dependencies, no hidden side effects. Then write the unit tests so they both exercise the behaviour and reach 100% of that class file.
 - A unit test folder targets a single class file. Other test types may cover several classes at once; they carry no coverage target and answer only to what they represent (integration, smoke, regression, or acceptance).
 - If a legacy unit test exists, is impacted by this step, and its run does not reach 100% of the class it tests, take the chance to complete it (unit tests only) so that class file is back at 100%.
+
+## Handoff
+
+When the step is implemented and the `ghog day` walk reports the objective (`exit=0`), hand the cycle on to the implementation check, with no menu. From the project root, run:
+
+- `pw handoff check <x>`
+
+`<x>` is the plan step you just implemented — the "Step XXXX" of this conversation, a number such as `2` or a sub-step id such as `4A`. `pw` is the `<llm-shared>\bin\pw.bat` launcher (the `pw` alias of the project environment), the same tool the interactive cycle uses.
+
+The call writes the `implementation-check.md` prompt for step `<x>` to `a.prompt.txt` at the project root, copies it to the clipboard, and records the step in `a.prompt_memory`. Then read `a.prompt.txt` and follow the instructions of that returned prompt to check what you just implemented. Do not compose the next prompt yourself: `pw` builds it, so the cycle advances on its own.

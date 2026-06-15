@@ -26,3 +26,13 @@ Then, if you have files under the `src\` or `tools\` folder or subfolders in you
 Preserve existing code, comments and docstrings, and follow [`preserve_code.md`](../rules/preserve_code.md): write each changed file in full, with no `# ...existing code...` placeholder, and update the top docstring of any class you change to explain the fix.
 
 When writing an answer in markdown, follow [`markdown.md`](../rules/markdown.md).
+
+## Handoff
+
+When the missing work is implemented and the `ghog day` walk reports the objective (`exit=0`), hand the cycle back to the implementation check, with no menu. From the project root, run:
+
+- `pw handoff check <x>`
+
+`<x>` is the plan step whose missing work you just filled — the "Step XXXX" of this conversation, a number such as `2` or a sub-step id such as `4A`. `pw` is the `<llm-shared>\bin\pw.bat` launcher (the `pw` alias of the project environment), the same tool the interactive cycle uses.
+
+The call writes the `implementation-check.md` prompt for step `<x>` to `a.prompt.txt` at the project root, copies it to the clipboard, and records the step in `a.prompt_memory`, so the gap you just closed gets re-checked. Then read `a.prompt.txt` and follow the instructions of that returned prompt. Do not compose the next prompt yourself: `pw` builds it, so the cycle advances on its own.
