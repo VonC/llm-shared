@@ -4,8 +4,9 @@ No, it is not implemented.
 
 This document tracks the duration-outliers feature (decisions Q34 to Q47 of
 `design.v0.2.0.duration_outliers.md`) step by step against the repository state.
-Nothing is implemented yet: `ghog full` carries no per-call timing, there is no
-`durations.py` or `floor.py`, no `EXIT_DURATION_OUTLIERS`, and no outlier output.
+Step 1 (per-call duration capture into `RunStats`) is done; steps 2 to 6 remain,
+so there is still no `durations.py` or `floor.py`, no `EXIT_DURATION_OUTLIERS`,
+and no outlier output.
 
 ---
 
@@ -39,8 +40,13 @@ Each implemented step is reviewed against this bound in its Performance check.
 
 ### Analysis of Step 1 implementation state
 
-Not started. Step 1 is not implemented because the parser captures no durations, the
-full command carries no `--durations` flags, and `RunStats` has no `durations` field.
+Yes. Step 1 has been fully implemented.
+
+The full command now adds `--durations=0 --durations-min=0`, the parser captures the
+`slowest durations` block into a new call-phase `RunStats.durations` map, and every
+non-full run leaves the map empty. The capture opens on its banner and closes on the
+next banner, the final summary line included; a parametrized id with spaces is kept
+whole. The `ghog day` walk is green in one pass.
 
 ### Goal for Step 1
 
@@ -56,27 +62,48 @@ runs stay empty.
 
 ### What was implemented for Step 1
 
-(empty -- to be filled after the step is implemented.)
+- **models.py field**: `RunStats` gains `durations: dict[str, float]`, default empty, node id to call-phase seconds; the class docstring records the call-phase-only intent and the empty-on-non-full-run rule (Q36, Q39).
+- **runner.py flags**: `pytest_command` appends `--durations=0 --durations-min=0` on the full branch only, gated on `sub == SUB_FULL`; the single command returns early and the affected (covered) command skips the flags, so only the full run is timed (Q39).
+- **parser.py capture**: a `_DURATION_RE` regex and a `_feed_durations` step record the call-phase seconds while a `slowest durations` banner is open; the node group is `.+\S`, so a parametrized id holding a space stays whole (Q49); any later banner — the final summary line, itself a banner, included — closes the capture.
+- **Tests**: `test_groundhog_parser.py` adds four cases (call-phase-only with setup/teardown skipped and a post-banner line dropped, summary-line close, no-banner empty map, space-bearing parametrized id); `test_groundhog_runner.py` updates the full-command assertion with the two flags and adds a case proving the affected and single commands stay untimed.
+- **Validation evidence**: `ghog day` reports `exit=0`, `state=done`, `cov=100`, `fail=0` over 728 tests; `rg "durations" tools/groundhog` finds the field (`models.py:81`), the flags (`runner.py:113`) and the capture (`parser.py:147`).
 
 ### New types or classes introduced for Step 1
 
-(empty.)
+- No new production class or type. Step 1 is a field, a parser step and a flag branch: `RunStats.durations` (a dataclass field), the `_DURATIONS_TITLE`, `_DURATION_RE` and `_CALL_PHASE` module-level constants of `parser.py`, the private method `PytestOutputParser._feed_durations`, and one `SUB_FULL` branch in `runner.pytest_command`. No new module was added — `durations.py` and `floor.py` belong to Steps 2 and 3.
 
 ### Architecture check for Step 1
 
-(empty.)
+- **parser layer (output adapter)**: the durations capture sits beside the existing failure-block and coverage-table captures inside `PytestOutputParser`, the streamed-output parsing adapter; it reads text only, writes to `RunStats`, and imports nothing new (`re` was already used). Correct placement.
+- **models layer**: `RunStats` stays a plain counter dataclass with no behavior, its imports unchanged; the new field follows the `failed_ids`/`last_started` shape. No rule logic (median, MAD, floor) leaked in — that is held for the pure `durations.py` of Step 2.
+- **runner layer**: `pytest_command` only builds an argument list; the `SUB_FULL` gate adds no IO and no computation, so the boundary between command building and the deferred rule module is kept.
+
+No DDD-Hexagonal violation or adapter smell is visible in Step 1. No, there is nothing that needs to be addressed for Step 1.
 
 ### Performance check for Step 1
 
-(empty.)
+- **No new `O(n^2)` or `O(n log n)` path**: the capture is a constant-cost branch per streamed line — one banner match, at most one duration match, one dict insert — the same shape as the coverage-table capture next to it.
+- **Hot-path bound**: `_feed_durations` runs once per output line, O(1) amortized; it never scans the accumulated map and never sorts.
+- **Startup or background path**: none added; the flag wiring is a constant-time list build done once per run.
+- **Plan-bound alignment**: Step 1 only captures; the `O(n log n)` median and MAD work is deferred to Step 2, so this step stays at O(1) per line.
+
+Step 1 stays inside the plan's complexity target. No, there is no performance issue that needs to be addressed for Step 1.
 
 ### Unit test coverage check for Step 1
 
-(empty.)
+- **`tools/groundhog/parser.py` (`PytestOutputParser`)**: the new `_feed_durations` statements are all reached by the four added parser tests — the banner-open path, the banner-close path (named banner and summary line), the not-capturing early return, the call-phase insert, and the setup/teardown skip. Covered at 100%.
+- **`tools/groundhog/runner.py` (`pytest_command`)**: the new `SUB_FULL` branch is reached by the updated full-command test; the not-full path by the affected and single tests. Covered at 100%.
+- **`tools/groundhog/models.py` (`RunStats`)**: the `durations` default factory runs on every `RunStats()` construction the parser tests make. Covered at 100%.
+
+No, there is no unit-tested class below 100% that needs completing for Step 1.
 
 ### Feature integrity for Step 1
 
-(empty.)
+- **Existing feature behavior**: the affected, single and check commands get no `--durations` flags, so their command lines and output parsing are unchanged; `RunStats.durations` defaults empty and nothing downstream reads it yet, so no route or workflow is impaired.
+- **Reporting or diagnostics**: the progress lines, closing line, failure block and coverage capture are untouched; the full-run output gains pytest's own `slowest durations` block, captured silently into the map — no visible report yet, which is Step 4's job.
+- **Compatibility or rollout note**: the full command appends the two flags after `-v`; the alias-faithful test was updated to match that order. No behavior change reaches the affected, single or check paths.
+
+No existing feature or reporting capability appears impaired by Step 1.
 
 ---
 
