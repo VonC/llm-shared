@@ -1,6 +1,6 @@
 # v0.1.0 pw handoff implementation tracking and validation
 
-Steps 1 to 3 are implemented and verified; step 4 is not started yet.
+Steps 1 to 4 are implemented and verified.
 
 This document tracks the implementation of the pw handoff feature step by step. Each step's status is filled by the separate implementation-check, against the current diff and repository state.
 
@@ -220,9 +220,9 @@ No existing feature or reporting capability appears impaired by Step 3.
 
 ### Analysis of Step 4 implementation state
 
-Not started. Step 4 is not implemented because no end-to-end handoff acceptance scenario exists yet.
+Yes. Step 4 has been fully implemented.
 
-This status is updated by the implementation-check once the acceptance scenario is written.
+`tests/unit/tools/test_prompt_workflow_acceptance.py` now carries four handoff acceptance scenarios that drive `main(["handoff", ...])` against a temp project (draft, plan with a `### Step 2.` heading, validation plan) for the three forward transitions: `check` to the `implementation-check.md` prompt, `after-check` to the `implement-missing-step.md` prompt on a `No` step and to the `group-commits-msg.md` commit prompt on a `Yes` step, and the direct `commit`. Each asserts the delivered `a.prompt.txt` instruction and body and the recorded `a.prompt_memory` step. The real `build_cycle_prompt` runs end to end; only the git reads and the clipboard are monkeypatched (Q05). The last full `ghog day` walk reached the objective with 718 tests passing at 100% coverage.
 
 ### Goal for Step 4
 
@@ -237,27 +237,46 @@ Add an acceptance scenario that drives `main(["handoff", ...])` for the three tr
 
 ### What was implemented for Step 4
 
-Not started -- filled by the implementation-check step.
+- **The handoff acceptance scenarios**: four functions added to `tests/unit/tools/test_prompt_workflow_acceptance.py` -- `test_handoff_check_delivers_check_prompt`, `test_handoff_after_check_no_delivers_implement_missing`, `test_handoff_after_check_yes_delivers_commit` and `test_handoff_commit_delivers_commit_prompt` -- each calling `prompt_workflow.main(["handoff", <task>, "2", "--root", str(tmp_path)])` and asserting the return code, the delivered prompt and the recorded memory.
+- **The temp-project builder (`_build_project`)**: writes `docs/draft.v0.1.0.pw_handoff.md`, a plan with the `### Step 2. The handoff subcommand and its orchestration` heading that `read_step_title` reads, and a validation plan whose `Analysis of Step 2` status line is passed in per scenario (`Not started`, `No`, or `Yes`), so the real document scans resolve the topic and the step.
+- **The git-and-clipboard wiring (`_wire_handoff`)**: monkeypatches the `prompt_workflow_git` reads (`current_branch`, `working_tree_changed_files`, `fork_point`, `has_step_commit`, `status_entries`, `staged_files`) and records each `stage_all`, and stubs `set_clipboard_text` to a no-op, so no real git process or PowerShell call runs (Q05); the single draft and a None fork point resolve the topic with no menu.
+- **The commit assertion helper (`_assert_commit_prompt`)**: checks the commit body fragments, the staged `log` block, the `docs(pw_handoff): record step 2 validation` final-commit line the staged validation plan triggers (Q16), the emptied `a.commit` (Q25), the single `git add -A` (Q61), and the `step=10` memory; the substrings are checked as one membership scan to keep the helper's branch count under the radon gate.
+- **Validation evidence**: `rg -c "handoff"` returns 31 hits in the acceptance file, the file measures 296 lines (under the 600 budget) and ends with `# eof`; the full `ghog day` walk reached the objective (`exit=0`) with the suite at 100% coverage.
 
 ### New types or classes introduced for Step 4
 
-Not started -- filled by the implementation-check step.
+The step introduced no new production type and no new test class. It is an acceptance addition built from four module-level test functions and three module-level helpers (`_build_project`, `_wire_handoff`, `_assert_commit_prompt`, plus the small `_delivered_prompt` reader) in the existing `test_prompt_workflow_acceptance.py`. It reuses the production `MemoryRecord` for the memory assertions and the real `prompt_workflow.main`, `run_handoff` and `build_cycle_prompt` paths rather than introducing any new code under `tools/`.
 
 ### Architecture check for Step 4
 
-Not started -- filled by the implementation-check step.
+- **Test layer placement**: the scenario sits in `tests/unit/tools/`, the test layer, and exercises the tool through its `main` entry point; it adds no production code, so no module, layer or import is added or moved in `tools/`.
+- **Boundary direction**: the test monkeypatches the shared `prompt_workflow_git` module object, which `prompt_workflow_docs`, `prompt_workflow_plan` and the entry point all import, so the stubbed git reads reach every caller without the test reaching inside any layer; the real prompt-building path runs untouched.
+- **No coverage-protection breach**: the scenario runs no `pytest`/`ghog` of its own and spins no real git or clipboard process, matching the design's Q05 choice and the suite's house style.
+
+No DDD-Hexagonal violation or adapter smell is visible in this test-only step; there is nothing that needs to be addressed.
 
 ### Performance check for Step 4
 
-Not started -- filled by the implementation-check step.
+- **No new `O(n^2)` or `O(n log n)` path**: the step adds test code only; each scenario runs `run_handoff` once, which performs the same linear validation-plan and plan-heading scans the cycle already pays, with no loop and no new computation.
+- **Hot-path bound**: not applicable -- an acceptance test carries no runtime hot path; the helpers build a few small files and assert substrings.
+- **Plan-bound alignment**: the plan marks no perf gate for Step 4, and the exercised path stays inside the documented `O(1)` mapping plus `O(n)` document-scan bound.
+
+No, there is no performance issue that needs to be addressed for Step 4.
 
 ### Unit test coverage check for Step 4
 
-Not started -- filled by the implementation-check step.
+- **No new unit-tested class**: Step 4 adds an acceptance scenario, which the plan states is larger than a unit test and carries no 100% coverage target; it introduces no production class of its own.
+- **Production classes it exercises**: `tools/prompt_workflow_handoff.py` and the `run_handoff` orchestration in `tools/prompt_workflow.py` are already at 100% from the Step-1 and Step-2 unit tests in `test_prompt_workflow_handoff.py` and `test_prompt_workflow_main.py`; the acceptance scenario adds end-to-end confidence over the real `build_cycle_prompt`, not a new per-class target.
+
+No, there is no unit-tested class below 100% that needs completing for Step 4.
 
 ### Feature integrity for Step 4
 
-Not started -- filled by the implementation-check step.
+- **Existing feature behavior**: the change is test-only -- four scenarios and three helpers added to `test_prompt_workflow_acceptance.py`; the two existing `__main__`-guard tests are untouched, so no route, service or workflow behaviour changed.
+- **Reporting or diagnostics**: unchanged; the scenarios read the tool's own `a.prompt.txt` and `a.prompt_memory` outputs and assert on them, adding no new diagnostics.
+- **Compatibility note**: the addition proves the handoff chain end to end and locks the delivered prompt and recorded step for each of the three transitions, so a later change that breaks one transition is caught by these scenarios.
+
+No existing feature or reporting capability appears impaired by Step 4.
 
 ---
 
