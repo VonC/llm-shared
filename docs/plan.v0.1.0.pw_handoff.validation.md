@@ -1,6 +1,6 @@
 # v0.1.0 pw handoff implementation tracking and validation
 
-Step 1 is implemented and verified; steps 2 to 4 are not started yet.
+Steps 1 and 2 are implemented and verified; steps 3 to 4 are not started yet.
 
 This document tracks the implementation of the pw handoff feature step by step. Each step's status is filled by the separate implementation-check, against the current diff and repository state.
 
@@ -94,9 +94,9 @@ No existing feature or reporting capability appears impaired by Step 1.
 
 ### Analysis of Step 2 implementation state
 
-Not started. Step 2 is not implemented because `tools/prompt_workflow.py` has no `handoff` subcommand or `run_handoff` orchestration yet.
+Yes. Step 2 has been fully implemented.
 
-This status is updated by the implementation-check once the subcommand is wired.
+`tools/prompt_workflow.py` now carries the `handoff` subcommand and a lean `run_handoff` orchestration. A shared parent parser puts `--root`/`--debug` on both the top-level parser and the `handoff` subparser (Q01), the `step` positional stays a plain string so a sub-step id such as `4A` reaches the resolver (Q04), and `run_handoff` resolves the topic without a menu, validates the named step, warns on a derived-step mismatch, maps the task to a cycle action, stages `git add -A` only for a commit, then delivers and records the prompt the same way the interactive cycle does (Q58 to Q61). `tests/unit/tools/test_prompt_workflow_handoff.py` and `tests/unit/tools/test_prompt_workflow_main.py` cover the orchestration and the dispatch, and the last full `ghog day` walk passed with the suite at 100% coverage.
 
 ### Goal for Step 2
 
@@ -112,27 +112,46 @@ Add the `pw handoff <task> <x>` subcommand to `tools/prompt_workflow.py` and a l
 
 ### What was implemented for Step 2
 
-Not started -- filled by the implementation-check step.
+- **The `handoff` subparser (Q01, Q04, Q56)**: `_get_arg_parser` builds a shared `add_help=False` parent parser carrying `--root` and `--debug`, passed to both the top-level parser (which keeps `--pick`) and a `handoff` subparser; the subparser adds a `task` and a plain-string `step` positional, so a sub-step id such as `4A` reaches the resolver unparsed and is validated there, not by the grammar.
+- **Dispatch (Q56)**: `main` reads `args.command` and routes the `handoff` command to `run_handoff(root, args.task, args.step)`, otherwise to the interactive `run(root, pick=args.pick)`.
+- **The `run_handoff` orchestration (Q58 to Q61)**: it resolves the branch and topics, calls `handoff.resolve_topic` (raising a `PromptWorkflowError` that names `pw --pick` when None, Q63), `compute_state`, `git.fork_point`, `handoff.find_plan_step`, logs a warning when `handoff.derived_mismatch` differs from the handed step (Q59), maps the task with `handoff.action_for_task`, builds the carrier state with `handoff.cycle_state_for_step`, runs `git.stage_all` only when `action.stage_all`, then `plan.build_cycle_prompt`, `deliver_prompt` and `memory.write_memory` with the returned workflow step and `plan_step=cycle.x`.
+- **Refusal contract (Q03)**: every refusal raises `PromptWorkflowError`, which the `__main__` guard turns into `EXIT_FATAL` (2), so the calling instruction branches on the non-zero code.
+- **Validation evidence**: the unit tests assert the delivered `a.prompt.txt` and the recorded `a.prompt_memory` for each transition with the clipboard monkeypatched, and the last full `ghog day` walk reached the objective with the suite at 100% coverage.
 
 ### New types or classes introduced for Step 2
 
-Not started -- filled by the implementation-check step.
+The step introduced no new production type. It adds the module-level `run_handoff` function and the `handoff` subparser wiring inside `_get_arg_parser`, and reuses the Step-1 `prompt_workflow_handoff` resolution functions, the `prompt_workflow_plan` builders and dataclasses, and the existing `MemoryRecord`. `run_handoff` lives in `prompt_workflow.py` beside `deliver_prompt` (Q02), so the file gains a function and a parser, not a class.
 
 ### Architecture check for Step 2
 
-Not started -- filled by the implementation-check step.
+- **CLI and orchestration layer**: the subparser wiring and `run_handoff` sit in the `prompt_workflow.py` entry point, the right place for argument dispatch and orchestration; `run_handoff` delegates resolution to `prompt_workflow_handoff`, document and topic work to `prompt_workflow_docs` and `prompt_workflow_steps`, git reads and the stage write to `prompt_workflow_git`, prompt building to `prompt_workflow_plan`, and the memory write to `prompt_workflow_memory`.
+- **Dependency direction (Q02)**: `prompt_workflow` imports `prompt_workflow_handoff`, but the handoff module never imports `prompt_workflow`, so there is no circular import and `run_handoff` stays in the entry point without a callback seam.
+- **No technical leak**: the clipboard and git side effects stay behind `deliver_prompt`/`set_clipboard_text` and the git helpers; `run_handoff` only orchestrates and writes no IO of its own.
+- **Girth**: `tools/prompt_workflow.py` is 489 lines, under the plan's 520 split trigger and the repo's 650 big-file gate, so no split is triggered.
+
+No DDD-Hexagonal violation or adapter smell is visible, and the file stays within its line budget; there is nothing that needs to be addressed.
 
 ### Performance check for Step 2
 
-Not started -- filled by the implementation-check step.
+- **No new `O(n^2)` or `O(n log n)` path**: `run_handoff` is a constant-time dispatch over the chosen action; the task-to-action mapping, the `stage_all` gate, and the deliver and record steps are all `O(1)`.
+- **Per-call cost**: the validation plan is parsed twice per call -- once by `find_plan_step` and once by `derived_mismatch` -- each `O(n)` in the document line count, and `build_cycle_prompt` reads the plan heading once; these are the same linear scans the interactive cycle pays, and the two parses are exactly the two Step-1 calls the plan's orchestration prescribes.
+- **Plan-bound alignment**: the path stays inside the plan's `O(1)` mapping plus `O(n)` document-scan bound; `run_handoff` runs once per invocation with no loop and no hot path.
+
+No, there is no performance issue that needs to be addressed for Step 2.
 
 ### Unit test coverage check for Step 2
 
-Not started -- filled by the implementation-check step.
+- **`tools/prompt_workflow.py` (Step-2 additions)**: covered at 100% across `tests/unit/tools/test_prompt_workflow_handoff.py` and `tests/unit/tools/test_prompt_workflow_main.py`. The handoff tests drive `run_handoff` end to end -- the check path (no stage, records step 9), the commit path (stage once, records step 10), the `after-check` No and Yes routing, the `pw --pick` refusal when `resolve_topic` returns None, and the derived-step-mismatch warning -- so the `topic is None`, `derived is not None`, and `action.stage_all` true and false branches are all exercised. `test_main_dispatches_handoff` covers the `handoff` branch of `main` and the subparser build, while the existing `test_main_*` and the `run`/cycle tests cover the no-subcommand branch and the rest of the file.
+
+No, there is no unit-tested class below 100% that needs completing for Step 2.
 
 ### Feature integrity for Step 2
 
-Not started -- filled by the implementation-check step.
+- **Existing feature behavior**: the interactive `run` path is unchanged; the switch to an argparse subparser keeps `--root`, `--debug` and `--pick`, and the no-subcommand and `--pick` invocations still route to `run`, asserted by `test_main_uses_root_argument`, `test_main_pick_flag` and `test_main_defaults_to_found_root`.
+- **Reporting or diagnostics**: `run_handoff` reports through the existing `LOGGER` (the ready line and the mismatch warning) and raises `PromptWorkflowError` for refusals, the same error type and `EXIT_FATAL` exit contract the tool already uses.
+- **Compatibility note**: the change is additive -- a new subcommand and a new orchestration function; the menu cycle, topic resolution and per-step prompt builders are untouched.
+
+No existing feature or reporting capability appears impaired by Step 2.
 
 ---
 
