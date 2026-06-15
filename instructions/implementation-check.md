@@ -44,3 +44,13 @@ Note how each list item uses only one space between a list item marker and the l
 Check your answer: do you see list items with 3 spaces as in `-   xxx`? Change them to one space: `- xxx`.
 
 Check your validation plan update: re-read the status sentence you wrote under `### Analysis of Step N implementation state`. It MUST be exactly `Yes. Step N has been fully implemented.` or `No. Step N has NOT been fully implemented.`, with no other introduction sentence and no `Step checked:` prefix. If it is not the exact `Yes. Step N has been fully implemented.` sentence, search the updated document for the `### Missing work for Step N` heading. If that heading is absent, the check is not finished: add the section with the gathered missing-element bullets before ending your answer.
+
+## Handoff
+
+When the check is written and the `Analysis of Step x` status line records the Yes-or-No verdict in the validation plan, hand the cycle on, with no menu. From the project root, run:
+
+- `pw handoff after-check <x>`
+
+`<x>` is the plan step you just checked — the "step XXXXX" of your prompt, a number such as `2` or a sub-step id such as `4A`. `pw` is the `<llm-shared>\bin\pw.bat` launcher (the `pw` alias of the project environment), the same tool the interactive cycle uses.
+
+The `after-check` task is neutral on purpose: `pw` reads the `Analysis of Step x` status line you just wrote and routes the branch itself, so the caller cannot mis-branch. It writes the `implement-missing-step.md` prompt when the line starts with `No`, or the commit prompt (`group-commits-msg.md`, the `git add -A` variant) when it starts with `Yes`, to `a.prompt.txt` at the project root, copies it to the clipboard, and records the step in `a.prompt_memory`. Then read `a.prompt.txt` and follow the instructions of that returned prompt. Do not pick the Yes-or-No branch yourself: `pw` reads the status line and decides, so the cycle advances on its own.
