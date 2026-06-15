@@ -1,4 +1,6 @@
-# Prompt tool specs
+# v0.1.0 pw-handoff design -- the prompt-workflow (pw) tool and its handoff subcommand
+
+This is the design for the `pw` prompt-workflow tool. Decisions Q01 to Q55 cover the base tool -- draft detection, the workflow steps, and the interactive implement cycle -- and decisions Q56 to Q64 cover the v0.1.0 handoff that lets the cycle advance without the menu (see [Handoff prompts to continue the implement cycle without the menu](#handoff-prompts-to-continue-the-implement-cycle-without-the-menu)). The draft naming the need is [`draft.v0.1.0.pw_handoff.md`](draft.v0.1.0.pw_handoff.md).
 
 ## Purpose of the prompt tool
 
@@ -153,7 +155,7 @@ If a.prompt_memory file already exists, the tool should check if the branch memo
 
 ## Design decisions
 
-The table summarizes the choices made from the answered questions Q01 to Q55, the section that carries each one, and the alternatives that were dropped.
+The table summarizes the choices made from the answered questions Q01 to Q64, the section that carries each one, and the alternatives that were dropped.
 
 | Question | Decision | Integrated in section | Main argument | Rejected alternatives |
 | --- | --- | --- | --- | --- |
@@ -212,6 +214,15 @@ The table summarizes the choices made from the answered questions Q01 to Q55, th
 | Q53 | Auto-select the memorized topic on the same branch, `pw --pick` to reopen the menu | Locking the topic to the branch | Once chosen, the topic sticks per branch so the menu stops asking; the flag and the self-release on mismatch keep an escape hatch | Keep proposing the menu every run; a `locked=true` memory flag |
 | Q54 | List menu rows higher step first: commit, check, implement in the cycle; next-step rows above the repeat row | Per-step interaction | After an implementation the usual next action is the check, then the commit, so the likeliest choice is the pre-highlighted top row | Workflow order with implement first; move the default cursor on an unchanged list |
 | Q55 | Exception to Q54: the `Implement missing for step <id>` entry tops the menu when offered | Proposing the prompts for step x | Moving forward is best served when what was missing is no longer missing; a `No` step is never verified, so no commit row competes | Keep the strict descending order; drop the check row on a `No` status |
+| Q56 | `handoff` subcommand `pw handoff <task> <x>` with the task and step as positionals | The handoff subcommand | Keeps the task and step together and leaves room for handoff options with no new flags on the main command | A1 `--handoff`/`--step` flag pair (two flags only meaningful together); A3 packed `task:step` token (buries the step in a string) |
+| Q57 | Readable-word tokens, not step numbers or file names; `check` and the neutral `after-check` (full set in Q62) | The handoff subcommand | The caller names what it wants in plain words, not the hidden step counter (Q17) or a file name | B2 instruction stems (verbose, leak file names); B3 step numbers (the internal counter) |
+| Q58 | pw auto-routes after the check: the caller hands off `after-check`, pw reads the status line and emits implement-missing on `No` or commit on `Yes` | Resolving the target and the step for a handoff; The three handoff transitions | One source of truth, the validation plan; the caller cannot mis-branch | C1 caller names the target with a pw guard (branch rule in two places); C3 no guard (a wrong call passes silently) |
+| Q59 | Trust the handed step, validate it is a real `Analysis of Step <id>`, warn on a mismatch with the derived `x` | Resolving the target and the step for a handoff | The caller knows the step it just worked on; the check stops a typo, the warning surfaces drift | D2 always use the derived `x` (argument decorative); D3 no validation (empty prompt on a typo) |
+| Q60 | Same delivery as the interactive run: `a.prompt.txt`, clipboard, then stdout fallback | Delivering and recording a handoff prompt | One path serves the calling LLM (reads `a.prompt.txt`) and a human at the terminal (clipboard) | E1 stdout plus file, no clipboard (drops the human convenience); E3 file only (an extra read step) |
+| Q61 | Mirror the menu: the commit handoff stages `git add -A` and empties `a.commit`, every handoff writes `a.prompt_memory` | Delivering and recording a handoff prompt | The staged list and the empty `a.commit` are part of the commit prompt's contract; a consistent memory costs one write | F2 prompt-only (breaks the staged-list contract); F3 stage but skip memory (stale step until re-derived) |
+| Q62 | Four handoff tokens, `check`, `after-check`, `implement-missing` and `commit`; the chain uses only `check` and `after-check`, the two direct words are a manual convenience | The handoff subcommand | Keeps the readable direct targets for a human at the terminal (Q60) while the chain stays mis-branch-proof on the two neutral words | S1 two tokens only (no direct manual call); S3 one post-check token (S1 renamed) |
+| Q63 | Resolve the topic from the single draft or the branch lock; refuse with a `pw --pick` pointer when several drafts exist and none is locked | Resolving the topic without a menu | The per-branch lock covers the common case with no argument; a refusal beats a silent wrong-topic guess | P2 `--topic` argument (redundant with the lock); P3 auto-pick most recent draft (silent wrong topic) |
+| Q64 | Ship the `handoff` subcommand plus a clear, detailed `## Handoff` section in each of the three cycle instructions (T1) | Wiring the handoff into the calling instructions | The automatic handoff happens only when the three instructions run the subcommand; the section names the call, its purpose, and to follow the returned prompt | T2 subcommand alone, wiring deferred; T3 spec guidance only (model must recall an unwritten step) |
 
 ## Implement-validate-group commit message
 
@@ -308,21 +319,21 @@ A plan may split one numbered step into lettered sub-steps. `docs/plan.vX.Y.Z.<t
 
 ### The sub-step collision today
 
-[`parse_validation_steps`](tools/prompt_workflow_plan.py#L107) matches the heading on `Analysis of Step <N>` with `ANALYSIS_RE` capturing only `\d+` ([prompt_workflow_plan.py:39](tools/prompt_workflow_plan.py#L39)), so `Step 4A` and `Step 4B` are both read as the number `4`. [`derive_x`](tools/prompt_workflow_plan.py#L127) then keys its `verified` map by that number, and the dict comprehension keeps the last entry, so the `Not started` status of `Step 4B` overwrites the `Yes` of the real `Step 4`. Step 4 reads as not verified, and the `group-commits-msg.md` choice (the commit prompt) is withheld, even though step 4 is implemented and analyzed while 4A and 4B are still empty.
+[`parse_validation_steps`](../tools/prompt_workflow_plan.py#L107) matches the heading on `Analysis of Step <N>` with `ANALYSIS_RE` capturing only `\d+` ([prompt_workflow_plan.py:39](../tools/prompt_workflow_plan.py#L39)), so `Step 4A` and `Step 4B` are both read as the number `4`. [`derive_x`](../tools/prompt_workflow_plan.py#L127) then keys its `verified` map by that number, and the dict comprehension keeps the last entry, so the `Not started` status of `Step 4B` overwrites the `Yes` of the real `Step 4`. Step 4 reads as not verified, and the `group-commits-msg.md` choice (the commit prompt) is withheld, even though step 4 is implemented and analyzed while 4A and 4B are still empty.
 
 ### Stages a step id flows through
 
 A step id is read, stored, compared or printed at these stages; each must accept a sub-step id such as `4A`:
 
-- validation parse: [`parse_validation_steps`](tools/prompt_workflow_plan.py#L107) and `ANALYSIS_RE` read the id from the `Analysis of Step <id>` heading.
-- cycle derivation: [`derive_x`](tools/prompt_workflow_plan.py#L127) builds the id list and the verified map, picks the current id, and advances past a committed id.
-- cycle state: [`CycleState.x`](tools/prompt_workflow_plan.py#L66) carries the current id.
-- commit detection: [`has_step_commit`](tools/prompt_workflow_git.py#L165) greps `record step <id> validation`.
-- menu labels: [`build_cycle_options`](tools/prompt_workflow_plan.py#L188) prints `Commit`, `Check` and `Implement step <id>`, in that order (Q54).
-- prompt bodies: [`build_cycle_prompt`](tools/prompt_workflow_plan.py#L319) interpolates `{x}` into the implement, check and commit bodies, and appends the `record step <id> validation` requirement.
-- title read: [`read_step_title`](tools/prompt_workflow_plan.py#L252) matches the plan `### Step <id>.` heading.
-- intro line: [`cycle_intro`](tools/prompt_workflow_plan.py#L307) prints `Regarding step <id> ...`.
-- memory: [`MemoryRecord.plan_step`](tools/prompt_workflow_models.py#L121) with [`_parse_step`](tools/prompt_workflow_memory.py#L33) store and re-read the id.
+- validation parse: [`parse_validation_steps`](../tools/prompt_workflow_plan.py#L107) and `ANALYSIS_RE` read the id from the `Analysis of Step <id>` heading.
+- cycle derivation: [`derive_x`](../tools/prompt_workflow_plan.py#L127) builds the id list and the verified map, picks the current id, and advances past a committed id.
+- cycle state: [`CycleState.x`](../tools/prompt_workflow_plan.py#L66) carries the current id.
+- commit detection: [`has_step_commit`](../tools/prompt_workflow_git.py#L165) greps `record step <id> validation`.
+- menu labels: [`build_cycle_options`](../tools/prompt_workflow_plan.py#L188) prints `Commit`, `Check` and `Implement step <id>`, in that order (Q54).
+- prompt bodies: [`build_cycle_prompt`](../tools/prompt_workflow_plan.py#L319) interpolates `{x}` into the implement, check and commit bodies, and appends the `record step <id> validation` requirement.
+- title read: [`read_step_title`](../tools/prompt_workflow_plan.py#L252) matches the plan `### Step <id>.` heading.
+- intro line: [`cycle_intro`](../tools/prompt_workflow_plan.py#L307) prints `Regarding step <id> ...`.
+- memory: [`MemoryRecord.plan_step`](../tools/prompt_workflow_models.py#L121) with [`_parse_step`](../tools/prompt_workflow_memory.py#L33) store and re-read the id.
 
 ### Sub-step id representation and grammar
 
@@ -390,3 +401,43 @@ Context:
 ```
 
 For the step-10 body, which already carries the count, the colon and the fenced `log` block of staged files (see [Embedding the staged file list in the prompt body](#embedding-the-staged-file-list-in-the-prompt-body)), the same one-blank-line rule applies around that block: one blank line between the body line and the `log` block, and one blank line between the block and `Context:`.
+
+## Handoff prompts to continue the implement cycle without the menu
+
+The implement cycle of [Implement-validate-group commit message](#implement-validate-group-commit-message) is driven by the interactive menu of [Per-step interaction](#per-step-interaction): a human picks implement, check or commit for the plan step `x`. The handoff need is that same cycle without a human picking. When an LLM finishes one cycle step, it asks pw for the prompt of the next step and continues on its own. pw stays the one place that builds a cycle prompt; the handoff only adds a way to name the target step and skip the menu.
+
+### The three handoff transitions
+
+The handoff covers the three forward moves inside the implement cycle, each naming a target task and the plan step `x` it applies to:
+
+- after `implement-step.md` for step `x`: hand off with `check` to `implementation-check.md` for step `x`, to check what was just implemented.
+- after `implementation-check.md` for step `x`: hand off with the neutral `after-check` task for step `x`; pw reads the `Analysis of Step x` status line and produces the implement-missing prompt when it starts with `No`, or the commit prompt (the `group-commits-msg.md (git add -A)` variant) when it starts with `Yes` (Q58).
+- after the implement-missing variant for step `x`: hand off with `check` to `implementation-check.md` for step `x`, to re-check after the gap is filled.
+
+Each transition is one `pw handoff` call. The targets are the cycle actions [`build_cycle_prompt`](#proposing-the-prompts-for-step-x) already builds: the check body (step 9), the implement-missing body (step 8 variant), and the commit body in its `(git add -A)` form (step 10). The handoff adds no new prompt body; it picks an existing one instead of showing the menu.
+
+### The handoff subcommand
+
+pw gains a `handoff` subcommand, `pw handoff <task> <x>`, that names a target task and a plan step and writes that task's prompt, bypassing the `questionary` menu of [Per-step interaction](#per-step-interaction) (Q56). The subcommand keeps the task and the step together as positionals and leaves room for later handoff options without adding flags to the main command; a `--handoff`/`--step` flag pair was dropped as two flags that only make sense together, and a packed `task:step` token as a grammar that buries the step in a string. The global `--root` and `--debug` still apply.
+
+The `<task>` is a readable word, not a step number or an instruction file name (Q57). pw accepts four tokens (Q62): `check` for the check prompt and the neutral `after-check` for the post-check routing above are the two the handoff chain uses, while the direct `implement-missing` and `commit` words stay for a manual call from the terminal (the Q60 case). The chain never types the direct words, so it cannot mis-branch; a manual `commit` on a `No` step carries no guard, the accepted cost of that convenience. The subcommand reuses the cycle machinery: it computes the cycle state for the named step, picks the cycle action, and runs the same [`build_cycle_prompt`](#proposing-the-prompts-for-step-x) and `deliver_prompt` path as the interactive cycle. The prefix, the document matching and the per-step bodies stay unchanged, except for the topic resolution of [Resolving the topic without a menu](#resolving-the-topic-without-a-menu).
+
+### Resolving the target and the step for a handoff
+
+After a check, pw decides the Yes/No branch itself rather than the caller (Q58): the check instruction writes the `Analysis of Step x` status line and hands off with the neutral `after-check` task, and pw reads that line and emits the implement-missing prompt on `No` or the commit prompt on `Yes`. The caller never names the branch, so it cannot mis-branch, and the validation plan stays the one source of truth. Naming the target in the caller with a pw guard was dropped because the branch rule would then live in two places, and a no-guard producer because a wrong call would pass silently — both moot once pw owns the branch.
+
+The step the handoff applies to is the plan step `x` the caller names. pw uses that number, after checking it is a real `Analysis of Step <id>` id, and warns when it differs from the git-and-validation-derived `x` of [Deriving the plan step x](#deriving-the-plan-step-x) (Q59). The caller knows the step it just implemented or checked, so the named step is the intent; always overriding it with the derived `x` would make the argument decorative, and skipping the existence check would build an empty prompt on a typo. The warning keeps the derived `x` visible without overriding the explicit request.
+
+### Resolving the topic without a menu
+
+The interactive run resolves the topic with `choose_topic`, which falls back to the `questionary` menu when several drafts exist and no branch lock matches ([Locking the topic to the branch](#locking-the-topic-to-the-branch), Q53). The `handoff` subcommand is non-interactive and cannot show that menu, so it resolves the topic from the single draft or the branch lock only (Q63). By the implement cycle the topic is almost always locked to the branch, so the common handoff resolves with no extra input; when several drafts exist and none is locked, the handoff refuses with a message pointing at `pw --pick` to lock one first, rather than guess the topic or block on a menu it cannot draw.
+
+### Delivering and recording a handoff prompt
+
+A handoff delivers the prompt the same way an interactive run does (Q60): it writes `a.prompt.txt`, copies it to the clipboard, and falls back to stdout when the clipboard is unavailable ([Prompt output and clipboard fallback](#prompt-output-and-clipboard-fallback), Q05). The next reader is usually the calling LLM, which reads `a.prompt.txt`, the stable copy every run writes; the clipboard stays a convenience for a human driving the handoff from the terminal, and stdout covers a headless host. A stdout-and-file-only channel and a file-only delivery were dropped, since the one interactive path already serves both the program and the human.
+
+The commit handoff, reached through `after-check` on a `Yes` step, resolves to the `(git add -A)` variant, so, like the interactive commit, it runs `git add -A` and empties `a.commit` before building the prompt (Q23, Q25); every handoff writes `a.prompt_memory` the way the menu does, so a later interactive run sees a consistent step (Q61). A prompt-only handoff was dropped for breaking the staged-list contract, and a stage-but-skip-memory handoff for leaving the memory stale against a cache the next run rebuilds anyway.
+
+### Wiring the handoff into the calling instructions
+
+The `handoff` subcommand produces the next prompt, but the chain only fires when the calling instruction runs it. This feature therefore adds a `## Handoff` section to each of the three cycle instructions (Q64): `implement-step.md` and `implement-missing-step.md` for `pw handoff check <x>`, and `implementation-check.md` for `pw handoff after-check <x>` (the tokens of Q62, with `<x>` the step the instruction just worked on). The section is not a one-line directive but a clear, detailed block that names the exact `pw handoff` call to make, states the purpose of that call, and tells the LLM to then follow the instructions of the prompt the call returns (written to `a.prompt.txt`, Q60). So each finished step hands the next prompt back to the model and the cycle advances on its own. Shipping the subcommand without the three sections, or leaving the wiring as spec guidance only, was dropped: the feature reaches its automatic-handoff goal only when each of the three instructions carries the `## Handoff` section.
