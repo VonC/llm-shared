@@ -1,17 +1,18 @@
 # v0.2.0 duration-outliers implementation tracking and validation
 
-Partially implemented: steps 1 to 5 are done, step 6 remains.
+Fully implemented: steps 1 to 6 are all done.
 
 This document tracks the duration-outliers feature (decisions Q34 to Q47 of
 `design.v0.2.0.duration_outliers.md`) step by step against the repository state.
 Steps 1 (per-call duration capture into `RunStats`), 2 (the pure true-outlier
 rule in `durations.py`) and 3 (the two-line `a.ghog.outliers` floor file in
 `floor.py`) are done, and step 4 (classification, progress output and report
-wiring) is now done too: `EXIT_DURATION_OUTLIERS` (8) is wired through the run,
+wiring) is done too: `EXIT_DURATION_OUTLIERS` (8) is wired through the run,
 the `avg=`/`outliers=` output and the windowed report are emitted, and the auto
 floor is persisted. Step 5 (the exit-8 branch and the LLM fix playbook in
-`instructions/groundhog.md`) is now done as well. Step 6 (acceptance tests)
-remains.
+`instructions/groundhog.md`) is done as well, and step 6 (the acceptance tests
+for the green-but-slow run in `test_groundhog_acceptance_durations.py`) closes
+the feature.
 
 ---
 
@@ -427,8 +428,17 @@ No existing feature or reporting capability appears impaired by Step 5.
 
 ### Analysis of Step 6 implementation state
 
-Not started. Step 6 is not implemented because there is no end-to-end acceptance
-module driving `cli.main` over a transcript with a durations block.
+Yes. Step 6 has been fully implemented.
+
+A new `tests/unit/tools/test_groundhog_acceptance_durations.py` drives
+`cli.main(["full", ...])` over canned transcripts carrying a `slowest durations`
+block, so the real parser, the pure rule, the two-line floor file, the exit-8
+classification and the windowed report all run end to end behind one faked seam
+(the injected process factory). Its five scenarios cover AT-D1 (green-but-slow
+exit 8), AT-D2 (tidy exit 0), AT-D3 (a raised override exit 0), AT-D4 (no file
+seeds the floor) and AT-D5 (a failing run withholds the verdict). The `ghog day`
+walk is green in one pass (`exit=0`, `state=done`, `cov=100`, `fail=0` over 772
+tests).
 
 ### Goal for Step 6
 
@@ -445,24 +455,47 @@ its variants through the real parser, rule, floor, classification and report.
 
 ### What was implemented for Step 6
 
-(empty -- to be filled after the step is implemented.)
+- **acceptance module (new)**: `tests/unit/tools/test_groundhog_acceptance_durations.py` (195 lines, target <= 320), mirroring the `test_groundhog_acceptance_day.py` split so neither acceptance file nears the limit; it reuses the shared `Spawns`, `make_deps` and `assert_closing_grammar` fakes from `groundhog_acceptance_support.py`, fakes only the process boundary, and asserts the real parsing, rule, floor, classification and report together.
+- **transcript builders**: `_durations_block` renders a `slowest durations` banner, one call line per timed call, and one ignored `0.50s setup` line that proves the rule reads the call phase only (Q36); `_full_transcript` assembles the collected count, one PASSED result per call, the coverage TOTAL at the gate, the durations block, then the summary; `_failing_transcript` builds a FAILED result with a FAILURES section and the same durations block. The call times are picked so the arithmetic is deterministic: the slow set `[1.83, 0.05, 0.04, 0.03, 0.02, 0.01]` has median `0.035s` and auto floor `0.35s`, the tidy set `[0.04, 0.03, 0.02, 0.01]` median `0.025s` and floor `0.25s`.
+- **AT-D1 green-but-slow**: the slow transcript exits 8 (`EXIT_DURATION_OUTLIERS`); the test asserts the `--durations=0` flag reached the full command, `a.ghog.outliers` was written, the window header, the freak's `tests/test_slow.py::test_freak 1.83s 52x median` line, the marked `-- floor 0.35s --`, `avg=`, `MSG_OUTLIERS`, the closing `outliers=1 exit=8`, and the closing-line grammar.
+- **AT-D2 tidy green**: the no-freak transcript exits 0 with the single `Slowest call:` green line, `MSG_FULL_OK`, the closing `outliers=0 exit=0`, and no outlier window header.
+- **AT-D3 override**: a line-2 override of `5.0s` pre-written above the freak spares it (exit 0); the run rewrites line 1 to its auto floor but preserves the override (`read_floor == 5.0`), and prints no window header.
+- **AT-D4 first run / no file**: with no floor file present the run seeds line 1 with a positive auto floor, resets line 2 to `-1` (so `read_floor` is `None`), still exits 8 and still prints the window (Q45).
+- **AT-D5 precedence**: a failing transcript that still carries a durations block keeps exit 2, reads `outliers=withheld` in the closing line, writes no floor file, and prints no window -- outliers are judged last (Q34).
+- **complexity fix**: AT-D1's report-content assertions are folded into a loop over the `_SLOW_REPORT` tuple; the initial flat sequence of asserts tripped the repo's radon cyclomatic-complexity gate at rank C, and the loop brings the function back to rank B like the other acceptance scenarios.
+- **Validation evidence**: `ghog day` reports `exit=0`, `state=done`, `cov=100`, `fail=0` over 772 tests, and the full run on llm-shared's own fast suite reads `avg=0.010s outliers=0`; `rg "AT-D|durations" tests/unit/tools/test_groundhog_acceptance_durations.py` finds the five scenarios and the transcript builders.
 
 ### New types or classes introduced for Step 6
 
-(empty.)
+- No new production type or class. Step 6 is test-only: a new acceptance module holding three module-level transcript builders (`_durations_block`, `_full_transcript`, `_failing_transcript`), the `_SLOW_CALLS`, `_TIDY_CALLS` and `_SLOW_REPORT` constant fixtures, and five `test_atd*` scenario functions. It introduces no new fake -- it reuses `Spawns`, `make_deps` and `assert_closing_grammar` from `groundhog_acceptance_support.py`.
 
 ### Architecture check for Step 6
 
-(empty.)
+- **test placement**: the module sits in the flat `tests/unit/tools/` suite beside the other `test_groundhog_*` modules, mirroring the `test_groundhog_acceptance_day.py` split that keeps each acceptance file under the line budget; it imports only the public entry point (`cli.main`), the `floor` and `reporting` modules for assertions, the shared support fakes and the exit-code constants -- no reach into private rule internals.
+- **boundary direction**: the scenarios drive the system from the outside (`cli.main`) and assert user-visible output and the on-disk floor file, so they pin behavior at the boundary rather than implementation detail; the only faked seam is the injected process factory, the same single fake the other acceptance files use.
+- **no production layer touched**: Step 6 adds no `tools/groundhog` code, so no import, port or adapter boundary changed; the new file is 195 lines, under the plan's `<= 320` target and well under the 650-line hard gate.
+
+No DDD-Hexagonal violation or adapter smell is visible in Step 6. No, there is nothing that needs to be addressed for Step 6.
 
 ### Performance check for Step 6
 
-(empty.)
+- **No new `O(n^2)` or `O(n log n)` path**: Step 6 adds test code only; the transcript builders loop once over a fixed handful of calls (at most six), and the assertions are constant-cost, so no production computation is introduced.
+- **Hot-path bound**: none -- nothing runs at runtime from a test module; the live per-line parsing path is untouched.
+- **Startup or background path**: none added.
+- **Plan-bound alignment**: the plan marks Step 6 as canned transcripts that add no real runtime, so the scenarios run in milliseconds with no real pytest spawn and no real timing.
+
+No, there is no performance issue that needs to be addressed for Step 6.
 
 ### Unit test coverage check for Step 6
 
-(empty.)
+- **No class impacted**: Step 6 changes no `tools/groundhog` module, so there is no unit-tested class file to hold to 100%. The new module is an acceptance test driving the whole pipeline through `cli.main`, the test type the 100%-coverage rule explicitly exempts, so it carries no coverage target of its own; the whole-suite `ghog full` pass still reports `cov=100`, so no class regressed.
+
+No, there is no unit-tested class below 100% that needs completing for Step 6.
 
 ### Feature integrity for Step 6
 
-(empty.)
+- **Existing feature behavior**: a test-only addition; no run, route, command or output changed. The existing acceptance, cli, reporting, durations and floor test modules are untouched, and the new module reuses their shared fakes.
+- **Reporting or diagnostics**: the scenarios assert the existing `avg=`/`outliers=` progress and closing lines and the windowed report rather than changing them, so they lock in the Step 4 reporting contract end to end -- including the `outliers=withheld` placeholder when a failure hides the verdict.
+- **Compatibility or rollout note**: the scenarios are deterministic canned transcripts with no real pytest spawn and no real timing, so they add negligible runtime to the suite and introduce no flakiness, the ironic-slow-test risk the plan warned of.
+
+No existing feature or reporting capability appears impaired by Step 6.
