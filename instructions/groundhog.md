@@ -45,10 +45,10 @@ The objective is only reached when nothing changed after the last green signals:
 
 ## Fixing a duration outlier on exit 8
 
-Exit 8 means the full suite passes and meets the coverage gate, yet at least one test call runs far outside the norm — far out by the robust score (the modified z-score on the median and the MAD) and at or above the floor (`k * median` of this run, or the line-2 override of `a.ghog.outliers`). Outliers are judged last, so exit 8 never masks a failure or a coverage gap. The report prints a bounded window — the flagged calls above the floor, the floor line marked, then the few next-slowest under it, each with its call time and its multiple of the median — and the next-step line repeats the action. Drive the fix the way you drive a failure or a coverage gap:
+Exit 8 means the full suite passes and meets the coverage gate, yet at least one test call runs far outside the norm — far out by the robust score (the modified z-score on the median and the MAD) and at or above the floor (one second by default, or the line-2 override of `a.ghog.outliers`; line 1 records this run's `k * median` as a reference only). Outliers are judged last, so exit 8 never masks a failure or a coverage gap. The report prints a bounded window — the flagged calls above the floor, the floor line marked, then the few next-slowest under it, each with its call time and its multiple of the median — and the next-step line repeats the action and names [`fix_slow_test.md`](fix_slow_test.md), the dedicated per-call procedure (profile with pyinstrument, find the cost, shorten, re-measure). Drive the fix the way you drive a failure or a coverage gap:
 
 1. Fix only the calls listed above the floor — the named outliers. The slowest few shown under the floor are tuning context, not fix targets; leave them alone.
-2. For each outlier, open the test, find what makes the call slow, and apply the fitting fix:
+2. For each outlier, follow [`fix_slow_test.md`](fix_slow_test.md) — profile the call, find where the time goes, then apply the fitting fix. The common cases:
    - real I/O — a network call, a database, a file read or write, a subprocess: fake it with a stub, a fixture, `tmp_path` or an in-memory double, so the call drives the logic without the slow resource.
    - a real wait — `time.sleep`, a poll, a retry with a backoff: fake the clock or inject the delay, so the test spends no real seconds waiting.
    - heavy data or iteration — a large generated input, a long loop: shrink it to a representative size that still proves the behavior.
