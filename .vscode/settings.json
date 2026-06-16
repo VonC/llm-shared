@@ -44,6 +44,7 @@
     "Hoaglin",
     "Iglewicz",
     "INTERNALERROR",
+    "isclose",
     "itsdangerous",
     "lastfailed",
     "loopable",
