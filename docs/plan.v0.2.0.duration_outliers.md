@@ -6,7 +6,9 @@ into ordered, test-first slices, each one a green `ghog day` walk.
 - **Capture then judge**: parse pytest's own `slowest durations` block into the run
   stats, then judge it with a pure rule and a self-managed floor file.
 - **One floor, generous by default**: a call is a true outlier only when it is far
-  out and at least `k` times the median, so a slower test is spared.
+  out and at or above the floor, so a slower test is spared (revised post-v0.2.0: the
+  default floor is a fixed `1.0s` on line 2; `k * median` is recorded on line 1 as a
+  reference only, Q48).
 - **Report and gate**: the final line and bar carry `avg=`/`outliers=`, exit 8
   keeps the loop fixing, and the report lists the above-floor calls to fix.
 
@@ -387,15 +389,15 @@ Issues to address:
 Fix intent:
 
 - a `floor.py` beside `gate.py` and `snapshot.py`: read the override (line 2),
-  resolve the active floor (the override when set, else this run's freshly computed
-  auto -- line 1 is write-only and never read for gating, Q48), write line 1 from
-  the run and reset line 2 to `-1` when the file is absent.
+  resolve the active floor (the override when set, else the fixed `1.0s` default --
+  line 1 is write-only and never read for gating, Q48), write line 1 from the run and
+  seed line 2 with the `1.0s` default when the file is absent.
 
 Expected outcome:
 
-- the active floor is the override (line 2) when positive, else this run's auto
-  `k * median` (Q48); a missing file means auto floor with override `-1`; the write
-  is atomic.
+- the active floor is the line-2 value when set (`>= 0`), else the fixed `1.0s`
+  default (Q48); a missing file means the `1.0s` default with line 1 re-recorded from
+  the run; the write is atomic.
 
 Step framing:
 
@@ -412,21 +414,26 @@ Step framing:
 
 **Tests first**:
 
-- a missing file resolves to the given auto value with override `-1`.
-- a file with override `-1` resolves to the freshly computed auto -- line 1 is not
-  read for gating (Q48); a positive override resolves to the override.
+- a missing file resolves to the fixed `1.0s` default, with no override read.
+- a file with a line-2 value below zero resolves to the `1.0s` default -- line 1 is
+  not read for gating (Q48); a positive line 2 resolves to that value; a line-2 `0`
+  switches the gate off.
 - `write_floor` writes both lines atomically (a side-file replace) and round-trips.
-- a malformed or partial file falls back to the auto value, never crashing the run.
+- a malformed or partial file falls back to the `1.0s` default, never crashing the
+  run.
 
 **Classes and behavior**:
 
 - `FLOOR_FILE = "a.ghog.outliers"`.
-- `read_floor(root) -> float | None`: the override (line 2), `None` when absent or
-  `-1` (Q48).
-- `active_floor(override, auto) -> float`: the override when set (>= 0), else the
-  freshly computed `auto` (Q48).
+- `DEFAULT_FLOOR = 1.0`: the line-2 default in seconds, the floor the gate uses until
+  a project tunes line 2 (Q48).
+- `read_floor(root) -> float | None`: the line-2 value, `None` when absent or below
+  zero (Q48).
+- `active_floor(override) -> float`: the line-2 value when set (>= 0), else the fixed
+  `DEFAULT_FLOOR` (`1.0`); line 1 is never read for gating (Q48).
 - `write_floor(root, auto, override) -> None`: atomic two-line write; line 1 = `auto`
-  (this run's `k * median`, a write-only record), line 2 = the preserved override.
+  (this run's `k * median`, a write-only record), line 2 = the preserved floor (the
+  `1.0s` default when the project has not tuned it).
 
 **Completion criteria**:
 
@@ -509,10 +516,11 @@ Step framing:
 **Classes and behavior**:
 
 - `models.EXIT_DURATION_OUTLIERS = 8`.
-- `commands.run_tests`: for full, read the override (`floor.py`), compute
+- `commands.run_tests`: for full, read the line-2 floor (`floor.py`), compute
   `auto = k * median` from this run (`durations.py`), resolve the active floor
-  (override else auto, Q48), summarize, count outliers, write line 1 = `auto` and
-  line 2 = override, pass the count to `classify`.
+  (line 2 when set, else the fixed `1.0s` default, Q48), summarize, count outliers,
+  write line 1 = `auto` (a recorded reference) and line 2 = the preserved floor (the
+  `1.0s` default when untuned), pass the count to `classify`.
 - `commands.classify(..., outlier_count=0)`: exit 8 only when not crashed, not
   failing, coverage clear and `outlier_count > 0`.
 - `commands._Progress.finish`: emits exactly one final summary line carrying
@@ -658,8 +666,8 @@ Step framing:
 - AT-D2 tidy green: a durations block with no freak exits 0, `outliers=0`.
 - AT-D3 override: a pre-written `a.ghog.outliers` with line 2 above the freak exits
   0.
-- AT-D4 first run / no file: the file is absent, the run seeds line 1, resets line 2
-  to `-1`, and still reports the outliers.
+- AT-D4 first run / no file: the file is absent, the run seeds line 1, seeds line 2
+  with the fixed `1.0s` default, and still reports the outliers.
 - AT-D5 precedence: a failing transcript with a durations block keeps exit 2 and
   withholds the timing verdict (outliers judged last).
 
@@ -706,7 +714,7 @@ each, and the alternatives dropped. The design decisions are Q34 to Q47 in
 
 | Question | Decision | Step | Main argument | Rejected alternatives |
 | --- | --- | --- | --- | --- |
-| Q48 | Gate on this run's freshly computed `k * median` when the override is `-1`; line 1 is write-only, only line 2 (override) is read for gating | Step 3, Step 4 | The convergence of Q43 rests on each run judging itself; a stale line 1 reintroduces a one-run lag and leaves the first run with nothing to read | Q48-b read the persisted line 1 (one-run lag, no first-run value) |
+| Q48 | Gate on this run's freshly computed `k * median` when the override is `-1`; line 1 is write-only, only line 2 (override) is read for gating (revised post-v0.2.0: line 2 now defaults to a fixed `1.0s` rather than `-1`, and the gate reads line 2 alone, falling back to `1.0s` when it is below zero; line 1's `k * median` stays a write-only reference and never gates) | Step 3, Step 4 | The convergence of Q43 rests on each run judging itself; a stale line 1 reintroduces a one-run lag and leaves the first run with nothing to read | Q48-b read the persisted line 1 (one-run lag, no first-run value) |
 | Q49 | Capture the durations node id as `.+`, so parametrized ids with spaces enter the median, average and outlier set | Step 1 | A slow parametrized test must not be invisible to the rule; the `done`/durations count gap is harmless | Q49-b `\S+` (drops or chops space-containing params) |
 | Q50 | When the MAD is zero, drop the z-condition and require only the floor | Step 2 | An epsilon flags every above-median call on a zero-spread suite; floor-only keeps the order-of-magnitude meaning | Q50-b epsilon MAD (flags slower tests); Q50-c another spread measure (machinery for a corner case) |
 | Q51 | Up to 3 runners-up under the floor; the flagged-outlier list is uncapped | Step 2, Step 4 | The flagged list is a work list (every call must be fixed); three runners-up suffice to judge "too few" | Q51-b cap the flagged list (hides fix targets); Q51-c five runners-up (more quiet-run noise) |

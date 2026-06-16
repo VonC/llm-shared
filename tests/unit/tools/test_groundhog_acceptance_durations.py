@@ -11,10 +11,11 @@ the windowed report all run for real.
 
 The slow transcript carries one freak call an order of magnitude above a
 tight bulk: its six call times ``[1.83, 0.05, 0.04, 0.03, 0.02, 0.01]`` give
-a median of ``0.035s``, so the auto floor ``k * median`` is ``0.35s`` and
-only the ``1.83s`` call is both above the floor and far out by the modified
-z-score (Q46). The tidy transcript drops the freak, so nothing clears its
-``0.25s`` floor and the run is green from the start (Q41).
+a median of ``0.035s``, recorded as the auto floor ``k * median = 0.35s`` on
+line 1, while the gate uses the one-second default floor; only the ``1.83s``
+call clears one second and is far out by the modified z-score (Q46). The tidy
+transcript drops the freak, so nothing reaches the one-second floor and the
+run is green from the start (Q41).
 """
 
 from __future__ import annotations
@@ -42,8 +43,9 @@ if TYPE_CHECKING:
 
 # The freak call, an order of magnitude above the bulk (Q46).
 _FREAK: Final = "tests/test_slow.py::test_freak"
-# The slow run's call times: median 0.035s, auto floor k*median = 0.35s, so
-# only the 1.83s freak is above the floor and far out by the z-score (Q46).
+# The slow run's call times: median 0.035s; the auto floor k*median = 0.35s is
+# recorded on line 1, but the gate uses the one-second default, so only the
+# 1.83s freak clears one second and is far out by the z-score (Q46).
 _SLOW_CALLS: Final = (
     (_FREAK, 1.83),
     ("tests/test_ok.py::test_4", 0.05),
@@ -52,7 +54,7 @@ _SLOW_CALLS: Final = (
     ("tests/test_ok.py::test_1", 0.02),
     ("tests/test_ok.py::test_0", 0.01),
 )
-# A tight run with no freak: median 0.025s, floor 0.25s, nothing clears it.
+# A tight run with no freak: nothing reaches the one-second default floor.
 _TIDY_CALLS: Final = (
     ("tests/test_ok.py::test_3", 0.04),
     ("tests/test_ok.py::test_2", 0.03),
@@ -73,7 +75,7 @@ _WINDOW_HEADER: Final = "Duration outliers"
 _SLOW_REPORT: Final = (
     _WINDOW_HEADER,
     f"{_FREAK}  1.83s  52x median",
-    "-- floor 0.35s --",
+    "-- floor 1.00s --",
     "avg=",
     reporting.MSG_OUTLIERS,
     "outliers=1 exit=8",
@@ -84,7 +86,7 @@ def _durations_block(calls: Sequence[tuple[str, float]]) -> list[str]:
     """Build a ``slowest durations`` block, one call line per timed call.
 
     A slow setup line is appended for the first call to prove the rule reads
-    the call phase only (Q36): a setup of ``0.50s``, above the ``0.35s``
+    the call phase only (Q36): a setup of ``2.00s``, above the one-second
     floor, must never reach the durations map or the median.
 
     Args:
@@ -95,7 +97,7 @@ def _durations_block(calls: Sequence[tuple[str, float]]) -> list[str]:
     """
     lines = ["================= slowest durations ================="]
     lines.extend(f"{secs:.2f}s call     {node}" for node, secs in calls)
-    lines.append(f"0.50s setup    {calls[0][0]}")
+    lines.append(f"2.00s setup    {calls[0][0]}")
     return lines
 
 
@@ -198,13 +200,13 @@ def test_atd4_first_run_seeds_the_floor_file(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """AT-D4: no file - the run seeds line 1, resets line 2 to -1 (Q45)."""
+    """AT-D4: no file - the run seeds line 1, line 2 with the default (Q45)."""
     assert not floor.floor_path(tmp_path).exists()
     spawns = Spawns(_full_transcript(_SLOW_CALLS), 0)
     code = cli.main(["full", "--root", str(tmp_path), "--llm"], make_deps(spawns))
     assert code == EXIT_DURATION_OUTLIERS
-    # Line 2 reads back as no override; line 1 is seeded with the auto floor.
-    assert floor.read_floor(tmp_path) is None
+    # Line 2 is seeded with the one-second default; line 1 with the auto floor.
+    assert floor.read_floor(tmp_path) == floor.DEFAULT_FLOOR
     written = floor.floor_path(tmp_path).read_text(encoding="utf-8").splitlines()
     assert len(written) == len(("auto", "override"))
     assert float(written[0]) > 0

@@ -13,9 +13,9 @@ The aim is the call truly outside the norm, not the merely slower test: a
 call two or three times the median is slower, never an outlier (Q46). When
 more than half the calls tie and the MAD collapses to zero, the modified
 z-score is undefined, so the rule falls back to the floor alone (Q50). A
-uniformly-fast suite — every call rounding to ``0.00s``, so the median and the
-``k * median`` floor are zero — has no scale to judge against, so nothing is
-flagged and the tidy suite is green from the start (Q41).
+uniformly-fast suite never reaches the one-second default floor, so nothing is
+flagged and the tidy suite is green from the start (Q41); a project that drops
+its floor to zero spares every call, the by-hand way to switch the gate off.
 """
 
 from __future__ import annotations
@@ -128,11 +128,11 @@ def summarize(durations: Mapping[str, float], floor: float) -> DurationSummary:
 def _is_outlier(secs: float, median: float, mad: float, floor: float) -> bool:
     """Tell whether one call is a true outlier (Q46, Q50).
 
-    A non-positive floor means the suite is uniformly fast — its median, and so
-    the ``k * median`` auto floor, is zero, the case where pytest rounds every
-    call to ``0.00s``. There is then no scale to define "an order of magnitude
-    slower", so every call is spared and the tidy suite is green from the start
-    (Q41); a project with a genuine slow call sets a positive line-2 override.
+    A call counts only when it is at or above the active floor — the line-2
+    value, or the one-second default when a project has not tuned it (Q43) —
+    and far out by the modified z-score; when the MAD is zero the floor alone
+    decides (Q50). A non-positive floor spares every call: setting line 2 to
+    ``0`` is the by-hand way to switch the gate off (Q41).
 
     Args:
         secs: The call-phase seconds.

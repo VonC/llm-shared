@@ -69,10 +69,11 @@ def _judge_map(
 ) -> DurationSummary | None:
     """Persist the auto floor and judge the run's call durations (Q42, Q48).
 
-    The run reads its own override (line 2 of ``a.ghog.outliers``), recomputes
-    the auto floor (``k * median``) and writes both lines — line 1 a write-only
-    record (Q48) — then gates the calls against the active floor: the override
-    when set, else this run's auto value.
+    The run reads its own line-2 floor (of ``a.ghog.outliers``), recomputes the
+    auto floor (``k * median``) and writes both lines — line 1 a write-only
+    record (Q48) — then gates the calls against the active floor: the line-2
+    value when a project set one, else the one-second default (Q43). A fresh
+    file is seeded with that default, so line 2 reads back as ``1.0``.
 
     Args:
         root: The consuming project root, where the floor file lives.
@@ -89,9 +90,9 @@ def _judge_map(
     floor.write_floor(
         root,
         auto,
-        override if override is not None else floor.NO_OVERRIDE,
+        override if override is not None else floor.DEFAULT_FLOOR,
     )
-    active = floor.active_floor(override, auto)
+    active = floor.active_floor(override)
     return durations.summarize(durations_map, active)
 
 
