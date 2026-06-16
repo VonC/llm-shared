@@ -1,6 +1,6 @@
 # v0.2.0 duration-outliers implementation tracking and validation
 
-Partially implemented: steps 1 to 4 are done, steps 5 to 6 remain.
+Partially implemented: steps 1 to 5 are done, step 6 remains.
 
 This document tracks the duration-outliers feature (decisions Q34 to Q47 of
 `design.v0.2.0.duration_outliers.md`) step by step against the repository state.
@@ -9,8 +9,9 @@ rule in `durations.py`) and 3 (the two-line `a.ghog.outliers` floor file in
 `floor.py`) are done, and step 4 (classification, progress output and report
 wiring) is now done too: `EXIT_DURATION_OUTLIERS` (8) is wired through the run,
 the `avg=`/`outliers=` output and the windowed report are emitted, and the auto
-floor is persisted. Steps 5 (the skill exit-8 playbook) and 6 (acceptance tests)
-remain.
+floor is persisted. Step 5 (the exit-8 branch and the LLM fix playbook in
+`instructions/groundhog.md`) is now done as well. Step 6 (acceptance tests)
+remains.
 
 ---
 
@@ -354,8 +355,14 @@ No existing feature or reporting capability appears impaired by Step 4.
 
 ### Analysis of Step 5 implementation state
 
-Not started. Step 5 is not implemented because `instructions/groundhog.md` has no
-exit-8 branch and no outlier fix playbook.
+Yes. Step 5 has been fully implemented.
+
+`instructions/groundhog.md` now routes exit 8: the invocation contract lists code
+`8` and carries the `outliers=` closing key, the loop sequence gains an exit-8
+branch beside the exit-2 and exit-3 guidance, and a new "Fixing a duration outlier
+on exit 8" section holds the five-step LLM playbook. The wording tracks the
+implemented `EXIT_DURATION_OUTLIERS`, `MSG_OUTLIERS` and the floor-override hint, and
+the `ghog day` walk is green in one pass.
 
 ### Goal for Step 5
 
@@ -372,27 +379,47 @@ techniques, the override escape, confirm with `ghog single`, restart with
 
 ### What was implemented for Step 5
 
-(empty -- to be filled after the step is implemented.)
+- **exit-code contract (groundhog.md, Invocation contract)**: the LLM-mode exit-code list gains `8` ("a true duration outlier on an otherwise-green full run"), and the closing key=value grammar is corrected from `fail= warn= xfail= cov= exit=` to `fail= warn= xfail= cov= outliers= exit=`, matching the `outliers=` key Step 4 added to `reporting.closing_line` (Q37).
+- **loop branch (groundhog.md, Loop sequence step 2)**: a new `8` bullet sits between the `3` coverage-gap branch and the `4` crash branch -- outliers are judged last (Q34) -- naming the above-floor calls, ruling the under-floor runners-up out as fix targets, and routing to the playbook before going back to `ghog day` (step 1).
+- **fix playbook (groundhog.md, new section "Fixing a duration outlier on exit 8")**: the five-step LLM playbook from the design's "Fixing an outlier" section (Q44, Q47) -- (1) fix only the above-floor outliers, leave the runners-up; (2) the four per-cause techniques (fake real I/O, fake the clock or inject the wait, shrink heavy data, move per-call construction to a module/session fixture); (3) the line-2 `a.ghog.outliers` override escape for a legitimately slow call; (4) confirm the trimmed test alone with `ghog single <file>`; (5) restart with `ghog day` to re-measure (Q30).
+- **wording accurate to the tool**: step 4 of the playbook states the focused `ghog single` run carries no timing (only the full run adds `--durations`, `runner.pytest_command`), so the call time is re-read by the next walk -- the same operational sequence the implemented `MSG_OUTLIERS` prints, rather than the design's looser "ghog single reports the call time" phrasing.
+- **no test extension needed**: `test_groundhog_init.py` asserts only that the instruction file resolves (`instruction_path().is_file()` and the skill-pointer link), not its body, so no init or acceptance test asserts the exit-8 wording; the plan's completion grep is the check.
+- **Validation evidence**: `ghog day` reports `exit=0`, `state=done`, `cov=100`, `fail=0` over 767 tests (the doc-only change leaves the suite green, and the new exit-8 path reads clean on llm-shared's own fast suite, `avg=0.008s outliers=0`); `rg "exit 8|outlier" instructions/groundhog.md` finds the contract entry, the loop branch, the section title and the five playbook steps.
 
 ### New types or classes introduced for Step 5
 
-(empty.)
+- No new production type, class, function or test. Step 5 is documentation only: it edits `instructions/groundhog.md`, the skill-loop instruction file `ghog init` wires in. No `tools/groundhog` module and no test file changed.
 
 ### Architecture check for Step 5
 
-(empty.)
+- **documentation surface**: the change touches only `instructions/groundhog.md`, the skill-loop guidance, not any `tools/groundhog` layer; no import, port, adapter or package boundary is affected.
+- **consistency with the code**: the exit-8 branch, the `outliers=` closing grammar and the playbook track the implemented `EXIT_DURATION_OUTLIERS` (8), `reporting.MSG_OUTLIERS`, `reporting._override_hint` and the `runner` flag rule, so the instruction the loop reads matches the codes and messages the tool emits.
+- **placement**: the playbook sits beside the exit-2 and exit-3 guidance as the design directs (one detailed section, the loop branch routing to it), keeping the in-loop branch short and the how-to loaded once.
+
+No DDD-Hexagonal violation or adapter smell is possible in a documentation-only step. No, there is nothing that needs to be addressed for Step 5.
 
 ### Performance check for Step 5
 
-(empty.)
+- **No new `O(n^2)` or `O(n log n)` path**: no code path was added or changed; the step edits a markdown file only.
+- **Hot-path bound**: none -- nothing runs at runtime from this change.
+- **Startup or background path**: none added.
+- **Plan-bound alignment**: the plan marks Step 5 as documentation with no perf gate affected, which holds.
+
+Step 5 adds no computation. No, there is no performance issue that needs to be addressed for Step 5.
 
 ### Unit test coverage check for Step 5
 
-(empty.)
+- **No class impacted**: Step 5 changes no `tools/groundhog` module, so there is no unit-tested class file to hold to 100%. The plan states Step 5 carries no unit test (documentation); the completion grep is its check, and `test_groundhog_init.py` (which only checks the file resolves) needs no extension since it asserts nothing about the file body.
+
+No, there is no unit-tested class below 100% that needs completing for Step 5.
 
 ### Feature integrity for Step 5
 
-(empty.)
+- **Existing feature behavior**: a documentation edit changes no run, route, command or output; the full, affected, single, check, init and status paths are byte-for-byte unchanged.
+- **Reporting or diagnostics**: the instruction file now describes the `outliers=` closing key and the exit-8 next step the tool already emits, so the doc and the runtime reporting agree; no log, warning or status payload changed.
+- **Compatibility or rollout note**: the playbook deliberately phrases the `ghog single` confirm step to match the tool (focused runs carry no timing), so an LLM following it will not expect a call time the focused run never prints; the design doc's looser wording is the only out-of-sync text and is outside Step 5's single-file scope.
+
+No existing feature or reporting capability appears impaired by Step 5.
 
 ---
 
