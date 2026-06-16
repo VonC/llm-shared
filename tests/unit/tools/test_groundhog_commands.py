@@ -250,12 +250,12 @@ def test_full_green_but_slow_exits_8(
 
 
 def test_full_run_seeds_the_floor_file(tmp_path: Path) -> None:
-    """A first full run writes the auto floor and resets the override (Q45)."""
+    """A first full run writes the auto floor and seeds the default (Q45)."""
     spawns = Spawns(_full_transcript(_SLOW_CALLS), 0)
     cli.main(["full", "--root", str(tmp_path), "--llm"], make_deps(spawns))
-    # The auto floor was seeded and the override reset to -1 (Q45, Q48).
+    # Line 1 holds the auto floor; line 2 the one-second default (Q45, Q48).
     assert (tmp_path / floor.FLOOR_FILE).is_file()
-    assert floor.read_floor(tmp_path) is None
+    assert floor.read_floor(tmp_path) == floor.DEFAULT_FLOOR
 
 
 def test_full_tidy_run_exits_0_with_zero_outliers(

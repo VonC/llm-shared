@@ -198,46 +198,47 @@ No existing feature or reporting capability appears impaired by Step 2.
 Yes. Step 3 has been fully implemented.
 
 A new pure-IO `floor.py` beside `gate.py`, `snapshot.py` and `status.py` reads the
-user override from line 2 of the two-line `a.ghog.outliers`, resolves the active
-floor (the override when set, else this run's freshly computed auto -- line 1 is
-write-only and never read for gating, Q48), and writes both lines through the atomic
-side-file replace the tool already uses. A missing, partial, malformed or binary file
-falls back to the auto floor without crashing. Nine deterministic tests reach 100% of
-the module and the `ghog day` walk is green in one pass.
+line-2 floor of the two-line `a.ghog.outliers`, resolves the active floor (the line-2
+value when set, else the fixed `1.0s` default -- line 1 is write-only and never read
+for gating, Q48), and writes both lines through the atomic side-file replace the tool
+already uses. A missing, partial, malformed or binary file falls back to the
+one-second default without crashing. Eleven deterministic tests reach 100% of the
+module and the `ghog day` walk is green in one pass.
 
 ### Goal for Step 3
 
-A `floor.py` beside `gate.py` and `snapshot.py` that reads the user override from
-line 2 of the two-line `a.ghog.outliers`, resolves the active floor (the override
-when set, else this run's freshly computed auto `k * median` -- line 1 is write-only
-and never read for gating, Q48), and writes line 1 from the run with line 2 preserved
-(`-1` when none), using the atomic side-file replace.
+A `floor.py` beside `gate.py` and `snapshot.py` that reads the line-2 floor of the
+two-line `a.ghog.outliers`, resolves the active floor (the line-2 value when set,
+else the fixed `1.0s` default -- line 1 is write-only and never read for gating,
+Q48), and writes line 1 from the run with line 2 preserved (the `1.0s` default when
+the project has not tuned it), using the atomic side-file replace.
 
 ### Step 3 improvement expectations
 
-- a missing file resolves to this run's auto value, with no override read.
-- a positive line 2 is the active floor; line 1 is never read for gating (Q48).
+- a missing file resolves to the fixed `1.0s` default, with no line-1 read.
+- a positive line 2 is the active floor; a line-2 `0` switches the gate off; line 1
+  is never read for gating (Q48).
 - the write is atomic and round-trips; a malformed or partial file falls back to the
-  auto value, never crashing the run.
+  one-second default, never crashing the run.
 
 ### What was implemented for Step 3
 
-- **floor.py file helper (new)**: the constants `FLOOR_FILE` (`a.ghog.outliers`), `NO_OVERRIDE` (`-1.0`) and `_LINE_COUNT` (2); `floor_path(root)` returns the project-root path; `read_floor(root)` reads only line 2 and returns the override seconds when it parses to a number `>= 0`, else `None` for a missing, unreadable, partial, malformed or `-1`/negative file (Q48); `active_floor(override, auto)` returns the override when set (`>= 0`), else this run's auto floor (Q48); `write_floor(root, auto, override)` writes line 1 = auto and line 2 = override atomically through a `.tmp` side-file replace, logging an `OSError` instead of raising so a write failure cannot crash the run.
-- **line-1 write-only rule (Q48)**: `read_floor` never reads line 1, so each run gates against its own freshly computed `k * median` and the convergence of Q43 never lags a run behind; this is the plan's Q48 refinement of the design's earlier "else line 1" wording, which the pre-filled goal text above now reflects.
-- **atomic write reuse**: the side-file replace mirrors `snapshot.py` (`a.ghog.day.ok`) and `status.py` (`a.ghog.status`); `_read_text` suppresses `OSError`/`UnicodeDecodeError`, so an absent or binary file reads as "no override".
+- **floor.py file helper (new)**: the constants `FLOOR_FILE` (`a.ghog.outliers`), `DEFAULT_FLOOR` (`1.0`) and `_LINE_COUNT` (2); `floor_path(root)` returns the project-root path; `read_floor(root)` reads only line 2 and returns the floor seconds when it parses to a number `>= 0`, else `None` for a missing, unreadable, partial, malformed or below-zero file (Q48); `active_floor(override)` returns the line-2 value when set (`>= 0`), else the fixed `DEFAULT_FLOOR` (`1.0`), taking one argument and never reading line 1 (Q48); `write_floor(root, auto, override)` writes line 1 = auto and line 2 = the preserved floor atomically through a `.tmp` side-file replace, logging an `OSError` instead of raising so a write failure cannot crash the run.
+- **line-1 write-only rule (Q48)**: `read_floor` never reads line 1, so the gate uses line 2 alone (the fixed `1.0s` default when line 2 is unset) and line 1's `k * median` stays a recorded reference; this is the plan's Q48 refinement, now revised post-v0.2.0 so the default is a fixed `1.0s` rather than the design's earlier auto-floor-by-default wording.
+- **atomic write reuse**: the side-file replace mirrors `snapshot.py` (`a.ghog.day.ok`) and `status.py` (`a.ghog.status`); `_read_text` suppresses `OSError`/`UnicodeDecodeError`, so an absent or binary file reads as "no line-2 value", falling back to the `1.0s` default.
 - **.gitignore coverage**: `a.ghog.outliers` and its `.tmp` side file are already ignored by the existing `a.*` pattern (`git check-ignore` reports `.gitignore:27:a.*`), matching the `a.ghog.*` family; no `.gitignore` change was needed.
-- **Tests**: `test_groundhog_floor.py` holds nine deterministic cases -- missing-file no-override, `-1` resolving to the fresh auto with the stale line 1 ignored, a positive override replacing the auto, the two-line atomic round-trip with no side file left behind, a partial one-line file, a non-numeric line 2, a binary file, a negative override resolving to auto, and a write onto a non-directory root logged not raised -- reaching 100% of `floor.py`.
-- **Validation evidence**: the implement step's `ghog day` walk reported `exit=0`, `state=done`, `cov=100`, `fail=0` over 728 tests; `floor.py` is 130 lines (target <= 130) and `test_groundhog_floor.py` is 94 lines (target <= 150).
+- **Tests**: `test_groundhog_floor.py` holds eleven deterministic cases -- missing-file resolving to the default, a below-zero line 2 resolving to the default, the `1.0s` default round-tripping as one second, a positive override replacing the default, a line-2 `0` switching the gate off, the two-line atomic round-trip with no side file left behind, a partial one-line file, a non-numeric line 2, a binary file, `active_floor` ignoring a negative override, and a write onto a non-directory root logged not raised -- reaching 100% of `floor.py`.
+- **Validation evidence**: the implement step's `ghog day` walk reported `exit=0`, `state=done`, `cov=100`, `fail=0` over 728 tests; `floor.py` is 130 lines (target <= 130) and `test_groundhog_floor.py` is 115 lines (target <= 150).
 
 ### New types or classes introduced for Step 3
 
-- No new production class or type. Step 3 is a function-style file helper, matching `gate.py`: the module constants `FLOOR_FILE`, `NO_OVERRIDE` and `_LINE_COUNT`; the public functions `floor_path`, `read_floor`, `active_floor` and `write_floor`; and the private helper `_read_text`. No dataclass or behavior-bearing class was added.
+- No new production class or type. Step 3 is a function-style file helper, matching `gate.py`: the module constants `FLOOR_FILE`, `DEFAULT_FLOOR` and `_LINE_COUNT`; the public functions `floor_path`, `read_floor`, `active_floor` and `write_floor`; and the private helper `_read_text`. No dataclass or behavior-bearing class was added.
 
 ### Architecture check for Step 3
 
 - **floor.py (IO helper)**: the module sits beside `gate.py`, `snapshot.py` and `status.py`, the project-root file helpers; it imports only the standard library (`contextlib`, `logging`, `typing`, and `pathlib.Path` under `TYPE_CHECKING`) and nothing from `commands`, `reporting`, `durations`, `runner`, `parser` or `models`. Correct placement: file IO, no rule.
-- **boundary direction**: the true-outlier rule stays in the pure `durations.py`; `floor.py` carries only the file's own contract -- read line 2, resolve override-else-auto, write two lines -- so no median, MAD or z-score logic leaked into the IO module and the IO module does not reach back into the rule. `commands.py` calls both in Step 4, never the reverse.
-- **split or size note**: `floor.py` is 130 lines, on the plan's `<= 130` target; the module is small and self-contained, so no split is needed.
+- **boundary direction**: the true-outlier rule stays in the pure `durations.py`; `floor.py` carries only the file's own contract -- read line 2, resolve line-2-value-else-the-`1.0s`-default, write two lines -- so no median, MAD or z-score logic leaked into the IO module and the IO module does not reach back into the rule. `commands.py` calls both in Step 4, never the reverse.
+- **split or size note**: `floor.py` is 130 lines, at the plan's `<= 130` target; the module is small and self-contained, so no split is needed.
 
 No DDD-Hexagonal violation or adapter smell is visible in Step 3. No, there is nothing that needs to be addressed for Step 3.
 
@@ -252,7 +253,7 @@ Step 3 stays inside the plan's complexity target. No, there is no performance is
 
 ### Unit test coverage check for Step 3
 
-- **`tools/groundhog/floor.py`**: `test_groundhog_floor.py` reaches every statement -- `floor_path` (used throughout), `read_floor` in all five outcomes (absent/unreadable text, a sub-two-line file, a non-numeric line 2, a `>= 0` override, and a negative override), `active_floor` in its three branches (`None`, a non-negative override, a negative override), `write_floor` on both the success and the `OSError` paths, and `_read_text` on the success, the suppressed-error and the `None`-fallthrough paths. Covered at 100%, consistent with the walk's `cov=100`.
+- **`tools/groundhog/floor.py`**: `test_groundhog_floor.py` reaches every statement -- `floor_path` (used throughout), `read_floor` in all five outcomes (absent/unreadable text, a sub-two-line file, a non-numeric line 2, a `>= 0` line 2, and a below-zero line 2), `active_floor` in its branches (`None` and a below-zero value both falling back to the `1.0s` default, a non-negative value returned as is), `write_floor` on both the success and the `OSError` paths, and `_read_text` on the success, the suppressed-error and the `None`-fallthrough paths. Covered at 100%, consistent with the walk's `cov=100`.
 
 No, there is no unit-tested class below 100% that needs completing for Step 3.
 
@@ -304,7 +305,7 @@ the auto floor after the run -- keeping `commands.py` under its budget.
 - **closing line (reporting)**: a `ClosingMetrics` value object carries `cov=` and `outliers=`; `outliers_text` reads `skipped`/`withheld`/the count, mirroring `cov_text`; the five `closing_line` callers pass `ClosingMetrics`.
 - **report (commands._report_run_context, reporting.next_after_full)**: every green full run emits the bounded window (`durations_report.window_lines`) -- the flagged outliers, the marked floor and the runners-up, or a single green slowest-call line; exit 8 adds `MSG_OUTLIERS` and the floor-override hint (`_override_hint`).
 - **floor persistence (durations_summary, new)**: a green full run reads the override, recomputes and writes the auto floor (line 1 a write-only record, Q48) and resolves the active floor; a failure, a gap or a crash forms no verdict and writes nothing, so the timing verdict is withheld.
-- **tidy-suite fix (durations._is_outlier, cross-step)**: the Step 4 integration walk exposed that a uniformly-fast suite (every call rounding to `0.00s`, so the median and the `k * median` floor are zero) flagged every call; the rule now spares every call when the floor is non-positive, so a tidy suite is green from the start (Q41), as the design promises.
+- **tidy-suite fix (durations._is_outlier, cross-step)**: a uniformly-fast suite is green from the start because no call reaches the fixed `1.0s` default floor (every call rounds well under a second), not because the floor is zero; the rule still spares every call when the floor is non-positive, which is what an explicit line-2 `0` does to switch the gate off (Q41), as the design promises.
 - **pre-existing lint unblock**: two committed Step 2 test files were failing the strict gate after toolchain drift -- `test_groundhog_durations.py` used `pytest.approx` (strict pyright `reportUnknownMemberType`) and `test_groundhog_durations_pbt.py` tripped ruff `TC002`; both were fixed minimally (`math.isclose` like the property test; `SearchStrategy` moved to a `TYPE_CHECKING` block) so the walk could reach the test steps.
 - **tests**: `test_groundhog_reporting.py` adds the progress suffix, `outliers_text`, `ClosingMetrics`, the closing-line grammar, the exit-8 next step with its override hint, and the Q30 restart rule; `test_groundhog_commands.py` (new) drives `cli.main` over a durations transcript for the green-but-slow exit-8 run (window, fix, floor seeded), the tidy exit-0 run, the raised-override exit-0 run, the failing withheld exit-2 run, the user-bar verdict and the bar-less no-tests run, plus the `classify` precedence and `postfix` verdict directly; `test_groundhog_durations.py` adds the zero-floor spares-every-call case.
 - **validation evidence**: `ghog day` reports `exit=0`, `state=done`, `cov=100`, `fail=0` over 767 tests; the final line reads `avg=0.008s outliers=0` and the closing line `cov=100 outliers=0 exit=0`; `rg "EXIT_DURATION_OUTLIERS|outliers=" tools/groundhog` finds the code and the output keys.
@@ -320,7 +321,7 @@ the auto floor after the run -- keeping `commands.py` under its budget.
 - **layering**: `commands.py`, the orchestration root, calls `durations_summary` (composition), `durations_report` (rendering) and `reporting` (text). `durations_summary` composes the pure rule (`durations`) and the IO helper (`floor`); `durations.py` stays pure -- no IO, no `floor` import. The dependencies run one way (`durations_summary` imports `durations`, `floor`, `runner`, `models`; nothing but `commands` imports it back), so there is no cycle.
 - **boundary direction**: the report keeps its value objects (`ClosingMetrics`, `DurationSummary`); `commands` passes them down and never the reverse. The tidy-suite fix sits in the pure rule (`durations._is_outlier`), the correct home, with no IO leaked in.
 - **placement of the split**: per the plan's split guidance, the full-run post-processing (read floor, judge, persist floor) was extracted to `durations_summary.py` rather than left in `commands.py` or pushed into the pure `durations.py`, so the orchestration layer and the rule each keep their concern.
-- **girth**: `commands.py` is 647 lines and `reporting.py` 513, both under the project's hard 650-line gate (`PYTHON_BIG_FILE_LINE_LIMIT=650`) but over the plan's soft targets (<= 545, <= 395). Those targets were set from pre-Q32 baselines (499, 325) that intervening lifecycle work had already overshot (596, 401) before Step 4 began, so the soft numbers are stale; the hard gate holds. The `commands.py` margin is only three lines.
+- **girth**: `commands.py` is 647 lines and `reporting.py` 516, both under the project's hard 650-line gate (`PYTHON_BIG_FILE_LINE_LIMIT=650`) but over the plan's soft targets (<= 545, <= 395). Those targets were set from pre-Q32 baselines (499, 325) that intervening lifecycle work had already overshot (596, 401) before Step 4 began, so the soft numbers are stale; the hard gate holds. The `commands.py` margin is only three lines.
 
 Yes -- `commands.py` sits three lines under the 650-line gate, a girth watch a later step should relieve by splitting the report-assembly helpers out before the next addition; there is no DDD-Hexagonal violation or adapter smell.
 
@@ -455,12 +456,12 @@ its variants through the real parser, rule, floor, classification and report.
 
 ### What was implemented for Step 6
 
-- **acceptance module (new)**: `tests/unit/tools/test_groundhog_acceptance_durations.py` (195 lines, target <= 320), mirroring the `test_groundhog_acceptance_day.py` split so neither acceptance file nears the limit; it reuses the shared `Spawns`, `make_deps` and `assert_closing_grammar` fakes from `groundhog_acceptance_support.py`, fakes only the process boundary, and asserts the real parsing, rule, floor, classification and report together.
-- **transcript builders**: `_durations_block` renders a `slowest durations` banner, one call line per timed call, and one ignored `0.50s setup` line that proves the rule reads the call phase only (Q36); `_full_transcript` assembles the collected count, one PASSED result per call, the coverage TOTAL at the gate, the durations block, then the summary; `_failing_transcript` builds a FAILED result with a FAILURES section and the same durations block. The call times are picked so the arithmetic is deterministic: the slow set `[1.83, 0.05, 0.04, 0.03, 0.02, 0.01]` has median `0.035s` and auto floor `0.35s`, the tidy set `[0.04, 0.03, 0.02, 0.01]` median `0.025s` and floor `0.25s`.
-- **AT-D1 green-but-slow**: the slow transcript exits 8 (`EXIT_DURATION_OUTLIERS`); the test asserts the `--durations=0` flag reached the full command, `a.ghog.outliers` was written, the window header, the freak's `tests/test_slow.py::test_freak 1.83s 52x median` line, the marked `-- floor 0.35s --`, `avg=`, `MSG_OUTLIERS`, the closing `outliers=1 exit=8`, and the closing-line grammar.
+- **acceptance module (new)**: `tests/unit/tools/test_groundhog_acceptance_durations.py` (231 lines, target <= 320), mirroring the `test_groundhog_acceptance_day.py` split so neither acceptance file nears the limit; it reuses the shared `Spawns`, `make_deps` and `assert_closing_grammar` fakes from `groundhog_acceptance_support.py`, fakes only the process boundary, and asserts the real parsing, rule, floor, classification and report together.
+- **transcript builders**: `_durations_block` renders a `slowest durations` banner, one call line per timed call, and one ignored `2.00s setup` line (above the one-second floor) that proves the rule reads the call phase only (Q36); `_full_transcript` assembles the collected count, one PASSED result per call, the coverage TOTAL at the gate, the durations block, then the summary; `_failing_transcript` builds a FAILED result with a FAILURES section and the same durations block. The call times are picked so the arithmetic is deterministic: the slow set `[1.83, 0.05, 0.04, 0.03, 0.02, 0.01]` has median `0.035s`, so line 1's recorded auto floor is `0.35s`, while the gate uses the fixed `1.0s` line-2 default.
+- **AT-D1 green-but-slow**: the slow transcript exits 8 (`EXIT_DURATION_OUTLIERS`); the test asserts the `--durations=0` flag reached the full command, `a.ghog.outliers` was written, the window header, the freak's `tests/test_slow.py::test_freak 1.83s 52x median` line, the marked `-- floor 1.00s --` (the one-second default), `avg=`, `MSG_OUTLIERS`, the closing `outliers=1 exit=8`, and the closing-line grammar.
 - **AT-D2 tidy green**: the no-freak transcript exits 0 with the single `Slowest call:` green line, `MSG_FULL_OK`, the closing `outliers=0 exit=0`, and no outlier window header.
 - **AT-D3 override**: a line-2 override of `5.0s` pre-written above the freak spares it (exit 0); the run rewrites line 1 to its auto floor but preserves the override (`read_floor == 5.0`), and prints no window header.
-- **AT-D4 first run / no file**: with no floor file present the run seeds line 1 with a positive auto floor, resets line 2 to `-1` (so `read_floor` is `None`), still exits 8 and still prints the window (Q45).
+- **AT-D4 first run / no file**: with no floor file present the run seeds line 1 with a positive auto floor and seeds line 2 with the fixed `1.0s` default (so `read_floor` returns `1.0`, `floor.DEFAULT_FLOOR`), still exits 8 and still prints the window (Q45).
 - **AT-D5 precedence**: a failing transcript that still carries a durations block keeps exit 2, reads `outliers=withheld` in the closing line, writes no floor file, and prints no window -- outliers are judged last (Q34).
 - **complexity fix**: AT-D1's report-content assertions are folded into a loop over the `_SLOW_REPORT` tuple; the initial flat sequence of asserts tripped the repo's radon cyclomatic-complexity gate at rank C, and the loop brings the function back to rank B like the other acceptance scenarios.
 - **Validation evidence**: `ghog day` reports `exit=0`, `state=done`, `cov=100`, `fail=0` over 772 tests, and the full run on llm-shared's own fast suite reads `avg=0.010s outliers=0`; `rg "AT-D|durations" tests/unit/tools/test_groundhog_acceptance_durations.py` finds the five scenarios and the transcript builders.
@@ -473,7 +474,7 @@ its variants through the real parser, rule, floor, classification and report.
 
 - **test placement**: the module sits in the flat `tests/unit/tools/` suite beside the other `test_groundhog_*` modules, mirroring the `test_groundhog_acceptance_day.py` split that keeps each acceptance file under the line budget; it imports only the public entry point (`cli.main`), the `floor` and `reporting` modules for assertions, the shared support fakes and the exit-code constants -- no reach into private rule internals.
 - **boundary direction**: the scenarios drive the system from the outside (`cli.main`) and assert user-visible output and the on-disk floor file, so they pin behavior at the boundary rather than implementation detail; the only faked seam is the injected process factory, the same single fake the other acceptance files use.
-- **no production layer touched**: Step 6 adds no `tools/groundhog` code, so no import, port or adapter boundary changed; the new file is 195 lines, under the plan's `<= 320` target and well under the 650-line hard gate.
+- **no production layer touched**: Step 6 adds no `tools/groundhog` code, so no import, port or adapter boundary changed; the new file is 231 lines, under the plan's `<= 320` target and well under the 650-line hard gate.
 
 No DDD-Hexagonal violation or adapter smell is visible in Step 6. No, there is nothing that needs to be addressed for Step 6.
 
