@@ -94,9 +94,12 @@ MSG_NO_BASELINE: Final = (
 )
 # The exit-8 next step (Q47): fix only the calls above the floor, confirm the
 # new time alone, then restart the walk (Q30). Named ghog day, never a
-# standalone re-run before the walk's compile check.
+# standalone re-run before the walk's compile check. Points at the dedicated
+# fix-slow-test instruction so the per-call procedure is acted upon whatever
+# flow ran the walk.
 MSG_OUTLIERS: Final = (
-    "Next: shorten each call listed above the floor, confirm it alone with "
+    "Next: shorten each call listed above the floor (how to: "
+    "<llm-shared>/instructions/fix_slow_test.md), confirm it alone with "
     "ghog single <file>, then ghog day to re-measure the whole suite"
 )
 # Lifecycle verdicts of the ghog status reporter (Q32).
