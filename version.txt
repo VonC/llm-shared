@@ -1,4 +1,4 @@
-0.3.0-SNAPSHOT -- One call gets a pass, the suite does not
+0.3.0 -- One call gets a pass, the suite does not
 
 the [exclusion] section spares a slow test without raising line 2
 
