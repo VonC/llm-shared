@@ -3,8 +3,10 @@
 Cover ``tools.wrap_commit_backticks`` at the text level -- the
 whole-text backtick-wrap pass, the adjacent backtick-span merge that
 folds a whitespace-separated run of code spans into one span, the
-wrap-list literal pass, and the combined wrap-list/code-like/merge
-segment pass -- plus ``tools.wrap_commit_wraplist``: the directory
+wrap-list literal pass, the combined wrap-list/code-like/merge segment
+pass, and the subject-wrap backtick stripper that bares a backticked
+``type(scope):`` line opener -- plus ``tools.wrap_commit_wraplist``:
+the directory
 search order, the ``wrap-list.backtick`` reader, and the collector
 across the search roots.
 
@@ -406,6 +408,58 @@ class TestApplyInlineBackticks:
             literals=[],
             needs_backticks=wrap_commit_backticks.word_needs_backticks_in_paragraph,
         ) == "see `a/b` now"
+
+
+class TestStripSubjectWrapBackticks:
+    r"""Validate the ``\`type(scope)\`:`` opener backtick stripper."""
+
+    def test_strips_wrapped_subject_opener(self) -> None:
+        r"""``\`feat(tools)\`: rest`` loses the two wrap backticks."""
+        assert wrap_commit_backticks.strip_subject_wrap_backticks(
+            "`feat(tools)`: add launcher",
+        ) == "feat(tools): add launcher"
+
+    def test_keeps_rest_of_line_after_colon(self) -> None:
+        """Only the two backticks go; text after the colon is untouched."""
+        assert wrap_commit_backticks.strip_subject_wrap_backticks(
+            "`fix(io)`: two `still_code` here",
+        ) == "fix(io): two `still_code` here"
+
+    def test_non_opener_match_is_left_alone(self) -> None:
+        """A backticked subject mid-line (not at the start) is not stripped."""
+        assert wrap_commit_backticks.strip_subject_wrap_backticks(
+            "the `feat(tools)`: commit",
+        ) == "the `feat(tools)`: commit"
+
+    def test_bullet_line_is_not_stripped(self) -> None:
+        """A ``- `` bullet opener does not match the line-start pattern."""
+        assert wrap_commit_backticks.strip_subject_wrap_backticks(
+            "- `feat(tools)`: add launcher",
+        ) == "- `feat(tools)`: add launcher"
+
+    def test_indented_line_is_not_stripped(self) -> None:
+        """Leading whitespace breaks the ``^`` anchor, so nothing is stripped."""
+        assert wrap_commit_backticks.strip_subject_wrap_backticks(
+            "  `feat(tools)`: add launcher",
+        ) == "  `feat(tools)`: add launcher"
+
+    def test_bare_subject_without_backticks_is_unchanged(self) -> None:
+        """An already-bare ``feat(tools):`` opener has nothing to strip."""
+        assert wrap_commit_backticks.strip_subject_wrap_backticks(
+            "feat(tools): add launcher",
+        ) == "feat(tools): add launcher"
+
+    def test_subject_without_scope_is_not_matched(self) -> None:
+        r"""``\`feat\`:`` has no ``(scope)`` group, so it is left alone."""
+        assert wrap_commit_backticks.strip_subject_wrap_backticks(
+            "`feat`: no scope",
+        ) == "`feat`: no scope"
+
+    def test_pattern_matches_typed_scoped_opener(self) -> None:
+        """The compiled pattern matches the wrapped opener at line start."""
+        assert wrap_commit_backticks.SUBJECT_WRAP_BACKTICKS_PATTERN.match(
+            "`feat(tools)`: rest",
+        ) is not None
 
 
 class TestWrapListSearchDirs:

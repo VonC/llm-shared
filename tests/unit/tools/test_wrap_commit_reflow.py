@@ -5,7 +5,8 @@ wrapping, empty-line preservation, bullet-continuation merging, the
 backtick pass flowing through ``reflow_lines`` (including the adjacent
 span merge and the indivisible-span width wrap), the wrap-list literal
 pass, the paragraph-only path-separator rule that backticks words
-holding a slash or backslash, the conventional-commit subject
+holding a slash or backslash, the final subject-wrap strip that bares a
+backticked ``type(scope):`` line opener, the conventional-commit subject
 recognizer, and the per-block reflow that keeps a leading commit
 subject verbatim.
 
@@ -416,6 +417,52 @@ class TestReflowLinesPathSeparator:
             ["paths a/b c/d here"],
             80,
         ) == ["paths `a/b c/d` here"]
+
+
+class TestReflowLinesSubjectWrapStrip:
+    r"""Validate the final ``\`type(scope)\`:`` opener strip in ``reflow_lines``."""
+
+    def test_paragraph_subject_opener_is_unwrapped(self) -> None:
+        r"""A body line that wraps to ``\`feat(tools)\`:`` is stripped bare."""
+        # The word pass wraps ``feat(tools):`` via the open-paren rule;
+        # the final strip removes the two backticks again.
+        assert wrap_commit_reflow.reflow_lines(
+            ["feat(tools): add launcher"],
+            80,
+        ) == ["feat(tools): add launcher"]
+
+    def test_second_subject_line_is_unwrapped(self) -> None:
+        """A second subject-shaped paragraph line is also bared."""
+        assert wrap_commit_reflow.reflow_lines(
+            ["fix(io): two"],
+            80,
+        ) == ["fix(io): two"]
+
+    def test_bullet_subject_keeps_its_backticks(self) -> None:
+        r"""A bullet opens with ``- ``, so its ``\`fix(io)\`:`` head stays wrapped."""
+        # The strip is anchored at the line start; a bullet line opens
+        # with ``- ``, never a backtick, so its head is preserved.
+        assert wrap_commit_reflow.reflow_lines(
+            ["- fix(io): two"],
+            80,
+        ) == ["- `fix(io)`: two"]
+
+    def test_no_backticks_flag_skips_the_strip(self) -> None:
+        """With backticks off, an existing wrapped opener is left untouched."""
+        assert wrap_commit_reflow.reflow_lines(
+            ["`feat(tools)`: add launcher"],
+            80,
+            add_backticks=False,
+        ) == ["`feat(tools)`: add launcher"]
+
+    def test_rest_of_subject_line_still_backticked(self) -> None:
+        """The opener is bared while later code-like words still wrap."""
+        # ``feat(tools):`` is unwrapped by the strip, but ``foo_bar`` in
+        # the same line still gets the regular code-like backticks.
+        assert wrap_commit_reflow.reflow_lines(
+            ["feat(tools): tweak foo_bar today"],
+            80,
+        ) == ["feat(tools): tweak `foo_bar` today"]
 
 
 # eof

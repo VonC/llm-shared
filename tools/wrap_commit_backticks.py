@@ -4,12 +4,18 @@ Holds the code-like word predicates (dash-prefixed tokens, ``=`` and
 ``_`` mixed-content tokens, non-trailing dots, non-leading open parens,
 CamelCase, the paragraph-only path-separator rule), the wrap-exception
 whitelist, the outer-punctuation splitter, the wrap-list literal pass,
-the adjacent-span merge, and the backtick-aware tokenizer used by the
-width wrap. See ``tools.wrap_commit`` for the full tool description.
+the adjacent-span merge, the subject-wrap backtick stripper, and the
+backtick-aware tokenizer used by the width wrap. See
+``tools.wrap_commit`` for the full tool description.
 
 Fix: split for the repo line budget -- the word rules and backtick
 passes moved here from ``tools.wrap_commit``, which stays the script
 entry point and import hub.
+
+Fix: add ``strip_subject_wrap_backticks`` -- once the backtick passes
+have run, a line that opens with a backticked ``\`type(scope)\`:`` (a
+conventional-commit subject the word pass wrapped via the open-paren
+rule) has those two backticks removed so the opener reads bare.
 """
 
 from __future__ import annotations
@@ -52,6 +58,15 @@ SENTENCE_TRAILING_PUNCTUATION = (".", ",", ":", ";")
 ADJACENT_BACKTICK_SPANS_PATTERN = re.compile(
     r"`([^`\r\n]+)`(?:[ \t]*\r?\n[ \t]*|[ \t]+)`([^`\r\n]+)`",
 )
+
+# A conventional-commit subject whose ``type(scope)`` was auto-wrapped
+# by the word pass opens a line as ``\`type(scope)\`:`` -- a backtick, a
+# type (no ``(``), a ``(scope)`` group, a closing backtick, then the
+# ``:`` separator. ``strip_subject_wrap_backticks`` matches that opener
+# and removes the two backticks so the line reads ``type(scope):`` bare,
+# like a verbatim first-line subject. The capture group keeps the
+# ``type(scope)`` text for the bare rewrite.
+SUBJECT_WRAP_BACKTICKS_PATTERN = re.compile(r"^`([^(]+\([^)]+\))`:")
 
 
 def _find_backtick_regions(text: str) -> list[tuple[int, int]]:
@@ -445,6 +460,33 @@ def apply_inline_backticks(
     text = _add_backticks_to_literals(text, literals)
     text = _add_backticks_to_words(text, needs_backticks)
     return _merge_adjacent_backtick_spans(text)
+
+
+def strip_subject_wrap_backticks(text: str) -> str:
+    r"""Strip the wrap backticks from a ``\`type(scope)\`:`` line opener.
+
+    The word pass wraps a conventional-commit subject token such as
+    ``feat(tools):`` via the open-paren rule, producing
+    ``\`feat(tools)\`:`` -- the balanced parens stay inside the span and
+    the trailing ``:`` sits just outside it. The first line of a block is
+    kept verbatim, but any other line (a second subject in the body, or
+    the whole file under ``--no-delimiters``) can end up opening with
+    such a backticked ``type(scope)``. This pass matches that opener with
+    ``SUBJECT_WRAP_BACKTICKS_PATTERN`` and drops the opening backtick and
+    the backtick before the ``:``, leaving ``type(scope):`` bare and the
+    rest of the line untouched. The ``^`` anchor keeps the strip to a
+    line that starts with the backtick, so bullet lines (which open with
+    ``- ``) and indented lines are never matched. A line that does not
+    open with the pattern is returned unchanged.
+
+    Args:
+        text: One already-wrapped output line to clean up.
+
+    Returns:
+        The line with the two subject-wrap backticks removed, or the
+        original line when the opener does not match.
+    """
+    return SUBJECT_WRAP_BACKTICKS_PATTERN.sub(r"\1:", text)
 
 
 # eof
