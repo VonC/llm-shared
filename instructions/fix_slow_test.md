@@ -54,7 +54,22 @@ Fixing a slow call is a sub-step of the walk, not the end of it: exit 8 is one m
 
 ## When a call has to stay slow
 
-If the call is legitimately slow and cannot be shortened without dropping what it must exercise — a genuine integration test against a real slow path — do not fake the slowness away. Raise line 2 of `a.ghog.outliers` above that call instead (the override the exit-8 hint names, with the floor it has to clear), so the suite accepts it on purpose. The default floor is one second; line 2 is the per-project number you raise to keep a slow call green, or lower to catch faster ones.
+If the call is legitimately slow and cannot be shortened without dropping what it must exercise — a genuine integration test against a real slow path — do not fake the slowness away, and do not raise line 2 of `a.ghog.outliers`. Line 2 is the project-wide floor for the whole suite, so lifting it to clear one call blinds the gate to every test slower than the floor but faster than that call. Accept the one call on its own instead.
+
+Run the `ghog` add-exclusion command with the call's measured time, from the project root:
+
+```bash
+ghog exclude "<NODE ID>" <measured seconds>
+```
+
+`<measured seconds>` is the time the call ran at in the re-measure above — the recorded baseline. The tool writes the entry to the `[exclusion]` section of `a.ghog.outliers`, the only place it writes that section, while the floor lines (1 and 2) stay yours. The next full run spares the call from the outlier rule whatever the floor and holds it to that baseline within two seconds:
+
+- within two seconds of the baseline either way: the call reads `ok` in the exclusion block, and the run stays green.
+- more than two seconds slower than the baseline: a regression against the accepted baseline, not a new baseline. The run goes to exit 8 with `excluded=1`, and the fix is to bring the call back to within two seconds of its recorded time — restore it, do not push it below the floor.
+- more than two seconds faster than the baseline: the tool ratchets the recorded value down to the new time, and removes the entry once the call drops below the floor, handing it back to the normal rule. A baseline never moves back up except by re-running `ghog exclude`.
+- the test no longer runs on the full suite: the tool removes the stale entry.
+
+An exclusion is the last resort, added only once the profiling above proves the time irreducible — not a shortcut around a slow test.
 
 ## Report back after the fix
 

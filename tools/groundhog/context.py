@@ -69,6 +69,10 @@ class Invocation:
             the last green walk (Q28).
         detach: Whether a ``day`` walk runs as a survivor process,
             polled through ``ghog status`` (Q32).
+        node: The pytest node id of an ``exclude`` run, the accepted-slow
+            call written to the ``[exclusion]`` section (Q62).
+        seconds: The measured call time of an ``exclude`` run, the recorded
+            baseline the full run later holds the call to (Q56, Q62).
     """
 
     sub: str
@@ -78,6 +82,8 @@ class Invocation:
     root: Path
     force: bool = False
     detach: bool = False
+    node: str = ""
+    seconds: float = 0.0
 
 
 # eof
