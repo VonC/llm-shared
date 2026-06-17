@@ -2,10 +2,11 @@
 
 Cover ``tools.wrap_commit`` as the script hub: the per-block and
 whole-file ``process_text`` driver (including the block-leading commit
-subject skip and the wrap-list pass on block bodies), the target-file
-resolution, and the CLI entry point in normal, ``--check``, and
-``--no-delimiters`` modes. A ``runpy`` test exercises the ``__main__``
-script path end to end.
+subject skip, the subject-wrap backtick strip on later subject lines,
+and the wrap-list pass on block bodies), the target-file resolution, and
+the CLI entry point in normal, ``--check``, and ``--no-delimiters``
+modes. A ``runpy`` test exercises the ``__main__`` script path end to
+end.
 
 The tool resolves the default target file under the calling project's
 root through the shared ``find_project_root`` helper; the relevant test
@@ -211,7 +212,7 @@ class TestProcessTextSubjectSkip:
         assert "`foo_bar`" in result
 
     def test_subject_match_only_applies_to_first_line_of_block(self) -> None:
-        """A second subject-shaped line inside the block is still backticked."""
+        """A second subject-shaped line is wrapped, then bared by the strip."""
         text = (
             "```log\n"
             "feat(tools): one\n"
@@ -222,9 +223,11 @@ class TestProcessTextSubjectSkip:
         result = wrap_commit.process_text(text, 80, "```log", "```")
 
         assert "feat(tools): one" in result
-        # ``fix(io):`` is not first, so the open-paren rule kicks in;
-        # the trailing colon sits outside the closing backtick.
-        assert "`fix(io)`: two" in result
+        # ``fix(io):`` is not the first line, so the word pass wraps it
+        # via the open-paren rule; the final subject-wrap strip then
+        # removes the two backticks, leaving the opener bare.
+        assert "fix(io): two" in result
+        assert "`fix(io)`" not in result
 
     def test_overlong_subject_line_is_not_wrapped(self) -> None:
         """An overlong subject line is preserved verbatim even past the width."""
@@ -248,15 +251,17 @@ class TestProcessTextSubjectSkip:
         assert "feat(tools): add foo_bar" in result
 
     def test_no_delimiters_mode_does_not_apply_subject_skip(self) -> None:
-        """``--no-delimiters`` mode skips the subject-line rule."""
+        """``--no-delimiters`` skips the verbatim rule, but the strip still bares it."""
         text = "feat(tools): add cert-aware uv launcher\n"
 
         result = wrap_commit.process_text(text, 80, None, None)
 
-        # Without delimiters there is no "block", so the subject line
-        # is processed normally and the open-paren rule wraps it; the
-        # trailing colon sits outside the closing backtick.
-        assert "`feat(tools)`: add" in result
+        # Without delimiters there is no "block", so the verbatim
+        # first-line rule never fires and the word pass wraps the opener
+        # via the open-paren rule. The final subject-wrap strip then
+        # removes the two backticks, so the subject reads bare.
+        assert "feat(tools): add cert-aware uv launcher" in result
+        assert "`feat(tools)`" not in result
 
     def test_subject_skip_works_with_no_backticks_flag(self) -> None:
         """``add_backticks=False`` still keeps the subject line verbatim."""

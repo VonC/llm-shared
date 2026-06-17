@@ -83,6 +83,16 @@ The width wrap treats each inline backtick span as one indivisible
 token, so a span like ```` `xx yyy zzz` ```` is never split across
 lines even if it contains internal whitespace.
 
+Once the backtick pass and width wrap are done, a final strip runs on
+each emitted body line: a line that opens with a backticked
+```` `type(scope)`: ```` -- the conventional-commit subject shape that
+the word pass wraps via the non-leading open-paren rule (the colon
+pulled outside, the balanced parens kept inside) -- has those two
+backticks removed, so the opener reads ``type(scope):`` bare. The strip
+is line-anchored, so it leaves bullet lines (which open with ``- ``) and
+indented lines alone; ``--no-backticks`` skips it along with the rest of
+the backtick work.
+
 When the very first line of a delimited block matches
 ``^\S+\(.*?\):\s`` -- the conventional-commit subject shape such as
 ``feat(tools): add cert-aware uv launcher`` -- that line is emitted

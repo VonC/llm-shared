@@ -20,6 +20,9 @@ from tools.wrap_commit_backticks import (
     apply_inline_backticks as _apply_inline_backticks,
 )
 from tools.wrap_commit_backticks import (
+    strip_subject_wrap_backticks as _strip_subject_wrap_backticks,
+)
+from tools.wrap_commit_backticks import (
     tokenize_keeping_backticks as _tokenize_keeping_backticks,
 )
 from tools.wrap_commit_backticks import (
@@ -121,6 +124,27 @@ def _collect_continuation(
     return j, parts
 
 
+def _strip_subject_wraps(lines: list[str], *, add_backticks: bool) -> list[str]:
+    r"""Undo a backticked ``\`type(scope)\`:`` opener on each output line.
+
+    Runs ``strip_subject_wrap_backticks`` over every reflowed line so a
+    line that opens with a backticked conventional-commit subject reads
+    ``type(scope):`` bare. When ``add_backticks`` is False the backtick
+    passes never ran, so there is nothing to strip and the lines are
+    returned unchanged.
+
+    Args:
+        lines: The reflowed output lines, without terminating newlines.
+        add_backticks: When False, skip the strip and return ``lines``.
+
+    Returns:
+        The lines with any subject-wrap backticks removed.
+    """
+    if not add_backticks:
+        return lines
+    return [_strip_subject_wrap_backticks(line) for line in lines]
+
+
 def reflow_lines(
     lines: list[str],
     width: int,
@@ -155,6 +179,14 @@ def reflow_lines(
     so any inline backtick span (whether pre-existing or just added) is
     treated as one indivisible token -- a span like ``\`xx yyy zzz\```
     will never be split across lines.
+
+    After the width wrap, when ``add_backticks`` is True, each output
+    line is passed through ``strip_subject_wrap_backticks``: a line that
+    opens with a backticked ``\`type(scope)\`:`` (a conventional-commit
+    subject the word pass wrapped via the open-paren rule) has those two
+    backticks removed, so the opener reads ``type(scope):`` bare. Bullet
+    lines open with ``- `` and indented lines with whitespace, so this
+    line-anchored strip only touches a paragraph that starts at column 0.
 
     Args:
         lines: The input lines without their terminating newlines.
@@ -212,7 +244,12 @@ def reflow_lines(
             out.extend(_wrap_words(words, width, "", ""))
             i = j
 
-    return out
+    # Once the backtick passes and the width wrap are done, undo any
+    # subject wrap: a line that now opens with a backticked
+    # ``\`type(scope)\`:`` (a conventional-commit subject the word pass
+    # wrapped via the open-paren rule) reads better bare, matching the
+    # verbatim first-line subject.
+    return _strip_subject_wraps(out, add_backticks=add_backticks)
 
 
 def _reflow_block(
