@@ -8,6 +8,12 @@ Goal of this instruction: bring a slow test call under the duration floor withou
 - Fix only the calls listed above the floor — the named outliers. The few next-slowest calls shown under the floor are tuning context, not fix targets; leave them alone.
 - One call at a time: profile it, shorten it, move to the next.
 
+## Read the project TESTING.md for run-time techniques
+
+Before you profile, check whether the project ships a `TESTING.md` file. If it does, it can carry project-specific advice on cutting test execution time — look for a `## Tests Execution Time Optimization Techniques` section and read it as part of this task. The techniques there are written for this project's fixtures, fakes and known slow paths, so they often name the faster route a cold profile would take longer to reach.
+
+Read it alongside the steps below, not instead of them: still measure first with the profile, then prefer the fix the project's own notes point to when one fits the hotspot. If the project has no `TESTING.md`, or the file has no such section, fall back to the generic profiling and fix steps that follow.
+
 ## Profile one slow test with pyinstrument
 
 Measure first, never guess. `pyinstrument` is a sampling profiler that reads wall-clock time, so time spent waiting — a subprocess, file or network I/O, a key-derivation function running in C — shows up in the Python frame that called it. That is exactly the shape of most slow tests.
