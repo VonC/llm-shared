@@ -2,7 +2,7 @@
 
 No, it is not implemented.
 
-This document tracks, step by step, the build of the tool-managed `[exclusion]` section against [`plan.v0.3.0.duration_outliers_exclusion.md`](plan.v0.3.0.duration_outliers_exclusion.md). Steps 1 to 3 are built and green: `exclusions.py` reads and writes the section, `durations.py` spares and classifies excluded calls, and `durations_summary.py` and `durations_report.py` wire the read / apply / write into a run and render the exclusion block. The closing-line `excluded=` field, the `ghog` add-exclusion command and the guidance and acceptance updates remain. Each step's evidence is filled at its implementation check.
+This document tracks, step by step, the build of the tool-managed `[exclusion]` section against [`plan.v0.3.0.duration_outliers_exclusion.md`](plan.v0.3.0.duration_outliers_exclusion.md). Steps 1 to 4 are built and green: `exclusions.py` reads and writes the section, `durations.py` spares and classifies excluded calls, `durations_summary.py` and `durations_report.py` wire the read / apply / write into a run and render the exclusion block, and `reporting.py`, `commands.py` and `cli.py` drive exit 8 from a slower-drift, carry the closing-line `excluded=` field and add the `ghog exclude` command. The fix-slow-test guidance (Step 5) and the acceptance runs (Step 6) remain. Each step's evidence is filled at its implementation check.
 
 ---
 
@@ -238,7 +238,9 @@ No existing feature or reporting capability appears impaired.
 
 ### Analysis of Step 4 implementation state
 
-Not started. Step 4 is not implemented because the closing line carries no `excluded=` field, the exit-8 hint still names line 2, and there is no `ghog` add-exclusion subcommand.
+Yes. Step 4 has been fully implemented.
+
+`reporting.py` gains `excluded_count` and `excluded_text`, an `excluded` field on `ClosingMetrics`, the `excluded=` token on the closing line, and a reworded exit-8 hint that names `ghog exclude` and `fix_slow_test.md` instead of raising line 2; `commands.classify` now turns a green run to exit 8 on either a flagged outlier or a slower-drifted exclusion, and `_report` carries the `excluded=` value; `cli.py` adds the `exclude <node> <seconds>` subcommand, its `run_exclude` executor and the dispatch. One `ghog day` walk is green: `exit=0`, full suite `804/804 fail=0`, `cov=100`, `outliers=0`, `excluded=0`, so the new and changed code sits at 100% coverage with the v0.2.0 floor/rule and the floor window unchanged.
 
 ### Goal for Step 4
 
@@ -253,27 +255,61 @@ Drive exit 8 from a slower-drifted exclusion, carry `excluded=` of the slower-dr
 
 ### What was implemented for Step 4
 
-To be filled at the implementation check for Step 4.
+- **`reporting.py` slower-drift count (`excluded_count`)**: a new function counting the exclusions flagged `durations.STATUS_SLOWER` -- the only accepted-slow calls that drive a fix (Q65); a call within two seconds (`ok`), a `faster` ratchet or a `stale` removal are auto-managed and not counted (Q57, Q60, Q61). The module now imports `durations` at runtime for the `STATUS_SLOWER` constant, the same one-way report-over-rule dependency Step 3 added to `durations_report.py`.
+- **`reporting.py` closing-line `excluded=` (`excluded_text`, `ClosingMetrics`)**: `excluded_text` mirrors `outliers_text` -- `skipped` when no calls are timed, `withheld` while a failure hides the verdict (judged last), else the slower-drift count from `excluded_count` (Q58, Q65); `ClosingMetrics` gains an `excluded` field defaulting to the shared `OUTLIERS_SKIPPED`, and `closing_line` renders `excluded={metrics.excluded}` between `outliers=` and `exit=`, so an all-zero `excluded=0` reads as the all-clear, parallel to `outliers=`.
+- **`reporting.py` exit-8 hint (`_exclusion_hint`)**: the old `_override_hint` ("raise line 2 above {floor}s") is renamed and reworded to name the `ghog exclude <node id> <measured seconds>` command and point at `fix_slow_test.md`, accepting one call at its measured time rather than lifting the project-wide floor (Q59, Q62); it still shows the active floor it would otherwise raise. `next_after_full` calls it on exit 8.
+- **`commands.py` classification (`classify`, `run_tests`)**: `run_tests` computes `flagged = len(summary.outliers) + reporting.excluded_count(summary)` and hands it to `classify`, so a slower-drifted exclusion -- already spared from `outliers` -- keeps an otherwise-green full run on exit 8 (Q57); `classify`'s parameter is renamed `outlier_count -> flagged` and its `flagged > 0` test now covers both an outlier and a slower-drift. `_report` reads `durations_summary.measures_durations` once and passes the new `excluded_text` value alongside `outliers_text`.
+- **`cli.py` exclude subcommand (`run_exclude`, parser, dispatch)**: a `exclude` subparser takes the positional `node` (quoted for a parametrized id) and a `float` `seconds`; `_build_invocation` maps them onto the new `Invocation` fields; `run_exclude` reads the section, sets the node's measured baseline, writes it back through `exclusions.write_exclusions` (the only writer), and prints the standard envelope through `commands.emit_summary` and `reporting.closing_line`. The executor lives in `cli.py`, not `commands.py`, because `commands.py` is at its 650-line budget; the module docstring records this.
+- **`cli.py` complexity split (`_run_post_redirect`, `_build_invocation`)**: the post-redirect dispatch (init, exclude, lifecycle) is extracted from `main` so `main` keeps six or fewer returns (ruff `PLR0911`), and the invocation construction is extracted so `main` stays at radon grade B once the new fields are read.
+- **`context.py` / `runner.py` plumbing**: `Invocation` gains `node: str = ""` and `seconds: float = 0.0` for the exclude run; `runner.py` gains `SUB_EXCLUDE = "exclude"` beside the other subcommand names.
+- **Tests**: `test_groundhog_reporting.py` adds `test_excluded_count_counts_only_slower` and `test_excluded_text_rules`, extends the `_summary` helper with an `exclusions` argument and two `DurationExclusion` fixtures, updates the two closing-line tests for the `excluded=` token, and asserts the reworded `ghog exclude` hint; `test_groundhog_cli.py` adds `test_exclude_subcommand_writes_the_entry`; `test_groundhog_commands.py` swaps the old `a.ghog.outliers above` assertion for `ghog exclude`; `test_groundhog_acceptance_durations.py` updates the four closing-line snippets to carry `excluded=0` (or `excluded=withheld` on the failing run).
+- **Validation evidence**: one `ghog day` walk reported `exit=0`, `state=done`, `cov=100`, `fail=0`, `outliers=0`, `excluded=0` over 804 tests; the closing line reads `cov=100 outliers=0 excluded=0 exit=0`. `check.bat` passed -- ty, pyright, ruff `select=["ALL"]` (including the `PLR0911` too-many-returns rule), radon (`cc_min=C`), vulture, the 650-line big-file scan (`commands.py` 648, `cli.py` 381, `reporting.py` 587) and enforce_eof -- since the walk would have stopped at check otherwise.
 
 ### New types or classes introduced for Step 4
 
-To be filled at the implementation check for Step 4.
+- `reporting.excluded_count(summary) -> int`: the public slower-drift count behind both the exit-8 decision and the `excluded=` field.
+- `reporting.excluded_text(stats, summary, *, measured) -> str`: the public closing-line value builder, mirroring `outliers_text`.
+- `reporting.ClosingMetrics.excluded`: a new `str` field (default `OUTLIERS_SKIPPED`) carrying the `excluded=` value.
+- `reporting._exclusion_hint`: the renamed-and-reworded private exit-8 hint (was `_override_hint`).
+- `cli.run_exclude(invocation) -> int`: the `exclude` subcommand executor.
+- `cli._run_post_redirect(invocation, deps) -> int` and `cli._build_invocation(args, root) -> Invocation`: private helpers split out of `main`.
+- `Invocation.node` and `Invocation.seconds`: two new dataclass fields; `runner.SUB_EXCLUDE`: the subcommand-name constant.
+- No new production class; the `DurationExclusion` record consumed here was introduced in Step 2.
 
 ### Architecture check for Step 4
 
-To be filled at the implementation check for Step 4.
+- **Report layer (`reporting.py`)**: `excluded_count` reads `durations.STATUS_SLOWER`, so the module now imports `durations` at runtime -- a one-way report-over-rule dependency, the same shape Step 3 gave `durations_report.py`; `durations` imports no report or IO module, so there is no cycle. `excluded_text`, `ClosingMetrics` and `closing_line` stay pure string building, no IO, so the closing-line contract remains unit-testable.
+- **Classification layer (`commands.py`)**: the exit-8 decision stays in `classify`, fed a single `flagged` count assembled in `run_tests` from the pure `summary`; no rule or IO logic moved into the command layer, and the slower-drift count is derived through `reporting.excluded_count`, not recomputed, so the verdict has one source.
+- **Entry-point adapter (`cli.py`)**: `run_exclude` orchestrates the IO seam (`exclusions`), the floor name (`floor.FLOOR_FILE`) and the report (`reporting.closing_line`, `commands.emit_summary`) -- a CLI adapter calling inner modules, the correct hexagonal direction, with no domain rule placed in the adapter. Placing this one trivial non-pytest executor in `cli.py` rather than `commands.py` is a deliberate, documented choice forced by `commands.py` being at its 650-line budget; it adds no layer violation and is the only executor outside `commands.py`.
+- **File girth**: every touched module is under the 650-line gate -- `commands.py` 648, `cli.py` 381, `reporting.py` 587, `context.py` 89, `runner.py` 179 -- and `main` is back at grade B with six or fewer returns after the two helper extractions.
+
+No DDD-Hexagonal violation or adapter smell is visible, every touched file is under budget, and no, there is nothing that needs to be addressed.
 
 ### Performance check for Step 4
 
-To be filled at the implementation check for Step 4.
+- **No new `O(n^2)` or `O(n log n)` path**: `excluded_count` is one linear pass over the exclusion records with a constant-cost status compare; `classify` adds one such count per full run; `run_exclude` is one section read, one `O(1)` dict set and one atomic write. No sort is added beyond the v0.2.0 rule's existing one.
+- **Hot-path bound**: `O(1)` amortized per excluded entry -- the count, the closing-line value and the command write are each constant-cost per entry.
+- **Startup or background path**: the `exclude` command does one file read and one side-file replace, beside the two floor lines; no repository scan and no coverage export are touched.
+- **Plan-bound alignment**: `O(n)` total per run over the exclusion records, inside the plan's `O(1)`-per-entry / `O(n)`-per-run target.
+
+The step stays inside the plan's complexity target, and no, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 4
 
-To be filled at the implementation check for Step 4.
+- **`tools/groundhog/reporting.py`**: covered at 100% by `test_groundhog_reporting.py`, the test file named for the report contract. `excluded_count` is reached for both a slower-drift (count 1) and an empty exclusion list (count 0) and, through the `ok` fixture, for the non-slower branch of the status compare; `excluded_text` is reached for the unmeasured, failing, no-summary and counted paths; `ClosingMetrics.excluded` and the `closing_line` token are pinned by the two closing-line tests; `_exclusion_hint` is reached on exit 8 with and without a summary.
+- **`tools/groundhog/commands.py`**: covered at 100% through `test_groundhog_cli.py` and `test_groundhog_commands.py`. `classify`'s `flagged > 0` branch is hit directly (`test_classify_judges_outliers_last`), the `run_tests` `flagged` expression on both ternary arms (an affected run with `summary is None`, a full run with a summary), and `_report`'s `excluded_text` value on every full-run report.
+- **`tools/groundhog/cli.py`**: covered at 100%. `run_exclude` and the `_run_post_redirect` exclude branch by `test_exclude_subcommand_writes_the_entry`; the init and lifecycle branches by the existing init and pytest-run tests; `_build_invocation` by every `cli.main` call.
+- **`tools/groundhog/context.py` and `runner.py`**: the new `Invocation` fields and `SUB_EXCLUDE` constant are data, exercised by the exclude run; coverage omits `__init__`-style data but the fields are read in `run_exclude` under test.
+
+The `ghog day` walk reported `cov=100`, consistent with this reasoning. No, there is no unit-tested class below 100% that needs completing for Step 4.
 
 ### Feature integrity for Step 4
 
-To be filled at the implementation check for Step 4.
+- **Existing feature behavior**: preserved. The v0.2.0 floor/outlier rule, the floor window and the exit-code contract are unchanged; exit 8 still fires on a flagged outlier, and now also on a slower-drifted exclusion, the intended new trigger (Q57). A run with no exclusions reads `excluded=0` and behaves exactly as before. The 804-test suite stays green at `fail=0`.
+- **Reporting or diagnostics**: extended, not broken. The closing line gains the additive `excluded=` field (existing acceptance and reporting assertions updated to carry it); the exit-8 hint is reworded to name `ghog exclude` instead of raising line 2 -- the only changed message. The exclusion block (Step 3) and the `avg=`/`outliers=` suffix are untouched.
+- **Compatibility or rollout note**: the `exclude` command is refused while a run is live (it dispatches after the `a.ghog.status` live-run check), so it cannot race the full run's own section write; `a.ghog.outliers` stays git-ignored under the `a.*` pattern, and the floor lines (1 and 2) stay user-owned.
+
+No existing feature or reporting capability appears impaired.
 
 ---
 
