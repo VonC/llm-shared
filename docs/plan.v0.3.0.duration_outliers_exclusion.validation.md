@@ -2,7 +2,7 @@
 
 No, it is not implemented.
 
-This document tracks, step by step, the build of the tool-managed `[exclusion]` section against [`plan.v0.3.0.duration_outliers_exclusion.md`](plan.v0.3.0.duration_outliers_exclusion.md). Step 1 is built and green: `exclusions.py` reads and writes the `[exclusion]` section. The rule post-step, the report block, the closing-line field, the `ghog` add-exclusion command and the guidance updates remain. Each step's evidence is filled at its implementation check.
+This document tracks, step by step, the build of the tool-managed `[exclusion]` section against [`plan.v0.3.0.duration_outliers_exclusion.md`](plan.v0.3.0.duration_outliers_exclusion.md). Steps 1 to 3 are built and green: `exclusions.py` reads and writes the section, `durations.py` spares and classifies excluded calls, and `durations_summary.py` and `durations_report.py` wire the read / apply / write into a run and render the exclusion block. The closing-line `excluded=` field, the `ghog` add-exclusion command and the guidance and acceptance updates remain. Each step's evidence is filled at its implementation check.
 
 ---
 
@@ -168,7 +168,9 @@ No existing feature or reporting capability appears impaired.
 
 ### Analysis of Step 3 implementation state
 
-Not started. Step 3 is not implemented because `durations_summary.py` does not read or write the exclusion section and `durations_report.py` renders no exclusion block.
+Yes. Step 3 has been fully implemented.
+
+`durations_summary.py` reads the `[exclusion]` section before the floor rewrite, applies the rule post-step to the summary, and writes the managed section back through `exclusions.py` -- the only place the tool writes it; `durations_report.py` renders the exclusion block after the floor window, and `commands.py` emits it. One `ghog day` walk is green: `exit=0`, full suite `801/801 fail=0`, `cov=100`, `outliers=0`, so the wiring sits at 100% coverage with the floor window and the v0.2.0 gate unchanged.
 
 ### Goal for Step 3
 
@@ -183,27 +185,52 @@ Have `durations_summary` read the exclusion map, apply the post-step, and write 
 
 ### What was implemented for Step 3
 
-To be filled at the implementation check for Step 3.
+- **`durations_summary.py` wiring (`_judge_map`)**: the seam now reads the `[exclusion]` section with `exclusions.read_exclusions(root)` before `floor.write_floor`, which keeps only the two floor lines and so drops the section -- the read is taken first on purpose. After `durations.summarize`, when the read map holds entries the rule post-step `durations.apply_exclusions` spares each excluded call and classifies it, and the managed `node -> seconds` map is written back through `exclusions.write_exclusions(root, updated)` after the floor rewrite, so the two floor lines are kept verbatim above the section. The write is guarded on a non-empty read map: a run with no section is not rewritten a second time, while a section whose entries are all removed still writes (the read map was non-empty) to drop the section. The whole pass sits inside `judge`'s green-full gate (Q34), so the list is never managed while the suite is failing.
+- **`durations_report.py` exclusion block (`exclusion_block`)**: a named function behind `window_lines` (Q68), not folded into it. It returns `[]` when the run has no exclusions, so no block prints; otherwise a header then one line per excluded call through `_exclusion_line`. The faster-removed versus faster-lowered split reads `summary.floor` against the record's `current` (mirroring the rule's `_classify`, Q60), and `ok`, the slower-restore (Q57) and `stale` (Q61) read from the record status; `_current_text` renders `(not run)` for a stale entry.
+- **`commands.py` report wiring (`_report_run_context`)**: emits `durations_report.exclusion_block(summary)` right after `window_lines(summary)` on a non-`None` summary, so the block follows the floor window (Q58); the docstring notes the added block.
+- **Tests**: `test_groundhog_durations_report.py` adds the block cases -- the `ok` and slower-restore line, the lowered-baseline and below-floor-removed and stale-removed lines (split across two functions to stay under the radon `cc_min=C` gate), and the empty-list no-block case; `test_groundhog_commands.py` adds an integration run with a seeded `[exclusion]` freak within tolerance that exits 0, prints no outlier window, renders the block, and keeps the section.
+- **Validation evidence**: one `ghog day` walk reported `exit=0` with the full suite at `100% (801/801) fail=0 warn=0 xfail=0 cov=100 outliers=0` (797 -> 801 with the four new tests). `check.bat` passed -- ty, pyright, ruff `select=["ALL"]`, radon (`cc_min=C`), vulture, the 700-line big-file scan and enforce_eof -- since the walk would have stopped at check otherwise.
 
 ### New types or classes introduced for Step 3
 
-To be filled at the implementation check for Step 3.
+- `tools/groundhog/durations_report.py`: introduces no new production class. `exclusion_block` is a new public function with the private helpers `_exclusion_line`, `_current_text` and `_status_text`, function-style like the existing `window_lines` and its helpers; it reuses the `DurationExclusion` record and the `STATUS_*` constants from Step 2's `durations.py`.
+- `tools/groundhog/durations_summary.py`: no new type; `_judge_map` gains the read / apply / write wiring only.
+- Test support: `_excluded_summary` and the five `DurationExclusion` fixtures in `test_groundhog_durations_report.py`, and the seeded-section `test_full_run_spares_an_excluded_call` run in `test_groundhog_commands.py`.
 
 ### Architecture check for Step 3
 
-To be filled at the implementation check for Step 3.
+- **Report layer (`durations_report.py`)**: now imports `durations` at runtime for the `STATUS_*` constants and the value-object annotations, still a one-way report-over-rule dependency -- `durations` imports no report or IO module, so there is no cycle. The block is pure string building, no IO, kept out of `reporting.py` so that module holds its budget.
+- **Application seam (`durations_summary.py`)**: owns the read / apply / write across `exclusions.py` (the IO seam), `durations.py` (the pure rule) and `floor.py`, the correct orchestration-over-rule-and-IO direction; the rule stays IO-free and `exclusions.py` only persists the map handed to it. The read-before-`write_floor`, write-after ordering keeps the floor lines user-owned and the section intact across the floor rewrite.
+- **Command wiring (`commands.py`)**: emits the block through `durations_report`, with no rule or IO logic added; the file is 551 lines, under the 700-line big-file gate, and `durations_report.py` (142) and `durations_summary.py` (100) stay well under it.
+
+No DDD-Hexagonal violation or adapter smell is visible, and no, there is nothing that needs to be addressed.
 
 ### Performance check for Step 3
 
-To be filled at the implementation check for Step 3.
+- **No new `O(n^2)` or `O(n log n)` path**: the wiring adds one section read, one `apply_exclusions` pass (Step 2, one pass over the outliers, the exclusion map and the call map with `O(1)` lookups) and one guarded write; the report block is one pass over the records. No sort is added beyond the v0.2.0 rule's existing one.
+- **Hot-path bound**: `O(1)` amortized per excluded entry -- spare, classify and render are each a constant-cost step per entry.
+- **Startup or background path**: the read is a single file read and the write a single atomic side-file replace, beside the floor write; the non-empty-section guard skips the extra write on a run with no exclusions, so a clean run keeps its one floor write.
+- **Plan-bound alignment**: `O(n)` total per run over the call map and the entry map, inside the plan's `O(1)`-per-entry / `O(n)`-per-run target.
+
+The step stays inside the plan's complexity target, and no, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 3
 
-To be filled at the implementation check for Step 3.
+- **`tools/groundhog/durations_report.py`**: covered at 100% by `test_groundhog_durations_report.py`. The three `window_lines` shapes are unchanged, and `exclusion_block` is reached for every verdict -- `ok`, slower-restore, faster-lowered (above the floor), faster-removed (below the floor) and stale -- plus the empty-list no-block case, so `_exclusion_line`, `_current_text` (the seconds and the `(not run)` branch) and every branch of `_status_text` are hit.
+- **`tools/groundhog/durations_summary.py`**: covered at 100% through the `test_groundhog_commands.py` integration runs, the same way the seam was covered in v0.2.0. The empty-section branch (`if not exclusion_map: return summary`) is reached by the existing full-run tests on a fresh root, and the non-empty read / apply / write branch by the new `test_full_run_spares_an_excluded_call` run.
+- **`tools/groundhog/commands.py`**: the added emit line runs on every full-run report (a non-`None` summary); the block is empty on a run with no exclusions, so the line is covered by the existing tidy and slow runs and exercised with content by the new excluded-freak run.
+
+The `ghog day` walk reported `cov=100`, consistent with this reasoning.
+
+No, there is no unit-tested class below 100% that needs completing for Step 3.
 
 ### Feature integrity for Step 3
 
-To be filled at the implementation check for Step 3.
+- **Existing feature behavior**: unchanged. `window_lines` is byte-stable, and the floor window, the v0.2.0 outlier rule and the exit-code contract are untouched; a run with no `[exclusion]` section behaves exactly as before -- the guard returns the plain summary and the block is empty. The 801-test suite stays green at `fail=0`.
+- **Reporting or diagnostics**: extended, not changed. The exclusion block prints only when the run carries exclusions, after the floor window; the closing key=value line is unchanged in this step -- the `excluded=` field is Step 4.
+- **Compatibility or rollout note**: the section is read before the floor rewrite and written back after it, so the floor lines (1 and 2) stay user-owned and the section survives the rewrite; `a.ghog.outliers` stays git-ignored under the `a.*` pattern, so no `.gitignore` change is needed.
+
+No existing feature or reporting capability appears impaired.
 
 ---
 
