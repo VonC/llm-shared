@@ -1,46 +1,42 @@
-0.3.0 -- One call gets a pass, the suite does not
+0.4.0-SNAPSHOT -- One command starts the next effort
 
-the [exclusion] section spares a slow test without raising line 2
+new_draft checks the slug, proposes the version, writes the draft
 
-- A baseline that only ratchets down
-  -- 2s slower restores on exit 8; 2s faster lowers the recorded time
-- ghog exclude beats raise-the-floor
-  -- one command records the call at its measured time, floor lines stay yours
+- The commit plan answers to the index
+  -- gbc counts every git add against staged files, a rename as two
+- Scaffold a branch, guard the commit, rename the launcher
+  -- new_draft starts efforts, gbc guards the plan, pw turns prompt_workflow
 
-v0.3.0 lets ghog full accept one legitimately-slow test call without
-raising the floor for every other test. a.ghog.outliers gains an optional
-[exclusion] section: each entry names a test node id and the call time
-recorded as its baseline. A full run spares an excluded call from the
-outlier rule and from the avg=, so accepting one slow call changes nothing
-for the rest of the suite, and the floor lines (1 and 2) stay user-owned.
+v0.4.0 adds new_draft, one command that starts a development effort. It
+reads a slug from the prompt and rejects it when a local branch or any
+declared remote already uses that name, proposes a patch, minor, or major
+version from the current one, optionally creates a sibling git worktree,
+and writes the draft skeleton on the new branch. The tool ships as five
+modules -- models, git, prompts, workflow, and a script hub -- with a
+new_draft.bat launcher and the nd and ndr aliases to run it.
 
-Each excluded call is held to its recorded baseline within two seconds.
-A call more than two seconds slower has drifted: the run returns exit 8
-with excluded=1, and the fix is to bring it back within two seconds of the
-recorded time, not to push it below the floor. A call more than two seconds
-faster has the tool lower the baseline to the new time -- it only ratchets
-down -- and once the call falls below the floor the entry is removed. A
-test that no longer runs is dropped as stale. The ghog exclude <node>
-<seconds> command writes the section, so the list stays right with no
-hand-editing.
+The commit helpers get stricter. gbc validates the a.commit plan before
+it commits: the run fails when the git add count does not match the
+staged files, and a.commit is emptied once every block is committed. A
+follow-up fix counts a rename as two paths, the old removed and the new
+added, so a clean rename like pw.bat to prompt_workflow.bat no longer
+trips the check. wrap-commit drops the backticks from a type(scope):
+subject opener on reflowed lines.
 
-### Key changes
+### Key changes for v0.4.0
 
-- **The [exclusion] section, spared and not averaged**: a.ghog.outliers
-  carries an optional [exclusion] section after the two floor lines, each
-  entry a test node id and its recorded baseline seconds. A full run drops
-  an excluded call from the outliers and from avg=, so one accepted slow
-  call moves neither the gate nor the average for the rest of the suite.
+- **new_draft scaffolds an effort**: one command validates the slug
+  against local branches and every declared remote, proposes a patch,
+  minor, or major version, optionally adds a sibling worktree, and writes
+  the draft skeleton on a new branch. It ships as five modules with a
+  new_draft.bat launcher and the nd and ndr aliases.
 
-- **A two-second baseline, exit 8 on slower drift**: each excluded call is
-  held to its recorded time within two seconds. More than two seconds
-  slower keeps an otherwise-green run on exit 8 with excluded=1 and a
-  restore-to-baseline instruction; more than two seconds faster ratchets
-  the recorded time down only, and a call back under the floor or a test
-  that no longer runs has its entry removed.
+- **gbc checks the plan against the index**: the root a.commit workflow
+  now fails when the git add count differs from the staged files, and
+  empties a.commit when every block has committed. A rename counts as two
+  paths, so a renamed file no longer leaves the count one short.
 
-- **ghog exclude, the tool-managed writer**: ghog exclude <node> <seconds>
-  records one must-stay-slow call at its measured time, the only writer of
-  the section, so the floor lines (1 and 2) stay user-owned. The exit-8
-  hint and the fix_slow_test.md guidance now point here instead of raising
-  line 2 for one call.
+- **Launcher and subject cleanups**: pw.bat becomes prompt_workflow.bat
+  with a venv glob that resolves in the _main worktree, and wrap-commit
+  strips the backticks from a type(scope): subject opener on reflowed
+  lines.
