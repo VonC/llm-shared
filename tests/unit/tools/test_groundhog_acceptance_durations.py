@@ -68,17 +68,18 @@ _GATE_MET: Final = "TOTAL    100    0   100%"
 _HIGH_OVERRIDE: Final = 5.0
 # The window header above the flagged outliers (Q47), asserted as user text.
 _WINDOW_HEADER: Final = "Duration outliers"
-# The report snippets a green-but-slow run must print (Q37, Q47): the window
-# header, the freak's node/time/ratio line, the marked floor, the average, the
-# fix next-step and the closing outliers/exit pair. Folded into one tuple so
-# the scenario asserts them in a loop instead of one statement each.
+# The report snippets a green-but-slow run must print (Q37, Q47, Q58): the
+# window header, the freak's node/time/ratio line, the marked floor, the
+# average, the fix next-step and the closing counters/exit triple -- a run with
+# no exclusions reads excluded=0. Folded into one tuple so the scenario asserts
+# them in a loop instead of one statement each.
 _SLOW_REPORT: Final = (
     _WINDOW_HEADER,
     f"{_FREAK}  1.83s  52x median",
     "-- floor 1.00s --",
     "avg=",
     reporting.MSG_OUTLIERS,
-    "outliers=1 exit=8",
+    "outliers=1 excluded=0 exit=8",
 )
 
 
@@ -175,7 +176,7 @@ def test_atd2_tidy_run_reaches_the_objective(
     out = capsys.readouterr().out
     assert "Slowest call:" in out
     assert reporting.MSG_FULL_OK in out
-    assert "outliers=0 exit=0" in out
+    assert "outliers=0 excluded=0 exit=0" in out
     assert _WINDOW_HEADER not in out
     assert_closing_grammar(out)
 
@@ -192,7 +193,7 @@ def test_atd3_override_above_the_freak_exits_zero(
     # The run rewrites line 1 to its auto floor but preserves the override.
     assert floor.read_floor(tmp_path) == _HIGH_OVERRIDE
     out = capsys.readouterr().out
-    assert "outliers=0 exit=0" in out
+    assert "outliers=0 excluded=0 exit=0" in out
     assert _WINDOW_HEADER not in out
 
 
@@ -224,7 +225,7 @@ def test_atd5_failure_withholds_the_timing_verdict(
     # Outliers are judged last, so no floor file is written on a failing run.
     assert not floor.floor_path(tmp_path).exists()
     out = capsys.readouterr().out
-    assert "outliers=withheld exit=2" in out
+    assert "outliers=withheld excluded=withheld exit=2" in out
     assert _WINDOW_HEADER not in out
 
 
