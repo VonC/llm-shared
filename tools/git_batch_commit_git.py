@@ -6,6 +6,10 @@ of `tools.git_batch_commit` so the workflow code can stay in a smaller file.
 Fix: Add a staged-count validation helper so the root a.commit workflow can
 confirm the plan lists one `git add` per file currently staged before it
 commits anything, which stops a stale or partial plan from being applied.
+
+Fix: Count a staged rename as its two paths (old removed, new added) so the
+staged total matches an a.commit plan that lists a `git add` for each side of
+the rename, instead of falling one short and failing validation.
 """
 
 from __future__ import annotations
@@ -241,8 +245,17 @@ def _validate_missing_files_for_blocks(blocks: list[CommitBlock], root: Path) ->
 
 
 def _count_staged_files(root: Path) -> int:
-    """Return the number of files currently staged in the index."""
-    result = _run_git_command(["git", "diff", "--cached", "--name-only"], cwd=root)
+    """Return the number of files currently staged in the index.
+
+    Fix: pass `--no-renames` so a staged rename is reported as two paths (the
+    old path removed and the new path added). The a.commit plan lists one
+    `git add` per path, including both sides of a rename, so without this the
+    staged count falls one short of the plan and validation fails on a rename.
+    """
+    result = _run_git_command(
+        ["git", "diff", "--cached", "--name-only", "--no-renames"],
+        cwd=root,
+    )
     staged_lines = [line for line in (result.stdout or "").splitlines() if line.strip()]
     return len(staged_lines)
 

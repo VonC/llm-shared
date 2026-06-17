@@ -6,6 +6,9 @@ workflow test file.
 
 Fix: Cover the staged-file count, plan git-add count, and the staged-count
 validation gate used by the root a.commit workflow.
+
+Fix: Cover that the staged-file count passes `--no-renames` and counts a
+staged rename as its two paths, matching a plan that adds both sides.
 """
 
 from __future__ import annotations
@@ -358,6 +361,41 @@ def test_count_staged_files_counts_only_non_empty_lines(
 
     expected_staged = 2
     assert git_batch_git._count_staged_files(tmp_path) == expected_staged
+
+
+def test_count_staged_files_passes_no_renames_and_counts_both_sides(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Staged counting should ask git for `--no-renames` so a rename counts twice.
+
+    A staged rename is two paths in the plan (old removed, new added), so the
+    count must come from a diff that splits the rename instead of collapsing it.
+    """
+    captured_args: list[str] = []
+
+    def fake_run_git_command(
+        args: list[str],
+        *,
+        cwd: Path,
+        options: git_batch_models._GitCommandOptions | None = None,
+    ) -> subprocess.CompletedProcess[str]:
+        del cwd, options
+        captured_args.extend(args)
+        # git --no-renames reports a rename as the old and the new path.
+        return _completed_process(args, stdout="bin/pw.bat\nbin/prompt_workflow.bat\n")
+
+    monkeypatch.setattr(git_batch_git, "_run_git_command", fake_run_git_command)
+
+    expected_staged = 2
+    assert git_batch_git._count_staged_files(tmp_path) == expected_staged
+    assert captured_args == [
+        "git",
+        "diff",
+        "--cached",
+        "--name-only",
+        "--no-renames",
+    ]
 
 
 def test_count_plan_git_adds_sums_block_commands() -> None:
