@@ -3,6 +3,9 @@
 Fix: Cover Git wrapper, path-check, and repository-state helpers from the
 split `tools.git_batch_commit_git` module without keeping a large monolithic
 workflow test file.
+
+Fix: Cover the staged-file count, plan git-add count, and the staged-count
+validation gate used by the root a.commit workflow.
 """
 
 from __future__ import annotations
@@ -69,6 +72,13 @@ def _extract_path_from_mapping(
 
 def _return_false_for_file_path(_root: Path, _file_path_str: str) -> bool:
     return False
+
+
+def _return_staged_count(count: int) -> Callable[[Path], int]:
+    def fake_count_staged_files(_root: Path) -> int:
+        return count
+
+    return fake_count_staged_files
 
 
 def _run_cross_platform_git_command_success(
@@ -333,6 +343,60 @@ def test_validate_missing_files_for_blocks_raises_grouped_details(
         match=r"fix\(other\): second",
     ):
         git_batch_git._validate_missing_files_for_blocks([first_block, second_block], tmp_path)
+
+
+def test_count_staged_files_counts_only_non_empty_lines(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Staged-file counting should ignore blank lines from `git diff --cached`."""
+    monkeypatch.setattr(
+        git_batch_git,
+        "_run_git_command",
+        _run_git_command_with_stdout("src/one.py\nsrc/two.py\n\n"),
+    )
+
+    expected_staged = 2
+    assert git_batch_git._count_staged_files(tmp_path) == expected_staged
+
+
+def test_count_plan_git_adds_sums_block_commands() -> None:
+    """Plan counting should sum the git add commands across every block."""
+    block_one = _valid_block("src/one.py")
+    block_two = git_batch_models.CommitBlock(
+        git_adds=["git add -A src/two.py", "git add -A src/three.py"],
+        commit_message=block_one.commit_message,
+        commit_title="fix(scope): second",
+    )
+
+    expected_plan_adds = 3
+    assert git_batch_git._count_plan_git_adds([block_one, block_two]) == expected_plan_adds
+
+
+def test_validate_staged_count_matches_git_adds_passes_when_counts_match(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Validation should stay silent when the plan covers exactly the staged files."""
+    blocks = [_valid_block("src/one.py")]
+    monkeypatch.setattr(git_batch_git, "_count_staged_files", _return_staged_count(1))
+
+    assert git_batch_git._validate_staged_count_matches_git_adds(blocks, tmp_path) is None
+
+
+def test_validate_staged_count_matches_git_adds_raises_on_mismatch(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Validation should fail when staged files outnumber the plan's git add commands."""
+    blocks = [_valid_block("src/one.py")]
+    monkeypatch.setattr(git_batch_git, "_count_staged_files", _return_staged_count(2))
+
+    with pytest.raises(
+        git_batch_models.GitBatchCommitError,
+        match=r"2 file\(s\) are staged",
+    ):
+        git_batch_git._validate_staged_count_matches_git_adds(blocks, tmp_path)
 
 
 def test_git_reset_runs_plain_git_reset(

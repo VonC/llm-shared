@@ -5,6 +5,9 @@ the main workflow test file stays under the repository size limit.
 
 Fix: Keep monkeypatched root-workflow helpers compatible with keyword-based
 calls into `_read_and_parse_content()`.
+
+Fix: Cover the staged-count validation gate and the a.commit emptying that runs
+after every block has been committed in the root workflow.
 """
 
 from __future__ import annotations
@@ -63,6 +66,24 @@ def _noop_validate_missing_files(
     return None
 
 
+def _noop_validate_staged_count(
+    _blocks: list[git_batch_models.CommitBlock],
+    _root: Path,
+) -> None:
+    return None
+
+
+def _raise_staged_count_mismatch(
+    _blocks: list[git_batch_models.CommitBlock],
+    _root: Path,
+) -> None:
+    msg = (
+        "Validation failed: the commit plan lists 1 'git add' command(s) "
+        "but 2 file(s) are staged."
+    )
+    raise git_batch_models.GitBatchCommitError(msg)
+
+
 def _return_false_for_root(_root: Path) -> bool:
     return False
 
@@ -105,9 +126,15 @@ def test_run_root_a_commit_workflow_runs_commit_phase_when_tree_is_dirty(
     tmp_path: Path,
     expected_exit: int,
 ) -> None:
-    """The root workflow should validate first and then return the commit-phase result."""
+    """The root workflow should validate first and then return the commit-phase result.
+
+    On a fully successful run (exit 0) a.commit is emptied; on a failed run
+    (exit 1) the plan is kept so the user can retry.
+    """
     block = _valid_block()
     process_result = expected_exit == 0
+    a_commit_path = tmp_path / "a.commit"
+    a_commit_path.write_text("git add -A src/example.py\n", encoding="utf-8")
 
     monkeypatch.setattr(
         git_batch_workflow,
@@ -124,11 +151,79 @@ def test_run_root_a_commit_workflow_runs_commit_phase_when_tree_is_dirty(
     )
     monkeypatch.setattr(
         git_batch_workflow,
+        "_validate_staged_count_matches_git_adds",
+        _noop_validate_staged_count,
+    )
+    monkeypatch.setattr(
+        git_batch_workflow,
         "_process_all_commits",
         _return_process_all_commits(process_result),
     )
 
     assert git_batch_workflow._run_root_a_commit_workflow(tmp_path) == expected_exit
+    if process_result:
+        # Assert: a fully applied plan is emptied.
+        assert a_commit_path.read_text(encoding="utf-8") == ""
+    else:
+        # Assert: a failed run keeps the plan for a retry.
+        assert a_commit_path.read_text(encoding="utf-8") != ""
+
+
+def test_run_root_a_commit_workflow_stops_on_staged_count_mismatch(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """A staged-count mismatch should stop before commits run and keep a.commit."""
+    block = _valid_block()
+    a_commit_path = tmp_path / "a.commit"
+    a_commit_path.write_text("git add -A src/example.py\n", encoding="utf-8")
+
+    monkeypatch.setattr(
+        git_batch_workflow,
+        "_read_and_parse_content",
+        _return_commit_blocks([block]),
+    )
+    monkeypatch.setattr(
+        git_batch_workflow,
+        "_validate_missing_files_for_blocks",
+        _noop_validate_missing_files,
+    )
+    monkeypatch.setattr(
+        git_batch_workflow, "_is_worktree_clean", _return_false_for_root,
+    )
+    monkeypatch.setattr(
+        git_batch_workflow,
+        "_validate_staged_count_matches_git_adds",
+        _raise_staged_count_mismatch,
+    )
+    monkeypatch.setattr(
+        git_batch_workflow,
+        "_process_all_commits",
+        _return_process_all_commits(result=True),
+    )
+
+    with pytest.raises(
+        git_batch_models.GitBatchCommitError,
+        match="Validation failed",
+    ):
+        git_batch_workflow._run_root_a_commit_workflow(tmp_path)
+
+    # Assert: the plan is untouched when validation stops the run.
+    assert a_commit_path.read_text(encoding="utf-8") != ""
+
+
+def test_empty_a_commit_file_warns_when_write_fails(
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Emptying should warn and return instead of raising when the write fails."""
+    # A directory at the a.commit path makes write_text raise OSError.
+    (tmp_path / "a.commit").mkdir()
+    caplog.set_level("WARNING")
+
+    git_batch_workflow._empty_a_commit_file(tmp_path)
+
+    assert "Could not empty" in caplog.text
 
 
 # eof

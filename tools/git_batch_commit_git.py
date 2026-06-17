@@ -2,6 +2,10 @@
 
 Fix: Split the Git command wrappers, add-phase checks, and commit helpers out
 of `tools.git_batch_commit` so the workflow code can stay in a smaller file.
+
+Fix: Add a staged-count validation helper so the root a.commit workflow can
+confirm the plan lists one `git add` per file currently staged before it
+commits anything, which stops a stale or partial plan from being applied.
 """
 
 from __future__ import annotations
@@ -236,6 +240,43 @@ def _validate_missing_files_for_blocks(blocks: list[CommitBlock], root: Path) ->
     raise GitBatchCommitError(msg)
 
 
+def _count_staged_files(root: Path) -> int:
+    """Return the number of files currently staged in the index."""
+    result = _run_git_command(["git", "diff", "--cached", "--name-only"], cwd=root)
+    staged_lines = [line for line in (result.stdout or "").splitlines() if line.strip()]
+    return len(staged_lines)
+
+
+def _count_plan_git_adds(blocks: list[CommitBlock]) -> int:
+    """Return the total number of git add commands across all commit blocks."""
+    return sum(len(block.git_adds) for block in blocks)
+
+
+def _validate_staged_count_matches_git_adds(
+    blocks: list[CommitBlock],
+    root: Path,
+) -> None:
+    """Validate the a.commit plan covers exactly the files currently staged.
+
+    The plan in a.commit must list one `git add` per staged file. When the
+    number of `git add` commands differs from the number of files currently
+    staged, the plan is stale or partial: committing it would leave staged or
+    planned files out of sync. Raise so the run stops before any commit.
+    """
+    plan_adds = _count_plan_git_adds(blocks)
+    staged = _count_staged_files(root)
+    if plan_adds == staged:
+        return
+
+    msg = (
+        "Validation failed: the commit plan lists "
+        f"{plan_adds} 'git add' command(s) but {staged} file(s) are staged. "
+        "Stage exactly the files described by a.commit (for example with "
+        "'git add -A') so the plan and the index match before committing."
+    )
+    raise GitBatchCommitError(msg)
+
+
 def _prompt_add_issues_action(
     missing_files: list[str],
     failed_adds: list[str],
@@ -334,8 +375,11 @@ def git_commit(
 
 
 block_has_staged_changes = _block_has_staged_changes
+count_plan_git_adds = _count_plan_git_adds
+count_staged_files = _count_staged_files
 is_worktree_clean = _is_worktree_clean
 validate_missing_files_for_blocks = _validate_missing_files_for_blocks
+validate_staged_count_matches_git_adds = _validate_staged_count_matches_git_adds
 
 
 __all__ = [
@@ -344,6 +388,8 @@ __all__ = [
     "_build_git_trace_environment",
     "_check_missing_files",
     "_collect_git_add_paths",
+    "_count_plan_git_adds",
+    "_count_staged_files",
     "_execute_git_adds",
     "_extract_file_path",
     "_has_interactive_console",
@@ -354,6 +400,7 @@ __all__ = [
     "_prompt_add_issues_action",
     "_run_git_command",
     "_validate_missing_files_for_blocks",
+    "_validate_staged_count_matches_git_adds",
     "git_add_files",
     "git_commit",
     "git_reset",
