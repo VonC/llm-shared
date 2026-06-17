@@ -477,8 +477,9 @@ def _report_run_context(
     """Print the fixing material of the run, before the next-step lines.
 
     The crash block (Q06), the failure context (Q08), the coverage-gap rows
-    (Q24), the zero-test note of an unaffected run (Q27), and the bounded
-    duration window of a green full run (Q47).
+    (Q24), the zero-test note of an unaffected run (Q27), the bounded duration
+    window of a green full run (Q47), and the per-test exclusion block after it
+    (Q58); the block is empty, so absent, on a run with no exclusions.
 
     Args:
         invocation: The parsed invocation.
@@ -500,6 +501,7 @@ def _report_run_context(
         emit([reporting.MSG_NO_TESTS_RUN])
     if summary is not None:
         emit(durations_report.window_lines(summary))
+        emit(durations_report.exclusion_block(summary))
 
 
 def _next_steps(

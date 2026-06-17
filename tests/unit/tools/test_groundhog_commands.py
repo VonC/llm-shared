@@ -7,6 +7,10 @@ spares the slow call; a failing run keeps exit 2 and withholds the timing
 verdict (outliers judged last). The classification precedence is asserted
 directly, and the user-mode bar carries the same verdict in its postfix (Q37).
 
+Also cover Step 3: a full run whose freak is in the ``[exclusion]`` section
+within tolerance spares it from the outliers, exits 0 with no outlier window,
+renders the exclusion block, and writes the managed section back (Q54, Q58).
+
 The one faked element is the process boundary (a canned pytest transcript with
 a ``slowest durations`` block injected through the runner's process factory),
 so the real parsing, rule, floor, classification and report run together.
@@ -17,7 +21,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from tests.unit.tools.groundhog_acceptance_support import Spawns, make_deps
-from tools.groundhog import cli, commands, floor, reporting
+from tools.groundhog import cli, commands, exclusions, floor, reporting
 from tools.groundhog.durations import DurationCall, DurationSummary
 from tools.groundhog.models import (
     EXIT_COVERAGE_GAP,
@@ -284,6 +288,30 @@ def test_full_run_respects_a_raised_override(
     assert "outliers=0" in capsys.readouterr().out
     # The override on line 2 is preserved across the run's floor rewrite (Q40).
     assert floor.read_floor(tmp_path) == _OVERRIDE
+
+
+def test_full_run_spares_an_excluded_call(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """An excluded freak within tolerance is spared, so the run exits 0 (Q54, Q58)."""
+    # Seed the freak into the [exclusion] section at its current call time.
+    (tmp_path / floor.FLOOR_FILE).write_text(
+        f"0.0\n{floor.DEFAULT_FLOOR}\n[exclusion]\n{_FREAK_NODE} = 5.00\n",
+        encoding="utf-8",
+    )
+    spawns = Spawns(_full_transcript(_SLOW_CALLS), 0)
+    code = cli.main(["full", "--root", str(tmp_path), "--llm"], make_deps(spawns))
+    assert code == EXIT_OBJECTIVE_MET
+    out = capsys.readouterr().out
+    assert "outliers=0" in out
+    assert "Duration outliers" not in out
+    # The exclusion block reports the accepted freak with its recorded baseline.
+    assert "Excluded (accepted slow" in out
+    assert _FREAK_NODE in out
+    assert "recorded=5.00s" in out
+    # The within-tolerance baseline is kept, so the section survives the run (Q56).
+    assert exclusions.read_exclusions(tmp_path) == {_FREAK_NODE: 5.0}
 
 
 def test_full_failing_run_withholds_the_timing_verdict(
