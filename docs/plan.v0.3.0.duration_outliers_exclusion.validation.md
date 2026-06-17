@@ -2,7 +2,7 @@
 
 No, it is not implemented.
 
-This document tracks, step by step, the build of the tool-managed `[exclusion]` section against [`plan.v0.3.0.duration_outliers_exclusion.md`](plan.v0.3.0.duration_outliers_exclusion.md). Nothing is built yet: the `exclusions.py` module, the rule post-step, the report block, the closing-line field, the `ghog` add-exclusion command and the guidance updates are all absent. Each step's evidence is filled at its implementation check.
+This document tracks, step by step, the build of the tool-managed `[exclusion]` section against [`plan.v0.3.0.duration_outliers_exclusion.md`](plan.v0.3.0.duration_outliers_exclusion.md). Step 1 is built and green: `exclusions.py` reads and writes the `[exclusion]` section. The rule post-step, the report block, the closing-line field, the `ghog` add-exclusion command and the guidance updates remain. Each step's evidence is filled at its implementation check.
 
 ---
 
@@ -32,9 +32,9 @@ Every implemented step is reviewed against this bound in its Performance check s
 
 ### Analysis of Step 1 implementation state
 
-Not started. Step 1 is not implemented because `tools/groundhog/exclusions.py` does not exist yet.
+Yes. Step 1 has been fully implemented.
 
-The reader and writer of the `[exclusion]` section are absent; `a.ghog.outliers` carries only its two floor lines.
+`tools/groundhog/exclusions.py` reads the `[exclusion]` section into a `node -> recorded seconds` map and writes it back through the same atomic side-file replace `floor.py` uses, preserving the two floor lines; `test_groundhog_exclusions.py` pins the read, the write and the tolerant fallbacks. One `ghog day` walk is green: `exit=0`, full suite `772/772 fail=0`, `cov=100`, `outliers=0`, so the new module sits at 100% coverage with `floor.py` untouched.
 
 ### Goal for Step 1
 
@@ -49,27 +49,49 @@ Add a function-style `tools/groundhog/exclusions.py` that reads the `[exclusion]
 
 ### What was implemented for Step 1
 
-To be filled at the implementation check for Step 1.
+- **`tools/groundhog/exclusions.py` (new)**: a function-style module beside `floor.py` and `gate.py`. `read_exclusions(root)` returns the `node -> recorded seconds` map parsed from after the `[exclusion]` header, `{}` when the section, the file, or readable text is absent; `write_exclusions(root, exclusions)` keeps the two floor lines verbatim, then writes the header and one `node = seconds` line per entry through the side-file replace `floor.py` uses, logging an `OSError` rather than raising it. Private helpers `_floor_head`, `_parse_entry` and `_read_text` keep each function at radon grade A.
+- **Tolerant read**: lines before the header (the floor lines), blank lines, comment lines and any line that is not `node = number` are skipped without raising; the value is split off the last `=` (`rpartition`), so a parametrized node id carrying its own `=` or spaces survives whole. A missing or binary file reads as `{}` (the `OSError`/`UnicodeDecodeError` suppression of `_read_text`).
+- **Tool-managed write surface**: `write_exclusions` is the whole-map writer; the add / lower-baseline / remove decisions stay caller policy (Step 2's rule post-step and Step 4's command), mirroring how `floor.py` keeps the override choice in `durations_summary`. An empty map drops the header, returning the file to a clean two-line floor file; a file with fewer than two lines yet is seeded with the default floor head so the section is always well-formed.
+- **`floor.py` reuse, not change**: the new module imports `floor.floor_path`, `floor.FLOOR_FILE` and `floor.DEFAULT_FLOOR` (Q66 sanctions importing floor's helpers); `floor.py` itself is byte-for-byte unchanged and stays at its 130-line budget.
+- **`tests/unit/tools/test_groundhog_exclusions.py` (new)**: 16 example-based tests covering the read (no section, well-formed map, parametrized-`=` node kept whole, malformed/blank/comment/no-`=`/empty-node lines skipped, pre-header text skipped, missing and binary file) and the write (adds and preserves floor lines, lowers a baseline, removes an entry, empty-map header drop, default-head seeding, write failure logged not raised).
+- **`__init__.py`**: no change needed. `tools/groundhog/__init__.py` re-exports only `models`, not sibling modules (`floor` and `durations` are not re-exported), so the new sibling needs no entry; `tests/unit/tools/__init__.py` already exists.
+- **Validation evidence**: one `ghog day` walk reported `exit=0` with the full suite at `100% (772/772) fail=0 warn=0 xfail=0 cov=100 outliers=0`. The `check.bat` static gate (ty, pyright, ruff `select=["ALL"]`, radon, vulture, the 700-line big-file scan, shellcheck, enforce_eof) passed, since the walk would have stopped at check otherwise.
 
 ### New types or classes introduced for Step 1
 
-To be filled at the implementation check for Step 1.
+- `tools/groundhog/exclusions.py`: introduces no new production class or dataclass; Step 1 is completed with functions only (`read_exclusions`, `write_exclusions`) plus the private helpers `_floor_head`, `_parse_entry`, `_read_text`, matching the function-style of `floor.py`. The `DurationExclusion` record named in the plan belongs to Step 2 (`durations.py`), not here.
+- `tests/unit/tools/test_groundhog_exclusions.py`: a new test module with one shared `_write_section` helper that seeds the floor lines, the header and given raw entry lines.
 
 ### Architecture check for Step 1
 
-To be filled at the implementation check for Step 1.
+- **Tool package placement**: `exclusions.py` is a function-style IO seam beside `floor.py` and `gate.py`, the same layer; the read/write of `a.ghog.outliers` lives here, off `floor.py` (untouched) and off `durations.py` (which stays pure), so the rule remains IO-free and unit-testable in isolation.
+- **Import direction**: `exclusions` imports `floor`'s public surface (`floor_path`, `FLOOR_FILE`, `DEFAULT_FLOOR`) only; `floor` does not import `exclusions`, so there is no cycle and no reverse dependency. The single source of truth for the file path and the default floor stays in `floor.py`, as Q66 directs.
+- **Technical-lib use**: only `contextlib`, `logging` and `typing` are used, the same standard set `floor.py` uses for a tolerant read and an atomic write; no business rule and no report concern leaked into this IO module, and no report or rule module imports it yet (Step 3 wires it).
+
+No DDD-Hexagonal violation or adapter smell is visible, the module is small and self-contained, and no, there is nothing that needs to be addressed.
 
 ### Performance check for Step 1
 
-To be filled at the implementation check for Step 1.
+- **No new `O(n^2)` or `O(n log n)` path**: `read_exclusions` is one linear pass over the file lines; `write_exclusions` builds the body with one `join` over the entries and does one atomic replace. No sort is added, so nothing beyond the v0.2.0 rule's existing one is introduced.
+- **Hot-path bound**: O(1) amortized per excluded entry — each line is a constant-cost strip, header test and `rpartition` parse; each write entry is a constant-cost format.
+- **Startup or background path**: the read is a single file read and the write a single side-file replace per `ghog full` run, beside the two floor lines; no repository scan and no coverage export are touched, as the plan's IO cost clarification requires.
+- **Plan-bound alignment**: O(n) total per run over the file lines and the entry map, inside the plan's O(1)-per-entry / O(n)-per-run target.
+
+The step stays inside the plan's complexity target, and no, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 1
 
-To be filled at the implementation check for Step 1.
+- **`tools/groundhog/exclusions.py`**: covered at 100%. `test_groundhog_exclusions.py` exercises every function and branch: `read_exclusions` (the `text is None` return, the in-section toggle, the blank/comment skip, the parse success and the `_parse_entry` `None` paths), `write_exclusions` (the non-empty header-and-body branch, the empty-map head-only branch and the `OSError` log branch), `_floor_head` (the two-line preserve and the default-head pad), and `_read_text` (success, missing and binary). The `ghog day` walk reported `cov=100`, so the one class file in this step sits at 100%.
+
+No, there is no unit-tested class below 100% that needs completing for Step 1.
 
 ### Feature integrity for Step 1
 
-To be filled at the implementation check for Step 1.
+- **Existing feature behavior**: unchanged. `floor.py`'s two-line read and write, the pure duration rule in `durations.py`, and the v0.2.0 floor/outlier gate are untouched; the new module is not yet wired into a run (Step 3), so no `ghog full` path changes behaviour. The 772-test suite stays green at `fail=0`.
+- **Reporting or diagnostics**: preserved. No report line or closing key=value field changed in Step 1; a write failure is logged at INFO (`ghog: could not write ... exclusions: ...`), matching `floor.py`'s safe-fallback logging, so a hand-edit or a blocked write cannot crash a run.
+- **Compatibility or rollout note**: `a.ghog.outliers` stays git-ignored under the `a.*` pattern, so the `[exclusion]` section needs no `.gitignore` change; the floor lines (1 and 2) stay user-owned and read exactly as before.
+
+No existing feature or reporting capability appears impaired.
 
 ---
 
