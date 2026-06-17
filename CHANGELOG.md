@@ -28,8 +28,8 @@ with excluded=1, and the fix is to bring it back within two seconds of the
 recorded time, not to push it below the floor. A call more than two seconds
 faster has the tool lower the baseline to the new time -- it only ratchets
 down -- and once the call falls below the floor the entry is removed. A
-test that no longer runs is dropped as stale. The ghog exclude <node>
-<seconds> command writes the section, so the list stays right with no
+test that no longer runs is dropped as stale. The ghog exclude `<node>`
+`<seconds>` command writes the section, so the list stays right with no
 hand-editing.
 
 ### Key changes (v0.3.0)
@@ -47,7 +47,7 @@ hand-editing.
   the recorded time down only, and a call back under the floor or a test
   that no longer runs has its entry removed.
 
-- **ghog exclude, the tool-managed writer**: ghog exclude <node> <seconds>
+- **ghog exclude, the tool-managed writer**: ghog exclude `<node> <seconds>`
   records one must-stay-slow call at its measured time, the only writer of
   the section, so the floor lines (1 and 2) stay user-owned. The exit-8
   hint and the fix_slow_test.md guidance now point here instead of raising
