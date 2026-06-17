@@ -6,7 +6,84 @@ release. The groundhog test loop (ghog), the prompt-workflow cycle (pw),
 and the commit and changelog helpers are mutualized across sibling
 projects.
 
-## [v0.2.0-SNAPSHOT unreleased] Green is not the same as done - b5efefda0eac6ac9a59cb4c201d51a9a26e01384
+## [v0.3.0-SNAPSHOT unreleased] One call gets a pass, the suite does not - 7fe3997af9a18774ae49a195cb1ba079e42ffc5b
+
+the [exclusion] section spares a slow test without raising line 2
+
+- A baseline that only ratchets down
+  -- 2s slower restores on exit 8; 2s faster lowers the recorded time
+- ghog exclude beats raise-the-floor
+  -- one command records the call at its measured time, floor lines stay yours
+
+v0.3.0 lets ghog full accept one legitimately-slow test call without
+raising the floor for every other test. a.ghog.outliers gains an optional
+[exclusion] section: each entry names a test node id and the call time
+recorded as its baseline. A full run spares an excluded call from the
+outlier rule and from the avg=, so accepting one slow call changes nothing
+for the rest of the suite, and the floor lines (1 and 2) stay user-owned.
+
+Each excluded call is held to its recorded baseline within two seconds.
+A call more than two seconds slower has drifted: the run returns exit 8
+with excluded=1, and the fix is to bring it back within two seconds of the
+recorded time, not to push it below the floor. A call more than two seconds
+faster has the tool lower the baseline to the new time -- it only ratchets
+down -- and once the call falls below the floor the entry is removed. A
+test that no longer runs is dropped as stale. The ghog exclude <node>
+<seconds> command writes the section, so the list stays right with no
+hand-editing.
+
+### Key changes (v0.3.0)
+
+- **The [exclusion] section, spared and not averaged**: a.ghog.outliers
+  carries an optional [exclusion] section after the two floor lines, each
+  entry a test node id and its recorded baseline seconds. A full run drops
+  an excluded call from the outliers and from avg=, so one accepted slow
+  call moves neither the gate nor the average for the rest of the suite.
+
+- **A two-second baseline, exit 8 on slower drift**: each excluded call is
+  held to its recorded time within two seconds. More than two seconds
+  slower keeps an otherwise-green run on exit 8 with excluded=1 and a
+  restore-to-baseline instruction; more than two seconds faster ratchets
+  the recorded time down only, and a call back under the floor or a test
+  that no longer runs has its entry removed.
+
+- **ghog exclude, the tool-managed writer**: ghog exclude <node> <seconds>
+  records one must-stay-slow call at its measured time, the only writer of
+  the section, so the floor lines (1 and 2) stay user-owned. The exit-8
+  hint and the fix_slow_test.md guidance now point here instead of raising
+  line 2 for one call.
+
+### 🚀 Features (v0.3.0)
+
+- *(ghog)* Read and write the exclusion section
+- *(ghog)* Spare excluded calls and measure drift
+- *(ghog)* Wire exclusions into run and report
+- *(ghog)* Exit 8 on drift, report excluded
+- *(ghog)* Add the exclude subcommand
+- *(groundhog)* Per-test duration exclusions
+
+### 📚 Documentation (v0.3.0)
+
+- *(duration_outliers)* Let pw drive v0.3.0
+- *(duration_outliers)* Trim trailing spec newline
+- *(duration_outliers_exclusion)* Record step 1 validation
+- *(duration_outliers_exclusion)* Record step 2 validation
+- *(duration_outliers_exclusion)* Record step 3 validation
+- *(duration_outliers_exclusion)* Record step 4 validation
+- *(ghog)* Exclude one slow call, not line 2
+- *(duration_outliers_exclusion)* Record step 5 validation
+- *(duration_outliers_exclusion)* Record step 6 validation
+
+### 🧪 Testing (v0.3.0)
+
+- *(ghog)* Cover excluded and drifted runs
+
+### ⚙️ Miscellaneous Tasks (v0.3.0)
+
+- *(vscode)* Add rpartition to the spell list
+- *(vscode)* Add cspell words for v0.3.0
+
+## [v0.2.0] - Green is not the same as done
 
 ghog full adds a third gate, 0 outliers, and exit code 8
 
