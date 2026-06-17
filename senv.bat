@@ -29,37 +29,14 @@ if defined GCYGPATH (
 if defined NO_MORE_SENV_%PRJ_DIR_NAME% ( goto:eof )
 
 ::##################################################
-::  CHECK BATCOLORS SUBMODULE
+::  INITIALIZE BATCOLORS + DEV_WORKFLOW SUBMODULES
 ::##################################################
-set "okInit="
-set "tool_dir=%PRJ_DIR%\tools"
-if not exist "%tool_dir%\batcolors\echos.bat" (
-    echo [dev_workflow] WARN: Missing submodules
-    if not exist "%PRJ_DIR%\.gitmodules" (
-          echo [dev_workflow] FATAL: Submodule batcolors not properly added
-          call:iExitBatch 6
-    ) else (
-      echo [dev_workflow] INFO: Executing 'git submodule update --init' in '%PRJ_DIR%'
-      git -C "%PRJ_DIR%" submodule update --init
-      if errorlevel 1 (
-          echo FATAL: Submodules not properly initialized
-          call:iExitBatch 6
-      )
-    )
-    call  "%tool_dir%\batcolors\echos_macros.bat" export
-    set "okInit=[dev_workflow] OK: Submodules initialized"
-) else (
-  call  "%tool_dir%\batcolors\echos_macros.bat" export
-  set "okInit=[dev_workflow] Submodule batcolors already initialized"
-)
-
-if not defined okInit (
-  echo [dev_workflow] FATAL: Submodules not properly initialized
-  call:iExitBatch 6
-)
+REM tools\init.bat junctions/initializes batcolors and the senv_dev_workflow
+REM submodule (tools\dev_workflow), exports the echo macros, then calls
+REM dev_workflow\init.bat to wire the changelog/version aliases (uc, gv, brel).
+call "%~dp0tools\init.bat" %*
 
 %_ok% "Environment initialized for project '%PRJ_DIR_NAME%'"
-if not defined QUIET_PRJ ( %_ok% "%okInit%" )
 
 REM Add python local venv path to %PATH%
 if not exist "%PRGS%\pythons" (
