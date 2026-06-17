@@ -29,6 +29,7 @@
   ],
   "cSpell.words": [
     "behaviour",
+    "cacheprovider",
     "cffi",
     "frontmatter",
     "gbcr",
@@ -61,7 +62,9 @@
     "ptncs",
     "pycparser",
     "pyrb",
+    "recognise",
     "repointed",
+    "retimed",
     "robustification",
     "rpartition",
     "subparser",
