@@ -44,7 +44,13 @@ if [[ -z "$NEW_MERGE_SHA" ]]; then
 fi
 
 # Update the branch tip
-git update-ref refs/heads/"$CURRENT_BRANCH" "$NEW_MERGE_SHA"
+if ! git update-ref refs/heads/"$CURRENT_BRANCH" "$NEW_MERGE_SHA"; then
+    echo "Error: Failed to update '$CURRENT_BRANCH' to $NEW_MERGE_SHA." >&2
+    exit 1
+fi
+
+# Empty a.commit now the reword landed, so a stale plan is not mistaken for pending work.
+: > "$MESSAGE_FILE"
 
 echo "Success: Merge reworded. HEAD is now $NEW_MERGE_SHA."
 exit 0

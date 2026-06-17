@@ -6,6 +6,10 @@ limit while keeping the same behavior.
 
 Fix: Hide tracebacks for clear handled errors by default while keeping a verbose
 flag for diagnostic runs.
+
+Fix: In the root a.commit validation phase, check that the plan lists one
+`git add` per staged file, and empty a.commit after every commit lands so a
+stale plan is not mistaken for pending work on the next run.
 """
 
 from __future__ import annotations
@@ -30,6 +34,9 @@ from tools.git_batch_commit_git import (
 )
 from tools.git_batch_commit_git import (
     validate_missing_files_for_blocks as _validate_missing_files_for_blocks,
+)
+from tools.git_batch_commit_git import (
+    validate_staged_count_matches_git_adds as _validate_staged_count_matches_git_adds,
 )
 from tools.git_batch_commit_models import (
     ClipboardError,
@@ -130,7 +137,6 @@ def _run_root_a_commit_workflow(
 
     LOGGER.info("Validation phase: checking commit plan before commit phase...")
     _validate_missing_files_for_blocks(blocks, root)
-    LOGGER.info("Validation phase passed.")
 
     if _is_worktree_clean(root):
         msg = (
@@ -140,6 +146,9 @@ def _run_root_a_commit_workflow(
         )
         raise GitBatchCommitError(msg)
 
+    _validate_staged_count_matches_git_adds(blocks, root)
+    LOGGER.info("Validation phase passed.")
+
     LOGGER.info("Commit phase: applying commit plan now...")
     if not _process_all_commits(
         blocks,
@@ -147,7 +156,25 @@ def _run_root_a_commit_workflow(
         trace_git_commit=trace_git_commit,
     ):
         return 1
+
+    _empty_a_commit_file(root)
     return 0
+
+
+def _empty_a_commit_file(root: Path) -> None:
+    """Empty <root>/a.commit after a fully successful root commit run.
+
+    Once every block has been committed the plan is spent. Truncating the file
+    keeps a later reader (a human or an LLM) from seeing leftover git add lines
+    and believing some commits are still pending.
+    """
+    a_commit_path = root / "a.commit"
+    try:
+        a_commit_path.write_text("", encoding="utf-8")
+    except OSError as err:
+        LOGGER.warning("Could not empty %s: %s", a_commit_path, err)
+        return
+    LOGGER.info("Emptied %s after a successful commit run.", a_commit_path)
 
 
 def _read_input_content(root: Path, filename: str | None) -> str:
@@ -355,6 +382,7 @@ def _log_fatal(err: Exception) -> NoReturn:
 
 __all__ = [
     "_configure_logging",
+    "_empty_a_commit_file",
     "_get_arg_parser",
     "_log_fatal",
     "_log_handled_error",
