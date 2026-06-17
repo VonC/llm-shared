@@ -6,6 +6,72 @@ release. The groundhog test loop (ghog), the prompt-workflow cycle (pw),
 and the commit and changelog helpers are mutualized across sibling
 projects.
 
+## [v0.4.0-SNAPSHOT unreleased] One command starts the next effort - 9950312d1b4370e2c0a9e547d0114a9b8aadc049
+
+new_draft checks the slug, proposes the version, writes the draft
+
+- The commit plan answers to the index
+  -- gbc counts every git add against staged files, a rename as two
+- Scaffold a branch, guard the commit, rename the launcher
+  -- new_draft starts efforts, gbc guards the plan, pw turns prompt_workflow
+
+v0.4.0 adds new_draft, one command that starts a development effort. It
+reads a slug from the prompt and rejects it when a local branch or any
+declared remote already uses that name, proposes a patch, minor, or major
+version from the current one, optionally creates a sibling git worktree,
+and writes the draft skeleton on the new branch. The tool ships as five
+modules -- models, git, prompts, workflow, and a script hub -- with a
+new_draft.bat launcher and the nd and ndr aliases to run it.
+
+The commit helpers get stricter. gbc validates the a.commit plan before
+it commits: the run fails when the git add count does not match the
+staged files, and a.commit is emptied once every block is committed. A
+follow-up fix counts a rename as two paths, the old removed and the new
+added, so a clean rename like pw.bat to prompt_workflow.bat no longer
+trips the check. wrap-commit drops the backticks from a type(scope):
+subject opener on reflowed lines.
+
+### Key changes for v0.4.0 (v0.4.0)
+
+- **new_draft scaffolds an effort**: one command validates the slug
+  against local branches and every declared remote, proposes a patch,
+  minor, or major version, optionally adds a sibling worktree, and writes
+  the draft skeleton on a new branch. It ships as five modules with a
+  new_draft.bat launcher and the nd and ndr aliases.
+
+- **gbc checks the plan against the index**: the root a.commit workflow
+  now fails when the git add count differs from the staged files, and
+  empties a.commit when every block has committed. A rename counts as two
+  paths, so a renamed file no longer leaves the count one short.
+
+- **Launcher and subject cleanups**: pw.bat becomes prompt_workflow.bat
+  with a venv glob that resolves in the `_main` worktree, and wrap-commit
+  strips the backticks from a type(scope): subject opener on reflowed
+  lines.
+
+### 🚀 Features (v0.4.0)
+
+- *(gbc)* Validate plan, empty a.commit when done
+- *(wrap-commit)* Bare backticked subject opener
+- *(new-draft)* Scaffold new development efforts
+
+### 🐛 Bug Fixes (v0.4.0)
+
+- *(git-batch-commit)* Count a staged rename as two paths
+
+### 📚 Documentation (v0.4.0)
+
+- *(changelog)* Backtick ghog exclude placeholders
+
+### 🧪 Testing (v0.4.0)
+
+- *(new-draft)* Cover the scaffolding tool
+
+### 🔨 Build (v0.4.0)
+
+- *(coverage)* Omit new_draft UI seam
+- *(bin)* Add new_draft, rename pw launcher
+
 ## [v0.3.0] - 2026-06-17 - One call gets a pass, the suite does not
 
 the [exclusion] section spares a slow test without raising line 2
