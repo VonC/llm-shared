@@ -1,8 +1,8 @@
 # v0.3.0 duration_outliers_exclusion implementation tracking and validation
 
-No, it is not implemented.
+Yes, it is implemented.
 
-This document tracks, step by step, the build of the tool-managed `[exclusion]` section against [`plan.v0.3.0.duration_outliers_exclusion.md`](plan.v0.3.0.duration_outliers_exclusion.md). Steps 1 to 5 are built and green: `exclusions.py` reads and writes the section, `durations.py` spares and classifies excluded calls, `durations_summary.py` and `durations_report.py` wire the read / apply / write into a run and render the exclusion block, `reporting.py`, `commands.py` and `cli.py` drive exit 8 from a slower-drift, carry the closing-line `excluded=` field and add the `ghog exclude` command, and `fix_slow_test.md` and `groundhog.md` move the must-stay-slow advice from raising line 2 to that command. The acceptance runs (Step 6) remain. Each step's evidence is filled at its implementation check.
+This document tracks, step by step, the build of the tool-managed `[exclusion]` section against [`plan.v0.3.0.duration_outliers_exclusion.md`](plan.v0.3.0.duration_outliers_exclusion.md). All six steps are built and green: `exclusions.py` reads and writes the section, `durations.py` spares and classifies excluded calls, `durations_summary.py` and `durations_report.py` wire the read / apply / write into a run and render the exclusion block, `reporting.py`, `commands.py` and `cli.py` drive exit 8 from a slower-drift, carry the closing-line `excluded=` field and add the `ghog exclude` command, `fix_slow_test.md` and `groundhog.md` move the must-stay-slow advice from raising line 2 to that command, and `test_groundhog_acceptance_durations.py` now drives the excluded-ok, slower-drift, faster-lowered, faster-removed and stale states plus the add-exclusion command end to end (Step 6). Each step's evidence is filled at its implementation check.
 
 ---
 
@@ -379,7 +379,9 @@ No existing feature or reporting capability appears impaired.
 
 ### Analysis of Step 6 implementation state
 
-Not started. Step 6 is not implemented because the acceptance scenarios for the exclusion states do not exist yet.
+Yes. Step 6 has been fully implemented.
+
+`test_groundhog_acceptance_durations.py` gains six acceptance tests (AT-D6 to AT-D11) that seed the `[exclusion]` section through `exclusions.write_exclusions` and drive `cli.main(["full", ...])` over the same faked process boundary as AT-D1 to AT-D5, so the real section read, the rule's spare-and-classify post-step, the section rewrite and the report block all run end to end: an excluded freak within tolerance exits 0 with the call `ok` and no outlier window, a slower-drifted freak exits 8 with the restore instruction and `excluded=1`, a faster freak ratchets the baseline down or is removed once below the floor, a stale entry is reported `(not run)` and removed, and the `ghog exclude` command writes a new entry. One `ghog day` walk is green: `exit=0`, full suite `810/810 fail=0`, `cov=100`, `outliers=0`, `excluded=0`, with the file at 390 lines, under the 700-line big-file gate.
 
 ### Goal for Step 6
 
@@ -394,24 +396,48 @@ Add acceptance tests that drive a `ghog full` run through the excluded-ok, slowe
 
 ### What was implemented for Step 6
 
-To be filled at the implementation check for Step 6.
+- **Six acceptance tests (`test_groundhog_acceptance_durations.py`)**: AT-D6 to AT-D11, each driving `cli.main(["full", "--root", ..., "--llm"], make_deps(spawns))` against a canned `slowest durations` transcript, the same faked seam AT-D1 to AT-D5 use. The `[exclusion]` section is seeded before the run with `exclusions.write_exclusions(tmp_path, {_FREAK: <baseline>})`, so line 2 falls back to the one-second default floor and the freak is held to the seeded baseline.
+- **AT-D6 excluded-ok (Q54)**: the freak recorded at `1.83s` and timed at `1.83s` is spared from the outliers and reads `ok`; the test asserts the `Duration outliers` window is absent, the exclusion block header and the `recorded=1.83s  current=1.83s  ok` line are present, the closing line reads `outliers=0 excluded=0 exit=0`, and the baseline is left unchanged (`read_exclusions == {_FREAK: 1.83}`).
+- **AT-D7 slower-drift (Q57, Q65)**: the freak recorded at `6.80s` and crept to `9.42s` (2.62s over) keeps the green run on `EXIT_DURATION_OUTLIERS`; the test asserts the `restore to within 2s of 6.80s` instruction, `outliers=0 excluded=1 exit=8`, and that the baseline is never raised (`read_exclusions == {_FREAK: 6.80}`).
+- **AT-D8 faster-lowered (Q60, Q69)**: the freak recorded at `3.92s` and timed at `1.30s`, still above the floor, has the tool ratchet the baseline down; the test asserts `baseline lowered to 1.30s`, `outliers=0 excluded=0 exit=0`, and `read_exclusions == {_FREAK: 1.30}`.
+- **AT-D9 faster-removed (Q60)**: the freak recorded at `2.54s` and timed at `0.30s`, now under the floor, has the tool drop the entry; the test asserts `removed (now under the floor)`, `exit=0`, and `read_exclusions == {}`.
+- **AT-D10 stale (Q61)**: the freak recorded at `4.10s` but absent from a tidy run (no freak in `_TIDY_CALLS`) is reported `(not run)` and removed; the test asserts `recorded=4.10s  current=(not run)  removed (stale)`, `exit=0`, and `read_exclusions == {}`.
+- **AT-D11 add-exclusion command (Q62)**: `cli.main(["exclude", _FREAK, "11.41", ...])` writes the entry at its measured time; the test asserts `read_exclusions == {_FREAK: 11.41}`, the node id in the output, `ghog exclude done` and `exit=0`.
+- **Test support added**: a `_with_freak(freak_secs)` helper rebuilds the slow call set with the freak retimed (reusing the tight bulk of `_SLOW_CALLS` so each scenario times the freak at its drift value), the `_EXCLUSION_HEADER` block-header constant, and the per-scenario baseline/current constants (`_OK_BASELINE`, `_DRIFT_BASELINE`/`_DRIFT_CURRENT`, `_FASTER_BASELINE`/`_FASTER_CURRENT`, `_REMOVED_BASELINE`/`_REMOVED_CURRENT`, `_STALE_BASELINE`, `_EXCLUDE_SECONDS`). The module docstring gained a paragraph describing the exclusion scenarios; the `exclusions` module was added to the existing import line.
+- **Validation evidence**: one `ghog day` walk reported `exit=0`, `state=done`, `cov=100`, `fail=0`, `outliers=0`, `excluded=0` over 810 tests (804 -> 810 with the six new tests); the closing line read `cov=100 outliers=0 excluded=0 exit=0`. `check.bat` passed -- ty, pyright, ruff `select=["ALL"]`, radon, vulture, the 700-line big-file scan (the file is 390 lines) and enforce_eof -- since the walk would have stopped at check otherwise.
 
 ### New types or classes introduced for Step 6
 
-To be filled at the implementation check for Step 6.
+- None in production code. Step 6 is test-only: it adds six test functions plus the `_with_freak` transcript helper and the scenario constants to `test_groundhog_acceptance_durations.py`. No new production class, dataclass or function was introduced; the scenarios exercise the `DurationExclusion` record, the `apply_exclusions` post-step, the exclusion block and the `ghog exclude` command built in Steps 1 to 4.
 
 ### Architecture check for Step 6
 
-To be filled at the implementation check for Step 6.
+- **Test layer placement**: the scenarios live in the existing acceptance file beside AT-D1 to AT-D5 and fake only the process boundary (`Spawns` / `make_deps` from `groundhog_acceptance_support`), so the real `cli.main` path -- the parser, `durations_summary` read/apply/write, the pure rule, the report and the floor IO -- runs unmocked. No production module changed, so no import direction, layer boundary or technical-lib use shifted.
+- **Test seam direction**: the tests seed and assert the persisted section through `exclusions.read_exclusions` / `write_exclusions`, the same module the tool writes with, which is the legitimate state seam for an acceptance test rather than a layering shortcut; the run-under-test reaches the section only through `cli.main`, never by the test reaching past the adapter into the rule.
+- **File girth**: `test_groundhog_acceptance_durations.py` is 390 lines, well under the 700-line big-file gate, so no split was needed.
+
+No DDD-Hexagonal violation or adapter smell is visible, every touched file is under budget, and no, there is nothing that needs to be addressed.
 
 ### Performance check for Step 6
 
-To be filled at the implementation check for Step 6.
+- **No new `O(n^2)` or `O(n log n)` path**: Step 6 adds test code only; each scenario builds a six-line (or four-line) transcript and runs the existing `ghog full` path once, whose exclusion work is the Step 2/3 `O(n)`-per-run pass already reviewed. No new production computation and no sort beyond the v0.2.0 rule's existing one were added.
+- **Hot-path bound**: not applicable -- the new code is test setup and assertions, run only under pytest.
+- **Startup or background path**: not applicable; the tests add no startup or background work.
+- **Plan-bound alignment**: the exercised paths stay inside the plan's `O(1)`-per-entry / `O(n)`-per-run target, since Step 6 invokes them rather than adding to them.
+
+The step stays inside the plan's complexity target, and no, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 6
 
-To be filled at the implementation check for Step 6.
+- **No unit-tested class file impacted**: Step 6 adds acceptance tests only, which carry no coverage target. No `tools/groundhog/*.py` class file changed, so there is no new class file to drive to 100%.
+- **Exclusion code already at 100% from earlier steps**: `exclusions.py` (Step 1), `durations.py` (Step 2), `durations_report.py` and `durations_summary.py` (Step 3), and the `reporting.py` / `commands.py` / `cli.py` exclusion paths (Step 4) reached 100% through their own TDD and PBT files; the `ghog full` coverage pass reported `cov=100`, so the acceptance additions left every unit-tested class file at the gate.
+
+No, there is no unit-tested class below 100% that needs completing for Step 6.
 
 ### Feature integrity for Step 6
 
-To be filled at the implementation check for Step 6.
+- **Existing feature behavior**: unchanged. No production code was touched; AT-D1 to AT-D5 and the rest of the 810-test suite stay green at `fail=0`, so the v0.2.0 floor/outlier gate, the exclusion run wiring and the `ghog exclude` command behave exactly as after Step 5.
+- **Reporting or diagnostics**: preserved. The new tests assert the exact report text and closing-line tokens the run already emits (the exclusion block lines, `excluded=` and the exit codes), pinning the contract without changing any report line.
+- **Compatibility or rollout note**: the scenarios run on a per-test `tmp_path` root, so they neither read nor write the repository's own `a.ghog.outliers`; `a.ghog.outliers` stays git-ignored under the `a.*` pattern.
+
+No existing feature or reporting capability appears impaired.
