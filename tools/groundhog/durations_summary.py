@@ -1,19 +1,28 @@
-"""Compose the floor file and the pure duration rule for a full run (Step 4).
+"""Compose the floor file, the pure duration rule and the exclusion section.
 
 The true-outlier rule in ``durations.py`` stays pure — no IO, no floor import
 — so it is judged in isolation. This module is the application seam between a
 run and that rule: it tells whether a run times its calls (``full`` only, Q39),
-and for a run already green on tests and coverage it reads the override, persists
-the auto floor and hands the call map to the rule. Keeping the gating and the
-floor IO here keeps ``commands.py`` under its line budget and ``durations.py``
-free of IO.
+and for a run already green on tests and coverage it reads the override and the
+``[exclusion]`` section, persists the auto floor, hands the call map to the
+rule, spares the excluded calls through the rule's post-step (Q67), then writes
+the managed section back through ``exclusions.py``. Keeping the gating and the
+floor and exclusion IO here keeps ``commands.py`` under its line budget and
+``durations.py`` free of IO.
+
+The exclusion pass forms only on a full run already green on tests and coverage
+(Q34), the same gate as the floor verdict, so the ``[exclusion]`` section is
+never managed while the suite is failing. This module is the only place the
+tool writes that section: ``durations_summary`` owns the read / apply / write,
+the rule only classifies, and ``exclusions.py`` only persists the map it is
+handed -- baselines ratcheted down, below-floor and stale entries removed.
 """
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from tools.groundhog import durations, floor, runner
+from tools.groundhog import durations, exclusions, floor, runner
 from tools.groundhog.models import EXIT_OBJECTIVE_MET
 
 if TYPE_CHECKING:
@@ -46,7 +55,9 @@ def judge(
 
     Outliers are judged last (Q34): a verdict is formed only for a ``full`` run
     already green on tests and coverage, so a failure, a gap or a crash keeps
-    its own exit code and withholds the timing verdict.
+    its own exit code and withholds the timing verdict. The exclusion section
+    is read and managed inside the same gate, so it is never touched while the
+    suite is failing.
 
     Args:
         invocation: The parsed invocation.
@@ -67,13 +78,20 @@ def _judge_map(
     root: Path,
     durations_map: Mapping[str, float],
 ) -> DurationSummary | None:
-    """Persist the auto floor and judge the run's call durations (Q42, Q48).
+    """Persist the floor, judge the run, then manage the exclusion section.
 
-    The run reads its own line-2 floor (of ``a.ghog.outliers``), recomputes the
-    auto floor (``k * median``) and writes both lines — line 1 a write-only
-    record (Q48) — then gates the calls against the active floor: the line-2
-    value when a project set one, else the one-second default (Q43). A fresh
-    file is seeded with that default, so line 2 reads back as ``1.0``.
+    The run reads its own line-2 floor and the ``[exclusion]`` section of
+    ``a.ghog.outliers`` -- the section read taken before the floor rewrite,
+    which keeps only the two floor lines -- recomputes the auto floor
+    (``k * median``) and writes both floor lines, line 1 a write-only record
+    (Q48), then gates the calls against the active floor: the line-2 value when
+    a project set one, else the one-second default (Q43). When the section
+    holds entries, the rule's post-step (Q67) spares each excluded call from
+    the outliers (Q54) and the average (Q64) and classifies it against its
+    baseline, and the managed section -- baselines ratcheted down, below-floor
+    and stale entries removed -- is written back through ``exclusions.py``,
+    after the floor rewrite so the two floor lines are kept verbatim above it.
+    A fresh file is seeded with the default, so line 2 reads back as ``1.0``.
 
     Args:
         root: The consuming project root, where the floor file lives.
@@ -85,6 +103,7 @@ def _judge_map(
     """
     if not durations_map:
         return None
+    exclusion_map = exclusions.read_exclusions(root)
     override = floor.read_floor(root)
     auto = durations.auto_floor(durations_map)
     floor.write_floor(
@@ -93,7 +112,12 @@ def _judge_map(
         override if override is not None else floor.DEFAULT_FLOOR,
     )
     active = floor.active_floor(override)
-    return durations.summarize(durations_map, active)
+    summary = durations.summarize(durations_map, active)
+    if not exclusion_map:
+        return summary
+    spared, updated = durations.apply_exclusions(summary, durations_map, exclusion_map)
+    exclusions.write_exclusions(root, updated)
+    return spared
 
 
 # eof
