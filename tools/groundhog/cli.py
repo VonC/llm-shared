@@ -7,8 +7,10 @@ coverage (ptr), ``affected`` runs the testmon-selected tests (pta, with
 ``day`` walks the whole chain — check, then affected --no-cov, then
 full — stopping at the first non-green step (Q22), ``init`` registers
 the skill pointers (Claude skill, AGENTS.md section) in the consuming
-project (Q23), and ``status`` replays the run lifecycle recorded in
-``a.ghog.status`` (Q32).
+project (Q23), ``status`` replays the run lifecycle recorded in
+``a.ghog.status`` (Q32), and ``exclude`` accepts one must-stay-slow call
+into the ``[exclusion]`` section of ``a.ghog.outliers`` at its measured
+time (Q62).
 
 The output mode is picked by TTY auto-detection with ``--user``/``--llm``
 force flags (Q03). Every run ends with the next-step message of the
@@ -26,7 +28,9 @@ the walk as a survivor process polled through ``ghog status``.
 
 Split for the repo line budget: this module keeps the argument parsing,
 the mode pick, the logging setup and the dispatch; the subcommand
-executors live in ``commands.py`` and the injectable seams in
+executors live in ``commands.py`` — except the trivial non-pytest
+``exclude`` executor, which stays here beside its dispatch since
+``commands.py`` is at its line budget — and the injectable seams in
 ``context.py``.
 
 Usage::
@@ -53,9 +57,17 @@ if __name__ == "__main__":
         sys.path.insert(0, str(_bootstrap_root))
 
 from tools import find_project_root
-from tools.groundhog import commands, redirect, runner, status
+from tools.groundhog import (
+    commands,
+    exclusions,
+    floor,
+    redirect,
+    reporting,
+    runner,
+    status,
+)
 from tools.groundhog.context import Deps, Invocation
-from tools.groundhog.models import EXIT_SETUP_ERROR, Mode
+from tools.groundhog.models import EXIT_OBJECTIVE_MET, EXIT_SETUP_ERROR, Mode, RunStats
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -100,15 +112,7 @@ def main(argv: Sequence[str] | None = None, deps: Deps | None = None) -> int:
     except FileNotFoundError as error:
         LOGGER.info("ghog: %s", error)
         return EXIT_SETUP_ERROR
-    invocation = Invocation(
-        sub=str(args.sub),
-        files=tuple(getattr(args, "files", ()) or ()),
-        no_cov=bool(getattr(args, "no_cov", False)),
-        mode=pick_mode(user=args.user, llm=args.llm, tty=_stdout_is_tty()),
-        root=root,
-        force=bool(getattr(args, "force", False)),
-        detach=bool(getattr(args, "detach", False)),
-    )
+    invocation = _build_invocation(args, root)
     # The Q32 paths keep their bounded envelope on stdout: no guard, no
     # senv replay, and no mirror left armed by an earlier in-process run.
     redirect.disarm()
@@ -123,9 +127,94 @@ def main(argv: Sequence[str] | None = None, deps: Deps | None = None) -> int:
         return status.run_day_detached(invocation, active)
     redirect.activate_if_captured(invocation.mode, invocation.root)
     redirect.replay_senv_log()
+    return _run_post_redirect(invocation, active)
+
+
+def _run_post_redirect(invocation: Invocation, deps: Deps) -> int:
+    """Dispatch the commands that run after the self-redirect guard is set.
+
+    Split out of :func:`main` so its return count stays within the lint budget
+    (PLR0911). ``init`` registers the skill pointers (Q23), ``exclude`` accepts
+    one must-stay-slow call (Q62), and every other subcommand runs through the
+    ``a.ghog.status`` lifecycle bracket (Q32).
+
+    Args:
+        invocation: The parsed invocation.
+        deps: The injectable seams.
+
+    Returns:
+        The contract exit code of the dispatched command.
+    """
     if invocation.sub == runner.SUB_INIT:
-        return commands.run_init(invocation, active)
-    return status.run_with_lifecycle(invocation, active)
+        return commands.run_init(invocation, deps)
+    if invocation.sub == runner.SUB_EXCLUDE:
+        return run_exclude(invocation)
+    return status.run_with_lifecycle(invocation, deps)
+
+
+def run_exclude(invocation: Invocation) -> int:
+    """Accept one must-stay-slow call into the [exclusion] section (Q62).
+
+    The tiny non-pytest exclude executor: it reads the section, sets the node's
+    measured baseline, writes it back through ``exclusions.py`` — the only
+    writer of the section, so the floor lines stay user-owned — replacing any
+    existing entry, then prints the standard envelope. The next full run then
+    holds the call within two seconds of that baseline (Q56) and spares it from
+    the floor (Q54). It lives here, not in ``commands.py``, only because that
+    module is at its line budget.
+
+    Args:
+        invocation: The parsed invocation, carrying the node id and seconds.
+
+    Returns:
+        ``EXIT_OBJECTIVE_MET`` once the entry is written.
+    """
+    accepted = exclusions.read_exclusions(invocation.root)
+    accepted[invocation.node] = invocation.seconds
+    exclusions.write_exclusions(invocation.root, accepted)
+    commands.emit_summary(
+        [
+            f"ghog: excluded {invocation.node} at {invocation.seconds:.2f}s in "
+            f"{floor.FLOOR_FILE}; the full run holds it within 2s of that baseline",
+        ],
+    )
+    closing = reporting.closing_line(
+        invocation.root.name,
+        commands.sub_label(invocation),
+        RunStats(),
+        EXIT_OBJECTIVE_MET,
+        reporting.ClosingMetrics(reporting.COV_SKIPPED),
+    )
+    commands.emit_summary([closing])
+    return EXIT_OBJECTIVE_MET
+
+
+def _build_invocation(args: argparse.Namespace, root: Path) -> Invocation:
+    """Build the parsed invocation from the namespace and resolved root.
+
+    Split out of :func:`main` so its dispatch stays within the complexity
+    budget. The per-subcommand fields are read with ``getattr`` defaults, so a
+    flag absent from one subparser — ``--no-cov``, ``--detach``, or the
+    ``exclude`` node and seconds — falls back without a missing-attribute error.
+
+    Args:
+        args: The parsed argparse namespace.
+        root: The resolved consuming project root.
+
+    Returns:
+        The :class:`Invocation` the dispatch branches on.
+    """
+    return Invocation(
+        sub=str(args.sub),
+        files=tuple(getattr(args, "files", ()) or ()),
+        no_cov=bool(getattr(args, "no_cov", False)),
+        mode=pick_mode(user=args.user, llm=args.llm, tty=_stdout_is_tty()),
+        root=root,
+        force=bool(getattr(args, "force", False)),
+        detach=bool(getattr(args, "detach", False)),
+        node=str(getattr(args, "node", "")),
+        seconds=float(getattr(args, "seconds", 0.0)),
+    )
 
 
 def _build_arg_parser() -> argparse.ArgumentParser:
@@ -216,6 +305,23 @@ def _build_arg_parser() -> argparse.ArgumentParser:
             "Replay the run lifecycle recorded in a.ghog.status without "
             "starting anything (Q32)."
         ),
+    )
+    exclude = subparsers.add_parser(
+        runner.SUB_EXCLUDE,
+        parents=[common],
+        help=(
+            "Accept one must-stay-slow call: add it to the [exclusion] "
+            "section of a.ghog.outliers at its measured time (Q62)."
+        ),
+    )
+    exclude.add_argument(
+        "node",
+        help="The full pytest node id to accept as slow (quote a parametrized id).",
+    )
+    exclude.add_argument(
+        "seconds",
+        type=float,
+        help="The call's measured time in seconds, the recorded baseline.",
     )
     return parser
 

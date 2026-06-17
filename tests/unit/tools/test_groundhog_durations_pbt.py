@@ -1,9 +1,12 @@
-"""Property-based checks for the groundhog duration rule (Step 2, Q46).
+"""Property-based checks for the groundhog duration rule (Step 2, Q46, Q67).
 
-Two invariants of the pure rule, bounded in examples and deadline so the
-property run never becomes a duration outlier itself (Time-gated status for
-Step 2): scaling every call by a positive constant scales the auto floor
-proportionally, and a call below the active floor is never flagged.
+Invariants of the pure rule and its exclusion post-step, bounded in examples
+and deadline so the property run never becomes a duration outlier itself
+(Time-gated status for Step 2): scaling every call by a positive constant
+scales the auto floor proportionally, and a call below the active floor is
+never flagged; excluding every node leaves no outlier (Q54), and a written
+baseline never rises above the recorded one (the baseline only ratchets down,
+Q55).
 """
 
 from __future__ import annotations
@@ -72,6 +75,35 @@ def test_a_call_below_the_floor_is_never_an_outlier(
     for node, secs in values.items():
         if secs < floor:
             assert node not in flagged
+
+
+@settings(max_examples=_MAX_EXAMPLES, deadline=_DEADLINE_MS)
+@given(values=_DURATIONS)
+def test_excluding_every_node_leaves_no_outlier(
+    values: dict[str, float],
+) -> None:
+    """With every node excluded the post-step spares all outliers (Q54)."""
+    floor = durations.auto_floor(values)
+    summary = durations.summarize(values, floor)
+    spared, _ = durations.apply_exclusions(summary, values, dict(values))
+    assert spared.outliers == ()
+
+
+@settings(max_examples=_MAX_EXAMPLES, deadline=_DEADLINE_MS)
+@given(values=_DURATIONS, recorded=_SECS)
+def test_a_written_baseline_never_rises_above_the_recorded_one(
+    values: dict[str, float],
+    recorded: float,
+) -> None:
+    """The section update only ever ratchets a baseline down, never up (Q55)."""
+    node = next(iter(values))
+    floor = durations.auto_floor(values)
+    summary = durations.summarize(values, floor)
+    _, updated = durations.apply_exclusions(summary, values, {node: recorded})
+    # A kept entry holds the recorded value (ok or slower) or the lower
+    # current value (a real improvement); it is never raised above recorded.
+    if node in updated:
+        assert updated[node] <= recorded
 
 
 # eof

@@ -10,13 +10,17 @@ label and postfix helpers now live in ``tools.groundhog.commands``.
 Fix: the bar finish now tops the bar off — a completed run fills it to
 the collected total even when some result lines escaped the parser, and
 a crashed run only catches up to the parsed count; both paths covered.
+
+Fix: cover the exclude subcommand (Q62) — it writes the node id and its
+measured time into the ``[exclusion]`` section of ``a.ghog.outliers`` and
+exits 0, with the floor lines seeded.
 """
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
-from tools.groundhog import cli, commands, reporting, runner
+from tools.groundhog import cli, commands, exclusions, reporting, runner
 from tools.groundhog.models import (
     EXIT_COVERAGE_GAP,
     EXIT_OBJECTIVE_MET,
@@ -429,6 +433,26 @@ def test_postfix_with_and_without_coverage() -> None:
     assert commands.postfix(stats) == "fail=0 warn=0 xfail=0"
     stats.cov_percent = _GATE_FULL
     assert commands.postfix(stats) == "fail=0 warn=0 xfail=0 cov=100"
+
+
+def test_exclude_subcommand_writes_the_entry(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """The exclude subcommand records the node and its measured time (Q62)."""
+    # A parametrized id with a space survives as one positional argument.
+    node = "tests/test_slow.py::test_freak[two words]"
+    bars: list[_FakeBar] = []
+    deps = _deps([], 0, bars)
+    argv = ["exclude", node, "11.41", "--root", str(tmp_path), "--llm"]
+    code = cli.main(argv, deps)
+    assert code == EXIT_OBJECTIVE_MET
+    # The entry is persisted in the [exclusion] section at its measured time.
+    assert exclusions.read_exclusions(tmp_path) == {node: 11.41}
+    out = capsys.readouterr().out
+    assert node in out
+    assert "ghog exclude done" in out
+    assert "exit=0" in out
 
 
 # eof
