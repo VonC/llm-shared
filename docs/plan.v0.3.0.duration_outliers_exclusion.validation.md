@@ -2,7 +2,7 @@
 
 No, it is not implemented.
 
-This document tracks, step by step, the build of the tool-managed `[exclusion]` section against [`plan.v0.3.0.duration_outliers_exclusion.md`](plan.v0.3.0.duration_outliers_exclusion.md). Steps 1 to 4 are built and green: `exclusions.py` reads and writes the section, `durations.py` spares and classifies excluded calls, `durations_summary.py` and `durations_report.py` wire the read / apply / write into a run and render the exclusion block, and `reporting.py`, `commands.py` and `cli.py` drive exit 8 from a slower-drift, carry the closing-line `excluded=` field and add the `ghog exclude` command. The fix-slow-test guidance (Step 5) and the acceptance runs (Step 6) remain. Each step's evidence is filled at its implementation check.
+This document tracks, step by step, the build of the tool-managed `[exclusion]` section against [`plan.v0.3.0.duration_outliers_exclusion.md`](plan.v0.3.0.duration_outliers_exclusion.md). Steps 1 to 5 are built and green: `exclusions.py` reads and writes the section, `durations.py` spares and classifies excluded calls, `durations_summary.py` and `durations_report.py` wire the read / apply / write into a run and render the exclusion block, `reporting.py`, `commands.py` and `cli.py` drive exit 8 from a slower-drift, carry the closing-line `excluded=` field and add the `ghog exclude` command, and `fix_slow_test.md` and `groundhog.md` move the must-stay-slow advice from raising line 2 to that command. The acceptance runs (Step 6) remain. Each step's evidence is filled at its implementation check.
 
 ---
 
@@ -317,7 +317,9 @@ No existing feature or reporting capability appears impaired.
 
 ### Analysis of Step 5 implementation state
 
-Not started. Step 5 is not implemented because `fix_slow_test.md` and `groundhog.md` still tell a must-stay-slow call to raise line 2.
+Yes. Step 5 has been fully implemented.
+
+`instructions/fix_slow_test.md` rewrites its "When a call has to stay slow" section to run `ghog exclude "<NODE ID>" <measured seconds>` with the two-second baseline rule (ok, slower-drift restored on exit 8, faster ratcheted down, stale removed), dropping the "raise line 2" advice for one call; `instructions/groundhog.md` points the exit-8 must-stay-slow step at `ghog exclude` and describes line 2 as project-wide floor tuning, and its closing-line listing now carries the `excluded=` field the run emits. Both files follow the markdown rules and carry no blacklisted word. Step 5 is documentation only, so no code, type or test changed; its `ghog day` walk printed the noop notice (no Python changed) and `exit=0`.
 
 ### Goal for Step 5
 
@@ -331,27 +333,45 @@ Move the must-stay-slow guidance from raising line 2 to running the `ghog` add-e
 
 ### What was implemented for Step 5
 
-To be filled at the implementation check for Step 5.
+- **`instructions/fix_slow_test.md` "When a call has to stay slow" rewrite**: the section no longer tells a must-stay-slow call to raise line 2 of `a.ghog.outliers`; it says why lifting the global floor for one call blinds the gate, then directs the reader to run `ghog exclude "<NODE ID>" <measured seconds>` from the project root, the `<measured seconds>` being the call's time from the re-measure above. It spells out the two-second baseline rule as four bullets matching the rule and the report: within two seconds reads `ok` and stays green; more than two seconds slower goes to exit 8 with `excluded=1` and is restored to within two seconds (not pushed below the floor); more than two seconds faster has the tool ratchet the baseline down and remove the entry once below the floor; a test that no longer runs is removed as stale. It closes by repeating that an exclusion is the last resort after the profiling proves the time irreducible.
+- **`instructions/groundhog.md` exit-8 must-stay-slow step (step 3)**: the playbook step that said "Raise line 2 ... above that call" now says "Run `ghog exclude <node id> <measured seconds>` instead (the command the next-step hint names)", accepting one call at its measured time; it describes line 2 as project-wide floor tuning, not the way to accept one call, notes the tool holds the call to its recorded baseline within two seconds with a slower drift on exit 8, and points at `fix_slow_test.md`.
+- **`instructions/groundhog.md` closing-line listing**: the LLM-mode closing key=value line description gains the `excluded=` field (now `fail= warn= xfail= cov= outliers= excluded= exit=`), matching the token `reporting.closing_line` emits since Step 4, so the doc no longer under-describes the run output.
+- **Command and tolerance match**: the command name, argument order and the two-second band in both files match the implemented `ghog exclude <node> <seconds>` subcommand (`cli.run_exclude`) and the `_BASELINE_TOLERANCE = 2.0` rule, and the exit-8 hint wording mirrors `reporting._exclusion_hint`.
+- **Validation evidence**: one `ghog day` walk reported `exit=0`, `state=done`; because Step 5 changes only markdown, the walk printed the noop notice ("No Python file changed since the last green ghog day walk") and the closing line `fail=0 warn=0 xfail=0 cov=skipped outliers=skipped excluded=skipped exit=0`. No test or coverage regressed.
 
 ### New types or classes introduced for Step 5
 
-To be filled at the implementation check for Step 5.
+- None. Step 5 is documentation only: it edits `instructions/fix_slow_test.md` and `instructions/groundhog.md` and adds no production or test module, no class and no function. The `ghog exclude` command, the `DurationExclusion` record and the `excluded=` field the docs describe were all introduced in Steps 2 and 4.
 
 ### Architecture check for Step 5
 
-To be filled at the implementation check for Step 5.
+- **No code touched**: the step edits two instruction markdown files only; no Python module, port, adapter or layer changed, so there is no import direction, no layer boundary and no technical-lib use to assess.
+- **Doc-to-code fidelity**: the guidance now matches the built behaviour — the `ghog exclude` subcommand in `cli.py`, the section managed only by `exclusions.py`, the two-second band in `durations.py`, the exit-8 slower-drift verdict in `commands.py`/`reporting.py`, and the `excluded=` closing token — so the instructions cannot send a reader to the removed "raise line 2 for one call" path.
+- **No reverse pointer**: `fix_slow_test.md` and `groundhog.md` cross-reference each other as before; no new doc dependency or dangling link was added.
+
+No DDD-Hexagonal violation or adapter smell is possible in a docs-only change, and no, there is nothing that needs to be addressed.
 
 ### Performance check for Step 5
 
-To be filled at the implementation check for Step 5.
+- **No computation added**: the step changes prose only; there is no new code path, loop or data structure, so no `O(n^2)` or `O(n log n)` concern arises.
+- **No runtime impact**: the edited files are instructions read by a human or the LLM, never executed in a `ghog` run.
+
+No, there is no performance issue that needs to be addressed for Step 5.
 
 ### Unit test coverage check for Step 5
 
-To be filled at the implementation check for Step 5.
+- **No class file impacted**: Step 5 edits two markdown instruction files and touches no `tools/groundhog/*.py` class, so there is no unit-tested class file in scope and no coverage target to meet. No test asserts on the content of these instruction files, so none needed updating.
+- **Suite unchanged**: the `ghog day` walk printed the noop notice (no Python changed) at `exit=0`, leaving the 804-test suite and its `cov=100` from Step 4 untouched.
+
+No, there is no unit-tested class below 100% that needs completing for Step 5.
 
 ### Feature integrity for Step 5
 
-To be filled at the implementation check for Step 5.
+- **Existing feature behavior**: unchanged. No code ran differently; the v0.2.0 floor/outlier gate, the exclusion run wiring and the `ghog exclude` command all behave exactly as after Step 4.
+- **Reporting or diagnostics**: the docs are brought into line with the run output, not the other way round — `groundhog.md` now lists the `excluded=` field the closing line already carried, so the instruction no longer under-describes a green run; no report line or exit code changed.
+- **Guidance correctness**: the must-stay-slow path now sends a reader to `ghog exclude` instead of the removed "raise line 2 for one call" advice, closing the gap the feature was built to close; line 2 keeps its documented role as the project-wide floor.
+
+No existing feature or reporting capability appears impaired.
 
 ---
 
