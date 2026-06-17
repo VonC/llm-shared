@@ -1,0 +1,51 @@
+0.2.0-SNAPSHOT -- Green is not the same as done
+
+ghog full adds a third gate, 0 outliers, and exit code 8
+
+- A second is the new floor
+  -- a.ghog.outliers line 2 defaults to 1.0s; the 11s call stops hiding
+- Median and MAD, not mean
+  -- a robust z-score names the freak call and spares the slower test
+
+v0.2.0 teaches ghog full to time every test call and act on the slow ones.
+The full run reads pytest's own slowest-durations block
+(--durations=0 --durations-min=0), keeps a call-phase seconds map per test,
+and prints avg= and outliers= on the final progress line, the closed bar,
+and the closing line. A run that passes every test and meets the coverage
+gate but still hides a call far slower than the rest is no longer counted
+as done: it returns the new exit code 8 (EXIT_DURATION_OUTLIERS), judged
+last so it never masks a failing test or a coverage gap.
+
+A call is flagged only when it is both far out by a robust score and at or
+above a floor. The score is the modified z-score on the median and the MAD
+(Iglewicz-Hoaglin cutoff 3.5), which reads the center from the bulk and is
+not fooled by the right-skew of test call times. The floor lives in a
+two-line, git-ignored a.ghog.outliers file: line 1 records the k * median
+reference, line 2 is the active floor and defaults to a fixed 1.0s. That
+default fixes the case where a sea of 0.00s calls drove the median, and so
+the old auto floor, to zero and let an 11s call in a 5262-test suite slip
+through. The same loop that drives a failure or a coverage gap now drives
+an outlier: exit 8 routes through instructions/groundhog.md to a five-step
+fix playbook, and ghog day keeps re-entering until the call is trimmed or
+the floor is raised.
+
+### Key changes
+
+- **Per-call timing with avg= and outliers=**: ghog full parses pytest's
+  slowest-durations block into a call-phase durations map on RunStats, then
+  shows the average call time (outliers left out) and the outlier count on
+  the final line, the closed bar, and the closing line. A bounded window
+  lists the flagged calls, marks the floor, and shows the next-slowest
+  runners-up under it for hand-tuning.
+
+- **Exit code 8 for a green-but-slow run**: a full run that is green on
+  tests and coverage but holds a true outlier returns EXIT_DURATION_OUTLIERS
+  (8), judged after failures and coverage so it never hides them. ghog day
+  records its green snapshot only on exit 0, so the loop keeps fixing slow
+  calls until none remain or the floor is raised.
+
+- **The a.ghog.outliers floor file, default 1.0s**: a two-line project-root
+  file holds the k * median reference on line 1 and the active floor on line
+  2, default a fixed one second. Raise line 2 to accept a legitimately slow
+  call, lower it to catch faster ones, set it to 0 to switch the gate off;
+  deleting the file falls back to the one-second default.
