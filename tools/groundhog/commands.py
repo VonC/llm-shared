@@ -229,8 +229,9 @@ def run_tests(invocation: Invocation, deps: Deps) -> int:
     progress.finish(result.stats, completed=not result.crashed, summary=summary)
     if invocation.sub == runner.SUB_FULL and not result.crashed:
         baseline.write_baseline(invocation.root, result.stats.failed_ids)
-    outlier_count = 0 if summary is None else len(summary.outliers)
-    exit_code = classify(invocation, result, gate_value, outlier_count)
+    # Exit 8 fires on a slower-drifted exclusion too, already spared from outliers (Q57).
+    flagged = 0 if summary is None else len(summary.outliers) + reporting.excluded_count(summary)
+    exit_code = classify(invocation, result, gate_value, flagged)
     _report(invocation, result, exit_code, gate_value, summary)
     return exit_code
 
@@ -354,7 +355,7 @@ def classify(
     invocation: Invocation,
     result: RunResult,
     gate_value: float | None,
-    outlier_count: int = 0,
+    flagged: int = 0,
 ) -> int:
     """Map a run result to the contract exit code (Q12).
 
@@ -362,11 +363,11 @@ def classify(
         invocation: The parsed invocation.
         result: The parsed run result.
         gate_value: The coverage gate, ``None`` for uncovered runs.
-        outlier_count: The flagged-outlier count, judged last (Q34).
+        flagged: The outliers plus slower-drifted exclusions judged last, turning a green run to exit 8 (Q34, Q57).
 
     Returns:
-        The contract exit code; exit 8 only on a run already green on tests
-        and coverage that still carries a true outlier (Q34).
+        The contract exit code; exit 8 only on a run already green on tests and
+        coverage that still carries a true outlier or slower-drift (Q34, Q57).
     """
     if result.crashed:
         return EXIT_SUITE_CRASH
@@ -377,7 +378,7 @@ def classify(
     if result.stats.failed > 0:
         return EXIT_TEST_FAILURES
     code = _classify_coverage(result.stats.cov_percent, gate_value)
-    if code == EXIT_OBJECTIVE_MET and outlier_count > 0:
+    if code == EXIT_OBJECTIVE_MET and flagged > 0:
         return EXIT_DURATION_OUTLIERS
     return code
 
@@ -451,6 +452,7 @@ def _report(
         nag = reporting.nag_line(result.stats)
         if nag is not None:
             emit_summary([nag])
+    times_calls = durations_summary.measures_durations(invocation)
     closing = reporting.closing_line(
         invocation.root.name,
         sub_label(invocation),
@@ -458,11 +460,8 @@ def _report(
         exit_code,
         reporting.ClosingMetrics(
             reporting.cov_text(result.stats, measured=measured),
-            reporting.outliers_text(
-                result.stats,
-                summary,
-                measured=durations_summary.measures_durations(invocation),
-            ),
+            reporting.outliers_text(result.stats, summary, measured=times_calls),
+            reporting.excluded_text(result.stats, summary, measured=times_calls),
         ),
     )
     emit_summary([closing])

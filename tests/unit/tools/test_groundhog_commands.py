@@ -247,7 +247,8 @@ def test_full_green_but_slow_exits_8(
     assert "Duration outliers" in out
     assert _FREAK_NODE in out
     assert reporting.MSG_OUTLIERS in out
-    assert "a.ghog.outliers above" in out
+    # The exit-8 hint now names the add-exclusion command, not raising line 2.
+    assert "ghog exclude" in out
     assert "avg=" in out
     assert "outliers=1" in out
     assert "exit=8" in out

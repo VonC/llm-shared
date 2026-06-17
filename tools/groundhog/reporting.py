@@ -21,6 +21,11 @@ the final progress line and the bar (Q37), the ``outliers=`` key of the
 closing line through :class:`ClosingMetrics`, and the exit-8 next step with
 the floor-override hint (Q47); the windowed list itself is built in
 ``durations_report.py`` to keep this module's budget.
+
+Fix: the per-test exclusion feature adds the ``excluded=`` key of the closing
+line through :class:`ClosingMetrics` (Q58, Q65), counting the slower-drifted
+exclusions with :func:`excluded_count`, and rewords the exit-8 must-stay-slow
+hint to name the ``ghog exclude`` command instead of raising line 2 (Q62).
 """
 
 from __future__ import annotations
@@ -28,6 +33,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Final
 
+from tools.groundhog import durations
 from tools.groundhog.models import (
     EXIT_COVERAGE_GAP,
     EXIT_DURATION_OUTLIERS,
@@ -138,19 +144,22 @@ OUTLIERS_WITHHELD: Final = "withheld"
 
 @dataclass(frozen=True)
 class ClosingMetrics:
-    """The cov= and outliers= values carried by the closing line (Q16, Q37).
+    """The cov=, outliers= and excluded= values of the closing line (Q16, Q37, Q58).
 
     Kept as one value object so the closing line stays within the project's
     five-argument limit; the simple callers pass only the coverage value and
-    let the outlier value default to ``skipped``.
+    let the outlier and excluded values default to ``skipped``.
 
     Attributes:
         cov: The ``cov=`` value, from :func:`cov_text`.
         outliers: The ``outliers=`` value, from :func:`outliers_text`.
+        excluded: The ``excluded=`` value, from :func:`excluded_text`: the count
+            of slower-drifted exclusions, the ones that drive a fix (Q65).
     """
 
     cov: str
     outliers: str = OUTLIERS_SKIPPED
+    excluded: str = OUTLIERS_SKIPPED
 
 
 class ProgressGovernor:
@@ -273,6 +282,57 @@ def outliers_text(
     return str(len(summary.outliers))
 
 
+def excluded_count(summary: DurationSummary) -> int:
+    """Count the slower-drifted exclusions that drive the exit-8 verdict (Q65).
+
+    These are the only accepted-slow calls that drive a fix: a call within two
+    seconds of its baseline reads ``ok``, and a faster or stale entry is
+    auto-managed by the tool (the baseline ratchets down, or the entry is
+    removed), so neither changes the exit (Q57, Q60, Q61). The same count both
+    keeps an otherwise-green run on exit 8 and fills the ``excluded=`` field.
+
+    Args:
+        summary: The run verdict carrying the excluded-call records.
+
+    Returns:
+        The number of excluded calls flagged :data:`durations.STATUS_SLOWER`.
+    """
+    return sum(
+        1 for record in summary.exclusions if record.status == durations.STATUS_SLOWER
+    )
+
+
+def excluded_text(
+    stats: RunStats,
+    summary: DurationSummary | None,
+    *,
+    measured: bool,
+) -> str:
+    """Build the ``excluded=`` value of the closing line (Q58, Q65).
+
+    The count is the slower-drifted exclusions only (Q65), so an all-zero
+    ``excluded=0`` reads as a clean list, parallel to ``outliers=``. Like the
+    outlier count it is judged last: a run that times no calls skips it, a
+    failure withholds it while the timing verdict is hidden.
+
+    Args:
+        stats: The final counters of the run.
+        summary: The duration verdict, or ``None`` when none was formed.
+        measured: Whether the run times its calls (a ``full`` run, Q39).
+
+    Returns:
+        ``skipped`` when no calls are timed, ``withheld`` while a failure hides
+        the verdict, else the slower-drifted exclusion count.
+    """
+    if not measured:
+        return OUTLIERS_SKIPPED
+    if stats.failed > 0:
+        return OUTLIERS_WITHHELD
+    if summary is None:
+        return OUTLIERS_SKIPPED
+    return str(excluded_count(summary))
+
+
 def cov_text(stats: RunStats, *, measured: bool) -> str:
     """Build the ``cov=`` value of the closing line (Q16).
 
@@ -308,7 +368,8 @@ def closing_line(
         sub_label: The subcommand label, such as ``full``.
         stats: The final counters of the run.
         exit_code: The groundhog exit code (Q12).
-        metrics: The ``cov=`` and ``outliers=`` values (Q16, Q37).
+        metrics: The ``cov=``, ``outliers=`` and ``excluded=`` values
+            (Q16, Q37, Q58).
 
     Returns:
         The closing key=value line (Q16).
@@ -316,7 +377,8 @@ def closing_line(
     return (
         f"{project}: ghog {sub_label} done fail={stats.failed} "
         f"warn={stats.warnings} xfail={stats.xfailed} "
-        f"cov={metrics.cov} outliers={metrics.outliers} exit={exit_code}"
+        f"cov={metrics.cov} outliers={metrics.outliers} "
+        f"excluded={metrics.excluded} exit={exit_code}"
     )
 
 
@@ -404,26 +466,35 @@ def next_after_full(
     if exit_code == EXIT_COVERAGE_GAP:
         return [MSG_COVERAGE_GAP]
     if exit_code == EXIT_DURATION_OUTLIERS:
-        return [MSG_OUTLIERS, _override_hint(summary)]
+        return [MSG_OUTLIERS, _exclusion_hint(summary)]
     if exit_code == EXIT_OBJECTIVE_MET:
         return [MSG_FULL_OK]
     return []
 
 
-def _override_hint(summary: DurationSummary | None) -> str:
-    """Build the floor-override escape shown beside the outlier next step (Q47).
+def _exclusion_hint(summary: DurationSummary | None) -> str:
+    """Build the must-stay-slow escape shown beside the outlier next step (Q62).
+
+    Replaces the v0.2.0 "raise line 2" advice for one call: line 2 is the
+    project-wide floor, so a call proven irreducible by ``fix_slow_test.md`` is
+    accepted on its own with the ``ghog exclude`` command at its measured time,
+    not by lifting the floor for the whole suite (Q59, Q62). A slower-drifted
+    exclusion already on exit 8 is restored to within two seconds of its
+    recorded baseline, the per-call instruction the exclusion block carries.
 
     Args:
-        summary: The duration verdict, for the active floor in the hint.
+        summary: The duration verdict, for the active floor named in the hint.
 
     Returns:
-        The hint naming the line-2 override of ``a.ghog.outliers`` for a call
-        that must stay slow, with the active floor it has to clear.
+        The hint naming the ``ghog exclude`` command and pointing at
+        ``fix_slow_test.md``, with the floor it would otherwise raise.
     """
     floor_secs = summary.floor if summary is not None else 0.0
     return (
-        "A call that must stay slow is not a bug: raise line 2 of "
-        f"a.ghog.outliers above {floor_secs:.2f}s (the override), not shorten it"
+        "A call that must stay slow is not a bug: once "
+        "<llm-shared>/instructions/fix_slow_test.md proves it irreducible, run "
+        "ghog exclude <node id> <measured seconds> to accept it at its time, "
+        f"not raise line 2 of a.ghog.outliers (the {floor_secs:.2f}s suite floor)"
     )
 
 
