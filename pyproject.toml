@@ -52,6 +52,7 @@ omit = [
     "*/constants.py",           # Static variables
     "*/uv_run.py",              # Thin subprocess wrapper around the external uv binary
     "*/prompt_workflow_menu.py", # Thin questionary wrapper; needs a TTY to exercise
+    "*/new_draft_prompts.py",   # Thin questionary text wrapper; needs a TTY to exercise
     "*/groundhog/render.py"     # Thin tqdm wrapper; needs a TTY to exercise
 ]
 
@@ -242,5 +243,6 @@ exclude = [
     ".venv",
     "whitelist.py",
     "tools/prompt_workflow_menu.py",  # optional questionary dep; UI seam, see pyright/coverage
+    "tools/new_draft_prompts.py",  # optional questionary dep; UI seam, see pyright/coverage
     "tools/groundhog/render.py"  # dynamic tqdm import; UI seam, see coverage omit
 ]
