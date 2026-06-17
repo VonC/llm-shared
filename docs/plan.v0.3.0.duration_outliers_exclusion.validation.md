@@ -99,9 +99,9 @@ No existing feature or reporting capability appears impaired.
 
 ### Analysis of Step 2 implementation state
 
-Not started. Step 2 is not implemented because the rule post-step does not exist yet.
+Yes. Step 2 has been fully implemented.
 
-`durations.summarize` still has no exclusion handling, and `DurationSummary` carries no excluded-call list.
+`durations.py` gains the pure exclusion post-step `apply_exclusions` and the `DurationExclusion` value object, and `DurationSummary` carries the excluded-call list through a new `exclusions` field defaulting to `()`, so `summarize` and every existing constructor stay unchanged. The post-step spares flagged excluded calls from the outliers (Q54) and from the average (Q64), classifies each excluded node against its baseline (Q63), and yields the `node -> seconds` section the tool will write -- the median, MAD and floor still cover the whole run (Q54). The `ghog day` walk is green: 797 tests, `fail=0`, `cov=100`, `outliers=0`, `exit=0`.
 
 ### Goal for Step 2
 
@@ -116,27 +116,51 @@ Add a post-step over `DurationSummary` that spares excluded calls from the outli
 
 ### What was implemented for Step 2
 
-To be filled at the implementation check for Step 2.
+- **`apply_exclusions` post-step (`durations.py`)**: a pure function `apply_exclusions(summary, durations, exclusions)` that runs after `summarize` and returns a pair -- the spared `DurationSummary` and the `node -> seconds` section the tool will write (Q67). Every flagged call whose node is excluded is dropped from `outliers` (Q54), and every excluded call is left out of the recomputed average (Q64); `runners_up`, `floor` and `median` pass through untouched, so the scale the rest is judged against does not move.
+- **`_classify` baseline drift (`durations.py`)**: a slower-only compare (Q63) -- `current - recorded > 2s` reads `slower` and keeps the recorded baseline (never raised, Q57); `recorded - current > 2s` reads `faster` and ratchets the baseline down to `current` (Q69), dropped when `current` is under the floor (Q60); within two seconds reads `ok` and leaves the baseline alone; a node absent from the run reads `stale` with a `None` current and is dropped (Q61). The fixed `_BASELINE_TOLERANCE = 2.0` is the single band that gates both the slower-restore and the faster-ratchet.
+- **`DurationSummary.exclusions` field**: a new `tuple[DurationExclusion, ...]` field defaulting to `()`, so the two `summarize` constructors and the two test-helper constructors (`test_groundhog_commands.py`, `test_groundhog_reporting.py`) keep working with no edit (Q67); `summarize`, `auto_floor`, `_is_outlier`, `_call` and `_median` are byte-for-byte unchanged.
+- **Tests**: `test_groundhog_durations.py` adds the `_EXCL` run and seven `apply_exclusions` cases (a flagged call spared, the scale preserved, a non-outlier dropped from the average, the four statuses, the section ratchet-and-prune, a slower baseline never raised, a small improvement left alone); `test_groundhog_durations_pbt.py` adds two invariants (excluding every node leaves no outlier, a written baseline never rises above the recorded one, Q55).
+- **Validation evidence**: the `ghog day` walk reported `exit=0`, `state=done`, `cov=100`, `fail=0`, `outliers=0` over 797 tests; `durations.py` is 341 lines, well under the 700-line big-file gate; ty, pyright, ruff, radon, vulture and the eof gate all green.
 
 ### New types or classes introduced for Step 2
 
-To be filled at the implementation check for Step 2.
+- `DurationExclusion`: a frozen dataclass value object beside `DurationCall` and `DurationSummary` (Q68) -- `node`, `recorded`, `current` (`float | None`, `None` for a stale entry that ran no call), and `status`.
+- `apply_exclusions`: the public post-step function returning `(DurationSummary, dict[str, float])` -- the spared summary and the section to write.
+- `_classify`, `_average_without`: private helpers of the post-step (per-node drift verdict; mean over the kept calls).
+- `DurationSummary.exclusions`: a new tuple field carrying the excluded-call list (default `()`).
+- module constants `STATUS_OK`, `STATUS_SLOWER`, `STATUS_FASTER`, `STATUS_STALE` and `_BASELINE_TOLERANCE`.
+- test support: the `_excl_summary` helper and `_EXCL` fixture in the TDD file, and two new property checks in the PBT file.
 
 ### Architecture check for Step 2
 
-To be filled at the implementation check for Step 2.
+- **Pure rule layer (`durations.py`)**: `apply_exclusions` keeps the rule IO-free -- it takes plain `Mapping` inputs and returns value objects, importing only `dataclasses` and `typing`. It does not import `exclusions.py`, `floor.py`, the report or any IO module, so the rule stays unit-testable in isolation, the same contract `summarize` already holds.
+- **Boundary direction**: the post-step receives the already-read exclusion map and hands back the section to write; the application seam (`durations_summary.py`, Step 3) will call `apply_exclusions` and own the read/write through `exclusions.py`, never the reverse. No layer reaches into the rule's internals.
+- **Split or maintainability note**: the drift classification and the average recomputation are extracted as small private helpers (`_classify`, `_average_without`), each low-complexity, so `durations.py` stays at 341 lines, well inside the line budget; no split was needed.
+
+No DDD-Hexagonal violation or adapter smell is visible; nothing needs to be addressed.
 
 ### Performance check for Step 2
 
-To be filled at the implementation check for Step 2.
+- **No new `O(n^2)` or `O(n log n)` path**: `apply_exclusions` is one linear pass over `summary.outliers`, one over `exclusions.items()`, and `_average_without` one pass over `durations.items()` after building the flagged-node set; all membership tests are `O(1)` set/dict lookups. No sort is added (the only sort, in `summarize`, is unchanged).
+- **Hot-path bound**: the post-step runs once per `ghog full` run, `O(n)` in the number of timed calls plus excluded entries -- inside the plan's per-phase `O(n)` target.
+- **Startup or background path**: not applicable; the rule has no startup or background work.
+- **Plan-bound alignment**: the step stays inside the `O(n)`-per-phase bound the plan promised.
+
+No performance issue needs to be addressed for Step 2.
 
 ### Unit test coverage check for Step 2
 
-To be filled at the implementation check for Step 2.
+- **`durations.py`**: covered at 100% by `test_groundhog_durations.py` (TDD) and `test_groundhog_durations_pbt.py` (PBT), the test files named for the rule class. Every new branch has a covering case: `_classify`'s stale, slower, faster-above-floor, faster-below-floor and ok paths; `apply_exclusions`'s kept and dropped baselines; and `_average_without`'s empty-kept fallback (the PBT excludes every node, leaving no kept call). The `ghog full` coverage pass reported `cov=100`, consistent with this reasoning.
+
+No, there is no unit-tested class below 100% that needs completing for Step 2.
 
 ### Feature integrity for Step 2
 
-To be filled at the implementation check for Step 2.
+- **Existing feature behavior**: unchanged. `summarize` and the v0.2.0 floor/outlier rule are byte-for-byte the same; the post-step is not yet wired into a run (`durations_summary.py` and `durations_report.py` are untouched -- that is Step 3), so no `ghog full` path changes behaviour. The 797-test suite stays green at `fail=0`.
+- **Reporting or diagnostics**: preserved. No report line or closing key=value field changed in Step 2; the new `exclusions` field defaults to `()`, so a `DurationSummary` from the existing `summarize` reads as "no exclusions" and `durations_report.window_lines` (which does not read the field) is unaffected.
+- **Compatibility or rollout note**: the `DurationExclusion` record and the section update produced by `apply_exclusions` are consumed only once Step 3 wires them in; until then the post-step is dead-code-free because its tests exercise it directly.
+
+No existing feature or reporting capability appears impaired.
 
 ---
 
