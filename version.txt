@@ -1,4 +1,4 @@
-0.4.0-SNAPSHOT -- One command starts the next effort
+0.4.0 -- One command starts the next effort
 
 new_draft checks the slug, proposes the version, writes the draft
 

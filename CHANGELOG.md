@@ -6,7 +6,7 @@ release. The groundhog test loop (ghog), the prompt-workflow cycle (pw),
 and the commit and changelog helpers are mutualized across sibling
 projects.
 
-## [v0.4.0-SNAPSHOT unreleased] One command starts the next effort - 9950312d1b4370e2c0a9e547d0114a9b8aadc049
+## [v0.4.0] - 2026-06-18 - One command starts the next effort
 
 new_draft checks the slug, proposes the version, writes the draft
 
@@ -45,7 +45,7 @@ subject opener on reflowed lines.
   paths, so a renamed file no longer leaves the count one short.
 
 - **Launcher and subject cleanups**: pw.bat becomes prompt_workflow.bat
-  with a venv glob that resolves in the `_main` worktree, and wrap-commit
+  with a venv glob that resolves in the _main worktree, and wrap-commit
   strips the backticks from a type(scope): subject opener on reflowed
   lines.
 
@@ -62,10 +62,15 @@ subject opener on reflowed lines.
 ### 📚 Documentation (v0.4.0)
 
 - *(changelog)* Backtick ghog exclude placeholders
+- *(release)* Prepare v0.4.0 notes and changelog
 
 ### 🧪 Testing (v0.4.0)
 
 - *(new-draft)* Cover the scaffolding tool
+
+### ⚙️ Miscellaneous Tasks (v0.4.0)
+
+- *(vscode)* Add backticked to cSpell words
 
 ### 🔨 Build (v0.4.0)
 
