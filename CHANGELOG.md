@@ -6,7 +6,7 @@ release. The groundhog test loop (ghog), the prompt-workflow cycle (pw),
 and the commit and changelog helpers are mutualized across sibling
 projects.
 
-## [v0.3.0-SNAPSHOT unreleased] One call gets a pass, the suite does not - 7fe3997af9a18774ae49a195cb1ba079e42ffc5b
+## [v0.3.0] - 2026-06-17 - One call gets a pass, the suite does not
 
 the [exclusion] section spares a slow test without raising line 2
 
@@ -73,6 +73,8 @@ hand-editing.
 - *(ghog)* Exclude one slow call, not line 2
 - *(duration_outliers_exclusion)* Record step 5 validation
 - *(duration_outliers_exclusion)* Record step 6 validation
+- *(ghog)* Read TESTING.md for slow-test fixes
+- *(release)* V0.3.0 release notes and changelog
 
 ### 🧪 Testing (v0.3.0)
 
@@ -82,6 +84,10 @@ hand-editing.
 
 - *(vscode)* Add rpartition to the spell list
 - *(vscode)* Add cspell words for v0.3.0
+
+### 🔨 Build (v0.3.0)
+
+- *(version)* Bump to 0.3.0
 
 ## [v0.2.0] - Green is not the same as done
 
