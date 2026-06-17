@@ -23,9 +23,12 @@ wacnd="%LLM_SHARED_DIR%\bin\wac.bat" --no-delimiters $*$tif not errorlevel 1 ech
 
 oqm="%LLM_SHARED_DIR%\bin\oqm.bat" $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: open questions done
 
-pw="%LLM_SHARED_DIR%\bin\pw.bat" $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: prompt workflow done
+pw="%LLM_SHARED_DIR%\bin\prompt_workflow.bat" $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: prompt workflow done
 
-pwi=set "PW_PROFILE=1"$t"%LLM_SHARED_DIR%\bin\pw.bat" $*$tset "PW_PROFILE="$techo %PRJ_DIR_NAME%: prompt workflow profiled
+pwi=set "PW_PROFILE=1"$t"%LLM_SHARED_DIR%\bin\prompt_workflow.bat" $*$tset "PW_PROFILE="$techo %PRJ_DIR_NAME%: prompt workflow profiled
+
+nd="%LLM_SHARED_DIR%\bin\new_draft.bat" $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: new draft done
+ndr="%LLM_SHARED_DIR%\bin\new_draft.bat" $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: new draft done
 
 ghog="%LLM_SHARED_DIR%\bin\ghog.bat" $*
 ptr="%LLM_SHARED_DIR%\bin\ptr.bat" $*
