@@ -145,11 +145,13 @@ times the typical call passes unflagged:
   from the bulk and are not fooled. When more than half the calls tie and the MAD
   collapses to zero, the score is undefined; the rule falls back so it stays
   defined (Implementation touch points).
-- at or above the floor: the floor is `k * median`, a generous multiple with a
-  default `k` of about ten — so a call has to run about an order of magnitude
-  slower than the typical test before it counts. The floor is the room: a call
-  under it is slower, never an outlier, whatever its z-score. The factor `k` is the
-  room dial and the line-2 override (The floor file) is the per-project adjustment.
+- at or above the floor: the floor is the line-2 value, a fixed `1.0s` by default
+  (revised post-v0.2.0: the floor was `k * median` with a default `k` of about ten in
+  the original design; it is now the line-2 value, default `1.0s`, and `k * median`
+  is a recorded reference on line 1 only, Q48). A call has to run at least a second
+  before it counts, so a call under the floor is slower, never an outlier, whatever
+  its z-score. The line-2 value (The floor file) is the per-project adjustment, and
+  line 1's `k * median` is a reference for sizing it.
 
 Requiring both means a call must be statistically separated from the pack and a
 large multiple of the typical test. A multiple of the median states the user's aim
@@ -177,23 +179,31 @@ lines (Q40):
   and ignored by Git the same way. The user's proposed `a.groundhog.outliers` is
   renamed to match that family.
 - line 1: the tool's auto floor, in seconds, rewritten after every full run as
-  `k * median` of the run's call times (Q46) — generous so only true outliers
-  clear it. This is the floor used by default.
-- line 2: the user override, in seconds, default `-1`. While line 2 is `-1` the
-  active floor is line 1, the auto value (Q43); a positive line 2 replaces it, so a
-  project accepts a legitimately slow call by raising the floor above that call, or
-  tightens detection by lowering it (line 1 keeps updating for reference). Editing
-  line 2 changes the override.
+  `k * median` of the run's call times (Q46). It is a recorded reference value only:
+  a project can read it to size its own floor, but it no longer gates anything
+  (revised post-v0.2.0: line 1 was the default floor in the original design; it is
+  now a write-only record, Q48).
+- line 2: the active floor in seconds, default a fixed `1.0` — one second. A fresh
+  run seeds line 2 with `1.0`, so every project flags any call at or above a second
+  out of the box; a positive line 2 is the floor the rule gates against, so a project
+  accepts a legitimately slow call by raising line 2 above that call, or tightens
+  detection by lowering it. A line-2 value of `0` switches the gate off (it spares
+  every call); a value below zero, or a missing, partial, malformed or binary file,
+  all fall back to the one-second default (revised post-v0.2.0: line 2 was the user
+  override defaulting to `-1` in the original design, with `-1` falling back to the
+  line-1 auto floor; it now defaults to a fixed `1.0s` and line 1 no longer gates,
+  Q48). Editing line 2 changes the active floor.
 
-Deleting the whole file drops the override: the next full run rewrites line 1,
-resets line 2 to `-1`, and still reports and triggers fixes (Q45). So "no file" and
-"the first run ever" are the same state, and deleting the file does what it says,
-remove the user override and fall back to the auto floor.
+Deleting the whole file drops any tuning: the next full run rewrites line 1 and
+seeds line 2 again with the one-second default, and still reports and triggers fixes
+(Q45). So "no file" and "the first run ever" are the same state, and deleting the
+file does what it says, remove the project's tuning and fall back to the
+one-second default floor.
 
-The auto floor is recomputed every run and converges (Q43): the median is robust,
-so trimming a slow call barely moves `k * median`, and the trimmed call falls under
-it on the next run. A call that must stay slow — an unavoidable integration test —
-is exactly the case for the line-2 override.
+The auto floor on line 1 is still recomputed every run as a reference (Q43): the
+median is robust, so trimming a slow call barely moves `k * median`. A call that must
+stay slow — an unavoidable integration test — is exactly the case for raising the
+line-2 floor above it.
 
 ## Report and next step for outliers
 
@@ -285,8 +295,9 @@ The change stays inside the existing package layout of the parent spec:
   case handled (a tie-heavy suite where the MAD collapses falls back so the rule
   stays defined).
 - `floor.py` (new): read and write the two-line `a.ghog.outliers`, resolve the
-  active floor (line 2 when not `-1`, else line 1), beside the `gate.py` and
-  `snapshot.py` file helpers.
+  active floor (line 2 when set, else the fixed `1.0s` default; line 1's auto floor
+  is a recorded reference only, Q48), beside the `gate.py` and `snapshot.py` file
+  helpers.
 - `commands.py`: compute the summary after a full run, feed it to the progress
   finish, the classification and the report.
 - `reporting.py`: the `avg=`/`outliers=` additions to the progress and closing
@@ -312,11 +323,11 @@ each one, and the alternatives that were dropped.
 | Q37 | End-of-run only: avg and count on the final line and the closed bar | Average and outliers in the progress output | The exact durations are free at the end of the parsed stream; a live proxy shows a second disagreeing number | D2/D3 live proxy (noisy, two sources of truth) |
 | Q38 | Floor from a git-ignored project-root file `a.ghog.outliers`, user-editable and deletable | The floor file | A self-managed file keeps the floor visible and owned by the project with no config schema | E1 pyproject config; E2 fixed constant; E3 env var (lost across the fresh shells of Q21) |
 | Q39 | `ghog full` only | Capturing per-call durations | Only the full run sees every test, so the average and outlier set are stable and comparable run to run | F2 plus covered affected (shifting subset); F3 every run (loads the fast focused steps) |
-| Q40 | Two-line file: line 1 the auto floor, line 2 the user override (default `-1`) | The floor file | One floor with a live auto value the user can override; no second concept | A single auto value with no override (no escape for a legitimately slow call); a single frozen value (loses the live auto value) |
-| Q41 | Detection always runs, always reports, and always triggers fixes; the floor (auto by default) is always active | Outlier criteria for a full run; Clean bill with zero outliers | The auto floor is always computable from the run, so there is no no-floor state to special-case | A report-only mode that does not trigger fixes (the user wants fixes driven from the first run) |
-| Q42 | The auto floor (line 1) is a generous function of the run, set by Q46 | The floor file; Outlier criteria for a full run | A generous floor is what leaves room for slower tests and keeps "0 outliers" reachable | I1 twice the median (too low); the median+MAD threshold (equals the z-cutoff, leaves no room); I3 percentile (a fixed fraction always near the line) |
-| Q43 | One floor, not a gate: line 2 overrides line 1, `-1` uses the auto floor; exit 8 is the consequence of a true outlier above the floor | The floor file | The earlier "gate" was a needless second concept; a generous auto floor (Q46) makes the auto value reachable, so no opt-in is needed | A separate opt-in gate (needless complexity); gating on a bare z-threshold floor (unreachable, fixed by the generous floor of Q46) |
+| Q40 | Two-line file: line 1 the auto floor, line 2 the user override (default `-1`) (revised post-v0.2.0: line 2 now defaults to a fixed `1.0s` and is the active floor; line 1's auto floor is a recorded reference only, Q48) | The floor file | One floor with a live auto value the user can override; no second concept | A single auto value with no override (no escape for a legitimately slow call); a single frozen value (loses the live auto value) |
+| Q41 | Detection always runs, always reports, and always triggers fixes; the floor (auto by default) is always active (revised post-v0.2.0: the floor by default is now the fixed `1.0s` on line 2, not the auto floor; line 1's `k * median` is a recorded reference only, Q48) | Outlier criteria for a full run; Clean bill with zero outliers | The auto floor is always computable from the run, so there is no no-floor state to special-case | A report-only mode that does not trigger fixes (the user wants fixes driven from the first run) |
+| Q42 | The auto floor (line 1) is a generous function of the run, set by Q46 (revised post-v0.2.0: line 1's `k * median` is now a recorded reference only and no longer gates; the active floor is the line-2 value, default a fixed `1.0s`, Q48) | The floor file; Outlier criteria for a full run | A generous floor is what leaves room for slower tests and keeps "0 outliers" reachable | I1 twice the median (too low); the median+MAD threshold (equals the z-cutoff, leaves no room); I3 percentile (a fixed fraction always near the line) |
+| Q43 | One floor, not a gate: line 2 overrides line 1, `-1` uses the auto floor; exit 8 is the consequence of a true outlier above the floor (revised post-v0.2.0: line 2 now defaults to a fixed `1.0s` and is itself the active floor; line 1's auto floor no longer gates and is a recorded reference only, Q48) | The floor file | The earlier "gate" was a needless second concept; a generous auto floor (Q46) makes the auto value reachable, so no opt-in is needed | A separate opt-in gate (needless complexity); gating on a bare z-threshold floor (unreachable, fixed by the generous floor of Q46) |
 | Q44 | Every full run, the first included, reports true outliers and triggers the fix via the report and `prompt_workflow`; no opt-in ceremony | Report and next step for outliers; Clean bill with zero outliers | Only true outliers are flagged, so driving the fix from run one is safe and is what the user asked | A two-phase report-then-enforce opt-in (delays the fix the user wants from the first run) |
-| Q45 | Deleting the file drops the override and re-seeds the auto floor next run; outliers are still reported and still trigger fixes | The floor file | One meaning for "no file" — auto floor, fixes triggered — so first-run and post-delete match | O2 remember the override elsewhere; O3 re-seed and silently re-arm (both make delete not drop the override) |
-| Q46 | Auto floor `k * median` (default `k` about ten); a true outlier is a call with modified z-score at least 3.5 AND at or above the floor | Outlier criteria for a full run; The floor file | A multiple of the median states the ratio aim directly, leaves room, converges, and the override tunes it | P2 log-space z-score (still needs a floor, reads less plainly); P3 percentile (never reaches a clean zero); the bare median+MAD seed (no room) |
+| Q45 | Deleting the file drops the override and re-seeds the auto floor next run; outliers are still reported and still trigger fixes (revised post-v0.2.0: deleting drops the line-2 tuning and re-seeds it with the fixed `1.0s` default next run; line 1's auto floor is re-recorded but no longer gates, Q48) | The floor file | One meaning for "no file" — auto floor, fixes triggered — so first-run and post-delete match | O2 remember the override elsewhere; O3 re-seed and silently re-arm (both make delete not drop the override) |
+| Q46 | Auto floor `k * median` (default `k` about ten); a true outlier is a call with modified z-score at least 3.5 AND at or above the floor (revised post-v0.2.0: the gating floor is now the line-2 value, default a fixed `1.0s`; `k * median` is still computed but recorded on line 1 as a reference only, Q48) | Outlier criteria for a full run; The floor file | A multiple of the median states the ratio aim directly, leaves room, converges, and the override tunes it | P2 log-space z-score (still needs a floor, reads less plainly); P3 percentile (never reaches a clean zero); the bare median+MAD seed (no room) |
 | Q47 | The report shows a bounded window — the flagged outliers, the floor line marked, the few next-slowest under it, one slowest-call line on a green run; the fix instruction names only the calls above the floor | Tuning the detection by hand; Report and next step for outliers; Fixing an outlier: instructions for the LLM | Both sides of the floor are needed to judge too-many versus too-few, but only the above-floor calls are outliers to fix | R1 flagged-only (cannot show an under-flag); R3 full list (breaks token thrift) |

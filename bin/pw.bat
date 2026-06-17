@@ -1,10 +1,14 @@
 @echo off
 setlocal EnableDelayedExpansion
 
-REM Wrapper for tools\prompt_workflow.py. Uses LLM_SHARED_DIR (set by the
-REM caller's senv, also when called from another repository) to locate the
-REM venvs folder and the tool. Picks the most recent venv whose name ends with
-REM "llm-shared" (newest first, /o-d), so the copilot-shared venv is skipped.
+REM Wrapper for tools\prompt_workflow.py. Self-locates the llm-shared folder
+REM from this launcher's own path (%~dp0 is the bin\ folder) when the caller did
+REM not set LLM_SHARED_DIR, so it runs the same from any shell or repository.
+REM Picks the most recent venv whose name ends with "llm-shared" (newest first,
+REM /o-d), so the copilot-shared venv is skipped, then runs python by absolute
+REM path - no PATH prepend and no bare "python" lookup, the form ghog.bat uses -
+REM so a nested cmd or a foreign PATH cannot resolve the wrong interpreter.
+if not defined LLM_SHARED_DIR set "LLM_SHARED_DIR=%~dp0.."
 set "PYTHON_BASE=%LLM_SHARED_DIR%\venvs"
 set "LATEST_PYTHON="
 
@@ -17,11 +21,12 @@ if not defined LATEST_PYTHON (
     exit /b 1
 )
 
-set "PATH=%PYTHON_BASE%\%LATEST_PYTHON%\Scripts;%PATH%"
+set "PYTHON_EXE=%PYTHON_BASE%\%LATEST_PYTHON%\Scripts\python.exe"
 
 REM When PW_PROFILE is set (see the pwi alias), run the tool under pyinstrument
 REM to profile where the time goes; otherwise run it normally.
-set "PW_CMD=python"
-if defined PW_PROFILE set "PW_CMD=python -m pyinstrument"
-
-%PW_CMD% "%LLM_SHARED_DIR%\tools\prompt_workflow.py" %*
+if defined PW_PROFILE (
+    "%PYTHON_EXE%" -m pyinstrument "%LLM_SHARED_DIR%\tools\prompt_workflow.py" %*
+) else (
+    "%PYTHON_EXE%" "%LLM_SHARED_DIR%\tools\prompt_workflow.py" %*
+)

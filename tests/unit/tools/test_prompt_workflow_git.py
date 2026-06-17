@@ -1,10 +1,11 @@
 """Tests for the read-only git helpers of prompt_workflow.
 
 Fix: Cover the git command wrapper (success and both error-message branches),
-the current-branch query, the fork-point walk (found and not found), the
-changed-files diff, and the porcelain path parsing including renames and short
-lines. Also cover the validation-commit grep, including a lettered sub-step id
-whose space-delimited subject stays apart from its parent step (Q44).
+the current-branch query, the fork-point walk (found, not found, and the
+zero-own-commit branch that starts at HEAD), the changed-files diff, and the
+porcelain path parsing including renames and short lines. Also cover the
+validation-commit grep, including a lettered sub-step id whose space-delimited
+subject stays apart from its parent step (Q44).
 """
 
 from __future__ import annotations
@@ -151,6 +152,36 @@ def test_fork_point_none_without_boundary(
         _fake_git(branch="feature", branches="main\nfeature\n", revlist="c1\nc0\n"),
     )
     assert git.fork_point(tmp_path) is None
+
+
+def test_fork_point_head_when_branch_has_no_own_commits(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """A branch with zero own commits starts at HEAD, not None.
+
+    The rev-list is empty because HEAD is reachable from another branch (a freshly
+    created branch with no commits of its own). Returning HEAD keeps ``base..HEAD``
+    empty so ``has_step_commit`` greps nothing and step 1 is detected; returning
+    None would grep the whole history and match another feature's
+    ``record step N validation`` commits.
+    """
+
+    def fake(args: list[str], *, cwd: Path) -> str:
+        del cwd
+        if args[:2] == ["rev-parse", "--abbrev-ref"]:
+            return "duration_outliers"
+        if args[:1] == ["for-each-ref"]:
+            return "main\nduration_outliers\n"
+        if args[:1] == ["rev-list"]:
+            return ""
+        if args == ["rev-parse", "HEAD"]:
+            return "head000\n"
+        msg = f"Unexpected git args: {args}"
+        raise AssertionError(msg)
+
+    monkeypatch.setattr(git, "run_git", fake)
+    assert git.fork_point(tmp_path) == "head000"
 
 
 def test_changed_files_since_lists_paths(

@@ -106,7 +106,7 @@
       "alternatives": [
         {
           "instruction": "group-commits-msg.md",
-          "body": "Group the changed files and write one conventional commit message per group for those {n} files, per step {x} (\"{title}\") evolutions of the implementation plan \"{plan_doc}\":\n\n```log\n{files}\n```",
+          "body": "Group the changed files and write one conventional commit message per group for those {n} files, per step {x} (\"{title}\") evolutions of the implementation plan \"{plan_doc}\":\n\n```log\n{files}\n```\n\nThis prompt is the next step of a handed-off workflow: prepare the grouped commit messages in a.commit now, without waiting for a separate go-ahead, because preparing a.commit is the step. The actual commit is separate: it follows the review-and-go-ahead gate of group-commits-msg.md, not run on your own.",
           "context": ["draft", "requirement", "design", "plan", "validation_plan"]
         }
       ]

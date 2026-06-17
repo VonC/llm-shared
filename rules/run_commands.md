@@ -4,7 +4,7 @@ Every shell command costs tokens twice: once for the call, once for its output l
 
 ## File reads never go through an environment wrapper
 
-An environment wrapper such as `senv.bat` is a contract for toolchain commands only: build, check, test, and dependency tooling (`check.bat`, `ghog`, `pytest`, `python`, `uv`). Reading or searching files never needs the project environment:
+An environment wrapper such as `senv.bat` — always at the project root (`%PRJ_DIR%\senv.bat` when `PRJ_DIR` is set, never a copy under `bin\`) — is a contract for toolchain commands only: build, check, test, and dependency tooling (`check.bat`, `ghog`, `pytest`, `python`, `uv`). Reading or searching files never needs the project environment:
 
 - Use the harness file tools (file read, grep/rg search) when the harness has them.
 - Otherwise run a plain direct command (`rg`, `type`, `Get-Content`) with no wrapper.
@@ -14,7 +14,7 @@ An environment wrapper such as `senv.bat` is a contract for toolchain commands o
 
 Never embed a quoted shell inside another quoted shell. A form like `cmd /c "senv.bat && powershell -Command "<script>""` cannot work: `cmd.exe` has no `\"` escaping, so the inner double quotes split the command line, and `$`, `;`, `&&` inside the script are parsed by the wrong shell. The visible symptom is a parse error such as `The term '\' is not recognized` or `'X' is not recognized as an internal or external command`.
 
-- When the project environment is required, chain exactly one simple command: `cmd /d /v:on /c "senv.bat && <one-executable> <plain arguments>"` — no inner double quotes, no `$`, no multi-statement script in the chained part.
+- When the project environment is required, chain exactly one simple command from the project root, where `senv.bat` sits (`%PRJ_DIR%\senv.bat` when `PRJ_DIR` is set, never `bin\senv.bat`): `cmd /d /v:on /c "senv.bat && <one-executable> <plain arguments>"` — no inner double quotes, no `$`, no multi-statement script in the chained part.
 - When a multi-statement PowerShell script is genuinely needed, write it to a temporary `.ps1` file first and run `powershell -ExecutionPolicy Bypass -File <script.ps1>` as the single chained command.
 - When neither form fits, split the work: one command for the environment-bound step, harness file tools for everything else.
 

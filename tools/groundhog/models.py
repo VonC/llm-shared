@@ -9,6 +9,10 @@ child output, and the error type shared by the other groundhog modules.
 Fix: the contract gains the two lifecycle codes of Q32 — a live run to
 wait on (6) and a lost run to relaunch (7) — used by the ``ghog status``
 reporter and the live-run refusal, never by a run's own classification.
+
+Fix: a full run green on tests and coverage that still hides a true
+duration outlier returns the new ``EXIT_DURATION_OUTLIERS`` (8), judged
+last so it never masks a failure or a coverage gap (Q34).
 """
 
 from __future__ import annotations
@@ -23,6 +27,10 @@ EXIT_TEST_FAILURES: Final = 2
 EXIT_COVERAGE_GAP: Final = 3
 EXIT_SUITE_CRASH: Final = 4
 EXIT_SETUP_ERROR: Final = 5
+# A full run green on tests and coverage that still hides a true duration
+# outlier (Q34): a run-classification code judged last, only on an
+# otherwise-green full run, so it never masks a failure or a coverage gap.
+EXIT_DURATION_OUTLIERS: Final = 8
 # Lifecycle codes of the Q32 status contract: a run is live (wait and
 # poll ghog status), or the last run is lost — killed mid-walk or never
 # recorded — and the walk must be relaunched.
@@ -53,6 +61,10 @@ class GroundhogError(Exception):
 class RunStats:
     """Counters accumulated while a pytest child run streams its output.
 
+    Fix: a full run now also keeps each test's call-phase seconds in
+    ``durations`` (Q36), the input the later true-outlier rule judges; any
+    other run never sets the ``--durations`` flags, so the map stays empty.
+
     Attributes:
         total: Number of collected tests, 0 until the collect line is seen.
         done: Number of finished tests.
@@ -62,6 +74,8 @@ class RunStats:
         cov_percent: TOTAL coverage percentage, None until parsed (Q19).
         failed_ids: Node ids of the failing tests, in completion order.
         last_started: The most recent test node ids, the crash context (Q06).
+        durations: Node id to call-phase seconds, parsed from the slowest
+            durations block of a full run; empty on any other run (Q36, Q39).
     """
 
     total: int = 0
@@ -72,6 +86,7 @@ class RunStats:
     cov_percent: float | None = None
     failed_ids: list[str] = field(default_factory=list[str])
     last_started: list[str] = field(default_factory=list[str])
+    durations: dict[str, float] = field(default_factory=dict[str, float])
 
 
 @dataclass(frozen=True)
