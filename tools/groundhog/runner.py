@@ -92,7 +92,8 @@ def pytest_command(
         files: The test files of a ``single`` run.
 
     Returns:
-        The pytest command line, alias-faithful plus ``-v`` for node ids.
+        The pytest command line, alias-faithful plus ``-v`` for node ids;
+        the full run also times every call with ``--durations`` (Q39).
     """
     if sub == SUB_SINGLE:
         return [pytest_exe, "--no-header", "--no-cov", "-rxX", "-v", *files]
@@ -104,6 +105,12 @@ def pytest_command(
     command.extend(
         ["--no-header", "--cov-report", "term-missing:skip-covered", "-v"],
     )
+    if sub == SUB_FULL:
+        # The full run is the only one that sees every test, so it alone
+        # times each call for the outlier rule (Q39): --durations=0 lists
+        # every test and --durations-min=0 keeps even the sub-5ms calls,
+        # so the average covers the whole suite, not only the slow tail.
+        command.extend(["--durations=0", "--durations-min=0"])
     return command
 
 

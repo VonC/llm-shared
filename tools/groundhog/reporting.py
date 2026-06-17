@@ -15,14 +15,22 @@ walk.
 Fix: the module also owns the Q32 lifecycle words — the four ``ghog
 status`` verdicts, the live-run refusal and the detached-walk lines —
 so the status contract reads from one place like the run-state table.
+
+Fix: the duration-outlier feature adds the ``avg=``/``outliers=`` suffix of
+the final progress line and the bar (Q37), the ``outliers=`` key of the
+closing line through :class:`ClosingMetrics`, and the exit-8 next step with
+the floor-override hint (Q47); the windowed list itself is built in
+``durations_report.py`` to keep this module's budget.
 """
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Final
 
 from tools.groundhog.models import (
     EXIT_COVERAGE_GAP,
+    EXIT_DURATION_OUTLIERS,
     EXIT_OBJECTIVE_MET,
     EXIT_TEST_FAILURES,
 )
@@ -31,6 +39,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
 
     from tools.groundhog.baseline import FocusComparison
+    from tools.groundhog.durations import DurationSummary
     from tools.groundhog.models import RunStats
 
 # One progress line per this percentage step (Q04).
@@ -83,6 +92,16 @@ MSG_SINGLE_GREEN: Final = (
 MSG_NO_BASELINE: Final = (
     "no full-run baseline, comparison skipped; run ghog full for suite-level truth"
 )
+# The exit-8 next step (Q47): fix only the calls above the floor, confirm the
+# new time alone, then restart the walk (Q30). Named ghog day, never a
+# standalone re-run before the walk's compile check. Points at the dedicated
+# fix-slow-test instruction so the per-call procedure is acted upon whatever
+# flow ran the walk.
+MSG_OUTLIERS: Final = (
+    "Next: shorten each call listed above the floor (how to: "
+    "<llm-shared>/instructions/fix_slow_test.md), confirm it alone with "
+    "ghog single <file>, then ghog day to re-measure the whole suite"
+)
 # Lifecycle verdicts of the ghog status reporter (Q32).
 MSG_STATUS_NONE: Final = "ghog: no run recorded in a.ghog.status - Next: ghog day"
 MSG_STATUS_RUNNING: Final = (
@@ -110,6 +129,28 @@ _MSG_CRASH_INSTRUCTION: Final = (
 COV_SKIPPED: Final = "skipped"
 COV_WITHHELD: Final = "withheld"
 COV_UNREAD: Final = "unread"
+# Outlier placeholders of the closing line (Q37): skipped on a run that times
+# no calls (any subcommand but full), withheld while a failure or a crash
+# hides the timing verdict (outliers judged last), else the count.
+OUTLIERS_SKIPPED: Final = "skipped"
+OUTLIERS_WITHHELD: Final = "withheld"
+
+
+@dataclass(frozen=True)
+class ClosingMetrics:
+    """The cov= and outliers= values carried by the closing line (Q16, Q37).
+
+    Kept as one value object so the closing line stays within the project's
+    five-argument limit; the simple callers pass only the coverage value and
+    let the outlier value default to ``skipped``.
+
+    Attributes:
+        cov: The ``cov=`` value, from :func:`cov_text`.
+        outliers: The ``outliers=`` value, from :func:`outliers_text`.
+    """
+
+    cov: str
+    outliers: str = OUTLIERS_SKIPPED
 
 
 class ProgressGovernor:
@@ -165,21 +206,71 @@ def format_percent(value: float) -> str:
     return format(value, "g")
 
 
-def progress_line(sub_label: str, stats: RunStats) -> str:
+def progress_line(
+    sub_label: str,
+    stats: RunStats,
+    summary: DurationSummary | None = None,
+) -> str:
     """Build one LLM-mode progress line (Q16).
+
+    The live lines carry no timing; the final line of a full run is given the
+    summary, so it alone appends the ``avg=``/``outliers=`` verdict (Q37).
 
     Args:
         sub_label: The subcommand label, such as ``full``.
         stats: The counters parsed so far.
+        summary: The duration verdict for the final line, or ``None``.
 
     Returns:
         The key=value progress line.
     """
     percent = stats.done * 100 // stats.total if stats.total > 0 else 0
-    return (
+    line = (
         f"ghog {sub_label}: {percent}% ({stats.done}/{stats.total}) "
         f"fail={stats.failed} warn={stats.warnings} xfail={stats.xfailed}"
     )
+    if summary is None:
+        return line
+    return f"{line} {progress_suffix(summary)}"
+
+
+def progress_suffix(summary: DurationSummary) -> str:
+    """Build the ``avg=``/``outliers=`` suffix of the final line and bar (Q37).
+
+    Args:
+        summary: The duration verdict of the full run.
+
+    Returns:
+        The ``avg=<mean call seconds>s outliers=<count>`` suffix; the mean is
+        over the non-outlier calls, so one slug never drags the average up.
+    """
+    return f"avg={summary.average:.3f}s outliers={len(summary.outliers)}"
+
+
+def outliers_text(
+    stats: RunStats,
+    summary: DurationSummary | None,
+    *,
+    measured: bool,
+) -> str:
+    """Build the ``outliers=`` value of the closing line (Q37).
+
+    Args:
+        stats: The final counters of the run.
+        summary: The duration verdict, or ``None`` when none was formed.
+        measured: Whether the run times its calls (a ``full`` run, Q39).
+
+    Returns:
+        ``skipped`` when no calls are timed, ``withheld`` while a failure
+        hides the verdict (outliers judged last), else the outlier count.
+    """
+    if not measured:
+        return OUTLIERS_SKIPPED
+    if stats.failed > 0:
+        return OUTLIERS_WITHHELD
+    if summary is None:
+        return OUTLIERS_SKIPPED
+    return str(len(summary.outliers))
 
 
 def cov_text(stats: RunStats, *, measured: bool) -> str:
@@ -208,7 +299,7 @@ def closing_line(
     sub_label: str,
     stats: RunStats,
     exit_code: int,
-    cov_value: str,
+    metrics: ClosingMetrics,
 ) -> str:
     """Build the closing done line merging the alias echo and the keys.
 
@@ -217,7 +308,7 @@ def closing_line(
         sub_label: The subcommand label, such as ``full``.
         stats: The final counters of the run.
         exit_code: The groundhog exit code (Q12).
-        cov_value: The ``cov=`` value, from :func:`cov_text`.
+        metrics: The ``cov=`` and ``outliers=`` values (Q16, Q37).
 
     Returns:
         The closing key=value line (Q16).
@@ -225,7 +316,7 @@ def closing_line(
     return (
         f"{project}: ghog {sub_label} done fail={stats.failed} "
         f"warn={stats.warnings} xfail={stats.xfailed} "
-        f"cov={cov_value} exit={exit_code}"
+        f"cov={metrics.cov} outliers={metrics.outliers} exit={exit_code}"
     )
 
 
@@ -292,12 +383,17 @@ def crash_block(stats: RunStats, tail: Sequence[str]) -> list[str]:
     return lines
 
 
-def next_after_full(exit_code: int, failing_files: Sequence[str]) -> list[str]:
+def next_after_full(
+    exit_code: int,
+    failing_files: Sequence[str],
+    summary: DurationSummary | None = None,
+) -> list[str]:
     """Build the next-step lines after a ``ghog full`` run.
 
     Args:
         exit_code: The groundhog exit code of the run.
         failing_files: The unique failing test files, for the focus hint.
+        summary: The duration verdict, for the floor-override hint on exit 8.
 
     Returns:
         The next-step lines of the run-state table.
@@ -307,9 +403,28 @@ def next_after_full(exit_code: int, failing_files: Sequence[str]) -> list[str]:
         return [f"Next: ghog single {files}".rstrip()]
     if exit_code == EXIT_COVERAGE_GAP:
         return [MSG_COVERAGE_GAP]
+    if exit_code == EXIT_DURATION_OUTLIERS:
+        return [MSG_OUTLIERS, _override_hint(summary)]
     if exit_code == EXIT_OBJECTIVE_MET:
         return [MSG_FULL_OK]
     return []
+
+
+def _override_hint(summary: DurationSummary | None) -> str:
+    """Build the floor-override escape shown beside the outlier next step (Q47).
+
+    Args:
+        summary: The duration verdict, for the active floor in the hint.
+
+    Returns:
+        The hint naming the line-2 override of ``a.ghog.outliers`` for a call
+        that must stay slow, with the active floor it has to clear.
+    """
+    floor_secs = summary.floor if summary is not None else 0.0
+    return (
+        "A call that must stay slow is not a bug: raise line 2 of "
+        f"a.ghog.outliers above {floor_secs:.2f}s (the override), not shorten it"
+    )
 
 
 def next_after_affected_cov(exit_code: int) -> list[str]:
