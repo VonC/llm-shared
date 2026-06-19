@@ -6,7 +6,7 @@ release. The groundhog test loop (ghog), the prompt-workflow cycle (pw),
 and the commit and changelog helpers are mutualized across sibling
 projects.
 
-## [v0.5.0-SNAPSHOT unreleased] A draft walks in, an effort walks out - 5dbd8dc95e17bd6e10c4d60cd507e792a9a61bcd
+## [v0.5.0] - 2026-06-20 - A draft walks in, an effort walks out
 
 process-draft names the draft, new_draft renames and branches it
 
@@ -62,6 +62,7 @@ project version.
 ### 📚 Documentation (v0.5.0)
 
 - *(process-draft)* Add the process-draft skill
+- *(release)* Prepare v0.5.0 notes and changelog
 
 ### 🔨 Build (v0.5.0)
 
