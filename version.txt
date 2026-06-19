@@ -1,4 +1,4 @@
-0.5.0-SNAPSHOT -- A draft walks in, an effort walks out
+0.5.0 -- A draft walks in, an effort walks out
 
 process-draft names the draft, new_draft renames and branches it
 
