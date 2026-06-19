@@ -1,0 +1,12 @@
+#!/bin/perl
+# .changelog.fixes
+
+# PERL_CODE
+
+# Wrap the _main worktree suffix in backticks.
+push @patterns, qr/ _main /;
+push @replacements, '" `_main` "';
+
+# Wrap the draft filename pattern in backticks.
+push @patterns, qr/(?<!`)draft\.vX\.Y\.Z\.<slug>\.md/;
+push @replacements, '"`draft.vX.Y.Z.<slug>.md`"';
