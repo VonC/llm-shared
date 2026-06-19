@@ -1,7 +1,8 @@
 """Tests for the pure new_draft models: version, slug, paths, and skeleton.
 
-Cover semantic-version parsing and bumping, the pyproject version read/replace,
-slug validation, the worktree directory-name rule, and the draft skeleton text.
+Cover semantic-version parsing and bumping, the pyproject version read, the
+version.txt version read shared with the process-draft flow, slug validation,
+the worktree directory-name rule, and the draft skeleton text.
 """
 
 from __future__ import annotations
@@ -53,6 +54,30 @@ def test_read_pyproject_version_missing_raises() -> None:
         models.read_pyproject_version('[project]\nname = "x"\n')
 
 
+def test_read_version_txt_reads_first_token() -> None:
+    """read_version_txt takes the first whitespace-separated token of line one."""
+    content = "0.4.0 -- One command starts the next effort\n\nmore body\n"
+    assert models.read_version_txt(content) == models.SemanticVersion(0, 4, 0)
+
+
+def test_read_version_txt_strips_snapshot_suffix() -> None:
+    """read_version_txt drops a trailing -SNAPSHOT before parsing, any case."""
+    assert models.read_version_txt(
+        "1.2.0-SNAPSHOT -- title\n",
+    ) == models.SemanticVersion(1, 2, 0)
+    assert models.read_version_txt("1.2.0-snapshot\n") == models.SemanticVersion(
+        1,
+        2,
+        0,
+    )
+
+
+def test_read_version_txt_empty_first_line_raises() -> None:
+    """read_version_txt raises when the first line carries no token."""
+    with pytest.raises(models.NewDraftError, match="No version token"):
+        models.read_version_txt("\n0.4.0\n")
+
+
 def test_validate_slug_accepts_and_trims() -> None:
     """validate_slug trims surrounding whitespace and accepts hyphen/underscore."""
     assert models.validate_slug("  my_slug-2  ") == "my_slug-2"
@@ -84,7 +109,9 @@ def test_worktree_dir_name_without_underscore() -> None:
 def test_compute_worktree_path_is_sibling() -> None:
     """compute_worktree_path places the worktree next to the project root."""
     root = Path("/repos/llm-shared_main")
-    assert models.compute_worktree_path(root, "topic") == Path("/repos/llm-shared_topic")
+    assert models.compute_worktree_path(root, "topic") == Path(
+        "/repos/llm-shared_topic",
+    )
 
 
 def test_draft_skeleton_has_unique_sections_and_metadata() -> None:

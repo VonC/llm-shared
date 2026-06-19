@@ -6,10 +6,16 @@ version, creates a branch (and optionally a sibling worktree), bumps
 development effort starts already isolated.
 
 This module holds the side-effect-free pieces so they stay unit-testable:
-semantic-version parsing and bumping, the `pyproject.toml` version read/replace,
-slug validation, the worktree directory-name rule, and the draft skeleton text.
-Anything that touches Git, the filesystem, or the terminal lives in the
-companion modules (`new_draft_git`, `new_draft_workflow`, `new_draft_prompts`).
+semantic-version parsing and bumping, the `pyproject.toml` version read, the
+`version.txt` version read used by the `process-draft` flow, slug validation, the
+worktree directory-name rule, and the draft skeleton text. Anything that touches
+Git, the filesystem, or the terminal lives in the companion modules
+(`new_draft_git`, `new_draft_workflow`, `new_draft_prompts`).
+
+Fix: add `read_version_txt` so the `process-draft` instruction and the
+`--from-draft` tool mode read the current version from `version.txt` through one
+parser (first token of the first line, with a trailing `-SNAPSHOT` dropped),
+instead of each restating the rule.
 """
 
 from __future__ import annotations
@@ -33,6 +39,10 @@ _SLUG_RE = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
 # matches a dependency pin such as `"ty>=0.0.30"`. The version is read only (to
 # propose a bump and name the draft); `pyproject.toml` itself is never rewritten.
 _VERSION_RE = re.compile(r'(?m)^version\s*=\s*"(?P<version>\d+\.\d+\.\d+)"')
+
+# The trailing pre-release marker dropped from a `version.txt` token before
+# parsing, matched case-insensitively so `-SNAPSHOT` and `-snapshot` both go.
+_SNAPSHOT_SUFFIX_RE = re.compile(r"-snapshot$", re.IGNORECASE)
 
 
 class NewDraftError(Exception):
@@ -111,6 +121,34 @@ def read_pyproject_version(content: str) -> SemanticVersion:
     return SemanticVersion.parse(match.group("version"))
 
 
+def read_version_txt(content: str) -> SemanticVersion:
+    """Read the current version from the first line of `version.txt` text.
+
+    The first whitespace-separated token of the first line is taken as the
+    version, and a trailing `-SNAPSHOT` marker (any case) is dropped before
+    parsing, so a first line of `1.2.0-SNAPSHOT -- title` yields `1.2.0`. This
+    is the one parser the `process-draft` instruction and the `--from-draft`
+    tool mode share, so both read the file the same way.
+
+    Args:
+        content: The full `version.txt` text.
+
+    Returns:
+        The parsed current SemanticVersion.
+
+    Raises:
+        NewDraftError: When the first line carries no token, or the token is not
+            a MAJOR.MINOR.PATCH version.
+    """
+    lines = content.splitlines()
+    tokens = lines[0].split() if lines else []
+    if not tokens:
+        msg = "No version token on the first line of version.txt."
+        raise NewDraftError(msg)
+    cleaned = _SNAPSHOT_SUFFIX_RE.sub("", tokens[0])
+    return SemanticVersion.parse(cleaned)
+
+
 def validate_slug(raw: str) -> str:
     """Validate and normalize a user-entered slug.
 
@@ -152,7 +190,11 @@ def worktree_dir_name(project_root_name: str, slug: str) -> str:
     Returns:
         The directory name for the new worktree.
     """
-    base = project_root_name.rsplit("_", 1)[0] if "_" in project_root_name else project_root_name
+    base = (
+        project_root_name.rsplit("_", 1)[0]
+        if "_" in project_root_name
+        else project_root_name
+    )
     return f"{base}_{slug}"
 
 
