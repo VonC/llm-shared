@@ -6,6 +6,67 @@ release. The groundhog test loop (ghog), the prompt-workflow cycle (pw),
 and the commit and changelog helpers are mutualized across sibling
 projects.
 
+## [v0.5.0-SNAPSHOT unreleased] A draft walks in, an effort walks out - 5dbd8dc95e17bd6e10c4d60cd507e792a9a61bcd
+
+process-draft names the draft, new_draft renames and branches it
+
+- No prompts, just flags
+  -- --from-draft takes the slug, version, and layout the reader gathered
+- Even an unsaved draft makes the move
+  -- git mv in place, a staged copy into the worktree, the old file dropped
+
+v0.5.0 turns a rough draft into a named, versioned effort on its own
+branch. The new process-draft skill runs the first pass a reader has to
+do: it decides whether the draft is one feature-request, one issue, or
+several, writes that type into the draft, proposes three titles and three
+slugs, and picks the version from version.txt. It then hands the
+mechanical half to new_draft, which gains a non-interactive --from-draft
+mode: given the chosen slug, version, and a --worktree or --in-place
+layout, it checks the slug against local and remote branches, creates the
+branch with git switch -c, and renames the draft to `draft.vX.Y.Z.<slug>.md`
+inside the chosen tree. process-draft then hands off to write-requirement
+for one topic or split-and-define for several.
+
+The draft moves whether or not it is committed. In the current tree a
+tracked draft is a git mv and an untracked one a plain rename; for a
+sibling worktree the text is written into the worktree docs, staged, and
+the source dropped. A shared read_version_txt parser, read by both the
+instruction and the tool, takes the version from the first line of
+version.txt and drops a trailing -SNAPSHOT, so the two never disagree. A
+build fix also syncs uv.lock, which had lagged behind the released
+project version.
+
+### Key changes for v0.5.0 (v0.5.0)
+
+- **process-draft scaffolds the first pass**: the skill classifies a
+  draft as one feature-request, one issue, or a collection, records the
+  type, proposes three titles and three slugs, picks the version from
+  version.txt, and hands off to write-requirement or split-and-define.
+
+- **new_draft gains a --from-draft mode**: a non-interactive run takes an
+  existing draft, a slug, a version, and a --worktree or --in-place
+  layout, checks the slug against local and remote branches, creates the
+  branch with git switch -c, and renames the draft inside the chosen tree.
+
+- **The draft relocates in place or into a worktree**: a tracked draft
+  moves with git mv and an untracked one with a plain rename; a worktree
+  run writes the text into the worktree docs, stages it, and drops the
+  source, so an uncommitted draft still moves across.
+
+### 🚀 Features (v0.5.0)
+
+- *(new_draft)* Read the version from version.txt
+- *(new_draft)* Add draft relocation git helpers
+- *(new_draft)* Add the --from-draft mode
+
+### 📚 Documentation (v0.5.0)
+
+- *(process-draft)* Add the process-draft skill
+
+### 🔨 Build (v0.5.0)
+
+- *(uv)* Sync uv.lock to the 0.4.0 release
+
 ## [v0.4.0] - 2026-06-18 - One command starts the next effort
 
 new_draft checks the slug, proposes the version, writes the draft
@@ -45,7 +106,7 @@ subject opener on reflowed lines.
   paths, so a renamed file no longer leaves the count one short.
 
 - **Launcher and subject cleanups**: pw.bat becomes prompt_workflow.bat
-  with a venv glob that resolves in the _main worktree, and wrap-commit
+  with a venv glob that resolves in the `_main` worktree, and wrap-commit
   strips the backticks from a type(scope): subject opener on reflowed
   lines.
 
