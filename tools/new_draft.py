@@ -8,8 +8,15 @@ declared remote, creates the branch (optionally inside a sibling
 skeleton so the effort starts already isolated. The chosen version only labels
 the draft and its filename; `pyproject.toml` is left untouched.
 
+The non-interactive `--from-draft` mode, used by the `process-draft`
+instruction, skips the prompts: it takes an existing draft, a slug, a version,
+and a layout, then creates the branch and renames the draft into the chosen
+tree.
+
 Usage:
     python new_draft.py [--root <repo-root>]
+    python new_draft.py --from-draft <draft.md> --slug <slug>
+        [--version X.Y.Z] (--worktree | --in-place) [--root <repo-root>]
 
 This file is the thin script hub: it bootstraps the import path and delegates to
 `tools.new_draft_workflow`, which holds the workflow logic.
