@@ -1,8 +1,9 @@
-"""Tests for the new_draft git helpers: branch checks and creation.
+"""Tests for the new_draft git helpers: branch checks, creation, and relocation.
 
-Cover the local/remote-tracking branch collision check and the mutating helpers
-(`create_local_branch`, `add_worktree`), including the non-zero-exit error path
-with and without captured stderr. `run_cross_platform_git_command` is
+Cover the local/remote-tracking branch collision check, the mutating helpers
+(`create_local_branch`, `add_worktree`), and the --from-draft relocation helpers
+(`path_is_tracked`, `git_move`, `stage_path`), including the non-zero-exit error
+path with and without captured stderr. `run_cross_platform_git_command` is
 monkeypatched so no real repository is touched.
 """
 
@@ -252,7 +253,10 @@ def test_create_local_branch_failure_raises(
 
     monkeypatch.setattr(git, "run_cross_platform_git_command", fake_run)
 
-    with pytest.raises(NewDraftError, match="switch -c myslug failed: fatal: already exists"):
+    with pytest.raises(
+        NewDraftError,
+        match="switch -c myslug failed: fatal: already exists",
+    ):
         git.create_local_branch("myslug", cwd=tmp_path)
 
 
@@ -300,6 +304,121 @@ def test_add_worktree_failure_without_stderr_raises(
 
     with pytest.raises(NewDraftError, match=r"worktree add .* failed\.$"):
         git.add_worktree(tmp_path / "wt", "myslug", cwd=tmp_path)
+
+
+def test_path_is_tracked_true(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """path_is_tracked is True when `ls-files --error-unmatch` exits zero."""
+
+    def fake_run(
+        git_args: list[str],
+        *,
+        cwd: Path | None = None,
+        options: object = None,
+    ) -> subprocess.CompletedProcess[str]:
+        del git_args, cwd, options
+        return _completed("docs/draft.md\n")
+
+    monkeypatch.setattr(git, "run_cross_platform_git_command", fake_run)
+
+    assert git.path_is_tracked(tmp_path / "docs" / "draft.md", cwd=tmp_path) is True
+
+
+def test_path_is_tracked_false(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """path_is_tracked is False when `ls-files --error-unmatch` exits non-zero."""
+
+    def fake_run(
+        git_args: list[str],
+        *,
+        cwd: Path | None = None,
+        options: object = None,
+    ) -> subprocess.CompletedProcess[str]:
+        del git_args, cwd, options
+        return _completed("", returncode=1, stderr="did not match any file(s)")
+
+    monkeypatch.setattr(git, "run_cross_platform_git_command", fake_run)
+
+    assert git.path_is_tracked(tmp_path / "docs" / "draft.md", cwd=tmp_path) is False
+
+
+def test_git_move_success(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """git_move runs `mv <source> <target>` on success."""
+    calls: list[list[str]] = []
+
+    def fake_run(
+        git_args: list[str],
+        *,
+        cwd: Path | None = None,
+        options: object = None,
+    ) -> subprocess.CompletedProcess[str]:
+        del cwd, options
+        calls.append(list(git_args))
+        return _completed("")
+
+    monkeypatch.setattr(git, "run_cross_platform_git_command", fake_run)
+    source = tmp_path / "docs" / "old.md"
+    target = tmp_path / "docs" / "new.md"
+
+    git.git_move(source, target, cwd=tmp_path)
+
+    assert ["mv", str(source), str(target)] in calls
+
+
+def test_git_move_failure_raises(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """git_move raises NewDraftError with the captured stderr detail."""
+
+    def fake_run(
+        git_args: list[str],
+        *,
+        cwd: Path | None = None,
+        options: object = None,
+    ) -> subprocess.CompletedProcess[str]:
+        del git_args, cwd, options
+        return _completed("", returncode=1, stderr="fatal: not under version control")
+
+    monkeypatch.setattr(git, "run_cross_platform_git_command", fake_run)
+
+    with pytest.raises(
+        NewDraftError,
+        match=r"mv .* failed: fatal: not under version control",
+    ):
+        git.git_move(tmp_path / "a.md", tmp_path / "b.md", cwd=tmp_path)
+
+
+def test_stage_path_success(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """stage_path runs `add -- <path>` on success."""
+    calls: list[list[str]] = []
+
+    def fake_run(
+        git_args: list[str],
+        *,
+        cwd: Path | None = None,
+        options: object = None,
+    ) -> subprocess.CompletedProcess[str]:
+        del cwd, options
+        calls.append(list(git_args))
+        return _completed("")
+
+    monkeypatch.setattr(git, "run_cross_platform_git_command", fake_run)
+    path = tmp_path / "docs" / "draft.md"
+
+    git.stage_path(path, cwd=tmp_path)
+
+    assert ["add", "--", str(path)] in calls
 
 
 # eof
