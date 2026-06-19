@@ -10,6 +10,13 @@ workflow can report a clean message instead of a raw traceback.
 The branch-collision check looks at local heads first, then at every declared
 remote with `git ls-remote --heads` (not just `origin`). When no remote is
 configured there is nothing to query, so only the local check runs.
+
+Fix: add the file helpers the `--from-draft` mode needs to relocate a draft into
+the chosen working tree: `path_is_tracked` (does Git track this path here),
+`git_move` (a staged `git mv` for the in-place rename), and `stage_path` (a
+`git add` used both to stage the copy in a worktree and to stage the source
+removal). The filesystem read/write and the choice between these stays in the
+workflow; this module only runs the Git side.
 """
 
 from __future__ import annotations
@@ -122,6 +129,53 @@ def add_worktree(worktree_path: Path, slug: str, *, cwd: Path) -> None:
         cwd=cwd,
         action=f"worktree add {worktree_path}",
     )
+
+
+def path_is_tracked(path: Path, *, cwd: Path) -> bool:
+    """Return whether Git tracks `path` in the `cwd` working tree.
+
+    Args:
+        path: The file path to test.
+        cwd: The working directory whose index is consulted.
+
+    Returns:
+        True when `git ls-files --error-unmatch` exits zero for the path, which
+        means the path is tracked; False otherwise.
+    """
+    result = _git(["ls-files", "--error-unmatch", "--", str(path)], cwd=cwd)
+    return result.returncode == 0
+
+
+def git_move(source: Path, target: Path, *, cwd: Path) -> None:
+    """Rename a tracked file with `git mv`, staging the rename.
+
+    Args:
+        source: The tracked file to rename.
+        target: The new path for the file.
+        cwd: The working directory for the command.
+
+    Raises:
+        NewDraftError: When `git mv` exits with a non-zero code.
+    """
+    _git_strict(
+        ["mv", str(source), str(target)],
+        cwd=cwd,
+        action=f"mv {source} -> {target}",
+    )
+
+
+def stage_path(path: Path, *, cwd: Path) -> None:
+    """Stage a path with `git add`, whether it was added, changed, or removed.
+
+    Args:
+        path: The path to stage; `git add` records a copy or, when the file is
+            now missing, the deletion of a tracked path.
+        cwd: The working directory for the command.
+
+    Raises:
+        NewDraftError: When `git add` exits with a non-zero code.
+    """
+    _git_strict(["add", "--", str(path)], cwd=cwd, action=f"add {path}")
 
 
 # eof
