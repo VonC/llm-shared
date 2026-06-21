@@ -19,8 +19,11 @@ Exactly one of three mutually exclusive modes must be selected:
 - ``--create``: create the companion file at the project root, truncating it
   back to empty when it already exists.
 - ``--strip``: remove from the document the first line matching
-  ``^## Open questions.*$`` and every line after it (truncate at the marker).
-  When no such line is found the document is left untouched.
+  ``^## Open questions.*$`` and every line after it (truncate at the marker),
+  then collapse any trailing blank lines so the document ends with a single
+  newline rather than a run of blank lines that would trip the
+  MD012/no-multiple-blanks markdown rule. When no such line is found the
+  document is left untouched.
 - ``--append``: append the companion's ``## Open questions`` section (the first
   line matching ``^## Open questions.*$`` and every line after it) to the
   document, keeping exactly one empty line between the document's last
@@ -151,19 +154,27 @@ def _resolve_doc(root: Path, name: str) -> Path:
 def _strip_open_questions(text: str) -> tuple[str, bool]:
     """Remove the open-questions section from a document body.
 
+    The text kept before the marker is right-trimmed of trailing blank or
+    whitespace-only lines and closed with a single newline, so a marker
+    preceded by one or more blank lines never strips down to a document ending
+    in a run of blank lines (which would trip the MD012/no-multiple-blanks
+    markdown rule).
+
     Args:
         text: The full document text.
 
     Returns:
         A tuple ``(new_text, changed)``. When a marker line is found,
-        ``new_text`` holds every line before it and ``changed`` is ``True``.
-        Otherwise the original text is returned with ``changed`` set to
-        ``False``.
+        ``new_text`` holds every line before it, right-trimmed to a single
+        trailing newline (or the empty string when nothing precedes the
+        marker), and ``changed`` is ``True``. Otherwise the original text is
+        returned with ``changed`` set to ``False``.
     """
     lines = text.splitlines(keepends=True)
     for index, line in enumerate(lines):
         if MARKER_PATTERN.match(line.rstrip("\r\n")):
-            return "".join(lines[:index]), True
+            body = "".join(lines[:index]).rstrip()
+            return (f"{body}\n" if body else ""), True
     return text, False
 
 

@@ -8,11 +8,14 @@ mutually exclusive modes: ``--create``, ``--strip`` and ``--append``.
 These tests cover the pure helpers (version extraction, companion naming,
 section strip/extract/append), the document lookup under ``docs`` and
 ``docs/<vX.Y.Z>``, and the three CLI modes including their fatal preconditions.
-The shared ``find_project_root`` helper is monkeypatched to a temporary project
-root so the tool stays self-contained, mirroring the EOF tool tests. The
-``__main__`` script guard is run with ``runpy`` for both the success exit and the
-fatal exit through ``_log_fatal``, and the append helper is covered for a section
-with no trailing newline.
+The strip helper is also checked for the trailing-blank collapse that keeps a
+single newline at the end (so the stripped document does not trip the
+MD012/no-multiple-blanks rule) and for the marker-at-start case that strips to an
+empty string. The shared ``find_project_root`` helper is monkeypatched to a
+temporary project root so the tool stays self-contained, mirroring the EOF tool
+tests. The ``__main__`` script guard is run with ``runpy`` for both the success
+exit and the fatal exit through ``_log_fatal``, and the append helper is covered
+for a section with no trailing newline.
 """
 
 from __future__ import annotations
@@ -130,6 +133,35 @@ def test_strip_open_questions_no_marker_is_unchanged() -> None:
     # Assert
     assert new_text == text
     assert changed is False
+
+
+def test_strip_open_questions_collapses_trailing_blank_lines() -> None:
+    """A marker preceded by blank lines strips to a single trailing newline.
+
+    Without the collapse, the kept text would end with a run of blank lines and
+    trip the MD012/no-multiple-blanks markdown rule.
+    """
+    # Arrange: two blank lines sit between the body and the marker.
+    text = "body.\n\n\n## Open questions\n\nq\n"
+
+    # Act
+    new_text, changed = open_questions_md._strip_open_questions(text)
+
+    # Assert: exactly one trailing newline, no blank-line run at the end.
+    assert new_text == "body.\n"
+    assert changed is True
+
+
+def test_strip_open_questions_marker_at_start_yields_empty() -> None:
+    """A marker on the first line strips the document down to an empty string."""
+    # Act
+    new_text, changed = open_questions_md._strip_open_questions(
+        "## Open questions\nq\n",
+    )
+
+    # Assert
+    assert new_text == ""
+    assert changed is True
 
 
 def test_extract_section_returns_from_marker() -> None:
@@ -292,7 +324,12 @@ def test_strip_truncates_document_at_marker(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    """--strip removes the marker line and everything after it."""
+    """--strip removes the marker line and everything after it.
+
+    The blank line that separated the body from the marker is collapsed, so the
+    stripped document ends with a single trailing newline instead of a blank
+    line that would trip MD012/no-multiple-blanks.
+    """
     # Arrange
     _patch_root(monkeypatch, tmp_path)
     content = "# Design\n\nBody line.\n\n## Open questions for v1.2.3\n\n### Q01: foo\n"
@@ -303,7 +340,7 @@ def test_strip_truncates_document_at_marker(
 
     # Assert
     assert exit_code == 0
-    assert doc.read_text(encoding="utf-8") == "# Design\n\nBody line.\n\n"
+    assert doc.read_text(encoding="utf-8") == "# Design\n\nBody line.\n"
 
 
 def test_strip_without_marker_leaves_document_untouched(
@@ -335,9 +372,9 @@ def test_append_adds_section_after_one_empty_line(
 ) -> None:
     """--append concatenates the companion section after one empty line.
 
-    The document here already ends with trailing blank lines (as --strip would
-    leave it); those collapse so a single empty line separates the body from
-    the appended section.
+    The document here ends with a trailing blank line; append collapses any
+    trailing blanks so a single empty line separates the body from the appended
+    section.
     """
     # Arrange
     _patch_root(monkeypatch, tmp_path)
