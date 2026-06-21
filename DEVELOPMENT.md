@@ -399,8 +399,9 @@ related items in the
 
 ## Review loop for each requirement document
 
-The same loop is used later on the design document and, if needed, on the plan
-document. Only the input document changes.
+The same loop is used later on the design document and again on the plan
+document (the plain plan, not the validation plan). Only the input document
+changes.
 
 This loop is the document-side half of LLM self-review (see
 [Why LLM self-review matters](#why-llm-self-review-matters)): each
@@ -476,11 +477,12 @@ as open questions before they become code.
            |  /write-plans
            v
    +---------------------------------+
-   |  docs\plan.vX.Y.Z.<topic>.md    |
-   |    (execution plan)             |----+
-   |  docs\plan.vX.Y.Z.<topic>.      |    |  /review-ask-questions
-   |       validation.md             |    |  /consolidate-then-review-...
-   |    (validation template)        |<---+  (optional, if open Qs remain)
+   |  docs\plan.vX.Y.Z.<topic>.md    |----+
+   |    (execution plan)             |    |  /review-ask-questions
+   |                                 |<---+  /consolidate-then-review-...
+   |  docs\plan.vX.Y.Z.<topic>.      |       (loop on the plan document only,
+   |       validation.md             |        until it is stable; the
+   |    (validation template)        |        validation plan is not reviewed)
    +-------+-------------------------+
            |
            |  plan ready for step-by-step execution
@@ -505,8 +507,12 @@ as open questions before they become code.
 8. The same skill also creates
   `docs\plan.vX.Y.Z.<topic>.validation.md`, which is the implementation
   validation document updated later by the execution and checking steps.
-9. If the plan still has open implementation questions, run the same
-  review-and-consolidation loop on the plan document before coding.
+9. Run the same review-and-consolidation loop on the plan document  --  the
+  plain plan, not the validation plan  --  before coding: `/review-ask-questions`
+  then `/consolidate-then-review-ask-questions`, looping until no implementation
+  questions remain. The `pw` workflow wires this as steps 8 and 9, between
+  `/write-plans` (step 7) and the first `/implement-step` (step 10), so a plan is
+  always reviewed the way the requirement and design are.
 
 ## Conventional commit message template: why and what beyond changelog
 
