@@ -6,6 +6,60 @@ release. The groundhog test loop (ghog), the prompt-workflow cycle (pw),
 and the commit and changelog helpers are mutualized across sibling
 projects.
 
+## [v0.6.0-SNAPSHOT unreleased] No Console, No Hang - ff102a7fb199230664741a55c50d397b7d1d4085
+
+git_batch_commit commits from a background shell now
+
+- No console, no problem
+  -- git_batch_commit detects the missing TTY or takes --non-interactive
+- A failed batch stops, it no longer hangs
+  -- stdin goes to DEVNULL and a non-zero exit replaces the input() prompt
+
+v0.6.0 lets an agent run the batch-commit tool from a background shell.
+git_batch_commit used to demand a real terminal: it asked for a console
+before git commit, then prompted on a failure, so an agent in a
+-NonInteractive, auto-backgrounded shell first hit a console error and
+then hung at the continue/stop prompt with no way to answer. The tool now
+treats the run as non-interactive when --non-interactive is passed or no
+console is attached: it commits without a TTY and with stdin detached, and
+it stops a failed batch with a non-zero exit instead of calling input().
+
+The rest of the release trims the test suite. Two test files had crossed
+the 650-line gate that the check.bat big-files step rejects, so they are
+split by topic into smaller files, each with a single responsibility.
+Several real-git integration tests spent whole seconds spawning redundant
+git config processes; they now take their identity from the GIT_AUTHOR_*
+and GIT_COMMITTER_* env vars, so the config spawns are gone and the full
+suite passes the check gate at 100% coverage.
+
+### Key changes for v0.6.0 (v0.6.0)
+
+- **Non-interactive batch commits**: git_batch_commit runs in a background
+  shell, commits with no TTY and detached stdin, and exits non-zero on a
+  git or add-phase failure instead of prompting at the continue/stop step.
+
+- **Test files under the size gate**: test_new_draft_workflow.py and
+  test_wrap_commit.py are split by topic, each resulting file back under
+  the 650-line limit with a single responsibility.
+
+- **Faster real-git tests**: the throwaway repositories take their commit
+  identity from GIT_AUTHOR_*/GIT_COMMITTER_* env vars, dropping the
+  per-repo git config subprocess calls that dominated their setup time.
+
+### 🚀 Features (v0.6.0)
+
+- *(git_batch_commit)* Add non-interactive mode
+
+### 🧪 Testing (v0.6.0)
+
+- *(new_draft)* Split workflow tests by topic
+- *(wrap_commit)* Split wraplist tests out
+- *(integration)* Speed up real-git tests
+
+### ⚙️ Miscellaneous Tasks (v0.6.0)
+
+- *(release)* Prepare v0.6.0
+
 ## [v0.5.0] - 2026-06-20 - A draft walks in, an effort walks out
 
 process-draft names the draft, new_draft renames and branches it
