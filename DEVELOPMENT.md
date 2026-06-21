@@ -685,50 +685,67 @@ fully completed implementation step.
 ## Step execution loop from the plan
 
 ```txt
-   +---------------------------------+
-   |  docs\plan.vX.Y.Z.<topic>.md    |
-   |  pick next unchecked step N     |
-   +-------+-------------------------+
-           |
-           |  /implement-step N
-           v
-   +---------------------------------+
-   |  code + tests for step N        |
-   +-------+-------------------------+
-           |
-           |  ruffc                  (lint pass)
-           |  ptanc                  (focused tests pass/fail)
-           |  pts <path>             (single test, when needed)
-           |  ptr / ghog day         (full pass, budgeted output)
-           v
-   +---------------------------------+
-   |  step N green                   |
-   +-------+-------------------------+
-           |
-           |  /implementation-check N
-           |  (updates ...validation.md,
-           |   flags smells, dep issues,
-           |   hot-path risks)
-           v
-   +---------------------------------+
-   |  step N validated               |
-   +-------+-------------------------+
-           |
-           |  grouped commit loop
-           |  gp (git push)
-           v
-   +---------------------------------+
-   |  step N committed and pushed    |----+  more steps?
-   |                                 |    |  yes -> /implement-step
-   |                                 |<---+  (loop)
-   +-------+-------------------------+
-           |
-           |  last step done
-           v
-   +---------------------------------+
-   |  branch ready to merge          |
-   +---------------------------------+
+                +---------------------------------+
+                |  docs\plan.vX.Y.Z.<topic>.md    |
+                |  pick next unchecked step N     |
+                +-------+-------------------------+
+                        |
+                        |  /implement-step N   (starts the chain)
+                        v
+   +===================================================================+
+   |  Automated implement chain  --  one /implement-step N starts it,  |
+   |  then pw handoff hands each step to the next with no menu and no  |
+   |  "go ahead" until a.commit is written.                            |
+   |                                                                   |
+   |        +-----------------------+                                  |
+   |        | /implement-step N     |                                  |
+   |        | code + tests, ghog day|                                  |
+   |        +-----------+-----------+                                  |
+   |                    |  ghog day exit=0                             |
+   |                    |  pw handoff check <x>                        |
+   |                    v                                              |
+   |        +-----------------------+                                  |
+   |        | /implementation-check |----+  No: validation reads       |
+   |        | writes Yes/No verdict |    |  No -> /implement-missing-  |
+   |        +-----------+-----------+<---+  step, ghog day, then       |
+   |                    |  pw handoff       pw handoff check <x>       |
+   |                    |  after-check <x>  (re-check the gap)         |
+   |                    v  (Yes branch)                                |
+   |        +-----------------------+                                  |
+   |        | /group-commits-msg    |                                  |
+   |        | writes a.commit       |                                  |
+   |        | (git add -A variant)  |                                  |
+   |        +-----------+-----------+                                  |
+   +==================== ==============================================+
+                        |  chain ends: a.commit holds the grouped
+                        |  commit messages, ready for review
+                        v
+                +---------------------------------+
+                |  a.commit reviewed, "go ahead"  |
+                |  gcba replays the commits, gp   |
+                +-------+-------------------------+
+                        |
+                        v
+                +---------------------------------+
+                |  step N committed and pushed    |----+  more steps?
+                |                                 |    |  yes -> /implement-
+                |                                 |<---+  step (loop)
+                +-------+-------------------------+
+                        |
+                        |  last step done
+                        v
+                +---------------------------------+
+                |  branch ready to merge          |
+                +---------------------------------+
 ```
+
+The giant box in the diagram is the automated part: one `/implement-step N`
+starts it, and `pw handoff` chains the check, any implement-missing pass,
+and the `a.commit` group-commit step with no menu and no go-ahead between
+them (see [Automated implement chain with pw handoff](#automated-implement-chain-with-pw-handoff)
+below). The numbered steps that follow are the underlying actions that
+chain runs, and the helper commands you can still call by hand when you
+drive a step yourself.
 
 1. Pick the next unchecked step from `docs\plan.vX.Y.Z.<topic>.md`.
 2. Run `/implement-step <step-number>` with the plan, design, and related
@@ -754,7 +771,9 @@ fully completed implementation step.
   dependency issues, and hot-path performance risks.
 9. If a file is getting too large or is doing too many unrelated things, use
   `/split-large-file` before the next step grows it further.
-10. Stage the finished slice and reuse the grouped commit loop.
+10. Stage the finished slice and reuse the grouped commit loop. When the
+  chain drives it, `pw handoff after-check` reaches this step on its own
+  and writes `a.commit` for you.
 11. Do not start the next step until the current one is implemented, tested,
   checked, and committed. And pushed. (use `gp` for `git push`)
 
@@ -765,6 +784,45 @@ design, and `a.diff` in context, to confirm or refute that the code
 actually implements the plan and meets the acceptance scenarios. When
 the check reports gaps, iterate on the step until a fresh check is
 clean — that is the moment the step can be committed and pushed.
+
+### Automated implement chain with pw handoff
+
+The giant box in the diagram above runs without a menu and without a
+go-ahead between steps. `pw` is the prompt-workflow launcher (the `pw`
+Doskey alias to `bin\prompt_workflow.bat`); its `pw handoff <task> <x>`
+subcommand writes the prompt for the next cycle step and skips the
+interactive menu. The model reads that prompt from `a.prompt.txt` and
+keeps going.
+
+Three calls chain the cycle, each run from the project root once the
+current step is done:
+
+- after `/implement-step <x>` ends with a green `ghog day` walk:
+  `pw handoff check <x>` writes the `implementation-check.md` prompt.
+- after `/implementation-check <x>` records its `Analysis of Step x`
+  verdict: `pw handoff after-check <x>`. The task is neutral; `pw` reads
+  that verdict line and routes the branch itself, so the caller cannot
+  pick the wrong next step:
+  - a `No` verdict  --  the `implement-missing-step.md` prompt, to fill
+    the `Missing work for Step x` list, then back to the check.
+  - a `Yes` verdict  --  the `group-commits-msg.md` prompt in its
+    `git add -A` form, which stages every change and writes one grouped
+    commit message per group into `a.commit`.
+- after `/implement-missing-step <x>` ends with a green walk:
+  `pw handoff check <x>` again, so the filled gap is re-checked.
+
+The chain stops at `a.commit`. Writing the grouped messages is the last
+automatic step; replaying them is not. `gcba` runs only after you review
+`a.commit` and say "go ahead", the gate `group-commits-msg.md` keeps. So
+the model writes the messages on its own, then waits before any commit
+lands; after that `gp` pushes and the cycle loops to the next step.
+
+Each `pw handoff` call also copies the prompt to the clipboard and records
+the step in `a.prompt_memory`, so a later interactive `pw` run sees a
+consistent state. The calls are wired in by the `## Handoff` section of
+`implement-step.md`, `implement-missing-step.md`, and
+`implementation-check.md`; without those sections the subcommand exists
+but nothing triggers it.
 
 ## Decision rule for architecture and performance findings
 
