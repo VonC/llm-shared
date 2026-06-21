@@ -1,4 +1,4 @@
-0.6.0-SNAPSHOT -- No Console, No Hang
+0.6.0 -- No Console, No Hang
 
 git_batch_commit commits from a background shell now
 

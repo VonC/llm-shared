@@ -6,7 +6,7 @@ release. The groundhog test loop (ghog), the prompt-workflow cycle (pw),
 and the commit and changelog helpers are mutualized across sibling
 projects.
 
-## [v0.6.0-SNAPSHOT unreleased] No Console, No Hang - ff102a7fb199230664741a55c50d397b7d1d4085
+## [v0.6.0] - 2026-06-21 - No Console, No Hang
 
 git_batch_commit commits from a background shell now
 
