@@ -4,6 +4,21 @@
 (empty line)
 {One-line theme sentence that explains what this implementation review is tracking. And, if it is not yet implemented, what is missing as a short summary (a more complete section will follow in the detailed analysis).}
 
+> Initial-skeleton note: the first version of this document (written by the
+> `write-plans` skill, before any implementation check) does not use the `{...}`
+> guidance below for the per-step check sections. It fills `Goal for Step N` and
+> `Step N improvement expectations`, opens every `Analysis of Step N
+> implementation state` with "Not started. Step N is not implemented because ...",
+> and fills every other section (`What was implemented`, `New types or classes
+> introduced`, `Architecture check`, `Performance check`, `Unit test coverage
+> check`, `Feature integrity`) with the literal placeholder
+> `_(empty — no check has taken place yet.)_.`. The `{...}` guidance below applies
+> only once an implementation check replaces those placeholders.
+>
+> Markdown lint note: never leave a space immediately inside an inline code span
+> (MD038) -- write a needed space as the token `[space]`, as in `` `[space]${x}` ``.
+> The empty placeholder ends in `)_.` so the line is not pure italic text (MD036).
+
 ---
 
 ## File-based IO cost clarification for vX.Y.Z {topic} (implementation)

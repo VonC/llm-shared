@@ -6,6 +6,11 @@
 - **{Theme line 2}**: {Short summary of one major implementation thread}.
 - **{Theme line 3}**: {Short summary of one major implementation thread}.
 
+> Markdown lint note: never leave a space immediately inside an inline code span
+> (MD038); when a snippet starts or ends with a space, write that space as the
+> literal token `[space]`, as in `` `[space]${x}` ``. End any line that would be
+> only italic text with a period after the closing underscore (MD036).
+
 ## Plan goal for vX.Y.Z {topic}
 
 Implement the full vX.Y.Z {topic} feature set as described in `docs/design.vX.Y.Z.{topic}.md` and any linked requirement document, targeting the confirmed outcomes in ordered implementation steps.

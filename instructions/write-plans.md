@@ -38,7 +38,7 @@ Add in each step a reference to a new section which describes how to do the "exe
 
 Mutualize your "ready-to-run-command", and add a reference to it in each step. Said command is one `ghog day` walk — groundhog runs check.bat, the step's affected tests, and the full coverage pass in order, stopping at the first non-green step (see `GROUNDHOG.md`) — repeated fix-and-walk until it reports the objective. Do not plan direct `check.bat` or `pytest` calls; groundhog is in charge of check and tests.
 
-Prepare also a `docs\plan.vX.Y.Z.{topic}.validation.md` skeleton (similar to `docs\plan.v8.11.perf_complexity.validation.md`), with subsections Goal for step x (you can fill out this one), "Step x improvement expectations" (you can fill out this one), "What was implemented for Step x" (leave it empty for now), "New types/classes introduced for Step x" (leave it empty), "Architecture check for Step x" (empty), "Performance check for step" (empty), "Feature integrity for step" (empty). Do not include a "Missing work for Step x" section in the skeleton: no check has taken place yet, and only an implementation check that concludes "No, it is not implemented" adds that section.
+Prepare also a `docs\plan.vX.Y.Z.{topic}.validation.md` skeleton (similar to `docs\plan.v8.11.perf_complexity.validation.md`), with subsections Goal for step x (you can fill out this one), "Step x improvement expectations" (you can fill out this one), "What was implemented for Step x" (leave it empty for now), "New types/classes introduced for Step x" (leave it empty), "Architecture check for Step x" (empty), "Performance check for step" (empty), "Feature integrity for step" (empty). Each section left empty in this initial skeleton holds the literal placeholder `_(empty — no check has taken place yet.)_.` (note the trailing period after the closing `_`, explained under "Markdown lint workarounds" below). Do not include a "Missing work for Step x" section in the skeleton: no check has taken place yet, and only an implementation check that concludes "No, it is not implemented" adds that section.
 
 Follow the steps detailed in `docs\plan.vX.Y.Z.{topic}.md`.
 
@@ -57,3 +57,25 @@ If yes, do add those patches.
 ## Final step: Acceptance tests
 
 Make sure the final step includes acceptance tests (larger than unit test, like integration tests) that are able to validate the features are working as expected.
+
+## Markdown lint workarounds for the plan documents
+
+Two markdownlint rules need a deliberate workaround when writing these plan
+documents:
+
+- **MD038 (no-space-in-code)**: never leave a space immediately inside an inline
+  code span. When a snippet genuinely starts or ends with a space, write that
+  space as the literal token `[space]` so the span stays lint-clean while the
+  reader still sees that a space is meant, as in `` `[space]${x}` ``.
+- **MD036 (no-emphasis-as-heading)**: a line made only of italic text is read as an
+  emphasis-used-as-heading. End such a line with a period placed after the closing
+  underscore so it is no longer pure emphasis, for example
+  `_(empty — no check has taken place yet.)_.`.
+
+The initial validation skeleton fills every not-yet-checked section (`What was
+implemented`, `New types or classes introduced`, `Architecture check`,
+`Performance check`, `Unit test coverage check`, `Feature integrity`) with that
+exact placeholder, `_(empty — no check has taken place yet.)_.`, and opens each
+step's `Analysis of Step N implementation state` with the sentence "Not started.
+Step N is not implemented because ...". An implementation check later replaces the
+placeholders with real findings.
