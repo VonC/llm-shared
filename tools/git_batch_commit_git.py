@@ -10,6 +10,12 @@ commits anything, which stops a stale or partial plan from being applied.
 Fix: Count a staged rename as its two paths (old removed, new added) so the
 staged total matches an a.commit plan that lists a `git add` for each side of
 the rename, instead of falling one short and failing validation.
+
+Fix: Let an agent commit without a console. `git_commit` and `git_add_files`
+now take an `interactive` flag. In non-interactive mode the commit no longer
+demands a TTY and runs with stdin detached, and the add-phase issue handler
+logs the problem and stops the batch instead of calling `input()`, so a
+background run reports a clear failure rather than hanging on a prompt.
 """
 
 from __future__ import annotations
@@ -84,6 +90,7 @@ def _run_git_command(
                 check=git_options.check,
                 capture_output=git_options.capture_output,
                 env=trace_env,
+                stdin=subprocess.DEVNULL if git_options.close_stdin else None,
             ),
         )
     except subprocess.SubprocessError as err:
@@ -290,11 +297,11 @@ def _validate_staged_count_matches_git_adds(
     raise GitBatchCommitError(msg)
 
 
-def _prompt_add_issues_action(
+def _log_add_issues(
     missing_files: list[str],
     failed_adds: list[str],
-) -> _GitAddOutcome:
-    """Prompt user for action when files are missing or git-add failed."""
+) -> None:
+    """Log missing files and failed git-add commands as warnings."""
     if missing_files:
         LOGGER.warning("\nThe following files are missing:")
         for file_path in missing_files:
@@ -304,6 +311,14 @@ def _prompt_add_issues_action(
         LOGGER.warning("\nThe following git add commands failed:")
         for cmd in failed_adds:
             LOGGER.warning("  - %s", cmd)
+
+
+def _prompt_add_issues_action(
+    missing_files: list[str],
+    failed_adds: list[str],
+) -> _GitAddOutcome:
+    """Prompt user for action when files are missing or git-add failed."""
+    _log_add_issues(missing_files, failed_adds)
 
     response = (
         input(
@@ -318,6 +333,25 @@ def _prompt_add_issues_action(
     if response == "stop":
         return _GitAddOutcome(should_continue=False, should_skip_commit=False)
     return _GitAddOutcome(should_continue=True, should_skip_commit=True)
+
+
+def _non_interactive_add_issues_action(
+    missing_files: list[str],
+    failed_adds: list[str],
+) -> _GitAddOutcome:
+    """Log add-phase issues and stop the batch without prompting.
+
+    A background or agent run has no console to answer a prompt, and a missing
+    file or a failed `git add` means the plan no longer matches the tree.
+    Stopping with a clear log is safer than committing an unexpected set, so the
+    caller sees a non-zero exit instead of a silent or partial commit.
+    """
+    _log_add_issues(missing_files, failed_adds)
+    LOGGER.error(
+        "Stopping: files are missing or a git add command failed, and there is "
+        "no console to confirm. Re-run in a terminal to decide per commit.",
+    )
+    return _GitAddOutcome(should_continue=False, should_skip_commit=False)
 
 
 def _execute_git_adds(git_adds: list[str], root: Path) -> list[str]:
@@ -349,17 +383,26 @@ def _execute_git_adds(git_adds: list[str], root: Path) -> list[str]:
     return failed_adds
 
 
-def git_add_files(git_adds: list[str], root: Path) -> _GitAddOutcome:
+def git_add_files(
+    git_adds: list[str],
+    root: Path,
+    *,
+    interactive: bool = True,
+) -> _GitAddOutcome:
     """Execute git add commands.
 
     Returns an outcome that distinguishes continue, skip, and stop.
-    Logs warnings for missing files and asks for user confirmation.
+    Logs warnings for missing files and failed adds. In interactive mode the
+    user is asked what to do; in non-interactive mode the batch stops so a
+    background run never blocks on a prompt.
     """
     missing_files = _check_missing_files(git_adds, root)
     failed_adds = _execute_git_adds(git_adds, root)
 
     if missing_files or failed_adds:
-        return _prompt_add_issues_action(missing_files, failed_adds)
+        if interactive:
+            return _prompt_add_issues_action(missing_files, failed_adds)
+        return _non_interactive_add_issues_action(missing_files, failed_adds)
 
     return _GitAddOutcome(should_continue=True, should_skip_commit=False)
 
@@ -369,9 +412,16 @@ def git_commit(
     commit_title: str,
     root: Path,
     *,
+    interactive: bool = True,
     trace_git_commit: bool = False,
 ) -> None:
-    """Execute git commit with the provided message."""
+    """Execute git commit with the provided message.
+
+    In interactive mode the commit requires a console and inherits stdin. In
+    non-interactive mode it drops the TTY requirement (the message is passed
+    with `-m`, so no editor opens) and detaches stdin, so an unexpected Git
+    prompt fails fast instead of hanging a background run.
+    """
     LOGGER.info("Committing: %s", commit_title)
     if trace_git_commit:
         LOGGER.info("Git commit trace is enabled for this run.")
@@ -380,7 +430,8 @@ def git_commit(
         cwd=root,
         options=_GitCommandOptions(
             capture_output=False,
-            require_tty=True,
+            require_tty=interactive,
+            close_stdin=not interactive,
             trace_git=trace_git_commit,
         ),
     )
@@ -390,6 +441,7 @@ def git_commit(
 block_has_staged_changes = _block_has_staged_changes
 count_plan_git_adds = _count_plan_git_adds
 count_staged_files = _count_staged_files
+has_interactive_console = _has_interactive_console
 is_worktree_clean = _is_worktree_clean
 validate_missing_files_for_blocks = _validate_missing_files_for_blocks
 validate_staged_count_matches_git_adds = _validate_staged_count_matches_git_adds
@@ -410,6 +462,8 @@ __all__ = [
     "_is_path_in_head",
     "_is_tracked_path",
     "_is_worktree_clean",
+    "_log_add_issues",
+    "_non_interactive_add_issues_action",
     "_prompt_add_issues_action",
     "_run_git_command",
     "_validate_missing_files_for_blocks",
@@ -417,6 +471,7 @@ __all__ = [
     "git_add_files",
     "git_commit",
     "git_reset",
+    "has_interactive_console",
     "run_cross_platform_git_command",
 ]
 

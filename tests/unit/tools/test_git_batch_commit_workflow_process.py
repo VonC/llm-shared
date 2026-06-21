@@ -3,6 +3,10 @@
 Fix: Cover commit-block and multi-block workflow control flow from the split
 `tools.git_batch_commit_workflow` module without keeping a large combined test
 file.
+
+Fix: Cover the non-interactive path. A Git failure in non-interactive mode must
+stop the batch and return False without calling `input()`, and the add and
+commit phases must receive the `interactive` flag.
 """
 
 from __future__ import annotations
@@ -40,9 +44,11 @@ def _return_false_process_commit_block(
     _index: int,
     _total: int,
     _root: Path,
+    *,
+    interactive: object = True,
     trace_git_commit: object = None,
 ) -> bool:
-    del trace_git_commit
+    del interactive, trace_git_commit
     return False
 
 
@@ -51,22 +57,46 @@ def _return_true_process_commit_block(
     _index: int,
     _total: int,
     _root: Path,
+    *,
+    interactive: object = True,
     trace_git_commit: object = None,
 ) -> bool:
-    del trace_git_commit
+    del interactive, trace_git_commit
     return True
+
+
+def _raise_git_operation_error_process_commit_block(
+    _block_arg: git_batch_models.CommitBlock,
+    _index: int,
+    _total: int,
+    _root: Path,
+    *,
+    interactive: object = True,
+    trace_git_commit: object = None,
+) -> bool:
+    del interactive, trace_git_commit
+    msg = "git failed mid-batch"
+    raise git_batch_models.GitOperationError(msg)
 
 
 def _return_git_add_outcome(
     outcome: git_batch_models._GitAddOutcome,
-) -> Callable[[list[str], Path], git_batch_models._GitAddOutcome]:
+) -> Callable[..., git_batch_models._GitAddOutcome]:
     def fake_git_add_files(
         _git_adds: list[str],
         _root: Path,
+        *,
+        interactive: bool = True,
     ) -> git_batch_models._GitAddOutcome:
+        del interactive
         return outcome
 
     return fake_git_add_files
+
+
+def _fail_input(_prompt: str) -> str:
+    msg = "input() must not be called in non-interactive mode"
+    raise AssertionError(msg)
 
 
 def _raise_unexpected_diff_check(_git_adds: list[str], _root: Path) -> bool:
@@ -135,11 +165,13 @@ def test_process_commit_block_commits_when_staged_changes_exist(
         commit_title: str,
         root: Path,
         *,
+        interactive: bool = True,
         trace_git_commit: bool = False,
     ) -> None:
         captured["commit_message"] = commit_message
         captured["commit_title"] = commit_title
         captured["root"] = root
+        captured["interactive"] = interactive
         captured["trace_git_commit"] = trace_git_commit
 
     monkeypatch.setattr(git_batch_workflow, "git_commit", fake_git_commit)
@@ -149,12 +181,14 @@ def test_process_commit_block_commits_when_staged_changes_exist(
         1,
         1,
         tmp_path,
+        interactive=False,
         trace_git_commit=True,
     ) is True
     assert captured == {
         "commit_message": block.commit_message,
         "commit_title": block.commit_title,
         "root": tmp_path,
+        "interactive": False,
         "trace_git_commit": True,
     }
 
@@ -192,6 +226,34 @@ def test_process_all_commits_logs_success_when_all_blocks_complete(
 
     assert git_batch_workflow._process_all_commits([block], tmp_path) is True
     assert "All commits processed successfully" in caplog.text
+
+
+def test_process_all_commits_stops_on_git_error_without_prompting_when_non_interactive(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """A Git failure in non-interactive mode should stop without calling input()."""
+    block = _valid_block()
+    monkeypatch.setattr(git_batch_workflow, "git_reset", _noop_git_reset)
+    monkeypatch.setattr(
+        git_batch_workflow,
+        "_process_commit_block",
+        _raise_git_operation_error_process_commit_block,
+    )
+    # Any input() call would hang an agent run, so make it fail the test instead.
+    monkeypatch.setattr("builtins.input", _fail_input)
+    caplog.set_level("INFO")
+
+    assert (
+        git_batch_workflow._process_all_commits(
+            [block],
+            tmp_path,
+            interactive=False,
+        )
+        is False
+    )
+    assert "Stopping after Git operation failure (non-interactive)." in caplog.text
 
 
 # eof

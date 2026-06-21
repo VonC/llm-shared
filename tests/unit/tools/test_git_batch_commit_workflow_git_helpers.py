@@ -9,6 +9,10 @@ validation gate used by the root a.commit workflow.
 
 Fix: Cover that the staged-file count passes `--no-renames` and counts a
 staged rename as its two paths, matching a plan that adds both sides.
+
+Fix: Cover the non-interactive commit path. A non-interactive `git_commit` must
+run without a console and detach stdin, while an interactive one without a
+console must fail fast instead of hanging.
 """
 
 from __future__ import annotations
@@ -501,6 +505,90 @@ def test_run_git_command_flushes_live_output_and_wraps_subprocess_errors(
 
     with pytest.raises(git_batch_models.GitOperationError, match="Git command failed"):
         git_batch_git._run_git_command(["git", "status"], cwd=tmp_path)
+
+
+def _return_no_console() -> bool:
+    return False
+
+
+def test_git_commit_non_interactive_runs_without_console_and_detaches_stdin(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """A non-interactive commit should run with no TTY and stdin from DEVNULL.
+
+    The non-interactive path drops the require_tty check, so no console is
+    needed and stdin is detached (DEVNULL) to fail fast on a stray prompt.
+    """
+    recorded: dict[str, object] = {}
+
+    def fake_run_cross_platform_git_command(
+        git_args: list[str],
+        *,
+        cwd: Path | None = None,
+        options: git_batch_git.GitCommandOptions | None = None,
+    ) -> subprocess.CompletedProcess[str]:
+        del cwd
+        recorded["git_args"] = list(git_args)
+        recorded["stdin"] = options.stdin if options else None
+        return _completed_process(list(git_args))
+
+    monkeypatch.setattr(
+        git_batch_git,
+        "run_cross_platform_git_command",
+        fake_run_cross_platform_git_command,
+    )
+
+    git_batch_git.git_commit("msg", "fix(scope): title", tmp_path, interactive=False)
+
+    assert recorded["git_args"] == ["commit", "-m", "msg"]
+    assert recorded["stdin"] == subprocess.DEVNULL
+
+
+def test_git_commit_interactive_without_console_fails_fast(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """An interactive commit without a console should raise, not block on a prompt."""
+    monkeypatch.setattr(git_batch_git, "_has_interactive_console", _return_no_console)
+
+    with pytest.raises(
+        git_batch_models.GitOperationError,
+        match="requires an interactive console",
+    ):
+        git_batch_git.git_commit("msg", "fix(scope): title", tmp_path, interactive=True)
+
+
+def test_run_git_command_inherits_stdin_by_default(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Without close_stdin the wrapper should leave stdin inherited (None)."""
+    recorded: dict[str, object] = {}
+
+    def fake_run_cross_platform_git_command(
+        git_args: list[str],
+        *,
+        cwd: Path | None = None,
+        options: git_batch_git.GitCommandOptions | None = None,
+    ) -> subprocess.CompletedProcess[str]:
+        del cwd
+        recorded["stdin"] = options.stdin if options else None
+        return _completed_process(list(git_args))
+
+    monkeypatch.setattr(
+        git_batch_git,
+        "run_cross_platform_git_command",
+        fake_run_cross_platform_git_command,
+    )
+
+    git_batch_git._run_git_command(
+        ["git", "status"],
+        cwd=tmp_path,
+        options=git_batch_models._GitCommandOptions(capture_output=True),
+    )
+
+    assert recorded["stdin"] is None
 
 
 # eof

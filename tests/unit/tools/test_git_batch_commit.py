@@ -15,6 +15,9 @@ skips, and that Git pathspec targets are accepted during missing-file checks.
 
 Fix: Import the shared Git helper types through the `tools` package so test
 imports stay consistent with the repository package layout.
+
+Fix: Keep the add-phase doubles compatible with the new `interactive` keyword
+that `_process_commit_block` forwards to `git_add_files`.
 """
 
 from __future__ import annotations
@@ -253,9 +256,12 @@ def test_process_commit_block_skips_when_group_has_no_staged_diff(
     def fake_git_add_files(
         git_adds: list[str],
         root: Path,
+        *,
+        interactive: bool = True,
     ) -> git_batch_models._GitAddOutcome:
         assert git_adds == block.git_adds
         assert root == tmp_path
+        assert interactive is True
         return git_batch_models._GitAddOutcome(
             should_continue=True,
             should_skip_commit=False,
@@ -319,9 +325,12 @@ def test_process_commit_block_stops_when_add_phase_requests_stop(
     def fake_git_add_files(
         git_adds: list[str],
         root: Path,
+        *,
+        interactive: bool = True,
     ) -> git_batch_models._GitAddOutcome:
         assert git_adds == block.git_adds
         assert root == tmp_path
+        assert interactive is True
         return git_batch_models._GitAddOutcome(
             should_continue=False,
             should_skip_commit=False,
@@ -401,18 +410,20 @@ def test_process_all_commits_returns_false_when_user_stops_after_git_error(
 
     monkeypatch.setattr(git_batch_workflow, "git_reset", fake_git_reset)
 
-    def fake_process_commit_block(
+    def fake_process_commit_block(  # noqa: PLR0913
         block_arg: git_batch_models.CommitBlock,
         index: int,
         total: int,
         root: Path,
         *,
+        interactive: bool = True,
         trace_git_commit: bool = False,
     ) -> bool:
         assert block_arg == block
         assert index == 1
         assert total == 1
         assert root == tmp_path
+        assert interactive is True
         assert trace_git_commit is False
         msg = "boom"
         raise git_batch_models.GitOperationError(msg)
@@ -461,14 +472,18 @@ def test_main_returns_non_zero_when_commit_processing_stops(
         blocks: list[git_batch_models.CommitBlock],
         root: Path,
         *,
+        interactive: bool = True,
         trace_git_commit: bool = False,
     ) -> bool:
         assert blocks == [block]
         assert root == tmp_path
+        assert interactive is True
         assert trace_git_commit is False
         return False
 
     monkeypatch.setattr(git_batch_workflow, "find_project_root", fake_find_project_root)
+    # A real console is simulated so the run stays interactive for this test.
+    monkeypatch.setattr(git_batch_workflow, "_has_interactive_console", lambda: True)
     monkeypatch.setattr(
         git_batch_workflow,
         "_read_and_parse_content",

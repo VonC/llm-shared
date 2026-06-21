@@ -2,6 +2,9 @@
 
 Fix: Cover shell-command assembly and both Windows and Linux subprocess
 dispatch paths in `tools.git_command`.
+
+Fix: Cover the per-call stdin override so a caller can detach a Git subprocess
+from the terminal (for example with `subprocess.DEVNULL`).
 """
 
 from __future__ import annotations
@@ -60,6 +63,7 @@ def test_run_cross_platform_git_command_uses_windows_defaults(
     assert captured["text"] is True
     assert captured["encoding"] is None
     assert captured["env"] is None
+    assert captured["stdin"] is None
 
 
 def test_run_cross_platform_git_command_uses_linux_shell_and_options(
@@ -107,6 +111,34 @@ def test_run_cross_platform_git_command_uses_linux_shell_and_options(
     assert captured["text"] is True
     assert captured["encoding"] == "utf-8"
     assert captured["env"] == {"GIT_TRACE": "1"}
+    assert captured["stdin"] is None
+
+
+def test_run_cross_platform_git_command_forwards_stdin_override(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """A stdin override should reach `subprocess.run` so callers can detach the child."""
+    captured: dict[str, object] = {}
+    options = git_command.GitCommandOptions(stdin=subprocess.DEVNULL)
+
+    def fake_run(
+        command: list[str], **kwargs: object,
+    ) -> subprocess.CompletedProcess[str]:
+        captured["command"] = command
+        captured.update(kwargs)
+        return subprocess.CompletedProcess(command, 0, stdout="ok")
+
+    monkeypatch.setattr(git_command, "_IS_WINDOWS", True)
+    monkeypatch.setattr(git_command.subprocess, "run", fake_run)
+
+    git_command.run_cross_platform_git_command(
+        ["commit", "-m", "msg"],
+        cwd=tmp_path,
+        options=options,
+    )
+
+    assert captured["stdin"] == subprocess.DEVNULL
 
 
 # eof
