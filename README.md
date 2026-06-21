@@ -32,11 +32,13 @@ Each skill draws a clear line between phases:
   `/consolidate-then-review-ask-questions`).
 - **Design** a solution with explicit acceptance scenarios
   (`/write-design` and the same review loop).
-- **Plan** the implementation as a numbered list of steps. The first
-  step adds gate tests that fail on purpose; the following steps make
+- **Plan** the implementation as a numbered list of steps, then run the
+  same review loop on the plan itself (not on the validation plan). The
+  first step adds gate tests that fail on purpose; the following steps make
   those tests pass one by one. The last step adds the acceptance tests
   that close the loop on the original requirement
-  (`/write-plans`, `/implement-step`, `/implementation-check`).
+  (`/write-plans`, the plan review loop, `/implement-step`,
+  `/implementation-check`).
 
 See [DEVELOPMENT.md  --  Goal: avoid vibe-coding](DEVELOPMENT.md#goal-avoid-vibe-coding)
 for the full rationale, what each phase costs up front, and the short
@@ -78,6 +80,7 @@ after the trigger completes.
 | Review loop | `/review-ask-questions` then `/consolidate-then-review-ask-questions` | Open questions folded into a decision table; document approved |
 | Design | `/write-design` | `docs\design.vX.Y.Z.<topic>.md` with acceptance scenarios |
 | Plan | `/write-plans` | `docs\plan.vX.Y.Z.<topic>.md` + `docs\plan.vX.Y.Z.<topic>.validation.md` |
+| Plan review loop | `/review-ask-questions` then `/consolidate-then-review-ask-questions` on the plan | Plan open questions folded into a decision table; plan approved (the validation plan is left untouched) |
 | Implement and check | `/implement-step N`, then `pw handoff` chains `/implementation-check N` | Code, tests, and updates to the validation document |
 | Group commits | `pw handoff after-check` routes a `Yes` step to `/group-commits-msg`; `gcba` replays | `a.commit` with one conventional commit per group, replayed by `gcba` |
 | Merge and reword | `git merge --no-ff` then `/update-merge-commit-msg` then `grmc` | Merge commit with a conventional message tied to the merged docs |
@@ -176,10 +179,11 @@ shows the main phases and which skill triggers each transition. See
                            |  /write-plans
                            v
                   +-----------------+
-                  |     plan +      |
-                  | validation plan |
-                  +--------+--------+
-                           |
+                  |     plan +      |----+
+                  | validation plan |    |  /review-ask-questions
+                  |                 |<---+  /consolidate-then-review-ask-questions
+                  +--------+--------+       (loop on the plan only, not the
+                           |                 validation plan)
                            |  /implement-step N   (enters the chain)
                            v
    +=================================================================+
