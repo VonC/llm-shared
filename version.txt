@@ -1,46 +1,39 @@
-0.5.0 -- A draft walks in, an effort walks out
+0.6.0-SNAPSHOT -- No Console, No Hang
 
-process-draft names the draft, new_draft renames and branches it
+git_batch_commit commits from a background shell now
 
-- No prompts, just flags
-  -- --from-draft takes the slug, version, and layout the reader gathered
-- Even an unsaved draft makes the move
-  -- git mv in place, a staged copy into the worktree, the old file dropped
+- No console, no problem
+  -- git_batch_commit detects the missing TTY or takes --non-interactive
+- A failed batch stops, it no longer hangs
+  -- stdin goes to DEVNULL and a non-zero exit replaces the input() prompt
 
-v0.5.0 turns a rough draft into a named, versioned effort on its own
-branch. The new process-draft skill runs the first pass a reader has to
-do: it decides whether the draft is one feature-request, one issue, or
-several, writes that type into the draft, proposes three titles and three
-slugs, and picks the version from version.txt. It then hands the
-mechanical half to new_draft, which gains a non-interactive --from-draft
-mode: given the chosen slug, version, and a --worktree or --in-place
-layout, it checks the slug against local and remote branches, creates the
-branch with git switch -c, and renames the draft to draft.vX.Y.Z.<slug>.md
-inside the chosen tree. process-draft then hands off to write-requirement
-for one topic or split-and-define for several.
+v0.6.0 lets an agent run the batch-commit tool from a background shell.
+git_batch_commit used to demand a real terminal: it asked for a console
+before git commit, then prompted on a failure, so an agent in a
+-NonInteractive, auto-backgrounded shell first hit a console error and
+then hung at the continue/stop prompt with no way to answer. The tool now
+treats the run as non-interactive when --non-interactive is passed or no
+console is attached: it commits without a TTY and with stdin detached, and
+it stops a failed batch with a non-zero exit instead of calling input().
 
-The draft moves whether or not it is committed. In the current tree a
-tracked draft is a git mv and an untracked one a plain rename; for a
-sibling worktree the text is written into the worktree docs, staged, and
-the source dropped. A shared read_version_txt parser, read by both the
-instruction and the tool, takes the version from the first line of
-version.txt and drops a trailing -SNAPSHOT, so the two never disagree. A
-build fix also syncs uv.lock, which had lagged behind the released
-project version.
+The rest of the release trims the test suite. Two test files had crossed
+the 650-line gate that the check.bat big-files step rejects, so they are
+split by topic into smaller files, each with a single responsibility.
+Several real-git integration tests spent whole seconds spawning redundant
+git config processes; they now take their identity from the GIT_AUTHOR_*
+and GIT_COMMITTER_* env vars, so the config spawns are gone and the full
+suite passes the check gate at 100% coverage.
 
-### Key changes for v0.5.0
+### Key changes for v0.6.0
 
-- **process-draft scaffolds the first pass**: the skill classifies a
-  draft as one feature-request, one issue, or a collection, records the
-  type, proposes three titles and three slugs, picks the version from
-  version.txt, and hands off to write-requirement or split-and-define.
+- **Non-interactive batch commits**: git_batch_commit runs in a background
+  shell, commits with no TTY and detached stdin, and exits non-zero on a
+  git or add-phase failure instead of prompting at the continue/stop step.
 
-- **new_draft gains a --from-draft mode**: a non-interactive run takes an
-  existing draft, a slug, a version, and a --worktree or --in-place
-  layout, checks the slug against local and remote branches, creates the
-  branch with git switch -c, and renames the draft inside the chosen tree.
+- **Test files under the size gate**: test_new_draft_workflow.py and
+  test_wrap_commit.py are split by topic, each resulting file back under
+  the 650-line limit with a single responsibility.
 
-- **The draft relocates in place or into a worktree**: a tracked draft
-  moves with git mv and an untracked one with a plain rename; a worktree
-  run writes the text into the worktree docs, stages it, and drops the
-  source, so an uncommitted draft still moves across.
+- **Faster real-git tests**: the throwaway repositories take their commit
+  identity from GIT_AUTHOR_*/GIT_COMMITTER_* env vars, dropping the
+  per-repo git config subprocess calls that dominated their setup time.
