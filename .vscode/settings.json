@@ -28,6 +28,8 @@
     }
   ],
   "cSpell.words": [
+    "authorises",
+    "backgrounded",
     "backticked",
     "behaviour",
     "cacheprovider",
@@ -68,6 +70,7 @@
     "retimed",
     "robustification",
     "rpartition",
+    "sdist",
     "subparser",
     "techo",
     "tset",
@@ -79,6 +82,8 @@
     "unwritable",
     "uvloop",
     "wacnd",
+    "wcwidth",
+    "wraplist",
     "xdist"
   ]
 }
