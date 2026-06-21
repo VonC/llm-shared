@@ -11,7 +11,7 @@ document, with the title and plan-document drops (Q33-Q37); the commit
 body naming the step with its check-document Context (Q38-Q40); the
 title read telling a parent from its lettered sub-step (Q42); and the
 implement-missing prompt built from the ``implement-missing-step.md``
-step-8 alternative with the missing-work focus and the split-large-file
+step-10 alternative with the missing-work focus and the split-large-file
 line-budget reminder (Q48-Q52).
 
 Fix: split out of ``test_prompt_workflow_plan.py`` for the repo line
@@ -40,10 +40,10 @@ if TYPE_CHECKING:
 # pyright: reportUnknownArgumentType=false
 # ruff: noqa: SLF001
 
-_IMPLEMENT_STEP = 8
-_CHECK_STEP = 9
-_COMMIT_STEP = 10
-_RELEASE_STEP = 11
+_IMPLEMENT_STEP = 10
+_CHECK_STEP = 11
+_COMMIT_STEP = 12
+_RELEASE_STEP = 13
 
 
 def _cycle() -> plan.CycleState:

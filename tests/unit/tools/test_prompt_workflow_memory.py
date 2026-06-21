@@ -61,7 +61,7 @@ def test_plan_step_round_trips_substep_id(tmp_path: Path) -> None:
         branch="feature/iso",
         version="v9.8.0",
         topic="iso",
-        step=10,
+        step=12,
         instruction="group-commits-msg.md",
         plan_step="4A",
     )

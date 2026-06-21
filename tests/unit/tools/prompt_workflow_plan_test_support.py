@@ -30,6 +30,7 @@ def make_state(**overrides: object) -> WorkflowState:
         "validation_plan": Path("docs/plan.v9.8.0.iso.validation.md"),
         "requirement_has_open_questions": False,
         "design_has_open_questions": False,
+        "plan_has_open_questions": False,
         "memory_step": None,
     }
     base.update(overrides)

@@ -202,7 +202,7 @@ def _assert_commit_prompt(tmp_path: Path, prompt: str, staged_calls: list[str]) 
         branch="main",
         version="v0.1.0",
         topic="pw_handoff",
-        step=10,
+        step=12,
         instruction="group-commits-msg.md",
         plan_step="2",
     )
@@ -226,7 +226,7 @@ def test_handoff_check_delivers_check_prompt(
         branch="main",
         version="v0.1.0",
         topic="pw_handoff",
-        step=9,
+        step=11,
         instruction="implementation-check.md",
         plan_step="2",
     )
@@ -256,7 +256,7 @@ def test_handoff_after_check_no_delivers_implement_missing(
         branch="main",
         version="v0.1.0",
         topic="pw_handoff",
-        step=8,
+        step=10,
         instruction="implement-missing-step.md",
         plan_step="2",
     )
