@@ -78,11 +78,16 @@ after the trigger completes.
 | Review loop | `/review-ask-questions` then `/consolidate-then-review-ask-questions` | Open questions folded into a decision table; document approved |
 | Design | `/write-design` | `docs\design.vX.Y.Z.<topic>.md` with acceptance scenarios |
 | Plan | `/write-plans` | `docs\plan.vX.Y.Z.<topic>.md` + `docs\plan.vX.Y.Z.<topic>.validation.md` |
-| Implement and check | `/implement-step N` then `/implementation-check N` | Code, tests, and updates to the validation document |
-| Group commits | `gcmp` then `/group-commits-msg` then `gcba` | One conventional commit per logical group |
+| Implement and check | `/implement-step N`, then `pw handoff` chains `/implementation-check N` | Code, tests, and updates to the validation document |
+| Group commits | `pw handoff after-check` routes a `Yes` step to `/group-commits-msg`; `gcba` replays | `a.commit` with one conventional commit per group, replayed by `gcba` |
 | Merge and reword | `git merge --no-ff` then `/update-merge-commit-msg` then `grmc` | Merge commit with a conventional message tied to the merged docs |
 | Prepare release notes | `/prepare_release_notes` | `a.md`, a release-notes summary in `version.txt`, an updated `CHANGELOG.md` |
 | Release | `brel` | Version tag `vX.Y.Z` on `main`, marked `[valid]` after a green build |
+
+From `/implement-step N` down to the `a.commit` group-commit-message step,
+the rows no longer need a separate trigger each. One `pw handoff` call at
+the end of each step writes the next prompt and the chain runs itself  --
+see [Automated implement cycle with pw handoff](#automated-implement-cycle-with-pw-handoff).
 
 ---
 
@@ -175,12 +180,37 @@ shows the main phases and which skill triggers each transition. See
                   | validation plan |
                   +--------+--------+
                            |
-                           |  /implement-step N
-                           |  /implementation-check N
+                           |  /implement-step N   (enters the chain)
+                           v
+   +=================================================================+
+   |  Automated implement chain  --  pw handoff wires each box       |
+   |  to the next: no menu, and no "go ahead" between the steps      |
+   |  inside this box.                                               |
+   |                                                                 |
+   |              +-----------------+                                |
+   |              | implement step  |                                |
+   |              +--------+--------+                                |
+   |                       |  pw handoff check <x>                   |
+   |                       v                                         |
+   |              +-----------------+                                |
+   |              | implementation  |----+  No: implement-           |
+   |              | check (Yes/No)  |    |  missing step, then       |
+   |              +--------+--------+<---+  pw handoff check <x>     |
+   |                       |  pw handoff after-check <x>             |
+   |                       |  (Yes branch)                           |
+   |                       v                                         |
+   |              +-----------------+                                |
+   |              | group-commits-  |                                |
+   |              | msg writes      |                                |
+   |              | a.commit        |                                |
+   |              +--------+--------+                                |
+   +======================= =========================================+
+                           |  chain ends: a.commit holds the grouped
+                           |  commit messages, ready for review
                            v
                   +-----------------+
-                  | step N          |----+
-                  | committed       |    |  /group-commits-msg + gcba
+                  | step N          |----+  "go ahead" -> gcba replays
+                  | committed       |    |  the grouped commits, gp
                   |                 |<---+  (loop for next step)
                   +--------+--------+
                            |
@@ -216,6 +246,12 @@ grouped commit loop, step execution, and merge). Read the top-level
 diagram for the route, then jump to the per-phase diagram for the
 detail.
 
+The giant box around the implement, check, and group-commit steps marks
+the part that now runs by itself: `pw handoff` chains those steps with no
+menu and no go-ahead until `a.commit` is written. See
+[Automated implement cycle with pw handoff](#automated-implement-cycle-with-pw-handoff)
+for how each transition fires.
+
 The `/split-and-define` phase is optional. When the draft already
 describes a single, self-contained requirement, the author can call
 `/write-requirement` directly and pass the type (`feature-request` or
@@ -223,6 +259,62 @@ describes a single, self-contained requirement, the author can call
 `/split-and-define` when the draft mixes several distinct items, when
 the items differ in dependency order, or when the author wants the skill
 to suggest a slug per item.
+
+---
+
+## Automated implement cycle with pw handoff
+
+The giant box in the diagram above is the part of the workflow that now
+runs on its own. Each step ends by calling `pw handoff`, which writes the
+prompt for the next step; the model reads that prompt and keeps going,
+with no menu in between and no pause to ask "should I proceed?". `pw` is
+the prompt-workflow launcher (`bin\prompt_workflow.bat`, the `pw` alias);
+`pw handoff <task> <x>` builds the next cycle prompt for plan step `<x>`
+without showing the interactive menu.
+
+### The three handoff calls that chain the steps
+
+The chain covers the forward moves of the implement cycle. Each move is
+one `pw handoff` call, run from the project root once the current step is
+done:
+
+- after `/implement-step <x>` (once its `ghog day` walk is green):
+  `pw handoff check <x>` writes the `implementation-check.md` prompt.
+- after `/implementation-check <x>` (once it records its Yes/No verdict):
+  `pw handoff after-check <x>` lets `pw` pick the next step itself.
+- after `/implement-missing-step <x>` (once its walk is green):
+  `pw handoff check <x>` again, so the filled gap is re-checked.
+
+### Why after-check decides the branch instead of the caller
+
+`after-check` is neutral on purpose. `pw` reads the `Analysis of Step x`
+status line the check just wrote and routes the branch, so the caller
+cannot pick the wrong next step:
+
+- a `No` status  --  the `implement-missing-step.md` prompt, to fill the
+  gap the check listed, then back to the check.
+- a `Yes` status  --  the `group-commits-msg.md` prompt (its `git add -A`
+  form), which stages every change and writes one grouped commit message
+  per group into `a.commit`.
+
+### Where the automated chain stops
+
+The chain stops at `a.commit`. Writing the grouped commit messages is the
+last automatic step; making the real commits is not. `gcba` replays
+`a.commit` only after the author reviews it and says "go ahead", the
+review gate that `group-commits-msg.md` keeps. So the model writes the
+messages on its own, then waits for the go-ahead before any commit lands.
+
+### What each handoff leaves on disk
+
+Every `pw handoff` call writes the next prompt to `a.prompt.txt` at the
+project root, copies it to the clipboard, and records the step in
+`a.prompt_memory`. The model confirms the first line of `a.prompt.txt`
+names the expected instruction, then follows that prompt. The calls are
+wired into the workflow by the `## Handoff` section of each cycle
+instruction (`implement-step.md`, `implement-missing-step.md`, and
+`implementation-check.md`); the same chain is drawn step by step in
+[DEVELOPMENT.md  --  Step execution loop from the plan](DEVELOPMENT.md#step-execution-loop-from-the-plan).
 
 ---
 
@@ -304,6 +396,7 @@ instructions/                             shared skill bodies (one file per skil
 ├─ groundhog.md                           the groundhog fixing loop (see GROUNDHOG.md)
 ├─ group-commits-msg.md
 ├─ implement-step.md
+├─ implement-missing-step.md
 ├─ implementation-check.md
 ├─ prepare-release-notes.md
 ├─ review-and-update-project-docs.md
@@ -336,6 +429,7 @@ tools/
 ├─ git_batch_commit.py                    validate and replay grouped commits
 ├─ git_command.py                         local cross-platform Git helper
 ├─ groundhog/                             pytest reset tool behind ghog/ptr/pta/ptanc/pts (see GROUNDHOG.md)
+├─ prompt_workflow.py                     build the next cycle prompt; pw handoff chains the implement cycle
 └─ uv_run.py                              cert-aware uv launcher (personal/corporate networks)
 senv.bat                                  local shell aliases for the tooling
 ```
@@ -550,6 +644,7 @@ command name and the instruction file name are always the same.
 | Step-based skills and agent | draft | Copilot (VS Code), Claude Code (VS Code + CLI) | Includes step implementation, implementation checks, and file splitting. |
 | Local helper scripts | draft | Windows (`cmd.exe` with Doskey) | Includes `senv.bat`, `git_batch_commit.py`, and `git_command.py`. |
 | Groundhog pytest loop | draft | Claude Code (VS Code + CLI), ChatGPT Codex | `ghog day` walk, `ghog init` registration, LLM fixing loop; see `GROUNDHOG.md`. |
+| Prompt-workflow handoff | draft | Claude Code (VS Code + CLI) | `pw handoff` chains implement-step, check, implement-missing, and the `a.commit` group-commit step with no menu. |
 
 ---
 
@@ -564,6 +659,8 @@ the shared skill bodies. The Doskey aliases are documented in detail in
 | `a.commit` | Grouped-commit plan file, one block per logical group, replayed by `gcba`. |
 | `a.diff` | Snapshot of the staged diff written by `gcmp` so the agent can justify the grouping. |
 | `a.docs` | Dump of the merged branch documents, written by the merge-doc extraction script. |
+| `a.prompt.txt` | Next-step prompt written by `pw` / `pw handoff`; the model reads it to continue the cycle. |
+| `a.prompt_memory` | Per-branch workflow state `pw` records: branch, locked topic, current step. |
 | `c` | Doskey alias to `bin\python_check.bat`. |
 | `covg` | Doskey alias that maps uncovered lines to functions and builds a clipboard prompt. |
 | `gate test` | A failing test added before the implementation step that makes it pass. |
@@ -576,6 +673,8 @@ the shared skill bodies. The Doskey aliases are documented in detail in
 | `ptanc` | Doskey alias to `ghog affected --no-cov`: the fast focused pass with coverage off. |
 | `pts` | Doskey alias to `ghog single <test files>`: named test files in focus, coverage off, compared with the last full-run baseline. |
 | `ptr` | Doskey alias to `ghog full`: resets `.testmondata`, reruns the suite with coverage against the gate; the objective verdict. |
+| `pw` | Doskey alias to `bin\prompt_workflow.bat` (`tools\prompt_workflow.py`); builds the next cycle prompt, interactively or via `pw handoff <task> <x>`. |
+| `pw handoff` | The non-interactive `pw handoff <task> <x>` subcommand; writes the next step prompt with no menu, the engine of the automated chain. |
 | `Qxx` block | An open-question block appended by the review skills (options + recommended choice). |
 | `ruffc` | Doskey alias to `ruff check`. |
 | `vX.Y.Z` | Working version slug used in every artifact filename (draft, requirement, design, plan). |
