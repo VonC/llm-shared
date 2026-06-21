@@ -12,11 +12,18 @@ The tool resolves the calling project's root through the shared
 checkout. The aggregation and rendering tests run on synthetic commit
 tuples; the export and git-mode tests build a throwaway repository under
 ``tmp_path`` with real ``git`` commands.
+
+Fix: Supply the commit identity through the GIT_AUTHOR_*/GIT_COMMITTER_*
+env vars on every git call and drop the three ``git config`` subprocess
+calls from ``_make_git_repo``. Each git spawn costs a few hundred
+milliseconds on Windows, so removing the redundant config processes cuts
+the throwaway-repo setup wall time.
 """
 
 from __future__ import annotations
 
 import json
+import os
 import runpy
 import subprocess
 import sys
@@ -25,6 +32,17 @@ from pathlib import Path
 import pytest
 
 from tools.git_history_dashboard import build
+
+# Identity through the environment so the repo setup needs no `git config`
+# subprocess calls; merged onto os.environ to keep PATH and the Windows
+# system variables git relies on.
+_GIT_ENV = {
+    **os.environ,
+    "GIT_AUTHOR_NAME": "Test Author",
+    "GIT_AUTHOR_EMAIL": "test@example.com",
+    "GIT_COMMITTER_NAME": "Test Author",
+    "GIT_COMMITTER_EMAIL": "test@example.com",
+}
 
 # --- Expectations for the synthetic SAMPLE_COMMITS fixture ------------------
 
@@ -98,20 +116,23 @@ def _run_git(repo_dir: Path, *args: str) -> None:
         check=True,
         text=True,
         encoding="utf-8",
+        env=_GIT_ENV,
     )
 
 
 def _make_git_repo(repo_dir: Path, subjects: list[str]) -> None:
-    """Create a git repo at repo_dir with one commit per subject line."""
+    """Create a git repo at repo_dir with one commit per subject line.
+
+    The author identity comes from the GIT_AUTHOR_*/GIT_COMMITTER_* env vars and
+    gpg signing is turned off inline on the commit, so no `git config`
+    subprocess calls are needed.
+    """
     repo_dir.mkdir(parents=True, exist_ok=True)
     _run_git(repo_dir, "init")
-    _run_git(repo_dir, "config", "user.name", "Test Author")
-    _run_git(repo_dir, "config", "user.email", "test@example.com")
-    _run_git(repo_dir, "config", "commit.gpgsign", "false")
     for index, subject in enumerate(subjects):
         (repo_dir / f"file_{index}.txt").write_text(subject, encoding="utf-8")
         _run_git(repo_dir, "add", "-A")
-        _run_git(repo_dir, "commit", "-m", subject)
+        _run_git(repo_dir, "-c", "commit.gpgsign=false", "commit", "-m", subject)
 
 
 class TestGitHistoryExport:
