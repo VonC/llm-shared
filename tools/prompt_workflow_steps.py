@@ -123,6 +123,9 @@ def compute_state(root: Path, topic: Topic, memory_step: int | None) -> Workflow
         design_has_open_questions=(
             design is not None and docs.has_open_questions(design)
         ),
+        plan_has_open_questions=(
+            plan is not None and docs.has_open_questions(plan)
+        ),
         memory_step=memory_step,
     )
 
@@ -133,10 +136,14 @@ def _step_below(step: int | None, threshold: int) -> bool:
 
 
 def next_step_numbers(state: WorkflowState) -> list[int]:
-    """Return the document-phase step numbers (1 to 7).
+    """Return the document-phase step numbers (1 to 9).
 
-    The implement, check and commit cycle (steps 8 to 10) is handled separately
-    once a plan exists (Q21), so this only covers the path up to write-plans.
+    The plain plan gets the same review-and-consolidate round the requirement and
+    design get: write-plans (7), then review-ask-questions (8) and
+    consolidate-then-review-ask-questions (9), looping while the plan carries open
+    questions. The implement, check and commit cycle (steps 10 to 12) is handled
+    separately once the plan round is done (Q21, ``plan_review_pending``), so this
+    only covers the path up to the plan review.
     """
     if state.requirement is None:
         return [1]
@@ -146,7 +153,39 @@ def next_step_numbers(state: WorkflowState) -> list[int]:
         return [2] if _step_below(state.memory_step, 2) else [4]
     if state.design_has_open_questions:
         return [6]
-    return [5] if _step_below(state.memory_step, 5) else [7]
+    if state.plan is None:
+        return [5] if _step_below(state.memory_step, 5) else [7]
+    return _plan_round_steps(state)
+
+
+def _plan_round_steps(state: WorkflowState) -> list[int]:
+    """Return the plan's own review-round step: review (8) or consolidate (9).
+
+    A plan with open questions routes to the consolidate step (9). Otherwise a
+    plan not reviewed yet (the persisted step is below 8) routes to the review
+    step (8), and a reviewed plan to consolidate (9), which clears the round and
+    lets ``plan_review_pending`` hand off to the implement cycle.
+    """
+    if state.plan_has_open_questions:
+        return [9]
+    return [8] if _step_below(state.memory_step, 8) else [9]
+
+
+def plan_review_pending(state: WorkflowState) -> bool:
+    """Return whether the plain plan still owes its review-and-consolidate round.
+
+    The plan is reviewed (step 8) and consolidated (step 9) before the implement
+    cycle takes over, mirroring the requirement and design rounds. The round is
+    pending while the plan carries open questions (consolidate is the next move)
+    or while the consolidate step has not run yet (the persisted step is below 9),
+    so a freshly written plan is always reviewed before any code is implemented.
+    The validation plan is never considered here: only the plain plan is reviewed.
+    """
+    if state.plan is None:
+        return False
+    if state.plan_has_open_questions:
+        return True
+    return _step_below(state.memory_step, 9)
 
 
 def alternatives_for(

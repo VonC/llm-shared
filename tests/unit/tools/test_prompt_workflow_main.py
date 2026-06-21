@@ -62,6 +62,7 @@ def _state(**overrides: object) -> WorkflowState:
         "validation_plan": None,
         "requirement_has_open_questions": False,
         "design_has_open_questions": False,
+        "plan_has_open_questions": False,
         "memory_step": None,
     }
     base.update(overrides)
@@ -208,15 +209,15 @@ def test_choose_topic_pick_forces_menu(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_build_menu_options_with_and_without_current() -> None:
     """Menu options list the higher step first; the repeat row follows (Q54)."""
     current = StepAlternative(4, "write-design.md", "b", ("draft",))
-    nxt = [StepAlternative(8, "implement-step.md", "b", ("plan",))]
+    nxt = [StepAlternative(10, "implement-step.md", "b", ("plan",))]
 
     without = prompt_workflow.build_menu_options(None, nxt)
-    assert [label for label, _ in without] == ["Step 8: implement-step.md"]
+    assert [label for label, _ in without] == ["Step 10: implement-step.md"]
 
     with_current = prompt_workflow.build_menu_options(current, nxt)
-    assert with_current[0][0] == "Step 8: implement-step.md"
+    assert with_current[0][0] == "Step 10: implement-step.md"
     assert [label for label, _ in with_current] == [
-        "Step 8: implement-step.md",
+        "Step 10: implement-step.md",
         "Repeat current step 4: write-design.md",
     ]
 
@@ -380,7 +381,10 @@ def _wire_cycle(
     monkeypatch.setattr(
         prompt_workflow.steps,
         "compute_state",
-        lambda _root, _topic, _step: _state(plan=Path("p"), validation_plan=Path("vp")),
+        # memory_step past the plan review round (>= 9) so the cycle gate fires.
+        lambda _root, _topic, _step: _state(
+            plan=Path("p"), validation_plan=Path("vp"), memory_step=10,
+        ),
     )
     monkeypatch.setattr(prompt_workflow.git, "fork_point", lambda _root: "base")
     monkeypatch.setattr(prompt_workflow.plan, "compute_cycle", lambda _root, _state, _base: cycle)
@@ -426,7 +430,7 @@ def test_run_implement_cycle_delivers(
     staged_calls: list[str] = []
 
     def build(*_args: object) -> tuple[str, int, str]:
-        return ("PROMPT-BODY", 8, "implement-step.md")
+        return ("PROMPT-BODY", 10, "implement-step.md")
 
     monkeypatch.setattr(prompt_workflow.git, "stage_all", lambda _root: staged_calls.append("x"))
     monkeypatch.setattr(prompt_workflow.plan, "build_cycle_prompt", build)
@@ -440,7 +444,7 @@ def test_run_implement_cycle_delivers(
         branch="main",
         version="v9.8.0",
         topic="iso",
-        step=8,
+        step=10,
         instruction="implement-step.md",
         plan_step="2",
     )
@@ -455,7 +459,7 @@ def test_run_implement_cycle_stage_all(
     staged_calls: list[str] = []
 
     def build(*_args: object) -> tuple[str, int, str]:
-        return ("COMMIT-PROMPT", 10, "group-commits-msg.md")
+        return ("COMMIT-PROMPT", 12, "group-commits-msg.md")
 
     monkeypatch.setattr(prompt_workflow.git, "stage_all", lambda _root: staged_calls.append("x"))
     monkeypatch.setattr(prompt_workflow.plan, "build_cycle_prompt", build)
@@ -468,7 +472,7 @@ def test_run_implement_cycle_stage_all(
         branch="main",
         version="v9.8.0",
         topic="iso",
-        step=10,
+        step=12,
         instruction="group-commits-msg.md",
         plan_step="2",
     )
@@ -515,7 +519,7 @@ def test_run_implement_cycle_terminal_skips_intro(
     infos: list[str] = []
 
     def build(*_args: object) -> tuple[str, int, str]:
-        return ("RELEASE-PROMPT", 11, "prepare-release-notes.md")
+        return ("RELEASE-PROMPT", 13, "prepare-release-notes.md")
 
     monkeypatch.setattr(prompt_workflow.plan, "build_cycle_prompt", build)
     _wire_cycle(monkeypatch, cycle=terminal, select=lambda _m, opts: opts[0][1])

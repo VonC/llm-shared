@@ -15,7 +15,7 @@ started``, the menu labels carry the id, and the title read tells a parent from
 its sub-step (Q41-Q45). Also cover the implement-missing variant: parsing records
 the ``No`` status apart from ``Not started`` (Q46), the cycle state carries it, the
 menu relabels the implement entry ``Implement missing for step <id>`` (Q47), and the
-prompt is built from the ``implement-missing-step.md`` step-8 alternative with the
+prompt is built from the ``implement-missing-step.md`` step-10 alternative with the
 missing-work focus and the split-large-file line-budget reminder (Q48-Q52).
 
 Fix: clear the ty and pyright findings that failed check.bat — the unused
