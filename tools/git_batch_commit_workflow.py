@@ -10,6 +10,13 @@ flag for diagnostic runs.
 Fix: In the root a.commit validation phase, check that the plan lists one
 `git add` per staged file, and empty a.commit after every commit lands so a
 stale plan is not mistaken for pending work on the next run.
+
+Fix: Run without a console so an agent can call the tool in a background shell.
+`main()` treats the run as non-interactive when `--non-interactive` is passed or
+no console is attached, and threads that flag through the commit loop. In that
+mode the commit phase never calls `input()`: a Git failure stops the batch with
+a non-zero exit instead of hanging on the "continue/stop" prompt that blocked an
+earlier auto-backgrounded run.
 """
 
 from __future__ import annotations
@@ -28,6 +35,9 @@ from tools.git_batch_commit_git import (
     git_add_files,
     git_commit,
     git_reset,
+)
+from tools.git_batch_commit_git import (
+    has_interactive_console as _has_interactive_console,
 )
 from tools.git_batch_commit_git import (
     is_worktree_clean as _is_worktree_clean,
@@ -115,15 +125,30 @@ def _get_arg_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Show Git trace output for commit commands only.",
     )
+    parser.add_argument(
+        "--non-interactive",
+        action="store_true",
+        help=(
+            "Never prompt: stop the batch on a Git or add-phase failure with a "
+            "non-zero exit. Also assumed automatically when no console is "
+            "attached, so an agent or background shell does not hang."
+        ),
+    )
     return parser
 
 
 def _run_root_a_commit_workflow(
     root: Path,
     *,
+    interactive: bool = True,
     trace_git_commit: bool = False,
 ) -> int:
-    """Run validate-then-commit workflow on <root>/a.commit."""
+    """Run validate-then-commit workflow on <root>/a.commit.
+
+    `interactive` is forwarded to the commit phase: when False the run stops on
+    a Git failure with a non-zero exit instead of prompting, so an agent calling
+    `--root-a-commit` in a background shell does not hang.
+    """
     LOGGER.info("Reading root commit plan: %s", root / "a.commit")
     blocks = _read_and_parse_content(
         root,
@@ -153,6 +178,7 @@ def _run_root_a_commit_workflow(
     if not _process_all_commits(
         blocks,
         root,
+        interactive=interactive,
         trace_git_commit=trace_git_commit,
     ):
         return 1
@@ -224,22 +250,27 @@ def _log_handled_error(label: str, err: Exception, *, verbose: bool) -> None:
     LOGGER.error("%s", err)
 
 
-def _process_commit_block(
+def _process_commit_block(  # noqa: PLR0913
     block: CommitBlock,
     i: int,
     total: int,
     root: Path,
     *,
+    interactive: bool = True,
     trace_git_commit: bool = False,
 ) -> bool:
-    """Process a single commit block. Returns True to continue, False to stop."""
+    """Process a single commit block. Returns True to continue, False to stop.
+
+    `interactive` is forwarded to the add and commit phases so a non-interactive
+    run stops on an add-phase issue and commits without needing a console.
+    """
     LOGGER.info("\n--- Processing commit %d/%d ---", i, total)
     LOGGER.info("Title: %s", block.commit_title)
 
     LOGGER.info("Git add commands: %d", len(block.git_adds))
 
     # Add files
-    add_outcome = git_add_files(block.git_adds, root)
+    add_outcome = git_add_files(block.git_adds, root, interactive=interactive)
     if not add_outcome.should_continue:
         LOGGER.info("Stopping at commit %d on user request.", i)
         return False
@@ -263,6 +294,7 @@ def _process_commit_block(
         block.commit_message,
         block.commit_title,
         root,
+        interactive=interactive,
         trace_git_commit=trace_git_commit,
     )
     return True
@@ -272,9 +304,15 @@ def _process_all_commits(
     blocks: list[CommitBlock],
     root: Path,
     *,
+    interactive: bool = True,
     trace_git_commit: bool = False,
 ) -> bool:
-    """Process all commit blocks."""
+    """Process all commit blocks.
+
+    On a Git failure an interactive run asks whether to continue or stop. A
+    non-interactive run cannot read that answer, so it stops the batch and
+    returns False, turning the failure into a non-zero exit instead of a hang.
+    """
     LOGGER.info("Found %d commit block(s).", len(blocks))
 
     git_reset(root)
@@ -286,6 +324,7 @@ def _process_all_commits(
                 i,
                 len(blocks),
                 root,
+                interactive=interactive,
                 trace_git_commit=trace_git_commit,
             )
             if not should_continue:
@@ -293,6 +332,9 @@ def _process_all_commits(
         except GitOperationError:
             # Note: try-except in loop is intentional for interactive error handling
             LOGGER.exception("Git operation failed")
+            if not interactive:
+                LOGGER.info("Stopping after Git operation failure (non-interactive).")
+                return False
             response = (
                 input("\nContinue with next commit or stop? [continue/stop]: ")
                 .strip()
@@ -306,12 +348,31 @@ def _process_all_commits(
     return True
 
 
+def _resolve_interactive(args: argparse.Namespace) -> bool:
+    """Return whether the run may prompt for input.
+
+    The run stays interactive only with a real console, without the
+    `--non-interactive` flag, and outside a dry run. An agent or background
+    shell (no console), a forced flag, or a dry run turns every prompt off so
+    nothing blocks waiting on input that will never arrive.
+    """
+    return (
+        not args.non_interactive
+        and _has_interactive_console()
+        and not args.dry_run
+    )
+
+
 def main(argv: list[str] | None = None) -> int:
     """CLI entry point."""
     parser = _get_arg_parser()
     args = parser.parse_args(argv)
 
     _configure_logging(debug=args.debug)
+
+    # Run without prompts when forced, when no console is attached, or for a dry
+    # run, so an agent or background shell never blocks on input().
+    interactive = _resolve_interactive(args)
 
     # Find project root
     root = find_project_root(Path.cwd())
@@ -328,13 +389,14 @@ def main(argv: list[str] | None = None) -> int:
                 raise GitBatchCommitError(msg)
             exit_code = _run_root_a_commit_workflow(
                 root,
+                interactive=interactive,
                 trace_git_commit=args.trace_git_commit,
             )
         else:
             blocks = _read_and_parse_content(
                 root,
                 filename=args.filename,
-                interactive=not args.dry_run,
+                interactive=interactive,
             )
 
             if args.dry_run:
@@ -345,6 +407,7 @@ def main(argv: list[str] | None = None) -> int:
             elif not _process_all_commits(
                 blocks,
                 root,
+                interactive=interactive,
                 trace_git_commit=args.trace_git_commit,
             ):
                 exit_code = 1
@@ -390,6 +453,7 @@ __all__ = [
     "_process_commit_block",
     "_read_and_parse_content",
     "_read_input_content",
+    "_resolve_interactive",
     "_run_root_a_commit_workflow",
     "main",
 ]

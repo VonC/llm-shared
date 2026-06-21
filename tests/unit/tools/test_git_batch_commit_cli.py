@@ -6,6 +6,9 @@ file.
 
 Fix: Keep monkeypatched read-and-parse helpers keyword-compatible with the
 production `main()` calls.
+
+Fix: Cover that `main()` derives the interactive flag from `--non-interactive`
+and from console detection, and forwards it to the commit loop.
 """
 
 from __future__ import annotations
@@ -69,6 +72,23 @@ def _valid_block() -> git_batch_models.CommitBlock:
         commit_message=commit_message,
         commit_title="fix(scope): title",
     )
+
+
+def _capture_process_all_commits(
+    store: dict[str, object],
+) -> Callable[..., bool]:
+    def fake_process_all_commits(
+        blocks: list[git_batch_models.CommitBlock],
+        root: Path,
+        *,
+        interactive: bool = True,
+        trace_git_commit: object = None,
+    ) -> bool:
+        del blocks, root, trace_git_commit
+        store["interactive"] = interactive
+        return True
+
+    return fake_process_all_commits
 
 
 def test_main_handles_root_a_commit_filename_conflict(
@@ -283,6 +303,49 @@ def test_main_returns_one_on_git_operation_errors(
     )
 
     assert git_batch_workflow.main(["plan.txt"]) == 1
+
+
+@pytest.mark.parametrize(
+    ("argv", "console", "expected_interactive"),
+    [
+        (["plan.txt"], True, True),
+        (["plan.txt"], False, False),
+        (["plan.txt", "--non-interactive"], True, False),
+    ],
+)
+def test_main_forwards_interactive_flag_from_flag_and_console(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    argv: list[str],
+    console: bool,  # noqa: FBT001
+    expected_interactive: bool,  # noqa: FBT001
+) -> None:
+    """`main()` should pass interactive=False when forced or when no console is attached."""
+    block = _valid_block()
+    captured: dict[str, object] = {}
+    monkeypatch.setattr(
+        git_batch_workflow,
+        "find_project_root",
+        _return_project_root(tmp_path),
+    )
+    monkeypatch.setattr(
+        git_batch_workflow,
+        "_read_and_parse_content",
+        _return_blocks([block]),
+    )
+    monkeypatch.setattr(
+        git_batch_workflow,
+        "_has_interactive_console",
+        lambda: console,
+    )
+    monkeypatch.setattr(
+        git_batch_workflow,
+        "_process_all_commits",
+        _capture_process_all_commits(captured),
+    )
+
+    assert git_batch_workflow.main(argv) == 0
+    assert captured["interactive"] is expected_interactive
 
 
 # eof

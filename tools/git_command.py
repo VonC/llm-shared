@@ -12,6 +12,11 @@ environment instead of letting `/bin/sh -l` rebuild `PATH` before
 
 Fix: Accept per-call environment overrides so callers can expose live Git
 trace output for a single command without mutating the parent Python process.
+
+Fix: Accept a per-call stdin override so a caller can detach a commit
+subprocess from the terminal (for example with `subprocess.DEVNULL`). A
+non-interactive run then fails fast on an unexpected Git prompt instead of
+waiting on input that will never arrive.
 """
 
 from __future__ import annotations
@@ -33,12 +38,18 @@ _GIT_LINUX_SHELL = ("/bin/sh", "-c")
 
 @dataclass(frozen=True)
 class GitCommandOptions:
-    """Options for one Git subprocess invocation."""
+    """Options for one Git subprocess invocation.
+
+    `stdin` is passed straight to `subprocess.run`. Leave it None to inherit the
+    parent stdin (the default). Pass `subprocess.DEVNULL` to detach the child
+    from the terminal so a prompt fails fast instead of blocking the run.
+    """
 
     check: bool = True
     capture_output: bool = False
     encoding: str | None = None
     env: dict[str, str] | None = None
+    stdin: int | None = None
 
 
 def _build_linux_git_shell_command(git_args: Sequence[str]) -> str:
@@ -73,6 +84,7 @@ def run_cross_platform_git_command(
             text=True,
             encoding=git_options.encoding,
             env=git_options.env,
+            stdin=git_options.stdin,
         )
 
     return subprocess.run(  # noqa: S603
@@ -83,6 +95,7 @@ def run_cross_platform_git_command(
         text=True,
         encoding=git_options.encoding,
         env=git_options.env,
+        stdin=git_options.stdin,
     )
 
 

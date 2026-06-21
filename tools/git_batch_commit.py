@@ -20,10 +20,12 @@ Commit message structure:
   ...
 
 Usage:
-    python git_batch_commit.py [filename] [--dry-run]
+    python git_batch_commit.py [filename] [--dry-run] [--non-interactive]
 
 Reads from clipboard by default. If filename is provided, reads from file.
 Processes git add/commit operations interactively unless --dry-run is used.
+Pass --non-interactive (or run without a console) to stop on failure instead of
+prompting, so an agent can call the tool from a background shell.
 
 Fix: Reduce complexity in _parse_commit_message and git_add_files by splitting
 into smaller helper functions. Remove magic numbers. Fix logging calls.
@@ -76,6 +78,11 @@ arguments during precheck instead of rejecting them as missing disk paths.
 
 Fix (split): move models, parsing helpers, Git helpers, and workflow logic
 into dedicated modules while keeping this file as the script and import hub.
+
+Fix: Support a non-interactive run. With `--non-interactive`, or when no console
+is attached, the tool never calls `input()`: it commits without a TTY and stops
+the batch on a Git or add-phase failure with a non-zero exit. This stops the
+hang an auto-backgrounded shell hit at the "continue/stop" prompt.
 """
 
 from __future__ import annotations

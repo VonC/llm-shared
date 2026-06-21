@@ -3,6 +3,10 @@
 Fix: Cover add-phase prompting and git-add failure handling from the split
 `tools.git_batch_commit_git` module without keeping a monolithic workflow test
 file.
+
+Fix: Cover the non-interactive add path. When files are missing or a git add
+fails and no console is available, the add phase must log the issue and stop the
+batch without calling `input()`.
 """
 
 from __future__ import annotations
@@ -61,6 +65,19 @@ def _return_string_list(
         return values
 
     return fake_string_list
+
+
+def _fail_input(_prompt: str) -> str:
+    msg = "input() must not be called in non-interactive mode"
+    raise AssertionError(msg)
+
+
+def _fail_prompt_add_issues_action(
+    _missing_files: list[str],
+    _failed_adds: list[str],
+) -> git_batch_models._GitAddOutcome:
+    msg = "_prompt_add_issues_action must not run in non-interactive mode"
+    raise AssertionError(msg)
 
 
 @pytest.mark.parametrize(
@@ -199,6 +216,73 @@ def test_git_add_files_returns_prompt_outcome_and_clean_success(
         should_continue=True,
         should_skip_commit=False,
     )
+
+
+def test_log_add_issues_reports_missing_files_and_failed_commands(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Issue logging should list both missing files and failed git add commands."""
+    caplog.set_level("WARNING")
+
+    git_batch_git._log_add_issues(["missing.py"], ["git add -A bad.py"])
+
+    assert "The following files are missing:" in caplog.text
+    assert "missing.py" in caplog.text
+    assert "The following git add commands failed:" in caplog.text
+    assert "git add -A bad.py" in caplog.text
+
+
+def test_non_interactive_add_issues_action_logs_and_stops(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """The non-interactive handler should log the issues and return a stop outcome."""
+    caplog.set_level("WARNING")
+
+    outcome = git_batch_git._non_interactive_add_issues_action(
+        ["missing.py"],
+        ["git add -A bad.py"],
+    )
+
+    assert outcome == git_batch_models._GitAddOutcome(
+        should_continue=False,
+        should_skip_commit=False,
+    )
+    assert "missing.py" in caplog.text
+    assert "no console to confirm" in caplog.text
+
+
+def test_git_add_files_non_interactive_stops_without_prompting(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """A non-interactive add phase with issues should stop without calling input()."""
+    monkeypatch.setattr(
+        git_batch_git,
+        "_check_missing_files",
+        _return_string_list(["missing.py"]),
+    )
+    monkeypatch.setattr(git_batch_git, "_execute_git_adds", _return_string_list([]))
+    # Neither the prompt nor input() may run when there is no console.
+    monkeypatch.setattr(
+        git_batch_git,
+        "_prompt_add_issues_action",
+        _fail_prompt_add_issues_action,
+    )
+    monkeypatch.setattr("builtins.input", _fail_input)
+    caplog.set_level("ERROR")
+
+    outcome = git_batch_git.git_add_files(
+        ["git add -A missing.py"],
+        tmp_path,
+        interactive=False,
+    )
+
+    assert outcome == git_batch_models._GitAddOutcome(
+        should_continue=False,
+        should_skip_commit=False,
+    )
+    assert "no console to confirm" in caplog.text
 
 
 # eof

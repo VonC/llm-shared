@@ -8,6 +8,9 @@ calls into `_read_and_parse_content()`.
 
 Fix: Cover the staged-count validation gate and the a.commit emptying that runs
 after every block has been committed in the root workflow.
+
+Fix: Cover that the root workflow forwards its interactive flag to the commit
+loop, so `--non-interactive --root-a-commit` runs without prompting.
 """
 
 from __future__ import annotations
@@ -90,13 +93,15 @@ def _return_false_for_root(_root: Path) -> bool:
 
 def _return_process_all_commits(
     result: object,
-) -> Callable[[list[git_batch_models.CommitBlock], Path, object], bool]:
+) -> Callable[..., bool]:
     def fake_process_all_commits(
         blocks: list[git_batch_models.CommitBlock],
         root: Path,
+        *,
+        interactive: object = True,
         trace_git_commit: object = None,
     ) -> bool:
-        del blocks, root, trace_git_commit
+        del blocks, root, interactive, trace_git_commit
         return bool(result)
 
     return fake_process_all_commits
@@ -210,6 +215,63 @@ def test_run_root_a_commit_workflow_stops_on_staged_count_mismatch(
 
     # Assert: the plan is untouched when validation stops the run.
     assert a_commit_path.read_text(encoding="utf-8") != ""
+
+
+def _capture_process_all_commits(
+    store: dict[str, object],
+) -> Callable[..., bool]:
+    def fake_process_all_commits(
+        blocks: list[git_batch_models.CommitBlock],
+        root: Path,
+        *,
+        interactive: object = True,
+        trace_git_commit: object = None,
+    ) -> bool:
+        del blocks, root, trace_git_commit
+        store["interactive"] = interactive
+        return True
+
+    return fake_process_all_commits
+
+
+def test_run_root_a_commit_workflow_forwards_interactive_flag(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """The root workflow should forward interactive=False to the commit loop."""
+    block = _valid_block()
+    captured: dict[str, object] = {}
+    a_commit_path = tmp_path / "a.commit"
+    a_commit_path.write_text("git add -A src/example.py\n", encoding="utf-8")
+
+    monkeypatch.setattr(
+        git_batch_workflow,
+        "_read_and_parse_content",
+        _return_commit_blocks([block]),
+    )
+    monkeypatch.setattr(
+        git_batch_workflow,
+        "_validate_missing_files_for_blocks",
+        _noop_validate_missing_files,
+    )
+    monkeypatch.setattr(
+        git_batch_workflow, "_is_worktree_clean", _return_false_for_root,
+    )
+    monkeypatch.setattr(
+        git_batch_workflow,
+        "_validate_staged_count_matches_git_adds",
+        _noop_validate_staged_count,
+    )
+    monkeypatch.setattr(
+        git_batch_workflow,
+        "_process_all_commits",
+        _capture_process_all_commits(captured),
+    )
+
+    assert (
+        git_batch_workflow._run_root_a_commit_workflow(tmp_path, interactive=False) == 0
+    )
+    assert captured["interactive"] is False
 
 
 def test_empty_a_commit_file_warns_when_write_fails(

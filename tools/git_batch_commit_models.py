@@ -76,12 +76,19 @@ class _ParseState:
 
 @dataclass(frozen=True)
 class _GitCommandOptions:
-    """Options for one Git subprocess invocation."""
+    """Options for one Git subprocess invocation.
+
+    `require_tty` makes the wrapper refuse to start when no console is attached.
+    `close_stdin` detaches the subprocess from the terminal (stdin from
+    `subprocess.DEVNULL`) so a non-interactive commit fails fast on an
+    unexpected Git prompt instead of waiting on input that never comes.
+    """
 
     check: bool = True
     capture_output: bool = True
     require_tty: bool = False
     trace_git: bool = False
+    close_stdin: bool = False
 
 
 @dataclass(frozen=True)
