@@ -3,10 +3,16 @@
 Fix: Drive the whole flow with real git plumbing (branch, fork point, porcelain
 parsing) so the draft on the working tree is detected, the prompt is built, and
 the memory file is written, with only the menu and clipboard stubbed.
+
+Fix: Supply the commit identity through the GIT_AUTHOR_*/GIT_COMMITTER_* env
+vars on every git call and drop the two `git config` subprocess calls from
+`_init_repo`. Each git spawn costs a few hundred milliseconds on Windows, so
+removing the redundant config processes cuts the test's setup wall time.
 """
 
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 from typing import TYPE_CHECKING
@@ -26,6 +32,17 @@ pytestmark = pytest.mark.skipif(
     reason="git is required for the integration test",
 )
 
+# Identity through the environment so the repo setup needs no `git config`
+# subprocess calls; merged onto os.environ to keep PATH and the Windows
+# system variables git relies on.
+_GIT_ENV = {
+    **os.environ,
+    "GIT_AUTHOR_NAME": "Tester",
+    "GIT_AUTHOR_EMAIL": "tester@example.com",
+    "GIT_COMMITTER_NAME": "Tester",
+    "GIT_COMMITTER_EMAIL": "tester@example.com",
+}
+
 
 def _git(repo: Path, *args: str) -> None:
     subprocess.run(  # noqa: S603
@@ -34,13 +51,12 @@ def _git(repo: Path, *args: str) -> None:
         check=True,
         capture_output=True,
         text=True,
+        env=_GIT_ENV,
     )
 
 
 def _init_repo(repo: Path) -> None:
     _git(repo, "init")
-    _git(repo, "config", "user.email", "tester@example.com")
-    _git(repo, "config", "user.name", "Tester")
     (repo / "README.md").write_text("readme", encoding="utf-8")
     _git(repo, "add", "README.md")
     _git(repo, "-c", "commit.gpgsign=false", "commit", "-m", "init")
