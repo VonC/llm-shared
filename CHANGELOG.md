@@ -6,6 +6,77 @@ release. The groundhog test loop (ghog), the prompt-workflow cycle (pw),
 and the commit and changelog helpers are mutualized across sibling
 projects.
 
+## [v0.7.0-SNAPSHOT unreleased] Branch to brel in one command - 94b3f4f03e2678734eee9dbfcdc7a48ae7580b51
+
+prepare-release readies every artifact and stops at the tag
+
+- No browser, still a PDF
+  -- activity-report renders Markdown to HTML and PDF, browser-free
+- A stale log can no longer lie
+  -- ghog day stamps each phase with a banner, a timestamp, and a duration
+
+v0.7.0 turns release preparation into one skill. The new prepare-release
+runs from any branch: it merges the effort into main with a why/what merge
+message, sets version.txt to the X.Y.Z-SNAPSHOT, runs the release notes and
+the changelog, updates pyproject.toml and uv.lock, and stops at a single
+chore(release) commit so the tag-cutting brel stays a manual, reviewed step.
+It calls the update-merge-commit-msg and prepare_release_notes skills and
+hands control back through a git-ignored flag file.
+
+The release also makes the work visible and the workflow tighter. The
+activity-report skill gathers git history across working trees and now
+renders the report to HTML then PDF with a pure-Python engine, with no
+browser to hang on Windows, and updates an existing report instead of
+overwriting it. The pw workflow gains a plan review round, so a plan is
+challenged before any code is written, and ghog day frames each phase with
+vvv/^^^ banners and a per-step duration so an old timestamp gives away a
+stale log.
+
+### Key changes for v0.7.0 (v0.7.0)
+
+- **prepare-release skill**: one command, from any branch, that merges,
+  rewords, sets the X.Y.Z-SNAPSHOT version, writes the notes and changelog,
+  updates pyproject and uv, and stops at one prepare commit before brel.
+
+- **activity-report to HTML and PDF**: the report renders to HTML then PDF
+  with the browser-free xhtml2pdf helper, and an existing report is updated
+  in place rather than overwritten.
+
+- **ghog day per-step timing**: each phase is framed by vvv/^^^ banners with
+  a full local timestamp and a duration, so a stale a.ghog.log shows old
+  times instead of passing as a fresh green run.
+
+### 🚀 Features (v0.7.0)
+
+- *(prompt_workflow)* Add plan review round
+- *(activity-report)* Add the git log/diff script
+- *(groundhog)* Timestamp each day-walk step
+- *(prepare-release)* One-command release prep
+- *(activity-report)* HTML/PDF and update mode
+- V0.7.0 prepare-release and workflow tooling
+
+### 🐛 Bug Fixes (v0.7.0)
+
+- *(open_questions)* Collapse blank lines on strip
+
+### 📚 Documentation (v0.7.0)
+
+- *(workflow)* Document the pw handoff cycle
+- *(write-plans)* Lint workarounds, skeleton fills
+- *(workflow)* Document the plan review round
+- *(review)* Add plan, scope questions per type
+- *(activity-report)* Add the two templates
+- *(activity-report)* Add the skill and workflow
+- *(workflow)* Cmd-shell caveat, ghog big files
+- *(guides)* Refresh the workflow guides
+- *(prepare-release)* Origin/main check on main
+- *(prepare-release)* Catch a pause-time commit
+
+### ⚙️ Miscellaneous Tasks (v0.7.0)
+
+- *(vscode)* Add cSpell dictionary words
+- *(vscode)* Add unreviewed to cSpell
+
 ## [v0.6.0] - 2026-06-21 - No Console, No Hang
 
 git_batch_commit commits from a background shell now
