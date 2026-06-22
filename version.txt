@@ -1,4 +1,4 @@
-0.7.0-SNAPSHOT -- Branch to brel in one command
+0.7.0 -- Branch to brel in one command
 
 prepare-release readies every artifact and stops at the tag
 

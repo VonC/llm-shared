@@ -6,7 +6,7 @@ release. The groundhog test loop (ghog), the prompt-workflow cycle (pw),
 and the commit and changelog helpers are mutualized across sibling
 projects.
 
-## [v0.7.0-SNAPSHOT unreleased] Branch to brel in one command - 94b3f4f03e2678734eee9dbfcdc7a48ae7580b51
+## [v0.7.0] - 2026-06-22 - Branch to brel in one command
 
 prepare-release readies every artifact and stops at the tag
 
