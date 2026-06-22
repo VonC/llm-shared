@@ -33,6 +33,7 @@ def _state(**overrides: object) -> WorkflowState:
         "validation_plan": None,
         "requirement_has_open_questions": False,
         "design_has_open_questions": False,
+        "plan_has_open_questions": False,
         "memory_step": None,
     }
     base.update(overrides)
@@ -40,12 +41,12 @@ def _state(**overrides: object) -> WorkflowState:
 
 
 def test_load_steps_default_and_override(tmp_path: Path) -> None:
-    """The shipped config loads all 11 steps; a custom path also loads."""
+    """The shipped config loads all 13 steps; a custom path also loads."""
     alternatives_with_choice = 2
     config = steps.load_steps()
-    assert sorted(config) == list(range(1, 12))
+    assert sorted(config) == list(range(1, 14))
     assert len(config[1]) == alternatives_with_choice
-    assert len(config[11]) == alternatives_with_choice
+    assert len(config[13]) == alternatives_with_choice
 
     custom = tmp_path / "steps.json"
     custom.write_text(
@@ -115,7 +116,7 @@ def test_compute_state_with_documents(
 
 
 def test_next_step_numbers_document_phase() -> None:
-    """The requirement, consolidate, design and plan gates pick the right steps."""
+    """The requirement, design and plan gates pick the right review steps."""
     assert steps.next_step_numbers(_state()) == [1]
     assert steps.next_step_numbers(
         _state(requirement=Path("r"), requirement_has_open_questions=True),
@@ -135,6 +136,34 @@ def test_next_step_numbers_document_phase() -> None:
     ) == [7]
 
 
+def test_next_step_numbers_plan_review_round() -> None:
+    """The plain plan gets its own review (8) and consolidate (9) round."""
+    base = {"requirement": Path("r"), "design": Path("d"), "plan": Path("p")}
+    # Just wrote the plan (step 7): the first move is to review it (step 8).
+    assert steps.next_step_numbers(_state(**base, memory_step=7)) == [8]
+    # Open questions on the plan route to the consolidate step (9).
+    assert steps.next_step_numbers(
+        _state(**base, plan_has_open_questions=True, memory_step=8),
+    ) == [9]
+    # A reviewed plan with no open questions left advances to consolidate (9).
+    assert steps.next_step_numbers(_state(**base, memory_step=8)) == [9]
+
+
+def test_plan_review_pending_gates_the_cycle() -> None:
+    """The plan review round blocks the implement cycle until consolidate ran."""
+    base = {"requirement": Path("r"), "design": Path("d")}
+    # No plain plan yet: nothing pending, the cycle gate is not relevant.
+    assert steps.plan_review_pending(_state(**base)) is False
+    # A freshly written plan (step 7) still owes its review round.
+    assert steps.plan_review_pending(_state(**base, plan=Path("p"), memory_step=7)) is True
+    # Open questions on the plan keep the round pending.
+    assert steps.plan_review_pending(
+        _state(**base, plan=Path("p"), plan_has_open_questions=True, memory_step=9),
+    ) is True
+    # Consolidated (step 9) with no open questions: the cycle may take over.
+    assert steps.plan_review_pending(_state(**base, plan=Path("p"), memory_step=9)) is False
+
+
 def test_alternatives_for_skips_unknown_numbers() -> None:
     """Flattening alternatives ignores numbers absent from the config."""
     config = steps.load_steps()
@@ -150,10 +179,10 @@ def test_current_alternative_lookup() -> None:
     config = steps.load_steps()
 
     assert steps.current_alternative(config, None, None) is None
-    matched = steps.current_alternative(config, 11, "prepare-release-notes.md")
+    matched = steps.current_alternative(config, 13, "prepare-release-notes.md")
     assert matched is not None
     assert matched.instruction == "prepare-release-notes.md"
-    fallback = steps.current_alternative(config, 11, "missing.md")
+    fallback = steps.current_alternative(config, 13, "missing.md")
     assert fallback is not None
     assert fallback.instruction == "implement-step.md"
     assert steps.current_alternative(config, 99, "x") is None
@@ -172,7 +201,7 @@ def test_build_prompt_resolves_context(tmp_path: Path) -> None:
         validation_plan=tmp_path / "docs" / "plan.v9.8.0.iso.validation.md",
     )
     alternative = StepAlternative(
-        number=9,
+        number=11,
         instruction="implementation-check.md",
         body="Check the current step implementation.",
         context=(

@@ -37,6 +37,7 @@ def test_dataclasses_carry_their_fields() -> None:
         validation_plan=None,
         requirement_has_open_questions=False,
         design_has_open_questions=False,
+        plan_has_open_questions=False,
         memory_step=None,
     )
     record = MemoryRecord(branch="main", version="v9.8.0", topic="resources_isolation")

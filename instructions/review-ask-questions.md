@@ -4,11 +4,13 @@ ultrathink: take the time to reason through the document deeply before drafting 
 
 Check your prompt for type (feature-request, issue, design or plan), vX.Y.Z and topic (for instance "design v9.3.0 sentinels").
 
-Be mindful of the type of the document you are reviewing:
+Be mindful of the type of the document you are reviewing, because the kind of question you may ask changes with it. A question that fits one type is out of place in another:
 
-- a feature-request or an issue document should not include any design choice question, but only questions about clarifying the feature or the issue.
-- a design document should not include any implementation detail, and should not include any question about implementation details, but only questions about design choices.
-- an implementation plan document should not include any design choice question, but only questions about implementation details.
+- a feature-request or an issue document takes only questions that clarify the feature or the issue itself: scope, expected behaviour, acceptance criteria, edge cases. No design choice, no implementation detail.
+- a design document takes only questions about design choices: structure, data flow, trade-offs, interfaces, target behaviour. No implementation detail, and nothing that re-opens the feature or the issue.
+- an implementation plan document takes only questions about implementation details: which files to create or change, the order of the steps, the gate-test and acceptance-test strategy, the line budget and split decisions, the per-step command checklist. No design choice, and nothing that re-opens the feature, the issue or the design.
+
+Never carry a question across types: a plan review does not re-ask a design question the design already settled, and it does not re-clarify the feature or the issue. If the right place for a question is an earlier document, say so instead of asking it here.
 
 Review that `docs\<type>.vX.Y.Z.<topic>.md` document (see other `docs\<other_type>.vX.Y.Z.<topic>.md` documents in your context if provided), and write your new questions into the companion scratch file `a.<base>.open.questions.md`, following the template, then let `oqm` place them into the document as described below. Each question must comes with options (and their pros and cons), as well as a recommended choice (with arguments) from those options, as well as "Answer to Qxx: option Y" repeating the recommended option, but adding a reason why it must be accepted as the answer.
 

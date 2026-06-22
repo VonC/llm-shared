@@ -32,6 +32,17 @@ At the end of the step, run `ghog day` once — the groundhog walk (manual in [`
 cmd /d /c "<llm-shared>\bin\ghog.bat day > a.ghog.log 2>&1"
 ```
 
+Issue that call from **PowerShell or cmd.exe**, never from Git Bash or another MSYS/POSIX shell: a POSIX shell rewrites the `/d` and `/c` arguments into paths, so `cmd` starts interactively and exits 0 without running the tool, leaving a stale `a.ghog.log` that reads as a fresh green result. Prove the run happened with a freshness flag before trusting the log — stamp `a.ghog.started`, run the walk, confirm `a.ghog.log` is newer than the flag, delete it; an untouched log means the walk did not run, so fix the invocation and retry rather than reading old content (the per-step `started`/`ended` timestamp headers in the log make staleness obvious too). From PowerShell:
+
+```powershell
+ni a.ghog.started -Force | Out-Null; $t = (gi a.ghog.started).LastWriteTime
+cmd /d /c "<llm-shared>\bin\ghog.bat day > a.ghog.log 2>&1"; $code = $LASTEXITCODE
+if (-not ((Test-Path a.ghog.log) -and (gi a.ghog.log).LastWriteTime -gt $t)) {
+    "STALE: a.ghog.log not refreshed - the walk did not run; fix the invocation before reading"
+}
+ri a.ghog.started -Force; "exit=$code"
+```
+
 `<llm-shared>` is the llm-shared folder of the workspace (`..\llm-shared` in a sibling layout). Branch on the exit code first, then read only the tail of `a.ghog.log` — the last 5 lines on exit 0, the last 100 otherwise; never load the whole log, never delete it. The walk is finished only when `a.ghog.status` reads `state=done` — a verdict to read through `ghog status`, never with a direct read of that file (only the command probes the pid); a growing log proves nothing. When the harness can kill long calls — or already killed one walk — run the walk detached instead, `cmd /d /c "<llm-shared>\bin\ghog.bat day --detach"` with no redirect, then poll `cmd /d /c "<llm-shared>\bin\ghog.bat status"` (never redirected) until its exit code is no longer 6: exit 7 means the run was lost (relaunch), any other code is the walk's own. The walk runs, in order, stopping at the first non-green step:
 
 - check.bat: the compile and lint gate;

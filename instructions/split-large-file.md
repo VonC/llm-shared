@@ -49,6 +49,8 @@ Diagnostic:
   cmd /d /c "<llm-shared>\bin\ghog.bat day > a.ghog.log 2>&1"
   ```
 
+  Issue that call from PowerShell or cmd.exe, never from Git Bash or another MSYS/POSIX shell: a POSIX shell rewrites the `/d` and `/c` switches into paths, so `cmd` opens interactively and exits 0 without running the walk, leaving a stale `a.ghog.log` that reads as a fresh green result (see [`../rules/run_commands.md`](../rules/run_commands.md) and [`groundhog.md`](groundhog.md)).
+
 - the walk is finished only when `a.ghog.status` reads `state=done` — a verdict to read through `ghog status`, never with a direct read of that file (only the command probes the pid); a growing log proves nothing. When the harness can kill long calls, run `cmd /d /c "<llm-shared>\bin\ghog.bat day --detach"` (no redirect) instead, then poll `cmd /d /c "<llm-shared>\bin\ghog.bat status"` (never redirected) until its exit code is no longer 6: exit 7 means the run was lost (relaunch), any other code is the walk's own.
 - a "Check for files too big" failure from check.bat is expected while the split is in progress (the original file still exists): finish the split first, then run `ghog day` again.
 

@@ -1,4 +1,4 @@
-"""Implement-validate-group cycle for prompt_workflow (steps 8 to 10).
+"""Implement-validate-group cycle for prompt_workflow (steps 10 to 12).
 
 Once a plan and its validation plan exist, the implement, check and commit cycle
 is driven by a plan step ``x`` re-derived from the validation plan and git, not
@@ -7,7 +7,7 @@ by the persisted workflow step (Q21). This module parses the validation plan's
 a recorded commit (Q16, Q19), classifies the working tree (Q20), and builds the
 menu options and the per-step prompts the cycle offers (Q17).
 
-Fix: the group-commits prompt (step 10) is now completed with the count and the
+Fix: the group-commits prompt (step 12) is now completed with the count and the
 porcelain ``XY path`` list of the staged files, read after the optional
 ``git add -A`` (Q22, Q23); its Context drops the ``git_status`` role since the
 body carries the list (Q24); and ``a.commit`` is emptied before the prompt is
@@ -29,7 +29,7 @@ status line starts with ``No``), the implement entry switches to the
 implement-missing variant (Q46). ``parse_validation_steps`` records that ``No``
 state on ``PlanStep`` and ``compute_cycle`` carries it on ``CycleState`` (Q46);
 ``build_cycle_options`` relabels the entry ``Implement missing for step <id>`` and
-sets ``CycleAction.missing`` (Q47); and the prompt is built from the second step-8
+sets ``CycleAction.missing`` (Q47); and the prompt is built from the second step-10
 alternative, ``implement-missing-step.md``, which points at the validation plan's
 ``Missing work for Step x`` section and carries a split-large-file line-budget
 reminder interpolated with the header ``{prefix}`` (Q48-Q52).
@@ -71,7 +71,9 @@ STATUS_NO_RE = re.compile(r"^\s*no\b", re.IGNORECASE)
 # The docs folder prefix; changes outside it count as code changes (Q20).
 _DOCS_PREFIX = "docs/"
 # Workflow step number per cycle action kind (kept internal, never shown, Q17).
-_WORKFLOW_STEP = {"implement": 8, "check": 9, "commit": 10, "release": 11}
+# The cycle sits after the plain plan's own review-and-consolidate round (steps 8
+# and 9), so it starts at step 10.
+_WORKFLOW_STEP = {"implement": 10, "check": 11, "commit": 12, "release": 13}
 # Name of the grouped-commit file the commit prompt resets at the project root (Q25).
 A_COMMIT_FILENAME = "a.commit"
 # Template for the introduction line printed above a non-terminal cycle menu (Q33).
@@ -307,7 +309,7 @@ def _cycle_alternative(
 ) -> StepAlternative:
     """Return the step alternative backing a cycle action.
 
-    The implement-missing action takes the second step-8 alternative, the
+    The implement-missing action takes the second step-10 alternative, the
     ``implement-missing-step.md`` body, in place of the plain implement body (Q48).
     """
     if action.kind == "release":

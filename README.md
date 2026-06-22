@@ -32,11 +32,13 @@ Each skill draws a clear line between phases:
   `/consolidate-then-review-ask-questions`).
 - **Design** a solution with explicit acceptance scenarios
   (`/write-design` and the same review loop).
-- **Plan** the implementation as a numbered list of steps. The first
-  step adds gate tests that fail on purpose; the following steps make
+- **Plan** the implementation as a numbered list of steps, then run the
+  same review loop on the plan itself (not on the validation plan). The
+  first step adds gate tests that fail on purpose; the following steps make
   those tests pass one by one. The last step adds the acceptance tests
   that close the loop on the original requirement
-  (`/write-plans`, `/implement-step`, `/implementation-check`).
+  (`/write-plans`, the plan review loop, `/implement-step`,
+  `/implementation-check`).
 
 See [DEVELOPMENT.md  --  Goal: avoid vibe-coding](DEVELOPMENT.md#goal-avoid-vibe-coding)
 for the full rationale, what each phase costs up front, and the short
@@ -72,16 +74,19 @@ after the trigger completes.
 
 | Phase | Trigger | Output artifact |
 | --- | --- | --- |
-| Draft capture | Author writes free-form notes | `docs\draft.vX.Y.Z.<topic>.md` |
+| Draft capture | Author writes free-form notes | a raw draft note |
+| Process draft | `/process-draft` | the draft classified (feature-request / issue), renamed `docs\draft.vX.Y.Z.<slug>.md`, on a new effort branch |
 | Split (optional) | `/split-and-define` | `List of feature-requests and issues to create` section appended to the draft |
 | Define each item | `/write-requirement <type> vX.Y.Z <topic>` | `docs\feature-request.vX.Y.Z.<topic>.md` or `docs\issue.vX.Y.Z.<topic>.md` |
 | Review loop | `/review-ask-questions` then `/consolidate-then-review-ask-questions` | Open questions folded into a decision table; document approved |
 | Design | `/write-design` | `docs\design.vX.Y.Z.<topic>.md` with acceptance scenarios |
 | Plan | `/write-plans` | `docs\plan.vX.Y.Z.<topic>.md` + `docs\plan.vX.Y.Z.<topic>.validation.md` |
+| Plan review loop | `/review-ask-questions` then `/consolidate-then-review-ask-questions` on the plan | Plan open questions folded into a decision table; plan approved (the validation plan is left untouched) |
 | Implement and check | `/implement-step N`, then `pw handoff` chains `/implementation-check N` | Code, tests, and updates to the validation document |
 | Group commits | `pw handoff after-check` routes a `Yes` step to `/group-commits-msg`; `gcba` replays | `a.commit` with one conventional commit per group, replayed by `gcba` |
 | Merge and reword | `git merge --no-ff` then `/update-merge-commit-msg` then `grmc` | Merge commit with a conventional message tied to the merged docs |
 | Prepare release notes | `/prepare_release_notes` | `a.md`, a release-notes summary in `version.txt`, an updated `CHANGELOG.md` |
+| Prepare release (automated) | `/prepare-release` | Rebases the branch onto the latest main when behind (with a `ghog day` gate), does the merge and reword, the `version.txt` snapshot, `/prepare_release_notes`, and the pyproject and uv steps, then one `chore(release): prepare for vX.Y.Z release` commit; stops before `brel` |
 | Release | `brel` | Version tag `vX.Y.Z` on `main`, marked `[valid]` after a green build |
 
 From `/implement-step N` down to the `a.commit` group-commit-message step,
@@ -140,6 +145,15 @@ shows the main phases and which skill triggers each transition. See
 
 ```txt
                   +-----------------+
+                  |  raw draft note |
+                  +--------+--------+
+                           |
+                           |  /process-draft  (classify feature/issue,
+                           |  pick vX.Y.Z, rename draft.vX.Y.Z.<slug>.md,
+                           |  create the effort branch)
+                           v
+                  +-----------------+
+                  | named, branched |
                   |   draft (EdB)   |
                   +--------+--------+
                            |
@@ -176,10 +190,11 @@ shows the main phases and which skill triggers each transition. See
                            |  /write-plans
                            v
                   +-----------------+
-                  |     plan +      |
-                  | validation plan |
-                  +--------+--------+
-                           |
+                  |     plan +      |----+
+                  | validation plan |    |  /review-ask-questions
+                  |                 |<---+  /consolidate-then-review-ask-questions
+                  +--------+--------+       (loop on the plan only, not the
+                           |                 validation plan)
                            |  /implement-step N   (enters the chain)
                            v
    +=================================================================+
@@ -214,25 +229,16 @@ shows the main phases and which skill triggers each transition. See
                   |                 |<---+  (loop for next step)
                   +--------+--------+
                            |
-                           |  last step done
-                           |  git merge --no-ff <branch>
-                           |  /update-merge-commit-msg
+                           |  last step done: effort branch ready
                            v
-                  +-----------------+
-                  |                 |----+
-                  |  main updated   |    |  (loop for next requirement)
-                  |                 |<---+
-                  +--------+--------+
-                           |
-                           |  after several merges
-                           |  /prepare_release_notes
-                           v
-                  +-----------------+
-                  | release notes   |
-                  | prepared        |
-                  +--------+--------+
-                           |
-                           |  brel  (build + tag)
+                  +-----------------+  one command, any branch: switch to
+                  | prepare-release |  main + merge --no-ff, reword, set
+                  |  stops before   |  version.txt -SNAPSHOT, run
+                  |    the tag      |  /prepare_release_notes (notes +
+                  +--------+--------+  CHANGELOG), pyproject + uv, then one
+                           |           chore(release): prepare commit
+                           |  review everything, then
+                           |  brel   (build + tag)
                            v
                   +-----------------+
                   |     release     |
@@ -251,6 +257,15 @@ the part that now runs by itself: `pw handoff` chains those steps with no
 menu and no go-ahead until `a.commit` is written. See
 [Automated implement cycle with pw handoff](#automated-implement-cycle-with-pw-handoff)
 for how each transition fires.
+
+The flow opens and closes with one skill each. `/process-draft` turns a
+loose draft note into a named, classified, branched effort ready to spec
+(see [DEVELOPMENT.md  --  Draft capture for a feature or fix](DEVELOPMENT.md#draft-capture-for-a-feature-or-fix)).
+`/prepare-release` is the box at the bottom: one command, from any branch,
+that does the merge and reword, the `version.txt` snapshot,
+`/prepare_release_notes`, and the pyproject and uv steps, then a single
+`chore(release): prepare` commit, and stops before `brel` tags (see
+[DEVELOPMENT.md  --  Automate the prep with /prepare-release](DEVELOPMENT.md#automate-the-prep-with-prepare-release)).
 
 The `/split-and-define` phase is optional. When the draft already
 describes a single, self-contained requirement, the author can call
@@ -340,6 +355,38 @@ step: the author runs `brel`, which drives the project build with the
 [DEVELOPMENT.md  --  Prepare release notes and create the release](DEVELOPMENT.md#prepare-release-notes-and-create-the-release)
 for the six-step workflow and the dependency on the `senv_dev_workflow`
 build tooling.
+
+---
+
+## Make a release with the prepare-release skill
+
+A release is more than the tag: the effort branch is merged into `main`,
+`version.txt` is set to `X.Y.Z-SNAPSHOT` with its release notes,
+`CHANGELOG.md` is updated, and only then is `main` tagged `vX.Y.Z` by
+`brel`. The `/prepare-release` skill drives every step except the tag, from
+any branch, and stops at one `chore(release): prepare for vX.Y.Z release`
+commit for the author to review.
+
+It calls the smaller skills rather than repeating them, signalling each
+through a git-ignored `a.prepare-release.active` flag file so the callee
+hands control back:
+
+- `group-commits-msg`  --  commit a dirty tree, or commit fixes a test gate
+  needed.
+- `update-merge-commit-msg`  --  give the merge commit the `Why:` / `What:`
+  message (a free-form one is refused).
+- `prepare_release_notes`  --  the `version.txt` summary and `CHANGELOG.md`.
+- the `ghog day` groundhog loop  --  the green gate after a rebase or a
+  stale-base merge.
+
+The skill pauses whenever the author must decide or act, and several pauses
+resume only on an explicit "go ahead": choosing rebase / merge-anyway /
+abort when the branch is behind `main`, resolving a rebase conflict, picking
+a release title, and the notes-review pause where the author edits the
+`version.txt` summary or asks for `.changelog.fixes` rules before the
+changelog is regenerated. It never tags and never pushes; the author runs
+`brel` at the end. The full pause-by-pause table is in
+[DEVELOPMENT.md  --  Automate the prep with /prepare-release](DEVELOPMENT.md#automate-the-prep-with-prepare-release).
 
 ---
 

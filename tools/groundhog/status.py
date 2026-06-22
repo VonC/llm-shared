@@ -49,7 +49,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Final
 
-from tools.groundhog import commands, redirect, reporting, runner
+from tools.groundhog import commands, day, redirect, reporting, runner
 from tools.groundhog.models import EXIT_RUN_LIVE, EXIT_RUN_LOST, EXIT_SETUP_ERROR
 
 if TYPE_CHECKING:
@@ -329,7 +329,7 @@ def _dispatch(invocation: Invocation, deps: Deps) -> int:
     if invocation.sub == runner.SUB_CHECK:
         return commands.run_check(invocation, deps)
     if invocation.sub == runner.SUB_DAY:
-        return commands.run_day(invocation, deps)
+        return day.run_day(invocation, deps)
     return commands.run_tests(invocation, deps)
 
 

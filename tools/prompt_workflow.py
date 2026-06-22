@@ -301,7 +301,7 @@ def run(root: Path, *, pick: bool = False) -> int:
 
     config = steps.load_steps()
     state = steps.compute_state(root, topic, memory_step)
-    if state.plan is not None:
+    if state.plan is not None and not steps.plan_review_pending(state):
         return _run_implement_cycle(root, topic, branch, state, config)
 
     current = steps.current_alternative(config, memory_step, instruction)
