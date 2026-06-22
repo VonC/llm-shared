@@ -31,6 +31,7 @@ hint to name the ``ghog exclude`` command instead of raising line 2 (Q62).
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Final
 
 from tools.groundhog import durations
@@ -52,6 +53,52 @@ if TYPE_CHECKING:
 PERCENT_STEP: Final = 10
 # One progress line at least this often, in seconds (Q04).
 SILENCE_FLOOR_SECONDS: Final = 60.0
+# Width of the dashed rule that brackets each day-walk phase in a.ghog.log.
+STEP_RULE_WIDTH: Final = 60
+# The side dashes that flank the vvv/^^^ banner opening and closing a phase.
+_BANNER_SIDE: Final = "-------"
+
+
+def now_local() -> str:
+    """Return the current local wall-clock time as a full ISO timestamp.
+
+    The full date and time in the user's local timezone, with the UTC offset,
+    so a step header in ``a.ghog.log`` is unambiguous and a stale log (read
+    after a silent no-op run) is obvious at a glance.
+    """
+    return datetime.now(tz=UTC).astimezone().isoformat(timespec="seconds")
+
+
+def step_rule(project: str) -> str:
+    """Build the dashed separator rule inside a day-walk phase block."""
+    return f"{project}: {'-' * STEP_RULE_WIDTH}"
+
+
+def _phase_banner(project: str, fill: str) -> str:
+    """Build a phase banner: side dashes around a run of the fill char."""
+    inner = STEP_RULE_WIDTH - 2 * (len(_BANNER_SIDE) + 1)
+    return f"{project}: {_BANNER_SIDE} {fill * inner} {_BANNER_SIDE}"
+
+
+def step_open_banner(project: str) -> str:
+    """Build the ``vvv`` banner that marks the start of a day-walk phase."""
+    return _phase_banner(project, "v")
+
+
+def step_close_banner(project: str) -> str:
+    """Build the ``^^^`` banner that marks the end of a day-walk phase."""
+    return _phase_banner(project, "^")
+
+
+def step_started_line(project: str, sub: str, when: str) -> str:
+    """Build the per-step start header of a day walk (full local timestamp)."""
+    return f"{project}: == ghog {sub} == started | {when}"
+
+
+def step_ended_line(project: str, sub: str, when: str, duration_s: float) -> str:
+    """Build the per-step end header of a day walk: timestamp plus duration."""
+    return f"{project}: == ghog {sub} == ended | {when} | duration={duration_s:.1f}s"
+
 
 # Next-step messages of the run-state table in the spec.
 MSG_CHECK_OK: Final = "Next: ghog affected --no-cov"
@@ -104,9 +151,11 @@ MSG_NO_BASELINE: Final = (
 # fix-slow-test instruction so the per-call procedure is acted upon whatever
 # flow ran the walk.
 MSG_OUTLIERS: Final = (
-    "Next: shorten each call listed above the floor (how to: "
-    "<llm-shared>/instructions/fix_slow_test.md), confirm it alone with "
-    "ghog single <file>, then ghog day to re-measure the whole suite"
+    "Next: a call only slightly above the floor will flap on the next jitter, "
+    "so do not just re-measure - shorten each call listed above the floor (how "
+    "to: <llm-shared>/instructions/fix_slow_test.md) until it lands well below "
+    "the floor with margin to spare, confirm it alone with ghog single <file>, "
+    "then ghog day"
 )
 # Lifecycle verdicts of the ghog status reporter (Q32).
 MSG_STATUS_NONE: Final = "ghog: no run recorded in a.ghog.status - Next: ghog day"

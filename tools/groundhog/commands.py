@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import logging
 import re
-from dataclasses import replace
 from typing import TYPE_CHECKING
 
 from tools.groundhog import (
@@ -27,7 +26,6 @@ from tools.groundhog import (
     redirect,
     reporting,
     runner,
-    snapshot,
 )
 from tools.groundhog.models import (
     EXIT_COVERAGE_GAP,
@@ -234,52 +232,6 @@ def run_tests(invocation: Invocation, deps: Deps) -> int:
     exit_code = classify(invocation, result, gate_value, flagged)
     _report(invocation, result, exit_code, gate_value, summary)
     return exit_code
-
-
-def run_day(invocation: Invocation, deps: Deps) -> int:
-    """Walk the whole chain: check, affected --no-cov, full (Q22).
-
-    The walk stops at the first non-green step, whose report already
-    names the fix to apply; the fixing, and the loop around it, stay
-    with the caller. A missing check.bat skips to the test steps (Q10).
-    A walk whose source snapshot matches the last green walk is a noop
-    (Q28), unless forced, so chained instructions may call it twice for
-    free; a fully green walk records the new snapshot.
-
-    Args:
-        invocation: The parsed invocation.
-        deps: The injectable seams.
-
-    Returns:
-        The exit code of the first non-green step, or the full run's.
-    """
-    if not invocation.force and snapshot.is_unchanged(invocation.root):
-        emit_summary([reporting.MSG_DAY_NOOP])
-        closing = reporting.closing_line(
-            invocation.root.name,
-            runner.SUB_DAY,
-            RunStats(),
-            EXIT_OBJECTIVE_MET,
-            reporting.ClosingMetrics(reporting.COV_SKIPPED),
-        )
-        emit_summary([closing])
-        return EXIT_OBJECTIVE_MET
-    code = run_check(replace(invocation, sub=runner.SUB_CHECK), deps)
-    if code != EXIT_OBJECTIVE_MET:
-        return code
-    code = run_tests(
-        replace(invocation, sub=runner.SUB_AFFECTED, no_cov=True),
-        deps,
-    )
-    if code != EXIT_OBJECTIVE_MET:
-        return code
-    code = run_tests(
-        replace(invocation, sub=runner.SUB_FULL, no_cov=False),
-        deps,
-    )
-    if code == EXIT_OBJECTIVE_MET:
-        snapshot.write_marker(invocation.root)
-    return code
 
 
 def run_init(invocation: Invocation, deps: Deps) -> int:

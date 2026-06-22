@@ -9,6 +9,7 @@ through the same faked process boundary as the per-subcommand file.
 
 from __future__ import annotations
 
+import re
 from typing import TYPE_CHECKING
 
 from tests.unit.tools.groundhog_acceptance_support import (
@@ -220,6 +221,36 @@ def test_at16_failing_walk_records_no_snapshot(
     assert code == EXIT_TEST_FAILURES
     assert not snapshot.marker_path(tmp_path).is_file()
     assert reporting.MSG_DAY_NOOP not in capsys.readouterr().out
+
+
+def test_day_brackets_each_step_with_timestamped_headers(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Each day step is framed by vvv/^^^ banners and timestamped headers."""
+    (tmp_path / "check.bat").write_text("@echo off\n", encoding="utf-8")
+    spawns = QueueSpawns(
+        [
+            (["compile ok"], 0),
+            (passing_transcript(2, None), 0),
+            (passing_transcript(4, "TOTAL    100    0   100%"), 0),
+        ],
+    )
+    code = cli.main(["day", "--root", str(tmp_path), "--llm"], make_deps(spawns))
+    assert code == EXIT_OBJECTIVE_MET
+    out = capsys.readouterr().out
+    project = re.escape(tmp_path.name)
+    timestamp = r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d[+-]\d\d:\d\d"
+    assert re.search(rf"{project}: -{{20,}}", out)
+    assert re.search(rf"{project}: -+ v+ -+", out)
+    assert re.search(rf"{project}: -+ \^+ -+", out)
+    for label in ("check", "affected --no-cov", "full"):
+        step = re.escape(label)
+        assert re.search(rf"{project}: == ghog {step} == started \| {timestamp}", out)
+        assert re.search(
+            rf"{project}: == ghog {step} == ended \| {timestamp} \| duration=\d+\.\d+s",
+            out,
+        )
 
 
 # eof
