@@ -130,6 +130,9 @@ Call `update-changelog.bat` from `<PRJ_DIR>`:
 tools\dev_workflow\update-changelog.bat
 ```
 
+Run it from PowerShell or cmd.exe, not from Git Bash — it is a `.bat`
+toolchain script (see [`../rules/run_commands.md`](../rules/run_commands.md)).
+
 - If it succeeds, output a message confirming the `CHANGELOG.md` was
   updated with the new version and the release-notes summary.
 - If it fails, stop with an error: report the failure, include the
@@ -144,3 +147,19 @@ Output a final message confirming that:
 
 Then tell the user the next step: this skill does not create the
 release. To create it, the user runs `brel`.
+
+## Handoff to prepare-release
+
+This skill can run on its own or as one step of the `prepare-release`
+skill. Check for the flag file `a.prepare-release.active` at the project
+root:
+
+- When it exists, you are running inside a `prepare-release` run. Once
+  `version.txt` and `CHANGELOG.md` are written (Steps 1 to 5), do not print
+  the standalone "next, run `brel`" closing of Step 6: return control to
+  `prepare-release` so it continues with the next release step
+  (`prepare-release` makes the single prepare commit and tells the user
+  about `brel` at the end of its own run). Do not delete the flag file,
+  since `prepare-release` owns its lifecycle.
+- When it is absent (a direct call), finish with Step 6 as described
+  above and return to your caller.
