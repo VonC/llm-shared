@@ -182,24 +182,26 @@ and do not sweep in edits the user did not mean to release. Confirm with
 the user that every step of the current plan is validated and committed
 before going further.
 
-### Step 5 — Base the branch on the latest main
+### Step 5 — Base on the latest main
 
-Skip this whole step when HEAD is already main: there is no branch to
-rebase.
+This step has two halves. The first, making local main current with
+`origin/main`, runs on every branch, main included, so a release never goes
+out on a local main that trails the remote. The second, basing the effort
+branch on that main, is skipped when HEAD is already main: there is no
+branch to rebase.
 
-Otherwise make sure local main is up to date and the effort branch is based
-on it before the merge, so the `--no-ff` merge does not pull in a stale
-base. Fetch the latest main first (read-only, no push):
+#### Make local main current with origin/main
+
+Run this half always, whether or not HEAD is main, so the release base is
+the latest main. Fetch the latest main first (read-only, no push):
 
 ```bash
 git -C "<PRJ_DIR>" fetch origin main
 ```
 
 When the repository has no remote or no `origin/main` (nothing was ever
-pushed), skip the reset below and use the local `main` ref as the latest
-main for the rest of this step.
-
-#### Reset local main to origin/main when it is behind
+pushed), skip the compare below and use the local `main` ref as the latest
+main.
 
 Compare local main with `origin/main` using two ancestor tests:
 
@@ -211,27 +213,38 @@ git -C "<PRJ_DIR>" merge-base --is-ancestor origin/main main
 Read the two exit codes together:
 
 - Only the first succeeds: local main is strictly behind `origin/main` (a
-  fast-forward). Reset the local main ref to `origin/main`. main is checked
-  out in the sibling worktree, which this skill ignores, so move the ref
-  directly instead of switching to it:
+  fast-forward).
+  - When HEAD is not main, reset the local main ref to `origin/main`. main is
+    checked out in the sibling worktree, which this skill ignores, so move
+    the ref directly instead of switching to it:
 
-  ```bash
-  git -C "<PRJ_DIR>" update-ref -m "prepare-release: reset main to origin/main" refs/heads/main origin/main
-  ```
+    ```bash
+    git -C "<PRJ_DIR>" update-ref -m "prepare-release: reset main to origin/main" refs/heads/main origin/main
+    ```
 
-  This leaves the sibling worktree out of sync with the new main tip, which
-  is expected, the user deals with it later.
+    This leaves the sibling worktree out of sync with the new main tip, which
+    is expected, the user deals with it later.
+  - When HEAD is main, local main is the checked-out worktree, so do not move
+    the ref under your own feet. Stop and warn the user that local main is
+    behind `origin/main`, and let them bring it current (a fast-forward, then
+    a re-run) before the release goes on. Do not fast-forward silently.
 - Only the second succeeds: local main already contains `origin/main` (it is
   ahead). Leave it as is.
 - Both succeed: the two are equal. Nothing to do.
-- Neither succeeds: local main and `origin/main` have diverged (local main
-  carries commits `origin/main` does not). Stop and ask the user rather than
-  reset and lose those local commits.
+- Neither succeeds: local main and `origin/main` have diverged (each carries
+  commits the other does not). Stop and ask the user to rebase local main on
+  top of `origin/main`, which replays the local commits on the latest remote
+  main and loses none, then re-run. Do not reset, which would drop the local
+  commits.
 
-From here, local `main` is the latest main, and the rebase check, the
+From here, local `main` is the latest main, and the branch check below, any
 rebase, and the Step 6 merge all reference it.
 
-#### Check the branch is based on the latest main
+#### Base the effort branch on the latest main
+
+Skip this half when HEAD is already main: there is no branch to rebase, the
+half above already made local main current, and Step 6 is skipped on main
+too.
 
 Check whether local main is already an ancestor of the branch tip:
 
@@ -273,8 +286,8 @@ choices. Use the chosen path; do not guess.
 
 ### Step 6 — Switch to main and merge the effort branch
 
-When HEAD is already main, skip this whole step; main is up to date and no
-merge is needed.
+When HEAD is already main, skip this whole step: Step 5 already made local
+main current with `origin/main`, and there is no branch to merge.
 
 Otherwise switch the current worktree to main and merge the effort branch
 with a merge commit. Use `--ignore-other-worktrees` so the switch goes
@@ -483,13 +496,17 @@ Run the skill twice and the second run does nothing harmful:
   stale flag at the start of every run, so a crashed earlier run cannot
   leave a flag that lies about the state; a sub-skill run on its own, with
   no flag file present, behaves standalone, which is the wanted default.
-- Step 5 first brings local main up to `origin/main` (fetched read-only)
-  when local main is strictly behind, moving the main ref with `git
-  update-ref` even though main is checked out in the ignored sibling
-  worktree (which then falls out of sync). When local main and `origin/main`
-  have diverged, the skill stops and asks rather than reset and drop local
-  commits. With no remote, or unpushed main, it uses local main as-is. The
-  base check and rebase then reference the local `main` ref.
+- Step 5 first brings local main up to `origin/main` (fetched read-only) on
+  every branch, main included. Off main, when local main is strictly behind,
+  it moves the main ref with `git update-ref` even though main is checked out
+  in the ignored sibling worktree (which then falls out of sync). On main,
+  where the ref cannot move under the checked-out worktree, it stops and
+  warns instead, leaving the fast-forward to the user. When local main and
+  `origin/main` have diverged, the skill stops and asks the user to rebase
+  local main onto `origin/main` rather than reset and drop local commits.
+  With no remote, or unpushed main, it uses local main
+  as-is. The branch half, skipped on main, then references the local `main`
+  ref for the rebase check.
 - Reaching a green suite uses the `ghog day` loop (the `groundhog` skill).
   Rebase conflicts are resolved by the user; on the user's go-ahead the
   skill resumes the rebase non-interactively with `GIT_EDITOR=true`. A
