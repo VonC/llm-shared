@@ -383,10 +383,13 @@ coding a project fix; the code was already taken to green by the `ghog day`
 gate earlier.
 
 1. Stage the two files Step 9 changed, as a baseline that makes any later
-   edit trivial to detect with a `git diff`:
+   edit trivial to detect with a `git diff`, and note the current HEAD, since
+   the changelog is built from the git history and a commit landing during
+   the pause makes it stale:
 
    ```bash
    git -C "<PRJ_DIR>" add version.txt CHANGELOG.md
+   git -C "<PRJ_DIR>" rev-parse HEAD
    ```
 
 2. Tell the user the run is paused for review. During the pause the user
@@ -400,15 +403,19 @@ gate earlier.
    Wait for the user to say "go ahead". Do not resume on your own.
 
 3. On the user's "go ahead", check whether anything that feeds the changelog
-   changed since the baseline:
+   changed since the baseline, comparing both the staged files and the HEAD
+   noted in step 1:
 
    ```bash
    git -C "<PRJ_DIR>" diff -- version.txt CHANGELOG.md
+   git -C "<PRJ_DIR>" rev-parse HEAD
    ```
 
-   Treat it as changed when that diff is non-empty, or when you created or
-   updated `.changelog.fixes` during the pause (its rules only reach the
-   changelog through a regeneration).
+   Treat it as changed when that diff is non-empty, when HEAD has moved since
+   step 1 (a commit landed during the pause, for instance a fix committed
+   here: the changelog is built from the git history, so a new commit makes it
+   stale), or when you created or updated `.changelog.fixes` during the pause
+   (its rules only reach the changelog through a regeneration).
    - When something changed, regenerate `CHANGELOG.md` so the edits and the
      fix rules take effect, then go back to step 1 of this step: re-stage,
      and pause again so the user reviews the regenerated changelog.
