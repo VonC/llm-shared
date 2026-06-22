@@ -1,0 +1,114 @@
+"""Render a Markdown file to HTML and then to a PDF, without a browser.
+
+Mutualized helper for the activity-report skill (and any Markdown-to-PDF
+need). The headless-browser route (Chrome / Edge `--print-to-pdf`) hangs on
+some Windows setups, so this uses the pure-Python `xhtml2pdf` engine
+(reportlab, no native libraries).
+
+It is kept as a `.py.template` rather than a `.py` under `scripts/` on
+purpose: `check.bat` runs `ty` over the whole project and `ruff` over
+`scripts/**/*.py`, and this file imports `markdown` and `xhtml2pdf`, which
+are not project dependencies but are provided on the fly by `uv run --with`.
+The `.template` extension keeps it out of those linters while staying
+runnable: `python <this file>` reads it regardless of the extension.
+
+It converts the Markdown to an HTML body with the `markdown` package
+(`tables` extension so tables render), wraps it in a print-styled A4 HTML
+page, writes that HTML, then renders the same HTML to a PDF. The body uses
+reportlab's built-in Helvetica, whose WinAnsi encoding carries the French
+accents, the guillemets, and the em dash; a few common glyphs outside that
+encoding (the arrows) are folded to ASCII so nothing renders as a blank box.
+
+Run with uv so the two packages are provided on the fly:
+
+    uv run --with markdown --with xhtml2pdf python md_to_pdf.py.template \
+        <in.md> <out.html> <out.pdf>
+"""
+
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+import markdown
+from xhtml2pdf import pisa
+
+# xhtml2pdf understands @page, basic table borders, backgrounds, and font
+# sizes; it ignores nth-child and border-radius, so the styling stays plain.
+CSS = """
+@page { size: a4 portrait; margin: 1.8cm 1.6cm; }
+body { font-family: "Helvetica"; font-size: 11pt; color: #1f2933; line-height: 1.4; }
+h1 { font-size: 20pt; color: #1b2a4a; }
+h2 { font-size: 15pt; color: #1b2a4a; border-bottom: 1px solid #c7d0e0; padding-bottom: 3px; }
+h3 { font-size: 12pt; color: #33415c; }
+p { margin: 0 0 8px; }
+ul { margin: 0 0 8px; }
+li { margin: 0 0 5px; }
+code { font-family: "Courier"; background-color: #eef1f6; color: #9a2a2a; }
+table { border: 1px solid #c7d0e0; }
+th { background-color: #1b2a4a; color: #ffffff; padding: 5px; text-align: left; }
+td { border: 1px solid #c7d0e0; padding: 5px; text-align: left; }
+"""
+
+HTML_TEMPLATE = """<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="utf-8"><title>{title}</title><style>{css}</style></head>
+<body>
+{body}
+</body>
+</html>
+"""
+
+# Built-in Helvetica is WinAnsi; these glyphs fall outside it, so fold them to
+# ASCII look-alikes (HTML-escaped) to avoid blank boxes in the PDF.
+NON_WINANSI_FOLD = {
+    "→": "-&gt;",      # rightwards arrow
+    "←": "&lt;-",      # leftwards arrow
+    "↔": "&lt;-&gt;",  # left-right arrow
+    "⇒": "=&gt;",      # rightwards double arrow
+    "⇐": "&lt;=",      # leftwards double arrow
+}
+
+
+def main(argv: list[str]) -> int:
+    """Convert argv[1] (Markdown) to argv[2] (HTML) and argv[3] (PDF).
+
+    Args:
+        argv: The argument vector; argv[1] input Markdown, argv[2] output
+            HTML, argv[3] output PDF.
+
+    Returns:
+        ``0`` on success, ``1`` when xhtml2pdf reports an error.
+    """
+    in_md, out_html, out_pdf = Path(argv[1]), Path(argv[2]), Path(argv[3])
+
+    text = in_md.read_text(encoding="utf-8")
+    body = markdown.markdown(
+        text,
+        extensions=["tables", "fenced_code", "sane_lists"],
+        output_format="html5",
+    )
+    title = next(
+        (line[2:].strip() for line in text.splitlines() if line.startswith("# ")),
+        "Rapport",
+    )
+    html = HTML_TEMPLATE.format(title=title, css=CSS, body=body)
+    for glyph, ascii_form in NON_WINANSI_FOLD.items():
+        html = html.replace(glyph, ascii_form)
+    out_html.write_text(html, encoding="utf-8")
+    sys.stdout.write(f"HTML written to {out_html}\n")
+
+    with out_pdf.open("wb") as handle:
+        result = pisa.CreatePDF(html, dest=handle, encoding="utf-8")
+    if result.err:
+        sys.stdout.write(f"xhtml2pdf reported {result.err} error(s)\n")
+        return 1
+    sys.stdout.write(f"PDF written to {out_pdf}\n")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv))
+
+
+# eof
