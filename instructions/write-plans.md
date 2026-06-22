@@ -19,7 +19,8 @@ Notes for the writer:
 - Use the current-behavior and target-behavior sections only when the design depends on comparing flows.
 - Put facts already confirmed from the codebase in the confirmed-facts section.
 - Put implementation steps, file-by-file task lists, and rollout steps in the later implementation plan, not in the design.
-- Do not add the open-questions section in this skill output; use the `review-ask-questions` skill (see [`review-ask-questions.md`](review-ask-questions.md)) for that follow-up review step.
+- Do not add the open-questions section in this skill output; use the `review-ask-questions` skill (see [`review-ask-questions.md`](review-ask-questions.md)) for that follow-up review step. That review round runs on the plain plan only, not on the validation plan: it is wired as steps 8 and 9 of the `pw` workflow, between `write-plans` and the first `implement-step`.
+- If that plan review later changes the numbered step list (steps added, removed, or renumbered), re-align the validation skeleton you write here so each `Analysis of Step N` section still matches a plan step, since the implement cycle reads those sections.
 
 Based on `docs\issue/feature_request.vX.Y.Z.{topic}.md` and `docs\design.vX.Y.Z.{topic}.md`, write a `docs\plan.vX.Y.Z.{topic}.md`, which will include, in each step, an "Step x analysis and intent" (with issues, fix intent, expected outcome, step framings, complexity impact, feature preservation) before another subsection "Step x implementation" with step files involved, test first, class and behavior, completion criteria, and a third subsection "Step x addendums" with line-budget checkpoint, full workflow timing run readiness, time-gated status for this step.
 

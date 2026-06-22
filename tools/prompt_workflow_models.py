@@ -50,7 +50,7 @@ class StepAlternative:
     """One selectable action of a workflow step.
 
     Attributes:
-        number: The step number (1 to 11) this alternative belongs to.
+        number: The step number (1 to 13) this alternative belongs to.
         instruction: The instruction file name, such as ``write-design.md``.
         body: The per-step body line that states the step intent.
         context: The ordered context roles resolved into the Context section.
@@ -90,6 +90,10 @@ class WorkflowState:
             ``## Open questions`` section.
         design_has_open_questions: Whether the design still has a
             ``## Open questions`` section.
+        plan_has_open_questions: Whether the plain plan still has a
+            ``## Open questions`` section, driving its own review-and-consolidate
+            round (steps 8 and 9) before the implement cycle. The validation plan
+            has no such flag: it is never put through the review loop.
         memory_step: The step number persisted in the memory file, or None.
     """
 
@@ -99,6 +103,7 @@ class WorkflowState:
     validation_plan: Path | None
     requirement_has_open_questions: bool
     design_has_open_questions: bool
+    plan_has_open_questions: bool
     memory_step: int | None
 
 

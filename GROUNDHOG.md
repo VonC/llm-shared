@@ -124,9 +124,12 @@ The keys are the contract; `cov=` reads `skipped` (not measured), `withheld` (fa
 | 5 | environment or setup error | read the printed reason; looping cannot fix it |
 | 6 | a run is live (Q32) | wait; poll `ghog status` until `state=done`, start nothing |
 | 7 | the last run is lost (Q32) | only from `ghog status`: the run was killed or never recorded; relaunch `ghog day` |
-| other | `ghog check` passthrough | check.bat's own exit code: fix the compile errors |
+| 8 | a duration outlier on an otherwise-green run (Q34) | the full suite passed and met the coverage gate, but a test call ran far outside the norm; shorten the named slow calls (see [`instructions/fix_slow_test.md`](instructions/fix_slow_test.md)), or `ghog exclude` a genuinely slow one, then re-run `ghog day` |
+| other | `ghog check` passthrough | check.bat's own exit code: fix what it names — compile/lint errors in place, or a file over the line limit ("Big files found") by splitting it with `/split-large-file` (ghog reports the over-limit files, it never splits) |
 
 A check.bat that prints `ERROR :` lines yet exits 0 is treated as failed (exit 1) with an explicit mismatch notice, so a broken check script can never green-light the walk.
+
+Beyond pass/fail and coverage, the full run also times every test call, so `ghog day` trims test execution time: a call running far outside the norm (a robust outlier score, at or above a one-second floor) keeps the walk on exit 8 with the slow calls named, judged last so it never masks a failure or a coverage gap. The named calls are shortened (`instructions/fix_slow_test.md`: fake the slow resource, the clock, or shrink the data) or, when a call is legitimately slow, accepted at its measured time with `ghog exclude`. That is how the suite stays fast, the project target being under one second per test.
 
 ## Output modes of groundhog
 

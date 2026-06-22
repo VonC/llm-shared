@@ -65,6 +65,7 @@ def _state(validation_plan: Path | None) -> WorkflowState:
         validation_plan=validation_plan,
         requirement_has_open_questions=False,
         design_has_open_questions=False,
+        plan_has_open_questions=False,
         memory_step=None,
     )
 
@@ -209,6 +210,7 @@ def _handoff_state(tmp_path: Path, validation_text: str) -> WorkflowState:
         validation_plan=validation,
         requirement_has_open_questions=False,
         design_has_open_questions=False,
+        plan_has_open_questions=False,
         memory_step=None,
     )
 
@@ -216,9 +218,9 @@ def _handoff_state(tmp_path: Path, validation_text: str) -> WorkflowState:
 # build_cycle_prompt is monkeypatched to this stand-in, keyed by the action kind,
 # so run_handoff is tested without the real steps.json interpolation or git reads.
 _BUILD_BY_KIND: dict[str, tuple[str, int, str]] = {
-    "check": ("CHECK-PROMPT", 9, "implementation-check.md"),
-    "implement": ("MISSING-PROMPT", 8, "implement-missing-step.md"),
-    "commit": ("COMMIT-PROMPT", 10, "group-commits-msg.md"),
+    "check": ("CHECK-PROMPT", 11, "implementation-check.md"),
+    "implement": ("MISSING-PROMPT", 10, "implement-missing-step.md"),
+    "commit": ("COMMIT-PROMPT", 12, "group-commits-msg.md"),
 }
 
 
@@ -259,7 +261,7 @@ def test_run_handoff_check_delivers_and_records(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    """A check handoff writes the check prompt and records step 9, no stage."""
+    """A check handoff writes the check prompt and records step 11, no stage."""
     # Step 2 is a placeholder, so the handed "2" matches the derived step: no warning.
     text = "### Analysis of Step 2 implementation state\n\nNot started yet.\n"
     staged: list[str] = []
@@ -272,7 +274,7 @@ def test_run_handoff_check_delivers_and_records(
         branch="main",
         version="v0.1.0",
         topic="pw_handoff",
-        step=9,
+        step=11,
         instruction="implementation-check.md",
         plan_step="2",
     )
@@ -282,7 +284,7 @@ def test_run_handoff_commit_stages_and_records(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    """A commit handoff stages git add -A once and records step 10 (Q61)."""
+    """A commit handoff stages git add -A once and records step 12 (Q61)."""
     text = "### Analysis of Step 2 implementation state\n\nYes. Done.\n"
     staged: list[str] = []
     _wire_handoff(monkeypatch, _handoff_state(tmp_path, text), topics=[_TOPIC], staged=staged)
@@ -294,7 +296,7 @@ def test_run_handoff_commit_stages_and_records(
         branch="main",
         version="v0.1.0",
         topic="pw_handoff",
-        step=10,
+        step=12,
         instruction="group-commits-msg.md",
         plan_step="2",
     )
@@ -316,7 +318,7 @@ def test_run_handoff_after_check_no_step_implements_missing(
         branch="main",
         version="v0.1.0",
         topic="pw_handoff",
-        step=8,
+        step=10,
         instruction="implement-missing-step.md",
         plan_step="2",
     )
@@ -338,7 +340,7 @@ def test_run_handoff_after_check_yes_step_commits(
         branch="main",
         version="v0.1.0",
         topic="pw_handoff",
-        step=10,
+        step=12,
         instruction="group-commits-msg.md",
         plan_step="2",
     )
