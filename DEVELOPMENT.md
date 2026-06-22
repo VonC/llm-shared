@@ -262,6 +262,16 @@ one:
    +---------------------------------+
 ```
 
+The full-suite step does more than pass/fail and coverage: it times every
+test call and trims execution time. A call running far outside the norm (a
+robust outlier score, at or above a one-second floor) keeps the walk on
+exit 8 with the slow calls named, judged last so it never hides a failure or
+a coverage gap; the named calls get shortened (see
+[`instructions/fix_slow_test.md`](instructions/fix_slow_test.md)) or, when
+genuinely slow, accepted at their measured time with `ghog exclude`. That is
+how `ghog day` keeps the suite under the project's one-second-per-test
+target.
+
 An LLM can drive the same walk in a fixing loop — run `ghog day`, apply the
 fix the report names, run it again — registered per project with `ghog init`
 for both Claude Code (`/groundhog`) and ChatGPT Codex. The exit codes, the
@@ -288,33 +298,51 @@ survivor process the timeout cannot reach, polled through `ghog status`
 
 ```txt
    +---------------------------------+
-   | raw notes / discussion          |
-   | missing or broken behavior      |
-   | desired outcome                 |
+   | raw draft, any name             |----+
+   | docs\draft.<topic>.md           |    |  edit + refine
+   | missing/broken behavior, outcome|<---+  in natural language
    +-------+-------------------------+
            |
-           |  capture
+           |  /process-draft  (classify, title, slug, pick vX.Y.Z,
+           |  then new_draft renames + branches)
            v
    +---------------------------------+
-   |                                 |----+
-   |  docs\draft.vX.Y.Z.<topic>.md   |    |  edit + refine
-   |                                 |<---+  in natural language
+   |  docs\draft.vX.Y.Z.<slug>.md    |
+   |  on its effort branch           |
    +-------+-------------------------+
            |
-           |  stable enough to split
+           |  /write-requirement (one topic)
+           |  or /split-and-define (several)
            v
    +---------------------------------+
    |   draft ready for breakdown     |
    +---------------------------------+
 ```
 
-1. Start with `docs\draft.vX.Y.Z.<topic>.md`.
-2. Keep `X.Y.Z` as the working version for the current effort, even if the
-  final merge target changes later.
-3. Keep `<topic>` short, stable, and descriptive.
-4. Write the draft in natural language, preferably English. Cover the desired
-  behavior, missing behavior, broken behavior, constraints, examples, and the
-  expected outcome.
+1. Start with a draft of any name, for example `docs\draft.<topic>.md`. It
+  needs no version yet. Write it in natural language, preferably English,
+  covering the desired behavior, the missing or broken behavior, constraints,
+  examples, and the expected outcome.
+2. Run `/process-draft` on that draft. It is the entry point of the workflow
+  and does the naming and the branching for you, in place of choosing them by
+  hand: it classifies the draft (one feature-request, one issue, or a
+  collection of several topics) and records a `- Type:` line, proposes three
+  witty titles and three collision-checked slugs for you to pick, and derives
+  the target version from `version.txt` (keep the current `X.Y.Z`, or step the
+  major, the minor, or the patch part). It then hands the mechanical part to
+  the `new_draft` tool, which renames the file to
+  `docs\draft.vX.Y.Z.<slug>.md` and creates the effort branch with
+  `git switch -c <slug>` in the current tree, or as a sibling
+  `..\<base>_<slug>` worktree. It finishes by handing off to
+  `/write-requirement` for a single topic, or `/split-and-define` when the
+  draft holds several.
+3. The name it produces is the convention the rest of the workflow expects:
+  `X.Y.Z` is the working version for the effort, even if the final merge
+  target changes later, and `<slug>` is short, stable, and descriptive.
+4. Manual alternative: if you would rather not run the skill, create
+  `docs\draft.vX.Y.Z.<topic>.md` yourself with the working version and a short
+  topic, and start the branch by hand. The breakdown step below works the same
+  either way.
 
 ## Requirement breakdown from the draft
 
@@ -948,11 +976,25 @@ Publish only after the merge commit message has been rewritten.
 
 ## Prepare release notes and create the release
 
-A release on `main` takes two moves. First `/prepare_release_notes`
-turns the commit history into release notes; then `brel` runs the build
-that creates the tag. The skill never tags anything itself.
+A release on `main` is one command plus the tag. `/prepare-release` runs the
+whole preparation from any branch: it switches to `main` and merges the
+effort branch, rewords the merge, sets `version.txt` to `X.Y.Z-SNAPSHOT`,
+runs `/prepare_release_notes` (the steps shown below), updates
+`pyproject.toml` / `uv`, and makes one `chore(release): prepare` commit, then
+stops. The author reviews and runs `brel`, which creates the tag.
+`/prepare_release_notes` can also be run on its own, as the diagram details;
+neither skill ever tags. The pause-by-pause behaviour of the umbrella skill
+is in [Automate the prep with /prepare-release](#automate-the-prep-with-prepare-release).
 
 ```txt
+   ============================================================
+    /prepare-release runs the whole prep below in ONE command,
+    any branch: switch to main + merge --no-ff, reword the
+    merge, version.txt -> X.Y.Z-SNAPSHOT, the prepare_release_
+    notes steps shown, pyproject.toml + uv sync, then one
+    chore(release): prepare commit -- then it STOPS.
+   ============================================================
+
    +---------------------------------+
    |  main with several merge        |
    |  commits                        |
@@ -990,6 +1032,9 @@ that creates the tag. The skill never tags anything itself.
    |  CHANGELOG.md updated with      |
    |  vX.Y.Z and the summary         |
    +-------+-------------------------+
+           |   /prepare-release stops here, after one
+           |   chore(release): prepare commit; the author
+           |   reviews, then runs brel (the tag step)
            |
            |  brel  ->  tools\dev_workflow\t_build.bat rel
            |        ->  update-version.bat drops -SNAPSHOT
@@ -1067,6 +1112,49 @@ template. `senv_dev_workflow` owns the build side: `t_build.bat`,
 `update-version.bat`, `update-changelog.bat`, and the `senv.bat` wiring
 that `brel` runs through. A project that uses the release stage of this
 workflow needs both repositories wired into its `tools\` directory.
+
+### Automate the prep with /prepare-release
+
+`/prepare_release_notes` and `brel` are the two release moves, but a release
+also needs the effort branch merged into `main`, the merge commit reworded,
+`version.txt` bumped to the snapshot, and `pyproject.toml` / `uv` updated.
+`/prepare-release` is the umbrella skill that drives all of that from any
+branch and stops at one `chore(release): prepare for vX.Y.Z release` commit,
+leaving only `brel` for the author. It resolves to
+[`instructions/prepare-release.md`](instructions/prepare-release.md).
+
+It does not replace the other skills, it calls them, signalling each through
+a git-ignored flag file `a.prepare-release.active` so the callee returns
+control instead of ending on its own:
+
+- `group-commits-msg`  --  to commit a dirty tree, and to commit any fixes a
+  `ghog day` gate needed.
+- `update-merge-commit-msg`  --  to give the merge commit the `Why:` /
+  `What:` structure (a free-form merge message is refused).
+- `prepare_release_notes`  --  for the `version.txt` summary and the
+  `CHANGELOG.md` (the six steps above).
+- the `ghog day` groundhog loop  --  the green gate, run on a rebased branch
+  or after a stale-base merge, to prove the suite is green before the
+  release goes on.
+
+The skill stops and waits for the author at several points. Each pause needs
+a decision or an action, and several resume only on an explicit "go ahead":
+
+| Pause | What the author decides or does |
+| --- | --- |
+| Dirty working tree (Step 4) | Let the skill commit the pending work through group-commits-msg, or stop and sort it out first |
+| Branch behind the latest main (Step 5) | Choose: rebase onto main, merge `--no-ff` anyway, or abort the prep |
+| Rebase conflict (Step 5) | Resolve the conflicts (edit, `git add`), then say "go ahead" so the skill resumes the rebase non-interactively |
+| Local main diverged from origin/main (Step 5) | Decide how to reconcile; the skill will not reset and drop local commits on its own |
+| `ghog day` not green (Step 5 or 6) | Review the fixes the skill grouped through group-commits-msg, then say "go ahead" to commit them |
+| Merge message (Step 7) | Review, and edit if wanted, the `Why:` / `What:` merge message before it is applied |
+| Title choice (Step 9) | Pick one of the three witty title / subtitle pairs for the release notes |
+| Notes review (Step 10) | Edit the `version.txt` summary, or ask for `.changelog.fixes` rules, then say "go ahead"; the skill regenerates `CHANGELOG.md` and pauses again until a "go ahead" follows no further edit |
+| End of the run (Step 13) | Review everything, then run `brel` to build and tag |
+
+The skill never creates the tag and never pushes. The tag stays the
+author's call through `brel`, exactly as with `/prepare_release_notes` on
+its own.
 
 ## License rationale: why MIT fits llm-shared
 
