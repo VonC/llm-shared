@@ -4,7 +4,7 @@ description: 'Write a feature-request or an issue document (common term for "fea
 user-invocable: true
 metadata:
   - "This skill writes a requirement document from the prompt and associated documents in your context."
-  - "The argument hint for this skill is 'Provide all three inputs: the type (feature-request or issue), the product version as vX.Y.Z, and a topic label for the specific feature or area of concern using only lowercase letters, digits, and hyphens, for example "issue v9.3.0 sentinels".'."
+  - 'The argument hint for this skill is ''Provide all three inputs: the type (feature-request or issue), the product version as vX.Y.Z, and a topic label for the specific feature or area of concern using only lowercase letters, digits, and hyphens, for example "issue v9.3.0 sentinels".''.'
 argument-hint: 'Provide all three inputs: the type (feature-request or issue), the product version as vX.Y.Z, and a topic label for the specific feature or area of concern using only lowercase letters, digits, and hyphens, for example "issue v9.3.0 sentinels".'
 ---
 
