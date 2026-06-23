@@ -18,6 +18,12 @@ env vars on every git call and drop the three ``git config`` subprocess
 calls from ``_make_git_repo``. Each git spawn costs a few hundred
 milliseconds on Windows, so removing the redundant config processes cuts
 the throwaway-repo setup wall time.
+
+Step 0 (v0.8.0): relocated verbatim from the flat
+``tests/unit/tools/test_git_history_dashboard_build.py`` into the nested
+``git_history_dashboard/test_build/`` subpackage, adopting the
+per-test-folder convention (plan Q01). The assertions are unchanged; only
+the path moved.
 """
 
 from __future__ import annotations
