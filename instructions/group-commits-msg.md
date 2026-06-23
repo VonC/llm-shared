@@ -1,6 +1,6 @@
 # Group commits message
 
-Your goal is to group files listed in the prompt, from least to most dependent and, for each group, to write a conventional commit message, all in a file named `a.commit` at the root of the project.
+Your goal is to group files listed in the prompt, from least to most dependent and, for each group, to write a conventional commit message, all in a file named `a.commit` at the **project root** — the `%PRJ_DIR%\a.commit` path (`PRJ_DIR` is the project root the prompt operates on), and never an `a.commit` placed under `docs/` or any other subfolder.
 
 The context that can inform how you will group those files can be:
 
@@ -11,6 +11,8 @@ The context that can inform how you will group those files can be:
 ## Workflow for grouping commits
 
 1. Get the list of files to group.
+
+   Group every staged file the command lists, including changes of outside origin (a concurrent edit, a tool-written file, an earlier unrelated tweak) that a `git add -A` staged alongside your own: none is skipped for not being yours, each is ranked by its own dependencies and placed in a fitting group.
 
    Execute the following sequence of bat commands:
 
@@ -32,7 +34,7 @@ The context that can inform how you will group those files can be:
 
 4. For each group, write a conventional commit message. Each group must follow the template provided in [`group-commits-msg.template.md`](../templates/group-commits-msg.template.md). See the next section for more details on how to write the commit message. The title `# Grouping commits by topic` from the template must be added only once, for the first group, and not for the following groups.
 
-5. Replace the content of `a.commit` with the generated groups and commit messages. Each group must be separated by an empty line in `a.commit`.
+5. Replace the content of the project-root `a.commit` (`%PRJ_DIR%\a.commit`, never a copy under `docs/` or another subfolder) with the generated groups and commit messages. Each group must be separated by an empty line in `a.commit`.
 
 6. Format `a.commit` with the `wrap_commit` tool so each ```log block fits within 80 characters and follows the inline-backtick rules. This keeps the file canonically formatted before the user reviews it.
 

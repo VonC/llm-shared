@@ -1,0 +1,24 @@
+{
+    "version":  "0.1.0",
+    "name":  "llm-shared",
+    "skills":  "./skills/",
+    "description":  "Shared local Codex skills and workflows.",
+    "author":  {
+                   "name":  "VonC"
+               },
+    "interface":  {
+                      "developerName":  "VonC",
+                      "displayName":  "LLM Shared",
+                      "capabilities":  [
+                                           "Skills"
+                                       ],
+                      "longDescription":  "Local shared workflows for commit grouping, planning, implementation, review, documentation, and release preparation.",
+                      "shortDescription":  "Shared local Codex skills and workflows",
+                      "defaultPrompt":  [
+                                            "Group commit messages",
+                                            "Implement a plan step",
+                                            "Run an implementation check"
+                                        ],
+                      "category":  "Productivity"
+                  }
+}

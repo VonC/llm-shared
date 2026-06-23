@@ -6,6 +6,10 @@ relevant drafts on the current branch (Q07), matches requirement, design and
 plan documents to a topic by shared version and slug prefix (Q02), picks the
 most recently modified match (Q01), and detects a ``## Open questions`` section
 (Q04). It reads files; it never writes.
+
+Slug matching folds ``-`` and ``_`` together, so a draft slug such as
+``git_history_report`` resolves the hyphenated ``git-history-report`` requirement,
+design and plan documents that ``write-requirement`` produces, and the reverse.
 """
 
 from __future__ import annotations
@@ -108,8 +112,32 @@ def docs_dirs(root: Path) -> list[Path]:
     return dirs
 
 
+def _slug_key(value: str) -> str:
+    """Canonicalize a slug so ``-`` and ``_`` separators compare equal.
+
+    A draft slug uses ``_`` (for example ``git_history_report``) while the
+    requirement, design and plan documents carry the hyphenated topic
+    ``write-requirement`` enforces (``git-history-report``). Folding ``-`` onto
+    ``_`` lets either form resolve the other.
+
+    Args:
+        value: A slug or a file-name topic part.
+
+    Returns:
+        The value with every ``-`` rewritten as ``_``.
+    """
+    return value.replace("-", "_")
+
+
 def _doc_matches(name: str, role: str, version: str, slug: str) -> bool:
-    """Return whether a file name matches the role, version and topic slug (Q02)."""
+    """Return whether a file name matches the role, version and topic slug (Q02).
+
+    The topic part of the file name is compared to ``slug`` with ``-`` and ``_``
+    folded together (see ``_slug_key``), so a ``git_history_report`` draft slug
+    resolves the hyphenated ``git-history-report`` documents and the reverse,
+    including a ``<slug>_<sub>`` umbrella sub-topic written with either separator.
+    """
+    slug_key = _slug_key(slug)
     for doc_type in ROLE_DOC_TYPES[role]:
         prefix = f"{doc_type}.{version}."
         if not name.startswith(prefix) or not name.endswith(MD_SUFFIX):
@@ -122,7 +150,8 @@ def _doc_matches(name: str, role: str, version: str, slug: str) -> bool:
             topic_part = name[len(prefix) : -len(VALIDATION_SUFFIX)]
         else:
             topic_part = name[len(prefix) : -len(MD_SUFFIX)]
-        if topic_part == slug or topic_part.startswith(slug + "_"):
+        topic_key = _slug_key(topic_part)
+        if topic_key == slug_key or topic_key.startswith(slug_key + "_"):
             return True
     return False
 
