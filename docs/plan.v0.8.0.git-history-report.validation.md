@@ -303,7 +303,9 @@ No existing feature or reporting capability is impaired.
 
 ### Analysis of Step 3 implementation state
 
-Not started. Step 3 is not implemented because the analysis is still hardcoded in `template.html`, with no slot, no generated-figures file, and no markdown conversion.
+Yes. Step 3 has been fully implemented.
+
+A new `analysis.py` rewrites `analysis.generated.md` from the figures on every run, creates one `analysis.notes.<project>.md` per project once and never overwrites it, concatenates the generated file then the per-project notes in project order, and converts the whole to HTML through a `uv run --with markdown` seam the tests monkeypatch. `render.py` gained the `__ANALYSIS__` and `__TITLE__` tokens and a `_report_title` that names the project or the project count, `build.write_dashboard` writes the analysis and passes its HTML to `render`, and `template.html` is project-neutral with no pdfsplitter string. One `ghog day` walk reports the objective at 100 percent coverage with no outliers.
 
 ### Goal for Step 3
 
@@ -317,27 +319,48 @@ Add `analysis.py` to write `analysis.generated.md` from the figures, keep one `a
 
 ### What was implemented for Step 3
 
-_(empty — no check has taken place yet.)_.
+- **`analysis.py` (new)**: `write_generated_analysis` (the figures-driven observations as markdown, overwritten each run), `ensure_notes` (create `analysis.notes.<project>.md` once with a stub, never overwrite), `analysis_html` (concatenate generated then notes in project order, then convert), and `convert_markdown` (the single `uv run --with markdown` seam).
+- **`render.py`**: `_report_title` (the one project's name, or the project count) plus the `__TITLE__` and `__ANALYSIS__` tokens in the substitution table; `render` now takes the analysis HTML.
+- **`template.html`**: the title, header `h1`, and `sr-only` text read `__TITLE__`; the hardcoded observations list is replaced by the `__ANALYSIS__` slot; no pdfsplitter string remains.
+- **`build.py`**: `write_dashboard` regenerates the analysis, keeps each per-project notes file, converts the combined analysis, and passes the HTML to `render`.
+- **Tests**: a new `test_analysis` package (the rewritten generated file, the kept-and-not-overwritten notes, the concatenation order, the no-scopes path, and the `subprocess`-mocked `convert_markdown` seam); `test_render` checks both slots fill, the single-vs-many title, and that the real template renders with no pdfsplitter string; autouse `conftest.py` fixtures in `test_build` and `test_cli` stub the markdown seam so those tests need no `uv`.
+- **Validation evidence**: `ghog day` reports the objective, `fail=0 xfail=0 cov=100 outliers=0 exit=0`; `pdfsplitter` no longer appears in `template.html`.
 
 ### New types or classes introduced for Step 3
 
-_(empty — no check has taken place yet.)_.
+No new type or class. Step 3 is four functions in `analysis.py`, one helper (`_report_title`) and two tokens in `render.py`, and the wiring in `build.py`.
 
 ### Architecture check for Step 3
 
-_(empty — no check has taken place yet.)_.
+- **One-way module graph**: `analysis` imports only `aggregate` (for `compute_highlights`); `build` imports `analysis`, `aggregate` and `render`; no cycle.
+- **The conversion is a single seam**: every markdown-to-HTML call goes through `convert_markdown`, which the tests monkeypatch, so the tool needs no `markdown` install and the unit tests need no `uv`.
+- **The template is data-free**: it carries slots, not project content; the project name and the analysis arrive at render time, so the same template serves any project or a combined run.
+
+No, there is nothing that needs to be addressed.
 
 ### Performance check for Step 3
 
-_(empty — no check has taken place yet.)_.
+- **One conversion per run**: `analysis_html` concatenates the files and calls `convert_markdown` once; the `uv` shell is a single subprocess, not one per project.
+- **Generated write is O(1) in files**: one `analysis.generated.md` is written and one notes file per project is touched only when absent.
+- **No perf gate affected**: the figures come from the already-aggregated payload, so there is no extra pass over the commits.
+
+No, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 3
 
-_(empty — no check has taken place yet.)_.
+- **`analysis.py`**: covered at 100% by `test_analysis_tdd.py` (the generated file, the notes create-and-keep, the concatenation order, the no-scopes branch, and the `subprocess`-mocked seam); `ghog day` measured `cov=100`.
+- **`render.py`**: both `_report_title` branches and both new tokens are covered by `test_render_tdd.py`.
+- **`build.py`**: the analysis wiring is covered by `test_run_build`, the `cli.run` tests, and the `__main__` runpy test, all with the seam stubbed.
+
+No, there is no unit-tested class below 100% that needs completing for Step 3.
 
 ### Feature integrity for Step 3
 
-_(empty — no check has taken place yet.)_.
+- **Existing feature behavior**: the dashboard still renders the same charts and metric cards from the same payload; only the observations text now comes from the generated file plus the per-project notes, and the title names the project instead of a hardcoded string.
+- **Reporting or diagnostics**: a rebuild logs the written files; the per-project notes are preserved across runs, so hand-written commentary is never lost.
+- **Compatibility or rollout note**: `render` gains a required `analysis_html` argument (an internal call), and a run now writes `analysis.generated.md` and one `analysis.notes.<project>.md` per project into the output folder; the real markdown conversion needs `uv` at build time, which the project already uses.
+
+No existing feature or reporting capability is impaired.
 
 ---
 
