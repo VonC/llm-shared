@@ -1,39 +1,46 @@
-0.7.0 -- Branch to brel in one command
+0.8.0-SNAPSHOT -- One report, many repos
 
-prepare-release readies every artifact and stops at the tag
+git-history-report builds one combined dashboard across several repos
 
-- No browser, still a PDF
-  -- activity-report renders Markdown to HTML and PDF, browser-free
-- A stale log can no longer lie
-  -- ghog day stamps each phase with a banner, a timestamp, and a duration
+- Slice it without a server
+  -- project, type and date filters recompute every chart, plus a leaderboard
+- Notes that outlive the rebuild
+  -- a regenerated figures file beside a hand-kept notes file per project
 
-v0.7.0 turns release preparation into one skill. The new prepare-release
-runs from any branch: it merges the effort into main with a why/what merge
-message, sets version.txt to the X.Y.Z-SNAPSHOT, runs the release notes and
-the changelog, updates pyproject.toml and uv.lock, and stops at a single
-chore(release) commit so the tag-cutting brel stays a manual, reviewed step.
-It calls the update-merge-commit-msg and prepare_release_notes skills and
-hands control back through a git-ignored flag file.
+v0.8.0 turns the single-repo git_history_dashboard into a multi-project
+report. A new git-history-report skill resolves one or several repo targets,
+tags every commit with its project, and writes one combined dashboard.html
+plus data.json; several repos require `--out-dir`, and the page opens unless
+`--no-open`. The payload gains a project dimension and an author tally, so the
+by_project slices sum back to the top-level series and feed a top-10
+contributor leaderboard. In the browser, a single applyFilters recompute
+redraws every chart and metric card under a project filter, a commit-type
+filter, and a week-indexed date range, and a light/dark toggle remembers a
+manual choice through a data-theme override.
 
-The release also makes the work visible and the workflow tighter. The
-activity-report skill gathers git history across working trees and now
-renders the report to HTML then PDF with a pure-Python engine, with no
-browser to hang on Windows, and updates an existing report instead of
-overwriting it. The pw workflow gains a plan review round, so a plan is
-challenged before any code is written, and ghog day frames each phase with
-vvv/^^^ banners and a per-step duration so an old timestamp gives away a
-stale log.
+The release also splits the hand-written analysis out of the template.
+analysis.py rewrites analysis.generated.md from the figures on every run and
+keeps one `analysis.notes.<project>.md` per project, created once and never
+overwritten, combined and converted to HTML through a uv markdown seam; the
+template is now project-neutral with `__TITLE__` and `__ANALYSIS__` slots and no
+pdfsplitter strings. Supporting workflow fixes land too: pw resolves dotted
+sub-step ids and folds hyphen and underscore slugs, the groundhog parser
+strips ANSI color so the counters fill under forced color, and a Codex agents
+plugin manifest carries valid SKILL.md YAML.
 
-### Key changes for v0.7.0
+### Key changes for v0.8.0
 
-- **prepare-release skill**: one command, from any branch, that merges,
-  rewords, sets the X.Y.Z-SNAPSHOT version, writes the notes and changelog,
-  updates pyproject and uv, and stops at one prepare commit before brel.
+- **Multi-repo git-history-report skill**: one skill builds a combined commit
+  dashboard for one or several repos, writes data.json and a self-contained
+  dashboard.html to a chosen `--out-dir`, opens it unless `--no-open`, skips a
+  failing repo, and prints a run summary.
 
-- **activity-report to HTML and PDF**: the report renders to HTML then PDF
-  with the browser-free xhtml2pdf helper, and an existing report is updated
-  in place rather than overwritten.
+- **In-page filters and a contributor leaderboard**: a single applyFilters
+  recompute sums the visible by_project slices and redraws every widget under
+  project, type and date filters, with a top-10 author leaderboard and a
+  remembered light/dark toggle.
 
-- **ghog day per-step timing**: each phase is framed by vvv/^^^ banners with
-  a full local timestamp and a duration, so a stale a.ghog.log shows old
-  times instead of passing as a fresh green run.
+- **Split analysis files and a project-neutral template**: a regenerated
+  `analysis.generated.md` and a hand-kept `analysis.notes.<project>.md` per
+  project, combined through a uv markdown seam into the `__ANALYSIS__` slot,
+  with the pdfsplitter strings gone.
