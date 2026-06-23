@@ -16,6 +16,7 @@ from __future__ import annotations
 from tools.groundhog.parser import LAST_STARTED_KEPT, PytestOutputParser
 
 _COLLECTED = 4
+_ANSI_COLLECTED = 3
 _EXPECTED_DONE = 4
 _EXPECTED_FAILED = 2
 _EXPECTED_WARNINGS = 3
@@ -59,6 +60,54 @@ def test_collected_and_results_update_counters() -> None:
         "tests/test_a.py::test_two",
         "tests/test_b.py::test_three",
     ]
+
+
+def test_ansi_colored_lines_still_update_counters() -> None:
+    """Forced color escapes are stripped before matching (FORCE_COLOR pipe).
+
+    pytest honors FORCE_COLOR even on a non-TTY pipe, so the collected line
+    arrives as a reset code butted against ``collected`` and the statuses as
+    color-wrapped words. Stripping the escapes first keeps the total, the done
+    count, the xfail count and the failing ids correct, so the LLM-mode progress
+    governor is not silenced by a zero total.
+    """
+    parser = PytestOutputParser()
+    _feed_lines(
+        parser,
+        [
+            "\x1b[1mcollecting ... \x1b[0mcollected 3 items",
+            "tests/test_a.py::test_one \x1b[32mPASSED\x1b[0m\x1b[32m [ 33%]\x1b[0m",
+            "tests/test_a.py::test_two \x1b[31mFAILED\x1b[0m\x1b[31m [ 66%]\x1b[0m",
+            "tests/test_a.py::test_three \x1b[32mXFAIL\x1b[0m [100%]",
+        ],
+    )
+    assert parser.stats.total == _ANSI_COLLECTED
+    assert parser.stats.done == _ANSI_COLLECTED
+    assert parser.stats.failed == 1
+    assert parser.stats.xfailed == 1
+    assert parser.stats.failed_ids == ["tests/test_a.py::test_two"]
+
+
+def test_ansi_colored_durations_block_still_captures_call_times() -> None:
+    """Color escapes never hide the slowest-durations block (the outlier gate).
+
+    The durations block is colorized under FORCE_COLOR too; stripping the
+    escapes keeps the call-phase seconds captured, so the true-outlier rule is
+    not silently skipped on a forced-color pipe (Q36, Q39).
+    """
+    parser = PytestOutputParser()
+    _feed_lines(
+        parser,
+        [
+            "\x1b[1m========== slowest durations ==========\x1b[0m",
+            "\x1b[33m1.83s call     tests/test_a.py::test_one\x1b[0m",
+            "\x1b[32m0.02s call     tests/test_b.py::test_two\x1b[0m",
+        ],
+    )
+    assert parser.stats.durations == {
+        "tests/test_a.py::test_one": _SLOW_CALL_SECS,
+        "tests/test_b.py::test_two": _FAST_CALL_SECS,
+    }
 
 
 def test_skipped_and_xpass_count_as_done_only() -> None:
