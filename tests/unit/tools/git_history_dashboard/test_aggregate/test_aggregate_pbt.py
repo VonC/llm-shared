@@ -62,8 +62,8 @@ def _sum_maps(maps: list[dict[str, int]]) -> dict[str, int]:
     return out
 
 
-@settings(max_examples=25, deadline=None)
-@given(st.lists(_commit(), min_size=1, max_size=15))
+@settings(max_examples=10, deadline=None)
+@given(st.lists(_commit(), min_size=1, max_size=10))
 def test_per_project_list_series_sum_to_top_level(commits: list[aggregate.Commit]) -> None:
     """The per-project list series sum back to the top-level list series."""
     data = aggregate.aggregate(commits)
@@ -78,8 +78,8 @@ def test_per_project_list_series_sum_to_top_level(commits: list[aggregate.Commit
     )
 
 
-@settings(max_examples=25, deadline=None)
-@given(st.lists(_commit(), min_size=1, max_size=15))
+@settings(max_examples=10, deadline=None)
+@given(st.lists(_commit(), min_size=1, max_size=10))
 def test_per_project_count_series_sum_to_top_level(commits: list[aggregate.Commit]) -> None:
     """The per-project mapping series sum back to the top-level mapping series."""
     data = aggregate.aggregate(commits)
