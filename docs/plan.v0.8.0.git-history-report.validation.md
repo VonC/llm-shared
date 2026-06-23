@@ -368,7 +368,9 @@ No existing feature or reporting capability is impaired.
 
 ### Analysis of Step 4 implementation state
 
-Not started. Step 4 is not implemented because the page still reads fixed top-level arrays, has no project filter, no contributor list, and no theme toggle.
+Yes. Step 4 has been fully implemented.
+
+The inline script now recomputes every widget and the metric cards through one `applyFilters()` that sums the visible `by_project` slices: a project-chip filter, a week-indexed date-range control, a `by_author` top-10 contributor leaderboard, and a two-state light/dark toggle with a `data-theme` override read from storage before first paint. One `ghog day` walk reports the objective at 100 percent coverage, and the render tests confirm the four controls and the payload-key wiring are present.
 
 ### Goal for Step 4
 
@@ -382,27 +384,48 @@ Generalize the client logic to recompute every widget and the metric cards on an
 
 ### What was implemented for Step 4
 
-_(empty — no check has taken place yet.)_.
+- **`template.html` (controls)**: a project-chip filter (`#project-filter`, one chip per project), a week-indexed date-range control (`#date-range` with start and end selects), a contributor leaderboard section (`#contributors`), and a theme toggle (`#theme-toggle`) in the header.
+- **`template.html` (recompute)**: a single `applyFilters()` sums the enabled projects' `by_project` slices, applies the type set and the week window, and redraws the timeline, calendar, weekday, hour, scope, recent, metric cards, and the leaderboard; the chips and the date selects all call it.
+- **`template.html` (leaderboard)**: a top-10 ranked list from the combined `by_author`, all-time (not date-bound), redrawn with the project filter.
+- **`template.html` (theme)**: a pre-paint head script sets `data-theme` from `localStorage`; the CSS dark palette applies for `data-theme="dark"` or the media query unless `data-theme="light"`; the toggle flips and persists the choice.
+- **`test_render_tdd.py`**: the four controls render, the script wires `D.by_project`, `by_author`, `applyFilters` and `data-theme`, and a single-project payload still lists its one project.
+- **Validation evidence**: `ghog day` reports the objective, `fail=0 xfail=0 cov=100 outliers=0 exit=0`.
 
 ### New types or classes introduced for Step 4
 
-_(empty — no check has taken place yet.)_.
+No new Python type or class. Step 4 is front-end markup and the inline `applyFilters` recompute in `template.html`, plus the render assertions.
 
 ### Architecture check for Step 4
 
-_(empty — no check has taken place yet.)_.
+- **One recompute path**: every filter change funnels through `applyFilters()`, which is the single place that reads the filter state and redraws; there is no per-widget filter logic to drift out of sync.
+- **The payload is the contract**: the client sums the same `by_project` slices the aggregation guarantees sum to the top-level, so the filtered views stay consistent with the unfiltered totals.
+- **Still one static file**: the script stays inline; the page needs only the cdnjs Chart.js at view time, so the single-file property holds (a template-partials split is deferred, not part of this step).
+
+No, there is nothing that needs to be addressed.
 
 ### Performance check for Step 4
 
-_(empty — no check has taken place yet.)_.
+- **Recompute is O(projects x buckets)**: `applyFilters` sums the per-project slices over the fixed day, week, hour and weekday buckets, not over the commits, so it is independent of history size.
+- **No new server pass**: the figures and slices already exist in the payload; Step 4 adds no Python work and no perf gate is affected.
+- **The date window is a slice**: narrowing the range slices the pre-built day and week arrays rather than re-aggregating.
+
+No, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 4
 
-_(empty — no check has taken place yet.)_.
+- **`test_render_tdd.py`** covers the rendered controls and the payload-key wiring at 100% of the Python it touches; `ghog day` measured `cov=100`.
+- **No Python production code changed**: Step 4 is `template.html` plus test assertions, so no module's coverage moved.
+- **The recompute is client-side JavaScript with no Python harness in this repo**: its behavior is checked by the markup-and-wiring assertions here and by the Step 5 acceptance render, not by JS unit tests; this limit is stated plainly rather than implying JS coverage.
+
+No, there is no unit-tested class below 100% that needs completing for Step 4.
 
 ### Feature integrity for Step 4
 
-_(empty — no check has taken place yet.)_.
+- **Existing feature behavior**: the charts, calendar, scopes and recent list still render from the same payload; the first paint shows the server-rendered metric values, which `applyFilters` then reconciles to the full, all-projects view.
+- **Reporting or diagnostics**: the page gains a project filter, a date range, a contributor leaderboard and a theme toggle; hiding a project or narrowing the range recomputes the affected widgets, and the leaderboard stays all-time.
+- **Compatibility or rollout note**: the template grows past 650 lines as expected for the front-end; it stays a single static HTML file with no new runtime dependency beyond the cdnjs Chart.js already used.
+
+No existing feature or reporting capability is impaired.
 
 ---
 
