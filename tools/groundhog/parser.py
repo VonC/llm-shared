@@ -1,4 +1,4 @@
-"""Streaming parser for the pytest output of a groundhog child run.
+r"""Streaming parser for the pytest output of a groundhog child run.
 
 The parent process reads the pytest child output live (Q17) and feeds it
 line by line to :class:`PytestOutputParser`, which accumulates the run
@@ -11,6 +11,14 @@ recent test ids and the INTERNALERROR marker used for crash detection (Q06).
 Fix: a full run also prints a ``slowest durations`` block (Q39); the parser
 captures each test's call-phase seconds from it into ``stats.durations``
 (Q36), the input the later true-outlier rule judges.
+
+Fix: every line is stripped of ANSI color escapes before matching, so the
+parser works when pytest is forced to colorize a non-TTY pipe (``FORCE_COLOR``
+/ ``PY_COLORS``). Without it the ``\x1b[0m`` reset butts against ``collected``
+and breaks the ``\bcollected`` word boundary, so the run total stayed zero and
+the LLM-mode progress governor silenced every ``ghog full``/``ghog affected``
+progress line; colored ``PASSED``/``FAILED`` statuses missed the result regex
+too, so the counters and the failing-id list went unfilled.
 """
 
 from __future__ import annotations
@@ -25,6 +33,14 @@ from tools.groundhog.models import RunStats
 LAST_STARTED_KEPT: Final = 5
 # How many raw output lines are kept as the crash stack tail (Q06).
 TAIL_LINES_KEPT: Final = 15
+
+# ANSI color escapes pytest emits when color is forced on a non-TTY pipe
+# (FORCE_COLOR / PY_COLORS): stripped from every line before matching. The reset
+# code "\x1b[0m" ends in "m" and butts against "collected", breaking the
+# "\bcollected" word boundary and zeroing the progress total; the colored
+# status words ("\x1b[32mPASSED") miss the result regex too. This mirrors the
+# ANSI guard the check-line reader already applies (Q29).
+_ANSI_ESCAPE_RE: Final = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
 
 # "collected 250 items" (possibly "collected 1 item").
 _COLLECTED_RE: Final = re.compile(r"\bcollected (\d+) items?\b")
@@ -101,6 +117,7 @@ class PytestOutputParser:
         Args:
             line: The raw line, without its trailing newline.
         """
+        line = _ANSI_ESCAPE_RE.sub("", line)
         if line.strip():
             self._tail.append(line)
         if line.startswith(_INTERNAL_ERROR_PREFIX):
