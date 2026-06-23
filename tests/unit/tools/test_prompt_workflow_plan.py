@@ -101,6 +101,21 @@ def test_parse_validation_steps_keeps_substep_ids() -> None:
     ]
 
 
+def test_parse_validation_steps_keeps_dotted_substep_ids() -> None:
+    """A dotted sub-step such as 1.1 keeps its full id and never collapses to 1."""
+    text = (
+        "# Plan validation\n\n"
+        "### Analysis of Step 1 implementation state\n\nYes. Step 1 is done.\n\n"
+        "### Analysis of Step 1.1 implementation state\n\nNot started.\n\n"
+        "### Analysis of Step 2 implementation state\n\nNot started.\n"
+    )
+    assert plan.parse_validation_steps(text) == [
+        PlanStep(number="1", verified=True),
+        PlanStep(number="1.1", verified=False),
+        PlanStep(number="2", verified=False),
+    ]
+
+
 def test_parse_validation_steps_records_not_implemented() -> None:
     """A 'No' status sets not_implemented; 'Not started' and a placeholder do not (Q46)."""
     text = (
