@@ -17,8 +17,10 @@ menu introduction line inline the plan step title and the plan document, read
 once from the plan's ``### Step N.`` heading, dropping a segment when the title
 or the plan is missing (Q26, Q30-Q40).
 
-Fix (sub-steps): a plan step id may carry a letter suffix, such as ``4A`` (Q41,
-Q42). The id is parsed from the ``Analysis of Step`` heading and kept as a string
+Fix (sub-steps): a plan step id may carry a letter suffix such as ``4A`` or a
+dotted segment such as ``1.1`` (Q41, Q42); both keep their full id and never
+collapse to the bare parent number. The id is parsed from the ``Analysis of
+Step`` heading and kept as a string
 through ``PlanStep.number`` and ``CycleState.x`` (Q41), so ``derive_x`` keys each
 status by the full id and a sub-step ``Not started`` no longer overwrites its
 parent ``Yes`` (Q45). Steps run in document order (Q43) and each sub-step is
@@ -60,9 +62,10 @@ if TYPE_CHECKING:
 
 # A heading naming a plan step's analysis, matched loosely and case-insensitively
 # to cover both the validation template and implementation-check.md wordings. The
-# captured id is the \d+[A-Za-z]* token, so a lettered sub-step such as 4A is kept
-# whole and never read as the bare number 4 (Q42).
-ANALYSIS_RE = re.compile(r"analysis of step\s+(\d+[A-Za-z]*)", re.IGNORECASE)
+# captured id is the \d+(?:\.\d+)*[A-Za-z]* token, so a sub-step written either as
+# a lettered suffix (4A) or a dotted segment (1.1) is kept whole and never read as
+# the bare parent number (Q42).
+ANALYSIS_RE = re.compile(r"analysis of step\s+(\d+(?:\.\d+)*[A-Za-z]*)", re.IGNORECASE)
 # A status line that marks the step implemented and verified.
 STATUS_YES_RE = re.compile(r"^\s*yes", re.IGNORECASE)
 # A status line that marks the step explicitly not implemented (Q46). The word
