@@ -105,7 +105,9 @@ No existing feature or reporting capability is impaired.
 
 ### Analysis of Step 1 implementation state
 
-Not started. Step 1 is not implemented because the aggregation and the render still live in `build.py`.
+Yes. Step 1 has been fully implemented.
+
+The aggregation and the render are extracted into `aggregate.py` and `render.py`, `build.py` is a thin hub at 247 lines that re-exports the moved names, and the tests are redistributed with the suite green at 100 percent coverage. The only deviation from the plan's prediction is benign: the Step 0 perf gate now xpasses instead of staying `xfail`, because it calls the just-extracted `aggregate()`; the gate is retargeted and its marker removed in Step 1.1.
 
 ### Goal for Step 1
 
@@ -119,27 +121,48 @@ Move the aggregation into a new `aggregate.py` and the placeholder substitution 
 
 ### What was implemented for Step 1
 
-_(empty — no check has taken place yet.)_.
+- **`aggregate.py` (new)**: the data model (`Commit`, `DashboardData`, `Highlights`) and the aggregation (`classify`, `_build_daily_series`, `_aggregate_weeks`, `_CommitTallies`, `_empty_tallies`, `_parse_commit_clock`, `_record_commit`, `_build_dashboard_payload`, `aggregate`, `compute_highlights`), moved verbatim from `build.py`.
+- **`render.py` (new)**: `render` and its placeholder-token table, importing `compute_highlights` from `aggregate`.
+- **`build.py` (247 lines, was 518)**: keeps the export, the CSV parse, `run_build`, the CLI and `__main__`; imports the moved names from `aggregate` and `render` and re-exports them through `__all__`, so `build.<name>` callers are unaffected.
+- **`__init__.py`**: docstring updated for the three-module split.
+- **Tests redistributed**: the classifier and aggregation assertions to `test_aggregate/test_aggregate_tdd.py`, the render assertion to `test_render/test_render_tdd.py`; `test_build/test_build_tdd.py` keeps the export, the CSV parse, `run_build`, `main` and `__main__`. No test was dropped.
+- **Validation evidence**: one `ghog day` walk reports the objective, `fail=0 cov=100 outliers=0 exit=0`; `build.py` at 247, `aggregate.py` at 312, `render.py` at 52 lines, all under the 550 risk threshold.
 
 ### New types or classes introduced for Step 1
 
-_(empty — no check has taken place yet.)_.
+No new production type was introduced. The step is a behavior-preserving move: `Commit`, `DashboardData`, `Highlights` and `_CommitTallies` existed already and only changed module. The new files `aggregate.py` and `render.py` are modules, not types.
 
 ### Architecture check for Step 1
 
-_(empty — no check has taken place yet.)_.
+- **Module boundaries**: the new modules form a clean one-way chain — `render` imports `aggregate`, `build` imports both, `aggregate` imports nothing from the package. No import cycle.
+- **Layer placement**: each module has one responsibility — `aggregate` the data and the math, `render` the HTML substitution, `build` the export, parse, orchestration and CLI. The hub no longer mixes aggregation and rendering with the IO.
+- **Re-export surface**: `build.__all__` lists the moved names so `build.<name>` stays valid; the imports are used through that export, not dead.
+
+No, there is nothing that needs to be addressed.
 
 ### Performance check for Step 1
 
-_(empty — no check has taken place yet.)_.
+- **No new `O(n^2)` or `O(n log n)` path**: the code is moved unchanged; the aggregation keeps its single O(n) pass over commits and the one sort of days and weeks.
+- **The perf gate now runs for real**: it aggregates 6000 synthetic commits within the 8-second bound (an xpass), confirming the extracted `aggregate` stays linear.
+- **Startup or background path**: unchanged; import adds two small modules.
+
+No, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 1
 
-_(empty — no check has taken place yet.)_.
+- **`aggregate.py`**: covered at 100% by `test_aggregate_tdd.py` plus the `run_build` / `main` / `__main__` tests in `test_build_tdd.py` that drive it; the `ghog day` run measured `cov=100`.
+- **`render.py`**: covered at 100% by `test_render_tdd.py` plus the end-to-end tests that render through `run_build`.
+- **`build.py`**: covered at 100% by the export, parse, `run_build`, `main` and `__main__` tests in `test_build_tdd.py`.
+
+No, there is no unit-tested class below 100% that needs completing for Step 1.
 
 ### Feature integrity for Step 1
 
-_(empty — no check has taken place yet.)_.
+- **Existing feature behavior**: the dashboard build is unchanged — same `data.json` payload and same rendered `dashboard.html`; the `__main__` test renders end to end and the export and parse tests still pass. `build.<name>` re-exports keep the public surface intact.
+- **Reporting or diagnostics**: the `LOGGER` messages in `run_build` and `main` are unchanged. The Step 0 perf gate flips from `xfail` to a green xpass because `aggregate()` now exists; this is benign under `strict=False` and is finalized in Step 1.1 when the gate is retargeted at the `by_project` path and its marker removed.
+- **Compatibility or rollout note**: no behavior change; only the module a name lives in changed, with re-exports preserving the old access.
+
+No existing feature or reporting capability is impaired.
 
 ---
 
