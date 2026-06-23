@@ -148,6 +148,52 @@ def test_find_matching_documents_per_role(tmp_path: Path) -> None:
     assert names("validation_plan") == ["plan.v9.8.0.iso.validation.md"]
 
 
+def test_find_matching_documents_folds_hyphen_and_underscore(tmp_path: Path) -> None:
+    """A ``_`` draft slug resolves the hyphenated documents for every role."""
+    docs_dir = tmp_path / "docs"
+    docs_dir.mkdir()
+    names = [
+        "feature-request.v0.8.0.git-history-report.md",
+        "design.v0.8.0.git-history-report.md",
+        "plan.v0.8.0.git-history-report.md",
+        "plan.v0.8.0.git-history-report.validation.md",
+    ]
+    for name in names:
+        (docs_dir / name).write_text("body", encoding="utf-8")
+    underscore = Topic(
+        version="v0.8.0",
+        slug="git_history_report",
+        draft_path=Path("d.md"),
+    )
+
+    def names_for(role: str) -> list[str]:
+        return [
+            path.name
+            for path in docs.find_matching_documents(tmp_path, underscore, role)
+        ]
+
+    assert names_for("requirement") == ["feature-request.v0.8.0.git-history-report.md"]
+    assert names_for("design") == ["design.v0.8.0.git-history-report.md"]
+    assert names_for("plan") == ["plan.v0.8.0.git-history-report.md"]
+    assert names_for("validation_plan") == [
+        "plan.v0.8.0.git-history-report.validation.md",
+    ]
+
+
+def test_doc_matches_reverse_separators_and_subtopic() -> None:
+    """A hyphen slug resolves an underscore document, including a sub-topic key."""
+    version, slug = "v0.8.0", "git-history-report"
+
+    # An underscore document name is matched by the hyphen slug.
+    assert docs._doc_matches("design.v0.8.0.git_history_report.md", "design", version, slug)
+    # A mixed-separator sub-topic under the umbrella slug still matches.
+    assert docs._doc_matches(
+        "design.v0.8.0.git-history-report_extra.md", "design", version, slug,
+    )
+    # A different topic does not match.
+    assert not docs._doc_matches("design.v0.8.0.other.md", "design", version, slug)
+
+
 def test_most_recent_and_select_document(tmp_path: Path) -> None:
     """The most recent match wins on modification time; empty yields None."""
     assert docs.most_recent([]) is None
