@@ -238,74 +238,6 @@ class TestEndToEnd:
         assert data["projects"] == ["sample"]
         assert (out_dir / "dashboard.html").is_file()
 
-    def test_main_csv_mode_builds_dashboard_without_git(
-        self,
-        tmp_path: Path,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """``--csv`` skips ``git log`` and renders straight from the file."""
-        csv_path = tmp_path / "history.csv"
-        csv_path.write_text(_sample_csv_text(), encoding="utf-8")
-        out_dir = tmp_path / "out"
-        template = tmp_path / "template.html"
-        _write_minimal_template(template)
-
-        def _fake_project_root(_start: Path) -> Path:
-            """Return tmp_path as the discovered project root."""
-            return tmp_path
-
-        monkeypatch.setattr(build, "find_project_root", _fake_project_root)
-        monkeypatch.setattr(
-            sys,
-            "argv",
-            [
-                "build.py",
-                "--csv",
-                str(csv_path),
-                "--out-dir",
-                str(out_dir),
-                "--template",
-                str(template),
-            ],
-        )
-
-        build.main()
-
-        assert (out_dir / "data.json").is_file()
-        dashboard = (out_dir / "dashboard.html").read_text(encoding="utf-8")
-        assert f"commits={len(SAMPLE_COMMITS)}" in dashboard
-
-    def test_main_exports_history_from_the_calling_project(
-        self,
-        tmp_path: Path,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """With no source flag, ``main`` exports the CSV then builds the page."""
-        repo_dir = tmp_path / "project"
-        subjects = ["feat(core): seed commit", "docs: describe it"]
-        _make_git_repo(repo_dir, subjects)
-        out_dir = tmp_path / "out"
-        template = tmp_path / "template.html"
-        _write_minimal_template(template)
-
-        def _fake_project_root(_start: Path) -> Path:
-            """Return the throwaway repo as the discovered project root."""
-            return repo_dir
-
-        monkeypatch.setattr(build, "find_project_root", _fake_project_root)
-        monkeypatch.setattr(
-            sys,
-            "argv",
-            ["build.py", "--out-dir", str(out_dir), "--template", str(template)],
-        )
-
-        build.main()
-
-        exported_csv = repo_dir.joinpath(*build.DASHBOARD_SUBDIR) / build.GIT_HISTORY_CSV_NAME
-        assert exported_csv.is_file()
-        dashboard = (out_dir / "dashboard.html").read_text(encoding="utf-8")
-        assert f"commits={len(subjects)}" in dashboard
-
     def test_module_runs_as_a_script(
         self,
         tmp_path: Path,
@@ -313,13 +245,15 @@ class TestEndToEnd:
     ) -> None:
         """Running build.py as ``__main__`` exports and renders end to end.
 
-        ``PRJ_DIR`` points the shared root helper at the throwaway repo, so
-        the default output lands under ``<repo>/docs/git_history_dashboard``.
+        ``PRJ_DIR`` points the shared root helper at the throwaway repo, so the
+        default output lands under ``<repo>/docs/git_history_dashboard``;
+        ``--no-open`` keeps the run from launching a browser (Step 2 delegates
+        ``main`` to the CLI, which opens the report by default).
         """
         repo_dir = tmp_path / "consumer"
         _make_git_repo(repo_dir, ["feat: only commit"])
         monkeypatch.setenv("PRJ_DIR", str(repo_dir))
-        monkeypatch.setattr(sys, "argv", ["build.py"])
+        monkeypatch.setattr(sys, "argv", ["build.py", "--no-open"])
 
         build_script = build.__file__
         assert build_script is not None

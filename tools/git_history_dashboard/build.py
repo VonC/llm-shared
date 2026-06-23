@@ -18,10 +18,13 @@ then parses that file. The CSV is a scratch artifact and is git-ignored;
 the rendered ``dashboard.html`` and ``data.json`` are versioned in the
 calling project so its commit-history snapshots are recorded over time.
 
-Step 1 (v0.8.0): the aggregation moved to ``aggregate.py`` and the rendering
-to ``render.py``; this module keeps the export, the CSV parse, the build
-orchestration, and the CLI, and re-exports the moved names so callers and the
-``ghd`` alias are unaffected.
+Step 1 (v0.8.0): the aggregation moved to ``aggregate.py`` and the rendering to
+``render.py``; this module keeps the export, the CSV parse, and the write, and
+re-exports the moved names so callers and the ``ghd`` alias are unaffected.
+
+Step 2 (v0.8.0): the command line and the run loop moved to ``cli.py``, which
+resolves one or several repo targets and builds one combined dashboard; ``main``
+here delegates to it.
 
 Usage
 -----
@@ -29,22 +32,22 @@ From anywhere inside a project (or, more simply, via the ``ghd`` alias)::
 
     python <llm-shared>/tools/git_history_dashboard/build.py
 
-Against a different repository::
+Against one or several repositories, writing one combined report::
 
-    python build.py --git-dir /path/to/repo
+    python build.py /path/to/repo-a /path/to/repo-b --out-dir /tmp/report
 
 From a pre-exported CSV, skipping the ``git log`` call::
 
     python build.py --csv git_history.csv
 
-The dashboard files default to ``<project>/docs/git_history_dashboard/``;
-pass ``--out-dir`` to redirect them. No third-party dependencies are
-required; the rendered dashboard pulls Chart.js from cdnjs at view time.
+The single-project default output is ``<project>/docs/git_history_dashboard/``;
+a multi-project run names its ``--out-dir``. Pass ``--no-open`` to keep the
+browser shut. No third-party dependencies are required; the rendered dashboard
+pulls Chart.js from cdnjs at view time.
 """
 
 from __future__ import annotations
 
-import argparse
 import contextlib
 import json
 import logging
@@ -54,13 +57,12 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 if __name__ == "__main__":
-    # Running as a script: put the llm-shared root on `sys.path` so the
-    # shared `tools` package (and `find_project_root`) imports cleanly.
+    # Running as a script: put the llm-shared root on `sys.path` so the shared
+    # `tools` package imports cleanly when build.py is run directly.
     with contextlib.suppress(Exception):
         _llm_shared_root = Path(__file__).resolve().parents[2]
         sys.path.insert(0, str(_llm_shared_root))
 
-from tools import find_project_root
 from tools.git_history_dashboard.aggregate import (
     Commit,
     DashboardData,
@@ -74,7 +76,6 @@ from tools.git_history_dashboard.render import render
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
-HERE = Path(__file__).resolve().parent
 LOGGER = logging.getLogger("git_history_dashboard")
 
 # The dashboard output lives under this path inside the calling project.
@@ -152,17 +153,12 @@ def iter_commits_from_csv(path: str | Path) -> Iterator[tuple[str, str, str, str
                 yield parts[0], parts[1], parts[2], parts[3]
 
 
-def run_build(commits_csv: Path, out_dir: Path, template: Path, project: str) -> None:
-    """Parse the history CSV, tag each commit with ``project``, write the files.
+def write_dashboard(commits: list[Commit], out_dir: Path, template: Path) -> None:
+    """Aggregate already-tagged commits and write ``data.json`` + ``dashboard.html``.
 
-    Reads ``commits_csv``, tags every parsed row with ``project`` as a
-    ``Commit``, aggregates them, and writes ``data.json`` and ``dashboard.html``
-    into ``out_dir``.
+    Shared by the single-CSV ``run_build`` and the multi-repo ``cli.run``: it
+    aggregates the tagged ``commits`` and writes both files into ``out_dir``.
     """
-    commits = [
-        Commit(sha, iso_date, author, subject, project)
-        for sha, iso_date, author, subject in iter_commits_from_csv(commits_csv)
-    ]
     LOGGER.info("loaded %d commits", len(commits))
     data = aggregate(commits)
 
@@ -177,58 +173,29 @@ def run_build(commits_csv: Path, out_dir: Path, template: Path, project: str) ->
     LOGGER.info("wrote %s", html_path)
 
 
-def _parse_args() -> argparse.Namespace:
-    """Parse the command-line arguments for the dashboard builder."""
-    parser = argparse.ArgumentParser(
-        description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    src = parser.add_mutually_exclusive_group()
-    src.add_argument(
-        "--git-dir",
-        help="Repo to export history from (default: the calling project root).",
-    )
-    src.add_argument(
-        "--csv",
-        help="Use a pre-exported pipe-separated CSV instead of running git log.",
-    )
-    parser.add_argument(
-        "--out-dir",
-        default=None,
-        help=(
-            "Directory for dashboard.html and data.json "
-            "(default: <project>/docs/git_history_dashboard)."
-        ),
-    )
-    parser.add_argument(
-        "--template",
-        default=str(HERE / "template.html"),
-        help="Path to the HTML template (default: alongside this script).",
-    )
-    return parser.parse_args()
+def run_build(commits_csv: Path, out_dir: Path, template: Path, project: str) -> None:
+    """Parse the history CSV, tag each commit with ``project``, write the files.
+
+    Reads ``commits_csv``, tags every parsed row with ``project`` as a
+    ``Commit``, and writes the dashboard through ``write_dashboard``.
+    """
+    commits = [
+        Commit(sha, iso_date, author, subject, project)
+        for sha, iso_date, author, subject in iter_commits_from_csv(commits_csv)
+    ]
+    write_dashboard(commits, out_dir, template)
 
 
 def main() -> None:
-    """Export the calling project's git history and write the dashboard."""
-    logging.basicConfig(level=logging.INFO, format="%(message)s", stream=sys.stderr)
+    """Entry point: delegate to the multi-repo CLI orchestration in ``cli``.
 
-    args = _parse_args()
-    project_root = find_project_root(Path.cwd())
-    dashboard_dir = project_root.joinpath(*DASHBOARD_SUBDIR)
-    out_dir = Path(args.out_dir) if args.out_dir else dashboard_dir
+    The import is local so the module-level import only goes ``cli`` -> ``build``
+    (``cli`` reuses these export and write helpers), never back, avoiding a
+    circular import.
+    """
+    from tools.git_history_dashboard import cli  # noqa: PLC0415
 
-    if args.csv:
-        commits_csv = Path(args.csv).expanduser().resolve()
-        project = project_root.name
-    else:
-        repo_dir = Path(args.git_dir).expanduser().resolve() if args.git_dir else project_root
-        commits_csv = dashboard_dir / GIT_HISTORY_CSV_NAME
-        LOGGER.info("exporting git history from %s", repo_dir)
-        export_git_history_csv(repo_dir, commits_csv)
-        LOGGER.info("wrote %s", commits_csv)
-        project = repo_dir.name
-
-    run_build(commits_csv, out_dir, Path(args.template), project)
+    cli.main()
 
 
 # Re-export the names moved to `aggregate` and `render` in Step 1 so existing
@@ -246,6 +213,7 @@ __all__ = [
     "main",
     "render",
     "run_build",
+    "write_dashboard",
 ]
 
 
