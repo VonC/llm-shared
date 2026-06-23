@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
 """Commit aggregation and the dashboard data model for git_history_dashboard.
 
-Step 1 (v0.8.0): extracted verbatim from ``build.py`` so the 518-line hub has
-room to grow for the multi-project work. This module owns the data model
-(``Commit``, ``DashboardData``, ``Highlights``), the conventional-commit
-classifier, the day / week / type / scope / hour / weekday aggregation, and the
-headline numbers. Behavior is unchanged: ``build.py`` imports and re-exports
-these names, and the payload shape is identical.
+Step 1 (v0.8.0): extracted verbatim from ``build.py`` so the hub has room to
+grow for the multi-project work.
+
+Step 1.1 (v0.8.0): the data gains a project dimension and an author tally.
+``Commit`` is now a ``NamedTuple`` with a ``project`` field; ``aggregate`` makes
+one pass building a global tally and a per-project tally, then assembles the
+``projects`` list, the ``by_project`` map of per-project sub-aggregates (aligned
+to the global date span so they sum to the top-level series), the ``by_author``
+counts, and a per-row ``project`` tag on ``recent``. Single-project runs put one
+entry in ``projects`` and ``by_project``; the real per-repo tagging arrives with
+the multi-repo CLI in Step 2.
 """
 
 from __future__ import annotations
@@ -16,7 +21,7 @@ import sys
 from collections import Counter
 from dataclasses import dataclass
 from datetime import date, timedelta
-from typing import TYPE_CHECKING, TypedDict
+from typing import TYPE_CHECKING, NamedTuple, TypedDict
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -32,14 +37,48 @@ TYPES_ORDER = [
     "chore", "build", "style", "perf", "ci", "other",
 ]
 
-# A parsed commit row: (sha, iso_date, author, subject).
-type Commit = tuple[str, str, str, str]
-
 # Minimum length of an ISO datetime string that still exposes the hour
 # at slice ``[11:13]`` (``YYYY-MM-DD HH`` -> 13 characters).
 _HOUR_SLICE_MIN_LEN = 13
 # UI cap on the recent-commits table.
 _RECENT_COMMITS_LIMIT = 10
+# How many of the busiest scopes the dashboard keeps.
+_TOP_SCOPES = 15
+
+
+class Commit(NamedTuple):
+    """One parsed commit, tagged with the project it was exported from.
+
+    The project carries through the aggregation so the page can break every
+    series down per project. A single-repo run tags all commits with that one
+    project; the multi-repo CLI (Step 2) tags each repo's commits with its own.
+    """
+
+    sha: str
+    iso_date: str
+    author: str
+    subject: str
+    project: str
+
+
+class ProjectData(TypedDict):
+    """One project's slice of the dashboard series, aligned to the global span.
+
+    Every list is indexed by the top-level ``dates`` / ``week_starts``, so the
+    page sums the selected projects to recompute any widget. ``recent`` is the
+    project's own newest rows, not summed.
+    """
+
+    totals: list[int]
+    by_type_day: dict[str, list[int]]
+    by_type: dict[str, int]
+    by_scope: dict[str, int]
+    by_hour: list[int]
+    by_weekday: list[int]
+    by_author: dict[str, int]
+    week_totals: list[int]
+    week_by_type: dict[str, list[int]]
+    recent: list[dict[str, str]]
 
 
 class DashboardData(TypedDict):
@@ -56,10 +95,13 @@ class DashboardData(TypedDict):
     by_scope: dict[str, int]
     by_hour: list[int]
     by_weekday: list[int]
+    by_author: dict[str, int]
     recent: list[dict[str, str]]
     week_starts: list[str]
     week_totals: list[int]
     week_by_type: dict[str, list[int]]
+    projects: list[str]
+    by_project: dict[str, ProjectData]
 
 
 class Highlights(TypedDict):
@@ -141,7 +183,7 @@ def _aggregate_weeks(
 
 @dataclass
 class _CommitTallies:
-    """Running per-day/type/scope/hour/weekday tallies for ``aggregate``."""
+    """Running per-day/type/scope/hour/weekday/author tallies for ``aggregate``."""
 
     per_day: dict[str, dict[str, int]]
     per_day_total: Counter[str]
@@ -149,6 +191,7 @@ class _CommitTallies:
     per_scope: Counter[str]
     per_hour: Counter[int]
     per_weekday: Counter[int]
+    per_author: Counter[str]
     recent: list[dict[str, str]]
 
 
@@ -161,6 +204,7 @@ def _empty_tallies() -> _CommitTallies:
         per_scope=Counter(),
         per_hour=Counter(),
         per_weekday=Counter(),
+        per_author=Counter(),
         recent=[],
     )
 
@@ -178,16 +222,24 @@ def _parse_commit_clock(dt: str) -> tuple[date, int] | None:
     return commit_day, hour
 
 
-def _record_commit(commit: Commit, tallies: _CommitTallies) -> None:
-    """Bucket one commit into the running tallies; skip un-parseable dates."""
-    sha, dt, _author, msg = commit
-    clock = _parse_commit_clock(dt)
+def _record_commit(commit: Commit, tallies: _CommitTallies) -> bool:
+    """Bucket one commit into the tallies; return False on an un-parseable date.
+
+    Args:
+        commit: The commit to record.
+        tallies: The running tally to update.
+
+    Returns:
+        True when the commit was recorded, False when its date would not parse
+        (so the caller skips it for the per-project tally too).
+    """
+    clock = _parse_commit_clock(commit.iso_date)
     if clock is None:
-        return
+        return False
     commit_day, hour = clock
     d = commit_day.isoformat()
     wd = commit_day.weekday()
-    ctype, scope = classify(msg)
+    ctype, scope = classify(commit.subject)
 
     day_bucket = tallies.per_day.setdefault(d, {})
     day_bucket[ctype] = day_bucket.get(ctype, 0) + 1
@@ -197,60 +249,102 @@ def _record_commit(commit: Commit, tallies: _CommitTallies) -> None:
         tallies.per_scope[scope] += 1
     tallies.per_hour[hour] += 1
     tallies.per_weekday[wd] += 1
+    tallies.per_author[commit.author] += 1
     tallies.recent.append({
-        "sha": sha[:7],
-        "date": dt[:16],
+        "sha": commit.sha[:7],
+        "date": commit.iso_date[:16],
         "type": ctype,
         "scope": scope,
-        "msg": msg,
+        "msg": commit.subject,
+        "project": commit.project,
     })
+    return True
 
 
-def _build_dashboard_payload(tallies: _CommitTallies) -> DashboardData:
-    """Assemble the final ``DashboardData`` payload from a filled tally."""
-    # Build a contiguous daily series so the calendar heatmap has no gaps.
-    sorted_days = sorted(tallies.per_day_total.keys())
-    start = date.fromisoformat(sorted_days[0])
-    end = date.fromisoformat(sorted_days[-1])
+def _project_data(tallies: _CommitTallies, start: date, end: date) -> ProjectData:
+    """Build one project's slice of the series over the global ``start..end`` span.
+
+    The daily and weekly series run over the same global span as the top-level,
+    so summing the projects reproduces each top-level series exactly.
+    """
     dates_list, totals, by_type_day = _build_daily_series(
         tallies.per_day, tallies.per_day_total, start, end,
     )
-
-    # Weekly aggregation (Monday-anchored).
     sorted_weeks = _aggregate_weeks(dates_list, totals, by_type_day)
-
-    # Recent commits are most-recent-first; ``git log --date-order`` emits
-    # newest first, so the head of `recent` is already what we want.
-    # Trim to a sensible UI cap.
-    recent = tallies.recent[:_RECENT_COMMITS_LIMIT]
     return {
-        "total_commits": int(sum(tallies.per_day_total.values())),
+        "totals": totals,
+        "by_type_day": by_type_day,
+        "by_type": dict(tallies.per_type.most_common()),
+        "by_scope": dict(tallies.per_scope.most_common(_TOP_SCOPES)),
+        "by_hour": [tallies.per_hour.get(h, 0) for h in range(24)],
+        "by_weekday": [tallies.per_weekday.get(w, 0) for w in range(7)],
+        "by_author": dict(tallies.per_author.most_common()),
+        "week_totals": [v["total"] for _, v in sorted_weeks],
+        "week_by_type": {t: [v[t] for _, v in sorted_weeks] for t in TYPES_ORDER},
+        "recent": tallies.recent[:_RECENT_COMMITS_LIMIT],
+    }
+
+
+def _build_combined_payload(
+    projects: list[str],
+    global_tally: _CommitTallies,
+    per_project: dict[str, _CommitTallies],
+) -> DashboardData:
+    """Assemble the combined ``DashboardData`` from the global and per-project tallies.
+
+    The top-level series come from the global tally over the full span; the
+    per-project slices are aligned to that same span so they sum back to it.
+    """
+    sorted_days = sorted(global_tally.per_day_total.keys())
+    start = date.fromisoformat(sorted_days[0])
+    end = date.fromisoformat(sorted_days[-1])
+    dates_list, totals, by_type_day = _build_daily_series(
+        global_tally.per_day, global_tally.per_day_total, start, end,
+    )
+    sorted_weeks = _aggregate_weeks(dates_list, totals, by_type_day)
+    by_project = {p: _project_data(per_project[p], start, end) for p in projects}
+    return {
+        "total_commits": int(sum(global_tally.per_day_total.values())),
         "start": start.isoformat(),
         "end": end.isoformat(),
         "types_order": TYPES_ORDER,
         "dates": dates_list,
         "totals": totals,
         "by_type_day": by_type_day,
-        "by_type": dict(tallies.per_type.most_common()),
-        "by_scope": dict(tallies.per_scope.most_common(15)),
-        "by_hour": [tallies.per_hour.get(h, 0) for h in range(24)],
-        "by_weekday": [tallies.per_weekday.get(w, 0) for w in range(7)],
-        "recent": recent,
+        "by_type": dict(global_tally.per_type.most_common()),
+        "by_scope": dict(global_tally.per_scope.most_common(_TOP_SCOPES)),
+        "by_hour": [global_tally.per_hour.get(h, 0) for h in range(24)],
+        "by_weekday": [global_tally.per_weekday.get(w, 0) for w in range(7)],
+        "by_author": dict(global_tally.per_author.most_common()),
+        "recent": global_tally.recent[:_RECENT_COMMITS_LIMIT],
         "week_starts": [k for k, _ in sorted_weeks],
         "week_totals": [v["total"] for _, v in sorted_weeks],
         "week_by_type": {t: [v[t] for _, v in sorted_weeks] for t in TYPES_ORDER},
+        "projects": projects,
+        "by_project": by_project,
     }
 
 
 def aggregate(commits: Iterable[Commit]) -> DashboardData:
-    """Aggregate an iterable of commit tuples into the dashboard payload."""
-    tallies = _empty_tallies()
+    """Aggregate an iterable of tagged commits into the combined dashboard payload.
+
+    One pass fills a global tally and a per-project tally; a commit whose date
+    will not parse is skipped in both. An empty history is a hard stop.
+    """
+    global_tally = _empty_tallies()
+    per_project: dict[str, _CommitTallies] = {}
+    order: list[str] = []
     for commit in commits:
-        _record_commit(commit, tallies)
-    if not tallies.per_day_total:
+        if not _record_commit(commit, global_tally):
+            continue
+        if commit.project not in per_project:
+            per_project[commit.project] = _empty_tallies()
+            order.append(commit.project)
+        _record_commit(commit, per_project[commit.project])
+    if not global_tally.per_day_total:
         message = "No commits found."
         raise SystemExit(message)
-    return _build_dashboard_payload(tallies)
+    return _build_combined_payload(sorted(order), global_tally, per_project)
 
 
 def compute_highlights(data: DashboardData) -> Highlights:
@@ -302,6 +396,7 @@ __all__ = [
     "Commit",
     "DashboardData",
     "Highlights",
+    "ProjectData",
     "aggregate",
     "classify",
     "compute_highlights",

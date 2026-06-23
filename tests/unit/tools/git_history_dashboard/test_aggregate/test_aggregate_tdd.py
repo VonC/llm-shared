@@ -1,10 +1,14 @@
 """Tests for the git-history dashboard commit aggregation.
 
-Step 1 (v0.8.0): the aggregation assertions moved here verbatim from the build
-test when ``classify``, ``aggregate`` and ``compute_highlights`` were extracted
-into ``tools/git_history_dashboard/aggregate.py``. They cover the
-conventional-commit classifier, the daily/weekly aggregation, the headline
-numbers, and the unparseable-date and empty-history edges.
+Step 1 (v0.8.0): the aggregation assertions moved here from the build test when
+``classify``, ``aggregate`` and ``compute_highlights`` were extracted into
+``tools/git_history_dashboard/aggregate.py``.
+
+Step 1.1 (v0.8.0): commits are ``Commit`` NamedTuples tagged with a project, and
+the payload gains ``projects``, ``by_project`` and ``by_author``. These tests
+cover the classifier, the top-level series, the project tag and author tally,
+the per-project split summing back to the top-level, and the unparseable-date
+and empty-history edges.
 """
 
 from __future__ import annotations
@@ -27,13 +31,14 @@ EXPECTED_ACTIVE_PCT = 67
 EXPECTED_SPAN_MONTHS = 1
 # Only the single parseable-date commit survives the skip test.
 EXPECTED_COMMITS_AFTER_DATE_SKIP = 1
+# Ann authors two of the three sample commits, Bob the third.
+EXPECTED_AUTHOR_COUNTS = {"Ann Dev": 2, "Bob Dev": 1}
 
-# Synthetic commit history, newest first, exactly as ``git log --date-order``
-# would emit it: two commits on 2026-05-22 and one on 2026-05-20.
-SAMPLE_COMMITS: list[tuple[str, str, str, str]] = [
-    ("b2b2b2b", "2026-05-22 18:30:00 +0000", "Bob Dev", "fix(writer): patch the parser"),
-    ("a1a1a1a", "2026-05-22 09:15:00 +0000", "Ann Dev", "feat(cli): add a flag"),
-    ("c3c3c3c", "2026-05-20 11:00:00 +0000", "Ann Dev", "docs: update the readme"),
+# Synthetic commit history, newest first, all tagged with one project.
+SAMPLE_COMMITS: list[aggregate.Commit] = [
+    aggregate.Commit("b2b2b2b", "2026-05-22 18:30:00 +0000", "Bob Dev", "fix(writer): patch the parser", "demo"),
+    aggregate.Commit("a1a1a1a", "2026-05-22 09:15:00 +0000", "Ann Dev", "feat(cli): add a flag", "demo"),
+    aggregate.Commit("c3c3c3c", "2026-05-20 11:00:00 +0000", "Ann Dev", "docs: update the readme", "demo"),
 ]
 
 
@@ -80,13 +85,46 @@ class TestAggregation:
         data = aggregate.aggregate(SAMPLE_COMMITS)
 
         assert data["by_scope"]["writer"] == EXPECTED_TYPE_OCCURRENCES
-        assert data["recent"][0]["sha"] == SAMPLE_COMMITS[0][0][:7]
+        assert data["recent"][0]["sha"] == SAMPLE_COMMITS[0].sha[:7]
+        assert data["recent"][0]["project"] == "demo"
+
+    def test_aggregate_tags_projects_and_authors(self) -> None:
+        """A single-project run lists one project and tallies authors."""
+        data = aggregate.aggregate(SAMPLE_COMMITS)
+
+        assert data["projects"] == ["demo"]
+        assert data["by_author"] == EXPECTED_AUTHOR_COUNTS
+        assert data["by_project"]["demo"]["totals"] == data["totals"]
+        assert data["by_project"]["demo"]["by_author"] == EXPECTED_AUTHOR_COUNTS
+
+    def test_aggregate_splits_series_by_project(self) -> None:
+        """Per-project series sum back to the top-level over the shared span."""
+        commits = [
+            aggregate.Commit("aaa", "2026-05-22 10:00:00 +0000", "Ann", "feat: a", "alpha"),
+            aggregate.Commit("bbb", "2026-05-22 11:00:00 +0000", "Bob", "fix: b", "beta"),
+            aggregate.Commit("ccc", "2026-05-20 09:00:00 +0000", "Ann", "docs: c", "alpha"),
+        ]
+
+        data = aggregate.aggregate(commits)
+
+        assert data["projects"] == ["alpha", "beta"]
+        summed = [
+            a + b
+            for a, b in zip(
+                data["by_project"]["alpha"]["totals"],
+                data["by_project"]["beta"]["totals"],
+                strict=True,
+            )
+        ]
+        assert summed == data["totals"]
+        assert data["by_project"]["alpha"]["by_type"]["feat"] == EXPECTED_TYPE_OCCURRENCES
+        assert data["by_project"]["beta"]["by_type"]["fix"] == EXPECTED_TYPE_OCCURRENCES
 
     def test_aggregate_skips_unparseable_dates(self) -> None:
         """A commit whose date will not parse is dropped, not fatal."""
-        commits: list[tuple[str, str, str, str]] = [
-            ("good123", "2026-05-20 11:00:00 +0000", "Dev", "feat: keep me"),
-            ("bad456", "not-a-date", "Dev", "fix: drop me"),
+        commits = [
+            aggregate.Commit("good123", "2026-05-20 11:00:00 +0000", "Dev", "feat: keep me", "demo"),
+            aggregate.Commit("bad456", "not-a-date", "Dev", "fix: drop me", "demo"),
         ]
 
         data = aggregate.aggregate(commits)
