@@ -6,7 +6,7 @@ authors = [
   { name = "VonC", email = "vonc@laposte.net" },
 ]
 requires-python = ">=3.13, <3.14"
-version = "0.7.0"
+version = "0.8.0"
 
 # Tooling-only repository: the helper scripts under tools/ are run in
 # place (see senv.bat), not installed. `package = false` makes

@@ -6,6 +6,97 @@ release. The groundhog test loop (ghog), the prompt-workflow cycle (pw),
 and the commit and changelog helpers are mutualized across sibling
 projects.
 
+## [v0.8.0-SNAPSHOT unreleased] One report, many repos - fb05b56b39becafdb83c99cdd88119a50f151328
+
+git-history-report builds one combined dashboard across several repos
+
+- Slice it without a server
+  -- project, type and date filters recompute every chart, plus a leaderboard
+- Notes that outlive the rebuild
+  -- a regenerated figures file beside a hand-kept notes file per project
+
+v0.8.0 turns the single-repo git_history_dashboard into a multi-project
+report. A new git-history-report skill resolves one or several repo targets,
+tags every commit with its project, and writes one combined dashboard.html
+plus data.json; several repos require `--out-dir`, and the page opens unless
+`--no-open`. The payload gains a project dimension and an author tally, so the
+by_project slices sum back to the top-level series and feed a top-10
+contributor leaderboard. In the browser, a single applyFilters recompute
+redraws every chart and metric card under a project filter, a commit-type
+filter, and a week-indexed date range, and a light/dark toggle remembers a
+manual choice through a data-theme override.
+
+The release also splits the hand-written analysis out of the template.
+analysis.py rewrites analysis.generated.md from the figures on every run and
+keeps one `analysis.notes.<project>.md` per project, created once and never
+overwritten, combined and converted to HTML through a uv markdown seam; the
+template is now project-neutral with `__TITLE__` and `__ANALYSIS__` slots and no
+my-project strings. Supporting workflow fixes land too: pw resolves dotted
+sub-step ids and folds hyphen and underscore slugs, the groundhog parser
+strips ANSI color so the counters fill under forced color, and a Codex agents
+plugin manifest carries valid SKILL.md YAML.
+
+### Key changes for v0.8.0 (v0.8.0)
+
+- **Multi-repo git-history-report skill**: one skill builds a combined commit
+  dashboard for one or several repos, writes data.json and a self-contained
+  dashboard.html to a chosen `--out-dir`, opens it unless `--no-open`, skips a
+  failing repo, and prints a run summary.
+
+- **In-page filters and a contributor leaderboard**: a single applyFilters
+  recompute sums the visible by_project slices and redraws every widget under
+  project, type and date filters, with a top-10 author leaderboard and a
+  remembered light/dark toggle.
+
+- **Split analysis files and a project-neutral template**: a regenerated
+  `analysis.generated.md` and a hand-kept `analysis.notes.<project>.md` per
+  project, combined through a uv markdown seam into the `__ANALYSIS__` slot,
+  with the my-project strings gone.
+
+### 🚀 Features (v0.8.0)
+
+- *(git-history-report)* Per-project breakdown
+- *(git-history-report)* Multi-repo CLI
+- *(git-history-report)* Analysis files and slots
+- *(git-history-report)* In-page filters and theme
+- *(git-history-report)* Skill, docs, and acceptance tests
+- *(git-history-report)* Multi-project commit dashboard
+
+### 🐛 Bug Fixes (v0.8.0)
+
+- *(pw)* Fold - and _ in doc slug matching
+- *(groundhog)* Strip ANSI escapes in the parser
+- *(pw)* Keep dotted sub-step ids like 1.1
+
+### 🚜 Refactor (v0.8.0)
+
+- *(git-history-report)* Split build.py
+
+### 📚 Documentation (v0.8.0)
+
+- *(groundhog)* No re-walk without a change
+- *(commit)* A.commit at root, group all staged
+- *(git-history-report)* V0.8.0 design and plans
+- *(dashboard)* Refresh my-project observations
+- *(workflow)* No mid-chain stop before commit
+- *(git-history-report)* Record step 1 check
+- *(git-history-report)* Record step 1.1 check
+- *(git-history-report)* Record step 2 check
+- *(git-history-report)* Record step 3 check
+- *(git-history-report)* Record step 4 check
+- *(git-history-report)* Record step 5 check
+
+### 🧪 Testing (v0.8.0)
+
+- *(git-history-report)* Step 0 scaffolding
+- *(git-history-report)* Trim the pbt example budget
+
+### ⚙️ Miscellaneous Tasks (v0.8.0)
+
+- *(vscode)* Add behaviours to the dictionary
+- *(vscode)* Add XPASS to the dictionary
+- *(agents)* Codex plugin manifest and YAML fix
+
 ## [v0.7.0] - 2026-06-22 - Branch to brel in one command
 
 prepare-release readies every artifact and stops at the tag
