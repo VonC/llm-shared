@@ -1,29 +1,25 @@
-"""Tests for the shared git-history dashboard builder tool.
+"""Tests for the shared git-history dashboard builder hub.
 
 Cover ``tools/git_history_dashboard/build.py``: the ``git log`` export
-into ``git_history.csv``, the pipe-separated CSV parser, the commit
-aggregation and rendering, and the ``main`` entry point in both its
-git-export and pre-exported-CSV modes. A ``runpy`` test exercises the
-``__main__`` script path end to end.
+into ``git_history.csv``, the pipe-separated CSV parser, the ``run_build``
+orchestration, and the ``main`` entry point in both its git-export and
+pre-exported-CSV modes. A ``runpy`` test exercises the ``__main__`` script path
+end to end.
 
 The tool resolves the calling project's root through the shared
 ``find_project_root`` helper; these tests pin that resolution with
-``monkeypatch`` (or ``PRJ_DIR``) so they never depend on the real
-checkout. The aggregation and rendering tests run on synthetic commit
-tuples; the export and git-mode tests build a throwaway repository under
-``tmp_path`` with real ``git`` commands.
-
-Fix: Supply the commit identity through the GIT_AUTHOR_*/GIT_COMMITTER_*
-env vars on every git call and drop the three ``git config`` subprocess
-calls from ``_make_git_repo``. Each git spawn costs a few hundred
-milliseconds on Windows, so removing the redundant config processes cuts
-the throwaway-repo setup wall time.
+``monkeypatch`` (or ``PRJ_DIR``) so they never depend on the real checkout. The
+export and git-mode tests build a throwaway repository under ``tmp_path`` with
+real ``git`` commands.
 
 Step 0 (v0.8.0): relocated verbatim from the flat
 ``tests/unit/tools/test_git_history_dashboard_build.py`` into the nested
-``git_history_dashboard/test_build/`` subpackage, adopting the
-per-test-folder convention (plan Q01). The assertions are unchanged; only
-the path moved.
+``git_history_dashboard/test_build/`` subpackage (plan Q01).
+
+Step 1 (v0.8.0): the classifier, aggregation and render assertions moved to
+``test_aggregate`` and ``test_render`` when those functions were extracted from
+``build.py``; this file keeps the export, the CSV parse, ``run_build`` and the
+``main`` / ``__main__`` coverage that stay in the hub.
 """
 
 from __future__ import annotations
@@ -52,22 +48,8 @@ _GIT_ENV = {
 
 # --- Expectations for the synthetic SAMPLE_COMMITS fixture ------------------
 
-# Each conventional type (feat / fix / docs) appears exactly once.
-EXPECTED_TYPE_OCCURRENCES = 1
-# Two of the three calendar days in the span carry commits.
-EXPECTED_ACTIVE_DAYS = 2
-# The busiest single day holds two commits.
-EXPECTED_PEAK_DAY_COMMITS = 2
-# All three commits fall in the same Monday-anchored week.
-EXPECTED_PEAK_WEEK_COMMITS = 3
-# round(100 * 2 active days / 3 total days).
-EXPECTED_ACTIVE_PCT = 67
-# A three-day span rounds up to a single month subtitle.
-EXPECTED_SPAN_MONTHS = 1
 # The messy-CSV fixture yields two well-formed records.
 EXPECTED_PARSED_FROM_MESSY_CSV = 2
-# Only the single parseable-date commit survives the skip test.
-EXPECTED_COMMITS_AFTER_DATE_SKIP = 1
 # A full git object name is 40 hexadecimal characters.
 GIT_SHA_LENGTH = 40
 
@@ -202,7 +184,7 @@ class TestGitHistoryExport:
 
 
 class TestCsvParsing:
-    """Cover the pipe-separated CSV reader and the commit classifier."""
+    """Cover the pipe-separated CSV reader."""
 
     def test_keeps_pipes_in_subject_and_skips_bad_lines(
         self,
@@ -228,96 +210,6 @@ class TestCsvParsing:
             "feat: handle a | b | c",
         )
         assert parsed[1][3] == "docs: tidy up"
-
-    def test_classify_extracts_conventional_type_and_scope(self) -> None:
-        """Conventional subjects yield their type and scope; others collapse."""
-        assert build.classify("feat(cli): add flag") == ("feat", "cli")
-        assert build.classify("fix: quick patch") == ("fix", "")
-        assert build.classify("chore(ci)!: breaking change") == ("chore", "ci")
-        assert build.classify("random subject line") == ("other", "")
-        assert build.classify("wibble(scope): unknown type") == ("other", "scope")
-
-
-class TestAggregation:
-    """Cover the daily/weekly aggregation and the headline numbers."""
-
-    def test_aggregate_reports_total_commits_and_date_span(self) -> None:
-        """Aggregation echoes the input count and the inclusive date span."""
-        data = build.aggregate(SAMPLE_COMMITS)
-
-        assert data["total_commits"] == len(SAMPLE_COMMITS)
-        assert data["start"] == "2026-05-20"
-        assert data["end"] == "2026-05-22"
-
-    def test_aggregate_builds_a_contiguous_daily_series(self) -> None:
-        """The daily series zero-fills the gap between the first and last days."""
-        data = build.aggregate(SAMPLE_COMMITS)
-
-        assert data["dates"] == ["2026-05-20", "2026-05-21", "2026-05-22"]
-        assert data["totals"] == [1, 0, 2]
-
-    def test_aggregate_tallies_each_conventional_type_once(self) -> None:
-        """``by_type`` counts feat, fix, and docs once each for the fixture."""
-        data = build.aggregate(SAMPLE_COMMITS)
-
-        assert data["by_type"]["feat"] == EXPECTED_TYPE_OCCURRENCES
-        assert data["by_type"]["fix"] == EXPECTED_TYPE_OCCURRENCES
-        assert data["by_type"]["docs"] == EXPECTED_TYPE_OCCURRENCES
-
-    def test_aggregate_tallies_scope_and_keeps_recent_head(self) -> None:
-        """``by_scope`` counts the writer scope; ``recent`` head is newest first."""
-        data = build.aggregate(SAMPLE_COMMITS)
-
-        assert data["by_scope"]["writer"] == EXPECTED_TYPE_OCCURRENCES
-        assert data["recent"][0]["sha"] == SAMPLE_COMMITS[0][0][:7]
-
-    def test_aggregate_skips_unparseable_dates(self) -> None:
-        """A commit whose date will not parse is dropped, not fatal."""
-        commits: list[tuple[str, str, str, str]] = [
-            ("good123", "2026-05-20 11:00:00 +0000", "Dev", "feat: keep me"),
-            ("bad456", "not-a-date", "Dev", "fix: drop me"),
-        ]
-
-        data = build.aggregate(commits)
-
-        assert data["total_commits"] == EXPECTED_COMMITS_AFTER_DATE_SKIP
-
-    def test_aggregate_raises_system_exit_when_history_is_empty(self) -> None:
-        """An empty history is a hard stop rather than an empty dashboard."""
-        with pytest.raises(SystemExit, match="No commits found"):
-            build.aggregate([])
-
-    def test_compute_highlights_reports_span_and_peaks(self) -> None:
-        """Highlights expose the active-day ratio plus the peak day and week."""
-        data = build.aggregate(SAMPLE_COMMITS)
-
-        highlights = build.compute_highlights(data)
-
-        assert highlights["total_commits"] == len(SAMPLE_COMMITS)
-        assert highlights["total_days"] == len(data["dates"])
-        assert highlights["active_days"] == EXPECTED_ACTIVE_DAYS
-        assert highlights["peak_day_count"] == EXPECTED_PEAK_DAY_COMMITS
-        assert highlights["peak_week_count"] == EXPECTED_PEAK_WEEK_COMMITS
-        assert highlights["active_pct"] == EXPECTED_ACTIVE_PCT
-        assert highlights["months"] == EXPECTED_SPAN_MONTHS
-        assert "2026" in highlights["peak_day_date_fmt"]
-
-
-class TestRendering:
-    """Cover HTML template substitution."""
-
-    def test_render_substitutes_every_placeholder(self, tmp_path: Path) -> None:
-        """No ``__PLACEHOLDER__`` token survives a render of real data."""
-        template = tmp_path / "template.html"
-        _write_minimal_template(template)
-        data = build.aggregate(SAMPLE_COMMITS)
-
-        html = build.render(data, template)
-
-        for placeholder in TEMPLATE_PLACEHOLDERS:
-            assert placeholder not in html
-        assert '"total_commits":' in html
-        assert f"commits={len(SAMPLE_COMMITS)}" in html
 
 
 class TestEndToEnd:
