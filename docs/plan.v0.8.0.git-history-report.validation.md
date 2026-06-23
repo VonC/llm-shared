@@ -433,7 +433,9 @@ No existing feature or reporting capability is impaired.
 
 ### Analysis of Step 5 implementation state
 
-Not started. Step 5 is not implemented because there is no user-facing skill, the README still describes the single-repo tool, and nothing validates the whole flow end to end.
+Yes. Step 5 has been fully implemented.
+
+A user-facing `git-history-report` skill and its `instructions/git-history-report.md` describe the resolve-targets, build, and keep-the-notes workflow; the README documents the multi-repo run, the `--out-dir` rule, the analysis files, and the in-page filters; and a `test_report_acceptance` package builds a real two-repo report from throwaway git repos and asserts the combined payload, the filled slots with no pdfsplitter string, the notes-preserving rebuild, and the `--no-open` suppress flag. One `ghog day` walk reports the objective at 100 percent coverage.
 
 ### Goal for Step 5
 
@@ -447,24 +449,44 @@ Add `.claude/skills/git-history-report/SKILL.md` and `instructions/git-history-r
 
 ### What was implemented for Step 5
 
-_(empty — no check has taken place yet.)_.
+- **`.claude/skills/git-history-report/SKILL.md` (new)**: the user-facing skill with the description, the argument hint, and the link to the instruction.
+- **`instructions/git-history-report.md` (new)**: the workflow -- resolve zero, one, or several repo targets, run `build.py` with the right flags, and the keep-the-notes analysis routine (generated rewritten, per-project notes kept).
+- **`tools/git_history_dashboard/README.md` (updated)**: the module map, the multi-repo run and the `--out-dir` rule, the analysis files, the in-page filters and the leaderboard, and the `uv` build-time dependency.
+- **`test_report_acceptance` (new)**: a two-repo run asserts `projects`, `by_project` summing to the top-level series, and `by_author`; the rendered page fills the slots, drops the pdfsplitter string, and opens no browser under `--no-open`; a rebuild keeps the hand-written notes while the generated file refreshes. The `uv` seam is stubbed by the package `conftest`.
+- **Validation evidence**: `ghog day` reports the objective, `fail=0 xfail=0 cov=100 outliers=0 exit=0`.
 
 ### New types or classes introduced for Step 5
 
-_(empty — no check has taken place yet.)_.
+No new Python type or class. Step 5 is the skill, the instruction, the README, and the acceptance tests; no production module changed.
 
 ### Architecture check for Step 5
 
-_(empty — no check has taken place yet.)_.
+- **Docs and tests only**: the skill and instruction are the user-facing entry, the README is the tool reference, and the acceptance package is the end-to-end check; no production behavior was added or moved.
+- **The acceptance test drives the public entry**: it calls `cli.main` with the same flags a user passes, so it exercises the real resolve-targets, export, aggregate, analysis-files and render chain.
+- **The throwaway-repo helper is local**: the acceptance package builds its own real git repos, mirroring the `test_build` pattern, so it depends on no shared fixture beyond the `uv`-seam stub.
+
+No, there is nothing that needs to be addressed.
 
 ### Performance check for Step 5
 
-_(empty — no check has taken place yet.)_.
+- **No perf gate affected**: Step 5 adds docs and tests; the Step 0 gate stays green from Step 1, and no production path changed.
+- **The acceptance tests are real-git end-to-end and accepted as slow**: they build throwaway repos with real `git`, so the duration baselines accept them; the tool ratchets those baselines down on an idle run.
+- **The `uv` seam is stubbed in the test**: the acceptance run does not pay the markdown subprocess cost; the real seam is timed and covered in `test_analysis`.
+
+No, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 5
 
-_(empty — no check has taken place yet.)_.
+- **No production code changed**: Step 5 adds the skill, the instruction, the README, and the acceptance package, so no module's coverage moved; `ghog day` measured `cov=100`.
+- **The acceptance package** drives `cli.main`, `build.write_dashboard`, the `aggregate` slices, `analysis` (with the seam stubbed) and `render` end to end, reinforcing the existing unit coverage on real data.
+- **The markdown seam stays covered** by the `subprocess`-mocked test in `test_analysis`; the acceptance test stubs it to stay fast.
+
+No, there is no unit-tested class below 100% that needs completing for Step 5.
 
 ### Feature integrity for Step 5
 
-_(empty — no check has taken place yet.)_.
+- **Existing feature behavior**: nothing in the tool changed; the skill and the acceptance test exercise the same `build.py` entry the earlier steps built.
+- **Reporting or diagnostics**: the README and the instruction now document the multi-repo run, the analysis files, and the in-page filters, so the user-facing description matches the tool.
+- **Compatibility or rollout note**: the new skill is discoverable as `git-history-report`; the acceptance run needs real `git` (already required) and stubs `uv`, so it adds no new test-time dependency.
+
+No existing feature or reporting capability is impaired.
