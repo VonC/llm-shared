@@ -237,7 +237,9 @@ No existing feature or reporting capability is impaired.
 
 ### Analysis of Step 2 implementation state
 
-Not started. Step 2 is not implemented because `build.py` still targets one repo, never opens the page, and has no run summary or per-repo error handling.
+Yes. Step 2 has been fully implemented.
+
+A new `cli.py` resolves zero, one, or several repo targets, requires `--out-dir` for a multi-repo run, keeps the single-repo default folder, exports and tags each repo, builds one combined dashboard, opens it unless `--no-open`, skips and logs a failing repo, and returns a run summary. `build.py` is now the thin hub: it keeps the export, parse and `write_dashboard`, and `main` delegates to `cli.main`. One `ghog day` walk on an idle machine reports the objective at 100 percent coverage with no outliers.
 
 ### Goal for Step 2
 
@@ -251,27 +253,49 @@ Add a `cli.py` orchestration module: resolve zero, one, or several repo targets;
 
 ### What was implemented for Step 2
 
-_(empty — no check has taken place yet.)_.
+- **`cli.py` (new)**: `resolve_targets` (none means the current project, one keeps that repo's default folder, several require `--out-dir`), `run` (export and tag each repo into project-tagged `Commit`s, combine, write one dashboard, open unless suppressed, skip a failing repo, return a `RunSummary`), `open_in_browser` (the suppress seam), `_log_summary`, and `main`.
+- **`build.py` (hub)**: gained `write_dashboard` (aggregate the tagged commits and write both files), reused by `run_build` and `cli.run`; `main` now delegates to `cli.main` through a local import so the module graph stays one-way; the old `_parse_args` and the single-repo `main` body are gone.
+- **Browser seam**: `open_in_browser` calls `webbrowser.open` for the report and only logs the path under `--no-open`, the v0.7.0 lesson that a script or CI run must not block on a browser.
+- **Tests**: a new `test_cli` package covers target resolution (none, one, several, the out-dir rule), the combined two-project run, `--no-open`, the per-repo skip, the csv path, and `main`; the export is faked so the run tests need no real `git`. The `test_build` `__main__` test now passes `--no-open` and points at the delegated flow.
+- **Validation evidence**: `ghog day` reports the objective, `fail=0 xfail=0 cov=100 outliers=0 exit=0`.
 
 ### New types or classes introduced for Step 2
 
-_(empty — no check has taken place yet.)_.
+- **`Targets`** (frozen dataclass): one run's resolved repos, output folder, optional CSV, and the CSV-path project label.
+- **`RunSummary`** (frozen dataclass): the projects aggregated, the skipped projects, the output folder, and the commit count, returned by `run` and logged.
+
+No other new production type; the rest is functions.
 
 ### Architecture check for Step 2
 
-_(empty — no check has taken place yet.)_.
+- **One-way module graph**: `cli` imports `build` for the export and write blocks; `build.main` imports `cli` only inside the function body, so the package never has a `build` <-> `cli` import cycle.
+- **Hub boundary holds**: the project dimension stays in `aggregate`, the export and write stay in `build`, the orchestration is in `cli`, and `render` is untouched.
+- **The browser is a single seam**: every open goes through `open_in_browser`, which the tests monkeypatch, so no run path launches a real browser under test.
+
+No, there is nothing that needs to be addressed.
 
 ### Performance check for Step 2
 
-_(empty — no check has taken place yet.)_.
+- **No new heavy path**: `run` is one pass over the targets; each repo is exported once and parsed once, then all commits aggregate in the existing single O(n) pass.
+- **The scratch CSV is reused**: each repo overwrites `out_dir/git_history.csv` and is parsed before the next export, so the run holds one commit list, not one file per repo.
+- **Tests stay fast**: the run tests fake the export, so they add no real `git` cost; the one real-git `__main__` test is already accepted in the duration baselines.
+
+No, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 2
 
-_(empty — no check has taken place yet.)_.
+- **`cli.py`**: covered at 100% by `test_cli_tdd.py` (resolve-targets edges, the combined run, `--no-open`, the skip, the csv path, `main`) plus the `__main__` test that drives the delegated flow; `ghog day` measured `cov=100`.
+- **`build.py`**: `write_dashboard` and `run_build` are covered by `test_run_build` and every `cli.run` test; `main`'s delegation is covered by the `__main__` runpy test.
+
+No, there is no unit-tested class below 100% that needs completing for Step 2.
 
 ### Feature integrity for Step 2
 
-_(empty — no check has taken place yet.)_.
+- **Existing feature behavior**: a no-argument run still exports the calling project and writes to `<project>/docs/git_history_dashboard/`, the unchanged single-repo default; the `data.json` and `dashboard.html` outputs are the same.
+- **Reporting or diagnostics**: the run now prints a summary (projects, skips, output, count) and, by default, opens the report; `--no-open` restores the silent, non-blocking behavior for scripts.
+- **Compatibility or rollout note**: the source flags changed -- the old `--git-dir` is replaced by positional repo paths, and a multi-repo run must name `--out-dir`; `--csv`, `--out-dir` and `--template` are unchanged. The browser now opens by default, which `--no-open` suppresses.
+
+No existing feature or reporting capability is impaired.
 
 ---
 
