@@ -113,4 +113,44 @@ class TestRendering:
         assert _ANALYSIS_HTML in html
 
 
+class TestFrontEndControls:
+    """Cover the Step 4 front-end controls and recompute wiring.
+
+    The recompute itself is client-side JavaScript with no Python harness in this
+    repo, so these checks assert the controls and the payload-key wiring are
+    present; the behavior is exercised by the Step 5 acceptance render.
+    """
+
+    def test_rendered_page_has_the_four_controls(self) -> None:
+        """The project filter, contributor list, date range, and theme toggle render."""
+        data = aggregate.aggregate(SAMPLE_COMMITS)
+
+        html = render(data, _REAL_TEMPLATE, _ANALYSIS_HTML)
+
+        assert 'id="project-filter"' in html
+        assert 'id="contributors"' in html
+        assert 'id="date-range"' in html
+        assert 'id="theme-toggle"' in html
+
+    def test_inline_script_wires_the_payload_keys(self) -> None:
+        """The recompute references by_project, by_author, applyFilters and data-theme."""
+        data = aggregate.aggregate(SAMPLE_COMMITS)
+
+        html = render(data, _REAL_TEMPLATE, _ANALYSIS_HTML)
+
+        assert "applyFilters" in html
+        assert "D.by_project" in html
+        assert "by_author" in html
+        assert "data-theme" in html
+
+    def test_single_project_payload_lists_one_project(self) -> None:
+        """A single-project run carries one project for the filter to render."""
+        data = aggregate.aggregate(SAMPLE_COMMITS)
+
+        html = render(data, _REAL_TEMPLATE, _ANALYSIS_HTML)
+
+        assert '"projects":["demo"]' in html
+        assert 'id="project-filter"' in html
+
+
 # eof
