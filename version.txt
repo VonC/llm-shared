@@ -1,4 +1,4 @@
-0.8.0-SNAPSHOT -- One report, many repos
+0.8.0 -- One report, many repos
 
 git-history-report builds one combined dashboard across several repos
 

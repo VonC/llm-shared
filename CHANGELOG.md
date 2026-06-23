@@ -6,7 +6,7 @@ release. The groundhog test loop (ghog), the prompt-workflow cycle (pw),
 and the commit and changelog helpers are mutualized across sibling
 projects.
 
-## [v0.8.0-SNAPSHOT unreleased] One report, many repos - fb05b56b39becafdb83c99cdd88119a50f151328
+## [v0.8.0] - 2026-06-23 - One report, many repos
 
 git-history-report builds one combined dashboard across several repos
 
