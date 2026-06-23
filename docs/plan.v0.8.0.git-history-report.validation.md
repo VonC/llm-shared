@@ -170,7 +170,9 @@ No existing feature or reporting capability is impaired.
 
 ### Analysis of Step 1.1 implementation state
 
-Not started. Step 1.1 is not implemented because `aggregate.py` does not exist yet and still has no project dimension or author tally.
+Yes. Step 1.1 has been fully implemented.
+
+`Commit` is now a `NamedTuple` with a `project` field, `aggregate` builds the `projects` list, the `by_project` per-project sub-aggregates (which sum back to the top-level series), and the `by_author` tally, and the perf gate is retargeted at the project-tagged path with its `xfail` removed. One `ghog day` walk reports the objective at 100 percent coverage, and a hypothesis property test checks the per-project sum invariant.
 
 ### Goal for Step 1.1
 
@@ -184,27 +186,50 @@ Introduce a `Commit` NamedTuple with a `project` field (Q02), add a `by_author` 
 
 ### What was implemented for Step 1.1
 
-_(empty — no check has taken place yet.)_.
+- **`Commit` NamedTuple**: `aggregate.py` defines `Commit(sha, iso_date, author, subject, project)`; `_record_commit` reads it by attribute and tags each `recent` row with the project.
+- **Per-project and author aggregation**: `aggregate` makes one O(n) pass into a global tally and a per-project tally; `_build_combined_payload` assembles `projects`, `by_project` (per-project slices aligned to the global span so they sum to the top-level), and `by_author`, with `_project_data` building each slice.
+- **Project tagging in the hub**: `iter_commits_from_csv` still yields raw rows (the CSV-parse tests are untouched); `run_build` gains a `project` argument and tags each row into a `Commit`; `main` derives the project name from the source repo (or the project root for `--csv`).
+- **Perf gate**: `test_aggregate_perf_tdd.py` drops the `xfail` and the `importlib` guard, builds `Commit` records across five projects, and bounds the run at 8 seconds.
+- **Property test**: `test_aggregate_pbt.py` (hypothesis) asserts the per-project list and mapping series sum back to the top-level.
+- **Validation evidence**: `ghog day` reports the objective, `fail=0 xfail=0 cov=100 outliers=0 exit=0`.
 
 ### New types or classes introduced for Step 1.1
 
-_(empty — no check has taken place yet.)_.
+- **`Commit`** (`NamedTuple`): the parsed commit tagged with its project, replacing the former 4-tuple alias.
+- **`ProjectData`** (`TypedDict`): one project's slice of the series, aligned to the global span and listed in `aggregate.__all__`.
+
+No other new production type; the rest is functions and the extended `DashboardData` keys.
 
 ### Architecture check for Step 1.1
 
-_(empty — no check has taken place yet.)_.
+- **Single-pass aggregation**: `aggregate` fills the global and per-project tallies in one O(n) loop; the per-project slices reuse `_build_daily_series` and `_aggregate_weeks` over the global span, so there is no second scan of the commits.
+- **Boundary direction**: the project dimension lives in `aggregate.py`; `build.py` only tags rows into `Commit` records at `run_build` and derives the project name in `main`; `render` is untouched, and there is no import cycle.
+- **Re-export surface**: `aggregate.__all__` adds `ProjectData`; `build.py` re-exports the data model unchanged.
+
+No, there is nothing that needs to be addressed.
 
 ### Performance check for Step 1.1
 
-_(empty — no check has taken place yet.)_.
+- **No new `O(n^2)` or `O(n log n)` path**: one O(n) pass tags every commit into two tallies; assembling the per-project payload is O(projects x buckets), and the day and week sort is the one unavoidable sort, as before.
+- **The perf gate proves it**: 6000 commits across five projects aggregate within the 8-second bound.
+- **Page recompute stays cheap**: the per-project slices align to the global span, so summing them is O(projects x buckets), not O(commits).
+
+No, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 1.1
 
-_(empty — no check has taken place yet.)_.
+- **`aggregate.py`**: covered at 100% by `test_aggregate_tdd.py` (the project tag, the author tally, the single- and multi-project split, the skip and empty edges) and `test_aggregate_pbt.py` (the sum invariant), plus the `run_build` / `main` / `__main__` tests that drive it; `ghog day` measured `cov=100`.
+- **`build.py`**: covered at 100% by the export, the parse, `run_build` (now with a project) and the `main` / `__main__` tests.
+
+No, there is no unit-tested class below 100% that needs completing for Step 1.1.
 
 ### Feature integrity for Step 1.1
 
-_(empty — no check has taken place yet.)_.
+- **Existing feature behavior**: a single-repo run keeps the prior `data.json` series and adds the new `projects`, `by_project` and `by_author` keys; the rendered `dashboard.html` is unchanged because `render` ignores the new keys and the template reads the same tokens.
+- **Reporting or diagnostics**: the `LOGGER` messages are unchanged; `recent` rows gain a `project` field the page can later filter on, which the current template ignores.
+- **Compatibility or rollout note**: `iter_commits_from_csv` still yields raw rows, so its parsing tests and any external caller are unaffected; `run_build` gains a required `project` argument, the one signature change, consumed only inside the tool.
+
+No existing feature or reporting capability is impaired.
 
 ---
 
