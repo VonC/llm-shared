@@ -16,6 +16,9 @@ room to grow for the multi-project work:
 - ``cli.py`` (Step 2): the multi-repo orchestration -- target resolution, the
   per-repo export loop, the browser open, and the run summary; ``build.main``
   delegates to it.
+- ``analysis.py`` (Step 3): the regenerated ``analysis.generated.md``, the
+  kept-once per-project notes, and the ``uv``-backed markdown-to-HTML seam that
+  fills the template's ``__ANALYSIS__`` slot.
 
 The ``__init__`` makes the directory an importable package so the helpers can be
 exercised from the test suite.

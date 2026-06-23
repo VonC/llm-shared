@@ -26,6 +26,10 @@ Step 2 (v0.8.0): the command line and the run loop moved to ``cli.py``, which
 resolves one or several repo targets and builds one combined dashboard; ``main``
 here delegates to it.
 
+Step 3 (v0.8.0): ``write_dashboard`` also writes the analysis files through
+``analysis.py`` and passes the analysis HTML to ``render``; the template is now
+project-neutral, with ``__TITLE__`` and ``__ANALYSIS__`` slots.
+
 Usage
 -----
 From anywhere inside a project (or, more simply, via the ``ghd`` alias)::
@@ -63,6 +67,7 @@ if __name__ == "__main__":
         _llm_shared_root = Path(__file__).resolve().parents[2]
         sys.path.insert(0, str(_llm_shared_root))
 
+from tools.git_history_dashboard import analysis
 from tools.git_history_dashboard.aggregate import (
     Commit,
     DashboardData,
@@ -154,20 +159,25 @@ def iter_commits_from_csv(path: str | Path) -> Iterator[tuple[str, str, str, str
 
 
 def write_dashboard(commits: list[Commit], out_dir: Path, template: Path) -> None:
-    """Aggregate already-tagged commits and write ``data.json`` + ``dashboard.html``.
+    """Aggregate commits, write the analysis files, then ``data.json`` + ``dashboard.html``.
 
     Shared by the single-CSV ``run_build`` and the multi-repo ``cli.run``: it
-    aggregates the tagged ``commits`` and writes both files into ``out_dir``.
+    aggregates the tagged ``commits``, regenerates ``analysis.generated.md``,
+    keeps each per-project notes file, converts the combined analysis to HTML,
+    and writes both output files into ``out_dir``.
     """
     LOGGER.info("loaded %d commits", len(commits))
     data = aggregate(commits)
-
     out_dir.mkdir(parents=True, exist_ok=True)
+
+    generated = analysis.write_generated_analysis(data, out_dir / "analysis.generated.md")
+    notes_paths = [analysis.ensure_notes(project, out_dir) for project in data["projects"]]
+    analysis_markup = analysis.analysis_html(generated, notes_paths)
+
     data_path = out_dir / "data.json"
     html_path = out_dir / "dashboard.html"
-
     data_path.write_text(json.dumps(data, separators=(",", ":")), encoding="utf-8")
-    html_path.write_text(render(data, template), encoding="utf-8")
+    html_path.write_text(render(data, template, analysis_markup), encoding="utf-8")
 
     LOGGER.info("wrote %s", data_path)
     LOGGER.info("wrote %s", html_path)
