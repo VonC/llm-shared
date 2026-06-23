@@ -16,12 +16,11 @@ from tools.git_history_dashboard.render import render
 if TYPE_CHECKING:
     from pathlib import Path
 
-# Synthetic commit history, newest first, exactly as ``git log --date-order``
-# would emit it: two commits on 2026-05-22 and one on 2026-05-20.
-SAMPLE_COMMITS: list[tuple[str, str, str, str]] = [
-    ("b2b2b2b", "2026-05-22 18:30:00 +0000", "Bob Dev", "fix(writer): patch the parser"),
-    ("a1a1a1a", "2026-05-22 09:15:00 +0000", "Ann Dev", "feat(cli): add a flag"),
-    ("c3c3c3c", "2026-05-20 11:00:00 +0000", "Ann Dev", "docs: update the readme"),
+# Synthetic commit history, newest first, all tagged with one project.
+SAMPLE_COMMITS: list[aggregate.Commit] = [
+    aggregate.Commit("b2b2b2b", "2026-05-22 18:30:00 +0000", "Bob Dev", "fix(writer): patch the parser", "demo"),
+    aggregate.Commit("a1a1a1a", "2026-05-22 09:15:00 +0000", "Ann Dev", "feat(cli): add a flag", "demo"),
+    aggregate.Commit("c3c3c3c", "2026-05-20 11:00:00 +0000", "Ann Dev", "docs: update the readme", "demo"),
 ]
 
 # Every placeholder the HTML template carries for ``render`` to substitute.

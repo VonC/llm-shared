@@ -20,6 +20,11 @@ Step 1 (v0.8.0): the classifier, aggregation and render assertions moved to
 ``test_aggregate`` and ``test_render`` when those functions were extracted from
 ``build.py``; this file keeps the export, the CSV parse, ``run_build`` and the
 ``main`` / ``__main__`` coverage that stay in the hub.
+
+Step 1.1 (v0.8.0): ``run_build`` gains a ``project`` argument and tags the parsed
+rows into ``Commit`` records, so the ``run_build`` test passes one and checks the
+single project lands in the payload; the CSV-parse tests are unchanged because
+``iter_commits_from_csv`` still yields raw rows.
 """
 
 from __future__ import annotations
@@ -226,10 +231,11 @@ class TestEndToEnd:
         _write_minimal_template(template)
         out_dir = tmp_path / "out"
 
-        build.run_build(csv_path, out_dir, template)
+        build.run_build(csv_path, out_dir, template, "sample")
 
         data = json.loads((out_dir / "data.json").read_text(encoding="utf-8"))
         assert data["total_commits"] == len(SAMPLE_COMMITS)
+        assert data["projects"] == ["sample"]
         assert (out_dir / "dashboard.html").is_file()
 
     def test_main_csv_mode_builds_dashboard_without_git(

@@ -136,8 +136,12 @@ def export_git_history_csv(repo_dir: Path, csv_path: Path) -> Path:
     return csv_path
 
 
-def iter_commits_from_csv(path: str | Path) -> Iterator[Commit]:
-    """Yield commit tuples from a pipe-separated CSV export."""
+def iter_commits_from_csv(path: str | Path) -> Iterator[tuple[str, str, str, str]]:
+    """Yield raw ``(sha, iso_date, author, subject)`` rows from a CSV export.
+
+    The rows carry no project; ``run_build`` tags each one with the run's
+    project as it builds the ``Commit`` records (Step 1.1).
+    """
     with Path(path).open(encoding="utf-8") as fh:
         for raw_line in fh:
             line = raw_line.rstrip("\n")
@@ -148,13 +152,17 @@ def iter_commits_from_csv(path: str | Path) -> Iterator[Commit]:
                 yield parts[0], parts[1], parts[2], parts[3]
 
 
-def run_build(commits_csv: Path, out_dir: Path, template: Path) -> None:
-    """Parse the history CSV, aggregate it, and write the dashboard files.
+def run_build(commits_csv: Path, out_dir: Path, template: Path, project: str) -> None:
+    """Parse the history CSV, tag each commit with ``project``, write the files.
 
-    Reads ``commits_csv``, aggregates the commits, and writes
-    ``data.json`` and ``dashboard.html`` into ``out_dir``.
+    Reads ``commits_csv``, tags every parsed row with ``project`` as a
+    ``Commit``, aggregates them, and writes ``data.json`` and ``dashboard.html``
+    into ``out_dir``.
     """
-    commits = list(iter_commits_from_csv(commits_csv))
+    commits = [
+        Commit(sha, iso_date, author, subject, project)
+        for sha, iso_date, author, subject in iter_commits_from_csv(commits_csv)
+    ]
     LOGGER.info("loaded %d commits", len(commits))
     data = aggregate(commits)
 
@@ -211,14 +219,16 @@ def main() -> None:
 
     if args.csv:
         commits_csv = Path(args.csv).expanduser().resolve()
+        project = project_root.name
     else:
         repo_dir = Path(args.git_dir).expanduser().resolve() if args.git_dir else project_root
         commits_csv = dashboard_dir / GIT_HISTORY_CSV_NAME
         LOGGER.info("exporting git history from %s", repo_dir)
         export_git_history_csv(repo_dir, commits_csv)
         LOGGER.info("wrote %s", commits_csv)
+        project = repo_dir.name
 
-    run_build(commits_csv, out_dir, Path(args.template))
+    run_build(commits_csv, out_dir, Path(args.template), project)
 
 
 # Re-export the names moved to `aggregate` and `render` in Step 1 so existing
