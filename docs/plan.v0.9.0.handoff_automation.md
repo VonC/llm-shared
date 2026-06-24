@@ -226,7 +226,7 @@ Issues to address:
 Fix intent:
 
 - Add `has_decisions_table` to `tools/prompt_workflow_docs.py`, detecting the consolidated section (`## Requirement clarifications`, `## Design decisions`, or `## Implementation decisions`), beside `has_open_questions`.
-- In the skill module, derive the next step with `compute_state` and `next_step_numbers` (passing no memory step), map the step to its instruction through `load_steps`, and resolve the target document through `select_document`. A new draft alone routes to `process-draft`; an open-questions document routes to `review-ask-questions`; a document with a decisions table advances to the next phase.
+- In the skill module, derive the next step with `compute_state` and `next_step_numbers` (passing no memory step), and map the resolved step to an instruction and a target document with a small static map in the skill module (process-draft is not a config step and step 1's config is ambiguous, so the static map is clearer than `load_steps` here). A new draft alone routes to `process-draft`; a document carrying a `## Open questions` section routes to `consolidate-then-review-ask-questions`; a fresh document routes to `review-ask-questions`; a document with a decisions table advances to the next phase.
 - Reuse `next_step_numbers` as the base, then post-process its answer: when the current document carries a decisions table, override its review-or-consolidate result to the advance step. Do not change `next_step_numbers` itself, so the interactive flow stays untouched (Q02).
 
 Expected outcome:
@@ -251,7 +251,7 @@ Step framing:
 **Tests first**:
 
 - `has_decisions_table`: present for each of the three section titles; absent otherwise.
-- Routing: new draft alone gives the `process-draft` command; a requirement with `## Open questions` gives `review-ask-questions`; a requirement with a decisions table gives `write-design`; a design with a decisions table gives `write-plans`; with requirement, design, and plan present, the step after the plan is named.
+- Routing: new draft alone gives the `process-draft` command; a requirement with `## Open questions` gives `consolidate-then-review-ask-questions`; a fresh requirement gives `review-ask-questions`; a requirement with a decisions table gives `write-design`; a design with a decisions table gives `write-plans`; with requirement, design, and plan present, the step after the plan is named.
 
 **Classes and behavior**:
 
