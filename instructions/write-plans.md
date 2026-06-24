@@ -80,3 +80,13 @@ exact placeholder, `_(empty — no check has taken place yet.)_.`, and opens eac
 step's `Analysis of Step N implementation state` with the sentence "Not started.
 Step N is not implemented because ...". An implementation check later replaces the
 placeholders with real findings.
+
+## Handoff
+
+When the `plan.vX.Y.Z.<slug>.md` and its validation skeleton are written, hand the cycle on to the plan review, with no menu and no go-ahead. From the project root, in a PowerShell shell, run the `pw` launcher (`<llm-shared>\bin\prompt_workflow.bat`, the `pw` alias of the project environment) in skill mode:
+
+- `pw skill`
+
+`pw skill` prints one bare next-step command, derived from the documents on disk — here `/review-ask-questions on docs/plan.vX.Y.Z.<slug>.md` (a `/` prefix in a Claude session, a `$` prefix in a Codex session). The review runs on the plain plan only, never the validation plan. Read that line and run it straight away: a handoff is the go-ahead to perform the next step now, so do not stop to ask whether to proceed, and do not compose the next prompt yourself.
+
+To hold the chain here instead — to read the plan before the review runs — pass the literal phrase `stop here` in this skill's argument when you invoke it. With `stop here` in the argument, write the plans and skip this handoff.

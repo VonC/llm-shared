@@ -51,3 +51,13 @@ Run these steps, in order:
 5. `oqm <type>.vX.Y.Z.<topic>.md --append` to move the questions from `a.<base>.open.questions.md` into the document.
 
 If the `oqm` alias is not available in your shell, call the script directly with `python <LLM_SHARED_DIR>\tools\open_questions_md.py <type>.vX.Y.Z.<topic>.md <mode>`.
+
+## Handoff
+
+When the consolidation settles the document — every open question answered, no new one raised, the `## Open questions` section stripped (step 1 above) and the decisions table in place — hand the cycle on to the next phase, with no menu and no go-ahead. From the project root, in a PowerShell shell, run the `pw` launcher (`<llm-shared>\bin\prompt_workflow.bat`, the `pw` alias of the project environment) in skill mode:
+
+- `pw skill`
+
+`pw skill` reads the settled document on disk and prints the next-step command: `/write-design` from a feature-request or issue, `/write-plans` from a design, or `/implement-step` from a plan (host-prefixed with `/` for Claude or `$` for Codex). Read that line and run it straight away: the handoff is the go-ahead to perform the next step now, so do not stop to ask whether to proceed, and do not compose the next prompt yourself.
+
+When new open questions remain to ask, this is not a settled outcome: append them with `oqm` (steps 3 to 5 above) and stop for another review round — do not run the handoff.
