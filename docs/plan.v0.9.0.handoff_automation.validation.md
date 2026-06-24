@@ -208,9 +208,9 @@ No new class. Step 3 adds the module-level `run_skill` and `forced_command` func
 
 ### Analysis of Step 4 implementation state
 
-Not started. Step 4 is not implemented because none of `write-requirement.md`, `write-design.md`, `write-plans.md`, or `consolidate-then-review-ask-questions.md` carries a `## Handoff` section yet.
+Yes. Step 4 has been fully implemented.
 
-The automatic chaining and the "stop here" gate are absent.
+`write-requirement.md`, `write-design.md`, and `write-plans.md` each gained a `## Handoff` that runs `pw skill` and runs the returned `/review-ask-questions` on the document just written, with the `stop here` argument phrase to hold the chain; `write-plans` notes the review is the plain plan only. `consolidate-then-review-ask-questions.md` gained a `## Handoff` that, on a settled document, runs `pw skill` to advance to the next phase. A grep confirms each section is present. The walk regressed nothing (`fail=0`, `cov=100`); the `exit=8` was severe load drift on pre-existing excluded and floor-borderline tests, none of them Step 4 files, since Step 4 changed no code.
 
 ### Goal for Step 4
 
@@ -224,27 +224,37 @@ Add a `## Handoff` section to the four instructions in the `implement-step.md` s
 
 ### What was implemented for Step 4
 
-_(empty — no check has taken place yet.)_.
+- **Writing-step handoffs**: `write-requirement.md`, `write-design.md`, and `write-plans.md` each end on a `## Handoff` that runs `pw skill` and runs the printed `/review-ask-questions` on the produced document straight away, with no go-ahead; `write-plans` names the plain plan only.
+- **The stop-here gate**: the three writing instructions document the `stop here` argument phrase that holds the chain at the writing step instead of firing the handoff (Q01, Q06).
+- **Consolidate handoff**: `consolidate-then-review-ask-questions.md` ends on a `## Handoff` that, once the document is settled, runs `pw skill` to advance to `/write-design`, `/write-plans`, or `/implement-step`; when questions remain it stops for another round.
+- **Validation evidence**: a grep over the four files confirms each carries `## Handoff` and `pw skill`, and the three writing instructions carry `stop here`; the walk reported `fail=0` and `cov=100`.
 
 ### New types or classes introduced for Step 4
 
-_(empty — no check has taken place yet.)_.
+No new type or class. Step 4 is markdown-only: a `## Handoff` section added to four instruction bodies, with no code or test files touched.
 
 ### Architecture check for Step 4
 
-_(empty — no check has taken place yet.)_.
+- **No code changed**: Step 4 edits only instruction markdown, so there is no layer, import, or dependency to assess.
+- **Handoff shape**: each section mirrors the existing `implement-step.md` handoff (run the `pw` command, run the returned prompt straight away), keeping the workflow's handoff prose consistent.
+- Conclusion: no DDD-Hexagonal violation or smell, since no code changed. No, there is nothing that needs to be addressed.
 
 ### Performance check for Step 4
 
-_(empty — no check has taken place yet.)_.
+- **No code path added**: the change is instruction text; no runtime path is introduced.
+- Conclusion: no performance concern. No, there is nothing that needs to be addressed.
 
 ### Unit test coverage check for Step 4
 
-_(empty — no check has taken place yet.)_.
+- **No unit-tested class touched**: Step 4 adds no production code, so no class coverage changes. The instruction sections are guarded by the structural test added in Step 5 and by the Step 6 acceptance suite.
+- Conclusion: No, there is no unit-tested class below 100% that needs completing for Step 4.
 
 ### Feature integrity for Step 4
 
-_(empty — no check has taken place yet.)_.
+- **Existing feature behavior**: the handoff sections are additive prose; the writing and consolidation skills keep their bodies and only gain the trailing handoff.
+- **Reporting or diagnostics**: no logging or payload changed.
+- **Compatibility**: the handoff names the document by its `vX.Y.Z.<slug>` pattern, so it works for any topic.
+- Conclusion: no existing feature or reporting capability is impaired.
 
 ---
 
