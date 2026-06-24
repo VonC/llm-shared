@@ -317,9 +317,9 @@ No new production type or class. Step 5 edits three instruction bodies and adds 
 
 ### Analysis of Step 6 implementation state
 
-Not started. Step 6 is not implemented because no acceptance test drives `pw skill` across the document states.
+Yes. Step 6 has been fully implemented.
 
-The end-to-end coverage of the routing, the host prefix, the forced skill, and the no-question table is absent.
+`tests/unit/tools/test_prompt_workflow_acceptance.py` moved into the nested `test_prompt_workflow_acceptance/test_prompt_workflow_acceptance_tdd.py` (Q08) and gained four `pw skill` acceptance cases that drive `main(["skill", ...])` end to end against a scratch tree: process-draft on a new draft, write-design on a settled requirement, the forced-skill not-applicable-then-emit path, and the host override. The walk ran 989 tests with `fail=0`, `cov=100`, `outliers=0`; the lone `exit=8` was the recurring unrelated load drift on an excluded integration test.
 
 ### Goal for Step 6
 
@@ -333,27 +333,37 @@ Add acceptance tests that build a scratch `docs/` tree in each state and assert 
 
 ### What was implemented for Step 6
 
-_(empty — no check has taken place yet.)_.
+- **Acceptance cases**: four `pw skill` cases drive the CLI in-process through `main(argv)` (Q07) on a scratch tree with the git reads monkeypatched: process-draft on a new draft, write-design on a settled requirement, the forced skill (not applicable, then emitting once the document exists), and the host override forcing the Codex prefix.
+- **Test move (Q08)**: the acceptance test moved into the nested `test_prompt_workflow_acceptance/test_prompt_workflow_acceptance_tdd.py` with its `__init__.py`; the existing handoff-cycle acceptance cases came across unchanged.
+- **Validation evidence**: the walk ran 989 tests (985 plus 4) with `fail=0`, `cov=100`, and `outliers=0`.
 
 ### New types or classes introduced for Step 6
 
-_(empty — no check has taken place yet.)_.
+No new production type or class. Step 6 adds four acceptance test functions and a `_setup_skill_tree` helper to the moved acceptance module, plus its package `__init__.py`.
 
 ### Architecture check for Step 6
 
-_(empty — no check has taken place yet.)_.
+- **Test-only change**: Step 6 touches only the acceptance test (moved and extended); no `tools/` module changed.
+- **Harness**: the cases drive the real `main` and `run_skill`, monkeypatching only the git reads, so they exercise the parser, the dispatch, and the routing end to end.
+- Conclusion: no DDD-Hexagonal violation or smell. No, there is nothing that needs to be addressed.
 
 ### Performance check for Step 6
 
-_(empty — no check has taken place yet.)_.
+- **No new runtime path**: the acceptance cases are test-only; each runs `main(["skill", ...])` once on a tiny scratch tree.
+- Conclusion: no performance concern. No, there is nothing that needs to be addressed.
 
 ### Unit test coverage check for Step 6
 
-_(empty — no check has taken place yet.)_.
+- **No production class touched**: Step 6 adds no production code, so no class coverage changes; the full pass held `cov=100`.
+- **Acceptance suite**: these are end-to-end acceptance tests, not class unit tests, so they carry no 100% target of their own.
+- Conclusion: No, there is no unit-tested class below 100% that needs completing for Step 6.
 
 ### Feature integrity for Step 6
 
-_(empty — no check has taken place yet.)_.
+- **Existing feature behavior**: the move preserves the handoff-cycle acceptance cases; the new cases are additive.
+- **Reporting or diagnostics**: no logging or payload changed.
+- **Compatibility**: the move keeps absolute imports, so nothing else changes.
+- Conclusion: no existing feature or reporting capability is impaired.
 
 ---
 
