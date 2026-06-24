@@ -77,4 +77,10 @@ def test_pw_running_instructions_link_to_the_run_pw_note() -> None:
         assert "run-pw.md" in _read(name)
 
 
+def test_question_skills_show_the_three_column_table() -> None:
+    """Review and consolidate present open questions as a Q0x / Title / Recommended table."""
+    for name in ("review-ask-questions.md", "consolidate-then-review-ask-questions.md"):
+        assert "| Q0x | Title | Recommended Answer |" in _read(name)
+
+
 # eof
