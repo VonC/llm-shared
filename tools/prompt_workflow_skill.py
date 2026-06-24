@@ -29,10 +29,14 @@ target document, then renders.
 from __future__ import annotations
 
 import os
+import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 from tools import prompt_workflow_docs as docs
+from tools import prompt_workflow_git as git
+from tools import prompt_workflow_handoff as handoff
+from tools import prompt_workflow_memory as memory
 from tools import prompt_workflow_steps as steps
 
 if TYPE_CHECKING:
@@ -251,6 +255,99 @@ def _document(root: Path, topic: Topic, role: str, state: WorkflowState) -> str:
 def _relpath(root: Path, path: Path) -> str:
     """Return ``path`` as a posix string relative to the project root."""
     return Path(os.path.relpath(Path(path).resolve(), root)).as_posix()
+
+
+# Exit code when the skill mode has no command to emit (a forced skill that is not
+# yet applicable, or no resolvable topic): stdout stays empty so the caller never
+# reads the signal as a command (Q03).
+EXIT_NOT_APPLICABLE = 3
+# The document role a forced skill targets; the skill is emitted only when that
+# document exists (Q04). Review and consolidate are not forceable here, since they
+# read whichever document is current rather than a single owned one.
+FORCED_ROLE = {
+    "process-draft": "draft",
+    "write-requirement": "requirement",
+    "write-design": "design",
+    "write-plans": "plan",
+    "implement-step": "plan",
+}
+
+
+def run_skill(root: Path, skill_name: str | None, host_override: str | None) -> int:
+    """Print the bare next-step command for the current topic, or a forced skill.
+
+    Resolves the topic without a menu (the single draft, or the branch-locked one),
+    then prints the disk-derived next command, or - with a skill name - that
+    skill's command when its document exists. When nothing applies (no resolvable
+    topic, or a forced skill whose document is absent) it writes a one-line note to
+    stderr, leaves stdout empty, and returns ``EXIT_NOT_APPLICABLE`` so the caller
+    never reads the signal as a command (Q03).
+
+    Args:
+        root: The project root.
+        skill_name: A forced skill name, or None for the derived next step.
+        host_override: A host token forcing the prefix, or None to detect it.
+
+    Returns:
+        0 when a command is printed, ``EXIT_NOT_APPLICABLE`` otherwise.
+    """
+    branch = git.current_branch(root)
+    topic = handoff.resolve_topic(
+        docs.relevant_drafts(root, root),
+        memory.read_memory(root),
+        branch,
+    )
+    if topic is None:
+        sys.stderr.write("pw skill: no topic resolved on this branch.\n")
+        return EXIT_NOT_APPLICABLE
+    if skill_name is not None:
+        command = forced_command(root, topic, skill_name, os.environ, host_override)
+        if command is None:
+            sys.stderr.write(f"pw skill: {skill_name} is not applicable here.\n")
+            return EXIT_NOT_APPLICABLE
+    else:
+        command = next_command(root, topic, branch, os.environ, host_override)
+    sys.stdout.write(f"{command}\n")
+    return 0
+
+
+def forced_command(
+    root: Path,
+    topic: Topic,
+    skill_name: str,
+    env: Mapping[str, str],
+    override: str | None = None,
+) -> str | None:
+    """Return a forced skill's command when its document exists, else None (Q04).
+
+    Args:
+        root: The project root, used to make the document path relative.
+        topic: The resolved topic.
+        skill_name: The forced skill name (a key of ``FORCED_ROLE``).
+        env: The process environment, read for the host prefix.
+        override: A host token forcing the prefix, or None to detect it.
+
+    Returns:
+        The host-prefixed command naming the skill's document when that document
+        exists; None when the skill is unknown or its document is absent.
+    """
+    role = FORCED_ROLE.get(skill_name)
+    if role is None:
+        return None
+    state = steps.compute_state(root, topic, None)
+    doc = (
+        topic.draft_path
+        if role == "draft"
+        else {
+            "requirement": state.requirement,
+            "design": state.design,
+            "plan": state.plan,
+        }[role]
+    )
+    if doc is None:
+        return None
+    instruction = f"{skill_name}{MD_SUFFIX}"
+    return render_command(host_prefix(env, override), instruction, _relpath(root, doc))
 
 
 # eof
