@@ -166,13 +166,16 @@ one after the plan.
 
 ### A consolidated document is read from disk, not from a parameter
 
-`docs.has_open_questions` already detects the `## Open questions` marker, the
-"review pending" signal: a requirement or issue still carrying that section maps to
-`/review-ask-questions`. A document whose questions are consolidated (the section
-stripped and a decisions table such as `## Requirement clarifications` present) is
-settled, so `pw skill` advances to the next phase. The fork is read from the
-document alone, with no LLM-passed parameter, because the consolidate step's own
-output (strip the section, write the table) records the state on disk (Q03).
+`docs.has_open_questions` and `docs.has_decisions_table` read the document state
+from disk. A fresh requirement or issue with neither marker maps to
+`/review-ask-questions`; one still carrying a `## Open questions` section maps to
+`/consolidate-then-review-ask-questions`, since review already ran and added the
+questions; and one whose questions are consolidated (the section stripped and a
+decisions table such as `## Requirement clarifications` present) is settled, so
+`pw skill` advances to the next phase. The fork is read from the document alone,
+reusing `next_step_numbers` with the decisions-table override and no LLM-passed
+parameter, because the consolidate step's own output records the state on disk
+(Q03).
 
 To keep that signal unambiguous in the rare case the review round raises no
 question, `review-ask-questions` writes a minimal decisions table (a single row such
