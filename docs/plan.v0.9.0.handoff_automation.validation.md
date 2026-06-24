@@ -92,9 +92,9 @@ No new production class. Step 1 is three module-level pure functions (`detect_ho
 
 ### Analysis of Step 2 implementation state
 
-Not started. Step 2 is not implemented because `has_decisions_table` does not exist in `tools/prompt_workflow_docs.py` and no disk-derived routing has been written.
+Yes. Step 2 has been fully implemented.
 
-The settled-versus-review fork and the next-command derivation are absent.
+`has_decisions_table` reads the three consolidated section titles in `tools/prompt_workflow_docs.py`, and `tools/prompt_workflow_skill.py` gains `next_command` and its helpers, deriving the next step from disk by reusing `compute_state` and `next_step_numbers` with the decisions-table override (Q02) and mapping it to an instruction and a document. The walk is green: `check exit=0`, 975 tests pass (up from 964), `cov=100`, `outliers=0`. The lone `exit=8` is the recurring unrelated load drift on excluded integration tests, not a Step 2 file.
 
 ### Goal for Step 2
 
@@ -108,27 +108,41 @@ Add `has_decisions_table` to `tools/prompt_workflow_docs.py`, and in the skill m
 
 ### What was implemented for Step 2
 
-_(empty — no check has taken place yet.)_.
+- **Decisions-table detector**: `has_decisions_table` in `prompt_workflow_docs.py` matches `## Requirement clarifications`, `## Design decisions`, or `## Implementation decisions`, beside `has_open_questions`.
+- **Disk-derived routing**: `next_command` reads `compute_state(root, topic, None)` with no memory step, takes the first `next_step_numbers` step, and advances past a review step (2, 5, 8) when the document it reads carries a decisions table (Q02); the resolved step maps to an instruction and a target document, host-prefixed by `render_command`. An open-questions document routes to consolidate, a fresh document to review, a settled document advances (Q03).
+- **Test move (Q08)**: `test_prompt_workflow_docs.py` moved to `tests/unit/tools/test_prompt_workflow_docs/test_prompt_workflow_docs_tdd.py` with its `__init__.py`, gaining a `has_decisions_table` case; the skill test gained the routing cases.
+- **Validation evidence**: the walk reported `check exit=0`, 975 tests pass (964 plus 11 new), `cov=100`, and `outliers=0`.
 
 ### New types or classes introduced for Step 2
 
-_(empty — no check has taken place yet.)_.
+No new class. Step 2 adds module-level functions: `has_decisions_table` in `prompt_workflow_docs.py`, and `next_command` with its helpers `_resolve_step`, `_instruction_and_document`, `_document`, and `_relpath` (plus the `STEP_INSTRUCTION`, `STEP_ROLE`, `ADVANCE_PAST_REVIEW`, and `PRODUCED_TYPE` maps) in `prompt_workflow_skill.py`.
 
 ### Architecture check for Step 2
 
-_(empty — no check has taken place yet.)_.
+- **Layer placement**: the routing lives in the skill module and reuses `prompt_workflow_steps` (`compute_state`, `next_step_numbers`) and `prompt_workflow_docs` (`has_decisions_table`); it adds no second state machine, honoring Q02. `has_decisions_table` sits beside `has_open_questions` as a read-only marker check.
+- **Dependency direction**: the skill module imports steps and docs; steps imports docs; no cycle, and nothing imports the skill module yet (the CLI wiring is Step 3).
+- **Statelessness**: `next_command` never reads `a.prompt_memory`, so it is a pure function of the tree.
+- Conclusion: no DDD-Hexagonal violation or smell. No, there is nothing that needs to be addressed.
 
 ### Performance check for Step 2
 
-_(empty — no check has taken place yet.)_.
+- **No new `O(n^2)` or `O(n log n)` path**: `next_command` runs one bounded docs scan via `compute_state` and a constant number of marker reads; `next_step_numbers` and the maps are `O(1)`.
+- **Hot-path bound**: one directory listing plus a few marker-line reads per call, the same bound the interactive flow already pays.
+- **Plan-bound alignment**: matches the plan's `O(n)`-per-phase, `O(1)`-per-call target.
+- Conclusion: no performance issue. No, there is nothing that needs to be addressed.
 
 ### Unit test coverage check for Step 2
 
-_(empty — no check has taken place yet.)_.
+- **`tools/prompt_workflow_skill.py`**: covered at 100% by `tests/unit/tools/test_prompt_workflow_skill/test_prompt_workflow_skill_tdd.py` -- the routing tests exercise every branch of `_resolve_step` (review-doc absent, present-and-unsettled, present-and-settled), `_instruction_and_document` (the process-draft branch and the role path), and `_document` (existing path and produced name).
+- **`tools/prompt_workflow_docs.py`**: `has_decisions_table` is covered at 100% by the moved docs test (the three titles and the absent case); the full pass reported `cov=100`.
+- Conclusion: No, there is no unit-tested class below 100% that needs completing for Step 2.
 
 ### Feature integrity for Step 2
 
-_(empty — no check has taken place yet.)_.
+- **Existing feature behavior**: `next_command` and `has_decisions_table` are new and called by nothing in production yet (the CLI wiring is Step 3), so the interactive `pw` and the `pw handoff` cycle are unchanged.
+- **Reporting or diagnostics**: no logging or status payload changed.
+- **Compatibility**: the docs test moved into the nested form (Q08), tracked as a delete plus an add; no import path changed, since the tests use absolute imports.
+- Conclusion: no existing feature or reporting capability is impaired.
 
 ---
 
