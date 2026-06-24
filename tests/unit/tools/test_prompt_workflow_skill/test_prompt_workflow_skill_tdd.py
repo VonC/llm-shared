@@ -1,4 +1,4 @@
-"""Tests for the pw skill module: host prefix, rendering, and disk routing.
+"""Tests for the pw skill module: host prefix, rendering, routing, and the CLI.
 
 Step 1 covers the pure functions of tools/prompt_workflow_skill.py: detect_host
 (host markers, Claude-wins, Claude default), host_prefix (an override
@@ -9,17 +9,26 @@ property loop guards the render invariants.
 Step 2 covers next_command: the next step read from disk (compute_state with no
 memory step, next_step_numbers, the decisions-table override), mapped to an
 instruction and a target document and rendered with the host prefix.
+
+Step 3 covers the pw skill subcommand: run_skill (topic resolution, the
+not-applicable exit), forced_command (a forced skill emitted only when its
+document exists), and the hub dispatch of the skill subparser.
 """
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from tools import prompt_workflow
 from tools import prompt_workflow_skill as skill
 from tools.prompt_workflow_models import Topic
 
 if TYPE_CHECKING:
     from pathlib import Path
+
+    import pytest
+
+# pyright: reportUnknownLambdaType=false, reportUnknownArgumentType=false
 
 
 def test_detect_host_reads_the_markers_with_claude_first() -> None:
@@ -195,6 +204,111 @@ def test_next_command_uses_the_codex_prefix(tmp_path: Path) -> None:
     topic = _topic(tmp_path)
     command = skill.next_command(tmp_path, topic, "main", {"CODEX_THREAD_ID": "x"})
     assert command == "$process-draft on docs/draft.v0.9.0.handoff_automation.md"
+
+
+def test_forced_command_unknown_skill_returns_none(tmp_path: Path) -> None:
+    """An unknown forced skill name yields None."""
+    assert skill.forced_command(tmp_path, _topic(tmp_path), "nope", _CLAUDE) is None
+
+
+def test_forced_command_draft_role_names_the_draft(tmp_path: Path) -> None:
+    """The process-draft forced skill names the draft (the draft role)."""
+    command = skill.forced_command(tmp_path, _topic(tmp_path), "process-draft", _CLAUDE)
+    assert command == "/process-draft on docs/draft.v0.9.0.handoff_automation.md"
+
+
+def _patch_resolution(
+    monkeypatch: pytest.MonkeyPatch,
+    topics: list[Topic],
+    branch: str,
+) -> None:
+    """Patch the topic resolution so run_skill resolves off the given topics."""
+    def resolve(candidates: list[Topic], _record: object, _branch: str) -> Topic | None:
+        return candidates[0] if candidates else None
+
+    monkeypatch.setattr(skill.git, "current_branch", lambda _root: branch)
+    monkeypatch.setattr(skill.docs, "relevant_drafts", lambda _root, _cwd: topics)
+    monkeypatch.setattr(skill.memory, "read_memory", lambda _root: None)
+    monkeypatch.setattr(skill.handoff, "resolve_topic", resolve)
+
+
+def test_run_skill_prints_the_next_command(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """With no skill name, run_skill prints the disk-derived next command."""
+    monkeypatch.setenv("CLAUDECODE", "1")
+    monkeypatch.delenv("CODEX_THREAD_ID", raising=False)
+    _patch_resolution(monkeypatch, [_topic(tmp_path)], "main")
+    code = skill.run_skill(tmp_path, None, None)
+    out = capsys.readouterr().out.strip()
+    assert code == 0
+    assert out == "/process-draft on docs/draft.v0.9.0.handoff_automation.md"
+
+
+def test_run_skill_with_no_topic_is_not_applicable(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """No resolvable topic leaves stdout empty and returns the not-applicable code."""
+    _patch_resolution(monkeypatch, [], "main")
+    code = skill.run_skill(tmp_path, None, None)
+    captured = capsys.readouterr()
+    assert code == skill.EXIT_NOT_APPLICABLE
+    assert captured.out == ""
+    assert "no topic" in captured.err
+
+
+def test_run_skill_forced_skill_emits_when_the_document_exists(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A forced skill prints its command when the target document exists."""
+    monkeypatch.setenv("CLAUDECODE", "1")
+    monkeypatch.delenv("CODEX_THREAD_ID", raising=False)
+    topic = _topic(tmp_path)
+    _write(tmp_path, _DESIGN, _FRESH)
+    _patch_resolution(monkeypatch, [topic], "handoff_automation")
+    code = skill.run_skill(tmp_path, "write-design", None)
+    out = capsys.readouterr().out.strip()
+    assert code == 0
+    assert out == "/write-design on docs/design.v0.9.0.handoff_automation.md"
+
+
+def test_run_skill_forced_skill_not_applicable_without_the_document(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A forced skill whose document is absent leaves stdout empty, returns the code."""
+    _patch_resolution(monkeypatch, [_topic(tmp_path)], "handoff_automation")
+    code = skill.run_skill(tmp_path, "write-design", None)
+    captured = capsys.readouterr()
+    assert code == skill.EXIT_NOT_APPLICABLE
+    assert captured.out == ""
+    assert "write-design" in captured.err
+
+
+def test_main_dispatches_the_skill_subcommand(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """The hub parses the skill subcommand with its name and host, then dispatches."""
+    captured: dict[str, object] = {}
+
+    def fake_run_skill(root: Path, skill_name: str | None, host_override: str | None) -> int:
+        captured["call"] = (root, skill_name, host_override)
+        return 0
+
+    monkeypatch.setattr(prompt_workflow.skill, "run_skill", fake_run_skill)
+    code = prompt_workflow.main(
+        ["skill", "write-design", "--host", "codex", "--root", str(tmp_path)],
+    )
+    assert code == 0
+    assert captured["call"] == (tmp_path.resolve(), "write-design", "codex")
 
 
 # eof
