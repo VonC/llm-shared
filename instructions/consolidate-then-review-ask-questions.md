@@ -49,8 +49,20 @@ Run these steps, in order:
 3. `oqm <type>.vX.Y.Z.<topic>.md --create` to start an empty `a.<base>.open.questions.md` companion when you do have new questions.
 4. Write your new questions into `a.<base>.open.questions.md`, starting with the `## Open questions for the vX.Y.Z ...` line and following the template.
 5. `oqm <type>.vX.Y.Z.<topic>.md --append` to move the questions from `a.<base>.open.questions.md` into the document.
+6. Present the placed questions in your reply as the mandatory three-column table described in "Presenting any follow-up questions" below — never as a bulleted list.
 
 If the `oqm` alias is not available in your shell, call the script directly with `python <LLM_SHARED_DIR>\tools\open_questions_md.py <type>.vX.Y.Z.<topic>.md <mode>`.
+
+## Presenting any follow-up questions
+
+This step is mandatory, not optional: when a consolidation round raises new questions, present them in your reply as a compact three-column table — one row per question, never a bulleted list — the same way the review skill does, so the human reads them at a glance:
+
+| Q0x | Title | Recommended Answer |
+| --- | --- | --- |
+| Q01 | Short title of the question | The recommended option, in a few words |
+| Q02 | ... | ... |
+
+The full options, their pros and cons, and the `Answer to Qxx` line stay in the document and its companion (the [`open-question.template.md`](../templates/open-question.template.md) shape); the table is the at-a-glance summary, not a replacement. Use the compact table form of [`../rules/markdown.md`](../rules/markdown.md): one space around each cell, exactly three dashes in each header separator.
 
 ## Handoff
 
@@ -60,4 +72,4 @@ When the consolidation settles the document — every open question answered, no
 
 `pw skill` reads the settled document on disk and prints the next-step command: `/write-design` from a feature-request or issue, `/write-plans` from a design, or `/implement-step` from a plan (host-prefixed with `/` for Claude or `$` for Codex). Read that line and run it straight away: the handoff is the go-ahead to perform the next step now, so do not stop to ask whether to proceed, and do not compose the next prompt yourself.
 
-When new open questions remain to ask, this is not a settled outcome: append them with `oqm` (steps 3 to 5 above) and stop for another review round — do not run the handoff.
+When new open questions remain to ask, this is not a settled outcome: append them with `oqm` (steps 3 to 5 above), present them in the three-column table above, and stop for another review round. Leave the next step in two forms, as the review skill does: the "Next step" command `/consolidate-then-review-ask-questions on docs/<type>.vX.Y.Z.<slug>.md` for the next round, and, in addition, the same command as a gray, Tab-completable hint the human can accept with a keystroke — do not run the handoff.
