@@ -305,3 +305,47 @@ _(empty — no check has taken place yet.)_.
 ### Feature integrity for Step 6
 
 _(empty — no check has taken place yet.)_.
+
+---
+
+## Step 7. The commit-gate multi-choice in group-commits-msg
+
+### Analysis of Step 7 implementation state
+
+Not started. Step 7 is not implemented because `instructions/group-commits-msg.md` has no commit-gate multi-choice and `pw skill` has no post-commit derivation.
+
+The constant go ahead, the contextual option, and the chaining are absent.
+
+### Goal for Step 7
+
+Extend `pw skill` to derive the post-commit next action (next plan step via `derive_x`, prepare-release when all are committed, or none) and edit `group-commits-msg.md` so the commit gate presents the constant `go ahead`, the contextual option, and a "Type something else" entry, with only the contextual option chaining after the commit.
+
+### Step 7 improvement expectations
+
+- The commit gate shows `go ahead` plus the right contextual option for the branch state, or only `go ahead` for a standalone call.
+- Plain `go ahead` commits and stops; the contextual option commits then chains.
+- pw skill derives the option from disk, reusing `derive_x`.
+
+### What was implemented for Step 7
+
+_(empty — no check has taken place yet.)_.
+
+### New types or classes introduced for Step 7
+
+_(empty — no check has taken place yet.)_.
+
+### Architecture check for Step 7
+
+_(empty — no check has taken place yet.)_.
+
+### Performance check for Step 7
+
+_(empty — no check has taken place yet.)_.
+
+### Unit test coverage check for Step 7
+
+_(empty — no check has taken place yet.)_.
+
+### Feature integrity for Step 7
+
+_(empty — no check has taken place yet.)_.

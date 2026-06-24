@@ -22,6 +22,7 @@ Implement the full v0.9.0 handoff automation described in `docs/design.v0.9.0.ha
 - **Step 4 goal**: the automated `## Handoff` sections in `write-requirement`, `write-design`, `write-plans`, and `consolidate-then-review-ask-questions`, with the "stop here" gate.
 - **Step 5 goal**: the review hint plus the no-question decisions-table behavior, and the multi-choice lists in `process-draft` and `split-and-define`.
 - **Step 6 goal**: acceptance tests that drive `pw skill` across every document state and the instruction bodies through a scratch tree.
+- **Step 7 goal**: the commit-gate multi-choice in `group-commits-msg`, with `pw skill` deriving the post-commit next action (next plan step, prepare-release, or none).
 
 ---
 
@@ -40,6 +41,7 @@ The following are explicitly **in scope** for this plan:
 - The `has_decisions_table` detector in `tools/prompt_workflow_docs.py`.
 - The handoff, hint, and multi-choice edits in the seven instruction bodies.
 - Acceptance tests covering the document states and the force-skill and override paths.
+- The commit-gate multi-choice in `instructions/group-commits-msg.md`, with `pw skill` deriving the post-commit next action.
 
 The following are explicitly **deferred** to v0.10.0 and beyond:
 
@@ -538,9 +540,76 @@ Time-gated status for Step 6:
 
 - No perf gate is affected; the perf-gate pass concluded no Step 0 gate is needed.
 
+### Step 7. The commit-gate multi-choice in group-commits-msg
+
+#### Step 7 -- analysis and intent for the commit gate
+
+Issues to address:
+
+- `group-commits-msg` waits for a typed `go ahead`; it must instead present a multi-choice that, after the commit, can chain to the next plan step or to prepare-release.
+- `pw skill` derives the next workflow step but not yet the post-commit next action (next plan step, prepare-release, or none).
+
+Fix intent:
+
+- Extend the skill module so `pw skill`, told the step the commit completes, derives the post-commit next action: the next unimplemented step after it (via `derive_x` over the validation plan) gives `go ahead, and implement step x`; when that committed step was the last, every step is committed and it gives `go ahead and prepare-release`; with no plan resolved it gives only `go ahead`.
+- Edit `instructions/group-commits-msg.md` so the commit gate, with an effort in flight, presents the constant `go ahead`, the `pw skill` contextual option, and a "Type something else" entry; a standalone call shows only `go ahead`. Plain `go ahead` commits and stops; the contextual option commits and, only after the commit succeeds, chains to `/implement-step` on x or `/prepare-release` (a failed commit aborts the chain).
+
+Expected outcome:
+
+- The commit gate offers the right multi-choice for the branch state, and only the contextual option chains after the commit.
+
+Step framing:
+
+- Design link: design area 6 (the commit-gate multi-choice) and its design-decision rows.
+- Execution checklist reference: the shared execution command checklist above.
+
+#### Step 7 -- implementation for the commit gate
+
+**Files involved**:
+
+- `tools/prompt_workflow_skill.py` (existing, to be updated).
+- `instructions/group-commits-msg.md` (existing, to be updated).
+- `tests/unit/tools/test_prompt_workflow_skill/test_prompt_workflow_skill_tdd.py` (existing, to be updated).
+- `tests/unit/tools/test_instruction_structure/test_instruction_structure_tdd.py` (existing, to be updated -- assert the commit-gate multi-choice in `group-commits-msg.md`).
+
+**Tests first**:
+
+- The post-commit derivation, given the committed step: a plan with a next unimplemented step after it yields the implement-step-x option; a plan whose committed step was the last yields the prepare-release option; no plan yields only `go ahead`.
+- The structural test gains a case asserting `instructions/group-commits-msg.md` carries the commit-gate multi-choice.
+
+**Classes and behavior**:
+
+- A skill-module function that, given the committed step, derives the post-commit next action by reusing `parse_validation_steps` and `derive_x`: the next step after the committed one gives implement-step x; the last step gives prepare-release; no plan gives none.
+- `instructions/group-commits-msg.md`: the commit-gate multi-choice wording -- the constant `go ahead`, the `pw skill` contextual option, and the "Type something else" entry when an effort is in flight (only `go ahead` when standalone); the plain-go-ahead-stops rule; and the contextual option chaining only after a successful commit.
+
+**Completion criteria**:
+
+- `ghog day` reports the objective (`exit=0`).
+- A grep shows the commit-gate multi-choice and `pw skill` in `instructions/group-commits-msg.md`.
+- `tools/prompt_workflow_skill.py` stays under 550 lines after the edit.
+
+#### Step 7 -- addendums for the commit gate
+
+Line-budget checkpoint:
+
+- `tools/prompt_workflow_skill.py`: before Step 3 size -> target <= 550.
+- `tests/unit/tools/test_prompt_workflow_skill/test_prompt_workflow_skill_tdd.py`: before Step 3 size -> target <= 550.
+
+Split guidance:
+
+- If the skill module crosses 550, split the post-commit derivation into a `prompt_workflow_skill_commit.py` helper.
+
+Full workflow timing run readiness:
+
+- `ghog single tests/unit/tools/test_prompt_workflow_skill/test_prompt_workflow_skill_tdd.py`; then `ghog day`.
+
+Time-gated status for Step 7:
+
+- No perf gate is affected.
+
 ## Implementation decisions for v0.9.0 handoff_automation
 
-These rows record the implementation choices settled in the plan review (Q01 to Q07); each names the question that settled it, the step or section where it is integrated, and the options that were turned down.
+These rows record the implementation choices settled in the plan review (Q01 to Q08) and the follow-up commit-gate request; each names the question or request that settled it, the step or section where it is integrated, and the options that were turned down.
 
 | Area | Decision | Question | Integrated in | Rejected alternatives |
 | --- | --- | --- | --- | --- |
@@ -552,3 +621,4 @@ These rows record the implementation choices settled in the plan review (Q01 to 
 | Doc-step gate test | A small structural unit test asserts each edited instruction carries its handoff, hint, or list, run on every walk | Q06 | Step 5 | Grep plus the one-off acceptance check only |
 | Acceptance harness | Drive `pw skill` in-process through `main(argv)`, capturing stdout, host markers set in-test | Q07 | Step 6 | Spawn the launcher as a subprocess; call the module functions directly |
 | Existing-test move scope | Move only the two pw test files this feature edits (`_docs` in Step 2, `_acceptance` in Step 6) into the nested form, within those steps; defer the full eleven-file migration and the 599-line split to a separate effort | Q08 | Steps 2 and 6, scope anchors | Move all pw test files now; move none |
+| Commit-gate multi-choice | `group-commits-msg` presents a constant `go ahead`, a `pw skill`-derived contextual option (implement the step after the one committed, or prepare-release when all are committed), and a "Type something else" entry when an effort is in flight; a standalone call shows only `go ahead`. Plain `go ahead` stops; the contextual option chains only after a successful commit | follow-up | Step 7, design area 6 | LLM infers the option; re-offer the committed step; chain regardless of the commit result; keep "Type something else" when standalone |

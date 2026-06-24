@@ -90,6 +90,14 @@ The multi-choice list must apply for the following instructions:
 
   Here the pw must be able to provide the list of slugs it just defined, so that the user can select one of them to continue with the next instruction.
 
+- `instructions/group-commits-msg.md` must, at the commit gate (once `a.commit` is prepared and presented), make the LLM propose a multi-choice instead of only waiting for a typed "go ahead":
+  - `go ahead` on its own, the constant choice, which commits and then stops,
+  - when a development effort is in flight, `go ahead, and implement step x` on the step after the one this commit completes (pw skill is told the committed step), which commits then, on success, runs `/implement-step` for step x,
+  - when a development effort is in flight and every plan step is already committed, `go ahead and prepare-release`, which commits then runs `/prepare-release`,
+  - and a last "type something else" entry.
+
+  Only `go ahead` shows when no development effort is detected (a standalone call to `group-commits-msg.md`, with no plan resolved) — no contextual option and no "type something else" then. pw skill supplies the contextual option by reading the documents on disk: the next step after the one committed, or that every step is committed, or that no plan is in play. Plain `go ahead` does not chain; only the contextual option does, and only after the commit succeeds.
+
 ## Updates expected
 
 ### Written instructions updates
