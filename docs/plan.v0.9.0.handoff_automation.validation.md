@@ -262,9 +262,9 @@ No new type or class. Step 4 is markdown-only: a `## Handoff` section added to f
 
 ### Analysis of Step 5 implementation state
 
-Not started. Step 5 is not implemented because `review-ask-questions.md` has no consolidation hint and no no-question rule, and the splitting instructions present no selectable list.
+Yes. Step 5 has been fully implemented.
 
-The hint, the no-question decisions table, and the multi-choice lists are absent.
+`review-ask-questions.md` gained a `## Handoff` that leaves the consolidation hint carrying the reviewed document name and the no-question rule (write a one-row decisions table when the round raises no question). `process-draft.md` step 7 and `split-and-define.md` now present a multi-choice next-step list, each closing with a "Type something else" entry. A new structural test asserts every edited instruction carries its handoff, hint, or list, and runs on every walk (Q06). The walk reached the objective: 985 tests (up from 982), `cov=100`, `outliers=0`, exit=0.
 
 ### Goal for Step 5
 
@@ -278,27 +278,38 @@ Add the consolidation hint and the no-question one-row decisions-table rule to `
 
 ### What was implemented for Step 5
 
-_(empty — no check has taken place yet.)_.
+- **Review hint and no-question table**: `review-ask-questions.md` leaves a plain-text `/consolidate-then-review-ask-questions` hint with the reviewed document name, and writes a one-row decisions table when no question is raised so the on-disk state reads as settled (Q03, Q06).
+- **Multi-choice lists**: `process-draft.md` presents `/write-requirement` or `/split-and-define` on the produced draft, and `split-and-define.md` presents one `/write-requirement` per defined slug (no cap, in split order); each list closes with a "Type something else" free-text entry the instruction supplies (Q05, Q07).
+- **Structural guard**: `tests/unit/tools/test_instruction_structure/test_instruction_structure_tdd.py` asserts the four writing and consolidation instructions carry a `## Handoff` with `pw skill`, the review instruction carries the consolidation hint, and the two splitting instructions carry the multi-choice with a free-text entry (Q06).
+- **Validation evidence**: the walk reached the objective with 985 tests, `cov=100`, `outliers=0`, and exit=0.
 
 ### New types or classes introduced for Step 5
 
-_(empty — no check has taken place yet.)_.
+No new production type or class. Step 5 edits three instruction bodies and adds one structural test module (`test_instruction_structure_tdd.py`) plus its package `__init__.py`; the test is regression support, not a production type.
 
 ### Architecture check for Step 5
 
-_(empty — no check has taken place yet.)_.
+- **Code vs prose**: the only code is the structural test, which reads the instruction files through `steps.llm_shared_dir()`; the rest is instruction markdown.
+- **No production change**: no `tools/` module changed, so there is no layer or dependency to assess.
+- Conclusion: no DDD-Hexagonal violation or smell. No, there is nothing that needs to be addressed.
 
 ### Performance check for Step 5
 
-_(empty — no check has taken place yet.)_.
+- **No new runtime path**: the structural test reads a handful of files once at test time; no production path is added.
+- Conclusion: no performance concern. No, there is nothing that needs to be addressed.
 
 ### Unit test coverage check for Step 5
 
-_(empty — no check has taken place yet.)_.
+- **No production class touched**: Step 5 adds no production code, so no class coverage changes; the full pass held `cov=100`.
+- **Structural test**: `test_instruction_structure_tdd.py` is a regression check over the instruction files, not a class unit test, so it carries no 100% target of its own.
+- Conclusion: No, there is no unit-tested class below 100% that needs completing for Step 5.
 
 ### Feature integrity for Step 5
 
-_(empty — no check has taken place yet.)_.
+- **Existing feature behavior**: the hint, no-question rule, and multi-choice lists are additive to the instruction bodies; no skill loses its existing steps.
+- **Reporting or diagnostics**: no logging or payload changed.
+- **Compatibility**: the structural test guards the markers, so a later edit that drops a handoff, hint, or list fails on the next walk.
+- Conclusion: no existing feature or reporting capability is impaired.
 
 ---
 
