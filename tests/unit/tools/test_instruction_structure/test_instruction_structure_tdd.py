@@ -54,4 +54,27 @@ def test_group_commits_carries_the_commit_gate_multi_choice() -> None:
     assert "Type something else" in content
 
 
+def test_run_pw_note_documents_the_launcher() -> None:
+    """run-pw.md references the command rules and the launcher, not the bare alias."""
+    content = _read("run-pw.md")
+    assert "run_commands.md" in content
+    assert "prompt_workflow.bat" in content
+
+
+def test_pw_running_instructions_link_to_the_run_pw_note() -> None:
+    """Each instruction that runs a pw command points at run-pw.md."""
+    for name in (
+        "write-requirement.md",
+        "write-design.md",
+        "write-plans.md",
+        "consolidate-then-review-ask-questions.md",
+        "process-draft.md",
+        "group-commits-msg.md",
+        "implement-step.md",
+        "implement-missing-step.md",
+        "implementation-check.md",
+    ):
+        assert "run-pw.md" in _read(name)
+
+
 # eof
