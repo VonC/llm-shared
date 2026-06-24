@@ -127,10 +127,13 @@ cross-tree file move to do by hand.
 
 ## Step 7 for process-draft, hand off to the next instruction
 
-Hand off based on the topic count recorded in step 2:
+Present a multi-choice of the next step and run the chosen one, with no go-ahead beyond the pick. `pw skill` supplies the produced `draft.vX.Y.Z.<slug>.md` name; offer these and run the selection straight away:
 
-- One topic (one feature-request or one issue, including the single-requirement exception from step 2): follow the `write-requirement` instruction (see [`write-requirement.md`](write-requirement.md)). Pass the type from step 2, the version as `vX.Y.Z` from step 5, and the topic as the slug from step 4.
-- More than one topic: follow the `split-and-define` instruction (see [`split-and-define.md`](split-and-define.md)) against the renamed `draft.vX.Y.Z.<slug>.md`, which regroups the topics into a list of feature-requests and issues before any requirement document is written.
+- `/write-requirement on docs/draft.vX.Y.Z.<slug>.md` — one topic (one feature-request or issue, including the single-requirement exception from step 2); pass the type from step 2, the version as `vX.Y.Z` from step 5, and the slug from step 4.
+- `/split-and-define on docs/draft.vX.Y.Z.<slug>.md` — more than one topic, regrouped into a list of feature-requests and issues before any requirement is written.
+- Type something else — a free-text entry, supplied by the LLM and not by `pw`, for any other instruction the author types.
+
+Pre-select the entry the step-2 topic count points at (`write-requirement` for one topic, `split-and-define` for several), and leave the other two for the author to pick.
 
 ## Design decisions for process-draft
 
