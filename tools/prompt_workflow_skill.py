@@ -37,6 +37,7 @@ from tools import prompt_workflow_docs as docs
 from tools import prompt_workflow_git as git
 from tools import prompt_workflow_handoff as handoff
 from tools import prompt_workflow_memory as memory
+from tools import prompt_workflow_plan as plan
 from tools import prompt_workflow_steps as steps
 
 if TYPE_CHECKING:
@@ -273,24 +274,38 @@ FORCED_ROLE = {
 }
 
 
-def run_skill(root: Path, skill_name: str | None, host_override: str | None) -> int:
+def run_skill(
+    root: Path,
+    skill_name: str | None,
+    host_override: str | None,
+    after_commit: str | None = None,
+) -> int:
     """Print the bare next-step command for the current topic, or a forced skill.
 
-    Resolves the topic without a menu (the single draft, or the branch-locked one),
-    then prints the disk-derived next command, or - with a skill name - that
-    skill's command when its document exists. When nothing applies (no resolvable
-    topic, or a forced skill whose document is absent) it writes a one-line note to
-    stderr, leaves stdout empty, and returns ``EXIT_NOT_APPLICABLE`` so the caller
-    never reads the signal as a command (Q03).
+    With ``after_commit`` set, prints the post-commit next action for that
+    just-committed plan step instead (Step 7). Otherwise resolves the topic
+    without a menu (the single draft, or the branch-locked one), then prints the
+    disk-derived next command, or - with a skill name - that skill's command when
+    its document exists. When nothing applies (no resolvable topic, a forced skill
+    whose document is absent, or no next step after the commit) it writes a
+    one-line note to stderr, leaves stdout empty, and returns
+    ``EXIT_NOT_APPLICABLE`` so the caller never reads the signal as a command (Q03).
 
     Args:
         root: The project root.
         skill_name: A forced skill name, or None for the derived next step.
         host_override: A host token forcing the prefix, or None to detect it.
+        after_commit: A just-committed plan step to derive the post-commit action
+            for, or None for the normal next-step or forced-skill behavior.
 
     Returns:
         0 when a command is printed, ``EXIT_NOT_APPLICABLE`` otherwise.
     """
+    if after_commit is not None:
+        return _emit(
+            post_commit_command(root, after_commit, os.environ, host_override),
+            f"pw skill: no next step after committing {after_commit}.\n",
+        )
     branch = git.current_branch(root)
     topic = handoff.resolve_topic(
         docs.relevant_drafts(root, root),
@@ -298,15 +313,28 @@ def run_skill(root: Path, skill_name: str | None, host_override: str | None) -> 
         branch,
     )
     if topic is None:
-        sys.stderr.write("pw skill: no topic resolved on this branch.\n")
-        return EXIT_NOT_APPLICABLE
+        return _emit(None, "pw skill: no topic resolved on this branch.\n")
     if skill_name is not None:
-        command = forced_command(root, topic, skill_name, os.environ, host_override)
-        if command is None:
-            sys.stderr.write(f"pw skill: {skill_name} is not applicable here.\n")
-            return EXIT_NOT_APPLICABLE
-    else:
-        command = next_command(root, topic, branch, os.environ, host_override)
+        return _emit(
+            forced_command(root, topic, skill_name, os.environ, host_override),
+            f"pw skill: {skill_name} is not applicable here.\n",
+        )
+    return _emit(next_command(root, topic, branch, os.environ, host_override), "")
+
+
+def _emit(command: str | None, not_applicable_note: str) -> int:
+    """Print a command to stdout and return 0, or note its absence on stderr.
+
+    Args:
+        command: The command to print, or None when nothing applies.
+        not_applicable_note: The stderr line written when command is None.
+
+    Returns:
+        0 when a command is printed; ``EXIT_NOT_APPLICABLE`` when it is None.
+    """
+    if command is None:
+        sys.stderr.write(not_applicable_note)
+        return EXIT_NOT_APPLICABLE
     sys.stdout.write(f"{command}\n")
     return 0
 
@@ -348,6 +376,55 @@ def forced_command(
         return None
     instruction = f"{skill_name}{MD_SUFFIX}"
     return render_command(host_prefix(env, override), instruction, _relpath(root, doc))
+
+
+def post_commit_command(
+    root: Path,
+    committed_step: str,
+    env: Mapping[str, str],
+    override: str | None = None,
+) -> str | None:
+    """Return the command to chain after committing ``committed_step`` (Step 7).
+
+    Told the plan step the commit completes, this names the step after it for
+    ``implement-step``; once that step was the last, ``prepare-release``; and when
+    no validation plan is resolved (a standalone commit, no effort) or the step is
+    not in the plan, None.
+
+    Args:
+        root: The project root.
+        committed_step: The plan step id the commit just completed.
+        env: The process environment, read for the host prefix.
+        override: A host token forcing the prefix, or None to detect it.
+
+    Returns:
+        The host-prefixed command for the next action, or None when there is no
+        plan in play or the committed step is not one of its steps.
+    """
+    topic = handoff.resolve_topic(
+        docs.relevant_drafts(root, root),
+        memory.read_memory(root),
+        git.current_branch(root),
+    )
+    if topic is None:
+        return None
+    state = steps.compute_state(root, topic, None)
+    if state.validation_plan is None:
+        return None
+    numbers = [
+        plan_step.number
+        for plan_step in plan.parse_validation_steps(
+            state.validation_plan.read_text(encoding="utf-8"),
+        )
+    ]
+    if committed_step not in numbers:
+        return None
+    prefix = host_prefix(env, override)
+    index = numbers.index(committed_step)
+    if index + 1 < len(numbers):
+        plan_doc = _document(root, topic, "plan", state)
+        return f"{prefix}implement-step on {plan_doc} step {numbers[index + 1]}"
+    return f"{prefix}prepare-release"
 
 
 # eof

@@ -46,4 +46,12 @@ def test_splitting_instructions_present_the_multi_choice() -> None:
         assert "Type something else" in content
 
 
+def test_group_commits_carries_the_commit_gate_multi_choice() -> None:
+    """group-commits-msg presents the commit-gate multi-choice via pw skill."""
+    content = _read("group-commits-msg.md")
+    assert "pw skill --after-commit" in content
+    assert "go ahead, and implement step" in content
+    assert "Type something else" in content
+
+
 # eof

@@ -299,8 +299,13 @@ def test_main_dispatches_the_skill_subcommand(
     """The hub parses the skill subcommand with its name and host, then dispatches."""
     captured: dict[str, object] = {}
 
-    def fake_run_skill(root: Path, skill_name: str | None, host_override: str | None) -> int:
-        captured["call"] = (root, skill_name, host_override)
+    def fake_run_skill(
+        root: Path,
+        skill_name: str | None,
+        host_override: str | None,
+        after_commit: str | None,
+    ) -> int:
+        captured["call"] = (root, skill_name, host_override, after_commit)
         return 0
 
     monkeypatch.setattr(prompt_workflow.skill, "run_skill", fake_run_skill)
@@ -308,7 +313,130 @@ def test_main_dispatches_the_skill_subcommand(
         ["skill", "write-design", "--host", "codex", "--root", str(tmp_path)],
     )
     assert code == 0
-    assert captured["call"] == (tmp_path.resolve(), "write-design", "codex")
+    assert captured["call"] == (tmp_path.resolve(), "write-design", "codex", None)
+
+
+_VALIDATION_TWO_STEPS = (
+    "# v\n\n## Step 1.\n\n### Analysis of Step 1 implementation state\n\n"
+    "Yes. Step 1 has been fully implemented.\n\n"
+    "## Step 2.\n\n### Analysis of Step 2 implementation state\n\n"
+    "Not started. Step 2 is not implemented because x.\n"
+)
+
+
+def _setup_plan_tree(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    validation_text: str | None,
+) -> None:
+    """Lay down a plan (and optionally its validation plan) and wire resolution."""
+    docs_dir = tmp_path / "docs"
+    docs_dir.mkdir(exist_ok=True)
+    (docs_dir / "draft.v0.9.0.handoff_automation.md").write_text("d", encoding="utf-8")
+    (docs_dir / "plan.v0.9.0.handoff_automation.md").write_text("# plan\n", encoding="utf-8")
+    if validation_text is not None:
+        (docs_dir / "plan.v0.9.0.handoff_automation.validation.md").write_text(
+            validation_text,
+            encoding="utf-8",
+        )
+    _patch_resolution(monkeypatch, [_topic(tmp_path)], "handoff_automation")
+
+
+def test_main_dispatches_the_skill_after_commit(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """The hub parses --after-commit and dispatches it to run_skill."""
+    captured: dict[str, object] = {}
+
+    def fake_run_skill(
+        root: Path,
+        skill_name: str | None,
+        host_override: str | None,
+        after_commit: str | None,
+    ) -> int:
+        captured["call"] = (root, skill_name, host_override, after_commit)
+        return 0
+
+    monkeypatch.setattr(prompt_workflow.skill, "run_skill", fake_run_skill)
+    code = prompt_workflow.main(["skill", "--after-commit", "2", "--root", str(tmp_path)])
+    assert code == 0
+    assert captured["call"] == (tmp_path.resolve(), None, None, "2")
+
+
+def test_post_commit_command_implements_the_next_step(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """The step after the committed one gives an implement-step command."""
+    _setup_plan_tree(monkeypatch, tmp_path, _VALIDATION_TWO_STEPS)
+    command = skill.post_commit_command(tmp_path, "1", _CLAUDE)
+    assert command == "/implement-step on docs/plan.v0.9.0.handoff_automation.md step 2"
+
+
+def test_post_commit_command_prepares_release_after_the_last_step(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Once the committed step was the last, the command is prepare-release."""
+    _setup_plan_tree(monkeypatch, tmp_path, _VALIDATION_TWO_STEPS)
+    assert skill.post_commit_command(tmp_path, "2", _CLAUDE) == "/prepare-release"
+
+
+def test_post_commit_command_none_without_a_validation_plan(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """With no validation plan (a standalone commit) there is no contextual command."""
+    _setup_plan_tree(monkeypatch, tmp_path, None)
+    assert skill.post_commit_command(tmp_path, "1", _CLAUDE) is None
+
+
+def test_post_commit_command_none_for_an_unknown_step(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """A committed step not in the plan yields no contextual command."""
+    _setup_plan_tree(monkeypatch, tmp_path, _VALIDATION_TWO_STEPS)
+    assert skill.post_commit_command(tmp_path, "9", _CLAUDE) is None
+
+
+def test_post_commit_command_none_without_a_topic(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """No resolvable topic yields no contextual command."""
+    _patch_resolution(monkeypatch, [], "main")
+    assert skill.post_commit_command(tmp_path, "1", _CLAUDE) is None
+
+
+def test_run_skill_after_commit_emits_the_next_step(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """run_skill with after_commit prints the post-commit next action."""
+    monkeypatch.setenv("CLAUDECODE", "1")
+    monkeypatch.delenv("CODEX_THREAD_ID", raising=False)
+    _setup_plan_tree(monkeypatch, tmp_path, _VALIDATION_TWO_STEPS)
+    code = skill.run_skill(tmp_path, None, None, "1")
+    out = capsys.readouterr().out.strip()
+    assert code == 0
+    assert out == "/implement-step on docs/plan.v0.9.0.handoff_automation.md step 2"
+
+
+def test_run_skill_after_commit_not_applicable_without_a_plan(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """run_skill with after_commit and no plan leaves stdout empty, returns the code."""
+    _setup_plan_tree(monkeypatch, tmp_path, None)
+    code = skill.run_skill(tmp_path, None, None, "1")
+    captured = capsys.readouterr()
+    assert code == skill.EXIT_NOT_APPLICABLE
+    assert captured.out == ""
+    assert "no next step" in captured.err
 
 
 # eof

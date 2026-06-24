@@ -473,6 +473,12 @@ def _get_arg_parser() -> argparse.ArgumentParser:
         choices=[skill.HOST_CLAUDE, skill.HOST_CODEX],
         help="Force the command prefix host instead of detecting it.",
     )
+    skill_parser.add_argument(
+        "--after-commit",
+        dest="after_commit",
+        default=None,
+        help="Print the post-commit next action for the named just-committed plan step.",
+    )
     return parser
 
 
@@ -489,7 +495,12 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "handoff":
         return run_handoff(root, args.task, args.step)
     if args.command == "skill":
-        return skill.run_skill(root, args.skill_name, args.host_override)
+        return skill.run_skill(
+            root,
+            args.skill_name,
+            args.host_override,
+            args.after_commit,
+        )
     return run(root, pick=args.pick)
 
 
