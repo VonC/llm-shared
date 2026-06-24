@@ -1,0 +1,49 @@
+"""Structural check that the workflow instructions carry their handoff, hint, or list.
+
+Step 5 of docs/plan.v0.9.0.handoff_automation.md guards the markdown sections
+added in Steps 4 and 5: the writing and consolidation instructions carry a
+``## Handoff`` that runs ``pw skill``, the review instruction leaves the
+consolidation hint, and the splitting instructions present a multi-choice list
+with a free-text entry. The check runs on every walk, so a later edit that drops
+one fails fast (Q06).
+"""
+
+from __future__ import annotations
+
+from tools import prompt_workflow_steps as steps
+
+_INSTRUCTIONS = steps.llm_shared_dir() / "instructions"
+
+
+def _read(name: str) -> str:
+    """Return the text of an instruction file."""
+    return (_INSTRUCTIONS / name).read_text(encoding="utf-8")
+
+
+def test_writing_and_consolidate_instructions_carry_a_handoff() -> None:
+    """The four writing and consolidation instructions run pw skill in a ## Handoff."""
+    for name in (
+        "write-requirement.md",
+        "write-design.md",
+        "write-plans.md",
+        "consolidate-then-review-ask-questions.md",
+    ):
+        content = _read(name)
+        assert "## Handoff" in content
+        assert "pw skill" in content
+
+
+def test_review_instruction_leaves_the_consolidation_hint() -> None:
+    """review-ask-questions hints the consolidation step on the reviewed document."""
+    assert "consolidate-then-review-ask-questions" in _read("review-ask-questions.md")
+
+
+def test_splitting_instructions_present_the_multi_choice() -> None:
+    """process-draft and split-and-define list the next steps with a free-text entry."""
+    for name in ("process-draft.md", "split-and-define.md"):
+        content = _read(name)
+        assert "/write-requirement" in content
+        assert "Type something else" in content
+
+
+# eof

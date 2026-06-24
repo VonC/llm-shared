@@ -38,3 +38,9 @@ Run these steps for the document you are reviewing:
 4. `oqm <type>.vX.Y.Z.<topic>.md --append` to move the questions from `a.<base>.open.questions.md` into the document.
 
 If the `oqm` alias is not available in your shell, call the script directly with `python <LLM_SHARED_DIR>\tools\open_questions_md.py <type>.vX.Y.Z.<topic>.md <mode>`.
+
+## Handoff
+
+The review is a stop, not an automatic chain: a human answers the questions before the consolidation. Leave a next-step hint rather than running the next skill — `/consolidate-then-review-ask-questions on the <doc type>.vX.Y.Z.<slug>.md` you just reviewed, carrying the reviewed document name so it is ready to run once the answers are in. Emit the hint as plain text; where the host can render a gray, Tab-completable prompt, show it that way (the reliable trigger is still to be studied).
+
+When the review round raises no question at all, do not leave the document with no section: write a one-row decisions table — the consolidate step's `Requirement clarifications`, `Design decisions`, or `Implementation decisions` section, with a single row such as "No open questions, all decisions made" — so the on-disk state reads as settled. From that settled state `pw skill` advances straight to the next phase, skipping a consolidate round.
