@@ -212,6 +212,31 @@ issue, `/write-plans` for a design, and `/implement-step` for a plan. For a plan
 (`parse_validation_steps`, `derive_x`) the existing handoff already relies on, so
 the first-step id appears in the emitted command.
 
+## Design area 6 for v0.9.0: the commit-gate multi-choice
+
+`group-commits-msg` already pauses at the commit gate once `a.commit` is prepared,
+waiting for the author's go-ahead. This area turns that single go-ahead into a
+multi-choice: a constant `go ahead` (commit, then stop), a contextual option, and a
+"Type something else" entry, mirroring the `process-draft` and `split-and-define`
+lists.
+
+`pw skill` supplies the contextual option, told the step the commit completes (the
+`group-commits` prompt already names it). Because the gate is shown before the
+commit lands, pw skill treats that step as done and derives the one after it with
+`derive_x` over the validation plan: a next unimplemented step gives
+`go ahead, and implement step x`; when the committed step was the last, every step
+is then committed and it gives `go ahead and prepare-release` instead. With no plan
+resolved (a standalone `group-commits-msg` call outside any effort), there is no
+contextual option and the gate shows only `go ahead`, without even the "Type
+something else" entry.
+
+Only the contextual option chains, and only after the commit succeeds. The commit
+runs first in every case; on a clean commit, `go ahead, and implement step x` fires
+`/implement-step` on x and `go ahead and prepare-release` fires `/prepare-release`,
+while a failed `a.commit` validation or commit aborts the chain and holds at the
+gate. Plain `go ahead` commits and stops, leaving the author in control, so the gate
+never skips the review-and-commit it exists to guard.
+
 ---
 
 ## Acceptance cases for v0.9.0 handoff automation
@@ -234,6 +259,12 @@ the first-step id appears in the emitted command.
 | `consolidate on a plan, all answered` | `the handoff emits <prefix>implement-step on the first unimplemented step, naming it` | derive_x over the validation plan (Q07) |
 | `split-and-define defined three requirements` | `the instruction lists one /write-requirement per slug plus "Type something else"` | instruction owns the split fork (Q05) |
 | `author picks "Type something else" and types an instruction with no document` | `the typed text passes through unchanged as the next call` | pass-through, no name check (feature-request Q07) |
+| `commit gate with a next plan step` | `lists go ahead and "go ahead, and implement step x", x the step after the one committed` | pw skill told the committed step, derives the next via derive_x |
+| `commit gate with every plan step committed` | `lists go ahead and "go ahead and prepare-release"` | no next step remains |
+| `commit gate on a standalone call, no plan resolved` | `lists only go ahead, no "Type something else"` | no development effort detected |
+| `author picks "go ahead, and implement step x"` | `the commit runs; only on success does /implement-step x fire` | the chain fires only after a successful commit |
+| `the commit fails at the gate` | `the chain does not fire; the gate holds for a fix` | chain only after a successful commit |
+| `author picks plain go ahead` | `the commit runs and the chain stops` | plain go-ahead does not chain |
 
 ## File-based IO cost clarification for v0.9.0 handoff automation
 
@@ -245,9 +276,9 @@ The `pw skill` derivation is a bounded index-read, not a metadata-loading delay:
 
 ## Design decisions for v0.9.0 handoff automation
 
-These rows record the design choices settled in review (Q01 to Q07); each names the
-question that settled it, the design area where it is integrated, and the options
-that were turned down.
+These rows record the design choices settled in review (Q01 to Q07) and the
+follow-up commit-gate request; each names the question or request that settled it,
+the design area where it is integrated, and the options that were turned down.
 
 | Area | Decision | Question | Integrated in | Rejected alternatives |
 | --- | --- | --- | --- | --- |
@@ -258,3 +289,8 @@ that were turned down.
 | Split fork ownership | The instruction body lists the split slugs; `pw skill` answers only disk-derivable next steps | Q05 | Design areas 1 and 2 | pw formats a passed slug list; pw derives slugs from disk |
 | "Stop here" form | A recognized phrase in the writing skill's argument | Q06 | Design area 1 | A marker file; a pw-level flag |
 | First plan step | The first not-yet-implemented step via `derive_x` over the validation plan | Q07 | Design area 5 | Literally step 1; the first step in the plain plan |
+| Commit-gate option source | `pw skill` supplies the gate's contextual option from disk: the next plan step via `derive_x`, or prepare-release when all are committed, or none when no plan is resolved | follow-up | Design area 6 | The LLM infers the option from context |
+| Commit-gate step offered | `implement step x` names the step after the one being committed; pw skill is told the committed step so it never re-offers it | follow-up | Design area 6 | Re-derive at gate time and risk offering the just-committed step |
+| Commit-gate chaining | Plain `go ahead` commits and stops; only the contextual option chains, and only after the commit succeeds (a failed commit aborts the chain) | follow-up | Design area 6 | Every choice auto-advances; chain regardless of the commit result |
+| Commit-gate release option | `go ahead and prepare-release` shows only once every plan step is committed | follow-up | Design area 6 | Never auto-offer prepare-release |
+| Commit-gate free entry | The gate closes with a "Type something else" entry when an effort is in flight; a standalone call shows only `go ahead`, no free-text entry | follow-up | Design area 6 | Keep "Type something else" when standalone; fixed choices only |

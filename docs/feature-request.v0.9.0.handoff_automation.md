@@ -55,6 +55,7 @@ The revision adds three things to that earlier state:
 9. Make `pw --skill` auto-detect a Claude or a Codex session and emit the matching command prefix (`/` for Claude, `$` for Codex), and accept an explicit host override the caller passes when detection cannot decide.
 10. Let `pw --skill` return a multi-line list of next steps when several apply, one `/skill-name` plus document name per line; the instruction body adds the final "Type something else" free-text entry, which `pw` does not emit.
 11. Make `pw --skill` derive the current step from the documents present on the branch: a new draft on `main` or on a branch not named after the slug yields `/process-draft` on the new draft; a `draft.vX.Y.Z.<slug>.md` alone on the slug branch yields `/write-requirement` on the matching requirement; a `feature-request.vX.Y.Z.<slug>.md` or `issue.vX.Y.Z.<slug>.md` with no consolidation table yields `/review-ask-questions` on it; with a consolidation table, an LLM-passed parameter chooses between `/consolidate-then-review-ask-questions` and `/write-design`. When several of these documents are present at once, the reported step follows the most advanced artifact, using the order draft, requirement, design, plan.
+12. Make `instructions/group-commits-msg.md`, at the commit gate where `a.commit` is presented, propose a multi-choice instead of only waiting for a typed go-ahead. With a development effort in flight, the choices are a constant `go ahead` (commit then stop), a contextual option from `pw skill`, and a last "Type something else" entry; the contextual option is `go ahead, and implement step x` where x is the next unimplemented step after the one this commit completes (pw skill is told the step being committed, so it never re-offers it), or `go ahead and prepare-release` once every plan step is committed. A standalone call with no plan resolved shows only `go ahead` (no contextual option and no "Type something else"). Only the contextual option chains, to `/implement-step` on x or `/prepare-release`, and only after the commit succeeds; a failed `a.commit` validation or commit aborts the chain. Plain `go ahead` commits and stops.
 
 ## Per-instruction handoff and hint map
 
@@ -67,6 +68,7 @@ The revision adds three things to that earlier state:
 | `write-plans.md` | Automatic `/review-ask-questions` on the plan only | the `plan.vX.Y.Z.<slug>.md` name; the validation plan is left alone |
 | `review-ask-questions.md` | Hint: `/consolidate-then-review-ask-questions` on the reviewed document | the reviewed `<doc type>.vX.Y.Z.<slug>.md` name |
 | `consolidate-then-review-ask-questions.md` | When no new questions: `write-design` (feature-request or issue), `write-plans` (design), or `implement-step` (plan) | the next instruction name and document name; for a plan, the first step to implement |
+| `group-commits-msg.md` | Commit-gate multi-choice: constant `go ahead`, plus `go ahead, and implement step x` or `go ahead and prepare-release`, plus "Type something else" | the next unimplemented plan step, or that every step is committed, or that no plan is in play |
 
 ## Confirmed rules for handoff automation
 
@@ -82,6 +84,9 @@ The revision adds three things to that earlier state:
 - `pw --skill` returns only the command string or strings, with no "Follow the instruction... Context is ..." wrapper and no backticks around the `/skill-name`.
 - `pw --skill` auto-detects the host and emits the matching prefix (`/` for Claude, `$` for Codex), and accepts an explicit host override the caller passes when detection cannot decide.
 - When several `vX.Y.Z.<slug>` documents are present at once, `pw --skill` reports the step that follows the most advanced artifact, using the order draft, requirement, design, plan.
+- At the commit gate, once `a.commit` is prepared, `group-commits-msg` presents a multi-choice when an effort is in flight: a constant `go ahead`, the contextual option, and a "Type something else" entry. A standalone call with no plan shows only `go ahead`.
+- `pw skill` supplies the contextual option, told the step the commit completes: the next unimplemented step after it gives `go ahead, and implement step x`; every plan step committed gives `go ahead and prepare-release`; no plan resolved leaves only `go ahead`.
+- Plain `go ahead` commits and stops; only the contextual option chains, to `/implement-step` on x or `/prepare-release`, and only after the commit succeeds (a failed `a.commit` aborts the chain).
 - `write-plans` hands off only the plan, never the validation plan.
 
 ## Acceptance criteria for handoff automation
@@ -94,6 +99,8 @@ The revision adds three things to that earlier state:
 - Selecting "Type something else" passes the typed text through unchanged as the next call.
 - `pw --skill` prints bare next-step command strings with the host-correct prefix and no context block, and prints one line per step when several next steps apply; the prefix follows host auto-detection (`/` for Claude, `$` for Codex) unless the caller passes a host override.
 - `pw --skill` returns the right step for each on-disk state: a new draft yields `/process-draft` on that draft; a draft alone on the slug branch yields `/write-requirement` on the matching requirement; a feature-request or issue with no consolidation table yields `/review-ask-questions` on it; with a consolidation table, the LLM-passed parameter selects `/consolidate-then-review-ask-questions` or `/write-design`. When several artifacts are present, the reported step follows the most advanced one (draft, requirement, design, plan).
+- At the commit gate, with a plan in flight, `group-commits-msg.md` lists `go ahead`, the contextual option (`go ahead, and implement step x` for the step after the one committed, or `go ahead and prepare-release` when every step is committed), and a "Type something else" entry; a standalone call with no plan shows only `go ahead`.
+- Choosing `go ahead` commits and stops; choosing the contextual option commits, and only after the commit succeeds runs `/implement-step` on x (x = the step after the one committed) or `/prepare-release`; a failed commit aborts the chain.
 
 ## File-based IO cost clarification for handoff automation
 
@@ -109,6 +116,7 @@ The revision adds three things to that earlier state:
 - `instructions/consolidate-then-review-ask-questions.md`: its `## Handoff` is completed to call the next workflow instruction on a no-new-questions outcome.
 - `instructions/review-ask-questions.md`: gains the consolidation next-step hint carrying the reviewed document name.
 - `instructions/process-draft.md`, `instructions/split-and-define.md`: gain the multi-choice next-step lists with the trailing "Type something else" entry.
+- `instructions/group-commits-msg.md`: gains the commit-gate multi-choice; `instructions/prepare-release.md` is the skill the `prepare-release` option chains to.
 - `instructions/implement-step.md`, `instructions/implementation-check.md`, `instructions/implement-missing-step.md`: the existing `pw handoff` sections to mirror for shape and wording.
 - `tools/prompt_workflow.py`: the `pw` hub that parses the command line and dispatches; the entry point for the `--skill` flag.
 - `tools/prompt_workflow_handoff.py`: the handoff logic that builds the next-step message; where the `--skill` string is produced and the `/` or `$` prefix is chosen.
@@ -118,9 +126,9 @@ The revision adds three things to that earlier state:
 
 ## Requirement clarifications
 
-These rows record the choices settled in review (Q01 to Q08); each names the
-question that settled it, the section where it is integrated, and the options
-that were turned down.
+These rows record the choices settled in review (Q01 to Q08) and the follow-up
+commit-gate request; each names the question or request that settled it, the
+section where it is integrated, and the options that were turned down.
 
 | Area | Decision | Question | Integrated in | Rejected alternatives |
 | --- | --- | --- | --- | --- |
@@ -132,3 +140,5 @@ that were turned down.
 | Review hint form | Plain text carrying the document name is the guaranteed baseline; a per-host gray Tab-completable hint where it can be triggered, trigger still to study | Q06 | Gap item 5, Confirmed rules, Acceptance criteria | Gray hint required for acceptance; plain text only |
 | Type something else | Pass the typed text through unchanged; no name check, no required document | Q07 | Confirmed rules, Acceptance criteria | Check the name and require a document; pass through with a warning |
 | Host prefix | Auto-detect the host (`/` Claude, `$` Codex) with an explicit caller override | Q08 | Gap item 9, Confirmed rules, Acceptance criteria | Auto-detect only; require the host every call |
+| Commit-gate multi-choice | `group-commits-msg` pauses with a constant `go ahead` plus a `pw skill`-supplied contextual option (`implement step x` for the next unimplemented step, or `prepare-release` when every step is committed) and a "Type something else" entry; plain `go ahead` stops, the contextual option chains; a standalone call shows only `go ahead` | follow-up | Gap item 12, Confirmed rules, Acceptance criteria | LLM infers the option; every choice auto-advances; no free-text entry |
+| Commit-gate edge cases | A standalone call shows only `go ahead` (no contextual, no "Type something else"); `implement step x` names the step after the one committed (pw skill told the committed step); the contextual chain fires only after the commit succeeds | follow-up review | Gap item 12, Confirmed rules, Acceptance criteria | Keep "Type something else" when standalone; re-offer the committed step; chain regardless of the commit result |
