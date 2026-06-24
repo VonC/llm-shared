@@ -150,9 +150,9 @@ No new class. Step 2 adds module-level functions: `has_decisions_table` in `prom
 
 ### Analysis of Step 3 implementation state
 
-Not started. Step 3 is not implemented because `tools/prompt_workflow.py` has no `skill` subparser and no `run_skill` dispatch.
+Yes. Step 3 has been fully implemented.
 
-The forced-skill argument and the host override are not wired.
+`tools/prompt_workflow.py` gains a `skill` subparser (an optional skill-name positional and a `--host` override) on the shared parent parser, with `main` dispatching to `skill.run_skill`; the body lives in `tools/prompt_workflow_skill.py` (Q05). `run_skill` resolves the topic without a menu and prints the disk-derived next command, or a forced skill's command via `forced_command` when its document exists, otherwise an empty stdout, a stderr note, and a dedicated non-zero exit (Q03, Q04). The walk reached the objective: `check exit=0`, `cov=100`, `outliers=0`, exit=0.
 
 ### Goal for Step 3
 
@@ -166,27 +166,41 @@ Add a `skill` subparser on the shared parent parser of `tools/prompt_workflow.py
 
 ### What was implemented for Step 3
 
-_(empty — no check has taken place yet.)_.
+- **The skill subcommand**: `prompt_workflow.py` adds a `skill` subparser (optional `skill_name`, a `--host` choice) on the shared parent and dispatches `main` to `skill.run_skill`; the hub stays well under 550 lines (Q05).
+- **run_skill**: resolves the topic without a menu (reusing `handoff.resolve_topic`), then prints the disk-derived next command, or a forced skill's command; on nothing-to-emit it writes a one-line stderr note, leaves stdout empty, and returns `EXIT_NOT_APPLICABLE` (Q03).
+- **forced_command**: maps a skill name to its document role through the static `FORCED_ROLE` map (Q04) and emits the command only when that document exists, else None.
+- **Validation evidence**: the walk reached the objective with `check exit=0`, `cov=100`, `outliers=0`, and exit=0; the new CLI, run_skill, and forced_command tests live in the skill test, not the 599-line main test.
 
 ### New types or classes introduced for Step 3
 
-_(empty — no check has taken place yet.)_.
+No new class. Step 3 adds the module-level `run_skill` and `forced_command` functions plus the `FORCED_ROLE` map and the `EXIT_NOT_APPLICABLE` constant in `prompt_workflow_skill.py`, and the `skill` subparser and its dispatch in `prompt_workflow.py`.
 
 ### Architecture check for Step 3
 
-_(empty — no check has taken place yet.)_.
+- **Layer placement**: the hub keeps only the subparser and a one-line dispatch; the orchestration lives in the skill module (Q05), which reuses `git`, `docs`, `memory`, and `handoff` for the resolution and `steps` for the state.
+- **Dependency direction**: `prompt_workflow.py` imports the skill module (the hub depends on the mode, not the reverse); the skill module imports the lower modules with no cycle.
+- **Output discipline**: the command goes to stdout, the not-applicable note to stderr, so the two channels stay separate (Q03).
+- Conclusion: no DDD-Hexagonal violation or smell. No, there is nothing that needs to be addressed.
 
 ### Performance check for Step 3
 
-_(empty — no check has taken place yet.)_.
+- **No new `O(n^2)` or `O(n log n)` path**: `run_skill` is one branch resolution and one `next_command` or `forced_command` call; `forced_command` adds one bounded `compute_state` scan and `O(1)` map lookups.
+- **Hot-path bound**: one command per invocation, the same bounded docs scan the interactive flow pays.
+- **Plan-bound alignment**: matches the plan's `O(n)`-per-phase, `O(1)`-per-call target.
+- Conclusion: no performance issue. No, there is nothing that needs to be addressed.
 
 ### Unit test coverage check for Step 3
 
-_(empty — no check has taken place yet.)_.
+- **`tools/prompt_workflow_skill.py`**: covered at 100% by the skill test -- the run_skill tests cover the no-topic, no-argument, forced-applicable, and forced-not-applicable branches, and the forced_command tests cover the unknown-skill, draft-role, and document-present-or-absent branches.
+- **`tools/prompt_workflow.py`**: the `skill` subparser and its dispatch are covered by the hub dispatch test and the existing main tests; the full pass reported `cov=100`.
+- Conclusion: No, there is no unit-tested class below 100% that needs completing for Step 3.
 
 ### Feature integrity for Step 3
 
-_(empty — no check has taken place yet.)_.
+- **Existing feature behavior**: the new subcommand is additive; the interactive `pw` run and the `pw handoff` cycle keep their paths, with `main` only gaining a `skill` branch.
+- **Reporting or diagnostics**: the skill mode prints the bare command to stdout and its note to stderr; no existing logging changed.
+- **Compatibility**: `--root` and `--debug` still parse on either side of the new subcommand via the shared parent.
+- Conclusion: no existing feature or reporting capability is impaired.
 
 ---
 
