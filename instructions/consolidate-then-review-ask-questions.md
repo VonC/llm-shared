@@ -54,7 +54,7 @@ If the `oqm` alias is not available in your shell, call the script directly with
 
 ## Handoff
 
-When the consolidation settles the document — every open question answered, no new one raised, the `## Open questions` section stripped (step 1 above) and the decisions table in place — hand the cycle on to the next phase, with no menu and no go-ahead. From the project root, in a PowerShell shell, run the `pw` launcher (`<llm-shared>\bin\prompt_workflow.bat`, the `pw` alias of the project environment) in skill mode:
+When the consolidation settles the document — every open question answered, no new one raised, the `## Open questions` section stripped (step 1 above) and the decisions table in place — hand the cycle on to the next phase, with no menu and no go-ahead. From the project root, in a PowerShell shell, run `pw skill` through its launcher (see [`run-pw.md`](run-pw.md) for the non-interactive invocation; the bare `pw` alias does not resolve in a tool shell):
 
 - `pw skill`
 

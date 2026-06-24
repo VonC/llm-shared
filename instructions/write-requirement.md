@@ -33,7 +33,7 @@ Do not include open questions yet: they will be added later by a separate skill 
 
 ## Handoff
 
-When the `feature-request.vX.Y.Z.<slug>.md` or `issue.vX.Y.Z.<slug>.md` is written, hand the cycle on to its review, with no menu and no go-ahead. From the project root, in a PowerShell shell, run the `pw` launcher (`<llm-shared>\bin\prompt_workflow.bat`, the `pw` alias of the project environment) in skill mode:
+When the `feature-request.vX.Y.Z.<slug>.md` or `issue.vX.Y.Z.<slug>.md` is written, hand the cycle on to its review, with no menu and no go-ahead. From the project root, in a PowerShell shell, run `pw skill` through its launcher (see [`run-pw.md`](run-pw.md) for the non-interactive invocation; the bare `pw` alias does not resolve in a tool shell):
 
 - `pw skill`
 
