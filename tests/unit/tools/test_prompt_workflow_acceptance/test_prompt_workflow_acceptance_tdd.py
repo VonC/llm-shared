@@ -12,6 +12,12 @@ step, and the direct ``commit`` -- and assert the delivered ``a.prompt.txt`` nam
 the expected instruction and the recorded memory carries the expected step. The
 real ``build_cycle_prompt`` runs; only the git reads and the clipboard are
 monkeypatched (Q05), since the git helpers have their own tests.
+
+Fix (skill mode, Step 6): drive ``main(["skill", ...])`` against a temp project so
+the topic resolves from the git reads, and assert the bare command printed to
+stdout for each disk state, the forced-skill and not-applicable exits, and the
+host override. The test also moves into the nested
+``test_prompt_workflow_acceptance/`` form (Q08).
 """
 
 from __future__ import annotations
@@ -28,6 +34,7 @@ from tools import prompt_workflow
 from tools import prompt_workflow_git as git
 from tools import prompt_workflow_memory as memory
 from tools import prompt_workflow_menu as menu
+from tools import prompt_workflow_skill as skill
 from tools.prompt_workflow_models import MemoryRecord, PromptWorkflowError
 
 if TYPE_CHECKING:
@@ -291,6 +298,83 @@ def test_handoff_commit_delivers_commit_prompt(
     assert prompt_workflow.main(["handoff", "commit", _STEP, "--root", str(tmp_path)]) == 0
 
     _assert_commit_prompt(tmp_path, _delivered_prompt(tmp_path), staged_calls)
+
+
+_SKILL_DRAFT = "docs/draft.v0.9.0.handoff_automation.md"
+
+
+def _setup_skill_tree(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, branch: str) -> None:
+    """Lay down a scratch draft and wire the git reads so the topic resolves."""
+    (tmp_path / "docs").mkdir(exist_ok=True)
+    (tmp_path / _SKILL_DRAFT).write_text("# Draft\n", encoding="utf-8")
+    monkeypatch.setattr(git, "current_branch", lambda _cwd: branch)
+    monkeypatch.setattr(git, "working_tree_changed_files", lambda _cwd: [_SKILL_DRAFT])
+    monkeypatch.setattr(git, "fork_point", lambda _cwd: None)
+
+
+def test_skill_prints_process_draft_end_to_end(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """main(["skill"]) on a new draft off the slug branch prints process-draft."""
+    monkeypatch.setenv("CLAUDECODE", "1")
+    monkeypatch.delenv("CODEX_THREAD_ID", raising=False)
+    _setup_skill_tree(monkeypatch, tmp_path, "main")
+    assert prompt_workflow.main(["skill", "--root", str(tmp_path)]) == 0
+    out = capsys.readouterr().out.strip()
+    assert out == "/process-draft on docs/draft.v0.9.0.handoff_automation.md"
+
+
+def test_skill_advances_on_a_settled_requirement(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A settled requirement advances the skill command to write-design."""
+    monkeypatch.setenv("CLAUDECODE", "1")
+    monkeypatch.delenv("CODEX_THREAD_ID", raising=False)
+    _setup_skill_tree(monkeypatch, tmp_path, "handoff_automation")
+    (tmp_path / "docs" / "feature-request.v0.9.0.handoff_automation.md").write_text(
+        "# x\n\n## Requirement clarifications\n",
+        encoding="utf-8",
+    )
+    assert prompt_workflow.main(["skill", "--root", str(tmp_path)]) == 0
+    out = capsys.readouterr().out.strip()
+    assert out == "/write-design on docs/design.v0.9.0.handoff_automation.md"
+
+
+def test_skill_forced_skill_is_not_applicable_then_emits(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A forced skill exits not-applicable without its document, then emits with it."""
+    monkeypatch.setenv("CLAUDECODE", "1")
+    monkeypatch.delenv("CODEX_THREAD_ID", raising=False)
+    _setup_skill_tree(monkeypatch, tmp_path, "handoff_automation")
+    code = prompt_workflow.main(["skill", "write-design", "--root", str(tmp_path)])
+    assert code == skill.EXIT_NOT_APPLICABLE
+    assert capsys.readouterr().out == ""
+    (tmp_path / "docs" / "design.v0.9.0.handoff_automation.md").write_text(
+        "# d\n",
+        encoding="utf-8",
+    )
+    assert prompt_workflow.main(["skill", "write-design", "--root", str(tmp_path)]) == 0
+    out = capsys.readouterr().out.strip()
+    assert out == "/write-design on docs/design.v0.9.0.handoff_automation.md"
+
+
+def test_skill_host_override_sets_the_prefix(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """The host override forces the Codex prefix without reading the environment."""
+    _setup_skill_tree(monkeypatch, tmp_path, "main")
+    assert prompt_workflow.main(["skill", "--host", "codex", "--root", str(tmp_path)]) == 0
+    out = capsys.readouterr().out.strip()
+    assert out == "$process-draft on docs/draft.v0.9.0.handoff_automation.md"
 
 
 # eof
