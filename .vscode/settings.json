@@ -68,6 +68,7 @@
     "pycparser",
     "pyrb",
     "recognise",
+    "relpath",
     "repointed",
     "retimed",
     "robustification",
