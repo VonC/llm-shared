@@ -127,7 +127,7 @@ cross-tree file move to do by hand.
 
 ## Step 7 for process-draft, hand off to the next instruction
 
-Present a multi-choice of the next step and run the chosen one, with no go-ahead beyond the pick. `pw skill` supplies the produced `draft.vX.Y.Z.<slug>.md` name; offer these and run the selection straight away:
+Present a multi-choice of the next step and run the chosen one, with no go-ahead beyond the pick. `pw skill` (run via its launcher, see [`run-pw.md`](run-pw.md)) supplies the produced `draft.vX.Y.Z.<slug>.md` name; offer these and run the selection straight away:
 
 - `/write-requirement on docs/draft.vX.Y.Z.<slug>.md` — one topic (one feature-request or issue, including the single-requirement exception from step 2); pass the type from step 2, the version as `vX.Y.Z` from step 5, and the slug from step 4.
 - `/split-and-define on docs/draft.vX.Y.Z.<slug>.md` — more than one topic, regrouped into a list of feature-requests and issues before any requirement is written.
