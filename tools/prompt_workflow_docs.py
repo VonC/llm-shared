@@ -28,6 +28,10 @@ from tools.prompt_workflow_models import (
 VERSION_RE = re.compile(r"v\d+(?:\.\d+)+")
 # A line opening the open-questions section, matching oqm's marker.
 OPEN_QUESTIONS_RE = re.compile(r"^## Open questions")
+# A line opening a consolidated decisions section (requirement, design, or plan).
+DECISIONS_RE = re.compile(
+    r"^## (Requirement clarifications|Design decisions|Implementation decisions)",
+)
 # The docs folder name and the draft prefix and markdown suffix.
 DOCS_DIR_NAME = "docs"
 DRAFT_PREFIX = "draft."
@@ -185,6 +189,26 @@ def has_open_questions(path: Path) -> bool:
     """Return whether the document carries a ``## Open questions`` section (Q04)."""
     text = path.read_text(encoding="utf-8")
     return any(OPEN_QUESTIONS_RE.match(line) for line in text.splitlines())
+
+
+def has_decisions_table(path: Path) -> bool:
+    """Return whether the document carries a consolidated decisions section.
+
+    The consolidate step strips the ``## Open questions`` section and writes a
+    decisions table named for the document type: ``## Requirement clarifications``
+    for a feature-request or issue, ``## Design decisions`` for a design, and
+    ``## Implementation decisions`` for a plan. Detecting any of those three
+    headings is the on-disk "settled" signal the skill routing reads (Q03 of the
+    v0.9.0 handoff_automation design).
+
+    Args:
+        path: The document to inspect.
+
+    Returns:
+        True when the document opens a consolidated decisions section.
+    """
+    text = path.read_text(encoding="utf-8")
+    return any(DECISIONS_RE.match(line) for line in text.splitlines())
 
 
 # eof
