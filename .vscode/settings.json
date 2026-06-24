@@ -35,6 +35,7 @@
     "behaviours",
     "cacheprovider",
     "cffi",
+    "CLAUDECODE",
     "frontmatter",
     "gbcr",
     "gcab",
