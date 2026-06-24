@@ -371,9 +371,9 @@ No new production type or class. Step 6 adds four acceptance test functions and 
 
 ### Analysis of Step 7 implementation state
 
-Not started. Step 7 is not implemented because `instructions/group-commits-msg.md` has no commit-gate multi-choice and `pw skill` has no post-commit derivation.
+Yes. Step 7 has been fully implemented.
 
-The constant go ahead, the contextual option, and the chaining are absent.
+`pw skill` gains a `--after-commit <step>` mode: `post_commit_command` derives the post-commit next action from the validation plan -- the step after the committed one for `/implement-step`, `/prepare-release` once it was the last, or none when no plan is in play (a standalone commit). `instructions/group-commits-msg.md` step 7 now presents the commit-gate multi-choice (a constant `go ahead`, the `pw skill --after-commit` contextual option, and a "Type something else" entry), and the structural test guards it. The walk reached the objective: 998 tests (up from 989), `cov=100`, `outliers=0`, exit=0.
 
 ### Goal for Step 7
 
@@ -387,24 +387,39 @@ Extend `pw skill` to derive the post-commit next action (next plan step via `der
 
 ### What was implemented for Step 7
 
-_(empty — no check has taken place yet.)_.
+- **Post-commit derivation**: `post_commit_command` in `prompt_workflow_skill.py`, told the committed step, reads the validation plan and returns `/implement-step on <plan> step <next>` for the next step, `/prepare-release` once the committed step was the last, or None when no validation plan is resolved or the step is not in it.
+- **CLI**: `pw skill --after-commit <step>` on the hub dispatches to `run_skill`, which prints the contextual command or, when None, writes a stderr note and returns `EXIT_NOT_APPLICABLE`.
+- **Commit gate**: `instructions/group-commits-msg.md` step 7 presents the multi-choice -- a constant `go ahead`, the `pw skill --after-commit` option (`implement step <next>` or `prepare-release`, or only `go ahead` standalone), and a "Type something else" entry; plain `go ahead` stops, the contextual option chains only after the commit succeeds.
+- **Structural guard and evidence**: the structural test asserts the gate's multi-choice; the walk ran 998 tests with `fail=0`, `cov=100`, `outliers=0`.
 
 ### New types or classes introduced for Step 7
 
-_(empty — no check has taken place yet.)_.
+No new class. Step 7 adds the module-level `post_commit_command` and the `_emit` helper to `prompt_workflow_skill.py`, the `--after-commit` argument and its dispatch on `prompt_workflow.py`, and the commit-gate section to `group-commits-msg.md`.
 
 ### Architecture check for Step 7
 
-_(empty — no check has taken place yet.)_.
+- **Layer placement**: `post_commit_command` lives in the skill module beside the other derivations and reuses `plan.parse_validation_steps` and `_document`; the hub keeps only the new argument and a one-line dispatch.
+- **Dependency direction**: the skill module now imports `prompt_workflow_plan` (already in its transitive graph via `handoff`); no cycle.
+- **Output discipline**: the contextual command goes to stdout, the not-applicable note to stderr (Q03).
+- Conclusion: no DDD-Hexagonal violation or smell. No, there is nothing that needs to be addressed.
 
 ### Performance check for Step 7
 
-_(empty — no check has taken place yet.)_.
+- **No new `O(n^2)` or `O(n log n)` path**: `post_commit_command` parses the validation plan once and does an `index` lookup over the step list, `O(n)` over the steps.
+- **Hot-path bound**: one command per gate invocation, the same bounded reads the cycle already pays.
+- **Plan-bound alignment**: matches the plan's `O(n)`-per-phase, `O(1)`-per-call target.
+- Conclusion: no performance issue. No, there is nothing that needs to be addressed.
 
 ### Unit test coverage check for Step 7
 
-_(empty — no check has taken place yet.)_.
+- **`tools/prompt_workflow_skill.py`**: covered at 100% by the skill test -- `post_commit_command`'s five branches (no topic, no validation plan, unknown step, next step, last step) and `run_skill`'s after-commit path are exercised; the full pass reported `cov=100`.
+- **`tools/prompt_workflow.py`**: the `--after-commit` argument and its dispatch are covered by the after-commit dispatch test.
+- **`group-commits-msg.md`**: the gate multi-choice is guarded by the structural test.
+- Conclusion: No, there is no unit-tested class below 100% that needs completing for Step 7.
 
 ### Feature integrity for Step 7
 
-_(empty — no check has taken place yet.)_.
+- **Existing feature behavior**: `pw skill` keeps its no-argument and forced-skill paths; `--after-commit` is an additive mode, and `group-commits-msg` step 7 only gains the multi-choice.
+- **Reporting or diagnostics**: the contextual command and the not-applicable note keep the stdout and stderr split.
+- **Compatibility**: the `--after-commit` value is a plain string, so a sub-step id such as `4A` is accepted; `run_skill`'s extra parameter defaults to None, so existing callers are unaffected.
+- Conclusion: no existing feature or reporting capability is impaired.
