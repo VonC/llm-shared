@@ -51,7 +51,7 @@ When the check is written and the `Analysis of Step x` status line records the Y
 
 - `pw handoff after-check <x>`
 
-`<x>` is the plan step you just checked — the "step XXXXX" of your prompt, a number such as `2` or a sub-step id such as `4A`. `pw` is the `<llm-shared>\bin\prompt_workflow.bat` launcher (the `pw` alias of the project environment), the same tool the interactive cycle uses.
+`<x>` is the plan step you just checked — the "step XXXXX" of your prompt, a number such as `2` or a sub-step id such as `4A`. `pw` is run through its launcher (see [`run-pw.md`](run-pw.md) for the non-interactive invocation), the same tool the interactive cycle uses.
 
 Run `pw` from a PowerShell shell — the `pw` alias when the project environment is loaded, otherwise `& "$env:LLM_SHARED_DIR\bin\prompt_workflow.bat" handoff after-check <x>`. Do not wrap `bin\prompt_workflow.bat` in a `cmd /d /c "..."` call from a Git Bash or other POSIX shell: that nested `cmd` swallows the launcher's output and its rewrite of `a.prompt.txt` and `a.prompt_memory`, so the handoff does nothing while still returning `0` — a silent no-op. The launcher must print `Prompt for step <x> (commit) ready` on a `Yes` (or `(implement-missing) ready` on a `No`); if you do not see that line, re-run it in PowerShell before going on.
 

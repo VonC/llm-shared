@@ -36,5 +36,23 @@ Run these steps for the document you are reviewing:
 2. `oqm <type>.vX.Y.Z.<topic>.md --create` to start an empty `a.<base>.open.questions.md` companion.
 3. Write your new questions into `a.<base>.open.questions.md`, starting with the `## Open questions for the vX.Y.Z ...` line and following the template.
 4. `oqm <type>.vX.Y.Z.<topic>.md --append` to move the questions from `a.<base>.open.questions.md` into the document.
+5. Present the placed questions in your reply as the mandatory three-column table described in "Presenting the review questions" below — never as a bulleted list.
 
 If the `oqm` alias is not available in your shell, call the script directly with `python <LLM_SHARED_DIR>\tools\open_questions_md.py <type>.vX.Y.Z.<topic>.md <mode>`.
+
+## Presenting the review questions
+
+This step is mandatory, not optional: every time you post open questions, present them in your reply as a compact three-column table — one row per question, never a bulleted list — so the human reads them at a glance:
+
+| Q0x | Title | Recommended Answer |
+| --- | --- | --- |
+| Q01 | Short title of the question | The recommended option, in a few words |
+| Q02 | ... | ... |
+
+The full options, their pros and cons, and the `Answer to Qxx` line stay in the document and its companion (the [`open-question.template.md`](../templates/open-question.template.md) shape); the table is the at-a-glance summary, not a replacement. Use the compact table form of [`../rules/markdown.md`](../rules/markdown.md): one space around each cell, exactly three dashes in each header separator.
+
+## Handoff
+
+The review is a stop, not an automatic chain: a human answers the questions before the consolidation. Leave the next step in two forms rather than running the next skill: the "Next step" command — `/consolidate-then-review-ask-questions on docs/<doc type>.vX.Y.Z.<slug>.md` you just reviewed, carrying the reviewed document name so it is ready to run once the answers are in — and, in addition, a hint: where the host can render a gray, Tab-completable prompt, show that same command as the ghost prompt the human can accept with a keystroke rather than retype (the reliable trigger is still to be studied).
+
+When the review round raises no question at all, do not leave the document with no section: write a one-row decisions table — the consolidate step's `Requirement clarifications`, `Design decisions`, or `Implementation decisions` section, with a single row such as "No open questions, all decisions made" — so the on-disk state reads as settled. From that settled state `pw skill` advances straight to the next phase, skipping a consolidate round.

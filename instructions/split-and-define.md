@@ -29,3 +29,11 @@ They will be used for the future filenames of the feature-request and issue docu
 Again, do not create documents, do not write feature-request or issue in full, only regroup topics from the draft document into a list of feature-requests and issues, and define a key title for each one, with arguments for this choice of title, and two to three words to describe the topic of the feature-request or issue.
 
 Once the list is complete, review that list and change the order of the items, to list the most independent ones first, and the most dependent ones last. The most dependent ones are the ones that will be created last, and that will depend on the implementation of the most independent ones. The most independent ones are the ones that will be created first, and that will not depend on the implementation of any other feature-request or issue.
+
+## Handoff
+
+Once the list is settled, present a multi-choice of the next step and run the chosen one, with no go-ahead beyond the pick. The slugs live only in the split you just defined, not yet as files, so the instruction builds the list (not `pw`): offer one entry per slug, then a free-text entry, and run the selection straight away:
+
+- `/write-requirement on docs/feature-request.vX.Y.Z.<slug1>.md` or `docs/issue.vX.Y.Z.<slug1>.md`, for the first defined slug.
+- `/write-requirement on docs/feature-request.vX.Y.Z.<slug2>.md` or `docs/issue.vX.Y.Z.<slug2>.md`, for the second, and so on — one entry per slug, with no cap, in the order the list defined them.
+- Type something else — a free-text entry, supplied by the LLM and not by `pw`, for any other instruction the author types.
