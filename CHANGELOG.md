@@ -6,6 +6,88 @@ release. The groundhog test loop (ghog), the prompt-workflow cycle (pw),
 and the commit and changelog helpers are mutualized across sibling
 projects.
 
+## [v0.9.0-SNAPSHOT unreleased] Passing the Baton - 943628d20ea038b53c94c1f03e3cba673949a433
+
+pw skill names the next step from the docs on disk, so the phases chain
+
+- Terse beats literary
+  -- pw skill prints one bare command where pw handoff writes a whole prompt
+- Mind the one stop
+  -- the review's Q0x table is the only human-in-the-loop pause left
+
+v0.9.0 makes the document phase of the workflow chain itself. A new pw skill
+subcommand reads the effort documents on disk -- which exist, which carry open
+questions, which are settled -- and prints one bare next-step command,
+host-prefixed for Claude or Codex. The write-requirement, write-design, and
+write-plans skills, and the consolidate skill, end on a `## Handoff` that runs
+`pw skill` and follows the command it prints, so the requirement, design, and plan
+phases advance with no menu and no go-ahead.
+
+The one stop left in the document phase is /review-ask-questions, where a human
+answers a `Q0x | Title | Recommended Answer` table before the chain resumes. The
+commit gate gains the same engine through `pw skill --after-commit`, which derives
+the next action -- the next plan step, prepare-release once the last is
+committed, or nothing for a standalone commit -- and presents it as a
+multi-choice. A shared run-pw.md documents the launcher for any shell.
+
+### Key changes for v0.9.0 (v0.9.0)
+
+- **The pw skill subcommand**: reads the documents on disk and prints the bare
+  next-step command, host-prefixed, with a forced-skill form and an
+  --after-commit mode for the commit gate.
+
+- **Automated document-phase handoffs**: the writing and consolidate
+  instructions chain through pw skill, so requirement, design, and plan advance
+  with no go-ahead, the review the one human-in-the-loop stop.
+
+- **Question table, choice lists, and the pw docs**: review-ask-questions posts
+  a `Q0x | Title | Recommended Answer` table and a next-step hint, process-draft
+  and split-and-define present multi-choice lists, and `run-pw.md` plus the README
+  and DEVELOPMENT pw comparison land, guarded by new test suites.
+
+### 🚀 Features (v0.9.0)
+
+- *(handoff_automation)* Add pw skill module
+- *(handoff_automation)* Pw skill disk routing
+- *(handoff_automation)* Pw skill subcommand
+- *(handoff_automation)* Automated handoffs
+- *(handoff_automation)* Hints and choice lists
+- *(handoff_automation)* Commit-gate multi-choice
+- *(handoff_automation)* Pw skill chains the phases
+
+### 🚜 Refactor (v0.9.0)
+
+- *(codex-plugin)* Nest under llm-shared dir
+
+### 📚 Documentation (v0.9.0)
+
+- *(process-draft)* Fix step 6 untracked rename
+- *(handoff_automation)* Add v0.9.0 effort docs
+- *(handoff_automation)* Record step 1 validation
+- *(handoff_automation)* Commit-gate multi-choice
+- *(handoff_automation)* Align routing prose
+- *(handoff_automation)* Record step 2 validation
+- *(handoff_automation)* Record step 3 validation
+- *(handoff_automation)* Record step 4 validation
+- *(handoff_automation)* Record step 5 validation
+- *(handoff_automation)* Record step 6 validation
+- *(handoff_automation)* Record step 7 validation
+- *(handoff_automation)* Shared run-pw note
+- *(handoff_automation)* Question table and hint
+- *(handoff_automation)* Document pw skill
+
+### 🧪 Testing (v0.9.0)
+
+- *(handoff_automation)* Pw skill acceptance
+- *(handoff_automation)* Guard run-pw links
+- *(handoff_automation)* Guard question table
+
+### ⚙️ Miscellaneous Tasks (v0.9.0)
+
+- *(repo)* Ignore codex runtime, add spell word
+- *(repo)* Editor dictionary words
+- *(vscode)* Add memorising to the dictionary
+
 ## [v0.8.0] - 2026-06-23 - One report, many repos
 
 git-history-report builds one combined dashboard across several repos

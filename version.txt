@@ -1,46 +1,38 @@
-0.8.0 -- One report, many repos
+0.9.0-SNAPSHOT -- Passing the Baton
 
-git-history-report builds one combined dashboard across several repos
+pw skill names the next step from the docs on disk, so the phases chain
 
-- Slice it without a server
-  -- project, type and date filters recompute every chart, plus a leaderboard
-- Notes that outlive the rebuild
-  -- a regenerated figures file beside a hand-kept notes file per project
+- Terse beats literary
+  -- pw skill prints one bare command where pw handoff writes a whole prompt
+- Mind the one stop
+  -- the review's Q0x table is the only human-in-the-loop pause left
 
-v0.8.0 turns the single-repo git_history_dashboard into a multi-project
-report. A new git-history-report skill resolves one or several repo targets,
-tags every commit with its project, and writes one combined dashboard.html
-plus data.json; several repos require `--out-dir`, and the page opens unless
-`--no-open`. The payload gains a project dimension and an author tally, so the
-by_project slices sum back to the top-level series and feed a top-10
-contributor leaderboard. In the browser, a single applyFilters recompute
-redraws every chart and metric card under a project filter, a commit-type
-filter, and a week-indexed date range, and a light/dark toggle remembers a
-manual choice through a data-theme override.
+v0.9.0 makes the document phase of the workflow chain itself. A new pw skill
+subcommand reads the effort documents on disk -- which exist, which carry open
+questions, which are settled -- and prints one bare next-step command,
+host-prefixed for Claude or Codex. The write-requirement, write-design, and
+write-plans skills, and the consolidate skill, end on a `## Handoff` that runs
+`pw skill` and follows the command it prints, so the requirement, design, and plan
+phases advance with no menu and no go-ahead.
 
-The release also splits the hand-written analysis out of the template.
-analysis.py rewrites analysis.generated.md from the figures on every run and
-keeps one `analysis.notes.<project>.md` per project, created once and never
-overwritten, combined and converted to HTML through a uv markdown seam; the
-template is now project-neutral with `__TITLE__` and `__ANALYSIS__` slots and no
-my-project strings. Supporting workflow fixes land too: pw resolves dotted
-sub-step ids and folds hyphen and underscore slugs, the groundhog parser
-strips ANSI color so the counters fill under forced color, and a Codex agents
-plugin manifest carries valid SKILL.md YAML.
+The one stop left in the document phase is /review-ask-questions, where a human
+answers a `Q0x | Title | Recommended Answer` table before the chain resumes. The
+commit gate gains the same engine through `pw skill --after-commit`, which derives
+the next action -- the next plan step, prepare-release once the last is
+committed, or nothing for a standalone commit -- and presents it as a
+multi-choice. A shared run-pw.md documents the launcher for any shell.
 
-### Key changes for v0.8.0
+### Key changes for v0.9.0
 
-- **Multi-repo git-history-report skill**: one skill builds a combined commit
-  dashboard for one or several repos, writes data.json and a self-contained
-  dashboard.html to a chosen `--out-dir`, opens it unless `--no-open`, skips a
-  failing repo, and prints a run summary.
+- **The pw skill subcommand**: reads the documents on disk and prints the bare
+  next-step command, host-prefixed, with a forced-skill form and an
+  --after-commit mode for the commit gate.
 
-- **In-page filters and a contributor leaderboard**: a single applyFilters
-  recompute sums the visible by_project slices and redraws every widget under
-  project, type and date filters, with a top-10 author leaderboard and a
-  remembered light/dark toggle.
+- **Automated document-phase handoffs**: the writing and consolidate
+  instructions chain through pw skill, so requirement, design, and plan advance
+  with no go-ahead, the review the one human-in-the-loop stop.
 
-- **Split analysis files and a project-neutral template**: a regenerated
-  `analysis.generated.md` and a hand-kept `analysis.notes.<project>.md` per
-  project, combined through a uv markdown seam into the `__ANALYSIS__` slot,
-  with the my-project strings gone.
+- **Question table, choice lists, and the pw docs**: review-ask-questions posts
+  a `Q0x | Title | Recommended Answer` table and a next-step hint, process-draft
+  and split-and-define present multi-choice lists, and `run-pw.md` plus the README
+  and DEVELOPMENT pw comparison land, guarded by new test suites.
