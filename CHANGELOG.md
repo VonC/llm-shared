@@ -6,7 +6,7 @@ release. The groundhog test loop (ghog), the prompt-workflow cycle (pw),
 and the commit and changelog helpers are mutualized across sibling
 projects.
 
-## [v0.9.0-SNAPSHOT unreleased] Passing the Baton - 943628d20ea038b53c94c1f03e3cba673949a433
+## [v0.9.0] - 2026-06-25 - Passing the Baton
 
 pw skill names the next step from the docs on disk, so the phases chain
 
@@ -55,6 +55,10 @@ multi-choice. A shared run-pw.md documents the launcher for any shell.
 - *(handoff_automation)* Commit-gate multi-choice
 - *(handoff_automation)* Pw skill chains the phases
 
+### 🐛 Bug Fixes (v0.9.0)
+
+- *(release-notes)* Drop the doubled version heading
+
 ### 🚜 Refactor (v0.9.0)
 
 - *(codex-plugin)* Nest under llm-shared dir
@@ -75,6 +79,7 @@ multi-choice. A shared run-pw.md documents the launcher for any shell.
 - *(handoff_automation)* Shared run-pw note
 - *(handoff_automation)* Question table and hint
 - *(handoff_automation)* Document pw skill
+- *(release-notes)* Un-double the v0.9.0 heading
 
 ### 🧪 Testing (v0.9.0)
 

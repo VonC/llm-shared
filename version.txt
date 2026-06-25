@@ -1,4 +1,4 @@
-0.9.0-SNAPSHOT -- Passing the Baton
+0.9.0 -- Passing the Baton
 
 pw skill names the next step from the docs on disk, so the phases chain
 
