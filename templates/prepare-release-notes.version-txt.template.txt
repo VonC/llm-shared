@@ -16,7 +16,7 @@ Main secondary theme for this release, if applicable, using multiple
 sentences to describe any additional focus areas, features, or
 improvements that are part of this release but are not the main theme.
 
-### Key changes for vX.Y.Z
+### Key changes
 
 - **Key change 1**: A brief description of the key change, its impact,
   and any relevant details. Specific terms and features should be
