@@ -81,7 +81,9 @@ Write `<PRJ_DIR>/version.txt` following the template
 - Then three witty title / sub-title pairs.
 - Then the main theme paragraph, and an optional secondary theme
   paragraph, with concrete and specific terms — no generalities.
-- Then a `### Key changes for vX.Y.Z` list of three key changes.
+- Then a `### Key changes` list of three key changes (do not add the
+  version: the changelog tooling labels each `###` section with the version,
+  so `### Key changes for vX.Y.Z` would render the version twice).
 
 Writing constraints:
 
