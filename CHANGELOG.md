@@ -30,7 +30,7 @@ the next action -- the next plan step, prepare-release once the last is
 committed, or nothing for a standalone commit -- and presents it as a
 multi-choice. A shared run-pw.md documents the launcher for any shell.
 
-### Key changes for v0.9.0 (v0.9.0)
+### Key changes (v0.9.0)
 
 - **The pw skill subcommand**: reads the documents on disk and prints the bare
   next-step command, host-prefixed, with a forced-skill form and an
