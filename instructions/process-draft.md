@@ -118,18 +118,22 @@ flags so the tool prompts for nothing: the draft path, `--slug`, `--version`, an
 `--worktree` or `--in-place`. The tool checks the slug for a collision, creates the
 branch with `git switch -c <slug>` in the current tree or a sibling worktree with
 `git worktree add -b <slug>`, then places the draft as `draft.vX.Y.Z.<slug>.md`
-inside the chosen tree. In the current tree the rename is a `git mv`; for a worktree
-the tool reads the draft text, writes it under the worktree's `docs`, stages it, and
-drops the source, so a draft that is not yet committed still moves across. Because
+inside the chosen tree. In the current tree the rename is a `git mv` when the draft is
+already tracked, or a plain file rename when it is still untracked; for a worktree the
+tool reads the draft text, writes it under the worktree's `docs`, stages it, and drops
+the source. Either way, a draft that is not yet committed still moves across. Because
 the tool creates the tree first and writes the draft inside it, there is no
 cross-tree file move to do by hand.
 
 ## Step 7 for process-draft, hand off to the next instruction
 
-Hand off based on the topic count recorded in step 2:
+Present a multi-choice of the next step and run the chosen one, with no go-ahead beyond the pick. `pw skill` (run via its launcher, see [`run-pw.md`](run-pw.md)) supplies the produced `draft.vX.Y.Z.<slug>.md` name; offer these and run the selection straight away:
 
-- One topic (one feature-request or one issue, including the single-requirement exception from step 2): follow the `write-requirement` instruction (see [`write-requirement.md`](write-requirement.md)). Pass the type from step 2, the version as `vX.Y.Z` from step 5, and the topic as the slug from step 4.
-- More than one topic: follow the `split-and-define` instruction (see [`split-and-define.md`](split-and-define.md)) against the renamed `draft.vX.Y.Z.<slug>.md`, which regroups the topics into a list of feature-requests and issues before any requirement document is written.
+- `/write-requirement on docs/draft.vX.Y.Z.<slug>.md` — one topic (one feature-request or issue, including the single-requirement exception from step 2); pass the type from step 2, the version as `vX.Y.Z` from step 5, and the slug from step 4.
+- `/split-and-define on docs/draft.vX.Y.Z.<slug>.md` — more than one topic, regrouped into a list of feature-requests and issues before any requirement is written.
+- Type something else — a free-text entry, supplied by the LLM and not by `pw`, for any other instruction the author types.
+
+Pre-select the entry the step-2 topic count points at (`write-requirement` for one topic, `split-and-define` for several), and leave the other two for the author to pick.
 
 ## Design decisions for process-draft
 
@@ -146,4 +150,4 @@ turned down.
 | Multi-topic naming | One umbrella slug and version name the draft and branch; per-topic keys come from `split-and-define` | Q05 | Steps 4, 5 | Skip naming until the split; branch the flow by topic count |
 | Body edits | Light touch: set the heading and the `- Type:` line, leave the body | Q06 | Steps 2, 3 | Reshape to the skeleton; record the type only in the hand-off |
 | Tool interface | `--from-draft` takes the slug, version, and layout as flags and prompts for nothing | Q07 | Step 6 | Re-prompt interactively; hybrid flag-or-prompt |
-| Draft relocation | Read the text and write it into the chosen tree, stage it, drop the source; `git mv` in place | Q08 | Step 6 | Require a commit first; rename then move into the worktree |
+| Draft relocation | Read the text and write it into the chosen tree, stage it, drop the source; in place `git mv` a tracked draft or plain-rename an untracked one | Q08 | Step 6 | Require a commit first; rename then move into the worktree |

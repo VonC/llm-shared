@@ -437,21 +437,27 @@ pass gives the model a fresh chance to find contradictions or missing
 context in a document it just helped to shape, and to point those out
 as open questions before they become code.
 
+In the diagram, `== pw skill ==>` marks an automated handoff (a skill ends by
+running `pw skill` and runs the command it prints, with no "go ahead"), and
+`[STOP]` marks the one human-in-the-loop pause.
+
 ```txt
    +---------------------------------+
-   |  document under review          |
-   |  (requirement, design, or plan) |
-   +-------+-------------------------+
+   |  document just written          |  the writing skill ends by running
+   |  (requirement, design, or plan) |  pw skill, which prints the command
+   +-------+-------------------------+  below; the model runs it
            |
-           |  /review-ask-questions
-           |  (appends Qxx blocks: options,
-           |   pros, cons, recommended choice)
+           |  == pw skill ==>  /review-ask-questions
+           |  (appends Qxx blocks: options, pros, cons,
+           |   recommended choice; posts the
+           |   Q0x | Title | Recommended Answer table)
            v
    +---------------------------------+
-   |  doc with open questions        |
+   |  doc with open questions        |  [STOP] the review is the one
+   |  + Q0x table + next-step hint   |  human-in-the-loop pause
    +-------+-------------------------+
            |
-           |  user picks one answer per Qxx
+           |  a human picks one answer per Qxx
            v
    +---------------------------------+
    |  answered doc                   |
@@ -463,15 +469,18 @@ as open questions before they become code.
            |   appends new Qxx only if needed)
            v
    +---------------------------------+
-   |  consolidated doc               |----+  new open questions?
-   |                                 |    |  yes -> /review-ask-questions
-   |                                 |<---+  (loop)
+   |  consolidated doc               |----+  new questions? == pw skill ==>
+   |                                 |    |  /review-ask-questions again
+   |                                 |<---+  (another round, back to [STOP])
    +-------+-------------------------+
            |
-           |  no more open questions
+           |  settled (decision table in place)
+           |  == pw skill ==>  the next phase: /write-design,
+           |  /write-plans, or /implement-step
            v
    +---------------------------------+
-   |  doc approved for next phase    |
+   |  doc approved, handed to the    |
+   |  next phase with no go-ahead    |
    +---------------------------------+
 ```
 
@@ -486,34 +495,43 @@ as open questions before they become code.
 5. Repeat the two skills until the requirement is clear enough to design and
   plan.
 
+These steps now chain themselves through `pw skill`: the writing skill runs it to
+reach step 1, and `/consolidate` runs it to loop back to step 1 when new
+questions remain, or to hand off to the next phase once the document settles. The
+only action left in the loop is answering the `Q0x | Title | Recommended Answer`
+table at the review stop  --  see
+[Automated document phase with pw skill](#automated-document-phase-with-pw-skill).
+
 ## Design and planning flow for each approved requirement
+
+As in the review-loop diagram, `== pw skill ==>` is an automated handoff (no "go
+ahead") and `[STOP]` is the human-in-the-loop review pause.
 
 ```txt
    +---------------------------------+
    |  approved requirement doc       |
    +-------+-------------------------+
            |
-           |  /write-design
+           |  == pw skill ==>  /write-design
            v
    +---------------------------------+
-   |                                 |----+
-   |  docs\design.vX.Y.Z.<topic>.md  |    |  /review-ask-questions
-   |  (scope, constraints, target    |    |  /consolidate-then-review-...
-   |   behavior, design areas)       |<---+  (loop until stable)
+   |                                 |----+  == pw skill ==> /review-ask-questions
+   |  docs\design.vX.Y.Z.<topic>.md  |    |  [STOP] human answers the Q0x table;
+   |  (scope, constraints, target    |<---+  /consolidate loops here on new
+   |   behavior, design areas)       |       questions
    +-------+-------------------------+
            |
-           |  /write-plans
+           |  settled == pw skill ==>  /write-plans
            v
    +---------------------------------+
-   |  docs\plan.vX.Y.Z.<topic>.md    |----+
-   |    (execution plan)             |    |  /review-ask-questions
-   |                                 |<---+  /consolidate-then-review-...
-   |  docs\plan.vX.Y.Z.<topic>.      |       (loop on the plan document only,
-   |       validation.md             |        until it is stable; the
-   |    (validation template)        |        validation plan is not reviewed)
+   |  docs\plan.vX.Y.Z.<topic>.md    |----+  == pw skill ==> /review-ask-questions
+   |    (execution plan)             |    |  [STOP] human answers (plan only);
+   |  docs\plan.vX.Y.Z.<topic>.      |<---+  /consolidate loops here on new
+   |       validation.md             |       questions (the validation plan is
+   |    (validation template)        |       not reviewed)
    +-------+-------------------------+
            |
-           |  plan ready for step-by-step execution
+           |  settled == pw skill ==>  /implement-step (step 1)
            v
    +---------------------------------+
    |  ready to /implement-step       |
@@ -541,6 +559,172 @@ as open questions before they become code.
   questions remain. The `pw` workflow wires this as steps 8 and 9, between
   `/write-plans` (step 7) and the first `/implement-step` (step 10), so a plan is
   always reviewed the way the requirement and design are.
+
+## Automated document phase with pw skill
+
+The review loop, the design step, and the planning step no longer need a
+separate trigger each: `pw skill` chains them the way `pw handoff` chains the
+implement cycle. `pw skill` is the read-only mode of the prompt-workflow launcher
+(`bin\prompt_workflow.bat skill`). It reads the effort's documents under `docs\`,
+works out which phase is done, and prints one bare next-step command; the writing
+and consolidate skills end by running it and following that command, so the
+document phase advances with no menu and no "go ahead".
+
+### What pw skill derives from disk
+
+`pw skill` resolves the topic from the branch and the `docs\` tree (the same
+resolution the interactive `pw` uses), then maps the on-disk state to a command:
+
+- a fresh draft with no requirement yet  --  `/process-draft`.
+- a requirement, design, or plan that still carries an `## Open questions`
+  section  --  `/consolidate-then-review-ask-questions` (answers are waiting to
+  be folded).
+- a requirement whose decision table is in place (settled)  --  `/write-design`.
+- a settled design  --  `/write-plans`; a settled plan  --  `/implement-step`.
+
+The printed command carries the host prefix the session needs: `/` when
+`CLAUDECODE` is set, `$` when `CODEX_THREAD_ID` is set, and `pw skill --host
+claude|codex` forces it. `pw skill <skill-name>` is the forced form: it prints a
+named earlier skill's command when that skill's document exists, to re-run a
+phase by hand without waiting for it to be the derived next step.
+
+### The handoffs that wire the document phase
+
+Like the implement cycle, the chain is wired by the `## Handoff` section of each
+skill body:
+
+- `/write-requirement`, `/write-design`, and `/write-plans` each end on a
+  `## Handoff` that runs `pw skill` and runs the `/review-ask-questions` it
+  prints. The argument phrase `stop here` holds the chain at the writing step, so
+  the author can read the document before the review fires.
+- `/consolidate-then-review-ask-questions` ends on a `## Handoff` that, once the
+  document is settled, runs `pw skill` to reach the next phase. When the round
+  still raises questions, it appends them and stops for another review round
+  instead.
+- `/process-draft` and `/split-and-define` end on a multi-choice rather than a
+  single handoff: process-draft offers `/write-requirement` or
+  `/split-and-define` on the produced draft, and split-and-define offers one
+  `/write-requirement` per slug it just defined  --  each list closing with a
+  free-text "Type something else" entry.
+
+### Where the document chain stops
+
+`/review-ask-questions` is the deliberate stop. It is a review, so a human
+answers before anything else runs: the skill posts its open questions as a
+`Q0x | Title | Recommended Answer` table (a numbered, mandatory step in the skill
+body) and leaves the next-step command both as plain text and, where the host
+renders it, as a Tab-completable hint  --  but it does not run the next skill.
+When a review round raises no question at all, the skill writes a one-row
+decision table instead, so the document reads as settled and `pw skill` advances
+straight to the next phase, skipping a consolidate round.
+
+### The commit-gate multi-choice with pw skill --after-commit
+
+The implement chain's commit gate uses the same engine through a dedicated mode.
+`group-commits-msg` runs `pw skill --after-commit <x>`, where `<x>` is the plan
+step the commit completes. Because the gate is shown before the commit lands,
+`pw skill` treats that step as done and derives the action after it: the next
+plan step's `/implement-step` while steps remain, `/prepare-release` once the
+last step is committed, or nothing for a standalone commit with no plan. The gate
+presents that as a multi-choice  --  a constant `go ahead`, the contextual
+option, and a free-text entry  --  so a plain `go ahead` commits and stops, and
+the contextual option commits and chains on only after the commit succeeds.
+
+### Running pw skill from a tool shell
+
+`pw skill`, like every `pw` command, is documented for non-interactive shells in
+[`instructions/run-pw.md`](instructions/run-pw.md). The bare `pw` Doskey alias
+only resolves in an interactive `cmd`, so a tool shell calls the launcher by its
+full path  --  `& "<LLM_SHARED_DIR>\bin\prompt_workflow.bat" skill` from
+PowerShell. The launcher self-locates its `llm-shared` virtual environment, so no
+`senv.bat` activation is needed first.
+
+## How pw, pw handoff, and pw skill differ
+
+`pw` is one launcher  --  the `pw` Doskey alias to `bin\prompt_workflow.bat`,
+which runs `tools\prompt_workflow.py`. It answers a single question, "what is the
+next step of this effort?", in three modes. They share the same front half and
+differ only in who chooses the step, what they emit, and who calls them.
+
+### The shared core of every pw mode
+
+Whatever the mode, `pw` first does the same work:
+
+- **Resolve the topic.** From the current branch and the drafts under `docs\`, it
+  locks onto one effort (its version `vX.Y.Z` and slug), recording the result in
+  `a.prompt_memory` so a later call stays on the same topic.
+- **Read the workflow state.** It scans the effort's documents on disk  --  which
+  of draft, requirement, design, plan, and validation plan exist, whether each
+  carries open questions or a settled decision table, and which plan steps are
+  done  --  to work out which phase the effort is in.
+- **Know the host.** It reads `CLAUDECODE` / `CODEX_THREAD_ID` so any command or
+  prompt it emits carries the right slash (`/`) or dollar (`$`) prefix.
+
+Only after that shared core do the three modes diverge.
+
+### pw (interactive): the human driver
+
+Run bare, `pw` is the hands-on driver. It shows an interactive menu of the
+candidate next steps, the author picks one, and `pw` writes the full prompt for
+that step to `a.prompt.txt` (and the clipboard, and `a.prompt_memory`). It is what
+a person runs to walk the workflow a step at a time without memorising the order.
+The step is chosen by a human, from a menu.
+
+### pw handoff: the verbose prompt builder for the implement cycle
+
+`pw handoff <task> <x>` takes the menu away: the step `<x>` is given, so it writes
+the full next-step prompt for that step straight to `a.prompt.txt`. It is
+"literary" on purpose  --  it assembles a complete, contextual prompt:
+
+- the plan step number and the step title it reads from the plan,
+- for the commit task, the staged set it gathered with `git add -A`,
+- for `after-check`, the branch it picked by reading the `Analysis of Step x`
+  Yes/No verdict.
+
+That context is exactly what the next cycle instruction
+(`implementation-check.md`, `implement-missing-step.md`, `group-commits-msg.md`)
+needs and what a bare command could not carry: a slash command does not hold the
+step title, the staged files, or the verdict-driven branch. So `pw handoff` builds
+the prompt in full and leaves it in `a.prompt.txt` for the model to follow. It is
+called by the `## Handoff` sections of the implement-cycle instructions (see
+[Automated implement chain with pw handoff](#automated-implement-chain-with-pw-handoff)).
+
+### pw skill: the terse command router for the document phase
+
+`pw skill` keeps the no-menu behaviour but changes what it emits: instead of a
+full prompt in a file, it prints one bare command line to stdout, for example
+`/review-ask-questions on docs\design.vX.Y.Z.<slug>.md`. It is "terse" on purpose
+ --  the document-phase next step is a self-contained slash skill
+(`/review-ask-questions`, `/write-design`, `/write-plans`, `/implement-step`) that
+loads its own full instruction body when it runs, so naming the command and its
+document is enough. The verbosity is not dropped, only deferred to the skill the
+command names. `pw skill` is called by the `## Handoff` sections of the writing
+and consolidate instructions, and the commit gate calls `pw skill --after-commit
+<x>` for its contextual option (see
+[Automated document phase with pw skill](#automated-document-phase-with-pw-skill)).
+
+### Is "literary versus terse" a fair description?
+
+It is, with one nuance. `pw handoff` is verbose because it must build the next
+prompt inline: the implement-cycle instruction it hands to needs assembled context
+(step title, staged files, Yes/No branch) that lives nowhere else. `pw skill` is
+terse because the document-phase skill it names builds its own context on
+invocation, so a one-line command suffices. Both ultimately drive a full
+instruction; the difference is whether `pw` assembles that instruction's prompt
+(`pw handoff`) or just points at the skill that will (`pw skill`).
+
+### Side-by-side of the three modes
+
+| Mode | Step chosen by | Emits | Channel | Called by |
+| --- | --- | --- | --- | --- |
+| `pw` | a human, from a menu | a full next-step prompt | `a.prompt.txt` + clipboard + `a.prompt_memory` | a person driving by hand |
+| `pw handoff <task> <x>` | the caller (step is given) | a full, assembled cycle prompt | `a.prompt.txt` + clipboard + `a.prompt_memory` | the implement-cycle handoffs |
+| `pw skill [name]` | `pw`, derived from the docs on disk | one bare command line | stdout | the document-phase handoffs and the commit gate |
+
+All three run the same way from a tool shell (`bin\prompt_workflow.bat <args>`,
+the launcher self-locating its venv); see
+[`instructions/run-pw.md`](instructions/run-pw.md). The bare `pw` Doskey alias
+only resolves in an interactive `cmd`.
 
 ## Conventional commit message template: why and what beyond changelog
 
@@ -751,8 +935,10 @@ fully completed implementation step.
    |        | (git add -A variant)  |                                  |
    |        +-----------+-----------+                                  |
    +==================== ==============================================+
-                        |  chain ends: a.commit holds the grouped
-                        |  commit messages, ready for review
+                        |  chain ends at the [STOP] commit gate: a.commit
+                        |  is presented with a pw skill --after-commit <x>
+                        |  multi-choice (go ahead | go ahead, implement step
+                        |  <next> | prepare-release)
                         v
                 +---------------------------------+
                 |  a.commit reviewed, "go ahead"  |

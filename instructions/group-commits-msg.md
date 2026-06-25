@@ -47,7 +47,7 @@ The context that can inform how you will group those files can be:
 
    The tool rewrites `a.commit` in place. An exit status of 0 means the file is now canonically formatted (whether or not changes were applied); a non-zero status means the file is missing or unreadable and the underlying issue must be fixed before proceeding.
 
-7. Once `a.commit` is generated and formatted, display it for user review, and ask the user if they want to edit it. If the user wants to edit it, allow them to edit it, and then save the final version of the groups and commit messages in `a.commit`.
+7. Once `a.commit` is generated and formatted, display it for user review (the author may edit it first), then present the next-step choices and run the one chosen. Run `pw skill --after-commit <x>` (via its launcher, see [`run-pw.md`](run-pw.md)) from the project root, where `<x>` is the plan step this commit completes (the "step XXXX" of the cycle), to get the contextual option, and offer: a constant `go ahead` (commit, then stop); the contextual option when a development effort is in flight -- `go ahead, and implement step <next>` for the next plan step, or `go ahead and prepare-release` once every step is committed (a standalone call with no plan prints nothing and exits non-zero, so only `go ahead` shows); and a `Type something else` free-text entry, supplied here and not by `pw`. Plain `go ahead` commits and then stops; the contextual option commits and, only after the commit succeeds, runs `/implement-step` on the next step or `/prepare-release`.
 
 8. When the user says "go ahead", validate the `a.commit` file, and if it is not valid, fix any issue reported by the validation.
 

@@ -94,6 +94,13 @@ the rows no longer need a separate trigger each. One `pw handoff` call at
 the end of each step writes the next prompt and the chain runs itself  --
 see [Automated implement cycle with pw handoff](#automated-implement-cycle-with-pw-handoff).
 
+The document rows above (define  --  review  --  consolidate  --  design  --
+plan) chain the same way through `pw skill`: each writing and consolidate skill
+ends by running `pw skill` and following the command it prints, so the only
+trigger the author types is the first one, and the only human-in-the-loop stop
+is `/review-ask-questions`  --  see
+[Automated document phase with pw skill](#automated-document-phase-with-pw-skill).
+
 ---
 
 ## Conventional commits with a why/what body
@@ -144,6 +151,14 @@ shows the main phases and which skill triggers each transition. See
 [DEVELOPMENT.md](DEVELOPMENT.md) for per-phase details and helper diagrams.
 
 ```txt
+Legend for the transitions:
+  -- /skill -->     the model runs that skill and writes the artifact
+  == pw skill ==>   an automated handoff: the writing or consolidate skill
+                    ends by running pw skill, reads the bare next-step command
+                    it prints (a "/" prefix for Claude, "$" for Codex), and
+                    runs it with no "go ahead"
+  [STOP ...]        the only human-in-the-loop pauses in the whole flow
+
                   +-----------------+
                   |  raw draft note |
                   +--------+--------+
@@ -153,15 +168,15 @@ shows the main phases and which skill triggers each transition. See
                            |  create the effort branch)
                            v
                   +-----------------+
-                  | named, branched |
-                  |   draft (EdB)   |
+                  | named, branched |  process-draft ends on a multi-choice
+                  |   draft (EdB)   |  (pw skill names the produced draft):
                   +--------+--------+
                            |
               +------------+------------+
               |                         |
        single requirement?       multiple items?
        /write-requirement        /split-and-define
-       (skip the split)                  |
+       (skip the split)          (one /write-requirement per slug)
               |                          v
               |                  +-----------------+
               |                  | requirement     |
@@ -174,28 +189,28 @@ shows the main phases and which skill triggers each transition. See
               +------------+--------------+
                            v
                   +-----------------+
-                  |                 |----+
-                  | requirement doc |    |  /review-ask-questions
-                  |                 |<---+  /consolidate-then-review-ask-questions
-                  +--------+--------+       (loop while open questions remain)
+                  |                 |----+  == pw skill ==> /review-ask-questions
+                  | requirement doc |    |  [STOP] a human answers the Q0x | Title |
+                  |                 |<---+  Recommended table; /consolidate folds them
+                  +--------+--------+       and loops here, or settles
                            |
-                           |  /write-design
+                           |  settled == pw skill ==> /write-design
                            v
                   +-----------------+
-                  |                 |----+
-                  |   design doc    |    |  /review-ask-questions
-                  |                 |<---+  /consolidate-then-review-ask-questions
-                  +--------+--------+       (loop while open questions remain)
+                  |                 |----+  == pw skill ==> /review-ask-questions
+                  |   design doc    |    |  [STOP] a human answers the Q0x table;
+                  |                 |<---+  /consolidate loops here, or settles
+                  +--------+--------+
                            |
-                           |  /write-plans
+                           |  settled == pw skill ==> /write-plans
                            v
                   +-----------------+
-                  |     plan +      |----+
-                  | validation plan |    |  /review-ask-questions
-                  |                 |<---+  /consolidate-then-review-ask-questions
-                  +--------+--------+       (loop on the plan only, not the
-                           |                 validation plan)
-                           |  /implement-step N   (enters the chain)
+                  |     plan +      |----+  == pw skill ==> /review-ask-questions
+                  | validation plan |    |  [STOP] a human answers the Q0x table
+                  |                 |<---+  (plan only); /consolidate loops or settles
+                  +--------+--------+
+                           |
+                           |  settled == pw skill ==> /implement-step N (enters chain)
                            v
    +=================================================================+
    |  Automated implement chain  --  pw handoff wires each box       |
@@ -220,8 +235,10 @@ shows the main phases and which skill triggers each transition. See
    |              | a.commit        |                                |
    |              +--------+--------+                                |
    +======================= =========================================+
-                           |  chain ends: a.commit holds the grouped
-                           |  commit messages, ready for review
+                           |  chain ends at the [STOP: commit gate]: a.commit
+                           |  is presented with a multi-choice supplied by
+                           |  pw skill --after-commit <x> -- "go ahead" |
+                           |  "go ahead, implement step <next>" | "prepare-release"
                            v
                   +-----------------+
                   | step N          |----+  "go ahead" -> gcba replays
@@ -258,6 +275,18 @@ menu and no go-ahead until `a.commit` is written. See
 [Automated implement cycle with pw handoff](#automated-implement-cycle-with-pw-handoff)
 for how each transition fires.
 
+The document phase before that box now chains the same way, driven by
+`pw skill` rather than `pw handoff`. Each writing skill (`/write-requirement`,
+`/write-design`, `/write-plans`) ends by running `pw skill`, which reads the
+documents on disk and prints the next command  --  the matching
+`/review-ask-questions`  --  which the model then runs with no go-ahead. The
+review is the one stop: a human answers the `Q0x | Title | Recommended Answer`
+table, then `/consolidate-then-review-ask-questions` folds the answers and,
+once the document is settled, runs `pw skill` again to hand off to the next
+phase (design, plan, or the implement chain). See
+[Automated document phase with pw skill](#automated-document-phase-with-pw-skill)
+for how each handoff fires and where the chain stops.
+
 The flow opens and closes with one skill each. `/process-draft` turns a
 loose draft note into a named, classified, branched effort ready to spec
 (see [DEVELOPMENT.md  --  Draft capture for a feature or fix](DEVELOPMENT.md#draft-capture-for-a-feature-or-fix)).
@@ -274,6 +303,33 @@ describes a single, self-contained requirement, the author can call
 `/split-and-define` when the draft mixes several distinct items, when
 the items differ in dependency order, or when the author wants the skill
 to suggest a slug per item.
+
+---
+
+## pw: one launcher, three modes
+
+`pw` is a single launcher (`bin\prompt_workflow.bat`, wrapping
+`tools\prompt_workflow.py`) with three ways to answer "what is the next step?".
+All three resolve the topic from the branch and the `docs\` tree and read the
+same workflow state; they differ in who picks the step, what they emit, and who
+calls them.
+
+| Mode | Step chosen by | Emits | Used by |
+| --- | --- | --- | --- |
+| `pw` | a human, from a menu | a full next-step prompt in `a.prompt.txt` | a person driving the workflow by hand |
+| `pw handoff <task> <x>` | the caller (the step is given) | a full, assembled cycle prompt in `a.prompt.txt` | the implement-cycle handoffs |
+| `pw skill` | `pw`, derived from the docs on disk | one bare command line on stdout | the document-phase handoffs and the commit gate |
+
+`pw handoff` is the verbose one: it assembles a complete prompt  --  the plan
+step number, the step title read from the plan, the staged set, the Yes/No
+branch  --  because the next cycle instruction needs that context built for it.
+`pw skill` is the terse one: it prints only the bare command (for example
+`/review-ask-questions on docs\design.vX.Y.Z.<slug>.md`), because that command is
+a standard slash skill that loads its own full instructions when it runs. So the
+verbosity is not lost with `pw skill`, only deferred to the skill it names.
+
+See [DEVELOPMENT.md  --  How pw, pw handoff, and pw skill differ](DEVELOPMENT.md#how-pw-pw-handoff-and-pw-skill-differ)
+for the shared core, the per-mode detail, and when to reach for each.
 
 ---
 
@@ -330,6 +386,74 @@ wired into the workflow by the `## Handoff` section of each cycle
 instruction (`implement-step.md`, `implement-missing-step.md`, and
 `implementation-check.md`); the same chain is drawn step by step in
 [DEVELOPMENT.md  --  Step execution loop from the plan](DEVELOPMENT.md#step-execution-loop-from-the-plan).
+
+---
+
+## Automated document phase with pw skill
+
+Before the implement chain, the document phase  --  requirement, design, and
+plan  --  chains the same way, driven by `pw skill` instead of `pw handoff`.
+`pw skill` is the prompt-workflow launcher's read-only router: it reads the
+effort's documents on disk, works out which phase is done and which comes next,
+and prints one bare next-step command. The writing and consolidation skills end
+by running it and following that command, so the document phase advances with no
+menu and no "go ahead".
+
+### What pw skill prints
+
+`pw skill` resolves the topic from the branch and the `docs\` tree, then derives
+the next command from what is on disk:
+
+- a fresh draft  --  `/process-draft on docs\draft.vX.Y.Z.<slug>.md`.
+- a requirement, design, or plan that still has open questions  --
+  `/consolidate-then-review-ask-questions on ...` (answers are waiting to fold).
+- a settled requirement (its decision table is in place)  --  `/write-design`.
+- a settled design  --  `/write-plans`; a settled plan  --  `/implement-step`.
+
+The command carries the host prefix: `/` in a Claude session (`CLAUDECODE`), `$`
+in a Codex one (`CODEX_THREAD_ID`), overridable with `pw skill --host`. The
+forced form `pw skill <skill-name>` prints a specific earlier skill's command
+when its document exists, to re-run a phase by hand.
+
+### The handoffs that chain the document phase
+
+The `## Handoff` section of each document skill wires the chain:
+
+- `/write-requirement`, `/write-design`, and `/write-plans` each end by running
+  `pw skill`, which prints the matching `/review-ask-questions`; the model runs
+  it straight away. Passing `stop here` to the writing skill holds the chain so
+  the author can read the document before the review.
+- `/consolidate-then-review-ask-questions`, once it has folded every answer and
+  the document reads as settled, runs `pw skill` to hand off to the next phase
+  (`/write-design`, `/write-plans`, or `/implement-step`).
+
+### Where the document chain stops
+
+`/review-ask-questions` is the one stop in the document phase: it is a review, so
+a human answers before anything else runs. The skill posts its open questions as
+a `Q0x | Title | Recommended Answer` table and leaves the next-step command both
+as plain text and, where the host renders it, as a Tab-completable hint  --  but
+it does not run the next skill itself. When a review round raises no question at
+all, the skill writes a one-row decision table instead, so the document reads as
+settled and `pw skill` advances straight to the next phase, skipping a
+consolidate round.
+
+### The commit-gate multi-choice
+
+At the end of the implement chain, the commit gate uses the same engine. The
+`group-commits-msg` skill runs `pw skill --after-commit <x>`, which  --  told the
+plan step `<x>` the commit completes  --  derives the contextual next action: the
+next plan step's `/implement-step` while steps remain, `/prepare-release` once
+the last step is committed, or nothing for a standalone commit with no plan. The
+gate presents that as a multi-choice  --  a constant `go ahead`, the contextual
+option, and a free-text entry  --  so a plain `go ahead` commits and stops, while
+the contextual option commits and chains on only after the commit succeeds.
+
+The launcher itself is documented for any shell in
+[`instructions/run-pw.md`](instructions/run-pw.md): the bare `pw` Doskey alias
+only resolves in an interactive `cmd`, so a tool shell calls
+`bin\prompt_workflow.bat` directly  --  it self-locates its venv, with no
+`senv.bat` needed.
 
 ---
 
@@ -692,6 +816,7 @@ command name and the instruction file name are always the same.
 | Local helper scripts | draft | Windows (`cmd.exe` with Doskey) | Includes `senv.bat`, `git_batch_commit.py`, and `git_command.py`. |
 | Groundhog pytest loop | draft | Claude Code (VS Code + CLI), ChatGPT Codex | `ghog day` walk, `ghog init` registration, LLM fixing loop; see `GROUNDHOG.md`. |
 | Prompt-workflow handoff | draft | Claude Code (VS Code + CLI) | `pw handoff` chains implement-step, check, implement-missing, and the `a.commit` group-commit step with no menu. |
+| Prompt-workflow skill | draft | Claude Code (VS Code + CLI), ChatGPT Codex | `pw skill` chains the document phase (write -> review -> consolidate -> next phase) and feeds the commit-gate multi-choice via `--after-commit`. |
 
 ---
 
@@ -720,8 +845,10 @@ the shared skill bodies. The Doskey aliases are documented in detail in
 | `ptanc` | Doskey alias to `ghog affected --no-cov`: the fast focused pass with coverage off. |
 | `pts` | Doskey alias to `ghog single <test files>`: named test files in focus, coverage off, compared with the last full-run baseline. |
 | `ptr` | Doskey alias to `ghog full`: resets `.testmondata`, reruns the suite with coverage against the gate; the objective verdict. |
-| `pw` | Doskey alias to `bin\prompt_workflow.bat` (`tools\prompt_workflow.py`); builds the next cycle prompt, interactively or via `pw handoff <task> <x>`. |
-| `pw handoff` | The non-interactive `pw handoff <task> <x>` subcommand; writes the next step prompt with no menu, the engine of the automated chain. |
+| `pw` | Doskey alias to `bin\prompt_workflow.bat` (`tools\prompt_workflow.py`); builds the next cycle prompt, interactively or via `pw handoff <task> <x>` and `pw skill`. |
+| `pw handoff` | The non-interactive `pw handoff <task> <x>` subcommand; writes the next step prompt with no menu, the engine of the automated implement chain. |
+| `pw skill` | The read-only `pw skill` subcommand; reads the docs on disk and prints the bare next-step command (host-prefixed `/` for Claude or `$` for Codex), the engine of the automated document phase. |
+| `pw skill --after-commit` | The commit-gate form; told the just-committed plan step, prints the contextual next action (the next `/implement-step`, `/prepare-release`, or nothing). |
 | `Qxx` block | An open-question block appended by the review skills (options + recommended choice). |
 | `ruffc` | Doskey alias to `ruff check`. |
 | `vX.Y.Z` | Working version slug used in every artifact filename (draft, requirement, design, plan). |

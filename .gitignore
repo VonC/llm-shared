@@ -108,5 +108,7 @@ senv.local.bat
 *.exe
 *.exe.*
 **/.local/bin/
+*.lock
+.codex-runtime/
 
 build/
