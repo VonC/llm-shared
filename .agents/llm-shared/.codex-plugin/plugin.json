@@ -4,10 +4,10 @@
   "skills": "./skills/",
   "description": "Shared local Codex skills and workflows.",
   "author": {
-    "name": "DCHAFFIOL"
+    "name": "VonC"
   },
   "interface": {
-    "developerName": "DCHAFFIOL",
+    "developerName": "VonC",
     "displayName": "LLM Shared",
     "capabilities": [
       "Skills"
