@@ -83,10 +83,14 @@ placeholders with real findings.
 
 ## Handoff
 
+Before using or showing a host-prefixed workflow command, read
+[`../rules/command_prefix_char.md`](../rules/command_prefix_char.md) and use its
+prefix rule.
+
 When the `plan.vX.Y.Z.<slug>.md` and its validation skeleton are written, hand the cycle on to the plan review, with no menu and no go-ahead. From the project root, in a PowerShell shell, run `pw skill` through its launcher (see [`run-pw.md`](run-pw.md) for the non-interactive invocation; the bare `pw` alias does not resolve in a tool shell):
 
 - `pw skill`
 
-`pw skill` prints one bare next-step command, derived from the documents on disk — here `/review-ask-questions on docs/plan.vX.Y.Z.<slug>.md` (a `/` prefix in a Claude session, a `$` prefix in a Codex session). The review runs on the plain plan only, never the validation plan. Read that line and run it straight away: a handoff is the go-ahead to perform the next step now, so do not stop to ask whether to proceed, and do not compose the next prompt yourself.
+`pw skill` prints one bare next-step command, derived from the documents on disk — here `<command-prefix>review-ask-questions on docs/plan.vX.Y.Z.<slug>.md` (with the prefix selected by `command_prefix_char.md`). The review runs on the plain plan only, never the validation plan. Read that line and run it straight away: a handoff is the go-ahead to perform the next step now, so do not stop to ask whether to proceed, and do not compose the next prompt yourself.
 
 To hold the chain here instead — to read the plan before the review runs — pass the literal phrase `stop here` in this skill's argument when you invoke it. With `stop here` in the argument, write the plans and skip this handoff.

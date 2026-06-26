@@ -149,13 +149,17 @@ cross-tree file move to do by hand.
 
 ## Step 7 for process-draft, hand off to the next instruction
 
+Before using or showing a host-prefixed workflow command, read
+[`../rules/command_prefix_char.md`](../rules/command_prefix_char.md) and use its
+prefix rule.
+
 Present the next-step choice and run the chosen one, with no go-ahead beyond
 the pick. `pw skill` (run via its launcher, see
 [`run-pw.md`](run-pw.md)) supplies the produced `draft.vX.Y.Z.<slug>.md` name;
 offer these and run the selection straight away:
 
-- `/write-requirement on docs/draft.vX.Y.Z.<slug>.md` — one topic (one feature-request or issue, including the single-requirement exception from step 2); pass the type from step 2, the version as `vX.Y.Z` from step 5, and the slug from step 4.
-- `/split-and-define on docs/draft.vX.Y.Z.<slug>.md` — more than one topic, regrouped into a list of feature-requests and issues before any requirement is written.
+- `<command-prefix>write-requirement on docs/draft.vX.Y.Z.<slug>.md` — one topic (one feature-request or issue, including the single-requirement exception from step 2); pass the type from step 2, the version as `vX.Y.Z` from step 5, and the slug from step 4.
+- `<command-prefix>split-and-define on docs/draft.vX.Y.Z.<slug>.md` — more than one topic, regrouped into a list of feature-requests and issues before any requirement is written.
 
 Pre-select the entry the step-2 topic count points at (`write-requirement` for one topic, `split-and-define` for several), and leave the other entries for the author to pick.
 
