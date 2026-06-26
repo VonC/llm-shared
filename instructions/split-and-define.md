@@ -40,3 +40,4 @@ Once the list is settled, read [`../rules/interactive_menu.md`](../rules/interac
 
 - `<command-prefix>write-requirement on docs/feature-request.vX.Y.Z.<slug1>.md` or `docs/issue.vX.Y.Z.<slug1>.md`, for the first defined slug.
 - `<command-prefix>write-requirement on docs/feature-request.vX.Y.Z.<slug2>.md` or `docs/issue.vX.Y.Z.<slug2>.md`, for the second, and so on — one entry per slug, with no cap, in the order the list defined them.
+- `Type something else` — let the author provide a different next instruction or correction.

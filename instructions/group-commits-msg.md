@@ -38,11 +38,13 @@ The context that can inform how you will group those files can be:
 
 6. Format `a.commit` with the `wrap_commit` tool so each ```log block fits within 80 characters and follows the inline-backtick rules. This keeps the file canonically formatted before the user reviews it.
 
+   Before running the formatting command, read [`../rules/run_commands.md`](../rules/run_commands.md).
+
    Execute the following sequence of bat commands (default parameters: 80-character width, ```log fence delimiters, backtick pass on):
 
    ```bat
    cd "%PRJ_DIR%"
-   python "%LLM_SHARED_DIR%\tools\wrap_commit.py"
+   "%LLM_SHARED_DIR%\bin\wac.bat"
    ```
 
    The tool rewrites `a.commit` in place. An exit status of 0 means the file is now canonically formatted (whether or not changes were applied); a non-zero status means the file is missing or unreadable and the underlying issue must be fixed before proceeding.
@@ -51,6 +53,7 @@ The context that can inform how you will group those files can be:
 
    - `Go ahead` — commit, then stop.
    - the contextual option, when a development effort is in flight — `Go ahead, and implement step <next>` for the next plan step, or `Go ahead and prepare-release` once every step is committed. A standalone call with no plan prints nothing and exits non-zero, so omit this row when there is no contextual option.
+   - `Type something else` — let the author provide a different command or correction before committing.
 
    Plain `Go ahead` commits and then stops; the contextual option commits and, only after the commit succeeds, runs `<command-prefix>implement-step` on the next step or `<command-prefix>prepare-release`, with the prefix selected by `command_prefix_char.md`.
 
@@ -60,7 +63,7 @@ The context that can inform how you will group those files can be:
 
    ```bat
    cd "%PRJ_DIR%"
-   python "%LLM_SHARED_DIR%\tools\git_batch_commit.py" --root-a-commit
+   "%LLM_SHARED_DIR%\bin\gcba.bat" --root-a-commit
    ```
 
    An exit status of 0 means the `a.commit` file is valid, while a non-zero exit status means there is an issue with the `a.commit` file that needs to be fixed.
