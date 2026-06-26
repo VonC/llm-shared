@@ -7,7 +7,10 @@
 for %%i in ("%~dp0") do SET "check_dir=%%~fi"
 set "check_dir=%check_dir:~0,-1%"
 
+for %%i in ("%PRJ_DIR%") do set "LLM_SHARED_PRJ_DIR_NAME=%%~nxi"
+if defined LLM_SHARED_PRJ_DIR_NAME set "NO_MORE_SENV_%LLM_SHARED_PRJ_DIR_NAME%="
 call <NUL "%PRJ_DIR%\senv.bat"
+set "LLM_SHARED_PRJ_DIR_NAME="
 
 set "check_status=0"
 set "pyright_status=0"
