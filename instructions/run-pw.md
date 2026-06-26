@@ -19,7 +19,7 @@ Follow the command rules in [`../rules/run_commands.md`](../rules/run_commands.m
 From a PowerShell shell, use the call operator `&` — one shell, no nesting:
 
 ```text
-& "%USERPROFILE%\git\llm-shared\bin\prompt_workflow.bat" skill
+& "<LLM_SHARED_DIR>\bin\prompt_workflow.bat" skill
 ```
 
 Replace `skill` with the actual sub-command and its arguments. With `<LLM_SHARED_DIR>` standing for the llm-shared folder:
@@ -34,12 +34,12 @@ Replace `skill` with the actual sub-command and its arguments. With `<LLM_SHARED
 From a `cmd` shell, drop the call operator and quote only the path:
 
 ```text
-"%USERPROFILE%\git\llm-shared\bin\prompt_workflow.bat" skill
+"<LLM_SHARED_DIR>\bin\prompt_workflow.bat" skill
 ```
 
 ## Fallback chain seen in the wild
 
-A heavier `PowerShell(cmd /c "senv.bat && %USERPROFILE%\git\llm-shared\bin\prompt_workflow.bat skill")` chain also works, and an agent that did not know the launcher self-locates may land on it. It is not wrong, but `senv.bat` is redundant and the nested quotes go against the command rules, so prefer the direct call above.
+A heavier `PowerShell(cmd /c "senv.bat && <LLM_SHARED_DIR>\bin\prompt_workflow.bat skill")` chain also works, and an agent that did not know the launcher self-locates may land on it. It is not wrong, but `senv.bat` is redundant and the nested quotes go against the command rules, so prefer the direct call above.
 
 For a `pw handoff` command, which writes `a.prompt.txt`, `a.prompt_memory`, and the clipboard, do not wrap the launcher in a nested `cmd /d /c "..."` from Git Bash or another POSIX shell: the nested `cmd` can swallow the launcher's output and its file writes, so the handoff does nothing while still returning `0` — a silent no-op. Run it directly in PowerShell and confirm the launcher's `... ready` line before moving on.
 
