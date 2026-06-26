@@ -3,8 +3,8 @@
 Produce an activity report for IT managers from one or more git working
 trees over a date window, without reading the full codebase. The skill
 runs end to end on a single invocation: it gathers the activity
-elements, analyzes them, asks the user to pick the topics and add a few
-words of context, then writes the report for review.
+elements, analyzes them, presents choices for the user to pick the topics and
+add a few words of context, then writes the report for review.
 
 The only inputs the skill reads are the commit messages and the diff of
 the Markdown files over the window. The report is written for a human
@@ -35,8 +35,8 @@ managers).
   itself, in French, for the user to review (or the report file named on
   input, when updating).
 - The HTML and PDF renders of that report, sharing its base name
-  (`a.activity-report.<start>-<end>.html` and `.pdf`), generated on the
-  user's go-ahead after the review. The `a.*` line in each project
+  (`a.activity-report.<start>-<end>.html` and `.pdf`), generated after the
+  review go-ahead. The `a.*` line in each project
   `.gitignore` keeps all of these files out of git by default.
 
 ## Mutualized resources for activity-report
@@ -62,8 +62,10 @@ managers).
 
 Run all steps in one go. The user invokes the skill once; do not pause
 between steps 1 and 2. There are two pauses: step 3 collects the topic
-selection and context, and step 5 waits for the user's go-ahead, after the
-report review, before the HTML and the PDF are rendered in step 6.
+selection and context, and step 5 waits for the go-ahead after the report
+review, before the HTML and the PDF are rendered in step 6. Read
+[`../rules/interactive_menu.md`](../rules/interactive_menu.md) before both
+pauses.
 
 ### Step 1 — Generate the activity elements with the script
 
@@ -138,19 +140,18 @@ present it to the user without being asked:
 Keep the list concise and factual: concrete changes, no generalities,
 and none of the words from [`blacklist.md`](../rules/blacklist.md).
 
-### Step 3 — Ask the user to select topics and add context
+### Step 3 — Select topics and add context
 
-Pause once, here, and ask the user two things together:
+Pause once, here, and present the topic selection:
 
-1. Which numbered topics to keep in the report (and their order if it
-   matters).
-2. A few words of context to guide the redaction: the audience angle,
-   what to stress, the tone, or anything the commits do not show.
+- When the host has a multi-select menu, use it for the numbered topics.
+- After the topics are selected, present a separate text-entry prompt for a few
+  words of context to guide the redaction: the audience angle, what to stress,
+  the tone, or anything the commits do not show.
+- When the host has no multi-select menu, use the chat fallback described in
+  [`../rules/interactive_menu.md`](../rules/interactive_menu.md).
 
-When the topics are few, a multi-select prompt is convenient; otherwise
-present the numbered list and ask the user to reply with the kept
-numbers and the context line. Do not write the report before the user
-has selected topics and given context.
+Do not write the report before the user has selected topics and given context.
 
 ### Step 4 — Write or update the report
 
@@ -175,14 +176,17 @@ words. Do not put commit hashes in the report prose; they belong in
 ### Step 5 — Pause for review and a go-ahead
 
 Tell the user the report was written (or updated) at its path, and that it
-is gitignored by the `a.*` rule. Ask them to review it, and wait here for
-their go-ahead. Offer to adjust topics, length, or tone first; render the
-HTML and the PDF only once the user says go ahead. Do not render before the
-go-ahead.
+is gitignored by the `a.*` rule. Ask them to review it, then present the
+go-ahead choices from [`../rules/interactive_menu.md`](../rules/interactive_menu.md):
+
+- `Go ahead` — render the HTML and PDF.
+
+Render the HTML and the PDF only after a go-ahead entry is selected. Do not
+render before that selection.
 
 ### Step 6 — Render the HTML, then the PDF
 
-On the user's go-ahead, render the report to HTML and then to PDF, in that
+On a go-ahead selection, render the report to HTML and then to PDF, in that
 order, over the matching names (the report base name with `.html` and
 `.pdf`). Use the mutualized render helper, which needs no browser: the
 headless-browser route hangs on Windows, so this uses the pure-Python

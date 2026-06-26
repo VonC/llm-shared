@@ -95,11 +95,15 @@ Writing constraints:
 - `version.txt` is a text file, not markdown, even though the content
   uses a markdown-like layout.
 
-### Step 3 — Pause and ask the user to choose a title
+### Step 3 — Pause for the title choice
 
 Once `version.txt` is written, stop and display the three witty title /
-sub-title pairs. Ask the user to choose one of the three for the release
-notes summary.
+sub-title pairs. Read [`../rules/interactive_menu.md`](../rules/interactive_menu.md),
+then present these concrete choices:
+
+- the three generated title / sub-title pairs;
+
+Use the chosen or custom pair for the release notes summary.
 
 ### Step 4 — Finalize `version.txt`
 

@@ -23,6 +23,11 @@ below) so those sub-skills hand control back to it instead of finishing
 with their own standalone closing message (see "Handoff" in each sub-skill
 body).
 
+Every user choice or approval pause in this instruction follows
+[`../rules/interactive_menu.md`](../rules/interactive_menu.md). Read that rule
+before each pause, then present only the concrete choices named by the current
+step.
+
 ## What this skill never does
 
 - It never creates the git tag. `brel` does that, after your review.
@@ -76,8 +81,8 @@ the release goes on. When a step calls for the green gate:
    nothing to commit: continue with the next skill step.
 3. When fixes were needed to reach green, the working tree now carries
    them. Create the flag file, run the `group-commits-msg` skill to group
-   and message those fixes, and wait for the user's review. On the user's
-   go-ahead, commit, then continue with the next skill step.
+   and message those fixes, and wait for the user's review choice. On a
+   go-ahead selection, commit, then continue with the next skill step.
 
 ## Resolve the project directory
 
@@ -154,12 +159,13 @@ Cross-check the derived `X.Y.Z` against the first word of `version.txt`:
 
 - No feature, issue, design, or plan document found means there is nothing
   to release; stop with that message.
-- Several documents carry different versions: stop and ask the user which
-  version to release. Do not guess.
+- Several documents carry different versions: stop and present a version choice,
+  with one row per detected version. Do not guess.
 - `version.txt` still holds the previous release number (no `-SNAPSHOT`),
   or a matching `X.Y.Z-SNAPSHOT`: that is expected, Step 8 sets it.
-- `version.txt` holds a different `-SNAPSHOT` version: stop and ask, the
-  two disagree.
+- `version.txt` holds a different `-SNAPSHOT` version: stop and present a
+  version choice with the effort-document version and the `version.txt`
+  version.
 
 ### Step 4 — Make the working tree clean
 
@@ -170,17 +176,19 @@ git -C "<PRJ_DIR>" status --porcelain
 ```
 
 When the tree is dirty, create the flag file, then list the dirty files and
-offer to run the `group-commits-msg` skill so the pending work is committed
-in tidy groups:
+present these choices so the user can decide how to handle the pending work:
+
+- `Go ahead` — run the `group-commits-msg` skill so the pending work is
+  committed in tidy groups.
 
 ```bash
 touch "<PRJ_DIR>/a.prepare-release.active"
 ```
 
 Continue only once the tree is clean. Do not auto-commit without offering,
-and do not sweep in edits the user did not mean to release. Confirm with
-the user that every step of the current plan is validated and committed
-before going further.
+and do not sweep in edits the user did not mean to release. Before going
+further, present a go-ahead choice asking the user to confirm that every step of
+the current plan is validated and committed.
 
 ### Step 5 — Base on the latest main
 
@@ -232,10 +240,10 @@ Read the two exit codes together:
   ahead). Leave it as is.
 - Both succeed: the two are equal. Nothing to do.
 - Neither succeeds: local main and `origin/main` have diverged (each carries
-  commits the other does not). Stop and ask the user to rebase local main on
-  top of `origin/main`, which replays the local commits on the latest remote
-  main and loses none, then re-run. Do not reset, which would drop the local
-  commits.
+  commits the other does not). Stop and explain that the user must rebase local
+  main on top of `origin/main`, which replays the local commits on the latest
+  remote main and loses none, then re-run. Do not reset, which would drop the
+  local commits.
 
 From here, local `main` is the latest main, and the branch check below, any
 rebase, and the Step 6 merge all reference it.
@@ -266,8 +274,9 @@ choices. Use the chosen path; do not guess.
      ```
 
    - When the rebase reports conflicts, stop and report the conflicted
-     files. The user resolves them (edit, then `git add`). On the user's
-     go-ahead, resume the rebase without an editor popping up:
+     files. The user resolves them (edit, then `git add`). Present the
+     `Go ahead` choice; when selected, resume the rebase without an editor
+     popping up:
 
      ```bat
      cmd /V /C "set "GIT_EDITOR=true" && git rebase --continue"
@@ -400,9 +409,11 @@ gate earlier.
      find/replace rules `update-changelog` applies to the rendered
      changelog; make those edits on the user's request.
 
-   Wait for the user to say "go ahead". Do not resume on your own.
+   Present the go-ahead choices and do not resume on your own:
 
-3. On the user's "go ahead", check whether anything that feeds the changelog
+   - `Go ahead` — check whether release-note inputs changed.
+
+3. On a go-ahead selection, check whether anything that feeds the changelog
    changed since the baseline, comparing both the staged files and the HEAD
    noted in step 1:
 
@@ -427,10 +438,10 @@ gate earlier.
      Run it from PowerShell or cmd.exe, not from Git Bash — it is a `.bat`
      toolchain script (see [`../rules/run_commands.md`](../rules/run_commands.md)).
 
-   - When nothing changed (a "go ahead" that follows no further edit),
+   - When nothing changed (a go-ahead selection that follows no further edit),
      continue to Step 11.
 
-This loop ends on a "go ahead" with nothing left to regenerate.
+This loop ends on a go-ahead selection with nothing left to regenerate.
 
 ### Step 11 — Update pyproject.toml and uv
 
@@ -509,13 +520,14 @@ Run the skill twice and the second run does nothing harmful:
   in the ignored sibling worktree (which then falls out of sync). On main,
   where the ref cannot move under the checked-out worktree, it stops and
   warns instead, leaving the fast-forward to the user. When local main and
-  `origin/main` have diverged, the skill stops and asks the user to rebase
-  local main onto `origin/main` rather than reset and drop local commits.
+  `origin/main` have diverged, the skill stops with the menu described in Step
+  5 so the user can rebase local main onto `origin/main` rather than reset and
+  drop local commits.
   With no remote, or unpushed main, it uses local main
   as-is. The branch half, skipped on main, then references the local `main`
   ref for the rebase check.
 - Reaching a green suite uses the `ghog day` loop (the `groundhog` skill).
-  Rebase conflicts are resolved by the user; on the user's go-ahead the
+  Rebase conflicts are resolved by the user; on a go-ahead selection the
   skill resumes the rebase non-interactively with `GIT_EDITOR=true`. A
   `ghog day` failure is fixed, then committed through `group-commits-msg`
   with the user's review before the release goes on.

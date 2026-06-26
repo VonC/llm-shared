@@ -12,12 +12,31 @@ tool rename and branch it, then points at the next step.
 
 ## Inputs for process-draft
 
-- The draft document, named in the prompt (for example `docs\draft.duration_outliers.md`). If the prompt names no draft, or the file is missing, ask the user which file to process and stop.
+- The draft document, named in the prompt (for example `docs\draft.duration_outliers.md`). If the prompt names no draft, or the file is missing, ask for the draft path and stop unless a valid path is supplied.
 - `version.txt` at the repository root, read in step 5 to propose the target version.
 - The `new_draft` tool, called in step 6 to rename the draft and create the branch.
 
 Read the draft in full before proposing anything. If its content is empty or too
-thin to classify, say so and ask the user for more context before going on.
+thin to classify, say so and ask for added context, then stop unless enough
+context is supplied.
+
+## User choices for process-draft
+
+Every user choice in this instruction follows
+[`../rules/interactive_menu.md`](../rules/interactive_menu.md). Read that rule
+before presenting the first choice. Present one choice at a time and wait for
+the selection before showing the next choice. Do not batch the title, slug,
+version, and branch-layout choices into one chat prompt.
+
+The four setup menus are:
+
+1. title choice;
+2. slug choice;
+3. target-version choice;
+4. branch-layout choice.
+
+Each step below specifies the concrete choices for that decision. The shared
+rule decides whether to add standard final entries or use a plain-text fallback.
 
 ## Step 1 for process-draft, read the draft
 
@@ -60,9 +79,10 @@ single issue, treat it as one topic for step 7 even though it reads as several.
 ## Step 3 for process-draft, propose three witty titles
 
 Propose three short, witty titles for the draft, each one a different angle on the
-same need. Ask the user to pick one (or to write their own). Put the chosen title
-at the top of the draft as its main heading, and leave the rest of the body alone,
-so the later instruction reuses the title without losing what the user wrote.
+same need. Present those three titles as the concrete choices. Put the chosen
+or custom title at the top of the draft as its main heading, and leave the rest
+of the body alone, so the later instruction reuses the title without losing what
+the user wrote.
 
 ## Step 4 for process-draft, propose three slugs
 
@@ -76,11 +96,12 @@ rule the `new_draft` tool applies: the local heads first, then every declared
 remote. Drop a slug that already names a branch so the effort never lands on top of
 existing work.
 
-Ask the user to pick one slug (or to write their own valid, free one). The chosen
-slug names the renamed file and the branch in step 6. When the draft holds several
-topics, the chosen slug is the umbrella name for the draft file and the shared
-branch; `split-and-define` derives a per-topic key title for each feature-request
-and issue later, so one slug here is enough.
+Present the collision-free slugs as the concrete choices. A custom slug must
+pass the same validation and branch-collision checks before it is accepted. The
+chosen slug names the renamed file and the branch in step 6. When the draft
+holds several topics, the chosen slug is the umbrella name for the draft file
+and the shared branch; `split-and-define` derives a per-topic key title for each
+feature-request and issue later, so one slug here is enough.
 
 ## Step 5 for process-draft, pick the target version from version.txt
 
@@ -91,8 +112,8 @@ case) when it is present, so `1.2.0-SNAPSHOT` becomes `1.2.0`. Parse the result 
 `X.Y.Z`. This parse rule lives in `new_draft_models.read_version_txt`, shared with
 the tool, so the instruction and the tool read the file the same way.
 
-Offer four candidates and ask the user to pick one. The three bumps reset the
-parts below the one they step, the same rule the `new_draft` tool follows:
+Offer four candidates as the concrete choices. The three bumps reset the parts
+below the one they step, the same rule the `new_draft` tool follows:
 
 - `X.Y.Z`: keep the current version, to ride along with the in-progress release.
 - `X+1.0.0`: step the major part and reset the minor and patch parts to 0.
@@ -100,15 +121,16 @@ parts below the one they step, the same rule the `new_draft` tool follows:
 - `X.Y.Z+1`: step the patch part.
 
 Show each option with its computed value, not the formula alone. For a current
-`0.4.0`, the four options read `0.4.0`, `1.0.0`, `0.5.0`, and `0.4.1`. When the
-draft holds several topics, the chosen version labels the draft and its branch;
-each requirement that comes out of `split-and-define` settles its own version later.
+`0.4.0`, the four options read `0.4.0`, `1.0.0`, `0.5.0`, and `0.4.1`. A custom
+version must parse as `X.Y.Z` before it is accepted. When the draft holds several topics, the chosen version labels the
+draft and its branch; each requirement that comes out of `split-and-define`
+settles its own version later.
 
 ## Step 6 for process-draft, rename and branch with the new_draft tool
 
-Hand the mechanical part to the `new_draft` tool rather than running git by hand, so
-the slug, worktree-path, and branch rules stay in one tested place. Ask the user for
-the branch layout first, then call the tool:
+Hand the mechanical part to the `new_draft` tool rather than running git by hand,
+so the slug, worktree-path, and branch rules stay in one tested place. Present
+the branch-layout choices, then call the tool:
 
 - A separate worktree: a sibling folder next to the repository root, named `<base>_<slug>`, where `<base>` is the root folder name with any trailing `_<suffix>` dropped (so a root `llm-shared` or `llm-shared_main` both give `..\llm-shared_<slug>`).
 - The current working tree: the branch is created in place.
@@ -127,13 +149,15 @@ cross-tree file move to do by hand.
 
 ## Step 7 for process-draft, hand off to the next instruction
 
-Present a multi-choice of the next step and run the chosen one, with no go-ahead beyond the pick. `pw skill` (run via its launcher, see [`run-pw.md`](run-pw.md)) supplies the produced `draft.vX.Y.Z.<slug>.md` name; offer these and run the selection straight away:
+Present the next-step choice and run the chosen one, with no go-ahead beyond
+the pick. `pw skill` (run via its launcher, see
+[`run-pw.md`](run-pw.md)) supplies the produced `draft.vX.Y.Z.<slug>.md` name;
+offer these and run the selection straight away:
 
 - `/write-requirement on docs/draft.vX.Y.Z.<slug>.md` — one topic (one feature-request or issue, including the single-requirement exception from step 2); pass the type from step 2, the version as `vX.Y.Z` from step 5, and the slug from step 4.
 - `/split-and-define on docs/draft.vX.Y.Z.<slug>.md` — more than one topic, regrouped into a list of feature-requests and issues before any requirement is written.
-- Type something else — a free-text entry, supplied by the LLM and not by `pw`, for any other instruction the author types.
 
-Pre-select the entry the step-2 topic count points at (`write-requirement` for one topic, `split-and-define` for several), and leave the other two for the author to pick.
+Pre-select the entry the step-2 topic count points at (`write-requirement` for one topic, `split-and-define` for several), and leave the other entries for the author to pick.
 
 ## Design decisions for process-draft
 

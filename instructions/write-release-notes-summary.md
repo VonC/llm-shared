@@ -73,8 +73,9 @@ After the summary, propose three short title and subtitle pairs.
 ## Workflow for the release notes draft
 
 1. Collect the conventional commit subjects already provided in the
-   prompt or in the current context. If none are present, ask the user
-   for the list before writing anything.
+   prompt or in the current context. If none are present, read
+   [`../rules/interactive_menu.md`](../rules/interactive_menu.md), ask for the
+   commit-subject list, and stop unless the user supplies it.
 2. Read any `docs/plan.*.md` files referenced in the context to capture
    the framing of the release.
 3. Group commits by theme (domain, adapters, mappers, performance,
