@@ -31,7 +31,7 @@ from tests.unit.tools.groundhog_acceptance_support import (
     make_deps,
     passing_transcript,
 )
-from tools.groundhog import baseline, cli, commands, reporting
+from tools.groundhog import baseline, cli, commands, reporting_nextstep
 from tools.groundhog.models import (
     EXIT_COVERAGE_GAP,
     EXIT_OBJECTIVE_MET,
@@ -61,7 +61,7 @@ def test_at1_green_full_run_reaches_the_objective(
     assert not (tmp_path / ".testmondata").exists()
     assert "--testmon" in spawns.commands[0]
     out = capsys.readouterr().out
-    assert reporting.MSG_FULL_OK in out
+    assert reporting_nextstep.MSG_FULL_OK in out
     assert "cov=100" in out
     assert "nag: warn=2 xfail=0 worth a look" in out
     assert "exit=0" in out
@@ -118,7 +118,7 @@ def test_at3_focus_run_prints_the_two_lists(
     assert "Still failing in focus (fix these first):" in out
     assert "- tests/test_a.py::test_two" in out
     assert "- tests/test_b.py::test_three" in out
-    assert reporting.MSG_SINGLE_RESTART in out
+    assert reporting_nextstep.MSG_SINGLE_RESTART in out
     assert_closing_grammar(out)
 
 
@@ -136,7 +136,7 @@ def test_at4_green_focus_run_restarts_the_chain(
     argv = ["single", "tests/test_a.py", "--root", str(tmp_path), "--llm"]
     code = cli.main(argv, make_deps(spawns))
     assert code == EXIT_OBJECTIVE_MET
-    assert reporting.MSG_SINGLE_GREEN in capsys.readouterr().out
+    assert reporting_nextstep.MSG_SINGLE_GREEN in capsys.readouterr().out
 
 
 def test_at5_coverage_gap_and_gate_reached(
@@ -156,9 +156,9 @@ def test_at5_coverage_gap_and_gate_reached(
     code = cli.main(["full", "--root", str(tmp_path), "--llm"], make_deps(gap))
     assert code == EXIT_COVERAGE_GAP
     out = capsys.readouterr().out
-    assert reporting.MSG_GAP_LINES_HEADER in out
+    assert reporting_nextstep.MSG_GAP_LINES_HEADER in out
     assert "src/pkg/mod.py" in out
-    assert reporting.MSG_COVERAGE_GAP in out
+    assert reporting_nextstep.MSG_COVERAGE_GAP in out
     assert_closing_grammar(out)
     reached = Spawns(passing_transcript(2, "TOTAL    100    0   100%"), 0)
     code = cli.main(
@@ -166,7 +166,7 @@ def test_at5_coverage_gap_and_gate_reached(
         make_deps(reached),
     )
     assert code == EXIT_OBJECTIVE_MET
-    assert reporting.MSG_AFFECTED_COV_OK in capsys.readouterr().out
+    assert reporting_nextstep.MSG_AFFECTED_COV_OK in capsys.readouterr().out
 
 
 def test_at6_crash_prints_the_crash_block(
@@ -216,7 +216,7 @@ def test_at8_check_missing_and_failing(
     code = cli.main(["check", "--root", str(tmp_path), "--llm"], make_deps(spawns))
     assert code == EXIT_OBJECTIVE_MET
     out = capsys.readouterr().out
-    assert reporting.MSG_CHECK_MISSING in out
+    assert reporting_nextstep.MSG_CHECK_MISSING in out
     assert spawns.commands == []
     check_bat = tmp_path / "check.bat"
     check_bat.write_text("@echo off\nexit /b 7\n", encoding="utf-8")
@@ -225,7 +225,7 @@ def test_at8_check_missing_and_failing(
     assert code == CHECK_FAIL_CODE
     out = capsys.readouterr().out
     assert "compile error detail" in out
-    assert reporting.MSG_CHECK_FAIL in out
+    assert reporting_nextstep.MSG_CHECK_FAIL in out
     assert failing.commands == [["cmd.exe", "/d", "/c", str(check_bat)]]
     assert_closing_grammar(out)
 
@@ -239,7 +239,7 @@ def test_at8_check_green_points_at_affected(
     spawns = Spawns(["all compiled"], 0)
     code = cli.main(["check", "--root", str(tmp_path), "--llm"], make_deps(spawns))
     assert code == EXIT_OBJECTIVE_MET
-    assert reporting.MSG_CHECK_OK in capsys.readouterr().out
+    assert reporting_nextstep.MSG_CHECK_OK in capsys.readouterr().out
 
 
 def test_at14_lying_check_bat_is_treated_as_failed(
@@ -257,8 +257,8 @@ def test_at14_lying_check_bat_is_treated_as_failed(
     code = cli.main(["check", "--root", str(tmp_path), "--llm"], make_deps(spawns))
     assert code == 1
     out = capsys.readouterr().out
-    assert reporting.MSG_CHECK_EXIT_MISMATCH in out
-    assert reporting.MSG_CHECK_FAIL in out
+    assert reporting_nextstep.MSG_CHECK_EXIT_MISMATCH in out
+    assert reporting_nextstep.MSG_CHECK_FAIL in out
     assert "exit=1" in out
 
 
@@ -276,7 +276,7 @@ def test_at17_colored_error_lines_still_trip_the_guard(
     code = cli.main(["check", "--root", str(tmp_path), "--llm"], make_deps(spawns))
     assert code == 1
     out = capsys.readouterr().out
-    assert reporting.MSG_CHECK_EXIT_MISMATCH in out
+    assert reporting_nextstep.MSG_CHECK_EXIT_MISMATCH in out
     assert " ERROR : [check.bat] Check failed with status '1'." in out
     assert "\x1b" not in out
 
@@ -350,8 +350,8 @@ def test_at15_nothing_affected_is_green_and_says_so(
     code = cli.main(argv, make_deps(spawns))
     assert code == EXIT_OBJECTIVE_MET
     out = capsys.readouterr().out
-    assert reporting.MSG_NO_TESTS_RUN in out
-    assert reporting.MSG_AFFECTED_NOCOV_OK in out
+    assert reporting_nextstep.MSG_NO_TESTS_RUN in out
+    assert reporting_nextstep.MSG_AFFECTED_NOCOV_OK in out
 
 
 def test_script_runs_through_its_main_guard(

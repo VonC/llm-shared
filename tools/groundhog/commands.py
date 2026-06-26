@@ -25,6 +25,7 @@ from tools.groundhog import (
     init_files,
     redirect,
     reporting,
+    reporting_nextstep,
     runner,
 )
 from tools.groundhog.models import (
@@ -173,9 +174,9 @@ def run_check(invocation: Invocation, deps: Deps) -> int:
 
         code = runner.run_streaming(config, _stream_check_line)
         if code == 0 and error_lines_seen:
-            emit_summary([reporting.MSG_CHECK_EXIT_MISMATCH])
+            emit_summary([reporting_nextstep.MSG_CHECK_EXIT_MISMATCH])
             code = 1
-    emit_summary(reporting.next_after_check(code=code, missing=missing))
+    emit_summary(reporting_nextstep.next_after_check(code=code, missing=missing))
     closing = reporting.closing_line(
         invocation.root.name,
         runner.SUB_CHECK,
@@ -443,13 +444,13 @@ def _report_run_context(
     elif result.stats.failed > 0:
         emit(result.failure_block)
     if exit_code == EXIT_COVERAGE_GAP and result.coverage_block:
-        emit([reporting.MSG_GAP_LINES_HEADER, *result.coverage_block])
+        emit([reporting_nextstep.MSG_GAP_LINES_HEADER, *result.coverage_block])
     if (
         invocation.sub == runner.SUB_AFFECTED
         and exit_code == EXIT_OBJECTIVE_MET
         and result.stats.done == 0
     ):
-        emit([reporting.MSG_NO_TESTS_RUN])
+        emit([reporting_nextstep.MSG_NO_TESTS_RUN])
     if summary is not None:
         emit(durations_report.window_lines(summary))
         emit(durations_report.exclusion_block(summary))
@@ -474,13 +475,13 @@ def _next_steps(
     """
     if invocation.sub == runner.SUB_FULL:
         failing = baseline.failing_files(result.stats.failed_ids)
-        return reporting.next_after_full(exit_code, failing, summary)
+        return reporting_nextstep.next_after_full(exit_code, failing, summary)
     if invocation.sub == runner.SUB_AFFECTED:
         if invocation.no_cov:
-            return reporting.next_after_affected_nocov(
+            return reporting_nextstep.next_after_affected_nocov(
                 failed=result.stats.failed > 0,
             )
-        return reporting.next_after_affected_cov(exit_code)
+        return reporting_nextstep.next_after_affected_cov(exit_code)
     return _single_lines(invocation, result)
 
 
@@ -505,7 +506,7 @@ def _single_lines(invocation: Invocation, result: RunResult) -> list[str]:
             result.stats.failed_ids,
         )
     )
-    return reporting.comparison_lines(
+    return reporting_nextstep.comparison_lines(
         comparison,
         failed=result.stats.failed > 0,
     )

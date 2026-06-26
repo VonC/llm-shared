@@ -20,7 +20,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
-from tools.groundhog import cli, commands, exclusions, reporting, runner
+from tools.groundhog import cli, commands, exclusions, reporting_nextstep, runner
 from tools.groundhog.models import (
     EXIT_COVERAGE_GAP,
     EXIT_OBJECTIVE_MET,
@@ -330,7 +330,7 @@ def test_affected_no_cov_failure_message(
     code = cli.main(argv, deps)
     assert code == EXIT_TEST_FAILURES
     out = capsys.readouterr().out
-    assert reporting.MSG_AFFECTED_NOCOV_FAIL in out
+    assert reporting_nextstep.MSG_AFFECTED_NOCOV_FAIL in out
     assert "ghog affected --no-cov done" in out
 
 
@@ -348,7 +348,7 @@ def test_single_without_baseline_notice(
     argv = ["single", "tests/test_a.py", "--root", str(tmp_path), "--llm"]
     code = cli.main(argv, deps)
     assert code == EXIT_OBJECTIVE_MET
-    assert reporting.MSG_NO_BASELINE in capsys.readouterr().out
+    assert reporting_nextstep.MSG_NO_BASELINE in capsys.readouterr().out
 
 
 def test_classify_usage_error(tmp_path: Path) -> None:

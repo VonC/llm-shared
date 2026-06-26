@@ -18,7 +18,7 @@ from __future__ import annotations
 from dataclasses import replace
 from typing import TYPE_CHECKING
 
-from tools.groundhog import commands, reporting, runner, snapshot
+from tools.groundhog import commands, reporting, reporting_nextstep, runner, snapshot
 from tools.groundhog.models import EXIT_OBJECTIVE_MET, RunStats
 
 if TYPE_CHECKING:
@@ -46,7 +46,7 @@ def run_day(invocation: Invocation, deps: Deps) -> int:
         The exit code of the first non-green step, or the full run's.
     """
     if not invocation.force and snapshot.is_unchanged(invocation.root):
-        commands.emit_summary([reporting.MSG_DAY_NOOP])
+        commands.emit_summary([reporting_nextstep.MSG_DAY_NOOP])
         closing = reporting.closing_line(
             invocation.root.name,
             runner.SUB_DAY,

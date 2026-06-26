@@ -19,7 +19,7 @@ from tests.unit.tools.groundhog_acceptance_support import (
     make_deps,
     passing_transcript,
 )
-from tools.groundhog import cli, reporting, snapshot
+from tools.groundhog import cli, reporting_nextstep, snapshot
 from tools.groundhog.models import (
     EXIT_COVERAGE_GAP,
     EXIT_OBJECTIVE_MET,
@@ -56,7 +56,7 @@ def test_at11_day_walks_the_whole_chain(
     assert "ghog check done" in out
     assert "ghog affected --no-cov done" in out
     assert "ghog full done" in out
-    assert reporting.MSG_FULL_OK in out
+    assert reporting_nextstep.MSG_FULL_OK in out
     assert_closing_grammar(out)
 
 
@@ -71,7 +71,7 @@ def test_at11_day_stops_at_a_failing_check(
     assert code == CHECK_FAIL_CODE
     assert len(spawns.commands) == 1
     out = capsys.readouterr().out
-    assert reporting.MSG_CHECK_FAIL in out
+    assert reporting_nextstep.MSG_CHECK_FAIL in out
     assert "ghog affected" not in out
 
 
@@ -92,7 +92,7 @@ def test_at11_day_stops_at_failing_affected(
     assert code == EXIT_TEST_FAILURES
     assert len(spawns.commands) == len(("check", "affected"))
     out = capsys.readouterr().out
-    assert reporting.MSG_AFFECTED_NOCOV_FAIL in out
+    assert reporting_nextstep.MSG_AFFECTED_NOCOV_FAIL in out
     assert "ghog full done" not in out
 
 
@@ -111,8 +111,8 @@ def test_at11_day_skips_a_missing_check(
     assert code == EXIT_COVERAGE_GAP
     assert len(spawns.commands) == len(("affected", "full"))
     out = capsys.readouterr().out
-    assert reporting.MSG_CHECK_MISSING in out
-    assert reporting.MSG_COVERAGE_GAP in out
+    assert reporting_nextstep.MSG_CHECK_MISSING in out
+    assert reporting_nextstep.MSG_COVERAGE_GAP in out
 
 
 def test_at14_day_stops_on_a_lying_check_bat(
@@ -128,7 +128,7 @@ def test_at14_day_stops_on_a_lying_check_bat(
     assert code == 1
     assert len(spawns.commands) == 1
     out = capsys.readouterr().out
-    assert reporting.MSG_CHECK_EXIT_MISMATCH in out
+    assert reporting_nextstep.MSG_CHECK_EXIT_MISMATCH in out
     assert "ghog affected" not in out
 
 
@@ -147,8 +147,8 @@ def test_at15_day_walk_continues_past_an_unaffected_step(
     assert code == EXIT_OBJECTIVE_MET
     assert len(spawns.commands) == len(("affected", "full"))
     out = capsys.readouterr().out
-    assert reporting.MSG_NO_TESTS_RUN in out
-    assert reporting.MSG_FULL_OK in out
+    assert reporting_nextstep.MSG_NO_TESTS_RUN in out
+    assert reporting_nextstep.MSG_FULL_OK in out
 
 
 def test_at16_green_day_records_the_snapshot_and_noops(
@@ -173,7 +173,7 @@ def test_at16_green_day_records_the_snapshot_and_noops(
     assert code == EXIT_OBJECTIVE_MET
     assert again.commands == []
     out = capsys.readouterr().out
-    assert reporting.MSG_DAY_NOOP in out
+    assert reporting_nextstep.MSG_DAY_NOOP in out
     assert "ghog day done" in out
 
 
@@ -220,7 +220,7 @@ def test_at16_failing_walk_records_no_snapshot(
     code = cli.main(["day", "--root", str(tmp_path), "--llm"], make_deps(spawns))
     assert code == EXIT_TEST_FAILURES
     assert not snapshot.marker_path(tmp_path).is_file()
-    assert reporting.MSG_DAY_NOOP not in capsys.readouterr().out
+    assert reporting_nextstep.MSG_DAY_NOOP not in capsys.readouterr().out
 
 
 def test_day_brackets_each_step_with_timestamped_headers(
