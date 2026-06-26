@@ -27,7 +27,11 @@ lands inside one of the repos.
 
 ## Run the build
 
-Call `build.py` with the resolved targets. It delegates to `cli.py`, which
+Before running the report command, read
+[`../rules/run_commands.md`](../rules/run_commands.md).
+
+Call `ghd.bat` with the resolved targets. It delegates to `build.py` and
+`cli.py`, which
 exports each repo with `git log`, tags every commit with its project, aggregates
 the combined history, writes the analysis files, renders the dashboard, and opens
 it in the browser unless `--no-open` is passed.
@@ -35,13 +39,13 @@ it in the browser unless `--no-open` is passed.
 For one or several repositories, naming the output folder:
 
 ```text
-python <llm-shared>/tools/git_history_dashboard/build.py ../alpha ../beta --out-dir /tmp/report
+cmd /d /v:on /c "<llm-shared>\bin\ghd.bat ../alpha ../beta --out-dir /tmp/report"
 ```
 
 For the current project, into its default folder:
 
 ```text
-python <llm-shared>/tools/git_history_dashboard/build.py
+cmd /d /v:on /c "<llm-shared>\bin\ghd.bat"
 ```
 
 Pass `--no-open` for a script or CI run so it never blocks on a browser, and

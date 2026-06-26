@@ -160,6 +160,7 @@ offer these and run the selection straight away:
 
 - `<command-prefix>write-requirement on docs/draft.vX.Y.Z.<slug>.md` — one topic (one feature-request or issue, including the single-requirement exception from step 2); pass the type from step 2, the version as `vX.Y.Z` from step 5, and the slug from step 4.
 - `<command-prefix>split-and-define on docs/draft.vX.Y.Z.<slug>.md` — more than one topic, regrouped into a list of feature-requests and issues before any requirement is written.
+- `Type something else` — let the author provide a different next instruction or correction.
 
 Pre-select the entry the step-2 topic count points at (`write-requirement` for one topic, `split-and-define` for several), and leave the other entries for the author to pick.
 

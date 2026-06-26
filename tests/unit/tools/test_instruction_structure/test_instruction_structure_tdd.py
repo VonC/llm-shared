@@ -42,7 +42,7 @@ def test_splitting_instructions_present_the_multi_choice() -> None:
     """process-draft and split-and-define list the next steps with a free-text entry."""
     for name in ("process-draft.md", "split-and-define.md"):
         content = _read(name)
-        assert "/write-requirement" in content
+        assert "write-requirement" in content
         assert "Type something else" in content
 
 
@@ -50,7 +50,7 @@ def test_group_commits_carries_the_commit_gate_multi_choice() -> None:
     """group-commits-msg presents the commit-gate multi-choice via pw skill."""
     content = _read("group-commits-msg.md")
     assert "pw skill --after-commit" in content
-    assert "go ahead, and implement step" in content
+    assert "Go ahead, and implement step" in content
     assert "Type something else" in content
 
 
@@ -59,6 +59,16 @@ def test_run_pw_note_documents_the_launcher() -> None:
     content = _read("run-pw.md")
     assert "run_commands.md" in content
     assert "prompt_workflow.bat" in content
+    assert "C:\\Users\\" not in content
+
+
+def test_run_commands_documents_python_script_invocation() -> None:
+    """run_commands.md gives the guard-clearing shape for direct Python scripts."""
+    content = (steps.llm_shared_dir() / "rules" / "run_commands.md").read_text(
+        encoding="utf-8",
+    )
+    assert "Python scripts use wrappers" in content
+    assert "set NO_MORE_SENV_%PRJ_DIR_NAME%=& senv.bat && python" in content
 
 
 def test_pw_running_instructions_link_to_the_run_pw_note() -> None:
@@ -81,6 +91,38 @@ def test_question_skills_show_the_three_column_table() -> None:
     """Review and consolidate present open questions as a Q0x / Title / Recommended table."""
     for name in ("review-ask-questions.md", "consolidate-then-review-ask-questions.md"):
         assert "| Q0x | Title | Recommended Answer |" in _read(name)
+
+
+def test_question_skills_use_the_oqm_wrapper() -> None:
+    """Review and consolidate use oqm.bat instead of direct Python fallback."""
+    for name in ("review-ask-questions.md", "consolidate-then-review-ask-questions.md"):
+        content = _read(name)
+        assert "run_commands.md" in content
+        assert "oqm.bat" in content
+        assert "python <LLM_SHARED_DIR>\\tools\\open_questions_md.py" not in content
+
+
+def test_oqm_wrapper_clears_the_project_senv_guard() -> None:
+    """oqm.bat clears the project guard before calling senv.bat."""
+    content = (steps.llm_shared_dir() / "bin" / "oqm.bat").read_text(
+        encoding="utf-8",
+    )
+    assert "NO_MORE_SENV_!LLM_SHARED_PRJ_DIR_NAME!=" in content
+    assert "%PRJ_DIR%\\senv.bat" in content
+    assert "open_questions_md.py" in content
+
+
+def test_python_tool_instructions_use_wrappers() -> None:
+    """Instructions should avoid direct Python script calls when wrappers exist."""
+    for name in (
+        "group-commits-msg.md",
+        "update-merge-commit-msg.md",
+        "git-history-report.md",
+    ):
+        content = _read(name)
+        assert "run_commands.md" in content
+        assert "python \"%LLM_SHARED_DIR%\\tools\\" not in content
+        assert "python <llm-shared>/tools/" not in content
 
 
 # eof

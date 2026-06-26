@@ -32,6 +32,28 @@ Never embed a quoted shell inside another quoted shell. A form like `cmd /c "sen
 - When a multi-statement PowerShell script is genuinely needed, write it to a temporary `.ps1` file first and run `powershell -ExecutionPolicy Bypass -File <script.ps1>` as the single chained command.
 - When neither form fits, split the work: one command for the environment-bound step, harness file tools for everything else.
 
+## Python scripts use wrappers or a guard-clearing project environment
+
+Prefer the shipped `bin\*.bat` wrapper for a shared Python tool. A wrapper can
+load the project environment, choose the right Python, and keep the command line
+simple. For example, use `bin\oqm.bat` for open-question management instead of
+calling `tools\open_questions_md.py` directly.
+
+When no wrapper exists and a Python script must run in the consuming project's
+environment, clear the project-specific `NO_MORE_SENV_%PRJ_DIR_NAME%` guard in
+the same `cmd` process before calling `senv.bat`. Do this unconditionally; there
+is no need to check whether the variable is currently defined.
+
+Use this first-attempt shape from the project root:
+
+```bat
+cmd /d /v:on /c "set NO_MORE_SENV_%PRJ_DIR_NAME%=& senv.bat && python path\to\<a_script.py> <plain args>"
+```
+
+Keep the chained part to one Python executable plus plain arguments. Do not add
+an inner shell, command substitution, or a multi-statement script inside the
+quoted `cmd /c` body.
+
 ## Targeted reads instead of whole-document dumps
 
 Never concatenate several whole documents in one command "to gather context": that output is huge, mostly unread, and already wasted when the next action needs a specific section.

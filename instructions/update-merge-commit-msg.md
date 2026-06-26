@@ -21,11 +21,13 @@ The filled template is mandatory, not optional: `a.commit` must hold the subject
 
 After writing `a.commit`, format it with the `wrap_commit` tool using `--no-delimiters`. The merge message is a raw commit message with no ```` ```log ```` fence -- the reword feeds `a.commit` verbatim to `git commit-tree -F`, so a fence would land literally in the commit -- and the default `wrap_commit` only reflows fenced blocks, so it would skip the file. The `--no-delimiters` pass reflows the whole file, wrapping every body line to 80 characters and applying the inline-backtick pass.
 
+Before running the formatting command, read [`../rules/run_commands.md`](../rules/run_commands.md).
+
 Run it the project-portable way the other tools use, so it works from any consuming repository that has `LLM_SHARED_DIR` set (the `wacnd` alias does the same):
 
 ```bat
 cd "%PRJ_DIR%"
-python "%LLM_SHARED_DIR%\tools\wrap_commit.py" --no-delimiters
+"%LLM_SHARED_DIR%\bin\wac.bat" --no-delimiters
 ```
 
 The tool rewrites `a.commit` in place; an exit status of 0 means the file is now canonically formatted.
