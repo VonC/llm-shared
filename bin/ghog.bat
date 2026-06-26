@@ -11,11 +11,11 @@ REM report stream - stdout normally, a.ghog.log when the self-redirect guard
 REM armed - so a forgotten caller redirect cannot flood an LLM conversation
 REM with the senv preamble.
 if not defined PRJ_DIR set "PRJ_DIR=%CD%"
-for %%i in ("%PRJ_DIR%") do set "GHOG_PRJ_DIR_NAME=%%~nxi"
-if defined GHOG_PRJ_DIR_NAME set "NO_MORE_SENV_!GHOG_PRJ_DIR_NAME!="
+for %%i in ("%PRJ_DIR%") do set "LLM_SHARED_PRJ_DIR_NAME=%%~nxi"
+if defined LLM_SHARED_PRJ_DIR_NAME set "NO_MORE_SENV_!LLM_SHARED_PRJ_DIR_NAME!="
 set "GHOG_SENV_LOG=%PRJ_DIR%\a.ghog.senv.log"
 if exist "%PRJ_DIR%\senv.bat" call <NUL "%PRJ_DIR%\senv.bat" > "%GHOG_SENV_LOG%" 2>&1
-set "GHOG_PRJ_DIR_NAME="
+set "LLM_SHARED_PRJ_DIR_NAME="
 
 REM groundhog itself runs from the llm-shared venv (Q17), reached by absolute
 REM path: no PATH prepend, so the project PATH stays first for the pytest
