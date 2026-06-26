@@ -1,17 +1,21 @@
 # Write requirement document (feature-request or issue)
 
+When this instruction needs a user correction or confirmation, read
+[`../rules/interactive_menu.md`](../rules/interactive_menu.md), then present the
+valid concrete choices when they are known.
+
 1. Read the prompt and identify three mandatory inputs: the requirement type (`feature-request` or `issue`), the product version written as `vX.Y.Z`, and the topic label.
 2. First, validate the type.
 3. Accept the type only if it is exactly `feature-request` or `issue` and it aligns with the user's stated intent.
-4. If the type is missing, invalid, or irrelevant to the request, ask the user for a corrected type and stop.
+4. If the type is missing, invalid, or irrelevant to the request, present a type choice with `feature-request` and `issue`, then stop unless a valid type is selected.
 5. Next, validate the version.
 6. Accept the version only if it is explicitly provided in the user's input in `vX.Y.Z` form.
 7. Do not infer the version from associated documents or other context.
-8. If the version is missing or not in `vX.Y.Z` form, ask the user for a corrected version and stop.
-9. If the version format is valid but the version appears inconsistent with the prompt or associated documents, ask the user to confirm or correct the version and stop.
+8. If the version is missing or not in `vX.Y.Z` form, ask for a version and stop unless a valid version is entered.
+9. If the version format is valid but the version appears inconsistent with the prompt or associated documents, present a confirmation choice with the supplied version, then stop unless a valid version is confirmed or entered.
 10. Last, validate the topic label.
 11. Accept the topic label only if it identifies the specific feature or area of concern and uses only lowercase letters, digits, and hyphens.
-12. If the topic label is missing, irrelevant to the request, or contains other characters, ask the user for a corrected topic label and stop.
+12. If the topic label is missing, irrelevant to the request, or contains other characters, ask for a topic label and stop unless a valid topic label is entered.
 13. When asking for a correction, keep any earlier fields that were already confirmed as valid and ask only for the current field.
 14. If the user does not answer the clarification request, or answers again with an invalid value, stop and explain which field still needs a valid value.
 15. If associated documents are missing, invalid, or not useful for the requested requirement, notify the user and ask for additional context before writing the document body.

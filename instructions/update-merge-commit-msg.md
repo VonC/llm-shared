@@ -30,7 +30,13 @@ python "%LLM_SHARED_DIR%\tools\wrap_commit.py" --no-delimiters
 
 The tool rewrites `a.commit` in place; an exit status of 0 means the file is now canonically formatted.
 
-Once `a.commit` is written and formatted, display it for user review, and ask the user if they want to edit it.
+Once `a.commit` is written and formatted, display it for user review, read
+[`../rules/interactive_menu.md`](../rules/interactive_menu.md), and present the
+go-ahead choices:
+
+- `Go ahead` — reword the merge commit with the current `a.commit`.
+
+Only run `git-reword-merge.sh` after a go-ahead entry is selected.
 
 ## Handoff to prepare-release
 
@@ -46,4 +52,3 @@ root:
   `prepare-release` owns its lifecycle.
 - When it is absent (a direct call), finish as described above and return
   to your caller.
-
