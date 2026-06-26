@@ -21,7 +21,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from tests.unit.tools.groundhog_acceptance_support import Spawns, make_deps
-from tools.groundhog import cli, commands, exclusions, floor, reporting
+from tools.groundhog import cli, commands, exclusions, floor, reporting_nextstep
 from tools.groundhog.durations import DurationCall, DurationSummary
 from tools.groundhog.models import (
     EXIT_COVERAGE_GAP,
@@ -246,7 +246,7 @@ def test_full_green_but_slow_exits_8(
     out = capsys.readouterr().out
     assert "Duration outliers" in out
     assert _FREAK_NODE in out
-    assert reporting.MSG_OUTLIERS in out
+    assert reporting_nextstep.MSG_OUTLIERS in out
     # The exit-8 hint now names the add-exclusion command, not raising line 2.
     assert "ghog exclude" in out
     assert "avg=" in out

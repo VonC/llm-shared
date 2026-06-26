@@ -1,28 +1,27 @@
 """Unit tests for the groundhog report contract (Q04, Q16).
 
 Cover the key=value progress and closing lines, the coverage placeholder
-rules, the cadence governor (percent step and silence floor), the
-next-step messages of the run-state table, the crash block (Q06), the
-focus comparison lines (Q07) and the nag line (Q09). Also cover the Q30
-rule: every next-step message that follows a fix names ghog day, the
-loop's only re-entry point, never a standalone subcommand to re-run
-first (a real session paid check.bat twice that way).
+rules, the cadence governor (percent step and silence floor), the crash
+block (Q06) and the nag line (Q09).
+
+Fix: the run-state table tests — the next-step messages of every branch, the
+exit-8 outlier next step and the focus comparison lines (Q07) — move to
+``test_groundhog_reporting_nextstep.py`` alongside the production split of
+``reporting.py`` into ``reporting_nextstep.py``. What stays here is the
+progress, closing line, crash block and nag line text.
 
 Fix: cover the duration-outlier additions (Q37, Q47) — the ``avg=``/
-``outliers=`` suffix of the final progress line and the bar, the
-``outliers=`` value of the closing line through ``ClosingMetrics``, and the
-exit-8 next step with its floor-override hint.
+``outliers=`` suffix of the final progress line and the bar, and the
+``outliers=`` value of the closing line through ``ClosingMetrics``.
 
 Fix: cover the per-test exclusion additions (Q58, Q65) — the slower-drift
-count behind ``excluded_count``, the ``excluded=`` value of the closing line
-through ``ClosingMetrics``, and the reworded exit-8 hint naming the ``ghog
-exclude`` command.
+count behind ``excluded_count`` and the ``excluded=`` value of the closing
+line through ``ClosingMetrics``.
 """
 
 from __future__ import annotations
 
 from tools.groundhog import reporting
-from tools.groundhog.baseline import FocusComparison
 from tools.groundhog.durations import (
     STATUS_OK,
     STATUS_SLOWER,
@@ -31,10 +30,7 @@ from tools.groundhog.durations import (
     DurationSummary,
 )
 from tools.groundhog.models import (
-    EXIT_COVERAGE_GAP,
-    EXIT_DURATION_OUTLIERS,
     EXIT_OBJECTIVE_MET,
-    EXIT_SUITE_CRASH,
     EXIT_TEST_FAILURES,
     RunStats,
 )
@@ -296,127 +292,16 @@ def test_governor_stays_silent_before_collection() -> None:
     assert governor.should_emit(_stats()) is False
 
 
-def test_next_after_full_per_exit_code() -> None:
-    """The full-run next step follows the run-state table."""
-    failing = ("tests/test_a.py", "tests/test_b.py")
-    assert reporting.next_after_full(EXIT_TEST_FAILURES, failing) == [
-        "Next: ghog single tests/test_a.py tests/test_b.py",
-    ]
-    assert reporting.next_after_full(EXIT_COVERAGE_GAP, ()) == [
-        reporting.MSG_COVERAGE_GAP,
-    ]
-    assert reporting.next_after_full(EXIT_OBJECTIVE_MET, ()) == [
-        reporting.MSG_FULL_OK,
-    ]
-    assert reporting.next_after_full(EXIT_SUITE_CRASH, ()) == []
-
-
-def test_next_after_full_outliers_names_the_fix_and_the_exclusion() -> None:
-    """Exit 8 lists the outlier fix step and the ghog exclude hint (Q47, Q62)."""
-    summary = _summary(outliers=(_OUTLIER,))
-    lines = reporting.next_after_full(EXIT_DURATION_OUTLIERS, (), summary)
-    assert lines[0] == reporting.MSG_OUTLIERS
-    # The reworded hint names the add-exclusion command and the investigation,
-    # not raising line 2; the floor it would otherwise raise is still shown.
-    assert "ghog exclude" in lines[1]
-    assert "fix_slow_test.md" in lines[1]
-    assert "a.ghog.outliers" in lines[1]
-    assert f"{_FLOOR:.2f}s" in lines[1]
-
-
-def test_next_after_full_outliers_without_a_summary() -> None:
-    """The exclusion hint falls back to a zero floor without a summary (Q47)."""
-    lines = reporting.next_after_full(EXIT_DURATION_OUTLIERS, ())
-    assert lines[0] == reporting.MSG_OUTLIERS
-    assert "ghog exclude" in lines[1]
-    assert "0.00s" in lines[1]
-
-
-def test_next_after_affected_cov_per_exit_code() -> None:
-    """The covered affected-run next step follows the table."""
-    assert reporting.next_after_affected_cov(EXIT_OBJECTIVE_MET) == [
-        reporting.MSG_AFFECTED_COV_OK,
-    ]
-    assert reporting.next_after_affected_cov(EXIT_COVERAGE_GAP) == [
-        reporting.MSG_COVERAGE_GAP,
-    ]
-    assert reporting.next_after_affected_cov(EXIT_TEST_FAILURES) == [
-        reporting.MSG_AFFECTED_NOCOV_FAIL,
-    ]
-    assert reporting.next_after_affected_cov(EXIT_SUITE_CRASH) == []
-
-
-def test_next_after_affected_nocov() -> None:
-    """The uncovered affected-run next step follows the table."""
-    assert reporting.next_after_affected_nocov(failed=False) == [
-        reporting.MSG_AFFECTED_NOCOV_OK,
-    ]
-    assert reporting.next_after_affected_nocov(failed=True) == [
-        reporting.MSG_AFFECTED_NOCOV_FAIL,
-    ]
-
-
-def test_next_after_check() -> None:
-    """The check next step covers missing, green and failing (Q10)."""
-    assert reporting.next_after_check(code=0, missing=True) == [
-        reporting.MSG_CHECK_MISSING,
-        reporting.MSG_CHECK_OK,
-    ]
-    assert reporting.next_after_check(code=0, missing=False) == [
-        reporting.MSG_CHECK_OK,
-    ]
-    assert reporting.next_after_check(code=1, missing=False) == [
-        reporting.MSG_CHECK_FAIL,
-    ]
-
-
-def test_post_fix_messages_restart_at_ghog_day() -> None:
-    """Every post-fix next-step message names ghog day (Q30).
-
-    The walk is the loop's only re-entry point and opens with the
-    compile check, so no message may prescribe a standalone subcommand
-    re-run before it.
-    """
-    post_fix_messages = (
-        reporting.MSG_CHECK_FAIL,
-        reporting.MSG_AFFECTED_NOCOV_FAIL,
-        reporting.MSG_SINGLE_RESTART,
-        reporting.MSG_SINGLE_GREEN,
-        reporting.MSG_OUTLIERS,
+def test_step_ended_line_formats_duration_in_human_units() -> None:
+    """The day-walk end header breaks the step duration into h/m/s units."""
+    when = "2026-06-26T12:44:33+02:00"
+    head = f"proj: == ghog full == ended | {when} | duration="
+    assert reporting.step_ended_line("proj", "full", when, 45.3) == f"{head}45.3s"
+    assert reporting.step_ended_line("proj", "full", when, 291.9) == f"{head}4m 51.9s"
+    assert (
+        reporting.step_ended_line("proj", "full", when, 3661.4)
+        == f"{head}1h 01m 01.4s"
     )
-    for message in post_fix_messages:
-        assert "ghog day" in message
-        assert "re-run ghog check" not in message
-    crash = reporting.crash_block(_stats(), ())
-    assert crash[-1].endswith("Then re-run ghog day.")
-
-
-def test_comparison_lines_without_baseline() -> None:
-    """No baseline yields the comparison-skipped notice (Q18)."""
-    assert reporting.comparison_lines(None, failed=True) == [
-        reporting.MSG_NO_BASELINE,
-    ]
-
-
-def test_comparison_lines_with_both_lists() -> None:
-    """The two Q07 lists and the restart step are rendered."""
-    comparison = FocusComparison(
-        still_failing=("tests/test_a.py::test_one",),
-        suspects=("tests/test_a.py::test_two",),
-    )
-    lines = reporting.comparison_lines(comparison, failed=True)
-    assert lines[0] == "Still failing in focus (fix these first):"
-    assert "- tests/test_a.py::test_one" in lines
-    assert "- tests/test_a.py::test_two" in lines
-    assert lines[-1] == reporting.MSG_SINGLE_RESTART
-
-
-def test_comparison_lines_green_focus() -> None:
-    """A green focus run renders none markers and the restart chain."""
-    comparison = FocusComparison(still_failing=(), suspects=())
-    lines = reporting.comparison_lines(comparison, failed=False)
-    assert lines.count("- none") == len(("still", "suspects"))
-    assert lines[-1] == reporting.MSG_SINGLE_GREEN
 
 
 # eof

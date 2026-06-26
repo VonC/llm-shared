@@ -40,7 +40,7 @@ from tests.unit.tools.groundhog_acceptance_support import (
     assert_closing_grammar,
     make_deps,
 )
-from tools.groundhog import cli, exclusions, floor, reporting
+from tools.groundhog import cli, exclusions, floor, reporting_nextstep
 from tools.groundhog.models import (
     EXIT_DURATION_OUTLIERS,
     EXIT_OBJECTIVE_MET,
@@ -91,7 +91,7 @@ _SLOW_REPORT: Final = (
     f"{_FREAK}  1.83s  52x median",
     "-- floor 1.00s --",
     "avg=",
-    reporting.MSG_OUTLIERS,
+    reporting_nextstep.MSG_OUTLIERS,
     "outliers=1 excluded=0 exit=8",
 )
 # The exclusion block header rendered after the floor window (Q58), asserted as
@@ -227,7 +227,7 @@ def test_atd2_tidy_run_reaches_the_objective(
     assert code == EXIT_OBJECTIVE_MET
     out = capsys.readouterr().out
     assert "Slowest call:" in out
-    assert reporting.MSG_FULL_OK in out
+    assert reporting_nextstep.MSG_FULL_OK in out
     assert "outliers=0 excluded=0 exit=0" in out
     assert _WINDOW_HEADER not in out
     assert_closing_grammar(out)

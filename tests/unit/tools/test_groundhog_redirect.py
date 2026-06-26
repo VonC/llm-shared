@@ -21,7 +21,7 @@ import os
 import sys
 from typing import TYPE_CHECKING, cast
 
-from tools.groundhog import cli, redirect, reporting
+from tools.groundhog import cli, redirect, reporting_nextstep
 from tools.groundhog.models import EXIT_OBJECTIVE_MET, Mode
 
 if TYPE_CHECKING:
@@ -272,11 +272,11 @@ def test_unredirected_check_run_hands_back_the_envelope_only(
     log_text = (tmp_path / redirect.LOG_NAME).read_text(encoding="utf-8")
     assert code == EXIT_OBJECTIVE_MET
     assert redirect.MSG_SELF_REDIRECT in captured
-    assert reporting.MSG_CHECK_OK in captured
+    assert reporting_nextstep.MSG_CHECK_OK in captured
     assert "ghog check done" in captured
     assert "body detail line" not in captured
     assert "body detail line" in log_text
-    assert reporting.MSG_CHECK_OK in log_text
+    assert reporting_nextstep.MSG_CHECK_OK in log_text
 
 
 # eof
