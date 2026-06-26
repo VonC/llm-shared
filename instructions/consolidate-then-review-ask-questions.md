@@ -66,10 +66,14 @@ The full options, their pros and cons, and the `Answer to Qxx` line stay in the 
 
 ## Handoff
 
+Before using or showing a host-prefixed workflow command, read
+[`../rules/command_prefix_char.md`](../rules/command_prefix_char.md) and use its
+prefix rule.
+
 When the consolidation settles the document — every open question answered, no new one raised, the `## Open questions` section stripped (step 1 above) and the decisions table in place — hand the cycle on to the next phase, with no menu and no go-ahead. From the project root, in a PowerShell shell, run `pw skill` through its launcher (see [`run-pw.md`](run-pw.md) for the non-interactive invocation; the bare `pw` alias does not resolve in a tool shell):
 
 - `pw skill`
 
-`pw skill` reads the settled document on disk and prints the next-step command: `/write-design` from a feature-request or issue, `/write-plans` from a design, or `/implement-step` from a plan (host-prefixed with `/` for Claude or `$` for Codex). Read that line and run it straight away: the handoff is the go-ahead to perform the next step now, so do not stop to ask whether to proceed, and do not compose the next prompt yourself.
+`pw skill` reads the settled document on disk and prints the next-step command: `<command-prefix>write-design` from a feature-request or issue, `<command-prefix>write-plans` from a design, or `<command-prefix>implement-step` from a plan (with the prefix selected by `command_prefix_char.md`). Read that line and run it straight away: the handoff is the go-ahead to perform the next step now, so do not stop to ask whether to proceed, and do not compose the next prompt yourself.
 
-When new open questions remain to ask, this is not a settled outcome: append them with `oqm` (steps 3 to 5 above), present them in the three-column table above, and stop for another review round. Leave the next step in two forms, as the review skill does: the "Next step" command `/consolidate-then-review-ask-questions on docs/<type>.vX.Y.Z.<slug>.md` for the next round, and, in addition, the same command as a gray, Tab-completable hint the human can accept with a keystroke — do not run the handoff.
+When new open questions remain to ask, this is not a settled outcome: append them with `oqm` (steps 3 to 5 above), present them in the three-column table above, and stop for another review round. Leave the next step in two forms, as the review skill does: the "Next step" command `<command-prefix>consolidate-then-review-ask-questions on docs/<type>.vX.Y.Z.<slug>.md` for the next round, and, in addition, the same command as a gray, Tab-completable hint the human can accept with a keystroke — do not run the handoff.

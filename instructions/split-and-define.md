@@ -32,7 +32,11 @@ Once the list is complete, review that list and change the order of the items, t
 
 ## Handoff
 
+Before using or showing a host-prefixed workflow command, read
+[`../rules/command_prefix_char.md`](../rules/command_prefix_char.md) and use its
+prefix rule.
+
 Once the list is settled, read [`../rules/interactive_menu.md`](../rules/interactive_menu.md), present the next-step choice, and run the chosen one, with no go-ahead beyond the pick. The slugs live only in the split you just defined, not yet as files, so the instruction builds the list (not `pw`): offer one entry per slug and run the selection straight away:
 
-- `/write-requirement on docs/feature-request.vX.Y.Z.<slug1>.md` or `docs/issue.vX.Y.Z.<slug1>.md`, for the first defined slug.
-- `/write-requirement on docs/feature-request.vX.Y.Z.<slug2>.md` or `docs/issue.vX.Y.Z.<slug2>.md`, for the second, and so on — one entry per slug, with no cap, in the order the list defined them.
+- `<command-prefix>write-requirement on docs/feature-request.vX.Y.Z.<slug1>.md` or `docs/issue.vX.Y.Z.<slug1>.md`, for the first defined slug.
+- `<command-prefix>write-requirement on docs/feature-request.vX.Y.Z.<slug2>.md` or `docs/issue.vX.Y.Z.<slug2>.md`, for the second, and so on — one entry per slug, with no cap, in the order the list defined them.

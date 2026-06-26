@@ -53,6 +53,10 @@ The full options, their pros and cons, and the `Answer to Qxx` line stay in the 
 
 ## Handoff
 
-The review is a stop, not an automatic chain: a human answers the questions before the consolidation. Leave the next step in two forms rather than running the next skill: the "Next step" command — `/consolidate-then-review-ask-questions on docs/<doc type>.vX.Y.Z.<slug>.md` you just reviewed, carrying the reviewed document name so it is ready to run once the answers are in — and, in addition, a hint: where the host can render a gray, Tab-completable prompt, show that same command as the ghost prompt the human can accept with a keystroke rather than retype (the reliable trigger is still to be studied).
+Before using or showing a host-prefixed workflow command, read
+[`../rules/command_prefix_char.md`](../rules/command_prefix_char.md) and use its
+prefix rule.
+
+The review is a stop, not an automatic chain: a human answers the questions before the consolidation. Leave the next step in two forms rather than running the next skill: the "Next step" command — `<command-prefix>consolidate-then-review-ask-questions on docs/<doc type>.vX.Y.Z.<slug>.md` you just reviewed, carrying the reviewed document name so it is ready to run once the answers are in — and, in addition, a hint: where the host can render a gray, Tab-completable prompt, show that same command as the ghost prompt the human can accept with a keystroke rather than retype (the reliable trigger is still to be studied).
 
 When the review round raises no question at all, do not leave the document with no section: write a one-row decisions table — the consolidate step's `Requirement clarifications`, `Design decisions`, or `Implementation decisions` section, with a single row such as "No open questions, all decisions made" — so the on-disk state reads as settled. From that settled state `pw skill` advances straight to the next phase, skipping a consolidate round.
