@@ -39,11 +39,12 @@ from tools import prompt_workflow_handoff as handoff
 from tools import prompt_workflow_memory as memory
 from tools import prompt_workflow_plan as plan
 from tools import prompt_workflow_steps as steps
+from tools.prompt_workflow_models import VALIDATION_SUFFIX, MemoryRecord, Topic
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-    from tools.prompt_workflow_models import Topic, WorkflowState
+    from tools.prompt_workflow_models import WorkflowState
 
 # Host tokens used as the keys of the prefix lookup.
 HOST_CLAUDE = "claude"
@@ -401,11 +402,11 @@ def post_commit_command(
         The host-prefixed command for the next action, or None when there is no
         plan in play or the committed step is not one of its steps.
     """
-    topic = handoff.resolve_topic(
-        docs.relevant_drafts(root, root),
-        memory.read_memory(root),
-        git.current_branch(root),
-    )
+    branch = git.current_branch(root)
+    record = memory.read_memory(root)
+    topic = handoff.resolve_topic(docs.relevant_drafts(root, root), record, branch)
+    if topic is None:
+        topic = _resolve_post_commit_topic(root, record, branch)
     if topic is None:
         return None
     state = steps.compute_state(root, topic, None)
@@ -425,6 +426,76 @@ def post_commit_command(
         plan_doc = _document(root, topic, "plan", state)
         return f"{prefix}implement-step on {plan_doc} step {numbers[index + 1]}"
     return f"{prefix}prepare-release"
+
+
+def _resolve_post_commit_topic(
+    root: Path,
+    record: MemoryRecord | None,
+    branch: str,
+) -> Topic | None:
+    """Resolve a plan topic when the original draft is no longer discoverable."""
+    candidates = _plan_topics(root)
+    if not candidates:
+        return None
+    if record is not None:
+        matching = [
+            topic
+            for topic in candidates
+            if topic.version == record.version and topic.slug == record.topic
+        ]
+        if len(matching) == 1:
+            return matching[0]
+    branch_key = _slug_key(branch.rsplit("/", maxsplit=1)[-1])
+    branch_matches = [
+        topic for topic in candidates if branch_key.endswith(_slug_key(topic.slug))
+    ]
+    if len(branch_matches) == 1:
+        return branch_matches[0]
+    return None
+
+
+def _plan_topics(root: Path) -> list[Topic]:
+    """Return unique topics that have both a plan and a validation plan."""
+    topics: list[Topic] = []
+    seen: set[tuple[str, str]] = set()
+    for directory in docs.docs_dirs(root):
+        for entry in sorted(directory.iterdir()):
+            topic = _topic_from_validation_plan(root, entry)
+            if topic is None:
+                continue
+            key = (topic.version, topic.slug)
+            if key in seen or docs.select_document(root, topic, "plan") is None:
+                continue
+            seen.add(key)
+            topics.append(topic)
+    return topics
+
+
+def _topic_from_validation_plan(root: Path, path: Path) -> Topic | None:
+    """Parse a Topic from ``plan.<version>.<slug>.validation.md``."""
+    name = path.name
+    if (
+        not path.is_file()
+        or not name.startswith("plan.")
+        or not name.endswith(VALIDATION_SUFFIX)
+    ):
+        return None
+    core = name[len("plan.") : -len(VALIDATION_SUFFIX)]
+    match = docs.VERSION_RE.match(core)
+    if match is None:
+        return None
+    version = match.group(0)
+    rest = core[len(version) :]
+    if not rest.startswith(".") or not rest[1:]:
+        return None
+    slug = rest[1:]
+    draft = root / DOCS_DIR / f"draft.{version}.{slug}{MD_SUFFIX}"
+    return Topic(version=version, slug=slug, draft_path=draft.resolve())
+
+
+def _slug_key(value: str) -> str:
+    """Canonicalize branch and topic slugs for fallback matching."""
+    return value.replace("-", "_")
 
 
 # eof
