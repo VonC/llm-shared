@@ -56,22 +56,38 @@ def _git(repo: Path, *args: str) -> None:
 
 
 def _init_repo(repo: Path) -> None:
-    _git(repo, "init")
-    (repo / "README.md").write_text("readme", encoding="utf-8")
-    _git(repo, "add", "README.md")
-    _git(repo, "-c", "commit.gpgsign=false", "commit", "-m", "init")
+    _git(repo, "init", "-q")
+    _git(repo, "-c", "commit.gpgsign=false", "commit", "--allow-empty", "-m", "init")
 
 
-def test_run_end_to_end_with_real_git(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
-) -> None:
-    """A working-tree draft drives a real run to a written prompt and memory."""
+@pytest.fixture
+def working_tree_repo(tmp_path: Path) -> Path:
+    """Return a repo with a draft present in the working tree."""
     _init_repo(tmp_path)
     docs_dir = tmp_path / "docs"
     docs_dir.mkdir()
     (docs_dir / "draft.v9.8.0.iso.md").write_text("# Draft\n", encoding="utf-8")
+    return tmp_path
 
+
+@pytest.fixture
+def branch_draft_repo(tmp_path: Path) -> Path:
+    """Return a repo with a draft committed on a feature branch."""
+    _init_repo(tmp_path)
+    _git(tmp_path, "checkout", "-q", "-b", "feature/iso")
+    docs_dir = tmp_path / "docs"
+    docs_dir.mkdir()
+    (docs_dir / "draft.v9.8.0.iso.md").write_text("# Draft\n", encoding="utf-8")
+    _git(tmp_path, "add", "docs/draft.v9.8.0.iso.md")
+    _git(tmp_path, "-c", "commit.gpgsign=false", "commit", "-m", "add draft")
+    return tmp_path
+
+
+def test_run_end_to_end_with_real_git(
+    monkeypatch: pytest.MonkeyPatch,
+    working_tree_repo: Path,
+) -> None:
+    """A working-tree draft drives a real run to a written prompt and memory."""
     monkeypatch.setattr(
         prompt_workflow.menu,
         "select",
@@ -79,14 +95,14 @@ def test_run_end_to_end_with_real_git(
     )
     monkeypatch.setattr(prompt_workflow, "set_clipboard_text", lambda _text: None)
 
-    assert prompt_workflow.run(tmp_path) == 0
+    assert prompt_workflow.run(working_tree_repo) == 0
 
-    prompt = (tmp_path / "a.prompt.txt").read_text(encoding="utf-8")
+    prompt = (working_tree_repo / "a.prompt.txt").read_text(encoding="utf-8")
     assert "llm-shared/instructions/split-and-define.md" in prompt
     assert "this is about v9.8.0 iso." in prompt
     assert "docs/draft.v9.8.0.iso.md" in prompt
 
-    record = memory.read_memory(tmp_path)
+    record = memory.read_memory(working_tree_repo)
     assert record is not None
     assert record.step == 1
     assert record.instruction == "split-and-define.md"
@@ -94,17 +110,9 @@ def test_run_end_to_end_with_real_git(
 
 def test_run_detects_draft_committed_on_branch(
     monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
+    branch_draft_repo: Path,
 ) -> None:
     """A draft committed on a feature branch is found via the fork-point diff."""
-    _init_repo(tmp_path)
-    _git(tmp_path, "checkout", "-b", "feature/iso")
-    docs_dir = tmp_path / "docs"
-    docs_dir.mkdir()
-    (docs_dir / "draft.v9.8.0.iso.md").write_text("# Draft\n", encoding="utf-8")
-    _git(tmp_path, "add", "docs/draft.v9.8.0.iso.md")
-    _git(tmp_path, "-c", "commit.gpgsign=false", "commit", "-m", "add draft")
-
     monkeypatch.setattr(
         prompt_workflow.menu,
         "select",
@@ -112,8 +120,8 @@ def test_run_detects_draft_committed_on_branch(
     )
     monkeypatch.setattr(prompt_workflow, "set_clipboard_text", lambda _text: None)
 
-    assert prompt_workflow.run(tmp_path) == 0
-    prompt = (tmp_path / "a.prompt.txt").read_text(encoding="utf-8")
+    assert prompt_workflow.run(branch_draft_repo) == 0
+    prompt = (branch_draft_repo / "a.prompt.txt").read_text(encoding="utf-8")
     assert "docs/draft.v9.8.0.iso.md" in prompt
 
 

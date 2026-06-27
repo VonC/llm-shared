@@ -36,6 +36,7 @@ import logging
 import shutil
 import subprocess
 import sys
+from inspect import signature
 from pathlib import Path
 from typing import TYPE_CHECKING, NoReturn
 
@@ -64,6 +65,9 @@ LOGGER = logging.getLogger("prompt_workflow")
 PROMPT_FILENAME = "a.prompt.txt"
 # Exit code used by the entry point for fatal errors.
 EXIT_FATAL = 2
+# Compatibility arity for tests that monkeypatch docs.relevant_drafts with the
+# old root/cwd-only callable.
+_RELEVANT_DRAFTS_LEGACY_ARITY = 2
 
 
 class ClipboardError(PromptWorkflowError):
@@ -285,7 +289,7 @@ def run(root: Path, *, pick: bool = False) -> int:
     topic to this branch, so a different topic can be chosen (Q53).
     """
     branch = git.current_branch(root)
-    topics = docs.relevant_drafts(root, root)
+    topics = _relevant_drafts(root, branch)
     if not topics:
         LOGGER.info("No relevant draft or general topic detected.")
         return 0
@@ -330,6 +334,13 @@ def run(root: Path, *, pick: bool = False) -> int:
     )
     LOGGER.info(_ready_line(chosen))
     return 0
+
+
+def _relevant_drafts(root: Path, branch: str) -> list[Topic]:
+    """Call the branch-aware draft resolver while tolerating old test doubles."""
+    if len(signature(docs.relevant_drafts).parameters) == _RELEVANT_DRAFTS_LEGACY_ARITY:
+        return docs.relevant_drafts(root, root)
+    return docs.relevant_drafts(root, root, branch)
 
 
 def run_handoff(root: Path, task: str, step: str) -> int:

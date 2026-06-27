@@ -77,7 +77,7 @@ def _other_branches(cwd: Path, current: str) -> list[str]:
     return [name for name in names if name != current]
 
 
-def fork_point(cwd: Path) -> str | None:
+def fork_point(cwd: Path, current: str | None = None) -> str | None:
     """Return the commit where the current branch forked from another branch.
 
     The branch start is found with a single ``git rev-list --first-parent
@@ -100,8 +100,8 @@ def fork_point(cwd: Path) -> str | None:
     per-commit ``git branch --contains`` walk, which spawned one git process per
     commit.
     """
-    current = current_branch(cwd)
-    others = _other_branches(cwd, current)
+    branch = current if current is not None else current_branch(cwd)
+    others = _other_branches(cwd, branch)
     if not others:
         return None
     output = run_git(
