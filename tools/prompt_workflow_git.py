@@ -118,9 +118,9 @@ def fork_point(cwd: Path, current: str | None = None) -> str | None:
 
 
 def changed_files_since(cwd: Path, base: str) -> list[str]:
-    """Return the repo-relative paths added or modified between base and HEAD."""
+    """Return repo-relative paths added, modified or renamed since base."""
     output = run_git(
-        ["diff", "--name-only", "--diff-filter=AM", base, "HEAD"],
+        ["diff", "--name-only", "--diff-filter=AMR", base, "HEAD"],
         cwd=cwd,
     )
     return _non_empty_lines(output)
