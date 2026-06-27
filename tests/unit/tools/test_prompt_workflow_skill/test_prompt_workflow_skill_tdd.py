@@ -20,8 +20,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from tools import prompt_workflow
+from tools import prompt_workflow_memory as memory
 from tools import prompt_workflow_skill as skill
-from tools.prompt_workflow_models import Topic
+from tools.prompt_workflow_models import MemoryRecord, Topic
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -342,6 +343,26 @@ def _setup_plan_tree(
     _patch_resolution(monkeypatch, [_topic(tmp_path)], "handoff_automation")
 
 
+def test_plan_topics_skip_invalid_and_unpaired_validation_plans(tmp_path: Path) -> None:
+    """Only validation plans with a matching plan become post-commit candidates."""
+    docs_dir = tmp_path / "docs"
+    docs_dir.mkdir()
+    (docs_dir / "plan.nope.topic.validation.md").write_text("bad version", encoding="utf-8")
+    (docs_dir / "plan.v0.9.0.validation.md").write_text("missing slug", encoding="utf-8")
+    (docs_dir / "plan.v0.9.0.orphan.validation.md").write_text("no plan", encoding="utf-8")
+    (docs_dir / "plan.v0.9.0.handoff_automation.md").write_text("# plan\n", encoding="utf-8")
+    (docs_dir / "plan.v0.9.0.handoff_automation.validation.md").write_text(
+        _VALIDATION_TWO_STEPS,
+        encoding="utf-8",
+    )
+
+    topics = skill._plan_topics(tmp_path)
+
+    assert [(topic.version, topic.slug) for topic in topics] == [
+        ("v0.9.0", "handoff_automation"),
+    ]
+
+
 def test_main_dispatches_the_skill_after_commit(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -389,6 +410,37 @@ def test_post_commit_command_resolves_from_plan_when_draft_was_renamed(
     monkeypatch.setattr(skill.git, "current_branch", lambda _root: "feature/git_hot_path")
     monkeypatch.setattr(skill.docs, "relevant_drafts", lambda _root, _cwd: [])
     monkeypatch.setattr(skill.memory, "read_memory", lambda _root: None)
+
+    command = skill.post_commit_command(tmp_path, "1", _CLAUDE)
+
+    assert command == "/implement-step on docs/plan.v9.11.0.git_hot_path.md step 2"
+
+
+def test_post_commit_command_resolves_from_memory_when_branch_is_renamed(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Persisted topic memory wins when the branch no longer names the plan."""
+    docs_dir = tmp_path / "docs"
+    docs_dir.mkdir()
+    (docs_dir / "plan.v9.11.0.git_hot_path.md").write_text("# plan\n", encoding="utf-8")
+    (docs_dir / "plan.v9.11.0.git_hot_path.validation.md").write_text(
+        _VALIDATION_TWO_STEPS,
+        encoding="utf-8",
+    )
+    memory.write_memory(
+        tmp_path,
+        MemoryRecord(
+            branch="feature/old-name",
+            version="v9.11.0",
+            topic="git_hot_path",
+            step=12,
+            instruction="group-commits-msg.md",
+            plan_step="1",
+        ),
+    )
+    monkeypatch.setattr(skill.git, "current_branch", lambda _root: "release/wrong-name")
+    monkeypatch.setattr(skill.docs, "relevant_drafts", lambda _root, _cwd: [])
 
     command = skill.post_commit_command(tmp_path, "1", _CLAUDE)
 
