@@ -56,7 +56,9 @@ def window_lines(summary: durations.DurationSummary) -> list[str]:
         return [_green_line(summary)]
     lines = [_MSG_OUTLIER_HEADER]
     lines.extend(_call_line(call) for call in summary.outliers)
+    lines.append("")
     lines.append(_floor_line(summary.floor))
+    lines.append("")
     lines.extend(_call_line(call) for call in summary.runners_up)
     return lines
 
@@ -74,7 +76,7 @@ def exclusion_block(summary: durations.DurationSummary) -> list[str]:
     """
     if not summary.exclusions:
         return []
-    lines = [_MSG_EXCLUSION_HEADER]
+    lines = ["", _MSG_EXCLUSION_HEADER]
     lines.extend(
         _exclusion_line(record, summary.floor) for record in summary.exclusions
     )
@@ -177,7 +179,7 @@ def _floor_line(floor: float) -> str:
     Returns:
         The floor marker line.
     """
-    return f"  -- floor {floor:.2f}s --"
+    return f"  ===== floor {floor:.2f}s ====="
 
 
 # eof
