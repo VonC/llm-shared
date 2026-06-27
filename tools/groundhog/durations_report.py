@@ -179,7 +179,7 @@ def _floor_line(floor: float) -> str:
     Returns:
         The floor marker line.
     """
-    return f"  ===== floor {floor:.2f}s ====="
+    return f"  -- floor {floor:.2f}s --"
 
 
 # eof

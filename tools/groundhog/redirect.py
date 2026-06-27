@@ -36,6 +36,7 @@ from __future__ import annotations
 import contextlib
 import logging
 import os
+import re
 import stat
 import sys
 from pathlib import Path
@@ -58,6 +59,9 @@ MSG_SELF_REDIRECT: Final = (
     "ghog: stdout not redirected - full report written to a.ghog.log; "
     "read only its tail (Q31)"
 )
+# ANSI escape sequences from colored senv.bat output, stripped before replay so
+# in-process LLM runs and tests see the same plain report stream as check lines.
+_ANSI_ESCAPE_RE: Final = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
 
 # The captured stdout mirrored by emit_summary, None while inactive.
 _summary: TextIO | None = None
@@ -209,7 +213,7 @@ def replay_senv_log() -> None:
     stdout normally, ``a.ghog.log`` when the guard armed.
     """
     for line in consume_senv_log().splitlines():
-        LOGGER.info("%s", line)
+        LOGGER.info("%s", _ANSI_ESCAPE_RE.sub("", line))
 
 
 # eof

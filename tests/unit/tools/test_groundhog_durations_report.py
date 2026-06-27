@@ -34,7 +34,7 @@ _TIDY = {
     "tests/test_d.py::test_four": 0.10,
     "tests/test_e.py::test_five": 0.10,
 }
-_FREAK_FLOOR_LINE = "  ===== floor 1.65s ====="
+_FREAK_FLOOR_LINE = "  -- floor 1.65s --"
 # Eight window lines: header, the freak, blank, floor, blank, three runners-up.
 _WINDOW_LEN = 8
 
