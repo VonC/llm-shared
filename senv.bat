@@ -36,8 +36,6 @@ REM submodule (tools\dev_workflow), exports the echo macros, then calls
 REM dev_workflow\init.bat to wire the changelog/version aliases (uc, gv, brel).
 call "%~dp0tools\init.bat" %*
 
-%_ok% "Environment initialized for project '%PRJ_DIR_NAME%'"
-
 REM Add python local venv path to %PATH%
 if not exist "%PRGS%\pythons" (
   %_fatal% "Directory '%PRGS%\pythons' not found." 110
@@ -70,6 +68,7 @@ call switchpy %PYTHON_VERSION% local
 popd
 REM restore echos macros unset by switchpy
 call "%PRJ_DIR%\tools\batcolors\echos_macros.bat" export
+%_ok% "Environment initialized for project '%PRJ_DIR_NAME%'"
 
 set "GIT_HOME=%PRGS%\gits\current"
 set "GCYGPATH=%GIT_HOME%\usr\bin\cygpath.exe"
