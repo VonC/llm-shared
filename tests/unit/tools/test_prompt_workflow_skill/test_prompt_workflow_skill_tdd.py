@@ -374,6 +374,27 @@ def test_post_commit_command_implements_the_next_step(
     assert command == "/implement-step on docs/plan.v0.9.0.handoff_automation.md step 2"
 
 
+def test_post_commit_command_resolves_from_plan_when_draft_was_renamed(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """The commit gate chains from plan files when no draft topic resolves."""
+    docs_dir = tmp_path / "docs"
+    docs_dir.mkdir()
+    (docs_dir / "plan.v9.11.0.git_hot_path.md").write_text("# plan\n", encoding="utf-8")
+    (docs_dir / "plan.v9.11.0.git_hot_path.validation.md").write_text(
+        _VALIDATION_TWO_STEPS,
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(skill.git, "current_branch", lambda _root: "feature/git_hot_path")
+    monkeypatch.setattr(skill.docs, "relevant_drafts", lambda _root, _cwd: [])
+    monkeypatch.setattr(skill.memory, "read_memory", lambda _root: None)
+
+    command = skill.post_commit_command(tmp_path, "1", _CLAUDE)
+
+    assert command == "/implement-step on docs/plan.v9.11.0.git_hot_path.md step 2"
+
+
 def test_post_commit_command_prepares_release_after_the_last_step(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -407,6 +428,25 @@ def test_post_commit_command_none_without_a_topic(
 ) -> None:
     """No resolvable topic yields no contextual command."""
     _patch_resolution(monkeypatch, [], "main")
+    assert skill.post_commit_command(tmp_path, "1", _CLAUDE) is None
+
+
+def test_post_commit_command_ignores_unmatched_single_plan(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """A lone plan is not enough on an unrelated branch."""
+    docs_dir = tmp_path / "docs"
+    docs_dir.mkdir()
+    (docs_dir / "plan.v9.11.0.git_hot_path.md").write_text("# plan\n", encoding="utf-8")
+    (docs_dir / "plan.v9.11.0.git_hot_path.validation.md").write_text(
+        _VALIDATION_TWO_STEPS,
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(skill.git, "current_branch", lambda _root: "main")
+    monkeypatch.setattr(skill.docs, "relevant_drafts", lambda _root, _cwd: [])
+    monkeypatch.setattr(skill.memory, "read_memory", lambda _root: None)
+
     assert skill.post_commit_command(tmp_path, "1", _CLAUDE) is None
 
 
