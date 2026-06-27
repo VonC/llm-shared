@@ -236,7 +236,11 @@ def test_day_detach_keeps_the_launcher_envelope_on_stdout(
 def test_default_detach_factory_spawns_a_real_survivor(tmp_path: Path) -> None:
     """End to end: the survivor writes after the preamble in the log."""
     log_path = tmp_path / "detached.log"
-    command = [sys.executable, "-c", "print('detached-mark')"]
+    command = (
+        ["cmd", "/d", "/c", "echo detached-mark"]
+        if sys.platform == "win32"
+        else [sys.executable, "-S", "-c", "print('detached-mark')"]
+    )
     pid = status.default_detach_factory(command, log_path, "senv preamble", tmp_path)
     assert pid > 0
     deadline = time.monotonic() + 30.0
@@ -248,8 +252,6 @@ def test_default_detach_factory_spawns_a_real_survivor(tmp_path: Path) -> None:
         time.sleep(0.05)
     assert text.startswith("senv preamble\n")
     assert "detached-mark" in text
-    while status.pid_alive(pid) and time.monotonic() < deadline:
-        time.sleep(0.05)
 
 
 def test_default_detach_factory_skips_an_empty_preamble(

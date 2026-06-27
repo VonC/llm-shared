@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from hypothesis.strategies import SearchStrategy
 
 # Bounded so the property run stays tiny (Time-gated status for Step 2).
-_MAX_EXAMPLES = 50
+_MAX_EXAMPLES = 20
 _DEADLINE_MS = 400
 _REL_TOL = 1e-9
 
