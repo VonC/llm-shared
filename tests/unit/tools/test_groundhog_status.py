@@ -173,7 +173,7 @@ def test_pid_alive_on_windows_probes(tmp_path: Path) -> None:
     assert status.pid_alive(-7) is False
     assert status.pid_alive(_NEVER_A_PID) is False
     child = subprocess.Popen(  # noqa: S603
-        [sys.executable, "-c", "pass"],
+        [sys.executable, "-S", "-c", "pass"],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
     )
