@@ -55,6 +55,8 @@ _GIT_ENV = {
 
 # The messy-CSV fixture yields two well-formed records.
 EXPECTED_PARSED_FROM_MESSY_CSV = 2
+# The export fixture writes two commits.
+EXPECTED_EXPORTED_COMMITS = 2
 # A full git object name is 40 hexadecimal characters.
 GIT_SHA_LENGTH = 40
 
@@ -118,14 +120,45 @@ def _make_git_repo(repo_dir: Path, subjects: list[str]) -> None:
 
     The author identity comes from the GIT_AUTHOR_*/GIT_COMMITTER_* env vars and
     gpg signing is turned off inline on the commit, so no `git config`
-    subprocess calls are needed.
+    subprocess calls are needed. Empty commits are enough because the dashboard
+    reads commit metadata, not tree contents.
     """
     repo_dir.mkdir(parents=True, exist_ok=True)
-    _run_git(repo_dir, "init")
-    for index, subject in enumerate(subjects):
-        (repo_dir / f"file_{index}.txt").write_text(subject, encoding="utf-8")
-        _run_git(repo_dir, "add", "-A")
-        _run_git(repo_dir, "-c", "commit.gpgsign=false", "commit", "-m", subject)
+    _run_git(repo_dir, "init", "-q")
+    for subject in subjects:
+        _run_git(
+            repo_dir,
+            "-c",
+            "commit.gpgsign=false",
+            "commit",
+            "--allow-empty",
+            "-m",
+            subject,
+        )
+
+
+@pytest.fixture
+def two_commit_repo(tmp_path: Path) -> Path:
+    """Return a metadata-only repo with two commits for export tests."""
+    repo_dir = tmp_path / "sample_repo"
+    _make_git_repo(repo_dir, ["feat(cli): first commit", "fix(io): handle a|b edge case"])
+    return repo_dir
+
+
+@pytest.fixture
+def one_commit_repo(tmp_path: Path) -> Path:
+    """Return a metadata-only repo with one commit for export tests."""
+    repo_dir = tmp_path / "repo"
+    _make_git_repo(repo_dir, ["docs: only commit"])
+    return repo_dir
+
+
+@pytest.fixture
+def consumer_repo(tmp_path: Path) -> Path:
+    """Return a consumer repo for the script-entry test."""
+    repo_dir = tmp_path / "consumer"
+    _make_git_repo(repo_dir, ["feat: only commit"])
+    return repo_dir
 
 
 class TestGitHistoryExport:
@@ -147,35 +180,41 @@ class TestGitHistoryExport:
             "--date-order",
         ]
 
-    def test_export_writes_pipe_separated_history(self, tmp_path: Path) -> None:
+    def test_export_writes_pipe_separated_history(
+        self,
+        tmp_path: Path,
+        two_commit_repo: Path,
+    ) -> None:
         """Exporting a real repo yields a parseable, newline-terminated CSV."""
-        repo_dir = tmp_path / "sample_repo"
-        subjects = ["feat(cli): first commit", "fix(io): handle a|b edge case"]
-        _make_git_repo(repo_dir, subjects)
         csv_path = tmp_path / build.GIT_HISTORY_CSV_NAME
 
-        written = build.export_git_history_csv(repo_dir, csv_path)
+        written = build.export_git_history_csv(two_commit_repo, csv_path)
 
         assert written == csv_path
         content = csv_path.read_text(encoding="utf-8")
         assert content.endswith("\n")
-        assert len(content.splitlines()) == len(subjects)
+        assert len(content.splitlines()) == EXPECTED_EXPORTED_COMMITS
 
         parsed = list(build.iter_commits_from_csv(csv_path))
-        assert len(parsed) == len(subjects)
-        assert {commit[3] for commit in parsed} == set(subjects)
+        assert len(parsed) == EXPECTED_EXPORTED_COMMITS
+        assert {commit[3] for commit in parsed} == {
+            "feat(cli): first commit",
+            "fix(io): handle a|b edge case",
+        }
         for sha, iso_date, author, _subject in parsed:
             assert len(sha) == GIT_SHA_LENGTH
             assert iso_date[:4].isdigit()
             assert author == "Test Author"
 
-    def test_export_creates_parent_directory(self, tmp_path: Path) -> None:
+    def test_export_creates_parent_directory(
+        self,
+        tmp_path: Path,
+        one_commit_repo: Path,
+    ) -> None:
         """A missing parent directory for the CSV is created on export."""
-        repo_dir = tmp_path / "repo"
-        _make_git_repo(repo_dir, ["docs: only commit"])
         csv_path = tmp_path / "nested" / "dir" / "git_history.csv"
 
-        build.export_git_history_csv(repo_dir, csv_path)
+        build.export_git_history_csv(one_commit_repo, csv_path)
 
         assert csv_path.is_file()
 
@@ -240,7 +279,7 @@ class TestEndToEnd:
 
     def test_module_runs_as_a_script(
         self,
-        tmp_path: Path,
+        consumer_repo: Path,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Running build.py as ``__main__`` exports and renders end to end.
@@ -250,16 +289,14 @@ class TestEndToEnd:
         ``--no-open`` keeps the run from launching a browser (Step 2 delegates
         ``main`` to the CLI, which opens the report by default).
         """
-        repo_dir = tmp_path / "consumer"
-        _make_git_repo(repo_dir, ["feat: only commit"])
-        monkeypatch.setenv("PRJ_DIR", str(repo_dir))
+        monkeypatch.setenv("PRJ_DIR", str(consumer_repo))
         monkeypatch.setattr(sys, "argv", ["build.py", "--no-open"])
 
         build_script = build.__file__
         assert build_script is not None
         runpy.run_path(build_script, run_name="__main__")
 
-        dashboard_dir = repo_dir.joinpath(*build.DASHBOARD_SUBDIR)
+        dashboard_dir = consumer_repo.joinpath(*build.DASHBOARD_SUBDIR)
         assert (dashboard_dir / build.GIT_HISTORY_CSV_NAME).is_file()
         assert (dashboard_dir / "data.json").is_file()
         html = (dashboard_dir / "dashboard.html").read_text(encoding="utf-8")

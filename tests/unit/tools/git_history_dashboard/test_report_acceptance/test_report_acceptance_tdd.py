@@ -19,12 +19,12 @@ import os
 import subprocess
 from typing import TYPE_CHECKING
 
+import pytest
+
 from tools.git_history_dashboard import cli
 
 if TYPE_CHECKING:
     from pathlib import Path
-
-    import pytest
 
 # How many commits the two-repo fixture produces (2 in alpha, 1 in beta).
 EXPECTED_TOTAL_COMMITS = 3
@@ -58,15 +58,23 @@ def _make_git_repo(repo_dir: Path, subjects: list[str], author: str) -> None:
 
     The author identity comes from the GIT_AUTHOR_*/GIT_COMMITTER_* env vars and
     gpg signing is turned off inline on the commit, so no `git config`
-    subprocess calls are needed.
+    subprocess calls are needed. Empty commits are enough because the report
+    uses commit metadata, not file contents.
     """
     env = _git_env(author)
     repo_dir.mkdir(parents=True, exist_ok=True)
-    _run_git(repo_dir, env, "init")
-    for index, subject in enumerate(subjects):
-        (repo_dir / f"file_{index}.txt").write_text(subject, encoding="utf-8")
-        _run_git(repo_dir, env, "add", "-A")
-        _run_git(repo_dir, env, "-c", "commit.gpgsign=false", "commit", "-m", subject)
+    _run_git(repo_dir, env, "init", "-q")
+    for subject in subjects:
+        _run_git(
+            repo_dir,
+            env,
+            "-c",
+            "commit.gpgsign=false",
+            "commit",
+            "--allow-empty",
+            "-m",
+            subject,
+        )
 
 
 def _build_two_repos(tmp_path: Path) -> Path:
@@ -76,12 +84,28 @@ def _build_two_repos(tmp_path: Path) -> Path:
     return tmp_path
 
 
-def test_two_repo_run_writes_the_combined_payload(tmp_path: Path) -> None:
+@pytest.fixture
+def two_repo_base(tmp_path: Path) -> Path:
+    """Return two metadata-only git repos for combined-report tests."""
+    return _build_two_repos(tmp_path)
+
+
+@pytest.fixture
+def solo_repo(tmp_path: Path) -> Path:
+    """Return one metadata-only git repo for rebuild tests."""
+    repo = tmp_path / "solo"
+    _make_git_repo(repo, ["feat: only commit"], "Ann Dev")
+    return repo
+
+
+def test_two_repo_run_writes_the_combined_payload(
+    tmp_path: Path,
+    two_repo_base: Path,
+) -> None:
     """Two repos build one payload: both projects, summed slices, both authors."""
-    base = _build_two_repos(tmp_path)
     out = tmp_path / "report"
 
-    cli.main([str(base / "alpha"), str(base / "beta"), "--out-dir", str(out), "--no-open"])
+    cli.main([str(two_repo_base / "alpha"), str(two_repo_base / "beta"), "--out-dir", str(out), "--no-open"])
 
     data = json.loads((out / "data.json").read_text(encoding="utf-8"))
     assert data["projects"] == ["alpha", "beta"]
@@ -101,15 +125,15 @@ def test_two_repo_run_writes_the_combined_payload(tmp_path: Path) -> None:
 
 def test_two_repo_render_fills_slots_and_suppresses_browser(
     tmp_path: Path,
+    two_repo_base: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """The combined page fills the slots, drops my-project, and opens no browser."""
-    base = _build_two_repos(tmp_path)
     out = tmp_path / "report"
     opened: list[str] = []
     monkeypatch.setattr(cli.webbrowser, "open", opened.append)
 
-    cli.main([str(base / "alpha"), str(base / "beta"), "--out-dir", str(out), "--no-open"])
+    cli.main([str(two_repo_base / "alpha"), str(two_repo_base / "beta"), "--out-dir", str(out), "--no-open"])
 
     html = (out / "dashboard.html").read_text(encoding="utf-8")
     assert "my-project" not in html
@@ -121,23 +145,24 @@ def test_two_repo_render_fills_slots_and_suppresses_browser(
     assert opened == []  # --no-open suppressed the browser
 
 
-def test_notes_survive_a_rebuild_while_generated_refreshes(tmp_path: Path) -> None:
+def test_notes_survive_a_rebuild_while_generated_refreshes(
+    tmp_path: Path,
+    solo_repo: Path,
+) -> None:
     """A second run keeps the hand-written notes and rewrites the generated file.
 
     ``--no-open`` means the opener is never called, so no browser monkeypatch is
     needed here.
     """
-    repo = tmp_path / "solo"
-    _make_git_repo(repo, ["feat: only commit"], "Ann Dev")
     out = tmp_path / "report"
 
-    cli.main([str(repo), "--out-dir", str(out), "--no-open"])
+    cli.main([str(solo_repo), "--out-dir", str(out), "--no-open"])
 
     notes = out / "analysis.notes.solo.md"
     notes.write_text("HAND-WRITTEN COMMENTARY", encoding="utf-8")
     (out / "analysis.generated.md").write_text("STALE SENTINEL", encoding="utf-8")
 
-    cli.main([str(repo), "--out-dir", str(out), "--no-open"])
+    cli.main([str(solo_repo), "--out-dir", str(out), "--no-open"])
 
     assert notes.read_text(encoding="utf-8") == "HAND-WRITTEN COMMENTARY"
     generated = (out / "analysis.generated.md").read_text(encoding="utf-8")

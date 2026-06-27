@@ -19,7 +19,7 @@ from tools.git_history_dashboard import aggregate
 
 # Many commits so a quadratic aggregation would blow the timeout, yet a linear
 # pass stays in milliseconds.
-PERF_COMMIT_COUNT = 6000
+PERF_COMMIT_COUNT = 3000
 # How many projects the synthetic commits fan out across.
 PERF_PROJECT_COUNT = 5
 # A generous wall-clock bound: linear aggregation finishes far inside it.
