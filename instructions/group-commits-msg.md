@@ -32,6 +32,12 @@ The context that can inform how you will group those files can be:
 
 3. Group files based on their dependencies and the context you have (previous prompts, `.md` files in your context, and the changes done on those files).
 
+   A plan or validation document whose only purpose is to record that a step
+   was completed is a trailing documentation group. Do not fold it into the
+   feature, fix, test, or performance group that made the code change. Put it
+   last, after all behavior and test groups, with a title shaped like
+   `docs(<topic>): record step <n> completion`.
+
 4. For each group, write a conventional commit message. Each group must follow the template provided in [`group-commits-msg.template.md`](../templates/group-commits-msg.template.md). See the next section for more details on how to write the commit message. The title `# Grouping commits by topic` from the template must be added only once, for the first group, and not for the following groups.
 
 5. Replace the content of the project-root `a.commit` (`%PRJ_DIR%\a.commit`, never a copy under `docs/` or another subfolder) with the generated groups and commit messages. Each group must be separated by an empty line in `a.commit`.
@@ -69,6 +75,11 @@ The context that can inform how you will group those files can be:
    An exit status of 0 means the `a.commit` file is valid, while a non-zero exit status means there is an issue with the `a.commit` file that needs to be fixed.
 
    If the file is valid, there is nothing more to do: `git_batch_commit.py` will have proceeded automatically to create one commit per group, with the corresponding commit message.
+
+   Do not manually replay the groups with `git restore --staged`, `git add`,
+   or `git commit` after a go-ahead. The approved go-ahead path is exactly the
+   batch commit tool above; bypassing it skips the parser/validator contract
+   and risks committing a different grouping than the reviewed `a.commit`.
 
 ## Commit message rules for groups
 
