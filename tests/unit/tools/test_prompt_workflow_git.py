@@ -189,8 +189,17 @@ def test_changed_files_since_lists_paths(
     tmp_path: Path,
 ) -> None:
     """Changed files come from the name-only diff against the base commit."""
-    monkeypatch.setattr(git, "run_git", lambda _args, **_kwargs: "docs/a.md\ndocs/b.md\n")
+    seen: list[list[str]] = []
+
+    def fake(args: list[str], *, cwd: Path) -> str:
+        del cwd
+        seen.append(args)
+        return "docs/a.md\ndocs/b.md\n"
+
+    monkeypatch.setattr(git, "run_git", fake)
+
     assert git.changed_files_since(tmp_path, "base") == ["docs/a.md", "docs/b.md"]
+    assert seen == [["diff", "--name-only", "--diff-filter=AMR", "base", "HEAD"]]
 
 
 def test_working_tree_changed_files_parses_status(
