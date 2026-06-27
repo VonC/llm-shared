@@ -23,7 +23,9 @@ Next-step routing (Q02, Q03): ``next_command`` reads the workflow state from dis
 only (never ``a.prompt_memory``), reuses ``steps.next_step_numbers`` for the base
 step, and advances past a review step when the document it reads carries a
 consolidated decisions table. The resolved step maps to an instruction and a
-target document, then renders.
+target document, then renders. For the implementation cycle, an available
+validation plan also contributes the plan step id so ``implement-step`` receives
+the argument it needs.
 """
 
 from __future__ import annotations
@@ -149,6 +151,8 @@ STEP_ROLE = {
 ADVANCE_PAST_REVIEW = {2: 4, 5: 7, 8: 10}
 # The document type a write step produces for each artifact role.
 PRODUCED_TYPE = {"requirement": "feature-request", "design": "design", "plan": "plan"}
+# Workflow step number that hands execution to the plan implementation cycle.
+IMPLEMENT_STEP = 10
 
 
 def next_command(
@@ -181,7 +185,12 @@ def next_command(
     state = steps.compute_state(root, topic, None)
     step = _resolve_step(state)
     instruction, document = _instruction_and_document(step, root, topic, branch, state)
-    return render_command(host_prefix(env, override), instruction, document)
+    prefix = host_prefix(env, override)
+    if step == IMPLEMENT_STEP:
+        plan_step = _plan_step_to_implement(root, state)
+        command = render_command(prefix, instruction, document)
+        return command if plan_step is None else f"{command} step {plan_step}"
+    return render_command(prefix, instruction, document)
 
 
 def _resolve_step(state: WorkflowState) -> int:
@@ -229,6 +238,31 @@ def _instruction_and_document(
     if step == 1 and branch != topic.slug:
         return PROCESS_DRAFT, _relpath(root, topic.draft_path)
     return STEP_INSTRUCTION[step], _document(root, topic, STEP_ROLE[step], state)
+
+
+def _plan_step_to_implement(root: Path, state: WorkflowState) -> str | None:
+    """Return the validation-plan step for an ``implement-step`` command.
+
+    Args:
+        root: The project root, used for commit-history checks.
+        state: The workflow state holding the validation plan path.
+
+    Returns:
+        The plan step id to append, or None when no validation plan can provide
+        one.
+    """
+    if state.validation_plan is None:
+        return None
+    plan_steps = plan.parse_validation_steps(state.validation_plan.read_text(encoding="utf-8"))
+    if not plan_steps:
+        return None
+    branch_start = git.fork_point(root)
+
+    def _has_commit(number: str) -> bool:
+        return git.has_step_commit(root, number, branch_start)
+
+    step, _verified, _terminal = plan.derive_x(plan_steps, _has_commit)
+    return step
 
 
 def _document(root: Path, topic: Topic, role: str, state: WorkflowState) -> str:

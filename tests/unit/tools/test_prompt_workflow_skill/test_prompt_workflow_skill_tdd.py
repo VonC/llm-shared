@@ -8,7 +8,9 @@ property loop guards the render invariants.
 
 Step 2 covers next_command: the next step read from disk (compute_state with no
 memory step, next_step_numbers, the decisions-table override), mapped to an
-instruction and a target document and rendered with the host prefix.
+instruction and a target document and rendered with the host prefix. When the
+route reaches implementation, an available validation plan supplies the plan
+step id appended to the rendered command.
 
 Step 3 covers the pw skill subcommand: run_skill (topic resolution, the
 not-applicable exit), forced_command (a forced skill emitted only when its
@@ -197,6 +199,41 @@ def test_next_command_settled_plan_implements(tmp_path: Path) -> None:
     _write(tmp_path, _DESIGN, _SETTLED_DESIGN)
     _write(tmp_path, _PLAN, _SETTLED_PLAN)
     command = skill.next_command(tmp_path, topic, "handoff_automation", _CLAUDE)
+    assert command == "/implement-step on docs/plan.v0.9.0.handoff_automation.md"
+
+
+def test_next_command_settled_plan_implements_the_validation_step(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """A settled plan with validation context names the current plan step."""
+    topic = _topic(tmp_path)
+    _write(tmp_path, _REQ, _SETTLED_REQ)
+    _write(tmp_path, _DESIGN, _SETTLED_DESIGN)
+    _write(tmp_path, _PLAN, _SETTLED_PLAN)
+    _write(tmp_path, "plan.v0.9.0.handoff_automation.validation.md", _VALIDATION_TWO_STEPS)
+    monkeypatch.setattr(skill.git, "fork_point", lambda _root: "base")
+    monkeypatch.setattr(
+        skill.git,
+        "has_step_commit",
+        lambda _root, number, _base: number == "1",
+    )
+
+    command = skill.next_command(tmp_path, topic, "handoff_automation", _CLAUDE)
+
+    assert command == "/implement-step on docs/plan.v0.9.0.handoff_automation.md step 2"
+
+
+def test_next_command_settled_plan_ignores_empty_validation_plan(tmp_path: Path) -> None:
+    """A validation plan with no parsed steps leaves the implement command bare."""
+    topic = _topic(tmp_path)
+    _write(tmp_path, _REQ, _SETTLED_REQ)
+    _write(tmp_path, _DESIGN, _SETTLED_DESIGN)
+    _write(tmp_path, _PLAN, _SETTLED_PLAN)
+    _write(tmp_path, "plan.v0.9.0.handoff_automation.validation.md", "# no steps\n")
+
+    command = skill.next_command(tmp_path, topic, "handoff_automation", _CLAUDE)
+
     assert command == "/implement-step on docs/plan.v0.9.0.handoff_automation.md"
 
 
