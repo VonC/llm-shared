@@ -121,7 +121,7 @@ def test_python_tool_instructions_use_wrappers() -> None:
     ):
         content = _read(name)
         assert "run_commands.md" in content
-        assert "python \"%LLM_SHARED_DIR%\\tools\\" not in content
+        assert 'python "%LLM_SHARED_DIR%\\tools\\' not in content
         assert "python <llm-shared>/tools/" not in content
 
 
