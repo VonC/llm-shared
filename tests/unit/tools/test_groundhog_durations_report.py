@@ -34,9 +34,9 @@ _TIDY = {
     "tests/test_d.py::test_four": 0.10,
     "tests/test_e.py::test_five": 0.10,
 }
-_FREAK_FLOOR_LINE = "  -- floor 1.65s --"
-# Six window lines: header, the freak, the floor, three runners-up.
-_WINDOW_LEN = 6
+_FREAK_FLOOR_LINE = "  ===== floor 1.65s ====="
+# Eight window lines: header, the freak, blank, floor, blank, three runners-up.
+_WINDOW_LEN = 8
 
 # The active floor the exclusion block compares a faster call against: a call
 # below it is removed, a call at or above it has its baseline lowered (Q60).
@@ -55,8 +55,8 @@ _EXCLUSIONS = (
     durations.DurationExclusion(_REMOVED_NODE, 2.54, 0.30, durations.STATUS_FASTER),
     durations.DurationExclusion(_STALE_NODE, 4.10, None, durations.STATUS_STALE),
 )
-# Header plus one line per excluded call.
-_BLOCK_LEN = 6
+# Separator, header, plus one line per excluded call.
+_BLOCK_LEN = 7
 
 
 def _excluded_summary() -> durations.DurationSummary:
@@ -83,7 +83,9 @@ def test_window_lists_outliers_floor_and_runners() -> None:
     assert lines[0].startswith("Duration outliers")
     assert _FREAK_NODE in lines[1]
     assert "30x median" in lines[1]
-    assert lines[2] == _FREAK_FLOOR_LINE
+    assert lines[2] == ""
+    assert lines[3] == _FREAK_FLOOR_LINE
+    assert lines[4] == ""
     assert len(lines) == _WINDOW_LEN
 
 
@@ -105,29 +107,30 @@ def test_window_empty_map_is_a_notice() -> None:
 def test_exclusion_block_heads_and_accepts() -> None:
     """The block heads the list and reads ``ok`` or restore for a slow call (Q58)."""
     lines = durations_report.exclusion_block(_excluded_summary())
-    assert lines[0].startswith("Excluded (accepted slow")
+    assert lines[0] == ""
+    assert lines[1].startswith("Excluded (accepted slow")
     assert len(lines) == _BLOCK_LEN
     # ok: node, recorded and current shown, verdict ``ok`` (Q56).
-    assert f"  {_OK_NODE}  recorded=11.41s  current=11.33s  ok" == lines[1]
+    assert f"  {_OK_NODE}  recorded=11.41s  current=11.33s  ok" == lines[2]
     # slower: restore to within two seconds of the recorded baseline (Q57).
-    assert _SLOWER_NODE in lines[2]
-    assert "current=9.42s" in lines[2]
-    assert "restore to within 2s of 6.80s" in lines[2]
+    assert _SLOWER_NODE in lines[3]
+    assert "current=9.42s" in lines[3]
+    assert "restore to within 2s of 6.80s" in lines[3]
 
 
 def test_exclusion_block_ratchets_and_removes() -> None:
     """A faster or stale entry shows the lowered baseline or removal (Q60, Q61)."""
     lines = durations_report.exclusion_block(_excluded_summary())
     # faster above the floor: the baseline the tool lowered it to (Q69).
-    assert _LOWERED_NODE in lines[3]
-    assert "baseline lowered to 1.30s" in lines[3]
+    assert _LOWERED_NODE in lines[4]
+    assert "baseline lowered to 1.30s" in lines[4]
     # faster below the floor: the entry is removed, back to the normal rule (Q60).
-    assert _REMOVED_NODE in lines[4]
-    assert "removed (now under the floor)" in lines[4]
+    assert _REMOVED_NODE in lines[5]
+    assert "removed (now under the floor)" in lines[5]
     # stale: no current call, the entry is removed (Q61).
-    assert _STALE_NODE in lines[5]
-    assert "current=(not run)" in lines[5]
-    assert "removed (stale)" in lines[5]
+    assert _STALE_NODE in lines[6]
+    assert "current=(not run)" in lines[6]
+    assert "removed (stale)" in lines[6]
 
 
 def test_exclusion_block_empty_list_renders_no_block() -> None:
