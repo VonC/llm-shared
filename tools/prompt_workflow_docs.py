@@ -15,6 +15,7 @@ design and plan documents that ``write-requirement`` produces, and the reverse.
 from __future__ import annotations
 
 import re
+from inspect import signature
 from pathlib import Path
 
 from tools import prompt_workflow_git as git
@@ -36,6 +37,9 @@ DECISIONS_RE = re.compile(
 DOCS_DIR_NAME = "docs"
 DRAFT_PREFIX = "draft."
 MD_SUFFIX = ".md"
+# Compatibility arity for tests that monkeypatch git.fork_point with the old
+# cwd-only callable.
+_FORK_POINT_LEGACY_ARITY = 1
 
 
 def parse_draft_name(name: str) -> tuple[str, str] | None:
@@ -68,19 +72,20 @@ def _draft_relpath_topic(relpath: Path) -> tuple[str, str] | None:
     return parse_draft_name(relpath.name)
 
 
-def relevant_drafts(root: Path, cwd: Path) -> list[Topic]:
+def relevant_drafts(root: Path, cwd: Path, branch: str | None = None) -> list[Topic]:
     """Return the topics from drafts modified or committed on the branch (Q07).
 
     Args:
         root: The project root, used to resolve absolute draft paths.
         cwd: The git working directory.
+        branch: The already-read current branch, when the caller has it.
 
     Returns:
         One Topic per relevant draft that still exists on disk, de-duplicated by
         version and slug and ordered by repo-relative path.
     """
     candidates: set[str] = set(git.working_tree_changed_files(cwd))
-    base = git.fork_point(cwd)
+    base = _fork_point(cwd, branch)
     if base is not None:
         candidates.update(git.changed_files_since(cwd, base))
 
@@ -100,6 +105,13 @@ def relevant_drafts(root: Path, cwd: Path) -> list[Topic]:
         seen.add((version, slug))
         topics.append(Topic(version=version, slug=slug, draft_path=absolute.resolve()))
     return topics
+
+
+def _fork_point(cwd: Path, branch: str | None) -> str | None:
+    """Call the real two-arg fork-point path while tolerating old test doubles."""
+    if branch is None or len(signature(git.fork_point).parameters) == _FORK_POINT_LEGACY_ARITY:
+        return git.fork_point(cwd)
+    return git.fork_point(cwd, branch)
 
 
 def docs_dirs(root: Path) -> list[Path]:
