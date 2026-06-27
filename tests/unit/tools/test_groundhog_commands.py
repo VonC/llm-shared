@@ -203,6 +203,13 @@ def _green_full(stats: RunStats) -> RunStats:
     return stats
 
 
+def _assert_blank_before(out: str, marker: str) -> None:
+    """Assert the rendered report separates a named line from prior content."""
+    lines = out.splitlines()
+    index = next(i for i, line in enumerate(lines) if line.startswith(marker))
+    assert lines[index - 1] == ""
+
+
 def test_classify_judges_outliers_last(tmp_path: Path) -> None:
     """Exit 8 only on a green run; a gap or a failure keeps its code (Q34)."""
     invocation = _invocation(tmp_path)
@@ -252,6 +259,7 @@ def test_full_green_but_slow_exits_8(
     assert "avg=" in out
     assert "outliers=1" in out
     assert "exit=8" in out
+    _assert_blank_before(out, "Duration outliers")
 
 
 def test_full_run_seeds_the_floor_file(tmp_path: Path) -> None:
@@ -275,6 +283,8 @@ def test_full_tidy_run_exits_0_with_zero_outliers(
     assert "Slowest call:" in out
     assert "outliers=0" in out
     assert "Duration outliers" not in out
+    _assert_blank_before(out, "Slowest call:")
+    _assert_blank_before(out, reporting_nextstep.MSG_FULL_OK)
 
 
 def test_full_run_respects_a_raised_override(

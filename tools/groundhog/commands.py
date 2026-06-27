@@ -452,7 +452,7 @@ def _report_run_context(
     ):
         emit([reporting_nextstep.MSG_NO_TESTS_RUN])
     if summary is not None:
-        emit(durations_report.window_lines(summary))
+        emit(["", *durations_report.window_lines(summary)])
         emit(durations_report.exclusion_block(summary))
 
 
@@ -475,7 +475,8 @@ def _next_steps(
     """
     if invocation.sub == runner.SUB_FULL:
         failing = baseline.failing_files(result.stats.failed_ids)
-        return reporting_nextstep.next_after_full(exit_code, failing, summary)
+        lines = reporting_nextstep.next_after_full(exit_code, failing, summary)
+        return ["", *lines] if lines else []
     if invocation.sub == runner.SUB_AFFECTED:
         if invocation.no_cov:
             return reporting_nextstep.next_after_affected_nocov(
