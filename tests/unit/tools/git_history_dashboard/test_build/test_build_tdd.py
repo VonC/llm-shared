@@ -25,6 +25,10 @@ Step 1.1 (v0.8.0): ``run_build`` gains a ``project`` argument and tags the parse
 rows into ``Commit`` records, so the ``run_build`` test passes one and checks the
 single project lands in the payload; the CSV-parse tests are unchanged because
 ``iter_commits_from_csv`` still yields raw rows.
+
+Groundhog duration gate: the export unit test fakes the ``git log`` subprocess
+at the ``subprocess.run`` boundary, asserting the exact argv and CSV behavior
+without paying real repository setup in the call that only covers this module.
 """
 
 from __future__ import annotations
@@ -35,10 +39,14 @@ import runpy
 import subprocess
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 
 from tools.git_history_dashboard import build
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 # Identity through the environment so the repo setup needs no `git config`
 # subprocess calls; merged onto os.environ to keep PATH and the Windows
@@ -55,10 +63,12 @@ _GIT_ENV = {
 
 # The messy-CSV fixture yields two well-formed records.
 EXPECTED_PARSED_FROM_MESSY_CSV = 2
-# The export fixture writes two commits.
-EXPECTED_EXPORTED_COMMITS = 2
+# The export fixture writes one commit.
+EXPECTED_EXPORTED_COMMITS = 1
 # A full git object name is 40 hexadecimal characters.
 GIT_SHA_LENGTH = 40
+# Synthetic SHA emitted by the fake git-log subprocess.
+PIPE_HISTORY_SHA = "a" * GIT_SHA_LENGTH
 
 # Synthetic commit history, newest first, exactly as ``git log --date-order``
 # would emit it: two commits on 2026-05-22 and one on 2026-05-20.
@@ -115,6 +125,57 @@ def _run_git(repo_dir: Path, *args: str) -> None:
     )
 
 
+def _pipe_history_subprocess(
+    captured: dict[str, object],
+) -> Callable[..., subprocess.CompletedProcess[str]]:
+    """Return a fake ``subprocess.run`` that emits one pipe-bearing commit."""
+    def fake_run(
+        cmd: list[str],
+        *,
+        capture_output: bool,
+        text: bool,
+        check: bool,
+        encoding: str,
+    ) -> subprocess.CompletedProcess[str]:
+        """Record the subprocess contract and return the synthetic git output."""
+        captured["cmd"] = cmd
+        captured["options"] = (capture_output, text, check, encoding)
+        return subprocess.CompletedProcess(
+            cmd,
+            0,
+            stdout=(
+                PIPE_HISTORY_SHA
+                + "|2026-05-22 10:00:00 +0000|Test Author|"
+                + "fix(io): handle a|b edge case"
+            ),
+        )
+
+    return fake_run
+
+
+def _assert_pipe_history_export(
+    captured: dict[str, object],
+    repo_dir: Path,
+    csv_path: Path,
+    written: Path,
+) -> None:
+    """Assert the fake export wrote the expected CSV and subprocess contract."""
+    assert written == csv_path
+    assert captured["cmd"] == build.build_git_log_command(repo_dir)
+    assert captured["options"] == (True, True, True, "utf-8")
+    content = csv_path.read_text(encoding="utf-8")
+    assert content.endswith("\n")
+    assert len(content.splitlines()) == EXPECTED_EXPORTED_COMMITS
+    assert list(build.iter_commits_from_csv(csv_path)) == [
+        (
+            PIPE_HISTORY_SHA,
+            "2026-05-22 10:00:00 +0000",
+            "Test Author",
+            "fix(io): handle a|b edge case",
+        ),
+    ]
+
+
 def _make_git_repo(repo_dir: Path, subjects: list[str]) -> None:
     """Create a git repo at repo_dir with one commit per subject line.
 
@@ -135,14 +196,6 @@ def _make_git_repo(repo_dir: Path, subjects: list[str]) -> None:
             "-m",
             subject,
         )
-
-
-@pytest.fixture
-def two_commit_repo(tmp_path: Path) -> Path:
-    """Return a metadata-only repo with two commits for export tests."""
-    repo_dir = tmp_path / "sample_repo"
-    _make_git_repo(repo_dir, ["feat(cli): first commit", "fix(io): handle a|b edge case"])
-    return repo_dir
 
 
 @pytest.fixture
@@ -182,29 +235,19 @@ class TestGitHistoryExport:
 
     def test_export_writes_pipe_separated_history(
         self,
+        monkeypatch: pytest.MonkeyPatch,
         tmp_path: Path,
-        two_commit_repo: Path,
     ) -> None:
-        """Exporting a real repo yields a parseable, newline-terminated CSV."""
+        """Exporting git output yields a parseable, newline-terminated CSV."""
+        repo_dir = tmp_path / "sample_repo"
         csv_path = tmp_path / build.GIT_HISTORY_CSV_NAME
+        captured: dict[str, object] = {}
 
-        written = build.export_git_history_csv(two_commit_repo, csv_path)
+        monkeypatch.setattr(build.subprocess, "run", _pipe_history_subprocess(captured))
 
-        assert written == csv_path
-        content = csv_path.read_text(encoding="utf-8")
-        assert content.endswith("\n")
-        assert len(content.splitlines()) == EXPECTED_EXPORTED_COMMITS
+        written = build.export_git_history_csv(repo_dir, csv_path)
 
-        parsed = list(build.iter_commits_from_csv(csv_path))
-        assert len(parsed) == EXPECTED_EXPORTED_COMMITS
-        assert {commit[3] for commit in parsed} == {
-            "feat(cli): first commit",
-            "fix(io): handle a|b edge case",
-        }
-        for sha, iso_date, author, _subject in parsed:
-            assert len(sha) == GIT_SHA_LENGTH
-            assert iso_date[:4].isdigit()
-            assert author == "Test Author"
+        _assert_pipe_history_export(captured, repo_dir, csv_path, written)
 
     def test_export_creates_parent_directory(
         self,
