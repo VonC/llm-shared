@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>llm-shared — Présentation acme</title>
+<style>
+  :root {
+    --card-text-size: 14px;
+    --font-10: 0.77rem;
+    --font-11: 0.85rem;
+    --font-12: 0.92rem;
+    --font-13: 1rem;
+    --font-14: 1.08rem;
+    --font-16: 1.23rem;
+    --font-18: 1.38rem;
+    --font-20: 1.54rem;
+    --font-22: 1.69rem;
+    --font-24: 1.85rem;
+    --font-28: 2.15rem;
+    --font-32: 2.46rem;
+    --font-36: 2.77rem;
+    --font-42: 3.23rem;
+    --font-52: 4rem;
+
+    --color-blue: #00566f;
+    --color-orange: #ec6608;
+    --color-gray: #717e86;
+    --color-light: #f0f4f6;
+    --color-light-blue: #e6f0f3;
+    --color-page: #e8edf0;
+    --color-text: #333;
+    --color-muted: #555;
+    --color-title-muted: #8eb2bb;
+    --color-title-soft: #c4d8de;
+  }
+  @font-face { font-family: 'Bahnschrift'; src: local('Bahnschrift'); }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Bahnschrift', 'Segoe UI', sans-serif; background: #e8edf0; color: #333; }
+  .deck { display: flex; flex-direction: column; align-items: center; gap: 30px; padding: 30px; }
+  .slide {
+    width: 1280px; height: 720px; background: #fff; position: relative;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15); overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .header { display: flex; align-items: center; padding: 18px 40px; border-bottom: 1px solid #e0e0e0; }
+  .logo-text { font-size: 22px; font-weight: 700; color: #00566f; letter-spacing: 1px; }
+  .logo-sub { font-size: 10px; color: #717e86; letter-spacing: 3px; margin-top: 2px; }
+  .header-right { margin-left: auto; font-size: 11px; color: #717e86; }
+  .accent-bar { height: 4px; background: linear-gradient(90deg, #00566f 60%, #ec6608 60%); }
+  .slide-title { font-size: 28px; font-weight: 600; color: #00566f; padding: 30px 50px 5px; }
+  .slide-subtitle { font-size: 14px; color: #717e86; padding: 0 50px 15px; font-weight: 400; }
+  .content { flex: 1; padding: 10px 50px 30px; display: flex; flex-direction: column; justify-content: center; }
+  .footer { position: absolute; bottom: 15px; right: 40px; font-size: 10px; color: #aaa; }
+  .footer-left { position: absolute; bottom: 15px; left: 40px; font-size: 10px; color: #aaa; }
+  .blue { color: #00566f; } .orange { color: #ec6608; } .gray { color: #717e86; }
+
+  .title-slide { background: #00566f; color: #fff; justify-content: center; align-items: center; text-align: center; }
+  .title-main { font-size: 52px; font-weight: 700; margin-bottom: 10px; }
+  .title-desc { font-size: 20px; color: #c4d8de; margin-top: 20px; max-width: 800px; }
+  .title-date { font-size: 16px; color: #8eb2bb; margin-top: 40px; }
+  .title-logo { position: absolute; top: 30px; left: 40px; }
+  .title-logo .logo-text { color: #fff; }
+  .title-logo .logo-sub { color: #8eb2bb; }
+
+  .card { background: #f0f4f6; border-radius: 10px; padding: 20px; flex: 1; border-top: 4px solid #00566f; }
+  .card.orange { border-top-color: #ec6608; }
+  .card-title { font-size: 16px; font-weight: 700; color: #00566f; margin-bottom: 10px; }
+  .card-title.orange { color: #ec6608; }
+  .card-text { font-size: 13px; color: #555; line-height: 1.5; }
+  .card-icon { font-size: 32px; margin-bottom: 8px; }
+
+  .highlight-text {
+    font-size: 18px; color: #00566f; font-weight: 600;
+    text-align: center; line-height: 1.6; padding: 20px;
+    background: #e6f0f3; border-radius: 10px; border-left: 5px solid #ec6608;
+  }
+
+  .phase-box {
+    background: #fff; border: 2px solid #00566f; border-radius: 10px;
+    padding: 15px; text-align: center; flex: 1; position: relative;
+  }
+  .phase-box.active { background: #00566f; color: #fff; border-color: #00566f; }
+  .phase-box.orange { border-color: #ec6608; }
+  .phase-box.active-orange { background: #ec6608; color: #fff; border-color: #ec6608; }
+  .phase-num { font-size: 28px; font-weight: 700; color: #ec6608; }
+  .phase-box.active .phase-num, .phase-box.active-orange .phase-num { color: #fff; }
+  .phase-label { font-size: 14px; font-weight: 600; margin-top: 5px; }
+  .phase-detail { font-size: 11px; color: #666; margin-top: 5px; }
+  .phase-box.active .phase-detail, .phase-box.active-orange .phase-detail { color: #c4d8de; }
+
+  .step-circle {
+    width: 50px; height: 50px; border-radius: 50%; background: #00566f;
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-size: 20px; font-weight: 700; margin: 0 auto 8px;
+  }
+  .step-circle.orange { background: #ec6608; }
+
+  .feature-item {
+    flex: 1; background: #f0f4f6; border-radius: 8px; padding: 15px;
+    border-left: 4px solid #00566f;
+  }
+  .feature-item.orange { border-left-color: #ec6608; }
+  .feature-item h4 { font-size: 14px; color: #00566f; margin-bottom: 5px; }
+  .feature-item p { font-size: 12px; color: #666; line-height: 1.4; }
+
+  .warn-box {
+    background: #fff3e6; border: 2px solid #ec6608; border-radius: 10px;
+    padding: 20px; text-align: center;
+  }
+  .warn-box h3 { color: #ec6608; font-size: 18px; margin-bottom: 8px; }
+
+  .loop-box {
+    border: 2px solid #00566f; border-radius: 8px; padding: 12px 15px;
+    text-align: center; font-size: 13px; font-weight: 600; color: #00566f;
+    background: #fff;
+  }
+  .loop-box.filled { background: #00566f; color: #fff; }
+  .loop-box.orange { border-color: #ec6608; color: #ec6608; }
+  .loop-box.filled-orange { background: #ec6608; color: #fff; border-color: #ec6608; }
+
+  .commit-block {
+    background: #1a2a30; color: #8eb2bb; border-radius: 8px; padding: 15px;
+    font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.8;
+  }
+  .commit-type { color: #ec6608; font-weight: 700; }
+
+  html {
+    font-size: var(--card-text-size);
+    scroll-behavior: smooth;
+    scroll-snap-type: y mandatory;
+  }
+  body {
+    min-height: 100vh; overflow-x: hidden; scroll-snap-type: y mandatory;
+    background: var(--color-page); color: var(--color-text);
+  }
+  .deck {
+    width: 100vw; min-height: 100vh; align-items: stretch; gap: 0; padding: 0;
+  }
+  .slide {
+    width: 100vw; height: 100vh; min-height: 100vh; box-shadow: none;
+    scroll-snap-align: start; scroll-snap-stop: always;
+  }
+  .slide:focus { outline: none; }
+  .content { min-height: 0; overflow: auto; }
+  .accent-bar {
+    background: linear-gradient(90deg, var(--color-blue) 60%, var(--color-orange) 60%);
+  }
+  .logo-text { font-size: var(--font-22); color: var(--color-blue); }
+  .logo-sub { font-size: var(--font-10); color: var(--color-gray); }
+  .header-right { font-size: var(--font-11); color: var(--color-gray); }
+  .slide-title { font-size: var(--font-28); color: var(--color-blue); }
+  .slide-subtitle { font-size: var(--font-14); color: var(--color-gray); }
+  .footer, .footer-left { font-size: var(--font-10); }
+  .title-slide { background: var(--color-blue); }
+  .title-main { font-size: var(--font-52); }
+  .title-desc { font-size: var(--font-20); color: var(--color-title-soft); }
+  .title-date { font-size: var(--font-16); color: var(--color-title-muted); }
+  .title-logo .logo-sub { color: var(--color-title-muted); }
+  .card { background: var(--color-light); border-top-color: var(--color-blue); }
+  .card.orange { border-top-color: var(--color-orange); }
+  .card-title { font-size: var(--font-16); color: var(--color-blue); }
+  .card-title.orange { color: var(--color-orange); }
+  .card-text { font-size: var(--font-13); color: var(--color-muted); }
+  .card-icon { font-size: var(--font-32); }
+  .highlight-text {
+    background: var(--color-light-blue); border-left-color: var(--color-orange);
+    color: var(--color-blue); font-size: var(--font-18);
+  }
+  .phase-box { border-color: var(--color-blue); }
+  .phase-box.active { background: var(--color-blue); border-color: var(--color-blue); }
+  .phase-box.orange { border-color: var(--color-orange); }
+  .phase-box.active-orange { background: var(--color-orange); border-color: var(--color-orange); }
+  .phase-num { font-size: var(--font-28); color: var(--color-orange); }
+  .phase-label { font-size: var(--font-14); }
+  .phase-detail { font-size: var(--font-11); }
+  .step-circle { background: var(--color-blue); font-size: var(--font-20); }
+  .step-circle.orange { background: var(--color-orange); }
+  .feature-item { background: var(--color-light); border-left-color: var(--color-blue); }
+  .feature-item.orange { border-left-color: var(--color-orange); }
+  .feature-item h4 { font-size: var(--font-14); color: var(--color-blue); }
+  .feature-item p { font-size: var(--font-12); }
+  .warn-box { border-color: var(--color-orange); }
+  .warn-box h3 { color: var(--color-orange); font-size: var(--font-18); }
+  .loop-box {
+    border-color: var(--color-blue); color: var(--color-blue);
+    font-size: var(--font-13);
+  }
+  .loop-box.filled { background: var(--color-blue); }
+  .loop-box.orange { border-color: var(--color-orange); color: var(--color-orange); }
+  .loop-box.filled-orange { background: var(--color-orange); border-color: var(--color-orange); }
+  .commit-block { font-size: var(--font-12); }
+
+  .slide [style*="font-size: 10px"], .slide [style*="font-size:10px"] { font-size: var(--font-10) !important; }
+  .slide [style*="font-size: 11px"], .slide [style*="font-size:11px"] { font-size: var(--font-11) !important; }
+  .slide [style*="font-size: 12px"], .slide [style*="font-size:12px"] { font-size: var(--font-12) !important; }
+  .slide [style*="font-size: 13px"], .slide [style*="font-size:13px"] { font-size: var(--font-13) !important; }
+  .slide [style*="font-size: 14px"], .slide [style*="font-size:14px"] { font-size: var(--font-14) !important; }
+  .slide [style*="font-size: 16px"], .slide [style*="font-size:16px"] { font-size: var(--font-16) !important; }
+  .slide [style*="font-size: 18px"], .slide [style*="font-size:18px"] { font-size: var(--font-18) !important; }
+  .slide [style*="font-size: 20px"], .slide [style*="font-size:20px"] { font-size: var(--font-20) !important; }
+  .slide [style*="font-size: 22px"], .slide [style*="font-size:22px"] { font-size: var(--font-22) !important; }
+  .slide [style*="font-size: 24px"], .slide [style*="font-size:24px"] { font-size: var(--font-24) !important; }
+  .slide [style*="font-size: 28px"], .slide [style*="font-size:28px"] { font-size: var(--font-28) !important; }
+  .slide [style*="font-size: 32px"], .slide [style*="font-size:32px"] { font-size: var(--font-32) !important; }
+  .slide [style*="font-size: 36px"], .slide [style*="font-size:36px"] { font-size: var(--font-36) !important; }
+  .slide [style*="font-size: 42px"], .slide [style*="font-size:42px"] { font-size: var(--font-42) !important; }
+  .slide [style*="font-size: 52px"], .slide [style*="font-size:52px"] { font-size: var(--font-52) !important; }
+</style>
+</head>
+<body>
+<div class="deck">
+
+<!-- SLIDE 1 — Titre -->
+<div class="slide title-slide">
+  <div class="title-logo">
+    <div class="logo-text">acme</div>
+    <div class="logo-sub">CORPORATE TRUST</div>
+  </div>
+  <div class="accent-bar" style="position:absolute; top:0;"></div>
+  <div class="title-main">llm-shared</div>
+  <div class="title-desc">Framework de développement assisté par IA<br>De l'idée brute à la release taguée</div>
+  <div class="title-date">Direction Informatique — 2025</div>
+</div>
+
+<!-- SLIDE 2 — Agenda -->
+<div class="slide">
+  <div class="header">
+    <div><div class="logo-text">acme</div><div class="logo-sub">CORPORATE TRUST</div></div>
+    <div class="header-right">llm-shared</div>
+  </div>
+  <div class="accent-bar"></div>
+  <div class="slide-title">Agenda</div>
+  <div class="slide-subtitle">Framework de développement structuré avec l'IA</div>
+  <div class="content" style="padding-top: 10px;">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px 40px; max-width: 900px; margin: 0 auto;">
+      <div style="display:flex; align-items:center; gap:15px;"><span style="font-size:28px; color:#ec6608; font-weight:700;">1</span><span style="font-size:16px; color:#00566f; font-weight:600;">Le problème du « vibe-coding »</span></div>
+      <div style="display:flex; align-items:center; gap:15px;"><span style="font-size:28px; color:#ec6608; font-weight:700;">2</span><span style="font-size:16px; color:#00566f; font-weight:600;">La solution : un workflow structuré</span></div>
+      <div style="display:flex; align-items:center; gap:15px;"><span style="font-size:28px; color:#ec6608; font-weight:700;">3</span><span style="font-size:16px; color:#00566f; font-weight:600;">Principe clé : l'auto-revue IA</span></div>
+      <div style="display:flex; align-items:center; gap:15px;"><span style="font-size:28px; color:#ec6608; font-weight:700;">4</span><span style="font-size:16px; color:#00566f; font-weight:600;">Vue d'ensemble du workflow</span></div>
+      <div style="display:flex; align-items:center; gap:15px;"><span style="font-size:28px; color:#ec6608; font-weight:700;">5</span><span style="font-size:16px; color:#00566f; font-weight:600;">Phase documentaire</span></div>
+      <div style="display:flex; align-items:center; gap:15px;"><span style="font-size:28px; color:#ec6608; font-weight:700;">6</span><span style="font-size:16px; color:#00566f; font-weight:600;">Phase d'implémentation</span></div>
+      <div style="display:flex; align-items:center; gap:15px;"><span style="font-size:28px; color:#ec6608; font-weight:700;">7</span><span style="font-size:16px; color:#00566f; font-weight:600;">Commits conventionnels & release</span></div>
+      <div style="display:flex; align-items:center; gap:15px;"><span style="font-size:28px; color:#ec6608; font-weight:700;">8</span><span style="font-size:16px; color:#00566f; font-weight:600;">Groundhog & automatisation</span></div>
+    </div>
+  </div>
+  <div class="footer-left">llm-shared — Agenda</div><div class="footer">2</div>
+</div>
+
+<!-- SLIDE 3 — Le problème -->
+<div class="slide">
+  <div class="header">
+    <div><div class="logo-text">acme</div><div class="logo-sub">CORPORATE TRUST</div></div>
+    <div class="header-right">1. Problème</div>
+  </div>
+  <div class="accent-bar"></div>
+  <div class="slide-title">Le problème du « vibe-coding »</div>
+  <div class="slide-subtitle">Générer du code vite sans spécifier ce qu'on veut vraiment</div>
+  <div class="content">
+    <div style="display: flex; gap: 20px; margin-bottom: 25px;">
+      <div class="card orange">
+        <div class="card-icon">💡</div>
+        <div class="card-title orange">L'idée</div>
+        <div class="card-text">« J'ai une idée, génère-moi du code, je verrai les détails plus tard. »</div>
+      </div>
+      <div class="card orange">
+        <div class="card-icon">⚡</div>
+        <div class="card-title orange">Le code arrive vite</div>
+        <div class="card-text">Mais il s'appuie sur des hypothèses non écrites. Il casse au premier cas réel non prévu.</div>
+      </div>
+      <div class="card orange">
+        <div class="card-icon">💥</div>
+        <div class="card-title orange">La conséquence</div>
+        <div class="card-text">Code sans documentation d'intention. Difficile à maintenir, à expliquer, à étendre — même par l'auteur.</div>
+      </div>
+    </div>
+    <div class="warn-box">
+      <h3>⚠️ Ce que refuse le workflow</h3>
+      <div style="font-size: 14px; color: #555; margin-top: 8px;">
+        Passer directement à l'implémentation sans exigence écrite · Sans design · Sans tests · Sans scénarios d'acceptation
+      </div>
+    </div>
+  </div>
+  <div class="footer-left">llm-shared — Problème</div><div class="footer">3</div>
+</div>
+
+<!-- SLIDE 4 — La solution -->
+<div class="slide">
+  <div class="header">
+    <div><div class="logo-text">acme</div><div class="logo-sub">CORPORATE TRUST</div></div>
+    <div class="header-right">2. Solution</div>
+  </div>
+  <div class="accent-bar"></div>
+  <div class="slide-title">La solution : un workflow en phases</div>
+  <div class="slide-subtitle">Garder la créativité, refuser le raccourci vers le code</div>
+  <div class="content">
+    <div style="display: flex; gap: 12px; margin-bottom: 25px;">
+      <div class="phase-box">
+        <div class="phase-num">1</div>
+        <div class="phase-label">Brouillon</div>
+        <div class="phase-detail">Note libre en langage naturel</div>
+      </div>
+      <div style="font-size:24px; color:#717e86; align-self:center;">→</div>
+      <div class="phase-box active-orange">
+        <div class="phase-num">2</div>
+        <div class="phase-label">Exigence</div>
+        <div class="phase-detail">Document structuré + revue</div>
+      </div>
+      <div style="font-size:24px; color:#717e86; align-self:center;">→</div>
+      <div class="phase-box active">
+        <div class="phase-num">3</div>
+        <div class="phase-label">Design</div>
+        <div class="phase-detail">Solution + scénarios d'acceptation</div>
+      </div>
+      <div style="font-size:24px; color:#717e86; align-self:center;">→</div>
+      <div class="phase-box active-orange">
+        <div class="phase-num">4</div>
+        <div class="phase-label">Plan</div>
+        <div class="phase-detail">Étapes numérotées + tests</div>
+      </div>
+      <div style="font-size:24px; color:#717e86; align-self:center;">→</div>
+      <div class="phase-box active">
+        <div class="phase-num">5</div>
+        <div class="phase-label">Implémentation</div>
+        <div class="phase-detail">Code + tests + auto-revue</div>
+      </div>
+      <div style="font-size:24px; color:#717e86; align-self:center;">→</div>
+      <div class="phase-box active-orange">
+        <div class="phase-num">6</div>
+        <div class="phase-label">Release</div>
+        <div class="phase-detail">Notes + tag de version</div>
+      </div>
+    </div>
+    <div style="display: flex; gap: 20px;">
+      <div class="card">
+        <div class="card-title">Chaque phase laisse une trace</div>
+        <div class="card-text">Brouillon, exigence, design, plan, validation, commits groupés — le workflow double comme documentation du processus de développement.</div>
+      </div>
+      <div class="card orange">
+        <div class="card-title orange">Compatible avec tout LLM</div>
+        <div class="card-text">Les commandes slash se résolvent en markdown brut. Copilot, Claude Code, ChatGPT Codex — tout agent qui lit et écrit des fichiers peut suivre le workflow.</div>
+      </div>
+    </div>
+  </div>
+  <div class="footer-left">llm-shared — Solution</div><div class="footer">4</div>
+</div>
+
+<!-- SLIDE 5 — Auto-revue -->
+<div class="slide">
+  <div class="header">
+    <div><div class="logo-text">acme</div><div class="logo-sub">CORPORATE TRUST</div></div>
+    <div class="header-right">3. Auto-revue</div>
+  </div>
+  <div class="accent-bar"></div>
+  <div class="slide-title">Principe clé : l'IA révise son propre travail</div>
+  <div class="slide-subtitle">Ne jamais faire confiance au premier passage — même pour la documentation</div>
+  <div class="content">
+    <div style="display: flex; gap: 30px; align-items: center;">
+      <!-- Boucle de revue documentaire -->
+      <div style="flex: 1;">
+        <div style="font-size: 16px; font-weight: 700; color: #00566f; margin-bottom: 15px; text-align: center;">Revue documentaire</div>
+        <div style="display: flex; flex-direction: column; gap: 8px; align-items: center;">
+          <div class="loop-box filled" style="width: 220px;">Écriture du document</div>
+          <div style="font-size: 18px; color: #717e86;">▼</div>
+          <div class="loop-box orange" style="width: 220px;">IA pose des questions ouvertes</div>
+          <div style="font-size: 14px; color: #ec6608; font-weight: 700;">[STOP] Humain répond</div>
+          <div style="font-size: 18px; color: #717e86;">▼</div>
+          <div class="loop-box" style="width: 220px;">Consolidation des réponses</div>
+          <div style="font-size: 14px; color: #00566f;">↻ Nouvelles questions ? Boucle</div>
+          <div style="font-size: 18px; color: #717e86;">▼</div>
+          <div class="loop-box filled-orange" style="width: 220px;">Document validé ✓</div>
+        </div>
+      </div>
+      <!-- Boucle de revue code -->
+      <div style="flex: 1;">
+        <div style="font-size: 16px; font-weight: 700; color: #00566f; margin-bottom: 15px; text-align: center;">Revue d'implémentation</div>
+        <div style="display: flex; flex-direction: column; gap: 8px; align-items: center;">
+          <div class="loop-box filled" style="width: 220px;">Génération du code</div>
+          <div style="font-size: 18px; color: #717e86;">▼</div>
+          <div class="loop-box orange" style="width: 220px;">Vérification : code = plan ?</div>
+          <div style="font-size: 14px; color: #ec6608; font-weight: 700;">[STOP] Écarts détectés ?</div>
+          <div style="font-size: 18px; color: #717e86;">▼</div>
+          <div class="loop-box" style="width: 220px;">Corrections itératives</div>
+          <div style="font-size: 14px; color: #00566f;">↻ Vérification jusqu'à conformité</div>
+          <div style="font-size: 18px; color: #717e86;">▼</div>
+          <div class="loop-box filled-orange" style="width: 220px;">Étape validée ✓</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer-left">llm-shared — Auto-revue</div><div class="footer">5</div>
+</div>
+
+<!-- SLIDE 6 — Vue d'ensemble -->
+<div class="slide">
+  <div class="header">
+    <div><div class="logo-text">acme</div><div class="logo-sub">CORPORATE TRUST</div></div>
+    <div class="header-right">4. Vue d'ensemble</div>
+  </div>
+  <div class="accent-bar"></div>
+  <div class="slide-title">Vue d'ensemble du workflow</div>
+  <div class="slide-subtitle">Du brouillon à la release taguée — phases et artefacts</div>
+  <div class="content" style="justify-content: flex-start; padding-top: 15px;">
+    <div style="display: flex; flex-direction: column; gap: 10px; font-size: 13px;">
+      <!-- Phase doc -->
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div style="width: 110px; background:#00566f; color:#fff; padding:8px; border-radius:6px; text-align:center; font-weight:600;">Brouillon</div>
+        <span style="color:#717e86;">→</span>
+        <div style="flex:1; background:#e6f0f3; padding:8px 12px; border-radius:6px;">Note libre → <code style="color:#ec6608;">/process-draft</code> → classification, renommage, branche d'effort</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div style="width: 110px; background:#ec6608; color:#fff; padding:8px; border-radius:6px; text-align:center; font-weight:600;">Exigence</div>
+        <span style="color:#717e86;">→</span>
+        <div style="flex:1; background:#fff3e6; padding:8px 12px; border-radius:6px;"><code style="color:#ec6608;">/write-requirement</code> → boucle de revue → <code style="color:#ec6608;">/review-ask-questions</code> + <code style="color:#ec6608;">/consolidate</code> → document validé</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div style="width: 110px; background:#00566f; color:#fff; padding:8px; border-radius:6px; text-align:center; font-weight:600;">Design</div>
+        <span style="color:#717e86;">→</span>
+        <div style="flex:1; background:#e6f0f3; padding:8px 12px; border-radius:6px;"><code style="color:#ec6608;">/write-design</code> → scope, contraintes, comportement cible, scénarios d'acceptation → revue</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div style="width: 110px; background:#ec6608; color:#fff; padding:8px; border-radius:6px; text-align:center; font-weight:600;">Plan</div>
+        <span style="color:#717e86;">→</span>
+        <div style="flex:1; background:#fff3e6; padding:8px 12px; border-radius:6px;"><code style="color:#ec6608;">/write-plans</code> → étapes numérotées, tests seuils (qui échouent d'abord), tests d'acceptation → revue</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div style="width: 110px; background:#00566f; color:#fff; padding:8px; border-radius:6px; text-align:center; font-weight:600;">Implé.</div>
+        <span style="color:#717e86;">→</span>
+        <div style="flex:1; background:#e6f0f3; padding:8px 12px; border-radius:6px;"><code style="color:#ec6608;">/implement-step N</code> → <code style="color:#ec6608;">/implementation-check N</code> → commits groupés <code style="color:#ec6608;">gcba</code></div>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div style="width: 110px; background:#ec6608; color:#fff; padding:8px; border-radius:6px; text-align:center; font-weight:600;">Release</div>
+        <span style="color:#717e86;">→</span>
+        <div style="flex:1; background:#fff3e6; padding:8px 12px; border-radius:6px;"><code style="color:#ec6608;">/prepare-release</code> → merge + reword + notes → <code style="color:#ec6608;">brel</code> → tag vX.Y.Z</div>
+      </div>
+    </div>
+    <div style="margin-top: 20px; text-align: center; font-size: 13px; color: #717e86;">
+      <span style="color: #ec6608; font-weight: 700;">pw skill</span> enchaîne automatiquement les phases documentaires ·
+      <span style="color: #ec6608; font-weight: 700;">pw handoff</span> enchaîne les étapes d'implémentation
+    </div>
+  </div>
+  <div class="footer-left">llm-shared — Vue d'ensemble</div><div class="footer">6</div>
+</div>
+
+<!-- SLIDE 7 — Phase documentaire -->
+<div class="slide">
+  <div class="header">
+    <div><div class="logo-text">acme</div><div class="logo-sub">CORPORATE TRUST</div></div>
+    <div class="header-right">5. Phase documentaire</div>
+  </div>
+  <div class="accent-bar"></div>
+  <div class="slide-title">Phase documentaire — automatisée</div>
+  <div class="slide-subtitle">pw skill enchaîne les phases sans menu ni intervention humaine (sauf revue)</div>
+  <div class="content">
+    <div style="display: flex; flex-direction: column; gap: 15px;">
+      <!-- Étape 1 -->
+      <div style="display:flex; align-items:center; gap:15px;">
+        <div class="step-circle" style="margin:0;">1</div>
+        <div style="flex:1; background:#e6f0f3; border-radius:8px; padding:12px;">
+          <strong style="color:#00566f; font-size:14px;">/write-requirement</strong>
+          <span style="font-size:13px; color:#666;"> — écrit le document d'exigence (feature-request ou issue)</span>
+        </div>
+        <div style="font-size:12px; color:#ec6608; font-weight:700; width:80px; text-align:center;">== pw skill ==></div>
+      </div>
+      <!-- Étape 2 -->
+      <div style="display:flex; align-items:center; gap:15px;">
+        <div class="step-circle orange" style="margin:0;">2</div>
+        <div style="flex:1; background:#fff3e6; border-radius:8px; padding:12px;">
+          <strong style="color:#ec6608; font-size:14px;">/review-ask-questions</strong>
+          <span style="font-size:13px; color:#666;"> — l'IA pose des questions ouvertes avec options et recommandations</span>
+        </div>
+        <div style="font-size:12px; color:#ec6608; font-weight:700; background:#ec6608; color:#fff; padding:4px 8px; border-radius:5px;">[STOP]</div>
+      </div>
+      <!-- Étape 3 -->
+      <div style="display:flex; align-items:center; gap:15px;">
+        <div class="step-circle" style="margin:0;">3</div>
+        <div style="flex:1; background:#e6f0f3; border-radius:8px; padding:12px;">
+          <strong style="color:#00566f; font-size:14px;">/consolidate-then-review-ask-questions</strong>
+          <span style="font-size:13px; color:#666;"> — plie les réponses dans le document, repose des questions si besoin</span>
+        </div>
+        <div style="font-size:12px; color:#00566f; font-weight:600; width:80px; text-align:center;">↻ boucle</div>
+      </div>
+      <!-- Étape 4 -->
+      <div style="display:flex; align-items:center; gap:15px;">
+        <div class="step-circle orange" style="margin:0;">4</div>
+        <div style="flex:1; background:#fff3e6; border-radius:8px; padding:12px;">
+          <strong style="color:#ec6608; font-size:14px;">/write-design</strong>
+          <span style="font-size:13px; color:#666;"> — scope, contraintes, comportement cible, scénarios d'acceptation</span>
+        </div>
+        <div style="font-size:12px; color:#ec6608; font-weight:700; width:80px; text-align:center;">== pw skill ==></div>
+      </div>
+      <!-- Étape 5 -->
+      <div style="display:flex; align-items:center; gap:15px;">
+        <div class="step-circle" style="margin:0;">5</div>
+        <div style="flex:1; background:#e6f0f3; border-radius:8px; padding:12px;">
+          <strong style="color:#00566f; font-size:14px;">/write-plans</strong>
+          <span style="font-size:13px; color:#666;"> — plan d'exécution numéroté + plan de validation</span>
+        </div>
+        <div style="font-size:12px; color:#ec6608; font-weight:700; width:80px; text-align:center;">== pw skill ==></div>
+      </div>
+    </div>
+    <div style="margin-top: 15px; padding: 12px; background:#f0f4f6; border-radius:8px; text-align:center; font-size: 13px; color:#00566f;">
+      Le seul arrêt humain : répondre au tableau <strong>Q0x | Titre | Réponse recommandée</strong> lors des revues
+    </div>
+  </div>
+  <div class="footer-left">llm-shared — Phase documentaire</div><div class="footer">7</div>
+</div>
+
+<!-- SLIDE 8 — Phase implémentation -->
+<div class="slide">
+  <div class="header">
+    <div><div class="logo-text">acme</div><div class="logo-sub">CORPORATE TRUST</div></div>
+    <div class="header-right">6. Implémentation</div>
+  </div>
+  <div class="accent-bar"></div>
+  <div class="slide-title">Phase d'implémentation — chaîne automatisée</div>
+  <div class="slide-subtitle">pw handoff enchaîne les étapes sans menu ni « go-ahead » entre les cases</div>
+  <div class="content" style="justify-content: flex-start; padding-top: 20px;">
+    <div style="border: 2px dashed #ec6608; border-radius: 12px; padding: 20px;">
+      <div style="text-align: center; font-size: 13px; color: #ec6608; font-weight: 700; margin-bottom: 15px;">
+        ZONE AUTOMATISÉE — un seul /implement-step N déclenche la chaîne
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 12px; align-items: center;">
+        <div style="display:flex; align-items:center; gap:20px; width: 100%;">
+          <div style="flex:1; background:#00566f; color:#fff; padding:12px; border-radius:8px; text-align:center; font-size:13px; font-weight:600;">
+            /implement-step N<br><span style="font-size:11px; font-weight:400; color:#c4d8de;">Code + tests · ghog day vert</span>
+          </div>
+          <span style="color:#717e86; font-size:18px;">▼</span>
+          <div style="flex:1; background:#ec6608; color:#fff; padding:12px; border-radius:8px; text-align:center; font-size:13px; font-weight:600;">
+            /implementation-check N<br><span style="font-size:11px; font-weight:400; color:#fff3e6;">Verdict Oui/Non</span>
+          </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:20px; width: 100%;">
+          <div style="flex:1; background:#717e86; color:#fff; padding:12px; border-radius:8px; text-align:center; font-size:13px;">
+            ↻ Non → /implement-missing-step<br><span style="font-size:11px;">Combler les écarts, ghog day, re-check</span>
+          </div>
+          <span style="color:#717e86; font-size:14px;">ou</span>
+          <div style="flex:1; background:#006d67; color:#fff; padding:12px; border-radius:8px; text-align:center; font-size:13px;">
+            ✓ Oui → /group-commits-msg<br><span style="font-size:11px;">Messages de commit groupés → a.commit</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top: 20px; display: flex; gap: 15px;">
+      <div class="feature-item">
+        <h4>🧪 Tests seuils d'abord</h4>
+        <p>Le plan commence par des tests qui échouent volontairement. Les étapes suivantes les font passer un par un.</p>
+      </div>
+      <div class="feature-item orange">
+        <h4>📦 Commits groupés</h4>
+        <p>L'IA lit le diff, groupe les fichiers du moins dépendant au plus dépendant, écrit un message par groupe.</p>
+      </div>
+      <div class="feature-item">
+        <h4>🛑 Portail de commit</h4>
+        <p>La chaîne s'arrête à a.commit. L'auteur révise, dit « go ahead », puis gcba rejoue les commits.</p>
+      </div>
+    </div>
+  </div>
+  <div class="footer-left">llm-shared — Implémentation</div><div class="footer">8</div>
+</div>
+
+<!-- SLIDE 9 — Commits & release -->
+<div class="slide">
+  <div class="header">
+    <div><div class="logo-text">acme</div><div class="logo-sub">CORPORATE TRUST</div></div>
+    <div class="header-right">7. Commits & Release</div>
+  </div>
+  <div class="accent-bar"></div>
+  <div class="slide-title">Commits conventionnels & préparation de release</div>
+  <div class="slide-subtitle">Au-delà du changelog : le « pourquoi » pour le prochain lecteur</div>
+  <div class="content">
+    <div style="display: flex; gap: 20px;">
+      <!-- Commit format -->
+      <div style="flex: 1;">
+        <div style="font-size: 16px; font-weight: 700; color: #00566f; margin-bottom: 12px;">Format de commit étendu</div>
+        <div class="commit-block">
+          <span class="commit-type">feat</span>(scope): sujet (52 car. max)<br><br>
+          <span style="color:#95c11f;">Why:</span><br>
+          Raison du changement (paragraphe 1).<br>
+          État « après » du code (paragraphe 2).<br><br>
+          <span style="color:#95c11f;">What:</span><br>
+          - modification 1<br>
+          - modification 2<br>
+          - modification 3
+        </div>
+        <div style="font-size: 12px; color: #666; margin-top: 10px; line-height: 1.5;">
+          Le titre alimente le changelog. Le corps donne le contexte que le diff ne porte pas — pour l'humain et pour l'IA qui relira plus tard.
+        </div>
+      </div>
+      <!-- Release flow -->
+      <div style="flex: 1;">
+        <div style="font-size: 16px; font-weight: 700; color: #00566f; margin-bottom: 12px;">Préparation de release</div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="width:30px; height:30px; border-radius:50%; background:#ec6608; color:#fff; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700;">1</div>
+            <div style="font-size:13px; color:#333;"><strong>/prepare-release</strong> — merge, reword, snapshot</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="width:30px; height:30px; border-radius:50%; background:#00566f; color:#fff; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700;">2</div>
+            <div style="font-size:13px; color:#333;"><strong>/prepare_release_notes</strong> — titres groupés, résumé, CHANGELOG</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="width:30px; height:30px; border-radius:50%; background:#00566f; color:#fff; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700;">3</div>
+            <div style="font-size:13px; color:#333;">Choix du titre de release (3 propositions)</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="width:30px; height:30px; border-radius:50%; background:#00566f; color:#fff; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700;">4</div>
+            <div style="font-size:13px; color:#333;">pyproject.toml + uv sync → commit chore(release)</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="width:30px; height:30px; border-radius:50%; background:#ec6608; color:#fff; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700;">5</div>
+            <div style="font-size:13px; color:#333;"><strong>brel</strong> — build + tag vX.Y.Z [valid]</div>
+          </div>
+        </div>
+        <div style="margin-top: 15px; padding: 10px; background:#fff3e6; border-radius:8px; font-size: 12px; color: #ec6608; text-align: center;">
+          Le skill ne taggue jamais et ne pousse jamais — c'est l'auteur qui décide
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer-left">llm-shared — Commits & Release</div><div class="footer">9</div>
+</div>
+
+<!-- SLIDE 10 — Groundhog -->
+<div class="slide">
+  <div class="header">
+    <div><div class="logo-text">acme</div><div class="logo-sub">CORPORATE TRUST</div></div>
+    <div class="header-right">8. Groundhog</div>
+  </div>
+  <div class="accent-bar"></div>
+  <div class="slide-title">Groundhog — la boucle de tests</div>
+  <div class="slide-subtitle">Un seul outil remplace les anciens alias : ghog day marche la chaîne et s'arrête au premier problème</div>
+  <div class="content">
+    <div style="display: flex; flex-direction: column; gap: 10px; align-items: center; margin-bottom: 20px;">
+      <div style="background:#00566f; color:#fff; padding:12px 30px; border-radius:8px; font-weight:700; font-size:16px;">ghog day</div>
+      <div style="font-size: 18px; color: #717e86;">▼</div>
+      <div style="display: flex; gap: 10px; width: 100%; justify-content: center;">
+        <div style="background:#e6f0f3; border:2px solid #00566f; border-radius:8px; padding:12px; text-align:center; width:200px;">
+          <div style="font-size:14px; font-weight:700; color:#00566f;">1. check.bat</div>
+          <div style="font-size:11px; color:#666; margin-top:4px;">Compilation + lint</div>
+        </div>
+        <div style="font-size: 20px; color: #717e86; align-self: center;">→</div>
+        <div style="background:#fff3e6; border:2px solid #ec6608; border-radius:8px; padding:12px; text-align:center; width:200px;">
+          <div style="font-size:14px; font-weight:700; color:#ec6608;">2. Tests affectés</div>
+          <div style="font-size:11px; color:#666; margin-top:4px;">Rapide, sans couverture</div>
+        </div>
+        <div style="font-size: 20px; color: #717e86; align-self: center;">→</div>
+        <div style="background:#e6f0f3; border:2px solid #00566f; border-radius:8px; padding:12px; text-align:center; width:200px;">
+          <div style="font-size:14px; font-weight:700; color:#00566f;">3. Suite complète</div>
+          <div style="font-size:11px; color:#666; margin-top:4px;">Couverture 100% exigée</div>
+        </div>
+      </div>
+      <div style="font-size: 18px; color: #717e86;">▼</div>
+      <div style="background:#006d67; color:#fff; padding:12px 30px; border-radius:8px; font-weight:700; font-size:14px;">
+        ✓ Objectif atteint : tests verts + couverture au seuil
+      </div>
+    </div>
+    <div style="display: flex; gap: 15px;">
+      <div class="feature-item">
+        <h4>🔄 Boucle de correction IA</h4>
+        <p>L'IA lit le code de sortie, applique le correctif nommé dans le rapport, relance ghog day. Arrêt si aucun progrès.</p>
+      </div>
+      <div class="feature-item orange">
+        <h4>📊 Sortie maîtrisée</h4>
+        <p>Petite pour l'IA (logs redirigés, tail lu). Vivante pour l'humain (barre de progression, rapport final).</p>
+      </div>
+      <div class="feature-item">
+        <h4>🆔 État de cycle</h4>
+        <p>Contrat fichier a.ghog.status. L'IA ne devine jamais : ghog status lit l'état, exit 6 = en cours, 7 = tué.</p>
+      </div>
+    </div>
+  </div>
+  <div class="footer-left">llm-shared — Groundhog</div><div class="footer">10</div>
+</div>
+
+<!-- SLIDE 11 — Bénéfices -->
+<div class="slide">
+  <div class="header">
+    <div><div class="logo-text">acme</div><div class="logo-sub">CORPORATE TRUST</div></div>
+    <div class="header-right">Bénéfices</div>
+  </div>
+  <div class="accent-bar"></div>
+  <div class="slide-title">Bénéfices pour la DSI</div>
+  <div class="slide-subtitle">Ce que le framework apporte aux équipes et à la qualité</div>
+  <div class="content">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+      <div class="feature-item">
+        <h4>📋 Traçabilité complète</h4>
+        <p>Chaque décision est documentée. Le « pourquoi » est explicite, pas à déduire du code. Revu par l'IA avant validation.</p>
+      </div>
+      <div class="feature-item orange">
+        <h4>🤖 Multi-agent</h4>
+        <p>GitHub Copilot, Claude Code, ChatGPT Codex. Les mêmes instructions markdown, les mêmes artefacts.</p>
+      </div>
+      <div class="feature-item orange">
+        <h4>🧪 Qualité par construction</h4>
+        <p>Tests seuils avant implémentation. Couverture 100% exigée. Revue d'implémentation systématique par l'IA.</p>
+      </div>
+      <div class="feature-item">
+        <h4>📚 Documentation vivante</h4>
+        <p>Brouillon, exigence, design, plan, validation, commits — chaque phase laisse un artefact relu et consolidé.</p>
+      </div>
+      <div class="feature-item">
+        <h4>⚡ Automatisation</h4>
+        <p>pw skill et pw handoff enchaînent les étapes sans intervention. L'humain intervient seulement aux points de revue.</p>
+      </div>
+      <div class="feature-item orange">
+        <h4>🔓 Licence MIT</h4>
+        <p>Réutilisable dans tous les projets. Copie, fork, adaptation sans contrainte de copyleft.</p>
+      </div>
+    </div>
+  </div>
+  <div class="footer-left">llm-shared — Bénéfices</div><div class="footer">11</div>
+</div>
+
+<!-- SLIDE 12 — Conclusion -->
+<div class="slide title-slide" style="background: #00566f;">
+  <div class="title-logo">
+    <div class="logo-text">acme</div>
+    <div class="logo-sub">CORPORATE TRUST</div>
+  </div>
+  <div class="accent-bar" style="position:absolute; top:0;"></div>
+  <div style="text-align: center;">
+    <div style="font-size: 36px; font-weight: 700; margin-bottom: 20px;">Merci de votre attention</div>
+    <div style="font-size: 18px; color: #c4d8de; max-width: 700px; margin: 0 auto; line-height: 1.6;">
+      llm-shared — du brouillon à la release<br>
+      <span style="font-size: 14px; color: #8eb2bb;">Sans vibe-coding, avec auto-revue IA et traçabilité complète</span>
+    </div>
+    <div style="margin-top: 40px; display: flex; gap: 40px; justify-content: center;">
+      <div style="text-align: center;">
+        <div style="font-size: 36px; color: #ec6608; font-weight: 700;">6</div>
+        <div style="font-size: 12px; color: #8eb2bb;">phases structurées</div>
+      </div>
+      <div style="text-align: center;">
+        <div style="font-size: 36px; color: #ec6608; font-weight: 700;">3</div>
+        <div style="font-size: 12px; color: #8eb2bb;">agents IA compatibles</div>
+      </div>
+      <div style="text-align: center;">
+        <div style="font-size: 36px; color: #ec6608; font-weight: 700;">100%</div>
+        <div style="font-size: 12px; color: #8eb2bb;">traçabilité des décisions</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+<script>
+(() => {
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  let currentSlide = 0;
+
+  const clampSlideIndex = (index) => Math.max(0, Math.min(slides.length - 1, index));
+
+  const showSlide = (index) => {
+    currentSlide = clampSlideIndex(index);
+    slides[currentSlide].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    slides[currentSlide].focus({ preventScroll: true });
+  };
+
+  slides.forEach((slide, index) => {
+    slide.setAttribute('tabindex', '-1');
+    slide.dataset.slideIndex = String(index);
+  });
+
+  const observer = new IntersectionObserver((entries) => {
+    const visible = entries
+      .filter((entry) => entry.isIntersecting)
+      .sort((left, right) => right.intersectionRatio - left.intersectionRatio)[0];
+    if (visible) {
+      currentSlide = Number(visible.target.dataset.slideIndex);
+    }
+  }, { threshold: [0.5, 0.75, 0.95] });
+
+  slides.forEach((slide) => observer.observe(slide));
+
+  document.addEventListener('keydown', (event) => {
+    if (event.defaultPrevented) {
+      return;
+    }
+    if (event.key === 'PageDown') {
+      event.preventDefault();
+      showSlide(currentSlide + 1);
+      return;
+    }
+    if (event.key === 'PageUp') {
+      event.preventDefault();
+      showSlide(currentSlide - 1);
+    }
+  });
+})();
+</script>
+</body>
+</html>
