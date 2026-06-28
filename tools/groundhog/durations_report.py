@@ -10,6 +10,9 @@ current time and its drift verdict -- ``ok``, the restore instruction when
 slower (Q57), the baseline the tool lowered it to (Q69), or ``removed`` (below
 floor, Q60, or stale, Q61). The block is a named function behind
 ``window_lines`` (Q68), not folded into it, so it is tested on its own.
+:func:`action_block` adds a short exit-8 recap containing only duration items
+that require action, so a slower accepted-slow drift is not buried among many
+``ok`` exclusions.
 
 It is split out of the rule so ``durations.py`` stays under its line budget,
 and it stays out of ``reporting.py`` so that module keeps its own budget. Pure
@@ -31,6 +34,8 @@ _MSG_EXCLUSION_HEADER: Final = (
     "Excluded (accepted slow; slower by 2s+ restores; "
     "the tool ratchets down or removes the rest):"
 )
+# The exit-8 recap header, printed only for actionable timing verdicts.
+_MSG_ACTION_HEADER: Final = "Duration warnings requiring action:"
 # The current-time placeholder of a stale entry whose test ran no call (Q61).
 _MSG_NOT_RUN: Final = "(not run)"
 # The drift verdicts the exclusion line carries beside recorded and current.
@@ -81,6 +86,27 @@ def exclusion_block(summary: durations.DurationSummary) -> list[str]:
         _exclusion_line(record, summary.floor) for record in summary.exclusions
     )
     return lines
+
+
+def action_block(summary: durations.DurationSummary) -> list[str]:
+    """Build the exit-8 recap of only the duration items needing action.
+
+    Args:
+        summary: The run verdict, carrying true outliers and exclusions.
+
+    Returns:
+        A blank line, a header, then one line per true outlier or slower
+        excluded drift. Empty when no timing item requires action.
+    """
+    lines = [_action_outlier_line(call, summary.floor) for call in summary.outliers]
+    lines.extend(
+        _exclusion_line(record, summary.floor)
+        for record in summary.exclusions
+        if record.status == durations.STATUS_SLOWER
+    )
+    if not lines:
+        return []
+    return ["", _MSG_ACTION_HEADER, *lines]
 
 
 def _exclusion_line(record: durations.DurationExclusion, floor: float) -> str:
@@ -168,6 +194,14 @@ def _call_line(call: durations.DurationCall) -> str:
         The indented ``node  secs  Nx median`` line.
     """
     return f"  {call.node}  {call.seconds:.2f}s  {call.ratio:.0f}x median"
+
+
+def _action_outlier_line(call: durations.DurationCall, floor: float) -> str:
+    """Build one actionable true-outlier recap line."""
+    return (
+        f"  {call.node}  current={call.seconds:.2f}s  floor={floor:.2f}s  "
+        "shorten below the floor with margin"
+    )
 
 
 def _floor_line(floor: float) -> str:

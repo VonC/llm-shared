@@ -174,9 +174,9 @@ def run_check(invocation: Invocation, deps: Deps) -> int:
 
         code = runner.run_streaming(config, _stream_check_line)
         if code == 0 and error_lines_seen:
-            emit_summary([reporting_nextstep.MSG_CHECK_EXIT_MISMATCH])
+            emit_summary(_section([reporting_nextstep.MSG_CHECK_EXIT_MISMATCH]))
             code = 1
-    emit_summary(reporting_nextstep.next_after_check(code=code, missing=missing))
+    emit_summary(_section(reporting_nextstep.next_after_check(code=code, missing=missing)))
     closing = reporting.closing_line(
         invocation.root.name,
         runner.SUB_CHECK,
@@ -184,7 +184,7 @@ def run_check(invocation: Invocation, deps: Deps) -> int:
         code,
         reporting.ClosingMetrics(reporting.COV_SKIPPED),
     )
-    emit_summary([closing])
+    emit_summary(_section([closing]))
     return code
 
 
@@ -249,7 +249,7 @@ def run_init(invocation: Invocation, deps: Deps) -> int:
     try:
         lines = init_files.run_init(invocation.root, deps.home())
     except GroundhogError as error:
-        emit_summary([f"ghog: {error}"])
+        emit_summary(_section([f"ghog: {error}"]))
         code = EXIT_SETUP_ERROR
     else:
         emit(lines)
@@ -261,7 +261,7 @@ def run_init(invocation: Invocation, deps: Deps) -> int:
         code,
         reporting.ClosingMetrics(reporting.COV_SKIPPED),
     )
-    emit_summary([closing])
+    emit_summary(_section([closing]))
     return code
 
 
@@ -275,10 +275,12 @@ def _setup_exit_no_pytest(invocation: Invocation) -> int:
         ``EXIT_SETUP_ERROR``.
     """
     emit_summary(
-        [
-            "ghog: pytest not found on PATH; "
-            "run through the ghog wrapper so senv.bat loads the project venv (Q21).",
-        ],
+        _section(
+            [
+                "ghog: pytest not found on PATH; "
+                "run through the ghog wrapper so senv.bat loads the project venv (Q21).",
+            ],
+        ),
     )
     closing = reporting.closing_line(
         invocation.root.name,
@@ -287,7 +289,7 @@ def _setup_exit_no_pytest(invocation: Invocation) -> int:
         EXIT_SETUP_ERROR,
         reporting.ClosingMetrics(reporting.COV_SKIPPED),
     )
-    emit_summary([closing])
+    emit_summary(_section([closing]))
     return EXIT_SETUP_ERROR
 
 
@@ -398,13 +400,13 @@ def _report(
     """
     measured = gate_value is not None
     _report_run_context(invocation, result, exit_code, summary)
-    emit_summary(_next_steps(invocation, result, exit_code, summary))
+    emit_summary(_section(_next_steps(invocation, result, exit_code, summary)))
     if exit_code == EXIT_SETUP_ERROR and not result.crashed:
-        emit_summary([setup_reason(result, measured=measured)])
+        emit_summary(_section([setup_reason(result, measured=measured)]))
     if exit_code == EXIT_OBJECTIVE_MET and measured:
         nag = reporting.nag_line(result.stats)
         if nag is not None:
-            emit_summary([nag])
+            emit_summary(_section([nag]))
     times_calls = durations_summary.measures_durations(invocation)
     closing = reporting.closing_line(
         invocation.root.name,
@@ -417,7 +419,7 @@ def _report(
             reporting.excluded_text(result.stats, summary, measured=times_calls),
         ),
     )
-    emit_summary([closing])
+    emit_summary(_section([closing]))
 
 
 def _report_run_context(
@@ -440,20 +442,26 @@ def _report_run_context(
         summary: The duration verdict of a full run, or ``None``.
     """
     if result.crashed:
-        emit(reporting.crash_block(result.stats, result.tail))
+        emit(_section(reporting.crash_block(result.stats, result.tail)))
     elif result.stats.failed > 0:
-        emit(result.failure_block)
+        emit(_section(result.failure_block))
     if exit_code == EXIT_COVERAGE_GAP and result.coverage_block:
-        emit([reporting_nextstep.MSG_GAP_LINES_HEADER, *result.coverage_block])
+        emit(
+            _section(
+                [reporting_nextstep.MSG_GAP_LINES_HEADER, *result.coverage_block],
+            ),
+        )
     if (
         invocation.sub == runner.SUB_AFFECTED
         and exit_code == EXIT_OBJECTIVE_MET
         and result.stats.done == 0
     ):
-        emit([reporting_nextstep.MSG_NO_TESTS_RUN])
+        emit(_section([reporting_nextstep.MSG_NO_TESTS_RUN]))
     if summary is not None:
         emit(["", *durations_report.window_lines(summary)])
         emit(durations_report.exclusion_block(summary))
+        if exit_code == EXIT_DURATION_OUTLIERS:
+            emit(durations_report.action_block(summary))
 
 
 def _next_steps(
@@ -475,8 +483,7 @@ def _next_steps(
     """
     if invocation.sub == runner.SUB_FULL:
         failing = baseline.failing_files(result.stats.failed_ids)
-        lines = reporting_nextstep.next_after_full(exit_code, failing, summary)
-        return ["", *lines] if lines else []
+        return reporting_nextstep.next_after_full(exit_code, failing, summary)
     if invocation.sub == runner.SUB_AFFECTED:
         if invocation.no_cov:
             return reporting_nextstep.next_after_affected_nocov(
@@ -573,6 +580,15 @@ def emit(lines: Sequence[str]) -> None:
     """
     for line in lines:
         emit_line(line)
+
+
+def _section(lines: Sequence[str]) -> list[str]:
+    """Return lines with one leading blank separator when non-empty."""
+    if not lines:
+        return []
+    if lines[0] == "":
+        return list(lines)
+    return ["", *lines]
 
 
 def emit_summary(lines: Sequence[str]) -> None:

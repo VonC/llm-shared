@@ -90,6 +90,8 @@ _SLOW_REPORT: Final = (
     _WINDOW_HEADER,
     f"{_FREAK}  1.83s  52x median",
     "-- floor 1.00s --",
+    "Duration warnings requiring action:",
+    f"{_FREAK}  current=1.83s  floor=1.00s  shorten below the floor with margin",
     "avg=",
     reporting_nextstep.MSG_OUTLIERS,
     "outliers=1 excluded=0 exit=8",
@@ -312,6 +314,7 @@ def test_atd7_slower_drift_exits_eight_with_restore(
     assert code == EXIT_DURATION_OUTLIERS
     out = capsys.readouterr().out
     # The slower-drift drives exit 8 with a restore-to-baseline instruction.
+    assert "Duration warnings requiring action:" in out
     assert "recorded=6.80s  current=9.42s  restore to within 2s of 6.80s" in out
     assert "outliers=0 excluded=1 exit=8" in out
     # The baseline is never raised: the recorded 6.80s survives the drift (Q57).

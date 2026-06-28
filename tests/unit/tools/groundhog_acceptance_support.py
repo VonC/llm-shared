@@ -185,10 +185,20 @@ def assert_closing_grammar(out: str) -> None:
     Args:
         out: The captured run output.
     """
-    closing = [line for line in out.splitlines() if " done fail=" in line]
+    lines = out.splitlines()
+    closing = [line for line in lines if " done fail=" in line]
     assert closing
     for key in _GRAMMAR_KEYS:
         assert key in closing[-1]
+    closing_index = lines.index(closing[-1])
+    assert closing_index == 0 or lines[closing_index - 1] == ""
+
+
+def assert_blank_before(out: str, marker: str) -> None:
+    """Assert a report section starts after an empty separator line."""
+    lines = out.splitlines()
+    index = next(i for i, line in enumerate(lines) if line.startswith(marker))
+    assert index == 0 or lines[index - 1] == ""
 
 
 # eof

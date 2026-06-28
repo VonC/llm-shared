@@ -210,6 +210,21 @@ def _assert_blank_before(out: str, marker: str) -> None:
     assert lines[index - 1] == ""
 
 
+def _assert_green_but_slow_report(out: str) -> None:
+    """Assert the green-but-slow full run emits the actionable report."""
+    assert "Duration outliers" in out
+    assert "Duration warnings requiring action:" in out
+    assert _FREAK_NODE in out
+    assert "shorten below the floor with margin" in out
+    assert reporting_nextstep.MSG_OUTLIERS in out
+    # The exit-8 hint now names the add-exclusion command, not raising line 2.
+    assert "ghog exclude" in out
+    assert "avg=" in out
+    assert "outliers=1" in out
+    assert "exit=8" in out
+    _assert_blank_before(out, "Duration outliers")
+
+
 def test_classify_judges_outliers_last(tmp_path: Path) -> None:
     """Exit 8 only on a green run; a gap or a failure keeps its code (Q34)."""
     invocation = _invocation(tmp_path)
@@ -242,6 +257,11 @@ def test_postfix_appends_the_timing_verdict() -> None:
     assert "outliers=1" in judged
 
 
+def test_section_keeps_an_existing_blank_separator() -> None:
+    """A pre-separated report block is not given a second blank line."""
+    assert commands._section(["", "Next: ghog full"]) == ["", "Next: ghog full"]
+
+
 def test_full_green_but_slow_exits_8(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
@@ -251,15 +271,7 @@ def test_full_green_but_slow_exits_8(
     code = cli.main(["full", "--root", str(tmp_path), "--llm"], make_deps(spawns))
     assert code == EXIT_DURATION_OUTLIERS
     out = capsys.readouterr().out
-    assert "Duration outliers" in out
-    assert _FREAK_NODE in out
-    assert reporting_nextstep.MSG_OUTLIERS in out
-    # The exit-8 hint now names the add-exclusion command, not raising line 2.
-    assert "ghog exclude" in out
-    assert "avg=" in out
-    assert "outliers=1" in out
-    assert "exit=8" in out
-    _assert_blank_before(out, "Duration outliers")
+    _assert_green_but_slow_report(out)
 
 
 def test_full_run_seeds_the_floor_file(tmp_path: Path) -> None:
