@@ -238,11 +238,12 @@ Legend for the transitions:
                            |  chain ends at the [STOP: commit gate]: a.commit
                            |  is presented with a multi-choice supplied by
                            |  pw skill --after-commit <x> -- "go ahead" |
-                           |  "go ahead, implement step <next>" | "prepare-release"
+                           |  "go ahead, and implement step <next>" |
+                           |  "go ahead, and prepare-release"
                            v
                   +-----------------+
                   | step N          |----+  "go ahead" -> gcba replays
-                  | committed       |    |  the grouped commits, gp
+                  | committed       |    |  the grouped commits
                   |                 |<---+  (loop for next step)
                   +--------+--------+
                            |
@@ -408,7 +409,9 @@ the next command from what is on disk:
 - a requirement, design, or plan that still has open questions  --
   `/consolidate-then-review-ask-questions on ...` (answers are waiting to fold).
 - a settled requirement (its decision table is in place)  --  `/write-design`.
-- a settled design  --  `/write-plans`; a settled plan  --  `/implement-step`.
+- a settled design  --  `/write-plans`.
+- a settled plan with uncommitted validation work  --  `/implement-step <x>`.
+- a settled plan whose final step has a validation commit  --  `/prepare-release`.
 
 The command carries the host prefix: `/` in a Claude session (`CLAUDECODE`), `$`
 in a Codex one (`CODEX_THREAD_ID`), overridable with `pw skill --host`. The
@@ -445,9 +448,10 @@ At the end of the implement chain, the commit gate uses the same engine. The
 plan step `<x>` the commit completes  --  derives the contextual next action: the
 next plan step's `/implement-step` while steps remain, `/prepare-release` once
 the last step is committed, or nothing for a standalone commit with no plan. The
-gate presents that as a multi-choice  --  a constant `go ahead`, the contextual
-option, and a free-text entry  --  so a plain `go ahead` commits and stops, while
-the contextual option commits and chains on only after the commit succeeds.
+lookup is read-only and exists only to build labels. The gate presents the
+result as a multi-choice  --  `go ahead`, `go ahead, and implement step <next>`,
+or `go ahead, and prepare-release`  --  so every concrete choice that starts a
+follow-up still commits first. A bare `$prepare-release` is never the menu label.
 
 The launcher itself is documented for any shell in
 [`instructions/run-pw.md`](instructions/run-pw.md): the bare `pw` Doskey alias

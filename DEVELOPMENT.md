@@ -476,7 +476,7 @@ running `pw skill` and runs the command it prints, with no "go ahead"), and
            |
            |  settled (decision table in place)
            |  == pw skill ==>  the next phase: /write-design,
-           |  /write-plans, or /implement-step
+           |  /write-plans, /implement-step, or /prepare-release
            v
    +---------------------------------+
    |  doc approved, handed to the    |
@@ -580,7 +580,9 @@ resolution the interactive `pw` uses), then maps the on-disk state to a command:
   section  --  `/consolidate-then-review-ask-questions` (answers are waiting to
   be folded).
 - a requirement whose decision table is in place (settled)  --  `/write-design`.
-- a settled design  --  `/write-plans`; a settled plan  --  `/implement-step`.
+- a settled design  --  `/write-plans`.
+- a settled plan with uncommitted validation work  --  `/implement-step <x>`.
+- a settled plan whose final step has a validation commit  --  `/prepare-release`.
 
 The printed command carries the host prefix the session needs: `/` when
 `CLAUDECODE` is set, `$` when `CODEX_THREAD_ID` is set, and `pw skill --host
@@ -625,10 +627,11 @@ The implement chain's commit gate uses the same engine through a dedicated mode.
 step the commit completes. Because the gate is shown before the commit lands,
 `pw skill` treats that step as done and derives the action after it: the next
 plan step's `/implement-step` while steps remain, `/prepare-release` once the
-last step is committed, or nothing for a standalone commit with no plan. The gate
-presents that as a multi-choice  --  a constant `go ahead`, the contextual
-option, and a free-text entry  --  so a plain `go ahead` commits and stops, and
-the contextual option commits and chains on only after the commit succeeds.
+last step is committed, or nothing for a standalone commit with no plan. That
+lookup is read-only: it builds the labels, but it is not itself the go-ahead. The
+gate presents the result as `go ahead`, `go ahead, and implement step <next>`, or
+`go ahead, and prepare-release`, so each concrete follow-up choice still commits
+first and chains on only after the commit succeeds.
 
 ### Running pw skill from a tool shell
 
@@ -937,12 +940,12 @@ fully completed implementation step.
    +==================== ==============================================+
                         |  chain ends at the [STOP] commit gate: a.commit
                         |  is presented with a pw skill --after-commit <x>
-                        |  multi-choice (go ahead | go ahead, implement step
-                        |  <next> | prepare-release)
+                        |  multi-choice (go ahead | go ahead, and implement
+                        |  step <next> | go ahead, and prepare-release)
                         v
                 +---------------------------------+
                 |  a.commit reviewed, "go ahead"  |
-                |  gcba replays the commits, gp   |
+                |  gcba replays the commits       |
                 +-------+-------------------------+
                         |
                         v
