@@ -26,6 +26,7 @@ from tests.unit.tools.groundhog_acceptance_support import (
     FakeProcess,
     Spawns,
     SteppingClock,
+    assert_blank_before,
     assert_closing_grammar,
     failing_transcript,
     make_deps,
@@ -159,6 +160,8 @@ def test_at5_coverage_gap_and_gate_reached(
     assert reporting_nextstep.MSG_GAP_LINES_HEADER in out
     assert "src/pkg/mod.py" in out
     assert reporting_nextstep.MSG_COVERAGE_GAP in out
+    assert_blank_before(out, reporting_nextstep.MSG_GAP_LINES_HEADER)
+    assert_blank_before(out, reporting_nextstep.MSG_COVERAGE_GAP)
     assert_closing_grammar(out)
     reached = Spawns(passing_transcript(2, "TOTAL    100    0   100%"), 0)
     code = cli.main(
@@ -204,6 +207,7 @@ def test_at7_unreadable_total_line_is_loud(
     out = capsys.readouterr().out
     assert "TOTAL line not found" in out
     assert "cov=unread" in out
+    assert_blank_before(out, "ghog: coverage TOTAL line not found")
     assert_closing_grammar(out)
 
 
@@ -352,6 +356,8 @@ def test_at15_nothing_affected_is_green_and_says_so(
     out = capsys.readouterr().out
     assert reporting_nextstep.MSG_NO_TESTS_RUN in out
     assert reporting_nextstep.MSG_AFFECTED_NOCOV_OK in out
+    assert_blank_before(out, reporting_nextstep.MSG_NO_TESTS_RUN)
+    assert_blank_before(out, reporting_nextstep.MSG_AFFECTED_NOCOV_OK)
 
 
 def test_script_runs_through_its_main_guard(

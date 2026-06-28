@@ -139,4 +139,41 @@ def test_exclusion_block_empty_list_renders_no_block() -> None:
     assert durations_report.exclusion_block(summary) == []
 
 
+def test_action_block_recaps_only_items_requiring_action() -> None:
+    """Exit-8 recap lists true outliers and slower exclusions only."""
+    outlier = durations.DurationCall(_FREAK_NODE, 5.0, 30.0)
+    summary = durations.DurationSummary(
+        average=0.10,
+        outliers=(outlier,),
+        runners_up=(),
+        floor=_EXCL_FLOOR,
+        median=0.10,
+        exclusions=_EXCLUSIONS,
+    )
+    lines = durations_report.action_block(summary)
+    assert lines[0] == ""
+    assert lines[1] == "Duration warnings requiring action:"
+    assert f"{_FREAK_NODE}  current=5.00s  floor=1.00s" in lines[2]
+    assert _SLOWER_NODE in lines[3]
+    assert "recorded=6.80s  current=9.42s" in lines[3]
+    assert "restore to within 2s of 6.80s" in lines[3]
+    assert _OK_NODE not in "\n".join(lines)
+    assert _STALE_NODE not in "\n".join(lines)
+
+
+def test_action_block_empty_without_actionable_items() -> None:
+    """No recap is rendered when the run has no exit-8 timing work."""
+    summary = durations.DurationSummary(
+        average=0.10,
+        outliers=(),
+        runners_up=(),
+        floor=_EXCL_FLOOR,
+        median=0.10,
+        exclusions=(
+            durations.DurationExclusion(_OK_NODE, 11.41, 11.33, durations.STATUS_OK),
+        ),
+    )
+    assert durations_report.action_block(summary) == []
+
+
 # eof
