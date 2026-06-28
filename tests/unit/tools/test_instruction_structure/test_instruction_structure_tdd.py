@@ -51,6 +51,8 @@ def test_group_commits_carries_the_commit_gate_multi_choice() -> None:
     content = _read("group-commits-msg.md")
     assert "pw skill --after-commit" in content
     assert "Go ahead, and implement step" in content
+    assert "Go ahead, and prepare-release" in content
+    assert "Never present the contextual option as only the printed command" in content
     assert "Type something else" in content
 
 

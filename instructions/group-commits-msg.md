@@ -55,13 +55,13 @@ The context that can inform how you will group those files can be:
 
    The tool rewrites `a.commit` in place. An exit status of 0 means the file is now canonically formatted (whether or not changes were applied); a non-zero status means the file is missing or unreadable and the underlying issue must be fixed before proceeding.
 
-7. Once `a.commit` is generated and formatted, display it for user review (the author may edit it first), then read [`../rules/command_prefix_char.md`](../rules/command_prefix_char.md), read [`../rules/interactive_menu.md`](../rules/interactive_menu.md) and present the go-ahead choices. Run `pw skill --after-commit <x>` (via its launcher, see [`run-pw.md`](run-pw.md)) from the project root, where `<x>` is the plan step this commit completes (the "step XXXX" of the cycle), to get the contextual option. The concrete choices are:
+7. Once `a.commit` is generated and formatted, display it for user review (the author may edit it first), then read [`../rules/command_prefix_char.md`](../rules/command_prefix_char.md), read [`../rules/interactive_menu.md`](../rules/interactive_menu.md) and present the go-ahead choices. Run `pw skill --after-commit <x>` (via its launcher, see [`run-pw.md`](run-pw.md)) from the project root, where `<x>` is the plan step this commit completes (the "step XXXX" of the cycle), to get the contextual next command. This lookup is read-only and exists only to build the commit-gate labels; it is not the go-ahead and it does not replace the commit. The concrete choices are:
 
    - `Go ahead` — commit, then stop.
-   - the contextual option, when a development effort is in flight — `Go ahead, and implement step <next>` for the next plan step, or `Go ahead and prepare-release` once every step is committed. A standalone call with no plan prints nothing and exits non-zero, so omit this row when there is no contextual option.
+   - the contextual option, when a development effort is in flight — `Go ahead, and implement step <next>` for the next plan step, or `Go ahead, and prepare-release` once every step is committed. A standalone call with no plan prints nothing and exits non-zero, so omit this row when there is no contextual option.
    - `Type something else` — let the author provide a different command or correction before committing.
 
-   Plain `Go ahead` commits and then stops; the contextual option commits and, only after the commit succeeds, runs `<command-prefix>implement-step` on the next step or `<command-prefix>prepare-release`, with the prefix selected by `command_prefix_char.md`.
+   Plain `Go ahead` commits and then stops; the contextual option commits and, only after the commit succeeds, runs `<command-prefix>implement-step` on the next step or `<command-prefix>prepare-release`, with the prefix selected by `command_prefix_char.md`. Never present the contextual option as only the printed command, such as `$prepare-release`; the choice label must start with `Go ahead, and ...` so the user can see that selecting it commits first.
 
 8. When the user selects a go-ahead entry, validate the `a.commit` file, and if it is not valid, fix any issue reported by the validation.
 
