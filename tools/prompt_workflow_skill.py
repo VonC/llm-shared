@@ -25,7 +25,7 @@ step, and advances past a review step when the document it reads carries a
 consolidated decisions table. The resolved step maps to an instruction and a
 target document, then renders. For the implementation cycle, an available
 validation plan also contributes the plan step id so ``implement-step`` receives
-the argument it needs.
+the argument it needs; a terminal validation plan renders ``prepare-release``.
 """
 
 from __future__ import annotations
@@ -186,11 +186,10 @@ def next_command(
     step = _resolve_step(state)
     instruction, document = _instruction_and_document(step, root, topic, branch, state)
     prefix = host_prefix(env, override)
+    command = render_command(prefix, instruction, document)
     if step == IMPLEMENT_STEP:
-        plan_step = _plan_step_to_implement(root, state)
-        command = render_command(prefix, instruction, document)
-        return command if plan_step is None else f"{command} step {plan_step}"
-    return render_command(prefix, instruction, document)
+        return _implementation_command(root, state, prefix, command) or command
+    return command
 
 
 def _resolve_step(state: WorkflowState) -> int:
@@ -240,16 +239,23 @@ def _instruction_and_document(
     return STEP_INSTRUCTION[step], _document(root, topic, STEP_ROLE[step], state)
 
 
-def _plan_step_to_implement(root: Path, state: WorkflowState) -> str | None:
-    """Return the validation-plan step for an ``implement-step`` command.
+def _implementation_command(
+    root: Path,
+    state: WorkflowState,
+    prefix: str,
+    base_command: str,
+) -> str | None:
+    """Return the validation-plan command for an implementation-cycle route.
 
     Args:
         root: The project root, used for commit-history checks.
         state: The workflow state holding the validation plan path.
+        prefix: The host command prefix for terminal release commands.
+        base_command: The rendered implement-step command without a plan step.
 
     Returns:
-        The plan step id to append, or None when no validation plan can provide
-        one.
+        The command with a plan step, the terminal release command, or None when
+        no validation plan can provide one.
     """
     if state.validation_plan is None:
         return None
@@ -261,8 +267,10 @@ def _plan_step_to_implement(root: Path, state: WorkflowState) -> str | None:
     def _has_commit(number: str) -> bool:
         return git.has_step_commit(root, number, branch_start)
 
-    step, _verified, _terminal = plan.derive_x(plan_steps, _has_commit)
-    return step
+    step, _verified, terminal = plan.derive_x(plan_steps, _has_commit)
+    if terminal:
+        return f"{prefix}prepare-release"
+    return f"{base_command} step {step}"
 
 
 def _document(root: Path, topic: Topic, role: str, state: WorkflowState) -> str:
