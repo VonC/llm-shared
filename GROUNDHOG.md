@@ -51,7 +51,7 @@ Every wrapper loads `senv.bat` itself, inside its own cmd process, so a single c
            |             fix the two lists, restart
            +-- exit 3 -> STOP: covg on the Missing rows,
            |             add tests, ghog affected to the
-           |             gate, finish with ghog check
+           |             gate, ghog check, then ghog day
            +-- exit 4 -> STOP: crash block, harden the suite
            +-- exit 5 -> STOP: setup error, not loopable
            v
@@ -88,7 +88,7 @@ The walk never fixes anything: it walks, gates, and reports. The fixing belongs 
           coverage not higher), and never beyond 10 iterations
 ```
 
-The walk is also the loop's only re-entry point. After a fix, the next command is `ghog day` itself — never a standalone subcommand run first as a confirmation: a `ghog check` right before a walk pays check.bat twice, since the walk opens with that same check. The subcommands the branches name (`ghog single`, `ghog affected --no-cov`, covg plus `ghog affected`) are inner verifiers, cheaper than a walk while one branch is being fixed, and each inner loop ends by handing back to `ghog day`. One exception closes the loop without a walk: on the coverage branch, `ghog affected` reaching the gate plus a single green `ghog check` meets the objective.
+The walk is also the loop's only re-entry point. After a fix, the next command is `ghog day` itself — never a standalone subcommand run first as a confirmation: a `ghog check` right before a walk pays check.bat twice, since the walk opens with that same check. The subcommands the branches name (`ghog single`, `ghog affected --no-cov`, covg plus `ghog affected`, and the coverage branch's final `ghog check`) are inner verifiers, cheaper than a walk while one branch is being fixed, and each inner loop ends by handing back to `ghog day`.
 
 ## Subcommands and console aliases
 
@@ -119,7 +119,7 @@ The keys are the contract; `cov=` reads `skipped` (not measured), `withheld` (fa
 | --- | --- | --- |
 | 0 | objective met (or this step green) | continue the walk, or stop on the full run |
 | 2 | test failures | fix them; from a full run, `ghog single <failing files>` first |
-| 3 | coverage gap | covg on the replayed Missing rows, add tests, `ghog affected` to the gate, `ghog check` |
+| 3 | coverage gap | covg on the replayed Missing rows, add tests, `ghog affected` to the gate, `ghog check`, then `ghog day` |
 | 4 | suite crash | act on the crash block: make the suite robust against that exception |
 | 5 | environment or setup error | read the printed reason; looping cannot fix it |
 | 6 | a run is live (Q32) | wait; poll `ghog status` until `state=done`, start nothing |
@@ -211,7 +211,7 @@ The nag line appears only on success, when warnings or expected failures remain 
 | full failing | full tracebacks, baseline written to `a.ghog.failures` | `Next: ghog single <failing test files>` |
 | focus run (`ghog single`) | the two lists: still failing in focus (fix first), passing in focus but failing in the full suite (interaction suspects, fix second) | `Stay on ghog single until green, then restart the walk: ghog day` |
 | coverage gap | the term-missing rows under `Uncovered lines` — the covg input | `Next: covg <file> <ranges> ... add tests, verify with ghog affected` |
-| affected at the gate | — | `Coverage gate reached - no ghog full needed; finish with ghog check (new tests are code too)` |
+| affected at the gate | — | `Coverage gate reached - run ghog check (new tests are code too), then ghog day` |
 | crash | last 5 started tests, stack tail | the immediate-fix instruction: make the suite robust against that exception |
 | nothing affected | — | `0 tests ran in this step (testmon: nothing affected since the last run) - treated as green` |
 
@@ -264,7 +264,7 @@ On exit 3, the report replays the pytest term-missing rows under an `Uncovered l
 cmd /d /v:on /c "senv.bat && ..\llm-shared\bin\covg.bat src\pkg\mod.py 48 86-88 100"
 ```
 
-covg names the enclosing functions and branches of those lines and builds a ready-to-paste test-coverage prompt. Never generate or parse a `coverage.json` export — it is huge, and everything covg needs is already in the replayed rows. Verify the new tests with `ghog affected` only (coverage appends across runs); when it reports the gate is reached, finish with one `ghog check` — new tests are code too — and the objective is met without another full run.
+covg names the enclosing functions and branches of those lines and builds a ready-to-paste test-coverage prompt. Never generate or parse a `coverage.json` export — it is huge, and everything covg needs is already in the replayed rows. Verify the new tests with `ghog affected` only (coverage appends across runs); when it reports the gate is reached, run one `ghog check` because new tests are code too, then restart the walk with `ghog day` so check, affected tests, full coverage, and outliers are proven together.
 
 ## Files groundhog reads and writes
 
