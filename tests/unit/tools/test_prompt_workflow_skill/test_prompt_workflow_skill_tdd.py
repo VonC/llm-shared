@@ -224,6 +224,28 @@ def test_next_command_settled_plan_implements_the_validation_step(
     assert command == "/implement-step on docs/plan.v0.9.0.handoff_automation.md step 2"
 
 
+def test_next_command_settled_plan_prepares_release_when_terminal(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """A committed last validation step routes to the release command."""
+    topic = _topic(tmp_path)
+    _write(tmp_path, _REQ, _SETTLED_REQ)
+    _write(tmp_path, _DESIGN, _SETTLED_DESIGN)
+    _write(tmp_path, _PLAN, _SETTLED_PLAN)
+    _write(tmp_path, "plan.v0.9.0.handoff_automation.validation.md", _VALIDATION_TWO_STEPS_DONE)
+    monkeypatch.setattr(skill.git, "fork_point", lambda _root: "base")
+    monkeypatch.setattr(
+        skill.git,
+        "has_step_commit",
+        lambda _root, number, _base: number == "2",
+    )
+
+    command = skill.next_command(tmp_path, topic, "handoff_automation", _CLAUDE)
+
+    assert command == "/prepare-release"
+
+
 def test_next_command_settled_plan_ignores_empty_validation_plan(tmp_path: Path) -> None:
     """A validation plan with no parsed steps leaves the implement command bare."""
     topic = _topic(tmp_path)
@@ -359,6 +381,12 @@ _VALIDATION_TWO_STEPS = (
     "Yes. Step 1 has been fully implemented.\n\n"
     "## Step 2.\n\n### Analysis of Step 2 implementation state\n\n"
     "Not started. Step 2 is not implemented because x.\n"
+)
+_VALIDATION_TWO_STEPS_DONE = (
+    "# v\n\n## Step 1.\n\n### Analysis of Step 1 implementation state\n\n"
+    "Yes. Step 1 has been fully implemented.\n\n"
+    "## Step 2.\n\n### Analysis of Step 2 implementation state\n\n"
+    "Yes. Step 2 has been fully implemented.\n"
 )
 
 
