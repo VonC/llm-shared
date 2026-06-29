@@ -103,6 +103,8 @@ a.git-describe-cache.json
 *.egg-info/
 
 senv.local.bat
+docs/llm-shared_presentation.local.ini
+docs/llm-shared_presentation.local.js
 
 **/claude/versions/
 *.exe
