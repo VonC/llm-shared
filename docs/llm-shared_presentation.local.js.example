@@ -1,0 +1,4 @@
+window.llmSharedPresentationLocal = {
+  brand_name: 'My Company Name',
+  brand_subtitle: 'My Brand Motto',
+};
