@@ -396,7 +396,59 @@
   <div class="footer-left">llm-shared — Auto-revue</div><div class="footer">5</div>
 </div>
 
-<!-- SLIDE 6 — Vue d'ensemble -->
+<!-- SLIDE 6 — Auto-revue en pratique -->
+<div class="slide">
+  <div class="header">
+    <div><div class="logo-text">Organization name</div><div class="logo-sub">Organization subtitle</div></div>
+    <div class="header-right">3. Auto-revue</div>
+  </div>
+  <div class="accent-bar"></div>
+  <div class="slide-title">L'auto-revue en pratique : deux skills dédiés</div>
+  <div class="slide-subtitle">/review-ask-questions relit le document, /implementation-check relit le code</div>
+  <div class="content">
+    <div style="display: flex; gap: 30px; align-items: flex-start;">
+      <!-- Revue documentaire : /review-ask-questions -->
+      <div style="flex: 1;">
+        <div style="font-size: 16px; font-weight: 700; color: #00566f; margin-bottom: 4px; text-align: center;">Revue documentaire</div>
+        <div style="font-size: 12px; color: #717e86; font-style: italic; margin-bottom: 15px; text-align: center;">l'IA relit ce qu'elle vient de rédiger — <span style="color:#ec6608;">/review-ask-questions</span></div>
+        <div style="display: flex; flex-direction: column; gap: 8px; align-items: center;">
+          <div class="loop-box filled" style="width: 240px;">Question : contexte &amp; problème</div>
+          <div style="font-size: 18px; color: #717e86;">▼</div>
+          <div class="loop-box" style="width: 240px;">Reformulation BBQ des enjeux</div>
+          <div style="font-size: 18px; color: #717e86;">▼</div>
+          <div class="loop-box orange" style="width: 240px;">Options X1 / X2 / X3 — pour &amp; contre</div>
+          <div style="font-size: 18px; color: #717e86;">▼</div>
+          <div class="loop-box" style="width: 240px;">Option recommandée + arguments</div>
+          <div style="font-size: 14px; color: #ec6608; font-weight: 700;">[STOP] Humain répond</div>
+          <div style="font-size: 18px; color: #717e86;">▼</div>
+          <div class="loop-box filled-orange" style="width: 240px;">Réponse : option XY + tableau récap ✓</div>
+        </div>
+      </div>
+      <!-- Revue d'implémentation : /implementation-check -->
+      <div style="flex: 1;">
+        <div style="font-size: 16px; font-weight: 700; color: #00566f; margin-bottom: 4px; text-align: center;">Revue d'implémentation</div>
+        <div style="font-size: 12px; color: #717e86; font-style: italic; margin-bottom: 15px; text-align: center;">l'IA relit ce qu'elle vient de coder — <span style="color:#ec6608;">/implementation-check</span></div>
+        <div style="display: flex; flex-direction: column; gap: 8px; align-items: center;">
+          <div class="loop-box filled" style="width: 240px;">Verdict : Oui / Non — étape N</div>
+          <div style="font-size: 18px; color: #717e86;">▼</div>
+          <div class="loop-box orange" style="width: 240px;">Ce qui est fait / travail manquant</div>
+          <div style="font-size: 14px; color: #ec6608; font-weight: 700;">[STOP] Écarts → implement-missing</div>
+          <div style="font-size: 18px; color: #717e86;">▼</div>
+          <div class="loop-box" style="width: 240px;">Architecture DDD-Hexagonal</div>
+          <div style="font-size: 18px; color: #717e86;">▼</div>
+          <div class="loop-box" style="width: 240px;">Performance : pas de O(n²)</div>
+          <div style="font-size: 18px; color: #717e86;">▼</div>
+          <div class="loop-box" style="width: 240px;">Couverture unitaire 100% ?</div>
+          <div style="font-size: 18px; color: #717e86;">▼</div>
+          <div class="loop-box filled-orange" style="width: 240px;">Intégrité fonctionnelle préservée ✓</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer-left">llm-shared — Auto-revue en pratique</div><div class="footer">6</div>
+</div>
+
+<!-- SLIDE 7 — Vue d'ensemble -->
 <div class="slide">
   <div class="header">
     <div><div class="logo-text">Organization name</div><div class="logo-sub">Organization subtitle</div></div>
@@ -444,10 +496,10 @@
       <span style="color: #ec6608; font-weight: 700;">pw handoff</span> enchaîne les étapes d'implémentation
     </div>
   </div>
-  <div class="footer-left">llm-shared — Vue d'ensemble</div><div class="footer">6</div>
+  <div class="footer-left">llm-shared — Vue d'ensemble</div><div class="footer">7</div>
 </div>
 
-<!-- SLIDE 7 — Phase documentaire -->
+<!-- SLIDE 8 — Phase documentaire -->
 <div class="slide">
   <div class="header">
     <div><div class="logo-text">Organization name</div><div class="logo-sub">Organization subtitle</div></div>
@@ -508,10 +560,10 @@
       Le seul arrêt humain : répondre au tableau <strong>Q0x | Titre | Réponse recommandée</strong> lors des revues
     </div>
   </div>
-  <div class="footer-left">llm-shared — Phase documentaire</div><div class="footer">7</div>
+  <div class="footer-left">llm-shared — Phase documentaire</div><div class="footer">8</div>
 </div>
 
-<!-- SLIDE 8 — Phase implémentation -->
+<!-- SLIDE 9 — Phase implémentation -->
 <div class="slide">
   <div class="header">
     <div><div class="logo-text">Organization name</div><div class="logo-sub">Organization subtitle</div></div>
@@ -561,19 +613,74 @@
       </div>
     </div>
   </div>
-  <div class="footer-left">llm-shared — Implémentation</div><div class="footer">8</div>
+  <div class="footer-left">llm-shared — Implémentation</div><div class="footer">9</div>
 </div>
 
-<!-- SLIDE 9 — Commits & release -->
+<!-- SLIDE 10 — Groundhog -->
 <div class="slide">
   <div class="header">
     <div><div class="logo-text">Organization name</div><div class="logo-sub">Organization subtitle</div></div>
-    <div class="header-right">7. Commits & Release</div>
+    <div class="header-right">7. Groundhog</div>
+  </div>
+  <div class="accent-bar"></div>
+  <div class="slide-title">Groundhog — la boucle de tests</div>
+  <div class="slide-subtitle">Un seul outil remplace les anciens alias : ghog day marche la chaîne et s'arrête au premier problème</div>
+  <div class="content">
+    <div style="display: flex; flex-direction: column; gap: 10px; align-items: center; margin-bottom: 20px;">
+      <div style="background:#00566f; color:#fff; padding:12px 30px; border-radius:8px; font-weight:700; font-size:16px;">ghog day</div>
+      <div style="font-size: 18px; color: #717e86;">▼</div>
+      <div style="display: flex; gap: 10px; width: 100%; justify-content: center;">
+        <div style="background:#e6f0f3; border:2px solid #00566f; border-radius:8px; padding:12px; text-align:center; width:200px;">
+          <div style="font-size:14px; font-weight:700; color:#00566f;">1. check.bat</div>
+          <div style="font-size:11px; color:#666; margin-top:4px;">Compilation + lint</div>
+        </div>
+        <div style="font-size: 20px; color: #717e86; align-self: center;">→</div>
+        <div style="background:#fff3e6; border:2px solid #ec6608; border-radius:8px; padding:12px; text-align:center; width:200px;">
+          <div style="font-size:14px; font-weight:700; color:#ec6608;">2. Tests affectés</div>
+          <div style="font-size:11px; color:#666; margin-top:4px;">Rapide, sans couverture</div>
+        </div>
+        <div style="font-size: 20px; color: #717e86; align-self: center;">→</div>
+        <div style="background:#e6f0f3; border:2px solid #00566f; border-radius:8px; padding:12px; text-align:center; width:200px;">
+          <div style="font-size:14px; font-weight:700; color:#00566f;">3. Suite complète</div>
+          <div style="font-size:11px; color:#666; margin-top:4px;">Couverture 100% exigée</div>
+        </div>
+      </div>
+      <div style="font-size: 18px; color: #717e86;">▼</div>
+      <div style="background:#006d67; color:#fff; padding:12px 30px; border-radius:8px; font-weight:700; font-size:14px;">
+        ✓ Objectif atteint : tests verts + couverture au seuil
+      </div>
+    </div>
+    <div style="display: flex; gap: 15px;">
+      <div class="feature-item">
+        <h4>🔄 Boucle de correction IA</h4>
+        <p>L'IA lit le code de sortie, applique le correctif nommé dans le rapport, relance ghog day. Arrêt si aucun progrès.</p>
+      </div>
+      <div class="feature-item orange">
+        <h4>📊 Sortie maîtrisée</h4>
+        <p>Petite pour l'IA (logs redirigés, tail lu). Vivante pour l'humain (barre de progression, rapport final).</p>
+      </div>
+      <div class="feature-item">
+        <h4>🆔 État de cycle</h4>
+        <p>Contrat fichier a.ghog.status. L'IA ne devine jamais : ghog status lit l'état, exit 6 = en cours, 7 = tué.</p>
+      </div>
+    </div>
+  </div>
+  <div class="footer-left">llm-shared — Groundhog</div><div class="footer">10</div>
+</div>
+
+<!-- SLIDE 11 — Commits & release -->
+<div class="slide">
+  <div class="header">
+    <div><div class="logo-text">Organization name</div><div class="logo-sub">Organization subtitle</div></div>
+    <div class="header-right">8. Commits & Release</div>
   </div>
   <div class="accent-bar"></div>
   <div class="slide-title">Commits conventionnels & préparation de release</div>
   <div class="slide-subtitle">Au-delà du changelog : le « pourquoi » pour le prochain lecteur</div>
   <div class="content">
+    <div style="margin-bottom: 18px; padding: 14px 18px; background:#e6f0f3; border-radius:8px; font-size: 16px; color: #00566f; line-height: 1.5;">
+      <strong>/group-commits-msg</strong> — range les fichiers indexés du moins au plus dépendant, écrit un message au format ci-dessous par groupe dans <code>a.commit</code>, puis crée un commit par groupe après relecture.
+    </div>
     <div style="display: flex; gap: 20px;">
       <!-- Commit format -->
       <div style="flex: 1;">
@@ -623,62 +730,10 @@
       </div>
     </div>
   </div>
-  <div class="footer-left">llm-shared — Commits & Release</div><div class="footer">9</div>
+  <div class="footer-left">llm-shared — Commits & Release</div><div class="footer">11</div>
 </div>
 
-<!-- SLIDE 10 — Groundhog -->
-<div class="slide">
-  <div class="header">
-    <div><div class="logo-text">Organization name</div><div class="logo-sub">Organization subtitle</div></div>
-    <div class="header-right">8. Groundhog</div>
-  </div>
-  <div class="accent-bar"></div>
-  <div class="slide-title">Groundhog — la boucle de tests</div>
-  <div class="slide-subtitle">Un seul outil remplace les anciens alias : ghog day marche la chaîne et s'arrête au premier problème</div>
-  <div class="content">
-    <div style="display: flex; flex-direction: column; gap: 10px; align-items: center; margin-bottom: 20px;">
-      <div style="background:#00566f; color:#fff; padding:12px 30px; border-radius:8px; font-weight:700; font-size:16px;">ghog day</div>
-      <div style="font-size: 18px; color: #717e86;">▼</div>
-      <div style="display: flex; gap: 10px; width: 100%; justify-content: center;">
-        <div style="background:#e6f0f3; border:2px solid #00566f; border-radius:8px; padding:12px; text-align:center; width:200px;">
-          <div style="font-size:14px; font-weight:700; color:#00566f;">1. check.bat</div>
-          <div style="font-size:11px; color:#666; margin-top:4px;">Compilation + lint</div>
-        </div>
-        <div style="font-size: 20px; color: #717e86; align-self: center;">→</div>
-        <div style="background:#fff3e6; border:2px solid #ec6608; border-radius:8px; padding:12px; text-align:center; width:200px;">
-          <div style="font-size:14px; font-weight:700; color:#ec6608;">2. Tests affectés</div>
-          <div style="font-size:11px; color:#666; margin-top:4px;">Rapide, sans couverture</div>
-        </div>
-        <div style="font-size: 20px; color: #717e86; align-self: center;">→</div>
-        <div style="background:#e6f0f3; border:2px solid #00566f; border-radius:8px; padding:12px; text-align:center; width:200px;">
-          <div style="font-size:14px; font-weight:700; color:#00566f;">3. Suite complète</div>
-          <div style="font-size:11px; color:#666; margin-top:4px;">Couverture 100% exigée</div>
-        </div>
-      </div>
-      <div style="font-size: 18px; color: #717e86;">▼</div>
-      <div style="background:#006d67; color:#fff; padding:12px 30px; border-radius:8px; font-weight:700; font-size:14px;">
-        ✓ Objectif atteint : tests verts + couverture au seuil
-      </div>
-    </div>
-    <div style="display: flex; gap: 15px;">
-      <div class="feature-item">
-        <h4>🔄 Boucle de correction IA</h4>
-        <p>L'IA lit le code de sortie, applique le correctif nommé dans le rapport, relance ghog day. Arrêt si aucun progrès.</p>
-      </div>
-      <div class="feature-item orange">
-        <h4>📊 Sortie maîtrisée</h4>
-        <p>Petite pour l'IA (logs redirigés, tail lu). Vivante pour l'humain (barre de progression, rapport final).</p>
-      </div>
-      <div class="feature-item">
-        <h4>🆔 État de cycle</h4>
-        <p>Contrat fichier a.ghog.status. L'IA ne devine jamais : ghog status lit l'état, exit 6 = en cours, 7 = tué.</p>
-      </div>
-    </div>
-  </div>
-  <div class="footer-left">llm-shared — Groundhog</div><div class="footer">10</div>
-</div>
-
-<!-- SLIDE 11 — Bénéfices -->
+<!-- SLIDE 12 — Bénéfices -->
 <div class="slide">
   <div class="header">
     <div><div class="logo-text">Organization name</div><div class="logo-sub">Organization subtitle</div></div>
@@ -715,10 +770,10 @@
       </div>
     </div>
   </div>
-  <div class="footer-left">llm-shared — Bénéfices</div><div class="footer">11</div>
+  <div class="footer-left">llm-shared — Bénéfices</div><div class="footer">12</div>
 </div>
 
-<!-- SLIDE 12 — Conclusion -->
+<!-- SLIDE 13 — Conclusion -->
 <div class="slide title-slide" style="background: #00566f;">
   <div class="title-logo">
     <div class="logo-text">Organization name</div>
