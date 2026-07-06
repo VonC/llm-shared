@@ -106,6 +106,10 @@ senv.local.bat
 docs/llm-shared_presentation.local.ini
 docs/llm-shared_presentation.local.js
 
+# Generated decks: rebuild with tools/html_to_pptx/make_pptx.ps1 or
+# make_pdf.ps1 (the PDF is already covered by the top-level *.pdf rule)
+docs/llm-shared_presentation.pptx
+
 **/claude/versions/
 *.exe
 *.exe.*

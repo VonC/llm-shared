@@ -36,7 +36,9 @@ and `Theme.iny` in `pptx_helpers.py` do that multiply.
 | File | Role |
 | --- | --- |
 | `pptx_helpers.py` | Generic, deck-agnostic drawing primitives and components. Import these. |
-| `build_llm_shared_pptx.py` | Worked example: the full 14-slide llm-shared deck built on the helpers. Copy this per new deck. |
+| `build_llm_shared_pptx.py` | Worked example: the full 16-slide llm-shared deck built on the helpers. Copy this per new deck. |
+| `make_pptx.ps1` | One-line wrapper: installs `python-pptx` if missing, then rebuilds the `.pptx` (with brand env vars applied). |
+| `make_pdf.ps1` | One-line wrapper: runs `make_pptx.ps1`, then exports the deck to `.pdf` through PowerPoint. |
 | `export_preview.ps1` | Verification aid: export the finished `.pptx` back to PNG through PowerPoint to compare against the HTML. |
 | `__init__.py` | Marks the folder as a package. |
 
@@ -48,15 +50,49 @@ and `Theme.iny` in `pptx_helpers.py` do that multiply.
 
 ## Rebuild the llm-shared deck
 
-From the repository root:
+From the repository root, one line per format:
+
+```bat
+powershell -File tools\html_to_pptx\make_pptx.ps1
+powershell -File tools\html_to_pptx\make_pdf.ps1
+```
+
+`make_pptx.ps1` installs `python-pptx` when it is missing, then runs
+`build_llm_shared_pptx.py`, which writes `docs\llm-shared_presentation.pptx`
+(16 slides) and prints the slide count and file size. `make_pdf.ps1` runs
+`make_pptx.ps1` first, then drives the installed PowerPoint through COM
+(SaveAs format 32 = ppSaveAsPDF) to write
+`docs\llm-shared_presentation.pdf`, so the PDF pages match the editable deck
+one for one. Both scripts resolve their own paths, so the working directory
+does not matter. The underlying direct call still works:
 
 ```bat
 python tools\html_to_pptx\build_llm_shared_pptx.py
 ```
 
-It writes `docs\llm-shared_presentation.pptx` (14 slides) and prints the slide
-count and file size. The script resolves its own paths, so the working
-directory does not matter.
+Both outputs are generated files and are gitignored (`docs/llm-shared_presentation.pptx`
+explicitly, the PDF through the top-level `*.pdf` rule): do not commit them,
+rebuild them on demand from the HTML source of truth.
+
+## Branding through environment variables
+
+The build reads two environment variables and falls back to the neutral
+placeholders when they are not set:
+
+| Variable | Replaces | Fallback |
+| --- | --- | --- |
+| `LLM_SHARED_BRAND` | the brand line on every slide | `Organization name` |
+| `LLM_SHARED_BRAND_SUB` | the small line under the brand | `ORGANIZATION SUBTITLE` |
+
+This mirrors the HTML deck, which swaps the same two values at render time
+through `llm-shared_presentation.local.js`. A static `.pptx` or `.pdf` runs no
+script, so the substitution happens at build time instead: set the variables
+(or pass `-Brand` / `-BrandSub` to either wrapper script) and rebuild.
+
+```bat
+powershell -File tools\html_to_pptx\make_pptx.ps1 -Brand "ACME" -BrandSub "IT DIVISION"
+powershell -File tools\html_to_pptx\make_pdf.ps1 -Brand "ACME" -BrandSub "IT DIVISION"
+```
 
 ## Check the result against the HTML
 
@@ -115,9 +151,11 @@ during the visual check.
 
 - Brand placeholders. The HTML swaps `Organization name` and its subtitle at
   runtime through `llm-shared_presentation.local.js`. A static `.pptx` runs no
-  script, so those appear as plain editable text (`BRAND` and `BRAND_SUB` in
-  the example). Change the two constants, or use Find and Replace in
-  PowerPoint.
+  script, so the build script reads `LLM_SHARED_BRAND` and
+  `LLM_SHARED_BRAND_SUB` at build time instead (see "Branding through
+  environment variables" above). When neither is set, the placeholders stay as
+  plain editable text: Find and Replace in PowerPoint remains a last-resort
+  option on an already-built deck.
 - Omitted logo. The HTML title slide shows a product logo image. Because this
   tool draws no pictures, the example leaves it out. Add it back by hand in
   PowerPoint if a logo is wanted on the title and closing slides.
