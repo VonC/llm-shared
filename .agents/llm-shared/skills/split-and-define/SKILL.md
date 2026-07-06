@@ -1,8 +1,7 @@
 ---
 name: split-and-define
-description: 'split a draft into several feature-requests and issues, and define their key title for each one'
-metadata:
-  short-description: Split a draft into feature-request and issue titles
+description: 'Split a draft into several feature-requests and issues, and define their key title for each one.'
 ---
 
-[Instruction](../../../instructions/split-and-define.md)
+[Instruction](../../instructions/split-and-define.md)
+
