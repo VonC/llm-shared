@@ -22,7 +22,7 @@ How to use it:
     Build a Theme with your brand colors and canvas size, then compose slides
     from the primitives (textbox, rect, oval, box, arrow) and the ready-made
     components (card, feature_item, header, title, footer). See
-    build_llm_shared_pptx.py in this folder for a full 13-slide worked
+    build_llm_shared_pptx.py in this folder for a full 16-slide worked
     example, and README.md for the step-by-step method.
 """
 

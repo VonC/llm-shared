@@ -5,7 +5,7 @@ Run it from anywhere:
 
     python tools/html_to_pptx/build_llm_shared_pptx.py
 
-It writes docs/llm-shared_presentation.pptx (14 slides, text and vector
+It writes docs/llm-shared_presentation.pptx (16 slides, text and vector
 shapes only -- no images). Every pixel coordinate below is read from the
 matching slide in the HTML source; the Theme maps 1280x720 px onto a
 13.333in x 7.5in 16:9 slide, so the numbers transfer without re-layout.
@@ -23,6 +23,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from pptx.util import Pt                                          # noqa: E402
 from pptx.enum.text import PP_ALIGN, MSO_ANCHOR                   # noqa: E402
+from pptx.enum.dml import MSO_LINE                                # noqa: E402
 
 from pptx_helpers import (                                        # noqa: E402
     Theme, rgb, make_presentation, blank_slide, fill_background,
@@ -60,8 +61,12 @@ THEME = Theme(primary=BLUE, accent=ORANGE, muted=GRAY, faint=LGRAY,
               white=WHITE, extra={"light": LIGHT, "muted": MUTED,
                                   "muted2": MUTED2, "text": TEXT})
 
-BRAND = "Organization name"
-BRAND_SUB = "ORGANIZATION SUBTITLE"
+# Brand placeholders. Like the HTML deck (which swaps them at render time
+# through llm-shared_presentation.local.js), the build reads LLM_SHARED_BRAND
+# and LLM_SHARED_BRAND_SUB from the environment and keeps the placeholders
+# when they are not set.
+BRAND = os.environ.get("LLM_SHARED_BRAND", "Organization name")
+BRAND_SUB = os.environ.get("LLM_SHARED_BRAND_SUB", "ORGANIZATION SUBTITLE")
 
 
 # --- deck-specific compositions (copy and adapt these per deck) -------------
@@ -172,7 +177,7 @@ def step_row(s, y, num, circle_color, box_fill, cmd, cmd_color, desc,
 
 
 def brand_top_left(s):
-    """White brand line for the two dark title slides (1 and 14)."""
+    """White brand line for the two dark title slides (1 and 16)."""
     tf = textbox(s, THEME, 40, 30, 500, 44)
     add_paragraph(tf, [run(BRAND, 13, WHITE, True)], THEME, first=True,
                   space_after=1)
@@ -356,7 +361,173 @@ def slide_06_review_practice(prs):
     footer(s, THEME, "llm-shared - Auto-revue en pratique", 6)
 
 
-def slide_07_overview(prs):
+def ex_cell(s, x, y, w, h, fill, hcolor, heading, paras, line=None,
+            accent=None, dashed=False, hsize=11.5, bsize=10):
+    """One example panel from slides 7-8: tinted rounded box, colored bold
+    heading, then one body paragraph per entry in paras (lists of runs)."""
+    r = rect(s, THEME, x, y, w, h, fill=fill, line=line, rounded=True)
+    if dashed:
+        r.line.dash_style = MSO_LINE.DASH
+    if accent is not None:
+        rect(s, THEME, x, y, 5, h, fill=accent)
+    tf = textbox(s, THEME, x + 12, y + 8, w - 22, h - 14)
+    add_paragraph(tf, [run(heading, hsize, hcolor, True)], THEME, first=True,
+                  space_after=3)
+    for pr in paras:
+        add_paragraph(tf, pr, THEME, space_after=3, line_spacing=1.1)
+
+
+def ex_banner(s, y, h, badge, fill, line, tcolor, sentence, note_runs=None):
+    """Full-width AVANT/APRÈS sentence band with a bold badge run."""
+    b = rect(s, THEME, 50, y, 1180, h, fill=fill, line=line, rounded=True)
+    tf = b.text_frame
+    tf.vertical_anchor = MIDDLE
+    tf.word_wrap = True
+    tf.margin_left = Pt(10)
+    tf.margin_right = Pt(10)
+    runs = [run(badge + "   ", 11, tcolor, True),
+            run(sentence, 11, tcolor, False, True)]
+    if note_runs:
+        runs += note_runs
+    add_paragraph(tf, runs, THEME, first=True, space_after=0,
+                  line_spacing=1.1)
+
+
+def ex_connector(s, y, runs):
+    """Centered ▼ connector line between the example stages."""
+    tf = textbox(s, THEME, 50, y, 1180, 20, anchor=MIDDLE)
+    add_paragraph(tf, [run("▼  ", 10, GRAY)] + runs, THEME, align=CENTER,
+                  first=True, space_after=0)
+
+
+def slide_07_doc_example(prs):
+    s = blank_slide(prs)
+    header(s, THEME, BRAND, BRAND_SUB, "3. Auto-revue")
+    title(s, THEME, "Auto-revue documentaire : un exemple réel",
+          "my-project v9.1.0 « date validation » : de la phrase ambiguë à "
+          "la décision tracée")
+    ex_banner(s, 152, 52, "AVANT", WARM, ORANGE, ORANGE,
+              '"If the date in the filename is invalid, the file is renamed '
+              '_DATE_INCOHERENTE and not processed."',
+              [run("  — « invalid » cache deux cas différents.", 11,
+                   ORANGE)])
+    ex_connector(s, 208, [run("/review-ask-questions", 10, ORANGE, True),
+                 run(" : l'IA détecte l'ambiguïté et pose Q01", 10, GRAY)])
+    # Q01: the wordy phrasing next to the readable one
+    ex_cell(s, 50, 232, 580, 80, LIGHTBLUE, BLUE, "Q01 — version verbeuse",
+            [[run('"Should an eight-digit token failing calendar-level '
+                  'plausibility verification be assimilated to the '
+                  'incoherence semantics of the ten-year window rule…?"',
+                  10, MUTED2)]])
+    ex_cell(s, 650, 232, 580, 80, LIGHTBLUE, BLUE, "Q01 — la même, lisible",
+            [[run('"When the token is not a real date (like 32132024): '
+                  'block the file, or just use today\'s date?"', 10,
+                  MUTED2)]], accent=ORANGE)
+    # options with pros and cons; A2 carries the recommendation border
+    ex_cell(s, 50, 318, 380, 84, LIGHT, BLUE, "A1 — Block the file",
+            [[run("✓ operator sees every odd token", 10, MUTED2)],
+             [run("✗ goes beyond the CDC rule", 10, MUTED2)]])
+    ex_cell(s, 450, 318, 380, 84, LIGHTBLUE, BLUE,
+            "A2 — Use today's date ★",
+            [[run("✓ matches the CDC, backward compatible", 10, MUTED2)],
+             [run("✗ a typo is processed silently", 10, MUTED2)]],
+            line=BLUE)
+    ex_cell(s, 850, 318, 380, 84, LIGHT, BLUE, "A3 — Fuzzy typo filter",
+            [[run("✓ catches likely typos", 10, MUTED2)],
+             [run("✗ arbitrary, hard to test", 10, MUTED2)]])
+    # the pre-filled answer and the free human choice
+    ex_cell(s, 50, 408, 580, 72, LIGHT, BLUE, "Réponse pré-remplie par l'IA",
+            [[run('"Answer to Q01: option A2 — matches the CDC scope and '
+                  'the behavior in production."', 10, MUTED2)]])
+    ex_cell(s, 650, 408, 580, 72, WARM, ORANGE,
+            "[STOP] Réponse humaine — libre",
+            [[run('"Answer to Q01: A4 — today\'s date, but log a WARNING." ',
+                  10, MUTED2),
+              run("Un 4e choix est permis.", 10, MUTED2)]])
+    ex_connector(s, 484, [run("/consolidate-then-review-ask-questions", 10,
+                 ORANGE, True), run(" : la réponse est pliée dans le "
+                 "document", 10, GRAY)])
+    # one-row decision table
+    rect(s, THEME, 50, 508, 1180, 62, fill=LIGHT, rounded=True)
+    cols = [
+        (66, 50, "ID", "Q01"),
+        (126, 360, "Question", "Impossible date: incoherent or missing?"),
+        (496, 250, "Chosen option", "A2 + WARNING (A4)"),
+        (756, 460, "Rationale",
+         'CDC scopes "incoherent" to the 10-year window.'),
+    ]
+    for x, w, head, value in cols:
+        tf = textbox(s, THEME, x, 514, w, 50)
+        add_paragraph(tf, [run(head, 10, BLUE, True)], THEME, first=True,
+                      space_after=2)
+        add_paragraph(tf, [run(value, 9.5, MUTED2)], THEME, space_after=0)
+    ex_banner(s, 576, 56, "APRÈS", TEAL, None, WHITE,
+              '"A real date outside [today - 10 years, today] → file '
+              'renamed, not processed. A token that is not a real date → '
+              'missing date: the process starts with today\'s date."')
+    footer(s, THEME, "llm-shared - Auto-revue : exemple documentaire", 7)
+
+
+def slide_08_impl_example(prs):
+    s = blank_slide(prs)
+    header(s, THEME, BRAND, BRAND_SUB, "3. Auto-revue")
+    title(s, THEME, "Auto-revue d'implémentation : un exemple réel",
+          "my-project v9.11.0 : le plan disait « fait », la revue du "
+          "comportement réel a trouvé le morceau manquant")
+    ex_cell(s, 50, 170, 580, 110, LIGHTBLUE, BLUE,
+            "🎯 Ce que le plan demandait",
+            [[run("Show the preparation progress in two places: the live "
+                  "widget on screen, and the progress log file that "
+                  "operators read.", 11, MUTED2)]], hsize=13)
+    ex_cell(s, 650, 170, 580, 110, WARM, ORANGE,
+            "AVANT — Implémenté au premier jet",
+            [[run("The widget shows the progress, live. The log file is "
+                  "ready to display it too. All tests are green. ✓", 11,
+                  MUTED2)]], line=ORANGE, hsize=13)
+    ex_connector(s, 292, [run("/implementation-check", 10, ORANGE, True),
+                 run(" + revue du comportement réel → ", 10, GRAY),
+                 run("verdict : Non", 10, ORANGE, True)])
+    ex_cell(s, 50, 320, 580, 200, WHITE, ORANGE,
+            "🔍 L'écart détecté par la revue",
+            [[run("The log file never receives the progress. The widget "
+                  "moves forward, but the file stays frozen on an old "
+                  "value. The display side was built — the part that "
+                  "writes the progress into the file was not.", 10.5,
+                  MUTED2)],
+             [run("Why did it slip through? ", 10.5, ORANGE, True),
+              run("The AI built each half separately — and tested each "
+                  "half separately: the widget with live data, the log "
+                  "display with a hand-written file. Both halves pass. The "
+                  "wire between them was never written, so no test could "
+                  "fail.", 10.5, MUTED2)]], line=ORANGE, dashed=True,
+            hsize=13)
+    ex_cell(s, 650, 320, 580, 200, LIGHTBLUE, BLUE, "🔧 Le correctif",
+            [[run("One fix commit: recognize the progress signal during "
+                  "preparation, pass the counters to the file before each "
+                  "write, and keep a preparation update from blocking the "
+                  "next splitting update.", 10.5, MUTED2)],
+             [run("Plus the missing test: ", 10.5, BLUE, True),
+              run("a new test now follows the progress end to end, from "
+                  "the running phase to the file content — the gap can no "
+                  "longer come back.", 10.5, MUTED2)]], hsize=13)
+    ex_connector(s, 532, [run("nouvelle passe ", 10, GRAY),
+                 run("/implementation-check", 10, ORANGE, True),
+                 run(" → ", 10, GRAY), run("verdict : Oui", 10, TEAL, True)])
+    b = rect(s, THEME, 50, 560, 1180, 70, fill=TEAL, rounded=True)
+    tf = b.text_frame
+    tf.vertical_anchor = MIDDLE
+    tf.word_wrap = True
+    tf.margin_left = Pt(10)
+    add_paragraph(tf, [run("APRÈS   ", 11, WHITE, True),
+                  run("The log file now moves at the same pace as the "
+                      "widget: operators see the same progress in both "
+                      "places. Three new tests lock the behavior — full "
+                      "suite green, coverage 100%.", 11, WHITE)], THEME,
+                  first=True, space_after=0, line_spacing=1.1)
+    footer(s, THEME, "llm-shared - Auto-revue : exemple implémentation", 8)
+
+
+def slide_09_overview(prs):
     s = blank_slide(prs)
     header(s, THEME, BRAND, BRAND_SUB, "4. Vue d'ensemble")
     title(s, THEME, "Vue d'ensemble du workflow",
@@ -392,10 +563,10 @@ def slide_07_overview(prs):
                       "·   ", 10.5, GRAY), run("pw handoff", 10.5, ORANGE,
                   True), run(" enchaîne les étapes d'implémentation", 10.5,
                   GRAY)], THEME, align=CENTER, first=True, space_after=0)
-    footer(s, THEME, "llm-shared - Vue d'ensemble", 7)
+    footer(s, THEME, "llm-shared - Vue d'ensemble", 9)
 
 
-def slide_08_doc_phase(prs):
+def slide_10_doc_phase(prs):
     s = blank_slide(prs)
     header(s, THEME, BRAND, BRAND_SUB, "5. Phase documentaire")
     title(s, THEME, "Phase documentaire : automatisée",
@@ -427,10 +598,10 @@ def slide_08_doc_phase(prs):
                   BLUE), run("Q0x | Titre | Réponse recommandée", 11, BLUE,
                   True), run(" lors des revues", 11, BLUE)], THEME,
                   align=CENTER, first=True, space_after=0)
-    footer(s, THEME, "llm-shared - Phase documentaire", 8)
+    footer(s, THEME, "llm-shared - Phase documentaire", 10)
 
 
-def slide_09_impl_phase(prs):
+def slide_11_impl_phase(prs):
     s = blank_slide(prs)
     header(s, THEME, BRAND, BRAND_SUB, "6. Implémentation")
     title(s, THEME, "Phase d'implémentation : chaîne automatisée",
@@ -467,10 +638,10 @@ def slide_09_impl_phase(prs):
          "révise, dit « go ahead », puis gcba rejoue les commits.", BLUE),
     ]
     feature_row(s, THEME, feats, 388)
-    footer(s, THEME, "llm-shared - Implémentation", 9)
+    footer(s, THEME, "llm-shared - Implémentation", 11)
 
 
-def slide_10_groundhog(prs):
+def slide_12_groundhog(prs):
     s = blank_slide(prs)
     header(s, THEME, BRAND, BRAND_SUB, "7. Groundhog")
     title(s, THEME, "Groundhog : la boucle de tests",
@@ -514,10 +685,10 @@ def slide_10_groundhog(prs):
          BLUE),
     ]
     feature_row(s, THEME, feats, 392, h=120)
-    footer(s, THEME, "llm-shared - Groundhog", 10)
+    footer(s, THEME, "llm-shared - Groundhog", 12)
 
 
-def slide_11_commits(prs):
+def slide_13_commits(prs):
     s = blank_slide(prs)
     header(s, THEME, BRAND, BRAND_SUB, "8. Commits & Release")
     title(s, THEME, "Commits conventionnels & préparation de release",
@@ -590,11 +761,11 @@ def slide_11_commits(prs):
     add_paragraph(ttf, [run("Le skill ne taggue jamais et ne pousse jamais : "
                   "c'est l'auteur qui décide", 9, ORANGE)], THEME,
                   align=CENTER, first=True, space_after=0)
-    footer(s, THEME, "llm-shared - Commits & Release", 11)
+    footer(s, THEME, "llm-shared - Commits & Release", 13)
 
 
 def sec_cell(s, x, y, w, h, fill, hcolor, heading, body_runs, accent=False):
-    """One security cell from slide 12: tinted rounded box, colored heading,
+    """One security cell from slide 14: tinted rounded box, colored heading,
     body runs, optional orange left accent bar for the 'before prod' gate."""
     rect(s, THEME, x, y, w, h, fill=fill, rounded=True)
     if accent:
@@ -605,7 +776,7 @@ def sec_cell(s, x, y, w, h, fill, hcolor, heading, body_runs, accent=False):
     add_paragraph(tf, body_runs, THEME, space_after=0, line_spacing=1.12)
 
 
-def slide_12_security(prs):
+def slide_14_security(prs):
     s = blank_slide(prs)
     header(s, THEME, BRAND, BRAND_SUB, "Sécurité")
     title(s, THEME, "🛡️ Deux garde-fous sécurité",
@@ -663,10 +834,10 @@ def slide_12_security(prs):
                       10.5, ORANGE, True),
                   run(" filtre ce qui sort.", 10.5, GRAY)], THEME,
                   align=CENTER, first=True, space_after=0)
-    footer(s, THEME, "llm-shared - Sécurité", 12)
+    footer(s, THEME, "llm-shared - Sécurité", 14)
 
 
-def slide_13_benefits(prs):
+def slide_15_benefits(prs):
     s = blank_slide(prs)
     header(s, THEME, BRAND, BRAND_SUB, "Bénéfices")
     title(s, THEME, "Bénéfices pour la DSI",
@@ -695,10 +866,10 @@ def slide_13_benefits(prs):
         x = x0 + (i % 2) * (w + gx)
         y = y0 + (i // 2) * (h + gy)
         feature_item(s, THEME, x, y, w, h, head, body, accent=accent)
-    footer(s, THEME, "llm-shared - Bénéfices", 13)
+    footer(s, THEME, "llm-shared - Bénéfices", 15)
 
 
-def slide_14_conclusion(prs):
+def slide_16_conclusion(prs):
     s = blank_slide(prs)
     fill_background(s, BLUE)
     rect(s, THEME, 768, 0, 512, 5, fill=ORANGE)
@@ -735,14 +906,16 @@ def main():
     slide_04_solution(prs)
     slide_05_review(prs)
     slide_06_review_practice(prs)
-    slide_07_overview(prs)
-    slide_08_doc_phase(prs)
-    slide_09_impl_phase(prs)
-    slide_10_groundhog(prs)
-    slide_11_commits(prs)
-    slide_12_security(prs)
-    slide_13_benefits(prs)
-    slide_14_conclusion(prs)
+    slide_07_doc_example(prs)
+    slide_08_impl_example(prs)
+    slide_09_overview(prs)
+    slide_10_doc_phase(prs)
+    slide_11_impl_phase(prs)
+    slide_12_groundhog(prs)
+    slide_13_commits(prs)
+    slide_14_security(prs)
+    slide_15_benefits(prs)
+    slide_16_conclusion(prs)
     prs.save(OUT)
     print(f"Saved {OUT} with {len(prs.slides._sldIdLst)} slides, "
           f"{os.path.getsize(OUT) // 1024} KB")
