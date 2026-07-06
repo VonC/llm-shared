@@ -54,6 +54,27 @@ Keep the chained part to one Python executable plus plain arguments. Do not add
 an inner shell, command substitution, or a multi-statement script inside the
 quoted `cmd /c` body.
 
+## llm-shared launchers run by full path, no environment setup
+
+The `llm-shared` `bin\*.bat` launchers (`wac.bat`, `gcba.bat`, `ghog.bat`,
+`oqm.bat`, `prompt_workflow.bat`, ...) self-locate: each derives
+`LLM_SHARED_DIR` from its own `bin\` path when the caller did not set it, and
+resolves its Python from the llm-shared `venvs\` folder. The first-attempt
+shape is a plain full-path call, from PowerShell:
+
+```text
+& "<LLM_SHARED_DIR>\bin\wac.bat" <plain arguments>
+```
+
+- Do not rely on the `LLM_SHARED_DIR` environment variable, on a doskey alias
+  (`pw`, `wac`), or on a prior `senv.bat` call: none of them exists in a
+  non-interactive tool shell.
+- The error `ERROR: No python_3* directory found in "\venvs"` (note the empty
+  path root) is the signature of an outdated launcher copy that still requires
+  `LLM_SHARED_DIR`. The one-off workaround is to set the variable in the same
+  process, `$env:LLM_SHARED_DIR = "<path>"; & "$env:LLM_SHARED_DIR\bin\wac.bat"`,
+  then update llm-shared so the next call self-locates.
+
 ## Targeted reads instead of whole-document dumps
 
 Never concatenate several whole documents in one command "to gather context": that output is huge, mostly unread, and already wasted when the next action needs a specific section.
