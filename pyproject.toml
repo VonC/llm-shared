@@ -53,7 +53,8 @@ omit = [
     "*/uv_run.py",              # Thin subprocess wrapper around the external uv binary
     "*/prompt_workflow_menu.py", # Thin questionary wrapper; needs a TTY to exercise
     "*/new_draft_prompts.py",   # Thin questionary text wrapper; needs a TTY to exercise
-    "*/groundhog/render.py"     # Thin tqdm wrapper; needs a TTY to exercise
+    "*/groundhog/render.py",    # Thin tqdm wrapper; needs a TTY to exercise
+    "*/html_to_pptx/*"          # Deck-rendering seam; needs python-pptx + PowerPoint to verify
 ]
 
 [tool.coverage.report]
