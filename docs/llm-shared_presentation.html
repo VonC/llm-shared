@@ -449,7 +449,127 @@
   <div class="footer-left">llm-shared - Auto-revue en pratique</div><div class="footer">6</div>
 </div>
 
-<!-- SLIDE 7 - Vue d'ensemble -->
+<!-- SLIDE 7 - Auto-revue : exemple documentaire -->
+<div class="slide" id="self-review-doc-example">
+  <div class="header">
+    <div><div class="logo-text">Organization name</div><div class="logo-sub">Organization subtitle</div></div>
+    <div class="header-right">3. Auto-revue</div>
+  </div>
+  <div class="accent-bar"></div>
+  <div class="slide-title">Auto-revue documentaire : un exemple réel</div>
+  <div class="slide-subtitle">my-project v9.1.0 « date validation » : de la phrase ambiguë à la décision tracée</div>
+  <div class="content" style="justify-content: flex-start; padding-top: 0; display: flex; flex-direction: column; gap: 8px;">
+    <!-- AVANT -->
+    <div style="background:#fff3e6; border:2px solid #ec6608; border-radius:8px; padding:10px 16px; font-size:16px;">
+      <span style="background:#ec6608; color:#fff; font-weight:700; font-size:14px; padding:2px 10px; border-radius:4px; margin-right:10px;">AVANT</span>
+      <em>"If the date in the filename is <strong>invalid</strong>, the file is renamed _DATE_INCOHERENTE and not processed."</em>
+      <span style="color:#ec6608;"> — « invalid » cache deux cas différents.</span>
+    </div>
+    <div style="text-align:center; font-size:14px; color:#717e86;">▼ <span style="color:#ec6608; font-weight:700;">/review-ask-questions</span> : l'IA détecte l'ambiguïté et pose Q01</div>
+    <!-- Question : deux formulations -->
+    <div style="display:flex; gap:10px;">
+      <div style="flex:1; background:#e6f0f3; border-radius:8px; padding:9px 14px; font-size:14px; color:#555;">
+        <div style="font-weight:700; color:#00566f; font-size:16px;">Q01 — version verbeuse</div>
+        "Should an eight-digit token failing calendar-level plausibility verification be assimilated to the incoherence semantics of the ten-year window rule…?"
+      </div>
+      <div style="flex:1; background:#e6f0f3; border-radius:8px; padding:9px 14px; font-size:14px; color:#555; border-left:4px solid #ec6608;">
+        <div style="font-weight:700; color:#00566f; font-size:16px;">Q01 — la même, lisible</div>
+        "When the token is not a real date (like 32132024): <strong>block the file</strong>, or <strong>just use today's date</strong>?"
+      </div>
+    </div>
+    <!-- Options -->
+    <div style="display:flex; gap:10px;">
+      <div style="flex:1; background:#f0f4f6; border-radius:8px; padding:9px 14px; font-size:14px; color:#555;">
+        <div style="font-weight:700; color:#00566f; font-size:16px;">A1 — Block the file</div>
+        ✓ operator sees every odd token<br>✗ goes beyond the CDC rule
+      </div>
+      <div style="flex:1; background:#e6f0f3; border-radius:8px; padding:9px 14px; font-size:14px; color:#555; border:2px solid #00566f;">
+        <div style="font-weight:700; color:#00566f; font-size:16px;">A2 — Use today's date ★</div>
+        ✓ matches the CDC, backward compatible<br>✗ a typo is processed silently
+      </div>
+      <div style="flex:1; background:#f0f4f6; border-radius:8px; padding:9px 14px; font-size:14px; color:#555;">
+        <div style="font-weight:700; color:#00566f; font-size:16px;">A3 — Fuzzy typo filter</div>
+        ✓ catches likely typos<br>✗ arbitrary, hard to test
+      </div>
+    </div>
+    <!-- Réponses -->
+    <div style="display:flex; gap:10px;">
+      <div style="flex:1; background:#f0f4f6; border-radius:8px; padding:9px 14px; font-size:14px; color:#555;">
+        <div style="font-weight:700; color:#00566f; font-size:16px;">Réponse pré-remplie par l'IA</div>
+        "Answer to Q01: <strong>option A2</strong> — matches the CDC scope and the behavior in production."
+      </div>
+      <div style="flex:1; background:#fff3e6; border-radius:8px; padding:9px 14px; font-size:14px; color:#555;">
+        <div style="font-weight:700; color:#ec6608; font-size:16px;">[STOP] Réponse humaine — libre</div>
+        "Answer to Q01: <strong>A4</strong> — today's date, <strong>but log a WARNING</strong>." Un 4e choix est permis.
+      </div>
+    </div>
+    <div style="text-align:center; font-size:14px; color:#717e86;">▼ <span style="color:#ec6608; font-weight:700;">/consolidate-then-review-ask-questions</span> : la réponse est pliée dans le document</div>
+    <!-- Tableau de décision -->
+    <div style="background:#f0f4f6; border-radius:8px; padding:8px 14px;">
+      <table style="width:100%; border-collapse:collapse; font-size:14px; color:#555;">
+        <tr style="color:#00566f; font-weight:700; text-align:left;"><th style="padding:3px 10px;">ID</th><th style="padding:3px 10px;">Question</th><th style="padding:3px 10px;">Chosen option</th><th style="padding:3px 10px;">Rationale</th></tr>
+        <tr><td style="padding:3px 10px;">Q01</td><td style="padding:3px 10px;">Impossible date: incoherent or missing?</td><td style="padding:3px 10px;">A2 + WARNING (A4)</td><td style="padding:3px 10px;">CDC scopes "incoherent" to the 10-year window.</td></tr>
+      </table>
+    </div>
+    <!-- APRÈS -->
+    <div style="background:#006d67; color:#fff; border-radius:8px; padding:10px 16px; font-size:16px;">
+      <span style="background:#fff; color:#006d67; font-weight:700; font-size:14px; padding:2px 10px; border-radius:4px; margin-right:10px;">APRÈS</span>
+      <em>"A real date outside [today - 10 years, today] → file renamed, not processed. A token that is <strong>not a real date</strong> → missing date: the process starts with today's date."</em>
+    </div>
+  </div>
+  <div class="footer-left">llm-shared - Auto-revue : exemple documentaire</div><div class="footer">7</div>
+</div>
+
+<!-- SLIDE 8 - Auto-revue : exemple implémentation -->
+<div class="slide" id="self-review-impl-example">
+  <div class="header">
+    <div><div class="logo-text">Organization name</div><div class="logo-sub">Organization subtitle</div></div>
+    <div class="header-right">3. Auto-revue</div>
+  </div>
+  <div class="accent-bar"></div>
+  <div class="slide-title">Auto-revue d'implémentation : un exemple réel</div>
+  <div class="slide-subtitle">my-project v9.11.0 : le plan disait « fait », la revue du comportement réel a trouvé le morceau manquant</div>
+  <div class="content" style="justify-content: flex-start; padding-top: 5px; display: flex; flex-direction: column; gap: 12px;">
+    <!-- AVANT : objectif + premier jet -->
+    <div style="display:flex; gap:14px;">
+      <div style="flex:1; background:#e6f0f3; border-radius:8px; padding:14px 18px; font-size:16px; color:#555;">
+        <div style="font-weight:700; color:#00566f; font-size:18px;">🎯 Ce que le plan demandait</div>
+        Show the preparation progress in <strong>two places</strong>: the live widget on screen, and the progress log file that operators read.
+      </div>
+      <div style="flex:1; background:#fff3e6; border:2px solid #ec6608; border-radius:8px; padding:14px 18px; font-size:16px; color:#555;">
+        <div style="font-weight:700; color:#ec6608; font-size:18px;"><span style="background:#ec6608; color:#fff; font-size:14px; padding:2px 9px; border-radius:4px; margin-right:8px;">AVANT</span>Implémenté au premier jet</div>
+        The widget shows the progress, live. The log file is ready to display it too. All tests are green. ✓
+      </div>
+    </div>
+    <div style="text-align:center; font-size:16px; color:#717e86;">▼ <span style="color:#ec6608; font-weight:700;">/implementation-check</span> + revue du comportement réel → <strong style="color:#ec6608;">verdict : Non</strong></div>
+    <!-- Écart + correctif -->
+    <div style="display:flex; gap:14px;">
+      <div style="flex:1; background:#fff; border:2px dashed #ec6608; border-radius:8px; padding:14px 18px; font-size:16px; color:#555;">
+        <div style="font-weight:700; color:#ec6608; font-size:18px;">🔍 L'écart détecté par la revue</div>
+        The log file <strong>never receives the progress</strong>. The widget moves forward, but the file stays frozen on an old value. The display side was built — the part that <strong>writes</strong> the progress into the file was not.
+        <div style="margin-top:8px; padding-top:8px; border-top:1px solid #f0d5bd;">
+          <strong style="color:#ec6608;">Why did it slip through?</strong> The AI built each half separately — and tested each half separately: the widget with live data, the log display with a hand-written file. Both halves pass. The <strong>wire between them</strong> was never written, so no test could fail.
+        </div>
+      </div>
+      <div style="flex:1; background:#e6f0f3; border-radius:8px; padding:14px 18px; font-size:16px; color:#555;">
+        <div style="font-weight:700; color:#00566f; font-size:18px;">🔧 Le correctif</div>
+        One fix commit: recognize the progress signal during preparation, pass the counters to the file before each write, and keep a preparation update from blocking the next splitting update.
+        <div style="margin-top:8px; padding-top:8px; border-top:1px solid #c9dde3;">
+          <strong style="color:#00566f;">Plus the missing test:</strong> a new test now follows the progress <strong>end to end</strong>, from the running phase to the file content — the gap can no longer come back.
+        </div>
+      </div>
+    </div>
+    <div style="text-align:center; font-size:16px; color:#717e86;">▼ nouvelle passe <span style="color:#ec6608; font-weight:700;">/implementation-check</span> → <strong style="color:#006d67;">verdict : Oui</strong></div>
+    <!-- APRÈS -->
+    <div style="background:#006d67; color:#fff; border-radius:8px; padding:14px 18px; font-size:16px;">
+      <span style="background:#fff; color:#006d67; font-weight:700; font-size:14px; padding:2px 10px; border-radius:4px; margin-right:10px;">APRÈS</span>
+      The log file now moves at the same pace as the widget: operators see the same progress in both places. Three new tests lock the behavior — full suite green, coverage 100%.
+    </div>
+  </div>
+  <div class="footer-left">llm-shared - Auto-revue : exemple implémentation</div><div class="footer">8</div>
+</div>
+
+<!-- SLIDE 9 - Vue d'ensemble -->
 <div class="slide" id="workflow-overview">
   <div class="header">
     <div><div class="logo-text">Organization name</div><div class="logo-sub">Organization subtitle</div></div>
@@ -497,10 +617,10 @@
       <span style="color: #ec6608; font-weight: 700;">pw handoff</span> enchaîne les étapes d'implémentation
     </div>
   </div>
-  <div class="footer-left">llm-shared - Vue d'ensemble</div><div class="footer">7</div>
+  <div class="footer-left">llm-shared - Vue d'ensemble</div><div class="footer">9</div>
 </div>
 
-<!-- SLIDE 8 - Phase documentaire -->
+<!-- SLIDE 10 - Phase documentaire -->
 <div class="slide" id="documentation-phase">
   <div class="header">
     <div><div class="logo-text">Organization name</div><div class="logo-sub">Organization subtitle</div></div>
@@ -561,10 +681,10 @@
       Le seul arrêt humain : répondre au tableau <strong>Q0x | Titre | Réponse recommandée</strong> lors des revues
     </div>
   </div>
-  <div class="footer-left">llm-shared - Phase documentaire</div><div class="footer">8</div>
+  <div class="footer-left">llm-shared - Phase documentaire</div><div class="footer">10</div>
 </div>
 
-<!-- SLIDE 9 - Phase implémentation -->
+<!-- SLIDE 11 - Phase implémentation -->
 <div class="slide" id="implementation-phase">
   <div class="header">
     <div><div class="logo-text">Organization name</div><div class="logo-sub">Organization subtitle</div></div>
@@ -614,10 +734,10 @@
       </div>
     </div>
   </div>
-  <div class="footer-left">llm-shared - Implémentation</div><div class="footer">9</div>
+  <div class="footer-left">llm-shared - Implémentation</div><div class="footer">11</div>
 </div>
 
-<!-- SLIDE 10 - Groundhog -->
+<!-- SLIDE 12 - Groundhog -->
 <div class="slide" id="groundhog-test-loop">
   <div class="header">
     <div><div class="logo-text">Organization name</div><div class="logo-sub">Organization subtitle</div></div>
@@ -666,10 +786,10 @@
       </div>
     </div>
   </div>
-  <div class="footer-left">llm-shared - Groundhog</div><div class="footer">10</div>
+  <div class="footer-left">llm-shared - Groundhog</div><div class="footer">12</div>
 </div>
 
-<!-- SLIDE 11 - Commits & release -->
+<!-- SLIDE 13 - Commits & release -->
 <div class="slide" id="commits-and-release">
   <div class="header">
     <div><div class="logo-text">Organization name</div><div class="logo-sub">Organization subtitle</div></div>
@@ -726,15 +846,15 @@
           </div>
         </div>
         <div style="margin-top: 15px; padding: 10px; background:#fff3e6; border-radius:8px; font-size: 12px; color: #ec6608; text-align: center;">
-          Le skill ne taggue jamais et ne pousse jamais : c'est l'auteur qui décide
+          Le skill ne tague jamais et ne pousse jamais : c'est l'auteur qui décide
         </div>
       </div>
     </div>
   </div>
-  <div class="footer-left">llm-shared - Commits & Release</div><div class="footer">11</div>
+  <div class="footer-left">llm-shared - Commits & Release</div><div class="footer">13</div>
 </div>
 
-<!-- SLIDE 12 - Sécurité -->
+<!-- SLIDE 14 - Sécurité -->
 <div class="slide" id="security">
   <div class="header">
     <div><div class="logo-text">Organization name</div><div class="logo-sub">Organization subtitle</div></div>
@@ -789,10 +909,10 @@
       💡 L'IA génère vite : <span style="color:#00566f; font-weight:700;">SonarQube</span> filtre le code avant prod, la règle <span style="color:#ec6608; font-weight:700;">« jamais de secrets ni de données dans le prompt »</span> filtre ce qui sort.
     </div>
   </div>
-  <div class="footer-left">llm-shared - Sécurité</div><div class="footer">12</div>
+  <div class="footer-left">llm-shared - Sécurité</div><div class="footer">14</div>
 </div>
 
-<!-- SLIDE 13 - Bénéfices -->
+<!-- SLIDE 15 - Bénéfices -->
 <div class="slide" id="benefits">
   <div class="header">
     <div><div class="logo-text">Organization name</div><div class="logo-sub">Organization subtitle</div></div>
@@ -829,10 +949,10 @@
       </div>
     </div>
   </div>
-  <div class="footer-left">llm-shared - Bénéfices</div><div class="footer">13</div>
+  <div class="footer-left">llm-shared - Bénéfices</div><div class="footer">15</div>
 </div>
 
-<!-- SLIDE 14 - Conclusion -->
+<!-- SLIDE 16 - Conclusion -->
 <div class="slide title-slide" id="conclusion" style="background: #00566f;">
   <div class="title-logo">
     <div class="logo-text">Organization name</div>
