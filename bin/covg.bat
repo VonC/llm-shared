@@ -1,6 +1,10 @@
 @echo off
 setlocal EnableDelayedExpansion
 
+REM Self-locate the llm-shared folder from this launcher's own path (%~dp0 is
+REM the bin\ folder) when the caller did not set LLM_SHARED_DIR, so a full-path
+REM call works from any shell with no environment setup.
+if not defined LLM_SHARED_DIR set "LLM_SHARED_DIR=%~dp0.."
 set "PYTHON_BASE=%LLM_SHARED_DIR%\venvs"
 set "LATEST_PYTHON="
 

@@ -19,7 +19,10 @@ set "LLM_SHARED_PRJ_DIR_NAME="
 
 REM groundhog itself runs from the llm-shared venv (Q17), reached by absolute
 REM path: no PATH prepend, so the project PATH stays first for the pytest
-REM child process.
+REM child process. LLM_SHARED_DIR self-locates from this launcher's own path
+REM (%~dp0 is the bin\ folder) when neither the caller nor the senv call above
+REM set it, so a full-path call works from any shell with no environment setup.
+if not defined LLM_SHARED_DIR set "LLM_SHARED_DIR=%~dp0.."
 set "PYTHON_BASE=%LLM_SHARED_DIR%\venvs"
 set "LATEST_PYTHON="
 
