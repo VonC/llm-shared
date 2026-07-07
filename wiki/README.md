@@ -44,6 +44,7 @@ Recipes for a precise goal, for readers who already know the basics.
 - 🤖 [Pick up skill edits without restarting](how-to/pick-up-skill-edits-without-restarting.md)
 - 🧪 [Split a large file](how-to/split-a-large-file.md)
 - 📊 [Build the git-history dashboard](how-to/build-the-git-history-dashboard.md)
+- 📊 [Sanitize a repository history before publishing](how-to/sanitize-history-before-publishing.md)
 - 📊 [Write an activity report](how-to/write-an-activity-report.md)
 - 📊 [Rebuild the presentation as PPTX and PDF](how-to/rebuild-the-presentation.md)
 - 🤖 [Keep project docs in sync with the code](how-to/update-project-docs-from-code.md)

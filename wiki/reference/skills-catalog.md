@@ -38,6 +38,7 @@ resolves to the same-named body under
 | `/write-release-notes-summary` | draft release notes from conventional commit subjects |
 | `git-history-report` | build the standalone commit-history dashboard |
 | `activity-report` | French activity report from commit messages and md diffs |
+| `/sanitize-git-history` | audit a repo history for confidential words, then rewrite it with git filter-repo before publishing |
 
 ## 🔗 Chaining behavior of the writing skills
 

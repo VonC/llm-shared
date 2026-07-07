@@ -534,6 +534,26 @@ changelog is regenerated. It never tags and never pushes; the author runs
 
 ---
 
+## 🧹 Sanitize a repository history before making it public
+
+Publishing a repository that lived inside a company means more than
+cleaning HEAD: old blobs, old commit messages, old paths and old
+identities all travel with the clone. The `/sanitize-git-history` skill
+runs that cleanup in two phases on any repository. Phase 1 audits the
+full history — every commit and tag message, every historical file path,
+every file version ever committed, and the author/committer identities —
+against a git-ignored watch list (`a.sensitive.replacements.local.txt`),
+reports the hits, and drafts the replacement rules. Phase 2 rewrites a
+fresh clone with `git filter-repo`, re-audits it, verifies exactly which
+commits changed, restores the remotes, and stops before any push — the
+force-push that publishes the rewritten history is always yours. The
+recipe and its traps are in
+[the wiki how-to](wiki/how-to/sanitize-history-before-publishing.md); the
+full command detail is in
+[`instructions/sanitize-git-history.md`](instructions/sanitize-git-history.md).
+
+---
+
 ## 🧪 Groundhog: the pytest reset loop
 
 The test side of the workflow is driven by groundhog (`ghog`), one tool replacing the old `ptr`/`pta`/`pts` aliases: `ghog day` walks compile check, affected tests, then the full suite with a fresh coverage measure, stopping at the first non-green step with the exact fix to apply; `ghog init` registers the fixing loop in a project for both Claude Code (`/groundhog`) and ChatGPT Codex (AGENTS.md section plus a `/groundhog` custom prompt). LLM-driven runs go through a project-root `a.ghog.log` (overwritten per run, never deleted): the model branches on exit codes and reads only the log tail, while the user follows the run live from a second console; direct console runs keep the usual stdout. The full run also times every test call: an otherwise-green walk still stops (exit 8) on a call far outside the norm, so the suite stays under the project's one-second-per-test target — see [GROUNDHOG.md — The duration gate](GROUNDHOG.md#-the-duration-gate-how-tests-stay-under-a-second). The full manual is [GROUNDHOG.md](GROUNDHOG.md).
@@ -592,6 +612,7 @@ instructions/                             shared skill bodies (one file per skil
 ├─ prepare-release-notes.md
 ├─ review-and-update-project-docs.md
 ├─ review-ask-questions.md
+├─ sanitize-git-history.md                audit + filter-repo rewrite before publishing a repo
 ├─ split-and-define.md
 ├─ split-large-file.md
 ├─ update-merge-commit-msg.md
