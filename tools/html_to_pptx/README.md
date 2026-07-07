@@ -1,12 +1,14 @@
 # HTML deck to editable PowerPoint
 
+<img src="../../wiki/assets/logo-llm-shared-trail-transparent.png" alt="" height="90" align="right">
+
 This folder rebuilds a browser HTML slide deck as a native Microsoft
 PowerPoint file whose every element stays editable: real text boxes and real
 vector shapes, no pictures. It exists so the method used to convert
 `docs/llm-shared_presentation.html` is not lost and can be reused for any
 other HTML deck.
 
-## The one rule for this tool
+## 🎯 The one rule for this tool
 
 Text and vector shapes only. No slide is ever a screenshot or an embedded
 image. A reader must be able to click any title, bullet or box in PowerPoint
@@ -16,7 +18,7 @@ This rules out the quick path (screenshot each HTML slide, drop the PNG on a
 slide). That path looks identical to the browser but freezes the content:
 nobody can fix a typo or reflow a box. The whole point here is the opposite.
 
-## Why the pixel coordinates transfer for free
+## 📐 Why the pixel coordinates transfer for free
 
 An HTML deck authored on a fixed pixel canvas maps one-to-one onto a
 PowerPoint slide of the same aspect ratio:
@@ -31,7 +33,7 @@ So the `x`, `y`, `width`, `height` read straight out of the HTML become slide
 coordinates with a single multiply. No re-layout, no eyeballing. `Theme.inx`
 and `Theme.iny` in `pptx_helpers.py` do that multiply.
 
-## Files in this folder
+## 🗂️ Files in this folder
 
 | File | Role |
 | --- | --- |
@@ -42,13 +44,13 @@ and `Theme.iny` in `pptx_helpers.py` do that multiply.
 | `export_preview.ps1` | Verification aid: export the finished `.pptx` back to PNG through PowerPoint to compare against the HTML. |
 | `__init__.py` | Marks the folder as a package. |
 
-## Prerequisites for the conversion
+## 📦 Prerequisites for the conversion
 
 - Python with the `python-pptx` library: `python -m pip install python-pptx`.
 - To verify the look afterwards, Microsoft PowerPoint installed (only for
   `export_preview.ps1`; not needed to build the deck).
 
-## Rebuild the llm-shared deck
+## ▶️ Rebuild the llm-shared deck
 
 From the repository root, one line per format:
 
@@ -74,7 +76,7 @@ Both outputs are generated files and are gitignored (`docs/llm-shared_presentati
 explicitly, the PDF through the top-level `*.pdf` rule): do not commit them,
 rebuild them on demand from the HTML source of truth.
 
-## Branding through environment variables
+## 🏷️ Branding through environment variables
 
 The build reads two environment variables and falls back to the neutral
 placeholders when they are not set:
@@ -94,7 +96,7 @@ powershell -File tools\html_to_pptx\make_pptx.ps1 -Brand "ACME" -BrandSub "IT DI
 powershell -File tools\html_to_pptx\make_pdf.ps1 -Brand "ACME" -BrandSub "IT DIVISION"
 ```
 
-## Check the result against the HTML
+## ✅ Check the result against the HTML
 
 ```bat
 powershell -File tools\html_to_pptx\export_preview.ps1
@@ -104,7 +106,7 @@ This exports every slide to PNG in a temp folder and lists them. Open the
 folder, open the HTML in a browser, and walk both side by side. The PNGs are
 only for your eyes during the check -- the deck you ship stays fully editable.
 
-## Building blocks in pptx_helpers.py
+## 🧱 Building blocks in pptx_helpers.py
 
 The helpers split into four groups. A run is one styled span of text; a
 paragraph holds several runs, which is how a black sentence carries an orange
@@ -120,7 +122,7 @@ paragraph holds several runs, which is how a black sentence carries an orange
   `feature_row`, `header` (brand line, topic tag, two-tone accent bar),
   `title` (title plus subtitle), `footer` (caption plus page number).
 
-## Method for converting a new HTML deck
+## 🧭 Method for converting a new HTML deck
 
 1. Read the source. Note the canvas size (the `.slide` width and height in
    the CSS) and the brand colors (often CSS `:root` variables).
@@ -139,7 +141,7 @@ paragraph holds several runs, which is how a black sentence carries an orange
 5. Run the build script, then run `export_preview.ps1` and compare against
    the HTML. Nudge coordinates or font sizes until the two match.
 
-## Font sizing note
+## 🔤 Font sizing note
 
 The HTML font sizes are pixel values scaled by a root `rem` base. In the
 example they are carried over as point sizes picked for readability rather
@@ -147,7 +149,7 @@ than by a strict formula (a title around `21 pt`, body text around `10 pt`).
 A workable starting rule is `point size = html_px * 0.8`; adjust per slide
 during the visual check.
 
-## Two carried-over details
+## 📎 Two carried-over details
 
 - Brand placeholders. The HTML swaps `Organization name` and its subtitle at
   runtime through `llm-shared_presentation.local.js`. A static `.pptx` runs no
@@ -160,7 +162,7 @@ during the visual check.
   tool draws no pictures, the example leaves it out. Add it back by hand in
   PowerPoint if a logo is wanted on the title and closing slides.
 
-## Coverage gate
+## 💯 Coverage gate
 
 The build and preview scripts are a rendering seam that needs `python-pptx`
 and PowerPoint to exercise, so `pyproject.toml` omits `*/html_to_pptx/*` from

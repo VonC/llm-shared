@@ -1,5 +1,7 @@
 # git_history_dashboard
 
+<img src="../../wiki/assets/logo-llm-shared-trail-transparent.png" alt="" height="90" align="right">
+
 A standalone, single-file HTML dashboard of commit history: weekly activity
 stacked by conventional commit type, a GitHub-style daily heatmap, weekday and
 hour-of-day distributions, a contributor leaderboard, top scopes, and the most
@@ -13,7 +15,7 @@ helper, which prefers the `PRJ_DIR` environment variable each project's
 `senv.bat` exports — the same mechanism `git_batch_commit` uses. So it can be run
 from any project, from any working directory.
 
-## Modules of git_history_dashboard
+## 🧩 Modules of git_history_dashboard
 
 | File | Role |
 | --- | --- |
@@ -25,7 +27,7 @@ from any project, from any working directory.
 | `template.html` | The project-neutral HTML template with `__TOKEN__` slots and the inline filter/recompute script. |
 | `__init__.py` | Makes the folder an importable package for the test suite. |
 
-## Where the report output goes
+## 📁 Where the report output goes
 
 A single-project run writes into `<project>/docs/git_history_dashboard/`; a
 multi-project run writes into the folder named by `--out-dir`:
@@ -38,7 +40,7 @@ multi-project run writes into the folder named by `--out-dir`:
 | `analysis.notes.<project>.md` | Yes | Hand-written commentary, created once and kept across runs. |
 | `git_history.csv` | No (git-ignored) | Pipe-separated `git log` export; a scratch artifact. |
 
-## Run the report
+## ▶️ Run the report
 
 The simplest single-project way is the `ghd` alias (defined in
 `llm-shared/senv.doskey`, loaded by every project's `senv.bat`). It refreshes the
@@ -69,7 +71,7 @@ python build.py --csv git_history.csv
 A multi-project run must name `--out-dir`. Pass `--no-open` to keep the browser
 shut (for scripts and CI), and `--template` to use a different HTML template.
 
-## What the dashboard shows
+## 📊 What the dashboard shows
 
 - **Header metrics** — total commits, active-day ratio, peak day, peak week;
   these recompute as you filter.
@@ -88,7 +90,7 @@ shut (for scripts and CI), and `--template` to use a different HTML template.
 - **Light/dark toggle** — flips the theme and remembers it across visits via a
   `data-theme` override, falling back to the OS `prefers-color-scheme`.
 
-## Analysis files of the report
+## 📝 Analysis files of the report
 
 The observations block is assembled, not hand-written in the template:
 
@@ -101,7 +103,7 @@ The observations block is assembled, not hand-written in the template:
 The two are concatenated (generated first, then each project's notes in order)
 and converted to HTML for the page's analysis slot.
 
-## Dependencies of the report
+## 📦 Dependencies of the report
 
 - **Build time:** Python 3.13 standard library plus the shared
   `tools.find_project_root` helper. The analysis conversion shells to
@@ -110,7 +112,7 @@ and converted to HTML for the page's analysis slot.
   `cdnjs.cloudflare.com` at view time; everything else (data, layout, calendar
   heatmap, filters) is inlined into `dashboard.html`.
 
-## How the commit data is parsed
+## 🔍 How the commit data is parsed
 
 Each commit subject is matched against the conventional-commit pattern
 `<type>(<scope>)!: <subject>` to extract its type and scope. Unrecognised types

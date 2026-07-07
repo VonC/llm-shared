@@ -1,5 +1,7 @@
 # Development workflow with IA
 
+<img src="wiki/assets/logo-llm-shared-transparent.png" alt="" height="90" align="right">
+
 This workflow takes one raw topic from draft notes to reviewed documents,
 implemented plan steps, and grouped commits. It uses the skills in
 `.github\skills` (Copilot) and `.claude\skills` (Claude Code) together
@@ -10,7 +12,7 @@ slash command produces the same output regardless of the agent.
 This is geared toward Python projects, but the general flow and some of
 the helpers can be adapted to other languages and ecosystems.
 
-## Agent prerequisites
+## 🤖 Agent prerequisites
 
 The workflow itself is agent-agnostic; only the prerequisites differ.
 
@@ -37,7 +39,7 @@ files can still run the same step by being handed the matching
 instruction file as part of its context, together with the input files
 the body expects (a draft, a requirement, a plan, etc.).
 
-## Goal: avoid vibe-coding
+## 🎯 Goal: avoid vibe-coding
 
 Vibe-coding is the shortcut some developers take with an AI assistant:
 "I got an idea, here it is, now generate me some code for it, I will
@@ -84,7 +86,7 @@ What this workflow keeps:
 - Author judgement on what is one requirement versus several.
 - A short path when the draft is genuinely one self-contained
   requirement (see
-  [Requirement breakdown from the draft](#requirement-breakdown-from-the-draft)).
+  [Requirement breakdown from the draft](#-requirement-breakdown-from-the-draft)).
 
 The cost is up-front: a few extra documents before any code is written.
 The payoff is that the code that does get written has a known target, a
@@ -181,7 +183,7 @@ The pattern is the same on both sides: ask the model to look again at
 work it just produced, with the surrounding artifacts as context, and
 treat the first pass as a draft, not a deliverable.
 
-## Shell setup for the IA workflow
+## 🐚 Shell setup for the IA workflow
 
 Before you use the aliases below, load the project shell with `senv.bat`.
 That script switches to the project Python version, adds `bin\` to `PATH`,
@@ -197,7 +199,7 @@ as well; wire them into bash functions or shell aliases as needed. The
 slash commands and the skill bodies in `instructions\` do not depend on
 Windows at all.
 
-## Local command reference for this workflow
+## ⌨️ Local command reference for this workflow
 
 - `gcmp`: Doskey alias to `bin\gcmp.bat`. It runs
   `tools\group_commit_message_prompt.py`, reads the staged Git state, writes
@@ -239,7 +241,7 @@ Windows at all.
   replays the term-missing rows whose `Missing` column is exactly the covg
   input.
 
-## Groundhog: the test loop behind the pytest aliases
+## 🧪 Groundhog: the test loop behind the pytest aliases
 
 All the pytest aliases above are one tool, groundhog, and `ghog day` is the
 single command that walks them in order, gating each step on the previous
@@ -294,7 +296,7 @@ tool timeouts kill long calls runs the walk with `ghog day --detach` — a
 survivor process the timeout cannot reach, polled through `ghog status`
 (see GROUNDHOG.md, Q32).
 
-## Draft capture for a feature or fix
+## 📝 Draft capture for a feature or fix
 
 ```txt
    +---------------------------------+
@@ -344,7 +346,7 @@ survivor process the timeout cannot reach, polled through `ghog status`
   topic, and start the branch by hand. The breakdown step below works the same
   either way.
 
-## Requirement breakdown from the draft
+## 🧩 Requirement breakdown from the draft
 
 ```txt
                 +---------------------------------+
@@ -425,7 +427,7 @@ You can decide if you need to isolate each identified features or issues in thei
 own development branch (`git switch -c <topic-slug>`) or if you can keep multiple
 related items in the
 
-## Review loop for each requirement document
+## 🔁 Review loop for each requirement document
 
 The same loop is used later on the design document and again on the plan
 document (the plain plan, not the validation plan). Only the input document
@@ -500,9 +502,9 @@ reach step 1, and `/consolidate` runs it to loop back to step 1 when new
 questions remain, or to hand off to the next phase once the document settles. The
 only action left in the loop is answering the `Q0x | Title | Recommended Answer`
 table at the review stop  --  see
-[Automated document phase with pw skill](#automated-document-phase-with-pw-skill).
+[Automated document phase with pw skill](#-automated-document-phase-with-pw-skill).
 
-## Design and planning flow for each approved requirement
+## 📐 Design and planning flow for each approved requirement
 
 As in the review-loop diagram, `== pw skill ==>` is an automated handoff (no "go
 ahead") and `[STOP]` is the human-in-the-loop review pause.
@@ -560,7 +562,7 @@ ahead") and `[STOP]` is the human-in-the-loop review pause.
   `/write-plans` (step 7) and the first `/implement-step` (step 10), so a plan is
   always reviewed the way the requirement and design are.
 
-## Automated document phase with pw skill
+## 🔗 Automated document phase with pw skill
 
 The review loop, the design step, and the planning step no longer need a
 separate trigger each: `pw skill` chains them the way `pw handoff` chains the
@@ -642,7 +644,7 @@ full path  --  `& "<LLM_SHARED_DIR>\bin\prompt_workflow.bat" skill` from
 PowerShell. The launcher self-locates its `llm-shared` virtual environment, so no
 `senv.bat` activation is needed first.
 
-## How pw, pw handoff, and pw skill differ
+## 🎛️ How pw, pw handoff, and pw skill differ
 
 `pw` is one launcher  --  the `pw` Doskey alias to `bin\prompt_workflow.bat`,
 which runs `tools\prompt_workflow.py`. It answers a single question, "what is the
@@ -704,7 +706,7 @@ document is enough. The verbosity is not dropped, only deferred to the skill the
 command names. `pw skill` is called by the `## Handoff` sections of the writing
 and consolidate instructions, and the commit gate calls `pw skill --after-commit
 <x>` for its contextual option (see
-[Automated document phase with pw skill](#automated-document-phase-with-pw-skill)).
+[Automated document phase with pw skill](#-automated-document-phase-with-pw-skill)).
 
 ### Is "literary versus terse" a fair description?
 
@@ -729,7 +731,7 @@ the launcher self-locating its venv); see
 [`instructions/run-pw.md`](instructions/run-pw.md). The bare `pw` Doskey alias
 only resolves in an interactive `cmd`.
 
-## Conventional commit message template: why and what beyond changelog
+## ✍️ Conventional commit message template: why and what beyond changelog
 
 The grouped commit loop below builds on the
 [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/)
@@ -846,7 +848,7 @@ supports. When the diff itself is incoherent, edit `a.commit` by
 hand before running `gcba`, or stage in two passes (commit one
 slice, then stage the rest).
 
-## Grouped commit loop for documents and code
+## 📦 Grouped commit loop for documents and code
 
 ```txt
    +---------------------------------+
@@ -903,7 +905,7 @@ slice, then stage the rest).
 Use this commit loop once after the documents are ready, then again after each
 fully completed implementation step.
 
-## Step execution loop from the plan
+## ⚙️ Step execution loop from the plan
 
 ```txt
                 +---------------------------------+
@@ -1047,7 +1049,7 @@ consistent state. The calls are wired in by the `## Handoff` section of
 `implementation-check.md`; without those sections the subcommand exists
 but nothing triggers it.
 
-## Decision rule for architecture and performance findings
+## ⚖️ Decision rule for architecture and performance findings
 
 - If `/implementation-check` finds an architecture smell (or violation, or
   girth too big, or anything else), ask for the pros
@@ -1060,7 +1062,7 @@ but nothing triggers it.
 
 Repeat this sequence until every planned step is committed in your branch.
 
-## Merge your development branch
+## 🔀 Merge your development branch
 
 ```txt
    +---------------------------------+
@@ -1163,7 +1165,7 @@ Publish only after the merge commit message has been rewritten.
 2. If `gp` is not defined in your shell, run `git push` directly to update
   `main`.
 
-## Prepare release notes and create the release
+## 🚀 Prepare release notes and create the release
 
 A release on `main` is one command plus the tag. `/prepare-release` runs the
 whole preparation from any branch: it switches to `main` and merges the
@@ -1345,7 +1347,7 @@ The skill never creates the tag and never pushes. The tag stays the
 author's call through `brel`, exactly as with `/prepare_release_notes` on
 its own.
 
-## License rationale: why MIT fits llm-shared
+## 📜 License rationale: why MIT fits llm-shared
 
 `llm-shared` is released under the MIT License ([LICENSE.md](LICENSE.md)).
 The reasons MIT was picked, rather than a copyleft license such as the

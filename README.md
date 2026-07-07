@@ -1,5 +1,7 @@
 # llm-shared
 
+<img src="wiki/assets/logo-llm-shared-transparent.png" alt="llm-shared logo: a chat window containing the four llm-shared themes" width="200">
+
 A shared development workflow that takes a draft note from "raw idea" to
 "tagged release" without skipping the requirement, design, plan, and
 acceptance-test phases. The repository ships the prompts, skills,
@@ -11,14 +13,28 @@ any LLM that can read files in the workspace and write files back: every
 slash command resolves to a plain markdown body in [`instructions/`](instructions/)
 that another model can be handed directly as context.
 
-> **Work in progress.** These are drafts. Content is being extracted from
-> project-specific repositories and generalized for reuse across projects.
-> Expect rough edges, missing pieces, and instructions that still reference
+> **Origin note.** These skills were extracted from a project-specific
+> repository and generalized for reuse across projects. Their content is
+> fairly stable by now; a few instructions may still carry a reference to
 > their origin project.
 
 ---
 
-## Goal: avoid vibe-coding
+## 📚 The wiki: documentation on the Diátaxis model
+
+The [wiki](wiki/README.md) is the full documentation, organized on the
+[Diátaxis](https://diataxis.fr/) model: tutorials to learn the workflow by
+doing, how-to guides for one precise goal each, references for the exact
+commands and formats, and explanations for the reasoning behind the
+design. Each page carries the emoji of its main theme: 📝 the document
+pipeline, 🔁 self-review and handoff, 🧪 the groundhog test gate, 📊 the
+shared trail, or 🤖 llm-shared as a whole.
+
+This README stays the at-a-glance tour; the wiki is where to go deeper.
+
+---
+
+## 🎯 Goal: avoid vibe-coding
 
 The point of this workflow is to keep the creative expression of an idea
 while refusing to short-circuit it into code. Vibe-coding  --  "I got an
@@ -40,7 +56,7 @@ Each skill draws a clear line between phases:
   (`/write-plans`, the plan review loop, `/implement-step`,
   `/implementation-check`).
 
-See [DEVELOPMENT.md  --  Goal: avoid vibe-coding](DEVELOPMENT.md#goal-avoid-vibe-coding)
+See [DEVELOPMENT.md  --  Goal: avoid vibe-coding](DEVELOPMENT.md#-goal-avoid-vibe-coding)
 for the full rationale, what each phase costs up front, and the short
 path when the draft is genuinely one self-contained requirement.
 
@@ -66,7 +82,7 @@ The "implementation check" phase is where the LLM gets to confirm that the code 
 
 ---
 
-## At a glance: phases, skills, artifacts
+## 👀 At a glance: phases, skills, artifacts
 
 One row per phase, in execution order. The "Trigger" column is what the
 author types or runs; the "Output artifact" column is what lands on disk
@@ -92,18 +108,18 @@ after the trigger completes.
 From `/implement-step N` down to the `a.commit` group-commit-message step,
 the rows no longer need a separate trigger each. One `pw handoff` call at
 the end of each step writes the next prompt and the chain runs itself  --
-see [Automated implement cycle with pw handoff](#automated-implement-cycle-with-pw-handoff).
+see [Automated implement cycle with pw handoff](#-automated-implement-cycle-with-pw-handoff).
 
 The document rows above (define  --  review  --  consolidate  --  design  --
 plan) chain the same way through `pw skill`: each writing and consolidate skill
 ends by running `pw skill` and following the command it prints, so the only
 trigger the author types is the first one, and the only human-in-the-loop stop
 is `/review-ask-questions`  --  see
-[Automated document phase with pw skill](#automated-document-phase-with-pw-skill).
+[Automated document phase with pw skill](#-automated-document-phase-with-pw-skill).
 
 ---
 
-## Conventional commits with a why/what body
+## ✍️ Conventional commits with a why/what body
 
 Every commit in this workflow follows the
 [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/)
@@ -137,13 +153,13 @@ one, and writes one commit message per group into `a.commit` for the
 author to review and edit. `gcba` then replays `a.commit` as a
 sequence of real commits.
 
-See [DEVELOPMENT.md  --  Conventional commit message template](DEVELOPMENT.md#conventional-commit-message-template-why-and-what-beyond-changelog)
+See [DEVELOPMENT.md  --  Conventional commit message template](DEVELOPMENT.md#-conventional-commit-message-template-why-and-what-beyond-changelog)
 for the template fields in detail, the 52/80 character rules, and
 the rationale behind the least-to-most-dependent grouping pass.
 
 ---
 
-## Development workflow overview
+## 🗺️ Development workflow overview
 
 The skills in this repository fit a single end-to-end workflow that takes a
 raw idea from a draft note all the way to a tagged release. The diagram below
@@ -273,7 +289,7 @@ detail.
 The giant box around the implement, check, and group-commit steps marks
 the part that now runs by itself: `pw handoff` chains those steps with no
 menu and no go-ahead until `a.commit` is written. See
-[Automated implement cycle with pw handoff](#automated-implement-cycle-with-pw-handoff)
+[Automated implement cycle with pw handoff](#-automated-implement-cycle-with-pw-handoff)
 for how each transition fires.
 
 The document phase before that box now chains the same way, driven by
@@ -285,12 +301,12 @@ review is the one stop: a human answers the `Q0x | Title | Recommended Answer`
 table, then `/consolidate-then-review-ask-questions` folds the answers and,
 once the document is settled, runs `pw skill` again to hand off to the next
 phase (design, plan, or the implement chain). See
-[Automated document phase with pw skill](#automated-document-phase-with-pw-skill)
+[Automated document phase with pw skill](#-automated-document-phase-with-pw-skill)
 for how each handoff fires and where the chain stops.
 
 The flow opens and closes with one skill each. `/process-draft` turns a
 loose draft note into a named, classified, branched effort ready to spec
-(see [DEVELOPMENT.md  --  Draft capture for a feature or fix](DEVELOPMENT.md#draft-capture-for-a-feature-or-fix)).
+(see [DEVELOPMENT.md  --  Draft capture for a feature or fix](DEVELOPMENT.md#-draft-capture-for-a-feature-or-fix)).
 `/prepare-release` is the box at the bottom: one command, from any branch,
 that does the merge and reword, the `version.txt` snapshot,
 `/prepare_release_notes`, and the pyproject and uv steps, then a single
@@ -307,7 +323,7 @@ to suggest a slug per item.
 
 ---
 
-## pw: one launcher, three modes
+## 🎛️ pw: one launcher, three modes
 
 `pw` is a single launcher (`bin\prompt_workflow.bat`, wrapping
 `tools\prompt_workflow.py`) with three ways to answer "what is the next step?".
@@ -329,12 +345,12 @@ branch  --  because the next cycle instruction needs that context built for it.
 a standard slash skill that loads its own full instructions when it runs. So the
 verbosity is not lost with `pw skill`, only deferred to the skill it names.
 
-See [DEVELOPMENT.md  --  How pw, pw handoff, and pw skill differ](DEVELOPMENT.md#how-pw-pw-handoff-and-pw-skill-differ)
+See [DEVELOPMENT.md  --  How pw, pw handoff, and pw skill differ](DEVELOPMENT.md#-how-pw-pw-handoff-and-pw-skill-differ)
 for the shared core, the per-mode detail, and when to reach for each.
 
 ---
 
-## Automated implement cycle with pw handoff
+## 🤝 Automated implement cycle with pw handoff
 
 The giant box in the diagram above is the part of the workflow that now
 runs on its own. Each step ends by calling `pw handoff`, which writes the
@@ -386,11 +402,11 @@ names the expected instruction, then follows that prompt. The calls are
 wired into the workflow by the `## Handoff` section of each cycle
 instruction (`implement-step.md`, `implement-missing-step.md`, and
 `implementation-check.md`); the same chain is drawn step by step in
-[DEVELOPMENT.md  --  Step execution loop from the plan](DEVELOPMENT.md#step-execution-loop-from-the-plan).
+[DEVELOPMENT.md  --  Step execution loop from the plan](DEVELOPMENT.md#-step-execution-loop-from-the-plan).
 
 ---
 
-## Automated document phase with pw skill
+## 🔗 Automated document phase with pw skill
 
 Before the implement chain, the document phase  --  requirement, design, and
 plan  --  chains the same way, driven by `pw skill` instead of `pw handoff`.
@@ -461,7 +477,7 @@ only resolves in an interactive `cmd`, so a tool shell calls
 
 ---
 
-## Prepare release notes before tagging a release
+## 📰 Prepare release notes before tagging a release
 
 A release is more than a git tag. Before `main` is tagged, the
 `/prepare_release_notes` skill turns the commit history since the last
@@ -480,13 +496,13 @@ author to pick from. Once a title is picked, the skill calls
 This skill stops before the tag. Creating the release is a separate
 step: the author runs `brel`, which drives the project build with the
 `rel` parameter. See
-[DEVELOPMENT.md  --  Prepare release notes and create the release](DEVELOPMENT.md#prepare-release-notes-and-create-the-release)
+[DEVELOPMENT.md  --  Prepare release notes and create the release](DEVELOPMENT.md#-prepare-release-notes-and-create-the-release)
 for the six-step workflow and the dependency on the `senv_dev_workflow`
 build tooling.
 
 ---
 
-## Make a release with the prepare-release skill
+## 🚀 Make a release with the prepare-release skill
 
 A release is more than the tag: the effort branch is merged into `main`,
 `version.txt` is set to `X.Y.Z-SNAPSHOT` with its release notes,
@@ -518,11 +534,11 @@ changelog is regenerated. It never tags and never pushes; the author runs
 
 ---
 
-## Groundhog: the pytest reset loop
+## 🧪 Groundhog: the pytest reset loop
 
-The test side of the workflow is driven by groundhog (`ghog`), one tool replacing the old `ptr`/`pta`/`pts` aliases: `ghog day` walks compile check, affected tests, then the full suite with a fresh coverage measure, stopping at the first non-green step with the exact fix to apply; `ghog init` registers the fixing loop in a project for both Claude Code (`/groundhog`) and ChatGPT Codex (AGENTS.md section plus a `/groundhog` custom prompt). LLM-driven runs go through a project-root `a.ghog.log` (overwritten per run, never deleted): the model branches on exit codes and reads only the log tail, while the user follows the run live from a second console; direct console runs keep the usual stdout. The full manual is [GROUNDHOG.md](GROUNDHOG.md).
+The test side of the workflow is driven by groundhog (`ghog`), one tool replacing the old `ptr`/`pta`/`pts` aliases: `ghog day` walks compile check, affected tests, then the full suite with a fresh coverage measure, stopping at the first non-green step with the exact fix to apply; `ghog init` registers the fixing loop in a project for both Claude Code (`/groundhog`) and ChatGPT Codex (AGENTS.md section plus a `/groundhog` custom prompt). LLM-driven runs go through a project-root `a.ghog.log` (overwritten per run, never deleted): the model branches on exit codes and reads only the log tail, while the user follows the run live from a second console; direct console runs keep the usual stdout. The full run also times every test call: an otherwise-green walk still stops (exit 8) on a call far outside the norm, so the suite stays under the project's one-second-per-test target — see [GROUNDHOG.md — The duration gate](GROUNDHOG.md#-the-duration-gate-how-tests-stay-under-a-second). The full manual is [GROUNDHOG.md](GROUNDHOG.md).
 
-## Contents
+## 🗂️ Contents
 
 ### Agent entry points
 
@@ -611,7 +627,7 @@ senv.bat                                  local shell aliases for the tooling
 
 ---
 
-## Development environment
+## 🛠️ Development environment
 
 Using the shared skills needs no Python environment — they are plain
 markdown. A Python environment is only needed to **work on llm-shared
@@ -728,13 +744,20 @@ uv pip install --upgrade pip
 
 ---
 
-## How to use llm-shared from another project
+## 🔌 How to use llm-shared from another project
 
-The intended setup is to reference this repository from an existing
-project's workspace or `~/.claude/` directory. The three subsections
-below cover the three common entry points: VS Code (Copilot Chat or
-Claude Code extension), Claude Code CLI, and any other LLM that reads
-files in a workspace.
+llm-shared is not a dependency of your project: nothing is vendored into
+your repository, and no Git submodule is required. Clone it once, beside
+your projects, and every entry point below references that one clone in
+place — a workspace folder, an `--add-dir`, a symlink, or a plugin
+junction. One copy serves every project and updates with one `git pull`.
+(A submodule layout also works — `ghog init`, for example, computes its
+links for both a sibling `..\llm-shared` and a `llm-shared` submodule —
+but the sibling clone is the intended default.)
+
+The four subsections below cover the four common entry points: VS Code
+(Copilot Chat or Claude Code extension), Claude Code CLI, ChatGPT Codex
+(as a local plugin), and any other LLM that reads files in a workspace.
 
 ### From VS Code (Copilot Chat or Claude Code extension)
 
@@ -797,6 +820,25 @@ ln -s "$(pwd)/.claude/skills" ~/.claude/skills
 
 After that, the same slash commands resolve in any directory.
 
+### From ChatGPT Codex (as a local plugin)
+
+The repository ships a self-contained Codex plugin package under
+[`.agents/llm-shared/`](.agents/llm-shared/): a `.codex-plugin/plugin.json`
+manifest, one BOM-less `SKILL.md` wrapper per skill, and a bundled copy
+of the instruction bodies. Registering it takes a personal marketplace
+file, one junction pointing at the clone (no copy), and three `codex
+plugin` commands; the skills then appear in every new Codex session as
+`$llm-shared:<skill>`. The step-by-step recipe, including the
+verification through `codex debug prompt-input` and the pitfalls, is in
+[the wiki how-to](wiki/how-to/register-skills-as-a-codex-plugin.md).
+For a single session instead of a permanent registration, Codex also
+takes the clone as an additional directory at launch —
+`codex --add-dir ..\llm-shared` (see
+[openai/codex#2797](https://github.com/openai/codex/issues/2797#issuecomment-4555303886)).
+For groundhog alone, `ghog init` is the lighter route: it writes the
+`AGENTS.md` section and the `~/.codex/prompts/groundhog.md` custom
+prompt without any plugin machinery.
+
 ### From another LLM (any model that reads files)
 
 Every slash command resolves to a plain markdown body under
@@ -809,7 +851,7 @@ command name and the instruction file name are always the same.
 
 ---
 
-## Status of main areas
+## 🚦 Status of main areas
 
 | Area | Status | Tested with | Notes |
 | --- | --- | --- | --- |
@@ -824,11 +866,11 @@ command name and the instruction file name are always the same.
 
 ---
 
-## Glossary
+## 📖 Glossary
 
 Shorthand used across this README, [DEVELOPMENT.md](DEVELOPMENT.md), and
 the shared skill bodies. The Doskey aliases are documented in detail in
-[DEVELOPMENT.md  --  Local command reference for this workflow](DEVELOPMENT.md#local-command-reference-for-this-workflow).
+[DEVELOPMENT.md  --  Local command reference for this workflow](DEVELOPMENT.md#-local-command-reference-for-this-workflow).
 
 | Term | Stands for |
 | --- | --- |
@@ -859,12 +901,12 @@ the shared skill bodies. The Doskey aliases are documented in detail in
 
 ---
 
-## License for llm-shared
+## 📜 License for llm-shared
 
 This repository is released under the MIT License. The full text is in
 [LICENSE.md](LICENSE.md): use, copy, modify, and redistribute the
 prompts, skills, instructions, templates, and helper scripts, in your
 own projects or forks, as long as the copyright notice stays in place.
 
-See [DEVELOPMENT.md  --  License rationale: why MIT fits llm-shared](DEVELOPMENT.md#license-rationale-why-mit-fits-llm-shared)
+See [DEVELOPMENT.md  --  License rationale: why MIT fits llm-shared](DEVELOPMENT.md#-license-rationale-why-mit-fits-llm-shared)
 for why MIT was picked over a copyleft license.
