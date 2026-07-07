@@ -24,6 +24,8 @@ AGENTS.md                    the Codex channel: run_commands pointer + groundhog
 ├─ .codex-plugin/plugin.json manifest; "skills": "./skills/" drives discovery
 ├─ skills/<skill>/SKILL.md   22 BOM-less wrappers (name + description only)
 └─ instructions/             bundled copy of the bodies
+.agent/workflows/<skill>.md  22 Google Antigravity workflow wrappers,
+                             junctioned into projects, slash-invoked
 ```
 
 ## 📚 Shared bodies and rules

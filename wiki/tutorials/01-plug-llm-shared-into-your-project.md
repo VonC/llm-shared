@@ -83,7 +83,16 @@ For one session only, `codex --add-dir ..\llm-shared` puts the clone in
 scope without any registration; for groundhog alone, `ghog init` is
 enough — no plugin machinery.
 
-## 5. Or hand the bodies to any other LLM
+## 5. Or open it from Google Antigravity
+
+Antigravity runs the skills as workflows: the clone ships one wrapper
+per skill under `.agent/workflows/`, and a junction inside the project
+(`mklink /J "%CD%\.agent" "..\llm-shared\.agent"`) makes them appear in
+the `/` menu of the agent panel — same slash syntax, same names as
+Claude Code. The recipe and the version caveats are in
+[Use the skills from Google Antigravity](../how-to/use-the-skills-from-antigravity.md).
+
+## 6. Or hand the bodies to any other LLM
 
 Every slash command resolves to a plain markdown body under
 [`instructions/`](../../instructions/), with the same name: `/write-design`
@@ -91,7 +100,7 @@ is `instructions/write-design.md`. Give the model that file as context,
 plus the inputs the body expects (a draft, a requirement, a plan), and it
 runs the same skill without knowing about `.github/` or `.claude/`.
 
-## 6. Check that a skill resolves
+## 7. Check that a skill resolves
 
 In a chat session opened on your project, type `/write-requirement` (or ask
 "write a requirement"). The agent should answer by asking for the three

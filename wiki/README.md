@@ -40,6 +40,7 @@ Recipes for a precise goal, for readers who already know the basics.
 - 🧪 [Fix a slow test flagged as an outlier](how-to/fix-a-slow-test.md)
 - 🧪 [Register groundhog in a project](how-to/register-groundhog-in-a-project.md)
 - 🤖 [Register the skills as a Codex plugin](how-to/register-skills-as-a-codex-plugin.md)
+- 🤖 [Use the skills from Google Antigravity](how-to/use-the-skills-from-antigravity.md)
 - 🤖 [Pick up skill edits without restarting](how-to/pick-up-skill-edits-without-restarting.md)
 - 🧪 [Split a large file](how-to/split-a-large-file.md)
 - 📊 [Build the git-history dashboard](how-to/build-the-git-history-dashboard.md)

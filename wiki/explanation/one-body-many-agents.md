@@ -4,9 +4,9 @@
 
 <!-- markdownlint-disable MD013 -->
 
-🤖 The same skill runs from GitHub Copilot, Claude Code and ChatGPT Codex
-because the skill is not written three times. Each host gets a thin
-pointer; the body lives once under `instructions/`.
+🤖 The same skill runs from GitHub Copilot, Claude Code, ChatGPT Codex
+and Google Antigravity because the skill is not written four times. Each
+host gets a thin pointer; the body lives once under `instructions/`.
 
 ## 🔗 The pointer pattern
 
@@ -15,7 +15,10 @@ are frontmatter plus a reference to the same `instructions/<skill>.md`.
 Codex is reached two ways: `AGENTS.md` sections and user-level prompts
 (`ghog init` writes them for groundhog), or the whole set at once through
 the self-contained plugin package under `.agents/llm-shared/`
-([the how-to](../how-to/register-skills-as-a-codex-plugin.md)). A fourth
+([the how-to](../how-to/register-skills-as-a-codex-plugin.md)).
+Antigravity gets one workflow wrapper per skill under
+`.agent/workflows/`, junctioned into the project
+([the how-to](../how-to/use-the-skills-from-antigravity.md)). A fifth
 agent that understands none of these folders is simply handed the body
 file as context — the slash command name and the file name are always
 the same.

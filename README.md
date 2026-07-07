@@ -755,9 +755,10 @@ junction. One copy serves every project and updates with one `git pull`.
 links for both a sibling `..\llm-shared` and a `llm-shared` submodule —
 but the sibling clone is the intended default.)
 
-The four subsections below cover the four common entry points: VS Code
+The five subsections below cover the five common entry points: VS Code
 (Copilot Chat or Claude Code extension), Claude Code CLI, ChatGPT Codex
-(as a local plugin), and any other LLM that reads files in a workspace.
+(as a local plugin), Google Antigravity (as workflows), and any other
+LLM that reads files in a workspace.
 
 ### From VS Code (Copilot Chat or Claude Code extension)
 
@@ -838,6 +839,25 @@ takes the clone as an additional directory at launch —
 For groundhog alone, `ghog init` is the lighter route: it writes the
 `AGENTS.md` section and the `~/.codex/prompts/groundhog.md` custom
 prompt without any plugin machinery.
+
+### From Google Antigravity (as workflows)
+
+Antigravity invokes workflows from the workspace `.agent/workflows/`
+folder through the `/` menu of its agent panel. The repository ships one
+wrapper per skill under [`.agent/workflows/`](.agent/workflows/), each
+pointing back at the shared body in `instructions/` — so the syntax is
+the same as Claude Code (`/write-design`, `/groundhog`), with hyphenated
+names throughout. Since cross-root discovery is not documented, wire a
+project with a junction to the clone:
+
+```cmd
+mklink /J "%CD%\.agent" "..\llm-shared\.agent"
+```
+
+Antigravity also reads the project `AGENTS.md` (since v1.20.3), so the
+`## groundhog` section written by `ghog init` triggers the fixing loop
+there too. Details and version caveats:
+[the wiki how-to](wiki/how-to/use-the-skills-from-antigravity.md).
 
 ### From another LLM (any model that reads files)
 

@@ -40,6 +40,14 @@ skills. After editing the plugin package under `.agents/llm-shared/`:
 `codex debug prompt-input` shows, outside any session, exactly which
 skills the next thread will receive.
 
+## 🧲 Antigravity follows the junction
+
+The `.agent/workflows/` wrappers are plain files the agent reads when
+the slash command runs, and the recommended wiring is a junction into
+the clone — so an edit to a wrapper or to the `instructions/` body it
+points at is picked up on the next invocation. Only a brand-new wrapper
+file may need the `/` dropdown to refresh with a new session.
+
 ## 🧭 Copilot follows the workspace
 
 Copilot discovers prompts and skills from the workspace roots; adding or
