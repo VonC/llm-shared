@@ -59,7 +59,6 @@ Run these steps, in order:
 5. `cmd /d /v:on /c "..\llm-shared\bin\oqm.bat <type>.vX.Y.Z.<topic>.md --append"` to move the questions from `a.<base>.open.questions.md` into the document.
 6. Present the placed questions in your reply as the mandatory three-column table described in "Presenting any follow-up questions" below — never as a bulleted list.
 
-
 ## Presenting any follow-up questions
 
 This step is mandatory, not optional: when a consolidation round raises new questions, present them in your reply as a compact three-column table — one row per question, never a bulleted list — the same way the review skill does, so the human reads them at a glance:
