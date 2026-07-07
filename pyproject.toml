@@ -225,6 +225,7 @@ dev = [
     "pytest-testmon",
     "pytest-timeout",
     "pytest-watcher",
+    "python-pptx",
     "radon",
     "ruff",
     "tqdm",
