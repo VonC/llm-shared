@@ -16,6 +16,12 @@ Do not use 3 or 4 spaces for sub-list before the list item, always 2 spaces more
 
 Do not use in comments/docstring `'`, always `'`
 
+## No em dash
+
+Never use the em dash (`—`) in documentation text: nobody but LLMs is using it.
+Replace it with whichever fits the sentence best: a `:`, a parenthesis `(...)`, or a `,`. As a last resort, use a `;`.
+The only acceptable use of `—` is when the programming language or the application being coded requires that exact character (for example a test fixture or an escape sequence), never in prose.
+
 ## Compact tables
 
 When writing a markdown table, always use compact mode as defined in [`md060`](https://github.com/DavidAnson/markdownlint/blob/v0.40.0/doc/md060.md): avoid any extra padding inside cells, use a single space around cell content, and use exactly three `-` characters in each header separator column (`| --- |`), not longer dash runs such as `| ---- |` or `| -------- |`.
