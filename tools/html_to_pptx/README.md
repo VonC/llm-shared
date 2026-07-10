@@ -38,7 +38,10 @@ and `Theme.iny` in `pptx_helpers.py` do that multiply.
 | File | Role |
 | --- | --- |
 | `pptx_helpers.py` | Generic, deck-agnostic drawing primitives and components. Import these. |
-| `build_llm_shared_pptx.py` | Worked example: the full 16-slide llm-shared deck built on the helpers. Copy this per new deck. |
+| `deck_theme.py` | The llm-shared palette, `Theme`, brand placeholders and output path. |
+| `deck_parts.py` | The llm-shared repeated patterns (phase cards, loop columns, step rows, example panels). |
+| `slides_intro.py` / `slides_main.py` | The 16 slide functions (1-8 and 9-16), one function per slide. |
+| `build_llm_shared_pptx.py` | Entry script: assembles the deck from the slide modules and writes the `.pptx`. |
 | `make_pptx.ps1` | One-line wrapper: installs `python-pptx` if missing, then rebuilds the `.pptx` (with brand env vars applied). |
 | `make_pdf.ps1` | One-line wrapper: runs `make_pptx.ps1`, then exports the deck to `.pdf` through PowerPoint. |
 | `export_preview.ps1` | Verification aid: export the finished `.pptx` back to PNG through PowerPoint to compare against the HTML. |
@@ -110,34 +113,44 @@ only for your eyes during the check -- the deck you ship stays fully editable.
 
 The helpers split into four groups. A run is one styled span of text; a
 paragraph holds several runs, which is how a black sentence carries an orange
-`/slash-command` in the middle (the HTML inline `<code>` look).
+`/slash-command` in the middle (the HTML inline `<code>` look). Geometry
+always travels as one `Area(x, y, w, h)` in source pixels, and optional looks
+travel in small style dataclasses (`BoxStyle`, `CardStyle`, `FeatureStyle`,
+`RowLayout`, `HeaderStyle`).
 
-- Geometry and scaffolding: `Theme`, `rgb`, `make_presentation`,
+- Geometry and scaffolding: `Theme`, `rgb`, `Area`, `make_presentation`,
   `blank_slide`, `fill_background`.
-- Text: `run`, `add_paragraph`, `textbox`.
-- Shapes: `rect` (square or rounded, filled or outlined), `oval` (step
-  badges), `box` (a rounded box with a centered main line and optional
-  caption), `arrow` (a small connector glyph).
-- Ready-made components and page chrome: `card`, `feature_item`,
-  `feature_row`, `header` (brand line, topic tag, two-tone accent bar),
-  `title` (title plus subtitle), `footer` (caption plus page number).
+- Text: `run`, `FrameWriter` (appends paragraphs to one text frame, handling
+  the first-paragraph reuse itself), `SlideCanvas.frame` (a textbox writer)
+  and `SlideCanvas.shape_frame` (a writer over a shape's own text).
+- Shapes, as `SlideCanvas` methods: `rect` (square or rounded, filled or
+  outlined), `oval` (step badges), `box` (a rounded box with a centered main
+  line and optional caption, styled by `BoxStyle`), `arrow` (a small
+  connector glyph).
+- Ready-made components and page chrome, also on `SlideCanvas`: `card`,
+  `feature_item`, `feature_row`, `header` (brand line, topic tag, two-tone
+  accent bar), `title` (title plus subtitle), `footer` (caption plus page
+  number).
 
 ## 🧭 Method for converting a new HTML deck
 
 1. Read the source. Note the canvas size (the `.slide` width and height in
    the CSS) and the brand colors (often CSS `:root` variables).
-2. Copy `build_llm_shared_pptx.py` to `build_<yourdeck>_pptx.py`. Set the
-   output path, the palette constants, and a `Theme`. If the canvas is not
-   `1280 x 720`, pass `canvas_px_w` and `canvas_px_h` to `Theme`.
-3. Write one function per slide. For each HTML element, read its pixel
-   `x/y/width/height` and its colors, then draw the matching primitive at the
-   same numbers. Straight text becomes `textbox` + `add_paragraph`; a colored
-   panel becomes `rect`; a flow box becomes `box`; a numbered badge becomes
-   `oval`.
+2. Copy the four deck modules (`deck_theme.py`, `deck_parts.py`, the
+   `slides_*.py` pair and `build_llm_shared_pptx.py`) under new names for
+   your deck. In your `deck_theme.py`, set the output path, the palette
+   constants, and a `Theme`. If the canvas is not `1280 x 720`, pass
+   `canvas_px_w` and `canvas_px_h` to `Theme`.
+3. Write one function per slide, each starting from a
+   `SlideCanvas(blank_slide(prs), THEME)`. For each HTML element, read its
+   pixel `x/y/width/height` and its colors, then draw the matching primitive
+   at the same numbers. Straight text becomes `frame(...)` plus
+   `writer.add(...)`; a colored panel becomes `rect`; a flow box becomes
+   `box`; a numbered badge becomes `oval`.
 4. For a diagram the primitives do not cover directly (a flow column, a step
    row), write a small local composition, the way `loop_col`, `wf_row` and
-   `step_row` do in the example. Keep such compositions in the per-deck build
-   script, not in `pptx_helpers.py`, so the shared module stays generic.
+   `step_row` do in `deck_parts.py`. Keep such compositions in the per-deck
+   modules, not in `pptx_helpers.py`, so the shared module stays generic.
 5. Run the build script, then run `export_preview.ps1` and compare against
    the HTML. Nudge coordinates or font sizes until the two match.
 
