@@ -117,7 +117,7 @@ if "%big_file_status%"=="0" (
   call :record_failure big_file %big_file_status%
 )
 
-set "shellcheck_exe=%PRGS%\shellchecks\current\shellcheck-stable.exe"
+set "shellcheck_exe=%PRGS%\shellchecks\current\shellcheck.exe"
 %_info% "shellcheck"
 if exist "%shellcheck_exe%" (
   echo "%shellcheck_exe%" -e SC1090,SC1091 no script yet

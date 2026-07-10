@@ -119,7 +119,7 @@ if "%big_file_status%"=="0" (
   call :record_failure big_files %big_file_status%
 )
 
-set "shellcheck_exe=%PRGS%\shellchecks\current\shellcheck-stable.exe"
+set "shellcheck_exe=%PRGS%\shellchecks\current\shellcheck.exe"
 %_info% "shellcheck '%PRJ_DIR%\scripts\prepare_release_notes.sh' '%PRJ_DIR%\scripts\update-merge-commit-msg\git-extract-merge-docs.sh' '%PRJ_DIR%\scripts\update-merge-commit-msg\git-reword-merge.sh'"
 if exist "%shellcheck_exe%" (
   "%shellcheck_exe%" -e SC1090,SC1091 "%PRJ_DIR%\scripts\prepare_release_notes.sh" "%PRJ_DIR%\scripts\update-merge-commit-msg\git-extract-merge-docs.sh" "%PRJ_DIR%\scripts\update-merge-commit-msg\git-reword-merge.sh"
