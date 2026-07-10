@@ -214,6 +214,7 @@ dev = [
     "build",
     "hypothesis",
     "packaging",
+    "pillow",
     "pyinstrument",
     "questionary",
     "pyproject-hooks",
