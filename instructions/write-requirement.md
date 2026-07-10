@@ -14,7 +14,7 @@ valid concrete choices when they are known.
 8. If the version is missing or not in `vX.Y.Z` form, ask for a version and stop unless a valid version is entered.
 9. If the version format is valid but the version appears inconsistent with the prompt or associated documents, present a confirmation choice with the supplied version, then stop unless a valid version is confirmed or entered.
 10. Last, validate the topic label.
-11. Accept the topic label only if it identifies the specific feature or area of concern and uses only lowercase letters, digits, and hyphens.
+11. Accept the topic label only if it identifies the specific feature or area of concern and uses only lowercase letters, digits, hyphens, and underscores, starting with a letter or a digit — the same character rule the `process-draft` slug follows, so a slug flows into the requirement filename unchanged.
 12. If the topic label is missing, irrelevant to the request, or contains other characters, ask for a topic label and stop unless a valid topic label is entered.
 13. When asking for a correction, keep any earlier fields that were already confirmed as valid and ask only for the current field.
 14. If the user does not answer the clarification request, or answers again with an invalid value, stop and explain which field still needs a valid value.
