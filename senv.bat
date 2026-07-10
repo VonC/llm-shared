@@ -174,20 +174,40 @@ REM llm-shared is a public repository: keep local uv usage unchanged, but
 REM rewrite staged uv.lock URLs to public hosts before commit.
 if not defined UV_INDEX_URL if defined PYPI_HOST set "UV_INDEX_URL=https://%PYPI_HOST%"
 
-set "lock_filter_smudge="
-for /f "tokens=* delims=" %%i in ('git -C "%PRJ_DIR%" config filter."uv-lock-public".smudge') do set "lock_filter_smudge=%%i"
-if not defined lock_filter_smudge (
+REM Versioned filter install (same pattern as my-project): the filter is
+REM reapplied whenever the stored filter.uv-lock-public.version differs from
+REM LOCK_FILTER_VERSION, so older or corrupted values (slash-excluding
+REM /simple/ class, caret eaten by cmd) are replaced on the next senv run.
+REM Bump LOCK_FILTER_VERSION whenever the smudge or clean command changes.
+REM The two variables differ by more than case: cmd variables are
+REM case-insensitive, so LOCK_FILTER_VERSION vs lock_filter_version would be
+REM one and the same variable and the comparison below would always match.
+set "LOCK_FILTER_VERSION=1"
+set "LOCK_FILTER_VERSION_CUR="
+for /f "tokens=* delims=" %%i in ('git -C "%PRJ_DIR%" config filter."uv-lock-public".version 2^>nul') do set "LOCK_FILTER_VERSION_CUR=%%i"
+if not "%LOCK_FILTER_VERSION_CUR%"=="%LOCK_FILTER_VERSION%" (
   %_task% "Must set git config filter.uv-lock-public for public uv.lock content"
   git -C "%PRJ_DIR%" config filter.uv-lock-public.smudge "cat"
-  git -C "%PRJ_DIR%" config filter.uv-lock-public.clean "sed -E 's#https://[^[:space:]/]+/simple/#https://pypi.org/simple/#g; s#https://[^[:space:]]+/packages/#https://files.pythonhosted.org/packages/#g; s/, size = [0-9]+, upload-time = \"[^\\\"]+\"//g'"
+  if errorlevel 1 (
+    %_fatal% "git -C '%PRJ_DIR%' config filter.uv-lock-public failed" 232
+  )
+  REM `[^^\"]+` (not `[^\"]+`): cmd's `\"` toggles out of quoted mode, so the
+  REM lone `^` between the two `\"` becomes cmd's escape char and is eaten
+  REM unless doubled. Git stores it as a single literal `^`.
+  git -C "%PRJ_DIR%" config filter.uv-lock-public.clean "sed -E 's#https://[^[:space:]]+/simple/?#https://pypi.org/simple/#g; s#https://[^[:space:]]+/packages/#https://files.pythonhosted.org/packages/#g; s/, size = [0-9]+, upload-time = \"[^^\"]+\"//g'"
+  if errorlevel 1 (
+    %_fatal% "git -C '%PRJ_DIR%' config filter.uv-lock-public failed" 232
+  )
+  git -C "%PRJ_DIR%" config filter.uv-lock-public.version "%LOCK_FILTER_VERSION%"
   if errorlevel 1 (
     %_fatal% "git -C '%PRJ_DIR%' config filter.uv-lock-public failed" 232
   )
   %_ok% "git -C '%PRJ_DIR%' config filter.uv-lock-public set for public uv.lock content"
 ) else (
-  %_info% "git config filter.uv-lock-public.smudge already set to '%lock_filter_smudge%', skipping"
+  %_info% "git config filter.uv-lock-public already set, skipping"
 )
-set "lock_filter_smudge="
+set "LOCK_FILTER_VERSION="
+set "LOCK_FILTER_VERSION_CUR="
 
 REM check.bat and other scripts in the root of the project should be in the %PATH% for direct calling from anywhere,
 REM but only if not already present (to avoid duplicates in case of multiple calls to senv.bat from the same command prompt)
