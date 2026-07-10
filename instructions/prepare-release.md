@@ -167,6 +167,17 @@ Cross-check the derived `X.Y.Z` against the first word of `version.txt`:
   version choice with the effort-document version and the `version.txt`
   version.
 
+Then check the effort's validation plan,
+`docs/plan.vX.Y.Z.<topic>.validation.md`, when the effort has a plan. Read
+its opening status line (the first non-title line): when it still starts
+with `No, it is not implemented`, the implementation checks of the effort
+are not complete, or the last `implementation-check` never flipped the
+document-level line to `Yes, it is implemented.` as its instruction
+requires. Signal it to the user, naming the file and the line found, remove
+the flag file, and stop without changing the tree. The user either finishes
+the implementation checks or corrects the status line, then re-runs. Do not
+carry an effort whose validation plan reads as unfinished into a release.
+
 ### Step 4 — Make the working tree clean
 
 Check the status of the current worktree only (never a sibling worktree):
