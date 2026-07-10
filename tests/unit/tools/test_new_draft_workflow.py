@@ -9,6 +9,10 @@ Fix (split): the CLI entry-point tests moved to
 `test_new_draft_workflow_cli.py` and the non-interactive --from-draft tests to
 `test_new_draft_workflow_from_draft.py`, so each test file stays under the size
 limit while this file keeps the interactive workflow coverage.
+
+Coverage fix: `_relocate_draft` gains a test for its same-path no-op, the
+guard that returns before any git call when the draft already carries its
+target path (a `git mv` onto the same path would fail fatally).
 """
 
 from __future__ import annotations
@@ -275,6 +279,30 @@ def test_prompt_worktree_returns_choice(
     monkeypatch.setattr(workflow, "select", fake_select)
 
     assert workflow._prompt_worktree(Path("repo/worktree")) is choice
+
+
+def test_relocate_draft_same_path_is_a_no_op(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """A draft already at its target path stays put, with no git call at all."""
+    draft = tmp_path / "draft.v0.1.0.topic.md"
+    draft.write_text("draft body", encoding="utf-8")
+
+    def _must_not_be_called(*_args: object, **_kwargs: object) -> bool:
+        msg = "no git call is allowed for a same-path relocate"
+        raise AssertionError(msg)
+
+    monkeypatch.setattr(workflow, "path_is_tracked", _must_not_be_called)
+
+    workflow._relocate_draft(
+        draft,
+        tmp_path / "draft.v0.1.0.topic.md",
+        source_cwd=tmp_path,
+        target_cwd=tmp_path,
+    )
+
+    assert draft.read_text(encoding="utf-8") == "draft body"
 
 
 # eof

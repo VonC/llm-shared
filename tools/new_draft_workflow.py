@@ -282,7 +282,12 @@ def _relocate_draft(
         target: The `draft.vX.Y.Z.<slug>.md` path in the chosen tree.
         source_cwd: The working tree the source lives in.
         target_cwd: The working tree the branch was created in.
+
+    A draft that already carries its target path needs no move: `git mv` onto
+    the same path fails fatally, so the no-op returns before any git call.
     """
+    if source.resolve() == target.resolve():
+        return
     target.parent.mkdir(parents=True, exist_ok=True)
     if source_cwd == target_cwd:
         if path_is_tracked(source, cwd=source_cwd):
