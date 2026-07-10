@@ -45,6 +45,10 @@ Check your answer: do you see list items with 3 spaces as in `-   xxx`? Change t
 
 Check your validation plan update: re-read the status sentence you wrote under `### Analysis of Step N implementation state`. It MUST be exactly `Yes. Step N has been fully implemented.` or `No. Step N has NOT been fully implemented.`, with no other introduction sentence and no `Step checked:` prefix. If it is not the exact `Yes. Step N has been fully implemented.` sentence, search the updated document for the `### Missing work for Step N` heading. If that heading is absent, the check is not finished: add the section with the gathered missing-element bullets before ending your answer.
 
+## Document-level status line
+
+The validation plan opens with its own document-level status sentence, `No, it is not implemented.` in the initial skeleton. After recording this step's verdict, re-read every `### Analysis of Step N implementation state` section of the document. When each one now starts with the exact `Yes. Step N has been fully implemented.` sentence (this check just turned the last pending step into a Yes), update that opening line to `Yes, it is implemented.` and refresh the theme sentence below it so the document no longer reads as pending. When any step still reads `No` or `Not started`, leave the opening line at `No, it is not implemented.`. Skipping this flip leaves a fully validated effort looking unfinished, and `prepare-release` stops on that line.
+
 ## Handoff
 
 When the check is written and the `Analysis of Step x` status line records the Yes-or-No verdict in the validation plan, hand the cycle on, with no menu. From the project root, run:
