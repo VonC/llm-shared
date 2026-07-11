@@ -54,7 +54,8 @@ omit = [
     "*/prompt_workflow_menu.py", # Thin questionary wrapper; needs a TTY to exercise
     "*/new_draft_prompts.py",   # Thin questionary text wrapper; needs a TTY to exercise
     "*/groundhog/render.py",    # Thin tqdm wrapper; needs a TTY to exercise
-    "*/html_to_pptx/*"          # Deck-rendering seam; needs python-pptx + PowerPoint to verify
+    "*/html_to_pptx/*",         # Deck-rendering seam; needs python-pptx + PowerPoint to verify
+    "*/serve_docs/*"            # Thin subprocess wrapper around uvx/mkdocs; needs a browser to exercise
 ]
 
 [tool.coverage.report]
