@@ -41,6 +41,7 @@ bundled Python from its own path.
 | `oqm.bat` | `tools\open_questions_md.py` | manage open-questions sections: `--create`, `--strip`, `--append` |
 | `new_draft.bat` | `tools\new_draft.py` | rename a draft and create its effort branch or worktree |
 | `ghd.bat` | `tools\git_history_dashboard\build.py` | build the commit-history dashboard |
+| `mds.ps1` | `tools\serve_docs\serve_docs.py` | serve a markdown folder as a local website and open the browser (PowerShell so Ctrl-C stops it without cmd's terminate-batch question) |
 | `python_check.bat` | vulture, big-file check, `enforce_eof.py` | the check station of the walk |
 | `python_check_types.bat` | type checking | the typing gate |
 

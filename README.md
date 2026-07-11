@@ -642,6 +642,7 @@ tools/
 ├─ git_command.py                         local cross-platform Git helper
 ├─ groundhog/                             pytest reset tool behind ghog/ptr/pta/ptanc/pts (see GROUNDHOG.md)
 ├─ prompt_workflow.py                     build the next cycle prompt; pw handoff chains the implement cycle
+├─ serve_docs/                            serve a markdown folder as a local website (mds.ps1)
 └─ uv_run.py                              cert-aware uv launcher (personal/corporate networks)
 senv.bat                                  local shell aliases for the tooling
 ```

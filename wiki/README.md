@@ -48,6 +48,7 @@ Recipes for a precise goal, for readers who already know the basics.
 - 📊 [Write an activity report](how-to/write-an-activity-report.md)
 - 📊 [Rebuild the presentation as PPTX and PDF](how-to/rebuild-the-presentation.md)
 - 🤖 [Keep project docs in sync with the code](how-to/update-project-docs-from-code.md)
+- 🤖 [Serve a markdown folder as a local website](how-to/serve-a-docs-folder-as-a-website.md)
 
 ## 📖 Reference
 
