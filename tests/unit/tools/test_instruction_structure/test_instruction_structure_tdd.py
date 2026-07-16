@@ -73,6 +73,30 @@ def test_run_commands_documents_python_script_invocation() -> None:
     assert "set NO_MORE_SENV_%PRJ_DIR_NAME%=& senv.bat && python" in content
 
 
+def test_codex_plugin_packages_every_instruction() -> None:
+    """Every shared instruction has a matching, self-contained Codex skill."""
+    root = steps.llm_shared_dir()
+    plugin = root / ".agents" / "llm-shared"
+    instruction_names = {path.name for path in _INSTRUCTIONS.glob("*.md")}
+    expected_skill_names = {
+        name.removesuffix(".md").replace("_", "-") for name in instruction_names
+    }
+    packaged_skill_names = {
+        path.name for path in (plugin / "skills").iterdir() if path.is_dir()
+    }
+
+    assert packaged_skill_names == expected_skill_names
+    for instruction_name in instruction_names:
+        skill_name = instruction_name.removesuffix(".md").replace("_", "-")
+        skill = (plugin / "skills" / skill_name / "SKILL.md").read_text(
+            encoding="utf-8",
+        )
+        packaged = plugin / "instructions" / instruction_name
+
+        assert f"[Instruction](../../instructions/{instruction_name})" in skill
+        assert packaged.read_bytes() == (_INSTRUCTIONS / instruction_name).read_bytes()
+
+
 def test_pw_running_instructions_link_to_the_run_pw_note() -> None:
     """Each instruction that runs a pw command points at run-pw.md."""
     for name in (
