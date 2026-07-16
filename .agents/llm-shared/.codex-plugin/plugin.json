@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0+codex.20260713195934",
+  "version": "0.1.0+codex.20260716122536",
   "name": "llm-shared",
   "skills": "./skills/",
   "description": "Shared local Codex skills and workflows.",
