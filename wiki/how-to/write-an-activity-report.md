@@ -1,12 +1,19 @@
 # How to write an activity report
 
-<img src="../assets/logo-llm-shared-trail-transparent.png" alt="" height="90" align="right">
+<img src="../assets/logo-llm-shared-trail-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
 
 📊 Goal: produce a French activity report for IT managers from one or
 several git working trees over a date window, without the agent reading
 the codebase — commit messages and markdown diffs only.
+
+## Invocation model
+
+Ask the AI for an activity report; it normally gathers the history, offers the
+topic selection, writes the report, and renders the deliverable. Run the helper
+directly for a scheduled report, an integration test, or a deliberately
+standalone conversion after the inputs are already settled.
 
 ## 📋 Steps from git history to PDF
 

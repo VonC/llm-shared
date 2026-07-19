@@ -1,8 +1,14 @@
 # How to fix a red groundhog walk
 
-<img src="../assets/logo-llm-shared-groundhog-transparent.png" alt="" height="90" align="right">
+<img src="../assets/logo-llm-shared-groundhog-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
+
+## Invocation model
+
+Inside an implementation workflow the AI reads Groundhog's exit contract,
+applies the named fix, and runs the day again. Use these commands directly to
+reproduce or diagnose the same failure from a console.
 
 🧪 Goal: bring a stopped `ghog day` walk back to green by applying the fix
 each exit code calls for, without wasting a full run on the wrong move.

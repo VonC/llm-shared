@@ -1,11 +1,18 @@
 # How to keep project docs in sync with the code
 
-<img src="../assets/logo-llm-shared-transparent.png" alt="" height="90" align="right">
+<img src="../assets/logo-llm-shared-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
 
 🤖 Goal: bring `README.md`, `ARCHITECTURE.md` and the files under
 `docs/architecture/` back in line with what the code actually does.
+
+## Invocation model
+
+This is normally an AI-owned review: ask for the project-docs skill and the AI
+inspects the relevant code before editing the documentation and validating the
+result. Use the procedure directly when doing a manual documentation audit or
+when reviewing the AI's evidence file by file.
 
 ## 📋 Steps of the documentation review
 

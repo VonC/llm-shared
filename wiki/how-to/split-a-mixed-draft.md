@@ -1,12 +1,19 @@
 # How to split a mixed draft into requirements
 
-<img src="../assets/logo-llm-shared-documents-transparent.png" alt="" height="90" align="right">
+<img src="../assets/logo-llm-shared-documents-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
 
 📝 Goal: turn one draft note that mixes several distinct topics into an
 ordered list of feature-requests and issues, each ready for its own
 `/write-requirement` run.
+
+## Invocation model
+
+The user supplies the draft and asks the AI to split and define it; the AI
+classifies the content, writes the requirement artifacts, and presents the
+boundaries for human validation. Follow the steps manually only when you need a
+custom split outside the skill chain.
 
 ## 🤔 When splitting is worth it
 

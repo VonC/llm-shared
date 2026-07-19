@@ -13,6 +13,7 @@ from __future__ import annotations
 from tools import prompt_workflow_steps as steps
 
 _INSTRUCTIONS = steps.llm_shared_dir() / "instructions"
+_EXPECTED_DIAGRAM_COUNT = 4
 
 
 def _read(name: str) -> str:
@@ -215,6 +216,142 @@ def test_llm_shared_pwiki_alias_serves_wiki_and_loads_before_guard() -> None:
     assert 'pwiki=python "%LLM_SHARED_DIR%\\tools\\serve_docs\\serve_docs.py"' in doskeys
     assert '"%PRJ_DIR%\\wiki"' in doskeys
     assert '"%PRJ_DIR%\\docs\\wiki"' not in doskeys
+
+
+def test_sensitive_history_scanner_has_package_launcher_and_alias() -> None:
+    """The audit skill and interactive shell share one stable scanner launcher."""
+    root = steps.llm_shared_dir()
+    source = root / "tools" / "sensitive_history"
+    tests = root / "tests" / "unit" / "tools" / "sensitive_history"
+    launcher = (root / "bin" / "sensitive_history_scan.bat").read_text(
+        encoding="utf-8",
+    )
+    doskeys = (root / "senv.doskey").read_text(encoding="utf-8")
+    instruction = _read("sanitize-git-history.md")
+
+    assert (source / "__init__.py").is_file()
+    assert (source / "history_scan.py").is_file()
+    assert (source / "sensitive_history_scan.py").is_file()
+    assert (tests / "test_history_scan.py").is_file()
+    assert "tools\\sensitive_history\\sensitive_history_scan.py" in launcher
+    assert 'shscan="%LLM_SHARED_DIR%\\bin\\sensitive_history_scan.bat"' in doskeys
+    assert "sensitive_history_scan.bat" in instruction
+    assert "automatically" in instruction
+
+
+def test_git_history_diagrams_have_package_launcher_alias_and_docs() -> None:
+    """Diagram sources, tests, launcher, alias, assets, and Diátaxis set stay together."""
+    root = steps.llm_shared_dir()
+    source = root / "tools" / "git_history_diagrams"
+    tests = root / "tests" / "unit" / "tools" / "git_history_diagrams"
+    launcher = (root / "bin" / "git_history_diagrams.bat").read_text(
+        encoding="utf-8",
+    )
+    doskeys = (root / "senv.doskey").read_text(encoding="utf-8")
+
+    assert (source / "generate_git_history_diagrams.py").is_file()
+    assert (source / "scenarios.py").is_file()
+    assert (source / "svg_renderer.py").is_file()
+    assert (tests / "test_git_history_diagrams.py").is_file()
+    assert r"tools\git_history_diagrams\generate_git_history_diagrams.py" in launcher
+    assert r'ghdiag="%LLM_SHARED_DIR%\bin\git_history_diagrams.bat"' in doskeys
+    assert (
+        len(list((root / "wiki" / "assets" / "prepare-release").glob("*.svg")))
+        == _EXPECTED_DIAGRAM_COUNT
+    )
+    for page in (
+        "wiki/explanation/why-git-history-diagrams-use-explicit-arrows.md",
+        "wiki/tutorials/07-generate-git-history-diagrams.md",
+        "wiki/how-to/update-git-history-diagrams.md",
+        "wiki/reference/git-history-diagram-generator.md",
+    ):
+        content = (root / page).read_text(encoding="utf-8")
+        assert ".svg" in content
+
+
+def test_wiki_leads_with_workflow_and_keeps_diataxis_order() -> None:
+    """The wiki foregrounds self-review while retaining predictable navigation."""
+    root = steps.llm_shared_dir()
+    home = (root / "wiki" / "README.md").read_text(encoding="utf-8")
+    headings = (
+        "## 💡 Explanation",
+        "## 🎓 Tutorials",
+        "## 🧭 How-to guides",
+        "## 📖 Reference",
+    )
+    required_phrases = (
+        "AI-assisted development with review and reset loops",
+        "must review what it has just generated",
+        "groundhog reset loop",
+        "100% by default",
+        "statistical outlier",
+        "`Why:`",
+        "`What:`",
+        "The release phase is equally complete",
+        "Anthropic Claude Code",
+        "OpenAI ChatGPT Codex",
+        "Google Gemini Antigravity",
+        "GitHub Copilot",
+    )
+
+    assert all(phrase in home for phrase in required_phrases)
+    assert [home.index(heading) for heading in headings] == sorted(
+        home.index(heading) for heading in headings
+    )
+
+
+def test_wiki_server_mounts_the_linked_presentation_and_orders_navigation() -> None:
+    """The home deck URL is mounted and the sidebar follows Diátaxis order."""
+    root = steps.llm_shared_dir()
+    home = (root / "wiki" / "README.md").read_text(encoding="utf-8")
+    config = (root / "wiki" / "serve_docs.ini").read_text(encoding="utf-8")
+    server = (root / "tools" / "serve_docs" / "serve_docs.py").read_text(
+        encoding="utf-8",
+    )
+
+    assert "../docs/llm-shared_presentation.html#solution-workflow-phases" in home
+    assert "../docs/llm-shared_presentation.html" in config
+    assert "../docs/llm-shared_logo.png" in config
+    assert 'DIATAXIS_SECTION_ORDER = ("explanation", "tutorials", "how-to", "reference")' in server
+
+
+def test_sensitive_history_reference_shows_both_input_file_formats() -> None:
+    """Scanner reference gives neutral, runnable terms and rules examples."""
+    root = steps.llm_shared_dir()
+    content = (root / "wiki" / "reference" / "sensitive-history-scan.md").read_text(
+        encoding="utf-8",
+    )
+
+    assert "### Example terms file" in content
+    assert "shscan --terms-file a.sensitive.terms.local.txt" in content
+    assert "### Example replacement-rules file" in content
+    assert "shscan --rules a.sensitive.replacements.example.txt" in content
+    assert "literal:example-project-name==>public-project" in content
+    assert "regex:(?i)example[._-]internal==>public-name" in content
+
+
+def test_every_diataxis_page_states_its_invocation_model() -> None:
+    """Each page says whether a human or the AI normally invokes its subject."""
+    root = steps.llm_shared_dir() / "wiki"
+    pages = (
+        page
+        for section in ("explanation", "tutorials", "how-to", "reference")
+        for page in (root / section).glob("*.md")
+    )
+
+    assert all("## Invocation model" in page.read_text(encoding="utf-8") for page in pages)
+
+
+def test_wiki_logos_match_the_home_page_width() -> None:
+    """Every theme logo uses the same explicit width as the wiki home page."""
+    root = steps.llm_shared_dir()
+    lines = (
+        line
+        for page in (root / "wiki").rglob("*.md")
+        for line in page.read_text(encoding="utf-8").splitlines()
+    )
+    logo_lines = [line for line in lines if "<img" in line and "logo-llm-shared" in line]
+    assert all('width="200"' in line and 'height="' not in line for line in logo_lines)
 
 
 def test_run_pw_note_documents_the_launcher() -> None:

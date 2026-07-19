@@ -1,8 +1,14 @@
 # How to fix a slow test flagged as an outlier
 
-<img src="../assets/logo-llm-shared-groundhog-transparent.png" alt="" height="90" align="right">
+<img src="../assets/logo-llm-shared-groundhog-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
+
+## Invocation model
+
+The Groundhog loop normally hands an exit-8 outlier to the AI's
+`fix-slow-test` skill, which profiles, improves, and rechecks it. Use this guide
+directly when optimizing a known slow call without running the whole chain.
 
 🧪 Goal: bring a test call flagged by the exit-8 duration gate back under
 the one-second target, without weakening any assertion.

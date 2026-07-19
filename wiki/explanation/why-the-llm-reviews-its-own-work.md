@@ -1,8 +1,15 @@
 # Why the LLM reviews its own work
 
-<img src="../assets/logo-llm-shared-review-transparent.png" alt="" height="90" align="right">
+<img src="../assets/logo-llm-shared-review-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
+
+## Invocation model
+
+The surrounding workflow normally invokes document review and implementation
+check skills immediately after generation. The AI asks or verifies; the human
+answers questions and validates evidence. Invoke a review skill directly when
+an existing artifact needs a fresh review outside its original chain.
 
 🔁 The key insight of the workflow: never ship the first pass. Blindly
 trusting what the model generates — even documentation — throws away the
@@ -23,6 +30,25 @@ The workflow runs the loop twice, once per kind of output:
   just written with the plan step it claims to implement, and writes an
   explicit `Yes.` or `No.` verdict into the validation document, backed
   by architecture, performance, coverage and feature-integrity checks.
+
+## More than a spec-driven workflow
+
+A conventional spec-driven workflow improves the input to code generation.
+llm-shared keeps that benefit, then adds a second invariant: every generated
+artifact is itself input to a review pass before the next phase can trust it.
+
+The document-review question format is deliberately demanding. Each question
+has concrete options, pros and cons for each option, a recommended answer with
+its reasoning, and a separate human answer. The human may accept the
+recommendation, choose another option, or supply a missing one. Consolidation
+writes that decision back into the document and the AI reviews the amended
+whole again.
+
+The implementation review is equally project-specific. It checks the code
+against the requirement, design, and numbered plan, then applies the project's
+general directives: architecture, performance, line budget, security,
+observability, tests, and any other criterion the team adds. Passing generated
+tests is evidence, not proof that the requested system was implemented.
 
 ## 🎣 What each loop actually catches
 

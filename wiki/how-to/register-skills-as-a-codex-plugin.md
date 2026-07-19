@@ -1,8 +1,14 @@
 # How to register the skills as a ChatGPT Codex plugin
 
-<img src="../assets/logo-llm-shared-transparent.png" alt="" height="90" align="right">
+<img src="../assets/logo-llm-shared-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
+
+## Invocation model
+
+Plugin registration and thread restart are human-owned host configuration.
+An AI can update the package and run the requested CLI refresh, but the user
+chooses the marketplace and starts the new Codex thread that loads it.
 
 🤖 Goal: make all 24 llm-shared skills available in every ChatGPT Codex
 session as `$llm-shared:<skill>`, without copying a single file out of

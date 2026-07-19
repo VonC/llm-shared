@@ -1,8 +1,15 @@
 # How to group a dirty tree into conventional commits
 
-<img src="../assets/logo-llm-shared-trail-transparent.png" alt="" height="90" align="right">
+<img src="../assets/logo-llm-shared-trail-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
+
+## Invocation model
+
+Validated implementation steps normally hand off to the AI's
+`group-commits-msg` skill automatically. The human reviews `a.commit` before
+replay. Invoke the skill directly for any standalone dirty or staged tree that
+needs the same coherent grouping.
 
 📊 Goal: turn a working tree holding several unrelated changes into an
 ordered series of conventional commits, each with a `Why:` / `What:` body.

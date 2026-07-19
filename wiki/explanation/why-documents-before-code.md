@@ -1,8 +1,14 @@
 # Why documents come before code
 
-<img src="../assets/logo-llm-shared-documents-transparent.png" alt="" height="90" align="right">
+<img src="../assets/logo-llm-shared-documents-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
+
+## Invocation model
+
+The user supplies the initial intent and starts the document workflow. The AI
+normally invokes the writing, review, consolidation, and handoff skills in
+sequence. Invoke one writing skill directly only to enter or repeat that phase.
 
 📝 llm-shared exists to prevent one habit: vibe-coding — "I got an idea,
 here it is, now generate me some code for it, I will figure out the

@@ -1,8 +1,15 @@
 # Why grouped commits, least dependent first
 
-<img src="../assets/logo-llm-shared-trail-transparent.png" alt="" height="90" align="right">
+<img src="../assets/logo-llm-shared-trail-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
+
+## Invocation model
+
+The implementation workflow normally invokes `group-commits-msg` when a step
+is validated. The AI prepares `a.commit`; the human reviews the groups and
+authorizes replay. Call the skill directly when an unrelated dirty tree needs
+the same grouping without running the full implementation chain.
 
 📊 By commit time, a working tree rarely holds one change. It holds the
 goal change, the small fixes noticed along the way, the paired test

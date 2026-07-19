@@ -1,8 +1,14 @@
 # One launcher, three modes
 
-<img src="../assets/logo-llm-shared-review-transparent.png" alt="" height="90" align="right">
+<img src="../assets/logo-llm-shared-review-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
+
+## Invocation model
+
+Workflow skills normally call `pw skill` and `pw handoff` themselves. Use the
+interactive `pw` menu directly to choose a next step by hand, or call a mode
+directly when diagnosing or resuming a known routing state.
 
 🔁 `pw` answers a single question — what is the next step of this effort?
 — three different ways, because three different callers need the answer:

@@ -1,8 +1,14 @@
 # One body, many agents
 
-<img src="../assets/logo-llm-shared-transparent.png" alt="" height="90" align="right">
+<img src="../assets/logo-llm-shared-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
+
+## Invocation model
+
+A human performs the one-time host registration. Afterwards the user asks for
+a named skill and the host AI executes the shared body and its internal tools.
+Handing an instruction body to an unsupported LLM is the direct fallback.
 
 🤖 The same skill runs from GitHub Copilot, Claude Code, ChatGPT Codex
 and Google Antigravity because the skill is not written four times. Each

@@ -1,6 +1,6 @@
 # pw launcher
 
-<img src="../assets/logo-llm-shared-review-transparent.png" alt="" height="90" align="right">
+<img src="../assets/logo-llm-shared-review-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
 
@@ -8,6 +8,12 @@
 `tools\prompt_workflow.py`, aliased `pw` in an interactive `cmd`. It
 answers one question — what is the next step of this effort? — in three
 modes.
+
+## Invocation model
+
+Other skills normally let the AI call this launcher as an internal handoff.
+Humans call it directly to use the interactive menu, debug dispatch, or resume a
+specific known phase without restarting the parent workflow.
 
 ## 🧠 Shared core of every mode
 

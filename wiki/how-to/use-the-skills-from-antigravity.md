@@ -1,12 +1,19 @@
 # How to use the skills from Google Antigravity
 
-<img src="../assets/logo-llm-shared-transparent.png" alt="" height="90" align="right">
+<img src="../assets/logo-llm-shared-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
 
 🤖 Goal: call the llm-shared skills from a Google Antigravity session
 with the same `/write-design`-style syntax as the other hosts, while the
 bodies stay mutualized under `instructions/`.
+
+## Invocation model
+
+The initial host wiring is a human setup action. Once the host can discover the
+skills, the user invokes a top-level skill and the AI owns its internal commands
+and handoffs. Return to these manual steps only to register a new project,
+refresh the integration, or diagnose discovery.
 
 ## 📦 What the repository ships for Antigravity
 

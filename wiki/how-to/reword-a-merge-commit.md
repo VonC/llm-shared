@@ -1,12 +1,19 @@
 # How to reword a merge commit from the branch docs
 
-<img src="../assets/logo-llm-shared-trail-transparent.png" alt="" height="90" align="right">
+<img src="../assets/logo-llm-shared-trail-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
 
 📊 Goal: replace the default `Merge branch '<slug>'` message of a merge
 commit with a conventional message built from the documents the merged
 branch carried.
+
+## Invocation model
+
+The release workflow normally asks the AI to update the merge message after a
+successful no-fast-forward merge. Use this procedure directly only to repair the
+current merge commit or to review the exact mechanics before approving the
+automated step.
 
 ## 📋 Steps from merge to reworded message
 

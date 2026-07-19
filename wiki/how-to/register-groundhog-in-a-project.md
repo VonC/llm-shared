@@ -1,8 +1,15 @@
 # How to register groundhog in a project
 
-<img src="../assets/logo-llm-shared-groundhog-transparent.png" alt="" height="90" align="right">
+<img src="../assets/logo-llm-shared-groundhog-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
+
+## Invocation model
+
+Registration is a one-time human setup command because it changes the target
+project's agent entry points. Afterward, implementation and Groundhog skills
+invoke the registered loop automatically; rerun registration directly only to
+repair or refresh those pointers.
 
 🧪 Goal: make the groundhog fixing loop triggerable from Claude Code and
 ChatGPT Codex in a given project, with one command.

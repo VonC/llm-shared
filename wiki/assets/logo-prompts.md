@@ -1,6 +1,6 @@
 # Logo prompts for the llm-shared themes
 
-<img src="logo-llm-shared-transparent.png" alt="" height="90" align="right">
+<img src="logo-llm-shared-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
 

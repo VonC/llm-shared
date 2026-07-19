@@ -1,11 +1,18 @@
 # Artifact files and naming conventions
 
-<img src="../assets/logo-llm-shared-documents-transparent.png" alt="" height="90" align="right">
+<img src="../assets/logo-llm-shared-documents-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
 
 📝 Every file the workflow reads or writes, split between the versioned
 documents under `docs\` and the transient `a.*` files at the project root.
+
+## Invocation model
+
+Workflow skills create and consume most of these files automatically. Humans
+normally inspect them at validation gates and edit only the artifacts whose
+workflow explicitly requests an answer or approval. Use this reference when a
+manual tool invocation needs an exact path or naming contract.
 
 ## 📚 Versioned documents under docs
 

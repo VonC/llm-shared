@@ -1,8 +1,14 @@
 # How to answer a review round
 
-<img src="../assets/logo-llm-shared-review-transparent.png" alt="" height="90" align="right">
+<img src="../assets/logo-llm-shared-review-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
+
+## Invocation model
+
+The AI creates and later consolidates the review round; the human supplies the
+answers. Invoke consolidation directly only when resuming an existing answered
+document outside the original automated chain.
 
 🔁 Goal: answer the open questions a review skill raised on a requirement,
 design or plan, and get the answers folded into the document.

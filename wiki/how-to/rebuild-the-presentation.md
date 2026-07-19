@@ -1,8 +1,14 @@
 # How to rebuild the presentation as PPTX and PDF
 
-<img src="../assets/logo-llm-shared-trail-transparent.png" alt="" height="90" align="right">
+<img src="../assets/logo-llm-shared-trail-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
+
+## Invocation model
+
+Presentation rebuilding is an on-demand maintenance task. A human runs it
+directly, or asks an AI to run it after changing the deck source. It is not a
+hidden step of the document, implementation, or release workflows.
 
 📊 Goal: regenerate `docs\llm-shared_presentation.pptx` and
 `docs\llm-shared_presentation.pdf` from the HTML slide deck, with your own

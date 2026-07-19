@@ -1,8 +1,15 @@
 # Groundhog as a reset loop
 
-<img src="../assets/logo-llm-shared-groundhog-transparent.png" alt="" height="90" align="right">
+<img src="../assets/logo-llm-shared-groundhog-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
+
+## Invocation model
+
+During implementation, the AI normally owns this loop: it calls `ghog day`,
+uses the exit contract to fix failures, coverage gaps, or duration outliers,
+and walks again. Run `ghog` directly to learn the gate, reproduce it locally,
+or diagnose a specific station without starting an AI workflow.
 
 🧪 Like the movie, groundhog relives the same day — compile check,
 affected tests, full suite with a freshly reset coverage measure — until

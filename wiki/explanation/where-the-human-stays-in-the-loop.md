@@ -1,8 +1,14 @@
 # Where the human stays in the loop
 
-<img src="../assets/logo-llm-shared-review-transparent.png" alt="" height="90" align="right">
+<img src="../assets/logo-llm-shared-review-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
+
+## Invocation model
+
+The user starts the high-level skill and owns the documented decisions. The AI
+owns intermediate skills, launchers, checks, and evidence gathering; a human is
+not expected to run those prerequisites merely to keep automation moving.
 
 🔁 The workflow automates every transition it safely can, and keeps a
 short, deliberate list of stops where a human decides. Knowing the list

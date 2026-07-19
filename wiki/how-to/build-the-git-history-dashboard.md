@@ -1,8 +1,14 @@
 # How to build the git-history dashboard
 
-<img src="../assets/logo-llm-shared-trail-transparent.png" alt="" height="90" align="right">
+<img src="../assets/logo-llm-shared-trail-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
+
+## Invocation model
+
+Normally ask the AI for the `git-history-report` skill and let it collect
+context, build, and explain the dashboard. Run `ghd` directly for a quick
+repeat build, local inspection, or development of the dashboard generator.
 
 📊 Goal: produce one standalone HTML dashboard of the commit history of
 one or several repositories, with in-page filters and per-project analysis

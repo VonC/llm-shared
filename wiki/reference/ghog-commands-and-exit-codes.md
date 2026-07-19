@@ -1,12 +1,19 @@
 # ghog commands and exit codes
 
-<img src="../assets/logo-llm-shared-groundhog-transparent.png" alt="" height="90" align="right">
+<img src="../assets/logo-llm-shared-groundhog-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
 
 🧪 The groundhog contract: every subcommand, every exit code, and the
 closing line. Single entry point `bin\ghog.bat`; each wrapper loads
 `senv.bat` itself, so a call is self-contained from any shell.
+
+## Invocation model
+
+The AI normally drives these commands as a reset loop after implementation and
+keeps going until the recorded state is done or a safety stop needs human input.
+Run them directly to learn the stages, diagnose a failed walk, or integrate the
+same contract into local automation.
 
 ## ⌨️ Subcommands
 

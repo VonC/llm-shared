@@ -1,8 +1,14 @@
 # Run the implement chain on one plan step
 
-<img src="../assets/logo-llm-shared-review-transparent.png" alt="" height="90" align="right">
+<img src="../assets/logo-llm-shared-review-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
+
+## Invocation model
+
+You select the plan step and start `implement-step`. The AI owns the subsequent
+Groundhog, implementation-check, missing-work, and grouped-commit handoffs.
+Your role is to validate the evidence and approve the commit plan.
 
 🔁 In this tutorial you execute one step of a settled implementation plan
 and watch the automated chain carry it from code to a reviewed commit

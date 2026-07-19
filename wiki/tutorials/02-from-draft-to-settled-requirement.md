@@ -1,8 +1,14 @@
 # From draft note to settled requirement
 
-<img src="../assets/logo-llm-shared-documents-transparent.png" alt="" height="90" align="right">
+<img src="../assets/logo-llm-shared-documents-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
+
+## Invocation model
+
+You start the tutorial with the draft-processing skill and answer its review
+questions. The AI invokes the writing, review, consolidation, and `pw skill`
+handoffs; you do not run each intermediate command yourself.
 
 📝 In this tutorial you take a raw idea through the first phase of the
 workflow: capture it as a draft, let `/process-draft` classify and branch

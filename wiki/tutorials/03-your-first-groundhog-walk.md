@@ -1,8 +1,14 @@
 # Your first groundhog walk
 
-<img src="../assets/logo-llm-shared-groundhog-transparent.png" alt="" height="90" align="right">
+<img src="../assets/logo-llm-shared-groundhog-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
+
+## Invocation model
+
+This tutorial calls `ghog` directly so you can learn its reports. In the normal
+implementation workflow the AI invokes the same walk, fixes the reported
+failure, coverage gap, or duration outlier, and repeats it automatically.
 
 🧪 In this tutorial you register groundhog in a Python project, run one
 `ghog day` walk, and read its report. Allow 15 minutes plus one full test

@@ -1,11 +1,18 @@
 # How to run pw from any shell
 
-<img src="../assets/logo-llm-shared-review-transparent.png" alt="" height="90" align="right">
+<img src="../assets/logo-llm-shared-review-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
 
 🔁 Goal: call the prompt-workflow launcher from a tool shell (Claude Code,
 Codex, a script) where the bare `pw` Doskey alias does not exist.
+
+## Invocation model
+
+The AI normally calls the full `prompt_workflow.bat` launcher when another skill
+needs `pw`; the interactive alias is a human convenience. Call the launcher
+directly to open its menu, diagnose host-shell behavior, or resume a known
+handoff without repeating the whole parent workflow.
 
 ## 🐚 Why the bare alias fails outside cmd
 
