@@ -56,6 +56,167 @@ def test_group_commits_carries_the_commit_gate_multi_choice() -> None:
     assert "Type something else" in content
 
 
+def test_prepare_release_distinguishes_branch_roles() -> None:
+    """prepare-release preserves integration history and isolates feature commits."""
+    content = " ".join(_read("prepare-release.md").split())
+    assert "On-main release" in content
+    assert "Integration release" in content
+    assert "Feature release" in content
+    assert "Never rebase a published, long-lived integration branch" in content
+    assert 'rebase --onto main "<feature_base>" "<promotion_branch>"' in content
+    assert "do not blindly use the oldest entry" in content
+    assert "Never move or rewrite `<feature_branch>` itself" in content
+    assert 'There is no feature-mode "merge stale anyway" path' in content
+    assert 'merge --no-ff "<source_branch>"' in content
+
+
+def test_prepare_release_stops_features_already_contained_by_main() -> None:
+    """prepare-release does not attempt an empty replay of an integrated feature."""
+    content = " ".join(_read("prepare-release.md").split())
+    assert "branch tip already released" in content
+    assert "feature-only merge can no longer select it" in content
+    assert "Never silently convert the invocation to an on-main release" in content
+
+
+def test_prepare_release_uses_read_only_planner_and_merge_tree_preview() -> None:
+    """prepare-release plans topology and conflicts before changing branches."""
+    content = " ".join(_read("prepare-release.md").split())
+    assert "prepare_release_plan.bat" in content
+    assert "--no-conflict-preview" in content
+    assert "--feature-base" in content
+    assert "git merge-tree --write-tree -z --name-only --messages" in content
+    assert "isolated temporary object directory" in content
+    assert "first conflict because a human resolution changes" in content
+
+
+def test_prepare_release_planner_uses_package_directories() -> None:
+    """Planner sources and tests live in matching prepare_release packages."""
+    root = steps.llm_shared_dir()
+    source = root / "tools" / "prepare_release"
+    tests = root / "tests" / "unit" / "tools" / "prepare_release"
+    launcher = (root / "bin" / "prepare_release_plan.bat").read_text(
+        encoding="utf-8",
+    )
+
+    assert (source / "__init__.py").is_file()
+    assert (source / "prepare_release_plan.py").is_file()
+    assert (tests / "__init__.py").is_file()
+    assert (tests / "test_prepare_release_plan_workflow.py").is_file()
+    assert "tools\\prepare_release\\prepare_release_plan.py" in launcher
+
+
+def test_prepare_release_treats_later_versions_as_notes() -> None:
+    """The invocation branch selects content while the lowest new version labels it."""
+    content = " ".join(_read("prepare-release.md").split())
+    assert "Choose the lowest version strictly greater than the last" in content
+    assert "feature-request" in content
+    assert "forward-looking notes for later efforts" in content
+    assert "Drafts never trigger Step 2" in content
+    assert "selecting the invocation branch selects its content" in content
+    assert "Later-version plans are forward-looking notes" in content
+
+
+def test_prepare_release_owns_planner_invocation_end_to_end() -> None:
+    """The caller supplies context; the skill runs every planner command itself."""
+    content = " ".join(_read("prepare-release.md").split())
+    assert "The user only has to invoke `$llm-shared:prepare-release`" in content
+    assert "Never ask the user to run `prepare_release_plan.bat`" in content
+    assert "Do not depend on the user's current shell having `LLM_SHARED_DIR`" in content
+    assert "automatically rerun the release planner" in content
+
+    root = steps.llm_shared_dir()
+    tutorial = (root / "wiki/tutorials/05-prepare-a-release-from-develop.md").read_text(
+        encoding="utf-8",
+    )
+    how_to = (root / "wiki/how-to/prepare-a-release.md").read_text(encoding="utf-8")
+    for page in (tutorial, how_to):
+        assert "$llm-shared:prepare-release" in page
+        assert "$env:LLM_SHARED_DIR" not in page
+
+
+def test_prepare_release_gives_actionable_unsupported_path_handoffs() -> None:
+    """Unsupported planner paths stop safely with commands and a re-entry point."""
+    content = " ".join(_read("prepare-release.md").split())
+
+    assert "Unsupported planner handoffs" in content
+    assert "Every unsupported result must end with an actionable block" in content
+    assert "git revert -m 1 <excluded_merge_oid>" in content
+    assert "git cherry-pick --abort" in content
+    assert "Re-enter prepare-release" in content
+    assert "no combined planner run can model an evolving main" in content
+    assert "do not claim that the planner accepts an explicit commit list" in content
+    assert "Independently count `main..<integration_branch>`" in content
+
+
+def test_prepare_release_wiki_marks_planner_capability_boundaries() -> None:
+    """Diátaxis pages distinguish supported paths from actionable stops."""
+    root = steps.llm_shared_dir()
+    scenarios = (root / "wiki/reference/prepare-release-scenarios.md").read_text(
+        encoding="utf-8",
+    )
+    planner = (root / "wiki/reference/prepare-release-planner.md").read_text(
+        encoding="utf-8",
+    )
+    how_to = (root / "wiki/how-to/prepare-a-release.md").read_text(encoding="utf-8")
+    tutorial = (root / "wiki/tutorials/05-prepare-a-release-from-develop.md").read_text(
+        encoding="utf-8",
+    )
+
+    assert "Required unsupported-path output" in scenarios
+    assert "Supported and unsupported planning paths" in planner
+    assert "git switch -c prepare-release/exclude-<topic>" in how_to
+    assert "git switch -c prepare-release/<feature>-clean main" in how_to
+    assert "The `main..develop` scope must contain at least one commit" in tutorial
+
+
+def test_prepare_release_names_and_applies_gitworkflow_precisely() -> None:
+    """Topic graduation is gitworkflow, while bulk develop promotion is explicit."""
+    content = " ".join(_read("prepare-release.md").split())
+    assert "Workflow model: gitworkflow topic graduation" in content
+    assert 'Do not call this generic "Git flow"' in content
+    assert "oldest integration branch it may eventually enter" in content
+    assert "all-topics-ready bulk exception" in content
+    assert "GitFlow-style recovery shortcut, not normal gitworkflow" in content
+    assert "does not preview this revert path" in content
+    assert "https://git-scm.com/docs/gitworkflows" in content
+    assert "https://github.com/rocketraman/gitworkflow" in content
+
+
+def test_prepare_release_documents_default_develop_variant() -> None:
+    """The local variant rebases topics for develop and releases from main."""
+    content = " ".join(_read("prepare-release.md").split())
+    assert "published long-lived hosting default" in content
+    assert "rebase the feature onto current `develop`" in content
+    assert "A feature may also go directly to main" in content
+    assert "be picked twice with `--no-ff`" in content
+
+
+def test_gitworkflow_explanation_links_the_primary_context() -> None:
+    """The explanation distinguishes the named workflow and cites its context."""
+    explanation = (
+        steps.llm_shared_dir() / "wiki/explanation/why-release-branch-roles-matter.md"
+    ).read_text(encoding="utf-8")
+    assert "The model is gitworkflow, one word" in explanation
+    assert "This is not a spelling variant of generic" in explanation
+    assert "https://stackoverflow.com/a/44470240/6309" in explanation
+    assert "https://stackoverflow.com/a/216228/6309" in explanation
+    assert "https://stackoverflow.com/a/53405887/6309" in explanation
+
+
+def test_llm_shared_pwiki_alias_serves_wiki_and_loads_before_guard() -> None:
+    """The llm-shared console always gets a pwiki macro for the root wiki."""
+    root = steps.llm_shared_dir()
+    senv = (root / "senv.bat").read_text(encoding="utf-8")
+    doskeys = (root / "senv.doskey").read_text(encoding="utf-8")
+    macro_load = 'doskey /MACROFILE="%LLM_SHARED_DIR%\\senv.doskey"'
+    guard = "if defined NO_MORE_SENV_%PRJ_DIR_NAME% ( goto:eof )"
+
+    assert senv.index(macro_load) < senv.index(guard)
+    assert 'pwiki=python "%LLM_SHARED_DIR%\\tools\\serve_docs\\serve_docs.py"' in doskeys
+    assert '"%PRJ_DIR%\\wiki"' in doskeys
+    assert '"%PRJ_DIR%\\docs\\wiki"' not in doskeys
+
+
 def test_run_pw_note_documents_the_launcher() -> None:
     """run-pw.md references the command rules and the launcher, not the bare alias."""
     content = _read("run-pw.md")
