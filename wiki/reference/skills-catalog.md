@@ -26,7 +26,7 @@ resolves to the same-named body under
 | `/group-commits-msg` | the staged diff | `a.commit`, one message per group |
 | `/update-merge-commit-msg` | the merge commit | `a.docs`, `a.commit`, reworded merge |
 | `/prepare_release_notes` | `version.txt`, git history | `a.md`, `version.txt` summary, `CHANGELOG.md` |
-| `/prepare-release` | any branch of the effort | one `chore(release): prepare` commit on `main` |
+| `/prepare-release` | `main`, integration, or an isolated effort branch | one `chore(release): prepare` commit on `main`, or an evidence-backed manual runbook when the requested selection is unsupported |
 
 ## 🛠️ Support skills
 
@@ -39,6 +39,7 @@ resolves to the same-named body under
 | `git-history-report` | build the standalone commit-history dashboard |
 | `activity-report` | French activity report from commit messages and md diffs |
 | `/sanitize-git-history` | audit a repo history for confidential words, then rewrite it with git filter-repo before publishing |
+| `prepare_release_plan.bat` | internal read-only single-source tool called automatically by `/prepare-release`; its standalone interface supports diagnostics, while the skill guards empty integration ranges and explains unsupported revert, multi-topic, and non-contiguous paths |
 
 ## 🔗 Chaining behavior of the writing skills
 
@@ -66,4 +67,5 @@ document settles. `/implement-step`, `/implementation-check` and
   on each invalid field.
 
 Related: [pw launcher](pw-launcher.md),
-[Artifact files and naming conventions](artifact-files.md).
+[Artifact files and naming conventions](artifact-files.md), and
+[Prepare-release scenarios](prepare-release-scenarios.md).

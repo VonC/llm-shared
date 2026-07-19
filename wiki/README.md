@@ -16,6 +16,9 @@ belongs to exactly one of the four categories below, and never mixes goals:
 a tutorial teaches, a how-to guide solves, a reference describes, an
 explanation clarifies.
 
+The dry command reference for release topology and conflict inspection is
+[Prepare-release planner command](reference/prepare-release-planner.md).
+
 ## 🎓 Tutorials
 
 Learning by doing: follow the steps in order, type what is shown, check
@@ -25,6 +28,7 @@ what you see. Start here if llm-shared is new to you.
 - 📝 [From draft note to settled requirement](tutorials/02-from-draft-to-settled-requirement.md)
 - 🧪 [Your first groundhog walk](tutorials/03-your-first-groundhog-walk.md)
 - 🔁 [Run the implement chain on one plan step](tutorials/04-run-the-implement-chain.md)
+- 📊 [Prepare your first release from develop](tutorials/05-prepare-a-release-from-develop.md)
 
 ## 🧭 How-to guides
 
@@ -60,6 +64,7 @@ Exact, dry descriptions of commands, formats and conventions.
 - 📝 [Artifact files and naming conventions](reference/artifact-files.md)
 - 📊 [Commit message format](reference/commit-message-format.md)
 - 🧪 [ghog commands and exit codes](reference/ghog-commands-and-exit-codes.md)
+- 📊 [Prepare-release scenarios](reference/prepare-release-scenarios.md)
 - 📝 [Document templates](reference/templates.md)
 - 🤖 [Writing rules](reference/writing-rules.md)
 - 🤖 [Repository layout](reference/repository-layout.md)
@@ -74,4 +79,5 @@ Background and reasoning: why llm-shared is built the way it is.
 - 🔁 [Where the human stays in the loop](explanation/where-the-human-stays-in-the-loop.md)
 - 📊 [Why grouped commits, least dependent first](explanation/why-grouped-commits.md)
 - 🧪 [Groundhog as a reset loop](explanation/groundhog-as-a-reset-loop.md)
+- 📊 [Why release branch roles matter](explanation/why-release-branch-roles-matter.md)
 - 🤖 [One body, many agents](explanation/one-body-many-agents.md)
