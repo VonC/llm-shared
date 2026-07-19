@@ -26,6 +26,11 @@ if defined GCYGPATH (
   for /f "usebackq tokens=*" %%i in (`%GCYGPATH% -u "%PRJ_DIR%"`) do  set "PRJ_DIR_unix=%%i"
 )
 
+REM Doskey macros are per-console and are not inherited. Load them before the
+REM guard so a new console spawned from an initialized parent still gets pw,
+REM pwiki, ghog, and the other shared aliases.
+doskey /MACROFILE="%LLM_SHARED_DIR%\senv.doskey"
+
 if defined NO_MORE_SENV_%PRJ_DIR_NAME% ( goto:eof )
 
 ::##################################################
@@ -98,8 +103,6 @@ doskey ptws=ptw "%PRJ_DIR%\bin" --testmon --cov-report=html --cov-append --cov-r
 doskey switchp=switchpy %PYTHON_VERSION% local $* ^& echo %PRJ_DIR_NAME%: switchpy done
 doskey c="%PRJ_DIR%\bin\python_check.bat" $* ^& echo %PRJ_DIR_NAME%: python check done
 doskey cbf="%PRJ_DIR%\bin\check_big_files.bat" $* ^& echo %PRJ_DIR_NAME%: check big files done
-
-doskey /MACROFILE="%LLM_SHARED_DIR%\senv.doskey"
 
 doskey fga=python "%PRJ_DIR%\tools\flamegraph_analyzer.py" $1 ^& echo %PRJ_DIR_NAME%: flamegraph analyzer done
 
