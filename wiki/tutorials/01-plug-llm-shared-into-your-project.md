@@ -1,14 +1,22 @@
 # Plug llm-shared into your project
 
-<img src="../assets/logo-llm-shared-transparent.png" alt="" height="90" align="right">
+<img src="../assets/logo-llm-shared-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
 
+## Invocation model
+
+You perform this one-time host setup manually. Once registration is complete,
+you ask the host AI for a skill; the AI runs its body and internal launchers.
+Directly opening an instruction file is the fallback for another compatible
+LLM.
+
 🤖 In this tutorial you make the llm-shared skills available inside one of
 your own projects, then confirm a slash command resolves. Allow 10 to 15
-minutes. You need: a project under git, and one of GitHub Copilot in VS
-Code, Claude Code (extension or CLI), or any LLM that reads workspace
-files.
+minutes. You need a project under Git and one of the four officially supported
+environments: GitHub Copilot, Anthropic Claude Code, OpenAI ChatGPT Codex, or
+Google Gemini Antigravity. Any other LLM that reads and writes workspace files
+can use the instruction bodies directly.
 
 ## 1. Clone llm-shared next to your projects
 
@@ -94,9 +102,10 @@ Claude Code. The recipe and the version caveats are in
 
 ## 6. Or hand the bodies to any other LLM
 
-Every slash command resolves to a plain markdown body under
-[`instructions/`](../../instructions/), with the same name: `/write-design`
-is `instructions/write-design.md`. Give the model that file as context,
+Every slash command resolves to a plain markdown body under `instructions/`,
+with the same name: `/write-design` is `instructions/write-design.md`. The
+[repository layout](../reference/repository-layout.md#shared-bodies-and-rules)
+shows where those bodies live. Give the model that file as context,
 plus the inputs the body expects (a draft, a requirement, a plan), and it
 runs the same skill without knowing about `.github/` or `.claude/`.
 

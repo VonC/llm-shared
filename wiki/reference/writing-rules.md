@@ -1,11 +1,18 @@
 # Writing rules
 
-<img src="../assets/logo-llm-shared-transparent.png" alt="" height="90" align="right">
+<img src="../assets/logo-llm-shared-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
 
-🤖 The shared rules under [`rules/`](../../rules/) that every skill body
-imports. They apply to any agent using the skills, whatever the host.
+🤖 The shared rules under `rules/` that every skill body imports; see the
+[repository layout](repository-layout.md#shared-bodies-and-rules). They apply to
+any agent using the skills, whatever the host.
+
+## Invocation model
+
+Agents load these rules automatically through their project instructions; users
+do not normally invoke them. Read or edit a rule directly when maintaining the
+shared policy or diagnosing why generated output follows a particular form.
 
 ## 🚫 blacklist.md
 
@@ -68,5 +75,12 @@ editors as context, check Python files under `src\` and `tools\` end with
 `# eof`, print the relative pathname before every code block, write
 impacted classes in full, and keep tests in step with the code they
 cover.
+
+## Diátaxis set order
+
+The repository `AGENTS.md` keeps one documentation memory for future agents:
+whenever a Diátaxis set is created or maintained, present explanation first,
+then tutorials, how-to guides, and reference. Each page still serves exactly
+one of those purposes. The wiki home page follows the same order.
 
 Related: [One body, many agents](../explanation/one-body-many-agents.md).

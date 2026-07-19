@@ -1,13 +1,22 @@
 # Skills catalog
 
-<img src="../assets/logo-llm-shared-transparent.png" alt="" height="90" align="right">
+<img src="../assets/logo-llm-shared-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
 
 🤖 Every skill, its trigger, its inputs and what it writes. Each skill
-resolves to the same-named body under
-[`instructions/`](../../instructions/); `.github/skills/` (Copilot) and
-`.claude/skills/` (Claude Code) both delegate to it.
+resolves to the same-named body under `instructions/`; see the
+[repository layout](repository-layout.md#shared-bodies-and-rules). GitHub Copilot and Claude Code delegate
+through `.github/skills/` and `.claude/skills/`; OpenAI ChatGPT Codex uses the
+self-contained `.agents/llm-shared/` plugin; Google Gemini Antigravity uses
+`.agent/workflows/`. These are the four officially supported environments.
+
+## Invocation model
+
+Users normally invoke a top-level skill in natural language and let the AI chain
+the required support skills and commands. Invoke a lower-level skill directly
+when deliberately entering, repeating, or resuming that one phase with its
+prerequisites already satisfied.
 
 ## 🗺️ Workflow skills in phase order
 
@@ -38,7 +47,7 @@ resolves to the same-named body under
 | `/write-release-notes-summary` | draft release notes from conventional commit subjects |
 | `git-history-report` | build the standalone commit-history dashboard |
 | `activity-report` | French activity report from commit messages and md diffs |
-| `/sanitize-git-history` | audit a repo history for confidential words, then rewrite it with git filter-repo before publishing |
+| `/sanitize-git-history` | automatically run the contextual history scanner, settle confidential-term rules, then optionally rewrite with git filter-repo |
 | `prepare_release_plan.bat` | internal read-only single-source tool called automatically by `/prepare-release`; its standalone interface supports diagnostics, while the skill guards empty integration ranges and explains unsupported revert, multi-topic, and non-contiguous paths |
 
 ## 🔗 Chaining behavior of the writing skills

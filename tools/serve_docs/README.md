@@ -29,6 +29,7 @@ cleanly.
 | --- | --- | --- |
 | `docs_dir` | required | the folder of markdown files to serve |
 | `--include` | none | extra folder or file served next to `docs_dir`, keeping the on-disk layout below their common ancestor; repeatable |
+| `--root-include` | none | sibling file or folder mounted below its path relative to `docs_dir`'s parent while the primary folder stays at `/`; repeatable |
 | `--name` | folder name | site name shown in the header |
 | `--port` | from `serve_docs.ini` | server port for this run |
 | `--no-browser` | off | do not open the browser once the server answers |
@@ -37,6 +38,14 @@ With `--include`, the served content is a snapshot copied at start time
 (never links, so cleanup can never touch the originals): restart the
 server to pick up file edits. Without `--include`, the folder is served
 in place and edits rebuild live.
+
+`--root-include` is also a start-time snapshot. It is useful when a wiki
+must stay at `/` while a sibling presentation is expected at a URL such
+as `/docs/deck.html`. Root includes must stay below `docs_dir`'s parent,
+and cannot be combined with `--include`. Repository-relative Markdown links
+that escape the primary folder are adjusted in the snapshot only, so MkDocs
+validates their mounted targets while the checked-in sources remain correct.
+Mounted Markdown stays outside the generated sidebar navigation.
 
 ## Per-folder configuration
 
@@ -50,6 +59,17 @@ name = my docs
 include =
     ../architecture
     ../../README.md
+```
+
+Or preserve the primary folder at the site root and mount selected
+sibling assets at repository-relative paths:
+
+```ini
+[serve_docs]
+name = my wiki
+root_include =
+    ../docs/deck.html
+    ../docs/logo.png
 ```
 
 Command-line flags win over the per-folder file; the per-folder file
@@ -89,7 +109,10 @@ port = 8000
 - Relative links and images between the served pages; `README.md` is
   served as the folder index (`index.html`). Links pointing outside the
   served content stay unresolved (MkDocs warns and keeps serving); pull
-  their targets in with `--include` when they matter.
+  their targets in with `--include` or `--root-include` when they matter.
+- Explicit Diátaxis navigation when the conventional directories exist:
+  Explanation, Tutorials, How-to guides, then Reference. Other folders
+  follow alphabetically.
 - One rendering difference from GitHub: python-markdown treats a line
   content starting with a literal `#` as a heading even without a
   following space, so an emoji such as the keycap `#`-sign at the start

@@ -1,12 +1,18 @@
 # Commit message format
 
-<img src="../assets/logo-llm-shared-trail-transparent.png" alt="" height="90" align="right">
+<img src="../assets/logo-llm-shared-trail-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
 
 📊 The commit format used across the workflow: Conventional Commits
 v1.0.0 for the title, plus a fixed `Why:` / `What:` body defined by
-[`templates/group-commits-msg.template.md`](../../templates/group-commits-msg.template.md).
+the [grouped-commit template](templates.md#group-commits-msgtemplatemd).
+
+## Invocation model
+
+The grouped-commit workflow normally asks the AI to propose these messages and
+the human approves the grouping and wording. Writing one directly is fully
+supported for an isolated commit or when tailoring a proposal before commit.
 
 ## ✉️ Shape of one message
 
@@ -38,8 +44,8 @@ What:
   reason (what was broken, missing or unclear), then the "now" state (how
   the code is better once the commit lands).
 - `What:` is a dash-prefixed list, one line per actual modification.
-- The words listed in [`rules/blacklist.md`](../../rules/blacklist.md) are
-  forbidden.
+- The words described in the [blacklist reference](writing-rules.md#blacklistmd)
+  are forbidden.
 
 ## 🗂️ The a.commit file format
 

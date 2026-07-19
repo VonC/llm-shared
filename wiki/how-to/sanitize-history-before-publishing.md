@@ -1,6 +1,6 @@
 # How to sanitize a repository history before publishing
 
-<img src="../assets/logo-llm-shared-trail-transparent.png" alt="" height="90" align="right">
+<img src="../assets/logo-llm-shared-trail-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
 
@@ -13,6 +13,14 @@ paths and old identities all travel with every clone.
 This works on any git repository, not only llm-shared. All examples use
 dummy words (`jdoe`, `acmecorp`): substitute the real list, and never
 commit that list.
+
+## Invocation model
+
+Ask for the sanitize-history skill and let the AI run the scanner, prepare the
+rewrite, re-audit the result, and restore remotes. The human approves the
+destructive rewrite phase and remains responsible for any later force-push.
+Run the scanner directly only for an ad hoc read-only audit or while developing
+its matching rules.
 
 ## 📋 Steps to audit and rewrite
 
@@ -31,11 +39,21 @@ commit that list.
    ```
 
 2. Run phase 1, the audit (or ask the agent to "sanitize-git-history
-   phase 1"): it scans every commit and tag message, every historical file
-   path, every file version ever committed (raw bytes, binaries included)
-   and the author/committer identities against the watch list, reports
-   the hits per term with the affected files, and refreshes the rules
-   file — one defensive rule per watched word, even on zero hits.
+   phase 1"). The skill automatically calls `sensitive_history_scan.bat`
+   against the rules file and writes an ignored contextual report. Do not run
+   the scanner as a prerequisite for the skill.
+
+   To inspect the same evidence yourself before invoking the skill, initialize
+   `senv.bat` in an interactive `cmd` and use the `shscan` alias:
+
+   ```bat
+   shscan --rules a.sensitive.replacements.local.txt --output a.sensitive.history-scan.local.md --full-lines --validation-term my-project
+   ```
+
+   From any shell, call the self-locating launcher by its full path. The report
+   lists each matching commit/tag line, historical path, and blob line with its
+   OID and representative path. It also shows exact casing and flags binary or
+   shortened lines.
 
 3. Review the draft rules and the findings. Identities are not covered by
    the rules file: list the emails to neutralize in a second git-ignored
@@ -82,9 +100,10 @@ watched word, `git log --all` shows the neutral messages and the neutral
 emails, and neither the rules file nor the mailmap appears in
 `git ls-files`.
 
-The exact commands of both phases, the blob scanner and the post-rewrite
-verifications are in the instruction body
-[`instructions/sanitize-git-history.md`](../../instructions/sanitize-git-history.md).
+The scanner's exact command surface and report contract are in the
+[sensitive-history scanner reference](../reference/sensitive-history-scan.md).
 
-Related: [Build the git-history dashboard](build-the-git-history-dashboard.md),
+Related: [Learn the scanner](../tutorials/06-audit-sensitive-history.md),
+[scanner command reference](../reference/sensitive-history-scan.md),
+[why contextual object scanning matters](../explanation/why-sensitive-history-needs-context.md),
 [skills catalog](../reference/skills-catalog.md).

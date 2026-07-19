@@ -1,12 +1,19 @@
 # Document templates
 
-<img src="../assets/logo-llm-shared-documents-transparent.png" alt="" height="90" align="right">
+<img src="../assets/logo-llm-shared-documents-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
 
-📝 The skeletons under [`templates/`](../../templates/) that the skills
-fill. One template per document kind; the instruction bodies reference
-them by path.
+📝 The skeletons under `templates/` that the skills fill. Their place in the
+shared source tree is shown in the
+[repository layout](repository-layout.md#shared-bodies-and-rules). One template
+per document kind; the instruction bodies reference them by path.
+
+## Invocation model
+
+AI workflow skills normally load and fill these templates, then ask the human to
+validate decisions at the appropriate gate. Copy or fill one directly when
+authoring a custom artifact outside the workflow or testing a template change.
 
 ## 📝 write-requirement.template.md
 
