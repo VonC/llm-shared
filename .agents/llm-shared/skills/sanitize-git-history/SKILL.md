@@ -1,6 +1,6 @@
 ---
 name: sanitize-git-history
-description: 'Audit the full git history of a repository for confidential words against the watch list in a.sensitive.replacements.local.txt (phase 1), then rewrite that history on a fresh clone with git filter-repo, re-audit and restore the remotes without pushing (phase 2). Use when the user asks to sanitize a repo history or make a repository publishable.'
+description: 'Audit Git history for confidential words by automatically running the contextual sensitive-history scanner against terms or a.sensitive.replacements.local.txt (phase 1), then rewrite a fresh clone with git filter-repo, re-audit, restore remotes, and stop before pushing (phase 2). Use when the user asks to inspect sensitive history, sanitize a repo, scrub confidential terms, or make a repository publishable.'
 ---
 
 [Instruction](../../instructions/sanitize-git-history.md)

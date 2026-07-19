@@ -58,13 +58,29 @@ when unstated. Before running any command below, read
 
 ## Phase 1: audit the full history
 
-Run everything from the repository root in a bash session. Build the
-watch list as one case-insensitive alternation from the left-hand terms
-of the replacement file, for example
-`jdoe|acmecorp|secretproject|\.lan\b`. For each name, also watch
-plausible misspellings (doubled or dropped letters, swapped vowels): for
-`smith`, a tolerant pattern like `sm[iy]th?` also catches `smyth` and
-`smit` in a commit typed by hand.
+Use the bundled read-only scanner as the primary evidence path. The skill
+must locate and invoke the stable launcher automatically; never ask the user
+to run this prerequisite:
+
+```bat
+"<LLM_SHARED_DIR>\bin\sensitive_history_scan.bat" --root "<repo>" --rules "<repo>\a.sensitive.replacements.local.txt" --output "<repo>\a.sensitive.history-scan.local.md" --full-lines --validation-term "<known repository term>"
+```
+
+The launcher scans every reachable commit and tag message, historical path,
+and unique blob through one `git cat-file --batch` process. It reports exact
+case forms, commit or tag OIDs, representative historical blob paths, line
+numbers, matching lines, and binary/excerpt flags. Reports written inside the
+repository must be Git-ignored because they repeat the sensitive values.
+
+When the replacement file does not exist yet, invoke the same launcher with
+literal terms, or `--terms-file`, to collect context before drafting rules.
+The scanner is case-insensitive for every input form. Add plausible
+misspellings as extra literal terms or regex rules.
+
+The automatic report replaces the manual message, tag, path, blob, and
+positive-control commands in steps 1, 3, 4, and 5 below. Keep those commands
+as a fallback only when the bundled launcher is unavailable. Identity review
+in step 2 and the shape-based sweep in step 6 remain separate.
 
 1. Scan commit and tag messages, on all refs:
 
@@ -113,7 +129,7 @@ plausible misspellings (doubled or dropped letters, swapped vowels): for
    configuration) were never committed in the past: grep the same path
    list for their names.
 
-4. Scan every file version ever committed. Do not loop
+4. Manual fallback: scan every file version ever committed. Do not loop
    `git cat-file blob` per object (one process per blob is far too slow
    on Windows): collect the blob ids once, then stream them through a
    single `git cat-file --batch` into a small scanner. Save this as
@@ -159,7 +175,9 @@ plausible misspellings (doubled or dropped letters, swapped vowels): for
 
 5. Validate the scanner before trusting a zero. Run it once with a word
    that certainly exists (the repository name, for instance) and confirm
-   a large hit count. A scanner bug reads exactly like a clean history.
+   a non-zero hit count. With the bundled launcher, pass that word through
+   `--validation-term`; a zero makes the command fail. A scanner bug reads
+   exactly like a clean history.
 
 6. Sweep for what the watch list does not name. Grep the same blob
    stream for the shapes of leaks rather than known words: `https?://`
