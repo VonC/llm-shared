@@ -1,27 +1,122 @@
 # Prepare a release
 
 Automate the release-preparation process up to, but not including, the
-tag-cutting `brel`. Run it from any branch of any project that has a
-`version.txt` and the dev_workflow build (`brel`). The skill readies every
-release artifact, records them in one `chore(release): prepare for vX.Y.Z
-release` commit, then stops so you can review everything and run `brel`
-yourself.
+tag-cutting `brel`. Run it from `main`, a long-lived integration branch such
+as `develop`, or a feature branch created from main, integration, or another
+feature. The invocation branch selects the release scope: main prepares in
+place, integration promotes everything integrated there, and feature mode
+isolates only the commits after that feature's proven fork point before
+replaying them onto main. The skill readies every release artifact, records
+them in one `chore(release): prepare for vX.Y.Z release` commit, then stops so
+you can review everything and run `brel` yourself.
 
 This skill calls other skills and tools:
 
+- `prepare_release_plan.bat` automatically, first for topology-only evidence
+  and again for the exact Git 2.50+ `merge-tree` conflict preview after main
+  is current.
 - `group-commits-msg` when the working tree is dirty, and when a `ghog day`
   green gate needed fixes that must be committed.
-- `update-merge-commit-msg` after it merges the effort branch into main.
+- `update-merge-commit-msg` after it merges an integration, feature, or
+  promotion branch into main.
 - `prepare_release_notes` for the `version.txt` summary and the
   `CHANGELOG.md`.
 - the `ghog day` groundhog loop (the `groundhog` skill) to prove the suite
-  is green when the branch was rebased onto the latest main or merged with a
-  stale base.
+  is green after a feature-only `--onto` replay or after main was merged into
+  an integration branch.
 
 It uses a flag file (`a.prepare-release.active`, see "The run flag file"
 below) so those sub-skills hand control back to it instead of finishing
 with their own standalone closing message (see "Handoff" in each sub-skill
 body).
+
+## Invocation contract
+
+The user only has to invoke `$llm-shared:prepare-release` and explain the
+release context. From that point, this skill owns every ordinary inspection
+and workflow command it needs, including git status checks, branch-role
+detection, `prepare_release_plan.bat`, fetches, validation gates, and
+sub-skill calls. Never ask the user to run `prepare_release_plan.bat` or make
+it a prerequisite for invoking this skill.
+
+Discover the shared launcher's full path from this installed instruction or
+plugin location and invoke it directly. Do not depend on the user's current
+shell having `LLM_SHARED_DIR`, a doskey alias, or another environment setup.
+When a restricted sandbox requires approval for the safe isolated conflict
+preview, request approval for the launcher command yourself; the user may
+approve that action, but must not be told to copy and run the command.
+
+Stop and report blockers discovered by these automatic checks. In particular,
+the dirty-tree gate below lists the changed files and offers the existing
+`group-commits-msg` path; it never silently continues. Pauses remain only for
+the explicit decisions, approvals, conflict resolutions, and release-note
+review described below. `brel`, tagging, and pushing remain outside this
+skill by design.
+
+## Workflow model: gitworkflow topic graduation
+
+Use `gitworkflow` as one word for the specific topic-graduation workflow
+described by Git's own `gitworkflows(7)` documentation and the
+`rocketraman/gitworkflow` primer. Do not call this generic "Git flow" or imply
+that it is Vincent Driessen's GitFlow.
+
+Map the roles as follows: `main` corresponds to gitworkflow's `master`, a
+feature branch corresponds to a topic, and `develop` serves the integration
+purpose of `next`. The mapping is intentionally not exact: canonical
+gitworkflow treats early integration branches as rewindable/rebuildable and
+does not normally merge `next` wholesale into `master`, while repositories
+using this skill keep `develop` as the published long-lived hosting default
+and reserve `main` for release preparation and tagging.
+
+In this variant, normal continuous integration happens before release
+preparation: rebase the feature onto current `develop`, then merge it into
+`develop` with `--no-ff`. Release selection may pick that logical feature a
+second time by replaying its exact commits onto current `main` on a temporary
+promotion branch and merging that branch with `--no-ff`. A feature may also
+go directly to main without first entering develop. The common gitworkflow
+idea is independent topic selection at successive stability levels; the
+different detail is that this variant commonly rebases a topic for each
+target while preserving any already-published branch through promotion
+copies.
+
+Apply these release-selection rules:
+
+1. Invoking from a feature means graduate that topic only. If it was already
+   rebased and merged into `develop`, that first pick was for combined testing
+   and does not commit it to the next release. The logical topic can therefore
+   be picked twice with `--no-ff`: once into integration and independently
+   into `main`. If it bypassed develop, only the main promotion is needed.
+2. Canonical gitworkflow forks a topic from the oldest integration branch it
+   may eventually enter and warns against rebasing a topic after it has been
+   merged elsewhere. When the original topic is safely based on current main,
+   merge that unchanged topic to main. When this repository instead created
+   it from develop, another topic, or stale main, never rewrite the published
+   original: isolate its exact commits and rebase only a temporary promotion
+   branch with `rebase --onto main` before the second `--no-ff` merge.
+3. Invoking from the integration branch explicitly means every topic already
+   integrated there is release-ready. The one integration-to-main `--no-ff`
+   merge is a bulk optimization and a deliberate departure from canonical
+   gitworkflow, not the default selective path.
+4. If every integrated topic except one is ready, reverting that topic's
+   merge commit before a bulk integration merge is a GitFlow-style recovery
+   shortcut, not normal gitworkflow graduation. It is safe only when the
+   excluded topic has one unambiguous merge commit, no selected topic depends
+   on it, and the team accepts the revert history plus the later need to
+   revert the revert or rebuild integration. The current release planner does
+   not preview this revert path, so explain the option and stop before
+   mutation rather than silently performing it. Give the complete
+   revert-on-a-review-branch runbook from "Unsupported planner handoffs"
+   below, including the exact candidate merge OID, verification commands,
+   re-entry point, and later reintroduction choice. Otherwise use the
+   arbitrary-subset handoff and select topics individually.
+
+Primary sources:
+
+- <https://git-scm.com/docs/gitworkflows>
+- <https://github.com/rocketraman/gitworkflow>
+- <https://stackoverflow.com/a/44470240/6309>
+- <https://stackoverflow.com/a/216228/6309>
+- <https://stackoverflow.com/a/53405887/6309>
 
 Every user choice or approval pause in this instruction follows
 [`../rules/interactive_menu.md`](../rules/interactive_menu.md). Read that rule
@@ -86,11 +181,14 @@ the release goes on. When a step calls for the green gate:
 
 ## Resolve the project directory
 
-Every git and file step runs against the project root. Resolve it once
-from `PRJ_DIR` when set, otherwise the current directory, and use it as
-`<PRJ_DIR>` throughout. Resolve `<LLM_SHARED_DIR>` the same project-portable
-way the other skills use, so the shared scripts are found from any
-consuming repository.
+Every git and file step runs against the project root. First ask git for the
+top-level worktree containing the current directory. When that directory has
+`version.txt`, use it even if an inherited `PRJ_DIR` points at a different
+repository. Otherwise use `PRJ_DIR` when set. Stop when neither location is a
+git project with `version.txt`; never silently operate on another repository.
+Report the resolved `<PRJ_DIR>` before the first mutation. Resolve
+`<LLM_SHARED_DIR>` independently, the same project-portable way the other
+skills use, so the shared scripts are found from any consuming repository.
 
 ## Workflow
 
@@ -126,7 +224,7 @@ git -C "<PRJ_DIR>" log --format= --name-only "<last_tag>..HEAD" -- \
 ```
 
 When that list is empty, make no change to the tree and stop with one of
-two messages:
+three messages:
 
 - If HEAD sits exactly on a tag (idempotency, the release was just done):
 
@@ -135,48 +233,292 @@ two messages:
   ```
 
   When that succeeds, print "release already done for `<tag>`" and stop.
+- Otherwise, when HEAD is not main, check whether a later release tag already
+  contains this branch tip:
+
+  ```bash
+  git -C "<PRJ_DIR>" tag --contains HEAD --sort=version:refname
+  ```
+
+  When the command lists tags, report the earliest containing tag as
+  "branch tip already released in `<tag>`" and stop. This distinguishes an
+  old feature branch that was merged and released from a branch that merely
+  has no qualifying effort document.
 - Otherwise, print "nothing to release yet, no development effort in
   progress" and stop.
 
 Only when the effort list is non-empty do you go on. This is the guard that
 makes a second run a no-op.
 
-### Step 3 — Derive the target version and the slug
+### Step 3 — Derive the target version, slug, and release mode
 
-Read the version from the effort documents detected in Step 2, matching
-`docs/{feature,issue,design,plan}.vX.Y.Z.*.md`. Prefer a design or plan
-document when one exists, it is the most authoritative for a release
-version; otherwise use the feature-request or issue document (a
-feature-only effort, like this very release, has no design or plan).
-Take the newest when several share one version. The slug is that document
-topic, or the current branch name when the work is not on main:
+Read the current branch first. Candidate versions are filtered to the release
+mode's exact scope after classification, matching
+`docs/{feature,feature-request,issue,design,plan}.vX.Y.Z.*.md`:
 
 ```bash
 git -C "<PRJ_DIR>" rev-parse --abbrev-ref HEAD
 ```
 
+#### Choose the release mode
+
+The release branch is `main`. Resolve the optional long-lived integration
+branch in this order:
+
+1. the local value of `prepare-release.integrationBranch`, when configured,
+2. local `develop`, when that branch exists,
+3. the branch named by `origin/HEAD` when it is not `main`.
+
+Use plain git reads; a missing value or ref is not an error:
+
+```bash
+git -C "<PRJ_DIR>" config --get prepare-release.integrationBranch
+git -C "<PRJ_DIR>" show-ref --verify --quiet refs/heads/develop
+git -C "<PRJ_DIR>" symbolic-ref --quiet --short refs/remotes/origin/HEAD
+```
+
+Classify the run and tell the user which mode was detected:
+
+- **On-main release** — HEAD is `main`. Select every commit in
+  `<last_tag>..main`, then prepare the version, notes, changelog, and prepare
+  commit in place. No rebase and no branch merge are needed. This is a fully
+  supported release path, not a fallback.
+- **Integration release** — HEAD is the resolved integration branch. The
+  user selected every commit in `main..HEAD` for this release. Never rebase a
+  published, long-lived integration branch. Step 6 proposes one `--no-ff`
+  merge of the integration branch into main. State that this is the explicit
+  all-topics-ready bulk exception to gitworkflow's normal topic-by-topic
+  graduation.
+- **Feature release** — HEAD is any other branch. Select only the commits made
+  for that feature after it forked from its actual parent, whether the parent
+  was main, integration, or another feature branch. Discover and confirm the
+  exact `<feature_base>..<feature_branch>` range as described below. When that
+  range is not already safely based on the latest main, replay it on a
+  temporary promotion branch with `rebase --onto main`, then merge the
+  promotion branch into main with `--no-ff`. Never use plain `rebase main` for
+  a develop-derived or nested feature: it can replay commits inherited from
+  the parent branch.
+
+The configured integration branch is a workflow role, not necessarily the
+hosting provider's default branch. A repository may keep `origin/HEAD` on
+`main` while using `develop` for integration.
+
+#### Obtain release-planner topology evidence automatically
+
+Invoke the shared read-only planner before reproducing branch detection by
+hand. This is an internal skill action, not a command the user runs:
+
+```powershell
+& "<LLM_SHARED_DIR>\bin\prepare_release_plan.bat" --root "<PRJ_DIR>" --json --no-conflict-preview
+```
+
+Resolve `<LLM_SHARED_DIR>` yourself as required by the invocation contract.
+The planner requires Git 2.50 or newer. It reports the Git version, start
+branch, on-main/integration/feature mode, exact scope and commits, boundary
+evidence or candidates, and the proposed operation. It never fetches, moves a
+ref, changes the index or working tree, rebases, or merges. Use its result as
+the deterministic starting point for this step, while retaining the human
+confirmation gates below. If it returns `needs-feature-boundary`, show its
+candidates and rerun it with `--feature-base <commit>` or
+`--feature-parent <branch>` after the user chooses; never pick for them.
+
+Keep the launcher as the stable skill entry point. Its Python package lives
+under `<LLM_SHARED_DIR>/tools/prepare_release/`, with matching tests under
+`tests/unit/tools/prepare_release/`; never invoke a package file directly from
+a consuming project. The launcher owns locating the shared Python environment
+and the package entry script.
+
+The planner resolves the integration role from its `--integration` override,
+`PREPARE_RELEASE_INTEGRATION_BRANCH`,
+`prepare-release.integrationBranch` (with legacy
+`release.integrationBranch` support), local `develop`, then `origin/HEAD`
+when it names a local branch other than main. When the skill's prompt or other
+context supplies the integration branch, pass it explicitly with
+`--integration` so the planner and skill use the same role.
+
+Treat planner output as topology evidence, not as permission to perform an
+empty operation. Independently count `main..<integration_branch>` before an
+integration merge. When it contains zero commits, never offer
+`git merge --no-ff`: equal refs and an integration tip already contained by
+main cannot produce the promised merge commit. Report the two tip OIDs. If
+main has unreleased effort documents, tell the user to check out main and
+invoke this skill again to make the broader on-main selection explicit;
+otherwise report that there is no integration content to release. The Step 2
+tag and effort checks remain authoritative for an empty on-main range.
+
+The planner supports one release source per invocation: on-main preparation,
+a non-empty integration promotion, or one contiguous feature range with a
+proven boundary. It does not support subtracting a topic by reverting its
+merge, aggregating several arbitrary topics in one plan, or replaying a
+non-contiguous explicit commit list. For those results, do not merely say
+"unsupported" or ask the user to run the planner. Use the handoff below.
+
+#### Unsupported planner handoffs
+
+Every unsupported result must end with an actionable block containing:
+
+1. `Intent` — the requested release selection.
+2. `Why the skill stopped` — the unsupported operation and why guessing could
+   widen or change the release.
+3. `Evidence` — actual branch names, tip and boundary OIDs, ordered commits,
+   candidate merge OIDs, and conflicting or overlapping paths discovered by
+   read-only checks.
+4. `Recommended path` — one of the recipes below, with placeholders replaced
+   by the discovered values. Never present an unresolved placeholder as a
+   command the user can paste.
+5. `Verify` — the log, diff, status, and project green-gate checks that prove
+   the user's manual preparation has the intended content.
+6. `Re-enter prepare-release` — the exact branch to check out and the context
+   to include when invoking `$llm-shared:prepare-release` again.
+
+For **all but one topic on integration**, first list first-parent merge commits
+in `main..<integration_branch>` and identify the unique `--no-ff` merge that
+introduced the excluded topic. Show its two parents, subject, and changed
+paths. Also list later first-parent merges and path overlaps; state explicitly
+that Git cannot prove the absence of semantic dependencies. If the merge is
+not unique, has no integration first parent, or dependency review is not
+affirmative, recommend the arbitrary-subset path and stop.
+
+When the recovery preconditions hold, provide these concrete user-run steps:
+
+1. Create `prepare-release/exclude-<topic>` from the current integration tip.
+2. Run `git revert -m 1 <excluded_merge_oid>` on that review branch. Explain
+   that the planner cannot predict revert conflicts; use
+   `git revert --abort` if the result is not acceptable.
+3. Inspect the revert diff and first-parent log, run the project's green gate,
+   and obtain the required dependency review.
+4. Merge the reviewed exclusion branch back into integration with `--no-ff`.
+5. Reinvoke this skill from integration with context saying that all remaining
+   topics are selected. The normal integration merge preview then applies.
+6. Record the revert commit OID. Explain that restoring the topic later means
+   either reverting that revert and testing again, or rebuilding the topic on
+   current integration.
+
+For **several arbitrary ready topics**, explain that no combined planner run
+can model an evolving main. List the selected feature branches and run the
+topology-only planner read-only for each `--branch` in the intended order,
+rerunning before every actual promotion because main changes after each
+merge. Recommend promoting each confirmed feature range to main one at a
+time, with its own `range-diff`, green gate, `--no-ff` merge, and structured
+merge message; then invoke this skill once from main to prepare the release
+artifacts for the resulting `last_tag..main`. Offer separate releases as the
+safer alternative when topic dependencies or ordering are unclear.
+
+For a **feature range that contains merges**, list the complete range and mark
+each merge commit. The current planner cannot accept the "explicit commit
+list" it asks for, so do not imply that supplying such a list to the planner
+will continue the run. Ask the user to confirm the desired non-merge commits,
+then recommend reconstructing a clean topic branch from current main with
+ordered `git cherry-pick` commands, reviewing `main...<clean_branch>`, and
+running the green gate. On conflict, the user may resolve and continue or run
+`git cherry-pick --abort`. Re-enter this skill from that clean branch; its
+contiguous main-based range is then a supported feature release. A corrected
+parent or boundary is the alternative when the original boundary was wrong.
+
+#### Find a feature branch's exact boundary
+
+Run this subsection only in feature mode, before any mutation. Record
+`<feature_branch>` and its tip. Find the commit where this branch left its
+actual parent; do not assume the parent is main.
+
+1. Inspect the feature branch reflog from oldest to newest. Collect entries
+   that positioned the branch on a parent: `branch: Created from ...`,
+   `reset: moving to ...`, and a completed rebase `onto ...`. A later reset or
+   rebase can supersede the creation point, so do not blindly use the oldest
+   entry. Prefer the most recent positioning entry that precedes the
+   contiguous feature commits and whose recorded commit is their ancestor.
+   Ignore a mere local checkout created from the same-named remote branch;
+   that imports history but does not identify the original fork.
+2. Inspect candidate parent refs: main, the integration branch, and every
+   other local feature branch. For a candidate that does not contain the
+   feature tip, try `git merge-base --fork-point`, then fall back to
+   `git merge-base`. For a candidate that already contains the feature,
+   locate the first merge on its first-parent history that introduced the
+   feature; the boundary candidate is the merge base between the feature and
+   that merge commit's first parent. A fast-forward or squash merge may leave
+   no recoverable boundary.
+3. Keep only candidates that are ancestors of the feature tip and leave a
+   non-empty range. Prefer a clear, unsuperseded reflog positioning boundary;
+   otherwise prefer the closest topology boundary to the feature tip. When
+   different boundaries remain plausible, stop and present them. Let the user
+   select or provide the parent branch or boundary commit; do not guess.
+4. Check the selected range for merge commits. When it contains merges from
+   other branches, a simple contiguous rebase would also replay the merged
+   work. Stop and use the feature-range recipe in "Unsupported planner
+   handoffs"; do not claim that the planner accepts an explicit commit list.
+5. Show the exact commits and diff summary, in order:
+
+   ```bash
+   git -C "<PRJ_DIR>" log --reverse --oneline "<feature_base>..<feature_branch>"
+   git -C "<PRJ_DIR>" diff --stat "<feature_base>...<feature_branch>"
+   ```
+
+   Present `Go ahead` and `Abort`, naming the detected parent ref and boundary
+   commit. Continue only after the user confirms that every listed commit, and
+   no other commit, belongs to the feature.
+
+Save `<feature_base>`, `<feature_branch>`, and the confirmed commit list for
+Step 5. A branch already merged into develop is supported when its reflog or
+merge topology still proves the boundary. When Git evidence cannot isolate
+the range, stop for the user's boundary instead of silently widening scope.
+
+Now define the document scope used by the rest of the run:
+
+- on-main and integration modes: `<last_tag>..HEAD`, because all commits since
+  the last release that are present in the selected branch participate,
+- feature mode: `<feature_base>..<feature_branch>`, because inherited parent
+  documents are not part of this feature.
+
+List the matching feature, feature-request, issue, design, and plan documents
+from that range. In feature mode, when the list is empty, stop with "nothing
+to release from this feature branch" even when Step 2 found inherited effort
+documents. Use only this scoped list for the target version, slug evidence,
+validation-plan gate, later-version notes, release notes, and final summary.
+
+#### Choose the target version and slug
+
+Compare the semantic versions in the scoped effort-document names with the
+last released tag. Choose the lowest version strictly greater than the last
+released version. This is the next release target. Documents carrying later
+versions are forward-looking notes for later efforts; list those versions in
+the detection summary, but do not stop and do not exclude their commits from
+the selected branch scope. Also scan `docs/draft.vX.Y.Z.*.md` in the selected
+branch scope and list later-version drafts as carried notes. Drafts never
+trigger Step 2 and never become target-version candidates. Selecting a version
+labels the release; selecting the invocation branch selects its content.
+
+When several documents share the target version, prefer the newest design or
+plan document for the topic, then the newest feature-request or issue. For an
+integration release, use the integration branch name as the slug because the
+scope can contain several efforts. For a feature release off main, use the
+feature branch name. On main, use the selected target document topic.
+
 Cross-check the derived `X.Y.Z` against the first word of `version.txt`:
 
 - No feature, issue, design, or plan document found means there is nothing
   to release; stop with that message.
-- Several documents carry different versions: stop and present a version choice,
-  with one row per detected version. Do not guess.
+- No document version is newer than the last released tag: when `version.txt`
+  contains a newer `X.Y.Z-SNAPSHOT`, present the document versions and that
+  snapshot as a target-version choice; otherwise stop and explain that no new
+  release version can be derived.
 - `version.txt` still holds the previous release number (no `-SNAPSHOT`),
   or a matching `X.Y.Z-SNAPSHOT`: that is expected, Step 8 sets it.
 - `version.txt` holds a different `-SNAPSHOT` version: stop and present a
   version choice with the effort-document version and the `version.txt`
   version.
 
-Then check the effort's validation plan,
-`docs/plan.vX.Y.Z.<topic>.validation.md`, when the effort has a plan. Read
-its opening status line (the first non-title line): when it still starts
-with `No, it is not implemented`, the implementation checks of the effort
-are not complete, or the last `implementation-check` never flipped the
-document-level line to `Yes, it is implemented.` as its instruction
-requires. Signal it to the user, naming the file and the line found, remove
-the flag file, and stop without changing the tree. The user either finishes
-the implementation checks or corrects the status line, then re-runs. Do not
-carry an effort whose validation plan reads as unfinished into a release.
+Then check every target-version validation plan selected by the branch scope,
+`docs/plan.vX.Y.Z.<topic>.validation.md`, when the target effort has a plan.
+Later-version plans are forward-looking notes and do not gate this release.
+Read each target plan's opening status line (the first non-title line): when it
+still starts with `No, it is not implemented`, the implementation checks of
+that target effort are not complete, or the last `implementation-check` never
+flipped the document-level line to `Yes, it is implemented.` as its
+instruction requires. Signal it to the user, naming the file and the line
+found, remove the flag file, and stop without changing the tree. The user
+either finishes the implementation checks or corrects the status line, then
+re-runs. Do not carry a target-version effort whose validation plan reads as
+unfinished into a release.
 
 ### Step 4 — Make the working tree clean
 
@@ -205,9 +547,9 @@ the current plan is validated and committed.
 
 This step has two halves. The first, making local main current with
 `origin/main`, runs on every branch, main included, so a release never goes
-out on a local main that trails the remote. The second, basing the effort
-branch on that main, is skipped when HEAD is already main: there is no
-branch to rebase.
+out on a local main that trails the remote. The second, basing the selected
+source branch on that main, is skipped in on-main mode because there is no
+source branch to merge.
 
 #### Make local main current with origin/main
 
@@ -259,64 +601,162 @@ Read the two exit codes together:
 From here, local `main` is the latest main, and the branch check below, any
 rebase, and the Step 6 merge all reference it.
 
-#### Base the effort branch on the latest main
+#### Preview the exact operation and its conflicts
 
-Skip this half when HEAD is already main: there is no branch to rebase, the
-half above already made local main current, and Step 6 is skipped on main
-too.
+Now automatically rerun the release planner without `--no-conflict-preview`,
+because main is current and the preview must use the exact tips that would be
+changed. Pass the confirmed integration branch or feature boundary when
+applicable:
 
-Check whether local main is already an ancestor of the branch tip:
+```powershell
+& "<LLM_SHARED_DIR>\bin\prepare_release_plan.bat" --root "<PRJ_DIR>" --json
+& "<LLM_SHARED_DIR>\bin\prepare_release_plan.bat" --root "<PRJ_DIR>" --json --integration "<integration_branch>"
+& "<LLM_SHARED_DIR>\bin\prepare_release_plan.bat" --root "<PRJ_DIR>" --json --feature-base "<feature_base>"
+```
+
+Run only the one matching the detected mode. The tool uses
+`git merge-tree --write-tree -z --name-only --messages` in an isolated
+temporary object directory. It does not touch repository refs, the index,
+working tree, or permanent object store.
+
+When a restricted sandbox blocks creation of that system temporary directory,
+request approval for the same planner command. Do not fall back to the live
+object database, index, or a temporary worktree just to avoid the approval.
+
+- For a `--no-ff` merge, it previews the exact destination and source tips.
+- When integration lacks main, it previews main merging into integration;
+  after that sync is green, integration will contain main and the final
+  promotion is structurally conflict-free.
+- For `rebase --onto`, it simulates each confirmed feature commit as a
+  three-way merge onto an evolving synthetic tip. It reports the first commit,
+  paths, stable conflict types, and Git messages that would stop the rebase.
+  It cannot predict later rebase conflicts because those depend on how the
+  first conflict is resolved.
+
+Include the planner's clean/conflicted result in the next go-ahead prompt. A
+conflicted preview is a warning, not permission to mutate: show every reported
+path and conflict type before asking. A clean preview is evidence for the
+current tips, not a permanent guarantee; rerun it if either tip or the chosen
+boundary changes. If `merge-tree` cannot run, stop instead of proceeding
+without the preview.
+
+#### Base the selected branch on the latest main
+
+Skip this half in on-main mode: there is no branch to base, the half above
+already made local main current, and Step 6 is skipped on main too.
+
+In integration mode, check whether local main is already an ancestor of the
+branch tip:
 
 ```bash
 git -C "<PRJ_DIR>" merge-base --is-ancestor main HEAD
 ```
 
-When that succeeds (exit 0), the branch is already based on the latest
-main: go straight to Step 6, with no rebase and no extra test.
+When that succeeds (exit 0), integration already contains the latest main: go
+straight to Step 6, with no rebase and no extra test. When it does not, never
+offer to rebase the long-lived integration branch. Offer only:
 
-When it does not (the branch is behind main), stop and offer the user three
-choices. Use the chosen path; do not guess.
+1. Merge main into the integration branch, then test:
+   - merge main into the checked-out integration branch with `--no-ff`,
+   - run the green-gate routine,
+   - continue to Step 6 only when the integration branch is green.
+2. Abort the release preparation:
+   - remove the flag file and stop.
 
-1. Rebase the branch onto main, then test:
-   - Rebase in place:
+This keeps published integration history stable and brings any production
+hotfixes from main back through the integration test gate before promotion.
 
-     ```bash
-     git -C "<PRJ_DIR>" rebase main
-     ```
+In feature mode, use the boundary and commit list confirmed in Step 3.
 
-   - When the rebase reports conflicts, stop and report the conflicted
-     files. The user resolves them (edit, then `git add`). Present the
-     `Go ahead` choice; when selected, resume the rebase without an editor
-     popping up:
+- First check whether the feature tip is already an ancestor of current main:
 
-     ```bat
-     cmd /V /C "set "GIT_EDITOR=true" && git rebase --continue"
-     ```
+  ```bash
+  git -C "<PRJ_DIR>" merge-base --is-ancestor "<feature_branch>" main
+  ```
 
-     The rebase may stop again on the next conflicting commit; repeat
-     resolve-then-continue until it finishes.
-   - Once the rebase finishes cleanly, run the green-gate routine on the
-     rebased branch, then go to Step 6.
-2. Merge `--no-ff` anyway:
-   - Accept the stale base and go to Step 6 as-is. Because the base is
-     stale, Step 6 runs the green-gate routine after the merge; this is the
-     only case where it does.
-3. Abort the release preparation:
-   - Remove the flag file and stop, changing nothing.
+  When it is, do not create a promotion branch or attempt an empty replay.
+  Check `git tag --contains "<feature_branch>" --sort=version:refname`. If a
+  release tag contains the tip, report "branch tip already released in
+  `<tag>`" and stop. Otherwise report that the branch is already integrated
+  into main but is not yet in a release tag, and stop. Explain that a
+  feature-only merge can no longer select it: rerun from main only when every
+  current `last_tag..main` change belongs in the release. Never silently
+  convert the invocation to an on-main release.
+- Otherwise, when `<feature_base>` is an ancestor of main **and** main is an ancestor of
+  `<feature_branch>`, the feature already contains the latest main without
+  carrying a parent-only base. Use `<feature_branch>` as `<source_branch>` and
+  go directly to Step 6.
+- Otherwise, replay only the confirmed range onto main. Preserve the original
+  feature ref: create a uniquely named temporary promotion branch at the
+  feature tip, then rebase that branch with the explicit boundary:
 
-### Step 6 — Switch to main and merge the effort branch
+  ```bash
+  git -C "<PRJ_DIR>" branch "<promotion_branch>" "<feature_branch>"
+  git -C "<PRJ_DIR>" rebase --onto main "<feature_base>" "<promotion_branch>"
+  ```
 
-When HEAD is already main, skip this whole step: Step 5 already made local
-main current with `origin/main`, and there is no branch to merge.
+  Name it `prepare-release/<feature-branch>-onto-main`, sanitized for a valid
+  ref, with a numeric suffix when that name already exists. Never move or
+  rewrite `<feature_branch>` itself.
 
-Otherwise switch the current worktree to main and merge the effort branch
-with a merge commit. Use `--ignore-other-worktrees` so the switch goes
-through even when main is also checked out in a sibling worktree (such as
-`..._main`):
+  When the rebase reports conflicts, stop and report the conflicted files.
+  The user resolves them and runs `git add`. Present `Go ahead`; when selected,
+  resume without an editor:
+
+  ```bat
+  cmd /V /C "set "GIT_EDITOR=true" && git rebase --continue"
+  ```
+
+  Repeat until the rebase finishes. Then prove the replay still corresponds
+  to the confirmed source range:
+
+  ```bash
+  git -C "<PRJ_DIR>" range-diff "<feature_base>..<feature_branch>" "main..<promotion_branch>"
+  ```
+
+  Stop when range-diff shows a dropped or added commit outside deliberate
+  conflict-resolution changes. Otherwise run the green-gate routine on the
+  promotion branch, set it as `<source_branch>`, and continue to Step 6. Keep
+  the promotion branch through the user's final review; report it at Step 13
+  so the user can delete it after `brel`.
+
+There is no feature-mode "merge stale anyway" path: it would widen the release
+to commits inherited from develop or another feature branch. The choices are
+the exact `--onto` replay or abort.
+
+### Step 6 — Confirm the scope, switch to main, and merge
+
+In integration mode, present the detected action before changing branches:
+"Integration release from `<integration_branch>`: release every commit in
+`main..<integration_branch>` by merging `<integration_branch>` into `main`
+with `--no-ff`. This is the all-topics-ready bulk exception; canonical
+gitworkflow would graduate topics individually." List later-version document
+notes reported in Step 3 and
+make clear that they remain part of the selected branch content but do not
+change the target version. Offer `Go ahead` and `Abort`; do not switch or
+merge until the user selects `Go ahead`.
+
+Add the planner preview to this confirmation: say either that the exact
+operation is currently clean, or list the predicted conflicted paths and
+conflict types. For an integration sync, name that first merge as the previewed
+operation. For a feature replay, name the first commit expected to stop and
+state that later conflicts remain unknown until it is resolved.
+
+In feature mode, present the equivalent action for the confirmed feature-only
+range, naming the original feature branch, boundary, source branch (the
+original or promotion branch), and commit count; offer `Go ahead` and `Abort`.
+In on-main mode, report: "On-main release: prepare every commit in
+`<last_tag>..main` in place; no rebase and no merge." Offer `Go ahead` and
+`Abort`, then skip the rest of this step on `Go ahead`.
+
+After confirmation, switch the current worktree to main and merge the selected
+source branch with a merge commit. Use `--ignore-other-worktrees` so the switch
+goes through even when main is also checked out in a sibling worktree (such
+as `..._main`):
 
 ```bash
 git -C "<PRJ_DIR>" switch --ignore-other-worktrees main
-git -C "<PRJ_DIR>" merge --no-ff "<effort_branch>"
+git -C "<PRJ_DIR>" merge --no-ff "<source_branch>"
 ```
 
 Ignore every sibling worktree folder, in both senses the spec asks for: the
@@ -328,11 +768,9 @@ worktree matters, and its cleanliness was already checked in Step 4. Do not
 stop because main is checked out elsewhere, and do not write outside the
 current tree.
 
-When you reached this step through the "merge --no-ff anyway" choice of
-Step 5 (the branch was not based on the latest main), run the green-gate
-routine now, after the merge, before going on. In every other case the gate
-already ran during the rebase in Step 5, or was not needed because the
-branch was already based on the latest main, so do not run it again here.
+The green gate already ran after a feature `--onto` replay or integration sync
+in Step 5, or was not needed because the selected branch already contained the
+latest main. Do not run it again after the Step 6 merge.
 
 ### Step 7 — Reword the merge commit
 
@@ -481,7 +919,28 @@ Add `.changelog.fixes` to the `add` when Step 10 changed it, and
 `pyproject.toml` and `uv.lock` when Step 11 ran. Keep it to this one commit,
 so the human review and the later `brel` see one clean prepare step.
 
-### Step 13 — Report and stop
+### Step 13 — Final clean-tree gate, report and stop
+
+Check the tree one last time before reporting:
+
+```bash
+git -C "<PRJ_DIR>" status --porcelain
+```
+
+The Step 4 gate ran before any mutation, but the later pauses can
+dirty the tree again (an editor or spell-checker tweak during the
+Step 10 review, a tool-written file), and the Step 12 prepare commit
+stages only the named release files, so anything else stays behind.
+When the status is not empty, never present "run `brel`" as the next
+step on a dirty tree: list the pending files, signal that `brel` must
+start from a clean tree, keep (or re-create) the flag file, and
+present the same choices as Step 4:
+
+- `Go ahead` — run the `group-commits-msg` skill so the pending work
+  is committed in tidy groups.
+
+Continue to the report below only once `git status --porcelain` is
+empty.
 
 Remove the flag file:
 
@@ -491,10 +950,14 @@ rm -f "<PRJ_DIR>/a.prepare-release.active"
 
 Then print a summary of what changed:
 
-- the effort branch merged into main (or the on-main case), and whether it
-  was rebased, merged with a stale base, or already based on the latest
-  main,
-- the target version `X.Y.Z` and the slug,
+- the detected release mode: on-main, integration, or feature,
+- the source branch merged into main (or the on-main case), and whether it
+  was synchronized with main, replayed from a confirmed feature boundary onto
+  a promotion branch, or already based on the latest main,
+- in feature mode, the original branch, parent ref, boundary commit, confirmed
+  commit count, and promotion branch to keep until the review and `brel` end,
+- the target version `X.Y.Z`, later-version note documents that stayed in the
+  selected scope, and the slug,
 - the files written (`version.txt`, `CHANGELOG.md`, and the pyproject and
   uv files when present),
 - the prepare commit hash and subject.
@@ -508,10 +971,12 @@ never tags.
 Run the skill twice and the second run does nothing harmful:
 
 - The Step 2 guard stops a run with no new feature, issue, design, or plan
-  commit since the last tag, with either "release already done" (HEAD on a
-  tag) or "nothing to release yet".
-- The Step 5 base check is a no-op once the branch is based on the latest
-  main (the common case after a rebase).
+  commit since the last tag, with "release already done" (HEAD on a tag),
+  "branch tip already released" (an old branch contained by a later tag), or
+  "nothing to release yet".
+- The Step 5 base check is a no-op once integration contains the latest main,
+  stops an already-integrated feature, or is a no-op once a feature's
+  confirmed range already sits safely on latest main.
 - The Step 8 version write is a no-op when `version.txt` already holds the
   target `X.Y.Z-SNAPSHOT`.
 - `prepare_release_notes` stops on its own when the last tag already
@@ -538,12 +1003,38 @@ Run the skill twice and the second run does nothing harmful:
   as-is. The branch half, skipped on main, then references the local `main`
   ref for the rebase check.
 - Reaching a green suite uses the `ghog day` loop (the `groundhog` skill).
+  Integration branches are never rebased: main is merged into them before
+  the gate when they do not contain the latest main. Feature replays use a
+  separate promotion branch so the original feature ref is never rewritten.
   Rebase conflicts are resolved by the user; on a go-ahead selection the
-  skill resumes the rebase non-interactively with `GIT_EDITOR=true`. A
-  `ghog day` failure is fixed, then committed through `group-commits-msg`
-  with the user's review before the release goes on.
-- The effort test keys on the `docs/{feature,issue,design,plan}.*` files. A
-  release that is only code, with no such document, reads as "nothing to
-  release"; add the matching document, or release it by hand.
+  skill resumes non-interactively with `GIT_EDITOR=true`. A `ghog day` failure
+  is fixed, then committed through `group-commits-msg` with the user's review
+  before the release goes on.
+- Conflict previews require Git 2.50+ and are produced by the shared
+  `prepare_release_plan.bat` launcher. `merge-tree` uses the same ort merge
+  machinery without touching the index or working tree, but its result is
+  tied to the exact refs and feature boundary supplied. Sequential rebase
+  preview stops at the first conflict because a human resolution changes the
+  synthetic tip for every later commit.
+- Git does not always retain a feature's fork point: reflogs expire, and a
+  fast-forward or squash merge can erase parent evidence. In that case the
+  skill stops for a user-supplied parent or boundary commit. It never widens
+  the range to make the release proceed.
+- The planner models one source branch and one contiguous feature range. It
+  cannot preview a revert-one recovery, a combined arbitrary topic subset, or
+  a non-contiguous commit replay. The skill therefore stops before mutation
+  and emits the evidence, commands, verification, and re-entry instructions
+  required by "Unsupported planner handoffs". It also rejects an empty
+  `main..integration` range even if ancestry-only planner output says
+  `merge-no-ff`.
+- Candidate document versions define the target label, not the release
+  content. The lowest version newer than the last tag is the target;
+  later-version notes remain in an integration release because the invocation
+  branch selected them.
+- The effort test keys on the
+  `docs/{feature,feature-request,issue,design,plan}.*` files. A release that is
+  only code, with no such document, reads as "nothing to release"; add the
+  matching document, or release it by hand. Versioned drafts are reported as
+  notes but never trigger a release or choose its target.
 - The skill stops, by design, before `brel`. Building, finalizing the
   changelog, and tagging stay manual.

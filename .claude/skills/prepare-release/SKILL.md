@@ -1,8 +1,8 @@
 ---
 name: prepare-release
-description: 'Automate the release-preparation process from any branch: detect the development effort since the last tag, base the effort branch on the latest origin/main (rebase with a ghog day gate when it is behind), merge it into main, set the X.Y.Z-SNAPSHOT version, run prepare_release_notes for the version.txt summary and changelog, update pyproject and uv, then make one chore(release) prepare commit. It stops before brel (which the user runs to build and tag) and never pushes. Use when the user asks to prepare or cut a release.'
+description: 'Prepare a release from main, a long-lived integration branch such as develop, or a feature branch created from main, integration, or another feature. Apply gitworkflow topic graduation: select one tested feature independently, or merge integration wholesale only when every topic is ready. Use the read-only Python planner and merge-tree to detect topology and preview conflicts; for unsupported revert-one, arbitrary-subset, or non-contiguous selections, stop with an evidence-backed manual runbook, verification, and re-entry instructions. Prepare release artifacts, make one chore(release) prepare commit, stop before brel, and never push. Use when the user asks to prepare or cut a release.'
 user-invocable: true
-argument-hint: 'No argument needed. Run from any branch of a project that has a version.txt and the dev_workflow build (brel), with a design or plan document for the next version.'
+argument-hint: 'Explain the release context from main, develop/integration, or any feature branch. The skill automatically runs the planner; ambiguous feature ancestry pauses for a parent branch or boundary commit.'
 ---
 
 [Instruction](../../../instructions/prepare-release.md)

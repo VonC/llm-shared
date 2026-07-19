@@ -1,7 +1,6 @@
 ---
 name: prepare-release
-description: 'Automate the release-preparation process from any branch: detect the development effort since the last tag, base the effort branch on the latest origin/main (rebase with a ghog day gate when it is behind), merge it into main, set the X.Y.Z-SNAPSHOT version, run prepare-release-notes for the version.txt summary and changelog, update pyproject and uv, then make one chore(release) prepare commit. It stops before brel (which the user runs to build and tag) and never pushes. Use when the user asks to prepare or cut a release.'
+description: 'Prepare a release from main, a long-lived integration branch such as develop, or a feature branch created from main, integration, or another feature. Prepare main in place; merge integration wholesale without rebasing it; or discover and confirm the feature fork, replay only feature commits onto main on a promotion branch, and merge with --no-ff. Detect unsupported revert-one, arbitrary-subset, and non-contiguous feature selections and return an evidence-backed manual runbook with verification and re-entry instructions. Choose the next version while allowing later-version notes, prepare release artifacts, and make one chore(release) prepare commit. Stop before brel and never push. Use when the user asks to prepare or cut a release.'
 ---
 
 [Instruction](../../instructions/prepare-release.md)
-

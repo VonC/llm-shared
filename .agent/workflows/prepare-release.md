@@ -1,5 +1,5 @@
 ---
-description: Automate the release-preparation process from any branch: detect the development effort since the last tag, base the effort branch on the latest origin/main (rebase with a ghog day gate when it is behind), merge it into main, set the X.Y.Z-SNAPSHOT v...
+description: Apply gitworkflow topic graduation, automatically plan and preview conflicts, prepare supported main/integration/feature releases, and give evidence-backed manual runbooks with verification and re-entry instructions for unsupported selections; stop before brel.
 ---
 
 1. Locate the shared instruction body `instructions/prepare-release.md`: in this
