@@ -1,8 +1,15 @@
 # Why release branch roles matter
 
-<img src="../assets/logo-llm-shared-trail-transparent.png" alt="" height="90" align="right">
+<img src="../assets/logo-llm-shared-trail-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
+
+## Invocation model
+
+The user starts `prepare-release` and states what should ship. The AI owns
+topology detection, planner calls, conflict previews, and supported Git
+operations. Call the planner directly only for read-only diagnosis or planner
+development; it does not replace the release skill's approvals and follow-up.
 
 📊 A branch name is not merely a location for `/prepare-release`. It states
 which content the author is selecting.
@@ -31,6 +38,8 @@ The roles used here are therefore:
 | `main` | `master` | Topics accepted for the next release |
 | feature branch | topic branch | One independently selectable unit of work |
 | `develop` | approximately `next` | Several topics tested together before release selection |
+
+![A feature is rebased onto develop, then merged with a solid no-fast-forward merge arrow.](../assets/prepare-release/feature-to-develop.svg)
 
 The approximation is deliberate. Canonical gitworkflow makes early
 integration branches throw-away or rebuildable and normally never merges
@@ -65,6 +74,12 @@ Stack Overflow answers about
 [selecting production features](https://stackoverflow.com/a/216228/6309), and
 [independent feature deployment](https://stackoverflow.com/a/53405887/6309).
 
+The second pick is easiest to see as a separate history operation. The dashed
+arrow below creates new commit identities for only the confirmed topic range;
+the solid arrows record its integration and release decisions:
+
+![One feature is first merged into develop, then its isolated range is replayed onto main and merged there.](../assets/prepare-release/feature-from-develop-to-main.svg)
+
 ## Integration is a release train
 
 A long-lived branch such as develop accumulates features after they pass their
@@ -73,6 +88,8 @@ commit is wanted. One non-fast-forward merge into main preserves that shared
 history and creates a visible release boundary. This is an intentional bulk
 optimization for the “all topics are ready” case, not canonical
 gitworkflow's normal path.
+
+![All validated topics on develop are merged to main once, with no rebase arrow.](../assets/prepare-release/develop-to-main.svg)
 
 Rebasing develop would rewrite a branch other contributors already use. When
 main contains a production hotfix that develop lacks, merging main back into
@@ -105,6 +122,8 @@ still applies to current main, the same unchanged branch can simply be merged
 there. The temporary `rebase --onto` path is a compatibility measure for a
 topic based on develop, another topic, or stale main. It preserves the
 published original while reconstructing only the feature commits on main.
+
+![A stale feature range is rebased onto a temporary promotion copy and merged into main.](../assets/prepare-release/feature-direct-to-main.svg)
 
 ## Why “all but one” is different
 
@@ -207,5 +226,7 @@ request defaults. It does not turn develop into the production history. The
 skill keeps main as the release branch and resolves develop separately as the
 integration role.
 
-Related: [Prepare-release scenarios](../reference/prepare-release-scenarios.md)
-and [Prepare a release from develop](../tutorials/05-prepare-a-release-from-develop.md).
+Related, in Diátaxis order: [diagram semantics](why-git-history-diagrams-use-explicit-arrows.md),
+[Prepare a release from develop](../tutorials/05-prepare-a-release-from-develop.md),
+[prepare a release from any branch](../how-to/prepare-a-release.md), and
+[Prepare-release scenarios](../reference/prepare-release-scenarios.md).

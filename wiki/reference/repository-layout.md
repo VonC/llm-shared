@@ -1,11 +1,18 @@
 # Repository layout
 
-<img src="../assets/logo-llm-shared-transparent.png" alt="" height="90" align="right">
+<img src="../assets/logo-llm-shared-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
 
 🤖 Where everything lives in the llm-shared tree, and which agent reads
 what.
+
+## Invocation model
+
+Repository layout is configuration, not a command. Humans install or register
+the host entry points; AI agents then discover and read the shared bodies,
+instructions, and tools automatically. Consult paths directly when maintaining
+the integration or diagnosing discovery.
 
 ## 🚪 Agent entry points
 
@@ -22,9 +29,9 @@ what.
 AGENTS.md                    the Codex channel: run_commands pointer + groundhog section
 .agents/llm-shared/          self-contained ChatGPT Codex plugin package
 ├─ .codex-plugin/plugin.json manifest; "skills": "./skills/" drives discovery
-├─ skills/<skill>/SKILL.md   22 BOM-less wrappers (name + description only)
+├─ skills/<skill>/SKILL.md   24 BOM-less wrappers (name + description only)
 └─ instructions/             bundled copy of the bodies
-.agent/workflows/<skill>.md  22 Google Antigravity workflow wrappers,
+.agent/workflows/<skill>.md  24 Google Antigravity workflow wrappers,
                              junctioned into projects, slash-invoked
 ```
 
@@ -55,6 +62,9 @@ tools/                       the Python behind the launchers:
 ├─ wrap_commit*.py           wac
 ├─ groundhog/                the ghog CLI: runner, gate, snapshot, durations
 ├─ git_history_dashboard/    the ghd builder
+├─ git_history_diagrams/     deterministic prepare-release SVG histories
+├─ prepare_release/          topology detection and merge-tree previews
+├─ sensitive_history/        contextual commit, path, and blob scanner
 ├─ html_to_pptx/             presentation to native PPTX and PDF
 ├─ uv_run.py                 cert-aware uv launcher
 ├─ batcolors/                vendored batch coloring (submodule)

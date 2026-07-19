@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc" viewBox="0 0 1120 404">
+<title id="title">Integrate one feature into develop</title><desc id="desc">The rebased commits get new identities; the merge records integration.</desc>
+<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="context-stroke"/></marker></defs>
+<style>
+  text { font-family: Inter, Segoe UI, sans-serif; }
+  .title { font-size: 21px; font-weight: 700; fill: #172033; }
+  .lane-label { font-size: 14px; font-weight: 700; }
+  .edge { fill: none; stroke-width: 3; opacity: .88; }
+  .edge.merge { stroke-width: 5; }
+  .edge.rebase { stroke-width: 4; stroke-dasharray: 9 7; }
+  .edge-label { font-size: 12px; text-anchor: middle; fill: #374151; }
+  .commit { stroke: #fff; stroke-width: 3; }
+  .commit-label { font-size: 12px; font-weight: 700; text-anchor: middle; fill: #172033; }
+  .caption { font-size: 13px; fill: #4b5563; }
+  .legend { font-size: 12px; fill: #374151; }
+</style>
+<rect width="100%" height="100%" rx="12" fill="#f8fafc" stroke="#d7deea"/>
+<text class="title" x="18" y="32">Integrate one feature into develop</text>
+<text class="lane-label" x="18" y="115" fill="#2563eb">main (release)</text><text class="lane-label" x="18" y="215" fill="#d97706">develop (integration)</text><text class="lane-label" x="18" y="315" fill="#15803d">feature/A</text><line class="edge history" x1="190" y1="110" x2="310" y2="210" stroke="#2563eb"/><line class="edge history" x1="310" y1="210" x2="470" y2="210" stroke="#d97706"/><line class="edge history" x1="310" y1="210" x2="470" y2="310" stroke="#d97706"/><line class="edge history" x1="470" y1="310" x2="630" y2="310" stroke="#15803d"/><line class="edge rebase" x1="470" y1="310" x2="690" y2="310" stroke="#15803d" marker-end="url(#arrow)"/><text class="edge-label" x="580" y="300">rebase onto develop</text><line class="edge history" x1="470" y1="210" x2="690" y2="310" stroke="#d97706"/><line class="edge history" x1="690" y1="310" x2="830" y2="310" stroke="#15803d"/><line class="edge history" x1="470" y1="210" x2="990" y2="210" stroke="#d97706"/><line class="edge merge" x1="830" y1="310" x2="990" y2="210" stroke="#d97706" marker-end="url(#arrow)"/><text class="edge-label" x="910" y="250">merge --no-ff</text><circle class="commit" cx="190" cy="110" r="12" fill="#2563eb"/><text class="commit-label" x="190" y="91">M0</text><circle class="commit" cx="310" cy="210" r="12" fill="#d97706"/><text class="commit-label" x="310" y="191">D0</text><circle class="commit" cx="470" cy="210" r="12" fill="#d97706"/><text class="commit-label" x="470" y="191">D1</text><circle class="commit" cx="470" cy="310" r="12" fill="#15803d"/><text class="commit-label" x="470" y="291">A1</text><circle class="commit" cx="630" cy="310" r="12" fill="#15803d"/><text class="commit-label" x="630" y="291">A2</text><circle class="commit" cx="690" cy="310" r="12" fill="#15803d"/><text class="commit-label" x="690" y="291">A1&#x27;</text><circle class="commit" cx="830" cy="310" r="12" fill="#15803d"/><text class="commit-label" x="830" y="291">A2&#x27;</text><circle class="commit" cx="990" cy="210" r="12" fill="#d97706"/><text class="commit-label" x="990" y="191">merge A</text>
+<line class="edge rebase" x1="20" y1="346" x2="82" y2="346" stroke="#7c3aed" marker-end="url(#arrow)"/>
+<text class="legend" x="94" y="351">dashed = rebase/replay (new commit identities)</text>
+<line class="edge merge" x1="440" y1="346" x2="502" y2="346" stroke="#2563eb" marker-end="url(#arrow)"/>
+<text class="legend" x="514" y="351">solid arrow = merge --no-ff</text>
+<text class="caption" x="18" y="382">The rebased commits get new identities; the merge records integration.</text>
+</svg>

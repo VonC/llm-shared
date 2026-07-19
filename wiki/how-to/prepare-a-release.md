@@ -1,8 +1,15 @@
 # How to prepare a release from the right branch
 
-<img src="../assets/logo-llm-shared-trail-transparent.png" alt="" height="90" align="right">
+<img src="../assets/logo-llm-shared-trail-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
+
+## Invocation model
+
+Invoke `prepare-release` once with the release intent. The AI owns planner
+calls, conflict evidence, supported Git operations, release notes, and version
+updates; do not run its prerequisites manually. Use the lower-level commands
+only for the diagnostic or unsupported-path circumstances named below.
 
 📊 Goal: select the intended release scope from main, develop/integration,
 or a feature branch created from any parent and finish with one
@@ -74,6 +81,8 @@ choose the target. All notes remain in the release whenever the invocation
 branch selected them.
 
 ## 🚂 Release all of develop
+
+![All validated feature merges on develop are selected by one solid merge into main; develop is not rebased.](../assets/prepare-release/develop-to-main.svg)
 
 1. Check out develop and make sure every intended target-version plan is
    validated and committed.
@@ -164,6 +173,11 @@ validation gates.
 
 ## 🎯 Release one selected feature
 
+The usual integration pick rebases the feature onto current develop and then
+records a non-fast-forward merge:
+
+![A feature is rebased onto develop and merged there with no fast-forward.](../assets/prepare-release/feature-to-develop.svg)
+
 Run directly from the feature branch, regardless of whether it started from
 main, develop, or another feature. The skill searches the branch-creation
 reflog and the candidate parent branches' fork and merge topology. It then
@@ -182,6 +196,8 @@ It verifies the replay with `git range-diff`, runs `ghog day`, and merges the
 promotion branch with `--no-ff`. The original feature branch remains
 unchanged, including when it was already merged into develop.
 
+![A stale feature is replayed onto a temporary main-based promotion copy and merged into main.](../assets/prepare-release/feature-direct-to-main.svg)
+
 This is gitworkflow's topic-graduation decision. The feature's merge into
 develop—normally after rebasing onto develop—tested it with other topics; its
 separate `--no-ff` merge into main accepts it for release. This is the second
@@ -189,6 +205,11 @@ pick of the same logical feature. A main-based topic can be merged unchanged.
 The temporary promotion rebase exists for develop-derived, nested, or stale
 topics and never rewrites the original branch. A feature selected directly
 for main can skip the develop pick entirely.
+
+When the feature was already tested on develop, its exact confirmed range is
+still the selection unit. Other develop commits are not pulled along:
+
+![Only one develop-tested feature is replayed and merged into main; unrelated develop work stays out.](../assets/prepare-release/feature-from-develop-to-main.svg)
 
 If the feature tip is already an ancestor of main, there is nothing left to
 merge or replay. The skill stops. It reports the earliest containing release

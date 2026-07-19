@@ -1,6 +1,6 @@
 # Aliases and bin launchers
 
-<img src="../assets/logo-llm-shared-transparent.png" alt="" height="90" align="right">
+<img src="../assets/logo-llm-shared-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
 
@@ -8,6 +8,13 @@
 they wrap. The aliases exist only in an interactive `cmd`; the launchers
 work from any shell — each self-locates the llm-shared folder and its
 bundled Python from its own path.
+
+## Invocation model
+
+Aliases are primarily human shortcuts in an interactive shell. AI workflows use
+the full launchers so behavior does not depend on session-local alias state.
+Call either form directly for an intentional standalone operation or to diagnose
+the corresponding launcher.
 
 ## 🧰 Workflow aliases
 
@@ -41,9 +48,18 @@ bundled Python from its own path.
 | `oqm.bat` | `tools\open_questions_md.py` | manage open-questions sections: `--create`, `--strip`, `--append` |
 | `new_draft.bat` | `tools\new_draft.py` | rename a draft and create its effort branch or worktree |
 | `ghd.bat` | `tools\git_history_dashboard\build.py` | build the commit-history dashboard |
+| `sensitive_history_scan.bat` | `tools\sensitive_history\sensitive_history_scan.py` | report sensitive terms across commit, tag, path, and blob history |
+| `git_history_diagrams.bat` | `tools\git_history_diagrams\generate_git_history_diagrams.py` | generate or check the prepare-release SVG histories |
 | `mds.ps1` | `tools\serve_docs\serve_docs.py` | serve a markdown folder as a local website and open the browser (PowerShell so Ctrl-C stops it without cmd's terminate-batch question) |
 | `python_check.bat` | vulture, big-file check, `enforce_eof.py` | the check station of the walk |
 | `python_check_types.bat` | type checking | the typing gate |
+
+The `shscan` alias calls `sensitive_history_scan.bat --root "%PRJ_DIR%"`.
+Reports written below the repository must use an ignored path such as
+`a.sensitive.history-scan.local.md`.
+
+The `ghdiag` alias calls `git_history_diagrams.bat`. Use `ghdiag --check` to
+verify that committed history diagrams match their declarative scenarios.
 
 ## 📦 Dependency shortcuts
 

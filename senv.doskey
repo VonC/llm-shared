@@ -18,6 +18,9 @@ covg="%LLM_SHARED_DIR%\bin\covg.bat" $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%
 
 ghd="%LLM_SHARED_DIR%\bin\ghd.bat" $*$tif not errorlevel 1 start "" "%PRJ_DIR%\docs\git_history_dashboard\dashboard.html"$techo %PRJ_DIR_NAME%: git history dashboard done
 
+shscan="%LLM_SHARED_DIR%\bin\sensitive_history_scan.bat" --root "%PRJ_DIR%" $*
+ghdiag="%LLM_SHARED_DIR%\bin\git_history_diagrams.bat" $*
+
 pwiki=python "%LLM_SHARED_DIR%\tools\serve_docs\serve_docs.py" "%PRJ_DIR%\wiki" $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: wiki server stopped
 
 wac="%LLM_SHARED_DIR%\bin\wac.bat" $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: a.commit wrapped

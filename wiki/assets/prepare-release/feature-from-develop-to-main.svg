@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc" viewBox="0 0 1120 509">
+<title id="title">Promote only one feature already tested on develop</title><desc id="desc">Only the confirmed feature range is replayed; unrelated develop work stays out.</desc>
+<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="context-stroke"/></marker></defs>
+<style>
+  text { font-family: Inter, Segoe UI, sans-serif; }
+  .title { font-size: 21px; font-weight: 700; fill: #172033; }
+  .lane-label { font-size: 14px; font-weight: 700; }
+  .edge { fill: none; stroke-width: 3; opacity: .88; }
+  .edge.merge { stroke-width: 5; }
+  .edge.rebase { stroke-width: 4; stroke-dasharray: 9 7; }
+  .edge-label { font-size: 12px; text-anchor: middle; fill: #374151; }
+  .commit { stroke: #fff; stroke-width: 3; }
+  .commit-label { font-size: 12px; font-weight: 700; text-anchor: middle; fill: #172033; }
+  .caption { font-size: 13px; fill: #4b5563; }
+  .legend { font-size: 12px; fill: #374151; }
+</style>
+<rect width="100%" height="100%" rx="12" fill="#f8fafc" stroke="#d7deea"/>
+<text class="title" x="18" y="32">Promote only one feature already tested on develop</text>
+<text class="lane-label" x="18" y="105" fill="#2563eb">main (release)</text><text class="lane-label" x="18" y="210" fill="#d97706">develop (integration)</text><text class="lane-label" x="18" y="315" fill="#15803d">feature/A</text><text class="lane-label" x="18" y="420" fill="#7c3aed">promotion copy</text><line class="edge history" x1="180" y1="100" x2="500" y2="100" stroke="#2563eb"/><line class="edge history" x1="180" y1="100" x2="300" y2="205" stroke="#2563eb"/><line class="edge history" x1="300" y1="205" x2="460" y2="310" stroke="#d97706"/><line class="edge history" x1="460" y1="310" x2="620" y2="310" stroke="#15803d"/><line class="edge history" x1="300" y1="205" x2="760" y2="205" stroke="#d97706"/><line class="edge merge" x1="620" y1="310" x2="760" y2="205" stroke="#d97706" marker-end="url(#arrow)"/><text class="edge-label" x="690" y="247">integration merge --no-ff</text><line class="edge rebase" x1="460" y1="310" x2="690" y2="415" stroke="#7c3aed" marker-end="url(#arrow)"/><text class="edge-label" x="575" y="352">isolate A1..A2; replay onto main</text><line class="edge history" x1="500" y1="100" x2="690" y2="415" stroke="#2563eb"/><line class="edge history" x1="690" y1="415" x2="835" y2="415" stroke="#7c3aed"/><line class="edge history" x1="500" y1="100" x2="1010" y2="100" stroke="#2563eb"/><line class="edge merge" x1="835" y1="415" x2="1010" y2="100" stroke="#2563eb" marker-end="url(#arrow)"/><text class="edge-label" x="922" y="247">release merge --no-ff</text><circle class="commit" cx="180" cy="100" r="12" fill="#2563eb"/><text class="commit-label" x="180" y="81">M0</text><circle class="commit" cx="500" cy="100" r="12" fill="#2563eb"/><text class="commit-label" x="500" y="81">M1</text><circle class="commit" cx="300" cy="205" r="12" fill="#d97706"/><text class="commit-label" x="300" y="186">D0</text><circle class="commit" cx="460" cy="310" r="12" fill="#15803d"/><text class="commit-label" x="460" y="291">A1</text><circle class="commit" cx="620" cy="310" r="12" fill="#15803d"/><text class="commit-label" x="620" y="291">A2</text><circle class="commit" cx="760" cy="205" r="12" fill="#d97706"/><text class="commit-label" x="760" y="186">merge A</text><circle class="commit" cx="690" cy="415" r="12" fill="#7c3aed"/><text class="commit-label" x="690" y="396">A1&#x27;</text><circle class="commit" cx="835" cy="415" r="12" fill="#7c3aed"/><text class="commit-label" x="835" y="396">A2&#x27;</text><circle class="commit" cx="1010" cy="100" r="12" fill="#2563eb"/><text class="commit-label" x="1010" y="81">merge A</text>
+<line class="edge rebase" x1="20" y1="451" x2="82" y2="451" stroke="#7c3aed" marker-end="url(#arrow)"/>
+<text class="legend" x="94" y="456">dashed = rebase/replay (new commit identities)</text>
+<line class="edge merge" x1="440" y1="451" x2="502" y2="451" stroke="#2563eb" marker-end="url(#arrow)"/>
+<text class="legend" x="514" y="456">solid arrow = merge --no-ff</text>
+<text class="caption" x="18" y="487">Only the confirmed feature range is replayed; unrelated develop work stays out.</text>
+</svg>

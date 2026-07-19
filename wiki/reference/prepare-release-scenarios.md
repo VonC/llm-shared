@@ -1,11 +1,18 @@
 # Prepare-release scenarios
 
-<img src="../assets/logo-llm-shared-trail-transparent.png" alt="" height="90" align="right">
+<img src="../assets/logo-llm-shared-trail-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
 
 📊 Exact branch classification, scope, version, and merge behavior for
 `/prepare-release`.
+
+## Invocation model
+
+The human asks for prepare-release and supplies the release intent; the AI
+selects a scenario, runs the planner and conflict preview, then pauses at the
+documented approval gates. Direct Git commands are reserved for the explicit
+unsupported-path runbooks or for a human-approved recovery.
 
 ## Branch-role resolution
 
@@ -47,6 +54,29 @@ ready.
 | feature tip already contained by main but no release tag | Stopped safely | No safe feature-only operation remains | Report it as integrated but unreleased; suggest an explicit on-main invocation only if all `last_tag..main` changes should ship |
 | feature with ambiguous or erased fork evidence | Supported pause | Nothing until a boundary is selected | Ask for the parent or boundary; never guess or widen the range |
 | feature whose confirmed range contains merges | Unsupported by planner | A non-contiguous user-selected commit list | Mark the merges and output a clean-branch reconstruction runbook; the planner has no explicit commit-list option |
+
+## Canonical supported histories
+
+Before release selection, a feature can enter continuous integration by a
+rebase onto develop followed by a solid `--no-ff` merge:
+
+![Feature integration into develop.](../assets/prepare-release/feature-to-develop.svg)
+
+A stale feature selected directly for release is copied onto main and then
+merged. The dashed line is the identity-changing replay; the solid arrow is
+the release merge:
+
+![Direct feature selection for main.](../assets/prepare-release/feature-direct-to-main.svg)
+
+If the same logical feature is already on develop, only its confirmed range
+is replayed for the second selection:
+
+![Selective promotion of one develop-tested feature.](../assets/prepare-release/feature-from-develop-to-main.svg)
+
+If every integrated topic is ready, develop itself is merged and never
+rebased:
+
+![Bulk promotion of develop into main.](../assets/prepare-release/develop-to-main.svg)
 
 Feature-boundary evidence is resolved from branch-positioning reflog entries
 (creation, reset, or completed rebase), candidate-parent `--fork-point`,

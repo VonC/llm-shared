@@ -1,8 +1,14 @@
 # Prepare your first release from develop
 
-<img src="../assets/logo-llm-shared-trail-transparent.png" alt="" height="90" align="right">
+<img src="../assets/logo-llm-shared-trail-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
+
+## Invocation model
+
+You invoke `prepare-release` from develop and state that all integrated work is
+selected. The AI calls the planner, Git previews, merge-message, note, and
+version tools. You run `brel` yourself only after reviewing the prepared main.
 
 📊 In this tutorial you promote everything already integrated on `develop`
 into `main`, prepare the release artifacts, and stop before the tag. You need
@@ -64,6 +70,8 @@ They stay in the selected branch content but do not replace the next target
 version; drafts never trigger a release by themselves.
 
 ## 3. Confirm the bulk promotion
+
+![Develop, containing all validated feature merges, is merged into main without rebasing.](../assets/prepare-release/develop-to-main.svg)
 
 When main is already an ancestor of develop, choose `Go ahead`. The skill
 switches this worktree to main, performs the non-fast-forward merge, and

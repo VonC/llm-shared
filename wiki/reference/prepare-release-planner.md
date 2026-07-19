@@ -1,6 +1,6 @@
 # Prepare-release planner command
 
-<img src="../assets/logo-llm-shared-trail-transparent.png" alt="" height="90" align="right">
+<img src="../assets/logo-llm-shared-trail-transparent.png" alt="" width="200" align="right">
 
 <!-- markdownlint-disable MD013 -->
 
@@ -12,6 +12,13 @@ Normal release preparation does not require running this command. Invoke
 the launcher and calls it automatically for topology detection and conflict
 preview. The command interface below is for planner development,
 troubleshooting, or independent inspection.
+
+## Invocation model
+
+The prepare-release skill calls this planner automatically after its clean-tree
+and repository checks. Invoke it directly only for read-only diagnosis, planner
+development, or an advance conflict preview; doing so does not perform the
+remaining release workflow.
 
 ## Source layout
 
