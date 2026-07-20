@@ -1,38 +1,31 @@
-0.9.0 -- Passing the Baton
+0.10.0-SNAPSHOT -- No Guessing at the Fork
 
-pw skill names the next step from the docs on disk, so the phases chain
+Topology previews pin down main, integration, and feature releases.
 
-- Terse beats literary
-  -- pw skill prints one bare command where pw handoff writes a whole prompt
-- Mind the one stop
-  -- the review's Q0x table is the only human-in-the-loop pause left
+- Five Doors, One Instruction
+  -- Antigravity joins the shared skill wrappers and documentation.
+- Decks, Docs, and Clean Histories
+  -- Generators, local docs, and Git audits replace manual chores.
 
-v0.9.0 makes the document phase of the workflow chain itself. A new pw skill
-subcommand reads the effort documents on disk -- which exist, which carry open
-questions, which are settled -- and prints one bare next-step command,
-host-prefixed for Claude or Codex. The write-requirement, write-design, and
-write-plans skills, and the consolidate skill, end on a `## Handoff` that runs
-`pw skill` and follows the command it prints, so the requirement, design, and plan
-phases advance with no menu and no go-ahead.
+Release 0.10.0 makes release selection branch-aware. The new topology
+planner identifies on-main, integration, and feature scopes, proves feature
+boundaries, and previews merges or commit-by-commit rebases outside the
+repository object database. The prepare-release skill now handles selective
+promotion, bulk integration releases, and concrete manual handoffs.
 
-The one stop left in the document phase is /review-ask-questions, where a human
-answers a `Q0x | Title | Recommended Answer` table before the chain resumes. The
-commit gate gains the same engine through `pw skill --after-commit`, which derives
-the next action -- the next plan step, prepare-release once the last is
-committed, or nothing for a standalone commit -- and presents it as a
-multi-choice. A shared run-pw.md documents the launcher for any shell.
+The project also gained 22 Antigravity wrappers, a Diataxis wiki, a contextual
+Git history scanner, logo-sheet isolation, a local MkDocs server, and editable
+PowerPoint generation from the HTML presentation source.
 
 ### Key changes
 
-- **The pw skill subcommand**: reads the documents on disk and prints the bare
-  next-step command, host-prefixed, with a forced-skill form and an
-  --after-commit mode for the commit gate.
+- **Branch-aware releases**: The topology planner reports exact scopes,
+  boundaries, commits, and conflict previews before a release changes Git
+  history.
 
-- **Automated document-phase handoffs**: the writing and consolidate
-  instructions chain through pw skill, so requirement, design, and plan advance
-  with no go-ahead, the review the one human-in-the-loop stop.
+- **More shared entry points**: Antigravity wrappers and the expanded wiki make
+  the same instruction set available across five supported AI hosts.
 
-- **Question table, choice lists, and the pw docs**: review-ask-questions posts
-  a `Q0x | Title | Recommended Answer` table and a next-step hint, process-draft
-  and split-and-define present multi-choice lists, and `run-pw.md` plus the README
-  and DEVELOPMENT pw comparison land, guarded by new test suites.
+- **New repository tools**: History scanning, logo extraction, local Markdown
+  serving, release diagrams, and presentation generators replace repeat manual
+  work with tested commands.

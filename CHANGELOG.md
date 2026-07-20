@@ -6,6 +6,143 @@ release. The groundhog test loop (ghog), the prompt-workflow cycle (pw),
 and the commit and changelog helpers are mutualized across sibling
 projects.
 
+## [v0.10.0-SNAPSHOT unreleased] No Guessing at the Fork - 3475df792210cc535b2d3b8e8d6d9038ef45fa73
+
+Topology previews pin down main, integration, and feature releases.
+
+- Five Doors, One Instruction
+  -- Antigravity joins the shared skill wrappers and documentation.
+- Decks, Docs, and Clean Histories
+  -- Generators, local docs, and Git audits replace manual chores.
+
+Release 0.10.0 makes release selection branch-aware. The new topology
+planner identifies on-main, integration, and feature scopes, proves feature
+boundaries, and previews merges or commit-by-commit rebases outside the
+repository object database. The prepare-release skill now handles selective
+promotion, bulk integration releases, and concrete manual handoffs.
+
+The project also gained 22 Antigravity wrappers, a Diataxis wiki, a contextual
+Git history scanner, logo-sheet isolation, a local MkDocs server, and editable
+PowerPoint generation from the HTML presentation source.
+
+### Key changes (v0.10.0)
+
+- **Branch-aware releases**: The topology planner reports exact scopes,
+  boundaries, commits, and conflict previews before a release changes Git
+  history.
+
+- **More shared entry points**: Antigravity wrappers and the expanded wiki make
+  the same instruction set available across five supported AI hosts.
+
+- **New repository tools**: History scanning, logo extraction, local Markdown
+  serving, release diagrams, and presentation generators replace repeat manual
+  work with tested commands.
+
+### 🚀 Features (v0.10.0)
+
+- *(html_to_pptx)* Editable pptx from HTML deck
+- *(pptx)* Mirror example slides, env branding
+- *(pptx)* One-line pptx and pdf generators
+- *(antigravity)* Add 22 workflow wrappers
+- *(skills)* Add sanitize-git-history skill
+- *(isolate-logos)* Split logo sheets to PNG
+- *(tools)* Add the serve_docs local site server
+- *(release)* Add topology planner
+- *(wiki)* Add project wiki shortcut
+- *(release)* Apply gitworkflow selection
+- *(history-scan)* Add contextual Git audit
+- *(git-diagrams)* Render release histories
+
+### 🐛 Bug Fixes (v0.10.0)
+
+- *(groundhog)* Clear senv guard for a stale PATH
+- *(senv)* Clear NO_MORE_SENV guard in checks
+- *(oqm)* Load the guard-clearing project env
+- *(env)* Report activation after echo reload
+- *(ghog)* Separate duration report sections
+- *(pw)* Resolve post-commit plan topics
+- *(groundhog)* Render full reports plainly
+- *(prompt)* Detect renamed drafts
+- *(prompt)* Add implement step id
+- *(prompt)* Route terminal plans to release
+- *(groundhog)* Separate actionable ghog report sections
+- *(bin)* Self-locate LLM_SHARED_DIR in launchers
+- *(new-draft)* Skip same-path draft move
+- *(codex)* Package every shared instruction
+- *(wiki)* Build mounted documentation cleanly
+
+### 🚜 Refactor (v0.10.0)
+
+- *(groundhog)* Split out reporting_nextstep
+- *(pptx)* Strict types, split deck build
+
+### 📚 Documentation (v0.10.0)
+
+- *(rules)* Add interactive_menu rule
+- *(instructions)* Adopt interactive_menu rule
+- *(rules)* Add command_prefix_char rule
+- *(instructions)* Use command_prefix_char rule
+- *(rules)* Note the NO_MORE_SENV guard clear
+- *(instructions)* Call tools via bin wrappers
+- *(groundhog)* Require final day run
+- *(commits)* Pin batch commit workflow
+- *(commits)* Clarify commit gate choices
+- *(workflow)* Refresh post-v0.9.0 docs
+- *(presentation)* Add llm-shared deck
+- *(presentation)* Add title-slide logo
+- *(presentation)* Add local brand config
+- *(presentation)* Detail AI self-review skills
+- *(presentation)* Add llm-shared deck as pptx
+- *(rules)* Full-path calls for bin launchers
+- *(presentation)* Security slide, anchors, dashes
+- *(presentation)* Add auto-revue example slides
+- *(wiki)* Add theme logos and their prompts
+- *(wiki)* Add Diataxis documentation set
+- *(main)* Emojis, wiki links, duration gate
+- *(antigravity)* How-to and host updates
+- *(wiki)* Document history sanitization
+- *(rules)* Forbid em dash in prose
+- *(requirement)* Underscores in topic label
+- *(check)* Flip doc-level status line on last Yes
+- *(prepare-release)* Gate on validation status
+- *(wiki)* Document the local docs server
+- *(release)* Define branch-aware preparation
+- *(release)* Explain selection workflows
+- *(workflow)* Explain AI ownership and review
+
+### ⚡ Performance (v0.10.0)
+
+- *(groundhog)* Cut slow duration tests
+- *(prompt)* Reuse current branch
+- *(git-history)* Move repo setup to fixtures
+- *(tests)* Trim slow validation calls
+
+### 🎨 Styling (v0.10.0)
+
+- *(instructions)* Drop doubled blank line
+
+### 🧪 Testing (v0.10.0)
+
+- *(instructions)* Normalize wrapper assertion
+- *(prompt)* Cover post-commit fallbacks
+- *(release)* Cover workflow contracts
+
+### ⚙️ Miscellaneous Tasks (v0.10.0)
+
+- *(repo)* Drop a hardcoded author and path
+- *(codex)* Rebundle plugin with instructions
+- *(lint)* Allow img, drop line-length rule
+- *(vscode)* Add Workspace Halo logo
+- *(codex)* Expose isolate-logos skill
+- *(codex)* Refresh plugin cachebuster
+
+### 🔨 Build (v0.10.0)
+
+- *(deps)* Declare python-pptx in dev group
+- *(check)* Follow shellcheck exe rename
+- *(senv)* Versioned uv-lock-public filter
+- *(deps)* Pin pip 26.1.2 for CVE-2026-8643
+
 ## [v0.9.0] - 2026-06-25 - Passing the Baton
 
 pw skill names the next step from the docs on disk, so the phases chain
