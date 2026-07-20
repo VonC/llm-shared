@@ -17,13 +17,20 @@
 			"statusBar.background": "#86a1fc",
 			"statusBar.foreground": "#15202b",
 			"statusBarItem.hoverBackground": "#547afb",
-			"statusBarItem.remoteBackground": "#86a1fc",
+			"statusBarItem.remoteBackground": "#da0536",
 			"statusBarItem.remoteForeground": "#15202b",
 			"tab.activeBorder": "#b8c8fd",
 			"titleBar.activeBackground": "#86a1fc",
 			"titleBar.activeForeground": "#15202b",
 			"titleBar.inactiveBackground": "#86a1fc99",
-			"titleBar.inactiveForeground": "#15202b99"
+			"titleBar.inactiveForeground": "#15202b99",
+			"activityBarTop.activeBackground": "#b8c8fd",
+			"activityBarTop.background": "#b8c8fd",
+			"activityBarTop.foreground": "#15202b",
+			"activityBarTop.inactiveForeground": "#15202b99",
+			"commandCenter.foreground": "#15202b",
+			"statusBar.debuggingBackground": "#86a1fc",
+			"statusBar.debuggingForeground": "#15202b"
 		},
 		"peacock.color": "#86a1fc",
 		"github.copilot.chat.otel.dbSpanExporter.enabled": true
