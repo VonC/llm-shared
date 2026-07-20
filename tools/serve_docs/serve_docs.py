@@ -295,17 +295,22 @@ def _section_key(path: Path) -> tuple[int, str]:
     return priority, path.name.casefold()
 
 
+def _yaml_string(value: str) -> str:
+    """Quote a YAML string without splitting non-BMP Unicode into surrogates."""
+    return json.dumps(value, ensure_ascii=False)
+
+
 def _navigation_yaml(docs_dir: Path) -> str:
     """Build explicit navigation with stable Diátaxis section ordering."""
     lines = ["nav:"]
     home = docs_dir / "README.md"
     if home.is_file():
-        lines.append(f"  - {json.dumps('Home')}: {json.dumps('README.md')}")
+        lines.append(f"  - {_yaml_string('Home')}: {_yaml_string('README.md')}")
     root_pages = sorted(
         path for path in docs_dir.glob("*.md") if path.name != "README.md"
     )
     lines.extend(
-        f"  - {json.dumps(_markdown_title(page))}: {json.dumps(page.name)}"
+        f"  - {_yaml_string(_markdown_title(page))}: {_yaml_string(page.name)}"
         for page in root_pages
     )
     sections = sorted(
@@ -317,11 +322,11 @@ def _navigation_yaml(docs_dir: Path) -> str:
         if not pages:
             continue
         label = SECTION_LABELS.get(section.name, section.name.replace("-", " ").title())
-        lines.append(f"  - {json.dumps(label)}:")
+        lines.append(f"  - {_yaml_string(label)}:")
         for page in pages:
             relative = page.relative_to(docs_dir).as_posix()
             lines.append(
-                f"      - {json.dumps(_markdown_title(page))}: {json.dumps(relative)}",
+                f"      - {_yaml_string(_markdown_title(page))}: {_yaml_string(relative)}",
             )
     return "\n".join(lines)
 
@@ -336,9 +341,9 @@ def write_config(
     config_path = work_dir / "mkdocs.yml"
     config_path.write_text(
         MKDOCS_TEMPLATE.format(
-            site_name=json.dumps(site_name),
-            docs_dir=json.dumps(docs_dir.as_posix()),
-            site_dir=json.dumps((work_dir / "site").as_posix()),
+            site_name=_yaml_string(site_name),
+            docs_dir=_yaml_string(docs_dir.as_posix()),
+            site_dir=_yaml_string((work_dir / "site").as_posix()),
             navigation=_navigation_yaml(navigation_root or docs_dir),
         ),
         encoding="utf-8",

@@ -44,6 +44,21 @@ def test_generated_navigation_uses_diataxis_order(tmp_path: Path) -> None:
     assert '- "Home": "README.md"' in config
 
 
+def test_generated_navigation_preserves_emoji_in_h1_title(tmp_path: Path) -> None:
+    """A non-BMP emoji remains valid UTF-8 in the rendered navigation title."""
+    docs = tmp_path / "wiki"
+    _write(docs / "README.md", "# Home\n")
+    _write(docs / "explanation" / "page.md", "# 📚 Unicode guide\n")
+    work = tmp_path / "work"
+    work.mkdir()
+
+    config = write_config(docs, "Test", work).read_text(encoding="utf-8")
+
+    assert '      - "📚 Unicode guide": "explanation/page.md"' in config
+    assert "\\ud83d\\udcda" not in config
+    config.encode("utf-8")
+
+
 def test_root_snapshot_rewrites_escaping_links_without_expanding_nav(
     tmp_path: Path,
 ) -> None:
