@@ -55,7 +55,9 @@ omit = [
     "*/new_draft_prompts.py",   # Thin questionary text wrapper; needs a TTY to exercise
     "*/groundhog/render.py",    # Thin tqdm wrapper; needs a TTY to exercise
     "*/html_to_pptx/*",         # Deck-rendering seam; needs python-pptx + PowerPoint to verify
-    "*/serve_docs/*"            # Thin subprocess wrapper around uvx/mkdocs; needs a browser to exercise
+    "*/serve_docs/*",           # Thin subprocess wrapper around uvx/mkdocs; needs a browser to exercise
+    "*/sensitive_history/sensitive_pre_commit.py", # Thin Git hook adapter
+    "*/sensitive_history/sensitive_commit_msg.py"  # Thin Git hook adapter
 ]
 
 [tool.coverage.report]

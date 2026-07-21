@@ -13,10 +13,13 @@ from tools.sensitive_history.history_scan import (
     HistoryScanError,
     ScanReport,
     _display_line,
+    configured_shared_replacement_file,
     merge_patterns,
     patterns_from_replacement_file,
+    patterns_from_repository_rules,
     patterns_from_terms,
     patterns_from_terms_file,
+    repository_replacement_files,
     scan_repository,
 )
 
@@ -124,6 +127,71 @@ def test_missing_and_empty_inputs_are_reported(tmp_path: Path) -> None:
         patterns_from_terms([" "])
     with pytest.raises(HistoryScanError, match="provide terms"):
         merge_patterns([])
+
+
+def test_repository_rules_merge_shared_then_project_local(tmp_path: Path) -> None:
+    """Conventional scans use central rules plus repository-specific rules."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    _git(repo, "init", "-b", "main")
+    shared = tmp_path / "shared.rules"
+    shared.write_text("literal:CommonTerm==>redacted\n", encoding="utf-8")
+    local = repo / "a.sensitive.replacements.local.txt"
+    local.write_text("literal:LocalTerm==>redacted\n", encoding="utf-8")
+    _git(repo, "config", "sensitive.sharedRulesFile", str(shared))
+
+    assert configured_shared_replacement_file(repo) == shared.resolve()
+    assert repository_replacement_files(repo) == (shared.resolve(), local.resolve())
+    assert [pattern.label for pattern in patterns_from_repository_rules(repo)] == [
+        "CommonTerm",
+        "LocalTerm",
+    ]
+
+    local.write_text("", encoding="utf-8")
+    assert [pattern.label for pattern in patterns_from_repository_rules(repo)] == [
+        "CommonTerm",
+    ]
+
+
+def test_repository_rules_handle_absent_empty_relative_and_failed_config(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Shared rule config is optional, path-aware, and fails closed on errors."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    _git(repo, "init", "-b", "main")
+    assert configured_shared_replacement_file(repo) is None
+    _git(repo, "config", "sensitive.sharedRulesFile", "")
+    assert configured_shared_replacement_file(repo) is None
+    relative = repo / "relative.rules"
+    relative.write_text("literal:RelativeTerm==>redacted\n", encoding="utf-8")
+    _git(repo, "config", "sensitive.sharedRulesFile", "relative.rules")
+    assert configured_shared_replacement_file(repo) == relative.resolve()
+
+    def missing_git(*_args, **_kwargs):  # noqa: ANN002, ANN003, ANN202
+        message = "missing"
+        raise FileNotFoundError(message)
+
+    monkeypatch.setattr(subprocess, "run", missing_git)
+    with pytest.raises(HistoryScanError, match="cannot read Git config"):
+        configured_shared_replacement_file(repo)
+
+
+def test_repository_rules_reject_failed_git_config(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A nonstandard Git config failure is not mistaken for an absent key."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+
+    def failed_git(*_args, **_kwargs):  # noqa: ANN002, ANN003, ANN202
+        return subprocess.CompletedProcess([], 2, stdout=b"", stderr=b"config failed")
+
+    monkeypatch.setattr(subprocess, "run", failed_git)
+    with pytest.raises(HistoryScanError, match="config failed"):
+        configured_shared_replacement_file(repo)
 
 
 @pytest.fixture

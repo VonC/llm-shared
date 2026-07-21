@@ -209,6 +209,18 @@ if not "%LOCK_FILTER_VERSION_CUR%"=="%LOCK_FILTER_VERSION%" (
 set "LOCK_FILTER_VERSION="
 set "LOCK_FILTER_VERSION_CUR="
 
+REM Install composable hooks with this project's Python in all managed repos.
+REM Each repo merges the common rules below with its own local rules file.
+set "SENSITIVE_SHARED_RULES=%PROG%\git\a.sensitive.replacements.local.txt"
+for %%r in ("%PRJ_DIR%" "%PROG%\git\workspace-halo" "%PROG%\git\cplx" "%PRGS%\senv") do (
+  %_task% "Must install or verify sensitive pending-commit hooks in '%%~fr'"
+  python "%PRJ_DIR%\tools\sensitive_history\install_hooks.py" "%%~fr" --shared-root "%PRJ_DIR%" --shared-rules "%SENSITIVE_SHARED_RULES%"
+  if errorlevel 1 (
+    %_fatal% "Sensitive pending-commit hook installation failed for '%%~fr'" 233
+  )
+)
+set "SENSITIVE_SHARED_RULES="
+
 REM check.bat and other scripts in the root of the project should be in the %PATH% for direct calling from anywhere,
 REM but only if not already present (to avoid duplicates in case of multiple calls to senv.bat from the same command prompt)
 echo ;%PATH%; | findstr /C:";%PRJ_DIR%\bin;" >NUL 2>&1

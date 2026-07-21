@@ -22,6 +22,7 @@ from tools.sensitive_history.history_scan import (
     ScanReport,
     merge_patterns,
     patterns_from_replacement_file,
+    patterns_from_repository_rules,
     patterns_from_terms,
     patterns_from_terms_file,
     scan_repository,
@@ -164,12 +165,9 @@ def _patterns(args: argparse.Namespace, root: Path) -> list[PatternSpec]:
     """Resolve all explicit inputs or the conventional local rules file."""
     term_patterns = patterns_from_terms(args.terms)
     file_patterns = patterns_from_terms_file(args.terms_file) if args.terms_file else []
-    rules_path = args.rules
-    if not args.terms and not args.terms_file and rules_path is None:
-        conventional = root / "a.sensitive.replacements.local.txt"
-        if conventional.is_file():
-            rules_path = conventional
-    rule_patterns = patterns_from_replacement_file(rules_path) if rules_path else []
+    if not args.terms and not args.terms_file and args.rules is None:
+        return patterns_from_repository_rules(root)
+    rule_patterns = patterns_from_replacement_file(args.rules) if args.rules else []
     return merge_patterns(term_patterns, file_patterns, rule_patterns)
 
 

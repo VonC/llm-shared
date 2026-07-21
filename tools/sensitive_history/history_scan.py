@@ -7,11 +7,11 @@ import subprocess
 import threading
 from collections import Counter, defaultdict
 from dataclasses import dataclass
+from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Iterator, Sequence
-    from pathlib import Path
     from typing import IO
 
 MatchKind = Literal["commit", "tag", "path", "blob"]
@@ -19,6 +19,10 @@ MatchKind = Literal["commit", "tag", "path", "blob"]
 
 class HistoryScanError(RuntimeError):
     """Report an invalid input or failed Git history scan."""
+
+
+LOCAL_RULES_FILENAME = "a.sensitive.replacements.local.txt"
+SHARED_RULES_CONFIG = "sensitive.sharedRulesFile"
 
 
 @dataclass(frozen=True)
@@ -211,6 +215,49 @@ def merge_patterns(*groups: Sequence[PatternSpec]) -> list[PatternSpec]:
         message = "provide terms, a terms file, or a replacement file"
         raise HistoryScanError(message)
     return merged
+
+
+def configured_shared_replacement_file(root: Path) -> Path | None:
+    """Return the repository's configured shared replacement file, if any."""
+    try:
+        result = subprocess.run(  # noqa: S603
+            ["git", "config", "--path", "--get", SHARED_RULES_CONFIG],  # noqa: S607
+            cwd=root,
+            check=False,
+            capture_output=True,
+        )
+    except OSError as error:
+        message = f"cannot read Git config {SHARED_RULES_CONFIG}: {error}"
+        raise HistoryScanError(message) from error
+    if result.returncode == 1:
+        return None
+    if result.returncode:
+        detail = result.stderr.decode("utf-8", errors="replace").strip()
+        message = f"cannot read Git config {SHARED_RULES_CONFIG}: {detail}"
+        raise HistoryScanError(message)
+    raw_path = result.stdout.decode("utf-8", errors="surrogateescape").strip()
+    if not raw_path:
+        return None
+    path = Path(raw_path)
+    return (path if path.is_absolute() else root / path).resolve()
+
+
+def repository_replacement_files(root: Path) -> tuple[Path, ...]:
+    """Return shared then project-local conventional replacement files."""
+    resolved_root = root.resolve()
+    shared = configured_shared_replacement_file(resolved_root)
+    local = resolved_root / LOCAL_RULES_FILENAME
+    files = [shared] if shared is not None else []
+    if local.is_file() and local.resolve() not in files:
+        files.append(local.resolve())
+    return tuple(files)
+
+
+def patterns_from_repository_rules(root: Path) -> list[PatternSpec]:
+    """Merge configured shared and project-local replacement patterns."""
+    return merge_patterns(
+        *(patterns_from_replacement_file(path) for path in repository_replacement_files(root)),
+    )
 
 
 class GitRepository:
