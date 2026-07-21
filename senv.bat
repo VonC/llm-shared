@@ -60,16 +60,8 @@ if not defined LATEST_PYTHON_DIR (
   goto:eof
 )
 
-set "SENV_PYTHON_VERSION=%LATEST_PYTHON_DIR:python=%"
-set "PYTHON_VERSION=%SENV_PYTHON_VERSION%"
-set "EXPECTED_VENV_NAME=python_%SENV_PYTHON_VERSION%_%PRJ_DIR_NAME%"
-set "EXPECTED_VENV_DIR=%PRJ_DIR%\venvs\%EXPECTED_VENV_NAME%"
-set "EXPECTED_VENV_SCRIPTS=%EXPECTED_VENV_DIR%\Scripts"
-set "BASE_PYTHON=%PRGS%\pythons\%LATEST_PYTHON_DIR%\python.exe"
-%_info% "Using latest Python version found: '%SENV_PYTHON_VERSION%'"
-
-call:ensure_project_venv_scaffold
-if errorlevel 1 goto:eof
+set "PYTHON_VERSION=%LATEST_PYTHON_DIR:python=%"
+%_info% "Using latest Python version found: '%PYTHON_VERSION%'"
 
 REM ========================================
 REM PYTHONPATH / IMPORT SETUP
@@ -80,12 +72,10 @@ if errorlevel 1 (
 )
 
 pushd "%PRJ_DIR%"
-call switchpy %SENV_PYTHON_VERSION% local
+call switchpy %PYTHON_VERSION% local
 popd
 REM restore echos macros unset by switchpy
 call "%PRJ_DIR%\tools\batcolors\echos_macros.bat" export
-call:activate_project_venv
-if errorlevel 1 goto:eof
 %_ok% "Environment initialized for project '%PRJ_DIR_NAME%'"
 
 set "GIT_HOME=%PRGS%\gits\current"
@@ -113,7 +103,7 @@ doskey ruffcf=ruff check --fix $* ^& echo %PRJ_DIR_NAME%: ruff check --fix done
 doskey ruffcuf=ruff check --unsafe-fixes --fix $* ^& echo %PRJ_DIR_NAME%: ruff check --unsafe-fixes --fix done
 doskey ruffcs=ruff check --select $* ^& echo %PRJ_DIR_NAME%: ruff check select done
 doskey ptws=ptw "%PRJ_DIR%\bin" --testmon --cov-report=html --cov-append --cov-report term-missing:skip-covered $* ^& echo %PRJ_DIR_NAME%: pytest-watch done
-doskey switchp=switchpy %SENV_PYTHON_VERSION% local $* ^& echo %PRJ_DIR_NAME%: switchpy done
+doskey switchp=switchpy %PYTHON_VERSION% local $* ^& echo %PRJ_DIR_NAME%: switchpy done
 doskey c="%PRJ_DIR%\bin\python_check.bat" $* ^& echo %PRJ_DIR_NAME%: python check done
 doskey cbf="%PRJ_DIR%\bin\check_big_files.bat" $* ^& echo %PRJ_DIR_NAME%: check big files done
 
@@ -156,7 +146,6 @@ rem if no PEM is found, assume a personal machine where no extra cert is needed.
 doskey uv=
 doskey uvw=
 doskey uvx=
-set "UV_PROJECT_ENVIRONMENT=%EXPECTED_VENV_DIR%"
 
 doskey gdca=git diff --cached ^> a.diff ^& grep "^diff " a.diff ^| wc -l ^& git status --porcelain ^| grep -v "^[ \?]"
 doskey gcma=gcm.bat a ^& git commit --amend
@@ -184,9 +173,6 @@ if exist "%PRJ_DIR%\bin\senv.local.bat" (
 REM llm-shared is a public repository: keep local uv usage unchanged, but
 REM rewrite staged uv.lock URLs to public hosts before commit.
 if not defined UV_INDEX_URL if defined PYPI_HOST set "UV_INDEX_URL=https://%PYPI_HOST%"
-
-call:ensure_project_venv_tools
-if errorlevel 1 goto:eof
 
 REM Versioned filter install (same pattern as my-project): the filter is
 REM reapplied whenever the stored filter.uv-lock-public.version differs from
@@ -238,101 +224,6 @@ doskey fsenv=set "NO_MORE_SENV_%PRJ_DIR_NAME%=" ^& "%PRJ_DIR%\senv.bat" force $*
 %_info% "local dev senv applied for '%PRJ_DIR_NAME%'"
 
 goto:eof
-
-:ensure_project_venv_scaffold
-if not exist "%BASE_PYTHON%" (
-  %_fatal% "Base Python executable '%BASE_PYTHON%' is missing" 112
-  exit /b 112
-)
-
-set "VENV_REBUILD_REASON="
-if not exist "%EXPECTED_VENV_DIR%\pyvenv.cfg" set "VENV_REBUILD_REASON=pyvenv.cfg"
-if not defined VENV_REBUILD_REASON if not exist "%EXPECTED_VENV_SCRIPTS%\python.exe" set "VENV_REBUILD_REASON=python.exe"
-if not defined VENV_REBUILD_REASON if not exist "%EXPECTED_VENV_SCRIPTS%\activate.bat" set "VENV_REBUILD_REASON=activate.bat"
-if not defined VENV_REBUILD_REASON exit /b 0
-
-%_warning% "Project venv '%EXPECTED_VENV_NAME%' is incomplete: missing '%VENV_REBUILD_REASON%'"
-%_task% "Must repair the project venv scaffold before activation"
-if not exist "%PRJ_DIR%\venvs" mkdir "%PRJ_DIR%\venvs"
-"%BASE_PYTHON%" "%PRJ_DIR%\tools\repair_venv_scaffold.py" "%EXPECTED_VENV_DIR%"
-if errorlevel 1 (
-  %_fatal% "Unable to repair project venv '%EXPECTED_VENV_DIR%'" 113
-  exit /b 113
-)
-if not exist "%EXPECTED_VENV_SCRIPTS%\activate.bat" (
-  %_fatal% "Rebuilt project venv has no activation script" 114
-  exit /b 114
-)
-set "VENV_REBUILT=true"
-%_ok% "Project venv scaffold repaired"
-exit /b 0
-
-:activate_project_venv
-echo ;%PATH%; | findstr /I /C:";%EXPECTED_VENV_SCRIPTS%;" >NUL 2>&1
-if errorlevel 1 (
-  %_warning% "Project venv Scripts directory is missing from PATH: activating it"
-  call "%EXPECTED_VENV_SCRIPTS%\activate.bat"
-)
-echo ;%PATH%; | findstr /I /C:";%EXPECTED_VENV_SCRIPTS%;" >NUL 2>&1
-if errorlevel 1 (
-  %_fatal% "Unable to add '%EXPECTED_VENV_SCRIPTS%' to PATH" 115
-  exit /b 115
-)
-set "VIRTUAL_ENV=%EXPECTED_VENV_DIR%"
-set "VIRTUAL_ENV_PROMPT=%EXPECTED_VENV_NAME%"
-%_ok% "Project venv '%EXPECTED_VENV_NAME%' is active on PATH"
-exit /b 0
-
-:ensure_project_venv_tools
-set "VENV_TOOL_REPAIR="
-if defined VENV_REBUILT set "VENV_TOOL_REPAIR=venv scaffold was rebuilt"
-if not exist "%EXPECTED_VENV_SCRIPTS%\pip.exe" set "VENV_TOOL_REPAIR=pip.exe is missing"
-if not defined VENV_TOOL_REPAIR "%EXPECTED_VENV_SCRIPTS%\python.exe" -m pip --version >NUL 2>&1
-if not defined VENV_TOOL_REPAIR if errorlevel 1 set "VENV_TOOL_REPAIR=pip is unusable"
-if not exist "%EXPECTED_VENV_SCRIPTS%\uv.exe" set "VENV_TOOL_REPAIR=uv.exe is missing"
-if not defined VENV_TOOL_REPAIR "%EXPECTED_VENV_SCRIPTS%\uv.exe" --version >NUL 2>&1
-if not defined VENV_TOOL_REPAIR if errorlevel 1 set "VENV_TOOL_REPAIR=uv is unusable"
-
-if defined VENV_TOOL_REPAIR (
-  %_warning% "Project venv tools need repair: %VENV_TOOL_REPAIR%"
-  %_task% "Must bootstrap pip in the project venv"
-  "%EXPECTED_VENV_SCRIPTS%\python.exe" -m ensurepip --upgrade
-  if errorlevel 1 goto:project_venv_tools_failed
-  "%EXPECTED_VENV_SCRIPTS%\python.exe" -m pip install --upgrade pip
-  if errorlevel 1 goto:project_venv_tools_failed
-  "%EXPECTED_VENV_SCRIPTS%\python.exe" -m pip install uv
-  if errorlevel 1 goto:project_venv_tools_failed
-)
-
-"%EXPECTED_VENV_SCRIPTS%\python.exe" -m pip --version
-if errorlevel 1 goto:project_venv_tools_failed
-"%EXPECTED_VENV_SCRIPTS%\uv.exe" --version
-if errorlevel 1 goto:project_venv_tools_failed
-
-%_task% "Must sync every project dependency group from uv.lock"
-pushd "%PRJ_DIR%"
-"%EXPECTED_VENV_SCRIPTS%\uv.exe" sync --frozen --all-groups
-set "VENV_SYNC_STATUS=%ERRORLEVEL%"
-popd
-if not "%VENV_SYNC_STATUS%"=="0" goto:project_venv_tools_failed
-
-where python.exe >NUL 2>&1
-if errorlevel 1 goto:project_venv_tools_failed
-where pip.exe >NUL 2>&1
-if errorlevel 1 goto:project_venv_tools_failed
-where uv.exe >NUL 2>&1
-if errorlevel 1 goto:project_venv_tools_failed
-
-set "VENV_REBUILT="
-set "VENV_REBUILD_REASON="
-set "VENV_TOOL_REPAIR="
-set "VENV_SYNC_STATUS="
-%_ok% "Project venv pip, uv, PATH, and dependency sync verified"
-exit /b 0
-
-:project_venv_tools_failed
-%_fatal% "Unable to repair or sync project venv '%EXPECTED_VENV_DIR%'" 116
-exit /b 116
 
 :call_echos_stack
 if not defined ECHOS_STACK ( set "CURRENT_SCRIPT=%~nx0" & goto:eof ) else ( call "%PRJ_DIR%\tools\batcolors\echos.bat" :stack %~nx0 )

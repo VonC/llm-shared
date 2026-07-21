@@ -218,48 +218,17 @@ def test_llm_shared_pwiki_alias_serves_wiki_and_loads_before_guard() -> None:
     assert '"%PRJ_DIR%\\docs\\wiki"' not in doskeys
 
 
-def test_llm_shared_senv_repairs_an_incomplete_project_venv() -> None:
-    """The project shell rebuilds a partial venv before switchpy activates it."""
+def test_llm_shared_senv_delegates_project_venv_setup_to_switchpy() -> None:
+    """The project shell leaves venv repair and dependency sync to switchpy."""
     root = steps.llm_shared_dir()
     senv = (root / "senv.bat").read_text(encoding="utf-8")
 
-    expected_name = (
-        'set "EXPECTED_VENV_NAME=python_%SENV_PYTHON_VERSION%_%PRJ_DIR_NAME%"'
-    )
-    scaffold_call = "call:ensure_project_venv_scaffold"
-    switchpy_call = "call switchpy %SENV_PYTHON_VERSION% local"
-
-    assert expected_name in senv
-    assert senv.index(scaffold_call) < senv.index(switchpy_call)
-    assert 'if not exist "%EXPECTED_VENV_DIR%\\pyvenv.cfg"' in senv
-    assert 'if not exist "%EXPECTED_VENV_SCRIPTS%\\activate.bat"' in senv
-    assert 'tools\\repair_venv_scaffold.py" "%EXPECTED_VENV_DIR%"' in senv
-
-
-def test_llm_shared_senv_bootstraps_and_syncs_venv_tools() -> None:
-    """Missing pip or uv triggers the complete bootstrap and sync sequence."""
-    root = steps.llm_shared_dir()
-    senv = (root / "senv.bat").read_text(encoding="utf-8")
-
-    repair = senv[senv.index('%_task% "Must bootstrap pip in the project venv"') :]
-    bootstrap = [
-        "-m ensurepip --upgrade",
-        "-m pip install --upgrade pip",
-        "-m pip install uv",
-        "-m pip --version",
-        '"%EXPECTED_VENV_SCRIPTS%\\uv.exe" --version',
-        "sync --frozen --all-groups",
-    ]
-
-    assert all(command in repair for command in bootstrap)
-    assert repair.index(bootstrap[0]) < repair.index(bootstrap[1])
-    assert repair.index(bootstrap[1]) < repair.index(bootstrap[2])
-    assert repair.index(bootstrap[2]) < repair.index(bootstrap[3])
-    assert repair.index(bootstrap[3]) < repair.index(bootstrap[4])
-    assert repair.index(bootstrap[4]) < repair.index(bootstrap[5])
-    assert "where python.exe" in senv
-    assert "where pip.exe" in senv
-    assert "where uv.exe" in senv
+    assert "call switchpy %PYTHON_VERSION% local" in senv
+    assert "call:ensure_project_venv_scaffold" not in senv
+    assert "call:ensure_project_venv_tools" not in senv
+    assert "repair_venv_scaffold.py" not in senv
+    assert "-m ensurepip" not in senv
+    assert 'uv.exe" sync' not in senv
 
 
 def test_llm_shared_senv_reinitializes_project_scoped_aliases() -> None:
