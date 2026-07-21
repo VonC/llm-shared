@@ -30,6 +30,18 @@ is reversible text on disk, so the chain runs it without asking.
   `Q0x | Title | Recommended Answer` table. The chain resumes on the
   consolidation, not on a "go ahead".
 
+## 🚪 The optional stop between documents and code
+
+The settled plan is the border between text and code, and crossing it is
+a default, not an inevitability. When the last consolidation settles the
+plan, the chain starts the implementation of the plan's first step by
+itself; a fresh plan, on the other hand, always meets its review round
+first — the routing reads consolidated decisions (`| Qxx` rows or the
+"No open questions" row), never a merely seeded decisions heading. The
+author who wants to read the settled plan before any code moves says so:
+`stop here` in the consolidation invocation, or any explicit instruction
+not to implement, turns the handoff into a printed next step and a stop.
+
 ## 🛑 The stop of the implement chain
 
 The chain — implement, check, fill gaps, group commits — runs with no

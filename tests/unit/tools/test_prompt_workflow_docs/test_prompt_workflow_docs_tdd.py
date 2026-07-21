@@ -241,4 +241,38 @@ def test_has_decisions_table(tmp_path: Path) -> None:
     assert docs.has_decisions_table(without) is False
 
 
+def test_has_consolidated_decisions_requires_a_review_produced_row(tmp_path: Path) -> None:
+    """The consolidated signal is the heading plus a | Qxx row, not the heading alone."""
+    consolidated = tmp_path / "consolidated.md"
+    consolidated.write_text(
+        "# Title\n\n## Implementation decisions\n\n| Q22 | decision |\n",
+        encoding="utf-8",
+    )
+    assert docs.has_consolidated_decisions(consolidated) is True
+
+    seeded = tmp_path / "seeded.md"
+    seeded.write_text(
+        "# Title\n\n## Implementation decisions\n\n| Decision | Reason |\n| a | b |\n",
+        encoding="utf-8",
+    )
+    assert docs.has_consolidated_decisions(seeded) is False
+
+
+def test_has_consolidated_decisions_accepts_the_no_open_questions_row(tmp_path: Path) -> None:
+    """A no-question review's settled row counts as consolidated."""
+    settled = tmp_path / "settled.md"
+    settled.write_text(
+        "# Title\n\n## Design decisions\n\n| No open questions, all decisions made |\n",
+        encoding="utf-8",
+    )
+    assert docs.has_consolidated_decisions(settled) is True
+
+
+def test_has_consolidated_decisions_needs_the_heading(tmp_path: Path) -> None:
+    """A | Qxx row outside any decisions section is not a consolidated signal."""
+    rows_only = tmp_path / "rows.md"
+    rows_only.write_text("# Title\n\n| Q01 | stray row |\n", encoding="utf-8")
+    assert docs.has_consolidated_decisions(rows_only) is False
+
+
 # eof

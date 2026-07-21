@@ -47,10 +47,24 @@ status line the check wrote, so the caller cannot pick the wrong branch.
 | --- | --- |
 | fresh draft, no requirement | `/process-draft on docs\draft...md` |
 | doc still carrying `## Open questions` | `/consolidate-then-review-ask-questions on ...` |
+| current doc fresh: no open questions, no consolidated decisions | `/review-ask-questions on ...` |
 | settled requirement | `/write-design` |
 | settled design | `/write-plans` |
 | settled plan, uncommitted validation work | `/implement-step <x>` |
 | settled plan, final step committed | `/prepare-release` |
+
+"Settled" means consolidated, not merely titled: the document must carry a
+decisions section (`Requirement clarifications`, `Design decisions`, or
+`Implementation decisions`) holding at least one row opening with a question id
+(`| Qxx`) or the "No open questions" row a no-question review writes. A
+decisions heading seeded by the document writer does not count, so a freshly
+written plan always routes to its review round before any `/implement-step`.
+The `<x>` of `/implement-step` comes from the validation plan's own step list:
+the last verified step, or the plan's first step when none is verified, which
+is not always `1` (a plan may open on a step 0). Whether the settled-plan
+command is run at once (the default) or shown and held (`stop here` in the
+consolidation invocation, or an explicit human instruction) is decided by the
+skill instructions, not by `pw`.
 
 ## 🚩 Flags and special forms
 

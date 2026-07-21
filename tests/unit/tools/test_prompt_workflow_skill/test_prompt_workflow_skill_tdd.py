@@ -107,12 +107,19 @@ def _write(tmp_path: Path, name: str, body: str) -> None:
     (tmp_path / "docs" / name).write_text(body, encoding="utf-8")
 
 
-# Bodies that put a document in a given state for the routing tests.
+# Bodies that put a document in a given state for the routing tests. A settled
+# body carries a question-referenced row (| Qxx), the mark of a consolidated
+# review; a seeded body carries only the decisions heading a writer may add.
 _OPEN = "# x\n\n## Open questions\n\n### Q1\n"
 _FRESH = "# x\n\nbody only\n"
-_SETTLED_REQ = "# x\n\n## Requirement clarifications\n\n| a | b |\n"
-_SETTLED_DESIGN = "# x\n\n## Design decisions\n\n| a | b |\n"
-_SETTLED_PLAN = "# x\n\n## Implementation decisions\n\n| a | b |\n"
+_SETTLED_REQ = "# x\n\n## Requirement clarifications\n\n| Q01 | a |\n"
+_SETTLED_DESIGN = "# x\n\n## Design decisions\n\n| Q16 | a |\n"
+_SETTLED_PLAN = "# x\n\n## Implementation decisions\n\n| Q22 | a |\n"
+_SEEDED_REQ = "# x\n\n## Requirement clarifications\n\n| a | b |\n"
+_SEEDED_PLAN = "# x\n\n## Implementation decisions\n\n| a | b |\n"
+_NO_QUESTIONS_PLAN = (
+    "# x\n\n## Implementation decisions\n\n| No open questions, all decisions made |\n"
+)
 _REQ = "feature-request.v0.9.0.handoff_automation.md"
 _DESIGN = "design.v0.9.0.handoff_automation.md"
 _PLAN = "plan.v0.9.0.handoff_automation.md"
@@ -198,6 +205,41 @@ def test_next_command_settled_plan_implements(tmp_path: Path) -> None:
     _write(tmp_path, _REQ, _SETTLED_REQ)
     _write(tmp_path, _DESIGN, _SETTLED_DESIGN)
     _write(tmp_path, _PLAN, _SETTLED_PLAN)
+    command = skill.next_command(tmp_path, topic, "handoff_automation", _CLAUDE)
+    assert command == "/implement-step on docs/plan.v0.9.0.handoff_automation.md"
+
+
+def test_next_command_seeded_plan_decisions_still_reviews(tmp_path: Path) -> None:
+    """A fresh plan seeding a decisions heading without Qxx rows still reviews.
+
+    This pins the v9.14.0 regression: a writer-seeded ``## Implementation
+    decisions`` section made the routing skip the plan review and jump to
+    implement-step before any review round had run.
+    """
+    topic = _topic(tmp_path)
+    _write(tmp_path, _REQ, _SETTLED_REQ)
+    _write(tmp_path, _DESIGN, _SETTLED_DESIGN)
+    _write(tmp_path, _PLAN, _SEEDED_PLAN)
+    command = skill.next_command(tmp_path, topic, "handoff_automation", _CLAUDE)
+    assert command == "/review-ask-questions on docs/plan.v0.9.0.handoff_automation.md"
+
+
+def test_next_command_seeded_requirement_decisions_still_reviews(tmp_path: Path) -> None:
+    """A fresh requirement seeding a decisions heading without Qxx rows still reviews."""
+    topic = _topic(tmp_path)
+    _write(tmp_path, _REQ, _SEEDED_REQ)
+    command = skill.next_command(tmp_path, topic, "handoff_automation", _CLAUDE)
+    assert command == (
+        "/review-ask-questions on docs/feature-request.v0.9.0.handoff_automation.md"
+    )
+
+
+def test_next_command_no_open_questions_row_advances(tmp_path: Path) -> None:
+    """The settled row a no-question review writes advances past the review."""
+    topic = _topic(tmp_path)
+    _write(tmp_path, _REQ, _SETTLED_REQ)
+    _write(tmp_path, _DESIGN, _SETTLED_DESIGN)
+    _write(tmp_path, _PLAN, _NO_QUESTIONS_PLAN)
     command = skill.next_command(tmp_path, topic, "handoff_automation", _CLAUDE)
     assert command == "/implement-step on docs/plan.v0.9.0.handoff_automation.md"
 

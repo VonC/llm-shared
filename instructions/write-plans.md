@@ -16,6 +16,7 @@ For the second implementation validation plan document, follow the template from
 Notes for the writer:
 
 - Keep section titles specific to the topic and version; do not reuse generic repeated titles.
+- Do not seed question-referenced rows (a table row opening with `| Qxx`) or a "No open questions" row into any decisions section you write: the `pw` routing reads those rows as the mark of a consolidated review, and a fresh plan carrying them would skip its review round.
 - Use the current-behavior and target-behavior sections only when the design depends on comparing flows.
 - Put facts already confirmed from the codebase in the confirmed-facts section.
 - Put implementation steps, file-by-file task lists, and rollout steps in the later implementation plan, not in the design.

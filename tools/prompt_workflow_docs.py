@@ -33,6 +33,11 @@ OPEN_QUESTIONS_RE = re.compile(r"^## Open questions")
 DECISIONS_RE = re.compile(
     r"^## (Requirement clarifications|Design decisions|Implementation decisions)",
 )
+# A table row opening with a question id: the mark of a decision a review round
+# actually consolidated, as opposed to a seeded table written with the document.
+CONSOLIDATED_ROW_RE = re.compile(r"^\|\s*Q\d+\b")
+# The settled row a no-question review writes instead of question-referenced rows.
+NO_OPEN_QUESTIONS_TOKEN = "No open questions"
 # The docs folder name and the draft prefix and markdown suffix.
 DOCS_DIR_NAME = "docs"
 DRAFT_PREFIX = "draft."
@@ -221,6 +226,32 @@ def has_decisions_table(path: Path) -> bool:
     """
     text = path.read_text(encoding="utf-8")
     return any(DECISIONS_RE.match(line) for line in text.splitlines())
+
+
+def has_consolidated_decisions(path: Path) -> bool:
+    """Return whether the document carries decisions a review round produced.
+
+    A decisions heading alone is not enough: a freshly written document may seed
+    such a section (a plan's house-style ``## Implementation decisions``, for
+    instance), and reading that seed as "reviewed" made the skill routing skip
+    the review step. The consolidated signal is the heading plus at least one
+    row a review produces: a table row opening with a question id (``| Qxx``),
+    or the ``No open questions`` settled row a no-question review writes.
+
+    Args:
+        path: The document to inspect.
+
+    Returns:
+        True when the document opens a decisions section and carries at least
+        one question-referenced row or the no-open-questions settled row.
+    """
+    lines = path.read_text(encoding="utf-8").splitlines()
+    if not any(DECISIONS_RE.match(line) for line in lines):
+        return False
+    return any(
+        CONSOLIDATED_ROW_RE.match(line) or NO_OPEN_QUESTIONS_TOKEN in line
+        for line in lines
+    )
 
 
 # eof

@@ -21,8 +21,11 @@ quoted text.
 
 Next-step routing (Q02, Q03): ``next_command`` reads the workflow state from disk
 only (never ``a.prompt_memory``), reuses ``steps.next_step_numbers`` for the base
-step, and advances past a review step when the document it reads carries a
-consolidated decisions table. The resolved step maps to an instruction and a
+step, and advances past a review step only when the document it reads carries a
+consolidated decisions table: a decisions heading plus a question-referenced row
+(``| Qxx``) or the no-open-questions settled row. A decisions section merely
+seeded by the document writer never skips the review, so a freshly written plan
+always meets its review round. The resolved step maps to an instruction and a
 target document, then renders. For the implementation cycle, an available
 validation plan also contributes the plan step id so ``implement-step`` receives
 the argument it needs; a terminal validation plan renders ``prepare-release``.
@@ -200,13 +203,15 @@ def _resolve_step(state: WorkflowState) -> int:
 
     Returns:
         The first ``next_step_numbers`` step, advanced past its review step when
-        the document that review step reads carries a decisions table (Q02). A
-        step with no review document (everything but 2, 5, and 8) is returned as
-        is.
+        the document that review step reads carries a consolidated decisions
+        table (Q02): a decisions heading plus a ``| Qxx`` row or the
+        no-open-questions settled row, so a seeded decisions section never
+        skips the review. A step with no review document (everything but 2, 5,
+        and 8) is returned as is.
     """
     step = steps.next_step_numbers(state)[0]
     review_doc = {2: state.requirement, 5: state.design, 8: state.plan}.get(step)
-    if review_doc is not None and docs.has_decisions_table(review_doc):
+    if review_doc is not None and docs.has_consolidated_decisions(review_doc):
         return ADVANCE_PAST_REVIEW[step]
     return step
 

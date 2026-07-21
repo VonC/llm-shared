@@ -336,7 +336,7 @@ def test_skill_advances_on_a_settled_requirement(
     monkeypatch.delenv("CODEX_THREAD_ID", raising=False)
     _setup_skill_tree(monkeypatch, tmp_path, "handoff_automation")
     (tmp_path / "docs" / "feature-request.v0.9.0.handoff_automation.md").write_text(
-        "# x\n\n## Requirement clarifications\n",
+        "# x\n\n## Requirement clarifications\n\n| Q01 | consolidated |\n",
         encoding="utf-8",
     )
     assert prompt_workflow.main(["skill", "--root", str(tmp_path)]) == 0

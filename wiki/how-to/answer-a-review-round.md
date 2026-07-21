@@ -59,13 +59,31 @@ This is a deliberate stop: nothing runs until a human answers.
      with a new `Q0x` table; go back to step 1,
    - the document is settled — the skill runs `pw skill` and hands off to
      the next phase (`/write-design`, `/write-plans`, or the implement
-     chain) with no "go ahead".
+     chain on the plan's first step, whose id comes from the validation
+     plan and is not always `1`) with no "go ahead".
+
+## ✋ Holding the chain at the implementation gate
+
+The settled-plan handoff starts the implementation by default. To settle
+the plan without starting it, say so in the consolidation invocation:
+
+```txt
+/consolidate-then-review-ask-questions on docs/plan.vX.Y.Z.<slug>.md stop here
+```
+
+Any explicit instruction not to implement works the same way: the skill
+still folds the answers, strips the questions and writes the decision
+table, then prints the `/implement-step` line as the next step instead of
+running it. Without such an instruction, the default stands and the first
+step starts at once.
 
 ## 🤷 When a round raises no question
 
-The review skill then writes a one-row decision table, so the document
-reads as settled and `pw skill` advances directly, skipping the
-consolidation round.
+The review skill then writes a one-row decision table (its row keeps the
+words "No open questions", which the routing reads as the settled
+signal), so the document reads as settled and the skill runs `pw skill`
+and the command it prints, skipping the consolidation round. The same
+`stop here` hold applies when the settled document is a plan.
 
 ## ✅ Check after the fold
 
