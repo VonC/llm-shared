@@ -47,6 +47,7 @@ prerequisites already satisfied.
 | `/write-release-notes-summary` | draft release notes from conventional commit subjects |
 | `git-history-report` | build the standalone commit-history dashboard |
 | `activity-report` | French activity report from commit messages and md diffs |
+| `/install-sensitive-git-hooks` | install, repair, or verify shared/local sensitive pre-commit and commit-msg protection in the current repository |
 | `/sanitize-git-history` | automatically run the contextual history scanner, settle confidential-term rules, then optionally rewrite with git filter-repo |
 | `prepare_release_plan.bat` | internal read-only single-source tool called automatically by `/prepare-release`; its standalone interface supports diagnostics, while the skill guards empty integration ranges and explains unsupported revert, multi-topic, and non-contiguous paths |
 

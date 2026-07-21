@@ -10,7 +10,7 @@ The process has two phases, run separately and both idempotent:
 - **Phase 1 (audit)**: scan every commit message, every tag, every file
   path and every file version ever committed for a watch list of
   sensitive terms, list the author and committer identities, and produce
-  (or refresh) the local replacement-rules file and mailmap.
+  (or refresh) the project replacement-rules file and mailmap.
 - **Phase 2 (rewrite)**: on a fresh clone, rewrite the whole history with
   `git filter-repo` driven by those two files, re-run the phase 1 audit
   on the result, verify exactly which commits changed, restore the
@@ -28,25 +28,37 @@ without exposing any of it. The working tree of HEAD being clean is not
 enough: old blobs, old commit messages, old paths and old identities all
 travel with the clone.
 
-## Inputs and the two local watch files
+## Inputs: shared rules and local audit files
 
 Run from the root of the repository to sanitize (the current project by
-default, or the path given as argument). Two git-ignored files at that
-root drive both phases:
+default, or the path given as argument). Replacement rules can come from two
+places:
 
-- `a.sensitive.replacements.local.txt` — one replacement rule per line,
-  in `git filter-repo` `--replace-text` syntax. Its left-hand terms are
-  the watch list for phase 1 and the rewrite rules for phase 2. When the
-  file is missing, phase 1 drafts it from the terms the user names.
+- the shared replacement file named by the repository's
+  `sensitive.sharedRulesFile` Git configuration — common rules only, in
+  `git filter-repo` `--replace-text` syntax;
+- `a.sensitive.replacements.local.txt` — project-specific rules in the same
+  syntax. It can be empty when every applicable rule is shared. When it is
+  missing, phase 1 creates it for project-specific terms the user names.
+
+The scanner merges shared rules first and local rules second, de-duplicating
+equivalent patterns while preserving the first occurrence. Before phase 2,
+materialize that ordered set as the git-ignored
+`a.sensitive.replacements.effective.local.txt`; `git filter-repo` does not
+read the Git configuration itself.
+
+One more git-ignored file may be needed:
+
 - `a.mailmap.local.txt` — the identities to neutralize, in standard
   `.mailmap` format. Only needed when step 2 of the audit finds
   identities to scrub.
 
-Both names match the usual `a.*` and `*.local.*` gitignore patterns.
+The local names match the usual `a.*` and `*.local.*` gitignore patterns.
 Confirm they can never be committed before going further:
 
 ```sh
 git check-ignore -v a.sensitive.replacements.local.txt
+git check-ignore -v a.sensitive.replacements.effective.local.txt
 ```
 
 If `git check-ignore` reports nothing, stop and add the pattern to
@@ -63,8 +75,12 @@ must locate and invoke the stable launcher automatically; never ask the user
 to run this prerequisite:
 
 ```bat
-"<LLM_SHARED_DIR>\bin\sensitive_history_scan.bat" --root "<repo>" --rules "<repo>\a.sensitive.replacements.local.txt" --output "<repo>\a.sensitive.history-scan.local.md" --full-lines --validation-term "<known repository term>"
+"<LLM_SHARED_DIR>\bin\sensitive_history_scan.bat" --root "<repo>" --output "<repo>\a.sensitive.history-scan.local.md" --full-lines --validation-term "<known repository term>"
 ```
+
+With no explicit `--rules`, the launcher reads the configured shared file and
+then the project-local file. Use an explicit input only while discovering terms
+or deliberately testing one file in isolation.
 
 The launcher scans every reachable commit and tag message, historical path,
 and unique blob through one `git cat-file --batch` process. It reports exact
@@ -187,13 +203,15 @@ in step 2 and the shape-based sweep in step 6 remain separate.
    the unique matches by hand: expect only public URLs, placeholders
    like `example.corp`, and localhost.
 
-## Phase 1 output: the replacement-rules file
+## Phase 1 output: replacement-rules files
 
 Report the findings to the user: per term, the hit counts in messages,
 paths and blobs, the affected files, and whether HEAD is still affected
-or only past versions are. Then write (or refresh)
-`a.sensitive.replacements.local.txt`, one rule per line, most specific
-first:
+or only past versions are. Write project-specific discoveries to
+`a.sensitive.replacements.local.txt`, one rule per line, most specific first.
+Do not add a project discovery to the shared file merely because it appeared
+in this audit; amend shared rules only when the user confirms the term applies
+to every participating repository.
 
 ```text
 regex:(?i)C:\\Users\\JDOE==>%USERPROFILE%
@@ -213,6 +231,12 @@ Two hard rules about this file:
 - **Keep a defensive rule for every watched word even when the audit
   found zero hits**: the rewrite then guarantees what the scan only
   observed.
+
+After the shared and local files are settled, create
+`a.sensitive.replacements.effective.local.txt` from shared rules followed by
+local rules. Remove equivalent duplicates while keeping the first rule, retain
+the resulting order, and validate the effective file with the scanner before
+using it for phase 2.
 
 A rule line is literal and case-sensitive by default; prefix with
 `regex:` and use `(?i)` for case-insensitive patterns. Broad rules like
@@ -241,9 +265,9 @@ git -C <old-repo> config --get-regexp '^branch\.[^.]*\.(remote|merge|pushremote)
 ```sh
 git clone <origin-url> ../repo-public
 cd ../repo-public
-git filter-repo --mailmap ../a.mailmap.local.txt \
-                --replace-message ../a.sensitive.replacements.local.txt \
-                --replace-text ../a.sensitive.replacements.local.txt
+git filter-repo --mailmap <old-repo>/a.mailmap.local.txt \
+                --replace-message <old-repo>/a.sensitive.replacements.effective.local.txt \
+                --replace-text <old-repo>/a.sensitive.replacements.effective.local.txt
 ```
 
 `--replace-message` rewrites commit and tag messages, `--replace-text`
@@ -321,8 +345,10 @@ stay, or get archived.
 ## Check for a done sanitization
 
 Phase 1 is done when the findings are reported per term and
-`a.sensitive.replacements.local.txt` holds one verified rule per watched
-word, comment-free, and is confirmed ignored. Phase 2 is done when the
+the ordered shared-plus-local rule set holds one verified rule per watched
+word, both rule sources are comment-free, the local and effective files are
+confirmed ignored, and the effective file matches that ordered set. Phase 2 is
+done when the
 re-audit on the rewritten clone reports zero hits for every watched
 word, `git log --all` shows the neutral messages and neutral emails, the
 commit count is unchanged, the remotes and branch upstreams are restored

@@ -129,7 +129,8 @@ It must list the plugin-prefixed skills (`llm-shared:process-draft`,
 `llm-shared:group-commits-msg`, ...) with no skipped-skill or
 missing-frontmatter warning. Inside a fresh session, `$llm-` completes to
 the same names, and asking "list your available skills from llm-shared"
-returns the 24 entries, including `llm-shared:sanitize-git-history` and
+returns the 25 entries, including `llm-shared:install-sensitive-git-hooks`,
+`llm-shared:sanitize-git-history`, and
 `llm-shared:isolate-logos`.
 
 ## 🪙 What the metadata costs per session

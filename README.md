@@ -552,6 +552,15 @@ recipe and its traps are in
 full command detail is in
 [`instructions/sanitize-git-history.md`](instructions/sanitize-git-history.md).
 
+The `/install-sensitive-git-hooks` skill prevents the next leak without
+rescanning history: `pre-commit` checks only staged blob updates and
+`commit-msg` checks the final message. Consuming repositories use
+llm-shared's Python and merge a configured shared rules file with their own
+project-local rules. See the
+[installation guide](wiki/how-to/install-sensitive-commit-hooks.md),
+[rules format](wiki/reference/sensitive-replacement-rules.md), and
+[hook contract](wiki/reference/sensitive-commit-hooks.md).
+
 ---
 
 ## 🧪 Groundhog: the pytest reset loop
@@ -609,6 +618,7 @@ instructions/                             shared skill bodies (one file per skil
 ├─ implement-step.md
 ├─ implement-missing-step.md
 ├─ implementation-check.md
+├─ install-sensitive-git-hooks.md          install or verify staged-blob and message protection
 ├─ prepare-release-notes.md
 ├─ review-and-update-project-docs.md
 ├─ review-ask-questions.md
