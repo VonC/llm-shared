@@ -65,12 +65,20 @@ regex:(?i)_secretproject_==>_my_project_
 regex:(?i)secretproject==>my-project
 ```
 
-Save pure rules only in `a.sensitive.replacements.local.txt`. Then scan the
-rules themselves:
+Save pure project-specific rules only in
+`a.sensitive.replacements.local.txt`. For the normal repository audit, omit
+`--rules`:
 
 ```bat
-shscan --rules a.sensitive.replacements.local.txt --output a.sensitive.history-scan.local.md --full-lines --validation-term my-project
+shscan --output a.sensitive.history-scan.local.md --full-lines --validation-term my-project
 ```
+
+With no positional terms, `--terms-file`, or `--rules`, `shscan` loads the file
+configured by `sensitive.sharedRulesFile` first and this repository's local
+file second. Put a term in the shared file only when it applies to every
+participating repository; keep project names, hosts, and other repo-specific
+terms local. Use `shscan --rules PATH` only when deliberately testing that one
+file in isolation; it disables the default shared-plus-local selection.
 
 The scanner uses every left-hand rule as a case-insensitive watch pattern.
 `--full-lines` preserves long lines in the ignored report; omit it for bounded
@@ -96,3 +104,5 @@ repeatable evidence; the skill owns the wider audit and rewrite decisions.
 
 Next: [Sanitize history before publishing](../how-to/sanitize-history-before-publishing.md)
 and [Sensitive-history scanner reference](../reference/sensitive-history-scan.md).
+For the exact file grammar, see
+[Sensitive replacement rules](../reference/sensitive-replacement-rules.md).

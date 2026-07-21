@@ -61,4 +61,6 @@ rewrites.
 
 Related: [Audit tutorial](../tutorials/06-audit-sensitive-history.md),
 [sanitization guide](../how-to/sanitize-history-before-publishing.md), and
-[scanner reference](../reference/sensitive-history-scan.md).
+[scanner reference](../reference/sensitive-history-scan.md). For prevention at
+commit time, see
+[why sensitive commit protection uses two hooks](why-sensitive-commit-protection-uses-two-hooks.md).

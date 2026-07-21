@@ -90,8 +90,24 @@ Every input is matched case-insensitively. An initial `(?i)` on a regex rule is
 accepted but not required by the scanner; it remains important to
 `git filter-repo` during the later rewrite.
 
-With no explicit input, the command uses
-`a.sensitive.replacements.local.txt` at the repository root when present.
+## Rule-source selection
+
+Rule selection depends on the invocation:
+
+| Invocation | Inputs loaded |
+| --- | --- |
+| `shscan` with none of the explicit inputs | File named by `sensitive.sharedRulesFile`, then the repository-root `a.sensitive.replacements.local.txt` |
+| `shscan --rules PATH` | Only `PATH`; the configured shared and conventional local files are not added |
+| `shscan TERM`, `--terms-file PATH`, or an explicit combination | Only the explicit positional, terms-file, and rules inputs |
+
+In default mode, shared rules come first and equivalent later local patterns
+are ignored. An existing empty local file is valid when all rules are shared.
+The shared path is repository-local Git configuration, not an automatic search
+of `%PROG%\git`:
+
+```sh
+git config --path --get sensitive.sharedRulesFile
+```
 
 ## Options
 
@@ -142,3 +158,5 @@ ref, rewrites an object, or pushes.
 Related: [Audit tutorial](../tutorials/06-audit-sensitive-history.md),
 [sanitization guide](../how-to/sanitize-history-before-publishing.md), and
 [why context matters](../explanation/why-sensitive-history-needs-context.md).
+The complete grammar and shared/local precedence are in the
+[replacement-rules reference](sensitive-replacement-rules.md).

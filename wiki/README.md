@@ -108,6 +108,7 @@ their choices.
 - 📊 [Why release branch roles matter](explanation/why-release-branch-roles-matter.md)
 - 📊 [Why Git history diagrams use explicit arrows](explanation/why-git-history-diagrams-use-explicit-arrows.md)
 - 📊 [Why sensitive-history replacement needs context](explanation/why-sensitive-history-needs-context.md)
+- 📊 [Why sensitive commit protection uses two hooks](explanation/why-sensitive-commit-protection-uses-two-hooks.md)
 
 ## 🎓 Tutorials
 
@@ -125,6 +126,7 @@ Learning by doing: follow the steps in order and inspect the result.
 - 📊 [Prepare your first release from develop](tutorials/05-prepare-a-release-from-develop.md)
 - 📊 [Audit sensitive Git history for the first time](tutorials/06-audit-sensitive-history.md)
 - 📊 [Generate the Git history diagrams](tutorials/07-generate-git-history-diagrams.md)
+- 📊 [Protect your first repository from sensitive commits](tutorials/08-protect-your-first-repository.md)
 
 ## 🧭 How-to guides
 
@@ -153,6 +155,7 @@ Recipes for a precise goal, for readers who already know the basics.
 - 📊 [Reword a merge commit from the branch docs](how-to/reword-a-merge-commit.md)
 - 📊 [Prepare a release from any branch](how-to/prepare-a-release.md)
 - 📊 [Build the Git-history dashboard](how-to/build-the-git-history-dashboard.md)
+- 📊 [Install or verify sensitive commit hooks](how-to/install-sensitive-commit-hooks.md)
 - 📊 [Sanitize a repository history before publishing](how-to/sanitize-history-before-publishing.md)
 - 📊 [Write an activity report](how-to/write-an-activity-report.md)
 - 📊 [Rebuild the presentation as PPTX and PDF](how-to/rebuild-the-presentation.md)
@@ -180,5 +183,7 @@ Exact descriptions of commands, formats, files, and supported behavior.
 - 🧪 [ghog commands and exit codes](reference/ghog-commands-and-exit-codes.md)
 - 📊 [Prepare-release scenarios](reference/prepare-release-scenarios.md)
 - 📊 [Prepare-release planner command](reference/prepare-release-planner.md)
+- 📊 [Sensitive replacement-rules format](reference/sensitive-replacement-rules.md)
+- 📊 [Sensitive commit hooks](reference/sensitive-commit-hooks.md)
 - 📊 [Sensitive-history scanner command](reference/sensitive-history-scan.md)
 - 📊 [Git-history diagram generator](reference/git-history-diagram-generator.md)

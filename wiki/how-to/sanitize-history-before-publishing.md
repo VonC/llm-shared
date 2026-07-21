@@ -24,8 +24,11 @@ its matching rules.
 
 ## 📋 Steps to audit and rewrite
 
-1. Write the watch list as replacement rules in a git-ignored file at the
-   repo root, `a.sensitive.replacements.local.txt`, one rule per line:
+1. Install the sensitive hooks, then divide the watch list between the
+   configured shared rules file and the git-ignored project file at the repo
+   root, `a.sensitive.replacements.local.txt`. Put only rules that apply to
+   every participating repository in the shared file; keep project-specific
+   rules local. Both use one rule per line:
 
    ```text
    regex:(?i)jdoe==>user
@@ -36,18 +39,25 @@ its matching rules.
 
    ```sh
    git check-ignore -v a.sensitive.replacements.local.txt
+   git check-ignore -v a.sensitive.replacements.effective.local.txt
    ```
 
 2. Run phase 1, the audit (or ask the agent to "sanitize-git-history
    phase 1"). The skill automatically calls `sensitive_history_scan.bat`
-   against the rules file and writes an ignored contextual report. Do not run
-   the scanner as a prerequisite for the skill.
+   without an explicit `--rules`, so it merges the configured shared file
+   first and the project-local file second. It writes an ignored contextual
+   report. Do not run the scanner as a prerequisite for the skill.
+
+   **Do not add `--rules a.sensitive.replacements.local.txt` to this normal
+   audit.** That option means “scan only this file” and excludes the configured
+   shared rules. The default merge occurs only when positional terms,
+   `--terms-file`, and `--rules` are all absent.
 
    To inspect the same evidence yourself before invoking the skill, initialize
    `senv.bat` in an interactive `cmd` and use the `shscan` alias:
 
    ```bat
-   shscan --rules a.sensitive.replacements.local.txt --output a.sensitive.history-scan.local.md --full-lines --validation-term my-project
+   shscan --output a.sensitive.history-scan.local.md --full-lines --validation-term my-project
    ```
 
    From any shell, call the self-locating launcher by its full path. The report
@@ -55,9 +65,12 @@ its matching rules.
    OID and representative path. It also shows exact casing and flags binary or
    shortened lines.
 
-3. Review the draft rules and the findings. Identities are not covered by
-   the rules file: list the emails to neutralize in a second git-ignored
-   file, `a.mailmap.local.txt`, in standard `.mailmap` format.
+3. Review the draft rules and the findings. Before rewriting, copy the shared
+   rules followed by the local rules into one git-ignored
+   `a.sensitive.replacements.effective.local.txt`. Do not sort it: order is
+   significant. Identities are not covered by replacement rules; list the
+   emails to neutralize in `a.mailmap.local.txt`, in standard `.mailmap`
+   format.
 
 4. Run phase 2, the rewrite, on a fresh clone (or ask the agent for
    "sanitize-git-history phase 2"):
@@ -65,9 +78,9 @@ its matching rules.
    ```sh
    git clone <origin-url> ../repo-public
    cd ../repo-public
-   git filter-repo --mailmap ../a.mailmap.local.txt \
-                   --replace-message ../a.sensitive.replacements.local.txt \
-                   --replace-text ../a.sensitive.replacements.local.txt
+   git filter-repo --mailmap <OLD_REPO>/a.mailmap.local.txt \
+                   --replace-message <OLD_REPO>/a.sensitive.replacements.effective.local.txt \
+                   --replace-text <OLD_REPO>/a.sensitive.replacements.effective.local.txt
    ```
 
 5. Verify: no unexpected `***REMOVED***` in blobs or messages, a full
@@ -105,5 +118,6 @@ The scanner's exact command surface and report contract are in the
 
 Related: [Learn the scanner](../tutorials/06-audit-sensitive-history.md),
 [scanner command reference](../reference/sensitive-history-scan.md),
+[replacement-rules reference](../reference/sensitive-replacement-rules.md),
 [why contextual object scanning matters](../explanation/why-sensitive-history-needs-context.md),
 [skills catalog](../reference/skills-catalog.md).
