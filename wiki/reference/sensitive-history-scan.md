@@ -134,6 +134,17 @@ when applicable, representative historical paths, one-based line number,
 matching line or centered excerpt, exact forms, and binary/truncation flags.
 JSON exposes the same data without Markdown rendering.
 
+## Binary matches
+
+A match carries the `binary` flag when its blob contains a NUL byte. The
+scanner always reads raw blob bytes, so binary files are scanned exactly like
+text, and no option skips them: coverage of PNG metadata, PDFs, and
+executables is deliberate. The consumer contract is triage, not suppression:
+whoever interprets the report (the sanitize-history skill or a human) must
+evaluate every binary-flagged match and classify it as a true hit or a false
+positive. Random compressed bytes spelling a short term are the usual false
+positive; readable embedded text carrying a watched word is a true hit.
+
 Markdown output starts with `<!-- markdownlint-disable-file -->`, the
 file-wide directive documented by
 [markdownlint](https://github.com/DavidAnson/markdownlint#configuration).

@@ -35,6 +35,13 @@ its matching rules.
    regex:(?i)acmecorp==>acme
    ```
 
+   For a short term (three or four letters), prefer a word-boundary rule such
+   as `regex:(?i)\bjdoe\b`: it avoids coincidences in base64 hashes and keeps
+   the pre-commit hook from blocking unrelated staged content, while still
+   matching punctuated forms like `jdoe.com` or `@jdoe`. It no longer covers
+   compounds (`jdoe_user`, `sjdoe`), so add explicit rules for the known
+   compound forms above it.
+
    Confirm it can never be committed:
 
    ```sh
@@ -65,7 +72,13 @@ its matching rules.
    OID and representative path. It also shows exact casing and flags binary or
    shortened lines.
 
-3. Review the draft rules and the findings. Before rewriting, copy the shared
+3. Review the draft rules and the findings. Classify every hit flagged
+   `(binary)` as a true hit or a false positive instead of skipping it:
+   random compressed bytes that happen to spell a short term (image streams,
+   base64 fragments) are false positives; readable metadata inside a binary
+   (a PNG `tEXt` chunk, PDF strings) is a true hit the rewrite must cover.
+   Binary scanning stays on; the classification, not a skip, removes the
+   noise. Before rewriting, copy the shared
    rules followed by the local rules into one git-ignored
    `a.sensitive.replacements.effective.local.txt`. Do not sort it: order is
    significant. Identities are not covered by replacement rules; list the

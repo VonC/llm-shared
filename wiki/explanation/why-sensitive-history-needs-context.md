@@ -26,6 +26,20 @@ and streams them through one `git cat-file --batch` process. This covers old
 content and binary bytes without checking out each commit or starting one Git
 process per blob.
 
+## Binary hits are classified, never skipped
+
+Skipping binary blobs would buy silence at the price of a blind spot: PNG
+`tEXt` chunks, PDF strings, and executable resources embed readable names
+exactly where a text-only scan stops looking. The scanner therefore reads
+every blob's raw bytes and only flags the binary ones in its report.
+
+The flip side is that random compressed bytes occasionally spell a short
+watched term. That noise is handled at review time, not at scan time: the
+agent interpreting the report evaluates each binary-flagged hit and
+classifies it as a true hit or a false positive, with the evidence. A
+suppressed hit is a review outcome, never a scanner setting, so the audit
+trail always shows what was seen and why it was kept or discarded.
+
 ## Syntax changes the safe replacement
 
 The same project name can occur as prose, a directory, a log prefix, a
