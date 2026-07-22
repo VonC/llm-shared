@@ -88,6 +88,16 @@ case forms, commit or tag OIDs, representative historical blob paths, line
 numbers, matching lines, and binary/excerpt flags. Reports written inside the
 repository must be Git-ignored because they repeat the sensitive values.
 
+The scanner reads raw blob bytes on purpose, so binary files (images,
+archives, executables) are scanned like text and no option skips them. Never
+dismiss a match flagged `(binary)` wholesale and never drop it silently:
+evaluate each one and classify it explicitly, in the findings reported to the
+user, as a true hit or a false positive. A short term spelled by random
+compressed bytes (three letters inside a PNG stream, a base64 hash fragment)
+is a false positive; readable embedded text carrying a watched word (a PNG
+`tEXt` chunk, PDF strings, an executable's resources) is a true hit that
+phase 2 must rewrite.
+
 When the replacement file does not exist yet, invoke the same launcher with
 literal terms, or `--terms-file`, to collect context before drafting rules.
 The scanner is case-insensitive for every input form. Add plausible
@@ -206,8 +216,9 @@ in step 2 and the shape-based sweep in step 6 remain separate.
 ## Phase 1 output: replacement-rules files
 
 Report the findings to the user: per term, the hit counts in messages,
-paths and blobs, the affected files, and whether HEAD is still affected
-or only past versions are. Write project-specific discoveries to
+paths and blobs, the affected files, whether HEAD is still affected
+or only past versions are, and, for every hit flagged `(binary)`, its
+classification as a true hit or a false positive with the evidence. Write project-specific discoveries to
 `a.sensitive.replacements.local.txt`, one rule per line, most specific first.
 Do not add a project discovery to the shared file merely because it appeared
 in this audit; amend shared rules only when the user confirms the term applies
@@ -243,6 +254,16 @@ A rule line is literal and case-sensitive by default; prefix with
 `regex:(?i)jdoe` substitute inside longer words too — verify each
 proposed replacement against the real matches found by the audit before
 phase 2 runs.
+
+A short watched term (three or four letters) is prone to coincidences in
+base64 hashes and binary bytes, and the same broad rule also makes the
+pre-commit hook block unrelated staged content such as lockfile integrity
+hashes. A word-boundary rule like `regex:(?i)\bjdoe\b` removes the
+alphanumeric-context coincidences while still matching punctuated forms
+(`jdoe.com`, `@jdoe`, `jdoe-host`); boundaries rarely help inside binary
+bytes, where the triage classification above applies. A bounded rule no
+longer rewrites compounds (`jdoe_user`, `sjdoe`), so list the known
+compound forms as explicit rules above it, most specific first.
 
 ## Phase 2: rewrite the history with git filter-repo
 
