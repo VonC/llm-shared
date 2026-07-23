@@ -168,11 +168,16 @@ def _get_arg_parser() -> argparse.ArgumentParser:
 
 
 def _run_analysis(args: argparse.Namespace) -> str:
-    """Run the gap analysis logic for the parsed arguments and return the report."""
+    """Run the gap analysis logic for the parsed arguments and return the report.
+
+    An explicit ``--root`` is used verbatim, as its help text promises: the
+    upward marker scan runs only when no override is given. Scanning upward
+    from an explicit root would let a marker in an ancestor (a Git repository
+    in the user's home directory, say) silently replace the requested root.
+    """
     _configure_logging(debug=args.debug)
 
-    start = Path(args.root).resolve() if args.root else Path.cwd()
-    root = find_project_root(start)
+    root = Path(args.root).resolve() if args.root else find_project_root(Path.cwd())
 
     file_rel = args.file
     file_path = (root / file_rel).resolve()
