@@ -21,9 +21,12 @@ A per-test exclusion is layered on as a pure post-step (Q67):
 :func:`apply_exclusions` takes the :class:`DurationSummary` and the recorded
 ``node -> baseline`` map, spares any flagged excluded call (Q54), leaves
 excluded calls out of the average (Q64), and classifies each excluded node
-against its baseline (``ok``, ``slower``, ``faster`` or ``stale``). It runs
-after the rule, so the median, MAD and floor still cover the whole run -- an
-exclusion changes what is flagged, never the scale the rest is judged against.
+against its baseline (``ok``, ``slower``, ``faster`` or ``stale``). A call
+back under half the floor has its entry removed even inside the two-second
+band (Q70), so a test that became fast again returns to the normal rule. It
+runs after the rule, so the median, MAD and floor still cover the whole run --
+an exclusion changes what is flagged, never the scale the rest is judged
+against.
 """
 
 from __future__ import annotations
@@ -52,6 +55,13 @@ STATUS_STALE: Final = "stale"
 # accepted (``ok``); beyond it slower drives a restore (Q63) and faster
 # ratchets the baseline down (Q69) -- noise within the band moves it neither.
 _BASELINE_TOLERANCE: Final = 2.0
+# The restore mark as a fraction of the active floor (Q70): a call back under
+# half the floor is fast again, so its entry is removed even when the
+# improvement sits inside the two-second band -- an entry recorded near the
+# floor can never improve by two seconds, so without this mark it would stay
+# ``ok`` forever. The half-floor margin keeps a call hovering just under the
+# floor from flip-flopping in and out of the section.
+_RESTORE_FLOOR_FRACTION: Final = 0.5
 
 
 @dataclass(frozen=True)
@@ -81,7 +91,8 @@ class DurationExclusion:
         status: The drift verdict against the baseline: :data:`STATUS_OK`
             within two seconds either way, :data:`STATUS_SLOWER` more than two
             seconds over (Q63), :data:`STATUS_FASTER` more than two seconds
-            under (Q60), or :data:`STATUS_STALE` when the node is absent (Q61).
+            under (Q60) or back under half the floor (Q70), or
+            :data:`STATUS_STALE` when the node is absent (Q61).
     """
 
     node: str
@@ -180,9 +191,10 @@ def apply_exclusions(
     average (Q64), so one accepted slow call cannot lift the suite-wide avg.
     Each excluded node is classified against its recorded baseline, and the
     section the tool will write is computed alongside: a baseline is lowered
-    only on a more-than-two-second improvement (Q69), a below-floor or stale
-    entry is dropped (Q60, Q61), and the baseline is never raised, so a
-    slower-drifted call keeps its recorded value (Q57).
+    only on a more-than-two-second improvement (Q69), a below-floor, stale or
+    back-under-half-the-floor entry is dropped (Q60, Q61, Q70), and the
+    baseline is never raised, so a slower-drifted call keeps its recorded
+    value (Q57).
 
     Args:
         summary: The verdict from :func:`summarize` over the whole run.
@@ -223,7 +235,11 @@ def _classify(
 ) -> tuple[DurationExclusion, float | None]:
     """Classify one excluded node and yield the baseline the tool will keep.
 
-    The compare is slower-only (Q63): a call more than two seconds over its
+    A call back under half the floor is judged first (Q70): fast again, its
+    entry is removed whatever the two-second band says, returning the test to
+    the normal rule -- the band alone can never release an entry recorded near
+    the floor, since such a call cannot improve by two seconds. Otherwise the
+    compare is slower-only (Q63): a call more than two seconds over its
     baseline is a ``slower`` drift that keeps its recorded value -- the
     baseline is never raised (Q57); more than two seconds under is a ``faster``
     real improvement that ratchets the baseline down to the new time (Q69),
@@ -238,11 +254,14 @@ def _classify(
 
     Returns:
         The :class:`DurationExclusion` record paired with the baseline to
-        write, ``None`` to drop the entry (a stale or below-floor call).
+        write, ``None`` to drop the entry (a stale, below-floor or
+        back-under-half-the-floor call).
     """
     if node not in durations:
         return DurationExclusion(node, recorded, None, STATUS_STALE), None
     current = durations[node]
+    if current < floor * _RESTORE_FLOOR_FRACTION:
+        return DurationExclusion(node, recorded, current, STATUS_FASTER), None
     if current - recorded > _BASELINE_TOLERANCE:
         return DurationExclusion(node, recorded, current, STATUS_SLOWER), recorded
     if recorded - current > _BASELINE_TOLERANCE:

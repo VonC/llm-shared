@@ -29,6 +29,11 @@ ratchet the baseline down, or remove the entry once it drops below the floor
 (Q60, Q69); a recorded node absent from the run is reported ``(not run)`` and
 removed as stale (Q61); and the ``ghog exclude`` command writes a new entry at
 its measured time (Q62).
+
+Fix: the half-floor restore (Q70) gains its own scenario -- a freak improved
+by less than two seconds yet back under half the one-second floor has its
+entry removed all the same, so an entry recorded near the floor, which can
+never improve by two seconds, does not stay ``ok`` forever.
 """
 
 from __future__ import annotations
@@ -117,6 +122,11 @@ _REMOVED_CURRENT: Final = 0.30
 # A stale freak: recorded at 4.10s but absent from the run, so the tool reports
 # it ``(not run)`` and removes the entry (Q61).
 _STALE_BASELINE: Final = 4.10
+# A freak fast again under half the floor: recorded at 1.83s, now 0.30s --
+# only 1.53s faster, inside the two-second band, but under the 0.50s restore
+# mark (half the one-second floor), so the tool removes the entry (Q70).
+_RESTORED_BASELINE: Final = 1.83
+_RESTORED_CURRENT: Final = 0.30
 # The measured time the exclude subcommand records for a new entry (Q62).
 _EXCLUDE_SECONDS: Final = 11.41
 
@@ -388,6 +398,25 @@ def test_atd11_exclude_subcommand_writes_a_new_entry(
     assert _FREAK in out
     assert "ghog exclude done" in out
     assert "exit=0" in out
+
+
+def test_atd12_fast_again_freak_under_half_the_floor_is_removed(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """AT-D12: a freak under half the floor is removed within the band (Q70)."""
+    exclusions.write_exclusions(tmp_path, {_FREAK: _RESTORED_BASELINE})
+    spawns = Spawns(_full_transcript(_with_freak(_RESTORED_CURRENT)), 0)
+    code = cli.main(["full", "--root", str(tmp_path), "--llm"], make_deps(spawns))
+    assert code == EXIT_OBJECTIVE_MET
+    out = capsys.readouterr().out
+    # Only 1.53s faster, inside the two-second band, yet under the 0.50s
+    # restore mark, so the entry is removed and the run stays green.
+    assert "recorded=1.83s  current=0.30s  removed (now under the floor)" in out
+    assert "outliers=0 excluded=0 exit=0" in out
+    # The entry is gone, so the call returns to the normal floor rule (Q70).
+    assert exclusions.read_exclusions(tmp_path) == {}
+    assert_closing_grammar(out)
 
 
 # eof

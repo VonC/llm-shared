@@ -7,6 +7,11 @@ scales the auto floor proportionally, and a call below the active floor is
 never flagged; excluding every node leaves no outlier (Q54), and a written
 baseline never rises above the recorded one (the baseline only ratchets down,
 Q55).
+
+Fix: the half-floor restore (Q70) adds one invariant -- an entry whose call
+runs under half the active floor is never kept in the written section,
+whatever its recorded baseline, so a test that became fast again always
+returns to the normal rule.
 """
 
 from __future__ import annotations
@@ -104,6 +109,24 @@ def test_a_written_baseline_never_rises_above_the_recorded_one(
     # current value (a real improvement); it is never raised above recorded.
     if node in updated:
         assert updated[node] <= recorded
+
+
+@settings(max_examples=_MAX_EXAMPLES, deadline=_DEADLINE_MS)
+@given(values=_DURATIONS, recorded=_SECS)
+def test_a_call_back_under_half_the_floor_is_never_kept(
+    values: dict[str, float],
+    recorded: float,
+) -> None:
+    """An entry whose call runs under half the floor is always removed (Q70)."""
+    floor = durations.auto_floor(values)
+    summary = durations.summarize(values, floor)
+    exclusion_map = dict.fromkeys(values, recorded)
+    _, updated = durations.apply_exclusions(summary, values, exclusion_map)
+    # Whatever the recorded baseline, a call back under half the floor has its
+    # entry dropped, returning the test to the normal rule (Q70).
+    for node, secs in values.items():
+        if secs < floor / 2:
+            assert node not in updated
 
 
 # eof

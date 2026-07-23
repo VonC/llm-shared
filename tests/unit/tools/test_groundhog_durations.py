@@ -14,6 +14,12 @@ baseline only on a beyond-two-second improvement (Q69), keeps a slower-drifted
 baseline (never raised, Q57), and drops a below-floor or stale entry (Q60,
 Q61); the median and the floor are unchanged by exclusion (Q54).
 
+Fix: the half-floor restore (Q70) -- a call back under half the floor has its
+entry removed even when the improvement sits inside the two-second band, since
+an entry recorded near the floor can never improve by two seconds and would
+otherwise stay ``ok`` forever; a call between half the floor and the floor
+keeps its entry, the margin against flip-flopping.
+
 Fix: float comparisons use ``math.isclose`` like the property test, so the
 strict pyright gate (``reportUnknownMemberType`` on ``pytest.approx``) stays
 green.
@@ -82,6 +88,15 @@ _RECORDED_FAST = 6.80
 _EXCL_NORMAL_AVG = (0.10 + 0.20 + 0.15 + 0.12 + 0.18 + 0.14) / 6
 # The mean once the 0.20s normal call is also excluded (Q64).
 _EXCL_FIVE_AVG = (0.10 + 0.15 + 0.12 + 0.18 + 0.14) / 5
+# The half-floor restore mark (Q70): against the one-second floor used by the
+# restore tests, a call under 0.50s has its entry removed even when the
+# improvement stays inside the two-second band, while a call between half the
+# floor and the floor keeps its entry, the margin against flip-flopping.
+_RESTORE_FLOOR = 1.0
+_FAST_AGAIN_RECORDED = 1.20
+_NEAR_FLOOR_NODE = "tests/test_f.py::test_near_floor"
+_NEAR_FLOOR = {**_EXCL, _NEAR_FLOOR_NODE: 0.80}
+_NEAR_FLOOR_RECORDED = 1.10
 
 
 def test_auto_floor_of_an_empty_map_is_zero() -> None:
@@ -274,6 +289,32 @@ def test_apply_exclusions_small_improvement_keeps_the_baseline() -> None:
     spared, updated = durations.apply_exclusions(summary, _EXCL, {_INTEG_FAST: 7.50})
     assert updated == {_INTEG_FAST: 7.50}
     assert spared.exclusions[0].status == durations.STATUS_OK
+
+
+def test_apply_exclusions_removes_a_call_back_under_half_the_floor() -> None:
+    """A call under half the floor is removed even within the band (Q70)."""
+    summary = durations.summarize(_EXCL, _RESTORE_FLOOR)
+    # test_one runs at 0.10s, recorded at 1.20s: only 1.10s faster, inside the
+    # two-second band, but 0.10s is under half the one-second floor, so the
+    # entry is dropped and the test returns to the normal rule (Q70).
+    spared, updated = durations.apply_exclusions(
+        summary, _EXCL, {"tests/test_a.py::test_one": _FAST_AGAIN_RECORDED},
+    )
+    assert spared.exclusions[0].status == durations.STATUS_FASTER
+    assert updated == {}
+
+
+def test_apply_exclusions_keeps_a_call_between_half_floor_and_floor() -> None:
+    """A call between half the floor and the floor keeps its entry (Q70)."""
+    summary = durations.summarize(_NEAR_FLOOR, _RESTORE_FLOOR)
+    # test_near_floor runs at 0.80s, recorded at 1.10s: inside the band and
+    # above the 0.50s restore mark, so it reads ok and keeps its baseline --
+    # the half-floor margin against flip-flopping in and out of the section.
+    spared, updated = durations.apply_exclusions(
+        summary, _NEAR_FLOOR, {_NEAR_FLOOR_NODE: _NEAR_FLOOR_RECORDED},
+    )
+    assert spared.exclusions[0].status == durations.STATUS_OK
+    assert updated == {_NEAR_FLOOR_NODE: _NEAR_FLOOR_RECORDED}
 
 
 # eof
