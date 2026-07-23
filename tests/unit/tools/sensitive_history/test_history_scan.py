@@ -1,10 +1,15 @@
-"""Tests for case-insensitive Git history scanning."""
+"""Tests for case-insensitive Git history scanning.
+
+Fix: the ``subprocess.run`` stand-ins are fully typed (``object`` parameters
+and an explicit return), so the strict pyright gate no longer flags unknown
+parameter or argument types on the monkeypatched doubles.
+"""
 
 from __future__ import annotations
 
 import re
 import subprocess
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NoReturn
 
 import pytest
 
@@ -169,7 +174,7 @@ def test_repository_rules_handle_absent_empty_relative_and_failed_config(
     _git(repo, "config", "sensitive.sharedRulesFile", "relative.rules")
     assert configured_shared_replacement_file(repo) == relative.resolve()
 
-    def missing_git(*_args, **_kwargs):  # noqa: ANN002, ANN003, ANN202
+    def missing_git(*_args: object, **_kwargs: object) -> NoReturn:
         message = "missing"
         raise FileNotFoundError(message)
 
@@ -186,7 +191,10 @@ def test_repository_rules_reject_failed_git_config(
     repo = tmp_path / "repo"
     repo.mkdir()
 
-    def failed_git(*_args, **_kwargs):  # noqa: ANN002, ANN003, ANN202
+    def failed_git(
+        *_args: object,
+        **_kwargs: object,
+    ) -> subprocess.CompletedProcess[bytes]:
         return subprocess.CompletedProcess([], 2, stdout=b"", stderr=b"config failed")
 
     monkeypatch.setattr(subprocess, "run", failed_git)

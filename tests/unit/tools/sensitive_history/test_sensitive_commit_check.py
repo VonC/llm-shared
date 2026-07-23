@@ -1,9 +1,14 @@
-"""Tests for fast checks of only the commit currently being prepared."""
+"""Tests for fast checks of only the commit currently being prepared.
+
+Fix: the monkeypatched Git doubles are fully typed (``object`` parameters,
+explicit returns, and named functions instead of untyped lambdas), so the
+strict pyright gate no longer flags unknown parameter or argument types.
+"""
 
 from __future__ import annotations
 
 import subprocess
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NoReturn
 
 import pytest
 
@@ -153,7 +158,7 @@ def test_configuration_and_git_errors_fail_closed(
     with pytest.raises(HistoryScanError, match="failed"):
         _git(pending_repo, "not-a-command")
 
-    def missing_git(*_args, **_kwargs):  # noqa: ANN002, ANN003, ANN202
+    def missing_git(*_args: object, **_kwargs: object) -> NoReturn:
         raise FileNotFoundError
 
     monkeypatch.setattr(subprocess, "run", missing_git)
@@ -169,8 +174,14 @@ def test_unexpected_raw_record_is_rejected(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """A changed Git raw-diff contract blocks rather than missing content."""
-    monkeypatch.setattr(check, "_base_tree", lambda _root: "base")
-    monkeypatch.setattr(check, "_git", lambda *_args, **_kwargs: b":bad\0path\0")
+    def fake_base_tree(_root: Path) -> str:
+        return "base"
+
+    def fake_git(*_args: object, **_kwargs: object) -> bytes:
+        return b":bad\0path\0"
+
+    monkeypatch.setattr(check, "_base_tree", fake_base_tree)
+    monkeypatch.setattr(check, "_git", fake_git)
     with pytest.raises(HistoryScanError, match="unexpected git diff"):
         staged_blob_paths(pending_repo)
 

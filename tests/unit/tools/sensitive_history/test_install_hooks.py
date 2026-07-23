@@ -1,9 +1,15 @@
-"""Tests for composable installation of sensitive Git hooks."""
+"""Tests for composable installation of sensitive Git hooks.
+
+Fix: the ``subprocess.run`` stand-in is fully typed (``object`` parameters
+and a ``NoReturn`` return), so the strict pyright gate no longer flags
+unknown parameter or argument types on the monkeypatched double.
+"""
 
 from __future__ import annotations
 
 import subprocess
 from pathlib import Path
+from typing import NoReturn
 
 import pytest
 
@@ -82,7 +88,7 @@ def test_shared_rules_config_reports_git_failure(
     shared = tmp_path / "common.rules"
     shared.write_text("literal:CommonTerm==>redacted\n", encoding="utf-8")
 
-    def failed_git(*_args, **_kwargs):  # noqa: ANN002, ANN003, ANN202
+    def failed_git(*_args: object, **_kwargs: object) -> NoReturn:
         message = "git unavailable"
         raise OSError(message)
 
