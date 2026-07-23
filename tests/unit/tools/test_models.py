@@ -5,6 +5,13 @@ and JSON serialization helpers in `tools._models`.
 
 Fix: Cover the `PRJ_DIR` branch where the environment points at a path that
 is not a Git root.
+
+Fix: the no-git-root test walks a `_FakePath` ancestor chain instead of a
+real temp directory, so it stays hermetic: the real walk climbs to the
+filesystem root, and a Git repository above the pytest temp directory (the
+user's home, say) would otherwise satisfy it and break the expected raise.
+The fake path classes are hoisted to module level and gain a parent link so
+both upward-walk tests share them.
 """
 
 from __future__ import annotations
@@ -34,6 +41,47 @@ def _return_project_root(project_root: Path) -> Callable[[Path], Path]:
 def _raise_missing_root(_start_path: Path) -> Path:
     msg = "missing root"
     raise FileNotFoundError(msg)
+
+
+class _FakeGitDir:
+    """A `.git` probe stub returning a fixed `is_dir` answer."""
+
+    def __init__(self, *, is_dir_result: bool) -> None:
+        self._is_dir_result = is_dir_result
+
+    def is_dir(self) -> bool:
+        return self._is_dir_result
+
+
+class _FakePath:
+    """A minimal Path stand-in for hermetic upward-walk tests.
+
+    `find_project_root` only resolves, climbs to `parent`, and probes
+    `<dir> / ".git"`; this stub answers those three, so a test can model any
+    ancestor chain without touching the real filesystem, whose ancestors
+    above the pytest temp directory may hold a real Git root. A node without
+    an explicit parent is its own parent, the walk's filesystem-root stop.
+    """
+
+    __hash__ = object.__hash__
+
+    def __init__(self, *, has_git: bool, parent: _FakePath | None = None) -> None:
+        self._has_git = has_git
+        self._parent: _FakePath = parent if parent is not None else self
+
+    def resolve(self) -> _FakePath:
+        return self
+
+    @property
+    def parent(self) -> _FakePath:
+        return self._parent
+
+    def __truediv__(self, other: str) -> _FakeGitDir:
+        assert other == ".git"
+        return _FakeGitDir(is_dir_result=self._has_git)
+
+    def __eq__(self, other: object) -> bool:
+        return self is other
 
 
 def test_project_root_from_environment_returns_none_without_prj_dir(
@@ -68,50 +116,24 @@ def test_find_project_root_returns_current_git_directory(
 
 def test_find_project_root_raises_when_no_git_root_exists(
     monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
 ) -> None:
     """The root finder should fail when no ancestor contains a `.git` directory."""
-    start_path = tmp_path / "nested" / "deeper"
-    start_path.mkdir(parents=True)
+    # A three-level fake chain with no `.git` anywhere, ending at a
+    # self-parented filesystem root: hermetic, so a real Git repository above
+    # the pytest temp directory (the user's home, say) cannot satisfy the walk.
+    fs_root = _FakePath(has_git=False)
+    nested = _FakePath(has_git=False, parent=fs_root)
+    start_path = _FakePath(has_git=False, parent=nested)
     monkeypatch.delenv("PRJ_DIR", raising=False)
 
     with pytest.raises(FileNotFoundError, match="Could not find project root"):
-        _models.find_project_root(start_path)
+        _models.find_project_root(cast("Path", start_path))
 
 
 def test_find_project_root_accepts_a_root_path_after_the_parent_walk(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """The root finder should still return a Git root after the upward walk ends."""
-
-    class _FakeGitDir:
-        def __init__(self, *, is_dir_result: bool) -> None:
-            self._is_dir_result = is_dir_result
-
-        def is_dir(self) -> bool:
-            return self._is_dir_result
-
-    class _FakePath:
-        __hash__ = object.__hash__
-
-        def __init__(self, *, has_git: bool) -> None:
-            self._has_git = has_git
-            self._parent: _FakePath = self
-
-        def resolve(self) -> _FakePath:
-            return self
-
-        @property
-        def parent(self) -> _FakePath:
-            return self._parent
-
-        def __truediv__(self, other: str) -> _FakeGitDir:
-            assert other == ".git"
-            return _FakeGitDir(is_dir_result=self._has_git)
-
-        def __eq__(self, other: object) -> bool:
-            return self is other
-
     fake_root = _FakePath(has_git=True)
     monkeypatch.delenv("PRJ_DIR", raising=False)
 

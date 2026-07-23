@@ -4,6 +4,9 @@ Fix: Cover exception messages, line-range parsing, project-root lookup, AST
 helpers, branch collection, JSON helpers, mapping helpers, and rendering in
 `tools.coverage_gap_functions_shared` and
 `tools.coverage_gap_functions_mapping`.
+
+Fix: the fallback branch of the project-root test swaps the marker tuples for
+nowhere-existing names, so a real Git root above the temp dir cannot hijack it.
 """
 
 from __future__ import annotations
@@ -116,6 +119,7 @@ def test_branch_block_contains_and_size() -> None:
 
 def test_find_project_root_handles_git_file_markers_and_fallback(
     tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Project-root lookup should accept directory markers, file markers, and fallback to the start path."""
     git_root = tmp_path / "git-root"
@@ -135,6 +139,10 @@ def test_find_project_root_handles_git_file_markers_and_fallback(
 
     fallback_start = tmp_path / "plain" / "nested"
     fallback_start.mkdir(parents=True)
+    # Swap the markers for names that exist nowhere: the walk climbs to the
+    # filesystem root, where a real Git repository (the user's home) would win.
+    monkeypatch.setattr(gap_shared, "ROOT_MARKERS_DIR", ("covg-no-such.dir",))
+    monkeypatch.setattr(gap_shared, "ROOT_MARKERS_FILE", ("covg-no-such.file",))
     assert gap_shared.find_project_root(fallback_start) == fallback_start.resolve()
 
 
