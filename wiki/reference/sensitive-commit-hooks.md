@@ -72,6 +72,11 @@ The installer compares the desired bytes with every managed file:
 - a no-change run prints
   `HOOK: sensitive hooks already installed`.
 
+`senv.bat` runs the installer only for the managed repository the console
+currently sits in, so startup pays for one check at most and repositories
+outside the managed list show none. Each managed repository is therefore
+checked the next time senv runs from inside it, not on every senv anywhere.
+
 When `--shared-rules` is provided, the installer requires that file to exist
 and writes its absolute path to
 `sensitive.sharedRulesFile` in the target's local Git config.
