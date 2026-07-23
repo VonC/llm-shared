@@ -120,7 +120,8 @@ tests/unit/pkg/test_mod.py::test_x = 11.41
 - each `[exclusion]` entry (written by `ghog exclude`) spares one node id
   at its recorded baseline; excluded calls are left out of the average
   and classified against that baseline on every run: `ok`, `slower`,
-  `faster` or `stale`.
+  `faster` or `stale`; an entry whose call drops back under half the
+  floor is removed by the tool, returning the test to the normal rule.
 
 ## ⚙️ Configuration read by ghog
 
