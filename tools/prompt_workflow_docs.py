@@ -36,8 +36,10 @@ DECISIONS_RE = re.compile(
 # A table row opening with a question id: the mark of a decision a review round
 # actually consolidated, as opposed to a seeded table written with the document.
 CONSOLIDATED_ROW_RE = re.compile(r"^\|\s*Q\d+\b")
-# The settled row a no-question review writes instead of question-referenced rows.
-NO_OPEN_QUESTIONS_TOKEN = "No open questions"
+# The settled row a no-question review writes instead of question-referenced
+# rows. Named MARK, not TOKEN, so ruff's hardcoded-password rule (S105), which
+# keys on credential-like names, does not misread the phrase as a secret.
+NO_OPEN_QUESTIONS_MARK = "No open questions"
 # The docs folder name and the draft prefix and markdown suffix.
 DOCS_DIR_NAME = "docs"
 DRAFT_PREFIX = "draft."
@@ -249,7 +251,7 @@ def has_consolidated_decisions(path: Path) -> bool:
     if not any(DECISIONS_RE.match(line) for line in lines):
         return False
     return any(
-        CONSOLIDATED_ROW_RE.match(line) or NO_OPEN_QUESTIONS_TOKEN in line
+        CONSOLIDATED_ROW_RE.match(line) or NO_OPEN_QUESTIONS_MARK in line
         for line in lines
     )
 
