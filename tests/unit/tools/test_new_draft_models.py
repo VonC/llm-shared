@@ -103,6 +103,7 @@ def test_draft_filename_builds_versioned_name() -> None:
         ("minor", Path("docs/v1.2")),
         ("version", Path("docs/v1.2.3")),
         ("minor-version", Path("docs/v1.2/v1.2.3")),
+        ("version-slug", Path("docs/v1.2.3/my_slug")),
     ],
 )
 def test_docs_relative_dir_supports_every_layout(
@@ -111,7 +112,14 @@ def test_docs_relative_dir_supports_every_layout(
 ) -> None:
     """The selected layout maps one version to its repository-relative path."""
     version = models.SemanticVersion(1, 2, 3)
-    assert models.docs_relative_dir(version, layout) == expected
+    assert models.docs_relative_dir(version, layout, slug="my_slug") == expected
+
+
+def test_docs_relative_dir_version_slug_requires_slug() -> None:
+    """version-slug layout raises when slug argument is omitted."""
+    version = models.SemanticVersion(1, 2, 3)
+    with pytest.raises(models.NewDraftError, match="requires a slug"):
+        models.docs_relative_dir(version, "version-slug")
 
 
 def test_docs_relative_dir_rejects_unknown_layout() -> None:

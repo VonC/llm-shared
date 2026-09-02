@@ -400,7 +400,7 @@ def _fork_point(cwd: Path, branch: str | None) -> str | None:
 
 
 def docs_dirs(root: Path) -> list[Path]:
-    """Return directories from the four supported documentation layouts."""
+    """Return directories from the supported documentation layouts."""
     docs = root / DOCS_DIR_NAME
     if not docs.is_dir():
         return []
@@ -417,8 +417,8 @@ def docs_dirs_for_version(root: Path, version: str) -> list[Path]:
     """Return existing supported documentation directories for ``version``.
 
     A full ``vX.Y.Z`` version maps to ``docs/``, ``docs/vX.Y/``,
-    ``docs/vX.Y.Z/``, and ``docs/vX.Y/vX.Y.Z/``. A legacy ``vX.Y`` version maps
-    to the first two layouts only.
+    ``docs/vX.Y.Z/``, ``docs/vX.Y/vX.Y.Z/``, and any ``docs/vX.Y.Z/<slug>/``.
+    A legacy ``vX.Y`` version maps to the first two layouts only.
     """
     is_minor = MINOR_DIR_RE.fullmatch(version) is not None
     is_full = FULL_VERSION_DIR_RE.fullmatch(version) is not None
@@ -430,7 +430,14 @@ def docs_dirs_for_version(root: Path, version: str) -> list[Path]:
     minor = f"v{parts[0]}.{parts[1]}"
     candidates = [docs, docs / minor]
     if len(parts) == FULL_VERSION_PARTS:
-        candidates.extend((docs / version, docs / minor / version))
+        full_dir = docs / version
+        candidates.extend((full_dir, docs / minor / version))
+        if full_dir.is_dir():
+            candidates.extend(
+                sub
+                for sub in sorted(full_dir.iterdir())
+                if sub.is_dir() and COLLECTION_SLUG_RE.fullmatch(sub.name) is not None
+            )
     return [candidate for candidate in candidates if candidate.is_dir()]
 
 
@@ -442,11 +449,12 @@ def _is_supported_docs_dir(docs: Path, candidate: Path) -> bool:
             MINOR_DIR_RE.fullmatch(parts[0])
             or FULL_VERSION_DIR_RE.fullmatch(parts[0]),
         )
-    return bool(
-        len(parts) == NESTED_LAYOUT_DEPTH
-        and MINOR_DIR_RE.fullmatch(parts[0])
-        and FULL_VERSION_DIR_RE.fullmatch(parts[1]),
-    )
+    if len(parts) == NESTED_LAYOUT_DEPTH:
+        if MINOR_DIR_RE.fullmatch(parts[0]) and FULL_VERSION_DIR_RE.fullmatch(parts[1]):
+            return True
+        if FULL_VERSION_DIR_RE.fullmatch(parts[0]) and COLLECTION_SLUG_RE.fullmatch(parts[1]):
+            return True
+    return False
 
 
 def _topic_docs_dirs(root: Path, topic: Topic) -> list[Path]:

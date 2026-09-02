@@ -106,8 +106,8 @@ def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
         choices=DOCS_LAYOUTS,
         default="flat",
         help=(
-            "Draft directory layout: docs, docs/vX.Y, docs/vX.Y.Z, or "
-            "docs/vX.Y/vX.Y.Z (default: flat docs)."
+            "Draft directory layout: docs, docs/vX.Y, docs/vX.Y.Z, "
+            "docs/vX.Y/vX.Y.Z, or docs/vX.Y.Z/<slug> (default: flat docs)."
         ),
     )
     layout = parser.add_mutually_exclusive_group()
@@ -206,7 +206,7 @@ def _write_draft(
     docs_layout: str = "flat",
 ) -> Path:
     """Write the draft skeleton under the selected docs layout."""
-    docs_dir = target_root / docs_relative_dir(version, docs_layout)
+    docs_dir = target_root / docs_relative_dir(version, docs_layout, slug=slug)
     docs_dir.mkdir(parents=True, exist_ok=True)
     draft = docs_dir / draft_filename(version, slug)
     draft.write_text(
@@ -374,9 +374,10 @@ def _run_from_draft(args: argparse.Namespace, root: Path) -> int:
         worktree_path=worktree_path,
         use_worktree=args.use_worktree,
     )
-    target = target_root / docs_relative_dir(version, args.docs_layout) / draft_filename(
-        version,
-        slug,
+    target = (
+        target_root
+        / docs_relative_dir(version, args.docs_layout, slug=slug)
+        / draft_filename(version, slug)
     )
     _relocate_draft(source, target, source_cwd=root, target_cwd=target_root)
     _log_from_draft_summary(

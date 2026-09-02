@@ -34,7 +34,13 @@ BUMP_PARTS: tuple[str, ...] = ("patch", "minor", "major")
 # Documentation layouts offered by process-draft. The value is persisted by
 # the canonical draft's parent directory, so every later workflow step can
 # recover the choice without a project-global configuration file.
-DOCS_LAYOUTS: tuple[str, ...] = ("flat", "minor", "version", "minor-version")
+DOCS_LAYOUTS: tuple[str, ...] = (
+    "flat",
+    "minor",
+    "version",
+    "minor-version",
+    "version-slug",
+)
 
 # A slug must read as both a Git branch name and a filename component: lowercase
 # letters, digits, hyphen, or underscore, starting with a letter or digit.
@@ -181,21 +187,31 @@ def draft_filename(version: SemanticVersion, slug: str) -> str:
     return f"draft.v{version}.{slug}.md"
 
 
-def docs_relative_dir(version: SemanticVersion, layout: str) -> Path:
+def docs_relative_dir(
+    version: SemanticVersion,
+    layout: str,
+    slug: str | None = None,
+) -> Path:
     """Return the docs directory for ``version`` under the selected layout.
 
     Args:
         version: The effort's semantic version.
-        layout: One of ``flat``, ``minor``, ``version``, or ``minor-version``.
+        layout: One of ``flat``, ``minor``, ``version``, ``minor-version``, or ``version-slug``.
+        slug: The effort's slug, required when layout is ``version-slug``.
 
     Returns:
         A repository-relative path rooted at ``docs``.
 
     Raises:
-        NewDraftError: When ``layout`` is not one of the supported values.
+        NewDraftError: When ``layout`` is not one of the supported values or slug is missing for ``version-slug``.
     """
     minor = f"v{version.major}.{version.minor}"
     full = f"v{version}"
+    if layout == "version-slug":
+        if not slug:
+            msg = f"Layout {layout!r} requires a slug."
+            raise NewDraftError(msg)
+        return Path("docs", full, slug)
     paths = {
         "flat": Path("docs"),
         "minor": Path("docs", minor),

@@ -311,8 +311,8 @@ def test_branch_requirement_topic_rejects_an_unrelated_same_version_draft(
     assert docs.branch_requirement_topic(tmp_path, "route_cleanup") is None
 
 
-def test_docs_dirs_supports_four_layouts(tmp_path: Path) -> None:
-    """Docs discovery returns only the four supported directory layouts."""
+def test_docs_dirs_supports_all_layouts(tmp_path: Path) -> None:
+    """Docs discovery returns supported layouts and rejects other shapes."""
     assert docs.docs_dirs(tmp_path) == []
 
     docs_dir = tmp_path / "docs"
@@ -322,6 +322,8 @@ def test_docs_dirs_supports_four_layouts(tmp_path: Path) -> None:
     (docs_dir / "v9.8" / "v9.8.0").mkdir()
     (docs_dir / "v9.8.0" / "topic").mkdir()
     (docs_dir / "archive").mkdir()
+    (docs_dir / "archive" / "nested").mkdir()
+    (docs_dir / "v9.8" / "v9.8.0" / "topic").mkdir()
     (docs_dir / "draft.v9.8.0.iso.md").write_text("d", encoding="utf-8")
 
     assert docs.docs_dirs(tmp_path) == [
@@ -329,12 +331,13 @@ def test_docs_dirs_supports_four_layouts(tmp_path: Path) -> None:
         docs_dir / "v9.8",
         docs_dir / "v9.8" / "v9.8.0",
         docs_dir / "v9.8.0",
+        docs_dir / "v9.8.0" / "topic",
     ]
 
 
 @pytest.mark.parametrize(
     "relative_dir",
-    ["docs", "docs/v9.8", "docs/v9.8.0", "docs/v9.8/v9.8.0"],
+    ["docs", "docs/v9.8", "docs/v9.8.0", "docs/v9.8/v9.8.0", "docs/v9.8.0/topic"],
 )
 def test_resolve_document_uses_only_version_slug_and_type(
     tmp_path: Path,
@@ -590,6 +593,19 @@ def test_has_consolidated_decisions_rejects_a_late_question_column(
         encoding="utf-8",
     )
     assert docs.has_consolidated_decisions(late_column) is False
+
+
+def test_docs_dirs_includes_version_slug_layout(tmp_path: Path) -> None:
+    """docs_dirs and docs_dirs_for_version include docs/vX.Y.Z/<slug>/ directories."""
+    docs_dir = tmp_path / "docs"
+    version_slug_dir = docs_dir / "v1.2.3" / "my_effort"
+    version_slug_dir.mkdir(parents=True)
+
+    all_dirs = docs.docs_dirs(tmp_path)
+    assert version_slug_dir in all_dirs
+
+    version_dirs = docs.docs_dirs_for_version(tmp_path, "v1.2.3")
+    assert version_slug_dir in version_dirs
 
 
 # eof

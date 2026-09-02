@@ -278,6 +278,7 @@ def test_run_from_draft_in_place(
         ("minor", Path("docs/v0.5")),
         ("version", Path("docs/v0.5.0")),
         ("minor-version", Path("docs/v0.5/v0.5.0")),
+        ("version-slug", Path("docs/v0.5.0/topic")),
     ],
 )
 def test_run_from_draft_places_draft_in_selected_docs_layout(
