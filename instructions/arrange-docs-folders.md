@@ -1,9 +1,9 @@
 # Arrange docs folders
 
-Reorganize current effort documents under `docs/` into one of the four layouts
+Reorganize current effort documents under `docs/` into one of the layouts
 defined by [`../rules/docs_layout.md`](../rules/docs_layout.md). Keep every
 draft, requirement, design, plan, and validation plan for one version and topic
-together. Do not add a topic directory: the filenames already carry the topic.
+together.
 
 ## 1. Choose the target layout
 
@@ -13,7 +13,8 @@ one choice using computed examples from the first effort version found:
 - `docs/` (`flat`);
 - `docs/vX.Y/` (`minor`);
 - `docs/vX.Y.Z/` (`version`, recommended);
-- `docs/vX.Y/vX.Y.Z/` (`minor-version`).
+- `docs/vX.Y/vX.Y.Z/` (`minor-version`);
+- `docs/vX.Y.Z/<slug>/` (`version-slug`).
 
 Wait for the user's choice before moving anything.
 

@@ -15,6 +15,7 @@ For an effort targeting `vX.Y.Z`, the supported layouts are:
 | Minor release | `minor` | `docs/vX.Y/` |
 | Full version | `version` | `docs/vX.Y.Z/` |
 | Minor and full version | `minor-version` | `docs/vX.Y/vX.Y.Z/` |
+| Full version and slug | `version-slug` | `docs/vX.Y.Z/<slug>/` |
 
 `process-draft` asks for this choice after the target version is settled and
 passes the tool value to `new_draft --docs-layout`. The renamed
@@ -22,12 +23,12 @@ passes the tool value to `new_draft --docs-layout`. The renamed
 
 All later document-writing skills derive the effort directory from the parent
 of the document named in their prompt or context. They write their output beside
-that document. They never add a topic directory below the selected layout: the
+that document. They never add a directory below that effort directory: the
 version and topic already remain explicit in every filename.
 
 ## Workflow discovery
 
-`pw` scans all four layouts. Once it resolves a canonical draft, it searches
+`pw` scans all supported layouts. Once it resolves a canonical draft, it searches
 that draft's parent directory first and does not mix duplicate documents from
 another layout into the effort.
 
