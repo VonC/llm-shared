@@ -12,6 +12,14 @@ here too -- it delivers and records the check, commit and after-check prompts,
 refuses with a ``pw --pick`` message when no topic resolves (Q63), and warns on a
 derived-step mismatch (Q59). The git reads, the clipboard and ``build_cycle_prompt``
 are monkeypatched, so no real git process runs and the prompt body is a stand-in.
+
+Fix (review-mode line): ``run_handoff`` now states review mode beside its ready
+line, so the branch after ``group-commits-msg`` arrives on the path the caller
+already follows instead of depending on the caller remembering to look for a
+marker no listing shows. The rows below pin all three verdicts and both marker
+locations the loader resolves -- the artifact home first, the project root as
+its legacy fallback -- and pin that a check which could not answer reports
+``unknown`` rather than the ``off`` a caller would act on.
 """
 
 from __future__ import annotations
@@ -394,6 +402,86 @@ def test_run_handoff_warns_on_derived_mismatch(
 
     assert prompt_workflow.run_handoff(tmp_path, "check", "2") == 0
     assert any("differs from the derived step 1" in message for message in warnings)
+
+
+def test_review_mode_line_reports_off_for_a_repository_with_no_marker(
+    tmp_path: Path,
+) -> None:
+    """No marker anywhere is a stated `off`, not a silence the caller reads."""
+    # Act
+    line = prompt_workflow._review_mode_line(tmp_path)
+
+    # Assert
+    assert line == "review-mode: off (artifact home .reviews)."
+
+
+def test_review_mode_line_reports_on_from_the_artifact_home_marker(
+    tmp_path: Path,
+) -> None:
+    """The home marker is what the loader resolves first, so it is reported."""
+    # Arrange
+    home = tmp_path / ".reviews"
+    home.mkdir()
+    (home / "a.review-mode").write_text("", encoding="utf-8")
+
+    # Act
+    line = prompt_workflow._review_mode_line(tmp_path)
+
+    # Assert
+    assert line == "review-mode: on (artifact home .reviews)."
+
+
+def test_review_mode_line_reports_on_from_the_legacy_project_root_marker(
+    tmp_path: Path,
+) -> None:
+    """The project-root marker stays the loader's fallback, so it still counts."""
+    # Arrange
+    (tmp_path / "a.review-mode").write_text("", encoding="utf-8")
+
+    # Act
+    line = prompt_workflow._review_mode_line(tmp_path)
+
+    # Assert
+    assert line == "review-mode: on (artifact home .reviews)."
+
+
+def test_review_mode_line_reports_unknown_rather_than_off_on_a_failure(
+    tmp_path: Path,
+) -> None:
+    """A check that could not answer must never read as review mode being off."""
+    # Arrange
+    (tmp_path / ".reviews").write_text("not a directory", encoding="utf-8")
+
+    # Act
+    line = prompt_workflow._review_mode_line(tmp_path)
+
+    # Assert
+    assert line.startswith("review-mode: unknown (")
+    assert "sample it before the commit gate" in line
+
+
+def test_run_handoff_states_review_mode_after_the_ready_line(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """The branch after grouping is printed where the caller already looks."""
+    # Arrange
+    messages: list[str] = []
+
+    def capture(message: str, *args: object) -> None:
+        messages.append(message % args if args else message)
+
+    monkeypatch.setattr(prompt_workflow.LOGGER, "info", capture)
+    text = "### Analysis of Step 2 implementation state\n\nNot started yet.\n"
+    staged: list[str] = []
+    _wire_handoff(monkeypatch, _handoff_state(tmp_path, text), topics=[_TOPIC], staged=staged)
+
+    # Act
+    assert prompt_workflow.run_handoff(tmp_path, "check", "2") == 0
+
+    # Assert
+    assert messages[-2].startswith("Prompt for step 2 (check) ready")
+    assert messages[-1] == "review-mode: off (artifact home .reviews)."
 
 
 # eof
