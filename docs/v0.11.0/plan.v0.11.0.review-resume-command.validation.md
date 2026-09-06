@@ -3,7 +3,7 @@
 No, it is not implemented.
 
 This validation tracks the seven ordered implementation steps. Steps 0 through
-3 are fully implemented and validated; Steps 4 through 6 remain pending.
+4 are fully implemented and validated; Steps 5 and 6 remain pending.
 
 ---
 
@@ -554,8 +554,13 @@ No existing feature or reporting capability appears impaired.
 
 ### Analysis of Step 4 implementation state
 
-Not started. Step 4 is not implemented because review status still uses schema
-1, root discovery, and a strictly read-only contract.
+Yes. Step 4 has been fully implemented.
+
+The migration preflight, schema-2 model, configured-home projection, and
+role-nature reconciliation are complete. Completed and blocked migration output
+is now asserted in human and JSON forms, whitespace-only exception messages
+retain typed diagnostics, and the launcher accurately describes its bounded
+migration exception. A fresh `ghog day` passes with full coverage.
 
 ### Goal for Step 4
 
@@ -571,27 +576,111 @@ role natures in schema-2 human and machine output.
 
 ### What was implemented for Step 4
 
-_(empty — no check has taken place yet.)_.
+- **Migration-aware collection**: `ReviewStatusMigrationPreflight` performs one
+  check, an automatic migration when required, and the mandatory ready recheck.
+  A blocked check, failed move, or failed recheck returns an operational failure
+  before ordinary exchange projection.
+- **Schema-2 status model**: repository results carry typed migration state,
+  artifact home, moved count, and diagnostics. Every trustworthy exchange
+  carries requestor and reviewer LLM nature plus source-path evidence, including
+  explicit `unrecorded` and `conflicting` states.
+- **Configured-home projection**: `review_status.py` accepts the ready
+  configuration from preflight, enumerates coordination only in that home, and
+  reconciles role nature from already parsed coordination, request, and answer
+  snapshots without a second artifact read.
+- **Rendering and command contract**: human and compact JSON output expose the
+  new typed fields, while blocked migration retains process status 2. The
+  launcher arguments remain unchanged, and the canonical instruction plus all
+  four provider adapters describe the bounded mutation exception.
+- **Regression coverage**: unit and acceptance tests cover unnecessary,
+  completed, repeated, blocked, and failed migration; schema serialization;
+  known, unrecorded, and conflicting role nature; evidence paths; unchanged
+  post-preflight bytes; output; and process statuses.
+- **Validation evidence**: the fresh `ghog day` completed with `fail=0`,
+  `cov=100`, `outliers=0`, and `exit=0`. Static checks and Markdown validation
+  also pass.
 
 ### New types or classes introduced for Step 4
 
-_(empty — no check has taken place yet.)_.
+- `MigrationState`: typed `unnecessary`, `completed`, and `blocked` repository
+  migration states.
+- `RoleNatureState`: typed `unrecorded` and `conflicting` reconciliation states.
+- `MigrationStatus`: validated schema-2 migration outcome, home, move count, and
+  diagnostics.
+- `RoleNatureEvidenceStatus` and `RoleNatureStatus`: one role's reconciled value
+  and complete path-addressed evidence.
+- `ReviewStatusMigrationResult`: preflight result coupling status with the
+  configuration that is authorized for projection.
+- `ReviewStatusMigrationPreflight`: bounded check, migrate, and ready-recheck
+  orchestration behind an injectable migration port.
+- `ReviewStatusRoleNatureProjection`: linear requestor and reviewer snapshot
+  reconciliation.
 
 ### Architecture check for Step 4
 
-_(empty — no check has taken place yet.)_.
+- **Responsibility separation**: migration orchestration and role-nature
+  reconciliation live in focused helpers; the status service coordinates them,
+  and rendering plus CLI adapters consume only typed result models.
+- **Boundary direction**: the migration helper depends on the existing artifact
+  migration port, the role helper depends on protocol snapshots and status
+  values, and neither reaches into CLI or rendering concerns.
+- **Read boundary**: the preflight supplies the resolved configuration to
+  collection, preventing a second configuration decision and preserving the
+  post-ready read-only projection contract.
+- **Maintainability**: all changed Python files remain below the enforced
+  650-line ceiling, while the new migration and role helpers are 118 and 75
+  lines respectively.
+
+No, there is nothing that needs to be addressed for Step 4.
 
 ### Performance check for Step 4
 
-_(empty — no check has taken place yet.)_.
+- **No new `O(n^2)` or `O(n log n)` path**: role evidence is reconciled in one
+  linear pass, and schema rendering remains linear in exchanges and artifacts.
+- **Hot-path bound**: migration check remains limited to recognized legacy-root,
+  default-home, and configured-home locations; ordinary projection runs only
+  after a ready result.
+- **Startup path**: automatic migration is a bounded one-time operation, and a
+  repeated status call reports `unnecessary` without moving artifacts again.
+- **Plan-bound alignment**: status adds at most the prescribed check, optional
+  migration, ready recheck, and one ordinary projection.
+
+No, there is no performance issue that needs to be addressed for Step 4.
 
 ### Unit test coverage check for Step 4
 
-_(empty — no check has taken place yet.)_.
+- **Migration preflight**: the dedicated migration tests cover ready, required,
+  blocked, failed-move, failed-check, and failed-ready-recheck branches at 100%.
+- **Schema models**: the existing model suite and the split schema-2 leaf cover
+  construction, invariants, serialization, migration, nature, and evidence at
+  100%.
+- **Projection and role nature**: the projection, status-service, and dedicated
+  role-nature tests cover configured-home discovery, parsed-envelope evidence,
+  enum, unrecorded, conflicting, damaged, and operational-failure behavior at
+  100%.
+- **Rendering and CLI**: their named unit suites reach 100% line and branch
+  coverage of `review_status_render.py` and `review_status_cli.py`, including
+  completed and blocked human migration output and the blocked JSON migration
+  payload.
+
+No, there is no unit-tested class below 100% that needs completing for Step 4.
 
 ### Feature integrity for Step 4
 
-_(empty — no check has taken place yet.)_.
+- **Existing command behavior**: `rvw_status.bat` and its existing arguments are
+  preserved; the only mutation is the required bounded safe migration before
+  ordinary read-only status collection.
+- **Reporting and diagnostics**: schema 2 extends rather than obscures identity,
+  lease, artifact, action, and damage reporting, and blocked placement is
+  surfaced as typed operational failure.
+- **Compatibility**: legacy evidence remains readable as `unrecorded`, repeated
+  calls are idempotent, and conflicting recorded natures retain all evidence
+  instead of being guessed or overwritten.
+- **Documentation rollout**: the canonical status instruction, status launcher,
+  and thin Agent, Codex, Claude, and GitHub adapters consistently describe
+  migration-aware status behavior.
+
+No, no existing feature or reporting capability appears impaired by Step 4.
 
 ---
 
