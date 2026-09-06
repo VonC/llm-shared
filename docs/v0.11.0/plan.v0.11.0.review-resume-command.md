@@ -116,6 +116,7 @@ the runtime artifact-home scan.
 | Q04 | Use one strict versioned JSON migration journal at a known path, atomically replacing the complete snapshot after every move or phase transition. | Step 1 migration service, recovery tests, and performance guards. | Append-only journals require partial-line recovery; multiple marker files make transaction state ambiguous. |
 | Q05 | Expose typed `migration-check`, `migrate-artifacts`, `resume-inspect`, `claim`, and `wait-any-request` operations through `review_exchange.bat`; keep sequencing in the LLM skill and add no resume launcher. | Step 5 CLI support, canonical resume instruction, tests, and completion grep. | A generic action multiplexer weakens per-operation contracts; a second support launcher duplicates shared protocol safety. |
 | Q06 | Add `tests/unit/tools/review_exchange_test_support.py` for canonical configured-home, role-nature, ownership, and schema builders while retaining local fixtures for scenario-specific behavior. | Step 6 affected suites, line budgets, and regression coverage. | Per-suite builders duplicate cross-cutting defaults; a global pytest plugin hides setup and increases unrelated coupling. |
+| Q07 | Make the foreground `wait-any-request` command return exactly one typed terminal result for a claim, ambiguity, graceful cancellation, invalid input, or operational failure, without persisted wait state. | Step 5 wait CLI, instruction, and tests. | Idle progress; an LLM polling loop; a durable waiter manager. |
 
 ---
 
@@ -894,6 +895,10 @@ Fix intent:
 - Add one canonical resume instruction and thin adapters.
 - Update all role instructions to carry nature, capability, global reviewer
   waiting, and exact requestor continuation.
+- Make global reviewer waiting one quiet foreground script operation; do not
+  stream idle progress into an LLM session or add an LLM polling loop.
+- Treat a graceful host or console interruption as `cancelled`, with one typed
+  terminal result and fixed exit mapping; do not create durable waiter state.
 - Treat the bare user request `resume` as authorization for automatic
   lease-independent pickup after role resolution and before role dispatch. Do
   not require the user to mention a new session, pickup, generation, token,
@@ -977,6 +982,13 @@ Step framing:
   wakes; unrelated artifact ignore; human cancellation.
 - Cover native notification through a narrow `watchdog` adapter, bounded polling
   fallback, event coalescing, and an authoritative rescan after every hint.
+- Cover non-mutating candidate discovery separately from the foreground claim,
+  plus a quiet `wait-any-request` with no idle standard-output or standard-error
+  progress and one final machine result. Inject graceful host and console
+  cancellation through a test seam; assert one `cancelled` result, no claim or
+  ownership capability, and no persisted waiter artifact. Assert the result
+  fields and exit mapping for `found`, `ambiguous`, `cancelled`, invalid input,
+  and operational failure.
 - Cover several requests for one reviewer and one request for several reviewers,
   including first claim, typed loser, and return to wait.
 - Cover requestor exact-answer wait, owned action, convergence pickup, lost
@@ -1003,8 +1015,14 @@ Step framing:
 - The canonical resume skill and thin provider adapters recognize the bare
   prompt `resume`; ownership recovery is internal orchestration, not a user
   prompt or public launcher argument.
-- `GlobalReviewerWait` uses notification hints, bounded polling, authoritative
-  rescans, candidate selection, and first-claim-wins.
+- `GlobalReviewRequestDiscovery` uses notification hints, bounded polling, and
+  authoritative rescans without claiming. `GlobalReviewerWait` selects one
+  candidate, performs the normal first-claim-wins operation, and remains quiet
+  until its one final machine result. `wait-any-request` catches graceful host
+  and console interruption as `cancelled` and emits `operation`, `outcome`,
+  `identity`, `candidates`, and `diagnostic`; only `found` includes the
+  session-only ownership capability. It exits 0 for `found`, 3 for `ambiguous`
+  or `cancelled`, and 2 for invalid input or operational failure.
 - A narrow notification adapter uses the direct `watchdog` runtime dependency
   when available and retains bounded polling as the correctness fallback.
 - Resume support operations are exposed through `review_exchange.bat` as

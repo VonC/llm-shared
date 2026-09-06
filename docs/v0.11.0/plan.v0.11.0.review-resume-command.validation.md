@@ -706,6 +706,15 @@ reviewers waiting across exchanges while requestors progress only their task.
   and `wait-any-request` support operations through `review_exchange.bat`.
 - Use `watchdog` behind a narrow adapter with bounded polling and authoritative
   rescans as the correctness fallback.
+- Keep global request discovery non-mutating and foreground waiting quiet, with
+  one final machine result instead of LLM-side polling or idle progress.
+- Verify that a graceful host or console interruption returns one `cancelled`
+  result, releases no claim, exposes no ownership capability, and creates no
+  persistent waiter or cancellation artifact.
+- Verify result fields and exits for `found`, `ambiguous`, `cancelled`, invalid
+  input, and operational failure: `operation`, `outcome`, `identity`,
+  `candidates`, and `diagnostic` are present; only `found` carries the
+  session-only ownership capability; exits are respectively 0, 3, 3, 2, and 2.
 - Add validated `llm_nature` metadata to thin provider adapters and no public
   resume launcher.
 

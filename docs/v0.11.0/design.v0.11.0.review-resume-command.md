@@ -443,11 +443,13 @@ Reviewer continuation is request-consumer-only:
   their family, document, step, round, occurrence, requestor nature, and age and
   asks the human to choose one.
 
-When several reviewer waits race for one request, each tries the same locked
-claim compare-and-swap. The first successful claim owns the request. Every loser
-receives a typed `already-claimed` result, discards no evidence, and returns to
-the global wait. Recorded reviewer nature does not reserve an unclaimed request;
-it is identity evidence and a later discrepancy gate, not a scheduling lock.
+`GlobalReviewRequestDiscovery` owns notification hints, bounded polling, and
+authoritative candidate rescans without claiming. `GlobalReviewerWait` selects
+one discovered candidate and invokes the locked claim compare-and-swap. When
+several reviewer waits race for one request, the first successful claim owns it.
+Every `already-claimed` loser discards no evidence and returns to discovery.
+Recorded reviewer nature does not reserve an unclaimed request; it is identity
+evidence and a later discrepancy gate, not a scheduling lock.
 
 The global wait is identity-free and has no exchange timeout before a request
 exists. It uses the existing file-observation abstraction with a low-cost
@@ -455,6 +457,20 @@ directory change notification where supported and bounded polling fallback.
 Each wake rescans and validates the complete candidate set, so events may be
 coalesced without losing requests. It remains active until a request is selected
 or the human cancels.
+
+`wait-any-request` is one quiet foreground blocking command. It writes no idle
+progress to standard output or standard error and returns one final machine
+result after a request is selected and claimed, ambiguity is found, or the human
+cancels. A graceful host or console interruption is caught as cancellation and
+returns exactly one final machine result rather than raw interrupt output. The
+result contains `operation`, `outcome`, `identity`, `candidates`, and
+`diagnostic`; `found` adds the session-only generation/token capability from
+its locked claim, while other outcomes contain no capability. `found` exits 0;
+`ambiguous` and `cancelled` exit 3; invalid input and operational failures exit
+2. A hard process kill may prevent a final result and grants neither a claim nor
+subsequent authority. A Codex or Claude session can await that command without
+model-side polling; the protocol does not promise that a file watcher can create
+a new model turn after its host ends the command.
 
 Idle, concluded, requestor-owned, and human-convergence-gate exchanges are all
 valid entry states. A matching later round or occurrence and an entirely new
@@ -582,3 +598,4 @@ normal requestor skill with the new exact identity.
 | Q05 | Give every ordinary or resumed actor claim a monotonic generation and session-held secret token while coordination stores only its digest. | Lease-independent pickup and displaced sessions | Generation alone; nonce alone; a pickup-only fence. |
 | Q06 | Observe global reviewer requests through directory notifications plus bounded polling, with a complete rescan as the source of truth. | Reviewer continuation | Polling only; native notifications without fallback. |
 | Q07 | Let the first locked reviewer claim win one request; return every `already-claimed` loser to global waiting. | Reviewer continuation | Reserving by reviewer nature; stopping all waiters for human selection. |
+| Q08 | Treat a graceful foreground host or console interruption as cancellation and return one typed result with the stated fields and exit mapping, without persisting wait state. | Reviewer continuation | LLM polling; streamed progress; durable waiter state. |

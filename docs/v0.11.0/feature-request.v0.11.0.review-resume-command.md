@@ -219,6 +219,18 @@ cancels it; exchange timeout rules begin only after a concrete request exists.
 If several requests are observed together, resume lists them and asks the human
 to select one instead of inventing an ordering or processing a queue.
 
+The global wait is one foreground script operation, not an LLM polling loop. It
+uses non-mutating discovery for notification hints, bounded fallback polling,
+and authoritative candidate rescans; only the selected reviewer path claims a
+request. It writes no idle progress to the LLM and returns one final machine
+result when it finds or claims a request, reaches ambiguity, or is cancelled.
+A graceful host or console interruption is cancellation. The final result has
+`operation`, `outcome`, `identity`, `candidates`, and `diagnostic`; `found`
+also carries the session-only ownership capability. The command exits 0 for
+`found`, 3 for `ambiguous` or `cancelled`, and 2 for invalid input or an
+operational failure. It creates no persistent waiter record or cancellation
+artifact.
+
 ## Requestor continuation behavior
 
 A resumed requestor follows the durable workflow state:
@@ -321,6 +333,9 @@ identity resolution.
 18. The typed status result distinguishes migration that was unnecessary from
     migration that completed, advances its schema version, and reports a
     blocked migration as an operational failure with a diagnostic.
+19. The foreground global wait is silent while idle; graceful host or console
+    cancellation returns exactly one typed result with the stated fields and
+    exit mapping, without an ownership capability or persistent waiter state.
 
 ## Scope boundaries and dependencies
 
@@ -360,3 +375,4 @@ validation document, or completed umbrella row is reopened.
 | Q12 | Create an untracked home-local `.gitignore` before first use; block an existing uncovered home. | Gap to close for configurable review evidence | Root `.gitignore` rewrites; bypassing effective-ignore validation. |
 | Q13 | Carry the home in a dedicated versioned declaration and reject external or tracked-directory targets. | Gap to close for configurable review evidence | Ignored per-clone marker; unrelated project settings file. |
 | Q14 | Advance the typed status schema, record successful migration state, and use operational failure when blocked. | Required migration preflight | Failure-only reporting without typed success state; human-readable reporting only. |
+| Q15 | Treat a graceful foreground host or console interruption as `cancelled`, with one typed final result and fixed exit mapping. | Token-quiet global reviewer wait | LLM polling loops; streamed progress; durable waiter state in this topic. |
