@@ -10,6 +10,10 @@ Use this guide after selecting one implementation-plan step. The requestor owns
 the staged subject and `a.commit`; the independent reviewer assesses immutable
 evidence and may leave attributable repairs staged; the human owns commit.
 
+Start the two role sessions independently. A requestor must not create, invoke,
+delegate to, or message a reviewer, and a reviewer must not do those things to
+a requestor. Each role rejects a task initiated by its automated counterpart.
+
 Do not reconstruct protocol filenames or edit protocol artifacts. Read the one
 final JSON result and use its `paths` member.
 
@@ -41,7 +45,10 @@ final JSON result and use its `paths` member.
 
 Stop when the requestor presents `Commit` and `Rework and review again`. Exit
 `3` and a commit-ready recommendation do not authorize a commit. Convergence
-ends the reviewer's automatic wait cycle at the human gate.
+ends the exact-exchange reviewer wait at the human gate. Keep the reviewer
+available for any future request under the configured artifact home. The
+cross-exchange monitor has not shipped, so do not poll or claim that another
+exchange will wake it automatically.
 
 After the human chooses `Commit`, the requestor executes the prepared root
 `a.commit` through `pw code-review-commit`. If residual changes remain, that
@@ -53,16 +60,18 @@ continuation stages all of them and preserves durable authorization. Run
 ## Resume an implementation code review
 
 1. Open the same repository in the requestor agent session.
-2. Run `$llm-shared:code-review-requestor on <plan-path> step <n>` with the exact
+2. Optionally run `& "<LLM_SHARED_DIR>\rvw_status.bat"` to inspect every
+   active exchange without resuming one.
+3. Run `$llm-shared:code-review-requestor on <plan-path> step <n>` with the exact
    repository-relative plan and step.
-3. Follow the final JSON `state`, `round`, and `paths`. A persisted
+4. Follow the final JSON `state`, `round`, and `paths`. A persisted
    `owning-action-pending` state means the human already authorized the commit;
    do not ask again.
-4. Keep `a.commit` aligned with the staged paths after accepted repairs. Never
+5. Keep `a.commit` aligned with the staged paths after accepted repairs. Never
    commit through private Git commands.
-5. At `owning-action-pending`, resume `pw code-review-commit`. A residual phase
+6. At `owning-action-pending`, resume `pw code-review-commit`. A residual phase
    reuses the existing human authorization and must finish with a clean tree.
-6. Stop on escalation, inconsistent evidence, or interrupted transition and use
+7. Stop on escalation, inconsistent evidence, or interrupted transition and use
    [the recovery guide](recover-an-independent-review.md).
 
 The canonical [code-review requestor](../../instructions/code-review-requestor.md)

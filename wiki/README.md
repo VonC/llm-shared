@@ -68,7 +68,10 @@ to see how it differs from the self-review loop. Its main goal is the automatic
 exchange between those two agent sessions: the requestor actively waits after a
 request, the reviewer actively waits after a change-request answer, and each
 replacement round wakes the counterpart without another user instruction.
-Convergence still stops at the human gate.
+Neither role may create or contact the other; the human or an external reviewer
+service starts each role independently. Convergence still stops at the human
+gate. The reviewer then remains available for another request, although the
+cross-exchange artifact-home monitor is planned and has not shipped yet.
 
 ## Four officially supported AI environments
 
@@ -160,6 +163,7 @@ Recipes for a precise goal, for readers who already know the basics.
 - 🤖 [Enable independent review mode](how-to/enable-independent-review-mode.md)
 - 🤖 [Run a specification review](how-to/run-specification-review.md)
 - 🤖 [Run an implementation code review](how-to/run-implementation-code-review.md)
+- 🤖 [Inspect independent review status](how-to/inspect-independent-review-status.md)
 - 🤖 [Read review results and continue](how-to/read-independent-review-results-and-continue.md)
 - 🤖 [Recover an independent review](how-to/recover-an-independent-review.md)
 

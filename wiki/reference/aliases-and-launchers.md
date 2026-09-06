@@ -65,7 +65,7 @@ second day, so `tth 20260903` trims the clipboard and `tth export.md 20260903`
 trims a file; the alias forwards every argument. See
 [the trim-thinking command reference](trim-thinking-command.md).
 
-## ⚙️ Other launchers in bin
+## ⚙️ Other public launchers
 
 | Launcher | Wraps | Purpose |
 | --- | --- | --- |
@@ -79,6 +79,7 @@ trims a file; the alias forwards every argument. See
 | `tth.bat` | `tools\trim_thinking_cli.py` | trim an exported conversation from a file or the clipboard, result to the clipboard |
 | `python_check.bat` | vulture, big-file check, `enforce_eof.py` | the check station of the walk |
 | `python_check_types.bat` | type checking | the typing gate |
+| `rvw_status.bat` | `tools\review_status_cli.py` | migration-aware schema-2 status for every active review without resuming it |
 | `review_exchange.bat` | `tools\review_exchange_cli.py` | shared review state, publication, wait, confirmation, and recovery operations |
 | `spec_review_request.bat` | specification request renderer | build a specification-review request and transcript summary |
 | `spec_review_answer.bat` | specification answer renderer | build a specification-review answer and transcript summary |

@@ -10,6 +10,10 @@ Use this guide when a requirement, design, or plan already exists and an
 independent agent should assess its questions. The requestor owns document
 changes; the reviewer owns the answer; the human owns the final choice.
 
+Start the two role sessions independently. A requestor must not create, invoke,
+delegate to, or message a reviewer, and a reviewer must not do those things to
+a requestor. Each role rejects a task initiated by its automated counterpart.
+
 Do not reconstruct protocol filenames or edit protocol artifacts. Follow the
 final JSON `paths` member returned by the active skill.
 
@@ -41,20 +45,24 @@ final JSON `paths` member returned by the active skill.
 
 Stop when the requestor presents `Consolidate` and
 `Revise and review again`. A convergence recommendation and exit `3` do not
-authorize consolidation. Convergence ends the reviewer's automatic wait cycle
-at the human gate.
+authorize consolidation. Convergence ends the exact-exchange reviewer wait at
+the human gate. Keep the reviewer available for any future request under the
+configured artifact home. The cross-exchange monitor has not shipped, so do not
+poll or claim that another exchange will wake it automatically.
 
 ## Resume a specification review
 
 1. Open the repository in the requestor agent session.
-2. Run `$llm-shared:spec-review-requestor`. The durable state selects the
+2. Optionally run `& "<LLM_SHARED_DIR>\rvw_status.bat"` to inspect every
+   active exchange without resuming one.
+3. Run `$llm-shared:spec-review-requestor`. The durable state selects the
    persisted round and owner.
-3. Follow the final JSON `state`, `round`, and `paths`; do not infer which
+4. Follow the final JSON `state`, `round`, and `paths`; do not infer which
    artifact should exist beside another one.
-4. If the result says `request-pending`, keep the request and let the reviewer
+5. If the result says `request-pending`, keep the request and let the reviewer
    answer. If it says `answer-pending`, assess that returned answer. If it says
    `convergence-gate`, present the human choices without consuming the answer.
-5. Stop on escalation, inconsistent evidence, or interrupted transition and use
+6. Stop on escalation, inconsistent evidence, or interrupted transition and use
    [the recovery guide](recover-an-independent-review.md).
 
 The canonical [specification requestor](../../instructions/spec-review-requestor.md)

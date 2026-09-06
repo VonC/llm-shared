@@ -24,7 +24,9 @@ point where the review families diverge.
 
 At the repository root, create an empty `a.review-mode` file. Open two agent
 sessions in the same repository and label them **Requestor** and **Reviewer**.
-Keep repository context paths relative to the Git root.
+Keep repository context paths relative to the Git root. You open both sessions
+independently; neither agent may create, invoke, delegate to, or message its
+counterpart.
 
 Start with a settled plan whose Step 2 is not implemented and a clean index.
 
@@ -59,6 +61,10 @@ In the separate reviewer session, ask:
 $llm-shared:code-reviewer
 ```
 
+This instruction comes from you, not from the waiting requestor. A reviewer
+must reject requestor-initiated or requestor-parent delegation even when the
+published request and staged evidence are otherwise valid.
+
 The reviewer compares the live index with `request_index_tree`, executes the
 resolved validation commands, and runs `validation-state compare` after the
 checks. For this example, imagine it finds that one route-warning boundary lacks
@@ -89,8 +95,10 @@ the replacement request releases the reviewer session that is already waiting.
 Without another command from you, the active reviewer reads the returned round
 2 request and repeats the index and validation-state comparisons. When every
 readiness result passes and this round makes no substantive repair, it publishes
-a commit-ready recommendation and does not start another wait. Exit `3` means
-the exchange stopped at its human gate; no commit has run.
+a commit-ready recommendation and leaves the exact exchange at its human gate.
+The reviewer remains available for a future request under the artifact home,
+but the cross-exchange monitor has not shipped; do not replace it with polling.
+Exit `3` means no commit has run.
 
 ## 5. Make the human choice
 

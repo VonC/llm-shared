@@ -35,6 +35,21 @@ answer may recommend consolidation and a code answer may recommend commit, but
 that recommendation does not authorize consolidation or commit. The exchange
 stops at its human gate until the registered choice is supplied.
 
+## Why role creation stays outside the exchange
+
+An exchange state identifies who may act next; it does not authorize that actor
+to manufacture its counterpart. If a requestor could spawn its own reviewer,
+the assessment would inherit the requestor's orchestration context and would no
+longer be independently started. If a reviewer could spawn a requestor, it
+could cross from assessment into writer-owned continuation.
+
+For that reason, a requestor publishes and waits, while a reviewer reviews or
+waits. Neither role starts, spawns, delegates to, invokes, or messages the
+other. A pending artifact is necessary evidence that work exists, but it is not
+proof of valid session provenance. The reviewer must already be waiting or be
+started independently by the human or an external reviewer service. Each role
+rejects a task initiated by the automated counterpart.
+
 ## Why reciprocal waiting is the default
 
 The main purpose of the requestor-reviewer workflow is an automatic dialogue
@@ -50,7 +65,10 @@ owns polling, timeout, abandonment, and escalation, so neither agent writes its
 own retry loop. Waiting also does not transfer authority: while the reviewer
 observes `answer-pending`, only the requestor may consume the answer or continue
 the round. When a reviewer recommends convergence, reciprocal waiting ends and
-the durable human gate takes over.
+the durable human gate takes over. The reviewer leaves the exact-exchange wait
+and remains available for a future request under the configured artifact home.
+That cross-exchange monitor is a Step 5 capability and has not shipped, so the
+current reviewer holds that posture without inventing a polling loop.
 
 ## Why a new session takes a new generation
 
@@ -70,6 +88,26 @@ new process never possessed.
 This generation advance makes session turnover recoverable without weakening
 the ownership fence. An old session that wakes later cannot mutate the exchange
 with its superseded generation and token.
+
+## Why runtime evidence has one configured home
+
+Requests, answers, coordination, locks, recovery records, and retained review
+evidence all belong to one ignored repository-local artifact home. Keeping that
+vocabulary behind one locator prevents different commands from observing
+different copies of the same exchange. The default is `.reviews`; a strict
+repository declaration can select another relative directory.
+
+Older repositories may still have recognized artifacts at the project root or
+in the former default home. Status therefore performs one bounded,
+transactional migration preflight before it reports anything. A collision or
+invalid placement blocks status instead of choosing one copy. Once placement
+is ready, ordinary status projection is read-only.
+
+The same projection reconciles separately recorded requestor and reviewer LLM
+natures. Missing legacy evidence remains `unrecorded`, and contradictory
+evidence remains `conflicting`; status never guesses or overwrites identity.
+Together, centralized placement, explicit role identity, and ownership
+generations make the reported next actor evidence rather than prompt memory.
 
 ## Why the evidence remains durable
 

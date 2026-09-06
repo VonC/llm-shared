@@ -59,9 +59,11 @@ history-repair plan.
 | `prepare_release_plan.bat` | internal read-only single-source tool called automatically by `/prepare-release`; its standalone interface supports diagnostics, while the skill guards empty integration ranges and explains unsupported revert, multi-topic, and non-contiguous paths |
 
 Independent review mode adds a shared `review-requestor` coordinator plus
-family-specific specification and code requestors and reviewers. Their host
-locations, command prefixes, delegation targets, and coverage gaps are listed
-in the [independent review mode contract](independent-review-mode-contract.md#host-adapter-matrix).
+family-specific specification and code requestors and reviewers. The
+`review-status-command` skill reports all active exchanges after bounded
+migration preflight without resuming one. Their host locations, command
+prefixes, delegation targets, and coverage gaps are listed in the
+[independent review mode contract](independent-review-mode-contract.md#host-adapter-matrix).
 
 ## 🔗 Chaining behavior of the writing skills
 

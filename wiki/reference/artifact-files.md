@@ -115,6 +115,24 @@ accepts this layout only when the normalized branch leaf matches exactly one
 requirement and that requirement has exactly one related direct or canonical
 umbrella draft. Same-version proximity alone is not a relationship.
 
+## 🤖 Configured independent-review runtime files
+
+The versioned project-root `.review-artifacts.ini` optionally selects one
+repository-relative artifact home. When the declaration is absent, the home is
+`.reviews`. The home itself is ignored through its exact catch-all `.gitignore`;
+protocol results return paths below that home, and callers must not reconstruct
+them.
+
+| File | Role |
+| --- | --- |
+| `a.review-*` | current request, answer, coordination, tombstone, lock, migration journal, or archived recovery evidence |
+| `a.code-review-evidence.<version>.<slug>.step-<step>.json` | retained code-review evidence manifest, retired after answer publication |
+
+The versioned `review.<type>.<version>.<slug>.md` transcript is the exception:
+it stays beside the reviewed document rather than in the runtime home. See the
+[independent review contract](independent-review-mode-contract.md#artifact-home-configuration-and-migration)
+for declaration, migration, and exact naming rules.
+
 ## 🧾 Transient a-dot files at the project root
 
 All matched by the `a.*` gitignore line — scratch by design, never
@@ -129,8 +147,6 @@ committed:
 | `a.prompt_memory` | per-branch workflow state: branch, locked topic, current step |
 | `a.md` | scratch analysis: release-prep notes, or activity-report elements |
 | `a.<base>.open.questions.md` | companion file of a review round, managed by `oqm.bat` |
-| `a.review-*` | current request, answer, coordination, tombstone, lock, or archived recovery evidence; use returned `paths`, not filename reconstruction |
-| `a.code-review-evidence.<version>.<slug>.step-<step>.json` | retained code-review evidence manifest, retired after answer publication |
 | `a.prepare-release.active` | flag telling a callee skill to hand control back to `/prepare-release` |
 | `a.activity-report.<start>-<end>.md` | the activity report (plus `.html` and `.pdf`) |
 | `a.profile.html` | pyinstrument profile of one slow test |

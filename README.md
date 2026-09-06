@@ -48,8 +48,27 @@ the normal document and implementation workflow. Its main purpose is an
 automatic requestor-reviewer exchange across intermediate rounds: the
 requestor waits after publishing each request, and the reviewer waits after
 publishing each change request, so replacement rounds continue in the same two
-sessions without another human prompt. Only convergence, recovery, or a bounded
-wait failure stops that exchange.
+sessions without another human prompt. The human or an external reviewer
+service starts those sessions independently: a requestor never starts or
+contacts a reviewer, and a reviewer never starts or contacts a requestor.
+Publishing is the complete handoff between them.
+
+Review runtime artifacts live under one repository-local home, `.reviews` by
+default. A strict `.review-artifacts.ini` can select another ignored,
+repository-relative directory. Run `rvw_status.bat` from the reviewed
+repository to inspect every active exchange, its artifact home and migration
+result, both recorded LLM natures, lease, owner, artifacts, and typed next
+action. Status is read-only after its one bounded, transactional migration
+preflight. See
+[Inspect independent review status](wiki/how-to/inspect-independent-review-status.md)
+and the
+[independent review contract](wiki/reference/independent-review-mode-contract.md).
+
+Only an exact-exchange reviewer wait exists today. After convergence or a
+terminal handoff, the reviewer remains available for a future specification or
+code request under the artifact home, but the cross-exchange monitoring
+launcher is planned for Step 5 and has not shipped. Do not replace it with a
+polling loop or claim that the next exchange will wake automatically.
 
 To continue an implementation code review in another agent session, identify
 the exact plan and step and use this wording:

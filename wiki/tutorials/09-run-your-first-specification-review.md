@@ -27,7 +27,8 @@ reviewed specification as repository-relative paths when you address the agent.
 
 Open two agent sessions in this repository and label them **Requestor** and
 **Reviewer**. Leave both sessions open until the exchange reaches its human
-gate.
+gate. You open the two sessions independently; never ask either agent to spawn,
+invoke, delegate to, or message its counterpart.
 
 ## 2. Publish specification round 1
 
@@ -44,6 +45,17 @@ requestor, and publishes round 1. The request identity names the umbrella,
 reviewed specification, and round. The requestor then enters one bounded wait
 for the reviewer answer.
 
+From a repository shell, inspect the durable state without resuming it:
+
+```powershell
+& "<LLM_SHARED_DIR>\rvw_status.bat"
+```
+
+The report names the `.reviews` artifact home, migration result, recorded
+requestor and reviewer LLM natures, `request-pending` state, reviewer owner, and
+the exact next action. On an older repository, this first status call may move
+recognized runtime artifacts transactionally before reporting them.
+
 Do not infer the answer filename. Keep the requestor session waiting while the
 reviewer works; the final launcher result will return the authoritative
 `paths.answer` value.
@@ -57,6 +69,10 @@ In the separate reviewer session, ask:
 ```text
 $llm-shared:spec-reviewer
 ```
+
+This instruction comes from you, not from the waiting requestor. A reviewer
+must reject a task that an automated requestor or requestor parent session
+initiated, even when round 1 is validly pending.
 
 The reviewer follows the sole pending specification request, reads its returned
 request path, and publishes a `changes-requested` answer. For this example,
@@ -87,9 +103,11 @@ that is already waiting.
 
 Without another command from you, the active reviewer reads the returned round
 2 request, finds the questions and answers complete, and publishes a
-convergence recommendation. It does not start another wait after convergence.
-Exit `3` is the expected stop at the human gate, not an authorization or a
-failed review.
+convergence recommendation. Its exact-exchange wait ends at convergence, and it
+leaves the human gate alone. The reviewer remains available for a future
+request under the artifact home; the cross-exchange monitor is not shipped yet,
+so do not substitute polling. Exit `3` is the expected human stop, not an
+authorization or a failed review.
 
 ## 5. Make the human choice
 
