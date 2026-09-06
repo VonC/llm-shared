@@ -7180,3 +7180,2576 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-2 -->
+
+## Round 1 by requestor - Step 4
+
+- Recorded: 2026-09-05T00:29:36+02:00
+- Exchange: code/code/v0.11.0/review-resume-command
+- Umbrella: docs/v0.11.0/draft.v0.11.0.review-mode.md
+- Reviewed document: docs/v0.11.0/plan.v0.11.0.review-resume-command.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: unrecorded
+- Implementation step: 4
+- Outcome: request
+
+### Review identity for step 4 review-resume-command (round 1)
+
+Umbrella draft: docs/v0.11.0/draft.v0.11.0.review-mode.md
+Implementation plan: docs/v0.11.0/plan.v0.11.0.review-resume-command.md
+Implementation step: 4
+Review round: 1
+
+### Code review evidence for step 4 review-resume-command (round 1)
+
+request_index_tree: 1b045ca30521d84cd2b999d18ea68bd4c4bd396d
+resolved_validation_set:
+
+- ghog day (sources: project)
+- ghog single tests/unit/tools/test_review_status_migration tests/unit/tools/test_review_status_models tests/unit/tools/test_review_status_projection tests/unit/tools/test_review_status_render tests/unit/tools/test_review_status_cli tests/acceptance/review_status/test_review_status_acceptance/test_review_status_acceptance_tdd.py (sources: plan)
+- rg -n schema_version.*2|migration|requestor_llm_nature|reviewer_llm_nature|strictly read-only tools/review_status* instructions/review-status-command.md (sources: plan)
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: fix(markdown): accept cache-relative adapters
+group 1 path: tools/markdown_check/classifier.py
+group 1 path: tests/unit/tools/markdown_check/test_source_model/test_source_model_tdd.py
+group 2: test(tooling): cover redirect checks
+group 2 path: tests/unit/tools/test_codex_plugin_redirects/__init__.py
+group 2 path: tests/unit/tools/test_codex_plugin_redirects/test_codex_plugin_redirects_tdd.py
+group 2 path: tests/unit/tools/test_instruction_structure/test_codex_plugin_structure_tdd.py
+group 2 path: tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_acceptance_tdd.py
+group 3: feat(review-status): add schema 2 context
+group 3 path: tools/review_status_models.py
+group 3 path: tools/review_status_migration.py
+group 3 path: tools/review_status_role_nature.py
+group 3 path: tools/review_status.py
+group 3 path: tools/review_status_render.py
+group 3 path: tools/review_status_cli.py
+group 4: test(review-status): prove schema 2 behavior
+group 4 path: tests/acceptance/review_status/conftest.py
+group 4 path: tests/acceptance/review_status/test_review_status_acceptance/test_review_status_acceptance_tdd.py
+group 4 path: tests/unit/tools/test_review_status/test_review_status_tdd.py
+group 4 path: tests/unit/tools/test_review_status_cli/test_review_status_cli_tdd.py
+group 4 path: tests/unit/tools/test_review_status_migration/__init__.py
+group 4 path: tests/unit/tools/test_review_status_migration/test_review_status_migration_tdd.py
+group 4 path: tests/unit/tools/test_review_status_models/test_review_status_models_schema_2_tdd.py
+group 4 path: tests/unit/tools/test_review_status_models/test_review_status_models_tdd.py
+group 4 path: tests/unit/tools/test_review_status_projection/test_review_status_projection_tdd.py
+group 4 path: tests/unit/tools/test_review_status_render/test_review_status_render_tdd.py
+group 4 path: tests/unit/tools/test_review_status_role_nature/__init__.py
+group 4 path: tests/unit/tools/test_review_status_role_nature/test_review_status_role_nature_tdd.py
+group 5: docs(review-status): describe migration preflight
+group 5 path: instructions/review-status-command.md
+group 5 path: .agent/workflows/review-status-command.md
+group 5 path: .agents/llm-shared/skills/review-status-command/SKILL.md
+group 5 path: .claude/skills/review-status-command/SKILL.md
+group 5 path: .github/skills/review-status-command/SKILL.md
+group 6: docs(review-resume-command): record step 4 validation
+group 6 path: docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md
+staged path: .agent/workflows/review-status-command.md
+staged path: .agents/llm-shared/skills/review-status-command/SKILL.md
+staged path: .claude/skills/review-status-command/SKILL.md
+staged path: .github/skills/review-status-command/SKILL.md
+staged path: docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md
+staged path: instructions/review-status-command.md
+staged path: tests/acceptance/review_status/conftest.py
+staged path: tests/acceptance/review_status/test_review_status_acceptance/test_review_status_acceptance_tdd.py
+staged path: tests/unit/tools/markdown_check/test_source_model/test_source_model_tdd.py
+staged path: tests/unit/tools/test_codex_plugin_redirects/__init__.py
+staged path: tests/unit/tools/test_codex_plugin_redirects/test_codex_plugin_redirects_tdd.py
+staged path: tests/unit/tools/test_instruction_structure/test_codex_plugin_structure_tdd.py
+staged path: tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_acceptance_tdd.py
+staged path: tests/unit/tools/test_review_status/test_review_status_tdd.py
+staged path: tests/unit/tools/test_review_status_cli/test_review_status_cli_tdd.py
+staged path: tests/unit/tools/test_review_status_migration/__init__.py
+staged path: tests/unit/tools/test_review_status_migration/test_review_status_migration_tdd.py
+staged path: tests/unit/tools/test_review_status_models/test_review_status_models_schema_2_tdd.py
+staged path: tests/unit/tools/test_review_status_models/test_review_status_models_tdd.py
+staged path: tests/unit/tools/test_review_status_projection/test_review_status_projection_tdd.py
+staged path: tests/unit/tools/test_review_status_render/test_review_status_render_tdd.py
+staged path: tests/unit/tools/test_review_status_role_nature/__init__.py
+staged path: tests/unit/tools/test_review_status_role_nature/test_review_status_role_nature_tdd.py
+staged path: tools/markdown_check/classifier.py
+staged path: tools/review_status.py
+staged path: tools/review_status_cli.py
+staged path: tools/review_status_migration.py
+staged path: tools/review_status_models.py
+staged path: tools/review_status_render.py
+staged path: tools/review_status_role_nature.py
+```
+
+### Requestor assessment for step 4 review-resume-command (round 1)
+
+Step 4 is fully implemented against the plan and validation criteria.
+
+- The status entry point performs check, optional migration, and ready recheck
+  before ordinary projection.
+- Schema 2 reports typed migration facts and requestor and reviewer LLM nature
+  with path-addressed evidence.
+- Blocked migration returns operational failure before exchange projection.
+- The new projection paths are linear, and all changed Python files remain
+  below the enforced 650-line ceiling.
+- The implementation check found no architecture, performance, unit coverage,
+  or feature-integrity issue requiring repair.
+- The final Groundhog walk passed 2,498 tests with 100 percent coverage, no
+  duration outliers, and exit 0.
+
+### Implementation report for step 4 review-resume-command (round 1)
+
+The implementation adds a bounded migration preflight and a separate linear
+role-nature projector to the review-status service. The preflight authorizes
+configured-home reads only after an initially ready check or a successful move
+followed by a ready recheck.
+
+The status model advances to schema 2 with typed migration state, artifact
+home, moved count, diagnostics, and per-role nature evidence. Human and compact
+JSON rendering expose the same facts, while the CLI keeps its existing argument
+surface and process-status contract.
+
+Unit and acceptance coverage includes unnecessary, completed, repeated,
+blocked, failed, unrecorded, known, and conflicting cases. The status
+instruction and all provider adapters describe the bounded migration exception
+and the post-ready read-only boundary.
+
+### Change summary for step 4 review-resume-command (round 1)
+
+The staged index contains 30 paths arranged in six groups in the root
+`a.commit` plan:
+
+1. `fix(markdown): accept cache-relative adapters`
+2. `test(tooling): cover redirect checks`
+3. `feat(review-status): add schema 2 context`
+4. `test(review-status): prove schema 2 behavior`
+5. `docs(review-status): describe migration preflight`
+6. `docs(review-resume-command): record step 4 validation`
+
+The groups cover the Markdown adapter classification needed by the staged
+provider pointers, direct redirect-tool tests, schema-2 status production code,
+status unit and acceptance coverage, published status guidance, and the
+required trailing step-validation record.
+
+### Writer response for step 4 review-resume-command (round 1)
+
+Writer response:
+
+This is the first review round. There is no earlier reviewer feedback,
+accepted repair, reversal, or disagreement to report.
+
+### Reviewer focus for step 4 review-resume-command (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-4-round-1 -->
+
+## Round 1 by reviewer - Step 4
+
+- Recorded: 2026-09-06T13:46:37+02:00
+- Exchange: code/code/v0.11.0/review-resume-command
+- Umbrella: docs/v0.11.0/draft.v0.11.0.review-mode.md
+- Reviewed document: docs/v0.11.0/plan.v0.11.0.review-resume-command.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 4
+- Outcome: answer
+
+### Assessed index identity for step 4 review-resume-command (exchange 1) (round 1)
+
+Baseline index tree: 1b045ca30521d84cd2b999d18ea68bd4c4bd396d
+
+Assessed index tree: c8a460c518eaefb0c2e6d873201e2516d4a1a79f
+
+### Implementation check for step 4 review-resume-command (exchange 1) (round 1)
+
+Result:
+
+The implementation-check result is `No`. Step 4 has not been fully implemented,
+and the validation plan now records that verdict with a concrete
+`Missing work for Step 4` list.
+
+That verdict is narrower than it sounds, so it is worth stating what does hold
+before what does not. The migration preflight, the schema-2 model, the
+configured-home projection and the role-nature reconciliation are all present,
+they do what the step describes, and every mandatory validation command passes
+on the reviewer's own forced walk. Nothing here is broken.
+
+Two requirements the step names for itself are open.
+
+The first is a tests-first item. Step 4 lists `Update human and JSON snapshots
+plus status codes for normal, completed, and operational-failure cases.` The
+status codes are covered: `process_status` returns 0, 3 and 2 across the model
+and CLI suites. The snapshots are not. Every render fixture in
+`test_review_status_render_tdd.py` builds `MigrationStatus.unnecessary`, so the
+four migration lines are asserted only in their `unnecessary` form. Nothing in
+the repository asserts `Migration: completed`, `Migration: blocked`, a non-zero
+`Migrated artifacts:` count, or any `Migration diagnostics:` text other than the
+literal `none`. A grep for those four strings over `tests/` returns four hits,
+all from the `unnecessary` fixture. The CLI suite does build a blocked result
+and render it as JSON, but reads back only `outcome`.
+
+That gap is invisible to the coverage gate, which is why it needs saying rather
+than measuring. `render_human` writes the diagnostics through a conditional
+expression inside an f-string, and `coverage.py` does not treat that as a
+branch. The line executes under the `unnecessary` fixture, the file reports
+100%, and the `blocked` half of the expression has never produced a character
+that a test looked at. Coverage is met and the assertion is missing, and the
+step asked for the assertion.
+
+This matters more than a usual snapshot gap because of what the untested string
+carries. When placement is blocked the command returns process status 2 and
+prints no exchange evidence at all; the diagnostics line is the entire
+explanation the operator gets. The canonical instruction, in the same staged
+change, now tells the reader `Report the typed migration diagnostic` on
+status 2. The instruction depends on output that no test pins.
+
+The second is the step's own second issue to address, which reads that
+`rvw_status` is documented as strictly read-only although safe migration is now
+its required bounded exception. The canonical instruction was fixed, all four
+adapters were fixed, and `strictly read-only` survives nowhere under
+`tools/review_status*` or in the instruction. But `rvw_status.bat:4` still reads
+`REM Run read-only review status from the newest llm-shared Python.`, and
+`rvw_status.bat` is listed among the step's files with the instruction to verify
+it. The verification did not reach the one line the step set out to correct. The
+plan qualifies the launcher with `updated only if arguments change`, which is
+why this is a small finding rather than a large one, but a file whose stale
+claim is named in the step's analysis and then left standing is not verified.
+
+Everything else the step asked for is present, and the reviewer checked it
+rather than reading the writer's summary.
+
+`ReviewStatusMigrationPreflight` performs exactly one check, migrates only from
+`MIGRATION_REQUIRED`, and returns ready only when the second check comes back
+`READY`. The ordering is pinned by an event spy that records `["check"]` for an
+already-ready layout and `["check", "migrate", "check"]` for a required one, so
+a future refactor that skipped the recheck would fail rather than pass quietly.
+Blocked, failed-move and failed-recheck all return `configuration=None`, and
+`collect_review_status` refuses to project without a configuration. That is the
+part of the step that most needed to be right, and it is.
+
+The schema-2 models close their own invariants rather than trusting callers.
+`MigrationStatus` rejects a moved count on an unnecessary migration, a zero
+count on a completed one, a blocked state without diagnostics and a successful
+state carrying them. `RoleNatureStatus` rejects an unrecorded value that has
+recorded evidence, a conflicting value with fewer than two distinct values, and
+an `LlmNature` value that disagrees with its evidence set. Each rejection has a
+parametrized test.
+
+`ReviewStatusRoleNatureProjection` is linear and reads no artifact. It consumes
+the coordination record's snapshot plus whichever request and answer envelopes
+`_project_exchange` already parsed, so the evidence it reports costs no second
+read. Evidence keeps input order rather than sorted order, which is the right
+choice for a diagnostic, and a path outside the repository root raises instead
+of being rendered relative to nothing.
+
+Line budgets hold against the enforced ceiling. `senv.bat` sets
+`PYTHON_BIG_FILE_LINE_LIMIT=650`, and the changed files measure 616, 580, 141,
+118, 105 and 75 lines. The plan's advisory expectations of 540 for the service
+and 520 for the models are both exceeded, by 76 and 60 lines; that is advisory
+and the reviewer is not asking for a split, only recording that the delegation
+bought less than the plan predicted.
+
+No DDD-Hexagonal violation is visible. The migration helper depends on the
+existing artifact-migration port, the role helper on protocol snapshots and
+status values, and neither reaches into rendering or the CLI. No new
+`O(n^2)` or `O(n log n)` path appears. `_project_role` calls `Path.resolve()`
+once per snapshot per role, so up to six filesystem resolutions per exchange
+where three would do, but the snapshot count is bounded at three and this is a
+note rather than a finding.
+
+No existing capability is impaired. `rvw_status.bat` arguments are unchanged,
+the CLI parser surface is unchanged, process-status mapping is unchanged, and
+legacy records without recorded natures project as `unrecorded` with their
+evidence retained rather than being guessed.
+
+Validation plan effects:
+
+The reviewer edited
+`docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md` this round, and
+the edit is confined to the reviewed step's rows plus the one document-level
+sentence that encodes the same verdict.
+
+The writer had staged Step 4 as `Yes. Step 4 has been fully implemented.` The
+reviewer replaced that with the exact `No. Step 4 has NOT been fully
+implemented.` sentence and rewrote the summary paragraph below it to say why.
+Four further edits follow from that verdict.
+
+- A `Missing work for Step 4` section now sits between `What was implemented for
+  Step 4` and `New types or classes introduced for Step 4`, where the template
+  orders it. It carries five bullets, each naming a file and a concrete action,
+  so `implement-missing-step.md` can work from it without re-deriving this
+  analysis. A `No` status without that section is an unfinished check.
+- The `Rendering and CLI` bullet under `Unit test coverage check for Step 4`
+  previously read that the render and CLI suites cover both output formats and
+  diagnostics at 100%. Coverage is indeed 100%, and diagnostics are not covered
+  in the sense the bullet implies, so the bullet now states both facts and
+  points at the missing-work list. The section's closing sentence still reads
+  `No, there is no unit-tested class below 100% that needs completing for Step
+  4.`, because that sentence is about the coverage percentage and the percentage
+  is genuinely met.
+- The `Documentation rollout` bullet under `Feature integrity for Step 4` now
+  records the stale `rvw_status.bat` header alongside the adapters it correctly
+  credits. Its closing sentence stays `No`, because a stale comment does not
+  impair a feature.
+- The theme sentence under the document title read `Steps 0 through 4 are fully
+  implemented and validated; Steps 5 and 6 remain pending.` It now reads `Steps
+  0 through 3 are fully implemented and validated; Steps 4 through 6 remain
+  pending.` That sentence is the document-level restatement of the same
+  per-step verdict, so leaving it would have contradicted the row the reviewer
+  had just written.
+
+The document-level status line stays `No, it is not implemented.`, which is
+correct and needed no change: Steps 5 and 6 have not started, so the line could
+not have flipped this round whatever Step 4 said.
+
+No `Yes` row for any other step was touched, no umbrella row was completed, and
+no umbrella file was written. Reviewer mode may not complete an umbrella row,
+and the step-4 verdict would not have permitted it in any case.
+
+One mechanical note on the edit itself. The reviewer's first write of this file
+went through Python's default text mode and rewrote all 780 lines from LF to
+CRLF. That was caught by reading the diff rather than the summary, and the line
+endings were restored before anything was staged. The staged patch is 44 added
+and 12 removed lines over the sections listed above.
+
+### Pre-repair mandatory checks and coverage for step 4 review-resume-command (exchange 1) (round 1)
+
+Baseline evidence was captured through `bin/code_review_evidence.bat` before any
+assessment work, and the manifest was written before anything could mutate
+state. No step-4 manifest existed at entry, so this ran as a fresh assessment.
+
+- `capture-index-tree` returned `1b045ca30521d84cd2b999d18ea68bd4c4bd396d`,
+  equal to the `request_index_tree` carried by the round-1 request, so the
+  received state matched the requested state exactly and the early rejection
+  path did not apply.
+- `umbrella-digest capture docs/v0.11.0/draft.v0.11.0.review-mode.md` returned
+  `applicable: true` with digest
+  `bb71aaf68bb45d395e719881a86817a146eba8f164e06a09433fb375914ddc81`, the same
+  value this umbrella has held through every round of steps 2, 3 and 4.
+- `record-pre-repair-blob` recorded three baselines, one per path the reviewer
+  went on to write:
+  `docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md` at
+  `9b499a38e641525adf9d32a27407f8a960094310`,
+  `instructions/review-status-command.md` at
+  `8744066c04440dfbe95df114aabbcd6a3da2000a`, and
+  `tools/review_status_role_nature.py` at
+  `870b6c40a5a66aa977a290c2bdd1c52a6c14df1b`. Each was recorded before its first
+  edit, not after.
+- `validation-state capture` recorded the ordered union of the 30 staged paths
+  and the versioned transcript, 31 paths, at that same index tree.
+- `write-manifest` stored the baseline at
+  `.reviews/a.code-review-evidence.v0.11.0.review-resume-command.step-4.json`.
+
+The exchange itself needed one recovery step before any of this. Entry `status`
+returned `abandoned-request` rather than `request-pending`: the request was
+published at 00:29 local on 5 September and its lease had lapsed by the time a
+reviewer reached it. That is the intact expired-lease shape the contract permits
+reclaiming, so `reclaim` was called once. It returned `request-pending` with the
+same identity, the same round 1 and `exchange_occurrence: 1`, at ownership
+generation 4. The first `wait-request` then returned `already-claimed`, because
+`reclaim` had taken the transition and the wait was presenting no capability;
+re-running it with the reclaimed generation and token returned `found`. No
+request, answer or transcript content was touched by the recovery.
+
+The ghog-artifact limitation recorded in earlier rounds applies unchanged. The
+ordered path set does not name `a.ghog.log`, `.coverage`, `coverage.xml` or
+`a.ghog.senv.log`, and because the set must be identical before and after it was
+not widened afterwards. Differences confined to ignored validation artifacts are
+acceptable by contract, and `git status --porcelain` over the whole worktree
+answered the tracked question more broadly.
+
+### Resolved validation set and sources for step 4 review-resume-command (exchange 1) (round 1)
+
+The reviewer ran the union of the request validation set and the set resolved
+during this round, and ran every command itself rather than accepting the
+request's reported results. The two sets are identical, so the union is the
+same three commands. Each was run twice, once against the received state and
+once after the reviewer's own repairs, because a repair that breaks a mandatory
+gate must not reach the writer as a recommendation.
+
+- `ghog day`, source project. Received state: `exit=0`, every phase completing.
+  `ghog check done fail=0 warn=0 xfail=0 exit=0` in 25.7s, `ghog affected
+  --no-cov` green in 2.9s, and `ghog full done fail=0 warn=0 xfail=3 cov=100
+  outliers=0 excluded=0 exit=0` in 2m 52.2s. After the reviewer's repairs:
+  `exit=0` again, `ghog check` green in 41.0s, `ghog affected --no-cov` green in
+  5.2s, and `ghog full done fail=0 warn=0 xfail=3 cov=100 outliers=0 excluded=0
+  exit=0`. The step's criterion that `ghog day` reports `exit=0` is satisfied,
+  and it is still satisfied with the reviewer patch staged.
+- `ghog single tests/unit/tools/test_review_status_migration
+  tests/unit/tools/test_review_status_models
+  tests/unit/tools/test_review_status_projection
+  tests/unit/tools/test_review_status_render
+  tests/unit/tools/test_review_status_cli
+  tests/acceptance/review_status/test_review_status_acceptance/test_review_status_acceptance_tdd.py`,
+  source plan. Both runs: `fail=0 warn=0 xfail=0 exit=0`, with nothing in the
+  focus set failing and nothing passing in focus while failing in the full
+  suite.
+- `rg -n "schema_version.*2|migration|requestor_llm_nature|reviewer_llm_nature|strictly read-only" tools/review_status* instructions/review-status-command.md`,
+  source plan. Both runs: exit 0, 69 matching lines, and zero matches for
+  `strictly read-only`. The 69 lines fall across six files: 22 in
+  `review_status_models.py`, 20 in `review_status.py`, 11 in
+  `review_status_migration.py`, 9 in `review_status_render.py`, 5 in the
+  canonical instruction and 2 in `review_status_cli.py`. The criterion asks
+  that the output show schema-2 fields and no obsolete absolute read-only
+  claim, and it does both.
+
+The three xfails are the Step 5 `GlobalReviewerWait` gates in
+`tests/unit/tools/test_review_resume_perf/test_review_resume_perf_tdd.py`, which
+Step 5 owns and which are meant to be strict xfails until it lands. They are not
+Step 4 evidence and they are not unavailable evidence.
+
+No mandatory evidence was unavailable, and none was inherited. The reviewer
+forced every walk rather than letting a change-detection skip decide, because
+the tree under review is not the tree the last walk saw.
+
+Two observations about what these commands do and do not prove, since a green
+set is easy to over-read.
+
+`cov=100` is measured on lines and branches. It does not mean every rendered
+string reaches an assertion, and in this step it does not: the migration lines
+of `render_human` execute under an `unnecessary` fixture in every render test,
+so the `completed` and `blocked` forms are counted as covered without ever being
+compared to an expected value. That distinction is the substance of the first
+finding, and no command in this set could have caught it.
+
+The `rg` criterion is scoped to `tools/review_status*` and the canonical
+instruction. `rvw_status.bat` is outside that scope, which is why its surviving
+`read-only` claim passes the completion grep while still contradicting the
+step's own stated intent.
+
+### Resolver drift and direction for step 4 review-resume-command (exchange 1) (round 1)
+
+No set drift. The request's resolved validation set and the set the reviewer
+resolved during this round contain the same three commands with the same
+sources, so the union adds nothing and the reviewer ran all three.
+
+The project member resolves the same way for both roles. No `.review-validation`
+file exists in the repository, so `load_project_validation_commands` returns the
+built-in `DEFAULT_PROJECT_VALIDATION_COMMANDS`, which is `ghog day`. That is
+exactly what the request records with source `project`.
+
+The two plan members are the step's own completion criteria, verbatim in the
+`ghog single` case and semantically identical in the `rg` case.
+
+One recording nit is worth naming, because the request is the durable record
+and a later reader will copy from it. The plan writes its grep criterion as
+`rg -n "schema_version.*2|migration|requestor_llm_nature|reviewer_llm_nature|strictly read-only" tools/review_status* instructions/review-status-command.md`,
+with the alternation quoted. The request records it without the quotes, because
+the requestor passed the pattern as a `--plan-validation-command` argument and
+the invoking shell had already removed them. As an argument list the two are
+identical, and the reviewer ran the plan's quoted form and got the result the
+criterion describes. As a line to paste into a shell the recorded form is not
+runnable: the unquoted pipes make it four piped commands, the first of which
+searches for `schema_version.*2` and the last of which tries to run
+`strictly read-only tools/review_status*`. Requoting the pattern when it is
+handed to the request renderer would keep the record executable. This is the
+requestor's rendering rather than Step 4 implementation, so it is a note, not a
+finding against the step.
+
+One substantive observation about the criterion itself, which the reviewer
+raises without asking for a change. The `schema_version.*2` alternative matches
+nothing. The constant is spelled `SCHEMA_VERSION = 2` in
+`tools/review_status_models.py:30`, and the serialized key `"schema_version"`
+is never followed by a literal 2 in the source. The criterion still passes on
+its own terms, because the other alternatives return 69 lines across six files
+and `strictly read-only` returns none, which is what `shows schema-2 fields and
+no obsolete absolute read-only claim` asks for. The schema bump is real and
+independently verified. The alternative is simply case-blind to the constant it
+was aimed at, and a future step reusing this criterion shape should know that.
+
+### Repository state around validation for step 4 review-resume-command (exchange 1) (round 1)
+
+The received index tree `1b045ca30521d84cd2b999d18ea68bd4c4bd396d` matched the
+request-time index tree exactly, so the assessment ran against the requested
+state and the early rejection path did not apply. The assessed index tree after
+the evidence boundary is `c8a460c518eaefb0c2e6d873201e2516d4a1a79f`, and the
+difference is the reviewer's own three-file patch and nothing else.
+
+The umbrella digest is unchanged:
+`bb71aaf68bb45d395e719881a86817a146eba8f164e06a09433fb375914ddc81` before and
+after, `changed: false`.
+
+`validation-state compare` over the ordered 31-path set reports
+`acceptable: false`, with `tracked_paths` naming
+`docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md`,
+`instructions/review-status-command.md`, `tools/review_status_role_nature.py`
+and `<index>`. That result needs reading rather than quoting, because the
+comparison cannot tell a reviewer repair from a writer side effect and this
+round has repairs.
+
+Every one of those three paths is a reviewer-authored repair, each proved
+cleanly attributable by `attribute-reviewer-patch` against a blob recorded
+before its first edit, each already a member of the staged set before this
+round, and each staged deliberately. `untracked_paths` and `ignored_paths` are
+both empty. So there is no tracked validation side effect: nothing changed that
+the reviewer did not write, and the `<index>` entry is the staging of those same
+three patches. A `false` here reflects the presence of repairs, which the
+disposition already accounts for, not contamination of the reviewed state.
+
+The worktree beyond the reviewed step is unchanged from what the request
+described, and the reviewer swept none of it into the index. Twenty-six tracked
+files remain unstaged and one file is untracked:
+
+- `docs/v0.11.0/review.code.v0.11.0.review-resume-command.md`, the versioned
+  transcript, which the protocol appends to and which is expected to be dirty
+  during an open exchange.
+- `.agents/llm-shared/.codex-plugin/plugin.json`, the plugin-sync churn this
+  effort has watched since step 1 and reported again in step 3 round 2. Still
+  outside the staged set and outside every `a.commit` group, so the primary
+  commit cannot carry it and the residual phase will force a deliberate
+  decision.
+- `AGENTS.md`, `README.md`, six files under `instructions/`, six instruction
+  test files under `tests/unit/tools/`, and ten files under `wiki/`, plus the
+  untracked `wiki/how-to/inspect-independent-review-status.md`. These are Step 5
+  and Step 6 work in progress. Step 6 is the documentation rollout step, and
+  none of these paths appears in Step 4's file list.
+
+Two of those unstaged files are `instructions/code-reviewer.md` and
+`instructions/review-requestor.md`, which are the contract this reviewer runs
+under. The reviewer read the worktree versions, as it must to follow current
+instructions, and changed none of them. That they are open in the tree is Step 5
+and Step 6 work, not a conflict of interest in this assessment.
+
+No path is partially staged anywhere in the worktree, so each of the 30 staged
+paths contributes exactly its reviewed content. No `.tmp-review-nature-` file
+exists, so the step 2 round 1 backfill temporary issue has not recurred.
+
+### Repair inventory for step 4 review-resume-command (exchange 1) (round 1)
+
+Repairs made:
+
+- tools/review_status_role_nature.py: removed the unused private constant `_CONFLICTING_VALUE_COUNT`. Substantive: it changes a production source file.
+- instructions/review-status-command.md: repaired the ungrammatical opening sentence about the bounded migration preflight. Polishing-only: documentation prose, no contract change.
+- docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md: recorded the reviewed-step verdict, the Missing work for Step 4 section, the coverage and feature-integrity rows, and the matching theme sentence. Review metadata.
+
+Paths staged:
+
+- docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md
+- instructions/review-status-command.md
+- tools/review_status_role_nature.py
+
+### Commit plan assessment for step 4 review-resume-command (exchange 1) (round 1)
+
+`a.commit` is accurate and needed no amendment. The reviewer ran
+`commit-plan-check.bat --format json` independently against the received
+repository state before assessing grouping, ordering, scope or subjects, and
+again after staging its own patch.
+
+The first rerun returned exit `0`, `state: valid`, `ready: true`, 30 staged
+paths, six ordered groups and an empty `diagnostics` array. Compared field by
+field against the `commit_plan_result` embedded in the request, the staged path
+sets are identical with nothing on either side alone, the group list matches on
+position, subject and path tuple, and `state` and `ready` agree. That comparison
+was made by parsing both payloads rather than by reading them.
+
+The six groups are ordered least to most dependent and each subject describes
+its contents.
+
+1. `fix(markdown): accept cache-relative adapters` carries
+   `tools/markdown_check/classifier.py` and its `test_source_model` leaf. It is
+   first because the staged provider pointers under `.agents` depend on the
+   classifier recognizing the installed cache-relative adapter shape.
+2. `test(tooling): cover redirect checks` carries the new
+   `test_codex_plugin_redirects` package and two refactored structure and docs
+   acceptance tests.
+3. `feat(review-status): add schema 2 context` carries the six production files
+   in dependency order: models, then the two new helpers, then the service,
+   renderer and CLI that consume them.
+4. `test(review-status): prove schema 2 behavior` carries the twelve unit and
+   acceptance test paths for that production change.
+5. `docs(review-status): describe migration preflight` carries the canonical
+   instruction and all four provider adapters.
+6. `docs(review-resume-command): record step 4 validation` carries the
+   validation plan alone and is last, which is the required trailing shape.
+
+Groups 1 and 2 are outside Step 4. They are carried-in work of outside origin
+that `git add -A` staged along with the step, which is the documented behaviour
+of the commit handoff, and the plan ranks such work by its own dependencies
+rather than dropping it. Group 1's classifier change is a genuine prerequisite
+for the staged adapter pointers, so its position at the head is correct rather
+than incidental. Group 2's subject is the weaker of the two: `cover redirect
+checks` describes the new `test_codex_plugin_redirects` package and the
+`test_codex_plugin_structure` change accurately, but
+`test_review_mode_docs_acceptance_tdd.py` is a helper extraction plus one
+tightened assertion about `review_exchange.bat resolve`, which is not a redirect
+check. The reviewer did not amend the subject, because the group's membership,
+order and scope are right and rewording it would be a preference rather than a
+correction.
+
+The reviewer's own three repair paths were already members of the staged set
+before this round, in groups 6, 5 and 3 respectively, so staging the repair
+patch changed no group membership, no ordering and no subject. That is why
+`a.commit` required no amendment, and the second rerun confirmed it: exit `0`,
+`state: valid`, `ready: true`, the same 30 staged paths and the same six groups.
+
+No path is partially staged anywhere in the worktree, so each of the 30 staged
+paths contributes exactly its reviewed content.
+
+A status `0` from this checker satisfies only the mechanical `a.commit` result
+in the readiness floor. It does not prove implementation completeness, and it
+authorizes no commit.
+
+### Findings and boundaries for step 4 review-resume-command (exchange 1) (round 1)
+
+Unresolved findings:
+
+- The step's own tests-first list requires human and JSON snapshots for the completed and operational-failure cases; only the unnecessary case is asserted anywhere in the repository.
+- `render_human` emits `Migration: completed` and a non-zero `Migrated artifacts:` count that no test asserts, so the migrated-once path is proven only at the model level.
+- `render_human` emits the joined `Migration diagnostics:` text that no test asserts, so the only operator-facing explanation of a failed status run is unproven.
+- `test_operational_result_renders_on_stderr_without_partial_stdout` renders a blocked result through `render_json` but reads back only `outcome`, so the serialized `migration` object never reaches an assertion.
+- `rvw_status.bat:4` still reads `REM Run read-only review status from the newest llm-shared Python.`, the exact claim Step 4's analysis lists among the issues to address, in a file the step names as one to verify.
+- `tools/review_status.py` builds a blocked `MigrationStatus` from `str(error) or error.__class__.__name__` in two places, where `ReviewStatusMigrationPreflight._diagnostic` uses `str(error).strip() or type(error).__name__`; a whitespace-only exception message produces a diagnostic `MigrationStatus._validate_diagnostics` rejects, so the handler written to return typed operational status raises out of `collect_review_status` instead.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 4 review-resume-command (exchange 1) (round 1)
+
+Five concrete actions, in the order they are cheapest to do. The reviewer has
+already made three repairs; do not redo them, and do not revert them.
+
+1. In
+   `tests/unit/tools/test_review_status_render/test_review_status_render_tdd.py`,
+   add a human-render assertion for a completed migration. Build the result with
+   `MigrationStatus.completed(".reviews", 1)` and assert both
+   `Migration: completed` and `Migrated artifacts: 1` appear in the rendered
+   text. Nothing in the repository asserts either string today; `_result` takes
+   its migration from a hardcoded `MigrationStatus.unnecessary(".reviews")`, so
+   the simplest change is to give it a `migration` keyword with that default.
+2. In the same file, add a human-render assertion for a blocked migration. Build
+   the result with `MigrationStatus.blocked(".reviews", ("collision", "second
+   check: blocked"))` and assert the rendered line reads
+   `Migration diagnostics: collision; second check: blocked`. That semicolon
+   join is the whole of what an operator sees when placement fails, and it is
+   currently produced by a conditional expression that no assertion has ever
+   looked at.
+3. In
+   `tests/unit/tools/test_review_status_cli/test_review_status_cli_tdd.py`,
+   extend `test_operational_result_renders_on_stderr_without_partial_stdout` to
+   read the `migration` object out of the stderr payload, not only `outcome`.
+   The fixture already builds `MigrationStatus.blocked(".reviews", ("collection
+   failed",))`, so the assertion costs one line and closes the JSON half of the
+   same gap.
+4. In `rvw_status.bat`, replace line 4. It reads `REM Run read-only review
+   status from the newest llm-shared Python.` Step 4's analysis lists
+   `rvw_status` documented as strictly read-only among the issues the step
+   exists to address, and the launcher is in the step's file list with the
+   instruction to verify it. Something like `REM Run review status, which may
+   perform one bounded safe artifact migration, from the newest llm-shared
+   Python.` matches what the canonical instruction now says. Staging this adds a
+   path to the index, so re-run `commit-plan-check` afterwards and put it in
+   group 5 with the other status documentation, or in its own group if the
+   checker prefers.
+5. In `tools/review_status.py`, change both occurrences of `str(error) or
+   error.__class__.__name__` to strip first, matching
+   `ReviewStatusMigrationPreflight._diagnostic`, which already writes
+   `str(error).strip() or type(error).__name__`. One is in
+   `collect_review_status` and one in `_collect_review_status`. As written, an
+   exception whose message is whitespace produces a diagnostic that
+   `MigrationStatus._validate_diagnostics` rejects, so the handler written to
+   turn a failure into typed operational status raises `ReviewStatusModelError`
+   out of `collect_review_status` instead. The CLI catches it as a plain
+   `ValueError` and still exits 2, so nothing crashes, but the typed migration
+   record the instruction tells the reader to report is lost. No new test is
+   needed for this; it adds no branch.
+
+Items 1 through 3 are what turn the verdict. Items 4 and 5 are small and belong
+in the same round because both are inside Step 4's own scope.
+
+Three things to carry rather than act on now.
+
+The `a.commit` plan is accurate and needs no edit. The reviewer's three repair
+paths were already members of groups 3, 5 and 6, so staging them changed no
+membership, no ordering and no subject, and the independent rerun after staging
+returns the same 30 paths and the same six groups. If item 4 adds
+`rvw_status.bat`, that will change, which is why the instruction above says to
+re-check.
+
+Group 2's subject, `test(tooling): cover redirect checks`, describes the new
+`test_codex_plugin_redirects` package and the structure-test change accurately
+but not `test_review_mode_docs_acceptance_tdd.py`, which is a helper extraction
+plus a tightened `review_exchange.bat resolve` assertion. The reviewer did not
+amend it because membership, order and scope are right and the wording is a
+preference. Worth a glance before committing.
+
+`.agents/llm-shared/.codex-plugin/plugin.json` is still unstaged with external
+plugin-sync churn, exactly as step 3 round 2 reported. It is in no `a.commit`
+group, so the residual phase will surface it and force a decision. Nothing in
+Step 4 produced it.
+
+The advisory note on line budgets needs no action. The plan expected
+`review_status.py` at or below 540 lines and `review_status_models.py` at or
+below 520; they measure 616 and 580. Both are comfortably under the enforced
+650 ceiling that `senv.bat` sets, both expectations are marked advisory, and the
+reviewer is not asking for a split. It is recorded only so the next step's
+budget starts from the real numbers rather than the predicted ones.
+
+### Decision rationale for step 4 review-resume-command (exchange 1) (round 1)
+
+The disposition is `changes-requested`, and the implementation-check result is
+`No`.
+
+Two of the six readiness-floor results fail, and the round made a substantive
+repair, so `commit-ready` was not available on any reading.
+
+- Identity: pass. The received index tree
+  `1b045ca30521d84cd2b999d18ea68bd4c4bd396d` equals the request-time tree, the
+  named step exists in the plan, the human-readable identity block agrees with
+  the envelope, and the umbrella resolves to the same draft both roles named.
+- Completeness: fail. Two requirements the step names for itself are open, and
+  they are set out in `Missing work for Step 4`.
+- Validation and coverage: pass. All three mandatory commands ran, twice each,
+  and returned the results the criteria describe.
+- Staged attribution: pass with repairs. Three paths were repaired, each proved
+  attributable against a blob recorded before its first edit, each already in
+  the staged set, and no pre-existing unstaged work was swept in.
+- Unresolved findings: fail. Six findings are open, and none is carried from an
+  earlier round because this is round 1.
+- `a.commit`: pass. Independent reruns before and after staging both return exit
+  `0`, `state: valid`, `ready: true`, 30 paths, six groups, no diagnostics, and
+  match the request field for field.
+
+The verdict deserves more explanation than the arithmetic, because most of Step
+4 is right and a bare `No` would misrepresent it.
+
+The preflight is the part that most needed to be correct, and it is. It checks
+once, migrates only from `MIGRATION_REQUIRED`, and returns a configuration only
+when a second check comes back `READY`. That ordering is pinned by an event spy
+rather than inferred, so a future refactor that dropped the recheck would fail
+rather than pass quietly. Blocked, failed-move and failed-recheck all return no
+configuration, and the service refuses to project without one. The acceptance
+test proves the move on a real repository, proves the moved bytes are the same
+bytes, and proves a second call reports `unnecessary` with a zero count. The
+models close their own invariants, each rejection parametrized. The role-nature
+projector is linear, reads no artifact, reuses envelopes the caller already
+parsed, and rejects a path outside the repository root instead of rendering it
+relative to nothing.
+
+What is missing is proof of the output, not proof of the mechanism. Every render
+fixture builds `MigrationStatus.unnecessary`, so the four migration lines are
+asserted only in their empty form. `Migration: completed`, `Migration:
+blocked`, a non-zero `Migrated artifacts:` count and any `Migration
+diagnostics:` text other than `none` appear in no assertion anywhere in the
+repository. The CLI suite does render a blocked result as JSON and reads back
+only `outcome`.
+
+The coverage gate cannot see this, and that is the point worth recording.
+`render_human` writes the diagnostics through a conditional expression inside an
+f-string, which `coverage.py` does not treat as a branch. The line executes
+under the `unnecessary` fixture, `cov=100` holds, and the blocked half of the
+expression has never produced a character a test compared against an expectation.
+A reviewer who read `cov=100` and stopped would have called this step done.
+
+The consequence is not theoretical. When placement is blocked the command
+returns process status 2 and prints no exchange evidence at all, so the
+diagnostics line is the entire explanation the operator receives. The canonical
+instruction, in this same staged change, now tells the reader to report the
+typed migration diagnostic on status 2. The documented behaviour depends on an
+untested string, and Step 4's own tests-first list asked for exactly the
+snapshots that would have pinned it.
+
+The second failing requirement is smaller and harder to argue away. Step 4's
+analysis lists `rvw_status` documented as strictly read-only among the issues to
+address. The canonical instruction was fixed, all four provider adapters were
+fixed, and `strictly read-only` survives nowhere in the graded scope. But
+`rvw_status.bat:4` still reads `REM Run read-only review status from the newest
+llm-shared Python.`, and that file is in the step's list with the instruction to
+verify it. The plan qualifies the launcher with `updated only if arguments
+change`, which is why this is a small finding: the reviewer is not claiming the
+plan compelled the edit. It is claiming that a file named for verification, whose
+stale claim the step's own analysis quotes, was not verified.
+
+The completion grep did not catch it because the criterion is scoped to
+`tools/review_status*` and the canonical instruction, and the launcher is
+outside both. That is worth knowing rather than blaming: the criterion passed
+honestly on the paths it names.
+
+The reviewer made three repairs and classifies them plainly. Removing the unused
+`_CONFLICTING_VALUE_COUNT` from `tools/review_status_role_nature.py` is
+substantive, because it changes a production source file, and it alone would
+have blocked a `commit-ready` recommendation in this round even if nothing else
+had. It is a copy of the constant in `review_status_models.py` that the
+projector never uses; the projector spells its own thresholds as `not recorded`
+and `len(recorded) == 1`. Repairing the ungrammatical sentence in
+`instructions/review-status-command.md` is polishing-only. Rewriting the Step 4
+rows in the validation plan is review metadata, and the theme sentence went with
+them because it restates the same verdict.
+
+One process note belongs on the record. The reviewer's first write of the
+validation plan rewrote all 780 lines from LF to CRLF, because Python's default
+text mode translates newlines on Windows. That was caught by reading the diff
+rather than the summary, and the line endings were restored before anything was
+staged. The staged patch is 44 added and 12 removed lines. It is recorded because
+a reviewer that silently rewrites a document's line endings while assessing it
+has damaged the thing it was measuring, and the next round should know the check
+was made.
+
+Two things temper this answer, and neither changes it.
+
+`validation-state compare` reports `acceptable: false`. That reflects the
+presence of reviewer repairs, not contamination: the three tracked paths it names
+are exactly the reviewer's own attributable patches plus the `<index>` entry for
+staging them, and `untracked_paths` and `ignored_paths` are both empty. The
+comparison has no way to distinguish a repair from a side effect, so the
+distinction is stated here rather than left to the reader.
+
+The line-budget miss is advisory and the reviewer is not acting on it.
+`review_status.py` measures 616 lines against an expected 540, and
+`review_status_models.py` 580 against an expected 520. Both sit under the 650
+ceiling `senv.bat` enforces, both expectations are marked advisory in the plan,
+and asking for a split would be substituting the reviewer's judgement for the
+plan's. It is recorded so the next step budgets from the real numbers.
+
+This answer is advisory. It authorizes no commit, and the commit choice remains
+the human's.
+
+### Final reviewer decision for step 4 review-resume-command (exchange 1) (round 1)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-4-round-1 -->
+
+## Round 2 by human - Step 4 - escalation
+
+- Recorded: 2026-09-06T14:28:35+02:00
+- Exchange: code/code/v0.11.0/review-resume-command
+- Umbrella: docs/v0.11.0/draft.v0.11.0.review-mode.md
+- Reviewed document: docs/v0.11.0/plan.v0.11.0.review-resume-command.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 4
+- Outcome: escalation
+
+## Step 4 round 2 validation blocker
+
+Round 1's five requested Step 4 corrections were applied and staged:
+
+- assert completed and blocked human migration output;
+- assert the blocked JSON migration payload;
+- normalize whitespace-only migration diagnostics;
+- correct the `rvw_status.bat` bounded-migration comment.
+
+The mandatory detached `ghog day` walk reached `check.bat`, where Markdown
+validation failed at
+`docs/v0.11.0/review.code.v0.11.0.review-resume-command.md:7405` with MD032:
+`list block needs a blank line before it`.
+
+That versioned transcript is a protocol-owned artifact. The requestor may not
+edit it by hand, and the documented transcript-repair operation does not apply
+to this answer-pending/replacement-round shape. No round-two request is
+published with falsely green mandatory validation evidence.
+
+<!-- review-entry-id: escalation-round-2 -->
+
+## Round 3 by human - Step 4 - human-resolution
+
+- Recorded: 2026-09-06T16:31:13+02:00
+- Exchange: code/code/v0.11.0/review-resume-command
+- Umbrella: docs/v0.11.0/draft.v0.11.0.review-mode.md
+- Reviewed document: docs/v0.11.0/plan.v0.11.0.review-resume-command.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 4
+- Outcome: human-resolution
+
+## Resolution for Step 4 round 2 validation blocker
+
+The human confirmed that MD032 at
+`docs/v0.11.0/review.code.v0.11.0.review-resume-command.md:7405` has been
+fixed. Resume the interrupted replacement-round workflow and rerun its
+mandatory validation before publishing a request.
+
+<!-- review-entry-id: human-resolution-round-3 -->
+
+## Round 3 by requestor - Step 4
+
+- Recorded: 2026-09-06T16:52:59+02:00
+- Exchange: code/code/v0.11.0/review-resume-command
+- Umbrella: docs/v0.11.0/draft.v0.11.0.review-mode.md
+- Reviewed document: docs/v0.11.0/plan.v0.11.0.review-resume-command.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: unrecorded
+- Implementation step: 4
+- Outcome: request
+
+### Review identity for step 4 review-resume-command (round 3)
+
+Umbrella draft: docs/v0.11.0/draft.v0.11.0.review-mode.md
+Implementation plan: docs/v0.11.0/plan.v0.11.0.review-resume-command.md
+Implementation step: 4
+Review round: 3
+
+### Code review evidence for step 4 review-resume-command (round 3)
+
+request_index_tree: 6a4e185efb29ed6324ff107cb9bea3efb3cc6249
+resolved_validation_set:
+
+- ghog day (sources: project)
+- ghog single tests/unit/tools/test_review_status_migration tests/unit/tools/test_review_status_models tests/unit/tools/test_review_status_projection tests/unit/tools/test_review_status_render tests/unit/tools/test_review_status_cli tests/acceptance/review_status/test_review_status_acceptance/test_review_status_acceptance_tdd.py (sources: plan)
+- rg -n -e schema_version.*2 -e migration -e requestor_llm_nature -e reviewer_llm_nature -e strictly\sread-only tools/review_status* instructions/review-status-command.md (sources: plan)
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: fix(markdown): accept cache-relative adapters
+group 1 path: tools/markdown_check/classifier.py
+group 1 path: tests/unit/tools/markdown_check/test_source_model/test_source_model_tdd.py
+group 2: test(tooling): cover redirect checks
+group 2 path: tests/unit/tools/test_codex_plugin_redirects/__init__.py
+group 2 path: tests/unit/tools/test_codex_plugin_redirects/test_codex_plugin_redirects_tdd.py
+group 2 path: tests/unit/tools/test_instruction_structure/test_codex_plugin_structure_tdd.py
+group 2 path: tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_acceptance_tdd.py
+group 3: feat(review-status): add schema 2 context
+group 3 path: tools/review_status_models.py
+group 3 path: tools/review_status_migration.py
+group 3 path: tools/review_status_role_nature.py
+group 3 path: tools/review_status.py
+group 3 path: tools/review_status_render.py
+group 3 path: tools/review_status_cli.py
+group 4: test(review-status): prove schema 2 behavior
+group 4 path: tests/acceptance/review_status/conftest.py
+group 4 path: tests/acceptance/review_status/test_review_status_acceptance/test_review_status_acceptance_tdd.py
+group 4 path: tests/unit/tools/test_review_status/test_review_status_tdd.py
+group 4 path: tests/unit/tools/test_review_status_cli/test_review_status_cli_tdd.py
+group 4 path: tests/unit/tools/test_review_status_migration/__init__.py
+group 4 path: tests/unit/tools/test_review_status_migration/test_review_status_migration_tdd.py
+group 4 path: tests/unit/tools/test_review_status_models/test_review_status_models_schema_2_tdd.py
+group 4 path: tests/unit/tools/test_review_status_models/test_review_status_models_tdd.py
+group 4 path: tests/unit/tools/test_review_status_projection/test_review_status_projection_tdd.py
+group 4 path: tests/unit/tools/test_review_status_render/test_review_status_render_tdd.py
+group 4 path: tests/unit/tools/test_review_status_role_nature/__init__.py
+group 4 path: tests/unit/tools/test_review_status_role_nature/test_review_status_role_nature_tdd.py
+group 5: docs(review-status): describe migration preflight
+group 5 path: rvw_status.bat
+group 5 path: instructions/review-status-command.md
+group 5 path: .agent/workflows/review-status-command.md
+group 5 path: .agents/llm-shared/skills/review-status-command/SKILL.md
+group 5 path: .claude/skills/review-status-command/SKILL.md
+group 5 path: .github/skills/review-status-command/SKILL.md
+group 6: docs(review-resume-command): record step 4 validation
+group 6 path: docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md
+staged path: .agent/workflows/review-status-command.md
+staged path: .agents/llm-shared/skills/review-status-command/SKILL.md
+staged path: .claude/skills/review-status-command/SKILL.md
+staged path: .github/skills/review-status-command/SKILL.md
+staged path: docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md
+staged path: instructions/review-status-command.md
+staged path: rvw_status.bat
+staged path: tests/acceptance/review_status/conftest.py
+staged path: tests/acceptance/review_status/test_review_status_acceptance/test_review_status_acceptance_tdd.py
+staged path: tests/unit/tools/markdown_check/test_source_model/test_source_model_tdd.py
+staged path: tests/unit/tools/test_codex_plugin_redirects/__init__.py
+staged path: tests/unit/tools/test_codex_plugin_redirects/test_codex_plugin_redirects_tdd.py
+staged path: tests/unit/tools/test_instruction_structure/test_codex_plugin_structure_tdd.py
+staged path: tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_acceptance_tdd.py
+staged path: tests/unit/tools/test_review_status/test_review_status_tdd.py
+staged path: tests/unit/tools/test_review_status_cli/test_review_status_cli_tdd.py
+staged path: tests/unit/tools/test_review_status_migration/__init__.py
+staged path: tests/unit/tools/test_review_status_migration/test_review_status_migration_tdd.py
+staged path: tests/unit/tools/test_review_status_models/test_review_status_models_schema_2_tdd.py
+staged path: tests/unit/tools/test_review_status_models/test_review_status_models_tdd.py
+staged path: tests/unit/tools/test_review_status_projection/test_review_status_projection_tdd.py
+staged path: tests/unit/tools/test_review_status_render/test_review_status_render_tdd.py
+staged path: tests/unit/tools/test_review_status_role_nature/__init__.py
+staged path: tests/unit/tools/test_review_status_role_nature/test_review_status_role_nature_tdd.py
+staged path: tools/markdown_check/classifier.py
+staged path: tools/review_status.py
+staged path: tools/review_status_cli.py
+staged path: tools/review_status_migration.py
+staged path: tools/review_status_models.py
+staged path: tools/review_status_render.py
+staged path: tools/review_status_role_nature.py
+```
+
+### Requestor assessment for step 4 review-resume-command (round 3)
+
+#### Writer assessment for Step 4 for step 4 review-resume-command (round 3)
+
+Yes. Step 4 has been fully implemented.
+
+All round-one findings are addressed. The status migration preflight, schema-2
+serialization, configured artifact-home projection, and LLM role-nature
+reconciliation remain intact. Completed and blocked migration output is now
+asserted in human output, the blocked JSON migration object is asserted, and
+whitespace-only failures retain a typed diagnostic. The status launcher now
+describes its bounded migration exception.
+
+`ghog day` completed with `fail=0`, `cov=100`, `outliers=0`, and `exit=0` on
+the corrected state. The later staged-record check returned a no-op green
+result because no Python file changed after that walk. `commit-plan-check.bat
+--format json` reports a valid, ready six-group plan with no diagnostics.
+
+The code remains within the enforced file-size limit, uses focused migration
+and role-nature helpers rather than broadening the status service, and adds no
+nonlinear collection path or feature regression.
+
+### Implementation report for step 4 review-resume-command (round 3)
+
+#### Implementation report for Step 4 for step 4 review-resume-command (round 3)
+
+Round one established the schema-2 status implementation and its migration and
+role-nature helpers. This replacement round preserves the reviewer repairs and
+adds the remaining requested proof and robustness work:
+
+- `tools/review_status.py` strips exception text before constructing blocked
+  migration diagnostics in both collection boundaries.
+- Render tests now pin completed migration output and blocked migration
+  diagnostics.
+- The CLI test now pins the complete blocked migration JSON object.
+- `rvw_status.bat` describes its single bounded safe migration instead of
+  calling the command strictly read-only.
+- The Step 4 validation record reflects the completed corrections and fresh
+  validation outcome.
+
+### Change summary for step 4 review-resume-command (round 3)
+
+#### Change summary for Step 4 for step 4 review-resume-command (round 3)
+
+The staged index contains the same six dependency-ordered groups validated by
+`commit-plan-check`:
+
+1. Markdown adapter classification fix.
+2. Redirect and documentation test coverage.
+3. Schema-2 review-status production implementation.
+4. Schema-2 review-status unit and acceptance coverage.
+5. Migration-aware status guidance, now including `rvw_status.bat`.
+6. Step 4 validation record.
+
+The round-two corrections belong to groups 3 through 6. No unrelated
+unstaged work was added to the index.
+
+### Writer response for step 4 review-resume-command (round 3)
+
+Writer response:
+
+#### Writer response for Step 4 for step 4 review-resume-command (round 3)
+
+All round-one findings are accepted. The reviewer-authored repairs remain in
+place; the writer added the requested output assertions, launcher wording, and
+diagnostic normalization. The earlier transcript Markdown blocker was repaired
+by the human and recorded through the protocol resolution path. There is no
+disagreement with the review findings.
+
+### Reviewer focus for step 4 review-resume-command (round 3)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-4-round-3 -->
+
+## Round 3 by reviewer - Step 4
+
+- Recorded: 2026-09-06T17:22:46+02:00
+- Exchange: code/code/v0.11.0/review-resume-command
+- Umbrella: docs/v0.11.0/draft.v0.11.0.review-mode.md
+- Reviewed document: docs/v0.11.0/plan.v0.11.0.review-resume-command.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 4
+- Outcome: answer
+
+### Assessed index identity for step 4 review-resume-command (exchange 1) (round 3)
+
+Baseline index tree: 6a4e185efb29ed6324ff107cb9bea3efb3cc6249
+
+Assessed index tree: 4152c94b708641dafc9435b1b3465eb98508bc9f
+
+### Implementation check for step 4 review-resume-command (exchange 1) (round 3)
+
+Result:
+
+The implementation-check result is `Yes`. Step 4 has been fully implemented, and
+the validation plan records that verdict with no `Missing work for Step 4`
+section remaining.
+
+Round one returned `No` on two named step requirements. Both are closed, and the
+reviewer verified each closure by measurement rather than by reading the writer
+response.
+
+The first was the step's own tests-first item: `Update human and JSON snapshots
+plus status codes for normal, completed, and operational-failure cases.` Round
+one found only the `unnecessary` case asserted anywhere in the repository. Three
+assertions now exist and each pins a string that had never been compared to an
+expectation.
+
+`test_human_completed_migration_reports_moved_artifacts` builds
+`MigrationStatus.completed(".reviews", 1)` and asserts both `Migration:
+completed` and `Migrated artifacts: 1`. That is the moved-once path, previously
+proven only at the model level.
+
+`test_human_blocked_migration_reports_diagnostics` builds
+`MigrationStatus.blocked(".reviews", ("collision", "second check: blocked"))`
+and asserts the rendered line reads `Migration diagnostics: collision; second
+check: blocked`. This is the assertion round one cared most about. The
+semicolon join is the entire explanation an operator receives when placement
+fails, the canonical instruction tells the reader to report it on status 2, and
+the coverage gate could never have caught its absence because the conditional
+expression sits inside an f-string where `coverage.py` records no branch. The
+test now pins the joined form, the separator and both elements.
+
+`test_operational_result_renders_on_stderr_without_partial_stdout` no longer
+reads back `outcome` alone. It asserts the complete `payload["migration"]`
+object, including `diagnostics: ["collection failed"]` and `state: "blocked"`,
+so the serialized migration record of an operational failure is proven in
+`render_json` output rather than only in the model.
+
+The render fixture was extended the way the round-one instructions described,
+with a `migration` keyword defaulting to `MigrationStatus.unnecessary`, so the
+existing snapshots kept their exact expected text and the new cases opt in.
+
+The second requirement was the step's own second issue to address, that
+`rvw_status` is documented as strictly read-only although safe migration is now
+its required bounded exception. `rvw_status.bat:4` now reads `REM Run review
+status, with at most one bounded safe artifact migration, from the newest
+llm-shared Python.` That matches what the canonical instruction and all four
+provider adapters already said, and the launcher is now a member of commit group
+5 with the rest of the status documentation. `strictly read-only` survives
+nowhere in the graded scope, and the completion grep returns zero matches for
+it.
+
+Two smaller round-one findings are also closed. Both occurrences of `str(error)
+or error.__class__.__name__` in `tools/review_status.py`, at the two collection
+boundaries, now read `str(error).strip() or type(error).__name__`, matching
+`ReviewStatusMigrationPreflight._diagnostic`. A whitespace-only exception
+message can no longer build a diagnostic that
+`MigrationStatus._validate_diagnostics` rejects, so the handlers written to
+return typed operational status can no longer raise out of
+`collect_review_status` instead. The request's recorded grep criterion is now an
+`-e` form that survives a shell, and the reviewer measured it as returning the
+same 69 lines as the plan's quoted alternation.
+
+The reviewer also confirmed that its own round-one repairs survived rather than
+being reverted or re-applied differently. `_CONFLICTING_VALUE_COUNT` is still
+absent from `tools/review_status_role_nature.py`, and the repaired sentence in
+`instructions/review-status-command.md` is still the reviewer's wording.
+
+Nothing else moved. The tree differs from the reviewer's round-one assessed tree
+in exactly five files: the validation plan, `rvw_status.bat`, the render test,
+the CLI test and `review_status.py`. Every one is inside Step 4's declared file
+list, and no unrelated work entered the index.
+
+The rest of the step stands as verified in round one, and the reviewer re-checked
+the parts the round-two edits could have disturbed rather than assuming them.
+
+`ReviewStatusMigrationPreflight` still performs one check, migrates only from
+`MIGRATION_REQUIRED`, and returns a configuration only when the second check
+comes back `READY`. The ordering remains pinned by an event spy recording
+`["check"]` for a ready layout and `["check", "migrate", "check"]` for a
+required one. Blocked, failed-move and failed-recheck still return
+`configuration=None`, and `collect_review_status` still refuses to project
+without a configuration.
+
+The schema-2 models still close their own invariants, each rejection
+parametrized: no moved count on an unnecessary migration, no zero count on a
+completed one, no blocked state without diagnostics, no successful state
+carrying them, no unrecorded role nature with recorded evidence, no conflicting
+value with fewer than two distinct values, and no `LlmNature` value that
+disagrees with its evidence set.
+
+`ReviewStatusRoleNatureProjection` is still linear, still reads no artifact, and
+still reuses the coordination, request and answer snapshots the caller already
+parsed. Evidence keeps input order, which is right for a diagnostic, and a path
+outside the repository root still raises rather than being rendered relative to
+nothing.
+
+Line budgets hold against the enforced ceiling that `senv.bat` sets at 650. The
+changed files measure 616, 580, 141, 118, 105 and 73 lines, and the two test
+files the round-two work touched are 299 and 343. The plan's advisory
+expectations of 540 for the service and 520 for the models are still exceeded,
+by 76 and 60 lines. That was recorded in round one and is recorded again without
+a request to act on it, because the expectations are marked advisory and asking
+for a split would substitute the reviewer's judgement for the plan's.
+
+No DDD-Hexagonal violation is visible. The migration helper depends on the
+existing artifact-migration port, the role helper on protocol snapshots and
+status values, and neither reaches into rendering or the CLI. No new `O(n^2)` or
+`O(n log n)` path appears; the round-two additions are two render assertions, an
+expanded JSON assertion, two `.strip()` calls and a comment. `_project_role`
+still calls `Path.resolve()` once per snapshot per role, up to six filesystem
+resolutions per exchange where three would do, which remains a note rather than
+a finding because the snapshot count is bounded at three.
+
+No existing capability is impaired. The `rvw_status.bat` arguments are
+unchanged and only its comment moved, the CLI parser surface is unchanged,
+process-status mapping is unchanged, and legacy records without recorded natures
+still project as `unrecorded` with their evidence retained rather than guessed.
+
+One item needed a reviewer repair, and it is the same document-level sentence
+this effort has now had to correct three times. It is described in the validation-plan
+effects rather than left here, because it is a record defect rather than an
+implementation gap.
+
+One matter is deliberately not part of this `Yes`, and the boundary is worth
+stating. The step's work is present and correct in the worktree, which is what
+an implementation check measures. Separately, one staged blob is not the file
+that was validated, and it fails `ruff check`. That is a staging defect rather
+than missing work: writing `No` here would tell the next reader that Step 4
+needs implementing when it needs staging, and would put a `Missing work for
+Step 4` list into the validation plan describing work that already exists. The
+defect is carried in the findings and the decision rationale instead, where it
+blocks the disposition.
+
+Validation plan effects:
+
+The reviewer made one edit to
+`docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md` this round, of
+one line, and no edit to any other tracked file.
+
+The writer's Step 4 rows are accurate against the code the reviewer verified.
+The status sentence is the exact `Yes. Step 4 has been fully implemented.`, the
+`Missing work for Step 4` section the reviewer added in round one is gone, which
+is what the contract requires once a step is implemented, and the
+implemented-work, new-types, architecture, performance, coverage and
+feature-integrity rows describe what the staged code does. The coverage row was
+correctly updated to say that the render and CLI suites now include completed
+and blocked human migration output and the blocked JSON migration payload, which
+is the claim round one refused and this round confirms.
+
+The one edit is the document theme sentence, and it was stale in the direction
+opposite to round one. It read `Steps 0 through 3 are fully implemented and
+validated; Steps 4 through 6 remain pending.` while the Step 4 row this round
+records reads `Yes. Step 4 has been fully implemented.` The reviewer refreshed
+it to `Steps 0 through 4 are fully implemented and validated; Steps 5 and 6
+remain pending.`, which now matches the per-step rows: Steps 0 through 4 all
+open with the exact `Yes` sentence and Steps 5 and 6 both open with `Not
+started.`
+
+The reviewer classifies that edit as review metadata rather than a substantive
+repair, and states the reasoning so the human can disagree at the gate. The
+`Document-level status line` section of `implementation-check.md` makes the
+opening line and the theme sentence below it part of the check's own output, and
+it is not one of the sections reviewer mode is told to suppress; only the
+final-step umbrella completion section carries that instruction. So refreshing
+the sentence is the check recording its own verdict at document level, in the
+same way the step rows do, rather than the reviewer authoring new tracked work.
+Round one made the same edit in the other direction and classified it the same
+way.
+
+The document-level status line stays `No, it is not implemented.` It could not
+have flipped this round whatever Step 4 said, because Steps 5 and 6 have not
+started, and the reviewer confirmed that by reading every step's analysis
+sentence rather than only the reviewed one.
+
+That sentence has now needed correcting three times in this effort: in step 2
+round 2, in round one of this step, and here. The step 3 round 2 answer
+predicted this recurrence explicitly and asked for it to be confirmed rather
+than assumed when Step 4 completed. It was not confirmed, so it is written into
+the writer instructions as a standing item for Step 5.
+
+No `Yes` row for any other step was touched, no umbrella row was completed, and
+no umbrella file was written. Reviewer mode may not complete an umbrella row,
+and Step 4 is not the final step of the effort in any case.
+
+The line endings of the file were checked after the edit and remain LF, and the
+staged patch is a single line changed.
+
+### Pre-repair mandatory checks and coverage for step 4 review-resume-command (exchange 1) (round 3)
+
+Baseline evidence was captured through `bin/code_review_evidence.bat` before any
+assessment work, and the manifest was written before anything could mutate
+state. Round one retired its manifest after publication, so this ran as a fresh
+assessment with a new baseline.
+
+- `capture-index-tree` returned `6a4e185efb29ed6324ff107cb9bea3efb3cc6249`,
+  equal to the `request_index_tree` in the round-three request, so the received
+  state matched the requested state exactly and the early rejection path did not
+  apply. Round one's tree was `1b045ca30521d84cd2b999d18ea68bd4c4bd396d`, and
+  the reviewer's own assessed tree after its round-one repairs was
+  `c8a460c518eaefb0c2e6d873201e2516d4a1a79f`.
+- `umbrella-digest capture docs/v0.11.0/draft.v0.11.0.review-mode.md` returned
+  `applicable: true` with digest
+  `bb71aaf68bb45d395e719881a86817a146eba8f164e06a09433fb375914ddc81`, the same
+  value this umbrella has held through every round of steps 2, 3 and 4.
+- `record-pre-repair-blob
+  docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md` recorded
+  `d10b389845d2699473e8324759f62a4ea2e69eaf` before the reviewer touched the
+  only validation-plan path it may write.
+- `validation-state capture` recorded the ordered union of the 31 staged paths
+  and the versioned transcript, 32 paths, at that same index tree. The set grew
+  by one against round one because `rvw_status.bat` is now staged.
+- `write-manifest` stored the baseline at
+  `.reviews/a.code-review-evidence.v0.11.0.review-resume-command.step-4.json`.
+
+Entry into this round was clean, unlike round one. `status` returned
+`request-pending` at round 3 with `exchange_occurrence: 1` and exit 0, so no
+`reclaim` was needed, and the first `wait-request` returned `found` with an
+ownership capability at generation 2. Round one had to reclaim an expired lease
+first, and its initial wait returned `already-claimed` because the reclaim had
+taken the transition.
+
+The round number is 3 rather than 2 because the escalation resolution starts a
+fresh round. That is the documented behaviour of `resolve`, and it is recorded
+here so a later reader does not look for a missing round 2 in the transcript.
+
+The reviewer also verified, before any assessment, that the blocker which
+escalated the previous attempt is gone. `markdown-check` over the whole
+repository now exits 0, where it previously reported
+`docs/v0.11.0/review.code.v0.11.0.review-resume-command.md:7405: MD032: list
+block needs a blank line before it`. That defect was authored by this reviewer's
+own round-one transcript append, and it is discussed further in the decision
+rationale.
+
+The ghog-artifact limitation recorded in every earlier round applies unchanged.
+The ordered path set does not name `a.ghog.log`, `.coverage`, `coverage.xml` or
+`a.ghog.senv.log`, and because the set must be identical before and after it was
+not widened afterwards. Differences confined to ignored validation artifacts are
+acceptable by contract, and `git status --porcelain` over the whole worktree
+answered the tracked question more broadly.
+
+### Resolved validation set and sources for step 4 review-resume-command (exchange 1) (round 3)
+
+The reviewer ran the union of the request validation set and the set resolved
+during this round, and ran every command itself rather than accepting the
+request's reported results. The two sets are identical, so the union is the same
+three commands.
+
+- `ghog day`, source project. Received state: `exit=0`, every phase completing.
+  `ghog check done fail=0 warn=0 xfail=0 exit=0`, `ghog affected --no-cov`
+  green, and `ghog full done fail=0 warn=0 xfail=3 cov=100 outliers=0
+  excluded=0 exit=0`. After the reviewer's repair, forced: `exit=0` again, with
+  `check` green, `affected` green and `ghog full done fail=0 warn=0 xfail=3
+  cov=100 outliers=0 excluded=0 exit=0`.
+- `ghog single tests/unit/tools/test_review_status_migration
+  tests/unit/tools/test_review_status_models
+  tests/unit/tools/test_review_status_projection
+  tests/unit/tools/test_review_status_render
+  tests/unit/tools/test_review_status_cli
+  tests/acceptance/review_status/test_review_status_acceptance/test_review_status_acceptance_tdd.py`,
+  source plan. Result: `fail=0 warn=0 xfail=0 exit=0`, with nothing failing in
+  focus and nothing passing in focus while failing in the full suite.
+- `rg -n -e schema_version.*2 -e migration -e requestor_llm_nature -e
+  reviewer_llm_nature -e strictly\sread-only tools/review_status*
+  instructions/review-status-command.md`, source plan. Result: exit 0, 69
+  matching lines, zero matches for `strictly read-only`. The 69 lines fall
+  across six files: 22 in `review_status_models.py`, 20 in `review_status.py`,
+  11 in `review_status_migration.py`, 9 in `review_status_render.py`, 5 in the
+  canonical instruction and 2 in `review_status_cli.py`. The plan's quoted
+  alternation returns the same 69 lines with the same distribution.
+
+The three xfails are the Step 5 `GlobalReviewerWait` gates in
+`tests/unit/tools/test_review_resume_perf/test_review_resume_perf_tdd.py`, which
+Step 5 owns and which are meant to be strict xfails until it lands.
+
+No mandatory evidence was unavailable, and none was inherited.
+
+Two limits on what this green set proves, and the second is this round's
+finding.
+
+The reviewer's first post-repair `ghog day` returned `No Python file changed
+since the last green ghog day walk - nothing to do`, exit 0. The repair is
+Markdown, and `markdown-check` runs inside `ghog check`, so that result was a
+skip rather than a pass and proved nothing about the repaired tree. The reviewer
+re-ran it as `ghog day --force` and recorded only the forced result. A skipped
+walk is not evidence, and the writer's own round-three assessment leans on the
+same shape when it says the later staged-record check returned a no-op green
+result because no Python file changed after that walk.
+
+More seriously, `ghog day` reads files, not Git blobs. Every walk in this
+exchange therefore describes the worktree. One staged path,
+`tests/unit/tools/test_review_status_render/test_review_status_render_tdd.py`,
+differs from its worktree file, and its staged blob fails `ruff check` with two
+COM812 errors. So the green `check` phase in all three of these walks is a true
+statement about the worktree and no statement at all about what this commit
+would carry. That gap is not something a further run of this command set could
+close, which is why it is written here rather than left for the next round to
+discover.
+
+### Resolver drift and direction for step 4 review-resume-command (exchange 1) (round 3)
+
+No set drift, and the round-one recording nit is resolved. The reviewer
+confirmed the resolution by measurement rather than by reading the new command.
+
+Round one found the request recording the plan's grep criterion with its quotes
+stripped, because the requestor passed the pattern as a command-line argument
+and the invoking shell had already removed them. As an argument list the two
+were identical, so there was no set difference, but the recorded line was not
+runnable: unquoted pipes turn it into four piped commands.
+
+The request now records seven-token `-e` form:
+`rg -n -e schema_version.*2 -e migration -e requestor_llm_nature -e
+reviewer_llm_nature -e strictly\sread-only tools/review_status*
+instructions/review-status-command.md`. Every pattern is its own `-e` operand,
+so no shell metacharacter survives, and the space in the last pattern is
+written `\s` for the same reason.
+
+Equivalence was measured, not assumed. The reviewer ran the plan's quoted
+alternation and the request's `-e` form over the same two path arguments. Both
+return 69 lines, distributed identically across the same six files: 22 in
+`review_status_models.py`, 20 in `review_status.py`, 11 in
+`review_status_migration.py`, 9 in `review_status_render.py`, 5 in the
+canonical instruction and 2 in `review_status_cli.py`. Both return zero matches
+for `strictly read-only`. The sets are equivalent rather than merely closer, so
+nothing is left for the union to add.
+
+The `-e` spelling is not itself drift. Ripgrep unions multiple `-e` patterns
+exactly as it unions alternation branches, and the separate-flag form is the
+more robust of the two on a Windows shell where a quoted pipe is fragile. Step 2
+of this effort settled the same point for a different criterion.
+
+The `ghog day` and `ghog single` members are identical in both sets, in the same
+order and with the same arguments, as they have been in every round of this
+effort.
+
+One observation from round one still stands and still needs no action. The
+`schema_version.*2` pattern matches nothing, because the constant is spelled
+`SCHEMA_VERSION = 2` in `tools/review_status_models.py:30` and the serialized
+key is never followed by a literal 2 in the source. The criterion passes on its
+own terms through the other patterns, and the schema bump is independently
+verified, so the reviewer records the case-blindness rather than asking for a
+change to a criterion the plan already fixed.
+
+### Repository state around validation for step 4 review-resume-command (exchange 1) (round 3)
+
+The received index tree `6a4e185efb29ed6324ff107cb9bea3efb3cc6249` matched the
+request-time index tree exactly, so the assessment ran against the requested
+state and the early rejection path did not apply. The assessed index tree after
+the evidence boundary is `4152c94b708641dafc9435b1b3465eb98508bc9f`, and the
+difference is the reviewer's one-line theme-sentence patch and nothing else.
+
+The umbrella digest is unchanged:
+`bb71aaf68bb45d395e719881a86817a146eba8f164e06a09433fb375914ddc81` before and
+after, `changed: false`. That digest has held across every round of steps 2, 3
+and 4.
+
+`validation-state compare` over the ordered 32-path set reports
+`acceptable: false`, with `tracked_paths` naming only
+`docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md` and `<index>`.
+Both entries are the reviewer's own repair and its staging. `untracked_paths`
+and `ignored_paths` are empty, so there is no tracked validation side effect:
+nothing changed that the reviewer did not write. A `false` here reflects the
+presence of a repair, which the comparison cannot distinguish from a side
+effect, rather than contamination of the reviewed state.
+
+The index and the worktree do not agree, and that is this round's finding rather
+than an aside, so it is set out precisely.
+
+The reviewer listed every path differing between index and worktree, 36 of them,
+and intersected that list with the 31 staged paths. Exactly two intersect.
+
+- `docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md`, the
+  reviewer's own repair, which was attributed and then staged, so it no longer
+  differs.
+- `tests/unit/tools/test_review_status_render/test_review_status_render_tdd.py`,
+  which remains `MM`. Its staged blob lacks two trailing commas the worktree
+  file has, and that blob fails `ruff check` with two COM812 errors when run
+  through `--stdin-filename` so the repository's per-path rules still apply.
+
+The reviewer left the second one exactly as found: unstaged and unreverted. The
+trailing commas are pre-existing unstaged writer work, and the contract forbids
+sweeping such work into the index, so the finding is returned rather than
+repaired.
+
+The consequence for this round's evidence is stated plainly. `ghog day` reads
+files, not blobs, so both of the reviewer's forced walks and the writer's own
+walk describe the worktree. They are honest evidence about the worktree and no
+evidence at all about the staged blob of that one file.
+
+Beyond the reviewed step, the worktree carries 34 unstaged tracked files and one
+untracked file, and the reviewer swept none of it into the index. It has grown
+by eight files since round one, and the growth is a second effort running
+concurrently in this tree:
+
+- `tools/code_review_evidence.py` and `tools/prompt_workflow.py`, with
+  `tests/unit/tools/test_code_review_evidence/test_code_review_evidence_tdd.py`
+  and `tests/unit/tools/test_prompt_workflow_handoff.py`;
+- `rules/run_commands.md`, `.vscode/settings.json`, and two more files under
+  `instructions/`.
+
+None of those paths appears in Step 4's file list, none is staged, and none is
+in any `a.commit` group, so the reviewed commit cannot carry them. They are
+named so a later reader knows the reviewer saw them and classified them rather
+than missed them. That two of them are `tools/code_review_evidence.py` and its
+test, the launcher this very assessment runs on, is worth a glance before the
+commit: the reviewer used the committed launcher, not the modified worktree
+copy, only because the launcher loads from disk at call time and those edits are
+unstaged rather than reverted.
+
+The rest is unchanged from round one: `.agents/llm-shared/.codex-plugin/
+plugin.json` plugin-sync churn, `AGENTS.md`, `README.md`, six instruction test
+files, ten files under `wiki/`, the untracked
+`wiki/how-to/inspect-independent-review-status.md`, and the versioned transcript
+which the protocol appends to and which is expected to be dirty during an open
+exchange.
+
+No `.tmp-review-nature-` file exists anywhere in the worktree, so the step 2
+round 1 backfill temporary issue has not recurred.
+
+### Repair inventory for step 4 review-resume-command (exchange 1) (round 3)
+
+Repairs made:
+
+- docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md: refreshed the document theme sentence to match the Step 4 verdict this check recorded. Review metadata, not substantive: the implementation-check contract makes the document-level status line and its theme sentence part of the check's own output.
+
+Paths staged:
+
+- docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md
+
+### Commit plan assessment for step 4 review-resume-command (exchange 1) (round 3)
+
+`a.commit` is accurate and needed no amendment. The reviewer ran
+`commit-plan-check.bat --format json` independently against the received
+repository state before assessing grouping, ordering, scope or subjects, and
+again after staging its own repair.
+
+The first rerun returned exit `0`, `state: valid`, `ready: true`, 31 staged
+paths, six ordered groups and an empty `diagnostics` array. Compared field by
+field against the `commit_plan_result` embedded in the request, the staged path
+sets are identical with nothing on either side alone, the group list matches on
+position, subject and path tuple, and `state` and `ready` agree. That comparison
+was made by parsing both payloads rather than by reading them.
+
+The set grew by one path against round one. `rvw_status.bat` is now staged and
+sits at the head of group 5, `docs(review-status): describe migration
+preflight`, alongside the canonical instruction and the four provider adapters.
+That is the right group: the launcher comment is status documentation and it
+changed for the same reason the instruction did. Round one warned that staging
+this file would move the plan off `ready` until it was grouped, and the writer
+grouped it before publishing.
+
+The six groups remain ordered least to most dependent and each subject still
+describes its contents.
+
+1. `fix(markdown): accept cache-relative adapters` carries the classifier and
+   its `test_source_model` leaf, first because the staged provider pointers
+   depend on the classifier recognizing the installed cache-relative shape.
+2. `test(tooling): cover redirect checks` carries the new
+   `test_codex_plugin_redirects` package and two refactored structure and docs
+   acceptance tests.
+3. `feat(review-status): add schema 2 context` carries the six production files
+   in dependency order, and now also carries the two `.strip()` corrections in
+   `review_status.py`.
+4. `test(review-status): prove schema 2 behavior` carries the twelve unit and
+   acceptance test paths, and now also carries the three new output assertions.
+5. `docs(review-status): describe migration preflight` carries the launcher, the
+   canonical instruction and all four provider adapters.
+6. `docs(review-resume-command): record step 4 validation` carries the
+   validation plan alone and is last, which is the required trailing shape.
+
+Groups 1 and 2 are still outside Step 4. They remain carried-in work of outside
+origin that `git add -A` staged along with the step, which is the documented
+behaviour of the commit handoff, and the plan ranks such work by its own
+dependencies rather than dropping it.
+
+Group 2's subject is still the weaker of the two, for the same reason round one
+gave: `cover redirect checks` describes the new `test_codex_plugin_redirects`
+package and the `test_codex_plugin_structure` change accurately, but
+`test_review_mode_docs_acceptance_tdd.py` is a helper extraction plus one
+tightened assertion about `review_exchange.bat resolve`, which is not a redirect
+check. The reviewer did not amend the subject in either round, because the
+group's membership, order and scope are right and rewording it would be a
+preference rather than a correction. It is left on the record for the human at
+the gate.
+
+The reviewer's single repair path, the validation plan, was already a member of
+group 6 before this round, so staging it changed no group membership, no
+ordering and no subject. The second rerun confirms it: exit `0`, `state: valid`,
+`ready: true`, the same 31 staged paths and the same six groups.
+
+One path is partially staged, so 30 of the 31 staged paths contribute exactly
+their reviewed content and one does not.
+`tests/unit/tools/test_review_status_render/test_review_status_render_tdd.py`
+is `MM`, and its staged blob is not the worktree file. That is this round's
+finding, and it is set out in the repository state comparison and the decision
+rationale.
+
+A status `0` from this checker satisfies only the mechanical `a.commit` result
+in the readiness floor. It does not prove implementation completeness, and it
+authorizes no commit.
+
+One limit of this result belongs on the record, because this round found the
+case it does not cover. `commit-plan-check` returned `ready: true` while
+`tests/unit/tools/test_review_status_render/test_review_status_render_tdd.py`
+was partially staged and its staged blob failed `ruff check`. The checker
+validates which paths are staged and how they are grouped and subjected. It
+does not compare a staged blob to its worktree file, and it does not lint. A
+`ready` plan is a statement about grouping, not about staged content, and
+reading it as the latter is what would have let this commit through.
+
+### Findings and boundaries for step 4 review-resume-command (exchange 1) (round 3)
+
+Unresolved findings:
+
+- `tests/unit/tools/test_review_status_render/test_review_status_render_tdd.py` is partially staged: `git status` reports `MM`, and the staged blob is not the worktree file.
+- The staged blob of that file fails `ruff check` with two COM812 `Trailing comma missing` errors, at the calls added in round two for the completed-migration and blocked-migration render tests, so the content this commit would carry does not pass the mandatory `check` gate.
+- Every green walk in this round, the writer's and the reviewer's alike, ran against the worktree rather than the index, so no `ghog day` result in this exchange is evidence about the staged blob; the worktree passes only because a trailing-comma fix was applied there and never staged.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 4 review-resume-command (exchange 1) (round 3)
+
+One action, and it is a single command.
+
+Stage the worktree content of
+`tests/unit/tools/test_review_status_render/test_review_status_render_tdd.py`.
+The file is partially staged: `git status` reports `MM`, the worktree carries
+two trailing commas that the staged blob does not, and the staged blob fails
+`ruff check` with two COM812 `Trailing comma missing` errors at the calls round
+two added for the completed-migration and blocked-migration render tests. The
+worktree content is already correct and already passes; it simply was never
+staged after the fix was applied. `git add` on that one path closes it.
+
+The reviewer did not stage it, and the reason matters. The trailing commas are
+writer work sitting unstaged, and the reviewer contract forbids sweeping
+pre-existing unstaged writer work into the index. That rule exists precisely so
+a reviewer cannot quietly decide what enters a commit. So this one is returned
+rather than repaired, even though the repair is a single command.
+
+Re-run `commit-plan-check` afterwards. Membership will not change, because the
+path is already in group 4, but confirming it costs nothing.
+
+Then re-run `ghog day --force`. Not the plain form: the plain form returned `No
+Python file changed since the last green ghog day walk` for the reviewer this
+round and did nothing. A skipped walk is not evidence.
+
+Everything else in this round is closed, and the reviewer verified each closure
+rather than accepting the writer response.
+
+All six round-one findings are addressed. The three output assertions exist and
+pin the exact strings that had never been compared to an expectation, including
+the semicolon-joined `Migration diagnostics: collision; second check: blocked`
+line that is the whole of what an operator sees when placement fails. The
+launcher comment names its bounded migration exception. Both `str(error)` guards
+in `review_status.py` strip before building a diagnostic. The recorded grep
+criterion is an `-e` form that survives a shell and returns the same 69 lines as
+the plan's quoted alternation. The reviewer's own round-one repairs survived
+intact.
+
+One reviewer repair was made this round, and it is worth reading rather than
+skimming because this effort has now had to make it three times.
+
+The document theme sentence was stale again. It read `Steps 0 through 3 are
+fully implemented and validated; Steps 4 through 6 remain pending.` while the
+Step 4 row this round records reads `Yes. Step 4 has been fully implemented.`
+The reviewer refreshed it to `Steps 0 through 4 are fully implemented and
+validated; Steps 5 and 6 remain pending.` The document-level status line
+correctly stays `No, it is not implemented.`, because Steps 5 and 6 are still
+`Not started`.
+
+That sentence has now needed correcting in step 2 round 2, in round one of this
+step in the other direction, and here. The step 3 round 2 answer predicted this
+exact recurrence and asked for it to be confirmed rather than assumed when Step
+4 completed. When Step 5 completes, refresh it in the same commit as the step
+row, and read it back.
+
+Four things to carry into the commit rather than act on now.
+
+The `a.commit` plan is accurate on membership, ordering, scope and subjects, and
+needs no edit. Note what that does and does not prove: `commit-plan-check`
+returned `ready: true` with the partially staged file in group 4, because the
+checker validates which paths are staged and how they are grouped, not whether a
+staged blob matches its worktree file or passes lint. A ready plan is not a
+statement about staged content.
+
+Group 2's subject, `test(tooling): cover redirect checks`, still does not
+describe `test_review_mode_docs_acceptance_tdd.py`, which is a helper extraction
+plus a tightened `review_exchange.bat resolve` assertion rather than a redirect
+check. Membership, order and scope are right, so the reviewer left the wording
+alone in all rounds. Worth a glance before committing.
+
+`.agents/llm-shared/.codex-plugin/plugin.json` is still unstaged with external
+plugin-sync churn, as it has been since step 1. It is in no `a.commit` group, so
+the residual phase will force a deliberate decision. Nothing in Step 4 produced
+it.
+
+The advisory line budgets need no action. `review_status.py` measures 616 lines
+against an expected 540 and `review_status_models.py` 580 against an
+expected 520. Both sit well under the 650 ceiling `senv.bat` enforces, and
+both expectations are marked advisory. Step 5 should budget from the real
+numbers.
+
+One item belongs to the effort rather than to this step, and the reviewer raises
+it because it cost this exchange a full escalation cycle.
+
+The round-one transcript append broke Markdown validation. A sentence ending in
+`on status 2.` wrapped so that a line began with `2.` and a space, which a linter reads as
+an ordered-list marker with no blank line before it, and the mandatory gate then
+failed on a protocol-owned artifact neither role may edit by hand. The requestor
+was right to escalate rather than publish on falsely green evidence, and a human
+cleared it.
+
+The paired renderers already shift and qualify headings at the input boundary,
+which is where an equivalent guard belongs. A check that rejects authored
+content whose wrapped lines begin with a list marker, an ordered-list numeral or
+a heading `#`, before it is appended, would close this class for both roles.
+That is Step 6 or a later effort, not Step 4, and the reviewer records it rather
+than requesting it.
+
+### Decision rationale for step 4 review-resume-command (exchange 1) (round 3)
+
+The disposition is `changes-requested`, and the implementation-check result is
+`Yes`.
+
+That pairing is deliberate and needs stating up front. Step 4 is fully
+implemented: every round-one finding is closed, the work exists, and it is
+correct. What fails is not the implementation but the index. One staged blob is
+not the file that was validated, and it does not pass the mandatory gate. The
+readiness floor is about what a commit would carry, so it fails even though the
+work is done.
+
+Five of the six readiness-floor results pass. Identity is exact, with the
+received index tree `6a4e185efb29ed6324ff107cb9bea3efb3cc6249` equal to the
+request-time tree. Implementation is complete. Mandatory validation and coverage
+pass on the reviewer's own forced walks, with the caveat recorded below.
+`a.commit` is accurate on membership, ordering, scope and subjects, confirmed by
+an independent rerun matching the request field for field.
+
+Staged attribution fails.
+`tests/unit/tools/test_review_status_render/test_review_status_render_tdd.py` is
+partially staged. `git status` reports `MM`, and the difference is two trailing
+commas that exist in the worktree and not in the index. Running `ruff check`
+against the staged blob through `--stdin-filename`, so the repository's
+per-path rules still apply, returns two COM812 `Trailing comma missing` errors
+at the two calls round two added for the completed-migration and
+blocked-migration render tests. The content this commit would carry does not
+pass `check`.
+
+The reviewer found this by listing the paths that differ between index and
+worktree and intersecting that list with the staged set, rather than by reading
+`git status` letters. Two paths intersect. One is the reviewer's own repair,
+staged deliberately after attribution. The other is this file.
+
+The consequence is larger than two commas, and it is the reason this is a
+finding rather than a note. Every green walk in this exchange ran against the
+worktree. `ghog day` reads files, not blobs. So the writer's `ghog day` evidence
+in the round-three assessment, and both of the reviewer's own forced walks, are
+statements about a tree that is not the one being committed. The worktree passes
+precisely because the trailing-comma fix was applied there; the index never
+received it. A commit made now would carry code that fails the gate every party
+believes it passed. No amount of re-running the walk in its current form would
+surface that, which is why it is stated here rather than left to the next walk.
+
+The reviewer did not repair it, although the repair is one `git add`. The
+trailing commas are pre-existing unstaged writer work, and the contract forbids
+sweeping such work into the index. That rule exists so a reviewer cannot decide
+what enters a commit, and it binds even when the sweep would obviously help. So
+the finding is returned.
+
+`commit-plan-check` did not catch it either, and that is worth recording rather
+than treating as a checker defect. It returned exit `0`, `state: valid`,
+`ready: true`, 31 staged paths, six groups and no diagnostics, with the
+partially staged file sitting correctly in group 4. The checker validates which
+paths are staged and how they are grouped. It does not compare a staged blob to
+its worktree file and it does not lint. A ready plan is a statement about
+grouping, not about content, and this round is a clean example of the gap.
+
+Everything else in this round is closed, and each closure was measured rather
+than read.
+
+The three output assertions exist and pin exactly the strings that had never
+been compared to an expectation. The one that mattered most is
+`test_human_blocked_migration_reports_diagnostics`, asserting `Migration
+diagnostics: collision; second check: blocked`. Round one argued that this
+string is the entire explanation an operator receives when placement fails, that
+the canonical instruction tells the reader to report it on status 2, and that
+the coverage gate could never catch its absence because the conditional
+expression sits inside an f-string where `coverage.py` records no branch. The
+new test pins the joined form, the separator and both elements. There is an
+irony worth naming: that assertion is one of the two calls whose staged form
+fails lint, so the fix for round one's central finding is the code that is not
+correctly staged.
+
+The launcher comment names its bounded migration exception. Both `str(error)`
+guards strip before building a diagnostic, matching the preflight helper that
+already did. The recorded grep criterion is now an `-e` form that survives a
+shell, measured as returning the same 69 lines across the same six files as the
+plan's quoted alternation. The reviewer's own round-one repairs survived: the
+unused constant is still absent and the repaired instruction sentence is still
+the reviewer's wording. Scope did not creep; the tree differs from the
+reviewer's round-one assessed tree in exactly five files, all inside Step 4's
+declared file list.
+
+The implementation-check is `Yes` because the step's work is present and
+correct, and the validation plan records that with no `Missing work for Step 4`
+section. A staging slip is not missing work, and writing `No` would tell the
+next reader that Step 4 needs implementing when it needs staging.
+
+One repair was made, and the reviewer classifies it as review metadata rather
+than a substantive change, so the reasoning is stated plainly. The document
+theme sentence read `Steps 0 through 3 are fully implemented and validated;
+Steps 4 through 6 remain pending.` while the Step 4 row records `Yes.` The
+`Document-level status line` section of `implementation-check.md` makes that
+opening line and its theme sentence part of the check's own output, and it is
+not among the sections reviewer mode is told to suppress; only the final-step
+umbrella completion carries that instruction. Round one made the same edit in
+the other direction and classified it the same way. The classification does not
+affect this disposition, which is `changes-requested` on other grounds.
+
+Two things temper this answer, and neither changes it.
+
+The reviewer's post-repair `ghog day` first returned a no-op green: `No Python
+file changed since the last green ghog day walk`. The repair is Markdown, and
+`markdown-check` runs inside `ghog check`, so that result proved nothing. The
+reviewer forced the walk rather than record the skip as evidence. This is worth
+naming because the writer's round-three assessment leans on the same shape,
+saying the later staged-record check returned a no-op green result because no
+Python file changed after that walk.
+
+Group 2's subject still does not describe one of its members, and the advisory
+line budgets are still exceeded by 76 and 60 lines against a 650 ceiling both
+sit well under. Both were reported in round one and both are left alone, because
+changing either would substitute the reviewer's preference for the plan's.
+
+One thing belongs on the record because this reviewer caused it. The round-one
+transcript append broke Markdown validation: a sentence ending in `on status 2.`
+wrapped so a line began with `2.` and a space, which a linter reads as an ordered-list
+marker with no blank line before it. The mandatory gate then failed on a
+protocol-owned artifact neither role may edit by hand, the requestor escalated
+rather than publish on falsely green evidence, and a human cleared it. The
+requestor's refusal was correct and cost this exchange a full escalation cycle
+for a defect the reviewer wrote. The structural fix belongs at the renderer
+input boundary that already shifts and qualifies headings, and it is recorded in
+the writer instructions as later work rather than requested here.
+
+This answer is advisory. It authorizes no commit.
+
+### Final reviewer decision for step 4 review-resume-command (exchange 1) (round 3)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-4-round-3 -->
+
+## Round 4 by requestor - Step 4
+
+- Recorded: 2026-09-06T17:38:53+02:00
+- Exchange: code/code/v0.11.0/review-resume-command
+- Umbrella: docs/v0.11.0/draft.v0.11.0.review-mode.md
+- Reviewed document: docs/v0.11.0/plan.v0.11.0.review-resume-command.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 4
+- Outcome: request
+
+### Review identity for step 4 review-resume-command (round 4)
+
+Umbrella draft: docs/v0.11.0/draft.v0.11.0.review-mode.md
+Implementation plan: docs/v0.11.0/plan.v0.11.0.review-resume-command.md
+Implementation step: 4
+Review round: 4
+
+### Code review evidence for step 4 review-resume-command (round 4)
+
+request_index_tree: bbeb78532058b237d46cfd07e49bef53888e2a69
+resolved_validation_set:
+
+- ghog day (sources: project)
+- ghog single tests/unit/tools/test_review_status_migration tests/unit/tools/test_review_status_models tests/unit/tools/test_review_status_projection tests/unit/tools/test_review_status_render tests/unit/tools/test_review_status_cli tests/acceptance/review_status/test_review_status_acceptance/test_review_status_acceptance_tdd.py (sources: plan)
+- rg -n -e schema_version.*2 -e migration -e requestor_llm_nature -e reviewer_llm_nature -e strictly\sread-only tools/review_status* instructions/review-status-command.md (sources: plan)
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: fix(markdown): accept cache-relative adapters
+group 1 path: tools/markdown_check/classifier.py
+group 1 path: tests/unit/tools/markdown_check/test_source_model/test_source_model_tdd.py
+group 2: test(tooling): cover redirect checks
+group 2 path: tests/unit/tools/test_codex_plugin_redirects/__init__.py
+group 2 path: tests/unit/tools/test_codex_plugin_redirects/test_codex_plugin_redirects_tdd.py
+group 2 path: tests/unit/tools/test_instruction_structure/test_codex_plugin_structure_tdd.py
+group 2 path: tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_acceptance_tdd.py
+group 3: feat(review-status): add schema 2 context
+group 3 path: tools/review_status_models.py
+group 3 path: tools/review_status_migration.py
+group 3 path: tools/review_status_role_nature.py
+group 3 path: tools/review_status.py
+group 3 path: tools/review_status_render.py
+group 3 path: tools/review_status_cli.py
+group 4: test(review-status): prove schema 2 behavior
+group 4 path: tests/acceptance/review_status/conftest.py
+group 4 path: tests/acceptance/review_status/test_review_status_acceptance/test_review_status_acceptance_tdd.py
+group 4 path: tests/unit/tools/test_review_status/test_review_status_tdd.py
+group 4 path: tests/unit/tools/test_review_status_cli/test_review_status_cli_tdd.py
+group 4 path: tests/unit/tools/test_review_status_migration/__init__.py
+group 4 path: tests/unit/tools/test_review_status_migration/test_review_status_migration_tdd.py
+group 4 path: tests/unit/tools/test_review_status_models/test_review_status_models_schema_2_tdd.py
+group 4 path: tests/unit/tools/test_review_status_models/test_review_status_models_tdd.py
+group 4 path: tests/unit/tools/test_review_status_projection/test_review_status_projection_tdd.py
+group 4 path: tests/unit/tools/test_review_status_render/test_review_status_render_tdd.py
+group 4 path: tests/unit/tools/test_review_status_role_nature/__init__.py
+group 4 path: tests/unit/tools/test_review_status_role_nature/test_review_status_role_nature_tdd.py
+group 5: docs(review-status): describe migration preflight
+group 5 path: rvw_status.bat
+group 5 path: instructions/review-status-command.md
+group 5 path: .agent/workflows/review-status-command.md
+group 5 path: .agents/llm-shared/skills/review-status-command/SKILL.md
+group 5 path: .claude/skills/review-status-command/SKILL.md
+group 5 path: .github/skills/review-status-command/SKILL.md
+group 6: docs(review-resume-command): record step 4 validation
+group 6 path: docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md
+staged path: .agent/workflows/review-status-command.md
+staged path: .agents/llm-shared/skills/review-status-command/SKILL.md
+staged path: .claude/skills/review-status-command/SKILL.md
+staged path: .github/skills/review-status-command/SKILL.md
+staged path: docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md
+staged path: instructions/review-status-command.md
+staged path: rvw_status.bat
+staged path: tests/acceptance/review_status/conftest.py
+staged path: tests/acceptance/review_status/test_review_status_acceptance/test_review_status_acceptance_tdd.py
+staged path: tests/unit/tools/markdown_check/test_source_model/test_source_model_tdd.py
+staged path: tests/unit/tools/test_codex_plugin_redirects/__init__.py
+staged path: tests/unit/tools/test_codex_plugin_redirects/test_codex_plugin_redirects_tdd.py
+staged path: tests/unit/tools/test_instruction_structure/test_codex_plugin_structure_tdd.py
+staged path: tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_acceptance_tdd.py
+staged path: tests/unit/tools/test_review_status/test_review_status_tdd.py
+staged path: tests/unit/tools/test_review_status_cli/test_review_status_cli_tdd.py
+staged path: tests/unit/tools/test_review_status_migration/__init__.py
+staged path: tests/unit/tools/test_review_status_migration/test_review_status_migration_tdd.py
+staged path: tests/unit/tools/test_review_status_models/test_review_status_models_schema_2_tdd.py
+staged path: tests/unit/tools/test_review_status_models/test_review_status_models_tdd.py
+staged path: tests/unit/tools/test_review_status_projection/test_review_status_projection_tdd.py
+staged path: tests/unit/tools/test_review_status_render/test_review_status_render_tdd.py
+staged path: tests/unit/tools/test_review_status_role_nature/__init__.py
+staged path: tests/unit/tools/test_review_status_role_nature/test_review_status_role_nature_tdd.py
+staged path: tools/markdown_check/classifier.py
+staged path: tools/review_status.py
+staged path: tools/review_status_cli.py
+staged path: tools/review_status_migration.py
+staged path: tools/review_status_models.py
+staged path: tools/review_status_render.py
+staged path: tools/review_status_role_nature.py
+```
+
+### Requestor assessment for step 4 review-resume-command (round 4)
+
+#### Writer assessment for Step 4 for step 4 review-resume-command (round 4)
+
+Yes. Step 4 remains fully implemented.
+
+Round 3 identified only a staging mismatch in the render test. The correct
+worktree content, including the required trailing commas, is now staged.
+`commit-plan-check.bat --format json` remains valid and ready, and the required
+forced `ghog day` completed with `fail=0`, `cov=100`, `outliers=0`, and `exit=0`.
+
+### Implementation report for step 4 review-resume-command (round 4)
+
+#### Implementation report for Step 4 for step 4 review-resume-command (round 4)
+
+No new implementation design was added. The exact render-test blob reviewed in
+round 3 was synchronized with its already-correct worktree version, so the
+staged commit now contains the two trailing commas required by Ruff.
+
+### Change summary for step 4 review-resume-command (round 4)
+
+#### Change summary for Step 4 for step 4 review-resume-command (round 4)
+
+The six existing commit groups are unchanged. Group 4 contains the synchronized
+render-test file; group membership, order, and subjects remain valid.
+
+### Writer response for step 4 review-resume-command (round 4)
+
+Writer response:
+
+#### Writer response for Step 4 for step 4 review-resume-command (round 4)
+
+The round-3 staging finding is accepted and resolved by staging
+`tests/unit/tools/test_review_status_render/test_review_status_render_tdd.py`.
+The forced validation walk passed on that staged state. There is no disagreement.
+
+### Reviewer focus for step 4 review-resume-command (round 4)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-4-round-4 -->
+
+## Round 4 by reviewer - Step 4
+
+- Recorded: 2026-09-06T17:48:13+02:00
+- Exchange: code/code/v0.11.0/review-resume-command
+- Umbrella: docs/v0.11.0/draft.v0.11.0.review-mode.md
+- Reviewed document: docs/v0.11.0/plan.v0.11.0.review-resume-command.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 4
+- Outcome: answer
+
+### Assessed index identity for step 4 review-resume-command (exchange 1) (round 4)
+
+Baseline index tree: bbeb78532058b237d46cfd07e49bef53888e2a69
+
+Assessed index tree: bbeb78532058b237d46cfd07e49bef53888e2a69
+
+### Implementation check for step 4 review-resume-command (exchange 1) (round 4)
+
+Result:
+
+The implementation-check result is `Yes`. Step 4 has been fully implemented, the
+validation plan records that verdict, and no `Missing work for Step 4` section
+exists.
+
+Round three returned `Yes` on the implementation and `changes-requested` on the
+disposition, because one staged blob was not the file that had been validated.
+That is now closed, and the reviewer verified the closure by measurement.
+
+`tests/unit/tools/test_review_status_render/test_review_status_render_tdd.py` is
+no longer partially staged. The reviewer repeated the round-three procedure
+rather than reading `git status` letters: it listed every path differing between
+index and worktree, 34 of them, and intersected that list with the 31 staged
+paths. The intersection is empty. Every staged path now contributes exactly its
+worktree content.
+
+The staged blob itself was linted, not assumed. Extracting it with `git show :`
+and running `ruff check --stdin-filename` so the repository's per-path rules
+still apply returns `All checks passed!` and exit 0, where round three returned
+two COM812 `Trailing comma missing` errors at lines 127 and 143. The two
+trailing commas the worktree already carried are now in the index.
+
+The fix is exactly the fix that was asked for, and nothing more. The tree differs
+from the reviewer's round-three assessed tree in one file and four lines: two
+insertions and two deletions in that render test. No other path moved, no new
+work entered the index, and no design decision was taken.
+
+The whole of Step 4 stands as verified across rounds one and three, and the
+reviewer re-checked only what this change could have disturbed rather than
+re-deriving the step.
+
+The two assertions whose staged form failed lint in round three are intact in
+both index and worktree.
+`test_human_completed_migration_reports_moved_artifacts` still builds
+`MigrationStatus.completed(".reviews", 1)` and still asserts `Migration:
+completed` and `Migrated artifacts: 1`.
+`test_human_blocked_migration_reports_diagnostics` still builds
+`MigrationStatus.blocked(".reviews", ("collision", "second check: blocked"))`
+and still asserts the rendered line reads `Migration diagnostics: collision;
+second check: blocked`. That assertion is the one round one cared most about,
+because the semicolon join is the entire explanation an operator receives when
+placement fails, and because the coverage gate could never have caught its
+absence: the conditional expression sits inside an f-string where `coverage.py`
+records no branch. Adding a trailing comma changes no assertion, and the
+reviewer confirmed the assert statements themselves are unchanged rather than
+inferring it from the diff size.
+
+Everything else carried forward from round three is unchanged and was
+re-confirmed against the current tree. `ReviewStatusMigrationPreflight` performs
+one check, migrates only from `MIGRATION_REQUIRED`, and returns a configuration
+only when the second check comes back `READY`, with the ordering pinned by an
+event spy. The schema-2 models close their own invariants with a parametrized
+rejection for each. `ReviewStatusRoleNatureProjection` is linear, reads no
+artifact, and rejects a path outside the repository root. Both `str(error)`
+guards in `tools/review_status.py` strip before building a diagnostic.
+`rvw_status.bat:4` names its bounded migration exception. The reviewer's own
+round-one repairs survive: `_CONFLICTING_VALUE_COUNT` is still absent from the
+role-nature module and the repaired instruction sentence is still the reviewer's
+wording.
+
+Line budgets hold against the enforced ceiling that `senv.bat` sets at 650. The
+production files measure 616, 580, 141, 118, 105 and 73 lines. The plan's
+advisory expectations of 540 for the service and 520 for the models are still
+exceeded, by 76 and 60 lines, and are recorded again without a request to act on
+them because they are marked advisory.
+
+No DDD-Hexagonal violation is visible, no new `O(n^2)` or `O(n log n)` path
+appears, and no existing capability is impaired. A trailing comma introduces
+none of those.
+
+No reviewer repair was needed this round. The validation plan is byte-identical
+to the version the reviewer assessed in round three, including the theme
+sentence it repaired there, so there was nothing left to correct.
+
+Validation plan effects:
+
+The reviewer made no edit to
+`docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md` this round, and
+no edit to any other tracked file. The index tree changed only through the
+writer's staging, not through anything the reviewer wrote.
+
+The document is byte-identical to the version the reviewer assessed and repaired
+in round three. That was confirmed by diffing the round-three assessed tree
+`4152c94b708641dafc9435b1b3465eb98508bc9f` against the received tree
+`bbeb78532058b237d46cfd07e49bef53888e2a69`, which reports one changed file, the
+render test, and four changed lines.
+
+The Step 4 rows are accurate against the code the reviewer verified. The status
+sentence is the exact `Yes. Step 4 has been fully implemented.` No `Missing work
+for Step 4` section exists, which is correct now that the step is implemented;
+round one added one and round three's writer correctly removed it. The
+implemented-work, new-types, architecture, performance, coverage and
+feature-integrity rows describe what the staged code does, and the coverage row
+correctly credits the completed and blocked human migration output and the
+blocked JSON migration payload.
+
+The theme sentence still reads `Steps 0 through 4 are fully implemented and
+validated; Steps 5 and 6 remain pending.`, which is the reviewer's round-three
+repair, and it still matches the per-step rows: Steps 0 through 4 each open with
+the exact `Yes` sentence and Steps 5 and 6 each open with `Not started.` The
+reviewer re-read every step's analysis sentence rather than only the reviewed
+one before saying so.
+
+The document-level status line correctly stays `No, it is not implemented.`
+because Steps 5 and 6 have not started, so it could not flip this round whatever
+Step 4 said.
+
+Nothing in the document needed a reviewer edit. No umbrella row was touched, and
+no umbrella row may be completed from reviewer mode in any case; Step 4 is not
+the final step of this effort.
+
+One item carries forward rather than being acted on. This sentence has needed
+correcting three times in this effort, in step 2 round 2, in round one of this
+step, and in round three. When Step 5 completes, refresh it in the same commit
+as the step row and read it back, rather than assuming it followed.
+
+### Pre-repair mandatory checks and coverage for step 4 review-resume-command (exchange 1) (round 4)
+
+Baseline evidence was captured through `bin/code_review_evidence.bat` before any
+assessment work, and the manifest was written before anything could mutate
+state. Round three retired its manifest after publication, so this ran as a
+fresh assessment with a new baseline.
+
+- `capture-index-tree` returned `bbeb78532058b237d46cfd07e49bef53888e2a69`,
+  equal to the `request_index_tree` in the round-four request, so the received
+  state matched the requested state exactly and the early rejection path did not
+  apply. The reviewer's round-three assessed tree was
+  `4152c94b708641dafc9435b1b3465eb98508bc9f`, and the difference between the two
+  is one file and four lines.
+- `umbrella-digest capture docs/v0.11.0/draft.v0.11.0.review-mode.md` returned
+  `applicable: true` with digest
+  `bb71aaf68bb45d395e719881a86817a146eba8f164e06a09433fb375914ddc81`, the value
+  this umbrella has held through every round of steps 2, 3 and 4.
+- `record-pre-repair-blob
+  docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md` recorded
+  `e3dc733053d6f10e39771be17a602592938c1776` before the reviewer could touch the
+  only validation-plan path it may write. That value differs from round three's
+  `d10b389845d2699473e8324759f62a4ea2e69eaf` because round three's baseline was
+  the pre-repair worktree and this one is the post-repair content the writer
+  staged. In the event no edit was made this round.
+- `validation-state capture` recorded the ordered union of the 31 staged paths
+  and the versioned transcript, 32 paths, at that same index tree.
+- `write-manifest` stored the baseline at
+  `.reviews/a.code-review-evidence.v0.11.0.review-resume-command.step-4.json`.
+
+Entry into this round was clean. The round-three publication returned
+`answer-pending`, the reviewer entered its bounded `wait-request` immediately in
+the same session, and that wait observed the state move from `answer-pending`
+through `round-in-progress` to `request-pending` before returning `found` at
+round 4 with `exchange_occurrence: 1` and an ownership capability at
+generation 5. No `reclaim` was needed and no wait returned `already-claimed`,
+unlike round one.
+
+The reviewer verified before assessing that the defect which escalated the
+second attempt has not returned. `markdown-check` over the whole repository
+exits 0, and it did so immediately after the round-three answer was published,
+so the reviewer's own round-three transcript append did not reintroduce the
+MD032 class it caused in round one.
+
+The ghog-artifact limitation recorded in every earlier round applies unchanged.
+The ordered path set does not name `a.ghog.log`, `.coverage`, `coverage.xml` or
+`a.ghog.senv.log`, and because the set must be identical before and after it was
+not widened afterwards. Differences confined to ignored validation artifacts are
+acceptable by contract, and `git status --porcelain` over the whole worktree
+answered the tracked question more broadly.
+
+### Resolved validation set and sources for step 4 review-resume-command (exchange 1) (round 4)
+
+The reviewer ran the union of the request validation set and the set resolved
+during this round, and ran every command itself rather than accepting the
+request's reported results. The two sets are identical, so the union is the same
+three commands.
+
+- `ghog day --force`, source project. Result: `exit=0`, every phase completing.
+  `ghog check done fail=0 warn=0 xfail=0 exit=0`, `ghog affected --no-cov done
+  fail=0 warn=0 xfail=0 exit=0`, and `ghog full done fail=0 warn=0 xfail=3
+  cov=100 outliers=0 excluded=0 exit=0`. The step's criterion that `ghog day`
+  reports `exit=0` is satisfied.
+- `ghog single tests/unit/tools/test_review_status_migration
+  tests/unit/tools/test_review_status_models
+  tests/unit/tools/test_review_status_projection
+  tests/unit/tools/test_review_status_render
+  tests/unit/tools/test_review_status_cli
+  tests/acceptance/review_status/test_review_status_acceptance/test_review_status_acceptance_tdd.py`,
+  source plan. Result: `fail=0 warn=0 xfail=0 exit=0`, with nothing failing in
+  focus and nothing passing in focus while failing in the full suite.
+- `rg -n -e schema_version.*2 -e migration -e requestor_llm_nature -e
+  reviewer_llm_nature -e strictly\sread-only tools/review_status*
+  instructions/review-status-command.md`, source plan. Result: exit 0, 69
+  matching lines, zero matches for `strictly read-only`. The 69 lines fall
+  across six files: 22 in `review_status_models.py`, 20 in `review_status.py`,
+  11 in `review_status_migration.py`, 9 in `review_status_render.py`, 5 in the
+  canonical instruction and 2 in `review_status_cli.py`. The plan's quoted
+  alternation returns the same 69 lines with the same distribution, which the
+  reviewer measured this round rather than carrying forward from round three.
+
+The three xfails are the Step 5 `GlobalReviewerWait` gates in
+`tests/unit/tools/test_review_resume_perf/test_review_resume_perf_tdd.py`, which
+Step 5 owns and which are meant to be strict xfails until it lands.
+
+No mandatory evidence was unavailable, and none was inherited.
+
+The walk was forced, as every walk in rounds three and four has been. The plain
+form skips when no Python file has changed since the last green walk, and it did
+exactly that to the reviewer in round three after a Markdown-only repair,
+returning `No Python file changed since the last green ghog day walk` with
+exit 0. A skip reported as a pass is not evidence, and the writer's round-three
+assessment leaned on that shape.
+
+One limit of this command set was the substance of the round-three finding, so
+it is worth recording that it does not apply here. `ghog day` reads files rather
+than Git blobs, so a green walk describes the worktree and says nothing about a
+staged blob that differs from it. In round three one staged blob did differ and
+failed `ruff check`. This round the reviewer confirmed the index and the
+worktree agree on every staged path, and separately linted the staged blob of
+the file that was wrong before, so the green walk and the committed content
+describe the same thing.
+
+### Resolver drift and direction for step 4 review-resume-command (exchange 1) (round 4)
+
+No drift. The request's resolved validation set and the set the reviewer
+resolved during this round contain the same three commands with the same
+sources, so the union adds nothing and the reviewer ran all three.
+
+The project member resolves the same way for both roles. No `.review-validation`
+file exists in the repository, so `load_project_validation_commands` returns the
+built-in default, which is `ghog day`. That is what the request records with
+source `project`. The two plan members are the step's own completion criteria,
+verbatim in the `ghog single` case and equivalent in the `rg` case.
+
+The `rg` member is unchanged from round three, where the round-one recording nit
+was resolved. It reads
+`rg -n -e schema_version.*2 -e migration -e requestor_llm_nature -e
+reviewer_llm_nature -e strictly\sread-only tools/review_status*
+instructions/review-status-command.md`. Every pattern is its own `-e` operand,
+so no shell metacharacter survives, and the space in the last pattern is written
+`\s` for the same reason. The reviewer measured equivalence again rather than
+carrying the round-three result forward: the plan's quoted alternation and the
+request's `-e` form both return the same count over the same two path arguments,
+with zero matches for `strictly read-only`.
+
+The `ghog day` and `ghog single` members are identical in both sets, in the same
+order and with the same arguments, as they have been in every round of this
+effort.
+
+One observation recorded in rounds one and three still stands and still needs no
+action. The `schema_version.*2` pattern matches nothing, because the constant is
+spelled `SCHEMA_VERSION = 2` in `tools/review_status_models.py:30` and the
+serialized key is never followed by a literal 2 in the source. The criterion
+passes on its own terms through the other patterns, and the schema bump is
+independently verified, so the reviewer records the case-blindness rather than
+asking for a change to a criterion the plan already fixed.
+
+### Repository state around validation for step 4 review-resume-command (exchange 1) (round 4)
+
+The received index tree `bbeb78532058b237d46cfd07e49bef53888e2a69` matched the
+request-time index tree exactly, so the assessment ran against the requested
+state and the early rejection path did not apply. The assessed index tree after
+the evidence boundary is the same value, because the reviewer authored no
+change.
+
+The umbrella digest is unchanged:
+`bb71aaf68bb45d395e719881a86817a146eba8f164e06a09433fb375914ddc81` before and
+after, `changed: false`. That digest has held across every round of steps 2, 3
+and 4.
+
+`validation-state compare` over the ordered 32-path set reports
+`acceptable: true` with empty `tracked_paths`, `untracked_paths` and
+`ignored_paths`, across a full forced walk. There is no tracked validation side
+effect and no reviewer-authored change. Rounds one and three both reported
+`acceptable: false` because each carried a reviewer repair; this round carries
+none, so the comparison is clean without needing an explanation.
+
+The index and the worktree now agree on every staged path, which is the
+round-three finding closed. The reviewer established that the same way it found
+the defect: it listed every path differing between index and worktree, 34 of
+them, and intersected that list with the 31 staged paths. The intersection is
+empty. It then extracted the staged blob of
+`tests/unit/tools/test_review_status_render/test_review_status_render_tdd.py`
+with `git show :` and ran `ruff check --stdin-filename`, which returned `All
+checks passed!` and exit 0 where round three returned two COM812 errors at lines
+127 and 143.
+
+Both checks were run because they answer different questions. An empty
+intersection says the index agrees with the worktree. Linting the blob says the
+committed content is clean. Round three failed in the gap between them.
+
+Beyond the reviewed step the worktree carries 34 unstaged tracked files and one
+untracked file, and the reviewer swept none of it into the index. The set is the
+same as round three, with the same two efforts visible in it.
+
+- A second effort running concurrently in this tree, which arrived after round
+  one: `tools/code_review_evidence.py` and `tools/prompt_workflow.py` with
+  their tests, `rules/run_commands.md`, `.vscode/settings.json`, and two further
+  files under `instructions/`. None appears in Step 4's file list, none is
+  staged, and none is in any `a.commit` group, so the reviewed commit cannot
+  carry them. That two of them are `tools/code_review_evidence.py` and its test,
+  the launcher this assessment runs on, is worth a glance before the commit: the
+  reviewer used the committed launcher rather than the modified worktree copy,
+  because those edits are unstaged rather than reverted.
+- Step 5 and Step 6 work in progress: `AGENTS.md`, `README.md`, six files under
+  `instructions/`, six instruction test files, ten files under `wiki/`, and the
+  untracked `wiki/how-to/inspect-independent-review-status.md`.
+- `.agents/llm-shared/.codex-plugin/plugin.json` plugin-sync churn, unstaged and
+  ungrouped since step 1, which the residual phase will surface.
+- The versioned transcript, which the protocol appends to and which is expected
+  to be dirty during an open exchange.
+
+No `.tmp-review-nature-` file exists anywhere in the worktree, so the step 2
+round 1 backfill temporary issue has not recurred.
+
+### Repair inventory for step 4 review-resume-command (exchange 1) (round 4)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 4 review-resume-command (exchange 1) (round 4)
+
+`a.commit` is accurate and needed no amendment. The reviewer ran
+`commit-plan-check.bat --format json` independently against the received
+repository state before assessing grouping, ordering, scope or subjects.
+
+The rerun returned exit `0`, `state: valid`, `ready: true`, 31 staged paths, six
+ordered groups and an empty `diagnostics` array. Compared field by field against
+the `commit_plan_result` embedded in the request, the staged path sets are
+identical with nothing on either side alone, the group list matches on position,
+subject and path tuple, and `state` and `ready` agree. That comparison was made
+by parsing both payloads rather than by reading them.
+
+Only one rerun was needed this round, because the reviewer authored no change
+and therefore staged nothing. Rounds one and three each ran the checker twice,
+before and after staging a repair.
+
+The staged set is unchanged from round three at 31 paths, and the six groups are
+unchanged in position, subject and membership. The round-four correction was a
+content change to a file already in group 4, so nothing about the plan could
+have moved.
+
+1. `fix(markdown): accept cache-relative adapters` carries the classifier and
+   its `test_source_model` leaf, first because the staged provider pointers
+   depend on the classifier recognizing the installed cache-relative shape.
+2. `test(tooling): cover redirect checks` carries the new
+   `test_codex_plugin_redirects` package and two refactored structure and docs
+   acceptance tests.
+3. `feat(review-status): add schema 2 context` carries the six production files
+   in dependency order.
+4. `test(review-status): prove schema 2 behavior` carries the twelve unit and
+   acceptance test paths, including the render test this round synchronized.
+5. `docs(review-status): describe migration preflight` carries the launcher, the
+   canonical instruction and all four provider adapters.
+6. `docs(review-resume-command): record step 4 validation` carries the
+   validation plan alone and is last, which is the required trailing shape.
+
+Groups 1 and 2 remain outside Step 4. They are carried-in work of outside origin
+that `git add -A` staged along with the step, which is the documented behaviour
+of the commit handoff, and the plan ranks such work by its own dependencies
+rather than dropping it.
+
+Group 2's subject is still the weaker of the two, for the reason given in rounds
+one and three: `cover redirect checks` describes the new
+`test_codex_plugin_redirects` package and the `test_codex_plugin_structure`
+change accurately, but `test_review_mode_docs_acceptance_tdd.py` is a helper
+extraction plus one tightened assertion about `review_exchange.bat resolve`,
+which is not a redirect check. The reviewer did not amend the subject in any
+round, because the group's membership, order and scope are right and rewording
+it would be a preference rather than a correction. It is left on the record for
+the human at the gate.
+
+No path is partially staged anywhere in the worktree, so each of the 31 staged
+paths contributes exactly its reviewed content. That sentence was false in round
+three and is true now, and the reviewer established it by intersecting the
+index-versus-worktree difference list with the staged set rather than by reading
+`git status` letters.
+
+One limit of this checker belongs on the record, because round three found the
+case it does not cover. `commit-plan-check` returned `ready: true` in round
+three while a staged blob failed `ruff check`. It validates which paths are
+staged and how they are grouped and subjected. It does not compare a staged blob
+to its worktree file, and it does not lint. A `ready` plan is a statement about
+grouping, not about staged content. That gap did not bite this round, because
+the reviewer linted the staged blob directly, but it remains true of the tool.
+
+A status `0` from this checker satisfies only the mechanical `a.commit` result
+in the readiness floor. It does not prove implementation completeness, and it
+authorizes no commit.
+
+### Findings and boundaries for step 4 review-resume-command (exchange 1) (round 4)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 4 review-resume-command (exchange 1) (round 4)
+
+No changes are requested. The recommendation is advisory and authorizes no
+commit; the human owns that decision at the convergence gate.
+
+The round-three finding is closed, and the reviewer verified it rather than
+accepting the response. The intersection of the index-versus-worktree difference
+list with the staged set is empty, so nothing is partially staged. The staged
+blob of
+`tests/unit/tools/test_review_status_render/test_review_status_render_tdd.py`
+was extracted with `git show :` and linted directly: `All checks passed!`, exit
+0, where round three returned two COM812 errors. The fix is the fix that was
+asked for and nothing else, four lines in one file, with no assert statement
+touched.
+
+All six round-one findings remain closed and were re-confirmed against the
+current tree rather than carried forward on trust.
+
+Four things to carry into the commit rather than act on now. All four were
+reported in earlier rounds and none has changed.
+
+Group 2's subject, `test(tooling): cover redirect checks`, still does not
+describe `test_review_mode_docs_acceptance_tdd.py`, which is a helper extraction
+plus a tightened `review_exchange.bat resolve` assertion rather than a redirect
+check. Membership, order and scope are right, so the reviewer left the wording
+alone in every round. Worth a glance before committing.
+
+`.agents/llm-shared/.codex-plugin/plugin.json` is still unstaged with external
+plugin-sync churn, as it has been since step 1. It is in no `a.commit` group, so
+the primary commit cannot carry it and the residual phase will force a
+deliberate decision. Nothing in Step 4 produced it.
+
+The advisory line budgets need no action. `review_status.py` measures 616 lines
+against an expected 540 and `review_status_models.py` 580 against an
+expected 520. Both sit well under the 650 ceiling `senv.bat` enforces, and both
+expectations are marked advisory. Step 5 should budget from the real numbers
+rather than the predicted ones.
+
+The document theme sentence has now needed correcting three times in this
+effort, in step 2 round 2, in round one of this step, and in round three. It
+currently reads `Steps 0 through 4 are fully implemented and validated; Steps 5
+and 6 remain pending.`, which is correct. When Step 5 completes, refresh it in
+the same commit as the step row and read it back, rather than assuming it
+followed.
+
+Two items belong to the effort rather than to this step, and the reviewer
+records them rather than requesting them.
+
+The renderers have no guard against authored content that wraps into a Markdown
+list marker. The reviewer's own round-one transcript append broke `markdown-check`
+that way, the mandatory gate then failed on a protocol-owned artifact neither
+role may edit by hand, and clearing it cost a full escalation cycle. The paired
+renderers already shift and qualify headings at the input boundary, which is
+where an equivalent check belongs: reject content whose wrapped lines begin with
+a list marker, an ordered-list numeral or a heading `#`, before it is appended.
+Any round can reintroduce this. The reviewer worked around it for rounds three
+and four by building the would-be appended transcript in a scratch tree and
+running `markdown-check` on it before publishing, which caught two further
+defects in its own prose. That workaround should not be the mechanism.
+
+`ghog day` skips when no Python file changed. The reviewer's round-three
+post-repair walk returned `No Python file changed since the last green ghog day
+walk` after a Markdown-only edit, so it validated nothing, and `markdown-check`
+runs inside `ghog check`. The reviewer forced every walk in rounds three and
+four. A skipped walk reported as green evidence is the same failure mode that
+produced the round-three staging finding, where a walk proved the worktree while
+the index carried something else. Both roles should force the walk whenever the
+change is not Python, and should keep in mind that `ghog day` reads files rather
+than Git blobs.
+
+### Decision rationale for step 4 review-resume-command (exchange 1) (round 4)
+
+The disposition is `commit-ready`, and the implementation-check result is `Yes`.
+All six parts of the readiness floor pass, and this round made no reviewer
+repair of any kind.
+
+Identity is exact, with the received index tree
+`bbeb78532058b237d46cfd07e49bef53888e2a69` equal to the request-time tree, the
+named step present in the plan, the human-readable identity block agreeing with
+the envelope, and the umbrella resolving to the same draft both roles named.
+Implementation is complete, verified across rounds one and three and re-checked
+here against what this change could have disturbed. Mandatory validation and
+coverage pass on the reviewer's own forced walk, recorded in the resolved
+validation set. Staged attribution is clean: the reviewer authored nothing, and
+nothing is partially staged. There are no unresolved current or carried
+findings. `a.commit` is accurate, confirmed by an independent rerun matching the
+request field for field.
+
+The round-three finding is closed, and the reviewer closed it by measurement
+rather than by reading the writer response.
+
+Round three found
+`tests/unit/tools/test_review_status_render/test_review_status_render_tdd.py`
+partially staged, with a staged blob that failed `ruff check` on two COM812
+errors while the worktree passed. The reviewer repeated the same procedure here:
+it listed every path differing between index and worktree, 34 of them, and
+intersected that list with the 31 staged paths. The intersection is empty. It
+then extracted the staged blob with `git show :` and ran
+`ruff check --stdin-filename`, so the repository's per-path rules still applied,
+and got `All checks passed!` with exit 0.
+
+That second check matters more than the first. An empty intersection says the
+index agrees with the worktree; linting the blob says the thing being committed
+is actually clean. Round three failed on precisely the gap between those two
+questions, and answering only the first would have repeated the mistake in a
+different form.
+
+The correction is minimal and contains nothing else. The tree differs from the
+reviewer's round-three assessed tree in one file and four lines, two insertions
+and two deletions, both trailing commas. No assert statement changed, which the
+reviewer confirmed by reading the diff rather than inferring it from the line
+count. The two assertions involved are the ones round one cared most about, so
+it was worth checking that a formatting fix had not disturbed them.
+
+All six round-one findings remain closed and were re-confirmed against the
+current tree. The three output assertions still pin the strings that had never
+been compared to an expectation, including the semicolon-joined `Migration
+diagnostics: collision; second check: blocked` line that is the whole of what an
+operator sees when placement fails. The launcher comment still names its bounded
+migration exception. Both `str(error)` guards still strip. The recorded grep
+criterion still returns the same result as the plan's quoted alternation. The
+reviewer's own round-one repairs survive: the unused constant is still absent
+and the repaired instruction sentence is still the reviewer's wording.
+
+The validation plan needed no reviewer edit. It is byte-identical to the version
+assessed in round three, theme sentence included, so there was nothing left to
+correct. This is the first round of this step in which the reviewer wrote
+nothing at all, which is the state a convergence recommendation should be made
+from.
+
+Four things temper this recommendation, and none changes it. All four were
+reported in earlier rounds and left deliberately unrepaired, because changing
+any of them would substitute the reviewer's preference for the plan's or sweep
+work the reviewer does not own.
+
+Group 2's subject does not describe one of its members. The advisory line
+budgets are exceeded by 76 and 60 lines against a 650 ceiling both sit well
+under. `.agents/llm-shared/.codex-plugin/plugin.json` still carries unstaged
+plugin-sync churn that no `a.commit` group covers, so the residual phase will
+force a decision on it. Groups 1 and 2 remain carried-in work of outside origin
+that `git add -A` staged along with the step.
+
+Two process observations belong on the record, because this exchange cost four
+rounds and an escalation, and only one of those was about the implementation.
+
+The reviewer broke the transcript in round one. A sentence ending in `on status
+2.` wrapped so a line began with the ordered-list marker, `markdown-check`
+failed on a protocol-owned artifact neither role may edit by hand, and the
+requestor escalated rather than publish on falsely green evidence. That refusal
+was correct. From round three the reviewer built the would-be appended
+transcript in a scratch tree and ran `markdown-check` on it before publishing,
+which caught two further MD038 defects in its own prose. A guard at the renderer
+input boundary, where headings are already shifted and qualified, would close
+the class for both roles.
+
+`ghog day` reads files rather than Git blobs, and skips when no Python file
+changed. Both properties produced false confidence in this exchange: a
+Markdown-only repair in round three drew `No Python file changed since the last
+green ghog day walk`, and every green walk in round three described a worktree
+that was not the tree being committed. The reviewer forced every walk in rounds
+three and four and linted the staged blob directly. That is what a reviewer
+should do, but it is a workaround rather than a property of the gate.
+
+This answer is advisory. It authorizes no commit, and the commit choice remains
+the human's at the convergence gate, where the label is `Commit`.
+
+### Final reviewer decision for step 4 review-resume-command (exchange 1) (round 4)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-4-round-4 -->
+
+## Round 4 by human - Step 4 - human-confirmation
+
+- Recorded: 2026-09-06T19:41:48+02:00
+- Exchange: code/code/v0.11.0/review-resume-command
+- Umbrella: docs/v0.11.0/draft.v0.11.0.review-mode.md
+- Reviewed document: docs/v0.11.0/plan.v0.11.0.review-resume-command.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 4
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-4 -->
