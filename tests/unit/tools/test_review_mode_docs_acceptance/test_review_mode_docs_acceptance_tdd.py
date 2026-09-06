@@ -265,7 +265,11 @@ def test_step_3_recovery_separates_reclaim_from_human_operations(
     assert ordinary < human
     for label in ("Authority:", "Precondition:", "Evidence effect:"):
         assert recovery.index(label, human) > human
-    for command in ("reclaim --force", "resolve", "complete --force"):
+    for command in (
+        "reclaim --force",
+        "review_exchange.bat resolve",
+        "complete --force",
+    ):
         assert recovery.index(command) > human
     for state in (
         "timeout",
@@ -278,6 +282,13 @@ def test_step_3_recovery_separates_reclaim_from_human_operations(
         assert state in recovery
 
 
+def _assert_phrases(content: str, phrases: tuple[str, ...]) -> None:
+    """Assert one bounded list of exact documentation phrases."""
+    normalized = " ".join(content.split())
+    for phrase in phrases:
+        assert phrase in normalized
+
+
 def test_step_3_new_session_pickup_is_discoverable_and_precise(
     docs_root: Path,
 ) -> None:
@@ -287,22 +298,27 @@ def test_step_3_new_session_pickup_is_discoverable_and_precise(
     recovery = read_declared(docs_root, _RECOVERY_GUIDE)
     reference = read_declared(docs_root, _REFERENCE)
 
-    assert "This is a new session" in readme
-    assert "force requestor ownership pickup" in readme
-    assert "Continue an active code review in a new session" in recovery
-    assert "force requestor ownership pickup" in recovery
-    assert "old ownership token" in recovery
-    assert "Step 4's status schema and migration work does not" in recovery
-    assert "Step 5's role-resolved resume interface" in recovery
-    for phrase in ("new generation", "not a reset", "`reclaim`"):
-        assert phrase in explanation
-    for token in (
-        "| `pickup` |",
-        "`ownership_generation`",
-        "`ownership_token`",
-        "`ownership-picked-up`",
-    ):
-        assert token in reference
+    _assert_phrases(readme, ("This is a new session", "force requestor ownership pickup"))
+    _assert_phrases(
+        recovery,
+        (
+            "Continue an active code review in a new session",
+            "force requestor ownership pickup",
+            "old ownership token",
+            "Step 4's status schema and migration work does not",
+            "Step 5's role-resolved resume interface",
+        ),
+    )
+    _assert_phrases(explanation, ("new generation", "not a reset", "`reclaim`"))
+    _assert_phrases(
+        reference,
+        (
+            "| `pickup` |",
+            "`ownership_generation`",
+            "`ownership_token`",
+            "`ownership-picked-up`",
+        ),
+    )
 
 
 def test_step_3_coverage_records_task_and_recovery_evidence(
