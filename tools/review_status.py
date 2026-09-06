@@ -1,4 +1,9 @@
-"""Bounded status discovery with one invocation-scoped artifact configuration."""
+"""Bounded status discovery with one migration-aware artifact configuration.
+
+Ordinary projection remains read-only.  The public entry point first permits the
+single bounded mutation exception required to migrate legacy review artifacts,
+then projects the ready layout exactly once.
+"""
 
 # ruff: noqa: EM101, EM102, TRY003
 
@@ -28,6 +33,7 @@ from tools.review_exchange_paths import (
 )
 from tools.review_exchange_store import ReviewExchangeStore
 from tools.review_exchange_transcript_identity import current_request_occurrence
+from tools.review_status_migration import ReviewStatusMigrationPreflight
 from tools.review_status_models import (
     SCHEMA_VERSION,
     ArtifactApplicability,
@@ -37,12 +43,14 @@ from tools.review_status_models import (
     ExchangeStatus,
     LeaseFreshness,
     LeaseStatus,
+    MigrationStatus,
     NextAction,
     ReviewStatusOutcome,
     ReviewStatusResult,
     RoleSpecialization,
     StatusEntry,
 )
+from tools.review_status_role_nature import ReviewStatusRoleNatureProjection
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Mapping
@@ -125,7 +133,7 @@ _EXTRA_EXPECTED = {
 
 @dataclass(frozen=True)
 class _StatusDependencies:
-    """Private read boundary used to prove bounded and mutation-free collection."""
+    """Private read boundary for projection after the bounded migration preflight."""
 
     load_artifact_configuration: Callable[[Path], ReviewArtifactConfiguration]
     load_configuration: Callable[
@@ -223,30 +231,62 @@ def collect_review_status(
     root: Path,
     wall_clock: Callable[[], datetime],
 ) -> ReviewStatusResult:
-    """Collect one immutable repository status without locking or mutation."""
-    return _collect_review_status(root, wall_clock, _DEFAULT_DEPENDENCIES)
+    """Run the bounded migration preflight, then collect one immutable status."""
+    repository_root = root.absolute()
+    try:
+        repository_root = root.resolve(strict=True)
+        preflight = ReviewStatusMigrationPreflight(repository_root).run()
+    except (OSError, UnicodeError, ReviewExchangeError, ValueError) as error:
+        diagnostic = str(error).strip() or type(error).__name__
+        migration = MigrationStatus.blocked(".reviews", (diagnostic,))
+        return _operational_result(repository_root, migration)
+    if not preflight.ready or preflight.configuration is None:
+        return _operational_result(repository_root, preflight.status)
+    return _collect_review_status(
+        repository_root,
+        wall_clock,
+        _DEFAULT_DEPENDENCIES,
+        migration=preflight.status,
+        configuration=preflight.configuration,
+    )
 
 
 def _collect_review_status(
     root: Path,
     wall_clock: Callable[[], datetime],
     dependencies: _StatusDependencies,
+    *,
+    migration: MigrationStatus | None = None,
+    configuration: ReviewArtifactConfiguration | None = None,
 ) -> ReviewStatusResult:
-    """Collect through an injected read boundary used by focused tests."""
+    """Collect through the existing injected boundary after optional preflight."""
     repository_root = root.absolute()
+    artifacts = configuration
+    migration_status = migration
     try:
         repository_root = root.resolve(strict=True)
-        artifacts = dependencies.load_artifact_configuration(repository_root)
-        configuration = dependencies.load_configuration(repository_root, artifacts)
+        if artifacts is None:
+            artifacts = dependencies.load_artifact_configuration(repository_root)
+        if migration_status is None:
+            migration_status = MigrationStatus.unnecessary(artifacts.relative_home)
+        review_configuration = dependencies.load_configuration(
+            repository_root,
+            artifacts,
+        )
         evaluated_at = wall_clock()
         candidates = dependencies.enumerate_candidates(artifacts)
-    except (OSError, UnicodeError, ReviewExchangeError, ValueError):
-        return _operational_result(repository_root)
+    except (OSError, UnicodeError, ReviewExchangeError, ValueError) as error:
+        diagnostic = str(error).strip() or type(error).__name__
+        failed_migration = migration_status or MigrationStatus.blocked(
+            artifacts.relative_home if artifacts is not None else ".reviews",
+            (diagnostic,),
+        )
+        return _operational_result(repository_root, failed_migration)
 
     invocation = _StatusInvocation(
         repository_root,
         artifacts,
-        configuration,
+        review_configuration,
         evaluated_at,
     )
     entries = tuple(
@@ -258,7 +298,7 @@ def _collect_review_status(
         for candidate in candidates
     )
     retained = tuple(entry for entry in entries if entry is not None)
-    return _result(repository_root, _sort_entries(retained))
+    return _result(repository_root, _sort_entries(retained), migration_status)
 
 
 def _collect_candidate(
@@ -342,7 +382,7 @@ def _project_exchange(  # noqa: PLR0913
     evaluated_at: datetime,
     presence: Mapping[ArtifactKind, bool],
 ) -> ExchangeStatus:
-    """Project validated protocol evidence into the stable status schema."""
+    """Project protocol state and all present role-nature snapshots once."""
     state = observation.state
     role = _role_for(state, record.owner, record.expected_next_actor, presence)
     applicable = _applicable_kinds(state)
@@ -360,6 +400,17 @@ def _project_exchange(  # noqa: PLR0913
     }
     action = _next_action_for(state)
     context = record.context
+    nature_snapshots = [(paths.coordination, record.role_natures)]
+    for path, envelope in (
+        (paths.request, observation.request_envelope),
+        (paths.answer, observation.answer_envelope),
+    ):
+        if envelope is not None:
+            nature_snapshots.append((path, envelope.role_natures))
+    requestor_nature, reviewer_nature = ReviewStatusRoleNatureProjection.project(
+        root,
+        nature_snapshots,
+    )
     return ExchangeStatus(
         identity=context.identity,
         reviewed_document=_relative(root, context.document_path),
@@ -376,6 +427,8 @@ def _project_exchange(  # noqa: PLR0913
         owner=record.owner,
         lease=_lease_for(state, record.lease_renewed_at, timeout_seconds, evaluated_at),
         artifacts=artifacts,
+        requestor_llm_nature=requestor_nature,
+        reviewer_llm_nature=reviewer_nature,
         next_action=action,
         next_action_text=_ACTION_TEXT[action],
     )
@@ -511,7 +564,11 @@ def _relative(root: Path, path: Path) -> str:
         raise ReviewExchangeError(f"path is outside repository root: {path}") from error
 
 
-def _result(root: Path, entries: tuple[StatusEntry, ...]) -> ReviewStatusResult:
+def _result(
+    root: Path,
+    entries: tuple[StatusEntry, ...],
+    migration: MigrationStatus,
+) -> ReviewStatusResult:
     """Build the aggregate outcome from independently retained evidence."""
     if not entries:
         outcome = ReviewStatusOutcome.TRUSTWORTHY
@@ -524,16 +581,17 @@ def _result(root: Path, entries: tuple[StatusEntry, ...]) -> ReviewStatusResult:
     else:
         outcome = ReviewStatusOutcome.TRUSTWORTHY
     return ReviewStatusResult(
-        SCHEMA_VERSION,
-        root.as_posix(),
-        outcome,
-        entries,
-        len(entries),
-        outcome is not ReviewStatusOutcome.TRUSTWORTHY,
+        schema_version=SCHEMA_VERSION,
+        repository_root=root.as_posix(),
+        outcome=outcome,
+        exchanges=entries,
+        active_count=len(entries),
+        has_errors=outcome is not ReviewStatusOutcome.TRUSTWORTHY,
+        migration=migration,
     )
 
 
-def _operational_result(root: Path) -> ReviewStatusResult:
+def _operational_result(root: Path, migration: MigrationStatus) -> ReviewStatusResult:
     """Return a fatal collection result without claiming partial evidence."""
     return ReviewStatusResult(
         schema_version=SCHEMA_VERSION,
@@ -542,6 +600,7 @@ def _operational_result(root: Path) -> ReviewStatusResult:
         exchanges=(),
         active_count=0,
         has_errors=True,
+        migration=migration,
     )
 
 

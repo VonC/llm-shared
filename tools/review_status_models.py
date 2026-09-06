@@ -12,6 +12,7 @@ from pathlib import PurePosixPath, PureWindowsPath
 from types import MappingProxyType
 from typing import TYPE_CHECKING
 
+from tools.llm_nature import LlmNature
 from tools.review_exchange_models import (
     Actor,
     ArtifactState,
@@ -26,7 +27,8 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
 
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
+_CONFLICTING_VALUE_COUNT = 2
 
 
 class ReviewStatusModelError(ValueError):
@@ -39,6 +41,21 @@ class ReviewStatusOutcome(StrEnum):
     TRUSTWORTHY = "trustworthy"
     UNTRUSTWORTHY = "untrustworthy"
     OPERATIONAL_FAILURE = "operational-failure"
+
+
+class MigrationState(StrEnum):
+    """Status-visible outcome of the bounded artifact-placement preflight."""
+
+    UNNECESSARY = "unnecessary"
+    COMPLETED = "completed"
+    BLOCKED = "blocked"
+
+
+class RoleNatureState(StrEnum):
+    """Status-only states used when role nature is absent or contradictory."""
+
+    UNRECORDED = "unrecorded"
+    CONFLICTING = "conflicting"
 
 
 class LeaseFreshness(StrEnum):
@@ -142,6 +159,145 @@ def _timestamp(value: str, label: str) -> datetime:
 
 
 @dataclass(frozen=True)
+class MigrationStatus:
+    """Typed result of the only bounded mutation allowed before status projection."""
+
+    state: MigrationState
+    artifact_home: str
+    moved_count: int
+    diagnostics: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        """Reject migration facts that disagree with the preflight state."""
+        if not isinstance(self.state, MigrationState):
+            raise ReviewStatusModelError("invalid migration state")
+        _relative_path(self.artifact_home, "artifact home")
+        self._validate_count()
+        self._validate_diagnostics()
+        self._validate_relationships()
+
+    def _validate_count(self) -> None:
+        """Require one non-boolean non-negative moved-artifact count."""
+        if (
+            isinstance(self.moved_count, bool)
+            or not isinstance(self.moved_count, int)
+            or self.moved_count < 0
+        ):
+            raise ReviewStatusModelError("moved count must be a non-negative integer")
+
+    def _validate_diagnostics(self) -> None:
+        """Require an immutable tuple of nonempty diagnostic messages."""
+        if not isinstance(self.diagnostics, tuple) or any(
+            not isinstance(item, str) or not item.strip() for item in self.diagnostics
+        ):
+            raise ReviewStatusModelError("migration diagnostics must be nonempty text")
+
+    def _validate_relationships(self) -> None:
+        """Require counts and diagnostics to agree with the migration state."""
+        if self.state is MigrationState.UNNECESSARY and self.moved_count != 0:
+            raise ReviewStatusModelError("unnecessary migration cannot report moved artifacts")
+        if self.state is MigrationState.COMPLETED and self.moved_count == 0:
+            raise ReviewStatusModelError("completed migration must report moved artifacts")
+        if self.state is MigrationState.BLOCKED and not self.diagnostics:
+            raise ReviewStatusModelError("blocked migration requires diagnostics")
+        if self.state is not MigrationState.BLOCKED and self.diagnostics:
+            raise ReviewStatusModelError("successful migration cannot carry diagnostics")
+
+    @classmethod
+    def unnecessary(cls, artifact_home: str) -> MigrationStatus:
+        """Build an initially-ready placement result."""
+        return cls(MigrationState.UNNECESSARY, artifact_home, 0)
+
+    @classmethod
+    def completed(cls, artifact_home: str, moved_count: int) -> MigrationStatus:
+        """Build a migrated and rechecked-ready placement result."""
+        return cls(MigrationState.COMPLETED, artifact_home, moved_count)
+
+    @classmethod
+    def blocked(
+        cls,
+        artifact_home: str,
+        diagnostics: tuple[str, ...],
+    ) -> MigrationStatus:
+        """Build a typed placement failure without claiming projected evidence."""
+        return cls(MigrationState.BLOCKED, artifact_home, 0, diagnostics)
+
+    def to_dict(self) -> dict[str, object]:
+        """Return the explicit schema-2 migration record."""
+        return {
+            "state": self.state.value,
+            "artifact_home": self.artifact_home,
+            "moved_count": self.moved_count,
+            "diagnostics": list(self.diagnostics),
+        }
+
+
+@dataclass(frozen=True)
+class RoleNatureEvidenceStatus:
+    """One repository-relative artifact path and its recorded role nature."""
+
+    path: str
+    nature: LlmNature | None
+
+    def __post_init__(self) -> None:
+        """Require canonical paths and closed nullable LLM-nature values."""
+        _relative_path(self.path, "role-nature evidence path")
+        if self.nature is not None and not isinstance(self.nature, LlmNature):
+            raise ReviewStatusModelError("invalid role-nature evidence value")
+
+    def to_dict(self) -> dict[str, str | None]:
+        """Return one stable machine-readable evidence record."""
+        return {
+            "path": self.path,
+            "nature": None if self.nature is None else self.nature.value,
+        }
+
+
+@dataclass(frozen=True)
+class RoleNatureStatus:
+    """Reconciled role nature plus all artifact evidence supporting the result."""
+
+    value: LlmNature | RoleNatureState
+    evidence: tuple[RoleNatureEvidenceStatus, ...] = ()
+
+    def __post_init__(self) -> None:
+        """Reject evidence that contradicts the normalized role-nature value."""
+        if not isinstance(self.value, (LlmNature, RoleNatureState)):
+            raise ReviewStatusModelError("invalid role-nature status value")
+        recorded = self._recorded_values()
+        self._validate_relationship(recorded)
+
+    def _recorded_values(self) -> set[LlmNature]:
+        """Validate the evidence tuple and return its known values."""
+        if not isinstance(self.evidence, tuple) or any(
+            not isinstance(item, RoleNatureEvidenceStatus) for item in self.evidence
+        ):
+            raise ReviewStatusModelError("role-nature evidence must be a typed tuple")
+        return {item.nature for item in self.evidence if item.nature is not None}
+
+    def _validate_relationship(self, recorded: set[LlmNature]) -> None:
+        """Require the normalized value to agree with all recorded evidence."""
+        if self.value is RoleNatureState.UNRECORDED and recorded:
+            raise ReviewStatusModelError("unrecorded role nature cannot have recorded evidence")
+        if (
+            self.value is RoleNatureState.CONFLICTING
+            and len(recorded) < _CONFLICTING_VALUE_COUNT
+        ):
+            raise ReviewStatusModelError("conflicting role nature requires different evidence")
+        if isinstance(self.value, LlmNature) and recorded != {self.value}:
+            raise ReviewStatusModelError("role nature disagrees with recorded evidence")
+
+    @classmethod
+    def unrecorded(cls) -> RoleNatureStatus:
+        """Build the legacy-compatible absence used by constructor defaults."""
+        return cls(RoleNatureState.UNRECORDED)
+
+    def evidence_dicts(self) -> list[dict[str, str | None]]:
+        """Return stable evidence records for the exchange schema."""
+        return [item.to_dict() for item in self.evidence]
+
+
+@dataclass(frozen=True)
 class ArtifactStatus:
     """Canonical artifact path with separate applicability and presence facts."""
 
@@ -209,7 +365,7 @@ class LeaseStatus:
 
 @dataclass(frozen=True)
 class ExchangeStatus:
-    """Complete trustworthy identity plus normalized active-exchange evidence."""
+    """Complete active-exchange evidence with reconciled role natures."""
 
     identity: ExchangeIdentity
     reviewed_document: str
@@ -224,6 +380,8 @@ class ExchangeStatus:
     owner: Actor
     lease: LeaseStatus
     artifacts: Mapping[ArtifactKind, ArtifactStatus]
+    requestor_llm_nature: RoleNatureStatus
+    reviewer_llm_nature: RoleNatureStatus
     next_action: NextAction
     next_action_text: str
 
@@ -236,6 +394,10 @@ class ExchangeStatus:
         if not isinstance(self.next_action, NextAction):
             raise ReviewStatusModelError("invalid next action")
         _nonempty(self.next_action_text, "next-action text")
+        if not isinstance(self.requestor_llm_nature, RoleNatureStatus):
+            raise ReviewStatusModelError("invalid requestor LLM-nature status")
+        if not isinstance(self.reviewer_llm_nature, RoleNatureStatus):
+            raise ReviewStatusModelError("invalid reviewer LLM-nature status")
 
     def to_dict(self) -> dict[str, object]:
         """Return the explicit stable healthy-entry schema."""
@@ -256,6 +418,12 @@ class ExchangeStatus:
             "artifacts": {
                 kind.value: self.artifacts[kind].to_dict() for kind in ArtifactKind
             },
+            "requestor_llm_nature": self.requestor_llm_nature.value.value,
+            "requestor_llm_nature_evidence": (
+                self.requestor_llm_nature.evidence_dicts()
+            ),
+            "reviewer_llm_nature": self.reviewer_llm_nature.value.value,
+            "reviewer_llm_nature_evidence": self.reviewer_llm_nature.evidence_dicts(),
             "next_action": self.next_action.value,
             "next_action_text": self.next_action_text,
         }
@@ -336,7 +504,7 @@ StatusEntry = ExchangeStatus | DamagedCandidateStatus
 
 @dataclass(frozen=True)
 class ReviewStatusResult:
-    """One immutable repository result shared by all status renderers."""
+    """One immutable schema-2 result shared by all status renderers."""
 
     schema_version: int
     repository_root: str
@@ -344,12 +512,15 @@ class ReviewStatusResult:
     exchanges: tuple[StatusEntry, ...]
     active_count: int
     has_errors: bool
+    migration: MigrationStatus
 
     def __post_init__(self) -> None:
         """Reject aggregate counts, flags, and outcomes that contradict entries."""
         if self.schema_version != SCHEMA_VERSION:
             raise ReviewStatusModelError(f"schema version must be {SCHEMA_VERSION}")
         _absolute_root(self.repository_root)
+        if not isinstance(self.migration, MigrationStatus):
+            raise ReviewStatusModelError("invalid migration status")
         _validate_result_entries(self)
         _validate_result_outcome(self)
 
@@ -370,6 +541,7 @@ class ReviewStatusResult:
             "outcome": self.outcome.value,
             "active_count": self.active_count,
             "has_errors": self.has_errors,
+            "migration": self.migration.to_dict(),
             "exchanges": [entry.to_dict() for entry in self.exchanges],
         }
 
