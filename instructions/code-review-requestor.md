@@ -62,8 +62,10 @@ Only then pass the complete paired artifacts to `publish-request`.
    `& "<LLM_SHARED_DIR>\bin\code_review_request.bat"` with every applicable additive validation
    command and two distinct ignored output paths.
 4. Pass the complete request and substantive summary to `publish-request`.
-5. Run `wait-answer` once using the complete marker timeout. Read only the exact
-   `paths.answer` file returned for this identity.
+5. Do not start, spawn, delegate, invoke, or message a reviewer. Run
+   `wait-answer` immediately in this same requestor session using the complete
+   marker timeout. Read only the exact `paths.answer` file returned for this
+   identity.
 6. For an intermediate answer, assess accepted repairs, make writer-owned
    corrections, and call `consume-answer` with truthful `reviewed-work-changed`
    evidence plus `disagreement` only for explicit disagreement.
@@ -79,6 +81,16 @@ Only then pass the complete paired artifacts to `publish-request`.
 
 Never read the versioned transcript as working context. After a wait or status
 reports an answer, read only the exact `paths.answer` file.
+
+The shared role-session isolation rule is fail-closed. A requestor never runs
+`pw skill code-reviewer`, invokes the reviewer skill or prompt, uses an agent
+or subagent tool to create the counterpart, or asks another model to review.
+Publishing the request is the whole handoff; waiting is the whole requestor
+continuation.
+
+Reject this requestor task if an automated reviewer or a parent agent acting as
+reviewer spawned, delegated, started, invoked, or messaged it. The reviewer
+publishes an answer and waits; it never creates the requestor continuation.
 
 ## State handling for the code-review requestor
 

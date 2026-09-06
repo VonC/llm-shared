@@ -86,6 +86,29 @@ def test_instruction_captures_and_publishes_typed_request_evidence() -> None:
     )
 
 
+def test_requestor_cannot_initiate_the_reviewer() -> None:
+    """Publication hands off through artifacts, never through agent creation."""
+    normalized = " ".join(_content().split())
+
+    for fragment in (
+        "Do not start, spawn, delegate, invoke, or message a reviewer",
+        "wait-answer` immediately in this same requestor session",
+        "never runs `pw skill code-reviewer`",
+        "uses an agent or subagent tool to create the counterpart",
+        "Publishing the request is the whole handoff",
+    ):
+        assert fragment in normalized
+
+
+def test_requestor_rejects_reviewer_initiated_continuation() -> None:
+    """Answer publication cannot create a new requestor session."""
+    normalized = " ".join(_content().split())
+
+    assert "Reject this requestor task if an automated reviewer" in normalized
+    assert "parent agent acting as reviewer" in normalized
+    assert "it never creates the requestor continuation" in normalized
+
+
 def test_instruction_handles_every_resumable_state_without_manual_edits() -> None:
     """Every durable state maps to shared recovery or a fail-closed stop."""
     content = _content()

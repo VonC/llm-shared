@@ -75,6 +75,23 @@ def test_wait_answer_uses_the_complete_marker_timeout() -> None:
     assert "complete timeout configured by `a.review-mode`" in normalized
 
 
+def test_requestor_cannot_initiate_the_reviewer() -> None:
+    """Specification publication also preserves external role assignment."""
+    normalized = " ".join(_content().split())
+
+    assert "Do not start, spawn, delegate, invoke, or message a reviewer" in normalized
+    assert "wait-answer` immediately in this same requestor session" in normalized
+
+
+def test_requestor_rejects_reviewer_initiated_continuation() -> None:
+    """Specification answer publication cannot create its requestor."""
+    normalized = " ".join(_content().split())
+
+    assert "Reject this requestor task if an automated reviewer" in normalized
+    assert "parent agent acting as reviewer" in normalized
+    assert "it never creates the requestor continuation" in normalized
+
+
 def test_instruction_handles_resumption_without_manual_artifact_edits() -> None:
     """Every durable state has a specialized action or a fail-closed stop."""
     content = _content()

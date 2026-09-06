@@ -49,7 +49,9 @@ that launcher instead of reconstructing nearby names.
    distinct ignored root output paths.
 4. Pass the renderer's complete request output and substantive summary output
    to `publish-request`. Do not edit the published request or transcript.
-5. Run `wait-answer` once through the shared requestor.
+5. Do not start, spawn, delegate, invoke, or message a reviewer. Run
+   `wait-answer` immediately in this same requestor session through the shared
+   requestor.
    Do not pass `--timeout-seconds` to `wait-answer`; use the complete timeout
    configured by `a.review-mode`. Read its one final JSON result after the
    bounded wait returns.
@@ -66,6 +68,10 @@ that launcher instead of reconstructing nearby names.
 Never read the versioned transcript as working context. After a wait or status
 result reports an answer, read only the exact `paths.answer` file returned for
 the current identity.
+
+Reject this requestor task if an automated reviewer or a parent agent acting as
+reviewer spawned, delegated, started, invoked, or messaged it. The reviewer
+publishes an answer and waits; it never creates the requestor continuation.
 
 ## State handling for specification requestors
 

@@ -12,6 +12,19 @@ Their artifact, heading, result, exit, and reviewer-assessment contracts apply.
 This instruction owns only the ordered reviewer sequence, recovery decisions,
 human-guidance response, and advisory publication decision.
 
+Before any command or repository read, enforce the shared role-session
+isolation rule. Refuse the task when an automated requestor or a parent agent
+acting as requestor spawned, delegated, started, invoked, or messaged this
+reviewer. A valid `request-pending` route is necessary but does not prove valid
+reviewer provenance. Proceed only as an independently waiting reviewer or when
+the human or an external reviewer service started this reviewer independently.
+
+This reviewer never starts the counterpart either. It must not spawn, start,
+delegate, invoke, or message a requestor agent or requestor session, including
+through an agent tool, direct model call, requestor skill or prompt, or
+`pw skill code-review-requestor`. It reviews a published request or waits for
+one; publishing an answer is its entire handoff to the existing requestor.
+
 ## Exact code-review policy and context
 
 Pass this policy unchanged to every
@@ -127,7 +140,8 @@ control to the user. There is always a wait to enter, and only two kinds exist.
 **The round wait.** While the exchange still has reviewer-owned rounds, wait for
 the next one with a bounded `wait-request` on the exact same context. This is
 Step 13 above, and it applies the moment a `changes-requested` publication
-returns `answer-pending`.
+returns `answer-pending`. Never start or contact a requestor to produce that
+next round.
 
 **The artifact-home wait.** When the current exchange has no further
 reviewer-owned round -- after a convergence publication reaches the human gate,
@@ -142,6 +156,10 @@ long session or a completed round as a reason to hand back. A reviewer that
 reports a round finished and stops has abandoned the next request rather than
 completed its work, and the requestor will publish into an exchange nobody is
 watching.
+
+The absence of a request never authorizes reviewer-to-requestor delegation.
+Reviewers stay in the applicable wait and let independently running requestors
+publish through the artifact home.
 
 Never substitute a polling loop, a sleep, or a repeated `status` for either
 wait. The bounded protocol wait is the only sanctioned mechanism.
@@ -281,6 +299,10 @@ The reviewer may call only `status`, `wait-request`, an eligible request
 `consume-answer`, `continue`, `confirm`, `complete`, `escalate`, `cancel`,
 `resolve`, or `archive`. Never start a replacement round or mutate protocol
 artifacts by hand.
+
+Never spawn, start, delegate, invoke, or message a requestor agent or session.
+Never run `pw skill code-review-requestor` or substitute another model call for
+the round wait or artifact-home wait.
 
 Do not run a `commit`, invoke batch commit, consume the answer, confirm the
 convergence gate, complete the exchange, edit the transcript, or perform the

@@ -102,6 +102,16 @@ Never concatenate several whole documents in one command "to gather context": th
 - Search with `rg` using a narrow pattern and bounded context (`-C 10`, not `-C 80`).
 - Run a command only when its output feeds the very next action.
 
+## A marker check is a command at its own moment, never a recalled listing
+
+An instruction that says to sample a marker, a flag file, or any state file names *when* to sample it as much as *what* to sample. A directory listing taken earlier for another purpose is not that sample, and treating it as one turns a scheduled branch into a coin flip decided by whatever the listing happened to show.
+
+- Test the exact resolved path at the moment the instruction schedules the test, with `Test-Path` in PowerShell or `test -f` in a POSIX shell, or better, run the command that resolves the state and answers.
+- Prefer the command over the path whenever a launcher exists. A path written in prose drifts from the path the tooling resolves; a launcher cannot.
+- Never read absence from a plain `ls`, from `git status`, or from memory of either. A marker in a dotted directory is invisible to the first, an ignored marker is invisible to the second, and a stale recollection is invisible to review.
+- A failed or unavailable check is not a negative answer. Report the diagnostic and stop; do not let "the command did not run" become "the state is off".
+- State the sampled result in one line before acting on it. A check whose result is never stated reads exactly like a check that never happened.
+
 ## Diagnose before re-running or escalating
 
 A failed command falls into one of two cases, and they have opposite fixes:

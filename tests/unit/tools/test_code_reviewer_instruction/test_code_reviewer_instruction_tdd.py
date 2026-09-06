@@ -86,6 +86,36 @@ def test_instruction_covers_assessment_repairs_validation_and_early_rejection() 
         assert required in content
 
 
+def test_reviewer_rejects_requestor_initiated_sessions_before_reading() -> None:
+    """A pending artifact cannot legitimize a requestor-spawned reviewer."""
+    content = " ".join(_content().split())
+
+    for fragment in (
+        "Before any command or repository read",
+        "Refuse the task when an automated requestor",
+        "parent agent acting as requestor",
+        "does not prove valid reviewer provenance",
+        "independently waiting reviewer",
+    ):
+        assert fragment in content
+
+
+def test_reviewer_never_initiates_a_requestor_and_stays_in_waits() -> None:
+    """Answer publication and missing requests cannot trigger role creation."""
+    content = " ".join(_content().split())
+
+    for fragment in (
+        "must not spawn, start, delegate, invoke, or message a requestor",
+        "`pw skill code-review-requestor`",
+        "publishing an answer is its entire handoff",
+        "Never start or contact a requestor to produce that next round",
+        "The absence of a request never authorizes reviewer-to-requestor delegation",
+        "Never spawn, start, delegate, invoke, or message a requestor",
+        "substitute another model call for the round wait or artifact-home wait",
+    ):
+        assert fragment in content
+
+
 def test_instruction_covers_manifest_recovery_and_both_publication_exits() -> None:
     """Retained evidence survives failures and retires on either published exit."""
     content = _content()
@@ -134,6 +164,8 @@ def test_instruction_requires_the_reviewer_to_always_wait() -> None:
     ):
         assert phrase in normalized
     assert "GlobalReviewerWait" in content
+    assert "it has not shipped" in normalized
+    assert "hold the artifact-home wait open in words" in normalized
 
 
 def test_instruction_requires_independent_commit_plan_readiness_evidence() -> None:

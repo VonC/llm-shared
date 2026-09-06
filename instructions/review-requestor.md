@@ -162,6 +162,47 @@ A transcript a Markdown linter reports `MD024` or `MD025` on is a defect in the
 round that appended to it, not in the linter configuration. Neither rule may be
 disabled to make a transcript pass.
 
+## Role-session isolation
+
+Role assignment is an external orchestration boundary, not an exchange
+operation. A requestor must never spawn, start, delegate, invoke, or message a
+reviewer agent or reviewer session. This prohibition includes subagents, child
+agents, agent-assignment tools, direct model calls, reviewer skills or prompts,
+and `pw skill code-reviewer` or `pw skill spec-reviewer`. A `request-pending`
+route makes work available to an independently running reviewer; it does not
+authorize the requestor to create that reviewer.
+
+Immediately after publishing a request, the requestor's only automated next
+action is the same session's bounded `wait-answer`. Run it even when no reviewer
+appears to be active. If the wait stops, report its durable outcome; never fill
+the missing counterpart role. The reviewer must already be waiting or must be
+started independently by the human or an external reviewer service that the
+requestor does not control.
+
+A reviewer must reject an invocation initiated by an automated requestor or by
+a parent agent acting as requestor, even when `pw` can resolve a valid pending
+review route. Only a reviewer already waiting independently, or one started by
+the human or an external reviewer service, may enter `wait-request` and assess
+the request. This provenance check happens before any review command, file read,
+assessment, repair, or answer publication.
+
+The boundary is reciprocal. A reviewer must never spawn, start, delegate,
+invoke, or message a requestor agent or requestor session. This includes
+subagents, child agents, agent-assignment tools, direct model calls, requestor
+skills or prompts, and `pw skill code-review-requestor` or
+`pw skill spec-review-requestor`. Publishing an answer is the whole handoff to
+the existing requestor role. After `changes-requested`, the reviewer waits for
+the next round with `wait-request`; after convergence or a terminal handoff, it
+waits for any specification or code request through the configured artifact
+home and its global monitoring mechanism.
+
+If the global monitoring mechanism has not shipped, its absence never
+authorizes the reviewer to create a requestor. The reviewer remains available
+under the specialized reviewer's documented interim wait instead. A requestor
+must reject an invocation initiated by an automated reviewer or by a parent
+agent acting as reviewer before any requestor command, file read, workflow
+mutation, or response processing.
+
 ## Automated requestor sequence
 
 Intermediate rounds use reciprocal active waits across the two agent sessions.
@@ -185,7 +226,8 @@ without arranging a new reviewer invocation.
    exchange.
 3. Finish the request content and transcript summary files, then call
    `publish-request --content-file <path> --summary-file <path>`.
-4. Call `wait-answer` once. This is one bounded in-process wait, not repeated
+4. Without invoking or contacting a reviewer, call `wait-answer` once. This is
+   one bounded in-process wait, not repeated
    short slices. Progress JSON is written only to standard error. Read the
    single final standard-output object after the command returns.
 5. Read only the exact answer path returned in `paths.answer`. Let the

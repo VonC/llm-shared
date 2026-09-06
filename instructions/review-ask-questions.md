@@ -63,9 +63,17 @@ Run these steps for the document you are reviewing:
 
 Apply this block only when the workflow placed one or more new questions.
 Honor an invocation containing `stop here` before checking exchange state: keep
-the existing human-review stop and create no review artifact. When review mode
-is absent because the project-root `a.review-mode` marker does not exist, keep
-that same existing stop.
+the existing human-review stop and create no review artifact. Sample review
+mode here rather than recalling an earlier listing: the marker sits in a dotted
+directory a plain `ls` does not show, and the `a.*` ignore rule keeps it out of
+`git status`. Prefer the status command,
+`& "<LLM_SHARED_DIR>\rvw_status.bat"`, which resolves the artifact home itself;
+falling back to a file test means checking `<artifact-home>/a.review-mode`
+first, where `<artifact-home>` is `.reviews` unless a versioned
+`.review-artifacts.ini` declares another `home` under `[review-artifacts]`, and
+only then the project-root `a.review-mode` the loader keeps as its legacy
+fallback. When review mode is absent because neither marker exists, keep that
+same existing stop.
 
 When the marker is present, run `pw skill spec-review-requestor` through the
 launcher described in [`run-pw.md`](run-pw.md), then run the exact specialized
