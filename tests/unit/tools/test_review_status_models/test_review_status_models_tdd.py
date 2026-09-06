@@ -22,10 +22,12 @@ from tools.review_status_models import (
     ExchangeStatus,
     LeaseFreshness,
     LeaseStatus,
+    MigrationStatus,
     NextAction,
     ReviewStatusModelError,
     ReviewStatusOutcome,
     ReviewStatusResult,
+    RoleNatureStatus,
     RoleSpecialization,
 )
 
@@ -87,6 +89,8 @@ def _exchange() -> ExchangeStatus:
         owner=Actor.REQUESTOR,
         lease=_lease(),
         artifacts=_artifacts(),
+        requestor_llm_nature=RoleNatureStatus.unrecorded(),
+        reviewer_llm_nature=RoleNatureStatus.unrecorded(),
         next_action=NextAction.WAIT_FOR_COUNTERPART,
         next_action_text="Wait for the reviewer answer.",
     )
@@ -239,6 +243,10 @@ def test_exchange_status_has_exact_tagged_projection_and_frozen_artifacts() -> N
         "owner": "requestor",
         "lease": _lease().to_dict(),
         "artifacts": {kind.value: _artifact(kind).to_dict() for kind in ArtifactKind},
+        "requestor_llm_nature": "unrecorded",
+        "requestor_llm_nature_evidence": [],
+        "reviewer_llm_nature": "unrecorded",
+        "reviewer_llm_nature_evidence": [],
         "next_action": "wait-for-counterpart",
         "next_action_text": "Wait for the reviewer answer.",
     }
@@ -277,6 +285,16 @@ def test_exchange_status_rejects_untyped_identity_action_and_human_owner() -> No
         replace(_exchange(), next_action=cast("NextAction", "wait-for-counterpart"))
     with pytest.raises(ReviewStatusModelError, match="owner"):
         replace(_exchange(), owner=Actor.HUMAN)
+    with pytest.raises(ReviewStatusModelError, match="requestor"):
+        replace(
+            _exchange(),
+            requestor_llm_nature=cast("RoleNatureStatus", "unrecorded"),
+        )
+    with pytest.raises(ReviewStatusModelError, match="reviewer"):
+        replace(
+            _exchange(),
+            reviewer_llm_nature=cast("RoleNatureStatus", "unrecorded"),
+        )
 
 
 def test_code_exchange_requires_and_accepts_an_implementation_step() -> None:
@@ -340,40 +358,49 @@ def test_damaged_candidate_rejects_guessed_or_incomplete_evidence(
 def test_repository_result_projects_schema_and_process_status() -> None:
     """One result owns stable schema, counts, errors, entries, and exit status."""
     trustworthy = ReviewStatusResult(
-        schema_version=1,
+        schema_version=2,
         repository_root="C:/work/project",
         outcome=ReviewStatusOutcome.TRUSTWORTHY,
         exchanges=(_exchange(),),
         active_count=1,
         has_errors=False,
+        migration=MigrationStatus.unnecessary(".reviews"),
     )
     damaged = DamagedCandidateStatus("a.review-active.bad.md", "bad candidate")
     untrustworthy = ReviewStatusResult(
-        schema_version=1,
+        schema_version=2,
         repository_root="C:/work/project",
         outcome=ReviewStatusOutcome.UNTRUSTWORTHY,
         exchanges=(_exchange(), damaged),
         active_count=2,
         has_errors=True,
+        migration=MigrationStatus.unnecessary(".reviews"),
     )
     operational = ReviewStatusResult(
-        schema_version=1,
+        schema_version=2,
         repository_root="C:/work/project",
         outcome=ReviewStatusOutcome.OPERATIONAL_FAILURE,
         exchanges=(),
         active_count=0,
         has_errors=True,
+        migration=MigrationStatus.blocked(".reviews", ("unreadable",)),
     )
 
     assert trustworthy.process_status == 0
     assert untrustworthy.process_status == _UNTRUSTWORTHY_STATUS
     assert operational.process_status == _OPERATIONAL_FAILURE_STATUS
     assert trustworthy.to_dict() == {
-        "schema_version": 1,
+        "schema_version": 2,
         "repository_root": "C:/work/project",
         "outcome": "trustworthy",
         "active_count": 1,
         "has_errors": False,
+        "migration": {
+            "state": "unnecessary",
+            "artifact_home": ".reviews",
+            "moved_count": 0,
+            "diagnostics": [],
+        },
         "exchanges": [_exchange().to_dict()],
     }
 
@@ -381,7 +408,7 @@ def test_repository_result_projects_schema_and_process_status() -> None:
 @pytest.mark.parametrize(
     "changes",
     [
-        {"schema_version": 2},
+        {"schema_version": 3},
         {"repository_root": "relative/root"},
         {"active_count": 0},
         {"has_errors": True},
@@ -394,12 +421,13 @@ def test_repository_result_rejects_inconsistent_aggregate_evidence(
 ) -> None:
     """Aggregate flags and counts cannot contradict the ordered entries."""
     result = ReviewStatusResult(
-        schema_version=1,
+        schema_version=2,
         repository_root="C:/work/project",
         outcome=ReviewStatusOutcome.TRUSTWORTHY,
         exchanges=(_exchange(),),
         active_count=1,
         has_errors=False,
+        migration=MigrationStatus.unnecessary(".reviews"),
     )
 
     with pytest.raises(ReviewStatusModelError):
@@ -409,12 +437,13 @@ def test_repository_result_rejects_inconsistent_aggregate_evidence(
 def test_repository_result_rejects_values_outside_its_typed_boundary() -> None:
     """Aggregate construction checks runtime callers as well as typed callers."""
     result = ReviewStatusResult(
-        schema_version=1,
+        schema_version=2,
         repository_root="C:/work/project",
         outcome=ReviewStatusOutcome.TRUSTWORTHY,
         exchanges=(_exchange(),),
         active_count=1,
         has_errors=False,
+        migration=MigrationStatus.unnecessary(".reviews"),
     )
 
     with pytest.raises(ReviewStatusModelError, match="outcome"):
@@ -426,14 +455,17 @@ def test_repository_result_rejects_values_outside_its_typed_boundary() -> None:
         )
     with pytest.raises(ReviewStatusModelError, match="boolean"):
         replace(result, has_errors=cast("bool", 0))
+    with pytest.raises(ReviewStatusModelError, match="migration"):
+        replace(result, migration=cast("MigrationStatus", "unnecessary"))
     with pytest.raises(ReviewStatusModelError, match="retained evidence"):
         ReviewStatusResult(
-            schema_version=1,
+            schema_version=2,
             repository_root="C:/work/project",
             outcome=ReviewStatusOutcome.UNTRUSTWORTHY,
             exchanges=(),
             active_count=0,
             has_errors=True,
+            migration=MigrationStatus.unnecessary(".reviews"),
         )
 
 
@@ -443,12 +475,13 @@ def test_trustworthy_result_rejects_a_damaged_candidate() -> None:
 
     with pytest.raises(ReviewStatusModelError, match="damaged"):
         ReviewStatusResult(
-            schema_version=1,
+            schema_version=2,
             repository_root="C:/work/project",
             outcome=ReviewStatusOutcome.TRUSTWORTHY,
             exchanges=(damaged,),
             active_count=1,
             has_errors=False,
+            migration=MigrationStatus.unnecessary(".reviews"),
         )
 
 

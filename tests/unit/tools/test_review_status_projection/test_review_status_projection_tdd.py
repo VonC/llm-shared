@@ -10,6 +10,8 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+from tools.llm_nature import LlmNature
+
 if TYPE_CHECKING:
     from pathlib import Path
 
@@ -24,12 +26,15 @@ from tools.review_exchange_models import (
     ReviewRole,
 )
 from tools.review_exchange_models_coordination import CoordinationRecord
+from tools.review_exchange_models_envelope import Envelope
 from tools.review_exchange_observer import ExchangeObservation
 from tools.review_exchange_paths import derive_artifact_paths
+from tools.review_role_nature import RoleNatureSnapshot
 from tools.review_status import _outcome_for_state, _project_exchange
 from tools.review_status_models import (
     ArtifactApplicability,
     ArtifactKind,
+    ExchangeStatus,
     LeaseFreshness,
     NextAction,
     ReviewStatusOutcome,
@@ -79,6 +84,19 @@ _UNTRUSTWORTHY = {
     ArtifactState.ABANDONED_ANSWER,
     ArtifactState.INCONSISTENT,
 }
+_REQUESTOR_STATES = {
+    ArtifactState.CONVERGENCE_GATE,
+    ArtifactState.OWNING_ACTION_PENDING,
+}
+_NO_LEASE_STATES = _REQUESTOR_STATES | {ArtifactState.ESCALATED}
+_EXPECTED_ROLE = {
+    state: ReviewRole.REQUESTOR if state in _REQUESTOR_STATES else ReviewRole.REVIEWER
+    for state in ArtifactState
+}
+_EXPECTED_LEASE = {
+    state: LeaseFreshness.NOT_HELD if state in _NO_LEASE_STATES else LeaseFreshness.CURRENT
+    for state in ArtifactState
+}
 
 
 def _record(root: Path, state: ArtifactState) -> CoordinationRecord:
@@ -96,6 +114,53 @@ def _record(root: Path, state: ArtifactState) -> CoordinationRecord:
         Actor.REVIEWER,
         1,
         _RENEWED,
+        role_natures=RoleNatureSnapshot(
+            requestor=LlmNature.CODEX,
+            reviewer=LlmNature.GEMINI,
+        ),
+    )
+
+
+def _assert_role_projection(projected: ExchangeStatus, state: ArtifactState) -> None:
+    """Check role, specialization, owner, and both recorded LLM natures."""
+    assert projected.continuing_role is _EXPECTED_ROLE[state]
+    assert projected.specialization is RoleSpecialization(
+        f"code-{_EXPECTED_ROLE[state].value}",
+    )
+    assert projected.owner is Actor.REQUESTOR
+    assert projected.requestor_llm_nature.value is LlmNature.CODEX
+
+
+def _assert_reviewer_projection(projected: ExchangeStatus, state: ArtifactState) -> None:
+    """Check reviewer nature, evidence path, and lease freshness."""
+    assert projected.reviewer_llm_nature.value is LlmNature.GEMINI
+    assert projected.requestor_llm_nature.evidence[0].path.endswith(
+        f"a.review-active.code.code.v0.11.0.{state.value}.md",
+    )
+    assert projected.lease.freshness is _EXPECTED_LEASE[state]
+
+
+def _assert_artifact_projection(exchange: ExchangeStatus, state: ArtifactState) -> None:
+    """Check the exact state-aware artifact applicability set."""
+    expected = {
+        ArtifactKind.TRANSCRIPT,
+        ArtifactKind.COORDINATION,
+        *_EXPECTED_EXTRA_ARTIFACTS.get(state, set()),
+    }
+    assert {
+        kind
+        for kind, artifact in exchange.artifacts.items()
+        if artifact.applicability is ArtifactApplicability.EXPECTED
+    } == expected
+
+
+def _assert_action_projection(exchange: ExchangeStatus, state: ArtifactState) -> None:
+    """Check stable action and repository-trust mappings."""
+    assert exchange.next_action is _EXPECTED_ACTION[state]
+    assert _outcome_for_state(state) is (
+        ReviewStatusOutcome.UNTRUSTWORTHY
+        if state in _UNTRUSTWORTHY
+        else ReviewStatusOutcome.TRUSTWORTHY
     )
 
 
@@ -120,36 +185,46 @@ def test_every_active_state_has_exact_projection(
         _NOW,
         presence,
     )
-    requestor_states = {
-        ArtifactState.CONVERGENCE_GATE,
-        ArtifactState.OWNING_ACTION_PENDING,
-    }
-    expected_role = (
-        ReviewRole.REQUESTOR if state in requestor_states else ReviewRole.REVIEWER
-    )
-    expected_lease = (
-        LeaseFreshness.NOT_HELD
-        if state in requestor_states | {ArtifactState.ESCALATED}
-        else LeaseFreshness.CURRENT
-    )
-    expected_artifacts = {
-        ArtifactKind.TRANSCRIPT,
-        ArtifactKind.COORDINATION,
-        *_EXPECTED_EXTRA_ARTIFACTS.get(state, set()),
-    }
+    _assert_role_projection(exchange, state)
+    _assert_reviewer_projection(exchange, state)
+    _assert_artifact_projection(exchange, state)
+    _assert_action_projection(exchange, state)
 
-    assert exchange.continuing_role is expected_role
-    assert exchange.specialization is RoleSpecialization(f"code-{expected_role.value}")
-    assert exchange.owner is Actor.REQUESTOR
-    assert exchange.next_action is _EXPECTED_ACTION[state]
-    assert exchange.lease.freshness is expected_lease
-    assert {
-        kind
-        for kind, artifact in exchange.artifacts.items()
-        if artifact.applicability is ArtifactApplicability.EXPECTED
-    } == expected_artifacts
-    assert _outcome_for_state(state) is (
-        ReviewStatusOutcome.UNTRUSTWORTHY
-        if state in _UNTRUSTWORTHY
-        else ReviewStatusOutcome.TRUSTWORTHY
+
+def test_artifact_envelope_role_nature_is_included_as_evidence(tmp_path: Path) -> None:
+    """Already parsed request metadata contributes evidence without another read."""
+    record = _record(tmp_path, ArtifactState.REQUEST_PENDING)
+    paths = derive_artifact_paths(tmp_path, record.context)
+    request = Envelope(
+        record.context.identity,
+        record.context.umbrella_path,
+        record.context.document_path,
+        record.context.implementation_step,
+        ReviewRole.REQUESTOR,
+        record.round_number,
+        _RENEWED,
+        role_natures=RoleNatureSnapshot(requestor=LlmNature.CODEX),
     )
+    presence = dict.fromkeys(ArtifactKind, False)
+
+    projected = _project_exchange(
+        tmp_path,
+        record,
+        paths,
+        ExchangeObservation(
+            ArtifactState.REQUEST_PENDING,
+            record,
+            request,
+            None,
+            "observed",
+        ),
+        1,
+        60,
+        _NOW,
+        presence,
+    )
+
+    assert [item.path for item in projected.requestor_llm_nature.evidence] == [
+        paths.coordination.relative_to(tmp_path).as_posix(),
+        paths.request.relative_to(tmp_path).as_posix(),
+    ]

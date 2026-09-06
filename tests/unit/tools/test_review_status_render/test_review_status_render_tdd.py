@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import pytest
 
+from tools.llm_nature import LlmNature
 from tools.review_exchange_models import (
     Actor,
     ArtifactState,
@@ -25,9 +27,12 @@ from tools.review_status_models import (
     ExchangeStatus,
     LeaseFreshness,
     LeaseStatus,
+    MigrationStatus,
     NextAction,
     ReviewStatusOutcome,
     ReviewStatusResult,
+    RoleNatureEvidenceStatus,
+    RoleNatureStatus,
     RoleSpecialization,
 )
 from tools.review_status_render import render_human, render_json
@@ -78,6 +83,8 @@ def _exchange(*, umbrella: str | None = "docs/v0.11.0/draft.v0.11.0.review-mode.
             freshness=LeaseFreshness.CURRENT,
         ),
         artifacts=_artifacts(),
+        requestor_llm_nature=RoleNatureStatus.unrecorded(),
+        reviewer_llm_nature=RoleNatureStatus.unrecorded(),
         next_action=NextAction.WAIT_FOR_COUNTERPART,
         next_action_text="Wait for the code reviewer answer.",
     )
@@ -86,6 +93,7 @@ def _exchange(*, umbrella: str | None = "docs/v0.11.0/draft.v0.11.0.review-mode.
 def _result(
     *entries: ExchangeStatus | DamagedCandidateStatus,
     outcome: ReviewStatusOutcome = ReviewStatusOutcome.TRUSTWORTHY,
+    migration: MigrationStatus | None = None,
 ) -> ReviewStatusResult:
     """Wrap entries in one internally consistent repository result."""
     return ReviewStatusResult(
@@ -95,6 +103,7 @@ def _result(
         exchanges=entries,
         active_count=len(entries),
         has_errors=outcome is not ReviewStatusOutcome.TRUSTWORTHY,
+        migration=migration or MigrationStatus.unnecessary(".reviews"),
     )
 
 
@@ -103,9 +112,39 @@ def test_human_zero_report_is_complete_and_concise() -> None:
     assert render_human(_result()) == (
         "Repository: C:/répositories/status\n"
         "Outcome: trustworthy\n"
+        "Migration: unnecessary\n"
+        "Artifact home: .reviews\n"
+        "Migrated artifacts: 0\n"
+        "Migration diagnostics: none\n"
         "Active exchanges: 0\n"
         "Errors: no"
     )
+
+
+def test_human_completed_migration_reports_moved_artifacts() -> None:
+    """A completed migration makes its one-time effect visible to operators."""
+    rendered = render_human(
+        _result(migration=MigrationStatus.completed(".reviews", 1)),
+    )
+
+    assert "Migration: completed" in rendered
+    assert "Migrated artifacts: 1" in rendered
+
+
+def test_human_blocked_migration_reports_diagnostics() -> None:
+    """A blocked migration exposes the diagnostic that explains status failure."""
+    rendered = render_human(
+        _result(
+            outcome=ReviewStatusOutcome.OPERATIONAL_FAILURE,
+            migration=MigrationStatus.blocked(
+                ".reviews",
+                ("collision", "second check: blocked"),
+            ),
+        ),
+    )
+
+    assert "Migration: blocked" in rendered
+    assert "Migration diagnostics: collision; second check: blocked" in rendered
 
 
 def test_human_exchange_block_labels_identity_responsibility_and_evidence() -> None:
@@ -116,6 +155,10 @@ def test_human_exchange_block_labels_identity_responsibility_and_evidence() -> N
         (
             "Repository: C:/répositories/status",
             "Outcome: trustworthy",
+            "Migration: unnecessary",
+            "Artifact home: .reviews",
+            "Migrated artifacts: 0",
+            "Migration diagnostics: none",
             "Active exchanges: 1",
             "Errors: no",
             "",
@@ -133,6 +176,10 @@ def test_human_exchange_block_labels_identity_responsibility_and_evidence() -> N
             "  Role: reviewer",
             "  Specialization: code-reviewer",
             "  Owner: requestor",
+            "  Requestor LLM nature: unrecorded",
+            "  Requestor LLM nature evidence: none",
+            "  Reviewer LLM nature: unrecorded",
+            "  Reviewer LLM nature evidence: none",
             "  Lease: current",
             "  Lease renewed at: 2026-08-30T09:00:00+02:00",
             "  Lease expires at: 2026-08-30T10:00:00+02:00",
@@ -170,6 +217,28 @@ def test_human_standalone_and_damaged_blocks_preserve_explicit_absence_and_diagn
     assert "  Candidate: a.review-active.broken.md" in rendered
     assert "  Identity: unknown" in rendered
     assert "  Diagnostic: invalid coordination candidate: malformed JSON" in rendered
+
+
+def test_human_role_nature_renders_recorded_and_unrecorded_evidence() -> None:
+    """Non-empty evidence exposes every path and its explicit observed value."""
+    exchange = _exchange()
+    exchange = replace(
+        exchange,
+        requestor_llm_nature=RoleNatureStatus(
+            LlmNature.CODEX,
+            (
+                RoleNatureEvidenceStatus(".reviews/coordination.md", LlmNature.CODEX),
+                RoleNatureEvidenceStatus(".reviews/request.md", None),
+            ),
+        ),
+    )
+
+    rendered = render_human(_result(exchange))
+
+    assert (
+        "Requestor LLM nature evidence: "
+        ".reviews/coordination.md=codex, .reviews/request.md=unrecorded"
+    ) in rendered
 
 
 def test_json_is_complete_compact_unicode_safe_and_schema_versioned() -> None:
@@ -227,4 +296,4 @@ def test_renderers_do_not_touch_filesystem_or_subprocess(
     result = _result(_exchange())
 
     assert render_human(result).startswith("Repository:")
-    assert render_json(result).startswith('{"schema_version":1')
+    assert render_json(result).startswith('{"schema_version":2')

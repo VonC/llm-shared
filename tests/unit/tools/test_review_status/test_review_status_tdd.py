@@ -5,7 +5,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
@@ -53,6 +53,12 @@ from tools.review_status_models import (
     ReviewStatusResult,
     RoleSpecialization,
 )
+
+
+def _allow_git_ignore(_root: Path, _paths: Sequence[Path]) -> bool:
+    """Stub successful ignored-path validation for migration fixtures."""
+    return True
+
 
 _NOW = datetime(2026, 8, 30, 10, 0, tzinfo=UTC)
 _RENEWED = "2026-08-30T09:59:30+00:00"
@@ -375,7 +381,12 @@ def test_idle_candidate_is_excluded(tmp_path: Path) -> None:
 
 def test_public_entry_point_uses_disabled_fallback_and_marker_override(
     tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    monkeypatch.setattr(
+        "tools.review_artifact_migration._git_ignore_checker",
+        _allow_git_ignore,
+    )
     record = _record(tmp_path)
     candidate = _candidate(tmp_path, record.context.identity)
     candidate.write_bytes(_encoded(record))
@@ -395,6 +406,17 @@ def test_public_entry_point_uses_disabled_fallback_and_marker_override(
     exchange = enabled.exchanges[0]
     assert isinstance(exchange, ExchangeStatus)
     assert exchange.lease.timeout_seconds == 73
+
+
+def test_public_entry_point_blocks_when_repository_root_is_missing(tmp_path: Path) -> None:
+    """Root-resolution failures return typed operational status instead of raising."""
+    missing = tmp_path / "missing"
+
+    result = collect_review_status(missing, lambda: _NOW)
+
+    assert result.outcome is ReviewStatusOutcome.OPERATIONAL_FAILURE
+    assert result.migration.state.value == "blocked"
+    assert result.migration.diagnostics
 
 
 def test_serialized_missing_umbrella_field_is_damaged(tmp_path: Path) -> None:
@@ -439,7 +461,14 @@ def test_derived_canonical_path_mismatch_is_damaged(tmp_path: Path) -> None:
     assert "not its canonical path" in damaged.diagnostic
 
 
-def test_multiple_valid_candidates_are_sorted_by_identity(tmp_path: Path) -> None:
+def test_multiple_valid_candidates_are_sorted_by_identity(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "tools.review_artifact_migration._git_ignore_checker",
+        _allow_git_ignore,
+    )
     records = (_record(tmp_path, "zulu"), _record(tmp_path, "alpha"))
     for record in records:
         _candidate(tmp_path, record.context.identity).write_bytes(_encoded(record))

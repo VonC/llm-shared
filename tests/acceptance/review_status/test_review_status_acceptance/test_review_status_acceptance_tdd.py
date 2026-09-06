@@ -1,4 +1,4 @@
-"""End-to-end acceptance for review-status reporting and read-only behavior.
+"""End-to-end acceptance for migration-aware review-status reporting.
 
 The tests compare the real Windows launcher with direct module execution from a
 nested caller repository, then assert the durable state categories and process
@@ -21,12 +21,31 @@ import pytest
 from tools import review_artifact_configuration as artifact_configuration
 from tools.review_status import collect_review_status
 from tools.review_status_cli import main as review_status_main
-from tools.review_status_models import DamagedCandidateStatus
+from tools.review_status_models import DamagedCandidateStatus, ReviewStatusResult
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import Mapping, Sequence
 
     from tests.acceptance.review_status.conftest import CommandMatrix
+
+
+def _allow_git_ignore(_root: Path, _paths: Sequence[Path]) -> bool:
+    """Stub successful ignored-path validation for migration fixtures."""
+    return True
+
+
+def _load_default_artifact_home(
+    _configuration_type: type[artifact_configuration.ReviewArtifactConfiguration],
+    project_root: Path,
+) -> artifact_configuration.ReviewArtifactConfiguration:
+    """Return the fixture's known artifact home without spawning Git."""
+    root = project_root.resolve()
+    return artifact_configuration.ReviewArtifactConfiguration(
+        root,
+        root / ".reviews",
+        ".reviews",
+        declared=False,
+    )
 
 
 def _exchanges_by_slug(payload: Mapping[str, Any]) -> dict[str, Mapping[str, Any]]:
@@ -120,11 +139,19 @@ def _assert_common_exchange_fields(exchanges: Mapping[str, Mapping[str, Any]]) -
         assert exchange["round"] == 1
         assert exchange["occurrence"] == 1
         assert exchange["diagnostic"]
+        assert exchange["requestor_llm_nature"] == "unrecorded"
+        assert exchange["reviewer_llm_nature"] == "unrecorded"
+        assert exchange["requestor_llm_nature_evidence"]
+        assert exchange["reviewer_llm_nature_evidence"]
 
 
 def _assert_human_identity_lines(stdout: str) -> None:
     """Check role, specialization, and umbrella labels in human output."""
+    assert "Migration: unnecessary" in stdout
+    assert "Artifact home: .reviews" in stdout
     assert "Role: reviewer" in stdout
+    assert "Requestor LLM nature: unrecorded" in stdout
+    assert "Reviewer LLM nature: unrecorded" in stdout
     assert "Specialization: specification-reviewer" in stdout
     assert "Umbrella: docs/v0.11.0/draft.v0.11.0.review-mode.md" in stdout
     assert "Umbrella: none" in stdout
@@ -150,6 +177,13 @@ def test_no_coordination_records_are_trustworthy(
         launcher.payload,
     )
     assert direct.payload["outcome"] == "trustworthy"
+    assert direct.payload["schema_version"] == 2
+    assert direct.payload["migration"] == {
+        "state": "unnecessary",
+        "artifact_home": ".reviews",
+        "moved_count": 0,
+        "diagnostics": [],
+    }
     assert direct.payload["active_count"] == 0
     assert direct.payload["exchanges"] == []
 
@@ -227,6 +261,74 @@ def test_repeated_status_calls_leave_protocol_and_git_state_unchanged(
     assert command_matrix.before.git_status == ""
 
 
+def _assert_safe_migration(completed_root: Path, expected: bytes) -> None:
+    """Assert one real migration and its idempotent repeated status."""
+    completed = collect_review_status(
+        completed_root,
+        lambda: datetime.now().astimezone(),
+    )
+
+    _assert_completed_status(completed)
+    _assert_moved_marker(completed_root, expected)
+
+    repeated = collect_review_status(
+        completed_root,
+        lambda: datetime.now().astimezone(),
+    )
+    assert repeated.migration.state.value == "unnecessary"
+    assert repeated.migration.moved_count == 0
+
+
+def _assert_completed_status(completed: ReviewStatusResult) -> None:
+    """Assert the schema-2 facts for a completed migration result."""
+    assert completed.process_status == 0
+    assert completed.migration.state.value == "completed"
+    assert completed.migration.moved_count == 1
+
+
+def _assert_moved_marker(completed_root: Path, expected: bytes) -> None:
+    """Assert migration moved exact bytes and removed the legacy source."""
+    assert not (completed_root / "a.review-mode").exists()
+    assert (completed_root / ".reviews" / "a.review-mode").read_bytes() == expected
+
+
+def _assert_blocked_migration(blocked_root: Path) -> None:
+    """Assert a real collision prevents all ordinary status projection."""
+    blocked = collect_review_status(
+        blocked_root,
+        lambda: datetime.now().astimezone(),
+    )
+    _assert_blocked_status(blocked)
+    assert blocked.exchanges == ()
+    assert blocked.migration.diagnostics
+
+
+def _assert_blocked_status(blocked: ReviewStatusResult) -> None:
+    """Assert the process and schema states for a blocked migration."""
+    assert blocked.process_status == 2
+    assert blocked.outcome.value == "operational-failure"
+    assert blocked.migration.state.value == "blocked"
+
+
+def test_safe_migration_completes_once_and_collision_blocks_projection(
+    migration_repositories: tuple[Path, Path, bytes],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Real migration moves once and reports unsafe collisions as fatal."""
+    monkeypatch.setattr(
+        artifact_configuration.ReviewArtifactConfiguration,
+        "load",
+        classmethod(_load_default_artifact_home),
+    )
+    monkeypatch.setattr(
+        "tools.review_artifact_migration._git_ignore_checker",
+        _allow_git_ignore,
+    )
+    completed_root, blocked_root, expected = migration_repositories
+    _assert_safe_migration(completed_root, expected)
+    _assert_blocked_migration(blocked_root)
+
+
 def test_changed_coordination_is_reported_without_mutating_the_candidate(
     changing_repository: tuple[Path, Path, bytes],
     monkeypatch: pytest.MonkeyPatch,
@@ -267,10 +369,15 @@ def test_changed_coordination_is_reported_without_mutating_the_candidate(
         "load",
         classmethod(load_untracked),
     )
+    monkeypatch.setattr(
+        "tools.review_artifact_migration._git_ignore_checker",
+        _allow_git_ignore,
+    )
     monkeypatch.setattr(Path, "read_bytes", changing_read)
 
     result = collect_review_status(root, lambda: datetime.now().astimezone())
 
+    assert result.exchanges, result.to_dict()
     damaged = result.exchanges[0]
     assert isinstance(damaged, DamagedCandidateStatus)
     assert damaged.diagnostic == "changed-during-read"
