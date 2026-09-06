@@ -81,6 +81,27 @@ def _tree_field(payload: dict[str, object], name: str) -> str:
     return value
 
 
+def _git_failure_reason(error: BaseException) -> str:
+    """Return Git's own reason for a failed call, or the raised error itself.
+
+    `--repository` defaults to the current directory, so the commonest failure
+    here is a caller standing outside the reviewed repository. Reported as an
+    exit status and a command name alone, that reads as a damaged repository
+    rather than a misdirected call, so Git's own message is carried out
+    whenever the call produced one.
+
+    Args:
+        error: The failure raised by the Git seam.
+
+    Returns:
+        Git's stderr when it wrote one, otherwise the error itself.
+    """
+    stderr: object = getattr(error, "stderr", None)
+    if isinstance(stderr, str) and stderr.strip():
+        return stderr.strip()
+    return str(error)
+
+
 def capture_index_tree(repository: str | Path) -> str:
     """Return the Git tree object for the repository index, never its worktree."""
     root = Path(repository).expanduser().resolve()
@@ -93,7 +114,9 @@ def capture_index_tree(repository: str | Path) -> str:
             options=GitCommandOptions(capture_output=True, encoding="utf-8"),
         )
     except (OSError, subprocess.CalledProcessError) as error:
-        raise ReviewExchangeError(f"cannot capture Git index tree: {error}") from error
+        raise ReviewExchangeError(
+            f"cannot capture Git index tree in {root}: {_git_failure_reason(error)}",
+        ) from error
     tree_object = result.stdout.strip()
     if _TREE_OBJECT_RE.fullmatch(tree_object) is None:
         raise ReviewExchangeError("Git returned a malformed tree object for the index")

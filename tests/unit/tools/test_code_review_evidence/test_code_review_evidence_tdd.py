@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import subprocess
 from pathlib import Path
 
@@ -63,8 +64,13 @@ def test_capture_index_tree_rejects_non_repository_and_malformed_git_output(
     """Repository and object-identity failures remain explicit."""
     with pytest.raises(ReviewExchangeError, match="repository is not a directory"):
         evidence.capture_index_tree(tmp_path / "missing")
-    with pytest.raises(ReviewExchangeError, match="capture Git index tree"):
+    # The commonest failure is a caller standing outside the reviewed
+    # repository, so the diagnostic must name the directory Git ran in and
+    # carry Git's own reason: an exit status alone reads as a damaged
+    # repository rather than a misdirected call.
+    with pytest.raises(ReviewExchangeError, match=re.escape(str(tmp_path.resolve()))) as outside:
         evidence.capture_index_tree(tmp_path)
+    assert "not a git repository" in str(outside.value).casefold()
 
     completed = subprocess.CompletedProcess(["git", "write-tree"], 0, "not-a-tree\n", "")
 
@@ -75,6 +81,30 @@ def test_capture_index_tree_rejects_non_repository_and_malformed_git_output(
     monkeypatch.setattr(evidence, "run_cross_platform_git_command", fake_run)
     with pytest.raises(ReviewExchangeError, match="malformed tree object"):
         evidence.capture_index_tree(tmp_path)
+
+
+def test_capture_index_tree_reports_a_failure_that_wrote_no_git_message(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A Git call that never ran still names the directory it would have run in.
+
+    Git writes nothing to standard error when the executable itself cannot be
+    started, so the diagnostic falls back to the raised error while keeping the
+    directory that tells a misdirected call from a damaged repository.
+    """
+
+    def fail_to_start(_arguments: object, **_kwargs: object) -> subprocess.CompletedProcess[str]:
+        """Fail the way a missing Git executable does, with no stderr."""
+        message = "git executable not found"
+        raise OSError(message)
+
+    monkeypatch.setattr(evidence, "run_cross_platform_git_command", fail_to_start)
+
+    with pytest.raises(ReviewExchangeError, match="git executable not found") as failure:
+        evidence.capture_index_tree(tmp_path)
+
+    assert str(tmp_path.resolve()) in str(failure.value)
 
 
 def test_recorded_blobs_attribute_reviewer_changes_and_protect_writer_deletions(
