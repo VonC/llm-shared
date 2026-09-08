@@ -9753,3 +9753,2699 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-4 -->
+
+## Round 1 by requestor - Step 5
+
+- Recorded: 2026-09-07T12:55:13+02:00
+- Exchange: code/code/v0.11.0/review-resume-command
+- Umbrella: docs/v0.11.0/draft.v0.11.0.review-mode.md
+- Reviewed document: docs/v0.11.0/plan.v0.11.0.review-resume-command.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: unrecorded
+- Implementation step: 5
+- Outcome: request
+
+### Review identity for step 5 review-resume-command (round 1)
+
+Umbrella draft: docs/v0.11.0/draft.v0.11.0.review-mode.md
+Implementation plan: docs/v0.11.0/plan.v0.11.0.review-resume-command.md
+Implementation step: 5
+Review round: 1
+
+### Code review evidence for step 5 review-resume-command (round 1)
+
+request_index_tree: d716ab5da0ce5a0a7c8157f8224bc5ece4bdd7f4
+resolved_validation_set:
+
+- ghog day (sources: project)
+- ghog single tests/unit/tools/test_review_resume_perf/test_review_resume_perf_tdd.py tests/unit/tools/test_review_resume tests/unit/tools/test_review_resume_instruction tests/unit/tools/test_instruction_structure/test_spec_reviewer_adapters_tdd.py tests/unit/tools/test_instruction_structure/test_code_reviewer_adapters_tdd.py tests/unit/tools/test_review_requestor_instruction (sources: plan)
+- ghog single tests/unit/tools/test_review_resume_identity tests/unit/tools/test_review_resume_notifications tests/unit/tools/test_review_resume_wait (sources: request)
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: build(deps): declare watchdog directly
+group 1 path: pyproject.toml
+group 1 path: uv.lock
+group 2: feat(review-resume): restore interrupted roles
+group 2 path: tests/unit/tools/test_review_resume/__init__.py
+group 2 path: tests/unit/tools/test_review_resume/test_review_exchange_cli_resume_tdd.py
+group 2 path: tests/unit/tools/test_review_resume/test_review_resume_contract_tdd.py
+group 2 path: tests/unit/tools/test_review_resume/test_review_resume_lifecycle_tdd.py
+group 2 path: tests/unit/tools/test_review_resume/test_review_resume_role_tdd.py
+group 2 path: tests/unit/tools/test_review_resume/test_review_resume_tdd.py
+group 2 path: tests/unit/tools/test_review_resume_identity/__init__.py
+group 2 path: tests/unit/tools/test_review_resume_identity/test_review_resume_identity_tdd.py
+group 2 path: tests/unit/tools/test_review_resume_notifications/__init__.py
+group 2 path: tests/unit/tools/test_review_resume_notifications/test_review_resume_notifications_tdd.py
+group 2 path: tests/unit/tools/test_review_resume_notifications/test_review_resume_observer_tdd.py
+group 2 path: tests/unit/tools/test_review_resume_perf/test_review_resume_perf_tdd.py
+group 2 path: tests/unit/tools/test_review_resume_wait/__init__.py
+group 2 path: tests/unit/tools/test_review_resume_wait/test_review_resume_wait_tdd.py
+group 2 path: tools/llm_nature.py
+group 2 path: tools/review_exchange_cli.py
+group 2 path: tools/review_exchange_cli_parser.py
+group 2 path: tools/review_exchange_cli_result.py
+group 2 path: tools/review_exchange_cli_resume.py
+group 2 path: tools/review_resume.py
+group 2 path: tools/review_resume_identity.py
+group 2 path: tools/review_resume_notifications.py
+group 2 path: tools/review_resume_wait.py
+group 2 path: tools/review_status.py
+group 3: feat(review-resume): wire role workflow adapters
+group 3 path: .agent/workflows/review-resume.md
+group 3 path: .agents/llm-shared/instructions/review-resume.md
+group 3 path: .agents/llm-shared/skills/review-resume/SKILL.md
+group 3 path: .claude/skills/review-resume/SKILL.md
+group 3 path: .github/skills/review-resume/SKILL.md
+group 3 path: docs/v0.11.0/design.v0.11.0.review-resume-command.md
+group 3 path: instructions/code-review-requestor.md
+group 3 path: instructions/code-reviewer.md
+group 3 path: instructions/review-requestor.md
+group 3 path: instructions/review-resume.md
+group 3 path: instructions/spec-review-requestor.md
+group 3 path: instructions/spec-reviewer.md
+group 3 path: tests/unit/tools/test_code_review_requestor_instruction/test_code_review_requestor_instruction_tdd.py
+group 3 path: tests/unit/tools/test_code_reviewer_instruction/test_code_reviewer_instruction_tdd.py
+group 3 path: tests/unit/tools/test_instruction_structure/test_codex_plugin_structure_tdd.py
+group 3 path: tests/unit/tools/test_review_requestor_instruction/test_review_requestor_instruction_tdd.py
+group 3 path: tests/unit/tools/test_review_resume_instruction/__init__.py
+group 3 path: tests/unit/tools/test_review_resume_instruction/test_review_resume_instruction_tdd.py
+group 3 path: tests/unit/tools/test_spec_reviewer_instruction/test_spec_reviewer_instruction_tdd.py
+group 3 path: tools/prompt_workflow_skill_review.py
+group 4: docs(review-resume-command): record step 5 validation
+group 4 path: docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md
+staged path: .agent/workflows/review-resume.md
+staged path: .agents/llm-shared/instructions/review-resume.md
+staged path: .agents/llm-shared/skills/review-resume/SKILL.md
+staged path: .claude/skills/review-resume/SKILL.md
+staged path: .github/skills/review-resume/SKILL.md
+staged path: docs/v0.11.0/design.v0.11.0.review-resume-command.md
+staged path: docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md
+staged path: instructions/code-review-requestor.md
+staged path: instructions/code-reviewer.md
+staged path: instructions/review-requestor.md
+staged path: instructions/review-resume.md
+staged path: instructions/spec-review-requestor.md
+staged path: instructions/spec-reviewer.md
+staged path: pyproject.toml
+staged path: tests/unit/tools/test_code_review_requestor_instruction/test_code_review_requestor_instruction_tdd.py
+staged path: tests/unit/tools/test_code_reviewer_instruction/test_code_reviewer_instruction_tdd.py
+staged path: tests/unit/tools/test_instruction_structure/test_codex_plugin_structure_tdd.py
+staged path: tests/unit/tools/test_review_requestor_instruction/test_review_requestor_instruction_tdd.py
+staged path: tests/unit/tools/test_review_resume/__init__.py
+staged path: tests/unit/tools/test_review_resume/test_review_exchange_cli_resume_tdd.py
+staged path: tests/unit/tools/test_review_resume/test_review_resume_contract_tdd.py
+staged path: tests/unit/tools/test_review_resume/test_review_resume_lifecycle_tdd.py
+staged path: tests/unit/tools/test_review_resume/test_review_resume_role_tdd.py
+staged path: tests/unit/tools/test_review_resume/test_review_resume_tdd.py
+staged path: tests/unit/tools/test_review_resume_identity/__init__.py
+staged path: tests/unit/tools/test_review_resume_identity/test_review_resume_identity_tdd.py
+staged path: tests/unit/tools/test_review_resume_instruction/__init__.py
+staged path: tests/unit/tools/test_review_resume_instruction/test_review_resume_instruction_tdd.py
+staged path: tests/unit/tools/test_review_resume_notifications/__init__.py
+staged path: tests/unit/tools/test_review_resume_notifications/test_review_resume_notifications_tdd.py
+staged path: tests/unit/tools/test_review_resume_notifications/test_review_resume_observer_tdd.py
+staged path: tests/unit/tools/test_review_resume_perf/test_review_resume_perf_tdd.py
+staged path: tests/unit/tools/test_review_resume_wait/__init__.py
+staged path: tests/unit/tools/test_review_resume_wait/test_review_resume_wait_tdd.py
+staged path: tests/unit/tools/test_spec_reviewer_instruction/test_spec_reviewer_instruction_tdd.py
+staged path: tools/llm_nature.py
+staged path: tools/prompt_workflow_skill_review.py
+staged path: tools/review_exchange_cli.py
+staged path: tools/review_exchange_cli_parser.py
+staged path: tools/review_exchange_cli_result.py
+staged path: tools/review_exchange_cli_resume.py
+staged path: tools/review_resume.py
+staged path: tools/review_resume_identity.py
+staged path: tools/review_resume_notifications.py
+staged path: tools/review_resume_wait.py
+staged path: tools/review_status.py
+staged path: uv.lock
+```
+
+### Requestor assessment for step 5 review-resume-command (round 1)
+
+Step 5 is fully implemented in the staged work. The six recorded missing-work
+areas are closed: automatic gated ownership pickup, watchdog lock metadata,
+canonical role continuation, complete support-operation results, provider
+metadata validation, and focused role/lifecycle/concurrency/notification tests.
+
+The planned focused suites and the additional identity, notification, and wait
+suites pass. Groundhog finished on 2026-09-07 at 12:44:33 +02:00 with 2,601 tests
+and fail=0 warn=0 xfail=0 cov=100 outliers=0 excluded=0 exit=0. Static checks,
+Markdown validation, and the 650-line ceiling passed. The main CLI is 515 lines,
+below its mandatory 520-line target. Pure policy uses callable ports; filesystem
+and native observer work remain in adapters. Request discovery is linear and
+notification callbacks perform constant work.
+
+The lifecycle test was profiled and reduced from 0.86s to 0.70s through fixture
+setup extraction. Its real three-review transitions remain intact. Groundhog
+records a 0.70s per-test timing baseline, measured at 0.76s on the final walk;
+the 0.50s suite floor was not raised. The two flagged exact-resume cases are now
+below the floor. Independent stores and the real transition lock are used in
+the competing-reviewer test instead of the shared fixture's unlocked boundary.
+
+The validation plan now marks Step 5 Yes and removes the completed missing-work
+list. Step 6 and the umbrella remain pending. No commit or owning action has
+been authorized. The four-group root a.commit passes commit-plan-check.
+
+### Implementation report for step 5 review-resume-command (round 1)
+
+ResumeContext and ResumeRoleResolution carry typed session intent and its
+returned capability. Migration-aware CLI inspection precedes role selection.
+The claim operation revalidates document, step, round, occurrence, state, and
+selected-role evidence under the transition lock. Backfill preserves known
+values and authored content; valid capabilities are reused, while missing or
+stale capabilities receive lease-independent pickup. Later mutations use the
+session-only generation and secret.
+
+The global waiter separates non-mutating request discovery, event hints, and
+atomic first-claim-wins ownership. A single watchdog observer coalesces only
+recognized request events, with bounded polling fallback and authoritative
+rescans. Cancellation and operational errors produce one terminal JSON object;
+only found carries a capability. No persistent waiter or public resume launcher
+was added.
+
+Canonical instructions route bare resume to the exact requestor action or
+persistent reviewer wait. Requestors run pw skill after exchange release;
+reviewers return to global waiting after every answer and never start their
+counterpart. All five provider adapters remain direct canonical pointers with
+validated non-secret llm_nature metadata. The prompt router supports resume
+without a document lookup.
+
+### Change summary for step 5 review-resume-command (round 1)
+
+The staged work is grouped in dependency order below. Every listed path is covered by the mechanically validated root a.commit.
+
+#### Grouping commits by topic for step 5 review-resume-command (round 1)
+
+##### Group 1: Direct notification dependency for step 5 review-resume-command (round 1)
+
+git add -A pyproject.toml
+git add -A uv.lock
+
+```log
+build(deps): declare watchdog directly
+
+Why:
+
+Native review-request notifications require an explicit dependency rather than
+relying on pytest-watcher to install it indirectly.
+
+The tooling environment now resolves watchdog directly from `pyproject.toml`.
+
+What:
+
+- Declare watchdog in the tooling dependency group.
+- Refresh the lockfile without upgrading existing packages.
+```
+
+##### Group 2: Resume ownership and quiet waiting for step 5 review-resume-command (round 1)
+
+git add -A `tests/unit/tools/test_review_resume/__init__.py`
+git add -A tests/unit/tools/test_review_resume/test_review_exchange_cli_resume_tdd.py
+git add -A tests/unit/tools/test_review_resume/test_review_resume_contract_tdd.py
+git add -A tests/unit/tools/test_review_resume/test_review_resume_lifecycle_tdd.py
+git add -A tests/unit/tools/test_review_resume/test_review_resume_role_tdd.py
+git add -A tests/unit/tools/test_review_resume/test_review_resume_tdd.py
+git add -A `tests/unit/tools/test_review_resume_identity/__init__.py`
+git add -A tests/unit/tools/test_review_resume_identity/test_review_resume_identity_tdd.py
+git add -A `tests/unit/tools/test_review_resume_notifications/__init__.py`
+git add -A tests/unit/tools/test_review_resume_notifications/test_review_resume_notifications_tdd.py
+git add -A tests/unit/tools/test_review_resume_notifications/test_review_resume_observer_tdd.py
+git add -A tests/unit/tools/test_review_resume_perf/test_review_resume_perf_tdd.py
+git add -A `tests/unit/tools/test_review_resume_wait/__init__.py`
+git add -A tests/unit/tools/test_review_resume_wait/test_review_resume_wait_tdd.py
+git add -A tools/llm_nature.py
+git add -A tools/review_exchange_cli.py
+git add -A tools/review_exchange_cli_parser.py
+git add -A tools/review_exchange_cli_result.py
+git add -A tools/review_exchange_cli_resume.py
+git add -A tools/review_resume.py
+git add -A tools/review_resume_identity.py
+git add -A tools/review_resume_notifications.py
+git add -A tools/review_resume_wait.py
+git add -A tools/review_status.py
+
+```log
+feat(review-resume): restore interrupted roles
+
+Why:
+
+Interrupted review sessions need to recover their exact role and ownership,
+while idle reviewers need to discover requests across exchanges.
+
+Resume now checks migration and identity before automatic pickup, and one quiet
+foreground wait claims a request or returns a typed terminal result.
+
+What:
+
+- Add typed resume context, role decisions, and session-only capabilities.
+- Recheck selected identity under lock before backfill and fenced pickup.
+- Separate native event hints, linear request discovery, and atomic claims.
+- Expose migration, inspection, claim, and global-wait support operations.
+- Test identity conflicts, stale secrets, lifecycle, real-lock concurrency,
+  notification fallback, cancellation, and terminal result contracts.
+- Activate the bounded performance guards and prepare slow test fixtures outside
+  the measured resume operations.
+```
+
+##### Group 3: Canonical role workflows and provider adapters for step 5 review-resume-command (round 1)
+
+git add -A .agent/workflows/review-resume.md
+git add -A .agents/llm-shared/instructions/review-resume.md
+git add -A .agents/llm-shared/skills/review-resume/SKILL.md
+git add -A .claude/skills/review-resume/SKILL.md
+git add -A .github/skills/review-resume/SKILL.md
+git add -A docs/v0.11.0/design.v0.11.0.review-resume-command.md
+git add -A instructions/code-review-requestor.md
+git add -A instructions/code-reviewer.md
+git add -A instructions/review-requestor.md
+git add -A instructions/review-resume.md
+git add -A instructions/spec-review-requestor.md
+git add -A instructions/spec-reviewer.md
+git add -A tests/unit/tools/test_code_review_requestor_instruction/test_code_review_requestor_instruction_tdd.py
+git add -A tests/unit/tools/test_code_reviewer_instruction/test_code_reviewer_instruction_tdd.py
+git add -A tests/unit/tools/test_instruction_structure/test_codex_plugin_structure_tdd.py
+git add -A tests/unit/tools/test_review_requestor_instruction/test_review_requestor_instruction_tdd.py
+git add -A `tests/unit/tools/test_review_resume_instruction/__init__.py`
+git add -A tests/unit/tools/test_review_resume_instruction/test_review_resume_instruction_tdd.py
+git add -A tests/unit/tools/test_spec_reviewer_instruction/test_spec_reviewer_instruction_tdd.py
+git add -A tools/prompt_workflow_skill_review.py
+
+```log
+feat(review-resume): wire role workflow adapters
+
+Why:
+
+Bare resume must enter the correct durable role without asking the user to
+reconstruct ownership details or invoke a second workflow manually.
+
+Canonical instructions now carry the acquired capability into exact requestor
+work or persistent reviewer waiting across both review families.
+
+What:
+
+- Add the canonical review-resume instruction and five direct providers.
+- Validate non-secret provider nature metadata and reject copied rules.
+- Route resume without requiring a document lookup.
+- Keep requestors on their exchange and follow pw skill after release.
+- Return reviewers to global waiting after intermediate and final answers.
+- Update instruction tests and clarify the design's terminal exit wording.
+```
+
+##### Group 4: Step 5 validation for step 5 review-resume-command (round 1)
+
+git add -A docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md
+
+```log
+docs(review-resume-command): record step 5 validation
+
+Why:
+
+The validation plan still listed ownership, workflow, notification, and provider
+contracts as missing after their implementation was completed.
+
+Step 5 now records the completed behavior and validation evidence, while Step 6
+remains pending for broader acceptance and documentation rollout.
+
+What:
+
+- Remove the completed Step 5 missing-work list.
+- Record the passing focused suites and 2,601-test Groundhog walk at 100 percent
+  coverage with no unresolved duration outlier.
+- Document the real-lock concurrency check and the profiled lifecycle test's
+  accepted timing baseline without changing the suite floor.
+- Assess architecture, complexity, file sizes, coverage, and regression.
+```
+
+### Writer response for step 5 review-resume-command (round 1)
+
+Writer response:
+
+This is the first independent review round for Step 5. The previous writer-side
+implementation check's six missing-work categories have been addressed. No
+reviewer feedback has been received or reversed in this round, and there is no
+explicit disagreement. Assess the complete staged implementation against Step 5
+and its now-completed validation rows; broader Step 6 rollout remains separate.
+
+### Reviewer focus for step 5 review-resume-command (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-5-round-1 -->
+
+## Round 1 by reviewer - Step 5
+
+- Recorded: 2026-09-07T15:14:22+02:00
+- Exchange: code/code/v0.11.0/review-resume-command
+- Umbrella: docs/v0.11.0/draft.v0.11.0.review-mode.md
+- Reviewed document: docs/v0.11.0/plan.v0.11.0.review-resume-command.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 5
+- Outcome: answer
+
+### Assessed index identity for step 5 review-resume-command (exchange 1) (round 1)
+
+Baseline index tree: d716ab5da0ce5a0a7c8157f8224bc5ece4bdd7f4
+
+Assessed index tree: f6779438f8761a2869801c1ead7b599beb5312e8
+
+### Implementation check for step 5 review-resume-command (exchange 1) (round 1)
+
+Result:
+
+No. Step 5 has NOT been fully implemented.
+
+The submitted work is close, and most of what the six earlier gaps asked for is
+genuinely present and correct. Resume policy is pure and injectable, identity
+revalidation happens under the real transition lock, ownership pickup is
+lease-independent without ever reaching for forced reclaim, the global wait is
+quiet and typed, and the role instructions keep requestor and reviewer
+authority apart in both families. What blocks the step is its own completion
+criteria: two of the three commands the plan and the request name as mandatory
+do not pass on an independent host, and the walk therefore never produces a
+coverage verdict.
+
+Two defects account for every failure, and both are reproducible.
+
+The first is a host-coupled unit test. `prepared_requestor_phase` publishes a
+real request through `ReviewExchangeCore.publish_request`, which records the
+requestor nature from `os.environ` through `LlmNatureDetector().detect` with no
+injection seam, while the test forces `--trusted-host-hint codex`. On a host
+that exports `CLAUDECODE`, the recorded nature becomes `claude`,
+`ReviewResumeService._conflicts` returns true for the forced requestor role,
+and `resume-inspect` returns `confirmation-required` with exit 3 where the test
+asserts 0. All four parametrizations of
+`test_exact_cli_claim_resumes_each_live_requestor_phase` fail. A controlled
+three-way run confirms the cause rather than inferring it: with `CLAUDECODE`
+inherited the four cases fail; with `CLAUDECODE` removed they pass; with
+`CODEX_THREAD_ID` set instead they pass. The suite is therefore green on the
+writer's host and on a neutral runner, and red on a Claude host.
+
+The second is a Markdown defect in the published round-1 review content. The
+change summary lists its `git add -A` paths as unfenced paragraph text, so the
+five package-initializer paths render as underscore strong emphasis. The
+tracked transcript now trips `MD050` five times, which fails the `check` step
+of `ghog day` before any test runs, and also fails the repository acceptance
+test that runs the public Markdown launcher over this very repository.
+
+Neither defect touches shipped resume behavior, and no repair of mine was
+needed to expose either one. Together they leave the mandatory evidence
+incomplete, and incomplete mandatory evidence is not a pass.
+
+#### Architecture assessment for step 5 review-resume-command (exchange 1) (round 1)
+
+The hexagonal split holds. `tools/review_resume.py` is pure policy: typed
+values, a callable `acquire` port, no imports of filesystem, Git, or watchdog
+machinery. `tools/review_resume_wait.py` is equally pure, taking rescan,
+notification, fallback and claim as callables. Filesystem and native-observer
+concerns stay in `tools/review_resume_notifications.py`, and store, lock and
+ownership concerns stay in `tools/review_resume_identity.py`, which reuses the
+existing strict parsers, backfill service and ownership store rather than
+reimplementing them. `tools/review_exchange_cli_resume.py` is the adapter that
+wires those ports to real status projection and stores.
+
+Ordering is right where it matters. `main` dispatches resume operations before
+`_build_runtime`, so identity-free operations never build an exchange runtime.
+`claim_selected` rechecks record, round and request occurrence inside
+`store.transition_lock()` before any backfill or claim, so a selection that
+moved between inspection and claim raises instead of mutating. Backfill is
+missing-only and preserves counterpart evidence and authored body content,
+which the identity suite proves by asserting the recorded `claude` reviewer
+nature survives an overridden `codex` claim.
+
+No new superlinear path appears. `collect_ready_review_requests` walks the
+configured home once with `iterdir`, filters by the closed artifact registry
+and never sorts a global inventory; notification callbacks parse only the event
+filename and set an in-memory flag.
+
+Yes, there is something to address, though not in the architecture itself: the
+resume CLI adapter is 376 lines against a 220-line advisory estimate, and
+`tools/review_status.py` now sits at 647 lines against the 650 ceiling, leaving
+almost no headroom for Step 6.
+
+#### Performance assessment for step 5 review-resume-command (exchange 1) (round 1)
+
+The activated Step 0 gates pass with the xfail markers removed and the timeout
+bounds untouched, and they assert real numbers rather than mere completion: one
+rescan and one fallback poll per quiet interval, a rescan after a notification
+hint with no fallback, and a complete rescan when a notification is missed.
+The `fallback_poll` seam is a counted no-op, which is correct here because the
+authoritative rescan at the top of the wait loop is itself the poll.
+
+The lifecycle timing exception is legitimate rather than a way of hiding cost.
+`prepared_review_families` moved only home preparation, the review-mode marker,
+discovery construction and one `core.start()` into setup; all three real
+review rounds remain inside the measured body, and every assertion survives.
+The accepted baseline of 0.70s lives in the `[exclusion]` section of the
+project-root outliers file at the documented 0.50s floor, and that file is
+git-ignored by groundhog's own design, so the exception is a local decision
+that does not travel with the commit. The writer's `excluded=0` is accurate:
+that counter reports only exclusions that drifted slower, not the existence of
+an exclusion.
+
+No, there is no unresolved performance issue for Step 5.
+
+#### Unit test coverage assessment for step 5 review-resume-command (exchange 1) (round 1)
+
+Coverage cannot be confirmed this round. The independent full run ends at
+`fail=5`, so groundhog withholds `cov=`, `outliers=` and `excluded=` rather
+than reporting them. Reading the code and the suites, I find no uncovered
+branch in the new resume modules, but that is reasoning, not a measurement,
+and the request is explicit that historical results do not substitute for
+independent validation.
+
+The suites themselves are well matched to the behavior they claim. The real
+concurrency proof is genuine: `test_concurrent_waiters_have_exactly_one_atomic_winner`
+builds a second independent store over the same paths, restores the real
+`transition_lock` on both instances over the autouse fixture that otherwise
+replaces it with a no-op, aligns two threads on a barrier, and asserts exactly
+one `found` and one `already-claimed` under a three-second timeout. The
+complementary role test proves the typed loser and the return to waiting.
+
+Yes, the coverage verdict is unavailable and must be re-measured.
+
+#### Feature integrity assessment for step 5 review-resume-command (exchange 1) (round 1)
+
+No shipped capability regressed. Normal protocol operations still reach the
+original dispatcher, the fatal payload gained only an empty `candidates` key,
+and the request-set identity, notification and wait suites pass at `fail=0`.
+The failing Markdown gate is a defect in this round's published review content,
+not in any shipped behavior.
+
+Yes, the shared Markdown gate must be restored before this step can close.
+
+Validation plan effects:
+
+The reviewer rewrote only the Step 5 rows of
+`docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md`. Every hunk
+falls between the `## Step 5.` heading and the `## Step 6.` heading; no other
+step, no document-level status line and no umbrella row was touched.
+
+- The `Analysis of Step 5 implementation state` sentence changed from
+  `Yes. Step 5 has been fully implemented.` to
+  `No. Step 5 has NOT been fully implemented.`, followed by the measured
+  reviewer evidence.
+- The `Validation evidence` bullet under `What was implemented for Step 5` now
+  records which suite passed, which failed, and that the writer's green walk
+  predates the round-1 publication.
+- A `Missing work for Step 5` section was added directly after
+  `What was implemented for Step 5`, as the validation template orders it, with
+  one concrete bullet per missing element.
+- The coverage-evidence bullet and closing phrase of
+  `Unit test coverage check for Step 5` now record the withheld verdict.
+- The regression bullet and closing phrase of `Feature integrity for Step 5`
+  now record the failing shared Markdown gate.
+
+The document-level status line already read `No, it is not implemented.` and
+still does, so no document-level flip was required or performed. The intro
+sentence below it still claims Steps 0 through 5 are fully implemented; that
+line is outside the Step 5 rows this reviewer may write, so it is reported as
+a writer action instead of edited.
+
+### Pre-repair mandatory checks and coverage for step 5 review-resume-command (exchange 1) (round 1)
+
+The ordered validation path set was captured before any assessment or edit. It
+is the first-seen union of the 47 staged Step 5 paths, the exact implementation
+plan, the exact validation plan, and the validation artifacts the resolved
+commands write: `a.ghog.status`, `a.ghog.log` and `.coverage`.
+
+The captured baseline recorded index tree
+`d716ab5da0ce5a0a7c8157f8224bc5ece4bdd7f4`, matching the request-time tree, and
+digests for all three ignored validation artifacts alongside the tracked paths.
+
+The pre-repair blob of the single permitted repair path was recorded before the
+first edit: `docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md` at
+object `8578bb5b8a54c834915b77b469e459ba46ef94ac`, with `writer_deleted` false.
+
+The retained manifest was written before any state could be mutated and updated
+after the assessment with the assessed index tree, the recorded blob, the
+single repair path and the after-state.
+
+### Resolved validation set and sources for step 5 review-resume-command (exchange 1) (round 1)
+
+The union of the request-embedded validation set and the current resolver set
+is three commands. Every one of them was run in this session; none was
+substituted with a historical result.
+
+- `ghog day` (source: project). Run as `ghog day --detach` first, which
+  returned `state=done exit=0` with the body
+  `No Python file changed since the last green ghog day walk - nothing to do`
+  and `cov=skipped outliers=skipped excluded=skipped`. That is a short-circuit,
+  not a pass, so the walk was re-run as `ghog day --force --detach`. The forced
+  walk returned `state=done exit=1`, stopping inside its opening `check` step
+  with `Failed steps for project 'llm-shared': markdown(1)`. Five `MD050`
+  diagnostics were reported, all on
+  `docs/v0.11.0/review.code.v0.11.0.review-resume-command.md` at lines 9968,
+  9974, 9976, 9980 and 10034. No test or coverage phase ran.
+- `ghog single tests/unit/tools/test_review_resume_perf/test_review_resume_perf_tdd.py tests/unit/tools/test_review_resume tests/unit/tools/test_review_resume_instruction tests/unit/tools/test_instruction_structure/test_spec_reviewer_adapters_tdd.py tests/unit/tools/test_instruction_structure/test_code_reviewer_adapters_tdd.py tests/unit/tools/test_review_requestor_instruction`
+  (source: plan, and also Step 5's own completion criterion). Result
+  `fail=4 warn=0 xfail=0 exit=2`. The four failures are the parametrizations
+  `request`, `answer`, `convergence` and `authorized` of
+  `test_exact_cli_claim_resumes_each_live_requestor_phase`, each failing at
+  `test_review_resume_role_tdd.py:136` with `assert 3 == 0`.
+- `ghog single tests/unit/tools/test_review_resume_identity tests/unit/tools/test_review_resume_notifications tests/unit/tools/test_review_resume_wait`
+  (source: request). Result `fail=0 warn=0 xfail=0 exit=0`.
+
+Because the forced walk never reached its test phase, `ghog full` was run
+separately so the suite-wide result would not be missing evidence. It reported
+2,601 tests with `fail=5 warn=0 xfail=0 cov=withheld outliers=withheld
+excluded=withheld exit=2`. The fifth failure is
+`tests/acceptance/markdown_check/test_shared_gate/test_shared_gate_tdd.py::test_checked_repository_passes_public_launcher`,
+which runs the public `markdown-check.bat` over this repository and asserts a
+zero return code; it fails on the same five transcript diagnostics.
+
+The plan's second completion criterion, the `rg` sweep for a public resume
+launcher and the settled role split, was verified by inspection instead of a
+shell sweep: no `rvw_resume.bat` exists at the root or under `bin`, and the
+resume instruction test asserts both absences directly.
+
+### Resolver drift and direction for step 5 review-resume-command (exchange 1) (round 1)
+
+No resolver drift. The request-embedded validation set and the set resolvable
+from the plan and project today name the same three commands, so the union
+equals each of them and nothing had to be added or dropped in either
+direction.
+
+### Repository state around validation for step 5 review-resume-command (exchange 1) (round 1)
+
+Request-time and live index trees agree exactly. The request envelope carries
+`request_index_tree` `d716ab5da0ce5a0a7c8157f8224bc5ece4bdd7f4`, and
+`capture-index-tree` on the received working tree returned the same
+`d716ab5da0ce5a0a7c8157f8224bc5ece4bdd7f4` before any reviewer action. No fresh
+assessment or new baseline was required.
+
+After the permitted validation-plan rows were written and staged, the assessed
+index tree is `f6779438f8761a2869801c1ead7b599beb5312e8`. The only difference
+between the two trees is the reviewer's own attributable patch on
+`docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md`.
+
+Exact identity agrees across every source. The live exchange reports family
+`code`, type token `code`, version `v0.11.0`, slug `review-resume-command`,
+state `request-pending`, round 1 and `exchange_occurrence` 1. The machine
+envelope repeats that identity with `implementation_step` `5`, `round_number`
+1, `role` `requestor`, `requestor` nature `codex` and a null `reviewer` nature.
+The human-readable request carries `Umbrella draft`, `Implementation plan`,
+`Implementation step: 5` and `Review round: 1` exactly once each, and all four
+match the command context. Step 5 exists in the exact plan under the heading
+`### Step 5. Add LLM-only resume and persistent reviewer waiting`. The embedded
+validation set parses through the current resolver contract. The request
+carries no `Human guidance:` block.
+
+The umbrella digest is unchanged across the whole assessment:
+`8d37656617dc9861313f6c6659974fe0bcf9d0cf31642a0faa3e13922b835231` before and
+after, with `changed` false.
+
+The ordered validation-state comparison reports differences on three ignored
+validation artifacts, `a.ghog.status`, `a.ghog.log` and `.coverage`, which are
+acceptable side effects of running the mandatory commands, and on one tracked
+path, `docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md`, which is
+the permitted reviewer validation-plan edit confined to the Step 5 rows. No
+other tracked path moved, so there is no tracked validation side effect to
+report and nothing was reverted.
+
+One pre-existing unstaged change sits in the working tree:
+`docs/v0.11.0/review.code.v0.11.0.review-resume-command.md`, the protocol
+transcript that the requestor's own round-1 publication appended. It is review
+metadata and was deliberately left unstaged and unmodified.
+
+### Repair inventory for step 5 review-resume-command (exchange 1) (round 1)
+
+Repairs made:
+
+- The reviewer made no implementation repair in this round. No source module, no
+- test, no instruction, no provider adapter and no dependency file was edited.
+- One path was written and staged, and it is review metadata rather than a repair
+- of the submitted work. That path is
+- `docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md`, classified
+- polishing-only review metadata. Its pre-repair blob
+- `8578bb5b8a54c834915b77b469e459ba46ef94ac` was recorded before the first edit,
+- `attribute-reviewer-patch` returned `attributable` true with `created` false,
+- and only that attributable patch was staged. The edit is confined to the Step 5
+- validation rows the reviewer implementation-check is required to write.
+- The two blocking defects were deliberately left for the writer rather than
+- repaired. Both sit outside what a reviewer may change without making a design
+- decision. Making the host-coupled fixture hermetic requires choosing between
+- neutralizing the environment in the fixture, matching the recorded nature to
+- the forced hint, and giving `review_exchange_publication` an environment seam;
+- the third option would reach into Step 2 and Step 4 work outside this step.
+- Re-authoring the round-1 change summary means changing published protocol
+- review content, which a reviewer must never mutate by hand.
+- Because this round contains no substantive reviewer repair, the disposition is
+- driven purely by the failing mandatory validation and the unresolved findings,
+- not by reviewer authorship.
+
+Paths staged:
+
+- `.agent/workflows/review-resume.md`
+- `.agents/llm-shared/instructions/review-resume.md`
+- `.agents/llm-shared/skills/review-resume/SKILL.md`
+- `.claude/skills/review-resume/SKILL.md`
+- `.github/skills/review-resume/SKILL.md`
+- `docs/v0.11.0/design.v0.11.0.review-resume-command.md`
+- `docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md`
+- `instructions/code-review-requestor.md`
+- `instructions/code-reviewer.md`
+- `instructions/review-requestor.md`
+- `instructions/review-resume.md`
+- `instructions/spec-review-requestor.md`
+- `instructions/spec-reviewer.md`
+- `pyproject.toml`
+- `tests/unit/tools/test_code_review_requestor_instruction/test_code_review_requestor_instruction_tdd.py`
+- `tests/unit/tools/test_code_reviewer_instruction/test_code_reviewer_instruction_tdd.py`
+- `tests/unit/tools/test_instruction_structure/test_codex_plugin_structure_tdd.py`
+- `tests/unit/tools/test_review_requestor_instruction/test_review_requestor_instruction_tdd.py`
+- `tests/unit/tools/test_review_resume/__init__.py`
+- `tests/unit/tools/test_review_resume/test_review_exchange_cli_resume_tdd.py`
+- `tests/unit/tools/test_review_resume/test_review_resume_contract_tdd.py`
+- `tests/unit/tools/test_review_resume/test_review_resume_lifecycle_tdd.py`
+- `tests/unit/tools/test_review_resume/test_review_resume_role_tdd.py`
+- `tests/unit/tools/test_review_resume/test_review_resume_tdd.py`
+- `tests/unit/tools/test_review_resume_identity/__init__.py`
+- `tests/unit/tools/test_review_resume_identity/test_review_resume_identity_tdd.py`
+- `tests/unit/tools/test_review_resume_instruction/__init__.py`
+- `tests/unit/tools/test_review_resume_instruction/test_review_resume_instruction_tdd.py`
+- `tests/unit/tools/test_review_resume_notifications/__init__.py`
+- `tests/unit/tools/test_review_resume_notifications/test_review_resume_notifications_tdd.py`
+- `tests/unit/tools/test_review_resume_notifications/test_review_resume_observer_tdd.py`
+- `tests/unit/tools/test_review_resume_perf/test_review_resume_perf_tdd.py`
+- `tests/unit/tools/test_review_resume_wait/__init__.py`
+- `tests/unit/tools/test_review_resume_wait/test_review_resume_wait_tdd.py`
+- `tests/unit/tools/test_spec_reviewer_instruction/test_spec_reviewer_instruction_tdd.py`
+- `tools/llm_nature.py`
+- `tools/prompt_workflow_skill_review.py`
+- `tools/review_exchange_cli.py`
+- `tools/review_exchange_cli_parser.py`
+- `tools/review_exchange_cli_result.py`
+- `tools/review_exchange_cli_resume.py`
+- `tools/review_resume.py`
+- `tools/review_resume_identity.py`
+- `tools/review_resume_notifications.py`
+- `tools/review_resume_wait.py`
+- `tools/review_status.py`
+- `uv.lock`
+
+### Commit plan assessment for step 5 review-resume-command (exchange 1) (round 1)
+
+`commit-plan-check --format json` was rerun independently against the received
+repository state before any grouping judgement, and again after the reviewer
+staged its validation rows. Both runs returned `state` `valid`, `ready` true,
+four groups, an empty `diagnostics` array and exit `0`. The groups and staged
+paths match the set embedded in the request exactly.
+
+The mechanical result satisfies only the `a.commit` part of the readiness
+floor. It proves nothing about completeness, tests, coverage or judgement, and
+it never authorizes a commit.
+
+Membership, order and subjects are accurate on inspection as well:
+
+- Group 1, `build(deps): declare watchdog directly`, carries `pyproject.toml`
+  and `uv.lock`. It correctly comes first because the notification adapter
+  imports `watchdog` at module scope. The declaration lands in the `dev`
+  dependency group, which is the right place in this repository: `[project]`
+  declares no dependencies at all and `[tool.uv] package = false` marks it as
+  a tooling-only tree, so every runtime dependency of `tools/` already lives in
+  that group. The lock change is two lines, adding the direct edge without
+  upgrading anything, because `watchdog` was already present transitively
+  through `pytest-watcher`.
+- Group 2, `feat(review-resume): restore interrupted roles`, carries the four
+  new resume modules, the CLI parser, result and resume adapters,
+  `tools/llm_nature.py`, `tools/review_status.py` and their focused tests. The
+  producer of `LlmNatureDetector.adapter_nature` is correctly placed before the
+  instruction tests that consume it in group 3.
+- Group 3, `feat(review-resume): wire role workflow adapters`, carries the
+  canonical instruction, the five provider adapters, the four updated role
+  instructions, the prompt router and the instruction tests. It depends on the
+  operations group 2 introduces, so its position is right. Including the
+  design-document wording clarification here is defensible.
+- Group 4, `docs(review-resume-command): record step 5 validation`, carries the
+  validation plan alone and stays last, which is the required trailing
+  validation group. The reviewer's own rows land inside this same group, so no
+  regrouping was needed and `a.commit` was not amended.
+
+Every subject is a well-formed conventional subject in the imperative mood,
+under the usual length, with a scope that matches its group.
+
+`a.commit` remains accurate after the reviewer patch. It was not amended.
+
+### Findings and boundaries for step 5 review-resume-command (exchange 1) (round 1)
+
+Unresolved findings:
+
+- Two findings block readiness and three are minor. None was carried over from an
+- earlier round, because this is the first independent review round for Step 5.
+- Finding 1, blocking. The new fixture
+- `prepared_requestor_phase` in
+- `tests/unit/tools/test_review_resume/test_review_resume_role_tdd.py` is not
+- hermetic, so all four parametrizations of
+- `test_exact_cli_claim_resumes_each_live_requestor_phase` fail on a host that
+- advertises itself through the environment. The fixture publishes a real request
+- through `ReviewExchangeCore.publish_request`, which records the requestor
+- nature from `os.environ` through `LlmNatureDetector().detect` with no injection
+- seam. The test then forces `--trusted-host-hint codex`. When the host exports
+- `CLAUDECODE`, the recorded nature is `claude`, so
+- `ReviewResumeService._conflicts` returns true for the forced requestor role and
+- `_resume_inspect` answers `confirmation-required` with exit 3, while line 136
+- asserts exit 0. A controlled three-way run isolates the cause: the four cases
+- fail with `CLAUDECODE` inherited, pass with `CLAUDECODE` removed, and pass with
+- `CODEX_THREAD_ID` set instead. The consequence is that Step 5's own completion
+- criterion, the plan-set `ghog single`, fails at `exit=2` with `fail=4`, and the
+- suite is green only on the writer's host or on a neutral runner.
+- Finding 2, blocking. The round-1 change summary lists its `git add -A` paths as
+- unfenced paragraph text, so the five package-initializer paths render as
+- underscore strong emphasis in the tracked transcript. `markdown-check.bat`
+- reports `MD050` five times on
+- `docs/v0.11.0/review.code.v0.11.0.review-resume-command.md` at lines 9968,
+- 9974, 9976, 9980 and 10034, all inside the block appended at 12:55:13. This
+- fails the opening `check` step of `ghog day`, so the forced walk stops at
+- `exit=1` before running a single test, and it independently fails the
+- repository acceptance test
+- `tests/acceptance/markdown_check/test_shared_gate/test_shared_gate_tdd.py::test_checked_repository_passes_public_launcher`,
+- which runs the public launcher over this repository and asserts a zero return
+- code. The shared requestor instruction already states that a transcript a
+- Markdown linter reports on is a defect in the round that appended to it, and
+- that the rule may not be disabled to make a transcript pass.
+- Finding 3, blocking as evidence. Because the full run ends at `fail=5`,
+- groundhog withholds `cov=`, `outliers=` and `excluded=`, so no coverage verdict
+- exists for this round. The validation plan's claim of 100% coverage rests on
+- the writer's 12:44:33 walk, which predates the round-1 publication and cannot
+- substitute for independent validation.
+- Finding 4, minor. The `# eof` marker of
+- `tests/unit/tools/test_review_resume_instruction/test_review_resume_instruction_tdd.py`
+- sits at line 75 of an 87-line file, with two parametrized tests after it and no
+- marker at the end. Every other module in the tree closes with that marker, and
+- the repository EOF check passes only because it tests for presence rather than
+- position.
+- Finding 5, minor. Removing the Step 0 wait gate from
+- `tests/unit/tools/test_review_resume_perf/test_review_resume_perf_tdd.py` left
+- a single blank line between `STATUS_PROJECTION_ERROR` and `_path_list`, where
+- the rest of the file uses two. Ruff does not catch it because the project
+- selects `ALL` but leaves `preview` commented out, and the blank-line rules are
+- preview-only.
+- Two observations carry no required action. The resume CLI adapter is 376 lines
+- against its 220-line advisory estimate, which the writer disclosed and which
+- stays far below the 650 ceiling. More worth watching, `tools/review_status.py`
+- is now 647 lines against that same 650 ceiling, so Step 6 has almost no
+- headroom left in that file.
+
+Boundary-crossing work:
+
+- No boundary-crossing work was performed, and none is required of the writer
+- inside this step.
+- Two items sit outside the Step 5 boundary and are reported rather than changed.
+- First, `tools/review_exchange_publication.py` records the acting role's nature
+- by reading `os.environ` directly, with no injectable environment or detector.
+- That is Step 2 and Step 4 work, and it is the root cause behind finding 1
+- rather than a defect introduced here. Step 5 can be closed by making its own
+- fixture hermetic; closing the wider class of defect would reach into an earlier
+- step and is left to the writer's judgement. Second, the validation plan's
+- introductory sentence, which still claims Steps 0 through 5 are fully
+- implemented, is a document-level line outside the Step 5 rows a reviewer may
+- write, so it was deliberately left unedited.
+- The unstaged protocol transcript
+- `docs/v0.11.0/review.code.v0.11.0.review-resume-command.md` was left unstaged
+- and unmodified, as review metadata owned by the protocol rather than by this
+- assessment. No pre-existing unstaged or untracked writer work was swept into
+- the index.
+
+### Writer instructions for step 5 review-resume-command (exchange 1) (round 1)
+
+- Make `prepared_requestor_phase` host-independent in
+  `tests/unit/tools/test_review_resume/test_review_resume_role_tdd.py`. The
+  smallest fix that keeps the test's intent is to neutralize both known host
+  signals in the fixture before `lifecycle._start_and_request` runs, for
+  example `monkeypatch.delenv("CLAUDECODE", raising=False)` and
+  `monkeypatch.delenv("CODEX_THREAD_ID", raising=False)`, so the published
+  request records `unknown` and the forced `codex` hint cannot conflict.
+  Setting `CODEX_THREAD_ID` to match the forced hint works equally well. Then
+  confirm all four parametrizations pass with `CLAUDECODE` set, not only on a
+  neutral runner.
+- Decide, and record in the validation rows, whether the rest of the new suites
+  need the same guard. `test_review_resume_lifecycle_tdd.py` and
+  `test_review_resume_identity_tdd.py` publish through the same unseamed
+  `os.environ` path and pass today only because they do not assert on the
+  recorded nature. If you would rather close the class of defect than the
+  instance, give `review_exchange_publication` an injectable environment or
+  detector; that reaches into Step 2 and Step 4 work, so it is a design
+  decision for you rather than a reviewer repair.
+- Re-author the change summary so the tracked transcript passes the Markdown
+  gate. Wrap each path in backticks, or put the whole `git add -A` block inside
+  a fenced code block, so a package-initializer path can never render as
+  underscore strong emphasis. Apply this to the round-2 request content, and
+  repair the five existing lines in
+  `docs/v0.11.0/review.code.v0.11.0.review-resume-command.md` through the
+  protocol rather than by hand, since a reviewer may not mutate that artifact
+  and the gate must be green before the step can close.
+- Re-run the full mandatory set after both fixes and record real numbers:
+  `ghog day` must reach `exit=0` rather than short-circuiting, and the run must
+  produce a `cov=` verdict instead of `withheld`. Note that a bare
+  `ghog day` currently answers
+  `No Python file changed since the last green ghog day walk - nothing to do`
+  and exits 0 without running anything, so use `--force` whenever the previous
+  walk's inputs have not changed.
+- Move the `# eof` marker of
+  `tests/unit/tools/test_review_resume_instruction/test_review_resume_instruction_tdd.py`
+  to the end of the file, after the router test.
+- Restore the two blank lines before `_path_list` in
+  `tests/unit/tools/test_review_resume_perf/test_review_resume_perf_tdd.py`.
+- Reconcile the validation plan's introductory sentence, which still reads
+  `Steps 0 through 5 are fully implemented and validated`. That line sits
+  outside the Step 5 rows a reviewer may write, so it was left untouched; once
+  Step 5 genuinely closes it becomes correct again, but if this round's Step 5
+  verdict stands it currently contradicts the section below it.
+- Keep `tools/review_status.py` in view for Step 6. At 647 lines it is three
+  lines under the 650 ceiling, so any further growth there will need a split
+  rather than an addition.
+- Leave `a.commit` as it is. Its four groups, their order, their membership and
+  their subjects all match the staged work, and `commit-plan-check` returns
+  `valid` and `ready` both before and after the reviewer's validation rows.
+
+### Decision rationale for step 5 review-resume-command (exchange 1) (round 1)
+
+The disposition is `changes-requested`, and it turns on evidence rather than
+on judgement about the design.
+
+The design is sound. Every one of the six areas the writer set out to close is
+genuinely closed, and the parts the request asked me to scrutinize hardest hold
+up under inspection. Migration and identity checks do precede ownership
+changes. The exact selection is revalidated inside the real transition lock
+before any mutation. Stale and missing capabilities receive lease-independent
+pickup while a valid one is reused idempotently. Backfill is missing-only and
+preserves counterpart evidence and authored content. Competing reviewers
+resolve through a real compare-and-swap, proved by a two-thread barrier test
+with independent stores that deliberately restores the real lock over the
+autouse fixture. The terminal wait schemas, exit codes and capability
+disclosure match the plan, and only `found` carries a secret. Requestor and
+reviewer authority stay separated in both families.
+
+Four of the six readiness-floor results pass. Exact identity agrees across the
+live exchange, the envelope, the human-readable request, the plan and the
+request-time index tree. Staged scope is fully attributable and the umbrella
+digest is unchanged. There are no carried findings. `a.commit` is mechanically
+valid and accurate on inspection.
+
+The floor fails on the two that matter most. Mandatory validation does not
+pass: the plan-set focused suite, which Step 5 names as its own completion
+criterion, ends at `exit=2` with four failures, and the full run ends at
+`exit=2` with five. Coverage has no verdict at all, because groundhog withholds
+it while any test fails. The instruction is explicit that missing or
+unavailable mandatory evidence is not a pass, so implementation completeness
+cannot be confirmed either.
+
+Both blocking defects are narrow and cheaply fixed, and neither indicates a
+flaw in the resume behavior itself. One is a fixture that inherits the host's
+identity from the ambient environment; the other is five unfenced paths in the
+published round-1 summary. I verified the first by controlled experiment rather
+than inference, and the second reproduces through the project's own public
+Markdown launcher.
+
+This round contains no substantive reviewer repair. The only path I wrote is
+the Step 5 validation rows the reviewer implementation-check is required to
+write, which the shared contract classifies as review metadata. The
+recommendation is advisory in either direction and authorizes nothing; the
+commit choice remains the human's alone.
+
+### Final reviewer decision for step 5 review-resume-command (exchange 1) (round 1)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-5-round-1 -->
+
+## Round 2 by requestor - Step 5
+
+- Recorded: 2026-09-07T16:54:25+02:00
+- Exchange: code/code/v0.11.0/review-resume-command
+- Umbrella: docs/v0.11.0/draft.v0.11.0.review-mode.md
+- Reviewed document: docs/v0.11.0/plan.v0.11.0.review-resume-command.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 5
+- Outcome: request
+
+### Review identity for step 5 review-resume-command (round 2)
+
+Umbrella draft: docs/v0.11.0/draft.v0.11.0.review-mode.md
+Implementation plan: docs/v0.11.0/plan.v0.11.0.review-resume-command.md
+Implementation step: 5
+Review round: 2
+
+### Code review evidence for step 5 review-resume-command (round 2)
+
+request_index_tree: ced212dbdfe0381e5d96fd28e62a36104e31ce74
+resolved_validation_set:
+
+- ghog day (sources: project)
+- ghog single tests/unit/tools/test_review_resume_perf/test_review_resume_perf_tdd.py tests/unit/tools/test_review_resume tests/unit/tools/test_review_resume_instruction tests/unit/tools/test_instruction_structure/test_spec_reviewer_adapters_tdd.py tests/unit/tools/test_instruction_structure/test_code_reviewer_adapters_tdd.py tests/unit/tools/test_review_requestor_instruction (sources: plan)
+- ghog single tests/unit/tools/test_review_resume_identity tests/unit/tools/test_review_resume_notifications tests/unit/tools/test_review_resume_wait (sources: request)
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: build(deps): declare watchdog directly
+group 1 path: pyproject.toml
+group 1 path: uv.lock
+group 2: feat(review-resume): restore interrupted roles
+group 2 path: tests/unit/tools/test_review_resume/__init__.py
+group 2 path: tests/unit/tools/test_review_resume/test_review_exchange_cli_resume_tdd.py
+group 2 path: tests/unit/tools/test_review_resume/test_review_resume_contract_tdd.py
+group 2 path: tests/unit/tools/test_review_resume/test_review_resume_lifecycle_tdd.py
+group 2 path: tests/unit/tools/test_review_resume/test_review_resume_role_tdd.py
+group 2 path: tests/unit/tools/test_review_resume/test_review_resume_tdd.py
+group 2 path: tests/unit/tools/test_review_resume_identity/__init__.py
+group 2 path: tests/unit/tools/test_review_resume_identity/test_review_resume_identity_tdd.py
+group 2 path: tests/unit/tools/test_review_resume_notifications/__init__.py
+group 2 path: tests/unit/tools/test_review_resume_notifications/test_review_resume_notifications_tdd.py
+group 2 path: tests/unit/tools/test_review_resume_notifications/test_review_resume_observer_tdd.py
+group 2 path: tests/unit/tools/test_review_resume_perf/test_review_resume_perf_tdd.py
+group 2 path: tests/unit/tools/test_review_resume_wait/__init__.py
+group 2 path: tests/unit/tools/test_review_resume_wait/test_review_resume_wait_tdd.py
+group 2 path: tools/llm_nature.py
+group 2 path: tools/review_exchange_cli.py
+group 2 path: tools/review_exchange_cli_parser.py
+group 2 path: tools/review_exchange_cli_result.py
+group 2 path: tools/review_exchange_cli_resume.py
+group 2 path: tools/review_resume.py
+group 2 path: tools/review_resume_identity.py
+group 2 path: tools/review_resume_notifications.py
+group 2 path: tools/review_resume_wait.py
+group 2 path: tools/review_status.py
+group 3: feat(review-resume): wire role workflow adapters
+group 3 path: .agent/workflows/review-resume.md
+group 3 path: .agents/llm-shared/instructions/review-resume.md
+group 3 path: .agents/llm-shared/skills/review-resume/SKILL.md
+group 3 path: .claude/skills/review-resume/SKILL.md
+group 3 path: .github/skills/review-resume/SKILL.md
+group 3 path: docs/v0.11.0/design.v0.11.0.review-resume-command.md
+group 3 path: instructions/code-review-requestor.md
+group 3 path: instructions/code-reviewer.md
+group 3 path: instructions/review-requestor.md
+group 3 path: instructions/review-resume.md
+group 3 path: instructions/spec-review-requestor.md
+group 3 path: instructions/spec-reviewer.md
+group 3 path: tests/unit/tools/test_code_review_requestor_instruction/test_code_review_requestor_instruction_tdd.py
+group 3 path: tests/unit/tools/test_code_reviewer_instruction/test_code_reviewer_instruction_tdd.py
+group 3 path: tests/unit/tools/test_instruction_structure/test_codex_plugin_structure_tdd.py
+group 3 path: tests/unit/tools/test_review_requestor_instruction/test_review_requestor_instruction_tdd.py
+group 3 path: tests/unit/tools/test_review_resume_instruction/__init__.py
+group 3 path: tests/unit/tools/test_review_resume_instruction/test_review_resume_instruction_tdd.py
+group 3 path: tests/unit/tools/test_spec_reviewer_instruction/test_spec_reviewer_instruction_tdd.py
+group 3 path: tools/prompt_workflow_skill_review.py
+group 4: docs(review-resume-command): record step 5 validation
+group 4 path: docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md
+staged path: .agent/workflows/review-resume.md
+staged path: .agents/llm-shared/instructions/review-resume.md
+staged path: .agents/llm-shared/skills/review-resume/SKILL.md
+staged path: .claude/skills/review-resume/SKILL.md
+staged path: .github/skills/review-resume/SKILL.md
+staged path: docs/v0.11.0/design.v0.11.0.review-resume-command.md
+staged path: docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md
+staged path: instructions/code-review-requestor.md
+staged path: instructions/code-reviewer.md
+staged path: instructions/review-requestor.md
+staged path: instructions/review-resume.md
+staged path: instructions/spec-review-requestor.md
+staged path: instructions/spec-reviewer.md
+staged path: pyproject.toml
+staged path: tests/unit/tools/test_code_review_requestor_instruction/test_code_review_requestor_instruction_tdd.py
+staged path: tests/unit/tools/test_code_reviewer_instruction/test_code_reviewer_instruction_tdd.py
+staged path: tests/unit/tools/test_instruction_structure/test_codex_plugin_structure_tdd.py
+staged path: tests/unit/tools/test_review_requestor_instruction/test_review_requestor_instruction_tdd.py
+staged path: tests/unit/tools/test_review_resume/__init__.py
+staged path: tests/unit/tools/test_review_resume/test_review_exchange_cli_resume_tdd.py
+staged path: tests/unit/tools/test_review_resume/test_review_resume_contract_tdd.py
+staged path: tests/unit/tools/test_review_resume/test_review_resume_lifecycle_tdd.py
+staged path: tests/unit/tools/test_review_resume/test_review_resume_role_tdd.py
+staged path: tests/unit/tools/test_review_resume/test_review_resume_tdd.py
+staged path: tests/unit/tools/test_review_resume_identity/__init__.py
+staged path: tests/unit/tools/test_review_resume_identity/test_review_resume_identity_tdd.py
+staged path: tests/unit/tools/test_review_resume_instruction/__init__.py
+staged path: tests/unit/tools/test_review_resume_instruction/test_review_resume_instruction_tdd.py
+staged path: tests/unit/tools/test_review_resume_notifications/__init__.py
+staged path: tests/unit/tools/test_review_resume_notifications/test_review_resume_notifications_tdd.py
+staged path: tests/unit/tools/test_review_resume_notifications/test_review_resume_observer_tdd.py
+staged path: tests/unit/tools/test_review_resume_perf/test_review_resume_perf_tdd.py
+staged path: tests/unit/tools/test_review_resume_wait/__init__.py
+staged path: tests/unit/tools/test_review_resume_wait/test_review_resume_wait_tdd.py
+staged path: tests/unit/tools/test_spec_reviewer_instruction/test_spec_reviewer_instruction_tdd.py
+staged path: tools/llm_nature.py
+staged path: tools/prompt_workflow_skill_review.py
+staged path: tools/review_exchange_cli.py
+staged path: tools/review_exchange_cli_parser.py
+staged path: tools/review_exchange_cli_result.py
+staged path: tools/review_exchange_cli_resume.py
+staged path: tools/review_resume.py
+staged path: tools/review_resume_identity.py
+staged path: tools/review_resume_notifications.py
+staged path: tools/review_resume_wait.py
+staged path: tools/review_status.py
+staged path: uv.lock
+```
+
+### Requestor assessment for step 5 review-resume-command (round 2)
+
+Step 5 is fully implemented in the staged work. The six recorded missing-work
+areas are closed: automatic gated ownership pickup, watchdog lock metadata,
+canonical role continuation, complete support-operation results, provider
+metadata validation, and focused role/lifecycle/concurrency/notification tests.
+
+The planned focused suites and the additional identity, notification, and wait
+suites pass under a simulated Claude outer environment. A forced Groundhog walk
+after the Round 1 repairs finished on 2026-09-07 at 16:46:29 +02:00 with 2,601 tests
+and fail=0 warn=0 xfail=0 cov=100 outliers=0 excluded=0 exit=0. Static checks,
+Markdown validation, and the 650-line ceiling passed. The main CLI is 515 lines,
+below its mandatory 520-line target. Pure policy uses callable ports; filesystem
+and native observer work remain in adapters. Request discovery is linear and
+notification callbacks perform constant work.
+
+The lifecycle test was profiled and reduced from 0.86s to 0.70s through fixture
+setup extraction. Its real three-review transitions remain intact. Groundhog
+records a 0.70s per-test timing baseline, measured at 0.78s on the fresh walk;
+the 0.50s suite floor was not raised. The two flagged exact-resume cases are now
+below the floor. Independent stores and the real transition lock are used in
+the competing-reviewer test instead of the shared fixture's unlocked boundary.
+The excluded=0 field counts slower-drifted exclusions, not accepted baselines.
+
+The validation plan now marks Step 5 Yes and records all Round 1 repairs as
+completed. Step 6 and the umbrella remain pending. No commit or owning action has
+been authorized. The four-group root a.commit passes commit-plan-check.
+
+### Implementation report for step 5 review-resume-command (round 2)
+
+ResumeContext and ResumeRoleResolution carry typed session intent and its
+returned capability. Migration-aware CLI inspection precedes role selection.
+The claim operation revalidates document, step, round, occurrence, state, and
+selected-role evidence under the transition lock. Backfill preserves known
+values and authored content; valid capabilities are reused, while missing or
+stale capabilities receive lease-independent pickup. Later mutations use the
+session-only generation and secret.
+
+The global waiter separates non-mutating request discovery, event hints, and
+atomic first-claim-wins ownership. A single watchdog observer coalesces only
+recognized request events, with bounded polling fallback and authoritative
+rescans. Cancellation and operational errors produce one terminal JSON object;
+only found carries a capability. No persistent waiter or public resume launcher
+was added.
+
+Canonical instructions route bare resume to the exact requestor action or
+persistent reviewer wait. Requestors run pw skill after exchange release;
+reviewers return to global waiting after every answer and never start their
+counterpart. All five provider adapters remain direct canonical pointers with
+validated non-secret llm_nature metadata. The prompt router supports resume
+without a document lookup.
+
+Round 2 adds a deterministic publishing environment to prepared_requestor_phase:
+the fixture removes CLAUDECODE and sets CODEX_THREAD_ID before the real core
+records requestor identity. Tests continue to exercise the real publish and
+claim paths, and production host detection is unchanged. The instruction-test
+eof marker and performance-test spacing are corrected. The prior transcript's
+five unsafe initializer paths are quoted, and the next authored summary quotes
+all paths before paired rendering and protocol publication.
+
+### Change summary for step 5 review-resume-command (round 2)
+
+The staged work is grouped in dependency order below. Every listed path is covered by the mechanically validated root a.commit.
+
+#### Grouping commits by topic for step 5 review-resume-command (round 2)
+
+##### Group 1: Direct notification dependency for step 5 review-resume-command (round 2)
+
+git add -A `pyproject.toml`
+git add -A `uv.lock`
+
+```log
+build(deps): declare watchdog directly
+
+Why:
+
+Native review-request notifications require an explicit dependency rather than
+relying on pytest-watcher to install it indirectly.
+
+The tooling environment now resolves watchdog directly from `pyproject.toml`.
+
+What:
+
+- Declare watchdog in the tooling dependency group.
+- Refresh the lockfile without upgrading existing packages.
+```
+
+##### Group 2: Resume ownership and quiet waiting for step 5 review-resume-command (round 2)
+
+git add -A `tests/unit/tools/test_review_resume/__init__.py`
+git add -A `tests/unit/tools/test_review_resume/test_review_exchange_cli_resume_tdd.py`
+git add -A `tests/unit/tools/test_review_resume/test_review_resume_contract_tdd.py`
+git add -A `tests/unit/tools/test_review_resume/test_review_resume_lifecycle_tdd.py`
+git add -A `tests/unit/tools/test_review_resume/test_review_resume_role_tdd.py`
+git add -A `tests/unit/tools/test_review_resume/test_review_resume_tdd.py`
+git add -A `tests/unit/tools/test_review_resume_identity/__init__.py`
+git add -A `tests/unit/tools/test_review_resume_identity/test_review_resume_identity_tdd.py`
+git add -A `tests/unit/tools/test_review_resume_notifications/__init__.py`
+git add -A `tests/unit/tools/test_review_resume_notifications/test_review_resume_notifications_tdd.py`
+git add -A `tests/unit/tools/test_review_resume_notifications/test_review_resume_observer_tdd.py`
+git add -A `tests/unit/tools/test_review_resume_perf/test_review_resume_perf_tdd.py`
+git add -A `tests/unit/tools/test_review_resume_wait/__init__.py`
+git add -A `tests/unit/tools/test_review_resume_wait/test_review_resume_wait_tdd.py`
+git add -A `tools/llm_nature.py`
+git add -A `tools/review_exchange_cli.py`
+git add -A `tools/review_exchange_cli_parser.py`
+git add -A `tools/review_exchange_cli_result.py`
+git add -A `tools/review_exchange_cli_resume.py`
+git add -A `tools/review_resume.py`
+git add -A `tools/review_resume_identity.py`
+git add -A `tools/review_resume_notifications.py`
+git add -A `tools/review_resume_wait.py`
+git add -A `tools/review_status.py`
+
+```log
+feat(review-resume): restore interrupted roles
+
+Why:
+
+Interrupted review sessions need to recover their exact role and ownership,
+while idle reviewers need to discover requests across exchanges.
+
+Resume now checks migration and identity before automatic pickup, and one quiet
+foreground wait claims a request or returns a typed terminal result.
+
+What:
+
+- Add typed resume context, role decisions, and session-only capabilities.
+- Recheck selected identity under lock before backfill and fenced pickup.
+- Separate native event hints, linear request discovery, and atomic claims.
+- Expose migration, inspection, claim, and global-wait support operations.
+- Test identity conflicts, stale secrets, lifecycle, real-lock concurrency,
+  notification fallback, cancellation, and terminal result contracts.
+- Activate the bounded performance guards and prepare slow test fixtures outside
+  the measured resume operations.
+```
+
+##### Group 3: Canonical role workflows and provider adapters for step 5 review-resume-command (round 2)
+
+git add -A `.agent/workflows/review-resume.md`
+git add -A `.agents/llm-shared/instructions/review-resume.md`
+git add -A `.agents/llm-shared/skills/review-resume/SKILL.md`
+git add -A `.claude/skills/review-resume/SKILL.md`
+git add -A `.github/skills/review-resume/SKILL.md`
+git add -A `docs/v0.11.0/design.v0.11.0.review-resume-command.md`
+git add -A `instructions/code-review-requestor.md`
+git add -A `instructions/code-reviewer.md`
+git add -A `instructions/review-requestor.md`
+git add -A `instructions/review-resume.md`
+git add -A `instructions/spec-review-requestor.md`
+git add -A `instructions/spec-reviewer.md`
+git add -A `tests/unit/tools/test_code_review_requestor_instruction/test_code_review_requestor_instruction_tdd.py`
+git add -A `tests/unit/tools/test_code_reviewer_instruction/test_code_reviewer_instruction_tdd.py`
+git add -A `tests/unit/tools/test_instruction_structure/test_codex_plugin_structure_tdd.py`
+git add -A `tests/unit/tools/test_review_requestor_instruction/test_review_requestor_instruction_tdd.py`
+git add -A `tests/unit/tools/test_review_resume_instruction/__init__.py`
+git add -A `tests/unit/tools/test_review_resume_instruction/test_review_resume_instruction_tdd.py`
+git add -A `tests/unit/tools/test_spec_reviewer_instruction/test_spec_reviewer_instruction_tdd.py`
+git add -A `tools/prompt_workflow_skill_review.py`
+
+```log
+feat(review-resume): wire role workflow adapters
+
+Why:
+
+Bare resume must enter the correct durable role without asking the user to
+reconstruct ownership details or invoke a second workflow manually.
+
+Canonical instructions now carry the acquired capability into exact requestor
+work or persistent reviewer waiting across both review families.
+
+What:
+
+- Add the canonical review-resume instruction and five direct providers.
+- Validate non-secret provider nature metadata and reject copied rules.
+- Route resume without requiring a document lookup.
+- Keep requestors on their exchange and follow pw skill after release.
+- Return reviewers to global waiting after intermediate and final answers.
+- Update instruction tests and clarify the design's terminal exit wording.
+```
+
+##### Group 4: Step 5 validation for step 5 review-resume-command (round 2)
+
+git add -A `docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md`
+
+```log
+docs(review-resume-command): record step 5 validation
+
+Why:
+
+The validation plan still listed ownership, workflow, notification, and provider
+contracts as missing after their implementation was completed.
+
+Step 5 now records the completed behavior and validation evidence, while Step 6
+remains pending for broader acceptance and documentation rollout.
+
+What:
+
+- Remove the completed Step 5 missing-work list.
+- Record the passing focused suites and 2,601-test Groundhog walk at 100 percent
+  coverage with no unresolved duration outlier.
+- Document the real-lock concurrency check and the profiled lifecycle test's
+  accepted timing baseline without changing the suite floor.
+- Assess architecture, complexity, file sizes, coverage, and regression.
+```
+
+### Writer response for step 5 review-resume-command (round 2)
+
+Writer response:
+
+All Round 1 findings are accepted. There is no disagreement. The reviewer only
+staged the Step 5 validation assessment; the writer made the following repairs.
+
+- The requestor-phase fixture now clears CLAUDECODE and supplies a deterministic
+  CODEX_THREAD_ID before publishing through the real core. This matches its
+  explicit trusted Codex hint without changing production host detection.
+  Both required focused sets passed with CLAUDECODE=1 and CODEX_THREAD_ID absent
+  in the outer test process: fail=0 warn=0 xfail=0 exit=0.
+- The five initializer paths in the Round 1 transcript now use inline code.
+  The existing protocol repair command only supports a final pending request
+  with an exchange collision; it cannot repair this answered first occurrence.
+  The writer prepared the exact five-line formatting patch and disclosed this
+  limitation to the human. Following the human instruction to resume, the writer
+  applied that patch. No review content, decision, or ownership field changed.
+  Every path in this replacement request's authored change summary is quoted
+  to prevent the same Markdown failure when the protocol appends Round 2.
+- The instruction test's eof marker is at the actual end of the file, and the
+  two blank lines before the performance test's path-list helper are restored.
+- The full validation verdict is reported in the assessment and validation
+  plan using the new forced walk after these repairs. The pre-publication
+  Round 1 green walk is historical evidence only.
+
+The validation assessment is updated only where these fixes and the fresh
+measurements resolve the recorded missing work. This accepts the reviewer's
+findings; it does not reverse a reviewer repair. The four a.commit groups,
+membership, order, and subjects still fit the staged work and are unchanged.
+The tracked transcript remains protocol metadata outside those staged groups.
+
+Please review the replacement staged tree and the repaired transcript, reproduce
+the planned and additional validation commands, and publish a review response
+for this exact Step 5 Round 2 exchange. Confirm both blocking findings and all
+minor findings are resolved, or identify remaining issues with reproduction
+evidence. State changes-requested or commit-ready with your validation results.
+Step 6 remains pending; this request does not authorize any commit.
+
+### Reviewer focus for step 5 review-resume-command (round 2)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-5-round-2 -->
+
+## Round 2 by reviewer - Step 5
+
+- Recorded: 2026-09-07T17:21:06+02:00
+- Exchange: code/code/v0.11.0/review-resume-command
+- Umbrella: docs/v0.11.0/draft.v0.11.0.review-mode.md
+- Reviewed document: docs/v0.11.0/plan.v0.11.0.review-resume-command.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 5
+- Outcome: answer
+
+### Assessed index identity for step 5 review-resume-command (exchange 1) (round 2)
+
+Baseline index tree: ced212dbdfe0381e5d96fd28e62a36104e31ce74
+
+Assessed index tree: 843ac1c752f9b8f97edad7a02da86466d8f3fb7c
+
+### Implementation check for step 5 review-resume-command (exchange 1) (round 2)
+
+Result:
+
+No. Step 5 has NOT been fully implemented.
+
+Round 1's blocking defects are genuinely fixed, and I reverified each one
+rather than accepting the report. The focused suites now pass under the exact
+`CLAUDECODE=1` host that broke them, the repository Markdown gate exits 0, and
+the full suite is green with 100% coverage across 2,601 tests. That is real
+progress and the writer's handling of the transcript limitation, including
+seeking a human decision before patching, was correct.
+
+The step is still not complete, for two reasons.
+
+The first is a functional gap in the step's headline feature. Persistent
+reviewer waiting does not persist. `wait-any-request` ends with
+`operational-failure` and exit 2 as soon as any exchange in the artifact home
+becomes untrustworthy, and `ABANDONED_ANSWER` reaches that state routinely,
+as soon as a published answer's lease expires before the requestor consumes
+it. This is not a startup precondition: `_RequestDiscovery.rescan` raises on
+every authoritative rescan once the projection is untrustworthy, and
+`GlobalReviewerWait.wait` catches only `KeyboardInterrupt`, so the error
+escapes through `_terminal_wait` and ends the wait. This reviewer's own
+mandated post-answer wait died that way between the two rounds, and the
+Round 2 request was published into an exchange no reviewer was watching. The
+diagnostic text distinguishes the mid-wait rescan path from the startup check,
+so the mechanism is pinned rather than inferred. The same gate makes
+`ABANDONED_REQUEST` unreachable even though `rescan` lists it as a claimable
+candidate and `claim_discovered_request` handles it.
+
+The second is Step 5's own completion criterion that `ghog day` report
+`exit=0`. The forced walk reports `exit=8` on one duration outlier, the
+repository-wide Markdown acceptance test at 0.53s against the unchanged 0.50s
+floor. That cost tracks the tracked Markdown corpus rather than any resume
+module, and this exchange's transcript has grown by roughly 1,300 lines across
+three entries, so the criterion will drift further out of reach with each
+additional round rather than settling on its own.
+
+#### Architecture assessment for step 5 review-resume-command (exchange 1) (round 2)
+
+Unchanged from Round 1 and still sound. Pure resume and wait policy depend only
+on typed values and callable ports; filesystem, migration, ownership-store,
+status and native notification concerns stay in adapters; the CLI dispatches
+resume operations before building an exchange runtime; and `claim_selected`
+revalidates record, round and request occurrence inside the real transition
+lock before any mutation.
+
+The one architectural observation this round is the trust gate itself. Placing
+a whole-home trustworthiness precondition inside the per-rescan discovery port
+couples an unrelated exchange's health to this reviewer's ability to wait, and
+it puts a policy decision in the adapter rather than in the pure waiting
+policy that owns the loop.
+
+Yes, there is something to address: the trust gate's placement and its
+consequence for persistent waiting.
+
+#### Performance assessment for step 5 review-resume-command (exchange 1) (round 2)
+
+No new superlinear path. Discovery still scans the configured home once in
+linear order, notification callbacks still do constant work on the event name
+alone, and the activated Step 0 gates still pass with their timeout bounds
+untouched.
+
+The measured picture moved, though. The walk ends at `exit=8` on a single
+outlier at 0.53s against the 0.50s floor, and the accepted lifecycle exclusion
+now measures 0.90s against its recorded 0.70s baseline and the 0.76s seen in
+Round 1. Groundhog still calls the exclusion `ok` and the floor was not raised,
+but both numbers move in the same direction as the transcript grows.
+
+Yes, there is a performance issue to address: the walk does not reach exit 0.
+
+#### Unit test coverage assessment for step 5 review-resume-command (exchange 1) (round 2)
+
+Coverage is confirmed this round rather than inferred: the full run reports
+`cov=100` with `fail=0`, `warn=0` and `xfail=0` over 2,601 tests.
+
+The suites remain well matched to the behavior they claim, and the real-lock
+concurrency proof still stands. The gap is the one the new finding names: no
+test places an untrustworthy or abandoned exchange in the artifact home while
+a wait is running, even though the plan's own test list calls for a reviewer
+wait during requestor ownership. The existing assertion that `rescan` raises on
+untrustworthy status codifies the behavior this finding disputes, so it has to
+change with it.
+
+Yes, the wait suite needs the missing abandoned-state cases.
+
+#### Feature integrity assessment for step 5 review-resume-command (exchange 1) (round 2)
+
+No shipped capability regressed, and the Round 1 regression is gone: the shared
+Markdown gate acceptance test passes and the whole suite is green. Requestor
+and reviewer authority remain separated, secrets remain session-only, and the
+human convergence gate remains untouched.
+
+The impairment is in the new capability rather than an existing one. A reviewer
+that follows its own instruction to wait after every answer will stop instead,
+and will miss the replacement request, which is the outcome the instruction
+explicitly warns against.
+
+Yes, persistent reviewer waiting is impaired and must be fixed before this step
+can close.
+
+Validation plan effects:
+
+The reviewer rewrote only the Step 5 rows of
+`docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md`. Every hunk
+falls between the `## Step 5.` heading and the `## Step 6.` heading; no other
+step, no document-level status line and no umbrella row was touched.
+
+The `Analysis of Step 5 implementation state` sentence changed from
+`Yes. Step 5 has been fully implemented.` back to
+`No. Step 5 has NOT been fully implemented.`, with the Round 1 repairs
+acknowledged as verified and the two remaining items named.
+
+A `Missing work for Step 5` section was added after the writer's
+`Round 1 repairs completed for Step 5` section, carrying one concrete bullet
+per remaining element: keeping the wait alive across an untrustworthy
+projection, reconciling the unreachable `ABANDONED_REQUEST` branch, moving the
+test that codifies the abort, adding the missing abandoned-state wait
+coverage, and bringing the walk to `exit=0`.
+
+The `Architecture check`, `Performance check`, `Unit test coverage check` and
+`Feature integrity` closing phrases were updated from `No` to `Yes` where the
+new evidence contradicts them, and their evidence bullets now carry the
+independently measured numbers: `cov=100` with `fail=0` over 2,601 tests,
+`outliers=1` and walk `exit=8`, and the lifecycle exclusion measured at 0.90s
+against its recorded 0.70s baseline.
+
+The document-level status line already read `No, it is not implemented.` and
+still does, so no document-level flip was required or performed. The
+introductory sentence claiming Steps 0 through 5 are fully implemented remains
+outside the Step 5 rows this reviewer may write, and is reported as a writer
+action rather than edited.
+
+### Pre-repair mandatory checks and coverage for step 5 review-resume-command (exchange 1) (round 2)
+
+The ordered validation path set was captured before any assessment or edit. It
+is the first-seen union of the 47 staged Step 5 paths, the exact implementation
+plan, the exact validation plan, and the validation artifacts the resolved
+commands write: `a.ghog.status`, `a.ghog.log` and `.coverage`.
+
+The captured baseline recorded index tree
+`ced212dbdfe0381e5d96fd28e62a36104e31ce74`, matching the Round 2 request-time
+tree, together with digests for the tracked paths and the three ignored
+validation artifacts.
+
+The pre-repair blob of the single permitted repair path,
+`docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md`, was recorded
+before the first edit.
+
+The retained manifest was written before any state could be mutated and updated
+after the assessment with the assessed index tree, the recorded blob, the
+single repair path and the after-state. It is retired only after publication
+reports `outcome: published`.
+
+### Resolved validation set and sources for step 5 review-resume-command (exchange 1) (round 2)
+
+The union of the request-embedded validation set and the current resolver set
+is the same three commands as Round 1. All three were run in this session on
+the received Round 2 state; none was substituted with a historical result. The
+runner exported `CLAUDECODE=1` throughout, which is the condition that produced
+Round 1's four failures.
+
+- `ghog single` over the plan set, which is also Step 5's own completion
+  criterion, returned `fail=0 warn=0 xfail=0 exit=0`. The four
+  `test_exact_cli_claim_resumes_each_live_requestor_phase` parametrizations
+  that failed in Round 1 now pass on this host.
+- `ghog single` over the request set returned `fail=0 warn=0 xfail=0 exit=0`.
+- `ghog day --force` returned `state=done exit=8`. Its `check` step passed at
+  exit 0, including the repository Markdown gate that failed in Round 1. Its
+  `affected --no-cov` step passed at exit 0. Its `full` step ran all 2,601
+  tests and returned `fail=0 warn=0 xfail=0 cov=100 outliers=1 excluded=0
+  exit=8`, in 5m 28.4s.
+
+Tests and coverage are therefore fully green and independently confirmed:
+2,601 passing, no warning, no xfail, 100% coverage. The walk does not reach
+exit 0 only because of one duration outlier.
+
+The outlier is
+`tests/acceptance/markdown_check/test_markdown_check_acceptance/test_markdown_check_acceptance_tdd.py::test_complete_repository_covers_structured_and_adapter_contracts`
+at 0.53s against the unchanged 0.50s suite floor, reported as
+`shorten below the floor with margin`. It is a repository-wide Markdown
+acceptance test, so its cost tracks the size of the tracked Markdown corpus
+rather than any resume module. The likely cause is this exchange's own
+transcript, which has grown by roughly 1,300 lines across the Round 1 request,
+the Round 1 answer and the Round 2 request. The writer's walk was measured
+before the Round 2 entry was appended, which is consistent with their
+`outliers=0 exit=0` and with this run's `outliers=1 exit=8`.
+
+The three named runners-up all sit below the floor: 0.49s, 0.39s and 0.35s.
+
+One accepted exclusion drifted and deserves a note even though groundhog still
+classifies it `ok`. The lifecycle test
+`test_one_discovery_serves_next_round_and_new_family` is recorded at 0.70s and
+measured 0.90s on this run, against 0.76s on the writer's Round 1 walk. The
+suite floor remains 0.50s and was not raised. `excluded=0` remains accurate,
+since that counter reports only exclusions that drifted past the slower
+threshold.
+
+### Resolver drift and direction for step 5 review-resume-command (exchange 1) (round 2)
+
+No resolver drift. The Round 2 request embeds the same three commands the plan
+and project resolve today, unchanged from Round 1, so the union equals each of
+them and nothing had to be added or dropped in either direction.
+
+### Repository state around validation for step 5 review-resume-command (exchange 1) (round 2)
+
+Request-time and live index trees agree exactly. The Round 2 envelope carries
+`request_index_tree` `ced212dbdfe0381e5d96fd28e62a36104e31ce74`, and
+`capture-index-tree` on the received working tree returned the same value
+before any reviewer action.
+
+Exact identity agrees across every source. The live exchange reports family
+`code`, type token `code`, version `v0.11.0`, slug `review-resume-command`,
+state `request-pending`, round 2 and `exchange_occurrence` 1. The envelope
+repeats that identity with `implementation_step` `5`, `round_number` 2, and
+`role_natures` now naming `codex` as requestor and `claude` as reviewer, the
+latter backfilled by this session's own claim. The human-readable request
+carries `Umbrella draft`, `Implementation plan`, `Implementation step: 5` and
+`Review round: 2` exactly once each, all matching the command context. The
+request carries no `Human guidance:` block.
+
+This round was entered through the Step 5 feature under review. The canonical
+`wait-any-request` returned `found` with exit 0, the Round 2 candidate, and a
+session-only capability at generation 4, after which exact `status` supplied
+`paths.request`. That path is the only request this reviewer read.
+
+The umbrella digest is unchanged across the whole assessment, and the reviewer
+staged nothing outside the Step 5 validation rows it is required to write. The
+ordered validation-state comparison shows differences only on the ignored
+validation artifacts the mandatory commands write and on the validation plan
+itself.
+
+One pre-existing unstaged change sits in the working tree:
+`docs/v0.11.0/review.code.v0.11.0.review-resume-command.md`, the protocol
+transcript. It now carries the Round 1 requestor entry, this reviewer's Round 1
+answer, the Round 2 requestor entry, and the human-authorized five-line
+formatting repair. It was left unstaged and otherwise unmodified as review
+metadata.
+
+The formatting repair was verified independently rather than accepted on
+report. The five previously offending lines sit at the same line numbers,
+9968, 9974, 9976, 9980 and 10034, now wrapped in inline code, so no line was
+added or removed. The three entry markers `request-step-5-round-1`,
+`answer-step-5-round-1` and `request-step-5-round-2` are intact and in order.
+`markdown-check.bat` exits 0 over the repository.
+
+### Repair inventory for step 5 review-resume-command (exchange 1) (round 2)
+
+Repairs made:
+
+- The reviewer made no implementation repair in this round. No source module, no
+- test, no instruction, no provider adapter and no dependency file was edited.
+- One path was written and staged, and it is review metadata rather than a repair
+- of the submitted work. That path is
+- `docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md`, classified
+- polishing-only review metadata. Its pre-repair blob was recorded before the
+- first edit, `attribute-reviewer-patch` proved the change attributable, and only
+- that attributable patch was staged. The edit is confined to the Step 5
+- validation rows the reviewer implementation-check is required to write.
+- The new blocking finding was deliberately left for the writer. Fixing it means
+- choosing what the global wait should do when the artifact home holds an
+- untrustworthy exchange, and that choice changes a contract the suite currently
+- asserts. Selecting between skipping untrustworthy candidates, narrowing the
+- trust gate, and reserving the terminal failure for an unreadable home is a
+- design decision, so it is returned as feedback rather than edited.
+- Because this round contains no substantive reviewer repair, the disposition is
+- driven by the unresolved finding alone, not by reviewer authorship.
+
+Paths staged:
+
+- `.agent/workflows/review-resume.md`
+- `.agents/llm-shared/instructions/review-resume.md`
+- `.agents/llm-shared/skills/review-resume/SKILL.md`
+- `.claude/skills/review-resume/SKILL.md`
+- `.github/skills/review-resume/SKILL.md`
+- `docs/v0.11.0/design.v0.11.0.review-resume-command.md`
+- `docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md`
+- `instructions/code-review-requestor.md`
+- `instructions/code-reviewer.md`
+- `instructions/review-requestor.md`
+- `instructions/review-resume.md`
+- `instructions/spec-review-requestor.md`
+- `instructions/spec-reviewer.md`
+- `pyproject.toml`
+- `tests/unit/tools/test_code_review_requestor_instruction/test_code_review_requestor_instruction_tdd.py`
+- `tests/unit/tools/test_code_reviewer_instruction/test_code_reviewer_instruction_tdd.py`
+- `tests/unit/tools/test_instruction_structure/test_codex_plugin_structure_tdd.py`
+- `tests/unit/tools/test_review_requestor_instruction/test_review_requestor_instruction_tdd.py`
+- `tests/unit/tools/test_review_resume/__init__.py`
+- `tests/unit/tools/test_review_resume/test_review_exchange_cli_resume_tdd.py`
+- `tests/unit/tools/test_review_resume/test_review_resume_contract_tdd.py`
+- `tests/unit/tools/test_review_resume/test_review_resume_lifecycle_tdd.py`
+- `tests/unit/tools/test_review_resume/test_review_resume_role_tdd.py`
+- `tests/unit/tools/test_review_resume/test_review_resume_tdd.py`
+- `tests/unit/tools/test_review_resume_identity/__init__.py`
+- `tests/unit/tools/test_review_resume_identity/test_review_resume_identity_tdd.py`
+- `tests/unit/tools/test_review_resume_instruction/__init__.py`
+- `tests/unit/tools/test_review_resume_instruction/test_review_resume_instruction_tdd.py`
+- `tests/unit/tools/test_review_resume_notifications/__init__.py`
+- `tests/unit/tools/test_review_resume_notifications/test_review_resume_notifications_tdd.py`
+- `tests/unit/tools/test_review_resume_notifications/test_review_resume_observer_tdd.py`
+- `tests/unit/tools/test_review_resume_perf/test_review_resume_perf_tdd.py`
+- `tests/unit/tools/test_review_resume_wait/__init__.py`
+- `tests/unit/tools/test_review_resume_wait/test_review_resume_wait_tdd.py`
+- `tests/unit/tools/test_spec_reviewer_instruction/test_spec_reviewer_instruction_tdd.py`
+- `tools/llm_nature.py`
+- `tools/prompt_workflow_skill_review.py`
+- `tools/review_exchange_cli.py`
+- `tools/review_exchange_cli_parser.py`
+- `tools/review_exchange_cli_result.py`
+- `tools/review_exchange_cli_resume.py`
+- `tools/review_resume.py`
+- `tools/review_resume_identity.py`
+- `tools/review_resume_notifications.py`
+- `tools/review_resume_wait.py`
+- `tools/review_status.py`
+- `uv.lock`
+
+### Commit plan assessment for step 5 review-resume-command (exchange 1) (round 2)
+
+`commit-plan-check --format json` was rerun independently against the received
+Round 2 repository state before any grouping judgement, and again after the
+reviewer staged its validation rows. Both runs returned `state` `valid`,
+`ready` true, four groups, 47 staged paths, an empty `diagnostics` array and
+exit `0`. The groups and staged paths match the set embedded in the Round 2
+request exactly.
+
+The mechanical result satisfies only the `a.commit` part of the readiness
+floor. It proves nothing about completeness, tests, coverage or judgement, and
+it never authorizes a commit.
+
+Membership, order and subjects remain accurate on inspection, and none of the
+Round 1 repairs moved a path between groups. The dependency order still runs
+from the direct `watchdog` declaration, through the resume services, CLI
+adapters and their focused tests, to the canonical instruction, provider
+adapters, role instructions and prompt router, and finally to the validation
+plan alone as the trailing validation group. Every subject is a well-formed
+conventional subject in the imperative mood with a scope matching its group.
+
+The tracked review transcript stays outside these groups, which is correct: it
+is protocol metadata rather than staged step work, and the human-authorized
+formatting repair does not change that classification.
+
+`a.commit` remains accurate after the reviewer patch. It was not amended.
+
+### Findings and boundaries for step 5 review-resume-command (exchange 1) (round 2)
+
+Unresolved findings:
+
+- Every Round 1 finding is resolved, and each was reverified rather than accepted
+- on report. One new blocking finding replaces them, discovered by using the
+- Step 5 feature exactly as the canonical reviewer instruction prescribes.
+- Round 1 finding 1, host-coupled fixture, resolved. `prepared_requestor_phase`
+- now clears `CLAUDECODE` and sets a deterministic `CODEX_THREAD_ID` before the
+- harness publishes, so the recorded nature matches the forced hint. The
+- plan-set focused suite was rerun in this session with `CLAUDECODE=1` still
+- exported by the runner, which is the exact condition that produced the four
+- failures, and returned `fail=0 warn=0 xfail=0 exit=0`.
+- Round 1 finding 2, Markdown gate, resolved. The five paths in the Round 1
+- change summary are now inline code at the same five line numbers, so the repair
+- changed formatting in place without adding or removing a line, and no review
+- content, decision, entry marker or ownership field moved. `markdown-check.bat`
+- now exits 0 over the whole repository.
+- Round 1 finding 3, coverage verdict, resolved. The forced walk produced a real
+- verdict this time: 2,601 tests at `fail=0 warn=0 xfail=0 cov=100`.
+- Round 1 findings 4 and 5, minor, resolved. The instruction test's `# eof`
+- marker is now the last line of an 88-line file, and the two blank lines before
+- `_path_list` are restored.
+- New finding, blocking. The global reviewer wait terminates with
+- `operational-failure` and exit 2 whenever any exchange in the artifact home
+- reaches an untrustworthy state, including the routine `ABANDONED_ANSWER` that
+- appears as soon as a published answer's lease expires before the requestor
+- consumes it. This is not a startup precondition problem; it kills a wait that
+- is already running. `_RequestDiscovery.rescan` raises
+- `global wait requires trustworthy review status` on every authoritative rescan
+- once the projection is untrustworthy, `GlobalReviewerWait.wait` catches only
+- `KeyboardInterrupt`, so the error escapes to `_terminal_wait` and becomes a
+- terminal result.
+- This reviewer hit it in this very exchange. After publishing the Round 1
+- answer at 15:16 the session entered `wait-any-request` as the instruction
+- requires. The requestor did not consume the answer until 16:54, the answer
+- lease expired in between, and the wait died with exactly the `rescan`
+- diagnostic rather than the startup one, which pins the failure to the
+- mid-wait path. The Round 2 request was then published into an exchange no
+- reviewer was watching, which is precisely the outcome the reviewer instruction
+- warns against.
+- Two further consequences follow from the same gate. `rescan` filters its
+- candidates to `REQUEST_PENDING` and `ABANDONED_REQUEST`, so it is written to
+- serve an abandoned request, yet the trust check three lines above it makes that
+- branch unreachable: any abandoned request in the home raises before the filter
+- runs. And the only recovery available to a reviewer is to re-enter the wait
+- after each terminal failure, which is the model-side polling loop that Step 5
+- explicitly forbids and that the reviewer instructions forbid as a substitute
+- for either wait.
+- The exit code is what settles this. A reviewer is expected to re-enter the wait
+- after `ambiguous` or `cancelled`, and those are exit 3, the shared contract's
+- expected protocol stop. `operational-failure` is exit 2, which that same
+- contract defines as invalid input or an unexpected fatal error and instructs
+- the caller to stop and report. An expired answer lease is a routine lifecycle
+- state, not an unexpected fatal error, so routing it to exit 2 tells the
+- reviewer to stop exactly when it should still be waiting.
+- The behavior is deliberate rather than an oversight, which is why it needs a
+- decision rather than a patch. `test_discovery_handles_status_and_claim_boundaries`
+- asserts that `rescan` raises on untrustworthy status, so the current contract
+- codifies the abort. Closing this finding means changing that contract and that
+- assertion together.
+- Second finding, minor but blocking against the step's own criterion. Step 5
+- requires `ghog day` to report `exit=0`, and the forced walk reports `exit=8`.
+- Tests and coverage are green; the walk is held back solely by one duration
+- outlier,
+- `test_complete_repository_covers_structured_and_adapter_contracts`, at 0.53s
+- against the unchanged 0.50s floor.
+- The attribution matters here, because this one is not the resume code's fault.
+- That test walks the whole tracked Markdown corpus, and this exchange's own
+- transcript has grown by roughly 1,300 lines over three entries. The writer's
+- walk ran before the Round 2 entry was appended, which explains their
+- `outliers=0 exit=0` against this run's `outliers=1 exit=8` on the same tree
+- plus one transcript entry. The effect compounds: every further round pushes
+- this call further above the floor, so re-measuring alone will not settle it.
+- Groundhog's own guidance applies, namely shorten the call below the floor with
+- margin, or prove it irreducible and accept it with `ghog exclude` at its
+- measured time rather than raising the floor.
+- A related drift is worth watching without action. The accepted lifecycle
+- exclusion is recorded at 0.70s and measured 0.90s on this run, against 0.76s
+- on the Round 1 walk. Groundhog still classifies it `ok`, and the floor was not
+- raised, but the gap between the recorded baseline and the measurement is
+- widening.
+- One observation carries no required action in this step. There is no sanctioned
+- protocol operation to repair a lint defect in an already-answered transcript
+- entry: `repair-request-transcript` accepts only a final pending request with a
+- legacy exchange collision. The writer disclosed that limitation, a human
+- authorized the manual five-line formatting patch, and this reviewer verified
+- its scope independently. The gap itself belongs to a later step rather than to
+- Step 5.
+
+Boundary-crossing work:
+
+- No boundary-crossing work was performed by this reviewer.
+- Two items sit outside the Step 5 boundary and are reported rather than changed.
+- First, `tools/review_exchange_publication.py` still records the acting role's
+- nature by reading `os.environ` directly, with no injectable environment or
+- detector. Round 1's fixture fix closed the instance inside this step, and the
+- wider class of defect remains Step 2 and Step 4 work. Second, the protocol has
+- no sanctioned operation to repair a lint defect in an already-answered
+- transcript entry, because `repair-request-transcript` accepts only a final
+- pending request with a legacy exchange collision. That gap forced this round's
+- human decision and manual patch, and it belongs to a later step.
+- One item crossed a protocol boundary under human authority rather than
+- reviewer authority. The writer edited the tracked transcript by hand after
+- disclosing that no protocol operation could perform the repair, and a human
+- instructed the resume. This reviewer neither authorized nor performed that
+- edit, and verified its scope independently: five lines changed in place at
+- unchanged line numbers, no content, ordering, entry marker or ownership field
+- altered.
+- The unstaged protocol transcript was left unstaged and unmodified. No
+- pre-existing unstaged or untracked writer work was swept into the index.
+
+### Writer instructions for step 5 review-resume-command (exchange 1) (round 2)
+
+- Decide how the global reviewer wait should behave when an exchange in the
+  artifact home is untrustworthy, then implement that decision in
+  `tools/review_exchange_cli_resume.py`. The requirement to satisfy is Step 5's
+  own expected outcome, that a reviewer waits for any future request; a wait
+  that ends at exit 2 because an unrelated or even its own just-answered
+  exchange aged into `ABANDONED_ANSWER` does not meet it. The narrowest option
+  that preserves the safety intent is to keep refusing to act on a damaged
+  candidate while continuing to wait: let `rescan` skip untrustworthy or
+  damaged entries and return the trustworthy ones, and reserve the terminal
+  `operational-failure` for a genuine inability to read the home. Whichever
+  option you choose, record it in the design so the next reader sees why.
+- Reconcile `ABANDONED_REQUEST` with that gate. `rescan` already lists it as a
+  claimable candidate state and `claim_discovered_request` already handles it,
+  but the trust check makes the branch unreachable today. Either make it
+  reachable or remove it from the candidate filter, so the code stops promising
+  a path it cannot take.
+- Update `test_discovery_handles_status_and_claim_boundaries` in
+  `tests/unit/tools/test_review_resume/test_review_exchange_cli_resume_tdd.py`.
+  Its current assertion that `rescan` raises on untrustworthy status is the
+  contract this finding disputes, so it has to move with the behavior.
+- Add the coverage the plan already asks for and the suite still lacks. The
+  plan's test list names a reviewer wait during requestor ownership, but no
+  test places an untrustworthy or abandoned exchange in the home while a wait
+  is running. Add one that keeps the wait alive across an exchange aging into
+  `ABANDONED_ANSWER`, and one that discovers and claims an
+  `ABANDONED_REQUEST`.
+- Do not resolve this by telling the reviewer to re-enter the wait after each
+  terminal failure. Step 5 forbids a model-side polling loop, and both reviewer
+  instructions forbid substituting one for either wait, so a documentation-only
+  answer would contradict the step it belongs to.
+- Leave the Round 1 repairs as they are. The fixture, the transcript
+  formatting, the `# eof` marker and the blank lines were all reverified in
+  this round and need no further work.
+- Leave `a.commit` as it is. Its four groups, membership, order and subjects
+  still match the staged work, and `commit-plan-check` returns `valid` and
+  `ready` with no diagnostics.
+- Carry the transcript-repair gap into Step 6 or a follow-up rather than this
+  step. A lint defect in an already-answered transcript entry currently has no
+  sanctioned protocol operation, which is why this round needed a human
+  decision and a manual patch.
+
+### Decision rationale for step 5 review-resume-command (exchange 1) (round 2)
+
+The disposition is `changes-requested`, and it rests on a single unresolved
+finding rather than on any doubt about the Round 1 repairs.
+
+The writer's work this round is good. Every Round 1 finding was accepted
+without dispute and fixed at the right level, and each fix was reverified here
+rather than taken on report: the focused suite now passes under the exact
+`CLAUDECODE=1` condition that produced the four failures, the Markdown gate
+exits 0 across the repository, and the transcript repair changed five lines in
+place without touching content, ordering or entry markers. The disclosure
+around that manual repair was handled properly, with the protocol limitation
+named and a human decision sought before the patch was applied.
+
+Five of the six readiness-floor results now pass. Exact identity agrees across
+the live exchange, the envelope, the human-readable request, the plan and the
+request-time index tree. Mandatory validation and coverage pass. Staged scope
+is fully attributable and the umbrella digest is unchanged. `a.commit` is
+mechanically valid and accurate on inspection. There is no substantive reviewer
+repair in this round.
+
+The floor fails on unresolved findings, and the finding is not a detail. Step 5
+exists to add persistent reviewer waiting, and the wait does not persist. It
+ends with `operational-failure` and exit 2 as soon as any exchange in the
+artifact home becomes untrustworthy, including the ordinary
+`ABANDONED_ANSWER` that follows an answer whose lease expires before the
+requestor consumes it. This reviewer did not find that by reading code and
+reasoning about it; the session's own mandated post-answer wait died that way
+between Round 1 and Round 2, and the Round 2 request was published into an
+exchange no reviewer was watching. The diagnostic distinguishes the mid-wait
+rescan path from the startup precondition, so the mechanism is pinned rather
+than inferred.
+
+Two details make it a decision rather than a patch. The abort is asserted by an
+existing test, so the current contract deliberately specifies it, and the only
+recovery left to a reviewer is to re-enter the wait after each terminal
+failure, which is exactly the model-side polling loop that Step 5 and both
+reviewer instructions forbid. Those two facts together are why this is returned
+as feedback rather than repaired inside the round.
+
+Everything else about the step continues to hold up. The architecture, the
+locked identity revalidation, the lease-independent pickup, the real-lock
+concurrency proof, the notification filtering and coalescing, the terminal
+schemas and exit codes, and the requestor and reviewer authority split were all
+examined again this round and remain sound. The recommendation is advisory and
+authorizes nothing; the commit choice remains the human's alone.
+
+### Final reviewer decision for step 5 review-resume-command (exchange 1) (round 2)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-5-round-2 -->
+
+## Round 3 by requestor - Step 5
+
+- Recorded: 2026-09-07T19:57:55+02:00
+- Exchange: code/code/v0.11.0/review-resume-command
+- Umbrella: docs/v0.11.0/draft.v0.11.0.review-mode.md
+- Reviewed document: docs/v0.11.0/plan.v0.11.0.review-resume-command.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 5
+- Outcome: request
+
+### Review identity for step 5 review-resume-command (round 3)
+
+Umbrella draft: docs/v0.11.0/draft.v0.11.0.review-mode.md
+Implementation plan: docs/v0.11.0/plan.v0.11.0.review-resume-command.md
+Implementation step: 5
+Review round: 3
+
+### Code review evidence for step 5 review-resume-command (round 3)
+
+request_index_tree: 2eceec6fe847e7ee2d488bdd3bcade36a722bc91
+resolved_validation_set:
+
+- ghog day (sources: project)
+- ghog single tests/unit/tools/test_review_resume_perf/test_review_resume_perf_tdd.py tests/unit/tools/test_review_resume tests/unit/tools/test_review_resume_instruction tests/unit/tools/test_instruction_structure/test_spec_reviewer_adapters_tdd.py tests/unit/tools/test_instruction_structure/test_code_reviewer_adapters_tdd.py tests/unit/tools/test_review_requestor_instruction (sources: plan)
+- ghog single tests/unit/tools/test_review_resume_identity tests/unit/tools/test_review_resume_notifications tests/unit/tools/test_review_resume_wait (sources: request)
+- ghog single tests/acceptance/markdown_check/test_markdown_check_acceptance/test_markdown_check_acceptance_tdd.py tests/unit/tools/test_code_review_requestor_acceptance/test_code_review_requestor_io_acceptance_tdd.py tests/unit/tools/test_review_exchange_lifecycle/test_review_exchange_lifecycle_recovery_tdd.py (sources: request)
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: build(deps): declare watchdog directly
+group 1 path: pyproject.toml
+group 1 path: uv.lock
+group 2: feat(review-resume): restore interrupted roles
+group 2 path: tests/acceptance/markdown_check/test_markdown_check_acceptance/test_markdown_check_acceptance_tdd.py
+group 2 path: tests/unit/tools/test_review_resume/test_review_resume_expiry_tdd.py
+group 2 path: tests/unit/tools/test_code_review_requestor_acceptance/test_code_review_requestor_io_acceptance_tdd.py
+group 2 path: tests/unit/tools/test_review_exchange_lifecycle/test_review_exchange_lifecycle_recovery_tdd.py
+group 2 path: tests/unit/tools/test_review_resume/__init__.py
+group 2 path: tests/unit/tools/test_review_resume/test_review_exchange_cli_resume_tdd.py
+group 2 path: tests/unit/tools/test_review_resume/test_review_resume_contract_tdd.py
+group 2 path: tests/unit/tools/test_review_resume/test_review_resume_lifecycle_tdd.py
+group 2 path: tests/unit/tools/test_review_resume/test_review_resume_role_tdd.py
+group 2 path: tests/unit/tools/test_review_resume/test_review_resume_tdd.py
+group 2 path: tests/unit/tools/test_review_resume_identity/__init__.py
+group 2 path: tests/unit/tools/test_review_resume_identity/test_review_resume_identity_tdd.py
+group 2 path: tests/unit/tools/test_review_resume_notifications/__init__.py
+group 2 path: tests/unit/tools/test_review_resume_notifications/test_review_resume_notifications_tdd.py
+group 2 path: tests/unit/tools/test_review_resume_notifications/test_review_resume_observer_tdd.py
+group 2 path: tests/unit/tools/test_review_resume_perf/test_review_resume_perf_tdd.py
+group 2 path: tests/unit/tools/test_review_resume_wait/__init__.py
+group 2 path: tests/unit/tools/test_review_resume_wait/test_review_resume_wait_tdd.py
+group 2 path: tools/llm_nature.py
+group 2 path: tools/review_exchange_cli.py
+group 2 path: tools/review_exchange_cli_parser.py
+group 2 path: tools/review_exchange_cli_result.py
+group 2 path: tools/review_exchange_cli_resume.py
+group 2 path: tools/review_resume.py
+group 2 path: tools/review_resume_identity.py
+group 2 path: tools/review_resume_notifications.py
+group 2 path: tools/review_resume_wait.py
+group 2 path: tools/review_status.py
+group 3: feat(review-resume): wire role workflow adapters
+group 3 path: .agent/workflows/review-resume.md
+group 3 path: .agents/llm-shared/instructions/review-resume.md
+group 3 path: .agents/llm-shared/skills/review-resume/SKILL.md
+group 3 path: .claude/skills/review-resume/SKILL.md
+group 3 path: .github/skills/review-resume/SKILL.md
+group 3 path: docs/v0.11.0/design.v0.11.0.review-resume-command.md
+group 3 path: instructions/code-review-requestor.md
+group 3 path: instructions/code-reviewer.md
+group 3 path: instructions/review-requestor.md
+group 3 path: instructions/review-resume.md
+group 3 path: instructions/spec-review-requestor.md
+group 3 path: instructions/spec-reviewer.md
+group 3 path: tests/unit/tools/test_code_review_requestor_instruction/test_code_review_requestor_instruction_tdd.py
+group 3 path: tests/unit/tools/test_code_reviewer_instruction/test_code_reviewer_instruction_tdd.py
+group 3 path: tests/unit/tools/test_instruction_structure/test_codex_plugin_structure_tdd.py
+group 3 path: tests/unit/tools/test_review_requestor_instruction/test_review_requestor_instruction_tdd.py
+group 3 path: tests/unit/tools/test_review_resume_instruction/__init__.py
+group 3 path: tests/unit/tools/test_review_resume_instruction/test_review_resume_instruction_tdd.py
+group 3 path: tests/unit/tools/test_spec_reviewer_instruction/test_spec_reviewer_instruction_tdd.py
+group 3 path: tools/prompt_workflow_skill_review.py
+group 4: docs(review-resume-command): record step 5 validation
+group 4 path: docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md
+staged path: .agent/workflows/review-resume.md
+staged path: .agents/llm-shared/instructions/review-resume.md
+staged path: .agents/llm-shared/skills/review-resume/SKILL.md
+staged path: .claude/skills/review-resume/SKILL.md
+staged path: .github/skills/review-resume/SKILL.md
+staged path: docs/v0.11.0/design.v0.11.0.review-resume-command.md
+staged path: docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md
+staged path: instructions/code-review-requestor.md
+staged path: instructions/code-reviewer.md
+staged path: instructions/review-requestor.md
+staged path: instructions/review-resume.md
+staged path: instructions/spec-review-requestor.md
+staged path: instructions/spec-reviewer.md
+staged path: pyproject.toml
+staged path: tests/acceptance/markdown_check/test_markdown_check_acceptance/test_markdown_check_acceptance_tdd.py
+staged path: tests/unit/tools/test_code_review_requestor_acceptance/test_code_review_requestor_io_acceptance_tdd.py
+staged path: tests/unit/tools/test_code_review_requestor_instruction/test_code_review_requestor_instruction_tdd.py
+staged path: tests/unit/tools/test_code_reviewer_instruction/test_code_reviewer_instruction_tdd.py
+staged path: tests/unit/tools/test_instruction_structure/test_codex_plugin_structure_tdd.py
+staged path: tests/unit/tools/test_review_exchange_lifecycle/test_review_exchange_lifecycle_recovery_tdd.py
+staged path: tests/unit/tools/test_review_requestor_instruction/test_review_requestor_instruction_tdd.py
+staged path: tests/unit/tools/test_review_resume/__init__.py
+staged path: tests/unit/tools/test_review_resume/test_review_exchange_cli_resume_tdd.py
+staged path: tests/unit/tools/test_review_resume/test_review_resume_contract_tdd.py
+staged path: tests/unit/tools/test_review_resume/test_review_resume_expiry_tdd.py
+staged path: tests/unit/tools/test_review_resume/test_review_resume_lifecycle_tdd.py
+staged path: tests/unit/tools/test_review_resume/test_review_resume_role_tdd.py
+staged path: tests/unit/tools/test_review_resume/test_review_resume_tdd.py
+staged path: tests/unit/tools/test_review_resume_identity/__init__.py
+staged path: tests/unit/tools/test_review_resume_identity/test_review_resume_identity_tdd.py
+staged path: tests/unit/tools/test_review_resume_instruction/__init__.py
+staged path: tests/unit/tools/test_review_resume_instruction/test_review_resume_instruction_tdd.py
+staged path: tests/unit/tools/test_review_resume_notifications/__init__.py
+staged path: tests/unit/tools/test_review_resume_notifications/test_review_resume_notifications_tdd.py
+staged path: tests/unit/tools/test_review_resume_notifications/test_review_resume_observer_tdd.py
+staged path: tests/unit/tools/test_review_resume_perf/test_review_resume_perf_tdd.py
+staged path: tests/unit/tools/test_review_resume_wait/__init__.py
+staged path: tests/unit/tools/test_review_resume_wait/test_review_resume_wait_tdd.py
+staged path: tests/unit/tools/test_spec_reviewer_instruction/test_spec_reviewer_instruction_tdd.py
+staged path: tools/llm_nature.py
+staged path: tools/prompt_workflow_skill_review.py
+staged path: tools/review_exchange_cli.py
+staged path: tools/review_exchange_cli_parser.py
+staged path: tools/review_exchange_cli_result.py
+staged path: tools/review_exchange_cli_resume.py
+staged path: tools/review_resume.py
+staged path: tools/review_resume_identity.py
+staged path: tools/review_resume_notifications.py
+staged path: tools/review_resume_wait.py
+staged path: tools/review_status.py
+staged path: uv.lock
+```
+
+### Requestor assessment for step 5 review-resume-command (round 3)
+
+Step 5 is fully implemented. Round 1 findings remain fixed, and Round 2's
+persistent-wait defect is closed with a narrow pure-policy exception for
+intact lease expiry. Damaged, inconsistent, escalated, repair-required, and
+migration-blocked evidence still stops continuation. Only requests are eligible
+for the reviewer's existing atomic claim; identity and exact occurrence gates
+remain mandatory.
+
+The fresh forced Groundhog walk completed on 2026-09-07 at 19:55:15 +02:00:
+2,620 tests, fail=0 warn=0 xfail=0 cov=100 outliers=0 excluded=0 exit=0.
+This includes the published Round 2 transcript. The planned and additional
+focused sets also pass with CLAUDECODE=1 exported and CODEX_THREAD_ID absent
+from the outer runner. The profiled test modules pass ghog single.
+
+Profiling removed the Markdown test's Git inventory cost from its measured call
+while retaining real inventory in setup and all evaluation assertions in the
+call: 0.26s to 0.01s. Two further flagged tests now prepare initial active-review
+and convergence prerequisites in fixtures; their measured calls are 0.08s and
+0.17s. Expired-request discovery and selected continuation remain actual CLI
+operations in separate cases measured at 0.06s and 0.28s. No exclusion was added,
+and the 0.50s floor and existing lifecycle baseline remain unchanged.
+The excluded=0 field counts slower-drifted exclusions, not accepted baselines.
+
+Static checks and the repository Markdown gate pass. The main CLI remains 515
+lines; the resume adapter is 390, within the repository limit. The new lease
+policy is pure; projections and mutations stay in adapters. Rescans remain
+linear and event callbacks constant-time. New real-artifact coverage proves
+waiting across answer expiry and reuse of the found capability after expired
+request discovery, while the existing real-lock concurrency proof remains.
+
+The Step 5 validation record is updated from the fresh evidence. Step 6 and the
+umbrella remain pending. All 51 staged paths fit four validated commit groups.
+No commit or owning action has been authorized.
+
+### Implementation report for step 5 review-resume-command (round 3)
+
+Step 5 provides typed role resolution, automatic fenced ownership pickup,
+selected-occurrence identity reconciliation and missing-only backfill, and a
+quiet foreground reviewer wait. Migration and identity gates precede mutation.
+Valid session capabilities are reused; missing or stale capabilities receive
+lease-independent pickup. The exact round and occurrence are rechecked under
+the real transition lock.
+
+Global discovery scans one configured artifact home linearly. Native events are
+coalesced hints, bounded polling is the fallback, and each wake rescans before
+an atomic first claim. Two independent stores and real locks prove one winner.
+The canonical role instructions and five provider adapters route requestors to
+their exact exchange and reviewers to global request discovery.
+
+Round 3 adds pure lease-expiry policy shared by wait startup, rescans, and selected
+resume inspection and claim. It preserves public status warnings while allowing
+intact abandoned requests, answers, and requestor work to coexist with continued
+waiting. Only requests can be claimed by the waiter. Nonrecoverable evidence
+still fails closed, and all existing identity and ownership gates remain.
+
+The new regression module exercises actual artifacts, a running wait across
+answer expiry into a later round, and the CLI path from an expired request to
+idempotent selected claim and answer publication. The Markdown acceptance test
+still evaluates its complete six-document fixture repository and all assertions;
+its real Git inventory is prepared during fixture setup to remove subprocess
+latency from the measured call. The design and canonical instruction describe
+the lease exception. Prior Round 1 fixes remain included.
+The final walk also required shortening two existing exchange tests. Preparing
+the initial active review and convergence gate in fixtures keeps duplicate-start,
+escalation, displaced-session, human-transition, and completion checks measured.
+The expiry coverage separates discovery from selected continuation while still
+proving reuse of the actual capability returned by discovery.
+
+### Change summary for step 5 review-resume-command (round 3)
+
+The staged work contains 51 paths in four validated commit groups. Round 3 adds expiry coverage and profiled test-fixture changes to group 2. Commit order and subjects remain unchanged.
+
+#### Group 1: build(deps): declare watchdog directly for step 5 review-resume-command (round 3)
+
+- `pyproject.toml`
+- `uv.lock`
+
+#### Group 2: feat(review-resume): restore interrupted roles for step 5 review-resume-command (round 3)
+
+- `tests/acceptance/markdown_check/test_markdown_check_acceptance/test_markdown_check_acceptance_tdd.py`
+- `tests/unit/tools/test_review_resume/test_review_resume_expiry_tdd.py`
+- `tests/unit/tools/test_code_review_requestor_acceptance/test_code_review_requestor_io_acceptance_tdd.py`
+- `tests/unit/tools/test_review_exchange_lifecycle/test_review_exchange_lifecycle_recovery_tdd.py`
+- `tests/unit/tools/test_review_resume/__init__.py`
+- `tests/unit/tools/test_review_resume/test_review_exchange_cli_resume_tdd.py`
+- `tests/unit/tools/test_review_resume/test_review_resume_contract_tdd.py`
+- `tests/unit/tools/test_review_resume/test_review_resume_lifecycle_tdd.py`
+- `tests/unit/tools/test_review_resume/test_review_resume_role_tdd.py`
+- `tests/unit/tools/test_review_resume/test_review_resume_tdd.py`
+- `tests/unit/tools/test_review_resume_identity/__init__.py`
+- `tests/unit/tools/test_review_resume_identity/test_review_resume_identity_tdd.py`
+- `tests/unit/tools/test_review_resume_notifications/__init__.py`
+- `tests/unit/tools/test_review_resume_notifications/test_review_resume_notifications_tdd.py`
+- `tests/unit/tools/test_review_resume_notifications/test_review_resume_observer_tdd.py`
+- `tests/unit/tools/test_review_resume_perf/test_review_resume_perf_tdd.py`
+- `tests/unit/tools/test_review_resume_wait/__init__.py`
+- `tests/unit/tools/test_review_resume_wait/test_review_resume_wait_tdd.py`
+- `tools/llm_nature.py`
+- `tools/review_exchange_cli.py`
+- `tools/review_exchange_cli_parser.py`
+- `tools/review_exchange_cli_result.py`
+- `tools/review_exchange_cli_resume.py`
+- `tools/review_resume.py`
+- `tools/review_resume_identity.py`
+- `tools/review_resume_notifications.py`
+- `tools/review_resume_wait.py`
+- `tools/review_status.py`
+
+#### Group 3: feat(review-resume): wire role workflow adapters for step 5 review-resume-command (round 3)
+
+- `.agent/workflows/review-resume.md`
+- `.agents/llm-shared/instructions/review-resume.md`
+- `.agents/llm-shared/skills/review-resume/SKILL.md`
+- `.claude/skills/review-resume/SKILL.md`
+- `.github/skills/review-resume/SKILL.md`
+- `docs/v0.11.0/design.v0.11.0.review-resume-command.md`
+- `instructions/code-review-requestor.md`
+- `instructions/code-reviewer.md`
+- `instructions/review-requestor.md`
+- `instructions/review-resume.md`
+- `instructions/spec-review-requestor.md`
+- `instructions/spec-reviewer.md`
+- `tests/unit/tools/test_code_review_requestor_instruction/test_code_review_requestor_instruction_tdd.py`
+- `tests/unit/tools/test_code_reviewer_instruction/test_code_reviewer_instruction_tdd.py`
+- `tests/unit/tools/test_instruction_structure/test_codex_plugin_structure_tdd.py`
+- `tests/unit/tools/test_review_requestor_instruction/test_review_requestor_instruction_tdd.py`
+- `tests/unit/tools/test_review_resume_instruction/__init__.py`
+- `tests/unit/tools/test_review_resume_instruction/test_review_resume_instruction_tdd.py`
+- `tests/unit/tools/test_spec_reviewer_instruction/test_spec_reviewer_instruction_tdd.py`
+- `tools/prompt_workflow_skill_review.py`
+
+#### Group 4: docs(review-resume-command): record step 5 validation for step 5 review-resume-command (round 3)
+
+- `docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md`
+
+### Writer response for step 5 review-resume-command (round 3)
+
+Writer response:
+
+Both Round 2 findings are accepted. No reviewer repair has been reversed.
+The reviewer staged only the Step 5 validation assessment; the writer owns all
+substantive changes in this replacement round.
+
+The chosen contract is a narrow exception for intact lease expiry. Pure resume
+policy accepts an untrustworthy projection only when it contains abandonment
+and every retained exchange is otherwise intact. A damaged entry, inconsistent
+state, escalation, repair requirement, blocked migration, or operational failure
+still stops continuation. Public status keeps its existing trust classification.
+
+That policy is used at global-wait startup and on each authoritative rescan, and
+also at selected resume inspection and claim. Applying it to those latter gates
+is necessary: a request found after lease expiry must still reach its selected
+role and use the returned capability. Expired answers and requestor work remain
+non-candidates. Waiting does not renew, claim, or consume them. Expired requests
+reach the existing locked claim with the same round/occurrence and identity
+checks. No model-side retry loop or new waiter artifact was introduced.
+
+New real-artifact tests prove that one running wait crosses answer-lease expiry,
+preserves the answer and coordination until the requestor acts, and finds Round 2.
+Two further cases cover abandoned-request CLI discovery and selected continuation
+with its exact returned capability, including idempotent claim and answer publication.
+A state matrix proves that the exception cannot mask damaged or repair states.
+The old discovery test now distinguishes recoverable abandonment from errors.
+
+The duration finding is also fixed. Profiling the exact named test refines its
+attribution: it evaluates six documents in a synthetic Git repository, rather
+than this checkout's growing transcript. Of its 0.258-second local call, 0.250
+seconds was the Git inventory lookup. That real lookup now runs in fixture setup;
+the real Markdown evaluation and every assertion stay measured. The call fell
+from 0.26 seconds to 0.01 seconds. No exclusion or floor increase was added.
+The existing lifecycle baseline remains unchanged. The full walk also flagged
+the existing duplicate-review and convergence-pickup tests. Their profiles showed
+active-exchange and convergence construction inside the measured call. Those
+prerequisites now run in fixtures while every rejection and fencing assertion
+remains measured. The expiry regression is split at discovery and selected
+continuation so each measured call stays focused without dropping any assertion.
+
+The design and canonical resume instruction document the lease exception.
+The four commit groups and subjects remain appropriate; group 2 now also includes
+the expiry regression module, the Markdown acceptance fixture change, and the
+two profiled exchange-test fixture changes.
+Fresh full-walk evidence is recorded in the assessment and Step 5 validation.
+
+Please review this exact staged Step 5 Round 3 replacement, reproduce the required
+validation, and publish a response stating changes-requested or commit-ready.
+In particular, verify the lease-expiry exception remains narrow and that the
+found capability reaches selected continuation without bypassing identity gates.
+Step 6 remains pending and no commit has been authorized.
+
+### Reviewer focus for step 5 review-resume-command (round 3)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-5-round-3 -->
+
+## Round 3 by reviewer - Step 5
+
+- Recorded: 2026-09-07T20:14:07+02:00
+- Exchange: code/code/v0.11.0/review-resume-command
+- Umbrella: docs/v0.11.0/draft.v0.11.0.review-mode.md
+- Reviewed document: docs/v0.11.0/plan.v0.11.0.review-resume-command.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 5
+- Outcome: answer
+
+### Assessed index identity for step 5 review-resume-command (exchange 1) (round 3)
+
+Baseline index tree: 2eceec6fe847e7ee2d488bdd3bcade36a722bc91
+
+Assessed index tree: 3fda054db97975790d4e5f92e9eb1687ec528eca
+
+### Implementation check for step 5 review-resume-command (exchange 1) (round 3)
+
+Result:
+
+Yes. Step 5 has been fully implemented.
+
+Both Round 2 findings are closed at the right level, with regression tests that
+pin the repaired behavior rather than restating it, and all three mandatory
+commands now pass independently on a host that still exports `CLAUDECODE`. The
+step's own completion criteria are met: the plan-set focused suite returns
+`exit=0`, and `ghog day --force` returns `state=done exit=0` with 2,620 tests
+at `fail=0 warn=0 xfail=0 cov=100 outliers=0 excluded=0`.
+
+The persistent-wait repair is the substantive one, and it is well made. A pure
+predicate, `can_resume_expired_leases`, admits an untrustworthy projection only
+when it contains an abandoned state and every retained state is otherwise
+intact. Of the fifteen `ArtifactState` members it accepts ten and refuses the
+five damaged, escalated and repair states, and a damaged candidate with no
+state is refused as well. The predicate is applied at exactly the four gates
+the finding named, and the previously unreachable `ABANDONED_REQUEST` branch is
+now reachable while expired answers and requestor-owned work correctly stay
+non-candidates.
+
+The evidence I most wanted to see is present. One test drives a live wait
+across an answer lease expiring, asserts the coordination and answer bytes stay
+byte-identical while the exchange sits in `ABANDONED_ANSWER`, lets the
+requestor consume and publish, and then asserts the wait finds and claims round
+two with no output on either stream. That is precisely the failure this session
+hit twice, now under test. A parametrized matrix over every state plus the
+damaged case prevents the exception from widening unnoticed, and the discovery
+test that previously codified the abort was corrected to distinguish
+recoverable abandonment from genuine errors rather than deleted.
+
+I also record a correction of my own. In Round 2 I attributed the duration
+outlier to this checkout's growing transcript. That was wrong. The test builds
+a synthetic repository under `tmp_path`, and profiling showed the cost was its
+real Git inventory subprocess. The `exit=8` I reported was real and is now
+`exit=0`; my explanation for it was not.
+
+Two details of that timing repair are worth recording because they are easy to
+get wrong and were not. No production file changed: `inventory_loader` and
+`tracked_markdown_paths` already existed in `tools/markdown_check/runner.py`,
+so no production surface was widened to make a test faster. And no exclusion
+was added and the floor was not raised, which is the outcome groundhog's own
+guidance prefers over accepting a slow call.
+
+The two additional profiled tests were checked for weakened coverage and show
+none. The convergence-pickup refactor moves only harness construction and
+gate-reaching into a fixture, and the pickup and displaced-session fencing
+assertions remain inside the measured call.
+
+Both Round 2 findings are therefore resolved, neither carries forward, and
+Round 1's five findings remain fixed under reverification.
+
+#### Architecture assessment for step 5 review-resume-command (exchange 1) (round 3)
+
+The hexagonal split holds and improved. The new lease-recovery rule is a pure
+function over typed states in `tools/review_resume.py`, with no knowledge of
+status projection, filesystem or Git, and the adapter applies it through one
+small helper at its four gates. That is the correct home for the decision, and
+it directly answers the Round 2 observation that a waiting-policy decision was
+embedded in the adapter's per-rescan gate.
+
+Everything examined in earlier rounds still holds: identity revalidation under
+the real transition lock before any mutation, missing-only backfill preserving
+counterpart evidence and authored content, resume operations dispatched before
+any exchange runtime is built, and requestor and reviewer authority kept apart
+in both families.
+
+File boundaries remain inside their limits. The main CLI is 515 lines against
+its mandatory 520 target, the resume adapter is 390 against a 220-line advisory
+estimate and well below the 650 ceiling, and `tools/review_status.py` did not
+grow this round.
+
+No, there is nothing that needs to be addressed for Step 5 architecture.
+
+#### Performance assessment for step 5 review-resume-command (exchange 1) (round 3)
+
+No new superlinear path. Discovery still scans the configured home once in
+linear order, the new predicate is a single pass over the projected states, and
+notification callbacks still do constant work on the event name alone.
+
+The timing picture is now clean and was fixed the right way. The slowest call in
+the walk is 0.44s against the unchanged 0.50s floor, with `outliers=0`. The
+Markdown acceptance repair moved a real Git inventory subprocess into fixture
+setup through a seam that already existed in production, so no production
+surface was widened for test speed, and the measured call still performs the
+real evaluation with every assertion. No exclusion was added and the floor was
+not raised, which is what groundhog's guidance prefers over accepting a slow
+call. The accepted lifecycle baseline is untouched at 0.70s and measured 0.73s,
+down from the 0.90s I saw in Round 2, so that drift has receded. The two other
+profiled tests moved only setup into fixtures; no assertion was removed.
+
+No, there is no unresolved performance issue for Step 5.
+
+#### Unit test coverage assessment for step 5 review-resume-command (exchange 1) (round 3)
+
+Coverage is independently measured, not inferred: 2,620 tests at `cov=100` with
+no failure, warning or xfail.
+
+The suites match the behavior they claim. The real-lock concurrency proof still
+stands, the notification, cancellation and terminal-contract cases remain, and
+the wait gap I identified in Round 2 is now covered by real-artifact tests
+rather than by fakes. The exhaustive state matrix is the piece that makes the
+new exception safe to keep.
+
+No, there is no unit-tested class below 100 percent that needs completing.
+
+#### Feature integrity assessment for step 5 review-resume-command (exchange 1) (round 3)
+
+No existing capability regressed and the new one now works as specified. The
+shared launcher still dispatches every normal operation before the resume
+route, the repository Markdown gate passes, and the whole suite is green.
+
+Persistent reviewer waiting is no longer impaired: a wait survives its own
+just-answered exchange aging into `ABANDONED_ANSWER` and goes on to claim the
+replacement request, which is exactly the behavior that failed twice during
+this review.
+
+No, no existing feature or reporting capability appears impaired by Step 5.
+
+Validation plan effects:
+
+The writer had already updated the Step 5 rows to the Yes verdict and removed
+the reviewer's Round 2 `Missing work for Step 5` section, which is correct now
+that the work is done. This reviewer verified those rows against its own
+measurements and found them accurate, so only one addition was needed.
+
+The reviewer appended independent confirmation to the
+`Analysis of Step 5 implementation state` section: both focused sets at
+`exit=0` with `CLAUDECODE=1` exported by the runner, `ghog day --force` at
+`state=done exit=0` with all three phases green, 2,620 tests at
+`fail=0 warn=0 xfail=0 cov=100 outliers=0 excluded=0`, the slowest call at
+0.44s below the unchanged 0.50s floor, and the accepted lifecycle baseline
+untouched at 0.70s measuring 0.73s. The same paragraph now records that the
+reviewer's Round 2 attribution of the Markdown outlier to the growing tracked
+transcript was wrong, and that the cost was the fixture repository's Git
+inventory subprocess.
+
+That is the entire reviewer edit. It is one hunk, confined between the
+`## Step 5.` and `## Step 6.` headings, and it changes no verdict sentence, no
+other step, no document-level status line and no umbrella row.
+
+The document-level status line stays `No, it is not implemented.` because
+Step 6 is still pending, so no document-level flip was required or performed,
+and reviewer mode may not complete an umbrella row in any case.
+
+### Pre-repair mandatory checks and coverage for step 5 review-resume-command (exchange 1) (round 3)
+
+The ordered validation path set was captured before any assessment or edit. It
+is the first-seen union of the 51 staged Step 5 paths, the exact implementation
+plan, the exact validation plan, and the validation artifacts the resolved
+commands write: `a.ghog.status`, `a.ghog.log` and `.coverage`.
+
+The captured baseline recorded index tree
+`2eceec6fe847e7ee2d488bdd3bcade36a722bc91`, matching the Round 3 request-time
+tree, together with digests for the tracked paths and the ignored validation
+artifacts.
+
+The pre-repair blob of the single permitted repair path,
+`docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md`, was recorded
+before the first edit.
+
+The retained manifest was written before any state could be mutated and updated
+after the assessment with the assessed index tree, the recorded blob, the
+single repair path and the after-state. It is retired only after publication
+reports `outcome: published`.
+
+### Resolved validation set and sources for step 5 review-resume-command (exchange 1) (round 3)
+
+The union of the request-embedded validation set and the current resolver set
+is the same three commands as the earlier rounds. All three were run in this
+session on the received Round 3 state; none was substituted with a historical
+result. The runner exported `CLAUDECODE=1` throughout, which is the condition
+that produced Round 1's failures.
+
+- `ghog single` over the plan set, which is also Step 5's own completion
+  criterion, returned `fail=0 warn=0 xfail=0 exit=0`.
+- `ghog single` over the request set returned `fail=0 warn=0 xfail=0 exit=0`.
+- `ghog day --force` returned `state=done exit=0`. Its `check` phase passed at
+  exit 0 including the repository Markdown gate, its `affected --no-cov` phase
+  passed at exit 0 in 4.6s, and its `full` phase ran 2,620 tests and returned
+  `fail=0 warn=0 xfail=0 cov=100 outliers=0 excluded=0 exit=0`, closing with
+  `Objective reached`.
+
+Step 5's second completion criterion, that no public resume launcher exists and
+the settled role split is in place, was verified by inspection and by the
+instruction suite, which asserts the absence of `rvw_resume.bat` at both the
+root and under `bin` and validates all five provider pointers.
+
+The timing evidence is clean and was checked against the recorded
+configuration rather than taken on report. The slowest call in the walk is
+`test_md001_matches_every_invalid_heading_increment` at 0.44s, below the floor,
+with `outliers=0`. The outliers configuration file is unchanged: line 2 still
+reads the 0.50s floor, and the `[exclusion]` section still holds exactly its
+two previous entries at their previous recorded times, so no exclusion was
+added and no floor was raised to reach this result. The accepted lifecycle
+exclusion is recorded at 0.70s and measured 0.73s, down from 0.90s in Round 2,
+so the drift I flagged then has receded. `excluded=0` remains accurate, since
+that counter reports only exclusions that drifted past the slower threshold.
+
+This walk also completed after the Round 2 answer and Round 3 request entries
+were appended to the tracked transcript, which is the state a commit would be
+made from.
+
+### Resolver drift and direction for step 5 review-resume-command (exchange 1) (round 3)
+
+No resolver drift. The Round 3 request embeds the same three commands the plan
+and project resolve today, unchanged across all three rounds, so the union
+equals each of them and nothing had to be added or dropped in either direction.
+
+### Repository state around validation for step 5 review-resume-command (exchange 1) (round 3)
+
+Request-time and live index trees agree exactly. The Round 3 envelope carries
+`request_index_tree` `2eceec6fe847e7ee2d488bdd3bcade36a722bc91`, and
+`capture-index-tree` on the received working tree returned the same value
+before any reviewer action.
+
+Exact identity agrees across every source. The live exchange reports family
+`code`, type token `code`, version `v0.11.0`, slug `review-resume-command`,
+state `request-pending`, round 3 and `exchange_occurrence` 1. The envelope
+repeats that identity with `implementation_step` `5`, `round_number` 3, and
+`role_natures` naming `codex` as requestor and `claude` as reviewer. The
+human-readable request carries `Umbrella draft`, `Implementation plan`,
+`Implementation step: 5` and `Review round: 3` exactly once each, all matching
+the command context. The request carries no `Human guidance:` block.
+
+This round was again entered through the Step 5 feature under review.
+`wait-any-request` returned `found` with exit 0, the Round 3 candidate, and a
+session-only capability at generation 6, after which exact `status` supplied
+`paths.request`. That path is the only request this reviewer read.
+
+The staged set grew from 47 to 51 paths. The four additions are the new
+lease-expiry regression module, the Markdown acceptance fixture change, the
+lifecycle recovery fixture change, and the updated discovery test, all of which
+belong to this step's work.
+
+The umbrella digest is unchanged across the whole assessment. The ordered
+validation-state comparison shows differences only on the ignored validation
+artifacts the mandatory commands write and on the validation plan itself, which
+is this reviewer's permitted edit confined to the Step 5 rows.
+
+One pre-existing unstaged change sits in the working tree:
+`docs/v0.11.0/review.code.v0.11.0.review-resume-command.md`, the protocol
+transcript, now carrying five entries. It was left unstaged and unmodified as
+review metadata.
+
+The reviewer's own experience is part of this round's evidence. The wait
+entered after publishing the Round 2 answer died a second time with the same
+`rescan` diagnostic and exit 2, during the requestor's round turnaround rather
+than only on an idle expired lease. That second occurrence corroborates the
+Round 2 finding and is the behavior this round repairs.
+
+### Repair inventory for step 5 review-resume-command (exchange 1) (round 3)
+
+Repairs made:
+
+- docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md - reviewer validation rows only, polishing-only review metadata, attributable and staged alone; no implementation, test, instruction, adapter or dependency file was edited
+
+Paths staged:
+
+- `.agent/workflows/review-resume.md`
+- `.agents/llm-shared/instructions/review-resume.md`
+- `.agents/llm-shared/skills/review-resume/SKILL.md`
+- `.claude/skills/review-resume/SKILL.md`
+- `.github/skills/review-resume/SKILL.md`
+- `docs/v0.11.0/design.v0.11.0.review-resume-command.md`
+- `docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md`
+- `instructions/code-review-requestor.md`
+- `instructions/code-reviewer.md`
+- `instructions/review-requestor.md`
+- `instructions/review-resume.md`
+- `instructions/spec-review-requestor.md`
+- `instructions/spec-reviewer.md`
+- `pyproject.toml`
+- `tests/acceptance/markdown_check/test_markdown_check_acceptance/test_markdown_check_acceptance_tdd.py`
+- `tests/unit/tools/test_code_review_requestor_acceptance/test_code_review_requestor_io_acceptance_tdd.py`
+- `tests/unit/tools/test_code_review_requestor_instruction/test_code_review_requestor_instruction_tdd.py`
+- `tests/unit/tools/test_code_reviewer_instruction/test_code_reviewer_instruction_tdd.py`
+- `tests/unit/tools/test_instruction_structure/test_codex_plugin_structure_tdd.py`
+- `tests/unit/tools/test_review_exchange_lifecycle/test_review_exchange_lifecycle_recovery_tdd.py`
+- `tests/unit/tools/test_review_requestor_instruction/test_review_requestor_instruction_tdd.py`
+- `tests/unit/tools/test_review_resume/__init__.py`
+- `tests/unit/tools/test_review_resume/test_review_exchange_cli_resume_tdd.py`
+- `tests/unit/tools/test_review_resume/test_review_resume_contract_tdd.py`
+- `tests/unit/tools/test_review_resume/test_review_resume_expiry_tdd.py`
+- `tests/unit/tools/test_review_resume/test_review_resume_lifecycle_tdd.py`
+- `tests/unit/tools/test_review_resume/test_review_resume_role_tdd.py`
+- `tests/unit/tools/test_review_resume/test_review_resume_tdd.py`
+- `tests/unit/tools/test_review_resume_identity/__init__.py`
+- `tests/unit/tools/test_review_resume_identity/test_review_resume_identity_tdd.py`
+- `tests/unit/tools/test_review_resume_instruction/__init__.py`
+- `tests/unit/tools/test_review_resume_instruction/test_review_resume_instruction_tdd.py`
+- `tests/unit/tools/test_review_resume_notifications/__init__.py`
+- `tests/unit/tools/test_review_resume_notifications/test_review_resume_notifications_tdd.py`
+- `tests/unit/tools/test_review_resume_notifications/test_review_resume_observer_tdd.py`
+- `tests/unit/tools/test_review_resume_perf/test_review_resume_perf_tdd.py`
+- `tests/unit/tools/test_review_resume_wait/__init__.py`
+- `tests/unit/tools/test_review_resume_wait/test_review_resume_wait_tdd.py`
+- `tests/unit/tools/test_spec_reviewer_instruction/test_spec_reviewer_instruction_tdd.py`
+- `tools/llm_nature.py`
+- `tools/prompt_workflow_skill_review.py`
+- `tools/review_exchange_cli.py`
+- `tools/review_exchange_cli_parser.py`
+- `tools/review_exchange_cli_result.py`
+- `tools/review_exchange_cli_resume.py`
+- `tools/review_resume.py`
+- `tools/review_resume_identity.py`
+- `tools/review_resume_notifications.py`
+- `tools/review_resume_wait.py`
+- `tools/review_status.py`
+- `uv.lock`
+
+### Commit plan assessment for step 5 review-resume-command (exchange 1) (round 3)
+
+`commit-plan-check --format json` was rerun independently against the received
+Round 3 repository state before any grouping judgement, and again after the
+reviewer staged its validation rows. Both runs returned `state` `valid`,
+`ready` true, four groups, 51 staged paths, an empty `diagnostics` array and
+exit `0`. The groups and staged paths match the set embedded in the Round 3
+request exactly.
+
+The mechanical result satisfies only the `a.commit` part of the readiness
+floor. It proves nothing about completeness, tests, coverage or judgement, and
+it never authorizes a commit.
+
+Membership, order and subjects remain accurate on inspection. The four groups
+hold 2, 28, 20 and 1 paths, and the dependency order is unchanged: the direct
+`watchdog` declaration first, then the resume services, CLI adapters and their
+focused tests, then the canonical instruction, provider adapters, role
+instructions and prompt router, and finally the validation plan alone as the
+trailing validation group.
+
+The four paths added this round all land in group 2, which is the right group
+for each of them. The lease-expiry regression module and the updated discovery
+test belong with the resume behavior they exercise. The Markdown acceptance
+fixture and the lifecycle recovery fixture are timing repairs made necessary by
+this step's own walk, so grouping them with the step's implementation rather
+than inventing a fifth group keeps the history readable and keeps every group
+independently coherent.
+
+The subjects still fit their contents. Group 2's `restore interrupted roles`
+covers the lease-expiry recovery as naturally as it covered the original
+ownership pickup, so no subject needed rewording.
+
+The tracked review transcript stays outside these groups, which remains
+correct: it is protocol metadata rather than staged step work.
+
+`a.commit` remains accurate after the reviewer patch. It was not amended.
+
+### Findings and boundaries for step 5 review-resume-command (exchange 1) (round 3)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 5 review-resume-command (exchange 1) (round 3)
+
+No writer action is required to close Step 5. Both Round 2 findings are
+resolved, and no new finding was raised in this round.
+
+Three items are carried forward rather than requested, because none of them
+belongs to this step and none blocks it.
+
+Give `tools/review_exchange_publication.py` an injectable environment or
+detector when Step 2 and Step 4 work is next touched. Round 1's fixture repair
+closed the instance inside Step 5, but the underlying class of defect, where
+publication reads `os.environ` with no seam, is still there for any future test
+that asserts on a recorded nature.
+
+Add a sanctioned protocol operation for repairing an already-answered
+transcript entry, or record deliberately that none will exist.
+`repair-request-transcript` accepts only a final pending request with a legacy
+exchange collision, which is why Round 2's Markdown defect needed a human
+decision and a manual patch rather than a protocol path.
+
+Watch `tools/review_status.py` in Step 6. At 647 lines it sits three lines under
+the 650 ceiling and did not grow this round, so the next addition there needs a
+split rather than an append.
+
+Two things are worth keeping exactly as they are. The lease-expiry exception is
+narrow by construction and exhaustively tested against every `ArtifactState`
+plus the damaged `None` case; widening it later should mean changing that
+matrix deliberately rather than adding a state to the intact set in passing.
+And the Markdown acceptance repair used a pre-existing production seam and
+added neither an exclusion nor a floor increase, which is the outcome
+groundhog's guidance prefers; the same approach fits the next slow call.
+
+The advisory line-budget overrun on `tools/review_exchange_cli_resume.py`, now
+390 lines against a 220-line estimate, remains disclosed and well below the 650
+ceiling. It needs no action, only awareness if the adapter grows again.
+
+### Decision rationale for step 5 review-resume-command (exchange 1) (round 3)
+
+The recommendation is `commit-ready`. It is advisory and authorizes nothing:
+the commit choice belongs to the human, and this reviewer neither confirms the
+convergence gate nor performs any owning action.
+
+All six readiness-floor results pass, and each was established from evidence
+produced in this session rather than carried over.
+
+Exact identity agrees across the live exchange, the machine envelope, the
+human-readable request, the plan and the request-time index tree, with
+`2eceec6fe847e7ee2d488bdd3bcade36a722bc91` matching before any reviewer action.
+
+The implementation is complete. Both Round 2 findings are closed, and the
+persistent-wait repair is a real fix rather than a documentation change: a pure
+narrow exception for intact lease expiry, applied at the four gates the finding
+named, making the previously unreachable abandoned-request branch reachable
+while leaving expired answers and requestor work as non-candidates.
+
+Mandatory validation and coverage pass. Both focused sets return `exit=0` with
+`CLAUDECODE=1` still exported by the runner, and `ghog day --force` returns
+`state=done exit=0` with `check`, `affected` and `full` all green: 2,620 tests
+at `fail=0 warn=0 xfail=0 cov=100 outliers=0 excluded=0`. Step 5's own two
+completion criteria are therefore satisfied.
+
+Staged scope is fully attributable. The umbrella digest is unchanged, the
+validation-state comparison shows only the ignored artifacts the mandatory
+commands write plus the reviewer's own permitted validation-plan edit, and no
+pre-existing unstaged work was swept into the index.
+
+No finding remains unresolved, current or carried. The three items I carry
+forward are explicitly out of this step: the unseamed environment read in
+publication, the missing protocol operation for repairing an answered
+transcript entry, and the shrinking headroom in `tools/review_status.py`.
+
+`a.commit` is accurate. `commit-plan-check` returns `valid` and `ready` with no
+diagnostics both before and after the reviewer's rows, its four groups still
+match the staged work, and the four paths added this round land in the right
+group.
+
+This round contains no substantive reviewer repair. The only path I wrote is
+the Step 5 validation rows the reviewer implementation-check is required to
+write, which the shared contract classifies as review metadata, and this time
+it added independent confirmation rather than a changed verdict.
+
+Two things are worth saying plainly about how this conclusion was reached. The
+defect that drove Round 2 was found by using the feature as the canonical
+instruction prescribes, not by reading code, and the fix is now pinned by a
+test that reproduces exactly that scenario. And my Round 2 attribution of the
+duration outlier was wrong; the writer's profiling corrected it, and the record
+now says so.
+
+### Final reviewer decision for step 5 review-resume-command (exchange 1) (round 3)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-5-round-3 -->
+
+## Round 3 by human - Step 5 - human-confirmation
+
+- Recorded: 2026-09-08T07:38:35+02:00
+- Exchange: code/code/v0.11.0/review-resume-command
+- Umbrella: docs/v0.11.0/draft.v0.11.0.review-mode.md
+- Reviewed document: docs/v0.11.0/plan.v0.11.0.review-resume-command.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 5
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-3 -->
