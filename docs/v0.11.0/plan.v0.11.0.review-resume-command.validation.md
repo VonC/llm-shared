@@ -3,7 +3,7 @@
 No, it is not implemented.
 
 This validation tracks the seven ordered implementation steps. Steps 0 through
-4 are fully implemented and validated; Steps 5 and 6 remain pending.
+5 are fully implemented and validated; Step 6 remains pending.
 
 ---
 
@@ -688,8 +688,29 @@ No, no existing feature or reporting capability appears impaired by Step 4.
 
 ### Analysis of Step 5 implementation state
 
-Not started. Step 5 is not implemented because the resume skill, role resolver,
-global reviewer watcher, and updated continuation instructions do not exist.
+Yes. Step 5 has been fully implemented.
+
+Round 1 fixes remain independently verified. Round 2's lease-expiry defect is
+repaired by a pure policy exception for intact abandoned exchanges, used by
+global-wait startup, rescans, and selected resume inspection and claim.
+New real-artifact tests cover a running wait crossing answer expiry into the
+next round and an expired request reaching idempotent selected continuation.
+
+The Markdown outlier was profiled and shortened without dropping assertions:
+the exact test evaluates six synthetic documents, and its Git inventory lookup
+now runs in fixture setup. Its measured call fell from 0.26s to 0.01s. That
+also corrects the reviewer's Round 2 attribution of the outlier to this
+checkout's growing transcript; the cost was the fixture repository's Git
+inventory subprocess, not the tracked corpus.
+
+An independent reviewer run on 2026-09-07 confirms the verdict rather than
+restating it. Both focused sets returned `exit=0` with `CLAUDECODE=1` still
+exported by the runner, and `ghog day --force` returned `state=done exit=0`
+with its `check`, `affected` and `full` phases all green: 2,620 tests at
+`fail=0 warn=0 xfail=0 cov=100 outliers=0 excluded=0`, slowest call 0.44s
+below the unchanged 0.50s floor. The accepted lifecycle baseline is untouched
+at 0.70s and measured 0.73s, down from the 0.90s seen in Round 2, and no new
+exclusion was added.
 
 ### Goal for Step 5
 
@@ -720,27 +741,150 @@ reviewers waiting across exchanges while requestors progress only their task.
 
 ### What was implemented for Step 5
 
-_(empty — no check has taken place yet.)_.
+- **Automatic resume**: `ResumeContext`, `ResumeRoleResolution`, and
+  `ReviewResumeService` resolve the selected role before acquiring its
+  capability. The CLI runs migration-aware inspection first, checks the exact
+  document, implementation step, round, and occurrence, and delegates locked
+  identity reconciliation and lease-independent pickup to
+  `review_resume_identity.py`. Valid capabilities are reused; absent or stale
+  capabilities are replaced without waiting for lease expiry.
+- **Identity and fencing**: selected-role backfill preserves existing authored
+  content and counterpart evidence. Unapproved conflicts, changed selections,
+  and blocked states cannot claim. Returned secrets remain session-only and
+  authorize later fenced operations without appearing in durable artifacts.
+- **Persistent reviewer waiting**: one process subscribes to recognized request
+  events through `WatchdogNotificationAdapter`, coalesces hints, performs
+  authoritative linear rescans, and retains bounded polling fallback. Discovery
+  and first-claim-wins ownership are separate ports; losing reviewers return to
+  waiting. The direct `watchdog` dependency is recorded in `uv.lock`.
+- **Operation contracts**: the existing shared launcher exposes
+  `migration-check`, `migrate-artifacts`, `resume-inspect`, `claim`, and
+  `wait-any-request`. Waiting emits one terminal JSON result with the required
+  fields and exit mapping, including graceful cancellation and operational
+  failure. Only a found request returns its ownership capability.
+- **Role workflows and providers**: the canonical resume instruction accepts
+  bare `resume`, runs automatic claim before dispatch, preserves exact
+  requestor continuation, and returns reviewers to global waiting after each
+  answer. Requestors follow `pw skill` after release. Five thin provider
+  adapters point directly to the canonical instruction and validate their
+  non-secret `llm_nature`; no public resume launcher was added.
+- **Validation evidence**: both the plan-set focused suite and the request-set
+  identity, notification, and wait suites pass at `fail=0` with `CLAUDECODE=1`
+  and `CODEX_THREAD_ID` absent from the outer test process. The fixture sets its
+  own deterministic publishing identity. The fresh full walk includes the
+  repaired Round 1 transcript and clears the Markdown acceptance test.
+
+### Round 1 repairs completed for Step 5
+
+- `prepared_requestor_phase` clears `CLAUDECODE` and sets `CODEX_THREAD_ID`
+  before real publication, matching its explicit trusted Codex hint.
+- The five unsafe initializer paths in the published Round 1 transcript are
+  quoted. Future authored summaries quote all paths before paired rendering.
+- The instruction test's `# eof` marker is restored to the actual file end,
+  and the performance test has two blank lines before `_path_list`.
+- The forced full walk after these repairs passes the static and Markdown
+  checks, all 2,601 tests, and the 100 percent coverage gate.
+
+### Round 2 repairs completed for Step 5
+
+- Pure policy permits intact lease-only abandonment at startup, during rescans,
+  and through selected resume inspection and claim. Damaged or repair-required
+  evidence still stops continuation, and public status warnings are unchanged.
+- A real wait crosses answer expiry without mutating requestor evidence and
+  finds the replacement round. Separate CLI regressions cover abandoned-request
+  discovery and idempotent selected continuation with the returned capability.
+- The Markdown acceptance outlier now prepares its real Git inventory in setup.
+  Profiles also identified prerequisite construction in two existing exchange
+  tests; their rejection and fencing checks remain measured after setup extraction.
+- The planned and additional focused sets pass under the simulated Claude host.
+  All profiled test modules pass focused validation. The fresh full walk clears
+  static checks, Markdown, all 2,620 tests, coverage, and the duration gate.
 
 ### New types or classes introduced for Step 5
 
-_(empty — no check has taken place yet.)_.
+- `ResumeAction`, `ResumeDecisionOutcome`, `ResumeExchange`, and
+  `ResumeDecision` represent pure role-routing facts and decisions.
+- `ResumeContext` carries the selected session intent; `ResumeRoleResolution`
+  pairs the continuation with its session-only capability.
+- `ReviewResumeService` gates role resolution and invokes the injected claim.
+- `GlobalWaitOutcome`, `GlobalWaitResult`, and `GlobalReviewerWait` implement
+  quiet waiting through discovery, notification, and ownership ports.
+- `ObserverPort`, `_RequestEventHandler`, and `WatchdogNotificationAdapter`
+  isolate native subscription, coalescing, polling fallback, and cleanup.
+- `_RequestDiscovery` adapts configured-home request projection and atomic
+  claims; the selected-identity module owns locked backfill and pickup.
 
 ### Architecture check for Step 5
 
-_(empty — no check has taken place yet.)_.
+- **Policy and adapters**: pure resume policy distinguishes intact lease expiry
+  from damaged or repair-required evidence. CLI adapters project status and
+  apply that policy before global waiting and selected continuation.
+  Public status retains its existing trust classification.
+- **Claim authority**: only pending or abandoned requests reach the reviewer
+  claim. Existing selected-role identity gates and exact locked
+  round/occurrence checks still precede mutation.
+- **File boundaries**: the main CLI remains 515 lines, below its mandatory
+  520-line target. Resume CLI support is 390 lines, above its advisory estimate
+  but below 550. All changed Python files remain within the 650-line ceiling.
+
+No, there is nothing that needs to be addressed for Step 5 architecture.
 
 ### Performance check for Step 5
 
-_(empty — no check has taken place yet.)_.
+- **Bounded discovery**: one linear request projection per rescan, constant
+  notification work, and bounded polling fallback remain unchanged.
+- **Markdown acceptance test**: pyinstrument measured 0.250s in Git inventory
+  discovery out of a 0.258s call. The real inventory lookup now runs during
+  fixture setup, while document evaluation and every assertion stay measured.
+  The call fell from 0.26s to 0.01s. The test uses six synthetic documents;
+  its cost is independent of this review transcript's size.
+- **Lifecycle baseline**: the existing three-round lifecycle baseline remains
+  0.70s; no exclusion was added and the suite floor remains 0.50s.
+  The field `excluded=0` counts slower-drifted exclusions, not accepted baselines.
+- **Further profiled calls**: active-review and convergence setup now run in
+  fixtures, while duplicate rejection, escalation, pickup, fencing, and human
+  transition checks stay measured. Their local calls fell from 0.23s to 0.08s
+  and from 0.66s to 0.17s. Expired-request discovery and selected continuation
+  now have separate measured cases at 0.06s and 0.28s, preserving every assertion.
+- **Fresh full walk**: 2,620 tests; `fail=0 warn=0 xfail=0 cov=100 outliers=0 excluded=0 exit=0`,
+  completed on 2026-09-07 at 19:55:15 +02:00.
+
+No, there is no unresolved performance issue for Step 5.
 
 ### Unit test coverage check for Step 5
 
-_(empty — no check has taken place yet.)_.
+- **Resume and ownership**: role inference, ambiguity, conflicts, automatic
+  pickup, stale capabilities, convergence, release, migration-first behavior,
+  and rejection before mutation remain covered.
+- **Expiry regressions**: one real-artifact wait crosses answer-lease expiry,
+  leaves requestor evidence untouched, and finds the replacement round.
+  Another starts with an expired request and exercises CLI discovery, selected
+  inspection, idempotent claim, and answer publication.
+- **Safety matrix**: intact abandoned request, answer, and mid-round states are
+  recoverable; damaged, inconsistent, escalated, and repair-required neighbors
+  still block continuation. Operational and migration failures remain fatal.
+- **Concurrency and notifications**: independent stores with real locks prove
+  one atomic winner; notification hints, polling fallback, cleanup, cancellation,
+  terminal JSON contracts, provider metadata, and instruction routing stay covered.
+- **Measured coverage**: 2,620 tests; `fail=0 warn=0 xfail=0 cov=100 outliers=0 excluded=0 exit=0`,
+  completed on 2026-09-07 at 19:55:15 +02:00.
+
+No unit-tested class is below 100 percent or needs completing.
 
 ### Feature integrity for Step 5
 
-_(empty — no check has taken place yet.)_.
+- Existing exchange operations keep their original dispatcher and ownership
+  fencing. Identity checks and human convergence authority remain intact.
+- A global reviewer continues waiting through routine lease expiry without
+  consuming answers or claiming requestor work. It claims only requests.
+  A requestor remains bound to its exact exchange.
+- The Markdown gate passes with the repaired transcript. The shortened
+  acceptance test still performs real Git inventory discovery and complete
+  evaluation of its synthetic repository.
+- Step 6 remains pending for broader real-launcher acceptance and documentation
+  rollout.
+
+No, no existing feature or reporting capability appears impaired by Step 5.
 
 ---
 
