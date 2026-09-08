@@ -37,7 +37,21 @@ class LlmNatureDetection:
 
 
 class LlmNatureDetector:
-    """Resolve trusted hints before known host-owned environment signals."""
+    """Validate provider metadata and resolve hints before host environment signals."""
+
+    @staticmethod
+    def adapter_nature(markdown: str) -> LlmNature:
+        """Validate the single non-secret nature field in provider front matter."""
+        lines = markdown.splitlines()
+        if not lines or lines[0] != "---" or "---" not in lines[1:]:
+            message = "adapter requires closed front matter"
+            raise InvalidLlmNatureError(message)
+        end = lines.index("---", 1)
+        values = [line.partition(":")[2].strip() for line in lines[1:end] if line.startswith("llm_nature:")]
+        if len(values) != 1:
+            message = "adapter requires exactly one llm_nature"
+            raise InvalidLlmNatureError(message)
+        return LlmNature(values[0])
 
     _ENVIRONMENT_SIGNALS: Final = (
         ("CLAUDECODE", LlmNature.CLAUDE),

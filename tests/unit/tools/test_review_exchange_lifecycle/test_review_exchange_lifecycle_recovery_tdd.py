@@ -2,6 +2,7 @@
 
 Step 3 adds displaced-session fencing while this split continues to reuse the
 deterministic lifecycle harness from the publication-transition sibling.
+Convergence setup is prepared before measured pickup and fencing assertions.
 """
 
 from __future__ import annotations
@@ -226,13 +227,19 @@ def test_wait_claim_revalidates_state_and_record(
         core.wait_for_exact(ArtifactState.REQUEST_PENDING)
 
 
-def test_convergence_pickup_fences_old_session_before_human_transition(
-    tmp_path: Path,
-) -> None:
-    """A requestor can pick up the gate and the displaced session cannot confirm."""
+@pytest.fixture
+def convergence_sessions(tmp_path: Path) -> tuple[ReviewExchangeCore, ReviewExchangeCore]:
+    """Reach the real convergence gate before measuring pickup and displaced-session fencing."""
     first, store, context, clock = lifecycle._harness(tmp_path)
     lifecycle._reach_gate(first, context, clock)
-    second = _detached_core(store, context, clock)
+    return first, _detached_core(store, context, clock)
+
+
+def test_convergence_pickup_fences_old_session_before_human_transition(
+    convergence_sessions: tuple[ReviewExchangeCore, ReviewExchangeCore],
+) -> None:
+    """A requestor can pick up the gate and the displaced session cannot confirm."""
+    first, second = convergence_sessions
 
     second.pickup_ownership(Actor.REQUESTOR)
 

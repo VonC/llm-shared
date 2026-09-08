@@ -14,6 +14,10 @@ from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
 from tools.review_artifact_configuration import ReviewArtifactConfiguration
+from tools.review_artifact_registry import (
+    RegisteredArtifactKind,
+    ReviewArtifactRegistry,
+)
 from tools.review_exchange_models import (
     Actor,
     ArtifactPaths,
@@ -249,6 +253,33 @@ def collect_review_status(
         migration=preflight.status,
         configuration=preflight.configuration,
     )
+
+
+def collect_ready_review_requests(
+    root: Path,
+    wall_clock: Callable[[], datetime],
+    configuration: ReviewArtifactConfiguration,
+) -> ReviewStatusResult:
+    """Project recognized requests in linear directory order after ready preflight.
+
+    Foreground discovery reuses its locator and never migrates or sorts an
+    unrelated active-exchange inventory on each polling interval.
+    """
+    registry = ReviewArtifactRegistry()
+    invocation = _StatusInvocation(
+        root, configuration, _DEFAULT_DEPENDENCIES.load_configuration(root, configuration), wall_clock(),
+    )
+    entries: list[StatusEntry] = []
+    paths = configuration.home.iterdir() if configuration.home.exists() else ()
+    for path in paths:
+        registered = registry.parse_name(path.name)
+        if registered is None or registered.kind is not RegisteredArtifactKind.REQUEST or registered.identity is None:
+            continue
+        coordination = configuration.home / registry.name_for(RegisteredArtifactKind.COORDINATION, registered.identity)
+        entry = _collect_candidate(invocation, coordination, _DEFAULT_DEPENDENCIES)
+        if entry is not None:
+            entries.append(entry)
+    return _result(root, tuple(entries), MigrationStatus.unnecessary(configuration.relative_home))
 
 
 def _collect_review_status(

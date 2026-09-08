@@ -29,7 +29,6 @@ from tools.review_artifact_configuration import (
 from tools.review_exchange_cli_ownership import (
     CorePort,
     capability_from_args,
-    capability_payload,
     failure_payload,
 )
 from tools.review_exchange_cli_parser import (
@@ -37,6 +36,13 @@ from tools.review_exchange_cli_parser import (
 )
 from tools.review_exchange_cli_parser import (
     parser as _parser,
+)
+from tools.review_exchange_cli_result import add_issued_capability
+from tools.review_exchange_cli_result import fatal_payload as _fatal_payload
+from tools.review_exchange_cli_result import operation_name as _operation_name
+from tools.review_exchange_cli_resume import (
+    execute_resume_operation,
+    is_resume_operation,
 )
 from tools.review_exchange_core import ReviewExchangeCore
 from tools.review_exchange_models import (
@@ -77,7 +83,6 @@ _STOP_STATES = frozenset(
         ArtifactState.INCONSISTENT,
     },
 )
-_EXIT_STOP = 3
 
 
 @dataclass(frozen=True)
@@ -470,33 +475,8 @@ def _success_payload(runtime: Runtime, operation: str, result: OperationResult) 
             record.round_number,
         )
     payload.update(result.extra)
-    capability = runtime.core.ownership_capability
-    if (
-        capability is not None
-        and runtime.core.ownership_capability_issued
-        and result.exit_code != _EXIT_STOP
-        and operation not in {"activate", "status"}
-    ):
-        payload.update(capability_payload(capability))
+    add_issued_capability(payload, runtime.core, operation, result.exit_code)
     return payload
-
-
-def _fatal_payload(operation: str, diagnostic: str) -> dict[str, Any]:
-    """Build the stable schema for invalid input or unexpected failure."""
-    return {
-        "diagnostic": diagnostic,
-        "identity": None,
-        "operation": operation,
-        "outcome": "fatal-input",
-        "paths": {},
-        "round": None,
-        "state": "fatal",
-    }
-
-
-def _operation_name(argv: Sequence[str]) -> str:
-    """Return the first token for parse-failure reporting."""
-    return argv[0] if argv and not argv[0].startswith("-") else "unknown"
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -507,6 +487,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         args = _parser().parse_args(arguments)
         operation = args.operation
         project_root = find_project_root(Path.cwd()).resolve()
+        if is_resume_operation(operation):
+            payload, code = execute_resume_operation(args, project_root)
+            sys.stdout.write(f"{json.dumps(payload, ensure_ascii=False, sort_keys=True)}\n")
+            return code
         runtime = _build_runtime(args, project_root)
         result = _dispatch(args, runtime, sys.stderr)
         payload = _success_payload(runtime, operation, result)

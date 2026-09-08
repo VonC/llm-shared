@@ -9,6 +9,7 @@ runtime dispatch stay separate from argparse construction and filename rules.
 from __future__ import annotations
 
 import argparse
+import math
 import re
 from pathlib import Path
 from typing import NoReturn
@@ -46,7 +47,7 @@ def positive_int(value: str) -> int:
 def positive_float(value: str) -> float:
     """Parse one positive floating-point command value."""
     parsed = float(value)
-    if parsed <= 0:
+    if not math.isfinite(parsed) or parsed <= 0:
         raise argparse.ArgumentTypeError("value must be positive")
     return parsed
 
@@ -100,7 +101,31 @@ def parser() -> JsonArgumentParser:
     confirm = subparsers.add_parser("confirm", parents=[common])
     confirm.add_argument("--choice-label", required=True)
     confirm.add_argument("--guidance-file")
+    _add_resume_arguments(subparsers)
     return result
+
+
+def _add_resume_arguments(subparsers: argparse._SubParsersAction[JsonArgumentParser]) -> None:  # pyright: ignore[reportPrivateUsage]
+    """Add the focused support contracts without growing normal protocol parsing."""
+    for name in ("migration-check", "migrate-artifacts"):
+        subparsers.add_parser(name)
+    inspect = subparsers.add_parser("resume-inspect")
+    inspect.add_argument("--role", choices=("requestor", "reviewer"))
+    inspect.add_argument("--trusted-host-hint")
+    inspect.add_argument("--document")
+    inspect.add_argument("--implementation-step")
+    inspect.add_argument("--override", action="store_true")
+    claim = subparsers.add_parser("claim")
+    claim.add_argument("--document", required=True)
+    claim.add_argument("--implementation-step")
+    claim.add_argument("--role", choices=("requestor", "reviewer"), required=True)
+    claim.add_argument("--trusted-host-hint")
+    claim.add_argument("--round", dest="round_number", type=positive_int, required=True)
+    claim.add_argument("--occurrence", type=positive_int, required=True)
+    claim.add_argument("--override", action="store_true")
+    add_ownership_arguments(claim)
+    wait_any = subparsers.add_parser("wait-any-request")
+    wait_any.add_argument("--poll-interval", type=positive_float, default=1.0)
 
 
 def context_from_document(

@@ -32,11 +32,6 @@ FALLBACK_WAIT_COUNT: Final = 2
 FALLBACK_RESCAN_COUNT: Final = 3
 STATUS_PROJECTION_ERROR: Final = "migration_check must not project review status"
 
-WAIT_GATE = pytest.mark.xfail(
-    strict=True,
-    reason="Step 5 removes this xfail when GlobalReviewerWait lands",
-)
-
 
 def _path_list() -> list[Path]:
     """Return one typed empty path list for the migration spy."""
@@ -195,7 +190,6 @@ class TestMigrationCheckPerformance:
 class TestGlobalReviewerWaitPerformance:
     """Guard the Step 5 global wait against busy loops and event-only truth."""
 
-    @WAIT_GATE
     @pytest.mark.timeout(WAIT_TIMEOUT_SECONDS)
     def test_quiet_wait_uses_one_rescan_and_poll_per_interval(self) -> None:
         """A quiet interval performs bounded work instead of busy-looping."""
@@ -210,7 +204,6 @@ class TestGlobalReviewerWaitPerformance:
         assert spies.fallback_polls == QUIET_INTERVAL_COUNT
         assert elapsed < WAIT_ELAPSED_BOUND_SECONDS
 
-    @WAIT_GATE
     @pytest.mark.timeout(WAIT_TIMEOUT_SECONDS)
     def test_notification_hint_wakes_into_authoritative_rescan(self) -> None:
         """A native event marks the wait dirty but a rescan finds the request."""
@@ -223,7 +216,6 @@ class TestGlobalReviewerWaitPerformance:
         assert spies.rescans == NOTIFICATION_RESCAN_COUNT
         assert spies.fallback_polls == 0
 
-    @WAIT_GATE
     @pytest.mark.timeout(WAIT_TIMEOUT_SECONDS)
     def test_polling_fallback_finds_request_without_notification(self) -> None:
         """A missed native event still reaches a complete candidate rescan."""
