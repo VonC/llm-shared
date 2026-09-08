@@ -52,6 +52,16 @@ nor the flag and must not be treated as a damaged exchange. Read it from the
 `context.umbrella_path` in the coordination record; `null` in both means the
 effort has none and the flag is correctly omitted.
 
+For a bare user `resume`, follow [`review-resume.md`](review-resume.md) through
+migration, role and identity gates, then automatic `claim`. Retain the returned
+session-only capability and pass `--ownership-generation` and
+`--ownership-token` on every fenced operation. A `found` result from
+`wait-any-request` already supplies that capability; reuse it for the identity
+gate and idempotent completion in the canonical resume instruction.
+After any answer, wait globally with `wait-any-request`. On `found`, follow
+`review-resume.md` to dispatch the selected family and exact context; never
+reuse the preceding document, step, round, or occurrence for a new request.
+
 ## Ordered reviewer sequence
 
 1. Run `status` through
@@ -115,15 +125,16 @@ effort has none and the flag is correctly omitted.
     `changes-requested` and exit `3` for `commit-ready` at the convergence gate;
     both are successful publication outcomes.
 13. After a `changes-requested` publication returns `answer-pending`,
-    immediately run the next bounded `wait-request` in this same reviewer
+    immediately run the quiet global `wait-any-request` in this same reviewer
     session. Do not report the round as finished, return control to the user,
     or require another reviewer invocation. Waiting does not transfer requestor
     authority: the requestor still consumes the answer, assesses repairs,
     continues the exchange, and publishes the replacement request.
-14. When the wait returns `found` with `request-pending`, require the same code
-    identity and step, the next reviewer-owned round, and a positive exchange
-    occurrence. Read only the returned `paths.request` and continue at Step 3.
-    Repeat the assess, publish, and wait cycle for every intermediate round.
+14. When the wait returns `found`, retain its capability and dispatch the
+    returned family and exact identity through `review-resume.md`. For a code
+    request, run exact `status`. Read only the returned `paths.request` and continue at Step 3
+    with the returned plan, step, round, and occurrence. Any specification
+    request enters its specification reviewer instruction in the same session.
 15. After `commit-ready` publication returns `convergence-gate`, the reviewer's
     rounds in this exchange are over but its session is not. The commit choice
     belongs to the human, so do not confirm it and do not act on it; move to the
@@ -137,11 +148,9 @@ effort has none and the flag is correctly omitted.
 A reviewer never ends its own session, and publishing an answer never returns
 control to the user. There is always a wait to enter, and only two kinds exist.
 
-**The round wait.** While the exchange still has reviewer-owned rounds, wait for
-the next one with a bounded `wait-request` on the exact same context. This is
-Step 13 above, and it applies the moment a `changes-requested` publication
-returns `answer-pending`. Never start or contact a requestor to produce that
-next round.
+**The round wait.** Use exact `wait-request` to validate access to a selected
+request before assessment. After every answer, including `changes-requested`,
+enter the artifact-home wait for the same or a new exchange.
 
 **The artifact-home wait.** When the current exchange has no further
 reviewer-owned round -- after a convergence publication reaches the human gate,
@@ -157,28 +166,22 @@ reports a round finished and stops has abandoned the next request rather than
 completed its work, and the requestor will publish into an exchange nobody is
 watching.
 
+Never start or contact a requestor to produce that next round.
 The absence of a request never authorizes reviewer-to-requestor delegation.
 Reviewers stay in the applicable wait and let independently running requestors
 publish through the artifact home.
 
 Never substitute a polling loop, a sleep, or a repeated `status` for either
-wait. The bounded protocol wait is the only sanctioned mechanism.
+wait. These script-managed operations are the only sanctioned mechanisms.
 
-### While the artifact-home wait has no launcher operation
+### Artifact-home wait operation
 
-`& "<LLM_SHARED_DIR>\bin\review_exchange.bat" wait-request` binds to one exact exchange context, so
-it serves the round wait only. The cross-exchange wait is `GlobalReviewerWait`,
-Step 5 of the v0.11.0 `review-resume-command` plan, and it has not shipped: the
-Step 5 contracts in
-`tests/unit/tools/test_review_resume_perf/test_review_resume_perf_tdd.py` are
-still strict xfails.
-
-Until it lands, hold the artifact-home wait open in words rather than inventing
-a mechanism. Report that the reviewer is waiting for the next request under the
-artifact home, name the gate or state that needs another role, and stay
-available. Do not report the work as finished, do not ask whether to continue,
-and do not poll. When `GlobalReviewerWait` ships, this paragraph is replaced by
-the operation itself.
+`& "<LLM_SHARED_DIR>\bin\review_exchange.bat" wait-request` remains bound to
+one exact exchange and validates selected request access. After every answer,
+run `wait-any-request` once as a quiet foreground operation and await its final
+JSON result. It watches the configured artifact home without model-side polling,
+claims only its selected request, returns `found`, `ambiguous`, or `cancelled`,
+and writes no idle progress. `GlobalReviewerWait` owns that foreground wait.
 
 ## Exact evidence delegation
 
@@ -294,7 +297,8 @@ caller evidence retained.
 
 ## Reviewer-forbidden operations and authority
 
-The reviewer may call only `status`, `wait-request`, an eligible request
+The reviewer may call only `migration-check`, `migrate-artifacts`, `resume-inspect`,
+`claim`, `wait-any-request`, `status`, `wait-request`, an eligible request
 `reclaim`, and `publish-answer` through the shared protocol. Never call
 `consume-answer`, `continue`, `confirm`, `complete`, `escalate`, `cancel`,
 `resolve`, or `archive`. Never start a replacement round or mutate protocol
@@ -306,7 +310,7 @@ the round wait or artifact-home wait.
 
 Do not run a `commit`, invoke batch commit, consume the answer, confirm the
 convergence gate, complete the exchange, edit the transcript, or perform the
-requestor's owning workflow. Remaining active in `wait-request` after a
+requestor's owning workflow. Remaining active in `wait-any-request` after a
 `changes-requested` publication does not cross that boundary: the reviewer
 observes until the requestor publishes the next round, then resumes only its
 reviewer-owned assessment. A convergence publication or a shared terminal

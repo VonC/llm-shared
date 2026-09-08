@@ -176,3 +176,9 @@ After `complete` removes the retained answer and coordination state, rerun `pw s
 Ordinary document routing then selects the next workflow phase. If consolidation
 failed or the settled decision marker is absent, leave the authorization durable,
 report the failure, and do not complete the exchange.
+
+For a bare user `resume`, follow [the canonical resume instruction](review-resume.md)
+through migration, role and identity gates, and automatic `claim` before
+continuing this exact exchange. Keep its capability in session and pass the
+paired ownership flags to every fenced operation. After exchange release, run
+and follow `pw skill` immediately.

@@ -467,7 +467,7 @@ result contains `operation`, `outcome`, `identity`, `candidates`, and
 `diagnostic`; `found` adds the session-only generation/token capability from
 its locked claim, while other outcomes contain no capability. `found` exits 0;
 `ambiguous` and `cancelled` exit 3; invalid input and operational failures exit
-2. A hard process kill may prevent a final result and grants neither a claim nor
+two. A hard process kill may prevent a final result and grants neither a claim nor
 subsequent authority. A Codex or Claude session can await that command without
 model-side polling; the protocol does not promise that a file watcher can create
 a new model turn after its host ends the command.
@@ -478,6 +478,18 @@ specification or code exchange wake the same wait. Unrelated artifacts do not.
 After an intermediate answer, the reviewer returns to the global wait instead
 of requiring an exact replacement-request wait. After convergence, it likewise
 waits globally; it never performs the human or requestor action.
+
+Lease expiry alone does not terminate this wait. Startup, authoritative rescans,
+and the selected resume inspection and claim accept an intact artifact home
+whose only untrustworthy states are `ABANDONED_REQUEST`, `ABANDONED_ANSWER`, or
+`ABANDONED_MID_ROUND`. Expired answers and requestor work remain non-candidates;
+the script keeps waiting without claiming, renewing, or consuming them. An
+expired request remains eligible for the existing locked reviewer claim.
+The status command continues to report those leases as untrustworthy. This
+continuation exception is pure resume policy, not a change to status evidence.
+Damaged, inconsistent, escalated, or repair-required evidence still stops the
+operation, as do unreadable homes and blocked migration. A later selected role
+must still pass its identity gate and exact locked round/occurrence recheck.
 
 Reviewer resume never runs `pw skill`, writes a requirement or design,
 implements code, publishes a request as requestor, or advances a requestor

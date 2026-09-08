@@ -45,7 +45,7 @@ def test_canonical_requestor_delegates_every_mutation_to_launcher() -> None:
         ),
     )
     assert "| Request | Answer |" not in content
-    assert "reviewer is already in its post-answer `wait-request`" in normalized
+    assert "reviewer is already in its post-answer `wait-any-request`" in normalized
     assert "Without invoking or contacting a reviewer, call `wait-answer`" in normalized
     assert "the requestor's only automated next action" in normalized
     assert "it does not authorize the requestor to create that reviewer" in normalized

@@ -115,9 +115,9 @@ escalated exchange never does.
 ## New-session ownership pickup
 
 A new agent session cannot recover the previous session's plaintext ownership
-token. When the human says `This is a new session` and directs you to
-`force requestor ownership pickup`, run `pickup` with the unchanged exact code
-review context before the first mutation. At `convergence-gate` and
+token. A bare user `resume` authorizes the canonical resume gates and automatic
+`claim` with the unchanged exact code review context before the first mutation.
+At `convergence-gate` and
 `owning-action-pending`, pickup advances the ownership generation for the
 requestor even though the convergence choice itself belongs to the human.
 
@@ -220,3 +220,9 @@ The residual pass executes the replacement plan and requires
 authorization and report the failure so a later session can repair and replay
 the owning action. Never proceed to `pw skill` or another implementation step
 until this clean-tree postcondition succeeds.
+
+For a bare user `resume`, follow [the canonical resume instruction](review-resume.md)
+through migration, role and identity gates, and automatic `claim` before
+continuing this exact exchange. Keep its capability in session and pass the
+paired ownership flags to every fenced operation. After exchange release, run
+and follow `pw skill` immediately.

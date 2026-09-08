@@ -75,6 +75,16 @@ plus exact paths returned by
 `& "<LLM_SHARED_DIR>\bin\review_exchange.bat"`. Never create,
 overwrite, rename, or delete protocol artifacts by hand.
 
+For a bare user `resume`, follow [`review-resume.md`](review-resume.md) through
+migration, role and identity gates, then automatic `claim`. Retain the returned
+session-only capability and pass `--ownership-generation` and
+`--ownership-token` on every fenced operation. A `found` result from
+`wait-any-request` already supplies that capability; reuse it for the identity
+gate and idempotent completion in the canonical resume instruction.
+After any answer, wait globally with `wait-any-request`. On `found`, follow
+`review-resume.md` to dispatch the selected family and exact context; never
+reuse the preceding document, step, round, or occurrence for a new request.
+
 ## Ordered sequence for specification reviewer work
 
 1. Run `status` with the exact document, optional umbrella, and fixed policy.
@@ -111,15 +121,16 @@ overwrite, rename, or delete protocol artifacts by hand.
 7. When `publish-answer` reports `outcome: published`, remove the single-use
    retained manifest. Keep every protocol artifact under shared-core ownership.
 8. When the published disposition is `changes-requested` and the returned state
-   is `answer-pending`, immediately run the next bounded `wait-request` in this
+   is `answer-pending`, immediately run the quiet global `wait-any-request` in this
    same reviewer session. Do not report the round as finished, return control
    to the user, or ask for another reviewer invocation first. The wait begins
    while the requestor owns `answer-pending`; it grants no requestor authority
    to the reviewer and simply watches for the replacement request.
-9. When that wait returns `found` with `request-pending`, require the same
-   exchange identity and the next reviewer-owned round, read only its returned
-   `paths.request`, and continue at Step 3. Repeat the assess, publish, and wait
-   cycle for every intermediate round.
+9. When that wait returns `found`, retain its capability and dispatch the
+   returned family and exact identity through `review-resume.md`. For a
+   specification request, run exact `status`, read only `paths.request`, and
+   continue at Step 3 with the returned document, round, and occurrence. Any
+   code request enters its code reviewer instruction in the same session.
 10. When publication reports `convergence-gate`, the reviewer's rounds in this
     exchange are over but its session is not. The consolidation choice belongs
     to the human, so do not confirm it and do not act on it; move to the
@@ -145,11 +156,9 @@ restart, and never author a `#` heading inside appended content.
 A reviewer never ends its own session, and publishing an answer never returns
 control to the user. There is always a wait to enter, and only two kinds exist.
 
-**The round wait.** While the exchange still has reviewer-owned rounds, wait for
-the next one with a bounded `wait-request` on the exact same context. This is
-Step 8 above, and it applies the moment a `changes-requested` publication
-returns `answer-pending`. Never start or contact a requestor to produce that
-next round.
+**The round wait.** Use exact `wait-request` to validate access to a selected
+request before assessment. After every answer, including `changes-requested`,
+enter the artifact-home wait for the same or a new exchange.
 
 **The artifact-home wait.** When the current exchange has no further
 reviewer-owned round -- after a convergence publication reaches the human gate,
@@ -166,28 +175,22 @@ reports a round finished and stops has abandoned the next request rather than
 completed its work, and the requestor will publish into an exchange nobody is
 watching.
 
+Never start or contact a requestor to produce that next round.
 The absence of a request never authorizes reviewer-to-requestor delegation.
 Reviewers stay in the applicable wait and let independently running requestors
 publish through the artifact home.
 
 Never substitute a polling loop, a sleep, or a repeated `status` for either
-wait. The bounded protocol wait is the only sanctioned mechanism.
+wait. These script-managed operations are the only sanctioned mechanisms.
 
-### While the artifact-home wait has no launcher operation
+### Artifact-home wait operation
 
-`& "<LLM_SHARED_DIR>\bin\review_exchange.bat" wait-request` binds to one exact exchange context, so
-it serves the round wait only. The cross-exchange wait is `GlobalReviewerWait`,
-Step 5 of the v0.11.0 `review-resume-command` plan, and it has not shipped: the
-Step 5 contracts in
-`tests/unit/tools/test_review_resume_perf/test_review_resume_perf_tdd.py` are
-still strict xfails.
-
-Until it lands, hold the artifact-home wait open in words rather than inventing
-a mechanism. Report that the reviewer is waiting for the next request under the
-artifact home, name the gate or state that needs another role, and stay
-available. Do not report the work as finished, do not ask whether to continue,
-and do not poll. When `GlobalReviewerWait` ships, this paragraph is replaced by
-the operation itself.
+`& "<LLM_SHARED_DIR>\bin\review_exchange.bat" wait-request` remains bound to
+one exact exchange and validates selected request access. After every answer,
+run `wait-any-request` once as a quiet foreground operation and await its final
+JSON result. It watches the configured artifact home without model-side polling,
+claims only its selected request, returns `found`, `ambiguous`, or `cancelled`,
+and writes no idle progress. `GlobalReviewerWait` owns that foreground wait.
 
 ## Pending request and reclaim boundary for specification reviewers
 
@@ -201,11 +204,11 @@ the same identity, round, and reviewer ownership, call `reclaim` once and
 resume the exact round. Do not treat a malformed, interrupted, or escalated
 round as reclaimable.
 
-A cold route that first observes `abandoned-request` belongs to
-`spec-review-requestor`, which restores `request-pending` before routing back
-to the reviewer. Do not reclaim from that cold route, initiate its requestor,
-or start another reviewer round. Report the exact state and requestor-owned
-recovery, then enter the artifact-home wait.
+A cold route that first observes an intact `abandoned-request` follows the
+resume gates and automatic `claim` before ordinary `reclaim`. Do not wait for
+lease expiry or use forced reclaim as ownership pickup. Report the exact state
+and requestor-owned recovery only for interrupted or escalated evidence, then
+enter the artifact-home wait.
 
 ## Independent assessment for specification reviewers
 
@@ -275,10 +278,10 @@ Use the shared final JSON outcome without recreating its classifier:
 | Observed result | Reviewer action |
 | --- | --- |
 | `request-pending` | Run the exact bounded wait and assess once. |
-| In-session `answer-pending` after publishing `changes-requested` | Stay active in the next bounded `wait-request`; the requestor remains the owner. |
+| In-session `answer-pending` after publishing `changes-requested` | Stay active in the quiet global `wait-any-request`; the requestor remains the owner. |
 | `convergence-gate` after publication | Leave the human choice alone and enter the artifact-home wait. |
 | In-session `abandoned-request` | Reclaim the same intact reviewer-owned round once. |
-| Cold-route `abandoned-request` | Stop and hand recovery to `spec-review-requestor`. |
+| Cold-route `abandoned-request` | Apply resume gates and automatic `claim`, then ordinary `reclaim`. |
 | `disabled` | Stop and report that review mode must be restored. |
 | `mismatched` | Stop with the exact identity diagnostic. |
 | `interrupted` | Stop for human recovery with caller evidence retained. |
@@ -293,7 +296,8 @@ session: report the state, name its owner, and enter the artifact-home wait.
 
 ## Reviewer-forbidden operations and actions
 
-The reviewer may call only `status`, `wait-request`, an eligible in-session
+The reviewer may call only `migration-check`, `migrate-artifacts`, `resume-inspect`,
+`claim`, `wait-any-request`, `status`, `wait-request`, an eligible in-session
 `reclaim`, and `publish-answer`. Never call `consume-answer`, `continue`,
 `confirm`, `complete`, `cancel`, `resolve`, or `archive` from this role.
 

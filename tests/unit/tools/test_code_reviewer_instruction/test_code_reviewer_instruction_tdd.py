@@ -56,7 +56,7 @@ def test_instruction_pins_policy_identity_and_reciprocal_bounded_waits() -> None
             '--continue-owning-workflow-label "Commit"',
             "--implementation-step <exact-plan-step>",
             "one bounded `wait-request` per round",
-            "immediately run the next bounded `wait-request`",
+            "immediately run the quiet global `wait-any-request`",
             "same reviewer session",
             "continue at Step 3",
             "Read only the returned `paths.request`",
@@ -164,8 +164,9 @@ def test_instruction_requires_the_reviewer_to_always_wait() -> None:
     ):
         assert phrase in normalized
     assert "GlobalReviewerWait" in content
-    assert "it has not shipped" in normalized
-    assert "hold the artifact-home wait open in words" in normalized
+    assert "wait-any-request" in normalized
+    assert "quiet foreground operation" in normalized
+    assert "writes no idle progress" in normalized
 
 
 def test_instruction_requires_independent_commit_plan_readiness_evidence() -> None:

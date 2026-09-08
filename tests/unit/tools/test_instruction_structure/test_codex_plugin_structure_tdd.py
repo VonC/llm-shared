@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 from tools import prompt_workflow_steps as steps
+from tools.llm_nature import LlmNature, LlmNatureDetector
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -120,7 +121,11 @@ def test_codex_plugin_redirects_every_instruction(
             f"(../../../../../../../git/llm-shared/instructions/{instruction_name}).\n"
         )
         assert skill.rstrip().endswith(skill_redirect)
-        assert packaged == packaged_redirect
+        packaged_body = packaged
+        if packaged.startswith("---\n"):
+            assert LlmNatureDetector.adapter_nature(packaged) is LlmNature.CODEX
+            packaged_body = packaged.split("---\n", 2)[2].lstrip("\n")
+        assert packaged_body == packaged_redirect
         assert packaged.encode("utf-8") != source
 
 

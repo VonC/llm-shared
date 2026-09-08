@@ -138,9 +138,9 @@ def test_instruction_advances_ownership_for_a_new_requestor_session() -> None:
     section = content[content.index("## New-session ownership pickup") :]
 
     for token in (
-        "This is a new session",
-        "force requestor ownership pickup",
-        "`pickup`",
+        "bare user `resume`",
+        "automatic",
+        "`claim`",
         "ownership generation",
         "`--ownership-generation`",
         "`--ownership-token`",
@@ -148,7 +148,7 @@ def test_instruction_advances_ownership_for_a_new_requestor_session() -> None:
         "`reclaim`",
     ):
         assert token in section
-    _assert_in_order(section, ("`pickup`", "`confirm`"))
+    _assert_in_order(section, ("`claim`", "`confirm`"))
 
 
 def test_repair_assessment_uses_all_required_evidence() -> None:

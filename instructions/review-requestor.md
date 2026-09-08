@@ -19,7 +19,7 @@ Run every protocol operation through
 non-interactive adapter over `ReviewExchangeCore`; do not reproduce its state
 transitions in an LLM instruction and do not mutate review artifacts by hand.
 
-Every command takes an operation followed by the exact context arguments:
+Exchange-specific commands take an operation followed by exact context arguments:
 
 ```powershell
 & "<LLM_SHARED_DIR>\bin\review_exchange.bat" <operation> --family <specification-or-code> --document <exact-path> --umbrella <exact-path-when-present> --implementation-step <code-step-when-applicable> --convergence-signal <registered-token> --another-round-label <registered-label> --continue-owning-workflow-label <registered-label>
@@ -41,6 +41,18 @@ included before concluding anything about the exchange. `pw` names it on the
 routed command as `with umbrella <umbrella-draft>`, and it is also readable
 from `umbrella_path` in the published request envelope and from
 `context.umbrella_path` in the coordination record.
+
+Identity-free resume support operations use the argument contracts in
+[`review-resume.md`](review-resume.md); do not supply exchange-specific flags
+to migration or global waiting.
+
+Retain any paired `ownership_generation` and `ownership_token` returned by
+`start`, `reclaim`, `wait-request`, `wait-answer`, `pickup`, or `claim` only in
+the acting session. Supply `--ownership-generation` and `--ownership-token`
+together on every later fenced mutation. Never copy them to a file, an
+environment variable, a transcript, or a human progress message. An ordinary
+ownership failure stops mutation; a human `resume` follows the canonical
+resume gates and automatic pickup before continuing.
 
 ## Caller-owned Markdown inputs for review requestors
 
@@ -192,18 +204,24 @@ subagents, child agents, agent-assignment tools, direct model calls, requestor
 skills or prompts, and `pw skill code-review-requestor` or
 `pw skill spec-review-requestor`. Publishing an answer is the whole handoff to
 the existing requestor role. After `changes-requested`, the reviewer waits for
-the next round with `wait-request`; after convergence or a terminal handoff, it
+the next request with `wait-any-request`; after convergence or a terminal handoff, it
 waits for any specification or code request through the configured artifact
-home and its global monitoring mechanism.
+home and its global monitoring mechanism. If that mechanism is unavailable,
+its absence never authorizes the reviewer to create a requestor; report the
+operational failure and preserve role-session isolation.
 
-If the global monitoring mechanism has not shipped, its absence never
-authorizes the reviewer to create a requestor. The reviewer remains available
-under the specialized reviewer's documented interim wait instead. A requestor
+A requestor
 must reject an invocation initiated by an automated reviewer or by a parent
 agent acting as reviewer before any requestor command, file read, workflow
 mutation, or response processing.
 
 ## Automated requestor sequence
+
+For a bare user `resume`, first follow `instructions/review-resume.md` through
+`resume-inspect` and automatic `claim`. Retain its session-only capability and
+pass the pair to every later fenced operation. Resume stays on the selected
+exchange until release, then immediately runs and follows `pw skill`. No
+ownership terminology or second go-ahead is required from the user.
 
 Intermediate rounds use reciprocal active waits across the two agent sessions.
 After the requestor publishes a request, it waits for the answer. After the
@@ -237,7 +255,7 @@ without arranging a new reviewer invocation.
    `--reviewed-work-changed true` or `false` and add `--disagreement` only for
    an explicit disagreement. If automation remains active, call `continue`,
    author the replacement request, publish it, and wait again. The reviewer is
-   already in its post-answer `wait-request`; successful replacement
+   already in its post-answer `wait-any-request`; successful replacement
    publication releases that wait into the next reviewer assessment.
 7. At convergence, retain the answer and present the specialized assessment,
    reviewer recommendation, identity summary, and registered labels to the

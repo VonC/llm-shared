@@ -65,7 +65,7 @@ def test_instruction_orders_reviewer_operations_and_exact_paths() -> None:
     assert "convergence recommendation is advisory" in content
     published = content.index("`publish-answer` reports `outcome: published`")
     post_answer_wait = content.index(
-        "immediately run the next bounded `wait-request`",
+        "immediately run the quiet global `wait-any-request`",
         published,
     )
     assert post_answer_wait > published
@@ -105,14 +105,14 @@ def test_reviewer_never_initiates_a_requestor_and_stays_in_waits() -> None:
 
 
 def test_instruction_limits_reclaim_to_the_active_reviewer_session() -> None:
-    """Cold abandoned requests return to requestor-owned recovery."""
+    """Cold resume claims before ordinary renewal; stopped evidence retains its owning recovery."""
     content = _content()
 
     assert "expired during this reviewer session" in content
     assert "call `reclaim` once" in content
     assert "cold route" in content
     assert "spec-review-requestor" in content
-    assert "Do not reclaim from that cold route" in content
+    assert "automatic `claim` before ordinary `reclaim`" in content
 
 
 def test_instruction_revalidates_and_retires_retained_context_safely() -> None:
@@ -185,8 +185,9 @@ def test_instruction_requires_the_reviewer_to_always_wait() -> None:
     ):
         assert phrase in normalized
     assert "GlobalReviewerWait" in content
-    assert "it has not shipped" in normalized
-    assert "hold the artifact-home wait open in words" in normalized
+    assert "wait-any-request" in normalized
+    assert "quiet foreground operation" in normalized
+    assert "writes no idle progress" in normalized
 
 
 # eof
