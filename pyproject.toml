@@ -236,6 +236,7 @@ dev = [
     "ty>=0.0.30",
     "uv",
     "vulture",
+    "watchdog",
     "wheel",
 ]
 

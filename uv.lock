@@ -115,6 +115,7 @@ dev = [
     { name = "ty" },
     { name = "uv" },
     { name = "vulture" },
+    { name = "watchdog" },
     { name = "wheel" },
 ]
 
@@ -145,6 +146,7 @@ dev = [
     { name = "ty", specifier = ">=0.0.30" },
     { name = "uv" },
     { name = "vulture" },
+    { name = "watchdog" },
     { name = "wheel" },
 ]
 
