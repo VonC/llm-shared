@@ -1,4 +1,7 @@
-"""Real-artifact resume tests with independent stores and locked concurrent claims."""
+"""Real-artifact resume tests with independent stores and locked concurrent claims.
+
+Conflict request setup precedes the measured rejection and Override transitions.
+"""
 
 from __future__ import annotations
 
@@ -27,6 +30,9 @@ from tools.review_role_nature import RoleNatureSnapshot
 
 if TYPE_CHECKING:
     from pathlib import Path
+
+    from tools.review_exchange_models_coordination import CoordinationRecord
+    from tools.review_exchange_store import ReviewExchangeStore
 
 
 def test_pickup_backfills_and_fences_a_live_session(tmp_path: Path) -> None:
@@ -76,13 +82,22 @@ def test_locked_state_recheck_blocks_interrupted_continuation(tmp_path: Path, mo
     assert store.read_coordination(required=True) is not None
 
 
-def test_conflicting_role_needs_override_and_preserves_recorded_evidence(tmp_path: Path) -> None:
-    """Override fills only gaps and cannot rewrite known contrary role evidence."""
+@pytest.fixture
+def conflicting_role_request(tmp_path: Path) -> tuple[ReviewExchangeCore, ReviewExchangeStore, CoordinationRecord]:
+    """Publish real conflicting evidence before measuring its guarded pickup."""
     core, store, context, clock = lifecycle._harness(tmp_path)
     lifecycle._start_and_request(core, context, clock)
     record = store.read_coordination(required=True)
     assert record is not None
     store.write_coordination(replace(record, role_natures=RoleNatureSnapshot(None, LlmNature.CLAUDE)))
+    return core, store, record
+
+
+def test_conflicting_role_needs_override_and_preserves_recorded_evidence(
+    conflicting_role_request: tuple[ReviewExchangeCore, ReviewExchangeStore, CoordinationRecord],
+) -> None:
+    """Override fills only gaps and cannot rewrite known contrary role evidence."""
+    core, store, record = conflicting_role_request
     with pytest.raises(ReviewExchangeError, match="conflicts require Override"):
         claim_selected(core, ReviewRole.REVIEWER, LlmNature.CODEX, round_number=1, occurrence=1, override=False)
     capability = claim_selected(core, ReviewRole.REVIEWER, LlmNature.CODEX, round_number=1, occurrence=1, override=True)

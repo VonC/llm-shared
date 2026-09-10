@@ -2,6 +2,7 @@
 
 Step 1: specify stable derivation for both review families, reversible artifact
 identity, archive naming, and one fail-closed effective Git-ignore check.
+Generated identity checks reuse configuration and document-directory setup.
 """
 
 from __future__ import annotations
@@ -129,6 +130,13 @@ def test_archive_path_uses_only_settled_kinds_and_compact_time(tmp_path: Path) -
         archive_path(paths, "2026-08-03T14:30:05+02:00", ArchiveKind.ANSWER)
 
 
+@pytest.fixture
+def identity_configuration(tmp_path: Path) -> ReviewArtifactConfiguration:
+    """Resolve the fixed home once before generated path-identity assertions."""
+    (tmp_path / "docs").mkdir()
+    return ReviewArtifactConfiguration.load(tmp_path)
+
+
 @settings(
     max_examples=25,
     deadline=None,
@@ -145,6 +153,7 @@ def test_archive_path_uses_only_settled_kinds_and_compact_time(tmp_path: Path) -
 )
 def test_paths_parse_back_without_identity_collisions(
     tmp_path: Path,
+    identity_configuration: ReviewArtifactConfiguration,
     family: ReviewFamily,
     version: str,
     slug: str,
@@ -153,7 +162,6 @@ def test_paths_parse_back_without_identity_collisions(
     type_token = "code" if family is ReviewFamily.CODE else "plan"
     identity = ExchangeIdentity(family, type_token, version, slug)
     document = tmp_path / "docs" / f"plan.{version}.{slug}.md"
-    document.parent.mkdir(exist_ok=True)
     document.write_text("# Document\n", encoding="utf-8")
     context = ReviewContext(
         identity,
@@ -162,8 +170,8 @@ def test_paths_parse_back_without_identity_collisions(
         "2" if family is ReviewFamily.CODE else None,
     )
 
-    first = derive_artifact_paths(tmp_path, context)
-    second = derive_artifact_paths(tmp_path, context)
+    first = derive_artifact_paths(tmp_path, context, configuration=identity_configuration)
+    second = derive_artifact_paths(tmp_path, context, configuration=identity_configuration)
 
     assert first == second
     assert len(set(first.fixed_paths)) == len(first.fixed_paths)

@@ -8,6 +8,7 @@ requests, answers, torn transcript suffixes, escalations, consumed answers,
 and owning authorization repair without evidence loss or duplicate entries.
 The activation journey captures its real non-repository Git result in fixture
 setup so process startup cannot make the measured assertion call an outlier.
+Abandoned-request setup likewise precedes measured reclaim and answer checks.
 """
 
 from __future__ import annotations
@@ -405,12 +406,21 @@ def test_consumed_answer_interruption_becomes_attributed_abandonment(
     assert consumed_answer_interruption_journey is None
 
 
-def test_abandoned_request_is_reclaimed_by_a_fresh_session(tmp_path: Path) -> None:
-    """A late reviewer session renews the lease in place and answers the round."""
+@pytest.fixture
+def abandoned_request_session(tmp_path: Path) -> tuple[ReviewExchangeCore, ReviewExchangeStore, ReviewContext]:
+    """Prepare an expired real request and a new session before its recovery."""
     core, store, context, clock = _harness(tmp_path / "reclaim", slug="reclaim")
     _start_request(core, context)
     clock.sleep(_WAIT_SECONDS + 1)
     later = _fresh(store, context, clock)
+    return later, store, context
+
+
+def test_abandoned_request_is_reclaimed_by_a_fresh_session(
+    abandoned_request_session: tuple[ReviewExchangeCore, ReviewExchangeStore, ReviewContext],
+) -> None:
+    """A late reviewer session renews the lease in place and answers the round."""
+    later, store, context = abandoned_request_session
     assert later.classify().state is ArtifactState.ABANDONED_REQUEST
 
     reclaimed = later.reclaim()
