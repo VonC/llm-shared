@@ -10,6 +10,11 @@ tools.
 Fix: split for the repo line budget — the shared fakes live in
 ``groundhog_acceptance_support.py`` and the day-walk scenarios in
 ``test_groundhog_acceptance_day.py``.
+
+Fix: AT1 now asserts the parallel full run. The full command carries the
+xdist worker options instead of ``--testmon``, which cannot share a session
+with ``pytest-xdist``, and it no longer deletes the testmon database because
+the affected run owns that incremental map.
 """
 
 from __future__ import annotations
@@ -32,7 +37,7 @@ from tests.unit.tools.groundhog_acceptance_support import (
     make_deps,
     passing_transcript,
 )
-from tools.groundhog import baseline, cli, commands, reporting_nextstep
+from tools.groundhog import baseline, cli, commands, reporting_nextstep, runner
 from tools.groundhog.models import (
     EXIT_COVERAGE_GAP,
     EXIT_OBJECTIVE_MET,
@@ -59,14 +64,34 @@ def test_at1_green_full_run_reaches_the_objective(
     (tmp_path / ".testmondata").write_text("stale", encoding="utf-8")
     code = cli.main(["full", "--root", str(tmp_path), "--llm"], make_deps(spawns))
     assert code == EXIT_OBJECTIVE_MET
+    # A project that did not opt into workers keeps the sequential ptr run.
     assert not (tmp_path / ".testmondata").exists()
     assert "--testmon" in spawns.commands[0]
+    assert "-n" not in spawns.commands[0]
     out = capsys.readouterr().out
     assert reporting_nextstep.MSG_FULL_OK in out
     assert "cov=100" in out
     assert "nag: warn=2 xfail=0 worth a look" in out
     assert "exit=0" in out
     assert_closing_grammar(out)
+
+
+def test_at1b_opted_in_full_run_uses_workers_and_spares_the_testmon_map(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """AT1b: the marker swaps the ptr run for workers and leaves testmon alone."""
+    transcript = passing_transcript(4, "TOTAL    100    0   100%")
+    spawns = Spawns(transcript, 0)
+    (tmp_path / ".testmondata").write_text("stale", encoding="utf-8")
+    (tmp_path / runner.PARALLEL_MARKER).write_text("opt in\n", encoding="utf-8")
+    code = cli.main(["full", "--root", str(tmp_path), "--llm"], make_deps(spawns))
+    assert code == EXIT_OBJECTIVE_MET
+    # The affected run owns the incremental map when full cannot carry testmon.
+    assert (tmp_path / ".testmondata").read_text(encoding="utf-8") == "stale"
+    assert "--testmon" not in spawns.commands[0]
+    assert spawns.commands[0][1:5] == ["-n", "auto", "--dist", "loadgroup"]
+    capsys.readouterr()
 
 
 def test_at2_full_failures_write_the_baseline(

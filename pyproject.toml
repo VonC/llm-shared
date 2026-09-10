@@ -228,6 +228,7 @@ dev = [
     "pytest-rerunfailures",
     "pytest-testmon",
     "pytest-timeout",
+    "pytest-xdist",
     "pytest-watcher",
     "python-pptx",
     "radon",

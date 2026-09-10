@@ -23,6 +23,10 @@ from tools.review_status import collect_review_status
 from tools.review_status_cli import main as review_status_main
 from tools.review_status_models import DamagedCandidateStatus, ReviewStatusResult
 
+# Keep this module's scenarios on one xdist worker so its module-scoped
+# fixtures are built once rather than once per worker (--dist loadgroup).
+pytestmark = pytest.mark.xdist_group("review-status-acceptance")
+
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 

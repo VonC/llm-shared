@@ -19,6 +19,13 @@ and breaks the ``\bcollected`` word boundary, so the run total stayed zero and
 the LLM-mode progress governor silenced every ``ghog full``/``ghog affected``
 progress line; colored ``PASSED``/``FAILED`` statuses missed the result regex
 too, so the counters and the failing-id list went unfilled.
+
+Fix: result lines are also matched in their xdist shape. A parallel run
+prefixes the worker and the percentage and then reverses the pair, as in
+``[gw3] [ 12%] PASSED tests/test_a.py::test_one``, which the sequential
+pattern cannot match. Without this the full run parsed no result at all, so it
+reported ``fail=0`` however many tests failed and left the failing-id list
+empty.
 """
 
 from __future__ import annotations
@@ -44,12 +51,24 @@ _ANSI_ESCAPE_RE: Final = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
 
 # "collected 250 items" (possibly "collected 1 item").
 _COLLECTED_RE: Final = re.compile(r"\bcollected (\d+) items?\b")
+# The same total under xdist, which never prints "collected": its header reads
+# "14 workers [2683 items]". Without this the run total stayed zero, so the
+# progress governor had no denominator and silenced every progress line.
+_WORKER_COLLECTED_RE: Final = re.compile(r"^\d+ workers? \[(\d+) items?\]")
 # The deselected count of the same collect line, subtracted from the
 # total: "collected 250 items / 240 deselected / 10 selected" (testmon).
 _DESELECTED_RE: Final = re.compile(r"\b(\d+) deselected\b")
+_STATUSES: Final = "PASSED|FAILED|ERROR|SKIPPED|XFAIL|XPASS"
 # One -v result line: "tests/test_a.py::test_one PASSED [ 10%]".
 _RESULT_RE: Final = re.compile(
-    r"^(?P<node>\S+::\S+) (?P<status>PASSED|FAILED|ERROR|SKIPPED|XFAIL|XPASS)\b",
+    rf"^(?P<node>\S+::\S+) (?P<status>{_STATUSES})\b",
+)
+# The same result under xdist, which prefixes the worker and the percentage and
+# then reverses the pair: "[gw3] [ 12%] PASSED tests/test_a.py::test_one". The
+# node group is ``.+`` because it ends the line, so a parametrized id with
+# spaces stays whole.
+_WORKER_RESULT_RE: Final = re.compile(
+    rf"^\[gw\d+\]\s+\[\s*\d+%\]\s+(?P<status>{_STATUSES})\s+(?P<node>.+\S)",
 )
 # The pytest-cov terminal report total: "TOTAL    123    0   97%" (Q19).
 _TOTAL_RE: Final = re.compile(r"^TOTAL\s+.*?(\d+(?:\.\d+)?)%\s*$")
@@ -79,6 +98,12 @@ _DURATION_RE: Final = re.compile(
 )
 # The durations phase the outlier rule measures: the test body (Q36).
 _CALL_PHASE: Final = "call"
+# Under ``--dist loadgroup`` xdist appends the scheduling group to the node id
+# of a marked test, as in "...::test_one@resume-concurrency". The group is a
+# scheduling detail, not identity: leaving it on would make every stored
+# exclusion baseline stop matching its own call. A parametrized id ends with
+# "]", so this only strips the appended group.
+_GROUP_SUFFIX_RE: Final = re.compile(r"@[A-Za-z0-9._-]+$")
 
 
 class PytestOutputParser:
@@ -180,7 +205,8 @@ class PytestOutputParser:
             return
         duration = _DURATION_RE.match(line)
         if duration is not None and duration.group("phase") == _CALL_PHASE:
-            self.stats.durations[duration.group("node")] = float(duration.group("secs"))
+            node = _GROUP_SUFFIX_RE.sub("", duration.group("node"))
+            self.stats.durations[node] = float(duration.group("secs"))
 
     def _feed_counters(self, line: str) -> None:
         """Update the run statistics from one output line.
@@ -193,7 +219,10 @@ class PytestOutputParser:
             deselected = _DESELECTED_RE.search(line)
             dropped = 0 if deselected is None else int(deselected.group(1))
             self.stats.total = int(collected.group(1)) - dropped
-        result = _RESULT_RE.match(line)
+        workers = _WORKER_COLLECTED_RE.match(line)
+        if workers is not None:
+            self.stats.total = int(workers.group(1))
+        result = _RESULT_RE.match(line) or _WORKER_RESULT_RE.match(line)
         if result is not None:
             self._record_result(result.group("node"), result.group("status"))
         total = _TOTAL_RE.match(line)

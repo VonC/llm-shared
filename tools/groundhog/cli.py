@@ -126,7 +126,7 @@ def main(argv: Sequence[str] | None = None, deps: Deps | None = None) -> int:
     if invocation.sub == runner.SUB_DAY and invocation.detach:
         return status.run_day_detached(invocation, active)
     redirect.activate_if_captured(invocation.mode, invocation.root)
-    redirect.replay_senv_log()
+    redirect.replay_senv_log(invocation.mode, invocation.root)
     return _run_post_redirect(invocation, active)
 
 
@@ -252,6 +252,11 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         runner.SUB_FULL,
         parents=[common],
         help="Full suite, fresh testmon data, coverage (ptr).",
+    )
+    subparsers.add_parser(
+        runner.SUB_TIMINGS,
+        parents=[common],
+        help="Sequential whole-suite timing pass that judges the duration gate.",
     )
     affected = subparsers.add_parser(
         runner.SUB_AFFECTED,

@@ -21,18 +21,27 @@ REM
 REM Neither branch can be a tee: cmd runs both sides of a pipe in child
 REM processes, so `call senv.bat | tee` would lose the PATH and VIRTUAL_ENV
 REM that Q21 needs in THIS process.
+REM GHOG_SENV_READY is the caller asserting it already activated senv.bat in
+REM THIS process, which ghog_cycle.bat does once for a whole cycle. Only an
+REM explicit assertion may skip the activation: an inherited guard alone must
+REM not, because the stale-guard case is exactly what the clear-and-call above
+REM exists to repair.
 if not defined PRJ_DIR set "PRJ_DIR=%CD%"
-for %%i in ("%PRJ_DIR%") do set "LLM_SHARED_PRJ_DIR_NAME=%%~nxi"
-if defined LLM_SHARED_PRJ_DIR_NAME set "NO_MORE_SENV_!LLM_SHARED_PRJ_DIR_NAME!="
 set "GHOG_SENV_LOG=%PRJ_DIR%\a.ghog.senv.log"
-if exist "%PRJ_DIR%\senv.bat" (
-    if defined GHOG_SENV_LIVE (
-        call <NUL "%PRJ_DIR%\senv.bat" 2>&1
-    ) else (
-        call <NUL "%PRJ_DIR%\senv.bat" > "%GHOG_SENV_LOG%" 2>&1
+if defined GHOG_SENV_READY (
+    set "GHOG_SENV_LOG="
+) else (
+    for %%i in ("%PRJ_DIR%") do set "LLM_SHARED_PRJ_DIR_NAME=%%~nxi"
+    if defined LLM_SHARED_PRJ_DIR_NAME set "NO_MORE_SENV_!LLM_SHARED_PRJ_DIR_NAME!="
+    if exist "%PRJ_DIR%\senv.bat" (
+        if defined GHOG_SENV_LIVE (
+            call <NUL "%PRJ_DIR%\senv.bat" 2>&1
+        ) else (
+            call <NUL "%PRJ_DIR%\senv.bat" > "%GHOG_SENV_LOG%" 2>&1
+        )
     )
+    set "LLM_SHARED_PRJ_DIR_NAME="
 )
-set "LLM_SHARED_PRJ_DIR_NAME="
 
 REM groundhog itself runs from the llm-shared venv (Q17), reached by absolute
 REM path: no PATH prepend, so the project PATH stays first for the pytest
