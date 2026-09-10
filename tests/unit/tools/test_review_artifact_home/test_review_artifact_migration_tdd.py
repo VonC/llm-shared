@@ -320,7 +320,8 @@ def test_default_boundary_helpers_reject_wrong_kind_and_git_failure(
         return subprocess.CompletedProcess(command, 2, "", "failure")
 
     monkeypatch.setattr(migration_module.subprocess, "run", failed_git)
-    assert not migration_module._git_ignore_checker(tmp_path, (tmp_path / "x",))
+    with pytest.raises(OSError, match=r"git check-ignore failed.*exit=2.*failure"):
+        migration_module._git_ignore_checker(tmp_path, (tmp_path / "x",))
 
 
 def test_damaged_candidates_and_ineffective_ignore_are_diagnostic(tmp_path: Path) -> None:

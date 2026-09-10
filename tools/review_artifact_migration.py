@@ -13,7 +13,6 @@ import hashlib
 import json
 import os
 import subprocess
-import tempfile
 from contextlib import contextmanager
 from dataclasses import dataclass
 from enum import StrEnum
@@ -21,6 +20,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Final, cast
 
 from tools.review_artifact_configuration import ReviewArtifactConfiguration
+from tools.review_artifact_journal import write_journal
 from tools.review_artifact_registry import (
     RegisteredArtifact,
     RegisteredArtifactKind,
@@ -98,7 +98,9 @@ def _git_ignore_checker(root: Path, paths: Sequence[Path]) -> bool:
         check=False,
     )
     if completed.returncode not in {0, 1}:
-        return False
+        raise OSError(
+            f"git check-ignore failed (exit={completed.returncode}): {completed.stderr.strip()}",
+        )
     matched = {value for value in completed.stdout.split("\0") if value}
     return all(value in matched for value in relative)
 
@@ -511,23 +513,7 @@ class ReviewArtifactMigration:
 
     def _write_journal(self, path: Path, payload: dict[str, object]) -> None:
         """Atomically replace the one complete JSON journal snapshot."""
-        path.parent.mkdir(parents=True, exist_ok=True)
-        descriptor, name = tempfile.mkstemp(
-            prefix=".review-artifact-migration-",
-            suffix=".tmp",
-            dir=path.parent,
-        )
-        prepared = Path(name)
-        try:
-            with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as stream:
-                json.dump(payload, stream, sort_keys=True)
-                stream.write("\n")
-                stream.flush()
-                os.fsync(stream.fileno())
-            prepared.replace(path)
-        except OSError:
-            prepared.unlink(missing_ok=True)
-            raise
+        write_journal(path, payload)
 
     def _read_journal(self, path: Path) -> dict[str, object]:
         """Parse and validate the strict versioned journal envelope."""
