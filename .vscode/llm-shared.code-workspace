@@ -38,8 +38,7 @@
 		"github.copilot.chat.otel.dbSpanExporter.enabled": true,
 		"workspaceHalo.logoScale": 34,
 		"vscodeRadonLinter.excludeFiles": [
-			"**/*.pyx,**/a.*",
-			"**/a.*"
+			"**/*.pyx,**/a.*"
 		],
 		"ruff.nativeServer": "on",
 		"ruff.exclude": [
