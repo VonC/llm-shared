@@ -415,6 +415,10 @@ def rejected_forced_reclaim_journey(
 ) -> None:
     """Reject invalid forced reclaims outside the measured assertion call."""
     core, store, context, clock = lifecycle._harness(tmp_path)
+    with pytest.raises(ReviewExchangeError, match="requires durable coordination"):
+        core.force_reclaim("No review has started yet.")
+    assert not store.paths.coordination.exists()
+    assert not store.paths.transcript.exists()
     lifecycle._start_and_request(core, context, clock)
     with pytest.raises(ReviewExchangeError, match="escalated exchange"):
         core.force_reclaim("No escalation is recorded yet.")
