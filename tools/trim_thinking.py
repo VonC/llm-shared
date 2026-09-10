@@ -9,10 +9,13 @@ present in the source text unless the caller forces one:
   turn opens on a prompt line (U+276F prefix) and its regions are: the ask,
   running to the first answer marker (U+25CF or U+23FA) with its blank lines
   intact; the opening, the non-blank run under that marker; and the answer,
-  the last answer block of the turn through the reflection line (U+273B)
-  that closes it and the recap line (U+203B) under that. Every earlier
-  answer block is tool traffic and resets the answer region, which is what
-  makes a working session shrink rather than merely lose its reasoning.
+  the last answer block of every section of the turn, each through the
+  reflection line (U+273B) that closes it and the recap line (U+203B) under
+  that. A turn holds one section per closing line, since a background
+  command that completes speaks again under the same prompt. Every earlier
+  answer block of a section is tool traffic and resets the answer region,
+  which is what makes a working session shrink rather than merely lose its
+  reasoning.
 - A Codex export keeps the same three regions of every turn: the `## User`
   section up to the first `## Assistant` heading, that first assistant
   section, and the last assistant section of the turn. Every assistant
@@ -183,9 +186,13 @@ class _ClaudeTrimmer:
       blank lines included, since the question is read as it was written;
     - the opening: the non-blank run under that first answer marker, which is
       what the turn said before it started working;
-    - the answer: the last answer block of the turn, through the reflection
-      line that closes it and the recap line under that. Every earlier answer
-      block resets the region, so only the last one survives.
+    - the answer: the last answer block of every section of the turn, each
+      through the reflection line that closes it and the recap line under
+      that. A turn holds as many sections as it has closing lines, because a
+      background command that completes speaks again under the same prompt,
+      so the scan runs to the last closing line and not to the first. Every
+      earlier answer block of a section resets the region, so one block per
+      section survives.
     """
 
     def __init__(self, lines: Sequence[str]) -> None:
@@ -256,7 +263,13 @@ class _ClaudeTrimmer:
         return index
 
     def _keep_answer(self, first_answer: int) -> int:
-        """Mark the last answer block of the turn and the lines closing it.
+        """Mark the last answer block of every section, and the lines closing it.
+
+        A turn is not one section. A background command that completes speaks
+        again under the same prompt, and that block closes with a reflection
+        line of its own, so a turn carries as many sections as it has closing
+        lines. Scanning therefore runs to the last of them: stopping at the
+        first dropped every later section whole.
 
         Args:
             first_answer: Index of the first answer marker of the turn.
@@ -280,11 +293,17 @@ class _ClaudeTrimmer:
                 region.append(index)
                 index = self._extend_with_recap(line, index, region)
                 self._kept.update(region)
-                return index
-            region.append(index)
+                # The section is closed, but the turn may open another one,
+                # so the scan carries on with nothing gathered. What follows
+                # a closing line belongs to no answer until a marker opens
+                # the next block.
+                region = []
+                continue
+            if region:
+                region.append(index)
             index += 1
-        # A turn cut short carries no closing line; its last block still is
-        # the answer, so it is kept rather than lost.
+        # A turn or a section cut short carries no closing line; its last
+        # block still is the answer, so it is kept rather than lost.
         self._kept.update(region)
         return index
 

@@ -217,6 +217,63 @@ def test_trim_claude_ends_a_recap_at_the_blank_line_under_it() -> None:
     )
 
 
+def test_trim_claude_keeps_every_section_of_a_turn() -> None:
+    """A background command that completes speaks again under the same prompt."""
+    text = (
+        "❯ ask\n"
+        "● opening\n"
+        "● the first answer\n"
+        "✻ done 9:52\n"
+        "※ recap: the first summary\n"
+        "● Background command completed\n"
+        "● Bash(ls)\n"
+        "  ⎿ output\n"
+        "● the second answer\n"
+        "✻ done 9:55\n"
+        "※ recap: the second summary\n"
+    )
+
+    assert trimmer.trim_claude_transcript(text) == (
+        "❯ ask\n"
+        "● opening\n"
+        "● the first answer\n"
+        "✻ done 9:52\n"
+        "※ recap: the first summary\n"
+        "● the second answer\n"
+        "✻ done 9:55\n"
+        "※ recap: the second summary"
+    )
+
+
+def test_trim_claude_opens_a_new_section_after_a_bare_recap() -> None:
+    """A recap closes its section on its own, and the turn may hold more."""
+    text = (
+        "❯ ask\n"
+        "● the first answer\n"
+        "※ recap: the first summary\n"
+        "● the second answer\n"
+        "✻ done\n"
+    )
+
+    assert trimmer.trim_claude_transcript(text) == text.rstrip("\n")
+
+
+def test_trim_claude_keeps_a_last_section_that_never_closes() -> None:
+    """A turn whose last section is cut short still carries its answer."""
+    text = (
+        "❯ ask\n"
+        "● the first answer\n"
+        "✻ done\n"
+        "  traffic belonging to no answer\n"
+        "● the last answer\n"
+        "  its continuation\n"
+    )
+
+    assert trimmer.trim_claude_transcript(text) == (
+        "❯ ask\n● the first answer\n✻ done\n● the last answer\n  its continuation"
+    )
+
+
 def test_trim_claude_keeps_nothing_before_the_first_prompt() -> None:
     """Every kept region belongs to a turn, and a turn opens on a prompt."""
     text = "banner noise\n● an answer with no question\n✻ done\n"
