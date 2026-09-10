@@ -3,7 +3,8 @@
 Step 5 composes the command adapter, recorded Git ignore resolution, exact artifact
 paths, multi-round lifecycle, convergence choices, archives, and deterministic
 wait reporting in temporary consuming repositories. Public commands run
-in-process while preserving their JSON and environment boundaries.
+in-process while preserving their JSON and environment boundaries. Step 6 shares
+the exact context and artifact builders with real public-launcher acceptance.
 """
 
 from __future__ import annotations
@@ -21,19 +22,28 @@ from unittest.mock import patch
 
 import pytest
 
+from tests.unit.tools.review_exchange_test_support import (
+    common_arguments as _common,
+)
+from tests.unit.tools.review_exchange_test_support import (
+    review_artifact as _artifact,
+)
+from tests.unit.tools.review_exchange_test_support import (
+    review_context as _context,
+)
+from tests.unit.tools.review_exchange_test_support import (
+    review_policy as _policy,
+)
 from tools import review_exchange_cli as cli
 from tools.review_exchange_core import ReviewExchangeCore
 from tools.review_exchange_models import (
     ArtifactPaths,
-    ExchangeIdentity,
-    FamilyPolicy,
     ReviewConfiguration,
     ReviewContext,
     ReviewDisposition,
     ReviewFamily,
     ReviewRole,
 )
-from tools.review_exchange_models_envelope import Envelope, render_envelope_markdown
 from tools.review_exchange_paths import derive_artifact_paths
 from tools.review_exchange_store import ReviewExchangeStore
 
@@ -41,7 +51,6 @@ if TYPE_CHECKING:
     from argparse import Namespace
     from collections.abc import Sequence
 
-_CREATED_AT = "2026-08-05T09:00:00+02:00"
 _EXPECTED_STOP = 3
 _SECOND_ROUND = 2
 _WAIT_LIMIT = 4
@@ -104,57 +113,6 @@ def _init_repo(root: Path, *, ignored: bool = True, marker: bool = True) -> None
         (root / "a.review-mode").write_text("", encoding="utf-8")
 
 
-def _context(
-    root: Path,
-    family: ReviewFamily,
-    slug: str,
-    *,
-    step: str | None = None,
-) -> ReviewContext:
-    """Create one exact document and its accepted review context."""
-    docs = root / "docs" / "v0.11.0"
-    docs.mkdir(parents=True, exist_ok=True)
-    if family is ReviewFamily.CODE:
-        document = docs / f"plan.v0.11.0.{slug}.md"
-        identity = ExchangeIdentity(family, "code", "v0.11.0", slug)
-    else:
-        document = docs / f"feature-request.v0.11.0.{slug}.md"
-        identity = ExchangeIdentity(family, "feature-request", "v0.11.0", slug)
-    document.write_text(f"# {slug}\n", encoding="utf-8")
-    return ReviewContext(identity, document.resolve(), None, step)
-
-
-def _policy(context: ReviewContext) -> FamilyPolicy:
-    """Return family labels registered by the later specialized adapters."""
-    if context.identity.family is ReviewFamily.CODE:
-        return FamilyPolicy("commit-ready", "Rework and review again", "Commit")
-    return FamilyPolicy(
-        "consolidation-ready",
-        "Revise and review again",
-        "Consolidate",
-    )
-
-
-def _common(context: ReviewContext) -> list[str]:
-    """Render the exact common command arguments for one exchange context."""
-    policy = _policy(context)
-    arguments = [
-        "--family",
-        context.identity.family.value,
-        "--document",
-        str(context.document_path),
-        "--convergence-signal",
-        policy.convergence_signal,
-        "--another-round-label",
-        policy.another_round_label,
-        "--continue-owning-workflow-label",
-        policy.continue_owning_workflow_label,
-    ]
-    if context.implementation_step is not None:
-        arguments.extend(["--implementation-step", context.implementation_step])
-    return arguments
-
-
 def _run_cli(
     root: Path,
     context: ReviewContext,
@@ -192,56 +150,6 @@ def _run_cli(
     if payload.get("state") == "idle":
         _CAPABILITIES.pop(context.document_path, None)
     return CliResult(code, payload)
-
-
-def _summary(
-    context: ReviewContext,
-    round_number: int,
-    *,
-    guidance: str | None = None,
-) -> str:
-    """Render the mandatory identity summary accepted by the core."""
-    lines = ["Umbrella draft: none"]
-    if context.identity.family is ReviewFamily.CODE:
-        lines.extend(
-            (
-                f"Implementation plan: {context.document_path.as_posix()}",
-                f"Implementation step: {context.implementation_step}",
-            ),
-        )
-    else:
-        lines.append(f"Reviewed specification: {context.document_path.as_posix()}")
-    lines.append(f"Review round: {round_number}")
-    if guidance is not None:
-        lines.extend(("", f"Human guidance: {guidance}"))
-    return "\n".join(lines) + "\n"
-
-
-def _artifact(
-    context: ReviewContext,
-    role: ReviewRole,
-    round_number: int,
-    *,
-    disposition: ReviewDisposition | None = None,
-    guidance: str | None = None,
-) -> str:
-    """Render one complete public request or answer artifact."""
-    envelope = Envelope(
-        context.identity,
-        context.umbrella_path,
-        context.document_path,
-        context.implementation_step,
-        role,
-        round_number,
-        _CREATED_AT,
-        disposition,
-    )
-    authored = (
-        _summary(context, round_number, guidance=guidance)
-        if role is ReviewRole.REQUESTOR
-        else "Reviewer feedback for the acceptance journey.\n"
-    )
-    return render_envelope_markdown(envelope, authored)
 
 
 def _input(root: Path, name: str, content: str) -> Path:
