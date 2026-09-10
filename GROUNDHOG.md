@@ -208,7 +208,7 @@ When the harness kills long calls (tool timeouts you do not control), run the wa
 cmd /d /c "..\llm-shared\bin\ghog.bat day --detach"
 ```
 
-No redirect: the tool opens `a.ghog.log` itself for a survivor process — a hidden console (its console children inherit it instead of popping a visible window), broken away from the harness job object when allowed — folds the senv preamble in, waits for the child's first status write, and returns exit 6 at once. From there the loop is: poll `ghog status`, branch on its exit code — no closer than 60 seconds apart, preferring minutes on a full walk: the progress cadence is one line per 10% with a 60-second silence floor, so a tighter poll cannot show anything new, and a progress report needs at most the last 5 lines of `a.ghog.log`. No timeout to pick, no upper bound to guess — across projects, a portable one does not exist.
+No redirect: the tool opens `a.ghog.log` itself for a survivor process — a hidden console (its console children inherit it instead of popping a visible window), broken away from the harness job object when allowed — folds the senv preamble in, waits for the child's first status write, and returns exit 6 at once. From there the loop is: poll `ghog status`, branch on its exit code — no closer than 120 seconds apart, preferring several minutes on a full walk: the progress cadence is one line per 10% with a 60-second silence floor, so a tighter poll cannot show anything new, and a progress report needs at most the last 5 lines of `a.ghog.log`. No timeout to pick, no upper bound to guess — across projects, a portable one does not exist.
 
 One caveat: a recycled pid can keep a killed run reading as live; that conservative verdict is broken by deleting `a.ghog.status`.
 
