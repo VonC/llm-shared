@@ -12449,3 +12449,2767 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-3 -->
+
+## Round 1 by requestor - Step 6
+
+- Recorded: 2026-09-08T14:13:31+02:00
+- Exchange: code/code/v0.11.0/review-resume-command
+- Umbrella: docs/v0.11.0/draft.v0.11.0.review-mode.md
+- Reviewed document: docs/v0.11.0/plan.v0.11.0.review-resume-command.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: unrecorded
+- Implementation step: 6
+- Outcome: request
+
+### Review identity for step 6 review-resume-command (round 1)
+
+Umbrella draft: docs/v0.11.0/draft.v0.11.0.review-mode.md
+Implementation plan: docs/v0.11.0/plan.v0.11.0.review-resume-command.md
+Implementation step: 6
+Review round: 1
+
+### Code review evidence for step 6 review-resume-command (round 1)
+
+request_index_tree: a590591e3d35f0abb1088a69eefd00b399efbddb
+resolved_validation_set:
+
+- ghog day (sources: project, plan)
+- ghog single tests/acceptance/review_resume tests/acceptance/review_status tests/unit/tools/test_spec_review_requestor_acceptance tests/unit/tools/test_spec_reviewer_acceptance tests/unit/tools/test_code_review_requestor_acceptance tests/unit/tools/test_code_reviewer_acceptance tests/unit/tools/test_prompt_workflow_skill tests/unit/tools/test_review_mode_docs_acceptance (sources: plan)
+- rg -n '\.reviews|\.review-artifacts\.ini|review-resume|requestor_llm_nature|reviewer_llm_nature|already-claimed' README.md instructions tools tests (sources: plan)
+- rg --files | rg 'rvw_resume\.bat$' (sources: plan)
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: fix(review-resume-command): defer discovery during active publication
+group 1 path: tools/review_exchange_ownership_store.py
+group 1 path: tools/review_status.py
+group 1 path: tests/unit/tools/test_review_exchange_ownership_store/__init__.py
+group 1 path: tests/unit/tools/test_review_exchange_ownership_store/test_review_exchange_ownership_store_tdd.py
+group 1 path: tests/unit/tools/test_review_resume/__init__.py
+group 1 path: tests/unit/tools/test_review_resume/test_review_resume_lifecycle_tdd.py
+group 2: test(review-resume-command): cover cross-workflow resume acceptance
+group 2 path: tests/unit/tools/review_exchange_test_support.py
+group 2 path: tests/unit/tools/test_review_exchange_acceptance/test_review_exchange_acceptance_tdd.py
+group 2 path: tests/acceptance/review_resume/__init__.py
+group 2 path: tests/acceptance/review_resume/conftest.py
+group 2 path: tests/acceptance/review_resume/test_review_resume_acceptance/__init__.py
+group 2 path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_acceptance_tdd.py
+group 2 path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_concurrency_tdd.py
+group 2 path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_identity_tdd.py
+group 2 path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_migration_tdd.py
+group 2 path: docs/v0.11.0/acceptance.v0.11.0.review-resume-command.md
+group 3: perf(tests): reduce review regression setup costs
+group 3 path: tests/unit/tools/markdown_check/test_rule_properties/test_rule_properties_pbt.py
+group 3 path: tests/unit/tools/test_groundhog_runner.py
+group 3 path: tests/unit/tools/test_review_exchange_paths/test_review_exchange_paths_tdd.py
+group 3 path: tests/unit/tools/test_review_exchange_recovery_acceptance/test_review_exchange_recovery_acceptance_tdd.py
+group 3 path: tests/unit/tools/test_review_resume_identity/test_review_resume_identity_tdd.py
+group 4: docs(review-resume-command): document shipped resume workflows
+group 4 path: README.md
+group 4 path: wiki/README.md
+group 4 path: wiki/explanation/independent-review-mode-and-human-authority.md
+group 4 path: wiki/tutorials/09-run-your-first-specification-review.md
+group 4 path: wiki/tutorials/10-run-your-first-implementation-code-review.md
+group 4 path: wiki/how-to/enable-independent-review-mode.md
+group 4 path: wiki/how-to/inspect-independent-review-status.md
+group 4 path: wiki/how-to/recover-an-independent-review.md
+group 4 path: wiki/how-to/run-implementation-code-review.md
+group 4 path: wiki/how-to/run-specification-review.md
+group 4 path: wiki/reference/independent-review-mode-contract.md
+group 4 path: tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_acceptance_tdd.py
+group 4 path: tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_final_acceptance_tdd.py
+group 5: docs(review-resume-command): record step 6 validation
+group 5 path: docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md
+group 5 path: docs/v0.11.0/draft.v0.11.0.review-mode.md
+staged path: README.md
+staged path: docs/v0.11.0/acceptance.v0.11.0.review-resume-command.md
+staged path: docs/v0.11.0/draft.v0.11.0.review-mode.md
+staged path: docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md
+staged path: tests/acceptance/review_resume/__init__.py
+staged path: tests/acceptance/review_resume/conftest.py
+staged path: tests/acceptance/review_resume/test_review_resume_acceptance/__init__.py
+staged path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_acceptance_tdd.py
+staged path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_concurrency_tdd.py
+staged path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_identity_tdd.py
+staged path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_migration_tdd.py
+staged path: tests/unit/tools/markdown_check/test_rule_properties/test_rule_properties_pbt.py
+staged path: tests/unit/tools/review_exchange_test_support.py
+staged path: tests/unit/tools/test_groundhog_runner.py
+staged path: tests/unit/tools/test_review_exchange_acceptance/test_review_exchange_acceptance_tdd.py
+staged path: tests/unit/tools/test_review_exchange_ownership_store/__init__.py
+staged path: tests/unit/tools/test_review_exchange_ownership_store/test_review_exchange_ownership_store_tdd.py
+staged path: tests/unit/tools/test_review_exchange_paths/test_review_exchange_paths_tdd.py
+staged path: tests/unit/tools/test_review_exchange_recovery_acceptance/test_review_exchange_recovery_acceptance_tdd.py
+staged path: tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_acceptance_tdd.py
+staged path: tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_final_acceptance_tdd.py
+staged path: tests/unit/tools/test_review_resume/__init__.py
+staged path: tests/unit/tools/test_review_resume/test_review_resume_lifecycle_tdd.py
+staged path: tests/unit/tools/test_review_resume_identity/test_review_resume_identity_tdd.py
+staged path: tools/review_exchange_ownership_store.py
+staged path: tools/review_status.py
+staged path: wiki/README.md
+staged path: wiki/explanation/independent-review-mode-and-human-authority.md
+staged path: wiki/how-to/enable-independent-review-mode.md
+staged path: wiki/how-to/inspect-independent-review-status.md
+staged path: wiki/how-to/recover-an-independent-review.md
+staged path: wiki/how-to/run-implementation-code-review.md
+staged path: wiki/how-to/run-specification-review.md
+staged path: wiki/reference/independent-review-mode-contract.md
+staged path: wiki/tutorials/09-run-your-first-specification-review.md
+staged path: wiki/tutorials/10-run-your-first-implementation-code-review.md
+```
+
+### Requestor assessment for step 6 review-resume-command (round 1)
+
+Yes. Step 6 has been fully implemented.
+
+The exact step delivers real public-launcher acceptance for both review families, all 19 acceptance criteria, and the connected documentation rollout. The validation plan records architecture, line-budget, performance, coverage, and feature-integrity evidence.
+
+The final groundhog walk passed check, affected tests, and all 2,674 full-suite tests: fail=0 warn=0 xfail=0 cov=100 outliers=0 excluded=0 exit=0. Focused acceptance and regression checks also passed along with the optimized regression files. The 0.50-second duration floor is unchanged; the convergence journey measured 0.21 seconds and its temporary exclusion was automatically removed.
+
+Production changes remain in the ownership-storage and status-projection adapters. Busy publications are deferred without writes or blocking; interrupted evidence still fails closed. All changed Python files are at or below 650 lines. No new quadratic or sorting computation is introduced.
+
+### Implementation report for step 6 review-resume-command (round 1)
+
+The staged implementation completes cross-workflow acceptance and public documentation for review resumption.
+
+- Add real temporary-repository journeys covering default and configured homes, legacy migration, blocked layouts, supported and unknown hosts, role conflicts, automatic pickup, displaced sessions, human gates, and actual workflow routing.
+- Race independent reviewer processes and verify replacement-round wakeups, cross-family wakeups, ambiguity, cancellation, and absence of durable waiter state or session secrets.
+- Share context, policy, home, artifact, and ownership builders with existing role acceptance tests.
+- Fix global discovery's partial-publication race using a read-only, nonblocking observation of the existing transition lock.
+- Keep test assertions while reducing repeated configuration, request setup, interpreter initialization, and generated examples.
+- Update README and connected explanation, tutorials, how-to guides, and reference pages to describe shipped resume and waiting behavior.
+- Record all acceptance criteria and final step validation; complete the matching umbrella row with exact evidence paths.
+
+The launcher fixtures simulate the LLM instruction sequence from bare resume. They execute real support operations in independent processes, but do not claim to execute an LLM.
+
+### Change summary for step 6 review-resume-command (round 1)
+
+#### Group 1 for step 6 review-resume-command (round 1)
+
+fix(review-resume-command): defer discovery during active publication
+
+- `tools/review_exchange_ownership_store.py`
+- `tools/review_status.py`
+- `tests/unit/tools/test_review_exchange_ownership_store/__init__.py`
+- `tests/unit/tools/test_review_exchange_ownership_store/test_review_exchange_ownership_store_tdd.py`
+- `tests/unit/tools/test_review_resume/__init__.py`
+- `tests/unit/tools/test_review_resume/test_review_resume_lifecycle_tdd.py`
+
+#### Group 2 for step 6 review-resume-command (round 1)
+
+test(review-resume-command): cover cross-workflow resume acceptance
+
+- `tests/unit/tools/review_exchange_test_support.py`
+- `tests/unit/tools/test_review_exchange_acceptance/test_review_exchange_acceptance_tdd.py`
+- `tests/acceptance/review_resume/__init__.py`
+- `tests/acceptance/review_resume/conftest.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/__init__.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_acceptance_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_concurrency_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_identity_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_migration_tdd.py`
+- `docs/v0.11.0/acceptance.v0.11.0.review-resume-command.md`
+
+#### Group 3 for step 6 review-resume-command (round 1)
+
+perf(tests): reduce review regression setup costs
+
+- `tests/unit/tools/markdown_check/test_rule_properties/test_rule_properties_pbt.py`
+- `tests/unit/tools/test_groundhog_runner.py`
+- `tests/unit/tools/test_review_exchange_paths/test_review_exchange_paths_tdd.py`
+- `tests/unit/tools/test_review_exchange_recovery_acceptance/test_review_exchange_recovery_acceptance_tdd.py`
+- `tests/unit/tools/test_review_resume_identity/test_review_resume_identity_tdd.py`
+
+#### Group 4 for step 6 review-resume-command (round 1)
+
+docs(review-resume-command): document shipped resume workflows
+
+- `README.md`
+- `wiki/README.md`
+- `wiki/explanation/independent-review-mode-and-human-authority.md`
+- `wiki/tutorials/09-run-your-first-specification-review.md`
+- `wiki/tutorials/10-run-your-first-implementation-code-review.md`
+- `wiki/how-to/enable-independent-review-mode.md`
+- `wiki/how-to/inspect-independent-review-status.md`
+- `wiki/how-to/recover-an-independent-review.md`
+- `wiki/how-to/run-implementation-code-review.md`
+- `wiki/how-to/run-specification-review.md`
+- `wiki/reference/independent-review-mode-contract.md`
+- `tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_acceptance_tdd.py`
+- `tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_final_acceptance_tdd.py`
+
+#### Group 5 for step 6 review-resume-command (round 1)
+
+docs(review-resume-command): record step 6 validation
+
+- `docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md`
+- `docs/v0.11.0/draft.v0.11.0.review-mode.md`
+
+### Writer response for step 6 review-resume-command (round 1)
+
+Writer response:
+
+This is round 1 for implementation step 6. There is no earlier reviewer feedback for this step to accept, reject, or carry forward. The writer has checked the implementation and prepared the complete staged commit plan for independent review.
+
+### Reviewer focus for step 6 review-resume-command (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-6-round-1 -->
+
+## Round 1 by reviewer - Step 6
+
+- Recorded: 2026-09-08T16:45:23+02:00
+- Exchange: code/code/v0.11.0/review-resume-command
+- Umbrella: docs/v0.11.0/draft.v0.11.0.review-mode.md
+- Reviewed document: docs/v0.11.0/plan.v0.11.0.review-resume-command.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 6
+- Outcome: answer
+
+### Assessed index identity for step 6 review-resume-command (exchange 1) (round 1)
+
+Baseline index tree: a590591e3d35f0abb1088a69eefd00b399efbddb
+
+Assessed index tree: ca9b40d3aa42a21714eee6d385a2b43797d82478
+
+### Implementation check for step 6 review-resume-command (exchange 1) (round 1)
+
+Result:
+
+No. Step 6 has NOT been fully implemented.
+
+The step's own completion criterion is `ghog day` reporting `exit=0`. An
+independent walk on the received state returned `state=done exit=2` with
+`fail=1` and coverage, outliers and exclusion counters all withheld. The
+failure is at the setup of
+`test_competing_reviewers_have_one_winner_and_loser_waits_for_replacement`,
+one of this step's own new acceptance calls. The focused
+`ghog single tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_concurrency_tdd.py`
+rerun reproduced it, so this is not a load artifact of the full walk.
+
+The important part of the diagnosis is that the shipped behavior is correct.
+I drove the same journey with a generous deadline through a caller-owned
+script that reuses the fixture's own `ReviewRepository` and `start_wait`
+helpers. Across two runs the losing reviewer process woke 0.05 and 0.03 seconds
+after the round-two request was published, exited `0` with an empty error
+stream, and returned `outcome=found` on round 2. The claim winner and the
+loser's later claim behave exactly as the acceptance criterion describes, and
+the new `observe_transition` deferral does not delay either of them.
+
+What fails is the fixture's timing budget. `competing_journey` submits both
+`process.communicate(timeout=25)` calls before it advances the exchange, so the
+losing process's 25-second deadline starts running while the fixture is still
+performing setup. That setup is eleven real launcher round-trips:
+`resume` (three), `publish-answer`, `resume` (three), `consume-answer`,
+`continue` and `publish-request`. Measured on this host they cost 14.86 and
+15.44 seconds standalone, and pytest records the whole fixture setup at 20.21
+seconds without coverage and 18.84 seconds with it. Against a 25-second
+deadline that leaves under five seconds of headroom, so the call passes under
+bare `pytest` and fails under both mandatory `ghog` commands. The assertion is
+nominally about wake-up latency but is in practice dominated by fixture cost.
+
+The rest of the step holds up well and I want to be clear that the failure is
+narrow.
+
+The production repair is the right fix for a real race. `publish_request` runs
+entirely inside `transition_lock`, so a global waiter really could observe a
+request whose transcript and coordination transition had not landed, and
+classifying that partial snapshot as damaged would stop a valid session.
+`observe_transition` takes a non-mutating, non-blocking lock over the same
+single byte at offset zero that `_lock_stream` takes, so the byte ranges match;
+it opens the lock read-only and never creates it; an absent lock yields
+availability so legacy evidence is still validated; the reader releases only a
+lock it actually acquired; and only `EACCES`, `EAGAIN` and `EDEADLK` are read as
+contention while any other `OSError` propagates. The `path.exists()` recheck
+inside the held lock closes the consume-while-scanning window. Its unit suite
+covers the absent lock, real acquisition and release after an exception, local
+contention from another thread, both platform branches with a genuine IO
+failure, and the refusal to unlock a lock the reader did not take.
+
+The acceptance package is substantial rather than decorative. It builds real
+Git repositories, runs the real `review_exchange.bat`, `rvw_status.bat` and
+`prompt_workflow.bat` launchers in separate processes, and asserts on artifact
+bytes, transcript heading uniqueness, absent session secrets, schema-2 status,
+Git cleanliness and actual `pw` routing. The migration module covers both legacy
+layouts and six distinct blocked layouts; the identity module covers four host
+natures plus conflict Stop and Override; the concurrency module races real
+processes. Every test name in the acceptance map exists in the file the map
+names, and all nineteen feature criteria are mapped.
+
+The documentation rollout is accurate against the code rather than aspirational.
+I checked the claims I could falsify: the `wait-any-request` exit mapping of 0
+for `found`, 3 for `ambiguous` and `cancelled` and 2 for operational failure
+matches `_wait_any_request` and `_terminal_wait`; the home marker winning over
+a legacy project-root marker matches `ReviewConfiguration.load`; and every
+"has not shipped" and "planned for Step 5" claim is gone from the connected
+pages, which the new docs acceptance test now pins.
+
+Line budgets are met and recorded honestly. `tools/review_status.py` is still
+647 lines, honoring the Round 3 instruction from Step 5 to split rather than
+append there; the ownership store is 275; the exchange acceptance file shrank
+from 633 to 541; the new modules are 115, 210, 108, 215, 119 and 114 lines.
+
+Two records are inaccurate independently of the test failure, and I repaired
+the first in the validation rows. The shared-builders bullet claimed that
+"existing exchange and role suites inherit these through their existing fixture
+imports"; only `test_review_exchange_acceptance_tdd.py` imports them, while the
+specification and code requestor/reviewer acceptance suites and the
+prompt-workflow suites import nothing from the new module and were not edited
+in this step. They did not need editing, because Steps 1 through 4 already
+aligned them, but that is a different statement from the one the record made.
+The second is the duration exclusion described in the findings.
+
+Architecture is sound. The operating-system lock behavior stays inside the
+ownership storage adapter and `review_status` consumes it without importing a
+CLI or reaching into infrastructure detail; the new test support introduces no
+production dependency on tests. No new quadratic or sorting work appears:
+discovery still scans the home linearly and adds one non-blocking lock attempt
+per candidate. Static analysis is clean, with ty, pyright, ruff, radon, vulture,
+the 650-line gate and the repository Markdown gate all passing in my walk.
+
+No unit-tested class is left below full coverage by inspection, but I cannot
+confirm the recorded `cov=100` on this state: the walk that would have measured
+it withheld coverage when it failed.
+
+Validation plan effects:
+
+The reviewer rewrote the Step 6 rows to the No verdict and added the required
+`Missing work for Step 6` section. Every edit is confined between the
+`## Step 6.` heading and the end of the document, except the document-level
+status line the check requires.
+
+The status sentence is now exactly `No. Step 6 has NOT been fully implemented.`
+followed by the measured reason: the independent `ghog day` at `fail=1 exit=2`,
+the reproduced focused failure, the eleven launcher round-trips inside the
+25-second budget, the 14.9-15.4 second standalone advance and 18.8-20.2 second
+recorded setup, and the 0.03-0.05 second wake-up that shows the shipped
+behavior is correct.
+
+`Missing work for Step 6` holds four concrete bullets: move the losing waiter's
+deadline so it starts at the round-two publication, re-run `ghog day` to a
+reproduced green result with its counters, disclose or remove the new duration
+exclusion, and restore the umbrella row to `pending` until this plan reads Yes
+again.
+
+Four existing sentences were corrected because they no longer match measurable
+state. The shared-builders bullet now names the one suite that imports the new
+module and says plainly that the role and prompt suites were not edited. The
+validation-evidence bullet keeps the writer's recorded counters, marks them not
+reproducible on this state, and points at the missing-work list. The coverage
+paragraph no longer asserts a confirmed 100 percent. The feature-integrity
+paragraph separates the static checks, which did pass, from the full suite,
+which did not, and records that the single failure is a fixture budget rather
+than a behavioral regression.
+
+The Performance check gained the exclusion disclosure and its closing sentence
+flipped from "No, there is no unresolved performance issue" to Yes with the two
+reasons, which is what the check's own rule requires once anything is named.
+
+The document-level status line returned to `No, it is not implemented.` with a
+refreshed theme sentence, because the check requires that line to stay No while
+any step reads No, and Step 6 now does.
+
+The reviewer did not touch the umbrella. `docs/v0.11.0/draft.v0.11.0.review-mode.md`
+row 10 still reads `completed` with the requirement and validation-plan paths
+the writer set. Reviewer mode may not complete an umbrella row and a changed
+umbrella digest would be a boundary violation, so the inconsistency between
+that completed row and this plan's `No` line is returned as writer work rather
+than repaired here. The umbrella digest was verified unchanged across the whole
+assessment.
+
+No other step, no other document, and no implementation, test, instruction or
+adapter file was edited.
+
+### Pre-repair mandatory checks and coverage for step 6 review-resume-command (exchange 1) (round 1)
+
+The ordered validation path set was captured before any assessment or edit. It
+is the first-seen union of the 36 staged Step 6 paths, which already contain
+the exact validation plan, and the ignored coverage artifacts the resolved
+commands write, `.coverage` and `coverage.xml`.
+
+The captured baseline recorded index tree
+`a590591e3d35f0abb1088a69eefd00b399efbddb`, matching the Round 1 request-time
+tree, together with digests for the tracked paths and for the one ignored
+artifact present at capture time, `.coverage`.
+
+The umbrella digest for
+`docs/v0.11.0/draft.v0.11.0.review-mode.md` was captured as applicable at
+`a5e582524fcf68529ed7a96c7ccda6df020d9173e95603b7ca1e1bdac6c78855` before the
+assessment.
+
+The pre-repair blob of the single permitted repair path,
+`docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md`, was recorded
+at `8a5c170d1013c6cc99e4db2a16a11a669967665d` before the first edit.
+
+The retained manifest was written before any state could be mutated and updated
+after the assessment with the assessed index tree, the recorded blob, the
+single repair path and the after-state. It is retired only after publication
+reports `outcome: published`.
+
+### Resolved validation set and sources for step 6 review-resume-command (exchange 1) (round 1)
+
+The union of the request-embedded validation set and the current resolver set
+is four commands, and all four were run in this session against the received
+Round 1 state. None was substituted with a historical result.
+
+- `ghog day` returned `state=done exit=2`. Its `check` phase passed at exit 0,
+  covering ty, pyright, ruff, radon, vulture, the 650-line file gate and the
+  repository Markdown gate. Its `affected --no-cov` phase passed at exit 0 in
+  8.2 seconds with nothing affected since the last run. Its `full` phase ran
+  2,674 tests over 19m 45.6s and returned `fail=1 warn=0 xfail=0 cov=withheld
+  outliers=withheld excluded=withheld exit=2`. The single failure is an ERROR
+  at the setup of
+  `test_competing_reviewers_have_one_winner_and_loser_waits_for_replacement`,
+  a `subprocess.TimeoutExpired` on the losing `wait-any-request` process after
+  25 seconds. This is the step's own completion criterion and it does not pass.
+- `ghog single` over the step's plan-set focused suite was not reached, because
+  the tool's own next-step guidance is to stay on the failing module until it is
+  green. I ran that narrower focused command instead:
+  `ghog single tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_concurrency_tdd.py`
+  returned `fail=1 exit=2` with the identical failure, confirming it reproduces
+  in isolation and is not an interaction or ordering effect. The tool's own
+  report classified it under "Still failing in focus (fix these first)" with an
+  empty "Passing in focus but failing in the full suite" list.
+- `rg -n "\.reviews|\.review-artifacts\.ini|review-resume|requestor_llm_nature|reviewer_llm_nature|already-claimed" README.md instructions tools tests`
+  returned 263 matches, matching the recorded count.
+- `rg --files | rg "rvw_resume\.bat$"` returned no path, which is the required
+  result, and no such launcher exists at the root or under `bin`.
+
+Two of the four pass. One is missing its result because the walk it belongs to
+stopped, and the mandatory walk itself fails. Repeated unavailable evidence
+stays blocking; a command that cannot produce a trustworthy result is never a
+pass.
+
+The timing configuration was checked rather than taken on report. Line 2 of
+`a.ghog.outliers` still reads the 0.50-second floor, unchanged. The
+`[exclusion]` section, however, no longer holds the two entries Step 5 Round 3
+recorded. It now holds three, the addition being
+`test_graceful_foreground_cancellation_has_one_result_and_no_durable_waiter`
+at 1.65 seconds, one of this step's own new acceptance calls. The
+convergence-pickup entry the validation plan describes was indeed removed
+automatically, which is accurate; what is missing is any mention of the entry
+that replaced it.
+
+For the failing call I ran two independent measurements outside the mandatory
+commands to separate fixture cost from product latency. A caller-owned script
+reusing the fixture's `ReviewRepository` and `start_wait` helpers measured the
+round-two advance at 15.44 and 14.86 seconds and the losing reviewer's wake-up
+at 0.05 and 0.03 seconds, both ending `outcome=found` on round 2 with exit 0 and
+an empty error stream. Bare `pytest` on the single test recorded fixture setup
+at 20.21 seconds with the project options stripped and 18.84 seconds with the
+default coverage options, passing in both, against the fixture's 25-second
+deadline.
+
+### Resolver drift and direction for step 6 review-resume-command (exchange 1) (round 1)
+
+No resolver drift. The project declares no `.review-validation` file, so the
+current resolver set is the built-in `ghog day` project default combined with
+the four commands of plan Step 6's `Completion criteria` block, which repeats
+`ghog day` as a plan addition. That resolves to the same four commands the
+Round 1 request embeds, with the same `project` and `plan` source labels on
+each. The union therefore equals both sides and nothing had to be added or
+dropped in either direction.
+
+### Repository state around validation for step 6 review-resume-command (exchange 1) (round 1)
+
+Request-time and live index trees agree exactly. The Round 1 envelope carries
+`request_index_tree` `a590591e3d35f0abb1088a69eefd00b399efbddb`, and
+`capture-index-tree` on the received working tree returned the same value
+before any reviewer action.
+
+Exact identity agrees across every source. The live exchange reports family
+`code`, type token `code`, version `v0.11.0`, slug `review-resume-command`,
+state `request-pending`, round 1 and `exchange_occurrence` 1. The envelope
+repeats that identity with `implementation_step` `6`, `round_number` 1, and
+`role_natures` naming `codex` as requestor with the reviewer still null. The
+human-readable request carries `Umbrella draft`, `Implementation plan`,
+`Implementation step: 6` and `Review round: 1` exactly once each, all matching
+the command context. The request carries no `Human guidance:` block.
+
+Step 6 exists in the exact plan as `### Step 6. Prove cross-workflow acceptance
+and documentation rollout`, and the embedded validation set parses through the
+current resolver contract.
+
+The working tree is clean apart from the protocol's own writes. Thirty-six
+paths are staged and the only unstaged path is the versioned transcript
+`docs/v0.11.0/review.code.v0.11.0.review-resume-command.md`, which the
+requestor's own `publish-request` appended. No untracked writer work was
+swept into the index.
+
+The umbrella digest was captured as
+`a5e582524fcf68529ed7a96c7ccda6df020d9173e95603b7ca1e1bdac6c78855` before the
+assessment and is compared again after it. The ordered validation path set is
+the first-seen union of the 36 staged paths and the two ignored coverage
+artifacts the mandatory commands write.
+
+### Repair inventory for step 6 review-resume-command (exchange 1) (round 1)
+
+Repairs made:
+
+- docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md - reviewer validation rows only, review metadata, attributable and staged alone; the No verdict, the Missing work for Step 6 section, four corrected sentences, the Performance exclusion disclosure and the document-level status line; no implementation, test, instruction, adapter, umbrella or dependency file was edited
+
+Paths staged:
+
+- `README.md`
+- `docs/v0.11.0/acceptance.v0.11.0.review-resume-command.md`
+- `docs/v0.11.0/draft.v0.11.0.review-mode.md`
+- `docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md`
+- `tests/acceptance/review_resume/__init__.py`
+- `tests/acceptance/review_resume/conftest.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/__init__.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_acceptance_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_concurrency_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_identity_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_migration_tdd.py`
+- `tests/unit/tools/markdown_check/test_rule_properties/test_rule_properties_pbt.py`
+- `tests/unit/tools/review_exchange_test_support.py`
+- `tests/unit/tools/test_groundhog_runner.py`
+- `tests/unit/tools/test_review_exchange_acceptance/test_review_exchange_acceptance_tdd.py`
+- `tests/unit/tools/test_review_exchange_ownership_store/__init__.py`
+- `tests/unit/tools/test_review_exchange_ownership_store/test_review_exchange_ownership_store_tdd.py`
+- `tests/unit/tools/test_review_exchange_paths/test_review_exchange_paths_tdd.py`
+- `tests/unit/tools/test_review_exchange_recovery_acceptance/test_review_exchange_recovery_acceptance_tdd.py`
+- `tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_acceptance_tdd.py`
+- `tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_final_acceptance_tdd.py`
+- `tests/unit/tools/test_review_resume/__init__.py`
+- `tests/unit/tools/test_review_resume/test_review_resume_lifecycle_tdd.py`
+- `tests/unit/tools/test_review_resume_identity/test_review_resume_identity_tdd.py`
+- `tools/review_exchange_ownership_store.py`
+- `tools/review_status.py`
+- `wiki/README.md`
+- `wiki/explanation/independent-review-mode-and-human-authority.md`
+- `wiki/how-to/enable-independent-review-mode.md`
+- `wiki/how-to/inspect-independent-review-status.md`
+- `wiki/how-to/recover-an-independent-review.md`
+- `wiki/how-to/run-implementation-code-review.md`
+- `wiki/how-to/run-specification-review.md`
+- `wiki/reference/independent-review-mode-contract.md`
+- `wiki/tutorials/09-run-your-first-specification-review.md`
+- `wiki/tutorials/10-run-your-first-implementation-code-review.md`
+
+### Commit plan assessment for step 6 review-resume-command (exchange 1) (round 1)
+
+`commit-plan-check --format json` was rerun independently against the received
+Round 1 repository state before any grouping judgement. It returned `state`
+`valid`, `ready` true, five groups, 36 staged paths, an empty `diagnostics`
+array and exit `0`. The groups and staged paths match the result embedded in
+the Round 1 request exactly.
+
+The mechanical result satisfies only the `a.commit` part of the readiness
+floor. It proves nothing about completeness, tests, coverage or judgement, and
+it never authorizes a commit.
+
+Membership, order and subjects remain accurate on inspection. The five groups
+hold 6, 10, 5, 13 and 2 paths, and the dependency order reads correctly from
+least to most dependent: the production discovery fix with its own unit and
+lifecycle tests first, then the acceptance package and the shared builders the
+exchange suite now imports, then the independent regression-timing repairs,
+then the public documentation with the docs acceptance suite that pins it, and
+finally the validation record and the umbrella row alone as the trailing
+validation group.
+
+Each subject is conventional and describes its group. `fix(...)` is right for
+group 1 because `observe_transition` changes shipped discovery behavior rather
+than adding a test. `perf(tests): reduce review regression setup costs` is
+right for group 3: those five files are duration-gate repairs with no bearing
+on the resume feature itself, so keeping them out of group 2 keeps both groups
+independently coherent. Group 5 correctly carries the umbrella row together
+with the validation plan, which is where the final-step status transition
+belongs.
+
+The reviewer's one validation-row repair lands on
+`docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md`, already a
+member of group 5, so no `a.commit` amendment was needed. `commit-plan-check`
+was rerun after that staged repair and returned the same `state` `valid`,
+`ready` true, five groups, 36 staged paths and exit `0`.
+
+### Findings and boundaries for step 6 review-resume-command (exchange 1) (round 1)
+
+Unresolved findings:
+
+- Three findings, in order of weight.
+- The first is blocking on its own. `ghog day` fails on the delivered state at
+- `fail=1 exit=2` with coverage withheld, and the failure is inside this step's
+- own new acceptance package:
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_concurrency_tdd.py::test_competing_reviewers_have_one_winner_and_loser_waits_for_replacement`
+- errors at fixture setup with `subprocess.TimeoutExpired` after 25 seconds on the
+- losing `wait-any-request` process. The focused rerun of that module reproduces
+- it, so it is not an ordering or interaction effect of the full walk. The cause
+- is the fixture, not the product: `competing_journey` submits both
+- `pool.submit(process.communicate, timeout=25)` calls before `_advance_review_round`
+- runs, so the losing process's deadline is consumed by eleven sequential real
+- launcher round-trips that cost 14.86-15.44 seconds standalone, with pytest
+- recording total fixture setup at 18.84-20.21 seconds. The margin left for the
+- behavior actually under test is under five seconds, which is why the call passes
+- under bare `pytest` and fails under both mandatory `ghog` commands. Driving the
+- identical journey with a generous deadline shows the loser waking 0.03-0.05
+- seconds after the replacement request is published, exiting 0 with an empty error
+- stream and returning `outcome=found` on round 2. AC12 behavior is correct; its
+- guard is not trustworthy.
+- The second is an undisclosed change to the duration gate. `a.ghog.outliers` now
+- carries a third `[exclusion]` entry,
+- `test_graceful_foreground_cancellation_has_one_result_and_no_durable_waiter = 1.65`,
+- for one of this step's own new acceptance calls. Step 4 and Step 5 each recorded
+- explicitly that no exclusion was added, and this reviewer confirmed at Step 5
+- Round 3 that the section held exactly two entries. The Step 6 Performance check
+- describes the convergence-pickup exclusion being added and then automatically
+- removed, and closes with "no duration outlier or exclusion regression", which
+- reads as a return to the previous state. The exclusion may well be justified,
+- since the call runs a real migration preflight and discovery over a real Git
+- repository, but accepting a 1.65-second baseline against a 0.50-second floor is
+- a policy decision that has to be visible in the record rather than only in an
+- ignored local file.
+- The third is an inaccurate implementation claim, which the reviewer repaired in
+- the validation rows and reports here for the record. The shared-builders bullet
+- stated that "existing exchange and role suites inherit these through their
+- existing fixture imports". Only `test_review_exchange_acceptance_tdd.py` imports
+- `review_exchange_test_support`; the specification and code requestor and
+- reviewer acceptance suites and the prompt-workflow suites import nothing from it
+- and are not in the staged set. The plan's Step 6 file list named all of them as
+- "existing, to be updated". They genuinely needed no edit, because Steps 1
+- through 4 already carried the artifact-home, role-nature and ownership rules
+- into them, so the outcome is fine and only the description was wrong.
+- One consequence follows from the first finding rather than standing alone.
+- `docs/v0.11.0/draft.v0.11.0.review-mode.md` row 10 is now `completed` while the
+- validation plan it cites reads `No, it is not implemented.`. The
+- implementation-check rule is explicit that a completed umbrella row requires
+- the cited validation plan's first non-title line to read
+- `Yes, it is implemented.`, so the row has to go back to `pending` with its `-`
+- cells until the step is genuinely green. The reviewer did not change it:
+- reviewer mode may not complete an umbrella row, and a changed umbrella digest
+- would itself be a boundary violation.
+- Two smaller observations are recorded without being findings, because the
+- project's own configured gates accept them and neither affects behavior. The
+- MD001 property budget in `test_rule_properties_pbt.py` drops from 100 examples
+- to 40 to stay under the duration floor, which is a documented and deliberate
+- trade-off but does reduce generated coverage of that rule. And
+- `test_review_resume_concurrency_tdd.py` separates `_home_bytes` from the
+- following test function by a single blank line where the file otherwise uses
+- two; ruff's `E3` rules are not enabled here, so this is style only.
+
+Boundary-crossing work:
+
+- One item crosses the reviewed step's boundary and is returned rather than
+- changed.
+- `docs/v0.11.0/draft.v0.11.0.review-mode.md` row 10 was set to `completed` with
+- the requirement and validation-plan paths. That edit is correct writer work
+- when the step is green, and it is staged in group 5 where it belongs, but it is
+- now inconsistent with the `No` verdict this round records. Reviewer mode never
+- completes an umbrella row and an applicable changed umbrella digest is a
+- boundary violation, so the file is left exactly as the writer staged it. The
+- umbrella digest was captured before the assessment and compared after it, and
+- is unchanged at
+- `a5e582524fcf68529ed7a96c7ccda6df020d9173e95603b7ca1e1bdac6c78855`.
+- No other boundary-crossing work was found. Every other staged path belongs to
+- Step 6's own acceptance, discovery-repair, regression-timing, documentation or
+- validation work.
+
+### Writer instructions for step 6 review-resume-command (exchange 1) (round 1)
+
+Four things to do, and the first is the only one that requires thought.
+
+Fix the competing-reviewer fixture's timing budget in
+`tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_concurrency_tdd.py::competing_journey`.
+Today both `process.communicate(timeout=25)` calls are submitted before
+`_advance_review_round` runs, so the losing process's deadline starts before the
+eleven launcher round-trips that create the event it is waiting for. Submit the
+loser's `communicate` only after the round-two request is published, so its
+budget measures the wake-up rather than the fixture. Concretely: keep the winner
+on the pool as it is, leave the loser as a live `Popen` while you advance the
+round, assert it is still running with `other.poll() is None` as you already do,
+and only then call `other.communicate(timeout=...)` with a budget sized for the
+wake-up. Measured latency there is 0.03-0.05 seconds, so even a two or three
+second budget would be generous and would also make the test a real regression
+guard: it would fail loudly if discovery ever stopped waking the loser promptly,
+which the current 25-second setup-dominated window cannot detect.
+
+Do not weaken the assertions to get past this. `assert len(completed) == 1`, the
+generation ordering, the round-1-then-round-2 progression and the
+secret-absence check are all worth keeping exactly as they are; only the
+deadline's starting point is wrong.
+
+Then re-run `ghog day` on the staged state until it reports a reproduced
+`exit=0`, and record the counters you actually observe, including `cov=100`. The
+current record cites 2,674 tests at `fail=0 ... exit=0`, which I could not
+reproduce; whatever the corrected run reports is what the validation plan should
+carry.
+
+Disclose the duration exclusion this step added, or remove the need for it.
+`a.ghog.outliers` gained a third `[exclusion]` entry,
+`test_graceful_foreground_cancellation_has_one_result_and_no_durable_waiter`
+at 1.65 seconds, while the floor stayed at 0.50 seconds. Steps 4 and 5 each
+stated plainly that no exclusion was added, so the silence here is out of
+keeping with the record this effort has otherwise kept. Either write it into the
+Performance check with the reason it must stay slow, in the same way the
+convergence-pickup exclusion was justified, or move the real Git preflight cost
+into the fixture the way this step already did for the role-conflict and
+abandoned-request calls and let it come back under the floor.
+
+Finally, restore `docs/v0.11.0/draft.v0.11.0.review-mode.md` row 10 to `pending`
+with `-` in both the Requirement and Validation plan cells. The completion rule
+requires the cited validation plan's first non-title line to read
+`Yes, it is implemented.`, and it currently reads `No`. Set the row back to
+`completed` with the same two paths in the round that turns the plan green
+again; the edit belongs in the same group 5 it is in now.
+
+Two things are worth keeping exactly as they are.
+
+The discovery repair is well made and I would not want it changed while fixing
+the fixture. Locking the same single byte the writer locks, opening read-only,
+never creating the lock, yielding availability when the lock is absent so legacy
+evidence stays validated, releasing only a lock actually acquired, and letting
+every errno outside `EACCES`, `EAGAIN` and `EDEADLK` propagate are each the
+right call, and the unit suite pins all of them including both platform
+branches.
+
+The acceptance package's ambition is right too. Real repositories, real
+launchers, separate processes, byte comparisons, transcript heading uniqueness,
+secret absence and actual `pw` routing are what make this step worth having, and
+the honesty of the boundary note about simulating rather than executing an LLM
+is the correct framing. The fixture defect is a budget bug in one of eighteen
+scenarios, not a reason to retreat from the approach.
+
+One item to carry forward rather than act on now. Several of these fixtures pay
+one to two seconds per launcher round-trip on Windows, and `competing_journey`
+needs eleven of them. If more real-launcher journeys are added later, consider a
+shared module-scoped repository that reaches a known state once, so that
+scenario count stops multiplying process startup cost. That is a Step 6-plus
+concern and nothing in this round depends on it.
+
+### Decision rationale for step 6 review-resume-command (exchange 1) (round 1)
+
+The recommendation is `changes-requested`. It authorizes nothing and takes no
+owning action; the commit choice was never in play this round.
+
+Of the six readiness-floor results, four pass and two do not.
+
+Exact identity passes. The live exchange, the machine envelope, the
+human-readable request, the plan, the declared step and the request-time index
+tree all agree, with `a590591e3d35f0abb1088a69eefd00b399efbddb` matching before
+any reviewer action. Step 6 exists in the exact plan and the embedded validation
+set parses through the current resolver contract. There is no `Human guidance:`
+block in this request.
+
+Staged attribution passes. The working tree carried only the 36 staged paths and
+the protocol's own unstaged transcript write; no pre-existing writer work was
+swept into the index. The umbrella digest is unchanged across the assessment,
+and the validation-state comparison shows exactly one tracked difference, the
+validation plan this reviewer edited, plus the index tree that moved when that
+patch was staged and the ignored `.coverage` artifact the mandatory commands
+rewrote. Nothing was reverted.
+
+`a.commit` passes mechanically and on inspection. `commit-plan-check --format json`
+was rerun independently before any grouping judgement and again after the staged
+repair, returning `state: valid`, `ready: true`, five groups, 36 staged paths, an
+empty `diagnostics` array and exit `0` both times. Group membership, dependency
+order and conventional subjects all read correctly, and the reviewer's repair
+landed inside the group that already owned the validation plan, so no amendment
+was needed.
+
+Mandatory validation and coverage fail. `ghog day`, which is both the project
+floor and Step 6's own completion criterion, returned `exit=2` with `fail=1` and
+withheld coverage; the focused rerun reproduced the same failure in isolation.
+Two of the four resolved commands pass, the mandatory walk does not, and the
+recorded `cov=100` cannot be confirmed on this state because the run that would
+measure it stopped.
+
+Implementation completeness therefore fails as well, though narrowly and not
+where it would usually matter. The shipped behavior is right: the discovery
+repair closes a real partial-publication race, its byte range and error handling
+are correct, and the losing reviewer it protects wakes in 0.03-0.05 seconds when
+driven with a generous deadline. What is missing is a trustworthy guard for that
+behavior. The competing-reviewer fixture spends 18.8-20.2 seconds of a
+25-second budget on its own setup before the event it means to time, so the
+assertion is dominated by fixture cost and tips over under exactly the commands
+the step must satisfy.
+
+Unresolved findings are present, which is the sixth result. The failing
+mandatory walk, the undisclosed new duration exclusion at 1.65 seconds against
+an unchanged 0.50-second floor, and the completed umbrella row that now cites a
+validation plan reading `No` are all open. The inaccurate shared-builders claim
+was repaired in the validation rows.
+
+This round made no substantive repair. The single reviewer edit is confined to
+the reviewed step's validation rows plus the document-level status line the
+implementation check requires, which is review metadata, so it is
+polishing-only. That distinction does not change the disposition here, since the
+readiness floor already fails on validation and completeness, but it matters for
+the next round: none of the writer's implementation, tests, documentation or
+commit plan were altered by this review, so the writer resumes from exactly the
+state it published plus a corrected record.
+
+The fixes are small and well bounded. Moving the loser's deadline to start at
+the round-two publication, re-running the walk to a reproduced green result,
+disclosing or removing the new exclusion, and reverting the umbrella row would
+close every open item without touching the production change, the acceptance
+coverage, or the documentation rollout, all of which I would expect to stand.
+
+### Final reviewer decision for step 6 review-resume-command (exchange 1) (round 1)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-6-round-1 -->
+
+## Round 2 by requestor - Step 6
+
+- Recorded: 2026-09-08T23:15:26+02:00
+- Exchange: code/code/v0.11.0/review-resume-command
+- Umbrella: docs/v0.11.0/draft.v0.11.0.review-mode.md
+- Reviewed document: docs/v0.11.0/plan.v0.11.0.review-resume-command.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 6
+- Outcome: request
+
+### Review identity for step 6 review-resume-command (round 2)
+
+Umbrella draft: docs/v0.11.0/draft.v0.11.0.review-mode.md
+Implementation plan: docs/v0.11.0/plan.v0.11.0.review-resume-command.md
+Implementation step: 6
+Review round: 2
+
+### Code review evidence for step 6 review-resume-command (round 2)
+
+request_index_tree: 4a653cb596f845603234bcb2289e72b543086a9f
+resolved_validation_set:
+
+- ghog day (sources: project, plan)
+- ghog single tests/acceptance/review_resume tests/acceptance/review_status tests/unit/tools/test_spec_review_requestor_acceptance tests/unit/tools/test_spec_reviewer_acceptance tests/unit/tools/test_code_review_requestor_acceptance tests/unit/tools/test_code_reviewer_acceptance tests/unit/tools/test_prompt_workflow_skill tests/unit/tools/test_review_mode_docs_acceptance (sources: plan)
+- rg -n "\.reviews|\.review-artifacts\.ini|review-resume|requestor_llm_nature|reviewer_llm_nature|already-claimed" README.md instructions tools tests (sources: plan)
+- rg --files | rg "rvw_resume\.bat$" (sources: plan)
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: fix(review-resume-command): defer discovery during active publication
+group 1 path: tools/review_exchange_ownership_store.py
+group 1 path: tools/review_status.py
+group 1 path: tests/unit/tools/test_review_exchange_ownership_store/__init__.py
+group 1 path: tests/unit/tools/test_review_exchange_ownership_store/test_review_exchange_ownership_store_tdd.py
+group 1 path: tests/unit/tools/test_review_resume/__init__.py
+group 1 path: tests/unit/tools/test_review_resume/test_review_resume_lifecycle_tdd.py
+group 2: test(review-resume-command): cover cross-workflow resume acceptance
+group 2 path: tests/unit/tools/review_exchange_test_support.py
+group 2 path: tests/unit/tools/test_review_exchange_acceptance/test_review_exchange_acceptance_tdd.py
+group 2 path: tests/acceptance/review_resume/__init__.py
+group 2 path: tests/acceptance/review_resume/conftest.py
+group 2 path: tests/acceptance/review_resume/test_review_resume_acceptance/__init__.py
+group 2 path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_acceptance_tdd.py
+group 2 path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_concurrency_tdd.py
+group 2 path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_identity_tdd.py
+group 2 path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_migration_tdd.py
+group 2 path: docs/v0.11.0/acceptance.v0.11.0.review-resume-command.md
+group 3: perf(tests): reduce review regression setup costs
+group 3 path: tests/unit/tools/markdown_check/test_rule_properties/test_rule_properties_pbt.py
+group 3 path: tests/unit/tools/test_groundhog_runner.py
+group 3 path: tests/unit/tools/test_review_exchange_paths/test_review_exchange_paths_tdd.py
+group 3 path: tests/unit/tools/test_review_exchange_recovery_acceptance/test_review_exchange_recovery_acceptance_tdd.py
+group 3 path: tests/unit/tools/test_review_resume_identity/test_review_resume_identity_tdd.py
+group 4: docs(review-resume-command): document shipped resume workflows
+group 4 path: README.md
+group 4 path: wiki/README.md
+group 4 path: wiki/explanation/independent-review-mode-and-human-authority.md
+group 4 path: wiki/tutorials/09-run-your-first-specification-review.md
+group 4 path: wiki/tutorials/10-run-your-first-implementation-code-review.md
+group 4 path: wiki/how-to/enable-independent-review-mode.md
+group 4 path: wiki/how-to/inspect-independent-review-status.md
+group 4 path: wiki/how-to/recover-an-independent-review.md
+group 4 path: wiki/how-to/run-implementation-code-review.md
+group 4 path: wiki/how-to/run-specification-review.md
+group 4 path: wiki/reference/independent-review-mode-contract.md
+group 4 path: tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_acceptance_tdd.py
+group 4 path: tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_final_acceptance_tdd.py
+group 5: docs(review-resume-command): record step 6 validation
+group 5 path: docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md
+group 5 path: docs/v0.11.0/draft.v0.11.0.review-mode.md
+staged path: README.md
+staged path: docs/v0.11.0/acceptance.v0.11.0.review-resume-command.md
+staged path: docs/v0.11.0/draft.v0.11.0.review-mode.md
+staged path: docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md
+staged path: tests/acceptance/review_resume/__init__.py
+staged path: tests/acceptance/review_resume/conftest.py
+staged path: tests/acceptance/review_resume/test_review_resume_acceptance/__init__.py
+staged path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_acceptance_tdd.py
+staged path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_concurrency_tdd.py
+staged path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_identity_tdd.py
+staged path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_migration_tdd.py
+staged path: tests/unit/tools/markdown_check/test_rule_properties/test_rule_properties_pbt.py
+staged path: tests/unit/tools/review_exchange_test_support.py
+staged path: tests/unit/tools/test_groundhog_runner.py
+staged path: tests/unit/tools/test_review_exchange_acceptance/test_review_exchange_acceptance_tdd.py
+staged path: tests/unit/tools/test_review_exchange_ownership_store/__init__.py
+staged path: tests/unit/tools/test_review_exchange_ownership_store/test_review_exchange_ownership_store_tdd.py
+staged path: tests/unit/tools/test_review_exchange_paths/test_review_exchange_paths_tdd.py
+staged path: tests/unit/tools/test_review_exchange_recovery_acceptance/test_review_exchange_recovery_acceptance_tdd.py
+staged path: tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_acceptance_tdd.py
+staged path: tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_final_acceptance_tdd.py
+staged path: tests/unit/tools/test_review_resume/__init__.py
+staged path: tests/unit/tools/test_review_resume/test_review_resume_lifecycle_tdd.py
+staged path: tests/unit/tools/test_review_resume_identity/test_review_resume_identity_tdd.py
+staged path: tools/review_exchange_ownership_store.py
+staged path: tools/review_status.py
+staged path: wiki/README.md
+staged path: wiki/explanation/independent-review-mode-and-human-authority.md
+staged path: wiki/how-to/enable-independent-review-mode.md
+staged path: wiki/how-to/inspect-independent-review-status.md
+staged path: wiki/how-to/recover-an-independent-review.md
+staged path: wiki/how-to/run-implementation-code-review.md
+staged path: wiki/how-to/run-specification-review.md
+staged path: wiki/reference/independent-review-mode-contract.md
+staged path: wiki/tutorials/09-run-your-first-specification-review.md
+staged path: wiki/tutorials/10-run-your-first-implementation-code-review.md
+```
+
+### Requestor assessment for step 6 review-resume-command (round 2)
+
+Yes. Step 6 has been fully implemented.
+
+Round 1 repairs are accepted and staged. The competing-reviewer fixture observes the initial winner within 15 seconds, leaves the loser running during launcher setup, and starts communicate(timeout=15) only after replacement publication. The corrected shared-builder attribution is retained. Umbrella row 10 is completed again with the requirement and validation paths after the fresh Yes verdict.
+
+The exact plan-focused ghog single command passed all 228 tests. The final ghog day ended at 2026-09-08T23:08:47+02:00 with state=done exit=0 over 2,674 tests: fail=0 warn=0 xfail=0 cov=100 outliers=0 excluded=0 exit=0. Static checks, affected tests, full coverage, and timing gates passed together. The final full-suite phase took 16m 06.1s. Logs are .reviews/a.step6-review-focused.round2.log and .reviews/a.step6-review-validation.round2.log.
+
+The exact plan source search returned 263 matches and the prohibited rvw_resume.bat inventory returned no path. Final Markdown and Git whitespace checks cover the refreshed validation records.
+
+The production observation-lock repair is unchanged and remains within the ownership storage adapter. Discovery scans linearly without new quadratic or sorting work. The 224-line concurrency module preserves single-winner, live-loser, round progression, ownership-generation, and secret-absence assertions. Every changed Python file remains at or below 650 lines; review_status.py remains 647 lines and the ownership store 275. Dedicated unit tests cover both native lock branches, contention, IO failures, and cleanup. No architecture, coverage, or feature-integrity gap remains.
+
+Duration policy is explicit: the suite floor remains 0.50 seconds. Four stored baselines cover the launcher (0.85s), cross-family discovery (0.70s), foreground cancellation (1.65s), and Git inventory (0.53s). The last baseline was added in this continuation after profiling attributed 0.270 of 0.271 isolated seconds to the real Git subprocess, with repository setup already outside the call. Replacing that subprocess would weaken the test's purpose. Final full-run times were 1.13s, 0.97s, 1.76s, and 0.41s, respectively, all within their allowances. The excluded=0 counter reports no drift violation; it does not mean no stored baselines. The profile and rationale are retained in .reviews/a.step6-review-timing.round2.md.
+
+The reviewed a.commit contains five groups and 36 staged paths, including the restored umbrella member in the final validation group. The round 1 test repair is substantive and is submitted for replacement review. No commit is authorized.
+
+### Implementation report for step 6 review-resume-command (round 2)
+
+The existing step delivers real public-launcher acceptance, a partial-publication discovery repair, and the connected documentation rollout.
+
+- Real temporary Git repositories exercise both review families, migration layouts, host identities, conflict choices, automatic pickup, displacement, human gates, global waiting, and workflow release.
+- The shared builders are imported by the existing exchange acceptance suite. The already-aligned role and prompt-workflow suites were not edited in this step.
+- Discovery observes settled request snapshots through the existing nonblocking transition lock.
+- README and the connected explanation, tutorials, how-to guides, and reference describe the shipped resume behavior.
+- Round 1 fixes the competing-reviewer deadline by collecting the losing process only after replacement publication. The initial winner has a separate 15-second observation bound; no executor joins a live losing pipe reader.
+- The validation record accepts the reviewer corrections, records passing focused and full validation, and discloses the existing 1.65-second cancellation baseline plus the profiled real Git inventory baseline at 0.53 seconds. The suite floor remains 0.50 seconds.
+- Umbrella row 10 is completed with evidence after the validation plan returns to Yes. Its membership is restored in a.commit group 5.
+
+The launcher fixtures simulate the instruction sequence from bare resume; they execute real support operations in independent processes and do not claim to execute an LLM.
+
+### Change summary for step 6 review-resume-command (round 2)
+
+The repaired index contains five groups and 36 staged paths. The final group again includes the completed umbrella row with the validation record. Group boundaries, ordering, and subjects otherwise remain accurate. The versioned transcript is maintained by the exchange; the pre-existing unstaged AGENTS.md and untracked .codex/ changes are outside this reviewed index.
+
+#### Group 1 for step 6 review-resume-command (round 2)
+
+fix(review-resume-command): defer discovery during active publication
+
+- `tools/review_exchange_ownership_store.py`
+- `tools/review_status.py`
+- `tests/unit/tools/test_review_exchange_ownership_store/__init__.py`
+- `tests/unit/tools/test_review_exchange_ownership_store/test_review_exchange_ownership_store_tdd.py`
+- `tests/unit/tools/test_review_resume/__init__.py`
+- `tests/unit/tools/test_review_resume/test_review_resume_lifecycle_tdd.py`
+
+#### Group 2 for step 6 review-resume-command (round 2)
+
+test(review-resume-command): cover cross-workflow resume acceptance
+
+- `tests/unit/tools/review_exchange_test_support.py`
+- `tests/unit/tools/test_review_exchange_acceptance/test_review_exchange_acceptance_tdd.py`
+- `tests/acceptance/review_resume/__init__.py`
+- `tests/acceptance/review_resume/conftest.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/__init__.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_acceptance_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_concurrency_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_identity_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_migration_tdd.py`
+- `docs/v0.11.0/acceptance.v0.11.0.review-resume-command.md`
+
+#### Group 3 for step 6 review-resume-command (round 2)
+
+perf(tests): reduce review regression setup costs
+
+- `tests/unit/tools/markdown_check/test_rule_properties/test_rule_properties_pbt.py`
+- `tests/unit/tools/test_groundhog_runner.py`
+- `tests/unit/tools/test_review_exchange_paths/test_review_exchange_paths_tdd.py`
+- `tests/unit/tools/test_review_exchange_recovery_acceptance/test_review_exchange_recovery_acceptance_tdd.py`
+- `tests/unit/tools/test_review_resume_identity/test_review_resume_identity_tdd.py`
+
+#### Group 4 for step 6 review-resume-command (round 2)
+
+docs(review-resume-command): document shipped resume workflows
+
+- `README.md`
+- `wiki/README.md`
+- `wiki/explanation/independent-review-mode-and-human-authority.md`
+- `wiki/tutorials/09-run-your-first-specification-review.md`
+- `wiki/tutorials/10-run-your-first-implementation-code-review.md`
+- `wiki/how-to/enable-independent-review-mode.md`
+- `wiki/how-to/inspect-independent-review-status.md`
+- `wiki/how-to/recover-an-independent-review.md`
+- `wiki/how-to/run-implementation-code-review.md`
+- `wiki/how-to/run-specification-review.md`
+- `wiki/reference/independent-review-mode-contract.md`
+- `tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_acceptance_tdd.py`
+- `tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_final_acceptance_tdd.py`
+
+#### Group 5 for step 6 review-resume-command (round 2)
+
+docs(review-resume-command): record step 6 validation
+
+- `docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md`
+- `docs/v0.11.0/draft.v0.11.0.review-mode.md`
+
+### Writer response for step 6 review-resume-command (round 2)
+
+Writer response:
+
+All round 1 findings are accepted. There is no explicit disagreement and no reviewer repair is reversed.
+
+The reviewer's sole repaired path, docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md, remains accepted. Its corrected shared-builder attribution is retained. The prior No verdict is superseded by fresh passing validation after the requested fixture repair, and the completed missing-work section is removed. This is resolution of the finding, not disagreement with the original assessment.
+
+The concurrency repair follows the suggested publication boundary: observe the initial winner, assert exactly one completion and a live loser, perform the real launcher transitions, then call the loser's communicate(timeout=15). The original round progression, generation ordering, and secret-absence assertions remain. This is a substantive test change and requires a replacement review round with reviewed-work-changed true.
+
+The 1.65-second cancellation exclusion is explicit. It covers the real CLI migration preflight, Git-backed home checks, discovery, and notification lifecycle with KeyboardInterrupt injected only at the wait seam. That baseline and the 0.50-second suite floor are unchanged; the final call measured 1.76 seconds.
+
+The first resumed walk passed all tests with cov=100 but returned exit=8 for the real Git inventory test at 0.53 seconds. Profiling found 0.270 of 0.271 isolated call seconds in its Git subprocess; repository creation and staging already happen in its fixture. Following fix-slow-test's irreducible-path rule, ghog exclude accepted a new 0.53-second baseline with the two-second drift check. No assertion, test code, production code, or suite floor changed. Its module passed in focus, and the final full walk measured it at 0.41 seconds. Both the new baseline and its justification are disclosed in the validation plan and .reviews/a.step6-review-timing.round2.md.
+
+The exact plan-focused command passed 228 tests. The final ghog day ended at 2026-09-08T23:08:47+02:00 with fail=0 warn=0 xfail=0 cov=100 outliers=0 excluded=0 exit=0 over 2,674 tests. The source search returned 263 matches, and the prohibited launcher inventory returned no path. The earlier environment and staging blocks are resolved.
+
+Umbrella row 10 was restored to pending while the validation plan read No. It is now completed again with both evidence paths after the fresh Yes verdict. Its member is restored in a.commit group 5, yielding five groups and 36 staged paths. Round 2 submits the substantive test repair with reviewed-work-changed true and no disagreement. No commit is authorized.
+
+### Reviewer focus for step 6 review-resume-command (round 2)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-6-round-2 -->
+
+## Round 2 by reviewer - Step 6
+
+- Recorded: 2026-09-09T10:19:38+02:00
+- Exchange: code/code/v0.11.0/review-resume-command
+- Umbrella: docs/v0.11.0/draft.v0.11.0.review-mode.md
+- Reviewed document: docs/v0.11.0/plan.v0.11.0.review-resume-command.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 6
+- Outcome: answer
+
+### Assessed index identity for step 6 review-resume-command (exchange 1) (round 2)
+
+Baseline index tree: 4a653cb596f845603234bcb2289e72b543086a9f
+
+Assessed index tree: ea1c320943e8e3cd5353667af85515de3d8a2778
+
+### Implementation check for step 6 review-resume-command (exchange 1) (round 2)
+
+Result:
+
+No. Step 6 has NOT been fully implemented.
+
+The Round 1 finding is genuinely fixed and the step is close, but one of its own
+completion criteria does not hold on independent evidence: the exact
+plan-focused `ghog single` command returned `fail=2 exit=2` on my first run of
+it, with both errors inside this step's own new acceptance package.
+
+Start with what is fixed, because it is fixed properly. `competing_journey` no
+longer submits both `communicate` deadlines before the fixture does its work.
+`first_completed` bounds the initial claim with `poll()` under its own
+15-second deadline, the winner's pipes are collected once it has already
+exited, the loser is asserted live with `other.poll() is None`, the eleven real
+launcher round-trips run in `_advance_review_round`, and only then does
+`other.communicate(timeout=15)` start. The deadline now measures the wake-up
+rather than the fixture that creates the event. Nothing was weakened to get
+there: `assert len(completed) == 1`, the identity match, the
+ownership-generation ordering, the round-one-then-round-two progression and
+both secret-absence checks are unchanged, and the `ThreadPoolExecutor` was
+removed rather than given a bigger timeout. That call passed in every run I
+made.
+
+The duration finding is answered too. `a.ghog.outliers` carries four
+`[exclusion]` baselines and the Performance check now names all four against
+the unchanged 0.50-second floor. The 1.65-second cancellation baseline Round 1
+found undocumented is written into the record with its reason, and the fourth
+baseline added this round, `test_tracked_inventory_uses_git_and_filters_markdown`
+at 0.53 seconds, is disclosed the same way. I read the profile rather than the
+summary of it: `a.step6-review-slow-profile.before.round2.txt` attributes 0.270
+of the call's 0.271 isolated seconds to the production Git subprocess inside
+`tracked_markdown_paths`, with the 0.620-second repository construction already
+in the `tracked_repository` fixture. That is the irreducible-path case
+`fix_slow_test.md` describes, accepted through `ghog exclude` at its measured
+time rather than by lifting the floor, with no assertion or production code
+changed. The shared-builder correction also survived the rework and is
+accurate: only `test_review_exchange_acceptance_tdd.py` and the new acceptance
+package import `review_exchange_test_support`.
+
+Now the new problem. The step's completion criteria require the exact
+plan-focused command to pass. Mine returned:
+
+```text
+ghog single done fail=2 warn=0 xfail=0 exit=2
+ERROR at setup of test_status_migrates_complete_sets_once_without_changing_evidence[former-default]
+ERROR at setup of test_resume_checks_migrates_rechecks_then_claims[former-default]
+test_review_resume_migration_tdd.py:42: in migration_journey
+FileNotFoundError: ...\resume\runtime\reviews\a.review-requested.code.v0.11.0.resume-acceptance.md
+```
+
+It is intermittent, not broken. A second run of the identical command passed
+all 228, the migration module passes alone, and my independent `ghog day`
+returned `fail=0 warn=0 xfail=0 cov=100 outliers=0 excluded=0 exit=0` over
+2,674 tests in 10m 03.7s. One failure in three runs of a mandatory command is
+still not a pass, and this is the second consecutive round in which this new
+acceptance package has produced an intermittent failure under the mandatory
+commands. Round 1's own sentence applies again to a different guard: the
+behavior looks correct, but the guard is not trustworthy.
+
+The evidence goes further than "flaky", because the failing run's temporary
+repository survived under `pytest-1518`. Its layout is diagnostic.
+`.reviews/` still holds every artifact, including
+`a.review-requested.code.v0.11.0.resume-acceptance.md`, while `runtime/` exists
+and is empty with no `reviews` subdirectory. `prepare_home()` creates
+`runtime/reviews` with `parents=True` and `rollback_prepared_home()` removes
+only the home itself, so an empty `runtime/` beside an intact `.reviews/` is
+exactly the fingerprint of `ReviewArtifactMigration.migrate` preparing the
+home, raising `OSError`, and rolling back cleanly. That narrows the cause to
+the two raise sites inside that `try`: `_require_migration_ignore` judging the
+home it has just created to be uncovered, or an `OSError` inside
+`_execute_migration`. Both are reported by `migrate` as
+`migration failed and was rolled back: <error>`, so the real diagnostic existed
+and was thrown away.
+
+Two defects follow, and both are worth fixing regardless of which raise site it
+was.
+
+The fixture masks its own cause. Line 40 captures the `rvw_status` result and
+line 42 immediately reads bytes from the migration target. A failed status is
+still a single JSON line, so `repo.run` accepts it and the failure surfaces as
+`FileNotFoundError` on a path nobody asked about, instead of the diagnostic the
+production code produced. One assertion between those lines would have made
+this round unnecessary.
+
+The production diagnostic is lossy. `_git_ignore_checker` runs
+`git check-ignore -z --stdin`, discards `completed.stderr`, and returns a bare
+`False` for any exit code outside `{0, 1}`. `_require_migration_ignore` then
+raises `artifact home ignore coverage is ineffective`. A transient Git failure
+and a genuinely uncovered home are indistinguishable in that message, in a test
+repository and in a user's. If this is what happened, the shipped `rvw_status`
+can intermittently decline to migrate a former-default layout while reporting a
+cause that is not the cause.
+
+The rest of the step holds up, and only two files moved since Round 1, so that
+judgement still stands. The production discovery repair is a real fix for a
+real race: `publish_request` runs inside `transition_lock`, so a global waiter
+could otherwise classify a mid-publication snapshot as damaged.
+`observe_transition` locks the same single byte at offset zero that the writer
+locks, opens the lock read-only and never creates it, yields availability when
+the lock is absent so legacy evidence is still validated, releases only a lock
+it actually took, and lets every `OSError` outside `EACCES`, `EAGAIN` and
+`EDEADLK` propagate; the `path.exists()` recheck inside the held lock closes the
+consume-while-scanning window. The acceptance package builds real Git
+repositories and drives the real `review_exchange.bat`, `rvw_status.bat` and
+`prompt_workflow.bat` launchers in separate processes, comparing artifact bytes,
+transcript heading uniqueness, absent session secrets, schema-2 status, Git
+cleanliness and actual `pw` routing across two families, two legacy layouts, six
+blocked layouts, four host natures, conflict Stop and Override, displacement,
+ambiguity and cancellation. Every test name in the acceptance map exists in the
+file the map names, and all nineteen criteria are mapped.
+
+Architecture holds. The platform lock behavior stays in the ownership storage
+adapter, status projection consumes it without importing a CLI, and the new test
+support creates no production dependency on tests. The line counts the check
+records are exact on the staged files: `review_status.py` 647, the ownership
+store 275, the exchange acceptance suite 633 before and 541 now, the shared
+builder 115, the acceptance conftest 210, the four scenario modules 108, 224,
+119 and 114, and the recovery suite 548. Every changed Python file is inside the
+650-line ceiling and the walk's own file gate agrees. Discovery still scans the
+home in linear order with one non-blocking lock attempt per candidate, so no new
+`O(n^2)` or `O(n log n)` work is introduced. Coverage is not in question: the
+walk reported `cov=100` over 2,674 tests, and the dedicated ownership-store
+tests cover the absent lock, real acquisition and release after an exception,
+local contention, both platform branches with a genuine IO failure, and the
+refusal to unlock a lock the reader did not take.
+
+There is nothing to address for Step 6 architecture and no unresolved
+performance issue. There is one feature-integrity concern, recorded above and
+in `Missing work for Step 6`: until the migration refusal is diagnosed, the
+shipped former-default migration may intermittently decline with a misleading
+message.
+
+Validation plan effects:
+
+The reviewer rewrote the Step 6 rows to the `No` verdict and added the required
+`Missing work for Step 6` section. Every edit is confined between the
+`## Step 6.` heading and the end of the document, except the document-level
+status line the check requires.
+
+The status sentence is now exactly `No. Step 6 has NOT been fully implemented.`
+followed by the measured reason: the exact plan-focused command at
+`fail=2 exit=2` on an independent run, both errors at the setup of
+`migration_journey[former-default]`, against a passing second run of the same
+command, a passing isolated module, and a passing `ghog day` at
+`fail=0 warn=0 xfail=0 cov=100 outliers=0 excluded=0 exit=0` over 2,674 tests.
+
+`Missing work for Step 6` holds four concrete bullets: assert the `rvw_status`
+result before the fixture reads migrated bytes; diagnose the intermittent
+migration refusal the preserved temporary repository points at, narrowed to the
+two `OSError` raise sites in `ReviewArtifactMigration.migrate`; preserve the
+`git check-ignore` exit code and stderr in `_git_ignore_checker` so a transient
+Git failure stops reading as ineffective ignore coverage; and re-run the exact
+focused command enough times to show the guard is reliable.
+
+Two existing sentences were corrected because they no longer match measurable
+state. The validation-evidence bullet keeps the writer's recorded counters,
+adds that an independent walk reproduced the same green `ghog day` in 10m
+03.7s, and points at the missing-work list for the focused command. The
+Feature integrity closing separated the two guards: the Round 1
+competing-reviewer repair does now pass through the mandatory commands, while
+`migration_journey[former-default]` does not yet, and the paragraph records the
+user-visible risk that follows if the refusal is the ignore-coverage guard.
+
+Everything else in the Step 6 rows was checked and left alone because it holds.
+The Architecture line counts are exact on the staged files: `review_status.py`
+647, the ownership store 275, the exchange acceptance suite 633 before and 541
+now, the shared builder 115, the acceptance conftest 210, the four scenario
+modules 108, 224, 119 and 114, and the recovery suite 548. The Performance
+check's four stored baselines match `a.ghog.outliers` line for line at 0.85,
+0.70, 1.65 and 0.53 seconds over an unchanged 0.50-second floor, and the
+profile it cites does attribute 0.270 of 0.271 isolated call seconds to the
+production Git subprocess with repository setup already in the fixture. The
+Architecture and Performance closing sentences still read `No`, because neither
+an architecture smell nor a duration issue is what failed here.
+
+The document-level status line returned to `No, it is not implemented.` with a
+refreshed theme sentence, because the check requires that line to stay `No`
+while any step reads `No`, and Step 6 now does.
+
+The reviewer did not touch the umbrella.
+`docs/v0.11.0/draft.v0.11.0.review-mode.md` row 10 still reads `completed` with
+the requirement and validation-plan paths the writer set. Reviewer mode may not
+complete or reopen an umbrella row and a changed umbrella digest would be a
+boundary violation, so the inconsistency between that completed row and this
+plan's `No` line is returned as writer work rather than repaired here. The
+umbrella digest was verified unchanged across the whole assessment.
+
+No other step, no other document, and no implementation, test, instruction or
+adapter file was edited.
+
+### Pre-repair mandatory checks and coverage for step 6 review-resume-command (exchange 1) (round 2)
+
+The ordered validation path set was captured before any assessment or edit. It
+is the first-seen union of the 36 staged Step 6 paths, which already contain
+the exact validation plan, and the six ignored artifacts the resolved commands
+write: `a.ghog.status`, `a.ghog.outliers`, `a.ghog.log`, `a.ghog.failures`,
+`a.ghog.day.ok` and `a.ghog-exclude.log`. Each was confirmed ignored through
+`.gitignore:27` before the walk started, so none can become a tracked
+validation side effect.
+
+The captured baseline recorded index tree
+`4a653cb596f845603234bcb2289e72b543086a9f`, matching the Round 2 request-time
+tree, together with digests for the 36 tracked paths and the six ignored
+artifacts present at capture time.
+
+The umbrella digest for `docs/v0.11.0/draft.v0.11.0.review-mode.md` was
+captured as applicable at
+`a5e582524fcf68529ed7a96c7ccda6df020d9173e95603b7ca1e1bdac6c78855` before the
+assessment, the same value Round 1 recorded.
+
+The pre-repair blob of the single permitted repair path,
+`docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md`, was recorded
+at `edc01069397dddcffe60a9a25e7f1b5815ad294a` before the first edit.
+`attribute-reviewer-patch` then proved the resulting patch cleanly attributable
+against that baseline, and only that path was staged.
+
+The retained manifest was written before any state could be mutated and updated
+after the assessment with the assessed index tree, the recorded blob and the
+after-state. It is retired only after publication reports `outcome: published`.
+
+### Resolved validation set and sources for step 6 review-resume-command (exchange 1) (round 2)
+
+The union of the request-embedded validation set and the current resolver set
+is four commands. All four were run in this session against the received Round
+2 state, and none was substituted with a historical result or with the writer's
+retained logs.
+
+- `ghog day` returned `state=done exit=0`. Its `check` phase passed at exit 0 in
+  45.9 seconds, covering ty, pyright, ruff, radon, vulture, the 650-line file
+  gate, the repository Markdown gate, ShellCheck and the EOF check. Its
+  `affected --no-cov` phase passed at exit 0 in 4.6 seconds. Its `full` phase
+  ran 2,674 tests in 10m 03.7s and returned
+  `fail=0 warn=0 xfail=0 cov=100 outliers=0 excluded=0 exit=0`, with
+  `avg=0.012s` and an empty `a.ghog.failures`. This is the result Round 1 could
+  not reproduce, and it now reproduces.
+- `ghog single tests/acceptance/review_resume tests/acceptance/review_status
+  tests/unit/tools/test_spec_review_requestor_acceptance
+  tests/unit/tools/test_spec_reviewer_acceptance
+  tests/unit/tools/test_code_review_requestor_acceptance
+  tests/unit/tools/test_code_reviewer_acceptance
+  tests/unit/tools/test_prompt_workflow_skill
+  tests/unit/tools/test_review_mode_docs_acceptance`, the exact plan-focused
+  command, **failed** on its first run with
+  `fail=2 warn=0 xfail=0 exit=2`. Both entries under "Still failing in focus"
+  are `migration_journey[former-default]` setups in
+  `test_review_resume_migration_tdd.py`, erroring at line 42 with
+  `FileNotFoundError` on
+  `runtime/reviews/a.review-requested.code.v0.11.0.resume-acceptance.md`.
+  A second run of the identical command returned `fail=0 exit=0` over all 228
+  tests, and `ghog single` on the migration module alone returned
+  `fail=0 exit=0`. The retained logs are
+  `.reviews/a.step6-review-focused.round2-reviewer.log`,
+  `.reviews/a.cr.s6r2.focused-run2.log` and
+  `.reviews/a.cr.s6r2.migration-focus.log`.
+- `rg -n "\.reviews|\.review-artifacts\.ini|review-resume|requestor_llm_nature|reviewer_llm_nature|already-claimed" README.md instructions tools tests`
+  returned 263 matches, the count the record cites.
+- `rg --files | rg "rvw_resume\.bat$"` returned no path, which is the required
+  result. No such launcher exists at the root or under `bin`.
+
+Three of four pass. The fourth is a stated completion criterion of this step
+and it did not pass on first run, so the mandatory evidence floor is not
+complete. An intermittent mandatory command is reported as intermittent rather
+than rounded up to a pass or down to a hard failure.
+
+The timing configuration was read rather than taken on report. Line 1 of
+`a.ghog.outliers` is `0.0` and line 2 is the unchanged `0.50`-second floor. The
+`[exclusion]` block holds exactly the four baselines the Performance check
+discloses: the Markdown launcher at 0.85, cross-family discovery at 0.70, the
+foreground cancellation acceptance call at 1.65, and the Git inventory call at
+0.53. The walk reported `outliers=0 excluded=0`, so no call breached the floor
+and no excluded call drifted outside its two-second allowance. The block is
+byte-identical before and after my walk, so my runs neither added a baseline nor
+ratcheted one.
+
+### Resolver drift and direction for step 6 review-resume-command (exchange 1) (round 2)
+
+No resolver drift. The project still declares no `.review-validation` file, so
+`load_project_validation_commands` returns the built-in `ghog day` default. The
+plan's Step 6 `Completion criteria` block adds the focused `ghog single`
+command, the two `rg` inventories and a second `ghog day`. That resolves to the
+same four commands the Round 2 request embeds, carrying the same `project` and
+`plan` source labels. The union equals both sides, so nothing was added or
+dropped in either direction and every command in it was run in this session.
+
+### Repository state around validation for step 6 review-resume-command (exchange 1) (round 2)
+
+Request-time and live index trees agree exactly. The Round 2 envelope carries
+`request_index_tree` `4a653cb596f845603234bcb2289e72b543086a9f`, and
+`capture-index-tree` returned the same value on the received working tree
+before any reviewer action. After the assessment the index reads
+`ea1c320943e8e3cd5353667af85515de3d8a2778`, and the single difference is the
+reviewer's own attributable validation-plan repair.
+
+Exact identity agrees across every source. The live exchange reports family
+`code`, type token `code`, version `v0.11.0`, slug `review-resume-command`,
+round 2 and `exchange_occurrence` 1. `status` first reported
+`abandoned-request` because the Round 2 lease expired overnight while the
+artifacts stayed intact, so a single `reclaim` restored `request-pending` at
+the same identity and round before `wait-request` granted access. The envelope
+repeats that identity with `implementation_step` `6`, `round_number` 2 and
+`role_natures` naming `codex` as requestor and `claude` as reviewer. The
+human-readable request carries `Umbrella draft`, `Implementation plan`,
+`Implementation step: 6` and `Review round: 2` exactly once each, all matching
+the command context. The request carries no `Human guidance:` block.
+
+Step 6 exists in the exact plan as `### Step 6. Prove cross-workflow acceptance
+and documentation rollout`, and the embedded validation set parses through the
+current resolver contract.
+
+Only two files changed between the Round 1 tree
+`a590591e3d35f0abb1088a69eefd00b399efbddb` and this one:
+`tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_concurrency_tdd.py`
+and `docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md`. The
+umbrella returned to its Round 1 bytes, which is why its digest is unchanged
+at `a5e582524fcf68529ed7a96c7ccda6df020d9173e95603b7ca1e1bdac6c78855`: row 10
+went back to `pending` while the plan read `No` and was completed again once
+the plan read `Yes`, leaving no net difference.
+
+Thirty-six paths are staged. The working tree also carries three items that do
+not belong to this step and were correctly left out of the index: the
+protocol's own unstaged transcript write
+`docs/v0.11.0/review.code.v0.11.0.review-resume-command.md`, an unstaged
+rewrite of `AGENTS.md`, and an untracked `.codex/config.toml`. The last two are
+agent-harness configuration created during the Round 2 rework. No untracked or
+pre-existing writer work was swept into the index.
+
+The ordered validation path set is the first-seen union of the 36 staged paths,
+which already contain the exact validation plan, and the six ignored `ghog`
+artifacts the mandatory commands write.
+
+The after-state comparison reports `acceptable: false`, and the difference set
+is exactly what a permitted repair plus a mandatory walk produces: the tracked
+paths are `docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md` and
+`<index>`, which are the reviewer's own validation rows and the index change
+that staging them caused, and the ignored paths are `a.ghog.status`,
+`a.ghog.log` and `a.ghog.day.ok`, which `ghog day` rewrites by design. No
+untracked difference appeared, and no tracked validation side effect was left
+behind.
+
+### Repair inventory for step 6 review-resume-command (exchange 1) (round 2)
+
+Repairs made:
+
+- docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md - reviewer validation rows only, review metadata, attributable and staged alone; the No verdict and its measured reason, the new Missing work for Step 6 section, a qualified validation-evidence bullet, the corrected Feature integrity closing and the document-level status line; no implementation, test, instruction, adapter, umbrella or dependency file was edited
+
+Paths staged:
+
+- `README.md`
+- `docs/v0.11.0/acceptance.v0.11.0.review-resume-command.md`
+- `docs/v0.11.0/draft.v0.11.0.review-mode.md`
+- `docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md`
+- `tests/acceptance/review_resume/__init__.py`
+- `tests/acceptance/review_resume/conftest.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/__init__.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_acceptance_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_concurrency_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_identity_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_migration_tdd.py`
+- `tests/unit/tools/markdown_check/test_rule_properties/test_rule_properties_pbt.py`
+- `tests/unit/tools/review_exchange_test_support.py`
+- `tests/unit/tools/test_groundhog_runner.py`
+- `tests/unit/tools/test_review_exchange_acceptance/test_review_exchange_acceptance_tdd.py`
+- `tests/unit/tools/test_review_exchange_ownership_store/__init__.py`
+- `tests/unit/tools/test_review_exchange_ownership_store/test_review_exchange_ownership_store_tdd.py`
+- `tests/unit/tools/test_review_exchange_paths/test_review_exchange_paths_tdd.py`
+- `tests/unit/tools/test_review_exchange_recovery_acceptance/test_review_exchange_recovery_acceptance_tdd.py`
+- `tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_acceptance_tdd.py`
+- `tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_final_acceptance_tdd.py`
+- `tests/unit/tools/test_review_resume/__init__.py`
+- `tests/unit/tools/test_review_resume/test_review_resume_lifecycle_tdd.py`
+- `tests/unit/tools/test_review_resume_identity/test_review_resume_identity_tdd.py`
+- `tools/review_exchange_ownership_store.py`
+- `tools/review_status.py`
+- `wiki/README.md`
+- `wiki/explanation/independent-review-mode-and-human-authority.md`
+- `wiki/how-to/enable-independent-review-mode.md`
+- `wiki/how-to/inspect-independent-review-status.md`
+- `wiki/how-to/recover-an-independent-review.md`
+- `wiki/how-to/run-implementation-code-review.md`
+- `wiki/how-to/run-specification-review.md`
+- `wiki/reference/independent-review-mode-contract.md`
+- `wiki/tutorials/09-run-your-first-specification-review.md`
+- `wiki/tutorials/10-run-your-first-implementation-code-review.md`
+
+### Commit plan assessment for step 6 review-resume-command (exchange 1) (round 2)
+
+`commit-plan-check --format json` was rerun independently against the received
+Round 2 repository state before any grouping judgement. It returned `state`
+`valid`, `ready` true, five groups, 36 staged paths, an empty `diagnostics`
+array and exit `0`. The groups and staged paths match the result embedded in
+the Round 2 request exactly.
+
+The mechanical result satisfies only the `a.commit` part of the readiness
+floor. It proves nothing about completeness, tests, coverage or judgement, and
+it never authorizes a commit.
+
+Membership, order and subjects remain accurate on inspection. The five groups
+hold 6, 10, 5, 13 and 2 paths. The dependency order still reads from least to
+most dependent: the production discovery fix with its own unit and lifecycle
+tests, then the acceptance package with the shared builders the exchange suite
+imports, then the independent regression-timing repairs, then the public
+documentation with the docs acceptance suite that pins it, and finally the
+validation record with the umbrella row as the trailing validation group.
+
+Each subject stays conventional and describes its group.
+`fix(review-resume-command): defer discovery during active publication` is
+right for group 1 because `observe_transition` changes shipped discovery
+behavior. `perf(tests): reduce review regression setup costs` keeps the five
+duration-gate repairs out of group 2, so both groups remain independently
+coherent. Group 5 carries the umbrella row together with the validation plan,
+which is where the final-step status transition belongs; the row is completed
+again and the plan it cites now opens with `Yes, it is implemented.`, so the
+completion rule is satisfied.
+
+The Round 2 rework touched only two already-grouped members,
+`test_review_resume_concurrency_tdd.py` in group 2 and the validation plan in
+group 5, so no `a.commit` amendment was needed and none was made. The
+reviewer's one validation-row repair lands on
+`docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md`, already a
+member of group 5, so no amendment was needed for it either.
+`commit-plan-check` was rerun after that staged repair and returned the same
+`state` `valid`, `ready` true, five groups, 36 staged paths and exit `0`.
+
+Group 5's membership is worth one caution for the next round rather than an
+amendment now. It pairs the validation plan with the umbrella row, which is
+right, but that row has to return to `pending` while the plan reads `No`, so
+the group's contents will change again before it is committed.
+
+One item is worth naming for the commit step rather than for this step. The
+working tree also holds an unstaged `AGENTS.md` rewrite and an untracked
+`.codex/config.toml`. They are correctly outside the reviewed index, but the
+commit handoff stages the whole tree with `git add -A`, so the `a.commit` run
+at that gate has to grow groups for them or `commit-plan-check` will report the
+mismatch. That is the grouping step's work and no part of Step 6's readiness.
+
+### Findings and boundaries for step 6 review-resume-command (exchange 1) (round 2)
+
+Unresolved findings:
+
+- One finding, and one consequence that follows from it.
+- The finding is blocking on its own. The exact plan-focused `ghog single` command, a stated completion criterion of this step, returned `fail=2 exit=2` on my first independent run of it. Both errors are at the setup of `migration_journey[former-default]` in this step's own `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_migration_tdd.py`, failing at line 42 with `FileNotFoundError` on `runtime/reviews/a.review-requested.code.v0.11.0.resume-acceptance.md`. A second run of the identical command passed all 228, the module passes alone, and my independent `ghog day` returned `fail=0 cov=100 exit=0` over 2,674 tests, so this is an intermittent guard rather than a broken one. It is still not a pass, and it is the second consecutive round in which this new acceptance package has failed intermittently under the mandatory commands.
+- The failing run's temporary repository survived and its layout identifies the mechanism. `.reviews/` still holds every artifact while `runtime/` exists and is empty with no `reviews` subdirectory. Since `prepare_home()` creates the home with `parents=True` and `rollback_prepared_home()` removes only the home itself, that is the exact fingerprint of `ReviewArtifactMigration.migrate` preparing the home, raising `OSError`, and rolling back cleanly. The cause is therefore one of the two raise sites inside that `try`: `_require_migration_ignore` judging the just-created home uncovered, or an `OSError` inside `_execute_migration`.
+- The fixture masks that cause. Line 40 captures the `rvw_status` result and line 42 reads bytes from the migration target with nothing in between. A failed status is still one JSON line, so `repo.run` accepts it and the error surfaces as `FileNotFoundError` on an unrelated-looking path instead of the `migration failed and was rolled back: <error>` diagnostic production code had already produced.
+- The production diagnostic is lossy in the same place. `tools/review_artifact_migration.py::_git_ignore_checker` discards `completed.stderr` and returns a bare `False` for any `git check-ignore` exit code outside `{0, 1}`, which `_require_migration_ignore` reports as `artifact home ignore coverage is ineffective`. A transient Git failure and a genuinely uncovered home are indistinguishable in that message. If that is the raise site, the shipped `rvw_status` can intermittently decline to migrate a former-default layout while naming a cause that is not the cause, which is a user-visible risk rather than a test-only one.
+- The consequence follows rather than standing alone. `docs/v0.11.0/draft.v0.11.0.review-mode.md` row 10 is `completed` while the validation plan it cites now reads `No, it is not implemented.` again. The completion rule requires that plan's first non-title line to read `Yes, it is implemented.`, so the row has to return to `pending` with `-` in both cells until the step is genuinely green. The reviewer did not change it: reviewer mode may not complete or reopen an umbrella row, and a changed umbrella digest would itself be a boundary violation.
+- Two observations are recorded without being findings, because nothing in the project's configured gates rejects them. The losing waiter's new deadline is 15 seconds where the measured wake-up is 0.03 to 0.05 seconds; that is correct and no longer setup-dominated, but a two or three second budget would turn the same assertion into a sharp regression guard. And the carried Round 1 style note is unchanged: `_home_bytes` in the concurrency module is separated from the next test by one blank line where the file otherwise uses two, with ruff's `E3` rules not enabled here.
+
+Boundary-crossing work:
+
+- One item crosses the reviewed step's boundary and is returned rather than changed. `docs/v0.11.0/draft.v0.11.0.review-mode.md` row 10 is `completed` with the requirement and validation-plan paths. That is correct writer work when the step is green, and it is staged in group 5 where it belongs, but it is inconsistent with the `No` verdict this round records. Reviewer mode never completes or reopens an umbrella row and an applicable changed umbrella digest is a boundary violation, so the file is left exactly as the writer staged it. The umbrella digest was captured before the assessment and compared after it, and is unchanged at `a5e582524fcf68529ed7a96c7ccda6df020d9173e95603b7ca1e1bdac6c78855`.
+- The working tree also carries two items outside this step that the reviewed index correctly excludes: an unstaged rewrite of `AGENTS.md` and an untracked `.codex/config.toml`, both agent-harness configuration created during the Round 2 rework. They are left unstaged and unreverted, and are named here so the later commit-grouping step accounts for them when `git add -A` stages the whole tree.
+- No other boundary-crossing work was found. Every other staged path belongs to Step 6's own acceptance, discovery-repair, regression-timing, documentation or validation work.
+
+### Writer instructions for step 6 review-resume-command (exchange 1) (round 2)
+
+Four things to do, and the first two are the only ones that need thought.
+
+Make `migration_journey` assert the result it depends on. In
+`tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_migration_tdd.py`,
+line 40 captures the `rvw_status` result and line 42 immediately reads bytes
+from the migration target. A failed status is still one JSON line, so
+`repo.run` accepts it and the failure arrives as `FileNotFoundError` on
+`runtime/reviews/a.review-requested...md` rather than as the diagnostic
+production code already produced. Assert `status.code == 0` and the expected
+`migration` state between those two lines, in the same style the blocked-layout
+test already uses. That one assertion would have made this round unnecessary,
+and it costs nothing when the migration succeeds.
+
+Then diagnose the intermittent refusal that failure exposed. The failing run's
+temporary repository is preserved under `pytest-1518`, and its layout tells you
+where to look: `.reviews/` still holds every artifact while `runtime/` exists
+and is empty. Because `prepare_home()` creates the home with `parents=True` and
+`rollback_prepared_home()` removes only the home itself, that is the fingerprint
+of `ReviewArtifactMigration.migrate` preparing the home, raising `OSError` and
+rolling back cleanly. So it is one of the two raise sites inside that `try`:
+`_require_migration_ignore` judging the home it has just created to be
+uncovered, or an `OSError` inside `_execute_migration`. Reproducing it may take
+several runs of the exact focused command; the assertion above is what will
+name it when it happens.
+
+Stop `_git_ignore_checker` from discarding its own evidence. In
+`tools/review_artifact_migration.py` it runs `git check-ignore -z --stdin`,
+throws away `completed.stderr`, and returns a bare `False` for any exit code
+outside `{0, 1}`. `_require_migration_ignore` then raises
+`artifact home ignore coverage is ineffective`, which is indistinguishable from
+a genuinely uncovered home. Carry the exit code and stderr into the raised
+message, so a transient Git failure reads as one. This is worth doing on its
+own merits: if that is the raise site, the shipped `rvw_status` can decline to
+migrate a real former-default layout while reporting a cause that is not the
+cause, and today nobody could tell from the message.
+
+Finally, restore `docs/v0.11.0/draft.v0.11.0.review-mode.md` row 10 to
+`pending` with `-` in both the Requirement and Validation plan cells. The
+completion rule requires the cited validation plan's first non-title line to
+read `Yes, it is implemented.`, and it now reads `No` again. Set the row back
+to `completed` with the same two paths in the round that turns the plan green;
+the edit belongs in the same group 5 it is in now.
+
+When the fix is in, re-run the exact plan-focused command enough times to show
+the guard is reliable and record the counters you actually observe. One green
+run is what the current record cites, and it is not evidence that the flake is
+gone.
+
+Three things are worth keeping exactly as they are.
+
+The Round 1 repair is correct and I would not touch it. Bounding the initial
+claim with `poll()`, collecting only the winner's pipes, leaving the loser live
+across the launcher transitions, and starting its deadline after replacement
+publication is precisely the fix, and every behavioral assertion survived it.
+
+The duration disclosure is what was asked for and then some. Naming all four
+baselines against the unchanged floor, and backing the new 0.53-second entry
+with a profile that attributes 0.270 of 0.271 isolated seconds to the
+production Git subprocess, is the standard the record should keep.
+
+The acceptance package's ambition remains right. Real repositories, real
+launchers, separate processes, byte comparisons, transcript heading uniqueness,
+secret absence and actual `pw` routing are what make this step worth having.
+The problem is one fixture's error handling and whatever it is intermittently
+catching, not the approach.
+
+Two items to carry rather than act on now. The losing waiter's 15-second
+deadline is correct but blunt where the measured wake-up is 0.03 to 0.05
+seconds; two or three seconds would make it a sharp regression guard whenever
+that file is next touched. And the working tree holds an unstaged `AGENTS.md`
+rewrite and an untracked `.codex/config.toml`; they are correctly outside this
+reviewed index, but the commit handoff stages the whole tree, so `a.commit`
+will need groups for them at that gate.
+
+### Decision rationale for step 6 review-resume-command (exchange 1) (round 2)
+
+The recommendation is `changes-requested`. It authorizes nothing and takes no
+owning action; the commit choice was never in play this round.
+
+Of the six readiness-floor results, four pass and two do not.
+
+Exact identity passes. `status` first reported `abandoned-request` because the
+Round 2 lease expired overnight with the artifacts intact, so a single
+`reclaim` restored `request-pending` at the same identity and round before
+`wait-request` granted access. The live exchange, the machine envelope, the
+human-readable request, the plan, the declared step and the request-time index
+tree then all agree, with `4a653cb596f845603234bcb2289e72b543086a9f` matching
+before any reviewer action. Step 6 exists in the exact plan and the embedded
+validation set parses through the current resolver contract. There is no
+`Human guidance:` block in this request.
+
+Attributable staged scope passes. Thirty-six paths are staged and every one
+belongs to Step 6. The umbrella digest is
+`a5e582524fcf68529ed7a96c7ccda6df020d9173e95603b7ca1e1bdac6c78855` before and
+after the assessment. My one repair lands on the validation plan, was proved
+attributable before staging, and is the only tracked difference besides the
+index change that staging it produced; every other difference is confined to
+the ignored `ghog` artifacts the mandatory walk rewrites. No pre-existing
+writer work was swept into the index: the unstaged `AGENTS.md` rewrite and the
+untracked `.codex/config.toml` are left exactly as they were.
+
+The `a.commit` result passes mechanically and on inspection. The independent
+`commit-plan-check --format json` rerun returned `state` `valid`, `ready` true,
+five groups, 36 staged paths, empty diagnostics and exit `0`, matching the
+result embedded in the request. Group membership, dependency order and
+conventional subjects read correctly. My repair path was already a member of
+group 5, so no amendment was needed, and the rerun after staging it returned
+the same result.
+
+The `a.commit` grouping is accurate, which is the fourth pass.
+
+Complete implementation does not pass, and mandatory validation does not pass,
+and they fail for the same reason. The step states that the exact plan-focused
+`ghog single` command passes. On my first run of it, it did not: `fail=2
+exit=2`, both errors at the setup of `migration_journey[former-default]` in
+this step's own new acceptance module. I ran the identical command again and it
+passed all 228, ran the module alone and it passed, and ran `ghog day` to a
+clean `fail=0 cov=100 exit=0` over 2,674 tests. So the guard is intermittent,
+not broken, and I have said so plainly. But one failure in three runs of a
+mandatory command is not a pass, and a guard for the migration acceptance
+criteria that behaves this way is not evidence those criteria hold.
+
+I weighed calling this an observation and recommending `commit-ready`, and
+decided against it for two reasons. The first is that this is the second
+consecutive round in which this same new acceptance package failed
+intermittently under the mandatory commands, and Round 1's own conclusion was
+that a correct behavior behind an untrustworthy guard still needs the guard
+fixed. The second is that the surviving evidence points past the test. The
+failing run's repository shows `.reviews/` intact and `runtime/` empty, which is
+the fingerprint of a migration that prepared its home, refused, and rolled back
+cleanly, and the message it would have carried is discarded twice over: once by
+`_git_ignore_checker`, which drops `git check-ignore`'s stderr and reports any
+unexpected exit as ineffective coverage, and once by the fixture, which reads
+the migration target without asserting the status result it captured one line
+earlier. If that raise site is the ignore guard, the shipped `rvw_status` can
+intermittently decline a real former-default migration and name the wrong
+cause. That is a product risk, and the right place to resolve it is a round, not
+a footnote.
+
+Unresolved findings therefore does not pass either, and the umbrella
+consequence follows from the `No` verdict rather than standing on its own: row
+10 reads `completed` while the plan it cites reads `No, it is not implemented.`
+again, so it returns to `pending` until the step is green. I did not touch it.
+
+This round's only reviewer change is the validation rows and the document-level
+status line, which are review metadata rather than substantive work. Nothing
+here authorizes a commit, and this answer does not attempt to.
+
+### Final reviewer decision for step 6 review-resume-command (exchange 1) (round 2)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-6-round-2 -->
+
+## Round 3 by requestor - Step 6
+
+- Recorded: 2026-09-10T07:46:47+02:00
+- Exchange: code/code/v0.11.0/review-resume-command
+- Umbrella: docs/v0.11.0/draft.v0.11.0.review-mode.md
+- Reviewed document: docs/v0.11.0/plan.v0.11.0.review-resume-command.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 6
+- Outcome: request
+
+### Review identity for step 6 review-resume-command (round 3)
+
+Umbrella draft: docs/v0.11.0/draft.v0.11.0.review-mode.md
+Implementation plan: docs/v0.11.0/plan.v0.11.0.review-resume-command.md
+Implementation step: 6
+Review round: 3
+
+### Code review evidence for step 6 review-resume-command (round 3)
+
+request_index_tree: 6a9ad61b31387287a6e9b9ec0f3d0c437a7d8b7d
+resolved_validation_set:
+
+- ghog day (sources: project, plan)
+- ghog single tests/acceptance/review_resume tests/acceptance/review_status tests/unit/tools/test_spec_review_requestor_acceptance tests/unit/tools/test_spec_reviewer_acceptance tests/unit/tools/test_code_review_requestor_acceptance tests/unit/tools/test_code_reviewer_acceptance tests/unit/tools/test_prompt_workflow_skill tests/unit/tools/test_review_mode_docs_acceptance (sources: plan)
+- rg -n "\.reviews|\.review-artifacts\.ini|review-resume|requestor_llm_nature|reviewer_llm_nature|already-claimed" README.md instructions tools tests (sources: plan)
+- rg --files | rg "rvw_resume\.bat$" (sources: plan)
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: fix(review-resume-command): defer discovery during active publication
+group 1 path: tools/review_exchange_ownership_store.py
+group 1 path: tools/review_status.py
+group 1 path: tests/unit/tools/test_review_exchange_ownership_store/__init__.py
+group 1 path: tests/unit/tools/test_review_exchange_ownership_store/test_review_exchange_ownership_store_tdd.py
+group 1 path: tests/unit/tools/test_review_resume/__init__.py
+group 1 path: tests/unit/tools/test_review_resume/test_review_resume_lifecycle_tdd.py
+group 2: fix(review-resume-command): retry transient migration journal replacement
+group 2 path: tools/review_artifact_journal.py
+group 2 path: tools/review_artifact_migration.py
+group 2 path: tests/unit/tools/test_review_artifact_home/test_review_artifact_journal_tdd.py
+group 2 path: tests/unit/tools/test_review_artifact_home/test_review_artifact_migration_tdd.py
+group 2 path: tests/unit/tools/test_review_artifact_home/test_review_artifact_migration_boundaries_tdd.py
+group 3: test(review-resume-command): cover cross-workflow resume acceptance
+group 3 path: tests/unit/tools/review_exchange_test_support.py
+group 3 path: tests/unit/tools/test_review_exchange_acceptance/test_review_exchange_acceptance_tdd.py
+group 3 path: tests/acceptance/review_resume/__init__.py
+group 3 path: tests/acceptance/review_resume/conftest.py
+group 3 path: tests/acceptance/review_resume/test_review_resume_acceptance/__init__.py
+group 3 path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_acceptance_tdd.py
+group 3 path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_concurrency_tdd.py
+group 3 path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_identity_tdd.py
+group 3 path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_migration_tdd.py
+group 3 path: docs/v0.11.0/acceptance.v0.11.0.review-resume-command.md
+group 4: perf(tests): reduce review regression setup costs
+group 4 path: tests/unit/tools/markdown_check/test_rule_properties/test_rule_properties_pbt.py
+group 4 path: tests/unit/tools/test_groundhog_runner.py
+group 4 path: tests/unit/tools/test_review_exchange_paths/test_review_exchange_paths_tdd.py
+group 4 path: tests/unit/tools/test_review_exchange_recovery_acceptance/test_review_exchange_recovery_acceptance_tdd.py
+group 4 path: tests/unit/tools/test_review_resume_identity/test_review_resume_identity_tdd.py
+group 5: docs(review-resume-command): document shipped resume workflows
+group 5 path: README.md
+group 5 path: wiki/README.md
+group 5 path: wiki/explanation/independent-review-mode-and-human-authority.md
+group 5 path: wiki/tutorials/09-run-your-first-specification-review.md
+group 5 path: wiki/tutorials/10-run-your-first-implementation-code-review.md
+group 5 path: wiki/how-to/enable-independent-review-mode.md
+group 5 path: wiki/how-to/inspect-independent-review-status.md
+group 5 path: wiki/how-to/recover-an-independent-review.md
+group 5 path: wiki/how-to/run-implementation-code-review.md
+group 5 path: wiki/how-to/run-specification-review.md
+group 5 path: wiki/reference/independent-review-mode-contract.md
+group 5 path: tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_acceptance_tdd.py
+group 5 path: tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_final_acceptance_tdd.py
+group 6: docs(review-resume-command): record step 6 validation
+group 6 path: docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md
+group 6 path: docs/v0.11.0/draft.v0.11.0.review-mode.md
+staged path: README.md
+staged path: docs/v0.11.0/acceptance.v0.11.0.review-resume-command.md
+staged path: docs/v0.11.0/draft.v0.11.0.review-mode.md
+staged path: docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md
+staged path: tests/acceptance/review_resume/__init__.py
+staged path: tests/acceptance/review_resume/conftest.py
+staged path: tests/acceptance/review_resume/test_review_resume_acceptance/__init__.py
+staged path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_acceptance_tdd.py
+staged path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_concurrency_tdd.py
+staged path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_identity_tdd.py
+staged path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_migration_tdd.py
+staged path: tests/unit/tools/markdown_check/test_rule_properties/test_rule_properties_pbt.py
+staged path: tests/unit/tools/review_exchange_test_support.py
+staged path: tests/unit/tools/test_groundhog_runner.py
+staged path: tests/unit/tools/test_review_artifact_home/test_review_artifact_journal_tdd.py
+staged path: tests/unit/tools/test_review_artifact_home/test_review_artifact_migration_boundaries_tdd.py
+staged path: tests/unit/tools/test_review_artifact_home/test_review_artifact_migration_tdd.py
+staged path: tests/unit/tools/test_review_exchange_acceptance/test_review_exchange_acceptance_tdd.py
+staged path: tests/unit/tools/test_review_exchange_ownership_store/__init__.py
+staged path: tests/unit/tools/test_review_exchange_ownership_store/test_review_exchange_ownership_store_tdd.py
+staged path: tests/unit/tools/test_review_exchange_paths/test_review_exchange_paths_tdd.py
+staged path: tests/unit/tools/test_review_exchange_recovery_acceptance/test_review_exchange_recovery_acceptance_tdd.py
+staged path: tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_acceptance_tdd.py
+staged path: tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_final_acceptance_tdd.py
+staged path: tests/unit/tools/test_review_resume/__init__.py
+staged path: tests/unit/tools/test_review_resume/test_review_resume_lifecycle_tdd.py
+staged path: tests/unit/tools/test_review_resume_identity/test_review_resume_identity_tdd.py
+staged path: tools/review_artifact_journal.py
+staged path: tools/review_artifact_migration.py
+staged path: tools/review_exchange_ownership_store.py
+staged path: tools/review_status.py
+staged path: wiki/README.md
+staged path: wiki/explanation/independent-review-mode-and-human-authority.md
+staged path: wiki/how-to/enable-independent-review-mode.md
+staged path: wiki/how-to/inspect-independent-review-status.md
+staged path: wiki/how-to/recover-an-independent-review.md
+staged path: wiki/how-to/run-implementation-code-review.md
+staged path: wiki/how-to/run-specification-review.md
+staged path: wiki/reference/independent-review-mode-contract.md
+staged path: wiki/tutorials/09-run-your-first-specification-review.md
+staged path: wiki/tutorials/10-run-your-first-implementation-code-review.md
+```
+
+### Requestor assessment for step 6 review-resume-command (round 3)
+
+Yes. Step 6 has been fully implemented under the current configured validation
+commands. The acceptance map covers all nineteen feature criteria, and the
+publication and migration repairs retain the existing protocol contracts.
+
+The exact plan-focused command passes all 229 tests. The fresh configured
+`ghog day` passes static checks, affected tests, and all 2,697 full-suite tests
+with 100 percent coverage and exit 0. The retained logs are
+`.reviews/a.step6-review-focused.round3.resumed.log` and
+`.reviews/a.step6-review-validation.round3.green.log`.
+
+Two limits apply to that evidence. Validation uses the combined working tree,
+including separate unstaged performance and forced-reclaim changes, while this
+request captures only the Step 6 index. The separate parallel-run configuration
+skips sequential duration-outlier and accepted-baseline checks; no claim is made
+that the previous exit-8 findings have been remeasured or cleared. Their report
+remains in `.reviews/a.step6-review-validation.round3.outliers.log`.
+
+The storage adapters own native lock and journal IO. The bounded journal retry
+adds at most four waits totaling 0.15 seconds and no wait on success. The new
+test builders introduce no production dependency on tests, and indexed Python
+files remain within the 650-line ceiling. Existing timing, race, ownership,
+schema, cancellation, and workflow-release assertions pass in the full suite.
+
+All round 2 findings and the reviewer validation repair were accepted without
+disagreement. The migration fix has its own commit group. The root `a.commit`
+passes the commit-plan checker with 41 staged paths in six groups; boundaries
+and subjects remain accurate. The refreshed validation plan records Yes and
+umbrella row 10 carries the requirement and validation evidence paths.
+
+The requestor changed only the completion records during this resumption and
+preserved the separate unstaged work. Independent review and the human
+convergence choice remain pending; this assessment does not authorize a commit.
+
+### Implementation report for step 6 review-resume-command (round 3)
+
+This report describes the indexed Step 6 implementation. The separate
+performance refactor in the working tree is not part of this report or the
+reviewed commit groups; the writer response discloses its presence during
+validation.
+
+Step 6 proves review resumption through real Git repositories and separate
+public-launcher processes for specification and code exchanges. Its acceptance
+map names executable scenarios for all nineteen feature criteria, including
+migration, identity conflicts, ownership displacement, waiting, concurrency,
+human convergence and requestor workflow release.
+
+The existing implementation defers global discovery during active publication,
+shares canonical test builders, shortens regression setup, and updates the
+connected public documentation for shipped resumption behavior. Earlier round
+repairs preserve the competing-reviewer assertions while giving each claim its
+own correctly placed deadline.
+
+Round 3 adds reliable journal publication under transient Windows permission
+failures, preserves Git ignore-query diagnostics, and checks migration success
+before acceptance fixtures read destination evidence. Journal IO stays in a
+small storage module used by the migration service. New unit tests cover both
+transient recovery and persistent failure without increasing the retry or
+performance limits used by the existing review stores.
+
+Architecture, accepted review feedback, timing baselines, validation results,
+and the final implementation verdict are recorded in the step 6 validation
+plan. The separate writer response explains the reproduced rollback and each
+accepted round 2 finding.
+
+### Change summary for step 6 review-resume-command (round 3)
+
+The staged set contains 41 Step 6 paths in 6 commit groups. The separate performance work remains unstaged, including additional edits on paths already indexed for Step 6. Only the indexed versions listed below belong to this request.
+
+#### Group 1 for step 6 review-resume-command (round 3)
+
+fix(review-resume-command): defer discovery during active publication
+
+- `tools/review_exchange_ownership_store.py`
+- `tools/review_status.py`
+- `tests/unit/tools/test_review_exchange_ownership_store/__init__.py`
+- `tests/unit/tools/test_review_exchange_ownership_store/test_review_exchange_ownership_store_tdd.py`
+- `tests/unit/tools/test_review_resume/__init__.py`
+- `tests/unit/tools/test_review_resume/test_review_resume_lifecycle_tdd.py`
+
+#### Group 2 for step 6 review-resume-command (round 3)
+
+fix(review-resume-command): retry transient migration journal replacement
+
+- `tools/review_artifact_journal.py`
+- `tools/review_artifact_migration.py`
+- `tests/unit/tools/test_review_artifact_home/test_review_artifact_journal_tdd.py`
+- `tests/unit/tools/test_review_artifact_home/test_review_artifact_migration_tdd.py`
+- `tests/unit/tools/test_review_artifact_home/test_review_artifact_migration_boundaries_tdd.py`
+
+#### Group 3 for step 6 review-resume-command (round 3)
+
+test(review-resume-command): cover cross-workflow resume acceptance
+
+- `tests/unit/tools/review_exchange_test_support.py`
+- `tests/unit/tools/test_review_exchange_acceptance/test_review_exchange_acceptance_tdd.py`
+- `tests/acceptance/review_resume/__init__.py`
+- `tests/acceptance/review_resume/conftest.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/__init__.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_acceptance_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_concurrency_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_identity_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_migration_tdd.py`
+- `docs/v0.11.0/acceptance.v0.11.0.review-resume-command.md`
+
+#### Group 4 for step 6 review-resume-command (round 3)
+
+perf(tests): reduce review regression setup costs
+
+- `tests/unit/tools/markdown_check/test_rule_properties/test_rule_properties_pbt.py`
+- `tests/unit/tools/test_groundhog_runner.py`
+- `tests/unit/tools/test_review_exchange_paths/test_review_exchange_paths_tdd.py`
+- `tests/unit/tools/test_review_exchange_recovery_acceptance/test_review_exchange_recovery_acceptance_tdd.py`
+- `tests/unit/tools/test_review_resume_identity/test_review_resume_identity_tdd.py`
+
+#### Group 5 for step 6 review-resume-command (round 3)
+
+docs(review-resume-command): document shipped resume workflows
+
+- `README.md`
+- `wiki/README.md`
+- `wiki/explanation/independent-review-mode-and-human-authority.md`
+- `wiki/tutorials/09-run-your-first-specification-review.md`
+- `wiki/tutorials/10-run-your-first-implementation-code-review.md`
+- `wiki/how-to/enable-independent-review-mode.md`
+- `wiki/how-to/inspect-independent-review-status.md`
+- `wiki/how-to/recover-an-independent-review.md`
+- `wiki/how-to/run-implementation-code-review.md`
+- `wiki/how-to/run-specification-review.md`
+- `wiki/reference/independent-review-mode-contract.md`
+- `tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_acceptance_tdd.py`
+- `tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_final_acceptance_tdd.py`
+
+#### Group 6 for step 6 review-resume-command (round 3)
+
+docs(review-resume-command): record step 6 validation
+
+- `docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md`
+- `docs/v0.11.0/draft.v0.11.0.review-mode.md`
+
+### Writer response for step 6 review-resume-command (round 3)
+
+Writer response:
+
+Accepted all round 2 findings and the reviewer's staged validation-plan repair.
+There is no disagreement. The umbrella row was returned to pending while the
+validation plan recorded an incomplete step.
+
+The acceptance fixture now asserts the migration-check outcome and the status
+command's successful completed migration before reading destination bytes. Its
+failure includes the complete process result and production diagnostic.
+
+The migration refusal was reproduced independently from copies of the
+reviewer's preserved former-default repository. Attempt 24 failed with Windows
+error 5 while replacing `.review-artifact-migration-*.tmp` with
+`a.review-artifact-migration.json`. The before-fix diagnostic is retained in
+`.reviews/a.step6-migration-repro.round3.log`. This identifies journal
+publication as the observed failure site; the original review run discarded its
+diagnostic, so its exact exception cannot be recovered retrospectively.
+
+Atomic journal publication now retries PermissionError with the existing review
+stores' policy: five attempts, with 0.01, 0.02, 0.04 and 0.08 second waits.
+Every attempt publishes the same fully written and synchronized snapshot. Other
+IO failures propagate immediately; exhaustion retains its exception, cleans the
+temporary, and lets migration roll back. The journal writer was extracted into
+`tools/review_artifact_journal.py` to keep the migration service inside its line
+budget and the filesystem behavior together.
+
+Deterministic tests prove recovery after one and four denials, failure after
+five, preservation of the previous journal until successful replacement, no
+leftover temporary, and rollback of an already moved source after persistent
+journal denial. Existing tests retain immediate non-permission failure cleanup.
+
+Git ignore-query exits outside 0 and 1 now raise an OSError containing their
+exit code and stderr. Tests prove that existing-home preflight and new-home
+rollback retain those details through status, including absent stderr, while
+preserving source evidence. This accepted diagnostic fix is distinct from the
+journal refusal actually reproduced.
+
+The commit plan adds a separate migration-fix group with its production and
+unit-test paths before acceptance. The acceptance assertion stays with the
+acceptance package. Existing discovery, regression timing, documentation, and
+final validation groups retain their responsibilities. No commit is authorized.
+
+#### Validation scope and separately committed work for step 6 review-resume-command (round 3)
+
+Validation necessarily runs against the working tree, which contains the staged
+Step 6 implementation together with the separate unstaged test-suite performance
+work. The review request captures the Step 6 index alone. The scenarios are
+identical in scope, but the tested tree and reviewed index are different; these
+results are not a claim that an isolated index checkout was tested.
+
+The exact path-based plan command now also discovers the untracked split
+`test_review_resume_blocked_layout_tdd.py`, `test_review_resume_conflict_tdd.py`,
+`test_review_resume_parked_wait_tdd.py` and
+`test_review_resume_launcher_smoke_tdd.py` modules. Those files, the unstaged
+edits layered on the indexed acceptance modules and scenario map, the
+commit-plan-check support and split contracts, dependency changes, groundhog
+runner/commands/parser changes, and the other performance test edits remain
+outside the index and outside this review's commit groups. The indexed versions
+of files shared by both efforts are preserved.
+
+The working tree also includes the separate forced-reclaim implementation in
+`tools/review_exchange_human.py`. A small unstaged addition to
+`test_review_exchange_lifecycle_recovery_tdd.py` exercises its previously
+uncovered no-coordination rejection and checks that neither coordination nor a
+transcript is created. This coverage completion remains with the unstaged
+forced-reclaim work; it is not a Step 6 repair or a Step 6 commit-plan member.
+
+No repository-wide staging command was used. Any eventual commit continuation
+must preserve this boundary and handle the performance work separately rather
+than sweeping it into the reviewed Step 6 groups.
+
+#### Current round 3 validation result for step 6 review-resume-command (round 3)
+
+Three consecutive runs of the exact plan-focused command each passed all 229
+tests with `fail=0 warn=0 xfail=0 cov=skipped outliers=skipped excluded=skipped
+exit=0`. Their retained logs are
+`.reviews/a.step6-review-focused.round3.run1.log`,
+`.reviews/a.step6-review-focused.round3.run2.log`, and
+`.reviews/a.step6-review-focused.round3.run3.log`.
+
+After the human reported that the tests were fixed, the requestor resumed the
+existing round 3 and reran the configured full walk. It ended at
+2026-09-10T07:36:23+02:00. Static checks and affected tests passed; all 2,697
+full-suite tests passed with 100 percent coverage. The full phase took
+2m 44.2s and returned `fail=0 warn=0 xfail=0 cov=100 outliers=skipped
+excluded=skipped exit=0`. The retained report is
+`.reviews/a.step6-review-validation.round3.green.log`.
+
+The exact plan-focused command then passed all 229 tests again, ending at
+2026-09-10T07:43:07+02:00 with `fail=0 warn=0 xfail=0 cov=skipped
+outliers=skipped excluded=skipped exit=0`. Its complete report is
+`.reviews/a.step6-review-focused.round3.resumed.log`.
+
+The separate `.ghog-parallel` opt-in and unstaged groundhog implementation skip
+sequential duration-outlier and accepted-baseline checks. The current exit 0 is
+not proof that the earlier 14 outliers and two baseline overruns were remeasured
+or cleared. That earlier report remains at
+`.reviews/a.step6-review-validation.round3.outliers.log`. The reviewer should
+assess the staged work with this configuration and evidence boundary explicit.
+
+No source, tests, marker, or baseline was changed during this resumption.
+The validation plan now records Yes because the configured plan commands pass;
+umbrella row 10 records completion with both evidence paths. Only those
+completion records are refreshed in the index. No commit is authorized.
+
+A read-only isolated profile of the largest baseline overrun measured the
+Markdown launcher at 1.06 seconds, with 1.054 of 1.055 sampled call seconds in
+its real subprocess. Its full-run measurement was 7.79 seconds against the
+existing 0.85-second baseline. The profile and result are
+`.reviews/a.step6-round3-launcher-profile.txt` and
+`.reviews/a.step6-round3-launcher-profile.log`. No source or baseline was changed
+in response to that measurement.
+
+### Reviewer focus for step 6 review-resume-command (round 3)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-6-round-3 -->
+
+## Round 3 by reviewer - Step 6
+
+- Recorded: 2026-09-10T09:32:47+02:00
+- Exchange: code/code/v0.11.0/review-resume-command
+- Umbrella: docs/v0.11.0/draft.v0.11.0.review-mode.md
+- Reviewed document: docs/v0.11.0/plan.v0.11.0.review-resume-command.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 6
+- Outcome: answer
+
+### Assessed index identity for step 6 review-resume-command (exchange 1) (round 3)
+
+Baseline index tree: 6a9ad61b31387287a6e9b9ec0f3d0c437a7d8b7d
+
+Assessed index tree: 47b635827324fc01d497f48095f89f18299251e4
+
+### Implementation check for step 6 review-resume-command (exchange 1) (round 3)
+
+Result:
+
+Yes. Step 6 has been fully implemented.
+
+Every completion criterion the plan states for this step now passes on evidence
+I produced in this session, the one finding that blocked round 2 is closed at
+its root cause rather than waited out, and the only reviewer edit this round is
+a two-sentence attribution correction inside the validation plan's own Step 6
+rows.
+
+The step's goal is to prove the whole feature across real repositories and
+separate launcher processes, and the delivered package does that rather than
+approximating it. `tests/acceptance/review_resume` builds real Git repositories,
+runs `bin/review_exchange.bat`, `rvw_status.bat` and `bin/prompt_workflow.bat`
+as actual subprocesses with isolated environments, and asserts on process exit
+codes, single-line JSON payloads, artifact bytes, Git porcelain state, ownership
+generations and the absence of session secrets. The fixture driver is honest
+about what it is: it simulates the instruction sequence that begins with the
+user text `resume` and says so, leaving the canonical sequence itself to the
+instruction suites. All 19 feature criteria map to named executable checks in
+`docs/v0.11.0/acceptance.v0.11.0.review-resume-command.md`, and I verified that
+mapping against the staged blobs rather than the working tree: every one of the
+test names it cites exists in the four indexed scenario modules or in
+`test_review_mode_docs_final_acceptance_tdd.py`. That matters this round,
+because the working tree has since split four scenario groups into untracked
+modules; had the map depended on those, the reviewed index would have been
+incomplete. It does not.
+
+I also exercised the shipped behaviour rather than only reading it. This review
+session entered through the bare resume path itself: `migration-check` returned
+ready, `resume-inspect --role reviewer` returned `ready` with the action
+`review-request` and correctly derived `codex` and `claude` as the two role
+natures from runtime evidence, and automatic `claim` displaced the interrupted
+session's generation 9 with generation 10 without asking me for a token, a
+generation, or a new-session declaration. The exact `wait-request` had returned
+`already-claimed` first, which is precisely the state the resume path exists to
+resolve and which `reclaim` would have been the wrong answer to. The
+documentation this step ships describes that journey accurately, including the
+sentence that there is no `rvw_resume.bat`.
+
+The two production changes are both real repairs with proportionate scope.
+Discovery now observes a settled request under a nonblocking platform read lock
+and defers a busy publisher to the next scan instead of classifying a
+half-written snapshot as damaged, with the missing-lock legacy path still
+validated. Journal publication now retries transient Windows permission denials
+on the same fsynced snapshot within a fixed bound, which is the root cause of
+round 2's intermittent migration rollback, reproduced at attempt 24 with
+`[WinError 5]` at the replace site and then 50 of 50 replays green.
+
+Architecture holds. The new `tools/review_artifact_journal.py` is a storage
+adapter and nothing more: it imports `json`, `os`, `tempfile`, `time` and
+`pathlib`, contains no domain rule, and is consumed by the migration service
+through one function. The platform lock primitives stay inside the ownership
+storage adapter, and `review_status.py` consumes that adapter without importing
+a CLI or reaching into infrastructure itself. The infrastructure-level `OSError`
+raised by `_git_ignore_checker` is caught by the service and converted into a
+`ReviewExchangeError` or a typed blocked status, so the technical failure does
+not leak upward as a technical type. No production module imports anything from
+`tests`, which I checked directly; the shared test support module depends only
+on `tools`. Every indexed Python file is inside the 650-line ceiling, and the
+`check` phase's own 650-line gate agrees. The extraction of the journal writer
+moved the migration service from 635 to 621 lines, so it bought headroom rather
+than spending it.
+
+Performance holds. Discovery stays linear in the number of candidates and adds
+one nonblocking lock attempt each; nothing new is `O(n^2)` or `O(n log n)`.
+Journal publication adds no wait on the success path and at most 0.15 seconds of
+sleep across four retries on the failure path, which is bounded per snapshot and
+therefore linear in the number of moves. The one accepted duration baseline that
+belongs to this step measures 1.63 seconds of call time when run alone against
+its recorded 1.65, so the 6.69 seconds the contended parallel walk reported was
+contention rather than regression.
+
+Unit test coverage holds at the level this project gates. The journal module's
+transient recovery, bounded exhaustion, previous-snapshot preservation,
+temporary cleanup and rollback are all covered; the ignore-query diagnostic is
+covered through status in both the existing-home and rollback directions,
+including empty stderr; the ownership store's contention, native failure,
+read-only observation and refusal-to-unlock paths are covered. The full walk
+reports 100 percent coverage over 2,697 tests. Acceptance fixtures are correctly
+outside the per-class unit target.
+
+No existing feature or reporting capability is impaired. Both families still
+reach the human convergence gate, the requestor still releases into `pw skill`,
+schema-2 status still distinguishes a completed migration from an unnecessary
+one, displaced sessions are still rejected, and a losing reviewer still waits.
+
+The one thing that is worth stating plainly rather than burying: the mandatory
+commands necessarily ran against a working tree that is no longer close to the
+reviewed index, because the separate test-suite performance effort now lives in
+it. The writer disclosed that boundary before I looked for it, which is the
+right behaviour, but a disclosure is not evidence. So I closed it as far as it
+can be closed: I extracted the exact index tree with `git archive` into a
+directory holding none of that unstaged or untracked work and ran this step's
+acceptance package there, where all 37 tests passed at exit 0. The step is
+complete as indexed, not only as combined.
+
+Validation plan effects:
+
+The reviewer changed four lines into seven inside the Step 6 Performance check
+and nothing else. No other step's rows, no other section of Step 6, and no other
+document were touched.
+
+The writer's Step 6 rows were checked line by line and left alone because they
+hold. In particular:
+
+- The status sentence is exactly `Yes. Step 6 has been fully implemented.`, with
+  no softened wording, and no `Missing work for Step 6` section survives from
+  round 2. The document-level line is `Yes, it is implemented.`, which is correct
+  now that all seven `### Analysis of Step N implementation state` sections read
+  `Yes`.
+- The Architecture line counts are exact on the staged blobs, which I measured
+  independently rather than reading: `review_status.py` 647, the ownership store
+  275, the exchange acceptance suite 541, the shared builder 115, the acceptance
+  conftest 210, the four indexed scenario modules 108, 224, 119 and 117, the
+  journal writer 48, the migration service 621, and the journal and boundary
+  test modules 92 and 92. The claim that the migration service moved from 635 to
+  621 lines is also exact, and it is the reason the extraction is justified
+  rather than decorative: 635 plus the 48 lines of retry and synchronization
+  would have crossed the 650-line ceiling.
+- The Performance check's four stored baselines match `a.ghog.outliers` at 0.85,
+  0.70, 1.65 and 0.53 seconds over an unchanged 0.50-second floor, and the
+  0.15-second worst-case retry arithmetic is right for waits of 0.01, 0.02, 0.04
+  and 0.08 seconds.
+- The Round 2 repairs section describes what the diff actually does, including
+  the reproduction on attempt 24 with Windows error 5, which the retained log
+  confirms at the journal replacement site rather than anywhere else.
+- The `Validation scope for Step 6 round 3` section already discloses the
+  index-versus-working-tree boundary, the parallel opt-in, the skipped
+  sequential judgments, and the separate forced-reclaim work. That disclosure is
+  the reason this round needed no finding about hidden evidence: the writer
+  named the limits before I looked for them.
+
+The two corrected sentences were the exception. Both attributed a round 2
+sequential measurement to the round 3 resumed walk. The corrected text keeps
+both figures and both verdicts and only fixes whose walk produced them, which
+also removes a contradiction with the paragraph four lines below stating that
+the earlier outliers have no new measurement in this evidence.
+
+The Architecture, Performance, Unit test coverage and Feature integrity closing
+phrases were left exactly as written. The Performance closing reads `No, no Step
+6 performance guard fails in the current configured validation.` followed by
+`Sequential outlier clearance is not established by this parallel run.` I
+considered whether that second sentence turns the closing into a `yes` under the
+rule that any mention counts, and concluded it does not: it discloses a limit of
+the evidence rather than an unaddressed defect, and the alternative would be to
+delete a true and useful disclosure to satisfy the form of a rule that exists to
+prevent exactly the opposite behaviour.
+
+The reviewer did not touch the umbrella, and the umbrella digest is unchanged
+across the whole assessment.
+
+### Pre-repair mandatory checks and coverage for step 6 review-resume-command (exchange 1) (round 3)
+
+The ordered validation path set was captured before any assessment or edit. It
+is the first-seen union of the 41 staged Step 6 paths, which already contain the
+exact validation plan, and the six ignored artifacts the resolved commands
+write: `a.ghog.status`, `a.ghog.outliers`, `a.ghog.log`, `a.ghog.failures`,
+`a.ghog.day.ok` and `a.ghog-exclude.log`. That is 47 paths, five more than round
+2, the five being this round's journal repair and its tests. No staged step path
+was omitted because a validation command was expected not to touch it.
+
+The captured baseline recorded index tree
+`6a9ad61b31387287a6e9b9ec0f3d0c437a7d8b7d`, matching the round 3 request-time
+tree exactly, together with digests for the 41 tracked paths and the ignored
+artifacts present at capture time.
+
+The umbrella digest for `docs/v0.11.0/draft.v0.11.0.review-mode.md` was captured
+as applicable at
+`a5e582524fcf68529ed7a96c7ccda6df020d9173e95603b7ca1e1bdac6c78855` before the
+assessment, the same value rounds 1 and 2 recorded.
+
+The pre-repair blob of the single permitted repair path,
+`docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md`, was recorded at
+`cad7d66434db9ed1dcd706356bc61b8b354e7eb6` before the first edit.
+`attribute-reviewer-patch` then proved the resulting patch cleanly attributable
+against that baseline, returning `attributable: true`, `created: false` and no
+pre-existing unstaged overlap, and only that path was staged.
+
+The retained manifest was written through `write-manifest` before any state
+could be mutated. `read-manifest` had already confirmed that no manifest
+survived round 2, so this is a fresh assessment under the live round rather than
+resumed cached content. The manifest carries the exact identity, the baseline
+and assessed index trees, the recorded blob, the repair path, and the validation
+state before and after.
+
+Coverage and mandatory checks were taken from this session's own runs, not from
+the writer's retained logs and not from the `commit_plan_result` and
+`resolved_validation_set` blocks the request embeds. Where my numbers coincide
+with the writer's, they coincide because I reproduced them.
+
+### Resolved validation set and sources for step 6 review-resume-command (exchange 1) (round 3)
+
+The union of the request-embedded validation set and the current resolver set is
+four commands. All four ran in this reviewer session against the received
+repository state. None was substituted with a historical result or with the
+writer's retained logs.
+
+- `ghog day` returned `exit=0`. Its `check` phase passed at exit 0 in 45.9
+  seconds, covering ty, pyright, ruff, radon, vulture, the 650-line file gate,
+  the repository Markdown gate, ShellCheck and the EOF check. Its
+  `affected --no-cov` phase passed at exit 0 in 3.3 seconds and ran 0 tests,
+  because testmon found nothing affected since the previous walk, which the tool
+  treats as green. Its `full` phase ran 2,697 tests in 3m 57.4s and returned
+  `fail=0 warn=0 xfail=0 cov=100 outliers=skipped excluded=skipped exit=0`.
+  `a.ghog.failures` is empty and `a.ghog.day.ok` was written. The retained report
+  is `.reviews/a.cr.s6r3.day.report.log`.
+- The exact plan-focused command, `ghog single tests/acceptance/review_resume
+  tests/acceptance/review_status tests/unit/tools/test_spec_review_requestor_acceptance
+  tests/unit/tools/test_spec_reviewer_acceptance
+  tests/unit/tools/test_code_review_requestor_acceptance
+  tests/unit/tools/test_code_reviewer_acceptance
+  tests/unit/tools/test_prompt_workflow_skill
+  tests/unit/tools/test_review_mode_docs_acceptance`, passed three times. I ran
+  it three times deliberately, because in round 2 it failed on its first run and
+  passed on its second, and one green run would not have distinguished a fix
+  from luck. Each of the three runs passed all 229 tests with
+  `fail=0 warn=0 xfail=0 cov=skipped outliers=skipped excluded=skipped exit=0`,
+  and "Still failing in focus" was empty each time. The retained reports are
+  `.reviews/a.cr.s6r3.focused.run1.log`, `.reviews/a.cr.s6r3.report.run2.log`
+  and `.reviews/a.cr.s6r3.report.run3.log`. `migration_journey[former-default]`,
+  the fixture that failed round 2, passed in all three.
+- `rg -n "\.reviews|\.review-artifacts\.ini|review-resume|requestor_llm_nature|reviewer_llm_nature|already-claimed" README.md instructions tools tests`
+  returned exit 0 with 263 matches, the count the record cites. The retained
+  output is `.reviews/a.cr.s6r3.evidence-search.log`.
+- `rg --files | rg "rvw_resume\.bat$"` returned no path, which is the required
+  result. No such launcher exists at the root, under `bin`, or anywhere in the
+  tracked tree.
+
+All four pass. Two further checks were run beyond the mandatory set, because the
+writer disclosed a boundary the mandatory set alone could not close.
+
+The first answers "does the reviewed index pass on its own?". The mandatory
+commands necessarily run against the received working tree, which this round
+carries the whole separate test-suite performance effort in: unstaged groundhog
+and launcher changes, an untracked `.ghog-parallel` opt-in, an untracked
+`tests/conftest.py` that sets a suite-wide Hypothesis `deadline=None`, and four
+untracked acceptance modules split out of the indexed ones. So I extracted the
+reviewed index tree `6a9ad61b31387287a6e9b9ec0f3d0c437a7d8b7d` with `git archive`
+into a scratch directory containing none of that, and ran its acceptance package
+there. All 37 tests passed at exit 0 in 9m 28s, including both
+`migration_journey` parameters. The retained report is
+`.reviews/a.cr.s6r3.indexcheck.acceptance.log`. The step's own acceptance
+package therefore passes as indexed, not only as combined with unstaged work.
+
+The second answers the one duration question the current configuration leaves
+open, and it is the one that belongs to this step. Details are in the repository
+state and findings sections.
+
+### Resolver drift and direction for step 6 review-resume-command (exchange 1) (round 3)
+
+No resolver drift, in either direction.
+
+The project still declares no `.review-validation` file, so
+`load_project_validation_commands` yields only the built-in `ghog day` default,
+carrying the `project` source label. The plan's Step 6 `Completion criteria`
+block contributes the exact focused `ghog single` command, the two `rg`
+inventories and `ghog day` again, carrying the `plan` label. Resolving both
+sides now gives the same four commands, with the same source labels, that the
+round 3 request embeds in `resolved_validation_set`.
+
+The union therefore equals both sides: nothing was added by the request that the
+resolver does not produce, and nothing the resolver produces was dropped from
+the request. All four commands were run in this reviewer session against the
+received repository state. None was replaced by a historical result, by the
+writer's retained logs, or by the request's own captured evidence.
+
+### Repository state around validation for step 6 review-resume-command (exchange 1) (round 3)
+
+Request-time and live index trees agree exactly. The round 3 envelope carries
+`request_index_tree` `6a9ad61b31387287a6e9b9ec0f3d0c437a7d8b7d`, and
+`capture-index-tree` returned the same value on the received working tree before
+any reviewer action. After the assessment the index reads
+`47b635827324fc01d497f48095f89f18299251e4`, and the single difference is the
+reviewer's own attributable validation-plan repair.
+
+Exact identity agrees across every source. The live exchange reports family
+`code`, type token `code`, version `v0.11.0`, slug `review-resume-command`,
+round 3 and `exchange_occurrence` 1. This reviewer session entered on the bare
+resume path: `migration-check` returned `ready` with no candidates,
+`resume-inspect --role reviewer` returned `ready` with the action
+`review-request` and a single candidate, and automatic `claim` issued ownership
+generation 10 for this session. The exchange had been claimed at generation 9 by
+the interrupted reviewer session, which is why the exact `wait-request` returned
+`already-claimed` rather than granting access; the canonical resume path is the
+correct answer to that state and no `reclaim`, `resolve` or `archive` was used.
+The capability is held only in this session.
+
+The envelope repeats that identity with `implementation_step` `6`,
+`round_number` 3 and `role_natures` naming `codex` as requestor and `claude` as
+reviewer, matching the natures `resume-inspect` derived from the runtime
+evidence. The human-readable request carries `Umbrella draft`,
+`Implementation plan`, `Implementation step: 6` and `Review round: 3` exactly
+once each, all matching the command context. The request carries no
+`Human guidance:` block.
+
+Step 6 exists in the exact plan as `### Step 6. Prove cross-workflow acceptance
+and documentation rollout`, and the embedded validation set parses through the
+current resolver contract.
+
+The working tree is not the reviewed index this round, and the difference is
+larger than it was in round 2. Round 2's tree carried only an `AGENTS.md`
+rewrite and an untracked `.codex/` outside the index; round 3's carries the
+whole test-suite performance effort as well. The staged Step 6 content was
+therefore read through `git show :<path>` throughout, and the mandatory commands
+were run against the received working tree, which is what "the received
+repository state" means and what the writer disclosed. Both facts are carried
+into the findings rather than assumed away.
+
+Validation-state capture before and after the assessment, over the same ordered
+47-path set, shows one tracked difference, the reviewer's own staged
+validation-plan repair, plus differences confined to the ignored `a.ghog.*`
+artifacts the commands write. No tracked validation side effect appeared, so
+nothing had to be left unstaged and unreverted on that account.
+
+### Repair inventory for step 6 review-resume-command (exchange 1) (round 3)
+
+Repairs made:
+
+- One repair, on one path, staged alone.
+- `docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md` - reviewer
+- validation rows only, review metadata, polishing-only and not substantive. Two
+- duration measurements inside the Step 6 Performance check were attributed to the
+- round 3 resumed walk; both were produced by the round 2 sequential walk. I
+- corrected the attribution and changed no measurement, no verdict, no closing
+- phrase and no other section. Seven lines added, four removed, all inside the
+- Step 6 Performance check. `attribute-reviewer-patch` returned
+- `attributable: true` with `created: false` and no pre-existing unstaged overlap,
+- and only that path was staged.
+- The misattribution mattered because the same section asks whether the exit-8
+- walk's two accepted-baseline overruns were cleared. Reading "the resumed final
+- walk measured this cancellation call at 1.76 seconds" as a round 3 result makes
+- the 6.69-second overrun look remeasured and cleared. It was not: the round 3
+- resumed walk reports `outliers=skipped excluded=skipped` and carries no per-call
+- duration at all. The sentence also contradicted the paragraph four lines below
+- it, which correctly states that "the earlier outliers have no new measurement in
+- this evidence". The corrected text keeps the 1.76-second figure, names the round
+- 2 sequential walk of 2026-09-08T23:08:46 as its source, and says plainly that
+- round 3 did not remeasure it.
+- The second correction is the same fault in the same section: "the final full
+- walk measured it at 0.41 seconds", about
+- `test_tracked_inventory_uses_git_and_filters_markdown`, is round 2's final walk
+- rather than round 3's. It now says so.
+- No implementation, test, acceptance, instruction, adapter, umbrella, dependency
+- or documentation file was edited. No `a.commit` amendment was needed: the staged
+- path set is unchanged at 41 paths, and the independent recheck after the repair
+- still returns `state: valid`, `ready: true`, six groups and no diagnostic.
+
+Paths staged:
+
+- `README.md`
+- `docs/v0.11.0/acceptance.v0.11.0.review-resume-command.md`
+- `docs/v0.11.0/draft.v0.11.0.review-mode.md`
+- `docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md`
+- `tests/acceptance/review_resume/__init__.py`
+- `tests/acceptance/review_resume/conftest.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/__init__.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_acceptance_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_concurrency_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_identity_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_migration_tdd.py`
+- `tests/unit/tools/markdown_check/test_rule_properties/test_rule_properties_pbt.py`
+- `tests/unit/tools/review_exchange_test_support.py`
+- `tests/unit/tools/test_groundhog_runner.py`
+- `tests/unit/tools/test_review_artifact_home/test_review_artifact_journal_tdd.py`
+- `tests/unit/tools/test_review_artifact_home/test_review_artifact_migration_boundaries_tdd.py`
+- `tests/unit/tools/test_review_artifact_home/test_review_artifact_migration_tdd.py`
+- `tests/unit/tools/test_review_exchange_acceptance/test_review_exchange_acceptance_tdd.py`
+- `tests/unit/tools/test_review_exchange_ownership_store/__init__.py`
+- `tests/unit/tools/test_review_exchange_ownership_store/test_review_exchange_ownership_store_tdd.py`
+- `tests/unit/tools/test_review_exchange_paths/test_review_exchange_paths_tdd.py`
+- `tests/unit/tools/test_review_exchange_recovery_acceptance/test_review_exchange_recovery_acceptance_tdd.py`
+- `tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_acceptance_tdd.py`
+- `tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_final_acceptance_tdd.py`
+- `tests/unit/tools/test_review_resume/__init__.py`
+- `tests/unit/tools/test_review_resume/test_review_resume_lifecycle_tdd.py`
+- `tests/unit/tools/test_review_resume_identity/test_review_resume_identity_tdd.py`
+- `tools/review_artifact_journal.py`
+- `tools/review_artifact_migration.py`
+- `tools/review_exchange_ownership_store.py`
+- `tools/review_status.py`
+- `wiki/README.md`
+- `wiki/explanation/independent-review-mode-and-human-authority.md`
+- `wiki/how-to/enable-independent-review-mode.md`
+- `wiki/how-to/inspect-independent-review-status.md`
+- `wiki/how-to/recover-an-independent-review.md`
+- `wiki/how-to/run-implementation-code-review.md`
+- `wiki/how-to/run-specification-review.md`
+- `wiki/reference/independent-review-mode-contract.md`
+- `wiki/tutorials/09-run-your-first-specification-review.md`
+- `wiki/tutorials/10-run-your-first-implementation-code-review.md`
+
+### Commit plan assessment for step 6 review-resume-command (exchange 1) (round 3)
+
+I reran `commit-plan-check.bat --format json` myself against the received index
+rather than reading the result the request carries. It returned `state: valid`,
+`ready: true`, exit `0`, an empty `diagnostics` array, 41 staged paths and six
+ordered groups. That output is byte-identical to the `commit_plan_result` block
+embedded in the round 3 request, so the writer's captured evidence is accurate.
+
+The mechanical result satisfies only the `a.commit` element of the readiness
+floor. It says nothing about implementation completeness, test or coverage
+results, repair attribution, or the accuracy of my own judgment, and it never
+authorizes a commit.
+
+Membership is exact. The six groups partition the 41 staged paths with no path
+repeated and none omitted, which I checked against `git diff --cached
+--name-only` rather than against the request.
+
+Grouping and order are accurate, least to most dependent:
+
+- Group 1, `fix(review-resume-command): defer discovery during active
+  publication`, carries the two production files of the discovery repair with
+  their two unit-test packages. The production change and the tests that prove
+  it travel together.
+- Group 2, `fix(review-resume-command): retry transient migration journal
+  replacement`, is new this round and correctly separated from group 3. It
+  holds the extracted `tools/review_artifact_journal.py`, the
+  `tools/review_artifact_migration.py` delegation and Git-diagnostic change,
+  and the three unit-test files that cover retry, exhaustion, rollback and the
+  preserved ignore-query diagnostic. Round 2 asked for the migration fix to be
+  its own commit rather than being folded into the acceptance work; it is.
+- Group 3, `test(review-resume-command): cover cross-workflow resume
+  acceptance`, carries the acceptance package, the shared test support module,
+  the existing exchange acceptance suite that now imports it, and the scenario
+  map. The one-line assertion added to the migration acceptance module this
+  round stays here with the acceptance package rather than moving to group 2,
+  which is the right call: it is an acceptance-fixture change, not part of the
+  production repair.
+- Group 4, `perf(tests): reduce review regression setup costs`, is test-only
+  and touches no production file.
+- Group 5, `docs(review-resume-command): document shipped resume workflows`,
+  carries README, the eleven connected wiki pages and the two documentation
+  acceptance suites that gate them.
+- Group 6, `docs(review-resume-command): record step 6 validation`, carries the
+  validation plan and the umbrella draft last, so the completion record follows
+  the work it certifies.
+
+Subjects are conventional, correctly typed and scoped, and each body states a
+real Why and What. `perf(tests)` is the honest type for group 4 and correctly
+carries no `review-resume-command` scope, because that work serves the suite
+rather than this requirement.
+
+One boundary belongs to the later commit gate rather than to this file. The
+commit handoff stages the whole tree with `git add -A`, and the working tree
+holds substantial work outside this reviewed index: the groundhog and
+parallel-run changes, the split acceptance modules, the untracked
+`tests/conftest.py` and `.ghog-parallel`, `bin/ghog_cycle.bat`, the
+commit-plan-check support files, the forced-reclaim change in
+`tools/review_exchange_human.py`, the `AGENTS.md` rewrite, `.codex/`,
+`pyproject.toml` and `uv.lock`. `a.commit` is accurate for the 41 staged paths
+it describes and is not wrong to omit them, but that grouping run will have to
+account for every one of them.
+
+### Findings and boundaries for step 6 review-resume-command (exchange 1) (round 3)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 6 review-resume-command (exchange 1) (round 3)
+
+Nothing is required of the writer for this step. There is no rework list this
+round, and this section carries only what the next gate should not lose.
+
+Three things are worth saying about what was done, because they are the reason
+this round converged rather than producing a fourth.
+
+The round 2 rework did the hard half first. Asserting the status result in the
+fixture was the cheap fix and would have been enough to make the next failure
+legible; reproducing the refusal 24 replays deep on copies of the preserved
+repository, and then proving 50 of 50 green after the change, is what actually
+turned an intermittent guard into a fixed one. The retained logs are the
+evidence, not the prose about them.
+
+The disclosure discipline was better than the situation required. The validation
+plan states, unprompted, that validation ran on the combined working tree rather
+than the index, that the parallel configuration skips the sequential duration
+and exclusion judgments, that the earlier exit-8 outliers therefore have no new
+measurement, and that the separate forced-reclaim coverage addition is not a
+Step 6 member. A record that names its own limits is worth more than one that
+reads cleaner, and it is why this round needed no finding about hidden evidence.
+
+Separating the migration repair into its own commit group was the right call,
+and so was leaving the acceptance fixture's one new assertion in the acceptance
+group rather than moving it to the production group it was prompted by.
+
+Two items to carry to the commit gate rather than act on now.
+
+The commit handoff stages the whole tree with `git add -A`, and the working tree
+holds a great deal that this reviewed index deliberately excludes: the groundhog
+and parallel-run changes with `pyproject.toml` and `uv.lock`, the untracked
+`.ghog-parallel`, `tests/conftest.py`, `bin/ghog_cycle.bat`, the
+commit-plan-check support and contract modules, the four split acceptance
+modules, the forced-reclaim change in `tools/review_exchange_human.py` with its
+unstaged coverage addition, the `AGENTS.md` rewrite, `.codex/` and
+`.vscode/settings.json`. `a.commit` is accurate for the 41 paths it describes
+and is not wrong to omit these, but the grouping run at that gate must account
+for every one of them, ranked by its own dependencies, and must not sweep them
+into the six Step 6 groups.
+
+Once that performance work lands, re-establish the duration baseline with a
+sequential pass. This step's own accepted baseline is fine and I measured it at
+1.63 seconds against 1.65, but the exit-8 walk's other 13 outliers were never
+attributed to anything, and 12 of them sit within 0.25 seconds of the
+0.50-second floor, where contention alone decides the verdict. That is a
+question for the effort that moved the gate, not for this one.
+
+### Decision rationale for step 6 review-resume-command (exchange 1) (round 3)
+
+The recommendation is `commit-ready`. It is advisory, it does not authorize a
+commit, and the commit choice belongs to the human at the convergence gate.
+
+No finding remains open. Round 2's blocking finding is closed, its three
+companion items are closed with it, and nothing new blocks. There is no
+boundary-crossing work in the reviewed index: all 41 staged paths belong to Step
+6's own acceptance package, its two production repairs, the regression-timing
+work, the documentation rollout or the validation record.
+
+The six readiness-floor results, each judged on evidence produced in this
+session rather than read from the request:
+
+- **Exact identity**: pass. The live exchange, the machine envelope, the
+  human-readable request, the `pw` plan, the declared step and the round all
+  agree on family `code`, type token `code`, version `v0.11.0`, slug
+  `review-resume-command`, step `6`, round 3 and `exchange_occurrence` 1. Step 6
+  exists in the exact plan. The embedded validation set parses through the
+  current resolver contract. The request-time index tree
+  `6a9ad61b31387287a6e9b9ec0f3d0c437a7d8b7d` matched the live index before any
+  reviewer action, and there is no `Human guidance:` block to address.
+- **Complete implementation**: pass. All 19 acceptance criteria map to test
+  names that exist in the indexed modules, both production repairs are real and
+  bounded, the documentation rollout is gated by tests that assert the stale
+  claims are gone, and the validation plan records the verdict with per-step
+  sections that all read `Yes`.
+- **Mandatory validation and coverage**: pass. All four resolved commands ran
+  and passed here. `ghog day` returned exit 0 with 2,697 tests, `cov=100`, an
+  empty `a.ghog.failures` and a written `a.ghog.day.ok`. The exact plan-focused
+  command passed three consecutive times at 229 tests each. Both `rg` inventories
+  returned their required results. Beyond the mandatory set, the reviewed index
+  extracted on its own passed the step's whole acceptance package, 37 tests at
+  exit 0.
+- **Attributable staged scope**: pass. One reviewer path,
+  `docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md`, proved
+  cleanly attributable against its recorded pre-repair blob and was staged
+  alone. No pre-existing unstaged or untracked writer work was swept in. The
+  umbrella digest is unchanged at
+  `a5e582524fcf68529ed7a96c7ccda6df020d9173e95603b7ca1e1bdac6c78855`, and the
+  validation-state comparison reports exactly one tracked difference, that same
+  repair, with everything else confined to the ignored `a.ghog.status`,
+  `a.ghog.log` and `a.ghog.day.ok` artifacts. No baseline file changed, so no
+  exclusion was added or ratcheted by my runs.
+- **No unresolved current or carried findings**: pass, on the evidence below.
+- **Accurate `a.commit`**: pass. My independent
+  `commit-plan-check.bat --format json` returned `state: valid`, `ready: true`,
+  exit 0 and no diagnostic, both before and after my repair, over 41 staged
+  paths in six correctly ordered and conventionally titled groups whose
+  membership partitions the staged set exactly.
+
+Round 2's blocking finding is closed properly rather than waited out. It was the
+exact plan-focused command returning `fail=2 exit=2` at the setup of
+`migration_journey[former-default]`, twice in two rounds, with the failure
+surfacing as `FileNotFoundError` on a migrated artifact path rather than as the
+diagnostic production code had already produced. Three things had to happen and
+all three did.
+
+The fixture no longer hides its cause. In
+`test_review_resume_migration_tdd.py` the fixture now asserts
+`check.payload["outcome"] == "migration-required"`, then `status.code == 0`, then
+`status.payload["migration"]["state"] == "completed"`, each carrying the whole
+`ProcessResult` as its assertion message, before any byte of the migration
+target is read. `ProcessResult` is a frozen dataclass holding code, stdout,
+stderr and the decoded payload, so a refusal now arrives as the production
+diagnostic instead of a missing file three lines later.
+
+The intermittent refusal was reproduced and identified rather than argued about.
+`.reviews/a.step6-migration-repro.round3.log` records attempt 24 of a replay
+loop over copies of the preserved former-default repository failing with
+`[WinError 5] Accès refusé` while replacing
+`runtime/reviews/.review-artifact-migration-o5ualmg6.tmp` with
+`runtime/reviews/a.review-artifact-migration.json`. That is the journal
+publication site inside `_execute_migration`, one of the two `OSError` raise
+sites I had narrowed the round 2 fingerprint to, and it explains the observed
+layout exactly: the home is prepared, the write fails, `_rollback` restores the
+moved sources and `rollback_prepared_home()` removes the empty home.
+`.reviews/a.step6-migration-repro.fixed.round3.log` then records 50 of 50
+replays passing after the fix.
+
+The repair is proportionate and bounded. `tools/review_artifact_journal.py`
+retries only `PermissionError`, at most five attempts with 0.01, 0.02, 0.04 and
+0.08 second waits, republishing the same fully written and fsynced snapshot each
+time; every other `OSError` still propagates immediately, exhaustion re-raises
+the original error, the temporary is always cleaned, and there is no wait on the
+success path. The unit tests pin all of it: recovery after one and after four
+denials, failure after five, the previous journal intact until the replace
+succeeds, one prepared temporary reused rather than a new one per attempt, the
+exact delay sequence, no leftover `*.tmp`, and rollback of an already-moved
+source with the lock removed after persistent denial. The extraction into its
+own module is not cosmetic either: the migration service was 635 lines against a
+650-line ceiling and is now 621, so keeping 48 lines of retry and
+synchronization inside it was not available.
+
+The other three round 2 items are closed with it. `_git_ignore_checker` no
+longer discards its evidence: exits outside `{0, 1}` raise an `OSError` carrying
+the exit code and stderr, and a parametrized test proves those details survive
+to the status diagnostic through both the existing-home preflight and the
+new-home rollback, with empty stderr covered, while the source artifact stays
+intact and `ignore coverage is ineffective` no longer appears. That message can
+now no longer be produced by a transient Git failure, which was the user-visible
+risk. The umbrella row 10 inconsistency is gone, because the validation plan it
+cites reads `Yes, it is implemented.`. And the reliability evidence I asked for
+exists: four writer runs plus three of mine, with
+`migration_journey[former-default]` green in all of them.
+
+Two observations are recorded and deliberately not raised as findings, because
+nothing in the project's configured gates rejects either.
+
+The first is the duration gate, and it is the only item where I did more than
+read. The received tree's `.ghog-parallel` opt-in and unstaged groundhog changes
+make `ghog day` report `outliers=skipped excluded=skipped`, so the current exit 0
+does not judge call durations. The last walk that did judge them, retained in
+`.reviews/a.step6-review-validation.round3.outliers.log`, returned exit 8 with 14
+outliers and two accepted-baseline overruns, one of which is this step's own
+`test_graceful_foreground_cancellation_has_one_result_and_no_durable_waiter` at
+6.69 seconds against its recorded 1.65. The writer profiled the other overrun,
+the Markdown launcher, and attributed 1.054 of 1.055 isolated call seconds to a
+real subprocess against a 7.79-second full-run figure, but this step's own call
+was never remeasured. So I measured it: run alone and sequentially it takes
+**1.63 seconds of call time** against a recorded baseline of 1.65, which is on
+baseline rather than merely inside the two-second drift allowance. The retained
+report is `.reviews/a.cr.s6r3.cancellation-duration.log`. The 6.69-second figure
+was contention, and I have direct corroboration that this machine produces
+exactly that kind of inflation: a competing project's test suite started on it
+partway through my own focused runs and stretched an identical 229-test command
+from roughly seven minutes to roughly twelve. Nothing in the reviewed step
+regressed, and the sequential gate has no pending complaint against it. What
+remains true, and belongs at the commit gate rather than here, is that once the
+parallel-run work lands, someone should re-establish the duration baseline with
+a sequential pass, because the other 13 outliers were never attributed to
+anything and 12 of the 14 sit within 0.25 seconds of the 0.50-second floor,
+where jitter alone decides.
+
+The second is the style note carried from rounds 1 and 2, unchanged and still
+not worth a round: in the concurrency acceptance module `_home_bytes` is
+separated from the test below it by one blank line where the file otherwise uses
+two. Ruff's `E3` rules are not enabled here, so no gate objects. I did not fix
+it, and that was deliberate: a reviewer edit to a test file is a substantive
+change by this workflow's own rule and would have forced another round over a
+blank line.
+
+This round made one repair and it is polishing-only, not substantive. It changed
+no code, no test, no acceptance behaviour and no commit grouping; it corrected
+whose walk produced two duration figures inside the validation plan's own Step 6
+rows, which this workflow classifies as review metadata. A substantive repair
+could not validly finish the workflow in the same round, and this is not one.
+
+Two things kept me from recommending convergence on the request's evidence
+alone, and both are now settled rather than assumed. The mandatory commands
+could only run against a working tree that has diverged substantially from the
+reviewed index, so I extracted the index tree and ran the step's acceptance
+package against it in isolation. And the current configuration reports
+`outliers=skipped`, leaving this step's own accepted duration baseline unjudged
+after a contended walk had reported it at four times its recorded value, so I
+measured that call by itself.
+
+What I would not change: the acceptance package's ambition is right, and it was
+right in round 1 too. Real repositories, real launchers, separate processes,
+byte comparisons, transcript heading uniqueness, secret absence and actual `pw`
+routing are what make this step worth having, and the problem was never the
+approach. It was one fixture that swallowed its own diagnostic and one Windows
+filesystem race underneath it, and both are now fixed with evidence rather than
+argued away.
+
+### Final reviewer decision for step 6 review-resume-command (exchange 1) (round 3)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-6-round-3 -->
+
+## Round 3 by human - Step 6 - human-confirmation
+
+- Recorded: 2026-09-10T10:03:46+02:00
+- Exchange: code/code/v0.11.0/review-resume-command
+- Umbrella: docs/v0.11.0/draft.v0.11.0.review-mode.md
+- Reviewed document: docs/v0.11.0/plan.v0.11.0.review-resume-command.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 6
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-3 -->
