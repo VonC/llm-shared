@@ -71,9 +71,10 @@ artifacts, both LLM-nature values and evidence arrays, and the typed next action
   migration prevented a trustworthy query. Read standard error and do not infer
   exchange state.
 
-Do not use repeated status calls as a reviewer wait. Exact intermediate rounds
-use the protocol's bounded `wait-request` or `wait-answer`; the global
-cross-exchange reviewer monitor is planned for Step 5 and has not shipped.
+For continuation, enter `resume` in the agent session. Requestors use the
+bounded `wait-answer` for their exact exchange. Reviewers use one quiet
+foreground `wait-any-request` across rounds and families; do not substitute
+repeated status calls for that wait.
 
 For exact fields and configuration, see the
 [independent review mode contract](../reference/independent-review-mode-contract.md).

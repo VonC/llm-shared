@@ -2,7 +2,8 @@
 
 The suite pins discovery, terminology, tutorials, task ownership, recovery,
 the exact reference contract, and the incremental AC01-through-AC12 record.
-Final Step 5 coverage belongs to the sibling final-acceptance module.
+Final Step 5 coverage belongs to the sibling final-acceptance module. Resume
+Step 6 updates recovery expectations for the shipped automatic pickup flow.
 """
 
 from __future__ import annotations
@@ -292,21 +293,21 @@ def _assert_phrases(content: str, phrases: tuple[str, ...]) -> None:
 def test_step_3_new_session_pickup_is_discoverable_and_precise(
     docs_root: Path,
 ) -> None:
-    """A new requestor session can resume without an old plaintext token."""
+    """Bare resume recovers the session while retaining the established ownership fence."""
     readme = read_declared(docs_root, "README.md")
     explanation = read_declared(docs_root, _EXPLANATION)
     recovery = read_declared(docs_root, _RECOVERY_GUIDE)
     reference = read_declared(docs_root, _REFERENCE)
 
-    _assert_phrases(readme, ("This is a new session", "force requestor ownership pickup"))
+    _assert_phrases(readme, ("enter `resume`", "automatic pickup"))
     _assert_phrases(
         recovery,
         (
-            "Continue an active code review in a new session",
-            "force requestor ownership pickup",
-            "old ownership token",
-            "Step 4's status schema and migration work does not",
-            "Step 5's role-resolved resume interface",
+            "Continue an active review with resume",
+            "automatic pickup",
+            "missing or stale session capability",
+            "Let the skill check migration first",
+            "without waiting for the previous lease to expire",
         ),
     )
     _assert_phrases(explanation, ("new generation", "not a reset", "`reclaim`"))

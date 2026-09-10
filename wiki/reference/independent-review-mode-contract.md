@@ -23,21 +23,22 @@ durable state names that role as the next actor. A human or external reviewer
 service may start the independent reviewer; a valid route alone is not valid
 provenance.
 
-Automatic intermediate exchange uses reciprocal bounded waits. The requestor
-runs `wait-answer` after `publish-request`. A reviewer that publishes
-`changes-requested` immediately runs `wait-request` in the same invocation and
-remains there while the requestor owns `answer-pending`. After the requestor
-consumes the answer, continues the round, and publishes the replacement, that
-wait returns the next `request-pending` artifact and reviewer assessment resumes.
-Convergence ends the exact-exchange wait and transfers that exchange to the
-human gate. The reviewer then remains available for any future specification or
-code request under the configured artifact home. The cross-exchange
-`GlobalReviewerWait` is planned for Step 5 and has not shipped; repeated status,
-sleep, or an ad hoc polling loop is not a substitute.
+Automatic intermediate exchange uses reciprocal waiting. The requestor's
+`wait-answer` is bounded to its exact exchange. After every answer the reviewer
+runs the quiet foreground `wait-any-request` in the same session. This global
+wait has no exchange timeout while idle and accepts either review family under
+the configured home. A replacement request wakes it after requestor work or a
+human's another-round choice; convergence leaves the human gate intact.
+Native events trigger authoritative rescans, with bounded polling fallback.
+`already-claimed` losers return to waiting. Intact expired leases remain
+recoverable; damaged, inconsistent, escalated and repair-required evidence stops
+the operation. Repeated status calls are not the wait interface.
 
 A new agent process has no access to a prior process's plaintext ownership
-token. With explicit new-session authorization, `pickup` advances the durable
-ownership generation and returns a replacement capability. At
+token. A bare `resume` authorizes automatic `claim` after migration and role
+inspection. A missing or stale capability causes lease-independent pickup,
+which advances the durable ownership generation and returns a replacement
+capability. At
 `convergence-gate` and `owning-action-pending`, the pickup actor is the
 requestor; in other live states it is the expected LLM actor. Pickup does not
 change the round, artifacts, or human decision owner.
@@ -84,8 +85,8 @@ the exchange.
 
 ## Marker and exchange identity
 
-The project-root `a.review-mode` file opts later workflow entry into independent
-review mode. An empty file selects the default wait. One line of the form
+The artifact-home `a.review-mode` file opts later workflow entry into independent
+review mode. The home marker wins over a legacy project-root marker. An empty file selects the default wait. One line of the form
 `wait_timeout_seconds=<positive integer>` selects another bounded wait. An
 absent marker produces `state: disabled`; invalid marker content produces the
 fatal result described below.
@@ -95,7 +96,7 @@ order and stopping at the first usable value:
 
 | Source | Wins over | On invalid content |
 | --- | --- | --- |
-| `wait_timeout_seconds=` in the project-root `a.review-mode` | everything | fatal |
+| `wait_timeout_seconds=` in the effective artifact-home `a.review-mode` (legacy root fallback) | everything | fatal |
 | `.review-exchange.ini` at the reviewed repository root | the shipped file | ignored |
 | `.review-exchange.ini` shipped with llm-shared, currently 10,800 seconds (three hours) | nothing | ignored |
 
@@ -194,7 +195,7 @@ ownership depends on durable coordination.
 | `fatal` | Invalid input or refused operation | caller | Correct the input and re-run; payload has null `identity`, empty `paths`, null round, and `fatal-input` outcome |
 
 The `answer-pending` owner remains the requestor even while the reviewer has an
-active post-publication `wait-request`. The wait observes the state; it does not
+active post-publication `wait-any-request`. The wait observes the state; it does not
 grant answer consumption, round continuation, or any writer-owned action to the
 reviewer.
 
@@ -249,7 +250,7 @@ same exact context on every invocation.
 | `start` | requestor; idle exchange | Open round 1; `started` |
 | `continue` | requestor; consumed intermediate answer | Advance to the next round; `continued` |
 | `publish-request` | requestor; round in progress | Store request and append transcript; `published` |
-| `wait-request` | reviewer; bounded entry wait or post-`changes-requested` wait | Return the next exact request as `found`, or `timed-out`, `abandoned`, `escalated`, `inconsistent`, or `repair-required` |
+| `wait-request` | reviewer; optional bounded exact-request wait | Return the next exact request as `found`, or `timed-out`, `abandoned`, `escalated`, `inconsistent`, or `repair-required` |
 | `publish-answer` | reviewer; request pending | Consume request, expose answer, and append transcript; `published` |
 | `wait-answer` | requestor; bounded wait | Return the same wait outcomes as `wait-request` |
 | `consume-answer` | requestor; non-converged answer | Record response assessment; `consumed` |
@@ -416,3 +417,28 @@ Related: [pw launcher](pw-launcher.md),
 [artifact files](artifact-files.md),
 [aliases and launchers](aliases-and-launchers.md), and
 [document templates](templates.md).
+
+## Resume support operations
+
+The public entry point is the [review-resume skill](../../instructions/review-resume.md),
+invoked with the bare text `resume`. The existing shared launcher supplies
+its internal operations; no shell resume launcher is installed.
+
+| Operation | Scope | Result |
+| --- | --- | --- |
+| `migration-check` | Repository, before status or role inspection | Ready, migration-required, or blocked placement |
+| `migrate-artifacts` | Safe recognized legacy set | Transactional move or recovery, followed by a required check |
+| `resume-inspect` | Optional exact document, step and selected role | Typed candidate, role and next action, or a human ambiguity/conflict gate |
+| `claim` | Exact selected document, role, round and occurrence | Automatic pickup or idempotent reuse of the supplied capability |
+| `wait-any-request` | Identity-free reviewer wait in the configured home | One claimed request, ambiguity, cancellation, or operational failure |
+
+The foreground global wait writes no idle output. Its final JSON has
+`operation`, `outcome`, `identity`, `candidates`, and `diagnostic`.
+Only `found` includes the session-only ownership generation and token.
+Exit codes are 0 for `found`, 3 for `ambiguous` or `cancelled`, and 2
+for invalid input or operational failure. Graceful interruption returns
+`cancelled`; a hard process kill may return nothing. No waiter state is persisted.
+
+A requestor remains on its exact exchange and immediately runs and follows
+`pw skill` after release. A reviewer returns to the global wait after every
+answer and never enters the requestor workflow.

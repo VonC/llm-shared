@@ -45,10 +45,9 @@ final JSON result and use its `paths` member.
 
 Stop when the requestor presents `Commit` and `Rework and review again`. Exit
 `3` and a commit-ready recommendation do not authorize a commit. Convergence
-ends the exact-exchange reviewer wait at the human gate. Keep the reviewer
-available for any future request under the configured artifact home. The
-cross-exchange monitor has not shipped, so do not poll or claim that another
-exchange will wake it automatically.
+leaves the exchange at its human gate. Keep the reviewer session in the quiet
+`wait-any-request` under the configured home; a replacement round or a new
+specification or code request will wake it.
 
 After the human chooses `Commit`, the requestor executes the prepared root
 `a.commit` through `pw code-review-commit`. If residual changes remain, that

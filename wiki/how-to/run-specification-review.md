@@ -45,10 +45,9 @@ final JSON `paths` member returned by the active skill.
 
 Stop when the requestor presents `Consolidate` and
 `Revise and review again`. A convergence recommendation and exit `3` do not
-authorize consolidation. Convergence ends the exact-exchange reviewer wait at
-the human gate. Keep the reviewer available for any future request under the
-configured artifact home. The cross-exchange monitor has not shipped, so do not
-poll or claim that another exchange will wake it automatically.
+authorize consolidation. Convergence leaves the exchange at its human gate.
+Keep the reviewer session in the quiet `wait-any-request` under the configured
+home; a replacement round or a new specification or code request will wake it.
 
 ## Resume a specification review
 

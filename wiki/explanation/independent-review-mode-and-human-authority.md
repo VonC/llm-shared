@@ -60,23 +60,24 @@ for the replacement request in the same invocation. The requestor consumes the
 answer, updates the reviewed work, and publishes that replacement while the
 reviewer is already standing by.
 
-Each role still runs one bounded protocol wait at a time. The shared exchange
-owns polling, timeout, abandonment, and escalation, so neither agent writes its
-own retry loop. Waiting also does not transfer authority: while the reviewer
-observes `answer-pending`, only the requestor may consume the answer or continue
-the round. When a reviewer recommends convergence, reciprocal waiting ends and
-the durable human gate takes over. The reviewer leaves the exact-exchange wait
-and remains available for a future request under the configured artifact home.
-That cross-exchange monitor is a Step 5 capability and has not shipped, so the
-current reviewer holds that posture without inventing a polling loop.
+The requestor waits for its exact answer with the exchange timeout. The
+reviewer runs one quiet global wait across rounds and families; it can remain
+idle until a request arrives or the human cancels. Native notifications and
+bounded polling belong to that command, so neither agent writes its own retry
+loop. Waiting does not transfer authority: while the reviewer observes
+`answer-pending`, only the requestor may consume the answer or continue the
+round. At convergence the durable human gate takes over that exchange, while
+the reviewer stays in `wait-any-request` for future work. Routine lease expiry
+alone cannot turn this availability into an error.
 
 ## Why a new session takes a new generation
 
 An ownership capability belongs to one live agent session. Durable coordination
 stores its digest, not the plaintext token, so a later session cannot silently
-impersonate the former owner. When the human explicitly identifies a new
-session, pickup issues a new generation to the actor that must perform the next
-protocol mutation and makes the former capability stale.
+impersonate the former owner. The human's bare `resume` request authorizes
+automatic pickup after the migration and role gates pass. Pickup issues a new
+generation to the selected actor and makes the former capability stale, even
+while the prior lease is fresh.
 
 At convergence, these authorities remain separate. The human still chooses
 whether to commit or start another round; the requestor receives the capability

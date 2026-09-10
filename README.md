@@ -64,21 +64,33 @@ preflight. See
 and the
 [independent review contract](wiki/reference/independent-review-mode-contract.md).
 
-Only an exact-exchange reviewer wait exists today. After convergence or a
-terminal handoff, the reviewer remains available for a future specification or
-code request under the artifact home, but the cross-exchange monitoring
-launcher is planned for Step 5 and has not shipped. Do not replace it with a
-polling loop or claim that the next exchange will wake automatically.
+To continue an interrupted review, enter `resume` in the agent session. The
+[review-resume skill](instructions/review-resume.md) checks migration, identifies
+the role, and performs automatic pickup before continuing. It asks only when a
+role or exchange is ambiguous, recorded identities conflict, or the existing
+human convergence gate needs a choice. A missing session token needs no extra
+instruction. See [Recover an independent review](wiki/how-to/recover-an-independent-review.md).
 
-To continue an implementation code review in another agent session, identify
-the exact plan and step and use this wording:
-`This is a new session; force requestor ownership pickup before any mutation,
-then resume from durable state.` At a commit gate, prefix that direction with
-`Commit selected.` A pickup advances
-the ownership generation and invalidates the old ownership token; it does not
-reset the review or reclaim an expired lease. See
-[Recover an independent review](wiki/how-to/recover-an-independent-review.md)
-for the complete procedure.
+A reviewer runs one quiet foreground `wait-any-request` after every answer,
+including convergence. It watches the configured home for either review family,
+uses native notifications with bounded polling fallback, and treats each event
+as a hint followed by an authoritative rescan. Competing reviewers have one
+claim winner; a loser keeps waiting. Intact lease expiry alone does not end the
+wait. A requestor uses `wait-answer` for its exact exchange and runs and follows
+`pw skill` after release. Cancellation returns one terminal result and creates
+no durable waiter. The resume entry point is an LLM skill; no `rvw_resume.bat`
+command is installed.
+
+For example, the versioned home declaration is:
+
+```ini
+[review-artifacts]
+home = .reviews
+```
+
+The home receives a local `.gitignore` before runtime evidence is written.
+External paths and tracked directories are rejected; an uncovered existing home
+or unsafe migration stops with a diagnostic.
 
 ---
 
