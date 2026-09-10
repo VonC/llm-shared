@@ -1,7 +1,7 @@
 """Cross-platform Git subprocess execution for local batch commit tools.
 
 Fix: Vendor the Git command helper into this repository so tools can run
-without importing the `pdfss` package from another project.
+without importing the `myapp` package from another project.
 
 Fix: Keep the cached platform dispatch so Linux always runs `command git`
 through `/bin/sh -c`, while Windows runs `git` directly.

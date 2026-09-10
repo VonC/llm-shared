@@ -45,7 +45,7 @@ Fix: Use the shared project-root helper so `PRJ_DIR` can point batch commits
 at the calling project before the local upward scan runs.
 
 Fix: Vendor the cross-platform Git helper into `tools/` so this script no
-longer depends on the `pdfss` package from another repository.
+longer depends on the `myapp` package from another repository.
 
 Fix: Route every Git subprocess through the cached cross-platform helper so
 Linux uses `command git` while Windows uses `git` directly.

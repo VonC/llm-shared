@@ -8,11 +8,11 @@ It re-implements three doskey aliases (ptr, pta, pts) as subcommands of one entr
 
 ## Historical aliases replaced by groundhog
 
-The doskey lines being replaced, kept here as the behavior reference (`pdfss` stands for `%PRJ_DIR_NAME%`, the consuming project folder name):
+The doskey lines being replaced, kept here as the behavior reference (`myapp` stands for `%PRJ_DIR_NAME%`, the consuming project folder name):
 
-- ptr: `del .testmondata & pytest --testmon --no-header --cov-report term-missing:skip-covered $* & echo pdfss: pytest reset done` — full suite, fresh testmon data, coverage re-computed from scratch.
-- pta: `pytest --testmon --cov-append --no-header --cov-report term-missing:skip-covered $* & echo pdfss: pytest affected done` — affected tests only, coverage appended; ptanc is the same without coverage.
-- pts: `pytest --no-header --no-cov -rxX $* & echo pdfss: pytest no-cov single done` — focused run of named test files, no coverage.
+- ptr: `del .testmondata & pytest --testmon --no-header --cov-report term-missing:skip-covered $* & echo myapp: pytest reset done` — full suite, fresh testmon data, coverage re-computed from scratch.
+- pta: `pytest --testmon --cov-append --no-header --cov-report term-missing:skip-covered $* & echo myapp: pytest affected done` — affected tests only, coverage appended; ptanc is the same without coverage.
+- pts: `pytest --no-header --no-cov -rxX $* & echo myapp: pytest no-cov single done` — focused run of named test files, no coverage.
 - covg (kept as is, not replaced): `"%LLM_SHARED_DIR%\bin\covg.bat" $*` — names the uncovered lines and functions after a coverage run.
 
 ## The ghog command and its subcommands

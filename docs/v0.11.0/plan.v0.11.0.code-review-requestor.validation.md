@@ -64,7 +64,7 @@ No performance issue needs to be addressed.
 
 ### Unit test coverage check for Step 1
 
-The focused `tests/unit/tools/test_code_review_request/test_code_review_request_tdd.py` package covers the complete `tools/code_review_request.py` module, including defensive error paths. The repository full run reports 100% coverage. This repository does not use the `src/pdfss/tests/unit` layout named by the generic instruction; the colocated unit-test convention is followed here.
+The focused `tests/unit/tools/test_code_review_request/test_code_review_request_tdd.py` package covers the complete `tools/code_review_request.py` module, including defensive error paths. The repository full run reports 100% coverage. This repository does not use the `src/<package>/tests/unit` layout named by the generic instruction; the colocated unit-test convention is followed here.
 
 No unit-tested class below 100% needs completing.
 

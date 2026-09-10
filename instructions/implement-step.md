@@ -68,7 +68,7 @@ Never run `check.bat` or a plain `pytest` yourself: groundhog owns check and tes
 
 ## Reach 100% coverage on each unit-tested class
 
-This rule is for unit tests only, the ones under `src\pdfss\tests\unit`. It does not apply to integration, smoke, regression, or acceptance tests.
+This rule is for unit tests only, the ones under the project's unit-test root such as `src\<package>\tests\unit`. It does not apply to integration, smoke, regression, or acceptance tests.
 
 - One unit test file, or a set of unit test files inside a test folder named after the class under test, must reach 100% coverage of that one Python class file. Each unit-tested class file gets to 100% on its own, in one test file or several.
 - Design the class file to be easy to test first: small methods, injected dependencies, no hidden side effects. Then write the unit tests so they both exercise the behaviour and reach 100% of that class file.

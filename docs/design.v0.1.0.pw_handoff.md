@@ -282,8 +282,8 @@ The completed body states the count and lists the staged files (Q22). The delive
 
 ```log
 M  docs/plan.v9.8.0.resources_isolation.validation.md
-M  src/pdfss/adapters/__init__.py
-A  src/pdfss/adapters/job_shm_layout.py
+M  src/myapp/adapters/__init__.py
+A  src/myapp/adapters/job_shm_layout.py
 ```
 
 Each line is the two-character `git status --porcelain` code, a space, then the repo-relative path, the same shape the example shows and the same shape `git status --short` prints (Q22). The block is fenced with ```log to match the commit blocks of [`group-commits-msg.template.md`](../templates/group-commits-msg.template.md), and a rename collapses to its target path, the rule `_porcelain_path` already applies.

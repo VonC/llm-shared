@@ -303,9 +303,9 @@ def infer_layer(
 
     The layer is determined by the top-level directory within the package root.
     For example:
-    - `.../src/pdfss/domain/workflow/a.py` -> 'domain'
-    - `.../src/pdfss/adapters/inbound/b.py` -> 'adapters'
-    - `.../src/pdfss/composition.py` -> 'root'
+    - `.../src/myapp/domain/workflow/a.py` -> 'domain'
+    - `.../src/myapp/adapters/inbound/b.py` -> 'adapters'
+    - `.../src/myapp/composition.py` -> 'root'
 
     When `split_adapters=True`, adapter paths can be refined to
     `Layer.ADAPTERS_IN` or `Layer.ADAPTERS_OUT` for guardrail checks while the
