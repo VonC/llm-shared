@@ -1,7 +1,9 @@
-"""Exercise persistent discovery with real transitions and separately prepared cores."""
+"""Exercise persistent discovery, including concurrent and interrupted publication."""
 
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
+from threading import Event
 from typing import TYPE_CHECKING
 
 import pytest
@@ -19,6 +21,7 @@ from tools.review_exchange_models import (
     Actor,
     ReviewConfiguration,
     ReviewDisposition,
+    ReviewExchangeError,
     ReviewFamily,
     ReviewRole,
 )
@@ -86,6 +89,58 @@ def test_one_discovery_serves_next_round_and_new_family(
     specification.start()
     _publish_request(specification, 1)
     _review_once(discovery, specification, 1)
+
+
+def test_discovery_defers_publication_until_its_locked_snapshot_is_complete(
+    prepared_review_families: tuple[_RequestDiscovery, ReviewExchangeCore, ReviewExchangeCore],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A visible request with an unfinished transcript never terminates the global waiter."""
+    discovery, core, _ = prepared_review_families
+    published, finish = Event(), Event()
+    # This race requires the real lock bypassed by the unit suite's fast fixture.
+    monkeypatch.setattr(core.store, "transition_lock", core.store.ownership_store.transition_lock)
+    publish = core.store.publish_request
+
+    def pause_after_request(content: str) -> None:
+        """Expose the exact partial-publication window until the reader observes it."""
+        publish(content)
+        published.set()
+        assert finish.wait(timeout=5)
+
+    monkeypatch.setattr(core.store, "publish_request", pause_after_request)
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        future = pool.submit(_publish_request, core, 1)
+        try:
+            assert published.wait(timeout=5)
+            assert discovery.rescan() == ()
+        finally:
+            finish.set()
+        future.result(timeout=5)
+    candidates = discovery.rescan()
+    assert len(candidates) == 1
+    assert discovery.claim(candidates[0])
+
+
+def test_unlocked_interrupted_publication_still_fails_closed(
+    prepared_review_families: tuple[_RequestDiscovery, ReviewExchangeCore, ReviewExchangeCore],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Deferring a busy publisher never hides evidence left damaged after its lock releases."""
+    discovery, core, _ = prepared_review_families
+    publish = core.store.publish_request
+    failure = "publication interrupted after request became visible"
+
+    def interrupt_after_request(content: str) -> None:
+        """Leave the production publication marker behind, like a failed writer."""
+        publish(content)
+        raise OSError(failure)
+
+    monkeypatch.setattr(core.store, "publish_request", interrupt_after_request)
+    with pytest.raises(OSError, match=failure):
+        _publish_request(core, 1)
+    with pytest.raises(ReviewExchangeError, match="trustworthy review status"):
+        discovery.rescan()
 
 
 # eof

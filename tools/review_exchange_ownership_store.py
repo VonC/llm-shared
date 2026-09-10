@@ -3,13 +3,15 @@
 Step 3 extracts the transition lock and coordination compare-and-swap storage
 from the risk-band exchange store. Claims are calculated by the pure ownership
 service and exposed only after their complete coordination replacement is
-durable.
+durable. Read-only discovery uses the same lock without creating files or
+waiting behind an in-progress publication.
 """
 
 # ruff: noqa: EM101, EM102, TRY003
 
 from __future__ import annotations
 
+import errno
 import os
 import tempfile
 import time
@@ -58,6 +60,54 @@ def _local_lock(path: Path) -> RLock:
     resolved = path.resolve()
     with _LOCAL_LOCKS_GUARD:
         return _LOCAL_LOCKS.setdefault(resolved, RLock())
+
+
+@contextmanager
+def observe_transition(path: Path) -> Generator[bool]:
+    """Try a non-mutating snapshot lock; busy publishers defer to the next poll."""
+    local = _local_lock(path)
+    if not local.acquire(blocking=False):
+        yield False
+        return
+    try:
+        try:
+            stream = path.open("rb")
+        except FileNotFoundError:
+            # Legacy evidence has no lock yet and must still be validated.
+            yield True
+            return
+        with stream:
+            acquired = _try_observation_lock(stream)
+            try:
+                yield acquired
+            finally:
+                if acquired:
+                    _unlock_stream(stream)
+    finally:
+        local.release()
+
+
+def _try_observation_lock(stream: BinaryIO) -> bool:
+    """Take a nonblocking platform read lock, preserving actual IO failures."""
+    try:
+        if os.name == "nt":
+            msvcrt.locking(stream.fileno(), msvcrt.LK_NBRLCK, 1)
+        else:
+            fcntl.flock(stream.fileno(), fcntl.LOCK_SH | fcntl.LOCK_NB)
+    except OSError as error:
+        if error.errno not in {errno.EACCES, errno.EAGAIN, errno.EDEADLK}:
+            raise
+        return False
+    return True
+
+
+def _unlock_stream(stream: BinaryIO) -> None:
+    """Release the shared platform lock used by readers and transition writers."""
+    stream.seek(0)
+    if os.name == "nt":
+        msvcrt.locking(stream.fileno(), msvcrt.LK_UNLCK, 1)
+        return
+    fcntl.flock(stream.fileno(), fcntl.LOCK_UN)
 
 
 class ReviewExchangeOwnershipStore:
@@ -215,15 +265,11 @@ class ReviewExchangeOwnershipStore:
 
     @staticmethod
     def _unlock_stream(stream: BinaryIO) -> None:
-        """Release the platform lock before the stream closes."""
-        stream.seek(0)
-        if os.name == "nt":
-            msvcrt.locking(stream.fileno(), msvcrt.LK_UNLCK, 1)
-            return
-        fcntl.flock(stream.fileno(), fcntl.LOCK_UN)
+        """Delegate platform release before the transition stream closes."""
+        _unlock_stream(stream)
 
 
-__all__ = ["ReviewExchangeOwnershipStore"]
+__all__ = ["ReviewExchangeOwnershipStore", "observe_transition"]
 
 
 # eof

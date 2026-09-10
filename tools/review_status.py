@@ -2,7 +2,8 @@
 
 Ordinary projection remains read-only.  The public entry point first permits the
 single bounded mutation exception required to migrate legacy review artifacts,
-then projects the ready layout exactly once.
+then projects the ready layout exactly once. Global request discovery defers
+busy publications and validates settled snapshots under their transition lock.
 """
 
 # ruff: noqa: EM101, EM102, TRY003
@@ -30,6 +31,7 @@ from tools.review_exchange_models import (
 from tools.review_exchange_models_coordination import CoordinationRecord
 from tools.review_exchange_models_envelope import parse_json_markdown
 from tools.review_exchange_observer import ExchangeObservation, ReviewExchangeObserver
+from tools.review_exchange_ownership_store import observe_transition
 from tools.review_exchange_paths import (
     derive_artifact_paths,
     load_review_configuration,
@@ -260,11 +262,7 @@ def collect_ready_review_requests(
     wall_clock: Callable[[], datetime],
     configuration: ReviewArtifactConfiguration,
 ) -> ReviewStatusResult:
-    """Project recognized requests in linear directory order after ready preflight.
-
-    Foreground discovery reuses its locator and never migrates or sorts an
-    unrelated active-exchange inventory on each polling interval.
-    """
+    """Project settled requests in linear directory order without migrating."""
     registry = ReviewArtifactRegistry()
     invocation = _StatusInvocation(
         root, configuration, _DEFAULT_DEPENDENCIES.load_configuration(root, configuration), wall_clock(),
@@ -276,7 +274,9 @@ def collect_ready_review_requests(
         if registered is None or registered.kind is not RegisteredArtifactKind.REQUEST or registered.identity is None:
             continue
         coordination = configuration.home / registry.name_for(RegisteredArtifactKind.COORDINATION, registered.identity)
-        entry = _collect_candidate(invocation, coordination, _DEFAULT_DEPENDENCIES)
+        lock = configuration.home / registry.name_for(RegisteredArtifactKind.TRANSITION_LOCK, registered.identity)
+        with observe_transition(lock) as available:
+            entry = _collect_candidate(invocation, coordination, _DEFAULT_DEPENDENCIES) if available and path.exists() else None
         if entry is not None:
             entries.append(entry)
     return _result(root, tuple(entries), MigrationStatus.unnecessary(configuration.relative_home))
