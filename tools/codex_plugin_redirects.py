@@ -14,6 +14,16 @@ def _relative_url(adapter: Path, target: Path) -> str:
     return Path(os.path.relpath(target, start=adapter.parent)).as_posix()
 
 
+def _redirect_body(adapter: Path) -> str:
+    """Read a redirect body, excluding optional closed metadata front matter."""
+    content = adapter.read_text(encoding="utf-8")
+    if content.startswith("---\n"):
+        _, separator, body = content[4:].partition("\n---\n")
+        if separator:
+            return body.lstrip("\n")
+    return content
+
+
 def _validate_redirects(
     adapter_root: Path,
     canonical_root: Path,
@@ -33,7 +43,7 @@ def _validate_redirects(
         packaged_instruction = adapter_root / "instructions" / name
         if not packaged_instruction.is_file():
             errors.append(f"missing instruction redirect: {packaged_instruction}")
-        elif packaged_instruction.read_text(encoding="utf-8") != expected_instruction:
+        elif _redirect_body(packaged_instruction) != expected_instruction:
             errors.append(
                 f"wrong cache-relative redirect: {packaged_instruction} "
                 f"(expected {instruction_url})",
@@ -67,7 +77,7 @@ def _validate_redirects(
     )
     if not packaged_rule.is_file():
         errors.append(f"missing rule redirect: {packaged_rule}")
-    elif packaged_rule.read_text(encoding="utf-8") != expected_rule:
+    elif _redirect_body(packaged_rule) != expected_rule:
         errors.append(
             f"wrong cache-relative redirect: {packaged_rule} "
             f"(expected {rule_url})",

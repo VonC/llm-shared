@@ -36,7 +36,12 @@ def _roots(tmp_path: Path) -> tuple[Path, Path, Path]:
     return canonical, plugin, cache_base
 
 
-def _write_valid_redirects(adapter: Path, canonical: Path, cache_root: Path) -> None:
+def _write_valid_redirects(
+    adapter: Path,
+    canonical: Path,
+    cache_root: Path,
+    frontmatter: str = "",
+) -> None:
     """Write the exact redirect forms accepted by the validator."""
     instruction = adapter / "instructions" / "sample.md"
     skill = adapter / "skills" / "sample" / "SKILL.md"
@@ -57,16 +62,18 @@ def _write_valid_redirects(adapter: Path, canonical: Path, cache_root: Path) -> 
         canonical / "rules" / "docs_layout.md",
     )
     instruction.write_text(
-        "Read and follow the canonical instruction at "
+        frontmatter
+        + "Read and follow the canonical instruction at "
         f"[`instructions/sample.md`]({instruction_url}).\n",
         encoding="utf-8",
     )
     skill.write_text(
-        f"Read and follow [the canonical instruction]({skill_url})\n",
+        frontmatter + f"Read and follow [the canonical instruction]({skill_url})\n",
         encoding="utf-8",
     )
     rule.write_text(
-        "Read and follow the canonical rule at "
+        frontmatter
+        + "Read and follow the canonical rule at "
         f"[`rules/docs_layout.md`]({rule_url}).\n",
         encoding="utf-8",
     )
@@ -87,28 +94,54 @@ def _set_argv(
     )
 
 
-@pytest.mark.parametrize(
-    ("installed", "location"),
-    [(False, "plugin source"), (True, "installed cache")],
-)
+@pytest.mark.parametrize("installed", [False, True])
+@pytest.mark.parametrize("frontmatter", ["", "---\nllm_nature: codex\n---\n\n"])
 def test_main_accepts_valid_source_and_installed_redirects(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
+    frontmatter: str,
     *,
     installed: bool,
-    location: str,
 ) -> None:
     """Both supported adapter roots use links relative to the future cache."""
     canonical, plugin, cache_base = _roots(tmp_path)
     cache_root = cache_base / _VERSION
     adapter = cache_root if installed else plugin
-    _write_valid_redirects(adapter, canonical, cache_root)
+    _write_valid_redirects(adapter, canonical, cache_root, frontmatter)
     extra = ("--installed",) if installed else ()
     _set_argv(monkeypatch, plugin, canonical, cache_base, *extra)
 
     assert codex_plugin_redirects.main() == 0
+    location = "installed cache" if installed else "plugin source"
     assert f"in {location}:" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("relative_path", ["instructions/sample.md", "rules/docs_layout.md"])
+@pytest.mark.parametrize("damage", ["wrong-link", "extra-prose", "unclosed-frontmatter"])
+def test_metadata_does_not_hide_invalid_redirects(
+    tmp_path: Path,
+    relative_path: str,
+    damage: str,
+) -> None:
+    """Metadata cannot make a wrong link, forked body or unclosed header valid."""
+    canonical, plugin, cache_base = _roots(tmp_path)
+    cache_root = cache_base / _VERSION
+    _write_valid_redirects(plugin, canonical, cache_root, "---\nllm_nature: codex\n---\n\n")
+    adapter = plugin / relative_path
+    content = adapter.read_text(encoding="utf-8")
+    if damage == "wrong-link":
+        content = content.replace("canonical/", "wrong-root/")
+    elif damage == "extra-prose":
+        content += "Additional workflow instructions.\n"
+    else:
+        content = content.replace("\n---\n", "\n")
+    adapter.write_text(content, encoding="utf-8")
+
+    errors = codex_plugin_redirects._validate_redirects(plugin, canonical, cache_root)
+
+    assert len(errors) == 1
+    assert str(adapter) in errors[0]
 
 
 @pytest.mark.parametrize("write_wrong", [False, True])
