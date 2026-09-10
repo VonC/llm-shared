@@ -42,6 +42,7 @@ def _copied_repository(root: Path) -> RepositoryState | None:
         for path in root.rglob("*")
         if path.is_file()
         and ".git" not in path.relative_to(root).parts
+        and ".reviews" not in path.relative_to(root).parts
         and not path.relative_to(root).as_posix().startswith("a.")
     }
     committed = dict(staged)

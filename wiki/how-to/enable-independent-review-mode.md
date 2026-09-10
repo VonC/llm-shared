@@ -16,8 +16,9 @@ artifact.
 
 ## Enable review mode
 
-1. At the Git root, create an empty file named `a.review-mode` to use the
-   bounded-wait default, three hours unless a settings file says otherwise.
+1. Prepare the configured artifact home (`.reviews` by default) with a local
+   `.gitignore` containing `*`. Create an empty `a.review-mode` inside that home
+   to use the bounded-wait default, three hours unless a settings file says otherwise.
 2. To version another default for every review in this repository, add
    `.review-exchange.ini` at the Git root:
 
@@ -49,7 +50,8 @@ the marker rather than editing exchange state.
 
 1. Check that no exchange is active. If one is active, finish or recover it
    through its requestor before changing the opt-in marker.
-2. Remove the project-root `a.review-mode` file.
+2. Remove the artifact-home `a.review-mode` file and any legacy project-root
+   marker that would otherwise remain as a fallback.
 3. Run the next ordinary workflow. With no marker, it keeps its existing human
    stop and creates no exchange artifacts.
 4. A direct status call returns final JSON with disabled state and a null round.

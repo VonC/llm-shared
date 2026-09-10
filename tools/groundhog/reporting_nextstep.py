@@ -69,6 +69,11 @@ MSG_COVERAGE_GAP: Final = (
 )
 MSG_GAP_LINES_HEADER: Final = "Uncovered lines (file and ranges are the covg input):"
 MSG_FULL_OK: Final = "Objective reached"
+MSG_TIMINGS_OK: Final = "Duration gate clean; the parallel walk carries the rest"
+MSG_TIMINGS_FAILED: Final = (
+    "Next: a failure in the sequential timing pass is a real failure; "
+    "fix it with ghog single before trusting any duration verdict"
+)
 MSG_AFFECTED_COV_OK: Final = (
     "Coverage gate reached - no ghog full needed; "
     "finish with ghog check (new tests are code too)"
@@ -94,6 +99,28 @@ MSG_OUTLIERS: Final = (
     "the floor with margin to spare, confirm it alone with ghog single <file>, "
     "then ghog day"
 )
+
+
+def next_after_timings(
+    exit_code: int,
+    summary: DurationSummary | None = None,
+) -> list[str]:
+    """Build the next-step lines after a sequential ``ghog timings`` run.
+
+    Args:
+        exit_code: The groundhog exit code of the run.
+        summary: The duration verdict, for the exclusion hint on exit 8.
+
+    Returns:
+        The next-step lines of the run-state table.
+    """
+    if exit_code == EXIT_DURATION_OUTLIERS:
+        return [MSG_OUTLIERS, _exclusion_hint(summary)]
+    if exit_code == EXIT_TEST_FAILURES:
+        return [MSG_TIMINGS_FAILED]
+    if exit_code == EXIT_OBJECTIVE_MET:
+        return [MSG_TIMINGS_OK]
+    return []
 
 
 def next_after_full(

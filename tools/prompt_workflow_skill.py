@@ -39,6 +39,8 @@ MD_SUFFIX = ".md"
 # Public compatibility exports now implemented by the cohesive rendering module.
 HOST_CLAUDE = rendering.HOST_CLAUDE
 HOST_CODEX = rendering.HOST_CODEX
+HOST_GEMINI = rendering.HOST_GEMINI
+HOST_UNKNOWN = rendering.HOST_UNKNOWN
 DEFAULT_HOST = rendering.DEFAULT_HOST
 detect_host = rendering.detect_host
 host_prefix = rendering.host_prefix

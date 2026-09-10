@@ -1,0 +1,34 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "markdown-check",
+      "detail": "Run the llm-shared Markdown gate over this workspace, using llm-shared's own venv",
+      "type": "shell",
+      "command": "${workspaceFolder}/../llm-shared/venvs/python_3.13.9_llm-shared/Scripts/python.exe",
+      "args": ["-m", "tools.markdown_check.cli", "--root", "${workspaceFolder}"],
+      "options": {
+        "cwd": "${workspaceFolder}/../llm-shared"
+      },
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      },
+      "problemMatcher": {
+        "owner": "markdown-check",
+        "source": "markdown-check",
+        "severity": "warning",
+        "fileLocation": ["relative", "${workspaceFolder}"],
+        "pattern": {
+          "regexp": "^(.+):([0-9]+): ([A-Z]{2}[0-9]{3}): (.+)$",
+          "file": 1,
+          "line": 2,
+          "code": 3,
+          "message": 4
+        }
+      }
+    }
+  ]
+}

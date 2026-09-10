@@ -222,8 +222,11 @@ def exit_three_manifest_retirement(tmp_path: Path) -> None:
     )
     manifest = write_manifest(effort.root, retained)
     answer = render_assessment(effort, ReviewDisposition.CONVERGENCE_RECOMMENDED)
-    content = effort.root / "a.answer.md"
-    summary = effort.root / "a.answer-summary.md"
+    capability = exchange.ownership_capability
+    assert capability is not None
+    home = effort.root / ".reviews"
+    content = home / "a.answer.md"
+    summary = home / "a.answer-summary.md"
     content.write_text(answer.answer_content, encoding="utf-8")
     summary.write_text(answer.transcript_summary, encoding="utf-8")
     stdout, stderr = StringIO(), StringIO()
@@ -237,6 +240,10 @@ def exit_three_manifest_retirement(tmp_path: Path) -> None:
             [
                 "publish-answer",
                 *_context_arguments(effort),
+                "--ownership-generation",
+                str(capability.generation),
+                "--ownership-token",
+                capability.token,
                 "--content-file",
                 str(content),
                 "--summary-file",

@@ -375,6 +375,7 @@ def test_identity_conflict_fails_before_clock_is_consulted(tmp_path: Path) -> No
     """Cross-identity evidence is inconsistent regardless of lease timing."""
     core, store, _ = _core(tmp_path)
     other = _context(tmp_path, "another-document")
+    store.paths.request.parent.mkdir(parents=True, exist_ok=True)
     store.paths.request.write_text(
         _artifact(other, ReviewRole.REQUESTOR),
         encoding="utf-8",
@@ -392,6 +393,7 @@ def test_malformed_coordination_and_impossible_confirmation_fail_closed(
 ) -> None:
     """Unreadable state and an orphan another-round outcome never gain authority."""
     core, store, context = _core(tmp_path)
+    store.paths.coordination.parent.mkdir(parents=True, exist_ok=True)
     store.paths.coordination.write_text("not JSON", encoding="utf-8")
     assert core.classify().state is ArtifactState.INCONSISTENT
 

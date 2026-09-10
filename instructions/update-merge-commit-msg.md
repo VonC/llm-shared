@@ -17,8 +17,13 @@ Your goal is to write an `a.commit` with a conventional commit message explainin
 
 For that, call the helper script [`git-extract-merge-docs.sh`](../scripts/update-merge-commit-msg/git-extract-merge-docs.sh) shipped under `scripts/update-merge-commit-msg/`:
 
+Resolve `<LLM_SHARED_DIR>` as the absolute parent of the `instructions` folder
+that contains this canonical file. Pass that full path directly to every
+shared script and launcher in this instruction; do not rely on an environment
+variable or guessed relative checkout.
+
 ```bash
-bash -c "%LLM_SHARED_DIR_UNIX%/scripts/update-merge-commit-msg/git-extract-merge-docs.sh"
+bash "<LLM_SHARED_DIR>/scripts/update-merge-commit-msg/git-extract-merge-docs.sh"
 ```
 
 No parameter is needed, can be called from anywhere, but you need to resolve the full path of the script.
@@ -34,11 +39,15 @@ After writing `a.commit`, format it with the `wrap_commit` tool using `--no-deli
 
 Before running the formatting command, read [`../rules/run_commands.md`](../rules/run_commands.md).
 
-Run it the project-portable way the other tools use, so it works from any consuming repository that has `LLM_SHARED_DIR` set (the `wacnd` alias does the same):
+Resolve `<LLM_SHARED_DIR>` as the absolute parent of the `instructions` folder
+that contains this canonical file. Run the launcher directly by that full path
+so it works from any consuming repository without an environment variable or
+an `senv.bat` pre-call (the `wacnd` alias does the same in an interactive
+shell):
 
-```bat
-cd "%PRJ_DIR%"
-"%LLM_SHARED_DIR%\bin\wac.bat" --no-delimiters
+```powershell
+Set-Location -LiteralPath "<PRJ_DIR>"
+& "<LLM_SHARED_DIR>\bin\wac.bat" --no-delimiters
 ```
 
 The tool rewrites `a.commit` in place; an exit status of 0 means the file is now canonically formatted.

@@ -128,8 +128,8 @@ def guided_answer_journey(tmp_path: Path) -> None:
 
     answer_text = answer.read_text(encoding="utf-8")
     summary_text = summary.read_text(encoding="utf-8")
-    assert "Human guidance: Keep Q01 settled." in answer_text
-    assert "Guidance response: Q01 remains settled." in answer_text
+    assert "Human guidance:\n\nKeep Q01 settled." in answer_text
+    assert "Guidance response:\n\nQ01 remains settled." in answer_text
     assert "Q01 remains settled." in summary_text
 
 

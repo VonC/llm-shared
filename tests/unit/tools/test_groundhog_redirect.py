@@ -211,12 +211,13 @@ def test_mirror_is_a_noop_while_inactive(
 
 def test_replay_senv_log_without_the_env_variable(
     monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """No side-log variable means nothing to replay."""
     monkeypatch.delenv(redirect.SENV_LOG_ENV, raising=False)
     with caplog.at_level(logging.INFO, logger="groundhog"):
-        redirect.replay_senv_log()
+        redirect.replay_senv_log(Mode.USER, tmp_path)
     assert caplog.text == ""
 
 
@@ -228,7 +229,7 @@ def test_replay_senv_log_with_a_missing_file(
     """A vanished side log is silently skipped."""
     monkeypatch.setenv(redirect.SENV_LOG_ENV, str(tmp_path / "absent.log"))
     with caplog.at_level(logging.INFO, logger="groundhog"):
-        redirect.replay_senv_log()
+        redirect.replay_senv_log(Mode.USER, tmp_path)
     assert caplog.text == ""
 
 
@@ -237,7 +238,7 @@ def test_replay_senv_log_replays_and_deletes(
     tmp_path: Path,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """The parked senv preamble is replayed line by line, then deleted."""
+    """A user run still streams the parked senv preamble, then deletes it."""
     side = tmp_path / "a.ghog.senv.log"
     side.write_text(
         " OK    : [senv.bat] Environment initialized\n INFO  : [senv.bat] applied\n",
@@ -245,10 +246,55 @@ def test_replay_senv_log_replays_and_deletes(
     )
     monkeypatch.setenv(redirect.SENV_LOG_ENV, str(side))
     with caplog.at_level(logging.INFO, logger="groundhog"):
-        redirect.replay_senv_log()
+        redirect.replay_senv_log(Mode.USER, tmp_path)
     assert "Environment initialized" in caplog.text
     assert "[senv.bat] applied" in caplog.text
     assert not side.exists()
+
+
+def test_llm_replay_parks_the_preamble_and_leaves_one_summary_line(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """An LLM report keeps raw wrapper output out of the log it writes.
+
+    The preamble reached a.ghog.log by two routes, the armed guard and the
+    caller-side redirect of the contract, so the fix is at the replay itself
+    rather than at either stream.
+    """
+    side = tmp_path / "a.ghog.senv.log"
+    side.write_text(
+        " OK    : [senv.bat] Environment initialized\n INFO  : [senv.bat] applied\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv(redirect.SENV_LOG_ENV, str(side))
+    with caplog.at_level(logging.INFO, logger="groundhog"):
+        redirect.replay_senv_log(Mode.LLM, tmp_path)
+    assert redirect.MSG_SENV_PARKED in caplog.text
+    assert "Environment initialized" not in caplog.text
+    assert "[senv.bat] applied" not in caplog.text
+    retained = tmp_path / redirect.SENV_RAW_NAME
+    assert "Environment initialized" in retained.read_text(encoding="utf-8")
+    assert not side.exists()
+
+
+def test_llm_replay_still_surfaces_a_blocked_senv(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """A blocked senv is an escalation signal and must not hide behind a pointer."""
+    side = tmp_path / "a.ghog.senv.log"
+    side.write_text(
+        " INFO  : [senv.bat] starting\n ERROR : [senv.bat] Access is denied\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv(redirect.SENV_LOG_ENV, str(side))
+    with caplog.at_level(logging.INFO, logger="groundhog"):
+        redirect.replay_senv_log(Mode.LLM, tmp_path)
+    assert "Access is denied" in caplog.text
+    assert "[senv.bat] starting" not in caplog.text
 
 
 def test_unredirected_check_run_hands_back_the_envelope_only(

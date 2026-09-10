@@ -15,14 +15,33 @@ implementation skill. Full launchers are for reference, recovery, and direct
 reviewer operation. Every operation returns one final result; follow that
 result instead of discovering nearby files.
 
-Automatic intermediate exchange uses reciprocal bounded waits. The requestor
-runs `wait-answer` after `publish-request`. A reviewer that publishes
-`changes-requested` immediately runs `wait-request` in the same invocation and
-remains there while the requestor owns `answer-pending`. After the requestor
-consumes the answer, continues the round, and publishes the replacement, that
-wait returns the next `request-pending` artifact and reviewer assessment resumes.
-Convergence does not start another reviewer wait; it transfers the exchange to
-the human gate.
+Role-session provenance is external to the exchange. A requestor may publish
+and wait but may never start, spawn, delegate to, invoke, or message a reviewer.
+A reviewer may assess or wait but may never do those things to a requestor.
+Each role rejects a task initiated by its automated counterpart, even when the
+durable state names that role as the next actor. A human or external reviewer
+service may start the independent reviewer; a valid route alone is not valid
+provenance.
+
+Automatic intermediate exchange uses reciprocal waiting. The requestor's
+`wait-answer` is bounded to its exact exchange. After every answer the reviewer
+runs the quiet foreground `wait-any-request` in the same session. This global
+wait has no exchange timeout while idle and accepts either review family under
+the configured home. A replacement request wakes it after requestor work or a
+human's another-round choice; convergence leaves the human gate intact.
+Native events trigger authoritative rescans, with bounded polling fallback.
+`already-claimed` losers return to waiting. Intact expired leases remain
+recoverable; damaged, inconsistent, escalated and repair-required evidence stops
+the operation. Repeated status calls are not the wait interface.
+
+A new agent process has no access to a prior process's plaintext ownership
+token. A bare `resume` authorizes automatic `claim` after migration and role
+inspection. A missing or stale capability causes lease-independent pickup,
+which advances the durable ownership generation and returns a replacement
+capability. At
+`convergence-gate` and `owning-action-pending`, the pickup actor is the
+requestor; in other live states it is the expected LLM actor. Pickup does not
+change the round, artifacts, or human decision owner.
 
 The canonical [shared requestor instruction](../../instructions/review-requestor.md),
 [specification reviewer instruction](../../instructions/spec-reviewer.md), and
@@ -35,10 +54,39 @@ current root overrides an unrelated inherited `PRJ_DIR`. The launcher also
 places llm-shared first on `PYTHONPATH`, so a consuming repository's own
 `tools` package cannot replace the shared protocol modules.
 
+## Artifact-home configuration and migration
+
+All protocol-owned runtime artifacts resolve through one repository-local home.
+Without a declaration, the home is `.reviews`. To select another home, commit
+one strict `.review-artifacts.ini` at the repository root:
+
+```ini
+[review-artifacts]
+home = runtime/reviews
+```
+
+The file accepts exactly that section and property. The value must be a
+nonempty repository-relative path that resolves physically inside the
+repository, is not the repository root, and does not name an existing tracked
+directory. Environment-variable, tilde, drive, and absolute-path expansion are
+not supported. The home contains a `.gitignore` whose exact rule is `*`, so
+runtime evidence remains untracked.
+
+Placement recognizes the closed review-artifact registry in the legacy project
+root, `.reviews`, and the configured home. Migration is transactional under an
+exclusive lock and a versioned JSON journal. Equal-byte duplicates can be
+settled safely; different-byte collisions, invalid ignore coverage, unreadable
+evidence, or incomplete recovery block migration rather than selecting a copy.
+
+`rvw_status.bat` owns the currently shipped automatic migration entry point. It
+checks placement, migrates only when required, rechecks readiness, and only then
+projects exchange state. After that bounded preflight, status does not mutate
+the exchange.
+
 ## Marker and exchange identity
 
-The project-root `a.review-mode` file opts later workflow entry into independent
-review mode. An empty file selects the default wait. One line of the form
+The artifact-home `a.review-mode` file opts later workflow entry into independent
+review mode. The home marker wins over a legacy project-root marker. An empty file selects the default wait. One line of the form
 `wait_timeout_seconds=<positive integer>` selects another bounded wait. An
 absent marker produces `state: disabled`; invalid marker content produces the
 fatal result described below.
@@ -48,7 +96,7 @@ order and stopping at the first usable value:
 
 | Source | Wins over | On invalid content |
 | --- | --- | --- |
-| `wait_timeout_seconds=` in the project-root `a.review-mode` | everything | fatal |
+| `wait_timeout_seconds=` in the effective artifact-home `a.review-mode` (legacy root fallback) | everything | fatal |
 | `.review-exchange.ini` at the reviewed repository root | the shipped file | ignored |
 | `.review-exchange.ini` shipped with llm-shared, currently 10,800 seconds (three hours) | nothing | ignored |
 
@@ -72,22 +120,39 @@ The command context also carries the exact reviewed document, optional umbrella
 draft, convergence signal, another-round label, and owning-workflow label.
 Identity and context must agree with every durable envelope.
 
+## Role identity and ownership
+
+New request, answer, and coordination schemas preserve separate
+`requestor_llm_nature` and `reviewer_llm_nature` snapshots. Each known value is
+`claude`, `codex`, `gemini`, or `unknown`. Legacy artifacts may omit the two
+fields; status renders that absence as `unrecorded`. If durable artifacts
+disagree, status renders `conflicting` and retains every evidence path instead
+of guessing or rewriting a value.
+
+Every acting session uses an ownership generation and plaintext token returned
+by its claim or pickup. Coordination stores only the token's SHA-256 digest.
+Every later mutation supplies both values, while status remains capability-free.
+A forced pickup advances the generation under the transition lock and makes all
+older capabilities fail as superseded. Tokens do not appear in transcripts,
+diagnostics, or human status output.
+
 ## Artifact and path contract
 
 Artifact names help with orientation only. The final result's returned `paths`
 object selects the files for the next action; do not reconstruct names, search
 for a nearby version, or edit protocol artifacts by hand.
 
-| Kind | Lifetime | Naming grammar or source |
+| Kind | Location and lifetime | Naming grammar or source |
 | --- | --- | --- |
-| Request | Transient | `a.review-requested.<type>.<version>.<slug>.md` |
-| Answer | Transient | `a.review-answer.<type>.<version>.<slug>.md` |
-| Coordination | Durable while live | `a.review-active.<family>.<type>.<version>.<slug>.md` |
-| Consumed request tombstone | Transient while needed | `a.review-consumed.<family>.<type>.<version>.<slug>.md` |
-| Transition lock | Process-local coordination | `a.review-lock.<family>.<type>.<version>.<slug>.lock` |
-| Transcript | Versioned durable evidence | `review.<type>.<version>.<slug>.md` beside the reviewed document |
-| Recovery archive | Ignored durable evidence | `a.review-archive.<family>.<type>.<version>.<slug>.<timestamp>.<kind>.md` |
-| Code evidence manifest | Ignored reviewer evidence | `a.code-review-evidence.<version>.<slug>.step-<step>.json` |
+| Request | Artifact home; transient | `a.review-requested.<type>.<version>.<slug>.md` |
+| Answer | Artifact home; transient | `a.review-answer.<type>.<version>.<slug>.md` |
+| Coordination | Artifact home; durable while live | `a.review-active.<family>.<type>.<version>.<slug>.md` |
+| Consumed request tombstone | Artifact home; transient while needed | `a.review-consumed.<family>.<type>.<version>.<slug>.md` |
+| Transition lock | Artifact home; process-local coordination | `a.review-lock.<family>.<type>.<version>.<slug>.lock` |
+| Transcript | Beside reviewed document; versioned durable evidence | `review.<type>.<version>.<slug>.md` |
+| Recovery archive | Artifact home; ignored durable evidence | `a.review-archive.<family>.<type>.<version>.<slug>.<timestamp>.<kind>.md` |
+| Code evidence manifest | Artifact home; ignored reviewer evidence | `a.code-review-evidence.<version>.<slug>.step-<step>.json` |
+| Migration journal | Artifact home; transactional only | `a.review-artifact-migration.json` |
 
 Requests and answers are renderer-owned envelopes. Coordination and tombstones
 make transitions recoverable. Transcript entries are append-only evidence.
@@ -130,9 +195,48 @@ ownership depends on durable coordination.
 | `fatal` | Invalid input or refused operation | caller | Correct the input and re-run; payload has null `identity`, empty `paths`, null round, and `fatal-input` outcome |
 
 The `answer-pending` owner remains the requestor even while the reviewer has an
-active post-publication `wait-request`. The wait observes the state; it does not
+active post-publication `wait-any-request`. The wait observes the state; it does not
 grant answer consumption, round continuation, or any writer-owned action to the
 reviewer.
+
+## Repository status schema 2
+
+`rvw_status.bat` discovers the Git root upward from the caller, unless
+`--root <project-root>` names an exact Git root. Human output is the default;
+`--format json` emits one compact schema-2 object. The launcher neither resumes
+an exchange nor grants authority to the reported role.
+
+The repository object contains:
+
+| Field | Meaning |
+| --- | --- |
+| `schema_version` | Integer `2` |
+| `repository_root` | Resolved absolute Git root |
+| `outcome` | `trustworthy`, `untrustworthy`, or `operational-failure` |
+| `active_count` | Count of healthy exchanges and retained damaged candidates |
+| `has_errors` | Whether the result is not wholly trustworthy |
+| `migration` | State, artifact home, moved count, and diagnostics |
+| `exchanges` | Healthy exchange objects or explicitly tagged damaged candidates |
+
+A healthy exchange reports its complete identity, reviewed document, umbrella,
+implementation step, round and occurrence, protocol state, continuing role and
+specialization, owner, lease, six canonical artifact observations, both role
+natures and their evidence arrays, and a typed next action. The next-action
+vocabulary is `wait-for-counterpart`, `requestor-work`, `reviewer-work`,
+`human-confirmation`, `authorized-owning-work`, `reclaim`, `repair`,
+`resolve-escalation`, and `no-safe-action`.
+
+`human-confirmation` is valid only when durable state is already at a human
+gate. A newly published, unanswered request reports `request-pending`,
+reviewer ownership, and `reviewer-work`. Role-nature evidence identifies what
+the artifacts recorded; it never authorizes status to create that role.
+
+- Exit `0` means the complete status result is trustworthy, including an empty
+  exchange list.
+- Exit `3` retains useful evidence but at least one candidate is untrustworthy.
+- Exit `2` means arguments, repository discovery, configuration, or migration
+  prevented trustworthy projection. Operational-failure output goes to standard
+  error and does not contain inferred exchanges.
 
 ## Operation summary
 
@@ -146,10 +250,11 @@ same exact context on every invocation.
 | `start` | requestor; idle exchange | Open round 1; `started` |
 | `continue` | requestor; consumed intermediate answer | Advance to the next round; `continued` |
 | `publish-request` | requestor; round in progress | Store request and append transcript; `published` |
-| `wait-request` | reviewer; bounded entry wait or post-`changes-requested` wait | Return the next exact request as `found`, or `timed-out`, `abandoned`, `escalated`, `inconsistent`, or `repair-required` |
+| `wait-request` | reviewer; optional bounded exact-request wait | Return the next exact request as `found`, or `timed-out`, `abandoned`, `escalated`, `inconsistent`, or `repair-required` |
 | `publish-answer` | reviewer; request pending | Consume request, expose answer, and append transcript; `published` |
 | `wait-answer` | requestor; bounded wait | Return the same wait outcomes as `wait-request` |
 | `consume-answer` | requestor; non-converged answer | Record response assessment; `consumed` |
+| `pickup` | explicitly authorized new LLM session; valid live coordination | Advance ownership generation, fence the old capability, and return the new requestor or expected-actor capability; `ownership-picked-up` |
 | `reclaim` | expected actor; intact lease-expired round | Renew the same round; `reclaimed` |
 | `reclaim --force` | human-authorized caller; intact escalated artifacts | Resume the same round and append the decision; `force-reclaimed` |
 | `repair-request-transcript` | requestor; eligible final legacy request entry | Replace only that final entry; `repaired` |
@@ -177,6 +282,7 @@ AST drift tooling.
 | `observed` | Plain operation result |
 | `started` | Plain operation result |
 | `continued` | Plain operation result |
+| `ownership-picked-up` | Plain operation result with a newly issued capability |
 | `reclaimed` | Plain operation result |
 | `force-reclaimed` | Plain operation result |
 | `completed` | Conditional operation result |
@@ -227,8 +333,12 @@ The six success-path keys are:
 | `transition_lock` | Transition lock |
 
 Additional fields are conditional. `exchange_occurrence` appears for a pending
-request, `owning_action_authorized` appears after human confirmation, and some
-operations report removed or archived paths.
+request, `owning_action_authorized` appears after human confirmation,
+`ownership_generation` and `ownership_token` appear only when an operation
+issues a capability, and some operations report removed or archived paths.
+The token is returned once in that invocation and is never stored in plaintext
+coordination or transcript evidence. Both ownership fields must be supplied to
+later fenced mutations.
 
 - Exit `0` means the operation completed and the result grants its reported
   next action.
@@ -277,6 +387,7 @@ Use these task pages instead of deriving a procedure from the tables:
 - [Activate or deactivate independent review mode](../how-to/enable-independent-review-mode.md)
 - [Run specification review](../how-to/run-specification-review.md)
 - [Run implementation code review](../how-to/run-implementation-code-review.md)
+- [Inspect independent review status](../how-to/inspect-independent-review-status.md)
 - [Read results and continue authorized work](../how-to/read-independent-review-results-and-continue.md)
 - [Recover an independent review](../how-to/recover-an-independent-review.md)
 
@@ -290,6 +401,12 @@ machine-readable state and result shapes.
 
 - [Review exchange models](../../tools/review_exchange_models.py)
 - [Review exchange CLI](../../tools/review_exchange_cli.py)
+- [Artifact-home configuration](../../tools/review_artifact_configuration.py)
+- [Artifact registry](../../tools/review_artifact_registry.py)
+- [Artifact migration](../../tools/review_artifact_migration.py)
+- [Ownership service](../../tools/review_exchange_ownership.py)
+- [Repository review status](../../tools/review_status.py)
+- [Review status schema](../../tools/review_status_models.py)
 - [Artifact path derivation](../../tools/review_exchange_paths.py)
 - [Specification requestor instruction](../../instructions/spec-review-requestor.md)
 - [Code requestor instruction](../../instructions/code-review-requestor.md)
@@ -300,3 +417,28 @@ Related: [pw launcher](pw-launcher.md),
 [artifact files](artifact-files.md),
 [aliases and launchers](aliases-and-launchers.md), and
 [document templates](templates.md).
+
+## Resume support operations
+
+The public entry point is the [review-resume skill](../../instructions/review-resume.md),
+invoked with the bare text `resume`. The existing shared launcher supplies
+its internal operations; no shell resume launcher is installed.
+
+| Operation | Scope | Result |
+| --- | --- | --- |
+| `migration-check` | Repository, before status or role inspection | Ready, migration-required, or blocked placement |
+| `migrate-artifacts` | Safe recognized legacy set | Transactional move or recovery, followed by a required check |
+| `resume-inspect` | Optional exact document, step and selected role | Typed candidate, role and next action, or a human ambiguity/conflict gate |
+| `claim` | Exact selected document, role, round and occurrence | Automatic pickup or idempotent reuse of the supplied capability |
+| `wait-any-request` | Identity-free reviewer wait in the configured home | One claimed request, ambiguity, cancellation, or operational failure |
+
+The foreground global wait writes no idle output. Its final JSON has
+`operation`, `outcome`, `identity`, `candidates`, and `diagnostic`.
+Only `found` includes the session-only ownership generation and token.
+Exit codes are 0 for `found`, 3 for `ambiguous` or `cancelled`, and 2
+for invalid input or operational failure. Graceful interruption returns
+`cancelled`; a hard process kill may return nothing. No waiter state is persisted.
+
+A requestor remains on its exact exchange and immediately runs and follows
+`pw skill` after release. A reviewer returns to the global wait after every
+answer and never enters the requestor workflow.

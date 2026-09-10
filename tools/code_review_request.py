@@ -44,6 +44,7 @@ from tools.commit_plan_check import (
     check_commit_plan,
     render_human,
 )
+from tools.review_artifact_configuration import caller_file_parents
 from tools.review_exchange_models import (
     ExchangeIdentity,
     ReviewContext,
@@ -259,7 +260,7 @@ def _response_section(source: CodeReviewRoundInput, *, heading_level: int) -> st
     if source.human_guidance is None:
         return (
             f"{hashes} Writer response for {label} (round {source.round_number})\n\n"
-            f"Writer response: {response}"
+            f"Writer response:\n\n{response}"
         )
     guidance = qualify_round_headings(
         source.human_guidance.rstrip(),
@@ -271,7 +272,7 @@ def _response_section(source: CodeReviewRoundInput, *, heading_level: int) -> st
         f"{hashes} Human guidance and writer response for {label} "
         f"(round {source.round_number})\n\n"
         f"Human guidance:\n\n{guidance}\n\n"
-        f"Writer response: {response}"
+        f"Writer response:\n\n{response}"
     )
 
 
@@ -427,12 +428,12 @@ def _root_file(
     *,
     input_file: bool,
 ) -> Path:
-    """Validate one ignored caller-owned root input or output path."""
+    """Validate one ignored caller-owned home-local input or output path."""
     path = Path(value).expanduser().resolve()
-    if path.parent != project_root:
-        raise ReviewExchangeError(f"{label} must be directly under project root")
+    if path.parent not in caller_file_parents(project_root):
+        raise ReviewExchangeError(f"{label} must be in the review artifact home")
     if not path.name.startswith("a."):
-        raise ReviewExchangeError(f"{label} must use a project-root a.* name")
+        raise ReviewExchangeError(f"{label} must use an a.* name")
     if input_file and not path.is_file():
         raise ReviewExchangeError(f"{label} does not exist")
     if not input_file and path.exists() and not path.is_file():

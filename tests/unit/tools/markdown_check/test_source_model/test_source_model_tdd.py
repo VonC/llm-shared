@@ -109,10 +109,16 @@ def test_classifier_recognizes_each_bounded_adapter_shape() -> None:
         ".agents/llm-shared/instructions/example.md",
         "Read [the canonical rule](../../../instructions/example.md).\n",
     )
+    cache_pointer = parse_markdown(
+        ".agents/llm-shared/instructions/example.md",
+        "Read [the canonical rule]"
+        "(../../../../../../../git/llm-shared/instructions/example.md).\n",
+    )
     fragment = parse_markdown("templates/example.md", "## Substituted section\n")
 
     assert classify_document(frontmatter).kind is DocumentKind.ADAPTER
     assert classify_document(pointer).kind is DocumentKind.ADAPTER
+    assert classify_document(cache_pointer).kind is DocumentKind.ADAPTER
     assert classify_document(fragment).kind is DocumentKind.ADAPTER
 
 

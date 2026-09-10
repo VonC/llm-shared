@@ -15,6 +15,7 @@ import pytest
 
 from tools import code_review_answer_cli as answer_cli
 from tools.code_review_evidence import CodeReviewEvidence
+from tools.review_exchange_models import ReviewExchangeError
 from tools.review_exchange_models_envelope import parse_envelope_markdown
 
 _FATAL = 2
@@ -35,6 +36,9 @@ def _document(tmp_path: Path) -> Path:
 
 def _files(tmp_path: Path) -> dict[str, Path]:
     """Create every explicit caller input and paired output path."""
+    home = tmp_path / ".reviews"
+    home.mkdir(exist_ok=True)
+    (home / ".gitignore").write_bytes(b"*\n")
     names = {
         "disagreement": "The request index differs.",
         "implementation_check": "Yes. Step 4 has been fully implemented.",
@@ -53,14 +57,14 @@ def _files(tmp_path: Path) -> dict[str, Path]:
         "guidance": "Inspect generated files.",
         "guidance_response": "Generated files were inspected.",
     }
-    files = {key: tmp_path / f"a.{key}.md" for key in names}
+    files = {key: home / f"a.{key}.md" for key in names}
     for key, content in names.items():
         files[key].write_text(content + "\n", encoding="utf-8")
     files.update(
         {
-            "manifest": tmp_path / "a.code-review-evidence.v0.11.0.answer-cli.step-4.json",
-            "answer": tmp_path / "a.answer.md",
-            "summary": tmp_path / "a.summary.md",
+            "manifest": home / "a.code-review-evidence.v0.11.0.answer-cli.step-4.json",
+            "answer": home / "a.answer.md",
+            "summary": home / "a.summary.md",
         },
     )
     files["manifest"].write_text("{}\n", encoding="utf-8")
@@ -257,6 +261,35 @@ def test_assessment_cli_validates_manifest_index_and_writes_one_pair(
     assert files["manifest"].is_file(), "rendering must not retire live evidence"
 
 
+def test_assessment_cli_accepts_a_manifest_inside_the_artifact_home(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Retained evidence renders from the configured home, not only the root."""
+    plan = _document(tmp_path)
+    files = _files(tmp_path)
+    home_manifest = files["manifest"]
+    _install_assessment_seams(monkeypatch, files)
+
+    assert answer_cli.main(_assessment_args(plan, files), project_root=tmp_path) == 0
+    assert home_manifest.is_file(), "rendering must not retire live evidence"
+
+
+def test_home_local_input_still_rejects_a_path_outside_the_repository(
+    tmp_path: Path,
+) -> None:
+    """Accepting the artifact home keeps every other directory closed."""
+    outside = tmp_path.parent / "a.code-review-evidence.v0.11.0.answer-cli.step-4.json"
+
+    with pytest.raises(ReviewExchangeError, match="review artifact home"):
+        answer_cli._root_path(  # noqa: SLF001
+            tmp_path,
+            outside,
+            "retained manifest file",
+            source=True,
+        )
+
+
 def test_early_rejection_needs_no_manifest_or_assessment_evidence(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -326,14 +359,16 @@ def test_cli_parser_context_and_path_helpers_fail_closed(
         answer_cli._disposition("approved")
 
     monkeypatch.setattr(answer_cli, "_is_effectively_ignored", _ignored)
+    home = tmp_path / ".reviews"
+    home.mkdir()
     nested = tmp_path / "nested" / "a.input.md"
-    with pytest.raises(answer_cli.ReviewExchangeError, match="directly under"):
+    with pytest.raises(answer_cli.ReviewExchangeError, match="review artifact home"):
         answer_cli._root_path(tmp_path, nested, "input", source=True)
     with pytest.raises(answer_cli.ReviewExchangeError, match=r"a.\*"):
-        answer_cli._root_path(tmp_path, tmp_path / "input.md", "input", source=False)
+        answer_cli._root_path(tmp_path, home / "input.md", "input", source=False)
     with pytest.raises(answer_cli.ReviewExchangeError, match="does not exist"):
-        answer_cli._root_path(tmp_path, tmp_path / "a.missing.md", "input", source=True)
-    directory = tmp_path / "a.directory"
+        answer_cli._root_path(tmp_path, home / "a.missing.md", "input", source=True)
+    directory = home / "a.directory"
     directory.mkdir()
     with pytest.raises(answer_cli.ReviewExchangeError, match="not a regular file"):
         answer_cli._root_path(tmp_path, directory, "output", source=False)

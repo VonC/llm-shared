@@ -4,11 +4,14 @@ from __future__ import annotations
 
 import re
 from dataclasses import FrozenInstanceError, replace
+from pathlib import PurePosixPath
 from typing import TYPE_CHECKING, cast
 
 import pytest
 
 from tools import spec_review_answer as answer_renderer
+from tools.markdown_check.rules import check_md001, check_md025, check_md032
+from tools.markdown_check.source import parse_markdown
 from tools.review_exchange_models import (
     ExchangeIdentity,
     ReviewDisposition,
@@ -105,8 +108,8 @@ def _assert_paired_findings(rendered: SpecificationAnswerRender) -> None:
     assert "Q01: choose option A." in rendered.transcript_summary
     assert "Clarify the recovery owner" in rendered.answer_content
     assert "Clarify the recovery owner" in rendered.transcript_summary
-    assert "Human guidance: Keep Q01 settled." in rendered.answer_content
-    assert "Guidance response: Q01 remains unchanged." in rendered.answer_content
+    assert "Human guidance:\n\nKeep Q01 settled." in rendered.answer_content
+    assert "Guidance response:\n\nQ01 remains unchanged." in rendered.answer_content
 
 
 @pytest.mark.parametrize("type_token", tuple(_SOURCE_NAMES))
@@ -137,13 +140,78 @@ def test_convergence_requires_and_renders_covered_wording_and_rationale(
 
     rendered = render_specification_answer(source)
 
-    assert "Covered wording: Polish 'may continue'" in rendered.answer_content
-    assert "Convergence rationale: Only non-substantive" in rendered.answer_content
+    assert "Covered wording:\n\nPolish 'may continue'" in rendered.answer_content
+    assert "Convergence rationale:\n\nOnly non-substantive" in rendered.answer_content
     assert "Decision: convergence-recommended" in rendered.answer_content
     assert "recommendation is advisory" in rendered.answer_content
     assert "consolidation is not confirmed" in rendered.answer_content
     assert "Covered wording:" in rendered.transcript_summary
     assert "Convergence rationale:" in rendered.transcript_summary
+
+
+@pytest.mark.parametrize(
+    ("disposition", "changes", "wording", "rationale"),
+    [
+        (
+            ReviewDisposition.CHANGES_REQUESTED,
+            "1. Clarify the owner.\n2. Name the recovery path.",
+            None,
+            None,
+        ),
+        (
+            ReviewDisposition.CONVERGENCE_RECOMMENDED,
+            None,
+            "- Replace one ambiguous verb.\n- Preserve the settled behavior.",
+            "Only wording changes remain.",
+        ),
+    ],
+)
+def test_labeled_lists_are_separate_blocks_without_md032(
+    tmp_path: Path,
+    disposition: ReviewDisposition,
+    changes: str | None,
+    wording: str | None,
+    rationale: str | None,
+) -> None:
+    """Every reviewer list starts after the blank line following its label."""
+    source = replace(
+        _assessment(tmp_path, "issue", disposition=disposition),
+        requested_changes=changes,
+        covered_wording=wording,
+        convergence_rationale=rationale,
+    )
+
+    rendered = render_specification_answer(source)
+
+    for name, markdown in (
+        ("answer.md", rendered.answer_content),
+        ("transcript.md", rendered.transcript_summary),
+    ):
+        parsed = parse_markdown(PurePosixPath(name), markdown)
+        assert check_md032(parsed) == ()
+
+
+def test_reviewer_headings_are_nested_without_md001(tmp_path: Path) -> None:
+    """Authored answer headings remain children of their generated section."""
+    source = replace(
+        _assessment(tmp_path, "issue"),
+        requested_changes=(
+            "# Required correction\n\nClarify the owner.\n\n"
+            "## Recovery detail\n\nName the recovery path."
+        ),
+    )
+
+    rendered = render_specification_answer(source)
+
+    for name, markdown in (
+        ("answer.md", rendered.answer_content),
+        ("transcript.md", rendered.transcript_summary),
+    ):
+        parsed = parse_markdown(PurePosixPath(name), markdown)
+        assert check_md001(parsed) == ()
+        assert check_md025(parsed) == ()
+    assert "### Required correction for issue answer-topic (round 2)" in rendered.answer_content
+    assert "#### Required correction for issue answer-topic (round 2)" in rendered.transcript_summary
 
 
 @pytest.mark.parametrize(

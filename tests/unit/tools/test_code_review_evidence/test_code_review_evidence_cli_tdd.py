@@ -70,7 +70,10 @@ def test_cli_rejects_unsafe_paths_and_malformed_retained_evidence(
     ) == _FATAL_EXIT
     assert "repository-relative" in capsys.readouterr().err
 
-    manifest = tmp_path / "a.code-review-evidence.v0.11.0.code-reviewer.step-2.json"
+    home = tmp_path / ".reviews"
+    home.mkdir()
+    (home / ".gitignore").write_bytes(b"*\n")
+    manifest = home / "a.code-review-evidence.v0.11.0.code-reviewer.step-2.json"
     manifest.write_text("{malformed", encoding="utf-8")
     assert cli.main(
         [
@@ -123,7 +126,10 @@ def test_cli_rejects_manifest_identity_mixture(
 ) -> None:
     """A retained manifest cannot be read under a different step identity."""
     _git(tmp_path, "init", "-q")
-    manifest = tmp_path / "a.code-review-evidence.v0.11.0.code-reviewer.step-3.json"
+    home = tmp_path / ".reviews"
+    home.mkdir()
+    (home / ".gitignore").write_bytes(b"*\n")
+    manifest = home / "a.code-review-evidence.v0.11.0.code-reviewer.step-3.json"
     manifest.write_text(
         json.dumps(
             {

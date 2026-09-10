@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from tools.git_batch_commit_models import CommitBlock
+from tools.git_batch_commit_models import CommitBlock, CommitPlanSubjectRequirement
 from tools.git_batch_commit_parsing import parse_clipboard_content
 from tools.git_batch_commit_validation import validate_commit_plan
 
@@ -107,6 +107,49 @@ def test_validate_commit_plan_accepts_option_form_without_separator() -> None:
         commit_title="fix(scope): title",
     )
     result = validate_commit_plan([block], ["tools/evidence.py"])
+    assert result.valid is True
+
+
+def test_validate_commit_plan_requires_exact_completed_validation_subject() -> None:
+    """A completed validation path makes its pw marker a mechanical rule."""
+    path = "docs/v0.11.0/plan.v0.11.0.topic.validation.md"
+    requirement = CommitPlanSubjectRequirement(
+        path=path,
+        subject="docs(topic): record step 1 validation",
+    )
+
+    invalid = validate_commit_plan(
+        [_block("docs(topic): update step 1 validation", path)],
+        [path],
+        (requirement,),
+    )
+    valid = validate_commit_plan(
+        [_block(requirement.subject, path)],
+        [path],
+        (requirement,),
+    )
+
+    assert invalid.valid is False
+    assert invalid.diagnostics == (
+        "group 1 containing completed validation plan "
+        f"{path} must use exact subject: {requirement.subject}",
+    )
+    assert valid.valid is True
+
+
+def test_subject_requirement_defers_to_membership_diagnostics() -> None:
+    """Missing or duplicated ownership is reported by exact membership checks."""
+    requirement = CommitPlanSubjectRequirement(
+        path="docs/plan.v1.0.topic.validation.md",
+        subject="docs(topic): record step 1 validation",
+    )
+
+    result = validate_commit_plan(
+        [_block("docs(topic): update validation", "other.md")],
+        ["other.md"],
+        (requirement,),
+    )
+
     assert result.valid is True
 
 

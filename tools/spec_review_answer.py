@@ -28,6 +28,7 @@ from tools.review_exchange_models_envelope import (
     parse_envelope_markdown,
     render_envelope_markdown,
 )
+from tools.review_markdown_headings import qualify_round_headings
 
 _TEMPLATE_PATH = Path(__file__).resolve().parents[1] / "templates" / (
     "spec-review-answer.template.md"
@@ -178,20 +179,67 @@ def _identity_fields(source: SpecificationAssessment) -> str:
     )
 
 
+def _authored_body(
+    source: SpecificationAssessment,
+    body: str,
+    *,
+    parent_heading_level: int,
+) -> str:
+    """Nest arbitrary reviewer Markdown below its generated section."""
+    return qualify_round_headings(
+        body.strip(),
+        minimum_level=parent_heading_level + 1,
+        qualifier=_identity_label(source),
+        round_number=source.round_number,
+    )
+
+
+def _labeled_authored_body(
+    source: SpecificationAssessment,
+    label: str,
+    body: str,
+    *,
+    parent_heading_level: int,
+) -> str:
+    """Separate a prose label from any following block-level Markdown."""
+    nested = _authored_body(
+        source,
+        body,
+        parent_heading_level=parent_heading_level,
+    )
+    return f"{label}:\n\n{nested}"
+
+
 def _disposition_section(source: SpecificationAssessment, level: int) -> str:
     """Render the required findings for the selected disposition."""
     heading = "#" * level
     label = _identity_label(source)
     if source.disposition is ReviewDisposition.CHANGES_REQUESTED:
+        requested = _labeled_authored_body(
+            source,
+            "Requested changes",
+            cast("str", source.requested_changes),
+            parent_heading_level=level,
+        )
         return (
             f"{heading} Requested changes for {label} round {source.round_number}\n\n"
-            f"Requested changes: {cast('str', source.requested_changes).strip()}"
+            f"{requested}"
         )
+    wording = _labeled_authored_body(
+        source,
+        "Covered wording",
+        cast("str", source.covered_wording),
+        parent_heading_level=level,
+    )
+    rationale = _labeled_authored_body(
+        source,
+        "Convergence rationale",
+        cast("str", source.convergence_rationale),
+        parent_heading_level=level,
+    )
     return (
         f"{heading} Convergence evidence for {label} round {source.round_number}\n\n"
-        f"Covered wording: {cast('str', source.covered_wording).strip()}\n\n"
-        "Convergence rationale: "
-        f"{cast('str', source.convergence_rationale).strip()}"
+        f"{wording}\n\n{rationale}"
     )
 
 
@@ -201,11 +249,22 @@ def _guidance_section(source: SpecificationAssessment, level: int) -> str:
         return ""
     heading = "#" * level
     label = _identity_label(source)
+    guidance = _labeled_authored_body(
+        source,
+        "Human guidance",
+        source.human_guidance,
+        parent_heading_level=level,
+    )
+    response = _labeled_authored_body(
+        source,
+        "Guidance response",
+        cast("str", source.guidance_response),
+        parent_heading_level=level,
+    )
     return (
         f"{heading} Human guidance response for {label} round "
         f"{source.round_number}\n\n"
-        f"Human guidance: {source.human_guidance.rstrip()}\n\n"
-        f"Guidance response: {cast('str', source.guidance_response).strip()}"
+        f"{guidance}\n\n{response}"
     )
 
 
@@ -228,8 +287,16 @@ def _answer_authored_content(source: SpecificationAssessment) -> str:
         "identity_label": _identity_label(source),
         "round_number": str(source.round_number),
         "identity_fields": _identity_fields(source),
-        "assessment": source.assessment.strip(),
-        "question_verdicts": source.question_verdicts.strip(),
+        "assessment": _authored_body(
+            source,
+            source.assessment,
+            parent_heading_level=2,
+        ),
+        "question_verdicts": _authored_body(
+            source,
+            source.question_verdicts,
+            parent_heading_level=2,
+        ),
         "decision_sections": "\n\n".join(
             section
             for section in (
@@ -238,7 +305,11 @@ def _answer_authored_content(source: SpecificationAssessment) -> str:
             )
             if section
         ),
-        "writer_instructions": source.writer_instructions.strip(),
+        "writer_instructions": _authored_body(
+            source,
+            source.writer_instructions,
+            parent_heading_level=2,
+        ),
         "final_decision": _final_decision(source),
     }
     try:
@@ -253,18 +324,23 @@ def _transcript_summary(source: SpecificationAssessment) -> str:
     label = _identity_label(source)
     sections = [
         f"### Reviewer assessment for {label} round {source.round_number}\n\n"
-        f"{source.assessment.strip()}",
+        f"{_authored_body(source, source.assessment, parent_heading_level=3)}",
         f"### Question verdicts for {label} round {source.round_number}\n\n"
-        f"{source.question_verdicts.strip()}",
+        f"{_authored_body(source, source.question_verdicts, parent_heading_level=3)}",
         _disposition_section(source, 3),
     ]
     guidance = _guidance_section(source, 3)
     if guidance:
         sections.append(guidance)
+    instructions = _authored_body(
+        source,
+        source.writer_instructions,
+        parent_heading_level=3,
+    )
     sections.extend(
         (
             f"### Writer instructions for {label} round {source.round_number}\n\n"
-            f"{source.writer_instructions.strip()}",
+            f"{instructions}",
             f"### Final reviewer decision for {label} round {source.round_number}\n\n"
             f"{_final_decision(source)}",
         ),

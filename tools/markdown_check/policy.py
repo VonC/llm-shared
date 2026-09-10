@@ -12,19 +12,23 @@ if TYPE_CHECKING:
 SUPPORTED_RULES = frozenset(
     {
         "MD001",
+        "MD009",
+        "MD012",
         "MD013",
         "MD024",
         "MD025",
         "MD032",
         "MD033",
+        "MD034",
         "MD038",
+        "MD040",
         "MD050",
         "LS001",
         "LS002",
         "LS003",
     },
 )
-MANDATORY_RULES = frozenset({"MD024", "MD025"})
+MANDATORY_RULES = frozenset({"MD012", "MD024", "MD025"})
 _DEFAULT_ENABLED = SUPPORTED_RULES - {"MD013"}
 
 

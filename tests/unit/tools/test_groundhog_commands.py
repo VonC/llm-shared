@@ -268,7 +268,7 @@ def test_full_green_but_slow_exits_8(
 ) -> None:
     """A green-but-slow full run exits 8 with the window and the fix (Q34)."""
     spawns = Spawns(_full_transcript(_SLOW_CALLS), 0)
-    code = cli.main(["full", "--root", str(tmp_path), "--llm"], make_deps(spawns))
+    code = cli.main(["timings", "--root", str(tmp_path), "--llm"], make_deps(spawns))
     assert code == EXIT_DURATION_OUTLIERS
     out = capsys.readouterr().out
     _assert_green_but_slow_report(out)
@@ -277,7 +277,7 @@ def test_full_green_but_slow_exits_8(
 def test_full_run_seeds_the_floor_file(tmp_path: Path) -> None:
     """A first full run writes the auto floor and seeds the default (Q45)."""
     spawns = Spawns(_full_transcript(_SLOW_CALLS), 0)
-    cli.main(["full", "--root", str(tmp_path), "--llm"], make_deps(spawns))
+    cli.main(["timings", "--root", str(tmp_path), "--llm"], make_deps(spawns))
     # Line 1 holds the auto floor; line 2 the one-second default (Q45, Q48).
     assert (tmp_path / floor.FLOOR_FILE).is_file()
     assert floor.read_floor(tmp_path) == floor.DEFAULT_FLOOR
@@ -289,14 +289,14 @@ def test_full_tidy_run_exits_0_with_zero_outliers(
 ) -> None:
     """A tidy full run exits 0 and prints a single slowest-call line (Q47)."""
     spawns = Spawns(_full_transcript(_TIDY_CALLS), 0)
-    code = cli.main(["full", "--root", str(tmp_path), "--llm"], make_deps(spawns))
+    code = cli.main(["timings", "--root", str(tmp_path), "--llm"], make_deps(spawns))
     assert code == EXIT_OBJECTIVE_MET
     out = capsys.readouterr().out
     assert "Slowest call:" in out
     assert "outliers=0" in out
     assert "Duration outliers" not in out
     _assert_blank_before(out, "Slowest call:")
-    _assert_blank_before(out, reporting_nextstep.MSG_FULL_OK)
+    _assert_blank_before(out, reporting_nextstep.MSG_TIMINGS_OK)
 
 
 def test_full_run_respects_a_raised_override(
@@ -306,7 +306,7 @@ def test_full_run_respects_a_raised_override(
     """An override above the freak spares it, so the run exits 0 (Q43)."""
     (tmp_path / floor.FLOOR_FILE).write_text(f"0.0\n{_OVERRIDE}\n", encoding="utf-8")
     spawns = Spawns(_full_transcript(_SLOW_CALLS), 0)
-    code = cli.main(["full", "--root", str(tmp_path), "--llm"], make_deps(spawns))
+    code = cli.main(["timings", "--root", str(tmp_path), "--llm"], make_deps(spawns))
     assert code == EXIT_OBJECTIVE_MET
     assert "outliers=0" in capsys.readouterr().out
     # The override on line 2 is preserved across the run's floor rewrite (Q40).
@@ -324,7 +324,7 @@ def test_full_run_spares_an_excluded_call(
         encoding="utf-8",
     )
     spawns = Spawns(_full_transcript(_SLOW_CALLS), 0)
-    code = cli.main(["full", "--root", str(tmp_path), "--llm"], make_deps(spawns))
+    code = cli.main(["timings", "--root", str(tmp_path), "--llm"], make_deps(spawns))
     assert code == EXIT_OBJECTIVE_MET
     out = capsys.readouterr().out
     assert "outliers=0" in out
@@ -343,7 +343,7 @@ def test_full_failing_run_withholds_the_timing_verdict(
 ) -> None:
     """A failing run keeps exit 2 and withholds the outliers (judged last)."""
     spawns = Spawns(_full_transcript(_SLOW_CALLS, failing=True), 1)
-    code = cli.main(["full", "--root", str(tmp_path), "--llm"], make_deps(spawns))
+    code = cli.main(["timings", "--root", str(tmp_path), "--llm"], make_deps(spawns))
     assert code == EXIT_TEST_FAILURES
     out = capsys.readouterr().out
     assert "outliers=withheld" in out
@@ -381,7 +381,7 @@ def test_user_mode_bar_carries_the_timing_verdict(tmp_path: Path) -> None:
     spawns = Spawns(_full_transcript(_SLOW_CALLS), 0)
     bars: list[_FakeBar] = []
     code = cli.main(
-        ["full", "--root", str(tmp_path), "--user"],
+        ["timings", "--root", str(tmp_path), "--user"],
         _user_deps(spawns, bars),
     )
     assert code == EXIT_DURATION_OUTLIERS

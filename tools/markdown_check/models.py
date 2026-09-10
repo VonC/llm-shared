@@ -36,6 +36,14 @@ class Heading:
 
 
 @dataclass(frozen=True, slots=True)
+class FenceOpener:
+    """One fenced code block opening marker and its declared info string."""
+
+    line: int
+    info: str
+
+
+@dataclass(frozen=True, slots=True)
 class ListBlock:
     """One list block and the blank-line state at its outer boundaries."""
 
@@ -86,6 +94,9 @@ class MarkdownSource:
     prose_lines: tuple[str, ...]
     body_lines: tuple[SourceLine, ...]
     fenced_lines: frozenset[int]
+    fenced_content_lines: frozenset[int]
+    indented_code_lines: frozenset[int]
+    fence_openers: tuple[FenceOpener, ...]
 
 
 @dataclass(frozen=True, slots=True)
@@ -99,6 +110,7 @@ class Finding:
 
 
 __all__ = [
+    "FenceOpener",
     "Finding",
     "Frontmatter",
     "Heading",

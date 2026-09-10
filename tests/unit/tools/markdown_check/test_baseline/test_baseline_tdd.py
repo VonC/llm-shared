@@ -77,6 +77,9 @@ def test_baseline_allows_unchanged_debt(tmp_path: Path) -> None:
         ([], 2),
         ([{"path": "docs/a.md", "rule": "NOPE", "count": 1}], 1),
         ([{"path": "docs/a.md", "rule": "LS002", "count": 0}], 1),
+        ([{"path": "docs/a.md", "rule": "MD012", "count": 1}], 1),
+        ([{"path": "docs/a.md", "rule": "MD024", "count": 1}], 1),
+        ([{"path": "docs/a.md", "rule": "MD025", "count": 1}], 1),
         (
             [
                 {"path": "docs/a.md", "rule": "LS002", "count": 1},

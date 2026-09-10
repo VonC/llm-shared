@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from pathlib import PurePosixPath
 from typing import TYPE_CHECKING, Never, cast
 
-from tools.markdown_check.policy import SUPPORTED_RULES
+from tools.markdown_check.policy import MANDATORY_RULES, SUPPORTED_RULES
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -96,6 +96,8 @@ def _allowance(value: object) -> BaselineAllowance:
         _fail("baseline path and rule must be strings")
     if rule not in SUPPORTED_RULES:
         _fail(f"unsupported baseline rule: {rule}")
+    if rule in MANDATORY_RULES:
+        _fail(f"mandatory rule {rule} cannot be allowed by the baseline")
     if not isinstance(count, int) or isinstance(count, bool) or count <= 0:
         _fail("baseline count must be a positive integer")
     return BaselineAllowance(normalize_repository_path(path), rule, count)

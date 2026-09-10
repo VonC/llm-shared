@@ -26,11 +26,15 @@ from tools.markdown_check.rules import (
     check_ls002,
     check_ls003,
     check_md001,
+    check_md009,
+    check_md012,
     check_md024,
     check_md025,
     check_md032,
     check_md033,
+    check_md034,
     check_md038,
+    check_md040,
     check_md050,
 )
 from tools.markdown_check.source import parse_markdown
@@ -113,10 +117,14 @@ def _evaluate(
     findings: list[Finding] = []
     simple = {
         "MD001": check_md001,
+        "MD009": check_md009,
+        "MD012": check_md012,
         "MD024": check_md024,
         "MD025": check_md025,
         "MD032": check_md032,
+        "MD034": check_md034,
         "MD038": check_md038,
+        "MD040": check_md040,
         "MD050": check_md050,
         "LS003": check_ls003,
     }

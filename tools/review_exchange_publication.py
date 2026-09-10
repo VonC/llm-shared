@@ -1,17 +1,19 @@
 """Request and answer publication transitions for review exchanges.
 
-This mixin keeps artifact publication, restarted-exchange transcript identity,
-and legacy pending-request repair separate from lifecycle orchestration.
+Step 2 merges the acting host into the durable two-role snapshot before request,
+answer, coordination, and transcript publication.
 """
 
 # ruff: noqa: EM101, TRY003
 
 from __future__ import annotations
 
+import os
 from abc import ABC, abstractmethod
 from dataclasses import replace
 from typing import TYPE_CHECKING, cast
 
+from tools.llm_nature import LlmNatureDetector
 from tools.review_exchange_models import (
     Actor,
     ArtifactState,
@@ -21,7 +23,10 @@ from tools.review_exchange_models import (
     ReviewExchangeError,
     ReviewRole,
 )
-from tools.review_exchange_models_envelope import validate_summary_identity
+from tools.review_exchange_models_envelope import (
+    render_envelope_markdown,
+    validate_summary_identity,
+)
 from tools.review_exchange_store import TranscriptEntry
 from tools.review_exchange_transcript_identity import (
     current_request_occurrence,
@@ -35,6 +40,7 @@ if TYPE_CHECKING:
     from tools.review_exchange_models_envelope import Envelope
     from tools.review_exchange_observer import ExchangeObservation
     from tools.review_exchange_store import ReviewExchangeStore
+    from tools.review_role_nature import RoleNatureSnapshot
 
 
 class ReviewExchangePublicationMixin(ABC):
@@ -42,6 +48,17 @@ class ReviewExchangePublicationMixin(ABC):
 
     store: ReviewExchangeStore
     context: ReviewContext
+
+    @staticmethod
+    def _acting_snapshot(
+        record: CoordinationRecord,
+        envelope: Envelope,
+        role: ReviewRole,
+    ) -> RoleNatureSnapshot:
+        """Merge persisted evidence and record the current non-secret host enum."""
+        snapshot = record.role_natures.merge(envelope.role_natures)
+        nature = LlmNatureDetector().detect(os.environ).nature
+        return snapshot.record(role, nature)
 
     def _rendered_human_guidance(
         self,
@@ -116,6 +133,10 @@ class ReviewExchangePublicationMixin(ABC):
             if not repairing and observation.state is not ArtifactState.ROUND_IN_PROGRESS:
                 raise ReviewExchangeError("request publication requires a round in progress")
             envelope, authored = self._validate_envelope(markdown, ReviewRole.REQUESTOR, record)
+            snapshot = self._acting_snapshot(record, envelope, ReviewRole.REQUESTOR)
+            envelope = replace(envelope, role_natures=snapshot)
+            record = replace(record, role_natures=snapshot)
+            markdown = render_envelope_markdown(envelope, authored)
             validate_summary_identity(authored, self.context, record.round_number)
             if record.human_guidance is not None:
                 rendered_guidance = self._rendered_human_guidance(
@@ -186,7 +207,15 @@ class ReviewExchangePublicationMixin(ABC):
             )
             if not repairing and observation.state is not ArtifactState.REQUEST_PENDING:
                 raise ReviewExchangeError("answer publication requires a request pending")
-            envelope, _ = self._validate_envelope(markdown, ReviewRole.REVIEWER, record)
+            envelope, authored = self._validate_envelope(
+                markdown,
+                ReviewRole.REVIEWER,
+                record,
+            )
+            snapshot = self._acting_snapshot(record, envelope, ReviewRole.REVIEWER)
+            envelope = replace(envelope, role_natures=snapshot)
+            record = replace(record, role_natures=snapshot)
+            markdown = render_envelope_markdown(envelope, authored)
             before_offset = record.transcript_offset if repairing else None
             occurrence = current_request_occurrence(
                 self.store,

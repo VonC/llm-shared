@@ -9,6 +9,13 @@ Fix: the slowest-durations block of a full run is now captured into
 stats.durations, call phase only, keyed by node and kept whole for a
 parametrized id with spaces (Q49); the block opens on its banner and
 closes on the next banner, the final summary line included.
+
+Fix: the xdist result shape is covered too. A parallel run writes
+``[gw3] [ 12%] PASSED tests/test_a.py::test_one``, which the sequential
+pattern cannot match, so the full run parsed no result and reported
+``fail=0`` however many tests failed, and its header reads
+``14 workers [2683 items]`` where the sequential run says ``collected``,
+so the run total stayed zero and silenced the progress lines.
 """
 
 from __future__ import annotations
@@ -16,6 +23,7 @@ from __future__ import annotations
 from tools.groundhog.parser import LAST_STARTED_KEPT, PytestOutputParser
 
 _COLLECTED = 4
+_WORKERS = 2
 _ANSI_COLLECTED = 3
 _EXPECTED_DONE = 4
 _EXPECTED_FAILED = 2
@@ -50,6 +58,40 @@ def test_collected_and_results_update_counters() -> None:
             "tests/test_a.py::test_two FAILED [ 50%]",
             "tests/test_b.py::test_three ERROR [ 75%]",
             "tests/test_b.py::test_four XFAIL [100%]",
+        ],
+    )
+    assert parser.stats.total == _COLLECTED
+    assert parser.stats.done == _EXPECTED_DONE
+    assert parser.stats.failed == _EXPECTED_FAILED
+    assert parser.stats.xfailed == 1
+    assert parser.stats.failed_ids == [
+        "tests/test_a.py::test_two",
+        "tests/test_b.py::test_three",
+    ]
+
+
+def test_worker_collection_header_sets_the_run_total() -> None:
+    """Xdist never prints "collected"; its header carries the total instead.
+
+    Without this the total stays zero, so the progress governor has no
+    denominator and every progress line of a parallel walk is silenced.
+    """
+    parser = PytestOutputParser()
+    _feed_lines(parser, [f"{_WORKERS} workers [{_COLLECTED} items]"])
+    assert parser.stats.total == _COLLECTED
+
+
+def test_worker_result_lines_update_counters() -> None:
+    """Xdist reverses the pair behind a worker prefix and still updates counters."""
+    parser = PytestOutputParser()
+    _feed_lines(
+        parser,
+        [
+            f"{_WORKERS} workers [{_COLLECTED} items]",
+            "[gw3] [ 25%] PASSED tests/test_a.py::test_one",
+            "[gw1] [ 50%] FAILED tests/test_a.py::test_two",
+            "[gw0] [ 75%] ERROR tests/test_b.py::test_three",
+            "[gw2] [100%] XFAIL tests/test_b.py::test_four[a b]",
         ],
     )
     assert parser.stats.total == _COLLECTED
@@ -285,6 +327,27 @@ def test_durations_block_captures_call_phase_only() -> None:
     assert parser.stats.durations == {
         "tests/test_a.py::test_one": _SLOW_CALL_SECS,
         "tests/test_b.py::test_two": _FAST_CALL_SECS,
+    }
+
+
+def test_durations_drop_the_xdist_scheduling_group_from_node_ids() -> None:
+    """A loadgroup run appends the group to marked nodes; identity must not change.
+
+    Every stored exclusion baseline is keyed by the plain node id, so keeping
+    the suffix would stop each one matching its own call.
+    """
+    parser = PytestOutputParser()
+    _feed_lines(
+        parser,
+        [
+            "================= slowest durations =================",
+            "1.83s call     tests/test_a.py::test_one@resume-concurrency",
+            "0.02s call     tests/test_b.py::test_two[gate]@parked-gate",
+        ],
+    )
+    assert parser.stats.durations == {
+        "tests/test_a.py::test_one": _SLOW_CALL_SECS,
+        "tests/test_b.py::test_two[gate]": _FAST_CALL_SECS,
     }
 
 

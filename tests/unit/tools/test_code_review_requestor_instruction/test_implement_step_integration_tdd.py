@@ -27,6 +27,20 @@ def test_implement_step_samples_review_mode_after_grouping_and_delegates() -> No
     assert "implementation step" in content[marker:]
     assert "run the printed command verbatim" in content[marker:]
     assert "versioned review transcript" in content[marker:]
+    assert "starts no reviewer agent or session" in content[marker:]
+    assert "immediately waits for the answer" in " ".join(content[marker:].split())
+
+
+def test_agents_md_applies_shared_review_role_isolation() -> None:
+    """Codex receives the role boundary before any specialized skill runs."""
+    content = (_ROOT / "AGENTS.md").read_text(encoding="utf-8")
+
+    assert "## Review role isolation" in content
+    assert "instructions/review-requestor.md" in content
+    assert "must never spawn, start, delegate, invoke, or message a reviewer" in content
+    assert "must never spawn, start, delegate," in content
+    assert "invoke, or message a requestor agent or session" in content
+    assert "Each role rejects a task" in content
 
 
 def test_grouping_instruction_has_a_dedicated_authorized_entry() -> None:

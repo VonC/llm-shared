@@ -5,6 +5,7 @@ from lifecycle journeys. Instrumentation rejects documentation scans and
 transcript reads while public render and exchange validation remain active.
 Envelope-failure cases use one deterministic valid tree object because the
 real Git capture boundary is covered in its focused temporary-repository leaf.
+Active-exchange setup is prepared before measured duplicate and escalation checks.
 """
 
 from __future__ import annotations
@@ -170,14 +171,17 @@ def tracked_scratch_result(tmp_path: Path) -> tuple[int, bool, bool]:
     root = tmp_path / "tracked"
     _topic, state, _record = _inputs(root)
     plan = cast("Path", state.plan)
+    home = root / ".reviews"
+    home.mkdir(exist_ok=True)
+    (home / ".gitignore").write_bytes(b"*\n")
     authored: list[Path] = []
     for name in ("assessment", "report", "changes", "response"):
-        path = root / f"a.{name}.md"
+        path = home / f"a.{name}.md"
         path.write_text(f"{name}.\n", encoding="utf-8")
         authored.append(path)
-    _git(root, "add", "-f", "a.assessment.md")
-    request_output = root / "a.request.md"
-    summary_output = root / "a.summary.md"
+    _git(root, "add", "-f", ".reviews/a.assessment.md")
+    request_output = home / "a.request.md"
+    summary_output = home / "a.summary.md"
     code = request_renderer.main(
         [
             "--plan",
@@ -257,10 +261,11 @@ def test_exact_routing_rejects_scans_transcript_reads_and_unrelated_staging(
     assert all(not path.name.startswith("review.") for path in reads)
 
 
-def test_duplicate_live_exchange_and_escalation_stay_stopped(
+@pytest.fixture
+def active_duplicate_review(
     opted_in_inputs: tuple[Path, Topic, WorkflowState, MemoryRecord],
-) -> None:
-    """Duplicate starts and escalated evidence cannot gain a second owner."""
+) -> ReviewExchangeCore:
+    """Prepare the initial active exchange while leaving duplicate and escalation checks measured."""
     root, topic, state, record = opted_in_inputs
     route = code_review.resolve_code_review_route(root, topic, state, record)
     assert route is not None
@@ -271,6 +276,14 @@ def test_duplicate_live_exchange_and_escalation_stay_stopped(
         ReviewConfiguration(enabled=True),
     )
     core.start()
+    return core
+
+
+def test_duplicate_live_exchange_and_escalation_stay_stopped(
+    active_duplicate_review: ReviewExchangeCore,
+) -> None:
+    """Duplicate starts and escalated evidence cannot gain a second owner."""
+    core = active_duplicate_review
     with pytest.raises(ReviewExchangeError, match="already active"):
         core.start()
     record_after = core.escalate("Conflicting live code review identity.")

@@ -11,6 +11,7 @@ import logging
 import runpy
 import subprocess
 import sys
+from datetime import date
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -251,6 +252,116 @@ def test_log_fatal_and_script_main_convert_failures_into_exit_code_two(
         runpy.run_path(str(script_path), run_name="__main__")
 
     assert script_excinfo.value.code == _FATAL_EXIT_CODE
+
+
+_DAY = date(2026, 9, 3)
+
+
+def test_parse_date_accepts_yyyymmdd_and_rejects_anything_else() -> None:
+    """The extra argument is read as a compact date, or refused by name."""
+    assert cli._parse_date("20260903") == _DAY
+
+    with pytest.raises(cli.InvalidDateError, match="Not a YYYYMMDD date"):
+        cli._parse_date("2026-09-03")
+
+
+def test_resolve_dates_always_keeps_today() -> None:
+    """Today matches with or without the extra argument."""
+    assert cli._resolve_dates(None, _DAY) == (_DAY,)
+    assert cli._resolve_dates("20251231", _DAY) == (_DAY, date(2025, 12, 31))
+
+
+@pytest.mark.parametrize(
+    ("argv", "expected"),
+    [
+        ([], (None, None)),
+        (["export.md"], ("export.md", None)),
+        (["20260903"], (None, "20260903")),
+        (["export.md", "20260903"], ("export.md", "20260903")),
+        (["--date", "20260903"], (None, "20260903")),
+        (["export.md", "--date", "20260903"], ("export.md", "20260903")),
+    ],
+)
+def test_split_source_and_date_reads_every_call_shape(
+    argv: list[str],
+    expected: tuple[str | None, str | None],
+) -> None:
+    """A lone date needs no flag, and a lone path is still a path."""
+    args = cli._get_arg_parser().parse_args(argv)
+
+    assert cli._split_source_and_date(args) == expected
+
+
+def test_main_drops_every_line_before_an_explicitly_dated_prompt(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """The dated pass reaches the clipboard through the entry point."""
+    export = tmp_path / "export.md"
+    export.write_text(
+        "❯ first ask\n● opening\n● the answer\n✻ done\n"
+        "※ recap before the dated turn\n"
+        "❯ 20260903 the dated ask\n● opening two\n● answer two\n✻ done two\n",
+        encoding="utf-8",
+    )
+    published: list[str] = []
+    monkeypatch.setattr(cli, "_set_clipboard_text", published.append)
+
+    assert cli.main([str(export), "20260903"]) == 0
+
+    assert published == [
+        "❯ 20260903 the dated ask\n● opening two\n● answer two\n✻ done two",
+    ]
+
+
+def test_today_seam_reports_the_current_date() -> None:
+    """The seam the tests freeze must really return today."""
+    assert cli._today() == date.today()  # noqa: DTZ011
+
+
+def test_main_uses_today_when_no_date_argument_is_given(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """A bare call truncates at a prompt stamped with today."""
+    export = tmp_path / "export.md"
+    export.write_text(
+        "❯ first ask\n● opening\n● the answer\n✻ done\n"
+        "※ recap before the dated turn\n"
+        "❯ 20260903 the dated ask\n● opening two\n● answer two\n✻ done two\n",
+        encoding="utf-8",
+    )
+    published: list[str] = []
+    monkeypatch.setattr(cli, "_set_clipboard_text", published.append)
+    monkeypatch.setattr(cli, "_today", lambda: _DAY)
+
+    assert cli.main([str(export)]) == 0
+
+    assert published == [
+        "❯ 20260903 the dated ask\n● opening two\n● answer two\n✻ done two",
+    ]
+
+
+def test_main_keeps_the_transcript_before_another_days_prompt(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """A prompt stamped with a different day leaves the transcript intact."""
+    export = tmp_path / "export.md"
+    export.write_text(
+        "❯ first ask\n● opening\n● the answer\n✻ done\n"
+        "※ recap before the dated turn\n"
+        "❯ 20251231 the dated ask\n● opening two\n● answer two\n✻ done two\n",
+        encoding="utf-8",
+    )
+    published: list[str] = []
+    monkeypatch.setattr(cli, "_set_clipboard_text", published.append)
+    monkeypatch.setattr(cli, "_today", lambda: _DAY)
+
+    assert cli.main([str(export)]) == 0
+
+    assert "❯ first ask" in published[0]
+    assert "※ recap before the dated turn" in published[0]
 
 
 # eof

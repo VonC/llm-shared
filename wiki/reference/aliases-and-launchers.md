@@ -31,7 +31,7 @@ the corresponding launcher.
 
 | Alias | Runs | Purpose |
 | --- | --- | --- |
-| `llmup` | `bin\update_llm_shared_plugin.bat` | validate `.agents\llm-shared`, replace its manifest cachebuster, reinstall `llm-shared@personal`, and print its installed row |
+| `llmup` | `bin\update_llm_shared_plugin.bat` | validate `.agents\llm-shared` and its cache-relative redirects, replace its manifest cachebuster, reinstall `llm-shared@personal`, verify the installed cache copy, and print its installed row |
 
 `llmup` requires an interactive `cmd` initialized by `senv.bat`. The launcher
 uses `uv run --isolated --no-project --with PyYAML` for plugin validation, so
@@ -59,10 +59,13 @@ run still needs a new Codex thread before the refreshed skill registry appears.
 | `tth` | `bin\tth.bat` | trim an exported Claude or Codex conversation to the ask, the opening, and the closing answer of every turn, back to the clipboard |
 
 `tth` reads the clipboard when it gets no file argument, and always publishes
-its result to the clipboard. See
+its result to the clipboard. It always drops every line before the first prompt
+stamped with today's date, and takes an optional `YYYYMMDD` date to match a
+second day, so `tth 20260903` trims the clipboard and `tth export.md 20260903`
+trims a file; the alias forwards every argument. See
 [the trim-thinking command reference](trim-thinking-command.md).
 
-## ⚙️ Other launchers in bin
+## ⚙️ Other public launchers
 
 | Launcher | Wraps | Purpose |
 | --- | --- | --- |
@@ -76,6 +79,7 @@ its result to the clipboard. See
 | `tth.bat` | `tools\trim_thinking_cli.py` | trim an exported conversation from a file or the clipboard, result to the clipboard |
 | `python_check.bat` | vulture, big-file check, `enforce_eof.py` | the check station of the walk |
 | `python_check_types.bat` | type checking | the typing gate |
+| `rvw_status.bat` | `tools\review_status_cli.py` | migration-aware schema-2 status for every active review without resuming it |
 | `review_exchange.bat` | `tools\review_exchange_cli.py` | shared review state, publication, wait, confirmation, and recovery operations |
 | `spec_review_request.bat` | specification request renderer | build a specification-review request and transcript summary |
 | `spec_review_answer.bat` | specification answer renderer | build a specification-review answer and transcript summary |

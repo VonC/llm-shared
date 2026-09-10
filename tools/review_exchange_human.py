@@ -36,6 +36,7 @@ if TYPE_CHECKING:
 
     from tools.review_exchange_models_envelope import Envelope
     from tools.review_exchange_observer import ExchangeObservation
+    from tools.review_exchange_ownership import OwnershipCapability, OwnershipClaim
     from tools.review_exchange_store import ReviewExchangeStore
 
 
@@ -104,6 +105,17 @@ class ReviewExchangeHumanMixin(ABC):
     @abstractmethod
     def _repeatable_entry(self, base: str) -> tuple[str, int]:
         """Return a unique transcript identity and attempt for a repeatable event."""
+
+    @abstractmethod
+    def _claim_locked(
+        self,
+        record: CoordinationRecord,
+        actor: Actor,
+        *,
+        presented: OwnershipCapability | None = None,
+        force: bool = False,
+    ) -> OwnershipClaim:
+        """Persist one ownership claim while the caller holds the transition lock."""
 
     def confirm(
         self,
@@ -210,9 +222,10 @@ class ReviewExchangeHumanMixin(ABC):
     def complete(self) -> bool:
         """Remove retained evidence only after the authorized owning action succeeds."""
         with self.store.transition_lock():
-            record = self.store.read_coordination()
-            if record is None:
+            observation = self.classify()
+            if observation.record is None:
                 return False
+            record = self._require_record(observation)
             if (
                 record.status is not CoordinationStatus.AWAITING_HUMAN_CONFIRMATION
                 or record.confirmed_outcome
@@ -232,12 +245,24 @@ class ReviewExchangeHumanMixin(ABC):
         stopped exchange may instead resume the same round without renumbering
         it, leaving the published request, answer, and transcript untouched and
         recording the decision as durable transcript evidence.
+
+        Ownership is re-minted here rather than fenced. An exchange escalates
+        precisely because the actor session stopped, so its capability is
+        normally gone with that process. Requiring the lost capability to run
+        the recovery built for that loss would make this operation unreachable
+        in the only case it exists for, and no other transition can leave the
+        escalated state. The stopped round has no live actor to displace, so the
+        forced resume claims ownership for the actor the artifact shape names
+        and returns the replacement capability to the resuming session.
         """
         if not summary.strip():
             raise ReviewExchangeError("forced reclaim summary must be non-empty")
         with self.store.transition_lock():
-            record = self.store.read_coordination()
-            if record is None or record.status is not CoordinationStatus.ESCALATED:
+            observation = self.classify()
+            if observation.record is None:
+                raise ReviewExchangeError("operation requires durable coordination")
+            record = observation.record
+            if record.status is not CoordinationStatus.ESCALATED:
                 raise ReviewExchangeError("forced reclaim requires an escalated exchange")
             if record.incomplete_transition not in (
                 None,
@@ -245,6 +270,7 @@ class ReviewExchangeHumanMixin(ABC):
             ):
                 raise ReviewExchangeError("repair the pending transition before forced reclaim")
             actor = self._resumed_actor()
+            record = self._claim_locked(record, actor, force=True).record
             entry_id, occurrence = self._repeatable_entry(
                 f"human-reclaim-round-{record.round_number}",
             )
@@ -301,8 +327,8 @@ class ReviewExchangeHumanMixin(ABC):
         if not summary.strip():
             raise ReviewExchangeError("human resolution summary must be non-empty")
         with self.store.transition_lock():
-            record = self.store.read_coordination(required=True)
-            if record is None or record.status is not CoordinationStatus.ESCALATED:
+            record = self._require_record(self.classify())
+            if record.status is not CoordinationStatus.ESCALATED:
                 raise ReviewExchangeError("resolution requires an escalated exchange")
             if record.incomplete_transition is not None:
                 raise ReviewExchangeError("repair the pending transition before resolution")
@@ -403,10 +429,7 @@ class ReviewExchangeHumanMixin(ABC):
         if not summary.strip():
             raise ReviewExchangeError("forced completion summary must be non-empty")
         with self.store.transition_lock():
-            record = cast(
-                "CoordinationRecord",
-                self.store.read_coordination(required=True),
-            )
+            record = self._require_record(self.classify())
             repairing = record.incomplete_transition is (
                 IncompleteTransitionKind.HUMAN_COMPLETION
             )

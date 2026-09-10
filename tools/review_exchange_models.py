@@ -476,7 +476,7 @@ def _default_wait_seconds(project_root: Path) -> int:
 
 @dataclass(frozen=True)
 class ReviewConfiguration:
-    """Review-mode activation and its effective bounded wait limit."""
+    """Review-mode activation loaded against one reusable artifact context."""
 
     enabled: bool
     wait_timeout_seconds: int = _FALLBACK_WAIT_SECONDS
@@ -486,11 +486,18 @@ class ReviewConfiguration:
         positive_integer(self.wait_timeout_seconds, "wait timeout")
 
     @classmethod
-    def load(cls, project_root: Path) -> ReviewConfiguration:
-        """Read the exact root marker without writing any protocol state."""
+    def load(
+        cls,
+        project_root: Path,
+        *,
+        review_mode_path: Path | None = None,
+    ) -> ReviewConfiguration:
+        """Read the review marker selected by the artifact locator."""
         root = project_root.resolve()
         default_wait = _default_wait_seconds(root)
-        marker = root / _MARKER_NAME
+        legacy_marker = root / _MARKER_NAME
+        selected = review_mode_path.resolve() if review_mode_path is not None else None
+        marker = selected if selected is not None and selected.exists() else legacy_marker
         if not marker.exists():
             return cls(enabled=False, wait_timeout_seconds=default_wait)
         if not marker.is_file():

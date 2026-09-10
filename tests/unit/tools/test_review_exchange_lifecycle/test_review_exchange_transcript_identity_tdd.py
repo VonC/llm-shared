@@ -8,6 +8,7 @@ journey file while exercising the same real core and store.
 from __future__ import annotations
 
 from dataclasses import replace
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
@@ -18,19 +19,95 @@ from tests.unit.tools.test_review_exchange_lifecycle.test_review_exchange_lifecy
     _reach_gate,
     _request,
 )
+from tools.llm_nature import LlmNature
 from tools.review_exchange_models import (
     IncompleteTransitionKind,
     ReviewExchangeError,
+    ReviewRole,
 )
+from tools.review_exchange_models_envelope import parse_envelope_markdown
+from tools.review_exchange_transcript_identity import render_nature_completion_entry
 
 if TYPE_CHECKING:
-    from pathlib import Path
-
     from tools.review_exchange_core import ReviewExchangeCore
     from tools.review_exchange_models import ReviewContext
     from tools.review_exchange_store import ReviewExchangeStore
 
     from .test_review_exchange_lifecycle_tdd import FakeTime
+
+
+def test_nature_completion_identity_is_unique_by_role_and_exchange() -> None:
+    """Completion headings and markers distinguish both durable dimensions."""
+    requestor = render_nature_completion_entry(
+        ReviewRole.REQUESTOR,
+        2,
+        LlmNature.CODEX,
+        (Path(".reviews/a.request.md"),),
+    )
+    reviewer = render_nature_completion_entry(
+        ReviewRole.REVIEWER,
+        2,
+        LlmNature.CLAUDE,
+        (Path(".reviews/a.answer.md"),),
+    )
+
+    assert requestor.entry_id != reviewer.entry_id
+    assert "LLM nature completion for requestor (exchange 2)" in requestor.markdown
+    assert "review-entry-id: llm-nature-completion-requestor-exchange-2" in (
+        requestor.markdown
+    )
+
+
+@pytest.mark.parametrize(
+    ("role", "occurrence", "message"),
+    [
+        (ReviewRole.HUMAN, 1, "human role"),
+        (ReviewRole.REQUESTOR, 0, "occurrence must be positive"),
+    ],
+)
+def test_nature_completion_rejects_invalid_identity(
+    role: ReviewRole,
+    occurrence: int,
+    message: str,
+) -> None:
+    """Completion entries fail closed for non-LLM roles and invalid occurrences."""
+    with pytest.raises(ValueError, match=message):
+        render_nature_completion_entry(role, occurrence, LlmNature.CODEX, ())
+
+
+def test_publication_preserves_requestor_then_adds_reviewer_nature(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Request, answer, coordination, and transcript carry evolving snapshots."""
+    core, store, context, clock = _harness(tmp_path)
+    core.start()
+    monkeypatch.delenv("CLAUDECODE", raising=False)
+    monkeypatch.setenv("CODEX_THREAD_ID", "not-persisted")
+    core.publish_request(_request(context, clock, 1), "Request summary.")
+
+    request, _content = parse_envelope_markdown(
+        store.paths.request.read_text(encoding="utf-8"),
+    )
+    assert request.role_natures.requestor is LlmNature.CODEX
+    assert request.role_natures.reviewer is None
+
+    monkeypatch.delenv("CODEX_THREAD_ID", raising=False)
+    monkeypatch.setenv("CLAUDECODE", "also-not-persisted")
+    core.publish_answer(_answer(context, clock, 1), "Answer summary.")
+
+    answer, _content = parse_envelope_markdown(
+        store.paths.answer.read_text(encoding="utf-8"),
+    )
+    assert answer.role_natures.requestor is LlmNature.CODEX
+    assert answer.role_natures.reviewer is LlmNature.CLAUDE
+    record = store.read_coordination(required=True)
+    assert record is not None
+    assert record.role_natures == answer.role_natures
+    transcript = store.paths.transcript.read_text(encoding="utf-8")
+    assert "- Requestor LLM nature: codex" in transcript
+    assert "- Reviewer LLM nature: claude" in transcript
+    assert "not-persisted" not in transcript
 
 
 @pytest.fixture

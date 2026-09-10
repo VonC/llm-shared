@@ -55,17 +55,17 @@ def test_instruction_orders_reviewer_operations_and_exact_paths() -> None:
             "`status`",
             "`wait-request`",
             "paths.request",
-            "bin/spec_review_answer.bat",
+            "<LLM_SHARED_DIR>\\bin\\spec_review_answer.bat",
             "`publish-answer`",
         ),
     )
-    assert "bin/review_exchange.bat" in content
+    assert "<LLM_SHARED_DIR>\\bin\\review_exchange.bat" in content
     assert "one bounded `wait-request` per round" in content
     assert "full exact reviewed specification" in content
     assert "convergence recommendation is advisory" in content
     published = content.index("`publish-answer` reports `outcome: published`")
     post_answer_wait = content.index(
-        "immediately run the next bounded `wait-request`",
+        "immediately run the quiet global `wait-any-request`",
         published,
     )
     assert post_answer_wait > published
@@ -73,15 +73,46 @@ def test_instruction_orders_reviewer_operations_and_exact_paths() -> None:
     assert "same reviewer session" in content
 
 
+def test_reviewer_rejects_requestor_initiated_sessions_before_reading() -> None:
+    """A pending specification cannot legitimize requestor delegation."""
+    content = " ".join(_content().split())
+
+    for fragment in (
+        "Before any command or repository read",
+        "Refuse the task when an automated requestor",
+        "parent agent acting as requestor",
+        "does not prove valid reviewer provenance",
+        "independently waiting reviewer",
+    ):
+        assert fragment in content
+
+
+def test_reviewer_never_initiates_a_requestor_and_stays_in_waits() -> None:
+    """Specification review cannot manufacture its counterpart role."""
+    content = " ".join(_content().split())
+
+    for fragment in (
+        "must not spawn, start, delegate, invoke, or message a requestor",
+        "`pw skill spec-review-requestor`",
+        "publishing an answer is its entire handoff",
+        "Never start or contact a requestor to produce that next round",
+        "The absence of a request never authorizes reviewer-to-requestor delegation",
+        "Never spawn, start, delegate, invoke, or message a requestor",
+        "substitute another model call for the round wait or artifact-home wait",
+        "Report the exact state and requestor-owned recovery",
+    ):
+        assert fragment in content
+
+
 def test_instruction_limits_reclaim_to_the_active_reviewer_session() -> None:
-    """Cold abandoned requests return to requestor-owned recovery."""
+    """Cold resume claims before ordinary renewal; stopped evidence retains its owning recovery."""
     content = _content()
 
     assert "expired during this reviewer session" in content
     assert "call `reclaim` once" in content
     assert "cold route" in content
     assert "spec-review-requestor" in content
-    assert "Do not reclaim from that cold route" in content
+    assert "automatic `claim` before ordinary `reclaim`" in content
 
 
 def test_instruction_revalidates_and_retires_retained_context_safely() -> None:
@@ -136,7 +167,27 @@ def test_instruction_stops_outside_reviewer_authority() -> None:
     assert "Do not edit or consolidate the reviewed specification" in content
     assert "Do not read the versioned transcript" in content
     assert "stop for human recovery" in content
-    assert "Stop for the human choice; do not start a post-answer wait" in content
+    assert "Leave the human choice alone and enter the artifact-home wait" in content
+
+
+def test_instruction_requires_the_reviewer_to_always_wait() -> None:
+    """A reviewer never ends its session; it waits for the next request."""
+    content = _content()
+    normalized = " ".join(content.split())
+
+    assert "## A reviewer always waits" in content
+    assert "publishing an answer never returns control to the user" in normalized
+    for phrase in (
+        "The round wait.",
+        "The artifact-home wait.",
+        "Do not restrict that wait to the exchange just finished",
+        "Neither wait is optional and neither is a question for the user",
+    ):
+        assert phrase in normalized
+    assert "GlobalReviewerWait" in content
+    assert "wait-any-request" in normalized
+    assert "quiet foreground operation" in normalized
+    assert "writes no idle progress" in normalized
 
 
 # eof

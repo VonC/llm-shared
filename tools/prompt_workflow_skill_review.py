@@ -64,7 +64,7 @@ def forced_command(
     env: Mapping[str, str],
     override: str | None = None,
 ) -> str | None:
-    """Return a forced skill's command when its document exists, else None (Q04).
+    """Route bare resume before discovery, or require the forced skill's document (Q04).
 
     Args:
         root: The project root, used to make the document path relative.
@@ -75,8 +75,13 @@ def forced_command(
 
     Returns:
         The host-prefixed command naming the skill's document when that document
-        exists; None when the skill is unknown or its document is absent.
+        exists, or the bare resume entry without a document. Return None when
+        another skill is unknown or its document is absent.
     """
+    if skill_name in {"resume", "review-resume"}:
+        return rendering.render_command(
+            rendering.host_prefix(env, override), "review-resume.md", "",
+        ).removesuffix(" on ")
     state = steps.compute_state(root, topic, None)
     if skill_name in FORCED_REVIEW_ROLES:
         return _forced_review_command(root, topic, state, skill_name, env, override)

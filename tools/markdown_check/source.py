@@ -8,6 +8,7 @@ from pathlib import PurePosixPath
 from typing import TYPE_CHECKING
 
 from tools.markdown_check.models import (
+    FenceOpener,
     Frontmatter,
     Heading,
     InlineCode,
@@ -27,7 +28,16 @@ _HEADING_RE = re.compile(
     r"(?P<title>.*?)(?:[ \t]+#+[ \t]*)?$",
 )
 _LIST_RE = re.compile(r"^[ \t]{0,3}(?:[-+*]|\d+[.)])[ \t]+")
+_INDENT_RE = re.compile(r"^(?: {4}|\t)")
 _HTML_RE = re.compile(r"</?(?P<name>[A-Za-z][A-Za-z0-9-]*)\b")
+# An autolink is CommonMark link syntax, not markup: <scheme:rest> with no
+# whitespace, and <local@domain>. Without this the leading `<https` of a wrapped
+# URL reads as an opening tag named `https`, so repairing MD034 would create
+# MD033.
+_AUTOLINK_RE = re.compile(
+    r"<(?:[A-Za-z][A-Za-z0-9+.-]{1,31}:[^<>\s]*"
+    r"|[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+)>",
+)
 _LINK_RE = re.compile(r"(?<!!)\[[^\]\n]*\]\((?P<target><[^>\n]+>|[^\s)\n]+)")
 _DESCRIPTION_RE = re.compile(r"^[ \t]*description[ \t]*:[ \t]*(?P<value>.*)$")
 
@@ -52,6 +62,112 @@ def fenced_line_numbers(lines: Sequence[str]) -> frozenset[int]:
             fence_character = None
             fence_length = 0
     return frozenset(fenced)
+
+
+def fenced_content_line_numbers(lines: Sequence[str]) -> frozenset[int]:
+    """Return fenced code content line numbers, excluding both fence markers."""
+    content: set[int] = set()
+    fence_character: str | None = None
+    fence_length = 0
+    for line_number, line in enumerate(lines, start=1):
+        marker_match = _FENCE_RE.match(line)
+        if fence_character is None:
+            if marker_match is not None:
+                marker = marker_match.group("fence")
+                fence_character = marker[0]
+                fence_length = len(marker)
+            continue
+        marker = None if marker_match is None else marker_match.group("fence")
+        if marker is not None and marker[0] == fence_character and len(marker) >= fence_length:
+            fence_character = None
+            fence_length = 0
+            continue
+        content.add(line_number)
+    return frozenset(content)
+
+
+def fence_openers(lines: Sequence[str]) -> tuple[FenceOpener, ...]:
+    """Return each opening fence marker with the info string it declares."""
+    openers: list[FenceOpener] = []
+    fence_character: str | None = None
+    fence_length = 0
+    for line_number, line in enumerate(lines, start=1):
+        marker_match = _FENCE_RE.match(line)
+        if marker_match is None:
+            continue
+        marker = marker_match.group("fence")
+        if fence_character is None:
+            fence_character = marker[0]
+            fence_length = len(marker)
+            openers.append(
+                FenceOpener(line_number, line[marker_match.end() :].strip()),
+            )
+        elif marker[0] == fence_character and len(marker) >= fence_length:
+            fence_character = None
+            fence_length = 0
+    return tuple(openers)
+
+
+def _outside_indented_code_scope(
+    line_number: int,
+    fenced: frozenset[int],
+    frontmatter: Frontmatter | None,
+    listed: set[int],
+) -> bool:
+    """Report whether a line cannot participate in an indented code block."""
+    return _hidden_line(line_number, fenced, frontmatter) or line_number in listed
+
+
+def _starts_or_continues_indented_code(
+    line: str,
+    *,
+    open_block: bool,
+    previous_blank: bool,
+) -> bool:
+    """Report whether one visible content line belongs to indented code."""
+    return _INDENT_RE.match(line) is not None and (open_block or previous_blank)
+
+
+def _indented_code_lines(
+    lines: Sequence[str],
+    fenced: frozenset[int],
+    frontmatter: Frontmatter | None,
+    list_blocks: Sequence[ListBlock],
+) -> frozenset[int]:
+    """Return indented code lines, which cannot interrupt a paragraph or a list."""
+    listed = {
+        line_number
+        for block in list_blocks
+        for line_number in range(block.start_line, block.end_line + 1)
+    }
+    indented: set[int] = set()
+    pending: list[int] = []
+    previous_blank = True
+    open_block = False
+    for line_number, line in enumerate(lines, start=1):
+        if _outside_indented_code_scope(line_number, fenced, frontmatter, listed):
+            open_block = False
+            pending.clear()
+            previous_blank = not line.strip()
+            continue
+        if not line.strip():
+            if open_block:
+                pending.append(line_number)
+            previous_blank = True
+            continue
+        if _starts_or_continues_indented_code(
+            line,
+            open_block=open_block,
+            previous_blank=previous_blank,
+        ):
+            indented.update(pending)
+            indented.add(line_number)
+            open_block = True
+        else:
+            open_block = False
+        pending.clear()
+        previous_blank = False
+    return frozenset(indented)
 
 
 def _frontmatter(lines: Sequence[str]) -> Frontmatter | None:
@@ -263,6 +379,7 @@ def _structural_tokens(
         raw_html.extend(
             RawHtml(line_number, match.group("name").lower())
             for match in _HTML_RE.finditer(masked)
+            if _AUTOLINK_RE.match(masked, match.start()) is None
         )
         links.extend(
             MarkdownLink(line_number, match.group("target").strip("<>"))
@@ -286,13 +403,19 @@ def parse_markdown(path: str | PurePosixPath, markdown: str) -> MarkdownSource:
     lines = tuple(markdown.splitlines())
     frontmatter = _frontmatter(lines)
     fenced = fenced_line_numbers(lines)
-    visible_text, line_map = _visible_text(lines, fenced, frontmatter)
+    list_blocks = _list_blocks(lines, fenced, frontmatter)
+    indented = _indented_code_lines(lines, fenced, frontmatter, list_blocks)
+    # Indented code is code, so every token scan hides it exactly as it hides a
+    # fence. Without this an `#include <stdlib.h>` inside a compiler transcript
+    # reads as raw HTML and a URL inside one reads as a bare link.
+    coded = fenced | indented
+    visible_text, line_map = _visible_text(lines, coded, frontmatter)
     inline_code, code_ranges = _inline_code(visible_text, line_map)
     prose_lines = _mask_ranges(visible_text, code_ranges)
     headings, raw_html, links = _structural_tokens(
         lines,
         prose_lines,
-        fenced,
+        coded,
         frontmatter,
     )
     return MarkdownSource(
@@ -300,17 +423,25 @@ def parse_markdown(path: str | PurePosixPath, markdown: str) -> MarkdownSource:
         lines=lines,
         frontmatter=frontmatter,
         headings=headings,
-        list_blocks=_list_blocks(lines, fenced, frontmatter),
+        list_blocks=list_blocks,
         raw_html=raw_html,
         links=links,
         inline_code=inline_code,
         prose_lines=prose_lines,
         body_lines=_body_lines(lines, frontmatter),
         fenced_lines=fenced,
+        fenced_content_lines=fenced_content_line_numbers(lines),
+        indented_code_lines=indented,
+        fence_openers=fence_openers(lines),
     )
 
 
-__all__ = ["fenced_line_numbers", "parse_markdown"]
+__all__ = [
+    "fence_openers",
+    "fenced_content_line_numbers",
+    "fenced_line_numbers",
+    "parse_markdown",
+]
 
 
 # eof

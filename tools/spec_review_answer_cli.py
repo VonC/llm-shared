@@ -25,6 +25,7 @@ if __name__ == "__main__":  # pragma: no cover - thin launcher boundary
         _project_root = Path(__file__).parent.parent.resolve()
         sys.path.insert(0, str(_project_root))
 
+from tools.review_artifact_configuration import caller_file_parents
 from tools.review_exchange_models import (
     ReviewDisposition,
     ReviewExchangeError,
@@ -107,10 +108,10 @@ def _is_effectively_ignored(project_root: Path, path: Path) -> bool:
 
 
 def _root_path(root: Path, value: str | Path, label: str, *, source: bool) -> Path:
-    """Validate one regular, ignored project-root ``a.*`` path."""
+    """Validate one regular, ignored home-local ``a.*`` path."""
     path = Path(value).expanduser().resolve()
-    if path.parent != root:
-        raise ReviewExchangeError(f"{label} must be directly under project root")
+    if path.parent not in caller_file_parents(root):
+        raise ReviewExchangeError(f"{label} must be in the review artifact home")
     if not path.name.startswith("a."):
         raise ReviewExchangeError(f"{label} must use an a.* file name")
     if source and not path.is_file():

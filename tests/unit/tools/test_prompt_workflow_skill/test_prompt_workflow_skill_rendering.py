@@ -3,13 +3,17 @@
 from tools import prompt_workflow_skill as skill
 
 
-def test_detect_host_reads_the_markers_with_claude_first() -> None:
-    """The Claude marker wins, then Codex, then the default host."""
+def test_detect_host_reads_one_marker_without_a_default() -> None:
+    """Known single markers resolve while missing evidence stays unknown."""
     assert skill.detect_host({"CLAUDECODE": "1"}) == skill.HOST_CLAUDE
     assert skill.detect_host({"CODEX_THREAD_ID": "abc"}) == skill.HOST_CODEX
-    both = {"CLAUDECODE": "1", "CODEX_THREAD_ID": "abc"}
-    assert skill.detect_host(both) == skill.HOST_CLAUDE
     assert skill.detect_host({}) == skill.DEFAULT_HOST
+
+
+def test_detect_host_reports_conflicting_markers_as_unknown() -> None:
+    """Contradictory environment evidence does not pick a host silently."""
+    both = {"CLAUDECODE": "1", "CODEX_THREAD_ID": "abc"}
+    assert skill.detect_host(both) == skill.HOST_UNKNOWN
 
 
 def test_detect_host_ignores_an_empty_marker() -> None:
@@ -21,7 +25,7 @@ def test_host_prefix_detects_from_the_environment() -> None:
     """With no override the prefix follows the detected host."""
     assert skill.host_prefix({"CLAUDECODE": "1"}) == "/"
     assert skill.host_prefix({"CODEX_THREAD_ID": "abc"}) == "$"
-    assert skill.host_prefix({}) == "/"
+    assert skill.host_prefix({}) == "<command-prefix>"
 
 
 def test_host_prefix_override_short_circuits_detection() -> None:
@@ -31,6 +35,7 @@ def test_host_prefix_override_short_circuits_detection() -> None:
         {"CODEX_THREAD_ID": "abc"},
         override=skill.HOST_CLAUDE,
     ) == "/"
+    assert skill.host_prefix({}, override=skill.HOST_GEMINI) == "/"
 
 
 def test_render_command_drops_the_md_suffix() -> None:

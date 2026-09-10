@@ -1,6 +1,6 @@
 """Tests for nesting and qualifying caller-authored review headings."""
 
-from tools.review_markdown_headings import qualify_round_headings
+from tools.review_markdown_headings import qualify_round_headings, wrap_bare_urls
 
 
 def test_headings_shift_as_one_outline_and_keep_code_fences_literal() -> None:
@@ -102,3 +102,72 @@ def test_plain_markdown_and_tilde_fences_are_unchanged() -> None:
         )
         == markdown
     )
+
+
+def test_bare_urls_are_wrapped_and_addressed_ones_are_left_alone() -> None:
+    """MD034 is fixed at the input boundary, without touching an existing link."""
+    markdown = (
+        "These constraints follow the guidance:\n"
+        "https://docs.python.org/3.12/library/multiprocessing.html#x\n"
+        "and see [terminate](https://docs.python.org/3.12/y) or <https://z.test/a>.\n"
+    )
+
+    rendered = wrap_bare_urls(markdown)
+
+    assert "<https://docs.python.org/3.12/library/multiprocessing.html#x>" in rendered
+    assert "[terminate](https://docs.python.org/3.12/y)" in rendered
+    assert "<https://z.test/a>" in rendered
+    assert "<<" not in rendered
+
+
+def test_wrapping_leaves_sentence_punctuation_and_fenced_urls_outside() -> None:
+    """A trailing full stop is prose, and a fenced or spanned URL is a sample."""
+    markdown = (
+        "Read https://example.test/a.\n"
+        "Call `https://example.test/b` directly.\n"
+        "```text\n"
+        "https://example.test/c\n"
+        "```\n"
+        "[ref]: https://example.test/d\n"
+        "Balanced https://example.test/Foo_(bar) stays whole.\n"
+    )
+
+    rendered = wrap_bare_urls(markdown)
+
+    assert "<https://example.test/a>.\n" in rendered
+    assert "`https://example.test/b`" in rendered
+    assert "\nhttps://example.test/c\n" in rendered
+    assert "[ref]: https://example.test/d" in rendered
+    assert "<https://example.test/Foo_(bar)>" in rendered
+
+
+def test_wrapping_is_idempotent_and_runs_inside_heading_qualification() -> None:
+    """A second pass changes nothing, and the round renderer applies the same fix."""
+    markdown = "## Evidence\n\nSee https://example.test/a for the contract.\n"
+
+    rendered = qualify_round_headings(
+        markdown,
+        minimum_level=3,
+        qualifier="step 1 topic",
+        round_number=1,
+    )
+
+    assert "See <https://example.test/a> for the contract." in rendered
+    assert "### Evidence for step 1 topic (round 1)" in rendered
+    assert wrap_bare_urls(rendered) == rendered
+
+
+def test_an_unclosed_code_span_does_not_swallow_the_rest_of_the_line() -> None:
+    """A stray backtick run with no partner leaves later URLs still wrappable."""
+    markdown = "``unclosed ` run https://example.test/a end\n"
+
+    rendered = wrap_bare_urls(markdown)
+
+    assert "<https://example.test/a>" in rendered
+
+
+def test_unmatched_run_does_not_hide_a_later_code_spanned_url() -> None:
+    """A later valid span stays protected after an unmatched earlier run."""
+    markdown = "``unclosed `https://example.test/x` end\n"
+
+    assert wrap_bare_urls(markdown) == markdown

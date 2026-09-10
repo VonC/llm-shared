@@ -76,6 +76,7 @@ tools/                       the Python behind the launchers:
 ├─ prepare_release/          topology detection and merge-tree previews
 ├─ sensitive_history/        contextual commit, path, and blob scanner
 ├─ html_to_pptx/             presentation to native PPTX and PDF
+├─ codex_plugin_redirects.py  cache-relative plugin redirect validator
 ├─ uv_run.py                 cert-aware uv launcher
 ├─ batcolors/                vendored batch coloring (submodule)
 └─ dev_workflow/             vendored release tooling: update-changelog,

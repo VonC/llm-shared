@@ -26,6 +26,7 @@ from tools import spec_review_request as request_renderer
 from tools.prompt_workflow_models import Topic
 from tools.review_exchange_core import ReviewExchangeCore
 from tools.review_exchange_models import (
+    Actor,
     ArtifactState,
     FamilyPolicy,
     ReviewConfiguration,
@@ -51,6 +52,7 @@ _POLICY = FamilyPolicy(
 _CREATED_AT = "2026-08-09T08:00:00+02:00"
 _STOP = 3
 _ROUND_TWO = 2
+_CAPABILITIES: dict[Path, tuple[int, str]] = {}
 
 
 @dataclass(frozen=True)
@@ -135,22 +137,43 @@ def _run_cli(
     """Run the public exchange adapter and parse its one JSON result."""
     stdout = StringIO()
     stderr = StringIO()
+    capability = _CAPABILITIES.get(context.document_path)
+    capability_arguments: tuple[str, ...] = ()
+    if capability is not None and operation not in {"activate", "status"}:
+        generation, token = capability
+        capability_arguments = (
+            "--ownership-generation",
+            str(generation),
+            "--ownership-token",
+            token,
+        )
     with (
         patch.dict(os.environ, {"PRJ_DIR": str(root)}),
         chdir(root),
         redirect_stdout(stdout),
         redirect_stderr(stderr),
     ):
-        code = exchange_cli.main([operation, *_common(context), *extra])
+        code = exchange_cli.main(
+            [operation, *_common(context), *capability_arguments, *extra],
+        )
     lines = stdout.getvalue().splitlines()
     assert len(lines) == 1, stderr.getvalue()
     payload = cast("dict[str, Any]", json.loads(lines[0]))
+    generation = payload.get("ownership_generation")
+    token = payload.get("ownership_token")
+    if isinstance(generation, int) and isinstance(token, str):
+        _CAPABILITIES[context.document_path] = (generation, token)
+    if payload.get("state") == "idle":
+        _CAPABILITIES.pop(context.document_path, None)
     return CliResult(code, payload)
 
 
 def _root_input(root: Path, name: str, content: str) -> Path:
     """Write one distinct ignored input used by a public adapter."""
-    path = root / f"a.{name}.md"
+    home = root / ".reviews"
+    home.mkdir(exist_ok=True)
+    (home / ".gitignore").write_bytes(b"*\n")
+    path = home / f"a.{name}.md"
     path.write_text(content, encoding="utf-8")
     return path
 
@@ -172,8 +195,9 @@ def _render_pair(
     )
     changes = _root_input(effort.root, f"changes-{suffix}", change_summary)
     response = _root_input(effort.root, f"response-{suffix}", writer_response)
-    request_output = effort.root / f"a.rendered-request-{suffix}.md"
-    summary_output = effort.root / f"a.rendered-summary-{suffix}.md"
+    home = effort.root / ".reviews"
+    request_output = home / f"a.rendered-request-{suffix}.md"
+    summary_output = home / f"a.rendered-summary-{suffix}.md"
     arguments = [
         "--document",
         str(effort.document),
@@ -260,7 +284,13 @@ def _publish_answer(
     disposition: ReviewDisposition,
 ) -> None:
     """Publish one simulated counterpart answer through the shared core."""
-    _core(effort).publish_answer(
+    exchange = _core(effort)
+    claim = exchange.pickup_ownership(Actor.REVIEWER)
+    _CAPABILITIES[effort.context.document_path] = (
+        claim.capability.generation,
+        claim.capability.token,
+    )
+    exchange.publish_answer(
         _answer(effort, round_number, disposition),
         f"Reviewer feedback for round {round_number}.",
     )
@@ -431,7 +461,7 @@ def guided_override_journey(
         "Human guidance:\n\n#### Human decision for issue guided (round 2)\n\n"
         "Keep Q02 literal; do not merge it with Q01.",
     ) == 1
-    assert "Writer response: The writer kept Q02 separate" in request
+    assert "Writer response:\n\nThe writer kept Q02 separate" in request
     assert (
         "Human guidance:\n\n#### Human decision for issue guided (round 2)"
         in transcript

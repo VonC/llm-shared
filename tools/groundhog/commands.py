@@ -201,13 +201,17 @@ def run_tests(invocation: Invocation, deps: Deps) -> int:
     pytest_exe = deps.which("pytest")
     if pytest_exe is None:
         return _setup_exit_no_pytest(invocation)
-    if invocation.sub == runner.SUB_FULL:
+    parallel = runner.parallel_enabled(invocation.root)
+    if invocation.sub == runner.SUB_FULL and not parallel:
+        # A worker run carries no testmon, so it owns no map to reset and
+        # must leave the affected run's database alone.
         runner.reset_testmon(invocation.root)
     command = runner.pytest_command(
         pytest_exe,
         invocation.sub,
         no_cov=invocation.no_cov,
         files=invocation.files,
+        parallel=parallel,
     )
     progress = _Progress(invocation, deps)
     config = runner.StreamConfig(
@@ -484,6 +488,8 @@ def _next_steps(
     if invocation.sub == runner.SUB_FULL:
         failing = baseline.failing_files(result.stats.failed_ids)
         return reporting_nextstep.next_after_full(exit_code, failing, summary)
+    if invocation.sub == runner.SUB_TIMINGS:
+        return reporting_nextstep.next_after_timings(exit_code, summary)
     if invocation.sub == runner.SUB_AFFECTED:
         if invocation.no_cov:
             return reporting_nextstep.next_after_affected_nocov(

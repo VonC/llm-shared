@@ -34,6 +34,7 @@ from tools.code_review_evidence import (
     read_manifest,
 )
 from tools.code_review_request import code_review_context
+from tools.review_artifact_configuration import caller_file_parents
 from tools.review_exchange_models import (
     ReviewContext,
     ReviewDisposition,
@@ -128,11 +129,19 @@ def _is_effectively_ignored(project_root: Path, path: Path) -> bool:
     return result.returncode == 0
 
 
-def _root_path(root: Path, value: str | Path, label: str, *, source: bool) -> Path:
-    """Validate one regular, ignored project-root ``a.*`` path."""
+def _root_path(
+    root: Path,
+    value: str | Path,
+    label: str,
+    *,
+    source: bool,
+    parents: frozenset[Path] | None = None,
+) -> Path:
+    """Validate one regular, ignored ``a.*`` path in an accepted directory."""
     path = Path(value).expanduser().resolve()
-    if path.parent != root:
-        raise ReviewExchangeError(f"{label} must be directly under project root")
+    accepted = caller_file_parents(root) if parents is None else parents
+    if path.parent not in accepted:
+        raise ReviewExchangeError(f"{label} must be in the review artifact home")
     if not path.name.startswith("a."):
         raise ReviewExchangeError(f"{label} must use an a.* file name")
     if source and not path.is_file():
@@ -268,17 +277,25 @@ def _validated_paths(
     root: Path,
 ) -> tuple[dict[str, Path], Path, Path]:
     """Resolve exact caller paths and reject collisions before any read."""
+    parents = caller_file_parents(root)
     inputs = {
-        key: _root_path(root, value, _INPUT_LABELS[key], source=True)
+        key: _root_path(root, value, _INPUT_LABELS[key], source=True, parents=parents)
         for key in _INPUT_LABELS
         if (value := getattr(args, f"{key}_file")) is not None
     }
-    answer = _root_path(root, args.answer_content_output, "answer content output", source=False)
+    answer = _root_path(
+        root,
+        args.answer_content_output,
+        "answer content output",
+        source=False,
+        parents=parents,
+    )
     summary = _root_path(
         root,
         args.transcript_summary_output,
         "transcript summary output",
         source=False,
+        parents=parents,
     )
     all_paths = [*inputs.values(), answer, summary]
     if len(set(all_paths)) != len(all_paths):

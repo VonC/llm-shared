@@ -6,6 +6,11 @@ its output streams live. A hard crash of the suite kills only the child,
 so the parent always survives to print the crash block (Q06) and to set
 the exit code. The process factory is injectable, which is the single
 faked element of the acceptance tests.
+
+Fix: Run the full suite on xdist workers. Setup, not assertions, dominated
+the walk, so the full run now spawns workers and drops ``--testmon``, which
+cannot share a session with ``pytest-xdist``. The affected run keeps testmon
+and owns the incremental map, so nothing resets that database any more.
 """
 
 from __future__ import annotations
@@ -27,12 +32,26 @@ if TYPE_CHECKING:
 
     from tools.groundhog.models import RunStats
 
-# The testmon database deleted by a full run, the reset of ptr.
+# Worker options of the full run. `loadgroup` schedules by the ``xdist_group``
+# mark, so one parameter of an expensive module-scoped fixture can run on its
+# own worker while its own tests stay together. `loadscope` could only keep a
+# whole module on one worker, which left the longest parameterized module as
+# the critical path. A module whose fixtures must not be rebuilt per worker
+# carries a module-level mark; everything else is distributed test by test.
+PARALLEL_OPTIONS: Final = ("-n", "auto", "--dist", "loadgroup")
+# The testmon database a sequential full run resets, the reset of ptr (Q05).
 TESTMON_DATA_FILE: Final = ".testmondata"
+# Versioned opt-in marker at the consuming project root. groundhog is shared
+# tooling: a project without pytest-xdist installed would fail outright on
+# "-n", and a project whose module-scoped fixtures carry no xdist_group mark
+# would rebuild them per worker. So the parallel full run is opt-in and every
+# project keeps the sequential command until it declares otherwise.
+PARALLEL_MARKER: Final = ".ghog-parallel"
 # Subcommand names, shared with the CLI.
 SUB_FULL: Final = "full"
 SUB_AFFECTED: Final = "affected"
 SUB_SINGLE: Final = "single"
+SUB_TIMINGS: Final = "timings"
 SUB_CHECK: Final = "check"
 SUB_DAY: Final = "day"
 SUB_INIT: Final = "init"
@@ -77,12 +96,25 @@ def default_popen_factory(command: list[str], cwd: Path) -> subprocess.Popen[str
     )
 
 
+def parallel_enabled(root: Path) -> bool:
+    """Tell whether this project opted its full run into xdist workers.
+
+    Args:
+        root: The consuming project root.
+
+    Returns:
+        True when the project declares the parallel marker file.
+    """
+    return (root / PARALLEL_MARKER).is_file()
+
+
 def pytest_command(
     pytest_exe: str,
     sub: str,
     *,
     no_cov: bool,
     files: Sequence[str],
+    parallel: bool = False,
 ) -> list[str]:
     """Build the pytest command of one groundhog subcommand.
 
@@ -91,32 +123,46 @@ def pytest_command(
         sub: The subcommand: ``full``, ``affected`` or ``single``.
         no_cov: Whether coverage is disabled (the ptanc variant).
         files: The test files of a ``single`` run.
+        parallel: Whether this project opted its full run into xdist workers.
 
     Returns:
         The pytest command line, alias-faithful plus ``-v`` for node ids;
         the full run also times every call with ``--durations`` (Q39).
+
+    The full run is the only parallel one. It is the only subcommand wide
+    enough for worker startup to pay for itself, and ``pytest-testmon`` cannot
+    share a session with ``pytest-xdist`` -- together they abort the run with
+    an ``INTERNALERROR``. So the full run drops ``--testmon`` and the affected
+    run keeps it: the full run proves every test, the affected run owns the
+    incremental selection map.
     """
     if sub == SUB_SINGLE:
         return [pytest_exe, "--no-header", "--no-cov", "-rxX", "-v", *files]
+    if sub == SUB_TIMINGS:
+        # Sequential and uninstrumented on purpose: a contended or covered
+        # call time measures the scheduler, not the test (Q39).
+        return [pytest_exe, "--no-header", "--no-cov", "-v",
+                "--durations=0", "--durations-min=0"]
+    command = [pytest_exe]
+    worker_run = sub == SUB_FULL and parallel
+    command.extend(PARALLEL_OPTIONS if worker_run else ("--testmon",))
     if no_cov:
-        return [pytest_exe, "--testmon", "--no-header", "--no-cov", "-v"]
-    command = [pytest_exe, "--testmon"]
+        command.extend(["--no-header", "--no-cov", "-v"])
+        return command
     if sub == SUB_AFFECTED:
         command.append("--cov-append")
     command.extend(
         ["--no-header", "--cov-report", "term-missing:skip-covered", "-v"],
     )
-    if sub == SUB_FULL:
-        # The full run is the only one that sees every test, so it alone
-        # times each call for the outlier rule (Q39): --durations=0 lists
-        # every test and --durations-min=0 keeps even the sub-5ms calls,
-        # so the average covers the whole suite, not only the slow tail.
+    if sub == SUB_FULL and not worker_run:
+        # A sequential full run still sees every test and still measures it
+        # honestly, so it keeps the outlier rule exactly as before (Q39).
         command.extend(["--durations=0", "--durations-min=0"])
     return command
 
 
 def reset_testmon(root: Path) -> None:
-    """Delete the testmon database, the reset of a full run (Q05).
+    """Delete the testmon database, the reset of a sequential full run (Q05).
 
     Args:
         root: The project root directory.

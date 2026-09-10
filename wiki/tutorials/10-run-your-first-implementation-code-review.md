@@ -22,9 +22,13 @@ point where the review families diverge.
 
 ## 1. Activate independent review mode
 
-At the repository root, create an empty `a.review-mode` file. Open two agent
-sessions in the same repository and label them **Requestor** and **Reviewer**.
-Keep repository context paths relative to the Git root.
+Prepare the configured artifact home (`.reviews` by default) with a local
+`.gitignore` containing `*`, then create an empty `a.review-mode` inside it.
+Open two agent sessions in the same repository and label them **Requestor** and
+**Reviewer**.
+Keep repository context paths relative to the Git root. You open both sessions
+independently; neither agent may create, invoke, delegate to, or message its
+counterpart.
 
 Start with a settled plan whose Step 2 is not implemented and a clean index.
 
@@ -59,6 +63,10 @@ In the separate reviewer session, ask:
 $llm-shared:code-reviewer
 ```
 
+This instruction comes from you, not from the waiting requestor. A reviewer
+must reject requestor-initiated or requestor-parent delegation even when the
+published request and staged evidence are otherwise valid.
+
 The reviewer compares the live index with `request_index_tree`, executes the
 resolved validation commands, and runs `validation-state compare` after the
 checks. For this example, imagine it finds that one route-warning boundary lacks
@@ -66,8 +74,8 @@ an acceptance assertion and publishes `changes-requested`.
 
 The reviewer may leave an attributable repair staged, but it does not commit.
 It reports each repaired path so the requestor can accept or reverse the change.
-After publishing `changes-requested`, it immediately enters the next bounded
-`wait-request` in the same session. Leave that reviewer session running.
+After publishing `changes-requested`, it immediately enters the quiet global
+`wait-any-request` in the same session. Leave that reviewer session running.
 
 ## 4. Accept the repair and publish round 2
 
@@ -89,8 +97,10 @@ the replacement request releases the reviewer session that is already waiting.
 Without another command from you, the active reviewer reads the returned round
 2 request and repeats the index and validation-state comparisons. When every
 readiness result passes and this round makes no substantive repair, it publishes
-a commit-ready recommendation and does not start another wait. Exit `3` means
-the exchange stopped at its human gate; no commit has run.
+a commit-ready recommendation and leaves the exact exchange at its human gate.
+The reviewer returns to `wait-any-request` under the artifact home, ready for a
+replacement round or a new review.
+Exit `3` means no commit has run.
 
 ## 5. Make the human choice
 

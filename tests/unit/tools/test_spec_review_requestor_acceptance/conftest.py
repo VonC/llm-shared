@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 from tools import review_exchange_cli, spec_review_request
+from tools.review_artifact_configuration import ReviewArtifactConfiguration
 from tools.review_exchange_models import ReviewExchangeError
 from tools.review_exchange_paths import transient_paths_for_ignore
 
@@ -28,9 +29,15 @@ def _is_ignored(root: Path, path: Path) -> bool:
     relative = path.resolve().relative_to(root.resolve()).as_posix()
     if relative in _tracked_paths(root):
         return False
-    ignore_file = root / ".gitignore"
-    patterns = ignore_file.read_text(encoding="utf-8").splitlines()
-    return any(fnmatch.fnmatch(relative, pattern) for pattern in patterns)
+    checks = ((root / ".gitignore", relative), (path.parent / ".gitignore", path.name))
+    return any(
+        ignore_file.is_file()
+        and any(
+            fnmatch.fnmatch(candidate, pattern)
+            for pattern in ignore_file.read_text(encoding="utf-8").splitlines()
+        )
+        for ignore_file, candidate in checks
+    )
 
 
 def _validate_activation(root: Path, paths: ArtifactPaths) -> None:
@@ -38,6 +45,7 @@ def _validate_activation(root: Path, paths: ArtifactPaths) -> None:
     if not (resolved / ".git").is_dir():
         message = "review mode requires a Git repository"
         raise ReviewExchangeError(message)
+    ReviewArtifactConfiguration.load(resolved).prepare_home()
     missing = [
         path.relative_to(resolved).as_posix()
         for path in transient_paths_for_ignore(paths)

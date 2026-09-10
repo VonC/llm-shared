@@ -21,7 +21,7 @@ from tools.review_exchange_models import (
     ReviewConfiguration,
     ReviewContext,
 )
-from tools.review_exchange_paths import derive_artifact_paths
+from tools.review_exchange_paths import derive_artifact_paths, load_review_configuration
 from tools.review_exchange_store import ReviewExchangeStore
 from tools.spec_review_request import specification_context
 
@@ -153,7 +153,7 @@ def live_specification_route(
     state: WorkflowState,
 ) -> LiveSpecificationRoute | None:
     """Return one immutable live route from a single state observation."""
-    configuration = ReviewConfiguration.load(root)
+    configuration = load_review_configuration(root)
     if not configuration.enabled:
         return None
     return _one_live_route(root, topic, state, configuration)
@@ -192,7 +192,7 @@ def forced_specification_document(
     state: WorkflowState,
 ) -> Path | None:
     """Return one live or newly questioned document for explicit delegation."""
-    configuration = ReviewConfiguration.load(root)
+    configuration = load_review_configuration(root)
     if not configuration.enabled:
         return None
     live = _one_live_route(root, topic, state, configuration)

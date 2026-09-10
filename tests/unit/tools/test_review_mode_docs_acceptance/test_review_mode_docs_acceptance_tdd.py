@@ -2,7 +2,8 @@
 
 The suite pins discovery, terminology, tutorials, task ownership, recovery,
 the exact reference contract, and the incremental AC01-through-AC12 record.
-Final Step 5 coverage belongs to the sibling final-acceptance module.
+Final Step 5 coverage belongs to the sibling final-acceptance module. Resume
+Step 6 updates recovery expectations for the shipped automatic pickup flow.
 """
 
 from __future__ import annotations
@@ -43,7 +44,8 @@ _CANONICAL_INSTRUCTIONS = (
 )
 _BACKTICK = "`"
 _REVIEW_OUTCOMES = (
-    "disabled", "activated", "observed", "started", "continued", "reclaimed",
+    "disabled", "activated", "observed", "started", "continued",
+    "ownership-picked-up", "reclaimed",
     "force-reclaimed", "completed", "force-completed", "published", "repaired",
     "found", "timed-out", "abandoned", "escalated", "inconsistent",
     "repair-required", "consumed", "cancelled", "archived", "resolved",
@@ -264,7 +266,11 @@ def test_step_3_recovery_separates_reclaim_from_human_operations(
     assert ordinary < human
     for label in ("Authority:", "Precondition:", "Evidence effect:"):
         assert recovery.index(label, human) > human
-    for command in ("reclaim --force", "resolve", "complete --force"):
+    for command in (
+        "reclaim --force",
+        "review_exchange.bat resolve",
+        "complete --force",
+    ):
         assert recovery.index(command) > human
     for state in (
         "timeout",
@@ -275,6 +281,45 @@ def test_step_3_recovery_separates_reclaim_from_human_operations(
         "interrupted",
     ):
         assert state in recovery
+
+
+def _assert_phrases(content: str, phrases: tuple[str, ...]) -> None:
+    """Assert one bounded list of exact documentation phrases."""
+    normalized = " ".join(content.split())
+    for phrase in phrases:
+        assert phrase in normalized
+
+
+def test_step_3_new_session_pickup_is_discoverable_and_precise(
+    docs_root: Path,
+) -> None:
+    """Bare resume recovers the session while retaining the established ownership fence."""
+    readme = read_declared(docs_root, "README.md")
+    explanation = read_declared(docs_root, _EXPLANATION)
+    recovery = read_declared(docs_root, _RECOVERY_GUIDE)
+    reference = read_declared(docs_root, _REFERENCE)
+
+    _assert_phrases(readme, ("enter `resume`", "automatic pickup"))
+    _assert_phrases(
+        recovery,
+        (
+            "Continue an active review with resume",
+            "automatic pickup",
+            "missing or stale session capability",
+            "Let the skill check migration first",
+            "without waiting for the previous lease to expire",
+        ),
+    )
+    _assert_phrases(explanation, ("new generation", "not a reset", "`reclaim`"))
+    _assert_phrases(
+        reference,
+        (
+            "| `pickup` |",
+            "`ownership_generation`",
+            "`ownership_token`",
+            "`ownership-picked-up`",
+        ),
+    )
 
 
 def test_step_3_coverage_records_task_and_recovery_evidence(

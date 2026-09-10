@@ -1,10 +1,4 @@
-"""Crash-recoverable exact-path persistence for review exchanges.
-
-Step 2 centralizes complete UTF-8 replacement, identity validation, short
-operating-system locks, request tombstones, evidence archives, and transcript
-append repair from a persisted byte offset. It never discovers exchange files
-by scanning directories or keeps a transition lock across counterpart work.
-"""
+"""Exact-path persistence with delegated ownership and unlocked publication."""
 
 # ruff: noqa: EM101, EM102, TRY003
 
@@ -14,7 +8,6 @@ import os
 import re
 import tempfile
 import time
-from contextlib import contextmanager
 from dataclasses import dataclass, replace
 from pathlib import Path
 from string import Template
@@ -35,18 +28,20 @@ from tools.review_exchange_models_coordination import CoordinationRecord
 from tools.review_exchange_models_envelope import (
     parse_envelope_markdown,
     parse_json_markdown,
-    render_json_markdown,
 )
+from tools.review_exchange_ownership_store import ReviewExchangeOwnershipStore
 from tools.review_exchange_paths import archive_path
 
 if TYPE_CHECKING:
-    from collections.abc import Generator
-    from typing import BinaryIO
+    from contextlib import AbstractContextManager
 
-if os.name == "nt":
-    import msvcrt  # pragma: no cover - platform-specific import
-else:
-    import fcntl  # pragma: no cover - platform-specific import
+    from tools.llm_nature import LlmNature
+    from tools.review_exchange_models import Actor
+    from tools.review_exchange_ownership import (
+        OwnershipCapability,
+        OwnershipClaim,
+        OwnershipService,
+    )
 
 _TEMPLATE_ROOT: Final[Path] = Path(__file__).resolve().parents[1] / "templates"
 _ENTRY_ID_RE: Final[re.Pattern[str]] = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
@@ -95,15 +90,10 @@ class TranscriptEntry:
 
 
 class ReviewExchangeStore:
-    """Persist one exchange safely through fixed, identity-checked paths.
+    """Publish fixed artifacts and delegate locked coordination persistence.
 
-    The store prepares complete files beside their targets before replacement,
-    preserves consumed requests as tombstones, and repairs transcript appends
-    only from the coordination record's byte offset. Atomic replacement also
-    tolerates a bounded transient sharing denial before failing without losing
-    the prepared file. Callers scope ``transition_lock`` around one
-    state-changing transition and release it before waiting or authoring
-    feedback.
+    Complete same-directory replacements and byte-offset transcript repair keep
+    partial writes recoverable without owning counterpart work.
     """
 
     def __init__(
@@ -117,19 +107,29 @@ class ReviewExchangeStore:
         self._template_root = (
             template_root.resolve() if template_root is not None else _TEMPLATE_ROOT
         )
+        self.ownership_store = ReviewExchangeOwnershipStore(paths)
 
-    @contextmanager
-    def transition_lock(self) -> Generator[None]:
-        """Hold the identity-specific operating-system lock for one transition."""
-        lock_path = self.paths.transition_lock
-        lock_path.parent.mkdir(parents=True, exist_ok=True)
-        with lock_path.open("a+b") as stream:
-            self._ensure_lock_byte(stream)
-            self._lock_stream(stream)
-            try:
-                yield
-            finally:
-                self._unlock_stream(stream)
+    def transition_lock(self) -> AbstractContextManager[None]:
+        """Delegate the identity-specific lock to focused ownership storage."""
+        return self.ownership_store.transition_lock()
+
+    def claim_ownership(
+        self,
+        record: CoordinationRecord,
+        service: OwnershipService,
+        actor: Actor,
+        *,
+        presented: OwnershipCapability | None = None,
+        force: bool = False,
+    ) -> OwnershipClaim:
+        """Delegate one locked compare-and-swap ownership claim."""
+        return self.ownership_store.claim(
+            record,
+            service,
+            actor,
+            presented=presented,
+            force=force,
+        )
 
     def publish_atomic(self, path: Path, content: str) -> None:
         """Validate and atomically create or replace one exact artifact."""
@@ -289,33 +289,16 @@ class ReviewExchangeStore:
         return True
 
     def write_coordination(self, record: CoordinationRecord) -> None:
-        """Atomically persist a strict coordination record for this identity."""
-        self._validate_context(record.context)
-        title = f"Review exchange coordination for {record.context.identity.key}"
-        self.publish_atomic(
-            self.paths.coordination,
-            render_json_markdown(title, record.to_dict(), ""),
-        )
+        """Delegate strict coordination persistence to ownership storage."""
+        self.ownership_store.write_coordination(record)
 
     def read_coordination(
         self,
         *,
         required: bool = False,
     ) -> CoordinationRecord | None:
-        """Read one exact coordination record without artifact discovery."""
-        path = self.paths.coordination
-        if not path.exists():
-            if required:
-                raise ReviewExchangeError("coordination record does not exist")
-            return None
-        try:
-            content = path.read_text(encoding="utf-8")
-            data = self._coordination_json(content)
-            record = CoordinationRecord.from_dict(mapping_value(data, "coordination JSON"))
-        except (OSError, UnicodeError) as error:
-            raise ReviewExchangeError(f"cannot read coordination record: {error}") from error
-        self._validate_context(record.context)
-        return record
+        """Delegate one exact coordination read to ownership storage."""
+        return self.ownership_store.read_coordination(required=required)
 
     def append_transcript_once(
         self,
@@ -474,7 +457,7 @@ class ReviewExchangeStore:
         record: CoordinationRecord,
         entry: TranscriptEntry,
     ) -> str:
-        """Render one portable role-and-round-labeled transcript entry."""
+        """Render one portable entry with its complete role-nature snapshot."""
         context = record.context
         umbrella = (
             self._transcript_path(context.umbrella_path)
@@ -505,6 +488,10 @@ class ReviewExchangeStore:
             f"- Exchange: {context.identity.key}",
             f"- Umbrella: {umbrella}",
             f"- Reviewed document: {self._transcript_path(context.document_path)}",
+            "- Requestor LLM nature: "
+            + self._render_nature(record.role_natures.requestor),
+            "- Reviewer LLM nature: "
+            + self._render_nature(record.role_natures.reviewer),
         ]
         if context.implementation_step is not None:
             lines.append(f"- Implementation step: {context.implementation_step}")
@@ -518,6 +505,11 @@ class ReviewExchangeStore:
         )
         lines.append(f"<!-- review-entry-id: {entry.entry_id} -->")
         return "\n".join(lines) + "\n"
+
+    @staticmethod
+    def _render_nature(nature: LlmNature | None) -> str:
+        """Render one nullable role nature without any host evidence detail."""
+        return nature.value if nature is not None else "unrecorded"
 
     def _transcript_path(self, path: Path) -> str:
         """Render an in-repository transcript path without host identity."""
@@ -602,32 +594,6 @@ class ReviewExchangeStore:
             stream.write(content)
             stream.flush()
             os.fsync(stream.fileno())
-
-    @staticmethod
-    def _ensure_lock_byte(stream: BinaryIO) -> None:
-        """Ensure Windows has one byte range available for locking."""
-        stream.seek(0, os.SEEK_END)
-        if stream.tell() == 0:
-            stream.write(b"\0")
-            stream.flush()
-        stream.seek(0)
-
-    @staticmethod
-    def _lock_stream(stream: BinaryIO) -> None:
-        """Acquire one blocking standard-library operating-system lock."""
-        if os.name == "nt":
-            msvcrt.locking(stream.fileno(), msvcrt.LK_LOCK, 1)
-            return
-        fcntl.flock(stream.fileno(), fcntl.LOCK_EX)
-
-    @staticmethod
-    def _unlock_stream(stream: BinaryIO) -> None:
-        """Release the operating-system lock before closing its handle."""
-        stream.seek(0)
-        if os.name == "nt":
-            msvcrt.locking(stream.fileno(), msvcrt.LK_UNLCK, 1)
-            return
-        fcntl.flock(stream.fileno(), fcntl.LOCK_UN)
 
 
 # eof

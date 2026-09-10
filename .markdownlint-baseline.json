@@ -7,7 +7,6 @@
     {"path": "changelog-header.md", "rule": "LS002", "count": 1},
     {"path": "docs/plan.v0.1.0.pw_handoff.md", "rule": "MD033", "count": 1},
     {"path": "docs/v0.11.0/review.design-specification.v0.11.0.review-status-command.md", "rule": "MD038", "count": 2},
-    {"path": "instructions/prepare-release.md", "rule": "MD033", "count": 5},
     {"path": "instructions/split-large-file.md", "rule": "LS002", "count": 1},
     {"path": "instructions/update-merge-commit-msg.md", "rule": "LS002", "count": 1},
     {"path": "instructions/write-design.md", "rule": "LS002", "count": 1},

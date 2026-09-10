@@ -6,7 +6,7 @@ from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parents[4]
 _INSTRUCTION = _ROOT / "instructions" / "implementation-check.md"
-_LAUNCHER = "bin/code_review_evidence.bat"
+_LAUNCHER = "<LLM_SHARED_DIR>\\bin\\code_review_evidence.bat"
 _MINIMUM_NONE_REFERENCES = 3
 
 

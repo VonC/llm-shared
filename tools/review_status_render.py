@@ -1,4 +1,4 @@
-"""Pure human and JSON renderers for immutable repository review status."""
+"""Pure schema-2 renderers for migration and role-nature review status."""
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ from tools.review_status_models import (
     DamagedCandidateStatus,
     ExchangeStatus,
     ReviewStatusResult,
+    RoleNatureStatus,
 )
 
 
@@ -24,6 +25,16 @@ def _presence(
     else:
         observed = "present" if present else "absent"
     return f"{applicability.value}, {observed}"
+
+
+def _nature_evidence(status: RoleNatureStatus) -> str:
+    """Render complete typed nature evidence without inferring missing values."""
+    if not status.evidence:
+        return "none"
+    return ", ".join(
+        f"{item.path}={item.nature.value if item.nature is not None else 'unrecorded'}"
+        for item in status.evidence
+    )
 
 
 def _exchange_lines(position: int, exchange: ExchangeStatus) -> list[str]:
@@ -45,6 +56,12 @@ def _exchange_lines(position: int, exchange: ExchangeStatus) -> list[str]:
         f"  Role: {exchange.continuing_role.value}",
         f"  Specialization: {exchange.specialization.value}",
         f"  Owner: {exchange.owner.value}",
+        f"  Requestor LLM nature: {exchange.requestor_llm_nature.value.value}",
+        "  Requestor LLM nature evidence: "
+        f"{_nature_evidence(exchange.requestor_llm_nature)}",
+        f"  Reviewer LLM nature: {exchange.reviewer_llm_nature.value.value}",
+        "  Reviewer LLM nature evidence: "
+        f"{_nature_evidence(exchange.reviewer_llm_nature)}",
         f"  Lease: {lease.freshness.value}",
         f"  Lease renewed at: {lease.renewed_at or 'none'}",
         f"  Lease expires at: {lease.expires_at or 'none'}",
@@ -92,6 +109,11 @@ def render_human(result: ReviewStatusResult) -> str:
     lines = [
         f"Repository: {result.repository_root}",
         f"Outcome: {result.outcome.value}",
+        f"Migration: {result.migration.state.value}",
+        f"Artifact home: {result.migration.artifact_home}",
+        f"Migrated artifacts: {result.migration.moved_count}",
+        "Migration diagnostics: "
+        f"{'; '.join(result.migration.diagnostics) if result.migration.diagnostics else 'none'}",
         f"Active exchanges: {result.active_count}",
         f"Errors: {'yes' if result.has_errors else 'no'}",
     ]

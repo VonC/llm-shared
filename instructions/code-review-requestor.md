@@ -27,12 +27,14 @@ when the effort declares one. The plan filename supplies the version and slug;
 the family always uses the fixed `code` type token.
 
 Never create, overwrite, rename, or delete a protocol artifact by hand. Run all
-coordination through `bin/review_exchange.bat` and use the exact paths it
+coordination through
+`& "<LLM_SHARED_DIR>\bin\review_exchange.bat"` and use the exact paths it
 returns.
 
 ## Immutable request evidence
 
-Before every fresh request publication, let `bin/code_review_request.bat` call
+Before every fresh request publication, let
+`& "<LLM_SHARED_DIR>\bin\code_review_request.bat"` call
 `capture_index_tree` at its publication boundary. The helper records the Git
 tree object of the index in `request_index_tree`; do not substitute a worktree
 digest or compose a separate Git command.
@@ -57,11 +59,13 @@ Only then pass the complete paired artifacts to `publish-request`.
    once and never restart a live identity.
 3. Prepare separate ignored root UTF-8 assessment, implementation report,
    change summary, writer response, and optional guidance files. Run
-   `bin/code_review_request.bat` with every applicable additive validation
+   `& "<LLM_SHARED_DIR>\bin\code_review_request.bat"` with every applicable additive validation
    command and two distinct ignored output paths.
 4. Pass the complete request and substantive summary to `publish-request`.
-5. Run `wait-answer` once using the complete marker timeout. Read only the exact
-   `paths.answer` file returned for this identity.
+5. Do not start, spawn, delegate, invoke, or message a reviewer. Run
+   `wait-answer` immediately in this same requestor session using the complete
+   marker timeout. Read only the exact `paths.answer` file returned for this
+   identity.
 6. For an intermediate answer, assess accepted repairs, make writer-owned
    corrections, and call `consume-answer` with truthful `reviewed-work-changed`
    evidence plus `disagreement` only for explicit disagreement.
@@ -77,6 +81,16 @@ Only then pass the complete paired artifacts to `publish-request`.
 
 Never read the versioned transcript as working context. After a wait or status
 reports an answer, read only the exact `paths.answer` file.
+
+The shared role-session isolation rule is fail-closed. A requestor never runs
+`pw skill code-reviewer`, invokes the reviewer skill or prompt, uses an agent
+or subagent tool to create the counterpart, or asks another model to review.
+Publishing the request is the whole handoff; waiting is the whole requestor
+continuation.
+
+Reject this requestor task if an automated reviewer or a parent agent acting as
+reviewer spawned, delegated, started, invoked, or messaged it. The reviewer
+publishes an answer and waits; it never creates the requestor continuation.
 
 ## State handling for the code-review requestor
 
@@ -97,6 +111,31 @@ reports an answer, read only the exact `paths.answer` file.
 Treat inconsistent, interrupted, and repair-required outcomes exactly as the
 shared requestor directs. An intact expired active round uses `reclaim`; an
 escalated exchange never does.
+
+## New-session ownership pickup
+
+A new agent session cannot recover the previous session's plaintext ownership
+token. A bare user `resume` authorizes the canonical resume gates and automatic
+`claim` with the unchanged exact code review context before the first mutation.
+At `convergence-gate` and
+`owning-action-pending`, pickup advances the ownership generation for the
+requestor even though the convergence choice itself belongs to the human.
+
+Keep the returned `ownership_generation` and `ownership_token` only in the
+current process or session. Supply them as `--ownership-generation` and
+`--ownership-token` to `confirm` and every later fenced mutation. Never write
+the plaintext token into an artifact, environment file, transcript, or status
+message.
+
+Pickup is not a reset: it advances the generation monotonically and fences the
+old session. It is also distinct from `reclaim`, which renews an intact expired
+lease without replacing a missing session capability. Do not resolve, archive,
+or restart an otherwise valid exchange merely because the agent session
+changed.
+
+For a convergence handoff, the human can state: `Commit selected. This is a new
+session; force requestor ownership pickup, record Commit, then continue the
+authorized commit process.` The requestor must run `pickup` before `confirm`.
 
 ## Authored inputs for implementation review rounds
 
@@ -181,3 +220,9 @@ The residual pass executes the replacement plan and requires
 authorization and report the failure so a later session can repair and replay
 the owning action. Never proceed to `pw skill` or another implementation step
 until this clean-tree postcondition succeeds.
+
+For a bare user `resume`, follow [the canonical resume instruction](review-resume.md)
+through migration, role and identity gates, and automatic `claim` before
+continuing this exact exchange. Keep its capability in session and pass the
+paired ownership flags to every fenced operation. After exchange release, run
+and follow `pw skill` immediately.

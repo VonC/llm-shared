@@ -345,14 +345,17 @@ def test_renderer_reports_template_and_envelope_validation_failures(
 
 def _cli_files(tmp_path: Path) -> dict[str, Path]:
     """Create five ignored authored inputs and two paired output paths."""
+    home = tmp_path / ".reviews"
+    home.mkdir(exist_ok=True)
+    (home / ".gitignore").write_bytes(b"*\n")
     files = {
-        "assessment": tmp_path / "a.assessment.md",
-        "report": tmp_path / "a.report.md",
-        "changes": tmp_path / "a.changes.md",
-        "response": tmp_path / "a.response.md",
-        "guidance": tmp_path / "a.guidance.md",
-        "content": tmp_path / "a.request-content.md",
-        "summary": tmp_path / "a.request-summary.md",
+        "assessment": home / "a.assessment.md",
+        "report": home / "a.report.md",
+        "changes": home / "a.changes.md",
+        "response": home / "a.response.md",
+        "guidance": home / "a.guidance.md",
+        "content": home / "a.request-content.md",
+        "summary": home / "a.request-summary.md",
     }
     for key in ("assessment", "report", "changes", "response", "guidance"):
         files[key].write_text(f"{key} content\n", encoding="utf-8")
@@ -476,7 +479,7 @@ def test_cli_reads_and_writes_every_explicit_path_once(
     ("mutation", "message"),
     [
         ("malformed", "implementation report file is not valid UTF-8"),
-        ("nested", "request content output must be directly under project root"),
+        ("nested", "request content output must be in the review artifact home"),
         ("tracked", "request content output is not effectively ignored"),
         ("duplicate", "input and output paths must be distinct"),
     ],
@@ -531,7 +534,7 @@ def test_cli_rejects_invalid_round_and_non_root_input(
     files["response"] = tmp_path / "nested" / "a.response.md"
     files["response"].write_text("response\n", encoding="utf-8")
     assert requestor.main(_cli_args(_plan(tmp_path), files), project_root=tmp_path) == _FATAL_EXIT
-    assert "writer response file must be directly under project root" in capsys.readouterr().err
+    assert "writer response file must be in the review artifact home" in capsys.readouterr().err
 
 
 def test_root_and_io_helpers_cover_defensive_failures(
@@ -540,16 +543,18 @@ def test_root_and_io_helpers_cover_defensive_failures(
 ) -> None:
     """Missing inputs, invalid names, directories, and OS failures stay safe."""
     monkeypatch.setattr(requestor, "_is_effectively_ignored", _always_ignored)
+    home = tmp_path / ".reviews"
+    home.mkdir()
     with pytest.raises(ReviewExchangeError, match="does not exist"):
         requestor._root_file(
-            tmp_path, tmp_path / "a.missing.md", "assessment file", input_file=True,
+            tmp_path, home / "a.missing.md", "assessment file", input_file=True,
         )
-    with pytest.raises(ReviewExchangeError, match=r"project-root a\.\* name"):
+    with pytest.raises(ReviewExchangeError, match=r"a\.\* name"):
         requestor._root_file(
-            tmp_path, tmp_path / "output.md", "request output", input_file=False,
+            tmp_path, home / "output.md", "request output", input_file=False,
         )
 
-    directory = tmp_path / "a.directory"
+    directory = home / "a.directory"
     directory.mkdir()
     with pytest.raises(ReviewExchangeError, match="must not be a directory"):
         requestor._root_file(
@@ -557,7 +562,7 @@ def test_root_and_io_helpers_cover_defensive_failures(
         )
     with pytest.raises(ReviewExchangeError, match="cannot read assessment file"):
         requestor._read_utf8(directory, "assessment file")
-    malformed = tmp_path / "a.malformed.md"
+    malformed = home / "a.malformed.md"
     malformed.write_bytes(b"\xff")
     with pytest.raises(ReviewExchangeError, match="assessment file is not valid UTF-8"):
         requestor._read_utf8(malformed, "assessment file")

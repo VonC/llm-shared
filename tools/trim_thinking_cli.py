@@ -18,10 +18,12 @@ from __future__ import annotations
 import argparse
 import contextlib
 import logging
+import re
 import shutil
 import subprocess
 import sys
 import tempfile
+from datetime import date, datetime
 from pathlib import Path
 from typing import NoReturn
 
@@ -36,6 +38,9 @@ from tools.trim_thinking import (
     build_summary_line,
     trim_transcript,
 )
+
+DATE_FORMAT = "%Y%m%d"
+_DATE_ARGUMENT_PATTERN = re.compile(r"^\d{8}$")
 
 LOGGER = logging.getLogger("trim_thinking")
 
@@ -58,6 +63,49 @@ class InputFileNotFoundError(TrimThinkingError):
 
 class EmptySourceError(TrimThinkingError):
     """Raised when the file or the clipboard holds no text to trim."""
+
+
+class InvalidDateError(TrimThinkingError):
+    """Raised when the extra argument is not a YYYYMMDD date."""
+
+
+def _parse_date(value: str) -> date:
+    """Turn one YYYYMMDD argument into a date.
+
+    Args:
+        value: The argument text.
+
+    Returns:
+        The date it names.
+
+    Raises:
+        InvalidDateError: When it is not a valid YYYYMMDD date.
+    """
+    try:
+        return datetime.strptime(value, DATE_FORMAT).astimezone().date()
+    except ValueError as err:
+        msg = f"Not a YYYYMMDD date: {value}"
+        raise InvalidDateError(msg) from err
+
+
+def _today() -> date:
+    """Return the current local date, as a seam the tests can freeze."""
+    return date.today()  # noqa: DTZ011
+
+
+def _resolve_dates(extra: str | None, today: date) -> tuple[date, ...]:
+    """Return the dates a dated prompt line is matched against.
+
+    Args:
+        extra: The optional YYYYMMDD argument, or None.
+        today: The current date.
+
+    Returns:
+        Today alone, or today and the given date.
+    """
+    if extra is None:
+        return (today,)
+    return (today, _parse_date(extra))
 
 
 def _configure_logging(*, debug: bool) -> None:
@@ -193,11 +241,47 @@ def _get_arg_parser() -> argparse.ArgumentParser:
         help="Export format. Detected from the markers by default.",
     )
     parser.add_argument(
+        "date",
+        nargs="?",
+        default=None,
+        help=(
+            "Extra YYYYMMDD date. A prompt line stamped with it, or with "
+            "today's date, removes every preceding line."
+        ),
+    )
+    parser.add_argument(
+        "--date",
+        dest="date_option",
+        default=None,
+        help="Same as the positional date, for a call that passes no source.",
+    )
+    parser.add_argument(
         "--debug",
         action="store_true",
         help="Enable debug logging.",
     )
     return parser
+
+
+def _split_source_and_date(args: argparse.Namespace) -> tuple[str | None, str | None]:
+    """Separate the source from the date across both accepted call shapes.
+
+    A single positional argument is the date when it looks like one, so
+    `tth 20260903` needs no flag; otherwise it is the export file.
+
+    Args:
+        args: Parsed command line.
+
+    Returns:
+        The source path or None, and the YYYYMMDD text or None.
+    """
+    if args.date_option is not None:
+        return args.source, args.date_option
+    if args.date is not None:
+        return args.source, args.date
+    if args.source is not None and _DATE_ARGUMENT_PATTERN.match(args.source):
+        return None, args.source
+    return args.source, None
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -206,8 +290,12 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     _configure_logging(debug=args.debug)
 
-    text = _read_source_text(args.source)
-    result = trim_transcript(text, _resolve_format(args.transcript_format))
+    source, extra_date = _split_source_and_date(args)
+    # Today always counts, so a bare call still removes everything before a
+    # prompt stamped with today's date. The argument only adds a second date.
+    dates = _resolve_dates(extra_date, _today())
+    text = _read_source_text(source)
+    result = trim_transcript(text, _resolve_format(args.transcript_format), dates)
     _set_clipboard_text(result.text)
     LOGGER.info(build_summary_line(result))
     return 0

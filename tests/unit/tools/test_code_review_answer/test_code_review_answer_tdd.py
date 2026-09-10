@@ -127,7 +127,10 @@ def test_early_rejection_renders_only_identity_disagreement_and_instructions(
         "Review round:",
     ):
         assert authored.count(field) == 1
-    for expected in ("Exact disagreement", "Human guidance: Inspect generated files."):
+    for expected in (
+        "Exact disagreement",
+        "Human guidance:\n\nInspect generated files.",
+    ):
         assert expected in authored
     assert "(exchange 1) (round 2)" in authored
     assert "request index tree differs" in rendered.transcript_summary

@@ -4,7 +4,10 @@ Goal of this instruction: reach the global objective of the project under work �
 
 ## Invocation contract for the groundhog loop
 
-- `<llm-shared>` below stands for the llm-shared folder of this workspace (for example `../llm-shared` or `llm-shared`); the file that pointed you here names the exact path.
+- `<llm-shared>` below is the resolved absolute llm-shared directory that
+  contains this canonical instruction. Resolve it from the instruction path as
+  described in [`run_commands.md`](../rules/run_commands.md); never substitute
+  a guessed relative checkout or an environment variable.
 - Every command must be one self-contained shell call from the project root: environment changes never survive between tool calls, sandboxed or not. Never run senv.bat as its own step; it sits at the project root (`%PRJ_DIR%\senv.bat` when `PRJ_DIR` is set, never `bin\senv.bat`), and the ghog wrapper loads it itself, inside the same cmd process.
 - Run every ghog subcommand with its output redirected to a project-root log: `cmd /d /c "<llm-shared>\bin\ghog.bat <subcommand> > a.ghog.log 2>&1"`, issued from **PowerShell or cmd.exe**. Never issue this from Git Bash or any MSYS/POSIX shell: a POSIX shell rewrites the `/d` and `/c` arguments into Windows paths, so `cmd` starts an interactive session, prints its banner and exits 0 without ever running the tool — leaving a stale `a.ghog.log` that a careless read takes for a fresh green result. The exit code passes through the redirect, and the short forms below (`ghog day`, `ghog affected`, ...) all stand for that redirected call. The redirect belongs to LLM runs only: it keeps run output out of your context and lets the user follow the loop live through the log; a human calling ghog.bat directly keeps the usual stdout, nothing changes for them.
 - Always prove the run actually happened with a freshness flag before trusting `a.ghog.log`: stamp `a.ghog.started`, run the walk, confirm `a.ghog.log` is newer than the flag, then delete it. A walk that left the log untouched did not run — do not read the old content; fix the invocation (PowerShell, not Git Bash) and retry. From PowerShell:

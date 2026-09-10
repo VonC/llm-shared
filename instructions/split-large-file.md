@@ -43,6 +43,11 @@ For each class rewritten, check also if the imports for that class are compliant
 
 Diagnostic:
 
+Resolve `<llm-shared>` as the absolute llm-shared directory that contains this
+canonical instruction, following
+[`run_commands.md`](../rules/run_commands.md). Never substitute a guessed
+relative checkout or an environment variable.
+
 - execute `ghog day` (from the root of the project): the groundhog walk runs check.bat, the tests affected by the split, and the full suite with coverage, stopping at the first non-green step with the fix to apply. Do not call `check.bat` or `pytest` directly; groundhog is in charge of check and tests (see [`GROUNDHOG.md`](../GROUNDHOG.md) and [`groundhog.md`](groundhog.md)). An LLM runs it as one redirected shell call from the project root, then branches on the exit code and reads only the tail of `a.ghog.log`:
 
   ```bat

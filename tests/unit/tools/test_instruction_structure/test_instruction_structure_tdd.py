@@ -16,6 +16,10 @@ import pytest
 
 from tools import prompt_workflow_steps as steps
 
+# Keep this module's scenarios on one xdist worker so its module-scoped
+# fixtures are built once rather than once per worker (--dist loadgroup).
+pytestmark = pytest.mark.xdist_group("instruction-structure")
+
 if TYPE_CHECKING:
     from pathlib import Path
 

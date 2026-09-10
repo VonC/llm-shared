@@ -368,8 +368,30 @@ def test_manifest_payload_and_io_failures_are_explicit(
         evidence.manifest_path(tmp_path, (*retained.identity[:-1], "../2"))
     with pytest.raises(ReviewExchangeError, match="code/code"):
         evidence.manifest_path(tmp_path, ("spec", *retained.identity[1:]))
+    prepared = evidence.write_manifest(tmp_path, retained)
+    assert prepared.parent == tmp_path / ".reviews"
+    assert (prepared.parent / ".gitignore").read_text(encoding="utf-8") == "*\n"
+    assert evidence.retire_manifest(tmp_path, retained.identity)
+
+    (prepared.parent / ".gitignore").unlink()
+    prepared.parent.rmdir()
+    original_git = evidence._git
+
+    def reject_ignore(
+        repository: Path,
+        args: tuple[str, ...],
+        *,
+        check: bool = True,
+        input_text: str | None = None,
+    ) -> subprocess.CompletedProcess[str]:
+        del repository, check, input_text
+        return subprocess.CompletedProcess(args, 1, "", "")
+
+    monkeypatch.setattr(evidence, "_git", reject_ignore)
     with pytest.raises(ReviewExchangeError, match="must be ignored"):
         evidence.write_manifest(tmp_path, retained)
+    assert not prepared.parent.exists()
+    monkeypatch.setattr(evidence, "_git", original_git)
 
     (tmp_path / ".gitignore").write_text("a.*\n", encoding="utf-8")
     original_write = Path.write_text
@@ -395,6 +417,7 @@ def test_manifest_payload_and_io_failures_are_explicit(
     monkeypatch.setattr(Path, "write_text", fail_write)
     with pytest.raises(ReviewExchangeError, match="cannot write"):
         evidence.write_manifest(tmp_path, retained)
+    assert not prepared.parent.exists()
     monkeypatch.setattr(Path, "write_text", original_write)
 
     path = evidence.write_manifest(tmp_path, retained)

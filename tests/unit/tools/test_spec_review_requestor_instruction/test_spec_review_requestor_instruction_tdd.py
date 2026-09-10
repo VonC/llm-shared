@@ -47,8 +47,8 @@ def test_instruction_delegates_the_shared_requestor_sequence() -> None:
     content = _content()
 
     assert "instructions/review-requestor.md" in content
-    assert "bin/review_exchange.bat" in content
-    assert "bin/spec_review_request.bat" in content
+    assert "<LLM_SHARED_DIR>\\bin\\review_exchange.bat" in content
+    assert "<LLM_SHARED_DIR>\\bin\\spec_review_request.bat" in content
     _assert_in_order(
         content,
         (
@@ -75,6 +75,23 @@ def test_wait_answer_uses_the_complete_marker_timeout() -> None:
     assert "complete timeout configured by `a.review-mode`" in normalized
 
 
+def test_requestor_cannot_initiate_the_reviewer() -> None:
+    """Specification publication also preserves external role assignment."""
+    normalized = " ".join(_content().split())
+
+    assert "Do not start, spawn, delegate, invoke, or message a reviewer" in normalized
+    assert "wait-answer` immediately in this same requestor session" in normalized
+
+
+def test_requestor_rejects_reviewer_initiated_continuation() -> None:
+    """Specification answer publication cannot create its requestor."""
+    normalized = " ".join(_content().split())
+
+    assert "Reject this requestor task if an automated reviewer" in normalized
+    assert "parent agent acting as reviewer" in normalized
+    assert "it never creates the requestor continuation" in normalized
+
+
 def test_instruction_handles_resumption_without_manual_artifact_edits() -> None:
     """Every durable state has a specialized action or a fail-closed stop."""
     content = _content()
@@ -96,6 +113,20 @@ def test_instruction_handles_resumption_without_manual_artifact_edits() -> None:
     assert "Never create, overwrite, rename, or delete a protocol artifact by hand" in content
     assert "read only the exact `paths.answer` file" in content
     assert "Never read the versioned transcript as working context" in content
+
+
+def test_document_edits_follow_the_shared_heading_spacing_rule() -> None:
+    """Specification edits load the rule that prevents MD022 findings."""
+    content = _content()
+    markdown_rule = (_ROOT / "rules" / "markdown.md").read_text(encoding="utf-8")
+
+    assert "../rules/markdown.md" in content
+    assert content.index("../rules/markdown.md") < content.index(
+        "When an intermediate answer",
+    )
+    assert "empty line before every heading" in markdown_rule
+    assert "empty line after every heading" in markdown_rule
+    assert "first level-one document title" in markdown_rule
 
 
 def test_instruction_owns_edits_rounds_and_human_choices() -> None:

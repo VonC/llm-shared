@@ -1,8 +1,7 @@
-"""Failure-path TDD coverage for the v0.11.0 review-exchange store.
+"""Failure-path TDD coverage for the v0.11.0 review-exchange stores.
 
-Step 2 validates that exact persistence fails closed across invalid content,
-missing artifacts, interrupted mutations, archive conflicts, and both lock
-adapters while preserving recoverable evidence.
+Step 3 keeps exact persistence failure coverage while moving both platform lock
+adapters behind the focused ownership store.
 """
 
 from __future__ import annotations
@@ -12,6 +11,7 @@ from pathlib import Path
 
 import pytest
 
+from tools import review_exchange_ownership_store as ownership_store_module
 from tools import review_exchange_store as store_module
 from tools.review_exchange_models import (
     Actor,
@@ -157,6 +157,7 @@ def test_content_operations_reject_wrong_roles_and_non_content_paths(
 def test_read_artifact_reports_an_unreadable_exact_path(tmp_path: Path) -> None:
     """Unreadable request content fails closed before identity use."""
     store, _ = _store(tmp_path)
+    store.paths.request.parent.mkdir(parents=True, exist_ok=True)
     store.paths.request.mkdir()
 
     with pytest.raises(ReviewExchangeError, match="cannot read review artifact"):
@@ -179,7 +180,7 @@ def test_publish_request_reports_commit_failure_and_discards_temp(
 
     with pytest.raises(ReviewExchangeError, match="request publication failed"):
         store.publish_request(_artifact(context, ReviewRole.REQUESTOR))
-    assert not tuple(tmp_path.glob(".review-exchange-*.tmp"))
+    assert not tuple(store.paths.request.parent.glob(".review-exchange-*.tmp"))
 
 
 def test_consume_request_rejects_missing_existing_and_failed_rename(
@@ -308,6 +309,7 @@ def test_coordination_read_reports_missing_and_unreadable_paths(tmp_path: Path) 
         missing.read_coordination(required=True)
 
     unreadable, _ = _store(tmp_path / "unreadable")
+    unreadable.paths.coordination.parent.mkdir(parents=True, exist_ok=True)
     unreadable.paths.coordination.mkdir()
     with pytest.raises(ReviewExchangeError, match="cannot read coordination record"):
         unreadable.read_coordination()
@@ -472,7 +474,7 @@ def test_low_level_io_failures_preserve_prepared_and_transcript_state(
     monkeypatch.setattr(store_module.os, "fsync", fail_fsync)
     with pytest.raises(OSError, match="prepare synchronization failure"):
         store._prepare_atomic(store.paths.request, b"prepared")
-    assert not tuple(tmp_path.glob(".review-exchange-*.tmp"))
+    assert not tuple(store.paths.request.parent.glob(".review-exchange-*.tmp"))
 
     with pytest.raises(ReviewExchangeError, match="cannot read transcript suffix"):
         store._read_suffix(store.paths.transcript, 0)
@@ -512,11 +514,16 @@ def test_posix_lock_adapter_acquires_and_releases_one_file_descriptor(
             calls.append((descriptor, operation))
 
     with (tmp_path / "posix.lock").open("w+b") as stream:
-        monkeypatch.setattr(store_module.os, "name", "posix")
-        monkeypatch.setattr(store_module, "fcntl", FakeFcntl, raising=False)
+        monkeypatch.setattr(ownership_store_module.os, "name", "posix")
+        monkeypatch.setattr(
+            ownership_store_module,
+            "fcntl",
+            FakeFcntl,
+            raising=False,
+        )
 
-        store_module.ReviewExchangeStore._lock_stream(stream)
-        store_module.ReviewExchangeStore._unlock_stream(stream)
+        ownership_store_module.ReviewExchangeOwnershipStore._lock_stream(stream)
+        ownership_store_module.ReviewExchangeOwnershipStore._unlock_stream(stream)
 
     assert [operation for _, operation in calls] == [
         FakeFcntl.LOCK_EX,

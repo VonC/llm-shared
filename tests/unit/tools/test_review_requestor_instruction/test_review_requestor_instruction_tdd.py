@@ -28,6 +28,9 @@ def test_canonical_requestor_delegates_every_mutation_to_launcher() -> None:
         content,
         (
             "review_exchange.bat",
+            "<LLM_SHARED_DIR>\\bin\\review_exchange.bat",
+            "absolute parent of the `instructions` folder",
+            "do not run either repository's `senv.bat` first",
             "ReviewExchangeCore",
             "--content-file",
             "--summary-file",
@@ -36,10 +39,20 @@ def test_canonical_requestor_delegates_every_mutation_to_launcher() -> None:
             "standard error",
             "reciprocal active waits",
             "No human prompt or new reviewer invocation",
+            "## Role-session isolation",
+            "must never spawn, start, delegate, invoke, or message a",
+            "A reviewer must reject an invocation initiated by an automated requestor",
         ),
     )
     assert "| Request | Answer |" not in content
-    assert "reviewer is already in its post-answer `wait-request`" in normalized
+    assert "reviewer is already in its post-answer `wait-any-request`" in normalized
+    assert "Without invoking or contacting a reviewer, call `wait-answer`" in normalized
+    assert "the requestor's only automated next action" in normalized
+    assert "it does not authorize the requestor to create that reviewer" in normalized
+    assert "A reviewer must never spawn, start, delegate, invoke, or message a requestor" in normalized
+    assert "Publishing an answer is the whole handoff" in normalized
+    assert "its absence never authorizes the reviewer to create a requestor" in normalized
+    assert "A requestor must reject an invocation initiated by an automated reviewer" in normalized
 
 
 def test_provider_files_redirect_directly_to_canonical_instruction() -> None:
@@ -59,8 +72,8 @@ def test_provider_files_redirect_directly_to_canonical_instruction() -> None:
     )
 
     assert "instructions/review-requestor.md" in workflow
-    assert "../../../instructions/review-requestor.md" in packaged
-    assert "../../../../instructions/review-requestor.md" in skill
+    assert "../../../../../../../git/llm-shared/instructions/review-requestor.md" in packaged
+    assert "../../../../../../../../git/llm-shared/instructions/review-requestor.md" in skill
     assert canonical not in workflow
     assert canonical not in packaged
     assert canonical not in skill

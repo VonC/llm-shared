@@ -46,6 +46,7 @@ if TYPE_CHECKING:
 _ROUND_TWO = 2
 _ROUND_THREE = 3
 _REQUEST_INDEX_TREE = "a" * 40
+_CORES: dict[Path, ReviewExchangeCore] = {}
 
 
 @dataclass(frozen=True)
@@ -132,13 +133,16 @@ def _core(
     timeout: int = 300,
 ) -> ReviewExchangeCore:
     """Bind the shared core to the settled code policy and exact paths."""
-    return ReviewExchangeCore(
+    core = ReviewExchangeCore(
         ReviewExchangeStore(derive_artifact_paths(effort.root, effort.context)),
         effort.context,
         code_review.CODE_REVIEW_POLICY,
         ReviewConfiguration(enabled=True, wait_timeout_seconds=timeout),
         wall_clock=wall_clock,
     )
+    if wall_clock is not None:
+        return core
+    return _CORES.setdefault(effort.root, core)
 
 
 def _request(

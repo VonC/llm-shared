@@ -7,15 +7,22 @@ by a human. This instruction owns only the common coordination sequence.
 
 ## Command boundary for review requestors
 
-Run every protocol operation through `bin/review_exchange.bat`. That launcher
-is the non-interactive adapter over `ReviewExchangeCore`; do not reproduce its
-state transitions in an LLM instruction and do not mutate review artifacts by
-hand.
+Resolve `<LLM_SHARED_DIR>` as the absolute parent of the `instructions` folder
+that contains this canonical file. Do not resolve a launcher against the
+consuming repository, guess a sibling `llm-shared` folder, or rely on an
+`LLM_SHARED_DIR` environment variable. Every shared review launcher self-locates
+its llm-shared Python, so call it directly by the resolved full path from
+PowerShell; do not run either repository's `senv.bat` first.
 
-Every command takes an operation followed by the exact context arguments:
+Run every protocol operation through
+`& "<LLM_SHARED_DIR>\bin\review_exchange.bat"`. That launcher is the
+non-interactive adapter over `ReviewExchangeCore`; do not reproduce its state
+transitions in an LLM instruction and do not mutate review artifacts by hand.
 
-```text
-review_exchange.bat <operation> --family <specification-or-code> --document <exact-path> --umbrella <exact-path-when-present> --implementation-step <code-step-when-applicable> --convergence-signal <registered-token> --another-round-label <registered-label> --continue-owning-workflow-label <registered-label>
+Exchange-specific commands take an operation followed by exact context arguments:
+
+```powershell
+& "<LLM_SHARED_DIR>\bin\review_exchange.bat" <operation> --family <specification-or-code> --document <exact-path> --umbrella <exact-path-when-present> --implementation-step <code-step-when-applicable> --convergence-signal <registered-token> --another-round-label <registered-label> --continue-owning-workflow-label <registered-label>
 ```
 
 Omit `--umbrella` when there is no umbrella. Omit `--implementation-step` for
@@ -35,21 +42,62 @@ routed command as `with umbrella <umbrella-draft>`, and it is also readable
 from `umbrella_path` in the published request envelope and from
 `context.umbrella_path` in the coordination record.
 
+Identity-free resume support operations use the argument contracts in
+[`review-resume.md`](review-resume.md); do not supply exchange-specific flags
+to migration or global waiting.
+
+Retain any paired `ownership_generation` and `ownership_token` returned by
+`start`, `reclaim`, `wait-request`, `wait-answer`, `pickup`, or `claim` only in
+the acting session. Supply `--ownership-generation` and `--ownership-token`
+together on every later fenced mutation. Never copy them to a file, an
+environment variable, a transcript, or a human progress message. An ordinary
+ownership failure stops mutation; a human `resume` follows the canonical
+resume gates and automatic pickup before continuing.
+
 ## Caller-owned Markdown inputs for review requestors
 
-Create substantive input as UTF-8 files directly under the project root. Each
-name must follow the effectively ignored `a.*` convention. The launcher checks
-the location, name, Git ignore result, existence, and UTF-8 encoding before it
-reads a file once. It never deletes a caller-owned input.
+Create substantive input as UTF-8 files inside the configured artifact home,
+`.reviews` by default. Each name must follow the effectively ignored `a.*`
+convention. The launcher checks the location, name, Git ignore result,
+existence, and UTF-8 encoding before it reads a file once. It never deletes a
+caller-owned input.
+
+### One artifact home holds every runtime review file
+
+Every review artifact is home-local: the request, answer, coordination record,
+tombstone, transition lock, archives, retained code-review evidence, the
+`a.review-mode` marker, guidance, question state, the migration journal, and
+every caller-owned input and renderer output either role writes. Do not create
+a review scratch file at the project root, and do not read one from there.
+
+The home is repository-local and declared once in `.review-artifacts.ini`:
+
+```ini
+[review-artifacts]
+home = .reviews
+```
+
+Without that file the home is `.reviews`. It is created with a home-local
+`.gitignore` holding exactly `*`, so everything inside it is effectively
+ignored, and it may never be the repository root or an existing tracked
+directory. Read the effective home from `ReviewArtifactConfiguration`, or
+derive it from any path a launcher returns in `paths`, rather than assuming the
+default.
+
+The reviewed document and its versioned transcript are the deliberate
+exceptions. They are tracked project documentation: the transcript stays beside
+the document it records, never under the home.
 
 ### Caller-owned paths are never protocol artifact paths
 
-An `a.*` name is necessary and not sufficient. Every path in the `paths` object
-a launcher returns — `request`, `answer`, `tombstone`, `coordination`,
-`transition_lock` — also carries an ignored `a.*` name, and each one is owned
-by the shared core alone. A caller-owned input or renderer output must never be
-one of them. Choose a name that cannot collide, such as
-`a.spec-review.answer-content.<slug>.md`, and pass it to
+An `a.*` name is necessary and not sufficient, and neither is living in the
+artifact home: protocol artifacts and caller scratch files now share that
+directory, so placement no longer separates them. Every path in the `paths`
+object a launcher returns — `request`, `answer`, `tombstone`, `coordination`,
+`transition_lock` — carries an ignored home-local `a.*` name, and each one is
+owned by the shared core alone. A caller-owned input or renderer output must
+never be one of them. Choose a name that cannot collide, such as
+`.reviews/a.spec-review.answer-content.<slug>.md`, and pass it to
 `--answer-content-output` or `--request-content-output`; publication then
 copies that content into the protocol path itself.
 
@@ -126,7 +174,54 @@ A transcript a Markdown linter reports `MD024` or `MD025` on is a defect in the
 round that appended to it, not in the linter configuration. Neither rule may be
 disabled to make a transcript pass.
 
+## Role-session isolation
+
+Role assignment is an external orchestration boundary, not an exchange
+operation. A requestor must never spawn, start, delegate, invoke, or message a
+reviewer agent or reviewer session. This prohibition includes subagents, child
+agents, agent-assignment tools, direct model calls, reviewer skills or prompts,
+and `pw skill code-reviewer` or `pw skill spec-reviewer`. A `request-pending`
+route makes work available to an independently running reviewer; it does not
+authorize the requestor to create that reviewer.
+
+Immediately after publishing a request, the requestor's only automated next
+action is the same session's bounded `wait-answer`. Run it even when no reviewer
+appears to be active. If the wait stops, report its durable outcome; never fill
+the missing counterpart role. The reviewer must already be waiting or must be
+started independently by the human or an external reviewer service that the
+requestor does not control.
+
+A reviewer must reject an invocation initiated by an automated requestor or by
+a parent agent acting as requestor, even when `pw` can resolve a valid pending
+review route. Only a reviewer already waiting independently, or one started by
+the human or an external reviewer service, may enter `wait-request` and assess
+the request. This provenance check happens before any review command, file read,
+assessment, repair, or answer publication.
+
+The boundary is reciprocal. A reviewer must never spawn, start, delegate,
+invoke, or message a requestor agent or requestor session. This includes
+subagents, child agents, agent-assignment tools, direct model calls, requestor
+skills or prompts, and `pw skill code-review-requestor` or
+`pw skill spec-review-requestor`. Publishing an answer is the whole handoff to
+the existing requestor role. After `changes-requested`, the reviewer waits for
+the next request with `wait-any-request`; after convergence or a terminal handoff, it
+waits for any specification or code request through the configured artifact
+home and its global monitoring mechanism. If that mechanism is unavailable,
+its absence never authorizes the reviewer to create a requestor; report the
+operational failure and preserve role-session isolation.
+
+A requestor
+must reject an invocation initiated by an automated reviewer or by a parent
+agent acting as reviewer before any requestor command, file read, workflow
+mutation, or response processing.
+
 ## Automated requestor sequence
+
+For a bare user `resume`, first follow `instructions/review-resume.md` through
+`resume-inspect` and automatic `claim`. Retain its session-only capability and
+pass the pair to every later fenced operation. Resume stays on the selected
+exchange until release, then immediately runs and follows `pw skill`. No
+ownership terminology or second go-ahead is required from the user.
 
 Intermediate rounds use reciprocal active waits across the two agent sessions.
 After the requestor publishes a request, it waits for the answer. After the
@@ -135,9 +230,11 @@ waits for the replacement request. The requestor consumes the answer, updates
 the reviewed work, continues the round, and publishes that replacement while
 the reviewer is already waiting. No human prompt or new reviewer invocation
 belongs between those actions. Each role runs one bounded protocol wait for its
-counterpart rather than an external polling loop. A convergence answer ends
-this automatic exchange at the durable human gate instead of starting the
-reviewer's next wait.
+counterpart rather than an external polling loop. A convergence answer ends this
+automatic exchange at the durable human gate, which ends the reviewer's rounds
+but not its session: the reviewer moves to its artifact-home wait and stays
+available for the next request, so a requestor may publish a fresh exchange
+without arranging a new reviewer invocation.
 
 1. Call `status` with the exact context. Exit `3` with outcome `disabled` means
    the calling workflow follows its existing non-review path and creates no
@@ -147,7 +244,8 @@ reviewer's next wait.
    exchange.
 3. Finish the request content and transcript summary files, then call
    `publish-request --content-file <path> --summary-file <path>`.
-4. Call `wait-answer` once. This is one bounded in-process wait, not repeated
+4. Without invoking or contacting a reviewer, call `wait-answer` once. This is
+   one bounded in-process wait, not repeated
    short slices. Progress JSON is written only to standard error. Read the
    single final standard-output object after the command returns.
 5. Read only the exact answer path returned in `paths.answer`. Let the
@@ -157,7 +255,7 @@ reviewer's next wait.
    `--reviewed-work-changed true` or `false` and add `--disagreement` only for
    an explicit disagreement. If automation remains active, call `continue`,
    author the replacement request, publish it, and wait again. The reviewer is
-   already in its post-answer `wait-request`; successful replacement
+   already in its post-answer `wait-any-request`; successful replacement
    publication releases that wait into the next reviewer assessment.
 7. At convergence, retain the answer and present the specialized assessment,
    reviewer recommendation, identity summary, and registered labels to the
@@ -211,7 +309,7 @@ automation with an authored reason. Use `cancel --summary-file <path>` for a
 human cancellation at convergence.
 
 An escalated exchange stays stopped until a human identifies authoritative
-evidence. Record that decision in an ignored root summary file, then call
+evidence. Record that decision in an ignored home-local summary file, then call
 `resolve --summary-file <path>` to clear stopped evidence or
 `archive --summary-file <path>` to preserve it under derived archive names.
 Both operations start a fresh round. Do not resume the interrupted transition.

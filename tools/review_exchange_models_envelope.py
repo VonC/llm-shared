@@ -1,7 +1,7 @@
 """Review-content envelope handling for the v0.11.0 exchange core.
 
-Step 1 split: keeps strict request and answer metadata, first-fenced JSON
-parsing, and human summary identity checks separate from durable state models.
+Step 2 keeps strict request and answer metadata compatible with legacy content
+while every new rendering carries a two-role LLM-nature snapshot.
 """
 
 # ruff: noqa: EM101, EM102, TRY003
@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import json
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, cast
 
 from tools.review_exchange_models import (
@@ -29,6 +29,7 @@ from tools.review_exchange_models import (
     strict_fields,
     validate_local_timestamp,
 )
+from tools.review_role_nature import RoleNatureSnapshot
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -52,6 +53,7 @@ class Envelope:
     round_number: int
     created_at: str
     disposition: ReviewDisposition | None = None
+    role_natures: RoleNatureSnapshot = field(default_factory=RoleNatureSnapshot)
 
     def __post_init__(self) -> None:
         """Validate role, round, timestamp, and family context fields."""
@@ -87,6 +89,7 @@ class Envelope:
             "round_number": self.round_number,
             "created_at": self.created_at,
             "disposition": self.disposition.value if self.disposition is not None else None,
+            "role_natures": self.role_natures.to_dict(),
         }
 
     @classmethod
@@ -96,6 +99,9 @@ class Envelope:
             "identity", "umbrella_path", "document_path", "implementation_step",
             "role", "round_number", "created_at", "disposition",
         }
+        legacy = "role_natures" not in data
+        if not legacy:
+            expected.add("role_natures")
         strict_fields(data, expected, "envelope")
         identity_data = mapping_value(data["identity"], "envelope identity")
         disposition_value = data["disposition"]
@@ -123,6 +129,11 @@ class Envelope:
             round_number=positive_integer(data["round_number"], "envelope round"),
             created_at=created_at,
             disposition=disposition,
+            role_natures=RoleNatureSnapshot.from_optional_dict(
+                None
+                if legacy
+                else mapping_value(data["role_natures"], "envelope role natures"),
+            ),
         )
 
 

@@ -1,7 +1,8 @@
-"""Timeout, reclaim, escalation, and recovery coverage for the exchange core.
+"""Timeout, reclaim, ownership pickup, and recovery coverage for the core.
 
-The split keeps recovery responsibilities focused while reusing the exact
+Step 3 adds displaced-session fencing while this split continues to reuse the
 deterministic lifecycle harness from the publication-transition sibling.
+Convergence setup is prepared before measured pickup and fencing assertions.
 """
 
 from __future__ import annotations
@@ -11,7 +12,8 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from tools.review_exchange_core import WaitOutcome
+from tools import review_exchange_core as core_module
+from tools.review_exchange_core import ReviewExchangeCore, WaitOutcome, WaitResult
 from tools.review_exchange_models import (
     Actor,
     ArchiveKind,
@@ -23,15 +25,33 @@ from tools.review_exchange_models import (
     ReviewExchangeError,
 )
 from tools.review_exchange_models_coordination import CoordinationRecord
+from tools.review_exchange_observer import ExchangeObservation
+from tools.review_exchange_ownership import OwnershipRejectedError
 
 from . import test_review_exchange_lifecycle_tdd as lifecycle
 
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from tools.review_exchange_core import ReviewExchangeCore
     from tools.review_exchange_models import ReviewContext
     from tools.review_exchange_store import ReviewExchangeStore
+
+
+def _detached_core(
+    store: ReviewExchangeStore,
+    context: ReviewContext,
+    clock: lifecycle.FakeTime,
+) -> ReviewExchangeCore:
+    """Build another session over the same exact exchange evidence."""
+    return ReviewExchangeCore(
+        store,
+        context,
+        FamilyPolicy("commit-ready", "Another round", "Commit"),
+        lifecycle.ReviewConfiguration(enabled=True, wait_timeout_seconds=60),
+        wall_clock=clock.now,
+        monotonic_clock=clock.monotonic_now,
+        sleeper=clock.sleep,
+    )
 
 
 def test_wait_timeout_escalates_once_and_preserves_state(tmp_path: Path) -> None:
@@ -144,6 +164,104 @@ def test_reclaim_restores_mid_round_and_stays_idempotent_on_live_rounds(
 ) -> None:
     """Mid-round work can resume and live rounds tolerate a repeated reclaim."""
     assert reclaimed_mid_round_journey is None
+
+
+def test_direct_pickup_displaces_live_session_before_its_next_mutation(
+    tmp_path: Path,
+) -> None:
+    """A fresh-lease pickup advances generation and fences the old secret."""
+    first, store, context, clock = lifecycle._harness(tmp_path)
+    started = first.start()
+    first_capability = first.ownership_capability
+    assert first_capability is not None
+
+    second = _detached_core(store, context, clock)
+    pickup = second.pickup_ownership(Actor.REQUESTOR)
+
+    assert pickup.record.ownership_generation == started.ownership_generation + 1
+    assert pickup.capability == second.ownership_capability
+    before = store.paths.transcript.read_bytes()
+    with pytest.raises(OwnershipRejectedError) as raised:
+        first.escalate("the displaced session must not append this")
+    assert raised.value.failure.code == "ownership-superseded"
+    assert store.paths.transcript.read_bytes() == before
+
+
+def test_pickup_rejects_human_and_requires_coordination(tmp_path: Path) -> None:
+    """Direct LLM pickup cannot claim a human or an absent exchange."""
+    core, _, _, _ = lifecycle._harness(tmp_path)
+    with pytest.raises(ReviewExchangeError, match="cannot claim human"):
+        core.pickup_ownership(Actor.HUMAN)
+    with pytest.raises(ReviewExchangeError, match="requires coordination"):
+        core.pickup_ownership(Actor.REQUESTOR)
+
+
+def test_wait_claim_revalidates_state_and_record(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """A wake cannot claim after its observed state or coordination disappears."""
+    core, _, _, _ = lifecycle._harness(tmp_path)
+    found = ExchangeObservation(
+        ArtifactState.REQUEST_PENDING,
+        None,
+        None,
+        None,
+        "found",
+    )
+
+    def found_wait(*_args: object, **_kwargs: object) -> WaitResult:
+        return WaitResult(WaitOutcome.FOUND, found)
+
+    monkeypatch.setattr(core_module, "wait_for_exact", found_wait)
+    monkeypatch.setattr(
+        core,
+        "classify",
+        lambda: ExchangeObservation(ArtifactState.IDLE, None, None, None, "changed"),
+    )
+    with pytest.raises(ReviewExchangeError, match="changed before ownership claim"):
+        core.wait_for_exact(ArtifactState.REQUEST_PENDING)
+
+    monkeypatch.setattr(core, "classify", lambda: found)
+    with pytest.raises(ReviewExchangeError, match="requires coordination"):
+        core.wait_for_exact(ArtifactState.REQUEST_PENDING)
+
+
+@pytest.fixture
+def convergence_sessions(tmp_path: Path) -> tuple[ReviewExchangeCore, ReviewExchangeCore]:
+    """Reach the real convergence gate before measuring pickup and displaced-session fencing."""
+    first, store, context, clock = lifecycle._harness(tmp_path)
+    lifecycle._reach_gate(first, context, clock)
+    return first, _detached_core(store, context, clock)
+
+
+def test_convergence_pickup_fences_old_session_before_human_transition(
+    convergence_sessions: tuple[ReviewExchangeCore, ReviewExchangeCore],
+) -> None:
+    """A requestor can pick up the gate and the displaced session cannot confirm."""
+    first, second = convergence_sessions
+
+    second.pickup_ownership(Actor.REQUESTOR)
+
+    with pytest.raises(OwnershipRejectedError) as raised:
+        first.confirm("Commit")
+    assert raised.value.failure.code == "ownership-superseded"
+    assert second.confirm("Commit").owning_action_authorized is True
+    assert second.complete() is True
+
+
+def test_new_core_without_session_secret_cannot_mutate_claimed_exchange(
+    tmp_path: Path,
+) -> None:
+    """Reading durable generation and digest cannot recover mutation authority."""
+    first, store, context, clock = lifecycle._harness(tmp_path)
+    first.start()
+    detached = _detached_core(store, context, clock)
+
+    with pytest.raises(OwnershipRejectedError) as raised:
+        detached.escalate("missing session capability")
+
+    assert raised.value.failure.code == "ownership-missing"
 
 
 @pytest.fixture
@@ -297,6 +415,10 @@ def rejected_forced_reclaim_journey(
 ) -> None:
     """Reject invalid forced reclaims outside the measured assertion call."""
     core, store, context, clock = lifecycle._harness(tmp_path)
+    with pytest.raises(ReviewExchangeError, match="requires durable coordination"):
+        core.force_reclaim("No review has started yet.")
+    assert not store.paths.coordination.exists()
+    assert not store.paths.transcript.exists()
     lifecycle._start_and_request(core, context, clock)
     with pytest.raises(ReviewExchangeError, match="escalated exchange"):
         core.force_reclaim("No escalation is recorded yet.")
@@ -319,6 +441,7 @@ def rejected_forced_reclaim_journey(
         core.force_reclaim("A different repair is still pending.")
 
     store.write_coordination(escalated)
+    store.paths.answer.parent.mkdir(parents=True, exist_ok=True)
     store.paths.answer.write_text("orphan answer\n", encoding="utf-8")
     with pytest.raises(ReviewExchangeError, match="one intact escalated round"):
         core.force_reclaim("Request and answer are both present.")

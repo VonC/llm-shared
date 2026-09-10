@@ -14,10 +14,17 @@ import re
 import subprocess
 from typing import TYPE_CHECKING, Final
 
+from tools.review_artifact_configuration import ReviewArtifactConfiguration
+from tools.review_artifact_registry import (
+    RegisteredArtifactKind,
+    ReviewArtifactLocator,
+    ReviewArtifactRegistry,
+)
 from tools.review_exchange_models import (
     ArchiveKind,
     ArtifactPaths,
     ExchangeIdentity,
+    ReviewConfiguration,
     ReviewContext,
     ReviewExchangeError,
     ReviewFamily,
@@ -34,61 +41,44 @@ _SLUG_PART: Final[str] = r"(?P<slug>[a-z0-9][a-z0-9_-]*)"
 _TYPE_PART: Final[str] = (
     r"(?P<type_token>feature-request|issue|design-specification|plan|code)"
 )
-_REQUEST_ANSWER_RE: Final[re.Pattern[str]] = re.compile(
-    rf"^a\.review-(?:requested|answer)\.{_TYPE_PART}\."
-    rf"{_VERSION_PART}\.{_SLUG_PART}\.md$",
-)
-_COORDINATION_RE: Final[re.Pattern[str]] = re.compile(
-    rf"^a\.review-(?:active|consumed)\."
-    rf"(?P<family>specification|code)\.{_TYPE_PART}\."
-    rf"{_VERSION_PART}\.{_SLUG_PART}\.md$",
-)
-_LOCK_RE: Final[re.Pattern[str]] = re.compile(
-    rf"^a\.review-lock\.(?P<family>specification|code)\."
-    rf"{_TYPE_PART}\.{_VERSION_PART}\.{_SLUG_PART}\.lock$",
-)
-_ARCHIVE_RE: Final[re.Pattern[str]] = re.compile(
-    rf"^a\.review-archive\.(?P<family>specification|code)\."
-    rf"{_TYPE_PART}\.{_VERSION_PART}\.{_SLUG_PART}\."
-    r"\d{8}-\d{6}\.(?:request|answer|consumed|coordination)\.md$",
-)
 _TRANSCRIPT_RE: Final[re.Pattern[str]] = re.compile(
     rf"^review\.{_TYPE_PART}\.{_VERSION_PART}\.{_SLUG_PART}\.md$",
 )
 _IGNORE_PROBE_TIMESTAMP: Final[str] = "20000101-000000"
 
 
-def _identity_suffix(identity: ExchangeIdentity) -> str:
-    """Return the common type, version, and slug filename suffix."""
-    return f"{identity.type_token}.{identity.version}.{identity.slug}"
+def load_review_configuration(
+    project_root: Path,
+    *,
+    configuration: ReviewArtifactConfiguration | None = None,
+) -> ReviewConfiguration:
+    """Load review mode through one repository-bound artifact locator."""
+    root = project_root.resolve()
+    artifacts = configuration or ReviewArtifactConfiguration.load(root)
+    if artifacts.project_root != root:
+        raise ReviewExchangeError(
+            "artifact configuration belongs to another repository",
+        )
+    marker = ReviewArtifactLocator(artifacts).fixed_path(
+        RegisteredArtifactKind.REVIEW_MODE,
+    )
+    return ReviewConfiguration.load(root, review_mode_path=marker)
 
 
 def derive_artifact_paths(
     project_root: Path,
     context: ReviewContext,
+    *,
+    configuration: ReviewArtifactConfiguration | None = None,
 ) -> ArtifactPaths:
-    """Derive every fixed path once from exact validated exchange context."""
+    """Derive fixed paths while accepting one invocation-bound configuration."""
     root = project_root.resolve()
-    try:
-        context.document_path.relative_to(root)
-    except ValueError as error:
+    artifacts = configuration or ReviewArtifactConfiguration.load(root)
+    if artifacts.project_root != root:
         raise ReviewExchangeError(
-            f"reviewed document is outside project root: {context.document_path}",
-        ) from error
-    identity = context.identity
-    suffix = _identity_suffix(identity)
-    family_suffix = f"{identity.family.value}.{suffix}"
-    transcript = context.document_path.parent / f"review.{suffix}.md"
-    return ArtifactPaths(
-        identity=identity,
-        project_root=root,
-        transcript=transcript,
-        request=root / f"a.review-requested.{suffix}.md",
-        answer=root / f"a.review-answer.{suffix}.md",
-        coordination=root / f"a.review-active.{family_suffix}.md",
-        tombstone=root / f"a.review-consumed.{family_suffix}.md",
-        transition_lock=root / f"a.review-lock.{family_suffix}.lock",
-    )
+            "artifact configuration belongs to another repository",
+        )
+    return ReviewArtifactLocator(artifacts).exchange_paths(context)
 
 
 def archive_path(
@@ -101,12 +91,17 @@ def archive_path(
         raise ReviewExchangeError(
             "archive name requires compact local timestamp YYYYMMDD-HHMMSS",
         )
-    identity = paths.identity
-    name = (
-        f"a.review-archive.{identity.family.value}.{identity.type_token}."
-        f"{identity.version}.{identity.slug}.{compact_timestamp}.{kind.value}.md"
+    configuration = ReviewArtifactConfiguration(
+        paths.project_root,
+        paths.request.parent,
+        paths.request.parent.relative_to(paths.project_root).as_posix(),
+        declared=False,
     )
-    return paths.project_root / name
+    return ReviewArtifactLocator(configuration).archive_path(
+        paths.identity,
+        compact_timestamp,
+        kind,
+    )
 
 
 def transient_paths_for_ignore(paths: ArtifactPaths) -> tuple[Path, ...]:
@@ -149,15 +144,9 @@ def _identity_from_match(match: re.Match[str]) -> ExchangeIdentity:
 
 def parse_transient_identity(path: Path) -> ExchangeIdentity:
     """Parse complete identity from any supported transient artifact name."""
-    for pattern in (
-        _REQUEST_ANSWER_RE,
-        _COORDINATION_RE,
-        _LOCK_RE,
-        _ARCHIVE_RE,
-    ):
-        match = pattern.fullmatch(path.name)
-        if match is not None:
-            return _identity_from_match(match)
+    parsed = ReviewArtifactRegistry().parse_name(path.name)
+    if parsed is not None and parsed.identity is not None:
+        return parsed.identity
     raise ReviewExchangeError(f"unrecognized review transient path: {path.name}")
 
 
@@ -192,11 +181,20 @@ def validate_activation(project_root: Path, paths: ArtifactPaths) -> None:
     if root != paths.project_root:
         raise ReviewExchangeError("activation project root differs from derived paths")
     _require_git_repository(root)
+    configuration = ReviewArtifactConfiguration.load(root)
+    if configuration.home != paths.request.parent:
+        raise ReviewExchangeError("activation artifact home differs from derived paths")
+    created = configuration.prepare_home()
     relative = tuple(
         path.relative_to(root).as_posix()
-        for path in transient_paths_for_ignore(paths)
+        for path in (configuration.ignore_path, *transient_paths_for_ignore(paths))
     )
-    _require_ignored_transients(root, relative)
+    try:
+        _require_ignored_transients(root, relative)
+    except ReviewExchangeError:
+        if created:
+            configuration.rollback_prepared_home()
+        raise
 
 
 def _require_git_repository(root: Path) -> None:

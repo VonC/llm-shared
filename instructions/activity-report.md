@@ -73,14 +73,18 @@ Run the mutualized `activity_report.sh` from the calling project root
 (so `a.md` lands at that root). Pass the start date and the working
 trees; the end date defaults to today.
 
+Resolve `<LLM_SHARED_DIR>` as the absolute parent of the `instructions` folder
+that contains this canonical file. Pass that full path to `bash`; do not guess
+a sibling checkout or rely on an environment variable.
+
 ```bash
-bash ../llm-shared/scripts/activity_report.sh --start 2026-05-29 . ../my-project
+bash "<LLM_SHARED_DIR>/scripts/activity_report.sh" --start 2026-05-29 . ../my-project
 ```
 
 To set an explicit end date or output file:
 
 ```bash
-bash ../llm-shared/scripts/activity_report.sh \
+bash "<LLM_SHARED_DIR>/scripts/activity_report.sh" \
   --start 2026-05-29 --end 2026-06-21 --out a.md . ../my-project
 ```
 

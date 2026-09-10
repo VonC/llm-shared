@@ -168,7 +168,7 @@ def _ignored_paths(root: Path, repository: RepositoryState) -> set[str]:
     return {
         relative
         for relative in _worktree_paths(root) - repository.staged.keys()
-        if _matches_ignore_pattern(relative, patterns)
+        if _path_is_ignored(root, relative, root_patterns=patterns)
     }
 
 
@@ -179,6 +179,31 @@ def _matches_ignore_pattern(relative: str, patterns: tuple[str, ...]) -> bool:
         or fnmatch.fnmatch(relative, pattern)
         for pattern in patterns
     )
+
+
+def _path_is_ignored(
+    root: Path,
+    relative: str,
+    *,
+    root_patterns: tuple[str, ...] | None = None,
+) -> bool:
+    """Apply root and nearest home-local ignore rules to one portable path."""
+    patterns = root_patterns
+    if patterns is None:
+        ignore_file = root / ".gitignore"
+        patterns = (
+            tuple(ignore_file.read_text(encoding="utf-8").splitlines())
+            if ignore_file.is_file()
+            else ()
+        )
+    if _matches_ignore_pattern(relative, patterns):
+        return True
+    candidate = root / relative
+    local_ignore = candidate.parent / ".gitignore"
+    if not local_ignore.is_file():
+        return False
+    local_patterns = tuple(local_ignore.read_text(encoding="utf-8").splitlines())
+    return _matches_ignore_pattern(candidate.name, local_patterns)
 
 
 def _run_repository_command(
@@ -328,6 +353,9 @@ def _run_ls_files(
         relative = command[-1]
         returncode = 0 if relative in repository.staged else 1
         return _completed(argv, returncode, stdout=f"{relative}\n")
+    if command[1] == "--":
+        paths = _tracked_below(repository.staged, command[-1])
+        return _completed(argv, stdout="".join(f"{path}\n" for path in paths))
     if command[1] == "-z":
         paths = repository.staged.keys()
     else:
@@ -337,20 +365,22 @@ def _run_ls_files(
     return _completed(argv, stdout="".join(f"{path}\0" for path in sorted(paths)))
 
 
+def _tracked_below(staged: Mapping[str, bytes], relative: str) -> tuple[str, ...]:
+    """Return stable tracked paths at or below one portable directory."""
+    prefix = relative.rstrip("/")
+    return tuple(
+        sorted(path for path in staged if path == prefix or path.startswith(f"{prefix}/")),
+    )
+
+
 def _run_check_ignore(
     root: Path,
     _repository: RepositoryState,
     argv: Sequence[str],
     command: tuple[str, ...],
 ) -> subprocess.CompletedProcess[str]:
-    """Check one path against the fake repository ignore file."""
-    ignore_file = root / ".gitignore"
-    patterns = (
-        tuple(ignore_file.read_text(encoding="utf-8").splitlines())
-        if ignore_file.is_file()
-        else ()
-    )
-    returncode = 0 if _matches_ignore_pattern(command[-1], patterns) else 1
+    """Check one path against root and home-local ignore files."""
+    returncode = 0 if _path_is_ignored(root, command[-1]) else 1
     return _completed(argv, returncode)
 
 
@@ -361,14 +391,8 @@ def _run_check_ignore_stdin(
     input_text: str,
 ) -> subprocess.CompletedProcess[str]:
     """Return every NUL-delimited stdin path covered by ignore patterns."""
-    ignore_file = root / ".gitignore"
-    patterns = (
-        tuple(ignore_file.read_text(encoding="utf-8").splitlines())
-        if ignore_file.is_file()
-        else ()
-    )
     paths = tuple(path for path in input_text.split("\0") if path)
-    matched = tuple(path for path in paths if _matches_ignore_pattern(path, patterns))
+    matched = tuple(path for path in paths if _path_is_ignored(root, path))
     return _completed(
         argv,
         0 if matched else 1,

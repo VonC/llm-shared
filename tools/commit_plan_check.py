@@ -15,7 +15,10 @@ from pathlib import Path
 from typing import NoReturn
 
 from tools import find_project_root
-from tools.commit_plan_support import staged_paths
+from tools.commit_plan_support import (
+    completed_validation_subject_requirements,
+    staged_paths,
+)
 from tools.git_batch_commit_models import (
     CommitMessageError,
     CommitPlanGroup,
@@ -143,7 +146,8 @@ def check_commit_plan(root: Path) -> CommitPlanCheckResult:  # noqa: PLR0911
     except Exception as err:  # noqa: BLE001 - Git failures vary by platform.
         return _operational_result("inventory", err)
     try:
-        validation = validate_commit_plan(blocks, inventory)
+        requirements = completed_validation_subject_requirements(root, inventory)
+        validation = validate_commit_plan(blocks, inventory, requirements)
     except Exception as err:  # noqa: BLE001  # pragma: no cover
         return _operational_result("validate", err)
     return _result_from_validation(validation, inventory)

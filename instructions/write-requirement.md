@@ -4,6 +4,9 @@ When this instruction needs a user correction or confirmation, read
 [`../rules/interactive_menu.md`](../rules/interactive_menu.md), then present the
 valid concrete choices when they are known.
 
+Before writing the requirement document, read and follow
+[`../rules/markdown.md`](../rules/markdown.md).
+
 1. Read the prompt and identify three mandatory inputs: the requirement type (`feature-request` or `issue`), the product version written as `vX.Y.Z`, and the topic label.
 2. First, validate the type.
 3. Accept the type only if it is exactly `feature-request` or `issue` and it aligns with the user's stated intent.

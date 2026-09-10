@@ -495,6 +495,7 @@ def wait_terminal_states_journey(
 
     inconsistent_core, inconsistent_store, _, _ = _harness(tmp_path / "inconsistent")
     inconsistent_core.start()
+    inconsistent_store.paths.request.parent.mkdir(parents=True, exist_ok=True)
     inconsistent_store.paths.request.write_text("invalid", encoding="utf-8")
     inconsistent = inconsistent_core.wait_for_exact(ArtifactState.REQUEST_PENDING)
 

@@ -296,8 +296,8 @@ def _guidance_section(source: CodeReviewAssessment, level: int) -> str:
         level,
         "Human guidance response",
         source,
-        f"Human guidance: {source.human_guidance.rstrip()}\n\n"
-        f"Guidance response: {response.strip()}",
+        f"Human guidance:\n\n{source.human_guidance.rstrip()}\n\n"
+        f"Guidance response:\n\n{response.strip()}",
     )
 
 
@@ -332,8 +332,8 @@ def _assessment_sections(source: ImplementationAssessment, level: int) -> list[s
             level,
             "Implementation check",
             source,
-            f"Result: {source.implementation_check.strip()}\n\n"
-            f"Validation plan effects: {source.validation_plan_effects.strip()}",
+            f"Result:\n\n{source.implementation_check.strip()}\n\n"
+            f"Validation plan effects:\n\n{source.validation_plan_effects.strip()}",
         ),
         _section(
             level,

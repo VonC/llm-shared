@@ -129,15 +129,18 @@ def tracked_input_journey(
     """Run the tracked-input rejection through the recorded Git boundary."""
     root = _root(tmp_path, "tracked-input")
     document = _document(root, "feature-request", "tracked")
-    assessment = root / "a.assessment.md"
-    changes = root / "a.changes.md"
-    response = root / "a.response.md"
+    home = root / ".reviews"
+    home.mkdir(exist_ok=True)
+    (home / ".gitignore").write_bytes(b"*\n")
+    assessment = home / "a.assessment.md"
+    changes = home / "a.changes.md"
+    response = home / "a.response.md"
     assessment.write_text("Assess.\n", encoding="utf-8")
     changes.write_text("Changed.\n", encoding="utf-8")
     response.write_text("Responded.\n", encoding="utf-8")
-    _git(root, "add", "-f", "a.assessment.md")
-    request_output = root / "a.request-output.md"
-    summary_output = root / "a.summary-output.md"
+    _git(root, "add", "-f", ".reviews/a.assessment.md")
+    request_output = home / "a.request-output.md"
+    summary_output = home / "a.summary-output.md"
 
     code = request_renderer.main(
         [
@@ -260,7 +263,12 @@ def test_exact_path_routing_never_scans_docs_or_reads_transcript(
     selected = review_routing.forced_specification_document(root, topic, state)
     contexts = review_routing.specification_contexts(root, topic, state)
 
-    allowed_exists = {root / "a.review-mode"}
+    allowed_exists = {
+        root / "a.review-mode",
+        root / ".review-artifacts.ini",
+        root / ".reviews",
+        root / ".reviews" / "a.review-mode",
+    }
     for context in contexts:
         allowed_exists.update(derive_artifact_paths(root, context).fixed_paths)
     assert selected == candidates[0].resolve()

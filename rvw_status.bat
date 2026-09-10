@@ -1,7 +1,7 @@
 @echo off
 setlocal
 
-REM Run read-only review status from the newest llm-shared Python.
+REM Run review status, with at most one bounded safe artifact migration, from the newest llm-shared Python.
 set "REVIEW_STATUS_ROOT=%~dp0"
 set "REVIEW_STATUS_PYTHON_BASE=%REVIEW_STATUS_ROOT%venvs"
 set "REVIEW_STATUS_LATEST="

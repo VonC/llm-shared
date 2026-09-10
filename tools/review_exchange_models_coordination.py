@@ -1,14 +1,16 @@
 """Durable coordination model for the v0.11.0 review-exchange core.
 
-Step 1 split: isolates cross-process lease, repair, progress, escalation, and
-confirmation state from identity and configuration value objects.
+Step 3 adds a monotonic ownership generation and token digest while retaining
+legacy parsing for records that predate role-nature or ownership evidence. A
+plaintext ownership token is never represented by this durable model.
 """
 
 # ruff: noqa: EM101, TRY003
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+import re
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, cast
 
 from tools.review_exchange_models import (
@@ -28,6 +30,7 @@ from tools.review_exchange_models import (
     strict_fields,
     validate_local_timestamp,
 )
+from tools.review_role_nature import RoleNatureSnapshot
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -83,9 +86,43 @@ def _validate_confirmation(record: CoordinationRecord) -> None:
     validate_local_timestamp(timestamp)
 
 
+_OWNERSHIP_DIGEST_RE = re.compile(r"^[0-9a-f]{64}$")
+
+
+def _validate_ownership(record: CoordinationRecord) -> None:
+    """Validate the all-or-none ownership generation and digest pair."""
+    generation = record.ownership_generation
+    digest = record.ownership_token_digest
+    non_negative_integer(generation, "ownership generation")
+    if generation == 0 and digest is None:
+        return
+    if generation == 0 or digest is None:
+        raise ReviewExchangeError("ownership fields must be recorded together")
+    if _OWNERSHIP_DIGEST_RE.fullmatch(digest) is None:
+        raise ReviewExchangeError("invalid ownership token digest")
+
+
+def _ownership_from_mapping(
+    data: Mapping[str, Any],
+    expected: set[str],
+) -> tuple[int, str | None]:
+    """Parse the optional legacy ownership pair outside the main constructor."""
+    has_generation = "ownership_generation" in data
+    has_digest = "ownership_token_digest" in data
+    if has_generation != has_digest:
+        raise ReviewExchangeError("ownership fields must be recorded together")
+    if not has_generation:
+        return 0, None
+    expected.update({"ownership_generation", "ownership_token_digest"})
+    return (
+        non_negative_integer(data["ownership_generation"], "ownership generation"),
+        optional_string(data["ownership_token_digest"], "ownership token digest"),
+    )
+
+
 @dataclass(frozen=True)
 class CoordinationRecord:
-    """Durable cross-process ownership, recovery, and confirmation state."""
+    """Durable cross-process state with digest-only transition ownership."""
 
     context: ReviewContext
     policy: FamilyPolicy
@@ -106,9 +143,12 @@ class CoordinationRecord:
     confirmed_outcome: ConfirmationOutcome | None = None
     confirmation_timestamp: str | None = None
     human_guidance: str | None = None
+    role_natures: RoleNatureSnapshot = field(default_factory=RoleNatureSnapshot)
+    ownership_generation: int = 0
+    ownership_token_digest: str | None = None
 
     def __post_init__(self) -> None:
-        """Validate status, repair-marker, and confirmation invariants."""
+        """Validate status, marker, confirmation, and ownership invariants."""
         positive_integer(self.round_number, "coordination round")
         non_negative_integer(self.no_progress_streak, "no-progress streak")
         if self.lease_renewed_at is not None:
@@ -116,10 +156,11 @@ class CoordinationRecord:
         _validate_coordination_status(self)
         _validate_incomplete_transition(self)
         _validate_confirmation(self)
+        _validate_ownership(self)
 
     def to_dict(self) -> dict[str, Any]:
         """Return strict JSON-compatible coordination data."""
-        return {
+        result = {
             "context": self.context.to_dict(),
             "policy": self.policy.to_dict(),
             "status": self.status.value,
@@ -145,7 +186,12 @@ class CoordinationRecord:
             ),
             "confirmation_timestamp": self.confirmation_timestamp,
             "human_guidance": self.human_guidance,
+            "role_natures": self.role_natures.to_dict(),
         }
+        if self.ownership_generation > 0:
+            result["ownership_generation"] = self.ownership_generation
+            result["ownership_token_digest"] = self.ownership_token_digest
+        return result
 
     @classmethod
     def from_dict(cls, data: Mapping[str, Any]) -> CoordinationRecord:
@@ -158,6 +204,13 @@ class CoordinationRecord:
             "escalation_reason", "confirmation_label", "confirmed_outcome",
             "confirmation_timestamp", "human_guidance",
         }
+        legacy = "role_natures" not in data
+        if not legacy:
+            expected.add("role_natures")
+        ownership_generation, ownership_digest = _ownership_from_mapping(
+            data,
+            expected,
+        )
         strict_fields(data, expected, "coordination record")
         marker_value = data["incomplete_transition"]
         outcome_value = data["confirmed_outcome"]
@@ -232,6 +285,16 @@ class CoordinationRecord:
                 data["confirmation_timestamp"], "confirmation timestamp",
             ),
             human_guidance=optional_string(data["human_guidance"], "human guidance"),
+            role_natures=RoleNatureSnapshot.from_optional_dict(
+                None
+                if legacy
+                else mapping_value(
+                    data["role_natures"],
+                    "coordination role natures",
+                ),
+            ),
+            ownership_generation=ownership_generation,
+            ownership_token_digest=ownership_digest,
         )
 
 

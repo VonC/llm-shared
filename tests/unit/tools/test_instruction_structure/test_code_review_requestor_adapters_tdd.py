@@ -60,12 +60,12 @@ def test_codex_redirects_match_direct_plugin_paths() -> None:
     assert packaged == (
         "Read and follow the canonical instruction at "
         "[`instructions/code-review-requestor.md`]"
-        "(../../../instructions/code-review-requestor.md).\n"
+        "(../../../../../../../git/llm-shared/instructions/code-review-requestor.md).\n"
     )
     skill = _LINK_ADAPTERS[1].read_text(encoding="utf-8")
     assert skill.rstrip().endswith(
         "Read and follow [the canonical instruction]"
-        "(../../../../instructions/code-review-requestor.md)",
+        "(../../../../../../../../git/llm-shared/instructions/code-review-requestor.md)",
     )
 
 

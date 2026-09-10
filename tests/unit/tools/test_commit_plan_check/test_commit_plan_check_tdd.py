@@ -16,6 +16,7 @@ from tools.git_batch_commit_models import (
     CommitBlock,
     CommitMessageError,
     CommitPlanGroup,
+    CommitPlanSubjectRequirement,
     CommitPlanValidation,
 )
 
@@ -61,12 +62,18 @@ def _install_ready_collaborators(
     def validate(
         blocks: list[CommitBlock],
         paths: tuple[str, ...],
+        requirements: tuple[CommitPlanSubjectRequirement, ...],
     ) -> CommitPlanValidation:
-        calls.append(("validate", blocks, paths))
+        calls.append(("validate", blocks, paths, requirements))
         return CommitPlanValidation((READY_GROUP,), ())
 
     monkeypatch.setattr(commit_plan_check, "parse_clipboard_content", parse)
     monkeypatch.setattr(commit_plan_check, "staged_paths", inventory)
+    monkeypatch.setattr(
+        commit_plan_check,
+        "completed_validation_subject_requirements",
+        lambda root, paths: calls.append(("requirements", root, paths)) or (),
+    )
     monkeypatch.setattr(commit_plan_check, "validate_commit_plan", validate)
     return calls
 
@@ -89,7 +96,8 @@ def test_ready_service_uses_each_public_boundary_once(
     assert calls == [
         ("parse", "commit plan\n", False),
         ("inventory", root),
-        ("validate", [READY_BLOCK], ("docs/example.md",)),
+        ("requirements", root, ("docs/example.md",)),
+        ("validate", [READY_BLOCK], ("docs/example.md",), ()),
     ]
 
 
@@ -200,11 +208,18 @@ def test_nonready_validation_preserves_groups_paths_and_all_diagnostics(
     def validate(
         blocks: list[CommitBlock],
         staged: tuple[str, ...],
+        requirements: tuple[CommitPlanSubjectRequirement, ...],
     ) -> CommitPlanValidation:
+        assert requirements == ()
         calls.append((blocks, staged))
         return validation
 
     monkeypatch.setattr(commit_plan_check, "validate_commit_plan", validate)
+    monkeypatch.setattr(
+        commit_plan_check,
+        "completed_validation_subject_requirements",
+        lambda _root, _paths: (),
+    )
 
     result = commit_plan_check.check_commit_plan(root)
 

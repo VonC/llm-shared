@@ -17,7 +17,7 @@ In particular, is there any class which is importing another class it should not
 
 Use those questions and your own analysis to provide:
 
-- a detailed analysis of the architecture for the requested layer, 
+- a detailed analysis of the architecture for the requested layer,
 - then a section about violation and smells.
 
 You write a markdown document, so respect instructions for markdown lists in #file:../../rules/markdown.md .

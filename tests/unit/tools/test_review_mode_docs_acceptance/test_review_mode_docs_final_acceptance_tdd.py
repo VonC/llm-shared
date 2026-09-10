@@ -1,7 +1,8 @@
 """Final Step 5 acceptance for independent review-mode documentation.
 
 This sibling keeps final coverage, inventory, and connected-set contracts
-separate from the incremental Steps 1 through 4 assertions.
+separate from the incremental Steps 1 through 4 assertions. Review-resume Step 6
+also checks the connected public pages for shipped resumption and waiting.
 """
 
 from __future__ import annotations
@@ -165,4 +166,30 @@ def test_reviewer_rounds_use_reciprocal_active_waits_across_the_docs(
     assert "Without another command from you" in code_tutorial
     assert "do not invoke the reviewer" in spec_how_to
     assert "do not invoke the reviewer" in code_how_to
-    assert "reciprocal bounded waits" in reference
+    assert "reciprocal waiting" in reference
+
+
+def test_resume_public_docs_describe_shipped_waiting_and_automatic_pickup(docs_root: Path) -> None:
+    """Review-resume AC15: every connected page describes the shipped role split."""
+    paths = (
+        "README.md", "wiki/README.md", _EXPLANATION, _SPEC_TUTORIAL, _CODE_TUTORIAL,
+        *_HOW_TO_GUIDES, _REFERENCE,
+    )
+    for path in paths:
+        text = read_declared(docs_root, path)
+        assert "has not shipped" not in text
+        assert "not shipped yet" not in text
+        assert "planned for Step 5" not in text
+    readme = read_declared(docs_root, "README.md")
+    assert_contains(readme, (".review-artifacts.ini", "home = .reviews", "automatic pickup",
+                            "wait-any-request", "wait-answer", "pw skill"))
+    recovery = read_declared(docs_root, "wiki/how-to/recover-an-independent-review.md")
+    assert "enter `resume`" in recovery
+    assert "automatic pickup" in recovery
+    assert "force requestor ownership pickup" not in recovery
+    reference = read_declared(docs_root, _REFERENCE)
+    assert_contains(reference, ("migration-check", "resume-inspect", "claim",
+                               "wait-any-request", "cancelled", "already-claimed"))
+
+
+# eof

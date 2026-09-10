@@ -57,7 +57,7 @@ detected change, or grants workflow authority.
 
 ### Reviewer evidence setup before applying criteria
 
-Use `bin/code_review_evidence.bat` for every Git and filesystem evidence
+Use `& "<LLM_SHARED_DIR>\bin\code_review_evidence.bat"` for every Git and filesystem evidence
 operation. Do not replace these calls with prose or equivalent shell commands.
 
 Every path operand is repository-relative. The launcher rejects an absolute
@@ -73,18 +73,18 @@ check.
    validation plan, and every known validation-artifact path named by the
    resolved validation commands. Never omit a staged step path because a
    validation command is expected not to touch it.
-2. Run `bin/code_review_evidence.bat --repository <root> umbrella-digest
+2. Run `& "<LLM_SHARED_DIR>\bin\code_review_evidence.bat" --repository <root> umbrella-digest
    capture <umbrella>` and retain its JSON as `umbrella_digest_before`. When
    the request says `Umbrella draft: none`, omit the path operand; retain the
    returned not-applicable result with `"applicable": false`.
-3. Run `bin/code_review_evidence.bat --repository <root> validation-state
+3. Run `& "<LLM_SHARED_DIR>\bin\code_review_evidence.bat" --repository <root> validation-state
    capture <validation_path_set...>` and retain its JSON as
    `validation_state_before`.
 4. Before changing any permitted validation-plan path, run
-   `bin/code_review_evidence.bat --repository <root>
+   `& "<LLM_SHARED_DIR>\bin\code_review_evidence.bat" --repository <root>
    record-pre-repair-blob <path>` and retain each baseline JSON value.
 5. Assemble the baseline evidence JSON and run
-   `bin/code_review_evidence.bat --repository <root> write-manifest
+   `& "<LLM_SHARED_DIR>\bin\code_review_evidence.bat" --repository <root> write-manifest
    <evidence-json>`. On resumed work, call `read-manifest` with the exact
    identity before using retained evidence.
 
@@ -97,13 +97,13 @@ when this is the last step in the effort.
 After writing the reviewed-step validation rows for a Yes result, always run
 all of these commands before reporting the assessment:
 
-1. Run `bin/code_review_evidence.bat --repository <root> umbrella-digest
+1. Run `& "<LLM_SHARED_DIR>\bin\code_review_evidence.bat" --repository <root> umbrella-digest
    compare <umbrella_digest_before-json> <umbrella>`; omit the final path for
    `Umbrella draft: none`.
-2. Run `bin/code_review_evidence.bat --repository <root> validation-state
+2. Run `& "<LLM_SHARED_DIR>\bin\code_review_evidence.bat" --repository <root> validation-state
    capture <validation_path_set...>` as `validation_state_after`, using the
    same ordered `validation_path_set` captured before the criteria.
-3. Run `bin/code_review_evidence.bat --repository <root> validation-state
+3. Run `& "<LLM_SHARED_DIR>\bin\code_review_evidence.bat" --repository <root> validation-state
    compare <validation_state_before-json> <validation_state_after-json>`.
 
 ### Reviewer evidence boundary after a No result
@@ -112,13 +112,13 @@ After writing the reviewed-step validation rows and concrete missing-work rows
 for a No result, always run the same evidence boundary before reporting the
 assessment:
 
-1. Run `bin/code_review_evidence.bat --repository <root> umbrella-digest
+1. Run `& "<LLM_SHARED_DIR>\bin\code_review_evidence.bat" --repository <root> umbrella-digest
    compare <umbrella_digest_before-json> <umbrella>`; omit the final path for
    `Umbrella draft: none`.
-2. Run `bin/code_review_evidence.bat --repository <root> validation-state
+2. Run `& "<LLM_SHARED_DIR>\bin\code_review_evidence.bat" --repository <root> validation-state
    capture <validation_path_set...>` as `validation_state_after`, using the
    same ordered `validation_path_set` captured before the criteria.
-3. Run `bin/code_review_evidence.bat --repository <root> validation-state
+3. Run `& "<LLM_SHARED_DIR>\bin\code_review_evidence.bat" --repository <root> validation-state
    compare <validation_state_before-json> <validation_state_after-json>`.
 
 For either result, an applicable changed umbrella digest is a
@@ -130,11 +130,11 @@ tracked difference, including a tracked validation side effect, is a
 confined to ignored validation artifacts are acceptable.
 
 For each permitted validation-plan edit, run
-`bin/code_review_evidence.bat --repository <root>
+`& "<LLM_SHARED_DIR>\bin\code_review_evidence.bat" --repository <root>
 attribute-reviewer-patch <baseline-json>` and stage only the attributable
 patch. Update the retained evidence with `write-manifest`; do not retire it
 inside this check. The calling reviewer retires it with
-`bin/code_review_evidence.bat --repository <root> retire-manifest` only after
+`& "<LLM_SHARED_DIR>\bin\code_review_evidence.bat" --repository <root> retire-manifest` only after
 `publish-answer` reports `outcome: published`.
 
 ## Document-level status line
@@ -188,7 +188,17 @@ When the check is written and the `Analysis of Step x` status line records the Y
 
 `<x>` is the plan step you just checked — the "step XXXXX" of your prompt, a number such as `2` or a sub-step id such as `4A`. `pw` is run through its launcher (see [`run-pw.md`](run-pw.md) for the non-interactive invocation), the same tool the interactive cycle uses.
 
-Run `pw` from a PowerShell shell — the `pw` alias when the project environment is loaded, otherwise `& "$env:LLM_SHARED_DIR\bin\prompt_workflow.bat" handoff after-check <x>`. Do not wrap `bin\prompt_workflow.bat` in a `cmd /d /c "..."` call from a Git Bash or other POSIX shell: that nested `cmd` swallows the launcher's output and its rewrite of `a.prompt.txt` and `a.prompt_memory`, so the handoff does nothing while still returning `0` — a silent no-op. The launcher must print `Prompt for step <x> (commit) ready` on a `Yes` (or `(implement-missing) ready` on a `No`); if you do not see that line, re-run it in PowerShell before going on.
+Run `pw` from a PowerShell shell — the `pw` alias when the project environment
+is loaded, otherwise
+`& "<LLM_SHARED_DIR>\bin\prompt_workflow.bat" handoff after-check <x>`.
+Resolve `<LLM_SHARED_DIR>` from this canonical instruction as described in
+[`run_commands.md`](../rules/run_commands.md); do not rely on an environment
+variable. Do not wrap the launcher in a `cmd /d /c "..."` call from a Git Bash
+or other POSIX shell: that nested `cmd` swallows the launcher's output and its
+rewrite of `a.prompt.txt` and `a.prompt_memory`, so the handoff does nothing
+while still returning `0` — a silent no-op. The launcher must print `Prompt for
+step <x> (commit) ready` on a `Yes` (or `(implement-missing) ready` on a `No`);
+if you do not see that line, re-run it in PowerShell before going on.
 
 The `after-check` task is neutral on purpose: `pw` reads the `Analysis of Step x` status line you just wrote and routes the branch itself, so the caller cannot mis-branch. It writes the `implement-missing-step.md` prompt when the line starts with `No`, or the commit prompt (`group-commits-msg.md`, the `git add -A` variant) when it starts with `Yes`, to `a.prompt.txt` at the project root, copies it to the clipboard, and records the step in `a.prompt_memory`. Confirm it took — the first line of `a.prompt.txt` now names that next instruction — then read `a.prompt.txt` and run the instructions of that returned prompt straight away. A handoff is the go-ahead to perform the next workflow step now: do not pick the Yes-or-No branch yourself, do not stop to ask whether to proceed, and do not compose the next prompt yourself. When the branch is the commit step, prepare the grouped commit messages in `a.commit` right away — preparing `a.commit` is the step and does not wait on a go-ahead. Because the commit handoff stages the whole tree with `git add -A`, the `group-commits-msg.md` run must cover **every** staged change, not only the files you touched for this step: a change of outside origin already in the working tree — a concurrent edit, a tool-written file, an earlier unrelated tweak — is staged too, so it joins the same `a.commit` run and is grouped from least to most dependent like any other. Never drop or hold back a staged change because you did not author it; rank it by its own dependencies and place it in a fitting group. The actual commit is a separate action: it follows `group-commits-msg.md`'s own go-ahead choices, never run on your own off the back of the handoff. `pw` reads the status line and the handoff authorises the next step, so the cycle advances on its own.
 

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Non-interactive command adapter for the v0.11.0 review-exchange core.
 
-Step 4 gives later requestor and reviewer workflows one stable JSON command
-surface. The split parser resolves arguments and document identity; this hub
-validates ignored caller-owned UTF-8 inputs, delegates lifecycle mutations to
-``ReviewExchangeCore``, and keeps progress off standard output.
+Step 3 delegates capability parsing, lifecycle typing, and token-safe ownership
+stops to a focused adapter. This hub retains caller-file validation, operation
+dispatch, gate-aware new-session pickup, and one stable JSON result while
+staying below its risk-band target.
 """
 
 # ruff: noqa: BLE001, EM101, EM102, TRY003
@@ -19,17 +19,34 @@ import sys
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Protocol, TextIO
+from typing import TYPE_CHECKING, Any, TextIO
 
 from tools import find_project_root
+from tools.review_artifact_configuration import (
+    ReviewArtifactConfiguration,
+    caller_file_parents,
+)
+from tools.review_exchange_cli_ownership import (
+    CorePort,
+    capability_from_args,
+    failure_payload,
+)
 from tools.review_exchange_cli_parser import (
     context_from_document as _context_from_document,
 )
 from tools.review_exchange_cli_parser import (
     parser as _parser,
 )
+from tools.review_exchange_cli_result import add_issued_capability
+from tools.review_exchange_cli_result import fatal_payload as _fatal_payload
+from tools.review_exchange_cli_result import operation_name as _operation_name
+from tools.review_exchange_cli_resume import (
+    execute_resume_operation,
+    is_resume_operation,
+)
 from tools.review_exchange_core import ReviewExchangeCore
 from tools.review_exchange_models import (
+    Actor,
     ArtifactPaths,
     ArtifactState,
     FamilyPolicy,
@@ -37,16 +54,18 @@ from tools.review_exchange_models import (
     ReviewContext,
     ReviewExchangeError,
 )
-from tools.review_exchange_paths import derive_artifact_paths, validate_activation
+from tools.review_exchange_ownership import OwnershipRejectedError
+from tools.review_exchange_paths import (
+    derive_artifact_paths,
+    load_review_configuration,
+    validate_activation,
+)
 from tools.review_exchange_store import ReviewExchangeStore
 from tools.review_exchange_transcript_identity import current_request_occurrence
 from tools.review_exchange_wait import WaitOutcome, WaitProgress
 
 if TYPE_CHECKING:
-    from tools.review_exchange_human import ConfirmationDecision, ResolutionResult
-    from tools.review_exchange_models_coordination import CoordinationRecord
     from tools.review_exchange_observer import ExchangeObservation
-    from tools.review_exchange_wait import WaitResult
 
 
 _STOP_STATES = frozenset(
@@ -64,95 +83,6 @@ _STOP_STATES = frozenset(
         ArtifactState.INCONSISTENT,
     },
 )
-
-
-class CorePort(Protocol):
-    """Lifecycle operations used by the command adapter."""
-
-    def classify(self) -> ExchangeObservation:
-        """Return the current exact-path state."""
-        ...
-
-    def start(self) -> CoordinationRecord:
-        """Start the first active round."""
-        ...
-
-    def publish_request(self, markdown: str, transcript_content: str) -> CoordinationRecord:
-        """Publish one request."""
-        ...
-
-    def publish_answer(self, markdown: str, transcript_content: str) -> CoordinationRecord:
-        """Publish one answer."""
-        ...
-
-    def repair_current_request_transcript(
-        self,
-        transcript_content: str,
-    ) -> CoordinationRecord:
-        """Repair one final legacy request transcript entry."""
-        ...
-
-    def wait_for_exact(
-        self,
-        expected: ArtifactState,
-        *,
-        timeout_seconds: int | None,
-        poll_interval: float,
-        progress_interval: float,
-        progress_callback: Callable[[WaitProgress], None] | None,
-    ) -> WaitResult:
-        """Wait for one counterpart artifact."""
-        ...
-
-    def consume_answer(
-        self,
-        *,
-        reviewed_work_changed: bool,
-        disagreement: bool = False,
-    ) -> CoordinationRecord:
-        """Consume one intermediate answer."""
-        ...
-
-    def continue_round(self) -> CoordinationRecord:
-        """Advance to the next automated round."""
-        ...
-
-    def reclaim(self) -> CoordinationRecord:
-        """Renew an expired lease for an intact abandoned round."""
-        ...
-
-    def force_reclaim(self, summary: str) -> CoordinationRecord:
-        """Resume one escalated round in place for an authorized manual handoff."""
-        ...
-
-    def escalate(self, reason: str) -> CoordinationRecord:
-        """Stop automation with durable evidence."""
-        ...
-
-    def confirm(
-        self,
-        label: str,
-        *,
-        guidance: str | None = None,
-    ) -> ConfirmationDecision:
-        """Persist one human convergence choice."""
-        ...
-
-    def cancel(self, reason: str) -> CoordinationRecord:
-        """Cancel a convergence gate."""
-        ...
-
-    def resolve_escalation(self, summary: str, *, archive: bool) -> ResolutionResult:
-        """Resolve stopped evidence and create a fresh round."""
-        ...
-
-    def complete(self) -> bool:
-        """Finish a human-authorized owning action."""
-        ...
-
-    def force_complete(self, summary: str) -> bool:
-        """Close one abandoned mid-round after an explicit human decision."""
-        ...
 
 
 @dataclass(frozen=True)
@@ -194,8 +124,9 @@ def _build_runtime(args: argparse.Namespace, project_root: Path) -> Runtime:
         args.another_round_label,
         args.continue_owning_workflow_label,
     )
-    configuration = ReviewConfiguration.load(project_root)
-    paths = derive_artifact_paths(project_root, context)
+    artifacts = ReviewArtifactConfiguration.load(project_root)
+    configuration = load_review_configuration(project_root, configuration=artifacts)
+    paths = derive_artifact_paths(project_root, context, configuration=artifacts)
     store = ReviewExchangeStore(paths)
     core = ReviewExchangeCore(store, context, policy, configuration)
     return Runtime(project_root, context, paths, configuration, core)
@@ -228,12 +159,12 @@ def _is_effectively_ignored(project_root: Path, path: Path) -> bool:
 
 
 def _read_input_file(project_root: Path, value: str | Path, label: str) -> str:
-    """Validate and read one ignored root ``a.*`` UTF-8 input exactly once."""
+    """Validate and read one ignored home-local ``a.*`` UTF-8 input once."""
     path = Path(value).expanduser().resolve()
-    if path.parent != project_root.resolve():
-        raise ReviewExchangeError(f"{label} file must be directly under project root")
+    if path.parent not in caller_file_parents(project_root):
+        raise ReviewExchangeError(f"{label} file must be in the review artifact home")
     if not path.name.startswith("a."):
-        raise ReviewExchangeError(f"{label} file must use a project-root a.* name")
+        raise ReviewExchangeError(f"{label} file must use an a.* name")
     if not path.is_file():
         raise ReviewExchangeError(f"{label} file does not exist: {path}")
     if not _is_effectively_ignored(project_root, path):
@@ -287,6 +218,36 @@ def _dispatch_simple(
     if args.operation == "reclaim":
         return _dispatch_reclaim(args, runtime)
     return _dispatch_complete(args, runtime)
+
+
+def _dispatch_pickup(
+    _args: argparse.Namespace,
+    runtime: Runtime,
+    _stderr: TextIO,
+) -> OperationResult:
+    """Reissue one capability to a session that lost the plaintext token.
+
+    A wait mints its capability in the process that observes the counterpart and
+    keeps the plaintext only in memory, since coordination stores just the
+    digest. A session acting after that process has exited holds nothing to
+    present, and every fenced transition then reports `ownership-missing`. This
+    advances the generation and hands the caller a replacement, which is the
+    displacement the ownership service is built to answer. Human convergence
+    remains a decision gate, but the requestor needs the replacement capability
+    to record that decision and continue its authorized owning workflow.
+    """
+    observation = runtime.core.classify()
+    record = observation.record
+    if record is None:
+        raise ReviewExchangeError("ownership pickup requires durable coordination")
+    pickup_actor = (
+        Actor.REQUESTOR
+        if observation.state
+        in {ArtifactState.CONVERGENCE_GATE, ArtifactState.OWNING_ACTION_PENDING}
+        else record.expected_next_actor
+    )
+    runtime.core.pickup_ownership(pickup_actor)
+    return OperationResult("ownership-picked-up")
 
 
 def _dispatch_reclaim(args: argparse.Namespace, runtime: Runtime) -> OperationResult:
@@ -433,6 +394,7 @@ _HANDLERS: dict[str, OperationHandler] = {
     "start": _SIMPLE_HANDLER,
     "continue": _SIMPLE_HANDLER,
     "reclaim": _SIMPLE_HANDLER,
+    "pickup": _dispatch_pickup,
     "complete": _SIMPLE_HANDLER,
     "publish-request": _dispatch_publication,
     "publish-answer": _dispatch_publication,
@@ -463,7 +425,15 @@ def _dispatch(
     handler = _HANDLERS.get(args.operation)
     if handler is None:
         raise ReviewExchangeError(f"unsupported operation: {args.operation}")
-    return handler(args, runtime, stderr)
+    runtime.core.present_ownership(capability_from_args(args))
+    try:
+        return handler(args, runtime, stderr)
+    except OwnershipRejectedError as error:
+        return OperationResult(
+            error.failure.code,
+            exit_code=3,
+            extra=failure_payload(error.failure),
+        )
 
 
 def _paths_payload(paths: ArtifactPaths) -> dict[str, str]:
@@ -505,25 +475,8 @@ def _success_payload(runtime: Runtime, operation: str, result: OperationResult) 
             record.round_number,
         )
     payload.update(result.extra)
+    add_issued_capability(payload, runtime.core, operation, result.exit_code)
     return payload
-
-
-def _fatal_payload(operation: str, diagnostic: str) -> dict[str, Any]:
-    """Build the stable schema for invalid input or unexpected failure."""
-    return {
-        "diagnostic": diagnostic,
-        "identity": None,
-        "operation": operation,
-        "outcome": "fatal-input",
-        "paths": {},
-        "round": None,
-        "state": "fatal",
-    }
-
-
-def _operation_name(argv: Sequence[str]) -> str:
-    """Return the first token for parse-failure reporting."""
-    return argv[0] if argv and not argv[0].startswith("-") else "unknown"
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -534,6 +487,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         args = _parser().parse_args(arguments)
         operation = args.operation
         project_root = find_project_root(Path.cwd()).resolve()
+        if is_resume_operation(operation):
+            payload, code = execute_resume_operation(args, project_root)
+            sys.stdout.write(f"{json.dumps(payload, ensure_ascii=False, sort_keys=True)}\n")
+            return code
         runtime = _build_runtime(args, project_root)
         result = _dispatch(args, runtime, sys.stderr)
         payload = _success_payload(runtime, operation, result)

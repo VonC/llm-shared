@@ -1,1 +1,1 @@
-Read and follow the canonical instruction at [`instructions/spec-reviewer.md`](../../../instructions/spec-reviewer.md).
+Read and follow the canonical instruction at [`instructions/spec-reviewer.md`](../../../../../../../git/llm-shared/instructions/spec-reviewer.md).

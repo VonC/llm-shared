@@ -198,7 +198,12 @@ def _staged_paths(root: Path) -> tuple[str, ...]:
 
 def _validate_commit_plan_for_root(blocks: list[CommitBlock], root: Path) -> None:
     """Apply the public commit-plan validator before any staging or commit."""
-    result = validate_commit_plan(blocks, _staged_paths(root))
+    inventory = _staged_paths(root)
+    requirements = commit_plan_support.completed_validation_subject_requirements(
+        root,
+        inventory,
+    )
+    result = validate_commit_plan(blocks, inventory, requirements)
     if result.valid:
         return
     details = "\n".join(f"- {item}" for item in result.diagnostics)

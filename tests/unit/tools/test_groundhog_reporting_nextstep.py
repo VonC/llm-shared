@@ -70,6 +70,29 @@ def test_next_after_full_per_exit_code() -> None:
     assert reporting_nextstep.next_after_full(EXIT_SUITE_CRASH, ()) == []
 
 
+def test_next_after_timings_per_exit_code() -> None:
+    """The timing-pass next step follows the same run-state table.
+
+    A crash yields no next step, as the full run does: the crash block already
+    carries the instruction, so a second one would only compete with it.
+    """
+    assert reporting_nextstep.next_after_timings(EXIT_OBJECTIVE_MET) == [
+        reporting_nextstep.MSG_TIMINGS_OK,
+    ]
+    assert reporting_nextstep.next_after_timings(EXIT_TEST_FAILURES) == [
+        reporting_nextstep.MSG_TIMINGS_FAILED,
+    ]
+    assert reporting_nextstep.next_after_timings(EXIT_SUITE_CRASH) == []
+
+
+def test_next_after_timings_outliers_names_the_fix_and_the_exclusion() -> None:
+    """Exit 8 from the sequential pass carries the same outlier guidance."""
+    summary = _summary(outliers=(_OUTLIER,))
+    lines = reporting_nextstep.next_after_timings(EXIT_DURATION_OUTLIERS, summary)
+    assert lines[0] == reporting_nextstep.MSG_OUTLIERS
+    assert "ghog exclude" in lines[1]
+
+
 def test_next_after_full_outliers_names_the_fix_and_the_exclusion() -> None:
     """Exit 8 lists the outlier fix step and the ghog exclude hint (Q47, Q62)."""
     summary = _summary(outliers=(_OUTLIER,))

@@ -1,10 +1,4 @@
-"""Application lifecycle orchestration for durable review exchanges.
-
-Step 3 coordinates the Step 1 protocol models and Step 2 exact-path store. It
-classifies every observable state, delegates publication to its focused mixin,
-bounds waits with injected monotonic time, and persists escalation or human
-authorization without granting reviewers an owning action.
-"""
+"""Lifecycle orchestration with locked claims and fenced later mutations."""
 
 # ruff: noqa: EM101, EM102, PLR0913, TRY003
 
@@ -38,6 +32,11 @@ from tools.review_exchange_models_envelope import (
     parse_envelope_markdown,
 )
 from tools.review_exchange_observer import ExchangeObservation, ReviewExchangeObserver
+from tools.review_exchange_ownership import (
+    OwnershipCapability,
+    OwnershipClaim,
+    OwnershipService,
+)
 from tools.review_exchange_publication import ReviewExchangePublicationMixin
 from tools.review_exchange_store import ReviewExchangeStore, TranscriptEntry
 from tools.review_exchange_wait import (
@@ -91,6 +90,7 @@ class ReviewExchangeCore(ReviewExchangePublicationMixin, ReviewExchangeHumanMixi
         wall_clock: Callable[[], datetime] | None = None,
         monotonic_clock: Callable[[], float] | None = None,
         sleeper: Callable[[float], None] | None = None,
+        ownership_service: OwnershipService | None = None,
     ) -> None:
         """Bind lifecycle behavior to one exact context and injectable time."""
         if store.paths.identity != context.identity:
@@ -104,6 +104,9 @@ class ReviewExchangeCore(ReviewExchangePublicationMixin, ReviewExchangeHumanMixi
         self._wall_clock = wall_clock or (lambda: datetime.now().astimezone())
         self._monotonic_clock = monotonic_clock or time.monotonic
         self._sleeper = sleeper or time.sleep
+        self._ownership_service = ownership_service or OwnershipService()
+        self._ownership_capability: OwnershipCapability | None = None
+        self._ownership_capability_issued = False
         self._observer = ReviewExchangeObserver(
             store,
             context,
@@ -115,6 +118,21 @@ class ReviewExchangeCore(ReviewExchangePublicationMixin, ReviewExchangeHumanMixi
     def _current_wall_time(self) -> datetime:
         """Return injected wall time while preserving runtime clock replacement."""
         return self._wall_clock()
+
+    @property
+    def ownership_capability(self) -> OwnershipCapability | None:
+        """Return the capability held only by this lifecycle invocation."""
+        return self._ownership_capability
+
+    @property
+    def ownership_capability_issued(self) -> bool:
+        """Report whether this invocation minted its held capability."""
+        return self._ownership_capability_issued
+
+    def present_ownership(self, capability: OwnershipCapability | None) -> None:
+        """Present one CLI-parsed capability without persisting its secret."""
+        self._ownership_capability = capability
+        self._ownership_capability_issued = False
 
     def classify(self) -> ExchangeObservation:
         """Return one fail-closed state without mutating artifacts or leases."""
@@ -138,7 +156,7 @@ class ReviewExchangeCore(ReviewExchangePublicationMixin, ReviewExchangeHumanMixi
                 self._timestamp(),
             )
             self.store.write_coordination(record)
-            return record
+            return self._claim_locked(record, Actor.REQUESTOR).record
 
     def consume_answer(
         self,
@@ -186,23 +204,36 @@ class ReviewExchangeCore(ReviewExchangePublicationMixin, ReviewExchangeHumanMixi
             return updated
 
     def reclaim(self) -> CoordinationRecord:
-        """Renew one expired lease in place for an intact, unescalated round.
-
-        Reclaiming restores the live counterpart state of an abandoned round
-        without touching any artifact or transcript content. It is idempotent
-        while the round stays live and never applies to an escalated,
-        confirming, interrupted, or inconsistent exchange.
-        """
+        """Claim and renew one intact abandoned or already-held live round."""
         with self.store.transition_lock():
             observation = self.classify()
-            record = self._require_record(observation)
+            record = observation.record
+            if record is None:
+                raise ReviewExchangeError("operation requires durable coordination")
             if observation.state not in _RECLAIMABLE_STATES:
                 raise ReviewExchangeError(
                     "reclaim requires an intact abandoned or live round",
                 )
-            updated = replace(record, lease_renewed_at=self._timestamp())
+            actor = record.expected_next_actor
+            claim = self._claim_locked(
+                record,
+                actor,
+                presented=self._ownership_capability,
+            )
+            updated = replace(claim.record, lease_renewed_at=self._timestamp())
             self.store.write_coordination(updated)
             return updated
+
+    def pickup_ownership(self, actor: Actor) -> OwnershipClaim:
+        """Perform one lease-independent direct-resume ownership pickup."""
+        if actor is Actor.HUMAN:
+            raise ReviewExchangeError("an LLM session cannot claim human ownership")
+        with self.store.transition_lock():
+            observation = self.classify()
+            record = observation.record
+            if record is None:
+                raise ReviewExchangeError("ownership pickup requires coordination")
+            return self._claim_locked(record, actor, force=True)
 
     def continue_round(self) -> CoordinationRecord:
         """Advance one completed intermediate assessment to its next round."""
@@ -239,7 +270,7 @@ class ReviewExchangeCore(ReviewExchangePublicationMixin, ReviewExchangeHumanMixi
     ) -> WaitResult:
         """Poll one derived counterpart state against one monotonic deadline."""
         limit = timeout_seconds or self.configuration.wait_timeout_seconds
-        return wait_for_exact(
+        result = wait_for_exact(
             expected,
             timeout_seconds=limit,
             poll_interval=poll_interval,
@@ -250,6 +281,30 @@ class ReviewExchangeCore(ReviewExchangePublicationMixin, ReviewExchangeHumanMixi
             observe=self.classify,
             escalate=self._observation_after_escalation,
         )
+        if result.outcome is not WaitOutcome.FOUND:
+            return result
+        actor = (
+            Actor.REVIEWER
+            if expected is ArtifactState.REQUEST_PENDING
+            else Actor.REQUESTOR
+        )
+        with self.store.transition_lock():
+            observation = self.classify()
+            found = observation.state is expected or (
+                expected is ArtifactState.ANSWER_PENDING
+                and observation.state is ArtifactState.CONVERGENCE_GATE
+            )
+            if not found:
+                raise ReviewExchangeError("wait result changed before ownership claim")
+            record = observation.record
+            if record is None:
+                raise ReviewExchangeError("wait ownership claim requires coordination")
+            self._claim_locked(
+                record,
+                actor,
+                presented=self._ownership_capability,
+            )
+            return WaitResult(WaitOutcome.FOUND, self.classify())
 
     def escalate(
         self,
@@ -286,10 +341,34 @@ class ReviewExchangeCore(ReviewExchangePublicationMixin, ReviewExchangeHumanMixi
         return self._wall_clock().astimezone().isoformat(timespec="seconds")
 
     def _require_record(self, observation: ExchangeObservation) -> CoordinationRecord:
-        """Return current coordination or reject an unauthoritative shape."""
+        """Return current coordination after validating session ownership."""
         if observation.record is None:
             raise ReviewExchangeError("operation requires durable coordination")
-        return observation.record
+        record = observation.record
+        if record.ownership_generation == 0:
+            return self._claim_locked(record, record.owner).record
+        self._ownership_service.require_valid(record, self._ownership_capability)
+        return record
+
+    def _claim_locked(
+        self,
+        record: CoordinationRecord,
+        actor: Actor,
+        *,
+        presented: OwnershipCapability | None = None,
+        force: bool = False,
+    ) -> OwnershipClaim:
+        """Persist one claim while the caller holds the transition lock."""
+        claim = self.store.claim_ownership(
+            record,
+            self._ownership_service,
+            actor,
+            presented=presented,
+            force=force,
+        )
+        self._ownership_capability = claim.capability
+        self._ownership_capability_issued = claim.newly_issued
+        return claim
 
     def _mark_transition(
         self,
@@ -369,6 +448,8 @@ class ReviewExchangeCore(ReviewExchangePublicationMixin, ReviewExchangeHumanMixi
             raise ReviewExchangeError("escalation reason must be non-empty")
         observation = self.classify()
         record = observation.record
+        if record is not None:
+            record = self._require_record(observation)
         if (
             record is not None
             and record.status is CoordinationStatus.ESCALATED
@@ -425,12 +506,7 @@ class ReviewExchangeCore(ReviewExchangePublicationMixin, ReviewExchangeHumanMixi
         return final
 
     def _repeatable_entry(self, base: str) -> tuple[str, int]:
-        """Return one unique transcript identity and attempt for a repeatable event.
-
-        A stop-and-resume cycle can record the same outcome more than once in one
-        round, so both the durable identity and its rendered heading carry the
-        attempt that explains the repetition.
-        """
+        """Return one unique transcript identity and repeat-attempt number."""
         occurrence = self.store.entry_occurrence(base)
         return (base if occurrence == 1 else f"{base}-{occurrence}"), occurrence
 

@@ -1,38 +1,44 @@
 """Render host-prefixed prompt-workflow commands.
 
-This cohesive host adapter is independent of workflow state and document
-selection, preserving one-way imports from the main skill router.
+Step 2 delegates host identity to the shared detector, preserving explicit
+unknown and Gemini results instead of silently defaulting to Claude.
 """
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from tools.llm_nature import LlmNature, LlmNatureDetector
+
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-HOST_CLAUDE = "claude"
-HOST_CODEX = "codex"
-CLAUDE_ENV_VAR = "CLAUDECODE"
-CODEX_ENV_VAR = "CODEX_THREAD_ID"
-HOST_PREFIXES = {HOST_CLAUDE: "/", HOST_CODEX: "$"}
-DEFAULT_HOST = HOST_CLAUDE
+HOST_CLAUDE = LlmNature.CLAUDE.value
+HOST_CODEX = LlmNature.CODEX.value
+HOST_GEMINI = LlmNature.GEMINI.value
+HOST_UNKNOWN = LlmNature.UNKNOWN.value
+HOST_PREFIXES = {
+    HOST_CLAUDE: "/",
+    HOST_CODEX: "$",
+    HOST_GEMINI: "/",
+    HOST_UNKNOWN: "<command-prefix>",
+}
+DEFAULT_HOST = HOST_UNKNOWN
 MD_SUFFIX = ".md"
 CODEX_SKILL_NAMESPACE = "llm-shared:"
 
 
-def detect_host(env: Mapping[str, str]) -> str:
-    """Return the host token read from the process environment."""
-    if env.get(CLAUDE_ENV_VAR):
-        return HOST_CLAUDE
-    if env.get(CODEX_ENV_VAR):
-        return HOST_CODEX
-    return DEFAULT_HOST
+def detect_host(
+    env: Mapping[str, str],
+    trusted_hint: str | None = None,
+) -> str:
+    """Return the shared detector's closed host token."""
+    return LlmNatureDetector().detect(env, trusted_hint=trusted_hint).nature.value
 
 
 def host_prefix(env: Mapping[str, str], override: str | None = None) -> str:
     """Return the command prefix for the detected or explicitly selected host."""
-    host = override if override is not None else detect_host(env)
+    host = detect_host(env, override)
     return HOST_PREFIXES[host]
 
 

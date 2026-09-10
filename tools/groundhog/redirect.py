@@ -17,11 +17,17 @@ streams as before: it lands in the log either way.
 
 The senv.bat preamble of ``ghog.bat`` streams before this process
 exists, so the wrapper parks it in the side file named by the
-``GHOG_SENV_LOG`` environment variable; :func:`replay_senv_log` folds
-it back into the report stream — stdout normally, ``a.ghog.log`` when
-the guard armed — and deletes it. A side file still present after the
-python call tells ghog.bat this process never ran, and the wrapper
-types it itself so the sandbox-block markers stay visible.
+``GHOG_SENV_LOG`` environment variable; :func:`replay_senv_log` consumes
+it. A side file still present after the python call tells ghog.bat this
+process never ran, and the wrapper types it itself so the sandbox-block
+markers stay visible.
+
+Fix: an LLM report carries the summary form only. The preamble used to be
+folded into the report stream, which put twenty raw wrapper lines into
+``a.ghog.log`` by two routes — the armed guard writing the report there,
+and the caller-side redirect of the contract pointing stdout at it. It is
+now retained in ``a.ghog.senv.txt`` behind one summary line, with alert
+lines still surfaced so a blocked senv cannot hide behind a pointer.
 
 Fix: the side-log consumption is split out as :func:`consume_senv_log`
 so the Q32 paths can reuse it — the detach launcher folds the preamble
@@ -54,6 +60,19 @@ LOGGER = logging.getLogger("groundhog")
 LOG_NAME: Final = "a.ghog.log"
 # The environment variable naming the senv side log parked by ghog.bat.
 SENV_LOG_ENV: Final = "GHOG_SENV_LOG"
+# The raw senv preamble is retained here, never folded into the report.
+SENV_RAW_NAME: Final = "a.ghog.senv.txt"
+# The one summary line that replaces the preamble in the report stream.
+MSG_SENV_PARKED: Final = (
+    "ghog: senv preamble kept out of the report; raw text in a.ghog.senv.txt"
+)
+# Lines of the preamble that must stay visible whatever the mode: a blocked
+# senv is the escalation signal the instruction files branch on, so it is
+# surfaced in summary form rather than parked with the rest.
+_SENV_ALERT_RE: Final = re.compile(
+    r"^\s*ERROR\s*:|Access is denied|Unable to create virtual env"
+    r"|Failed to export|No python_3",
+)
 # The envelope notice naming the log on the captured stdout.
 MSG_SELF_REDIRECT: Final = (
     "ghog: stdout not redirected - full report written to a.ghog.log; "
@@ -206,14 +225,47 @@ def consume_senv_log() -> str:
     return text
 
 
-def replay_senv_log() -> None:
-    """Fold the senv side log of ghog.bat back into the report stream.
+def replay_senv_log(mode: Mode, root: Path) -> None:
+    """Retain the senv side log of ghog.bat outside the report stream (Q31).
 
-    The replay sends the consumed text wherever the report goes —
-    stdout normally, ``a.ghog.log`` when the guard armed.
+    An LLM report is a summary: progress percentages, the next step and the
+    closing line. The senv preamble is raw wrapper output and belongs in
+    neither ``a.ghog.log`` nor a captured stdout, and it reached the log by two
+    routes — the armed guard writing the report there, and the caller-side
+    redirect of the invocation contract pointing stdout at it. Folding the
+    preamble into that stream put twenty raw lines above the first progress
+    line either way.
+
+    So an LLM run retains the preamble in its own file and leaves one summary
+    line in its place. A user run still streams it, because a person watching a
+    terminal wants to see the environment come up.
+
+    Alert lines survive in both modes. A senv blocked by a sandbox, or a venv
+    it could not find, is the signal the instruction files escalate on, and
+    parking that silently would hide a stop behind a pointer.
+
+    Args:
+        mode: The picked output mode (Q03).
+        root: The consuming project root, hosting the retained file.
     """
-    for line in consume_senv_log().splitlines():
-        LOGGER.info("%s", _ANSI_ESCAPE_RE.sub("", line))
+    text = consume_senv_log()
+    if not text.strip():
+        return
+    lines = [_ANSI_ESCAPE_RE.sub("", line) for line in text.splitlines()]
+    if mode is not Mode.LLM:
+        for line in lines:
+            LOGGER.info("%s", line)
+        return
+    with contextlib.suppress(OSError):
+        (root / SENV_RAW_NAME).write_text(
+            "\n".join(lines) + "\n",
+            encoding="utf-8",
+            errors="replace",
+        )
+    LOGGER.info("%s", MSG_SENV_PARKED)
+    for line in lines:
+        if _SENV_ALERT_RE.search(line):
+            LOGGER.info("%s", line)
 
 
 # eof

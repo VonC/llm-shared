@@ -30,6 +30,7 @@ if TYPE_CHECKING:
 
 POLICY = FamilyPolicy("consolidation-ready", "Revise and review again", "Consolidate")
 TIMESTAMP = "2026-08-11T14:00:00+02:00"
+_CAPABILITIES: dict[Path, tuple[int, str]] = {}
 
 
 @dataclass(frozen=True)
@@ -124,21 +125,43 @@ def run_exchange(
 ) -> CliResult:
     """Invoke the public exchange command and parse its sole JSON result."""
     stdout, stderr = StringIO(), StringIO()
+    capability = _CAPABILITIES.get(effort.context.document_path)
+    capability_arguments: tuple[str, ...] = ()
+    if capability is not None and operation not in {"activate", "status"}:
+        generation, token = capability
+        capability_arguments = (
+            "--ownership-generation",
+            str(generation),
+            "--ownership-token",
+            token,
+        )
     with (
         chdir(effort.root),
         redirect_stdout(stdout),
         redirect_stderr(stderr),
         patch.dict(os.environ, {"PRJ_DIR": str(effort.root)}),
     ):
-        code = review_exchange_cli.main([operation, *common(effort.context), *extra])
+        code = review_exchange_cli.main(
+            [operation, *common(effort.context), *capability_arguments, *extra],
+        )
     lines = stdout.getvalue().splitlines()
     assert len(lines) == 1, stderr.getvalue()
-    return CliResult(code, cast("dict[str, Any]", json.loads(lines[0])))
+    payload = cast("dict[str, Any]", json.loads(lines[0]))
+    generation = payload.get("ownership_generation")
+    token = payload.get("ownership_token")
+    if isinstance(generation, int) and isinstance(token, str):
+        _CAPABILITIES[effort.context.document_path] = (generation, token)
+    if payload.get("state") == "idle":
+        _CAPABILITIES.pop(effort.context.document_path, None)
+    return CliResult(code, payload)
 
 
 def input_file(effort: Effort, name: str, content: str) -> Path:
     """Write one exact ignored reviewer-authored input."""
-    path = effort.root / f"a.{name}.md"
+    home = effort.root / ".reviews"
+    home.mkdir(exist_ok=True)
+    (home / ".gitignore").write_bytes(b"*\n")
+    path = home / f"a.{name}.md"
     path.write_text(content, encoding="utf-8")
     return path
 
@@ -148,8 +171,9 @@ def render_request(effort: Effort, *, guidance: str | None = None) -> tuple[Path
     assessment = input_file(effort, "request-assessment", "Review every open question.")
     changes = input_file(effort, "request-changes", "Initial independent review.")
     response = input_file(effort, "writer-response", "Please assess the specification.")
-    output = effort.root / "a.rendered-request.md"
-    summary = effort.root / "a.rendered-request-summary.md"
+    home = effort.root / ".reviews"
+    output = home / "a.rendered-request.md"
+    summary = home / "a.rendered-request-summary.md"
     args = [
         "--document",
         str(effort.document),
@@ -208,8 +232,9 @@ def render_answer(
             "Apply the verdict.",
         ),
     }
-    answer = effort.root / "a.rendered-answer.md"
-    summary = effort.root / "a.rendered-answer-summary.md"
+    home = effort.root / ".reviews"
+    answer = home / "a.rendered-answer.md"
+    summary = home / "a.rendered-answer-summary.md"
     args = [
         "--document",
         str(effort.document),

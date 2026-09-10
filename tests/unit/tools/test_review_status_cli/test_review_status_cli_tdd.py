@@ -20,6 +20,7 @@ from tools import review_status, review_status_cli
 from tools.review_status_models import (
     SCHEMA_VERSION,
     DamagedCandidateStatus,
+    MigrationStatus,
     ReviewStatusOutcome,
     ReviewStatusResult,
 )
@@ -47,6 +48,11 @@ def _result(root: Path, outcome: ReviewStatusOutcome) -> ReviewStatusResult:
         exchanges=exchanges,
         active_count=len(exchanges),
         has_errors=outcome is not ReviewStatusOutcome.TRUSTWORTHY,
+        migration=(
+            MigrationStatus.blocked(".reviews", ("collection failed",))
+            if outcome is ReviewStatusOutcome.OPERATIONAL_FAILURE
+            else MigrationStatus.unnecessary(".reviews")
+        ),
     )
 
 
@@ -158,7 +164,14 @@ def test_operational_result_renders_on_stderr_without_partial_stdout(
     streams = capsys.readouterr()
     assert status == _OPERATIONAL_STATUS
     assert streams.out == ""
-    assert json.loads(streams.err)["outcome"] == "operational-failure"
+    payload = json.loads(streams.err)
+    assert payload["outcome"] == "operational-failure"
+    assert payload["migration"] == {
+        "artifact_home": ".reviews",
+        "diagnostics": ["collection failed"],
+        "moved_count": 0,
+        "state": "blocked",
+    }
 
 
 @pytest.mark.parametrize("arguments", [["--root", "missing"], ["--format", "yaml"]])

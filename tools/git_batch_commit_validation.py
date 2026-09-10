@@ -10,6 +10,7 @@ from pathlib import PurePosixPath
 from tools.git_batch_commit_models import (
     CommitBlock,
     CommitPlanGroup,
+    CommitPlanSubjectRequirement,
     CommitPlanValidation,
 )
 
@@ -79,11 +80,30 @@ def _membership_diagnostics(
     return diagnostics
 
 
+def _subject_requirement_diagnostics(
+    groups: list[CommitPlanGroup],
+    requirements: tuple[CommitPlanSubjectRequirement, ...],
+) -> list[str]:
+    """Require workflow-owned subjects on the groups containing their paths."""
+    diagnostics: list[str] = []
+    for requirement in requirements:
+        matching = [group for group in groups if requirement.path in group.paths]
+        if len(matching) != 1 or matching[0].subject == requirement.subject:
+            continue
+        group = matching[0]
+        diagnostics.append(
+            f"group {group.position} containing completed validation plan "
+            f"{requirement.path} must use exact subject: {requirement.subject}",
+        )
+    return diagnostics
+
+
 def validate_commit_plan(
     blocks: list[CommitBlock],
     staged_paths: list[str] | tuple[str, ...],
+    subject_requirements: tuple[CommitPlanSubjectRequirement, ...] = (),
 ) -> CommitPlanValidation:
-    """Validate ordered groups, conventional subjects, and exact staged membership."""
+    """Validate groups, subjects, workflow markers, and staged membership."""
     diagnostics: list[str] = []
     groups: list[CommitPlanGroup] = []
     planned_paths: list[str] = []
@@ -93,6 +113,7 @@ def validate_commit_plan(
         planned_paths.extend(group.paths)
         diagnostics.extend(group_diagnostics)
     diagnostics.extend(_membership_diagnostics(planned_paths, staged_paths))
+    diagnostics.extend(_subject_requirement_diagnostics(groups, subject_requirements))
     return CommitPlanValidation(tuple(groups), tuple(diagnostics))
 
 

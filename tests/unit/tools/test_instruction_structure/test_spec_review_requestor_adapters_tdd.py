@@ -64,12 +64,12 @@ def test_codex_adapters_match_the_plugin_redirect_contract() -> None:
     assert packaged == (
         "Read and follow the canonical instruction at "
         "[`instructions/spec-review-requestor.md`]"
-        "(../../../instructions/spec-review-requestor.md).\n"
+        "(../../../../../../../git/llm-shared/instructions/spec-review-requestor.md).\n"
     )
     skill = _LINK_ADAPTERS[1].read_text(encoding="utf-8")
     assert skill.rstrip().endswith(
         "Read and follow [the canonical instruction]"
-        "(../../../../instructions/spec-review-requestor.md)",
+        "(../../../../../../../../git/llm-shared/instructions/spec-review-requestor.md)",
     )
 
 

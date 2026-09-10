@@ -17,6 +17,7 @@ from tools.code_review_validation import resolve_code_review_validation
 from tools.commit_plan_check import CommitPlanCheckResult, CommitPlanCheckState
 from tools.prompt_workflow_code_review import CODE_REVIEW_POLICY
 from tools.prompt_workflow_models import MemoryRecord, Topic, WorkflowState
+from tools.review_artifact_configuration import ReviewArtifactConfiguration
 from tools.review_exchange_core import ReviewExchangeCore
 from tools.review_exchange_models import (
     ArtifactState,
@@ -162,6 +163,7 @@ def make_effort(root: Path, *, step: str = "6") -> Effort:
 
 def core(effort: Effort) -> ReviewExchangeCore:
     """Bind the shared exchange to the code-review policy."""
+    ReviewArtifactConfiguration.load(effort.root).prepare_home()
     return ReviewExchangeCore(
         ReviewExchangeStore(derive_artifact_paths(effort.root, effort.context)),
         effort.context,

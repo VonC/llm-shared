@@ -1,4 +1,4 @@
-"""Command-line adapter for read-only repository-wide review status."""
+"""CLI adapter for migration-aware schema-2 repository review status."""
 
 from __future__ import annotations
 
@@ -28,7 +28,9 @@ class _ArgumentParser(argparse.ArgumentParser):
 
 def _parser() -> argparse.ArgumentParser:
     """Build the stable public argument parser."""
-    parser = _ArgumentParser(description="Report active review exchanges read-only.")
+    parser = _ArgumentParser(
+        description="Report active reviews after bounded migration preflight.",
+    )
     parser.add_argument("--root", type=Path, help="explicit Git repository root")
     parser.add_argument(
         "--format",

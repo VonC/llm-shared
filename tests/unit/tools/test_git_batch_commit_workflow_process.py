@@ -248,13 +248,34 @@ def test_batch_validation_uses_the_public_commit_plan_validator(
         "_staged_paths",
         _one_staged_path,
     )
+    requirements = (
+        git_batch_models.CommitPlanSubjectRequirement(
+            path="src/example.py",
+            subject="fix(scope): valid title",
+        ),
+    )
+
+    def subject_requirements(
+        root: Path,
+        paths: tuple[str, ...],
+    ) -> tuple[git_batch_models.CommitPlanSubjectRequirement, ...]:
+        captured["requirement_inputs"] = (root, paths)
+        return requirements
+
+    monkeypatch.setattr(
+        git_batch_workflow.commit_plan_support,
+        "completed_validation_subject_requirements",
+        subject_requirements,
+    )
 
     def fake_validate(
         blocks: list[git_batch_models.CommitBlock],
         staged_paths: tuple[str, ...],
+        subject_requirements: tuple[git_batch_models.CommitPlanSubjectRequirement, ...],
     ) -> git_batch_models.CommitPlanValidation:
         captured["blocks"] = blocks
         captured["staged_paths"] = staged_paths
+        captured["subject_requirements"] = subject_requirements
         return git_batch_models.CommitPlanValidation(groups=(), diagnostics=())
 
     monkeypatch.setattr(git_batch_workflow, "validate_commit_plan", fake_validate)
@@ -262,6 +283,8 @@ def test_batch_validation_uses_the_public_commit_plan_validator(
     assert captured == {
         "blocks": [block],
         "staged_paths": ("src/example.py",),
+        "requirement_inputs": (tmp_path, ("src/example.py",)),
+        "subject_requirements": requirements,
     }
 
 
@@ -296,6 +319,18 @@ def test_batch_validation_reports_public_validator_diagnostics(
     """Typed diagnostics stop the batch before its commit phase."""
     block = _valid_block()
     monkeypatch.setattr(git_batch_workflow, "_staged_paths", _one_staged_path)
+
+    def no_subject_requirements(
+        _root: Path,
+        _paths: tuple[str, ...],
+    ) -> tuple[git_batch_models.CommitPlanSubjectRequirement, ...]:
+        return ()
+
+    monkeypatch.setattr(
+        git_batch_workflow.commit_plan_support,
+        "completed_validation_subject_requirements",
+        no_subject_requirements,
+    )
     invalid = git_batch_models.CommitPlanValidation(
         groups=(),
         diagnostics=("planned path is not staged: other.py",),
@@ -304,6 +339,7 @@ def test_batch_validation_reports_public_validator_diagnostics(
     def return_invalid(
         _blocks: list[git_batch_models.CommitBlock],
         _paths: tuple[str, ...],
+        _requirements: tuple[git_batch_models.CommitPlanSubjectRequirement, ...],
     ) -> git_batch_models.CommitPlanValidation:
         return invalid
 

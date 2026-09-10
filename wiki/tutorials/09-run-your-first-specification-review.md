@@ -21,13 +21,15 @@ at the point where the two families diverge.
 
 ## 1. Activate independent review mode
 
-At the repository root, create an empty file named `a.review-mode`. An empty
-marker selects the default bounded wait. Keep the fictional umbrella and
+Prepare the configured artifact home (`.reviews` by default) with a local
+`.gitignore` containing `*`, then create an empty `a.review-mode` inside it.
+An empty marker selects the default bounded requestor wait. Keep the fictional umbrella and
 reviewed specification as repository-relative paths when you address the agent.
 
 Open two agent sessions in this repository and label them **Requestor** and
 **Reviewer**. Leave both sessions open until the exchange reaches its human
-gate.
+gate. You open the two sessions independently; never ask either agent to spawn,
+invoke, delegate to, or message its counterpart.
 
 ## 2. Publish specification round 1
 
@@ -44,6 +46,17 @@ requestor, and publishes round 1. The request identity names the umbrella,
 reviewed specification, and round. The requestor then enters one bounded wait
 for the reviewer answer.
 
+From a repository shell, inspect the durable state without resuming it:
+
+```powershell
+& "<LLM_SHARED_DIR>\rvw_status.bat"
+```
+
+The report names the `.reviews` artifact home, migration result, recorded
+requestor and reviewer LLM natures, `request-pending` state, reviewer owner, and
+the exact next action. On an older repository, this first status call may move
+recognized runtime artifacts transactionally before reporting them.
+
 Do not infer the answer filename. Keep the requestor session waiting while the
 reviewer works; the final launcher result will return the authoritative
 `paths.answer` value.
@@ -58,6 +71,10 @@ In the separate reviewer session, ask:
 $llm-shared:spec-reviewer
 ```
 
+This instruction comes from you, not from the waiting requestor. A reviewer
+must reject a task that an automated requestor or requestor parent session
+initiated, even when round 1 is validly pending.
+
 The reviewer follows the sole pending specification request, reads its returned
 request path, and publishes a `changes-requested` answer. For this example,
 imagine it finds that the route-warning requirement never says what happens
@@ -65,8 +82,8 @@ when a trail has no severity value.
 
 The reviewer does not edit the specification or choose for the human. Its
 published answer becomes durable exchange evidence. Because the disposition is
-`changes-requested`, the reviewer immediately enters its next bounded
-`wait-request` in the same session. Leave it running; do not invoke the
+`changes-requested`, the reviewer immediately enters the quiet global
+`wait-any-request` in the same session. Leave it running; do not invoke the
 reviewer skill again for round 2.
 
 ## 4. Apply the answer and publish round 2
@@ -87,9 +104,10 @@ that is already waiting.
 
 Without another command from you, the active reviewer reads the returned round
 2 request, finds the questions and answers complete, and publishes a
-convergence recommendation. It does not start another wait after convergence.
-Exit `3` is the expected stop at the human gate, not an authorization or a
-failed review.
+convergence recommendation and leaves the human gate alone. The reviewer
+returns to `wait-any-request` under the configured home, ready for a replacement
+round or a new review. The requestor's exit `3` is the expected human stop and
+grants no consolidation authority.
 
 ## 5. Make the human choice
 

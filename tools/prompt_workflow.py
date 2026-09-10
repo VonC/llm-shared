@@ -58,6 +58,9 @@ from tools import prompt_workflow_plan as plan
 from tools import prompt_workflow_skill as skill
 from tools import prompt_workflow_steps as steps
 from tools.prompt_workflow_models import MemoryRecord, PromptWorkflowError
+from tools.review_artifact_configuration import ReviewArtifactConfiguration
+from tools.review_exchange_models import ReviewExchangeError
+from tools.review_exchange_paths import load_review_configuration
 
 if TYPE_CHECKING:
     from tools.prompt_workflow_models import StepAlternative, Topic, WorkflowState
@@ -232,6 +235,30 @@ def _cycle_ready_line(cycle: CycleState, action: CycleAction) -> str:
         "release notes" if action.kind == "release" else f"step {cycle.x} ({action.kind})"
     )
     return f"Prompt for {label} ready: on the clipboard and in {PROMPT_FILENAME}."
+
+
+def _review_mode_line(root: Path) -> str:
+    """Return the one line naming review mode and where it was read from.
+
+    The branch after `group-commits-msg` depends on this state, and a caller
+    that has to remember to look for a marker is a caller that eventually does
+    not: the marker sits under a dotted artifact home a plain listing does not
+    show, and the `a.*` ignore rule keeps it out of `git status`. Printing the
+    state on the path the caller already follows removes the remembering.
+
+    Args:
+        root: The project root the handoff operates on.
+
+    Returns:
+        One line stating `on`, `off`, or `unknown` with its diagnostic.
+    """
+    try:
+        artifacts = ReviewArtifactConfiguration.load(root)
+        configuration = load_review_configuration(root, configuration=artifacts)
+    except (ReviewExchangeError, OSError) as error:
+        return f"review-mode: unknown ({error}); sample it before the commit gate."
+    state = "on" if configuration.enabled else "off"
+    return f"review-mode: {state} (artifact home {artifacts.relative_home})."
 
 
 def _run_implement_cycle(
@@ -433,6 +460,7 @@ def run_handoff(root: Path, task: str, step: str) -> int:
         ),
     )
     LOGGER.info(_cycle_ready_line(cycle, action))
+    LOGGER.info(_review_mode_line(root))
     return 0
 
 

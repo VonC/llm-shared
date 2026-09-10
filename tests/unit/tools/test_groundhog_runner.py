@@ -1,13 +1,20 @@
 """Unit tests for the groundhog child-process runner (Q17).
 
 Cover the per-subcommand pytest command lines, the full run's
-``--durations`` timing flags (Q39), the testmon reset of a full run, the
-live streaming loop (with the real process factory), and the crash
-classification of a pytest child (Q06).
+``--durations`` timing flags (Q39), the live streaming loop (with the real
+process factory), and the crash classification of a pytest child (Q06).
 
 Fix: the full command now also carries --durations=0 and
 --durations-min=0 so the full run times every call; the affected and
 single commands stay untimed.
+
+Fix: the full command carries the xdist worker options instead of
+``--testmon``, which cannot share a session with ``pytest-xdist``. The
+affected run keeps testmon and owns the incremental map, so no test covers a
+testmon reset any more.
+
+The real streaming child skips site initialization and inherited Python setup;
+the scenario needs only builtin output and exit status.
 """
 
 from __future__ import annotations
@@ -73,10 +80,11 @@ def _config(
 
 
 def test_full_command_is_alias_faithful() -> None:
-    """The full command keeps the ptr alias flags, -v and the timing flags.
+    """A project that did not opt in keeps the sequential ptr command (Q39).
 
-    The full run alone times every call (Q39), so it carries
-    --durations=0 and --durations-min=0 after the alias flags.
+    groundhog is shared tooling, so the default must stay exactly what every
+    consuming project already runs: testmon, coverage and the timing flags that
+    feed the outlier rule.
     """
     command = runner.pytest_command("pytest", runner.SUB_FULL, no_cov=False, files=())
     assert command == [
@@ -91,24 +99,79 @@ def test_full_command_is_alias_faithful() -> None:
     ]
 
 
-def test_only_the_full_command_times_durations() -> None:
-    """The affected and single commands carry no --durations flags (Q39)."""
+def test_opted_in_full_command_runs_on_workers_without_timing_or_testmon() -> None:
+    """The opted-in full run swaps testmon and timing flags for workers.
+
+    testmon cannot share a session with xdist, and a contended call time
+    measures the scheduler rather than the test, so the sequential timings run
+    owns the outlier rule for such a project.
+    """
+    command = runner.pytest_command(
+        "pytest", runner.SUB_FULL, no_cov=False, files=(), parallel=True,
+    )
+    assert command == [
+        "pytest",
+        "-n",
+        "auto",
+        "--dist",
+        "loadgroup",
+        "--no-header",
+        "--cov-report",
+        "term-missing:skip-covered",
+        "-v",
+    ]
+    assert "--testmon" not in command
+    assert "--durations=0" not in command
+
+
+def test_timings_command_is_sequential_uninstrumented_and_timed() -> None:
+    """The timing pass sees every test with no workers and no coverage (Q39).
+
+    Workers make a call time a measure of contention and coverage inflates it,
+    so the only run that judges durations carries neither.
+    """
+    command = runner.pytest_command("pytest", runner.SUB_TIMINGS, no_cov=False, files=())
+    assert command == [
+        "pytest",
+        "--no-header",
+        "--no-cov",
+        "-v",
+        "--durations=0",
+        "--durations-min=0",
+    ]
+    assert "-n" not in command
+    assert "--testmon" not in command
+
+
+def test_worker_run_never_shares_a_session_with_testmon() -> None:
+    """Testmon and xdist abort together, so only the affected run keeps testmon."""
+    full_no_cov = runner.pytest_command(
+        "pytest", runner.SUB_FULL, no_cov=True, files=(), parallel=True,
+    )
     affected = runner.pytest_command(
-        "pytest",
-        runner.SUB_AFFECTED,
-        no_cov=False,
-        files=(),
+        "pytest", runner.SUB_AFFECTED, no_cov=False, files=(), parallel=True,
     )
-    single = runner.pytest_command(
-        "pytest",
-        runner.SUB_SINGLE,
-        no_cov=False,
-        files=("tests/test_a.py",),
-    )
-    assert "--durations=0" not in affected
-    assert "--durations-min=0" not in affected
-    assert "--durations=0" not in single
-    assert "--durations-min=0" not in single
+    assert full_no_cov == ["pytest", "-n", "auto", "--dist", "loadgroup", "--no-header", "--no-cov", "-v"]
+    assert "--testmon" in affected
+    assert "-n" not in affected
+
+
+def test_parallel_is_opt_in_per_project(tmp_path: Path) -> None:
+    """Only a project declaring the marker file gets the worker command."""
+    assert runner.parallel_enabled(tmp_path) is False
+    (tmp_path / runner.PARALLEL_MARKER).write_text("opt in\n", encoding="utf-8")
+    assert runner.parallel_enabled(tmp_path) is True
+
+
+def test_affected_and_single_never_time_durations() -> None:
+    """Only a full or timings run carries --durations flags (Q39)."""
+    for sub, files in (
+        (runner.SUB_AFFECTED, ()),
+        (runner.SUB_SINGLE, ("tests/test_a.py",)),
+    ):
+        command = runner.pytest_command("pytest", sub, no_cov=False, files=files)
+        assert "--durations=0" not in command, sub
+        assert "--durations-min=0" not in command, sub
 
 
 def test_affected_command_appends_coverage() -> None:
@@ -152,20 +215,13 @@ def test_single_command_names_the_files() -> None:
     ]
 
 
-def test_reset_testmon_deletes_the_database(tmp_path: Path) -> None:
-    """The full-run reset deletes .testmondata, twice without error."""
-    database = tmp_path / runner.TESTMON_DATA_FILE
-    database.write_text("stale", encoding="utf-8")
-    runner.reset_testmon(tmp_path)
-    assert not database.exists()
-    runner.reset_testmon(tmp_path)
-
-
 def test_run_streaming_with_the_real_factory(tmp_path: Path) -> None:
     """The default factory streams a real child and returns its code."""
     config = runner.StreamConfig(
         command=[
             sys.executable,
+            "-I",
+            "-S",
             "-c",
             "import sys; print('alpha'); print('beta'); sys.exit(3)",
         ],

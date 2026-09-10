@@ -28,6 +28,8 @@ calls it implicitly.
 | Argument | Meaning |
 | --- | --- |
 | `source` | Export file to trim. Omitted, the clipboard is the source |
+| `date` | Extra `YYYYMMDD` date for the dated-prompt pass. A lone eight-digit argument is read as this date, so `tth 20260903` still trims the clipboard |
+| `--date YYYYMMDD` | The same date, spelled out. Use it when the value could be mistaken for a file name |
 | `--format {auto,claude,codex}` | Export format. `auto` detects it from the markers, and is the default |
 | `--debug` | Raise the log level to `DEBUG` |
 
@@ -69,6 +71,28 @@ Every answer block, or assistant section, between the opening and the last one
 is treated as work rather than answer, and resets the answer region. A turn cut
 short with no closing line still keeps its last block. Text before the first
 prompt line, or the first `## User` heading, belongs to no turn and is dropped.
+
+## Dated-prompt pass
+
+Once the three regions are kept, one pass runs over the trimmed text. A line is
+a dated prompt when it opens with an optional one-character marker and its
+space, then a date, then a space, which is the shape a Claude prompt line takes
+when the ask is stamped with a day:
+
+```text
+❯ 20260903 the ask this session opens with
+```
+
+Today is always one of the matched dates, so a bare `tth` still removes every
+line before a prompt stamped with today. The `date` argument adds a second date
+rather than replacing today. Dates are matched only in the eight-digit
+`YYYYMMDD` rendering. The first recognized dated prompt becomes the first line
+of the result. A dated prompt already on the first line changes nothing, and a
+leading number that is not one of the requested dates leaves the transcript
+unchanged.
+
+The pass never removes the dated line itself, and the removed lines count
+towards the summary line's total.
 
 ## Format detection
 

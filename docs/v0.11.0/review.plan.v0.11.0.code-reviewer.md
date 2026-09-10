@@ -1361,13 +1361,13 @@ Decision: changes-requested. The writer should apply the concrete instructions a
 - Reviewed document: docs/v0.11.0/plan.v0.11.0.code-reviewer.md
 - Outcome: request
 
-### Review identity for plan code-reviewer (round 2)
+### Review identity for plan code-reviewer (round 2, exchange 2)
 
 Umbrella draft: docs/v0.11.0/draft.v0.11.0.review-mode.md
 Reviewed specification: docs/v0.11.0/plan.v0.11.0.code-reviewer.md
 Review round: 2
 
-### Requestor assessment for plan code-reviewer (round 2)
+### Requestor assessment for plan code-reviewer (round 2, exchange 2)
 
 All four Step 3 decisions are now explicit. Q12 closes the missing staged-path
 membership decision, and its three options distinguish plan-bounded scope,
@@ -1398,7 +1398,7 @@ exchange occurrence in `tools/code_review_evidence.py` and its CLI/tests; Step
 tests. Those shipped changes are not represented as completed by this
 specification-only edit.
 
-### Change summary for plan code-reviewer (round 2)
+### Change summary for plan code-reviewer (round 2, exchange 2)
 
 - Added Q12 before Q09 and answered it with the complete staged set from the
   request-time index, while retaining `Files involved` for attribution only.
@@ -1415,7 +1415,7 @@ specification-only edit.
   existing code-reviewer Step 1, Step 2, and Step 3 surfaces; no implementation
   file was changed during this specification-plan round.
 
-### Writer response for plan code-reviewer (round 2)
+### Writer response for plan code-reviewer (round 2, exchange 2)
 
 Writer response: The writer accepts every round-1 finding and has applied all five requested
 plan changes.
@@ -1436,7 +1436,7 @@ alignment work is explicitly assigned back to code-reviewer Steps 1 through 3
 and their named validation, manifest, instruction, CLI, and test surfaces; it
 was not mixed into this specification edit.
 
-### Reviewer focus for plan code-reviewer (round 2)
+### Reviewer focus for plan code-reviewer (round 2, exchange 2)
 
 Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
 

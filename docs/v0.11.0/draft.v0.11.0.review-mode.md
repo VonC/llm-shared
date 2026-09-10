@@ -22,6 +22,75 @@ Choosing another round at convergence overrides the reviewer recommendation and 
 
 Every reviewee-to-reviewer summary identifies its context in human-readable form. It names the umbrella draft when one exists, or states `Umbrella draft: none`; specification summaries name the exact reviewed specification and round; code summaries name the exact implementation plan, implementation step, and round. Those fields must agree with the machine-readable exchange identity.
 
+## Cross-cutting artifact home and LLM identity extension
+
+The final `review-resume-command` item owns two cross-cutting changes to the
+integrated review-mode behavior. These changes supersede the earlier
+project-root runtime-artifact convention in the final implementation without
+reopening or rewriting completed items 1 through 9.
+
+They also supersede the earlier regrouping of a repository-root `rvw_resume`
+command: resume is delivered only as an LLM skill because continuation requires
+an active LLM session. Completed requirement, design, plan, validation, and
+status documents remain closed; this umbrella and the final item record both
+cross-cutting revisions.
+
+First, every protocol-owned runtime review artifact must resolve below one
+configurable repository-local directory whose default is
+`<PRJ_DIR>/.reviews`. The final item also provides a migration tool that moves
+recognized existing review artifacts from `PRJ_DIR` into the configured or
+default directory without overwriting ambiguous evidence. Shared code and all
+affected tests from the earlier exchange, requestor, reviewer, status, and
+documentation topics must adopt that resolver as part of item 10.
+
+A fast `migration_check` tool runs before every resume and can be invoked by
+review status, including `rvw_status`. It distinguishes an already-correct artifact
+home, legacy traces or artifacts requiring migration, and a collision or
+damaged layout that prevents a safe move. Resume must migrate recognized
+misplaced evidence and repeat the check before continuing. Review status must
+also be able to run that check and migration. This bounded preflight write
+supersedes the earlier strict read-only guarantee only for artifact migration;
+normal status discovery remains read-only once the check passes.
+
+Second, every exchange must trace which supported LLM acts as requestor and
+which acts as reviewer. The shared host detector identifies Claude, Codex, or
+Gemini from session evidence when possible and records an explicit unknown
+state otherwise. Review status, including `rvw_status`, reports those role-specific
+LLM identities. Legacy evidence may retain a missing trace; migration does not
+invent one.
+
+Readers must accept both legacy artifacts without LLM nature and newer traced
+artifacts. Before continuing a role, inspect every artifact in the selected
+exchange attributed to that role. When none records a different nature,
+backfill the detected current LLM into all missing-nature artifacts for that
+role. When any records a different nature, stop before backfill, list all
+conflicts, and ask for `Override` or `Stop`. Override preserves the conflicting
+recorded values while allowing the role-wide missing-nature backfill and
+continuation; Stop changes nothing. For artifacts authored by the other role,
+a missing nature is ignored and the artifact remains readable and unchanged.
+
+The resume entry point is an LLM skill rather than a CMD command. It selects
+requestor or reviewer by comparing the current LLM identity with the exchange
+trace. When a legacy trace contains no LLM nature and no role argument was
+passed, it asks which role to resume. An explicit role argument supplies that
+missing choice, while a conflict with known trace evidence requires human
+confirmation. Resume means starting or restarting a wait, reclaiming the exact
+round and acting, or continuing beyond review through `pw skill`. Once the role
+is resolved, no further confirmation is requested except for the stated forced
+role mismatch.
+
+A reviewer resume has only two outcomes: answer an existing request, or wait
+for any future review-request artifact without knowing its identity in advance.
+That wait is entered from an idle exchange, from an exchange that has
+concluded, and from a live exchange whose next action belongs to the requestor
+or to the human convergence gate, and it wakes on the next request whether that
+request resumes the same exchange at a later round or occurrence or opens one
+that did not exist when the wait started.
+A requestor resume waits for an in-progress review answer, performs the next
+owned review action, or, when no review and no further request remain, runs and
+follows `pw skill` so writing, implementation, later review, or another durable
+workflow task continues.
+
 ## Spec review
 
 ### Spec review requestor -- the writer
@@ -139,7 +208,7 @@ The feature request and design will need to insist on termination criteria for t
 | 7 | Feature-request | Check Markdown against the repository rules | `markdown-check` | completed | `docs/v0.11.0/feature-request.v0.11.0.markdown-check.md` | `docs/v0.11.0/plan.v0.11.0.markdown-check.validation.md` |
 | 8 | Feature-request | Expose commit-plan validation without committing | `commit-plan-check` | completed | `docs/v0.11.0/feature-request.v0.11.0.commit-plan-check.md` | `docs/v0.11.0/plan.v0.11.0.commit-plan-check.validation.md` |
 | 9 | Feature-request | Report active review status through a skill | `review-status-command` | completed | `docs/v0.11.0/feature-request.v0.11.0.review-status-command.md` | `docs/v0.11.0/plan.v0.11.0.review-status-command.validation.md` |
-| 10 | Feature-request | Resume interrupted reviews | `review-resume-command` | pending | - | - |
+| 10 | Feature-request | Resume interrupted reviews | `review-resume-command` | completed | `docs/v0.11.0/feature-request.v0.11.0.review-resume-command.md` | `docs/v0.11.0/plan.v0.11.0.review-resume-command.validation.md` |
 
 ### Requirement details for the umbrella
 
@@ -150,7 +219,7 @@ The feature request and design will need to insist on termination criteria for t
 - Slug: `review-exchange-core`
 - Regroups: the project-root `a.review-mode` opt-in marker; the request, answer, and versioned review-transcript artifact conventions; the shared requestor role or skill; reusable templates, scripts, and utility tools; safe create, overwrite, append, wait, and delete operations; the convergence-only human-confirmation state; the mandatory review-summary identity; and the termination and human-intervention rules shared by specification and code review.
 - Boundary rationale: the transport, naming, lifecycle, and safety policy must be settled once so every requestor and reviewer role can exchange files consistently without duplicating the protocol.
-- Concrete rules and constraints: transient `a.review-requested.*` and `a.review-answer.*` files stay at the project root and rely on the existing `a.*` ignore rule; the versioned `review.*` transcript lives beside the reviewed document, is initialized from a type-and-version template when absent, is append-only for agents, and is not reread as working context; producing an answer deletes the matching request; requestors delete stale or consumed intermediate answers but retain convergence answers until confirmation; intermediate rounds stay automated; convergence enters durable `awaiting-human-confirmation`; escalation remains separate; every requestor summary names its umbrella or `none` and its exact specification or plan context; review waits must terminate or escalate when they are not completed in time or when the two roles disagree; and the workflow must define explicit criteria for stopping and requesting human intervention.
+- Concrete rules and constraints: transient `a.review-requested.*` and `a.review-answer.*` files originally stay at the project root and rely on the existing `a.*` ignore rule, but item 10 supersedes that runtime placement through the configured artifact home; the versioned `review.*` transcript lives beside the reviewed document, is initialized from a type-and-version template when absent, is append-only for agents, and is not reread as working context; producing an answer deletes the matching request; requestors delete stale or consumed intermediate answers but retain convergence answers until confirmation; intermediate rounds stay automated; convergence enters durable `awaiting-human-confirmation`; escalation remains separate; every requestor summary names its umbrella or `none` and its exact specification or plan context; review waits must terminate or escalate when they are not completed in time or when the two roles disagree; and the workflow must define explicit criteria for stopping and requesting human intervention.
 - Depends on: none.
 
 #### 2. Request specification reviews
@@ -200,7 +269,7 @@ The feature request and design will need to insist on termination criteria for t
 - Slug: `review-mode-docs`
 - Regroups: documentation for the shared requestor role, the `spec-reviewer` and `code-reviewer` skills, their templates and scripts, the opt-in marker, artifacts, automated intermediate rounds, the convergence-only human gate, mandatory summary identity, dialogue lifecycle, timeouts, disagreement handling, and utility tools in the project docs and appropriate Diataxis wiki pages.
 - Boundary rationale: documentation follows the settled behavior of every role and gives users one coherent operational view without making the functional requirements depend on prose that is still changing.
-- Concrete rules and constraints: document the LLM-specific wrappers that locate the canonical shared instructions; cover how to enable review mode, run each reviewer, interpret and recover the transient files, and escalate to a human; keep review transcripts beside their source documents and transient coordination files at the root; and keep each Diataxis page focused on one purpose, presented in the order explanation, tutorials, how-to guides, then reference.
+- Concrete rules and constraints: document the LLM-specific wrappers that locate the canonical shared instructions; cover how to enable review mode, run each reviewer, interpret and recover the transient files, and escalate to a human; keep review transcripts beside their source documents, while item 10 supersedes the root placement of transient coordination files with the configured artifact home; and keep each Diataxis page focused on one purpose, presented in the order explanation, tutorials, how-to guides, then reference.
 - Depends on: `review-exchange-core`, `spec-review-requestor`, `spec-reviewer`, `code-review-requestor`, `code-reviewer`.
 
 #### 7. Check Markdown against the repository rules
@@ -230,7 +299,7 @@ The feature request and design will need to insist on termination criteria for t
 - Slug: `review-status-command`
 - Regroups: a public `review-status-command` skill exposed by the installed llm-shared plugin as `$llm-shared:review-status-command`; its canonical instruction and thin LLM-specific adapters; a repository-root `rvw_status` command, launcher, and shared implementation; a stable machine-readable result; and a concise human-readable account of every review exchange currently in progress.
 - Boundary rationale: discovering who owns a stopped review and what it concerns is read-only diagnosis; it belongs outside the requestor and reviewer roles so either role can use the same facts before acting.
-- Concrete rules and constraints: make `$llm-shared:review-status-command` discoverable after installing the llm-shared plugin; keep reusable skill instructions canonical and make each LLM-specific skill file a thin adapter that refers directly to them; have the skill invoke or direct the agent to invoke `rvw_status` rather than reproduce its discovery logic; run without requiring the caller to remember a family, document, slug, step, round, or artifact path; discover live specification and code exchanges from protocol-owned coordination records; report whether a review is active, its specification or code family, the current requestor or reviewer actor, state, exact reviewed document, umbrella or `none`, implementation step when applicable, round, exchange occurrence, artifact paths, and next protocol action; distinguish zero, one, and multiple live exchanges without silently choosing among several; remain strictly read-only; return a stable result that `rvw_resume` can consume without scraping prose; and work after a shell, VPN, terminal, or computer restart without relying on prompt memory.
+- Concrete rules and constraints: make `$llm-shared:review-status-command` discoverable after installing the llm-shared plugin; keep reusable skill instructions canonical and make each LLM-specific skill file a thin adapter that refers directly to them; have the skill invoke or direct the agent to invoke `rvw_status` rather than reproduce its discovery logic; run without requiring the caller to remember a family, document, slug, step, round, or artifact path; discover live specification and code exchanges from protocol-owned coordination records; report whether a review is active, its specification or code family, the current requestor or reviewer actor, state, exact reviewed document, umbrella or `none`, implementation step when applicable, round, exchange occurrence, artifact paths, and next protocol action; distinguish zero, one, and multiple live exchanges without silently choosing among several; remain read-only after the bounded migration preflight introduced by item 10; return a stable result that the resume skill can consume without scraping prose; and work after a shell, VPN, terminal, or computer restart without relying on prompt memory.
 - Depends on: `review-exchange-core`, `spec-review-requestor`, `spec-reviewer`, `code-review-requestor`, `code-reviewer`.
 
 #### 10. Resume interrupted reviews
@@ -238,7 +307,8 @@ The feature request and design will need to insist on termination criteria for t
 - Type: Feature-request
 - Key title: Resume interrupted reviews
 - Slug: `review-resume-command`
-- Regroups: a repository-root `rvw_resume` command, its launcher and shared implementation, the status-to-role routing needed to resume either side of specification and code review, and self-contained host-specific continuation instructions for the current session.
-- Boundary rationale: interruption recovery is a human-invoked orchestration action over an existing exchange, not reviewer judgment or requestor authorship; keeping it separate prevents either role instruction from guessing identity or reconstructing protocol context.
-- Concrete rules and constraints: use the typed result of `rvw_status` to identify whether the current continuation belongs to a specification requestor, specification reviewer, code requestor, or code reviewer; when exactly one intact exchange is resumable, renew or reclaim that same identity, round, occurrence, artifacts, expected actor, and next action even when its lease has not expired, without waiting for `wait_timeout_seconds` and without escalating; treat direct human invocation of `rvw_resume` as the authority for that lease-independent pickup while preserving all durable evidence; emit or install one self-contained instruction that makes the selected role continue its full workflow rather than merely report status; for requestors, wait for and consume answers, apply requested work, publish later rounds, and stop at the human convergence gate; for reviewers, wait for the request, assess it, and publish the matching answer; refuse malformed, repair-required, escalated, artifact-inconsistent, or ambiguous multiple-exchange states with the `rvw_status` evidence instead of guessing; and remain idempotent when repeated after an interrupted resume.
+- Regroups: a public LLM resume skill and its shared implementation; configurable review-artifact path resolution with a `<PRJ_DIR>/.reviews` default; a fast `migration_check` preflight; a migration tool for recognized runtime review artifacts currently stored in `PRJ_DIR`; review-status check and migration support; Claude, Codex, and Gemini host detection; durable requestor and reviewer LLM traces; legacy missing-nature compatibility, role-wide identity backfill, and recorded-identity override-or-stop handling; review-status identity reporting; trace-based resume-role routing with a confirmed explicit override; reviewer-only wait-or-answer behavior with a quiet script-managed foreground wait; requestor answer-waiting, review work, and `pw skill` continuation; and self-contained host-specific instructions for the current session.
+- Boundary rationale: interruption recovery is a human-invoked orchestration action over an existing exchange, not reviewer judgment or requestor authorship; keeping it separate prevents either role instruction from guessing identity or reconstructing protocol context. This final item also owns the shared artifact-location and participant-identity retrofit needed across the already integrated review-mode code and tests, without reopening the completed umbrella rows.
+- Concrete rules and constraints: expose resume only as an LLM skill, with no CMD, batch, or repository-root `rvw_resume` command; route every protocol-owned runtime artifact through one configurable repository-local directory that defaults to `<PRJ_DIR>/.reviews`; run a fast `migration_check` before every resume and make review status and `rvw_status` able to run the same check; migrate recognized misplaced root traces and artifacts, repeat the check, and stop rather than invent identity or overwrite ambiguous evidence; treat that bounded migration as the only exception to status's read-only observation contract; update all affected shared code and tests from earlier topics; detect Claude, Codex, or Gemini from host evidence when possible and record an explicit unknown result otherwise; durably trace the LLM acting as requestor and reviewer in every exchange; process both legacy missing-nature artifacts and newer traced artifacts; before continuing a role, scan every artifact in the selected exchange occurrence attributed to that role; when none records a different nature, backfill the detected nature into all missing-nature artifacts for that role as one operation; read counterpart-role artifacts without mutation when their nature is absent; when any current-role artifact records a different nature, stop before backfill, list every conflict, and ask for `Override` or `Stop`; preserve conflicting recorded values on Override and make no identity change on Stop; make review status and `rvw_status` report role identities and migration outcome; use the typed status result to select specification requestor, specification reviewer, code requestor, or code reviewer by matching the current LLM to the trace; when legacy trace evidence contains no LLM nature and no role argument was passed, ask which role to resume; accept a forced requestor or reviewer argument without that question when no LLM nature exists, but require human confirmation when the argument conflicts with a known LLM-role trace; once role and artifact identities are resolved, continue without another confirmation; for a reviewer, renew or reclaim and answer an existing request, otherwise enter a global wait for any new specification- or code-review request, entered from an idle exchange, from a concluded exchange, or from a live exchange whose next action belongs to the requestor or to the human convergence gate, even when no exchange or implementation step has started and no live request artifact or identity exists, and waking on a request that resumes the same exchange at a later round or occurrence as well as on one that opens a new exchange, and never run `pw skill` or writer work; for a requestor, wait for an in-progress answer, renew or reclaim and perform the next owned review action, or, when no review and no further request remain, run and immediately follow `pw skill` so writing, implementation, later review, or another selected task continues; preserve the exact identity, round, occurrence, artifacts, expected actor, and next action even when the lease has not expired and without waiting for `wait_timeout_seconds`; preserve all durable evidence; continue through the applicable human convergence gate; refuse malformed, repair-required, escalated, artifact-inconsistent, or ambiguous multiple-exchange states with typed status evidence instead of guessing; and remain idempotent when repeated against the same durable state.
+- Foreground wait contract: `wait-any-request` is the only identity-free global reviewer wait. A graceful host or console cancellation is a terminal `cancelled` result. The command writes no idle progress and emits one machine object with `operation`, `outcome`, `identity`, `candidates`, and `diagnostic`; a `found` result additionally contains the session-only ownership capability. It exits 0 for `found`, 3 for `ambiguous` or `cancelled`, and 2 for invalid input or an operational failure.
 - Depends on: `review-exchange-core`, `review-status-command`, `spec-review-requestor`, `spec-reviewer`, `code-review-requestor`, `code-reviewer`, `review-mode-docs`.

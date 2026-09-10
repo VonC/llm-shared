@@ -1,6 +1,6 @@
 ---
 name: review-status-command
-description: Report active specification and code review exchanges, their responsible role, umbrella, state, and next action without resuming or mutating them.
+description: Report active review exchanges after bounded migration preflight without resuming them.
 user-invocable: true
 ---
 

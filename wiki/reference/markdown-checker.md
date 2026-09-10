@@ -22,21 +22,78 @@ paths.
 | Rule | Checked contract |
 | --- | --- |
 | `MD001` | Heading levels never skip their immediate parent level |
+| `MD009` | A line ends with no trailing whitespace, or exactly the hard-break pair |
+| `MD012` | No two consecutive blank lines outside fenced code |
 | `MD013` | Line length is catalogued and disabled by repository policy |
 | `MD024` | Literal heading text does not repeat |
 | `MD025` | A document contains at most one level-one title |
 | `MD032` | A list block has blank lines before and after it |
 | `MD033` | Raw HTML is rejected except configured element names |
+| `MD034` | An absolute URL is wrapped as an autolink or a link target |
 | `MD038` | Inline-code delimiters contain no unnecessary inner padding |
+| `MD040` | Every opening fence declares a language |
 | `MD050` | Strong emphasis in prose uses asterisk delimiters |
 | `LS001` | A structured document contains a level-one title |
 | `LS002` | A structured document contains at least two level-two sections |
 | `LS003` | Every anchor-normalized heading title is globally unique |
 
-`MD024` and `MD025` are mandatory. A configuration that attempts to disable
-either rule fails before inventory evaluation. The current policy disables
-`MD013` and permits only `img` under `MD033`. Unknown configuration keys and
-unsupported option shapes also fail before file evaluation.
+`MD012`, `MD024` and `MD025` are mandatory. A configuration that attempts to
+disable any of them fails before inventory evaluation, and the baseline cannot
+allow them either: an allowance naming a mandatory rule fails to load. A
+mandatory finding therefore has exactly one repair, which is fixing the file.
+The current policy disables `MD013` and permits only `img` under `MD033`.
+Unknown configuration keys and unsupported option shapes also fail before file
+evaluation.
+
+## MD009 trailing whitespace and the hard-break pair
+
+`MD009` reports any line whose trailing whitespace is neither zero nor exactly
+two characters, in the `[Expected: 0 or 2; Actual: N]` form. Two trailing spaces
+are the Markdown hard line break and stay legal; one, three, or a trailing tab
+do not. Lines inside a fenced code block are exempt, but both fence marker lines
+are checked, which matches the upstream rule's default `code_blocks` handling.
+
+Indented code blocks are exempt too, which is why `_indented_code_lines` exists
+on the source model. `MD009` stays non-mandatory because that block detection is
+an approximation: a four-space run that follows a blank line and sits outside
+every list block.
+
+## MD034 bare URL boundaries
+
+`MD034` reports an `http` or `https` URL that carries no surrounding link
+syntax. THE SCHEME SET IS NOT ARBITRARY: upstream builds autolink literals only
+for `http` and `https`, so a bare `ftp://` URL is not a finding, and reporting
+one would be a false positive.
+
+A URL is not bare when it is wrapped as an autolink in angle brackets, nested
+inside another autolink such as `<view-source:https://host>`, used as a link or
+image target after `](`, defined after a `[label]:` reference marker, quoted
+inside an HTML attribute, or preceded by an ASCII letter. That last condition is
+the upstream predicate: the character before the scheme must not be a letter, so
+`view-source:https://host` IS a bare URL while `xhttps://host` is not. Inline
+code, fenced code, and indented code are masked before the rule runs.
+
+This remains a bounded approximation rather than a GFM autolink parser. It does
+not detect a scheme-less `www.` host or a bare email address, and it stops a URL
+at the first whitespace, angle bracket, parenthesis, bracket, quote, or
+backtick. It is not mandatory for that reason.
+
+## MD040 fenced code languages
+
+`MD040` reports an opening fence whose info string is empty. Only openers are
+read: a closing marker carries no language and a fence-shaped line inside an
+open block is content, so neither is a finding. When a block holds output,
+a transcript, or a diagnostic rather than a language, `text` is the conventional
+info string and satisfies the rule.
+
+## MD012 blank-run boundaries
+
+`MD012` reports one finding per run of two or more blank lines, located at the
+run's last line and carrying the run length, in the
+`[Expected: 1; Actual: N]` form. A line holding only spaces or tabs counts as
+blank. Lines inside a fenced code block are exempt, because fence content is
+data, and so are the lines of a leading YAML frontmatter block. A run that ends
+the file is reported like any other.
 
 ## Structured documents and bounded adapters
 
@@ -135,7 +192,7 @@ A new path/rule key or a count above its allowance fails. An equal count passes
 silently. A lower count passes with a `debt-reduced` advisory. The checker never
 rewrites the baseline; maintainers review the complete findings and edit the
 file by hand. Zero-debt Markdown rules, including `MD032` and `MD038`, have no
-baseline entries.
+baseline entries, and the mandatory rules cannot acquire one.
 
 ## Direct commands and shared gate
 

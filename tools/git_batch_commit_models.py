@@ -75,6 +75,14 @@ class CommitPlanGroup:
 
 
 @dataclass(frozen=True)
+class CommitPlanSubjectRequirement:
+    """Exact subject required for the group containing one staged path."""
+
+    path: str
+    subject: str
+
+
+@dataclass(frozen=True)
 class CommitPlanValidation:
     """Side-effect-free typed commit groups and validation diagnostics."""
 

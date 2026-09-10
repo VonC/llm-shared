@@ -128,7 +128,7 @@ def test_resolve_route_is_disabled_without_marker_or_live_state(tmp_path: Path) 
 
 
 def test_marker_routes_exact_plan_step_and_rejects_unknown_context(tmp_path: Path) -> None:
-    """Cold entry validates the memory identity and declared plan step."""
+    """Cold entry validates the declared plan step and ignores another topic."""
     topic, state, record = _effort(tmp_path, "4A")
     (tmp_path / "a.review-mode").write_text("", encoding="utf-8")
 
@@ -145,13 +145,24 @@ def test_marker_routes_exact_plan_step_and_rejects_unknown_context(tmp_path: Pat
             state,
             replace(record, plan_step="9"),
         )
-    with pytest.raises(code_review.CodeReviewRoutingError, match="workflow topic"):
+    assert (
         code_review.resolve_code_review_route(
             tmp_path,
             topic,
             state,
             replace(record, topic="other"),
         )
+        is None
+    )
+    assert (
+        code_review.resolve_code_review_route(
+            tmp_path,
+            topic,
+            state,
+            replace(record, version="v0.12.0"),
+        )
+        is None
+    )
 
 
 def test_context_validation_rejects_missing_inputs_and_bad_identity(tmp_path: Path) -> None:
@@ -232,6 +243,7 @@ def test_live_route_rejects_another_step_and_duplicate_coordination(tmp_path: Pa
 
     wanted_store = ReviewExchangeStore(derive_artifact_paths(tmp_path, wanted))
     wanted_store.write_coordination(_coordination(wanted, CoordinationStatus.ACTIVE))
+    wanted_store.paths.request.parent.mkdir(parents=True, exist_ok=True)
     wanted_store.paths.request.write_text("conflicting request", encoding="utf-8")
     with pytest.raises(code_review.CodeReviewRoutingError, match="inconsistent"):
         code_review.resolve_code_review_route(tmp_path, topic, state, record)
@@ -263,9 +275,13 @@ def test_authorized_continuation_calls_batch_once_and_keeps_failures_pending(
         == failed_exit
     )
     assert calls == [("--root-a-commit", "--non-interactive")]
-    pending = code_review.resolve_code_review_route(tmp_path, topic, state, record)
+    pending = store.read_coordination(required=True)
     assert pending is not None
-    assert pending.state is ArtifactState.OWNING_ACTION_PENDING
+    assert pending.status is CoordinationStatus.AWAITING_HUMAN_CONFIRMATION
+    assert (
+        pending.confirmed_outcome
+        is ConfirmationOutcome.CONTINUE_OWNING_WORKFLOW
+    )
 
 
 def test_authorized_continuation_rejects_missing_authority(tmp_path: Path) -> None:

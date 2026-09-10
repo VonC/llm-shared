@@ -19,16 +19,19 @@ _ROUND = 2
 
 def _files(tmp_path: Path) -> dict[str, Path]:
     """Create exact authored inputs and paired output paths."""
+    home = tmp_path / ".reviews"
+    home.mkdir(exist_ok=True)
+    (home / ".gitignore").write_bytes(b"*\n")
     files = {
-        "assessment": tmp_path / "a.assessment.md",
-        "verdicts": tmp_path / "a.question-verdicts.md",
-        "instructions": tmp_path / "a.writer-instructions.md",
-        "changes": tmp_path / "a.requested-changes.md",
-        "guidance": tmp_path / "a.human-guidance.md",
-        "guidance_response": tmp_path / "a.guidance-response.md",
-        "answer": tmp_path / "a.answer-content.md",
-        "summary": tmp_path / "a.answer-summary.md",
-        "manifest": tmp_path / "a.retained-context.json",
+        "assessment": home / "a.assessment.md",
+        "verdicts": home / "a.question-verdicts.md",
+        "instructions": home / "a.writer-instructions.md",
+        "changes": home / "a.requested-changes.md",
+        "guidance": home / "a.human-guidance.md",
+        "guidance_response": home / "a.guidance-response.md",
+        "answer": home / "a.answer-content.md",
+        "summary": home / "a.answer-summary.md",
+        "manifest": home / "a.retained-context.json",
     }
     content = {
         "assessment": "The plan is sound.\n",
@@ -189,7 +192,7 @@ def test_cli_accepts_matching_retained_manifest_from_an_earlier_round(
         ("invalid-disposition", "invalid disposition"),
         ("invalid-round", "value must be positive"),
         ("bad-utf8", "assessment file is not valid UTF-8"),
-        ("nested-input", "assessment file must be directly under project root"),
+        ("nested-input", "assessment file must be in the review artifact home"),
         ("tracked-output", "answer content output is not effectively ignored"),
         ("drift", "reviewed document content drifted"),
         ("collision", "caller paths must be distinct"),
@@ -360,7 +363,9 @@ def test_root_path_rejects_bad_names_missing_sources_and_directories(
 ) -> None:
     """Exact root validation rejects every remaining defensive path shape."""
     monkeypatch.setattr(answer_cli, "_is_effectively_ignored", _ignored)
-    path = tmp_path / ("input.md" if kind == "bad-name" else "a.input.md")
+    home = tmp_path / ".reviews"
+    home.mkdir()
+    path = home / ("input.md" if kind == "bad-name" else "a.input.md")
     source = kind != "output-directory"
     if kind == "bad-name":
         path.write_text("input\n", encoding="utf-8")

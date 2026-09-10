@@ -21,6 +21,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 import pytest
 
+from tools.review_artifact_configuration import ReviewArtifactConfiguration
 from tools.review_exchange_models import (
     Actor,
     ConfirmationOutcome,
@@ -297,7 +298,9 @@ def _write_legacy_candidate(root: Path) -> None:
 
 def _populate_repository(root: Path) -> None:
     """Create the complete healthy and damaged acceptance scenario matrix."""
-    (root / "a.review-mode").write_text(
+    artifacts = ReviewArtifactConfiguration.load(root)
+    artifacts.prepare_home()
+    (artifacts.home / "a.review-mode").write_text(
         f"wait_timeout_seconds={_WAIT_SECONDS}\n",
         encoding="utf-8",
     )
@@ -373,14 +376,15 @@ def _protocol_hashes(root: Path) -> dict[str, str]:
 
 def _snapshot(root: Path) -> RepositorySnapshot:
     """Capture the complete read-only acceptance boundary."""
+    artifacts = ReviewArtifactConfiguration.load(root)
     coordination = {
         path.name: path.read_bytes()
-        for path in sorted(root.glob("a.review-active*"))
+        for path in sorted(artifacts.home.glob("a.review-active*"))
     }
     return RepositorySnapshot(
         protocol_hashes=_protocol_hashes(root),
         coordination_bytes=coordination,
-        marker_bytes=(root / "a.review-mode").read_bytes(),
+        marker_bytes=(artifacts.home / "a.review-mode").read_bytes(),
         git_status=_git(root, "status", "--porcelain"),
         index_tree=_git(root, "write-tree"),
         current_ref=_git(root, "rev-parse", "HEAD"),
@@ -432,10 +436,32 @@ def command_matrix(tmp_path_factory: pytest.TempPathFactory) -> CommandMatrix:
 
 
 @pytest.fixture
+def migration_repositories(tmp_path: Path) -> tuple[Path, Path, bytes]:
+    """Create safe-required and collision-blocked root artifact layouts."""
+    completed = tmp_path / "completed"
+    blocked = tmp_path / "blocked"
+    expected = f"wait_timeout_seconds={_WAIT_SECONDS}\n".encode()
+    for root in (completed, blocked):
+        _initialize_repository(root)
+        artifacts = ReviewArtifactConfiguration.load(root)
+        artifacts.prepare_home()
+        (artifacts.home / "a.review-mode").write_bytes(expected)
+        _commit_fixture_documents(root)
+    completed_target = completed / ".reviews" / "a.review-mode"
+    completed_target.replace(completed / "a.review-mode")
+    (blocked / "a.review-mode").write_text(
+        "wait_timeout_seconds=999\n",
+        encoding="utf-8",
+    )
+    return completed, blocked, expected
+
+
+@pytest.fixture
 def changing_repository(tmp_path: Path) -> tuple[Path, Path, bytes]:
     """Create one candidate for deterministic changed-during-read simulation."""
     root = tmp_path / "changing"
     _initialize_repository(root)
+    ReviewArtifactConfiguration.load(root).prepare_home()
     candidate = _write_exchange(root, "changing", "request")
     _commit_fixture_documents(root)
     return root, candidate, candidate.read_bytes()

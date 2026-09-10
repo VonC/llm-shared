@@ -1,4 +1,4 @@
-"""Acceptance contracts for complete repository Markdown evaluations."""
+"""Evaluate complete fixture repositories with real Git inventory prepared once."""
 
 # ruff: noqa: S603, S607
 
@@ -11,7 +11,11 @@ from typing import TYPE_CHECKING
 import pytest
 
 from tools import prompt_workflow_steps as steps
-from tools.markdown_check.runner import CheckerResult, CheckerRunner
+from tools.markdown_check.runner import (
+    CheckerResult,
+    CheckerRunner,
+    tracked_markdown_paths,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -126,11 +130,17 @@ def failing_launcher_result(tmp_path: Path) -> subprocess.CompletedProcess[str]:
     )
 
 
+@pytest.fixture
+def complete_repository_inventory(complete_repository: Path) -> tuple[str, ...]:
+    """Read the real Git inventory in setup while keeping evaluation measured."""
+    return tracked_markdown_paths(complete_repository)
+
+
 def test_complete_repository_covers_structured_and_adapter_contracts(
-    complete_repository: Path,
+    complete_repository: Path, complete_repository_inventory: tuple[str, ...],
 ) -> None:
     """Structured files, adapters, MD038 exceptions, and allowed img all pass."""
-    result = CheckerRunner(complete_repository).run()
+    result = _fixed_inventory_runner(complete_repository, *complete_repository_inventory).run()
 
     assert result == CheckerResult((), (), 0)
 

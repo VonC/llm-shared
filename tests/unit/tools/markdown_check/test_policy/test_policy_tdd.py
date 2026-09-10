@@ -24,13 +24,13 @@ def test_policy_loads_disabled_md013_and_md033_allowance(tmp_path: Path) -> None
     policy = load_policy(path)
 
     assert "MD013" not in policy.enabled_rules
-    assert {"MD024", "MD025", "MD050"} <= policy.enabled_rules
+    assert {"MD012", "MD024", "MD025", "MD050"} <= policy.enabled_rules
     assert policy.allowed_html == frozenset({"img"})
 
 
-@pytest.mark.parametrize("rule", ["MD024", "MD025"])
+@pytest.mark.parametrize("rule", ["MD012", "MD024", "MD025"])
 def test_policy_rejects_mandatory_rule_disables(tmp_path: Path, rule: str) -> None:
-    """Mandatory duplicate and title rules cannot be disabled."""
+    """Mandatory blank-run, duplicate and title rules cannot be disabled."""
     path = tmp_path / ".markdownlint.json"
     path.write_text(json.dumps({rule: False, "MD013": False}), encoding="utf-8")
 

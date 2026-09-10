@@ -10,6 +10,11 @@ exchange command. That shared instruction owns durable coordination. This
 specialized instruction supplies specification policy, authored content, and
 the owning action only.
 
+Before writing or editing the reviewed specification or any caller-owned
+Markdown input, read and follow [`../rules/markdown.md`](../rules/markdown.md).
+Apply those rules to every accepted edit and covered-wording edit before
+publishing the next round.
+
 ## Exact policy for specification requestor operations
 
 Pass this unchanged policy to every shared exchange operation:
@@ -27,7 +32,8 @@ implementation step for specification review. Let the shared core map a source
 `design` document to the `design-specification` exchange type.
 
 Never create, overwrite, rename, or delete a protocol artifact by hand. Run
-all coordination through `bin/review_exchange.bat`, and use paths returned by
+all coordination through
+`& "<LLM_SHARED_DIR>\bin\review_exchange.bat"`, and use paths returned by
 that launcher instead of reconstructing nearby names.
 
 ## Ordered round sequence for specification requestors
@@ -39,11 +45,13 @@ that launcher instead of reconstructing nearby names.
    `idle`, run `start` once. Do not restart a live identity.
 3. Prepare separate ignored root `a.*` UTF-8 files for assessment, change
    summary, writer response, and optional guidance. Run
-   `bin/spec_review_request.bat` with exact context and round flags plus two
+   `& "<LLM_SHARED_DIR>\bin\spec_review_request.bat"` with exact context and round flags plus two
    distinct ignored root output paths.
 4. Pass the renderer's complete request output and substantive summary output
    to `publish-request`. Do not edit the published request or transcript.
-5. Run `wait-answer` once through the shared requestor.
+5. Do not start, spawn, delegate, invoke, or message a reviewer. Run
+   `wait-answer` immediately in this same requestor session through the shared
+   requestor.
    Do not pass `--timeout-seconds` to `wait-answer`; use the complete timeout
    configured by `a.review-mode`. Read its one final JSON result after the
    bounded wait returns.
@@ -60,6 +68,10 @@ that launcher instead of reconstructing nearby names.
 Never read the versioned transcript as working context. After a wait or status
 result reports an answer, read only the exact `paths.answer` file returned for
 the current identity.
+
+Reject this requestor task if an automated reviewer or a parent agent acting as
+reviewer spawned, delegated, started, invoked, or messaged it. The reviewer
+publishes an answer and waits; it never creates the requestor continuation.
 
 ## State handling for specification requestors
 
@@ -164,3 +176,9 @@ After `complete` removes the retained answer and coordination state, rerun `pw s
 Ordinary document routing then selects the next workflow phase. If consolidation
 failed or the settled decision marker is absent, leave the authorization durable,
 report the failure, and do not complete the exchange.
+
+For a bare user `resume`, follow [the canonical resume instruction](review-resume.md)
+through migration, role and identity gates, and automatic `claim` before
+continuing this exact exchange. Keep its capability in session and pass the
+paired ownership flags to every fenced operation. After exchange release, run
+and follow `pw skill` immediately.

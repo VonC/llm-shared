@@ -64,13 +64,15 @@ def _round_input(tmp_path: Path) -> requestor.CodeReviewRoundInput:
 
 def _files(tmp_path: Path) -> dict[str, Path]:
     """Create ignored-style caller inputs and paired output paths."""
+    home = tmp_path / ".reviews"
+    home.mkdir(exist_ok=True)
     files = {
-        "assessment": tmp_path / "a.assessment.md",
-        "report": tmp_path / "a.report.md",
-        "changes": tmp_path / "a.changes.md",
-        "response": tmp_path / "a.response.md",
-        "content": tmp_path / "a.request.md",
-        "summary": tmp_path / "a.summary.md",
+        "assessment": home / "a.assessment.md",
+        "report": home / "a.report.md",
+        "changes": home / "a.changes.md",
+        "response": home / "a.response.md",
+        "content": home / "a.request.md",
+        "summary": home / "a.summary.md",
     }
     for key in ("assessment", "report", "changes", "response"):
         files[key].write_text(f"{key} evidence\n", encoding="utf-8")

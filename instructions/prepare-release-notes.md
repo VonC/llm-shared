@@ -38,11 +38,13 @@ and you are ready to cut the release.
 ### Step 1 — Generate `a.md`
 
 Call the mutualized `prepare_release_notes.sh` script from
-`<LLM_SHARED_DIR>/scripts/` (the sibling `../llm-shared` repository).
+`<LLM_SHARED_DIR>/scripts/`. Resolve `<LLM_SHARED_DIR>` as the absolute parent
+of the `instructions` folder that contains this canonical file; do not guess a
+sibling checkout or rely on an environment variable.
 Run it from `<PRJ_DIR>`:
 
 ```bash
-bash ../llm-shared/scripts/prepare_release_notes.sh
+bash "<LLM_SHARED_DIR>/scripts/prepare_release_notes.sh"
 ```
 
 The script resolves the project directory from its first argument, then
@@ -51,7 +53,7 @@ running it from `<PRJ_DIR>` is enough. To be explicit, pass the project
 directory as the first argument:
 
 ```bash
-bash ../llm-shared/scripts/prepare_release_notes.sh "<PRJ_DIR>"
+bash "<LLM_SHARED_DIR>/scripts/prepare_release_notes.sh" "<PRJ_DIR>"
 ```
 
 The script:

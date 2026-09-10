@@ -30,10 +30,20 @@
 			"activityBarTop.inactiveForeground": "#15202b99",
 			"commandCenter.foreground": "#15202b",
 			"statusBar.debuggingBackground": "#86a1fc",
-			"statusBar.debuggingForeground": "#15202b"
+			"statusBar.debuggingForeground": "#15202b",
+			"activityBar.activeBorder": "#15202b",
+			"activityBarTop.activeBorder": "#15202b"
 		},
 		"peacock.color": "#86a1fc",
 		"github.copilot.chat.otel.dbSpanExporter.enabled": true,
-		"workspaceHalo.logoScale": 34
+		"workspaceHalo.logoScale": 34,
+		"vscodeRadonLinter.excludeFiles": [
+			"**/*.pyx,**/a.*",
+			"**/a.*"
+		],
+		"ruff.nativeServer": "on",
+		"ruff.exclude": [
+			"a.*"
+		]
 	}
 }

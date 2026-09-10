@@ -1,8 +1,9 @@
-"""Boundary coverage for the Step 4 review-exchange command adapter.
+"""Boundary coverage for the Step 3 review-exchange command adapter.
 
 These tests cover construction, parser limits, Git ignore probing, unreadable
-caller inputs, disabled status, defensive dispatch, and the script entry point.
-The lifecycle behavior remains covered by the core and the primary CLI tests.
+caller inputs, ownership pickup, disabled status, defensive dispatch, and the
+script entry point. Lifecycle behavior remains covered by the core and the
+primary CLI tests.
 """
 
 from __future__ import annotations
@@ -13,6 +14,7 @@ import json
 import runpy
 import subprocess
 import sys
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
@@ -26,13 +28,22 @@ from tests.unit.tools.test_review_exchange_cli.test_review_exchange_cli_tdd impo
 from tools import review_exchange_cli as cli
 from tools import review_exchange_cli_parser as cli_parser
 from tools.review_exchange_core import ReviewExchangeCore
-from tools.review_exchange_models import ReviewExchangeError
+from tools.review_exchange_models import Actor, ArtifactState, ReviewExchangeError
+from tools.review_exchange_observer import ExchangeObservation
+from tools.review_exchange_ownership import (
+    OwnershipCapability,
+    OwnershipFailure,
+    OwnershipRejectedError,
+)
 
 _EXIT_FATAL = 2
 _EXIT_STOP = 3
 _POSITIVE_FLOAT = 0.5
 _POSITIVE_INT = 2
 _WAIT_TIMEOUT = 15
+_OWNERSHIP_GENERATION = 4
+_PICKED_UP_GENERATION = 2
+_REJECTED_GENERATION = 3
 
 
 def test_positive_number_parsers_reject_zero() -> None:
@@ -67,6 +78,157 @@ def test_build_runtime_constructs_the_real_core(tmp_path: Path) -> None:
     assert runtime.project_root == tmp_path
     assert runtime.configuration.wait_timeout_seconds == _WAIT_TIMEOUT
     assert isinstance(runtime.core, ReviewExchangeCore)
+
+
+def test_cli_passes_paired_ownership_flags_without_echoing_them(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+) -> None:
+    """A mutation validates the supplied pair without returning its old secret."""
+    runtime, core = _runtime(tmp_path)
+    token = "session-token-value-0123456789abcdef"  # noqa: S105
+
+    code, payload, error = _run(
+        monkeypatch,
+        capsys,
+        runtime,
+        [
+            "continue",
+            *_common(runtime),
+            "--ownership-generation",
+            "4",
+            "--ownership-token",
+            token,
+        ],
+    )
+
+    assert code == 0
+    assert core.ownership_capability == OwnershipCapability(
+        _OWNERSHIP_GENERATION,
+        token,
+    )
+    assert "ownership_generation" not in payload
+    assert "ownership_token" not in payload
+    assert error == ""
+
+
+def test_ownership_stop_never_echoes_presented_capability(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+) -> None:
+    """A rejected stale capability is absent from the final stop payload."""
+    runtime, core = _runtime(tmp_path)
+    capability_secret = "stale-token-value-0123456789abcd"  # noqa: S105
+    core.fail = OwnershipRejectedError(
+        OwnershipFailure(
+            "ownership-superseded",
+            "ownership capability was superseded",
+            _REJECTED_GENERATION,
+        ),
+    )
+
+    code, payload, _error = _run(
+        monkeypatch,
+        capsys,
+        runtime,
+        [
+            "continue",
+            *_common(runtime),
+            "--ownership-generation",
+            "2",
+            "--ownership-token",
+            capability_secret,
+        ],
+    )
+
+    assert code == _EXIT_STOP
+    assert payload["outcome"] == "ownership-superseded"
+    assert payload["current_ownership_generation"] == _REJECTED_GENERATION
+    assert "ownership_generation" not in payload
+    assert "ownership_token" not in payload
+
+
+@pytest.mark.parametrize(
+    "state",
+    [
+        ArtifactState.CONVERGENCE_GATE,
+        ArtifactState.OWNING_ACTION_PENDING,
+    ],
+)
+def test_new_session_pickup_claims_requestor_at_owning_workflow_gates(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    state: ArtifactState,
+) -> None:
+    """A fresh requestor session can replace its missing capability at a gate."""
+    runtime, core = _runtime(tmp_path)
+    core.state = state
+    core.record = replace(core.record, expected_next_actor=Actor.HUMAN)
+
+    code, payload, _error = _run(
+        monkeypatch,
+        capsys,
+        runtime,
+        ["pickup", *_common(runtime)],
+    )
+
+    assert code == _EXIT_STOP
+    assert payload["outcome"] == "ownership-picked-up"
+    assert payload["ownership_generation"] == _PICKED_UP_GENERATION
+    assert isinstance(payload["ownership_token"], str)
+    assert core.calls[-1] == ("pickup_ownership", (Actor.REQUESTOR,), {})
+
+
+def test_new_session_pickup_uses_expected_llm_actor_during_a_round(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+) -> None:
+    """Pickup keeps normal round ownership aligned with the expected actor."""
+    runtime, core = _runtime(tmp_path)
+    core.state = ArtifactState.REQUEST_PENDING
+
+    code, payload, _error = _run(
+        monkeypatch,
+        capsys,
+        runtime,
+        ["pickup", *_common(runtime)],
+    )
+
+    assert code == 0
+    assert payload["outcome"] == "ownership-picked-up"
+    assert core.calls[-1] == ("pickup_ownership", (Actor.REVIEWER,), {})
+
+
+def test_pickup_without_coordination_reports_a_fatal_input(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+) -> None:
+    """A pickup needs a durable record to name the actor it hands ownership to."""
+    runtime, core = _runtime(tmp_path)
+    no_exchange = ExchangeObservation(
+        ArtifactState.IDLE,
+        None,
+        None,
+        None,
+        "no exchange",
+    )
+    monkeypatch.setattr(core, "classify", lambda: no_exchange)
+
+    code, payload, _error = _run(
+        monkeypatch,
+        capsys,
+        runtime,
+        ["pickup", *_common(runtime)],
+    )
+
+    assert code == _EXIT_FATAL
+    assert payload["diagnostic"] == "ownership pickup requires durable coordination"
+    assert [name for name, _args, _kwargs in core.calls] == []
 
 
 def test_effective_ignore_probe_uses_fixed_git_arguments(
@@ -123,9 +285,11 @@ def test_input_reader_reports_missing_and_invalid_utf8(
         return True
 
     monkeypatch.setattr(cli, "_is_effectively_ignored", ignored)
+    home = tmp_path / ".reviews"
+    home.mkdir()
     with pytest.raises(ReviewExchangeError, match="does not exist"):
-        cli._read_input_file(tmp_path, tmp_path / "a.missing.md", "summary")
-    invalid = tmp_path / "a.invalid.md"
+        cli._read_input_file(tmp_path, home / "a.missing.md", "summary")
+    invalid = home / "a.invalid.md"
     invalid.write_bytes(b"\xff")
     with pytest.raises(ReviewExchangeError, match="UTF-8"):
         cli._read_input_file(tmp_path, invalid, "summary")
@@ -158,7 +322,9 @@ def test_forced_reclaim_requires_its_authorized_summary_pairing(
 ) -> None:
     """Only `--force` with `--summary-file` delegates one forced resume."""
     runtime, core = _runtime(tmp_path)
-    summary = tmp_path / "a.review-summary.md"
+    home = tmp_path / ".reviews"
+    home.mkdir()
+    summary = home / "a.review-summary.md"
     summary.write_text("Manual back-and-forth resume.", encoding="utf-8")
 
     code, payload, _ = _run(
@@ -198,7 +364,9 @@ def test_forced_completion_requires_its_authorized_summary_pairing(
 ) -> None:
     """Only --force with --summary-file delegates forced completion."""
     runtime, core = _runtime(tmp_path)
-    summary = tmp_path / "a.completion-summary.md"
+    home = tmp_path / ".reviews"
+    home.mkdir()
+    summary = home / "a.completion-summary.md"
     summary.write_text("The human closes the abandoned round.", encoding="utf-8")
 
     code, payload, _ = _run(

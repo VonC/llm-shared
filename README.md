@@ -48,8 +48,49 @@ the normal document and implementation workflow. Its main purpose is an
 automatic requestor-reviewer exchange across intermediate rounds: the
 requestor waits after publishing each request, and the reviewer waits after
 publishing each change request, so replacement rounds continue in the same two
-sessions without another human prompt. Only convergence, recovery, or a bounded
-wait failure stops that exchange.
+sessions without another human prompt. The human or an external reviewer
+service starts those sessions independently: a requestor never starts or
+contacts a reviewer, and a reviewer never starts or contacts a requestor.
+Publishing is the complete handoff between them.
+
+Review runtime artifacts live under one repository-local home, `.reviews` by
+default. A strict `.review-artifacts.ini` can select another ignored,
+repository-relative directory. Run `rvw_status.bat` from the reviewed
+repository to inspect every active exchange, its artifact home and migration
+result, both recorded LLM natures, lease, owner, artifacts, and typed next
+action. Status is read-only after its one bounded, transactional migration
+preflight. See
+[Inspect independent review status](wiki/how-to/inspect-independent-review-status.md)
+and the
+[independent review contract](wiki/reference/independent-review-mode-contract.md).
+
+To continue an interrupted review, enter `resume` in the agent session. The
+[review-resume skill](instructions/review-resume.md) checks migration, identifies
+the role, and performs automatic pickup before continuing. It asks only when a
+role or exchange is ambiguous, recorded identities conflict, or the existing
+human convergence gate needs a choice. A missing session token needs no extra
+instruction. See [Recover an independent review](wiki/how-to/recover-an-independent-review.md).
+
+A reviewer runs one quiet foreground `wait-any-request` after every answer,
+including convergence. It watches the configured home for either review family,
+uses native notifications with bounded polling fallback, and treats each event
+as a hint followed by an authoritative rescan. Competing reviewers have one
+claim winner; a loser keeps waiting. Intact lease expiry alone does not end the
+wait. A requestor uses `wait-answer` for its exact exchange and runs and follows
+`pw skill` after release. Cancellation returns one terminal result and creates
+no durable waiter. The resume entry point is an LLM skill; no `rvw_resume.bat`
+command is installed.
+
+For example, the versioned home declaration is:
+
+```ini
+[review-artifacts]
+home = .reviews
+```
+
+The home receives a local `.gitignore` before runtime evidence is written.
+External paths and tracked directories are rejected; an uncovered existing home
+or unsafe migration stops with a diagnostic.
 
 ---
 

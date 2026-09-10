@@ -10,6 +10,12 @@ The context that can inform how you will group those files can be:
 
 ## Workflow for grouping commits
 
+For every llm-shared utility below, resolve `<LLM_SHARED_DIR>` as the absolute
+parent of the `instructions` folder that contains this canonical file. Use the
+resolved full path from PowerShell; do not rely on `%LLM_SHARED_DIR%`,
+`$env:LLM_SHARED_DIR`, or a guessed relative checkout. The shared launchers
+self-locate and do not need an `senv.bat` pre-call.
+
 1. Get the list of files to group.
 
    Group every staged file the command lists, including changes of outside origin (a concurrent edit, a tool-written file, an earlier unrelated tweak) that a `git add -A` staged alongside your own: none is skipped for not being yours, each is ranked by its own dependencies and placed in a fitting group.
@@ -32,10 +38,13 @@ The context that can inform how you will group those files can be:
 
 3. Group files based on their dependencies and the context you have (previous prompts, `.md` files in your context, and the changes done on those files).
 
-   A plan or validation document whose only purpose is to record that a step
-   was completed is a trailing documentation group. Do not fold it into the
-   feature, fix, test, or performance group that made the code change. Put it
-   last, after all behavior and test groups, with a title shaped like
+   A validation plan that newly marks a step `Yes` is a trailing documentation
+   group. Do not fold it into the feature, fix, test, or performance group that
+   made the code change. Put it last, after all behavior and test groups, with
+   the exact title `docs(<topic>): record step <n> validation`. The readiness
+   checker and final batch validation enforce that exact `pw` marker for the
+   group containing the completed validation plan. A different plan or
+   completion-only document may instead use
    `docs(<topic>): record step <n> completion`.
 
 4. For each group, write a conventional commit message. Each group must follow the template provided in [`group-commits-msg.template.md`](../templates/group-commits-msg.template.md). See the next section for more details on how to write the commit message. The title `# Grouping commits by topic` from the template must be added only once, for the first group, and not for the following groups.
@@ -48,9 +57,9 @@ The context that can inform how you will group those files can be:
 
    Execute the following sequence of bat commands (default parameters: 80-character width, ```log fence delimiters, backtick pass on):
 
-   ```bat
-   cd "%PRJ_DIR%"
-   "%LLM_SHARED_DIR%\bin\wac.bat"
+   ```powershell
+   Set-Location -LiteralPath "<PRJ_DIR>"
+   & "<LLM_SHARED_DIR>\bin\wac.bat"
    ```
 
    The tool rewrites `a.commit` in place. An exit status of 0 means the file is now canonically formatted (whether or not changes were applied); a non-zero status means the file is missing or unreadable and the underlying issue must be fixed before proceeding.
@@ -59,8 +68,8 @@ The context that can inform how you will group those files can be:
    focused read-only readiness checker, `commit-plan-check.bat --format json`,
    from the project root through its full path:
 
-   ```bat
-   "%LLM_SHARED_DIR%\commit-plan-check.bat" --format json
+   ```powershell
+   & "<LLM_SHARED_DIR>\commit-plan-check.bat" --format json
    ```
 
    Status `0` means the plan is mechanically ready, but it does not authorize a
@@ -86,9 +95,9 @@ The context that can inform how you will group those files can be:
 
    To validate the `a.commit` file, you can use the following sequence of bat commands:
 
-   ```bat
-   cd "%PRJ_DIR%"
-   "%LLM_SHARED_DIR%\bin\gcba.bat" --root-a-commit
+   ```powershell
+   Set-Location -LiteralPath "<PRJ_DIR>"
+   & "<LLM_SHARED_DIR>\bin\gcba.bat" --root-a-commit
    ```
 
    An exit status of 0 means the `a.commit` file is valid, while a non-zero exit status means there is an issue with the `a.commit` file that needs to be fixed.

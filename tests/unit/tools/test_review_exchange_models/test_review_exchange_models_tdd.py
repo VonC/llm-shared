@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 from tools import review_exchange_models as models
+from tools.review_artifact_configuration import ReviewArtifactConfiguration
 from tools.review_exchange_models import (
     _FALLBACK_WAIT_SECONDS,
     _PACKAGE_ROOT,
@@ -39,6 +40,7 @@ from tools.review_exchange_models_envelope import (
     render_envelope_markdown,
     validate_summary_identity,
 )
+from tools.review_exchange_paths import load_review_configuration
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -358,6 +360,21 @@ def test_configuration_state_vocabulary_and_local_timestamp(tmp_path: Path) -> N
     timestamp = format_local_timestamp()
     assert timestamp[-6] in {"+", "-"}
     assert timestamp[-3] == ":"
+
+
+def test_review_configuration_rejects_another_repository_artifact_context(
+    tmp_path: Path,
+) -> None:
+    """Invocation-bound configuration cannot cross repository boundaries."""
+    other = tmp_path / "other"
+    other.mkdir()
+    artifacts = ReviewArtifactConfiguration.load(other)
+
+    with pytest.raises(ReviewExchangeError, match="another repository"):
+        load_review_configuration(
+            tmp_path,
+            configuration=artifacts,
+        )
 
 
 def test_shipped_settings_match_the_fallback_constant() -> None:
