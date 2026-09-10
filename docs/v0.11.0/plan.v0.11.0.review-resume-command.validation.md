@@ -1,9 +1,13 @@
 # v0.11.0 review-resume-command implementation tracking and validation
 
-No, it is not implemented.
+Yes, it is implemented.
 
-This validation tracks the seven ordered implementation steps. Steps 0 through
-5 are fully implemented and validated; Step 6 remains pending.
+This validation tracks the seven ordered implementation steps, all now fully
+implemented and validated. Step 6 delivers its acceptance package, documentation
+rollout, and round 2 migration repairs. The resumed round 3 focused command and
+configured full walk pass. Validation uses the combined working tree; the
+separate parallel-run configuration skips duration-outlier measurement, as the
+Step 6 evidence and performance assessment disclose.
 
 ---
 
@@ -892,46 +896,304 @@ No, no existing feature or reporting capability appears impaired by Step 5.
 
 ### Analysis of Step 6 implementation state
 
-Not started. Step 6 is not implemented because real-launcher acceptance,
-concurrency, legacy compatibility, regression, and public documentation coverage
-have not been completed.
+Yes. Step 6 has been fully implemented.
+
+The round 2 migration assertions, journal publication repair, and Git failure
+diagnostics are implemented. The resumed exact plan-focused command passes all
+229 tests, following three earlier consecutive passes. The fresh configured
+full walk passes all 2,697 tests with 100 percent coverage and exit 0. Its
+parallel configuration skips duration-outlier and exclusion checks; this does
+not establish that the earlier sequential outliers were remeasured or cleared.
+The separate performance work stays outside the Step 6 index.
 
 ### Goal for Step 6
 
-Prove every acceptance criterion across real Git repositories, separate LLM
-sessions, specification and code workflows, status, migration, and adapters.
+Prove every acceptance criterion across real Git repositories, separate simulated
+LLM sessions, specification and code workflows, status, migration, and adapters.
 
 ### Step 6 improvement expectations
 
-- Cover all safe and blocked placement layouts.
-- Cover every LLM nature and legacy identity policy.
+- Cover safe and blocked placement layouts and legacy identity policies.
 - Cover ordinary ownership, displacement, lost capability, and reviewer races.
-- Reuse canonical configured-home, role-nature, ownership, and schema builders
-  from `tests/unit/tools/review_exchange_test_support.py` while keeping local
-  scenario fixtures local.
-- Keep every earlier review-mode workflow green with new schemas and paths.
-- Document configuration, status migration, resume, and role-specific waiting.
+- Share canonical context, role, home, ownership, and schema builders.
+- Preserve existing requestor, reviewer, adapter, and status workflows.
+- Document configuration, migration, bare resume, and role-specific waiting.
 
 ### What was implemented for Step 6
 
-_(empty — no check has taken place yet.)_.
+- **Acceptance journeys**: the new `tests/acceptance/review_resume` package uses
+  real temporary Git repositories and public launchers in independent processes.
+  Sequential, migration, identity, and concurrency modules keep each scenario
+  focused. The fixture driver explicitly simulates the instruction sequence
+  from the user text `resume`; it does not claim to execute an LLM.
+- **Shared builders**: `review_exchange_test_support.py` supplies exact contexts,
+  registered family policy, artifact content, configured homes, session host
+  evidence, and ownership arguments. The existing exchange acceptance suite
+  imports them in place of its four local builders; the requestor, reviewer and
+  prompt-workflow suites already carried the artifact-home, role-nature and
+  ownership rules from Steps 1 through 4 and were not edited in this step.
+- **Publication race repair**: discovery observes settled request snapshots
+  under the existing transition lock. A busy publisher is deferred without
+  blocking or creating evidence; an interrupted publication remains a
+  fail-closed error once unlocked.
+- **Documentation rollout**: README and the connected explanation, tutorials,
+  how-to guides, and reference pages describe configured homes, schema-2 status,
+  automatic pickup, global reviewer waiting, and requestor release. Earlier
+  completed topic records remain unchanged.
+- **Acceptance mapping**: [the scenario map](acceptance.v0.11.0.review-resume-command.md)
+  links all 19 feature criteria to named executable checks.
+- **Validation evidence**: three consecutive exact plan-focused runs each
+  passed 229 tests with `fail=0 warn=0 xfail=0 cov=skipped outliers=skipped
+  excluded=skipped exit=0`. Their logs are
+  `.reviews/a.step6-review-focused.round3.run1.log`,
+  `.reviews/a.step6-review-focused.round3.run2.log`, and
+  `.reviews/a.step6-review-focused.round3.run3.log`. The resumed exact command
+  passed the same 229 tests on 2026-09-10 at 07:43:07 +02:00; its retained
+  report is `.reviews/a.step6-review-focused.round3.resumed.log`.
+  The fresh full walk ended on 2026-09-10 at 07:36:23 +02:00 after passing
+  all 2,697 tests, with `fail=0 warn=0 xfail=0 cov=100 outliers=skipped
+  excluded=skipped exit=0`. Its full-suite phase took 2m 44.2s; static checks
+  and affected tests passed. The retained report is
+  `.reviews/a.step6-review-validation.round3.green.log`. The earlier exit-8
+  report remains in `.reviews/a.step6-review-validation.round3.outliers.log`.
+  The required source inventory was refreshed and no `rvw_resume.bat` exists.
+
+### Round 2 repairs completed for Step 6
+
+- `migration_journey` asserts the migration-check outcome, `status.code == 0`,
+  and the completed migration state before reading destination bytes. A refusal
+  now exposes its full process result and diagnostic.
+- Copies of the reviewer's preserved former-default repository reproduced a
+  rollback on attempt 24 with Windows error 5 while replacing the temporary
+  migration journal. The diagnostic is retained in
+  `.reviews/a.step6-migration-repro.round3.log`. The original review run
+  discarded its diagnostic, so its exact exception cannot be recovered.
+- `review_artifact_journal.py` retries atomic publication of the same complete,
+  synchronized snapshot up to five times, using the review stores' existing
+  0.01, 0.02, 0.04 and 0.08 second waits. Other IO failures propagate directly;
+  exhaustion cleans the temporary and preserves rollback behavior. All 50
+  subsequent migration replays passed, recorded in
+  `.reviews/a.step6-migration-repro.fixed.round3.log`.
+- Unit tests cover success after one and four denials, exhaustion after five,
+  preservation of the old journal, temporary cleanup, and restoration of an
+  already moved source after persistent journal denial.
+- `_git_ignore_checker` now raises an OSError containing the exit code and
+  stderr for exits outside 0 and 1. Tests retain those diagnostics through
+  existing-home preflight and newly prepared-home rollback, including empty
+  stderr. This diagnostic improvement is separate from the journal failure
+  actually reproduced.
+
+### Validation scope for Step 6 round 3
+
+Validation runs against the working tree containing both indexed Step 6 work
+and the separate unstaged test-suite performance work. The review captures the
+Step 6 index alone. The scenarios retain the same contracts, but the tested
+working tree and reviewed index differ; this is not evidence from an isolated
+index checkout.
+
+The path-based focused command includes the untracked blocked-layout, conflict,
+parked-wait, and launcher-smoke split modules. Those modules, the extra edits on
+the indexed acceptance files and scenario map, the commit-plan-check support,
+dependency changes, groundhog changes, and other performance edits remain
+unstaged and are not Step 6 commit-plan members. Indexed versions of shared
+files are preserved.
+
+The working tree also contains the separate forced-reclaim change in
+`tools/review_exchange_human.py`. An unstaged addition to
+`test_review_exchange_lifecycle_recovery_tdd.py` covers its no-coordination
+rejection and verifies that no coordination or transcript is created. That
+coverage repair remains outside Step 6 with the implementation it exercises.
+
+The existing untracked `.ghog-parallel` marker and unstaged groundhog changes
+opt the full suite into parallel execution, which deliberately omits sequential
+duration-outlier and accepted-baseline judgments. They are not part of the
+reviewed index. No source, test, marker, or timing baseline was changed during
+this resumption; only the review assessment and completion records were updated
+after validation.
+
+### Round 1 repairs completed for Step 6
+
+- The initial winner is observed under its own 15-second deadline without
+  starting pipe readers for both processes. The loser remains live while the
+  real launchers advance the exchange, then gets a fresh 15-second
+  `communicate` deadline after round-two publication. All behavioral checks
+  remain: exactly one initial completion, a live loser, round progression,
+  ownership generations, and absence of secrets.
+- The Performance check discloses and justifies the existing cancellation
+  exclusion at 1.65 seconds; neither that baseline nor the 0.50-second floor
+  was changed by this repair.
+- The reviewer's shared-builder correction is accepted: only the exchange
+  acceptance suite imports the new helpers. Already-aligned role and workflow
+  suites were not edited by this step.
+- Umbrella row 10 was restored to pending while validation remained No. It is
+  completed again only with this fresh Yes verdict and its required evidence.
 
 ### New types or classes introduced for Step 6
 
-_(empty — no check has taken place yet.)_.
+No new production class is introduced. `observe_transition` and its platform
+helpers extend the ownership storage adapter. Test-only `ProcessResult`
+captures one command result and `ReviewRepository` builds repositories and
+drives the real launchers; canonical fixture functions live in the shared test
+support module.
+
+The new `review_artifact_journal.py` storage module publishes atomic migration
+snapshots; it introduces no production class.
 
 ### Architecture check for Step 6
 
-_(empty — no check has taken place yet.)_.
+The operating-system lock behavior stays inside the existing ownership storage
+adapter. Status projection consumes that adapter without importing a CLI or
+adding domain-to-infrastructure dependencies. The new test support introduces
+no production dependency on tests. Journal filesystem synchronization and
+bounded publication retries stay in the dedicated storage module consumed by
+the existing migration service.
+
+Every indexed Step 6 Python file remains within the 650-line ceiling.
+`tools/review_status.py` remains at its previous 647 lines, with no new scenario
+or responsibility added beyond the existing request snapshot. The ownership
+store is 275 lines. The main exchange acceptance file shrank from 633 to 541
+lines. The new shared builder is 115 lines; the new acceptance conftest is 210,
+and its four indexed scenario modules are 108, 224, 119, and 117 lines.
+The optimized recovery suite is 548 lines. The journal writer is 48 lines and
+the migration service is 621. Their journal, migration, and boundary test
+modules are 92, 633, and 92 lines. These counts describe the reviewed index;
+the separate performance splits change the working-tree layout.
+
+No, there is nothing that needs to be addressed for Step 6 architecture.
 
 ### Performance check for Step 6
 
-_(empty — no check has taken place yet.)_.
+Discovery still scans the configured directory in linear order. Each candidate
+adds one nonblocking lock attempt and the existing bounded snapshot work; no
+new `O(n^2)` or `O(n log n)` process is introduced. Existing Step 0/5 timing,
+notification, polling, migration, and claim-count guards remain unchanged.
+
+Journal publication adds no wait on success. Permission failures get at most
+four sleeps totaling 0.15 seconds per snapshot before the fifth attempt either
+succeeds or propagates the error. The fixed retry bound retains linear work
+in the number of migration moves.
+
+Profiling identified removable setup in the role-conflict and abandoned-request
+calls: initial publication accounted for about 0.091 of 0.236 seconds and 0.090
+of 0.297 seconds respectively without coverage. Their real request construction
+now precedes measured recovery assertions. Path identities reuse fixed home
+configuration and directory creation while preserving all 25 examples and the
+required per-identity document. Earlier optimizations keep 40 heading-property
+examples and start the streaming child without Python site initialization.
+
+The already-trimmed convergence pickup journey still needs its real pickup,
+stale-owner rejection, confirmation, and completion transitions. It was accepted
+through `ghog exclude` at the full-run measurement of 1.97 seconds, retaining
+the tool's per-call drift check and the unchanged 0.50-second suite floor.
+The earlier implementation run put this call at 0.21 seconds and automatically
+removed its exclusion. All four previously flagged calls finished below the
+0.50-second floor, with no duration outlier.
+
+The exclusion set did not return to its previous size. Step 6 added a third
+accepted baseline in `a.ghog.outliers`,
+`test_graceful_foreground_cancellation_has_one_result_and_no_durable_waiter`
+at 1.65 seconds against the unchanged 0.50-second suite floor. This acceptance
+call runs the real CLI migration preflight, Git-backed home validation,
+discovery, and notification-adapter lifecycle, then injects `KeyboardInterrupt`
+at the wait seam. Keeping that work inside the measured call proves that
+cancellation produces one result without durable waiter state through the
+complete foreground path. The existing per-call exclusion retains the duration
+drift check; no new exclusion or floor change is introduced by the round 1
+repair. Steps 4 and 5 added no exclusion; Step 6 did, and this disclosure
+corrects its earlier incomplete record. The last walk to measure this
+cancellation call is the round 2 sequential walk, which recorded it at
+1.76 seconds, within its accepted drift allowance. The round 3 resumed walk
+skipped duration judgment and did not remeasure it.
+
+The first resumed walk passed all tests at 100 percent coverage but returned
+exit 8 for the real Git inventory call
+`test_tracked_inventory_uses_git_and_filters_markdown` at 0.53 seconds.
+Pyinstrument attributed 0.270 of its 0.271 isolated call seconds to the real
+Git subprocess. Repository creation and staging already occur in its fixture;
+the remaining production inventory query is the behavior the test must prove.
+Following the irreducible-path rule in `fix_slow_test.md`, `ghog exclude`
+accepted that call at its full-run measurement of 0.53 seconds. No assertion,
+test code, production code, or suite floor changed. Its focused module passed,
+and the round 2 final walk measured it at 0.41 seconds. The profile and
+rationale are retained in
+`.reviews/a.step6-review-slow-profile.before.round2.txt` and
+`.reviews/a.step6-review-timing.round2.md`.
+
+There are now four stored per-call baselines: the existing launcher (0.85s),
+cross-family discovery (0.70s), foreground cancellation (1.65s), and the Git
+inventory (0.53s). Each retains the two-second drift check; the suite floor
+remains 0.50 seconds. The final counter `excluded=0` means no excluded call
+violated its allowance, not that the baseline list is empty.
+
+The round 1 fixture repair removes the pipe readers' setup-spanning deadline.
+The first claim gets 15 seconds after initial publication, and the losing
+claim gets a fresh 15 seconds after replacement publication. Only the winner's
+pipes are collected before advancing the round; no executor waits on a live
+loser. The existing bounded process cleanup remains in place. All
+single-winner, round progression, ownership generation, and secret-absence
+assertions remain unchanged. The repaired journey passed both the exact
+focused suite and the fresh full walk.
+
+The earlier round 3 combined-tree full walk reported 14 duration outliers, between
+0.51 and 0.75 seconds, and two accepted-baseline overruns: the Markdown
+launcher at 7.79 seconds against 0.85 seconds, and foreground cancellation at
+6.69 seconds against 1.65 seconds. The complete node inventory and required
+actions are retained in `.reviews/a.step6-review-validation.round3.outliers.log`.
+The resumed full walk passes the current configured command with
+`outliers=skipped excluded=skipped`. The separate parallel-run implementation
+does not measure sequential call durations, so the earlier outliers have no new
+measurement in this evidence. Step 0/5 timing and concurrency assertions still
+execute in the passing suite. The writer made no further performance edit or
+duration-baseline change during this resumption.
+
+No, no Step 6 performance guard fails in the current configured validation.
+Sequential outlier clearance is not established by this parallel run.
 
 ### Unit test coverage check for Step 6
 
-_(empty — no check has taken place yet.)_.
+The dedicated ownership-store tests cover missing legacy locks, successful
+read-only observation, cleanup after exceptions, local contention, native
+contention on both platform branches, IO failure propagation, and refusal to
+unlock a lock the reader did not acquire. Lifecycle tests exercise discovery
+during a real locked publication and after an interrupted publication. Existing
+ownership, status, and property suites preserve their broader class coverage.
+
+Journal unit tests cover transient replacement recovery, bounded exhaustion,
+previous-snapshot preservation, temporary cleanup, and transaction rollback.
+Migration boundary tests prove that Git command errors retain their exit code
+and stderr through status reporting without losing source evidence.
+
+The round 3 full walk measured 100 percent coverage, including the previously
+uncovered no-coordination rejection in the unstaged forced-reclaim change.
+Its corresponding four-line test addition remains unstaged. This check
+otherwise reasons from the code and test inventory.
+Acceptance fixtures remain outside the per-class unit-test coverage target.
+The existing ownership/state properties cover the relevant domains; the finite
+host and layout matrices need no additional property generator.
+
+No unit-tested class is below 100 percent or needs completing.
 
 ### Feature integrity for Step 6
 
-_(empty — no check has taken place yet.)_.
+Both specification and code journeys preserve human convergence authority,
+strict status schemas, transcript uniqueness, artifact bytes, effective ignore
+coverage, and absence of session secrets. A displaced session is rejected;
+a losing reviewer waits for later work; ambiguous or damaged evidence stops
+without an unauthorized claim. Public-launcher cancellation returns one terminal
+result without durable waiter state. Requestor release runs the actual
+`prompt_workflow.bat skill` command and verifies its returned workflow.
+
+Static checks pass: ty, pyright, ruff, radon, vulture, the 650-line file gate,
+the repository Markdown gate, ShellCheck, and EOF checks all returned clean in
+the fresh walk. Affected tests and the full suite passed with them, with
+100 percent coverage. The configured full walk skips duration-outlier and
+exclusion judgments as recorded above.
+
+The round 1 fixture timing repair is preserved. The round 2 migration failure
+has been reproduced at journal publication, repaired with bounded retries, and
+followed by 50 successful replays. Migration and Git failures now retain their
+diagnostics. The resumed 229-test focused command and the 2,697-test full walk
+pass. Both results describe the combined working tree; neither is an isolated
+index validation or proof that previous sequential timing findings are cleared.
+
+No, no existing feature or reporting capability appears impaired by Step 6.
