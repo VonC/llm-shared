@@ -24,7 +24,7 @@ Before writing the requirement document, read and follow
 15. If associated documents are missing, invalid, or not useful for the requested requirement, notify the user and ask for additional context before writing the document body.
 16. Read [`../rules/docs_layout.md`](../rules/docs_layout.md). Resolve the
     effort directory as the parent of the canonical draft named in the prompt,
-    and confirm that it matches one of the four supported layouts for the
+    and confirm that it matches one of the supported layouts for the
     settled version.
 17. After validation succeeds, write the file as
     `<effort-dir>\<type>.vX.Y.Z.<topic>.md` in markdown format, beside the

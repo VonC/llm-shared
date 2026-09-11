@@ -112,7 +112,7 @@ def _resolve_doc(root: Path, name: str) -> Path:
     """Locate a non-empty document in a supported docs layout.
 
     An exact relative path is resolved from ``root``. A basename searches the
-    four layouts returned by ``prompt_workflow_docs.docs_dirs``. The first
+    layouts returned by ``prompt_workflow_docs.docs_dirs``. The first
     candidate that exists and is non-empty is returned.
 
     Args:

@@ -1252,7 +1252,7 @@ Run the skill twice and the second run does nothing harmful:
   requirement and validation plan, and refuses missing, malformed, or stale
   collection state instead of assuming that release preparation may continue.
 - The effort test keys on `feature`, `feature-request`, `issue`, `design`, and
-  `plan` documents in the four supported effort directories. A release that is
+  `plan` documents in the supported effort directories. A release that is
   only code, with no such document, reads as "nothing to release"; add the
   matching document, or release it by hand. Versioned drafts are reported as
   notes but never trigger a release or choose its target.
