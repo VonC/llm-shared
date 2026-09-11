@@ -42,7 +42,7 @@ unchanged.
   `## List of feature-requests and issues to create` in a draft marked
   `- Draft role: umbrella`.
 - `version.txt` at the repository root, read in step 5 to propose the target version.
-- [`../rules/docs_layout.md`](../rules/docs_layout.md), which defines the four
+- [`../rules/docs_layout.md`](../rules/docs_layout.md), which defines the
   supported effort-directory layouts and how later skills recover the choice.
 - The `new_draft` tool, called in step 7 to rename the draft and create the branch.
 

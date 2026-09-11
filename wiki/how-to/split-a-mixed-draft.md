@@ -27,7 +27,7 @@ call `/write-requirement` directly with the type, version and topic.
 1. Make sure the draft has been processed: `/process-draft` classified it
    as a collection and renamed it
    `<effort-dir>/draft.vX.Y.Z.<slug>.md` on its own effort branch. The effort
-   directory is one of the four layouts selected during `process-draft`.
+   directory is one of the layouts selected during `process-draft`.
 
 2. Run the split:
 

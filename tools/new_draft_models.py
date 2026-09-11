@@ -2,7 +2,7 @@
 
 The tool asks for a slug, proposes a patch/minor/major bump of the current
 version, creates a branch (and optionally a sibling worktree), bumps
-`pyproject.toml`, and drops a `draft.vX.Y.Z.<slug>.md` skeleton in one of four
+`pyproject.toml`, and drops a `draft.vX.Y.Z.<slug>.md` skeleton in one of the
 docs layouts so a new development effort starts already isolated.
 
 This module holds the side-effect-free pieces so they stay unit-testable:

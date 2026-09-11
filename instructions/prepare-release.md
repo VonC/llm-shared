@@ -279,7 +279,7 @@ makes a second run a no-op.
 
 Read the current branch first. Candidate versions are filtered to the release
 mode's exact scope after classification, matching effort documents in any of
-the four directories from `rules/docs_layout.md`:
+the directories from `rules/docs_layout.md`:
 
 ```bash
 git -C "<PRJ_DIR>" rev-parse --abbrev-ref HEAD
