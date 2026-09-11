@@ -13,7 +13,6 @@ Consider only in your context ( in addition of #file:check-api.prompt.md ) the f
 - #file:../../a.domain.archiving.api
 - #file:../../a.domain.workflow.api
 
-
 Start your analysis with the section `### Other Domains Layer Analysis`.  
 Finish with a section `### Architectural Smells for Other Domains`.
 

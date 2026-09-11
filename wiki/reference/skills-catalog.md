@@ -22,11 +22,11 @@ prerequisites already satisfied.
 
 | Skill | Inputs | Writes |
 | --- | --- | --- |
-| `/process-draft` | a new draft and `version.txt`, or one canonical umbrella row selected by `pw` | named draft and effort branch; umbrella continuation also creates a focused child draft without renaming the umbrella |
+| `/process-draft` | a new draft and `version.txt`, or one canonical umbrella row selected by `pw` | named draft and effort branch; an umbrella continuation preserves the umbrella, creates a focused child, and waits for explicit approval before requirement writing |
 | `/split-and-define` | a multi-topic collection draft | explicit umbrella marker, ordered pending/completed table, and requirement-detail subsections |
 | `/write-requirement` | type, `vX.Y.Z`, topic | `<effort-dir>/feature-request.vX.Y.Z.<topic>.md` or `<effort-dir>/issue.vX.Y.Z.<topic>.md` |
 | `/review-ask-questions` | a requirement, design or plan | `## Open questions` section, `Q0x` summary table |
-| `/consolidate-then-review-ask-questions` | the doc with answers | decision table, stripped questions, or a new round |
+| `/consolidate-then-review-ask-questions` | the doc with answers | scoped one-file question snapshot, then a decision table and stripped questions; a settled fold groups every remaining change and requires a clean tree before handoff |
 | `/write-design` | the settled requirement | `<effort-dir>/design.vX.Y.Z.<topic>.md` |
 | `/write-plans` | the settled design | `<effort-dir>/plan.vX.Y.Z.<topic>.md` + `.validation.md` skeleton |
 | `/implement-step N` | plan, design, requirement | code and tests, green `ghog day` |
@@ -35,10 +35,10 @@ prerequisites already satisfied.
 | `/group-commits-msg` | the staged diff | `a.commit`, one message per group |
 | `/update-merge-commit-msg` | the current no-fast-forward merge | `a.docs`, `a.commit`, current merge reworded before push |
 | `/prepare_release_notes` | `version.txt`, git history | `a.md`, `version.txt` summary, `CHANGELOG.md` |
-| `/prepare-release` | `main`, integration, or an isolated effort branch | feature merged and reworded on integration plus the next umbrella handoff, or full release artifacts and one `chore(release): prepare` commit when no pending umbrella item remains |
+| `/prepare-release` | `main`, integration, or an isolated effort branch | collection feature returned to its umbrella-slug integration branch plus the next handoff, or standalone/full release artifacts and one `chore(release): prepare` commit |
 
-`/update-merge-commit-msg` runs immediately after a feature merge into
-`develop` or any no-fast-forward merge into `main`. The merge must still be the
+`/update-merge-commit-msg` runs immediately after a feature merge into its
+integration branch or any no-fast-forward merge into `main`. The merge must still be the
 current commit, and the target branch must not be pushed or used for later
 integration work first. Rewording a historical merge requires a separate
 history-repair plan.
@@ -58,6 +58,13 @@ history-repair plan.
 | `/sanitize-git-history` | automatically run the contextual history scanner, settle confidential-term rules, then optionally rewrite with git filter-repo |
 | `prepare_release_plan.bat` | internal read-only single-source tool called automatically by `/prepare-release`; its standalone interface supports diagnostics, while the skill guards empty integration ranges and explains unsupported revert, multi-topic, and non-contiguous paths |
 
+Independent review mode adds a shared `review-requestor` coordinator plus
+family-specific specification and code requestors and reviewers. The
+`review-status-command` skill reports all active exchanges after bounded
+migration preflight without resuming one. Their host locations, command
+prefixes, delegation targets, and coverage gaps are listed in the
+[independent review mode contract](independent-review-mode-contract.md#host-adapter-matrix).
+
 ## 🔗 Chaining behavior of the writing skills
 
 `/write-requirement`, `/write-design` and `/write-plans` each end by
@@ -66,8 +73,12 @@ running `pw skill --after-write requirement`, `--after-write design`, or
 `/review-ask-questions` it prints. This explicit writer event prevents
 settled-looking text from skipping review; pass `stop here` in the argument to
 hold the chain and read the document first.
-`/consolidate-then-review-ask-questions` runs bare `pw skill` when the document
-settles. `/implement-step`, `/implementation-check` and
+`/consolidate-then-review-ask-questions` first resets the index, commits only
+the answered document with the group-commit template, and verifies an empty
+index. It then performs the fold. When the document settles, it stages every
+remaining path, runs the authorized `group-commits-msg` continuation without a
+second menu, and requires an empty porcelain status before bare `pw skill`.
+`/implement-step`, `/implementation-check` and
 `/implement-missing-step` chain through `pw handoff` instead, and
 `/group-commits-msg` closes the chain at the commit gate with
 `pw skill --after-commit <x>`. `/split-and-define` and feature-mode

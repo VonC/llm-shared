@@ -10,9 +10,24 @@ Take a draft document named in the prompt and use one of two modes:
   ordered item from an already settled collection, creates a focused child
   draft without changing the umbrella, and creates the item branch.
 
-The last step is a hand-off: a single-topic draft goes to the
+The last step is a hand-off: a single-topic initial draft goes to the
 `write-requirement` instruction; an initial draft holding more than one topic
-goes to the `split-and-define` instruction.
+goes to the `split-and-define` instruction. An umbrella-derived child first
+stops for human review and reaches that hand-off only after explicit approval.
+
+Umbrella continuation must produce a real Markdown child draft on disk in the
+new item branch or worktree before that review gate. That file is the review
+artifact and the authoritative source for revisions. Showing its proposed or
+current content in a chat response is only a preview and never substitutes for
+creating and preserving the file for the human to review.
+
+The child must also be a new working-tree result of the current continuation.
+Merely finding an unchanged tracked file inherited from branch history does not
+count as producing the draft. Before opening the review gate, run
+`git status --short -- <child-path>` in the selected branch or worktree and
+require an entry for that exact path as untracked, added, renamed, or materially
+modified. A clean result means no review artifact was produced by this run, even
+when a file already exists at that path.
 
 Do not write the feature-request or issue document here. In initial mode, do not
 reshape the draft body. In umbrella continuation mode, the focused child draft
@@ -63,23 +78,57 @@ Run this section before the ordinary numbered steps when the prompt contains
 4. Create a temporary unversioned child source at
    `<umbrella-dir>/draft.<item-slug>.md`. Its heading is the settled key title;
    its metadata records the settled type and the exact repository-relative
-   umbrella path in `- Umbrella: <umbrella-draft>`. Include the selected split
-   entry and the matching requirement-detail subsection plus the umbrella
-   sections, rules, examples, and constraints that entry says it
-   regroups. Preserve their meaning and concrete detail; do not pull in work
-   assigned to another item. Never edit, rename, or delete the umbrella draft.
+   umbrella path in `- Umbrella: <umbrella-draft>`. Write the value as plain
+   path text after the colon: never surround it with Markdown backticks,
+   quotation marks, angle brackets, or link syntax. `pw` consumes the exact
+   literal value, so formatting characters become part of the filename and
+   cause an `umbrella does not exist` error. Include the selected split entry
+   and the matching requirement-detail subsection plus the umbrella sections,
+   rules, examples, and constraints that entry says it regroups. Preserve
+   their meaning and concrete detail; do not pull in work assigned to another
+   item. Write this source as an actual Markdown file; do not keep the derived
+   draft only in the conversation. Never edit, rename, or delete the umbrella
+   draft.
 5. Continue at Step 7 and present only the branch-layout choice. Pass the
    temporary child source to `new_draft --from-draft` with the already settled
    slug, version, and inherited `--docs-layout` value. The tool moves that child
    source to `draft.vX.Y.Z.<item-slug>.md` in the derived effort directory in
    the new branch or worktree; the umbrella stays in the integration tree and
    is inherited by the new branch.
-6. Continue at Step 8 as one topic and hand off directly to
+   - Recovery exception: when the human explicitly states that the current
+     branch is already the selected item branch and `new_draft` would reject its
+     existing name, do not create a competing branch. Rebuild the canonical
+     child in place from the current umbrella row and detail subsection, using
+     any pre-existing child only as revision context. The result must contain a
+     truthful, material focused-draft change; never add a cosmetic marker just
+     to dirty the path. If no material reconciliation is possible, stop and
+     report the unexpected unchanged artifact instead of claiming creation.
+   After the normal or recovery route, read the final child path and verify that
+   it is a real file containing the focused draft. Then run
+   `git status --short -- <child-path>` in that branch or worktree and require
+   the exact path to appear as untracked, added, renamed, or modified. Step 7 is
+   incomplete while the file is absent or that path-scoped status is clean; a
+   pre-existing tracked file or chat-rendered copy does not satisfy this check.
+6. After Step 7 creates the item branch or worktree and the focused child draft,
+   lead with the exact path-scoped Git status entry and clickable child-file
+   path, followed by its complete current content. Tell the human to review the
+   file itself as the changed artifact; the conversation copy is only a
+   convenience. Keep the child file on disk throughout this gate. State that
+   the umbrella remains
+   unchanged, then stop for human review. Do not run `pw skill`, enter Step 8,
+   or invoke `write-requirement` yet.
+   - When the human supplies comments, update only the focused child draft,
+     present its complete revised content, and stop at this same review gate
+     again. Repeat until the human explicitly approves it.
+   - Treat only an explicit `Go ahead` as approval. Discussion, questions, and
+     draft corrections do not authorize the hand-off.
+7. After that approval, continue at Step 8 as one topic and hand off to
    `write-requirement`, passing the settled type, version, and slug. The
    umbrella draft remains associated context for the requirement.
 
 The ordinary initial-mode steps below do not run in umbrella continuation mode
-except for Steps 7 and 8 as narrowed above.
+except for Steps 7 and 8 as narrowed above. The human review gate applies only
+to the umbrella-derived child; an initial draft keeps the direct Step 8 hand-off.
 
 ## User choices for process-draft
 
@@ -272,3 +321,4 @@ specifies.
 | Tool interface | `--from-draft` takes the slug, version, docs layout, and branch placement as flags and prompts for nothing | Q07 | Step 7 | Re-prompt interactively; hybrid flag-or-prompt |
 | Draft relocation | Read the text and write it into the chosen tree, stage it, drop the source; in place `git mv` a tracked draft or plain-rename an untracked one | Q08 | Step 7 | Require a commit first; rename then move into the worktree |
 | Documentation layout | Offer `docs/`, `docs/vX.Y/`, `docs/vX.Y.Z/`, and `docs/vX.Y/vX.Y.Z/`; persist the choice in the draft parent | User request | Step 6 | One fixed version/topic directory; project-global configuration |
+| Umbrella child approval | Present and revise an umbrella-derived child until explicit human approval; keep an initial draft's direct hand-off | User request | Umbrella continuation Steps 6 and 7 | Send every child directly to `write-requirement`; pause initial drafts too |

@@ -1,5 +1,5 @@
 ---
-description: Process a new draft, or continue the pending row selected from a canonical umbrella status table without renaming that umbrella.
+description: Process a new draft, or create the next umbrella child and pause for human draft approval before requirement writing.
 ---
 
 1. Locate the shared instruction body `instructions/process-draft.md`: in this

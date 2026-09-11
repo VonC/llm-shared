@@ -68,14 +68,18 @@ Which phase to run comes from the user's request; default to phase 1
 when unstated. Before running any command below, read
 [`../rules/run_commands.md`](../rules/run_commands.md).
 
+Resolve `<LLM_SHARED_DIR>` as the absolute parent of the `instructions` folder
+that contains this canonical file. Substitute it directly below; do not rely
+on an environment variable or a guessed relative checkout.
+
 ## Phase 1: audit the full history
 
 Use the bundled read-only scanner as the primary evidence path. The skill
 must locate and invoke the stable launcher automatically; never ask the user
 to run this prerequisite:
 
-```bat
-"<LLM_SHARED_DIR>\bin\sensitive_history_scan.bat" --root "<repo>" --output "<repo>\a.sensitive.history-scan.local.md" --full-lines --validation-term "<known repository term>"
+```powershell
+& "<LLM_SHARED_DIR>\bin\sensitive_history_scan.bat" --root "<repo>" --output "<repo>\a.sensitive.history-scan.local.md" --full-lines --validation-term "<known repository term>"
 ```
 
 With no explicit `--rules`, the launcher reads the configured shared file and

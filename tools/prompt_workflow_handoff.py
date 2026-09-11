@@ -195,10 +195,10 @@ def resolve_topic(
 ) -> Topic | None:
     """Return the topic a non-interactive handoff resolves to, or None (Q63).
 
-    A single detected draft is used directly. Otherwise the branch-locked topic is
-    used when the memory still matches one on this branch. When several drafts
-    exist and none is locked, None is returned and the caller refuses with a
-    ``pw --pick`` message, since a non-interactive handoff cannot show the menu.
+    A single detected draft is used directly. Otherwise one exact normalized
+    branch-slug match wins before the branch-locked topic. When several drafts
+    exist and neither rule identifies one, None is returned because a
+    non-interactive handoff cannot show the menu.
 
     Args:
         topics: The relevant draft topics on the current branch.
@@ -210,6 +210,10 @@ def resolve_topic(
     """
     if len(topics) == 1:
         return topics[0]
+    branch_key = _slug_key(branch.rsplit("/", maxsplit=1)[-1])
+    branch_matches = [topic for topic in topics if _slug_key(topic.slug) == branch_key]
+    if len(branch_matches) == 1:
+        return branch_matches[0]
     for topic in topics:
         if _topic_matches(record, topic, branch):
             return topic
@@ -244,7 +248,15 @@ def resolve_current_topic(
     topic = resolve_topic(topics, record, branch)
     if topic is not None:
         return topic
+    umbrella = docs.branch_umbrella_topic(root, branch)
+    if umbrella is not None:
+        return umbrella
     return docs.branch_requirement_topic(root, branch)
+
+
+def _slug_key(value: str) -> str:
+    """Canonicalize branch and topic slugs for exact matching."""
+    return value.replace("-", "_")
 
 
 # eof

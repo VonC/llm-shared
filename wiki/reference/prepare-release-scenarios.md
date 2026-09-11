@@ -16,7 +16,10 @@ unsupported-path runbooks or for a human-approved recovery.
 
 ## Branch-role resolution
 
-`main` is the release branch. The integration branch is resolved in order:
+`main` is the release branch. For a collection topic, the umbrella slug names
+its integration branch after hyphen/underscore folding; that destination is
+resolved before the planner and cannot fall back to main. For standalone work,
+the generic integration branch is resolved in order:
 
 1. `git config prepare-release.integrationBranch`,
 2. local `develop`,
@@ -48,8 +51,9 @@ ready.
 | integration already contained by main | Stopped safely by the skill | No integration-only content | Reject an ancestry-only `merge-no-ff` plan; release from main only when all unreleased main content is selected |
 | integration, all but one topic selected | Unsupported by planner | Desired tree excludes one merge | Stop before mutation; output the unique merge evidence and a review-branch revert, verification, re-entry, and reintroduction runbook |
 | integration, several arbitrary topics selected | Unsupported as one plan | Named topic branches only | Output one ordered feature-promotion plan per topic; merge them to main separately, then prepare artifacts once from main |
-| feature with integration branch present | Supported | Confirmed `feature_base..feature` range only | Land the exact range on integration, reword the merge, then check the umbrella before release artifacts |
-| feature with no integration branch | Supported | Confirmed `feature_base..feature` range only | Land the exact range on main, reword the merge, then check the umbrella before release artifacts |
+| feature with an umbrella | Supported | Confirmed `feature_base..feature` range only | Land the exact range on the umbrella-slug integration branch, reword the merge, then check the next row |
+| standalone feature with generic integration present | Supported | Confirmed `feature_base..feature` range only | Land the exact range on generic integration, then prepare release artifacts |
+| standalone feature with no integration branch | Supported | Confirmed `feature_base..feature` range only | Land the exact range on main, then prepare release artifacts |
 | feature whose umbrella has another pending row | Supported stop | The completed feature merge only | Emit the next `process-draft ... based on <slug>` command; do not update release files |
 | feature whose umbrella is exhausted, or standalone feature | Supported | Completed feature plus the selected release range | Continue from integration to main, or in place on main, then prepare release artifacts |
 | feature tip already contained by its first destination but the merge is historical | Stopped safely | No safe reword operation remains | Report the merge OID; do not rewrite a non-tip merge |
@@ -58,8 +62,9 @@ ready.
 
 ## Canonical supported histories
 
-Before release selection, a feature can enter continuous integration by a
-rebase onto develop followed by a solid `--no-ff` merge:
+Before release selection, a feature enters continuous integration through its
+umbrella-slug branch, or through generic develop for a standalone topic. A
+stale range may require rebase followed by a solid `--no-ff` merge:
 
 ![Feature integration into develop.](../assets/prepare-release/feature-to-develop.svg)
 

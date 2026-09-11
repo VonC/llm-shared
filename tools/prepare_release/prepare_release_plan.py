@@ -34,13 +34,18 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--root", type=Path, default=Path.cwd(), help="Repository root.")
     parser.add_argument("--main", default="main", help="Release branch name.")
     parser.add_argument("--integration", help="Integration branch override.")
+    parser.add_argument(
+        "--umbrella",
+        type=Path,
+        help="Collection draft whose slug names this topic's integration branch.",
+    )
     parser.add_argument("--branch", help="Ref to plan instead of checked-out HEAD.")
     parser.add_argument("--feature-base", help="Confirmed feature boundary commit.")
     parser.add_argument("--feature-parent", help="Confirmed feature parent branch.")
     parser.add_argument(
         "--feature-target",
-        choices=("main", "integration"),
-        default="main",
+        choices=("auto", "main", "integration"),
+        default="auto",
         help="Land feature mode on main, or on the resolved integration branch first.",
     )
     parser.add_argument(
@@ -150,6 +155,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             args.root,
             main_branch=args.main,
             integration_branch=args.integration,
+            umbrella=args.umbrella,
             branch=args.branch,
             feature_base=args.feature_base,
             feature_parent=args.feature_parent,

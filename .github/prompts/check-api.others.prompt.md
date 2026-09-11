@@ -13,7 +13,6 @@ Consider only in your context ( in addition of #file:check-api.prompt.md ) the f
 - #file:../../a.root.api
 - #file:../../a.bootstrap.api
 
-
 Start your analysis with the section `### Other Layers Analysis`.  
 Finish with a section `### Architectural Smells for Other Layers`.
 

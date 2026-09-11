@@ -30,8 +30,6 @@ addopts = [
   "--strict-markers",
   "--tb=short",
   "--cov=tools",
-  "--cov-report=term-missing",
-  "--cov-report=html:htmlcov",
   "--cov-fail-under=100",
 ]
 # Filter out noisy deprecation warnings from dependencies (e.g., pymupdf/swig)
@@ -144,6 +142,7 @@ exclude = [
     "venv",
     "venvs",
     "legacy",
+    "a.*",
 ]
 
 # https://www.reddit.com/r/Python/comments/1kttfst/ruff_users_what_rules_are_using_and_what_are_you/
@@ -196,7 +195,7 @@ convention = "google"
 show_complexity = true
 show_closures = true
 show_maintainability = true
-exclude = ["venvs/*", "tests/*", "legacy/*"]
+exclude = ["venvs/*", "tests/*", "legacy/*", "a.*"]
 cc_min = "C"
 mi_min = "B"
 show_mi = true
@@ -229,6 +228,7 @@ dev = [
     "pytest-rerunfailures",
     "pytest-testmon",
     "pytest-timeout",
+    "pytest-xdist",
     "pytest-watcher",
     "python-pptx",
     "radon",
@@ -237,6 +237,7 @@ dev = [
     "ty>=0.0.30",
     "uv",
     "vulture",
+    "watchdog",
     "wheel",
 ]
 

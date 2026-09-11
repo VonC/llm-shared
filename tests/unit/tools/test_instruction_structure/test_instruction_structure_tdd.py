@@ -16,6 +16,10 @@ import pytest
 
 from tools import prompt_workflow_steps as steps
 
+# Keep this module's scenarios on one xdist worker so its module-scoped
+# fixtures are built once rather than once per worker (--dist loadgroup).
+pytestmark = pytest.mark.xdist_group("instruction-structure")
+
 if TYPE_CHECKING:
     from pathlib import Path
 
@@ -26,6 +30,12 @@ _EXPECTED_DIAGRAM_COUNT = 4
 def _read(name: str) -> str:
     """Return the text of an instruction file."""
     return (_INSTRUCTIONS / name).read_text(encoding="utf-8")
+
+
+def _assert_contains_all(content: str, fragments: tuple[str, ...]) -> None:
+    """Report every required fragment missing from one instruction slice."""
+    missing = tuple(fragment for fragment in fragments if fragment not in content)
+    assert not missing, f"missing instruction fragments: {missing!r}"
 
 
 def test_writing_and_consolidate_instructions_carry_a_handoff() -> None:
@@ -41,6 +51,36 @@ def test_writing_and_consolidate_instructions_carry_a_handoff() -> None:
         assert "pw skill" in content
 
 
+def test_consolidation_commits_one_question_snapshot_before_editing() -> None:
+    """Every document type records its answered questions before the fold."""
+    content = _read("consolidate-then-review-ask-questions.md")
+    snapshot = content.index("## Pre-consolidation question snapshot")
+    integration = content.index("You need to remove `Qxx:` sections")
+    snapshot_contract = " ".join(content[snapshot:integration].split())
+
+    assert snapshot < integration
+    for document_type in (
+        "feature request",
+        "issue",
+        "design",
+        "implementation plan",
+    ):
+        assert document_type in snapshot_contract
+    for required_text in (
+        "plain `git reset`",
+        "git diff --cached --name-only",
+        "git add -A <document-path>",
+        "prints exactly `<document-path>` and no other path",
+        "group-commits-msg.template.md",
+        "wac.bat",
+        "gcba.bat",
+        "--root-a-commit --non-interactive",
+        "do not present another commit menu",
+        "Leave any unrelated working-tree changes unstaged",
+    ):
+        assert required_text in snapshot_contract
+
+
 def test_review_instruction_leaves_the_consolidation_hint() -> None:
     """review-ask-questions hints the consolidation step on the reviewed document."""
     assert "consolidate-then-review-ask-questions" in _read("review-ask-questions.md")
@@ -52,6 +92,76 @@ def test_splitting_instructions_present_the_multi_choice() -> None:
         content = _read(name)
         assert "write-requirement" in content
         assert "Type something else" in content
+
+
+def test_umbrella_child_stops_for_review_before_requirement_handoff() -> None:
+    """Only an approved umbrella-derived child may reach write-requirement."""
+    content = _read("process-draft.md")
+    umbrella = content.split("## Umbrella continuation mode", 1)[1].split(
+        "## User choices for process-draft",
+        1,
+    )[0]
+    initial_handoff = content.split(
+        "## Step 8 for process-draft, hand off to the next instruction",
+        1,
+    )[1].split("## Design decisions for process-draft", 1)[0]
+    umbrella = " ".join(umbrella.split())
+
+    _assert_contains_all(
+        umbrella,
+        (
+            "stop for human review",
+            "Do not run `pw skill`, enter Step 8",
+            "only an explicit `Go ahead`",
+            "update only the focused child draft",
+            "Write this source as an actual Markdown file",
+            "verify that it is a real file",
+            "git status --short -- <child-path>",
+            "path-scoped status is clean",
+            "Recovery exception",
+            "truthful, material focused-draft change",
+            "lead with the exact path-scoped Git status entry",
+            "review the file itself",
+            "conversation copy is only a convenience",
+            "never surround it with Markdown backticks",
+            "cause an `umbrella does not exist` error",
+        ),
+    )
+    _assert_contains_all(
+        content,
+        (
+            "produce a real Markdown child draft on disk",
+            "new working-tree result of the current continuation",
+            "Merely finding an unchanged tracked file",
+        ),
+    )
+    assert "run the selection straight away" in initial_handoff
+
+
+def test_process_draft_docs_keep_the_on_disk_umbrella_child_contract() -> None:
+    """README and Diataxis pages keep the file-backed child review gate."""
+    root = steps.llm_shared_dir()
+    pages = {
+        "README": (root / "README.md").read_text(encoding="utf-8"),
+        "tutorial": (
+            root / "wiki/tutorials/02-from-draft-to-settled-requirement.md"
+        ).read_text(encoding="utf-8"),
+        "how-to": (root / "wiki/how-to/split-a-mixed-draft.md").read_text(
+            encoding="utf-8",
+        ),
+        "reference": (root / "wiki/reference/artifact-files.md").read_text(
+            encoding="utf-8",
+        ),
+    }
+
+    assert "writes and verifies the canonical focused child Markdown file" in pages[
+        "README"
+    ]
+    assert "Review the file itself" in pages["tutorial"]
+    assert "Review that file itself" in pages["how-to"]
+    assert "required on-disk artifact" in pages["reference"]
+    for content in pages.values():
+        assert "preview" in content
 
 
 def test_process_draft_offers_and_passes_every_docs_layout() -> None:
@@ -73,23 +183,6 @@ def test_group_commits_carries_the_commit_gate_multi_choice() -> None:
     assert "Go ahead, and prepare-release" in content
     assert "Never present the contextual option as only the printed command" in content
     assert "Type something else" in content
-
-
-def test_prepare_release_distinguishes_branch_roles() -> None:
-    """prepare-release preserves integration history and isolates feature commits."""
-    content = " ".join(_read("prepare-release.md").split())
-    assert "On-main release" in content
-    assert "Integration release" in content
-    assert "Feature completion" in content
-    assert "Never rebase a published, long-lived integration branch" in content
-    assert (
-        'rebase --onto "<target_branch>" "<feature_base>" "<landing_branch>"'
-        in content
-    )
-    assert "do not blindly use the oldest entry" in content
-    assert "Preserve the original feature ref" in content
-    assert 'There is no feature-mode "merge stale anyway" path' in content
-    assert 'merge --no-ff "<source_branch>"' in content
 
 
 def _assert_release_wiki_step(instruction: str) -> None:
@@ -256,15 +349,6 @@ def test_prepare_release_names_and_applies_gitworkflow_precisely() -> None:
     assert "does not preview this revert path" in content
     assert "https://git-scm.com/docs/gitworkflows" in content
     assert "https://github.com/rocketraman/gitworkflow" in content
-
-
-def test_prepare_release_documents_default_develop_variant() -> None:
-    """The local variant lands topics on develop before release preparation."""
-    content = " ".join(_read("prepare-release.md").split())
-    assert "published long-lived hosting default" in content
-    assert "replay the exact feature range onto current `develop`" in content
-    assert "When no integration branch exists, `main` is that first target" in content
-    assert "Only after the umbrella is exhausted" in content
 
 
 def test_gitworkflow_explanation_links_the_primary_context() -> None:
@@ -532,150 +616,12 @@ def test_wiki_explains_and_specifies_shared_target_rewording() -> None:
     explanation_words = " ".join(explanation.split())
     reference_words = " ".join(reference.split())
 
-    assert "The merge says why this topic entered develop" in explanation
+    assert "The merge says why this topic entered its integration branch" in explanation
     assert "Rewording happens before the table checkpoint" in explanation_words
-    assert "feature merge into `develop`" in reference_words
+    assert "feature merge into its integration branch" in reference_words
     assert "any no-fast-forward merge into `main`" in reference_words
     assert "current commit" in reference_words
     assert "history-repair plan" in reference_words
-
-
-def test_pw_running_instructions_link_to_the_run_pw_note() -> None:
-    """Each instruction that runs a pw command points at run-pw.md."""
-    for name in (
-        "write-requirement.md",
-        "write-design.md",
-        "write-plans.md",
-        "consolidate-then-review-ask-questions.md",
-        "process-draft.md",
-        "group-commits-msg.md",
-        "implement-step.md",
-        "implement-missing-step.md",
-        "implementation-check.md",
-    ):
-        assert "run-pw.md" in _read(name)
-
-
-def test_question_skills_show_the_three_column_table() -> None:
-    """Review and consolidate present open questions as a Q0x / Title / Recommended table."""
-    for name in ("review-ask-questions.md", "consolidate-then-review-ask-questions.md"):
-        assert "| Q0x | Title | Recommended Answer |" in _read(name)
-
-
-def test_question_skills_use_the_oqm_wrapper() -> None:
-    """Review and consolidate use oqm.bat instead of direct Python fallback."""
-    for name in ("review-ask-questions.md", "consolidate-then-review-ask-questions.md"):
-        content = _read(name)
-        assert "run_commands.md" in content
-        assert "oqm.bat" in content
-        assert "python <LLM_SHARED_DIR>\\tools\\open_questions_md.py" not in content
-
-
-def test_writer_handoffs_review_the_artifact_that_was_just_written() -> None:
-    """Each writer uses explicit post-write routing instead of disk inference."""
-    writers = (
-        ("write-requirement.md", "requirement"),
-        ("write-design.md", "design"),
-        ("write-plans.md", "plan"),
-    )
-    for name, role in writers:
-        assert f"pw skill --after-write {role}" in _read(name)
-
-
-def test_wiki_covers_umbrella_topics_and_explicit_post_write_review() -> None:
-    """Every Diataxis purpose reflects both prompt-workflow routing fixes."""
-    root = steps.llm_shared_dir() / "wiki"
-    pages = {
-        "explanation": root / "explanation" / "one-launcher-three-modes.md",
-        "tutorial": root / "tutorials" / "02-from-draft-to-settled-requirement.md",
-        "how_to": root / "how-to" / "split-a-mixed-draft.md",
-        "reference": root / "reference" / "pw-launcher.md",
-    }
-    content = {role: path.read_text(encoding="utf-8") for role, path in pages.items()}
-    assert all("umbrella" in text for text in content.values())
-    assert all("after-write" in text for text in content.values())
-
-    tutorial = content["tutorial"]
-    assert "draft.v10.0.0.sentinel.md" in tutorial
-    assert "- Draft role: umbrella" in tutorial
-    assert "based on route-cleanup" in tutorial
-    assert "`completed`" in tutorial
-
-    reference = content["reference"]
-    assert "$llm-shared:skill" in reference
-    assert "Missing and ambiguous relationships return no topic" in reference
-
-
-def test_wiki_covers_shared_menu_less_umbrella_resolution() -> None:
-    """Diataxis pages state that skill and handoff share topic resolution."""
-    root = steps.llm_shared_dir() / "wiki"
-    pages = (
-        root / "explanation" / "one-launcher-three-modes.md",
-        root / "tutorials" / "04-run-the-implement-chain.md",
-        root / "how-to" / "run-pw-from-any-shell.md",
-        root / "how-to" / "split-a-mixed-draft.md",
-        root / "reference" / "artifact-files.md",
-        root / "reference" / "pw-launcher.md",
-    )
-
-    for path in pages:
-        content = path.read_text(encoding="utf-8")
-        assert "pw skill" in content
-        assert "pw handoff" in content
-        assert "umbrella" in content
-
-    for path in pages[1:4]:
-        assert "temporary" in path.read_text(encoding="utf-8")
-
-
-def test_wiki_covers_document_layouts_and_stateless_lookup() -> None:
-    """Every Diataxis purpose covers its part of document organization."""
-    root = steps.llm_shared_dir() / "wiki"
-    explanation = (
-        root / "explanation" / "where-the-human-stays-in-the-loop.md"
-    ).read_text(encoding="utf-8")
-    tutorial = (
-        root / "tutorials" / "02-from-draft-to-settled-requirement.md"
-    ).read_text(encoding="utf-8")
-    how_to = (root / "how-to" / "run-pw-from-any-shell.md").read_text(
-        encoding="utf-8",
-    )
-    reference = (root / "reference" / "artifact-files.md").read_text(
-        encoding="utf-8",
-    )
-
-    assert "five menus" in explanation
-    assert "documentation-layout choice" in explanation
-    for layout in ("docs/", "docs/vX.Y/", "docs/vX.Y.Z/", "docs/vX.Y/vX.Y.Z/"):
-        assert layout in tutorial
-        assert layout in reference
-    assert "pw document <version> <slug> <type>" in how_to
-    assert "without knowing its folder" in how_to
-    assert "version, slug, and document type" in reference
-    assert "same selector exists in more than one supported layout" in reference
-
-
-def test_oqm_wrapper_clears_the_project_senv_guard() -> None:
-    """oqm.bat clears the project guard before calling senv.bat."""
-    content = (steps.llm_shared_dir() / "bin" / "oqm.bat").read_text(
-        encoding="utf-8",
-    )
-    assert "NO_MORE_SENV_!LLM_SHARED_PRJ_DIR_NAME!=" in content
-    assert "%PRJ_DIR%\\senv.bat" in content
-    assert "open_questions_md.py" in content
-
-
-def test_python_tool_instructions_use_wrappers() -> None:
-    """Instructions should avoid direct Python script calls when wrappers exist."""
-    for name in (
-        "group-commits-msg.md",
-        "update-merge-commit-msg.md",
-        "git-history-report.md",
-    ):
-        content = _read(name)
-        assert "run_commands.md" in content
-        assert 'python "%LLM_SHARED_DIR%\\tools\\' not in content
-        assert "python <llm-shared>/tools/" not in content
 
 
 # eof

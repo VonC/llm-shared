@@ -65,6 +65,36 @@ class CommitBlock:
     commit_title: str
 
 
+@dataclass(frozen=True)
+class CommitPlanGroup:
+    """One validated commit group in its declared execution order."""
+
+    position: int
+    subject: str
+    paths: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class CommitPlanSubjectRequirement:
+    """Exact subject required for the group containing one staged path."""
+
+    path: str
+    subject: str
+
+
+@dataclass(frozen=True)
+class CommitPlanValidation:
+    """Side-effect-free typed commit groups and validation diagnostics."""
+
+    groups: tuple[CommitPlanGroup, ...]
+    diagnostics: tuple[str, ...]
+
+    @property
+    def valid(self) -> bool:
+        """Return whether the plan satisfies every shared commit rule."""
+        return not self.diagnostics
+
+
 @dataclass
 class _ParseState:
     """State tracker for commit message parsing."""
@@ -116,6 +146,8 @@ __all__ = [
     "ClipboardError",
     "CommitBlock",
     "CommitMessageError",
+    "CommitPlanGroup",
+    "CommitPlanValidation",
     "GitBatchCommitError",
     "GitOperationError",
     "_GitAddOutcome",

@@ -4,14 +4,17 @@ Fix: the ``subprocess.run`` stand-ins are fully typed (``object`` parameters
 and an explicit return), so the strict pyright gate no longer flags unknown
 parameter or argument types on the monkeypatched doubles.
 
-The missing-validation branch uses an empty in-memory repository so the
-long-line integration test scans its real Git history only once.
+Repository scanning uses an in-memory Git boundary with representative object,
+message, path, text, binary, and long-line records. Configuration tests inject
+the exact Git config results they parse, avoiding process startup while keeping
+the scanner algorithms and failure paths intact.
 """
 
 from __future__ import annotations
 
 import re
 import subprocess
+from types import SimpleNamespace
 from typing import TYPE_CHECKING, NoReturn
 
 import pytest
@@ -33,46 +36,61 @@ from tools.sensitive_history.history_scan import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
     from pathlib import Path
 
 EXPECTED_BLOB_MATCHES = 3
 MATCHING_TEXT_LINE = 2
 
 
-def _git(repo: Path, *args: str) -> str:
-    result = subprocess.run(  # noqa: S603
-        ["git", *args],  # noqa: S607
-        cwd=repo,
-        check=True,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-    )
-    return result.stdout.strip()
+class _HistoryRepository:
+    """Representative reachable history served without Git subprocesses."""
 
+    def __init__(self, root: Path, *, include_long: bool = False) -> None:
+        self.root = root
+        self._blobs = {
+            "1" * 40: b"first line\nSecretCorp appears here\n",
+            "2" * 40: b"prefix\0SECRETCORP binary suffix",
+            "3" * 40: b"replacement\nsecretcorp second version\n",
+        }
+        if include_long:
+            self._blobs["4" * 40] = f"{'a' * 80}SecretCorp{'z' * 80}\n".encode()
 
-@pytest.fixture
-def history_repo(tmp_path: Path) -> Path:
-    """Create history with message, tag, path, text, and binary matches."""
-    repo = tmp_path / "repo"
-    repo.mkdir()
-    _git(repo, "init", "-b", "main")
-    _git(repo, "config", "user.name", "Scanner Tests")
-    _git(repo, "config", "user.email", "scanner@example.invalid")
-    (repo / ".gitignore").write_text("a.*\n", encoding="utf-8")
-    (repo / "SecretCorp-notes.txt").write_text(
-        "first line\nSecretCorp appears here\n", encoding="utf-8",
-    )
-    (repo / "binary.dat").write_bytes(b"prefix\0SECRETCORP binary suffix")
-    _git(repo, "add", ".")
-    _git(repo, "commit", "-m", "feat: mention secretcorp", "-m", "body SecretCorp")
-    _git(repo, "tag", "-a", "v1", "-m", "SecretCorp release")
-    (repo / "SecretCorp-notes.txt").write_text(
-        "replacement\nsecretcorp second version\n", encoding="utf-8",
-    )
-    _git(repo, "add", ".")
-    _git(repo, "commit", "-m", "docs: update notes")
-    return repo
+    def object_inventory(self) -> tuple[list[str], dict[str, tuple[str, ...]]]:
+        paths: dict[str, tuple[str, ...]] = {
+            "1" * 40: ("SecretCorp-notes.txt",),
+            "2" * 40: ("binary.dat",),
+            "3" * 40: ("SecretCorp-notes.txt",),
+        }
+        if "4" * 40 in self._blobs:
+            paths["4" * 40] = ("long.txt",)
+        return [*self._blobs, "c" * 40, "t" * 40], paths
+
+    def blob_ids(self, _object_ids: list[str]) -> list[str]:
+        return list(self._blobs)
+
+    def iter_blobs(self, blob_ids: list[str]) -> Iterator[tuple[str, bytes]]:
+        return ((oid, self._blobs[oid]) for oid in blob_ids)
+
+    @staticmethod
+    def commit_messages() -> list[SimpleNamespace]:
+        return [
+            SimpleNamespace(
+                oid="c" * 40,
+                ref=None,
+                text="feat: mention secretcorp\nbody SecretCorp",
+            ),
+        ]
+
+    @staticmethod
+    def tag_messages() -> list[SimpleNamespace]:
+        return [
+            SimpleNamespace(
+                oid="t" * 40,
+                ref="v1",
+                text="SecretCorp release",
+            ),
+        ]
 
 
 def test_pattern_inputs_are_case_insensitive_and_deduplicated(tmp_path: Path) -> None:
@@ -138,16 +156,34 @@ def test_missing_and_empty_inputs_are_reported(tmp_path: Path) -> None:
         merge_patterns([])
 
 
-def test_repository_rules_merge_shared_then_project_local(tmp_path: Path) -> None:
+def test_repository_rules_merge_shared_then_project_local(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Conventional scans use central rules plus repository-specific rules."""
     repo = tmp_path / "repo"
     repo.mkdir()
-    _git(repo, "init", "-b", "main")
     shared = tmp_path / "shared.rules"
     shared.write_text("literal:CommonTerm==>redacted\n", encoding="utf-8")
     local = repo / "a.sensitive.replacements.local.txt"
     local.write_text("literal:LocalTerm==>redacted\n", encoding="utf-8")
-    _git(repo, "config", "sensitive.sharedRulesFile", str(shared))
+
+    def shared_config(
+        *_args: object,
+        **_kwargs: object,
+    ) -> subprocess.CompletedProcess[bytes]:
+        return subprocess.CompletedProcess(
+            [],
+            0,
+            stdout=f"{shared}\n".encode(),
+            stderr=b"",
+        )
+
+    monkeypatch.setattr(
+        subprocess,
+        "run",
+        shared_config,
+    )
 
     assert configured_shared_replacement_file(repo) == shared.resolve()
     assert repository_replacement_files(repo) == (shared.resolve(), local.resolve())
@@ -167,16 +203,29 @@ def test_repository_rules_handle_absent_empty_relative_and_failed_config(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Shared rule config is optional, path-aware, and fails closed on errors."""
-    repo = tmp_path / "repo"
-    repo.mkdir()
-    _git(repo, "init", "-b", "main")
-    assert configured_shared_replacement_file(repo) is None
-    _git(repo, "config", "sensitive.sharedRulesFile", "")
-    assert configured_shared_replacement_file(repo) is None
-    relative = repo / "relative.rules"
-    relative.write_text("literal:RelativeTerm==>redacted\n", encoding="utf-8")
-    _git(repo, "config", "sensitive.sharedRulesFile", "relative.rules")
-    assert configured_shared_replacement_file(repo) == relative.resolve()
+    absent = tmp_path / "absent"
+    absent.mkdir()
+    empty = tmp_path / "empty"
+    empty.mkdir()
+    relative = tmp_path / "relative"
+    relative.mkdir()
+    rules = relative / "relative.rules"
+    rules.write_text("literal:RelativeTerm==>redacted\n", encoding="utf-8")
+
+    def config_result(
+        *_args: object,
+        cwd: Path,
+        **_kwargs: object,
+    ) -> subprocess.CompletedProcess[bytes]:
+        if cwd == absent:
+            return subprocess.CompletedProcess([], 1, stdout=b"", stderr=b"")
+        output = b"\n" if cwd == empty else b"relative.rules\n"
+        return subprocess.CompletedProcess([], 0, stdout=output, stderr=b"")
+
+    monkeypatch.setattr(subprocess, "run", config_result)
+    assert configured_shared_replacement_file(absent) is None
+    assert configured_shared_replacement_file(empty) is None
+    assert configured_shared_replacement_file(relative) == rules.resolve()
 
     def missing_git(*_args: object, **_kwargs: object) -> NoReturn:
         message = "missing"
@@ -184,7 +233,7 @@ def test_repository_rules_handle_absent_empty_relative_and_failed_config(
 
     monkeypatch.setattr(subprocess, "run", missing_git)
     with pytest.raises(HistoryScanError, match="cannot read Git config"):
-        configured_shared_replacement_file(repo)
+        configured_shared_replacement_file(relative)
 
 
 def test_repository_rules_reject_failed_git_config(
@@ -207,10 +256,19 @@ def test_repository_rules_reject_failed_git_config(
 
 
 @pytest.fixture
-def history_report(history_repo: Path) -> ScanReport:
-    """Scan the shared history fixture once per dependent test."""
+def history_report(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> ScanReport:
+    """Scan representative in-memory history through the production algorithm."""
+    repository = _HistoryRepository(tmp_path)
+
+    def repository_factory(_root: Path) -> _HistoryRepository:
+        return repository
+
+    monkeypatch.setattr(history_scan, "GitRepository", repository_factory)
     return scan_repository(
-        history_repo,
+        tmp_path,
         patterns_from_terms(["secretcorp"]),
         max_line_chars=None,
         validation_term="replacement",
@@ -249,14 +307,19 @@ def test_scan_reports_exact_context(history_report: ScanReport) -> None:
     assert blob_matches[0].to_dict()["kind"] == "blob"
 
 
-def test_scan_truncates_long_lines_and_validates_known_content(history_repo: Path) -> None:
+def test_scan_truncates_long_lines_and_validates_known_content(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Long lines become centered excerpts while known content validates."""
-    long_file = history_repo / "long.txt"
-    long_file.write_text(f"{'a' * 80}SecretCorp{'z' * 80}\n", encoding="utf-8")
-    _git(history_repo, "add", "long.txt")
-    _git(history_repo, "commit", "-m", "test: long line")
+    repository = _HistoryRepository(tmp_path, include_long=True)
+
+    def repository_factory(_root: Path) -> _HistoryRepository:
+        return repository
+
+    monkeypatch.setattr(history_scan, "GitRepository", repository_factory)
     report = scan_repository(
-        history_repo,
+        tmp_path,
         patterns_from_terms(["secretcorp"]),
         max_line_chars=40,
         validation_term="SecretCorp",
@@ -313,24 +376,48 @@ def test_scan_rejects_a_validation_term_absent_from_history(
         )
 
 
-def test_non_repository_is_rejected(tmp_path: Path) -> None:
+def test_non_repository_is_rejected(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Scanning stops outside a Git working tree."""
+    real_repository = GitRepository
+
+    def reject_repository(_root: Path) -> NoReturn:
+        message = "git rev-parse failed"
+        raise HistoryScanError(message)
+
+    monkeypatch.setattr(history_scan, "GitRepository", reject_repository)
     with pytest.raises(HistoryScanError, match="git rev-parse"):
         scan_repository(tmp_path, patterns_from_terms(["secret"]))
 
     bare = tmp_path / "bare.git"
-    subprocess.run(  # noqa: S603
-        ["git", "init", "--bare", str(bare)],  # noqa: S607
-        check=True,
-        capture_output=True,
+    bare.mkdir()
+
+    def bare_result(
+        *_args: object,
+        **_kwargs: object,
+    ) -> subprocess.CompletedProcess[bytes]:
+        return subprocess.CompletedProcess(
+            [],
+            0,
+            stdout=b"false\n",
+            stderr=b"",
+        )
+
+    monkeypatch.setattr(
+        subprocess,
+        "run",
+        bare_result,
     )
     with pytest.raises(HistoryScanError, match="not a Git working tree"):
-        GitRepository(bare)
+        real_repository(bare)
 
 
-def test_empty_batch_inputs_and_unmatched_excerpt(history_repo: Path) -> None:
+def test_empty_batch_inputs_and_unmatched_excerpt(tmp_path: Path) -> None:
     """Empty object batches are no-ops and the excerpt helper has a fallback."""
-    repository = GitRepository(history_repo)
+    repository = object.__new__(GitRepository)
+    repository.root = tmp_path
     assert repository.blob_ids([]) == []
     assert list(repository.iter_blobs([])) == []
     assert _display_line("x" * 60, re.compile("absent"), 40) == ("x" * 40, True)

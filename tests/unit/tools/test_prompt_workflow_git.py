@@ -3,9 +3,10 @@
 Fix: Cover the git command wrapper (success and both error-message branches),
 the current-branch query, the fork-point walk (found, not found, and the
 zero-own-commit branch that starts at HEAD), the changed-files diff, and the
-porcelain path parsing including renames and short lines. Also cover the
-validation-commit grep, including a lettered sub-step id whose space-delimited
-subject stays apart from its parent step (Q44).
+porcelain path parsing including renames and short lines. Revision-bearing
+commands end their revision lists with ``--`` so branch and path names cannot be
+ambiguous. Also cover both step-marker greps, including a lettered sub-step id
+whose space-delimited subject stays apart from its parent step (Q44).
 """
 
 from __future__ import annotations
@@ -108,6 +109,7 @@ def _fake_git(*, branch: str, branches: str, revlist: str) -> Callable[..., str]
         if args[:1] == ["for-each-ref"]:
             return branches
         if args[:1] == ["rev-list"]:
+            assert args[-1] == "--"
             return revlist
         msg = f"Unexpected git args: {args}"
         raise AssertionError(msg)
@@ -126,6 +128,81 @@ def test_fork_point_returns_boundary_commit(
         _fake_git(branch="feature", branches="main\nfeature\n", revlist="c1\n-c0\n"),
     )
     assert git.fork_point(tmp_path) == "c0"
+
+
+def test_fork_point_separates_branch_revisions_from_paths(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """A branch named like the docs directory stays an unambiguous revision."""
+    rev_lists: list[list[str]] = []
+
+    def fake(args: list[str], *, cwd: Path) -> str:
+        del cwd
+        if args[:2] == ["rev-parse", "--abbrev-ref"]:
+            return "feature"
+        if args[:1] == ["for-each-ref"]:
+            return "docs\nfeature\n"
+        if args[:1] == ["rev-list"]:
+            rev_lists.append(args)
+            return "c1\n-c0\n"
+        msg = f"Unexpected git args: {args}"
+        raise AssertionError(msg)
+
+    monkeypatch.setattr(git, "run_git", fake)
+
+    assert git.fork_point(tmp_path) == "c0"
+    assert rev_lists == [
+        ["rev-list", "--first-parent", "--boundary", "HEAD", "--not", "docs", "--"],
+    ]
+
+
+def test_fork_point_prefers_a_merge_commits_first_parent_boundary(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """A merged topic boundary cannot hide the destination branch changes."""
+
+    def fake(args: list[str], *, cwd: Path) -> str:
+        del cwd
+        if args[:2] == ["rev-parse", "--abbrev-ref"]:
+            return "umbrella"
+        if args[:1] == ["for-each-ref"]:
+            return "feature\nmain\numbrella\n"
+        if args[:3] == ["rev-list", "--first-parent", "--boundary"]:
+            return "merge-tip\n-feature-tip\n-destination-tip\n"
+        if args == ["rev-list", "--parents", "-n", "1", "HEAD"]:
+            return "merge-tip destination-tip feature-tip\n"
+        msg = f"Unexpected git args: {args}"
+        raise AssertionError(msg)
+
+    monkeypatch.setattr(git, "run_git", fake)
+
+    assert git.fork_point(tmp_path) == "destination-tip"
+
+
+def test_fork_point_keeps_the_first_boundary_without_a_parent_match(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Ambiguous boundaries retain the established first-boundary fallback."""
+
+    def fake(args: list[str], *, cwd: Path) -> str:
+        del cwd
+        if args[:2] == ["rev-parse", "--abbrev-ref"]:
+            return "feature"
+        if args[:1] == ["for-each-ref"]:
+            return "feature\nmain\nside\n"
+        if args[:3] == ["rev-list", "--first-parent", "--boundary"]:
+            return "tip\n-main-tip\n-side-tip\n"
+        if args == ["rev-list", "--parents", "-n", "1", "HEAD"]:
+            return "tip unrelated-parent\n"
+        msg = f"Unexpected git args: {args}"
+        raise AssertionError(msg)
+
+    monkeypatch.setattr(git, "run_git", fake)
+
+    assert git.fork_point(tmp_path) == "main-tip"
 
 
 def test_fork_point_none_without_other_branches(
@@ -174,6 +251,7 @@ def test_fork_point_head_when_branch_has_no_own_commits(
         if args[:1] == ["for-each-ref"]:
             return "main\nduration_outliers\n"
         if args[:1] == ["rev-list"]:
+            assert args[-1] == "--"
             return ""
         if args == ["rev-parse", "HEAD"]:
             return "head000\n"
@@ -199,7 +277,7 @@ def test_changed_files_since_lists_paths(
     monkeypatch.setattr(git, "run_git", fake)
 
     assert git.changed_files_since(tmp_path, "base") == ["docs/a.md", "docs/b.md"]
-    assert seen == [["diff", "--name-only", "--diff-filter=AMR", "base", "HEAD"]]
+    assert seen == [["diff", "--name-only", "--diff-filter=AMR", "base", "HEAD", "--"]]
 
 
 def test_working_tree_changed_files_parses_status(
@@ -238,15 +316,22 @@ def test_staged_files_lists_cached_paths(
     tmp_path: Path,
 ) -> None:
     """Staged files come from the cached name-only diff."""
-    monkeypatch.setattr(git, "run_git", lambda _args, **_kwargs: "docs/a.md\ntools/b.py\n")
+    seen: list[list[str]] = []
+
+    def fake(args: list[str], **_kwargs: object) -> str:
+        seen.append(args)
+        return "docs/a.md\ntools/b.py\n"
+
+    monkeypatch.setattr(git, "run_git", fake)
     assert git.staged_files(tmp_path) == ["docs/a.md", "tools/b.py"]
+    assert seen == [["diff", "--cached", "--name-only", "--"]]
 
 
 def test_has_step_commit_with_and_without_base(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    """The grep range is base..HEAD when known, otherwise the whole history."""
+    """Validation and completion markers share the selected history range."""
     calls: list[list[str]] = []
 
     def fake(args: list[str], **_kwargs: object) -> str:
@@ -257,8 +342,24 @@ def test_has_step_commit_with_and_without_base(
 
     assert git.has_step_commit(tmp_path, "2", "base") is True
     assert git.has_step_commit(tmp_path, "3", None) is False
-    assert calls[0] == ["log", "-i", "--grep=record step 2 validation", "--format=%H", "base..HEAD"]
-    assert calls[1] == ["log", "-i", "--grep=record step 3 validation", "--format=%H", "HEAD"]
+    assert calls[0] == [
+        "log",
+        "-i",
+        "--grep=record step 2 validation",
+        "--grep=record step 2 completion",
+        "--format=%H",
+        "base..HEAD",
+        "--",
+    ]
+    assert calls[1] == [
+        "log",
+        "-i",
+        "--grep=record step 3 validation",
+        "--grep=record step 3 completion",
+        "--format=%H",
+        "HEAD",
+        "--",
+    ]
 
 
 def test_has_step_commit_substep_id_is_space_delimited(
@@ -279,8 +380,10 @@ def test_has_step_commit_substep_id_is_space_delimited(
         "log",
         "-i",
         "--grep=record step 4A validation",
+        "--grep=record step 4A completion",
         "--format=%H",
         "base..HEAD",
+        "--",
     ]
 
 

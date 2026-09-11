@@ -20,13 +20,18 @@ The macro only stands in for the launcher `<LLM_SHARED_DIR>\bin\prompt_workflow.
 
 Follow the command rules in [`../rules/run_commands.md`](../rules/run_commands.md): get the call right on the first attempt, one shell per command, no nested quoting.
 
+Resolve `<LLM_SHARED_DIR>` as the absolute parent of the `instructions` folder
+that contains this canonical file. Substitute that path directly in every
+command below; do not pass the placeholder literally, guess a relative
+checkout, or rely on an environment variable.
+
 From a PowerShell shell, use the call operator `&` — one shell, no nesting:
 
 ```text
 & "<LLM_SHARED_DIR>\bin\prompt_workflow.bat" skill
 ```
 
-Replace `skill` with the actual sub-command and its arguments. With `<LLM_SHARED_DIR>` standing for the llm-shared folder:
+Replace `skill` with the actual sub-command and its arguments.
 
 | pw command | PowerShell call |
 | --- | --- |
@@ -43,9 +48,12 @@ From a `cmd` shell, drop the call operator and quote only the path:
 "<LLM_SHARED_DIR>\bin\prompt_workflow.bat" skill
 ```
 
-## Fallback chain seen in the wild
+## Do not add an environment wrapper
 
-A heavier `PowerShell(cmd /c "senv.bat && <LLM_SHARED_DIR>\bin\prompt_workflow.bat skill")` chain also works, and an agent that did not know the launcher self-locates may land on it. It is not wrong, but `senv.bat` is redundant and the nested quotes go against the command rules, so prefer the direct call above.
+Do not replace the direct call with a nested
+`PowerShell(cmd /c "senv.bat && ...")` chain. `senv.bat` is redundant for this
+self-locating launcher, and the extra shell and quoting can turn the handoff
+into a parse failure or silent no-op.
 
 For a `pw handoff` command, which writes `a.prompt.txt`, `a.prompt_memory`, and the clipboard, do not wrap the launcher in a nested `cmd /d /c "..."` from Git Bash or another POSIX shell: the nested `cmd` can swallow the launcher's output and its file writes, so the handoff does nothing while still returning `0` — a silent no-op. Run it directly in PowerShell and confirm the launcher's `... ready` line before moving on.
 

@@ -1,9 +1,10 @@
-"""Skill-mode command rendering and disk-derived routing for ``pw skill``.
+"""Skill routing plus phase-safe authorized code-review commit replay.
 
 Commands use the detected Claude or Codex prefix and point at the next document
 workflow action. Post-write routing reviews the new artifact explicitly,
 post-commit routing advances implementation steps, and post-merge routing walks
 an umbrella collection in its declared order before allowing release work.
+Authorized review commits can resume their reviewed or residual batch phase.
 """
 
 from __future__ import annotations
@@ -13,94 +14,39 @@ import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from tools import prompt_workflow_code_review as code_review
 from tools import prompt_workflow_collection as collection
 from tools import prompt_workflow_docs as docs
 from tools import prompt_workflow_git as git
 from tools import prompt_workflow_handoff as handoff
 from tools import prompt_workflow_memory as memory
 from tools import prompt_workflow_plan as plan
+from tools import prompt_workflow_post_commit as post_commit
+from tools import prompt_workflow_render as rendering
+from tools import prompt_workflow_review as review
+from tools import prompt_workflow_skill_continuation as continuation
+from tools import prompt_workflow_skill_review as forced_review
 from tools import prompt_workflow_steps as steps
-from tools.prompt_workflow_models import (
-    VALIDATION_SUFFIX,
-    MemoryRecord,
-    Topic,
-)
+from tools.review_exchange_models import ArtifactState
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-    from tools.prompt_workflow_models import WorkflowState
+    from tools.prompt_workflow_models import Topic, WorkflowState
 
-# Host tokens used as the keys of the prefix lookup.
-HOST_CLAUDE = "claude"
-HOST_CODEX = "codex"
-# Environment markers that identify the host (confirmed live on a session, Q04).
-CLAUDE_ENV_VAR = "CLAUDECODE"
-CODEX_ENV_VAR = "CODEX_THREAD_ID"
-# Command prefix per host: a slash for Claude, a dollar for Codex.
-HOST_PREFIXES = {HOST_CLAUDE: "/", HOST_CODEX: "$"}
-# Host used when no marker and no override decide it, so a command always gets a prefix.
-DEFAULT_HOST = HOST_CLAUDE
 # Markdown suffix dropped from an instruction file name to form the skill name.
 MD_SUFFIX = ".md"
-# Installed Codex skills contributed by this plugin use this namespace.
-CODEX_SKILL_NAMESPACE = "llm-shared:"
-
-
-def detect_host(env: Mapping[str, str]) -> str:
-    """Return the host token read from the process environment (Q04).
-
-    Args:
-        env: The process environment mapping to read the host markers from.
-
-    Returns:
-        ``HOST_CLAUDE`` when the Claude marker is set, ``HOST_CODEX`` when the
-        Codex marker is set, otherwise ``DEFAULT_HOST``. The Claude marker is
-        checked first, so it wins if both are somehow present.
-    """
-    if env.get(CLAUDE_ENV_VAR):
-        return HOST_CLAUDE
-    if env.get(CODEX_ENV_VAR):
-        return HOST_CODEX
-    return DEFAULT_HOST
-
-
-def host_prefix(env: Mapping[str, str], override: str | None = None) -> str:
-    """Return the command prefix for the host, honoring an override (Q04).
-
-    Args:
-        env: The process environment mapping, read only when no override is given.
-        override: An explicit host token (``HOST_CLAUDE`` or ``HOST_CODEX``). When
-            present it short-circuits the environment read, so the caller can force
-            the prefix even where detection cannot decide.
-
-    Returns:
-        ``/`` for the Claude host and ``$`` for the Codex host.
-
-    Raises:
-        KeyError: When ``override`` is not a known host token.
-    """
-    host = override if override is not None else detect_host(env)
-    return HOST_PREFIXES[host]
-
-
-def render_command(prefix: str, instruction: str, document: str) -> str:
-    """Render one bare next-step command line (no wrapper, no backticks).
-
-    Args:
-        prefix: The host prefix (``/`` or ``$``) from ``host_prefix``.
-        instruction: The instruction file name, such as ``write-design.md``; its
-            ``.md`` suffix is dropped to form the emitted skill name.
-        document: The target document the skill runs on.
-
-    Returns:
-        A line of the form ``<prefix><name> on <document>``, which the LLM reads
-        as a command rather than as quoted text.
-    """
-    name = instruction.removesuffix(MD_SUFFIX)
-    if prefix == HOST_PREFIXES[HOST_CODEX] and ":" not in name:
-        name = f"{CODEX_SKILL_NAMESPACE}{name}"
-    return f"{prefix}{name} on {document}"
+# Public compatibility exports now implemented by the cohesive rendering module.
+HOST_CLAUDE = rendering.HOST_CLAUDE
+HOST_CODEX = rendering.HOST_CODEX
+HOST_GEMINI = rendering.HOST_GEMINI
+HOST_UNKNOWN = rendering.HOST_UNKNOWN
+DEFAULT_HOST = rendering.DEFAULT_HOST
+detect_host = rendering.detect_host
+host_prefix = rendering.host_prefix
+render_command = rendering.render_command
+render_step_command = rendering.render_step_command
+render_umbrella_command = rendering.render_umbrella_command
 
 
 # The instruction named before the workflow proper, when only a new draft exists.
@@ -138,6 +84,11 @@ ADVANCE_PAST_REVIEW = {2: 4, 5: 7, 8: 10}
 PRODUCED_TYPE = {"requirement": "feature-request", "design": "design", "plan": "plan"}
 # Workflow step number that hands execution to the plan implementation cycle.
 IMPLEMENT_STEP = 10
+SPEC_REVIEW_REQUESTOR = forced_review.SPEC_REVIEW_REQUESTOR
+SPEC_REVIEWER = forced_review.SPEC_REVIEWER
+CODE_REVIEW_REQUESTOR = forced_review.CODE_REVIEW_REQUESTOR
+CODE_REVIEWER = forced_review.CODE_REVIEWER
+FORCED_REVIEW_ROLES = forced_review.FORCED_REVIEW_ROLES
 
 
 def next_command(
@@ -168,6 +119,25 @@ def next_command(
         One bare ``<prefix><name> on <document>`` command line.
     """
     state = steps.compute_state(root, topic, None)
+    record = memory.read_memory(root)
+    code_route = code_review.resolve_code_review_route(root, topic, state, record)
+    if code_route is not None and code_route.state is not ArtifactState.IDLE:
+        return code_review.command_for_route(
+            root, code_route, host_prefix(env, override), render_step_command,
+        )
+    review_route = review.live_specification_route(root, topic, state)
+    if review_route is not None:
+        role = (
+            SPEC_REVIEWER
+            if review_route.state is ArtifactState.REQUEST_PENDING
+            else SPEC_REVIEW_REQUESTOR
+        )
+        return render_umbrella_command(
+            host_prefix(env, override),
+            f"{role}{MD_SUFFIX}",
+            _relpath(root, review_route.context.document_path),
+            _relpath_or_none(root, review_route.context.umbrella_path),
+        )
     step = _resolve_step(state)
     instruction, document = _instruction_and_document(step, root, topic, branch, state)
     prefix = host_prefix(env, override)
@@ -246,7 +216,9 @@ def _implementation_command(
     """
     if state.validation_plan is None:
         return None
-    plan_steps = plan.parse_validation_steps(state.validation_plan.read_text(encoding="utf-8"))
+    plan_steps = plan.parse_validation_steps(
+        state.validation_plan.read_text(encoding="utf-8"),
+    )
     if not plan_steps:
         return None
     branch_start = git.fork_point(root)
@@ -290,6 +262,11 @@ def _relpath(root: Path, path: Path) -> str:
     return Path(os.path.relpath(Path(path).resolve(), root)).as_posix()
 
 
+def _relpath_or_none(root: Path, path: Path | None) -> str | None:
+    """Return ``_relpath`` for an optional path, keeping None for no umbrella."""
+    return None if path is None else _relpath(root, path)
+
+
 # Exit code when the skill mode has no command to emit (a forced skill that is not
 # yet applicable, or no resolvable topic): stdout stays empty so the caller never
 # reads the signal as a command (Q03).
@@ -297,13 +274,7 @@ EXIT_NOT_APPLICABLE = 3
 # The document role a forced skill targets; the skill is emitted only when that
 # document exists (Q04). Review and consolidate are not forceable here, since they
 # read whichever document is current rather than a single owned one.
-FORCED_ROLE = {
-    "process-draft": "draft",
-    "write-requirement": "requirement",
-    "write-design": "design",
-    "write-plans": "plan",
-    "implement-step": "plan",
-}
+FORCED_ROLE = forced_review.FORCED_ROLE
 
 # Artifact roles accepted by the explicit post-write review handoff.
 AFTER_WRITE_ROLES = ("requirement", "design", "plan")
@@ -372,7 +343,35 @@ def run_skill(  # noqa: PLR0913
             forced_command(root, topic, skill_name, os.environ, host_override),
             f"pw skill: {skill_name} is not applicable here.\n",
         )
-    return _emit(next_command(root, topic, branch, os.environ, host_override), "")
+    branch_slug = branch.rsplit("/", maxsplit=1)[-1]
+    if post_commit.slug_key(branch_slug) == post_commit.slug_key(
+        topic.slug,
+    ) and docs.collection_items(topic.draft_path):
+        umbrella = _relpath(root, topic.draft_path)
+        command = post_merge_command(root, umbrella, os.environ, host_override)
+        error = f"pw skill: no collection backlog resolved from {umbrella}.\n"
+    else:
+        command = next_command(root, topic, branch, os.environ, host_override)
+        error = ""
+    return _emit(command, error)
+
+
+def run_authorized_code_review_commit(root: Path, *, residual: bool = False) -> int:
+    """Resume one authorized reviewed or residual commit without another gate."""
+    branch = git.current_branch(root)
+    record = memory.read_memory(root)
+    topic = handoff.resolve_current_topic(root, branch, record)
+    if topic is None:
+        message = "authorized code-review commit has no resolved workflow topic"
+        raise code_review.CodeReviewRoutingError(message)
+    state = steps.compute_state(root, topic, None)
+    return code_review.continue_authorized_commit(
+        root,
+        topic,
+        state,
+        record,
+        residual=residual,
+    )
 
 
 def post_merge_command(
@@ -421,200 +420,13 @@ def _emit(command: str | None, not_applicable_note: str) -> int:
     return 0
 
 
-def forced_command(
-    root: Path,
-    topic: Topic,
-    skill_name: str,
-    env: Mapping[str, str],
-    override: str | None = None,
-) -> str | None:
-    """Return a forced skill's command when its document exists, else None (Q04).
-
-    Args:
-        root: The project root, used to make the document path relative.
-        topic: The resolved topic.
-        skill_name: The forced skill name (a key of ``FORCED_ROLE``).
-        env: The process environment, read for the host prefix.
-        override: A host token forcing the prefix, or None to detect it.
-
-    Returns:
-        The host-prefixed command naming the skill's document when that document
-        exists; None when the skill is unknown or its document is absent.
-    """
-    role = FORCED_ROLE.get(skill_name)
-    if role is None:
-        return None
-    state = steps.compute_state(root, topic, None)
-    doc = (
-        topic.draft_path
-        if role == "draft"
-        else {
-            "requirement": state.requirement,
-            "design": state.design,
-            "plan": state.plan,
-        }[role]
-    )
-    if doc is None:
-        return None
-    instruction = f"{skill_name}{MD_SUFFIX}"
-    return render_command(host_prefix(env, override), instruction, _relpath(root, doc))
+forced_command = forced_review.forced_command
 
 
-def post_write_command(
-    root: Path,
-    topic: Topic,
-    written_role: str,
-    env: Mapping[str, str],
-    override: str | None = None,
-) -> str | None:
-    """Return the review command for the artifact that was just written.
-
-    This explicit handoff intentionally ignores decisions-table markers. A
-    writer knows which artifact it produced, while bare ``pw skill`` remains the
-    state-based router used after review and consolidation.
-
-    Args:
-        root: The project root.
-        topic: The resolved topic.
-        written_role: One of ``AFTER_WRITE_ROLES``.
-        env: The process environment, read for the host prefix.
-        override: A host token forcing the prefix, or None to detect it.
-
-    Returns:
-        A review command for the written artifact, or None when it is absent.
-    """
-    state = steps.compute_state(root, topic, None)
-    document = {
-        "requirement": state.requirement,
-        "design": state.design,
-        "plan": state.plan,
-    }[written_role]
-    if document is None:
-        return None
-    return render_command(
-        host_prefix(env, override),
-        "review-ask-questions.md",
-        _relpath(root, document),
-    )
+post_write_command = continuation.post_write_command
 
 
-def post_commit_command(
-    root: Path,
-    committed_step: str,
-    env: Mapping[str, str],
-    override: str | None = None,
-) -> str | None:
-    """Return the command to chain after committing ``committed_step`` (Step 7).
-
-    Told the plan step the commit completes, this names the step after it for
-    ``implement-step``; once that step was the last, ``prepare-release``; and when
-    no validation plan is resolved (a standalone commit, no effort) or the step is
-    not in the plan, None.
-
-    Args:
-        root: The project root.
-        committed_step: The plan step id the commit just completed.
-        env: The process environment, read for the host prefix.
-        override: A host token forcing the prefix, or None to detect it.
-
-    Returns:
-        The host-prefixed command for the next action, or None when there is no
-        plan in play or the committed step is not one of its steps.
-    """
-    branch = git.current_branch(root)
-    record = memory.read_memory(root)
-    topic = handoff.resolve_current_topic(root, branch, record)
-    if topic is None:
-        topic = _resolve_post_commit_topic(root, record, branch)
-    if topic is None:
-        return None
-    state = steps.compute_state(root, topic, None)
-    if state.validation_plan is None:
-        return None
-    numbers = [
-        plan_step.number
-        for plan_step in plan.parse_validation_steps(
-            state.validation_plan.read_text(encoding="utf-8"),
-        )
-    ]
-    if committed_step not in numbers:
-        return None
-    prefix = host_prefix(env, override)
-    index = numbers.index(committed_step)
-    if index + 1 < len(numbers):
-        plan_doc = _document(root, topic, "plan", state)
-        return f"{prefix}implement-step on {plan_doc} step {numbers[index + 1]}"
-    return f"{prefix}prepare-release"
-
-
-def _resolve_post_commit_topic(
-    root: Path,
-    record: MemoryRecord | None,
-    branch: str,
-) -> Topic | None:
-    """Resolve a plan topic when the original draft is no longer discoverable."""
-    candidates = _plan_topics(root)
-    if not candidates:
-        return None
-    if record is not None:
-        matching = [
-            topic
-            for topic in candidates
-            if topic.version == record.version and topic.slug == record.topic
-        ]
-        if len(matching) == 1:
-            return matching[0]
-    branch_key = _slug_key(branch.rsplit("/", maxsplit=1)[-1])
-    branch_matches = [
-        topic for topic in candidates if branch_key.endswith(_slug_key(topic.slug))
-    ]
-    if len(branch_matches) == 1:
-        return branch_matches[0]
-    return None
-
-
-def _plan_topics(root: Path) -> list[Topic]:
-    """Return unique topics that have both a plan and a validation plan."""
-    topics: list[Topic] = []
-    seen: set[tuple[str, str]] = set()
-    for directory in docs.docs_dirs(root):
-        for entry in sorted(directory.iterdir()):
-            topic = _topic_from_validation_plan(entry)
-            if topic is None:
-                continue
-            key = (topic.version, topic.slug)
-            if key in seen or docs.select_document(root, topic, "plan") is None:
-                continue
-            seen.add(key)
-            topics.append(topic)
-    return topics
-
-
-def _topic_from_validation_plan(path: Path) -> Topic | None:
-    """Parse a Topic from ``plan.<version>.<slug>.validation.md``."""
-    name = path.name
-    if (
-        not path.is_file()
-        or not name.startswith("plan.")
-        or not name.endswith(VALIDATION_SUFFIX)
-    ):
-        return None
-    core = name[len("plan.") : -len(VALIDATION_SUFFIX)]
-    match = docs.VERSION_RE.match(core)
-    if match is None:
-        return None
-    version = match.group(0)
-    rest = core[len(version) :]
-    if not rest.startswith(".") or not rest[1:]:
-        return None
-    slug = rest[1:]
-    draft = path.parent / f"draft.{version}.{slug}{MD_SUFFIX}"
-    return Topic(version=version, slug=slug, draft_path=draft.resolve())
-
-
-def _slug_key(value: str) -> str:
-    """Canonicalize branch and topic slugs for fallback matching."""
-    return value.replace("-", "_")
+post_commit_command = continuation.post_commit_command
 
 
 # eof

@@ -1,1 +1,1 @@
-Read and follow the canonical instruction at [`instructions/install-sensitive-git-hooks.md`](../../../instructions/install-sensitive-git-hooks.md).
+Read and follow the canonical instruction at [`instructions/install-sensitive-git-hooks.md`](../../../../../../../git/llm-shared/instructions/install-sensitive-git-hooks.md).

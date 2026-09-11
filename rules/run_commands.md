@@ -54,7 +54,22 @@ Keep the chained part to one Python executable plus plain arguments. Do not add
 an inner shell, command substitution, or a multi-statement script inside the
 quoted `cmd /c` body.
 
-## llm-shared launchers run by full path, no environment setup
+## llm-shared launchers run by resolved full path, no environment setup
+
+In every llm-shared instruction, `<LLM_SHARED_DIR>` means the absolute
+directory that contains the canonical `instructions`, `rules`, `bin`, and
+`tools` folders. Resolve it from the absolute path of the canonical Markdown
+file you loaded: for example, an instruction loaded from
+`C:\src\llm-shared\instructions\spec-reviewer.md` gives
+`<LLM_SHARED_DIR> = C:\src\llm-shared`. Substitute that resolved directory in
+the command itself. The angle-bracket name is documentation notation, not a
+literal argument or a requirement for an environment variable.
+
+Never reinterpret a shared launcher relative to the consuming repository:
+do not shorten it to `.\bin\...`, guess `..\llm-shared\...`, or rely on
+`$env:LLM_SHARED_DIR` / `%LLM_SHARED_DIR%`. A consuming repository may have a
+different parent, and a non-interactive tool shell may have no inherited
+llm-shared variables.
 
 The `llm-shared` `bin\*.bat` launchers (`wac.bat`, `gcba.bat`, `ghog.bat`,
 `oqm.bat`, `prompt_workflow.bat`, ...) self-locate: each derives
@@ -75,6 +90,10 @@ shape is a plain full-path call, from PowerShell:
   process, `$env:LLM_SHARED_DIR = "<path>"; & "$env:LLM_SHARED_DIR\bin\wac.bat"`,
   then update llm-shared so the next call self-locates.
 
+The root-level `commit-plan-check.bat` launcher follows the same rule but is
+not under `bin`: call it as
+`& "<LLM_SHARED_DIR>\commit-plan-check.bat" --format json`.
+
 ## Targeted reads instead of whole-document dumps
 
 Never concatenate several whole documents in one command "to gather context": that output is huge, mostly unread, and already wasted when the next action needs a specific section.
@@ -82,6 +101,16 @@ Never concatenate several whole documents in one command "to gather context": th
 - Read each document with the file tool, one document or one section at a time for large files.
 - Search with `rg` using a narrow pattern and bounded context (`-C 10`, not `-C 80`).
 - Run a command only when its output feeds the very next action.
+
+## A marker check is a command at its own moment, never a recalled listing
+
+An instruction that says to sample a marker, a flag file, or any state file names *when* to sample it as much as *what* to sample. A directory listing taken earlier for another purpose is not that sample, and treating it as one turns a scheduled branch into a coin flip decided by whatever the listing happened to show.
+
+- Test the exact resolved path at the moment the instruction schedules the test, with `Test-Path` in PowerShell or `test -f` in a POSIX shell, or better, run the command that resolves the state and answers.
+- Prefer the command over the path whenever a launcher exists. A path written in prose drifts from the path the tooling resolves; a launcher cannot.
+- Never read absence from a plain `ls`, from `git status`, or from memory of either. A marker in a dotted directory is invisible to the first, an ignored marker is invisible to the second, and a stale recollection is invisible to review.
+- A failed or unavailable check is not a negative answer. Report the diagnostic and stop; do not let "the command did not run" become "the state is off".
+- State the sampled result in one line before acting on it. A check whose result is never stated reads exactly like a check that never happened.
 
 ## Diagnose before re-running or escalating
 

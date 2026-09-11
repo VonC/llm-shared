@@ -6,8 +6,8 @@ the main workflow test file stays under the repository size limit.
 Fix: Keep monkeypatched root-workflow helpers compatible with keyword-based
 calls into `_read_and_parse_content()`.
 
-Fix: Cover the staged-count validation gate and the a.commit emptying that runs
-after every block has been committed in the root workflow.
+Fix: Cover the shared commit-plan validation gate and the a.commit emptying
+that runs after every block has been committed in the root workflow.
 
 Fix: Cover that the root workflow forwards its interactive flag to the commit
 loop, so `--non-interactive --root-a-commit` runs without prompting.
@@ -69,20 +69,19 @@ def _noop_validate_missing_files(
     return None
 
 
-def _noop_validate_staged_count(
+def _noop_validate_commit_plan(
     _blocks: list[git_batch_models.CommitBlock],
     _root: Path,
 ) -> None:
     return None
 
 
-def _raise_staged_count_mismatch(
+def _raise_commit_plan_mismatch(
     _blocks: list[git_batch_models.CommitBlock],
     _root: Path,
 ) -> None:
     msg = (
-        "Validation failed: the commit plan lists 1 'git add' command(s) "
-        "but 2 file(s) are staged."
+        "Validation failed: staged path is missing from the plan: second.py"
     )
     raise git_batch_models.GitBatchCommitError(msg)
 
@@ -156,8 +155,8 @@ def test_run_root_a_commit_workflow_runs_commit_phase_when_tree_is_dirty(
     )
     monkeypatch.setattr(
         git_batch_workflow,
-        "_validate_staged_count_matches_git_adds",
-        _noop_validate_staged_count,
+        "_validate_commit_plan_for_root",
+        _noop_validate_commit_plan,
     )
     monkeypatch.setattr(
         git_batch_workflow,
@@ -174,11 +173,11 @@ def test_run_root_a_commit_workflow_runs_commit_phase_when_tree_is_dirty(
         assert a_commit_path.read_text(encoding="utf-8") != ""
 
 
-def test_run_root_a_commit_workflow_stops_on_staged_count_mismatch(
+def test_run_root_a_commit_workflow_stops_on_commit_plan_mismatch(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    """A staged-count mismatch should stop before commits run and keep a.commit."""
+    """A commit-plan mismatch should stop before commits run and keep a.commit."""
     block = _valid_block()
     a_commit_path = tmp_path / "a.commit"
     a_commit_path.write_text("git add -A src/example.py\n", encoding="utf-8")
@@ -198,8 +197,8 @@ def test_run_root_a_commit_workflow_stops_on_staged_count_mismatch(
     )
     monkeypatch.setattr(
         git_batch_workflow,
-        "_validate_staged_count_matches_git_adds",
-        _raise_staged_count_mismatch,
+        "_validate_commit_plan_for_root",
+        _raise_commit_plan_mismatch,
     )
     monkeypatch.setattr(
         git_batch_workflow,
@@ -259,8 +258,8 @@ def test_run_root_a_commit_workflow_forwards_interactive_flag(
     )
     monkeypatch.setattr(
         git_batch_workflow,
-        "_validate_staged_count_matches_git_adds",
-        _noop_validate_staged_count,
+        "_validate_commit_plan_for_root",
+        _noop_validate_commit_plan,
     )
     monkeypatch.setattr(
         git_batch_workflow,

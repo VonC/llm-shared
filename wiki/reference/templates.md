@@ -66,10 +66,28 @@ line, then a `log` fenced block holding the conventional message with its
 `Why:` and `What:` sections. See
 [Commit message format](commit-message-format.md).
 
+## Independent review templates
+
+The exchange renderers use eight versioned shapes:
+
+| Template | Role |
+| --- | --- |
+| `review-request.template.md` | Shared request envelope and authored sections |
+| `review-answer.template.md` | Shared answer envelope and authored sections |
+| `spec-review-request.template.md` | Specification request sections |
+| `spec-review-answer.template.md` | Specification answer sections |
+| `code-review-request.template.md` | Code request evidence sections |
+| `code-review-answer.template.md` | Code answer assessment sections |
+| `review-specification-transcript.template.md` | Durable specification transcript title |
+| `review-code-transcript.template.md` | Durable code transcript title |
+
+Their identity, artifact, and result relationships are summarized in the
+[independent review mode contract](independent-review-mode-contract.md).
+
 ## 🏷️ prepare-release-notes.version-txt.template.txt
 
 Plain text, not markdown. First line
-`X.Y.Z-SNAPSHOT -- Release notes summary for version X.Y.Z` (the ` -- `
+`X.Y.Z-SNAPSHOT -- Release notes summary for version X.Y.Z` (the space-delimited `--`
 separator is load-bearing), three witty title and subtitle pairs, the
 main theme paragraph, an optional secondary theme, and a
 `### Key changes` list of three bullets. After the title choice, line one

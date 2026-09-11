@@ -314,6 +314,35 @@ def branch_requirement_topic(root: Path, branch: str) -> Topic | None:
     return Topic(version=version, slug=slug, draft_path=draft.resolve())
 
 
+def branch_umbrella_topic(root: Path, branch: str) -> Topic | None:
+    """Resolve the one canonical umbrella whose slug matches the branch leaf.
+
+    Integration branches remain clean after each feature merge, so their
+    umbrella may be absent from the changed-file candidates used by ordinary
+    topic resolution. A canonical branch-name match keeps bare ``pw skill``
+    connected to the remaining ordered collection rows without scanning an
+    unrelated umbrella.
+    """
+    branch_key = _slug_key(branch.rsplit("/", maxsplit=1)[-1])
+    matches: list[Topic] = []
+    for directory in docs_dirs(root):
+        for entry in sorted(directory.iterdir()):
+            parsed = parse_draft_name(entry.name)
+            if not entry.is_file() or parsed is None:
+                continue
+            version, slug = parsed
+            if _slug_key(slug) != branch_key:
+                continue
+            lines = entry.read_text(encoding="utf-8").splitlines()
+            if "- Draft role: umbrella" not in (line.strip() for line in lines):
+                continue
+            if collection_items(entry):
+                matches.append(
+                    Topic(version=version, slug=slug, draft_path=entry.resolve()),
+                )
+    return matches[0] if len(matches) == 1 else None
+
+
 def _parse_requirement_name(name: str) -> tuple[str, str] | None:
     """Return the version and slug from a feature-request or issue file name."""
     for doc_type in ROLE_DOC_TYPES["requirement"]:

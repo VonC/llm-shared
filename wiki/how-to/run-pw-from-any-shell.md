@@ -103,6 +103,12 @@ direct draft or one same-version umbrella draft that mentions the complete
 slug. More than one matching requirement or related draft is an ambiguity and
 the launcher refuses to route. Do not add a temporary same-slug draft alias.
 
+On a clean branch named for the umbrella itself, bare `pw skill` can recover
+that umbrella without a changed-file candidate. It requires exactly one
+branch-matched canonical umbrella with a nonempty ordered table and prints the
+`process-draft ... based on <slug>` command for its first valid pending row.
+An absent or ambiguous umbrella remains not applicable.
+
 ## ✅ Check the launcher works
 
 `& "<LLM_SHARED_DIR>\bin\prompt_workflow.bat" skill` prints exactly one

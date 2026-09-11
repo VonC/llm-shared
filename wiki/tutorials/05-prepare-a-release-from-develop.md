@@ -131,10 +131,12 @@ you a review-branch revert, verification, restoration, and re-entry runbook.
 For an arbitrary subset, it gives per-topic evidence and tells you to promote
 those topics separately before preparing the artifacts once from main.
 
-This repository differs from canonical gitworkflow by rebasing a feature onto
-develop before its integration `--no-ff` merge and, when selected, replaying
-that logical feature onto main for a second `--no-ff` merge. Develop is also a
-long-lived default branch rather than a throw-away `next` branch.
+For a standalone topic, this repository can use develop as the generic first
+integration destination. A topic in an umbrella returns instead to the branch
+whose name matches the umbrella slug after hyphen/underscore folding. Once the
+selected integration branch holds all ready work, this tutorial's wholesale
+promotion applies. Develop remains a long-lived branch rather than a
+throw-away `next` branch.
 
 Background: [Why documents come before code](../explanation/why-documents-before-code.md).
 Next: [Prepare a release in every supported scenario](../how-to/prepare-a-release.md)

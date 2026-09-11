@@ -56,14 +56,16 @@ launcher by its full path.
 | `--root PATH` | Repository to inspect; defaults to the current directory |
 | `--main NAME` | Release branch name; defaults to `main` |
 | `--integration NAME` | Explicit integration branch, overriding automatic role detection |
+| `--umbrella PATH` | Marked collection draft whose normalized slug must name exactly one local integration branch |
 | `--branch REF` | Plan for this ref instead of checked-out HEAD; useful for inspection and tests |
 | `--feature-base COMMIT` | Use a user-confirmed feature boundary |
 | `--feature-parent BRANCH` | Derive the boundary only from this user-confirmed parent |
-| `--feature-target main\|integration` | Select the feature's first landing branch; defaults to main and requires a resolved integration branch for `integration` |
+| `--feature-target auto\|main\|integration` | Select the feature's first landing branch; `auto` is the default and chooses resolved integration before main |
 | `--no-conflict-preview` | Detect topology without running `merge-tree` |
 | `--json` | Emit the complete structured plan as JSON |
 
-Integration is otherwise resolved from
+With `--umbrella`, its slug-matched local branch is authoritative and an
+explicit main target is rejected. Integration is otherwise resolved from
 `PREPARE_RELEASE_INTEGRATION_BRANCH`,
 `prepare-release.integrationBranch`, the legacy
 `release.integrationBranch`, local `develop`, then a non-main `origin/HEAD`
@@ -94,7 +96,8 @@ the conflict preview.
 | Non-empty integration-to-main merge | Supported |
 | Main-to-stale-integration synchronization | Supported |
 | One feature landing on main | Supported |
-| One feature landing on the resolved integration branch | Supported with `--feature-target integration` |
+| One umbrella feature landing on its slug-matched integration branch | Supported with `--umbrella`; main is rejected |
+| One standalone feature landing on the resolved integration branch | Supported by the default `auto` target or explicit `--feature-target integration` |
 | One contiguous stale, develop-based, or nested feature replay | Supported when its boundary is proven for the selected target |
 | Already released or already integrated feature | Supported stop |
 | Ambiguous feature boundary | Supported pause with candidates |

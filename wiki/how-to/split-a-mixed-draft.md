@@ -61,7 +61,11 @@ call `/write-requirement` directly with the type, version and topic.
    `/process-draft on <effort-dir>/draft.vX.Y.Z.<umbrella-slug>.md based on
    <first-slug>`. Run that continuation. It validates the ordered row, creates
    a focused child draft through a temporary unversioned source, inherits the
-   umbrella's layout, creates the item branch, and then hands off to
+   umbrella's layout, and creates the item branch. It must write and verify the
+   canonical `<effort-dir>/draft.vX.Y.Z.<first-slug>.md` file there before it
+   pauses. Review that file itself; any complete copy shown in conversation is
+   only a preview. Comments revise only the on-disk child and return to the
+   same pause; an explicit `Go ahead` hands the approved draft to
    `/write-requirement`.
 
 5. Let each item run through requirement, design, plan, implementation, and

@@ -45,6 +45,10 @@ wrapper or compatibility path is added or changed. Because the installed
 plugin cache contains redirects rather than bodies, keep the llm-shared source
 checkout available to the Codex workspace, for example with `--add-dir`.
 
+The redirects are relative to the installed cache location and target the
+standard `%USERPROFILE%\git\llm-shared` checkout. Keep this clone at that
+location so both compatibility redirects and skill entrypoints resolve directly.
+
 The structural regression test checks the complete one-to-one contract:
 
 ```cmd
@@ -70,7 +74,7 @@ python -m pytest tests\unit\tools\test_instruction_structure\test_instruction_st
    — a link, not a copy, so the skills stay live with the repository:
 
    ```cmd
-   mklink /J "%USERPROFILE%\plugins\llm-shared" "C:\path\to\llm-shared\.agents\llm-shared"
+   mklink /J "%USERPROFILE%\plugins\llm-shared" "%USERPROFILE%\git\llm-shared\.agents\llm-shared"
    ```
 
 3. Register the marketplace root — the folder that contains both
@@ -113,9 +117,10 @@ llmup
 ```
 
 The shortcut validates the complete package with an isolated `PyYAML`
-dependency, replaces the manifest cachebuster with the plugin-creator helper,
-reinstalls from the existing personal marketplace, and filters the
-installed-plugin check to `llm-shared@personal`.
+dependency, validates every redirect against its future cache location, replaces
+the manifest cachebuster with the plugin-creator helper, reinstalls from the
+existing personal marketplace, validates the newly installed cache copy, and
+filters the installed-plugin check to `llm-shared@personal`.
 
 3. Start a new thread.
 

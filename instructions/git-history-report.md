@@ -30,6 +30,10 @@ lands inside one of the repos.
 Before running the report command, read
 [`../rules/run_commands.md`](../rules/run_commands.md).
 
+Resolve `<llm-shared>` as the absolute llm-shared directory that contains this
+canonical instruction. Do not guess a sibling checkout or rely on an
+environment variable.
+
 Call `ghd.bat` with the resolved targets. It delegates to `build.py` and
 `cli.py`, which
 exports each repo with `git log`, tags every commit with its project, aggregates

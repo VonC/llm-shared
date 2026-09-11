@@ -82,7 +82,7 @@ def _configure_logging() -> None:
     root_logger.setLevel(logging.INFO)
 
 
-def _extract_version(name: str) -> str | None:
+def extract_version(name: str) -> str | None:
     """Return the version token of a document name, or None when absent.
 
     Args:
@@ -129,13 +129,37 @@ def _resolve_doc(root: Path, name: str) -> Path:
     requested = Path(name)
     directories = docs_dirs(root)
     supported = {directory.resolve() for directory in directories}
-    if requested.is_absolute():
-        candidates = [requested]
-    elif requested.parent != Path():
-        candidates = [root / requested]
-    else:
-        candidates = [directory / requested.name for directory in directories]
+    candidates = _document_candidates(root, requested, directories)
+    resolved, empty_hits = _first_non_empty_document(candidates, supported)
+    if resolved is not None:
+        return resolved
+    if empty_hits:
+        joined = ", ".join(str(path) for path in empty_hits)
+        msg = f"Document '{name}' exists but is empty: {joined}"
+        raise OpenQuestionsError(msg)
+    searched = ", ".join(str(candidate) for candidate in candidates)
+    msg = f"Document '{name}' not found under: {searched}"
+    raise OpenQuestionsError(msg)
 
+
+def _document_candidates(
+    root: Path,
+    requested: Path,
+    directories: list[Path],
+) -> tuple[Path, ...]:
+    """Return the bounded candidate set for one exact path or basename."""
+    if requested.is_absolute():
+        return (requested,)
+    if requested.parent != Path():
+        return (root / requested,)
+    return tuple(directory / requested.name for directory in directories)
+
+
+def _first_non_empty_document(
+    candidates: tuple[Path, ...],
+    supported: set[Path],
+) -> tuple[Path | None, tuple[Path, ...]]:
+    """Return the first supported non-empty candidate and all empty matches."""
     empty_hits: list[Path] = []
     for candidate in candidates:
         if candidate.resolve().parent not in supported:
@@ -143,17 +167,9 @@ def _resolve_doc(root: Path, name: str) -> Path:
         if not candidate.is_file():
             continue
         if candidate.read_text(encoding="utf-8").strip():
-            return candidate
+            return candidate, tuple(empty_hits)
         empty_hits.append(candidate)
-
-    if empty_hits:
-        joined = ", ".join(str(path) for path in empty_hits)
-        msg = f"Document '{name}' exists but is empty: {joined}"
-        raise OpenQuestionsError(msg)
-
-    searched = ", ".join(str(candidate) for candidate in candidates)
-    msg = f"Document '{name}' not found under: {searched}"
-    raise OpenQuestionsError(msg)
+    return None, tuple(empty_hits)
 
 
 def _strip_open_questions(text: str) -> tuple[str, bool]:

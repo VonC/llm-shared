@@ -17,6 +17,12 @@ no console is attached, and threads that flag through the commit loop. In that
 mode the commit phase never calls `input()`: a Git failure stops the batch with
 a non-zero exit instead of hanging on the "continue/stop" prompt that blocked an
 earlier auto-backgrounded run.
+
+Step 2 routes root-plan staged membership, group order, and conventional
+subjects through the same side-effect-free validator used by code review.
+
+Step 1 delegates exact staged-path inventory to the neutral commit-plan support
+boundary so committing and read-only checking cannot diverge.
 """
 
 from __future__ import annotations
@@ -27,7 +33,7 @@ import sys
 from pathlib import Path
 from typing import NoReturn
 
-from tools import find_project_root
+from tools import commit_plan_support, find_project_root
 from tools.git_batch_commit_git import (
     block_has_staged_changes as _block_has_staged_changes,
 )
@@ -45,9 +51,6 @@ from tools.git_batch_commit_git import (
 from tools.git_batch_commit_git import (
     validate_missing_files_for_blocks as _validate_missing_files_for_blocks,
 )
-from tools.git_batch_commit_git import (
-    validate_staged_count_matches_git_adds as _validate_staged_count_matches_git_adds,
-)
 from tools.git_batch_commit_models import (
     ClipboardError,
     CommitBlock,
@@ -61,6 +64,7 @@ from tools.git_batch_commit_parsing import (
 from tools.git_batch_commit_parsing import (
     parse_clipboard_content,
 )
+from tools.git_batch_commit_validation import validate_commit_plan
 
 LOGGER = logging.getLogger("git_batch_commit")
 
@@ -171,7 +175,7 @@ def _run_root_a_commit_workflow(
         )
         raise GitBatchCommitError(msg)
 
-    _validate_staged_count_matches_git_adds(blocks, root)
+    _validate_commit_plan_for_root(blocks, root)
     LOGGER.info("Validation phase passed.")
 
     LOGGER.info("Commit phase: applying commit plan now...")
@@ -185,6 +189,26 @@ def _run_root_a_commit_workflow(
 
     _empty_a_commit_file(root)
     return 0
+
+
+def _staged_paths(root: Path) -> tuple[str, ...]:
+    """Return the shared exact staged inventory through a compatibility seam."""
+    return commit_plan_support.staged_paths(root)
+
+
+def _validate_commit_plan_for_root(blocks: list[CommitBlock], root: Path) -> None:
+    """Apply the public commit-plan validator before any staging or commit."""
+    inventory = _staged_paths(root)
+    requirements = commit_plan_support.completed_validation_subject_requirements(
+        root,
+        inventory,
+    )
+    result = validate_commit_plan(blocks, inventory, requirements)
+    if result.valid:
+        return
+    details = "\n".join(f"- {item}" for item in result.diagnostics)
+    message = f"Validation failed:\n{details}"
+    raise GitBatchCommitError(message)
 
 
 def _empty_a_commit_file(root: Path) -> None:

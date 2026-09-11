@@ -200,11 +200,11 @@ def derive_x(
     """Return ``(x, verified, terminal)`` for the cycle from the plan steps.
 
     ``x`` is the id of the last verified step, or the first step when none is
-    verified (Q19). When that step already has a ``record step x validation``
-    commit it advances to the next step in document order (Q43), or marks the
-    cycle terminal when it was the last step (Q16, Q19). The ``verified`` map is
-    keyed by the full id, so a sub-step ``Not started`` never overwrites the
-    ``Yes`` of its parent step (Q45).
+    verified (Q19). When that step already has a ``record step x validation`` or
+    ``record step x completion`` commit it advances to the next step in document
+    order (Q43), or marks the cycle terminal when it was the last step (Q16,
+    Q19). The ``verified`` map is keyed by the full id, so a sub-step ``Not
+    started`` never overwrites the ``Yes`` of its parent step (Q45).
     """
     numbers = [step.number for step in plan_steps]
     verified = {step.number: step.verified for step in plan_steps}

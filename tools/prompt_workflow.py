@@ -1,4 +1,4 @@
-"""prompt_workflow.py.
+"""Prompt workflow routing, including clean authorized review commits.
 
 Generate the next-step LLM prompt for the current general topic and copy it to
 the clipboard.
@@ -10,6 +10,9 @@ from the documents on disk and the persisted step, offers an interactive menu to
 repeat the current step or pick a next step, then builds the prompt, writes it to
 ``a.prompt.txt``, copies it to the clipboard (falling back to stdout), and
 records the chosen step in ``a.prompt_memory``.
+
+The ``code-review-commit`` command preserves its reviewed-first commit path and
+accepts ``--residual`` only for the authorized clean-tree cleanup phase.
 
 Fix (menu order): ``build_menu_options`` sorts its rows by step number,
 descending and stable, so the next-step rows come above the repeat-current row
@@ -55,6 +58,9 @@ from tools import prompt_workflow_plan as plan
 from tools import prompt_workflow_skill as skill
 from tools import prompt_workflow_steps as steps
 from tools.prompt_workflow_models import MemoryRecord, PromptWorkflowError
+from tools.review_artifact_configuration import ReviewArtifactConfiguration
+from tools.review_exchange_models import ReviewExchangeError
+from tools.review_exchange_paths import load_review_configuration
 
 if TYPE_CHECKING:
     from tools.prompt_workflow_models import StepAlternative, Topic, WorkflowState
@@ -229,6 +235,30 @@ def _cycle_ready_line(cycle: CycleState, action: CycleAction) -> str:
         "release notes" if action.kind == "release" else f"step {cycle.x} ({action.kind})"
     )
     return f"Prompt for {label} ready: on the clipboard and in {PROMPT_FILENAME}."
+
+
+def _review_mode_line(root: Path) -> str:
+    """Return the one line naming review mode and where it was read from.
+
+    The branch after `group-commits-msg` depends on this state, and a caller
+    that has to remember to look for a marker is a caller that eventually does
+    not: the marker sits under a dotted artifact home a plain listing does not
+    show, and the `a.*` ignore rule keeps it out of `git status`. Printing the
+    state on the path the caller already follows removes the remembering.
+
+    Args:
+        root: The project root the handoff operates on.
+
+    Returns:
+        One line stating `on`, `off`, or `unknown` with its diagnostic.
+    """
+    try:
+        artifacts = ReviewArtifactConfiguration.load(root)
+        configuration = load_review_configuration(root, configuration=artifacts)
+    except (ReviewExchangeError, OSError) as error:
+        return f"review-mode: unknown ({error}); sample it before the commit gate."
+    state = "on" if configuration.enabled else "off"
+    return f"review-mode: {state} (artifact home {artifacts.relative_home})."
 
 
 def _run_implement_cycle(
@@ -430,6 +460,7 @@ def run_handoff(root: Path, task: str, step: str) -> int:
         ),
     )
     LOGGER.info(_cycle_ready_line(cycle, action))
+    LOGGER.info(_review_mode_line(root))
     return 0
 
 
@@ -526,6 +557,16 @@ def _get_arg_parser() -> argparse.ArgumentParser:
         choices=docs.DOCUMENT_TYPES,
         help="Document type to resolve.",
     )
+    code_review_commit_parser = subparsers.add_parser(
+        "code-review-commit",
+        parents=[common],
+        help="Resume one durably authorized clean code-review commit flow.",
+    )
+    code_review_commit_parser.add_argument(
+        "--residual",
+        action="store_true",
+        help="Execute the grouped residual commit plan and require a clean tree.",
+    )
     return parser
 
 
@@ -551,6 +592,11 @@ def main(argv: list[str] | None = None) -> int:
             args.after_commit,
             args.after_write,
             args.after_merge,
+        )
+    if args.command == "code-review-commit":
+        return skill.run_authorized_code_review_commit(
+            root,
+            residual=args.residual,
         )
     return run(root, pick=args.pick)
 

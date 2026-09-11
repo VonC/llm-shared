@@ -1,12 +1,12 @@
 ---
 name: prepare-release
-description: 'Finish a feature by landing its exact range on develop when present, otherwise main, reword the merge, and stop with the next umbrella requirement from pw skill. When the umbrella is exhausted, or when invoked from main or integration for a release, continue through topology checks, the Diataxis wiki audit, release artifacts, and one chore(release) prepare commit. Stop before brel and never push.'
+description: 'Finish a feature by returning its exact range to its umbrella-slug integration branch, or to generic integration for a standalone topic, then stop with the next umbrella requirement from pw skill. When the umbrella is exhausted, continue through the Diataxis wiki audit and release preparation. Stop before brel and never push.'
 user-invocable: true
 metadata:
   - "Feature mode may stop after the destination merge and umbrella handoff without touching release artifacts; a full release stops before brel, never creates the tag, and never pushes."
   - "Step 1-2: find the last tag (git describe --tags --abbrev=0) and detect a development effort (a commit since the tag touching docs/{feature,issue,design,plan}.*). With none, stop with 'release already done' (HEAD on a tag) or 'nothing to release yet'."
-  - "Step 3: classify on-main, integration, or feature mode; in feature mode recover the actual fork from reflog and branch topology, show and confirm the exact feature-only range, and stop for a boundary when Git evidence is ambiguous."
-  - "Apply gitworkflow topic graduation (one word, not GitFlow): feature mode lands on develop when present, otherwise main; only an exhausted umbrella permits the integration-to-main bulk merge or on-main artifact work. Reject an empty main..integration range."
+  - "Step 3: resolve an umbrella-slug integration branch before planning, then classify on-main, integration, or feature mode; recover the actual feature fork and stop when Git evidence is ambiguous."
+  - "Apply gitworkflow topic graduation (one word, not GitFlow): collection topics return to their umbrella branch; standalone topics use generic integration when present, otherwise main."
   - "Before mutation, automatically locate and run prepare_release_plan.bat for deterministic topology and Git 2.50+ merge-tree conflict evidence; never ask the user to run it. Preview merges once and feature rebases commit by commit, stopping at the first predicted conflict."
   - "Step 4-5: make the current worktree clean and bring main plus the feature destination current; never rebase integration; replay a stale exact feature range on a temporary landing branch, verify with range-diff, then run ghog day."
   - "Step 6-7A: merge --no-ff into the destination, reword with Why:/What:, then call pw skill --after-merge. A pending item stops with process-draft based on its slug; prepare-release means the collection is exhausted and the full release may continue."

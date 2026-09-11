@@ -19,8 +19,9 @@ human validation gates the normal AI-orchestrated workflow would provide.
 
 | Workflow | Normal invocation | What the AI calls | Human role |
 | --- | --- | --- | --- |
-| Document pipeline | Ask for `process-draft` or the required writing skill | writing, explicit `pw skill --after-write` review handoffs, consolidation, then state-based bare `pw skill` | answer structured questions and validate settled documents |
+| Document pipeline | Ask for `process-draft` or the required writing skill | writing, explicit `pw skill --after-write` review handoffs, consolidation, then state-based bare `pw skill` | approve an umbrella-derived child, answer structured questions, and validate settled documents |
 | Implementation step | Ask for `implement-step N` | Groundhog, implementation check, missing-work repair, and grouped-commit preparation | validate decisions and approve commit replay |
+| Independent review mode | Start the normal writing or implementation skill with `a.review-mode` present | `pw`, the family requestor, one bounded wait, and the independent reviewer | answer only at convergence or a marked human-recovery decision |
 | Release preparation | Ask for `prepare-release` with release intent | planner, conflict previews, synchronization, merges, notes, version updates, and preparation commit | approve topology and notes; run `brel` later |
 | History sanitization | Ask for `sanitize-git-history` | contextual scan, rule validation, fresh-clone rewrite, and re-audit | approve replacement rules and destructive phase; push later if desired |
 | Reports and maintenance skills | Ask for the named skill | activity/dashboard builders, doc review, file split, or slow-test workflow | validate the requested output |
@@ -37,6 +38,7 @@ evidence.
 | `sensitive_history_scan.bat` / `shscan` | `sanitize-git-history` | performing an ad hoc read-only audit or developing replacement rules |
 | `ghog day` and subcommands | implementation and fix skills | learning the loop, diagnosing locally, or running the same quality gate without an AI session |
 | `pw handoff` / `pw skill` | workflow skills | debugging state routing, reproducing an explicit `--after-write` handoff, resuming a known phase, or using the interactive menu |
+| `review_exchange.bat` and family renderers | review requestors and reviewers | diagnosing one exact exchange or carrying out a documented recovery operation |
 | `gcba.bat` | grouped-commit approval flow | replaying a reviewed `a.commit` plan from a console |
 | release-note scripts and changelog tools | `prepare-release` | developing or diagnosing the release-note half independently |
 
@@ -58,5 +60,6 @@ An AI may execute a direct maintenance command when the user asks for that
 maintenance task. The distinction is about the normal workflow owner, not a
 technical restriction.
 
-Related: [Skills catalog](skills-catalog.md), [Aliases and launchers](aliases-and-launchers.md),
+Related: [Independent review mode contract](independent-review-mode-contract.md),
+[Skills catalog](skills-catalog.md), [Aliases and launchers](aliases-and-launchers.md),
 and [Where the human stays in the loop](../explanation/where-the-human-stays-in-the-loop.md).

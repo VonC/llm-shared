@@ -46,7 +46,7 @@ literals like ``v1.0``, ``v2.5.3``) or ``[Oo]\(`` (big-O notation like
 In a paragraph (not a bullet item list, and not the commit subject),
 one more rule applies before the adjacent-span merge: any word holding a
 forward slash ``/`` or a backslash ``\`` mixed with other characters is
-wrapped too (path-shaped tokens like ``src/pdfss`` or ``C:\Users\vonc``,
+wrapped too (path-shaped tokens like ``src/myapp`` or ``C:\Users\vonc``,
 and ``and/or``; a bare ``/`` or ``\`` separator stays bare). Bullet
 items keep the regular code-like rules only, so this path-separator rule
 never reaches a list line.

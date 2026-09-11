@@ -377,7 +377,7 @@ class TestWordHasPathSeparator:
 
     def test_forward_slash_word_qualifies(self) -> None:
         """A word with a forward slash and other chars qualifies."""
-        assert wrap_commit_backticks._word_has_path_separator("src/pdfss")
+        assert wrap_commit_backticks._word_has_path_separator("src/myapp")
 
     def test_backslash_word_qualifies(self) -> None:
         """A word with a backslash and other chars qualifies."""
@@ -417,9 +417,9 @@ class TestAddBackticksToWordsPredicate:
     def test_path_predicate_wraps_slash_words(self) -> None:
         """A custom predicate can target path-separator words."""
         assert wrap_commit_backticks._add_backticks_to_words(
-            "see src/pdfss here",
+            "see src/myapp here",
             wrap_commit_backticks._word_has_path_separator,
-        ) == "see `src/pdfss` here"
+        ) == "see `src/myapp` here"
 
     def test_path_predicate_leaves_plain_words(self) -> None:
         """A custom predicate leaves non-matching words alone."""
@@ -438,7 +438,7 @@ class TestWordNeedsBackticksInParagraph:
 
     def test_path_separator_word_qualifies(self) -> None:
         """A slash word qualifies via the path-separator rule."""
-        assert wrap_commit_backticks.word_needs_backticks_in_paragraph("src/pdfss")
+        assert wrap_commit_backticks.word_needs_backticks_in_paragraph("src/myapp")
 
     def test_plain_word_does_not_qualify(self) -> None:
         """A plain word qualifies under neither rule."""

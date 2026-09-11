@@ -31,7 +31,7 @@ the corresponding launcher.
 
 | Alias | Runs | Purpose |
 | --- | --- | --- |
-| `llmup` | `bin\update_llm_shared_plugin.bat` | validate `.agents\llm-shared`, replace its manifest cachebuster, reinstall `llm-shared@personal`, and print its installed row |
+| `llmup` | `bin\update_llm_shared_plugin.bat` | validate `.agents\llm-shared` and its cache-relative redirects, replace its manifest cachebuster, reinstall `llm-shared@personal`, verify the installed cache copy, and print its installed row |
 
 `llmup` requires an interactive `cmd` initialized by `senv.bat`. The launcher
 uses `uv run --isolated --no-project --with PyYAML` for plugin validation, so
@@ -52,7 +52,20 @@ run still needs a new Codex thread before the refreshed skill registry appears.
 | `ruffc` | `ruff check` | lint right after code generation |
 | `covg` | `bin\covg.bat` | map uncovered lines to functions, build a test-writing prompt |
 
-## ⚙️ Other launchers in bin
+## 📋 Clipboard aliases
+
+| Alias | Runs | Purpose |
+| --- | --- | --- |
+| `tth` | `bin\tth.bat` | trim an exported Claude or Codex conversation to the ask, the opening, and the closing answer of every turn, back to the clipboard |
+
+`tth` reads the clipboard when it gets no file argument, and always publishes
+its result to the clipboard. It always drops every line before the first prompt
+stamped with today's date, and takes an optional `YYYYMMDD` date to match a
+second day, so `tth 20260903` trims the clipboard and `tth export.md 20260903`
+trims a file; the alias forwards every argument. See
+[the trim-thinking command reference](trim-thinking-command.md).
+
+## ⚙️ Other public launchers
 
 | Launcher | Wraps | Purpose |
 | --- | --- | --- |
@@ -63,8 +76,16 @@ run still needs a new Codex thread before the refreshed skill registry appears.
 | `sensitive_history_scan.bat` | `tools\sensitive_history\sensitive_history_scan.py` | report sensitive terms across commit, tag, path, and blob history |
 | `git_history_diagrams.bat` | `tools\git_history_diagrams\generate_git_history_diagrams.py` | generate or check the prepare-release SVG histories |
 | `mds.ps1` | `tools\serve_docs\serve_docs.py` | serve a markdown folder as a local website and open the browser (PowerShell so Ctrl-C stops it without cmd's terminate-batch question) |
+| `tth.bat` | `tools\trim_thinking_cli.py` | trim an exported conversation from a file or the clipboard, result to the clipboard |
 | `python_check.bat` | vulture, big-file check, `enforce_eof.py` | the check station of the walk |
 | `python_check_types.bat` | type checking | the typing gate |
+| `rvw_status.bat` | `tools\review_status_cli.py` | migration-aware schema-2 status for every active review without resuming it |
+| `review_exchange.bat` | `tools\review_exchange_cli.py` | shared review state, publication, wait, confirmation, and recovery operations |
+| `spec_review_request.bat` | specification request renderer | build a specification-review request and transcript summary |
+| `spec_review_answer.bat` | specification answer renderer | build a specification-review answer and transcript summary |
+| `code_review_request.bat` | code request renderer | capture the reviewed index and build a code-review request |
+| `code_review_evidence.bat` | code evidence CLI | capture, compare, retain, and retire immutable review evidence |
+| `code_review_answer.bat` | code answer renderer | validate evidence and build a code-review answer |
 
 The `shscan` alias calls `sensitive_history_scan.bat --root "%PRJ_DIR%"`.
 Reports written below the repository must use an ignored path such as
@@ -85,5 +106,6 @@ verify that committed history diagrams match their declarative scenarios.
 `--system-certs`, then default roots) and retries on certificate errors —
 useful behind a corporate proxy; plain `uv` skips the retry path.
 
-Related: [Run pw from any shell](../how-to/run-pw-from-any-shell.md),
+Related: [Independent review mode contract](independent-review-mode-contract.md),
+[Run pw from any shell](../how-to/run-pw-from-any-shell.md),
 [ghog commands and exit codes](ghog-commands-and-exit-codes.md).

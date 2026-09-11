@@ -11,8 +11,9 @@ calls, conflict evidence, supported Git operations, release notes, and version
 updates; do not run its prerequisites manually. Use the lower-level commands
 only for the diagnostic or unsupported-path circumstances named below.
 
-📊 Goal: finish a feature on `develop` when present, otherwise `main`, and
-either stop cleanly for the next ordered umbrella requirement or continue to
+📊 Goal: finish a collection feature on its umbrella-slug integration branch,
+or a standalone feature on generic integration when present, and either stop
+cleanly for the next ordered umbrella requirement or continue to
 one `chore(release): prepare for vX.Y.Z release` commit on `main` when the
 umbrella is exhausted.
 
@@ -23,8 +24,8 @@ umbrella is exhausted.
 | Release everything integrated and validated | `develop` or the configured integration branch | The skill proposes one `git merge --no-ff develop` into main and never rebases develop |
 | Release all but one integrated feature | `develop`, with the excluded topic named in the context | Unsupported by the planner; the skill stops before mutation and outputs the exact merge evidence plus a review-branch revert, verification, re-entry, and later restoration runbook |
 | Release several arbitrary integrated features | Name every feature branch and their intended order | Unsupported as one planner transaction; the skill outputs per-topic promotion evidence so you can promote them separately, then prepare the combined artifacts once from main |
-| Finish one feature in an umbrella | Its feature branch | Land its exact range on develop when present, otherwise main; reword the merge; stop for the next ordered row unless the umbrella is exhausted |
-| Release a standalone feature | Its feature branch | Land and reword it, then continue through full release preparation because no umbrella backlog applies |
+| Finish one feature in an umbrella | Its feature branch | Resolve the umbrella before planning, fold hyphens and underscores to find its integration branch, land the exact range there, and stop for the next row unless the umbrella is exhausted |
+| Release a standalone feature | Its feature branch | Land on generic integration when present, otherwise main, then continue through full release preparation |
 | Revisit a feature already contained by its first destination | Its feature branch | Verify only a current-tip structured merge; otherwise stop with the historical merge OID |
 | Prepare changes already on the release branch | `main` | Select `last_tag..main`; no rebase and no merge; prepare the version and notes in place |
 
@@ -36,8 +37,9 @@ git config prepare-release.integrationBranch integration
 
 The repository hosting default is `develop`, which is also the long-lived
 continuous-integration branch. `main` remains the release and tag branch.
-Before release preparation, a feature normally enters integration by being
-rebased onto current develop and merged there with `--no-ff`.
+Before release preparation, a collection feature enters the branch named by
+its umbrella slug. The generic develop/configured branch applies only to a
+standalone topic or an explicit integration release.
 
 This selection model is
 [gitworkflow](https://git-scm.com/docs/gitworkflows), one word, rather than
@@ -55,7 +57,8 @@ $llm-shared:prepare-release - prepare v9.13.5 from develop; later-version docume
 ```
 
 The skill detects the branch mode and effort documents since the last tag,
-checks the working tree, automatically invokes `prepare_release_plan.bat`,
+checks the working tree, resolves an umbrella before planning, automatically
+invokes `prepare_release_plan.bat`,
 synchronizes the first destination, confirms the selected scope, merges with
 `--no-ff`, and rewords the merge commit. For an umbrella feature it then runs
 `pw skill --after-merge` before any release artifact. A pending row ends the

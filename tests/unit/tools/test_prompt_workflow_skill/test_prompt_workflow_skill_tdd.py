@@ -1,4 +1,4 @@
-"""Tests for pw host rendering, disk-derived routing, and CLI dispatch.
+"""Tests for pw routing and reviewed or residual commit CLI dispatch.
 
 The suite covers host detection and command rendering, workflow state routing,
 implementation step selection, forced commands, and not-applicable outcomes.
@@ -10,8 +10,9 @@ from typing import TYPE_CHECKING
 
 from tools import prompt_workflow
 from tools import prompt_workflow_memory as memory
+from tools import prompt_workflow_post_commit as post_commit
 from tools import prompt_workflow_skill as skill
-from tools.prompt_workflow_models import MemoryRecord, Topic
+from tools.prompt_workflow_models import MemoryRecord, Topic, WorkflowState
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -364,6 +365,27 @@ def test_main_dispatches_the_skill_subcommand(
     )
 
 
+def test_main_dispatches_authorized_code_review_commit(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """The dedicated CLI entry calls the owning continuation without a menu."""
+    continuation_exit = 6
+    monkeypatch.setattr(
+        prompt_workflow.skill,
+        "run_authorized_code_review_commit",
+        lambda _root, **_kwargs: continuation_exit,
+    )
+
+    assert prompt_workflow.main(
+        ["--root", str(tmp_path), "code-review-commit"],
+    ) == continuation_exit
+
+    assert prompt_workflow.main(
+        ["--root", str(tmp_path), "code-review-commit", "--residual"],
+    ) == continuation_exit
+
+
 _VALIDATION_TWO_STEPS = (
     "# v\n\n## Step 1.\n\n### Analysis of Step 1 implementation state\n\n"
     "Yes. Step 1 has been fully implemented.\n\n"
@@ -409,7 +431,7 @@ def test_plan_topics_skip_invalid_and_unpaired_validation_plans(tmp_path: Path) 
         encoding="utf-8",
     )
 
-    topics = skill._plan_topics(tmp_path)
+    topics = post_commit.plan_topics(tmp_path)
 
     assert [(topic.version, topic.slug) for topic in topics] == [
         ("v0.9.0", "handoff_automation"),
@@ -454,6 +476,38 @@ def test_post_commit_command_implements_the_next_step(
     """The step after the committed one gives an implement-step command."""
     _setup_plan_tree(monkeypatch, tmp_path, _VALIDATION_TWO_STEPS)
     command = skill.post_commit_command(tmp_path, "1", _CLAUDE)
+    assert command == "/implement-step on docs/plan.v0.9.0.handoff_automation.md step 2"
+
+
+def test_post_commit_command_names_an_unwritten_plan(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Continuation derives the canonical plan name when only validation exists."""
+    topic = _topic(tmp_path)
+    validation = tmp_path / "docs" / "plan.v0.9.0.handoff_automation.validation.md"
+    validation.write_text(_VALIDATION_TWO_STEPS, encoding="utf-8")
+    state = WorkflowState(
+        requirement=None,
+        design=None,
+        plan=None,
+        validation_plan=validation,
+        requirement_has_open_questions=False,
+        design_has_open_questions=False,
+        plan_has_open_questions=False,
+        memory_step=None,
+    )
+    monkeypatch.setattr(skill.git, "current_branch", lambda _root: topic.slug)
+    monkeypatch.setattr(skill.memory, "read_memory", lambda _root: None)
+    monkeypatch.setattr(
+        skill.handoff,
+        "resolve_current_topic",
+        lambda *_args: topic,
+    )
+    monkeypatch.setattr(skill.steps, "compute_state", lambda *_args: state)
+
+    command = skill.post_commit_command(tmp_path, "1", _CLAUDE)
+
     assert command == "/implement-step on docs/plan.v0.9.0.handoff_automation.md step 2"
 
 

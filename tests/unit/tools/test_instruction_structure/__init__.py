@@ -1,7 +1,7 @@
 """Unit test package for the workflow instruction structure check (v0.9.0, Q06).
 
-Fix: Add the nested test package marker so the structural check that guards the
-handoff, hint, and multi-choice sections lives in the chosen nested form.
+Fix: Keep the nested structural checks together after prompt-workflow and wiki
+guards move into their own focused test leaf below the project line ceiling.
 """
 
 # eof

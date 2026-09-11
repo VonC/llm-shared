@@ -240,6 +240,18 @@ Windows at all.
   test coverage prompt to the clipboard. On a coverage gap (`exit=3`), ghog
   replays the term-missing rows whose `Missing` column is exactly the covg
   input.
+- `tth`: Doskey alias to `bin\tth.bat`. It runs
+  `tools\trim_thinking_cli.py`, reads one exported LLM conversation from a
+  file argument or, with no argument, from the clipboard, removes the
+  reflection blocks, copies the trimmed conversation back to the clipboard,
+  and prints one summary line with the before and after line counts. A
+  Claude export keeps its prompt blocks, its answer and tool blocks, the
+  reflection line that closes one of them (kept as an elision marker, its
+  reasoning body dropped), and the recap line that follows that reflection
+  line; blank lines never cut a block short. A Codex export keeps its
+  `## User` and `## Assistant` sections and drops `## Activity`. The format
+  is detected from the markers, and `--format claude` or `--format codex`
+  forces it.
 
 ## 🧪 Groundhog: the test loop behind the pytest aliases
 

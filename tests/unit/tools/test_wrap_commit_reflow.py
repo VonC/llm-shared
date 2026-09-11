@@ -378,9 +378,9 @@ class TestReflowLinesPathSeparator:
     def test_paragraph_wraps_forward_slash_word(self) -> None:
         """A paragraph backticks a forward-slash path word."""
         assert wrap_commit_reflow.reflow_lines(
-            ["edit src/pdfss/tests today"],
+            ["edit src/myapp/tests today"],
             80,
-        ) == ["edit `src/pdfss/tests` today"]
+        ) == ["edit `src/myapp/tests` today"]
 
     def test_paragraph_wraps_backslash_word(self) -> None:
         """A paragraph backticks a backslash path word."""
@@ -392,24 +392,24 @@ class TestReflowLinesPathSeparator:
     def test_bullet_does_not_wrap_slash_word(self) -> None:
         """The item list keeps the regular rules, so a slash word stays bare."""
         assert wrap_commit_reflow.reflow_lines(
-            ["- edit src/pdfss/tests today"],
+            ["- edit src/myapp/tests today"],
             80,
-        ) == ["- edit src/pdfss/tests today"]
+        ) == ["- edit src/myapp/tests today"]
 
     def test_no_backticks_flag_skips_the_slash_rule(self) -> None:
         """With backticks off, slash words are left alone."""
         assert wrap_commit_reflow.reflow_lines(
-            ["edit src/pdfss/tests today"],
+            ["edit src/myapp/tests today"],
             80,
             add_backticks=False,
-        ) == ["edit src/pdfss/tests today"]
+        ) == ["edit src/myapp/tests today"]
 
     def test_slash_word_already_in_span_is_not_rewrapped(self) -> None:
         """A slash word already inside a span is left as-is."""
         assert wrap_commit_reflow.reflow_lines(
-            ["edit `src/pdfss` today"],
+            ["edit `src/myapp` today"],
             80,
-        ) == ["edit `src/pdfss` today"]
+        ) == ["edit `src/myapp` today"]
 
     def test_slash_words_merge_after_wrapping(self) -> None:
         """Adjacent slash words wrap, then the merge folds them into one span."""

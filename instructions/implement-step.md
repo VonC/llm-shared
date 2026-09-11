@@ -43,7 +43,20 @@ if (-not ((Test-Path a.ghog.log) -and (gi a.ghog.log).LastWriteTime -gt $t)) {
 ri a.ghog.started -Force; "exit=$code"
 ```
 
-`<llm-shared>` is the llm-shared folder of the workspace (`..\llm-shared` in a sibling layout). Branch on the exit code first, then read only the tail of `a.ghog.log` — the last 5 lines on exit 0, the last 100 otherwise; never load the whole log, never delete it. The walk is finished only when `a.ghog.status` reads `state=done` — a verdict to read through `ghog status`, never with a direct read of that file (only the command probes the pid); a growing log proves nothing. When the harness can kill long calls — or already killed one walk — run the walk detached instead, `cmd /d /c "<llm-shared>\bin\ghog.bat day --detach"` with no redirect, then poll `cmd /d /c "<llm-shared>\bin\ghog.bat status"` (never redirected) until its exit code is no longer 6: exit 7 means the run was lost (relaunch), any other code is the walk's own. The walk runs, in order, stopping at the first non-green step:
+`<llm-shared>` is the resolved absolute llm-shared directory that contains
+this canonical instruction, as described in
+[`run_commands.md`](../rules/run_commands.md). Do not substitute a guessed
+sibling path or environment variable. Branch on the exit code first, then read
+only the tail of `a.ghog.log` — the last 5 lines on exit 0, the last 100
+otherwise; never load the whole log, never delete it. The walk is finished only
+when `a.ghog.status` reads `state=done` — a verdict to read through `ghog
+status`, never with a direct read of that file (only the command probes the
+pid); a growing log proves nothing. When the harness can kill long calls — or
+already killed one walk — run the walk detached instead, `cmd /d /c
+"<llm-shared>\bin\ghog.bat day --detach"` with no redirect, then poll `cmd /d
+/c "<llm-shared>\bin\ghog.bat status"` (never redirected) until its exit code
+is no longer 6: exit 7 means the run was lost (relaunch), any other code is the
+walk's own. The walk runs, in order, stopping at the first non-green step:
 
 - check.bat: the compile and lint gate;
 - `ghog affected --no-cov` (the old ptanc): the focused tests — created, modified, or impacted by this step — selected by testmon, coverage off;
@@ -55,7 +68,7 @@ Never run `check.bat` or a plain `pytest` yourself: groundhog owns check and tes
 
 ## Reach 100% coverage on each unit-tested class
 
-This rule is for unit tests only, the ones under `src\pdfss\tests\unit`. It does not apply to integration, smoke, regression, or acceptance tests.
+This rule is for unit tests only, the ones under the project's unit-test root such as `src\<package>\tests\unit`. It does not apply to integration, smoke, regression, or acceptance tests.
 
 - One unit test file, or a set of unit test files inside a test folder named after the class under test, must reach 100% coverage of that one Python class file. Each unit-tested class file gets to 100% on its own, in one test file or several.
 - Design the class file to be easy to test first: small methods, injected dependencies, no hidden side effects. Then write the unit tests so they both exercise the behaviour and reach 100% of that class file.
@@ -70,8 +83,71 @@ When the step is implemented and the `ghog day` walk reports the objective (`exi
 
 `<x>` is the plan step you just implemented — the "Step XXXX" of this conversation, a number such as `2` or a sub-step id such as `4A`. `pw` is run through its launcher (see [`run-pw.md`](run-pw.md) for the non-interactive invocation), the same tool the interactive cycle uses.
 
-Run `pw` from a PowerShell shell — the `pw` alias when the project environment is loaded, otherwise `& "$env:LLM_SHARED_DIR\bin\prompt_workflow.bat" handoff check <x>`. Do not wrap `bin\prompt_workflow.bat` in a `cmd /d /c "..."` call from a Git Bash or other POSIX shell: that nested `cmd` swallows the launcher's output and its rewrite of `a.prompt.txt` and `a.prompt_memory`, so the handoff does nothing while still returning `0` — a silent no-op. The launcher must print `Prompt for step <x> (check) ready`; if you do not see that line, the handoff did not run, so re-run it in PowerShell before going on.
+Run `pw` from a PowerShell shell — the `pw` alias when the project environment
+is loaded, otherwise
+`& "<LLM_SHARED_DIR>\bin\prompt_workflow.bat" handoff check <x>`. Resolve
+`<LLM_SHARED_DIR>` from this canonical instruction as described in
+[`run_commands.md`](../rules/run_commands.md); do not rely on an environment
+variable. Do not wrap the launcher in a `cmd /d /c "..."` call from a Git Bash
+or other POSIX shell: that nested `cmd` swallows the launcher's output and its
+rewrite of `a.prompt.txt` and `a.prompt_memory`, so the handoff does nothing
+while still returning `0` — a silent no-op. The launcher must print `Prompt for
+step <x> (check) ready`; if you do not see that line, the handoff did not run,
+so re-run it in PowerShell before going on.
 
 The call writes the `implementation-check.md` prompt for step `<x>` to `a.prompt.txt` at the project root, copies it to the clipboard, and records the step in `a.prompt_memory`. Confirm it took — the first line of `a.prompt.txt` now names `instructions/implementation-check.md` — then read `a.prompt.txt` and run the instructions of that returned prompt straight away to check what you just implemented. A handoff is the go-ahead to perform the next workflow step now: do not stop to ask the user whether to proceed, and do not compose the next prompt yourself. `pw` builds the prompt and the handoff authorises it, so every step the cycle reaches is executed without further confirmation — the commit-message step (`group-commits-msg.md`) included, where you write the commit messages rather than waiting to be told to.
 
-**Hard rule — run the chain straight through to a reviewable `a.commit`; the only stop is the commit gate.** After `pw handoff check <x>` you run the implementation check immediately, then its `pw handoff after-check <x>`, then the `group-commits-msg.md` run, all without pausing: the chain is implement -> check -> after-check -> group-commits -> `a.commit`. Do not stop between these to ask whether to run the next step, whether to proceed, or to let the user review mid-chain, and do not stop because the session has been long or the work large — those are not reasons to pause. The single stop is the commit gate at the end, where `a.commit` is prepared and presented and `group-commits-msg.md` shows its go-ahead choices before the actual commit. Pausing anywhere earlier is the mistake this rule forbids.
+**Hard rule — run the chain straight through to a reviewable `a.commit`, then take the branch the review-mode sampling names.** After `pw handoff check <x>` you run the implementation check immediately, then its `pw handoff after-check <x>`, then the `group-commits-msg.md` run, all without pausing: the chain is implement -> check -> after-check -> group-commits -> `a.commit` -> sample review mode -> either the code-review round or the commit gate. Do not stop between these to ask whether to run the next step, whether to proceed, or to let the user review mid-chain, and do not stop because the session has been long or the work large — those are not reasons to pause. Sampling `a.review-mode` is a step of this chain and not a preference: when it reports review mode on, the code-review round replaces the commit gate, and presenting the commit gate instead is the same defect as skipping a step. When it reports off, the single stop is the commit gate at the end, where `a.commit` is prepared and presented and `group-commits-msg.md` shows its go-ahead choices before the actual commit. Pausing anywhere earlier is the mistake this rule forbids.
+
+### Branch after group-commits: review mode or the commit gate
+
+Immediately after `group-commits-msg` has successfully produced the reviewable
+root `a.commit`, sample review mode exactly once. This is a deliberate act
+performed at this point in the chain, never a conclusion carried over from a
+directory listing taken earlier for another purpose: the marker lives in a
+dotted directory that a plain `ls` does not show, and it is covered by the
+`a.*` ignore rule so `git status` never reports it either. An earlier listing
+that did not mention it is not evidence of its absence.
+
+Sample it with the command rather than by testing a path, so no instruction has
+to name a location the tooling may resolve differently. From the project root:
+
+```powershell
+& "<LLM_SHARED_DIR>\rvw_status.bat"
+```
+
+Resolve `<LLM_SHARED_DIR>` as described in
+[`run_commands.md`](../rules/run_commands.md). The command reports its artifact
+home and every active exchange, and its exit code carries the trust level:
+status `0` is a complete trustworthy result, including one with zero active
+exchanges; status `3` returned evidence with an untrustworthy candidate; status
+`2` means no trustworthy answer, so report the diagnostic rather than inferring
+that review mode is off. Absence is a conclusion the command reaches, never one
+a failed command implies.
+
+When the command cannot be run, fall back to a file test in the order the
+tooling itself resolves the marker: first `<artifact-home>/a.review-mode`,
+where `<artifact-home>` is `.reviews` unless a versioned
+`.review-artifacts.ini` declares another `home` under `[review-artifacts]`, and
+only then the project-root `a.review-mode`, which the loader keeps as its
+legacy fallback. The home marker wins whenever both exist. Test the exact paths
+at this point in the chain; do not conclude from a listing.
+
+State the result before doing anything with it, in one line naming the verdict
+and where it came from, such as `review-mode: on (home .reviews)`. A sampling
+whose result is never stated is indistinguishable from a sampling that never
+happened.
+
+When review mode is off, preserve the ordinary commit gate above. When it is
+on, the review path replaces that immediate human-review stop: run
+`pw skill code-review-requestor`, which prints a self-contained command carrying
+the exact plan and implementation step, then run the printed command verbatim.
+
+Read and follow `instructions/code-review-requestor.md`; do not reproduce that
+role's exchange lifecycle here. Its requestor feedback is appended to the
+versioned review transcript, but the transcript is never reread as working
+context. After activation, durable coordination governs resumption even when
+the marker later changes. The handoff never authorizes this implementation
+session to initiate the counterpart: after publication it remains the
+requestor, starts no reviewer agent or session, and immediately waits for the
+answer through the shared protocol.

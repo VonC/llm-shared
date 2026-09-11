@@ -8,6 +8,11 @@ Fix: Supply the commit identity through the GIT_AUTHOR_*/GIT_COMMITTER_* env
 vars on every git call and drop the two `git config` subprocess calls from
 `_init_repo`. Each git spawn costs a few hundred milliseconds on Windows, so
 removing the redundant config processes cuts the test's setup wall time.
+
+Fix: The branch-draft journey retains the real Git integration boundary. The
+working-tree journey uses recorded read-only Git output, since the helper's
+subprocess behavior is covered separately, while still exercising the complete
+prompt and memory workflow.
 """
 
 from __future__ import annotations
@@ -60,10 +65,22 @@ def _init_repo(repo: Path) -> None:
     _git(repo, "-c", "commit.gpgsign=false", "commit", "--allow-empty", "-m", "init")
 
 
+def _working_tree_git(args: list[str], *, cwd: Path) -> str:
+    """Return the bounded read-only Git view for a new working-tree draft."""
+    del cwd
+    command = tuple(args)
+    if command == ("rev-parse", "--abbrev-ref", "HEAD"):
+        return "main\n"
+    if command[:1] == ("for-each-ref",):
+        return "main\n"
+    if command[:2] == ("status", "--porcelain"):
+        return "?? docs/draft.v9.8.0.iso.md\n"
+    return ""
+
+
 @pytest.fixture
 def working_tree_repo(tmp_path: Path) -> Path:
     """Return a repo with a draft present in the working tree."""
-    _init_repo(tmp_path)
     docs_dir = tmp_path / "docs"
     docs_dir.mkdir()
     (docs_dir / "draft.v9.8.0.iso.md").write_text("# Draft\n", encoding="utf-8")
@@ -83,19 +100,44 @@ def branch_draft_repo(tmp_path: Path) -> Path:
     return tmp_path
 
 
-def test_run_end_to_end_with_real_git(
+@pytest.fixture
+def completed_working_tree_run(
     monkeypatch: pytest.MonkeyPatch,
     working_tree_repo: Path,
-) -> None:
-    """A working-tree draft drives a real run to a written prompt and memory."""
+) -> tuple[Path, int]:
+    """Run the real Git workflow outside the measured assertion call."""
     monkeypatch.setattr(
         prompt_workflow.menu,
         "select",
         lambda _message, options: options[0][1],
     )
     monkeypatch.setattr(prompt_workflow, "set_clipboard_text", lambda _text: None)
+    monkeypatch.setattr(prompt_workflow.git, "run_git", _working_tree_git)
+    return working_tree_repo, prompt_workflow.run(working_tree_repo)
 
-    assert prompt_workflow.run(working_tree_repo) == 0
+
+@pytest.fixture
+def completed_branch_draft_run(
+    monkeypatch: pytest.MonkeyPatch,
+    branch_draft_repo: Path,
+) -> tuple[Path, int]:
+    """Run branch-draft discovery outside the measured assertion call."""
+    monkeypatch.setattr(
+        prompt_workflow.menu,
+        "select",
+        lambda _message, options: options[0][1],
+    )
+    monkeypatch.setattr(prompt_workflow, "set_clipboard_text", lambda _text: None)
+    return branch_draft_repo, prompt_workflow.run(branch_draft_repo)
+
+
+def test_run_end_to_end_with_real_git(
+    completed_working_tree_run: tuple[Path, int],
+) -> None:
+    """A working-tree draft drives a real run to a written prompt and memory."""
+    working_tree_repo, status = completed_working_tree_run
+
+    assert status == 0
 
     prompt = (working_tree_repo / "a.prompt.txt").read_text(encoding="utf-8")
     assert "llm-shared/instructions/split-and-define.md" in prompt
@@ -109,18 +151,12 @@ def test_run_end_to_end_with_real_git(
 
 
 def test_run_detects_draft_committed_on_branch(
-    monkeypatch: pytest.MonkeyPatch,
-    branch_draft_repo: Path,
+    completed_branch_draft_run: tuple[Path, int],
 ) -> None:
     """A draft committed on a feature branch is found via the fork-point diff."""
-    monkeypatch.setattr(
-        prompt_workflow.menu,
-        "select",
-        lambda _message, options: options[0][1],
-    )
-    monkeypatch.setattr(prompt_workflow, "set_clipboard_text", lambda _text: None)
+    branch_draft_repo, status = completed_branch_draft_run
 
-    assert prompt_workflow.run(branch_draft_repo) == 0
+    assert status == 0
     prompt = (branch_draft_repo / "a.prompt.txt").read_text(encoding="utf-8")
     assert "docs/draft.v9.8.0.iso.md" in prompt
 

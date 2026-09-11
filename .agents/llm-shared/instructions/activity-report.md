@@ -1,1 +1,1 @@
-Read and follow the canonical instruction at [`instructions/activity-report.md`](../../../instructions/activity-report.md).
+Read and follow the canonical instruction at [`instructions/activity-report.md`](../../../../../../../git/llm-shared/instructions/activity-report.md).

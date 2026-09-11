@@ -1,22 +1,82 @@
 # Agent instructions
 
-## 🐚 Running shell commands
+## Running shell commands
 
-Before any tool call that runs a shell command, follow `rules/run_commands.md`: read and search files with the harness file tools, never through an environment wrapper; when a wrapper is required, chain exactly one simple command with no nested shell quoting; read targeted slices, never whole-document dumps; and when a command fails with a quoting or parse error, rewrite it simpler instead of re-running or escalating it.
+Before the first shell command, read and follow:
+
+```txt
+rules/run_commands.md
+```
+
+Treat that file as the authoritative shell-execution policy. Do not duplicate or improvise alternate quoting, wrapper, retry, or output-handling rules.
+
+## Execution permissions
+
+This repository's review and groundhog workflows are intended to run unattended.
+
+Its project-local Codex configuration is expected to provide:
+
+```txt
+Full access / never
+```
+
+* Do not request interactive approval or escalation.
+* Do not switch the approval policy to `on-request`.
+* If an operation that should be available is unexpectedly blocked, distinguish a genuine permission problem from a command, quoting, environment, Git, or test failure.
+* If the effective permissions do not match the repository's expected configuration, report the mismatch rather than weakening global configuration or repeatedly retrying the blocked command.
+* Ordinary clarification questions to the user remain allowed when useful.
+
+## Review role isolation
+
+Whenever acting in a review exchange, follow:
+
+```txt
+instructions/review-requestor.md
+```
+
+A requestor publishes and then waits. It must never spawn, start, delegate, invoke, or message a reviewer agent or session.
+
+A reviewer reviews or waits. It must never spawn, start, delegate, invoke, or message a requestor agent or session.
+
+Each role rejects a task initiated by the automated counterpart.
+
+When waiting for the counterpart, follow the global long-running-work and quota-hygiene instructions. Do not busy-poll merely to check whether the other role has progressed.
 
 ## groundhog (pytest reset loop)
 
-To drive the test suite to its global objective (every test passing, coverage at the project gate), follow the instructions from `instructions/groundhog.md`. Trigger this whenever the user asks to run groundhog, ghog, or to fix tests and coverage.
+When the user asks to run groundhog, `ghog`, or to fix tests and coverage, read and follow:
 
-A walk is finished only when `a.ghog.status` at the project root reads `state=done` - a growing `a.ghog.log` proves nothing. Poll with `ghog status` (never redirected, never replaced by a direct read of `a.ghog.status` - only the command probes the recorded pid: exit 6 while the walk is live, 7 when it was killed), and when the harness can kill long calls, run the walk detached (`ghog day --detach`, no redirect) as that instruction describes - never size a timeout around a walk, never rerun one that may still be alive.
+```txt
+instructions/groundhog.md
+```
+
+Treat that file as the authoritative groundhog workflow.
+
+In particular:
+
+* There is no standalone `groundhog` executable or alias.
+* Do not infer completion merely from a growing log.
+* Do not launch a duplicate walk that may still be running.
+* Use the workflow's status and detached-execution mechanisms as documented there.
+* Follow the global quota-hygiene instructions when waiting for long-running work.
+
+Do not copy or invent an alternate groundhog lifecycle in this file.
 
 ## Diataxis documentation order
 
-Whenever a task creates or maintains a Diataxis documentation set, present
-and link its categories in this order: explanation, tutorials, how-to guides,
-then reference. Keep every page focused on exactly one Diataxis purpose.
+Whenever a task creates or maintains a Diataxis documentation set, present and link its categories in this order:
+
+1. explanation
+2. tutorials
+3. how-to guides
+4. reference
+
+Keep every page focused on exactly one Diataxis purpose.
 
 ## LLM-specific Markdown adapters
 
-When adding or modifying an LLM-specific skill, prompt, workflow, or other
-Markdown adapter, follow `rules/llm-specific-adapters.md`.
+When adding or modifying an LLM-specific skill, prompt, workflow, or other Markdown adapter, follow:
+
+```txt
+rules/llm-specific-adapters.md
+```

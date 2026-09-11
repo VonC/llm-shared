@@ -37,12 +37,13 @@ canonical draft.
 | Pattern | Written by | Holds |
 | --- | --- | --- |
 | `docs\draft.<topic>.md` | the author | the raw idea, no version yet |
-| `<effort-dir>/draft.vX.Y.Z.<slug>.md` | `/process-draft`, then `/split-and-define` for collections | the classified, branched draft; an umbrella also carries the ordered status index |
+| `<effort-dir>/draft.vX.Y.Z.<slug>.md` | `/process-draft`, then `/split-and-define` for collections | the classified, branched draft; an umbrella carries the ordered status index, while an umbrella continuation writes the focused child into its item branch |
 | `<effort-dir>/feature-request.vX.Y.Z.<topic>.md` | `/write-requirement` | new behavior to build |
 | `<effort-dir>/issue.vX.Y.Z.<topic>.md` | `/write-requirement` | a bug or missing behavior |
 | `<effort-dir>/design.vX.Y.Z.<topic>.md` | `/write-design` | scope, constraints, acceptance cases |
 | `<effort-dir>/plan.vX.Y.Z.<topic>.md` | `/write-plans` | numbered implementation steps |
 | `<effort-dir>/plan.vX.Y.Z.<topic>.validation.md` | `/write-plans`, then `/implementation-check` | per-step verdicts and checks |
+| `<effort-dir>/review.<type>.vX.Y.Z.<topic>.md` | the review exchange | append-only specification or code review evidence |
 
 ### Document selector contract
 
@@ -65,6 +66,13 @@ same selector exists in more than one supported layout, resolution fails as
 ambiguous instead of choosing the newest or first copy.
 
 ### Direct and umbrella draft relationships
+
+For an umbrella continuation, the focused child at
+`<effort-dir>/draft.vX.Y.Z.<item-slug>.md` is a required on-disk artifact in the
+item branch. `/process-draft` reads it back after branch creation and does not
+open the approval gate until the file exists. That file is authoritative for
+human review and later revisions; a copy rendered in conversation is only a
+preview.
 
 For a single topic, the draft and requirement usually share a slug:
 
@@ -107,6 +115,24 @@ accepts this layout only when the normalized branch leaf matches exactly one
 requirement and that requirement has exactly one related direct or canonical
 umbrella draft. Same-version proximity alone is not a relationship.
 
+## 🤖 Configured independent-review runtime files
+
+The versioned project-root `.review-artifacts.ini` optionally selects one
+repository-relative artifact home. When the declaration is absent, the home is
+`.reviews`. The home itself is ignored through its exact catch-all `.gitignore`;
+protocol results return paths below that home, and callers must not reconstruct
+them.
+
+| File | Role |
+| --- | --- |
+| `a.review-*` | current request, answer, coordination, tombstone, lock, migration journal, or archived recovery evidence |
+| `a.code-review-evidence.<version>.<slug>.step-<step>.json` | retained code-review evidence manifest, retired after answer publication |
+
+The versioned `review.<type>.<version>.<slug>.md` transcript is the exception:
+it stays beside the reviewed document rather than in the runtime home. See the
+[independent review contract](independent-review-mode-contract.md#artifact-home-configuration-and-migration)
+for declaration, migration, and exact naming rules.
+
 ## 🧾 Transient a-dot files at the project root
 
 All matched by the `a.*` gitignore line — scratch by design, never
@@ -144,5 +170,6 @@ committed:
 | `version.txt` | first line `X.Y.Z-SNAPSHOT -- <title>`, then the release-notes summary |
 | `CHANGELOG.md` | one section per release, folded in by `update-changelog.bat` |
 
-Related: [Document templates](templates.md),
+Related: [Independent review mode contract](independent-review-mode-contract.md),
+[Document templates](templates.md),
 [ghog commands and exit codes](ghog-commands-and-exit-codes.md).

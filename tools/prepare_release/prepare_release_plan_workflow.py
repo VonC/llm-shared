@@ -6,34 +6,25 @@
 from __future__ import annotations
 
 import os
-import re
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from tools.prepare_release.prepare_release_plan_boundary import resolve_feature_boundary
 from tools.prepare_release.prepare_release_plan_git import GitRepository
 from tools.prepare_release.prepare_release_plan_models import (
-    BoundaryCandidate,
     ReleaseAction,
     ReleaseMode,
     ReleasePlan,
     ReleasePlanError,
 )
 from tools.prepare_release.prepare_release_plan_naming import promotion_branch_name
+from tools.prepare_release.prepare_release_plan_umbrella import (
+    resolve_umbrella_integration,
+    slug_key,
+)
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
     from pathlib import Path
-
-_REBASE_ONTO_RE = re.compile(r"\brebase.*\bonto\s+([0-9a-f]{7,40})\b", re.IGNORECASE)
-_RESET_TARGET_RE = re.compile(r"reset: moving to (.+)$")
-_CREATED_FROM_RE = re.compile(r"branch: Created from (.+)$")
-_MIN_MERGE_PARENTS = 2
-
-
-@dataclass(frozen=True)
-class _RankedBoundary:
-    candidate: BoundaryCandidate
-    priority: int
 
 
 @dataclass(frozen=True)
@@ -51,10 +42,11 @@ def build_release_plan(  # noqa: PLR0913
     *,
     main_branch: str = "main",
     integration_branch: str | None = None,
+    umbrella: Path | None = None,
     branch: str | None = None,
     feature_base: str | None = None,
     feature_parent: str | None = None,
-    feature_target: str = "main",
+    feature_target: str = "auto",
     preview_conflicts: bool = True,
 ) -> ReleasePlan:
     """Build a deterministic release plan from local repository evidence."""
@@ -64,9 +56,11 @@ def build_release_plan(  # noqa: PLR0913
     selected_branch = branch or repository.current_branch()
     selected_oid = repository.resolve(selected_branch)
     repository.resolve(main_branch)
+    umbrella_integration = resolve_umbrella_integration(repository, umbrella)
     resolved_integration = _resolve_integration_branch(
         repository,
         integration_branch,
+        umbrella_branch=umbrella_integration,
         main_branch=main_branch,
     )
 
@@ -98,6 +92,7 @@ def build_release_plan(  # noqa: PLR0913
         feature_base=feature_base,
         feature_parent=feature_parent,
         feature_target=feature_target,
+        umbrella_bound=umbrella_integration is not None,
         preview_conflicts=preview_conflicts,
     )
 
@@ -106,9 +101,17 @@ def _resolve_integration_branch(
     repository: GitRepository,
     requested: str | None,
     *,
+    umbrella_branch: str | None,
     main_branch: str,
 ) -> str | None:
-    """Resolve integration via CLI, environment, config, develop, then origin HEAD."""
+    """Resolve umbrella integration first, then generic repository roles."""
+    if umbrella_branch is not None:
+        if requested is not None and slug_key(requested) != slug_key(umbrella_branch):
+            raise ReleasePlanError(
+                f"Requested integration branch {requested!r} conflicts with umbrella "
+                f"integration branch {umbrella_branch!r}.",
+            )
+        return umbrella_branch
     candidates = (
         requested,
         os.environ.get("PREPARE_RELEASE_INTEGRATION_BRANCH"),
@@ -220,12 +223,14 @@ def _plan_feature(  # noqa: PLR0913
     feature_base: str | None,
     feature_parent: str | None,
     feature_target: str,
+    umbrella_bound: bool,
     preview_conflicts: bool,
 ) -> ReleasePlan:
     target_branch = _feature_target(
         main_branch,
         integration_branch,
         feature_target,
+        umbrella_bound=umbrella_bound,
     )
     context = _FeaturePlanContext(
         repository,
@@ -239,7 +244,7 @@ def _plan_feature(  # noqa: PLR0913
     if integrated is not None:
         return integrated
 
-    boundary, candidates = _resolve_feature_boundary(
+    boundary, candidates = resolve_feature_boundary(
         repository,
         branch,
         explicit_base=feature_base,
@@ -367,12 +372,19 @@ def _feature_target(
     main_branch: str,
     integration_branch: str | None,
     feature_target: str,
+    *,
+    umbrella_bound: bool,
 ) -> str:
     """Resolve and validate the branch receiving a feature."""
-    if feature_target not in {"main", "integration"}:
+    if feature_target not in {"auto", "main", "integration"}:
         raise ReleasePlanError(
-            f"Unknown feature target {feature_target!r}; use 'main' or 'integration'.",
+            f"Unknown feature target {feature_target!r}; use 'auto', 'main', or 'integration'.",
         )
+    if umbrella_bound and feature_target == "main":
+        message = "A topic with an umbrella integration branch cannot target main directly."
+        raise ReleasePlanError(message)
+    if feature_target == "auto":
+        return integration_branch or main_branch
     if feature_target == "integration":
         if integration_branch is None:
             message = (
@@ -417,232 +429,6 @@ def _already_integrated_feature(
         containing_release_tags=tags,
         notes=(note,),
     )
-
-
-def _resolve_feature_boundary(
-    repository: GitRepository,
-    branch: str,
-    *,
-    explicit_base: str | None,
-    explicit_parent: str | None,
-) -> tuple[BoundaryCandidate | None, tuple[BoundaryCandidate, ...]]:
-    """Return a proven feature boundary, or candidates requiring user selection."""
-    if explicit_base is not None:
-        return _explicit_base_boundary(repository, branch, explicit_base)
-
-    if explicit_parent is not None:
-        return _explicit_parent_boundary(repository, branch, explicit_parent)
-
-    return _automatic_boundary(repository, branch)
-
-
-def _explicit_base_boundary(
-    repository: GitRepository,
-    branch: str,
-    explicit_base: str,
-) -> tuple[BoundaryCandidate, tuple[BoundaryCandidate, ...]]:
-    """Validate and return a caller-selected boundary commit."""
-    base = repository.resolve(explicit_base)
-    if not repository.is_ancestor(base, branch) or base == repository.resolve(branch):
-        raise ReleasePlanError(f"Feature base {explicit_base} is not a proper ancestor of {branch}.")
-    candidate = BoundaryCandidate(
-        base=base,
-        parent_refs=(),
-        evidence="explicit --feature-base",
-        commit_count=repository.commit_count(f"{base}..{branch}"),
-    )
-    return candidate, (candidate,)
-
-
-def _explicit_parent_boundary(
-    repository: GitRepository,
-    branch: str,
-    explicit_parent: str,
-) -> tuple[BoundaryCandidate, tuple[BoundaryCandidate, ...]]:
-    """Derive and return a boundary from a caller-selected parent branch."""
-    repository.resolve(explicit_parent)
-    ranked = _boundary_from_parent(repository, branch, explicit_parent)
-    if ranked is None:
-        raise ReleasePlanError(
-            f"Could not derive a boundary between {explicit_parent} and {branch}.",
-        )
-    return ranked.candidate, (ranked.candidate,)
-
-
-def _automatic_boundary(
-    repository: GitRepository,
-    branch: str,
-) -> tuple[BoundaryCandidate | None, tuple[BoundaryCandidate, ...]]:
-    """Resolve a boundary from reflog and local branch topology evidence."""
-    reflog_boundary = _boundary_from_reflog(repository, branch)
-    if reflog_boundary is not None:
-        return reflog_boundary, (reflog_boundary,)
-
-    ranked = [
-        candidate
-        for parent in repository.local_branches()
-        if parent != branch
-        for candidate in [_boundary_from_parent(repository, branch, parent)]
-        if candidate is not None
-    ]
-    candidates = _deduplicate_candidates(ranked)
-    if len(candidates) == 1:
-        return candidates[0], candidates
-    nearest = _unique_nearest_candidate(repository, candidates)
-    return nearest, candidates
-
-
-def _boundary_from_reflog(
-    repository: GitRepository,
-    branch: str,
-) -> BoundaryCandidate | None:
-    """Use the latest unsuperseded branch-positioning reflog entry."""
-    selected: tuple[str, str, tuple[str, ...]] | None = None
-    local_branches = set(repository.local_branches())
-    branch_tip = repository.resolve(branch)
-    for entry_oid, subject in repository.reflog(branch):
-        parsed = _parse_positioning_entry(
-            repository,
-            entry_oid,
-            subject,
-            local_branches,
-        )
-        if parsed is None:
-            continue
-        base, evidence, parents = parsed
-        if (
-            base != branch_tip
-            and repository.is_ancestor(base, branch)
-        ):
-            selected = (base, evidence, parents)
-    if selected is None:
-        return None
-    base, evidence, parents = selected
-    return BoundaryCandidate(
-        base=base,
-        parent_refs=parents,
-        evidence=evidence,
-        commit_count=repository.commit_count(f"{base}..{branch}"),
-    )
-
-
-def _parse_positioning_entry(
-    repository: GitRepository,
-    entry_oid: str,
-    subject: str,
-    local_branches: set[str],
-) -> tuple[str, str, tuple[str, ...]] | None:
-    """Parse one branch-creation, reset, or completed-rebase reflog entry."""
-    rebase_match = _REBASE_ONTO_RE.search(subject)
-    if rebase_match:
-        return repository.resolve(rebase_match.group(1)), f"reflog: {subject}", ()
-    target = _positioning_target(subject)
-    if target is None:
-        return None
-    parents = (target,) if target in local_branches else ()
-    return entry_oid, f"reflog: {subject}", parents
-
-
-def _positioning_target(subject: str) -> str | None:
-    """Return a reset/creation target label from one reflog subject."""
-    reset_match = _RESET_TARGET_RE.search(subject)
-    if reset_match:
-        return reset_match.group(1)
-    created_match = _CREATED_FROM_RE.search(subject)
-    return created_match.group(1) if created_match else None
-
-
-def _boundary_from_parent(
-    repository: GitRepository,
-    branch: str,
-    parent: str,
-) -> _RankedBoundary | None:
-    """Derive one boundary candidate from a possible parent branch."""
-    branch_tip = repository.resolve(branch)
-    if repository.is_ancestor(branch, parent):
-        base = _introduced_feature_base(repository, branch_tip, parent)
-        evidence = f"first-parent merge into {parent}"
-        priority = 3
-    else:
-        base = repository.merge_base(parent, branch, fork_point=True)
-        evidence = f"merge-base --fork-point {parent} {branch}"
-        priority = 2
-        if base is None:
-            base = repository.merge_base(parent, branch)
-            evidence = f"merge-base {parent} {branch}"
-            priority = 1
-    if base is None or base == branch_tip or not repository.is_ancestor(base, branch):
-        return None
-    return _RankedBoundary(
-        candidate=BoundaryCandidate(
-            base=base,
-            parent_refs=(parent,),
-            evidence=evidence,
-            commit_count=repository.commit_count(f"{base}..{branch}"),
-        ),
-        priority=priority,
-    )
-
-
-def _introduced_feature_base(
-    repository: GitRepository,
-    branch_tip: str,
-    containing_branch: str,
-) -> str | None:
-    """Find the first first-parent merge that introduced a feature tip."""
-    for commit in repository.first_parent_history(containing_branch):
-        parents = repository.commit_parents(commit)
-        if len(parents) < _MIN_MERGE_PARENTS:
-            continue
-        if repository.is_ancestor(branch_tip, commit) and not repository.is_ancestor(
-            branch_tip, parents[0],
-        ):
-            return repository.merge_base(branch_tip, parents[0])
-    return None
-
-
-def _deduplicate_candidates(
-    ranked: Sequence[_RankedBoundary],
-) -> tuple[BoundaryCandidate, ...]:
-    """Keep highest-quality evidence and combine parent refs per base."""
-    if not ranked:
-        return ()
-    highest = max(item.priority for item in ranked)
-    by_base: dict[str, list[_RankedBoundary]] = {}
-    for item in ranked:
-        if item.priority == highest:
-            by_base.setdefault(item.candidate.base, []).append(item)
-    result: list[BoundaryCandidate] = []
-    for base, items in by_base.items():
-        parent_refs = tuple(
-            sorted({parent for item in items for parent in item.candidate.parent_refs}),
-        )
-        evidence = "; ".join(sorted({item.candidate.evidence for item in items}))
-        result.append(
-            BoundaryCandidate(
-                base=base,
-                parent_refs=parent_refs,
-                evidence=evidence,
-                commit_count=items[0].candidate.commit_count,
-            ),
-        )
-    return tuple(sorted(result, key=lambda item: (item.commit_count, item.base)))
-
-
-def _unique_nearest_candidate(
-    repository: GitRepository,
-    candidates: Sequence[BoundaryCandidate],
-) -> BoundaryCandidate | None:
-    """Select a unique candidate descended from every other candidate."""
-    nearest = [
-        candidate
-        for candidate in candidates
-        if all(
-            other.base == candidate.base or repository.is_ancestor(other.base, candidate.base)
-            for other in candidates
-        )
-    ]
-    return nearest[0] if len(nearest) == 1 else None
 
 
 # eof

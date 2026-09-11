@@ -1,6 +1,6 @@
 ---
 name: prepare-release
-description: 'Finish a feature by landing its exact range on develop when present, otherwise main, reword the merge, and stop with the next umbrella requirement from pw skill. When the umbrella is exhausted, or when invoked from main or integration for a release, continue through topology checks, the Diataxis wiki audit, release artifacts, and one chore(release) prepare commit. Stop before brel and never push. Use when the user asks to finish a feature or prepare a release.'
+description: 'Finish a feature by returning its exact range to its umbrella-slug integration branch, or to generic integration for a standalone topic, then stop with the next umbrella requirement from pw skill. When the umbrella is exhausted, continue through the Diataxis wiki audit and release preparation. Stop before brel and never push.'
 ---
 
-Read and follow [the canonical instruction](../../../../instructions/prepare-release.md)
+Read and follow [the canonical instruction](../../../../../../../../git/llm-shared/instructions/prepare-release.md)

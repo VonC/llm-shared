@@ -35,6 +35,7 @@ import pytest
 
 from tools import prompt_workflow
 from tools import prompt_workflow_memory as memory
+from tools import prompt_workflow_skill as skill
 from tools.prompt_workflow_models import (
     MemoryRecord,
     StepAlternative,
@@ -532,6 +533,20 @@ def test_run_implement_cycle_terminal_skips_intro(
 
     assert prompt_workflow.run(tmp_path) == 0
     assert all("Regarding step" not in message for message in infos)
+
+
+def test_run_document_reports_missing_exact_selector(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """The document subcommand reports an absent exact selector without guessing."""
+    monkeypatch.setattr(prompt_workflow.docs, "resolve_document", lambda *_args: None)
+
+    result = prompt_workflow.run_document(tmp_path, "v0.11.0", "topic", "plan")
+
+    assert result == skill.EXIT_NOT_APPLICABLE
+    assert "no plan document for v0.11.0 topic" in capsys.readouterr().err
 
 
 def test_main_uses_root_argument(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:

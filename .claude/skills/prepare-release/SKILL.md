@@ -1,8 +1,8 @@
 ---
 name: prepare-release
-description: 'Finish a feature by landing its exact range on develop when present, otherwise main, reword the merge, and stop with the next umbrella requirement from pw skill. When the umbrella is exhausted, or when invoked from main or integration for a release, continue through topology checks, the Diataxis wiki audit, release artifacts, and one chore(release) prepare commit. Stop before brel and never push. Use when the user asks to finish a feature or prepare a release.'
+description: 'Finish a feature by returning its exact range to its umbrella-slug integration branch, or to generic integration for a standalone topic, then stop with the next umbrella requirement from pw skill. When the umbrella is exhausted, continue through the Diataxis wiki audit and release preparation. Stop before brel and never push.'
 user-invocable: true
-argument-hint: 'Explain the context from main, develop/integration, or any feature branch. Feature mode lands the requirement first and checks its umbrella; ambiguous ancestry pauses for a parent branch or boundary commit.'
+argument-hint: 'Explain the context from main, integration, or any feature branch. Feature mode returns a collection topic to its umbrella-slug branch; ambiguous ancestry pauses for a parent branch or boundary commit.'
 ---
 
 [Instruction](../../../instructions/prepare-release.md)

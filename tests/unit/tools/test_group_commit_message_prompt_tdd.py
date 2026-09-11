@@ -1,8 +1,9 @@
-"""Tests for grouped commit prompt preparation.
+"""Tests for grouped commit prompt preparation and readiness guidance.
 
 Fix: Verify the staged-diff prompt tool writes `a.diff`, clears `a.commit`,
 formats the staged porcelain lines inside a fenced `log` block, and copies one
 ready-to-paste grouped commit message prompt with a trailing `Context: ` line.
+Step 4 also pins the canonical read-only checker before any commit menu.
 """
 
 from __future__ import annotations
@@ -10,6 +11,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from tools import group_commit_message_prompt
+from tools import prompt_workflow_steps as steps
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -18,6 +20,8 @@ if TYPE_CHECKING:
 
 # pyright: reportPrivateUsage=false
 # ruff: noqa: SLF001
+
+_GROUPING_INSTRUCTION = steps.llm_shared_dir() / "instructions" / "group-commits-msg.md"
 
 
 class TestGroupCommitMessagePromptTDD:
@@ -168,6 +172,24 @@ class TestGroupCommitMessagePromptTDD:
         assert result == 0
         assert captured_messages == [ready_line]
         assert captured_clipboard == [prompt]
+
+    def test_grouping_instruction_checks_readiness_before_commit_choices(self) -> None:
+        """Formatting is followed by a read-only gate with explicit statuses."""
+        content = _GROUPING_INSTRUCTION.read_text(encoding="utf-8")
+        normalized = " ".join(content.split()).lower()
+
+        for required in (
+            "commit-plan-check.bat --format json",
+            "status `3`",
+            "status `2`",
+            "does not authorize a commit",
+            "final batch",
+        ):
+            assert required in normalized
+        assert content.index("commit-plan-check.bat --format json") < content.index(
+            "present the go-ahead choices",
+        )
+        assert "after `a.commit` is formatted and every intended path is staged" in normalized
 
 
 # eof

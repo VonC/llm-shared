@@ -33,9 +33,11 @@ Again, if anything is mentioned, even "acceptable", even "for later", even if "m
 
 At the end of the "Performance check for Step x", add a simple short phrase stating if, yes or no, there is any performance issue that needs to be addressed.
 
-Then write a sub-section `### Unit test coverage check for Step x`, focused on unit tests only, the ones under `src\pdfss\tests\unit`, not integration, smoke, regression, or acceptance tests. For each class file impacted by the step, check that its unit tests sit in a test file, or a test folder named after the class, designed to reach 100% coverage of that one class file. If a legacy unit test impacted by the step does not reach 100% of its class, say so and note it must be completed. Other test types carry no coverage target and may cover several classes at once, so do not hold them to 100%. Do not run groundhog (`ghog day`, `ptr`) or any test command to confirm this: reason from the code and the tests in your context.
+Then write a sub-section `### Unit test coverage check for Step x`, focused on unit tests only, the ones under the project's unit-test root such as `src\<package>\tests\unit`, not integration, smoke, regression, or acceptance tests. Substitute the consuming project's own layout when it differs. For each class file impacted by the step, check that its unit tests sit in a test file, or a test folder named after the class, designed to reach 100% coverage of that one class file. If a legacy unit test impacted by the step does not reach 100% of its class, say so and note it must be completed. Other test types carry no coverage target and may cover several classes at once, so do not hold them to 100%. Do not run groundhog (`ghog day`, `ptr`) or any test command to confirm this: reason from the code and the tests in your context.
 
-At the end of the "Unit test coverage check for Step x", add a simple short phrase stating if, yes or no, there is any unit-tested class below 100% that needs completing.
+Coverage percentages only cover what the configured gate measures. Read the gate's own source scope before relying on one, such as the `source` list under `[tool.coverage.run]` in `pyproject.toml`: a staged file outside that scope, a developer-tool package beside the measured source root for instance, is unmeasured, so a green walk says nothing about whether it ever runs. Never convert such a walk into a claimed percentage for those files. Establish exercise statically instead: every top-level function and class the file defines must be referenced by a test, or from elsewhere inside its own package. Count module-level references, not only calls inside function bodies, because a helper used once to build a module constant is reached at import and a body-only scan will wrongly report it dead. Report any symbol that is neither as work to complete, and state the gate's scope in the sub-section so the limit is visible rather than assumed.
+
+At the end of the "Unit test coverage check for Step x", add a simple short phrase stating if, yes or no, there is any unit-tested class below 100% that needs completing, and, when the step stages files outside the coverage gate, a second phrase stating if, yes or no, any of their top-level symbols is unreferenced.
 
 When writing an answer in markdown, follow instructions from [`markdown.md`](../rules/markdown.md).
 
@@ -43,7 +45,99 @@ Note how each list item uses only one space between a list item marker and the l
 
 Check your answer: do you see list items with 3 spaces as in `-   xxx`? Change them to one space: `- xxx`.
 
+Check your headings. The answer and its transcript summary are appended to a review transcript that already holds the earlier rounds, so a heading is written once but read inside a growing document. Every heading text must be unique within that transcript, and the transcript must keep exactly one top-level heading, its title. A bare `## Findings`, `### Repairs made by the reviewer` or `### Commit grouping` is unique in the round that writes it and duplicated the moment the next round appends the same word; a `#` heading inside appended content gives the transcript a second top-level heading. Qualify each heading with the discriminator that explains the repetition rather than a counter: the step and round for content inside one exchange (`## Findings for reviewer step 5 round 2`), or the exchange where a transcript accumulates several exchanges over one document and each restarts at round 1 (`## Round 1 by reviewer (exchange 2)`). Keep titles well formed: no doubled word from interpolation, so `step 5` and never `step step 5`, and no trailing punctuation. A transcript a Markdown linter reports `MD024` or `MD025` on is a defect in the round that appended to it; fix the heading and never disable the rule.
+
 Check your validation plan update: re-read the status sentence you wrote under `### Analysis of Step N implementation state`. It MUST be exactly `Yes. Step N has been fully implemented.` or `No. Step N has NOT been fully implemented.`, with no other introduction sentence and no `Step checked:` prefix. If it is not the exact `Yes. Step N has been fully implemented.` sentence, search the updated document for the `### Missing work for Step N` heading. If that heading is absent, the check is not finished: add the section with the gathered missing-element bullets before ending your answer.
+
+## Reviewer assessment mode for implementation checks
+
+Enter this mode only when the calling prompt explicitly assigns an advisory
+code reviewer. Outside reviewer assessment mode, follow the writer-owned
+instructions above and the document-level and umbrella completion rules below
+unchanged. Reviewer mode never completes an umbrella row, commits, reverts a
+detected change, or grants workflow authority.
+
+### Reviewer evidence setup before applying criteria
+
+Use `& "<LLM_SHARED_DIR>\bin\code_review_evidence.bat"` for every Git and filesystem evidence
+operation. Do not replace these calls with prose or equivalent shell commands.
+
+Every path operand is repository-relative. The launcher rejects an absolute
+operand with `must be repository-relative` and exit `2`, so convert the
+request's absolute umbrella and plan paths before passing them. Each retained
+JSON result is an operand rather than a value: write it to its own ignored root
+`a.*` file and pass that repository-relative path wherever a command takes a
+JSON operand, so no retained evidence becomes a tracked side effect of this
+check.
+
+1. Build `validation_path_set` as a first-seen ordered union in O(n). It must
+   contain every staged path that belongs to the reviewed step, the exact
+   validation plan, and every known validation-artifact path named by the
+   resolved validation commands. Never omit a staged step path because a
+   validation command is expected not to touch it.
+2. Run `& "<LLM_SHARED_DIR>\bin\code_review_evidence.bat" --repository <root> umbrella-digest
+   capture <umbrella>` and retain its JSON as `umbrella_digest_before`. When
+   the request says `Umbrella draft: none`, omit the path operand; retain the
+   returned not-applicable result with `"applicable": false`.
+3. Run `& "<LLM_SHARED_DIR>\bin\code_review_evidence.bat" --repository <root> validation-state
+   capture <validation_path_set...>` and retain its JSON as
+   `validation_state_before`.
+4. Before changing any permitted validation-plan path, run
+   `& "<LLM_SHARED_DIR>\bin\code_review_evidence.bat" --repository <root>
+   record-pre-repair-blob <path>` and retain each baseline JSON value.
+5. Assemble the baseline evidence JSON and run
+   `& "<LLM_SHARED_DIR>\bin\code_review_evidence.bat" --repository <root> write-manifest
+   <evidence-json>`. On resumed work, call `read-manifest` with the exact
+   identity before using retained evidence.
+
+Reviewer mode may write only the exact validation-plan rows for the reviewed
+step. It must suppress the final-step umbrella completion section below even
+when this is the last step in the effort.
+
+### Reviewer evidence boundary after a Yes result
+
+After writing the reviewed-step validation rows for a Yes result, always run
+all of these commands before reporting the assessment:
+
+1. Run `& "<LLM_SHARED_DIR>\bin\code_review_evidence.bat" --repository <root> umbrella-digest
+   compare <umbrella_digest_before-json> <umbrella>`; omit the final path for
+   `Umbrella draft: none`.
+2. Run `& "<LLM_SHARED_DIR>\bin\code_review_evidence.bat" --repository <root> validation-state
+   capture <validation_path_set...>` as `validation_state_after`, using the
+   same ordered `validation_path_set` captured before the criteria.
+3. Run `& "<LLM_SHARED_DIR>\bin\code_review_evidence.bat" --repository <root> validation-state
+   compare <validation_state_before-json> <validation_state_after-json>`.
+
+### Reviewer evidence boundary after a No result
+
+After writing the reviewed-step validation rows and concrete missing-work rows
+for a No result, always run the same evidence boundary before reporting the
+assessment:
+
+1. Run `& "<LLM_SHARED_DIR>\bin\code_review_evidence.bat" --repository <root> umbrella-digest
+   compare <umbrella_digest_before-json> <umbrella>`; omit the final path for
+   `Umbrella draft: none`.
+2. Run `& "<LLM_SHARED_DIR>\bin\code_review_evidence.bat" --repository <root> validation-state
+   capture <validation_path_set...>` as `validation_state_after`, using the
+   same ordered `validation_path_set` captured before the criteria.
+3. Run `& "<LLM_SHARED_DIR>\bin\code_review_evidence.bat" --repository <root> validation-state
+   compare <validation_state_before-json> <validation_state_after-json>`.
+
+For either result, an applicable changed umbrella digest is a
+`changes-requested` boundary finding. Leave the changed umbrella file in place
+and report it; do not stage or revert it. Validation-plan differences are
+permitted only when they are confined to rows for the reviewed step. Any other
+tracked difference, including a tracked validation side effect, is a
+`changes-requested` finding that stays unstaged and unreverted. Differences
+confined to ignored validation artifacts are acceptable.
+
+For each permitted validation-plan edit, run
+`& "<LLM_SHARED_DIR>\bin\code_review_evidence.bat" --repository <root>
+attribute-reviewer-patch <baseline-json>` and stage only the attributable
+patch. Update the retained evidence with `write-manifest`; do not retire it
+inside this check. The calling reviewer retires it with
+`& "<LLM_SHARED_DIR>\bin\code_review_evidence.bat" --repository <root> retire-manifest` only after
+`publish-answer` reports `outcome: published`.
 
 ## Document-level status line
 
@@ -96,7 +190,17 @@ When the check is written and the `Analysis of Step x` status line records the Y
 
 `<x>` is the plan step you just checked — the "step XXXXX" of your prompt, a number such as `2` or a sub-step id such as `4A`. `pw` is run through its launcher (see [`run-pw.md`](run-pw.md) for the non-interactive invocation), the same tool the interactive cycle uses.
 
-Run `pw` from a PowerShell shell — the `pw` alias when the project environment is loaded, otherwise `& "$env:LLM_SHARED_DIR\bin\prompt_workflow.bat" handoff after-check <x>`. Do not wrap `bin\prompt_workflow.bat` in a `cmd /d /c "..."` call from a Git Bash or other POSIX shell: that nested `cmd` swallows the launcher's output and its rewrite of `a.prompt.txt` and `a.prompt_memory`, so the handoff does nothing while still returning `0` — a silent no-op. The launcher must print `Prompt for step <x> (commit) ready` on a `Yes` (or `(implement-missing) ready` on a `No`); if you do not see that line, re-run it in PowerShell before going on.
+Run `pw` from a PowerShell shell — the `pw` alias when the project environment
+is loaded, otherwise
+`& "<LLM_SHARED_DIR>\bin\prompt_workflow.bat" handoff after-check <x>`.
+Resolve `<LLM_SHARED_DIR>` from this canonical instruction as described in
+[`run_commands.md`](../rules/run_commands.md); do not rely on an environment
+variable. Do not wrap the launcher in a `cmd /d /c "..."` call from a Git Bash
+or other POSIX shell: that nested `cmd` swallows the launcher's output and its
+rewrite of `a.prompt.txt` and `a.prompt_memory`, so the handoff does nothing
+while still returning `0` — a silent no-op. The launcher must print `Prompt for
+step <x> (commit) ready` on a `Yes` (or `(implement-missing) ready` on a `No`);
+if you do not see that line, re-run it in PowerShell before going on.
 
 The `after-check` task is neutral on purpose: `pw` reads the `Analysis of Step x` status line you just wrote and routes the branch itself, so the caller cannot mis-branch. It writes the `implement-missing-step.md` prompt when the line starts with `No`, or the commit prompt (`group-commits-msg.md`, the `git add -A` variant) when it starts with `Yes`, to `a.prompt.txt` at the project root, copies it to the clipboard, and records the step in `a.prompt_memory`. Confirm it took — the first line of `a.prompt.txt` now names that next instruction — then read `a.prompt.txt` and run the instructions of that returned prompt straight away. A handoff is the go-ahead to perform the next workflow step now: do not pick the Yes-or-No branch yourself, do not stop to ask whether to proceed, and do not compose the next prompt yourself. When the branch is the commit step, prepare the grouped commit messages in `a.commit` right away — preparing `a.commit` is the step and does not wait on a go-ahead. Because the commit handoff stages the whole tree with `git add -A`, the `group-commits-msg.md` run must cover **every** staged change, not only the files you touched for this step: a change of outside origin already in the working tree — a concurrent edit, a tool-written file, an earlier unrelated tweak — is staged too, so it joins the same `a.commit` run and is grouped from least to most dependent like any other. Never drop or hold back a staged change because you did not author it; rank it by its own dependencies and place it in a fitting group. The actual commit is a separate action: it follows `group-commits-msg.md`'s own go-ahead choices, never run on your own off the back of the handoff. `pw` reads the status line and the handoff authorises the next step, so the cycle advances on its own.
 

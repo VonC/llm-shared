@@ -85,19 +85,19 @@ def test_reuses_shared_find_project_root_symbol() -> None:
 def test_extract_version_three_parts() -> None:
     """A three-part version token is extracted from the document name."""
     # Act / Assert
-    assert open_questions_md._extract_version("design.v1.2.3.cdc-gap.md") == "v1.2.3"
+    assert open_questions_md.extract_version("design.v1.2.3.cdc-gap.md") == "v1.2.3"
 
 
 def test_extract_version_two_parts() -> None:
     """A two-part version token is extracted from the document name."""
     # Act / Assert
-    assert open_questions_md._extract_version("plan.v8.11.perf.md") == "v8.11"
+    assert open_questions_md.extract_version("plan.v8.11.perf.md") == "v8.11"
 
 
 def test_extract_version_absent_returns_none() -> None:
     """A name without a version token yields None."""
     # Act / Assert
-    assert open_questions_md._extract_version("notes.md") is None
+    assert open_questions_md.extract_version("notes.md") is None
 
 
 def test_companion_name_format() -> None:
@@ -261,6 +261,16 @@ def test_resolve_doc_missing_raises(tmp_path: Path) -> None:
     # Act / Assert
     with pytest.raises(open_questions_md.OpenQuestionsError, match="not found"):
         open_questions_md._resolve_doc(tmp_path, "design.v1.2.3.topic.md")
+
+
+def test_resolve_doc_rejects_existing_absolute_path_outside_docs(tmp_path: Path) -> None:
+    """An absolute file outside supported documentation layouts is not accepted."""
+    (tmp_path / "docs").mkdir()
+    outside = tmp_path / "outside.md"
+    outside.write_text("# Outside\n", encoding="utf-8")
+
+    with pytest.raises(open_questions_md.OpenQuestionsError, match="not found"):
+        open_questions_md._resolve_doc(tmp_path, str(outside.resolve()))
 
 
 def test_resolve_doc_empty_raises(tmp_path: Path) -> None:

@@ -216,7 +216,7 @@ def test_cov_text_rules() -> None:
 def test_closing_line_grammar() -> None:
     """The closing line merges the alias echo with the keys (Q16, Q37, Q58)."""
     line = reporting.closing_line(
-        "pdfss",
+        "myapp",
         "full",
         _stats(failed=2, warnings=1),
         EXIT_TEST_FAILURES,
@@ -227,7 +227,7 @@ def test_closing_line_grammar() -> None:
         ),
     )
     assert line == (
-        "pdfss: ghog full done fail=2 warn=1 xfail=0 "
+        "myapp: ghog full done fail=2 warn=1 xfail=0 "
         "cov=withheld outliers=withheld excluded=withheld exit=2"
     )
 
@@ -235,7 +235,7 @@ def test_closing_line_grammar() -> None:
 def test_closing_metrics_default_the_timing_keys_to_skipped() -> None:
     """A run that times no calls leaves outliers= and excluded= skipped (Q37, Q58)."""
     line = reporting.closing_line(
-        "pdfss",
+        "myapp",
         "check",
         _stats(),
         EXIT_OBJECTIVE_MET,

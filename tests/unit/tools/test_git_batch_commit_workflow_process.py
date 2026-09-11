@@ -7,23 +7,26 @@ file.
 Fix: Cover the non-interactive path. A Git failure in non-interactive mode must
 stop the batch and return False without calling `input()`, and the add and
 commit phases must receive the `interactive` flag.
+
+Step 1 verifies that the batch compatibility helper delegates exact staged
+membership to the shared commit-plan support boundary.
 """
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import pytest
+
 from tools import git_batch_commit_models as git_batch_models
 from tools import git_batch_commit_workflow as git_batch_workflow
 
 # pyright: reportPrivateUsage=false
-# ruff: noqa: SLF001
+# ruff: noqa: S603, S607, SLF001
 
 if TYPE_CHECKING:
     from collections.abc import Callable
     from pathlib import Path
-
-    import pytest
 
 
 def _valid_block(path: str = "src/example.py") -> git_batch_models.CommitBlock:
@@ -106,6 +109,10 @@ def _raise_unexpected_diff_check(_git_adds: list[str], _root: Path) -> bool:
 
 def _return_true_staged_changes(_git_adds: list[str], _root: Path) -> bool:
     return True
+
+
+def _one_staged_path(_root: Path) -> tuple[str, ...]:
+    return ("src/example.py",)
 
 
 def test_process_commit_block_skips_when_add_phase_requests_skip(
@@ -226,6 +233,123 @@ def test_process_all_commits_logs_success_when_all_blocks_complete(
 
     assert git_batch_workflow._process_all_commits([block], tmp_path) is True
     assert "All commits processed successfully" in caplog.text
+
+
+def test_batch_validation_uses_the_public_commit_plan_validator(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """The commit path delegates staged membership and subjects to one API."""
+    block = _valid_block()
+    captured: dict[str, object] = {}
+
+    monkeypatch.setattr(
+        git_batch_workflow,
+        "_staged_paths",
+        _one_staged_path,
+    )
+    requirements = (
+        git_batch_models.CommitPlanSubjectRequirement(
+            path="src/example.py",
+            subject="fix(scope): valid title",
+        ),
+    )
+
+    def subject_requirements(
+        root: Path,
+        paths: tuple[str, ...],
+    ) -> tuple[git_batch_models.CommitPlanSubjectRequirement, ...]:
+        captured["requirement_inputs"] = (root, paths)
+        return requirements
+
+    monkeypatch.setattr(
+        git_batch_workflow.commit_plan_support,
+        "completed_validation_subject_requirements",
+        subject_requirements,
+    )
+
+    def fake_validate(
+        blocks: list[git_batch_models.CommitBlock],
+        staged_paths: tuple[str, ...],
+        subject_requirements: tuple[git_batch_models.CommitPlanSubjectRequirement, ...],
+    ) -> git_batch_models.CommitPlanValidation:
+        captured["blocks"] = blocks
+        captured["staged_paths"] = staged_paths
+        captured["subject_requirements"] = subject_requirements
+        return git_batch_models.CommitPlanValidation(groups=(), diagnostics=())
+
+    monkeypatch.setattr(git_batch_workflow, "validate_commit_plan", fake_validate)
+    git_batch_workflow._validate_commit_plan_for_root([block], tmp_path)
+    assert captured == {
+        "blocks": [block],
+        "staged_paths": ("src/example.py",),
+        "requirement_inputs": (tmp_path, ("src/example.py",)),
+        "subject_requirements": requirements,
+    }
+
+
+def test_staged_paths_delegates_to_shared_index_inventory(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The private compatibility seam returns the public result unchanged."""
+    captured: list[Path] = []
+
+    def shared_staged_paths(root: Path) -> tuple[str, ...]:
+        captured.append(root)
+        return ("staged.txt", "removed.txt")
+
+    monkeypatch.setattr(
+        git_batch_workflow.commit_plan_support,
+        "staged_paths",
+        shared_staged_paths,
+    )
+
+    assert git_batch_workflow._staged_paths(tmp_path) == (
+        "staged.txt",
+        "removed.txt",
+    )
+    assert captured == [tmp_path]
+
+
+def test_batch_validation_reports_public_validator_diagnostics(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Typed diagnostics stop the batch before its commit phase."""
+    block = _valid_block()
+    monkeypatch.setattr(git_batch_workflow, "_staged_paths", _one_staged_path)
+
+    def no_subject_requirements(
+        _root: Path,
+        _paths: tuple[str, ...],
+    ) -> tuple[git_batch_models.CommitPlanSubjectRequirement, ...]:
+        return ()
+
+    monkeypatch.setattr(
+        git_batch_workflow.commit_plan_support,
+        "completed_validation_subject_requirements",
+        no_subject_requirements,
+    )
+    invalid = git_batch_models.CommitPlanValidation(
+        groups=(),
+        diagnostics=("planned path is not staged: other.py",),
+    )
+
+    def return_invalid(
+        _blocks: list[git_batch_models.CommitBlock],
+        _paths: tuple[str, ...],
+        _requirements: tuple[git_batch_models.CommitPlanSubjectRequirement, ...],
+    ) -> git_batch_models.CommitPlanValidation:
+        return invalid
+
+    monkeypatch.setattr(
+        git_batch_workflow,
+        "validate_commit_plan",
+        return_invalid,
+    )
+    with pytest.raises(git_batch_models.GitBatchCommitError, match=r"other\.py"):
+        git_batch_workflow._validate_commit_plan_for_root([block], tmp_path)
 
 
 def test_process_all_commits_stops_on_git_error_without_prompting_when_non_interactive(

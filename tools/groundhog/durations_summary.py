@@ -41,9 +41,24 @@ def measures_durations(invocation: Invocation) -> bool:
         invocation: The parsed invocation.
 
     Returns:
-        True for a ``full`` run, the only one given ``--durations`` (Q39).
+        True for whichever run actually carries ``--durations`` (Q39).
+
+        A sequential full run measures each call honestly and keeps the
+        rule, exactly as before. A project that opts its full run into
+        xdist workers gets a contended call time, which measures the
+        scheduler rather than the test, so there the sequential
+        ``timings`` run owns the rule and keeps its whole-suite scope.
+        Deriving the answer from the built command keeps the verdict and
+        the measurement from drifting apart.
     """
-    return invocation.sub == runner.SUB_FULL
+    command = runner.pytest_command(
+        "pytest",
+        invocation.sub,
+        no_cov=invocation.no_cov,
+        files=invocation.files,
+        parallel=runner.parallel_enabled(invocation.root),
+    )
+    return "--durations=0" in command
 
 
 def judge(

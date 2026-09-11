@@ -11,6 +11,13 @@ check skills immediately after generation. The AI asks or verifies; the human
 answers questions and validates evidence. Invoke a review skill directly when
 an existing artifact needs a fresh review outside its original chain.
 
+## Independent assessment uses another boundary
+
+This page describes the **self-review loop** inside the owning workflow. The
+opt-in [independent review mode](independent-review-mode-and-human-authority.md)
+uses separate requestor and reviewer agents plus a final human gate; it does not
+replace the loop described here.
+
 🔁 The key insight of the workflow: never ship the first pass. Blindly
 trusting what the model generates — even documentation — throws away the
 cheapest quality gate available: the model itself, asked to challenge
@@ -25,7 +32,9 @@ The workflow runs the loop twice, once per kind of output:
   raises are a signal of depth: a model that truly parsed the requirement
   asks about edge cases and contradictions; one that skimmed it asks
   nothing. `/consolidate-then-review-ask-questions` folds the human
-  answers back and loops until the document settles.
+  answers back and loops until the document settles. Immediately before each
+  fold, it commits the answered requirement, design, or plan by itself so the
+  question wording survives after the working document is rewritten.
 - **Implementation check** — `/implementation-check` confronts the code
   just written with the plan step it claims to implement, and writes an
   explicit `Yes.` or `No.` verdict into the validation document, backed
@@ -41,8 +50,10 @@ The document-review question format is deliberately demanding. Each question
 has concrete options, pros and cons for each option, a recommended answer with
 its reasoning, and a separate human answer. The human may accept the
 recommendation, choose another option, or supply a missing one. Consolidation
-writes that decision back into the document and the AI reviews the amended
-whole again.
+first records the exact answered question document in a one-file Git commit,
+then writes that decision back into the document and the AI reviews the amended
+whole again. The snapshot separates the evidence before the fold from the
+settled document produced by it.
 
 The implementation review is equally project-specific. It checks the code
 against the requirement, design, and numbered plan, then applies the project's

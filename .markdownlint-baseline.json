@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "allowances": [
+    {"path": ".github/prompts/write-commit-message.prompt.md", "rule": "MD033", "count": 1},
+    {"path": "LICENSE.md", "rule": "LS001", "count": 1},
+    {"path": "LICENSE.md", "rule": "LS002", "count": 1},
+    {"path": "changelog-header.md", "rule": "LS002", "count": 1},
+    {"path": "docs/plan.v0.1.0.pw_handoff.md", "rule": "MD033", "count": 1},
+    {"path": "docs/v0.11.0/review.design-specification.v0.11.0.review-status-command.md", "rule": "MD038", "count": 2},
+    {"path": "instructions/split-large-file.md", "rule": "LS002", "count": 1},
+    {"path": "instructions/update-merge-commit-msg.md", "rule": "LS002", "count": 1},
+    {"path": "instructions/write-design.md", "rule": "LS002", "count": 1},
+    {"path": "rules/blacklist.md", "rule": "LS002", "count": 1},
+    {"path": "rules/chat.md", "rule": "LS002", "count": 1},
+    {"path": "rules/command_prefix_char.md", "rule": "LS002", "count": 1},
+    {"path": "rules/interactive_menu.md", "rule": "LS002", "count": 1},
+    {"path": "rules/llm-specific-adapters.md", "rule": "LS002", "count": 1},
+    {"path": "rules/preserve_code.md", "rule": "LS002", "count": 1},
+    {"path": "templates/group-commits-msg.template.md", "rule": "LS002", "count": 1},
+    {"path": "templates/open-question.template.md", "rule": "LS002", "count": 1},
+    {"path": "templates/review-answer.template.md", "rule": "LS002", "count": 1},
+    {"path": "templates/review-code-transcript.template.md", "rule": "LS002", "count": 1},
+    {"path": "templates/review-request.template.md", "rule": "LS002", "count": 1},
+    {"path": "templates/review-specification-transcript.template.md", "rule": "LS002", "count": 1}
+  ]
+}

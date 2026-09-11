@@ -2,7 +2,9 @@
 #********************************************************************
 # Script Name:  prepare_release_notes.sh
 # Description:  Prepares a release-preparation notes file "a.md" from
-#               version.txt and the git history since the last tag.
+#               version.txt and the git history since the last tag, or
+#               the whole history when the project has never been tagged
+#               and this is its first release.
 #
 # Location:     llm-shared/scripts/ (mutualized across projects).
 #
@@ -21,7 +23,8 @@
 #   2 - version.txt not found
 #   3 - version unreadable from version.txt
 #   4 - version.txt version is not a -SNAPSHOT version
-#   5 - no git tag found
+#   5 - retired: no git tag is now the first-release case, not an error.
+#       The number stays reserved so 6 keeps its meaning for callers.
 #   6 - last git tag already matches the snapshot version
 #********************************************************************
 
@@ -90,20 +93,32 @@ main() {
   #  ===============================================
   #  LAST GIT TAG
   #  ===============================================
-  local raw_tag
+  # The last tag is the lower bound of the release range. A project cutting
+  # its first release has none, and that is not an error: there is simply no
+  # earlier release to diff against, so the range is the whole history.
+  local raw_tag range range_label
   raw_tag="$(git -C "${PRJ_DIR}" describe --tags --abbrev=0 2>/dev/null)"
-  [[ -n "${raw_tag}" ]] || fatal "Unable to find last git tag (git describe --tags --abbrev=0)" 5
-  local tag_version="${raw_tag#v}"
-  info "Last git tag '${raw_tag}' (version '${tag_version}')"
-
-  if [[ "${tag_version}" == "${xyz}" ]]; then
-    fatal "Last git tag '${raw_tag}' already matches version '${xyz}': release notes already prepared" 6
+  if [[ -n "${raw_tag}" ]]; then
+    local tag_version="${raw_tag#v}"
+    info "Last git tag '${raw_tag}' (version '${tag_version}')"
+    if [[ "${tag_version}" == "${xyz}" ]]; then
+      fatal "Last git tag '${raw_tag}' already matches version '${xyz}': release notes already prepared" 6
+    fi
+    # `A..HEAD` excludes A itself, which is right: A is the previous release.
+    range="${raw_tag}..HEAD"
+    range_label="${raw_tag}"
+  else
+    info "No git tag found: first release, reading the whole history"
+    # `HEAD` alone, not `<root>..HEAD`: the root commit belongs to a first
+    # release, and a two-dot range would leave it out.
+    range="HEAD"
+    range_label="the first commit"
   fi
 
   #  ===============================================
   #  COLLECT TITLES SINCE LAST TAG (oldest -> newest)
   #  ===============================================
-  task "Collecting commit titles since '${raw_tag}'"
+  task "Collecting commit titles since '${range_label}'"
   local -a type_order=()   # type group names, in first-appearance order
   local -a title_type=()   # parallel: type of each kept title
   local -a title_line=()   # parallel: formatted "- type(scope): title" line
@@ -126,10 +141,10 @@ main() {
       [[ "${k}" == "${ps_type}" ]] && known=1 && break
     done
     [[ ${known} -eq 0 ]] && type_order+=("${ps_type}")
-  done < <(git -C "${PRJ_DIR}" log --reverse --format='%s' "${raw_tag}..HEAD")
+  done < <(git -C "${PRJ_DIR}" log --reverse --format='%s' "${range}")
 
   if [[ ${#title_line[@]} -eq 0 ]]; then
-    warn "No conventional-commit titles found since '${raw_tag}' (chore commits excluded)"
+    warn "No conventional-commit titles found since '${range_label}' (chore commits excluded)"
   else
     info "Collected ${#title_line[@]} title(s) across ${#type_order[@]} type group(s)"
   fi
@@ -191,7 +206,7 @@ main() {
           fi
         done <<< "${body}"
       fi
-    done < <(git -C "${PRJ_DIR}" log --reverse -z --format='%s%n%b' "${raw_tag}..HEAD")
+    done < <(git -C "${PRJ_DIR}" log --reverse -z --format='%s%n%b' "${range}")
   } > "${out_file}"
 
   ok "Release-preparation notes written to '${out_file}'"

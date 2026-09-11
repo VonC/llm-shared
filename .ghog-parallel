@@ -1,0 +1,6 @@
+Opt this project into the parallel ghog full run.
+
+The suite declares xdist_group marks on every module whose module-scoped
+fixtures must not be rebuilt per worker, and pytest-xdist is a dev dependency.
+The duration gate moves to the sequential `ghog timings` run, because a
+contended call time measures the scheduler rather than the test.

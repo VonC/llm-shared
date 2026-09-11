@@ -12,10 +12,13 @@ gcmp="%LLM_SHARED_DIR%\bin\gcmp.bat" $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%
 grmc=bash -c "%LLM_SHARED_DIR_UNIX%/scripts/update-merge-commit-msg/git-reword-merge.sh" $*$*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: Git rework merge commit done
 
 uv="%PRGS%\uvs\latest\uv.exe" $*
-claude=claude.exe --add-dir=..\llm-shared $*
+claude="%USERPROFILE%\.local\bin\claude.exe" --add-dir="%LLM_SHARED_DIR%" $*
 llmup="%LLM_SHARED_DIR%\bin\update_llm_shared_plugin.bat"
+llmcodexupgrade="%LLM_SHARED_DIR%\bin\update_llm_shared_plugin.bat"
 
 covg="%LLM_SHARED_DIR%\bin\covg.bat" $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: coverage_gap_functions done
+
+tth="%LLM_SHARED_DIR%\bin\tth.bat" $*
 
 ghd="%LLM_SHARED_DIR%\bin\ghd.bat" $*$tif not errorlevel 1 start "" "%PRJ_DIR%\docs\git_history_dashboard\dashboard.html"$techo %PRJ_DIR_NAME%: git history dashboard done
 
@@ -37,7 +40,15 @@ nd="%LLM_SHARED_DIR%\bin\new_draft.bat" $*$tif not errorlevel 1 echo %PRJ_DIR_NA
 ndr="%LLM_SHARED_DIR%\bin\new_draft.bat" $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: new draft done
 
 ghog="%LLM_SHARED_DIR%\bin\ghog.bat" $*
+ghdy=set "GHOG_SENV_LIVE=1"$t"%LLM_SHARED_DIR%\bin\ghog.bat" day $*
+gha=set "GHOG_SENV_LIVE=1"$t"%LLM_SHARED_DIR%\bin\ghog.bat" affected $*
+ghc=set "GHOG_SENV_LIVE=1"$t"%LLM_SHARED_DIR%\bin\ghog.bat" check $*
+ghf=set "GHOG_SENV_LIVE=1"$t"%LLM_SHARED_DIR%\bin\ghog.bat" full $*
+ghs=set "GHOG_SENV_LIVE=1"$t"%LLM_SHARED_DIR%\bin\ghog.bat" single $*
 ptr="%LLM_SHARED_DIR%\bin\ptr.bat" $*
 pta="%LLM_SHARED_DIR%\bin\pta.bat" $*
 ptanc="%LLM_SHARED_DIR%\bin\ptanc.bat" $*
 pts="%LLM_SHARED_DIR%\bin\pts.bat" $*
+
+rvwst="%LLM_SHARED_DIR%\rvw_status.bat" $*
+rwst="%LLM_SHARED_DIR%\rvw_status.bat" $*

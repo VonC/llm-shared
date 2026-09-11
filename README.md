@@ -25,14 +25,72 @@ be handed directly as context.
 ## 📚 The wiki: documentation on the Diátaxis model
 
 The [wiki](wiki/README.md) is the full documentation, organized on the
-[Diátaxis](https://diataxis.fr/) model: tutorials to learn the workflow by
-doing, how-to guides for one precise goal each, references for the exact
-commands and formats, and explanations for the reasoning behind the
-design. Each page carries the emoji of its main theme: 📝 the document
+[Diátaxis](https://diataxis.fr/) model: explanations for the reasoning behind
+the design, tutorials to learn the workflow by doing, how-to guides for one
+precise goal each, then references for exact commands and formats. Each page
+carries the emoji of its main theme: 📝 the document
 pipeline, 🔁 self-review and handoff, 🧪 the groundhog test gate, 📊 the
 shared trail, or 🤖 llm-shared as a whole.
 
 This README stays the at-a-glance tour; the wiki is where to go deeper.
+
+Repository Markdown is checked against the supported local policy by
+`markdown-check.bat` and the shared `check.bat` gate. See the
+[Markdown checker reference](wiki/reference/markdown-checker.md) for the rule
+catalog, MD032, MD038, and MD050 boundaries, diagnostic streams, baseline
+schema, and direct commands.
+
+For a separate-agent assessment, start with
+[why independent review mode separates authority](wiki/explanation/independent-review-mode-and-human-authority.md).
+That opt-in exchange is distinct from the established
+[self-review loop](wiki/explanation/why-the-llm-reviews-its-own-work.md) inside
+the normal document and implementation workflow. Its main purpose is an
+automatic requestor-reviewer exchange across intermediate rounds: the
+requestor waits after publishing each request, and the reviewer waits after
+publishing each change request, so replacement rounds continue in the same two
+sessions without another human prompt. The human or an external reviewer
+service starts those sessions independently: a requestor never starts or
+contacts a reviewer, and a reviewer never starts or contacts a requestor.
+Publishing is the complete handoff between them.
+
+Review runtime artifacts live under one repository-local home, `.reviews` by
+default. A strict `.review-artifacts.ini` can select another ignored,
+repository-relative directory. Run `rvw_status.bat` from the reviewed
+repository to inspect every active exchange, its artifact home and migration
+result, both recorded LLM natures, lease, owner, artifacts, and typed next
+action. Status is read-only after its one bounded, transactional migration
+preflight. See
+[Inspect independent review status](wiki/how-to/inspect-independent-review-status.md)
+and the
+[independent review contract](wiki/reference/independent-review-mode-contract.md).
+
+To continue an interrupted review, enter `resume` in the agent session. The
+[review-resume skill](instructions/review-resume.md) checks migration, identifies
+the role, and performs automatic pickup before continuing. It asks only when a
+role or exchange is ambiguous, recorded identities conflict, or the existing
+human convergence gate needs a choice. A missing session token needs no extra
+instruction. See [Recover an independent review](wiki/how-to/recover-an-independent-review.md).
+
+A reviewer runs one quiet foreground `wait-any-request` after every answer,
+including convergence. It watches the configured home for either review family,
+uses native notifications with bounded polling fallback, and treats each event
+as a hint followed by an authoritative rescan. Competing reviewers have one
+claim winner; a loser keeps waiting. Intact lease expiry alone does not end the
+wait. A requestor uses `wait-answer` for its exact exchange and runs and follows
+`pw skill` after release. Cancellation returns one terminal result and creates
+no durable waiter. The resume entry point is an LLM skill; no `rvw_resume.bat`
+command is installed.
+
+For example, the versioned home declaration is:
+
+```ini
+[review-artifacts]
+home = .reviews
+```
+
+The home receives a local `.gitignore` before runtime evidence is written.
+External paths and tracked directories are rejected; an uncovered existing home
+or unsafe migration stops with a diagnostic.
 
 ---
 
@@ -93,13 +151,13 @@ after the trigger completes.
 | Phase | Trigger | Output artifact |
 | --- | --- | --- |
 | Draft capture | Author writes free-form notes | a raw draft note |
-| Process draft | `/process-draft` | the draft classified (feature-request / issue), renamed `docs\draft.vX.Y.Z.<slug>.md`, on a new effort branch |
+| Process draft | `/process-draft` | a direct draft classified and branched; an umbrella continuation writes and verifies the focused child Markdown file in the item branch before pausing for human approval |
 | Split (optional) | `/split-and-define` | `List of feature-requests and issues to create` section appended to the draft |
 | Define each item | `/write-requirement <type> vX.Y.Z <topic>` | `docs\feature-request.vX.Y.Z.<topic>.md` or `docs\issue.vX.Y.Z.<topic>.md` |
-| Review loop | `/review-ask-questions` then `/consolidate-then-review-ask-questions` | Open questions folded into a decision table; document approved |
+| Review loop | `/review-ask-questions` then `/consolidate-then-review-ask-questions` | one-file Git snapshot of the answered questions, then questions folded into a decision table; document approved |
 | Design | `/write-design` | `docs\design.vX.Y.Z.<topic>.md` with acceptance scenarios |
 | Plan | `/write-plans` | `docs\plan.vX.Y.Z.<topic>.md` + `docs\plan.vX.Y.Z.<topic>.validation.md` |
-| Plan review loop | `/review-ask-questions` then `/consolidate-then-review-ask-questions` on the plan | Plan open questions folded into a decision table; plan approved (the validation plan is left untouched) |
+| Plan review loop | `/review-ask-questions` then `/consolidate-then-review-ask-questions` on the plan | one-file Git snapshot of the answered plan questions, then questions folded into a decision table; plan approved (the validation plan is left untouched) |
 | Implement and check | `/implement-step N`, then `pw handoff` chains `/implementation-check N` | Code, tests, and updates to the validation document |
 | Group commits | `pw handoff after-check` routes a `Yes` step to `/group-commits-msg`; `gcba` replays | `a.commit` with one conventional commit per group, replayed by `gcba` |
 | Merge and reword | Merge a feature into `develop`, or work into `main`, with `--no-ff`; then run `/update-merge-commit-msg` and `grmc` | Merge commit with a conventional message tied to the merged docs |
@@ -114,10 +172,15 @@ see [Automated implement cycle with pw handoff](#-automated-implement-cycle-with
 
 The document rows above (define  --  review  --  consolidate  --  design  --
 plan) chain the same way through `pw skill`: each writer runs its explicit
-`pw skill --after-write <role>` handoff, while consolidation runs bare
-`pw skill`, and both follow the command printed, so the only
-trigger the author types is the first one, and the only human-in-the-loop stop
-is `/review-ask-questions`  --  see
+`pw skill --after-write <role>` handoff. Before consolidation changes any
+requirement, design, or plan, it resets the index, commits that document alone
+with its answered questions, verifies the index is empty, then folds the
+answers and runs bare `pw skill`. Both handoffs follow the command printed, so
+the only trigger the author types is the first one. A direct draft stops at
+`/review-ask-questions`; a
+focused child derived from an umbrella is first written and verified as a real
+file in the item branch, then stops for the author to review, approve, or revise
+that file before requirement writing  --  see
 [Automated document phase with pw skill](#-automated-document-phase-with-pw-skill).
 
 ---
@@ -233,7 +296,7 @@ Legend for the transitions:
                     caller reads the bare next-step command printed (a "/"
                     prefix for Claude, "$" for Codex), and
                     runs it with no "go ahead"
-  [STOP ...]        the only human-in-the-loop pauses in the whole flow
+  [STOP ...]        a human-in-the-loop pause
 
                   +-----------------+
                   |  raw draft note |
@@ -267,24 +330,24 @@ Legend for the transitions:
                   +-----------------+
                   |                 |----+  == pw skill ==> /review-ask-questions
                   | requirement doc |    |  [STOP] a human answers the Q0x | Title |
-                  |                 |<---+  Recommended table; /consolidate folds them
-                  +--------+--------+       and loops here, or settles
+                  |                 |<---+  table; /consolidate snapshots this doc alone,
+                  +--------+--------+       then folds them and loops or settles
                            |
                            |  settled == pw skill ==> /write-design
                            v
                   +-----------------+
                   |                 |----+  == pw skill ==> /review-ask-questions
                   |   design doc    |    |  [STOP] a human answers the Q0x table;
-                  |                 |<---+  /consolidate loops here, or settles
-                  +--------+--------+
+                  |                 |<---+  /consolidate snapshots this doc alone,
+                  +--------+--------+       then loops here or settles
                            |
                            |  settled == pw skill ==> /write-plans
                            v
                   +-----------------+
                   |     plan +      |----+  == pw skill ==> /review-ask-questions
                   | validation plan |    |  [STOP] a human answers the Q0x table
-                  |                 |<---+  (plan only); /consolidate loops or settles
-                  +--------+--------+
+                  |                 |<---+  (plan only); /consolidate snapshots the plan
+                  +--------+--------+       alone, then loops or settles
                            |
                            |  settled == pw skill ==> /implement-step N (enters chain)
                            v
@@ -357,8 +420,8 @@ The document phase before that box now chains the same way, driven by
 `/write-design`, `/write-plans`) ends by running `pw skill --after-write
 <role>`, which prints the matching `/review-ask-questions` for the artifact
 just written without inferring completion from its content. The model runs that
-review with no go-ahead. The review is the one stop: a human answers the
-`Q0x | Title | Recommended Answer`
+review with no go-ahead. For a direct draft, the question review is the first
+stop: a human answers the `Q0x | Title | Recommended Answer`
 table, then `/consolidate-then-review-ask-questions` folds the answers and,
 once the document is settled, runs `pw skill` again to hand off to the next
 phase (design, plan, or the implement chain). See
@@ -381,6 +444,13 @@ describes a single, self-contained requirement, the author can call
 `/split-and-define` when the draft mixes several distinct items, when
 the items differ in dependency order, or when the author wants the skill
 to suggest a slug per item.
+
+For a later umbrella item, `/process-draft ... based on <slug>` creates the
+item branch, writes and verifies the canonical focused child Markdown file, and
+waits while the author reviews that file. A copy shown in conversation is only
+a preview, never the review artifact. Corrections revise only the on-disk child
+and return to the same pause; an explicit `Go ahead` releases the handoff to
+`/write-requirement`.
 
 ---
 
@@ -984,6 +1054,7 @@ command name and the instruction file name are always the same.
 | Analysis and review prompts | draft | Copilot, Claude Code, OpenAI Codex, Google Antigravity | Covers API review, plan checks, discussions, and issue work. |
 | Step-based skills and agent | draft | Copilot, Claude Code, OpenAI Codex, Google Antigravity | Includes step implementation, implementation checks, and file splitting. |
 | Local helper scripts | draft | Windows (`cmd.exe` with Doskey) | Includes `senv.bat`, `git_batch_commit.py`, and `git_command.py`. |
+| Exported-conversation trimming | draft | Claude Code and OpenAI Codex exports | `tth` keeps the ask, the opening, and the closing answer of every turn; reasoning and tool traffic are dropped. See [Trim an exported conversation](wiki/how-to/trim-an-exported-conversation.md). |
 | Groundhog pytest loop | draft | Copilot, Claude Code, OpenAI Codex, Google Antigravity | `ghog day` walk, `ghog init` registration, LLM fixing loop; see `GROUNDHOG.md`. |
 | Prompt-workflow handoff | draft | Copilot, Claude Code, OpenAI Codex, Google Antigravity | `pw handoff` chains implement-step, check, implement-missing, and the `a.commit` group-commit step with no menu. |
 | Prompt-workflow skill | draft | Copilot, Claude Code, OpenAI Codex, Google Antigravity | `pw skill` chains the document phase (write -> review -> consolidate -> next phase) and feeds the commit-gate multi-choice via `--after-commit`. |
@@ -1022,6 +1093,7 @@ the shared skill bodies. The Doskey aliases are documented in detail in
 | `pw skill --after-commit` | The commit-gate form; told the just-committed plan step, prints the contextual next action (the next `/implement-step`, `/prepare-release`, or nothing). |
 | `Qxx` block | An open-question block appended by the review skills (options + recommended choice). |
 | `ruffc` | Doskey alias to `ruff check`. |
+| `tth` | Doskey alias to `bin\tth.bat` (`tools\trim_thinking_cli.py`); trims an exported Claude or Codex conversation down to the ask, the opening, and the closing answer of each turn, from a file or the clipboard, back to the clipboard. |
 | `vX.Y.Z` | Working version slug used in every artifact filename (draft, requirement, design, plan). |
 
 ---

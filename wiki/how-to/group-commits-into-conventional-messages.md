@@ -56,11 +56,29 @@ by `pw skill --after-commit <x>` and offers the contextual follow-up:
 `Go ahead, and prepare-release` once the last plan step is committed.
 Every concrete choice commits first.
 
+## Authorized cleanup continuations
+
+Two owning workflows reuse grouping without presenting a second commit menu:
+
+- A settled consolidation stages every remaining non-ignored path after the
+  one-file question snapshot and fold. Its existing `Consolidate` choice
+  authorizes the generated groups and one bounded recovery pass.
+- An implementation review executes the reviewed `a.commit` first. When that
+  batch leaves residue, `pw code-review-commit` stages the complete remainder;
+  the existing `Commit` choice authorizes its replacement `a.commit`, executed
+  with `pw code-review-commit --residual`.
+
+In both cases, group every staged path through the normal generation and
+formatting steps, but skip the ordinary menu. The owning workflow—not the
+grouping skill—checks `git status --porcelain` afterward and refuses to advance
+until it is empty.
+
 ## ✅ Check after the replay
 
 `git log --oneline` shows one commit per group, least dependent first,
 each title 52 characters or less, each body carrying `Why:` and `What:`
-sections wrapped at 80 columns.
+sections wrapped at 80 columns. An authorized cleanup continuation additionally
+requires `git status --porcelain` to print nothing.
 
 Related: [Commit message format](../reference/commit-message-format.md),
 [Why grouped commits, least dependent first](../explanation/why-grouped-commits.md).

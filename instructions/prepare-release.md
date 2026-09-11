@@ -5,9 +5,10 @@ tag-cutting `brel`. Run it from `main`, a long-lived integration branch such
 as `develop`, or a feature branch created from main, integration, or another
 feature. Main prepares in place and integration promotes everything integrated
 there. Feature mode first finishes one topic: it isolates only the commits
-after that feature's proven fork point, lands them on `develop` when an
-integration branch exists (otherwise on `main`), rewords the merge, and checks
-the topic's umbrella draft through `pw skill`. When another ordered requirement
+after that feature's proven fork point, lands a collection topic on the branch
+named by its umbrella slug, otherwise lands it on the generic integration
+branch when one exists (or `main` for a standalone topic), rewords the merge,
+and checks the topic's umbrella draft through `pw skill`. When another ordered requirement
 remains, it stops there with a `process-draft` handoff and writes no release
 artifacts. Only an exhausted umbrella, or a standalone feature with no umbrella,
 continues through the full release path. A full run readies every release
@@ -80,10 +81,13 @@ using this skill keep `develop` as the published long-lived hosting default
 and reserve `main` for release preparation and tagging.
 
 In this variant, invoking the skill from a completed feature performs normal
-continuous integration first: replay the exact feature range onto current
-`develop` when necessary, using a temporary landing branch so the original
-feature ref is not rewritten, then merge with `--no-ff`. When no integration
-branch exists, `main` is that first target. The structured merge message marks
+continuous integration first. When the topic belongs to an umbrella, the
+umbrella slug names its integration branch and the exact feature range returns
+there. For a standalone topic, replay the range onto the generic integration
+branch such as `develop` when necessary, using a temporary landing branch so
+the original feature ref is not rewritten, then merge with `--no-ff`. Only a
+standalone topic with no integration branch uses `main` as its first target.
+The structured merge message marks
 the requirement as integrated, but not necessarily release-ready. The umbrella
 checkpoint decides whether to stop for the next requirement or continue.
 
@@ -96,9 +100,11 @@ branches preserve any already-published original feature.
 
 Apply these release-selection rules:
 
-1. Invoking from a feature means finish that topic first. Land it on the
-   resolved integration branch, or on main when no integration branch exists,
-   reword the merge, then run the umbrella checkpoint. A remaining item ends
+1. Invoking from a feature means finish that topic first. Land a collection
+   topic on its umbrella integration branch; this relationship must never fall
+   back to `main`. Land a standalone topic on the resolved generic integration
+   branch, or on main only when no such branch exists. Reword the merge, then
+   run the umbrella checkpoint. A remaining item ends
    the run before any integration-to-main merge, wiki audit, `version.txt`,
    `CHANGELOG.md`, pyproject, lockfile, or release commit change.
 2. Canonical gitworkflow forks a topic from the oldest integration branch it
@@ -279,10 +285,29 @@ the four directories from `rules/docs_layout.md`:
 git -C "<PRJ_DIR>" rev-parse --abbrev-ref HEAD
 ```
 
+#### Resolve an umbrella destination before release mode
+
+For a branch other than `main`, resolve the branch-matched requirement or issue
+before the first planner call, using the supported effort directories and the
+same slug comparison as `pw skill`: compare the branch leaf after folding
+hyphens and underscores. Read its child draft's one explicit `- Umbrella:`
+path, or use the one canonical umbrella table whose item slug matches when no
+child marker exists.
+
+When a topic has an umbrella, record it as `<umbrella_draft>` immediately. The
+umbrella slug names its integration branch. Match that slug against local
+branch leaves after folding hyphens and underscores and require exactly one
+match. A missing or ambiguous branch stops the run; an umbrella topic must
+never fall back to `main`, `develop`, configuration, or `origin/HEAD`.
+
+Pass the exact draft through `--umbrella "<umbrella_draft>"`. The planner
+validates the marker, canonical filename, normalized branch match, and feature
+target. Do not translate the draft into a hand-written `--integration` value.
+
 #### Choose the release mode
 
-The release branch is `main`. Resolve the optional long-lived integration
-branch in this order:
+The release branch is `main`. When no umbrella destination was resolved,
+resolve the optional generic long-lived integration branch in this order:
 
 1. the local value of `prepare-release.integrationBranch`, when configured,
 2. local `develop`, when that branch exists,
@@ -311,7 +336,8 @@ Classify the run and tell the user which mode was detected:
 - **Feature completion** — HEAD is any other branch. Select only the commits
   made for that feature after it forked from its actual parent, whether the
   parent was main, integration, or another feature branch. The first target is
-  the resolved integration branch when present, otherwise main. Discover and
+  its umbrella integration branch when present, otherwise the resolved generic
+  integration branch when present, otherwise main. Discover and
   confirm the exact `<feature_base>..<feature_branch>` range as described
   below. When that range is not already safely based on the current target,
   replay it on a temporary landing branch with
@@ -331,12 +357,14 @@ hand. This is an internal skill action, not a command the user runs:
 
 ```powershell
 & "<LLM_SHARED_DIR>\bin\prepare_release_plan.bat" --root "<PRJ_DIR>" --json --no-conflict-preview
-& "<LLM_SHARED_DIR>\bin\prepare_release_plan.bat" --root "<PRJ_DIR>" --json --no-conflict-preview --feature-target integration
+& "<LLM_SHARED_DIR>\bin\prepare_release_plan.bat" --root "<PRJ_DIR>" --json --no-conflict-preview --umbrella "<umbrella_draft>"
 ```
 
-Run the second form only in feature mode when an integration branch resolved;
-otherwise use the first. Pass `--integration <integration_branch>` as well when
-the role was supplied by context or configuration and must be explicit.
+Run the second form for a feature associated with an umbrella; otherwise use
+the first and pass `--integration <integration_branch>` when a generic role was
+supplied by context or configuration and must be explicit. Feature targeting
+defaults to `auto`: an umbrella or generic integration branch wins, and only a
+standalone feature with no integration resolves to main.
 
 Resolve `<LLM_SHARED_DIR>` yourself as required by the invocation contract.
 The planner requires Git 2.50 or newer. It reports the Git version, start
@@ -347,8 +375,8 @@ Use its result as the deterministic starting point for this step, while
 retaining the human confirmation gates below. If it returns
 `needs-feature-boundary`, show its candidates and rerun it with
 `--feature-base <commit>` or `--feature-parent <branch>` after the user
-chooses; never pick for them. Preserve `--feature-target integration` on that
-rerun when it applied.
+chooses; never pick for them. Preserve `--umbrella` or the generic
+`--integration` input on that rerun when it applied.
 
 Keep the launcher as the stable skill entry point. Its Python package lives
 under `<LLM_SHARED_DIR>/tools/prepare_release/`, with matching tests under
@@ -356,8 +384,9 @@ under `<LLM_SHARED_DIR>/tools/prepare_release/`, with matching tests under
 a consuming project. The launcher owns locating the shared Python environment
 and the package entry script.
 
-The planner resolves the integration role from its `--integration` override,
-`PREPARE_RELEASE_INTEGRATION_BRANCH`,
+The planner resolves an umbrella integration branch first when `--umbrella` is
+present. Without an umbrella, it resolves the generic integration role from
+its `--integration` override, `PREPARE_RELEASE_INTEGRATION_BRANCH`,
 `prepare-release.integrationBranch` (with legacy
 `release.integrationBranch` support), local `develop`, then `origin/HEAD`
 when it names a local branch other than main. When the skill's prompt or other
@@ -503,15 +532,14 @@ to release from this feature branch" even when Step 2 found inherited effort
 documents. Use only this scoped list for the target version, slug evidence,
 validation-plan gate, later-version notes, release notes, and final summary.
 
-In feature mode, take the exact requirement slug from the scoped
-feature-request or issue. Search same-version drafts marked
-`- Draft role: umbrella` for an authoritative compact table below
-`## List of feature-requests and issues to create` whose `Slug` cell matches.
-Record the draft as `<umbrella_draft>` only when exactly one canonical table
-matches. More than one match is ambiguous and stops for the user's choice; no
-match means the feature is standalone. A marked umbrella with a malformed
-table stops instead of being treated as standalone. This read-only association
-is carried to the Step 7A checkpoint.
+In feature mode, verify the earlier umbrella association against the exact
+requirement slug from the scoped feature-request or issue and the authoritative
+compact table below `## List of feature-requests and issues to create`. More
+than one match is ambiguous and stops for the user's choice; no match confirms
+that the feature is standalone. Discovering an umbrella only at this point is
+a topology error: restart the planner with `--umbrella "<umbrella_draft>"`
+instead of continuing with a main destination. Carry the verified association
+to the Step 7A checkpoint.
 
 #### Choose the target version and slug
 
@@ -671,7 +699,7 @@ applicable:
 & "<LLM_SHARED_DIR>\bin\prepare_release_plan.bat" --root "<PRJ_DIR>" --json
 & "<LLM_SHARED_DIR>\bin\prepare_release_plan.bat" --root "<PRJ_DIR>" --json --integration "<integration_branch>"
 & "<LLM_SHARED_DIR>\bin\prepare_release_plan.bat" --root "<PRJ_DIR>" --json --feature-base "<feature_base>"
-& "<LLM_SHARED_DIR>\bin\prepare_release_plan.bat" --root "<PRJ_DIR>" --json --integration "<integration_branch>" --feature-target integration --feature-base "<feature_base>"
+& "<LLM_SHARED_DIR>\bin\prepare_release_plan.bat" --root "<PRJ_DIR>" --json --umbrella "<umbrella_draft>" --feature-base "<feature_base>"
 ```
 
 Run only the one matching the detected mode and feature destination. The tool uses
@@ -968,7 +996,7 @@ conventional subject is part of the release history and changelog input.
 
 Read the first line of `<PRJ_DIR>/version.txt`. When its first word is not
 the target `X.Y.Z-SNAPSHOT`, rewrite that first word to `X.Y.Z-SNAPSHOT`,
-keeping the ` -- ` separator and the rest of the line. This is the form
+keeping the space-delimited `--` separator and the rest of the line. This is the form
 `prepare_release_notes` and `brel` both expect.
 
 ### Step 10 — Prepare the release notes and the changelog
@@ -1050,32 +1078,58 @@ gate earlier.
 
 This loop ends on a go-ahead selection with nothing left to regenerate.
 
-### Step 12 — Update pyproject.toml and uv
+### Step 12 — Update the other version sources
 
-Only when a `pyproject.toml` exists at `<PRJ_DIR>`:
+`version.txt` is rarely the only file stating the version, and the others must
+move with it. A project can hold the same version in `pyproject.toml`, in
+`uv.lock`, in a Maven POM and its module parents, and in a `cicd/config/.env`
+read by the CI shared library. Leaving one behind publishes an artifact under a
+version no other file names.
 
-- Set its `version` to the release `X.Y.Z` (no `-SNAPSHOT` here, the draft
-  is explicit on that point).
+When the project ships `tools/set_version.py`, that single call is the whole
+step. Pass the snapshot form: `version.txt` stays at `X.Y.Z-SNAPSHOT` until
+`brel`, and the tool gives each other source the form its own consumer expects.
+
+```bash
+python "<PRJ_DIR>/tools/set_version.py" X.Y.Z-SNAPSHOT
+```
+
+Without such a tool, edit each source that exists:
+
+- `pyproject.toml`: set its `version` to the release `X.Y.Z`, with no
+  `-SNAPSHOT`. The draft is explicit on that point, and the suffix is not a
+  canonical PEP 440 identifier, so a Python conformity check rejects it.
+- Maven POM: set the project version, and the parent reference of every
+  module, to `X.Y.Z-SNAPSHOT`. A Maven snapshot carries the suffix.
+- `cicd/config/.env`: set `APP_SERVICE_VERSION` to `X.Y.Z-SNAPSHOT`.
+
+Then, only when a `pyproject.toml` exists:
+
 - Run `uv sync` from `<PRJ_DIR>`.
 - Confirm the release `X.Y.Z` is reflected in the regenerated `uv.lock`.
 
-`pyproject.toml` deliberately sits at the release `X.Y.Z` while
-`version.txt` stays at `X.Y.Z-SNAPSHOT` until `brel`; that gap is intended.
+Finally, when the project ships `tools/check_versions.py`, run it and require
+it to pass before Step 13. A failure there means two sources disagree, and the
+prepare commit would record a version the project cannot name.
+
+`pyproject.toml` deliberately sits at the release `X.Y.Z` while `version.txt`
+stays at `X.Y.Z-SNAPSHOT` until `brel`; that gap is intended. The Maven sources
+follow `version.txt` rather than `pyproject.toml`, for the same reason.
 
 ### Step 13 — Make the single prepare commit
 
 Stage `version.txt`, `CHANGELOG.md`, `.changelog.fixes` when Step 11 changed
-it, and, when present, `pyproject.toml` and `uv.lock`, then commit them
-together:
+it, and every version source Step 12 touched, then commit them together:
 
 ```bash
 git -C "<PRJ_DIR>" add version.txt CHANGELOG.md
 git -C "<PRJ_DIR>" commit -m "chore(release): prepare for vX.Y.Z release"
 ```
 
-Add `.changelog.fixes` to the `add` when Step 11 changed it, and
-`pyproject.toml` and `uv.lock` when Step 12 ran. Keep it to this one commit,
-so the human review and the later `brel` see one clean prepare step.
+Add `.changelog.fixes` to the `add` when Step 11 changed it, and whatever
+Step 12 rewrote: `pyproject.toml`, `uv.lock`, the POM and its module POMs, and
+`cicd/config/.env`. Keep it to this one commit, so the human review and the
+later `brel` see one clean prepare step.
 
 ### Step 14 — Final clean-tree gate, report and stop
 

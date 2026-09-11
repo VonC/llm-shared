@@ -86,8 +86,10 @@ validates the table and prints the first ordered action:
 
 Read [`../rules/interactive_menu.md`](../rules/interactive_menu.md), present
 that printed command as the contextual next-step choice, and run it when
-selected, with no additional go-ahead. `process-draft` creates the focused
-child draft and then hands it to `write-requirement`. Include
+selected, with no additional go-ahead at this umbrella-level hand-off.
+`process-draft` creates the focused child draft, stops for the child's human
+review, and hands it to `write-requirement` only after that separate approval.
+Include
 `Type something else` as the correction choice when the host provides a native
 menu. If the lookup fails or prints nothing, stop and report the malformed or
 ambiguous umbrella instead of composing a requirement command by hand.

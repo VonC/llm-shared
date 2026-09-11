@@ -222,7 +222,7 @@ def _word_has_path_separator(word: str) -> bool:
 
     A word qualifies when it contains a forward slash ``/`` or a
     backslash ``\`` plus at least one character that is neither, so
-    path-shaped tokens like ``src/pdfss``, ``C:\Users\vonc``, or
+    path-shaped tokens like ``src/myapp``, ``C:\Users\vonc``, or
     ``and/or`` qualify while bare separators (``/``, ``\``, ``//``)
     stay bare. This mirrors the mixed-content rule used for ``=`` and
     ``_`` so a lone separator is never wrapped on its own.

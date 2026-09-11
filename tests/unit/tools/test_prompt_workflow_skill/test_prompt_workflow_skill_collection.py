@@ -8,7 +8,7 @@ import pytest
 
 from tools import prompt_workflow
 from tools import prompt_workflow_skill as skill
-from tools.prompt_workflow_models import PromptWorkflowError
+from tools.prompt_workflow_models import MemoryRecord, PromptWorkflowError, Topic
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -279,6 +279,95 @@ def test_run_skill_after_merge_emits_the_collection_command(
     assert code == 0
     assert capsys.readouterr().out == (
         "/process-draft on docs/draft.v10.0.0.sentinel.md "
+        "based on root-routing\n"
+    )
+
+
+def test_run_skill_routes_an_exact_umbrella_branch_without_after_merge(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Generic skill lookup reads an umbrella branch's ordered current status."""
+    umbrella = _setup_collection_tree(tmp_path)
+    child = tmp_path / "docs" / "draft.v10.0.0.route-cleanup.md"
+    child.write_text("# Child topic\n", encoding="utf-8")
+    topics = [
+        Topic(version="v10.0.0", slug="route-cleanup", draft_path=child),
+        Topic(version="v10.0.0", slug="sentinel", draft_path=umbrella),
+    ]
+    stale = MemoryRecord(
+        branch="route-cleanup",
+        version="v10.0.0",
+        topic="route-cleanup",
+    )
+
+    def current_branch(_root: Path) -> str:
+        return "sentinel"
+
+    def relevant_drafts(
+        _root: Path,
+        _cwd: Path,
+        _branch: str | None,
+    ) -> list[Topic]:
+        return topics
+
+    def read_memory(_root: Path) -> MemoryRecord:
+        return stale
+
+    monkeypatch.setattr(skill.git, "current_branch", current_branch)
+    monkeypatch.setattr(
+        skill.docs,
+        "relevant_drafts",
+        relevant_drafts,
+    )
+    monkeypatch.setattr(skill.memory, "read_memory", read_memory)
+
+    code = skill.run_skill(tmp_path, None, skill.HOST_CODEX)
+
+    assert code == 0
+    assert capsys.readouterr().out == (
+        "$llm-shared:process-draft on docs/draft.v10.0.0.sentinel.md "
+        "based on root-routing\n"
+    )
+
+
+def test_run_skill_routes_a_clean_integration_umbrella_branch(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A branch-matched umbrella remains resolvable after its merge diff is clean."""
+    umbrella = _setup_collection_tree(tmp_path)
+    review_umbrella = umbrella.with_name("draft.v10.0.0.review-mode.md")
+    umbrella.rename(review_umbrella)
+    (tmp_path / "docs" / "draft.v9.0.0.review_mode.md").write_text(
+        "# A focused draft with the same normalized slug\n",
+        encoding="utf-8",
+    )
+
+    def current_branch(_root: Path) -> str:
+        return "review_mode"
+
+    def relevant_drafts(
+        _root: Path,
+        _cwd: Path,
+        _branch: str | None,
+    ) -> list[Topic]:
+        return []
+
+    def read_memory(_root: Path) -> MemoryRecord | None:
+        return None
+
+    monkeypatch.setattr(skill.git, "current_branch", current_branch)
+    monkeypatch.setattr(skill.docs, "relevant_drafts", relevant_drafts)
+    monkeypatch.setattr(skill.memory, "read_memory", read_memory)
+
+    code = skill.run_skill(tmp_path, None, skill.HOST_CODEX)
+
+    assert code == 0
+    assert capsys.readouterr().out == (
+        "$llm-shared:process-draft on docs/draft.v10.0.0.review-mode.md "
         "based on root-routing\n"
     )
 

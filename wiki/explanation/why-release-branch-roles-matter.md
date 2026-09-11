@@ -37,6 +37,7 @@ The roles used here are therefore:
 | --- | --- | --- |
 | `main` | `master` | Topics accepted for the next release |
 | feature branch | topic branch | One independently selectable unit of work |
+| branch named by an umbrella slug | topic-specific `next` | Collection topics tested together before the next umbrella row |
 | `develop` | approximately `next` | Several topics tested together before release selection |
 
 ![A feature is rebased onto develop, then merged with a solid no-fast-forward merge arrow.](../assets/prepare-release/feature-to-develop.svg)
@@ -53,18 +54,21 @@ The common idea is that a topic first enters the earliest stability branch it
 needs. Invoking `prepare-release` from a feature therefore finishes continuous
 integration first:
 
-1. replay only the confirmed feature range onto current `develop` when needed,
-   using a temporary landing branch so the original ref is not rewritten;
-2. merge it into develop with `--no-ff` and reword that merge;
-3. inspect the feature's umbrella table before deciding whether release work
+1. resolve the feature's umbrella before topology planning; its normalized slug
+   names the collection's integration branch;
+2. replay only the confirmed feature range onto that branch when needed, using
+   a temporary landing branch so the original ref is not rewritten;
+3. merge it there with `--no-ff` and reword that merge;
+4. inspect the feature's umbrella table before deciding whether release work
    may begin.
 
 When another ordered requirement is pending, the run stops there. This is not
 an incomplete release: integration of one topic is the intended result, and
 `pw skill --after-merge` supplies the next `process-draft` command. When every
-umbrella row is complete, develop is promoted wholesale to main. If no
-integration branch exists, main is the first destination and the same umbrella
-checkpoint decides whether artifact preparation continues.
+umbrella row is complete, its integration branch is promoted to main. An
+umbrella topic never falls back to main merely because no generic `develop`
+branch exists. Only a standalone topic with no generic integration branch uses
+main as its first destination.
 
 | Common with gitworkflow | Different in this variant |
 | --- | --- |
@@ -109,8 +113,8 @@ the first destination when needed. The replay happens on a temporary landing
 branch. The original feature remains unchanged.
 
 The structured integration merge and the umbrella status serve different
-purposes. The merge says why this topic entered develop. The table says whether
-the collection has another pending topic. Rewording happens before the table
+purposes. The merge says why this topic entered its integration branch. The
+table says whether the collection has another pending topic. Rewording happens before the table
 checkpoint, so even a run that correctly stops before main leaves an explained
 history boundary.
 

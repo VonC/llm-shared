@@ -14,6 +14,7 @@ call "%PRJ_DIR%\tools\batcolors\echos_macros.bat" export
 set "check_status=0"
 set "failed_steps="
 set "eof_status=0"
+set "markdown_status=0"
 set "ty_status=0"
 
 ::  ===============================================
@@ -24,7 +25,8 @@ REM This is the root check.bat ghog day looks for (%PRJ_DIR%\check.bat). It is
 REM the static gate for llm-shared, a tooling-only repository whose source tree
 REM is tools\ (there is no src\). radon, vulture and the big-file scan target
 REM both tools\ and tests\, so the complexity, dead-code and line-budget gates
-REM cover the test suite as well as the tool code.
+REM cover the test suite as well as the tool code. The Markdown launcher adds
+REM the tracked-document policy to the same aggregate failure report.
 
 pushd "%PRJ_DIR%"
 cd /d "%PRJ_DIR%"
@@ -119,6 +121,16 @@ if "%big_file_status%"=="0" (
   call :record_failure big_files %big_file_status%
 )
 
+%_info% "markdown-check.bat '%PRJ_DIR%'"
+call "%PRJ_DIR%\markdown-check.bat"
+set "markdown_status=%ERRORLEVEL%"
+if "%markdown_status%"=="0" (
+  %_ok% "Markdown check passed for project '%PRJ_DIR_NAME%'"
+) else (
+  %_error% "Markdown check failed for project '%PRJ_DIR_NAME%' with status '%markdown_status%'"
+  call :record_failure markdown %markdown_status%
+)
+
 set "shellcheck_exe=%PRGS%\shellchecks\current\shellcheck.exe"
 %_info% "shellcheck '%PRJ_DIR%\scripts\prepare_release_notes.sh' '%PRJ_DIR%\scripts\update-merge-commit-msg\git-extract-merge-docs.sh' '%PRJ_DIR%\scripts\update-merge-commit-msg\git-reword-merge.sh'"
 if exist "%shellcheck_exe%" (
@@ -193,6 +205,7 @@ set "check_dir="
 set "check_status="
 set "eof_status="
 set "failed_steps="
+set "markdown_status="
 set "pyright_status="
 set "python_big_file_line_limit="
 set "python_big_file_msg="

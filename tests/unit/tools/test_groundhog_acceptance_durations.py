@@ -219,7 +219,7 @@ def test_atd1_green_but_slow_run_exits_eight(
 ) -> None:
     """AT-D1: a green run with one freak call exits 8 with the window (Q34)."""
     spawns = Spawns(_full_transcript(_SLOW_CALLS), 0)
-    code = cli.main(["full", "--root", str(tmp_path), "--llm"], make_deps(spawns))
+    code = cli.main(["timings", "--root", str(tmp_path), "--llm"], make_deps(spawns))
     assert code == EXIT_DURATION_OUTLIERS
     assert "--durations=0" in spawns.commands[0]
     assert floor.floor_path(tmp_path).is_file()
@@ -235,11 +235,11 @@ def test_atd2_tidy_run_reaches_the_objective(
 ) -> None:
     """AT-D2: a durations block with no freak exits 0 with outliers=0 (Q41)."""
     spawns = Spawns(_full_transcript(_TIDY_CALLS), 0)
-    code = cli.main(["full", "--root", str(tmp_path), "--llm"], make_deps(spawns))
+    code = cli.main(["timings", "--root", str(tmp_path), "--llm"], make_deps(spawns))
     assert code == EXIT_OBJECTIVE_MET
     out = capsys.readouterr().out
     assert "Slowest call:" in out
-    assert reporting_nextstep.MSG_FULL_OK in out
+    assert reporting_nextstep.MSG_TIMINGS_OK in out
     assert "outliers=0 excluded=0 exit=0" in out
     assert _WINDOW_HEADER not in out
     assert_closing_grammar(out)
@@ -252,7 +252,7 @@ def test_atd3_override_above_the_freak_exits_zero(
     """AT-D3: a line-2 override above the freak spares it, exit 0 (Q43)."""
     floor.write_floor(tmp_path, 0.0, _HIGH_OVERRIDE)
     spawns = Spawns(_full_transcript(_SLOW_CALLS), 0)
-    code = cli.main(["full", "--root", str(tmp_path), "--llm"], make_deps(spawns))
+    code = cli.main(["timings", "--root", str(tmp_path), "--llm"], make_deps(spawns))
     assert code == EXIT_OBJECTIVE_MET
     # The run rewrites line 1 to its auto floor but preserves the override.
     assert floor.read_floor(tmp_path) == _HIGH_OVERRIDE
@@ -268,7 +268,7 @@ def test_atd4_first_run_seeds_the_floor_file(
     """AT-D4: no file - the run seeds line 1, line 2 with the default (Q45)."""
     assert not floor.floor_path(tmp_path).exists()
     spawns = Spawns(_full_transcript(_SLOW_CALLS), 0)
-    code = cli.main(["full", "--root", str(tmp_path), "--llm"], make_deps(spawns))
+    code = cli.main(["timings", "--root", str(tmp_path), "--llm"], make_deps(spawns))
     assert code == EXIT_DURATION_OUTLIERS
     # Line 2 is seeded with the one-second default; line 1 with the auto floor.
     assert floor.read_floor(tmp_path) == floor.DEFAULT_FLOOR
@@ -284,7 +284,7 @@ def test_atd5_failure_withholds_the_timing_verdict(
 ) -> None:
     """AT-D5: a failing run with timings keeps exit 2, withholds outliers (Q34)."""
     spawns = Spawns(_failing_transcript(_SLOW_CALLS), PYTEST_TEST_FAILURES)
-    code = cli.main(["full", "--root", str(tmp_path), "--llm"], make_deps(spawns))
+    code = cli.main(["timings", "--root", str(tmp_path), "--llm"], make_deps(spawns))
     assert code == EXIT_TEST_FAILURES
     # Outliers are judged last, so no floor file is written on a failing run.
     assert not floor.floor_path(tmp_path).exists()
@@ -300,7 +300,7 @@ def test_atd6_excluded_freak_within_tolerance_exits_zero(
     """AT-D6: a freak in [exclusion] within 2s of its baseline reads ok (Q54)."""
     exclusions.write_exclusions(tmp_path, {_FREAK: _OK_BASELINE})
     spawns = Spawns(_full_transcript(_SLOW_CALLS), 0)
-    code = cli.main(["full", "--root", str(tmp_path), "--llm"], make_deps(spawns))
+    code = cli.main(["timings", "--root", str(tmp_path), "--llm"], make_deps(spawns))
     assert code == EXIT_OBJECTIVE_MET
     out = capsys.readouterr().out
     # The freak is spared, so no outlier window forms; the block reads it ok.
@@ -320,7 +320,7 @@ def test_atd7_slower_drift_exits_eight_with_restore(
     """AT-D7: a freak 2s+ over its baseline exits 8, excluded=1 (Q57, Q65)."""
     exclusions.write_exclusions(tmp_path, {_FREAK: _DRIFT_BASELINE})
     spawns = Spawns(_full_transcript(_with_freak(_DRIFT_CURRENT)), 0)
-    code = cli.main(["full", "--root", str(tmp_path), "--llm"], make_deps(spawns))
+    code = cli.main(["timings", "--root", str(tmp_path), "--llm"], make_deps(spawns))
     assert code == EXIT_DURATION_OUTLIERS
     out = capsys.readouterr().out
     # The slower-drift drives exit 8 with a restore-to-baseline instruction.
@@ -339,7 +339,7 @@ def test_atd8_faster_freak_ratchets_the_baseline_down(
     """AT-D8: a freak 2s+ faster but above the floor lowers the baseline (Q60, Q69)."""
     exclusions.write_exclusions(tmp_path, {_FREAK: _FASTER_BASELINE})
     spawns = Spawns(_full_transcript(_with_freak(_FASTER_CURRENT)), 0)
-    code = cli.main(["full", "--root", str(tmp_path), "--llm"], make_deps(spawns))
+    code = cli.main(["timings", "--root", str(tmp_path), "--llm"], make_deps(spawns))
     assert code == EXIT_OBJECTIVE_MET
     out = capsys.readouterr().out
     assert "recorded=3.92s  current=1.30s  baseline lowered to 1.30s" in out
@@ -356,7 +356,7 @@ def test_atd9_faster_freak_below_floor_is_removed(
     """AT-D9: a freak now under the floor has the tool drop the entry (Q60)."""
     exclusions.write_exclusions(tmp_path, {_FREAK: _REMOVED_BASELINE})
     spawns = Spawns(_full_transcript(_with_freak(_REMOVED_CURRENT)), 0)
-    code = cli.main(["full", "--root", str(tmp_path), "--llm"], make_deps(spawns))
+    code = cli.main(["timings", "--root", str(tmp_path), "--llm"], make_deps(spawns))
     assert code == EXIT_OBJECTIVE_MET
     out = capsys.readouterr().out
     assert "recorded=2.54s  current=0.30s  removed (now under the floor)" in out
@@ -373,7 +373,7 @@ def test_atd10_stale_entry_is_reported_and_removed(
     """AT-D10: a recorded node absent from the run is removed as stale (Q61)."""
     exclusions.write_exclusions(tmp_path, {_FREAK: _STALE_BASELINE})
     spawns = Spawns(_full_transcript(_TIDY_CALLS), 0)
-    code = cli.main(["full", "--root", str(tmp_path), "--llm"], make_deps(spawns))
+    code = cli.main(["timings", "--root", str(tmp_path), "--llm"], make_deps(spawns))
     assert code == EXIT_OBJECTIVE_MET
     out = capsys.readouterr().out
     assert "recorded=4.10s  current=(not run)  removed (stale)" in out
@@ -407,7 +407,7 @@ def test_atd12_fast_again_freak_under_half_the_floor_is_removed(
     """AT-D12: a freak under half the floor is removed within the band (Q70)."""
     exclusions.write_exclusions(tmp_path, {_FREAK: _RESTORED_BASELINE})
     spawns = Spawns(_full_transcript(_with_freak(_RESTORED_CURRENT)), 0)
-    code = cli.main(["full", "--root", str(tmp_path), "--llm"], make_deps(spawns))
+    code = cli.main(["timings", "--root", str(tmp_path), "--llm"], make_deps(spawns))
     assert code == EXIT_OBJECTIVE_MET
     out = capsys.readouterr().out
     # Only 1.53s faster, inside the two-second band, yet under the 0.50s

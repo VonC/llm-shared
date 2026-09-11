@@ -27,7 +27,11 @@ is reversible text on disk, so the chain runs it without asking.
   layout, and branch layout. Naming and versioning shape everything downstream;
   the documentation-layout choice decides where every document for the effort
   will live.
-- **The review table** — the one `[STOP]` of the write, review,
+- **The umbrella-child approval** — a child derived from one pending umbrella
+  row is an interpretation of that row's boundary. The author may revise the
+  focused draft repeatedly, and only an explicit `Go ahead` releases it to
+  requirement writing. Direct drafts do not add this stop.
+- **The review table** — the recurring `[STOP]` of the write, review,
   consolidate loop: the model asks, the human answers the
   `Q0x | Title | Recommended Answer` table. The chain resumes on the
   consolidation, not on a "go ahead".
@@ -65,13 +69,17 @@ pushes. `brel`, the tag, is always typed by the author.
 
 ## 🔒 What is never automated
 
-Three acts stay manual by design: answering the review questions,
-approving the commits, and creating the tag. They are the three points
-where the author's intent enters the system — everything else is
+Four acts stay manual by design: approving an umbrella-derived child, answering
+the review questions, approving the commits, and creating the tag. They are the
+points where the author's intent enters the system — everything else is
 derivable from what is already on disk.
 
 ## 👉 Where each gate is described
 
+- [From draft to settled requirement](../tutorials/02-from-draft-to-settled-requirement.md)
+  for the umbrella-child approval in context.
+- [Split a mixed draft](../how-to/split-a-mixed-draft.md) for the collection
+  procedure that leads to that approval.
 - [Answer a review round](../how-to/answer-a-review-round.md) for the
   review stop.
 - [Group a dirty tree into conventional commits](../how-to/group-commits-into-conventional-messages.md)

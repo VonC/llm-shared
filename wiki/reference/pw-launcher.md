@@ -41,6 +41,13 @@ Missing and ambiguous relationships return no topic. A same-version draft that
 does not mention the item is never borrowed as context, and the umbrella draft
 is not renamed to the item slug.
 
+A clean umbrella branch has no changed draft or item requirement to feed those
+routes. In that case, bare `pw skill` matches the normalized branch leaf to
+exactly one canonical umbrella carrying a nonempty collection table. It then
+returns the first valid pending row through `process-draft ... based on
+<slug>`. No match or more than one match remains not applicable rather than
+selecting an unrelated umbrella.
+
 When a caller already knows a version, slug, and document type, it does not
 need branch state, a draft path, or `a.prompt_memory`. The stateless form
 `pw document <version> <slug> <type>` searches the four supported directories

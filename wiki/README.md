@@ -61,6 +61,19 @@ artifact is the input to the next phase. This is the central idea presented in
 [slide 4 of the project deck](../docs/llm-shared_presentation.html#solution-workflow-phases)
 and developed further in [Why the LLM reviews its own work](explanation/why-the-llm-reviews-its-own-work.md).
 
+An opt-in **independent review mode** adds a separate requestor, reviewer, and
+human gate around settled specification and implementation work. Start with
+[why independent review mode separates authority](explanation/independent-review-mode-and-human-authority.md)
+to see how it differs from the self-review loop. Its main goal is the automatic
+exchange between those two agent sessions: the requestor actively waits after a
+request, the reviewer actively waits after a change-request answer, and each
+replacement round wakes the counterpart without another user instruction.
+Neither role may create or contact the other; the human or an external reviewer
+service starts each role independently. Convergence still stops at the human
+gate. The reviewer continues in the quiet foreground `wait-any-request` for
+another request under the configured artifact home. Enter `resume` to recover a
+session through migration, role selection, and automatic ownership pickup.
+
 ## Four officially supported AI environments
 
 One shared Markdown instruction body is exposed through the native discovery
@@ -98,15 +111,16 @@ purposes in this order: explanation, tutorials, how-to guides, then reference.
 Background and reasoning: understand why the workflow and utilities make
 their choices.
 
-### AI-assisted development workflow
+### AI-assisted development workflow explained
 
+- 🤖 [Why independent review mode separates authority](explanation/independent-review-mode-and-human-authority.md)
 - 📝 [Why documents come before code](explanation/why-documents-before-code.md)
 - 🔁 [Why the LLM reviews its own work](explanation/why-the-llm-reviews-its-own-work.md)
 - 🔁 [Where the human stays in the loop](explanation/where-the-human-stays-in-the-loop.md)
 - 🔁 [One launcher, three modes](explanation/one-launcher-three-modes.md)
 - 🤖 [One body, many agents](explanation/one-body-many-agents.md)
 
-### Additional utilities
+### Additional utilities explained
 
 - 🤖 [Why project logos use a shared visual system](explanation/why-project-logos-use-a-shared-visual-system.md)
 - 🧪 [Groundhog as a reset loop](explanation/groundhog-as-a-reset-loop.md)
@@ -115,18 +129,21 @@ their choices.
 - 📊 [Why Git history diagrams use explicit arrows](explanation/why-git-history-diagrams-use-explicit-arrows.md)
 - 📊 [Why sensitive-history replacement needs context](explanation/why-sensitive-history-needs-context.md)
 - 📊 [Why sensitive commit protection uses two hooks](explanation/why-sensitive-commit-protection-uses-two-hooks.md)
+- 🤖 [Why a trimmed export keeps three regions](explanation/why-a-trimmed-export-keeps-three-regions.md)
 
 ## 🎓 Tutorials
 
 Learning by doing: follow the steps in order and inspect the result.
 
-### AI-assisted development workflow
+### AI-assisted development workflow tutorials
 
 - 🤖 [Plug llm-shared into your project](tutorials/01-plug-llm-shared-into-your-project.md)
 - 📝 [From draft note to settled requirement](tutorials/02-from-draft-to-settled-requirement.md)
 - 🔁 [Run the implement chain on one plan step](tutorials/04-run-the-implement-chain.md)
+- 🤖 [Run your first specification review](tutorials/09-run-your-first-specification-review.md)
+- 🤖 [Run your first implementation code review](tutorials/10-run-your-first-implementation-code-review.md)
 
-### Additional utilities
+### Additional utilities tutorials
 
 - 🧪 [Your first groundhog walk](tutorials/03-your-first-groundhog-walk.md)
 - 📊 [Prepare your first release from develop](tutorials/05-prepare-a-release-from-develop.md)
@@ -138,12 +155,18 @@ Learning by doing: follow the steps in order and inspect the result.
 
 Recipes for a precise goal, for readers who already know the basics.
 
-### AI-assisted development workflow
+### AI-assisted development workflow guides
 
 - 📝 [Split a mixed draft into requirements](how-to/split-a-mixed-draft.md)
 - 🔁 [Answer a review round](how-to/answer-a-review-round.md)
 - 🔁 [Run pw from any shell](how-to/run-pw-from-any-shell.md)
 - 🤖 [Keep project docs in sync with the code](how-to/update-project-docs-from-code.md)
+- 🤖 [Enable independent review mode](how-to/enable-independent-review-mode.md)
+- 🤖 [Run a specification review](how-to/run-specification-review.md)
+- 🤖 [Run an implementation code review](how-to/run-implementation-code-review.md)
+- 🤖 [Inspect independent review status](how-to/inspect-independent-review-status.md)
+- 🤖 [Read review results and continue](how-to/read-independent-review-results-and-continue.md)
+- 🤖 [Recover an independent review](how-to/recover-an-independent-review.md)
 
 ### AI-environment compatibility
 
@@ -151,7 +174,7 @@ Recipes for a precise goal, for readers who already know the basics.
 - 🤖 [Use the skills from Google Antigravity](how-to/use-the-skills-from-antigravity.md)
 - 🤖 [Pick up skill edits without restarting](how-to/pick-up-skill-edits-without-restarting.md)
 
-### Additional utilities
+### Additional utilities guides
 
 - 🤖 [Create a coherent logo family for a project](how-to/create-a-logo-family-for-a-project.md)
 - 🧪 [Fix a red groundhog walk](how-to/fix-a-red-groundhog-walk.md)
@@ -168,22 +191,25 @@ Recipes for a precise goal, for readers who already know the basics.
 - 📊 [Rebuild the presentation as PPTX and PDF](how-to/rebuild-the-presentation.md)
 - 📊 [Update a Git history diagram](how-to/update-git-history-diagrams.md)
 - 🤖 [Serve a Markdown folder as a local website](how-to/serve-a-docs-folder-as-a-website.md)
+- 🤖 [Trim an exported conversation](how-to/trim-an-exported-conversation.md)
 
 ## 📖 Reference
 
 Exact descriptions of commands, formats, files, and supported behavior.
 
-### AI-assisted development workflow
+### AI-assisted development workflow reference
 
+- 🤖 [Markdown checker](reference/markdown-checker.md)
 - 🤖 [Skills catalog](reference/skills-catalog.md)
 - 🔁 [pw launcher](reference/pw-launcher.md)
 - 📝 [Artifact files and naming conventions](reference/artifact-files.md)
+- 🤖 [Independent review mode contract](reference/independent-review-mode-contract.md)
 - 📝 [Document templates](reference/templates.md)
 - 🤖 [Writing and agent rules](reference/writing-rules.md)
 - 🤖 [Repository layout and AI entry points](reference/repository-layout.md)
 - 🤖 [Automation and direct-invocation ownership](reference/automation-and-direct-invocation.md)
 
-### Additional utilities
+### Additional utilities reference
 
 - 🤖 [Project logo prompt template and asset conventions](reference/project-logo-prompt-template.md)
 - 🤖 [Aliases and bin launchers](reference/aliases-and-launchers.md)
@@ -195,3 +221,4 @@ Exact descriptions of commands, formats, files, and supported behavior.
 - 📊 [Sensitive commit hooks](reference/sensitive-commit-hooks.md)
 - 📊 [Sensitive-history scanner command](reference/sensitive-history-scan.md)
 - 📊 [Git-history diagram generator](reference/git-history-diagram-generator.md)
+- 🤖 [Trim-thinking command](reference/trim-thinking-command.md)
