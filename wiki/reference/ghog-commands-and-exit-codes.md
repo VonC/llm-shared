@@ -26,11 +26,17 @@ same contract into local automation.
 | `pta` | `ghog affected` | testmon-selected tests, `--cov-append`, coverage report |
 | `ptanc` | `ghog affected --no-cov` | testmon-selected tests, no coverage |
 | `pts` | `ghog single <test files>` | named test files in focus, no coverage, compared with the last full-run baseline |
+| — | `ghog timings` | sequential, uninstrumented whole-suite pass that judges the duration gate |
 | — | `ghog init` | register the skill pointers in the project |
 | — | `ghog exclude "<node id>" <seconds>` | accept a genuinely slow call at its measured time |
 
-`ghog full` stays on a single worker: testmon does not cooperate with
-xdist, and the rebuilt database keeps every later `ghog affected` cheap.
+`ghog full` stays on a single worker by default: testmon does not cooperate
+with xdist, and the rebuilt database keeps every later `ghog affected` cheap.
+A project opts its full run into workers by adding a `.ghog-parallel` marker
+at its root, which runs `-n auto --dist loadgroup` so a module carrying an
+`xdist_group` mark keeps its module-scoped fixtures on one worker. A parallel
+full run skips the duration gate, because a contended call time measures the
+scheduler rather than the test; `ghog timings` judges it sequentially instead.
 
 ## 🚦 Exit codes
 

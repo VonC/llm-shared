@@ -49,6 +49,7 @@ history-repair plan.
 | --- | --- |
 | `/groundhog` | the ghog fixing loop: walk, fix what the report names, walk again |
 | `/split-large-file` | split an over-budget file into single-responsibility files |
+| `/audit-application` | audit source code for performance, security, readability, and maintainability findings |
 | `/review-and-update-project-docs` | re-align README, architecture docs, and existing `wiki/` or `docs/wiki/` Diataxis roots with code or a Git range |
 | `/write-release-notes-summary` | draft release notes from conventional commit subjects |
 | `git-history-report` | build the standalone commit-history dashboard |

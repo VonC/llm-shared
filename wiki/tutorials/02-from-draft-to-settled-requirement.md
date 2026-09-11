@@ -38,8 +38,9 @@ time:
 2. three collision-checked slug proposals,
 3. the target version, derived from `version.txt` (keep `X.Y.Z`, or step
    major, minor, or patch),
-4. the documentation layout: `docs/`, `docs/vX.Y/`, `docs/vX.Y.Z/`, or
-   `docs/vX.Y/vX.Y.Z/`; choose `docs/vX.Y.Z/` in this tutorial,
+4. the documentation layout: `docs/`, `docs/vX.Y/`, `docs/vX.Y.Z/`,
+   `docs/vX.Y/vX.Y.Z/`, or `docs/vX.Y.Z/<slug>/`; choose `docs/vX.Y.Z/`
+   in this tutorial,
 5. the branch layout: a new sibling worktree, or `git switch -c <slug>` in
    the current tree.
 
