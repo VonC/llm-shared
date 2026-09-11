@@ -6,6 +6,447 @@ release. The groundhog test loop (ghog), the prompt-workflow cycle (pw),
 and the commit and changelog helpers are mutualized across sibling
 projects.
 
+## [v0.11.0-SNAPSHOT unreleased] The Word Is Resume - c47322f760ef57d38605a2aad3bf4a72f9523669
+
+One word restarts an interrupted review, migration and ownership included.
+
+- Two Agents, One Transcript
+  -- A review round is a file on disk, not a conversation in one session.
+- The Human Keeps the Commit
+  -- Reviewers recommend commit-ready; only a person passes the gate.
+
+Release 0.11.0 turns a review into a durable exchange. A request, an answer, a
+coordination record, and a versioned transcript live under one repository-local
+home, `.reviews` by default and selected by `.review-artifacts.ini`. Two
+independent agent sessions hold the writer and reviewer roles, fenced by an
+ownership generation and a session-only token, and neither role may start the
+other. Specification and implementation reviews share that core: the writer
+publishes a request and waits, the reviewer assesses and publishes an answer,
+and the exchange converges only at a gate the human passes.
+
+An interrupted review no longer needs a recovery ritual. Typing `resume` checks
+artifact placement, migrates a legacy root layout when the move is safe, reads
+the recorded Claude, Codex, or Gemini nature of each role, and performs
+ownership pickup without asking for a token. A reviewer that has answered keeps
+one quiet foreground wait open for the next request in any exchange, and
+`rvw_status` reports every active review without resuming it.
+
+Two mechanical gates now report before a commit rather than after. The Markdown
+checker applies the repository rules as one authority, and `commit-plan-check`
+returns a read-only readiness verdict for the staged `a.commit` in text or JSON.
+
+### Key changes (v0.11.0)
+
+- **Durable review exchanges**: Rounds, coordination, and transcripts persist
+  under a configured artifact home, so an interrupted review resumes from disk
+  with its round, occurrence, and evidence intact instead of restarting.
+
+- **Fenced two-agent roles**: An ownership generation and a session-only token
+  admit exactly one acting session per role, competing reviewers resolve to one
+  claim winner, and a displaced session is refused rather than silently obeyed.
+
+- **Readiness before the commit**: `markdown-check` and `commit-plan-check`
+  report Markdown rule findings and staged-plan readiness as their own exit
+  codes, so a grouped commit is validated before it is created, not after.
+
+### 🚀 Features (v0.11.0)
+
+- *(review)* Add exchange identity model
+- *(review-exchange)* Add persistence store
+- *(review-exchange-core)* Add lifecycle engine
+- *(review-exchange-core)* Add command adapter
+- *(review-mode)* Integrate exchange core
+- *(spec-review-requestor)* Render paired requests
+- *(spec-review-requestor)* Add review role
+- *(spec-review-requestor)* Route live reviews
+- *(review-mode)* Add specification requestor
+- *(skills)* Add humanizer editing guide
+- *(spec-reviewer)* Route pending reviews
+- *(spec-reviewer)* Render paired answers
+- *(spec-reviewer)* Add answer renderer CLI
+- *(spec-reviewer)* Add reviewer orchestration
+- *(spec-reviewer)* Add host adapters
+- *(spec-reviewer)* Integrate reviewer workflow
+- *(code-review)* Render paired requests
+- *(code-review)* Add specialized requestor
+- *(code-review)* Route commit gate requests
+- *(review-mode)* Integrate code review requestor
+- *(code-review)* Add request evidence types
+- *(code-review)* Publish immutable evidence
+- *(commits)* Validate exact staged plans
+- *(review)* Retain executable evidence
+- *(review-exchange)* Add forced reclaim
+- *(review-exchange)* Recover stalled rounds
+- *(code-reviewer)* Bound implementation checks
+- *(code-reviewer)* Render paired review answers
+- *(code-reviewer)* Route independent reviews
+- *(code-reviewer)* Integrate review responder
+- *(review)* Externalize wait timeout defaults
+- *(consolidation)* Snapshot questions first
+- *(review)* Support project validation declarations
+- *(markdown-check)* Add source model and rule engine
+- *(markdown-check)* Add policy and baseline
+- *(markdown-check)* Add tracked checker
+- *(markdown-check)* Add direct launcher
+- *(markdown-check)* Enforce strong style
+- *(markdown-check)* Wire shared gate
+- *(markdown-check)* Enforce repository Markdown policy
+- *(commit-plan)* Share staged path inventory
+- *(commit-plan-check)* Expose read-only plan checker
+- *(commit-plan-check)* Gate review requests
+- *(commit-plan)* Expose read-only validation
+- *(ghog)* Stream senv live behind GHOG_SENV_LIVE
+- *(doskey)* Add the live ghog subcommand aliases
+- *(senv)* Add the project PATH fingerprint check
+- *(trim-thinking)* Trim an exported conversation
+- *(tth)* Add the launcher and its doskey alias
+- *(review-status)* Add immutable result models
+- *(review-status)* Discover active exchanges
+- *(review-status)* Expose status skill
+- *(review-status)* Integrate status reporting
+- *(review)* Add configurable artifact home
+- *(review)* Enforce caller files in the artifact home
+- *(commit-plan)* Require validation markers
+- *(review-resume)* Record role LLM nature
+- *(markdown-check)* Add missing prose rules
+- *(review-exchange)* Add ownership capabilities
+- *(review-exchange)* Fence session mutations
+- *(review-status)* Add schema 2 context
+- *(workflow)* Preserve review continuation
+- *(review-resume)* Restore interrupted roles
+- *(review-resume)* Wire role workflow adapters
+- *(ghog)* Separate parallel and timing runs
+- *(review-resume)* Integrate interrupted recovery
+- *(audit)* Add SKILL and instructions for auditing applications
+- *(skill)* Introduce audit-application skill
+- *(review-mode)* Integrate independent review mode
+- *(docs-layout)* Add version-slug layout support
+
+### 🐛 Bug Fixes (v0.11.0)
+
+- *(pw)* Harden plan step detection
+- *(review-exchange-core)* Use NUL Git paths
+- *(pw)* Resolve merged umbrella status
+- *(review-exchange)* Repair format and recovery
+- *(spec-reviewer)* Harden answer validation
+- *(spec-reviewer)* Retire published manifests
+- *(code-reviewer)* Bound evidence paths
+- *(review-exchange)* Keep transcripts portable
+- *(review-exchange)* Reject external paths
+- *(review-exchange)* Expose request occurrence
+- *(code-reviewer)* Let reviewers reclaim requests
+- *(review-exchange)* Isolate launcher context
+- *(code-review)* Qualify round headings
+- *(pw)* Recover clean umbrella branches
+- *(review-exchange)* Retry locked replacements
+- *(review)* Align guidance rendering
+- *(process-draft)* Pause umbrella child handoff
+- *(process-draft)* Require child draft file
+- *(review)* Keep reviewers waiting between rounds
+- *(process-draft)* Require changed child draft
+- *(markdown-check)* Clear Markdown debt
+- *(drafts)* Keep umbrella paths literal
+- *(workflow)* Guarantee clean consolidation
+- *(review)* Guarantee clean commit completion
+- *(release)* Route topics through umbrella
+- *(doskey)* Stop shadowing the ghd dashboard alias
+- *(release)* Support untagged first releases
+- *(commit-plan)* Isolate shared module lookup
+- *(review-cli)* Restore package imports
+- *(review-routing)* Carry umbrella context
+- *(trim-thinking)* Truncate at dated prompts
+- *(review-markdown)* Keep authored blocks valid
+- *(prompt-workflow)* Ignore stale code review records
+- *(codex-plugin)* Validate cached redirects
+- *(review)* Route gate pickup to requestor
+- *(markdown)* Accept cache-relative adapters
+- *(review-resume-command)* Defer discovery during active publication
+- *(review-resume-command)* Retry transient migration journal replacement
+- *(review)* Renew forced-resume ownership
+- *(trim)* Preserve later Claude answer sections
+- *(codex-plugin)* Allow metadata in redirects
+
+### 🚜 Refactor (v0.11.0)
+
+- *(rules)* Centralize agent guidance
+- *(skills)* Redirect provider adapters
+- *(docs)* Split document resolution
+- *(workflow)* Split skill routing
+- *(review)* Harden evidence boundaries
+
+### 📚 Documentation (v0.11.0)
+
+- *(skills)* Explain canonical adapters
+- *(review)* Define exchange core
+- *(review)* Record step 1 completion
+- *(review-exchange-core)* Record step 2 validation
+- *(review-exchange-core)* Record step 3 completion
+- *(review-exchange-core)* Add requestor guide
+- *(review-exchange-core)* Record step 4 validation
+- *(review-exchange-core)* Record step 5 validation
+- *(spec-review-requestor)* Define review flow
+- *(spec-review-requestor)* Record step 1 validation
+- *(spec-review-requestor)* Record step 2 validation
+- *(spec-review-requestor)* Record step 3 validation
+- *(spec-review-requestor)* Close step 3 review
+- *(spec-review-requestor)* Record step 4 validation
+- *(spec-review-requestor)* Close step 4 review
+- *(spec-reviewer)* Define reviewer workflow
+- *(spec-reviewer)* Record step 1 validation
+- *(spec-reviewer)* Record step 2 validation
+- *(spec-reviewer)* Record review history
+- *(spec-reviewer)* Record step 3 validation
+- *(spec-reviewer)* Record step 4 review
+- *(spec-reviewer)* Record step 4 validation
+- *(review)* Define code review requestor
+- *(code-review-requestor)* Record step 1 validation
+- *(code-review-requestor)* Record step 2 validation
+- *(code-review-requestor)* Record step 3 validation
+- *(code-review-requestor)* Record step 4 validation
+- *(code-reviewer)* Define the implementation review responder
+- *(code-reviewer)* Design review responder
+- *(code-reviewer)* Plan review responder
+- *(code-reviewer)* Record step 1 validation
+- *(review)* Require unique and well-formed headings in appended rounds
+- *(wiki)* Give sections unique headings
+- *(code-reviewer)* Record step 2 completion
+- *(code-reviewer)* Record step 3 validation
+- *(code-reviewer)* Record step 4 validation
+- *(review-mode)* Add quality follow-ups
+- *(code-reviewer)* Record step 5 completion
+- *(code-reviewer)* Record step 6 validation
+- *(code-reviewer)* Polish review record
+- *(review-mode-docs)* Define documentation scope
+- *(release)* Widen step 12 to every version source
+- *(review-mode-docs)* Design documentation set
+- *(review-mode-docs)* Plan independent review documentation
+- *(review-mode-docs)* Explain independent review authority
+- *(review-mode-docs)* Record step 1 validation
+- *(review-mode-docs)* Teach review journeys
+- *(review-mode-docs)* Record step 2 validation
+- *(review-mode-docs)* Add task guides
+- *(review-mode-docs)* Record step 3 validation
+- *(review-mode-docs)* Publish review contract
+- *(review-mode-docs)* Record step 4 completion
+- *(review-mode-docs)* Close acceptance coverage
+- *(review-mode-docs)* Record step 5 validation
+- *(review-mode-docs)* Record code review
+- *(review-mode-docs)* Integrate review guide
+- *(review-mode)* Add recovery command topics
+- *(review)* Explain wait timeout precedence
+- *(workflows)* Sync review and draft guides
+- *(markdown-check)* Define checker requirement
+- *(markdown-check)* Record specification review
+- *(consolidation)* Explain question snapshots
+- *(markdown-check)* Record questions
+- *(review)* Repair request list spacing
+- *(markdown-check)* Add MD032 requirement
+- *(markdown-check)* Consolidate checker design
+- *(markdown-check)* Record plan questions
+- *(markdown-check)* Clarify checker reads
+- *(markdown-check)* Record plan review
+- *(markdown-check)* Consolidate plan
+- *(markdown-check)* Settle lint exceptions
+- *(markdown-check)* Record step 1 validation
+- *(markdown-check)* Record step 1 code review
+- *(markdown-check)* Record step 2 validation
+- *(markdown-check)* Publish checker reference
+- *(markdown-check)* Record step 3 validation
+- *(commit)* Record pre-consolidation questions
+- *(commit-plan)* Refine child draft
+- *(commit-plan)* Consolidate requirement
+- *(commit)* Record pre-consolidation questions
+- *(commit)* Consolidate design decisions
+- *(plan)* Record pre-consolidation questions
+- *(commit-plan)* Settle checked plan
+- *(commit-plan)* Fix review list formatting
+- *(commit-plan-check)* Record step 1 validation
+- *(workflow)* Document clean commit handoffs
+- *(commit-plan-check)* Record step 2 validation
+- *(commit-plan-check)* Record step 2 review
+- *(commit-plan-check)* Record step 3 validation
+- *(commit-plan-check)* Record step 3 review
+- *(commit-plan-check)* Fix format example
+- *(commit-plan-check)* Wire readiness checks
+- *(commit-plan-check)* Record step 4 validation
+- *(commit-plan-check)* Record step 4 review
+- *(release)* Document umbrella routing
+- *(feature)* Record pre-consolidation questions
+- *(review-status)* Consolidate requirement
+- *(review-status)* Record design review
+- *(review-status)* Record consolidation choice
+- *(review-status)* Consolidate status design
+- *(trim-thinking)* Document the tth command
+- *(plan)* Record pre-consolidation questions
+- *(review-status)* Bound status file reads
+- *(review-status)* Consolidate implementation plan
+- *(review-status)* Repair transcript markdown
+- *(review-status-command)* Record step 1 validation
+- *(review-status-command)* Record step 2 validation
+- *(review-status)* Require public skill
+- *(review-status)* Record step 3 completion
+- *(review-status)* Publish review transcript
+- *(plan)* Record pre-consolidation questions
+- *(review-status)* Record step 4 completion
+- *(code-reviewer)* Consolidate plan decisions
+- *(code-reviewer)* Publish review dialogue
+- *(review-status-command)* Record step 4 validation
+- *(feature)* Record pre-consolidation questions
+- *(review-resume)* Define resume requirement
+- *(review-resume)* Record specification review
+- *(review-resume)* Widen reviewer wait
+- *(review-resume)* Record reopened review
+- *(design)* Record pre-consolidation questions
+- *(review-resume)* Consolidate design
+- *(review-resume)* Record design review
+- *(plan)* Record pre-consolidation questions
+- *(review-resume)* Clarify artifact IO
+- *(review-resume)* Consolidate implementation plan
+- *(review-resume)* Record plan review
+- *(review)* Qualify repeated exchange headings
+- *(review-resume-command)* Record step 0 validation
+- *(review-resume)* Record step 0 code review
+- *(review)* Require the artifact home for caller files
+- *(review-resume-command)* Record step 1 review
+- *(review-resume-command)* Record step 1 validation
+- *(review)* Keep reviewers available
+- *(commit-plan)* Require validation markers
+- *(trim-thinking)* Explain dated truncation
+- *(markdown)* Require heading spacing
+- *(review-resume-command)* Record step 2 validation
+- *(markdown)* Describe enforced prose rules
+- *(review-resume)* Preserve step 2 exchange
+- *(review-resume-command)* Record step 3 validation
+- *(workflows)* Resolve shared tool paths
+- *(codex-plugin)* Explain cached redirects
+- *(review-resume-command)* Record step 3 review
+- *(review)* Explain new-session pickup
+- *(resume)* Require automatic pickup
+- *(review-status)* Describe migration preflight
+- *(review-resume-command)* Record step 4 validation
+- *(review)* Enforce role-isolated workflows
+- *(review)* Publish independent review guidance
+- *(review-resume-command)* Record review exchange
+- *(review-resume)* Define foreground wait outcomes
+- *(review-resume-command)* Record step 5 validation
+- *(review-resume)* Record step 5 review
+- *(review-resume-command)* Document shipped resume workflows
+- *(review-resume-command)* Record step 6 validation
+- *(review-resume)* Retain step 6 review
+- *(agents)* Delegate policy to canonical files
+- *(groundhog)* Raise the status polling floor
+- *(implementation-check)* Bound coverage claims
+- *(tools)* Use a neutral project placeholder
+- *(docs-layout)* Document version-slug layout option
+- *(docs-layout)* Drop the last four-layout claims
+- *(wiki)* Cover the v0.11.0 release topics
+
+### ⚡ Performance (v0.11.0)
+
+- *(prepare-release)* Shorten planner checks
+- *(tests)* Keep calls below duration gate
+- *(test)* Remove duplicate coverage reports
+- *(review-exchange)* Isolate wait setup
+- *(tests)* Reduce review regression setup costs
+- *(tests)* Distribute acceptance scenarios
+
+### 🎨 Styling (v0.11.0)
+
+- *(wiki)* Normalize navigation line endings
+- *(markdown)* Clear remaining lint debt
+
+### 🧪 Testing (v0.11.0)
+
+- *(skills)* Reject copied adapter bodies
+- *(workflow)* Cover exact document lookup
+- *(perf)* Isolate slow assertion calls
+- *(release)* Move Git setup to fixtures
+- *(review-exchange)* Cover persistence faults
+- *(review-exchange-core)* Cover lifecycle states
+- *(review-exchange-core)* Cover command adapter
+- *(prepare-release)* Move Git setup to fixtures
+- *(review-exchange-core)* Add acceptance journeys
+- *(pw)* Cover merged umbrella routing
+- *(sensitive-history)* Mock unborn Git state
+- *(spec-review-requestor)* Cover role contracts
+- *(spec-review-requestor)* Cover review routing
+- *(prompt-workflow)* Move git run to fixture
+- *(spec-review-requestor)* Prove full workflow
+- *(groundhog)* Move Git work to fixtures
+- *(spec-reviewer)* Cover answer rendering
+- *(spec-reviewer)* Cover reviewer boundaries
+- *(spec-reviewer)* Prove reviewer workflow
+- *(prepare-release)* Shorten git test calls
+- *(groundhog)* Shorten duration-gated setup
+- *(code-review)* Prove requestor lifecycle
+- *(duration)* Shorten gated checks
+- *(duration)* Cut full-suite runtime
+- *(code-reviewer)* Prove responder acceptance
+- *(groundhog)* Bound subprocess integration calls
+- *(perf)* Shorten repository acceptance
+- *(review)* Split lifecycle and policy contracts
+- *(markdown-check)* Cover parsing and rule behavior
+- *(markdown-check)* Cover checker workflow
+- *(markdown-check)* Cover gate rollout
+- *(workflow)* Stabilize verification gates
+- *(commit-plan-check)* Cover readiness rollout
+- *(trim-thinking)* Cover the trimmer and its CLI
+- *(trim-thinking)* Mark fixture as used
+- *(markdown)* Cover MD038 file allowance
+- *(review-status)* Cover active discovery
+- *(review-status)* Cover skill and command
+- *(review-routing)* Cover context handoff
+- *(review-status)* Cover status command
+- *(review-resume)* Add performance guardrails
+- *(commit-plan)* Cover validation markers
+- *(review-status)* Avoid redundant path resolution
+- *(review-artifacts)* Stub failed tracking query
+- *(review-exchange)* Cover ownership fencing
+- *(workflows)* Cover shared path resolution
+- *(tooling)* Cover redirect checks
+- *(review-status)* Prove schema 2 behavior
+- *(review-resume-command)* Cover cross-workflow resume acceptance
+
+### ⚙️ Miscellaneous Tasks (v0.11.0)
+
+- *(editor)* Add review protocol words
+- *(plugin)* Refresh Codex cache version
+- *(plugin)* Refresh Codex cache version
+- *(workspace)* Set halo logo scale
+- *(workspace)* Allow replayable spelling
+- *(editor)* Accept rescope spelling
+- *(editor)* Accept junctioned spelling
+- *(editor)* Accept review vocabulary
+- *(vscode)* Recognize numstat spelling
+- *(vscode)* Recognize neighbours spelling
+- *(vscode)* Accept review terminology
+- *(editor)* Accept review terminology
+- *(editor)* Accept overcount spelling
+- *(editor)* Accept baselining spelling
+- *(vscode)* Recognize checker terminology
+- *(env)* Resolve Claude launcher path
+- *(editor)* Add review vocabulary
+- *(editor)* Add workflow vocabulary
+- *(editor)* Add review status vocabulary
+- *(editor)* Add review status terms
+- *(markdown)* Scope transcript lint
+- *(dev-env)* Update editor and aliases
+- *(review-status)* Add status aliases
+- *(editor)* Recognize review status alias
+- *(vscode)* Recognize prevalidated
+- *(lint)* Ignore review helper files
+- *(editor)* Add mkdocs to dictionary
+- *(lint)* Ignore scratch Python files
+- *(vscode)* Add Markdown check task
+- *(codex)* Refresh local plugin metadata
+- *(vscode)* Set active activity bar borders
+- *(repo)* Record automation settings
+- *(vscode)* Drop duplicate radon exclude entry
+
+### 🔨 Build (v0.11.0)
+
+- *(deps)* Declare watchdog directly
+
 ## [v0.10.0] - 2026-07-31 - Four Folders, One Document
 
 `pw document` finds an artifact from its version, slug, and type.

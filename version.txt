@@ -1,34 +1,42 @@
-0.10.0 -- Four Folders, One Document
+0.11.0-SNAPSHOT -- The Word Is Resume
 
-`pw document` finds an artifact from its version, slug, and type.
+One word restarts an interrupted review, migration and ownership included.
 
-- No Guessing at the Fork
-  -- Topology previews prove branch boundaries before a merge starts.
-- Hooks, Hogs, and History
-  -- Commit hooks, Groundhog, and history scans catch repository trouble.
+- Two Agents, One Transcript
+  -- A review round is a file on disk, not a conversation in one session.
+- The Human Keeps the Commit
+  -- Reviewers recommend commit-ready; only a person passes the gate.
 
-Release 0.10.0 makes branch selection explicit. The topology planner reports
-on-main, integration, and feature scopes, proves feature boundaries, and
-previews merges or commit-by-commit replays in an isolated object directory.
-Prepare-release can land one topic, follow an ordered umbrella, audit the
-Diátaxis wiki, and prepare the final release files without rewriting a
-published feature branch.
+Release 0.11.0 turns a review into a durable exchange. A request, an answer, a
+coordination record, and a versioned transcript live under one repository-local
+home, `.reviews` by default and selected by `.review-artifacts.ini`. Two
+independent agent sessions hold the writer and reviewer roles, fenced by an
+ownership generation and a session-only token, and neither role may start the
+other. Specification and implementation reviews share that core: the writer
+publishes a request and waits, the reviewer assesses and publishes an answer,
+and the exchange converges only at a gate the human passes.
 
-Document workflows now carry one of four layouts from draft processing through
-release. `pw document` locates an artifact from version, slug, and type alone,
-while ordered umbrella routing advances only after the validation evidence on
-disk agrees with the declared status table.
+An interrupted review no longer needs a recovery ritual. Typing `resume` checks
+artifact placement, migrates a legacy root layout when the move is safe, reads
+the recorded Claude, Codex, or Gemini nature of each role, and performs
+ownership pickup without asking for a token. A reviewer that has answered keeps
+one quiet foreground wait open for the next request in any exchange, and
+`rvw_status` reports every active review without resuming it.
+
+Two mechanical gates now report before a commit rather than after. The Markdown
+checker applies the repository rules as one authority, and `commit-plan-check`
+returns a read-only readiness verdict for the staged `a.commit` in text or JSON.
 
 ### Key changes
 
-- **Proven release scope**: The planner reports exact commits, boundaries, and
-  conflict previews for main, integration, and feature releases before Git
-  history changes.
+- **Durable review exchanges**: Rounds, coordination, and transcripts persist
+  under a configured artifact home, so an interrupted review resumes from disk
+  with its round, occurrence, and evidence intact instead of restarting.
 
-- **Folder-independent documents**: Drafts and later artifacts share a chosen
-  flat, minor, full-version, or nested directory, and `pw document` finds the
-  unique match without branch or prompt-memory context.
+- **Fenced two-agent roles**: An ownership generation and a session-only token
+  admit exactly one acting session per role, competing reviewers resolve to one
+  claim winner, and a displaced session is refused rather than silently obeyed.
 
-- **Safer repository tools**: Sensitive-commit hooks and contextual history
-  scans catch exposed terms, while Groundhog, the local docs server, editable
-  presentation builds, and logo extraction provide tested project utilities.
+- **Readiness before the commit**: `markdown-check` and `commit-plan-check`
+  report Markdown rule findings and staged-plan readiness as their own exit
+  codes, so a grouped commit is validated before it is created, not after.
