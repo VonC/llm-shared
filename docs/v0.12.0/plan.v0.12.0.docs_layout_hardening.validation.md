@@ -3,9 +3,9 @@
 No, it is not implemented.
 
 This document tracks the four steps in the
-[implementation plan](plan.v0.12.0.docs_layout_hardening.md). Step 1 has passed
-its implementation check and shared groundhog walk. Steps 2 through 4 remain
-pending; the new recognition and selection behavior is not implemented yet.
+[implementation plan](plan.v0.12.0.docs_layout_hardening.md). Steps 1 and 2 have
+passed their implementation checks and shared groundhog walks. Steps 3 and 4
+remain pending; scoped selection and workflow acceptance are not implemented yet.
 
 ## File-based IO cost clarification for v0.12.0 validation
 
@@ -119,7 +119,12 @@ fallback behavior remain intentionally unchanged until Steps 2 and 3.
 
 ### Analysis of Step 2 implementation state
 
-Not started. Step 2 is not implemented because the shared eligibility predicate and its regression/property coverage have not been implemented.
+Yes. Step 2 has been fully implemented.
+
+Both directory listings now use one eligibility predicate. Full-version slug
+children require an immediate file with an exact supported kind, version and
+folded slug. Regression and property cases cover the accepted boundary, and
+the corrected groundhog walk reached the configured coverage objective.
 
 ### Goal for Step 2
 
@@ -131,27 +136,92 @@ The six accepted kinds qualify without a draft, false positives are rejected, ol
 
 ### What was implemented for Step 2
 
-_(empty — no check has taken place yet.)_.
+`docs_dirs` and `docs_dirs_for_version` retain their respective enumeration and
+ordering while filtering through `_is_supported_docs_dir`. The predicate
+accepts the four older layouts by shape and delegates slug-child evidence to
+`_has_effort_document`. That helper checks immediate `is_file()` entries using
+`_exact_doc_matches` and six explicit kinds, without the `requirement` alias.
+It stops after the first match, reads no bodies, caches nothing and propagates
+surfaced enumeration errors.
+
+The dedicated TDD suite runs both listings against all six kinds, empty and
+unrelated content, wrong identities, subtopics, nested-only evidence, matching
+directory names, common asset names, separator spelling, older empty layouts,
+unsupported shapes, ordering and version scope. It exercises add/rename/remove
+freshness, forbids body reads, injects enumeration failure and guards early exit.
+Two bounded Hypothesis properties generate explicit identities and check folded
+spelling plus rejection of changed versions, topics and subtopics.
+
+The three planned legacy fixtures now contain matching immediate evidence or
+use the correct `git-history-report` directory identity. The package initializer
+describes its expanded coverage. Six inline-code spans in the review transcript
+were repaired after Markdown check failures: four existing spans and two paths
+in the Step 2 round 1 request. Future request inputs quote those paths too; no
+review assessment content changed. The independent round 1 review confirmed
+the implementation and requested only the two request-formatting repairs.
+
+Physical counts before and after are: lookup 274 to 294, dedicated TDD 87 to
+289, PBT 0 to 68, legacy docs TDD 611 to 615, and initializer 6 to 6. All are
+below 650 and the post-step advisory estimates; the legacy suite remains in
+the at-risk band. No file split is required.
 
 ### New types or classes introduced for Step 2
 
-_(empty — no check has taken place yet.)_.
+No production type or class was introduced. `_has_effort_document` isolates
+the filename scan from layout classification to meet the complexity gate.
+`EFFORT_DOCUMENT_TYPES` names the six concrete evidence kinds explicitly.
 
 ### Architecture check for Step 2
 
-_(empty — no check has taken place yet.)_.
+The lookup adapter still imports only the standard library and workflow
+models. Its directory pattern is independent of collection validation, both
+listing paths share classification, and evidence reuses the exact matcher
+without resolver recursion. Public facade exports and caller patch points
+remain intact. The dependency/body-read/cache inspection found only the
+existing resolver definition/export and the docstring describing no cache.
+No DDD-Hexagonal violation or responsibility smell is present.
+Nothing needs to be addressed.
 
 ### Performance check for Step 2
 
-_(empty — no check has taken place yet.)_.
+Existing recursive and version-scoped enumeration and sorting remain. Added
+qualification visits at most E immediate entries per eligible shape and tests
+six fixed kinds, with filename length included in matching cost. There is no
+new sort, all-candidate comparison, resolver call, body read or retry. The early
+exit test proves scanning stops on the first qualifying file. Freshness tests
+prove subsequent calls re-evaluate content. The latest successful full phase took
+2m 44.7s; duration outlier and exclusion checks were reported as skipped, so
+the run supplies no separate duration-policy measurement.
+No performance issue needs to be addressed.
 
 ### Unit test coverage check for Step 2
 
-_(empty — no check has taken place yet.)_.
+The coverage source is `tools` with `fail_under = 100` in `pyproject.toml`;
+lookup is measured, while tests and package initializers are excluded. The
+dedicated lookup package exercises both facade listings and the exact matcher;
+existing docs suites cover remaining resolution and role-selection branches.
+The new evidence helper is reached through the shared predicate from both
+public listings. Every production top-level function remains referenced by
+tests or another function in the package, and no class file is impacted.
+
+The fresh `ghog day` walk after the round 1 formatting repairs finished on
+2026-09-12 at 21:27:26 +02:00 with
+`state=done exit=0`. The log freshness check passed. Check, affected tests and
+the full suite passed; the closing result was `fail=0 warn=0 xfail=0 cov=100`.
+This implementation check used that completed evidence and static inspection
+without running tests again.
+No unit-tested class below 100% needs completing. No executable top-level
+symbol in an impacted file outside the coverage gate is unreferenced.
 
 ### Feature integrity for Step 2
 
-_(empty — no check has taken place yet.)_.
+Only full-version slug-child recognition becomes stricter. Older empty layouts,
+directory order, exact ambiguity, requirement aliases for document selection,
+validation-plan distinction, workflow subtopic matching and timestamp ties
+remain supported. Collection validation and optional-slug creation are
+unchanged. Surfaced filesystem errors remain observable. Canonical-parent
+validation and missing-sibling fallback are still the separate Step 3 work.
+No existing feature or reporting capability appears impaired.
 
 ## Step 3. Select within canonical or fallback scope
 
