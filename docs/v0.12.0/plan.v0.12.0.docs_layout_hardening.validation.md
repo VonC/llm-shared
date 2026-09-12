@@ -3,9 +3,9 @@
 No, it is not implemented.
 
 This document tracks the four steps in the
-[implementation plan](plan.v0.12.0.docs_layout_hardening.md). Steps 1 and 2 have
-passed their implementation checks and shared groundhog walks. Steps 3 and 4
-remain pending; scoped selection and workflow acceptance are not implemented yet.
+[implementation plan](plan.v0.12.0.docs_layout_hardening.md). Steps 1 through 3
+have passed their implementation checks and shared groundhog walks. Step 4
+remains pending: CLI/post-commit acceptance and published layout guidance.
 
 ## File-based IO cost clarification for v0.12.0 validation
 
@@ -227,7 +227,12 @@ No existing feature or reporting capability appears impaired.
 
 ### Analysis of Step 3 implementation state
 
-Not started. Step 3 is not implemented because the scoped candidate result, selection policy and diagnostics have not been implemented.
+Yes. Step 3 has been fully implemented.
+
+Workflow discovery validates the canonical parent, returns its ordered matches
+when present, and otherwise searches every other recognized directory.
+Selection retains local newest/tie behavior and requires a unique fallback.
+The fresh groundhog walk passed check, affected tests and full coverage.
 
 ### Goal for Step 3
 
@@ -239,27 +244,105 @@ Local newest/tie behavior is retained; missing siblings use all other recognized
 
 ### What was implemented for Step 3
 
-_(empty — no check has taken place yet.)_.
+`_discover_candidates` inventories `docs_dirs(root)` once and compares resolved
+directory paths with the draft's parent without requiring the draft to exist.
+It scans local entries first and returns immediately on a match. Only local
+absence permits scanning other recognized directories, retaining role, exact
+version, folded subtopic matching and existing ordering.
+
+`find_matching_documents` adapts the scoped tuple to its public list result.
+`select_document` consumes discovery directly, using `most_recent` locally and
+zero/one/ambiguous cardinality for fallback. Invalid-parent errors include the
+role, version, slug and canonical directory; fallback ambiguity also lists every
+competing path in stable order. Repository-relative diagnostics are used where
+applicable, and matching/stat errors propagate unchanged.
+
+The new selection package adds 47 parameterized cases across all four roles,
+both requirement kinds, local timestamps and ties, fallback cardinalities,
+cross-version directory searches, qualifying slug children, invalid parents,
+missing drafts, normalized paths, exact-resolution ambiguity and IO failures.
+Access counters prove a single inventory and no fallback role matching after
+local success. The two planned legacy selection fixtures now use temporary
+recognized parents. The affected run identified one additional real-discovery
+fixture in `test_find_matching_documents_folds_hyphen_and_underscore`; its draft
+path was repaired while preserving all role assertions. Relative-topic fixtures
+in main, plan, models and steps remain appropriate for stubbed or field-only use.
+
+The obsolete `_topic_docs_dirs` helper and its facade import/export were removed;
+the facade docstring now describes scoped selection. This small additional
+facade edit is required by replacing the private helper; public selector
+signatures and caller monkeypatch points are retained.
+
+Physical line counts before and after: lookup 294 to 345, facade 501 to 500,
+legacy docs TDD 615 to 615, selection TDD 0 to 253, initializer 0 to 6. All stay
+below 650; the legacy suite remains at risk and the other files remain safe.
+The final counts stay within the advisory projections, so no split is needed.
 
 ### New types or classes introduced for Step 3
 
-_(empty — no check has taken place yet.)_.
+The internal frozen `_DocumentCandidates` dataclass holds an ordered
+`tuple[Path, ...]` and a `Literal["canonical-parent", "fallback"]` scope.
+It carries selection provenance without another discovery pass.
+`_directory_matches` isolates ordered role matching, and `_render_parent`
+handles relative or external canonical-parent diagnostics.
 
 ### Architecture check for Step 3
 
-_(empty — no check has taken place yet.)_.
+The lookup filesystem adapter depends only on standard-library facilities and
+workflow models. The facade continues to own Git/topic and document-body work;
+callers still select through facade attributes. No caller catches the new
+errors as document absence. The internal result does not introduce an upward
+dependency, collection coupling or a new public policy surface.
+No DDD-Hexagonal violation or responsibility smell is present.
+Nothing needs to be addressed.
 
 ### Performance check for Step 3
 
-_(empty — no check has taken place yet.)_.
+Existing directory and matching-entry sorts remain; no new sort or nested
+all-candidate comparison was introduced. Resolved-directory inventory,
+canonical selection and fallback exclusion use linear passes. Each selected
+directory's entries are matched once, and local success avoids fallback role
+matching while allowing the eligibility inventory's reads. There is no cache,
+retry, body read or rediscovery to recover scope. Path and filename lengths
+remain part of the existing filesystem and matching cost.
+
+The successful full phase took 3m 53.9s. Duration-outlier and exclusion checks
+were reported as skipped, so this result is not a separate duration-policy
+measurement. Deterministic access assertions cover the promised IO boundaries.
+No performance issue needs to be addressed.
 
 ### Unit test coverage check for Step 3
 
-_(empty — no check has taken place yet.)_.
+`pyproject.toml` measures `tools` with `fail_under = 100`; both modified
+production modules are included. Tests and package initializers are excluded.
+The dedicated lookup and selection packages exercise the lookup module, with
+the existing docs suites covering the retained facade and legacy paths.
+The new dataclass is constructed by both discovery scopes; every new helper
+is reached through the public selectors. Static inspection covers local,
+absent, unique, ambiguous, invalid-parent and IO-error paths. No new PBT is
+needed for the finite scope/cardinality matrix; Step 2 retains folding properties.
+
+The final detached `ghog day` run started on 2026-09-12 at 23:31:09 +02:00
+and `ghog status` confirmed `state=done exit=0` at 23:35:40 +02:00.
+Its fresh log contains the completed check, affected and 2,842-test full phases,
+closing with `fail=0 warn=0 xfail=0 cov=100`. Earlier test lint/complexity issues
+were fixed, and the extra legacy fixture repair passed the prescribed focused
+rerun before this final walk. This implementation check uses that evidence and
+static inspection without running tests again.
+No unit-tested class below 100% needs completing. No executable top-level
+symbol in an impacted file outside the coverage gate is unreferenced.
 
 ### Feature integrity for Step 3
 
-_(empty — no check has taken place yet.)_.
+General exact resolution remains strict about duplicate documents. Workflow
+local preference, timestamp ties, four-role matching, folded subtopics and
+validation-plan distinctions remain supported. Missing drafts work with a
+recognized parent; unsupported parents and competing fallback matches now fail
+explicitly as designed. Public return types and facade patch points remain
+compatible. Optional-slug creation, collection validation and unrelated review
+workflows are unchanged. Step 4 still owns CLI/post-commit acceptance and
+published layout guidance.
+No existing feature or reporting capability appears impaired.
 
 ## Step 4. Verify workflow acceptance and publish discovery guidance
 
