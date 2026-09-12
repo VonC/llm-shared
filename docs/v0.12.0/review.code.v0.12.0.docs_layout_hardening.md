@@ -2489,3 +2489,620 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-2 -->
+
+## Round 1 by requestor - Step 3
+
+- Recorded: 2026-09-12T23:43:19+02:00
+- Exchange: code/code/v0.12.0/docs_layout_hardening
+- Umbrella: none
+- Reviewed document: docs/v0.12.0/plan.v0.12.0.docs_layout_hardening.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: unrecorded
+- Implementation step: 3
+- Outcome: request
+
+### Review identity for step 3 docs_layout_hardening (round 1)
+
+Umbrella draft: none
+Implementation plan: docs/v0.12.0/plan.v0.12.0.docs_layout_hardening.md
+Implementation step: 3
+Review round: 1
+
+### Code review evidence for step 3 docs_layout_hardening (round 1)
+
+request_index_tree: 2850f2de0a748ccc5fbf353bafb3b8d454ecb45d
+resolved_validation_set:
+
+- ghog day (sources: project)
+- rg -n '_DocumentCandidates|_discover_candidates|most_recent|PromptWorkflowError' tools/prompt_workflow_document_lookup.py (sources: plan)
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: fix(docs-layout): scope workflow document selection
+group 1 path: tools/prompt_workflow_document_lookup.py
+group 1 path: tools/prompt_workflow_docs.py
+group 1 path: tests/unit/tools/test_prompt_workflow_docs/test_prompt_workflow_docs_tdd.py
+group 1 path: tests/unit/tools/test_prompt_workflow_document_selection/__init__.py
+group 1 path: tests/unit/tools/test_prompt_workflow_document_selection/test_prompt_workflow_document_selection_tdd.py
+group 2: docs(docs_layout_hardening): record step 3 validation
+group 2 path: docs/v0.12.0/plan.v0.12.0.docs_layout_hardening.validation.md
+staged path: docs/v0.12.0/plan.v0.12.0.docs_layout_hardening.validation.md
+staged path: tests/unit/tools/test_prompt_workflow_docs/test_prompt_workflow_docs_tdd.py
+staged path: tests/unit/tools/test_prompt_workflow_document_selection/__init__.py
+staged path: tests/unit/tools/test_prompt_workflow_document_selection/test_prompt_workflow_document_selection_tdd.py
+staged path: tools/prompt_workflow_docs.py
+staged path: tools/prompt_workflow_document_lookup.py
+```
+
+### Requestor assessment for step 3 docs_layout_hardening (round 1)
+
+Step 3 is fully implemented against the settled plan and design. The staged
+change validates the canonical draft parent, selects local role matches with
+the existing newest-file and tie behavior, and allows only a unique fallback
+when the canonical parent has no match. Invalid parents and ambiguous fallback
+sets raise contextual errors through both public workflow entry points where
+applicable. General exact lookup remains unchanged.
+
+The implementation check found no missing Step 3 work, architecture defect,
+coverage gap, or new complexity concern. Step 4 remains pending. Review this
+exact staged implementation and its validation evidence before recommending
+whether it is ready for human commit authorization.
+
+### Implementation report for step 3 docs_layout_hardening (round 1)
+
+`tools/prompt_workflow_document_lookup.py` now uses a frozen
+`_DocumentCandidates` value with ordered paths and canonical-parent or fallback
+scope. Discovery inventories recognized directories once, validates the
+resolved draft parent, returns local matches immediately, and otherwise scans
+the other recognized directories. The public list function adapts this result;
+the selector consumes it once, applying `most_recent` only to local matches.
+Fallback selection returns none, selects one path, or raises an error listing
+every competing path in stable order. Draft files need not exist. Filesystem
+errors continue to propagate.
+
+`tools/prompt_workflow_docs.py` removes the obsolete private helper re-export
+and updates its module description. Public facade selectors and the existing
+matcher and timestamp access paths remain available. Caller imports and
+monkeypatch interception remain unchanged.
+
+The new selection package adds 47 deterministic cases covering all workflow
+roles, both requirement kinds, local ordering and ties, fallback cardinality,
+all recognized layout families, foreign enclosing versions, folded subtopics,
+invalid and normalized parents, missing drafts, general-resolution ambiguity,
+single inventory construction, local matching short-circuiting, and surfaced
+enumeration/stat errors. Three legacy selection fixtures now place their
+synthetic draft under the temporary root's recognized docs directory. The plan
+named two fixtures; the full regression run exposed the same issue in the
+existing folded-slug fixture, so it received the same bounded repair.
+
+The Step 3 validation record documents the implementation and the inspected
+caller paths. No caller converts discovery errors to absence. Physical line
+counts are 345 for lookup, 500 for the facade, 615 for the existing docs test,
+253 for the new test, and 6 for its initializer; all remain below 650.
+
+The final Groundhog walk started at 2026-09-12T23:31:09+02:00 and completed at
+2026-09-12T23:35:40+02:00 with state done and exit 0. Check, affected tests, and
+the full 2,842-test run passed. Full coverage was 100 percent. The full summary
+reported fail=0, warn=0, xfail=0, cov=100, outliers=skipped, excluded=skipped,
+exit=0. Duration-outlier and exclusion checks were skipped by the active policy;
+this report does not claim a measured duration gate. The fresh successful walk
+followed the last source/test edit. The subsequent implementation check updated
+only the validation document and did not rerun tests.
+
+The staged six-file set is assigned to two groups in `a.commit`: the selector
+implementation and tests, followed by the exact Step 3 validation commit.
+`wac` formatted the plan and `commit-plan-check --format json` reported a valid,
+ready plan with no diagnostics. No commit has been made.
+
+### Change summary for step 3 docs_layout_hardening (round 1)
+
+Replace directory-first workflow selection with one scoped discovery result.
+Validate canonical parent identity before matching, preserve local newest-file
+selection, and require a unique fallback across every other recognized layout.
+Add contextual failure diagnostics and focused regression coverage. Repair
+three existing synthetic draft fixtures and remove the obsolete facade helper
+export. Record Step 3 completion and actual validation evidence while leaving
+Step 4 pending.
+
+### Human guidance and writer response for step 3 docs_layout_hardening (round 1)
+
+Human guidance:
+
+Focus on canonical-parent validation, local versus fallback scope, deterministic
+candidate ordering, zero/one/multiple fallback behavior, facade compatibility,
+filesystem error propagation, and the single-discovery IO contract. Eligibility
+inventory may inspect other effort directories even when local matching wins;
+the short-circuit promise concerns fallback role matching. Keep exact general
+resolution separate from workflow selection.
+
+The additional facade cleanup and third legacy fixture repair are necessary
+consequences of removing the old helper and enforcing valid canonical parents.
+Step 4 CLI/post-commit acceptance and published layout guidance remain outside
+this implementation step. Follow the repository Groundhog lifecycle for the
+mandatory validation and do not duplicate an active walk.
+
+Writer response:
+
+This is the initial review round for Step 3. There is no earlier reviewer
+answer to resolve. The writer considers the staged implementation complete and
+requests an independent assessment of the exact index tree, plan compliance,
+tests, diagnostics, and commit grouping.
+
+### Reviewer focus for step 3 docs_layout_hardening (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-3-round-1 -->
+
+## Round 1 by reviewer - Step 3
+
+- Recorded: 2026-09-12T23:54:36+02:00
+- Exchange: code/code/v0.12.0/docs_layout_hardening
+- Umbrella: none
+- Reviewed document: docs/v0.12.0/plan.v0.12.0.docs_layout_hardening.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 3
+- Outcome: answer
+
+### Assessed index identity for step 3 docs_layout_hardening (exchange 1) (round 1)
+
+Baseline index tree: 2850f2de0a748ccc5fbf353bafb3b8d454ecb45d
+
+Assessed index tree: 2850f2de0a748ccc5fbf353bafb3b8d454ecb45d
+
+### Implementation check for step 3 docs_layout_hardening (exchange 1) (round 1)
+
+Result:
+
+#### Reviewer implementation check for scoped selection for step 3 docs_layout_hardening (exchange 1) (round 1)
+
+Yes. Step 3 has been fully implemented.
+
+This is the step the whole effort was aimed at, and it lands the four selection
+cases the issue separated: a recognized parent with matches, a recognized parent
+without them, several matches inside a parent, and a parent that fails the
+effort rule. Each has one owning branch in the code and tests that would fail if
+it moved.
+
+##### What the reviewer verified in the selection change for step 3 docs_layout_hardening (exchange 1) (round 1)
+
+`_discover_candidates` inventories `docs_dirs(root)` once, pairs each directory
+with its resolved form, and finds the canonical parent by resolved comparison.
+A parent absent from that set raises `PromptWorkflowError` immediately, which is
+issue Q10 option A and design Q07 option A: the check sits in shared discovery,
+so both public entry points report an invalid scope rather than one of them
+reporting an empty match set.
+
+Local matches end discovery and carry the `canonical-parent` scope. Only an
+empty local result reaches the fallback, which scans every other recognized
+directory and excludes the parent by the same resolved comparison.
+`_directory_matches` keeps the existing `sorted(directory.iterdir())` order, so
+candidate ordering and therefore local timestamp ties are unchanged.
+
+`select_document` applies the scope rather than rediscovering it: `most_recent`
+for local matches, and for fallback `None` on zero, the sole path on one, and an
+error naming every competing path on more. That is issue Q09 option C
+implemented exactly, with issue Q06 option A supplying the fallback itself.
+
+The draft file is never opened. Only `topic.draft_path.resolve().parent` is
+read, which is the property post-commit topic resolution depends on and which
+the design spent a round getting stated correctly.
+
+##### The diagnostics carry what the design asked for for step 3 docs_layout_hardening (exchange 1) (round 1)
+
+The invalid-parent message names the parent, the role, the version and the slug.
+The fallback-ambiguity message names the role, version, slug, canonical parent
+and every competing path in stable order. Neither freezes a sentence.
+
+`_render_parent` is the detail worth calling out: it renders the parent
+repository-relative when it lies under the root and absolute otherwise. Without
+it, a topic whose draft path resolves outside the root, which is exactly the
+shape the old relative-path fixtures had, would fail inside the error path with
+a `ValueError` from `relative_to` while trying to report a different error. The
+test for a parent outside the repository pins that.
+
+##### Architecture check for the selection change for step 3 docs_layout_hardening (exchange 1) (round 1)
+
+`_topic_docs_dirs` is removed cleanly: gone from the lookup module, from the
+facade import list and from both export lists, with no reference left anywhere
+in `tools/` or `tests/`. The facade keeps every public selector and the tested
+private matchers, so caller imports and both monkeypatch seams are untouched.
+
+The new `_DocumentCandidates` is a frozen dataclass holding ordered paths and a
+`Literal` scope, which is the internal result design Q03 option A describes and
+nothing more. The dependency direction is unchanged. Ty, pyright, ruff, radon
+and vulture all pass. Files stand at 345, 500, 615, 253 and 6 lines, all below
+the 650 ceiling, and the lookup module has ample headroom so the plan's
+conditional filename split stays unnecessary. Nothing needs to be addressed.
+
+##### Performance check for the selection change for step 3 docs_layout_hardening (exchange 1) (round 1)
+
+One inventory per call, one `resolve()` per recognized directory as before, one
+sorted `iterdir` per scanned directory, and fallback scanning only when local
+matching found nothing. The single-inventory test proves the first of those by
+counting calls rather than asserting it in prose.
+
+No nested all-candidate comparison, no second discovery pass, no cache and no
+retry. This round's full phase ran 2,842 tests in 3m 28.5s. No performance issue
+needs to be addressed.
+
+##### Unit test coverage check for the selection change for step 3 docs_layout_hardening (exchange 1) (round 1)
+
+The coverage gate's source is `tools` in `pyproject.toml`, so both changed
+production modules are measured, and this round's walk reported `cov=100` with
+no failure, warning or xfail across 2,842 tests, 47 more than Step 2's 2,795.
+
+The new package builds its matrix from two fixtures rather than repetition: one
+supplying every role plus both concrete requirement kinds, and one supplying
+both public entry points. That second fixture is what makes "both entry points
+reject an unrecognized parent" a structural property of the suite instead of a
+pair of hand-written assertions.
+
+Two cases deserve specific mention. The single-inventory test counts `docs_dirs`
+calls and `_doc_matches` calls separately, asserting one inventory and that
+fallback names are matched only in the fallback scope; it deliberately does not
+claim that local success avoids the eligibility inventory's own reads, which is
+the over-claim the design warned against. The resolved-parent test passes a
+draft path containing `..` and checks that normalization accepts it while the
+returned paths stay unresolved.
+
+No unit-tested class is below 100%, and no staged file sits outside the coverage
+gate.
+
+##### Feature integrity for the selection change for step 3 docs_layout_hardening (exchange 1) (round 1)
+
+`find_documents` and `resolve_document` keep their exact-match and strict
+ambiguity contracts, which one test pins against workflow selection preferring
+its parent on the same tree. Role and subtopic matching breadth is unchanged.
+Local timestamp ties keep the first sorted candidate. Older layouts, the flat
+root, enumeration order and version scoping are untouched. Nothing regressed.
+
+Validation plan effects:
+
+#### Validation plan effects of the step 3 round 1 round for step 3 docs_layout_hardening (exchange 1) (round 1)
+
+None. This reviewer wrote no row in
+`docs/v0.12.0/plan.v0.12.0.docs_layout_hardening.validation.md`.
+
+The writer's Step 3 section opens with the exact
+`Yes. Step 3 has been fully implemented.` sentence, and its analysis,
+architecture, performance, coverage and feature-integrity subsections match what
+I verified independently, including the inspected caller paths and the statement
+that no caller converts discovery errors into absence.
+
+The document-level status line correctly stays at `No, it is not implemented.`,
+because Step 4 is pending. No umbrella row applies: this is a standalone effort,
+and reviewer mode never completes one.
+
+The validation-state comparison confirms no tracked difference arose during this
+round, so the staged validation plan is the writer's content unamended.
+
+### Pre-repair mandatory checks and coverage for step 3 docs_layout_hardening (exchange 1) (round 1)
+
+#### Pre-repair validation evidence for the step 3 round 1 assessment for step 3 docs_layout_hardening (exchange 1) (round 1)
+
+Captured before assessment could mutate anything, and no repair followed, so
+this capture is also the state the round was judged against.
+
+The ordered `validation_path_set` was the six staged step paths, the validation
+plan among them, followed by the known groundhog and coverage artifacts
+`a.ghog.log`, `a.ghog.status`, `a.ghog.day.ok` and `.coverage`.
+
+At capture time the index tree was
+`2850f2de0a748ccc5fbf353bafb3b8d454ecb45d`, matching the request's
+`request_index_tree`, with six tracked files digested and no untracked file in
+the set.
+
+A retained manifest carrying this evidence, the exchange identity, the step and
+both index trees was written through the shared launcher before assessment
+began, so a stopped round keeps its recovery evidence.
+
+No pre-repair blob was recorded, because no permitted repair path was opened and
+this reviewer authored no tracked change.
+
+### Resolved validation set and sources for step 3 docs_layout_hardening (exchange 1) (round 1)
+
+#### Resolved validation set executed in the step 3 round 1 assessment for step 3 docs_layout_hardening (exchange 1) (round 1)
+
+Both resolved commands ran in this reviewer's shell and both passed.
+
+| Command | Sources | Reviewer result |
+| --- | --- | --- |
+| `ghog day` | project | Ran. `exit=0`, `fail=0 warn=0 xfail=0 cov=100`, 2,842 tests, 3m 28.5s, ended 23:51:43 +02:00. |
+| `rg -n '_DocumentCandidates\|_discover_candidates\|most_recent\|PromptWorkflowError' tools/prompt_workflow_document_lookup.py` | plan | Ran. `exit=0` with 16 matches confirming the intended shape. |
+
+##### The walk for step 3 docs_layout_hardening (exchange 1) (round 1)
+
+The check phase passed every step, Markdown included. The affected phase passed.
+The full phase ran all 2,842 tests with no failure, warning or xfail and
+reported `cov=100`. That is 47 more tests than Step 2's 2,795, matching the new
+selection package's parametrized case count.
+
+##### Reading the inspection command's matches for step 3 docs_layout_hardening (exchange 1) (round 1)
+
+The inspection is a shape check rather than an absence check, so its matches are
+the evidence:
+
+- `_DocumentCandidates` appears at its definition and at both construction
+  sites, one per scope, so exactly one result type carries both scopes.
+- `_discover_candidates` appears at its definition and at exactly two call
+  sites, `find_matching_documents` and `select_document`, which is the shared
+  validation boundary design Q07 option A asks for. Neither entry point reaches
+  candidates by another path.
+- `most_recent` appears at its definition, its export and one call site inside
+  the canonical-parent branch only, so the timestamp rule is confined to local
+  matches.
+- `PromptWorkflowError` appears at the import, the four pre-existing raises for
+  invalid versions, unknown document types and general ambiguity, and the two
+  new raises for an unrecognized parent and ambiguous fallback.
+
+That distribution is what the step set out to produce: one discovery function,
+one result type, the timestamp rule local only, and the two new failures raised
+through the existing error type rather than a new one.
+
+### Resolver drift and direction for step 3 docs_layout_hardening (exchange 1) (round 1)
+
+#### Resolver drift observed in the step 3 round 1 assessment for step 3 docs_layout_hardening (exchange 1) (round 1)
+
+No drift, in either direction.
+
+The request's `resolved_validation_set` carries `ghog day` sourced from
+`project` alone, plus the plan-sourced inspection of the lookup module.
+Re-resolving against the current repository reproduces it:
+
+- The project source resolves to the built-in `("ghog day",)` default, because
+  this repository still declares no `.review-validation` file.
+- The plan source is the consolidated Step 3 completion line, which names that
+  single inspection over `_DocumentCandidates`, `_discover_candidates`,
+  `most_recent` and `PromptWorkflowError`.
+
+Both commands ran in this round, so the union is the request set unchanged and
+fully executed.
+
+The pattern across the three steps so far is stable: the project floor is one
+walk, and each step contributes exactly one inspection of its own module. Step 3
+is the first where that inspection is a shape check rather than an absence
+check, so its matches carry the evidence instead of its exit code.
+
+### Repository state around validation for step 3 docs_layout_hardening (exchange 1) (round 1)
+
+#### Repository state comparison across the step 3 round 1 round for step 3 docs_layout_hardening (exchange 1) (round 1)
+
+Every boundary came back clean.
+
+##### Index tree identity for step 3 for step 3 docs_layout_hardening (exchange 1) (round 1)
+
+The request carries `request_index_tree`
+`2850f2de0a748ccc5fbf353bafb3b8d454ecb45d`. The live index tree matched it
+before assessment and matches it again after the walk, so no early rejection
+applied and nothing this reviewer ran changed the staged set.
+
+##### Umbrella digest boundary for step 3 for step 3 docs_layout_hardening (exchange 1) (round 1)
+
+The request says `Umbrella draft: none` and the envelope carries
+`umbrella_path: null`. Capture returned `{"applicable": false, "digest": null}`
+and the comparison after the implementation-check result returned
+`{"applicable": false, "changed": false}`. No umbrella is in scope and none was
+touched.
+
+##### Validation state boundary for step 3 for step 3 docs_layout_hardening (exchange 1) (round 1)
+
+The ordered `validation_path_set` held the six staged step paths, the validation
+plan among them, followed by the known groundhog and coverage artifacts. The
+comparison returned `acceptable: true` with empty `tracked_paths` and empty
+`untracked_paths`.
+
+The only differences are the ignored artifacts the walk rewrites, `a.ghog.log`,
+`a.ghog.status`, `a.ghog.day.ok` and `.coverage`. No tracked validation side
+effect appeared, so nothing had to be left unstaged or reported as a boundary
+finding.
+
+##### Working tree observations for step 3 for step 3 docs_layout_hardening (exchange 1) (round 1)
+
+The review transcript is committed rather than staged this time, because Steps 1
+and 2 carried it into their commits, so it no longer appears in this step's
+staged set. The ignored focused log from the Step 2 rounds and the writer's `rg`
+bridge helper remain where they were, unstaged and untouched.
+
+### Repair inventory for step 3 docs_layout_hardening (exchange 1) (round 1)
+
+Repairs made:
+
+#### Repairs made by the reviewer in the step 3 round 1 round
+
+- None. This reviewer authored no tracked change: no source edit, no test edit, no
+- validation-plan row, and no `a.commit` amendment.
+- Nothing needed one. The scoped discovery, the parent validation, the two
+- selection policies, the diagnostics, the new test package and the three legacy
+- fixture repairs are all correct as staged, and `a.commit` matches the staged set.
+- No pre-repair blob was recorded and no reviewer patch was staged, so no
+- attribution call was needed. The index is exactly what the writer published.
+- Because this round made no substantive repair, nothing prevents it from reaching
+- the convergence gate.
+
+Paths staged:
+
+#### Staged paths assessed in the step 3 round 1 round
+
+- Six paths, all inside Step 3:
+- - `tools/prompt_workflow_document_lookup.py`, the scoped discovery result, the
+- parent validation and the two selection policies.
+- - `tools/prompt_workflow_docs.py`, removing the obsolete private re-export and
+- refreshing the module description.
+- - `tests/unit/tools/test_prompt_workflow_document_selection/__init__.py` and its
+- TDD module, the new selection package.
+- - `tests/unit/tools/test_prompt_workflow_docs/test_prompt_workflow_docs_tdd.py`,
+- the three legacy selection fixture repairs.
+- - `docs/v0.12.0/plan.v0.12.0.docs_layout_hardening.validation.md`, the step's
+- validation record.
+- The plan's Step 3 files-involved list named the lookup module, the new package
+- and the existing docs suite. The facade is the one addition, and it belongs:
+- removing `_topic_docs_dirs` from the lookup module leaves a dangling import and
+- a dangling export there, so the facade edit is the same change rather than
+- extra scope. Nothing else was staged and no pre-existing work was swept in.
+- Physical line counts are 345 for the lookup module, 500 for the facade, 615 for
+- the legacy docs suite, 253 for the new test module and 6 for its initializer.
+- All are below the 650-line ceiling.
+- Two of those are worth carrying forward rather than acting on now. The lookup
+- module at 345 has room to spare, so the plan's conditional filename-grammar
+- split stays unnecessary. The legacy docs suite is unchanged at 615 with 35 lines
+- of headroom, which is the number Step 4 should keep in view: the plan already
+- says its layout-test responsibility moves to the new packages if a later step
+- cannot stay under the ceiling.
+
+### Commit plan assessment for step 3 docs_layout_hardening (exchange 1) (round 1)
+
+#### Commit plan assessment for the step 3 round 1 round for step 3 docs_layout_hardening (exchange 1) (round 1)
+
+`a.commit` is accurate and needs no amendment. This reviewer did not change it.
+
+The independent rerun of `commit-plan-check.bat --format json` against the
+received repository state returned `state: valid`, `ready: true`, an empty
+`diagnostics` array and exit `0`, matching the result recorded in the request.
+
+| Position | Subject | Paths |
+| --- | --- | --- |
+| 1 | `fix(docs-layout): scope workflow document selection` | the lookup module, the facade, the legacy docs suite and the new selection package |
+| 2 | `docs(docs_layout_hardening): record step 3 validation` | the validation plan |
+
+Two groups rather than three is right here. Step 2 needed a separate transcript
+group because that repair shared no cause with the behavior change; this step
+has no such outsider. The facade edit, the legacy fixture repairs and the new
+package all exist because of the selection change and would not make sense
+apart from it, so splitting them would produce commits that do not stand alone.
+The validation record describes the finished state, so it comes last.
+
+The subject uses a conventional type and scope. `fix` is right again: this
+closes the selection half of a contract the issue treats as defective, and the
+`docs-layout` scope names the area rather than the module.
+
+A status `0` satisfies only the mechanical `a.commit` result in the readiness
+floor. It proves nothing about implementation completeness, validation evidence
+or repair attribution, and it authorizes no commit.
+
+### Findings and boundaries for step 3 docs_layout_hardening (exchange 1) (round 1)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 3 docs_layout_hardening (exchange 1) (round 1)
+
+#### Writer instructions at the step 3 convergence gate for step 3 docs_layout_hardening (exchange 1) (round 1)
+
+No change is requested. The selection implementation, its tests, the three
+legacy fixture repairs and `a.commit` are all correct, and the walk completes
+with complete coverage.
+
+1. Present the advisory commit-ready recommendation and the two registered
+   labels to the human, and make no further edit before that choice.
+2. Leave the six staged paths as they are. This reviewer authored no tracked
+   change, so the index is entirely the writer's.
+
+Two things to carry into Step 4, neither a change request here.
+
+The legacy docs suite is unchanged at 615 lines with 35 of headroom against the
+650 ceiling. Step 4 adds an acceptance package rather than editing that suite,
+so this should stay comfortable, but the plan's instruction to move its
+layout-test responsibility if a step cannot stay under the ceiling is the escape
+hatch if it does not.
+
+Step 4 owes the acceptance mapping for the design's sixteen rows, and this step
+supplies most of the selection half of that evidence. Reusing the new package's
+cases by reference rather than rebuilding equivalent scenarios through the CLI
+is what the plan's Q06 answer already chose, and the case matrix here is
+detailed enough to map row by row.
+
+This recommendation is advisory and authorizes nothing. The commit choice, and
+the labels offered for it, belong to the human at the convergence gate. Do not
+commit on the strength of this answer.
+
+### Decision rationale for step 3 docs_layout_hardening (exchange 1) (round 1)
+
+#### Decision rationale for the step 3 round 1 disposition for step 3 docs_layout_hardening (exchange 1) (round 1)
+
+This round publishes an advisory `commit-ready` recommendation. Every result in
+the readiness floor passes, nothing is carried or open, and this round made no
+repair of any kind.
+
+##### The six readiness results for step 3 for step 3 docs_layout_hardening (exchange 1) (round 1)
+
+| Result | Outcome |
+| --- | --- |
+| Exact identity | Pass. Envelope, human-readable request, plan, step, round, occurrence and index tree all agree. |
+| Complete implementation | Pass. Step 3 is fully implemented and the validation record's Yes verdict is correct. |
+| Mandatory validation and coverage | Pass. `ghog day` exits 0 with `cov=100` over 2,842 tests; the inspection ran and confirms the intended shape. |
+| Attributable staged scope | Pass. Six staged paths, all named by the step, none swept in, no reviewer patch. |
+| Unresolved findings | Pass. None found. |
+| `a.commit` accuracy | Pass. Independent rerun returned `state: valid`, `ready: true`, exit `0`. |
+
+##### Why this one is commit-ready on the first round for step 3 docs_layout_hardening (exchange 1) (round 1)
+
+The two previous steps each needed a second round, and neither time was the code
+at fault: Step 1 stalled on a command this reviewer could not resolve, and Step 2
+on a Markdown defect in the transcript that broke the walk. Both causes are gone.
+`rg` resolves through the bridge, and the transcript passes the Markdown gate
+because the writer fixed the authoring side rather than only the symptom.
+
+What is left is the implementation, and it is right. The four selection cases the
+issue separated each have one owning branch, the parent check sits in shared
+discovery so both entry points report an invalid scope, the timestamp rule is
+confined to local matches, and the fallback admits exactly one document or names
+every competitor.
+
+##### The fixture repair the plan did not predict for step 3 docs_layout_hardening (exchange 1) (round 1)
+
+The plan committed to repairing two selection fixtures, and my plan review named
+the same two, because both reached the old fallback through the module-level
+`_ISO` topic. A third fixture, the folded-slug case, builds its own topic inline
+with the same relative draft path, so a search for `_ISO` did not surface it and
+neither the plan nor my review caught it.
+
+The writer's regression run did, and applied the same bounded repair. That is
+the fixture rule working as intended: the plan stated the property, the run
+found the instance the property predicted, and the repair matched the two the
+plan had named. Worth recording because it is the one place where the plan's own
+enumeration was short and the process caught it anyway.
+
+##### What this recommendation is and is not for step 3 docs_layout_hardening (exchange 1) (round 1)
+
+It is advisory. It does not authorize a commit and it is not a commit. The
+choice belongs to the human at the convergence gate, along with the option of
+another round.
+
+It rests on evidence this reviewer produced in its own shell: a complete
+groundhog walk with 2,842 tests and complete coverage, the resolved inspection
+read match by match rather than by exit code, an independent `commit-plan-check`
+rerun, and clean umbrella and validation-state boundaries with no tracked side
+effect.
+
+Step 4 remains, and with it the acceptance mapping for the design's sixteen
+rows, the CLI and post-commit flows against real temporary repositories, and the
+`rules/docs_layout.md` update. The one thing worth carrying into that round is
+the legacy docs suite at 615 lines against the 650 ceiling.
+
+### Final reviewer decision for step 3 docs_layout_hardening (exchange 1) (round 1)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-3-round-1 -->
+
+## Round 1 by human - Step 3 - human-confirmation
+
+- Recorded: 2026-09-13T01:16:47+02:00
+- Exchange: code/code/v0.12.0/docs_layout_hardening
+- Umbrella: none
+- Reviewed document: docs/v0.12.0/plan.v0.12.0.docs_layout_hardening.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 3
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-1 -->
