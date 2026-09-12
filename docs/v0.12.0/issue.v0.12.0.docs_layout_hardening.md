@@ -232,6 +232,13 @@ The reviewed discovery and selection functions are in
 are in
 `tests/unit/tools/test_prompt_workflow_docs/test_prompt_workflow_docs_tdd.py`.
 
+## File-based IO cost clarification for v0.12.0 requirements
+
+The qualifying-content rule uses current immediate filenames and existing
+file-type checks without reading document bodies. Existing enumeration,
+ordering and downstream document reads remain. The accepted behavior requires
+fresh results after file changes, not an index, a cache or a latency target.
+
 ## Requirement clarifications
 
 | Question | Decision and rationale | Integrated in | Rejected alternatives |

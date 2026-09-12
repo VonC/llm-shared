@@ -237,6 +237,15 @@ The implementation plan will map these outcomes to regression coverage and
 check the optional-slug interface. This design does not prescribe a file-by-file
 change sequence or reopen the issue's compatibility boundaries.
 
+## File-based IO cost clarification for v0.12.0 design
+
+Recognition adds uncached immediate-entry and file-type checks, stopping at the
+first exact qualifying filename without reading bodies. Retain existing
+enumeration and sorting. The selector consumes one scoped candidate result;
+local success avoids fallback matching but not necessarily other-directory
+eligibility checks. Existing body/mtime reads remain. No index, atomic snapshot
+or quantitative latency target is introduced.
+
 ## Design decisions
 
 All seven reviewed choices are accepted as option A. No further design
