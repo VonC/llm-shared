@@ -1,8 +1,8 @@
 """Topic and document resolution for prompt_workflow.
 
-This module turns the raw git signals into topics and resolves the documents a
-prompt needs. It parses the version and slug from a draft name, detects the
-relevant drafts on the current branch (Q07), matches requirement, design and
+This facade turns raw Git signals into topics and re-exports document lookup
+from ``prompt_workflow_document_lookup`` while retaining existing caller imports.
+It parses the version and slug from a draft name, detects the relevant drafts on the current branch (Q07), matches requirement, design and
 plan documents to a topic by shared version and slug prefix (Q02), picks the
 most recently modified match (Q01), and detects a ``## Open questions`` section
 (Q04). It reads files; it never writes.
@@ -19,6 +19,28 @@ from inspect import signature
 from pathlib import Path
 
 from tools import prompt_workflow_git as git
+from tools.prompt_workflow_document_lookup import (
+    DOCS_DIR_NAME,
+    DOCUMENT_TYPE_PREFIXES,
+    DOCUMENT_TYPES,
+    FULL_VERSION_DIR_RE,
+    FULL_VERSION_PARTS,
+    MD_SUFFIX,
+    MINOR_DIR_RE,
+    NESTED_LAYOUT_DEPTH,
+    _doc_matches,
+    _exact_doc_matches,
+    _is_supported_docs_dir,
+    _slug_key,
+    _topic_docs_dirs,
+    docs_dirs,
+    docs_dirs_for_version,
+    find_documents,
+    find_matching_documents,
+    most_recent,
+    resolve_document,
+    select_document,
+)
 from tools.prompt_workflow_models import (
     ROLE_DOC_TYPES,
     VALIDATION_SUFFIX,
@@ -29,28 +51,6 @@ from tools.prompt_workflow_models import (
 
 # A version token such as ``v9.8.0`` or ``v8.11`` (same shape as oqm uses).
 VERSION_RE = re.compile(r"v\d+(?:\.\d+)+")
-MINOR_DIR_RE = re.compile(r"v\d+\.\d+")
-FULL_VERSION_DIR_RE = re.compile(r"v\d+\.\d+\.\d+")
-NESTED_LAYOUT_DEPTH = 2
-FULL_VERSION_PARTS = 3
-DOCUMENT_TYPES = (
-    "draft",
-    "requirement",
-    "feature-request",
-    "issue",
-    "design",
-    "plan",
-    "validation-plan",
-)
-DOCUMENT_TYPE_PREFIXES = {
-    "draft": ("draft",),
-    "requirement": ROLE_DOC_TYPES["requirement"],
-    "feature-request": ("feature-request",),
-    "issue": ("issue",),
-    "design": ("design",),
-    "plan": ("plan",),
-    "validation-plan": ("plan",),
-}
 # A line opening the open-questions section, matching oqm's marker.
 OPEN_QUESTIONS_RE = re.compile(r"^## Open questions")
 # A line opening a consolidated decisions section (requirement, design, or plan).
@@ -64,10 +64,8 @@ CONSOLIDATED_ROW_RE = re.compile(r"^\|\s*Q\d+\b")
 # rows. Named MARK, not TOKEN, so ruff's hardcoded-password rule (S105), which
 # keys on credential-like names, does not misread the phrase as a secret.
 NO_OPEN_QUESTIONS_MARK = "No open questions"
-# The docs folder name and the draft prefix and markdown suffix.
-DOCS_DIR_NAME = "docs"
+# The draft prefix used by Git-derived topic discovery.
 DRAFT_PREFIX = "draft."
-MD_SUFFIX = ".md"
 # The split-and-define section is the authoritative ordered collection backlog.
 COLLECTION_HEADING = "## List of feature-requests and issues to create"
 UMBRELLA_MARKER = "- Draft role: umbrella"
@@ -399,202 +397,6 @@ def _fork_point(cwd: Path, branch: str | None) -> str | None:
     return git.fork_point(cwd, branch)
 
 
-def docs_dirs(root: Path) -> list[Path]:
-    """Return directories from the supported documentation layouts."""
-    docs = root / DOCS_DIR_NAME
-    if not docs.is_dir():
-        return []
-    dirs = [docs]
-    dirs.extend(
-        sub
-        for sub in sorted(docs.rglob("*"))
-        if sub.is_dir() and _is_supported_docs_dir(docs, sub)
-    )
-    return dirs
-
-
-def docs_dirs_for_version(root: Path, version: str) -> list[Path]:
-    """Return existing supported documentation directories for ``version``.
-
-    A full ``vX.Y.Z`` version maps to ``docs/``, ``docs/vX.Y/``,
-    ``docs/vX.Y.Z/``, ``docs/vX.Y/vX.Y.Z/``, and any ``docs/vX.Y.Z/<slug>/``.
-    A legacy ``vX.Y`` version maps to the first two layouts only.
-    """
-    is_minor = MINOR_DIR_RE.fullmatch(version) is not None
-    is_full = FULL_VERSION_DIR_RE.fullmatch(version) is not None
-    if not (is_minor or is_full):
-        msg = f"Invalid document version: {version!r}."
-        raise PromptWorkflowError(msg)
-    docs = root / DOCS_DIR_NAME
-    parts = version.removeprefix("v").split(".")
-    minor = f"v{parts[0]}.{parts[1]}"
-    candidates = [docs, docs / minor]
-    if len(parts) == FULL_VERSION_PARTS:
-        full_dir = docs / version
-        candidates.extend((full_dir, docs / minor / version))
-        if full_dir.is_dir():
-            candidates.extend(
-                sub
-                for sub in sorted(full_dir.iterdir())
-                if sub.is_dir() and COLLECTION_SLUG_RE.fullmatch(sub.name) is not None
-            )
-    return [candidate for candidate in candidates if candidate.is_dir()]
-
-
-def _is_supported_docs_dir(docs: Path, candidate: Path) -> bool:
-    """Return whether ``candidate`` is one of the supported version paths."""
-    parts = candidate.relative_to(docs).parts
-    if len(parts) == 1:
-        return bool(
-            MINOR_DIR_RE.fullmatch(parts[0])
-            or FULL_VERSION_DIR_RE.fullmatch(parts[0]),
-        )
-    if len(parts) == NESTED_LAYOUT_DEPTH:
-        if MINOR_DIR_RE.fullmatch(parts[0]) and FULL_VERSION_DIR_RE.fullmatch(parts[1]):
-            return True
-        if FULL_VERSION_DIR_RE.fullmatch(parts[0]) and COLLECTION_SLUG_RE.fullmatch(parts[1]):
-            return True
-    return False
-
-
-def _topic_docs_dirs(root: Path, topic: Topic) -> list[Path]:
-    """Prefer the canonical draft's directory, falling back to every layout."""
-    directories = docs_dirs(root)
-    draft_parent = topic.draft_path.resolve().parent
-    matching = [directory for directory in directories if directory.resolve() == draft_parent]
-    return matching or directories
-
-
-def _slug_key(value: str) -> str:
-    """Canonicalize a slug so ``-`` and ``_`` separators compare equal.
-
-    A draft slug uses ``_`` (for example ``git_history_report``) while the
-    requirement, design and plan documents carry the hyphenated topic
-    ``write-requirement`` enforces (``git-history-report``). Folding ``-`` onto
-    ``_`` lets either form resolve the other.
-
-    Args:
-        value: A slug or a file-name topic part.
-
-    Returns:
-        The value with every ``-`` rewritten as ``_``.
-    """
-    return value.replace("-", "_")
-
-
-def _doc_matches(name: str, role: str, version: str, slug: str) -> bool:
-    """Return whether a file name matches the role, version and topic slug (Q02).
-
-    The topic part of the file name is compared to ``slug`` with ``-`` and ``_``
-    folded together (see ``_slug_key``), so a ``git_history_report`` draft slug
-    resolves the hyphenated ``git-history-report`` documents and the reverse,
-    including a ``<slug>_<sub>`` umbrella sub-topic written with either separator.
-    """
-    slug_key = _slug_key(slug)
-    for doc_type in ROLE_DOC_TYPES[role]:
-        prefix = f"{doc_type}.{version}."
-        if not name.startswith(prefix) or not name.endswith(MD_SUFFIX):
-            continue
-        if role == "plan" and name.endswith(VALIDATION_SUFFIX):
-            continue
-        if role == "validation_plan":
-            if not name.endswith(VALIDATION_SUFFIX):
-                continue
-            topic_part = name[len(prefix) : -len(VALIDATION_SUFFIX)]
-        else:
-            topic_part = name[len(prefix) : -len(MD_SUFFIX)]
-        topic_key = _slug_key(topic_part)
-        if topic_key == slug_key or topic_key.startswith(slug_key + "_"):
-            return True
-    return False
-
-
-def _exact_doc_matches(name: str, document_type: str, version: str, slug: str) -> bool:
-    """Return whether ``name`` exactly matches one document selector."""
-    prefixes = DOCUMENT_TYPE_PREFIXES.get(document_type)
-    if prefixes is None:
-        choices = ", ".join(DOCUMENT_TYPES)
-        msg = f"Unknown document type {document_type!r}; expected one of: {choices}."
-        raise PromptWorkflowError(msg)
-    validation = document_type == "validation-plan"
-    suffix = VALIDATION_SUFFIX if validation else MD_SUFFIX
-    slug_key = _slug_key(slug)
-    for prefix in prefixes:
-        start = f"{prefix}.{version}."
-        if not name.startswith(start) or not name.endswith(suffix):
-            continue
-        if not validation and name.endswith(VALIDATION_SUFFIX):
-            continue
-        topic_part = name[len(start) : -len(suffix)]
-        if _slug_key(topic_part) == slug_key:
-            return True
-    return False
-
-
-def find_documents(
-    root: Path,
-    version: str,
-    slug: str,
-    document_type: str,
-) -> list[Path]:
-    """Find exact documents from only version, slug, and document type."""
-    if document_type not in DOCUMENT_TYPE_PREFIXES:
-        choices = ", ".join(DOCUMENT_TYPES)
-        msg = f"Unknown document type {document_type!r}; expected one of: {choices}."
-        raise PromptWorkflowError(msg)
-    matches: list[Path] = []
-    for directory in docs_dirs_for_version(root, version):
-        matches.extend(
-            entry
-            for entry in sorted(directory.iterdir())
-            if entry.is_file()
-            and _exact_doc_matches(entry.name, document_type, version, slug)
-        )
-    return matches
-
-
-def resolve_document(
-    root: Path,
-    version: str,
-    slug: str,
-    document_type: str,
-) -> Path | None:
-    """Resolve one exact document, failing closed when layouts are ambiguous."""
-    matches = find_documents(root, version, slug, document_type)
-    if len(matches) > 1:
-        rendered = ", ".join(path.relative_to(root).as_posix() for path in matches)
-        msg = (
-            f"Ambiguous {document_type} document for {version} {slug}: {rendered}."
-        )
-        raise PromptWorkflowError(msg)
-    return matches[0] if matches else None
-
-
-def find_matching_documents(root: Path, topic: Topic, role: str) -> list[Path]:
-    """Return every document under docs/ matching the topic for the given role."""
-    matches: list[Path] = []
-    for directory in _topic_docs_dirs(root, topic):
-        matches.extend(
-            entry
-            for entry in sorted(directory.iterdir())
-            if entry.is_file()
-            and _doc_matches(entry.name, role, topic.version, topic.slug)
-        )
-    return matches
-
-
-def most_recent(paths: list[Path]) -> Path | None:
-    """Return the most recently modified path, or None when the list is empty (Q01)."""
-    if not paths:
-        return None
-    return max(paths, key=lambda path: path.stat().st_mtime)
-
-
-def select_document(root: Path, topic: Topic, role: str) -> Path | None:
-    """Return the most recent document for a topic and role, or None."""
-    return most_recent(find_matching_documents(root, topic, role))
-
-
 def has_open_questions(path: Path) -> bool:
     """Return whether the document carries a ``## Open questions`` section (Q04)."""
     text = path.read_text(encoding="utf-8")
@@ -645,6 +447,55 @@ def has_consolidated_decisions(path: Path) -> bool:
         CONSOLIDATED_ROW_RE.match(line) or NO_OPEN_QUESTIONS_MARK in line
         for line in lines
     )
+
+
+__all__ = [
+    "COLLECTION_HEADING",
+    "COLLECTION_ITEM_RE",
+    "COLLECTION_SLUG_RE",
+    "COLLECTION_STATUSES",
+    "COLLECTION_TABLE_HEADER",
+    "CONSOLIDATED_ROW_RE",
+    "DECISIONS_RE",
+    "DOCS_DIR_NAME",
+    "DOCUMENT_TYPES",
+    "DOCUMENT_TYPE_PREFIXES",
+    "DRAFT_PREFIX",
+    "FULL_VERSION_DIR_RE",
+    "FULL_VERSION_PARTS",
+    "MD_SUFFIX",
+    "MINOR_DIR_RE",
+    "NESTED_LAYOUT_DEPTH",
+    "NO_OPEN_QUESTIONS_MARK",
+    "OPEN_QUESTIONS_RE",
+    "ROLE_DOC_TYPES",
+    "UMBRELLA_MARKER",
+    "VALIDATION_SUFFIX",
+    "VERSION_RE",
+    "CollectionItem",
+    "PromptWorkflowError",
+    "Topic",
+    "_doc_matches",
+    "_exact_doc_matches",
+    "_is_supported_docs_dir",
+    "_slug_key",
+    "_topic_docs_dirs",
+    "branch_requirement_topic",
+    "branch_umbrella_topic",
+    "collection_items",
+    "docs_dirs",
+    "docs_dirs_for_version",
+    "find_documents",
+    "find_matching_documents",
+    "has_consolidated_decisions",
+    "has_decisions_table",
+    "has_open_questions",
+    "most_recent",
+    "parse_draft_name",
+    "relevant_drafts",
+    "resolve_document",
+    "select_document",
+]
 
 
 # eof
