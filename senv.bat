@@ -137,7 +137,7 @@ if not defined DEFAULT_CA_BUNDLE (
   for /f "delims=" %%f in ('dir /b /a:-d /o:-d "%PARENT_DIR%\*.pem" 2^>nul') do if not defined DEFAULT_CA_BUNDLE set "DEFAULT_CA_BUNDLE=%PARENT_DIR%\%%f"
 )
 if defined DEFAULT_CA_BUNDLE set "UV_CERT=%DEFAULT_CA_BUNDLE%"
-if defined UV_CERT set "SSL_CERT_FILE=%UV_CERT%"
+rem if defined UV_CERT set "SSL_CERT_FILE=%UV_CERT%"
 if defined UV_CERT set "CURL_CA_BUNDLE=%UV_CERT%"
 
 rem uv / uvw / uvx are left unaliased so they resolve to the venv binaries
