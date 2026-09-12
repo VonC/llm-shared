@@ -87,7 +87,7 @@ modules and workflow models, never the docs facade or collection validator.
 
 The facade explicitly re-exports all lookup names and retains VERSION_RE,
 Git-derived topic discovery, collection parsing and body-marker readers.
-Explicit __all__ lists preserve the supported import surface under the
+Explicit `__all__` lists preserve the supported import surface under the
 repository's lint and type-checking policies. The lookup directory-slug
 expression has the same accepted language as COLLECTION_SLUG_RE.
 
@@ -102,7 +102,7 @@ The old shape-only effort recognition and fallback remain for Steps 2 and 3.
 Five staged paths are covered by the mechanically valid root a.commit:
 
 1. test(workflow): characterize document lookup
-   - tests/unit/tools/test_prompt_workflow_document_lookup/__init__.py
+   - `tests/unit/tools/test_prompt_workflow_document_lookup/__init__.py`
    - tests/unit/tools/test_prompt_workflow_document_lookup/test_prompt_workflow_document_lookup_tdd.py
 2. refactor(workflow): extract document lookup
    - tools/prompt_workflow_docs.py
@@ -714,7 +714,7 @@ modules and workflow models, never the docs facade or collection validator.
 
 The facade explicitly re-exports all lookup names and retains VERSION_RE,
 Git-derived topic discovery, collection parsing and body-marker readers.
-Explicit __all__ lists preserve the supported import surface under the
+Explicit `__all__` lists preserve the supported import surface under the
 repository's lint and type-checking policies. The lookup directory-slug
 expression has the same accepted language as COLLECTION_SLUG_RE.
 
@@ -729,7 +729,7 @@ The old shape-only effort recognition and fallback remain for Steps 2 and 3.
 Five staged paths are covered by the mechanically valid root a.commit:
 
 1. test(workflow): characterize document lookup
-   - tests/unit/tools/test_prompt_workflow_document_lookup/__init__.py
+   - `tests/unit/tools/test_prompt_workflow_document_lookup/__init__.py`
    - tests/unit/tools/test_prompt_workflow_document_lookup/test_prompt_workflow_document_lookup_tdd.py
 2. refactor(workflow): extract document lookup
    - tools/prompt_workflow_docs.py
@@ -1220,6 +1220,1269 @@ Decision: commit-ready (advisory). The evidence floor is complete, but this reco
 - Requestor LLM nature: codex
 - Reviewer LLM nature: claude
 - Implementation step: 1
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-2 -->
+
+## Round 1 by requestor - Step 2
+
+- Recorded: 2026-09-12T21:13:59+02:00
+- Exchange: code/code/v0.12.0/docs_layout_hardening
+- Umbrella: none
+- Reviewed document: docs/v0.12.0/plan.v0.12.0.docs_layout_hardening.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: unrecorded
+- Implementation step: 2
+- Outcome: request
+
+### Review identity for step 2 docs_layout_hardening (round 1)
+
+Umbrella draft: none
+Implementation plan: docs/v0.12.0/plan.v0.12.0.docs_layout_hardening.md
+Implementation step: 2
+Review round: 1
+
+### Code review evidence for step 2 docs_layout_hardening (round 1)
+
+request_index_tree: c1e1884cd026ba49ef433f5241d70e90576d9440
+resolved_validation_set:
+
+- ghog day (sources: project)
+- rg -n 'COLLECTION_SLUG_RE|read_text|read_bytes|cache|resolve_document' tools/prompt_workflow_document_lookup.py (sources: plan)
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: docs(review): quote Python names in transcript
+group 1 path: docs/v0.12.0/review.code.v0.12.0.docs_layout_hardening.md
+group 2: fix(workflow): require effort document evidence
+group 2 path: tools/prompt_workflow_document_lookup.py
+group 2 path: tests/unit/tools/test_prompt_workflow_document_lookup/__init__.py
+group 2 path: tests/unit/tools/test_prompt_workflow_document_lookup/test_prompt_workflow_document_lookup_tdd.py
+group 2 path: tests/unit/tools/test_prompt_workflow_document_lookup/test_prompt_workflow_document_lookup_pbt.py
+group 2 path: tests/unit/tools/test_prompt_workflow_docs/test_prompt_workflow_docs_tdd.py
+group 3: docs(docs_layout_hardening): record step 2 validation
+group 3 path: docs/v0.12.0/plan.v0.12.0.docs_layout_hardening.validation.md
+staged path: docs/v0.12.0/plan.v0.12.0.docs_layout_hardening.validation.md
+staged path: docs/v0.12.0/review.code.v0.12.0.docs_layout_hardening.md
+staged path: tests/unit/tools/test_prompt_workflow_docs/test_prompt_workflow_docs_tdd.py
+staged path: tests/unit/tools/test_prompt_workflow_document_lookup/__init__.py
+staged path: tests/unit/tools/test_prompt_workflow_document_lookup/test_prompt_workflow_document_lookup_pbt.py
+staged path: tests/unit/tools/test_prompt_workflow_document_lookup/test_prompt_workflow_document_lookup_tdd.py
+staged path: tools/prompt_workflow_document_lookup.py
+```
+
+### Requestor assessment for step 2 docs_layout_hardening (round 1)
+
+The requestor assesses Step 2 as fully implemented and ready for independent
+review. Both directory listings now share eligibility, and full-version slug
+directories require immediate exact effort-document evidence. The four older
+layouts, ordering, facade imports, and existing selection policy are preserved.
+
+The fresh groundhog walk completed successfully on 2026-09-12 at
+21:06:47+02:00 with exit 0, zero failures or warnings, and 100 percent coverage.
+Duration-outlier and excluded checks were reported as skipped. The validation
+plan records Step 2 complete and leaves Steps 3 and 4 pending.
+
+No reviewer feedback has been received for this round. The reviewer should
+independently assess the staged implementation against Step 2 and its accepted
+design, including exact identity, immediate-file evidence, IO boundaries,
+uncached freshness, and compatibility.
+
+### Implementation report for step 2 docs_layout_hardening (round 1)
+
+Step 2 implements content-based eligibility in the extracted lookup module.
+
+- Define the six effort document kinds explicitly, excluding the requirement
+  alias, and use the existing exact filename matcher for qualification.
+- Route both directory listings through the same supported-layout predicate.
+- Scan immediate regular files, stop at the first exact match, preserve the
+  independent slug grammar, and allow filesystem errors to propagate.
+- Preserve the four older empty layouts and existing enumeration and ordering.
+- Keep qualification uncached and avoid document body reads or resolver calls.
+
+The dedicated TDD suite covers six kinds, empty and non-effort directories,
+wrong identities, subtopics, nested evidence, file-type boundaries, accepted and
+unsupported layouts, ordering and version scopes, add/rename/remove freshness,
+invalid document bytes, read guards, surfaced errors, and short-circuit scans.
+Two bounded Hypothesis properties independently construct exact and mismatched
+filename identities. Three existing fixtures now contain consistent evidence.
+
+An initial check exposed excessive predicate complexity and four pre-existing
+Markdown strong-style errors in the versioned review transcript. Extracting the
+single-purpose evidence helper resolved the complexity failure; quoting only
+the four Python names and paths resolved the Markdown failures.
+
+The subsequent fresh ghog day completed with exit 0. Its full summary reports
+fail=0 warn=0 xfail=0 cov=100 outliers=skipped excluded=skipped. Coverage measures
+the configured tools source with the existing omissions and 100 percent gate.
+The source inspection found no added resolver dependency, body reads, cache, or
+collection slug predicate. Git diff --check passed.
+
+Physical Python line counts before and after:
+
+| File | Before | After |
+| --- | --- | --- |
+| tools/prompt_workflow_document_lookup.py | 274 | 294 |
+| `tests/unit/tools/test_prompt_workflow_document_lookup/__init__.py` | 6 | 6 |
+| tests/unit/tools/test_prompt_workflow_document_lookup/test_prompt_workflow_document_lookup_tdd.py | 87 | 289 |
+| tests/unit/tools/test_prompt_workflow_document_lookup/test_prompt_workflow_document_lookup_pbt.py | 0 | 68 |
+| tests/unit/tools/test_prompt_workflow_docs/test_prompt_workflow_docs_tdd.py | 611 | 615 |
+
+All files remain below the 650-line ceiling. Qualification is linear in each
+candidate directory's immediate entries with six fixed kinds, in addition to
+the preserved enumeration and sort costs. No new types or classes are added.
+Scoped candidate discovery and fallback selection remain Step 3 work.
+
+### Change summary for step 2 docs_layout_hardening (round 1)
+
+Seven staged files are grouped in the mechanically checked root a.commit:
+
+1. docs(review): quote Python names in transcript
+   - docs/v0.12.0/review.code.v0.12.0.docs_layout_hardening.md: four code-span
+     formatting repairs required by the existing Markdown check.
+2. fix(workflow): require effort document evidence
+   - tools/prompt_workflow_document_lookup.py: shared eligibility and exact
+     immediate-file evidence with an explicit six-kind tuple.
+   - `tests/unit/tools/test_prompt_workflow_document_lookup/__init__.py`: package
+     description for the focused lookup tests.
+   - tests/unit/tools/test_prompt_workflow_document_lookup/test_prompt_workflow_document_lookup_tdd.py:
+     observable recognition, compatibility, IO, and freshness matrix.
+   - tests/unit/tools/test_prompt_workflow_document_lookup/test_prompt_workflow_document_lookup_pbt.py:
+     bounded independent exact-identity and mismatch properties.
+   - tests/unit/tools/test_prompt_workflow_docs/test_prompt_workflow_docs_tdd.py:
+     three legacy fixture repairs and suite description.
+3. docs(docs_layout_hardening): record step 2 validation
+   - docs/v0.12.0/plan.v0.12.0.docs_layout_hardening.validation.md: completed
+     Step 2 evidence, line counts, complexity, coverage, and remaining scope.
+
+The commit-plan checker reports ready=true with no diagnostics. No commit has
+been made; the independent recommendation and human commit gate remain pending.
+
+### Writer response for step 2 docs_layout_hardening (round 1)
+
+Writer response:
+
+This is the first review round for Step 2. There is no earlier answer to assess,
+no requested repair to report, and no explicit disagreement with a reviewer.
+
+The requestor considers the staged changes consistent with the accepted Step 2
+scope. Please independently review the implementation and validation evidence.
+
+### Reviewer focus for step 2 docs_layout_hardening (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-2-round-1 -->
+
+## Round 1 by reviewer - Step 2
+
+- Recorded: 2026-09-12T21:22:55+02:00
+- Exchange: code/code/v0.12.0/docs_layout_hardening
+- Umbrella: none
+- Reviewed document: docs/v0.12.0/plan.v0.12.0.docs_layout_hardening.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 2
+- Outcome: answer
+
+### Assessed index identity for step 2 docs_layout_hardening (exchange 1) (round 1)
+
+Baseline index tree: c1e1884cd026ba49ef433f5241d70e90576d9440
+
+Assessed index tree: c1e1884cd026ba49ef433f5241d70e90576d9440
+
+### Implementation check for step 2 docs_layout_hardening (exchange 1) (round 1)
+
+Result:
+
+#### Reviewer implementation check for content-based eligibility for step 2 docs_layout_hardening (exchange 1) (round 1)
+
+Yes. Step 2 has been fully implemented.
+
+The code is right. The blocking result in this round is a Markdown failure in
+the staged review transcript, which is recorded separately; it does not reflect
+on the implementation.
+
+##### What the reviewer verified in the eligibility change for step 2 docs_layout_hardening (exchange 1) (round 1)
+
+Both directory listings now route every candidate through
+`_is_supported_docs_dir`, which is the agreement design Q08 asks for.
+`docs_dirs_for_version` no longer keeps its own `DIRECTORY_SLUG_RE` filter,
+so one directory can no longer be eligible for one listing and not the other.
+The new parametrized `listing` fixture exercises both entry points across the
+whole matrix, which is how that agreement gets pinned rather than asserted.
+
+`EFFORT_DOCUMENT_TYPES` names exactly the six accepted kinds, draft,
+feature-request, issue, design, plan and validation-plan, and excludes the
+`requirement` alias that maps onto the same prefixes. That is design Q02's
+answer implemented literally.
+
+`_has_effort_document` inspects immediate entries only, tests each with the
+existing `_exact_doc_matches`, and stops at the first match through `any`. It
+reads no body, holds no state between calls, calls no resolver, and lets an
+enumeration failure propagate. Those four properties are design Q02, Q05 and Q06
+and each has a test that would fail if it changed.
+
+One detail is easy to miss and was handled: `candidate.relative_to(docs)` for
+the `docs` root itself yields empty parts, so the added `if not parts: return
+True` keeps the flat root recognized once both listings started routing every
+candidate through the predicate. Without it the root layout would have
+disappeared from discovery entirely.
+
+Enumeration order is preserved. `docs_dirs` still yields the root first and then
+the sorted recursive walk, and `docs_dirs_for_version` still yields its
+constructed candidates before the sorted version-directory children. The rewrite
+into a single comprehension changes the shape of the code, not the sequence.
+
+##### The three legacy fixtures were repaired as the plan committed for step 2 docs_layout_hardening (exchange 1) (round 1)
+
+All three cases the plan named are fixed, and each in the way the plan chose:
+`issue.v9.8.0.topic.md` added to the empty `topic` directory,
+`issue.v1.2.3.my_effort.md` added to the empty `my_effort` directory, and the
+parametrized resolution case renamed from `docs/v9.8.0/topic` to
+`docs/v9.8.0/git-history-report` so the directory and its
+`plan.v9.8.0.git-history-report.md` finally agree on identity through the
+existing separator folding. The empty `docs/v9.8/v9.8.0/topic` stays out of the
+expected list, and the four older empty layouts stay in it.
+
+##### Architecture check for the eligibility change for step 2 docs_layout_hardening (exchange 1) (round 1)
+
+The dependency direction is unchanged: the lookup module imports `re`, `typing`
+and the workflow models, never the facade and never the collection validator.
+Eligibility calls a pure filename matcher rather than a resolver, so the
+circular dependency the design warned about is avoided by construction. Ruff,
+ty, pyright, radon and vulture all pass in the check phase; the only check-phase
+failure is Markdown. All Python files stay below the 650-line ceiling at 294,
+289, 68, 615 and 6. Nothing needs to be addressed.
+
+##### Performance check for the eligibility change for step 2 docs_layout_hardening (exchange 1) (round 1)
+
+The added cost is one `iterdir` per candidate slug directory, testing each
+immediate entry against six fixed kinds until the first match. That is linear in
+a directory's immediate entries with a constant factor, which is what the design
+accepted and what the validation plan records. No nested all-candidate
+comparison, no repeated discovery, no cache and no retry appeared. Existing
+enumeration and sort costs are untouched. No performance issue needs to be
+addressed.
+
+##### Unit test coverage check for the eligibility change for step 2 docs_layout_hardening (exchange 1) (round 1)
+
+The coverage gate's source is `tools` in `pyproject.toml`, so the changed
+production module is measured. The focused `ghog affected` run this reviewer
+executed reported `fail=0 warn=0 xfail=0 cov=100 exit=0`, so the step's own
+tests pass and coverage is complete.
+
+The deterministic suite covers each of the six kinds qualifying alone, empty and
+unrelated directories, a matching name that is a file rather than a directory,
+`images` and `sub` effort names with unrelated siblings, the four older empty
+layouts, unsupported shapes that hold matching content, listing order and
+version scope, add, rename and remove within one process, invalid UTF-8 content
+qualifying through its name alone, surfaced `OSError` propagating, and a
+short-circuit proof that fails if enumeration continues past the first match.
+
+The two Hypothesis properties build expected identities independently instead of
+using the matcher as its own oracle, which is the part that makes them worth
+having. One asserts that either separator spelling of the same word sequence
+matches; the other rejects a changed version, a changed leading token and an
+added subtopic suffix. That last case is the boundary between `_exact_doc_matches`
+and the broader `_doc_matches`, so pinning it protects Step 3.
+
+No unit-tested class is below 100%, and no staged file sits outside the coverage
+gate.
+
+##### Feature integrity for the eligibility change for step 2 docs_layout_hardening (exchange 1) (round 1)
+
+Older layouts keep shape-only recognition, the flat root still resolves,
+existing enumeration order and version scoping are intact, and the facade
+re-exports are untouched. Selection policy is deliberately unchanged: the old
+`_topic_docs_dirs` fallback is still in place, which is the transient the plan
+accepts between Step 2 and Step 3. Nothing regressed.
+
+Validation plan effects:
+
+#### Validation plan effects of the step 2 round 1 round for step 2 docs_layout_hardening (exchange 1) (round 1)
+
+None. This reviewer wrote no row in
+`docs/v0.12.0/plan.v0.12.0.docs_layout_hardening.validation.md`.
+
+The writer's Step 2 section already opens with the exact
+`Yes. Step 2 has been fully implemented.` sentence, and I agree with that
+verdict: the implementation is complete and correct, and the blocking result
+this round is a Markdown failure in a different staged file rather than an
+implementation gap.
+
+The document-level status line correctly stays at `No, it is not implemented.`,
+because Steps 3 and 4 are pending. No umbrella row applies: this is a standalone
+effort, and reviewer mode never completes one.
+
+The validation-state comparison confirms no tracked difference arose during this
+round, so the staged validation plan is the writer's content unamended.
+
+### Pre-repair mandatory checks and coverage for step 2 docs_layout_hardening (exchange 1) (round 1)
+
+#### Pre-repair validation evidence for the step 2 round 1 assessment for step 2 docs_layout_hardening (exchange 1) (round 1)
+
+Captured before assessment could mutate anything, and no repair followed, so
+this capture is also the state the round was judged against.
+
+The ordered `validation_path_set` was the seven staged step paths, the
+validation plan and the review transcript among them, followed by the known
+groundhog and coverage artifacts `a.ghog.log`, `a.ghog.status`, `a.ghog.day.ok`
+and `.coverage`.
+
+At capture time the index tree was
+`c1e1884cd026ba49ef433f5241d70e90576d9440`, matching the request's
+`request_index_tree`, with seven tracked files digested and no untracked file in
+the set.
+
+A retained manifest carrying this evidence, the exchange identity, the step and
+both index trees was written through the shared launcher before assessment
+began, so a stopped round keeps its recovery evidence.
+
+No pre-repair blob was recorded, because no permitted repair path was opened.
+The one repair this round calls for is in the review transcript, which a
+reviewer may not edit, so it was reported rather than performed.
+
+### Resolved validation set and sources for step 2 docs_layout_hardening (exchange 1) (round 1)
+
+#### Resolved validation set executed in the step 2 round 1 assessment for step 2 docs_layout_hardening (exchange 1) (round 1)
+
+Two commands were resolved. Both ran. One failed.
+
+| Command | Sources | Reviewer result |
+| --- | --- | --- |
+| `ghog day` | project | Ran. `exit=1`. The check phase failed on `markdown(1)` and the walk stopped before its test phases. |
+| `rg -n 'COLLECTION_SLUG_RE\|read_text\|read_bytes\|cache\|resolve_document' tools/prompt_workflow_document_lookup.py` | plan | Ran. `exit=0` with three matches, all benign. |
+
+##### The failing walk for step 2 docs_layout_hardening (exchange 1) (round 1)
+
+The check phase ended at 21:18:27 +02:00 with `exit=1` after 21.3s. Ty,
+pyright, ruff, radon, vulture, the 650-line file gate and ShellCheck all passed.
+The single failed step is `markdown(1)`, reported as:
+
+```text
+docs/v0.12.0/review.code.v0.12.0.docs_layout_hardening.md:1332: MD050: strong style [Expected: asterisk; Actual: underscore]
+docs/v0.12.0/review.code.v0.12.0.docs_layout_hardening.md:1352: MD050: strong style [Expected: asterisk; Actual: underscore]
+```
+
+Because the check phase opens the walk, the affected and full test phases never
+ran inside `ghog day`. That is why this round carries no full-run evidence.
+
+##### The focused verification the plan prescribes for a failure for step 2 docs_layout_hardening (exchange 1) (round 1)
+
+The plan's ready-to-run section directs a failure to focused `ghog affected` or
+`ghog single` verification, so I ran `ghog affected`. It returned
+`fail=0 warn=0 xfail=0 cov=100 exit=0` and reported that the coverage gate was
+reached with no full run needed.
+
+That separates the two questions cleanly. The step's implementation, its tests
+and its coverage are sound. What fails is the Markdown gate on a staged
+documentation file.
+
+##### Reading the inspection command's three matches for step 2 docs_layout_hardening (exchange 1) (round 1)
+
+`exit=0` only means the pattern matched something, so the matches have to be
+read rather than counted:
+
+- line 7 matches `cache` inside the word "uncached" in the module docstring
+  sentence stating that eligibility is uncached. Prose, not a cache.
+- line 227 is `def resolve_document(`, the existing resolver definition the plan
+  says to expect.
+- line 289 is `"resolve_document"` in the export list, the same definition seen
+  from `__all__`.
+
+No `COLLECTION_SLUG_RE`, no `read_text`, no `read_bytes`, and no caching. The
+inspection passes on substance: eligibility introduced no collection dependency,
+no body read, no cache and no resolver recursion.
+
+### Resolver drift and direction for step 2 docs_layout_hardening (exchange 1) (round 1)
+
+#### Resolver drift observed in the step 2 round 1 assessment for step 2 docs_layout_hardening (exchange 1) (round 1)
+
+No drift, in either direction.
+
+The request's `resolved_validation_set` carries `ghog day` sourced from
+`project` alone, plus the plan-sourced inspection of the lookup module.
+Re-resolving against the current repository reproduces it:
+
+- The project source resolves to the built-in `("ghog day",)` default, because
+  this repository still declares no `.review-validation` file.
+- The plan source is the consolidated Step 2 completion line, which names that
+  single `rg -n` inspection.
+
+One difference from the Step 1 exchange is worth recording because it is a
+change in the set rather than drift within this round. For Step 1 the walk
+carried both `project` and `plan` sources, since that step's text named it
+explicitly. Step 2's text does not repeat the walk, so the walk now arrives from
+the project default alone. The obligation is identical either way, and nothing
+was subtracted: the project floor still requires it.
+
+Both commands ran in this round. The union is the request set unchanged.
+
+### Repository state around validation for step 2 docs_layout_hardening (exchange 1) (round 1)
+
+#### Repository state comparison across the step 2 round 1 round for step 2 docs_layout_hardening (exchange 1) (round 1)
+
+Every boundary came back clean.
+
+##### Index tree identity for step 2 for step 2 docs_layout_hardening (exchange 1) (round 1)
+
+The request carries `request_index_tree`
+`c1e1884cd026ba49ef433f5241d70e90576d9440`. The live index tree matched it
+before assessment and matches it again after both walks, so no early rejection
+applied and nothing this reviewer ran changed the staged set.
+
+##### Umbrella digest boundary for step 2 for step 2 docs_layout_hardening (exchange 1) (round 1)
+
+The request says `Umbrella draft: none` and the envelope carries
+`umbrella_path: null`. Capture returned `{"applicable": false, "digest": null}`
+and the comparison after the implementation-check result returned
+`{"applicable": false, "changed": false}`. No umbrella is in scope and none was
+touched.
+
+##### Validation state boundary for step 2 for step 2 docs_layout_hardening (exchange 1) (round 1)
+
+The ordered `validation_path_set` held the seven staged step paths, the
+validation plan and the transcript among them, followed by the known groundhog
+and coverage artifacts. The comparison returned `acceptable: true` with empty
+`tracked_paths` and empty `untracked_paths`.
+
+The only differences are the ignored artifacts the walks rewrite, `a.ghog.log`,
+`a.ghog.status` and `.coverage`. Ignored validation artifacts are acceptable and
+no tracked validation side effect appeared, so nothing had to be left unstaged
+or reported as a boundary finding.
+
+##### Working tree observations for step 2 for step 2 docs_layout_hardening (exchange 1) (round 1)
+
+The focused verification run wrote its own ignored log,
+`a.ghog.step2-affected.log`, alongside the walk artifacts. It is ignored review
+evidence at the repository root, not a staged or tracked change.
+
+The writer's `rg` bridge helper remains ignored review support material under
+the artifact home, unstaged and correctly outside the step's commit groups.
+
+### Repair inventory for step 2 docs_layout_hardening (exchange 1) (round 1)
+
+Repairs made:
+
+#### Repairs made by the reviewer in the step 2 round 1 round
+
+- None. This reviewer authored no tracked change: no source edit, no test edit, no
+- validation-plan row, and no `a.commit` amendment.
+- The one repair this round needs, two backticks in the staged review transcript,
+- is a repair a reviewer may not make. The reviewer instruction forbids editing
+- the transcript outright, and that prohibition does not bend because the file
+- happens to sit in this step's staged set. It is returned as a finding with its
+- exact lines instead.
+- Nothing else needed one. The eligibility predicate, the six-kind tuple, the test
+- matrix, the two properties and the three legacy fixture repairs are all correct
+- as staged.
+- No pre-repair blob was recorded and no reviewer patch was staged, so no
+- attribution call was needed. The index is exactly what the writer published.
+
+Paths staged:
+
+#### Staged paths assessed in the step 2 round 1 round
+
+- Seven paths, each accounted for:
+- - `tools/prompt_workflow_document_lookup.py`, the shared eligibility predicate
+- and the six-kind evidence helper.
+- - `tests/unit/tools/test_prompt_workflow_document_lookup/test_prompt_workflow_document_lookup_tdd.py`,
+- the deterministic recognition, compatibility, IO and freshness matrix.
+- - `tests/unit/tools/test_prompt_workflow_document_lookup/test_prompt_workflow_document_lookup_pbt.py`,
+- the two bounded filename properties.
+- - `tests/unit/tools/test_prompt_workflow_docs/test_prompt_workflow_docs_tdd.py`,
+- the three legacy fixture repairs.
+- - `docs/v0.12.0/plan.v0.12.0.docs_layout_hardening.validation.md`, the step's
+- validation record.
+- - `tests/unit/tools/test_prompt_workflow_document_lookup/__init__.py`, a
+- docstring refresh for the package the step extends.
+- - `docs/v0.12.0/review.code.v0.12.0.docs_layout_hardening.md`, four Markdown
+- code-span repairs in earlier requestor content.
+- The first four are the plan's Step 2 files-involved list exactly. The validation
+- plan is the step's own record and always permitted. The last two are not on that
+- list and are accepted rather than treated as scope creep: the package docstring
+- belongs to the package this step fills out, and the transcript repair is
+- required to make this step's own mandatory walk runnable at all, which is why
+- the plan's rule about staged changes of outside origin applies and why it
+- correctly carries its own conventional group.
+- No pre-existing unstaged or untracked writer work was swept in beyond those.
+- Physical line counts are 294 for the lookup module, 289 and 68 for the two new
+- test modules, 615 for the existing docs suite and 6 for the package
+- initializer. All are below the 650-line ceiling. The docs suite at 615 is the
+- one worth watching: the plan predicted 625 after this step's three fixture
+- repairs and flagged that its layout-test responsibility moves to the new package
+- if it cannot stay under 650. It has 35 lines of headroom for Steps 3 and 4.
+
+### Commit plan assessment for step 2 docs_layout_hardening (exchange 1) (round 1)
+
+#### Commit plan assessment for the step 2 round 1 round for step 2 docs_layout_hardening (exchange 1) (round 1)
+
+`a.commit` is accurate and needs no amendment. This reviewer did not change it.
+
+The independent rerun of `commit-plan-check.bat --format json` against the
+received repository state returned `state: valid`, `ready: true`, an empty
+`diagnostics` array and exit `0`, matching the result recorded in the request.
+
+| Position | Subject | Paths |
+| --- | --- | --- |
+| 1 | `docs(review): quote Python names in transcript` | the review transcript |
+| 2 | `fix(workflow): require effort document evidence` | the lookup module and the four test files |
+| 3 | `docs(docs_layout_hardening): record step 2 validation` | the validation plan |
+
+The ordering runs least to most dependent and the separation is right. The
+transcript repair is unrelated to the behavior change and stands alone, which is
+exactly how a staged change of outside origin should be carried rather than
+folded into the functional group. The production module and its tests belong
+together because the tests fail without the predicate and the predicate is
+unproven without them. The validation record describes the finished state, so it
+comes last.
+
+Each subject uses a conventional type and scope. `fix` is the right type for
+group 2: this closes a recognition gap the issue treats as a defect in the
+contract rather than adding a feature.
+
+One observation rather than a change request: group 1's subject says "quote
+Python names in transcript", and after the requested repair it will cover six
+occurrences rather than four. The subject still describes the work accurately,
+so it needs no rewording when the two remaining lines are fixed.
+
+A status `0` satisfies only the mechanical `a.commit` result in the readiness
+floor. It proves nothing about implementation completeness, validation evidence
+or repair attribution, and it authorizes no commit.
+
+### Findings and boundaries for step 2 docs_layout_hardening (exchange 1) (round 1)
+
+Unresolved findings:
+
+- The staged review transcript fails the Markdown gate at lines 1332 and 1352, so `ghog day` exits 1 in the check phase and the mandatory validation evidence for this round is incomplete.
+- Both failing lines are unquoted `__init__` tokens inside the round 1 requestor entry published for this step, so the writer's recorded walk at 21:06:47 predates the content that breaks the check.
+- The same defect class was repaired four times in this very staged set and reintroduced twice by the new request entry, so it will recur every round until request and answer content quotes such tokens when it is authored.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 2 docs_layout_hardening (exchange 1) (round 1)
+
+#### Writer instructions for the next step 2 round for step 2 docs_layout_hardening (exchange 1) (round 1)
+
+Do not change the implementation. The eligibility predicate, the shared routing
+through both listings, the six-kind tuple, the three legacy fixture repairs, the
+deterministic matrix and the two properties are all correct, and the focused
+`ghog affected` run passes with complete coverage. Leave the seven staged paths
+as they are apart from the one repair below.
+
+1. Quote the two `__init__` tokens in the review transcript. Line 1332 is the
+   line-count table row and line 1352 is the change-summary bullet, both inside
+   this step's round 1 requestor entry. Wrap each path in backticks the way the
+   four earlier occurrences were wrapped, and change nothing else in that file.
+2. Re-run `ghog day` afterwards and confirm it reaches `exit=0`. The check phase
+   opens the walk, so the current failure means no full-run evidence exists for
+   this round at all; a passing check is what lets the test phases run.
+3. Keep the repair in its existing `docs(review): quote Python names in
+   transcript` group. That group already exists for exactly this, and its
+   subject still describes the work.
+
+##### The part worth fixing once rather than every round for step 2 docs_layout_hardening (exchange 1) (round 1)
+
+This is the second time in one staged set that a transcript entry has failed
+MD050 on the same token shape. The four earlier occurrences were repaired in
+this step's own commit plan, and then the Step 2 request entry introduced two
+more.
+
+The cause is that `__init__` and `__all__` are read as strong emphasis when they
+appear unquoted, and the transcript only entered the Markdown gate once the
+Step 1 commit made it tracked. Every future round appends more such content, so
+the durable fix is to quote those tokens when authoring the request's report
+table and change-summary bullets, rather than repairing the transcript after
+each round. Reviewer content in this transcript already backticks them, which is
+why none of the failures sit in the reviewer entries.
+
+If you would rather not depend on authoring discipline, the alternative is a
+Markdown policy decision about the generated transcript, which is a change to
+the review tooling and belongs in its own effort rather than in this step.
+
+The commit choice stays with the human at the convergence gate, and this answer
+recommends nothing about committing.
+
+### Decision rationale for step 2 docs_layout_hardening (exchange 1) (round 1)
+
+#### Decision rationale for the step 2 round 1 disposition for step 2 docs_layout_hardening (exchange 1) (round 1)
+
+This round publishes `changes-requested` on one result of the readiness floor.
+The implementation is correct; the staged transcript breaks the mandatory walk.
+
+##### The six readiness results for step 2 for step 2 docs_layout_hardening (exchange 1) (round 1)
+
+| Result | Outcome |
+| --- | --- |
+| Exact identity | Pass. Envelope, human-readable request, plan, step, round, occurrence and index tree all agree. |
+| Complete implementation | Pass. Step 2 is fully implemented and the validation record's Yes verdict is correct. |
+| Mandatory validation and coverage | Blocked. `ghog day` exits 1 in the check phase, so its test phases never ran. |
+| Attributable staged scope | Pass. Seven staged paths, each accounted for, no reviewer patch. |
+| Unresolved findings | Blocked by the same single finding. |
+| `a.commit` accuracy | Pass. Independent rerun returned `state: valid`, `ready: true`, exit `0`. |
+
+##### Why a correct step is blocked again for step 2 docs_layout_hardening (exchange 1) (round 1)
+
+`ghog day` is the whole project-sourced validation floor for this repository,
+and it fails. The failure is not in the code: ty, pyright, ruff, radon, vulture,
+the line-budget gate and ShellCheck all pass, and the focused `ghog affected`
+run the plan prescribes for a failure returns `cov=100` with no failure, warning
+or xfail. The single failed step is `markdown(1)`, on two lines of the staged
+review transcript.
+
+Those two lines are inside the round 1 requestor entry published for this step.
+The writer's recorded successful walk finished at 21:06:47, before that entry
+existed, so it could not have covered the content that now breaks the check.
+That is the whole explanation for the disagreement between their evidence and
+mine, and it is worth stating plainly rather than leaving it as two
+contradictory walk results.
+
+##### Why this reviewer did not simply repair it for step 2 docs_layout_hardening (exchange 1) (round 1)
+
+The repair is two backticks and would otherwise be exactly the kind of bounded,
+unambiguous fix a reviewer should make. The transcript is even in this step's
+staged set, which would normally make it a permitted repair path.
+
+A reviewer must not edit the transcript. That prohibition is absolute in the
+reviewer instruction and it exists for a good reason: the transcript is the
+durable record of the exchange, and a reviewer editing it is a reviewer editing
+the account of its own review. So the finding is reported with its exact lines
+and the fix, and the writer applies it.
+
+##### The finding that outlives this round for step 2 docs_layout_hardening (exchange 1) (round 1)
+
+The same defect class was repaired four times in this very staged set, under the
+`docs(review): quote Python names in transcript` group, and then reintroduced
+twice by the new request entry. `__init__` and `__all__` parse as strong
+emphasis when unquoted, and the transcript only entered the Markdown gate once
+the Step 1 commit made it tracked, which is why this surfaced now rather than
+during Step 1.
+
+Steps 3 and 4 will append more entries of the same shape. Repairing the
+transcript after each round works and costs a round each time; quoting those
+tokens while authoring the request costs nothing. That is the recommendation,
+and it is the writer's call rather than something a reviewer settles.
+
+##### What this answer is not saying for step 2 docs_layout_hardening (exchange 1) (round 1)
+
+It is not saying the eligibility work is wrong. Both listings share one
+predicate, the six kinds are explicit, the flat-root edge case is handled, the
+short-circuit, freshness, body-read and error-propagation boundaries each have a
+test that would fail if they changed, and the three legacy fixtures were
+repaired exactly as the plan committed. With the two backticks added and a
+passing walk, I expect the next round to be commit-ready.
+
+This round made no repair of any kind, so nothing here prevents the next round
+from reaching the convergence gate.
+
+### Final reviewer decision for step 2 docs_layout_hardening (exchange 1) (round 1)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-2-round-1 -->
+
+## Round 2 by requestor - Step 2
+
+- Recorded: 2026-09-12T21:29:18+02:00
+- Exchange: code/code/v0.12.0/docs_layout_hardening
+- Umbrella: none
+- Reviewed document: docs/v0.12.0/plan.v0.12.0.docs_layout_hardening.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 2
+- Outcome: request
+
+### Review identity for step 2 docs_layout_hardening (round 2)
+
+Umbrella draft: none
+Implementation plan: docs/v0.12.0/plan.v0.12.0.docs_layout_hardening.md
+Implementation step: 2
+Review round: 2
+
+### Code review evidence for step 2 docs_layout_hardening (round 2)
+
+request_index_tree: be0a31097da0420ff52e240b0440ebe335df6cbf
+resolved_validation_set:
+
+- ghog day (sources: project)
+- rg -n 'COLLECTION_SLUG_RE|read_text|read_bytes|cache|resolve_document' tools/prompt_workflow_document_lookup.py (sources: plan)
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: docs(review): quote Python names in transcript
+group 1 path: docs/v0.12.0/review.code.v0.12.0.docs_layout_hardening.md
+group 2: fix(workflow): require effort document evidence
+group 2 path: tools/prompt_workflow_document_lookup.py
+group 2 path: tests/unit/tools/test_prompt_workflow_document_lookup/__init__.py
+group 2 path: tests/unit/tools/test_prompt_workflow_document_lookup/test_prompt_workflow_document_lookup_tdd.py
+group 2 path: tests/unit/tools/test_prompt_workflow_document_lookup/test_prompt_workflow_document_lookup_pbt.py
+group 2 path: tests/unit/tools/test_prompt_workflow_docs/test_prompt_workflow_docs_tdd.py
+group 3: docs(docs_layout_hardening): record step 2 validation
+group 3 path: docs/v0.12.0/plan.v0.12.0.docs_layout_hardening.validation.md
+staged path: docs/v0.12.0/plan.v0.12.0.docs_layout_hardening.validation.md
+staged path: docs/v0.12.0/review.code.v0.12.0.docs_layout_hardening.md
+staged path: tests/unit/tools/test_prompt_workflow_docs/test_prompt_workflow_docs_tdd.py
+staged path: tests/unit/tools/test_prompt_workflow_document_lookup/__init__.py
+staged path: tests/unit/tools/test_prompt_workflow_document_lookup/test_prompt_workflow_document_lookup_pbt.py
+staged path: tests/unit/tools/test_prompt_workflow_document_lookup/test_prompt_workflow_document_lookup_tdd.py
+staged path: tools/prompt_workflow_document_lookup.py
+```
+
+### Requestor assessment for step 2 docs_layout_hardening (round 2)
+
+The requestor agrees with the round 1 review: Step 2 is fully implemented and
+the remaining defect was limited to two unquoted paths in the request transcript.
+Those two paths now use code spans, and the request inputs use the same correct
+formatting so later requests preserve it.
+
+The fresh groundhog walk after that repair completed on 2026-09-12 at
+21:27:26+02:00 with state=done, exit=0, zero failures and warnings, and
+100 percent coverage. The full phase took 2m 44.7s; duration-outlier and
+excluded checks were reported as skipped. Step 2's validation record now
+documents the independent finding, repair, and new completed walk.
+
+The code, tests, architecture, linear qualification cost, IO boundaries,
+uncached freshness, and compatibility remain as independently verified in
+round 1. No production or test changes were made for this round. There are no
+known unresolved findings. Please independently assess the corrected staged
+state and run the resolved mandatory validation set.
+
+### Implementation report for step 2 docs_layout_hardening (round 2)
+
+Step 2 implements content-based eligibility in the extracted lookup module.
+
+- Define the six effort document kinds explicitly, excluding the requirement
+  alias, and use the existing exact filename matcher for qualification.
+- Route both directory listings through the same supported-layout predicate.
+- Scan immediate regular files, stop at the first exact match, preserve the
+  independent slug grammar, and allow filesystem errors to propagate.
+- Preserve the four older empty layouts and existing enumeration and ordering.
+- Keep qualification uncached and avoid document body reads or resolver calls.
+
+The dedicated TDD suite covers six kinds, empty and non-effort directories,
+wrong identities, subtopics, nested evidence, file-type boundaries, accepted and
+unsupported layouts, ordering and version scopes, add/rename/remove freshness,
+invalid document bytes, read guards, surfaced errors, and short-circuit scans.
+Two bounded Hypothesis properties independently construct exact and mismatched
+filename identities. Three existing fixtures now contain consistent evidence.
+
+An initial check exposed excessive predicate complexity and four pre-existing
+Markdown strong-style errors in the versioned review transcript. Extracting the
+single-purpose evidence helper resolved the complexity failure; quoting only
+the four Python names and paths resolved the Markdown failures.
+
+Round 1 independently confirmed the implementation and identified two unquoted
+initializer paths in the new request entry. Those paths are now code spans in
+the transcript and in the authored request inputs. The subsequent fresh ghog
+day completed on 2026-09-12 at 21:27:26+02:00 with exit 0. Its full summary reports
+fail=0 warn=0 xfail=0 cov=100 outliers=skipped excluded=skipped. Coverage measures
+the configured tools source with the existing omissions and 100 percent gate.
+The full phase took 2m 44.7s. The source inspection found no added resolver
+dependency, body reads, cache, or
+collection slug predicate. Git diff --check passed.
+
+Physical Python line counts before and after:
+
+| File | Before | After |
+| --- | --- | --- |
+| tools/prompt_workflow_document_lookup.py | 274 | 294 |
+| `tests/unit/tools/test_prompt_workflow_document_lookup/__init__.py` | 6 | 6 |
+| tests/unit/tools/test_prompt_workflow_document_lookup/test_prompt_workflow_document_lookup_tdd.py | 87 | 289 |
+| tests/unit/tools/test_prompt_workflow_document_lookup/test_prompt_workflow_document_lookup_pbt.py | 0 | 68 |
+| tests/unit/tools/test_prompt_workflow_docs/test_prompt_workflow_docs_tdd.py | 611 | 615 |
+
+All files remain below the 650-line ceiling. Qualification is linear in each
+candidate directory's immediate entries with six fixed kinds, in addition to
+the preserved enumeration and sort costs. No new types or classes are added.
+Scoped candidate discovery and fallback selection remain Step 3 work.
+
+### Change summary for step 2 docs_layout_hardening (round 2)
+
+Seven staged files are grouped in the mechanically checked root a.commit:
+
+1. docs(review): quote Python names in transcript
+   - docs/v0.12.0/review.code.v0.12.0.docs_layout_hardening.md: six code-span
+     formatting repairs required by the existing Markdown check, plus the
+     appended Step 2 round 1 request and independent answer.
+2. fix(workflow): require effort document evidence
+   - tools/prompt_workflow_document_lookup.py: shared eligibility and exact
+     immediate-file evidence with an explicit six-kind tuple.
+   - `tests/unit/tools/test_prompt_workflow_document_lookup/__init__.py`: package
+     description for the focused lookup tests.
+   - tests/unit/tools/test_prompt_workflow_document_lookup/test_prompt_workflow_document_lookup_tdd.py:
+     observable recognition, compatibility, IO, and freshness matrix.
+   - tests/unit/tools/test_prompt_workflow_document_lookup/test_prompt_workflow_document_lookup_pbt.py:
+     bounded independent exact-identity and mismatch properties.
+   - tests/unit/tools/test_prompt_workflow_docs/test_prompt_workflow_docs_tdd.py:
+     three legacy fixture repairs and suite description.
+3. docs(docs_layout_hardening): record step 2 validation
+   - docs/v0.12.0/plan.v0.12.0.docs_layout_hardening.validation.md: completed
+     Step 2 evidence, line counts, complexity, coverage, and remaining scope,
+     updated with the round 1 finding and fresh walk after its repair.
+
+The commit-plan checker reports ready=true with no diagnostics. No commit has
+been made; the independent recommendation and human commit gate remain pending.
+
+### Writer response for step 2 docs_layout_hardening (round 2)
+
+Writer response:
+
+Accepted the round 1 finding in full. The reviewer made no staged repair.
+
+- Wrapped the two named initializer paths in code spans in the round 1
+  transcript entry, without changing its substantive content.
+- Corrected those paths in the authored request inputs reused for this round.
+- Re-ran the complete groundhog day successfully after the repair.
+- Updated the validation plan's evidence to the latest successful walk and
+  recorded the independent review's implementation-complete finding.
+- Retained all three commit groups and subjects. The first group's body now
+  accounts for six formatting repairs and the appended round 1 record.
+
+The transcript and validation record changed, so reviewed-work-changed is true.
+These are polishing and evidence updates; no code, test, behavior, or grouping
+changed. There is no disagreement and no reversal of any reviewer repair.
+
+### Reviewer focus for step 2 docs_layout_hardening (round 2)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-2-round-2 -->
+
+## Round 2 by reviewer - Step 2
+
+- Recorded: 2026-09-12T21:37:54+02:00
+- Exchange: code/code/v0.12.0/docs_layout_hardening
+- Umbrella: none
+- Reviewed document: docs/v0.12.0/plan.v0.12.0.docs_layout_hardening.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 2
+- Outcome: answer
+
+### Assessed index identity for step 2 docs_layout_hardening (exchange 1) (round 2)
+
+Baseline index tree: be0a31097da0420ff52e240b0440ebe335df6cbf
+
+Assessed index tree: be0a31097da0420ff52e240b0440ebe335df6cbf
+
+### Implementation check for step 2 docs_layout_hardening (exchange 1) (round 2)
+
+Result:
+
+#### Reviewer implementation check for the step 2 round 2 assessment for step 2 docs_layout_hardening (exchange 1) (round 2)
+
+Yes. Step 2 has been fully implemented.
+
+The implementation did not change between rounds, and I verified that rather
+than taking it on report. Comparing this round's validation-state capture with
+round 1's, all five code and test files carry identical digests:
+the lookup module, both new test modules, the repaired legacy docs suite and the
+package initializer. Only the review transcript and the validation record
+differ, which is exactly what the requested repair and its record should touch.
+
+So the round 1 assessment of the code stands in full, and this check re-confirms
+it against a passing walk rather than a blocked one.
+
+##### What round 1 established and this round re-confirms for step 2 docs_layout_hardening (exchange 1) (round 2)
+
+Both directory listings route every candidate through `_is_supported_docs_dir`,
+so one directory cannot be eligible for one listing and not the other, which is
+design Q08 implemented rather than asserted. `EFFORT_DOCUMENT_TYPES` names the
+six accepted kinds and excludes the `requirement` alias. `_has_effort_document`
+inspects immediate entries, stops at the first match, reads no body, holds no
+state between calls, calls no resolver, and lets enumeration failures propagate.
+The `if not parts: return True` guard keeps the flat `docs` root recognized once
+both listings began routing every candidate through the predicate.
+
+Enumeration order and version scoping are preserved, older layouts keep
+shape-only recognition, and the old selection fallback is deliberately still in
+place as the accepted transient before Step 3.
+
+##### Architecture check for the step 2 round 2 assessment for step 2 docs_layout_hardening (exchange 1) (round 2)
+
+Unchanged and now confirmed by a passing check phase: ty, pyright, ruff, radon,
+vulture, the 650-line gate, Markdown and ShellCheck all pass. The lookup module
+still imports only `re`, `typing` and the workflow models, and eligibility still
+calls a pure filename matcher rather than a resolver. Files stand at 294, 289,
+68, 615 and 6 lines. Nothing needs to be addressed.
+
+##### Performance check for the step 2 round 2 assessment for step 2 docs_layout_hardening (exchange 1) (round 2)
+
+Unchanged: one `iterdir` per candidate slug directory, each immediate entry
+tested against six fixed kinds until the first match, on top of the preserved
+enumeration and sort costs. This round's full phase took 3m 05.5s across 2,795
+tests. That is run-to-run variance against the earlier walks rather than a
+threshold. No performance issue needs to be addressed.
+
+##### Unit test coverage check for the step 2 round 2 assessment for step 2 docs_layout_hardening (exchange 1) (round 2)
+
+The coverage gate's source is `tools` in `pyproject.toml`, so the changed
+production module is measured. This round's complete walk reported
+`fail=0 warn=0 xfail=0 cov=100 exit=0` across 2,795 tests, which is 81 more than
+the 2,714 the Step 1 rounds ran: the deterministic recognition matrix and the
+two Hypothesis properties Step 2 adds.
+
+Round 1 had to establish this through the focused `ghog affected` branch because
+the check phase aborted the walk. This round has it from the full phase, so the
+coverage result rests on the ordinary gate rather than on a fallback.
+
+No unit-tested class is below 100%, and no staged file sits outside the coverage
+gate.
+
+##### Feature integrity for the step 2 round 2 assessment for step 2 docs_layout_hardening (exchange 1) (round 2)
+
+Older layouts keep shape-only recognition, the flat root still resolves, the
+facade re-exports and both selector monkeypatch seams are untouched, and
+selection policy is unchanged pending Step 3. The three legacy fixtures repaired
+in this step still assert the layouts they were written for. Nothing regressed.
+
+Validation plan effects:
+
+#### Validation plan effects of the step 2 round 2 round for step 2 docs_layout_hardening (exchange 1) (round 2)
+
+None. This reviewer wrote no row in
+`docs/v0.12.0/plan.v0.12.0.docs_layout_hardening.validation.md`, in this round
+or the previous one.
+
+The writer's Step 2 section opens with the exact
+`Yes. Step 2 has been fully implemented.` sentence, and it now also records the
+round 1 finding, the repair and the completed walk. I agree with that verdict
+and with the record.
+
+The document-level status line correctly stays at `No, it is not implemented.`,
+because Steps 3 and 4 are pending. No umbrella row applies: this is a standalone
+effort, and reviewer mode never completes one.
+
+The validation-state comparison confirms no tracked difference arose during this
+round, so the staged validation plan is the writer's content unamended.
+
+### Pre-repair mandatory checks and coverage for step 2 docs_layout_hardening (exchange 1) (round 2)
+
+#### Pre-repair validation evidence for the step 2 round 2 assessment for step 2 docs_layout_hardening (exchange 1) (round 2)
+
+Captured before assessment could mutate anything, and no repair followed, so
+this capture is also the state the round was judged against.
+
+The ordered `validation_path_set` was the seven staged step paths, the
+validation plan and the review transcript among them, followed by the known
+groundhog and coverage artifacts `a.ghog.log`, `a.ghog.status`, `a.ghog.day.ok`
+and `.coverage`.
+
+At capture time the index tree was
+`be0a31097da0420ff52e240b0440ebe335df6cbf`, matching the request's
+`request_index_tree`, with seven tracked files digested and no untracked file in
+the set.
+
+The same capture supplied the cross-round comparison recorded in the repository
+state: five of the seven tracked digests are identical to round 1's capture, and
+the two that differ are the transcript and the validation record.
+
+A fresh retained manifest carrying this evidence, the exchange identity, the
+step and both index trees was written through the shared launcher before
+assessment began; the round 1 manifest was retired after that round published.
+
+No pre-repair blob was recorded, because no permitted repair path was opened and
+this reviewer authored no tracked change.
+
+### Resolved validation set and sources for step 2 docs_layout_hardening (exchange 1) (round 2)
+
+#### Resolved validation set executed in the step 2 round 2 assessment for step 2 docs_layout_hardening (exchange 1) (round 2)
+
+Both resolved commands ran in this reviewer's shell and both passed. The
+readiness floor's validation result is complete.
+
+| Command | Sources | Reviewer result |
+| --- | --- | --- |
+| `ghog day` | project | Ran. `exit=0`, `fail=0 warn=0 xfail=0 cov=100`, 2,795 tests, 3m 05.5s, ended 21:35:22 +02:00. |
+| `rg -n 'COLLECTION_SLUG_RE\|read_text\|read_bytes\|cache\|resolve_document' tools/prompt_workflow_document_lookup.py` | plan | Ran. `exit=0` with the same three benign matches as round 1. |
+
+##### The walk that now completes for step 2 docs_layout_hardening (exchange 1) (round 2)
+
+The check phase passed every step, and the one that failed in round 1 is the one
+worth naming: `Markdown check passed for project 'llm-shared'`. Ty, pyright,
+ruff, radon, vulture, the `PYTHON_BIG_FILE_LINE_LIMIT=650` gate and ShellCheck
+passed alongside it.
+
+The affected phase passed, and the full phase ran all 2,795 tests with no
+failure, warning or xfail and reported `cov=100`. Round 1 never reached these
+phases, because the check phase opens the walk and aborted it, so this is the
+first complete walk evidence for Step 2 from this reviewer.
+
+The test count is 81 higher than the 2,714 the Step 1 rounds ran, which is the
+recognition matrix and the two properties this step adds.
+
+##### Reading the inspection command's three matches again for step 2 docs_layout_hardening (exchange 1) (round 2)
+
+`exit=0` means the pattern matched, so the matches still need reading:
+
+- line 7 matches `cache` inside "uncached" in the module docstring sentence
+  stating that eligibility is uncached. Prose, not a cache.
+- line 227 is `def resolve_document(`, the existing resolver definition the plan
+  says to expect.
+- line 289 is the same definition seen from the export list.
+
+No `COLLECTION_SLUG_RE`, no `read_text`, no `read_bytes` and no caching.
+Eligibility introduced no collection dependency, no body read, no cache and no
+resolver recursion.
+
+### Resolver drift and direction for step 2 docs_layout_hardening (exchange 1) (round 2)
+
+#### Resolver drift observed in the step 2 round 2 assessment for step 2 docs_layout_hardening (exchange 1) (round 2)
+
+No drift, in either direction, and none between rounds.
+
+The request's `resolved_validation_set` carries `ghog day` sourced from
+`project` alone, plus the plan-sourced inspection of the lookup module. That is
+the same set round 1 carried, and re-resolving against the current repository
+reproduces it:
+
+- The project source resolves to the built-in `("ghog day",)` default, because
+  this repository still declares no `.review-validation` file.
+- The plan source is the consolidated Step 2 completion line, unchanged, naming
+  that single inspection.
+
+The set did not shrink between rounds. The round 1 finding closed by repairing
+the file that made the walk fail, not by removing or weakening a command, and
+both commands ran to completion this round.
+
+### Repository state around validation for step 2 docs_layout_hardening (exchange 1) (round 2)
+
+#### Repository state comparison across the step 2 round 2 round for step 2 docs_layout_hardening (exchange 1) (round 2)
+
+Every boundary came back clean, and the cross-round comparison shows exactly
+which files moved.
+
+##### Index tree identity for step 2 docs_layout_hardening (exchange 1) (round 2)
+
+The request carries `request_index_tree`
+`be0a31097da0420ff52e240b0440ebe335df6cbf`, a new value reflecting the repair
+staged since round 1. The live index tree matched it before assessment and
+matches it again after the walk, so no early rejection applied and nothing this
+reviewer ran changed the staged set.
+
+##### Cross-round file comparison for step 2 docs_layout_hardening (exchange 1) (round 2)
+
+Comparing this round's capture against round 1's, by content digest:
+
+- unchanged: `tools/prompt_workflow_document_lookup.py`, both new lookup test
+  modules, the repaired legacy docs suite, and the package initializer.
+- changed: `docs/v0.12.0/review.code.v0.12.0.docs_layout_hardening.md` and
+  `docs/v0.12.0/plan.v0.12.0.docs_layout_hardening.validation.md`.
+
+That is the requested repair and its record, and nothing else.
+
+##### Umbrella digest boundary for step 2 docs_layout_hardening (exchange 1) (round 2)
+
+The request says `Umbrella draft: none` and the envelope carries
+`umbrella_path: null`. Capture returned `{"applicable": false, "digest": null}`
+and the comparison after the implementation-check result returned
+`{"applicable": false, "changed": false}`. No umbrella is in scope and none was
+touched.
+
+##### Validation state boundary for step 2 docs_layout_hardening (exchange 1) (round 2)
+
+The ordered `validation_path_set` held the seven staged step paths followed by
+the known groundhog and coverage artifacts. The comparison returned
+`acceptable: true` with empty `tracked_paths` and empty `untracked_paths`.
+
+The only differences are the ignored artifacts the walk rewrites, `a.ghog.log`,
+`a.ghog.status`, `a.ghog.day.ok` and `.coverage`. No tracked validation side
+effect appeared, so nothing had to be left unstaged or reported.
+
+##### Working tree observations for step 2 docs_layout_hardening (exchange 1) (round 2)
+
+The ignored focused log from round 1, `a.ghog.step2-affected.log`, remains at
+the repository root as review evidence, and the writer's `rg` bridge helper
+remains ignored support material under the artifact home. Neither is staged and
+neither was touched.
+
+### Repair inventory for step 2 docs_layout_hardening (exchange 1) (round 2)
+
+Repairs made:
+
+#### Repairs made by the reviewer in the step 2 round 2 round
+
+- None. This reviewer authored no tracked change in this round: no source edit, no
+- test edit, no validation-plan row, and no `a.commit` amendment. The same was
+- true of round 1, so no reviewer-authored change exists anywhere in this step.
+- Nothing needed one. The round 1 finding was a transcript repair a reviewer may
+- not make, and the writer applied it. Everything else was already correct.
+- No pre-repair blob was recorded and no reviewer patch was staged, so no
+- attribution call was needed. The index is exactly what the writer published.
+- Because this round made no substantive repair, nothing prevents it from reaching
+- the convergence gate.
+
+Paths staged:
+
+#### Staged paths assessed in the step 2 round 2 round
+
+- The same seven paths as round 1, with five of them byte-identical:
+- - `tools/prompt_workflow_document_lookup.py`, unchanged since round 1.
+- - `tests/unit/tools/test_prompt_workflow_document_lookup/test_prompt_workflow_document_lookup_tdd.py`, unchanged.
+- - `tests/unit/tools/test_prompt_workflow_document_lookup/test_prompt_workflow_document_lookup_pbt.py`, unchanged.
+- - `tests/unit/tools/test_prompt_workflow_docs/test_prompt_workflow_docs_tdd.py`, unchanged.
+- - `tests/unit/tools/test_prompt_workflow_document_lookup/__init__.py`, unchanged.
+- - `docs/v0.12.0/review.code.v0.12.0.docs_layout_hardening.md`, carrying the two
+- requested code-span repairs plus the round 1 answer entry the protocol
+- appended.
+- - `docs/v0.12.0/plan.v0.12.0.docs_layout_hardening.validation.md`, recording the
+- finding, its repair and the new completed walk.
+- The first four are the plan's Step 2 files-involved list exactly. The validation
+- plan is the step's own record. The package initializer and the transcript are
+- accepted for the reasons round 1 gave: the initializer belongs to the package
+- this step fills out, and the transcript repair is what makes this step's own
+- mandatory walk runnable.
+- No pre-existing unstaged or untracked work was swept in.
+- Physical line counts are unchanged at 294 for the lookup module, 289 and 68 for
+- the two new test modules, 615 for the existing docs suite and 6 for the package
+- initializer. All are below the 650-line ceiling, with the docs suite holding 35
+- lines of headroom going into Step 3.
+
+### Commit plan assessment for step 2 docs_layout_hardening (exchange 1) (round 2)
+
+#### Commit plan assessment for the step 2 round 2 round for step 2 docs_layout_hardening (exchange 1) (round 2)
+
+`a.commit` is accurate and needs no amendment. This reviewer did not change it,
+in this round or the previous one.
+
+The independent rerun of `commit-plan-check.bat --format json` against the
+received repository state returned `state: valid`, `ready: true`, an empty
+`diagnostics` array and exit `0`. Its staged path list and three ordered groups
+match the result recorded in the request and match the round 1 rerun.
+
+| Position | Subject | Paths |
+| --- | --- | --- |
+| 1 | `docs(review): quote Python names in transcript` | the review transcript |
+| 2 | `fix(workflow): require effort document evidence` | the lookup module and the four test files |
+| 3 | `docs(docs_layout_hardening): record step 2 validation` | the validation plan |
+
+The grouping still holds after the repair. Group 1 now covers six code-span
+repairs rather than four, and its subject describes that work without needing a
+reword, which is what round 1 anticipated. Keeping those repairs separate from
+the behavior change remains right: they share no cause with the eligibility
+work and would only blur group 2's history.
+
+The production module and its tests stay together because neither stands without
+the other, and the validation record comes last because it describes the
+finished state. Each subject uses a conventional type and scope, and `fix` is
+still the right type for group 2.
+
+A status `0` satisfies only the mechanical `a.commit` result in the readiness
+floor. It proves nothing about implementation completeness, validation evidence
+or repair attribution, and it authorizes no commit.
+
+### Findings and boundaries for step 2 docs_layout_hardening (exchange 1) (round 2)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 2 docs_layout_hardening (exchange 1) (round 2)
+
+#### Writer instructions at the step 2 convergence gate for step 2 docs_layout_hardening (exchange 1) (round 2)
+
+No change is requested. The repair landed, the walk completes, and `a.commit` is
+accurate.
+
+1. Present the advisory commit-ready recommendation and the two registered
+   labels to the human, and make no further edit before that choice.
+2. Keep the request-authoring formatting that closed the round 1 finding. Steps
+   3 and 4 append further transcript entries, and quoting those tokens while
+   authoring is what stops the repair recurring.
+3. Leave the seven staged paths as they are. This reviewer authored no tracked
+   change in either round, so the index is entirely the writer's.
+4. Watch the legacy docs suite's headroom going into Step 3. It stands at 615
+   lines against the 650 ceiling, and the plan already says its layout-test
+   responsibility moves to the new package if a later step cannot keep it under.
+   That is a note for Step 3's own review, not a change request here.
+
+This recommendation is advisory and authorizes nothing. The commit choice, and
+the labels offered for it, belong to the human at the convergence gate. Do not
+commit on the strength of this answer.
+
+### Decision rationale for step 2 docs_layout_hardening (exchange 1) (round 2)
+
+#### Decision rationale for the step 2 round 2 disposition for step 2 docs_layout_hardening (exchange 1) (round 2)
+
+This round publishes an advisory `commit-ready` recommendation. Every result in
+the readiness floor passes, no finding is carried or open, and this round made
+no repair of any kind.
+
+##### The six readiness results for step 2 docs_layout_hardening (exchange 1) (round 2)
+
+| Result | Outcome |
+| --- | --- |
+| Exact identity | Pass. Envelope, human-readable request, plan, step, round, occurrence and index tree all agree. |
+| Complete implementation | Pass. Step 2 is fully implemented and its code is byte-identical to what round 1 assessed. |
+| Mandatory validation and coverage | Pass. `ghog day` exits 0 with `cov=100` over 2,795 tests; the inspection ran with three benign matches. |
+| Attributable staged scope | Pass. Seven staged paths, each accounted for, no reviewer patch in either round. |
+| Unresolved findings | Pass. The single round 1 finding is closed and none replaced it. |
+| `a.commit` accuracy | Pass. Independent rerun returned `state: valid`, `ready: true`, exit `0`. |
+
+##### What changed since round 1, and what did not for step 2 docs_layout_hardening (exchange 1) (round 2)
+
+The requested repair landed and nothing else moved. I compared this round's
+validation-state capture against round 1's: the lookup module, both new test
+modules, the repaired legacy docs suite and the package initializer all carry
+identical digests. Only the transcript and the validation record differ. That
+independently confirms the writer's statement that no production or test change
+was made for this round, rather than accepting it on report.
+
+The two lines that failed MD050, 1332 and 1352, now carry code spans, and the
+Markdown check passes. The rest of the walk then ran for the first time in this
+exchange, which is how the coverage result moved from the focused `ghog
+affected` fallback in round 1 to the ordinary full gate here.
+
+##### The durable half of the round 1 finding for step 2 docs_layout_hardening (exchange 1) (round 2)
+
+Round 1 asked for two things: repair the two lines, and stop the defect
+recurring. The writer did both, saying the request inputs now use the same
+formatting so later requests preserve it. The evidence supports that: the round
+2 request entry appended to the transcript contains the same token shapes and
+the Markdown gate passes over the whole file.
+
+That matters more than the two backticks. Steps 3 and 4 will append further
+entries, and the repair that was applied four times in one staged set and then
+reintroduced twice should now not need applying again.
+
+##### What this recommendation is and is not for step 2 docs_layout_hardening (exchange 1) (round 2)
+
+It is advisory. It does not authorize a commit and it is not a commit. The
+choice belongs to the human at the convergence gate, along with the option of
+another round.
+
+It rests on evidence this reviewer produced in its own shell across the two
+rounds: one failing and one complete groundhog walk, a focused affected run, two
+executions of the resolved inspection, two independent `commit-plan-check`
+reruns, a cross-round digest comparison of every staged code and test file, and
+clean umbrella and validation-state boundaries with no tracked side effect in
+either round.
+
+### Final reviewer decision for step 2 docs_layout_hardening (exchange 1) (round 2)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-2-round-2 -->
+
+## Round 2 by human - Step 2 - human-confirmation
+
+- Recorded: 2026-09-12T22:14:13+02:00
+- Exchange: code/code/v0.12.0/docs_layout_hardening
+- Umbrella: none
+- Reviewed document: docs/v0.12.0/plan.v0.12.0.docs_layout_hardening.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 2
 - Outcome: human-confirmation
 
 Human choice: Commit
