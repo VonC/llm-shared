@@ -5,12 +5,15 @@ metadata; Git topic discovery and document-body markers remain with its caller.
 Both directory listings require exact immediate document evidence for a full
 version's slug child, preserving shape-only recognition for older layouts.
 Eligibility is uncached and directory-slug syntax has no collection dependency.
+Workflow discovery validates the canonical parent once, preferring its matches
+and selecting a fallback document only when it is unique across other layouts.
 """
 
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Literal
 
 from tools.prompt_workflow_models import (
     ROLE_DOC_TYPES,
@@ -128,14 +131,6 @@ def _has_effort_document(directory: Path, version: str, slug: str) -> bool:
     )
 
 
-def _topic_docs_dirs(root: Path, topic: Topic) -> list[Path]:
-    """Prefer the canonical draft's directory, falling back to every layout."""
-    directories = docs_dirs(root)
-    draft_parent = topic.draft_path.resolve().parent
-    matching = [directory for directory in directories if directory.resolve() == draft_parent]
-    return matching or directories
-
-
 def _slug_key(value: str) -> str:
     """Canonicalize a slug so ``-`` and ``_`` separators compare equal.
 
@@ -241,17 +236,64 @@ def resolve_document(
     return matches[0] if matches else None
 
 
-def find_matching_documents(root: Path, topic: Topic, role: str) -> list[Path]:
-    """Return every document under docs/ matching the topic for the given role."""
-    matches: list[Path] = []
-    for directory in _topic_docs_dirs(root, topic):
-        matches.extend(
-            entry
-            for entry in sorted(directory.iterdir())
-            if entry.is_file()
-            and _doc_matches(entry.name, role, topic.version, topic.slug)
+@dataclass(frozen=True)
+class _DocumentCandidates:
+    """Retain ordered matches and their scope so selection never rediscovers it."""
+
+    paths: tuple[Path, ...]
+    scope: Literal["canonical-parent", "fallback"]
+
+
+def _render_parent(root: Path, topic: Topic) -> str:
+    """Render a normalized canonical parent relative to the root when possible."""
+    parent = topic.draft_path.resolve().parent
+    resolved_root = root.resolve()
+    if parent.is_relative_to(resolved_root):
+        return parent.relative_to(resolved_root).as_posix()
+    return parent.as_posix()
+
+
+def _directory_matches(directory: Path, topic: Topic, role: str) -> tuple[Path, ...]:
+    """Match immediate files in the existing sorted order, surfacing IO errors."""
+    return tuple(
+        entry
+        for entry in sorted(directory.iterdir())
+        if entry.is_file()
+        and _doc_matches(entry.name, role, topic.version, topic.slug)
+    )
+
+
+def _discover_candidates(root: Path, topic: Topic, role: str) -> _DocumentCandidates:
+    """Validate the draft parent and scan fallback only when local matches are absent.
+
+    Inventory recognized directories once, allowing their eligibility reads.
+    The draft itself need not exist. Preserve resolved directory comparisons
+    and candidate ordering without a second scan to recover selection scope.
+    """
+    directories = [(directory, directory.resolve()) for directory in docs_dirs(root)]
+    parent = topic.draft_path.resolve().parent
+    canonical = next((directory for directory, resolved in directories if resolved == parent), None)
+    if canonical is None:
+        msg = (
+            f"Unrecognized canonical parent {_render_parent(root, topic)} "
+            f"for {role} document of {topic.version} {topic.slug}."
         )
-    return matches
+        raise PromptWorkflowError(msg)
+    local = _directory_matches(canonical, topic, role)
+    if local:
+        return _DocumentCandidates(local, "canonical-parent")
+    fallback = tuple(
+        path
+        for directory, resolved in directories
+        if resolved != parent
+        for path in _directory_matches(directory, topic, role)
+    )
+    return _DocumentCandidates(fallback, "fallback")
+
+
+def find_matching_documents(root: Path, topic: Topic, role: str) -> list[Path]:
+    """List local matches or all fallback matches, rejecting unsupported parents."""
+    return list(_discover_candidates(root, topic, role).paths)
 
 
 def most_recent(paths: list[Path]) -> Path | None:
@@ -262,8 +304,18 @@ def most_recent(paths: list[Path]) -> Path | None:
 
 
 def select_document(root: Path, topic: Topic, role: str) -> Path | None:
-    """Return the most recent document for a topic and role, or None."""
-    return most_recent(find_matching_documents(root, topic, role))
+    """Select the newest local match or sole fallback; reject ambiguous fallback."""
+    candidates = _discover_candidates(root, topic, role)
+    if candidates.scope == "canonical-parent":
+        return most_recent(list(candidates.paths))
+    if len(candidates.paths) > 1:
+        rendered = ", ".join(path.relative_to(root).as_posix() for path in candidates.paths)
+        msg = (
+            f"Ambiguous fallback {role} document for {topic.version} {topic.slug} "
+            f"(canonical parent {_render_parent(root, topic)}): {rendered}."
+        )
+        raise PromptWorkflowError(msg)
+    return candidates.paths[0] if candidates.paths else None
 
 
 # The private names remain explicit exports for the compatibility facade.
@@ -280,7 +332,6 @@ __all__ = [
     "_exact_doc_matches",
     "_is_supported_docs_dir",
     "_slug_key",
-    "_topic_docs_dirs",
     "docs_dirs",
     "docs_dirs_for_version",
     "find_documents",

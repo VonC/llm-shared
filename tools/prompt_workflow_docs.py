@@ -4,8 +4,9 @@ This facade turns raw Git signals into topics and re-exports document lookup
 from ``prompt_workflow_document_lookup`` while retaining existing caller imports.
 It parses the version and slug from a draft name, detects the relevant drafts on the current branch (Q07), matches requirement, design and
 plan documents to a topic by shared version and slug prefix (Q02), picks the
-most recently modified match (Q01), and detects a ``## Open questions`` section
+most recently modified local match or unique fallback, and detects a ``## Open questions`` section
 (Q04). It reads files; it never writes.
+Workflow lookup validates the canonical parent even when the draft is missing.
 
 Slug matching folds ``-`` and ``_`` together, so a draft slug such as
 ``git_history_report`` resolves the hyphenated ``git-history-report`` requirement,
@@ -32,7 +33,6 @@ from tools.prompt_workflow_document_lookup import (
     _exact_doc_matches,
     _is_supported_docs_dir,
     _slug_key,
-    _topic_docs_dirs,
     docs_dirs,
     docs_dirs_for_version,
     find_documents,
@@ -479,7 +479,6 @@ __all__ = [
     "_exact_doc_matches",
     "_is_supported_docs_dir",
     "_slug_key",
-    "_topic_docs_dirs",
     "branch_requirement_topic",
     "branch_umbrella_topic",
     "collection_items",

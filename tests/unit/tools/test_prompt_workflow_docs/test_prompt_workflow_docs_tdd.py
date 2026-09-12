@@ -8,7 +8,8 @@ v0.9.0: this test moved into the nested ``test_prompt_workflow_docs/`` form (Q08
 and gained a ``has_decisions_table`` case for the consolidated decisions sections
 the skill routing reads (Q03).
 
-v0.12.0: slug-directory fixtures carry matching immediate document evidence.
+v0.12.0: slug-directory fixtures carry matching immediate document evidence;
+selection fixtures use recognized canonical parents under their temporary root.
 """
 
 from __future__ import annotations
@@ -24,9 +25,6 @@ from tools.prompt_workflow_models import PromptWorkflowError, Topic
 # pyright: reportPrivateUsage=false, reportUnknownLambdaType=false
 # pyright: reportUnknownArgumentType=false
 # ruff: noqa: SLF001
-
-_ISO = Topic(version="v9.8.0", slug="iso", draft_path=Path("d.md"))
-
 
 def test_parse_draft_name_variants() -> None:
     """Draft parsing accepts a valid name and rejects the malformed ones."""
@@ -426,9 +424,10 @@ def _make_topic_docs(root: Path) -> None:
 def test_find_matching_documents_per_role(tmp_path: Path) -> None:
     """Matching honors the role prefixes, the validation suffix, and sub-topics."""
     _make_topic_docs(tmp_path)
+    topic = Topic("v9.8.0", "iso", tmp_path / "docs" / "draft.v9.8.0.iso.md")
 
     def names(role: str) -> list[str]:
-        return [path.name for path in docs.find_matching_documents(tmp_path, _ISO, role)]
+        return [path.name for path in docs.find_matching_documents(tmp_path, topic, role)]
 
     assert names("requirement") == [
         "feature-request.v9.8.0.iso.md",
@@ -469,7 +468,7 @@ def test_find_matching_documents_folds_hyphen_and_underscore(tmp_path: Path) -> 
     underscore = Topic(
         version="v0.8.0",
         slug="git_history_report",
-        draft_path=Path("d.md"),
+        draft_path=docs_dir / "draft.v0.8.0.git_history_report.md",
     )
 
     def names_for(role: str) -> list[str]:
@@ -513,7 +512,8 @@ def test_most_recent_and_select_document(tmp_path: Path) -> None:
     os.utime(older, (1_000, 1_000))
     os.utime(newer, (2_000, 2_000))
 
-    assert docs.select_document(tmp_path, _ISO, "design") == newer
+    topic = Topic("v9.8.0", "iso", docs_dir / "draft.v9.8.0.iso.md")
+    assert docs.select_document(tmp_path, topic, "design") == newer
 
 
 def test_has_open_questions(tmp_path: Path) -> None:
