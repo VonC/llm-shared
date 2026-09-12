@@ -43,17 +43,17 @@ for v0.12.0. The draft reports no current repository breakage from these concern
    recognized parent has no matching document. Name matching still requires the
    requested document version even when the directory search is broad.
 
-## Consequences of the unsettled layout contract
+## Consequences of the current layout contract
 
 Shape-based recognition does not distinguish an effort from an ordinary
 directory whose name happens to look like a slug. It therefore leaves the
 meaning of a recognized effort directory implicit.
 
 The two selection entry points can also produce different results for the same
-duplicate documents. The draft explicitly leaves open whether this distinction
-is correct: strict ambiguity detection and preference for the canonical draft's
-own directory are both existing behaviors. The missing contract and regression
-coverage allow the distinction to change accidentally.
+duplicate documents. Strict ambiguity detection and preference for the canonical
+draft's own directory are both existing behaviors. The accepted contract below
+preserves that distinction and defines the missing-sibling and invalid-parent
+cases so they cannot change accidentally.
 
 Finally, changing umbrella-row slug validation could also change which effort
 directories are recognized, even though these are separate responsibilities.
@@ -62,41 +62,76 @@ Hardening recognition changes an existing tested behavior. Both
 `test_docs_dirs_supports_all_layouts` and
 `test_docs_dirs_includes_version_slug_layout` create an empty slug directory
 under a version directory and expect it to be discoverable. A content
-requirement would deliberately replace those empty-directory expectations.
+requirement deliberately replaces those empty-directory expectations.
 
 ## Expected documentation-discovery contract
 
-The effort must establish an explicit rule for recognizing
-`docs/vX.Y.Z/<slug>/` as an effort directory. That rule must describe what happens
-to ordinary directories such as `images` and `sub`, including whether they are
-excluded or accepted under a documented naming constraint.
+### Recognition of version-and-slug effort directories
 
-For this issue's recognition questions, an effort document means a canonical
-draft, feature-request or issue, design, implementation plan, or validation plan
-for an effort, identified by its workflow document filename. Review transcripts,
-ignored `a.*` scratch files, and unrelated files do not count as effort documents.
-Under a content-based recognition rule, those files alone would not qualify a
-directory. The rule for matching the enclosing version and slug is proposed in
-Q03, including equivalence of hyphens and underscores. This vocabulary does not
-require interpreting the document body to decide its kind.
+A `docs/vX.Y.Z/<slug>/` directory is recognized only when its existing path
+shape is valid and it contains at least one qualifying effort document. Empty
+directories and ordinary asset directories do not qualify through spelling
+alone. Adding, renaming or removing documents can change eligibility.
 
-Duplicate handling must have a stated expected result for both
-`resolve_document` and `select_document`. The issue does not presume that their
-results must become identical or that the existing preference for the canonical
-draft's parent is defective.
+An effort document is a canonical draft, feature-request or issue, design,
+implementation plan, or validation plan, identified by its workflow document
+filename. Review transcripts, ignored `a.*` scratch files and unrelated files do
+not count. Recognition does not require interpreting document bodies.
 
-The issue settles directory eligibility, directory preference and fallback, and
-the result when several documents match. The existing difference in name-match
-breadth remains: exact type and folded slug for general resolution, versus role
-types and subtopic matches for workflow selection. Q05, Q06, Q09 and Q10 separate
-these selection cases and distinguish retained behavior from proposed changes.
+A qualifying document must match the enclosing full version exactly and the
+directory slug with hyphens and underscores treated as equivalent. A subtopic
+prefix match alone is insufficient. For example,
+`docs/v1.2.3/my-effort/issue.v1.2.3.my_effort.md` qualifies. Documents for a
+different version or slug alone do not qualify the directory; accompanying
+unrelated files do not disqualify a directory that has a matching document.
 
-Directory recognition must have its own contract so that changing umbrella-row
-slug validation does not silently change documentation discovery. The draft's
-candidate recognition mechanisms and the organization of validation patterns
-remain matters for the design.
+An existing requirement, design or plan is sufficient without a canonical draft.
+Commands that require a draft retain that separate prerequisite. Common names
+such as `images` and `sub` are valid effort names when their directories contain
+qualifying documents; there is no reserved-name list.
 
-The supported nested layout must continue to expose an accepted effort's sibling
+Every recognition path, including general and version-scoped discovery, must
+apply this same contract. Changes made only to umbrella-row slug validation must
+not change directory eligibility. The recognition mechanism and organization of
+validation patterns remain design choices.
+
+### Resolution and workflow selection outcomes
+
+General resolution retains strict ambiguity detection across recognized
+directories for the requested version. It does not use canonical-draft context
+to select among duplicate matches.
+
+Workflow selection first checks whether the canonical draft's parent is a
+recognized documentation directory, then applies the following outcomes:
+
+| Canonical-parent state | Required selection outcome |
+| --- | --- |
+| Recognized, with one matching document | Return that local document, regardless of copies in other layouts. |
+| Recognized, with several matching documents | Return the most recently modified local match, retaining the existing timestamp-tie behavior. |
+| Recognized, with no matching sibling | Search all other recognized documentation directories across the supported layouts; return the sole matching document, report ambiguity for several matches, or return no match when none exists. |
+| Unrecognized | Report the unrecognized canonical directory explicitly; do not widen the search to other directories. |
+
+The missing-sibling fallback is a new behavior: today a recognized parent with
+no matching sibling yields no match. The unrecognized-parent result also changes
+behavior: today that condition triggers broad fallback. Branch-relevant drafts
+can already be discovered in unsupported locations under `docs/`; stricter
+version-and-slug eligibility adds further possible rejected-parent cases.
+
+Existing name-match breadth remains unchanged. General resolution matches an
+exact document type and folded slug. Workflow selection matches the types for
+the requested role and accepts its existing `<slug>_<sub>` subtopic matches.
+Both local selection and fallback still require the exact requested document
+version, even when the fallback searches directories from other versions.
+
+### Compatibility of existing documentation layouts
+
+Stricter content recognition applies only to `docs/vX.Y.Z/<slug>/`. Preserve
+the existing flat, minor, full-version and minor-and-full-version layouts,
+including discovery of empty directories in those layouts. Preserve the current
+accepted spelling shapes; do not introduce new layouts or relocate documents.
+The deeper `docs/vX.Y/vX.Y.Z/<slug>/` shape remains unsupported.
+
+Accepted version-and-slug efforts must continue to expose their sibling
 documents. Hardening must not recreate the v0.11.0 discovery gap.
 
 ## Confirmed boundaries for docs_layout_hardening
@@ -108,41 +143,49 @@ documents. Hardening must not recreate the v0.11.0 discovery gap.
 - Keep the intermittent `migration_journey[former-default]` failures under
   `tests/acceptance/review_resume/` outside this effort. They concern review
   acceptance stability and require separate work.
-- Do not treat a proposed recognition mechanism or duplicate-resolution policy
-  as a confirmed decision before the corresponding behavior is settled.
+- Preserve the existing name-match breadth of each selection entry point and
+  the timestamp-tie behavior within a recognized canonical parent.
+- Leave recognition mechanisms, pattern organization and implementation
+  structure to the design; this issue specifies observable behavior.
 
 ## Acceptance criteria for the layout contract
 
-1. The recognition rule explicitly states the accepted and rejected directory
-   cases, including the five shapes reproduced below and the treatment of
-   ordinary directories.
-2. Tests pin those accepted and rejected outcomes against the settled
-   rule. The examples below describe the source draft's current observations,
-   not predetermined target outcomes.
-3. The expected behavior of both document-selection entry points is documented
-   and tested for a document duplicated between the version directory and its
-   slug subdirectory.
+1. A version-and-slug directory is accepted only with a qualifying effort
+   document. Empty, asset-only, transcript-only and scratch-only directories are
+   rejected. Adding, renaming and removing the qualifying document updates the
+   eligibility result.
+2. Recognition tests cover every accepted document kind, including a directory
+   containing a later effort document without a canonical draft. Matching effort
+   documents allow common directory names such as `images` and `sub`; those names
+   receive no reserved-name exception.
+3. For a document duplicated between a version directory and its recognized slug
+   subdirectory, general resolution reports ambiguity while workflow selection
+   returns the match in its recognized canonical draft's parent.
 4. Every call site deciding whether a `docs/vX.Y.Z/<slug>/` directory is an
-   effort applies the settled recognition contract, agrees on the same directory,
+   effort applies the recognition contract, agrees on the same directory,
    and is independent of changes made only to umbrella-row slug validation.
-5. The existing layout tests are extended to meet any new conditions imposed on
-   an effort directory. Only the version-and-slug expectation changes: an empty
-   `docs/vX.Y/`, `docs/vX.Y.Z/` or `docs/vX.Y/vX.Y.Z/` directory stays
-   discoverable. Coverage continues to verify discovery of the effort's sibling
-   documents.
+5. The two existing empty-slug-directory tests are updated for content-based
+   eligibility. Only the version-and-slug expectation changes: empty `docs/`,
+   `docs/vX.Y/`, `docs/vX.Y.Z/` and `docs/vX.Y/vX.Y.Z/` directories stay
+   discoverable. Tests continue to verify the effort's sibling discovery and
+   reject `docs/vX.Y/vX.Y.Z/<slug>/` without expanding accepted spellings.
 6. The optional-slug default and the missing-slug error described above remain
    covered without changing their contract.
-7. Selection outcomes are documented and tested when a recognized canonical
-   parent lacks the requested sibling: one match elsewhere, several competing
-   matches, and no match anywhere in the permitted fallback set.
-8. Selection behavior is documented and tested when the canonical draft's
-   parent does not satisfy the settled effort-directory rule.
-9. The rule for several matching documents inside the recognized canonical
-   parent is documented and tested separately from fallback ambiguity.
-10. Recognition coverage includes matching and mismatched versions and slugs,
-    hyphen/underscore equivalence, accepted document kinds, transcript-only and
-    scratch-only directories, and the unsupported
-    `docs/vX.Y/vX.Y.Z/<slug>/` shape, according to the settled answers.
+7. When a recognized canonical parent lacks the requested sibling, selection
+   searches every other recognized documentation directory. Tests verify the
+   sole-match result, ambiguity for competing matches and absence when none
+   exists, retaining the exact requested version and existing role/subtopic
+   matching rules throughout fallback.
+8. When a discovered canonical draft has an unrecognized parent, selection
+   reports that directory explicitly and does not search elsewhere. Coverage
+   includes an unsupported location and a parent rejected by the stricter rule.
+9. Several matching documents inside a recognized canonical parent still select
+   its most recently modified match. Test this separately from fallback
+   ambiguity, without changing the existing local timestamp-tie behavior.
+10. Recognition tests verify exact enclosing-version equality and slug equality
+    with hyphen/underscore folding. Different versions, different slugs and mere
+    subtopic prefix matches do not qualify a directory by themselves; unrelated
+    accompanying files do not disqualify a matching effort document.
 
 ## Observed examples from the source draft
 
@@ -189,424 +232,20 @@ The reviewed discovery and selection functions are in
 are in
 `tests/unit/tools/test_prompt_workflow_docs/test_prompt_workflow_docs_tdd.py`.
 
-## Open questions for the v0.12.0 docs_layout_hardening issue
-
-### Q01: Must ordinary directories be excluded from effort discovery?
-
-The issue permits either excluding ordinary directories or documenting a naming
-constraint. What observable distinction must discovery make between a real
-effort and a lowercase directory containing only assets or unrelated files?
-The expected-contract section defines effort documents as canonical drafts,
-requirements, designs, implementation plans, and validation plans; review
-transcripts, scratch files and unrelated files do not count. This question
-settles the required behavior; the recognition mechanism belongs in the design.
-
-#### BBQ for Q01
-
-A barbecue organizer should decide whether every labeled box belongs on the
-serving table or whether boxes containing only decorations stay off it. In this
-picture: the organizer is documentation discovery, the serving table is the set
-of recognized effort directories, and the decoration boxes are ordinary folders.
-
-#### Options for Q01
-
-- Option A: Exclude directories that contain no effort documents.
-  - pro: Ordinary assets folders do not become efforts solely because of their names.
-  - con: An empty directory prepared for a future effort is not yet discoverable.
-    Recognition becomes content-dependent as documents are added, renamed or
-    removed, and replaces two current tests' empty-directory expectations.
-- Option B: Keep recognizing every directory with an accepted name and document
-  that this namespace is reserved for efforts.
-  - pro: Preserves current recognition without imposing a content requirement.
-  - con: Correct behavior depends on authors keeping ordinary folders elsewhere.
-
-#### Recommended option for Q01 (with arguments for this choice)
-
-Option A: Require an observable distinction between effort content and ordinary
-folders. This directly addresses the recognition concern without choosing how
-the implementation makes that distinction.
-
-#### Answer to Q01: option A (with reason why it must be accepted as the answer)
-
-Option A: Accept exclusion of directories without effort documents because an
-ordinary folder should not enter effort discovery merely through its spelling.
-
-### Q02: Must existing effort documents remain discoverable without a draft?
-
-If directory recognition requires effort content, should a directory containing
-the effort's requirement, design, implementation plan, or validation plan still
-qualify when its draft is absent? This concerns the supported document lifecycle,
-not the choice of a detection algorithm. It is conditional on Q01 option A.
-
-#### BBQ for Q02
-
-A cook may still have the menu and cooking instructions after losing the
-original shopping note. In this picture: the shopping note is the draft, the
-menu and cooking instructions are later effort documents, and recognizing the
-cook's station is recognizing their effort directory.
-
-#### Options for Q02
-
-- Option A: Allow later effort documents to keep the directory discoverable
-  without a draft.
-  - pro: Existing requirements and plans do not disappear when a draft is absent.
-  - con: Directory recognition alone cannot guarantee canonical-draft context
-    for every later workflow command.
-- Option B: Require a draft for the directory to qualify as an effort.
-  - pro: Every recognized directory supplies the workflow's canonical starting context.
-  - con: Otherwise valid effort documents become invisible if the draft is removed.
-
-#### Recommended option for Q02 (with arguments for this choice)
-
-Option A: Preserve discovery of later documents independently of whether a
-particular workflow also needs a draft. This avoids repeating the original
-symptom of sibling documents becoming invisible.
-
-#### Answer to Q02: option A (with reason why it must be accepted as the answer)
-
-Option A: Accept discovery without a draft because retaining a requirement or
-plan should not depend on retaining its initial working notes. Commands that
-need a canonical draft may still enforce that separate prerequisite.
-
-### Q03: Must effort content match the enclosing version and slug?
-
-A directory can contain an effort document copied from another effort. Should
-such content qualify `docs/v1.2.3/topic/` when it belongs only to another version
-or another slug? This question defines the recognition boundary, without
-settling the parsing or validation mechanism. It is conditional on Q01 option A.
-
-#### BBQ for Q03
-
-A serving station labeled for one dish might contain only the recipe for a
-different dish. In this picture: the station label is the directory's version
-and slug, the recipe is an effort document, and the recipe's dish is the
-document's version and topic.
-
-#### Options for Q03
-
-- Option A: Require at least one effort document matching both the enclosing
-  version and slug, treating hyphens and underscores as equivalent in the slug;
-  unrelated content alone does not qualify the directory.
-  - pro: A copied document cannot make a differently named folder appear to be
-    the intended effort.
-  - con: A directory containing only mismatched documents needs correction
-    before it becomes discoverable.
-- Option B: Accept any effort document regardless of its version and slug.
-  - pro: Discovery tolerates partially renamed or reorganized document collections.
-  - con: Recognition can report an effort identity unsupported by its contents.
-- Option C: Require the enclosing version and a literally identical slug,
-  distinguishing hyphens from underscores.
-  - pro: Directory and document names have exactly the same topic spelling.
-  - con: Rejects separator variants already treated as equivalent by document matching.
-
-#### Recommended option for Q03 (with arguments for this choice)
-
-Option A: Align the recognized effort with the identity expressed by its
-directory. Additional unrelated files need not disqualify a directory that also
-contains matching effort content. For example, `docs/v1.2.3/my-effort/` with
-`issue.v1.2.3.my_effort.md` qualifies; a different version or a merely prefixed
-subtopic alone does not. The version must match exactly.
-
-#### Answer to Q03: option A (with reason why it must be accepted as the answer)
-
-Option A: Accept matching version and slug as the boundary because the directory
-should represent the effort it names, while still allowing accompanying files
-and the existing hyphen/underscore equivalence.
-
-### Q04: Can an actual effort use a common folder name such as images?
-
-The draft uses `images` and `sub` as examples of ordinary folders, but those
-spellings also satisfy the current slug shape. If a directory contains the
-required effort content, should its common name still prevent recognition?
-This content-based distinction is conditional on Q01 option A.
-
-#### BBQ for Q04
-
-A box labeled "supplies" may hold real food despite sounding like a storage
-box. In this picture: the box label is a common directory name, the food is
-qualifying effort content, and admitting the box to the serving table is
-recognizing the directory as an effort.
-
-#### Options for Q04
-
-- Option A: Allow common names when the directory otherwise qualifies as an effort.
-  - pro: Legitimate effort topics are not rejected through an arbitrary reserved name.
-  - con: The directory's name alone cannot tell a reader whether it holds assets
-    or effort documents.
-- Option B: Reserve common assets-folder names and reject them as effort slugs.
-  - pro: Those names consistently indicate ordinary supporting folders.
-  - con: Existing valid effort names can become unusable, and the reserved set
-    needs an explicit scope.
-
-#### Recommended option for Q04 (with arguments for this choice)
-
-Option A: The concern is mistaking ordinary contents for an effort, not the words
-`images` or `sub` themselves. Recognition should follow the settled effort rule.
-
-#### Answer to Q04: option A (with reason why it must be accepted as the answer)
-
-Option A: Accept a qualifying effort with a common name because the hardening
-should distinguish directory purpose without introducing reserved topic names.
-
-### Q05: Should canonical-draft context justify different duplicate results?
-
-For copies of the same document in the version directory and its slug
-subdirectory, the draft reports ambiguity from `resolve_document` and a selected
-copy from `select_document`. The entry points differ today in directory set,
-name-match breadth, and treatment of several matches. This question settles the
-directory preference alone. Name matching retains its current breadth; Q09
-addresses several matches inside the chosen directory. The shared layout rule
-already favors the canonical draft's parent for workflow discovery. Should that
-contextual distinction remain the explicit acceptance contract?
-
-#### BBQ for Q05
-
-Two tables may display the same dish card. A guest assigned to one table can use
-that table's card, while an unassigned guest cannot tell which card applies. In
-this picture: the tables are documentation directories, the cards are duplicate
-documents, the table assignment is canonical-draft context, and the unassigned
-guest is resolution without that preference.
-
-#### Options for Q05
-
-- Option A: Keep strict ambiguity in general resolution and let workflow
-  selection resolve within the canonical draft's parent alone when that
-  directory is recognized.
-  - pro: Makes the existing contextual distinction explicit and preserves the
-    documented effort-directory preference.
-  - con: Callers must understand the different results. What happens when that
-    parent holds no match is settled by Q06, and several matches inside it by Q09.
-- Option B: Require both entry points to reject cross-directory duplicates even
-  when the canonical draft identifies the effort directory.
-  - pro: Gives both entry points the same ambiguity rule.
-  - con: Changes the documented workflow preference and can block an otherwise
-    unambiguous effort in its own directory.
-
-#### Recommended option for Q05 (with arguments for this choice)
-
-Option A: Preserve the meaning of canonical-draft context and make the existing
-difference intentional and testable. The acceptance case must apply whichever
-of the two layouts contains the canonical draft.
-
-#### Answer to Q05: option A (with reason why it must be accepted as the answer)
-
-Option A: Accept context-sensitive selection because the canonical draft already
-identifies the effort's directory, while a general resolver still needs to
-report competing matches.
-
-### Q06: What happens when the requested document is missing beside the draft?
-
-When the recognized canonical draft's parent lacks the requested document,
-workflow selection currently returns no match. `_topic_docs_dirs` widens to all
-supported directories only when that parent is not recognized; that separate
-case is covered by Q10. Should missing siblings also permit a fallback?
-
-For the fallback alternatives below, the search covers every other recognized
-documentation directory across supported layouts. Matches must still have the
-requested version, role and topic under the existing name-match rules; scanning
-a directory does not permit selecting a different document version.
-
-#### BBQ for Q06
-
-A guest's assigned table may have no dish card, leaving one or several cards at
-other tables. In this picture: the assigned table is the canonical draft's
-directory, the missing card is the requested sibling document, the other tables
-are alternative documentation directories, and competing cards are ambiguous
-fallback matches.
-
-#### Options for Q06
-
-- Option A: Allow a fallback to other recognized documentation directories,
-  with the multiplicity rule settled by Q09 and absence reported when nothing
-  matches.
-  - pro: Supports a recoverable partial layout instead of a dead end.
-  - con: Introduces fallback where a recognized parent currently yields absence,
-    and lets an effort draw a missing document from another directory.
-- Option B: Treat absence in the canonical draft's parent as absence for the
-  effort, even if another directory contains a matching document, as today.
-  - pro: Enforces complete effort co-location.
-  - con: A matching document elsewhere remains unavailable to the effort.
-- Option C: Introduce missing-sibling fallback and apply the current selection
-  rule of returning the most recently modified match among its alternatives.
-  - pro: Reuses the existing timestamp selection behavior without duplicate cleanup.
-  - con: Adds a new fallback trigger and silently chooses by timestamps rather
-    than resolving effort identity.
-
-#### Recommended option for Q06 (with arguments for this choice)
-
-Option A: Introduce an explicit fallback rather than a dead end, under the
-multiplicity rule Q09 settles. This changes current behavior when the recognized
-canonical parent lacks the requested sibling; it is not just clarification of
-an existing fallback trigger.
-
-#### Answer to Q06: option A (with reason why it must be accepted as the answer)
-
-Option A: Accept a fallback for a missing sibling because it supports recovery
-of a partial layout, and leave to Q09 how many candidates that fallback
-tolerates.
-
-### Q07: Should stricter recognition be confined to the slug subdirectory layout?
-
-The motivating recognition concern applies to `docs/vX.Y.Z/<slug>/`. Should
-this effort preserve the other four supported layouts and the current accepted
-name shapes, apart from any duplicate policy settled above, or apply new
-recognition requirements more broadly?
-
-#### BBQ for Q07
-
-Adding a label check to individual serving stations need not change the rules
-for the shared dining area. In this picture: individual stations are slug
-subdirectories, their label check is the new recognition rule, and the shared
-dining area represents the four existing documentation layouts.
-
-#### Options for Q07
-
-- Option A: Confine stricter directory recognition to the version-and-slug
-  layout; preserve the other layouts and current slug spelling constraints.
-  - pro: Keeps the issue focused and avoids requiring unrelated document relocation.
-  - con: Recognition conditions remain different across layout kinds.
-- Option B: Apply new content requirements to all supported layout kinds.
-  - pro: Offers a broader uniform recognition contract.
-  - con: Expands the issue beyond the described gap and can affect existing efforts.
-- Option C: Also broaden accepted slug spellings, including currently rejected names.
-  - pro: Supports more directory naming conventions.
-  - con: Adds a naming-policy change unrelated to distinguishing effort content.
-
-#### Recommended option for Q07 (with arguments for this choice)
-
-Option A: Harden the newly supported slug directory without expanding naming
-rules or changing recognition of the four established layouts. The duplicate
-contract remains a separate acceptance concern covered by Q05 and Q06.
-
-#### Answer to Q07: option A (with reason why it must be accepted as the answer)
-
-Option A: Accept the limited compatibility scope because the source identifies
-three specific contract gaps, not a general documentation-layout migration.
-In particular, `docs/vX.Y/vX.Y.Z/<slug>/` remains unsupported: adding a slug
-below the minor-and-full-version layout is not part of this effort.
-
-### Q08: Must all directory-recognition paths apply the same effort rule?
-
-The general listing used by `docs_dirs` and the version-scoped listing
-`docs_dirs_for_version` independently decide whether a version-and-slug
-directory is an effort. Must both apply the same settled eligibility rule for
-that directory? The question concerns observable agreement, not how the two
-paths share or organize their implementation.
-
-#### BBQ for Q08
-
-Two organizers checking the same serving station should agree whether it
-belongs at the barbecue. In this picture: the organizers are the general and
-version-scoped directory listings, the station is the same slug directory, and
-admission is recognition under the settled effort rule.
-
-#### Options for Q08
-
-- Option A: Require the settled recognition rule at every directory-recognition path.
-  - pro: General discovery and version-scoped resolution agree about each
-    version-and-slug directory and are both independent of umbrella-row changes.
-  - con: More than the originally named recognition path must be addressed.
-- Option B: Change only the general recognition path named by the draft.
-  - pro: Limits the change to the initially identified location.
-  - con: Version-scoped resolution can keep scanning ordinary folders that
-    general discovery rejects.
-
-#### Recommended option for Q08 (with arguments for this choice)
-
-Option A: One directory must have one eligibility result, even when callers use
-different search scopes. This avoids creating a new discovery disagreement
-while repairing the layout contract.
-
-#### Answer to Q08: option A (with reason why it must be accepted as the answer)
-
-Option A: Accept consistent recognition at every path because directory
-eligibility must not depend on which listing a caller happens to use.
-
-### Q09: Which match wins when several documents remain in the chosen scope?
-
-Workflow selection currently returns the most recently modified match, both
-inside the recognized canonical parent's directory and in its existing broad
-fallback set. Q05 preserves the parent preference, and Q06 proposes a fallback
-when a recognized parent lacks the requested sibling. Which multiplicity rule
-should apply inside that parent and in a permitted fallback?
-
-#### BBQ for Q09
-
-Several dish cards may be revisions kept at one assigned table or competing
-cards collected from different tables. In this picture: the cards are matching
-documents, their revision times are file modification times, the assigned table
-is the canonical parent's directory, and the other tables form the fallback set.
-
-#### Options for Q09
-
-- Option A: Report several matches as ambiguous in every selection scope.
-  - pro: Removes silent duplicate selection throughout the workflow.
-  - con: Retires timestamp selection even inside an effort's own directory and
-    can block roles that currently match several subtopics or document types.
-- Option B: Keep most-recent selection in every permitted scope.
-  - pro: Preserves the existing multiplicity rule.
-  - con: A permitted fallback can silently choose among competing locations.
-- Option C: Keep most-recent selection inside the recognized canonical parent;
-  require a unique match in a permitted fallback.
-  - pro: Preserves selection within the effort while avoiding silent choices
-    between fallback alternatives, consistently with Q05 and Q06 option A.
-  - con: The local and fallback scopes have different multiplicity rules to explain.
-
-#### Recommended option for Q09 (with arguments for this choice)
-
-Option C: Canonical-parent context justifies preserving its current timestamp
-rule. Outside that context, several candidates remain ambiguous. This retains
-the existing handling of role and subtopic matches inside the effort and changes
-only the multiplicity rule of a permitted fallback.
-
-#### Answer to Q09: option C (with reason why it must be accepted as the answer)
-
-Option C: Accept local most-recent selection and unique fallback selection
-because they respect the difference between an identified effort directory and
-unresolved alternatives. Existing timestamp-tie behavior inside the canonical
-parent remains outside this hardening scope.
-
-### Q10: What if the canonical draft's parent fails the effort rule?
-
-Canonical-parent preference currently depends on that parent appearing in the
-recognized directory set. If it does not, selection searches all supported
-directories. Content-based recognition can introduce this case when the draft
-and enclosing directory have different identities or the available documents
-change. Should failing eligibility widen selection or produce an explicit
-unrecognized-directory result?
-
-This case also exists today, before any recognition change: a relevant draft
-can be discovered anywhere under `docs/`, so a draft in an unsupported directory
-such as `docs/archive/` or below the accepted depth already leaves its parent
-out of the recognized set and already widens selection to every supported
-directory.
-
-#### BBQ for Q10
-
-A guest assigned to a station that fails admission should not silently receive
-cards from every other station. In this picture: the assignment is canonical-draft
-context, failed admission is an unrecognized parent directory, and collecting
-other cards is widening document selection to the fallback set.
-
-#### Options for Q10
-
-- Option A: Report the unrecognized canonical effort directory without widening.
-  - pro: Stricter recognition cannot silently produce a broader document search.
-  - con: A mismatched or incomplete effort must be corrected before selection
-    proceeds, and a draft already sitting in an unsupported directory stops
-    resolving siblings instead of searching every supported directory.
-- Option B: Retain the current broad fallback when the parent is unrecognized.
-  - pro: Preserves the existing fallback trigger.
-  - con: Failing the effort rule can silently expand selection to other directories.
-
-#### Recommended option for Q10 (with arguments for this choice)
-
-Option A: An invalid effort location is different from a missing sibling in an
-otherwise recognized effort. Report that location problem directly; Q06's
-proposed fallback remains available only for a recognized parent.
-
-#### Answer to Q10: option A (with reason why it must be accepted as the answer)
-
-Option A: Accept an explicit unrecognized-directory result because directory
-hardening should not cause selection to become less constrained. This deliberately
-replaces the existing fallback trigger for an unrecognized canonical parent.
+## Requirement clarifications
+
+| Question | Decision and rationale | Integrated in | Rejected alternatives |
+| --- | --- | --- | --- |
+| Q01 | A: Require an effort document so an ordinary directory cannot qualify through its spelling alone. | Recognition of version-and-slug effort directories; criterion 1 | Recognizing every valid slug name and reserving the namespace for efforts. |
+| Q02 | A: A later effort document qualifies without a draft because retaining requirements or plans must not depend on retaining initial notes. | Recognition of version-and-slug effort directories; criterion 2 | Requiring a canonical draft for directory discovery. |
+| Q03 | A: Require the enclosing version and folded slug to match, so the directory represents the effort it names while keeping separator equivalence. | Recognition of version-and-slug effort directories; criterion 10 | Any effort document regardless of identity; literal separator equality. |
+| Q04 | A: Accept qualifying efforts named `images` or `sub`; purpose comes from matching content. | Recognition of version-and-slug effort directories; criterion 2 | Reserving common assets-folder names. |
+| Q05 | A: Preserve strict general resolution and canonical-parent preference in workflow selection because only the latter has that context. | Resolution and workflow selection outcomes; criterion 3 | One global duplicate policy that ignores canonical-parent context. |
+| Q06 | A: Add fallback when a recognized parent lacks a sibling, supporting recovery of a partial layout; Q09 controls multiplicity. | Resolution and workflow selection outcomes; criterion 7 | Keeping absence without fallback; choosing the newest among fallback alternatives. |
+| Q07 | A: Limit stricter recognition to version-and-slug directories because this effort closes specific contract gaps without a layout migration. | Compatibility of existing documentation layouts; criterion 5 | Applying content restrictions to older layouts or broadening accepted slug spellings. |
+| Q08 | A: Apply one eligibility contract at every recognition path, independent of umbrella validation, so listing choice cannot change discovery. | Recognition of version-and-slug effort directories; criterion 4 | Fixing only the general recognition path and leaving version-scoped discovery inconsistent. |
+| Q09 | C: Retain local newest-match selection but require a unique fallback match; canonical context justifies the former, while competitors outside it remain ambiguous. | Resolution and workflow selection outcomes; criteria 7 and 9 | Strict ambiguity for local matches too; silently choosing the newest fallback match. |
+| Q10 | A: Explicitly report an unrecognized canonical parent without fallback so stricter eligibility cannot silently broaden selection. | Resolution and workflow selection outcomes; criterion 8 | Retaining broad fallback for an unrecognized parent. |
+
+All ten issue questions are settled. No additional requirement clarification is
+needed before design.
