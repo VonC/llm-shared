@@ -7,6 +7,8 @@ role, most-recent selection by mtime, and open-questions detection.
 v0.9.0: this test moved into the nested ``test_prompt_workflow_docs/`` form (Q08)
 and gained a ``has_decisions_table`` case for the consolidated decisions sections
 the skill routing reads (Q03).
+
+v0.12.0: slug-directory fixtures carry matching immediate document evidence.
 """
 
 from __future__ import annotations
@@ -321,6 +323,7 @@ def test_docs_dirs_supports_all_layouts(tmp_path: Path) -> None:
     (docs_dir / "v9.8.0").mkdir()
     (docs_dir / "v9.8" / "v9.8.0").mkdir()
     (docs_dir / "v9.8.0" / "topic").mkdir()
+    (docs_dir / "v9.8.0" / "topic" / "issue.v9.8.0.topic.md").touch()
     (docs_dir / "archive").mkdir()
     (docs_dir / "archive" / "nested").mkdir()
     (docs_dir / "v9.8" / "v9.8.0" / "topic").mkdir()
@@ -337,7 +340,7 @@ def test_docs_dirs_supports_all_layouts(tmp_path: Path) -> None:
 
 @pytest.mark.parametrize(
     "relative_dir",
-    ["docs", "docs/v9.8", "docs/v9.8.0", "docs/v9.8/v9.8.0", "docs/v9.8.0/topic"],
+    ["docs", "docs/v9.8", "docs/v9.8.0", "docs/v9.8/v9.8.0", "docs/v9.8.0/git-history-report"],
 )
 def test_resolve_document_uses_only_version_slug_and_type(
     tmp_path: Path,
@@ -596,10 +599,11 @@ def test_has_consolidated_decisions_rejects_a_late_question_column(
 
 
 def test_docs_dirs_includes_version_slug_layout(tmp_path: Path) -> None:
-    """docs_dirs and docs_dirs_for_version include docs/vX.Y.Z/<slug>/ directories."""
+    """Both listings include docs/vX.Y.Z/<slug>/ with exact immediate evidence."""
     docs_dir = tmp_path / "docs"
     version_slug_dir = docs_dir / "v1.2.3" / "my_effort"
     version_slug_dir.mkdir(parents=True)
+    (version_slug_dir / "issue.v1.2.3.my_effort.md").touch()
 
     all_dirs = docs.docs_dirs(tmp_path)
     assert version_slug_dir in all_dirs

@@ -1,9 +1,10 @@
 """Layout enumeration, filename matching and document selection.
 
-Extracted from the docs facade without changing lookup behavior. This module
-reads directory entries and file metadata; Git topic discovery and document-body
-markers remain with its caller. Directory-slug syntax belongs to lookup and has
-no dependency on collection validation.
+Extracted from the docs facade, this module reads directory entries and file
+metadata; Git topic discovery and document-body markers remain with its caller.
+Both directory listings require exact immediate document evidence for a full
+version's slug child, preserving shape-only recognition for older layouts.
+Eligibility is uncached and directory-slug syntax has no collection dependency.
 """
 
 from __future__ import annotations
@@ -43,6 +44,9 @@ DOCUMENT_TYPE_PREFIXES = {
     "plan": ("plan",),
     "validation-plan": ("plan",),
 }
+EFFORT_DOCUMENT_TYPES = (
+    "draft", "feature-request", "issue", "design", "plan", "validation-plan",
+)
 
 # Lookup owns layout slug syntax independently of collection validation.
 DIRECTORY_SLUG_RE = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
@@ -55,20 +59,19 @@ def docs_dirs(root: Path) -> list[Path]:
     docs = root / DOCS_DIR_NAME
     if not docs.is_dir():
         return []
-    dirs = [docs]
-    dirs.extend(
-        sub
-        for sub in sorted(docs.rglob("*"))
-        if sub.is_dir() and _is_supported_docs_dir(docs, sub)
-    )
-    return dirs
+    candidates = [docs, *sorted(docs.rglob("*"))]
+    return [
+        candidate for candidate in candidates
+        if candidate.is_dir() and _is_supported_docs_dir(docs, candidate)
+    ]
 
 
 def docs_dirs_for_version(root: Path, version: str) -> list[Path]:
     """Return existing supported documentation directories for ``version``.
 
     A full ``vX.Y.Z`` version maps to ``docs/``, ``docs/vX.Y/``,
-    ``docs/vX.Y.Z/``, ``docs/vX.Y/vX.Y.Z/``, and any ``docs/vX.Y.Z/<slug>/``.
+    ``docs/vX.Y.Z/``, ``docs/vX.Y/vX.Y.Z/``, and ``docs/vX.Y.Z/<slug>/``
+    children with exact immediate effort-document evidence.
     A legacy ``vX.Y`` version maps to the first two layouts only.
     """
     is_minor = MINOR_DIR_RE.fullmatch(version) is not None
@@ -84,17 +87,22 @@ def docs_dirs_for_version(root: Path, version: str) -> list[Path]:
         full_dir = docs / version
         candidates.extend((full_dir, docs / minor / version))
         if full_dir.is_dir():
-            candidates.extend(
-                sub
-                for sub in sorted(full_dir.iterdir())
-                if sub.is_dir() and DIRECTORY_SLUG_RE.fullmatch(sub.name) is not None
-            )
-    return [candidate for candidate in candidates if candidate.is_dir()]
+            candidates.extend(sorted(full_dir.iterdir()))
+    return [
+        candidate for candidate in candidates
+        if candidate.is_dir() and _is_supported_docs_dir(docs, candidate)
+    ]
 
 
 def _is_supported_docs_dir(docs: Path, candidate: Path) -> bool:
-    """Return whether ``candidate`` is one of the supported version paths."""
+    """Accept older layouts by shape and slug children by exact filename evidence.
+
+    Inspect current immediate files only, without reading bodies or resolving
+    documents. Enumeration failures propagate and the first match ends the scan.
+    """
     parts = candidate.relative_to(docs).parts
+    if not parts:
+        return True
     if len(parts) == 1:
         return bool(
             MINOR_DIR_RE.fullmatch(parts[0])
@@ -104,8 +112,20 @@ def _is_supported_docs_dir(docs: Path, candidate: Path) -> bool:
         if MINOR_DIR_RE.fullmatch(parts[0]) and FULL_VERSION_DIR_RE.fullmatch(parts[1]):
             return True
         if FULL_VERSION_DIR_RE.fullmatch(parts[0]) and DIRECTORY_SLUG_RE.fullmatch(parts[1]):
-            return True
+            return _has_effort_document(candidate, parts[0], parts[1])
     return False
+
+
+def _has_effort_document(directory: Path, version: str, slug: str) -> bool:
+    """Stop at the first immediate file carrying the directory's exact identity."""
+    return any(
+        entry.is_file()
+        and any(
+            _exact_doc_matches(entry.name, kind, version, slug)
+            for kind in EFFORT_DOCUMENT_TYPES
+        )
+        for entry in directory.iterdir()
+    )
 
 
 def _topic_docs_dirs(root: Path, topic: Topic) -> list[Path]:
