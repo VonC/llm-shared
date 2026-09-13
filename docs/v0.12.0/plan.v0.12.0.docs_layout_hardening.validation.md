@@ -1,11 +1,11 @@
 # v0.12.0 docs_layout_hardening implementation tracking and validation
 
-No, it is not implemented.
+Yes, it is implemented.
 
 This document tracks the four steps in the
-[implementation plan](plan.v0.12.0.docs_layout_hardening.md). Steps 1 through 3
-have passed their implementation checks and shared groundhog walks. Step 4
-remains pending: CLI/post-commit acceptance and published layout guidance.
+[implementation plan](plan.v0.12.0.docs_layout_hardening.md). All four steps
+have passed their implementation checks and shared groundhog walks. The final
+step verifies CLI/post-commit acceptance and publishes the layout guidance.
 
 ## File-based IO cost clarification for v0.12.0 validation
 
@@ -348,7 +348,13 @@ No existing feature or reporting capability appears impaired.
 
 ### Analysis of Step 4 implementation state
 
-Not started. Step 4 is not implemented because the CLI/post-commit acceptance coverage and shipped layout guidance have not been implemented.
+Yes. Step 4 has been fully implemented.
+
+Real temporary Git repositories exercise document ambiguity, canonical workflow
+preference, fallback routing, invalid-parent diagnostics and post-commit topics
+without drafts. The acceptance mapping below accounts for all sixteen design
+rows. Shared layout guidance describes the verified behavior, and the fresh
+groundhog day completed successfully with the configured 100% coverage gate.
 
 ### Goal for Step 4
 
@@ -360,24 +366,129 @@ CLI routing and fatal diagnostics, missing-draft post-commit fallback, optional-
 
 ### What was implemented for Step 4
 
-_(empty — no check has taken place yet.)_.
+The new [acceptance package initializer](../../tests/unit/tools/test_prompt_workflow_docs_layout_acceptance/\_\_init\_\_.py)
+and [acceptance module](../../tests/unit/tools/test_prompt_workflow_docs_layout_acceptance/test_prompt_workflow_docs_layout_acceptance_tdd.py)
+contain twelve collected cases. Their fixtures initialize real Git repositories,
+disable inherited hooks and signing for fixture commits, and create a real topic
+branch. Successful calls use `prompt_workflow.main`; fatal cases execute its
+actual script entry point and require exit 2, contextual diagnostics, no success
+command and no generated prompt. Git, layout discovery, selection, state and
+post-commit helpers are not stubbed.
+
+Repeated calls after file addition, rename or removal demonstrate current
+eligibility and fallback selection. Validation-plan-only topics retain their
+nonexistent canonical draft path: a unique ordinary plan routes to Step 2 or
+release preparation according to validation state, no plan skips the topic, and
+competing plans propagate through the CLI. Four parameterized cases fill the
+positive omitted-slug compatibility gap for the older layouts; the existing
+`test_docs_relative_dir_version_slug_requires_slug` retains missing-slug error
+coverage for `version-slug`.
+
+[Post-commit module documentation](../../tools/prompt_workflow_post_commit.py)
+now explains synthesized draft paths, local-or-unique-fallback plans, omission
+and exception propagation. [Layout rules](../../rules/docs_layout.md) now state
+the six qualifying document kinds, exact identity, unsupported shapes, current
+content checks, strict general resolution and canonical workflow selection.
+There are no runtime, adapter or migration changes.
+
+### Acceptance evidence mapping for Step 4
+
+The row numbers follow the [design acceptance cases](design.v0.12.0.docs_layout_hardening.md#acceptance-cases-for-v0120-docs_layout_hardening).
+`A` identifies the new acceptance module linked above; `L` identifies the
+[lookup unit module](../../tests/unit/tools/test_prompt_workflow_document_lookup/test_prompt_workflow_document_lookup_tdd.py);
+`S` identifies the [selection unit module](../../tests/unit/tools/test_prompt_workflow_document_selection/test_prompt_workflow_document_selection_tdd.py).
+
+| Row | Accepted behavior | Test evidence |
+| --- | --- | --- |
+| 1 | Empty/assets/scratch/review-only directories do not qualify | L: `test_empty_or_unrelated_content_does_not_qualify` |
+| 2 | An exact issue with folded separators qualifies without a draft | L: `test_each_concrete_document_qualifies_without_other_evidence`; A: `test_document_mode_observes_added_renamed_and_removed_evidence` |
+| 3 | Design, ordinary plan and validation plan each qualify alone | L: `test_each_concrete_document_qualifies_without_other_evidence` |
+| 4 | Other versions, slugs and subtopic prefixes do not qualify | L: `test_empty_or_unrelated_content_does_not_qualify`; existing filename identity properties |
+| 5 | `images` and unrelated sibling assets do not disqualify an effort | L: `test_effort_names_and_unrelated_siblings_do_not_disqualify` |
+| 6 | The four older empty layouts remain recognized | L: `test_older_empty_layouts_remain_recognized` |
+| 7 | Uppercase, dotted and deeper slug layouts stay rejected | L: `test_unsupported_shapes_stay_rejected_despite_matching_content` |
+| 8 | General duplicates are ambiguous while workflow prefers its parent | A: `test_document_ambiguity_keeps_workflow_canonical_preference`; S: `test_general_duplicates_remain_ambiguous_with_canonical_slug_parent` |
+| 9 | Several local matches preserve newest selection and ties | A: `test_skill_keeps_newest_local_match_ahead_of_newer_fallback`; S: `test_local_matches_keep_order_ties_and_newest_policy` |
+| 10 | A missing local sibling uses a unique eligible fallback | A: `test_document_ambiguity_keeps_workflow_canonical_preference`; S: `test_fallback_searches_all_recognized_layouts` |
+| 11 | Competing fallbacks fail with stable competing paths | A: `test_skill_fallback_ambiguity_is_fatal_and_refreshes_after_removal` |
+| 12 | No local or fallback match returns `None` | S: zero-candidate cases in `test_fallback_cardinality_and_stable_diagnostics` |
+| 13 | Unsupported or mismatched parents fail without widened selection | A: `test_branch_relevant_draft_with_invalid_parent_reaches_fatal_cli`; S: `test_invalid_parent_rejects_tempting_alternatives` |
+| 14 | Add, rename and removal affect the next discovery call | A: `test_document_mode_observes_added_renamed_and_removed_evidence`; L: `test_content_changes_are_visible_without_restarting` |
+| 15 | A validation topic keeps its canonical parent without a draft | A: `test_post_commit_missing_draft_routes_unique_plan_and_validation_changes` |
+| 16 | Post-commit fallback cardinality includes, skips or raises | A: `test_post_commit_missing_draft_routes_unique_plan_and_validation_changes` and `test_post_commit_competing_plans_propagate_to_fatal_cli` |
+
+The existing [filename properties](../../tests/unit/tools/test_prompt_workflow_document_lookup/test_prompt_workflow_document_lookup_pbt.py)
+cover separator equivalence and rejection of different versions/topics. No
+additional acceptance property suite is required.
 
 ### New types or classes introduced for Step 4
 
-_(empty — no check has taken place yet.)_.
+None. The new fixture and assertion helpers are functions local to the
+acceptance package. Existing `Topic`, semantic-version and error types are reused.
 
 ### Architecture check for Step 4
 
-_(empty — no check has taken place yet.)_.
+Production changes are docstrings only. The existing docs facade, lookup/model
+dependency direction and caller-owned command rendering remain intact. The
+acceptance tests cross those boundaries deliberately through public CLI and
+post-commit entry points. No production layer imports tests or new technical
+dependencies, and `plan_topics` still lets selection errors propagate.
+
+Physical line budgets are satisfied:
+
+| File | Baseline | Final | Python ceiling |
+| --- | --- | --- | --- |
+| `tools/prompt_workflow_post_commit.py` | 91 | 98 | 650 |
+| New acceptance module | 0 | 293 | 650 |
+| New acceptance initializer | 0 | 4 | 650 |
+| `rules/docs_layout.md` | 43 | 84 | Not applicable |
+
+The existing large acceptance and skill suites are unchanged. No architecture
+smell, dependency violation or file-size issue needs addressing.
 
 ### Performance check for Step 4
 
-_(empty — no check has taken place yet.)_.
+This step introduces no runtime computation, sorting or filesystem traversal.
+The existing single-inventory selection and uncached immediate-entry checks
+retain the deterministic IO and freshness evidence recorded in Steps 2 and 3.
+Temporary Git fixtures create only the small histories and files each scenario
+needs; assertion helpers avoid duplicating CLI verification logic.
+
+The fresh `ghog day` finished at `2026-09-13T11:44:54+02:00`, with status
+`state=done exit=0`. Its full run reported `fail=0 warn=0 xfail=0 cov=100`,
+and elapsed full-run time was 3m 24.9s. Duration outlier and excluded checks
+reported `skipped`; this result establishes no measured timing-gate pass.
+No performance issue needs addressing.
 
 ### Unit test coverage check for Step 4
 
-_(empty — no check has taken place yet.)_.
+The configured coverage source is `tools`, with `fail_under = 100`; tests and
+package initializers are omitted. The fresh implementation walk passed that
+gate. No production class or executable branch changes in this step. Existing
+focused lookup, selection and new-draft unit tests supply the exhaustive
+filename, cardinality and compatibility evidence; the new multi-module
+acceptance cases carry no individual class-coverage target.
+
+For files outside the measured source, each new assertion/helper function is
+called by the acceptance cases, the repository fixture is requested by those
+cases, and pytest collects each test function. The initializer defines no
+symbols. No percentage is attributed to these unmeasured test files. This
+check used static inspection and the completed implementation walk; it did not
+run another test command.
+
+No unit-tested class below 100% needs completing. No top-level symbol outside
+the coverage gate is unreferenced.
 
 ### Feature integrity for Step 4
 
-_(empty — no check has taken place yet.)_.
+All sixteen design rows have evidence above. Exact document mode remains
+strict; workflow commands preserve local preference, fallback errors and
+post-commit omission semantics. Successful CLI output is checked exactly,
+including the existing host command prefixes; fatal paths are checked at the
+real exit-2 boundary. Older layout callers may still omit the slug argument.
+
+The final fresh groundhog day passed after correcting assertion expectations
+for stdout diagnostics and existing post-commit command prefixes. Its flag/log
+freshness check succeeded, and `ghog status` confirmed completion. No existing
+feature or reporting capability is impaired. The effort is standalone, with no
+matching umbrella row to update; this validation completes all four steps.
