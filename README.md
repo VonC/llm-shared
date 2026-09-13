@@ -479,6 +479,22 @@ verbosity is not lost with `pw skill`, only deferred to the skill it names.
 See [DEVELOPMENT.md  --  How pw, pw handoff, and pw skill differ](DEVELOPMENT.md#-how-pw-pw-handoff-and-pw-skill-differ)
 for the shared core, the per-mode detail, and when to reach for each.
 
+### Documentation layouts: what changed since Ruben's PR
+
+Ruben's [PR #5, Fix doc layout](https://github.com/VonC/llm-shared/pull/5)
+added `docs/vX.Y.Z/<slug>/`, so each effort can keep its documents in its own
+folder. That fifth layout remains available alongside the four earlier choices.
+The subsequent hardening requires a matching effort document before `pw`
+recognizes a slug folder and lets the workflow find a missing sibling in
+another supported directory when there is exactly one match.
+
+See [what changed since Ruben's original PR](wiki/explanation/why-effort-folders-need-document-evidence.md#what-changed-since-rubens-original-pr)
+for the contribution, follow-up changes, and concrete before/after examples.
+The [artifact reference](wiki/reference/artifact-files.md#effort-directory-recognition)
+lists the filename rules, and the
+[pw reference](wiki/reference/pw-launcher.md#workflow-document-selection)
+describes selection and ambiguity errors.
+
 ---
 
 ## 🤝 Automated implement cycle with pw handoff

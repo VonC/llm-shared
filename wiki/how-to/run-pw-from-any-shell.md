@@ -85,14 +85,31 @@ Pass only the full version, topic slug, and document type:
 & "<LLM_SHARED_DIR>\bin\prompt_workflow.bat" document v10.0.0 route_cleanup design
 ```
 
-The locator checks `docs/`, `docs/v10.0/`, `docs/v10.0.0/`, and
-`docs/v10.0/v10.0.0/`. It treats `route_cleanup` and `route-cleanup` as the same
-slug. Use one of `draft`, `requirement`, `feature-request`, `issue`, `design`,
-`plan`, or `validation-plan` as the type.
+The locator checks `docs/`, `docs/v10.0/`, `docs/v10.0.0/`,
+`docs/v10.0/v10.0.0/`, and qualifying `docs/v10.0.0/<slug>/` directories. It
+treats `route_cleanup` and `route-cleanup` as the same slug. Use one of `draft`,
+`requirement`, `feature-request`, `issue`, `design`, `plan`, or
+`validation-plan` as the type.
+
+For a slug folder, check that the document is directly inside the folder and
+its filename matches the enclosing version and slug. For example,
+`docs/v10.0.0/route-cleanup/design.v10.0.0.route_cleanup.md` qualifies without
+a draft. Correct a misplaced or mismatched document using the
+[artifact naming rules](../reference/artifact-files.md#effort-directory-recognition),
+then run the locator again; discovery observes the file change immediately.
 
 If the same exact selector exists in more than one layout, remove or relocate
 the duplicate. The command deliberately reports ambiguity instead of choosing
 one copy.
+
+When diagnosing `pw skill` or `pw handoff`, first inspect the canonical draft's
+parent. A local matching document wins; if that role is missing locally, the
+workflow can select one unique fallback from another recognized directory.
+For an ambiguous fallback, use the paths in the error to consolidate the
+effort's documents in the chosen directory. For an unrecognized parent, check
+its layout and matching immediate document before retrying. See
+[workflow document selection](../reference/pw-launcher.md#workflow-document-selection)
+for the precise rules.
 
 On an item branch split from a collection draft, you do not need to rename the
 umbrella draft. All menu-less forms — bare, post-write, and post-commit

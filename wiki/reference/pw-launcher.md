@@ -50,8 +50,9 @@ selecting an unrelated umbrella.
 
 When a caller already knows a version, slug, and document type, it does not
 need branch state, a draft path, or `a.prompt_memory`. The stateless form
-`pw document <version> <slug> <type>` searches the four supported directories
-for that version and prints the unique repository-relative path.
+`pw document <version> <slug> <type>` searches recognized directories across
+the five supported layouts for that version and prints the unique
+repository-relative path.
 
 The collection checkpoint uses the same canonical table more strictly.
 `pw skill --after-merge <umbrella-draft>` reads rows in numeric order. A
@@ -80,11 +81,43 @@ The three selector values are sufficient. Supported types are `draft`,
 `validation-plan`. `requirement` resolves either a feature request or an issue.
 Slug hyphens and underscores are equivalent.
 
-The lookup checks `docs/`, `docs/vX.Y/`, `docs/vX.Y.Z/`, and
-`docs/vX.Y/vX.Y.Z/` for the supplied full version. It prints nothing and exits
-not-applicable when no document exists. Multiple exact matches are an error:
-the caller must remove or relocate the duplicate instead of relying on folder
-order.
+The lookup checks `docs/`, `docs/vX.Y/`, `docs/vX.Y.Z/`,
+`docs/vX.Y/vX.Y.Z/`, and qualifying `docs/vX.Y.Z/<slug>/` directories for the
+supplied full version. See [effort-directory recognition](artifact-files.md#effort-directory-recognition)
+for the matching immediate-file requirement. It prints nothing and exits `3`
+when no document exists. Multiple exact matches are a fatal error, including
+copies in both a version directory and its qualifying slug child. Canonical
+preference and newest-file selection do not apply to this stateless command.
+
+## Workflow document selection
+
+Workflow selection validates the canonical draft path's parent as a recognized
+directory before choosing any document. The draft file itself need not exist.
+An unrecognized parent is fatal; selection does not broaden the search to
+compensate for it.
+
+For each requested role, selection uses these rules:
+
+| Matches | Result |
+| --- | --- |
+| One or more in the canonical parent | Select the newest local file; equal timestamps retain existing candidate order. Other directories cannot override it. |
+| None locally, one across other recognized directories | Select that unique fallback. |
+| None locally or elsewhere | Report the role absent. |
+| None locally, several across other recognized directories | Fatal ambiguity listing the role, version, slug, canonical parent, and all competing paths. |
+
+Fallback searches all other recognized directories across supported layouts.
+Matching preserves the requested role and version, hyphen/underscore
+equivalence, and existing workflow subtopic matching. Exact `pw document`
+lookup does not include subtopics. Directory eligibility is rechecked on every
+call; local success avoids fallback document matching, while directory
+eligibility checks can still inspect other folders.
+
+Post-commit discovery uses the validation plan's parent as the location of a
+synthesized draft path. A local or unique fallback ordinary plan includes the
+topic; no ordinary plan skips it. Competing fallback plans and invalid parents
+propagate a fatal CLI error with exit code `2`, without a success command or
+new success prompt. Existing validation state determines the continuation for
+an included topic.
 
 ## 🤝 pw handoff tasks
 

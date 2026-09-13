@@ -115,6 +115,7 @@ their choices.
 
 - 🤖 [Why independent review mode separates authority](explanation/independent-review-mode-and-human-authority.md)
 - 📝 [Why documents come before code](explanation/why-documents-before-code.md)
+- 📝 [Why effort folders need document evidence](explanation/why-effort-folders-need-document-evidence.md), including [what changed since Ruben's original PR](explanation/why-effort-folders-need-document-evidence.md#what-changed-since-rubens-original-pr)
 - 🔁 [Why the LLM reviews its own work](explanation/why-the-llm-reviews-its-own-work.md)
 - 🔁 [Where the human stays in the loop](explanation/where-the-human-stays-in-the-loop.md)
 - 🔁 [One launcher, three modes](explanation/one-launcher-three-modes.md)
