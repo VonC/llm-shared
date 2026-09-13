@@ -7,6 +7,9 @@ role, most-recent selection by mtime, and open-questions detection.
 v0.9.0: this test moved into the nested ``test_prompt_workflow_docs/`` form (Q08)
 and gained a ``has_decisions_table`` case for the consolidated decisions sections
 the skill routing reads (Q03).
+
+v0.12.0: slug-directory fixtures carry matching immediate document evidence;
+selection fixtures use recognized canonical parents under their temporary root.
 """
 
 from __future__ import annotations
@@ -22,9 +25,6 @@ from tools.prompt_workflow_models import PromptWorkflowError, Topic
 # pyright: reportPrivateUsage=false, reportUnknownLambdaType=false
 # pyright: reportUnknownArgumentType=false
 # ruff: noqa: SLF001
-
-_ISO = Topic(version="v9.8.0", slug="iso", draft_path=Path("d.md"))
-
 
 def test_parse_draft_name_variants() -> None:
     """Draft parsing accepts a valid name and rejects the malformed ones."""
@@ -321,6 +321,7 @@ def test_docs_dirs_supports_all_layouts(tmp_path: Path) -> None:
     (docs_dir / "v9.8.0").mkdir()
     (docs_dir / "v9.8" / "v9.8.0").mkdir()
     (docs_dir / "v9.8.0" / "topic").mkdir()
+    (docs_dir / "v9.8.0" / "topic" / "issue.v9.8.0.topic.md").touch()
     (docs_dir / "archive").mkdir()
     (docs_dir / "archive" / "nested").mkdir()
     (docs_dir / "v9.8" / "v9.8.0" / "topic").mkdir()
@@ -337,7 +338,7 @@ def test_docs_dirs_supports_all_layouts(tmp_path: Path) -> None:
 
 @pytest.mark.parametrize(
     "relative_dir",
-    ["docs", "docs/v9.8", "docs/v9.8.0", "docs/v9.8/v9.8.0", "docs/v9.8.0/topic"],
+    ["docs", "docs/v9.8", "docs/v9.8.0", "docs/v9.8/v9.8.0", "docs/v9.8.0/git-history-report"],
 )
 def test_resolve_document_uses_only_version_slug_and_type(
     tmp_path: Path,
@@ -423,9 +424,10 @@ def _make_topic_docs(root: Path) -> None:
 def test_find_matching_documents_per_role(tmp_path: Path) -> None:
     """Matching honors the role prefixes, the validation suffix, and sub-topics."""
     _make_topic_docs(tmp_path)
+    topic = Topic("v9.8.0", "iso", tmp_path / "docs" / "draft.v9.8.0.iso.md")
 
     def names(role: str) -> list[str]:
-        return [path.name for path in docs.find_matching_documents(tmp_path, _ISO, role)]
+        return [path.name for path in docs.find_matching_documents(tmp_path, topic, role)]
 
     assert names("requirement") == [
         "feature-request.v9.8.0.iso.md",
@@ -466,7 +468,7 @@ def test_find_matching_documents_folds_hyphen_and_underscore(tmp_path: Path) -> 
     underscore = Topic(
         version="v0.8.0",
         slug="git_history_report",
-        draft_path=Path("d.md"),
+        draft_path=docs_dir / "draft.v0.8.0.git_history_report.md",
     )
 
     def names_for(role: str) -> list[str]:
@@ -510,7 +512,8 @@ def test_most_recent_and_select_document(tmp_path: Path) -> None:
     os.utime(older, (1_000, 1_000))
     os.utime(newer, (2_000, 2_000))
 
-    assert docs.select_document(tmp_path, _ISO, "design") == newer
+    topic = Topic("v9.8.0", "iso", docs_dir / "draft.v9.8.0.iso.md")
+    assert docs.select_document(tmp_path, topic, "design") == newer
 
 
 def test_has_open_questions(tmp_path: Path) -> None:
@@ -596,10 +599,11 @@ def test_has_consolidated_decisions_rejects_a_late_question_column(
 
 
 def test_docs_dirs_includes_version_slug_layout(tmp_path: Path) -> None:
-    """docs_dirs and docs_dirs_for_version include docs/vX.Y.Z/<slug>/ directories."""
+    """Both listings include docs/vX.Y.Z/<slug>/ with exact immediate evidence."""
     docs_dir = tmp_path / "docs"
     version_slug_dir = docs_dir / "v1.2.3" / "my_effort"
     version_slug_dir.mkdir(parents=True)
+    (version_slug_dir / "issue.v1.2.3.my_effort.md").touch()
 
     all_dirs = docs.docs_dirs(tmp_path)
     assert version_slug_dir in all_dirs

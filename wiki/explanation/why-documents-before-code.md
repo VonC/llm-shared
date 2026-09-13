@@ -92,6 +92,8 @@ what the merge reword reads.
 
 ## 👉 Where to look next
 
+- [Why effort folders need document evidence](why-effort-folders-need-document-evidence.md)
+  for how filenames identify an effort inside its chosen layout.
 - [Why the LLM reviews its own work](why-the-llm-reviews-its-own-work.md)
   for the loop that keeps each phase honest.
 - [From draft note to settled requirement](../tutorials/02-from-draft-to-settled-requirement.md)

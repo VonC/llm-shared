@@ -29,9 +29,10 @@ document for that effort there:
 | Minor version | `docs/vX.Y/` |
 | Full version | `docs/vX.Y.Z/` |
 | Minor and full version | `docs/vX.Y/vX.Y.Z/` |
+| Full version and slug | `docs/vX.Y.Z/<slug>/` |
 
 The full-version layout is the recommended default. In the patterns below,
-`<effort-dir>` means whichever one of these four directories contains the
+`<effort-dir>` means whichever one of these five layouts contains the
 canonical draft.
 
 | Pattern | Written by | Holds |
@@ -45,11 +46,40 @@ canonical draft.
 | `<effort-dir>/plan.vX.Y.Z.<topic>.validation.md` | `/write-plans`, then `/implementation-check` | per-step verdicts and checks |
 | `<effort-dir>/review.<type>.vX.Y.Z.<topic>.md` | the review exchange | append-only specification or code review evidence |
 
+### Effort-directory recognition
+
+For `docs/vX.Y.Z/<slug>/`, the folder slug must match
+`[a-z0-9][a-z0-9_-]*`. At least one immediate regular file must have a supported
+kind and the exact enclosing version and slug, treating `-` and `_` as
+equivalent. Qualifying kinds are `draft`, `feature-request`, `issue`, `design`,
+ordinary `plan`, and `validation-plan`; the last uses
+`plan.vX.Y.Z.<slug>.validation.md`. A draft is optional for recognition.
+
+| Contents of `docs/v1.2.3/my-effort/` | Directory recognized? |
+| --- | --- |
+| `issue.v1.2.3.my_effort.md` | Yes, matching requirement alone suffices. |
+| `plan.v1.2.3.my-effort.validation.md` | Yes, `.validation` identifies the document kind. |
+| No files, images, scratch files, or review transcripts only | No. |
+| `issue.v1.2.4.my-effort.md` or `issue.v1.2.3.other.md` only | No, version or slug differs. |
+| `issue.v1.2.3.my-effort-extra.md` only | No, a subtopic does not establish the parent effort identity. |
+| `nested/issue.v1.2.3.my-effort.md` only | No, evidence must be immediate. |
+
+Names such as `images` and `sub` are allowed when their matching effort file
+exists. Uppercase or dotted slug directories and the deeper
+`docs/vX.Y/vX.Y.Z/<slug>/` shape are unsupported. The four older layouts remain
+recognized when empty. Both directory discovery routes recheck current
+filenames and file types without reading bodies or caching eligibility;
+filesystem errors propagate.
+
+See [why effort folders need document evidence](../explanation/why-effort-folders-need-document-evidence.md)
+for the rationale and [the shared layout rule](../../rules/docs_layout.md)
+for the writing and discovery contract.
+
 ### Document selector contract
 
 Utilities do not need the effort directory when they already know the full
-version, slug, and document type. The selector checks only the four supported
-directories for that version. For example:
+version, slug, and document type. The selector checks recognized directories
+across all five supported layouts for that version. For example:
 
 ```text
 pw document v10.0.0 route-cleanup plan
@@ -64,6 +94,10 @@ The match is exact: asking for `route-cleanup` does not silently select
 `route-cleanup-extra`. No match returns the not-applicable exit code. If the
 same selector exists in more than one supported layout, resolution fails as
 ambiguous instead of choosing the newest or first copy.
+
+Workflow selection uses the canonical draft's parent first, then requires a
+unique fallback when a requested role is missing there. That separate contract
+is specified under [workflow document selection](pw-launcher.md#workflow-document-selection).
 
 ### Direct and umbrella draft relationships
 
