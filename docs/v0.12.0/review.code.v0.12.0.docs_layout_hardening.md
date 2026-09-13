@@ -3106,3 +3106,694 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-1 -->
+
+## Round 1 by requestor - Step 4
+
+- Recorded: 2026-09-13T11:53:28+02:00
+- Exchange: code/code/v0.12.0/docs_layout_hardening
+- Umbrella: none
+- Reviewed document: docs/v0.12.0/plan.v0.12.0.docs_layout_hardening.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: unrecorded
+- Implementation step: 4
+- Outcome: request
+
+### Review identity for step 4 docs_layout_hardening (round 1)
+
+Umbrella draft: none
+Implementation plan: docs/v0.12.0/plan.v0.12.0.docs_layout_hardening.md
+Implementation step: 4
+Review round: 1
+
+### Code review evidence for step 4 docs_layout_hardening (round 1)
+
+request_index_tree: 1796cb945d6dfde2648820d206b633b72feb9a40
+resolved_validation_set:
+
+- ghog day (sources: project, plan)
+- rg -n 'content|fallback|canonical|version-slug' rules/docs_layout.md (sources: plan)
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: test(pw): verify layout routing through the CLI
+group 1 path: tests/unit/tools/test_prompt_workflow_docs_layout_acceptance/__init__.py
+group 1 path: tests/unit/tools/test_prompt_workflow_docs_layout_acceptance/test_prompt_workflow_docs_layout_acceptance_tdd.py
+group 2: docs(pw): describe layout discovery and fallback
+group 2 path: rules/docs_layout.md
+group 2 path: tools/prompt_workflow_post_commit.py
+group 3: docs(docs_layout_hardening): record step 4 validation
+group 3 path: docs/v0.12.0/plan.v0.12.0.docs_layout_hardening.validation.md
+staged path: docs/v0.12.0/plan.v0.12.0.docs_layout_hardening.validation.md
+staged path: rules/docs_layout.md
+staged path: tests/unit/tools/test_prompt_workflow_docs_layout_acceptance/__init__.py
+staged path: tests/unit/tools/test_prompt_workflow_docs_layout_acceptance/test_prompt_workflow_docs_layout_acceptance_tdd.py
+staged path: tools/prompt_workflow_post_commit.py
+```
+
+### Requestor assessment for step 4 docs_layout_hardening (round 1)
+
+Yes. Step 4 has been fully implemented.
+
+The exact Step 4 validation section in
+`docs/v0.12.0/plan.v0.12.0.docs_layout_hardening.validation.md` records
+the implementation check and maps all sixteen design rows to named evidence.
+The first three steps were already complete; this step completes the document.
+The effort is standalone and has no umbrella draft.
+
+The fresh implementation `ghog day` ended at 2026-09-13T11:44:54+02:00.
+The launcher exited 0, log freshness was verified against `a.ghog.started`,
+and `ghog status` confirmed `state=done exit=0`. The full phase reported
+`fail=0 warn=0 xfail=0 cov=100 outliers=skipped excluded=skipped` and took
+3m 24.9s. This is no claim of a measured duration-gate pass. Static checks
+passed as part of the walk. The earlier focused affected run passed all twelve
+new acceptance cases. The validation check did not rerun tests.
+
+Coverage measures `tools` with a 100% gate and configured omissions. Tests and
+initializers are unmeasured. Every new fixture/helper is exercised by the
+collected cases; no class or executable production branch was added.
+
+The production change is docstrings only. Imports, architecture, complexity,
+discovery costs and exception propagation are unchanged. Final physical line
+counts are 98 for post-commit, 293 for the acceptance module and 4 for its
+initializer, below the 650-line ceiling. Layout rules have 84 Markdown lines.
+Existing large acceptance and skill suites are unchanged. No architecture,
+performance or feature-integrity repair was identified.
+
+The root `a.commit` was formatted by `wac` and passed `commit-plan-check`
+with ready=true and no diagnostics for all five staged paths.
+
+### Implementation report for step 4 docs_layout_hardening (round 1)
+
+The new acceptance package calls the real workflow CLI and post-commit
+resolvers against small temporary Git repositories with real topic branches.
+Fixture commits disable inherited hooks and signing. Layout recognition,
+selection, state computation, post-commit resolution and Git are not stubbed.
+
+Successful calls use `prompt_workflow.main` with an explicit Codex host.
+Fatal cases execute the actual script entry point via runpy and require exit 2,
+contextual stdout errors, no success command and no generated prompt. Cases
+cover strict document ambiguity, workflow canonical preference, newest local
+matches, unique fallback and competing fallback errors. A branch-relevant
+draft in each unsupported or identity-mismatched parent reaches the fatal CLI.
+
+Repeated calls observe file addition, rename and removal in the same process.
+Validation-plan-only topics preserve the canonical synthesized draft path
+without requiring that draft. Zero ordinary plans omit the topic, one fallback
+routes according to validation state, and multiple plans propagate failure.
+
+Four additional parameterized cases cover the previously untested positive
+omitted-slug default for the older layouts. Existing new-draft tests retain
+the version-slug missing-slug error case. Lower-level lookup and selection
+tests provide the exhaustive filename matrix; no extra acceptance PBT is needed.
+
+Post-commit docstrings and shared layout rules describe content qualification,
+exact identity, canonical preference, unique fallback and propagated errors.
+The validation plan contains the sixteen-row evidence mapping and completion
+record. No instruction adapter, runtime logic or migration command changed.
+
+### Change summary for step 4 docs_layout_hardening (round 1)
+
+The current staged paths and prepared root `a.commit` groups are:
+
+1. `test(pw): verify layout routing through the CLI`
+   - `tests/unit/tools/test_prompt_workflow_docs_layout_acceptance/__init__.py`
+   - `tests/unit/tools/test_prompt_workflow_docs_layout_acceptance/test_prompt_workflow_docs_layout_acceptance_tdd.py`
+2. `docs(pw): describe layout discovery and fallback`
+   - `rules/docs_layout.md`
+   - `tools/prompt_workflow_post_commit.py`
+3. `docs(docs_layout_hardening): record step 4 validation`
+   - `docs/v0.12.0/plan.v0.12.0.docs_layout_hardening.validation.md`
+
+The final validation group is separate and last, as required by the workflow.
+The implementation worktree was initially clean. The review transcript is
+protocol-generated documentation and is handled by the authorized residual
+continuation if the human later chooses Commit.
+
+### Writer response for step 4 docs_layout_hardening (round 1)
+
+Writer response:
+
+This is the first review round for Step 4. There is no prior reviewer feedback
+or disagreement for this step.
+
+The writer corrected assertion expectations during implementation: fatal
+diagnostics use stdout, and post-commit continuation retains its existing
+unqualified host command names. Assertion helpers also keep cyclomatic
+complexity within the existing check gate. The final fresh groundhog day
+passed after those corrections.
+
+### Reviewer focus for step 4 docs_layout_hardening (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-4-round-1 -->
+
+## Round 1 by reviewer - Step 4
+
+- Recorded: 2026-09-13T12:07:22+02:00
+- Exchange: code/code/v0.12.0/docs_layout_hardening
+- Umbrella: none
+- Reviewed document: docs/v0.12.0/plan.v0.12.0.docs_layout_hardening.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 4
+- Outcome: answer
+
+### Assessed index identity for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+Baseline index tree: 1796cb945d6dfde2648820d206b633b72feb9a40
+
+Assessed index tree: 14a40cb81eb672738f8a7b855f5cb4cec0334f55
+
+### Implementation check for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+Result:
+
+#### Reviewer implementation check for acceptance and layout guidance for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+Yes. Step 4 has been fully implemented.
+
+This step closes the effort, so the check covers both its own work and the
+document-level completion the last step owes.
+
+##### The document-level status is correct, which is the easy thing to miss for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+The validation plan now opens with the exact `Yes, it is implemented.` sentence
+and a refreshed theme sentence, and all four step sections carry the exact
+`Yes. Step N has been fully implemented.` line. That flip is required only on
+the last step, is easy to forget, and `prepare-release` stops on the line when it
+is wrong. It is right here.
+
+##### The sixteen-row acceptance mapping holds for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+Every row of the design's acceptance table maps to named evidence, labelled by
+suite. I checked each cited name against tests I have seen in this effort: the
+lookup recognition cases from Step 2, the selection cases from Step 3, and the
+acceptance cases added here. None is a placeholder and none names a test that
+does not exist.
+
+The split is sensible rather than duplicative. Rows about filename identity and
+directory eligibility cite the lower-level suites; rows about routing, fatal
+exits and post-commit behavior cite the acceptance package; rows with both
+aspects cite both. That is the plan's Q06 answer applied: a compact matrix
+mapped row by row rather than every filename combination rebuilt through the CLI.
+
+##### The acceptance package is genuinely end to end for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+The fixture runs `git init`, sets `core.hooksPath` to an empty directory,
+disables signing for fixture commits and creates a real topic branch, so
+inherited hooks and developer configuration cannot leak into the run. Layout
+recognition, selection, state computation, post-commit resolution and Git are
+not stubbed.
+
+The fatal cases execute the real script entry point through
+`runpy.run_path(script, run_name="__main__")` rather than calling a function,
+and assert four things together: exit `2`, an `ERROR:<space>` prefix on stdout, no
+success command and no `<space>ready` line, and no `a.prompt.txt` written. Asserting
+the absence of the prompt file is the part that matters, because it proves the
+failure stopped the workflow rather than merely printing alongside it.
+
+The fixture also exercises the folding rule through the real CLI: the directory
+is `docs/v1.2.3/my-effort` while the slug is `my_effort`.
+
+Twelve collected cases cover general ambiguity with workflow preference, newest
+local selection ahead of a newer fallback, fatal fallback ambiguity with
+refresh after removal, branch-relevant drafts under both an unsupported and an
+identity-mismatched parent, add, rename and removal within one process, and the
+three post-commit cardinalities. Four further parameterized cases cover the
+omitted-slug default for the older layouts, which the plan allowed only if
+inspection found a gap; the writer found one and filled it, which is what
+acceptance criterion 6 of the issue asks for.
+
+##### The production change is docstrings only, and says the right things for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+The only production edit is `tools/prompt_workflow_post_commit.py`, and the diff
+is two docstrings. They state the three properties this caller depends on: the
+synthesized draft path keeps the validation plan's canonical parent without
+requiring the draft to exist, topics without a plan are skipped, and selection
+errors including competing fallback plans propagate to the caller.
+
+Those are exactly the three the design had to be asked to name in its own round,
+so the module now documents at its own boundary what the design settled.
+
+##### The shared layout guidance matches the shipped contract for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+`rules/docs_layout.md` gained the qualifying-content rule with its slug pattern
+and six kinds, the folding example, the rejection list including transcripts and
+nested-only evidence, the four older layouts staying recognized when empty, the
+uncached inspection and propagating errors, canonical-parent validation with a
+draft that need not exist, local precedence with newest selection and ties,
+unique fallback with absence and ambiguity, unchanged general resolution, and
+post-commit behavior with its exit code.
+
+I read it against what I verified in Steps 2 and 3 rather than against the
+change summary. Every statement is accurate, including the two that are easy to
+get subtly wrong: that filename matching still requires the requested version
+during a fallback, and that general resolution reports duplicates across a
+version directory and its qualifying slug child.
+
+##### Architecture check for the acceptance step for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+No import, dependency direction or responsibility moved. The acceptance package
+imports the real CLI, post-commit and models modules, which is what an
+acceptance suite should do. Ty, pyright, ruff, radon and vulture pass. Files
+stand at 98 for post-commit, 293 for the acceptance module, 4 for its
+initializer and 84 Markdown lines for the layout rules, all below the ceiling.
+The legacy docs suite is untouched at 615. Nothing needs to be addressed.
+
+##### Performance check for the acceptance step for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+No production logic changed, so discovery costs, enumeration and exception
+propagation are identical to Step 3. The new suite adds real Git subprocess work
+at test time; this round's full phase ran 2,854 tests in 2m 49.3s, in line with
+the earlier walks. No performance issue needs to be addressed.
+
+##### Unit test coverage check for the acceptance step for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+The coverage gate's source is `tools` in `pyproject.toml`. This round's walk
+reported `cov=100` with no failure, warning or xfail across 2,854 tests, twelve
+more than Step 3's 2,842.
+
+The staged production change is docstrings, so it adds no branch to measure. The
+acceptance module and its initializer sit outside the gate as tests, and every
+fixture and helper they define is referenced by a collected case, so nothing in
+them is dead. No unit-tested class is below 100%.
+
+##### Feature integrity for the acceptance step for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+Nothing regressed, and the acceptance suite is what demonstrates it: the same
+flows now run through the real CLI against real repositories and produce the
+documented results. The optional-slug default and the missing-slug
+`NewDraftError` both remain covered, the first by the new parameterized cases
+and the second by the existing new-draft tests.
+
+Validation plan effects:
+
+#### Validation plan effects of the step 4 round 1 round for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+One reviewer edit, confined to the reviewed step's rows: the escaped-underscore
+repair to the link destination in `What was implemented for Step 4`. It is
+recorded in full with the repairs, was proved attributable before staging, and
+changes no statement the writer made.
+
+Everything else in the file is the writer's, and it is correct.
+
+The Step 4 section opens with the exact
+`Yes. Step 4 has been fully implemented.` sentence. Its analysis, architecture,
+performance, coverage and feature-integrity subsections match what I verified
+independently, and the sixteen-row acceptance mapping cites tests that exist.
+
+The document-level status line now reads the exact `Yes, it is implemented.`
+sentence, with a refreshed theme sentence, and all four step sections carry
+their exact Yes line. That flip is required only when the last pending step
+turns Yes, and this is that step.
+
+No umbrella row was completed. This is a standalone effort with no umbrella
+draft, and reviewer mode suppresses that section in any case, so the umbrella
+digest comparison correctly reports the whole question as not applicable.
+
+### Pre-repair mandatory checks and coverage for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+#### Pre-repair validation evidence for the step 4 round 1 assessment for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+Captured before assessment could mutate anything, and this round did make one
+repair, so the capture and the recorded blob are what separate the writer's
+staged work from the reviewer's.
+
+The ordered `validation_path_set` was the five staged step paths, the validation
+plan among them, followed by the known groundhog and coverage artifacts
+`a.ghog.log`, `a.ghog.status`, `a.ghog.day.ok` and `.coverage`.
+
+At capture time the index tree was
+`1796cb945d6dfde2648820d206b633b72feb9a40`, matching the request's
+`request_index_tree`, with five tracked files digested and no untracked file in
+the set.
+
+Before the single permitted edit, `record-pre-repair-blob` captured
+`docs/v0.12.0/plan.v0.12.0.docs_layout_hardening.validation.md` at object
+`84c0edd72a5fc95cb67e4d234b7f5d8f90eef983` with `writer_deleted: false`. That
+blob is the baseline `attribute-reviewer-patch` later compared against, and it
+is retained in the manifest alongside the repair path.
+
+The manifest records the request-time tree as the baseline and the post-repair
+tree `14a40cb81eb672738f8a7b855f5cb4cec0334f55` as the assessed tree, so a
+stopped round would resume against the state actually assessed rather than the
+state received.
+
+### Resolved validation set and sources for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+#### Resolved validation set executed in the step 4 round 1 assessment for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+Both resolved commands ran in this reviewer's shell. The walk was run twice,
+because the first run failed and the reviewer repaired the cause inside the
+step.
+
+| Command | Sources | Reviewer result |
+| --- | --- | --- |
+| `ghog day` | project, plan | Failed once at `exit=1` on `markdown(1)`, then passed after the repair: `exit=0`, `fail=0 warn=0 xfail=0 cov=100`, 2,854 tests, 2m 49.3s, ended 12:03:54 +02:00. |
+| `rg -n 'content\|fallback\|canonical\|version-slug' rules/docs_layout.md` | plan | Ran. `exit=0` with 14 matching lines across the new guidance sections. |
+
+##### The first walk and what it caught for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+The check phase ended at 11:57:38 +02:00 with `exit=1`. Every other step passed;
+the single failure was
+`docs/v0.12.0/plan.v0.12.0.docs_layout_hardening.validation.md:369: MD050:
+strong style`, on a link destination containing `__init__.py`.
+
+Because the check phase opens the walk, its test phases did not run, so the
+first walk produced no test evidence at all.
+
+##### The repair and the second walk for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+The repair is recorded separately. After it, an isolated `markdown-check` run
+returned `exit=0`, and the complete walk then passed every phase: the check
+phase including `Markdown check passed`, the affected phase, and the full phase
+with all 2,854 tests, no failure, warning or xfail, and `cov=100`.
+
+That test count is twelve more than Step 3's 2,842, matching the twelve
+collected acceptance cases the step adds.
+
+##### The guidance inspection for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+The inspection is a coverage check over the new documentation rather than an
+absence check. Its 14 matching lines span the qualifying-content section, the
+canonical-preference and fallback section, the general-resolution paragraph and
+the post-commit paragraph, which is the set of topics the plan asked the
+guidance to publish.
+
+### Resolver drift and direction for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+#### Resolver drift observed in the step 4 round 1 assessment for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+No drift, in either direction.
+
+The request's `resolved_validation_set` carries `ghog day` with sources
+`project` and `plan`, plus the plan-sourced inspection of the layout rules.
+Re-resolving against the current repository reproduces it:
+
+- The project source resolves to the built-in `("ghog day",)` default, because
+  this repository still declares no `.review-validation` file.
+- The plan source is the consolidated Step 4 completion line, which names the
+  walk explicitly and the single guidance inspection.
+
+Both commands ran in this round, so the union is the request set unchanged and
+fully executed.
+
+Across the four steps the shape has been consistent: one project-sourced walk,
+plus one plan-sourced inspection per step over the artifact that step produces.
+Steps 1 and 4 also name the walk in their own text, which is why their sources
+list both `project` and `plan` while Steps 2 and 3 list `project` alone. The
+obligation is identical in all four; only its provenance differs.
+
+### Repository state around validation for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+#### Repository state comparison across the step 4 round 1 round for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+One tracked difference, and it is the reviewer's own permitted repair.
+
+##### Index tree identity for step 4 for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+The request carries `request_index_tree`
+`1796cb945d6dfde2648820d206b633b72feb9a40`, and the live index matched it
+before assessment, so no early rejection applied. After the repair was staged
+the index tree is `14a40cb81eb672738f8a7b855f5cb4cec0334f55`. The retained
+manifest records the request-time tree as the baseline and the post-repair tree
+as the assessed tree.
+
+##### Umbrella digest boundary for step 4 for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+The request says `Umbrella draft: none` and the envelope carries
+`umbrella_path: null`. Capture returned `{"applicable": false, "digest": null}`
+and the comparison after the implementation-check result returned
+`{"applicable": false, "changed": false}`. No umbrella is in scope and none was
+touched, which also means no umbrella row was completed: reviewer mode never
+completes one, and this standalone effort has none to complete.
+
+##### Validation state boundary for step 4 for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+The comparison returned `acceptable: false` with `tracked_paths` naming
+`docs/v0.12.0/plan.v0.12.0.docs_layout_hardening.validation.md` and `<index>`,
+and `untracked_paths` empty.
+
+That result is the expected shape for this round rather than a finding. The
+launcher flags any tracked difference; the contract permits validation-plan
+differences confined to rows for the reviewed step, and this one is confined to
+the `What was implemented for Step 4` section. It is the reviewer's own repair,
+recorded through a pre-repair blob, proved `attributable: true`, and staged as
+the only path.
+
+No other tracked difference appeared. No tracked validation side effect was
+produced by either walk, so nothing had to be left unstaged or unreverted.
+
+The remaining differences are the ignored artifacts the walks rewrite,
+`a.ghog.log`, `a.ghog.status`, `a.ghog.day.ok` and `.coverage`.
+
+##### Working tree observations for step 4 for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+The ignored focused log from the Step 2 rounds and the writer's `rg` bridge
+helper remain where they were, unstaged and untouched. The review transcript is
+committed rather than staged, as in Step 3.
+
+### Repair inventory for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+Repairs made:
+
+#### Repairs made by the reviewer in the step 4 round 1 round
+
+- One repair, polishing-only. It is review metadata rather than substantive work:
+- it changes no code, no test, no acceptance behavior and no commit grouping.
+- Repaired path: `docs/v0.12.0/plan.v0.12.0.docs_layout_hardening.validation.md`,
+- line 369, inside the reviewed step's own `What was implemented for Step 4`
+- section.
+
+##### What the repair was
+
+- The Markdown check failed the walk with
+- `MD050: strong style [Expected: asterisk; Actual: underscore]` on a link whose
+- destination contained `__init__.py`. The doubled underscores parse as strong
+- emphasis, so the link destination tripped the gate that Step 2 had already
+- tripped twice in the transcript.
+- Backticks do not help inside a link destination. I tried the angle-bracket form
+- first, `](<...__init__.py>)`, and the gate still failed, so the repair escapes
+- the underscores instead:
+- `(../../tests/unit/tools/test_prompt_workflow_docs_layout_acceptance/\_\_init\_\_.py)`
+- is a valid CommonMark escape in a link destination, so the resolved target
+- is byte-for-byte the path the writer intended and the link still points at the
+- package initializer.
+
+##### Why the reviewer made it rather than returning it
+
+- The request's review scope directs every safe, unambiguous repair that remains
+- inside the step. This one qualifies on both counts: the file is in the step's
+- staged set, the change sits in the reviewed step's own validation rows, which is
+- the one tracked area reviewer mode may write, and its correctness is decided by
+- the gate rather than by taste.
+- That is the difference from Step 2's finding, which looked similar and was not.
+- There the failing file was the review transcript, which a reviewer may not edit
+- under any circumstances, so it was returned rather than repaired.
+
+##### Evidence for the repair
+
+- The pre-repair blob was recorded before the edit, `attribute-reviewer-patch`
+- returned `attributable: true` with the one-line patch, and only that path was
+- staged. The verification sequence was the isolated `markdown-check` run, which
+- returned `exit=0` after the escape, followed by the complete `ghog day` walk.
+- The index tree moved from the request-time
+- `1796cb945d6dfde2648820d206b633b72feb9a40` to
+- `14a40cb81eb672738f8a7b855f5cb4cec0334f55` as a result, and the retained
+- manifest records both trees, the blob and the repair path.
+
+Paths staged:
+
+#### Staged paths assessed in the step 4 round 1 round
+
+- Five writer paths plus one reviewer repair, all inside Step 4:
+- - `tests/unit/tools/test_prompt_workflow_docs_layout_acceptance/__init__.py` and
+- its TDD module, the new acceptance package with twelve collected cases.
+- - `tools/prompt_workflow_post_commit.py`, docstrings only.
+- - `rules/docs_layout.md`, the published discovery and fallback guidance.
+- - `docs/v0.12.0/plan.v0.12.0.docs_layout_hardening.validation.md`, the step's
+- validation record, the sixteen-row acceptance mapping and the document-level
+- completion, and the file carrying the reviewer's one-line repair.
+- All four writer file kinds are the plan's Step 4 files-involved list exactly.
+- Nothing outside that list is staged and no pre-existing unstaged or untracked
+- work was swept in.
+- Physical counts are 98 for post-commit, 293 for the acceptance module, 4 for its
+- initializer and 84 Markdown lines for the layout rules. All are below the
+- 650-line ceiling.
+- The legacy docs suite stayed untouched at 615 lines, which resolves the headroom
+- question carried from Steps 2 and 3: this step added a new package rather than
+- extending that suite, so the plan's conditional instruction to move its
+- layout-test responsibility never had to be used. No file in the effort needed
+- the conditional split its step addendum allowed for.
+
+### Commit plan assessment for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+#### Commit plan assessment for the step 4 round 1 round for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+`a.commit` is accurate and needs no amendment. This reviewer did not change it.
+
+The commit plan was checked twice, before and after the reviewer repair was
+staged, and returned `state: valid`, `ready: true`, an empty `diagnostics` array
+and exit `0` both times. The repair landed inside a path the plan already
+covers, so no group, order or subject moved.
+
+| Position | Subject | Paths |
+| --- | --- | --- |
+| 1 | `test(pw): verify layout routing through the CLI` | the new acceptance package |
+| 2 | `docs(pw): describe layout discovery and fallback` | the layout rules and the post-commit docstrings |
+| 3 | `docs(docs_layout_hardening): record step 4 validation` | the validation plan |
+
+Three groups, ordered least to most dependent, and the middle one is the
+interesting choice. Pairing `rules/docs_layout.md` with the post-commit
+docstrings is right: both are documentation of the same contract at two
+altitudes, the shared rule and the module boundary, and neither is code. Putting
+the docstring change in the test group instead would have implied a production
+change that is not there, and splitting the two documentation files would have
+produced a commit describing half a contract.
+
+The acceptance package comes first because it proves the behavior the guidance
+then describes, and the validation record comes last because it reports on both.
+
+Each subject uses a conventional type and scope. `test` and `docs` are correct
+here, and the absence of a `fix` in this step is itself accurate: Step 4 adds no
+production behavior.
+
+A status `0` satisfies only the mechanical `a.commit` result in the readiness
+floor. It proves nothing about implementation completeness, validation evidence
+or repair attribution, and it authorizes no commit.
+
+### Findings and boundaries for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+#### Writer instructions at the step 4 convergence gate for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+No change is requested. The acceptance package, the layout guidance, the
+post-commit docstrings, the sixteen-row mapping, the document-level completion
+and `a.commit` are all correct, and the walk passes with complete coverage.
+
+1. Present the advisory commit-ready recommendation and the two registered
+   labels to the human, and make no further edit before that choice.
+2. Keep the reviewer's staged repair. It is one escaped link destination in the
+   Step 4 validation rows, already inside group 3, and reverting it would fail
+   the Markdown gate again.
+3. Leave the five writer paths as they are.
+
+One note for future efforts rather than for this one. The authoring fix applied
+after Step 2 stopped the transcript failures and worked; it did not reach
+Markdown link destinations, where backticks cannot be used and `\_` escapes are
+needed instead. Whatever records that convention is worth extending to link
+destinations the next time a validation record links a Python dunder path.
+
+This is the last step, so after the human's choice the effort's commit sequence
+is complete: the validation plan reads `Yes, it is implemented.`, every design
+acceptance row maps to named evidence, and `rules/docs_layout.md` publishes the
+contract. The effort is standalone, so there is no umbrella row to complete.
+
+This recommendation is advisory and authorizes nothing. The commit choice, and
+the labels offered for it, belong to the human at the convergence gate. Do not
+commit on the strength of this answer.
+
+### Decision rationale for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+#### Decision rationale for the step 4 round 1 disposition for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+This round publishes an advisory `commit-ready` recommendation. Every result in
+the readiness floor passes, nothing is carried or open, and the one repair this
+round made is polishing-only.
+
+##### The six readiness results for step 4 for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+| Result | Outcome |
+| --- | --- |
+| Exact identity | Pass. Envelope, human-readable request, plan, step, round, occurrence and request-time index tree all agree. |
+| Complete implementation | Pass. Step 4 is fully implemented and the document-level status correctly reads `Yes, it is implemented.` |
+| Mandatory validation and coverage | Pass. `ghog day` exits 0 with `cov=100` over 2,854 tests after the repair; the guidance inspection ran. |
+| Attributable staged scope | Pass. Five staged paths plus one attributable reviewer patch confined to the reviewed step's validation rows. |
+| Unresolved findings | Pass. The one defect found was repaired inside the step; none remains. |
+| `a.commit` accuracy | Pass. Independent rerun after staging the repair returned `state: valid`, `ready: true`, exit `0`. |
+
+##### Why a repaired round can still recommend commit-ready for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+The rule blocks a commit-ready recommendation after a substantive repair, and
+defines substantive as changing code, tests, acceptance behavior or commit
+grouping. This repair changed a Markdown link escape inside the reviewed step's
+own validation rows, which the contract names as review metadata alongside
+`a.commit` and the protocol artifacts.
+
+The distinction is not a technicality here. Nothing about what the step
+implements, what it proves or how it commits is different because of the repair;
+only the gate's reading of one link destination is.
+
+##### Why this one was repaired and Step 2's was not for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+The two defects share a class and differ in the one respect that matters. Step 2
+failed on the review transcript, which a reviewer may not edit under any
+circumstance, so it was returned as a finding and cost a round. This one failed
+on the validation plan, which is the single tracked file reviewer mode is
+permitted to write for the reviewed step, and the request's own scope directs
+every safe unambiguous in-step repair.
+
+The repair was also verifiable rather than a matter of taste. My first attempt,
+the angle-bracket link form, still failed the gate; the escaped underscores
+passed it, and `\_` is a valid CommonMark escape so the link target is
+unchanged. The gate decided the fix, not the reviewer.
+
+##### The recurrence worth naming once more for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+This is the third instance of the same defect class in one effort: two in the
+transcript during Step 2, one here. The authoring fix the writer applied after
+Step 2 covered request and answer prose, and it worked, which is why no
+transcript entry has failed since. It did not cover Markdown link destinations
+in the validation record, where backticks cannot be used and escapes are needed
+instead.
+
+That is recorded as information for future efforts rather than as a request.
+Nothing remains to fix in this one.
+
+##### What this recommendation is and is not for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+It is advisory. It does not authorize a commit and it is not a commit. The
+choice belongs to the human at the convergence gate, along with the option of
+another round.
+
+It rests on evidence this reviewer produced in its own shell: one failing and
+one complete groundhog walk, an isolated Markdown check to verify the repair,
+the guidance inspection, two `commit-plan-check` reruns spanning the repair, a
+recorded pre-repair blob with a proved attribution, and clean umbrella and
+validation-state boundaries apart from that attributable patch.
+
+This is the last step of the effort. With it, the document-level status is
+`Yes, it is implemented.`, the design's sixteen acceptance rows each map to
+named evidence, and the shared layout guidance describes the contract the four
+steps built.
+
+### Final reviewer decision for step 4 docs_layout_hardening (exchange 1) (round 1)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-4-round-1 -->
+
+## Round 1 by human - Step 4 - human-confirmation
+
+- Recorded: 2026-09-13T13:14:23+02:00
+- Exchange: code/code/v0.12.0/docs_layout_hardening
+- Umbrella: none
+- Reviewed document: docs/v0.12.0/plan.v0.12.0.docs_layout_hardening.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 4
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-1 -->
