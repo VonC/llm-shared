@@ -22,7 +22,7 @@ same contract into local automation.
 | — | `ghog day` | walk check, then `affected --no-cov`, then `full`, stopping at the first non-green step; a noop when nothing changed since the last green walk (`--force` overrides); `--detach` runs a survivor process polled through `ghog status` |
 | — | `ghog status` | replay the run lifecycle from `a.ghog.status` without starting anything |
 | — | `ghog check` | run `check.bat` from the project root, exit code passed through |
-| `ptr` | `ghog full` | delete `.testmondata`, full suite with `--testmon` and coverage |
+| `ptr` | `ghog full` | full suite with coverage; the default sequential mode rebuilds `.testmondata` with `--testmon` |
 | `pta` | `ghog affected` | testmon-selected tests, `--cov-append`, coverage report |
 | `ptanc` | `ghog affected --no-cov` | testmon-selected tests, no coverage |
 | `pts` | `ghog single <test files>` | named test files in focus, no coverage, compared with the last full-run baseline |
@@ -34,8 +34,10 @@ same contract into local automation.
 with xdist, and the rebuilt database keeps every later `ghog affected` cheap.
 A project opts its full run into workers by adding a `.ghog-parallel` marker
 at its root, which runs `-n auto --dist loadgroup` so a module carrying an
-`xdist_group` mark keeps its module-scoped fixtures on one worker. A parallel
-full run skips the duration gate, because a contended call time measures the
+`xdist_group` mark keeps its module-scoped fixtures on one worker. Parallel
+mode omits `--testmon` and leaves the existing testmon database untouched;
+`ghog affected` still uses that database. A parallel full run skips the
+duration gate, because a contended call time measures the
 scheduler rather than the test; `ghog timings` judges it sequentially instead.
 
 ## 🚦 Exit codes
@@ -72,6 +74,17 @@ collected tests plus one per 60 silent seconds, for example
 `ghog full: 50% (125/250) fail=2 warn=1 xfail=0`. Both end with the same
 next-step message and closing line.
 
+Environment activation output is parked in `a.ghog.senv.log` and replayed by
+default. Defining `GHOG_SENV_LIVE` streams that setup output immediately.
+The interactive `ghdy`, `gha`, `ghc`, `ghf`, and `ghs` aliases select live
+setup output for `day`, `affected`, `check`, `full`, and `single` respectively.
+
+`bin\ghog_cycle.bat` activates the project environment once, then runs each
+argument as a ghog subcommand line. With no arguments it runs `day`, then
+`timings`; a nonzero phase stops the sequence and supplies its exit code.
+The wrapper sets `GHOG_SENV_READY` for its child calls after activation.
+An inherited `NO_MORE_SENV_<project>` guard alone does not bypass setup.
+
 ## 🔄 Run lifecycle
 
 Every run brackets itself atomically in `a.ghog.status`:
@@ -95,7 +108,8 @@ run reading as live — break that verdict by deleting `a.ghog.status`.
 
 ## 🐢 The duration gate in detail
 
-The full run times the call phase of every test. A call is flagged as an
+The sequential full run and `ghog timings` measure each test's call phase.
+A call is flagged as an
 outlier — exit 8 on an otherwise-green run — only when two conditions
 hold at once:
 
@@ -136,5 +150,5 @@ The coverage gate is `fail_under` (default 100) from `pyproject.toml`,
 exclusions from `a.ghog.outliers` (see above). The full spec, decision
 table and acceptance tests, lives in `tools/Pytest reset specs.md`.
 
-Related: [Fix a red groundhog walk](../how-to/fix-a-red-groundhog-walk.md),
-[Groundhog as a reset loop](../explanation/groundhog-as-a-reset-loop.md).
+Related: [Groundhog as a reset loop](../explanation/groundhog-as-a-reset-loop.md),
+[Fix a red groundhog walk](../how-to/fix-a-red-groundhog-walk.md).

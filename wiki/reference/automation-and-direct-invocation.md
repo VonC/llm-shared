@@ -21,7 +21,7 @@ human validation gates the normal AI-orchestrated workflow would provide.
 | --- | --- | --- | --- |
 | Document pipeline | Ask for `process-draft` or the required writing skill | writing, explicit `pw skill --after-write` review handoffs, consolidation, then state-based bare `pw skill` | approve an umbrella-derived child, answer structured questions, and validate settled documents |
 | Implementation step | Ask for `implement-step N` | Groundhog, implementation check, missing-work repair, and grouped-commit preparation | validate decisions and approve commit replay |
-| Independent review mode | Start the normal writing or implementation skill with `a.review-mode` present | `pw`, the family requestor, one bounded wait, and the independent reviewer | answer only at convergence or a marked human-recovery decision |
+| Independent review mode | Start the normal writing or implementation skill with `a.review-mode` present | `pw`, the family requestor, the shared exchange, and bounded waits | start the independent reviewer separately; decide at convergence or a marked human-recovery decision |
 | Release preparation | Ask for `prepare-release` with release intent | planner, conflict previews, synchronization, merges, notes, version updates, and preparation commit | approve topology and notes; run `brel` later |
 | History sanitization | Ask for `sanitize-git-history` | contextual scan, rule validation, fresh-clone rewrite, and re-audit | approve replacement rules and destructive phase; push later if desired |
 | Reports and maintenance skills | Ask for the named skill | activity/dashboard builders, doc review, file split, or slow-test workflow | validate the requested output |
@@ -29,6 +29,10 @@ human validation gates the normal AI-orchestrated workflow would provide.
 The user should not be told to run an internal prerequisite merely because it
 has a command-line interface. The owning skill calls it and reports the
 evidence.
+
+Review roles remain isolated: a requestor never starts or messages a reviewer,
+and a reviewer never starts or messages a requestor. Durable state naming the
+next actor does not authorize the other automated role to launch it.
 
 ## Commands normally called inside automation
 
@@ -60,6 +64,6 @@ An AI may execute a direct maintenance command when the user asks for that
 maintenance task. The distinction is about the normal workflow owner, not a
 technical restriction.
 
-Related: [Independent review mode contract](independent-review-mode-contract.md),
-[Skills catalog](skills-catalog.md), [Aliases and launchers](aliases-and-launchers.md),
-and [Where the human stays in the loop](../explanation/where-the-human-stays-in-the-loop.md).
+Related: [Where the human stays in the loop](../explanation/where-the-human-stays-in-the-loop.md),
+[Independent review mode contract](independent-review-mode-contract.md),
+[Skills catalog](skills-catalog.md), and [Aliases and launchers](aliases-and-launchers.md).

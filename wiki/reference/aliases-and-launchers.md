@@ -44,10 +44,11 @@ run still needs a new Codex thread before the refreshed skill registry appears.
 | Alias | Runs | Purpose |
 | --- | --- | --- |
 | `ghog` | `bin\ghog.bat` | the groundhog reset tool; `ghog day` walks check, affected, full |
-| `ptr` | `ghog full` | reset `.testmondata`, full suite with the coverage gate |
+| `ptr` | `ghog full` | full suite with the coverage gate; rebuild testmon in default sequential mode |
 | `pta` | `ghog affected` | testmon-selected tests with appended coverage |
 | `ptanc` | `ghog affected --no-cov` | the fast focused pass, coverage off |
 | `pts` | `ghog single <test files>` | named files in focus, compared with the last full-run baseline |
+| `ghdy`, `gha`, `ghc`, `ghf`, `ghs` | `ghog day`, `affected`, `check`, `full`, `single` | define `GHOG_SENV_LIVE` to stream environment setup output |
 | `c` | `bin\python_check.bat` | the compile, lint and big-file gate on its own |
 | `ruffc` | `ruff check` | lint right after code generation |
 | `covg` | `bin\covg.bat` | map uncovered lines to functions, build a test-writing prompt |
@@ -79,6 +80,8 @@ trims a file; the alias forwards every argument. See
 | `tth.bat` | `tools\trim_thinking_cli.py` | trim an exported conversation from a file or the clipboard, result to the clipboard |
 | `python_check.bat` | vulture, big-file check, `enforce_eof.py` | the check station of the walk |
 | `python_check_types.bat` | type checking | the typing gate |
+| `ghog_cycle.bat` | `bin\ghog.bat` | activate once for a sequence; default `day` then `timings`, stop at the first nonzero exit |
+| `prj_path_sum.bat` | `sha256sum.exe` | check or update the ignored `a.prj.path.sum` environment fingerprint |
 | `commit-plan-check.bat` | `tools\commit_plan_check.py` | read-only readiness verdict for the root `a.commit` against the staged set, `--format json` for machine use |
 | `rvw_status.bat` | `tools\review_status_cli.py` | migration-aware schema-2 status for every active review without resuming it |
 | `review_exchange.bat` | `tools\review_exchange_cli.py` | shared review state, publication, wait, confirmation, and recovery operations |
@@ -95,6 +98,14 @@ Reports written below the repository must use an ignored path such as
 The `ghdiag` alias calls `git_history_diagrams.bat`. Use `ghdiag --check` to
 verify that committed history diagrams match their declarative scenarios.
 
+`prj_path_sum.bat check` returns `0` when the current PATH fingerprint matches,
+`1` when it is missing or changed, and `2` when a comparison cannot be made.
+Both nonzero outcomes mean environment setup should proceed. `update` stores
+the current fingerprint. For projects whose `senv` switches Python, the check
+also verifies that `VIRTUAL_ENV` and `UV_PROJECT_ENVIRONMENT` point into the
+project. The helper is available for consuming project setup scripts; this
+repository's `senv.bat` does not call it.
+
 ## 📦 Dependency shortcuts
 
 | Alias | Runs | Purpose |
@@ -107,6 +118,10 @@ verify that committed history diagrams match their declarative scenarios.
 `--system-certs`, then default roots) and retries on certificate errors —
 useful behind a corporate proxy; plain `uv` skips the retry path.
 
-Related: [Independent review mode contract](independent-review-mode-contract.md),
-[Run pw from any shell](../how-to/run-pw-from-any-shell.md),
+This repository's `senv.bat` clears `SSL_CERT_FILE` during setup and no longer
+copies `UV_CERT` into it. An explicitly configured certificate for `uv_run.py`
+must therefore be supplied after that setup.
+
+Related: [Run pw from any shell](../how-to/run-pw-from-any-shell.md),
+[Independent review mode contract](independent-review-mode-contract.md),
 [ghog commands and exit codes](ghog-commands-and-exit-codes.md).

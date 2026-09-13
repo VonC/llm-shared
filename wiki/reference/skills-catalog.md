@@ -4,9 +4,9 @@
 
 <!-- markdownlint-disable MD013 -->
 
-🤖 Every skill, its trigger, its inputs and what it writes. Each skill
+🤖 Shared skills, their triggers, inputs and outputs. Each shared skill
 resolves to the same-named body under `instructions/`; see the
-[repository layout](repository-layout.md#shared-bodies-and-rules). GitHub Copilot and Claude Code delegate
+[repository layout](repository-layout.md#-shared-bodies-and-rules). GitHub Copilot and Claude Code delegate
 through `.github/skills/` and `.claude/skills/`; OpenAI ChatGPT Codex uses the
 self-contained `.agents/llm-shared/` plugin; Google Gemini Antigravity uses
 `.agent/workflows/`. These are the four officially supported environments.
@@ -65,6 +65,17 @@ family-specific specification and code requestors and reviewers. The
 migration preflight without resuming one. Their host locations, command
 prefixes, delegation targets, and coverage gaps are listed in the
 [independent review mode contract](independent-review-mode-contract.md#host-adapter-matrix).
+
+The `review-resume` skill handles a bare `resume`: it checks migration,
+selects the exchange and role, and claims the session's ownership before
+continuing. It installs no separate shell resume launcher.
+
+## Claude-only writing support
+
+The [humanizer skill](../../.claude/skills/humanizer/SKILL.md) edits supplied
+text for natural wording while preserving its information and avoiding
+invented facts. Its complete body lives under `.claude/skills/`; it has no
+shared `instructions/` body or corresponding adapter for the other hosts.
 
 ## 🔗 Chaining behavior of the writing skills
 

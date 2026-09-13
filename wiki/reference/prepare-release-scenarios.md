@@ -155,7 +155,7 @@ temporary object directory and changes no ref, index, or worktree.
 | Effort-document versions, including `feature-request.v…` | Choose the lowest version strictly newer than the last tag |
 | Later effort and draft versions | Report as forward-looking notes; drafts never choose the target or trigger a release |
 | Invocation branch | Selects release content; choosing a version never filters commits |
-| `version.txt` at previous release | Expected; Step 8 writes the target snapshot |
+| `version.txt` at previous release | Expected; the snapshot phase writes the target version after the wiki audit |
 | Different newer snapshot in `version.txt` | Pause for a target-version choice |
 
 Only target-version validation plans gate the release. Later-version plans can
@@ -183,6 +183,6 @@ pushes, runs `brel`, or creates a tag.
 Feature promotion branches remain until the author finishes review and
 `brel`; the original feature refs are never rewritten.
 
-Related: [Prepare-release planner](prepare-release-planner.md),
+Related: [Why release branch roles matter](../explanation/why-release-branch-roles-matter.md),
 [How to prepare a release](../how-to/prepare-a-release.md), and
-[Why release branch roles matter](../explanation/why-release-branch-roles-matter.md).
+[Prepare-release planner](prepare-release-planner.md).

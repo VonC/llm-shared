@@ -6,7 +6,7 @@
 
 📊 The commit format used across the workflow: Conventional Commits
 v1.0.0 for the title, plus a fixed `Why:` / `What:` body defined by
-the [grouped-commit template](templates.md#group-commits-msgtemplatemd).
+the [grouped-commit template](templates.md#-group-commits-msgtemplatemd).
 
 ## Invocation model
 
@@ -44,7 +44,7 @@ What:
   reason (what was broken, missing or unclear), then the "now" state (how
   the code is better once the commit lands).
 - `What:` is a dash-prefixed list, one line per actual modification.
-- The words described in the [blacklist reference](writing-rules.md#blacklistmd)
+- The words described in the [blacklist reference](writing-rules.md#-blacklistmd)
   are forbidden.
 
 ## 🗂️ The a.commit file format
@@ -66,11 +66,18 @@ Why:
 ```
 ````
 
-Groups are ordered least dependent first; a trailing docs group
-(`docs(<topic>): record step <n> completion`) goes last. `wac.bat`
-formats the file; `gcba` validates it and replays it as real commits. For
-a merge reword, `a.commit` holds a single message with no group header
+Groups are ordered least dependent first. A validation plan newly marking a
+step `Yes` belongs in a separate trailing documentation group with the exact
+title `docs(<topic>): record step <n> validation`. Other completion-only
+documents may use `docs(<topic>): record step <n> completion` instead.
+
+`wac.bat` formats the file. The root `commit-plan-check.bat --format json`
+checks it against the staged paths without changing Git: exit `0` means
+mechanically ready, `3` means repairs are needed, and `2` means the command
+could not make a trustworthy decision. Readiness does not grant commit
+authorization. `gcba` validates again before replaying the approved groups.
+For a merge reword, `a.commit` holds a single message with no group header
 and no `git add` line.
 
-Related: [Group a dirty tree into conventional commits](../how-to/group-commits-into-conventional-messages.md),
-[Why grouped commits, least dependent first](../explanation/why-grouped-commits.md).
+Related: [Why grouped commits, least dependent first](../explanation/why-grouped-commits.md),
+[Group a dirty tree into conventional commits](../how-to/group-commits-into-conventional-messages.md).

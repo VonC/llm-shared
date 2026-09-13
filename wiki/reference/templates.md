@@ -6,7 +6,7 @@
 
 📝 The skeletons under `templates/` that the skills fill. Their place in the
 shared source tree is shown in the
-[repository layout](repository-layout.md#shared-bodies-and-rules). One template
+[repository layout](repository-layout.md#-shared-bodies-and-rules). One template
 per document kind; the instruction bodies reference them by path.
 
 ## Invocation model

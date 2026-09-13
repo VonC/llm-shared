@@ -104,7 +104,7 @@ Claude Code. The recipe and the version caveats are in
 
 Every slash command resolves to a plain markdown body under `instructions/`,
 with the same name: `/write-design` is `instructions/write-design.md`. The
-[repository layout](../reference/repository-layout.md#shared-bodies-and-rules)
+[repository layout](../reference/repository-layout.md#-shared-bodies-and-rules)
 shows where those bodies live. Give the model that file as context,
 plus the inputs the body expects (a draft, a requirement, a plan), and it
 runs the same skill without knowing about `.github/` or `.claude/`.

@@ -5,7 +5,7 @@
 <!-- markdownlint-disable MD013 -->
 
 🤖 The shared rules under `rules/` that every skill body imports; see the
-[repository layout](repository-layout.md#shared-bodies-and-rules). They apply to
+[repository layout](repository-layout.md#-shared-bodies-and-rules). They apply to
 any agent using the skills, whatever the host.
 
 ## Invocation model

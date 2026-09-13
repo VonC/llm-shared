@@ -173,9 +173,9 @@ letting a guessed order define production content.
 Check out main, make sure local main is current with `origin/main`, and run
 `/prepare-release`. The skill selects `last_tag..main`, derives the next
 version from the scoped effort documents, and asks you to confirm an on-main
-release. It performs no rebase, switch, or merge; it starts directly with the
-snapshot version and release-note preparation after the cleanliness and
-validation gates.
+release. After the cleanliness and validation gates, it audits the existing
+wiki roots against `last_tag..HEAD`, then prepares the snapshot version and
+release notes. This on-main route requires no rebase, switch, or merge.
 
 ## 🎯 Release one selected feature
 
