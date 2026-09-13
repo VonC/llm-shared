@@ -3,6 +3,8 @@
 The workflow skill delegates only plan-topic discovery here. Keeping
 ``post_commit_command`` in the caller preserves one-way imports because command
 rendering and document selection remain owned by ``prompt_workflow_skill``.
+Validation-plan topics retain their canonical parent without requiring a draft;
+their ordinary plan may be local or the unique eligible fallback.
 """
 
 from __future__ import annotations
@@ -45,7 +47,12 @@ def resolve_post_commit_topic(
 
 
 def plan_topics(root: Path) -> list[Topic]:
-    """Return unique topics that have both a plan and a validation plan."""
+    """Return validation-plan topics with a local or unique fallback plan.
+
+    The synthesized draft path keeps the validation plan's canonical parent;
+    the draft itself need not exist. Skip topics without a plan, and propagate
+    selection errors, including competing fallback plans, to the caller.
+    """
     topics: list[Topic] = []
     seen: set[tuple[str, str]] = set()
     for directory in docs.docs_dirs(root):
