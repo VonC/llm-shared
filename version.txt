@@ -1,42 +1,44 @@
-0.11.0-SNAPSHOT -- The Word Is Resume
+0.12.0-SNAPSHOT -- Resume Where You Filed It
 
-One word restarts an interrupted review, migration and ownership included.
+Reviews keep their place; effort folders prove theirs.
 
-- Two Agents, One Transcript
-  -- A review round is a file on disk, not a conversation in one session.
-- The Human Keeps the Commit
-  -- Reviewers recommend commit-ready; only a person passes the gate.
+- Folder Names Need an Alibi
+  -- Five layouts, matching documents, and no ambiguous fallback.
+- Two Agents, One Paper Trail
+  -- Separate reviewers, retained evidence, and a human commit decision.
 
-Release 0.11.0 turns a review into a durable exchange. A request, an answer, a
-coordination record, and a versioned transcript live under one repository-local
-home, `.reviews` by default and selected by `.review-artifacts.ini`. Two
-independent agent sessions hold the writer and reviewer roles, fenced by an
-ownership generation and a session-only token, and neither role may start the
-other. Specification and implementation reviews share that core: the writer
-publishes a request and waits, the reviewer assesses and publishes an answer,
-and the exchange converges only at a gate the human passes.
+Release 0.12.0 makes specification and implementation reviews durable exchanges.
+Requests, answers, coordination records and transcripts live in a configured
+artifact home, `.reviews` by default. Independent requestor and reviewer
+sessions hold separate ownership capabilities; neither may start the other.
+Typing `resume` checks artifact placement, handles supported legacy migration
+and restores the recorded role with new session ownership. Status inspection
+reports active exchanges without resuming them, and commit decisions remain
+with the human.
 
-An interrupted review no longer needs a recovery ritual. Typing `resume` checks
-artifact placement, migrates a legacy root layout when the move is safe, reads
-the recorded Claude, Codex, or Gemini nature of each role, and performs
-ownership pickup without asking for a token. A reviewer that has answered keeps
-one quiet foreground wait open for the next request in any exchange, and
-`rvw_status` reports every active review without resuming it.
-
-Two mechanical gates now report before a commit rather than after. The Markdown
-checker applies the repository rules as one authority, and `commit-plan-check`
-returns a read-only readiness verdict for the staged `a.commit` in text or JSON.
+Ruben's original layout PR adds `docs/vX.Y.Z/<slug>/` beside the four existing
+layouts. This release hardens that support: a folder needs a matching immediate
+document filename to qualify, workflow selection prefers its canonical folder,
+and an external fallback must be unique. Stateless `pw document` lookups retain
+strict duplicate rejection. Fresh filesystem lookup and real CLI acceptance
+coverage check these boundaries; the README and wiki explain the changes from
+the original PR.
 
 ### Key changes
 
-- **Durable review exchanges**: Rounds, coordination, and transcripts persist
-  under a configured artifact home, so an interrupted review resumes from disk
-  with its round, occurrence, and evidence intact instead of restarting.
+- **Reviews survive interrupted sessions**: Specification and code review roles
+  share durable rounds, retained implementation evidence and fenced ownership.
+  Bare `resume` restores the selected role; schema-2 status reports migration
+  and role context. Approved consolidation and commit cleanup require a clean
+  working tree before the next workflow step.
 
-- **Fenced two-agent roles**: An ownership generation and a session-only token
-  admit exactly one acting session per role, competing reviewers resolve to one
-  claim winner, and a displaced session is refused rather than silently obeyed.
+- **Five layouts with defined selection rules**: Matching document evidence
+  distinguishes effort folders from empty or asset-only directories. Canonical
+  siblings take precedence, competing fallback paths produce an error, and
+  existing layouts and public lookup imports keep their established behavior.
 
-- **Readiness before the commit**: `markdown-check` and `commit-plan-check`
-  report Markdown rule findings and staged-plan readiness as their own exit
-  codes, so a grouped commit is validated before it is created, not after.
+- **Checks before commits and separate timing runs**: `markdown-check` applies
+  the repository's Markdown policy, and `commit-plan-check` validates the exact
+  staged plan without committing. Groundhog can run full suites in parallel
+  while `ghog timings` measures durations sequentially; live setup output and a
+  cycle launcher make environment activation visible and reusable.

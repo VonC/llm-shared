@@ -6,50 +6,52 @@ release. The groundhog test loop (ghog), the prompt-workflow cycle (pw),
 and the commit and changelog helpers are mutualized across sibling
 projects.
 
-## [v0.11.0-SNAPSHOT unreleased] The Word Is Resume - c47322f760ef57d38605a2aad3bf4a72f9523669
+## [v0.12.0-SNAPSHOT unreleased] Resume Where You Filed It - 911e249c1afef827bd2ab37055e63e1d33b7b3ee
 
-One word restarts an interrupted review, migration and ownership included.
+Reviews keep their place; effort folders prove theirs.
 
-- Two Agents, One Transcript
-  -- A review round is a file on disk, not a conversation in one session.
-- The Human Keeps the Commit
-  -- Reviewers recommend commit-ready; only a person passes the gate.
+- Folder Names Need an Alibi
+  -- Five layouts, matching documents, and no ambiguous fallback.
+- Two Agents, One Paper Trail
+  -- Separate reviewers, retained evidence, and a human commit decision.
 
-Release 0.11.0 turns a review into a durable exchange. A request, an answer, a
-coordination record, and a versioned transcript live under one repository-local
-home, `.reviews` by default and selected by `.review-artifacts.ini`. Two
-independent agent sessions hold the writer and reviewer roles, fenced by an
-ownership generation and a session-only token, and neither role may start the
-other. Specification and implementation reviews share that core: the writer
-publishes a request and waits, the reviewer assesses and publishes an answer,
-and the exchange converges only at a gate the human passes.
+Release 0.12.0 makes specification and implementation reviews durable exchanges.
+Requests, answers, coordination records and transcripts live in a configured
+artifact home, `.reviews` by default. Independent requestor and reviewer
+sessions hold separate ownership capabilities; neither may start the other.
+Typing `resume` checks artifact placement, handles supported legacy migration
+and restores the recorded role with new session ownership. Status inspection
+reports active exchanges without resuming them, and commit decisions remain
+with the human.
 
-An interrupted review no longer needs a recovery ritual. Typing `resume` checks
-artifact placement, migrates a legacy root layout when the move is safe, reads
-the recorded Claude, Codex, or Gemini nature of each role, and performs
-ownership pickup without asking for a token. A reviewer that has answered keeps
-one quiet foreground wait open for the next request in any exchange, and
-`rvw_status` reports every active review without resuming it.
+Ruben's original layout PR adds `docs/vX.Y.Z/<slug>/` beside the four existing
+layouts. This release hardens that support: a folder needs a matching immediate
+document filename to qualify, workflow selection prefers its canonical folder,
+and an external fallback must be unique. Stateless `pw document` lookups retain
+strict duplicate rejection. Fresh filesystem lookup and real CLI acceptance
+coverage check these boundaries; the README and wiki explain the changes from
+the original PR.
 
-Two mechanical gates now report before a commit rather than after. The Markdown
-checker applies the repository rules as one authority, and `commit-plan-check`
-returns a read-only readiness verdict for the staged `a.commit` in text or JSON.
+### Key changes (v0.12.0)
 
-### Key changes (v0.11.0)
+- **Reviews survive interrupted sessions**: Specification and code review roles
+  share durable rounds, retained implementation evidence and fenced ownership.
+  Bare `resume` restores the selected role; schema-2 status reports migration
+  and role context. Approved consolidation and commit cleanup require a clean
+  working tree before the next workflow step.
 
-- **Durable review exchanges**: Rounds, coordination, and transcripts persist
-  under a configured artifact home, so an interrupted review resumes from disk
-  with its round, occurrence, and evidence intact instead of restarting.
+- **Five layouts with defined selection rules**: Matching document evidence
+  distinguishes effort folders from empty or asset-only directories. Canonical
+  siblings take precedence, competing fallback paths produce an error, and
+  existing layouts and public lookup imports keep their established behavior.
 
-- **Fenced two-agent roles**: An ownership generation and a session-only token
-  admit exactly one acting session per role, competing reviewers resolve to one
-  claim winner, and a displaced session is refused rather than silently obeyed.
+- **Checks before commits and separate timing runs**: `markdown-check` applies
+  the repository's Markdown policy, and `commit-plan-check` validates the exact
+  staged plan without committing. Groundhog can run full suites in parallel
+  while `ghog timings` measures durations sequentially; live setup output and a
+  cycle launcher make environment activation visible and reusable.
 
-- **Readiness before the commit**: `markdown-check` and `commit-plan-check`
-  report Markdown rule findings and staged-plan readiness as their own exit
-  codes, so a grouped commit is validated before it is created, not after.
-
-### 🚀 Features (v0.11.0)
+### 🚀 Features (v0.12.0)
 
 - *(review)* Add exchange identity model
 - *(review-exchange)* Add persistence store
@@ -122,7 +124,7 @@ returns a read-only readiness verdict for the staged `a.commit` in text or JSON.
 - *(review-mode)* Integrate independent review mode
 - *(docs-layout)* Add version-slug layout support
 
-### 🐛 Bug Fixes (v0.11.0)
+### 🐛 Bug Fixes (v0.12.0)
 
 - *(pw)* Harden plan step detection
 - *(review-exchange-core)* Use NUL Git paths
@@ -165,16 +167,20 @@ returns a read-only readiness verdict for the staged `a.commit` in text or JSON.
 - *(review)* Renew forced-resume ownership
 - *(trim)* Preserve later Claude answer sections
 - *(codex-plugin)* Allow metadata in redirects
+- *(workflow)* Require effort document evidence
+- *(docs-layout)* Scope workflow document selection
+- *(docs-layout)* Integrate discovery hardening
 
-### 🚜 Refactor (v0.11.0)
+### 🚜 Refactor (v0.12.0)
 
 - *(rules)* Centralize agent guidance
 - *(skills)* Redirect provider adapters
 - *(docs)* Split document resolution
 - *(workflow)* Split skill routing
 - *(review)* Harden evidence boundaries
+- *(workflow)* Extract document lookup
 
-### 📚 Documentation (v0.11.0)
+### 📚 Documentation (v0.12.0)
 
 - *(skills)* Explain canonical adapters
 - *(review)* Define exchange core
@@ -340,8 +346,28 @@ returns a read-only readiness verdict for the staged `a.commit` in text or JSON.
 - *(docs-layout)* Document version-slug layout option
 - *(docs-layout)* Drop the last four-layout claims
 - *(wiki)* Cover the v0.11.0 release topics
+- *(docs-layout)* Finish the four-layout sweep
+- *(issue)* Record pre-consolidation questions
+- *(wait)* Record polling analysis draft
+- *(issue)* Consolidate layout requirements
+- *(design)* Record pre-consolidation questions
+- *(design)* Consolidate layout decisions
+- *(plan)* Record pre-consolidation questions
+- *(workflow)* Clarify discovery IO boundaries
+- *(plan)* Consolidate layout implementation
+- *(docs_layout_hardening)* Record step 1 validation
+- *(workflow)* Record step 1 code review
+- *(review)* Quote Python names in transcript
+- *(docs_layout_hardening)* Record step 2 validation
+- *(docs_layout_hardening)* Record step 3 validation
+- *(docs-layout)* Record step 3 code review
+- *(pw)* Describe layout discovery and fallback
+- *(docs_layout_hardening)* Record step 4 validation
+- *(docs_layout_hardening)* Record step 4 review
+- *(pw)* Explain layout hardening
+- *(wiki)* Close release audit gaps
 
-### ⚡ Performance (v0.11.0)
+### ⚡ Performance (v0.12.0)
 
 - *(prepare-release)* Shorten planner checks
 - *(tests)* Keep calls below duration gate
@@ -350,12 +376,12 @@ returns a read-only readiness verdict for the staged `a.commit` in text or JSON.
 - *(tests)* Reduce review regression setup costs
 - *(tests)* Distribute acceptance scenarios
 
-### 🎨 Styling (v0.11.0)
+### 🎨 Styling (v0.12.0)
 
 - *(wiki)* Normalize navigation line endings
 - *(markdown)* Clear remaining lint debt
 
-### 🧪 Testing (v0.11.0)
+### 🧪 Testing (v0.12.0)
 
 - *(skills)* Reject copied adapter bodies
 - *(workflow)* Cover exact document lookup
@@ -406,8 +432,10 @@ returns a read-only readiness verdict for the staged `a.commit` in text or JSON.
 - *(tooling)* Cover redirect checks
 - *(review-status)* Prove schema 2 behavior
 - *(review-resume-command)* Cover cross-workflow resume acceptance
+- *(workflow)* Characterize document lookup
+- *(pw)* Verify layout routing through the CLI
 
-### ⚙️ Miscellaneous Tasks (v0.11.0)
+### ⚙️ Miscellaneous Tasks (v0.12.0)
 
 - *(editor)* Add review protocol words
 - *(plugin)* Refresh Codex cache version
@@ -442,8 +470,12 @@ returns a read-only readiness verdict for the staged `a.commit` in text or JSON.
 - *(vscode)* Set active activity bar borders
 - *(repo)* Record automation settings
 - *(vscode)* Drop duplicate radon exclude entry
+- *(vscode)* Accept rescope in the dictionary
+- *(env)* Stop setting SSL_CERT_FILE
+- *(editor)* Accept review vocabulary
+- *(editor)* Accept duplicative in dictionary
 
-### 🔨 Build (v0.11.0)
+### 🔨 Build (v0.12.0)
 
 - *(deps)* Declare watchdog directly
 
