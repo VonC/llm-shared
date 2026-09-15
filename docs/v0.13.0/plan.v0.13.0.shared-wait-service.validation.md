@@ -3,9 +3,9 @@
 No, it is not implemented
 
 Track the eight steps in [the implementation plan](plan.v0.13.0.shared-wait-service.md).
-This initial skeleton records intended outcomes only; no implementation check has
-taken place. The consolidated design and preliminary planning work are not
-evidence that the service or native probes have been implemented.
+Step 1 has been checked against its synthetic collector implementation and test
+evidence. Steps 2 through 8 remain pending; this result does not establish native
+wake feasibility or service implementation.
 
 ## File-based IO cost clarification for the validation record
 
@@ -26,8 +26,15 @@ from live acceptance runs.
 
 ### Analysis of Step 1 implementation state
 
-Not started. Step 1 is not implemented because its planned files, behavior
-and acceptance evidence have not yet been delivered or checked.
+Yes. Step 1 has been fully implemented.
+
+The explicit-path synthetic collector, accounting rules, immutable snapshots
+and paired summaries meet this step's AC-16 scope. Round 1 findings were fixed
+with regression tests: stream continuity is checked against the manifest before
+the first read, reset snapshots retain replacement content, and unknown request
+intervals keep unknown phase costs. The final Groundhog walk on 2026-09-15 at
+19:12:30 +02:00 passed 3,018 tests with 100% coverage of its configured source
+scope. Native schemas and live wake evidence remain Step 2 work.
 
 ### Goal for Step 1
 
@@ -42,27 +49,112 @@ Produce trustworthy exact-thread request and usage evidence before measuring a w
 
 ### What was implemented for Step 1
 
-_(empty — no check has taken place yet.)_.
+- `tools/wait_evidence/models.py` validates explicit identities, absolute paths,
+  pre-start offsets/baselines, stream file identities and bounded fingerprints,
+  frozen hashes, arm labels and finite bounds.
+  Evidence retains original time, ingestion time and source references.
+- `tools/wait_evidence/telemetry.py` normalizes the declared `synthetic-v1`
+  schema with exact host/build/thread/profile/source matching. It resumes
+  bounded reads, retains partial lines, checks manifest continuity before the
+  first read and detects rotation/truncation. A reset freezes its snapshot
+  budget against the open replacement file before yielding any records.
+  Missing baseline identity and damaged evidence produce distinct gaps.
+- `tools/wait_evidence/collector.py` deduplicates attempts and completions,
+  reconciles compatible cumulative epochs, preserves unknown token fields,
+  correlates nested tool ancestry and separates phase, seed and auxiliary costs.
+  Unknown request ends retain unknown phase costs without inventing a crossing.
+  Request and usage coverage remain independent. Fake-clock drain checks and
+  versioned snapshots cover delayed evidence and clock discontinuities.
+- `tools/wait_evidence/reports.py` publishes exclusive output versions and
+  retains raw per-trial counts, paired deltas, context controls, medians/ranges
+  and unsuccessful/repeated trials. Prototype and service labels stay distinct.
+- `collect.shared-wait-service.py` bootstraps imports from its physical script
+  location. Bounded subprocess tests exercise it from the checkout and another
+  cwd with explicit manifest/output paths and no prepared `PYTHONPATH`.
+- Test leaves under `tests/unit/tools/wait_evidence/` cover the planned
+  accounting, identity, I/O, correlation and omission cases. Additional
+  model/report leaves keep ownership by production module explicit.
+
+The final `ghog day` ran checks, 152 affected tests and the full suite. Its closing
+verdict was `fail=0 warn=0 xfail=0 cov=100 outliers=skipped excluded=skipped exit=0`;
+`ghog status` confirmed `state=done exit=0`. Static checks took 21.8s and the full
+test phase took 2m 20.4s. Before that walk, 125 focused tests passed. The new
+regressions first failed on all eight targeted cases before the fixes.
+Local evidence is retained in `.reviews/a.step1-round2-final-ghog.log`,
+`.reviews/a.step1-round2-tests-first.log`, `.reviews/a.step1-tests-first.log`
+and `.reviews/a.step1-environment-result.md`.
+Duration-outlier checks were reported as skipped; no outlier result is inferred.
+The plan's coverage/arm contract search and affected source diff were inspected.
 
 ### New types or classes introduced for Step 1
 
-_(empty — no check has taken place yet.)_.
+- `Arm`, `Phase`, `StreamSpec`, `TrialManifest`, `EvidenceRecord`,
+  `CoverageAssessment` and `TrialReport` define measurement contracts.
+- `Telemetry` and its private `_Cursor` own parsing and bounded file state.
+- `Collector`, `_Snapshot` and `_Drain` own accounting and elapsed drain state.
+- `JsonValue`, `JsonObject` and `Usage` keep boundary data and unknown counters
+  explicit in type checking.
 
 ### Architecture check for Step 1
 
-_(empty — no check has taken place yet.)_.
+Parsing/file access lives in `telemetry.py`; collection and phase accounting
+consume normalized records without opening files. `reports.py` owns publication
+and CLI wiring. The effort script only locates code and invokes that entry
+point. No service authority, review workflow or host lifecycle dependency was
+introduced into the accounting layer.
+
+Physical lines were recounted, including blanks: models 312, telemetry 195,
+collector 547, reports 183, package initializer 10 and effort CLI 15. All test
+initializers have 3 lines. Collector test leaves have 221, 47, 259 and 133 lines;
+telemetry leaves have 86 and 216; model/report leaves have 89 and 177. Every
+file is below the 550 growth-assessment band and the mandatory 650 ceiling.
+No architecture, responsibility or size issue needs fixing.
 
 ### Performance check for Step 1
 
-_(empty — no check has taken place yet.)_.
+Ingestion uses identity dictionaries. Snapshot accounting and tool ancestry
+resolution use linear scans with cached owner results; pair grouping uses
+direct keys. Median selection sorts only fixed groups of at most five elements,
+so it does not introduce an input-sized O(n log n) sort or pairwise O(n²) work.
+Snapshot reads consume a fixed initial byte budget with bounded chunks and
+partial-line storage. Baseline verification hashes at most 4 KiB ending at the
+recorded offset, with each read bounded by the configured chunk size.
+Instrumented tests observe actual read sizes and resumed seek offsets.
+Append-during-snapshot tests prove the budget stays fixed, including after a
+rotation or truncation resets the cursor.
+
+Tests use injected clock observations without real sleeps or model calls.
+Subprocess smoke tests retain five-second subprocess bounds and ten-second
+pytest guards; isolated Python startup avoids unrelated site initialization.
+No performance issue needs addressing.
 
 ### Unit test coverage check for Step 1
 
-_(empty — no check has taken place yet.)_.
+`pyproject.toml` measures `source = ["tools"]` with a 100% gate, omitting tests,
+initializers and the configured existing adapter exceptions. The four new
+production modules are inside that scope. Their owning `test_models`,
+`test_telemetry`, `test_collector` and `test_reports` folders exercise validation,
+parsing, accounting, diagnostics, CLI errors and summary behavior. The full
+walk reached 100%; static inspection finds no remaining uncovered class work.
+Property tests permute duplicate arrivals and independently omit coverage.
+
+The effort-side CLI is outside that percentage. It defines no new top-level
+function or class, delegates to tested `reports.main`, and is exercised by the
+two actual subprocess smoke cases. Initializers contain imports or docstrings.
+No unit-tested class below 100% needs completing. No top-level symbol outside
+the coverage gate is unreferenced.
 
 ### Feature integrity for Step 1
 
-_(empty — no check has taken place yet.)_.
+The new package is opt-in and changes no existing execution or review route.
+Incomplete or conflicting evidence prevents a strict zero-inference claim;
+seed/auxiliary costs and post-observation requests remain separate from the
+primary measurement. Unknown native schemas remain explicit gaps.
+
+Validation also repaired Markdown formatting in the validation/review documents
+and supplied the existing effort-discovery explanation's required invocation
+model section. Those documentation repairs are grouped separately from the
+collector. No existing behavior or reporting capability was found impaired.
 
 ## Step 2. Run the minimal native-wake prototype and matched trials
 
@@ -175,7 +267,7 @@ Start one hidden process per canonical home and admit only compatible same-user 
 ### Step 4 improvement expectations
 
 - Synthetic peers cannot reach a request handler before identity and compatibility checks; concurrent startup selects one durable authority and honors explicit isolated homes.
-- Verify tests/unit/tools/wait_service/test_windows_ipc/__init__.py and test_windows_ipc_tdd.py exist. Direct native-call error, SID/ACL and handle-cleanup cases must exercise the ctypes adapter within unit coverage; live Windows evidence stays separate.
+- Verify `tests/unit/tools/wait_service/test_windows_ipc/__init__.py` and `test_windows_ipc_tdd.py` exist. Direct native-call error, SID/ACL and handle-cleanup cases must exercise the ctypes adapter within unit coverage; live Windows evidence stays separate.
 - Before rollout, omitted/default/aliased-default homes return explicit-home-required before discovery or resource creation. Check bounded startup/pipe resources with deterministic clocks and finite timeout guards.
 - Preserve the plan's scope, line budget and existing workflow behavior.
 - Record the targeted Groundhog and full-walk result and the required evidence.
