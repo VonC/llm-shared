@@ -265,7 +265,7 @@ Hand the mechanical part to the `new_draft` tool rather than running git by hand
 so the slug, worktree-path, and branch rules stay in one tested place. Present
 the branch-layout choices, then call the tool:
 
-- A separate worktree: a sibling folder next to the repository root, named `<base>_<slug>`, where `<base>` is the root folder name with any trailing `_<suffix>` dropped (so a root `llm-shared` or `llm-shared_main` both give `..\llm-shared_<slug>`).
+- A separate worktree: a sibling folder next to the repository root, named `<base>_<slug>` with every hyphen turned into an underscore, where `<base>` is the main checkout folder name with any trailing `_<suffix>` dropped (so a main checkout `llm-shared` or `llm-shared_main` both give `..\llm_shared_<slug>`, and a slug `new-topic` from a main checkout `myproject` gives `..\myproject_new_topic`). The branch keeps the slug as typed. Never create a worktree folder containing a hyphen by hand either: a hyphen in the folder name breaks ruff's module naming (`N999`) in repositories whose root carries an `__init__.py`.
 - The current working tree: the branch is created in place.
 
 Call the `new_draft` `--from-draft` mode with the values already gathered, passed as
