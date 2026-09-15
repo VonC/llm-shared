@@ -598,6 +598,7 @@ def test_main_defaults_to_found_root(
     tmp_path: Path,
 ) -> None:
     """Without --root the project root is discovered."""
+    monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(prompt_workflow, "find_project_root", lambda _start: tmp_path)
     monkeypatch.setattr(prompt_workflow, "run", lambda _root, *, pick=False: 0)  # noqa: ARG005
     assert prompt_workflow.main([]) == 0

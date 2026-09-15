@@ -570,6 +570,15 @@ def _get_arg_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _default_root(start: Path) -> Path:
+    """Keep branch workflows in the caller's checkout despite a stale PRJ_DIR."""
+    current = start.resolve()
+    for candidate in (current, *current.parents):
+        if (candidate / ".git").exists():
+            return candidate
+    return find_project_root(current)
+
+
 def main(argv: list[str] | None = None) -> int:
     """CLI entry point.
 
@@ -579,7 +588,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = _get_arg_parser()
     args = parser.parse_args(argv)
     _configure_logging(debug=args.debug)
-    root = Path(args.root).resolve() if args.root else find_project_root(Path.cwd())
+    root = Path(args.root).resolve() if args.root else _default_root(Path.cwd())
     if args.command == "handoff":
         return run_handoff(root, args.task, args.step)
     if args.command == "document":
