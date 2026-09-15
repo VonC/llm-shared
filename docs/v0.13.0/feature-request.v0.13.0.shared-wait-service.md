@@ -5,7 +5,7 @@
 - Type: feature-request
 - Target version: v0.13.0
 - Topic: `shared-wait-service`
-- Status: requirement written; specification review pending
+- Status: consolidated after specification review round 2; ready for design
 - Canonical draft: [Shared wait service](draft.v0.13.0.shared-wait-service.md)
 - Umbrella: [Wake Me When It Matters](draft.v0.13.0.no_polling.md), item 1
 
@@ -142,6 +142,23 @@ normal turn completion. Retain and deliver an existing result without
 requiring another source notification. Failure to persist or arm must be
 reported immediately rather than presented as successful automatic wake.
 
+Reject registration without either a finite deadline or an explicit
+indefinite-wait policy with a typed validation error and no wait record.
+
+An identical idempotent retry returns the existing wait and acknowledgement
+state. Reusing its key with a different source, recipient, deadline policy
+or continuation returns a typed conflict naming the existing wait without
+changing it. Changed intent requires a new registration or an explicit
+lifecycle action.
+
+For the initial Windows deployment, trust processes running as the current
+OS user at the local IPC boundary and deny foreign-user access. Those
+processes may register an exact session, cancel waits and inspect status.
+Record when the registrant differs from the recipient and expose that
+provenance to SW-04 validation. OS-user access does not grant workflow
+authority or relax exact recipient and review-role restrictions. A
+per-session secret is possible later hardening, subject to host feasibility.
+
 ### SW-03: Keep source, delivery and consumption state separate
 
 Persist the outcome before delivery. Represent cancellation, expiry,
@@ -163,20 +180,45 @@ exactly-once execution across crashes.
 
 Queue for a busy host using its supported behavior while preserving the
 recipient and ordering. For a closed or unavailable host, retain the result
-with an explicit pending/unavailable route state. Rebinding requires a
-defined ownership and session-resume policy; it must not silently create a
-replacement conversation or worker.
+with an explicit pending/unavailable route state. A reconnecting bridge or
+later turn may rearm the same verified thread/session on the host side when
+ownership remains valid. The service must not wake the model merely to ask
+it to rearm. A different recipient requires explicit local user action
+through status tooling and the existing workflow authority. Unverifiable
+bindings stay pending; never create a replacement conversation or worker.
+
+If a persisted outcome survives but required result details are missing,
+replaced or belong to another source generation, retain that outcome and
+report a typed unavailable or invalid result. Suppress continuation that
+depends on those details until validation or explicit resolution. Do not
+substitute another source or automatically rerun the underlying work.
 
 ### SW-04: Preserve cancellation and review authority
 
-Cancelling a wait suppresses future automatic continuation for that
-registration. It must not cancel healthy underlying work or alter a review
-exchange. Define deterministic ordering for cancellation, readiness and
-expiry races, including events first discovered together during recovery.
+Cancelling a wait durably before consumption suppresses automatic
+continuation for that registration, regardless of when source readiness
+occurred or was observed. It must not cancel healthy underlying work, alter
+a review exchange or rewrite the source outcome. Retain an already ready
+result as evidence; cancellation does not reopen an expired terminal wait.
+
+At consumption, ordinary code must atomically check durable cancellation
+while recording authorization to consume the event. A cancelled event must
+be rejected without relying on model interpretation. Transport acceptance
+alone does not authorize continuation. An event already queued at the host
+may still wake it after cancellation; report that as a cancellation-induced
+wake. Once consumption authorizes continuation, later cancellation follows
+the existing execution semantics and does not retroactively undo work.
+
+Apply SW-05 to readiness versus expiry, including events discovered together
+after restart or suspension. Cancellation before consumption suppresses
+continuation in every ordering without changing the recorded source outcome.
 
 Machine events provide information, not human approval or new permissions,
 even when the host represents them as user messages. Validate the
-registration before continuing an already authorized workflow.
+registration and any registrant-other-than-recipient provenance before
+continuing an already authorized workflow. Render delivered text from fixed
+templates, typed fields and the stable continuation kind. Source and
+registrant text must not supply executable instructions.
 
 A requestor and reviewer subscribe independently through the existing
 protocol. Neither may register, create, invoke or directly wake its
@@ -207,10 +249,17 @@ Forward corrections can expire a pending wait; backward corrections can
 delay its expiry. Neither can invent source completion, reopen a terminal
 wait or repeat consumed work.
 
-When readiness, expiry and cancellation are first observed together, apply
-the documented lifecycle ordering and retain available timestamps and
-uncertainty. The resume timestamp alone does not establish causal order.
-Keep stale routes pending, reconcile unacknowledged delivery by event
+For a still-pending wait, authoritative source completion at or before the
+persisted UTC deadline wins over expiry. After that deadline, expire the wait
+when no authoritative completion at or before it exists, including when
+completion is absent or is timestamped later. Use the source's completion
+time, not the service's observation time. Record uncertainty when a UTC
+correction separates completion from observation; the resume timestamp alone
+does not establish causal order. An already terminal wait stays terminal.
+
+Cancellation before consumption suppresses continuation under SW-04 even
+when the source completed earlier. Keep stale routes pending, reconcile
+unacknowledged delivery by event
 identity and avoid replacement workers or a wake for each missed check.
 An unchanged, unexpired, uncancelled wait remains pending without inference.
 
@@ -228,9 +277,22 @@ remain hidden on Windows and survive the initiating shell call returning.
 
 Define discovery, singleton enforcement, readiness, reconnect behavior,
 protocol compatibility, durable storage, retention and cleanup. Apply
-appropriate local user/session access control. Provide ordinary local status
-tools for pending waits, failures and unsupported capabilities without model
-inference. Do not store copies of conversation context in the service.
+the current-OS-user access boundary and workflow restrictions in SW-02 and
+SW-04. Provide ordinary local status tools for pending waits, failures and
+unsupported capabilities without model inference. Do not store copies of
+conversation context in the service.
+
+Treat temporary source-access loss as unknown readiness during a bounded
+recovery interval fixed for each source kind before any wait of that kind is
+registered. If access is not restored within that interval, persist one typed
+monitoring-failure outcome and deliver it as actionable under SW-07. It does
+not mean that the underlying work failed.
+
+Exclude active waits and ready-but-unconsumed results from automatic terminal
+cleanup. Removing them requires an explicit documented lifecycle action.
+Retain source evidence for cancelled ready waits under the documented
+terminal-retention policy. Status tooling must expose pending or unconsumed
+state and age so retained records remain manageable.
 
 ### SW-07: Report capability failures and explicit fallbacks
 
@@ -246,6 +308,12 @@ Distinguish at least these outcomes:
 Do not silently fall back to periodic LLM checks, disguise a timeout as work
 completion or recreate a short polling cycle after it. Preserve the user's
 model, approval, telemetry and provider settings during capability probes.
+
+Bound delivery attempts for an unchanged failure condition by host route
+kind. On exhaustion, retain the event, result and diagnostic without further
+automatic attempts. Resume delivery only after explicit local retry through
+ordinary tooling or validated recovery, such as same-session rearming.
+Neither source recovery nor delivery retry may become model-driven polling.
 
 ## Required feasibility evidence before substantial implementation
 
@@ -287,10 +355,23 @@ Use synthetic outcomes and independently authorized sessions, never an
 automated review counterpart.
 
 Close the checkpoint with a per-host finding: passed for measured cases,
-failed, capability unavailable or measurement inconclusive. Resolve a failed
-route before depending on it; unavailable or inconclusive routes cannot
-justify freezing unproven interface assumptions. Independent synthetic core
-work may proceed. Probe evidence does not complete a production adapter item.
+failed, capability unavailable or measurement inconclusive. Item 1 may close
+under SW-09 when at least one route proves functional arming, normal turn
+completion, an actual quiet interval and automatic continuation in the same
+conversation. Keep unproven host-interface assumptions provisional and
+revalidate them in the first production adapter item for each host. Probe
+evidence does not complete a production adapter item.
+
+When no route proves that sequence, independent synthetic core and collector
+work may proceed, but require a human checkpoint before freezing the host
+interface or closing item 1. Retain failed, unavailable and inconclusive
+evidence; do not substitute manual resumption or another conversation.
+
+Functional wake evidence and request coverage are separate findings. With
+incomplete coverage, record "wake observed, coverage inconclusive"; leave the
+strict no-inference criterion and support claim open for item 8. Core
+fixtures and functional wake evidence may be accepted separately, but missing
+telemetry never establishes zero inference.
 
 ## Controlled comparison required for the shared wait
 
@@ -306,10 +387,21 @@ as the shared methodology, including its seed and benchmark prompts.
 | B-service | Actual shared monitoring service, durable registration and armed route | Observed behavior and cost of the service |
 
 Run matched A versus B-prototype trials before substantial implementation.
-Repeat fresh matched A versus B-service trials when the core and relevant
-host route are available. Never relabel prototype evidence as service
-evidence; identify the actual service instance and registration/delivery
-records for B-service. Item 8 reuses this methodology for the final comparison.
+Item 1 closes with synthetic core fixtures, a validated collector,
+A/B-prototype reports, explicit per-host probe findings under SW-08 and the
+bounded live Windows core sleep/resume check specified after the acceptance
+table. Incomplete request coverage follows SW-08 and AC-02.
+
+Fresh matched A versus B-service trials are item 8 acceptance using the first
+available production host route. Record that obligation as outstanding in
+item 1 validation. Reuse this methodology and identify the actual service
+instance and registration/delivery records for B-service. Never relabel
+prototype evidence as service evidence.
+
+Require quiet-wait behavior and useful continuation, and report registration
+and delivery overhead. There is no minimum net token-savings threshold: an
+unfavorable end-to-end delta is a measured result, not by itself a failure of
+acceptance.
 
 Use a nominal 240-second synthetic source condition, not a real Groundhog
 walk or review. Arm A requests an initial 1000 ms yield if supported, otherwise
@@ -342,7 +434,10 @@ Record effective compaction threshold/policy, approval policy,
 fallbacks, certificate errors, retries, compaction attempts/failures and
 attributable auxiliary approval-review usage. Match configuration across
 paired arms; preserve failures and deviations rather than selecting clean
-runs. Report auxiliary usage separately and unknown attribution explicitly.
+runs. Attributable post-seed compaction in either arm is a measured treatment
+effect: retain it and count its cost. Repeat a pair for an actual seed or
+configuration mismatch or invalid telemetry, not merely because compaction
+occurred. Report auxiliary usage separately and unknown attribution explicitly.
 
 Run sequentially with no unrelated work in the measured conversation.
 Select telemetry by exact thread identity regardless of other repository
@@ -353,7 +448,10 @@ separate recovery evidence.
 Create each unique run manifest in ordinary code after `READY` and before
 the benchmark prompt. Record run/pair/arm identity, exact thread and storage,
 seed hashes, configuration, source identity and pre-start counters/file
-positions. Observe these distinct boundaries:
+positions. Fix finite wake-latency and duplicate-observation bounds once per
+host-and-version comparison series before its first trial, and record them
+in each run manifest. Changing either bound starts a new series; retain all
+earlier trials and bound misses. Observe these distinct boundaries:
 
 | Measurement | Required boundary |
 | --- | --- |
@@ -426,29 +524,31 @@ adapter and instruction-migration work remains outside item 1.
 
 | ID | Acceptance evidence |
 | --- | --- |
-| AC-01 | A successful registration persists once and confirms an armed usable route; retries do not duplicate the logical wait. |
-| AC-02 | A normally completed registering turn leaves no pending foreground wait; the supported ten-minute baseline has no wait-induced inference and automatically continues the same conversation on readiness. |
+| AC-01 | A successful registration persists once and confirms an armed usable route. An identical retry returns its wait and acknowledgement state; a conflicting key returns a typed conflict without mutation. Omitting both a finite deadline and an explicit indefinite policy returns a typed validation error and creates no wait. |
+| AC-02 | A normally completed registering turn leaves no pending foreground wait and automatically continues the same conversation after the ten-minute unchanged-source baseline. Verified request coverage must show zero wait-induced inference. Incomplete coverage is recorded as "wake observed, coverage inconclusive"; the strict criterion and support claim remain open for item 8 while core fixtures and functional wake evidence may be accepted separately. |
 | AC-03 | Completion before registration, arming or turn end remains deliverable without another source event. |
-| AC-04 | Duplicate/missed notifications and several subscribers use authoritative reconciliation and coalesced watches without cross-repository or cross-session delivery. |
-| AC-05 | Outcomes survive restart and persist before delivery; lost acknowledgements retain event identity and do not repeat consumed workflow work. |
-| AC-06 | Busy, interrupted, closed and stale host routes preserve recipient, ownership and pending-result state without a new worker or conversation. |
-| AC-07 | Cancellation/readiness/expiry races follow documented ordering; cancelling monitoring leaves underlying authorized work intact. |
-| AC-08 | Synthetic review ownership and provenance cases reject stale/ambiguous authority and never turn machine events into human approval or counterpart creation. |
-| AC-09 | Sleep/resume with an unchanged indefinite wait remains quiet; completion or deadline expiry during suspension is reconciled without resetting the deadline. |
-| AC-10 | Forward/backward UTC changes and restart honor persisted deadline semantics without reopening terminal waits or reusing raw monotonic timestamps. |
-| AC-11 | Queued, consumed or cancelled events retain their state across resume; stale bindings and lost receipts are reconciled without repeated consumed work. |
-| AC-12 | Local startup, discovery, access control, compatibility, reconnect, retention, cleanup and diagnostics satisfy the shared user-owned lifecycle without model health checks. |
-| AC-13 | Capability failures are typed and fallbacks explicit; unavailable automatic delivery is never reported as an armed wake. |
-| AC-14 | The Codex and available Claude probes retain exact version/session, timing, arming, delivery, consumption and request-coverage evidence with explicit outcomes and limitations. |
-| AC-15 | A/B-prototype and subsequent A/B-service reports follow SW-09 through SW-11, retain unsuccessful/inconclusive trials and distinguish all phases and evidence sources. |
+| AC-04 | Duplicate/missed notifications and several subscribers use authoritative reconciliation and coalesced watches without cross-repository or cross-session delivery. Source-access loss stays unknown within the predeclared source-kind recovery interval, then produces one typed monitoring failure without declaring underlying work failed. |
+| AC-05 | Outcomes survive restart and persist before delivery; lost acknowledgements retain event identity and do not repeat consumed workflow work. Unchanged delivery failures exhaust the route-kind attempt bound and retain the result until explicit local retry or validated recovery. Missing, replaced or wrong-generation required details preserve the outcome and suppress dependent continuation pending validation or explicit resolution. |
+| AC-06 | Busy, interrupted, closed and stale routes preserve recipient, ownership and pending results. Host-side rearming requires the same verified session and valid ownership; a different recipient requires explicit local user action and existing workflow authority. Unverifiable bindings stay pending without replacement or a model wake to request rearming. |
+| AC-07 | Readiness/expiry follows authoritative completion time versus the persisted deadline for pending waits. Durable cancellation before consumption suppresses continuation in every ordering, including restart and suspension recovery, while preserving source outcomes and underlying work; terminal waits remain terminal. |
+| AC-08 | Synthetic foreign-user IPC, exact-recipient, registrant provenance, review-role and instruction-injection cases enforce SW-02/SW-04. Stale or ambiguous authority is rejected; OS-user access and machine events never grant workflow permission, human approval or counterpart creation. |
+| AC-09 | Sleep/resume with an unchanged indefinite wait remains quiet. Pending completion at or before the deadline wins; absent or later completion expires after the deadline. Recovery uses source timestamps, records clock uncertainty and never resets the deadline. |
+| AC-10 | Forward/backward UTC changes and restart honor persisted deadline and authoritative completion semantics without reopening terminal waits or reusing raw monotonic timestamps. |
+| AC-11 | Queued, consumed or cancelled events retain their state across resume. Ordinary-code consumption atomically checks durable cancellation; accepted-but-cancelled queued events may cause a reported cancellation-induced wake but cannot authorize continuation. Cancellation after consumption follows existing execution semantics. Same-session rearming and lost-receipt recovery do not repeat consumed work. |
+| AC-12 | Local startup, discovery, current-OS-user access control, compatibility, reconnect and diagnostics satisfy the shared user-owned lifecycle without model health checks. Automatic terminal cleanup excludes active waits and ready-but-unconsumed results; status shows their state and age. Explicit lifecycle actions and cancelled-result retention are documented. |
+| AC-13 | Capability, monitoring, delivery and required-result-detail failures are typed and fallbacks explicit. Source recovery and delivery attempts obey their bounds; retained outcomes are not silently replaced or rerun, and unavailable automatic delivery is never reported as an armed wake. |
+| AC-14 | The Codex and available Claude probes retain exact version/session, timing, arming, delivery, consumption and request-coverage evidence with explicit outcomes. At least one functional route must pass for item 1 closure; otherwise a human checkpoint precedes interface freezing or closure. Unproven host assumptions remain provisional for revalidation in each later host adapter item, and functional wake does not prove zero inference. |
+| AC-15 | Item 1 A/B-prototype reports follow SW-09 through SW-11 with declared series bounds, separate phases and all failed/inconclusive trials. A/B-service remains an explicit item 8 acceptance obligation using the first available production host route. Report overhead and deltas without requiring minimum net token savings or relabelling prototype results as service evidence. |
 | AC-16 | Synthetic collector cases produce the known counts and expose missing/ambiguous evidence instead of reporting false zero usage. |
 
 Use deterministic clocks and synthetic source/host fixtures for lifecycle
 tests, including simulated suspension and clock correction, without network
 inference or real sleeps. Use cheap commands rather than full check walks
-to exercise completion. A bounded live Windows sleep/resume check is
-required before claiming that recovery behavior is supported; retain it
-separately from awake-machine A/B measurements.
+to exercise completion. Item 1 also requires a bounded live Windows core
+sleep/resume check with a synthetic source and host before claiming core
+recovery support. Retain it separately from awake-machine A/B measurements;
+later adapter items remain responsible for their host-specific recovery
+support evidence.
 
 Keep harness/collector scripts, exact invocations, relevant redacted
 configuration and compact reports beside the effort documents. Reference
@@ -480,493 +580,29 @@ authorities and constraints, not a file-by-file implementation plan.
 - [Command execution rules](../../rules/run_commands.md): shared launchers,
   Python environment resolution and standalone PowerShell scripts.
 
-## Open questions for the v0.13.0 shared-wait-service feature request
-
-The answer lines below are proposed recommendations for review, not recorded
-human decisions. This review clarifies behavior and acceptance; storage,
-transport and wire-schema choices belong to the design stage.
-
-### Q01: Completion boundary for umbrella item 1
-
-SW-09 and AC-15 require later B-service evidence, but production host routes belong to items that depend on item 1. Which evidence is required to close this core item?
-
-#### BBQ for Q01
-
-A kitchen foundation can be accepted before every appliance is connected, but the later cooking check still needs an owner. In this picture: the foundation is the shared core, appliances are production host adapters, and the cooking check is the actual-service A/B comparison.
-
-#### Options for Q01
-
-- Option A: Close item 1 with its core fixtures, collector, prototype reports, explicit native-probe findings and live Windows core recovery check, subject to Q02 and Q17; make B-service comparisons item 8 acceptance evidence.
-  - Pro: Avoids a circular dependency and keeps service evidence mandatory.
-  - Con: Item 1 completion alone cannot mean full live service support.
-- Option B: Require a usable actual-service host route and B-service comparison before item 1 closes.
-  - Pro: Produces earlier integrated evidence.
-  - Con: Pulls host work into item 1 and needs an explicit boundary change.
-
-#### Recommended option for Q01
-
-Option A: Use separate core and production-support gates. Item 1 includes a bounded live Windows sleep/resume check of the core with synthetic source and host fixtures; this does not require a production adapter. Item 8 owns the actual-service comparison. Q02 controls incomplete request coverage and Q17 controls closure when native routes are unproven.
-
-#### Answer to Q01: option A
-
-Option A: Subject to Q02 and Q17, item 1 closes with its synthetic core fixtures, validated collector, A versus B-prototype reports, explicit per-host native-probe findings, and a bounded live Windows sleep/resume check of the core service using synthetic source and host fixtures. A versus B-service trials become named acceptance evidence for item 8, run against the first available production host route. Item 1 validation lists that evidence as outstanding and never reports prototype results as service results. Consolidation edits SW-09 and AC-15 to this split and clarifies that the bounded live Windows sleep/resume check described after the acceptance table stays in item 1. Later adapter items retain their own host support obligations.
-
-### Q02: Acceptance when request telemetry is incomplete
-
-SW-08 permits an inconclusive measurement while AC-02 asks for verified zero wait-induced inference. What can be accepted when automatic continuation works but actual request coverage cannot be established?
-
-#### BBQ for Q02
-
-Seeing a barbecue finish does not prove how much fuel it used when the meter is broken. In this picture: cooking completion is the observed host wake, the fuel meter is request telemetry, and fuel use is quiet-wait inference.
-
-#### Options for Q02
-
-- Option A: Accept the observed wake finding and independent core fixtures only; leave strict no-inference validation and that support claim open.
-  - Pro: Preserves useful evidence without making a false zero claim.
-  - Con: A working route may remain only provisionally documented.
-- Option B: Block completion of all core work until full request telemetry is available.
-  - Pro: Gives one simple completion rule.
-  - Con: Makes unrelated core acceptance depend on host observability.
-
-#### Recommended option for Q02
-
-Option A: Keep wake evidence separate from request-coverage evidence and identify the unresolved strict criterion explicitly. Useful core and functional wake evidence can be accepted without claiming verified zero inference.
-
-#### Answer to Q02: option A
-
-Option A: Keep wake evidence separate from request-coverage evidence. Consolidation rewrites AC-02 so a run with verified coverage must show no wait-induced inference, while a run with unverifiable coverage is recorded as "wake observed, coverage inconclusive". In the latter case the strict criterion and support claim stay open and are carried to item 8, without invalidating independent core fixtures. This does not weaken the no-inference requirement or turn an inconclusive result into a pass.
-
-### Q03: Wake and duplicate-observation acceptance windows
-
-The draft requires bounded, predeclared delivery and duplicate-observation windows but supplies no acceptance durations. How should a trial's timing contract be settled?
-
-#### BBQ for Q03
-
-Guests need to know when dinner is late before it starts, rather than after it arrives. In this picture: dinner is the delivered outcome, the promised serving window is the wake bound, and waiting after serving is the duplicate-observation window.
-
-#### Options for Q03
-
-- Option A: Declare finite bounds once per host and version comparison series, before its first trial; report misses as failed timing criteria and start a new series if bounds change.
-  - Pro: Accommodates measured host behavior while preventing retrospective thresholds.
-  - Con: Different host reports need their bounds shown to be comparable.
-- Option B: Require one fixed pair of bounds for every host before any trial.
-  - Pro: Makes results easy to compare.
-  - Con: A universal bound may reject a usable native host route.
-- Option C: Report timings without a pass/fail bound.
-  - Pro: Avoids an arbitrary initial threshold.
-  - Con: Does not establish bounded usable continuation.
-
-#### Recommended option for Q03
-
-Option A: Fix host-specific bounds before the first trial in the whole comparison series, so earlier pair results cannot influence later acceptance thresholds.
-
-#### Answer to Q03: option A
-
-Option A: Declare finite wake and duplicate-observation bounds once per host and version comparison series in its manifest, before its first trial. Changing a bound starts a new series; earlier trials and their misses are retained and reported. Consolidation makes this series boundary explicit in SW-10 and the comparative evidence accepted under AC-15.
-
-### Q04: Required level of measured token savings
-
-SW-09 through SW-11 require comparative costs, but no minimum end-to-end reduction is specified. Does a valid zero-polling route fail if setup makes a four-minute trial more expensive overall?
-
-#### BBQ for Q04
-
-A fuel-saving oven can cost extra to preheat for a short meal. In this picture: preheating is registration/setup, cooking is the wait, and total fuel is end-to-end input usage.
-
-#### Options for Q04
-
-- Option A: Require the quiet-wait behavior and successful continuation, and report end-to-end overhead without a minimum savings threshold.
-  - Pro: Tests the requested behavior and exposes unfavorable results honestly.
-  - Con: A passing implementation may not save tokens on every short task.
-- Option B: Require lower median end-to-end input than classic polling in addition to functional criteria.
-  - Pro: Makes a cost benefit part of acceptance.
-  - Con: Can reject a correct mechanism for workloads dominated by setup.
-
-#### Recommended option for Q04
-
-Option A: The sources promise removal of wait-induced inference and measured cost reporting, not a guaranteed net saving for every duration.
-
-#### Answer to Q04: option A
-
-Option A: The sources promise removal of wait-induced inference and measured cost reporting, not a guaranteed net saving for every duration. An unfavorable end-to-end delta is a reported result, not a failed criterion.
-
-### Q05: Wait policy when a caller omits a deadline
-
-SW-02 requires a finite deadline or explicit indefinite policy, but does not specify whether callers may rely on a default. What should happen when neither is supplied?
-
-#### BBQ for Q05
-
-A cook must know whether to keep a meal warm until collection or discard it at closing time. In this picture: the meal is the wait, collection is source readiness, and closing time is its deadline.
-
-#### Options for Q05
-
-- Option A: Reject registration until the caller supplies a finite deadline or explicitly requests an indefinite wait.
-  - Pro: Prevents accidental expiry and accidental endless monitoring.
-  - Con: Callers must make one additional policy choice.
-- Option B: Default an omitted deadline to an indefinite wait and report that choice.
-  - Pro: Keeps registrations simple.
-  - Con: An omission can create unwanted persistent waits.
-- Option C: Use a documented finite service default.
-  - Pro: Bounds unattended waits.
-  - Con: A generic timeout may expire legitimate long work.
-
-#### Recommended option for Q05
-
-Option A: An explicit choice preserves the draft's distinction between finite and indefinite waits and makes expiry behavior reviewable.
-
-#### Answer to Q05: option A
-
-Option A: An explicit choice preserves the draft's distinction between finite and indefinite waits and makes expiry behavior reviewable.
-
-Acceptance impact: Extend AC-01 to require that registration without a finite deadline or explicit indefinite policy returns a typed validation error and creates no wait record.
-
-### Q06: Ordering readiness and expiry after suspension
-
-SW-05 fixes UTC deadline semantics but leaves event precedence unresolved. If readiness and expiry are first observed together after resume, which terminal outcome wins?
-
-#### BBQ for Q06
-
-An order prepared before closing may still be collected later, while an order with no reliable preparation time is uncertain. In this picture: preparation is authoritative readiness, closing is the persisted deadline, and late collection is resume reconciliation.
-
-#### Options for Q06
-
-- Option A: Readiness wins if the source authority records completion at or before the persisted deadline; otherwise expiry wins once the deadline has passed. An already terminal state stays terminal.
-  - Pro: Recognizes completion on time without inventing chronology.
-  - Con: A real pre-deadline completion with insufficient evidence may expire.
-- Option B: Always give an observed ready result priority over expiry.
-  - Pro: Maximizes delivery of completed work.
-  - Con: Can accept work that became ready after its deadline.
-- Option C: Always expire when the service observes readiness after the deadline.
-  - Pro: Provides a simple uniform rule.
-  - Con: Rejects proven on-time completion that was only observed late.
-
-#### Recommended option for Q06
-
-Option A: Use the source authority's completion time, rather than service observation time, to recognize proven on-time completion. Apply the expiry rule when that evidence is unavailable and Q15 for cancellation precedence.
-
-#### Answer to Q06: option A
-
-Option A: Readiness wins when the source authority records a completion time at or before the persisted deadline. Expiry wins when the deadline has passed and the source authority records no completion time at or before it, including when it records no completion time at all. When a UTC correction occurred between readiness and observation, record the uncertainty with the outcome. An already terminal state stays terminal; this rule reconciles a still-pending wait. Precedence involving cancellation follows Q15. Consolidation makes the source timestamp, deadline equality and unknown-time cases explicit in SW-05 and AC-07, AC-09 and AC-10.
-
-### Q07: Cancellation after transport acceptance
-
-SW-04 suppresses future automatic continuation, but a host may already have accepted a queued event when cancellation succeeds. What guarantee applies before that event is consumed?
-
-#### BBQ for Q07
-
-Cancelling a meal after the waiter has left may not stop the knock at the door, but it can stop serving the meal. In this picture: the waiter is accepted host delivery, the knock is a model wake, and serving is authorized workflow continuation.
-
-#### Options for Q07
-
-- Option A: Cancellation prevents new service deliveries and continuation not yet consumed; an already accepted event may wake the host, but ordinary code rejects its consumption after cancellation.
-  - Pro: Defines a guarantee compatible with hosts that cannot revoke queued events.
-  - Con: A late wake can still consume some tokens.
-- Option B: Guarantee no host wake after cancellation acknowledgement.
-  - Pro: Gives the strongest user-visible cancellation promise.
-  - Con: Requires revocation support that the candidate routes have not established.
-- Option C: Let every transport-accepted event finish its continuation despite later cancellation.
-  - Pro: Avoids a late-consumption race.
-  - Con: Weakens the user's ability to cancel work that has not started.
-
-#### Recommended option for Q07
-
-Option A: Make cancellation effective through the ordinary-code consumption operation, with an atomic cancellation check, and report unavoidable accepted-event wakes separately.
-
-#### Answer to Q07: option A
-
-Option A: The consumption operation, in ordinary code, checks durable cancellation atomically with recording consumption and rejects a cancelled wait's event. It must not depend on the model interpreting event text correctly. A wake caused by an already accepted event is reported as a cancellation-induced wake. Once consumption has authorized continuation, later cancellation follows the existing workflow's execution semantics. Consolidation extends AC-07 and AC-11 with a cancellation-before-consumption case and a consumption-before-cancellation case, following Q15.
-
-### Q08: Rebinding after a connection changes
-
-SW-03 and SW-05 preserve results on stale routes and require an explicit rebinding policy. When can a restarted bridge or connection resume automatic delivery?
-
-#### BBQ for Q08
-
-A replacement waiter should serve the same verified table, not whichever table is nearest. In this picture: the waiter is the bridge connection, the table is the registered thread/session, and the table check is ownership validation.
-
-#### Options for Q08
-
-- Option A: Permit rearming for the same verified session/thread and still-valid ownership; require explicit authorized rebinding for a different or unverifiable recipient.
-  - Pro: Supports routine reconnects without changing who owns the wait.
-  - Con: Some recovered results remain pending until identity can be established.
-- Option B: Require a human action after every connection-incarnation change.
-  - Pro: Makes every rearm explicit.
-  - Con: Turns ordinary bridge recovery into repeated manual work.
-- Option C: Never rebind an existing registration; require cancellation and a new wait.
-  - Pro: Simplifies the external lifecycle.
-  - Con: Makes retained-result recovery cumbersome.
-
-#### Recommended option for Q08
-
-Option A: Preserve recipient and ownership identity while allowing routine recovery within the already authorized session.
-
-#### Answer to Q08: option A
-
-Option A: Preserve recipient and ownership identity while allowing routine recovery within the already authorized session. A rearm comes from the host side: a bridge reconnecting under the same verified session, or a later turn in that session. The service never wakes a conversation only to ask it to rearm. Explicit rebinding to a different recipient is a local user action through status tooling, still subject to existing workflow authority; an unverifiable recipient remains pending. Consolidation makes host-initiated rearm explicit in SW-03, SW-05 and AC-06/AC-11.
-
-### Q09: Conflicting reuse of a registration idempotency key
-
-SW-02 says retries create one logical wait. What happens if a caller reuses the same key with a different source, recipient, deadline or permitted continuation?
-
-#### BBQ for Q09
-
-An order number should not silently switch from one customer's meal to another. In this picture: the order number is the idempotency key, the meal is the source condition, and the customer is the registered recipient.
-
-#### Options for Q09
-
-- Option A: Reject the conflicting registration and preserve the original wait; a changed intent requires a new registration or an explicitly supported lifecycle action.
-  - Pro: Prevents accidental retargeting under the appearance of a retry.
-  - Con: Callers must distinguish retries from changed requests.
-- Option B: Return the existing wait without accepting any changed fields.
-  - Pro: Keeps retry handling simple and preserves existing state.
-  - Con: Can hide a caller error unless the conflict is also reported.
-- Option C: Replace the original wait's fields.
-  - Pro: Allows convenient correction.
-  - Con: Can redirect pending delivery or erase the original authorization.
-
-#### Recommended option for Q09
-
-Option A: A retry must mean the same logical request; explicit rejection protects the original registration and exposes mismatched intent.
-
-#### Answer to Q09: option A
-
-Option A: An identical retry returns the existing wait and its acknowledgement state. A retry that reuses the key with a different source, recipient, deadline or continuation is rejected with a typed conflict naming the existing wait, and nothing changes. A changed intent requires a new registration or an explicitly supported lifecycle action.
-
-Acceptance impact: Extend AC-01 with identical-retry and conflicting-key cases, checking the returned identity and acknowledgement state, typed conflict, and unchanged original registration.
-
-### Q10: Temporary loss of authoritative source access
-
-The core treats notifications as hints and preserves typed outcomes, but source reads may temporarily fail after registration. When does that become an operational outcome?
-
-#### BBQ for Q10
-
-A closed kitchen hatch does not prove the food is ready or ruined. In this picture: the hatch is source access, the food is underlying work, and asking again is code-only reconciliation.
-
-#### Options for Q10
-
-- Option A: Keep source readiness unknown during a bounded declared recovery interval; then record a typed monitoring failure if access is not restored, without declaring underlying work failed.
-  - Pro: Tolerates transient faults while bounding an unusable monitor.
-  - Con: Outcome delivery can be delayed by the recovery interval.
-- Option B: Immediately terminate the wait with a monitoring failure on the first unavailable read.
-  - Pro: Reports loss of monitoring promptly.
-  - Con: Turns brief filesystem or connection issues into failed waits.
-- Option C: Retry indefinitely whenever the wait has no deadline.
-  - Pro: May recover after arbitrarily long outages.
-  - Con: Can leave a broken registration appearing usable indefinitely.
-
-#### Recommended option for Q10
-
-Option A: Distinguish monitoring failure from work failure and make recovery bounded and observable without model-driven retries.
-
-#### Answer to Q10: option A
-
-Option A: Distinguish monitoring failure from work failure and make recovery bounded and observable without model-driven retries. The recovery interval is declared per source kind, before any wait of that kind is registered. If access remains unavailable when it lapses, record one typed monitoring-failure outcome and deliver it like any other actionable outcome, subject to Q11. Never report the underlying work as failed from this monitoring failure.
-
-Acceptance impact: Extend AC-04 and AC-13 with transient recovery and exhausted-recovery fixtures that check the declared bound, one monitoring-failure outcome, normal delivery handling, and no false work-failure report.
-
-### Q11: Automatic retries after a persistent delivery failure
-
-SW-03 and SW-07 retain unavailable delivery and forbid polling loops, but do not state when repeated automatic attempts should stop or how recovery re-enables them.
-
-#### BBQ for Q11
-
-Repeatedly ringing a broken doorbell does not deliver dinner. In this picture: the doorbell is the host route, ringing is a delivery attempt, and a repaired connection is a validated capability change.
-
-#### Options for Q11
-
-- Option A: Bound automatic attempts for the same unchanged failure, retain the result and route diagnostic, and resume attempts only after explicit retry or a validated recovery event.
-  - Pro: Avoids endless retries and recurring failure wakes while preserving results.
-  - Con: Some waits require a later recovery trigger or manual retry.
-- Option B: Continue code-only retries indefinitely at a bounded cadence.
-  - Pro: Can recover without an explicit trigger.
-  - Con: Sustains background activity and can repeatedly exercise a broken route.
-- Option C: Treat the first delivery failure as permanent and require a new wait.
-  - Pro: Provides simple failure semantics.
-  - Con: Loses convenient recovery of transient host failures.
-
-#### Recommended option for Q11
-
-Option A: Bound recovery for one unchanged failure and preserve the durable event so a validated route recovery can continue the same logical wait.
-
-#### Answer to Q11: option A
-
-Option A: Declare the automatic-attempt bound per host route kind. Bound automatic attempts for one unchanged failure and preserve the durable event and route diagnostic, so validated route recovery can continue the same logical wait. A validated recovery event includes a same-session rearm under Q08. An explicit retry is a local tool action, never a model-driven loop.
-
-Acceptance impact: Extend AC-05 and AC-13 to verify that attempts stop at the declared bound for an unchanged failure, the result remains available, and an explicit retry or verified recovery resumes delivery with the same event identity.
-
-### Q12: Retention of unconsumed outcomes
-
-SW-06 requires retention and cleanup without specifying which records may expire automatically. Can a cleanup policy remove an active wait or a ready outcome that its recipient has not consumed?
-
-#### BBQ for Q12
-
-Clearing empty plates is different from throwing away a meal still awaiting collection. In this picture: empty plates are consumed terminal records, the waiting meal is an unconsumed result, and clearing is retention cleanup.
-
-#### Options for Q12
-
-- Option A: Exclude active waits and ready unconsumed outcomes from automatic terminal-record cleanup; remove them only through an explicit cancellation/expiry or other documented lifecycle action.
-  - Pro: Protects the durable recovery promise.
-  - Con: Long-abandoned waits may retain data until explicitly resolved.
-- Option B: Apply a disclosed retention age to all records, including pending and unconsumed waits.
-  - Pro: Bounds storage even for abandoned registrations.
-  - Con: Can remove a result before the promised recipient resumes.
-- Option C: Retain all records indefinitely.
-  - Pro: Maximizes historical recovery.
-  - Con: Leaves storage and data lifetime unbounded.
-
-#### Recommended option for Q12
-
-Option A: Separate lifecycle changes from housekeeping and document retention of consumed/cancelled terminal records without silently deleting deliverable outcomes.
-
-#### Answer to Q12: option A
-
-Option A: Exclude active waits and ready unconsumed outcomes from automatic terminal-record cleanup. Separate lifecycle changes from housekeeping and document retention of consumed/cancelled terminal records without silently deleting deliverable outcomes. Local status tooling lists retained pending and unconsumed records with their age, so long-abandoned waits can be resolved explicitly. Cancellation retains any ready outcome as evidence under Q15, subject to the documented terminal-record retention policy.
-
-Acceptance impact: Extend AC-12 with aged active, ready-unconsumed and consumed/cancelled fixtures, verifying housekeeping exclusions, age visibility, and cleanup only when the documented lifecycle and retention conditions permit it.
-
-### Q13: Compaction caused by the measured polling arm
-
-SW-10 records compaction and repeats materially unmatched pairs. If A's natural extra context causes compaction after equivalent seeding, is that a protocol deviation or part of its measured cost?
-
-#### BBQ for Q13
-
-A crowded kitchen may need an extra cleanup because one recipe uses more dishes. In this picture: dishes are accumulated context, cleanup is compaction, and the recipe is the polling mechanism.
-
-#### Options for Q13
-
-- Option A: Retain and count post-seed compaction caused by the arm as measured behavior when attribution remains valid; repeat for seed mismatch, configuration drift or unusable telemetry.
-  - Pro: Preserves the cost of A's natural context growth.
-  - Con: Reports must distinguish valid treatment effects from invalid comparisons.
-- Option B: Exclude and repeat every pair with any compaction.
-  - Pro: Produces a simpler comparison without compaction effects.
-  - Con: Can selectively remove a real cost of repeated polling.
-- Option C: Prevent compaction by changing settings during affected trials.
-  - Pro: Avoids interrupted accounting.
-  - Con: Breaks the matched configuration and changes the workload.
-
-#### Recommended option for Q13
-
-Option A: The protocol explicitly retains A's natural context growth; its attributable compaction belongs in the result unless a genuine matching or evidence failure invalidates the pair.
-
-#### Answer to Q13: option A
-
-Option A: The protocol explicitly retains A's natural context growth; its attributable compaction belongs in the result unless a genuine matching or evidence failure invalidates the pair. Apply the same attribution rule to any compaction in a B arm. Consolidation clarifies SW-10 without changing the equivalent starting-context controls.
-
-### Q14: A ready result reference becomes unavailable
-
-SW-03 persists bounded outcomes and a reference to authoritative details. What must happen if those details disappear or no longer validate the registered source generation before consumption?
-
-#### BBQ for Q14
-
-A collection ticket cannot authorize serving a different meal when the original has gone missing. In this picture: the ticket is the event and result reference, the meal is the authoritative source outcome, and collection is workflow consumption.
-
-#### Options for Q14
-
-- Option A: Retain the recorded outcome but report unavailable or invalid details; suppress dependent continuation until the registered result can be validated or the wait is explicitly resolved.
-  - Pro: Prevents acting on replacement or unverifiable source content.
-  - Con: A source-complete wait may still need manual resolution.
-- Option B: Proceed using only the persisted summary even when the permitted continuation requires missing details.
-  - Pro: Keeps automatic continuation moving.
-  - Con: May execute work without the evidence the workflow requires.
-- Option C: Automatically rerun underlying work to recreate the result.
-  - Pro: Can recover a readable artifact.
-  - Con: Risks duplicate work and exceeds monitoring authority.
-
-#### Recommended option for Q14
-
-Option A: Durable notification must preserve exact source identity and existing workflow validation; it cannot authorize a substitute result or a new underlying run.
-
-#### Answer to Q14: option A
-
-Option A: Durable notification must preserve exact source identity and existing workflow validation; it cannot authorize a substitute result or a new underlying run.
-
-Acceptance impact: Extend AC-05 and AC-13 with a synthetic case that removes or changes the referenced details before consumption; retain the outcome, report a typed unavailable or invalid state, and suppress dependent continuation until validation or explicit resolution.
-
-### Q15: Precedence among cancellation, readiness and expiry
-
-SW-04 and AC-07 require an ordering for the full cancellation, readiness and expiry race. Q06 resolves readiness versus expiry and Q07 covers an accepted event. Which rule controls a cancellation recorded before workflow consumption?
-
-#### BBQ for Q15
-
-A cancelled meal can remain on the kitchen record without being served. In this picture: preparation is source readiness, the cancellation record is durable cancellation, and serving is workflow consumption.
-
-#### Options for Q15
-
-- Option A: A cancellation durably recorded before consumption suppresses continuation, whether readiness was observed before or after it; retain any ready outcome as evidence. Readiness versus expiry follows Q06.
-  - Pro: Gives a predictable cancellation promise that matches Q07.
-  - Con: Cancelling just after completion withholds automatic continuation even though the result exists.
-- Option B: Let authoritative source chronology decide, with readiness winning over a later cancellation request.
-  - Pro: Completed work is not withheld by a later cancellation.
-  - Con: A cancellation acknowledgement becomes provisional and can still lead to continuation.
-- Option C: Order all three transitions by the service's durable commit sequence.
-  - Pro: Gives the service one simple ordering mechanism.
-  - Con: Readiness versus expiry can depend on arbitrary observation timing after suspension.
-
-#### Recommended option for Q15
-
-Option A: Make cancellation before consumption decisive for continuation, while preserving source evidence separately and using Q06 for readiness versus expiry.
-
-#### Answer to Q15: option A
-
-Option A: A cancellation durably recorded before consumption suppresses continuation regardless of when readiness was observed. Retain the ready outcome, if any, as evidence visible in status; cancellation does not rewrite source success or reopen an expired/terminal source outcome. Readiness versus expiry follows Q06. The ordinary-code consumption operation orders cancellation against consumption atomically as described in Q07. Cancellation after consumption does not retroactively undo authorized work and follows the existing workflow's execution semantics.
-
-Acceptance impact: Extend SW-04, AC-07 and AC-11 with cancellation before/after readiness, before/after consumption, and readiness/expiry discovered together after suspension. Assert suppression, retained source evidence and the same deterministic ordering after restart.
-
-### Q16: Authority to register, cancel and inspect waits
-
-SW-06 requires local user/session access control, but AC-12 cannot test it without a defined trust boundary. Which local callers may register, cancel, inspect or explicitly rebind a wait addressed to a conversation?
-
-#### BBQ for Q16
-
-Access to the kitchen lets a household member place an order, but does not let a waiter invent the cook's instructions. In this picture: the household is the current OS user, orders are typed registrations, and the cook's instructions are existing workflow authority.
-
-#### Options for Q16
-
-- Option A: In the initial local Windows scope, trust current-user processes at the IPC boundary; allow them to register exactly identified recipients and cancel or inspect waits, while retaining workflow and role restrictions. Render events from typed fields and fixed continuation kinds.
-  - Pro: Establishes a concrete local boundary without assuming an unproven per-host session secret.
-  - Con: A same-user process can address another conversation owned by that user; this boundary does not isolate mutually untrusted same-user processes.
-- Option B: Require a session-held capability issued by arming for registration, cancellation or retargeting, with a local user recovery path.
-  - Pro: Narrows who can address an individual conversation.
-  - Con: Depends on a host proof-of-possession mechanism that the probes have not established.
-- Option C: Leave the trust boundary to design.
-  - Pro: Allows design to select the boundary after investigating hosts.
-  - Con: Leaves the access-control acceptance criterion undefined.
-
-#### Recommended option for Q16
-
-Option A: Specify the current OS user as the initial IPC trust boundary and record option B as later hardening if host probes establish a suitable session-held capability. This chooses the boundary, not an IPC mechanism.
-
-#### Answer to Q16: option A
-
-Option A: The IPC endpoint accepts only the current user. Current-user processes may register waits for exactly identified sessions and may cancel or inspect waits. A registration made by a process other than the recipient session records that provenance, and the SW-04 validation in the woken conversation sees it. A different-recipient rebind requires the explicit local user action in Q08. This OS access boundary does not grant workflow permission: exact ownership validation and the prohibition on a requestor or reviewer registering, creating or directly waking its counterpart in SW-04 still apply. Events are rendered by the service from typed fields and fixed continuation kinds, never from source or registrant free text. Per-session capabilities remain a later hardening candidate if probes establish support; no such support is claimed now.
-
-Acceptance impact: Extend SW-02, SW-06 and AC-08/AC-12 with current-user access, rejected foreign-user access, exact-recipient validation, prohibited counterpart action, and rejection of arbitrary continuation text. Keep existing workflow capability and human-decision checks intact.
-
-### Q17: Item 1 outcome when native wake probes fail
-
-SW-08 permits useful synthetic work while a route is unresolved, but does not define item 1 closure if the primary Codex route fails and Claude is unavailable or inconclusive. What evidence must exist before freezing the host interface or closing this core item?
-
-#### BBQ for Q17
-
-A kitchen can test its order book before a waiter is hired, but should not finalize a serving hatch that no waiter can use. In this picture: the order book is the core, the hatch is the host interface, and a working waiter is an observed native wake route.
-
-#### Options for Q17
-
-- Option A: Continue with at least one passing native wake route and explicit revalidation obligations for unproven hosts; if none passes, stop at a human checkpoint before freezing the host interface or closing item 1.
-  - Pro: Preserves useful synthetic progress without settling an interface around a wholly unproven wake model.
-  - Con: Requires a human scope decision when no route can be established.
-- Option B: Block item 1 closure until the primary Codex route passes.
-  - Pro: Proves the primary intended route before closure.
-  - Con: A Codex-specific failure blocks a core that another supported host could validate.
-- Option C: Always close with a provisional host interface, regardless of probe results.
-  - Pro: Avoids a host-dependent closure delay.
-  - Con: Can settle a core around a wake model no host supports.
-
-#### Recommended option for Q17
-
-Option A: Require at least one observed usable native wake route for automatic closure, preserving provisional assumptions and named host-specific revalidation. With no passing route, leave a human checkpoint before the interface or item is declared settled.
-
-#### Answer to Q17: option A
-
-Option A: When at least one native route proves the functional sequence of arming, normal turn completion, quiet waiting and automatic same-conversation continuation, item 1 may proceed toward closure under Q01. Unproven host assumptions remain provisional and require revalidation in the first adapter item for each host. Q02 independently governs request-coverage proof: a functional wake pass is not a verified zero-inference claim. If no route passes, useful synthetic core and collector work may proceed without depending on the failed route, but stop at a human checkpoint before freezing the host interface or closing item 1. Record every failed, unavailable or inconclusive route and the unresolved feasibility decision; do not silently substitute manual wake or a new conversation.
-
-Acceptance impact: Extend SW-08 and AC-14 to distinguish at-least-one-route-passes and no-route-passes outcomes, reference the Q01/Q02 evidence split, and name each outstanding obligation under the matching host adapter item. The no-route case leaves item 1 closure open pending a human scope decision.
+## Requirement clarifications
+
+The user confirmed consolidation after specification review round 2. These
+17 decisions are integrated above; no requirement question remains open.
+Concrete storage, IPC transport, wire schema and bound values belong to
+design within these confirmed constraints.
+
+| Question | Decision | Integrated in | Rejected alternatives |
+| --- | --- | --- | --- |
+| Q01 | Close item 1 with core fixtures, collector, prototype reports, per-host findings and a live synthetic Windows recovery check; reserve A/B-service for item 8 to avoid dependence on later adapters. | SW-08, SW-09, AC-14, AC-15 and live recovery evidence | Gating item 1 on a production adapter or service comparison creates a circular dependency. |
+| Q02 | Accept functional wake and core evidence separately when coverage is inconclusive; retain the strict zero-inference criterion and support claim as open item 8 obligations to avoid false passes. | SW-08, SW-11 and AC-02 | Blocking all core work on complete telemetry; treating missing coverage as proof of zero inference. |
+| Q03 | Predeclare finite wake and duplicate-observation bounds for each host/version series; changed bounds start a new series with earlier results retained, making pass/fail interpretation reproducible. | SW-10 and AC-15 | One universal bound for all hosts; reporting timings without declared acceptance bounds. |
+| Q04 | Require quiet behavior and useful continuation and report all overhead; no minimum net token savings is promised because measured end-to-end results may be unfavorable. | SW-09 and AC-15 | A required median net reduction would confuse the behavioral contract with a cost prediction. |
+| Q05 | Reject registration unless it specifies either a finite deadline or an explicit indefinite policy, creating no wait on rejection, so lifetime is intentional. | SW-02 and AC-01 | Implicit indefinite waits or an undocumented default finite deadline. |
+| Q06 | For a pending wait, source completion at/before the UTC deadline wins; absent or later completion expires after it. Record clock uncertainty and preserve terminal state to make recovery independent of observation order. | SW-05 and AC-07, AC-09, AC-10 | Readiness always wins; expiry determined only by service observation time. |
+| Q07 | Atomically check durable cancellation when consuming in ordinary code; classify unavoidable queued cancellation-induced wakes and preserve existing semantics after consumption. | SW-04 and AC-07, AC-11 | Promising to revoke every accepted wake; allowing queued events to authorize continuation despite cancellation. |
+| Q08 | Permit host-side rearming for the same verified session and valid ownership; require explicit local user action and workflow authority for a different recipient, keeping unverifiable bindings pending. | SW-03, SW-05 and AC-06, AC-11 | Human intervention on every reconnect; prohibiting all rebinding or silently replacing a conversation. |
+| Q09 | Identical retries return the existing wait and acknowledgement state; conflicting idempotency-key reuse returns a typed conflict without mutation, preventing silent intent changes. | SW-02 and AC-01 | Silently returning an unrelated existing wait or replacing it with the conflicting request. |
+| Q10 | Use a bounded recovery interval fixed per source kind before registration; unresolved access loss yields one typed monitoring failure while underlying work remains independent. | SW-06, SW-07 and AC-04, AC-13 | Immediate termination for every access failure; indefinite source retries. |
+| Q11 | Bound attempts for unchanged failures per host route kind; retain events and resume only after explicit local retry or validated recovery, limiting repeated failed delivery. | SW-03, SW-07 and AC-05, AC-13 | Endless retry cadence; discarding the result or requiring a new wait after the first failure. |
+| Q12 | Exclude active and ready-but-unconsumed records from automatic terminal cleanup; expose state and age and require explicit lifecycle actions, preserving undelivered work without keeping all terminal records forever. | SW-06 and AC-12 | Age-based deletion of all records; permanent retention of every record. |
+| Q13 | Keep and count attributable post-seed compaction in either arm as an observed treatment effect; repeat only actual seed/configuration mismatch or invalid telemetry, retaining all evidence. | SW-10, SW-11 and AC-15, AC-16 | Excluding all compaction trials or changing configuration mid-series to hide their cost. |
+| Q14 | Retain the outcome but report missing, replaced or wrong-generation required details as typed unavailable/invalid; suppress dependent continuation pending validation or explicit resolution. | SW-03 and AC-05, AC-13 | Continuing from a summary when authoritative details are required; automatically rerunning the underlying work. |
+| Q15 | Cancellation durable before consumption suppresses continuation regardless of source chronology; preserve source evidence and terminal state, with SW-05 resolving readiness versus expiry. | SW-04, SW-05 and AC-07, AC-11 | Earlier source readiness overriding cancellation; service observation/commit order deciding readiness versus deadline after recovery. |
+| Q16 | Use current-OS-user local IPC authority, recorded registrant provenance, exact workflow validation and fixed-template typed events for the initial Windows scope; deny foreign users. | SW-02, SW-04, SW-06 and AC-08, AC-12 | Requiring an unproven per-session capability now; leaving the local trust boundary unspecified until design. |
+| Q17 | Allow item 1 closure with at least one functionally proven wake route, provisional assumptions for unproven hosts and later per-host revalidation. If none passes, require a human checkpoint before interface freezing or closure while independent core/collector work proceeds. | SW-08, SW-09 and AC-02, AC-14, AC-15 | Requiring Codex alone to pass; unconditionally closing item 1 with entirely provisional wake support. |
