@@ -673,6 +673,14 @@ route gate are satisfied. Incomplete telemetry leaves the strict zero-inference
 criterion and support claim open for item 8. No implementation or probe result
 is claimed by this design document.
 
+## File-based IO cost clarification for the service design
+
+Use exact identity/index lookups for registration and bounded status queries,
+coalesced dirty-source reconciliation, and incremental manifest-selected
+telemetry reads. Source and host I/O stays outside short store transactions.
+These paths do not load conversation context or discover a wait by scanning
+repositories. Preserve required SQLite synchronization and authoritative reads.
+
 ## Design decisions for the v0.13.0 shared wait service
 
 All 14 option A answers were accepted after specification review round 3.

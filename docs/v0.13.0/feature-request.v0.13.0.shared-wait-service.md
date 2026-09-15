@@ -580,6 +580,14 @@ authorities and constraints, not a file-by-file implementation plan.
 - [Command execution rules](../../rules/run_commands.md): shared launchers,
   Python environment resolution and standalone PowerShell scripts.
 
+## File-based IO cost clarification for shared waits
+
+Registration and status use explicit identity/index records and fetch only the
+authoritative details needed for the operation. They do not load conversation
+context or search a repository to infer its current wait. Monitoring coalesces
+source reads; measurement reads exact-thread telemetry incrementally. Required
+durability and authoritative validation remain part of the operation's cost.
+
 ## Requirement clarifications
 
 The user confirmed consolidation after specification review round 2. These
