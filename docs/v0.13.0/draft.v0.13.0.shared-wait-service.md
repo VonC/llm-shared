@@ -8,6 +8,7 @@
 - Target version: 0.13.0
 - Item slug: shared-wait-service
 - Research date inherited from umbrella: 2026-09-14
+- Historical inputs: [Codex wait token analysis](../draft_codex_wait.md) and [expanded token/quota investigation](../draft.v0.13.0.codex_token_investigation.md)
 
 ## Purpose and scope
 
@@ -74,6 +75,9 @@ Carry these concrete requirements and decisions into the focused work:
 - Define cancellation ordering, deadlines, indefinite waits, busy/closed host
   behavior, service or bridge restarts, and stale-session recovery. Cancelling
   a wait does not cancel healthy underlying work.
+- Reconcile Windows sleep/hibernate/resume and UTC clock changes without
+  resetting deadlines, losing outcomes, or repeating consumed events. Preserve
+  indefinite waits and validate stale routes before automatic delivery.
 - Coalesce identical source watches. Use native notifications or blocking IPC
   where suitable and keep any bounded reconciliation polling in ordinary
   code. Service health, retries, and progress must not invoke a model.
@@ -90,9 +94,23 @@ versions, normal-idle behavior, arming constraints, and any unavailable
 capability. These probes establish interface evidence, not production
 adapter completion, and must not launch review counterparts.
 
+Before substantial service implementation, prove the native Codex wake route
+with a small synthetic harness and perform matched controlled A/B trials
+against classic model-driven polling. Use fresh conversations with equivalent
+substantial context, a fixed synthetic wait interval, and exact thread-bound
+telemetry. Match and record compaction, transport/CA, and approval-review
+settings, including observed retries, failures, and auxiliary requests.
+Report registration, actual quiet-wait, and useful-continuation costs
+separately, alongside end-to-end totals. Follow the
+[controlled A/B protocol](draft.v0.13.0.shared-wait-service.md#controlled-ab-measurement)
+defined by this item's focused draft. Treat the prototype comparison as
+feasibility and preliminary cost evidence; repeat fresh matched trials against
+the actual shared service once the core and relevant host route are available.
+
 Validate the core independently with synthetic source and host fixtures,
 deterministic clocks, duplicate/missed events, early completion,
-cancellation/delivery races, restart recovery, and multiple repositories.
+cancellation/delivery races, restart recovery, Windows suspension/resume,
+forward/backward clock changes, and multiple repositories.
 Production check/review readers belong to items 2 and 3; production host
 delivery belongs to items 4 through 6 and 9.
 
@@ -109,6 +127,22 @@ These are figures reported in the [earlier draft](../draft_codex_wait.md), not a
 fresh benchmark. Workload varied between the days. They motivate eliminating
 unnecessary model requests; they do not establish a guaranteed percentage
 saving, billing reduction, or quota conversion for this proposal.
+
+The [expanded token/quota investigation](../draft.v0.13.0.codex_token_investigation.md)
+adds later historical observations:
+
+| Observation date | Total input tokens | Wait input tokens | Wait share of input | Wait calls |
+| --- | --- | --- | --- | --- |
+| September 11 | 94.59 million | 51.54 million | 54.5% | 635 |
+| September 12 | 81.74 million | 11.78 million | 14.4% | 154 |
+
+These are reported daily aggregates, not matched trials or service results.
+The investigation also records compaction attempts and failures, transport
+fallback and `UnknownIssuer` errors under proxy/CA configurations, and changes
+in approval-review activity. Workload, context, and environment differences
+prevent attributing the daily change to a wait mechanism. Carry those factors
+into the controlled A/B protocol as recorded comparison conditions; do not
+infer causation, billing savings, or quota conversion from these observations.
 
 The expensive boundary is a timeout returning control to the LLM, which then
 decides to wait again with the conversation supplied as input. An operating
@@ -316,6 +350,35 @@ If the service or bridge restarts, recover without launching a second worker,
 consuming a review twice, or repeatedly waking a host with the same failure.
 If the session closes, retain the result and report delivery as pending or
 unavailable. A resume policy must explicitly decide when to rebind it.
+
+### Windows suspension, resume, and clock changes
+
+Preserve wait, outcome, event, and delivery-attempt identities across Windows
+sleep, hibernation, and recovery after restart. Monitoring and delivery are
+not expected while the machine is suspended. On resume, reconcile the
+authoritative source, cancellation and ownership state, deadline, and host
+route in ordinary code before attempting automatic delivery. Recover missed
+notifications without requiring another source change. A wait with an
+unchanged source, no cancellation, and no expired deadline remains pending;
+resume alone does not justify a model wake.
+
+Persist finite deadlines as absolute UTC instants established at registration;
+suspended time counts toward expiry and resume or restart must not reset the
+deadline. Indefinite waits stay indefinite. Use monotonic time for local
+scheduling and duration measurements, with explicit handling of the platform
+clock's suspension behavior; do not reuse a raw monotonic timestamp across a
+process restart. Re-evaluate pending deadlines after resume or a detected UTC
+clock change. A forward correction can make a pending deadline expire; a
+backward correction can delay its expiry. Neither correction invents source
+completion, reopens a terminal wait, nor repeats consumed work.
+
+When readiness, cancellation, and expiry are first observed together, apply
+one documented deterministic lifecycle ordering. Preserve available source
+timestamps and uncertainty; the resume timestamp alone does not establish
+which event occurred first. Keep a result pending when its host binding is
+stale or unavailable, following the explicit rebinding policy. Reconcile
+queued or unacknowledged delivery using the existing stable event identity;
+do not launch a replacement worker or emit a wake for each missed check.
 
 ## Review role isolation remains mandatory
 
@@ -647,6 +710,21 @@ and tool inventory except for the necessary wait integration. Record those
 integration differences. Preserve the user's selected model; no benchmark
 requires changing it or spawning an automated review counterpart.
 
+Record the effective compaction threshold and policy, approval policy and
+`approvals_reviewer` setting, and redacted proxy/CA configuration for each
+trial. Record the actual transport used, including WebSocket-to-HTTPS
+fallback, certificate errors, retries, compaction attempts/failures, and
+auxiliary approval-review requests where attributable. Preserve these
+conditions across paired arms; the historical settings are evidence to
+record, not prescribed benchmark values. Do not change certificate trust or
+approval settings between arms to obtain a cleaner result.
+
+Retain affected trials and identify configuration differences or unexpected
+environment changes as protocol deviations. Report attributable auxiliary
+approval-review usage separately from the measured thread's usage; label
+unavailable attribution explicitly. Compaction and transport failures must
+remain visible in the results rather than silently selecting successful runs.
+
 Freeze both draft files at one revision and record their hashes. Seed each
 session with the following prompt before collecting benchmark costs:
 
@@ -724,6 +802,13 @@ or a tool result is not that boundary. Allow buffered evidence to settle
 through the bounded observation window and correlate it to the original
 request times. All marking, collection, and analysis run outside the measured
 conversation without periodically invoking it.
+
+Run the baseline A/B trials while the machine stays awake. Record any
+suspension or clock discontinuity as a protocol deviation, retain the trial,
+and repeat the affected pair under matched conditions. Validate resume and
+clock-change recovery separately; time when the machine was suspended is
+not evidence of an awake host maintaining a quiet wait. Use monotonic elapsed
+time for phase durations and preserve UTC timestamps for event correlation.
 
 ### Collector requirements and limits of the supplied one-liner
 
@@ -934,6 +1019,10 @@ delivery lifecycle.
 | Host is busy with unrelated useful work | Queue according to supported host semantics; preserve recipient |
 | Wait is cancelled while completion is racing | Apply explicit ordering; no unauthorized late continuation |
 | Service or bridge restarts | Recover registrations and pending delivery without duplicate workers |
+| Windows resumes with an unchanged source and an indefinite wait | Reconcile in code; keep the wait pending without a model wake |
+| Completion, cancellation, or a finite deadline occurs during suspension | Apply documented lifecycle ordering once; recover missed events without resetting the deadline |
+| UTC jumps forward or backward while a wait is pending | Re-evaluate the persisted deadline; do not invent completion or reopen a terminal wait |
+| Windows resumes after delivery was queued, consumed, or cancelled | Retain event identity and cancellation state; reconcile lost acknowledgements and stale routes without repeating consumed work |
 | Delivery succeeds but acknowledgement is lost | Reconcile using event identity; do not assume exactly-once delivery |
 | Host closes or is interrupted | Preserve result and report route state; do not create a new agent silently |
 | Deadline expires or monitoring fails | One typed operational outcome; no recurring status-only wake loop |
@@ -946,10 +1035,13 @@ difference between transport acceptance and workflow consumption. Retain
 machine-event provenance so no delivered event becomes a human approval.
 
 Use deterministic clocks and synthetic source events for automated tests.
-Exercise races, retries, ownership boundaries, and incorrect recipients
-without network inference or real sleeps. Use cheap synthetic commands and
-temporary protocol fixtures for probes; a full `check.bat` or Groundhog
-walk is unnecessary merely to test a completion signal.
+Simulate suspension, resume, forward/backward UTC corrections, and restart
+without carrying over raw monotonic timestamps. Exercise races, retries,
+ownership boundaries, and incorrect recipients without network inference or
+real sleeps. Retain a bounded live Windows sleep/resume check as separate
+recovery evidence before claiming that behavior is supported. Use cheap
+synthetic commands and temporary protocol fixtures for probes; a full
+`check.bat` or Groundhog walk is unnecessary merely to test a completion signal.
 
 Bound real-host probes and record versions, configuration, wait duration,
 event timestamps, available request counts, result identity, and limitations.
@@ -971,8 +1063,11 @@ focused requirement and design:
   complete before the host becomes idle and stale connection incarnations.
 - The separation of wait state, delivery attempts, transport acceptance, and
   workflow acknowledgement, including reconciliation after a lost reply.
-- Cancellation ordering, deadlines, indefinite review waits, pending results
-  after host closure, and explicit session-resume/rebinding policy.
+- Cancellation ordering, pending results after host closure, and explicit
+  session-resume/rebinding policy. Define deterministic precedence when
+  readiness, cancellation, and expiry are first observed together, plus the
+  resume-detection and clock-reconciliation mechanisms, within the Windows
+  suspension and persisted-deadline contract above.
 - The deduplication guarantee supported by host capabilities, including
   Codex's fresh CLI client IDs, without claiming arbitrary exactly-once
   execution across crashes.
@@ -993,9 +1088,10 @@ contract rather than create separate monitoring authorities.
 
 ## Research provenance and implementation status
 
-Repository findings come from the historical draft and the linked current
-Groundhog, review, workflow, and artifact-convention files. Host findings
-combine official documentation with pinned upstream implementation paths.
+Repository findings come from the historical wait analysis, the expanded
+token/quota investigation, and the linked current Groundhog, review, workflow,
+and artifact-convention files. Host findings combine official documentation
+with pinned upstream implementation paths.
 Documentation was consulted on 2026-09-14; versioned source links provide
 reproducible anchors where available.
 
