@@ -271,8 +271,8 @@ automated round. Keep all answers as proposals; do not consolidate.
 
 Apply the requested changes in order. Check change 1 against the draft's
 `READY` prompt text. Check change 2 against the validation skeleton, so both
-documents show the same code-complete and live-evidence states for Steps 2 and
-8. For change 3, verify the environment state yourself before writing it into
+documents show the same code-complete and live-evidence states for Steps 2
+and 8. For change 3, verify the environment state yourself before writing it into
 the facts table; if the project's setup installs the missing packages
 automatically, record that and keep the prerequisite as a verification step.
 
