@@ -6,7 +6,7 @@ Focused draft: [draft.v0.13.0.shared-wait-service.md](draft.v0.13.0.shared-wait-
 
 Umbrella: [draft.v0.13.0.no_polling.md](draft.v0.13.0.no_polling.md), item 1.
 
-Status: revised for specification review round 3. Host bindings remain provisional
+Status: consolidated after specification review round 3. Host bindings remain provisional
 until the required native-wake probes provide evidence.
 
 ## Context for the v0.13.0 shared wait service
@@ -73,7 +73,7 @@ sequenceDiagram
 ```
 
 The ordering of host receipt, native wake and consumption is host-dependent.
-Following proposed Q13 option A, each route declares either directly observed
+Following decision Q13, each route declares either directly observed
 normal turn end or proven host-gated normal turn end. The latter delegates the
 diagram's turn-end gate to a native queue whose normal-end and interruption
 behavior has been demonstrated. A route providing neither is retained-result-only.
@@ -100,7 +100,7 @@ file alone never proves ownership. All installations using the default home
 discover the same authority; incompatible installations report a typed conflict
 rather than silently starting a second authority over another database.
 
-Following proposed Q14 option A, development and tests may explicitly select a
+Following decision Q14, development and tests may explicitly select a
 different canonical local state home. Resolve physical path aliases consistently
 before deriving its identity. Each home has its own singleton and database; its
 pipe name derives from the user SID plus that canonical home identity. Overrides
@@ -349,7 +349,7 @@ consumption returns `cancelled`, regardless of whether source readiness, expiry,
 queueing or transport acceptance happened earlier. Source evidence remains.
 
 The workflow port supplies fresh authority validation for consumption. Following
-the revised Q05 proposal, it records a durable in-flight consumption intent
+decision Q05, it records a durable in-flight consumption intent
 under the existing workflow transition lock before submitting the service
 request. The intent names the exact event, recipient, ownership generation and
 unique attempt UUID, without a session secret. Workflow ownership transitions
@@ -363,9 +363,10 @@ exists; a delayed consume cannot override that tombstone. The workflow adapter
 reconciles the returned receipt under its transition lock before clearing the
 intent. An unavailable service leaves a typed consumption-resolution-pending
 state; it grants no new workflow permission or automatic ownership transfer.
-The later review adapter must integrate and prove this recovery fence for
-claims and explicit pickup before production support. Synthetic authority
-fixtures exercise it in item 1; no existing review protocol is changed here.
+The later review adapter in umbrella item 3 must integrate and prove the intent,
+settlement and explicit human abandonment fence for claims and explicit pickup
+before production support. Synthetic authority fixtures exercise these obligations
+in item 1; no existing review protocol is changed here.
 
 If settlement cannot complete because the service remains unavailable or its
 store is unusable, an explicit local human action may abandon the unsettled
@@ -494,7 +495,7 @@ required details. A host-local inbox may persist transport deduplication and
 bridge state, but service outcomes remain authoritative.
 
 The normal-end evidence kinds are `direct-turn-evidence`, `host-gated-turn-end`
-and `unavailable`. Proposed Q13 option A permits the second only when native
+and `unavailable`. Decision Q13 permits the second only when native
 queue gating and suppression after Stop, Cancel and interruption pass the
 probe; lack of a service-side callback alone does not exclude a proven queue.
 An unavailable normal-end capability prevents automatic arming. An operator
@@ -672,360 +673,25 @@ route gate are satisfied. Incomplete telemetry leaves the strict zero-inference
 criterion and support claim open for item 8. No implementation or probe result
 is claimed by this design document.
 
-## Open questions for the v0.13.0 shared wait service design
-
-### Q01: Service startup and recovery
-
-Should the initial per-user service remain on demand with explicit stop, or also install a user-logon start mechanism? The current proposal relies on surviving bridges or ordinary launchers to restart it and retains state while offline.
-
-#### BBQ for Q01
-
-A workshop can open when its first worker arrives or employ an opening attendant every morning. In this picture: the workshop is the service, the worker is an ordinary bridge or launcher, and the attendant is a logon startup mechanism.
-
-#### Options for Q01
-
-- Option A: Keep on-demand start and explicit stop.
-  - Pro: Avoids a second installed lifecycle and keeps ownership with the shared launcher.
-  - Con: After a reboot without a live bridge, monitoring resumes only when an ordinary client starts the service.
-- Option B: Install a user-logon startup mechanism.
-  - Pro: Restores monitoring promptly after logon even before a client asks.
-  - Con: Adds installation, removal and version-selection behavior to the initial lifecycle.
-
-#### Recommended option for Q01
-
-Option A: On-demand start satisfies the local durable contract without expanding the initial lifecycle; offline status must expose retained work and the required restart action.
-
-#### Answer to Q01: option A
-
-On-demand start satisfies the local durable contract without expanding the initial lifecycle; offline status must expose retained work and the required restart action.
-
-### Q02: Windows IPC transport
-
-Should Windows use a user-restricted named pipe, or loopback HTTP with a credential protected by the user's filesystem permissions? Both must deny foreign users, reject remote use and preserve the separate workflow authority.
-
-#### BBQ for Q02
-
-A building can use a door checked by its existing badge system or a reception desk checking a separate pass. In this picture: the door is named-pipe IPC, the badge system is Windows access control, the reception desk is HTTP, and the pass is its protected credential.
-
-#### Options for Q02
-
-- Option A: Use a named pipe with explicit user access.
-  - Pro: Uses OS peer/access checks directly and avoids distributing a new transport credential.
-  - Con: Requires a Windows-specific transport binding and access-control validation.
-- Option B: Use loopback HTTP and a user-protected credential.
-  - Pro: Offers familiar framing and clients with a portable transport implementation.
-  - Con: Requires credential lifecycle, strict loopback binding and authenticated request handling.
-
-#### Recommended option for Q02
-
-Option A: Use a named pipe with explicit user access and FILE_FLAG_FIRST_PIPE_INSTANCE; a squatted endpoint is a typed conflict. Every client verifies the connected server process's token user SID before sending a frame, and the service verifies its clients. Keep the transport behind a port.
-
-#### Answer to Q02: option A
-
-Use a named pipe with explicit user access and FILE_FLAG_FIRST_PIPE_INSTANCE; a squatted endpoint is a typed conflict. Every client verifies the connected server process's token user SID before sending a frame, and the service verifies its clients. Keep the transport behind a port.
-
-### Q03: Transactional storage layout
-
-Should the single service authority use one SQLite store in rollback-journal mode, SQLite with WAL, or atomically replaced records? The cancellation/consumption fence and outcome/event commit require a coherent transaction domain.
-
-#### BBQ for Q03
-
-A clerk can keep related entries in one bound ledger or maintain separate cards that must agree. In this picture: the clerk is the service writer, the ledger is the SQLite database, and the cards are independently replaced state files.
-
-#### Options for Q03
-
-- Option A: Use SQLite with rollback journaling.
-  - Pro: Provides transactions for the linked state and a small local operational model for short status reads.
-  - Con: Long reads can delay a writer, so reads and transactions need bounds.
-- Option B: Use SQLite with WAL.
-  - Pro: Allows more overlap between readers and the writer.
-  - Con: Adds checkpoint and side-file lifecycle concerns to a low-volume initial service.
-- Option C: Use atomically replaced record files.
-  - Pro: Reuses a familiar repository persistence pattern and supports direct inspection.
-  - Con: Requires a separate transaction/recovery protocol for related records and cancellation races.
-
-#### Recommended option for Q03
-
-Option A: Use one SQLite store with rollback journaling, full synchronization and short reads. Offline status must hold the singleton lock before opening the store because hot-journal recovery can write during a read; use IPC if another process owns the lock. A starter finding the lock held with no reachable endpoint retries acquisition within its 15-second readiness bound, because the holder may be a brief offline status read.
-
-#### Answer to Q03: option A
-
-Use one SQLite store with rollback journaling, full synchronization and short reads. Offline status must hold the singleton lock before opening the store because hot-journal recovery can write during a read; use IPC if another process owns the lock. A starter finding the lock held with no reachable endpoint retries acquisition within its 15-second readiness bound, because the holder may be a brief offline status read.
-
-### Q04: Failed registration preparation
-
-When intent persistence succeeds but host arming fails, should the same wait ID retain a durable preparing record or should preparation roll back entirely? Successful automatic registration still requires a durable armed route.
-
-#### BBQ for Q04
-
-A parcel desk can retain a labeled parcel while arranging transport or return it when no van is available. In this picture: the parcel is the wait intent and early outcome, the label is its wait ID, and the van is the host route.
-
-#### Options for Q04
-
-- Option A: Retain typed non-armed preparation under the same wait ID.
-  - Pro: Preserves early outcomes and lets identical retries resume without a second registration.
-  - Con: Creates visible preparing records that require explicit cancellation or recovery.
-- Option B: Remove preparation after arming failure.
-  - Pro: Leaves fewer incomplete registrations to inspect.
-  - Con: Loses preparation evidence and requires careful recovery if a crash obscures whether arming succeeded.
-
-#### Recommended option for Q04
-
-Option A: Keep preparing records and return an explicit non-armed result with the wait ID; this preserves idempotency and early completion without claiming automatic delivery.
-
-#### Answer to Q04: option A
-
-Keep preparing records and return an explicit non-armed result with the wait ID; this preserves idempotency and early completion without claiming automatic delivery.
-
-### Q05: Workflow authority across uncertain consumption
-
-How should separate workflow ownership and service cancellation remain fenced when a consume reply is lost or the adapter crashes? Holding an OS lock only until an IPC timeout cannot prove that the service did not commit.
-
-#### BBQ for Q05
-
-A dispatch office leaves a durable reservation while another office records a release. In this picture: the reservation is the workflow's in-flight intent, the other office is the wait service, and the release receipt is the committed consumption or rejected-attempt decision.
-
-#### Options for Q05
-
-- Option A: Use a durable workflow intent and same-attempt settlement.
-  - Pro: Survives caller crash and lost replies while preserving each authority's existing store.
-  - Con: Ownership transitions must resolve outstanding intents or require explicit human abandonment, with durable evidence for later reconciliation.
-- Option B: Place workflow ownership and consumption fencing in one transaction store.
-  - Pro: Makes the shared atomic boundary direct and avoids cross-store settlement.
-  - Con: Requires a much broader persistence migration for existing workflow authorities.
-
-#### Recommended option for Q05
-
-Option A: Use a durable intent under the workflow lock and a unique attempt UUID. Generation changes settle it first, unless an explicit local human action abandons an attempt whose service is unavailable or store unusable. That action durably records the attempt UUID, event, recipient, old generation, reason and pending reconciliation before allowing the existing authorized ownership transition; it never runs automatically or grants a second authority path. Q06's resumed-turn UUID and current-authority validation rejects stale-generation effects. On recovery, settle the abandoned attempt and supersede any committed authorization before permitting current-owner consumption through the ordinary gates. Completed effects are never replayed, and uncertain effects still require Q06 receipt reconciliation or explicit resolution. Without abandonment, service settlement returns the committed decision or records rejection that blocks a delayed consume. Timeout stays unknown; finite work budgets and client margins do not prove the transaction outcome. The service never takes workflow locks.
-
-#### Answer to Q05: option A
-
-Use a durable intent under the workflow lock and a unique attempt UUID. Generation changes settle it first, unless an explicit local human action abandons an attempt whose service is unavailable or store unusable. That action durably records the attempt UUID, event, recipient, old generation, reason and pending reconciliation before allowing the existing authorized ownership transition; it never runs automatically or grants a second authority path. Q06's resumed-turn UUID and current-authority validation rejects stale-generation effects. On recovery, settle the abandoned attempt and supersede any committed authorization before permitting current-owner consumption through the ordinary gates. Completed effects are never replayed, and uncertain effects still require Q06 receipt reconciliation or explicit resolution. Without abandonment, service settlement returns the committed decision or records rejection that blocks a delayed consume. Timeout stays unknown; finite work budgets and client margins do not prove the transaction outcome. The service never takes workflow locks.
-
-### Q06: Recovery after consumption but before an external effect
-
-Should adapters reconcile an unresolved consumption using authoritative idempotent workflow receipts, or always stop for local human resolution? Neither choice can blindly replay arbitrary effects.
-
-#### BBQ for Q06
-
-A cashier can check a payment receipt after a connection fails or ask a supervisor to reconcile every uncertain sale. In this picture: the cashier is the adapter, the receipt is the authoritative workflow result, and the uncertain sale is authorized consumption without a confirmed effect.
-
-#### Options for Q06
-
-- Option A: Reconcile by consumption UUID and authoritative workflow receipt.
-  - Pro: Recovers safely where the workflow already supports idempotent operations.
-  - Con: Requires an adapter-specific receipt contract; unverifiable effects still remain unresolved.
-- Option B: Require human resolution for every uncertain effect.
-  - Pro: Has a simple conservative recovery boundary.
-  - Con: Interrupts recoverable workflows even when an authoritative receipt already proves the outcome.
-
-#### Recommended option for Q06
-
-Option A: Reconcile workflow effects by consumption UUID and authoritative receipt, retaining genuinely unresolved effects for explicit resolution. Separately, a consume-before-wake route may redeliver the native wake under the same UUID when turn-start evidence is absent. The resumed turn validates that UUID and current authority before any effect; duplicate wakes are counted and do not repeat useful work.
-
-#### Answer to Q06: option A
-
-Reconcile workflow effects by consumption UUID and authoritative receipt, retaining genuinely unresolved effects for explicit resolution. Separately, a consume-before-wake route may redeliver the native wake under the same UUID when turn-start evidence is absent. The resumed turn validates that UUID and current authority before any effect; duplicate wakes are counted and do not repeat useful work.
-
-### Q07: Finite deadlines with incomplete source timing
-
-How should the source port use readiness observed before a deadline versus readiness first observed after it when the source supplies no completion timestamp? Unreadable source state has the separate confirmed access-loss recovery policy.
-
-#### BBQ for Q07
-
-A delivery desk can prove a parcel arrived before closing if it was already on the desk, but a parcel first found tomorrow needs an arrival stamp. In this picture: the parcel is source readiness, closing is the deadline, tomorrow is a late observation, and the stamp is authoritative completion timing.
-
-#### Options for Q07
-
-- Option A: Use authoritative completion evidence, including a valid pre-deadline upper bound.
-  - Pro: Applies the confirmed expiry rule while supporting simple timestamp-less sources.
-  - Con: An on-time completion first observed late expires if there is no authoritative evidence that it met the deadline.
-- Option B: Reject finite registration without comparable source timestamps.
-  - Pro: Makes every finite decision depend on the same timestamp field.
-  - Con: Excludes pre-deadline observation evidence, and treating missing late timestamps as monitoring failure conflicts with the confirmed expiry rule.
-
-#### Recommended option for Q07
-
-Option A: Use a comparable source completion time when available. Otherwise an authoritative readiness read at or before the deadline bounds completion, with clock uncertainty recorded. Readiness first observed after the deadline wins only with authoritative on-time completion evidence; otherwise expire. Unreadable source state remains unknown during bounded access recovery and then becomes monitoring failure. Timestamp-less kinds may accept finite waits. Observation time is only an upper bound proving on-time completion, never evidence that completion was late; this is the design's reading of SW-05's source-completion-time rule.
-
-#### Answer to Q07: option A
-
-Use a comparable source completion time when available. Otherwise an authoritative readiness read at or before the deadline bounds completion, with clock uncertainty recorded. Readiness first observed after the deadline wins only with authoritative on-time completion evidence; otherwise expire. Unreadable source state remains unknown during bounded access recovery and then becomes monitoring failure. Timestamp-less kinds may accept finite waits. Observation time is only an upper bound proving on-time completion, never evidence that completion was late; this is the design's reading of SW-05's source-completion-time rule.
-
-### Q08: Versioned monitoring and delivery bounds
-
-Are the proposed synthetic defaults suitable: 30-second fallback reconciliation, 60-second source-access recovery and three delivery attempts with 1- and 5-second delays? Later source and route kinds declare their own policies before first use.
-
-#### BBQ for Q08
-
-Different machines need maintenance at different intervals, but each job needs the schedule it started with. In this picture: machines are source/route kinds, maintenance is reconciliation or retry, and a job's schedule is its retained policy version.
-
-#### Options for Q08
-
-- Option A: Use the proposed synthetic defaults and version policies per kind.
-  - Pro: Makes synthetic behavior reproducible while allowing production kinds to choose appropriate bounds.
-  - Con: Requires explicit policy records and careful separation of defaults from host acceptance limits.
-- Option B: Use one configurable global policy for all kinds.
-  - Pro: Provides fewer settings and one operational explanation.
-  - Con: Couples unrelated sources and routes and can make one kind's tuning unsuitable for another.
-
-#### Recommended option for Q08
-
-Option A: Use per-kind versioned policies with the proposed synthetic defaults, preserving each registration's source policy and each delivery epoch's route policy across restart.
-
-#### Answer to Q08: option A
-
-Use per-kind versioned policies with the proposed synthetic defaults, preserving each registration's source policy and each delivery epoch's route policy across restart.
-
-### Q09: Terminal cleanup and deduplication history
-
-Should detail retention be seven days with indefinite compact tombstones, or should compact tombstones also expire? Active, unconsumed and unresolved records remain excluded from automatic cleanup under the confirmed requirement.
-
-#### BBQ for Q09
-
-An office can shred completed case papers while keeping a short index that prevents opening the same case twice. In this picture: case papers are terminal details, the index is the idempotency tombstone, and reopening is a delayed duplicate registration.
-
-#### Options for Q09
-
-- Option A: Keep terminal details seven days and compact tombstones until explicit purge.
-  - Pro: Bounds bulky history while preserving delayed-retry idempotency.
-  - Con: The compact index still grows and requires an explicit purge policy.
-- Option B: Expire both details and tombstones after a declared retention period.
-  - Pro: Bounds all automatically managed storage.
-  - Con: Requires an explicit idempotency horizon after which an old key can represent new work.
-
-#### Recommended option for Q09
-
-Option A: Keep compact tombstones without automatic expiry and expose explicit local purge with its deduplication consequence; seven days is the proposed terminal-detail retention.
-
-#### Answer to Q09: option A
-
-Keep compact tombstones without automatic expiry and expose explicit local purge with its deduplication consequence; seven days is the proposed terminal-detail retention.
-
-### Q10: Admission limits without eviction
-
-Should the initial service reject new work at 10,000 live/unconsumed waits or 1,000 active source identities, or derive admission from a total storage quota? Required retained outcomes cannot be evicted to admit new work.
-
-#### BBQ for Q10
-
-A coat check can stop issuing tickets when its rail is full or estimate the volume of every coat. In this picture: tickets are registrations, the rail limit is count-based admission, and coat volume is a byte-based quota.
-
-#### Options for Q10
-
-- Option A: Use explicit wait and source count limits with bounded frames.
-  - Pro: Provides predictable, testable admission behavior while status and cleanup remain available.
-  - Con: Counts only approximate resource cost, so diagnostic and payload limits remain separate.
-- Option B: Use a total byte quota as the primary admission rule.
-  - Pro: Tracks disk growth directly.
-  - Con: Makes admission sensitive to record sizing and needs reserved capacity for cancellation and recovery writes.
-
-#### Recommended option for Q10
-
-Option A: Start with the proposed count limits plus bounded payloads and diagnostics; refuse new work without deleting retained results and keep recovery operations available.
-
-#### Answer to Q10: option A
-
-Start with the proposed count limits plus bounded payloads and diagnostics; refuse new work without deleting retained results and keep recovery operations available.
-
-### Q11: Host lifecycle and capability classification
-
-How should the abstract host port expose normal turn end, receipt reconciliation and consumption when native routes differ in callback ordering? Functional wake and strict request coverage remain distinct requirement gates.
-
-#### BBQ for Q11
-
-Different railway platforms can share departure rules while using different signal equipment. In this picture: platforms are host adapters, departure rules are lifecycle/consumption semantics, and signal equipment is each native callback route.
-
-#### Options for Q11
-
-- Option A: Keep semantic ports provisional and record functional and coverage evidence separately.
-  - Pro: Allows actual probes to determine native bindings without weakening common lifecycle rules.
-  - Con: Requires adapters to disclose callback ordering and unsupported capability combinations.
-- Option B: Choose one callback sequence as the mandatory host API now.
-  - Pro: Makes the first interface simpler to implement against.
-  - Con: May exclude or misrepresent a native route before the required probes establish its behavior.
-
-#### Recommended option for Q11
-
-Option A: Keep semantic ports provisional; require machine-enforced consumption and exact lifecycle evidence for production support, and classify incomplete request coverage independently from observed wake.
-
-#### Answer to Q11: option A
-
-Keep semantic ports provisional; require machine-enforced consumption and exact lifecycle evidence for production support, and classify incomplete request coverage independently from observed wake.
-
-### Q12: Collector finalization after delayed telemetry
-
-Should reports finalize after a finite declared telemetry-drain window with versioned amendments for later evidence, or stay provisional until the host proves its stream is complete? Wake and duplicate bounds remain independently fixed per series.
-
-#### BBQ for Q12
-
-A bookkeeper can close a daily report at a declared time and issue a correction for late invoices, or wait for a final delivery notice. In this picture: the report is the benchmark result, invoices are delayed telemetry records, and the delivery notice is a host completeness signal.
-
-#### Options for Q12
-
-- Option A: Use a declared finite drain bound and versioned amendments.
-  - Pro: Lets every run terminate reproducibly while retaining late evidence and coverage gaps.
-  - Con: A late record can revise counts, so report versions and original conclusions must be preserved.
-- Option B: Wait for an authoritative host completeness signal.
-  - Pro: Can provide a stronger completion boundary when the host exposes one.
-  - Con: Some installed telemetry streams offer no such signal and could leave collection open indefinitely.
-
-#### Recommended option for Q12
-
-Option A: Use a finite per-series drain bound, initially 120 seconds after the duplicate window, with early finish only on authoritative completeness; late evidence produces an amendment and never silently changes a published result.
-
-#### Answer to Q12: option A
-
-Use a finite per-series drain bound, initially 120 seconds after the duplicate window, with early finish only on authoritative completeness; late evidence produces an amendment and never silently changes a published result.
-
-### Q13: Dispatch without a direct normal-turn-end signal
-
-Should a route without an ordinary-code callback for the exact registering turn be allowed to rely on a native queue that demonstrably defers delivery until normal idle and suppresses Stop, Cancel and interrupted turns? This determines whether an exposed queue is usable at all.
-
-#### BBQ for Q13
-
-A depot may wait for a driver's departure signal or use a gate that opens only after the driver has safely departed. In this picture: the signal is direct turn-end evidence, the gate is native host queue semantics, and safe departure is normal turn completion.
-
-#### Options for Q13
-
-- Option A: Declare direct or proven host-gated turn end per route.
-  - Pro: Allows a demonstrated native idle queue without assuming a service-side lifecycle callback.
-  - Con: Adds per-route capability evidence and interruption cases to the probe.
-- Option B: Always require a direct ordinary-code turn-end signal.
-  - Pro: Provides one uniform dispatch gate.
-  - Con: Excludes a host whose queue enforces the right behavior but exposes no callback.
-- Option C: Dispatch immediately for every armed route.
-  - Pro: Simplifies the service-side dispatch condition.
-  - Con: Can wake mid-turn or after interruption on a queue without the necessary gate.
-
-#### Recommended option for Q13
-
-Option A: Use direct-turn-evidence or host-gated-turn-end only when the corresponding gate is proven, including suppression after Stop, Cancel and interruption. Otherwise classify retained-result-only. Each native probe records the evidence kind; an operator timing marker cannot replace the production gate.
-
-#### Answer to Q13: option A
-
-Use direct-turn-evidence or host-gated-turn-end only when the corresponding gate is proven, including suppression after Stop, Cancel and interruption. Otherwise classify retained-result-only. Each native probe records the evidence kind; an operator timing marker cannot replace the production gate.
-
-### Q14: Isolated state homes for development and tests
-
-How should development builds and live service tests coexist with the default per-user authority without sharing its schema or outcomes?
-
-#### BBQ for Q14
-
-A workshop can reserve a separate test bench instead of dismantling the production bench for each experiment. In this picture: the production bench is the default state home, the test bench is an explicit isolated home, and an experiment is a development service or live test.
-
-#### Options for Q14
-
-- Option A: Allow explicit isolated homes with one authority per home.
-  - Pro: Keeps development schemas and test outcomes away from the user's default service.
-  - Con: Every client must resolve the same home, and overrides must remain visible to avoid accidental extra instances.
-- Option B: Allow only the default home and use in-process test transports.
-  - Pro: Keeps exactly one discoverable service instance per user.
-  - Con: Prevents a real service test or development build from running alongside stable service use.
-
-#### Recommended option for Q14
-
-Option A: Keep the default user home and allow explicit development/test overrides. Derive each endpoint from the user SID and canonical state-home identity, resolve aliases consistently, and show the home in hello, discovery and status. Never silently switch homes or infer an override from cwd.
-
-#### Answer to Q14: option A
-
-Keep the default user home and allow explicit development/test overrides. Derive each endpoint from the user SID and canonical state-home identity, resolve aliases consistently, and show the home in hello, discovery and status. Never silently switch homes or infer an override from cwd.
+## Design decisions for the v0.13.0 shared wait service
+
+All 14 option A answers were accepted after specification review round 3.
+No open questions remain for implementation planning. Host API bindings remain
+provisional until the required native-wake probes establish their behavior.
+
+| Question | Decision and reason | Integrated in | Rejected alternatives |
+| --- | --- | --- | --- |
+| Q01 | Start on demand with explicit stop/restart; retain offline work without adding a second installed lifecycle. | [Service lifecycle](#one-process-per-os-user-machine-and-explicit-state-home) | A user-logon task adds installation and version-selection behavior outside the initial lifecycle. |
+| Q02 | Use a user-restricted named pipe, first-instance creation and reciprocal SID checks before frames; keep Windows details behind the transport port. | [Windows IPC](#windows-named-pipe-with-explicit-user-access) | Loopback HTTP adds credential distribution and lifecycle requirements. |
+| Q03 | Use SQLite rollback journaling, full synchronization and short reads; offline readers hold the singleton lock and starters retry within 15 seconds. This provides one durable transaction domain. | [Store policy](#sqlite-store-and-compatibility-policy), [offline status](#status-retention-and-operational-bounds), [startup](#one-process-per-os-user-machine-and-explicit-state-home) | WAL adds checkpoints and side-file lifecycle; separate records require another atomic recovery protocol. |
+| Q04 | Keep failed arming as typed non-armed preparation under the same wait ID, preserving early outcomes and identical retries. | [Registration preparation](#preparing-a-registration-without-losing-early-completion) | Removing preparation loses evidence and complicates recovery after an uncertain reply. |
+| Q05 | Fence consumption with a durable workflow intent and same-attempt settlement; timeout remains unknown. Explicit human abandonment can restore ownership progress during service failure. Reconcile abandonment before current-owner consumption, retaining existing permission and receipt gates. | [Cancellation and authority fence](#the-atomic-cancellation-fence) | Moving workflow ownership into the service transaction store requires a broader persistence migration; timeout alone never proves no commit. |
+| Q06 | Redeliver an unconfirmed native wake under the same consumption UUID and validate current authority in the resumed turn. Reconcile later effects against authoritative receipts; unverifiable effects require explicit resolution. | [Workflow receipt and crash gap](#workflow-receipt-and-the-crash-gap) | Human resolution for every uncertain wake interrupts cases that ordinary code can safely recover; arbitrary effects cannot be blindly replayed. |
+| Q07 | Prefer comparable source completion time; a valid pre-deadline readiness read supplies only an on-time upper bound. First observed late without on-time evidence expires; unreadable state retains its bounded recovery policy. | [Deadline evidence](#finite-deadlines-suspension-and-utc-changes) | Rejecting timestamp-less finite waits excludes valid pre-deadline evidence; observation time cannot prove lateness under SW-05. |
+| Q08 | Version policies per source and route kind. Synthetic defaults are 30-second reconciliation, 60-second access recovery and three delivery attempts with 1- and 5-second delays. Preserve each applied policy across restart. | [Source scheduling](#authoritative-observations-with-shared-subscriptions), [delivery attempts](#stable-events-and-bounded-delivery-attempts) | One global policy couples unrelated sources and routes and prevents suitable per-kind bounds. |
+| Q09 | Retain terminal details seven days and compact tombstones until explicit purge; active, unconsumed and unresolved records stay outside cleanup. This preserves delayed-retry idempotency. | [Retention](#status-retention-and-operational-bounds) | Automatic tombstone expiry creates an idempotency horizon after which an old key can represent new work. |
+| Q10 | Admit at most 10,000 live/unconsumed waits and 1,000 active sources, with bounded frames and diagnostics; refuse new work without evicting retained results. | [Operational bounds](#status-retention-and-operational-bounds) | A primary byte quota complicates sizing and reservation of capacity for recovery writes. |
+| Q11 | Keep semantic host ports provisional; require machine-enforced consumption and lifecycle evidence, and report functional wake separately from request-coverage confidence. | [Host contract and capability](#port-contract-before-a-production-host-binding) | Freezing one native callback sequence before probing could exclude or misrepresent the available host route. |
+| Q12 | Finalize collection after a declared drain bound, initially 120 seconds after the duplicate window; finish early only on authoritative completeness and preserve versioned amendments for late evidence. | [Measurement phases and reports](#phase-boundaries-and-reports) | Waiting indefinitely for a host completeness signal prevents termination when no such signal exists. |
+| Q13 | Accept direct turn-end evidence or a proven native host gate, including Stop, Cancel and interruption suppression; otherwise retain results for manual resume. An operator marker is measurement evidence only. | [Flow](#target-flow-across-the-shared-wait-boundary), [arming](#preparing-a-registration-without-losing-early-completion), [host probes](#codex-first-and-independent-claude-probes) | A mandatory direct callback excludes proven native queues; unconditional dispatch can wake during a turn or after interruption. |
+| Q14 | Keep one authority per canonical state home, with explicit development/test overrides visible in endpoint identity, hello, discovery and status. | [State-home isolation](#one-process-per-os-user-machine-and-explicit-state-home) | Default-home-only operation prevents live tests or development builds alongside stable use. |
