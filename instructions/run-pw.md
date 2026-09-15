@@ -33,6 +33,13 @@ From a PowerShell shell, use the call operator `&` — one shell, no nesting:
 
 Replace `skill` with the actual sub-command and its arguments.
 
+Without `--root`, `pw` uses the nearest Git checkout containing the current
+directory, including linked worktrees with a `.git` file. An inherited
+`PRJ_DIR` for another checkout does not redirect the workflow. Outside a Git
+checkout, the shared root resolver can still use `PRJ_DIR`. An explicit
+`--root <absolute-project-path>` always takes precedence and also works with
+older launchers that otherwise follow a stale `PRJ_DIR`.
+
 | pw command | PowerShell call |
 | --- | --- |
 | `pw skill` | `& "<LLM_SHARED_DIR>\bin\prompt_workflow.bat" skill` |
