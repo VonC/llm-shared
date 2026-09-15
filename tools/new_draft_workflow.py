@@ -17,6 +17,11 @@ instruction. It takes an existing draft path, a `--slug`, an optional
 `--docs-layout`, and a `--worktree` or `--in-place` branch placement, then
 checks the slug, creates the branch, and relocates the draft inside the chosen
 tree and effort directory.
+
+Fix: both modes name a new worktree through `_worktree_path_for`, which reads
+the main checkout name with `main_worktree_root`, so the folder is always
+`<main base>_<slug>` with underscores only, even when the effort starts from
+inside another worktree.
 """
 
 from __future__ import annotations
@@ -34,6 +39,7 @@ from tools.new_draft_git import (
     branch_collision,
     create_local_branch,
     git_move,
+    main_worktree_root,
     path_is_tracked,
     stage_path,
 )
@@ -171,6 +177,16 @@ def _prompt_version(current: SemanticVersion) -> SemanticVersion | None:
         for part in BUMP_PARTS
     ]
     return select(f"Target version (current v{current}):", options)
+
+
+def _worktree_path_for(root: Path, slug: str) -> Path:
+    """Return the underscore-only sibling worktree path named after the main checkout."""
+    main_root = main_worktree_root(root)
+    return compute_worktree_path(
+        root,
+        slug,
+        main_root_name=main_root.name if main_root is not None else None,
+    )
 
 
 def _prompt_worktree(worktree_path: Path) -> bool | None:
@@ -367,7 +383,7 @@ def _run_from_draft(args: argparse.Namespace, root: Path) -> int:
         msg = f"Draft not found: {source}"
         raise NewDraftError(msg)
 
-    worktree_path = compute_worktree_path(root, slug)
+    worktree_path = _worktree_path_for(root, slug)
     target_root = _create_branch_and_target(
         slug,
         project_root=root,
@@ -416,7 +432,7 @@ def run(argv: Sequence[str] | None) -> int:
         LOGGER.info("Cancelled: no version selected.")
         return 1
 
-    worktree_path = compute_worktree_path(root, slug)
+    worktree_path = _worktree_path_for(root, slug)
     use_worktree = _prompt_worktree(worktree_path)
     if use_worktree is None:
         LOGGER.info("Cancelled: no worktree choice made.")

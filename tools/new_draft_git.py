@@ -17,10 +17,15 @@ the chosen working tree: `path_is_tracked` (does Git track this path here),
 `git add` used both to stage the copy in a worktree and to stage the source
 removal). The filesystem read/write and the choice between these stays in the
 workflow; this module only runs the Git side.
+
+Fix: add `main_worktree_root`, the main checkout that owns the repository,
+read from `git rev-parse --git-common-dir`, so a worktree created from another
+worktree is still named after the main checkout.
 """
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from tools.git_command import GitCommandOptions, run_cross_platform_git_command
@@ -28,7 +33,9 @@ from tools.new_draft_models import NewDraftError
 
 if TYPE_CHECKING:
     import subprocess
-    from pathlib import Path
+
+# Folder name of the common Git directory inside a regular main checkout.
+_MAIN_CHECKOUT_GIT_DIR_NAME = ".git"
 
 # Result labels returned by `branch_collision`.
 COLLISION_LOCAL = "local"
@@ -115,6 +122,33 @@ def branch_collision(slug: str, *, cwd: Path) -> str | None:
 def current_head_branch(cwd: Path) -> str:
     """Return the current branch name (`HEAD` when detached)."""
     return _git(["rev-parse", "--abbrev-ref", "HEAD"], cwd=cwd).stdout.strip()
+
+
+def main_worktree_root(cwd: Path) -> Path | None:
+    """Return the main checkout root that owns the repository at `cwd`.
+
+    The common Git directory is shared by the main checkout and every linked
+    worktree; for a regular main checkout it is `<main root>/.git`, so its
+    parent is the main root. Any other shape (a failed command, a bare or
+    submodule layout) returns None and the caller keeps its own root name.
+
+    Args:
+        cwd: A directory inside the main checkout or one of its worktrees.
+
+    Returns:
+        The main checkout root, or None when it cannot be determined.
+    """
+    result = _git(
+        ["rev-parse", "--path-format=absolute", "--git-common-dir"],
+        cwd=cwd,
+    )
+    common_dir = result.stdout.strip() if result.returncode == 0 else ""
+    if not common_dir:
+        return None
+    common_path = Path(common_dir)
+    if common_path.name != _MAIN_CHECKOUT_GIT_DIR_NAME:
+        return None
+    return common_path.parent
 
 
 def create_local_branch(slug: str, *, cwd: Path) -> None:

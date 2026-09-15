@@ -3,6 +3,9 @@
 Cover semantic-version parsing and bumping, the pyproject version read, the
 version.txt version read shared with the process-draft flow, slug validation,
 the worktree directory-name rule, and the draft skeleton text.
+
+Fix: pin the underscore-only worktree folder name and the main checkout base
+used from inside another worktree.
 """
 
 from __future__ import annotations
@@ -130,20 +133,41 @@ def test_docs_relative_dir_rejects_unknown_layout() -> None:
 
 def test_worktree_dir_name_strips_trailing_suffix() -> None:
     """worktree_dir_name drops a trailing _<suffix> from the root folder name."""
-    assert models.worktree_dir_name("llm-shared_main", "topic") == "llm-shared_topic"
+    assert models.worktree_dir_name("llm-shared_main", "topic") == "llm_shared_topic"
 
 
 def test_worktree_dir_name_without_underscore() -> None:
     """worktree_dir_name keeps the whole name when there is no underscore."""
-    assert models.worktree_dir_name("llm-shared", "topic") == "llm-shared_topic"
+    assert models.worktree_dir_name("llm-shared", "topic") == "llm_shared_topic"
+
+
+def test_worktree_dir_name_uses_underscores_only() -> None:
+    """A hyphenated slug never yields a hyphen in the worktree folder name."""
+    name = models.worktree_dir_name("myproject", "new-topic")
+
+    assert name == "myproject_new_topic"
+    assert "-" not in name
 
 
 def test_compute_worktree_path_is_sibling() -> None:
     """compute_worktree_path places the worktree next to the project root."""
     root = Path("/repos/llm-shared_main")
     assert models.compute_worktree_path(root, "topic") == Path(
-        "/repos/llm-shared_topic",
+        "/repos/llm_shared_topic",
     )
+
+
+def test_compute_worktree_path_prefers_the_main_checkout_name() -> None:
+    """From inside a worktree, the base comes from the main checkout name."""
+    root = Path("/repos/myproject_new_topic")
+
+    worktree = models.compute_worktree_path(
+        root,
+        "next-item",
+        main_root_name="myproject",
+    )
+
+    assert worktree == Path("/repos/myproject_next_item")
 
 
 def test_draft_skeleton_has_unique_sections_and_metadata() -> None:

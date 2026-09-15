@@ -8,6 +8,9 @@ monkeypatched so every branch runs without a real repository.
 Fix (split): extracted from `test_new_draft_workflow.py` so each test file
 stays under the size limit. The interactive workflow tests stay there and the
 CLI entry-point tests live in `test_new_draft_workflow_cli.py`.
+
+Fix: the tools `conftest.py` stubs `main_worktree_root` for these runs, so no
+real repository is queried for the main checkout name.
 """
 
 from __future__ import annotations

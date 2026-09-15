@@ -5,6 +5,9 @@ Cover the local/remote-tracking branch collision check, the mutating helpers
 (`path_is_tracked`, `git_move`, `stage_path`), including the non-zero-exit error
 path with and without captured stderr. `run_cross_platform_git_command` is
 monkeypatched so no real repository is touched.
+
+Fix: cover `main_worktree_root` for a main checkout common directory, a failed
+command and a non-checkout common directory.
 """
 
 from __future__ import annotations
@@ -210,6 +213,70 @@ def test_current_head_branch(
     monkeypatch.setattr(git, "run_cross_platform_git_command", fake_run)
 
     assert git.current_head_branch(tmp_path) == "main"
+
+
+def test_main_worktree_root_returns_the_common_dir_parent(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """main_worktree_root returns the parent of a `.git` common directory."""
+    calls: list[list[str]] = []
+    main_root = tmp_path / "myproject"
+
+    def fake_run(
+        git_args: list[str],
+        *,
+        cwd: Path | None = None,
+        options: object = None,
+    ) -> subprocess.CompletedProcess[str]:
+        del cwd, options
+        calls.append(list(git_args))
+        return _completed(f"{main_root / '.git'}\n")
+
+    monkeypatch.setattr(git, "run_cross_platform_git_command", fake_run)
+
+    assert git.main_worktree_root(tmp_path) == main_root
+    assert calls == [["rev-parse", "--path-format=absolute", "--git-common-dir"]]
+
+
+def test_main_worktree_root_is_none_when_git_fails(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """main_worktree_root returns None outside a repository."""
+
+    def fake_run(
+        git_args: list[str],
+        *,
+        cwd: Path | None = None,
+        options: object = None,
+    ) -> subprocess.CompletedProcess[str]:
+        del git_args, cwd, options
+        return _completed("", returncode=128, stderr="not a git repository")
+
+    monkeypatch.setattr(git, "run_cross_platform_git_command", fake_run)
+
+    assert git.main_worktree_root(tmp_path) is None
+
+
+def test_main_worktree_root_is_none_for_a_non_checkout_common_dir(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """A common directory not named `.git` (bare or submodule) gives None."""
+
+    def fake_run(
+        git_args: list[str],
+        *,
+        cwd: Path | None = None,
+        options: object = None,
+    ) -> subprocess.CompletedProcess[str]:
+        del git_args, cwd, options
+        return _completed(f"{tmp_path / 'modules' / 'child'}\n")
+
+    monkeypatch.setattr(git, "run_cross_platform_git_command", fake_run)
+
+    assert git.main_worktree_root(tmp_path) is None
 
 
 def test_create_local_branch_success(

@@ -230,26 +230,53 @@ def worktree_dir_name(project_root_name: str, slug: str) -> str:
 
     The project base is the root folder name with any trailing `_<suffix>`
     dropped (so `llm-shared_main` yields the base `llm-shared`), then the slug
-    is appended: `llm-shared_<slug>`.
+    is appended and every hyphen becomes an underscore: `llm_shared_<slug>`.
+
+    Fix: a worktree folder name uses underscores only. A hyphen in the folder
+    name (for example `myproject_new-topic`) breaks Python tooling in a
+    repository whose root carries an `__init__.py`: ruff names the top package
+    after the folder and reports `N999 Invalid module name`. The branch keeps
+    the slug unchanged; only the folder name is normalized.
 
     Args:
-        project_root_name: The current repository root folder name.
+        project_root_name: The main repository root folder name.
         slug: The validated effort slug.
 
     Returns:
-        The directory name for the new worktree.
+        The underscore-only directory name for the new worktree.
     """
     base = (
         project_root_name.rsplit("_", 1)[0]
         if "_" in project_root_name
         else project_root_name
     )
-    return f"{base}_{slug}"
+    return f"{base}_{slug}".replace("-", "_")
 
 
-def compute_worktree_path(project_root: Path, slug: str) -> Path:
-    """Return the proposed sibling worktree path next to the project root."""
-    return project_root.parent / worktree_dir_name(project_root.name, slug)
+def compute_worktree_path(
+    project_root: Path,
+    slug: str,
+    *,
+    main_root_name: str | None = None,
+) -> Path:
+    """Return the proposed sibling worktree path next to the project root.
+
+    Fix: the base name comes from `main_root_name`, the main checkout folder,
+    when the caller knows it. Deriving the base from a worktree folder would
+    strip the wrong suffix once folder names are underscore-only
+    (`myproject_new_topic` would give the base `myproject_new`).
+    Without it the project root folder name is used, as before.
+
+    Args:
+        project_root: The current repository root (a main checkout or worktree).
+        slug: The validated effort slug.
+        main_root_name: The main checkout folder name, when available.
+
+    Returns:
+        The worktree path, a sibling of `project_root`.
+    """
+    base_name = main_root_name or project_root.name
+    return project_root.parent / worktree_dir_name(base_name, slug)
 
 
 def draft_skeleton(

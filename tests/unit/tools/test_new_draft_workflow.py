@@ -13,6 +13,9 @@ limit while this file keeps the interactive workflow coverage.
 Coverage fix: `_relocate_draft` gains a test for its same-path no-op, the
 guard that returns before any git call when the draft already carries its
 target path (a `git mv` onto the same path would fail fatally).
+
+Fix: `_worktree_path_for` names the worktree after the main checkout; the tools
+`conftest.py` stubs `main_worktree_root` so no real repository is queried.
 """
 
 from __future__ import annotations
@@ -34,6 +37,24 @@ def _write_pyproject(root: Path, *, version: str = "0.3.0") -> None:
         f'[project]\nname = "x"\nversion = "{version}"\n',
         encoding="utf-8",
     )
+
+
+def test_worktree_path_for_uses_the_main_checkout_name(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """From inside a worktree, the new folder is named after the main checkout."""
+    root = tmp_path / "myproject_new_topic"
+
+    def fake_main_root(cwd: Path) -> Path:
+        del cwd
+        return tmp_path / "myproject"
+
+    monkeypatch.setattr(workflow, "main_worktree_root", fake_main_root)
+
+    worktree = workflow._worktree_path_for(root, "next-item")
+
+    assert worktree == tmp_path / "myproject_next_item"
 
 
 def test_run_creates_branch_and_draft_in_place(

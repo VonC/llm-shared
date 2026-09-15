@@ -1,4 +1,8 @@
-"""Shared fast boundaries for tools unit tests."""
+"""Shared fast boundaries for tools unit tests.
+
+Fix: the new_draft workflow suites stub `main_worktree_root`, so computing a
+worktree path never runs a real `git rev-parse` against a temporary directory.
+"""
 
 from __future__ import annotations
 
@@ -8,6 +12,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+from tools import new_draft_workflow
 from tools.review_exchange_store import ReviewExchangeStore
 
 if TYPE_CHECKING:
@@ -28,6 +33,25 @@ def successful_kernel_flush(monkeypatch: pytest.MonkeyPatch) -> None:
     that the durable-write path reaches the boundary.
     """
     monkeypatch.setattr(os, "fsync", _complete_fsync)
+
+
+def _unknown_main_worktree_root(_cwd: Path) -> None:
+    """Model a root whose main checkout is not resolved through Git."""
+
+
+@pytest.fixture(autouse=True)
+def no_git_main_worktree_lookup(
+    request: pytest.FixtureRequest,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Keep new_draft workflow tests off the real Git main checkout lookup."""
+    if not request.path.name.startswith("test_new_draft_workflow"):
+        return
+    monkeypatch.setattr(
+        new_draft_workflow,
+        "main_worktree_root",
+        _unknown_main_worktree_root,
+    )
 
 
 @contextmanager
