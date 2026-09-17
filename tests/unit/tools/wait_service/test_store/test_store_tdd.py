@@ -201,4 +201,33 @@ class TestWaitStore:
                 store.arm(registration.wait_id, replace(binding(), incarnation="new"))
             assert store.get_binding(registration.wait_id) == binding()
 
+def test_recovery_preserves_early_preparation_but_skips_completed_routes(tmp_path: Path) -> None:
+    """Startup includes a result awaiting arming and excludes a settled armed result."""
+    with WaitStore(tmp_path / "wait.db") as store:
+        registration = store.register(intent(), 1)
+        event = store.record_outcome(registration.wait_id, outcome(), 2)
+        store.preparation_failed(registration.wait_id, "route-unavailable")
+        recovered = list(store.recover_registrations())
+        assert [item.wait_id for item in recovered] == [registration.wait_id]
+        assert recovered[0].diagnostic == "route-unavailable"
+        armed = store.arm(registration.wait_id, binding())
+        store.preparation_failed(registration.wait_id, "stale-error")
+        assert store.get_registration(registration.wait_id) == armed
+        assert store.get_event(registration.wait_id) == event
+        assert list(store.recover_registrations()) == []
+        with pytest.raises(WaitError, match="bounded preparation diagnostic"):
+            store.preparation_failed(registration.wait_id, "")
+
+
+def test_recovery_query_failure_retains_database(tmp_path: Path) -> None:
+    """A broken SQLite handle reports unavailable rather than an empty recovery set."""
+    path = tmp_path / "wait.db"
+    store, connection = fault_store(path)
+    with store:
+        connection.close()
+        with pytest.raises(WaitError, match="storage-unavailable"):
+            list(store.recover_registrations())
+    assert path.exists()
+
+
 # eof

@@ -3,6 +3,8 @@
 The caller owns the service singleton lock before opening this adapter. Only an
 absent file is initialized. Known stores use rollback journaling and FULL sync;
 failures retain the database for explicit recovery instead of resetting it.
+Active preparations and source access-loss epochs support scheduler recovery;
+arming failures retain diagnostics without changing immutable outcome evidence.
 """
 
 # ruff: noqa: EM101 - WaitError's first argument is a typed machine code.
@@ -216,6 +218,22 @@ class WaitStore:
         if row is None:
             raise WaitError("wait-not-found", wait_id, wait_id)
         return _registration(row)
+
+    def recover_registrations(self) -> Generator[Registration]:
+        """Stream active preparations and unresolved outcomes for scheduler recovery."""
+        try:
+            cursor = self._connection_or_fail().execute("SELECT registrations.* FROM registrations LEFT JOIN events USING(wait_id) WHERE events.event_id IS NULL OR registrations.state = 'preparing'")
+            for row in cursor:
+                yield _registration(row)
+        except sqlite3.Error as error:
+            raise WaitError("storage-unavailable", str(error)) from error
+
+    def preparation_failed(self, wait_id: str, diagnostic: str) -> None:
+        """Keep failed arming retryable without discarding an already observed result."""
+        require(0 < len(diagnostic) <= MAX_TEXT, "bounded preparation diagnostic required")
+        with self.transaction() as transaction:
+            self.get_registration(wait_id)
+            transaction.execute("UPDATE registrations SET diagnostic = ? WHERE wait_id = ? AND state = 'preparing'", (diagnostic, wait_id))
 
     def arm(self, wait_id: str, binding: HostBinding) -> Registration:
         """Commit automatic or explicitly retained acknowledgement after evidence."""
