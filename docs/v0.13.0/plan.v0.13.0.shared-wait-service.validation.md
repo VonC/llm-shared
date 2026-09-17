@@ -160,20 +160,46 @@ collector. No existing behavior or reporting capability was found impaired.
 
 ### Analysis of Step 2 implementation state
 
-Not started. Step 2 is not implemented because its planned files, behavior
-and acceptance evidence have not yet been delivered or checked.
+Yes. Step 2 has been fully implemented.
 
-| Step 2 completion component | Initial state | Evidence needed before recording completion |
+The native-wake harness, host adapters and independent observers passed the
+automated gates. Both available hosts have a retained controlled baseline and
+three matched pairs, with all original failures and deviations preserved.
+Codex B1/B2/B3 passed with B2 observer recovery retained. Claude B2/B3 passed
+after the exact native-ancestry repair; Claude B1 remains failed without retry.
+All Claude A trials passed functionally with the unavailable initial-yield
+parameter recorded. The final Claude integrity audit and closure check passed.
+Request accounting remains unknown; functional wake and lower observed usage
+do not establish strict idle, quota savings or billing savings.
+
+| Step 2 completion component | Checked state | Evidence |
 | --- | --- | --- |
-| Code complete | Not started | Driver/harness tests, targeted Groundhog and full walk; operator procedure ready |
-| Live evidence recorded | Not started | Fresh non-implementing conversations, recorded seed commit and hashes, manifests, native baselines, matched trials and explicit per-host failures/unavailability |
-| Gate for Steps 3 through 7 | Not evaluated | Recorded Step 2 live findings or Q17 human checkpoint; a green harness alone is insufficient; unproven ports stay provisional |
+| Code complete | Yes | Exact B1 regression, 39 focused checks, 10 affected checks and 3,198 full tests at 100% configured coverage; final walk ended 2026-09-17 07:47:09 UTC, `state=done exit=0`; validated implementation and log hashes remain unchanged |
+| Live evidence recorded | Yes, including failed and qualified cases | Both controlled baselines and three pairs per host audited; Claude baseline/A1/B2/A2/A3/B3 passed 25/26/37/29/29/37 independent checks; B1's failed audit remains retained; full observation windows verified for each passing case |
+| Gate for Steps 3 through 7 | Functional route demonstrated and Step 2 evidence complete | Passing controlled Codex and Claude cases prove automatic useful continuation; no subsequent service work has started |
 
-Record who started/seeded each measured thread and delivered its benchmark
-prompt, native or operator normal-end evidence, actual quiet time, first useful
-continuation and bounded duplicate/drain results. An operator marker does not
-prove a native lifecycle gate. Missing required live work keeps Step 2 incomplete;
-a failed route report is evidence of failure, never functional support.
+The human started and seeded each measured conversation and submitted each
+benchmark prompt after observer readiness. Native normal completion gates the
+B routes; no operator marker substitutes for native evidence. The original
+Claude seeds and exact session identities survived resume unchanged. Pair
+context differences are 3.891155%, 0.967780% and 0.583372%, within 5%.
+The final audit verifies serial execution, original manifests, retained hashes,
+one thread claim per run and no post-observation activity or invalidation.
+All seven Claude tabs may now be closed. These are prototype results; host
+interfaces need revalidation in their later production adapter items.
+
+The independent Step 2 review confirmed implementation and live-evidence
+completion, then requested transcript Markdown repairs, dependency documentation
+and EOF sentinels in both docs-side Claude helpers. Those repairs are staged,
+with the review transcript assigned its own commit group. A fresh forced
+Groundhog walk passed all checks, affected tests and all 3,198 full tests at
+100% configured coverage, with zero failures, warnings or xfails, ending
+`2026-09-17T13:32:15+02:00`. Its retained log is
+`.reviews/a.step2-r1-repair-ghog.log`, SHA-256
+`9919dc025ad161de51f243622e5bc5666ee48b5934c8bb1f2d029f0923e45f73`.
+The original live-series validation log and all frozen measurements remain
+unchanged; the new walk validates the review repairs. Review convergence and
+the human commit decision remain separate gates.
 
 ### Goal for Step 2
 
@@ -190,27 +216,151 @@ Record Codex-first and available Claude feasibility plus matched A/B-prototype e
 
 ### What was implemented for Step 2
 
-_(empty — no check has taken place yet.)_.
+- `pyproject.toml` adds development-only `wsproto>=1.3.2`; `uv.lock` records
+  `wsproto 1.3.2` and its `h11 0.16.0` dependency. The Codex proxy needs
+  WebSocket framing, which the standard library does not implement. Reusing
+  the protocol library avoids maintaining a separate experimental frame
+  parser. The service dependency and configured coverage scope are unchanged.
+- `tools/wait_evidence/prototype.py` adds an isolated durable SQLite harness for
+  exact source/wait/event/thread identities, readiness before normal end,
+  interruption suppression, recipient checks, one delivery attempt, uncertain
+  receipts without retry, and duplicate useful-consumption rejection. Host I/O
+  runs outside the write transaction, with eligibility checked again before
+  committing a send intent.
+- `probe_driver.py` freezes both complete draft blobs from commit
+  `3d4b5a4643d1fba65434877d965d2c051b65e1a3`, records hashes and controls,
+  rejects reused or implementing threads and unrelated native files, preserves
+  invalid attempts, and publishes each prompt after its manifest. Indexed
+  reservations enforce ordering and the 5% pair-context gate.
+- `probe_observer.py` combines filesystem notifications and ordinary timers
+  with the Step 1 collector. It binds Codex normal completion to the exact
+  registering turn and retains complete duplicate and separate drain windows.
+  Restart replay preserves first completion times and journal entries.
+- `probe_cli.py` and the thin `docs/v0.13.0/probe.shared-wait-service.py` entry
+  point provide reproducible preparation, registration, observation, source,
+  measurement, status, suppression and consumption operations. Physical paths
+  resolve imports independently of the caller's working directory.
+- `telemetry.py` and `telemetry_claude.py` normalize inspected Codex `0.154.0`
+  and Claude `2.1.272`/`2.1.273` records through the common adapter. Native
+  identity/build/home checks, stream roles, repeated usage, metadata, deferred
+  tools and native normal-end ancestry retain unknown request completeness.
+  `models.py` and `collector.py` preserve native versus synthetic evidence.
+- `claude_monitor.py` and `claude_observer.py` implement exact schema/startup
+  checks, gated Monitor delivery, exact native receipt, one consumption and
+  independent full observation. The B1 repair accepts only the verified
+  completed-task child of the ready notification, bound to the same task and
+  Monitor call, without changing native turn UUIDs. Ambiguous or unrelated
+  notices, duplicate completion notices and missing ancestry are rejected.
+  Atomic readiness publication and parser-gap handling have regression coverage.
+- The [results](probe-results.v0.13.0.shared-wait-service.md),
+  [Codex export](probe-controlled.v0.13.0.shared-wait-service.json),
+  [Claude export](probe-claude-controlled.v0.13.0.shared-wait-service.json) and
+  [final Claude audit](probe-claude-series-audit.v0.13.0.shared-wait-service.json)
+  retain reproducible commands, settings, seed evidence, all outcomes, timing
+  gates and three pair comparisons per host. The separate Claude smoke and
+  original failures remain available. Failed B1 has no successful consumption
+  or final-window gate; elapsed failure observation is not relabelled a pass.
+- Additive `monitor-completion-01` revision bindings preserve all original
+  manifests, seed/configuration hashes and failed B1 evidence. Both arms in
+  pairs 2 and 3 use that validated revision. The final audit verifies the
+  current source and full-validation log hashes against it.
 
 ### New types or classes introduced for Step 2
 
-_(empty — no check has taken place yet.)_.
+- `Route` supplies explicit gate, recipient-status and send callbacks.
+- `Prototype` owns the durable synthetic lifecycle; `CodexQueue` adapts the
+  inspected app-server proxy and exact-thread queue command.
+- `Experiment` owns a frozen series and indexed trial/thread reservations.
+- `Observation` coordinates native evidence, prototype state and collection;
+  `Changed` selects filesystem notifications for explicit streams.
+- `ClaudeTelemetry` holds Claude native ancestry and usage normalization state.
+- `ClaudeObservation` specializes the common observer for native Monitor
+  registration, gating, continuation and audit evidence.
+- `Watch` owns filesystem notification startup, readiness and bounded waiting
+  for the ordinary Claude bridge and observer processes.
 
 ### Architecture check for Step 2
 
-_(empty — no check has taken place yet.)_.
+The experiment remains separate from the later shared service. `Route` injects
+host callbacks; native invocation belongs to the Codex and Claude adapters.
+Claude normalization uses the common telemetry entry point and shared evidence
+models. `ClaudeObservation` composes collection and lifecycle behavior through
+the existing observer. No production workflow imports the probe, and no
+review counterpart creation or messaging path was added.
+
+All 30 changed Python files are within the 650-line ceiling. The prototype is
+248 lines, driver 233, common observer 200, CLI 141, telemetry entry point 347,
+Claude telemetry 179, Claude observer 388 and Monitor adapter 173. The existing
+collector remains 548 lines. Changed tool modules retain `# eof` sentinels.
+Host-status and delivery calls remain outside write transactions; cancellation
+during a status call is reread before sending.
+
+No architecture issue needs to be addressed.
 
 ### Performance check for Step 2
 
-_(empty — no check has taken place yet.)_.
+Native reads advance captured offsets and normalize each new record once.
+Parent and continuation identities use keyed state; no pairwise history scan
+was introduced by the ancestry repair. Filesystem notifications select exact
+paths, with ordinary timers for source and final-window deadlines. Journal
+replay is linear at restart. Indexed SQLite reservations and ordinal lookup
+avoid rescanning retained trials; the existing 6,000-trial regression retains
+its bounded instruction budget. Full seed verification runs once per series.
+RPC waits retain their wall-clock bound without holding a SQLite write lock.
+
+No performance issue needs to be addressed.
 
 ### Unit test coverage check for Step 2
 
-_(empty — no check has taken place yet.)_.
+The final `ghog day` ended at `2026-09-17T09:47:09+02:00`, exit `0`: all static
+checks, 10 affected tests and 3,198 full-suite tests passed with 100% configured
+coverage and zero failures, warnings or xfails. The exact failure was first
+reproduced, then 39 focused checks passed before that full walk. `ghog status`
+confirmed `state=done exit=0`; the final audit verified the unchanged validated
+source and log hashes. This implementation check uses those results and static
+test inspection without rerunning tests.
+
+Unit tests under `tests/unit/tools/wait_evidence/test_prototype/` cover
+prototype state, driver validation, native transports and both observers with
+fake clocks and transports. Cases include replay, cancellation, lost receipt,
+noisy transport deadlines, exact startup/schema, full duplicate/drain windows,
+atomic publication, parser gaps and consumption binding. The ten cases in
+`test_claude_continuation_tdd.py` exercise the observed adjacent-notification
+chain and reject mismatched task/call/status/parent, human origin, duplicate
+tags, notices before readiness, duplicate notices and missing turn identity.
+Unit telemetry tests cover supported native schemas, metadata, usage deduplication,
+normal-end ancestry and unknown completeness. Existing collector/model tests
+cover their extensions. No new PBT is needed beyond Step 1 accounting properties.
+
+The coverage gate measures `tools`; tests, initializers, protocols and the
+other explicit `pyproject.toml` omissions are excluded. No percentage is claimed
+for `docs` probe helpers or excluded initialization code. Static inspection of
+every top-level definition in the changed `docs` helpers found a reference
+within its own module or from its companion entry point. In particular, all
+five helpers in `claude-probe-state.shared-wait-service.py` are referenced by
+`claude-probe.shared-wait-service.py`. The thin common probe calls the package
+CLI and its bounded smoke exercises checkout and alternate working directories.
+The modified package initializer exports types used by the test suite.
+
+No unit-tested class below 100% needs completing. No top-level symbol outside
+the configured gate is unreferenced.
 
 ### Feature integrity for Step 2
 
-_(empty — no check has taken place yet.)_.
+Existing collector reports, accounting properties and workflow behavior remain
+covered by the full suite. Probe artifacts use explicit ignored run paths;
+provider, permission, approval and telemetry settings remain unchanged. Queue
+acceptance alone never certifies useful wake, and operator markers cannot
+certify native normal end or complete request coverage. The contract search
+and affected diff were inspected. Claude replay covers the seven original
+seed transcripts and separate smoke without parser gaps.
+
+Both controlled series retain native evidence independently of deterministic
+tests. Codex's B2 recovery, Claude's failed B1, all Claude A protocol deviations,
+preparation variation and unknown configuration/accounting fields remain
+explicit. All seven Claude observation processes exited and final hashes were
+verified before permitting tab closure. No service implementation or umbrella
+completion follows from this Step 2 check; Steps 3 through 8 remain unstarted.
 
 ## Step 3. Create the durable service model and store
 
