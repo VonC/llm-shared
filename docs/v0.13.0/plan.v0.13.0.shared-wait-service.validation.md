@@ -366,8 +366,13 @@ completion follows from this Step 2 check; Steps 3 through 8 remain unstarted.
 
 ### Analysis of Step 3 implementation state
 
-Not started. Step 3 is not implemented because its planned files, behavior
-and acceptance evidence have not yet been delivered or checked.
+Yes. Step 3 has been fully implemented.
+
+The new independent wait-service package persists exact intent, preparation and
+arming, immutable outcomes and stable events, cancellation, transport recovery,
+and later consumption/maintenance evidence. Real SQLite tests verify reopening,
+lost replies, failed commits and refusal of unknown or corrupt stores. The final
+Groundhog walk passed the configured checks and 100% measured coverage gate.
 
 ### Goal for Step 3
 
@@ -381,27 +386,102 @@ Persist exact registrations, immutable outcomes/events and recovery state with t
 
 ### What was implemented for Step 3
 
-_(empty — no check has taken place yet.)_.
+- `tools/wait_service/models.py` defines immutable, bounded identities and records, typed failures, explicit finite-or-indefinite policy, and a canonical intent digest. Equivalent integer and floating-point deadlines have the same digest.
+- `tools/wait_service/ports.py` declares source, host, workflow-authority, clock and bounded-I/O contracts without production adapters.
+- `tools/wait_service/store.py` creates schema version 1 only for an absent file, verifies known schema shape, and uses rollback journaling with FULL synchronization. Mutation acknowledgements follow successful commits; failed commits return typed storage errors. Failed rollback closes the uncertain connection.
+- Exact retries return the same wait and current acknowledgement; conflicts report the existing wait ID. Failed arming can resume, retained results remain distinct from automatic arming, and a retry cannot replace an armed incarnation.
+- One transaction creates the immutable outcome and event UUID. Cancellation preserves that event and any accepted delivery receipt. Shared observations retain exact generation and access-loss start; delivery records retain policy, incarnation, epoch and next eligible UTC.
+- Schema fields retain settlement, abandonment, reconciliation and tombstone evidence for later steps. Diagnostic history is capped at 32 rows per wait without evicting outcomes or deduplication facts.
+- Added store TDD, recovery and bounded PBT sequences, domain-policy tests, and a dependency-boundary test for the ports. The existing collector CLI smoke test retains both isolated-cwd assertions, with a 20-second child timeout and 30-second outer guard after its five-second startup limit failed during the full parallel suite. Five transcript blank lines repair the Markdown check.
+
+Environment verification found Python 3.13.9, watchdog 6.0.0, Hypothesis 6.152.7
+and pytest-timeout 2.4.0 in the project test-child interpreter
+`venvs/python_3.13.9_llm-shared_no_polling/Scripts/python.exe`. Imports resolve
+`tools` to this worktree. The canonical launcher's
+`venvs/python_3.13.9_llm-shared/Scripts/python.exe` was checked separately and
+imports the same dependency versions. No dependency or coverage setting changed.
+
+All eight planned files were absent before implementation. Their final physical
+counts are 4, 260, 102, 324, 3, 3, 204 and 73, in plan-table order. Additional
+model, port and store-recovery tests contain 73, 33 and 158 lines, with three-line
+initializers. Every touched Python file is below 550 and the mandatory 650 ceiling.
 
 ### New types or classes introduced for Step 3
 
-_(empty — no check has taken place yet.)_.
+| Types | Responsibility |
+| --- | --- |
+| `WaitError`, `Continuation`, `Capability`, `NormalEnd` | Typed failures and allowlisted continuation/route classifications |
+| `SourceIdentity`, `Recipient`, `DeadlinePolicy`, `WaitIntent` | Exact registration identity and explicit lifetime policy |
+| `HostBinding`, `Observation`, `Outcome`, `Registration`, `Event` | Route evidence, bounded source evidence and durable acknowledgements |
+| `Delivery`, `Cancellation`, `ConsumptionAttempt` | Transport recovery, suppression and later settlement/abandonment facts |
+| `SourcePort`, `HostPort`, `AuthorityPort`, `ClockPort`, `IOPort` | Infrastructure-independent semantic seams |
+| `WaitStore` | SQLite persistence adapter and transaction boundary |
+| Test classes and `FaultConnection` | Domain, port and store checks plus before/after-commit fault injection |
 
 ### Architecture check for Step 3
 
-_(empty — no check has taken place yet.)_.
+Domain records import standard data/encoding facilities only. Ports depend on
+domain types, and the SQLite adapter depends inward on those records. Source,
+host and workflow operations are outside the transaction boundary. No production
+review, Groundhog, Windows authority or scheduler adapter is introduced by this
+step. Initializers are small and `tools/__init__.py` is unchanged.
+
+No, there is nothing that needs to be addressed.
 
 ### Performance check for Step 3
 
-_(empty — no check has taken place yet.)_.
+Canonical encoding traverses bounded fixed-schema records without sorting.
+Registration, source, event, cancellation and delivery queries use indexed exact
+keys. The consumption lookup uses the composite event/decision/superseded index;
+history eviction uses the per-wait sequence index and a fixed 32-row tail. Schema
+verification visits a fixed schema set only at open. SQLite index maintenance is
+within the plan's explicit indexed-storage allowance; there are no new repository
+scans, per-wait workers, sleeps, quadratic passes or application-level sorts.
+
+After accepting the first code-review round's Markdown finding, the final walk
+ran on 2026-09-17 from 16:54:00 to 16:57:19 +02:00:
+checks 30.2 seconds, affected tests 5.5 seconds, and the full 3,228-case suite
+2 minutes 42.9 seconds. Its closing result was
+`fail=0 warn=0 xfail=0 cov=100 outliers=skipped excluded=skipped exit=0`.
+`ghog status` confirmed `state=done exit=0` at 16:57:20 +02:00. Raw output is
+retained locally in ignored `a.ghog.log`. Outlier/exclusion assessment was
+reported as skipped; no separate runtime performance claim is inferred.
+
+No, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 3
 
-_(empty — no check has taken place yet.)_.
+The configured coverage source is `tools`, with a 100% gate. The three new
+modules are in that scope; no exclusions were added. Their matching
+`test_models`, `test_ports` and `test_store` folders exercise the models, port
+imports/dependency boundary, and store respectively. The initial tests-first
+Groundhog focus failed because the package did not yet exist. The subsequent
+affected runs passed all 29 initial service cases and the added port case.
+Store tests cover reopen, physical identity and policy conflicts, early outcome,
+failed and lost commit replies, rollback failure, unknown/corrupt schema refusal,
+shared-source isolation, cancellation, receipts, bounded history, settlement and
+tombstones. Generated sequences preserve stable identities and immutable outcomes
+through retries, cancellation and failed commits. Finite/indefinite and bounded
+record validation run without a database. The guarded port import rejects SQLite,
+native APIs and production workflow dependencies.
+
+The final full walk measures `models.py`, `ports.py` and `store.py` at 100%, with
+all existing measured modules also meeting the gate. The collector focus passed
+after its timeout adjustment. The first independent reviewer accepted the step's
+implementation, tests and commit grouping; its Markdown finding was corrected
+and the later full walk above passed. This implementation check relies on those
+recorded runs and static inspection; it does not rerun tests.
+
+No, there is no unit-tested class below 100% that needs completing.
 
 ### Feature integrity for Step 3
 
-_(empty — no check has taken place yet.)_.
+Existing production workflows are unchanged. The complete suite passes after the
+bounded collector-test startup adjustment; its isolation and report assertions
+remain intact. The required contract search and affected diff were inspected.
+Temporary SQLite fixtures, helper scripts and raw logs remain ignored; no private
+probe evidence or provider configuration is committed. Steps 4 through 8 remain
+pending, and the document-level effort status remains incomplete.
 
 ## Step 4. Implement the Windows authority and authenticated pipe
 
