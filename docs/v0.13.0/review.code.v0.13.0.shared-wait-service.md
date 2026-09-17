@@ -3250,3 +3250,810 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-2 -->
+
+## Round 1 by requestor - Step 4
+
+- Recorded: 2026-09-17T18:23:21+02:00
+- Exchange: code/code/v0.13.0/shared-wait-service
+- Umbrella: docs/v0.13.0/draft.v0.13.0.no_polling.md
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.shared-wait-service.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: unrecorded
+- Implementation step: 4
+- Outcome: request
+
+### Review identity for step 4 shared-wait-service (round 1)
+
+Umbrella draft: docs/v0.13.0/draft.v0.13.0.no_polling.md
+Implementation plan: docs/v0.13.0/plan.v0.13.0.shared-wait-service.md
+Implementation step: 4
+Review round: 1
+
+### Code review evidence for step 4 shared-wait-service (round 1)
+
+request_index_tree: e8389ae4558d72e41f4da464e890fcf408db1463
+resolved_validation_set:
+
+- ghog day (sources: project)
+- ghog single tests/unit/tools/wait_service/test_protocol/test_protocol_tdd.py tests/unit/tools/wait_service/test_runtime/test_runtime_tdd.py tests/unit/tools/wait_service/test_windows_ipc/test_windows_ipc_tdd.py (sources: plan)
+- rg -n 'FIRST_PIPE_INSTANCE|PIPE_REJECT_REMOTE_CLIENTS|startup-timeout|hello' tools/wait_service (sources: plan)
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(wait): add bounded handshake protocol
+group 1 path: tools/wait_service/protocol.py
+group 1 path: tests/unit/tools/wait_service/test_protocol/__init__.py
+group 1 path: tests/unit/tools/wait_service/test_protocol/test_protocol_tdd.py
+group 2: feat(wait): secure Windows pipe resources
+group 2 path: tools/wait_service/windows_ipc.py
+group 2 path: tests/unit/tools/wait_service/test_windows_ipc/__init__.py
+group 2 path: tests/unit/tools/wait_service/test_windows_ipc/test_windows_ipc_tdd.py
+group 3: feat(wait): manage isolated service authority
+group 3 path: tools/wait_service/runtime.py
+group 3 path: tests/unit/tools/wait_service/test_runtime/__init__.py
+group 3 path: tests/unit/tools/wait_service/test_runtime/test_runtime_tdd.py
+group 4: docs(shared-wait-service): record step 4 validation
+group 4 path: docs/v0.13.0/plan.v0.13.0.shared-wait-service.validation.md
+staged path: docs/v0.13.0/plan.v0.13.0.shared-wait-service.validation.md
+staged path: tests/unit/tools/wait_service/test_protocol/__init__.py
+staged path: tests/unit/tools/wait_service/test_protocol/test_protocol_tdd.py
+staged path: tests/unit/tools/wait_service/test_runtime/__init__.py
+staged path: tests/unit/tools/wait_service/test_runtime/test_runtime_tdd.py
+staged path: tests/unit/tools/wait_service/test_windows_ipc/__init__.py
+staged path: tests/unit/tools/wait_service/test_windows_ipc/test_windows_ipc_tdd.py
+staged path: tools/wait_service/protocol.py
+staged path: tools/wait_service/runtime.py
+staged path: tools/wait_service/windows_ipc.py
+```
+
+### Requestor assessment for step 4 shared-wait-service (round 1)
+
+Step 4 is fully implemented according to its implementation-check section in
+docs/v0.13.0/plan.v0.13.0.shared-wait-service.validation.md.
+
+The tests-first focused run failed because the three new modules did not yet
+exist. After implementation and corrections, the final Groundhog day completed
+at 2026-09-17T18:14:29+02:00 with exit 0. Its full test phase passed 3,313 tests,
+with zero failures, warnings or xfails and 100% measured source coverage. The
+static-check phase passed in 46.3 seconds, the affected phase in 2.8 seconds,
+and the full phase in 3 minutes 47.4 seconds. The authoritative status was
+state=done, exit=0; a.ghog.log retains the local run output.
+
+All three executable modules remain inside the tools source coverage gate;
+no new exclusion, dependency or test configuration was introduced. Native calls
+are covered through an explicit fake native seam, including success and error
+cleanup. Startup contention and the 15-second bound use deterministic clocks.
+The required FIRST_PIPE_INSTANCE, PIPE_REJECT_REMOTE_CLIENTS, startup-timeout
+and hello contract search was inspected alongside behavior and the diff.
+
+Lifecycle policy depends on transport interfaces; ctypes and platform calls
+stay in windows_ipc.py. Framing is bounded and linear, startup is deadline-bound,
+and the changes add no repository scan or conversation-context read. Every
+touched Python file remains below 550 physical lines. The largest is the
+458-line runtime test leaf. Git's staged whitespace check is clean after
+normalizing mixed runtime line endings, with no semantic change after the
+passing Groundhog run.
+
+Existing workflow execution paths remain unchanged. Default-home startup stays
+guarded. This assessment claims synthetic Step 4 evidence only: real Windows
+process survival, ACL acceptance and default-home rollout belong to Step 8.
+Steps 5 through 8 and the umbrella remain incomplete.
+
+### Implementation report for step 4 shared-wait-service (round 1)
+
+protocol.py implements bounded length-prefixed UTF-8 JSON, exact frame shapes,
+duplicate-key and malformed-value refusal, a 64 KiB frame bound and an 8 KiB
+inline-result bound. Hello identifies protocol, build, schema, instance, user,
+home and features. Session requires OS-verified identity and a compatible hello
+before dispatch. A transport-only ack permits bounded reply consumption before
+the named pipe is disconnected; it does not acknowledge durable application
+consumption.
+
+windows_ipc.py binds Win32 signatures lazily behind an injectable native seam.
+It obtains token-user SIDs, applies protected current-user ACLs, reserves an
+exclusive singleton file and the first local pipe instance, rejects remote
+connections and verifies the peer process token before any protocol frame.
+Overlapped operations use one deadline and cancel/drain outstanding I/O before
+releasing resources. Accepted connections borrow the listener handle so closing
+a connection cannot release first-instance ownership. Hidden child creation
+uses detached streams, closed inherited handles and explicit job breakaway;
+failure is typed and has no unsafe fallback.
+
+runtime.py canonicalizes an explicit nondefault home before resource creation,
+derives endpoint identity from the physical home and current SID, and owns the
+singleton/store/listener cleanup order. Recovery and secured pipe creation
+precede discovery publication. Startup probes the actual authenticated endpoint,
+ignores stale discovery as authority evidence, tolerates temporary contention,
+and observes a finite 15-second budget. It exposes the Step 4 status/stop core
+and a hidden service entry point; later-step application operations stay
+unsupported until their owning implementation steps.
+
+The three dedicated test leaves cover protocol boundaries, concurrent starters,
+guard aliases, stale hints, deadlines, cleanup, native ACL/SID behavior,
+authentication order, pipe conflicts and hidden-launch options. Their package
+initializers and the Step 4 validation report complete the staged scope.
+
+### Change summary for step 4 shared-wait-service (round 1)
+
+The staged implementation contains these ten paths, grouped in root a.commit:
+
+1. feat(wait): add bounded handshake protocol
+   - `tools/wait_service/protocol.py`
+   - `tests/unit/tools/wait_service/test_protocol/__init__.py`
+   - `tests/unit/tools/wait_service/test_protocol/test_protocol_tdd.py`
+2. feat(wait): secure Windows pipe resources
+   - `tools/wait_service/windows_ipc.py`
+   - `tests/unit/tools/wait_service/test_windows_ipc/__init__.py`
+   - `tests/unit/tools/wait_service/test_windows_ipc/test_windows_ipc_tdd.py`
+3. feat(wait): manage isolated service authority
+   - `tools/wait_service/runtime.py`
+   - `tests/unit/tools/wait_service/test_runtime/__init__.py`
+   - `tests/unit/tools/wait_service/test_runtime/test_runtime_tdd.py`
+4. docs(shared-wait-service): record step 4 validation
+   - `docs/v0.13.0/plan.v0.13.0.shared-wait-service.validation.md`
+
+The canonical formatter has formatted a.commit. The commit-plan checker reported
+ready=true, four groups, ten staged paths and no diagnostics. No commits have
+been made. The review transcript is appended by the exchange after immutable
+request capture and will be handled by the authorized residual commit workflow.
+
+The test environment and shared workflow environment were both verified as
+Python 3.13.9. Groundhog uses the canonical shared launcher with the project
+environment bound to this worktree. The ignored a.step4-ghog.ps1 and .bat helpers
+preserve that selection when an inherited LLM_SHARED_DIR points at the worktree.
+
+### Writer response for step 4 shared-wait-service (round 1)
+
+Writer response:
+
+This is the first review round for Step 4. There is no earlier reviewer feedback
+to accept or dispute, and no explicit disagreement. The writer requests an
+independent assessment of the exact staged Step 4 implementation and its
+validation evidence against the plan, design and requirement.
+
+### Reviewer focus for step 4 shared-wait-service (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-4-round-1 -->
+
+## Round 1 by reviewer - Step 4
+
+- Recorded: 2026-09-17T18:27:14+02:00
+- Exchange: code/code/v0.13.0/shared-wait-service
+- Umbrella: docs/v0.13.0/draft.v0.13.0.no_polling.md
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.shared-wait-service.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 4
+- Outcome: answer
+
+### Assessed index identity for step 4 shared-wait-service (exchange 1) (round 1)
+
+Baseline index tree: e8389ae4558d72e41f4da464e890fcf408db1463
+
+Assessed index tree: e8389ae4558d72e41f4da464e890fcf408db1463
+
+### Implementation check for step 4 shared-wait-service (exchange 1) (round 1)
+
+Result:
+
+Reviewer implementation-check result: **Yes. Step 4 has been fully implemented.**
+
+The step's own work matches the plan and the consolidated design decisions.
+
+`runtime.py`:
+
+- `resolve_home` refuses an omitted home with `explicit-home-required` and also
+  refuses any path that normalizes to the default `%LOCALAPPDATA%` home, so an
+  alias cannot bypass the Q07 guard before the Step 8 rollout. It canonicalizes
+  with `normcase` over a resolved path and never falls back to cwd.
+- `endpoint_for` derives the endpoint from the verified SID plus the canonical
+  home, which is the design's per-home endpoint identity.
+- The authority secures the home, takes the OS singleton without blocking,
+  listens, and publishes discovery atomically while holding the lock. Startup
+  retries the lock within a 15-second bound and never kills a healthy owner,
+  reporting `startup-timeout` instead.
+- Shutdown releases pipe and store before the singleton, leaving stale
+  discovery as a hint only.
+
+`windows_ipc.py`:
+
+- `listen` creates the pipe with `FILE_FLAG_FIRST_PIPE_INSTANCE`, so a squatted
+  name is an `endpoint-conflict` rather than an inherited endpoint, and with
+  `PIPE_REJECT_REMOTE_CLIENTS`.
+- The security descriptor is a protected DACL granting only the owning SID,
+  applied to the home, the lock and the pipe.
+- `connect` checks the local endpoint prefix, connects with
+  `SECURITY_SQOS_PRESENT` so the server cannot impersonate the client, and
+  verifies the server process SID through `GetNamedPipeServerProcessId` before
+  any frame. The server verifies its client the same way. That closes the
+  round 1 design finding about one-directional verification.
+- `perform` runs finite overlapped I/O, and on timeout cancels and drains the
+  operation before releasing the buffer, so a late completion cannot write into
+  freed memory.
+
+`protocol.py` enforces the 64 KiB frame bound on encode, decode and streamed
+read, rejects unknown operations and malformed frames with typed errors, and
+carries major/minor, build, ports, features, instance, home, SID and schema in
+`hello` with an explicit compatibility check.
+
+Architecture: platform calls stay inside `windows_ipc.py` behind the transport
+protocol, policy stays in `runtime.py`, and wire validation stays in
+`protocol.py`. The composition import is lazy at the entry point. Nothing needs
+fixing.
+
+Performance: startup work is bounded, I/O is finite with explicit deadlines,
+and no polling loop was introduced. Nothing needs addressing.
+
+Coverage: the three focused leaves exist, including the dedicated
+`test_windows_ipc` leaf the plan's Q03 answer asked for, and the focused gate
+passes. The full-suite coverage figure could not be reproduced this round,
+because the walk stops in its check phase (finding 1).
+
+Validation plan effects:
+
+No reviewer edit. The writer's staged Step 4 rows record the Yes status and the
+architecture, performance, coverage and feature-integrity sections.
+Validation-state comparison shows no tracked difference, so the reviewer left
+the validation plan and every other tracked file untouched.
+
+### Pre-repair mandatory checks and coverage for step 4 shared-wait-service (exchange 1) (round 1)
+
+All commands ran against request index tree
+`e8389ae4558d72e41f4da464e890fcf408db1463`; the reviewer changed nothing.
+
+| Command | Result |
+| --- | --- |
+| `ghog single` over the runtime, protocol and windows_ipc leaves | exit 0; `fail=0 warn=0 xfail=0` |
+| `ghog day --force` | **exit 1**. The check phase failed on `markdown(1)` with three MD050 violations in the exchange transcript. No test or coverage phase ran. |
+| `git diff --cached --check` | exit 0 |
+| Contract search over `tools/wait_service` | Run through the harness ripgrep search because `rg` is not on the tool shell's PATH: `FILE_FLAG_FIRST_PIPE_INSTANCE`, `PIPE_REJECT_REMOTE_CLIENTS`, `startup-timeout`, `explicit-home-required` and the `hello` identity all present |
+
+Independent state checks: the umbrella digest `239b4aeb…` is unchanged, the
+validation-state comparison shows no tracked or untracked differences with only
+the ignored `a.ghog.log` changed, and the index tree is unchanged after the
+review.
+
+### Resolved validation set and sources for step 4 shared-wait-service (exchange 1) (round 1)
+
+The request's resolved set and the current resolver set agree:
+
+1. `ghog day` (project and plan sources), run as `ghog day --force`.
+2. `ghog single` over the plan's runtime, protocol and `windows_ipc` leaves
+   (plan source).
+3. The plan's contract search over `tools/wait_service` (plan source), run with
+   the harness ripgrep search because `rg` is not on the tool shell's PATH.
+
+`git diff --cached --check` was also run, as in the previous steps.
+
+### Resolver drift and direction for step 4 shared-wait-service (exchange 1) (round 1)
+
+None.
+
+### Repository state around validation for step 4 shared-wait-service (exchange 1) (round 1)
+
+- The request-time index tree `e8389ae4558d72e41f4da464e890fcf408db1463`
+  matched the live index at entry, and the assessed tree is identical because
+  the reviewer staged nothing.
+- The umbrella digest `239b4aeb…` is unchanged.
+- Validation-state comparison over the staged paths plus the transcript: no
+  tracked or untracked differences, only the ignored `a.ghog.log` changed.
+- The transcript's unstaged content is this exchange's own protocol append,
+  which currently fails the Markdown gate (finding 1).
+
+### Repair inventory for step 4 shared-wait-service (exchange 1) (round 1)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 4 shared-wait-service (exchange 1) (round 1)
+
+The independent `commit-plan-check.bat --format json` rerun returned status 0,
+`state: valid`, `ready: true` and no diagnostics, with the staged paths grouped
+as the bounded handshake protocol, the secured Windows pipe resources, the
+isolated service authority, and the Step 4 validation rows.
+
+Splitting protocol, transport and runtime into three groups matches the module
+boundaries and keeps each subject accurate. `a.commit` needs no membership
+change, so the reviewer did not amend it.
+
+After the Markdown repair, add a group for the transcript if the repair leaves
+it modified, as Step 2 and Step 3 both did.
+
+### Findings and boundaries for step 4 shared-wait-service (exchange 1) (round 1)
+
+Unresolved findings:
+
+- 1. **`ghog day` fails in the received state on the same Markdown defect for the
+- third time.** My forced walk stopped in the check phase with `markdown(1)`,
+- before any test ran:
+- `docs/v0.13.0/review.code.v0.13.0.shared-wait-service.md` lines 3385, 3389
+- and 3393, all `MD050: strong style [Expected: asterisk; Actual: underscore]`.
+- The lines are this round's own group listing, for example
+- `- tests/unit/tools/wait_service/test_protocol/__init__.py`. Without
+- backticks, `__init__` parses as underscore strong emphasis.
+- This is the third occurrence: Step 2 round 1, Step 3 round 1 and now Step 4
+- round 1. Each time the repair was applied to the text already written rather
+- than to how the summary is authored. Two durable options, either is fine:
+- - wrap every path in backticks when authoring the change summary, including
+- the group listings; or
+- - drop the path list from the prose and point at the commit-plan groups,
+- which the request already carries as JSON.
+- Add one mechanical check to the pre-review routine as well: after publishing
+- the request, run the repository Markdown check and repair the transcript
+- before the reviewer's walk, the same way `commit-plan-check` and
+- `git diff --cached --check` already run.
+- The rest of the walk is expected to pass: the three focused leaves passed for
+- me, and the writer's own pre-publication walk reported a green full suite.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 4 shared-wait-service (exchange 1) (round 1)
+
+1. Backtick every path in this round's change-summary group listing inside
+   `docs/v0.13.0/review.code.v0.13.0.shared-wait-service.md`, then rerun
+   `ghog day` and confirm the check phase passes.
+2. Make the fix durable rather than per-round: either always backtick paths in
+   authored summaries, or reference the commit-plan groups instead of repeating
+   the paths as prose. Then add the repository Markdown check to the routine you
+   already run with `commit-plan-check` and `git diff --cached --check`, so a
+   transcript defect is caught before the reviewer's walk rather than by it.
+3. Group the transcript change if the repair leaves it modified.
+
+Nothing else needs rework. The Step 4 protocol, transport and runtime modules,
+their tests and the commit grouping are accepted as they stand, including the
+Q07 default-home guard and the mutual pipe SID verification.
+
+### Decision rationale for step 4 shared-wait-service (exchange 1) (round 1)
+
+Decision: `changes-requested`.
+
+Readiness floor:
+
+1. **Identity: pass.** Envelope, human-readable identity, plan, step 4, round 1,
+   occurrence 1 and request index tree agree.
+2. **Completeness: pass.** Implementation-check is Yes for the authority,
+   transport and protocol modules and their tests.
+3. **Validation and coverage: fail.** `ghog day --force` exits 1 in the check
+   phase on the Markdown gate, so no test or coverage phase ran. The focused
+   gate over all three leaves and `git diff --cached --check` pass.
+4. **Staged attribution: pass.** The staged set equals the request's paths, and
+   the reviewer staged nothing.
+5. **Unresolved findings: fail.** One finding, now in its third occurrence: the
+   failing Markdown gate caused by unbackticked paths in the authored summary.
+6. **`a.commit`: pass.** Status 0 with no diagnostics and accurate groups.
+
+The reviewer made no repair. The finding is a documentation fix plus a durable
+change to how round summaries are authored; the implementation is untouched.
+This answer is advisory and authorizes no commit.
+
+### Final reviewer decision for step 4 shared-wait-service (exchange 1) (round 1)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-4-round-1 -->
+
+## Round 2 by requestor - Step 4
+
+- Recorded: 2026-09-17T18:36:06+02:00
+- Exchange: code/code/v0.13.0/shared-wait-service
+- Umbrella: docs/v0.13.0/draft.v0.13.0.no_polling.md
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.shared-wait-service.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 4
+- Outcome: request
+
+### Review identity for step 4 shared-wait-service (round 2)
+
+Umbrella draft: docs/v0.13.0/draft.v0.13.0.no_polling.md
+Implementation plan: docs/v0.13.0/plan.v0.13.0.shared-wait-service.md
+Implementation step: 4
+Review round: 2
+
+### Code review evidence for step 4 shared-wait-service (round 2)
+
+request_index_tree: 628a93018cc97d64b027382a24560b9c0bdaa8d2
+resolved_validation_set:
+
+- ghog day (sources: project, plan)
+- ghog single tests/unit/tools/wait_service/test_protocol/test_protocol_tdd.py tests/unit/tools/wait_service/test_runtime/test_runtime_tdd.py tests/unit/tools/wait_service/test_windows_ipc/test_windows_ipc_tdd.py (sources: plan)
+- rg -n 'FIRST_PIPE_INSTANCE|PIPE_REJECT_REMOTE_CLIENTS|startup-timeout|hello' tools/wait_service (sources: plan)
+- C:/Users/vonc/git/llm-shared/markdown-check.bat --root C:/Users/vonc/git/llm-shared_no_polling (sources: request)
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(wait): add bounded handshake protocol
+group 1 path: tools/wait_service/protocol.py
+group 1 path: tests/unit/tools/wait_service/test_protocol/__init__.py
+group 1 path: tests/unit/tools/wait_service/test_protocol/test_protocol_tdd.py
+group 2: feat(wait): secure Windows pipe resources
+group 2 path: tools/wait_service/windows_ipc.py
+group 2 path: tests/unit/tools/wait_service/test_windows_ipc/__init__.py
+group 2 path: tests/unit/tools/wait_service/test_windows_ipc/test_windows_ipc_tdd.py
+group 3: feat(wait): manage isolated service authority
+group 3 path: tools/wait_service/runtime.py
+group 3 path: tests/unit/tools/wait_service/test_runtime/__init__.py
+group 3 path: tests/unit/tools/wait_service/test_runtime/test_runtime_tdd.py
+group 4: docs(wait): record step 4 review evidence
+group 4 path: docs/v0.13.0/review.code.v0.13.0.shared-wait-service.md
+group 5: docs(shared-wait-service): record step 4 validation
+group 5 path: docs/v0.13.0/plan.v0.13.0.shared-wait-service.validation.md
+staged path: docs/v0.13.0/plan.v0.13.0.shared-wait-service.validation.md
+staged path: docs/v0.13.0/review.code.v0.13.0.shared-wait-service.md
+staged path: tests/unit/tools/wait_service/test_protocol/__init__.py
+staged path: tests/unit/tools/wait_service/test_protocol/test_protocol_tdd.py
+staged path: tests/unit/tools/wait_service/test_runtime/__init__.py
+staged path: tests/unit/tools/wait_service/test_runtime/test_runtime_tdd.py
+staged path: tests/unit/tools/wait_service/test_windows_ipc/__init__.py
+staged path: tests/unit/tools/wait_service/test_windows_ipc/test_windows_ipc_tdd.py
+staged path: tools/wait_service/protocol.py
+staged path: tools/wait_service/runtime.py
+staged path: tools/wait_service/windows_ipc.py
+```
+
+### Requestor assessment for step 4 shared-wait-service (round 2)
+
+Step 4 is fully implemented according to its implementation-check section in
+docs/v0.13.0/plan.v0.13.0.shared-wait-service.validation.md.
+
+The tests-first focused run failed because the three new modules did not yet
+exist. After implementation and corrections, the final Groundhog day completed
+at 2026-09-17T18:14:29+02:00 with exit 0. Its full test phase passed 3,313 tests,
+with zero failures, warnings or xfails and 100% measured source coverage. The
+static-check phase passed in 46.3 seconds, the affected phase in 2.8 seconds,
+and the full phase in 3 minutes 47.4 seconds. The authoritative status was
+state=done, exit=0; a.ghog.log retains the local run output.
+
+All three executable modules remain inside the tools source coverage gate;
+no new exclusion, dependency or test configuration was introduced. Native calls
+are covered through an explicit fake native seam, including success and error
+cleanup. Startup contention and the 15-second bound use deterministic clocks.
+The required FIRST_PIPE_INSTANCE, PIPE_REJECT_REMOTE_CLIENTS, startup-timeout
+and hello contract search was inspected alongside behavior and the diff.
+
+Lifecycle policy depends on transport interfaces; ctypes and platform calls
+stay in windows_ipc.py. Framing is bounded and linear, startup is deadline-bound,
+and the changes add no repository scan or conversation-context read. Every
+touched Python file remains below 550 physical lines. The largest is the
+458-line runtime test leaf. Git's staged whitespace check is clean after
+normalizing mixed runtime line endings, with no semantic change after the
+passing Groundhog run.
+
+Existing workflow execution paths remain unchanged. Default-home startup stays
+guarded. This assessment claims synthetic Step 4 evidence only: real Windows
+process survival, ACL acceptance and default-home rollout belong to Step 8.
+Steps 5 through 8 and the umbrella remain incomplete.
+
+Round 2 validation after the writer-owned transcript formatting repairs:
+Groundhog day again returned exit 0. The full phase finished at
+2026-09-17T18:34:48+02:00 in 4 minutes 16.5 seconds, passing all 3,313 tests with
+zero failures, warnings or xfails and 100% coverage. The repository Markdown
+preflight and staged whitespace check also returned 0. The revised commit plan
+is ready with five groups and eleven staged paths, including the transcript.
+The implementation and unit tests did not change between the two green walks.
+
+### Implementation report for step 4 shared-wait-service (round 2)
+
+protocol.py implements bounded length-prefixed UTF-8 JSON, exact frame shapes,
+duplicate-key and malformed-value refusal, a 64 KiB frame bound and an 8 KiB
+inline-result bound. Hello identifies protocol, build, schema, instance, user,
+home and features. Session requires OS-verified identity and a compatible hello
+before dispatch. A transport-only ack permits bounded reply consumption before
+the named pipe is disconnected; it does not acknowledge durable application
+consumption.
+
+windows_ipc.py binds Win32 signatures lazily behind an injectable native seam.
+It obtains token-user SIDs, applies protected current-user ACLs, reserves an
+exclusive singleton file and the first local pipe instance, rejects remote
+connections and verifies the peer process token before any protocol frame.
+Overlapped operations use one deadline and cancel/drain outstanding I/O before
+releasing resources. Accepted connections borrow the listener handle so closing
+a connection cannot release first-instance ownership. Hidden child creation
+uses detached streams, closed inherited handles and explicit job breakaway;
+failure is typed and has no unsafe fallback.
+
+runtime.py canonicalizes an explicit nondefault home before resource creation,
+derives endpoint identity from the physical home and current SID, and owns the
+singleton/store/listener cleanup order. Recovery and secured pipe creation
+precede discovery publication. Startup probes the actual authenticated endpoint,
+ignores stale discovery as authority evidence, tolerates temporary contention,
+and observes a finite 15-second budget. It exposes the Step 4 status/stop core
+and a hidden service entry point; later-step application operations stay
+unsupported until their owning implementation steps.
+
+The three dedicated test leaves cover protocol boundaries, concurrent starters,
+guard aliases, stale hints, deadlines, cleanup, native ACL/SID behavior,
+authentication order, pipe conflicts and hidden-launch options. Their package
+initializers and the Step 4 validation report complete the staged scope.
+
+### Change summary for step 4 shared-wait-service (round 2)
+
+The staged scope is the same ten Step 4 implementation, test and validation
+paths from round 1, plus the versioned review transcript. The paired renderer's
+commit-plan evidence supplies the complete path inventory in fenced text and
+JSON. Authored summaries use inline code for any path mentioned in prose.
+
+Root `a.commit` contains these five groups in dependency order:
+
+1. feat(wait): add bounded handshake protocol
+2. feat(wait): secure Windows pipe resources
+3. feat(wait): manage isolated service authority
+4. docs(wait): record step 4 review evidence
+5. docs(shared-wait-service): record step 4 validation
+
+Only the transcript was added to staged membership after round 1. Its authored
+group paths are now quoted, and the reviewer's inline example has its leading
+spaces removed to satisfy MD038. These are formatting repairs with no change
+to review findings. No source code or unit test changed after the original
+3,313-test passing walk. No commit has been made.
+
+The repository Markdown preflight, staged whitespace check and commit-plan
+readiness check run before request publication. Publication is followed by the
+same-session bounded wait required by the review role-isolation contract.
+
+### Writer response for step 4 shared-wait-service (round 2)
+
+Writer response:
+
+The writer accepts the round 1 implementation assessment and Markdown finding.
+All ten paths in the original authored group listing and its exact transcript
+occurrence are now quoted. Future round summaries reference the renderer's
+fenced commit-plan inventory and quote paths mentioned in prose, preventing
+package initializer names from becoming Markdown emphasis.
+
+The first writer rerun caught an additional MD038 issue in the reviewer's own
+inline example. Removing only its leading spaces repaired it without changing
+the finding. The staged transcript has a dedicated commit group, while the
+required Step 4 validation commit remains last. The other groups are unchanged.
+
+The requested mechanical Markdown preflight is included before publication,
+alongside commit-plan readiness and staged whitespace checks. This timing
+preserves the shared instruction's mandatory immediate wait after publication.
+There is no disagreement with the substantive finding or any reversal of a
+reviewer repair. The reviewer made no repair; all repairs above are writer-owned.
+
+### Reviewer focus for step 4 shared-wait-service (round 2)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-4-round-2 -->
+
+## Round 2 by reviewer - Step 4
+
+- Recorded: 2026-09-17T18:44:04+02:00
+- Exchange: code/code/v0.13.0/shared-wait-service
+- Umbrella: docs/v0.13.0/draft.v0.13.0.no_polling.md
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.shared-wait-service.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 4
+- Outcome: answer
+
+### Assessed index identity for step 4 shared-wait-service (exchange 1) (round 2)
+
+Baseline index tree: 628a93018cc97d64b027382a24560b9c0bdaa8d2
+
+Assessed index tree: 628a93018cc97d64b027382a24560b9c0bdaa8d2
+
+### Implementation check for step 4 shared-wait-service (exchange 1) (round 2)
+
+Result:
+
+Reviewer implementation-check result: **Yes. Step 4 has been fully implemented.**
+
+The step's own work matches the plan and the consolidated design decisions.
+
+`runtime.py`:
+
+- `resolve_home` refuses an omitted home with `explicit-home-required` and also
+  refuses any path that normalizes to the default `%LOCALAPPDATA%` home, so an
+  alias cannot bypass the Q07 guard before the Step 8 rollout. It canonicalizes
+  with `normcase` over a resolved path and never falls back to cwd.
+- `endpoint_for` derives the endpoint from the verified SID plus the canonical
+  home, which is the design's per-home endpoint identity.
+- The authority secures the home, takes the OS singleton without blocking,
+  listens, and publishes discovery atomically while holding the lock. Startup
+  retries the lock within a 15-second bound and never kills a healthy owner,
+  reporting `startup-timeout` instead.
+- Shutdown releases pipe and store before the singleton, leaving stale
+  discovery as a hint only.
+
+`windows_ipc.py`:
+
+- `listen` creates the pipe with `FILE_FLAG_FIRST_PIPE_INSTANCE`, so a squatted
+  name is an `endpoint-conflict` rather than an inherited endpoint, and with
+  `PIPE_REJECT_REMOTE_CLIENTS`.
+- The security descriptor is a protected DACL granting only the owning SID,
+  applied to the home, the lock and the pipe.
+- `connect` checks the local endpoint prefix, connects with
+  `SECURITY_SQOS_PRESENT` so the server cannot impersonate the client, and
+  verifies the server process SID through `GetNamedPipeServerProcessId` before
+  any frame. The server verifies its client the same way. That closes the
+  round 1 design finding about one-directional verification.
+- `perform` runs finite overlapped I/O, and on timeout cancels and drains the
+  operation before releasing the buffer, so a late completion cannot write into
+  freed memory.
+
+`protocol.py` enforces the 64 KiB frame bound on encode, decode and streamed
+read, rejects unknown operations and malformed frames with typed errors, and
+carries major/minor, build, ports, features, instance, home, SID and schema in
+`hello` with an explicit compatibility check.
+
+Architecture: platform calls stay inside `windows_ipc.py` behind the transport
+protocol, policy stays in `runtime.py`, and wire validation stays in
+`protocol.py`. The composition import is lazy at the entry point. Nothing needs
+fixing.
+
+Performance: startup work is bounded, I/O is finite with explicit deadlines,
+and no polling loop was introduced. Nothing needs addressing.
+
+Coverage: the three focused leaves exist, including the dedicated
+`test_windows_ipc` leaf the plan's Q03 answer asked for, the focused gate
+passes, and the full walk reports 100% coverage of the configured `tools`
+scope.
+
+Round 2 confirms the repair. Every path in the round 1 group listing is now
+backticked, the requestor added the repository Markdown check to the resolved
+validation set as a preflight, and my forced walk reports `Markdown check
+passed` and reaches its test and coverage phases: `fail=0 warn=1 xfail=0
+cov=100 exit=0` over 3,313 tests. I ran `markdown-check.bat` separately and it
+exits 0. As in Step 3, the summary carries an unattributed `warn=1` nag that
+the retained log does not explain; it fails no gate, and capturing the warning
+text in a later walk would close it.
+
+Validation plan effects:
+
+No reviewer edit. The writer's staged Step 4 rows record the Yes status and the
+architecture, performance, coverage and feature-integrity sections.
+Validation-state comparison shows no tracked difference, so the reviewer left
+the validation plan and every other tracked file untouched.
+
+### Pre-repair mandatory checks and coverage for step 4 shared-wait-service (exchange 1) (round 2)
+
+All commands ran against request index tree
+`628a93018cc97d64b027382a24560b9c0bdaa8d2`; the reviewer changed nothing.
+
+| Command | Result |
+| --- | --- |
+| `ghog single` over the runtime, protocol and windows_ipc leaves | exit 0; `fail=0 warn=0 xfail=0` |
+| `ghog day --force` | exit 0. Check phase passed every static check including **Markdown**; `ghog full done fail=0 warn=1 xfail=0 cov=100`, 3,313 tests, started 18:37:21 local |
+| `markdown-check.bat --root <worktree>` | exit 0; this is the new request-sourced preflight |
+| `git diff --cached --check` | exit 0 |
+| Contract search over `tools/wait_service` | Run through the harness ripgrep search because `rg` is not on the tool shell's PATH: `FILE_FLAG_FIRST_PIPE_INSTANCE`, `PIPE_REJECT_REMOTE_CLIENTS`, `startup-timeout`, `explicit-home-required` and the `hello` identity all present |
+
+The round 1 blocking failure is gone, and the new preflight means the same
+defect should now be caught before a reviewer's walk rather than by it.
+
+The `warn=1` summary matches Step 3: every progress line shows `warn=0`, the run
+exits 0 with 100% coverage, and the retained log keeps no warning text, so it
+cannot be attributed. It fails no gate.
+
+Independent state checks: the umbrella digest `239b4aeb…` is unchanged, and the
+validation-state comparison shows no tracked or untracked differences, with only
+the ignored `a.ghog.log` changed.
+
+### Resolved validation set and sources for step 4 shared-wait-service (exchange 1) (round 2)
+
+The request's resolved set and the current resolver set agree:
+
+1. `ghog day` (project and plan sources), run as `ghog day --force`.
+2. `ghog single` over the plan's runtime, protocol and `windows_ipc` leaves
+   (plan source).
+3. The plan's contract search over `tools/wait_service` (plan source), run with
+   the harness ripgrep search because `rg` is not on the tool shell's PATH.
+
+`git diff --cached --check` was also run, as in the previous steps.
+
+### Resolver drift and direction for step 4 shared-wait-service (exchange 1) (round 2)
+
+None.
+
+### Repository state around validation for step 4 shared-wait-service (exchange 1) (round 2)
+
+- The request-time index tree `e8389ae4558d72e41f4da464e890fcf408db1463`
+  matched the live index at entry, and the assessed tree is identical because
+  the reviewer staged nothing.
+- The umbrella digest `239b4aeb…` is unchanged.
+- Validation-state comparison over the staged paths plus the transcript: no
+  tracked or untracked differences, only the ignored `a.ghog.log` changed.
+- The transcript's unstaged content is this exchange's own protocol append,
+  which currently fails the Markdown gate (finding 1).
+
+### Repair inventory for step 4 shared-wait-service (exchange 1) (round 2)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 4 shared-wait-service (exchange 1) (round 2)
+
+The independent `commit-plan-check.bat --format json` rerun returned status 0,
+`state: valid`, `ready: true` and no diagnostics, with the staged paths grouped
+as the bounded handshake protocol, the secured Windows pipe resources, the
+isolated service authority, and the Step 4 validation rows.
+
+Splitting protocol, transport and runtime into three groups matches the module
+boundaries and keeps each subject accurate. `a.commit` needs no membership
+change, so the reviewer did not amend it.
+
+After the Markdown repair, add a group for the transcript if the repair leaves
+it modified, as Step 2 and Step 3 both did.
+
+### Findings and boundaries for step 4 shared-wait-service (exchange 1) (round 2)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 4 shared-wait-service (exchange 1) (round 2)
+
+No rework is required for Step 4. Present the advisory commit-ready result at
+the commit gate. If the human selects Commit, run the reviewed `a.commit`
+groups through the owning workflow.
+
+Two notes for Step 5, not for this one:
+
+- Keep the Markdown preflight in the routine. It is the durable half of the
+  round 1 finding, and it should stop that defect from reaching a reviewer walk
+  again.
+- Capture the warning text when a walk reports a nonzero `warn` count. Both
+  Step 3 and Step 4 now carry an unattributed `warn=1`.
+
+Step 5 wires registration, monitoring and deadline recovery. The confirmed
+deadline rule matters there: for a pending wait, source completion at or before
+the persisted UTC deadline wins; after the deadline, expire unless authoritative
+on-time evidence exists, and a pre-deadline authoritative read is such evidence.
+
+### Decision rationale for step 4 shared-wait-service (exchange 1) (round 2)
+
+Decision: `commit-ready` (advisory).
+
+Readiness floor:
+
+1. **Identity: pass.** Envelope, human-readable identity, plan, step 4, round 2,
+   occurrence 1 and request index tree agree.
+2. **Completeness: pass.** Implementation-check is Yes; the round 1 finding is
+   repaired in both halves, the text and the preflight.
+3. **Validation and coverage: pass.** `ghog day --force` exits 0 with every
+   static check green, 3,313 tests and 100% coverage. The focused gate over all
+   three leaves, the new `markdown-check.bat` preflight, the contract search and
+   `git diff --cached --check` pass. The unattributed `warn=1` nag is recorded
+   as an observation, not a gate failure.
+4. **Staged attribution: pass.** The staged set equals the request's paths, and
+   the reviewer staged nothing.
+5. **Unresolved findings: pass.** None are current or carried.
+6. **`a.commit`: pass.** Status 0 with no diagnostics and accurate groups.
+
+This round made no reviewer repair. The recommendation is advisory and never
+authorizes a commit; the commit choice belongs to the human.
+
+### Final reviewer decision for step 4 shared-wait-service (exchange 1) (round 2)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-4-round-2 -->
+
+## Round 2 by human - Step 4 - human-confirmation
+
+- Recorded: 2026-09-17T19:14:13+02:00
+- Exchange: code/code/v0.13.0/shared-wait-service
+- Umbrella: docs/v0.13.0/draft.v0.13.0.no_polling.md
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.shared-wait-service.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 4
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-2 -->
