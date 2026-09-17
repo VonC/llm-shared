@@ -1059,3 +1059,1400 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-2 -->
+
+## Round 1 by requestor - Step 2
+
+- Recorded: 2026-09-17T13:18:43+02:00
+- Exchange: code/code/v0.13.0/shared-wait-service
+- Umbrella: docs/v0.13.0/draft.v0.13.0.no_polling.md
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.shared-wait-service.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: unrecorded
+- Implementation step: 2
+- Outcome: request
+
+### Review identity for step 2 shared-wait-service (round 1)
+
+Umbrella draft: docs/v0.13.0/draft.v0.13.0.no_polling.md
+Implementation plan: docs/v0.13.0/plan.v0.13.0.shared-wait-service.md
+Implementation step: 2
+Review round: 1
+
+### Code review evidence for step 2 shared-wait-service (round 1)
+
+request_index_tree: 98120e08a2e01e8cea3edcdfaf9d10e8119ea7bf
+resolved_validation_set:
+
+- ghog day (sources: project)
+- ghog single tests/unit/tools/wait_evidence/test_prototype/test_prototype_tdd.py tests/unit/tools/wait_evidence/test_telemetry/test_telemetry_tdd.py (sources: plan)
+- rg -n 'normal.end|WAIT_TEST_DONE|B-prototype|inconclusive' tools/wait_evidence docs/v0.13.0/probe-results.v0.13.0.shared-wait-service.md (sources: plan)
+- git diff --cached --check (sources: request)
+- ghog single tests/unit/tools/wait_evidence/test_prototype/test_claude_continuation_tdd.py (sources: request)
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: build(wait-evidence): add WebSocket framing
+group 1 path: pyproject.toml
+group 1 path: uv.lock
+group 2: feat(wait-evidence): probe native idle wake
+group 2 path: tools/wait_evidence/__init__.py
+group 2 path: tools/wait_evidence/claude_monitor.py
+group 2 path: tools/wait_evidence/claude_observer.py
+group 2 path: tools/wait_evidence/codex_proxy.py
+group 2 path: tools/wait_evidence/collector.py
+group 2 path: tools/wait_evidence/models.py
+group 2 path: tools/wait_evidence/probe_cli.py
+group 2 path: tools/wait_evidence/probe_driver.py
+group 2 path: tools/wait_evidence/probe_files.py
+group 2 path: tools/wait_evidence/probe_observer.py
+group 2 path: tools/wait_evidence/prototype.py
+group 2 path: tools/wait_evidence/telemetry.py
+group 2 path: tools/wait_evidence/telemetry_claude.py
+group 2 path: docs/v0.13.0/probe.shared-wait-service.py
+group 2 path: tests/unit/tools/wait_evidence/test_codex_proxy/__init__.py
+group 2 path: tests/unit/tools/wait_evidence/test_codex_proxy/test_codex_proxy_tdd.py
+group 2 path: tests/unit/tools/wait_evidence/test_prototype/__init__.py
+group 2 path: tests/unit/tools/wait_evidence/test_prototype/test_claude_continuation_tdd.py
+group 2 path: tests/unit/tools/wait_evidence/test_prototype/test_claude_lifecycle_tdd.py
+group 2 path: tests/unit/tools/wait_evidence/test_prototype/test_claude_observer_tdd.py
+group 2 path: tests/unit/tools/wait_evidence/test_prototype/test_driver_edges_tdd.py
+group 2 path: tests/unit/tools/wait_evidence/test_prototype/test_native_tdd.py
+group 2 path: tests/unit/tools/wait_evidence/test_prototype/test_observer_tdd.py
+group 2 path: tests/unit/tools/wait_evidence/test_prototype/test_prototype_tdd.py
+group 2 path: tests/unit/tools/wait_evidence/test_telemetry/test_claude273_tdd.py
+group 2 path: tests/unit/tools/wait_evidence/test_telemetry/test_native_binding_tdd.py
+group 2 path: tests/unit/tools/wait_evidence/test_telemetry/test_telemetry_tdd.py
+group 3: feat(wait-probe): prepare measured TUI sessions
+group 3 path: docs/v0.13.0/claude-probe-state.shared-wait-service.py
+group 3 path: docs/v0.13.0/claude-probe.shared-wait-service.py
+group 3 path: docs/v0.13.0/claude-smoke.v0.13.0.shared-wait-service.md
+group 3 path: docs/v0.13.0/claude-tabs.shared-wait-service.ps1
+group 3 path: docs/v0.13.0/claude-tabs.v0.13.0.shared-wait-service.md
+group 3 path: docs/v0.13.0/codex-tabs.shared-wait-service.ps1
+group 3 path: docs/v0.13.0/codex-tabs.shared-wait-service.py
+group 3 path: docs/v0.13.0/codex-tabs.v0.13.0.shared-wait-service.md
+group 3 path: docs/v0.13.0/handoff.v0.13.0.claude-timed-tests.md
+group 3 path: docs/v0.13.0/plan.v0.13.0.shared-wait-service.md
+group 3 path: docs/v0.13.0/seed-procedure.v0.13.0.shared-wait-service.md
+group 4: docs(wait-probe): retain matched trial evidence
+group 4 path: docs/v0.13.0/probe-claude-capability.v0.13.0.shared-wait-service.json
+group 4 path: docs/v0.13.0/probe-claude-controlled.v0.13.0.shared-wait-service.json
+group 4 path: docs/v0.13.0/probe-claude-resume.v0.13.0.shared-wait-service.json
+group 4 path: docs/v0.13.0/probe-claude-seeds.v0.13.0.shared-wait-service.json
+group 4 path: docs/v0.13.0/probe-claude-series-audit.v0.13.0.shared-wait-service.json
+group 4 path: docs/v0.13.0/probe-claude-smoke.v0.13.0.shared-wait-service.json
+group 4 path: docs/v0.13.0/probe-controlled.v0.13.0.shared-wait-service.json
+group 4 path: docs/v0.13.0/probe-manifests.v0.13.0.shared-wait-service.json
+group 4 path: docs/v0.13.0/probe-results.v0.13.0.shared-wait-service.md
+group 5: docs(shared-wait-service): record step 2 validation
+group 5 path: docs/v0.13.0/plan.v0.13.0.shared-wait-service.validation.md
+staged path: docs/v0.13.0/claude-probe-state.shared-wait-service.py
+staged path: docs/v0.13.0/claude-probe.shared-wait-service.py
+staged path: docs/v0.13.0/claude-smoke.v0.13.0.shared-wait-service.md
+staged path: docs/v0.13.0/claude-tabs.shared-wait-service.ps1
+staged path: docs/v0.13.0/claude-tabs.v0.13.0.shared-wait-service.md
+staged path: docs/v0.13.0/codex-tabs.shared-wait-service.ps1
+staged path: docs/v0.13.0/codex-tabs.shared-wait-service.py
+staged path: docs/v0.13.0/codex-tabs.v0.13.0.shared-wait-service.md
+staged path: docs/v0.13.0/handoff.v0.13.0.claude-timed-tests.md
+staged path: docs/v0.13.0/plan.v0.13.0.shared-wait-service.md
+staged path: docs/v0.13.0/plan.v0.13.0.shared-wait-service.validation.md
+staged path: docs/v0.13.0/probe-claude-capability.v0.13.0.shared-wait-service.json
+staged path: docs/v0.13.0/probe-claude-controlled.v0.13.0.shared-wait-service.json
+staged path: docs/v0.13.0/probe-claude-resume.v0.13.0.shared-wait-service.json
+staged path: docs/v0.13.0/probe-claude-seeds.v0.13.0.shared-wait-service.json
+staged path: docs/v0.13.0/probe-claude-series-audit.v0.13.0.shared-wait-service.json
+staged path: docs/v0.13.0/probe-claude-smoke.v0.13.0.shared-wait-service.json
+staged path: docs/v0.13.0/probe-controlled.v0.13.0.shared-wait-service.json
+staged path: docs/v0.13.0/probe-manifests.v0.13.0.shared-wait-service.json
+staged path: docs/v0.13.0/probe-results.v0.13.0.shared-wait-service.md
+staged path: docs/v0.13.0/probe.shared-wait-service.py
+staged path: docs/v0.13.0/seed-procedure.v0.13.0.shared-wait-service.md
+staged path: pyproject.toml
+staged path: tests/unit/tools/wait_evidence/test_codex_proxy/__init__.py
+staged path: tests/unit/tools/wait_evidence/test_codex_proxy/test_codex_proxy_tdd.py
+staged path: tests/unit/tools/wait_evidence/test_prototype/__init__.py
+staged path: tests/unit/tools/wait_evidence/test_prototype/test_claude_continuation_tdd.py
+staged path: tests/unit/tools/wait_evidence/test_prototype/test_claude_lifecycle_tdd.py
+staged path: tests/unit/tools/wait_evidence/test_prototype/test_claude_observer_tdd.py
+staged path: tests/unit/tools/wait_evidence/test_prototype/test_driver_edges_tdd.py
+staged path: tests/unit/tools/wait_evidence/test_prototype/test_native_tdd.py
+staged path: tests/unit/tools/wait_evidence/test_prototype/test_observer_tdd.py
+staged path: tests/unit/tools/wait_evidence/test_prototype/test_prototype_tdd.py
+staged path: tests/unit/tools/wait_evidence/test_telemetry/test_claude273_tdd.py
+staged path: tests/unit/tools/wait_evidence/test_telemetry/test_native_binding_tdd.py
+staged path: tests/unit/tools/wait_evidence/test_telemetry/test_telemetry_tdd.py
+staged path: tools/wait_evidence/__init__.py
+staged path: tools/wait_evidence/claude_monitor.py
+staged path: tools/wait_evidence/claude_observer.py
+staged path: tools/wait_evidence/codex_proxy.py
+staged path: tools/wait_evidence/collector.py
+staged path: tools/wait_evidence/models.py
+staged path: tools/wait_evidence/probe_cli.py
+staged path: tools/wait_evidence/probe_driver.py
+staged path: tools/wait_evidence/probe_files.py
+staged path: tools/wait_evidence/probe_observer.py
+staged path: tools/wait_evidence/prototype.py
+staged path: tools/wait_evidence/telemetry.py
+staged path: tools/wait_evidence/telemetry_claude.py
+staged path: uv.lock
+```
+
+### Requestor assessment for step 2 shared-wait-service (round 1)
+
+Writer assessment: Step 2 is fully implemented, subject to independent code review.
+The matching validation section records code completion and live-evidence
+completion separately. Steps 3 through 8 remain unimplemented; umbrella item 1
+is not being closed by this review.
+
+Validation evidence:
+
+- The exact Claude B1 continuation rejection was reproduced red, then the
+  repaired implementation passed 39 focused checks, 10 affected checks and
+  all 3,198 full tests with 100% configured coverage, zero failures, warnings
+  or xfails. The final walk ended 2026-09-17T07:47:09Z, state=done exit=0.
+- Retained full log: a.shared-wait-service/ghog-claude-continuation-green.log,
+  SHA-256 4d6d9429b582533b23683f2cde4b5f1805f8c34fb98397b594688bb30eac0b3b.
+  Related red and focused logs share that directory and prefix.
+- Groundhog owns the static-check, affected-test and coverage gates. Coverage
+  is the configured tools scope, with pyproject exclusions; it is not a claim
+  of measured coverage for docs-side scripts or every repository file.
+- The implementation inventory counted all 30 changed Python files at or
+  below 650 physical lines, including tests and initializers, and checked EOF
+  markers and references. collector.py has 548 lines; claude_observer.py 388.
+  Evidence: a.shared-wait-service/step2-code-inventory.json and the validation
+  document's architecture, performance, coverage and feature-integrity sections.
+- The isolated prototype uses durable identities, native gates, external
+  observers and bounded timers. It does not replace current review/Groundhog
+  workflows or implement the later shared service.
+- Both hosts have retained controlled baselines and three paired trials.
+  Claude B1 remains failed; B2 and B3 passed after the additive validated
+  monitor-completion-01 revision. All A trials retain the initial-yield
+  limitation. Codex B2's observer recovery and earlier failures remain visible.
+- Claude final audit 2026-09-17T09:11:59.194Z passed all aggregate and per-run
+  integrity checks. Closure at 09:12:14.715Z verified all original session
+  identities, unchanged stream hashes and completed observers. All seven
+  Claude tabs may close. No measured trial was retried or reseeded.
+- Immediately before review rendering, git diff --cached --check passed and
+  commit-plan-check reported ready=true, state=valid, diagnostics=[], with
+  all 50 staged paths covered by five groups.
+
+The current request adds the missing Claude median/range and explicit count
+summary, computed from the existing exported deltas. This documentation-only
+addition preserves raw evidence and production code. The full code validation
+above predates that report addition; the review's resolved checks remain due.
+
+Acceptance distinction: SW-09 and AC-15 impose no minimum net token-savings
+threshold. SW-11 requires observed counts/deltas, aggregates and limitations,
+and forbids inferring billing or quota savings from token counts. Functional
+wake is observed; complete request coverage and strict-idle support remain
+unknown. The strict no-inference and fresh A/B-service obligations belong to
+umbrella item 8, not this effort's local Step 8.
+
+### Implementation report for step 2 shared-wait-service (round 1)
+
+The Step 2 harness now freezes full seeds, reserves exact fresh identities,
+enforces READY/context/manifest gates and serial measurements, and persists
+registration, source readiness, native delivery and one consumption. The
+standalone probe entry point works independently of cwd.
+
+Codex proxy framing and Claude Monitor adapters bind the exact original
+conversation. Native transcript normalization keeps request-attempt coverage
+unknown when the installed schema cannot establish it. Independent ordinary
+processes collect evidence and enforce separate source, wake, duplicate and
+drain intervals.
+
+The Claude repair accepts the verified completed-task notification only when
+its ancestry, task and Monitor call match the ready notification. It rejects
+ambiguous, duplicate or unrelated notices and never rewrites native UUIDs.
+Regression tests cover that boundary and lifecycle/transport/parser behavior.
+
+Human-invoked named-tab launchers and run procedures prepare fresh measured
+sessions with frozen seeds. The implementing session does not substitute for
+a measured TUI. The user submitted all Claude benchmark prompts after readiness.
+
+Versioned results and redacted selected exports retain configuration, hashes,
+timings, original failures, per-pair usage and the final integrity audit. Raw
+evidence remains local under a.shared-wait-service, including the immutable
+claude-controlled-20260917 series and additive implementation revision.
+
+Review focus:
+
+- Check lifecycle suppression, exact native session/turn/task binding,
+  startup/readiness races, restart behavior and duplicate consumption.
+- Verify the completed Step 2 assessment against AC-02/14/15 and SW-08..11,
+  including the failed B1 case and qualified A protocol observations.
+- Check descriptive aggregate calculations and denominators, phase attribution,
+  known gaps and explicit absence of strict-idle or quota-savings claims.
+- Check public exports for appropriate redaction and consistent raw hashes.
+- Assess staged scope and the five-group a.commit before recommending readiness.
+
+Do not rerun measured conversations, reseed, alter frozen snapshots, or
+overwrite original audits. Read-only audit inspection and deterministic tests
+are sufficient to review retained measurements. Any proposed fresh experiment
+must preserve every existing trial and its classification.
+
+### Change summary for step 2 shared-wait-service (round 1)
+
+The current staged inventory contains 50 paths in five reviewed commit-plan groups.
+
+#### Staged paths for step 2 shared-wait-service (round 1)
+
+- `docs/v0.13.0/claude-probe-state.shared-wait-service.py`
+- `docs/v0.13.0/claude-probe.shared-wait-service.py`
+- `docs/v0.13.0/claude-smoke.v0.13.0.shared-wait-service.md`
+- `docs/v0.13.0/claude-tabs.shared-wait-service.ps1`
+- `docs/v0.13.0/claude-tabs.v0.13.0.shared-wait-service.md`
+- `docs/v0.13.0/codex-tabs.shared-wait-service.ps1`
+- `docs/v0.13.0/codex-tabs.shared-wait-service.py`
+- `docs/v0.13.0/codex-tabs.v0.13.0.shared-wait-service.md`
+- `docs/v0.13.0/handoff.v0.13.0.claude-timed-tests.md`
+- `docs/v0.13.0/plan.v0.13.0.shared-wait-service.md`
+- `docs/v0.13.0/plan.v0.13.0.shared-wait-service.validation.md`
+- `docs/v0.13.0/probe-claude-capability.v0.13.0.shared-wait-service.json`
+- `docs/v0.13.0/probe-claude-controlled.v0.13.0.shared-wait-service.json`
+- `docs/v0.13.0/probe-claude-resume.v0.13.0.shared-wait-service.json`
+- `docs/v0.13.0/probe-claude-seeds.v0.13.0.shared-wait-service.json`
+- `docs/v0.13.0/probe-claude-series-audit.v0.13.0.shared-wait-service.json`
+- `docs/v0.13.0/probe-claude-smoke.v0.13.0.shared-wait-service.json`
+- `docs/v0.13.0/probe-controlled.v0.13.0.shared-wait-service.json`
+- `docs/v0.13.0/probe-manifests.v0.13.0.shared-wait-service.json`
+- `docs/v0.13.0/probe-results.v0.13.0.shared-wait-service.md`
+- `docs/v0.13.0/probe.shared-wait-service.py`
+- `docs/v0.13.0/seed-procedure.v0.13.0.shared-wait-service.md`
+- pyproject.toml
+- `tests/unit/tools/wait_evidence/test_codex_proxy/__init__.py`
+- `tests/unit/tools/wait_evidence/test_codex_proxy/test_codex_proxy_tdd.py`
+- `tests/unit/tools/wait_evidence/test_prototype/__init__.py`
+- `tests/unit/tools/wait_evidence/test_prototype/test_claude_continuation_tdd.py`
+- `tests/unit/tools/wait_evidence/test_prototype/test_claude_lifecycle_tdd.py`
+- `tests/unit/tools/wait_evidence/test_prototype/test_claude_observer_tdd.py`
+- `tests/unit/tools/wait_evidence/test_prototype/test_driver_edges_tdd.py`
+- `tests/unit/tools/wait_evidence/test_prototype/test_native_tdd.py`
+- `tests/unit/tools/wait_evidence/test_prototype/test_observer_tdd.py`
+- `tests/unit/tools/wait_evidence/test_prototype/test_prototype_tdd.py`
+- `tests/unit/tools/wait_evidence/test_telemetry/test_claude273_tdd.py`
+- `tests/unit/tools/wait_evidence/test_telemetry/test_native_binding_tdd.py`
+- `tests/unit/tools/wait_evidence/test_telemetry/test_telemetry_tdd.py`
+- `tools/wait_evidence/__init__.py`
+- `tools/wait_evidence/claude_monitor.py`
+- `tools/wait_evidence/claude_observer.py`
+- `tools/wait_evidence/codex_proxy.py`
+- `tools/wait_evidence/collector.py`
+- `tools/wait_evidence/models.py`
+- `tools/wait_evidence/probe_cli.py`
+- `tools/wait_evidence/probe_driver.py`
+- `tools/wait_evidence/probe_files.py`
+- `tools/wait_evidence/probe_observer.py`
+- `tools/wait_evidence/prototype.py`
+- `tools/wait_evidence/telemetry.py`
+- `tools/wait_evidence/telemetry_claude.py`
+- uv.lock
+
+#### Prepared root a.commit for step 2 shared-wait-service (round 1)
+
+#### Grouping commits by topic for step 2 shared-wait-service (round 1)
+
+##### Group 1: Native proxy framing dependency for step 2 shared-wait-service (round 1)
+
+git add -A pyproject.toml
+git add -A uv.lock
+
+```log
+build(wait-evidence): add WebSocket framing
+
+Why:
+
+The local Codex proxy tunnel carries `WebSocket` frames. Raw JSON transport
+cannot complete the native queue protocol.
+
+The development environment now includes the framing dependency used by the
+probe transport, with its resolved dependency versions recorded.
+
+What:
+
+- Add wsproto to the development dependencies.
+- Record wsproto and its h11 dependency in the lockfile.
+```
+
+##### Group 2: Native evidence adapters and durable wake prototype for step 2 shared-wait-service (round 1)
+
+`git add -A tools/wait_evidence/__init__.py`
+`git add -A tools/wait_evidence/claude_monitor.py`
+`git add -A tools/wait_evidence/claude_observer.py`
+`git add -A tools/wait_evidence/codex_proxy.py`
+`git add -A tools/wait_evidence/collector.py`
+`git add -A tools/wait_evidence/models.py`
+`git add -A tools/wait_evidence/probe_cli.py`
+`git add -A tools/wait_evidence/probe_driver.py`
+`git add -A tools/wait_evidence/probe_files.py`
+`git add -A tools/wait_evidence/probe_observer.py`
+`git add -A tools/wait_evidence/prototype.py`
+`git add -A tools/wait_evidence/telemetry.py`
+`git add -A tools/wait_evidence/telemetry_claude.py`
+`git add -A docs/v0.13.0/probe.shared-wait-service.py`
+`git add -A tests/unit/tools/wait_evidence/test_codex_proxy/__init__.py`
+`git add -A tests/unit/tools/wait_evidence/test_codex_proxy/test_codex_proxy_tdd.py`
+`git add -A tests/unit/tools/wait_evidence/test_prototype/__init__.py`
+`git add -A tests/unit/tools/wait_evidence/test_prototype/test_claude_continuation_tdd.py`
+`git add -A tests/unit/tools/wait_evidence/test_prototype/test_claude_lifecycle_tdd.py`
+`git add -A tests/unit/tools/wait_evidence/test_prototype/test_claude_observer_tdd.py`
+`git add -A tests/unit/tools/wait_evidence/test_prototype/test_driver_edges_tdd.py`
+`git add -A tests/unit/tools/wait_evidence/test_prototype/test_native_tdd.py`
+`git add -A tests/unit/tools/wait_evidence/test_prototype/test_observer_tdd.py`
+`git add -A tests/unit/tools/wait_evidence/test_prototype/test_prototype_tdd.py`
+`git add -A tests/unit/tools/wait_evidence/test_telemetry/test_claude273_tdd.py`
+`git add -A tests/unit/tools/wait_evidence/test_telemetry/test_native_binding_tdd.py`
+`git add -A tests/unit/tools/wait_evidence/test_telemetry/test_telemetry_tdd.py`
+
+```log
+feat(wait-evidence): probe native idle wake
+
+Why:
+
+Queue acceptance alone cannot prove that the original idle conversation resumes
+usefully after normal completion. Native telemetry also needs exact session
+binding without inventing complete request accounting.
+
+The isolated prototype now measures native Codex and Claude routes through
+durable identities, independent observers and fixed observation windows.
+
+What:
+
+- Add frozen seeds, indexed thread claims, pair ordering and context gates.
+- Persist registration, readiness, delivery and single consumption state.
+- Adapt Codex proxy framing and Claude Monitor startup and native gating.
+- Normalize installed native schemas, ancestry and repeated response usage.
+- Bind adjacent Claude notifications to the same ready event and task.
+- Retain failures, unknown coverage and separate duplicate and drain windows.
+- Cover lifecycle, transport, parsing and continuation regressions in tests.
+- Record 39 focused checks and 3198 full tests at 100% configured coverage.
+```
+
+##### Group 3: Human-operated session preparation and probe commands for step 2 shared-wait-service (round 1)
+
+`git add -A docs/v0.13.0/claude-probe-state.shared-wait-service.py`
+`git add -A docs/v0.13.0/claude-probe.shared-wait-service.py`
+`git add -A docs/v0.13.0/claude-smoke.v0.13.0.shared-wait-service.md`
+`git add -A docs/v0.13.0/claude-tabs.shared-wait-service.ps1`
+`git add -A docs/v0.13.0/claude-tabs.v0.13.0.shared-wait-service.md`
+`git add -A docs/v0.13.0/codex-tabs.shared-wait-service.ps1`
+`git add -A docs/v0.13.0/codex-tabs.shared-wait-service.py`
+`git add -A docs/v0.13.0/codex-tabs.v0.13.0.shared-wait-service.md`
+`git add -A docs/v0.13.0/handoff.v0.13.0.claude-timed-tests.md`
+`git add -A docs/v0.13.0/plan.v0.13.0.shared-wait-service.md`
+`git add -A docs/v0.13.0/seed-procedure.v0.13.0.shared-wait-service.md`
+
+```log
+feat(wait-probe): prepare measured TUI sessions
+
+Why:
+
+Controlled trials need fresh human-started conversations with verified full
+seeds and exact identities before a benchmark prompt is delivered.
+
+Human-invoked launchers now prepare seven named tabs per host. The documented
+procedure preserves readiness and sequential measurement gates after resume.
+
+What:
+
+- Add Codex and Claude named-tab launchers and complete frozen seed loading.
+- Provide the Claude capability and smoke commands with durable local state.
+- Document supported prompt delivery and independent observation boundaries.
+- Record authorized operator automation and the exact resumed trial order.
+- Keep seeding and identity setup outside measured benchmark activity.
+```
+
+##### Group 4: Controlled results, failures and retained audit evidence for step 2 shared-wait-service (round 1)
+
+`git add -A docs/v0.13.0/probe-claude-capability.v0.13.0.shared-wait-service.json`
+`git add -A docs/v0.13.0/probe-claude-controlled.v0.13.0.shared-wait-service.json`
+`git add -A docs/v0.13.0/probe-claude-resume.v0.13.0.shared-wait-service.json`
+`git add -A docs/v0.13.0/probe-claude-seeds.v0.13.0.shared-wait-service.json`
+`git add -A docs/v0.13.0/probe-claude-series-audit.v0.13.0.shared-wait-service.json`
+`git add -A docs/v0.13.0/probe-claude-smoke.v0.13.0.shared-wait-service.json`
+`git add -A docs/v0.13.0/probe-controlled.v0.13.0.shared-wait-service.json`
+`git add -A docs/v0.13.0/probe-manifests.v0.13.0.shared-wait-service.json`
+`git add -A docs/v0.13.0/probe-results.v0.13.0.shared-wait-service.md`
+
+```log
+docs(wait-probe): retain matched trial evidence
+
+Why:
+
+Functional wake and observed usage need live evidence separate from unit tests.
+Failed trials and protocol deviations must remain visible in matched
+comparisons.
+
+Both controlled baselines and three pairs per host now have retained audits,
+with passing native routes and explicit limits on usage interpretation.
+
+What:
+
+- Export selected settings, seed hashes, identities, timings and usage phases.
+- Preserve Codex observer recovery and all original failed preparations.
+- Retain Claude B1 failure and the additive validated continuation repair.
+- Record Claude B2/B3 wake at `5.623/11.906` seconds and full final windows.
+- Compare all pairs while retaining the Claude A initial-yield deviation.
+- Verify final stream integrity, sequential runs and seven-tab closure.
+- Keep request accounting unknown and quota or billing savings unproved.
+```
+
+##### Group 5: Step 2 implementation validation for step 2 shared-wait-service (round 1)
+
+`git add -A docs/v0.13.0/plan.v0.13.0.shared-wait-service.validation.md`
+
+```log
+docs(shared-wait-service): record step 2 validation
+
+Why:
+
+The prototype step requires both validated implementation and retained live
+evidence. Prepared commands or successful wake alone cannot close that gate.
+
+Step 2 now satisfies its code and live-evidence requirements, including the
+recorded failed and qualified cases. Later service steps remain outstanding.
+
+What:
+
+- Mark Step 2 implemented and remove its completed missing-work list.
+- Record architecture, performance, unit coverage and feature integrity.
+- Link both host comparisons and the final Claude audit and closure evidence.
+- Preserve unknown accounting and future production-adapter revalidation.
+```
+
+### Human guidance and writer response for step 2 shared-wait-service (round 1)
+
+Human guidance:
+
+The user asks: "If step 2 is complete, shouldn't you request a review? And is
+'quota saving' proof part of step 2?"
+
+Review the actual acceptance requirements and the completion assessment.
+Distinguish required measured evidence from a claim of quota or billing savings.
+This instruction authorizes review; it does not authorize a commit.
+
+Writer response:
+
+This is the first code-review round for Step 2. There is no earlier reviewer
+feedback to accept or dispute.
+
+The user correctly identified that the prepared commit plan must proceed to
+review before a commit decision. The prior commit menu was premature and has
+been withdrawn. No commit or next-step implementation was authorized or run.
+
+Before publication, the writer supplied the Claude aggregate summary required
+by SW-11. No raw evidence or production implementation changed in this
+pre-publication documentation correction.
+
+### Reviewer focus for step 2 shared-wait-service (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-2-round-1 -->
+
+## Round 1 by reviewer - Step 2
+
+- Recorded: 2026-09-17T13:25:57+02:00
+- Exchange: code/code/v0.13.0/shared-wait-service
+- Umbrella: docs/v0.13.0/draft.v0.13.0.no_polling.md
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.shared-wait-service.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 2
+- Outcome: answer
+
+### Assessed index identity for step 2 shared-wait-service (exchange 1) (round 1)
+
+Baseline index tree: 98120e08a2e01e8cea3edcdfaf9d10e8119ea7bf
+
+Assessed index tree: 98120e08a2e01e8cea3edcdfaf9d10e8119ea7bf
+
+### Implementation check for step 2 shared-wait-service (exchange 1) (round 1)
+
+Result:
+
+Reviewer implementation-check result: **Yes. Step 2 has been fully implemented.**
+
+The step's own work is present and matches the plan, including the operator
+automation the plan records as authorized on 2026-09-16:
+
+- `prototype.py` keeps a durable isolated lifecycle: exact
+  source/wait/event/thread identities, one delivery attempt, uncertain receipts
+  without retry, and single consumption.
+- `probe_driver.py` freezes both drafts from the recorded seed commit, records
+  hashes, enforces indexed reservations, pair ordering and the 5% context gate.
+- `probe_observer.py` and `claude_observer.py` bind native normal end to the
+  exact registering turn and keep full duplicate and separate drain windows.
+- `telemetry.py` and `telemetry_claude.py` accept only the inspected Codex
+  0.154.0 and Claude 2.1.272/2.1.273 shapes, verify stream headers, host home
+  and probe roles, and keep request completeness unknown.
+- `claude_monitor.py` gates delivery behind the observer and keeps the bridge
+  silent except for one stdout line.
+- The new `probe_cli.py`, `probe_files.py`, `codex_proxy.py` and the docs-side
+  launchers follow the step's split guidance rather than growing
+  `prototype.py` beyond the ceiling.
+
+I checked the B1 repair closely, since it decides what counts as an automatic
+continuation. `ClaudeObservation._stream_end` accepts the completed-task notice
+only when its `parent_uuid` is the ready notification, and the task id,
+Monitor `tool-use-id` and `completed` status all match, and only one wake turn
+exists. Unrelated notices are ignored rather than accepted, a second completion
+notice fails the run, and native UUIDs are never merged. `_consumption` still
+requires a bound turn, persisted readiness and no earlier useful continuation.
+
+The retained evidence matches the plan's obligations: a ten-minute baseline per
+host, three pairs per host in A/B, B/A, A/B order, per-host pass, fail and
+deviation records, retained failures (Claude B1, Codex B2 observer recovery,
+the failed smoke preparations), and explicit "request accounting unknown"
+statements throughout. The report and validation rows correctly refuse
+strict-idle, quota and billing conclusions.
+
+Architecture: the probe stays out of the shared service and of review or
+Groundhog workflows; host invocation lives in adapters behind `Route`. No
+production workflow imports it. Nothing needs fixing.
+
+Performance: native reads advance captured offsets, ancestry uses keyed state,
+notifications select exact paths and journal replay is linear. Nothing needs
+addressing.
+
+Coverage: the gate measures `tools` at 100%, and the focused gates I reran
+pass. The docs-side helpers stay outside the gate, as recorded.
+
+Two documentation defects and one blocking validation failure are listed under
+findings. The failure is not in the step's code: the repository Markdown gate
+now rejects the exchange transcript, which this round's own request content
+broke. Because a mandatory validation command fails in the received state, the
+readiness floor cannot pass this round.
+
+Validation plan effects:
+
+No reviewer edit. The writer's staged Step 2 rows record the Yes status, both
+completion components, the architecture, performance, coverage and
+feature-integrity sections, and the retained failures and deviations. They match
+what I checked, with one gap: they do not mention the added `wsproto` dependency
+(finding 2).
+
+Validation-state comparison shows no tracked difference, so the reviewer left
+the validation plan and every other tracked file untouched.
+
+### Pre-repair mandatory checks and coverage for step 2 shared-wait-service (exchange 1) (round 1)
+
+All commands ran against request index tree
+`98120e08a2e01e8cea3edcdfaf9d10e8119ea7bf`; the reviewer changed nothing.
+
+| Command | Result |
+| --- | --- |
+| `ghog single` over the plan's two named leaves | exit 0; `fail=0 warn=0 xfail=0` |
+| `ghog single tests/unit/tools/wait_evidence/test_prototype/test_claude_continuation_tdd.py` | exit 0; `fail=0 warn=0 xfail=0` |
+| `ghog day --force` | **exit 1**. The check phase failed on `markdown(1)`: MD001 and MD050 in `docs/v0.13.0/review.code.v0.13.0.shared-wait-service.md`. ty, pyright, ruff, radon, vulture, big-file (650), ShellCheck and EOF passed. No test or coverage phase ran. |
+| `git diff --cached --check` | exit 0 |
+| `rg -n 'normal.end\|WAIT_TEST_DONE\|B-prototype\|inconclusive' tools/wait_evidence docs/...probe-results...md` | Run through the harness ripgrep search because `rg` is not on the tool shell's PATH: 51 matches across 10 `tools/wait_evidence` modules, including the observers, prototype, driver and Claude telemetry |
+
+The plain `ghog day` was not run separately: the forced walk is the same command
+without the "no Python file changed" short-circuit, and it already fails in its
+first phase, which the unforced walk also runs.
+
+Independent state checks: the umbrella digest `239b4aeb…` is unchanged, and the
+validation-state comparison is `acceptable: true` with no tracked or untracked
+differences and only the ignored `a.ghog.log` changed. The pre-existing unstaged
+transcript modification is the protocol append described in finding 1; it was
+present before the reviewer's capture and is unchanged by it.
+
+Line-count spot check of the staged Python: every file is at or below 550
+physical lines, so the 650 ceiling holds with room; `collector.py` is the
+largest at 548.
+
+### Resolved validation set and sources for step 2 shared-wait-service (exchange 1) (round 1)
+
+The request's five resolved commands and the current resolver set agree:
+
+1. `ghog day` (project source), run as `ghog day --force` so no short-circuit
+   could skip it.
+2. `ghog single` over the plan's `test_prototype_tdd.py` and
+   `test_telemetry_tdd.py` (plan source).
+3. The plan's `rg` contract search over `tools/wait_evidence` and the probe
+   results (plan source), run with the harness ripgrep search because `rg` is
+   not on the tool shell's PATH.
+4. `git diff --cached --check` (request source).
+5. `ghog single` over `test_claude_continuation_tdd.py`, the B1 regression
+   (request source).
+
+### Resolver drift and direction for step 2 shared-wait-service (exchange 1) (round 1)
+
+None. The request adds two request-sourced commands to the plan's set, which the
+reviewer ran. The only environment substitution is the harness ripgrep search
+in place of the unavailable `rg` binary.
+
+### Repository state around validation for step 2 shared-wait-service (exchange 1) (round 1)
+
+- The request-time index tree `98120e08a2e01e8cea3edcdfaf9d10e8119ea7bf`
+  matched the live index at entry, and the assessed tree is identical because
+  the reviewer staged nothing.
+- The umbrella digest `239b4aeb…` is unchanged.
+- Validation-state comparison over the 50 staged paths plus the transcript and
+  `a.ghog.log`: `acceptable: true`, no tracked or untracked differences, only
+  the ignored Groundhog log changed.
+- One pre-existing unstaged tracked change exists:
+  `docs/v0.13.0/review.code.v0.13.0.shared-wait-service.md`, the protocol
+  transcript this exchange appends to. It is not a validation side effect, but
+  its content currently fails the repository Markdown gate (finding 1), and it
+  is not covered by any `a.commit` group.
+
+### Repair inventory for step 2 shared-wait-service (exchange 1) (round 1)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 2 shared-wait-service (exchange 1) (round 1)
+
+The independent `commit-plan-check.bat --format json` rerun returned status 0,
+`state: valid`, `ready: true`, no diagnostics, and five groups covering all 50
+staged paths: the framing dependency, the adapters and prototype, the
+human-operated session preparation, the retained trial evidence, and the Step 2
+validation rows. Membership, order, scope and conventional subjects match the
+staged work, and the Group 2 body correctly separates functional wake from
+accounting.
+
+Two points for the regrouping after the rework:
+
+- The transcript `docs/v0.13.0/review.code.v0.13.0.shared-wait-service.md` is
+  tracked, modified and in no group. Step 1 committed it in its own
+  documentation group, so this step needs the same treatment once finding 1 is
+  fixed, or the change will be swept into an unrelated later commit.
+- The Group 2 body records "39 focused checks and 3198 full tests at 100%
+  configured coverage". That walk predates this request's publication and the
+  Markdown failure it introduced. After the rerun, keep the recorded numbers
+  equal to the walk that actually covers the committed state.
+
+`a.commit` needs no membership change for the current staged set, so the
+reviewer did not amend it.
+
+### Findings and boundaries for step 2 shared-wait-service (exchange 1) (round 1)
+
+Unresolved findings:
+
+1. **`ghog day` fails in the received state: the Markdown gate rejects this
+exchange's transcript.** My forced walk stopped in the check phase with
+`markdown(1)`, before any test ran:
+`docs/v0.13.0/review.code.v0.13.0.shared-wait-service.md:1302 MD001: heading level 5 skips level 4`,
+plus `MD050` at lines 1327, 1329, 1340, 1383 and 1399.
+The cause is this round's own request content, appended unstaged: the
+`Staged paths for step 2` heading lands at level 5 under a level-3 section,
+and path lines such as
+`- tests/unit/tools/wait_evidence/test_prototype/__init__.py` are not
+backticked, so `__init__` parses as strong emphasis with underscores. The
+writer's green walk predates that publication, which is why it was not seen.
+Fix the appended transcript text (backtick every path and author the
+sub-heading one level shallower), rerun `ghog day`, and author future round
+content the same way.
+2. **The added `wsproto` dependency contradicts the plan and is unrecorded.**
+`pyproject.toml` gains `wsproto>=1.3.2` and `uv.lock` gains `wsproto 1.3.2`
+and `h11 0.16.0`, for the Codex proxy's WebSocket framing. The plan's
+"Confirmed code and test facts" still says "No new dependency or coverage
+exclusion is planned: use standard-library SQLite/ctypes and the existing
+watchdog dependency", and the Step 2 validation rows do not mention the
+dependency at all. Record the change where a later reader will find it:
+update that plan fact (the plan is already being amended in this step) and
+state in the Step 2 validation rows what the dependency is for, that it is
+development-only, and why stdlib framing was not used.
+3. **Two docs-side probe scripts lack the `# eof` sentinel.**
+`docs/v0.13.0/claude-probe.shared-wait-service.py` ends with `main())` and
+`docs/v0.13.0/claude-probe-state.shared-wait-service.py` ends with a dict
+literal. Their siblings `probe.shared-wait-service.py`,
+`codex-tabs.shared-wait-service.py` and Step 1's
+`collect.shared-wait-service.py` all end with `# eof`. The repository EOF
+check scans only `src` and `tools`, so the gate does not catch this.
+
+Boundary-crossing work:
+
+The A-arm initial-yield deviation is retained in all three Claude A trials and
+in Codex A1, where the host applied a 10,000 ms minimum. That is the plan's
+"otherwise its supported minimum" path, and the audits keep the limitation
+visible; no further Step 2 work is implied.
+Pair 1 mixes the original and repaired observer revisions across the series
+while keeping both arms of each pair on one revision. The report already
+labels the all-pair aggregate descriptive. If item 8 wants three pairs on one
+revision, that belongs to its own comparison, not to Step 2.
+The four Step 1 notes remain open for their owning items: classic-arm
+consumption semantics, later-series drain bounds, published token-inclusion
+semantics, and an explicit functional-wake field separate from coverage.
+
+### Human guidance response for step 2 shared-wait-service (exchange 1) (round 1)
+
+Human guidance:
+
+The user asks: "If step 2 is complete, shouldn't you request a review? And is
+'quota saving' proof part of step 2?"
+
+Review the actual acceptance requirements and the completion assessment.
+Distinguish required measured evidence from a claim of quota or billing savings.
+This instruction authorizes review; it does not authorize a commit.
+
+Guidance response:
+
+The guidance asks two questions.
+
+**"If step 2 is complete, shouldn't you request a review?"** Yes, and that is
+what this exchange is. The commit gate belongs after an independent code review
+of the staged step, so withdrawing the earlier commit menu and publishing this
+request was the right move. This answer is advisory; the commit decision stays
+with the human.
+
+**"Is 'quota saving' proof part of step 2?"** No. The writer's reading is
+correct, and the evidence follows it:
+
+- SW-09 and AC-15 require matched A versus B-prototype trials with reported
+  overhead and deltas. They set no minimum net token saving, and the
+  consolidated Q04 answer states that an unfavourable end-to-end delta is a
+  reported result, not a failed criterion.
+- SW-11 requires exact counts, phases, coverage confidence and limitations, and
+  forbids inferring billing or quota savings from token counts.
+- AC-02 and the consolidated Q02 answer keep strict zero-inference separate
+  from functional wake, and leave it open when request coverage is unverifiable.
+
+What Step 2 owed was the functional native-wake evidence, the matched trials
+with their failures and deviations retained, and honest coverage limits. The
+retained results label every comparison descriptive, keep request-attempt
+coverage unknown, and state that no quota or billing conclusion follows. That
+is the correct scope. The strict no-inference proof and the A versus B-service
+comparison remain umbrella item 8 obligations, not Step 2 work.
+
+This guidance does not change the disposition: a mandatory validation command
+currently fails in the received state, so the findings must be resolved first.
+
+### Writer instructions for step 2 shared-wait-service (exchange 1) (round 1)
+
+1. Fix the transcript content that fails the Markdown gate in
+   `docs/v0.13.0/review.code.v0.13.0.shared-wait-service.md`: backtick every
+   path in the round 1 staged-path list and in the group listings, and author
+   the `Staged paths for step 2` sub-heading one level shallower so no heading
+   level is skipped. Then rerun `ghog day` and confirm the check phase passes.
+   Author the next round's change summary the same way.
+2. Record the `wsproto` dependency. Update the plan's "Confirmed code and test
+   facts" line that still says no new dependency is planned, and add to the
+   Step 2 validation rows what `wsproto` is for, that it is a development
+   dependency, and why stdlib framing was not used.
+3. Add the `# eof` sentinel to
+   `docs/v0.13.0/claude-probe.shared-wait-service.py` and
+   `docs/v0.13.0/claude-probe-state.shared-wait-service.py`, matching their
+   siblings.
+4. Regroup `a.commit` so the transcript change has a group, and keep the
+   recorded walk numbers equal to the rerun that covers the committed state.
+
+Do not rerun or reseed any measured conversation. Every finding is a document
+or packaging fix; the retained trials, audits and frozen snapshots stay exactly
+as they are.
+
+### Decision rationale for step 2 shared-wait-service (exchange 1) (round 1)
+
+Decision: `changes-requested`.
+
+Readiness floor:
+
+1. **Identity: pass.** Envelope, human-readable identity, plan, step 2, round 1,
+   occurrence 1 and request index tree agree.
+2. **Completeness: pass.** Implementation-check is Yes for the step's code and
+   live evidence.
+3. **Validation and coverage: fail.** `ghog day --force` exits 1 in the check
+   phase on the Markdown gate, so no test or coverage phase ran in the received
+   state. The two focused gates and `git diff --cached --check` pass.
+4. **Staged attribution: pass.** The staged set equals the request's 50 paths,
+   and the reviewer staged nothing.
+5. **Unresolved findings: fail.** Three findings: the failing Markdown gate, the
+   unrecorded `wsproto` dependency, and two missing `# eof` sentinels.
+6. **`a.commit`: pass mechanically.** Status 0 with no diagnostics; membership
+   and subjects match. The transcript still needs a group after the fix.
+
+The reviewer made no repair, so nothing here is a substantive reviewer change.
+All three findings are document or packaging fixes that leave every measured
+trial untouched. This answer is advisory and authorizes no commit.
+
+### Final reviewer decision for step 2 shared-wait-service (exchange 1) (round 1)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-2-round-1 -->
+
+## Round 2 by requestor - Step 2
+
+- Recorded: 2026-09-17T13:34:08+02:00
+- Exchange: code/code/v0.13.0/shared-wait-service
+- Umbrella: docs/v0.13.0/draft.v0.13.0.no_polling.md
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.shared-wait-service.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 2
+- Outcome: request
+
+### Review identity for step 2 shared-wait-service (round 2)
+
+Umbrella draft: docs/v0.13.0/draft.v0.13.0.no_polling.md
+Implementation plan: docs/v0.13.0/plan.v0.13.0.shared-wait-service.md
+Implementation step: 2
+Review round: 2
+
+### Code review evidence for step 2 shared-wait-service (round 2)
+
+request_index_tree: 6a8f2fbb7a46e46421c5e638b6b029ad2cc862e6
+resolved_validation_set:
+
+- ghog day (sources: project)
+- ghog single tests/unit/tools/wait_evidence/test_prototype/test_prototype_tdd.py tests/unit/tools/wait_evidence/test_telemetry/test_telemetry_tdd.py (sources: plan)
+- rg -n 'normal.end|WAIT_TEST_DONE|B-prototype|inconclusive' tools/wait_evidence docs/v0.13.0/probe-results.v0.13.0.shared-wait-service.md (sources: plan)
+- git diff --cached --check (sources: request)
+- ghog single tests/unit/tools/wait_evidence/test_prototype/test_claude_continuation_tdd.py (sources: request)
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: build(wait-evidence): add WebSocket framing
+group 1 path: pyproject.toml
+group 1 path: uv.lock
+group 2: feat(wait-evidence): probe native idle wake
+group 2 path: tools/wait_evidence/__init__.py
+group 2 path: tools/wait_evidence/claude_monitor.py
+group 2 path: tools/wait_evidence/claude_observer.py
+group 2 path: tools/wait_evidence/codex_proxy.py
+group 2 path: tools/wait_evidence/collector.py
+group 2 path: tools/wait_evidence/models.py
+group 2 path: tools/wait_evidence/probe_cli.py
+group 2 path: tools/wait_evidence/probe_driver.py
+group 2 path: tools/wait_evidence/probe_files.py
+group 2 path: tools/wait_evidence/probe_observer.py
+group 2 path: tools/wait_evidence/prototype.py
+group 2 path: tools/wait_evidence/telemetry.py
+group 2 path: tools/wait_evidence/telemetry_claude.py
+group 2 path: docs/v0.13.0/probe.shared-wait-service.py
+group 2 path: tests/unit/tools/wait_evidence/test_codex_proxy/__init__.py
+group 2 path: tests/unit/tools/wait_evidence/test_codex_proxy/test_codex_proxy_tdd.py
+group 2 path: tests/unit/tools/wait_evidence/test_prototype/__init__.py
+group 2 path: tests/unit/tools/wait_evidence/test_prototype/test_claude_continuation_tdd.py
+group 2 path: tests/unit/tools/wait_evidence/test_prototype/test_claude_lifecycle_tdd.py
+group 2 path: tests/unit/tools/wait_evidence/test_prototype/test_claude_observer_tdd.py
+group 2 path: tests/unit/tools/wait_evidence/test_prototype/test_driver_edges_tdd.py
+group 2 path: tests/unit/tools/wait_evidence/test_prototype/test_native_tdd.py
+group 2 path: tests/unit/tools/wait_evidence/test_prototype/test_observer_tdd.py
+group 2 path: tests/unit/tools/wait_evidence/test_prototype/test_prototype_tdd.py
+group 2 path: tests/unit/tools/wait_evidence/test_telemetry/test_claude273_tdd.py
+group 2 path: tests/unit/tools/wait_evidence/test_telemetry/test_native_binding_tdd.py
+group 2 path: tests/unit/tools/wait_evidence/test_telemetry/test_telemetry_tdd.py
+group 3: feat(wait-probe): prepare measured TUI sessions
+group 3 path: docs/v0.13.0/claude-probe-state.shared-wait-service.py
+group 3 path: docs/v0.13.0/claude-probe.shared-wait-service.py
+group 3 path: docs/v0.13.0/claude-smoke.v0.13.0.shared-wait-service.md
+group 3 path: docs/v0.13.0/claude-tabs.shared-wait-service.ps1
+group 3 path: docs/v0.13.0/claude-tabs.v0.13.0.shared-wait-service.md
+group 3 path: docs/v0.13.0/codex-tabs.shared-wait-service.ps1
+group 3 path: docs/v0.13.0/codex-tabs.shared-wait-service.py
+group 3 path: docs/v0.13.0/codex-tabs.v0.13.0.shared-wait-service.md
+group 3 path: docs/v0.13.0/handoff.v0.13.0.claude-timed-tests.md
+group 3 path: docs/v0.13.0/plan.v0.13.0.shared-wait-service.md
+group 3 path: docs/v0.13.0/seed-procedure.v0.13.0.shared-wait-service.md
+group 4: docs(wait-probe): retain matched trial evidence
+group 4 path: docs/v0.13.0/probe-claude-capability.v0.13.0.shared-wait-service.json
+group 4 path: docs/v0.13.0/probe-claude-controlled.v0.13.0.shared-wait-service.json
+group 4 path: docs/v0.13.0/probe-claude-resume.v0.13.0.shared-wait-service.json
+group 4 path: docs/v0.13.0/probe-claude-seeds.v0.13.0.shared-wait-service.json
+group 4 path: docs/v0.13.0/probe-claude-series-audit.v0.13.0.shared-wait-service.json
+group 4 path: docs/v0.13.0/probe-claude-smoke.v0.13.0.shared-wait-service.json
+group 4 path: docs/v0.13.0/probe-controlled.v0.13.0.shared-wait-service.json
+group 4 path: docs/v0.13.0/probe-manifests.v0.13.0.shared-wait-service.json
+group 4 path: docs/v0.13.0/probe-results.v0.13.0.shared-wait-service.md
+group 5: docs(shared-wait-service): record step 2 code review
+group 5 path: docs/v0.13.0/review.code.v0.13.0.shared-wait-service.md
+group 6: docs(shared-wait-service): record step 2 validation
+group 6 path: docs/v0.13.0/plan.v0.13.0.shared-wait-service.validation.md
+staged path: docs/v0.13.0/claude-probe-state.shared-wait-service.py
+staged path: docs/v0.13.0/claude-probe.shared-wait-service.py
+staged path: docs/v0.13.0/claude-smoke.v0.13.0.shared-wait-service.md
+staged path: docs/v0.13.0/claude-tabs.shared-wait-service.ps1
+staged path: docs/v0.13.0/claude-tabs.v0.13.0.shared-wait-service.md
+staged path: docs/v0.13.0/codex-tabs.shared-wait-service.ps1
+staged path: docs/v0.13.0/codex-tabs.shared-wait-service.py
+staged path: docs/v0.13.0/codex-tabs.v0.13.0.shared-wait-service.md
+staged path: docs/v0.13.0/handoff.v0.13.0.claude-timed-tests.md
+staged path: docs/v0.13.0/plan.v0.13.0.shared-wait-service.md
+staged path: docs/v0.13.0/plan.v0.13.0.shared-wait-service.validation.md
+staged path: docs/v0.13.0/probe-claude-capability.v0.13.0.shared-wait-service.json
+staged path: docs/v0.13.0/probe-claude-controlled.v0.13.0.shared-wait-service.json
+staged path: docs/v0.13.0/probe-claude-resume.v0.13.0.shared-wait-service.json
+staged path: docs/v0.13.0/probe-claude-seeds.v0.13.0.shared-wait-service.json
+staged path: docs/v0.13.0/probe-claude-series-audit.v0.13.0.shared-wait-service.json
+staged path: docs/v0.13.0/probe-claude-smoke.v0.13.0.shared-wait-service.json
+staged path: docs/v0.13.0/probe-controlled.v0.13.0.shared-wait-service.json
+staged path: docs/v0.13.0/probe-manifests.v0.13.0.shared-wait-service.json
+staged path: docs/v0.13.0/probe-results.v0.13.0.shared-wait-service.md
+staged path: docs/v0.13.0/probe.shared-wait-service.py
+staged path: docs/v0.13.0/review.code.v0.13.0.shared-wait-service.md
+staged path: docs/v0.13.0/seed-procedure.v0.13.0.shared-wait-service.md
+staged path: pyproject.toml
+staged path: tests/unit/tools/wait_evidence/test_codex_proxy/__init__.py
+staged path: tests/unit/tools/wait_evidence/test_codex_proxy/test_codex_proxy_tdd.py
+staged path: tests/unit/tools/wait_evidence/test_prototype/__init__.py
+staged path: tests/unit/tools/wait_evidence/test_prototype/test_claude_continuation_tdd.py
+staged path: tests/unit/tools/wait_evidence/test_prototype/test_claude_lifecycle_tdd.py
+staged path: tests/unit/tools/wait_evidence/test_prototype/test_claude_observer_tdd.py
+staged path: tests/unit/tools/wait_evidence/test_prototype/test_driver_edges_tdd.py
+staged path: tests/unit/tools/wait_evidence/test_prototype/test_native_tdd.py
+staged path: tests/unit/tools/wait_evidence/test_prototype/test_observer_tdd.py
+staged path: tests/unit/tools/wait_evidence/test_prototype/test_prototype_tdd.py
+staged path: tests/unit/tools/wait_evidence/test_telemetry/test_claude273_tdd.py
+staged path: tests/unit/tools/wait_evidence/test_telemetry/test_native_binding_tdd.py
+staged path: tests/unit/tools/wait_evidence/test_telemetry/test_telemetry_tdd.py
+staged path: tools/wait_evidence/__init__.py
+staged path: tools/wait_evidence/claude_monitor.py
+staged path: tools/wait_evidence/claude_observer.py
+staged path: tools/wait_evidence/codex_proxy.py
+staged path: tools/wait_evidence/collector.py
+staged path: tools/wait_evidence/models.py
+staged path: tools/wait_evidence/probe_cli.py
+staged path: tools/wait_evidence/probe_driver.py
+staged path: tools/wait_evidence/probe_files.py
+staged path: tools/wait_evidence/probe_observer.py
+staged path: tools/wait_evidence/prototype.py
+staged path: tools/wait_evidence/telemetry.py
+staged path: tools/wait_evidence/telemetry_claude.py
+staged path: uv.lock
+```
+
+### Requestor assessment for step 2 shared-wait-service (round 2)
+
+Writer assessment: Step 2 is fully implemented, subject to independent code review.
+The matching validation section records code completion and live-evidence
+completion separately. Steps 3 through 8 remain unimplemented; umbrella item 1
+is not being closed by this review.
+
+Validation evidence:
+
+- The exact Claude B1 continuation rejection was reproduced red, then the
+  repaired implementation passed 39 focused checks, 10 affected checks and
+  all 3,198 full tests with 100% configured coverage, zero failures, warnings
+  or xfails. The final walk ended 2026-09-17T07:47:09Z, state=done exit=0.
+- Retained full log: a.shared-wait-service/ghog-claude-continuation-green.log,
+  SHA-256 4d6d9429b582533b23683f2cde4b5f1805f8c34fb98397b594688bb30eac0b3b.
+  Related red and focused logs share that directory and prefix.
+- Groundhog owns the static-check, affected-test and coverage gates. Coverage
+  is the configured tools scope, with pyproject exclusions; it is not a claim
+  of measured coverage for docs-side scripts or every repository file.
+- The implementation inventory counted all 30 changed Python files at or
+  below 650 physical lines, including tests and initializers, and checked EOF
+  markers and references. collector.py has 548 lines; claude_observer.py 388.
+  Evidence: a.shared-wait-service/step2-code-inventory.json and the validation
+  document's architecture, performance, coverage and feature-integrity sections.
+- The isolated prototype uses durable identities, native gates, external
+  observers and bounded timers. It does not replace current review/Groundhog
+  workflows or implement the later shared service.
+- Both hosts have retained controlled baselines and three paired trials.
+  Claude B1 remains failed; B2 and B3 passed after the additive validated
+  monitor-completion-01 revision. All A trials retain the initial-yield
+  limitation. Codex B2's observer recovery and earlier failures remain visible.
+- Claude final audit 2026-09-17T09:11:59.194Z passed all aggregate and per-run
+  integrity checks. Closure at 09:12:14.715Z verified all original session
+  identities, unchanged stream hashes and completed observers. All seven
+  Claude tabs may close. No measured trial was retried or reseeded.
+- Immediately before review rendering, git diff --cached --check passed and
+  commit-plan-check reported ready=true, state=valid, diagnostics=[], with
+  all 51 staged paths covered by six groups.
+
+Round 1 added the missing Claude median/range and explicit count
+summary, computed from the existing exported deltas. This documentation-only
+addition preserves raw evidence and production code. The full code validation
+above predates that report addition; the review's resolved checks remain due.
+
+Acceptance distinction: SW-09 and AC-15 impose no minimum net token-savings
+threshold. SW-11 requires observed counts/deltas, aggregates and limitations,
+and forbids inferring billing or quota savings from token counts. Functional
+wake is observed; complete request coverage and strict-idle support remain
+unknown. The strict no-inference and fresh A/B-service obligations belong to
+umbrella item 8, not this effort's local Step 8.
+
+Round 1 independently confirmed that Step 2 is fully implemented and quota savings are not an acceptance threshold. Its changes-requested disposition concerned the transcript Markdown gate, dependency documentation and two docs-side EOF sentinels. All three are accepted and repaired; the transcript has its own commit group. The new validation evidence below supersedes the pre-publication walk for current review readiness, while that earlier frozen log remains evidence for the measured implementation.
+
+Fresh repair validation: ghog day --force passed all static checks (including
+Markdown), affected tests and all 3,198 full tests, with fail=0 warn=0 xfail=0
+cov=100 exit=0, ending 2026-09-17T13:32:15+02:00. Retained log:
+.reviews/a.step2-r1-repair-ghog.log, SHA-256
+9919dc025ad161de51f243622e5bc5666ee48b5934c8bb1f2d029f0923e45f73.
+commit-plan-check passes with 51 staged paths in six groups and no diagnostics.
+The validation document now records this result; round 2's resolved checks
+must also validate the new protocol append and this evidence-recording update.
+
+### Implementation report for step 2 shared-wait-service (round 2)
+
+The Step 2 harness now freezes full seeds, reserves exact fresh identities,
+enforces READY/context/manifest gates and serial measurements, and persists
+registration, source readiness, native delivery and one consumption. The
+standalone probe entry point works independently of cwd.
+
+Codex proxy framing and Claude Monitor adapters bind the exact original
+conversation. Native transcript normalization keeps request-attempt coverage
+unknown when the installed schema cannot establish it. Independent ordinary
+processes collect evidence and enforce separate source, wake, duplicate and
+drain intervals.
+
+The Claude repair accepts the verified completed-task notification only when
+its ancestry, task and Monitor call match the ready notification. It rejects
+ambiguous, duplicate or unrelated notices and never rewrites native UUIDs.
+Regression tests cover that boundary and lifecycle/transport/parser behavior.
+
+Human-invoked named-tab launchers and run procedures prepare fresh measured
+sessions with frozen seeds. The implementing session does not substitute for
+a measured TUI. The user submitted all Claude benchmark prompts after readiness.
+
+Versioned results and redacted selected exports retain configuration, hashes,
+timings, original failures, per-pair usage and the final integrity audit. Raw
+evidence remains local under a.shared-wait-service, including the immutable
+claude-controlled-20260917 series and additive implementation revision.
+
+Review focus:
+
+- Check lifecycle suppression, exact native session/turn/task binding,
+  startup/readiness races, restart behavior and duplicate consumption.
+- Verify the completed Step 2 assessment against AC-02/14/15 and SW-08..11,
+  including the failed B1 case and qualified A protocol observations.
+- Check descriptive aggregate calculations and denominators, phase attribution,
+  known gaps and explicit absence of strict-idle or quota-savings claims.
+- Check public exports for appropriate redaction and consistent raw hashes.
+- Assess staged scope and the five-group a.commit before recommending readiness.
+
+Do not rerun measured conversations, reseed, alter frozen snapshots, or
+overwrite original audits. Read-only audit inspection and deterministic tests
+are sufficient to review retained measurements. Any proposed fresh experiment
+must preserve every existing trial and its classification.
+
+### Change summary for step 2 shared-wait-service (round 2)
+
+All 51 current staged paths are covered by root a.commit in six groups.
+
+Staged paths:
+
+- `docs/v0.13.0/claude-probe-state.shared-wait-service.py`
+- `docs/v0.13.0/claude-probe.shared-wait-service.py`
+- `docs/v0.13.0/claude-smoke.v0.13.0.shared-wait-service.md`
+- `docs/v0.13.0/claude-tabs.shared-wait-service.ps1`
+- `docs/v0.13.0/claude-tabs.v0.13.0.shared-wait-service.md`
+- `docs/v0.13.0/codex-tabs.shared-wait-service.ps1`
+- `docs/v0.13.0/codex-tabs.shared-wait-service.py`
+- `docs/v0.13.0/codex-tabs.v0.13.0.shared-wait-service.md`
+- `docs/v0.13.0/handoff.v0.13.0.claude-timed-tests.md`
+- `docs/v0.13.0/plan.v0.13.0.shared-wait-service.md`
+- `docs/v0.13.0/plan.v0.13.0.shared-wait-service.validation.md`
+- `docs/v0.13.0/probe-claude-capability.v0.13.0.shared-wait-service.json`
+- `docs/v0.13.0/probe-claude-controlled.v0.13.0.shared-wait-service.json`
+- `docs/v0.13.0/probe-claude-resume.v0.13.0.shared-wait-service.json`
+- `docs/v0.13.0/probe-claude-seeds.v0.13.0.shared-wait-service.json`
+- `docs/v0.13.0/probe-claude-series-audit.v0.13.0.shared-wait-service.json`
+- `docs/v0.13.0/probe-claude-smoke.v0.13.0.shared-wait-service.json`
+- `docs/v0.13.0/probe-controlled.v0.13.0.shared-wait-service.json`
+- `docs/v0.13.0/probe-manifests.v0.13.0.shared-wait-service.json`
+- `docs/v0.13.0/probe-results.v0.13.0.shared-wait-service.md`
+- `docs/v0.13.0/probe.shared-wait-service.py`
+- `docs/v0.13.0/review.code.v0.13.0.shared-wait-service.md`
+- `docs/v0.13.0/seed-procedure.v0.13.0.shared-wait-service.md`
+- `pyproject.toml`
+- `tests/unit/tools/wait_evidence/test_codex_proxy/__init__.py`
+- `tests/unit/tools/wait_evidence/test_codex_proxy/test_codex_proxy_tdd.py`
+- `tests/unit/tools/wait_evidence/test_prototype/__init__.py`
+- `tests/unit/tools/wait_evidence/test_prototype/test_claude_continuation_tdd.py`
+- `tests/unit/tools/wait_evidence/test_prototype/test_claude_lifecycle_tdd.py`
+- `tests/unit/tools/wait_evidence/test_prototype/test_claude_observer_tdd.py`
+- `tests/unit/tools/wait_evidence/test_prototype/test_driver_edges_tdd.py`
+- `tests/unit/tools/wait_evidence/test_prototype/test_native_tdd.py`
+- `tests/unit/tools/wait_evidence/test_prototype/test_observer_tdd.py`
+- `tests/unit/tools/wait_evidence/test_prototype/test_prototype_tdd.py`
+- `tests/unit/tools/wait_evidence/test_telemetry/test_claude273_tdd.py`
+- `tests/unit/tools/wait_evidence/test_telemetry/test_native_binding_tdd.py`
+- `tests/unit/tools/wait_evidence/test_telemetry/test_telemetry_tdd.py`
+- `tools/wait_evidence/__init__.py`
+- `tools/wait_evidence/claude_monitor.py`
+- `tools/wait_evidence/claude_observer.py`
+- `tools/wait_evidence/codex_proxy.py`
+- `tools/wait_evidence/collector.py`
+- `tools/wait_evidence/models.py`
+- `tools/wait_evidence/probe_cli.py`
+- `tools/wait_evidence/probe_driver.py`
+- `tools/wait_evidence/probe_files.py`
+- `tools/wait_evidence/probe_observer.py`
+- `tools/wait_evidence/prototype.py`
+- `tools/wait_evidence/telemetry.py`
+- `tools/wait_evidence/telemetry_claude.py`
+- `uv.lock`
+
+Ordered commit groups:
+
+- `build(wait-evidence): add WebSocket framing`
+- `feat(wait-evidence): probe native idle wake`
+- `feat(wait-probe): prepare measured TUI sessions`
+- `docs(wait-probe): retain matched trial evidence`
+- `docs(shared-wait-service): record step 2 code review`
+- `docs(shared-wait-service): record step 2 validation`
+
+### Human guidance and writer response for step 2 shared-wait-service (round 2)
+
+Human guidance:
+
+The user asks: "If step 2 is complete, shouldn't you request a review? And is
+'quota saving' proof part of step 2?"
+
+Review the actual acceptance requirements and the completion assessment.
+Distinguish required measured evidence from a claim of quota or billing savings.
+This instruction authorizes review; it does not authorize a commit.
+
+Writer response:
+
+All three round-1 findings are accepted. No disagreement and no reviewer
+repair reversal occurred; the reviewer had staged no changes.
+
+1. Corrected the two skipped-level request headings in the versioned transcript
+   and quoted all 96 authored path/command lines from that request. The
+   findings, decisions and review identities are unchanged. Future change
+   summaries use plain labels, quoted paths and concise commit subjects, so
+   neither nested a.commit headings nor bare initializer names recur.
+2. Updated the plan's stale no-new-dependency fact and the Step 2 validation
+   section. They now explain development-only wsproto 1.3.2 and its locked
+   h11 dependency, native Codex WebSocket framing, the absence of a standard
+   library framing implementation, and avoidance of a separate frame parser.
+3. Added # eof to both docs-side Claude probe Python scripts. No executable
+   behavior changed; all existing measurements and frozen snapshots are intact.
+
+Writer-repaired paths:
+
+- `docs/v0.13.0/review.code.v0.13.0.shared-wait-service.md`
+- `docs/v0.13.0/plan.v0.13.0.shared-wait-service.md`
+- `docs/v0.13.0/plan.v0.13.0.shared-wait-service.validation.md`
+- `docs/v0.13.0/claude-probe.shared-wait-service.py`
+- `docs/v0.13.0/claude-probe-state.shared-wait-service.py`
+
+The root ignored a.commit now has a separate transcript group before the final
+Step 2 validation group, covering 51 staged paths in six groups. Grouping
+changed, so a replacement review round is required even though executable
+behavior did not change. No commit has been authorized or performed.
+
+### Reviewer focus for step 2 shared-wait-service (round 2)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-2-round-2 -->
+
+## Round 2 by reviewer - Step 2
+
+- Recorded: 2026-09-17T13:42:24+02:00
+- Exchange: code/code/v0.13.0/shared-wait-service
+- Umbrella: docs/v0.13.0/draft.v0.13.0.no_polling.md
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.shared-wait-service.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 2
+- Outcome: answer
+
+### Assessed index identity for step 2 shared-wait-service (exchange 1) (round 2)
+
+Baseline index tree: 6a8f2fbb7a46e46421c5e638b6b029ad2cc862e6
+
+Assessed index tree: 6a8f2fbb7a46e46421c5e638b6b029ad2cc862e6
+
+### Implementation check for step 2 shared-wait-service (exchange 1) (round 2)
+
+Result:
+
+Reviewer implementation-check result: **Yes. Step 2 has been fully implemented.**
+
+Round 1's three findings are all repaired, verified against the staged state:
+
+1. **Transcript Markdown.** The `Staged paths for step 2` sub-heading is now
+   `####`, so no level is skipped, and every path in the appended round 1
+   content is backticked. My forced walk's check phase now reports
+   `Markdown check passed`.
+2. **Dependency recorded.** The plan's "Confirmed code and test facts" no longer
+   claims that no dependency is added; it names the development-only
+   `wsproto>=1.3.2` and its locked `h11` for the native Codex proxy's WebSocket
+   framing. The Step 2 validation rows repeat that, with the coverage scope
+   unchanged.
+3. **`# eof` sentinels.** Both `claude-probe.shared-wait-service.py` and
+   `claude-probe-state.shared-wait-service.py` now end with the marker, like
+   their siblings.
+
+The requestor also gave the exchange transcript its own commit group, so the
+tracked protocol artifact is no longer left out of the plan.
+
+Everything I confirmed in round 1 still holds:
+
+- The prototype keeps durable identities, one delivery attempt and single
+  consumption; host I/O stays outside the write transaction.
+- The driver freezes both drafts from the recorded seed commit and enforces
+  ordering and the 5% context gate.
+- The observers bind native normal end to the exact registering turn and keep
+  full duplicate and separate drain windows.
+- The telemetry adapters accept only the inspected Codex 0.154.0 and Claude
+  2.1.272/2.1.273 shapes and keep request completeness unknown.
+- The B1 repair accepts a completed-task notice only with matching parent,
+  task, Monitor call and completed status, with a duplicate notice failing the
+  run.
+- The retained evidence carries a ten-minute baseline per host, three pairs per
+  host in A/B, B/A, A/B order, and every failure and deviation, including the
+  failed Claude B1 and the initial-yield deviations.
+- No strict-idle, quota or billing conclusion is claimed anywhere.
+
+Architecture, performance and coverage are unchanged from round 1: the probe
+stays out of the shared service and existing workflows, accounting stays
+linear, and the configured `tools` gate is at 100%. Nothing needs fixing, and
+nothing needs addressing.
+
+Validation plan effects:
+
+No reviewer edit. The writer's staged Step 2 rows record the Yes status, both
+completion components, the architecture, performance, coverage and
+feature-integrity sections, the retained failures and deviations, and now the
+added development-only dependency and the fresh repair walk. They match what I
+checked. Validation-state comparison shows no tracked difference, so the
+reviewer left the validation plan and every other tracked file untouched.
+
+### Pre-repair mandatory checks and coverage for step 2 shared-wait-service (exchange 1) (round 2)
+
+All commands ran against request index tree
+`6a8f2fbb7a46e46421c5e638b6b029ad2cc862e6`; the reviewer changed nothing.
+
+| Command | Result |
+| --- | --- |
+| `ghog single` over the plan's two named leaves | exit 0; `fail=0 warn=0 xfail=0` |
+| `ghog single tests/unit/tools/wait_evidence/test_prototype/test_claude_continuation_tdd.py` | exit 0; `fail=0 warn=0 xfail=0` |
+| `ghog day --force` | exit 0. Check phase passed ty, pyright, ruff, radon, vulture, big-file (650), **Markdown**, ShellCheck and EOF; `ghog full done fail=0 warn=0 xfail=0 cov=100`; started 13:36:02 local |
+| `git diff --cached --check` | exit 0 |
+| `rg -n 'normal.end\|WAIT_TEST_DONE\|B-prototype\|inconclusive' tools/wait_evidence docs/...probe-results...md` | Run through the harness ripgrep search because `rg` is not on the tool shell's PATH: 51 matches across 10 modules |
+
+The round 1 blocking failure is gone: the Markdown gate that rejected the
+transcript now passes in the received state, and the walk reached its test and
+coverage phases.
+
+Independent state checks: the umbrella digest `239b4aeb…` is unchanged, and the
+validation-state comparison over the 51 staged paths plus the transcript is
+`acceptable: true`, with no tracked or untracked differences and only the
+ignored `a.ghog.log` changed.
+
+### Resolved validation set and sources for step 2 shared-wait-service (exchange 1) (round 2)
+
+The request's five resolved commands and the current resolver set agree:
+
+1. `ghog day` (project source), run as `ghog day --force` so no short-circuit
+   could skip it.
+2. `ghog single` over the plan's `test_prototype_tdd.py` and
+   `test_telemetry_tdd.py` (plan source).
+3. The plan's `rg` contract search over `tools/wait_evidence` and the probe
+   results (plan source), run with the harness ripgrep search because `rg` is
+   not on the tool shell's PATH.
+4. `git diff --cached --check` (request source).
+5. `ghog single` over `test_claude_continuation_tdd.py`, the B1 regression
+   (request source).
+
+### Resolver drift and direction for step 2 shared-wait-service (exchange 1) (round 2)
+
+None. The request adds two request-sourced commands to the plan's set, which the
+reviewer ran. The only environment substitution is the harness ripgrep search
+in place of the unavailable `rg` binary.
+
+### Repository state around validation for step 2 shared-wait-service (exchange 1) (round 2)
+
+- The request-time index tree `6a8f2fbb7a46e46421c5e638b6b029ad2cc862e6`
+  matched the live index at entry, and the assessed tree is identical because
+  the reviewer staged nothing.
+- The umbrella digest `239b4aeb…` is unchanged.
+- Validation-state comparison over the 51 staged paths plus the transcript:
+  `acceptable: true`, no tracked or untracked differences, only the ignored
+  `a.ghog.log` changed.
+- The transcript's remaining unstaged content is this exchange's own protocol
+  append. It is covered by the new commit group and no longer breaks the
+  Markdown gate.
+
+### Repair inventory for step 2 shared-wait-service (exchange 1) (round 2)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 2 shared-wait-service (exchange 1) (round 2)
+
+The independent `commit-plan-check.bat --format json` rerun returned status 0,
+`state: valid`, `ready: true`, no diagnostics, and six groups covering all 51
+staged paths: the framing dependency, the adapters and prototype, the
+human-operated session preparation, the retained trial evidence, the
+independent review record, and the Step 2 validation rows.
+
+Both round 1 points are addressed. The transcript
+`docs/v0.13.0/review.code.v0.13.0.shared-wait-service.md` now has its own group,
+and the recorded walk evidence points at the fresh repair run rather than only
+the pre-publication one. Membership, order, scope and conventional subjects
+match the staged work, so `a.commit` is accurate and the reviewer did not amend
+it.
+
+### Findings and boundaries for step 2 shared-wait-service (exchange 1) (round 2)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 2 shared-wait-service (exchange 1) (round 2)
+
+No rework is required for Step 2. Present the advisory commit-ready result at
+the commit gate. If the human selects Commit, run the reviewed six-group
+`a.commit` through the owning workflow.
+
+Two notes for the next steps, not for this one:
+
+- Author every future round's change summary with backticked paths and without
+  skipping heading levels, so the transcript keeps passing the Markdown gate.
+- Step 3 starts the durable service core. The Step 1 notes still stand for their
+  owning items: classic-arm consumption semantics, later-series drain bounds,
+  published token-inclusion semantics, and an explicit functional-wake field
+  separate from coverage.
+
+### Decision rationale for step 2 shared-wait-service (exchange 1) (round 2)
+
+Decision: `commit-ready` (advisory).
+
+Readiness floor:
+
+1. **Identity: pass.** Envelope, human-readable identity, plan, step 2, round 2,
+   occurrence 1 and request index tree agree.
+2. **Completeness: pass.** Implementation-check is Yes; all three round 1
+   findings are repaired.
+3. **Validation and coverage: pass.** `ghog day --force` now passes every static
+   check, including Markdown, with `fail=0 warn=0 xfail=0 cov=100`. Both focused
+   gates and `git diff --cached --check` pass.
+4. **Staged attribution: pass.** The staged set equals the request's 51 paths,
+   and the reviewer staged nothing.
+5. **Unresolved findings: pass.** None are current or carried.
+6. **`a.commit`: pass.** Status 0 with no diagnostics, six groups, accurate
+   membership and bodies.
+
+This round made no reviewer repair. The recommendation is advisory and never
+authorizes a commit; the commit choice belongs to the human at the convergence
+gate.
+
+### Final reviewer decision for step 2 shared-wait-service (exchange 1) (round 2)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-2-round-2 -->
+
+## Round 2 by human - Step 2 - human-confirmation
+
+- Recorded: 2026-09-17T14:07:01+02:00
+- Exchange: code/code/v0.13.0/shared-wait-service
+- Umbrella: docs/v0.13.0/draft.v0.13.0.no_polling.md
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.shared-wait-service.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 2
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-2 -->
