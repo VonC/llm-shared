@@ -93,12 +93,13 @@ class Phase(StrEnum):
 
 @dataclass(frozen=True)
 class StreamSpec:
-    """A selected stream, pre-start position and frozen continuity evidence."""
+    """A selected native or probe stream with frozen position and continuity evidence."""
 
     path: Path
     offset: int
     file_id: tuple[int, int] | None = None
     anchor_sha256: str | None = None
+    role: str = "telemetry"
 
     @classmethod
     def from_dict(cls, data: JsonObject) -> StreamSpec:
@@ -109,13 +110,21 @@ class StreamSpec:
             reject("Telemetry paths must be absolute")
         if isinstance(offset, bool) or not isinstance(offset, int) or offset < 0:
             reject("Stream offsets must be nonnegative integers")
+        role = cls._role(data)
         if data.get("file_id") is None and data.get("anchor_sha256") is None:
-            return cls(path, offset)
+            return cls(path, offset, role=role)
         file_id = cls._file_id(data.get("file_id"))
         anchor = text_value(data, "anchor_sha256")
         if len(anchor) != SHA256_LENGTH or any(char not in "0123456789abcdef" for char in anchor):
             reject("Stream anchor requires a SHA-256 hash")
-        return cls(path, offset, file_id, anchor)
+        return cls(path, offset, file_id, anchor, role)
+
+    @staticmethod
+    def _role(data: JsonObject) -> str:
+        role = data.get("role", "telemetry")
+        if not isinstance(role, str) or role not in {"telemetry", "probe"}:
+            reject("Unknown stream role")
+        return role
 
     @staticmethod
     def _file_id(value: JsonValue) -> tuple[int, int]:

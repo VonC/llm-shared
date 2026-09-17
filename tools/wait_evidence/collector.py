@@ -88,7 +88,7 @@ class _Drain:
 
 @dataclass
 class Collector:
-    """Own deduplication, baseline epochs, call correlation and finite drain state."""
+    """Own deduplication, baseline epochs, call correlation, finite drains and native/synthetic provenance."""
 
     manifest: TrialManifest
     _events: dict[str, EvidenceRecord] = field(default_factory=dict[str, EvidenceRecord], init=False)
@@ -505,7 +505,8 @@ class Collector:
             "series_id": self.manifest.series_id, "arm": str(self.manifest.arm), "host": self.manifest.host,
             "build": self.manifest.build, "model": self.manifest.model,
             "configuration_hash": self.manifest.configuration_hash, "seed_hashes": self.manifest.seed_hashes,
-            "context_tokens": self.manifest.context_tokens, "synthetic": True, "status": self._status(snapshot, now),
+            "context_tokens": self.manifest.context_tokens, "synthetic": self.manifest.schema == "synthetic-v1",
+            "status": self._status(snapshot, now),
             "thread_identity": identity_digest(self.manifest.host, self.manifest.profile, self.manifest.thread),
             "repository_identity": identity_digest(str(self.manifest.repository)),
             "timing_bounds": {"wake": self.manifest.wake_bound, "duplicate": self.manifest.duplicate_window,
