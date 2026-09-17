@@ -29,6 +29,28 @@ def registration(root: Path) -> JsonObject:
             "source_start": 100.0, "due_at": 340.0}
 
 
+@pytest.fixture(scope="module", params=[False, True])
+def physical_cli(request: pytest.FixtureRequest, tmp_path_factory: pytest.TempPathFactory) -> tuple[subprocess.CompletedProcess[str], Path]:
+    """Set up both real CLI launches outside the measured assertion call.
+
+    Interpreter startup under the parallel suite has a separate finite budget;
+    the functional contract does not require starting a process in five seconds.
+    """
+    repository = Path(__file__).resolve().parents[5]
+    root = tmp_path_factory.mktemp("physical-cli")
+    script = repository / "docs/v0.13.0/probe.shared-wait-service.py"
+    directory = root / "a.shared-wait-service" / "smoke"
+    directory.mkdir(parents=True)
+    data = {**registration(root), "source_seconds": 240, "mode": "trial"}
+    (directory / "manifest.json").write_text(json.dumps(data), encoding="utf-8")
+    # Ignore inherited Python paths and user-site hooks: the physical script
+    # must supply its own checkout bootstrap in both working directories.
+    completed = subprocess.run([sys.executable, "-I", str(script), "register", "--directory", str(directory)],  # noqa: S603 - Verified interpreter and physical script.
+                               cwd=root if request.param else repository,
+                               capture_output=True, text=True, check=False, timeout=15)
+    return completed, directory
+
+
 class TestPrototype:
     """Exercise normal-end gates, cancellation during host I/O and receipt recovery."""
 
@@ -210,18 +232,10 @@ class TestExperiment:
         with pytest.raises(ValueError, match="context"):
             series.prepare(mismatch, 12)
 
-    @pytest.mark.parametrize("other_cwd", [False, True])
-    def test_absolute_cli_imports_from_physical_checkout(self, tmp_path: Path, *, other_cwd: bool) -> None:
+    @pytest.mark.timeout(30)
+    def test_absolute_cli_imports_from_physical_checkout(self, physical_cli: tuple[subprocess.CompletedProcess[str], Path]) -> None:
         """The standalone script starts in either cwd with no PYTHONPATH setup."""
-        repository = Path(__file__).resolve().parents[5]
-        script = repository / "docs/v0.13.0/probe.shared-wait-service.py"
-        directory = tmp_path / "a.shared-wait-service" / "smoke"
-        directory.mkdir(parents=True)
-        data = {**registration(tmp_path), "source_seconds": 240, "mode": "trial"}
-        (directory / "manifest.json").write_text(json.dumps(data), encoding="utf-8")
-        completed = subprocess.run([sys.executable, str(script), "register", "--directory", str(directory)],  # noqa: S603 - Verified interpreter and physical script.
-                                   cwd=tmp_path if other_cwd else repository,
-                                   capture_output=True, text=True, check=False, timeout=5)
+        completed, directory = physical_cli
         assert completed.returncode == 0, completed.stderr
         assert json.loads(completed.stdout)["thread"] == "thread-one"
         assert Prototype(directory).snapshot()["source_id"] == "source-one"
