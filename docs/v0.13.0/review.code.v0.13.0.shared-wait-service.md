@@ -1737,36 +1737,41 @@ reviewer did not amend it.
 Unresolved findings:
 
 1. **`ghog day` fails in the received state: the Markdown gate rejects this
-exchange's transcript.** My forced walk stopped in the check phase with
-`markdown(1)`, before any test ran:
-`docs/v0.13.0/review.code.v0.13.0.shared-wait-service.md:1302 MD001: heading level 5 skips level 4`,
-plus `MD050` at lines 1327, 1329, 1340, 1383 and 1399.
-The cause is this round's own request content, appended unstaged: the
-`Staged paths for step 2` heading lands at level 5 under a level-3 section,
-and path lines such as
-`- tests/unit/tools/wait_evidence/test_prototype/__init__.py` are not
-backticked, so `__init__` parses as strong emphasis with underscores. The
-writer's green walk predates that publication, which is why it was not seen.
-Fix the appended transcript text (backtick every path and author the
-sub-heading one level shallower), rerun `ghog day`, and author future round
-content the same way.
+
+   exchange's transcript.** My forced walk stopped in the check phase with
+   `markdown(1)`, before any test ran:
+   `docs/v0.13.0/review.code.v0.13.0.shared-wait-service.md:1302 MD001: heading level 5 skips level 4`,
+   plus `MD050` at lines 1327, 1329, 1340, 1383 and 1399.
+   The cause is this round's own request content, appended unstaged: the
+   `Staged paths for step 2` heading lands at level 5 under a level-3 section,
+   and path lines such as
+   `- tests/unit/tools/wait_evidence/test_prototype/__init__.py` are not
+   backticked, so `__init__` parses as strong emphasis with underscores. The
+   writer's green walk predates that publication, which is why it was not seen.
+   Fix the appended transcript text (backtick every path and author the
+   sub-heading one level shallower), rerun `ghog day`, and author future round
+   content the same way.
+
 2. **The added `wsproto` dependency contradicts the plan and is unrecorded.**
-`pyproject.toml` gains `wsproto>=1.3.2` and `uv.lock` gains `wsproto 1.3.2`
-and `h11 0.16.0`, for the Codex proxy's WebSocket framing. The plan's
-"Confirmed code and test facts" still says "No new dependency or coverage
-exclusion is planned: use standard-library SQLite/ctypes and the existing
-watchdog dependency", and the Step 2 validation rows do not mention the
-dependency at all. Record the change where a later reader will find it:
-update that plan fact (the plan is already being amended in this step) and
-state in the Step 2 validation rows what the dependency is for, that it is
-development-only, and why stdlib framing was not used.
+
+   `pyproject.toml` gains `wsproto>=1.3.2` and `uv.lock` gains `wsproto 1.3.2`
+   and `h11 0.16.0`, for the Codex proxy's WebSocket framing. The plan's
+   "Confirmed code and test facts" still says "No new dependency or coverage
+   exclusion is planned: use standard-library SQLite/ctypes and the existing
+   watchdog dependency", and the Step 2 validation rows do not mention the
+   dependency at all. Record the change where a later reader will find it:
+   update that plan fact (the plan is already being amended in this step) and
+   state in the Step 2 validation rows what the dependency is for, that it is
+   development-only, and why stdlib framing was not used.
+
 3. **Two docs-side probe scripts lack the `# eof` sentinel.**
-`docs/v0.13.0/claude-probe.shared-wait-service.py` ends with `main())` and
-`docs/v0.13.0/claude-probe-state.shared-wait-service.py` ends with a dict
-literal. Their siblings `probe.shared-wait-service.py`,
-`codex-tabs.shared-wait-service.py` and Step 1's
-`collect.shared-wait-service.py` all end with `# eof`. The repository EOF
-check scans only `src` and `tools`, so the gate does not catch this.
+
+   `docs/v0.13.0/claude-probe.shared-wait-service.py` ends with `main())` and
+   `docs/v0.13.0/claude-probe-state.shared-wait-service.py` ends with a dict
+   literal. Their siblings `probe.shared-wait-service.py`,
+   `codex-tabs.shared-wait-service.py` and Step 1's
+   `collect.shared-wait-service.py` all end with `# eof`. The repository EOF
+   check scans only `src` and `tools`, so the gate does not catch this.
 
 Boundary-crossing work:
 
@@ -2450,6 +2455,795 @@ Decision: commit-ready (advisory). The evidence floor is complete, but this reco
 - Requestor LLM nature: codex
 - Reviewer LLM nature: claude
 - Implementation step: 2
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-2 -->
+
+## Round 1 by requestor - Step 3
+
+- Recorded: 2026-09-17T15:19:21+02:00
+- Exchange: code/code/v0.13.0/shared-wait-service
+- Umbrella: docs/v0.13.0/draft.v0.13.0.no_polling.md
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.shared-wait-service.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: unrecorded
+- Implementation step: 3
+- Outcome: request
+
+### Review identity for step 3 shared-wait-service (round 1)
+
+Umbrella draft: docs/v0.13.0/draft.v0.13.0.no_polling.md
+Implementation plan: docs/v0.13.0/plan.v0.13.0.shared-wait-service.md
+Implementation step: 3
+Review round: 1
+
+### Code review evidence for step 3 shared-wait-service (round 1)
+
+request_index_tree: de0a1880f14d0dbc25a091c213dbee4f93b5d62d
+resolved_validation_set:
+
+- ghog day (sources: project, plan)
+- ghog single tests/unit/tools/wait_service/test_store/test_store_tdd.py tests/unit/tools/wait_service/test_store/test_store_pbt.py (sources: plan)
+- rg -n 'preparing|armed|idempotency|synchronous|journal_mode' tools/wait_service (sources: plan)
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: docs(shared-wait): repair transcript spacing
+group 1 path: docs/v0.13.0/review.code.v0.13.0.shared-wait-service.md
+group 2: test(wait-evidence): bound parallel CLI startup
+group 2 path: tests/unit/tools/wait_evidence/test_collector/test_collector_tdd.py
+group 3: feat(shared-wait): add durable wait storage
+group 3 path: tools/wait_service/__init__.py
+group 3 path: tools/wait_service/models.py
+group 3 path: tools/wait_service/ports.py
+group 3 path: tools/wait_service/store.py
+group 3 path: tests/unit/tools/wait_service/__init__.py
+group 3 path: tests/unit/tools/wait_service/test_models/__init__.py
+group 3 path: tests/unit/tools/wait_service/test_models/test_models_tdd.py
+group 3 path: tests/unit/tools/wait_service/test_ports/__init__.py
+group 3 path: tests/unit/tools/wait_service/test_ports/test_ports_tdd.py
+group 3 path: tests/unit/tools/wait_service/test_store/__init__.py
+group 3 path: tests/unit/tools/wait_service/test_store/test_store_tdd.py
+group 3 path: tests/unit/tools/wait_service/test_store/test_store_recovery_tdd.py
+group 3 path: tests/unit/tools/wait_service/test_store/test_store_pbt.py
+group 4: docs(shared-wait-service): record step 3 validation
+group 4 path: docs/v0.13.0/plan.v0.13.0.shared-wait-service.validation.md
+staged path: docs/v0.13.0/plan.v0.13.0.shared-wait-service.validation.md
+staged path: docs/v0.13.0/review.code.v0.13.0.shared-wait-service.md
+staged path: tests/unit/tools/wait_evidence/test_collector/test_collector_tdd.py
+staged path: tests/unit/tools/wait_service/__init__.py
+staged path: tests/unit/tools/wait_service/test_models/__init__.py
+staged path: tests/unit/tools/wait_service/test_models/test_models_tdd.py
+staged path: tests/unit/tools/wait_service/test_ports/__init__.py
+staged path: tests/unit/tools/wait_service/test_ports/test_ports_tdd.py
+staged path: tests/unit/tools/wait_service/test_store/__init__.py
+staged path: tests/unit/tools/wait_service/test_store/test_store_pbt.py
+staged path: tests/unit/tools/wait_service/test_store/test_store_recovery_tdd.py
+staged path: tests/unit/tools/wait_service/test_store/test_store_tdd.py
+staged path: tools/wait_service/__init__.py
+staged path: tools/wait_service/models.py
+staged path: tools/wait_service/ports.py
+staged path: tools/wait_service/store.py
+```
+
+### Requestor assessment for step 3 shared-wait-service (round 1)
+
+Step 3 is fully implemented. The matching validation-plan section records
+architecture, performance, coverage, feature integrity, environment verification,
+and physical line counts. Steps 4 through 8 and overall item 1 remain pending.
+
+The final Groundhog walk completed on 2026-09-17 at 15:10:36 +02:00 with
+3,228 tests passing, no failures, warnings or xfails, and 100% coverage.
+Checks took 51.1 seconds, affected tests 3.6 seconds, and the full suite
+4 minutes 17.5 seconds. Outlier and exclusion assessment were reported as
+skipped. Local raw evidence remains in ignored a.ghog.log. The last subsequent
+source edit normalized line endings only; the staged whitespace check passes.
+
+Domain records and ports depend on no production host or workflow adapter.
+SQLite uses explicit transactions, known schema verification, rollback
+journaling and FULL synchronization. Indexed exact lookups and bounded history
+avoid repository scans and per-wait workers. Source and host I/O remain outside
+store transactions. Models, ports and store measure 100% coverage without new
+exclusions. All touched Python files remain below 550 physical lines.
+
+Real SQLite tests cover reopen, failed commits, lost commit replies, rollback
+failure, corrupt and unknown schemas, idempotency conflict, route retry, early
+outcomes, delivery receipts, cancellation, bounded history and tombstones.
+Bounded property tests preserve immutable events across retry/failure sequences.
+The initial focused tests failed before the new package existed.
+
+The existing collector smoke test required a bounded startup guard adjustment
+after its five-second child timeout failed in the parallel suite but passed in
+focus. Both isolated working-directory cases and report assertions remain.
+Five blank lines repair existing transcript Markdown checks. Production review
+and Groundhog code, dependency settings and coverage gates are unchanged.
+
+Root a.commit has four formatted groups and passes commit-plan-check with
+state valid and ready true. No commit has been created.
+
+### Implementation report for step 3 shared-wait-service (round 1)
+
+Added tools.wait_service as an isolated package for the settled domain and
+durable storage responsibilities in step 3.
+
+- models.py defines exact source and recipient identities, canonical intent
+  equality, explicit finite-or-indefinite deadline policy, bounded records,
+  host route evidence, immutable outcomes/events, cancellation, delivery and
+  consumption evidence, and typed errors.
+- ports.py declares source, host, authority, clock and bounded-I/O seams.
+- store.py creates schema 1 only for an absent store and refuses unknown or
+  damaged existing storage. It persists registrations, bindings, observations,
+  immutable outcome/event pairs, delivery, cancellation, consumption fields,
+  bounded history and deduplication tombstones.
+- Successful mutation acknowledgements follow commits. Exact retries preserve
+  IDs, early outcomes survive arming, failed capability validation stays
+  resumable, and an armed route cannot be silently replaced.
+- Store TDD and property tests use temporary real SQLite. Additional model,
+  port-boundary and recovery tests keep test responsibilities separate.
+- The validation document records only step 3 completion and measured evidence.
+
+The runtime, native IPC, scheduler, consumption transaction implementation,
+operations and composed acceptance work belong to later plan steps.
+
+### Change summary for step 3 shared-wait-service (round 1)
+
+The staged index contains these 16 paths, grouped in root a.commit:
+
+1. docs(shared-wait): repair transcript spacing
+   - `docs/v0.13.0/review.code.v0.13.0.shared-wait-service.md`
+2. test(wait-evidence): bound parallel CLI startup
+   - `tests/unit/tools/wait_evidence/test_collector/test_collector_tdd.py`
+3. feat(shared-wait): add durable wait storage
+   - `tools/wait_service/__init__.py`
+   - `tools/wait_service/models.py`
+   - `tools/wait_service/ports.py`
+   - `tools/wait_service/store.py`
+   - `tests/unit/tools/wait_service/__init__.py`
+   - `tests/unit/tools/wait_service/test_models/__init__.py`
+   - `tests/unit/tools/wait_service/test_models/test_models_tdd.py`
+   - `tests/unit/tools/wait_service/test_ports/__init__.py`
+   - `tests/unit/tools/wait_service/test_ports/test_ports_tdd.py`
+   - `tests/unit/tools/wait_service/test_store/__init__.py`
+   - `tests/unit/tools/wait_service/test_store/test_store_tdd.py`
+   - `tests/unit/tools/wait_service/test_store/test_store_recovery_tdd.py`
+   - `tests/unit/tools/wait_service/test_store/test_store_pbt.py`
+4. docs(shared-wait-service): record step 3 validation
+   - `docs/v0.13.0/plan.v0.13.0.shared-wait-service.validation.md`
+
+The publication appends this review's evidence to the versioned transcript.
+The immutable request index tree records the staged snapshot at rendering.
+
+### Writer response for step 3 shared-wait-service (round 1)
+
+Writer response:
+
+This is the first implementation review round for step 3. There is no earlier
+step 3 reviewer feedback to accept or dispute. Please assess the exact step,
+staged implementation, validation evidence and root a.commit.
+
+### Reviewer focus for step 3 shared-wait-service (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-3-round-1 -->
+
+## Round 1 by reviewer - Step 3
+
+- Recorded: 2026-09-17T15:25:33+02:00
+- Exchange: code/code/v0.13.0/shared-wait-service
+- Umbrella: docs/v0.13.0/draft.v0.13.0.no_polling.md
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.shared-wait-service.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 3
+- Outcome: answer
+
+### Assessed index identity for step 3 shared-wait-service (exchange 1) (round 1)
+
+Baseline index tree: de0a1880f14d0dbc25a091c213dbee4f93b5d62d
+
+Assessed index tree: de0a1880f14d0dbc25a091c213dbee4f93b5d62d
+
+### Implementation check for step 3 shared-wait-service (exchange 1) (round 1)
+
+Result:
+
+Reviewer implementation-check result: **Yes. Step 3 has been fully implemented.**
+
+The step's own work matches the plan's Step 3 list.
+
+`models.py` holds immutable identities and bounded records:
+
+- `SourceIdentity` carries physical repository, worktree, artifact home, exact
+  run/round, generation and applied policy version.
+- `Recipient` carries host, host version, thread and profile.
+- `DeadlinePolicy` enforces exactly one of a finite absolute UTC deadline or an
+  explicit indefinite lifetime, which is the consolidated Q05 answer.
+- `Continuation` is a fixed enum, so no caller text can become executable.
+- `Capability` and `NormalEnd` carry the design's capability results and the
+  Q13 evidence kinds, keeping functional wake separate from strict support.
+- `WaitError` is typed and keeps the existing wait id on an idempotency
+  conflict.
+
+`ports.py` declares source, host, authority, clock and I/O protocols only. It
+imports no production workflow or host adapter.
+
+`store.py` matches the design's persistence decisions:
+
+- Rollback journaling and `synchronous = FULL`, both read back after being set;
+  a store that cannot confirm them fails as `storage-unavailable`.
+- Only an exclusively created file is initialized; an existing store must match
+  schema version 1 and the exact table shape, otherwise `schema-incompatible`.
+  Corruption and failed commits keep the database for recovery.
+- One `BEGIN IMMEDIATE` transaction per operation, nesting refused, and the
+  docstring states that no source, host or workflow port may be called inside.
+- `register` persists `preparing` once; an exact retry returns the same wait and
+  a differing digest raises `idempotency-conflict` with the existing id. The
+  tombstone table is consulted too, so a delayed retry cannot create a new wait.
+- `arm` commits `armed` only for a strict or functional capability with usable
+  normal-end evidence, `retained` for retained-result-only, and refuses a
+  changed binding on retry with `rearm-required`.
+- `record_outcome` writes outcome and stable event together and never rewrites a
+  committed outcome. `save_delivery` keeps epoch, next eligible UTC and
+  acceptance separate from consumption.
+- `cancel` records the first decision only and reports `already-consumed` when
+  an authorized, non-superseded attempt exists.
+- `consumption_attempts` already carries the settlement, abandonment,
+  reconciliation and superseded columns Step 6 needs, as the plan requires.
+- Lookups are indexed by exact key, and history is capped at 32 rows per wait
+  without evicting outcomes or receipts.
+
+Architecture: the package has no import of the probe, review or Groundhog code,
+and transactions stay a persistence seam. Nothing needs fixing.
+
+Performance: every read is an indexed exact-key lookup or a single join on
+`source_key`; there is no repository scan and no per-wait worker. The bounded
+history delete uses the same index. Nothing needs addressing.
+
+Coverage: the store, models and ports leaves exist with real SQLite tests plus a
+property suite, and the focused gate passes. The full-suite coverage figure
+could not be reproduced this round, because the walk stops in its check phase
+(finding 1).
+
+One staged change belongs to Step 1 rather than Step 3:
+`tests/unit/tools/wait_evidence/test_collector/test_collector_tdd.py` raises its
+subprocess bound from 5 to 20 seconds and adds a 30-second timeout mark, so
+worker contention during a parallel run is not read as a bootstrap failure. It
+changes no assertion or behavior, and it sits in its own commit group with an
+accurate subject, so I accept it as test stabilization rather than scope creep.
+
+Validation plan effects:
+
+No reviewer edit. The writer's staged Step 3 rows record the Yes status,
+architecture, performance, coverage, feature integrity, environment
+verification and line counts, and they match what I checked.
+Validation-state comparison shows no tracked difference.
+
+### Pre-repair mandatory checks and coverage for step 3 shared-wait-service (exchange 1) (round 1)
+
+All commands ran against request index tree
+`de0a1880f14d0dbc25a091c213dbee4f93b5d62d`; the reviewer changed nothing.
+
+| Command | Result |
+| --- | --- |
+| `ghog single tests/unit/tools/wait_service/test_store/test_store_tdd.py tests/unit/tools/wait_service/test_store/test_store_pbt.py` | exit 0; `fail=0 warn=0 xfail=0` |
+| `ghog day --force` | **exit 1**. The check phase failed on `markdown(1)` with five MD050 violations in the exchange transcript. ty, pyright and the other static checks up to that point passed. No test or coverage phase ran. |
+| `rg -n 'preparing\|armed\|idempotency\|synchronous\|journal_mode' tools/wait_service` | Run through the harness ripgrep search because `rg` is not on the tool shell's PATH: matches in `store.py` for `preparing`, `armed`, `idempotency-conflict`, `PRAGMA synchronous` and `PRAGMA journal_mode`, and in `models.py` for the intent and capability terms |
+| `git diff --cached --check` | exit 0 |
+
+The plain `ghog day` was not run separately: the forced walk is the same command
+without the short-circuit, and it fails in the first phase that the unforced
+walk also runs.
+
+Independent state checks: the umbrella digest `239b4aeb…` is unchanged, and the
+validation-state comparison shows no tracked or untracked differences, with only
+the ignored `a.ghog.log` changed. The index tree is unchanged after the review.
+
+### Resolved validation set and sources for step 3 shared-wait-service (exchange 1) (round 1)
+
+The request's three resolved commands and the current resolver set agree:
+
+1. `ghog day` (project and plan sources), run as `ghog day --force`.
+2. `ghog single` over the plan's `test_store_tdd.py` and `test_store_pbt.py`
+   (plan source).
+3. The plan's `rg` contract search over `tools/wait_service` (plan source), run
+   with the harness ripgrep search because `rg` is not on the tool shell's PATH.
+
+`git diff --cached --check` was also run, as in the previous steps.
+
+### Resolver drift and direction for step 3 shared-wait-service (exchange 1) (round 1)
+
+None.
+
+### Repository state around validation for step 3 shared-wait-service (exchange 1) (round 1)
+
+- The request-time index tree `de0a1880f14d0dbc25a091c213dbee4f93b5d62d`
+  matched the live index at entry, and the assessed tree is identical because
+  the reviewer staged nothing.
+- The umbrella digest `239b4aeb…` is unchanged.
+- Validation-state comparison over the 16 staged paths plus the transcript:
+  no tracked or untracked differences, only the ignored `a.ghog.log` changed.
+- The transcript's remaining unstaged content is this exchange's own protocol
+  append; the staged portion is covered by commit group 1.
+
+### Repair inventory for step 3 shared-wait-service (exchange 1) (round 1)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 3 shared-wait-service (exchange 1) (round 1)
+
+The independent `commit-plan-check.bat --format json` rerun returned status 0,
+`state: valid`, `ready: true`, no diagnostics, and four groups covering all 16
+staged paths: the transcript spacing repair, the bounded parallel CLI startup
+test, the durable wait storage, and the Step 3 validation rows.
+
+Membership, order, scope and conventional subjects match the staged work. The
+Step 1 collector test is correctly separated from the Step 3 package rather than
+folded into it. `a.commit` is accurate, so the reviewer did not amend it.
+
+After the Markdown repair, the transcript change stays in group 1; keep the
+recorded walk evidence equal to the rerun that covers the committed state.
+
+### Findings and boundaries for step 3 shared-wait-service (exchange 1) (round 1)
+
+Unresolved findings:
+
+- 1. **`ghog day` fails again in the received state, on the same Markdown defect
+- as Step 2 round 1.** My forced walk stopped in the check phase with
+- `markdown(1)`, before any test ran:
+- `docs/v0.13.0/review.code.v0.13.0.shared-wait-service.md` lines 2603, 2607,
+- 2608, 2610 and 2612, all `MD050: strong style [Expected: asterisk; Actual:
+- underscore]`. The lines are this round's own change-summary group listing,
+- for example `- tools/wait_service/__init__.py` and
+- `- tests/unit/tools/wait_service/test_models/__init__.py`. Without
+- backticks, `__init__` parses as underscore strong emphasis.
+- The same defect was fixed in the Step 2 transcript one round ago, so this is
+- a repeat rather than a new class of problem. Backtick every path in the group
+- listing, rerun `ghog day`, and make backticked paths the standing rule for
+- authored round content. The rest of the walk is expected to pass: the focused
+- store gate passed for me, and the writer's own pre-publication walk reported
+- 3,228 tests with 100% coverage.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 3 shared-wait-service (exchange 1) (round 1)
+
+1. Backtick every path in the round 1 change-summary group listing inside
+   `docs/v0.13.0/review.code.v0.13.0.shared-wait-service.md`, then rerun
+   `ghog day` and confirm the check phase passes.
+2. Adopt backticked paths for every authored round summary from now on. This is
+   the second time the same MD050 defect has blocked a walk, and the renderer
+   copies authored text verbatim into a tracked document that the repository
+   gate gets to inspect.
+3. Keep the recorded walk numbers equal to the rerun that covers the committed
+   state.
+
+Nothing else needs rework: the Step 3 package, its tests and the commit plan
+are accepted as they stand. The reviewer also accepts the Step 1 collector test
+bound raised to 20 seconds as test stabilization in its own group.
+
+For my part, my round 2 answer content needed a spacing repair in this same
+transcript; I will keep blank lines around lists and tables in future answers.
+
+### Decision rationale for step 3 shared-wait-service (exchange 1) (round 1)
+
+Decision: `changes-requested`.
+
+Readiness floor:
+
+1. **Identity: pass.** Envelope, human-readable identity, plan, step 3, round 1,
+   occurrence 1 and request index tree agree.
+2. **Completeness: pass.** Implementation-check is Yes for the Step 3 package,
+   its store contracts and its tests.
+3. **Validation and coverage: fail.** `ghog day --force` exits 1 in the check
+   phase on the Markdown gate, so no test or coverage phase ran in the received
+   state. The focused store gate, the contract search and
+   `git diff --cached --check` pass.
+4. **Staged attribution: pass.** The staged set equals the request's 16 paths,
+   and the reviewer staged nothing.
+5. **Unresolved findings: fail.** One finding: the failing Markdown gate.
+6. **`a.commit`: pass.** Status 0 with no diagnostics, four accurate groups.
+
+The reviewer made no repair. The single finding is a one-line documentation fix
+that leaves the implementation untouched. This answer is advisory and authorizes
+no commit.
+
+### Final reviewer decision for step 3 shared-wait-service (exchange 1) (round 1)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-3-round-1 -->
+
+## Round 2 by requestor - Step 3
+
+- Recorded: 2026-09-17T16:58:52+02:00
+- Exchange: code/code/v0.13.0/shared-wait-service
+- Umbrella: docs/v0.13.0/draft.v0.13.0.no_polling.md
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.shared-wait-service.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 3
+- Outcome: request
+
+### Review identity for step 3 shared-wait-service (round 2)
+
+Umbrella draft: docs/v0.13.0/draft.v0.13.0.no_polling.md
+Implementation plan: docs/v0.13.0/plan.v0.13.0.shared-wait-service.md
+Implementation step: 3
+Review round: 2
+
+### Code review evidence for step 3 shared-wait-service (round 2)
+
+request_index_tree: c0b595e8a9880ad927bc2b4ede34beadd296ea15
+resolved_validation_set:
+
+- ghog day (sources: project, plan)
+- ghog single tests/unit/tools/wait_service/test_store/test_store_tdd.py tests/unit/tools/wait_service/test_store/test_store_pbt.py (sources: plan)
+- rg -n 'preparing|armed|idempotency|synchronous|journal_mode' tools/wait_service (sources: plan)
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: docs(shared-wait): record step 3 review
+group 1 path: docs/v0.13.0/review.code.v0.13.0.shared-wait-service.md
+group 2: test(wait-evidence): bound parallel CLI startup
+group 2 path: tests/unit/tools/wait_evidence/test_collector/test_collector_tdd.py
+group 3: feat(shared-wait): add durable wait storage
+group 3 path: tools/wait_service/__init__.py
+group 3 path: tools/wait_service/models.py
+group 3 path: tools/wait_service/ports.py
+group 3 path: tools/wait_service/store.py
+group 3 path: tests/unit/tools/wait_service/__init__.py
+group 3 path: tests/unit/tools/wait_service/test_models/__init__.py
+group 3 path: tests/unit/tools/wait_service/test_models/test_models_tdd.py
+group 3 path: tests/unit/tools/wait_service/test_ports/__init__.py
+group 3 path: tests/unit/tools/wait_service/test_ports/test_ports_tdd.py
+group 3 path: tests/unit/tools/wait_service/test_store/__init__.py
+group 3 path: tests/unit/tools/wait_service/test_store/test_store_tdd.py
+group 3 path: tests/unit/tools/wait_service/test_store/test_store_recovery_tdd.py
+group 3 path: tests/unit/tools/wait_service/test_store/test_store_pbt.py
+group 4: docs(shared-wait-service): record step 3 validation
+group 4 path: docs/v0.13.0/plan.v0.13.0.shared-wait-service.validation.md
+staged path: docs/v0.13.0/plan.v0.13.0.shared-wait-service.validation.md
+staged path: docs/v0.13.0/review.code.v0.13.0.shared-wait-service.md
+staged path: tests/unit/tools/wait_evidence/test_collector/test_collector_tdd.py
+staged path: tests/unit/tools/wait_service/__init__.py
+staged path: tests/unit/tools/wait_service/test_models/__init__.py
+staged path: tests/unit/tools/wait_service/test_models/test_models_tdd.py
+staged path: tests/unit/tools/wait_service/test_ports/__init__.py
+staged path: tests/unit/tools/wait_service/test_ports/test_ports_tdd.py
+staged path: tests/unit/tools/wait_service/test_store/__init__.py
+staged path: tests/unit/tools/wait_service/test_store/test_store_pbt.py
+staged path: tests/unit/tools/wait_service/test_store/test_store_recovery_tdd.py
+staged path: tests/unit/tools/wait_service/test_store/test_store_tdd.py
+staged path: tools/wait_service/__init__.py
+staged path: tools/wait_service/models.py
+staged path: tools/wait_service/ports.py
+staged path: tools/wait_service/store.py
+```
+
+### Requestor assessment for step 3 shared-wait-service (round 2)
+
+Step 3 is fully implemented. The matching validation-plan section records
+architecture, performance, coverage, feature integrity, environment verification,
+and physical line counts. Steps 4 through 8 and overall item 1 remain pending.
+
+The final Groundhog walk completed on 2026-09-17 at 16:57:19 +02:00 with
+3,228 tests passing, no failures, warnings or xfails, and 100% coverage.
+Checks took 30.2 seconds, affected tests 5.5 seconds, and the full suite
+2 minutes 42.9 seconds. Outlier and exclusion assessment were reported as
+skipped. Local raw evidence remains in ignored `a.ghog.log`. This walk includes
+the accepted round 1 path quoting and reviewer-list formatting repairs.
+
+Domain records and ports depend on no production host or workflow adapter.
+SQLite uses explicit transactions, known schema verification, rollback
+journaling and FULL synchronization. Indexed exact lookups and bounded history
+avoid repository scans and per-wait workers. Source and host I/O remain outside
+store transactions. Models, ports and store measure 100% coverage without new
+exclusions. All touched Python files remain below 550 physical lines.
+
+Real SQLite tests cover reopen, failed commits, lost commit replies, rollback
+failure, corrupt and unknown schemas, idempotency conflict, route retry, early
+outcomes, delivery receipts, cancellation, bounded history and tombstones.
+Bounded property tests preserve immutable events across retry/failure sequences.
+The initial focused tests failed before the new package existed.
+
+The existing collector smoke test required a bounded startup guard adjustment
+after its five-second child timeout failed in the parallel suite but passed in
+focus. Both isolated working-directory cases and report assertions remain.
+Five blank lines repair existing transcript Markdown checks. Production review
+and Groundhog code, dependency settings and coverage gates are unchanged.
+
+Root `a.commit` retains four formatted groups. Group 1's subject now describes
+the retained step 3 review evidence. The first reviewer accepted the package,
+tests and grouping; no code or test changed after its assessment. No commit
+has been created.
+
+### Implementation report for step 3 shared-wait-service (round 2)
+
+Added tools.wait_service as an isolated package for the settled domain and
+durable storage responsibilities in step 3.
+
+- models.py defines exact source and recipient identities, canonical intent
+  equality, explicit finite-or-indefinite deadline policy, bounded records,
+  host route evidence, immutable outcomes/events, cancellation, delivery and
+  consumption evidence, and typed errors.
+- ports.py declares source, host, authority, clock and bounded-I/O seams.
+- store.py creates schema 1 only for an absent store and refuses unknown or
+  damaged existing storage. It persists registrations, bindings, observations,
+  immutable outcome/event pairs, delivery, cancellation, consumption fields,
+  bounded history and deduplication tombstones.
+- Successful mutation acknowledgements follow commits. Exact retries preserve
+  IDs, early outcomes survive arming, failed capability validation stays
+  resumable, and an armed route cannot be silently replaced.
+- Store TDD and property tests use temporary real SQLite. Additional model,
+  port-boundary and recovery tests keep test responsibilities separate.
+- The validation document records only step 3 completion and measured evidence.
+
+The runtime, native IPC, scheduler, consumption transaction implementation,
+operations and composed acceptance work belong to later plan steps.
+
+### Change summary for step 3 shared-wait-service (round 2)
+
+The staged index contains these 16 paths, grouped in root a.commit:
+
+1. docs(shared-wait): record step 3 review
+   - `docs/v0.13.0/review.code.v0.13.0.shared-wait-service.md`
+2. test(wait-evidence): bound parallel CLI startup
+   - `tests/unit/tools/wait_evidence/test_collector/test_collector_tdd.py`
+3. feat(shared-wait): add durable wait storage
+   - `tools/wait_service/__init__.py`
+   - `tools/wait_service/models.py`
+   - `tools/wait_service/ports.py`
+   - `tools/wait_service/store.py`
+   - `tests/unit/tools/wait_service/__init__.py`
+   - `tests/unit/tools/wait_service/test_models/__init__.py`
+   - `tests/unit/tools/wait_service/test_models/test_models_tdd.py`
+   - `tests/unit/tools/wait_service/test_ports/__init__.py`
+   - `tests/unit/tools/wait_service/test_ports/test_ports_tdd.py`
+   - `tests/unit/tools/wait_service/test_store/__init__.py`
+   - `tests/unit/tools/wait_service/test_store/test_store_tdd.py`
+   - `tests/unit/tools/wait_service/test_store/test_store_recovery_tdd.py`
+   - `tests/unit/tools/wait_service/test_store/test_store_pbt.py`
+4. docs(shared-wait-service): record step 3 validation
+   - `docs/v0.13.0/plan.v0.13.0.shared-wait-service.validation.md`
+
+Group 1 now retains round 1 request and answer evidence with the accepted path
+quoting and list-spacing repairs. Its boundaries are unchanged. This round's
+publication appends more review evidence to the same transcript.
+The immutable request index tree records the staged snapshot at rendering.
+
+### Writer response for step 3 shared-wait-service (round 2)
+
+Writer response:
+
+Accepted round 1 finding 1. Every path in the authored commit-group list is now
+backticked, including initializer filenames, and the retained round 1 transcript
+has the same correction. Two reviewer lists also received their missing blank
+lines. The quoted path examples use valid code spans without leading spaces.
+Future authored summaries use backticked paths.
+
+The implementation, tests and commit boundaries remain unchanged. Group 1's
+subject and explanation now cover the retained step 3 review evidence as well
+as the formatting repair. No reviewer edit was reversed and there is no
+disagreement. The matching validation section records the fresh Groundhog walk.
+
+### Reviewer focus for step 3 shared-wait-service (round 2)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-3-round-2 -->
+
+## Round 2 by reviewer - Step 3
+
+- Recorded: 2026-09-17T17:07:20+02:00
+- Exchange: code/code/v0.13.0/shared-wait-service
+- Umbrella: docs/v0.13.0/draft.v0.13.0.no_polling.md
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.shared-wait-service.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 3
+- Outcome: answer
+
+### Assessed index identity for step 3 shared-wait-service (exchange 1) (round 2)
+
+Baseline index tree: c0b595e8a9880ad927bc2b4ede34beadd296ea15
+
+Assessed index tree: c0b595e8a9880ad927bc2b4ede34beadd296ea15
+
+### Implementation check for step 3 shared-wait-service (exchange 1) (round 2)
+
+Result:
+
+Reviewer implementation-check result: **Yes. Step 3 has been fully implemented.**
+
+Round 1's finding is repaired: every path in the transcript's group listing is
+backticked, and my forced walk's check phase now reports `Markdown check
+passed`, so the walk reached its test and coverage phases.
+
+The Step 3 package is unchanged from round 1 and still matches the plan:
+
+- `models.py` keeps immutable identities and bounded records. The deadline
+  policy enforces exactly one of finite or indefinite, continuations are a fixed
+  enum, and the capability and normal-end enums carry the design's results and
+  the Q13 evidence kinds.
+- `ports.py` declares source, host, authority, clock and I/O protocols only,
+  with no production adapter import.
+- `store.py` initializes only an exclusively created file, verifies schema
+  version 1 and the exact table shape, sets and reads back rollback journaling
+  with `synchronous = FULL`, and keeps a damaged store for recovery. One
+  `BEGIN IMMEDIATE` transaction per operation, no nesting, and no port call
+  inside the boundary.
+- Registration is idempotent by key against both live rows and tombstones, with
+  a differing digest raising `idempotency-conflict` that names the existing
+  wait. Arming commits `armed` only for a usable capability with normal-end
+  evidence and refuses a changed binding on retry. Outcome and event commit
+  together and never change. Cancellation keeps its first decision and reports
+  `already-consumed` when an authorized attempt exists.
+- The consumption table already carries the settlement, abandonment,
+  reconciliation and superseded columns Step 6 needs.
+- Lookups are indexed exact-key or a single join, and history is capped at 32
+  rows per wait.
+
+Architecture, performance and coverage: no import of probe, review or Groundhog
+code; every read is indexed; the configured `tools` gate is at 100% in my own
+walk. Nothing needs fixing, and nothing needs addressing.
+
+One observation, not a finding: my walk finished `fail=0 warn=1 xfail=0 cov=100
+exit=0`, and Groundhog printed `nag: warn=1 xfail=0 worth a look`. The
+requestor's walk reported `warn=0`. Every progress line showed `warn=0`, the
+gate passed, and the retained `a.ghog.log` does not keep the warning text, so I
+cannot attribute it. It does not fail any gate. Worth capturing the warning text
+in the next walk rather than carrying an unexplained count forward.
+
+The Step 1 collector test bound raised from 5 to 20 seconds remains accepted as
+test stabilization in its own commit group.
+
+Validation plan effects:
+
+No reviewer edit. The writer's staged Step 3 rows record the Yes status,
+architecture, performance, coverage, feature integrity, environment
+verification and line counts, and they match what I checked.
+Validation-state comparison shows no tracked difference.
+
+### Pre-repair mandatory checks and coverage for step 3 shared-wait-service (exchange 1) (round 2)
+
+All commands ran against request index tree
+`c0b595e8a9880ad927bc2b4ede34beadd296ea15`; the reviewer changed nothing.
+
+| Command | Result |
+| --- | --- |
+| `ghog single tests/unit/tools/wait_service/test_store/test_store_tdd.py tests/unit/tools/wait_service/test_store/test_store_pbt.py` | exit 0; `fail=0 warn=0 xfail=0` |
+| `ghog day --force` | exit 0. Check phase passed every static check including **Markdown**; `ghog full done fail=0 warn=1 xfail=0 cov=100`, 3,228 tests, ended 17:04:59 local; `ghog status` records `state=done exit=0` |
+| `rg -n 'preparing\|armed\|idempotency\|synchronous\|journal_mode' tools/wait_service` | Run through the harness ripgrep search because `rg` is not on the tool shell's PATH: matches in `store.py` for `preparing`, `armed`, `idempotency-conflict`, `PRAGMA synchronous` and `PRAGMA journal_mode`, and in `models.py` for the intent and capability terms |
+| `git diff --cached --check` | exit 0 |
+
+The round 1 blocking failure is gone: the Markdown gate passes in the received
+state.
+
+The `warn=1` summary is described in the implementation check. It is a
+Groundhog nag, not a gate failure: the run exits 0 with 100% coverage, and the
+retained log keeps no warning text.
+
+Independent state checks: the umbrella digest `239b4aeb…` is unchanged, and the
+validation-state comparison shows no tracked or untracked differences, with
+only the ignored `a.ghog.log` changed.
+
+### Resolved validation set and sources for step 3 shared-wait-service (exchange 1) (round 2)
+
+The request's three resolved commands and the current resolver set agree:
+
+1. `ghog day` (project and plan sources), run as `ghog day --force`.
+2. `ghog single` over the plan's `test_store_tdd.py` and `test_store_pbt.py`
+   (plan source).
+3. The plan's `rg` contract search over `tools/wait_service` (plan source), run
+   with the harness ripgrep search because `rg` is not on the tool shell's PATH.
+
+`git diff --cached --check` was also run, as in the previous steps.
+
+### Resolver drift and direction for step 3 shared-wait-service (exchange 1) (round 2)
+
+None.
+
+### Repository state around validation for step 3 shared-wait-service (exchange 1) (round 2)
+
+- The request-time index tree `c0b595e8a9880ad927bc2b4ede34beadd296ea15`
+  matched the live index at entry, and the assessed tree is identical because
+  the reviewer staged nothing.
+- The umbrella digest `239b4aeb…` is unchanged.
+- Validation-state comparison over the staged paths plus the transcript: no
+  tracked or untracked differences, only the ignored `a.ghog.log` changed.
+- The transcript's remaining unstaged content is this exchange's own protocol
+  append; its staged portion is covered by commit group 1.
+
+### Repair inventory for step 3 shared-wait-service (exchange 1) (round 2)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 3 shared-wait-service (exchange 1) (round 2)
+
+The independent `commit-plan-check.bat --format json` rerun returned status 0,
+`state: valid`, `ready: true`, no diagnostics, and four groups covering every
+staged path: the retained Step 3 review evidence, the bounded parallel CLI
+startup test, the durable wait storage package, and the Step 3 validation rows.
+
+Membership, order, scope and conventional subjects match the staged work, and
+Group 1's subject now describes the retained review evidence rather than only
+spacing. `a.commit` is accurate, so the reviewer did not amend it.
+
+### Findings and boundaries for step 3 shared-wait-service (exchange 1) (round 2)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 3 shared-wait-service (exchange 1) (round 2)
+
+No rework is required for Step 3. Present the advisory commit-ready result at
+the commit gate. If the human selects Commit, run the reviewed four-group
+`a.commit` through the owning workflow.
+
+Two notes for the next step, not for this one:
+
+- Capture the warning text when a walk reports a nonzero `warn` count, so a
+  summary difference like this round's `warn=1` can be attributed rather than
+  carried forward.
+- Keep backticked paths in every authored round summary. That repair held this
+  round and should stay the default.
+
+Step 4 implements the Windows authority and authenticated pipe. Its Q07 guard
+matters there: before the Step 8 rollout, the runtime, CLI and launcher must
+refuse an omitted home and any alias of the default home.
+
+### Decision rationale for step 3 shared-wait-service (exchange 1) (round 2)
+
+Decision: `commit-ready` (advisory).
+
+Readiness floor:
+
+1. **Identity: pass.** Envelope, human-readable identity, plan, step 3, round 2,
+   occurrence 1 and request index tree agree.
+2. **Completeness: pass.** Implementation-check is Yes; the round 1 finding is
+   repaired and the package is unchanged.
+3. **Validation and coverage: pass.** `ghog day --force` exits 0 with every
+   static check green, 3,228 tests and 100% coverage. The focused store and
+   property gate, the contract search and `git diff --cached --check` pass. The
+   unattributed `warn=1` nag is recorded as an observation, not a gate failure.
+4. **Staged attribution: pass.** The staged set equals the request's paths, and
+   the reviewer staged nothing.
+5. **Unresolved findings: pass.** None are current or carried.
+6. **`a.commit`: pass.** Status 0 with no diagnostics and four accurate groups.
+
+This round made no reviewer repair. The recommendation is advisory and never
+authorizes a commit; the commit choice belongs to the human.
+
+### Final reviewer decision for step 3 shared-wait-service (exchange 1) (round 2)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-3-round-2 -->
+
+## Round 2 by human - Step 3 - human-confirmation
+
+- Recorded: 2026-09-17T17:14:33+02:00
+- Exchange: code/code/v0.13.0/shared-wait-service
+- Umbrella: docs/v0.13.0/draft.v0.13.0.no_polling.md
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.shared-wait-service.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 3
 - Outcome: human-confirmation
 
 Human choice: Commit
