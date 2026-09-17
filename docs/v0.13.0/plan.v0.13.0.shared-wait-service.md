@@ -116,8 +116,12 @@ integration tests, not evidence of unit-only coverage.
 
 Existing review lifecycle, ownership, notification and Groundhog tests remain
 part of the full regression gate. The project applies strict markers and a
-100% tools coverage gate. No new dependency or coverage exclusion is planned:
-use standard-library SQLite/ctypes and the existing watchdog dependency.
+100% tools coverage gate. The service uses standard-library SQLite/ctypes and
+the existing watchdog dependency, with no new coverage exclusion. Step 2 adds
+the development-only `wsproto>=1.3.2` dependency (and its locked `h11`
+dependency) for the native Codex proxy's WebSocket framing. The standard
+library has no WebSocket framing implementation; using the protocol library
+avoids maintaining a separate frame parser in the experimental transport.
 
 ## Environment prerequisite before Step 1
 
@@ -405,6 +409,23 @@ Live operator procedure for Step 2:
 6. Record an unavailable Claude installation/Monitor route with the inspected
    build/schema or the concrete missing capability and attempted check. Do not
    invent a Claude trial, substitute another host, or count it as a passing arm.
+
+Operator automation authorized on 2026-09-16: the human may invoke the
+[named-tab launcher](codex-tabs.v0.13.0.shared-wait-service.md) to start the fresh
+Codex TUIs, bind exact UUIDs and deliver instruction files through the tested
+queue bridge. This replaces manual opening, UUID reporting and pasting in
+steps 1 through 3. The common identity setup turn and seed loading remain
+outside measurements. Start a new series, retain all earlier findings, keep
+the READY/context/manifest gates and run measured windows sequentially.
+
+The same day's operator request also authorizes the human-invoked
+[Claude named-tab launcher](claude-tabs.v0.13.0.shared-wait-service.md). It starts
+seven fresh interactive Claude conversations with explicit recorded UUIDs and
+supplies the same frozen seed prompt as their initial CLI input. This replaces
+manual opening, UUID reporting and seed pasting for the separate Claude series;
+native transcripts still establish delivery, full reads and normal READY.
+The launcher starts no timed trial and preserves the same context, configuration,
+manifest and sequential-measurement gates.
 
 Step 2 completion states, recorded separately:
 
