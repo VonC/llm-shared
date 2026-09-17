@@ -639,8 +639,14 @@ effort completion remain pending.
 
 ### Analysis of Step 5 implementation state
 
-Not started. Step 5 is not implemented because its planned files, behavior
-and acceptance evidence have not yet been delivered or checked.
+Yes. Step 5 has been fully implemented.
+
+Registration retains early outcomes until a usable host route is durably armed.
+Shared monitoring uses bounded I/O and absolute UTC deadlines, preserves unknown
+source evidence across restart, and reconciles clock changes without inventing
+readiness. Finite test guards and generated uncertainty/indefinite-wait recovery
+checks complete the planned evidence. Groundhog passed 3,375 tests with 100%
+measured coverage on 2026-09-17.
 
 ### Goal for Step 5
 
@@ -655,27 +661,80 @@ Arm durable waits without losing early completion and reconcile shared sources w
 
 ### What was implemented for Step 5
 
-_(empty — no check has taken place yet.)_.
+- `registration.py` validates exact recipient authority and source policy before preparation, subscribes before the initial read, retains early outcomes, and acknowledges arming only after the host supplies a usable matching route. Failed preparation remains retryable without losing source evidence.
+- `monitoring.py` shares one watch per exact source identity while retaining each wait's recipient, role, deadline and cancellation state. Notifications coalesce; missed hints reconcile after 30 seconds; inaccessible sources retain a durable access-loss epoch and fail after the 60-second recovery interval.
+- `work.py` bounds worker admission and observation time, drains results on the owner, retains occupied capacity for overrun work, discards late results and fences callbacks after close. No timed-out worker creates a replacement thread.
+- `store.py` recovers registrations and records preparation diagnostics without replacing terminal events. Deadline decisions use authoritative completion time or a reliable observation upper bound; clock uncertainty never supplies such a bound.
+- `synthetic.py` supplies independent source, host, clock and controlled-I/O fixtures. TDD exercises registration races, shared sources, missing notifications, startup failures, overruns, recovery and clock changes. PBT covers terminal immutability, recipient authority, uncertain reads and unchanged indefinite waits through suspension, correction and restart with a fresh monotonic epoch.
+- All new test modules use finite ten-second pytest guards and synthetic time. The existing wait-evidence CLI fixture retains bounded physical subprocess coverage while keeping startup outside the measured test call.
 
 ### New types or classes introduced for Step 5
 
-_(empty — no check has taken place yet.)_.
+- `RegistrationService` coordinates durable preparation and host arming.
+- `SourcePolicy` declares observation and recovery bounds; `_Watch` holds one source's shared monitoring state; `SourceMonitor` coordinates observations and deadlines.
+- `WorkResult` carries a bounded observation result; `_Job` holds queued work; `BoundedIO` owns the fixed worker pool; `WorkQueue` admits work and returns results to the owner.
+- `SyntheticClock`, `ControlledIO`, `SyntheticSource` and `SyntheticHost` implement deterministic test fixtures without claiming production-host capability.
 
 ### Architecture check for Step 5
 
-_(empty — no check has taken place yet.)_.
+Source and host behavior stay behind the existing ports. Registration and
+monitoring coordinate application decisions; deadline rules remain in the core;
+SQLite writes remain in the durable store. Worker callbacks return evidence to
+the owner rather than mutating persistence from I/O threads. Synthetic fixtures
+do not couple the service to review or Groundhog workflows. The largest changed
+Python file is 374 physical lines, below the plan's 650-line limit.
+
+No, there is nothing that needs to be addressed.
 
 ### Performance check for Step 5
 
-_(empty — no check has taken place yet.)_.
+Dirty-source keys coalesce notifications, and each source has one in-flight read.
+Worker capacity stays fixed even when operations overrun. Timer replacement
+compacts stale entries at a bounded threshold, and restart/suspend recovery
+performs one current read instead of replaying missed reconciliation intervals.
+Deadline heaps and indexed persistence use the ordering operations explicitly
+allowed by this plan; no repository scan or quadratic cross-product was added.
+Owning unit tests assert read counts, queue capacity and bounded timer storage.
+
+No, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 5
 
-_(empty — no check has taken place yet.)_.
+Dedicated unit-test leaves under `tests/unit/tools/wait_service/` cover
+`registration.py`, `monitoring.py`, `work.py`, `synthetic.py` and the changed
+`store.py`; monitoring also has generated property tests. Static inspection
+maps the new classes and helpers to these tests or callers in their own package.
+The changed prototype test still exercises the real command from both working
+directories with finite subprocess and pytest timeouts.
+
+The configured coverage gate measures `tools`, including the new service
+modules; documentation-only initializers, tests and Markdown are outside its
+measurement. The existing Groundhog evidence is `a.ghog.log`: `ghog day` ended
+at 20:43:13 +02:00 on 2026-09-17 with exit 0, 60/60 affected tests and 3,375/3,375
+full-walk tests passing, no warnings and 100% measured coverage. Duration-outlier
+and excluded-test checks were skipped by that run. This check used the saved
+run and static evidence without rerunning tests.
+
+Independent review accepted the implementation and identified unquoted paths
+in the review summary that failed the Markdown gate after publication. The
+writer quoted those paths in the summary and transcript. A fresh
+`ghog day --force` passed checks, including Markdown, and all 3,375 tests with
+100% measured coverage at 21:06:52 +02:00 on 2026-09-17. That run is now retained
+in `a.ghog.log`; it reported two warnings, with duration-outlier and excluded-test
+checks skipped. The repair changed review documentation only.
+
+No, there is no unit-tested class below 100% that needs completing. No, there
+is no unreferenced top-level symbol in the staged files outside the gate.
 
 ### Feature integrity for Step 5
 
-_(empty — no check has taken place yet.)_.
+Exact source generation and recipient authority remain mandatory. Shared evidence
+does not transfer cancellation or role authority, unknown sources do not become
+ready, and terminal events remain immutable. Indefinite pending waits survive
+clock correction and restart without creating events. The full Groundhog walk
+passes existing behavior; this step does not claim delivery/settlement or
+production-host integration assigned to later steps. Steps 6 through 8 remain
+pending, so the document-level and umbrella completion states remain unchanged.
 
 ## Step 6. Implement delivery, cancellation and consumption settlement
 
