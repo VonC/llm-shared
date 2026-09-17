@@ -239,6 +239,7 @@ dev = [
     "vulture",
     "watchdog",
     "wheel",
+    "wsproto>=1.3.2",
 ]
 
 [tool.ty.src]
