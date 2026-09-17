@@ -487,8 +487,14 @@ pending, and the document-level effort status remains incomplete.
 
 ### Analysis of Step 4 implementation state
 
-Not started. Step 4 is not implemented because its planned files, behavior
-and acceptance evidence have not yet been delivered or checked.
+Yes. Step 4 has been fully implemented.
+
+The isolated-home authority, Windows resource adapter and bounded protocol are
+implemented with their dedicated unit-test leaves. Concurrent startup selects
+one store owner, reciprocal OS-user checks precede frames, and compatibility
+precedes application dispatch. The final Groundhog walk passed all 3,313 tests
+at 100% measured coverage. Live Windows acceptance remains the separate Step 8
+obligation; the default-home rollout guard remains active.
 
 ### Goal for Step 4
 
@@ -504,27 +510,130 @@ Start one hidden process per canonical home and admit only compatible same-user 
 
 ### What was implemented for Step 4
 
-_(empty — no check has taken place yet.)_.
+`runtime.py` canonicalizes explicit local homes and refuses omitted homes and
+physical aliases of the default home before discovery or resource creation.
+Endpoint identity combines that physical home with the OS token user SID.
+An exclusive lock protects store recovery, first-instance pipe creation and
+atomic discovery publication. Failure closes acquired resources in reverse
+order; stale discovery never establishes ownership or authentication.
+
+Startup probes the actual endpoint and retries temporary offline-reader lock
+contention within a monotonic 15-second budget. It launches at most one child
+per starter, never kills an owner, and does not launch after the budget expires.
+The internal entrypoint passes the resolved home, absolute interpreter and
+shared module root to a hidden process. Standard streams are detached, handles
+are not inherited, and job-breakaway refusal is a typed startup failure.
+The core composition serves readiness/status and explicit stop; broader service
+operations remain assigned to the later steps.
+
+`windows_ipc.py` binds explicit ctypes signatures lazily, applies protected
+user-only ACLs to state and pipe resources, rejects remote pipe clients and
+retains the first pipe instance across connections. Both endpoints verify the
+connected process token user before frame I/O. Bounded overlapped operations
+cancel and drain pending I/O before releasing buffers and event handles.
+Borrowed connection handles cannot release the listener's endpoint claim.
+
+`protocol.py` implements four-byte length framing, a 64 KiB JSON body limit,
+an 8 KiB UTF-8 inline-result limit and bounded feature/identity fields. It rejects
+duplicate keys, nonfinite numbers, malformed text, unknown operations and
+incompatible authority/protocol/schema identities. A compatible hello precedes
+dispatch. A bounded transport acknowledgement permits reply consumption before
+pipe disconnect; it does not acknowledge delivery or change durable wait state.
+
+Execution-time physical line counts were zero for all nine new files. The final
+counts are below the 550-line growth threshold and mandatory 650-line ceiling:
+
+| File | Physical lines |
+| --- | --- |
+| `tools/wait_service/runtime.py` | 322 |
+| `tools/wait_service/windows_ipc.py` | 390 |
+| `tools/wait_service/protocol.py` | 216 |
+| `tests/unit/tools/wait_service/test_runtime/__init__.py` | 3 |
+| `tests/unit/tools/wait_service/test_runtime/test_runtime_tdd.py` | 458 |
+| `tests/unit/tools/wait_service/test_windows_ipc/__init__.py` | 3 |
+| `tests/unit/tools/wait_service/test_windows_ipc/test_windows_ipc_tdd.py` | 354 |
+| `tests/unit/tools/wait_service/test_protocol/__init__.py` | 3 |
+| `tests/unit/tools/wait_service/test_protocol/test_protocol_tdd.py` | 141 |
 
 ### New types or classes introduced for Step 4
 
-_(empty — no check has taken place yet.)_.
+`Resource`, `Connection`, `Listener` and `Transport` define lifecycle-facing
+ports. `RuntimeOptions` carries build, port, schema, home and clock dependencies;
+`Authority` owns the recovered service lifetime. `Frame`, `Hello` and `Session`
+define wire envelopes, compatibility identity and negotiated dispatch.
+
+The adapter adds `NativeCalls`, `NativeFunction`, `Native`, `SecurityAttributes`,
+`Overlapped`, `TokenUser`, `Peer`, `Handle`, `WindowsIPC`, `PipeConnection` and
+`PipeListener`. Native return/error behavior and process creation are injectable.
+The test doubles record authentication, I/O and cleanup ordering without
+creating a live service or using the default home.
 
 ### Architecture check for Step 4
 
-_(empty — no check has taken place yet.)_.
+Lifecycle policy depends on narrow structural ports, while Windows security,
+handle ownership and process creation remain in the resource adapter. The
+entrypoint alone composes the existing durable store with that adapter. Wire
+validation does not load native libraries or grant workflow permissions.
+Existing domain models, persistence, source/host contracts and workflow adapters
+are unchanged. No new dependency or coverage exclusion was introduced.
+
+No, there is nothing that needs to be addressed.
 
 ### Performance check for Step 4
 
-_(empty — no check has taken place yet.)_.
+Framing accumulates chunks once and performs linear work within a fixed 64 KiB
+bound. Feature sets and identity strings are bounded. Startup uses a finite
+monotonic budget and connection I/O has one deadline across fragments. State
+protection visits only the home and a fixed set of service artifacts. No new
+repository scan, sorting pass, quadratic computation, model health check or
+per-wait worker is introduced.
+
+On 2026-09-17, the final redirected `ghog day` check began at 18:09:52 +02:00;
+check completed in 46.3 seconds, affected tests in 2.8 seconds and the full suite
+in 3 minutes 47.4 seconds. `ghog status` confirmed `state=done exit=0` at
+18:14:29 +02:00. These are verification timings, not service or wake-latency
+measurements. The final report records `outliers=skipped excluded=skipped`;
+it does not establish live survivor timing.
+
+No, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 4
 
-_(empty — no check has taken place yet.)_.
+The configured coverage source is `tools`, with `fail_under = 100`. All three
+new executable modules, including the ctypes adapter, remain measured. Their
+matching `test_runtime`, `test_windows_ipc` and `test_protocol` leaves each target
+the corresponding module. Initial focused execution failed on the deliberately
+missing modules before implementation. The first passing affected run exercised
+84 cases; after the native success-path addition, the adapter's 33-case focused
+coverage run passed at 100%. Parameterized framing boundaries are used as planned;
+another property-based suite is not required for this step.
+
+Tests cover simultaneous contenders, stale discovery, offline-reader contention,
+deadline exhaustion, default-home and physical-alias refusal, startup cleanup,
+hidden launch arguments and explicit breakaway failure. Native tests exercise
+SID/ACL handling, peer refusal before I/O, remote rejection, first-instance
+conflicts, pointer-width signatures, overlapped completion/cancellation and
+owned versus borrowed handle cleanup. Protocol tests cover malformed/oversized
+frames, UTF-8 limits, required features, incompatible identities and handler
+gating. Real process survival and live ACL enforcement are not inferred from
+these injected-API tests.
+
+Both the consuming and shared launcher environments were verified as Python
+3.13.9, with `watchdog`, `hypothesis` and `pytest-timeout` importable. The final
+full walk reports `fail=0 warn=0 xfail=0 cov=100 exit=0` across 3,313 tests.
+Its fresh output remains in ignored `a.ghog.log`; this check uses that recorded
+result and static inspection without rerunning tests.
+
+No, there is no unit-tested class below 100% that needs completing.
 
 ### Feature integrity for Step 4
 
-_(empty — no check has taken place yet.)_.
+The required first-instance, remote-rejection, startup-timeout and hello contract
+search and affected code were inspected. Existing workflows and reporting remain
+unchanged and the complete suite passes. Temporary helpers, raw logs and isolated
+fixtures remain ignored. No logon task, idle-exit policy, production host route
+or default-home authority is enabled. Steps 5 through 8 and the document-level
+effort completion remain pending.
 
 ## Step 5. Wire registration, monitoring and deadline recovery
 
