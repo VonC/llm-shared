@@ -1,0 +1,228 @@
+{
+  "artifact_type": "redacted-live-manifest-excerpts",
+  "schema_version": 1,
+  "generated_at": "2026-09-16T07:33:59.899209+00:00",
+  "scope": "Selected manifest fields for audit. This file is not an executable TrialManifest or evidence of trial completion.",
+  "redaction": "Absolute host-home and checkout prefixes replaced; raw configuration, transport endpoints, credentials, process command lines, native content and OS file identifiers omitted.",
+  "original_hashes": "SHA-256 values bind the unchanged local originals, not the redacted excerpts.",
+  "series_controls": {
+    "series_id": "codex-initial-20260915",
+    "host": "codex",
+    "build": "0.154.0",
+    "schema": "codex-native-0.154.0",
+    "model": "gpt-6-astra",
+    "profile": "default",
+    "seed_commit": "3d4b5a4643d1fba65434877d965d2c051b65e1a3",
+    "seed_hashes": {
+      "docs/v0.13.0/draft.v0.13.0.no_polling.md": "239b4aeb946909a3e6f22813cb5962dcbcdc83d7a16d775ea028d188792bf23a",
+      "docs/v0.13.0/draft.v0.13.0.shared-wait-service.md": "fbf6f41c9fa1bb6203739519104bcede98030cd596ae39c061a466947df84f48"
+    },
+    "configuration_hash": "c459bdc96f2b91d268e16f42bcc2b03bf2c3965d28cf9c6c7479102d81cb9b02",
+    "source_seconds": 240,
+    "baseline_seconds": 600,
+    "wake_bound": 60,
+    "duplicate_window": 120,
+    "drain_bound": 120
+  },
+  "configuration_excerpt": {
+    "reasoning_effort": "xhigh",
+    "approval_policy": "never",
+    "sandbox_mode": "danger-full-access",
+    "model_provider": "openai",
+    "auto_compact_token_limit": 120000,
+    "native_context_window": 258400,
+    "home_config_sha256": "f489c495d6b1fccfdad5610c4c8f938168717f7da73b188e9cfb53964fc6abb5",
+    "project_config_sha256": "8eb4c7e9a589670f84d2f820f030e63bb60a473d20231c1f265b782961820159"
+  },
+  "configuration_limit": "Only exposed native settings and configuration-file hashes were verified for each trial. Measured process environment and complete request-attempt coverage remain unknown.",
+  "trials": [
+    {
+      "run_id": "baseline-01",
+      "pair_id": "baseline-01",
+      "mode": "baseline",
+      "arm": "B-prototype",
+      "thread": "01a0a69e-0119-7a12-9679-b6f723ec8be5",
+      "source_id": "7384b608-6378-4ec4-90f3-e7b584cb8126",
+      "wait_id": "26d34d9c-7779-4cb0-905a-7160a4e3135e",
+      "event_id": "0532b74c-3e45-4322-b458-4afa0eacc9f4",
+      "context_tokens": 69537,
+      "ready_at": 1789501925.784,
+      "created_at": 1789502373.72057,
+      "configuration_observed_at": "2026-09-15T19:59:03.216796+00:00",
+      "original_manifest_sha256": "886931569b25966a216430ae72ad2911b47c62a594c0bdd1d1193d4dbbedea9b",
+      "original_native_evidence_reference": "<CHECKOUT>/a.shared-wait-service/inspection/01a0a69e-0119-7a12-9679-b6f723ec8be5.seed-proof.json",
+      "verified_trial_seed_proof": "<CHECKOUT>/a.shared-wait-service/inspection/01a0a69e-0119-7a12-9679-b6f723ec8be5.seed-proof.json",
+      "stream_positions": [
+        {
+          "path": "<CODEX_HOME>/sessions/2026/09/15/rollout-2026-09-15T21-49-29-01a0a69e-0119-7a12-9679-b6f723ec8be5.jsonl",
+          "offset": 1449094,
+          "anchor_sha256": "3848d41c1c129490d4c82ff64d733ea40e1609121713b64d13a26029cb801bc4",
+          "role": "native"
+        },
+        {
+          "path": "<CHECKOUT>/a.shared-wait-service/codex-initial-20260915/baseline-01/probe-events.jsonl",
+          "offset": 220,
+          "anchor_sha256": "6457525955e8ce990fd50e99a05c2e59a3429f961ced59f8ae38bddcd60191ef",
+          "role": "probe"
+        }
+      ]
+    },
+    {
+      "run_id": "pair-01-a",
+      "pair_id": "pair-01",
+      "mode": "trial",
+      "arm": "A",
+      "thread": "01a0a6c5-39fe-75b2-9f63-678610e36abb",
+      "source_id": "060b312e-04c8-416a-9634-bee1a9b46d93",
+      "wait_id": "36f9f06f-dd2d-46e4-9a43-6029ba18dd7a",
+      "event_id": "b24c5aac-3e33-4bb2-92e4-f5595e28bdb0",
+      "context_tokens": 73033,
+      "ready_at": 1789504453.938,
+      "created_at": 1789504787.9145637,
+      "configuration_observed_at": "2026-09-15T19:59:03.216796+00:00",
+      "original_manifest_sha256": "7a3beb2d2e6fa8e9e813fea9d1e1df8e0bfa171e451ffb825d09b958c5ad6f93",
+      "original_native_evidence_reference": "<CHECKOUT>/a.shared-wait-service/inspection/01a0a69e-0119-7a12-9679-b6f723ec8be5.seed-proof.json",
+      "verified_trial_seed_proof": "<CHECKOUT>/a.shared-wait-service/inspection/01a0a6c5-39fe-75b2-9f63-678610e36abb.seed-proof.json",
+      "stream_positions": [
+        {
+          "path": "<CODEX_HOME>/sessions/2026/09/15/rollout-2026-09-15T22-32-18-01a0a6c5-39fe-75b2-9f63-678610e36abb.jsonl",
+          "offset": 1264636,
+          "anchor_sha256": "76ec71801fbc1c5d2060363024c108bbd32880922e42e13f6939f560079b939d",
+          "role": "native"
+        },
+        {
+          "path": "<CHECKOUT>/a.shared-wait-service/codex-initial-20260915/pair-01-a/probe-events.jsonl",
+          "offset": 220,
+          "anchor_sha256": "c2888e6880795309fe5a1a6daa4a5c37421fed80a6f0354f19a1d352aeb9a3eb",
+          "role": "probe"
+        }
+      ],
+      "evidence_reference_correction": "Original manifest points to baseline seed proof; the separate UUID-specific proof verifies A reads, as documented in probe-results."
+    },
+    {
+      "run_id": "pair-01-b",
+      "pair_id": "pair-01",
+      "mode": "trial",
+      "arm": "B-prototype",
+      "thread": "01a0a8f4-f7c1-7863-8bf6-3c4cea2bd837",
+      "source_id": "2056f64d-c2c5-44e5-a99f-84be95a95074",
+      "wait_id": "c5bbea85-3340-40e9-8812-a4558ab12195",
+      "event_id": "a12814ac-2d60-4b4e-8829-ce72f1e2a3b3",
+      "context_tokens": 72325,
+      "ready_at": 1789541162.86,
+      "created_at": 1789541325.0176628,
+      "configuration_observed_at": "2026-09-16T06:47:40.206436+00:00",
+      "original_manifest_sha256": "7fd5790a54d589c43d793c4b2b2ecdafc01479f94e979721f619664a4c4ef0a4",
+      "original_native_evidence_reference": "<CHECKOUT>/a.shared-wait-service/inspection/01a0a8f4-f7c1-7863-8bf6-3c4cea2bd837.seed-proof.json",
+      "verified_trial_seed_proof": "<CHECKOUT>/a.shared-wait-service/inspection/01a0a8f4-f7c1-7863-8bf6-3c4cea2bd837.seed-proof.json",
+      "stream_positions": [
+        {
+          "path": "<CODEX_HOME>/sessions/2026/09/16/rollout-2026-09-16T08-43-42-01a0a8f4-f7c1-7863-8bf6-3c4cea2bd837.jsonl",
+          "offset": 1247886,
+          "anchor_sha256": "7ab4b11fd695e939ae68906d14b589a684c6ef8fa8c22860f840ab156b0e82e0",
+          "role": "native"
+        },
+        {
+          "path": "<CHECKOUT>/a.shared-wait-service/codex-initial-20260915/pair-01-b/probe-events.jsonl",
+          "offset": 220,
+          "anchor_sha256": "134fb17344ba556b2844f23a557f7567334c9cb17e84b63c69099367f89bb20f",
+          "role": "probe"
+        }
+      ]
+    },
+    {
+      "run_id": "pair-02-b",
+      "pair_id": "pair-02",
+      "mode": "trial",
+      "arm": "B-prototype",
+      "thread": "01a0a90c-920a-79d3-acfd-6881cb5f5d4c",
+      "source_id": "90ba6039-67ed-412d-b824-8884eaa6fded",
+      "wait_id": "1bbd3e75-1eac-4d49-910f-1ec0b9ec801b",
+      "event_id": "bda683ee-c438-475f-b84d-d3c71a92a83a",
+      "context_tokens": 67139,
+      "ready_at": 1789542750.278,
+      "created_at": 1789542917.8279111,
+      "configuration_observed_at": "2026-09-16T07:14:28.343957+00:00",
+      "original_manifest_sha256": "447b011f896938abe87f42daadd563077a914607baf9142cf5a5e724b67b1961",
+      "original_native_evidence_reference": "<CHECKOUT>/a.shared-wait-service/inspection/01a0a90c-920a-79d3-acfd-6881cb5f5d4c.seed-proof.json",
+      "verified_trial_seed_proof": "<CHECKOUT>/a.shared-wait-service/inspection/01a0a90c-920a-79d3-acfd-6881cb5f5d4c.seed-proof.json",
+      "stream_positions": [
+        {
+          "path": "<CODEX_HOME>/sessions/2026/09/16/rollout-2026-09-16T09-09-34-01a0a90c-920a-79d3-acfd-6881cb5f5d4c.jsonl",
+          "offset": 1356546,
+          "anchor_sha256": "5b22ad92a2914ecdfeafef6d4912eac6317e85c79e3740189434fb86be473f2a",
+          "role": "native"
+        },
+        {
+          "path": "<CHECKOUT>/a.shared-wait-service/codex-initial-20260915/pair-02-b/probe-events.jsonl",
+          "offset": 220,
+          "anchor_sha256": "d4f030b2e801b20e6b5ee7abbc8ff4ecf35060c81fa8f1bb8d12a5d600f75ffb",
+          "role": "probe"
+        }
+      ]
+    }
+  ],
+  "invalid_preparations": [
+    {
+      "run_id": "pair-02-a-invalid-01",
+      "thread": "01a0a934-f1de-70c3-ba3e-ef45dc4b11c6",
+      "arm": "A",
+      "pair_id": "pair-02",
+      "mode": "trial",
+      "context_tokens": 72982,
+      "ready_at": 1789545310.889,
+      "status": "invalid",
+      "reason": "Pair context differs by more than five percent",
+      "rejected_at": 1789545434.72156,
+      "paired_run": "pair-02-b",
+      "paired_context_tokens": 67139,
+      "context_difference_fraction": 0.08006083691869229,
+      "context_comparison": "abs(A - B) / max(A, B)",
+      "context_tolerance": 0.05,
+      "full_reads_verified": true,
+      "configuration_hash": "c459bdc96f2b91d268e16f42bcc2b03bf2c3965d28cf9c6c7479102d81cb9b02",
+      "configuration_observed_at": "2026-09-16T07:57:14.718680+00:00",
+      "manifest_published": false,
+      "benchmark_published": false,
+      "thread_claimed_against_reuse": true,
+      "measured_trial_order_unchanged": true,
+      "original_request_sha256": "367c5c52480cc4e82b8a60caaf0603350dc7e850b2b9feedadaa3608888508ef",
+      "original_invalid_sha256": "432c16e4ad4e5bb0bd956a73425270a7e9a1fa6c668d6f18fad140522257755a",
+      "original_seed_proof_sha256": "e87fccb23e9c97e8ab065ffcf6e79c37a40a8461367f01c40a0cff0fb76c005a",
+      "native_seed_snapshot_sha256": "b579d6871ff719fa42d7b5559c4f75e1b040140c8ca982754a889ea9fc3df15d",
+      "verified_trial_seed_proof": "<CHECKOUT>/a.shared-wait-service/inspection/01a0a934-f1de-70c3-ba3e-ef45dc4b11c6.seed-proof.json",
+      "original_rejection": "<CHECKOUT>/a.shared-wait-service/codex-initial-20260915/pair-02-a-invalid-01/invalid.json"
+    },
+    {
+      "run_id": "pair-02-a-invalid-02",
+      "thread": "01a0a939-4b84-7f51-8a46-8374482d62d8",
+      "arm": "A",
+      "pair_id": "pair-02",
+      "mode": "trial",
+      "context_tokens": 76401,
+      "ready_at": 1789545626.712,
+      "status": "invalid",
+      "reason": "Pair context differs by more than five percent",
+      "rejected_at": 1789545759.6612444,
+      "paired_run": "pair-02-b",
+      "paired_context_tokens": 67139,
+      "context_difference_fraction": 0.12122877972801403,
+      "context_comparison": "abs(A - B) / max(A, B)",
+      "context_tolerance": 0.05,
+      "full_reads_verified": true,
+      "configuration_hash": "c459bdc96f2b91d268e16f42bcc2b03bf2c3965d28cf9c6c7479102d81cb9b02",
+      "configuration_observed_at": "2026-09-16T08:02:39.658153+00:00",
+      "manifest_published": false,
+      "benchmark_published": false,
+      "thread_claimed_against_reuse": true,
+      "measured_trial_order_unchanged": true,
+      "original_request_sha256": "6d0fd14fb233d0f3baaea26f122e5b14b4f27044eb560495c31c1f3a3343c245",
+      "original_invalid_sha256": "7bd0596e77adc73985e20ecac13c32f0a8f806d412993c48ce30a85a5fa45e60",
+      "original_seed_proof_sha256": "e5a9812a51a42ef6b4df133a23f7fdcd1d982d5029af2e377ff90425223f3762",
+      "native_seed_snapshot_sha256": "1e030261885bde16577b3b0d7937744f6fba9bb78574793c058a3fdf0f1363d1",
+      "verified_trial_seed_proof": "<CHECKOUT>/a.shared-wait-service/inspection/01a0a939-4b84-7f51-8a46-8374482d62d8.seed-proof.json",
+      "original_rejection": "<CHECKOUT>/a.shared-wait-service/codex-initial-20260915/pair-02-a-invalid-02/invalid.json"
+    }
+  ],
+  "updated_at": "2026-09-16T08:05:02.152049+00:00"
+}

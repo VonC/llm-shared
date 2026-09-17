@@ -1,0 +1,118 @@
+{
+  "run": "claude-smoke-20260916-04",
+  "classification": "unseeded capability smoke; excluded from matched A/B series",
+  "thread": "b929a07c-afd9-482a-a373-4375a3a93625",
+  "build": "2.1.273",
+  "model": "claude-opus-5",
+  "effort": "xhigh",
+  "permission_mode": "auto",
+  "provider": "unknown",
+  "native_sha256": "049213c75789d3cd6aae7b6f8f40902f57b74f46723b338240dde01d7c46641d",
+  "observer_functional_success": true,
+  "driver_sha256": "34df41a706d63d83c65490561e25e2d91d48c396f96ee248d88601a135a5be3e",
+  "native_reader_sha256": "a6c06e697ccc797c17d9d041a85fc826e658196647b5c2d0573b9b2b3a9bd6ca",
+  "independent_audit_sha256": "12c63e06044fa16f9c29451915240e0e703ea23747160e272fe55280004d0aee",
+  "native_evidence_ids": {
+    "monitor_call": "toolu_01T4KjQEhcsQLxyXazzPGPR5",
+    "monitor_result": "18b45c70-7893-4fcc-b0e7-0831da9249b0",
+    "armed_assistant": "7907e60a-92c1-4069-a519-d6677cd27f64",
+    "armed_normal_end": "2fa3b06a-eef1-49ea-be27-1b787916d2a3",
+    "consume_calls": [
+      "toolu_01AM5dXEVByRYvA7QSHUJMrJ"
+    ],
+    "consume_results": [
+      "987e6211-b76e-4a5b-b9b5-91ba1b62adaa"
+    ],
+    "completion_assistants": [
+      "16a7451e-b95e-4b58-9a50-f3fe95a3f3e6"
+    ],
+    "completion_normal_ends": [
+      "d197e7cc-5285-4c73-825b-6274963bce99"
+    ]
+  },
+  "independent_checks": {
+    "snapshot_hash_matches_report": true,
+    "driver_unchanged_since_launch": true,
+    "native_reader_unchanged_since_launch": true,
+    "native_session_binding": true,
+    "native_build_binding": true,
+    "one_exact_monitor_call": true,
+    "successful_monitor_registration": true,
+    "native_normal_end_binding": true,
+    "ten_minute_quiet_interval": true,
+    "no_human_input_after_registration": true,
+    "no_observed_compaction_or_api_error": true,
+    "one_event_line": true,
+    "event_identity_and_kind": true,
+    "durable_outcome_before_consumption": true,
+    "durable_gate_and_handoff": true,
+    "one_exact_consume_call": true,
+    "continuation_is_only_consumption": true,
+    "successful_consume_tool_result": true,
+    "accepted_persisted_consumption": true,
+    "useful_continuation_within_sixty_seconds": true,
+    "one_native_final_completion": true,
+    "full_duplicate_and_drain_windows": true,
+    "no_observed_work_after_final": true,
+    "observer_report_agrees": true
+  },
+  "independent_functional_success": true,
+  "timing": {
+    "normal_end_utc": "2026-09-16T17:00:14.648000Z",
+    "delivery_utc": "2026-09-16T17:10:14.656042Z",
+    "first_useful_action_utc": "2026-09-16T17:10:19.913000Z",
+    "consumed_utc": "2026-09-16T17:10:42.106681Z",
+    "final_normal_end_utc": "2026-09-16T17:10:43.369000Z",
+    "finished_utc": "2026-09-16T17:14:43.404786Z",
+    "quiet_seconds": 600.0080420970917,
+    "useful_latency_seconds": 5.2569580078125,
+    "post_final_observation_seconds": 240.035786151886
+  },
+  "counts": {
+    "quiet_tool_calls": 0,
+    "quiet_usage_completions": 0,
+    "human_inputs_after_registration": 0,
+    "consume_tool_calls": 1,
+    "done_messages": 1,
+    "duplicate_consumptions": 0,
+    "tool_calls_after_final": 0,
+    "usage_completions_after_final": 0
+  },
+  "native_monitor_result": "Monitor started (task biet31tdq, expires in 20m unless the source ends first; you get one notice at expiry \u2014 re-arm if you still need the watch). You will be notified on each event. Keep working \u2014 do not poll or sleep. Events may arrive while you are waiting for the user \u2014 an event is not their reply.",
+  "event": {
+    "thread": "b929a07c-afd9-482a-a373-4375a3a93625",
+    "source_id": "bf680f3a-0ed7-4f74-b0f7-932ae90c9c03",
+    "wait_id": "2745d308-a901-47ad-992e-d26670873fbe",
+    "event_id": "1240b1f6-fe5a-41aa-b3ec-9303fdbb3a85",
+    "kind": "claude-wait-ready",
+    "result": "synthetic-source-complete"
+  },
+  "native_host_notices": [
+    {
+      "at": 1789578614.979,
+      "uuid": "ca0fac45-6f4c-46f2-a351-1c3f3ddc502a",
+      "content": "<task-notification>\n<task-id>biet31tdq</task-id>\n<summary>Monitor event: \"CLAUDE_WAIT_SMOKE_claude-smoke-20260916-04\"</summary>\n<event>{\"thread\": \"b929a07c-afd9-482a-a373-4375a3a93625\", \"source_id\": \"bf680f3a-0ed7-4f74-b0f7-932ae90c9c03\", \"wait_id\": \"2745d308-a901-47ad-992e-d26670873fbe\", \"event_id\": \"1240b1f6-fe5a-41aa-b3ec-9303fdbb3a85\", \"kind\": \"claude-wait-ready\", \"result\": \"synthetic-source-complete\"}</event>\nIf this event is something the user would act on now, send a PushNotification. Routine or benign output doesn't need one.\n</task-notification>"
+    },
+    {
+      "at": 1789578614.982,
+      "uuid": "ddd8505f-9511-4892-91f5-abc6ad1f697c",
+      "content": "<task-notification>\n<task-id>biet31tdq</task-id>\n<tool-use-id>toolu_01T4KjQEhcsQLxyXazzPGPR5</tool-use-id>\n<output-file>[local monitor output]</output-file>\n<status>completed</status>\n<summary>Monitor \"CLAUDE_WAIT_SMOKE_claude-smoke-20260916-04\" stream ended</summary>\n</task-notification>"
+    }
+  ],
+  "native_host_notice_redactions": "local output-file paths only",
+  "native_record_types": {
+    "system": 5,
+    "user": 13,
+    "attachment": 5,
+    "assistant": 16,
+    "queue-operation": 4
+  },
+  "request_attempt_coverage": "unknown",
+  "host_idle_status": "inferred from native normal end and observed inactivity; no separate host-status query",
+  "delivery_receipt_scope": "bridge file handoff; reception established separately by native continuation",
+  "limits": [
+    "One unseeded synthetic-source smoke, not a matched baseline or A/B series.",
+    "No complete request-attempt ledger, billing or quota-saving claim.",
+    "Selected native 2.1.273 evidence does not certify the full collector adapter."
+  ]
+}

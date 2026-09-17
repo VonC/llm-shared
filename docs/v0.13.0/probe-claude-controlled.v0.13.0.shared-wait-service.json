@@ -1,0 +1,2168 @@
+{
+  "classification": "controlled Claude observations; inspect status per run",
+  "exported_at": 1789636294.5034513,
+  "seed_commit": "3d4b5a4643d1fba65434877d965d2c051b65e1a3",
+  "seed_hashes": {
+    "docs/v0.13.0/draft.v0.13.0.no_polling.md": "239b4aeb946909a3e6f22813cb5962dcbcdc83d7a16d775ea028d188792bf23a",
+    "docs/v0.13.0/draft.v0.13.0.shared-wait-service.md": "fbf6f41c9fa1bb6203739519104bcede98030cd596ae39c061a466947df84f48"
+  },
+  "build": "2.1.273",
+  "configuration": {
+    "compaction": "unknown",
+    "effort": "xhigh",
+    "mode": "normal",
+    "model": "claude-opus-5",
+    "permission_mode": "auto",
+    "profile": "inherited",
+    "provider": "unknown"
+  },
+  "fixed_bounds_seconds": {
+    "baseline_seconds": 600,
+    "source_seconds": 240,
+    "wake_bound": 60,
+    "duplicate_window": 120,
+    "drain_bound": 120
+  },
+  "implementation_hashes": {
+    "docs/v0.13.0/probe.shared-wait-service.py": "322c164b1edd0481bb7543c3228ef027e3700619f699a9d9099244de3eeef5be",
+    "tools/wait_evidence/__init__.py": "b57410531cb9e266716756e51a4e33dc12bfc5261b4e21866d63a4af6ecb9356",
+    "tools/wait_evidence/claude_monitor.py": "46d94eb674f39883b4c54a2128907bd0364039f4fb6324eb0c69849f3f8e05da",
+    "tools/wait_evidence/claude_observer.py": "43d3dc01e8299f1d66a9a8ec62ae3f83685e4eb18c53fa374dd309d1512d6382",
+    "tools/wait_evidence/codex_proxy.py": "66587525d50b8b69fbbe287f4970f367c89f90b9d76ad12fc09d0aa79a49ad60",
+    "tools/wait_evidence/collector.py": "d39b365a1da3e4530baa5d8d6c083c6c2bfb41872b4e2801cf4fd005b2b07051",
+    "tools/wait_evidence/models.py": "fb42281b46e86035d7d334149f17414e0eeec5494d243571cae5c2771ac6450f",
+    "tools/wait_evidence/probe_cli.py": "b241fe0d397504a1ca108190a58c5ab2f147678b198ce5c5b404791ee8586c28",
+    "tools/wait_evidence/probe_driver.py": "ed04d4c0e03822f89edb98aed4fa44dfbd93351dfdfef29469f399a3b7ea9295",
+    "tools/wait_evidence/probe_files.py": "4c84aa8be6454dc8aa4120ab0d1250151a0fc3f5dd546608dfd3cbeb44e1aab7",
+    "tools/wait_evidence/probe_observer.py": "42d6eed4c7cf4cc7876d44fe6ee2688a362f09f3a94db640c54ce7714e35d154",
+    "tools/wait_evidence/prototype.py": "0391b8ae9838dffbf7103dd00dd392049140744d7b29f8eb29a77102c026a355",
+    "tools/wait_evidence/reports.py": "5ecb12d653f8d95fe4d4bcc2923d2c40712c57a36fa8d282e4c764ee255d197e",
+    "tools/wait_evidence/telemetry.py": "7051cc01db14c7a83a7451e64bd2bec4e9990b5fc8c42ddbf0af496c83f6ddd2",
+    "tools/wait_evidence/telemetry_claude.py": "b49cb8aa7e581caf0b607414a7d76fbafe64c7c8649c20bcb6bfb4483959e1f6"
+  },
+  "validation_log": "a.shared-wait-service/ghog-claude-integration-final.log",
+  "sessions": [
+    {
+      "tab": "claude-baseline",
+      "thread": "bb916b36-b9ff-4f2b-aef8-93a894811cc6",
+      "arm": "B-prototype",
+      "mode": "baseline",
+      "pair_id": "baseline",
+      "context_tokens": 101889,
+      "status": "observation-finished",
+      "source_id": "2f31cbc8-46e0-4e27-8176-001aa706fc5c",
+      "wait_id": "9e8c9cfa-a915-4b4f-8978-11351bb607e4",
+      "event_id": "7736441c-b5a6-4bf7-9c47-889b7855a936",
+      "prepared_at": 1789626334.0449915,
+      "configuration_hash": "f8a6d8ec528b4e114d7bfb24972849d791b541171fd2c7372ccb01b7d5307a49",
+      "prompt_sha256": "4b6a42b6f17a2fefdfec043a2c2252ad4c52ee9d4dd08a95b0d810cc2fa238ae",
+      "streams": [
+        {
+          "name": "bb916b36-b9ff-4f2b-aef8-93a894811cc6.jsonl",
+          "role": "telemetry",
+          "offset": 600721,
+          "anchor_sha256": "c800619678fda408d2b00aca124b4c306ad40044bcabc4b7ce8dd1eb9d319dfd",
+          "file_id": [
+            1597673305946669667,
+            42784196460712980
+          ]
+        },
+        {
+          "name": "probe-events.jsonl",
+          "role": "probe",
+          "offset": 224,
+          "anchor_sha256": "45f5f42a88cb69b7b6b54a284d95457f186fa7453ce6516db458099ea134f20e",
+          "file_id": [
+            1597673305946669667,
+            3096224745165513
+          ]
+        }
+      ],
+      "observer_readiness": {
+        "at": "2026-09-17T06:26:07.4548135Z",
+        "status": "ready-verified",
+        "thread": "bb916b36-b9ff-4f2b-aef8-93a894811cc6",
+        "pid": 49456
+      },
+      "prompt_observed_at": 1789626893.997,
+      "native_execution_at": 1789626906.32,
+      "normal_at": 1789626945.384,
+      "drain_started": 1789627545.3986237,
+      "observer_status": "passed",
+      "checks": {
+        "native_execution": true,
+        "native_normal_end": true,
+        "no_human_nudge": true,
+        "no_invalidation": true,
+        "telemetry_drain": true,
+        "unchanged_source": true
+      },
+      "errors": [],
+      "independent_replay": {
+        "exact_prompt_once": true,
+        "no_parser_gaps": true,
+        "frozen_implementation_intact": true,
+        "retained_hashes_verified": true
+      },
+      "source_start": 1789626940.523574,
+      "source_ready": null,
+      "native_receipt": null,
+      "quiet_before_source_ready_seconds": null,
+      "useful_consume_call": null,
+      "wake_latency": null,
+      "consumed_at": null,
+      "duplicate_consumptions": 0,
+      "final_at": null,
+      "finished_at": 1789627665.4125261,
+      "observed_activity": {
+        "whole_benchmark": {
+          "native_counts": {
+            "native_observation": 14,
+            "native_user": 1,
+            "usage_completion": 3,
+            "native_assistant": 7,
+            "tool_call": 3,
+            "tool_result": 3,
+            "native_turn_complete": 1
+          },
+          "response_usage": {
+            "input": 322259,
+            "cached_input": 237277,
+            "output": 991,
+            "reasoning": 624
+          },
+          "usage_completions": 3,
+          "request_attempt_coverage": "unknown"
+        },
+        "source_interval": {
+          "native_counts": {
+            "tool_result": 1,
+            "native_observation": 2,
+            "usage_completion": 1,
+            "native_assistant": 2,
+            "native_turn_complete": 1
+          },
+          "response_usage": {
+            "input": 110946,
+            "cached_input": 108793,
+            "output": 248,
+            "reasoning": 226
+          },
+          "usage_completions": 1,
+          "request_attempt_coverage": "unknown"
+        },
+        "after_normal_before_ready": {
+          "native_counts": {
+            "native_observation": 1
+          },
+          "response_usage": {
+            "input": 0,
+            "cached_input": 0,
+            "output": 0,
+            "reasoning": 0
+          },
+          "usage_completions": 0,
+          "request_attempt_coverage": "unknown"
+        }
+      },
+      "foreground_wait_calls": [],
+      "retained_streams": [
+        {
+          "sha256": "a895f6554eed959825cf79311fee87d5bf0ebf9f34550586814a266be01acb26",
+          "bytes": 663573,
+          "offset": 600721
+        },
+        {
+          "sha256": "5953d5fd887552dcd3365115746129a30c5ee476ea68b4302e91fc839bafb83d",
+          "bytes": 1344,
+          "offset": 224
+        }
+      ],
+      "independent_audit": {
+        "at": 1789627695.5512118,
+        "status": "passed",
+        "checks": {
+          "at_least_600_seconds_after_native_normal_end": true,
+          "exact_execution_call_once": true,
+          "exact_prompt_once": true,
+          "exact_source_binding": true,
+          "exposed_configuration_unchanged": true,
+          "frozen_implementation_intact": true,
+          "native_armed_normal_end_once": true,
+          "no_monitor_or_consume": true,
+          "no_native_activity_after_normal_end": true,
+          "no_native_gap_interruption_compaction": true,
+          "no_unknown_user_origin": true,
+          "normal_end_after_registration": true,
+          "observer_functional_checks_passed": true,
+          "observer_ready_before_prompt": true,
+          "one_native_normal_end": true,
+          "original_native_prefix_intact": true,
+          "separate_complete_drain": true,
+          "source_not_suppressed": true,
+          "source_unchanged_through_drain": true,
+          "stream_0_complete_lines": true,
+          "stream_0_offset": true,
+          "stream_0_retained_hash": true,
+          "stream_1_complete_lines": true,
+          "stream_1_offset": true,
+          "stream_1_retained_hash": true
+        },
+        "durations": {
+          "separate_drain_seconds": 120.01390242576599,
+          "total_after_native_normal_end_seconds": 720.0285260677338,
+          "unchanged_before_drain_seconds": 600.0146236419678
+        },
+        "foreground_protocol": "not applicable"
+      },
+      "execution_revision": {
+        "revision": "original"
+      }
+    },
+    {
+      "tab": "claude-pair-01-a",
+      "thread": "7a7346da-4e8c-4d99-91ee-1c76fbd51478",
+      "arm": "A",
+      "mode": "trial",
+      "pair_id": "pair-01",
+      "context_tokens": 100378,
+      "status": "observation-finished",
+      "source_id": "4c862934-4109-4e18-bf4a-1f1c47321f16",
+      "wait_id": "861ab9ba-047a-4dfe-87ec-ef958c2ed7f4",
+      "event_id": "e484bf8f-de3e-4012-bceb-793720fb42bd",
+      "prepared_at": 1789626334.1441393,
+      "configuration_hash": "f8a6d8ec528b4e114d7bfb24972849d791b541171fd2c7372ccb01b7d5307a49",
+      "prompt_sha256": "4bb92b8463f27f3668b20f43444b7ba658df6bbf2a5331a19d14a8c73417f6b6",
+      "streams": [
+        {
+          "name": "7a7346da-4e8c-4d99-91ee-1c76fbd51478.jsonl",
+          "role": "telemetry",
+          "offset": 597739,
+          "anchor_sha256": "6d761f93847424d41a779ea1b4b23f339b0c18c6881cf4445a04bd8eb0cd0470",
+          "file_id": [
+            1597673305946669667,
+            49539595901767151
+          ]
+        },
+        {
+          "name": "probe-events.jsonl",
+          "role": "probe",
+          "offset": 224,
+          "anchor_sha256": "ea19031cb5a181b3f61c9f36c99c6bc73b88188b8ea2b3db1c9b265bd4d082e2",
+          "file_id": [
+            1597673305946669667,
+            3377699721876179
+          ]
+        }
+      ],
+      "observer_readiness": {
+        "at": "2026-09-17T06:48:44.0193458Z",
+        "status": "ready-verified",
+        "thread": "7a7346da-4e8c-4d99-91ee-1c76fbd51478",
+        "pid": 47452
+      },
+      "prompt_observed_at": 1789627942.051,
+      "native_execution_at": 1789627954.755,
+      "drain_started": 1789628383.741405,
+      "observer_status": "passed",
+      "checks": {
+        "duplicate_window": true,
+        "native_execution": true,
+        "native_normal_end": true,
+        "no_human_nudge": true,
+        "no_invalidation": true,
+        "one_final": true,
+        "single_consumption": true,
+        "source_interval": true,
+        "telemetry_drain": true,
+        "useful_wake": true
+      },
+      "errors": [],
+      "independent_replay": {
+        "exact_prompt_once": true,
+        "no_parser_gaps": true,
+        "frozen_implementation_intact": true,
+        "retained_hashes_verified": true
+      },
+      "normal_at": null,
+      "source_start": 1789627988.1980245,
+      "source_ready": 1789628228.2018898,
+      "native_receipt": null,
+      "quiet_before_source_ready_seconds": null,
+      "useful_consume_call": 1789628233.091,
+      "wake_latency": 4.889110326766968,
+      "consumed_at": 1789628262.043756,
+      "duplicate_consumptions": 0,
+      "final_at": 1789628263.723,
+      "finished_at": 1789628503.7737534,
+      "observed_activity": {
+        "whole_benchmark": {
+          "native_counts": {
+            "native_observation": 39,
+            "native_user": 1,
+            "usage_completion": 9,
+            "native_assistant": 17,
+            "tool_call": 9,
+            "tool_result": 9,
+            "native_turn_complete": 1
+          },
+          "response_usage": {
+            "input": 1007038,
+            "cached_input": 917588,
+            "output": 2309,
+            "reasoning": 1231
+          },
+          "usage_completions": 9,
+          "request_attempt_coverage": "unknown"
+        },
+        "source_interval": {
+          "native_counts": {
+            "tool_result": 5,
+            "native_observation": 7,
+            "usage_completion": 5,
+            "native_assistant": 8,
+            "tool_call": 5
+          },
+          "response_usage": {
+            "input": 562167,
+            "cached_input": 558732,
+            "output": 928,
+            "reasoning": 334
+          },
+          "usage_completions": 5,
+          "request_attempt_coverage": "unknown"
+        },
+        "after_final_including_drain": {
+          "native_counts": {
+            "native_observation": 20
+          },
+          "response_usage": {
+            "input": 0,
+            "cached_input": 0,
+            "output": 0,
+            "reasoning": 0
+          },
+          "usage_completions": 0,
+          "request_attempt_coverage": "unknown"
+        }
+      },
+      "foreground_wait_calls": [
+        {
+          "at": 1789627994.755,
+          "name": "PowerShell",
+          "call_id": "toolu_01VpHxdduGiQoDobzicE1bdA",
+          "arguments": {
+            "run_in_background": true
+          },
+          "source_command": true
+        },
+        {
+          "at": 1789627999.248,
+          "name": "TaskOutput",
+          "call_id": "toolu_013M8YjE6VfrgHLkin3KungZ",
+          "arguments": {
+            "task_id": "barr4jagv",
+            "block": true,
+            "timeout": 60000
+          },
+          "source_command": false
+        },
+        {
+          "at": 1789628061.429,
+          "name": "TaskOutput",
+          "call_id": "toolu_01XFG18cWn8T1x5kEEunMUdb",
+          "arguments": {
+            "task_id": "barr4jagv",
+            "block": true,
+            "timeout": 60000
+          },
+          "source_command": false
+        },
+        {
+          "at": 1789628123.907,
+          "name": "TaskOutput",
+          "call_id": "toolu_017V5JCbKYQimnAeL1ePbmSv",
+          "arguments": {
+            "task_id": "barr4jagv",
+            "block": true,
+            "timeout": 60000
+          },
+          "source_command": false
+        },
+        {
+          "at": 1789628186.01,
+          "name": "TaskOutput",
+          "call_id": "toolu_01NrzNjqVFD4sNcwTDgr5ecL",
+          "arguments": {
+            "task_id": "barr4jagv",
+            "block": true,
+            "timeout": 60000
+          },
+          "source_command": false
+        }
+      ],
+      "retained_streams": [
+        {
+          "sha256": "ac10c1f351f97ba9326224366b8ff02da572ed6262afa89f329b4dd8caa83169",
+          "bytes": 721328,
+          "offset": 597739
+        },
+        {
+          "sha256": "c61cf8f232bea669c4b29b400767f4541ff9b569e5e989de036ebfa65f281aff",
+          "bytes": 2542,
+          "offset": 224
+        }
+      ],
+      "independent_audit": {
+        "at": 1789628571.1526747,
+        "status": "passed",
+        "checks": {
+          "complete_duplicate_window": true,
+          "consumption_once_after_ready": true,
+          "exact_execution_call_once": true,
+          "exact_prompt_once": true,
+          "exact_source_binding": true,
+          "exact_useful_call_once": true,
+          "exposed_configuration_unchanged": true,
+          "fixed_240_second_source": true,
+          "foreground_no_monitor": true,
+          "foreground_same_human_turn": true,
+          "frozen_implementation_intact": true,
+          "no_native_gap_interruption_compaction": true,
+          "no_unknown_user_origin": true,
+          "observer_functional_checks_passed": true,
+          "observer_ready_before_prompt": true,
+          "one_native_final_after_useful": true,
+          "original_native_prefix_intact": true,
+          "separate_complete_drain": true,
+          "source_not_suppressed": true,
+          "stream_0_complete_lines": true,
+          "stream_0_offset": true,
+          "stream_0_retained_hash": true,
+          "stream_1_complete_lines": true,
+          "stream_1_offset": true,
+          "stream_1_retained_hash": true,
+          "useful_within_60_seconds": true
+        },
+        "durations": {
+          "duplicate_window_seconds": 120.01840496063232,
+          "separate_drain_seconds": 120.03234839439392,
+          "source_seconds": 240.0038652420044,
+          "useful_wake_seconds": 4.889110326766968
+        },
+        "foreground_protocol": "actual wait arguments still require installed-schema review"
+      },
+      "foreground_protocol_audit": {
+        "at": 1789628634.641222,
+        "status": "deviation-initial-yield-unavailable",
+        "checks": {
+          "blocking_waits_all_60000_ms": true,
+          "native_taskoutput_schema_supports_blocking_60000": true,
+          "one_source_execution": true,
+          "powershell_definition_exposes_no_yield": true,
+          "same_task_for_all_waits": true,
+          "source_background_option_used": true,
+          "wait_task_bound_to_source_result": true
+        },
+        "initial_yield_ms": null,
+        "initial_yield_status": "No requested or exposed initial-yield parameter; background launch is not a verified 1000-ms or minimum foreground yield.",
+        "blocking_wait_count": 4,
+        "calls": [
+          {
+            "arguments": {
+              "run_in_background": true
+            },
+            "at": "2026-09-17T06:53:14.755Z",
+            "call_id": "toolu_01VpHxdduGiQoDobzicE1bdA",
+            "name": "PowerShell",
+            "result_at": "2026-09-17T06:53:17.518Z",
+            "result_error": false
+          },
+          {
+            "arguments": {
+              "block": true,
+              "task_id": "barr4jagv",
+              "timeout": 60000
+            },
+            "at": "2026-09-17T06:53:19.248Z",
+            "call_id": "toolu_013M8YjE6VfrgHLkin3KungZ",
+            "name": "TaskOutput",
+            "result_at": "2026-09-17T06:54:19.309Z",
+            "result_error": false
+          },
+          {
+            "arguments": {
+              "block": true,
+              "task_id": "barr4jagv",
+              "timeout": 60000
+            },
+            "at": "2026-09-17T06:54:21.429Z",
+            "call_id": "toolu_01XFG18cWn8T1x5kEEunMUdb",
+            "name": "TaskOutput",
+            "result_at": "2026-09-17T06:55:21.468Z",
+            "result_error": false
+          },
+          {
+            "arguments": {
+              "block": true,
+              "task_id": "barr4jagv",
+              "timeout": 60000
+            },
+            "at": "2026-09-17T06:55:23.907Z",
+            "call_id": "toolu_017V5JCbKYQimnAeL1ePbmSv",
+            "name": "TaskOutput",
+            "result_at": "2026-09-17T06:56:23.945Z",
+            "result_error": false
+          },
+          {
+            "arguments": {
+              "block": true,
+              "task_id": "barr4jagv",
+              "timeout": 60000
+            },
+            "at": "2026-09-17T06:56:26.010Z",
+            "call_id": "toolu_01NrzNjqVFD4sNcwTDgr5ecL",
+            "name": "TaskOutput",
+            "result_at": "2026-09-17T06:57:08.398Z",
+            "result_error": false
+          }
+        ],
+        "taskoutput_input_schemas": [
+          {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "additionalProperties": false,
+            "properties": {
+              "block": {
+                "default": true,
+                "description": "Whether to wait for completion",
+                "type": "boolean"
+              },
+              "task_id": {
+                "description": "The task ID to get output from",
+                "type": "string"
+              },
+              "timeout": {
+                "default": 30000,
+                "description": "Max wait time in ms",
+                "maximum": 600000,
+                "minimum": 0,
+                "type": "number"
+              }
+            },
+            "required": [
+              "task_id",
+              "block",
+              "timeout"
+            ],
+            "type": "object"
+          }
+        ],
+        "comparison_limit": "Functional timing and observed usage are retained; this arm is not an exact realization of the prescribed initial-yield protocol.",
+        "powershell_definition": {
+          "sha256": "4e4c1746aff835bb05e5ed14cda72d21ee6fbda4147aa99b3135718614da117e",
+          "offset": 213694159,
+          "text": "tn=f(()=>Je({command:o().refine(CA,Qs).describe(\"The PowerShell command to execute\"),timeout:mP(E().optional()).describe(`Optional timeout in milliseconds (max ${Be()})`),description:o().optional().describe(\"Clear, concise description of what this command does in active voice.\"),run_in_background:$S(O().optional()).describe(\"Set to true to run this command in the background.\"),dangerouslyDisableSandbox:$S(O().optional()).describe(\"Set this to true to dangerously override sandbox mode and run commands without sandboxing.\"),...rQ()&&PKe()})),Js=f(()=>uc()?tn().omit({run_in_background:!0}):tn())",
+          "authority": "Read-only installed executable inspection; PowerShell schema was not recorded in native deferred-tool attachments."
+        }
+      },
+      "execution_revision": {
+        "revision": "original"
+      }
+    },
+    {
+      "tab": "claude-pair-01-b",
+      "thread": "73ea435e-a5b4-4375-a14b-57c8ee3d9a2f",
+      "arm": "B-prototype",
+      "mode": "trial",
+      "pair_id": "pair-01",
+      "context_tokens": 104442,
+      "status": "observation-finished",
+      "source_id": "26a8304b-f446-430d-a05c-d48df7fb11a2",
+      "wait_id": "56a098f9-659f-486a-b4df-ec0325fc8db5",
+      "event_id": "f7ab7a9e-ab16-4d80-b74a-53b4f078d7b1",
+      "prepared_at": 1789626334.1936414,
+      "configuration_hash": "f8a6d8ec528b4e114d7bfb24972849d791b541171fd2c7372ccb01b7d5307a49",
+      "prompt_sha256": "d28e87fc9a14a22cc4a2925ca2d6cc1782cc3f2ee69a6caa1c73ecfed85f195e",
+      "streams": [
+        {
+          "name": "73ea435e-a5b4-4375-a14b-57c8ee3d9a2f.jsonl",
+          "role": "telemetry",
+          "offset": 635335,
+          "anchor_sha256": "460ee2169ad7ba7550e9686a78416a29c9990e6b98ffd090dead9946b419f581",
+          "file_id": [
+            1597673305946669667,
+            42502721484066151
+          ]
+        },
+        {
+          "name": "probe-events.jsonl",
+          "role": "probe",
+          "offset": 224,
+          "anchor_sha256": "f99a530ccb9a6bab093e917fc9c5dea7953eea9f09a3ceb1349dddd82c4df4e2",
+          "file_id": [
+            1597673305946669667,
+            2814749768454877
+          ]
+        }
+      ],
+      "observer_readiness": {
+        "at": "2026-09-17T07:04:25.1909779Z",
+        "status": "ready-verified",
+        "thread": "73ea435e-a5b4-4375-a14b-57c8ee3d9a2f",
+        "pid": 2740
+      },
+      "prompt_observed_at": 1789629856.634,
+      "native_execution_at": 1789629863.916,
+      "normal_at": 1789629893.539,
+      "observer_status": "failed",
+      "checks": {
+        "duplicate_window": false,
+        "exact_monitor_schema": true,
+        "native_execution": true,
+        "native_normal_end": true,
+        "native_receipt": true,
+        "no_human_nudge": true,
+        "no_invalidation": false,
+        "one_final": false,
+        "single_consumption": false,
+        "source_interval": true,
+        "telemetry_drain": false,
+        "useful_wake": false
+      },
+      "errors": [
+        "Consumption lacks exact native continuation binding"
+      ],
+      "independent_replay": {
+        "exact_prompt_once": true,
+        "no_parser_gaps": true,
+        "frozen_implementation_intact": true,
+        "retained_hashes_verified": true
+      },
+      "source_start": 1789629885.2118843,
+      "source_ready": 1789630125.2411597,
+      "native_receipt": 1789630125.608,
+      "quiet_before_source_ready_seconds": 231.70215964317322,
+      "useful_consume_call": null,
+      "wake_latency": null,
+      "consumed_at": null,
+      "duplicate_consumptions": 0,
+      "final_at": null,
+      "drain_started": null,
+      "finished_at": 1789630425.2633855,
+      "observed_activity": {
+        "whole_benchmark": {
+          "native_counts": {
+            "native_observation": 29,
+            "native_user": 3,
+            "usage_completion": 6,
+            "native_assistant": 12,
+            "tool_call": 5,
+            "tool_result": 5,
+            "native_turn_complete": 2
+          },
+          "response_usage": {
+            "input": 686403,
+            "cached_input": 597189,
+            "output": 1688,
+            "reasoning": 735
+          },
+          "usage_completions": 6,
+          "request_attempt_coverage": "unknown"
+        },
+        "source_interval": {
+          "native_counts": {
+            "tool_result": 1,
+            "native_observation": 2,
+            "usage_completion": 1,
+            "native_assistant": 2,
+            "native_turn_complete": 1
+          },
+          "response_usage": {
+            "input": 116174,
+            "cached_input": 114373,
+            "output": 182,
+            "reasoning": 157
+          },
+          "usage_completions": 1,
+          "request_attempt_coverage": "unknown"
+        },
+        "after_normal_before_ready": {
+          "native_counts": {
+            "native_observation": 1
+          },
+          "response_usage": {
+            "input": 0,
+            "cached_input": 0,
+            "output": 0,
+            "reasoning": 0
+          },
+          "usage_completions": 0,
+          "request_attempt_coverage": "unknown"
+        }
+      },
+      "foreground_wait_calls": [],
+      "retained_streams": [
+        {
+          "sha256": "d199d839c8b4f88f90a07be205503ac8cf659f01ccb29c97e3e1b6609ac90f32",
+          "bytes": 720975,
+          "offset": 635335
+        },
+        {
+          "sha256": "a4007090450c5e63606bd2f5a1af89f93e8d4ed532cafbfb7b3366e4c6f9d97a",
+          "bytes": 1683,
+          "offset": 224
+        }
+      ],
+      "independent_audit": {
+        "at": 1789630550.8057086,
+        "status": "failed",
+        "checks": {
+          "automatic_useful_turn_binding": false,
+          "complete_duplicate_window": false,
+          "consumption_once_after_ready": false,
+          "exact_execution_call_once": true,
+          "exact_monitor_invocation": true,
+          "exact_native_event_binding": true,
+          "exact_prompt_once": true,
+          "exact_source_binding": true,
+          "exact_useful_call_once": false,
+          "exposed_configuration_unchanged": true,
+          "fixed_240_second_source": true,
+          "frozen_implementation_intact": true,
+          "native_armed_normal_end_once": true,
+          "native_monitor_success_before_normal_end": true,
+          "no_native_gap_interruption_compaction": true,
+          "no_unknown_user_origin": true,
+          "normal_end_after_registration": true,
+          "observer_functional_checks_passed": false,
+          "observer_ready_before_prompt": true,
+          "one_native_final_after_useful": false,
+          "one_native_ready_notification": true,
+          "original_native_prefix_intact": true,
+          "quiet_before_ready": true,
+          "separate_complete_drain": false,
+          "source_not_suppressed": false,
+          "stream_0_complete_lines": true,
+          "stream_0_offset": true,
+          "stream_0_retained_hash": true,
+          "stream_1_complete_lines": true,
+          "stream_1_offset": true,
+          "stream_1_retained_hash": true,
+          "useful_within_60_seconds": false
+        },
+        "durations": {
+          "duplicate_window_seconds": null,
+          "separate_drain_seconds": null,
+          "source_seconds": 240.02927541732788,
+          "useful_wake_seconds": null
+        },
+        "foreground_protocol": "not applicable"
+      },
+      "execution_revision": {
+        "revision": "original"
+      }
+    },
+    {
+      "tab": "claude-pair-02-b",
+      "thread": "fa51e1c2-13e7-4634-a748-bea78b2a519e",
+      "arm": "B-prototype",
+      "mode": "trial",
+      "pair_id": "pair-02",
+      "context_tokens": 99771,
+      "status": "observation-finished",
+      "source_id": "f7a2225b-ca19-4391-aaca-4c879a55387d",
+      "wait_id": "9bcab691-116c-4298-80b6-8e7c96a1ed5e",
+      "event_id": "262f4177-04ba-4cdb-92b2-320b45de592c",
+      "prepared_at": 1789626334.243669,
+      "configuration_hash": "f8a6d8ec528b4e114d7bfb24972849d791b541171fd2c7372ccb01b7d5307a49",
+      "prompt_sha256": "f70577f3afc576b8811a5b46b277d70536ef0ae475697c50012c91357858a8dc",
+      "streams": [
+        {
+          "name": "fa51e1c2-13e7-4634-a748-bea78b2a519e.jsonl",
+          "role": "telemetry",
+          "offset": 587266,
+          "anchor_sha256": "a64fe18bfa227249e4188f0d4ac4f8d3c6d5f0bb50dcb41b7d99f6f3d85088ca",
+          "file_id": [
+            1597673305946669667,
+            15199648743067317
+          ]
+        },
+        {
+          "name": "probe-events.jsonl",
+          "role": "probe",
+          "offset": 224,
+          "anchor_sha256": "e26608f440d2d96f5e548b490f6b9fa028bc707dd267c93f0cd6f780c184091d",
+          "file_id": [
+            1597673305946669667,
+            2814749768454887
+          ]
+        }
+      ],
+      "observer_readiness": {
+        "at": "2026-09-17T07:49:28.3679445Z",
+        "status": "ready-verified",
+        "thread": "fa51e1c2-13e7-4634-a748-bea78b2a519e",
+        "pid": 39212
+      },
+      "prompt_observed_at": 1789631938.428,
+      "native_execution_at": 1789631946.166,
+      "normal_at": 1789631977.137,
+      "drain_started": 1789632359.5298007,
+      "observer_status": "passed",
+      "checks": {
+        "duplicate_window": true,
+        "exact_monitor_schema": true,
+        "native_execution": true,
+        "native_normal_end": true,
+        "native_receipt": true,
+        "no_human_nudge": true,
+        "no_invalidation": true,
+        "one_final": true,
+        "single_consumption": true,
+        "source_interval": true,
+        "telemetry_drain": true,
+        "useful_wake": true
+      },
+      "errors": [],
+      "independent_replay": {
+        "exact_prompt_once": true,
+        "no_parser_gaps": true,
+        "frozen_implementation_intact": true,
+        "retained_hashes_verified": true
+      },
+      "source_start": 1789631969.0113447,
+      "source_ready": 1789632209.0472355,
+      "native_receipt": 1789632209.399,
+      "quiet_before_source_ready_seconds": 231.91023540496826,
+      "useful_consume_call": 1789632214.67,
+      "wake_latency": 5.622764587402344,
+      "consumed_at": 1789632237.8569539,
+      "duplicate_consumptions": 0,
+      "final_at": 1789632239.517,
+      "finished_at": 1789632479.5668182,
+      "observed_activity": {
+        "whole_benchmark": {
+          "native_counts": {
+            "native_observation": 28,
+            "native_user": 3,
+            "usage_completion": 6,
+            "native_assistant": 11,
+            "tool_call": 5,
+            "tool_result": 5,
+            "native_turn_complete": 2
+          },
+          "response_usage": {
+            "input": 657026,
+            "cached_input": 570308,
+            "output": 1195,
+            "reasoning": 476
+          },
+          "usage_completions": 6,
+          "request_attempt_coverage": "unknown"
+        },
+        "source_interval": {
+          "native_counts": {
+            "tool_result": 1,
+            "native_observation": 2,
+            "usage_completion": 1,
+            "native_assistant": 2,
+            "native_turn_complete": 1
+          },
+          "response_usage": {
+            "input": 111638,
+            "cached_input": 109842,
+            "output": 121,
+            "reasoning": 96
+          },
+          "usage_completions": 1,
+          "request_attempt_coverage": "unknown"
+        },
+        "after_normal_before_ready": {
+          "native_counts": {
+            "native_observation": 1
+          },
+          "response_usage": {
+            "input": 0,
+            "cached_input": 0,
+            "output": 0,
+            "reasoning": 0
+          },
+          "usage_completions": 0,
+          "request_attempt_coverage": "unknown"
+        },
+        "after_final_including_drain": {
+          "native_counts": {
+            "native_observation": 14
+          },
+          "response_usage": {
+            "input": 0,
+            "cached_input": 0,
+            "output": 0,
+            "reasoning": 0
+          },
+          "usage_completions": 0,
+          "request_attempt_coverage": "unknown"
+        }
+      },
+      "foreground_wait_calls": [],
+      "retained_streams": [
+        {
+          "sha256": "00c99efa91cf178235adce514523a6874d33fec39897622a03315ec89238458c",
+          "bytes": 678986,
+          "offset": 587266
+        },
+        {
+          "sha256": "c89c2f28062bc14faedcedbdf5a8a815006665250047f37e4881a5e8d8d4394f",
+          "bytes": 2929,
+          "offset": 224
+        }
+      ],
+      "independent_audit": {
+        "at": 1789632501.2810614,
+        "status": "passed",
+        "checks": {
+          "automatic_useful_turn_binding": true,
+          "complete_duplicate_window": true,
+          "consumption_once_after_ready": true,
+          "exact_execution_call_once": true,
+          "exact_monitor_invocation": true,
+          "exact_native_event_binding": true,
+          "exact_prompt_once": true,
+          "exact_source_binding": true,
+          "exact_useful_call_once": true,
+          "execution_revision_binds_unchanged_manifest": true,
+          "exposed_configuration_unchanged": true,
+          "fixed_240_second_source": true,
+          "frozen_implementation_intact": true,
+          "native_armed_normal_end_once": true,
+          "native_completion_ancestry_recorded": true,
+          "native_completion_notice_unambiguous": true,
+          "native_monitor_success_before_normal_end": true,
+          "no_native_gap_interruption_compaction": true,
+          "no_unknown_user_origin": true,
+          "normal_end_after_registration": true,
+          "observer_functional_checks_passed": true,
+          "observer_ready_before_prompt": true,
+          "one_native_final_after_useful": true,
+          "one_native_ready_notification": true,
+          "original_native_prefix_intact": true,
+          "quiet_before_ready": true,
+          "revised_execution_snapshot_intact": true,
+          "revised_execution_validation_intact": true,
+          "separate_complete_drain": true,
+          "source_not_suppressed": true,
+          "stream_0_complete_lines": true,
+          "stream_0_offset": true,
+          "stream_0_retained_hash": true,
+          "stream_1_complete_lines": true,
+          "stream_1_offset": true,
+          "stream_1_retained_hash": true,
+          "useful_within_60_seconds": true
+        },
+        "durations": {
+          "duplicate_window_seconds": 120.01280069351196,
+          "separate_drain_seconds": 120.03701758384705,
+          "source_seconds": 240.0358908176422,
+          "useful_wake_seconds": 5.622764587402344
+        },
+        "foreground_protocol": "not applicable"
+      },
+      "execution_revision": {
+        "revision": "monitor-completion-01",
+        "at": 1789631267.331781,
+        "reason": "Exact ready -> completed Monitor notification ancestry; retained B1 failure is not retried or reclassified.",
+        "binding": {
+          "manifest_sha256": "f954ea7625faa16e877bfde80a84f46a774f57669442fdd448c6dd6860829a76",
+          "native_sha256_before_revision": "642b3c60bdfa2e119eaec1fbbf0396901864176b32760b368db1c8186153c552",
+          "prompt_sha256": "f70577f3afc576b8811a5b46b277d70536ef0ae475697c50012c91357858a8dc",
+          "run": "pair-02-b",
+          "thread": "fa51e1c2-13e7-4634-a748-bea78b2a519e"
+        },
+        "implementation_directory": "implementation-revisions/monitor-completion-01",
+        "implementation_hashes": {
+          "docs/v0.13.0/probe.shared-wait-service.py": "322c164b1edd0481bb7543c3228ef027e3700619f699a9d9099244de3eeef5be",
+          "tools/wait_evidence/__init__.py": "b57410531cb9e266716756e51a4e33dc12bfc5261b4e21866d63a4af6ecb9356",
+          "tools/wait_evidence/claude_monitor.py": "46d94eb674f39883b4c54a2128907bd0364039f4fb6324eb0c69849f3f8e05da",
+          "tools/wait_evidence/claude_observer.py": "5de8db382fa0978b09a41049c59d863ad6c81f23dd5118caa1f4db9e2ed030c8",
+          "tools/wait_evidence/codex_proxy.py": "66587525d50b8b69fbbe287f4970f367c89f90b9d76ad12fc09d0aa79a49ad60",
+          "tools/wait_evidence/collector.py": "d39b365a1da3e4530baa5d8d6c083c6c2bfb41872b4e2801cf4fd005b2b07051",
+          "tools/wait_evidence/models.py": "fb42281b46e86035d7d334149f17414e0eeec5494d243571cae5c2771ac6450f",
+          "tools/wait_evidence/probe_cli.py": "b241fe0d397504a1ca108190a58c5ab2f147678b198ce5c5b404791ee8586c28",
+          "tools/wait_evidence/probe_driver.py": "ed04d4c0e03822f89edb98aed4fa44dfbd93351dfdfef29469f399a3b7ea9295",
+          "tools/wait_evidence/probe_files.py": "4c84aa8be6454dc8aa4120ab0d1250151a0fc3f5dd546608dfd3cbeb44e1aab7",
+          "tools/wait_evidence/probe_observer.py": "42d6eed4c7cf4cc7876d44fe6ee2688a362f09f3a94db640c54ce7714e35d154",
+          "tools/wait_evidence/prototype.py": "0391b8ae9838dffbf7103dd00dd392049140744d7b29f8eb29a77102c026a355",
+          "tools/wait_evidence/reports.py": "5ecb12d653f8d95fe4d4bcc2923d2c40712c57a36fa8d282e4c764ee255d197e",
+          "tools/wait_evidence/telemetry.py": "7051cc01db14c7a83a7451e64bd2bec4e9990b5fc8c42ddbf0af496c83f6ddd2",
+          "tools/wait_evidence/telemetry_claude.py": "b49cb8aa7e581caf0b607414a7d76fbafe64c7c8649c20bcb6bfb4483959e1f6"
+        },
+        "validation_log": "a.shared-wait-service/ghog-claude-continuation-green.log",
+        "validation_log_sha256": "4d6d9429b582533b23683f2cde4b5f1805f8c34fb98397b594688bb30eac0b3b",
+        "continued_after_run": "pair-01-b",
+        "continued_after_audit_sha256": "484116fb1d7739c9df3a0d34ae47a5049fc0a9873fe2caf01e75364c46277b3f"
+      },
+      "native_continuation_binding": {
+        "at": 1789632209.402,
+        "evidence": "stream-0#0:662047",
+        "monitor_id": "toolu_016iCZh7YHE8VCkTgqmGv8MU",
+        "notice_uuid": "6845f949-e914-43d7-bba1-2b4eb5adb04d",
+        "ready_uuid": "32fd1e2b-9d41-4e9b-a93b-3336c831f774",
+        "task_id": "bw3xu9w9q"
+      }
+    },
+    {
+      "tab": "claude-pair-02-a",
+      "thread": "52f4b8f8-c81a-40c2-b062-adca57d442b9",
+      "arm": "A",
+      "mode": "trial",
+      "pair_id": "pair-02",
+      "context_tokens": 100746,
+      "status": "observation-finished",
+      "source_id": "9ef27d3c-7283-4a2d-92a0-d2f6fb311290",
+      "wait_id": "b89c4394-3873-48ef-85fe-f463b4325fb7",
+      "event_id": "3a91c5e3-5ddf-4e4b-a33d-ca7105c87219",
+      "prepared_at": 1789626334.2862103,
+      "configuration_hash": "f8a6d8ec528b4e114d7bfb24972849d791b541171fd2c7372ccb01b7d5307a49",
+      "prompt_sha256": "9ed1dff23d6b88ee78de3253a92612b8cfcdb0f7c6af2cb621a2cda5c09df074",
+      "streams": [
+        {
+          "name": "52f4b8f8-c81a-40c2-b062-adca57d442b9.jsonl",
+          "role": "telemetry",
+          "offset": 601758,
+          "anchor_sha256": "e6d406b4c5ecdab818093741bf64a0e2bdec737aaf88b462f16e39a4dae10001",
+          "file_id": [
+            1597673305946669667,
+            18295873486884788
+          ]
+        },
+        {
+          "name": "probe-events.jsonl",
+          "role": "probe",
+          "offset": 224,
+          "anchor_sha256": "702254044b71cfb72baabe5b45d9002881fd4299d57de966bb7cc73c991782bc",
+          "file_id": [
+            1597673305946669667,
+            3659174698586865
+          ]
+        }
+      ],
+      "observer_readiness": {
+        "at": "2026-09-17T08:08:45.8237168Z",
+        "status": "ready-verified",
+        "thread": "52f4b8f8-c81a-40c2-b062-adca57d442b9",
+        "pid": 44488
+      },
+      "prompt_observed_at": 1789633160.367,
+      "native_execution_at": 1789633167.746,
+      "drain_started": 1789633595.9582505,
+      "observer_status": "passed",
+      "checks": {
+        "duplicate_window": true,
+        "native_execution": true,
+        "native_normal_end": true,
+        "no_human_nudge": true,
+        "no_invalidation": true,
+        "one_final": true,
+        "single_consumption": true,
+        "source_interval": true,
+        "telemetry_drain": true,
+        "useful_wake": true
+      },
+      "errors": [],
+      "independent_replay": {
+        "exact_prompt_once": true,
+        "no_parser_gaps": true,
+        "frozen_implementation_intact": true,
+        "retained_hashes_verified": true
+      },
+      "normal_at": null,
+      "source_start": 1789633203.2297628,
+      "source_ready": 1789633443.230529,
+      "native_receipt": null,
+      "quiet_before_source_ready_seconds": null,
+      "useful_consume_call": 1789633446.932,
+      "wake_latency": 3.7014708518981934,
+      "consumed_at": 1789633474.3749714,
+      "duplicate_consumptions": 0,
+      "final_at": 1789633475.957,
+      "finished_at": 1789633716.0457213,
+      "observed_activity": {
+        "whole_benchmark": {
+          "native_counts": {
+            "native_observation": 38,
+            "native_user": 1,
+            "usage_completion": 10,
+            "native_assistant": 17,
+            "tool_call": 9,
+            "tool_result": 9,
+            "native_turn_complete": 1
+          },
+          "response_usage": {
+            "input": 1101870,
+            "cached_input": 1013738,
+            "output": 2209,
+            "reasoning": 1052
+          },
+          "usage_completions": 10,
+          "request_attempt_coverage": "unknown"
+        },
+        "source_interval": {
+          "native_counts": {
+            "tool_result": 6,
+            "native_observation": 9,
+            "usage_completion": 6,
+            "native_assistant": 9,
+            "tool_call": 6
+          },
+          "response_usage": {
+            "input": 665078,
+            "cached_input": 658759,
+            "output": 1362,
+            "reasoning": 683
+          },
+          "usage_completions": 6,
+          "request_attempt_coverage": "unknown"
+        },
+        "after_final_including_drain": {
+          "native_counts": {
+            "native_observation": 20
+          },
+          "response_usage": {
+            "input": 0,
+            "cached_input": 0,
+            "output": 0,
+            "reasoning": 0
+          },
+          "usage_completions": 0,
+          "request_attempt_coverage": "unknown"
+        }
+      },
+      "foreground_wait_calls": [
+        {
+          "at": 1789633213.916,
+          "name": "PowerShell",
+          "call_id": "toolu_01LjQtshUn9STSwXkeZpoScb",
+          "arguments": {
+            "run_in_background": true
+          },
+          "source_command": true
+        },
+        {
+          "at": 1789633218.577,
+          "name": "TaskOutput",
+          "call_id": "toolu_016fZJoYdPiwC98wgUebGmKC",
+          "arguments": {
+            "task_id": "bi7na019t",
+            "block": true,
+            "timeout": 60000
+          },
+          "source_command": false
+        },
+        {
+          "at": 1789633280.865,
+          "name": "TaskOutput",
+          "call_id": "toolu_01948C1Hc1QfjY9jd7tUhiCR",
+          "arguments": {
+            "task_id": "bi7na019t",
+            "block": true,
+            "timeout": 60000
+          },
+          "source_command": false
+        },
+        {
+          "at": 1789633343.434,
+          "name": "TaskOutput",
+          "call_id": "toolu_01NeSF87yrSR6vkagNJNiL14",
+          "arguments": {
+            "task_id": "bi7na019t",
+            "block": true,
+            "timeout": 60000
+          },
+          "source_command": false
+        },
+        {
+          "at": 1789633405.519,
+          "name": "TaskOutput",
+          "call_id": "toolu_011zyde1Zka4Jf1iNL2SxTDr",
+          "arguments": {
+            "task_id": "bi7na019t",
+            "block": true,
+            "timeout": 60000
+          },
+          "source_command": false
+        }
+      ],
+      "retained_streams": [
+        {
+          "sha256": "08be883858213e175329ec11c8bf7f39c20d705d50898c664c4510f065e957dc",
+          "bytes": 716672,
+          "offset": 601758
+        },
+        {
+          "sha256": "719e3494a34438f33057bc7c7314de82043ec5839df94e30a2cee76874bfd3c3",
+          "bytes": 2542,
+          "offset": 224
+        }
+      ],
+      "independent_audit": {
+        "at": 1789633746.160037,
+        "status": "passed",
+        "checks": {
+          "complete_duplicate_window": true,
+          "consumption_once_after_ready": true,
+          "exact_execution_call_once": true,
+          "exact_prompt_once": true,
+          "exact_source_binding": true,
+          "exact_useful_call_once": true,
+          "execution_revision_binds_unchanged_manifest": true,
+          "exposed_configuration_unchanged": true,
+          "fixed_240_second_source": true,
+          "foreground_no_monitor": true,
+          "foreground_same_human_turn": true,
+          "frozen_implementation_intact": true,
+          "no_native_gap_interruption_compaction": true,
+          "no_unknown_user_origin": true,
+          "observer_functional_checks_passed": true,
+          "observer_ready_before_prompt": true,
+          "one_native_final_after_useful": true,
+          "original_native_prefix_intact": true,
+          "revised_execution_snapshot_intact": true,
+          "revised_execution_validation_intact": true,
+          "separate_complete_drain": true,
+          "source_not_suppressed": true,
+          "stream_0_complete_lines": true,
+          "stream_0_offset": true,
+          "stream_0_retained_hash": true,
+          "stream_1_complete_lines": true,
+          "stream_1_offset": true,
+          "stream_1_retained_hash": true,
+          "useful_within_60_seconds": true
+        },
+        "durations": {
+          "duplicate_window_seconds": 120.00125050544739,
+          "separate_drain_seconds": 120.0874707698822,
+          "source_seconds": 240.00076627731323,
+          "useful_wake_seconds": 3.7014708518981934
+        },
+        "foreground_protocol": "actual wait arguments still require installed-schema review"
+      },
+      "foreground_protocol_audit": {
+        "at": 1789633770.6881106,
+        "status": "deviation-initial-yield-unavailable",
+        "checks": {
+          "blocking_waits_all_60000_ms": true,
+          "native_taskoutput_schema_supports_blocking_60000": true,
+          "one_source_execution": true,
+          "powershell_definition_exposes_no_yield": true,
+          "same_task_for_all_waits": true,
+          "source_background_option_used": true,
+          "wait_task_bound_to_source_result": true
+        },
+        "initial_yield_ms": null,
+        "initial_yield_status": "No requested or exposed initial-yield parameter; background launch is not a verified 1000-ms or minimum foreground yield.",
+        "blocking_wait_count": 4,
+        "calls": [
+          {
+            "arguments": {
+              "run_in_background": true
+            },
+            "at": "2026-09-17T08:20:13.916Z",
+            "call_id": "toolu_01LjQtshUn9STSwXkeZpoScb",
+            "name": "PowerShell",
+            "result_at": "2026-09-17T08:20:16.733Z",
+            "result_error": false
+          },
+          {
+            "arguments": {
+              "block": true,
+              "task_id": "bi7na019t",
+              "timeout": 60000
+            },
+            "at": "2026-09-17T08:20:18.577Z",
+            "call_id": "toolu_016fZJoYdPiwC98wgUebGmKC",
+            "name": "TaskOutput",
+            "result_at": "2026-09-17T08:21:18.618Z",
+            "result_error": false
+          },
+          {
+            "arguments": {
+              "block": true,
+              "task_id": "bi7na019t",
+              "timeout": 60000
+            },
+            "at": "2026-09-17T08:21:20.865Z",
+            "call_id": "toolu_01948C1Hc1QfjY9jd7tUhiCR",
+            "name": "TaskOutput",
+            "result_at": "2026-09-17T08:22:20.974Z",
+            "result_error": false
+          },
+          {
+            "arguments": {
+              "block": true,
+              "task_id": "bi7na019t",
+              "timeout": 60000
+            },
+            "at": "2026-09-17T08:22:23.434Z",
+            "call_id": "toolu_01NeSF87yrSR6vkagNJNiL14",
+            "name": "TaskOutput",
+            "result_at": "2026-09-17T08:23:23.485Z",
+            "result_error": false
+          },
+          {
+            "arguments": {
+              "block": true,
+              "task_id": "bi7na019t",
+              "timeout": 60000
+            },
+            "at": "2026-09-17T08:23:25.519Z",
+            "call_id": "toolu_011zyde1Zka4Jf1iNL2SxTDr",
+            "name": "TaskOutput",
+            "result_at": "2026-09-17T08:24:03.445Z",
+            "result_error": false
+          }
+        ],
+        "taskoutput_input_schemas": [
+          {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "additionalProperties": false,
+            "properties": {
+              "block": {
+                "default": true,
+                "description": "Whether to wait for completion",
+                "type": "boolean"
+              },
+              "task_id": {
+                "description": "The task ID to get output from",
+                "type": "string"
+              },
+              "timeout": {
+                "default": 30000,
+                "description": "Max wait time in ms",
+                "maximum": 600000,
+                "minimum": 0,
+                "type": "number"
+              }
+            },
+            "required": [
+              "task_id",
+              "block",
+              "timeout"
+            ],
+            "type": "object"
+          }
+        ],
+        "comparison_limit": "Functional timing and observed usage are retained; this arm is not an exact realization of the prescribed initial-yield protocol.",
+        "powershell_definition": {
+          "sha256": "4e4c1746aff835bb05e5ed14cda72d21ee6fbda4147aa99b3135718614da117e",
+          "offset": 213694159,
+          "text": "tn=f(()=>Je({command:o().refine(CA,Qs).describe(\"The PowerShell command to execute\"),timeout:mP(E().optional()).describe(`Optional timeout in milliseconds (max ${Be()})`),description:o().optional().describe(\"Clear, concise description of what this command does in active voice.\"),run_in_background:$S(O().optional()).describe(\"Set to true to run this command in the background.\"),dangerouslyDisableSandbox:$S(O().optional()).describe(\"Set this to true to dangerously override sandbox mode and run commands without sandboxing.\"),...rQ()&&PKe()})),Js=f(()=>uc()?tn().omit({run_in_background:!0}):tn())",
+          "authority": "Read-only installed executable inspection; PowerShell schema was not recorded in native deferred-tool attachments."
+        }
+      },
+      "execution_revision": {
+        "revision": "monitor-completion-01",
+        "at": 1789631267.331781,
+        "reason": "Exact ready -> completed Monitor notification ancestry; retained B1 failure is not retried or reclassified.",
+        "binding": {
+          "manifest_sha256": "6c10520708f98ca3a427748728b2c730a8566230dedb11f85233463914105de1",
+          "native_sha256_before_revision": "0fb2eca55c6aecc0ed2ca5bfc8e079082d86ffe145b14faa935d87991e79777d",
+          "prompt_sha256": "9ed1dff23d6b88ee78de3253a92612b8cfcdb0f7c6af2cb621a2cda5c09df074",
+          "run": "pair-02-a",
+          "thread": "52f4b8f8-c81a-40c2-b062-adca57d442b9"
+        },
+        "implementation_directory": "implementation-revisions/monitor-completion-01",
+        "implementation_hashes": {
+          "docs/v0.13.0/probe.shared-wait-service.py": "322c164b1edd0481bb7543c3228ef027e3700619f699a9d9099244de3eeef5be",
+          "tools/wait_evidence/__init__.py": "b57410531cb9e266716756e51a4e33dc12bfc5261b4e21866d63a4af6ecb9356",
+          "tools/wait_evidence/claude_monitor.py": "46d94eb674f39883b4c54a2128907bd0364039f4fb6324eb0c69849f3f8e05da",
+          "tools/wait_evidence/claude_observer.py": "5de8db382fa0978b09a41049c59d863ad6c81f23dd5118caa1f4db9e2ed030c8",
+          "tools/wait_evidence/codex_proxy.py": "66587525d50b8b69fbbe287f4970f367c89f90b9d76ad12fc09d0aa79a49ad60",
+          "tools/wait_evidence/collector.py": "d39b365a1da3e4530baa5d8d6c083c6c2bfb41872b4e2801cf4fd005b2b07051",
+          "tools/wait_evidence/models.py": "fb42281b46e86035d7d334149f17414e0eeec5494d243571cae5c2771ac6450f",
+          "tools/wait_evidence/probe_cli.py": "b241fe0d397504a1ca108190a58c5ab2f147678b198ce5c5b404791ee8586c28",
+          "tools/wait_evidence/probe_driver.py": "ed04d4c0e03822f89edb98aed4fa44dfbd93351dfdfef29469f399a3b7ea9295",
+          "tools/wait_evidence/probe_files.py": "4c84aa8be6454dc8aa4120ab0d1250151a0fc3f5dd546608dfd3cbeb44e1aab7",
+          "tools/wait_evidence/probe_observer.py": "42d6eed4c7cf4cc7876d44fe6ee2688a362f09f3a94db640c54ce7714e35d154",
+          "tools/wait_evidence/prototype.py": "0391b8ae9838dffbf7103dd00dd392049140744d7b29f8eb29a77102c026a355",
+          "tools/wait_evidence/reports.py": "5ecb12d653f8d95fe4d4bcc2923d2c40712c57a36fa8d282e4c764ee255d197e",
+          "tools/wait_evidence/telemetry.py": "7051cc01db14c7a83a7451e64bd2bec4e9990b5fc8c42ddbf0af496c83f6ddd2",
+          "tools/wait_evidence/telemetry_claude.py": "b49cb8aa7e581caf0b607414a7d76fbafe64c7c8649c20bcb6bfb4483959e1f6"
+        },
+        "validation_log": "a.shared-wait-service/ghog-claude-continuation-green.log",
+        "validation_log_sha256": "4d6d9429b582533b23683f2cde4b5f1805f8c34fb98397b594688bb30eac0b3b",
+        "continued_after_run": "pair-01-b",
+        "continued_after_audit_sha256": "484116fb1d7739c9df3a0d34ae47a5049fc0a9873fe2caf01e75364c46277b3f"
+      }
+    },
+    {
+      "tab": "claude-pair-03-a",
+      "thread": "eb9b9f2e-d5ab-4e7f-8311-18e483c9776a",
+      "arm": "A",
+      "mode": "trial",
+      "pair_id": "pair-03",
+      "context_tokens": 104393,
+      "status": "observation-finished",
+      "source_id": "56b25d3b-5ccc-4073-b184-026994761623",
+      "wait_id": "1652594c-c914-4d4a-9cb9-33d8e4f19a76",
+      "event_id": "01f3f93a-3d9f-48ce-8bb7-2f1a756f8bf0",
+      "prepared_at": 1789626334.3246331,
+      "configuration_hash": "f8a6d8ec528b4e114d7bfb24972849d791b541171fd2c7372ccb01b7d5307a49",
+      "prompt_sha256": "1c317158294948f5b661db4d48614624336292fd22f6c88bedc8b0a5d4e29725",
+      "streams": [
+        {
+          "name": "eb9b9f2e-d5ab-4e7f-8311-18e483c9776a.jsonl",
+          "role": "telemetry",
+          "offset": 636945,
+          "anchor_sha256": "6efadb7b181222303b757566c986f798a6356bd49703d3d6d84f0de57733350e",
+          "file_id": [
+            1597673305946669667,
+            3940649674644435
+          ]
+        },
+        {
+          "name": "probe-events.jsonl",
+          "role": "probe",
+          "offset": 224,
+          "anchor_sha256": "c4579814722f2fbf9a2f95869d608fa764a928e6d572893fa8e6199956856eea",
+          "file_id": [
+            1597673305946669667,
+            3096224745165563
+          ]
+        }
+      ],
+      "observer_readiness": {
+        "at": "2026-09-17T08:30:04.8457018Z",
+        "status": "ready-verified",
+        "thread": "eb9b9f2e-d5ab-4e7f-8311-18e483c9776a",
+        "pid": 3960
+      },
+      "prompt_observed_at": 1789634177.498,
+      "native_execution_at": 1789634185.45,
+      "drain_started": 1789634605.3232532,
+      "observer_status": "passed",
+      "checks": {
+        "duplicate_window": true,
+        "native_execution": true,
+        "native_normal_end": true,
+        "no_human_nudge": true,
+        "no_invalidation": true,
+        "one_final": true,
+        "single_consumption": true,
+        "source_interval": true,
+        "telemetry_drain": true,
+        "useful_wake": true
+      },
+      "errors": [],
+      "independent_replay": {
+        "exact_prompt_once": true,
+        "no_parser_gaps": true,
+        "frozen_implementation_intact": true,
+        "retained_hashes_verified": true
+      },
+      "normal_at": null,
+      "source_start": 1789634207.7294662,
+      "source_ready": 1789634447.7331922,
+      "native_receipt": null,
+      "quiet_before_source_ready_seconds": null,
+      "useful_consume_call": 1789634451.843,
+      "wake_latency": 4.109807729721069,
+      "consumed_at": 1789634483.75534,
+      "duplicate_consumptions": 0,
+      "final_at": 1789634485.31,
+      "finished_at": 1789634725.3348854,
+      "observed_activity": {
+        "whole_benchmark": {
+          "native_counts": {
+            "native_observation": 36,
+            "native_user": 1,
+            "usage_completion": 10,
+            "native_assistant": 20,
+            "tool_call": 9,
+            "tool_result": 9,
+            "native_turn_complete": 1
+          },
+          "response_usage": {
+            "input": 1124069,
+            "cached_input": 1033952,
+            "output": 2562,
+            "reasoning": 1474
+          },
+          "usage_completions": 10,
+          "request_attempt_coverage": "unknown"
+        },
+        "source_interval": {
+          "native_counts": {
+            "tool_result": 6,
+            "native_observation": 8,
+            "usage_completion": 6,
+            "native_assistant": 11,
+            "tool_call": 6
+          },
+          "response_usage": {
+            "input": 676460,
+            "cached_input": 671614,
+            "output": 1637,
+            "reasoning": 960
+          },
+          "usage_completions": 6,
+          "request_attempt_coverage": "unknown"
+        },
+        "after_final_including_drain": {
+          "native_counts": {
+            "native_observation": 20
+          },
+          "response_usage": {
+            "input": 0,
+            "cached_input": 0,
+            "output": 0,
+            "reasoning": 0
+          },
+          "usage_completions": 0,
+          "request_attempt_coverage": "unknown"
+        }
+      },
+      "foreground_wait_calls": [
+        {
+          "at": 1789634221.285,
+          "name": "PowerShell",
+          "call_id": "toolu_01LvKJtGYJpSin1g8wCaRQYX",
+          "arguments": {
+            "run_in_background": true
+          },
+          "source_command": true
+        },
+        {
+          "at": 1789634225.574,
+          "name": "TaskOutput",
+          "call_id": "toolu_01HYf77eBv82t534V85VQiVs",
+          "arguments": {
+            "task_id": "bmkle160g",
+            "block": true,
+            "timeout": 60000
+          },
+          "source_command": false
+        },
+        {
+          "at": 1789634288.152,
+          "name": "TaskOutput",
+          "call_id": "toolu_01BdTw4k2o3WEFExSBQW1FUF",
+          "arguments": {
+            "task_id": "bmkle160g",
+            "block": true,
+            "timeout": 60000
+          },
+          "source_command": false
+        },
+        {
+          "at": 1789634350.41,
+          "name": "TaskOutput",
+          "call_id": "toolu_01C8ykeBShSvn9jmCpTpRefu",
+          "arguments": {
+            "task_id": "bmkle160g",
+            "block": true,
+            "timeout": 60000
+          },
+          "source_command": false
+        },
+        {
+          "at": 1789634412.623,
+          "name": "TaskOutput",
+          "call_id": "toolu_01F4B8ZeXv8YeDzaH4uk9GAS",
+          "arguments": {
+            "task_id": "bmkle160g",
+            "block": true,
+            "timeout": 60000
+          },
+          "source_command": false
+        }
+      ],
+      "retained_streams": [
+        {
+          "sha256": "2445ec15f83d89c0d38d24e892ac8e8b9b9225ada700679de8fb8f91369a69af",
+          "bytes": 749062,
+          "offset": 636945
+        },
+        {
+          "sha256": "0e091866cbe8d8fd4b06a861b88891160371520a30754551018cc2b7c9bf787e",
+          "bytes": 2540,
+          "offset": 224
+        }
+      ],
+      "independent_audit": {
+        "at": 1789634753.0318713,
+        "status": "passed",
+        "checks": {
+          "complete_duplicate_window": true,
+          "consumption_once_after_ready": true,
+          "exact_execution_call_once": true,
+          "exact_prompt_once": true,
+          "exact_source_binding": true,
+          "exact_useful_call_once": true,
+          "execution_revision_binds_unchanged_manifest": true,
+          "exposed_configuration_unchanged": true,
+          "fixed_240_second_source": true,
+          "foreground_no_monitor": true,
+          "foreground_same_human_turn": true,
+          "frozen_implementation_intact": true,
+          "no_native_gap_interruption_compaction": true,
+          "no_unknown_user_origin": true,
+          "observer_functional_checks_passed": true,
+          "observer_ready_before_prompt": true,
+          "one_native_final_after_useful": true,
+          "original_native_prefix_intact": true,
+          "revised_execution_snapshot_intact": true,
+          "revised_execution_validation_intact": true,
+          "separate_complete_drain": true,
+          "source_not_suppressed": true,
+          "stream_0_complete_lines": true,
+          "stream_0_offset": true,
+          "stream_0_retained_hash": true,
+          "stream_1_complete_lines": true,
+          "stream_1_offset": true,
+          "stream_1_retained_hash": true,
+          "useful_within_60_seconds": true
+        },
+        "durations": {
+          "duplicate_window_seconds": 120.0132532119751,
+          "separate_drain_seconds": 120.01163220405579,
+          "source_seconds": 240.0037260055542,
+          "useful_wake_seconds": 4.109807729721069
+        },
+        "foreground_protocol": "actual wait arguments still require installed-schema review"
+      },
+      "foreground_protocol_audit": {
+        "at": 1789634780.3939977,
+        "status": "deviation-initial-yield-unavailable",
+        "checks": {
+          "blocking_waits_all_60000_ms": true,
+          "native_taskoutput_schema_supports_blocking_60000": true,
+          "one_source_execution": true,
+          "powershell_definition_exposes_no_yield": true,
+          "same_task_for_all_waits": true,
+          "source_background_option_used": true,
+          "wait_task_bound_to_source_result": true
+        },
+        "initial_yield_ms": null,
+        "initial_yield_status": "No requested or exposed initial-yield parameter; background launch is not a verified 1000-ms or minimum foreground yield.",
+        "blocking_wait_count": 4,
+        "calls": [
+          {
+            "arguments": {
+              "run_in_background": true
+            },
+            "at": "2026-09-17T08:37:01.285Z",
+            "call_id": "toolu_01LvKJtGYJpSin1g8wCaRQYX",
+            "name": "PowerShell",
+            "result_at": "2026-09-17T08:37:03.881Z",
+            "result_error": false
+          },
+          {
+            "arguments": {
+              "block": true,
+              "task_id": "bmkle160g",
+              "timeout": 60000
+            },
+            "at": "2026-09-17T08:37:05.574Z",
+            "call_id": "toolu_01HYf77eBv82t534V85VQiVs",
+            "name": "TaskOutput",
+            "result_at": "2026-09-17T08:38:05.675Z",
+            "result_error": false
+          },
+          {
+            "arguments": {
+              "block": true,
+              "task_id": "bmkle160g",
+              "timeout": 60000
+            },
+            "at": "2026-09-17T08:38:08.152Z",
+            "call_id": "toolu_01BdTw4k2o3WEFExSBQW1FUF",
+            "name": "TaskOutput",
+            "result_at": "2026-09-17T08:39:08.175Z",
+            "result_error": false
+          },
+          {
+            "arguments": {
+              "block": true,
+              "task_id": "bmkle160g",
+              "timeout": 60000
+            },
+            "at": "2026-09-17T08:39:10.410Z",
+            "call_id": "toolu_01C8ykeBShSvn9jmCpTpRefu",
+            "name": "TaskOutput",
+            "result_at": "2026-09-17T08:40:10.458Z",
+            "result_error": false
+          },
+          {
+            "arguments": {
+              "block": true,
+              "task_id": "bmkle160g",
+              "timeout": 60000
+            },
+            "at": "2026-09-17T08:40:12.623Z",
+            "call_id": "toolu_01F4B8ZeXv8YeDzaH4uk9GAS",
+            "name": "TaskOutput",
+            "result_at": "2026-09-17T08:40:47.892Z",
+            "result_error": false
+          }
+        ],
+        "taskoutput_input_schemas": [
+          {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "additionalProperties": false,
+            "properties": {
+              "block": {
+                "default": true,
+                "description": "Whether to wait for completion",
+                "type": "boolean"
+              },
+              "task_id": {
+                "description": "The task ID to get output from",
+                "type": "string"
+              },
+              "timeout": {
+                "default": 30000,
+                "description": "Max wait time in ms",
+                "maximum": 600000,
+                "minimum": 0,
+                "type": "number"
+              }
+            },
+            "required": [
+              "task_id",
+              "block",
+              "timeout"
+            ],
+            "type": "object"
+          }
+        ],
+        "comparison_limit": "Functional timing and observed usage are retained; this arm is not an exact realization of the prescribed initial-yield protocol.",
+        "powershell_definition": {
+          "sha256": "4e4c1746aff835bb05e5ed14cda72d21ee6fbda4147aa99b3135718614da117e",
+          "offset": 213694159,
+          "text": "tn=f(()=>Je({command:o().refine(CA,Qs).describe(\"The PowerShell command to execute\"),timeout:mP(E().optional()).describe(`Optional timeout in milliseconds (max ${Be()})`),description:o().optional().describe(\"Clear, concise description of what this command does in active voice.\"),run_in_background:$S(O().optional()).describe(\"Set to true to run this command in the background.\"),dangerouslyDisableSandbox:$S(O().optional()).describe(\"Set this to true to dangerously override sandbox mode and run commands without sandboxing.\"),...rQ()&&PKe()})),Js=f(()=>uc()?tn().omit({run_in_background:!0}):tn())",
+          "authority": "Read-only installed executable inspection; PowerShell schema was not recorded in native deferred-tool attachments."
+        }
+      },
+      "execution_revision": {
+        "revision": "monitor-completion-01",
+        "at": 1789631267.331781,
+        "reason": "Exact ready -> completed Monitor notification ancestry; retained B1 failure is not retried or reclassified.",
+        "binding": {
+          "manifest_sha256": "54af62cf7881cafacb632f270471a63ccef7cd786c0c26a3b7d9eba61df505e3",
+          "native_sha256_before_revision": "fcbbf94629d3f5cf653804de08ded8c2f03084946f7ea4265f3ad7729650bc49",
+          "prompt_sha256": "1c317158294948f5b661db4d48614624336292fd22f6c88bedc8b0a5d4e29725",
+          "run": "pair-03-a",
+          "thread": "eb9b9f2e-d5ab-4e7f-8311-18e483c9776a"
+        },
+        "implementation_directory": "implementation-revisions/monitor-completion-01",
+        "implementation_hashes": {
+          "docs/v0.13.0/probe.shared-wait-service.py": "322c164b1edd0481bb7543c3228ef027e3700619f699a9d9099244de3eeef5be",
+          "tools/wait_evidence/__init__.py": "b57410531cb9e266716756e51a4e33dc12bfc5261b4e21866d63a4af6ecb9356",
+          "tools/wait_evidence/claude_monitor.py": "46d94eb674f39883b4c54a2128907bd0364039f4fb6324eb0c69849f3f8e05da",
+          "tools/wait_evidence/claude_observer.py": "5de8db382fa0978b09a41049c59d863ad6c81f23dd5118caa1f4db9e2ed030c8",
+          "tools/wait_evidence/codex_proxy.py": "66587525d50b8b69fbbe287f4970f367c89f90b9d76ad12fc09d0aa79a49ad60",
+          "tools/wait_evidence/collector.py": "d39b365a1da3e4530baa5d8d6c083c6c2bfb41872b4e2801cf4fd005b2b07051",
+          "tools/wait_evidence/models.py": "fb42281b46e86035d7d334149f17414e0eeec5494d243571cae5c2771ac6450f",
+          "tools/wait_evidence/probe_cli.py": "b241fe0d397504a1ca108190a58c5ab2f147678b198ce5c5b404791ee8586c28",
+          "tools/wait_evidence/probe_driver.py": "ed04d4c0e03822f89edb98aed4fa44dfbd93351dfdfef29469f399a3b7ea9295",
+          "tools/wait_evidence/probe_files.py": "4c84aa8be6454dc8aa4120ab0d1250151a0fc3f5dd546608dfd3cbeb44e1aab7",
+          "tools/wait_evidence/probe_observer.py": "42d6eed4c7cf4cc7876d44fe6ee2688a362f09f3a94db640c54ce7714e35d154",
+          "tools/wait_evidence/prototype.py": "0391b8ae9838dffbf7103dd00dd392049140744d7b29f8eb29a77102c026a355",
+          "tools/wait_evidence/reports.py": "5ecb12d653f8d95fe4d4bcc2923d2c40712c57a36fa8d282e4c764ee255d197e",
+          "tools/wait_evidence/telemetry.py": "7051cc01db14c7a83a7451e64bd2bec4e9990b5fc8c42ddbf0af496c83f6ddd2",
+          "tools/wait_evidence/telemetry_claude.py": "b49cb8aa7e581caf0b607414a7d76fbafe64c7c8649c20bcb6bfb4483959e1f6"
+        },
+        "validation_log": "a.shared-wait-service/ghog-claude-continuation-green.log",
+        "validation_log_sha256": "4d6d9429b582533b23683f2cde4b5f1805f8c34fb98397b594688bb30eac0b3b",
+        "continued_after_run": "pair-01-b",
+        "continued_after_audit_sha256": "484116fb1d7739c9df3a0d34ae47a5049fc0a9873fe2caf01e75364c46277b3f"
+      }
+    },
+    {
+      "tab": "claude-pair-03-b",
+      "thread": "52d8bc32-e3af-4db8-b7b1-a8a22bdaff87",
+      "arm": "B-prototype",
+      "mode": "trial",
+      "pair_id": "pair-03",
+      "context_tokens": 103784,
+      "status": "observation-finished",
+      "source_id": "f5c25865-a938-4f0a-8913-e627990d8a4d",
+      "wait_id": "456ec300-997a-46e9-ad1f-a659e1c625e1",
+      "event_id": "6e410fef-1cf7-43ca-ab18-726b68f6d4d9",
+      "prepared_at": 1789626334.3606405,
+      "configuration_hash": "f8a6d8ec528b4e114d7bfb24972849d791b541171fd2c7372ccb01b7d5307a49",
+      "prompt_sha256": "06a399530b8acbd0473a042f95ed2ea6263dcd3dd405100ccfadd0d7f48585bd",
+      "streams": [
+        {
+          "name": "52d8bc32-e3af-4db8-b7b1-a8a22bdaff87.jsonl",
+          "role": "telemetry",
+          "offset": 628878,
+          "anchor_sha256": "25685b8383cbe026b2f62a98d69fc553fe9c0becfca39d86313ff3b9eb36dec1",
+          "file_id": [
+            1597673305946669667,
+            10696049115698586
+          ]
+        },
+        {
+          "name": "probe-events.jsonl",
+          "role": "probe",
+          "offset": 224,
+          "anchor_sha256": "bd6f16d398ae78803e99a57212f24713ad299b33c828f12bb2fcc1e6b64ca1e2",
+          "file_id": [
+            1597673305946669667,
+            3659174698586887
+          ]
+        }
+      ],
+      "observer_readiness": {
+        "at": "2026-09-17T08:46:52.6235316Z",
+        "status": "ready-verified",
+        "thread": "52d8bc32-e3af-4db8-b7b1-a8a22bdaff87",
+        "pid": 12144
+      },
+      "prompt_observed_at": 1789635434.982,
+      "native_execution_at": 1789635442.367,
+      "normal_at": 1789635490.051,
+      "drain_started": 1789635881.5068707,
+      "observer_status": "passed",
+      "checks": {
+        "duplicate_window": true,
+        "exact_monitor_schema": true,
+        "native_execution": true,
+        "native_normal_end": true,
+        "native_receipt": true,
+        "no_human_nudge": true,
+        "no_invalidation": true,
+        "one_final": true,
+        "single_consumption": true,
+        "source_interval": true,
+        "telemetry_drain": true,
+        "useful_wake": true
+      },
+      "errors": [],
+      "independent_replay": {
+        "exact_prompt_once": true,
+        "no_parser_gaps": true,
+        "frozen_implementation_intact": true,
+        "retained_hashes_verified": true
+      },
+      "source_start": 1789635481.265495,
+      "source_ready": 1789635721.2890723,
+      "native_receipt": 1789635721.549,
+      "quiet_before_source_ready_seconds": 231.23807215690613,
+      "useful_consume_call": 1789635733.195,
+      "wake_latency": 11.905927658081055,
+      "consumed_at": 1789635759.8310523,
+      "duplicate_consumptions": 0,
+      "final_at": 1789635761.487,
+      "finished_at": 1789636001.5533314,
+      "observed_activity": {
+        "whole_benchmark": {
+          "native_counts": {
+            "native_observation": 29,
+            "native_user": 3,
+            "usage_completion": 6,
+            "native_assistant": 12,
+            "tool_call": 5,
+            "tool_result": 5,
+            "native_turn_complete": 2
+          },
+          "response_usage": {
+            "input": 683798,
+            "cached_input": 593862,
+            "output": 1402,
+            "reasoning": 638
+          },
+          "usage_completions": 6,
+          "request_attempt_coverage": "unknown"
+        },
+        "source_interval": {
+          "native_counts": {
+            "tool_result": 1,
+            "native_observation": 2,
+            "usage_completion": 1,
+            "native_assistant": 2,
+            "native_turn_complete": 1
+          },
+          "response_usage": {
+            "input": 115458,
+            "cached_input": 113660,
+            "output": 247,
+            "reasoning": 222
+          },
+          "usage_completions": 1,
+          "request_attempt_coverage": "unknown"
+        },
+        "after_normal_before_ready": {
+          "native_counts": {
+            "native_observation": 1
+          },
+          "response_usage": {
+            "input": 0,
+            "cached_input": 0,
+            "output": 0,
+            "reasoning": 0
+          },
+          "usage_completions": 0,
+          "request_attempt_coverage": "unknown"
+        },
+        "after_final_including_drain": {
+          "native_counts": {
+            "native_observation": 14
+          },
+          "response_usage": {
+            "input": 0,
+            "cached_input": 0,
+            "output": 0,
+            "reasoning": 0
+          },
+          "usage_completions": 0,
+          "request_attempt_coverage": "unknown"
+        }
+      },
+      "foreground_wait_calls": [],
+      "retained_streams": [
+        {
+          "sha256": "c480db242625f4c1550e7373c6941db0e584704754acc8e0ff98458c03a20c21",
+          "bytes": 718464,
+          "offset": 628878
+        },
+        {
+          "sha256": "95b2c1520a0ff014f735d25b3e390c0e83ffab6522848dde35ac5b67dbaec8cb",
+          "bytes": 2929,
+          "offset": 224
+        }
+      ],
+      "independent_audit": {
+        "at": 1789636269.334465,
+        "status": "passed",
+        "checks": {
+          "automatic_useful_turn_binding": true,
+          "complete_duplicate_window": true,
+          "consumption_once_after_ready": true,
+          "exact_execution_call_once": true,
+          "exact_monitor_invocation": true,
+          "exact_native_event_binding": true,
+          "exact_prompt_once": true,
+          "exact_source_binding": true,
+          "exact_useful_call_once": true,
+          "execution_revision_binds_unchanged_manifest": true,
+          "exposed_configuration_unchanged": true,
+          "fixed_240_second_source": true,
+          "frozen_implementation_intact": true,
+          "native_armed_normal_end_once": true,
+          "native_completion_ancestry_recorded": true,
+          "native_completion_notice_unambiguous": true,
+          "native_monitor_success_before_normal_end": true,
+          "no_native_gap_interruption_compaction": true,
+          "no_unknown_user_origin": true,
+          "normal_end_after_registration": true,
+          "observer_functional_checks_passed": true,
+          "observer_ready_before_prompt": true,
+          "one_native_final_after_useful": true,
+          "one_native_ready_notification": true,
+          "original_native_prefix_intact": true,
+          "quiet_before_ready": true,
+          "revised_execution_snapshot_intact": true,
+          "revised_execution_validation_intact": true,
+          "separate_complete_drain": true,
+          "source_not_suppressed": true,
+          "stream_0_complete_lines": true,
+          "stream_0_offset": true,
+          "stream_0_retained_hash": true,
+          "stream_1_complete_lines": true,
+          "stream_1_offset": true,
+          "stream_1_retained_hash": true,
+          "useful_within_60_seconds": true
+        },
+        "durations": {
+          "duplicate_window_seconds": 120.01987075805664,
+          "separate_drain_seconds": 120.04646062850952,
+          "source_seconds": 240.02357721328735,
+          "useful_wake_seconds": 11.905927658081055
+        },
+        "foreground_protocol": "not applicable"
+      },
+      "execution_revision": {
+        "revision": "monitor-completion-01",
+        "at": 1789631267.331781,
+        "reason": "Exact ready -> completed Monitor notification ancestry; retained B1 failure is not retried or reclassified.",
+        "binding": {
+          "manifest_sha256": "8253bbdb566a03c4506627c0b044d6f576123bcd1f92f82cb1708004b10e9778",
+          "native_sha256_before_revision": "cbbdad7d17f1d79a761b6ecf9b08faf4bb4702c6c7d9eb07884f9c07b1c1b51d",
+          "prompt_sha256": "06a399530b8acbd0473a042f95ed2ea6263dcd3dd405100ccfadd0d7f48585bd",
+          "run": "pair-03-b",
+          "thread": "52d8bc32-e3af-4db8-b7b1-a8a22bdaff87"
+        },
+        "implementation_directory": "implementation-revisions/monitor-completion-01",
+        "implementation_hashes": {
+          "docs/v0.13.0/probe.shared-wait-service.py": "322c164b1edd0481bb7543c3228ef027e3700619f699a9d9099244de3eeef5be",
+          "tools/wait_evidence/__init__.py": "b57410531cb9e266716756e51a4e33dc12bfc5261b4e21866d63a4af6ecb9356",
+          "tools/wait_evidence/claude_monitor.py": "46d94eb674f39883b4c54a2128907bd0364039f4fb6324eb0c69849f3f8e05da",
+          "tools/wait_evidence/claude_observer.py": "5de8db382fa0978b09a41049c59d863ad6c81f23dd5118caa1f4db9e2ed030c8",
+          "tools/wait_evidence/codex_proxy.py": "66587525d50b8b69fbbe287f4970f367c89f90b9d76ad12fc09d0aa79a49ad60",
+          "tools/wait_evidence/collector.py": "d39b365a1da3e4530baa5d8d6c083c6c2bfb41872b4e2801cf4fd005b2b07051",
+          "tools/wait_evidence/models.py": "fb42281b46e86035d7d334149f17414e0eeec5494d243571cae5c2771ac6450f",
+          "tools/wait_evidence/probe_cli.py": "b241fe0d397504a1ca108190a58c5ab2f147678b198ce5c5b404791ee8586c28",
+          "tools/wait_evidence/probe_driver.py": "ed04d4c0e03822f89edb98aed4fa44dfbd93351dfdfef29469f399a3b7ea9295",
+          "tools/wait_evidence/probe_files.py": "4c84aa8be6454dc8aa4120ab0d1250151a0fc3f5dd546608dfd3cbeb44e1aab7",
+          "tools/wait_evidence/probe_observer.py": "42d6eed4c7cf4cc7876d44fe6ee2688a362f09f3a94db640c54ce7714e35d154",
+          "tools/wait_evidence/prototype.py": "0391b8ae9838dffbf7103dd00dd392049140744d7b29f8eb29a77102c026a355",
+          "tools/wait_evidence/reports.py": "5ecb12d653f8d95fe4d4bcc2923d2c40712c57a36fa8d282e4c764ee255d197e",
+          "tools/wait_evidence/telemetry.py": "7051cc01db14c7a83a7451e64bd2bec4e9990b5fc8c42ddbf0af496c83f6ddd2",
+          "tools/wait_evidence/telemetry_claude.py": "b49cb8aa7e581caf0b607414a7d76fbafe64c7c8649c20bcb6bfb4483959e1f6"
+        },
+        "validation_log": "a.shared-wait-service/ghog-claude-continuation-green.log",
+        "validation_log_sha256": "4d6d9429b582533b23683f2cde4b5f1805f8c34fb98397b594688bb30eac0b3b",
+        "continued_after_run": "pair-01-b",
+        "continued_after_audit_sha256": "484116fb1d7739c9df3a0d34ae47a5049fc0a9873fe2caf01e75364c46277b3f"
+      },
+      "native_continuation_binding": {
+        "at": 1789635721.551,
+        "evidence": "stream-0#0:699244",
+        "monitor_id": "toolu_01LnX1euAgBeJwNcUjY44nQg",
+        "notice_uuid": "bddedd4c-685e-481d-87c7-083e13550e7f",
+        "ready_uuid": "c863c824-3199-49e3-b5a3-c28513b36f5b",
+        "task_id": "bjnppj68t"
+      }
+    }
+  ],
+  "pairs": [
+    {
+      "pair": 1,
+      "context_difference_fraction": 0.038911548993699856,
+      "complete_observations": true,
+      "foreground_protocol_status": "deviation-initial-yield-unavailable",
+      "request_attempt_coverage": "unknown",
+      "quota_savings": "unproved",
+      "classification": "descriptive observed activity and usage; retain protocol limitations",
+      "functional_results": {
+        "A": "passed",
+        "B": "failed"
+      },
+      "both_functional_passed": false,
+      "execution_revisions": {
+        "A": "original",
+        "B": "original"
+      },
+      "observed_usage_b_minus_a": {
+        "input": -320635,
+        "cached_input": -320399,
+        "output": -621,
+        "reasoning": -496
+      },
+      "source_interval_observed_usage_b_minus_a": {
+        "input": -445993,
+        "cached_input": -444359,
+        "output": -746,
+        "reasoning": -177
+      },
+      "observed_native_activity_b_minus_a": {
+        "whole_benchmark": {
+          "native_assistant": -5,
+          "tool_call": -4,
+          "usage_completion": -3
+        },
+        "source_interval": {
+          "native_assistant": -6,
+          "tool_call": -5,
+          "usage_completion": -4
+        }
+      }
+    },
+    {
+      "pair": 2,
+      "context_difference_fraction": 0.009677803585254005,
+      "complete_observations": true,
+      "foreground_protocol_status": "deviation-initial-yield-unavailable",
+      "request_attempt_coverage": "unknown",
+      "quota_savings": "unproved",
+      "classification": "descriptive observed activity and usage; retain protocol limitations",
+      "functional_results": {
+        "A": "passed",
+        "B": "passed"
+      },
+      "both_functional_passed": true,
+      "execution_revisions": {
+        "A": "monitor-completion-01",
+        "B": "monitor-completion-01"
+      },
+      "observed_usage_b_minus_a": {
+        "input": -444844,
+        "cached_input": -443430,
+        "output": -1014,
+        "reasoning": -576
+      },
+      "source_interval_observed_usage_b_minus_a": {
+        "input": -553440,
+        "cached_input": -548917,
+        "output": -1241,
+        "reasoning": -587
+      },
+      "observed_native_activity_b_minus_a": {
+        "whole_benchmark": {
+          "native_assistant": -6,
+          "tool_call": -4,
+          "usage_completion": -4
+        },
+        "source_interval": {
+          "native_assistant": -7,
+          "tool_call": -6,
+          "usage_completion": -5
+        }
+      }
+    },
+    {
+      "pair": 3,
+      "context_difference_fraction": 0.005833724483442377,
+      "complete_observations": true,
+      "foreground_protocol_status": "deviation-initial-yield-unavailable",
+      "request_attempt_coverage": "unknown",
+      "quota_savings": "unproved",
+      "classification": "descriptive observed activity and usage; retain protocol limitations",
+      "functional_results": {
+        "A": "passed",
+        "B": "passed"
+      },
+      "both_functional_passed": true,
+      "execution_revisions": {
+        "A": "monitor-completion-01",
+        "B": "monitor-completion-01"
+      },
+      "observed_usage_b_minus_a": {
+        "input": -440271,
+        "cached_input": -440090,
+        "output": -1160,
+        "reasoning": -836
+      },
+      "source_interval_observed_usage_b_minus_a": {
+        "input": -561002,
+        "cached_input": -557954,
+        "output": -1390,
+        "reasoning": -738
+      },
+      "observed_native_activity_b_minus_a": {
+        "whole_benchmark": {
+          "native_assistant": -8,
+          "tool_call": -4,
+          "usage_completion": -4
+        },
+        "source_interval": {
+          "native_assistant": -9,
+          "tool_call": -6,
+          "usage_completion": -5
+        }
+      }
+    }
+  ],
+  "limitations": [
+    "Request-attempt coverage is unknown; response usage is not a request count.",
+    "Useful wake is conservatively bounded by the native consume invocation, which independently validates the outcome.",
+    "All three foreground protocol audits retain the unavailable initial yield parameter; each observed four supported blocking 60000 ms TaskOutput waits.",
+    "Provider and compaction configuration remain unknown.",
+    "Six sessions also read rules/chat.md; pair-03-b did not.",
+    "B1 remains failed after automatic wake and suppressed consumption; it has not been retried.",
+    "Any corrected execution revision is additive and preserves original manifests, seeds and failed evidence.",
+    "Functional success and observed usage differences do not prove strict idle or quota savings."
+  ]
+}

@@ -1,0 +1,411 @@
+{
+    "description":  "Selected final Claude series integrity audit and process closure evidence; private native transcripts remain local.",
+    "source_audit":  "a.shared-wait-service/claude-controlled-20260917/final-series-audit.json",
+    "source_audit_sha256":  "763d80812691472d76bf55da827ee721f811f1c798eb889bb00cbb2be7cd4433",
+    "source_closure":  "a.shared-wait-service/claude-controlled-20260917/closure-ready.json",
+    "source_closure_sha256":  "d729db1cc97126e76ea03b5ff456c2e74f988ea77952288f9f327ab0dd8228b7",
+    "final_audit":  {
+                        "at":  1789636319.1938157,
+                        "status":  "passed",
+                        "checks":  {
+                                       "all_series_integrity_checks":  true,
+                                       "all_three_matched_pairs_retained":  true,
+                                       "validated_implementation_intact":  true,
+                                       "source_line_budget_and_eof":  true,
+                                       "full_validation_log_unchanged":  true,
+                                       "retained_failed_pair_and_successful_pairs":  true
+                                   },
+                        "series":  [
+                                       {
+                                           "run":  "baseline",
+                                           "result":  "passed",
+                                           "checks":  {
+                                                          "original_session_identity":  true,
+                                                          "original_native_offset":  true,
+                                                          "immutable_seed_commit_and_hashes":  true,
+                                                          "frozen_configuration":  true,
+                                                          "fixed_bounds":  true,
+                                                          "one_original_thread_claim":  true,
+                                                          "previous_observation_finished_before_execution":  true,
+                                                          "retained_result_classification":  true,
+                                                          "selected_export_matches":  true,
+                                                          "request_accounting_unknown":  true,
+                                                          "unique_thread":  true,
+                                                          "unique_source_id":  true,
+                                                          "unique_wait_id":  true,
+                                                          "unique_event_id":  true,
+                                                          "retained_stream_0_unchanged":  true,
+                                                          "retained_stream_1_unchanged":  true,
+                                                          "live_native_retained_prefix_intact":  true,
+                                                          "no_post_observation_activity_or_invalidation":  true,
+                                                          "all_independent_functional_checks":  true
+                                                      },
+                                           "native_current_sha256":  "a895f6554eed959825cf79311fee87d5bf0ebf9f34550586814a266be01acb26",
+                                           "native_current_bytes":  663573,
+                                           "independent_audit_sha256":  "3ff61c17b24ec78104d9c9cbb856924815e6c87a0beca9fe9e86da6d3497ab60",
+                                           "finished_at":  1789627665.4125261,
+                                           "execution_at":  1789626906.32
+                                       },
+                                       {
+                                           "run":  "pair-01-a",
+                                           "result":  "passed",
+                                           "checks":  {
+                                                          "original_session_identity":  true,
+                                                          "original_native_offset":  true,
+                                                          "immutable_seed_commit_and_hashes":  true,
+                                                          "frozen_configuration":  true,
+                                                          "fixed_bounds":  true,
+                                                          "one_original_thread_claim":  true,
+                                                          "previous_observation_finished_before_execution":  true,
+                                                          "retained_result_classification":  true,
+                                                          "selected_export_matches":  true,
+                                                          "request_accounting_unknown":  true,
+                                                          "unique_thread":  true,
+                                                          "unique_source_id":  true,
+                                                          "unique_wait_id":  true,
+                                                          "unique_event_id":  true,
+                                                          "retained_stream_0_unchanged":  true,
+                                                          "retained_stream_1_unchanged":  true,
+                                                          "live_native_retained_prefix_intact":  true,
+                                                          "no_post_observation_activity_or_invalidation":  true,
+                                                          "all_independent_functional_checks":  true,
+                                                          "foreground_deviation_retained":  true
+                                                      },
+                                           "native_current_sha256":  "ac10c1f351f97ba9326224366b8ff02da572ed6262afa89f329b4dd8caa83169",
+                                           "native_current_bytes":  721328,
+                                           "independent_audit_sha256":  "540ed03cb1465e56989fe48cd7c9b4493345367ef88c0d80c4ac1a645db7b1b7",
+                                           "finished_at":  1789628503.7737534,
+                                           "execution_at":  1789627954.755
+                                       },
+                                       {
+                                           "run":  "pair-01-b",
+                                           "result":  "failed",
+                                           "checks":  {
+                                                          "original_session_identity":  true,
+                                                          "original_native_offset":  true,
+                                                          "immutable_seed_commit_and_hashes":  true,
+                                                          "frozen_configuration":  true,
+                                                          "fixed_bounds":  true,
+                                                          "one_original_thread_claim":  true,
+                                                          "previous_observation_finished_before_execution":  true,
+                                                          "retained_result_classification":  true,
+                                                          "selected_export_matches":  true,
+                                                          "request_accounting_unknown":  true,
+                                                          "unique_thread":  true,
+                                                          "unique_source_id":  true,
+                                                          "unique_wait_id":  true,
+                                                          "unique_event_id":  true,
+                                                          "retained_stream_0_unchanged":  true,
+                                                          "retained_stream_1_unchanged":  true,
+                                                          "live_native_retained_prefix_intact":  true,
+                                                          "no_post_observation_activity_or_invalidation":  true,
+                                                          "failed_B1_assessment_intact":  true,
+                                                          "failed_B1_not_reclassified":  true
+                                                      },
+                                           "native_current_sha256":  "d199d839c8b4f88f90a07be205503ac8cf659f01ccb29c97e3e1b6609ac90f32",
+                                           "native_current_bytes":  720975,
+                                           "independent_audit_sha256":  "484116fb1d7739c9df3a0d34ae47a5049fc0a9873fe2caf01e75364c46277b3f",
+                                           "finished_at":  1789630425.2633855,
+                                           "execution_at":  1789629863.916
+                                       },
+                                       {
+                                           "run":  "pair-02-b",
+                                           "result":  "passed",
+                                           "checks":  {
+                                                          "original_session_identity":  true,
+                                                          "original_native_offset":  true,
+                                                          "immutable_seed_commit_and_hashes":  true,
+                                                          "frozen_configuration":  true,
+                                                          "fixed_bounds":  true,
+                                                          "one_original_thread_claim":  true,
+                                                          "previous_observation_finished_before_execution":  true,
+                                                          "retained_result_classification":  true,
+                                                          "selected_export_matches":  true,
+                                                          "request_accounting_unknown":  true,
+                                                          "unique_thread":  true,
+                                                          "unique_source_id":  true,
+                                                          "unique_wait_id":  true,
+                                                          "unique_event_id":  true,
+                                                          "retained_stream_0_unchanged":  true,
+                                                          "retained_stream_1_unchanged":  true,
+                                                          "live_native_retained_prefix_intact":  true,
+                                                          "no_post_observation_activity_or_invalidation":  true,
+                                                          "all_independent_functional_checks":  true
+                                                      },
+                                           "native_current_sha256":  "00c99efa91cf178235adce514523a6874d33fec39897622a03315ec89238458c",
+                                           "native_current_bytes":  678986,
+                                           "independent_audit_sha256":  "cab2b3f2d73720c7a2a7d2b0e4b8b5e3c6ac7029de0fe2174234ffa63b3d5980",
+                                           "finished_at":  1789632479.5668182,
+                                           "execution_at":  1789631946.166
+                                       },
+                                       {
+                                           "run":  "pair-02-a",
+                                           "result":  "passed",
+                                           "checks":  {
+                                                          "original_session_identity":  true,
+                                                          "original_native_offset":  true,
+                                                          "immutable_seed_commit_and_hashes":  true,
+                                                          "frozen_configuration":  true,
+                                                          "fixed_bounds":  true,
+                                                          "one_original_thread_claim":  true,
+                                                          "previous_observation_finished_before_execution":  true,
+                                                          "retained_result_classification":  true,
+                                                          "selected_export_matches":  true,
+                                                          "request_accounting_unknown":  true,
+                                                          "unique_thread":  true,
+                                                          "unique_source_id":  true,
+                                                          "unique_wait_id":  true,
+                                                          "unique_event_id":  true,
+                                                          "retained_stream_0_unchanged":  true,
+                                                          "retained_stream_1_unchanged":  true,
+                                                          "live_native_retained_prefix_intact":  true,
+                                                          "no_post_observation_activity_or_invalidation":  true,
+                                                          "all_independent_functional_checks":  true,
+                                                          "foreground_deviation_retained":  true
+                                                      },
+                                           "native_current_sha256":  "08be883858213e175329ec11c8bf7f39c20d705d50898c664c4510f065e957dc",
+                                           "native_current_bytes":  716672,
+                                           "independent_audit_sha256":  "28d13c359ec0e9397779035bded13b3434baabb164caf35cc668457376141f51",
+                                           "finished_at":  1789633716.0457213,
+                                           "execution_at":  1789633167.746
+                                       },
+                                       {
+                                           "run":  "pair-03-a",
+                                           "result":  "passed",
+                                           "checks":  {
+                                                          "original_session_identity":  true,
+                                                          "original_native_offset":  true,
+                                                          "immutable_seed_commit_and_hashes":  true,
+                                                          "frozen_configuration":  true,
+                                                          "fixed_bounds":  true,
+                                                          "one_original_thread_claim":  true,
+                                                          "previous_observation_finished_before_execution":  true,
+                                                          "retained_result_classification":  true,
+                                                          "selected_export_matches":  true,
+                                                          "request_accounting_unknown":  true,
+                                                          "unique_thread":  true,
+                                                          "unique_source_id":  true,
+                                                          "unique_wait_id":  true,
+                                                          "unique_event_id":  true,
+                                                          "retained_stream_0_unchanged":  true,
+                                                          "retained_stream_1_unchanged":  true,
+                                                          "live_native_retained_prefix_intact":  true,
+                                                          "no_post_observation_activity_or_invalidation":  true,
+                                                          "all_independent_functional_checks":  true,
+                                                          "foreground_deviation_retained":  true
+                                                      },
+                                           "native_current_sha256":  "2445ec15f83d89c0d38d24e892ac8e8b9b9225ada700679de8fb8f91369a69af",
+                                           "native_current_bytes":  749062,
+                                           "independent_audit_sha256":  "b5d9972d56c64d2d4d29fa899259e5411ae94315b9bb7c55b520284dc80f12bd",
+                                           "finished_at":  1789634725.3348854,
+                                           "execution_at":  1789634185.45
+                                       },
+                                       {
+                                           "run":  "pair-03-b",
+                                           "result":  "passed",
+                                           "checks":  {
+                                                          "original_session_identity":  true,
+                                                          "original_native_offset":  true,
+                                                          "immutable_seed_commit_and_hashes":  true,
+                                                          "frozen_configuration":  true,
+                                                          "fixed_bounds":  true,
+                                                          "one_original_thread_claim":  true,
+                                                          "previous_observation_finished_before_execution":  true,
+                                                          "retained_result_classification":  true,
+                                                          "selected_export_matches":  true,
+                                                          "request_accounting_unknown":  true,
+                                                          "unique_thread":  true,
+                                                          "unique_source_id":  true,
+                                                          "unique_wait_id":  true,
+                                                          "unique_event_id":  true,
+                                                          "retained_stream_0_unchanged":  true,
+                                                          "retained_stream_1_unchanged":  true,
+                                                          "live_native_retained_prefix_intact":  true,
+                                                          "no_post_observation_activity_or_invalidation":  true,
+                                                          "all_independent_functional_checks":  true
+                                                      },
+                                           "native_current_sha256":  "c480db242625f4c1550e7373c6941db0e584704754acc8e0ff98458c03a20c21",
+                                           "native_current_bytes":  718464,
+                                           "independent_audit_sha256":  "1770953d2a511e0a6e7772c56ed53baa9b7a2aa2e38a95c6b451b95274fbdb0f",
+                                           "finished_at":  1789636001.5533314,
+                                           "execution_at":  1789635442.367
+                                       }
+                                   ],
+                        "implementation":  [
+                                               {
+                                                   "path":  "docs/v0.13.0/probe.shared-wait-service.py",
+                                                   "sha256":  "322c164b1edd0481bb7543c3228ef027e3700619f699a9d9099244de3eeef5be",
+                                                   "unchanged":  true,
+                                                   "lines":  13,
+                                                   "eof":  true
+                                               },
+                                               {
+                                                   "path":  "tools/wait_evidence/__init__.py",
+                                                   "sha256":  "b57410531cb9e266716756e51a4e33dc12bfc5261b4e21866d63a4af6ecb9356",
+                                                   "unchanged":  true,
+                                                   "lines":  14,
+                                                   "eof":  true
+                                               },
+                                               {
+                                                   "path":  "tools/wait_evidence/claude_monitor.py",
+                                                   "sha256":  "46d94eb674f39883b4c54a2128907bd0364039f4fb6324eb0c69849f3f8e05da",
+                                                   "unchanged":  true,
+                                                   "lines":  173,
+                                                   "eof":  true
+                                               },
+                                               {
+                                                   "path":  "tools/wait_evidence/claude_observer.py",
+                                                   "sha256":  "5de8db382fa0978b09a41049c59d863ad6c81f23dd5118caa1f4db9e2ed030c8",
+                                                   "unchanged":  true,
+                                                   "lines":  388,
+                                                   "eof":  true
+                                               },
+                                               {
+                                                   "path":  "tools/wait_evidence/codex_proxy.py",
+                                                   "sha256":  "66587525d50b8b69fbbe287f4970f367c89f90b9d76ad12fc09d0aa79a49ad60",
+                                                   "unchanged":  true,
+                                                   "lines":  138,
+                                                   "eof":  true
+                                               },
+                                               {
+                                                   "path":  "tools/wait_evidence/collector.py",
+                                                   "sha256":  "d39b365a1da3e4530baa5d8d6c083c6c2bfb41872b4e2801cf4fd005b2b07051",
+                                                   "unchanged":  true,
+                                                   "lines":  548,
+                                                   "eof":  true
+                                               },
+                                               {
+                                                   "path":  "tools/wait_evidence/models.py",
+                                                   "sha256":  "fb42281b46e86035d7d334149f17414e0eeec5494d243571cae5c2771ac6450f",
+                                                   "unchanged":  true,
+                                                   "lines":  321,
+                                                   "eof":  true
+                                               },
+                                               {
+                                                   "path":  "tools/wait_evidence/probe_cli.py",
+                                                   "sha256":  "b241fe0d397504a1ca108190a58c5ab2f147678b198ce5c5b404791ee8586c28",
+                                                   "unchanged":  true,
+                                                   "lines":  141,
+                                                   "eof":  true
+                                               },
+                                               {
+                                                   "path":  "tools/wait_evidence/probe_driver.py",
+                                                   "sha256":  "ed04d4c0e03822f89edb98aed4fa44dfbd93351dfdfef29469f399a3b7ea9295",
+                                                   "unchanged":  true,
+                                                   "lines":  233,
+                                                   "eof":  true
+                                               },
+                                               {
+                                                   "path":  "tools/wait_evidence/probe_files.py",
+                                                   "sha256":  "4c84aa8be6454dc8aa4120ab0d1250151a0fc3f5dd546608dfd3cbeb44e1aab7",
+                                                   "unchanged":  true,
+                                                   "lines":  30,
+                                                   "eof":  true
+                                               },
+                                               {
+                                                   "path":  "tools/wait_evidence/probe_observer.py",
+                                                   "sha256":  "42d6eed4c7cf4cc7876d44fe6ee2688a362f09f3a94db640c54ce7714e35d154",
+                                                   "unchanged":  true,
+                                                   "lines":  200,
+                                                   "eof":  true
+                                               },
+                                               {
+                                                   "path":  "tools/wait_evidence/prototype.py",
+                                                   "sha256":  "0391b8ae9838dffbf7103dd00dd392049140744d7b29f8eb29a77102c026a355",
+                                                   "unchanged":  true,
+                                                   "lines":  248,
+                                                   "eof":  true
+                                               },
+                                               {
+                                                   "path":  "tools/wait_evidence/reports.py",
+                                                   "sha256":  "5ecb12d653f8d95fe4d4bcc2923d2c40712c57a36fa8d282e4c764ee255d197e",
+                                                   "unchanged":  true,
+                                                   "lines":  183,
+                                                   "eof":  true
+                                               },
+                                               {
+                                                   "path":  "tools/wait_evidence/telemetry.py",
+                                                   "sha256":  "7051cc01db14c7a83a7451e64bd2bec4e9990b5fc8c42ddbf0af496c83f6ddd2",
+                                                   "unchanged":  true,
+                                                   "lines":  347,
+                                                   "eof":  true
+                                               },
+                                               {
+                                                   "path":  "tools/wait_evidence/telemetry_claude.py",
+                                                   "sha256":  "b49cb8aa7e581caf0b607414a7d76fbafe64c7c8649c20bcb6bfb4483959e1f6",
+                                                   "unchanged":  true,
+                                                   "lines":  179,
+                                                   "eof":  true
+                                               }
+                                           ],
+                        "validation_log":  "a.shared-wait-service/ghog-claude-continuation-green.log",
+                        "validation_log_sha256":  "4d6d9429b582533b23683f2cde4b5f1805f8c34fb98397b594688bb30eac0b3b",
+                        "accounting":  "unknown; no strict-idle, quota or billing-savings claim",
+                        "meaning":  "Evidence collection and integrity are complete; B1 remains a failed functional trial and A arms retain their protocol deviation."
+                    },
+    "closure":  {
+                    "at":  "2026-09-17T09:12:14.7151378Z",
+                    "status":  "all-observations-retained-and-processes-finished",
+                    "final_audit_sha256":  "763d80812691472d76bf55da827ee721f811f1c798eb889bb00cbb2be7cd4433",
+                    "sessions":  [
+                                     {
+                                         "run":  "baseline",
+                                         "thread":  "bb916b36-b9ff-4f2b-aef8-93a894811cc6",
+                                         "original_pid":  43488,
+                                         "original_session_alive":  true,
+                                         "observer_exited":  true,
+                                         "native_final_hash_verified":  true
+                                     },
+                                     {
+                                         "run":  "pair-01-a",
+                                         "thread":  "7a7346da-4e8c-4d99-91ee-1c76fbd51478",
+                                         "original_pid":  36092,
+                                         "original_session_alive":  true,
+                                         "observer_exited":  true,
+                                         "native_final_hash_verified":  true
+                                     },
+                                     {
+                                         "run":  "pair-01-b",
+                                         "thread":  "73ea435e-a5b4-4375-a14b-57c8ee3d9a2f",
+                                         "original_pid":  44112,
+                                         "original_session_alive":  true,
+                                         "observer_exited":  true,
+                                         "native_final_hash_verified":  true
+                                     },
+                                     {
+                                         "run":  "pair-02-b",
+                                         "thread":  "fa51e1c2-13e7-4634-a748-bea78b2a519e",
+                                         "original_pid":  40560,
+                                         "original_session_alive":  true,
+                                         "observer_exited":  true,
+                                         "native_final_hash_verified":  true
+                                     },
+                                     {
+                                         "run":  "pair-02-a",
+                                         "thread":  "52f4b8f8-c81a-40c2-b062-adca57d442b9",
+                                         "original_pid":  13192,
+                                         "original_session_alive":  true,
+                                         "observer_exited":  true,
+                                         "native_final_hash_verified":  true
+                                     },
+                                     {
+                                         "run":  "pair-03-a",
+                                         "thread":  "eb9b9f2e-d5ab-4e7f-8311-18e483c9776a",
+                                         "original_pid":  33188,
+                                         "original_session_alive":  true,
+                                         "observer_exited":  true,
+                                         "native_final_hash_verified":  true
+                                     },
+                                     {
+                                         "run":  "pair-03-b",
+                                         "thread":  "52d8bc32-e3af-4db8-b7b1-a8a22bdaff87",
+                                         "original_pid":  6916,
+                                         "original_session_alive":  true,
+                                         "observer_exited":  true,
+                                         "native_final_hash_verified":  true
+                                     }
+                                 ],
+                    "all_seven_tabs_may_close":  true,
+                    "automatic_closure_performed":  false
+                }
+}

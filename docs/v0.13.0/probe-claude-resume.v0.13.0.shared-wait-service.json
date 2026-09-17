@@ -1,0 +1,269 @@
+{
+    "classification":  "read-only resume and adapter replay; no timed benchmark execution",
+    "checked_at":  "2026-09-17T05:16:19.368725+00:00",
+    "binding_checked_at":  "2026-09-17T05:17:22.0906337Z",
+    "seed_commit":  "3d4b5a4643d1fba65434877d965d2c051b65e1a3",
+    "seed_hashes":  {
+                        "docs/v0.13.0/draft.v0.13.0.no_polling.md":  "239b4aeb946909a3e6f22813cb5962dcbcdc83d7a16d775ea028d188792bf23a",
+                        "docs/v0.13.0/draft.v0.13.0.shared-wait-service.md":  "fbf6f41c9fa1bb6203739519104bcede98030cd596ae39c061a466947df84f48"
+                    },
+    "original_sessions_preserved":  true,
+    "original_transcripts_unchanged":  true,
+    "process_binding_count":  7,
+    "sessions":  [
+                     {
+                         "tab":  "claude-baseline",
+                         "thread":  "bb916b36-b9ff-4f2b-aef8-93a894811cc6",
+                         "native_sha256":  "4317c394b13beaf3e2fcc6e434076beeed2dd06baada9d7b1d61f566a2e99ea8",
+                         "native_snapshot_bytes":  600721,
+                         "context_tokens":  101889,
+                         "normal_ready_at":  "2026-09-16T18:03:38.446Z",
+                         "errors":  [
+
+                                    ],
+                         "extra_reads":  [
+                                             "rules/run_commands.md",
+                                             "rules/chat.md"
+                                         ]
+                     },
+                     {
+                         "tab":  "claude-pair-01-a",
+                         "thread":  "7a7346da-4e8c-4d99-91ee-1c76fbd51478",
+                         "native_sha256":  "f9b7dae4d266e58ee5bd378c60ea3e29088a422b5089936aea2a2a720202e00c",
+                         "native_snapshot_bytes":  597739,
+                         "context_tokens":  100378,
+                         "normal_ready_at":  "2026-09-16T18:03:18.526Z",
+                         "errors":  [
+
+                                    ],
+                         "extra_reads":  [
+                                             "rules/run_commands.md",
+                                             "rules/chat.md"
+                                         ]
+                     },
+                     {
+                         "tab":  "claude-pair-01-b",
+                         "thread":  "73ea435e-a5b4-4375-a14b-57c8ee3d9a2f",
+                         "native_sha256":  "1051c06fd76968bd02c97be4d7ea6cb5d45ed35f9ece9c821d7397c7a9953e98",
+                         "native_snapshot_bytes":  635335,
+                         "context_tokens":  104442,
+                         "normal_ready_at":  "2026-09-16T18:04:55.365Z",
+                         "errors":  [
+
+                                    ],
+                         "extra_reads":  [
+                                             "rules/run_commands.md",
+                                             "rules/chat.md"
+                                         ]
+                     },
+                     {
+                         "tab":  "claude-pair-02-b",
+                         "thread":  "fa51e1c2-13e7-4634-a748-bea78b2a519e",
+                         "native_sha256":  "642b3c60bdfa2e119eaec1fbbf0396901864176b32760b368db1c8186153c552",
+                         "native_snapshot_bytes":  587266,
+                         "context_tokens":  99771,
+                         "normal_ready_at":  "2026-09-16T18:02:56.152Z",
+                         "errors":  [
+
+                                    ],
+                         "extra_reads":  [
+                                             "rules/run_commands.md",
+                                             "rules/chat.md"
+                                         ]
+                     },
+                     {
+                         "tab":  "claude-pair-02-a",
+                         "thread":  "52f4b8f8-c81a-40c2-b062-adca57d442b9",
+                         "native_sha256":  "0fb2eca55c6aecc0ed2ca5bfc8e079082d86ffe145b14faa935d87991e79777d",
+                         "native_snapshot_bytes":  601758,
+                         "context_tokens":  100746,
+                         "normal_ready_at":  "2026-09-16T18:03:28.735Z",
+                         "errors":  [
+
+                                    ],
+                         "extra_reads":  [
+                                             "rules/run_commands.md",
+                                             "rules/chat.md"
+                                         ]
+                     },
+                     {
+                         "tab":  "claude-pair-03-a",
+                         "thread":  "eb9b9f2e-d5ab-4e7f-8311-18e483c9776a",
+                         "native_sha256":  "fcbbf94629d3f5cf653804de08ded8c2f03084946f7ea4265f3ad7729650bc49",
+                         "native_snapshot_bytes":  636945,
+                         "context_tokens":  104393,
+                         "normal_ready_at":  "2026-09-16T18:04:20.710Z",
+                         "errors":  [
+
+                                    ],
+                         "extra_reads":  [
+                                             "rules/run_commands.md",
+                                             "rules/chat.md"
+                                         ]
+                     },
+                     {
+                         "tab":  "claude-pair-03-b",
+                         "thread":  "52d8bc32-e3af-4db8-b7b1-a8a22bdaff87",
+                         "native_sha256":  "cbbdad7d17f1d79a761b6ecf9b08faf4bb4702c6c7d9eb07884f9c07b1c1b51d",
+                         "native_snapshot_bytes":  628878,
+                         "context_tokens":  103784,
+                         "normal_ready_at":  "2026-09-16T18:04:17.474Z",
+                         "errors":  [
+
+                                    ],
+                         "extra_reads":  [
+                                             "rules/run_commands.md"
+                                         ]
+                     }
+                 ],
+    "paired_context_differences_percent":  [
+                                               3.891154899,
+                                               0.9677803585,
+                                               0.5833724483
+                                           ],
+    "adapter_replay":  [
+                           {
+                               "name":  "baseline",
+                               "counts":  {
+                                              "native_observation":  43,
+                                              "native_user":  1,
+                                              "usage_completion":  3,
+                                              "native_assistant":  21,
+                                              "tool_call":  19,
+                                              "tool_result":  19,
+                                              "native_turn_complete":  1
+                                          },
+                               "gap_count":  0
+                           },
+                           {
+                               "name":  "pair-01-a",
+                               "counts":  {
+                                              "native_observation":  71,
+                                              "native_user":  1,
+                                              "usage_completion":  7,
+                                              "native_assistant":  22,
+                                              "tool_call":  19,
+                                              "tool_result":  19,
+                                              "native_turn_complete":  1
+                                          },
+                               "gap_count":  0
+                           },
+                           {
+                               "name":  "pair-01-b",
+                               "counts":  {
+                                              "native_observation":  104,
+                                              "native_user":  1,
+                                              "usage_completion":  19,
+                                              "native_assistant":  25,
+                                              "tool_call":  19,
+                                              "tool_result":  19,
+                                              "native_turn_complete":  1
+                                          },
+                               "gap_count":  0
+                           },
+                           {
+                               "name":  "pair-02-b",
+                               "counts":  {
+                                              "native_observation":  41,
+                                              "native_user":  1,
+                                              "usage_completion":  3,
+                                              "native_assistant":  21,
+                                              "tool_call":  19,
+                                              "tool_result":  19,
+                                              "native_turn_complete":  1
+                                          },
+                               "gap_count":  0
+                           },
+                           {
+                               "name":  "pair-02-a",
+                               "counts":  {
+                                              "native_observation":  71,
+                                              "native_user":  1,
+                                              "usage_completion":  7,
+                                              "native_assistant":  23,
+                                              "tool_call":  19,
+                                              "tool_result":  19,
+                                              "native_turn_complete":  1
+                                          },
+                               "gap_count":  0
+                           },
+                           {
+                               "name":  "pair-03-a",
+                               "counts":  {
+                                              "native_observation":  107,
+                                              "native_user":  1,
+                                              "usage_completion":  19,
+                                              "native_assistant":  25,
+                                              "tool_call":  19,
+                                              "tool_result":  19,
+                                              "native_turn_complete":  1
+                                          },
+                               "gap_count":  0
+                           },
+                           {
+                               "name":  "pair-03-b",
+                               "counts":  {
+                                              "native_observation":  103,
+                                              "native_user":  1,
+                                              "usage_completion":  19,
+                                              "native_assistant":  24,
+                                              "tool_call":  18,
+                                              "tool_result":  18,
+                                              "native_turn_complete":  1
+                                          },
+                               "gap_count":  0
+                           },
+                           {
+                               "name":  "unseeded-smoke",
+                               "counts":  {
+                                              "native_observation":  122,
+                                              "native_user":  7,
+                                              "usage_completion":  29,
+                                              "native_assistant":  91,
+                                              "tool_call":  58,
+                                              "tool_result":  58,
+                                              "native_turn_complete":  6
+                                          },
+                               "gap_count":  0
+                           }
+                       ],
+    "request_attempt_coverage":  "unknown",
+    "strict_idle_supported":  false,
+    "quota_savings":  "unproved",
+    "limitations":  [
+                        "Pair-03-b did not read rules/chat.md; the other six sessions did.",
+                        "Provider and compaction configuration remain unknown."
+                    ],
+    "before_preparation_check": {
+        "at": "2026-09-17T06:18:32Z",
+        "original_processes_and_transcripts_unchanged": true,
+        "evidence": "a.shared-wait-service/claude-before-prepare-20260917-061832.json"
+    },
+    "integration_validation": {
+        "completed_at": "2026-09-17T06:14:28Z",
+        "groundhog_state": "done",
+        "exit_code": 0,
+        "passed_tests": 3188,
+        "configured_coverage_percent": 100,
+        "failures": 0,
+        "warnings": 0,
+        "xfails": 0,
+        "outliers": "skipped",
+        "excluded": "skipped",
+        "evidence": "a.shared-wait-service/ghog-claude-integration-final.log"
+    },
+    "windows_launcher_preflight": {
+        "status": "passed",
+        "measured_session_input": false,
+        "synthetic_gate": true,
+        "source_seconds": 1,
+        "monitor_stdout_lines": 1,
+        "evidence": "a.shared-wait-service/claude-launcher-preflight-d74d1bd8167d4837bd26e7ac4d373268/result.json",
+        "retained_failed_preflights": [
+            "a.shared-wait-service/claude-launcher-preflight-6a32834d9e704d88909a686920684c02/result.json",
+            "a.shared-wait-service/claude-launcher-preflight-0d9850cf02ac4dfa9c0547db9f6f8528/result.json"
+        ]
+    },
+    "live_series_status": "All seven original sessions completed sequential observations and retained independent audits. Baseline/A1/B2/A2/A3/B3 passed 25/26/37/29/29/37 checks. B1 remains failed after automatic wake and rejected consumption, without retry. All A arms retain the unavailable initial-yield deviation. Corrected monitor-completion-01 passed 3198 full tests at 100% configured coverage. B3 useful wake was 11.905928 seconds with full duplicate/drain windows. Final series integrity audit passed 2026-09-17T09:11:59.194Z; closure at 09:12:14.715Z verified all original processes, final hashes and exited observers. All seven tabs may close. Step 2 code and live-evidence gates complete; request accounting unknown and quota savings unproved.",
+    "controlled_export": "probe-claude-controlled.v0.13.0.shared-wait-service.json"
+}

@@ -1,0 +1,63 @@
+{
+    "classification":  "actual-session-capability; not a successful Monitor invocation or wake",
+    "thread":  "b929a07c-afd9-482a-a373-4375a3a93625",
+    "build":  "2.1.273",
+    "model":  "claude-opus-5",
+    "effort":  "xhigh",
+    "permission_mode":  "auto",
+    "provider":  "unknown",
+    "capability_answer_at":  "2026-09-16T15:03:27.578Z",
+    "native_sha256":  "0dde975ab025d8fdf00ea199205957cbc4de0632e472c1412d0713971613625a",
+    "monitor_input_schema":  {
+                                 "$schema":  "https://json-schema.org/draft/2020-12/schema",
+                                 "type":  "object",
+                                 "properties":  {
+                                                    "description":  {
+                                                                        "description":  "Short human-readable description of what you are monitoring (shown in notifications).",
+                                                                        "type":  "string"
+                                                                    },
+                                                    "timeout_ms":  {
+                                                                       "description":  "Kill the monitor after this deadline. Default 300000ms. Deadlines above 1800000ms are capped to 1800000ms. You are notified at expiry and can re-arm.",
+                                                                       "default":  300000,
+                                                                       "type":  "number",
+                                                                       "minimum":  1000,
+                                                                       "maximum":  3600000
+                                                                   },
+                                                    "command":  {
+                                                                    "description":  "Shell command or script. Each stdout line is an event; exit ends the watch.",
+                                                                    "type":  "string"
+                                                                },
+                                                    "ws":  {
+                                                               "description":  "WebSocket to open. Each text frame is an event; binary frames are reported as a placeholder line. Socket close ends the watch. Cannot be combined with command.",
+                                                               "type":  "object",
+                                                               "properties":  {
+                                                                                  "url":  {
+                                                                                              "type":  "string"
+                                                                                          },
+                                                                                  "protocols":  {
+                                                                                                    "type":  "array",
+                                                                                                    "items":  {
+                                                                                                                  "type":  "string",
+                                                                                                                  "pattern":  "^[!#$%\u0026\u0027*+.^_`|~0-9A-Za-z-]+$"
+                                                                                                              }
+                                                                                                }
+                                                                              },
+                                                               "required":  [
+                                                                                "url"
+                                                                            ],
+                                                               "additionalProperties":  false
+                                                           }
+                                                },
+                                 "required":  [
+                                                  "description",
+                                                  "timeout_ms"
+                                              ],
+                                 "additionalProperties":  false
+                             },
+    "runtime_timeout_cap_ms":  1800000,
+    "runtime_timeout_evidence":  "Actual loaded Monitor definition description",
+    "persistent_parameter":  false,
+    "request_attempt_coverage":  "unknown",
+    "full_collector_adapter":  "Existing Claude native adapter is pinned to 2.1.272; this 2.1.273 smoke uses separate selected native evidence.",
+    "next_stage":  "Prepared unseeded 600-second native-normal-end gated smoke; human bootstrap pending"
+}

@@ -1,0 +1,246 @@
+{
+  "checked_at": "2026-09-16T18:10:01.600462+00:00",
+  "launcher_run": "claude-tabs-20260916-180128-11adaf42",
+  "seed_commit": "3d4b5a4643d1fba65434877d965d2c051b65e1a3",
+  "seed_hashes": {
+    "docs/v0.13.0/draft.v0.13.0.no_polling.md": "239b4aeb946909a3e6f22813cb5962dcbcdc83d7a16d775ea028d188792bf23a",
+    "docs/v0.13.0/draft.v0.13.0.shared-wait-service.md": "fbf6f41c9fa1bb6203739519104bcede98030cd596ae39c061a466947df84f48"
+  },
+  "prompt_sha256": "fc06e13c5ccfcdb3c56594af5656c63764b6ae05270567ae89cd63e43a8d55a5",
+  "tabs": [
+    {
+      "name": "baseline",
+      "thread": "bb916b36-b9ff-4f2b-aef8-93a894811cc6",
+      "native_sha256": "4317c394b13beaf3e2fcc6e434076beeed2dd06baada9d7b1d61f566a2e99ea8",
+      "native_snapshot_bytes": 600721,
+      "complete_native_chunks": 17,
+      "native_read_sequence_matches": true,
+      "ready_at": "2026-09-16T18:03:38.390Z",
+      "ready_uuid": "27b6fa9c-7ce0-4960-9f08-5b1ef10886fb",
+      "normal_end_at": "2026-09-16T18:03:38.446Z",
+      "normal_end_intermediate_nodes": [],
+      "input_context_tokens": 101889,
+      "context_basis": "READY response input + cache-read input + cache-creation input",
+      "build": "2.1.273",
+      "model": "claude-opus-5",
+      "effort": "xhigh",
+      "permission_mode": "auto",
+      "provider": "unknown",
+      "request_attempt_coverage": "unknown",
+      "preparation_extra_reads": [
+        "rules/run_commands.md",
+        "rules/chat.md"
+      ],
+      "post_ready_native_bookkeeping": {
+        "away_summary": 1
+      },
+      "errors": []
+    },
+    {
+      "name": "pair-01-a",
+      "thread": "7a7346da-4e8c-4d99-91ee-1c76fbd51478",
+      "native_sha256": "f9b7dae4d266e58ee5bd378c60ea3e29088a422b5089936aea2a2a720202e00c",
+      "native_snapshot_bytes": 597739,
+      "complete_native_chunks": 17,
+      "native_read_sequence_matches": true,
+      "ready_at": "2026-09-16T18:03:18.497Z",
+      "ready_uuid": "d734b046-4238-436a-8326-85a4dd337616",
+      "normal_end_at": "2026-09-16T18:03:18.526Z",
+      "normal_end_intermediate_nodes": [],
+      "input_context_tokens": 100378,
+      "context_basis": "READY response input + cache-read input + cache-creation input",
+      "build": "2.1.273",
+      "model": "claude-opus-5",
+      "effort": "xhigh",
+      "permission_mode": "auto",
+      "provider": "unknown",
+      "request_attempt_coverage": "unknown",
+      "preparation_extra_reads": [
+        "rules/run_commands.md",
+        "rules/chat.md"
+      ],
+      "post_ready_native_bookkeeping": {
+        "away_summary": 1
+      },
+      "errors": []
+    },
+    {
+      "name": "pair-01-b",
+      "thread": "73ea435e-a5b4-4375-a14b-57c8ee3d9a2f",
+      "native_sha256": "1051c06fd76968bd02c97be4d7ea6cb5d45ed35f9ece9c821d7397c7a9953e98",
+      "native_snapshot_bytes": 635335,
+      "complete_native_chunks": 17,
+      "native_read_sequence_matches": true,
+      "ready_at": "2026-09-16T18:04:55.298Z",
+      "ready_uuid": "71debc73-5262-449e-b323-96ebfc2452fe",
+      "normal_end_at": "2026-09-16T18:04:55.365Z",
+      "normal_end_intermediate_nodes": [],
+      "input_context_tokens": 104442,
+      "context_basis": "READY response input + cache-read input + cache-creation input",
+      "build": "2.1.273",
+      "model": "claude-opus-5",
+      "effort": "xhigh",
+      "permission_mode": "auto",
+      "provider": "unknown",
+      "request_attempt_coverage": "unknown",
+      "preparation_extra_reads": [
+        "rules/run_commands.md",
+        "rules/chat.md"
+      ],
+      "post_ready_native_bookkeeping": {
+        "away_summary": 1
+      },
+      "errors": []
+    },
+    {
+      "name": "pair-02-b",
+      "thread": "fa51e1c2-13e7-4634-a748-bea78b2a519e",
+      "native_sha256": "642b3c60bdfa2e119eaec1fbbf0396901864176b32760b368db1c8186153c552",
+      "native_snapshot_bytes": 587266,
+      "complete_native_chunks": 17,
+      "native_read_sequence_matches": true,
+      "ready_at": "2026-09-16T18:02:56.109Z",
+      "ready_uuid": "749c920c-4716-400e-8b33-c99522eb0ed4",
+      "normal_end_at": "2026-09-16T18:02:56.152Z",
+      "normal_end_intermediate_nodes": [],
+      "input_context_tokens": 99771,
+      "context_basis": "READY response input + cache-read input + cache-creation input",
+      "build": "2.1.273",
+      "model": "claude-opus-5",
+      "effort": "xhigh",
+      "permission_mode": "auto",
+      "provider": "unknown",
+      "request_attempt_coverage": "unknown",
+      "preparation_extra_reads": [
+        "rules/run_commands.md",
+        "rules/chat.md"
+      ],
+      "post_ready_native_bookkeeping": {
+        "away_summary": 1
+      },
+      "errors": []
+    },
+    {
+      "name": "pair-02-a",
+      "thread": "52f4b8f8-c81a-40c2-b062-adca57d442b9",
+      "native_sha256": "0fb2eca55c6aecc0ed2ca5bfc8e079082d86ffe145b14faa935d87991e79777d",
+      "native_snapshot_bytes": 601758,
+      "complete_native_chunks": 17,
+      "native_read_sequence_matches": true,
+      "ready_at": "2026-09-16T18:03:28.714Z",
+      "ready_uuid": "808d7538-4d2e-4e82-8bbb-78ea2425aabb",
+      "normal_end_at": "2026-09-16T18:03:28.735Z",
+      "normal_end_intermediate_nodes": [],
+      "input_context_tokens": 100746,
+      "context_basis": "READY response input + cache-read input + cache-creation input",
+      "build": "2.1.273",
+      "model": "claude-opus-5",
+      "effort": "xhigh",
+      "permission_mode": "auto",
+      "provider": "unknown",
+      "request_attempt_coverage": "unknown",
+      "preparation_extra_reads": [
+        "rules/run_commands.md",
+        "rules/chat.md"
+      ],
+      "post_ready_native_bookkeeping": {
+        "away_summary": 1
+      },
+      "errors": []
+    },
+    {
+      "name": "pair-03-a",
+      "thread": "eb9b9f2e-d5ab-4e7f-8311-18e483c9776a",
+      "native_sha256": "fcbbf94629d3f5cf653804de08ded8c2f03084946f7ea4265f3ad7729650bc49",
+      "native_snapshot_bytes": 636945,
+      "complete_native_chunks": 17,
+      "native_read_sequence_matches": true,
+      "ready_at": "2026-09-16T18:04:20.685Z",
+      "ready_uuid": "26d3559c-381e-4da7-9591-b4e605899b0d",
+      "normal_end_at": "2026-09-16T18:04:20.710Z",
+      "normal_end_intermediate_nodes": [
+        {
+          "uuid": "3ea8b6bc-46f7-4fd0-b728-4a3ca3e04940",
+          "type": "attachment",
+          "attachment_type": "deferred_tools_record"
+        }
+      ],
+      "input_context_tokens": 104393,
+      "context_basis": "READY response input + cache-read input + cache-creation input",
+      "build": "2.1.273",
+      "model": "claude-opus-5",
+      "effort": "xhigh",
+      "permission_mode": "auto",
+      "provider": "unknown",
+      "request_attempt_coverage": "unknown",
+      "preparation_extra_reads": [
+        "rules/run_commands.md",
+        "rules/chat.md"
+      ],
+      "post_ready_native_bookkeeping": {
+        "away_summary": 1
+      },
+      "errors": []
+    },
+    {
+      "name": "pair-03-b",
+      "thread": "52d8bc32-e3af-4db8-b7b1-a8a22bdaff87",
+      "native_sha256": "cbbdad7d17f1d79a761b6ecf9b08faf4bb4702c6c7d9eb07884f9c07b1c1b51d",
+      "native_snapshot_bytes": 628878,
+      "complete_native_chunks": 17,
+      "native_read_sequence_matches": true,
+      "ready_at": "2026-09-16T18:04:17.425Z",
+      "ready_uuid": "b6ca425d-4527-42c9-9f5a-74aa57c6f4d0",
+      "normal_end_at": "2026-09-16T18:04:17.474Z",
+      "normal_end_intermediate_nodes": [],
+      "input_context_tokens": 103784,
+      "context_basis": "READY response input + cache-read input + cache-creation input",
+      "build": "2.1.273",
+      "model": "claude-opus-5",
+      "effort": "xhigh",
+      "permission_mode": "auto",
+      "provider": "unknown",
+      "request_attempt_coverage": "unknown",
+      "preparation_extra_reads": [
+        "rules/run_commands.md"
+      ],
+      "post_ready_native_bookkeeping": {
+        "away_summary": 1
+      },
+      "errors": []
+    }
+  ],
+  "pairs": [
+    {
+      "pair": "pair-01",
+      "a_context": 100378,
+      "b_context": 104442,
+      "difference_percent": 3.8911548993699854,
+      "within_five_percent": true
+    },
+    {
+      "pair": "pair-02",
+      "a_context": 100746,
+      "b_context": 99771,
+      "difference_percent": 0.9677803585254006,
+      "within_five_percent": true
+    },
+    {
+      "pair": "pair-03",
+      "a_context": 104393,
+      "b_context": 103784,
+      "difference_percent": 0.5833724483442376,
+      "within_five_percent": true
+    }
+  ],
+  "all_seven_context_spread_percent": 4.472338714310335,
+  "same_exposed_configuration": true,
+  "seed_and_context_checks_pass": true,
+  "measurement_started": false,
+  "limits": [
+    "Native provider, compaction configuration, and complete request-attempt coverage have not been established.",
+    "Six sessions also read rules/chat.md; pair-03-b did not. This preparation variation is retained and the fixed context gate still applies.",
+    "Native away_summary bookkeeping occurs after READY; no assistant completion record accompanies it in these snapshots.",
+    "Native transcript snapshots are local ignored evidence; readiness does not complete telemetry/Monitor integration or Step 2."
+  ]
+}

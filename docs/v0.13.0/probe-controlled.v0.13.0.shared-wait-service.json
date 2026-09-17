@@ -1,0 +1,852 @@
+{
+  "artifact_type": "controlled-codex-prototype-observations",
+  "schema_version": 1,
+  "audit_completed_at": "2026-09-16T13:10:13.155633+00:00",
+  "scope": "Codex A versus B-prototype; not B-service",
+  "redaction": "Selected settings, identities, metrics and hashes only; absolute paths, native text, process environment and transport endpoints omitted.",
+  "series_controls": {
+    "series_id": "codex-controlled-20260916",
+    "host": "codex",
+    "build": "0.154.0",
+    "schema": "codex-native-0.154.0",
+    "model": "gpt-6-astra",
+    "profile": "default",
+    "configuration_hash": "6b4489649f06e6ba3f6f2b3a1d4e1d55017e39512cb3ba0d5bac8becad38bce2",
+    "seed_commit": "3d4b5a4643d1fba65434877d965d2c051b65e1a3",
+    "seed_hashes": {
+      "docs/v0.13.0/draft.v0.13.0.no_polling.md": "239b4aeb946909a3e6f22813cb5962dcbcdc83d7a16d775ea028d188792bf23a",
+      "docs/v0.13.0/draft.v0.13.0.shared-wait-service.md": "fbf6f41c9fa1bb6203739519104bcede98030cd596ae39c061a466947df84f48"
+    },
+    "source_seconds": 240,
+    "baseline_seconds": 600,
+    "wake_bound": 60,
+    "duplicate_window": 120,
+    "drain_bound": 120
+  },
+  "configuration_excerpt": {
+    "reasoning_effort": "xhigh",
+    "approval_policy": "never",
+    "sandbox_mode": "danger-full-access",
+    "model_provider": "openai",
+    "auto_compact_token_limit": 120000,
+    "native_context_window": 258400,
+    "home_config_sha256": "f489c495d6b1fccfdad5610c4c8f938168717f7da73b188e9cfb53964fc6abb5",
+    "project_config_sha256": "8eb4c7e9a589670f84d2f820f030e63bb60a473d20231c1f265b782961820159"
+  },
+  "unavailable_configuration_evidence": [
+    "approvals_reviewer effective value",
+    "complete measured process environment",
+    "complete model transport/fallback/retry ledger"
+  ],
+  "original_series_audit_sha256": "0b940ed48755fe8ce6369baada5a980798edd8089799aea83d1e83286d3d7ab9",
+  "original_driver_finished_sha256": "c2c07ce041fc77045c95a093e700bc9bb2f1f0a2038c34eb86595ac985d1359b",
+  "original_finalizer_finished_sha256": "204562d32d36da62c248338f6887907e8f1dd980d8468116190b8a1f738be8eb",
+  "observer_recovery": {
+    "at": "2026-09-16T12:35:47.707606+00:00",
+    "reason": "Original observer process absent after controlling session interruption",
+    "source_due_at": 1789562148.5117233,
+    "source_deadline_not_yet_reached": true,
+    "delivery_before_resume": "not-attempted",
+    "benchmark_redelivered": false,
+    "gap": "Observer outage duration unknown; persistent native stream replayed from original manifest offset"
+  },
+  "request_attempt_coverage": "unknown",
+  "strict_zero_inference_supported": false,
+  "limitations": [
+    "Observed usage completions are not a complete request ledger; phase totals use completion timestamps only.",
+    "B2 observer recovered before source deadline; outage duration/cause unknown; retain deviation.",
+    "All original collector reports remain inconclusive and unchanged.",
+    "Cache, registration and resumption costs vary; differences are descriptive, not billing/quota savings.",
+    "No complete model-transport, retry or auxiliary approval attribution is available."
+  ],
+  "runs": [
+    {
+      "run_id": "baseline",
+      "thread": "01a0aa06-a232-75e2-88d4-c26eebd6041d",
+      "arm": "B-prototype",
+      "mode": "baseline",
+      "context_tokens": 51356,
+      "boundaries_utc": {
+        "benchmark_prompt": "2026-09-16T11:56:46.615000+00:00",
+        "source_start": "2026-09-16T11:57:22.645714+00:00",
+        "normal_end": "2026-09-16T11:57:36.358000+00:00",
+        "pending_return": null,
+        "source_ready": null,
+        "first_useful_call": null,
+        "consumed": null,
+        "final": null,
+        "observation_end": "2026-09-16T12:07:36.358000+00:00",
+        "drain_end": "2026-09-16T12:09:36.358000+00:00"
+      },
+      "first_useful_location": null,
+      "first_useful_latency_seconds": null,
+      "source_seconds": null,
+      "quiet_or_pending_seconds": 600.0,
+      "end_to_end_seconds": null,
+      "setup_to_quiet_seconds": 49.74300003051758,
+      "ready_to_final_seconds": null,
+      "automatic_native_continuation": false,
+      "within_60_second_wake_bound": null,
+      "logical_consumptions": 0,
+      "duplicate_consumptions": 0,
+      "source_wait_calls": 0,
+      "source_waits_all_request_60000": true,
+      "source_initial_yield_requested": null,
+      "source_initial_actual_wait_seconds": null,
+      "quiet_or_pending_tool_calls": 0,
+      "post_final_tool_calls": 0,
+      "post_final_usage_completions": 0,
+      "native_usage_totals": {
+        "input_tokens": 227365,
+        "cached_input_tokens": 218880,
+        "output_tokens": 879,
+        "reasoning_output_tokens": 240,
+        "uncached_input_tokens": 8485,
+        "usage_completions": 4
+      },
+      "completion_timestamp_phase_usage": {
+        "setup": {
+          "input_tokens": 227365,
+          "cached_input_tokens": 218880,
+          "output_tokens": 879,
+          "reasoning_output_tokens": 240,
+          "uncached_input_tokens": 8485,
+          "usage_completions": 4
+        },
+        "quiet_or_pending": {
+          "input_tokens": 0,
+          "cached_input_tokens": 0,
+          "output_tokens": 0,
+          "reasoning_output_tokens": 0,
+          "uncached_input_tokens": 0,
+          "usage_completions": 0
+        },
+        "after_readiness": {
+          "input_tokens": 0,
+          "cached_input_tokens": 0,
+          "output_tokens": 0,
+          "reasoning_output_tokens": 0,
+          "uncached_input_tokens": 0,
+          "usage_completions": 0
+        }
+      },
+      "seed_turn_usage": {
+        "input_tokens": 682361,
+        "cached_input_tokens": 645248,
+        "output_tokens": 1819,
+        "reasoning_output_tokens": 20,
+        "uncached_input_tokens": 37113,
+        "usage_completions": 19
+      },
+      "seed_final_response_input": 51351,
+      "first_measured_response_input": 51518,
+      "observer_recovery": null,
+      "original_hashes": {
+        "manifest.json": "ff91855b2a92658d2d1a9e7edcde8f43cf41cdd2c8277ed6ebdee03a0884cbe9",
+        "report.json": "72fa02b89c451a4214497a81ed91e8a9756abef2b0fc287ae8a2dc74b6a06eaf",
+        "native-final-snapshot.jsonl": "2df22f195ad7221703c882f46d24fa60d9db56842f3d06d1766783c7c9149ed0",
+        "observer-finished.json": "2749e7c152eff70d8a97e4b278a770d9d3477dfb79a719e6ec382881391f209c",
+        "probe-events.jsonl": "d605e85d65ef3be682922a556322a1aa9ba08606d2d7e849ea1dd8cd3a33eb52"
+      },
+      "manifest_identity": {
+        "pair_id": "baseline",
+        "source_id": "db1f4585-64a7-4bc1-a6d2-86f2c964d3e7",
+        "wait_id": "e333252a-aa96-4a03-bbb3-19c76a94a048",
+        "event_id": "5e138f84-9483-4b39-9951-2dcdbd64f335",
+        "created_at": 1789559793.3021946,
+        "ready_at": 1789559287.585
+      },
+      "native_stream_start_offset": 796519,
+      "collector_status": "inconclusive",
+      "collector_gaps": [
+        "Usage completion has no request attempt",
+        "Missing measurement boundary"
+      ]
+    },
+    {
+      "run_id": "pair-01-a",
+      "thread": "01a0aa06-a56b-74d0-8c59-5017deb3cabb",
+      "arm": "A",
+      "mode": "trial",
+      "context_tokens": 51393,
+      "boundaries_utc": {
+        "benchmark_prompt": "2026-09-16T12:09:52.708000+00:00",
+        "source_start": "2026-09-16T12:10:53.732707+00:00",
+        "normal_end": "2026-09-16T12:15:05.469000+00:00",
+        "pending_return": "2026-09-16T12:11:20.239000+00:00",
+        "source_ready": "2026-09-16T12:14:53.734786+00:00",
+        "first_useful_call": "2026-09-16T12:15:02.051000+00:00",
+        "consumed": "2026-09-16T12:15:02.737163+00:00",
+        "final": "2026-09-16T12:15:05.469000+00:00",
+        "observation_end": "2026-09-16T12:17:05.469000+00:00",
+        "drain_end": "2026-09-16T12:19:05.469000+00:00"
+      },
+      "first_useful_location": "stream-0#0:966997",
+      "first_useful_latency_seconds": 8.316214561462402,
+      "source_seconds": 240.00207829475403,
+      "quiet_or_pending_seconds": 213.49578547477722,
+      "end_to_end_seconds": 312.7610001564026,
+      "setup_to_quiet_seconds": 87.5310001373291,
+      "ready_to_final_seconds": 11.734214067459106,
+      "automatic_native_continuation": false,
+      "within_60_second_wake_bound": null,
+      "logical_consumptions": 1,
+      "duplicate_consumptions": 0,
+      "source_wait_calls": 4,
+      "source_waits_all_request_60000": true,
+      "source_initial_yield_requested": 1000,
+      "source_initial_actual_wait_seconds": 10.0055433,
+      "quiet_or_pending_tool_calls": 4,
+      "post_final_tool_calls": 0,
+      "post_final_usage_completions": 0,
+      "native_usage_totals": {
+        "input_tokens": 707627,
+        "cached_input_tokens": 661120,
+        "output_tokens": 1972,
+        "reasoning_output_tokens": 470,
+        "uncached_input_tokens": 46507,
+        "usage_completions": 12
+      },
+      "completion_timestamp_phase_usage": {
+        "setup": {
+          "input_tokens": 340600,
+          "cached_input_tokens": 296704,
+          "output_tokens": 1391,
+          "reasoning_output_tokens": 380,
+          "uncached_input_tokens": 43896,
+          "usage_completions": 6
+        },
+        "quiet_or_pending": {
+          "input_tokens": 243680,
+          "cached_input_tokens": 242176,
+          "output_tokens": 349,
+          "reasoning_output_tokens": 75,
+          "uncached_input_tokens": 1504,
+          "usage_completions": 4
+        },
+        "after_readiness": {
+          "input_tokens": 123347,
+          "cached_input_tokens": 122240,
+          "output_tokens": 232,
+          "reasoning_output_tokens": 15,
+          "uncached_input_tokens": 1107,
+          "usage_completions": 2
+        }
+      },
+      "seed_turn_usage": {
+        "input_tokens": 682817,
+        "cached_input_tokens": 628224,
+        "output_tokens": 1855,
+        "reasoning_output_tokens": 59,
+        "uncached_input_tokens": 54593,
+        "usage_completions": 19
+      },
+      "seed_final_response_input": 51388,
+      "first_measured_response_input": 51640,
+      "observer_recovery": null,
+      "original_hashes": {
+        "manifest.json": "be232bd84de224ff578243e6b5eae7f747b041816e74638b1a640ba4af09f88d",
+        "report.json": "5e49314d2560a6b557cdeae833fd60724e00a634552656aabde7b97aa7cde12c",
+        "native-final-snapshot.jsonl": "9b01672b43d9b607e4ba17349454b62ee37c27e4dffd4054fc36b90a253d55b1",
+        "observer-finished.json": "90f94f397fc478d7a71f5a8855b5993d16f377d626450123cfa6d19196e996e1",
+        "probe-events.jsonl": "1fe2976652be204c1bdb24f88cdca7cdf4edc3165164e341c05610eb32d40b7b"
+      },
+      "manifest_identity": {
+        "pair_id": "pair-01",
+        "source_id": "4ecd4ab5-2365-41e9-a128-3b733b3d7d66",
+        "wait_id": "49e1a4a9-cd0d-4e60-8e62-504ee9351b3c",
+        "event_id": "7135ee62-0133-4a82-8a7a-6855598c0a91",
+        "created_at": 1789560584.2662618,
+        "ready_at": 1789559266.444
+      },
+      "native_stream_start_offset": 797783,
+      "collector_status": "inconclusive",
+      "collector_gaps": [
+        "Usage completion has no request attempt",
+        "Missing measurement boundary"
+      ]
+    },
+    {
+      "run_id": "pair-01-b",
+      "thread": "01a0aa06-a56d-7100-83f6-4ad9a29b235a",
+      "arm": "B-prototype",
+      "mode": "trial",
+      "context_tokens": 51337,
+      "boundaries_utc": {
+        "benchmark_prompt": "2026-09-16T12:19:21.883000+00:00",
+        "source_start": "2026-09-16T12:21:07.383642+00:00",
+        "normal_end": "2026-09-16T12:22:07.987000+00:00",
+        "pending_return": null,
+        "source_ready": "2026-09-16T12:25:07.420650+00:00",
+        "first_useful_call": "2026-09-16T12:25:56.284000+00:00",
+        "consumed": "2026-09-16T12:26:17.039558+00:00",
+        "final": "2026-09-16T12:26:33.652000+00:00",
+        "observation_end": "2026-09-16T12:28:33.652000+00:00",
+        "drain_end": "2026-09-16T12:30:33.652000+00:00"
+      },
+      "first_useful_location": "stream-0#0:935908",
+      "first_useful_latency_seconds": 48.86335039138794,
+      "source_seconds": 240.03700733184814,
+      "quiet_or_pending_seconds": 179.4336495399475,
+      "end_to_end_seconds": 431.76900005340576,
+      "setup_to_quiet_seconds": 166.10400009155273,
+      "ready_to_final_seconds": 86.23134994506836,
+      "automatic_native_continuation": true,
+      "within_60_second_wake_bound": true,
+      "logical_consumptions": 1,
+      "duplicate_consumptions": 0,
+      "source_wait_calls": 0,
+      "source_waits_all_request_60000": true,
+      "source_initial_yield_requested": null,
+      "source_initial_actual_wait_seconds": null,
+      "quiet_or_pending_tool_calls": 0,
+      "post_final_tool_calls": 0,
+      "post_final_usage_completions": 0,
+      "native_usage_totals": {
+        "input_tokens": 511633,
+        "cached_input_tokens": 442240,
+        "output_tokens": 2072,
+        "reasoning_output_tokens": 754,
+        "uncached_input_tokens": 69393,
+        "usage_completions": 9
+      },
+      "completion_timestamp_phase_usage": {
+        "setup": {
+          "input_tokens": 331392,
+          "cached_input_tokens": 272128,
+          "output_tokens": 1556,
+          "reasoning_output_tokens": 741,
+          "uncached_input_tokens": 59264,
+          "usage_completions": 6
+        },
+        "quiet_or_pending": {
+          "input_tokens": 0,
+          "cached_input_tokens": 0,
+          "output_tokens": 0,
+          "reasoning_output_tokens": 0,
+          "uncached_input_tokens": 0,
+          "usage_completions": 0
+        },
+        "after_readiness": {
+          "input_tokens": 180241,
+          "cached_input_tokens": 170112,
+          "output_tokens": 516,
+          "reasoning_output_tokens": 13,
+          "uncached_input_tokens": 10129,
+          "usage_completions": 3
+        }
+      },
+      "seed_turn_usage": {
+        "input_tokens": 682149,
+        "cached_input_tokens": 644992,
+        "output_tokens": 1797,
+        "reasoning_output_tokens": 31,
+        "uncached_input_tokens": 37157,
+        "usage_completions": 19
+      },
+      "seed_final_response_input": 51332,
+      "first_measured_response_input": 51531,
+      "observer_recovery": null,
+      "original_hashes": {
+        "manifest.json": "cc2bfbb2c21e4a72e049ec089cdb5eac4e4a5dac497503cb02027ea078a7cf54",
+        "report.json": "8e33f86014d4833ab6f7ec1054ad8bcf4ddd75e2af3814a0380dda4f2c79a1a6",
+        "native-final-snapshot.jsonl": "cf6b5d1be9d1b48ca75dbdd321269fd1c44256711257fbb70894f3a80dae2edb",
+        "observer-finished.json": "4417bd9933c246ac91a8b2e21c3f401caf86985cca0d0a27386cb3957a57a4cd",
+        "probe-events.jsonl": "2ea264e9f25deb7cd58c6097350f3db2b10f06ae10e1cf627a028038cb0f6d90"
+      },
+      "manifest_identity": {
+        "pair_id": "pair-01",
+        "source_id": "77716c29-58c4-4888-85cb-cc81b45b988b",
+        "wait_id": "4999fc32-e3af-417c-9a89-9f7b9b7474aa",
+        "event_id": "dcd4130d-a8ab-47c6-8e34-394a82accee1",
+        "created_at": 1789561153.4722636,
+        "ready_at": 1789559597.554
+      },
+      "native_stream_start_offset": 798194,
+      "collector_status": "inconclusive",
+      "collector_gaps": [
+        "Usage completion has no request attempt",
+        "Missing measurement boundary"
+      ]
+    },
+    {
+      "run_id": "pair-02-b",
+      "thread": "01a0aa06-a3fa-7f32-908e-60ae12d363bd",
+      "arm": "B-prototype",
+      "mode": "trial",
+      "context_tokens": 51369,
+      "boundaries_utc": {
+        "benchmark_prompt": "2026-09-16T12:30:59.583000+00:00",
+        "source_start": "2026-09-16T12:31:48.511723+00:00",
+        "normal_end": "2026-09-16T12:31:54.084000+00:00",
+        "pending_return": null,
+        "source_ready": "2026-09-16T12:35:48.525431+00:00",
+        "first_useful_call": "2026-09-16T12:36:15.694000+00:00",
+        "consumed": "2026-09-16T12:36:39.350768+00:00",
+        "final": "2026-09-16T12:36:48.489000+00:00",
+        "observation_end": "2026-09-16T12:38:48.489000+00:00",
+        "drain_end": "2026-09-16T12:40:48.489000+00:00"
+      },
+      "first_useful_location": "stream-0#0:941196",
+      "first_useful_latency_seconds": 27.1685688495636,
+      "source_seconds": 240.01370787620544,
+      "quiet_or_pending_seconds": 234.44143104553223,
+      "end_to_end_seconds": 348.9060001373291,
+      "setup_to_quiet_seconds": 54.50100016593933,
+      "ready_to_final_seconds": 59.96356916427612,
+      "automatic_native_continuation": true,
+      "within_60_second_wake_bound": true,
+      "logical_consumptions": 1,
+      "duplicate_consumptions": 0,
+      "source_wait_calls": 0,
+      "source_waits_all_request_60000": true,
+      "source_initial_yield_requested": null,
+      "source_initial_actual_wait_seconds": null,
+      "quiet_or_pending_tool_calls": 0,
+      "post_final_tool_calls": 0,
+      "post_final_usage_completions": 0,
+      "native_usage_totals": {
+        "input_tokens": 533684,
+        "cached_input_tokens": 459392,
+        "output_tokens": 1544,
+        "reasoning_output_tokens": 371,
+        "uncached_input_tokens": 74292,
+        "usage_completions": 9
+      },
+      "completion_timestamp_phase_usage": {
+        "setup": {
+          "input_tokens": 280933,
+          "cached_input_tokens": 220544,
+          "output_tokens": 902,
+          "reasoning_output_tokens": 300,
+          "uncached_input_tokens": 60389,
+          "usage_completions": 5
+        },
+        "quiet_or_pending": {
+          "input_tokens": 0,
+          "cached_input_tokens": 0,
+          "output_tokens": 0,
+          "reasoning_output_tokens": 0,
+          "uncached_input_tokens": 0,
+          "usage_completions": 0
+        },
+        "after_readiness": {
+          "input_tokens": 252751,
+          "cached_input_tokens": 238848,
+          "output_tokens": 642,
+          "reasoning_output_tokens": 71,
+          "uncached_input_tokens": 13903,
+          "usage_completions": 4
+        }
+      },
+      "seed_turn_usage": {
+        "input_tokens": 682713,
+        "cached_input_tokens": 622464,
+        "output_tokens": 1829,
+        "reasoning_output_tokens": 18,
+        "uncached_input_tokens": 60249,
+        "usage_completions": 19
+      },
+      "seed_final_response_input": 51364,
+      "first_measured_response_input": 51563,
+      "observer_recovery": "driver-resumed.json",
+      "original_hashes": {
+        "manifest.json": "9e65135be972330403ade0fa23bd4ec1a48e025a2f89d732e197daa65c6afa22",
+        "report.json": "2b537090e7a429fba14db6a88d6bd2ead733c8da763e4231966efb65ad760271",
+        "native-final-snapshot.jsonl": "6052cf167e41c515fd529e610b5b0bcccabc3d9a433d3f587ecfe435c8a5495c",
+        "observer-finished.json": "9c27ae82cc53b777cfccf02de7a2eb223858272707975290a4a83e9e13a11604",
+        "probe-events.jsonl": "3bca46d8fc4326195d26b205cdad0c0f9417012002871810f978beb67a920779"
+      },
+      "manifest_identity": {
+        "pair_id": "pair-02",
+        "source_id": "23915cf8-ecac-474e-8015-f6b5e78f408c",
+        "wait_id": "be08f96a-65a7-4672-b9c4-a70a11ce35d7",
+        "event_id": "180662f5-dca4-4ad1-85d2-fe5dc915f57f",
+        "created_at": 1789561843.7348964,
+        "ready_at": 1789559317.75
+      },
+      "native_stream_start_offset": 796606,
+      "collector_status": "inconclusive",
+      "collector_gaps": [
+        "Usage completion has no request attempt",
+        "Missing measurement boundary"
+      ]
+    },
+    {
+      "run_id": "pair-02-a",
+      "thread": "01a0aa06-a796-7852-85be-356cd13e7749",
+      "arm": "A",
+      "mode": "trial",
+      "context_tokens": 51332,
+      "boundaries_utc": {
+        "benchmark_prompt": "2026-09-16T12:41:06.681000+00:00",
+        "source_start": "2026-09-16T12:41:55.481775+00:00",
+        "normal_end": "2026-09-16T12:46:11.316000+00:00",
+        "pending_return": "2026-09-16T12:42:13.999000+00:00",
+        "source_ready": "2026-09-16T12:45:55.482805+00:00",
+        "first_useful_call": "2026-09-16T12:46:08.921000+00:00",
+        "consumed": "2026-09-16T12:46:09.552980+00:00",
+        "final": "2026-09-16T12:46:11.316000+00:00",
+        "observation_end": "2026-09-16T12:48:11.316000+00:00",
+        "drain_end": "2026-09-16T12:50:11.316000+00:00"
+      },
+      "first_useful_location": "stream-0#0:930230",
+      "first_useful_latency_seconds": 13.438194990158081,
+      "source_seconds": 240.00102972984314,
+      "quiet_or_pending_seconds": 221.48380494117737,
+      "end_to_end_seconds": 304.63499999046326,
+      "setup_to_quiet_seconds": 67.3180000782013,
+      "ready_to_final_seconds": 15.833194971084595,
+      "automatic_native_continuation": false,
+      "within_60_second_wake_bound": null,
+      "logical_consumptions": 1,
+      "duplicate_consumptions": 0,
+      "source_wait_calls": 4,
+      "source_waits_all_request_60000": true,
+      "source_initial_yield_requested": 1000,
+      "source_initial_actual_wait_seconds": 10.0046527,
+      "quiet_or_pending_tool_calls": 4,
+      "post_final_tool_calls": 0,
+      "post_final_usage_completions": 0,
+      "native_usage_totals": {
+        "input_tokens": 630259,
+        "cached_input_tokens": 568960,
+        "output_tokens": 1724,
+        "reasoning_output_tokens": 373,
+        "uncached_input_tokens": 61299,
+        "usage_completions": 11
+      },
+      "completion_timestamp_phase_usage": {
+        "setup": {
+          "input_tokens": 277942,
+          "cached_input_tokens": 219264,
+          "output_tokens": 1059,
+          "reasoning_output_tokens": 194,
+          "uncached_input_tokens": 58678,
+          "usage_completions": 5
+        },
+        "quiet_or_pending": {
+          "input_tokens": 233827,
+          "cached_input_tokens": 232320,
+          "output_tokens": 430,
+          "reasoning_output_tokens": 157,
+          "uncached_input_tokens": 1507,
+          "usage_completions": 4
+        },
+        "after_readiness": {
+          "input_tokens": 118490,
+          "cached_input_tokens": 117376,
+          "output_tokens": 235,
+          "reasoning_output_tokens": 22,
+          "uncached_input_tokens": 1114,
+          "usage_completions": 2
+        }
+      },
+      "seed_turn_usage": {
+        "input_tokens": 682240,
+        "cached_input_tokens": 645120,
+        "output_tokens": 1792,
+        "reasoning_output_tokens": 28,
+        "uncached_input_tokens": 37120,
+        "usage_completions": 19
+      },
+      "seed_final_response_input": 51327,
+      "first_measured_response_input": 51575,
+      "observer_recovery": null,
+      "original_hashes": {
+        "manifest.json": "be2ab05b66e22e0d3f4e5849bbabff432ea0b309b072f92ca0dd8752241af5a4",
+        "report.json": "65fe3a309d970bb01d17c4d5b522296d4d39892b56ccdead7d0a859a68201c78",
+        "native-final-snapshot.jsonl": "dfd65c906325a740b708b0244e47ff45e559920d758f65ca693286904997230a",
+        "observer-finished.json": "09769183097a086b1565944b497b6d454d2146673eeb53af46762b4bf9d69ee7",
+        "probe-events.jsonl": "9b3da62c2bd53c062af754e3bf6ffc0ea9e84db92a2641b07a02f1f97e754286"
+      },
+      "manifest_identity": {
+        "pair_id": "pair-02",
+        "source_id": "82d99efa-2afb-4bf2-bf50-6e710991a294",
+        "wait_id": "013b1dcb-7f86-41c6-8270-5bfea918eda5",
+        "event_id": "a85c8ae1-0682-4be5-9527-26c1da5a8e10",
+        "created_at": 1789562453.8910077,
+        "ready_at": 1789559322.895
+      },
+      "native_stream_start_offset": 796440,
+      "collector_status": "inconclusive",
+      "collector_gaps": [
+        "Usage completion has no request attempt",
+        "Missing measurement boundary"
+      ]
+    },
+    {
+      "run_id": "pair-03-a",
+      "thread": "01a0aa06-a9c2-7463-8a2a-01478ded0b74",
+      "arm": "A",
+      "mode": "trial",
+      "context_tokens": 51376,
+      "boundaries_utc": {
+        "benchmark_prompt": "2026-09-16T12:50:30.743000+00:00",
+        "source_start": "2026-09-16T12:51:16.736802+00:00",
+        "normal_end": "2026-09-16T12:55:27.587000+00:00",
+        "pending_return": "2026-09-16T12:51:34.321000+00:00",
+        "source_ready": "2026-09-16T12:55:16.744419+00:00",
+        "first_useful_call": "2026-09-16T12:55:25.084000+00:00",
+        "consumed": "2026-09-16T12:55:25.822235+00:00",
+        "final": "2026-09-16T12:55:27.587000+00:00",
+        "observation_end": "2026-09-16T12:57:27.587000+00:00",
+        "drain_end": "2026-09-16T12:59:27.587000+00:00"
+      },
+      "first_useful_location": "stream-0#0:907644",
+      "first_useful_latency_seconds": 8.33958101272583,
+      "source_seconds": 240.00761675834656,
+      "quiet_or_pending_seconds": 222.42341899871826,
+      "end_to_end_seconds": 296.8439998626709,
+      "setup_to_quiet_seconds": 63.57800006866455,
+      "ready_to_final_seconds": 10.842580795288086,
+      "automatic_native_continuation": false,
+      "within_60_second_wake_bound": null,
+      "logical_consumptions": 1,
+      "duplicate_consumptions": 0,
+      "source_wait_calls": 4,
+      "source_waits_all_request_60000": true,
+      "source_initial_yield_requested": 1000,
+      "source_initial_actual_wait_seconds": 10.0054223,
+      "quiet_or_pending_tool_calls": 4,
+      "post_final_tool_calls": 0,
+      "post_final_usage_completions": 0,
+      "native_usage_totals": {
+        "input_tokens": 614623,
+        "cached_input_tokens": 606464,
+        "output_tokens": 1856,
+        "reasoning_output_tokens": 593,
+        "uncached_input_tokens": 8159,
+        "usage_completions": 11
+      },
+      "completion_timestamp_phase_usage": {
+        "setup": {
+          "input_tokens": 272527,
+          "cached_input_tokens": 266752,
+          "output_tokens": 1198,
+          "reasoning_output_tokens": 451,
+          "uncached_input_tokens": 5775,
+          "usage_completions": 5
+        },
+        "quiet_or_pending": {
+          "input_tokens": 227060,
+          "cached_input_tokens": 225664,
+          "output_tokens": 432,
+          "reasoning_output_tokens": 129,
+          "uncached_input_tokens": 1396,
+          "usage_completions": 4
+        },
+        "after_readiness": {
+          "input_tokens": 115036,
+          "cached_input_tokens": 114048,
+          "output_tokens": 226,
+          "reasoning_output_tokens": 13,
+          "uncached_input_tokens": 988,
+          "usage_completions": 2
+        }
+      },
+      "seed_turn_usage": {
+        "input_tokens": 682344,
+        "cached_input_tokens": 644992,
+        "output_tokens": 1836,
+        "reasoning_output_tokens": 81,
+        "uncached_input_tokens": 37352,
+        "usage_completions": 19
+      },
+      "seed_final_response_input": 51371,
+      "first_measured_response_input": 51621,
+      "observer_recovery": null,
+      "original_hashes": {
+        "manifest.json": "9e16710d82c88cf77c535ba1e5c5795d48a4d59e5f22c08bb35cc3d7fd6da269",
+        "report.json": "52681598e6a8406ab54bf552f6f15751704b6058fb1a5ccf2d645703b0d9e739",
+        "native-final-snapshot.jsonl": "107be395ca4b3fa906ea6444d16cce3da92a81551b81f1f143c8b7a56fada2f9",
+        "observer-finished.json": "03f899430f78790567c44c0e6ce889576948a5835905af350c7cff171f572864",
+        "probe-events.jsonl": "5556f847bf49e62a732b5fee76829dacf9898580a2a66bda3a229f0f299da792"
+      },
+      "manifest_identity": {
+        "pair_id": "pair-03",
+        "source_id": "a1c5a299-43a9-4478-b38f-7f4e0a6ea1e1",
+        "wait_id": "a9eac5f6-fbf4-48f8-82db-65e945a46d5d",
+        "event_id": "edc65f3b-670f-4536-8f72-47128337504d",
+        "created_at": 1789563020.8636494,
+        "ready_at": 1789559317.341
+      },
+      "native_stream_start_offset": 796621,
+      "collector_status": "inconclusive",
+      "collector_gaps": [
+        "Usage completion has no request attempt",
+        "Missing measurement boundary"
+      ]
+    },
+    {
+      "run_id": "pair-03-b",
+      "thread": "01a0aa06-a9f5-7893-b90f-0718110a56f6",
+      "arm": "B-prototype",
+      "mode": "trial",
+      "context_tokens": 51346,
+      "boundaries_utc": {
+        "benchmark_prompt": "2026-09-16T12:59:58.871000+00:00",
+        "source_start": "2026-09-16T13:01:14.543332+00:00",
+        "normal_end": "2026-09-16T13:01:19.950000+00:00",
+        "pending_return": null,
+        "source_ready": "2026-09-16T13:05:14.581271+00:00",
+        "first_useful_call": "2026-09-16T13:05:34.961000+00:00",
+        "consumed": "2026-09-16T13:06:02.100066+00:00",
+        "final": "2026-09-16T13:06:06.008000+00:00",
+        "observation_end": "2026-09-16T13:08:06.008000+00:00",
+        "drain_end": "2026-09-16T13:10:06.008000+00:00"
+      },
+      "first_useful_location": "stream-0#0:946071",
+      "first_useful_latency_seconds": 20.37972855567932,
+      "source_seconds": 240.03793931007385,
+      "quiet_or_pending_seconds": 234.6312713623047,
+      "end_to_end_seconds": 367.13699984550476,
+      "setup_to_quiet_seconds": 81.0789999961853,
+      "ready_to_final_seconds": 51.42672896385193,
+      "automatic_native_continuation": true,
+      "within_60_second_wake_bound": true,
+      "logical_consumptions": 1,
+      "duplicate_consumptions": 0,
+      "source_wait_calls": 0,
+      "source_waits_all_request_60000": true,
+      "source_initial_yield_requested": null,
+      "source_initial_actual_wait_seconds": null,
+      "quiet_or_pending_tool_calls": 0,
+      "post_final_tool_calls": 0,
+      "post_final_usage_completions": 0,
+      "native_usage_totals": {
+        "input_tokens": 530173,
+        "cached_input_tokens": 516736,
+        "output_tokens": 1819,
+        "reasoning_output_tokens": 616,
+        "uncached_input_tokens": 13437,
+        "usage_completions": 9
+      },
+      "completion_timestamp_phase_usage": {
+        "setup": {
+          "input_tokens": 281393,
+          "cached_input_tokens": 272000,
+          "output_tokens": 1170,
+          "reasoning_output_tokens": 566,
+          "uncached_input_tokens": 9393,
+          "usage_completions": 5
+        },
+        "quiet_or_pending": {
+          "input_tokens": 0,
+          "cached_input_tokens": 0,
+          "output_tokens": 0,
+          "reasoning_output_tokens": 0,
+          "uncached_input_tokens": 0,
+          "usage_completions": 0
+        },
+        "after_readiness": {
+          "input_tokens": 248780,
+          "cached_input_tokens": 244736,
+          "output_tokens": 649,
+          "reasoning_output_tokens": 50,
+          "uncached_input_tokens": 4044,
+          "usage_completions": 4
+        }
+      },
+      "seed_turn_usage": {
+        "input_tokens": 679604,
+        "cached_input_tokens": 612352,
+        "output_tokens": 1806,
+        "reasoning_output_tokens": 51,
+        "uncached_input_tokens": 67252,
+        "usage_completions": 19
+      },
+      "seed_final_response_input": 51341,
+      "first_measured_response_input": 51542,
+      "observer_recovery": null,
+      "original_hashes": {
+        "manifest.json": "63f96b98e96a027ae57d9ef26a5d0436eaa4c7e91c80f9b7378b20f62763e5ac",
+        "report.json": "238be6f37090c1d06b4e9046fefa3a7895079c646c5d5572adc192718ed2ce14",
+        "native-final-snapshot.jsonl": "45a1ad92c1a8987ffbad00e16e942e40bc6fe37a8f0fef714da05df46258078d",
+        "observer-finished.json": "da70ca7a748cd516c19216ec24f2b27e6fc4bdf9a8bbdf9d391933fbaadc0965",
+        "probe-events.jsonl": "b8b9dbc430e364d9577edaf68c640df7d30b086787487815d14f234a7f0d7d2b"
+      },
+      "manifest_identity": {
+        "pair_id": "pair-03",
+        "source_id": "3fd1c569-1e72-4949-b692-015026b25522",
+        "wait_id": "6015f89c-e599-438a-9c7a-7cc26bfb9410",
+        "event_id": "2dd1c5d1-d961-4110-83ff-1ead323194d1",
+        "created_at": 1789563582.193071,
+        "ready_at": 1789559338.572
+      },
+      "native_stream_start_offset": 796448,
+      "collector_status": "inconclusive",
+      "collector_gaps": [
+        "Usage completion has no request attempt",
+        "Missing measurement boundary"
+      ]
+    }
+  ],
+  "pairs": [
+    {
+      "pair": "pair-01",
+      "context_difference_percent": 0.10896425583250638,
+      "recovered_observer": false,
+      "b_minus_a_input": -195994,
+      "b_minus_a_uncached_input": 22886,
+      "b_minus_a_output": 100,
+      "b_minus_a_usage_completions": -3,
+      "b_minus_a_quiet_completion_input": -243680,
+      "b_minus_a_end_to_end_seconds": 119.00799989700317
+    },
+    {
+      "pair": "pair-02",
+      "context_difference_percent": 0.07202787673499582,
+      "recovered_observer": true,
+      "b_minus_a_input": -96575,
+      "b_minus_a_uncached_input": 12993,
+      "b_minus_a_output": -180,
+      "b_minus_a_usage_completions": -2,
+      "b_minus_a_quiet_completion_input": -233827,
+      "b_minus_a_end_to_end_seconds": 44.271000146865845
+    },
+    {
+      "pair": "pair-03",
+      "context_difference_percent": 0.058393023980068515,
+      "recovered_observer": false,
+      "b_minus_a_input": -84450,
+      "b_minus_a_uncached_input": 5278,
+      "b_minus_a_output": -37,
+      "b_minus_a_usage_completions": -2,
+      "b_minus_a_quiet_completion_input": -227060,
+      "b_minus_a_end_to_end_seconds": 70.29299998283386
+    }
+  ],
+  "paired_delta_statistics": {
+    "b_minus_a_input": {
+      "median": -96575,
+      "minimum": -195994,
+      "maximum": -84450
+    },
+    "b_minus_a_uncached_input": {
+      "median": 12993,
+      "minimum": 5278,
+      "maximum": 22886
+    },
+    "b_minus_a_output": {
+      "median": -37,
+      "minimum": -180,
+      "maximum": 100
+    },
+    "b_minus_a_usage_completions": {
+      "median": -2,
+      "minimum": -3,
+      "maximum": -2
+    },
+    "b_minus_a_quiet_completion_input": {
+      "median": -233827,
+      "minimum": -243680,
+      "maximum": -227060
+    },
+    "b_minus_a_end_to_end_seconds": {
+      "median": 70.29299998283386,
+      "minimum": 44.271000146865845,
+      "maximum": 119.00799989700317
+    }
+  }
+}
