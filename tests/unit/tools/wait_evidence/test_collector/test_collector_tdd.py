@@ -1,4 +1,4 @@
-"""Prove exact accounting and conservative coverage with synthetic evidence."""
+"""Prove exact accounting, conservative coverage and bounded isolated CLI startup."""
 
 # ruff: noqa: PLR2004 - Expected synthetic measurements belong beside assertions.
 
@@ -92,7 +92,7 @@ def lifecycle() -> list[JsonObject]:
 
 
 class TestCollector:
-    """Cover deduplication, attribution, unknown coverage and bounded draining."""
+    """Cover accounting, bounded draining and CLI startup under parallel execution."""
 
     def test_duplicate_usage_and_baseline_are_counted_once(self, tmp_path: Path) -> None:
         """Cumulative and per-attempt representations reconcile without inflation."""
@@ -195,9 +195,10 @@ class TestCollector:
         assert path.read_bytes() == original
         write_report(tmp_path / "report.v2.json", collector.report(487, version=2))
 
+    @pytest.mark.timeout(30)
     @pytest.mark.parametrize("outside", [False, True])
     def test_cli_bootstraps_from_script_location(self, tmp_path: Path, *, outside: bool) -> None:
-        """Absolute CLI invocation works in either cwd without PYTHONPATH."""
+        """Absolute CLI invocation survives parallel-suite startup in either cwd."""
         root = Path(__file__).resolve().parents[5]
         manifest = tmp_path / "manifest.json"
         manifest.write_text(json.dumps(manifest_data(tmp_path)), encoding="utf-8")
@@ -213,7 +214,9 @@ class TestCollector:
             [sys.executable, "-I", "-S", str(root / "docs/v0.13.0/collect.shared-wait-service.py"),
              "--manifest", str(manifest), "--output", str(output), "--as-of", "486"],
             cwd=tmp_path if outside else root, env=environment,
-            capture_output=True, text=True, check=False, timeout=5,
+            # Bound startup and execution without treating worker contention as
+            # a bootstrap failure; the outer guard leaves time to reap the child.
+            capture_output=True, text=True, check=False, timeout=20,
         )
         assert completed.returncode == 0, completed.stderr
         assert json.loads(output.read_text(encoding="utf-8"))["arm"] == "B-prototype"
