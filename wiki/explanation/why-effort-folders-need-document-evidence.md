@@ -9,6 +9,12 @@ each topic its own directory while its filenames continue to identify the
 version, topic, and workflow phase. Discovery uses those identities to decide
 which folders belong to the workflow.
 
+## Invocation model
+
+The human chooses an effort layout through the workflow prompts. The AI runs
+the workflow launcher to discover the matching documents and continue the
+selected effort; directory discovery has no separate manual invocation.
+
 ## What changed since Ruben's original PR
 
 Ruben (`guenounrub`) proposed the fifth layout in
