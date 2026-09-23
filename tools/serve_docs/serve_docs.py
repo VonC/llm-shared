@@ -1,6 +1,7 @@
 """Serve one markdown folder as a local website (MkDocs Material).
 
-The shared render_contract supplies the scaffold and navigation.
+The shared render_contract supplies the scaffold and navigation. A configured
+external mode dispatches before any local renderer or server work.
 The script scaffolds a temporary MkDocs configuration around the given
 folder (nothing is written inside the served project), starts
 ``uvx --with mkdocs-material mkdocs serve`` on the configured port, and
@@ -31,7 +32,7 @@ if not __package__:
     # The documented file entry point also works outside the checkout root.
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from tools.serve_docs import render_contract
+from tools.serve_docs import external_client, render_contract
 
 # Preserve the public scaffold imports for callers of the local server.
 DIATAXIS_SECTION_ORDER = render_contract.DIATAXIS_SECTION_ORDER
@@ -313,14 +314,8 @@ def resolve_settings(
     return site_name, port, includes, root_includes
 
 
-def main(argv: list[str]) -> int:
-    """Scaffold the config, start the server, open the browser."""
-    _configure_logging()
-    args = parse_args(argv)
-    docs_dir = Path(args.docs_dir).resolve()
-    if not docs_dir.is_dir():
-        message = f"Not a directory: {docs_dir}"
-        raise SystemExit(message)
+def _run_local(args: argparse.Namespace, docs_dir: Path) -> int:
+    """Scaffold and serve a local folder when external mode is absent."""
     if not any(docs_dir.rglob("*.md")):
         message = f"No markdown file found under: {docs_dir}"
         raise SystemExit(message)
@@ -380,6 +375,20 @@ def main(argv: list[str]) -> int:
             return subprocess.call(command)  # noqa: S603
         except KeyboardInterrupt:
             return 0
+
+
+def main(argv: list[str]) -> int:
+    """Dispatch configured external mode or scaffold the local server."""
+    _configure_logging()
+    args = parse_args(argv)
+    docs_dir = Path(args.docs_dir).resolve()
+    if not docs_dir.is_dir():
+        message = f"Not a directory: {docs_dir}"
+        raise SystemExit(message)
+    external = external_client.read_config(docs_dir)
+    if external is not None:
+        return external_client.run(external, no_browser=args.no_browser)
+    return _run_local(args, docs_dir)
 
 
 if __name__ == "__main__":

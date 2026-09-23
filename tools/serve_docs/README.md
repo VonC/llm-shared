@@ -6,6 +6,10 @@ open the default browser on it. Nothing is installed permanently and
 nothing is written inside the served project: the MkDocs configuration
 is scaffolded in a temporary folder for the lifetime of the server.
 
+A folder can instead select `mode = external` to watch configured paths and
+run its own argument-vector command. In this mode, this tool does not create
+a MkDocs configuration or start an HTTP server.
+
 Workflow documentation:
 [`../../wiki/how-to/serve-a-docs-folder-as-a-website.md`](../../wiki/how-to/serve-a-docs-folder-as-a-website.md).
 
@@ -87,6 +91,37 @@ port = 8000
 
 `--port` overrides it for one run without touching the file.
 
+## Configured external command
+
+Place one command argument per line. The executable path is relative to the
+folder containing `serve_docs.ini` when it starts with `.`. Watch paths are
+relative to that folder. `@include` and `@assets` reuse the corresponding
+path lists in the same file. The command may return JSON containing an
+`open_urls` list of absolute HTTP(S) browser targets; otherwise the configured
+`external_open` targets are used. The client treats these URLs as opaque.
+
+```ini
+[serve_docs]
+mode = external
+external_command =
+    ../.venv/Scripts/python.exe
+    -m
+    sample_notes.refresh
+external_watch =
+    .
+    @include
+include =
+    ../shared-notes.md
+external_open =
+    https://manual.example.test/guide/
+external_debounce_seconds = 1
+```
+
+The command runs once at startup and after settled edits. A failed or
+unreachable command produces generic guidance to check or start the configured
+service. A returned or configured page can still open if the service can serve
+retained content. Command output and errors are not copied into diagnostics.
+
 ## What the rendering supports
 
 - GitHub-flavored markdown: tables, fenced code blocks, emoji characters.
@@ -121,8 +156,8 @@ port = 8000
 
 ## Requirements of the tool
 
-Only `uvx` (or `uv`) on PATH; the `bin\mds.ps1` launcher runs the
-bundled venv Python, whose Scripts folder carries `uvx`. The first run
-downloads
+Local serving needs `uvx` (or `uv`) on PATH; external mode needs its
+configured command. The `bin\mds.ps1` launcher runs the bundled venv
+Python, whose Scripts folder carries `uvx`. The first local run downloads
 `mkdocs-material` into the uv cache, so the browser can take a moment
 to open; later runs start in seconds.
