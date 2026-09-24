@@ -11,6 +11,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import pytest
+
 from tools import prompt_workflow
 from tools import prompt_workflow_progress as progress
 from tools.prompt_workflow_models import Topic
@@ -19,14 +21,20 @@ from tools.prompt_workflow_plan import PlanStep
 if TYPE_CHECKING:
     from pathlib import Path
 
-    import pytest
-
 # pyright: reportUnknownLambdaType=false, reportUnknownArgumentType=false
 
 _CLAUDE = {"CLAUDECODE": "1"}
 _VERSION = "v10.0.0"
 _STEP_IDS = ("0", "1", "2", "3.1", "3.2", "4A", "4B")
 _VERIFIED_STEPS = 4
+
+
+@pytest.fixture(autouse=True)
+def stub_review_status(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Replace the `rwst` collection with one line naming the topic slug."""
+    monkeypatch.setattr(
+        progress.progress_review, "review_lines", lambda _root, slug: [f"review of {slug}"],
+    )
 
 
 def _steps(verified: int) -> list[PlanStep]:
@@ -238,6 +246,7 @@ def test_progress_lines_for_an_umbrella_child_in_implementation(
         ("umbrella", "family, topic 2/3: Title beta-one (1/3 topics completed)"),
         ("phase", "implementation (5/5)"),
         ("step", "3.2 (5/7): Wire the parser (4/7 verified)"),
+        ("review", "review of beta-one"),
         ("next", "/next"),
     ]
 
@@ -255,6 +264,7 @@ def test_progress_lines_for_a_standalone_draft_and_an_empty_plan(
         ("topic", f"{_VERSION} solo"),
         ("umbrella", "none, standalone topic"),
         ("phase", "draft (1/5)"),
+        ("review", "review of solo"),
         ("next", "/process-draft on docs/draft.v10.0.0.solo.md"),
     ]
 
@@ -279,7 +289,9 @@ def test_progress_lines_on_the_umbrella_integration_branch(
 
     lines = progress.progress_lines(tmp_path, topic, "family", _CLAUDE)
 
-    assert [label for label, _value in lines] == ["branch", "topic", "umbrella", "next"]
+    assert [label for label, _value in lines] == [
+        "branch", "topic", "umbrella", "review", "next",
+    ]
     assert lines[1] == ("topic", f"{_VERSION} family (umbrella)")
     assert lines[2][1].startswith("1/3 topics completed, next topic 2/3")
 
@@ -300,7 +312,9 @@ def test_run_progress_prints_the_report_or_notes_a_missing_topic(
     )
 
     assert progress.run_progress(tmp_path) == progress.skill.EXIT_NOT_APPLICABLE
-    assert capsys.readouterr().out == "branch    main\ntopic     none resolved\n"
+    assert capsys.readouterr().out == (
+        "branch    main\ntopic     none resolved\nreview    review of None\n"
+    )
     assert progress.run_progress(tmp_path, "claude") == 0
     assert capsys.readouterr().out == "branch    main\nnext      /x\n"
 

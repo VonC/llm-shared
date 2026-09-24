@@ -70,6 +70,7 @@ verbatim and act on it as the calling handoff describes; the not-applicable case
 prints nothing and exits non-zero.
 
 `pw progress` is the exception: it prints a short aligned report (`branch`,
-`topic`, `umbrella`, `phase`, `step`, `next`) and its `next` line carries the
+`topic`, `umbrella`, `phase`, `step`, one `review` line per active review
+exchange or `no review in progress`, `next`) and its `next` line carries the
 same command bare `pw skill` prints. With no resolved topic it prints only
-`branch` and `topic none resolved`, and exits non-zero.
+`branch`, `topic none resolved`, and the `review` lines, and exits non-zero.

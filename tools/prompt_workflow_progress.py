@@ -8,6 +8,9 @@ Positions are counted, not read from ids: plan step ids come from the
 validation plan in document order, so a step `3.2` that is the fourth of
 eleven listed steps renders as `step 3.2 (4/11)`. An id equal to its position
 renders compactly, as in `topic 3/4`.
+
+Fix: the report also condenses the repository review status (`rwst`) into one
+`review` line per active exchange, or `no review in progress`.
 """
 
 from __future__ import annotations
@@ -22,6 +25,7 @@ from tools import prompt_workflow_git as git
 from tools import prompt_workflow_handoff as handoff
 from tools import prompt_workflow_memory as memory
 from tools import prompt_workflow_plan as plan
+from tools import prompt_workflow_progress_review as progress_review
 from tools import prompt_workflow_skill as skill
 from tools import prompt_workflow_steps as steps
 from tools.prompt_workflow_post_commit import slug_key
@@ -295,15 +299,22 @@ def progress_lines(
 
     Returns:
         `(label, value)` pairs: branch, topic, umbrella, then phase and step
-        for a topic (not for its umbrella integration branch), then next.
+        for a topic (not for its umbrella integration branch), then one
+        review line per active review exchange, then next.
     """
     command, _note = skill.current_command(root, topic, branch, env, override)
-    next_line = command or "none resolved"
+    lines = _topic_lines(root, topic, branch)
+    lines.extend(("review", line) for line in progress_review.review_lines(root, topic.slug))
+    lines.append(("next", command or "none resolved"))
+    return lines
+
+
+def _topic_lines(root: Path, topic: Topic, branch: str) -> list[tuple[str, str]]:
+    """Return the branch, topic, umbrella, phase, and step lines of a topic."""
     lines = [("branch", branch)]
     if skill.is_umbrella_branch(topic, branch):
         lines.append(("topic", f"{topic.version} {topic.slug} (umbrella)"))
         lines.append(("umbrella", umbrella_progress(topic.draft_path, None).render_own()))
-        lines.append(("next", next_line))
         return lines
     lines.append(("topic", f"{topic.version} {topic.slug}"))
     umbrella = umbrella_path(root, topic)
@@ -329,7 +340,6 @@ def progress_lines(
         )
         if progress is not None:
             lines.append(("step", progress.render()))
-    lines.append(("next", next_line))
     return lines
 
 
@@ -351,7 +361,9 @@ def run_progress(root: Path, host_override: str | None = None) -> int:
     branch = git.current_branch(root)
     topic = handoff.resolve_current_topic(root, branch, memory.read_memory(root))
     if topic is None:
-        sys.stdout.write(render_lines([("branch", branch), ("topic", "none resolved")]))
+        lines = [("branch", branch), ("topic", "none resolved")]
+        lines.extend(("review", line) for line in progress_review.review_lines(root, None))
+        sys.stdout.write(render_lines(lines))
         return skill.EXIT_NOT_APPLICABLE
     sys.stdout.write(render_lines(progress_lines(root, topic, branch, os.environ, host_override)))
     return 0

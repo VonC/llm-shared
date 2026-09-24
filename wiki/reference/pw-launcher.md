@@ -81,6 +81,7 @@ topic     v0.13.0 shared-wait-service
 umbrella  no_polling, topic 1/9: Run one durable monitoring service (0/9 topics completed)
 phase     implementation (5/5)
 step      6/8: Implement delivery, cancellation and consumption settlement (6/8 verified)
+review    round 2 for step 6: wait for the human choice: Commit, or Rework and review again
 next      /code-review-requestor on docs/v0.13.0/plan.v0.13.0.shared-wait-service.md step 6
 ```
 
@@ -97,8 +98,21 @@ whose status table lists the slug. Otherwise the line reads
 `none, standalone topic`. On the umbrella integration branch, the report shows
 the completed rows and the next pending topic instead of a phase and a step.
 
-`pw progress` is read-only. It exits `0` with a resolved topic, and `3` with
-`topic none resolved` otherwise.
+The `review` lines condense the repository review status that `rvw_status`
+(alias `rwst`) reports in full: `no review in progress`, or one line per active
+exchange with its round, the reviewed step (code) or document type
+(specification), and whose move it is, such as
+`wait for code reviewer (codex) response` or
+`wait for spec requestor (claude) update`. The role nature comes from the
+exchange's recorded evidence and reads `unrecorded` when none exists. An
+exchange of another topic names its slug. Damaged candidates and an
+unavailable status point back to `rwst`.
+
+`pw progress` reads the documents and Git without changing them. The review
+status collection runs the same bounded migration preflight as `rwst`, which
+only moves review artifacts of an old layout into the artifact home. The
+command exits `0` with a resolved topic, and `3` with `topic none resolved`
+otherwise.
 
 ## 🔎 Stateless document lookup
 
@@ -198,7 +212,7 @@ skill instructions, not by `pw`.
 | `pw skill --host claude\|codex` | forces the command prefix |
 | `pw skill <skill-name>` | prints a specific earlier phase's command, to re-run it by hand |
 | `pw document <version> <slug> <type>` | prints the unique document path without branch or memory resolution |
-| `pw progress [--host claude\|codex]` | prints branch, topic, umbrella position or standalone, phase, and step position above the bare next command |
+| `pw progress [--host claude\|codex]` | prints branch, topic, umbrella position or standalone, phase, step position, and condensed review status above the bare next command |
 | `pw --pick` | reopens the topic menu when the branch lock is wrong |
 | `--root`, `--debug` | shared flags of the underlying tool |
 
