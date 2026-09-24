@@ -40,6 +40,16 @@ Do not use 3 or 4 spaces for sub-list before the list item, always 2 spaces more
 
 Do not use in comments/docstring `'`, always `'`
 
+## Validate a Markdown document with markdownlint
+
+After writing or editing a Markdown document, you can validate it with `markdownlint-cli2`. Node.js does not need to be on the `PATH` beforehand: the Node versions installed under `%PRGS%\nodes` are available, and the `switchnode` senv utility puts the chosen one first in the `PATH` for that shell. From the project root, so the repository's `.markdownlint.json` applies:
+
+```bat
+cmd /c "switchnode 22 && npx --yes markdownlint-cli2 my_markdown_document_to_validate.md"
+```
+
+Several files or a glob can follow the command name. Exit code `0` with `Summary: 0 issues` means the document is clean; any other result lists each finding as `path:line rule/name description`, to fix in the file. Run the call from PowerShell or `cmd.exe`, never from Git Bash, which rewrites `/c` into a path and runs nothing.
+
 ## No em dash
 
 Never use the em dash (`—`) in documentation text: nobody but LLMs is using it.
