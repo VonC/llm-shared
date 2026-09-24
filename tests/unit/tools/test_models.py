@@ -12,6 +12,12 @@ filesystem root, and a Git repository above the pytest temp directory (the
 user's home, say) would otherwise satisfy it and break the expected raise.
 The fake path classes are hoisted to module level and gain a parent link so
 both upward-walk tests share them.
+
+Fix (root): cover the stale `PRJ_DIR` of a sibling worktree. Real temporary
+main and linked worktree layouts (a `.git` directory, and a `.git` file whose
+`gitdir` holds a `commondir` file) prove that the start path's worktree wins
+over a sibling `PRJ_DIR`, while a `PRJ_DIR` in another repository or the same
+worktree still wins, and that unreadable markers keep `PRJ_DIR`.
 """
 
 from __future__ import annotations
@@ -50,6 +56,9 @@ class _FakeGitDir:
         self._is_dir_result = is_dir_result
 
     def is_dir(self) -> bool:
+        return self._is_dir_result
+
+    def exists(self) -> bool:
         return self._is_dir_result
 
 
@@ -138,6 +147,102 @@ def test_find_project_root_accepts_a_root_path_after_the_parent_walk(
     monkeypatch.delenv("PRJ_DIR", raising=False)
 
     assert _models.find_project_root(cast("Path", fake_root)) is fake_root
+
+
+def _make_main_worktree(root: Path) -> Path:
+    """Create a main worktree layout with a `.git` directory and return it."""
+    (root / ".git").mkdir(parents=True)
+    return root
+
+
+def _make_linked_worktree(main_root: Path, worktree_root: Path) -> Path:
+    """Create a linked worktree of `main_root` the way `git worktree add` lays it out."""
+    git_dir = main_root / ".git" / "worktrees" / worktree_root.name
+    git_dir.mkdir(parents=True)
+    (git_dir / "commondir").write_text("../..\n", encoding="utf-8")
+    worktree_root.mkdir(parents=True)
+    (worktree_root / ".git").write_text(f"gitdir: {git_dir.as_posix()}\n", encoding="utf-8")
+    return worktree_root
+
+
+def test_find_project_root_prefers_start_worktree_over_sibling_prj_dir(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """A start path in a sibling worktree wins over a leftover `PRJ_DIR`."""
+    main_root = _make_main_worktree(tmp_path / "project")
+    old_worktree = _make_linked_worktree(main_root, tmp_path / "project_old")
+    new_worktree = _make_linked_worktree(main_root, tmp_path / "project_new")
+    nested = new_worktree / "docs"
+    nested.mkdir()
+    monkeypatch.setenv("PRJ_DIR", str(old_worktree))
+
+    assert _models.find_project_root(nested) == new_worktree.resolve()
+    assert _models.find_project_root(main_root) == main_root.resolve()
+
+
+def test_find_project_root_keeps_prj_dir_for_its_own_worktree(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """A start path inside the `PRJ_DIR` worktree resolves to `PRJ_DIR`."""
+    main_root = _make_main_worktree(tmp_path / "project")
+    worktree = _make_linked_worktree(main_root, tmp_path / "project_wt")
+    (worktree / "src").mkdir()
+    monkeypatch.setenv("PRJ_DIR", str(worktree))
+
+    assert _models.find_project_root(worktree / "src") == worktree.resolve()
+
+
+def test_find_project_root_keeps_prj_dir_for_another_repository(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """A start path in an unrelated repository still yields the `PRJ_DIR` project."""
+    project_root = _make_main_worktree(tmp_path / "project")
+    tools_root = _make_main_worktree(tmp_path / "shared_tools")
+    monkeypatch.setenv("PRJ_DIR", str(project_root))
+
+    assert _models.find_project_root(tools_root) == project_root.resolve()
+
+
+def test_find_project_root_keeps_prj_dir_when_start_marker_is_unreadable(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """A start `.git` file without a `gitdir:` line cannot prove a sibling worktree."""
+    project_root = _make_main_worktree(tmp_path / "project")
+    broken_root = tmp_path / "broken"
+    broken_root.mkdir()
+    (broken_root / ".git").write_text("not a gitdir line\n", encoding="utf-8")
+    monkeypatch.setenv("PRJ_DIR", str(project_root))
+
+    assert _models.find_project_root(broken_root) == project_root.resolve()
+
+
+def test_git_common_dir_handles_missing_marker_and_missing_commondir(
+    tmp_path: Path,
+) -> None:
+    """No marker yields None; a `gitdir` without `commondir` is its own common dir."""
+    assert _models._git_common_dir(tmp_path) is None
+
+    git_dir = tmp_path / "separate.git"
+    git_dir.mkdir()
+    worktree = tmp_path / "checkout"
+    worktree.mkdir()
+    (worktree / ".git").write_text(f"gitdir: {git_dir.as_posix()}\n", encoding="utf-8")
+
+    assert _models._git_common_dir(worktree) == git_dir.resolve()
+
+
+def test_sibling_worktree_root_is_none_without_an_enclosing_git_root(
+    tmp_path: Path,
+) -> None:
+    """A start path outside every Git root cannot override `PRJ_DIR`."""
+    fs_root = _FakePath(has_git=False)
+    start_path = _FakePath(has_git=False, parent=fs_root)
+
+    assert _models._sibling_worktree_root(cast("Path", start_path), tmp_path) is None
 
 
 def test_src_package_candidates_filter_hidden_metadata_and_cache_dirs(
