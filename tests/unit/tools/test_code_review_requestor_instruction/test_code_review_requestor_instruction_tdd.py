@@ -2,6 +2,10 @@
 
 The tests pin required policy tokens and ordering while leaving prose free to
 improve. Shared lifecycle mechanics remain owned by review-requestor.md.
+
+Fix: the resolved validation set, `ghog day` included, is requestor-side; the
+writer runs it green before a request, and the reviewer limits itself to
+`ghog check` and `ghog affected --no-cov`.
 """
 
 from __future__ import annotations
@@ -84,6 +88,20 @@ def test_instruction_captures_and_publishes_typed_request_evidence() -> None:
         content,
         ("capture_index_tree", "resolve_code_review_validation", "render", "publish-request"),
     )
+
+
+def test_requestor_owns_the_full_validation_walk() -> None:
+    """The writer runs `ghog day` green before a request; the reviewer does not."""
+    content = " ".join(_content().split())
+
+    for token in (
+        "That set is requestor-side validation",
+        "must have run it green, `ghog day` included",
+        "fixed every failure and coverage gap",
+        "never runs `ghog day` or `ghog full`",
+        "`ghog check` and `ghog affected --no-cov`",
+    ):
+        assert token in content
 
 
 def test_requestor_cannot_initiate_the_reviewer() -> None:

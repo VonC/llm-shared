@@ -504,11 +504,11 @@ def test_wiki_leads_with_workflow_and_keeps_diataxis_order() -> None:
 
 
 def test_wiki_server_mounts_the_linked_presentation_and_orders_navigation() -> None:
-    """The home deck URL is mounted and the sidebar follows Diátaxis order."""
+    """The home deck URL is mounted and the shared scaffold orders its sidebar."""
     root = steps.llm_shared_dir()
     home = (root / "wiki" / "README.md").read_text(encoding="utf-8")
     config = (root / "wiki" / "serve_docs.ini").read_text(encoding="utf-8")
-    server = (root / "tools" / "serve_docs" / "serve_docs.py").read_text(
+    server = (root / "tools" / "serve_docs" / "render_contract.py").read_text(
         encoding="utf-8",
     )
 

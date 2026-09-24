@@ -104,3 +104,7 @@ waits for that exchange's exact answer, presents an existing convergence gate,
 or resumes an already authorized owning action according to durable status.
 After exchange release, run and follow `pw skill` immediately. Never consume
 an arbitrary request or start a reviewer from a requestor route.
+The one exception is a release through `complete` after an authorized `Commit`
+or `Consolidate`: make sure the working tree is empty, proposing a
+`group-commits-msg` `a.commit` for any leftover change, then print the
+`pw skill` next step and stop, as the requestor instruction describes.

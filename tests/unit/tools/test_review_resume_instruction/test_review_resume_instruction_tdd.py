@@ -1,4 +1,9 @@
-"""Check the public resume entry, validated provider hints and role boundaries."""
+"""Check the public resume entry, validated provider hints and role boundaries.
+
+Fix: a release through `complete` after an authorized `Commit` or `Consolidate`
+proposes a `group-commits-msg` `a.commit` for any leftover change, prints the
+`pw skill` next step, and stops instead of following it.
+"""
 
 from __future__ import annotations
 
@@ -83,6 +88,17 @@ def test_router_emits_a_bare_resume_skill_without_a_document(
     """Resume routing needs no document lookup and cannot emit a dangling on argument."""
     topic = Topic("v0.11.0", "resume", tmp_path / "draft.v0.11.0.resume.md")
     assert skill.forced_command(tmp_path, topic, name, environment) == expected
+
+
+def test_resume_stops_after_an_authorized_owning_action_completes() -> None:
+    """The Commit or Consolidate completion prints the next step and stops."""
+    content = " ".join((_ROOT / "instructions/review-resume.md").read_text(encoding="utf-8").split())
+    assert (
+        "The one exception is a release through `complete` after an authorized "
+        "`Commit` or `Consolidate`: make sure the working tree is empty, proposing a "
+        "`group-commits-msg` `a.commit` for any leftover change, then print the "
+        "`pw skill` next step and stop"
+    ) in content
 
 
 # eof

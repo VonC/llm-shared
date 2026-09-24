@@ -44,6 +44,15 @@ file has been written completely, without causing a type error.
 Fix (root): Prefer `PRJ_DIR` when it already points to a Git root so shared
 tools act on the calling project before falling back to the upward scan.
 
+Fix (root): A console opened in one worktree keeps that worktree's `PRJ_DIR`
+after `cd` into a sibling worktree of the same repository, so `pw skill` read
+the old worktree (a detached HEAD there resolved no topic). `find_project_root`
+now returns the Git root enclosing the start path when it is a different
+worktree of the same repository as `PRJ_DIR`, comparing the common Git
+directories read from the `.git` markers without running Git. A `PRJ_DIR` that
+names another repository still wins, so a tool started from a shared-tools
+checkout keeps acting on the project `PRJ_DIR` names.
+
 """
 
 from __future__ import annotations
@@ -190,11 +199,80 @@ def _project_root_from_environment() -> Path | None:
     return project_root.resolve()
 
 
+_GITDIR_PREFIX: Final[str] = "gitdir:"
+_COMMONDIR_FILE_NAME: Final[str] = "commondir"
+
+
+def _git_common_dir(root: Path) -> Path | None:
+    """Return the common Git directory shared by every worktree of `root`.
+
+    A main worktree carries a `.git` directory, which is the common directory.
+    A linked worktree carries a `.git` file (`gitdir: <path>`) whose directory
+    holds a `commondir` file pointing back at the main `.git` directory.
+
+    Args:
+        root: A directory that may carry a `.git` marker.
+
+    Returns:
+        The resolved common Git directory, or None when `root` has no readable
+        marker.
+    """
+    marker = root / ".git"
+    if marker.is_dir():
+        return marker.resolve()
+    if not marker.is_file():
+        return None
+    content = marker.read_text(encoding="utf-8").strip()
+    if not content.startswith(_GITDIR_PREFIX):
+        return None
+    git_dir = root / content.removeprefix(_GITDIR_PREFIX).strip()
+    commondir_file = git_dir / _COMMONDIR_FILE_NAME
+    if not commondir_file.is_file():
+        return git_dir.resolve()
+    return (git_dir / commondir_file.read_text(encoding="utf-8").strip()).resolve()
+
+
+def _enclosing_git_root(start_path: Path) -> Path | None:
+    """Return the nearest directory at or above `start_path` with a `.git` marker."""
+    current = start_path.resolve()
+    while not (current / ".git").exists():
+        if current == current.parent:
+            return None
+        current = current.parent
+    return current
+
+
+def _sibling_worktree_root(start_path: Path, env_project_root: Path) -> Path | None:
+    """Return the start path's worktree when it is a sibling of `PRJ_DIR`.
+
+    Args:
+        start_path: The directory the tool started from.
+        env_project_root: The Git root `PRJ_DIR` names.
+
+    Returns:
+        The Git root enclosing `start_path` when it differs from
+        `env_project_root` but shares its common Git directory, otherwise None.
+    """
+    start_root = _enclosing_git_root(start_path)
+    if start_root is None or start_root == env_project_root:
+        return None
+    start_common = _git_common_dir(start_root)
+    if start_common is None or start_common != _git_common_dir(env_project_root):
+        return None
+    return start_root
+
+
 def find_project_root(start_path: Path) -> Path:
-    """Find project root, preferring `PRJ_DIR` when it points to a Git root."""
+    """Find project root, preferring `PRJ_DIR` when it points to a Git root.
+
+    A start path inside a different worktree of the same repository as
+    `PRJ_DIR` wins over it: that `PRJ_DIR` is a leftover of the worktree the
+    shell was opened in.
+    """
     env_project_root = _project_root_from_environment()
     if env_project_root is not None:
-        return env_project_root
+        sibling_root = _sibling_worktree_root(start_path, env_project_root)
+        return sibling_root if sibling_root is not None else env_project_root
 
     current: Path = start_path.resolve()
     while current != current.parent:

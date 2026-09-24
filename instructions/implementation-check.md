@@ -73,8 +73,10 @@ check.
 1. Build `validation_path_set` as a first-seen ordered union in O(n). It must
    contain every staged path that belongs to the reviewed step, the exact
    validation plan, and every known validation-artifact path named by the
-   resolved validation commands. Never omit a staged step path because a
-   validation command is expected not to touch it.
+   reviewer evidence commands it may run (`ghog check`,
+   `ghog affected --no-cov`; never `ghog day` or `ghog full`, see
+   `code-reviewer.md`). Never omit a staged step path because a validation
+   command is expected not to touch it.
 2. Run `& "<LLM_SHARED_DIR>\bin\code_review_evidence.bat" --repository <root> umbrella-digest
    capture <umbrella>` and retain its JSON as `umbrella_digest_before`. When
    the request says `Umbrella draft: none`, omit the path operand; retain the
