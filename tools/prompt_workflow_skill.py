@@ -5,6 +5,10 @@ workflow action. Post-write routing reviews the new artifact explicitly,
 post-commit routing advances implementation steps, and post-merge routing walks
 an umbrella collection in its declared order before allowing release work.
 Authorized review commits can resume their reviewed or residual batch phase.
+
+Fix: the bare next command of a resolved topic moves to ``current_command``,
+and ``resolved_workflow_step`` exposes the routed workflow step, so
+``pw progress`` reports the same command and phase as ``pw skill``.
 """
 
 from __future__ import annotations
@@ -343,17 +347,72 @@ def run_skill(  # noqa: PLR0913
             forced_command(root, topic, skill_name, os.environ, host_override),
             f"pw skill: {skill_name} is not applicable here.\n",
         )
-    branch_slug = branch.rsplit("/", maxsplit=1)[-1]
-    if post_commit.slug_key(branch_slug) == post_commit.slug_key(
-        topic.slug,
-    ) and docs.collection_items(topic.draft_path):
-        umbrella = _relpath(root, topic.draft_path)
-        command = post_merge_command(root, umbrella, os.environ, host_override)
-        error = f"pw skill: no collection backlog resolved from {umbrella}.\n"
-    else:
-        command = next_command(root, topic, branch, os.environ, host_override)
-        error = ""
+    command, error = current_command(root, topic, branch, os.environ, host_override)
     return _emit(command, error)
+
+
+def is_umbrella_branch(topic: Topic, branch: str) -> bool:
+    """Return whether the branch is the integration branch of the topic's umbrella.
+
+    Args:
+        topic: The resolved topic.
+        branch: The current branch name, whose leaf is compared with the slug.
+
+    Returns:
+        True when the branch leaf names the topic slug (hyphens and underscores
+        folded) and the topic draft carries an umbrella collection.
+    """
+    branch_slug = branch.rsplit("/", maxsplit=1)[-1]
+    return post_commit.slug_key(branch_slug) == post_commit.slug_key(
+        topic.slug,
+    ) and bool(docs.collection_items(topic.draft_path))
+
+
+def current_command(
+    root: Path,
+    topic: Topic,
+    branch: str,
+    env: Mapping[str, str],
+    override: str | None = None,
+) -> tuple[str | None, str]:
+    """Return the bare next command of a resolved topic and its absence note.
+
+    Fix: extracted from ``run_skill`` so ``pw progress`` prints the same next
+    command as the bare ``pw skill``.
+
+    Args:
+        root: The project root.
+        topic: The resolved topic.
+        branch: The current branch name.
+        env: The process environment, read for the host prefix.
+        override: An optional host token forcing the prefix.
+
+    Returns:
+        The command, or None when the umbrella walk resolves no backlog, paired
+        with the stderr note to write in that case.
+    """
+    if is_umbrella_branch(topic, branch):
+        umbrella = _relpath(root, topic.draft_path)
+        return (
+            post_merge_command(root, umbrella, env, override),
+            f"pw skill: no collection backlog resolved from {umbrella}.\n",
+        )
+    return next_command(root, topic, branch, env, override), ""
+
+
+def resolved_workflow_step(state: WorkflowState) -> int:
+    """Return the resolved document workflow step (1 to 10) of a state.
+
+    Fix: public entry to ``_resolve_step`` for ``pw progress``, which reports
+    the phase that step belongs to.
+
+    Args:
+        state: The workflow state read from disk.
+
+    Returns:
+        The step ``next_command`` routes to, before any live review override.
+    """
+    return _resolve_step(state)
 
 
 def run_authorized_code_review_commit(root: Path, *, residual: bool = False) -> int:
