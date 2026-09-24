@@ -42,6 +42,12 @@ implement entry (8) — so the usual follow-up of the step just done is the
 pre-highlighted top row (Q54). The implement-missing entry is the exception:
 when a ``No`` status offers it, it tops the menu, since the step moves forward
 by filling its recorded gap first (Q55).
+
+Fix (summary heading): implementation-check.md adds a ``## Analysis of Step x
+Implementation`` summary under a verified step. It used to parse as a second,
+unverified step x, sending ``pw`` back to that step and making the commit-plan
+check demand its validation subject again. ``parse_validation_steps`` now reports
+each id once and lets the ``implementation state`` heading decide.
 """
 
 from __future__ import annotations
@@ -66,6 +72,9 @@ if TYPE_CHECKING:
 # a lettered suffix (4A) or a dotted segment (1.1) is kept whole and never read as
 # the bare parent number (Q42).
 ANALYSIS_RE = re.compile(r"analysis of step\s+(\d+(?:\.\d+)*[A-Za-z]*)", re.IGNORECASE)
+# The template's status heading; it outranks a same-id summary heading such as
+# implementation-check.md's "## Analysis of Step x Implementation".
+STATE_HEADING_RE = re.compile(r"implementation state", re.IGNORECASE)
 # A status line that marks the step implemented and verified.
 STATUS_YES_RE = re.compile(r"^\s*yes", re.IGNORECASE)
 # A status line that marks the step explicitly not implemented (Q46). The word
@@ -174,23 +183,30 @@ def parse_validation_steps(text: str) -> list[PlanStep]:
 
     A plan step is a heading matching ``Analysis of Step <N>`` whose first
     following non-empty line starts with ``Yes`` (verified) or anything else.
+    Each id is reported once, in first-heading order; when several headings
+    name it, the ``implementation state`` heading decides over the summary.
     """
     lines = text.splitlines()
-    found: list[PlanStep] = []
+    found: dict[str, PlanStep] = {}
+    from_state: set[str] = set()
     for index, line in enumerate(lines):
         if not line.lstrip().startswith("#"):
             continue
         match = ANALYSIS_RE.search(line)
         if match is None:
             continue
-        found.append(
-            PlanStep(
-                number=match.group(1),
-                verified=_status_is_yes(lines, index + 1),
-                not_implemented=_status_is_no(lines, index + 1),
-            ),
+        number = match.group(1)
+        is_state = STATE_HEADING_RE.search(line) is not None
+        if number in found and (number in from_state or not is_state):
+            continue
+        found[number] = PlanStep(
+            number=number,
+            verified=_status_is_yes(lines, index + 1),
+            not_implemented=_status_is_no(lines, index + 1),
         )
-    return found
+        if is_state:
+            from_state.add(number)
+    return list(found.values())
 
 
 def derive_x(

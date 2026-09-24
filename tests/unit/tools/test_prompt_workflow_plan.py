@@ -33,6 +33,10 @@ Fix (menu order): the cycle menu lists its options higher workflow step first â€
 commit, then check, then implement â€” so the full and sub-step scenarios assert
 the reversed label order (Q54). The implement-missing entry is the exception
 and tops the menu when a ``No`` status offers it (Q55).
+
+Fix (summary heading): a verified step's ``## Analysis of Step N Implementation``
+summary no longer parses as a second, unverified step N; the ``implementation
+state`` heading decides when both exist.
 """
 
 from __future__ import annotations
@@ -127,6 +131,21 @@ def test_parse_validation_steps_records_not_implemented() -> None:
         PlanStep(number="1", verified=False, not_implemented=True),
         PlanStep(number="2", verified=False, not_implemented=False),
         PlanStep(number="3", verified=False, not_implemented=False),
+    ]
+
+
+def test_parse_validation_steps_prefers_state_heading_over_summary() -> None:
+    """A verified step's summary heading never adds an unverified duplicate."""
+    text = (
+        "## Step 2. Selection\n\n"
+        "### Analysis of Step 2 implementation state\n\nYes. Step 2 has been fully implemented.\n\n"
+        "## Analysis of Step 2 Implementation\n\nStep 2 now binds one selection.\n\n"
+        "## Step 3. Reconstruction\n\n"
+        "### Analysis of Step 3 implementation state\n\nNot started.\n"
+    )
+    assert plan.parse_validation_steps(text) == [
+        PlanStep(number="2", verified=True),
+        PlanStep(number="3", verified=False),
     ]
 
 
