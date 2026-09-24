@@ -127,6 +127,7 @@ The keys are the contract; `cov=` reads `skipped` (not measured), `withheld` (fa
 | 6 | a run is live (Q32) | wait; poll `ghog status` until `state=done`, start nothing |
 | 7 | the last run is lost (Q32) | only from `ghog status`: the run was killed or never recorded; relaunch `ghog day` |
 | 8 | a duration outlier on an otherwise-green run (Q34) | the full suite passed and met the coverage gate, but a test call ran far outside the norm; shorten the named slow calls (see [`instructions/fix_slow_test.md`](instructions/fix_slow_test.md)), or `ghog exclude` a genuinely slow one, then re-run `ghog day` |
+| 9 | not a pytest project | the root has no `pyproject.toml`, `pytest.ini` or `conftest.py`, and no pytest section in `setup.cfg` or `tox.ini`; the pytest steps do not apply (in `ghog day`, the check step already ran). Validate with the project's own test commands; never install pytest or create a venv to get past it |
 | other | `ghog check` passthrough | check.bat's own exit code: fix what it names — compile/lint errors in place, or a file over the line limit ("Big files found") by splitting it with `/split-large-file` (ghog reports the over-limit files, it never splits) |
 
 A check.bat that prints `ERROR :` lines yet exits 0 is treated as failed (exit 1) with an explicit mismatch notice, so a broken check script can never green-light the walk.

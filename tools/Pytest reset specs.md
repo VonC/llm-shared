@@ -140,6 +140,7 @@ The final report of every run closes with a next-step message naming the workflo
 | `ghog single`, baseline present, green | 0 | `Next: ghog day (the walk re-proves check, affected and full)` (Q30) |
 | `ghog single`, no baseline | 0 or 2 | `no full-run baseline, comparison skipped; run ghog full for suite-level truth` |
 | any subcommand, setup error | 5 | the failing precondition (pytest not found, unreadable TOTAL line, blocked senv.bat) |
+| any pytest subcommand, no pytest marker at the root | 9 | `ghog: not a pytest project ...` and `Next: no ghog step left - validate with the project's own test commands ...`, checked before the pytest lookup |
 
 ## Implementation layout under tools
 

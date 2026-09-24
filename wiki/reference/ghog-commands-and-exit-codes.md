@@ -52,6 +52,7 @@ scheduler rather than the test; `ghog timings` judges it sequentially instead.
 | 6 | a run is live | poll `ghog status` until `state=done`, start nothing |
 | 7 | the last run is lost | only from `ghog status`: killed or never recorded; relaunch `ghog day` |
 | 8 | duration outlier on a green run | shorten the named slow calls, or `ghog exclude`, then `ghog day` |
+| 9 | not a pytest project (no pytest marker at the root) | groundhog has no test step here; validate with the project's own test commands |
 | other | `ghog check` passthrough | fix compile or lint errors; split a file over the line limit |
 
 ## 🏁 The closing line

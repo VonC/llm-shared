@@ -71,6 +71,10 @@ branch names, and stop when an iteration makes no progress — never beyond
 - **exit 8, duration outlier** — the suite is green but one call ran far
   outside the norm: see [Fix a slow test](fix-a-slow-test.md).
 
+- **exit 9, not a pytest project**: the root has no pytest marker, so
+  groundhog has no test step to run. Nothing is broken: validate with the
+  project's own test commands, and never install pytest to get past it.
+
 ## 🤖 Driving the loop from an LLM
 
 Every LLM-driven run goes through one redirected call so the model reads
