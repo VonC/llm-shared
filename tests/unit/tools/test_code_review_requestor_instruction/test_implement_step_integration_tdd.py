@@ -7,6 +7,9 @@ Fix: after the authorized `Commit` completes, the requestor checks for an empty
 working tree, proposes a `group-commits-msg` `a.commit` for any leftover change,
 prints the `pw skill` next step, and stops instead of launching the next
 implementation step.
+
+Fix: that final report now comes from `pw progress`, which shows where the
+topic stands above the same next command.
 """
 
 from pathlib import Path
@@ -104,8 +107,9 @@ def test_code_review_requestor_stops_on_a_clean_tree_after_commit() -> None:
         "root `a.commit`",
         "human go-ahead menu",
         "Once the tree is empty",
-        "run `pw skill` through its launcher",
-        "print its line as the next step",
+        "run `pw progress` through its launcher",
+        "print its whole report verbatim",
+        "its `next` line as the next step",
         "Do not run that next implementation step",
     ):
         assert token in block

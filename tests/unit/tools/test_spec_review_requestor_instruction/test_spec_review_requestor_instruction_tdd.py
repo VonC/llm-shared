@@ -9,6 +9,9 @@ Fix: after the authorized `Consolidate` completes, the requestor checks for an
 empty working tree, proposes a `group-commits-msg` `a.commit` for any leftover
 change, prints the `pw skill` next step, and stops instead of launching the
 next phase.
+
+Fix: that final report now comes from `pw progress`, which shows where the
+topic stands above the same next command.
 """
 
 from __future__ import annotations
@@ -159,7 +162,7 @@ def test_instruction_completes_only_after_canonical_consolidation() -> None:
             "consolidate-then-review-ask-questions",
             "settled decision marker",
             "`complete`",
-            "rerun `pw skill`",
+            "run `pw progress`",
         ),
     )
     assert "`owning-action-pending`" in content
@@ -173,18 +176,20 @@ def test_instruction_stops_on_a_clean_tree_after_consolidation() -> None:
     _assert_in_order(
         content,
         (
-            "rerun `pw skill`",
+            "run `pw progress`",
             "Make sure the working tree is empty",
             "`git status --porcelain`",
             "`git add -A`",
             "root `a.commit`",
             "human go-ahead menu",
             "Once the tree is empty",
-            "print the next step as `pw skill` printed it",
-            "and stop",
+            "print its whole report verbatim",
+            "its `next` line as the next step",
+            "Then stop",
             "Do not run that next-phase command",
         ),
     )
+    assert "print the next step as `pw skill` printed it" not in content
 
 
 # eof

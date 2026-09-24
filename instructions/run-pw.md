@@ -2,7 +2,7 @@
 
 The workflow handoffs call `pw` commands: `pw skill`, `pw skill --after-write
 <role>`, `pw skill --after-commit <x>`, `pw skill --after-merge
-<umbrella-draft>`, and `pw handoff <mode> <x>`. This note gives the one reliable
+<umbrella-draft>`, `pw progress`, and `pw handoff <mode> <x>`. This note gives the one reliable
 way to run them, so each instruction can point here instead of repeating the
 call.
 
@@ -39,6 +39,7 @@ Replace `skill` with the actual sub-command and its arguments.
 | `pw skill --after-write <role>` | `& "<LLM_SHARED_DIR>\bin\prompt_workflow.bat" skill --after-write <role>` |
 | `pw skill --after-commit <x>` | `& "<LLM_SHARED_DIR>\bin\prompt_workflow.bat" skill --after-commit <x>` |
 | `pw skill --after-merge <umbrella-draft>` | `& "<LLM_SHARED_DIR>\bin\prompt_workflow.bat" skill --after-merge <umbrella-draft>` |
+| `pw progress` | `& "<LLM_SHARED_DIR>\bin\prompt_workflow.bat" progress` |
 | `pw handoff check <x>` | `& "<LLM_SHARED_DIR>\bin\prompt_workflow.bat" handoff check <x>` |
 | `pw handoff after-check <x>` | `& "<LLM_SHARED_DIR>\bin\prompt_workflow.bat" handoff after-check <x>` |
 
@@ -67,3 +68,8 @@ A pw command prints one line to stdout, such as
 selected effort directory and the prefix for the active host. Read that line
 verbatim and act on it as the calling handoff describes; the not-applicable case
 prints nothing and exits non-zero.
+
+`pw progress` is the exception: it prints a short aligned report (`branch`,
+`topic`, `umbrella`, `phase`, `step`, `next`) and its `next` line carries the
+same command bare `pw skill` prints. With no resolved topic it prints only
+`branch` and `topic none resolved`, and exits non-zero.
