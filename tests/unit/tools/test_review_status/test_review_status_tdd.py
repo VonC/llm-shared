@@ -561,7 +561,11 @@ def test_projection_fail_closed_branches_are_explicit(tmp_path: Path) -> None:
         is LeaseFreshness.MISSING
     )
     with pytest.raises(ReviewExchangeError, match="no continuing agent role"):
-        _role_for(ArtifactState.ROUND_IN_PROGRESS, Actor.REVIEWER, Actor.HUMAN, presence)
+        _role_for(ArtifactState.ABANDONED_MID_ROUND, Actor.REVIEWER, Actor.HUMAN, presence)
+    assert (
+        _role_for(ArtifactState.ROUND_IN_PROGRESS, Actor.REQUESTOR, Actor.REVIEWER, presence)
+        is ReviewRole.REQUESTOR
+    )
     with pytest.raises(ReviewExchangeError, match="artifact shape"):
         _role_for(ArtifactState.ESCALATED, Actor.REVIEWER, Actor.HUMAN, presence)
     presence[ArtifactKind.REQUEST] = True

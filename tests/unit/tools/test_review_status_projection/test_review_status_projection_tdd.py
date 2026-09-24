@@ -1,4 +1,9 @@
-"""Independent settled expectations for every active review state."""
+"""Independent settled expectations for every active review state.
+
+Fix: `round-in-progress` expects the requestor and `requestor-work`, although
+the fixture record already names the reviewer as `expected_next_actor`, the
+shape `continue` writes while the requestor prepares the next request.
+"""
 
 # pyright: reportPrivateUsage=false
 # ruff: noqa: D103, PLR2004
@@ -44,7 +49,7 @@ from tools.review_status_models import (
 _NOW = datetime(2026, 8, 30, 10, 0, tzinfo=UTC)
 _RENEWED = "2026-08-30T09:59:30+00:00"
 _EXPECTED_ACTION = {
-    ArtifactState.ROUND_IN_PROGRESS: NextAction.WAIT_FOR_COUNTERPART,
+    ArtifactState.ROUND_IN_PROGRESS: NextAction.REQUESTOR_WORK,
     ArtifactState.REQUEST_PENDING: NextAction.REVIEWER_WORK,
     ArtifactState.ANSWER_PUBLICATION_IN_PROGRESS: NextAction.REPAIR,
     ArtifactState.TRANSCRIPT_REPAIR_PENDING: NextAction.REPAIR,
@@ -84,11 +89,16 @@ _UNTRUSTWORTHY = {
     ArtifactState.ABANDONED_ANSWER,
     ArtifactState.INCONSISTENT,
 }
+_NO_LEASE_STATES = {
+    ArtifactState.CONVERGENCE_GATE,
+    ArtifactState.OWNING_ACTION_PENDING,
+    ArtifactState.ESCALATED,
+}
 _REQUESTOR_STATES = {
+    ArtifactState.ROUND_IN_PROGRESS,
     ArtifactState.CONVERGENCE_GATE,
     ArtifactState.OWNING_ACTION_PENDING,
 }
-_NO_LEASE_STATES = _REQUESTOR_STATES | {ArtifactState.ESCALATED}
 _EXPECTED_ROLE = {
     state: ReviewRole.REQUESTOR if state in _REQUESTOR_STATES else ReviewRole.REVIEWER
     for state in ArtifactState

@@ -4,6 +4,7 @@ Ordinary projection remains read-only.  The public entry point first permits the
 single bounded mutation exception required to migrate legacy review artifacts,
 then projects the ready layout exactly once. Global request discovery defers
 busy publications and validates settled snapshots under their transition lock.
+Fix: `round-in-progress` projects the requestor and `requestor-work` (contract).
 """
 
 # ruff: noqa: EM101, EM102, TRY003
@@ -89,7 +90,7 @@ _NO_LEASE_STATES = frozenset(
 )
 
 _ACTION_BY_STATE = {
-    ArtifactState.ROUND_IN_PROGRESS: NextAction.WAIT_FOR_COUNTERPART,
+    ArtifactState.ROUND_IN_PROGRESS: NextAction.REQUESTOR_WORK,
     ArtifactState.REQUEST_PENDING: NextAction.REVIEWER_WORK,
     ArtifactState.ANSWER_PUBLICATION_IN_PROGRESS: NextAction.REPAIR,
     ArtifactState.TRANSCRIPT_REPAIR_PENDING: NextAction.REPAIR,
@@ -492,7 +493,9 @@ def _role_for(
     presence: Mapping[ArtifactKind, bool],
 ) -> ReviewRole:
     """Derive the agent that can continue, including artifact-shaped escalation."""
-    if state in (ArtifactState.CONVERGENCE_GATE, ArtifactState.OWNING_ACTION_PENDING):
+    # A round without request is the requestor's, whatever `expected_next_actor` says.
+    requestor_states = (ArtifactState.ROUND_IN_PROGRESS, ArtifactState.CONVERGENCE_GATE)
+    if state in (*requestor_states, ArtifactState.OWNING_ACTION_PENDING):
         return ReviewRole.REQUESTOR
     if state is ArtifactState.ESCALATED:
         reviewer_shape = presence[ArtifactKind.REQUEST] or presence[ArtifactKind.TOMBSTONE]
