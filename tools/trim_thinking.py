@@ -15,7 +15,10 @@ present in the source text unless the caller forces one:
   command that completes speaks again under the same prompt. Every earlier
   answer block of a section is tool traffic and resets the answer region,
   which is what makes a working session shrink rather than merely lose its
-  reasoning.
+  reasoning. Before those regions are marked, every answer block holding a
+  tool-output line (U+23BF after zero or more spaces) is replaced by one
+  blank line, so a tool call is never kept as the opening or the answer of
+  a turn, and a replacement never leaves two blank lines in a row.
 - A Codex export keeps the same three regions of every turn: the `## User`
   section up to the first `## Assistant` heading, that first assistant
   section, and the last assistant section of the turn. Every assistant
@@ -47,11 +50,16 @@ PROMPT_MARKER = "❯ "  # noqa: RUF001
 # The recap prefix is a reference mark, U+203B, opening the recap line that
 # Claude Code prints under the reflection line of a turn.
 RECAP_MARKER = "※ "
+# Tool output is rendered under its call behind a bottom-left bracket,
+# U+23BF, after zero or more spaces. One such line makes the whole answer
+# block a tool block.
+TOOL_OUTPUT_MARKER = "⎿"
 
 CODEX_SECTION_HEADINGS = frozenset({"user", "assistant", "activity"})
 
 _CODEX_HEADING_PATTERN = re.compile(r"^##\s+(?P<name>\S.*?)\s*$")
 _BLANK_LINE_PATTERN = re.compile(r"^\s*$")
+_TOOL_OUTPUT_PATTERN = re.compile(rf"^ *{TOOL_OUTPUT_MARKER}")
 # A dated prompt opens with an optional one-character marker and its space,
 # then an eight-digit YYYYMMDD date followed by a space.
 _DATED_LINE_PATTERN = re.compile(r"^(?:.\s)?(?P<date>\d{8})\s")
@@ -113,6 +121,18 @@ def _starts_recap(line: str) -> bool:
 def _closes_answer(line: str) -> bool:
     """Report whether one line closes a turn, as a reflection or a recap."""
     return line.startswith(REFLECTION_MARKER) or _starts_recap(line)
+
+
+def _is_tool_output(line: str) -> bool:
+    """Report whether one line is tool output, after zero or more spaces."""
+    return _TOOL_OUTPUT_PATTERN.match(line) is not None
+
+
+def _ends_answer_block(line: str) -> bool:
+    """Report whether one line opens whatever follows an answer block."""
+    return (
+        _starts_answer(line) or _closes_answer(line) or line.startswith(PROMPT_MARKER)
+    )
 
 
 def _codex_heading_name(line: str) -> str | None:
@@ -340,9 +360,49 @@ class _ClaudeTrimmer:
         return lookahead
 
 
+def drop_tool_blocks(lines: Sequence[str]) -> list[str]:
+    """Replace every answer block holding tool output with one blank line.
+
+    An answer block runs from its answer marker to the next answer, prompt,
+    reflection, or recap line. When any of its lines is tool output, the
+    whole block goes and one blank line stands in for it. That blank line is
+    left out when the line before it is already blank, and the blank lines
+    right after it are left out too, so a dropped block never leaves two
+    blank lines in a row. Blank runs anywhere else keep their shape.
+
+    Args:
+        lines: Lines of one Claude export.
+
+    Returns:
+        The lines with every tool block replaced.
+    """
+    kept: list[str] = []
+    collapsing = False
+    index = 0
+    while index < len(lines):
+        line = lines[index]
+        if _starts_answer(line):
+            end = index + 1
+            while end < len(lines) and not _ends_answer_block(lines[end]):
+                end += 1
+            if any(_is_tool_output(block_line) for block_line in lines[index:end]):
+                if not kept or not _is_blank(kept[-1]):
+                    kept.append("")
+                collapsing = True
+                index = end
+                continue
+        if not _is_blank(line):
+            collapsing = False
+            kept.append(line)
+        elif not (collapsing and kept and _is_blank(kept[-1])):
+            kept.append(line)
+        index += 1
+    return kept
+
+
 def trim_claude_transcript(text: str) -> str:
-    """Drop the reflection bodies of one Claude export."""
-    return "\n".join(_ClaudeTrimmer(text.splitlines()).trim())
+    """Drop the tool blocks and the reflection bodies of one Claude export."""
+    return "\n".join(_ClaudeTrimmer(drop_tool_blocks(text.splitlines())).trim())
 
 
 def _is_codex_assistant(line: str) -> bool:
