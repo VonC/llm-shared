@@ -177,6 +177,16 @@ Ordinary document routing then selects the next workflow phase. If consolidation
 failed or the settled decision marker is absent, leave the authorization durable,
 report the failure, and do not complete the exchange.
 
+The authorized `Consolidate` action ends there. Make sure the working tree is
+empty with `git status --porcelain`. When it lists anything, stage every
+remaining non-ignored change with `git add -A` and propose a
+[`group-commits-msg.md`](group-commits-msg.md) root `a.commit` for it, through
+that instruction's normal steps and human go-ahead menu; the `Consolidate`
+authorization does not cover these leftover commits. Once the tree is empty,
+print the next step as `pw skill` printed it, with the prefix rule of
+[`../rules/command_prefix_char.md`](../rules/command_prefix_char.md), and stop.
+Do not run that next-phase command; the human launches it.
+
 For a bare user `resume`, follow [the canonical resume instruction](review-resume.md)
 through migration, role and identity gates, and automatic `claim` before
 continuing this exact exchange. Keep its capability in session and pass the

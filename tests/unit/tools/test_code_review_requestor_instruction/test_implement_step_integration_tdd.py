@@ -2,6 +2,11 @@
 
 The checks pin only required trigger, delegation, and continuation tokens plus
 their order, including the Step 4 readiness gate before authorized batches.
+
+Fix: after the authorized `Commit` completes, the requestor checks for an empty
+working tree, proposes a `group-commits-msg` `a.commit` for any leftover change,
+prints the `pw skill` next step, and stops instead of launching the next
+implementation step.
 """
 
 from pathlib import Path
@@ -83,5 +88,24 @@ def test_code_review_requestor_requires_clean_residual_completion() -> None:
         "pw code-review-commit --residual",
         "git status --porcelain",
         "Never proceed to `pw skill`",
+    ):
+        assert token in block
+
+
+def test_code_review_requestor_stops_on_a_clean_tree_after_commit() -> None:
+    """The completed Commit prints the next step and stops."""
+    content = " ".join(_content("code-review-requestor.md").split())
+    start = content.index("The authorized `Commit` action ends after `complete`")
+    block = content[start:]
+    for token in (
+        "Make sure the working tree is empty",
+        "`git status --porcelain`",
+        "`git add -A`",
+        "root `a.commit`",
+        "human go-ahead menu",
+        "Once the tree is empty",
+        "run `pw skill` through its launcher",
+        "print its line as the next step",
+        "Do not run that next implementation step",
     ):
         assert token in block

@@ -221,6 +221,17 @@ authorization and report the failure so a later session can repair and replay
 the owning action. Never proceed to `pw skill` or another implementation step
 until this clean-tree postcondition succeeds.
 
+The authorized `Commit` action ends after `complete`. Make sure the working
+tree is empty with `git status --porcelain`. When it lists anything, stage every
+remaining non-ignored change with `git add -A` and propose a
+[`group-commits-msg.md`](group-commits-msg.md) root `a.commit` for it, through
+that instruction's normal steps and human go-ahead menu; the `Commit`
+authorization does not cover these leftover commits. Once the tree is empty,
+run `pw skill` through its launcher (see
+[`run-pw.md`](run-pw.md)), print its line as the next step, with the prefix
+rule of [`../rules/command_prefix_char.md`](../rules/command_prefix_char.md),
+and stop. Do not run that next implementation step; the human launches it.
+
 For a bare user `resume`, follow [the canonical resume instruction](review-resume.md)
 through migration, role and identity gates, and automatic `claim` before
 continuing this exact exchange. Keep its capability in session and pass the
