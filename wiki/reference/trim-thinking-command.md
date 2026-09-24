@@ -46,6 +46,20 @@ only when it starts with both.
 | `✻` | U+273B | The reflection line closing a turn |
 | `※` | U+203B | The recap line under a reflection line, matched indented or not |
 
+## Claude tool blocks
+
+Before the kept regions are marked, one pass drops the tool blocks of a Claude
+export. An answer block runs from its `●` or `⏺` line to the next answer,
+prompt, reflection, or recap line. When any of its lines starts with `⎿`
+(U+23BF) after zero or more spaces, the whole block is a tool block.
+
+| Rule | Effect |
+| --- | --- |
+| Replacement | The tool block becomes one blank line |
+| Collapse | That blank line is left out after a blank line, and blank lines right after it are left out, so no two blank lines follow each other |
+| Scope | Blank runs away from a dropped block, such as those of a prompt, keep their shape |
+| Order | The kept regions below are chosen among the remaining blocks, so a tool block is never the opening or the answer |
+
 ## Codex headings
 
 | Heading | Meaning |

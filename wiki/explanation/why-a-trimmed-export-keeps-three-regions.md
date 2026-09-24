@@ -68,6 +68,17 @@ The cost is honest and bounded: a turn whose real answer came in two blocks
 separated by a tool call keeps only the second. The alternative, keeping every
 block, is the failure this design exists to avoid.
 
+## Why tool blocks go before the position is read
+
+Position alone let a tool call win. A turn that opens straight on a command
+kept that command as its opening, and a turn interrupted mid-command kept the
+command output as its answer. So one content rule runs first, and it is not a
+guess: a block with a line starting with `⎿` (after any spaces) is a tool
+block, because that bracket is how the export renders tool output. Each tool
+block is replaced by one blank line before any region is chosen, and positions
+are then read among the blocks that remain, which are the ones where the
+session spoke.
+
 ## Why the reflection line stays
 
 The reflection line that closes a Claude turn is kept even though its body is
