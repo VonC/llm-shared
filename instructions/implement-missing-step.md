@@ -29,7 +29,7 @@ When writing an answer in markdown, follow [`markdown.md`](../rules/markdown.md)
 
 ## Handoff
 
-When the missing work is implemented and the `ghog day` walk reports the objective (`exit=0`), hand the cycle back to the implementation check, with no menu. From the project root, run:
+When the missing work is implemented and the `ghog day` walk reports the objective (`exit=0`), or exit 9 followed by a green run of the project's own test commands (see [`implement-step.md`](implement-step.md#verify-a-project-without-a-pytest-suite)), hand the cycle back to the implementation check, with no menu. From the project root, run:
 
 - `pw handoff check <x>`
 
