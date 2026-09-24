@@ -18,6 +18,7 @@ walk.
 from tools.groundhog.models import (
     EXIT_COVERAGE_GAP,
     EXIT_DURATION_OUTLIERS,
+    EXIT_NOT_PYTEST_PROJECT,
     EXIT_OBJECTIVE_MET,
     EXIT_RUN_LIVE,
     EXIT_RUN_LOST,
@@ -33,6 +34,7 @@ from tools.groundhog.models import (
 __all__ = [
     "EXIT_COVERAGE_GAP",
     "EXIT_DURATION_OUTLIERS",
+    "EXIT_NOT_PYTEST_PROJECT",
     "EXIT_OBJECTIVE_MET",
     "EXIT_RUN_LIVE",
     "EXIT_RUN_LOST",

@@ -14,6 +14,9 @@ renders the exclusion block, and writes the managed section back (Q54, Q58).
 The one faked element is the process boundary (a canned pytest transcript with
 a ``slowest durations`` block injected through the runner's process factory),
 so the real parsing, rule, floor, classification and report run together.
+
+Fix: the deps also fake the pytest-suite probe as a pytest project, so the
+scenarios run from a bare temporary root.
 """
 
 from __future__ import annotations
@@ -373,6 +376,7 @@ def _user_deps(spawns: Spawns, bars: list[_FakeBar]) -> cli.Deps:
         clock=lambda: 0.0,
         bar_factory=_bar_factory,
         which=lambda _name: "pytest",
+        pytest_project=lambda _root: True,
     )
 
 

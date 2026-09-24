@@ -18,6 +18,12 @@ and per-test exclusion features each added their next-step wording here; the
 run-state table is a single responsibility distinct from the progress and
 closing line text that stays behind, so it moves whole into this module. Pure
 string building, no IO.
+
+Fix: add the exit-9 wording of a project with no pytest suite: the reason
+line says the pytest steps do not apply and that nothing needs installing,
+and the next step sends the caller to the project's own test commands. The
+missing-pytest reason (Q21) moves here too, so ``commands.py`` keeps its line
+budget.
 """
 
 from __future__ import annotations
@@ -49,6 +55,20 @@ MSG_CHECK_MISSING: Final = (
 MSG_CHECK_EXIT_MISMATCH: Final = (
     "check.bat printed ERROR lines but exited 0 - treating the check as "
     "failed; fix check.bat so it exits with its failed status (Q26)"
+)
+MSG_NO_PYTEST: Final = (
+    "ghog: pytest not found on PATH; "
+    "run through the ghog wrapper so senv.bat loads the project venv (Q21)."
+)
+MSG_NOT_PYTEST_PROJECT: Final = (
+    "ghog: not a pytest project - no pyproject.toml, pytest.ini or conftest.py, "
+    "and no pytest section in setup.cfg or tox.ini at the project root; the "
+    "pytest steps do not apply. This is not a setup error: do not install "
+    "pytest or create a venv to get past it"
+)
+MSG_NOT_PYTEST_PROJECT_NEXT: Final = (
+    "Next: no ghog step left - validate with the project's own test commands; "
+    "in a ghog day walk, the check step above was the whole groundhog verdict"
 )
 MSG_AFFECTED_NOCOV_OK: Final = "Next: ghog full"
 MSG_NO_TESTS_RUN: Final = (

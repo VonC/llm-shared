@@ -13,6 +13,10 @@ Fix: the full command carries the xdist worker options instead of
 affected run keeps testmon and owns the incremental map, so no test covers a
 testmon reset any more.
 
+Fix: cover the pytest-suite probe of the project root: a bare root has no
+suite, each root marker file makes one, and setup.cfg or tox.ini count only
+with pytest's own section.
+
 The real streaming child skips site initialization and inherited Python setup;
 the scenario needs only builtin output and exit status.
 """
@@ -161,6 +165,34 @@ def test_parallel_is_opt_in_per_project(tmp_path: Path) -> None:
     assert runner.parallel_enabled(tmp_path) is False
     (tmp_path / runner.PARALLEL_MARKER).write_text("opt in\n", encoding="utf-8")
     assert runner.parallel_enabled(tmp_path) is True
+
+
+def test_bare_root_is_not_a_pytest_project(tmp_path: Path) -> None:
+    """A root with no pytest marker, like a batch-only project, has no suite."""
+    (tmp_path / "check.bat").write_text("@echo off\n", encoding="utf-8")
+    (tmp_path / "tests").mkdir()
+    assert runner.is_pytest_project(tmp_path) is False
+
+
+def test_each_root_file_marks_a_pytest_project(tmp_path: Path) -> None:
+    """pyproject.toml, pytest.ini or conftest.py alone make a pytest project."""
+    for name in runner.PYTEST_ROOT_FILES:
+        root = tmp_path / name.replace(".", "_")
+        root.mkdir()
+        (root / name).write_text("", encoding="utf-8")
+        assert runner.is_pytest_project(root) is True
+
+
+def test_shared_ini_counts_only_with_its_pytest_section(tmp_path: Path) -> None:
+    """setup.cfg and tox.ini mark a pytest project only through pytest's section."""
+    for name, section in runner.PYTEST_INI_SECTIONS:
+        root = tmp_path / name.replace(".", "_")
+        root.mkdir()
+        ini = root / name
+        ini.write_text("[metadata]\nname = demo\n", encoding="utf-8")
+        assert runner.is_pytest_project(root) is False
+        ini.write_text(f"{section}\naddopts = -q\n", encoding="utf-8")
+        assert runner.is_pytest_project(root) is True
 
 
 def test_affected_and_single_never_time_durations() -> None:

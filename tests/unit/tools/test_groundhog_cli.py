@@ -14,15 +14,21 @@ a crashed run only catches up to the parsed count; both paths covered.
 Fix: cover the exclude subcommand (Q62) — it writes the node id and its
 measured time into the ``[exclusion]`` section of ``a.ghog.outliers`` and
 exits 0, with the floor lines seeded.
+
+Fix: cover the exit-9 refusal of a root with no pytest suite. A pytest
+subcommand exits 9 before any pytest lookup, and a day walk runs check.bat
+first, then stops at its first pytest step.
 """
 
 from __future__ import annotations
 
+from dataclasses import replace
 from typing import TYPE_CHECKING, cast
 
 from tools.groundhog import cli, commands, exclusions, reporting_nextstep, runner
 from tools.groundhog.models import (
     EXIT_COVERAGE_GAP,
+    EXIT_NOT_PYTEST_PROJECT,
     EXIT_OBJECTIVE_MET,
     EXIT_SETUP_ERROR,
     EXIT_SUITE_CRASH,
@@ -117,6 +123,8 @@ def _deps(
     code: int,
     bars: list[_FakeBar],
     which_result: str | None = "pytest",
+    *,
+    pytest_project: bool = True,
 ) -> cli.Deps:
     """Build CLI deps around one canned child process.
 
@@ -125,10 +133,15 @@ def _deps(
         code: The scripted child exit code.
         bars: Receives the fake bars created by the bar factory.
         which_result: The pytest lookup result.
+        pytest_project: The pytest-suite probe result for the root.
 
     Returns:
         The injectable seams.
     """
+
+    def _pytest_project(root: Path) -> bool:
+        del root
+        return pytest_project
 
     def _factory(command: list[str], cwd: Path) -> subprocess.Popen[str]:
         del command, cwd
@@ -149,6 +162,7 @@ def _deps(
         clock=lambda: 0.0,
         bar_factory=_bar_factory,
         which=_which,
+        pytest_project=_pytest_project,
     )
 
 
@@ -252,6 +266,47 @@ def test_main_without_pytest_is_a_setup_error(
     out = capsys.readouterr().out
     assert "pytest not found" in out
     assert "exit=5" in out
+
+
+def test_main_outside_a_pytest_project_exits_9(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A root with no pytest suite exits 9 before any pytest lookup."""
+    looked_up: list[str] = []
+
+    def _which(name: str) -> str | None:
+        looked_up.append(name)
+        return None
+
+    bars: list[_FakeBar] = []
+    deps = replace(_deps([], 0, bars, pytest_project=False), which=_which)
+    code = cli.main(["full", "--root", str(tmp_path), "--llm"], deps)
+    assert code == EXIT_NOT_PYTEST_PROJECT
+    assert looked_up == []
+    out = capsys.readouterr().out
+    assert reporting_nextstep.MSG_NOT_PYTEST_PROJECT in out
+    assert reporting_nextstep.MSG_NOT_PYTEST_PROJECT_NEXT in out
+    assert "pytest not found" not in out
+    assert "ghog full done" in out
+    assert "exit=9" in out
+
+
+def test_day_outside_a_pytest_project_stops_after_the_check(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """The day walk runs check.bat, then exits 9 at the first pytest step."""
+    (tmp_path / "check.bat").write_text("@echo off\n", encoding="utf-8")
+    bars: list[_FakeBar] = []
+    deps = _deps([" OK    : [check.bat] fine"], 0, bars, pytest_project=False)
+    code = cli.main(["day", "--root", str(tmp_path), "--llm"], deps)
+    assert code == EXIT_NOT_PYTEST_PROJECT
+    out = capsys.readouterr().out
+    assert "ghog check done" in out
+    assert "ghog affected --no-cov done" in out
+    assert "exit=9" in out
+    assert "ghog full done" not in out
 
 
 def test_user_mode_drives_the_bar(

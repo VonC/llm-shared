@@ -9,6 +9,10 @@ closing lines). The envelope lines — next step, setup reason, nag and
 closing — go through ``emit_summary``, which mirrors them to the captured
 stdout when the Q31 self-redirect guard armed, so an unredirected LLM
 caller still branches without reading the log.
+
+Fix: the pytest steps first ask the ``pytest_project`` seam whether the root
+has a pytest suite at all. A project with none exits 9 with its own reason and
+next step, instead of the missing-pytest setup error that blamed senv.bat.
 """
 
 from __future__ import annotations
@@ -31,6 +35,7 @@ from tools.groundhog import (
 from tools.groundhog.models import (
     EXIT_COVERAGE_GAP,
     EXIT_DURATION_OUTLIERS,
+    EXIT_NOT_PYTEST_PROJECT,
     EXIT_OBJECTIVE_MET,
     EXIT_SETUP_ERROR,
     EXIT_SUITE_CRASH,
@@ -196,11 +201,21 @@ def run_tests(invocation: Invocation, deps: Deps) -> int:
         deps: The injectable seams.
 
     Returns:
-        The contract exit code (Q12).
+        The contract exit code (Q12); exit 9 when the root has no pytest
+        suite, checked before the pytest lookup.
     """
+    if not deps.pytest_project(invocation.root):
+        return _exit_before_pytest(
+            invocation,
+            [
+                reporting_nextstep.MSG_NOT_PYTEST_PROJECT,
+                reporting_nextstep.MSG_NOT_PYTEST_PROJECT_NEXT,
+            ],
+            EXIT_NOT_PYTEST_PROJECT,
+        )
     pytest_exe = deps.which("pytest")
     if pytest_exe is None:
-        return _setup_exit_no_pytest(invocation)
+        return _exit_before_pytest(invocation, [reporting_nextstep.MSG_NO_PYTEST], EXIT_SETUP_ERROR)
     parallel = runner.parallel_enabled(invocation.root)
     if invocation.sub == runner.SUB_FULL and not parallel:
         # A worker run carries no testmon, so it owns no map to reset and
@@ -269,32 +284,30 @@ def run_init(invocation: Invocation, deps: Deps) -> int:
     return code
 
 
-def _setup_exit_no_pytest(invocation: Invocation) -> int:
-    """Report the missing-pytest setup error (Q21).
+def _exit_before_pytest(invocation: Invocation, lines: Sequence[str], code: int) -> int:
+    """Report a pytest step that stops before spawning pytest.
+
+    Serves the root with no pytest suite (exit 9) and the missing pytest
+    executable (Q21, exit 5): both print their reason, then the closing line.
 
     Args:
         invocation: The parsed invocation.
+        lines: The reason and next-step lines.
+        code: The contract exit code of the stop.
 
     Returns:
-        ``EXIT_SETUP_ERROR``.
+        ``code``, unchanged.
     """
-    emit_summary(
-        _section(
-            [
-                "ghog: pytest not found on PATH; "
-                "run through the ghog wrapper so senv.bat loads the project venv (Q21).",
-            ],
-        ),
-    )
+    emit_summary(_section(lines))
     closing = reporting.closing_line(
         invocation.root.name,
         sub_label(invocation),
         RunStats(),
-        EXIT_SETUP_ERROR,
+        code,
         reporting.ClosingMetrics(reporting.COV_SKIPPED),
     )
     emit_summary(_section([closing]))
-    return EXIT_SETUP_ERROR
+    return code
 
 
 def _measures_coverage(invocation: Invocation) -> bool:

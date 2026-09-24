@@ -8,6 +8,10 @@ parsed from the command line.
 Fix: the Q32 lifecycle adds two seams — the detached-walk spawn and the
 handshake sleep — and the ``detach`` flag of the day walk to the
 invocation.
+
+Fix: the ``pytest_project`` seam tells the pytest steps whether the root
+carries a pytest suite, so a project without one exits 9 before any pytest
+lookup.
 """
 
 from __future__ import annotations
@@ -40,6 +44,8 @@ class Deps:
         home: User home lookup, for the Codex prompt of init (Q25).
         detach_factory: Survivor spawn of the detached day walk (Q32).
         sleep: Handshake pause of the detached launch (Q32).
+        pytest_project: Root probe for a pytest suite, gating the pytest
+            steps before the pytest lookup.
     """
 
     popen_factory: Callable[[list[str], Path], subprocess.Popen[str]] = (
@@ -53,6 +59,7 @@ class Deps:
         status.default_detach_factory
     )
     sleep: Callable[[float], None] = time.sleep
+    pytest_project: Callable[[Path], bool] = runner.is_pytest_project
 
 
 @dataclass(frozen=True)

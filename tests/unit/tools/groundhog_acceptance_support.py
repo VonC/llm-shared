@@ -5,6 +5,9 @@ both acceptance files (the subcommand scenarios and the day-walk
 scenarios) fake the same single element — the process boundary — through
 these helpers, so the real parsing, classification, reporting and
 baseline behavior stays under test.
+
+Fix: the shared deps also fake the pytest-suite probe as a pytest project, so
+the scenarios run from a bare temporary root.
 """
 
 from __future__ import annotations
@@ -136,6 +139,7 @@ def make_deps(spawns: Spawns | QueueSpawns) -> cli.Deps:
         popen_factory=spawns,
         clock=lambda: 0.0,
         which=lambda _name: "pytest",
+        pytest_project=lambda _root: True,
     )
 
 

@@ -11,6 +11,10 @@ Fix: Run the full suite on xdist workers. Setup, not assertions, dominated
 the walk, so the full run now spawns workers and drops ``--testmon``, which
 cannot share a session with ``pytest-xdist``. The affected run keeps testmon
 and owns the incremental map, so nothing resets that database any more.
+
+Fix: :func:`is_pytest_project` tells whether the root carries a pytest suite at
+all, so the pytest steps refuse a project with no pytest configuration before
+looking for pytest on PATH.
 """
 
 from __future__ import annotations
@@ -47,6 +51,11 @@ TESTMON_DATA_FILE: Final = ".testmondata"
 # would rebuild them per worker. So the parallel full run is opt-in and every
 # project keeps the sequential command until it declares otherwise.
 PARALLEL_MARKER: Final = ".ghog-parallel"
+# Root files that make a project a pytest project by their presence alone.
+PYTEST_ROOT_FILES: Final = ("pyproject.toml", "pytest.ini", "conftest.py")
+# Shared ini files that count only when they carry pytest's own section, since
+# setup.cfg and tox.ini also serve projects that never run pytest.
+PYTEST_INI_SECTIONS: Final = (("setup.cfg", "[tool:pytest]"), ("tox.ini", "[pytest]"))
 # Subcommand names, shared with the CLI.
 SUB_FULL: Final = "full"
 SUB_AFFECTED: Final = "affected"
@@ -106,6 +115,26 @@ def parallel_enabled(root: Path) -> bool:
         True when the project declares the parallel marker file.
     """
     return (root / PARALLEL_MARKER).is_file()
+
+
+def is_pytest_project(root: Path) -> bool:
+    """Tell whether the project root carries a pytest suite at all.
+
+    Args:
+        root: The consuming project root.
+
+    Returns:
+        True when the root holds a ``pyproject.toml``, ``pytest.ini`` or
+        ``conftest.py``, or a ``setup.cfg`` or ``tox.ini`` with a pytest
+        section.
+    """
+    if any((root / name).is_file() for name in PYTEST_ROOT_FILES):
+        return True
+    for name, section in PYTEST_INI_SECTIONS:
+        path = root / name
+        if path.is_file() and section in path.read_text(encoding="utf-8", errors="replace"):
+            return True
+    return False
 
 
 def pytest_command(

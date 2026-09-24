@@ -15,6 +15,10 @@ Fix: AT1 now asserts the parallel full run. The full command carries the
 xdist worker options instead of ``--testmon``, which cannot share a session
 with ``pytest-xdist``, and it no longer deletes the testmon database because
 the affected run owns that incremental map.
+
+Fix: the deps built here fake the pytest-suite probe, and the main-guard
+scenario, which keeps the real probe, writes a ``pyproject.toml`` marker at its
+root.
 """
 
 from __future__ import annotations
@@ -357,6 +361,7 @@ def test_at9_silence_floor_keeps_the_run_alive(
         popen_factory=spawns,
         clock=SteppingClock(),
         which=lambda _name: "pytest",
+        pytest_project=lambda _root: True,
     )
     cli.main(["affected", "--no-cov", "--root", str(tmp_path), "--llm"], deps)
     out = capsys.readouterr().out
@@ -404,6 +409,8 @@ def test_script_runs_through_its_main_guard(
 
     monkeypatch.setattr("subprocess.Popen", _fake_popen)
     monkeypatch.setattr("shutil.which", _fake_which)
+    # The script keeps the real pytest-suite probe, so the root needs a marker.
+    (tmp_path / "pyproject.toml").write_text("", encoding="utf-8")
     script_path = cli.__file__
     argv = [
         script_path,

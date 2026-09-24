@@ -13,6 +13,11 @@ reporter and the live-run refusal, never by a run's own classification.
 Fix: a full run green on tests and coverage that still hides a true
 duration outlier returns the new ``EXIT_DURATION_OUTLIERS`` (8), judged
 last so it never masks a failure or a coverage gap (Q34).
+
+Fix: a project with no pytest suite at all returns the new
+``EXIT_NOT_PYTEST_PROJECT`` (9) from every pytest step. It used to fall into
+the missing-pytest setup error (5), whose hint sent callers off installing
+pytest or a venv into projects that do not use Python.
 """
 
 from __future__ import annotations
@@ -31,6 +36,10 @@ EXIT_SETUP_ERROR: Final = 5
 # outlier (Q34): a run-classification code judged last, only on an
 # otherwise-green full run, so it never masks a failure or a coverage gap.
 EXIT_DURATION_OUTLIERS: Final = 8
+# A project root with no pytest marker: the pytest steps do not apply. Kept
+# apart from the setup error (5) because there is nothing to repair: the
+# project validates its tests with its own commands.
+EXIT_NOT_PYTEST_PROJECT: Final = 9
 # Lifecycle codes of the Q32 status contract: a run is live (wait and
 # poll ghog status), or the last run is lost — killed mid-walk or never
 # recorded — and the walk must be relaunched.
