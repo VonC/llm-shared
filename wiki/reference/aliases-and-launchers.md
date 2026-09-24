@@ -21,6 +21,7 @@ the corresponding launcher.
 | Alias | Runs | Purpose |
 | --- | --- | --- |
 | `pw` | `bin\prompt_workflow.bat` | next-step prompt through menu, `handoff`, or `skill`; stateless path lookup through `document` |
+| `pwp` | `bin\prompt_workflow.bat progress` | `pw progress`, forwarding any extra argument |
 | `gcmp` | `bin\gcmp.bat` | write `a.diff`, clear `a.commit`, build the `/group-commits-msg` prompt to the clipboard |
 | `gcba` | `bin\gcba.bat --root-a-commit` | validate `a.commit`, then replay the grouped commits |
 | `grmc` | `scripts\update-merge-commit-msg\git-reword-merge.sh` | rewrite the current merge commit from `a.commit` |
@@ -49,6 +50,7 @@ run still needs a new Codex thread before the refreshed skill registry appears.
 | `ptanc` | `ghog affected --no-cov` | the fast focused pass, coverage off |
 | `pts` | `ghog single <test files>` | named files in focus, compared with the last full-run baseline |
 | `ghdy`, `gha`, `ghc`, `ghf`, `ghs` | `ghog day`, `affected`, `check`, `full`, `single` | define `GHOG_SENV_LIVE` to stream environment setup output |
+| `tagl` | `tail -f "%PRJ_DIR%\a.ghog.log"` | follow the current project's ghog log; takes no argument |
 | `c` | `bin\python_check.bat` | the compile, lint and big-file gate on its own |
 | `ruffc` | `ruff check` | lint right after code generation |
 | `covg` | `bin\covg.bat` | map uncovered lines to functions, build a test-writing prompt |

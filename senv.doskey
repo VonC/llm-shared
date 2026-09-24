@@ -33,6 +33,7 @@ wacnd="%LLM_SHARED_DIR%\bin\wac.bat" --no-delimiters $*$tif not errorlevel 1 ech
 oqm="%LLM_SHARED_DIR%\bin\oqm.bat" $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: open questions done
 
 pw="%LLM_SHARED_DIR%\bin\prompt_workflow.bat" $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: prompt workflow done
+pwp="%LLM_SHARED_DIR%\bin\prompt_workflow.bat" progress $*$tif not errorlevel 1 echo %PRJ_DIR_NAME%: prompt workflow progress done
 
 pwi=set "PW_PROFILE=1"$t"%LLM_SHARED_DIR%\bin\prompt_workflow.bat" $*$tset "PW_PROFILE="$techo %PRJ_DIR_NAME%: prompt workflow profiled
 
@@ -49,6 +50,7 @@ ptr="%LLM_SHARED_DIR%\bin\ptr.bat" $*
 pta="%LLM_SHARED_DIR%\bin\pta.bat" $*
 ptanc="%LLM_SHARED_DIR%\bin\ptanc.bat" $*
 pts="%LLM_SHARED_DIR%\bin\pts.bat" $*
+tagl=tail -f "%PRJ_DIR%\a.ghog.log"
 
 rvwst="%LLM_SHARED_DIR%\rvw_status.bat" $*
 rwst="%LLM_SHARED_DIR%\rvw_status.bat" $*
