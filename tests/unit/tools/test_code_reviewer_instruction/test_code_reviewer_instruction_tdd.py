@@ -2,6 +2,10 @@
 
 Step 4 requires an independent read-only commit-plan check while keeping
 mechanical readiness separate from assessment and human commit authority.
+
+Fix: the reviewer modifies no implementation code or tests unless human
+guidance instructs it, never runs `ghog day` or `ghog full`, and limits
+executed evidence to `ghog check` and `ghog affected --no-cov`.
 """
 
 from __future__ import annotations
@@ -190,6 +194,39 @@ def test_instruction_requires_independent_commit_plan_readiness_evidence() -> No
     ) < content.index(
         "six readiness-floor results",
     )
+
+
+def test_reviewer_modifies_no_code_without_explicit_human_guidance() -> None:
+    """Defects become findings; a repair needs an explicit guidance instruction."""
+    content = " ".join(_content().split())
+    _assert_contains_all(
+        content,
+        (
+            "does not modify implementation code or tests unless a literal",
+            "Do not modify implementation code or tests: report each defect as a finding",
+            "Only when a literal `Human guidance:` block explicitly instructs a repair",
+            "A repair happens only when a literal `Human guidance:` block explicitly",
+        ),
+    )
+
+
+def test_reviewer_limits_executed_evidence_to_check_and_affected_tests() -> None:
+    """The full walk and coverage belong to the requestor, never to the review."""
+    content = " ".join(_content().split())
+    _assert_contains_all(
+        content,
+        (
+            "## Validation evidence limits",
+            "is requestor-side validation",
+            "The reviewer does not repeat it",
+            "Never run `ghog day` or `ghog full`, and never measure or recheck coverage",
+            "`ghog check`, which runs `check.bat`",
+            "`ghog affected --no-cov`, the focused tests",
+            "do not follow the ghog report's next-step line",
+            "do not run that set: the requestor owns it",
+        ),
+    )
+    assert "Run every resolved mandatory validation command" not in content
 
 
 # eof

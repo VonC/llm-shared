@@ -1,10 +1,11 @@
 # Implementation code reviewer instruction
 
 Use this instruction only when `pw` routes one exact implementation plan and
-step to `code-reviewer`. The reviewer independently assesses the staged step,
-may make bounded attributable repairs, and publishes paired advisory answers
-across automatic intermediate rounds. It never authorizes a commit or takes
-requestor or human authority.
+step to `code-reviewer`. The reviewer independently assesses the staged step
+and publishes paired advisory answers across automatic intermediate rounds. It
+does not modify implementation code or tests unless a literal
+`Human guidance:` block in the request explicitly instructs that repair. It
+never authorizes a commit or takes requestor or human authority.
 
 Read and follow `instructions/review-requestor.md` and
 `instructions/implementation-check.md` in full before running any operation.
@@ -95,12 +96,17 @@ reuse the preceding document, step, round, or occurrence for a new request.
    non-readiness, and a status `2` result means the checker could not make a trustworthy
    decision; either blocks a commit-ready recommendation.
 7. Apply `instructions/implementation-check.md` in reviewer assessment mode.
-   Run the union of the request validation set and the current resolver set,
-   recording sources and drift. Capture validation state before and after.
-8. Make only bounded in-step repairs that satisfy the ownership rules below.
-   Record every repair and stage only the attributable reviewer patch. Amend
-   `a.commit` only when necessary to keep staged membership, ordering, scope,
-   and conventional subjects accurate.
+   Compare the request validation set with the current resolver set and
+   record sources and drift, but do not run that set: the requestor owns it
+   (see *Validation evidence limits* below). Capture validation state before
+   and after.
+8. Do not modify implementation code or tests: report each defect as a
+   finding with a concrete writer action. Only when a literal
+   `Human guidance:` block explicitly instructs a repair, make that bounded
+   in-step repair under the ownership rules below, record it, and stage only
+   the attributable reviewer patch. Amend `a.commit` only when necessary to
+   keep staged membership, ordering, scope, and conventional subjects
+   accurate.
 9. Re-run the evidence boundary after either a Yes or No implementation-check
    result. Classify identity, completeness, validation and coverage, staged
    attribution, unresolved findings, and `a.commit` as the six readiness-floor
@@ -235,23 +241,51 @@ Make no implementation, validation-plan, umbrella, staged, or `a.commit`
 mutation on this path. Publishing ends the round instead of abandoning its
 lease.
 
+## Validation evidence limits
+
+The `resolved_validation_set`, with its `ghog day` project default, is
+requestor-side validation. The writer runs that walk green, coverage gate
+included, in earlier stages such as
+[`implement-step.md`](implement-step.md), and fixes every failure and coverage
+gap before the requestor publishes a review request. The reviewer does not
+repeat it.
+
+- Never run `ghog day` or `ghog full`, and never measure or recheck coverage
+  during a review. Assess coverage statically, as the unit test coverage
+  sub-section of `implementation-check.md` describes.
+- When the assessment needs executed evidence, run at most these two commands,
+  each once per round, from the project root:
+  - `ghog check`, which runs `check.bat` (compile and lint);
+  - `ghog affected --no-cov`, the focused tests of the staged change.
+- Use the redirected call form and the log-freshness proof from
+  `implement-step.md` (`<LLM_SHARED_DIR>\bin\ghog.bat` from PowerShell), then
+  read only the log tail.
+- A red result is a `changes-requested` finding for the writer. Do not fix it
+  and do not follow the ghog report's next-step line: it names `ghog day`,
+  which the reviewer never runs, and the groundhog fixing loop belongs to the
+  writer.
+
 ## Assessment and repair ownership
 
-Capture every permitted repair path before editing it. A repair is permitted
-only when every touched file is named by the plan step or already belongs to
-that step's staged set, it introduces no new design decision, and it changes no
-other step or requirement. Report boundary-crossing work instead of changing
-it. Never sweep pre-existing unstaged or untracked writer work into the index.
+A repair happens only when a literal `Human guidance:` block explicitly
+instructs it; otherwise the reviewer reports findings and edits only review
+metadata. Capture every permitted repair path before editing it. A repair is
+permitted only when every touched file is named by the plan step or already
+belongs to that step's staged set, it introduces no new design decision, and it
+changes no other step or requirement. Report boundary-crossing work instead of
+changing it. Never sweep pre-existing unstaged or untracked writer work into
+the index.
 
 The implementation-check may update only the exact reviewed-step validation
 rows. Those rows, `a.commit`, ignored caller evidence, and protocol answer or
 transcript artifacts are review metadata. Any other reviewer-authored tracked
 change is substantive and forces `changes-requested` in the same round.
 
-Run every resolved mandatory validation command. A command that cannot run is
-missing mandatory evidence, never a pass. Resolver drift is reported with its
-direction; the union still runs. Do not revert or stage a tracked validation
-side effect. Recheck the umbrella digest after both a Yes and No result and
+Do not run the resolved validation commands; the request records them as
+requestor evidence. A reviewer evidence command (`ghog check` or
+`ghog affected --no-cov`) that was needed but cannot run is missing evidence,
+never a pass. Resolver drift is reported with its direction as a finding for
+the requestor. Do not revert or stage a tracked validation side effect. Recheck the umbrella digest after both a Yes and No result and
 never complete an umbrella row from reviewer mode.
 
 Treat the independent
@@ -264,9 +298,10 @@ and diagnostics; a status `2` result records unavailable mandatory evidence. Bot
 commit-ready recommendation.
 
 Recommend `commit-ready` only when exact identity, complete implementation,
-mandatory validation and coverage, attributable staged scope, absence of
-unresolved current or carried findings, and accurate `a.commit` grouping all
-pass, and this round made no substantive repair. The recommendation is advisory
+validation and coverage (the reviewer's focused evidence, when run, is green
+and the static coverage assessment finds no gap), attributable staged scope,
+absence of unresolved current or carried findings, and accurate `a.commit`
+grouping all pass, and this round made no substantive repair. The recommendation is advisory
 and never authorizes a commit. Otherwise publish `changes-requested` with
 concrete writer instructions. Repeated unavailable evidence remains blocking;
 the requestor and shared no-progress bound own escalation.

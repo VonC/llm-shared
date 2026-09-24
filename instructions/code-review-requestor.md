@@ -47,6 +47,12 @@ share a command with another source, but it cannot remove the `ghog day` project
 The resulting `resolved_validation_set` retains each command's project, plan,
 or request sources in deterministic order.
 
+That set is requestor-side validation. Before publishing a request, the writer
+must have run it green, `ghog day` included, and fixed every failure and
+coverage gap, as [`implement-step.md`](implement-step.md) does. The reviewer
+never runs `ghog day` or `ghog full` and does not recheck coverage; it may only
+run `ghog check` and `ghog affected --no-cov` as focused evidence.
+
 Render both fields from that one typed value under the authored
 `## Code review evidence` heading. Keep this fenced JSON object distinct from
 the shared envelope's `## JSON`; never edit either rendering independently.
