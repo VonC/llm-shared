@@ -118,3 +118,4 @@ docs/llm-shared_presentation.pptx
 .codex-runtime/
 
 build/
+.claude/skills/synced/
