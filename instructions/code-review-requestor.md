@@ -233,10 +233,12 @@ remaining non-ignored change with `git add -A` and propose a
 [`group-commits-msg.md`](group-commits-msg.md) root `a.commit` for it, through
 that instruction's normal steps and human go-ahead menu; the `Commit`
 authorization does not cover these leftover commits. Once the tree is empty,
-run `pw skill` through its launcher (see
-[`run-pw.md`](run-pw.md)), print its line as the next step, with the prefix
-rule of [`../rules/command_prefix_char.md`](../rules/command_prefix_char.md),
-and stop. Do not run that next implementation step; the human launches it.
+run `pw progress` through its launcher (see [`run-pw.md`](run-pw.md)) and
+print its whole report verbatim: where the topic stands (branch, topic,
+umbrella position or standalone, phase, step position) and its `next` line as
+the next step, with the prefix rule of
+[`../rules/command_prefix_char.md`](../rules/command_prefix_char.md). Then
+stop. Do not run that next implementation step; the human launches it.
 
 For a bare user `resume`, follow [the canonical resume instruction](review-resume.md)
 through migration, role and identity gates, and automatic `claim` before

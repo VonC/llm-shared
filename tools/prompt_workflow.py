@@ -27,6 +27,10 @@ records the prompt exactly as the interactive cycle does (Q60, Q61). ``--root``
 and ``--debug`` move onto a shared parent parser so they parse on either side of
 the subcommand (Q01).
 
+Fix (progress): the ``progress`` subcommand, ``pw progress``, prints where the
+current topic stands (branch, topic, umbrella position or standalone, phase,
+plan step position) above the same next command ``pw skill`` prints.
+
 See ``docs/design.v0.1.0.pw_handoff.md`` for the full specification and the design
 decisions (Q01 to Q64) behind this tool.
 """
@@ -55,6 +59,7 @@ from tools import prompt_workflow_handoff as handoff
 from tools import prompt_workflow_memory as memory
 from tools import prompt_workflow_menu as menu
 from tools import prompt_workflow_plan as plan
+from tools import prompt_workflow_progress as progress
 from tools import prompt_workflow_skill as skill
 from tools import prompt_workflow_steps as steps
 from tools.prompt_workflow_models import MemoryRecord, PromptWorkflowError
@@ -545,6 +550,18 @@ def _get_arg_parser() -> argparse.ArgumentParser:
         default=None,
         help="Print the next ordered item from the named umbrella draft.",
     )
+    progress_parser = subparsers.add_parser(
+        "progress",
+        parents=[common],
+        help="Print where the current topic stands, then its next command.",
+    )
+    progress_parser.add_argument(
+        "--host",
+        dest="host_override",
+        default=None,
+        choices=[skill.HOST_CLAUDE, skill.HOST_CODEX],
+        help="Force the command prefix host instead of detecting it.",
+    )
     document_parser = subparsers.add_parser(
         "document",
         parents=[common],
@@ -593,6 +610,8 @@ def main(argv: list[str] | None = None) -> int:
             args.after_write,
             args.after_merge,
         )
+    if args.command == "progress":
+        return progress.run_progress(root, args.host_override)
     if args.command == "code-review-commit":
         return skill.run_authorized_code_review_commit(
             root,

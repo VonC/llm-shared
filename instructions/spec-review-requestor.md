@@ -172,8 +172,10 @@ the settled decision marker: the open-ended questions section is absent and
 the document contains its canonical clarification or decision record. Only
 after that verification succeeds may the requestor call `complete`.
 
-After `complete` removes the retained answer and coordination state, rerun `pw skill`.
-Ordinary document routing then selects the next workflow phase. If consolidation
+After `complete` removes the retained answer and coordination state, run
+`pw progress` through its launcher (see [`run-pw.md`](run-pw.md)). Ordinary
+document routing then selects the next workflow phase, printed on its `next`
+line, the same command bare `pw skill` prints. If consolidation
 failed or the settled decision marker is absent, leave the authorization durable,
 report the failure, and do not complete the exchange.
 
@@ -183,9 +185,11 @@ remaining non-ignored change with `git add -A` and propose a
 [`group-commits-msg.md`](group-commits-msg.md) root `a.commit` for it, through
 that instruction's normal steps and human go-ahead menu; the `Consolidate`
 authorization does not cover these leftover commits. Once the tree is empty,
-print the next step as `pw skill` printed it, with the prefix rule of
-[`../rules/command_prefix_char.md`](../rules/command_prefix_char.md), and stop.
-Do not run that next-phase command; the human launches it.
+run `pw progress` again when a leftover commit happened, then print its whole
+report verbatim: where the topic stands (branch, topic, umbrella position or
+standalone, phase, step) and its `next` line as the next step, with the prefix
+rule of [`../rules/command_prefix_char.md`](../rules/command_prefix_char.md).
+Then stop. Do not run that next-phase command; the human launches it.
 
 For a bare user `resume`, follow [the canonical resume instruction](review-resume.md)
 through migration, role and identity gates, and automatic `claim` before

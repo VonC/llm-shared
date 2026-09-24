@@ -3,6 +3,9 @@
 Fix: a release through `complete` after an authorized `Commit` or `Consolidate`
 proposes a `group-commits-msg` `a.commit` for any leftover change, prints the
 `pw skill` next step, and stops instead of following it.
+
+Fix: that final report now comes from `pw progress`, which shows where the
+topic stands above the same next command.
 """
 
 from __future__ import annotations
@@ -97,7 +100,7 @@ def test_resume_stops_after_an_authorized_owning_action_completes() -> None:
         "The one exception is a release through `complete` after an authorized "
         "`Commit` or `Consolidate`: make sure the working tree is empty, proposing a "
         "`group-commits-msg` `a.commit` for any leftover change, then print the "
-        "`pw skill` next step and stop"
+        "`pw progress` report with its next step and stop"
     ) in content
 
 

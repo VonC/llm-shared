@@ -228,7 +228,10 @@ vocabulary is `wait-for-counterpart`, `requestor-work`, `reviewer-work`,
 
 `human-confirmation` is valid only when durable state is already at a human
 gate. A newly published, unanswered request reports `request-pending`,
-reviewer ownership, and `reviewer-work`. Role-nature evidence identifies what
+reviewer ownership, and `reviewer-work`. A live round whose request is not
+published yet reports `round-in-progress`, the requestor, and `requestor-work`,
+even after `continue` has recorded the reviewer as the next actor for that
+coming request. Role-nature evidence identifies what
 the artifacts recorded; it never authorizes status to create that role.
 
 - Exit `0` means the complete status result is trustworthy, including an empty
