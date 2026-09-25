@@ -111,6 +111,7 @@ class CodeReviewRoundInput:
     resolved_validation_set: ResolvedValidationSet
     commit_plan_result: CommitPlanCheckResult
     human_guidance: str | None = None
+    project_root: Path | None = None
 
     def __post_init__(self) -> None:
         """Reject invalid identity, round, timestamp, or authored content."""
@@ -247,6 +248,31 @@ def _identity_fields(source: CodeReviewRoundInput) -> str:
     )
 
 
+def _transcript_identity_fields(source: CodeReviewRoundInput) -> str:
+    """Render portable paths for the tracked transcript when the root is known."""
+    root = source.project_root
+    if root is None:
+        return _identity_fields(source)
+    context = source.context
+    try:
+        plan = context.document_path.relative_to(root).as_posix()
+        umbrella = (
+            context.umbrella_path.relative_to(root).as_posix()
+            if context.umbrella_path is not None
+            else "none"
+        )
+    except ValueError as error:
+        raise ReviewExchangeError("review paths must be within the project root") from error
+    return "\n".join(
+        (
+            f"Umbrella draft: {umbrella}",
+            f"Implementation plan: {plan}",
+            f"Implementation step: {context.implementation_step}",
+            f"Review round: {source.round_number}",
+        ),
+    )
+
+
 def _response_section(source: CodeReviewRoundInput, *, heading_level: int) -> str:
     """Render optional literal guidance separately from the writer response."""
     hashes = "#" * heading_level
@@ -357,7 +383,7 @@ def _transcript_summary(source: CodeReviewRoundInput) -> str:
     label = _identity_label(source)
     sections = (
         f"### Review identity for {label} (round {source.round_number})\n\n"
-        f"{_identity_fields(source)}",
+        f"{_transcript_identity_fields(source)}",
         f"### Code review evidence for {label} (round {source.round_number})\n\n"
         f"{_code_review_evidence_summary(source)}",
         f"### Requestor assessment for {label} (round {source.round_number})\n\n"
@@ -541,6 +567,7 @@ def _render_from_arguments(args: argparse.Namespace, project_root: Path) -> None
         resolved_validation_set=resolved_validation_set,
         commit_plan_result=commit_plan_result,
         human_guidance=None if guidance is None else _read_utf8(guidance, "guidance file"),
+        project_root=root,
     )
     rendered = render_code_review_request(source)
     _write_utf8(request_output, rendered.request_content, "request content output")

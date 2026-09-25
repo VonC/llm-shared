@@ -87,6 +87,20 @@ def test_render_pairs_exact_code_identity_and_markdown_shape(tmp_path: Path) -> 
     _assert_paired_identity(rendered, authored, source)
 
 
+def test_render_transcript_uses_project_relative_identity(tmp_path: Path) -> None:
+    """Keep machine request identity exact and tracked transcript paths portable."""
+    source = replace(_round_input(tmp_path), project_root=tmp_path)
+
+    rendered = requestor.render_code_review_request(source)
+    envelope, authored = parse_envelope_markdown(rendered.request_content)
+
+    _assert_envelope_identity(envelope, source)
+    assert "Implementation plan: " + source.context.document_path.as_posix() in authored
+    assert "Implementation plan: plan.v0.11.0.code-review-requestor.md" in rendered.transcript_summary
+    assert "Umbrella draft: draft.v0.11.0.review-mode.md" in rendered.transcript_summary
+    assert tmp_path.as_posix() not in rendered.transcript_summary
+
+
 def test_render_nests_and_qualifies_caller_headings_for_each_output(
     tmp_path: Path,
 ) -> None:
