@@ -29,6 +29,7 @@ from tools.review_exchange_models import (
     FamilyPolicy,
     ReviewContext,
 )
+from tools.review_exchange_models_coordination import CoordinationStatus
 from tools.review_exchange_paths import derive_artifact_paths, load_review_configuration
 from tools.review_exchange_store import ReviewExchangeStore
 
@@ -219,6 +220,18 @@ def resolve_code_review_route(
     if not configuration.enabled and not has_exact_evidence:
         return None
     context = _context(root, topic, state, record)
+    if (
+        persisted is not None
+        and persisted.status is CoordinationStatus.AWAITING_HUMAN_CONFIRMATION
+        and persisted.confirmed_outcome
+        is ConfirmationOutcome.CONTINUE_OWNING_WORKFLOW
+        and persisted.context.identity == context.identity
+        and persisted.context.document_path == context.document_path
+        and persisted.context.implementation_step == context.implementation_step
+    ):
+        # Commit the exact exchange the human authorized, even if workflow
+        # routing later discovers an umbrella that the exchange did not carry.
+        context = persisted.context
     observation = ReviewExchangeCore(
         store,
         context,

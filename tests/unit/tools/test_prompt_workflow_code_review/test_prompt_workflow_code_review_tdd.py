@@ -230,6 +230,28 @@ def test_live_route_wins_after_marker_removal(
     assert route.state is expected
 
 
+def test_authorized_route_keeps_original_umbrella_context(tmp_path: Path) -> None:
+    """A later draft umbrella cannot invalidate an authorized commit route."""
+    topic, state, record = _effort(tmp_path)
+    context = _context(tmp_path)
+    store = ReviewExchangeStore(derive_artifact_paths(tmp_path, context))
+    store.write_coordination(
+        _coordination(context, CoordinationStatus.AWAITING_HUMAN_CONFIRMATION),
+    )
+    umbrella = tmp_path / "docs/v0.11.0/draft.v0.11.0.collection.md"
+    umbrella.write_text("# umbrella\n", encoding="utf-8")
+    topic.draft_path.write_text(
+        "# draft\n\n- Umbrella: docs/v0.11.0/draft.v0.11.0.collection.md\n",
+        encoding="utf-8",
+    )
+
+    route = code_review.resolve_code_review_route(tmp_path, topic, state, record)
+
+    assert route is not None
+    assert route.state is ArtifactState.OWNING_ACTION_PENDING
+    assert route.context == context
+
+
 def test_live_route_rejects_another_step_and_duplicate_coordination(tmp_path: Path) -> None:
     """Another step or a second exact code identity fails closed."""
     topic, state, record = _effort(tmp_path)
