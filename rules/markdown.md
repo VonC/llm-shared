@@ -30,6 +30,23 @@ When writing a list element (`- xxx`), always use only one space between the lis
 
 When writing an ordered list element (`1. xxx`), always use only one space between the list item number marker (`1.`) and its content (`xxx`): so use `1. xxx` or `1. **xxx**`, not `1.   xxx` or `1.   **xxx**` or `1.  xxx` or `1.  **xxx**`: do not use 2 or 3 spaces, only one.
 
+Add a list marker only at the start of a new list item. If the item already starts
+with a dash or ordered-list marker (for example, `- item` or `1. item`), do not
+prepend another dash marker. A wrapped line is part of the same item: indent
+it under the item's text
+without adding a new marker. For example:
+
+```md
+1. The first finding continues onto
+   this line.
+2. The second finding.
+
+- One changed file has a long explanation
+  that continues here.
+```
+
+Never turn those examples into `- 1. ...`, `- - ...`, or `- this line.`.
+
 That will avoid the markdown linter warning "`MD030/list-marker-space: Spaces after list markers [Expected: 1; Actual: 3]`"
 
 Make sure to insert an empty line before the first item of a list (ordered or not-ordered), and after the last item of a list.
