@@ -49,7 +49,27 @@ Never turn those examples into `- 1. ...`, `- - ...`, or `- this line.`.
 
 That will avoid the markdown linter warning "`MD030/list-marker-space: Spaces after list markers [Expected: 1; Actual: 3]`"
 
-Make sure to insert an empty line before the first item of a list (ordered or not-ordered), and after the last item of a list.
+Surround every bulleted or numbered list with one empty line: put an empty line
+before its first item and another after its last item when other content follows.
+This applies after any preceding paragraph or label (including one ending in a
+colon) and before any following paragraph, heading, or separate list. A list at
+the start or end of a document needs a blank line only on the side with content.
+
+For example:
+
+```md
+Group 1:
+
+- First path
+- Second path
+
+Group 2:
+
+1. First item
+2. Second item
+
+### Next section
+```
 
 That avoids "`MD032/blanks-around-lists: Lists should be surrounded by blank lines`".
 
