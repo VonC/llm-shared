@@ -7,6 +7,7 @@ from __future__ import annotations
 import argparse
 import contextlib
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -313,11 +314,19 @@ def _authored_inputs(inputs: dict[str, Path]) -> dict[str, str]:
 
 
 def _inventory(content: str) -> tuple[str, ...]:
-    """Parse one line-oriented authored inventory, including an explicit none."""
-    items = tuple(line.strip() for line in content.splitlines() if line.strip())
-    if len(items) == 1 and items[0].casefold() in {"none", "none."}:
+    """Parse one inventory, keeping wrapped Markdown items together."""
+    lines = [line.strip() for line in content.splitlines() if line.strip()]
+    if len(lines) == 1 and lines[0].casefold() in {"none", "none."}:
         return ()
-    return items
+    if not any(re.match(r"(?:[-*+] |\d+[.)] )", line) for line in lines):
+        return tuple(lines)
+    items: list[str] = []
+    for line in lines:
+        if re.match(r"(?:[-*+] |\d+[.)] )", line) or not items:
+            items.append(line)
+        else:
+            items[-1] += "\n" + line
+    return tuple(items)
 
 
 def _assessment_source(

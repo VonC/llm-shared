@@ -25,6 +25,22 @@ _BASELINE = "a" * 40
 _ASSESSED = "b" * 40
 
 
+def test_inventory_keeps_marked_items_and_wrapped_lines_together() -> None:
+    """A wrapped review finding is one item, not several new bullets."""
+    assert answer_cli._inventory(
+        "1. First finding wraps onto\n   its second line.\n2. Second finding.\n",
+    ) == (
+        "1. First finding wraps onto\nits second line.",
+        "2. Second finding.",
+    )
+    assert answer_cli._inventory("- one.py\n- two.py\n") == (
+        "- one.py",
+        "- two.py",
+    )
+    assert answer_cli._inventory("one.py\ntwo.py\n") == ("one.py", "two.py")
+    assert answer_cli._inventory("None.\n") == ()
+
+
 def _document(tmp_path: Path) -> Path:
     """Create one exact implementation plan."""
     docs = tmp_path / "docs" / "v0.11.0"

@@ -192,6 +192,25 @@ def test_commit_ready_requires_the_floor_and_remains_advisory(tmp_path: Path) ->
     assert "Unresolved findings: None." in rendered.transcript_summary
 
 
+def test_inventory_preserves_existing_markers_and_wraps_continuations(
+    tmp_path: Path,
+) -> None:
+    """Review inventories never acquire duplicate bullets or wrapped bullets."""
+    source = replace(
+        _assessment(tmp_path),
+        repairs=("- changed.py: fixed a long\nexplanation.",),
+        staged_paths=("- changed.py", "- other.py"),
+        unresolved_findings=("1. First finding wraps\nonto another line.",),
+    )
+    rendered = render_code_review_answer(source)
+    for content in (rendered.answer_content, rendered.transcript_summary):
+        assert "- changed.py: fixed a long\n  explanation." in content
+        assert "- changed.py\n- other.py" in content
+        assert "1. First finding wraps\n   onto another line." in content
+        assert "- - " not in content
+        assert "- 1. " not in content
+
+
 def test_restarted_exchange_discriminator_qualifies_every_paired_heading(
     tmp_path: Path,
 ) -> None:

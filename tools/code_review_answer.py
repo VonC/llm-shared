@@ -285,7 +285,14 @@ def _section(
 def _inventory(label: str, values: tuple[str, ...]) -> str:
     if not values:
         return f"{label}: None."
-    return f"{label}:\n\n" + "\n".join(f"- {value}" for value in values)
+    rendered = []
+    for value in values:
+        first, *continuation = value.splitlines()
+        marker = re.match(r"(?:[-*+] |\d+[.)] )", first)
+        rendered.append(first if marker else f"- {first}")
+        indent = " " * (len(marker.group()) if marker else 2)
+        rendered.extend(f"{indent}{line.strip()}" for line in continuation)
+    return f"{label}:\n\n" + "\n".join(rendered)
 
 
 def _guidance_section(source: CodeReviewAssessment, level: int) -> str:
