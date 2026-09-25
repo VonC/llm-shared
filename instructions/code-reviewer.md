@@ -13,6 +13,13 @@ Their artifact, heading, result, exit, and reviewer-assessment contracts apply.
 This instruction owns only the ordered reviewer sequence, recovery decisions,
 human-guidance response, and advisory publication decision.
 
+When authoring line-oriented inventory inputs for the answer renderer (repairs,
+staged paths, unresolved findings, and boundary-crossing work), follow
+[`../rules/markdown.md`](../rules/markdown.md): write one marker per item, and
+indent wrapped continuation lines without a second marker. An unmarked one-line
+item is also accepted. Never prefix an existing dash or numbered item with
+another dash marker.
+
 Before any command or repository read, enforce the shared role-session
 isolation rule. Refuse the task when an automated requestor or a parent agent
 acting as requestor spawned, delegated, started, invoked, or messaged this
