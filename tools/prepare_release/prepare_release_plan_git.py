@@ -1,4 +1,13 @@
-"""Git plumbing for release planning and conflict previews."""
+"""Git plumbing for release planning and conflict previews.
+
+Fix: the isolated preview object directory is a working file of the release
+run, so it now lives in the project's review artifact home (`.reviews` unless
+`.review-artifacts.ini` declares another home, see `rules/artifact_files.md`)
+under the `a.prepare-release-preview.<random>` name, instead of the system
+temporary directory or, when a restricted sandbox pushed an agent to redirect
+it, the project root. The home ignores everything it holds, so the preview
+objects never reach Git, and an invalid home stops the planner with an error.
+"""
 
 # Planner errors intentionally include actionable Git context at the raise site.
 # ruff: noqa: EM101, EM102, TRY003
@@ -12,6 +21,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from tools.artifact_home import artifact_home
 from tools.git_command import GitCommandOptions, run_cross_platform_git_command
 from tools.prepare_release.prepare_release_plan_models import (
     CommitSummary,
@@ -26,6 +36,8 @@ if TYPE_CHECKING:
 
 _VERSION_RE = re.compile(r"git version (\d+)\.(\d+)\.(\d+)")
 _MINIMUM_GIT_VERSION = (2, 50, 0)
+# Name prefix of the temporary preview object directory in the artifact home.
+PREVIEW_DIRECTORY_PREFIX = "a.prepare-release-preview."
 
 
 class GitRepository:
@@ -220,16 +232,32 @@ class GitRepository:
         )
         return tuple(line for line in output.splitlines() if line)
 
+    def preview_home(self) -> Path:
+        """Return the prepared artifact home that holds preview object directories."""
+        try:
+            return artifact_home(self.root)
+        except (OSError, ValueError) as exc:
+            raise ReleasePlanError(
+                f"Unable to prepare the review artifact home for conflict previews: {exc}",
+            ) from exc
+
     @contextmanager
     def isolated_object_environment(self) -> Generator[dict[str, str]]:
-        """Yield an environment that writes preview objects outside the repository."""
+        """Yield an environment that writes preview objects outside the object store.
+
+        The temporary object directory lives in the review artifact home, never
+        at the project root, and is removed when the preview ends.
+        """
         object_dir = Path(
             self.require(
                 ["rev-parse", "--path-format=absolute", "--git-path", "objects"],
                 action="locate the Git object directory",
             ),
         )
-        with tempfile.TemporaryDirectory(prefix="prepare-release-preview-") as temp_dir:
+        with tempfile.TemporaryDirectory(
+            prefix=PREVIEW_DIRECTORY_PREFIX,
+            dir=self.preview_home(),
+        ) as temp_dir:
             preview_objects = Path(temp_dir) / "objects"
             preview_objects.mkdir()
             env = os.environ.copy()

@@ -52,7 +52,8 @@ review the exact mechanics before approving the automated step.
 ## 🚀 Inside a release preparation
 
 When `/prepare-release` drives the merge, it signals the skill through the
-git-ignored flag file `a.prepare-release.active`: the reword then hands
+flag file `a.prepare-release.active` in the review artifact home
+(`.reviews`): the reword then hands
 control back to the release run instead of closing on its own.
 
 ## ✅ Check after the reword

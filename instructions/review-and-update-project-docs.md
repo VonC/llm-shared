@@ -132,6 +132,7 @@ After all updates, provide a short summary listing:
 - For a Git-range review, which release topics were mapped to which wiki pages.
 - Any open questions about intent or design that the code review could not resolve from the code alone, formatted as a bullet list.
 
-When `a.prepare-release.active` exists at the project root, return this report
+When `a.prepare-release.active` exists in the review artifact home (`.reviews`
+unless `.review-artifacts.ini` declares another home), return this report
 to the calling `prepare-release` workflow. Do not end with a standalone next
 step.

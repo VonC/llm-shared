@@ -12,7 +12,7 @@ metadata:
   - "Step 6-7A: merge --no-ff into the destination, reword with Why:/What:, then call pw skill --after-merge. A pending item stops with process-draft based on its slug; prepare-release means the collection is exhausted and the full release may continue."
   - "Step 8: when wiki/ or docs/wiki/ exists, call review-and-update-project-docs for every existing root against the complete last_tag..HEAD release range; stop on uncovered topics, and commit reviewed wiki changes before release notes."
   - "Step 9-13: set version.txt to X.Y.Z-SNAPSHOT, call prepare_release_notes for the summary and changelog, pause for notes review, update pyproject.toml and uv when present, then make one chore(release): prepare for vX.Y.Z release commit."
-  - "Step 14: report a summary and tell the user to review and run brel. It uses the flag file a.prepare-release.active (git-ignored, deleted at start, created before each sub-skill call, removed on exit) so the called skills return control to it."
+  - "Step 14: report a summary and tell the user to review and run brel. It uses the flag file a.prepare-release.active in the review artifact home (.reviews; deleted at start, created before each sub-skill call, removed on exit) so the called skills return control to it."
 ---
 
 [Instruction](../../../instructions/prepare-release.md)
@@ -26,7 +26,7 @@ This skill calls the `group-commits-msg`, `update-merge-commit-msg`,
 `review-and-update-project-docs`, and `prepare_release_notes` skills, and runs
 the `ghog day` groundhog loop when it rebases the branch or merges a stale
 base, using the flag file
-`a.prepare-release.active` (git-ignored) so the called skills return control
+`a.prepare-release.active` in the review artifact home (`.reviews`) so the called skills return control
 to it instead of ending standalone. It readies every release artifact and
 stops at the `chore(release): prepare for vX.Y.Z release` commit; the next
 step is for the user to review and run `brel` to build and tag. The skill

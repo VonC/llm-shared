@@ -16,7 +16,7 @@ This skill calls the `group-commits-msg`, `update-merge-commit-msg`,
 `review-and-update-project-docs`, and `prepare_release_notes` skills, and runs
 the `ghog day` groundhog loop when it rebases the branch or merges a stale
 base, using the flag file
-`a.prepare-release.active` (git-ignored) so the called skills return control
+`a.prepare-release.active` in the review artifact home (`.reviews`) so the called skills return control
 to it instead of ending standalone. It readies every release artifact and
 stops at the `chore(release): prepare for vX.Y.Z release` commit; the next
 step is for the user to review and run `brel` to build and tag. The skill

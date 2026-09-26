@@ -246,7 +246,12 @@ was chosen, select the corrected parent or boundary instead.
 It calls the smaller skills rather than repeating them
 (`group-commits-msg`, `update-merge-commit-msg`, `prepare_release_notes`,
 the groundhog loop), signalling each through the flag file
-`a.prepare-release.active` so the callee hands control back.
+`a.prepare-release.active` so the callee hands control back. That flag, the
+planner's `a.prepare-release-preview.<random>` object directories, and any
+backup or scratch copy of the run live in the review artifact home (`.reviews`
+unless `.review-artifacts.ini` declares another home), never at the project
+root. The skill resolves that home with
+`prepare_release_plan.bat --root <project> --artifact-home`.
 
 ## ⏸️ Where the run pauses for you
 
@@ -277,10 +282,10 @@ the groundhog loop), signalling each through the flag file
 `/prepare_release_notes` can run standalone. It drives
 `scripts/prepare_release_notes.sh`, which reads the `X.Y.Z-SNAPSHOT`
 version from `version.txt`, collects every conventional-commit title since
-the last tag, and writes `a.md` grouped by type. The skill then writes the
-summary into `version.txt` (main theme, key changes, three title pairs),
-pauses for the title pick, and folds the result into `CHANGELOG.md` via
-`update-changelog.bat`.
+the last tag, and writes `a.md` grouped by type in the review artifact home.
+The skill then writes the summary into `version.txt` (main theme, key changes,
+three title pairs), pauses for the title pick, and folds the result into
+`CHANGELOG.md` via `update-changelog.bat`.
 
 ## 🏷️ Tagging is a separate act
 

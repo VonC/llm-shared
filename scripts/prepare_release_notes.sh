@@ -16,10 +16,16 @@
 #               (run from <PRJ_DIR>, or pass <PRJ_DIR> as $1)
 #
 # Reads:        <PRJ_DIR>/version.txt  (first word must be X.Y.Z-SNAPSHOT)
-# Writes:       <PRJ_DIR>/a.md
+# Writes:       <home>/a.md, where <home> is the project's review artifact
+#               home (.reviews unless .review-artifacts.ini declares another
+#               home), never the project root (see rules/artifact_files.md).
+#               The shared tools/artifact_home.py helper resolves the path,
+#               moving a legacy root a.md into the home once; the final Ok
+#               line prints the full path written.
 #
 # Exit codes:
-#   1 - project directory not found or not usable
+#   1 - project directory not found or not usable, or its artifact home
+#       cannot be resolved
 #   2 - version.txt not found
 #   3 - version unreadable from version.txt
 #   4 - version.txt version is not a -SNAPSHOT version
@@ -33,6 +39,23 @@ task()  { echo "Task:  $1"; }
 ok()    { echo "Ok:    $1"; }
 warn()  { echo "Warn:  $1" >&2; }
 fatal() { echo "Error: $1" >&2; exit "${2:-1}"; }
+
+LLM_SHARED="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+#  Print the artifact-home path of one file of the calling project, through
+#  the shared tools/artifact_home.py helper (llm-shared venv when present).
+artifact_file() {
+  local root="$1" name="$2" py="" cand
+  for cand in "${LLM_SHARED}"/venvs/python_3*llm-shared*/Scripts/python.exe \
+              "${LLM_SHARED}"/venvs/python_3*llm-shared*/bin/python; do
+    if [[ -x "${cand}" ]]; then py="${cand}"; break; fi
+  done
+  [[ -n "${py}" ]] || py="$(command -v python3 || command -v python)"
+  [[ -n "${py}" ]] || return 1
+  PYTHONPATH="${LLM_SHARED}" "${py}" -m tools.artifact_home "${root}" "${name}" \
+    | tr -d '\r'
+  return "${PIPESTATUS[0]}"
+}
 
 # Parse a conventional-commit subject.
 # Sets globals: ps_has_colon ps_type ps_scope ps_title
@@ -73,7 +96,9 @@ main() {
   cd "${prj}" || fatal "Unable to enter project directory '${prj}'" 1
   PRJ_DIR="$(pwd)"
   local version_file="${PRJ_DIR}/version.txt"
-  local out_file="${PRJ_DIR}/a.md"
+  local out_file
+  out_file="$(artifact_file "${PRJ_DIR}" a.md)" \
+    || fatal "Cannot resolve the artifact home of '${PRJ_DIR}'" 1
   info "Project directory '${PRJ_DIR}'"
 
   [[ -f "${version_file}" ]] || fatal "version.txt not found at '${version_file}'" 2

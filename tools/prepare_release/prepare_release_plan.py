@@ -1,5 +1,14 @@
 #!/usr/bin/env python3
-"""Plan prepare-release topology and preview conflicts without changing refs."""
+"""Plan prepare-release topology and preview conflicts without changing refs.
+
+Fix: every working file of a release run (the `a.prepare-release.active` flag,
+the preview object directories, any backup or scratch copy) lives in the
+project's review artifact home, never at the project root (see
+`rules/artifact_files.md`). `--artifact-home` prints that prepared home for
+`--root` and exits, so the `prepare-release` instruction resolves the one
+deterministic folder it touches and removes the flag in, through the same
+launcher it already calls, whatever `.review-artifacts.ini` declares.
+"""
 
 from __future__ import annotations
 
@@ -14,6 +23,7 @@ if __name__ == "__main__":
     with contextlib.suppress(Exception):
         sys.path.insert(0, str(Path(__file__).parent.parent.parent.resolve()))
 
+from tools.artifact_home import artifact_home
 from tools.prepare_release.prepare_release_plan_models import (
     ReleasePlan,
     ReleasePlanError,
@@ -54,7 +64,30 @@ def _parser() -> argparse.ArgumentParser:
         help="Detect topology without invoking git merge-tree.",
     )
     parser.add_argument("--json", action="store_true", help="Emit machine-readable JSON.")
+    parser.add_argument(
+        "--artifact-home",
+        action="store_true",
+        help="Print the prepared review artifact home of --root, where run files live, and exit.",
+    )
     return parser
+
+
+def print_artifact_home(root: Path) -> int:
+    """Prepare and print the review artifact home that holds release run files.
+
+    Args:
+        root: The project root.
+
+    Returns:
+        0 with the home path printed, 2 with an ERROR line when it is invalid.
+    """
+    try:
+        home = artifact_home(root.resolve())
+    except (OSError, ValueError) as error:
+        sys.stderr.write(f"ERROR: {error}\n")
+        return 2
+    sys.stdout.write(f"{home}\n")
+    return 0
 
 
 def render_plan(plan: ReleasePlan) -> str:
@@ -150,6 +183,8 @@ def _conflict_lines(plan: ReleasePlan) -> list[str]:
 def main(argv: Sequence[str] | None = None) -> int:
     """Run the release planner CLI."""
     args = _parser().parse_args(argv)
+    if args.artifact_home:
+        return print_artifact_home(args.root)
     try:
         plan = build_release_plan(
             args.root,

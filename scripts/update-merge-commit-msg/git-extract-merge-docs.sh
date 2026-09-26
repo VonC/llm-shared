@@ -1,5 +1,28 @@
 #!/bin/bash
 
+# Dump the documents a merge brought in, for the merge-message reword.
+# a.commit stays at the project root (the human reviews it there); the
+# a.docs dump goes to the review artifact home (.reviews unless
+# .review-artifacts.ini declares another home), never the project root
+# (see rules/artifact_files.md), through the shared tools/artifact_home.py.
+
+LLM_SHARED="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+
+#  Print the artifact-home path of one file of the calling project, through
+#  the shared tools/artifact_home.py helper (llm-shared venv when present).
+artifact_file() {
+    local root="$1" name="$2" py="" cand
+    for cand in "${LLM_SHARED}"/venvs/python_3*llm-shared*/Scripts/python.exe \
+                "${LLM_SHARED}"/venvs/python_3*llm-shared*/bin/python; do
+        if [[ -x "${cand}" ]]; then py="${cand}"; break; fi
+    done
+    [[ -n "${py}" ]] || py="$(command -v python3 || command -v python)"
+    [[ -n "${py}" ]] || return 1
+    PYTHONPATH="${LLM_SHARED}" "${py}" -m tools.artifact_home "${root}" "${name}" \
+        | tr -d '\r'
+    return "${PIPESTATUS[0]}"
+}
+
 # Default to HEAD if $1 is empty
 TARGET_MERGE=${1:-HEAD}
 
@@ -56,8 +79,11 @@ fi
 # 1. Empty a.commit (ensuring it exists but is size 0)
 : > "$MESSAGE_FILE"
 
-# 2. Dump .md contents to a.docs
-OUTPUT_FILE="$PRJ_DIR/a.docs"
+# 2. Dump .md contents to a.docs in the artifact home
+if ! OUTPUT_FILE="$(artifact_file "$PRJ_DIR" a.docs)"; then
+    echo "Error: Cannot resolve the artifact home of $PRJ_DIR." >&2
+    exit 1
+fi
 : > "$OUTPUT_FILE"
 
 for FILE in "${MD_FILES[@]}"; do

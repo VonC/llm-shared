@@ -9,6 +9,9 @@ guard test injects an already-tested plan so it measures dispatch rather than
 repeating the real Git workflow covered by the CLI tests above.
 The CLI tests replace the separately tested Git workflow at the imported seam,
 so rendering and error dispatch do not repeatedly launch Git subprocesses.
+
+Fix: cover `--artifact-home`, which prepares and prints the review artifact
+home holding the release run files, and its exit-2 path for an invalid home.
 """
 
 from __future__ import annotations
@@ -135,6 +138,41 @@ def test_main_reports_planner_errors_on_stderr(
     captured = capsys.readouterr()
     assert code == _PLANNER_ERROR_EXIT
     assert captured.err.startswith("ERROR: Unable to verify the repository")
+    assert captured.out == ""
+
+
+def test_main_prints_the_prepared_artifact_home(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """--artifact-home prepares and prints the home, without planning anything."""
+    def no_plan(*_args: object, **_kwargs: object) -> ReleasePlan:
+        message = "the planner must not run for --artifact-home"
+        raise AssertionError(message)
+
+    monkeypatch.setattr(plan_cli, "build_release_plan", no_plan)
+    code = main(["--root", str(tmp_path), "--artifact-home"])
+
+    captured = capsys.readouterr()
+    home = (tmp_path / ".reviews").resolve()
+    assert code == 0
+    assert captured.out == f"{home}\n"
+    assert (home / ".gitignore").read_bytes() == b"*\n"
+
+
+def test_main_reports_an_invalid_artifact_home(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """An artifact home that is not a directory exits 2 with an ERROR line."""
+    (tmp_path / ".reviews").write_text("not a directory\n", encoding="utf-8")
+
+    code = main(["--root", str(tmp_path), "--artifact-home"])
+
+    captured = capsys.readouterr()
+    assert code == _PLANNER_ERROR_EXIT
+    assert captured.err.startswith("ERROR: artifact home is not a directory")
     assert captured.out == ""
 
 

@@ -11,6 +11,11 @@ and malformed merge-tree conflict records.
 Fix: drive merge-tree parsing and sequential rebase behavior through recorded
 Git plumbing results and method seams. This keeps the exact conflict, replay,
 merge-rejection, and failure contracts without repeated repository setup.
+
+Fix: pin the preview object directory to the review artifact home: it is
+named `a.prepare-release-preview.<random>`, sits in the prepared home (with
+its `*` ignore file), is removed when the preview ends, and never appears at
+the project root; an invalid home raises the planner error.
 """
 
 # pyright: reportPrivateUsage=false
@@ -20,6 +25,7 @@ from __future__ import annotations
 import os
 import subprocess
 from contextlib import AbstractContextManager, nullcontext
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
@@ -37,7 +43,6 @@ from tools.prepare_release.prepare_release_plan_models import (
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
-    from pathlib import Path
 
 
 _EXPECTED_REPLAYED_COMMITS = 2
@@ -509,6 +514,39 @@ def test_isolated_environment_appends_inherited_alternates(
 
     assert alternates[-1] == "inherited-objects"
     assert alternates[0].endswith("objects")
+
+
+def test_isolated_environment_keeps_preview_objects_in_the_artifact_home(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The preview object directory lives in the artifact home, never at the root."""
+    repository = GitRepository(tmp_path)
+
+    def object_directory(_args: Sequence[str], **_kwargs: object) -> str:
+        return str(tmp_path / "objects")
+
+    monkeypatch.setattr(repository, "require", object_directory)
+
+    with repository.isolated_object_environment() as env:
+        preview_objects = Path(env["GIT_OBJECT_DIRECTORY"])
+        preview_directory = preview_objects.parent
+        assert preview_objects.is_dir()
+        assert preview_directory.parent == (tmp_path / ".reviews").resolve()
+        assert preview_directory.name.startswith(git_adapter.PREVIEW_DIRECTORY_PREFIX)
+
+    assert not preview_directory.exists()
+    assert (tmp_path / ".reviews" / ".gitignore").read_bytes() == b"*\n"
+    assert not any(path.name.startswith("a.") for path in tmp_path.iterdir())
+
+
+def test_preview_home_reports_an_invalid_artifact_home(tmp_path: Path) -> None:
+    """An artifact home that is not a directory stops the preview with a planner error."""
+    (tmp_path / ".reviews").write_text("not a directory\n", encoding="utf-8")
+    repository = GitRepository(tmp_path)
+
+    with pytest.raises(ReleasePlanError, match="review artifact home"):
+        repository.preview_home()
 
 
 def test_preview_merge_reports_an_unrunnable_merge_tree(

@@ -30,7 +30,7 @@ No parameter is needed, can be called from anywhere, but you need to resolve the
 
 A companion script [`git-reword-merge.sh`](../scripts/update-merge-commit-msg/git-reword-merge.sh) in the same folder rewrites the current merge commit with the contents of `a.commit` once the message is final.
 
-If the script is successful, it creates `a.docs` with the extracted docs from the merged branch: analyse its content to write the `a.commit` message with a conventional commit message following the "Commit message rules for groups" section of [`group-commits-msg.md`](group-commits-msg.md) and the template in [`group-commits-msg.template.md`](../templates/group-commits-msg.template.md).  
+If the script is successful, it creates `a.docs` in the review artifact home, at the path its `Success:` line prints, with the extracted docs from the merged branch: analyse its content to write the `a.commit` message with a conventional commit message following the "Commit message rules for groups" section of [`group-commits-msg.md`](group-commits-msg.md) and the template in [`group-commits-msg.template.md`](../templates/group-commits-msg.template.md).  
 There is only one group, so do not put "Group 1" or `git add -A` commands, only the commit message template filled with the right content.
 
 The filled template is mandatory, not optional: `a.commit` must hold the subject line, then a `Why:` section (the reason for the merge, then a paragraph describing the now-state it allows), then a `What:` section with a dashed list of the changes merged. A bare subject with a single free-form paragraph and no `Why:` / `What:` headers is wrong. Never hand-type the merge message with `git commit --amend -m "..."`: that path applies no template and produces exactly that wrong shape. Always fill `a.commit` from the template and let `git-reword-merge.sh` apply it. Before the reword, re-read `a.commit` and confirm both the `Why:` and the `What:` headers are present.
@@ -63,8 +63,9 @@ Only run `git-reword-merge.sh` after a go-ahead entry is selected.
 ## Handoff to prepare-release
 
 This skill can run on its own or as one step of the `prepare-release`
-skill. Check for the flag file `a.prepare-release.active` at the project
-root:
+skill. Check for the flag file `a.prepare-release.active` in the review
+artifact home (`.reviews` unless `.review-artifacts.ini` declares another
+home, see [`artifact_files.md`](../rules/artifact_files.md)):
 
 - When it exists, you are running inside a `prepare-release` run. Once
   `a.commit` is final and the merge commit has been reworded with

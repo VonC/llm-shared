@@ -16,8 +16,13 @@ and you are ready to cut the release.
 
 ## Outputs
 
-- `<PRJ_DIR>/a.md` — the generated release-preparation notes (changelog
-  titles grouped by type, plus the full commit list).
+- `<ARTIFACT_HOME>/a.md` — the generated release-preparation notes
+  (changelog titles grouped by type, plus the full commit list). It is a
+  working file, so it lives in the project's review artifact home,
+  `<ARTIFACT_HOME>`: `.reviews` unless a versioned `.review-artifacts.ini`
+  declares another `home` (see
+  [`artifact_files.md`](../rules/artifact_files.md)), never at the project
+  root.
 - `<PRJ_DIR>/version.txt` — rewritten with the release-notes summary.
 - `<PRJ_DIR>/CHANGELOG.md` — updated by `update-changelog.bat`.
 
@@ -63,16 +68,18 @@ The script:
 - reads the last git tag (`git describe --tags --abbrev=0`, `v` prefix
   removed) and stops with a fatal error if it already equals `X.Y.Z`
   (the release notes are already prepared);
-- writes `<PRJ_DIR>/a.md` with the changelog titles grouped by type and
-  the full commit list since the last tag.
+- writes `<ARTIFACT_HOME>/a.md` with the changelog titles grouped by type
+  and the full commit list since the last tag, and prints the path it wrote
+  on its last `Ok:` line.
 
 If the script exits with a non-zero status, stop and report the fatal
 error to the user. Do not continue.
 
 ### Step 2 — Write the release-notes summary in `version.txt`
 
-Read the generated `a.md` and analyse the `## vX.Y.Z changelog` and
-`## vX.Y.Z commit list` sections to deduce the release-notes summary.
+Read the generated `a.md` from the path the script printed, and analyse the
+`## vX.Y.Z changelog` and `## vX.Y.Z commit list` sections to deduce the
+release-notes summary.
 
 Write `<PRJ_DIR>/version.txt` following the template
 [`prepare-release-notes.version-txt.template.txt`](../templates/prepare-release-notes.version-txt.template.txt):
@@ -158,8 +165,8 @@ release. To create it, the user runs `brel`.
 ## Handoff to prepare-release
 
 This skill can run on its own or as one step of the `prepare-release`
-skill. Check for the flag file `a.prepare-release.active` at the project
-root:
+skill. Check for the flag file `a.prepare-release.active` in the review
+artifact home, `<ARTIFACT_HOME>`:
 
 - When it exists, you are running inside a `prepare-release` run. Once
   `version.txt` and `CHANGELOG.md` are written (Steps 1 to 5), do not print

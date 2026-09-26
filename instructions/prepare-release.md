@@ -37,10 +37,10 @@ This skill calls other skills and tools:
   is green after a feature-only `--onto` replay or after main was merged into
   an integration branch.
 
-It uses a flag file (`a.prepare-release.active`, see "The run flag file"
-below) so those sub-skills hand control back to it instead of finishing
-with their own standalone closing message (see "Handoff" in each sub-skill
-body).
+It uses a flag file (`a.prepare-release.active` in the review artifact home,
+see "The run flag file and other working files" below) so those sub-skills
+hand control back to it instead of finishing with their own standalone
+closing message (see "Handoff" in each sub-skill body).
 
 ## Invocation contract
 
@@ -163,15 +163,43 @@ release `X.Y.Z`, regenerates `CHANGELOG.md`, makes its own release commit,
 and creates the `vX.Y.Z` tag. This skill stops one step short of that, at
 the prepare commit, so the irreversible tag stays in your hands.
 
-## The run flag file
+## The run flag file and other working files
 
-The handoff to the sub-skills uses a flag file, `a.prepare-release.active`,
-at the project root. The `a.*` rule in `.gitignore` keeps it out of git, so
-it never gets committed. Its lifecycle across one run:
+Every working file of a run lives in the project's review artifact home,
+`<ARTIFACT_HOME>`: `.reviews` unless a versioned `.review-artifacts.ini`
+declares another `home` (see
+[`../rules/artifact_files.md`](../rules/artifact_files.md)). The home holds a
+`.gitignore` of exactly `*`, so nothing in it is ever committed. Never create
+a working file or folder at the project root. Resolve `<ARTIFACT_HOME>` once,
+at the start of the run, with the planner launcher; it creates the home with
+its ignore file when missing and prints the absolute path:
+
+```powershell
+& "<LLM_SHARED_DIR>\bin\prepare_release_plan.bat" --root "<PRJ_DIR>" --artifact-home
+```
+
+A non-zero exit reports an invalid home: stop and report it.
+
+The working files of a run are:
+
+- the flag file `a.prepare-release.active` described below;
+- the `a.prepare-release-preview.<random>` object directories of the conflict
+  previews, which the planner creates and removes on its own;
+- any backup, state note, or scratch copy you make during the run, such as a
+  copy of `a.docs` before a reword. Name it `a.<slug>.tmp.<what>` after the
+  release slug, so the Step 4 cleanup of a later run removes it.
+
+Tracked release files (`version.txt`, `CHANGELOG.md`, and the version sources
+of Step 12) stay where they are.
+
+The handoff to the sub-skills uses the flag file,
+`<ARTIFACT_HOME>/a.prepare-release.active`. Its lifecycle across one run:
 
 - At the start of the run, delete the flag file if it is still there, so a
   stale flag left by a crashed earlier run cannot lie about the state. This
-  delete-at-start is what makes the flag self-healing.
+  delete-at-start is what makes the flag self-healing. A flag an earlier
+  version of this skill left at the project root is stale too: delete it the
+  same way.
 - Create the flag file before each sub-skill call, so the sub-skill sees it
   and hands control back instead of ending on its own.
 - Remove the flag file on every exit path: success, the nothing-to-release
@@ -217,12 +245,16 @@ skills use, so the shared scripts are found from any consuming repository.
 
 ### Step 1 — Clear a stale flag and find the last tag
 
-First, delete any stale flag file left by a crashed earlier run, so the
-handoff signal starts clean:
+First, resolve `<ARTIFACT_HOME>` with the planner launcher, as described in
+"The run flag file and other working files". Then delete any stale flag file
+left by a crashed earlier run, so the handoff signal starts clean:
 
 ```bash
-rm -f "<PRJ_DIR>/a.prepare-release.active"
+rm -f "<ARTIFACT_HOME>/a.prepare-release.active"
 ```
+
+Delete a stale flag at the project root too, when an earlier version of this
+skill left one there.
 
 Then read the last released tag from `<PRJ_DIR>`:
 
@@ -604,7 +636,7 @@ present these choices so the user can decide how to handle the pending work:
   committed in tidy groups.
 
 ```bash
-touch "<PRJ_DIR>/a.prepare-release.active"
+touch "<ARTIFACT_HOME>/a.prepare-release.active"
 ```
 
 Continue only once the tree is clean. Do not auto-commit without offering,
@@ -614,9 +646,10 @@ the current plan is validated and committed.
 
 In that same go-ahead message, list the effort's temporary step files
 described in [`step-journal.md`](step-journal.md), with their total size:
-every `a.<slug>.step*.tmp.*` file and folder in the review artifact home
-(`.reviews` unless `.review-artifacts.ini` declares another home), for each
-`<slug>` of the target efforts. Once the user confirms, delete exactly those.
+every `a.<slug>.step*.tmp.*` and `a.<slug>.tmp.*` file and folder in
+`<ARTIFACT_HOME>`, for each `<slug>` of the target efforts (see
+[`../rules/artifact_files.md`](../rules/artifact_files.md)). Once the user
+confirms, delete exactly those.
 Keep every step journal and handoff, and touch no other file of the home. The
 home is ignored, so the deletion leaves the working tree clean.
 
@@ -712,12 +745,14 @@ applicable:
 
 Run only the one matching the detected mode and feature destination. The tool uses
 `git merge-tree --write-tree -z --name-only --messages` in an isolated
-temporary object directory. It does not touch repository refs, the index,
-working tree, or permanent object store.
+temporary object directory, `a.prepare-release-preview.<random>` in
+`<ARTIFACT_HOME>`, which it removes when the preview ends. It does not touch
+repository refs, the index, tracked files, or the permanent object store.
 
-When a restricted sandbox blocks creation of that system temporary directory,
+When a restricted sandbox blocks creation of that temporary directory,
 request approval for the same planner command. Do not fall back to the live
-object database, index, or a temporary worktree just to avoid the approval.
+object database, index, a temporary worktree, or a folder at the project root
+just to avoid the approval.
 
 - For a `--no-ff` merge, it previews the exact destination and source tips.
 - When integration lacks main, it previews main merging into integration;
@@ -885,7 +920,7 @@ allows) followed by a `What:` section with a dashed list of the changes.
 Create the flag file if it is not already present, then invoke that skill:
 
 ```bash
-touch "<PRJ_DIR>/a.prepare-release.active"
+touch "<ARTIFACT_HOME>/a.prepare-release.active"
 ```
 
 Because the flag file is present, that skill returns control here once the
@@ -980,7 +1015,7 @@ Create the flag file if it is not already present, then invoke
   topics.
 
 ```bash
-touch "<PRJ_DIR>/a.prepare-release.active"
+touch "<ARTIFACT_HOME>/a.prepare-release.active"
 ```
 
 The wiki review must preserve one purpose per page and category order:
@@ -1013,13 +1048,13 @@ Create the flag file if it is not already present, then invoke the
 `prepare_release_notes` skill:
 
 ```bash
-touch "<PRJ_DIR>/a.prepare-release.active"
+touch "<ARTIFACT_HOME>/a.prepare-release.active"
 ```
 
-With the flag file present, it generates `a.md`, writes the `version.txt`
-release-notes summary, pauses for you to pick a witty title, finalizes
-`version.txt`, updates `CHANGELOG.md`, and then returns control here instead
-of telling you to run `brel`.
+With the flag file present, it generates `a.md` in `<ARTIFACT_HOME>`, writes
+the `version.txt` release-notes summary, pauses for you to pick a witty title,
+finalizes `version.txt`, updates `CHANGELOG.md`, and then returns control here
+instead of telling you to run `brel`.
 
 Do not run `update-changelog.bat` again yourself: `prepare_release_notes`
 already updates `CHANGELOG.md`, and `brel` regenerates it at release time.
@@ -1194,7 +1229,7 @@ empty.
 Remove the flag file:
 
 ```bash
-rm -f "<PRJ_DIR>/a.prepare-release.active"
+rm -f "<ARTIFACT_HOME>/a.prepare-release.active"
 ```
 
 Then print a summary of what changed:
@@ -1237,12 +1272,12 @@ Run the skill twice and the second run does nothing harmful:
 
 ## Known limitations
 
-- The handoff signal is the flag file `a.prepare-release.active` at the
-  project root, not an environment variable (shell state does not survive
-  between the separate shells each command runs in). The skill deletes a
-  stale flag at the start of every run, so a crashed earlier run cannot
-  leave a flag that lies about the state; a sub-skill run on its own, with
-  no flag file present, behaves standalone, which is the wanted default.
+- The handoff signal is the flag file `a.prepare-release.active` in the
+  review artifact home, not an environment variable (shell state does not
+  survive between the separate shells each command runs in). The skill
+  deletes a stale flag at the start of every run, so a crashed earlier run
+  cannot leave a flag that lies about the state; a sub-skill run on its own,
+  with no flag file present, behaves standalone, which is the wanted default.
 - Step 5 first brings local main up to `origin/main` (fetched read-only) on
   every branch, main included. Off main, when local main is strictly behind,
   it moves the main ref with `git update-ref` even though main is checked out
