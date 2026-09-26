@@ -236,6 +236,13 @@ but not its session: the reviewer moves to its artifact-home wait and stays
 available for the next request, so a requestor may publish a fresh exchange
 without arranging a new reviewer invocation.
 
+All counterpart waits follow the
+[quiet-wait transport rules](../rules/run_commands.md#quiet-waits-preserve-model-quota).
+The reviewer's global watcher runs in the background and leaves the chat
+available. For bounded protocol waits, use the longest permitted transport
+interval without recurring idle model resumptions. A transport timeout does
+not end or restart a bounded protocol wait.
+
 1. Call `status` with the exact context. Exit `3` with outcome `disabled` means
    the calling workflow follows its existing non-review path and creates no
    exchange artifacts.

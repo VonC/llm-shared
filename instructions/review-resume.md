@@ -70,21 +70,30 @@ Dispatch the action from the successful claim (or idle inspection):
 - `wait-exact-answer` routes to the matching requestor's exact answer wait.
 - `continue-requestor` routes to the requestor's owned action.
 - `follow-workflow` runs and follows `pw skill`.
-- `wait-any-request` runs the quiet foreground command below.
+- `wait-any-request` runs the quiet background watcher below.
 
-For a global reviewer wait, run one foreground process and await its final JSON
-result without an LLM polling loop:
+For a global reviewer wait, run this command once in a host-managed background
+execution session, retaining its handle and final JSON without an LLM polling
+loop:
 
 ```powershell
 & "<LLM_SHARED_DIR>\bin\review_exchange.bat" wait-any-request
 ```
 
+Apply the [quiet-wait transport rules](../rules/run_commands.md#quiet-waits-preserve-model-quota).
+Return control of the chat while the watcher runs; do not hold an outer tool
+wait open or require the user to press Esc to ask questions. Retrieve its
+result on a supported completion notification or the next user turn. Repeated
+minute-by-minute model resumptions to receive "still running" are an LLM
+polling loop even when the watcher emits nothing.
+
 The command emits no idle output. `found` exits 0 and includes the session-only
 ownership capability; `ambiguous` and `cancelled` exit 3; invalid input and an
 operational failure exit 2. A graceful host or console interruption is
-`cancelled`; a hard process kill may produce no result. Do not persist a waiter,
-start writer work from a reviewer route, or use a requestor route to consume an
-arbitrary future request.
+`cancelled`; a hard process kill may produce no result. Keep the watcher and
+its result in the host-managed session, without a durable waiter service or
+persisted ownership capability. Do not start writer work from a reviewer route
+or use a requestor route to consume an arbitrary future request.
 
 On `found`, retain the returned capability. Run `resume-inspect` for the
 selected document and step with `--role reviewer` and the same host hint.
