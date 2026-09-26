@@ -154,12 +154,13 @@ def test_instruction_forbids_writer_human_and_commit_authority() -> None:
 
 
 def test_instruction_requires_the_reviewer_to_always_wait() -> None:
-    """A reviewer never ends its session; it waits for the next request."""
+    """The background watcher stays active while chat control returns to the user."""
     content = _content()
     normalized = " ".join(content.split())
 
     assert "## A reviewer always waits" in content
-    assert "publishing an answer never returns control to the user" in normalized
+    assert "Return control of the chat while the background watcher remains active" in normalized
+    assert "publishing an answer never returns control to the user" not in normalized
     for phrase in (
         "The round wait.",
         "The artifact-home wait.",
@@ -169,7 +170,8 @@ def test_instruction_requires_the_reviewer_to_always_wait() -> None:
         assert phrase in normalized
     assert "GlobalReviewerWait" in content
     assert "wait-any-request" in normalized
-    assert "quiet foreground operation" in normalized
+    assert "quiet background operation" in normalized
+    assert "must not monopolize the chat" in normalized
     assert "writes no idle progress" in normalized
 
 

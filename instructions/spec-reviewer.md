@@ -122,8 +122,9 @@ reuse the preceding document, step, round, or occurrence for a new request.
    retained manifest. Keep every protocol artifact under shared-core ownership.
 8. When the published disposition is `changes-requested` and the returned state
    is `answer-pending`, immediately run the quiet global `wait-any-request` in this
-   same reviewer session. Do not report the round as finished, return control
-   to the user, or ask for another reviewer invocation first. The wait begins
+   same reviewer session, in the background. Return control of the chat while
+   keeping the watcher active; do not require another invocation to start it.
+   The wait begins
    while the requestor owns `answer-pending`; it grants no requestor authority
    to the reviewer and simply watches for the replacement request.
 9. When that wait returns `found`, retain its capability and dispatch the
@@ -153,8 +154,10 @@ restart, and never author a `#` heading inside appended content.
 
 ## A reviewer always waits
 
-A reviewer never ends its own session, and publishing an answer never returns
-control to the user. There is always a wait to enter, and only two kinds exist.
+A reviewer keeps watching after publishing an answer. Return control of the
+chat while the background watcher remains active; ending a chat turn does not
+end the reviewer session or transfer workflow authority. There are two kinds
+of wait.
 
 **The round wait.** Use exact `wait-request` to validate access to a selected
 request before assessment. After every answer, including `changes-requested`,
@@ -169,11 +172,10 @@ document, or step may publish the next request, so a specification reviewer's
 wait also covers a code-review request and the reverse.
 
 Neither wait is optional and neither is a question for the user. Do not ask
-whether to start waiting, do not offer waiting as a choice, and do not treat a
-long session or a completed round as a reason to hand back. A reviewer that
-reports a round finished and stops has abandoned the next request rather than
-completed its work, and the requestor will publish into an exchange nobody is
-watching.
+whether to start waiting or offer waiting as a choice. A long session or a
+completed round is not a reason to stop the watcher. Returning chat control
+with the background watcher active preserves the next request; stopping both
+the reviewer and its watcher would leave the exchange unwatched.
 
 Never start or contact a requestor to produce that next round.
 The absence of a request never authorizes reviewer-to-requestor delegation.
@@ -187,10 +189,16 @@ wait. These script-managed operations are the only sanctioned mechanisms.
 
 `& "<LLM_SHARED_DIR>\bin\review_exchange.bat" wait-request` remains bound to
 one exact exchange and validates selected request access. After every answer,
-run `wait-any-request` once as a quiet foreground operation and await its final
-JSON result. It watches the configured artifact home without model-side polling,
+run `wait-any-request` once as a quiet background operation and retain its
+session handle. It watches the configured artifact home without model-side polling,
 claims only its selected request, returns `found`, `ambiguous`, or `cancelled`,
-and writes no idle progress. `GlobalReviewerWait` owns that foreground wait.
+and writes no idle progress. `GlobalReviewerWait` owns the watcher loop.
+
+Follow the [quiet-wait transport rules](../rules/run_commands.md#quiet-waits-preserve-model-quota)
+for both reviewer waits. The global watcher must not monopolize the chat:
+return chat control instead of entering a long outer tool wait. Retrieve its
+final JSON on a supported completion notification or the next user turn, and
+report any host limitation once. Do not add idle polling or progress updates.
 
 ## Pending request and reclaim boundary for specification reviewers
 
