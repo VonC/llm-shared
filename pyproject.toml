@@ -217,7 +217,7 @@ dev = [
     "hypothesis",
     "packaging",
     "pillow",
-    "pip>=26.1.2",
+    "pip>=26.2.0",
     "pyinstrument",
     "questionary",
     "pyproject-hooks",
