@@ -5,13 +5,19 @@ module runs the same collection and keeps one line per exchange: the round,
 what is reviewed (a plan step, or the specification document type), and whose
 move it is, with that role's recorded LLM nature, for instance
 `round 2 for step 3: wait for code reviewer (codex) response`.
+
+Fix: the same collection also names the current topic's requestor, the code or
+document writer, when its active exchanges agree on one Claude or Codex nature,
+so `pw progress` can render its `next` command for that host.
 """
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import datetime
 from typing import TYPE_CHECKING, Final
 
+from tools.llm_nature import LlmNature
 from tools.review_exchange_models import ReviewFamily, ReviewRole
 from tools.review_status import collect_review_status
 from tools.review_status_models import (
@@ -40,6 +46,21 @@ _ANOTHER_ROUND_LABEL: Final[dict[ReviewFamily, str]] = {
 _COUNTERPART_ACTIONS: Final[frozenset[NextAction]] = frozenset(
     {NextAction.WAIT_FOR_COUNTERPART, NextAction.REQUESTOR_WORK, NextAction.REVIEWER_WORK},
 )
+_HOST_NATURES: Final[frozenset[LlmNature]] = frozenset({LlmNature.CLAUDE, LlmNature.CODEX})
+
+
+@dataclass(frozen=True)
+class ReviewReport:
+    """The condensed review lines and the current topic's requestor nature.
+
+    Attributes:
+        lines: The condensed lines of `condense`.
+        requestor: The one Claude or Codex requestor of the topic's active
+            exchanges, or None when there is none or it is not clear.
+    """
+
+    lines: tuple[str, ...]
+    requestor: LlmNature | None
 
 
 def _subject(exchange: ExchangeStatus, topic_slug: str | None) -> str:
@@ -94,8 +115,31 @@ def condense(result: ReviewStatusResult, topic_slug: str | None) -> list[str]:
     return lines or [NO_REVIEW]
 
 
-def review_lines(root: Path, topic_slug: str | None) -> list[str]:
-    """Collect the review status as `rwst` does and return its condensed lines.
+def requestor_nature(result: ReviewStatusResult, topic_slug: str | None) -> LlmNature | None:
+    """Return the requestor nature the current topic's active exchanges agree on.
+
+    Args:
+        result: The collected repository review status.
+        topic_slug: The current topic slug; exchanges of other topics are ignored.
+
+    Returns:
+        `claude` or `codex` when every active exchange of the topic records that
+        same requestor, otherwise None: no exchange, no resolved topic, an
+        unrecorded, conflicting, or other nature, or requestors that disagree.
+    """
+    natures = {
+        entry.requestor_llm_nature.value
+        for entry in result.exchanges
+        if isinstance(entry, ExchangeStatus) and entry.identity.slug == topic_slug
+    }
+    if topic_slug is None or len(natures) != 1:
+        return None
+    (nature,) = natures
+    return nature if isinstance(nature, LlmNature) and nature in _HOST_NATURES else None
+
+
+def review_report(root: Path, topic_slug: str | None) -> ReviewReport:
+    """Collect the review status as `rwst` does, once, and report it.
 
     The collection runs the same bounded migration preflight as `rwst`.
 
@@ -104,10 +148,26 @@ def review_lines(root: Path, topic_slug: str | None) -> list[str]:
         topic_slug: The current topic slug, or None without a resolved topic.
 
     Returns:
-        The condensed lines of `condense`.
+        The condensed lines and the topic's requestor nature.
     """
     result = collect_review_status(root, lambda: datetime.now().astimezone())
-    return condense(result, topic_slug)
+    return ReviewReport(
+        tuple(condense(result, topic_slug)),
+        requestor_nature(result, topic_slug),
+    )
+
+
+def review_lines(root: Path, topic_slug: str | None) -> list[str]:
+    """Collect the review status as `rwst` does and return its condensed lines.
+
+    Args:
+        root: The project root.
+        topic_slug: The current topic slug, or None without a resolved topic.
+
+    Returns:
+        The condensed lines of `condense`.
+    """
+    return list(review_report(root, topic_slug).lines)
 
 
 # eof

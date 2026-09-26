@@ -3,6 +3,8 @@
 Each active exchange condenses to its round, what it reviews, and whose move it
 is with that role's LLM nature; an empty repository reads
 `no review in progress`, and damaged or unavailable status points at `rwst`.
+The same collection names the current topic's requestor only when its active
+exchanges agree on one Claude or Codex nature.
 """
 
 from __future__ import annotations
@@ -197,6 +199,32 @@ def test_review_lines_collect_the_status_once(
         "round 2 for step 6: wait for code reviewer (codex) response",
     ]
     assert calls == [tmp_path]
+    assert progress_review.review_report(tmp_path, _SLUG) == progress_review.ReviewReport(
+        ("round 2 for step 6: wait for code reviewer (codex) response",),
+        LlmNature.CLAUDE,
+    )
+    assert calls == [tmp_path, tmp_path]
+
+
+def test_requestor_nature_is_the_topic_single_host_requestor() -> None:
+    """Only the current topic's exchanges count, and they must agree on Claude or Codex."""
+    codex_code = replace(_code_exchange(), requestor_llm_nature=_nature(LlmNature.CODEX))
+    unrecorded = replace(_code_exchange(), requestor_llm_nature=RoleNatureStatus.unrecorded())
+    gemini = replace(_code_exchange(), requestor_llm_nature=_nature(LlmNature.GEMINI))
+    damaged = DamagedCandidateStatus(candidate_path="a.review-active.broken.md", diagnostic="bad")
+
+    assert progress_review.requestor_nature(
+        _result(
+            _code_exchange(), _spec_exchange(), damaged, outcome=ReviewStatusOutcome.UNTRUSTWORTHY,
+        ),
+        _SLUG,
+    ) is LlmNature.CLAUDE
+    assert progress_review.requestor_nature(_result(codex_code), _SLUG) is LlmNature.CODEX
+    assert progress_review.requestor_nature(_result(_code_exchange()), None) is None
+    assert progress_review.requestor_nature(_result(_spec_exchange()), _SLUG) is None
+    assert progress_review.requestor_nature(_result(_code_exchange(), codex_code), _SLUG) is None
+    assert progress_review.requestor_nature(_result(unrecorded), _SLUG) is None
+    assert progress_review.requestor_nature(_result(gemini), _SLUG) is None
 
 
 # eof

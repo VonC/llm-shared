@@ -11,6 +11,13 @@ renders compactly, as in `topic 3/4`.
 
 Fix: the report also condenses the repository review status (`rwst`) into one
 `review` line per active exchange, or `no review in progress`.
+
+Fix: when the topic's requestor, the code or document writer, is clearly
+known, the `next` command is rendered for that host (`/` for Claude,
+`$llm-shared:` for Codex) and ends with ` (claude)` or ` (codex)`. An active
+exchange names it first; otherwise the latest entry of the topic's committed
+review transcripts does, since a completed exchange leaves `rwst` empty. A
+reviewer handoff is left as is: the requestor is not the one to run it.
 """
 
 from __future__ import annotations
@@ -26,6 +33,7 @@ from tools import prompt_workflow_handoff as handoff
 from tools import prompt_workflow_memory as memory
 from tools import prompt_workflow_plan as plan
 from tools import prompt_workflow_progress_review as progress_review
+from tools import prompt_workflow_review_history as review_history
 from tools import prompt_workflow_skill as skill
 from tools import prompt_workflow_steps as steps
 from tools.prompt_workflow_post_commit import slug_key
@@ -34,6 +42,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
     from pathlib import Path
 
+    from tools.llm_nature import LlmNature
     from tools.prompt_workflow_models import CollectionItem, Topic
     from tools.prompt_workflow_plan import PlanStep
 
@@ -44,6 +53,7 @@ _IMPLEMENTATION: Final[str] = "implementation"
 _COMPLETED: Final[str] = "completed"
 _UMBRELLA_PREFIX: Final[str] = "- Umbrella: "
 _LABEL_WIDTH: Final[int] = 10
+_REVIEWER_ROLES: Final[tuple[str, ...]] = (skill.CODE_REVIEWER, skill.SPEC_REVIEWER)
 
 
 def format_position(label: str, index: int, total: int) -> str:
@@ -300,13 +310,56 @@ def progress_lines(
     Returns:
         `(label, value)` pairs: branch, topic, umbrella, then phase and step
         for a topic (not for its umbrella integration branch), then one
-        review line per active review exchange, then next.
+        review line per active review exchange, then next, rendered for the
+        topic's requestor when it is known (see `next_line`).
     """
-    command, _note = skill.current_command(root, topic, branch, env, override)
+    report = progress_review.review_report(root, topic.slug)
+    requestor = report.requestor or review_history.last_requestor_nature(root, topic)
     lines = _topic_lines(root, topic, branch)
-    lines.extend(("review", line) for line in progress_review.review_lines(root, topic.slug))
-    lines.append(("next", command or "none resolved"))
+    lines.extend(("review", line) for line in report.lines)
+    lines.append(("next", next_line(root, topic, branch, env, override, requestor)))
     return lines
+
+
+def addresses_reviewer(command: str) -> bool:
+    """Return whether a rendered command hands off to a reviewer role."""
+    return command.split(" ", maxsplit=1)[0].endswith(_REVIEWER_ROLES)
+
+
+def next_line(  # noqa: PLR0913
+    root: Path,
+    topic: Topic,
+    branch: str,
+    env: Mapping[str, str],
+    override: str | None,
+    requestor: LlmNature | None,
+) -> str:
+    """Return the next command, rendered for the topic's requestor when known.
+
+    Args:
+        root: The project root.
+        topic: The resolved topic.
+        branch: The current branch name.
+        env: The process environment, read for the host prefix.
+        override: An optional host token forcing the prefix.
+        requestor: The Claude or Codex requestor of the topic, or None.
+
+    Returns:
+        `none resolved` without a command; the command for the environment or
+        override host when no requestor is known or the command addresses a
+        reviewer; otherwise the command for the requestor's host followed by
+        ` (claude)` or ` (codex)`.
+    """
+    host = requestor.value if requestor is not None else override
+    command, _note = skill.current_command(root, topic, branch, env, host)
+    if command is None:
+        return "none resolved"
+    if requestor is None:
+        return command
+    if addresses_reviewer(command):
+        command, _note = skill.current_command(root, topic, branch, env, override)
+        return command or "none resolved"
+    return f"{command} ({requestor.value})"
 
 
 def _topic_lines(root: Path, topic: Topic, branch: str) -> list[tuple[str, str]]:

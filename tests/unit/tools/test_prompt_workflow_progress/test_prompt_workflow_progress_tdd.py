@@ -4,7 +4,9 @@ Positions are counted from document order, never read from ids: a step `3.2`
 fourth in the validation plan renders `3.2 (4/7)`, while an id equal to its
 position renders compactly. Umbrella membership comes from the child draft
 marker, the umbrella draft a topic resolved through, or one same-version
-umbrella listing the slug; anything else is a standalone topic.
+umbrella listing the slug; anything else is a standalone topic. A known
+requestor, from an active exchange or else the topic's transcripts, renders the
+`next` command for its host and labels it, except for a reviewer handoff.
 """
 
 from __future__ import annotations
@@ -15,10 +17,14 @@ import pytest
 
 from tools import prompt_workflow
 from tools import prompt_workflow_progress as progress
+from tools import prompt_workflow_progress_review as progress_review
+from tools import prompt_workflow_render as rendering
+from tools.llm_nature import LlmNature
 from tools.prompt_workflow_models import Topic
 from tools.prompt_workflow_plan import PlanStep
 
 if TYPE_CHECKING:
+    from collections.abc import Callable, Mapping
     from pathlib import Path
 
 # pyright: reportUnknownLambdaType=false, reportUnknownArgumentType=false
@@ -31,10 +37,19 @@ _VERIFIED_STEPS = 4
 
 @pytest.fixture(autouse=True)
 def stub_review_status(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Replace the `rwst` collection with one line naming the topic slug."""
+    """Replace the `rwst` collection with one line naming the topic slug.
+
+    No requestor is known, from an active exchange or a transcript.
+    """
     monkeypatch.setattr(
         progress.progress_review, "review_lines", lambda _root, slug: [f"review of {slug}"],
     )
+    monkeypatch.setattr(
+        progress.progress_review,
+        "review_report",
+        lambda _root, slug: progress_review.ReviewReport((f"review of {slug}",), None),
+    )
+    monkeypatch.setattr(progress.review_history, "last_requestor_nature", lambda *_a: None)
 
 
 def _steps(verified: int) -> list[PlanStep]:
@@ -294,6 +309,83 @@ def test_progress_lines_on_the_umbrella_integration_branch(
     ]
     assert lines[1] == ("topic", f"{_VERSION} family (umbrella)")
     assert lines[2][1].startswith("1/3 topics completed, next topic 2/3")
+
+
+_PLAN_DOC = f"docs/plan.{_VERSION}.dex-navigation.md"
+
+
+def _fake_command(role: str) -> Callable[..., tuple[str, str]]:
+    """Return a `current_command` stub rendering `role` for the requested host."""
+
+    def fake(
+        _root: Path, _topic: Topic, _branch: str, env: Mapping[str, str], override: str | None = None,
+    ) -> tuple[str, str]:
+        prefix = rendering.host_prefix(env, override)
+        return rendering.render_step_command(prefix, f"{role}.md", _PLAN_DOC, "3"), ""
+
+    return fake
+
+
+def test_next_line_renders_and_labels_the_known_requestor(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Claude gets `/`, Codex gets `$llm-shared:`, and the line names the host."""
+    topic = _topic(_docs(tmp_path), "dex-navigation")
+    monkeypatch.setattr(progress.skill, "current_command", _fake_command("implement-step"))
+
+    def line(requestor: LlmNature | None, env: dict[str, str] | None = None) -> str:
+        return progress.next_line(tmp_path, topic, "dex-navigation", env or {}, None, requestor)
+
+    assert line(None) == f"<command-prefix>implement-step on {_PLAN_DOC} step 3"
+    assert line(LlmNature.CLAUDE) == f"/implement-step on {_PLAN_DOC} step 3 (claude)"
+    assert line(LlmNature.CODEX, _CLAUDE) == (
+        f"$llm-shared:implement-step on {_PLAN_DOC} step 3 (codex)"
+    )
+
+
+def test_next_line_leaves_reviewer_handoffs_and_missing_commands(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A reviewer runs its own handoff; no command stays `none resolved`."""
+    topic = _topic(_docs(tmp_path), "dex-navigation")
+    monkeypatch.setattr(progress.skill, "current_command", _fake_command("code-reviewer"))
+
+    assert progress.next_line(tmp_path, topic, "b", {}, None, LlmNature.CODEX) == (
+        f"<command-prefix>code-reviewer on {_PLAN_DOC} step 3"
+    )
+    assert progress.addresses_reviewer("$llm-shared:spec-reviewer on docs/x.md")
+    assert not progress.addresses_reviewer("/code-review-requestor on docs/x.md step 3")
+
+    monkeypatch.setattr(progress.skill, "current_command", lambda *_a: (None, "note"))
+    assert progress.next_line(tmp_path, topic, "b", {}, None, LlmNature.CODEX) == "none resolved"
+    assert progress.next_line(tmp_path, topic, "b", {}, None, None) == "none resolved"
+
+    answers = iter([("/code-reviewer on docs/x.md", ""), (None, "note")])
+    monkeypatch.setattr(progress.skill, "current_command", lambda *_a: next(answers))
+    assert progress.next_line(tmp_path, topic, "b", {}, None, LlmNature.CLAUDE) == "none resolved"
+
+
+def test_progress_lines_prefer_the_live_requestor_then_the_transcripts(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """`rwst` names the requestor first; a finished review falls back to transcripts."""
+    topic = _topic(_docs(tmp_path), "solo")
+    monkeypatch.setattr(progress.skill, "current_command", _fake_command("implement-step"))
+    monkeypatch.setattr(progress.review_history, "last_requestor_nature", lambda *_a: LlmNature.CODEX)
+
+    assert progress.progress_lines(tmp_path, topic, "solo", {})[-1] == (
+        "next", f"$llm-shared:implement-step on {_PLAN_DOC} step 3 (codex)",
+    )
+
+    monkeypatch.setattr(
+        progress.progress_review,
+        "review_report",
+        lambda _root, _slug: progress_review.ReviewReport(("live",), LlmNature.CLAUDE),
+    )
+    assert progress.progress_lines(tmp_path, topic, "solo", {})[-2:] == [
+        ("review", "live"),
+        ("next", f"/implement-step on {_PLAN_DOC} step 3 (claude)"),
+    ]
 
 
 def test_run_progress_prints_the_report_or_notes_a_missing_topic(
