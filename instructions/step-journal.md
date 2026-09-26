@@ -144,15 +144,18 @@ captures, bundles, API snapshots, and evidence folders such as
 `a.<slug>.step<x>.tmp.build217/`. A script derives its output paths from the
 artifact home and never writes into the project root.
 
-Never create a step file at the project root. The only root files are the
-ones a tool writes there itself: `a.commit`, `a.ghog.log`, `a.ghog.status`,
-`a.prompt.txt`, and `a.prompt_memory`. Review exchange inputs keep the names
+Never create a step file at the project root.
+[`artifact_files.md`](../rules/artifact_files.md) lists the only six root
+files and the names of every other working file: an effort-level file is
+`a.<slug>.tmp.<what>`, and a helper script shares its stem with the output it
+captures. Review exchange inputs keep the names
 [`review-requestor.md`](review-requestor.md) and the specialized role ask for,
 in the same home.
 
 A temporary file a later step still needs stays in place: that later step
 lists it in its handoff's private references. `prepare-release` deletes the
-effort's `a.<slug>.step*.tmp.*` files once every step is committed.
+effort's `a.<slug>.step*.tmp.*` and `a.<slug>.tmp.*` files once every step is
+committed.
 
 ## Privacy of step notes and reviewer access
 

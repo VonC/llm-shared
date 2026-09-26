@@ -30,6 +30,10 @@
 - When writing or rewriting a file, follow
   [`preserve_code.md`](preserve_code.md).
 - When running a shell command, follow [`run_commands.md`](run_commands.md).
+- When creating any `a.*` working file (scratch, script, captured output, log,
+  evidence, report, private note), follow
+  [`artifact_files.md`](artifact_files.md): it lives in the review artifact
+  home (`.reviews`), never at the project root, apart from six listed files.
 - When adding or modifying an LLM-specific Markdown adapter, follow
   [`llm-specific-adapters.md`](llm-specific-adapters.md).
 
