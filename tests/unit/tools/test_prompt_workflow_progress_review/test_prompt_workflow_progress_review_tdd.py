@@ -181,29 +181,40 @@ def test_damaged_and_unavailable_status_point_at_rwst() -> None:
     ) == ["review status unavailable (run rwst): legacy artifact conflict"]
 
 
-def test_review_lines_collect_the_status_once(
+def test_review_report_collects_the_status_once(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """`review_lines` runs the `rwst` collection with a wall clock and condenses it."""
+    """`review_report` runs the `rwst` collection once with a wall clock.
+
+    A normal exchange adds no resume prompt; an escalated one adds its prompt.
+    """
     calls: list[Path] = []
+    escalated = replace(
+        _code_exchange(),
+        state=ArtifactState.ESCALATED,
+        next_action=NextAction.RESOLVE_ESCALATION,
+    )
+    results = iter([_result(_code_exchange()), _result(escalated)])
 
     def fake_collect(root: Path, wall_clock: Callable[[], datetime]) -> ReviewStatusResult:
         calls.append(root)
         assert callable(wall_clock)
         assert wall_clock().tzinfo is not None
-        return _result(_code_exchange())
+        return next(results)
 
     monkeypatch.setattr(progress_review, "collect_review_status", fake_collect)
 
-    assert progress_review.review_lines(tmp_path, _SLUG) == [
-        "round 2 for step 6: wait for code reviewer (codex) response",
-    ]
-    assert calls == [tmp_path]
-    assert progress_review.review_report(tmp_path, _SLUG) == progress_review.ReviewReport(
+    assert progress_review.review_report(tmp_path, _SLUG, {}) == progress_review.ReviewReport(
         ("round 2 for step 6: wait for code reviewer (codex) response",),
         LlmNature.CLAUDE,
     )
-    assert calls == [tmp_path, tmp_path]
+    assert calls == [tmp_path]
+    report = progress_review.review_report(tmp_path, _SLUG, {})
+    assert len(report.resume) == 1
+    assert report.resume[0].startswith(
+        f"/code-review-requestor on docs/v0.13.0/plan.v0.13.0.{_SLUG}.md step 6: escalated, ",
+    )
+    assert report.resume[0].endswith(" (claude)")
 
 
 def test_requestor_nature_is_the_topic_single_host_requestor() -> None:

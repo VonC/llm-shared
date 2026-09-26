@@ -9,6 +9,10 @@ move it is, with that role's recorded LLM nature, for instance
 Fix: the same collection also names the current topic's requestor, the code or
 document writer, when its active exchanges agree on one Claude or Codex nature,
 so `pw progress` can render its `next` command for that host.
+
+Fix: the report also carries one resume prompt per abnormal exchange, from
+`prompt_workflow_progress_resume`, so `pw progress` can print what to paste to
+the role that restarts a stopped review cycle.
 """
 
 from __future__ import annotations
@@ -17,6 +21,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import TYPE_CHECKING, Final
 
+from tools import prompt_workflow_progress_resume as progress_resume
 from tools.llm_nature import LlmNature
 from tools.review_exchange_models import ReviewFamily, ReviewRole
 from tools.review_status import collect_review_status
@@ -28,6 +33,7 @@ from tools.review_status_models import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
     from pathlib import Path
 
 NO_REVIEW: Final[str] = "no review in progress"
@@ -51,16 +57,18 @@ _HOST_NATURES: Final[frozenset[LlmNature]] = frozenset({LlmNature.CLAUDE, LlmNat
 
 @dataclass(frozen=True)
 class ReviewReport:
-    """The condensed review lines and the current topic's requestor nature.
+    """The condensed review lines, the topic's requestor, and resume prompts.
 
     Attributes:
         lines: The condensed lines of `condense`.
         requestor: The one Claude or Codex requestor of the topic's active
             exchanges, or None when there is none or it is not clear.
+        resume: One prompt per abnormal exchange, empty when all are normal.
     """
 
     lines: tuple[str, ...]
     requestor: LlmNature | None
+    resume: tuple[str, ...] = ()
 
 
 def _subject(exchange: ExchangeStatus, topic_slug: str | None) -> str:
@@ -138,7 +146,12 @@ def requestor_nature(result: ReviewStatusResult, topic_slug: str | None) -> LlmN
     return nature if isinstance(nature, LlmNature) and nature in _HOST_NATURES else None
 
 
-def review_report(root: Path, topic_slug: str | None) -> ReviewReport:
+def review_report(
+    root: Path,
+    topic_slug: str | None,
+    env: Mapping[str, str],
+    override: str | None = None,
+) -> ReviewReport:
     """Collect the review status as `rwst` does, once, and report it.
 
     The collection runs the same bounded migration preflight as `rwst`.
@@ -146,28 +159,19 @@ def review_report(root: Path, topic_slug: str | None) -> ReviewReport:
     Args:
         root: The project root.
         topic_slug: The current topic slug, or None without a resolved topic.
+        env: The process environment, read for a resume prompt's fallback prefix.
+        override: An optional host token forcing that fallback prefix.
 
     Returns:
-        The condensed lines and the topic's requestor nature.
+        The condensed lines, the topic's requestor nature, and the resume
+        prompts of every abnormal exchange.
     """
     result = collect_review_status(root, lambda: datetime.now().astimezone())
     return ReviewReport(
         tuple(condense(result, topic_slug)),
         requestor_nature(result, topic_slug),
+        tuple(progress_resume.resume_prompts(result, env, override)),
     )
-
-
-def review_lines(root: Path, topic_slug: str | None) -> list[str]:
-    """Collect the review status as `rwst` does and return its condensed lines.
-
-    Args:
-        root: The project root.
-        topic_slug: The current topic slug, or None without a resolved topic.
-
-    Returns:
-        The condensed lines of `condense`.
-    """
-    return list(review_report(root, topic_slug).lines)
 
 
 # eof

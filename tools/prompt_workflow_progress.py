@@ -18,6 +18,11 @@ known, the `next` command is rendered for that host (`/` for Claude,
 exchange names it first; otherwise the latest entry of the topic's committed
 review transcripts does, since a completed exchange leaves `rwst` empty. A
 reviewer handoff is left as is: the requestor is not the one to run it.
+
+Fix: each abandoned, interrupted, escalated, or inconsistent exchange adds a
+`resume` line after the `review` lines: a one-line prompt, prefixed and named
+for the role that continues the exchange, to paste so the review cycle
+resumes. No review, or reviews in a normal state, add no such line.
 """
 
 from __future__ import annotations
@@ -310,15 +315,24 @@ def progress_lines(
     Returns:
         `(label, value)` pairs: branch, topic, umbrella, then phase and step
         for a topic (not for its umbrella integration branch), then one
-        review line per active review exchange, then next, rendered for the
-        topic's requestor when it is known (see `next_line`).
+        review line per active review exchange, one resume line per abnormal
+        exchange, then next, rendered for the topic's requestor when it is
+        known (see `next_line`).
     """
-    report = progress_review.review_report(root, topic.slug)
+    report = progress_review.review_report(root, topic.slug, env, override)
     requestor = report.requestor or review_history.last_requestor_nature(root, topic)
     lines = _topic_lines(root, topic, branch)
-    lines.extend(("review", line) for line in report.lines)
+    lines.extend(review_lines(report))
     lines.append(("next", next_line(root, topic, branch, env, override, requestor)))
     return lines
+
+
+def review_lines(report: progress_review.ReviewReport) -> list[tuple[str, str]]:
+    """Return the `review` lines, then one `resume` line per abnormal exchange."""
+    return [
+        *(("review", line) for line in report.lines),
+        *(("resume", prompt) for prompt in report.resume),
+    ]
 
 
 def addresses_reviewer(command: str) -> bool:
@@ -415,7 +429,8 @@ def run_progress(root: Path, host_override: str | None = None) -> int:
     topic = handoff.resolve_current_topic(root, branch, memory.read_memory(root))
     if topic is None:
         lines = [("branch", branch), ("topic", "none resolved")]
-        lines.extend(("review", line) for line in progress_review.review_lines(root, None))
+        report = progress_review.review_report(root, None, os.environ, host_override)
+        lines.extend(review_lines(report))
         sys.stdout.write(render_lines(lines))
         return skill.EXIT_NOT_APPLICABLE
     sys.stdout.write(render_lines(progress_lines(root, topic, branch, os.environ, host_override)))

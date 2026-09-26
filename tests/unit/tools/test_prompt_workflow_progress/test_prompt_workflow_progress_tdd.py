@@ -42,12 +42,9 @@ def stub_review_status(monkeypatch: pytest.MonkeyPatch) -> None:
     No requestor is known, from an active exchange or a transcript.
     """
     monkeypatch.setattr(
-        progress.progress_review, "review_lines", lambda _root, slug: [f"review of {slug}"],
-    )
-    monkeypatch.setattr(
         progress.progress_review,
         "review_report",
-        lambda _root, slug: progress_review.ReviewReport((f"review of {slug}",), None),
+        lambda _root, slug, *_a: progress_review.ReviewReport((f"review of {slug}",), None),
     )
     monkeypatch.setattr(progress.review_history, "last_requestor_nature", lambda *_a: None)
 
@@ -380,12 +377,44 @@ def test_progress_lines_prefer_the_live_requestor_then_the_transcripts(
     monkeypatch.setattr(
         progress.progress_review,
         "review_report",
-        lambda _root, _slug: progress_review.ReviewReport(("live",), LlmNature.CLAUDE),
+        lambda *_a: progress_review.ReviewReport(("live",), LlmNature.CLAUDE),
     )
     assert progress.progress_lines(tmp_path, topic, "solo", {})[-2:] == [
         ("review", "live"),
         ("next", f"/implement-step on {_PLAN_DOC} step 3 (claude)"),
     ]
+
+
+def test_progress_lines_add_a_resume_line_per_abnormal_exchange(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Resume prompts follow the review lines, with or without a resolved topic."""
+    topic = _topic(_docs(tmp_path), "solo")
+    prompt = f"/code-review-requestor on {_PLAN_DOC} step 3: escalated, resume it (claude)"
+    seen: list[tuple[object, ...]] = []
+
+    def fake_report(*args: object) -> progress_review.ReviewReport:
+        seen.append(args[1:])
+        return progress_review.ReviewReport(("round 2 for step 3: escalated",), None, (prompt,))
+
+    monkeypatch.setattr(progress.progress_review, "review_report", fake_report)
+    monkeypatch.setattr(progress.skill, "current_command", lambda *_a: ("/next", ""))
+
+    assert progress.progress_lines(tmp_path, topic, "solo", _CLAUDE, "codex")[-3:] == [
+        ("review", "round 2 for step 3: escalated"),
+        ("resume", prompt),
+        ("next", "/next"),
+    ]
+    assert seen == [("solo", _CLAUDE, "codex")]
+
+    monkeypatch.setattr(progress.git, "current_branch", lambda _root: "main")
+    monkeypatch.setattr(progress.memory, "read_memory", lambda _root: None)
+    monkeypatch.setattr(progress.handoff, "resolve_current_topic", lambda *_a: None)
+
+    assert progress.run_progress(tmp_path, "claude") == progress.skill.EXIT_NOT_APPLICABLE
+    assert capsys.readouterr().out.splitlines()[-1] == f"resume    {prompt}"
+    assert seen[-1][0] is None
+    assert seen[-1][2] == "claude"
 
 
 def test_run_progress_prints_the_report_or_notes_a_missing_topic(
