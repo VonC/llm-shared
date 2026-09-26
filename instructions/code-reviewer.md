@@ -88,7 +88,10 @@ reuse the preceding document, step, round, or occurrence for a new request.
    plan, step, round, request-time index tree, resolved validation set, and
    optional literal `Human guidance:` block. Read the exact plan, named step,
    validation plan, staged diff, and `a.commit`. Do not read the versioned
-   transcript as working context.
+   transcript as working context. You may read, read-only, the writer's step
+   journal and handoff named on the request's `Writer notes` line (see
+   [`step-journal.md`](step-journal.md)) for context. Never write, rename, or
+   delete them, and never quote a private detail from them in your answer.
 4. For invalid specialized request content or a changed request-time index
    tree, take the early rejection path below without implementation mutation.
 5. Otherwise capture the baseline, umbrella digest, validation state, and
@@ -119,7 +122,11 @@ reuse the preceding document, step, round, or occurrence for a new request.
    attribution, unresolved findings, and `a.commit` as the six readiness-floor
    results.
 10. Write every answer-model input to a distinct ignored `a.*` UTF-8 file
-   inside the configured artifact home, `.reviews` by default.
+   inside the configured artifact home, `.reviews` by default, named
+   `a.<slug>.step<step>.tmp.r<round>.answer-<part>.md`, such as
+   `a.dex-navigation.step3.tmp.r2.answer-findings.md`; the two outputs use the
+   parts `answer-content` and `answer-summary`, and any other reviewer scratch
+   file keeps the same `a.<slug>.step<step>.tmp.r<round>.` stem.
    Run `& "<LLM_SHARED_DIR>\bin\code_review_answer.bat"` once with the exact context, round,
    `--exchange-occurrence` from `status`, disposition, evidence inputs, and two
    distinct ignored outputs: complete answer content and transcript summary.

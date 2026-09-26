@@ -186,7 +186,7 @@ transition into the integration branch.
 
 ## Handoff
 
-When the check is written and the `Analysis of Step x` status line records the Yes-or-No verdict in the validation plan, hand the cycle on, with no menu. From the project root, run:
+When the check is written and the `Analysis of Step x` status line records the Yes-or-No verdict in the validation plan, hand the cycle on, with no menu. When the code writer runs this check in its chain, first append the verdict as a `gate` line to the step journal and update the step handoff, as [`step-journal.md`](step-journal.md) describes; a reviewer-mode check never writes them. From the project root, run:
 
 - `pw handoff after-check <x>`
 

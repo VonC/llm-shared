@@ -104,6 +104,8 @@ self-locate and do not need an `senv.bat` pre-call.
 
    If the file is valid, there is nothing more to do: `git_batch_commit.py` will have proceeded automatically to create one commit per group, with the corresponding commit message.
 
+   When those commits complete a plan step whose private journal exists (see [`step-journal.md`](step-journal.md)), append a `commit` line with the new hashes to that journal and update its handoff.
+
    Do not manually replay the groups with `git restore --staged`, `git add`,
    or `git commit` after a go-ahead. The approved go-ahead path is exactly the
    batch commit tool above; bypassing it skips the parser/validator contract

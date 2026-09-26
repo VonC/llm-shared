@@ -143,17 +143,38 @@ For a convergence handoff, the human can state: `Commit selected. This is a new
 session; force requestor ownership pickup, record Commit, then continue the
 authorized commit process.` The requestor must run `pickup` before `confirm`.
 
+## Writer step notes during review rounds
+
+The requestor is the code writer, so the step's private journal and handoff
+from [`step-journal.md`](step-journal.md) stay in force through every round.
+On entry, including a new-session pickup or a `resume`, run
+`pw step-journal <step>` and read the journal and handoff in full before any
+exchange command. Append a `review` journal line when a request is published,
+an answer is consumed, and a human choice is recorded, and a `commit` line once
+the authorized commit succeeds. Rewrite the handoff's state and next actions
+before each publication and before the convergence gate.
+
 ## Authored inputs for implementation review rounds
 
 The assessment states whether the exact step is fully implemented and names the
 test, static-check, coverage, architecture, performance, and feature-integrity
-evidence. The implementation report explains what changed. The change summary
-lists the current staged paths and `a.commit` groups. The writer response records
-accepted earlier feedback and any disagreement. Human guidance stays separate.
+evidence. The implementation report explains what changed and ends with a
+`Writer notes` line naming the step journal and handoff paths, which the
+reviewer may read. The change summary lists the current staged paths and
+`a.commit` groups. The writer response records accepted earlier feedback and
+any disagreement. Human guidance stays separate. None of them copies a private
+detail from the step notes.
 
 The paired renderer receives the exact plan, step, round, optional umbrella,
 separate ignored authored inputs, and separate ignored request-content and
 transcript-summary outputs. Do not author those outputs independently.
+
+Name each of those files in the artifact home
+`a.<slug>.step<step>.tmp.r<round>.<part>.md`, where `<part>` is
+`assessment`, `implementation-report`, `change-summary`, `writer-response`,
+`guidance`, `request-content`, or `transcript-summary`, for example
+`a.dex-navigation.step3.tmp.r2.assessment.md`. Use the same stem for any other
+round scratch file, such as `a.dex-navigation.step3.tmp.r2.index.json`.
 
 ## Staged repair and commit-plan assessment
 

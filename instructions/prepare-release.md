@@ -612,6 +612,14 @@ and do not sweep in edits the user did not mean to release. Before going
 further, present a go-ahead choice asking the user to confirm that every step of
 the current plan is validated and committed.
 
+In that same go-ahead message, list the effort's temporary step files
+described in [`step-journal.md`](step-journal.md), with their total size:
+every `a.<slug>.step*.tmp.*` file and folder in the review artifact home
+(`.reviews` unless `.review-artifacts.ini` declares another home), for each
+`<slug>` of the target efforts. Once the user confirms, delete exactly those.
+Keep every step journal and handoff, and touch no other file of the home. The
+home is ignored, so the deletion leaves the working tree clean.
+
 ### Step 5 — Base on the latest destination
 
 This step first makes local main current with `origin/main`, so a full release
