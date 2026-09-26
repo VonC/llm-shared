@@ -31,6 +31,11 @@ Fix (progress): the ``progress`` subcommand, ``pw progress``, prints where the
 current topic stands (branch, topic, umbrella position or standalone, phase,
 plan step position) above the same next command ``pw skill`` prints.
 
+Fix (step-journal): the ``step-journal`` subcommand, ``pw step-journal <x>``,
+prepares the review artifact home and prints whether the code writer is
+starting or resuming step ``<x>``, with its private journal, handoff, and
+temporary-file paths.
+
 See ``docs/design.v0.1.0.pw_handoff.md`` for the full specification and the design
 decisions (Q01 to Q64) behind this tool.
 """
@@ -61,6 +66,7 @@ from tools import prompt_workflow_menu as menu
 from tools import prompt_workflow_plan as plan
 from tools import prompt_workflow_progress as progress
 from tools import prompt_workflow_skill as skill
+from tools import prompt_workflow_step_journal as step_journal
 from tools import prompt_workflow_steps as steps
 from tools.prompt_workflow_models import MemoryRecord, PromptWorkflowError
 from tools.review_artifact_configuration import ReviewArtifactConfiguration
@@ -574,6 +580,15 @@ def _get_arg_parser() -> argparse.ArgumentParser:
         choices=docs.DOCUMENT_TYPES,
         help="Document type to resolve.",
     )
+    step_journal_parser = subparsers.add_parser(
+        "step-journal",
+        parents=[common],
+        help="Print the start or resume state and private note paths of one plan step.",
+    )
+    step_journal_parser.add_argument(
+        "step",
+        help="The plan step id being implemented, such as 2 or 4A.",
+    )
     code_review_commit_parser = subparsers.add_parser(
         "code-review-commit",
         parents=[common],
@@ -610,14 +625,24 @@ def main(argv: list[str] | None = None) -> int:
             args.after_write,
             args.after_merge,
         )
-    if args.command == "progress":
-        return progress.run_progress(root, args.host_override)
+    report = _run_report(root, args)
+    if report is not None:
+        return report
     if args.command == "code-review-commit":
         return skill.run_authorized_code_review_commit(
             root,
             residual=args.residual,
         )
     return run(root, pick=args.pick)
+
+
+def _run_report(root: Path, args: argparse.Namespace) -> int | None:
+    """Run the read-mostly `progress` or `step-journal` report, else return None."""
+    if args.command == "progress":
+        return progress.run_progress(root, args.host_override)
+    if args.command == "step-journal":
+        return step_journal.run_step_journal(root, args.step)
+    return None
 
 
 def _log_fatal(err: Exception) -> NoReturn:
