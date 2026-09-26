@@ -24,6 +24,11 @@ line says the pytest steps do not apply and that nothing needs installing,
 and the next step sends the caller to the project's own test commands. The
 missing-pytest reason (Q21) moves here too, so ``commands.py`` keeps its line
 budget.
+
+Fix: the exit-8 exclusion hint names the floor file at its real location, the
+artifact home path the verdict carries, instead of a bare ``a.ghog.outliers``
+that read as a project-root file. Still pure: the location comes in with the
+verdict, never from IO here.
 """
 
 from __future__ import annotations
@@ -88,6 +93,9 @@ MSG_COVERAGE_GAP: Final = (
     "add tests, verify with ghog affected"
 )
 MSG_GAP_LINES_HEADER: Final = "Uncovered lines (file and ranges are the covg input):"
+# The floor file named by the exclusion hint when the verdict carries no
+# location: it lives in the artifact home, never at the project root.
+_FLOOR_FILE_IN_HOME: Final = "a.ghog.outliers in the artifact home (.reviews by default)"
 MSG_FULL_OK: Final = "Objective reached"
 MSG_TIMINGS_OK: Final = "Duration gate clean; the parallel walk carries the rest"
 MSG_TIMINGS_FAILED: Final = (
@@ -181,18 +189,22 @@ def _exclusion_hint(summary: DurationSummary | None) -> str:
     recorded baseline, the per-call instruction the exclusion block carries.
 
     Args:
-        summary: The duration verdict, for the active floor named in the hint.
+        summary: The duration verdict, for the active floor and the floor
+            file location named in the hint.
 
     Returns:
         The hint naming the ``ghog exclude`` command and pointing at
-        ``fix_slow_test.md``, with the floor it would otherwise raise.
+        ``fix_slow_test.md``, with the floor it would otherwise raise and
+        the floor file's location in the artifact home.
     """
     floor_secs = summary.floor if summary is not None else 0.0
+    floor_file = summary.floor_file if summary is not None else ""
     return (
         "A call that must stay slow is not a bug: once "
         "<llm-shared>/instructions/fix_slow_test.md proves it irreducible, run "
         "ghog exclude <node id> <measured seconds> to accept it at its time, "
-        f"not raise line 2 of a.ghog.outliers (the {floor_secs:.2f}s suite floor)"
+        f"not raise line 2 of {floor_file or _FLOOR_FILE_IN_HOME} "
+        f"(the {floor_secs:.2f}s suite floor)"
     )
 
 

@@ -25,6 +25,10 @@ REM The exit code is the first non-zero of the sequence, so a failing phase
 REM still reports its own contract code and the later commands are skipped.
 
 if not defined PRJ_DIR set "PRJ_DIR=%CD%"
+REM The parked activation lands in the project's artifact home, never at the
+REM project root: artifact_home.bat prepares it and sets ARTIFACT_HOME.
+call "%~dp0artifact_home.bat" "%PRJ_DIR%"
+set "GHOG_CYCLE_SENV_LOG=%ARTIFACT_HOME%\a.ghog.senv.log"
 
 for %%i in ("%PRJ_DIR%") do set "LLM_SHARED_PRJ_DIR_NAME=%%~nxi"
 if defined LLM_SHARED_PRJ_DIR_NAME set "NO_MORE_SENV_!LLM_SHARED_PRJ_DIR_NAME!="
@@ -32,17 +36,18 @@ if exist "%PRJ_DIR%\senv.bat" (
     if defined GHOG_SENV_LIVE (
         call <NUL "%PRJ_DIR%\senv.bat" 2>&1
     ) else (
-        call <NUL "%PRJ_DIR%\senv.bat" > "%PRJ_DIR%\a.ghog.senv.log" 2>&1
+        call <NUL "%PRJ_DIR%\senv.bat" > "%GHOG_CYCLE_SENV_LOG%" 2>&1
     )
 )
 set "LLM_SHARED_PRJ_DIR_NAME="
 
 REM Replay the parked activation once, the way cli.py replays its own copy, so
 REM a sandbox block or a missing venv stays visible instead of dying silently.
-if exist "%PRJ_DIR%\a.ghog.senv.log" (
-    type "%PRJ_DIR%\a.ghog.senv.log"
-    del "%PRJ_DIR%\a.ghog.senv.log" 2>nul
+if exist "%GHOG_CYCLE_SENV_LOG%" (
+    type "%GHOG_CYCLE_SENV_LOG%"
+    del "%GHOG_CYCLE_SENV_LOG%" 2>nul
 )
+set "GHOG_CYCLE_SENV_LOG="
 
 set "GHOG_SENV_READY=1"
 set "CYCLE_EXIT=0"

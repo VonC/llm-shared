@@ -4,6 +4,10 @@ Cover the digest stability and sensitivity (touch, add, remove,
 excluded folders, gate configuration files), the marker round-trip, and
 the safe directions of ``is_unchanged`` (no marker, mismatch,
 unreadable marker).
+
+Fix: the marker lives in the artifact home (``.reviews`` by default), not at
+the project root; a root marker left by an older walk is moved there on first
+use, and a home that cannot be prepared reads as changed.
 """
 
 from __future__ import annotations
@@ -78,6 +82,38 @@ def test_digest_ignores_excluded_folders(tmp_path: Path) -> None:
     assert snapshot.source_digest(tmp_path) == before
 
 
+def test_digest_ignores_the_artifact_home(tmp_path: Path) -> None:
+    """Scratch scripts in the default or a declared artifact home never move the digest."""
+    _seed_project(tmp_path)
+    before = snapshot.source_digest(tmp_path)
+    reviews = tmp_path / ".reviews"
+    reviews.mkdir()
+    (reviews / "a.dex.step3.tmp.probe.py").write_text("x\n", encoding="utf-8")
+    assert snapshot.source_digest(tmp_path) == before
+
+    (tmp_path / ".review-artifacts.ini").write_text(
+        "[review-artifacts]\nhome = .private/work\n", encoding="utf-8",
+    )
+    declared = tmp_path / ".private" / "work"
+    declared.mkdir(parents=True)
+    (declared / "a.tmp.scan.py").write_text("x\n", encoding="utf-8")
+    assert snapshot.source_digest(tmp_path) != before
+    moved = snapshot.source_digest(tmp_path)
+    (declared / "a.tmp.other.py").write_text("y\n", encoding="utf-8")
+    assert snapshot.source_digest(tmp_path) == moved
+
+
+def test_digest_falls_back_to_the_default_home(tmp_path: Path) -> None:
+    """An unreadable declaration still keeps `.reviews` out of the digest."""
+    _seed_project(tmp_path)
+    (tmp_path / ".review-artifacts.ini").write_text("not an ini\n", encoding="utf-8")
+    before = snapshot.source_digest(tmp_path)
+    reviews = tmp_path / ".reviews"
+    reviews.mkdir()
+    (reviews / "a.tmp.probe.py").write_text("x\n", encoding="utf-8")
+    assert snapshot.source_digest(tmp_path) == before
+
+
 def test_digest_covers_the_gate_configuration(tmp_path: Path) -> None:
     """pyproject.toml changes move the digest (the gate may move)."""
     _seed_project(tmp_path)
@@ -93,10 +129,28 @@ def test_marker_round_trip(tmp_path: Path) -> None:
     source = _seed_project(tmp_path)
     assert snapshot.is_unchanged(tmp_path) is False
     path = snapshot.write_marker(tmp_path)
-    assert path == tmp_path / snapshot.MARKER_FILE_NAME
+    assert path == tmp_path.resolve() / ".reviews" / snapshot.MARKER_FILE_NAME
+    assert not (tmp_path / snapshot.MARKER_FILE_NAME).exists()
     assert snapshot.is_unchanged(tmp_path) is True
     _touch(source, 3_000_000_000)
     assert snapshot.is_unchanged(tmp_path) is False
+
+
+def test_legacy_root_marker_moves_into_the_home(tmp_path: Path) -> None:
+    """A marker an older walk left at the root still proves the noop."""
+    _seed_project(tmp_path)
+    legacy = tmp_path / snapshot.MARKER_FILE_NAME
+    legacy.write_text(f"{snapshot.source_digest(tmp_path)}\n", encoding="utf-8")
+    assert snapshot.is_unchanged(tmp_path) is True
+    assert not legacy.exists()
+    assert snapshot.marker_path(tmp_path).is_file()
+
+
+def test_unusable_home_means_walk_again(tmp_path: Path) -> None:
+    """A root whose artifact home cannot be prepared reads as changed."""
+    not_a_dir = tmp_path / "blocker"
+    not_a_dir.write_text("x\n", encoding="utf-8")
+    assert snapshot.is_unchanged(not_a_dir) is False
 
 
 def test_unreadable_marker_means_walk_again(tmp_path: Path) -> None:

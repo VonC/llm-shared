@@ -35,6 +35,14 @@ into the log it opens for the survivor child, and the status reporter
 discards it to keep its envelope bounded — and :func:`disarm` drops a
 mirror left armed by an earlier in-process run, since those paths never
 call :func:`activate_if_captured` themselves.
+
+Fix: the retained ``a.ghog.senv.txt`` moves from the project root into the
+review artifact home (``.reviews`` unless ``.review-artifacts.ini`` declares
+another home), where every ``a.*`` working file now lives
+(``rules/artifact_files.md``); ``ghog.bat`` parks its ``a.ghog.senv.log`` side
+file there too. The path comes from ``tools.artifact_home.artifact_path``, and
+the summary line names the file's real location instead of a bare root name.
+``a.ghog.log`` stays at the project root: it is the report a person reads.
 """
 
 from __future__ import annotations
@@ -48,6 +56,7 @@ import sys
 from pathlib import Path
 from typing import TYPE_CHECKING, Final
 
+from tools.artifact_home import artifact_path
 from tools.groundhog.models import Mode
 
 if TYPE_CHECKING:
@@ -60,12 +69,16 @@ LOGGER = logging.getLogger("groundhog")
 LOG_NAME: Final = "a.ghog.log"
 # The environment variable naming the senv side log parked by ghog.bat.
 SENV_LOG_ENV: Final = "GHOG_SENV_LOG"
-# The raw senv preamble is retained here, never folded into the report.
+# The raw senv preamble is retained here, in the artifact home, never folded
+# into the report.
 SENV_RAW_NAME: Final = "a.ghog.senv.txt"
-# The one summary line that replaces the preamble in the report stream.
+# The one summary line that replaces the preamble in the report stream; the
+# placeholder takes the retained file's real location.
 MSG_SENV_PARKED: Final = (
-    "ghog: senv preamble kept out of the report; raw text in a.ghog.senv.txt"
+    "ghog: senv preamble kept out of the report; raw text in {location}"
 )
+# The location named when the retained file could not be written.
+_SENV_RAW_UNAVAILABLE: Final = f"{SENV_RAW_NAME} (could not be written)"
 # Lines of the preamble that must stay visible whatever the mode: a blocked
 # senv is the escalation signal the instruction files branch on, so it is
 # surfaced in summary form rather than parked with the rest.
@@ -246,7 +259,8 @@ def replay_senv_log(mode: Mode, root: Path) -> None:
 
     Args:
         mode: The picked output mode (Q03).
-        root: The consuming project root, hosting the retained file.
+        root: The consuming project root, whose artifact home hosts the
+            retained file.
     """
     text = consume_senv_log()
     if not text.strip():
@@ -256,13 +270,16 @@ def replay_senv_log(mode: Mode, root: Path) -> None:
         for line in lines:
             LOGGER.info("%s", line)
         return
-    with contextlib.suppress(OSError):
-        (root / SENV_RAW_NAME).write_text(
+    location = _SENV_RAW_UNAVAILABLE
+    with contextlib.suppress(OSError, ValueError):
+        retained = artifact_path(root, SENV_RAW_NAME)
+        retained.write_text(
             "\n".join(lines) + "\n",
             encoding="utf-8",
             errors="replace",
         )
-    LOGGER.info("%s", MSG_SENV_PARKED)
+        location = str(retained)
+    LOGGER.info("%s", MSG_SENV_PARKED.format(location=location))
     for line in lines:
         if _SENV_ALERT_RE.search(line):
             LOGGER.info("%s", line)

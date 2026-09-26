@@ -6,7 +6,9 @@ REM process, so the pytest child of groundhog sees the project venv. senv.bat
 REM is idempotent through a project-specific NO_MORE_SENV guard, but harnesses
 REM can inherit that guard with a stale PATH. Clear the guard for the project
 REM root this wrapper is launched from so senv.bat can repair the venv PATH.
-REM Its output is parked in a side log (Q31): cli.py replays it into the
+REM Its output is parked in a side log (Q31), a.ghog.senv.log in the project's
+REM artifact home (.reviews unless .review-artifacts.ini declares another home,
+REM prepared by artifact_home.bat): cli.py replays it into the
 REM report stream - stdout normally, a.ghog.log when the self-redirect guard
 REM armed - so a forgotten caller redirect cannot flood an LLM conversation
 REM with the senv preamble. This tool is agent-facing first, so parking stays
@@ -27,7 +29,8 @@ REM explicit assertion may skip the activation: an inherited guard alone must
 REM not, because the stale-guard case is exactly what the clear-and-call above
 REM exists to repair.
 if not defined PRJ_DIR set "PRJ_DIR=%CD%"
-set "GHOG_SENV_LOG=%PRJ_DIR%\a.ghog.senv.log"
+call "%~dp0artifact_home.bat" "%PRJ_DIR%"
+set "GHOG_SENV_LOG=%ARTIFACT_HOME%\a.ghog.senv.log"
 if defined GHOG_SENV_READY (
     set "GHOG_SENV_LOG="
 ) else (

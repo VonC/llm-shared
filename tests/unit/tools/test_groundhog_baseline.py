@@ -3,6 +3,10 @@
 Cover the ``a.ghog.failures`` write/read cycle, the green-run emptying,
 the unique failing files helper, and the focus comparison producing the
 two Q07 lists across path-style differences.
+
+Fix: the baseline lives in the artifact home (``.reviews`` by default), not
+at the project root; a root copy left by an older run is moved there on first
+use, and a home that cannot be prepared reads as no baseline.
 """
 
 from __future__ import annotations
@@ -19,8 +23,25 @@ def test_write_then_read_round_trips_node_ids(tmp_path: Path) -> None:
     """The baseline file round-trips the failing node ids (Q18)."""
     ids = ["tests/test_a.py::test_one", "tests/test_b.py::test_two"]
     path = baseline.write_baseline(tmp_path, ids)
-    assert path == tmp_path / baseline.BASELINE_FILE_NAME
+    assert path == tmp_path.resolve() / ".reviews" / baseline.BASELINE_FILE_NAME
+    assert not (tmp_path / baseline.BASELINE_FILE_NAME).exists()
     assert baseline.read_baseline(tmp_path) == tuple(ids)
+
+
+def test_legacy_root_baseline_moves_into_the_home(tmp_path: Path) -> None:
+    """A baseline an older run left at the root is read from the home."""
+    legacy = tmp_path / baseline.BASELINE_FILE_NAME
+    legacy.write_text("tests/test_a.py::test_one\n", encoding="utf-8")
+    assert baseline.read_baseline(tmp_path) == ("tests/test_a.py::test_one",)
+    assert not legacy.exists()
+    assert baseline.baseline_path(tmp_path).is_file()
+
+
+def test_read_with_an_unusable_home_returns_none(tmp_path: Path) -> None:
+    """A root whose artifact home cannot be prepared reads as no baseline."""
+    not_a_dir = tmp_path / "blocker"
+    not_a_dir.write_text("x\n", encoding="utf-8")
+    assert baseline.read_baseline(not_a_dir) is None
 
 
 def test_green_run_empties_the_baseline(tmp_path: Path) -> None:

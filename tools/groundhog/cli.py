@@ -9,8 +9,8 @@ full — stopping at the first non-green step (Q22), ``init`` registers
 the skill pointers (Claude skill, AGENTS.md section) in the consuming
 project (Q23), ``status`` replays the run lifecycle recorded in
 ``a.ghog.status`` (Q32), and ``exclude`` accepts one must-stay-slow call
-into the ``[exclusion]`` section of ``a.ghog.outliers`` at its measured
-time (Q62).
+into the ``[exclusion]`` section of ``a.ghog.outliers`` in the artifact
+home at its measured time (Q62).
 
 The output mode is picked by TTY auto-detection with ``--user``/``--llm``
 force flags (Q03). Every run ends with the next-step message of the
@@ -39,6 +39,11 @@ Usage::
     python cli.py affected [--no-cov]
     python cli.py single tests/test_a.py tests/test_b.py
     python cli.py check
+
+Fix: the ``exclude`` confirmation names the floor file at its real location
+in the review artifact home (``.reviews`` unless ``.review-artifacts.ini``
+declares another home), where ``a.ghog.outliers`` now lives, instead of a
+bare file name that read as a project-root file.
 """
 
 from __future__ import annotations
@@ -175,7 +180,8 @@ def run_exclude(invocation: Invocation) -> int:
     commands.emit_summary(
         [
             f"ghog: excluded {invocation.node} at {invocation.seconds:.2f}s in "
-            f"{floor.FLOOR_FILE}; the full run holds it within 2s of that baseline",
+            f"{floor.floor_location(invocation.root)}; the full run holds it "
+            "within 2s of that baseline",
         ],
     )
     closing = reporting.closing_line(
@@ -316,7 +322,8 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         parents=[common],
         help=(
             "Accept one must-stay-slow call: add it to the [exclusion] "
-            "section of a.ghog.outliers at its measured time (Q62)."
+            "section of a.ghog.outliers (artifact home) at its measured "
+            "time (Q62)."
         ),
     )
     exclude.add_argument(

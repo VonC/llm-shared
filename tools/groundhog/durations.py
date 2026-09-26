@@ -27,6 +27,11 @@ band (Q70), so a test that became fast again returns to the normal rule. It
 runs after the rule, so the median, MAD and floor still cover the whole run --
 an exclusion changes what is flagged, never the scale the rest is judged
 against.
+
+Fix: :class:`DurationSummary` gains a ``floor_file`` field, the floor file
+location the report names now that it lives in the artifact home rather than
+at the project root. The rule never fills it (it stays free of IO); the
+composing seam in ``durations_summary.py`` sets it on the verdict it returns.
 """
 
 from __future__ import annotations
@@ -113,6 +118,8 @@ class DurationSummary:
         median: The run median call seconds.
         exclusions: The accepted-slow calls judged against their baselines,
             empty until :func:`apply_exclusions` runs the post-step (Q67).
+        floor_file: The floor file location the report names, empty until
+            the composing seam sets it (the rule itself does no IO).
     """
 
     average: float
@@ -121,6 +128,7 @@ class DurationSummary:
     floor: float
     median: float
     exclusions: tuple[DurationExclusion, ...] = ()
+    floor_file: str = ""
 
 
 def auto_floor(durations: Mapping[str, float]) -> float:

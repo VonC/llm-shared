@@ -20,6 +20,7 @@ from typing import TYPE_CHECKING, Final, cast
 
 import pytest
 
+from tools.artifact_home import artifact_path
 from tools.groundhog import cli, commands, redirect, reporting, runner, status
 from tools.groundhog.models import (
     EXIT_COVERAGE_GAP,
@@ -353,7 +354,7 @@ def test_status_never_arms_the_self_redirect(
     A redirect-armed poll would truncate the live walk's a.ghog.log;
     the senv preamble would bloat the two-line envelope (Q32).
     """
-    side = tmp_path / "a.ghog.senv.log"
+    side = artifact_path(tmp_path, "a.ghog.senv.log")
     side.write_text("senv noise line\n", encoding="utf-8")
     monkeypatch.setenv(redirect.SENV_LOG_ENV, str(side))
     status.write_done(tmp_path, "day", EXIT_OBJECTIVE_MET)

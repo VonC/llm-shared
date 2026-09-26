@@ -11,6 +11,10 @@ Fix: new test module for the Q31 guard — a real my-project session ran
 ``ghog day`` unredirected five times, flooding its context with the full
 reports and losing one report to a harness timeout; the guard makes the
 redirect contract tool-side instead of docs-only.
+
+Fix: the parked senv side log and the retained ``a.ghog.senv.txt`` live in
+the artifact home (``.reviews`` by default), not at the project root, and the
+summary line names the retained file's real location.
 """
 
 from __future__ import annotations
@@ -21,6 +25,7 @@ import os
 import sys
 from typing import TYPE_CHECKING, cast
 
+from tools.artifact_home import artifact_path
 from tools.groundhog import cli, redirect, reporting_nextstep
 from tools.groundhog.models import EXIT_OBJECTIVE_MET, Mode
 
@@ -239,7 +244,7 @@ def test_replay_senv_log_replays_and_deletes(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """A user run still streams the parked senv preamble, then deletes it."""
-    side = tmp_path / "a.ghog.senv.log"
+    side = artifact_path(tmp_path, "a.ghog.senv.log")
     side.write_text(
         " OK    : [senv.bat] Environment initialized\n INFO  : [senv.bat] applied\n",
         encoding="utf-8",
@@ -263,7 +268,7 @@ def test_llm_replay_parks_the_preamble_and_leaves_one_summary_line(
     caller-side redirect of the contract, so the fix is at the replay itself
     rather than at either stream.
     """
-    side = tmp_path / "a.ghog.senv.log"
+    side = artifact_path(tmp_path, "a.ghog.senv.log")
     side.write_text(
         " OK    : [senv.bat] Environment initialized\n INFO  : [senv.bat] applied\n",
         encoding="utf-8",
@@ -271,12 +276,31 @@ def test_llm_replay_parks_the_preamble_and_leaves_one_summary_line(
     monkeypatch.setenv(redirect.SENV_LOG_ENV, str(side))
     with caplog.at_level(logging.INFO, logger="groundhog"):
         redirect.replay_senv_log(Mode.LLM, tmp_path)
-    assert redirect.MSG_SENV_PARKED in caplog.text
+    retained = tmp_path.resolve() / ".reviews" / redirect.SENV_RAW_NAME
+    assert redirect.MSG_SENV_PARKED.format(location=retained) in caplog.text
     assert "Environment initialized" not in caplog.text
     assert "[senv.bat] applied" not in caplog.text
-    retained = tmp_path / redirect.SENV_RAW_NAME
     assert "Environment initialized" in retained.read_text(encoding="utf-8")
+    assert not (tmp_path / redirect.SENV_RAW_NAME).exists()
     assert not side.exists()
+
+
+def test_llm_replay_names_an_unwritten_retained_file(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """A root whose artifact home cannot be prepared never claims a written file."""
+    not_a_dir = tmp_path / "blocker"
+    not_a_dir.write_text("x\n", encoding="utf-8")
+    side = tmp_path / "side.log"
+    side.write_text(" OK    : [senv.bat] Environment initialized\n", encoding="utf-8")
+    monkeypatch.setenv(redirect.SENV_LOG_ENV, str(side))
+    with caplog.at_level(logging.INFO, logger="groundhog"):
+        redirect.replay_senv_log(Mode.LLM, not_a_dir)
+    unwritten = f"{redirect.SENV_RAW_NAME} (could not be written)"
+    assert redirect.MSG_SENV_PARKED.format(location=unwritten) in caplog.text
+    assert "Environment initialized" not in caplog.text
 
 
 def test_llm_replay_still_surfaces_a_blocked_senv(
@@ -285,7 +309,7 @@ def test_llm_replay_still_surfaces_a_blocked_senv(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """A blocked senv is an escalation signal and must not hide behind a pointer."""
-    side = tmp_path / "a.ghog.senv.log"
+    side = artifact_path(tmp_path, "a.ghog.senv.log")
     side.write_text(
         " INFO  : [senv.bat] starting\n ERROR : [senv.bat] Access is denied\n",
         encoding="utf-8",

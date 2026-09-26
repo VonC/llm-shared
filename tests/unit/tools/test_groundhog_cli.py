@@ -12,12 +12,15 @@ the collected total even when some result lines escaped the parser, and
 a crashed run only catches up to the parsed count; both paths covered.
 
 Fix: cover the exclude subcommand (Q62) — it writes the node id and its
-measured time into the ``[exclusion]`` section of ``a.ghog.outliers`` and
-exits 0, with the floor lines seeded.
+measured time into the ``[exclusion]`` section of ``a.ghog.outliers`` (in
+the artifact home) and exits 0, with the floor lines seeded.
 
 Fix: cover the exit-9 refusal of a root with no pytest suite. A pytest
 subcommand exits 9 before any pytest lookup, and a day walk runs check.bat
 first, then stops at its first pytest step.
+
+Fix: the exclude confirmation names ``a.ghog.outliers`` at its real location
+in the artifact home, not as a bare project-root file name.
 """
 
 from __future__ import annotations
@@ -25,7 +28,14 @@ from __future__ import annotations
 from dataclasses import replace
 from typing import TYPE_CHECKING, cast
 
-from tools.groundhog import cli, commands, exclusions, reporting_nextstep, runner
+from tools.groundhog import (
+    cli,
+    commands,
+    exclusions,
+    floor,
+    reporting_nextstep,
+    runner,
+)
 from tools.groundhog.models import (
     EXIT_COVERAGE_GAP,
     EXIT_NOT_PYTEST_PROJECT,
@@ -506,6 +516,8 @@ def test_exclude_subcommand_writes_the_entry(
     assert exclusions.read_exclusions(tmp_path) == {node: 11.41}
     out = capsys.readouterr().out
     assert node in out
+    # The confirmation names the floor file where it lives, the artifact home.
+    assert f"in {tmp_path.resolve() / '.reviews' / floor.FLOOR_FILE};" in out
     assert "ghog exclude done" in out
     assert "exit=0" in out
 

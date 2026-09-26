@@ -1,10 +1,17 @@
 """Failure baseline shared between the full and focus runs (Q07, Q18).
 
-``ghog full`` writes the failing test node ids to ``a.ghog.failures`` at the
-project root, refreshed on every full run and emptied on a green one.
-``ghog single`` reads that baseline to print the Q07 comparison as two named
-lists: the tests still failing in focus, and the tests passing in focus but
-failing in the full suite (the interaction or ordering suspects).
+``ghog full`` writes the failing test node ids to ``a.ghog.failures`` in the
+project's artifact home, refreshed on every full run and emptied on a green
+one. ``ghog single`` reads that baseline to print the Q07 comparison as two
+named lists: the tests still failing in focus, and the tests passing in focus
+but failing in the full suite (the interaction or ordering suspects).
+
+Fix: the baseline moves from the project root into the review artifact home
+(``.reviews`` unless ``.review-artifacts.ini`` declares another home), where
+every ``a.*`` working file now lives (``rules/artifact_files.md``). The path
+comes from ``tools.artifact_home.artifact_path``, which prepares the home and
+moves a baseline left at the root by an older run into it once. A read of a
+home that cannot be prepared reads as no baseline, the safe direction.
 """
 
 from __future__ import annotations
@@ -12,11 +19,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Final
 
+from tools.artifact_home import artifact_path
+
 if TYPE_CHECKING:
     from collections.abc import Sequence
     from pathlib import Path
 
-# Name of the baseline scratch file at the project root (Q18).
+# Name of the baseline scratch file in the artifact home (Q18).
 BASELINE_FILE_NAME: Final = "a.ghog.failures"
 
 
@@ -41,9 +50,13 @@ def baseline_path(root: Path) -> Path:
         root: The project root directory.
 
     Returns:
-        The ``a.ghog.failures`` path under that root.
+        The ``a.ghog.failures`` path in the artifact home of that root, a
+        root copy left by an older run moved there first.
+
+    Raises:
+        ValueError: When the artifact home cannot be prepared.
     """
-    return root / BASELINE_FILE_NAME
+    return artifact_path(root, BASELINE_FILE_NAME)
 
 
 def write_baseline(root: Path, failed_ids: Sequence[str]) -> Path:
@@ -70,9 +83,13 @@ def read_baseline(root: Path) -> tuple[str, ...] | None:
 
     Returns:
         The node ids of the last full run (possibly empty when that run
-        was green), or ``None`` when no full run wrote a baseline yet.
+        was green), or ``None`` when no full run wrote a baseline yet or
+        the artifact home cannot be prepared.
     """
-    path = baseline_path(root)
+    try:
+        path = baseline_path(root)
+    except (OSError, ValueError):
+        return None
     if not path.is_file():
         return None
     lines = path.read_text(encoding="utf-8").splitlines()

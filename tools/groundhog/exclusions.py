@@ -24,6 +24,12 @@ the same atomic side-file replace, logged not raised on failure. The
 add / lower-baseline / remove decisions are caller policy (the rule and the
 ``ghog`` command); this module only writes the ``node -> seconds`` map handed
 to it.
+
+Fix: the floor file now lives in the review artifact home, resolved by
+``floor.floor_path``, which moves a root copy left by an older run into the
+home once, so the recorded exclusions are kept. A home that cannot be prepared
+is treated as one more read or write failure: the read is ``{}`` and the write
+is logged, never raised.
 """
 
 from __future__ import annotations
@@ -104,12 +110,12 @@ def write_exclusions(root: Path, exclusions: Mapping[str, float]) -> None:
         text = f"{head}{_EXCLUSION_HEADER}\n{body}"
     else:
         text = head
-    path = floor.floor_path(root)
-    side = path.with_name(f"{floor.FLOOR_FILE}.tmp")
     try:
+        path = floor.floor_path(root)
+        side = path.with_name(f"{floor.FLOOR_FILE}.tmp")
         side.write_text(text, encoding="utf-8")
         side.replace(path)
-    except OSError as error:
+    except (OSError, ValueError) as error:
         LOGGER.info("ghog: could not write %s exclusions: %s", floor.FLOOR_FILE, error)
 
 
@@ -168,9 +174,11 @@ def _read_text(root: Path) -> str | None:
         root: The project root directory, where the floor file lives.
 
     Returns:
-        The file text, or ``None`` when it is absent or unreadable.
+        The file text, or ``None`` when it is absent or unreadable, or when
+        the artifact home cannot be prepared (``UnicodeDecodeError`` is a
+        ``ValueError`` too).
     """
-    with contextlib.suppress(OSError, UnicodeDecodeError):
+    with contextlib.suppress(OSError, ValueError):
         return floor.floor_path(root).read_text(encoding="utf-8")
     return None
 

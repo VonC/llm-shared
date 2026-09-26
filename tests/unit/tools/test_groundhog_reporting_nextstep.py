@@ -14,9 +14,14 @@ limit, so its tests follow it here; the progress, closing line and crash-block
 tests stay with ``reporting`` in the sibling test module. The post-fix
 ``ghog day`` rule spans both, so it keeps the crash-block tail check against
 ``reporting`` here, beside the next-step messages it now belongs with.
+
+Fix: the exit-8 hint names the floor file at the location the verdict
+carries, in the artifact home, never as a bare project-root file name.
 """
 
 from __future__ import annotations
+
+from dataclasses import replace
 
 from tools.groundhog import reporting, reporting_nextstep
 from tools.groundhog.baseline import FocusComparison
@@ -102,8 +107,16 @@ def test_next_after_full_outliers_names_the_fix_and_the_exclusion() -> None:
     # not raising line 2; the floor it would otherwise raise is still shown.
     assert "ghog exclude" in lines[1]
     assert "fix_slow_test.md" in lines[1]
-    assert "a.ghog.outliers" in lines[1]
+    assert "a.ghog.outliers in the artifact home" in lines[1]
     assert f"{_FLOOR:.2f}s" in lines[1]
+
+
+def test_outlier_hint_names_the_floor_file_location() -> None:
+    """The hint names the floor file where the verdict says it lives."""
+    location = "C:/work/project/.reviews/a.ghog.outliers"
+    summary = replace(_summary(outliers=(_OUTLIER,)), floor_file=location)
+    lines = reporting_nextstep.next_after_full(EXIT_DURATION_OUTLIERS, (), summary)
+    assert f"not raise line 2 of {location} (" in lines[1]
 
 
 def test_next_after_full_outliers_without_a_summary() -> None:

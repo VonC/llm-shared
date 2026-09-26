@@ -1,7 +1,7 @@
 """The two-line floor file behind the duration outlier gate (Q38, Q40).
 
 The duration rule judges each call against an absolute floor in seconds
-(Q46), persisted in ``a.ghog.outliers`` at the project root -- the
+(Q46), persisted in ``a.ghog.outliers`` in the project's artifact home -- the
 ``a.ghog.*`` family the tool writes and Git ignores (Q38). Two lines (Q40):
 
 - line 1: the auto floor, ``k * median`` of this run's calls. A write-only
@@ -12,6 +12,16 @@ The duration rule judges each call against an absolute floor in seconds
   zero, missing, partial or binary all fall back to the default; deleting the
   file re-seeds line 2 with it next run (Q45), so a hand-edit cannot crash a
   run.
+
+Fix: the floor file moves from the project root into the review artifact home
+(``.reviews`` unless ``.review-artifacts.ini`` declares another home), where
+every ``a.*`` working file now lives (``rules/artifact_files.md``). The path
+comes from ``tools.artifact_home.artifact_path``, which prepares the home and
+moves a floor file left at the root by an older run into it once, so a
+project's tuned line 2 and its recorded ``[exclusion]`` entries survive the
+move. A home that cannot be prepared is one more read or write failure: the
+read falls back to the default floor, the write is logged, never raised.
+:func:`floor_location` gives report lines the file's real location.
 """
 
 from __future__ import annotations
@@ -20,12 +30,14 @@ import contextlib
 import logging
 from typing import TYPE_CHECKING, Final
 
+from tools.artifact_home import artifact_path
+
 if TYPE_CHECKING:
     from pathlib import Path
 
 LOGGER = logging.getLogger("groundhog")
 
-# The floor file at the project root, the a.ghog.* family (Q38).
+# The floor file in the artifact home, the a.ghog.* family (Q38).
 FLOOR_FILE: Final = "a.ghog.outliers"
 # The line-2 default: the floor the gate uses until a project tunes it. One
 # second, so a fresh project flags any call at or above a second (Q43).
@@ -41,9 +53,29 @@ def floor_path(root: Path) -> Path:
         root: The project root directory.
 
     Returns:
-        The ``a.ghog.outliers`` path under that root.
+        The ``a.ghog.outliers`` path in the artifact home of that root, a
+        root copy left by an older run moved there first.
+
+    Raises:
+        ValueError: When the artifact home cannot be prepared.
     """
-    return root / FLOOR_FILE
+    return artifact_path(root, FLOOR_FILE)
+
+
+def floor_location(root: Path) -> str:
+    """Return the floor file location a report line names.
+
+    Args:
+        root: The project root directory.
+
+    Returns:
+        The absolute floor file path, or the file name flagged as having no
+        usable artifact home when that home cannot be prepared.
+    """
+    try:
+        return str(floor_path(root))
+    except (OSError, ValueError):
+        return f"{FLOOR_FILE} (artifact home unavailable)"
 
 
 def read_floor(root: Path) -> float | None:
@@ -104,12 +136,12 @@ def write_floor(root: Path, auto: float, override: float) -> None:
         override: The floor to persist on line 2 (the one-second default when
             the project has not set its own).
     """
-    path = floor_path(root)
-    side = path.with_name(f"{FLOOR_FILE}.tmp")
     try:
+        path = floor_path(root)
+        side = path.with_name(f"{FLOOR_FILE}.tmp")
         side.write_text(f"{auto}\n{override}\n", encoding="utf-8")
         side.replace(path)
-    except OSError as error:
+    except (OSError, ValueError) as error:
         LOGGER.info("ghog: could not write %s: %s", FLOOR_FILE, error)
 
 
@@ -120,9 +152,11 @@ def _read_text(root: Path) -> str | None:
         root: The project root directory.
 
     Returns:
-        The file text, or ``None`` when it is absent or unreadable.
+        The file text, or ``None`` when it is absent or unreadable, or when
+        the artifact home cannot be prepared (``UnicodeDecodeError`` is a
+        ``ValueError`` too).
     """
-    with contextlib.suppress(OSError, UnicodeDecodeError):
+    with contextlib.suppress(OSError, ValueError):
         return floor_path(root).read_text(encoding="utf-8")
     return None
 

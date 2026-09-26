@@ -29,6 +29,7 @@ import subprocess
 import sys
 from typing import TYPE_CHECKING, Final, cast
 
+from tools.artifact_home import artifact_path
 from tools.groundhog import cli, redirect, reporting, runner, status
 from tools.groundhog.models import (
     EXIT_OBJECTIVE_MET,
@@ -121,7 +122,7 @@ def test_day_detach_acknowledges_and_consumes_the_preamble(
     The acknowledgment is exit 6 -- a run is live -- once the child's first
     status write lands, and the senv side log is consumed (Q32).
     """
-    side = tmp_path / "a.ghog.senv.log"
+    side = artifact_path(tmp_path, "a.ghog.senv.log")
     side.write_text("senv preamble line\n", encoding="utf-8")
     monkeypatch.setenv(redirect.SENV_LOG_ENV, str(side))
     calls: list[tuple[Path, str, Path]] = []
@@ -363,7 +364,7 @@ def test_consume_senv_log_returns_the_text_and_deletes(
     tmp_path: Path,
 ) -> None:
     """The side log is handed back once, then gone (Q31, Q32)."""
-    side = tmp_path / "a.ghog.senv.log"
+    side = artifact_path(tmp_path, "a.ghog.senv.log")
     side.write_text("preamble text\n", encoding="utf-8")
     monkeypatch.setenv(redirect.SENV_LOG_ENV, str(side))
     assert redirect.consume_senv_log() == "preamble text\n"

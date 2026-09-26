@@ -8,6 +8,10 @@ and the write path: adds, lowers a baseline and removes entries while
 preserving the floor lines (1 and 2), seeds a default floor head when the file
 has fewer than two lines, drops the header for an empty map, and survives a
 write failure logged not raised (Q53, Q66). Reaches 100% of ``exclusions.py``.
+
+Fix: the floor file lives in the artifact home (``.reviews`` by default); a
+root file from an older run is moved there on first use, its recorded
+exclusions kept, and a home that cannot be prepared reads as ``{}``.
 """
 
 from __future__ import annotations
@@ -175,9 +179,33 @@ def test_write_failure_is_logged_not_raised(tmp_path: Path) -> None:
     """A write onto a non-directory root is logged, never raised (Q66)."""
     not_a_dir = tmp_path / "blocker"
     not_a_dir.write_text("x\n", encoding="utf-8")
-    # A file standing where the root should be makes the side write fail.
+    # A file standing where the root should be leaves no artifact home to
+    # prepare, so the path itself fails before any side write.
     exclusions.write_exclusions(not_a_dir, {_FAST_NODE: _RECORDED_FAST})
-    assert floor.floor_path(not_a_dir).exists() is False
+    assert not_a_dir.read_text(encoding="utf-8") == "x\n"
+    assert exclusions.read_exclusions(not_a_dir) == {}
+
+
+def test_legacy_root_exclusions_are_moved_not_lost(tmp_path: Path) -> None:
+    """Exclusions recorded at the root by an older run survive the move."""
+    legacy = tmp_path / floor.FLOOR_FILE
+    legacy.write_text(
+        f"{_AUTO}\n{_FLOOR}\n[exclusion]\n{_SLOW_NODE} = {_RECORDED_SLOW}\n",
+        encoding="utf-8",
+    )
+    assert exclusions.read_exclusions(tmp_path) == {_SLOW_NODE: _RECORDED_SLOW}
+    assert not legacy.exists()
+    home_file = tmp_path.resolve() / ".reviews" / floor.FLOOR_FILE
+    exclusions.write_exclusions(
+        tmp_path,
+        {_SLOW_NODE: _RECORDED_SLOW, _FAST_NODE: _RECORDED_FAST},
+    )
+    assert home_file.read_text(encoding="utf-8").splitlines()[:3] == [
+        _AUTO,
+        _FLOOR,
+        "[exclusion]",
+    ]
+    assert not legacy.exists()
 
 
 # eof

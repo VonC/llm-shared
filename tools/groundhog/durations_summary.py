@@ -16,10 +16,15 @@ never managed while the suite is failing. This module is the only place the
 tool writes that section: ``durations_summary`` owns the read / apply / write,
 the rule only classifies, and ``exclusions.py`` only persists the map it is
 handed -- baselines ratcheted down, below-floor and stale entries removed.
+
+Fix: the floor file now lives in the review artifact home, not at the project
+root, so the verdict carries its real location (``floor_file``) for the report
+lines that name it; the pure rule cannot resolve it, having no IO.
 """
 
 from __future__ import annotations
 
+from dataclasses import replace
 from typing import TYPE_CHECKING
 
 from tools.groundhog import durations, exclusions, floor, runner
@@ -96,10 +101,10 @@ def _judge_map(
     """Persist the floor, judge the run, then manage the exclusion section.
 
     The run reads its own line-2 floor and the ``[exclusion]`` section of
-    ``a.ghog.outliers`` -- the section read taken before the floor rewrite,
-    which keeps only the two floor lines -- recomputes the auto floor
-    (``k * median``) and writes both floor lines, line 1 a write-only record
-    (Q48), then gates the calls against the active floor: the line-2 value when
+    ``a.ghog.outliers`` in the artifact home -- the section read taken before
+    the floor rewrite, which keeps only the two floor lines -- recomputes the
+    auto floor (``k * median``) and writes both floor lines, line 1 a
+    write-only record (Q48), then gates the calls against the active floor: the line-2 value when
     a project set one, else the one-second default (Q43). When the section
     holds entries, the rule's post-step (Q67) spares each excluded call from
     the outliers (Q54) and the average (Q64) and classifies it against its
@@ -109,12 +114,14 @@ def _judge_map(
     A fresh file is seeded with the default, so line 2 reads back as ``1.0``.
 
     Args:
-        root: The consuming project root, where the floor file lives.
+        root: The consuming project root, whose artifact home holds the
+            floor file.
         durations_map: Node id to call-phase seconds of the full run.
 
     Returns:
-        The verdict, or ``None`` when the run captured no durations (so no
-        floor is written and nothing is judged).
+        The verdict carrying the floor file location, or ``None`` when the
+        run captured no durations (so no floor is written and nothing is
+        judged).
     """
     if not durations_map:
         return None
@@ -128,11 +135,12 @@ def _judge_map(
     )
     active = floor.active_floor(override)
     summary = durations.summarize(durations_map, active)
+    location = floor.floor_location(root)
     if not exclusion_map:
-        return summary
+        return replace(summary, floor_file=location)
     spared, updated = durations.apply_exclusions(summary, durations_map, exclusion_map)
     exclusions.write_exclusions(root, updated)
-    return spared
+    return replace(spared, floor_file=location)
 
 
 # eof
