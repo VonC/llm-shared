@@ -1090,9 +1090,14 @@ This loop ends on a go-ahead selection with nothing left to regenerate.
 
 `version.txt` is rarely the only file stating the version, and the others must
 move with it. A project can hold the same version in `pyproject.toml`, in
-`uv.lock`, in a Maven POM and its module parents, and in a `cicd/config/.env`
-read by the CI shared library. Leaving one behind publishes an artifact under a
-version no other file names.
+`uv.lock`, in an npm or VS Code extension `package.json` and its
+`package-lock.json`, in a Maven POM and its module parents, and in a
+`cicd/config/.env` read by the CI shared library. Leaving one behind publishes
+an artifact under a version no other file names.
+
+Run this step only after Step 9 has written `version.txt`: every other source
+takes its version from the first word of `version.txt`, never from its own
+current value, so no source can end the step ahead of the release target.
 
 When the project ships `tools/set_version.py`, that single call is the whole
 step. Pass the snapshot form: `version.txt` stays at `X.Y.Z-SNAPSHOT` until
@@ -1107,6 +1112,14 @@ Without such a tool, edit each source that exists:
 - `pyproject.toml`: set its `version` to the release `X.Y.Z`, with no
   `-SNAPSHOT`. The draft is explicit on that point, and the suffix is not a
   canonical PEP 440 identifier, so a Python conformity check rejects it.
+- `package.json`: set its `version` to the release `X.Y.Z`, read from the
+  first word of `version.txt` with the `-SNAPSHOT` suffix removed, so it
+  follows `version.txt` and is never ahead of it. Stop and report when its
+  current version is already greater than that `X.Y.Z`: lowering it would
+  rewind a version that was released or published elsewhere. Drop the suffix
+  because a VS Code extension version supports only `major.minor.patch` on the
+  Marketplace (pre-release builds use `vsce --pre-release`, not a semver tag),
+  and because packaging tools name the release artifact after this field.
 - Maven POM: set the project version, and the parent reference of every
   module, to `X.Y.Z-SNAPSHOT`. A Maven snapshot carries the suffix.
 - `cicd/config/.env`: set `APP_SERVICE_VERSION` to `X.Y.Z-SNAPSHOT`.
@@ -1116,13 +1129,28 @@ Then, only when a `pyproject.toml` exists:
 - Run `uv sync` from `<PRJ_DIR>`.
 - Confirm the release `X.Y.Z` is reflected in the regenerated `uv.lock`.
 
+Then, only when a `package.json` exists, make the `package.json` edit with npm
+rather than by hand, so its `package-lock.json` root follows in the same call:
+
+```bash
+npm --prefix "<PRJ_DIR>" version X.Y.Z --no-git-tag-version --allow-same-version
+```
+
+- `--no-git-tag-version` keeps npm from committing and tagging: Step 13 makes
+  the one prepare commit, and the tag stays with `brel`.
+- `--allow-same-version` keeps a re-run idempotent once the version is set.
+- Confirm that `package.json` `version`, and both the top-level `version` and
+  the `packages[""].version` of the `package-lock.json` root, now read the
+  release `X.Y.Z`. No dependency entry of the lockfile may change.
+
 Finally, when the project ships `tools/check_versions.py`, run it and require
 it to pass before Step 13. A failure there means two sources disagree, and the
 prepare commit would record a version the project cannot name.
 
-`pyproject.toml` deliberately sits at the release `X.Y.Z` while `version.txt`
-stays at `X.Y.Z-SNAPSHOT` until `brel`; that gap is intended. The Maven sources
-follow `version.txt` rather than `pyproject.toml`, for the same reason.
+`pyproject.toml` and `package.json` deliberately sit at the release `X.Y.Z`
+while `version.txt` stays at `X.Y.Z-SNAPSHOT` until `brel`; that gap is
+intended. The Maven sources follow `version.txt` rather than `pyproject.toml`,
+for the same reason.
 
 ### Step 13 — Make the single prepare commit
 
@@ -1135,9 +1163,10 @@ git -C "<PRJ_DIR>" commit -m "chore(release): prepare for vX.Y.Z release"
 ```
 
 Add `.changelog.fixes` to the `add` when Step 11 changed it, and whatever
-Step 12 rewrote: `pyproject.toml`, `uv.lock`, the POM and its module POMs, and
-`cicd/config/.env`. Keep it to this one commit, so the human review and the
-later `brel` see one clean prepare step.
+Step 12 rewrote: `pyproject.toml`, `uv.lock`, `package.json` and
+`package-lock.json`, the POM and its module POMs, and `cicd/config/.env`. Keep
+it to this one commit, so the human review and the later `brel` see one clean
+prepare step.
 
 ### Step 14 — Final clean-tree gate, report and stop
 
@@ -1178,8 +1207,8 @@ Then print a summary of what changed:
   commit count, first destination, umbrella-check result, and landing branch,
 - the target version `X.Y.Z`, later-version note documents that stayed in the
   selected scope, and the slug,
-- the files written (`version.txt`, `CHANGELOG.md`, and the pyproject and
-  uv files when present),
+- the files written (`version.txt`, `CHANGELOG.md`, and the pyproject, uv,
+  `package.json` and `package-lock.json` files when present),
 - the prepare commit hash and subject.
 
 Then tell the user the next step: review everything, and run `brel` to
@@ -1201,7 +1230,8 @@ Run the skill twice and the second run does nothing harmful:
   Once one item is complete it advances to the next; once all are complete it
   returns `prepare-release` and the current run crosses the artifact boundary.
 - The Step 9 version write is a no-op when `version.txt` already holds the
-  target `X.Y.Z-SNAPSHOT`.
+  target `X.Y.Z-SNAPSHOT`, and the Step 12 `npm version` call is one when
+  `package.json` already holds the release `X.Y.Z`.
 - `prepare_release_notes` stops on its own when the last tag already
   matches the snapshot version.
 

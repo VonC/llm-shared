@@ -1,4 +1,10 @@
-"""Structural contracts for prepare-release branch-role instructions."""
+"""Structural contracts for prepare-release branch-role instructions.
+
+The version-source contract covers an npm or VS Code extension project: its
+`package.json` version is derived from `version.txt` after Step 9, set to the
+release `X.Y.Z` with its `package-lock.json` root, and staged in the prepare
+commit, the same way `pyproject.toml` and `uv.lock` are.
+"""
 
 from tools import prompt_workflow_steps as steps
 
@@ -45,6 +51,23 @@ def test_prepare_release_documents_default_develop_variant() -> None:
     assert "generic integration branch such as `develop`" in content
     assert "standalone topic with no integration branch uses `main`" in content
     assert "Only after the umbrella is exhausted" in content
+
+
+def test_prepare_release_bumps_package_json_after_version_txt() -> None:
+    """package.json follows the version.txt target, like pyproject.toml."""
+    content = " ".join(_read("prepare-release.md").split())
+    assert (
+        "`package.json`: set its `version` to the release `X.Y.Z`" in content
+    )
+    assert "read from the first word of `version.txt`" in content
+    assert "never ahead of it" in content
+    assert (
+        'npm --prefix "<PRJ_DIR>" version X.Y.Z --no-git-tag-version'
+        " --allow-same-version" in content
+    )
+    assert "`package-lock.json` root" in content
+    assert "only `major.minor.patch`" in content
+    assert "`package.json` and `package-lock.json`" in content
 
 
 # eof
