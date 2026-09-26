@@ -23,6 +23,10 @@ Fix: each abandoned, interrupted, escalated, or inconsistent exchange adds a
 `resume` line after the `review` lines: a one-line prompt, prefixed and named
 for the role that continues the exchange, to paste so the review cycle
 resumes. No review, or reviews in a normal state, add no such line.
+
+Fix: during the coding steps, a `journal` line follows the `step` line with
+the full path of the current step's private journal, once the code writer has
+created it (see `prompt_workflow_step_journal`).
 """
 
 from __future__ import annotations
@@ -40,6 +44,7 @@ from tools import prompt_workflow_plan as plan
 from tools import prompt_workflow_progress_review as progress_review
 from tools import prompt_workflow_review_history as review_history
 from tools import prompt_workflow_skill as skill
+from tools import prompt_workflow_step_journal as step_journal
 from tools import prompt_workflow_steps as steps
 from tools.prompt_workflow_post_commit import slug_key
 
@@ -407,7 +412,26 @@ def _topic_lines(root: Path, topic: Topic, branch: str) -> list[tuple[str, str]]
         )
         if progress is not None:
             lines.append(("step", progress.render()))
+            lines.extend(journal_lines(root, topic, progress))
     return lines
+
+
+def journal_lines(root: Path, topic: Topic, progress: StepProgress) -> list[tuple[str, str]]:
+    """Return the `journal` line of the current coding step, when it exists.
+
+    Args:
+        root: The project root.
+        topic: The resolved topic.
+        progress: The step position; only a current, unfinished step counts.
+
+    Returns:
+        One `("journal", <full path>)` pair, or nothing before the coding
+        steps, after the last one, or while the step has no journal yet.
+    """
+    if progress.current is None or progress.terminal:
+        return []
+    journal = step_journal.existing_journal(root, topic.slug, progress.current)
+    return [] if journal is None else [("journal", str(journal))]
 
 
 def render_lines(lines: list[tuple[str, str]]) -> str:

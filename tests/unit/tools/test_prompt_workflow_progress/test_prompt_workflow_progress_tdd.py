@@ -263,6 +263,26 @@ def test_progress_lines_for_an_umbrella_child_in_implementation(
     ]
 
 
+def test_journal_lines_name_the_current_coding_step_journal(tmp_path: Path) -> None:
+    """Only a current, unfinished step with an existing journal adds the line."""
+    topic = _topic(_docs(tmp_path), "beta-one")
+    current = progress.StepProgress(current="3.2", index=5, total=7, verified=4)
+    planned = progress.StepProgress(current=None, index=0, total=7, verified=0)
+    done = progress.StepProgress(current="4B", index=7, total=7, verified=7, terminal=True)
+
+    assert progress.journal_lines(tmp_path, topic, current) == []
+
+    journal = tmp_path / ".reviews" / "a.beta-one.step3.2.journal.md"
+    journal.parent.mkdir()
+    journal.write_text("# Step 3.2 journal\n", encoding="utf-8")
+
+    assert progress.journal_lines(tmp_path, topic, current) == [
+        ("journal", str(journal.resolve())),
+    ]
+    assert progress.journal_lines(tmp_path, topic, planned) == []
+    assert progress.journal_lines(tmp_path, topic, done) == []
+
+
 def test_progress_lines_for_a_standalone_draft_and_an_empty_plan(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
