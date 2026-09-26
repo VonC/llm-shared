@@ -16,13 +16,18 @@ draft replacement rules, but you will not rewrite history.
 
 ## 1. Create an ignored terms file
 
-At the repository root, confirm the local-report convention is ignored:
+Working files such as the terms file and the scan reports live in the
+repository's artifact home, `.reviews` unless `.review-artifacts.ini` declares
+another home, never at the repository root. In an interactive `cmd`
+initialized by `senv.bat`, from the repository root, prepare the home (it gets
+a `.gitignore` of exactly `*`) and confirm the terms file is ignored:
 
-```bash
-git check-ignore -v a.sensitive.terms.local.txt
+```bat
+call "%LLM_SHARED_DIR%\bin\artifact_home.bat" "%CD%"
+git check-ignore -v "%ARTIFACT_HOME%\a.sensitive.terms.local.txt"
 ```
 
-Then create `a.sensitive.terms.local.txt` with one literal term per line:
+Then create `%ARTIFACT_HOME%\a.sensitive.terms.local.txt` with one literal term per line:
 
 ```text
 secretproject
@@ -34,11 +39,14 @@ files do not; those are executable `git filter-repo` inputs.
 
 ## 2. Run the contextual scan
 
-In an interactive `cmd` initialized by `senv.bat`, run:
+In the same `cmd`, run:
 
 ```bat
-shscan --terms-file a.sensitive.terms.local.txt --output a.sensitive.history-scan.local.md --validation-term my-project
+shscan --terms-file "%ARTIFACT_HOME%\a.sensitive.terms.local.txt" --output a.sensitive.history-scan.local.md --validation-term my-project
 ```
+
+A plain `--output` file name lands in the artifact home; the scanner prints
+the full report path.
 
 `--validation-term` is a positive control: choose a harmless repository term
 known to occur in a historical blob. The scan fails rather than presenting a
@@ -66,7 +74,9 @@ regex:(?i)secretproject==>my-project
 ```
 
 Save pure project-specific rules only in
-`a.sensitive.replacements.local.txt`. For the normal repository audit, omit
+`a.sensitive.replacements.local.txt`. That rules file is the exception: it
+stays at the repository root, where the sensitive commit hooks read it. For
+the normal repository audit, omit
 `--rules`:
 
 ```bat

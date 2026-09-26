@@ -116,7 +116,7 @@ git config --path --get sensitive.sharedRulesFile
 | `--root PATH` | Repository to scan; defaults to the current directory |
 | `--terms-file PATH` | Read one literal term per line |
 | `--rules PATH` | Read `git filter-repo` replacement rules |
-| `--output PATH` | Write the report; an in-repository path must be Git-ignored |
+| `--output PATH` | Write the report; a plain file name lands in the review artifact home (`.reviews`), and any other in-repository path must be Git-ignored |
 | `--json` | Emit structured JSON instead of Markdown |
 | `--max-line-chars N` | Limit long lines to a centered excerpt; default 500, minimum 40 |
 | `--full-lines` | Keep complete text lines regardless of length |

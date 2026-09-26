@@ -1,5 +1,14 @@
 #!/usr/bin/env python3
-"""CLI for contextual case-insensitive scans across reachable Git history."""
+"""CLI for contextual case-insensitive scans across reachable Git history.
+
+Fix: A plain `--output` file name, such as
+`a.sensitive.history-scan.local.md`, now lands in the scanned repository's
+review artifact home (`.reviews` unless `.review-artifacts.ini` declares
+another home) instead of the current directory, so scan reports never
+accumulate at a project root (see `rules/artifact_files.md`). A path with a
+directory part is still written where it points. The rules file
+`a.sensitive.replacements.local.txt` stays at the root; `--rules` is unchanged.
+"""
 
 from __future__ import annotations
 
@@ -14,6 +23,8 @@ if __name__ == "__main__":  # pragma: no cover - script bootstrap
     with contextlib.suppress(Exception):
         sys.path.insert(0, str(Path(__file__).parent.parent.parent.resolve()))
 
+from tools.artifact_home import artifact_path
+from tools.review_exchange_models import ReviewExchangeError
 from tools.sensitive_history.history_scan import (
     GitRepository,
     HistoryMatch,
@@ -51,7 +62,14 @@ def _parser() -> argparse.ArgumentParser:
         type=Path,
         help="git-filter-repo replacement file; scans each left-hand pattern.",
     )
-    parser.add_argument("--output", type=Path, help="Write the report to this ignored file.")
+    parser.add_argument(
+        "--output",
+        type=Path,
+        help=(
+            "Write the report to this ignored file; a plain file name lands in "
+            "the repository's review artifact home."
+        ),
+    )
     parser.add_argument("--json", action="store_true", help="Render JSON instead of Markdown.")
     parser.add_argument(
         "--max-line-chars",
@@ -171,6 +189,24 @@ def _patterns(args: argparse.Namespace, root: Path) -> list[PatternSpec]:
     return merge_patterns(term_patterns, file_patterns, rule_patterns)
 
 
+def _output_path(root: Path, output: Path) -> Path:
+    """Place a plain report file name in the repository's artifact home.
+
+    Args:
+        root: The resolved repository root.
+        output: The `--output` value as given.
+
+    Returns:
+        The artifact-home path for a plain file name, else the path as given.
+
+    Raises:
+        ReviewExchangeError: When the artifact home declaration is invalid.
+    """
+    if output.parent == Path() and output.name not in {"", ".", ".."}:
+        return artifact_path(root, output.name)
+    return output
+
+
 def _validate_output(repository: GitRepository, output: Path) -> Path:
     """Refuse a report inside the worktree unless Git ignores it."""
     resolved = output.resolve()
@@ -207,13 +243,15 @@ def main(argv: Sequence[str] | None = None) -> int:
             else _markdown(report)
         )
         if args.output:
-            destination = _validate_output(GitRepository(root), args.output)
+            destination = _validate_output(
+                GitRepository(root), _output_path(root, args.output),
+            )
             destination.write_text(output, encoding="utf-8")
             sys.stdout.write(f"Wrote {len(report.matches)} matches to {destination}\n")
         else:
             sys.stdout.write(output)
         return int(args.fail_on_match and bool(report.matches))
-    except HistoryScanError as error:
+    except (HistoryScanError, ReviewExchangeError) as error:
         sys.stderr.write(f"ERROR: {error}\n")
         return 2
 

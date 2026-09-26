@@ -61,7 +61,11 @@ the subsequent rewrite from a missed casing variant.
 
 `sensitive_history_scan.bat` is a deterministic, read-only evidence engine. It
 accepts literal terms, a terms file, or replacement rules and reports precise
-locations. It never edits refs, replacements, mailmaps, or remotes.
+locations. It never edits refs, replacements, mailmaps, or remotes. The one
+file it writes, the optional report, goes to the repository's artifact home
+(`.reviews` by default) when named by a plain file name, so the evidence that
+repeats sensitive values never sits at the repository root; only the rules
+file the hooks read stays there.
 
 `sanitize-git-history` orchestrates the security decision. Phase 1 invokes the
 tool automatically, checks identities and unnamed leak shapes, and reviews the

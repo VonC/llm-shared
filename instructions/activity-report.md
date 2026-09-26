@@ -20,24 +20,29 @@ managers).
   project, for example `.` and `../my-project`.
 - An optional existing report file to update. When a report file is named,
   the skill updates that file. When none is named, the target is the
-  naming convention `a.activity-report.<start>-<end>.md` at the calling
-  project root: the skill creates it when it does not exist, and updates it
+  naming convention `a.activity-report.<start>-<end>.md` in the calling
+  project's artifact home: the skill creates it when it does not exist, and updates it
   (never overwrites it) when it already does. Updating means adding only
   the topics the report does not cover yet, and refreshing the summary, not
   rewriting what is there.
 
 ## Outputs of the activity-report skill
 
-- `<CALLING_PRJ_DIR>/a.md` — the scratch elements document (git log and
+Every output lives in the calling project's artifact home, `<ARTIFACT_HOME>`:
+`.reviews` unless a versioned `.review-artifacts.ini` declares another `home`
+(see [`artifact_files.md`](../rules/artifact_files.md)). Never write these
+files at the project root.
+
+- `<ARTIFACT_HOME>/a.md` — the scratch elements document (git log and
   the `*.md` diff per working tree). A throwaway, regenerated each run.
   See [`activity-elements.template.md`](../templates/activity-elements.template.md).
-- `<CALLING_PRJ_DIR>/a.activity-report.<start>-<end>.md` — the report
+- `<ARTIFACT_HOME>/a.activity-report.<start>-<end>.md` — the report
   itself, in French, for the user to review (or the report file named on
   input, when updating).
 - The HTML and PDF renders of that report, sharing its base name
   (`a.activity-report.<start>-<end>.html` and `.pdf`), generated after the
-  review go-ahead. The `a.*` line in each project
-  `.gitignore` keeps all of these files out of git by default.
+  review go-ahead. The artifact home holds a `.gitignore` of exactly `*`,
+  which keeps all of these files out of git.
 
 ## Mutualized resources for activity-report
 
@@ -70,8 +75,13 @@ pauses.
 ### Step 1 — Generate the activity elements with the script
 
 Run the mutualized `activity_report.sh` from the calling project root
-(so `a.md` lands at that root). Pass the start date and the working
-trees; the end date defaults to today.
+(so `a.md` lands in that project's artifact home). Pass the start date and
+the working trees; the end date defaults to today. The script resolves the
+home through the shared `tools/artifact_home.py` helper, creating it with its
+`*` ignore file when missing, and moves a legacy root copy of `a.md` or of the
+conventional report (and its `.html` and `.pdf`) into the home once. It
+prints the full `a.md` path on its `Output` line and the full conventional
+report path on its last `Report` line; use those paths from here on.
 
 Resolve `<LLM_SHARED_DIR>` as the absolute parent of the `instructions` folder
 that contains this canonical file. Pass that full path to `bash`; do not guess
@@ -81,12 +91,15 @@ a sibling checkout or rely on an environment variable.
 bash "<LLM_SHARED_DIR>/scripts/activity_report.sh" --start 2026-05-29 . ../my-project
 ```
 
-To set an explicit end date or output file:
+To set an explicit end date:
 
 ```bash
 bash "<LLM_SHARED_DIR>/scripts/activity_report.sh" \
-  --start 2026-05-29 --end 2026-06-21 --out a.md . ../my-project
+  --start 2026-05-29 --end 2026-06-21 . ../my-project
 ```
+
+`--out <file>` overrides the elements path; keep the default so `a.md` stays
+in the artifact home.
 
 The script writes, per working tree, the output of these two git
 commands (documented here so the window logic is reviewable):
@@ -120,12 +133,13 @@ information.
 
 First settle the target report file. When the prompt named an existing
 report file, that file is the target and the run is an update. Otherwise
-the target is `a.activity-report.<start>-<end>.md` at the calling project
-root: a new file when it does not exist, an update when it does. When the
+the target is `<ARTIFACT_HOME>/a.activity-report.<start>-<end>.md`, the full
+path printed on the script's `Report` line: a new file when it does not
+exist, an update when it does. When the
 target already exists, read it now, so the topic list can mark what it
 already covers.
 
-Then read `a.md` and work from it alone — do not open the source files.
+Then read `<ARTIFACT_HOME>/a.md` and work from it alone — do not open the source files.
 From the commit messages and the Markdown diffs, build a topic list and
 present it to the user without being asked:
 
@@ -179,8 +193,9 @@ words. Do not put commit hashes in the report prose; they belong in
 
 ### Step 5 — Pause for review and a go-ahead
 
-Tell the user the report was written (or updated) at its path, and that it
-is gitignored by the `a.*` rule. Ask them to review it, then present the
+Tell the user the report was written (or updated) at its full path in the
+artifact home, and that the home's `*` ignore file keeps it out of git. Ask
+them to review it, then present the
 go-ahead choices from [`../rules/interactive_menu.md`](../rules/interactive_menu.md):
 
 - `Go ahead` — render the HTML and PDF.
@@ -200,20 +215,21 @@ root:
 ```bash
 uv run --with markdown --with xhtml2pdf python \
   <LLM_SHARED_DIR>/templates/md_to_pdf.py.template \
-  a.activity-report.<start>-<end>.md \
-  a.activity-report.<start>-<end>.html \
-  a.activity-report.<start>-<end>.pdf
+  <ARTIFACT_HOME>/a.activity-report.<start>-<end>.md \
+  <ARTIFACT_HOME>/a.activity-report.<start>-<end>.html \
+  <ARTIFACT_HOME>/a.activity-report.<start>-<end>.pdf
 ```
 
-Use the report's real name (the named file when updating, or the
-conventional name otherwise) for all three paths. The helper writes the
+Use the report's real path (the named file when updating, or the
+conventional path in the artifact home otherwise) for all three paths, with
+the renders next to the report. The helper writes the
 HTML first, then the PDF, and overwrites both. When the PDF path is locked
 (open in a viewer), it cannot be overwritten: tell the user to close the
 viewer, then re-run this step.
 
 ### Step 7 — Confirm and hand back
 
-Confirm the report, its HTML, and its PDF were written (or updated) at the
-project root, all gitignored by the `a.*` rule, and invite the user to
-review them. Offer to adjust topics, length, or tone, then re-render on
+Confirm the report, its HTML, and its PDF were written (or updated), giving
+their full paths in the artifact home, all kept out of git by the home's `*`
+ignore file, and invite the user to review them. Offer to adjust topics, length, or tone, then re-render on
 request.

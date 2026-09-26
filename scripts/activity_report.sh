@@ -7,23 +7,36 @@
 #               and an end date (default: today). It does not read the
 #               full codebase: only git log and the diff of *.md files.
 #
-# Location:     llm-shared/scripts/ (mutualized across projects).
+# Fix:          a.md and the report files now live in the calling
+#               project's review artifact home (.reviews unless
+#               .review-artifacts.ini declares another home), never at
+#               the project root (see rules/artifact_files.md). Paths come
+#               from the shared tools/artifact_home.py helper, which also
+#               moves a legacy root copy into the home once. The script
+#               prints the report path the skill writes to.
+#
+# Location:    llm-shared/scripts/ (mutualized across projects).
 #
 # Parameters:
 #   -s | --start <YYYY-MM-DD>   start date, inclusive (required)
 #   -e | --end   <YYYY-MM-DD>   end date, inclusive (default: today)
-#   -o | --out   <file>         output file (default: <PWD>/a.md)
+#   -o | --out   <file>         output file (default: <home>/a.md, where
+#                               <home> is the artifact home of <PWD>)
 #   <worktree> ...              one or more git working trees. When
 #                               none is given, the current directory.
 #
 # Usage:        bash <LLM_SHARED_DIR>/scripts/activity_report.sh \
 #                 --start 2026-05-29 . ../my-project
-#               (run from the calling project root so a.md lands there)
+#               (run from the calling project root so a.md lands in
+#               its artifact home)
 #
-# Writes:       <out> (default <PWD>/a.md)
+# Writes:       <out> (default <home>/a.md). Prints the report path
+#               <home>/a.activity-report.<start>-<end>.md, moving a
+#               legacy root copy of the report (and of its .html and
+#               .pdf renders) into the home first.
 #
 # Exit codes:
-#   1 - bad arguments
+#   1 - bad arguments, or the artifact home cannot be resolved
 #********************************************************************
 
 info()  { echo "Info:  $1"; }
@@ -31,6 +44,23 @@ task()  { echo "Task:  $1"; }
 ok()    { echo "Ok:    $1"; }
 warn()  { echo "Warn:  $1" >&2; }
 fatal() { echo "Error: $1" >&2; exit "${2:-1}"; }
+
+LLM_SHARED="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+#  Print the artifact-home path of one file of the calling project, through
+#  the shared tools/artifact_home.py helper (llm-shared venv when present).
+artifact_file() {
+  local root="$1" name="$2" py="" cand
+  for cand in "${LLM_SHARED}"/venvs/python_3*llm-shared*/Scripts/python.exe \
+              "${LLM_SHARED}"/venvs/python_3*llm-shared*/bin/python; do
+    if [[ -x "${cand}" ]]; then py="${cand}"; break; fi
+  done
+  [[ -n "${py}" ]] || py="$(command -v python3 || command -v python)"
+  [[ -n "${py}" ]] || return 1
+  PYTHONPATH="${LLM_SHARED}" "${py}" -m tools.artifact_home "${root}" "${name}" \
+    | tr -d '\r'
+  return "${PIPESTATUS[0]}"
+}
 
 #  ===============================================
 #  PARSE ARGUMENTS
@@ -47,7 +77,7 @@ while [[ $# -gt 0 ]]; do
     -o|--out)   out="$2";   shift 2 ;;
     -h|--help)
       echo "Usage: activity_report.sh --start YYYY-MM-DD [--end YYYY-MM-DD]"
-      echo "                          [--out a.md] <worktree> [<worktree> ...]"
+      echo "                          [--out <file>] <worktree> [<worktree> ...]"
       exit 0 ;;
     -*) fatal "Unknown option '$1'" 1 ;;
     *)  trees+=("$1"); shift ;;
@@ -62,7 +92,17 @@ end="${end:-$(date +%F)}"
 [[ "${end}" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] \
   || fatal "Bad --end '${end}', expected YYYY-MM-DD" 1
 
-out="${out:-${PWD}/a.md}"
+if [[ -z "${out}" ]]; then
+  out="$(artifact_file "${PWD}" a.md)" \
+    || fatal "Cannot resolve the artifact home of '${PWD}'" 1
+fi
+report_base="a.activity-report.${start}-${end}"
+for ext in html pdf; do
+  artifact_file "${PWD}" "${report_base}.${ext}" >/dev/null \
+    || fatal "Cannot resolve the artifact home of '${PWD}'" 1
+done
+report="$(artifact_file "${PWD}" "${report_base}.md")" \
+  || fatal "Cannot resolve the artifact home of '${PWD}'" 1
 [[ ${#trees[@]} -gt 0 ]] || trees=(".")
 
 from="${start} 00:00:00"
@@ -141,3 +181,4 @@ task "Collecting commit messages and Markdown diffs"
 } > "${out}"
 
 ok "Activity-report analysis written to '${out}'"
+info "Report '${report}'"

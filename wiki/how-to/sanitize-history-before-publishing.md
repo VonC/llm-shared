@@ -42,11 +42,16 @@ its matching rules.
    compounds (`jdoe_user`, `sjdoe`), so add explicit rules for the known
    compound forms above it.
 
-   Confirm it can never be committed:
+   That rules file stays at the repository root, where the hooks read it.
+   Every other file the audit produces (scan reports, the effective rules,
+   the mailmap draft) lives in the artifact home, `.reviews` unless
+   `.review-artifacts.ini` declares another home; its `.gitignore` of
+   exactly `*` keeps them out of git. Confirm nothing can be committed (the
+   home file once the first scan has created the home):
 
    ```sh
    git check-ignore -v a.sensitive.replacements.local.txt
-   git check-ignore -v a.sensitive.replacements.effective.local.txt
+   git check-ignore -v .reviews/a.sensitive.replacements.effective.local.txt
    ```
 
 2. Run phase 1, the audit (or ask the agent to "sanitize-git-history
@@ -67,7 +72,9 @@ its matching rules.
    shscan --output a.sensitive.history-scan.local.md --full-lines --validation-term my-project
    ```
 
-   From any shell, call the self-locating launcher by its full path. The report
+   A plain `--output` file name lands in the artifact home, and the scanner
+   prints the full report path. From any shell, call the self-locating
+   launcher by its full path. The report
    lists each matching commit/tag line, historical path, and blob line with its
    OID and representative path. It also shows exact casing and flags binary or
    shortened lines.
@@ -79,10 +86,10 @@ its matching rules.
    (a PNG `tEXt` chunk, PDF strings) is a true hit the rewrite must cover.
    Binary scanning stays on; the classification, not a skip, removes the
    noise. Before rewriting, copy the shared
-   rules followed by the local rules into one git-ignored
-   `a.sensitive.replacements.effective.local.txt`. Do not sort it: order is
+   rules followed by the local rules into one
+   `.reviews/a.sensitive.replacements.effective.local.txt`. Do not sort it: order is
    significant. Identities are not covered by replacement rules; list the
-   emails to neutralize in `a.mailmap.local.txt`, in standard `.mailmap`
+   emails to neutralize in `.reviews/a.mailmap.local.txt`, in standard `.mailmap`
    format.
 
 4. Run phase 2, the rewrite, on a fresh clone (or ask the agent for
@@ -91,9 +98,9 @@ its matching rules.
    ```sh
    git clone <origin-url> ../repo-public
    cd ../repo-public
-   git filter-repo --mailmap <OLD_REPO>/a.mailmap.local.txt \
-                   --replace-message <OLD_REPO>/a.sensitive.replacements.effective.local.txt \
-                   --replace-text <OLD_REPO>/a.sensitive.replacements.effective.local.txt
+   git filter-repo --mailmap <OLD_REPO>/.reviews/a.mailmap.local.txt \
+                   --replace-message <OLD_REPO>/.reviews/a.sensitive.replacements.effective.local.txt \
+                   --replace-text <OLD_REPO>/.reviews/a.sensitive.replacements.effective.local.txt
    ```
 
 5. Verify: no unexpected `***REMOVED***` in blobs or messages, a full

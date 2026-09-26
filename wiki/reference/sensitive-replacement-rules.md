@@ -106,6 +106,13 @@ The rules contain the terms being protected:
 - report counts and locations only;
 - keep generated scan reports ignored too.
 
+The project rules file stays at the repository root, where the hooks read
+it. Everything derived from it lives in the repository's artifact home
+(`.reviews` unless `.review-artifacts.ini` declares another home), whose
+`.gitignore` of exactly `*` keeps it ignored: the scan reports, the
+`a.sensitive.replacements.effective.local.txt` built for `git filter-repo`,
+and the `a.mailmap.local.txt` draft.
+
 Confirm the project file with:
 
 ```sh

@@ -30,32 +30,35 @@ standalone conversion after the inputs are already settled.
    scripts/activity_report.sh --start 2026-05-29 ../projA ../projB
    ```
 
-   It writes `a.md`: per tree, the commit messages of the window
-   (`git log --reverse`) and the diff of the `*.md` files — nothing else
-   is read.
+   It writes `a.md` in the project's artifact home (`.reviews` unless
+   `.review-artifacts.ini` declares another home): per tree, the commit
+   messages of the window (`git log --reverse`) and the diff of the `*.md`
+   files — nothing else is read. Its last line prints the full report path.
 
 3. The skill analyzes `a.md` and presents a numbered topic list grouped by
    tree. First pause: pick the topics worth reporting and give a few words
    of context.
 
 4. It writes (or updates) the report,
-   `a.activity-report.<start>-<end>.md`, following the French template:
+   `.reviews/a.activity-report.<start>-<end>.md`, following the French template:
    a `## En bref` section of standalone manager-ready lines, then one
    short titled section per selected topic. Passing an existing report
    file updates it, adding only new topics.
 
 5. Second pause: review the markdown. On your go-ahead, the skill renders
-   HTML then PDF with the same base name, through the pure-Python
-   xhtml2pdf route (no browser involved):
+   HTML then PDF with the same base name, next to the report, through the
+   pure-Python xhtml2pdf route (no browser involved):
 
    ```bash
-   uv run --with markdown --with xhtml2pdf python a.md2pdf.py <in.md> <out.html> <out.pdf>
+   uv run --with markdown --with xhtml2pdf python templates/md_to_pdf.py.template <in.md> <out.html> <out.pdf>
    ```
 
 ## 🙈 Why nothing is committed
 
-Every produced file matches the `a.*` gitignore pattern: the report is a
-deliverable to send, not repository content.
+Every produced file lives in the artifact home, whose `.gitignore` of
+exactly `*` keeps it out of git: the report is a deliverable to send, not
+repository content. Nothing is written at the project root any more; the
+first run moves a legacy root copy of `a.md` or of the report into the home.
 
 ## ✅ Check the report
 

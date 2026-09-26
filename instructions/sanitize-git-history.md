@@ -44,21 +44,40 @@ places:
 The scanner merges shared rules first and local rules second, de-duplicating
 equivalent patterns while preserving the first occurrence. Before phase 2,
 materialize that ordered set as the git-ignored
-`a.sensitive.replacements.effective.local.txt`; `git filter-repo` does not
-read the Git configuration itself.
+`<ARTIFACT_HOME>/a.sensitive.replacements.effective.local.txt`;
+`git filter-repo` does not read the Git configuration itself.
 
 One more git-ignored file may be needed:
 
-- `a.mailmap.local.txt` — the identities to neutralize, in standard
-  `.mailmap` format. Only needed when step 2 of the audit finds
+- `<ARTIFACT_HOME>/a.mailmap.local.txt` — the identities to neutralize, in
+  standard `.mailmap` format. Only needed when step 2 of the audit finds
   identities to scrub.
 
-The local names match the usual `a.*` and `*.local.*` gitignore patterns.
-Confirm they can never be committed before going further:
+The rules file `a.sensitive.replacements.local.txt` stays at the repository
+root, where the sensitive commit hooks read it. Every other file the audit
+or the rewrite produces lives in the repository's artifact home,
+`<ARTIFACT_HOME>`: the absolute path of `.reviews` unless a versioned
+`.review-artifacts.ini` declares another `home` (see
+[`artifact_files.md`](../rules/artifact_files.md)). That covers the scan
+reports (`a.sensitive.history-scan.local.md` or `.json`, a post-rewrite
+`a.sensitive.removed-scan.local.json`), any saved shape sweep
+(`a.sensitive.shape-scan.local.json`), any saved credential check
+(`a.credential-verify.local.json`), the effective rules, and the mailmap
+draft. Never write them at the repository root.
+
+The scanner prepares the home: given a plain `--output` file name, it
+writes the report into `<ARTIFACT_HOME>`, creating the home with its
+`.gitignore` of exactly `*` when missing, and prints the full path. It also
+moves a legacy root copy of that report into the home once.
+
+The root rules file matches the usual `a.*` and `*.local.*` gitignore
+patterns, and the home ignores everything it holds. Confirm they can never
+be committed before going further (check the home file once the first
+scanner run below has prepared the home):
 
 ```sh
 git check-ignore -v a.sensitive.replacements.local.txt
-git check-ignore -v a.sensitive.replacements.effective.local.txt
+git check-ignore -v <ARTIFACT_HOME>/a.sensitive.replacements.effective.local.txt
 ```
 
 If `git check-ignore` reports nothing, stop and add the pattern to
@@ -79,8 +98,11 @@ must locate and invoke the stable launcher automatically; never ask the user
 to run this prerequisite:
 
 ```powershell
-& "<LLM_SHARED_DIR>\bin\sensitive_history_scan.bat" --root "<repo>" --output "<repo>\a.sensitive.history-scan.local.md" --full-lines --validation-term "<known repository term>"
+& "<LLM_SHARED_DIR>\bin\sensitive_history_scan.bat" --root "<repo>" --output "a.sensitive.history-scan.local.md" --full-lines --validation-term "<known repository term>"
 ```
+
+The plain `--output` name lands in `<ARTIFACT_HOME>`; the launcher prints the
+full report path. Give the user that full path, never a root path.
 
 With no explicit `--rules`, the launcher reads the configured shared file and
 then the project-local file. Use an explicit input only while discovering terms
@@ -133,7 +155,7 @@ in step 2 and the shape-based sweep in step 6 remain separate.
    ```
 
    For every identity to neutralize, add a line to
-   `a.mailmap.local.txt`. The standard `.mailmap` format applies: the
+   `<ARTIFACT_HOME>/a.mailmap.local.txt`. The standard `.mailmap` format applies: the
    email-only form maps the address and keeps the contributor name.
 
    ```text
@@ -144,7 +166,7 @@ in step 2 and the shape-based sweep in step 6 remain separate.
    out, and the untouched ones must stay unchanged.
 
    ```sh
-   git -c mailmap.file="$(pwd)/a.mailmap.local.txt" log --all --use-mailmap \
+   git -c mailmap.file="<ARTIFACT_HOME>/a.mailmap.local.txt" log --all --use-mailmap \
      --format='%aN|%aE' | sort -u
    ```
 
@@ -215,7 +237,9 @@ in step 2 and the shape-based sweep in step 6 remain separate.
    (`\\\\host\\share`), `C:\\Users\\<name>` paths, and lines around
    `password`, `secret`, `token`, `credential`, `proxy`, `ldap`. Review
    the unique matches by hand: expect only public URLs, placeholders
-   like `example.corp`, and localhost.
+   like `example.corp`, and localhost. When the sweep output is saved,
+   save it as `<ARTIFACT_HOME>/a.sensitive.shape-scan.local.json` (or
+   `.md`), never at the repository root.
 
 ## Phase 1 output: replacement-rules files
 
@@ -248,7 +272,7 @@ Two hard rules about this file:
   observed.
 
 After the shared and local files are settled, create
-`a.sensitive.replacements.effective.local.txt` from shared rules followed by
+`<ARTIFACT_HOME>/a.sensitive.replacements.effective.local.txt` from shared rules followed by
 local rules. Remove equivalent duplicates while keeping the first rule, retain
 the resulting order, and validate the effective file with the scanner before
 using it for phase 2.
@@ -290,10 +314,13 @@ git -C <old-repo> config --get-regexp '^branch\.[^.]*\.(remote|merge|pushremote)
 ```sh
 git clone <origin-url> ../repo-public
 cd ../repo-public
-git filter-repo --mailmap <old-repo>/a.mailmap.local.txt \
-                --replace-message <old-repo>/a.sensitive.replacements.effective.local.txt \
-                --replace-text <old-repo>/a.sensitive.replacements.effective.local.txt
+git filter-repo --mailmap <ARTIFACT_HOME>/a.mailmap.local.txt \
+                --replace-message <ARTIFACT_HOME>/a.sensitive.replacements.effective.local.txt \
+                --replace-text <ARTIFACT_HOME>/a.sensitive.replacements.effective.local.txt
 ```
+
+Here `<ARTIFACT_HOME>` is the absolute artifact home of the pre-cleanup
+repository, where phase 1 left those files.
 
 `--replace-message` rewrites commit and tag messages, `--replace-text`
 rewrites every historical blob, `--mailmap` rewrites the author and
@@ -314,7 +341,9 @@ Then verify, in order:
 
 2. **Full re-audit**: re-run the whole phase 1 audit on the rewritten
    clone. It must come back empty for every watched word, and the
-   identities must all be neutral.
+   identities must all be neutral. Write its report with a plain
+   `--output` name too, such as `a.sensitive.removed-scan.local.json`, so
+   it lands in the clone's artifact home.
 
 3. **Which commits actually changed**: filter-repo writes
    `.git/filter-repo/commit-map` (old id, new id). A new id alone does

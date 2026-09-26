@@ -153,6 +153,43 @@ def test_cli_defaults_to_rules_and_writes_ignored_markdown(
     assert "excerpt" not in content
 
 
+def test_cli_writes_a_plain_output_name_into_the_artifact_home(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A plain report name lands in the home; the root rules file stays."""
+    repo = _repo(tmp_path)
+    (repo / "a.sensitive.history-scan.local.md").write_text("legacy\n", encoding="utf-8")
+
+    assert scan_cli.main(
+        ["--root", str(repo), "--output", "a.sensitive.history-scan.local.md", "secretword"],
+    ) == 0
+
+    report = repo.resolve() / ".reviews" / "a.sensitive.history-scan.local.md"
+    assert f"to {report}" in capsys.readouterr().out
+    assert report.read_text(encoding="utf-8").startswith("<!-- markdownlint-disable-file -->")
+    assert (repo / ".reviews" / ".gitignore").read_bytes() == b"*\n"
+    assert not (repo / "a.sensitive.history-scan.local.md").exists()
+    assert (repo / "a.sensitive.replacements.local.txt").is_file()
+
+
+def test_cli_reports_an_invalid_artifact_home(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """An invalid home declaration is a usage error, not a root fallback."""
+    repo = _repo(tmp_path)
+    (repo / ".review-artifacts.ini").write_text(
+        "[review-artifacts]\nhome = ../outside\n", encoding="utf-8",
+    )
+
+    assert scan_cli.main(
+        ["--root", str(repo), "--output", "a.sensitive.history-scan.local.json", "secretword"],
+    ) == ERROR_EXIT
+    assert "artifact home" in capsys.readouterr().err
+    assert not (repo / "a.sensitive.history-scan.local.json").exists()
+
+
 def test_cli_json_and_fail_on_match(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],

@@ -1,7 +1,9 @@
 # Activity elements scratch document template
 
 This template describes the structure of `a.md`, the throwaway document
-the `activity-report` skill writes at the root of the calling project.
+the `activity-report` skill writes in the calling project's artifact home
+(`.reviews` unless `.review-artifacts.ini` declares another home), never at
+the project root.
 It holds the activity elements to analyze: per working tree, the commit
 messages and the Markdown diff over the date window. It is the input
 material, not the report; the report is written afterwards from the
