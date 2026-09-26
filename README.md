@@ -663,8 +663,8 @@ tag, from any branch, and stops at one
 `chore(release): prepare for vX.Y.Z release` commit for the author to review.
 
 It calls the smaller skills rather than repeating them, signalling each
-through a git-ignored `a.prepare-release.active` flag file so the callee
-hands control back:
+through an `a.prepare-release.active` flag file in the review artifact home
+(`.reviews`) so the callee hands control back:
 
 - `group-commits-msg`  --  commit a dirty tree, or commit fixes a test gate
   needed.
@@ -1086,8 +1086,9 @@ the shared skill bodies. The Doskey aliases are documented in detail in
 | Term | Stands for |
 | --- | --- |
 | `a.commit` | Grouped-commit plan file, one block per logical group, replayed by `gcba`. |
-| `a.diff` | Snapshot of the staged diff written by `gcmp` so the agent can justify the grouping. |
-| `a.docs` | Dump of the merged branch documents, written by the merge-doc extraction script. |
+| `a.diff` | Snapshot of the staged diff written by `gcmp` in the review artifact home (`.reviews`) so the agent can justify the grouping. |
+| `a.docs` | Dump of the merged branch documents, written by the merge-doc extraction script in the review artifact home (`.reviews`). |
+| `.reviews` | Review artifact home: every `a.*` working file lives there, apart from the six root files listed in `rules/artifact_files.md`. |
 | `a.prompt.txt` | Next-step prompt written by `pw` / `pw handoff`; the model reads it to continue the cycle. |
 | `a.prompt_memory` | Per-branch workflow state `pw` records: branch, locked topic, current step. |
 | `c` | Doskey alias to `bin\python_check.bat`. |

@@ -5,7 +5,8 @@
 <!-- markdownlint-disable MD013 -->
 
 📝 Every file the workflow reads or writes, split between the versioned
-documents under `docs\` and the transient `a.*` files at the project root.
+documents under `docs\`, the six `a.*` files kept at the project root, and
+every other transient `a.*` file, which lives in the review artifact home.
 
 ## Invocation model
 
@@ -167,35 +168,58 @@ it stays beside the reviewed document rather than in the runtime home. See the
 [independent review contract](independent-review-mode-contract.md#artifact-home-configuration-and-migration)
 for declaration, migration, and exact naming rules.
 
-## 🧾 Transient a-dot files at the project root
+## 📌 The six a-dot files kept at the project root
 
-All matched by the `a.*` gitignore line — scratch by design, never
-committed:
+[`rules/artifact_files.md`](../../rules/artifact_files.md) keeps only these at
+the root: each is a human-facing handoff point or a configuration read there
+on purpose. The root `a.*` gitignore line keeps them out of Git.
 
 | File | Role |
 | --- | --- |
+| `a.ghog.log` | redirect target of every LLM-driven groundhog run; overwritten per run, never deleted |
+| `a.ghog.status` | groundhog run lifecycle line: `state=running pid=...`, then `state=done exit=...` |
 | `a.commit` | grouped-commit plan, one block per group, replayed by `gcba` |
-| `a.diff` | snapshot of the staged diff written by `gcmp`, justifies the grouping |
-| `a.docs` | dump of the merged branch documents for the merge reword |
 | `a.prompt.txt` | next-step prompt written by `pw` and `pw handoff` |
 | `a.prompt_memory` | per-branch workflow state: branch, locked topic, current step |
+| `a.sensitive.replacements.local.txt` | project rules read by the sensitive commit hooks |
+
+Any other root file needs the human's confirmation first.
+
+## 🧾 Transient a-dot files in the artifact home
+
+Every other `a.*` file lives in the review artifact home described above,
+never at the root. Tools resolve it through `tools/artifact_home.py` (Python)
+or `bin\artifact_home.bat` (batch); both create the home with its `*` ignore
+file and move a legacy root copy of the same name into it once.
+
+| File | Role |
+| --- | --- |
+| `a.diff` | snapshot of the staged diff written by `gcmp` and the `gdca` alias, justifies the grouping |
+| `a.docs` | dump of the merged branch documents for the merge reword |
 | `a.md` | scratch analysis: release-prep notes, or activity-report elements |
 | `a.<base>.open.questions.md` | companion file of a review round, managed by `oqm.bat` |
 | `a.prepare-release.active` | flag telling a callee skill to hand control back to `/prepare-release` |
 | `a.activity-report.<start>-<end>.md` | the activity report (plus `.html` and `.pdf`) |
 | `a.profile.html` | pyinstrument profile of one slow test |
+| `a.radon_cc_report.txt` | cyclomatic-complexity report written by `check.bat` |
+| `a.prj.path.sum`, `a.prj.path.sum.in` | venv path fingerprint used by `prj_path_sum.bat` |
+| `a.oqm.senv.log` | parked senv preamble of one `oqm.bat` call |
+| `a.sensitive.*.local.*`, `a.credential-verify.local.json`, `a.mailmap.local.txt` | sensitive-history scan outputs and drafts (the rules file stays at the root) |
+| `a.<slug>.step<x>.journal.md`, `a.<slug>.step<x>.handoff.md` | the code writer's private step notes, see `instructions/step-journal.md` |
+| `a.<slug>.step<x>.tmp.*`, `a.<slug>.tmp.*` | step and effort scratch, deleted by `prepare-release` |
+| `a.tmp.*` | scratch of no effort, deleted by hand |
 
 ## 🧪 Groundhog files
 
-| File | Role |
-| --- | --- |
-| `.testmondata` | the testmon database; deleted and rebuilt by `ghog full` |
-| `a.ghog.log` | redirect target of every LLM-driven run; overwritten per run, never deleted |
-| `a.ghog.status` | run lifecycle line: `state=running pid=...`, then `state=done exit=...` |
-| `a.ghog.failures` | failing node ids of the last full run, the focus baseline |
-| `a.ghog.day.ok` | source snapshot of the last green walk; unchanged means the next walk is a noop |
-| `a.ghog.outliers` | duration-outlier floor and accepted exclusions |
-| `a.ghog.senv.log` | parked senv preamble of one call, replayed and deleted by the tool |
+| File | Where | Role |
+| --- | --- | --- |
+| `.testmondata` | root | the testmon database; deleted and rebuilt by `ghog full` |
+| `a.ghog.log` | root | redirect target of every LLM-driven run; overwritten per run, never deleted |
+| `a.ghog.status` | root | run lifecycle line: `state=running pid=...`, then `state=done exit=...` |
+| `a.ghog.failures` | artifact home | failing node ids of the last full run, the focus baseline |
+| `a.ghog.day.ok` | artifact home | source snapshot of the last green walk; unchanged means the next walk is a noop |
+| `a.ghog.outliers` | artifact home | duration-outlier floor and accepted exclusions |
+| `a.ghog.senv.log`, `a.ghog.senv.txt` | artifact home | parked senv preamble of one call, replayed and deleted by the tool |
 
 ## 🚀 Version and release files
 

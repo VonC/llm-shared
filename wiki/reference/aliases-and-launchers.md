@@ -83,7 +83,7 @@ trims a file; the alias forwards every argument. See
 | `python_check.bat` | vulture, big-file check, `enforce_eof.py` | the check station of the walk |
 | `python_check_types.bat` | type checking | the typing gate |
 | `ghog_cycle.bat` | `bin\ghog.bat` | activate once for a sequence; default `day` then `timings`, stop at the first nonzero exit |
-| `prj_path_sum.bat` | `sha256sum.exe` | check or update the ignored `a.prj.path.sum` environment fingerprint |
+| `prj_path_sum.bat` | `sha256sum.exe` | check or update the `a.prj.path.sum` environment fingerprint in the review artifact home (`.reviews`) |
 | `commit-plan-check.bat` | `tools\commit_plan_check.py` | read-only readiness verdict for the root `a.commit` against the staged set, `--format json` for machine use |
 | `rvw_status.bat` | `tools\review_status_cli.py` | migration-aware schema-2 status for every active review without resuming it |
 | `review_exchange.bat` | `tools\review_exchange_cli.py` | shared review state, publication, wait, confirmation, and recovery operations |
@@ -94,8 +94,9 @@ trims a file; the alias forwards every argument. See
 | `code_review_answer.bat` | code answer renderer | validate evidence and build a code-review answer |
 
 The `shscan` alias calls `sensitive_history_scan.bat --root "%PRJ_DIR%"`.
-Reports written below the repository must use an ignored path such as
-`a.sensitive.history-scan.local.md`.
+A plain `--output` file name such as `a.sensitive.history-scan.local.md` lands
+in the review artifact home (`.reviews`); a path with a directory part is
+written where it points and must be Git-ignored.
 
 The `ghdiag` alias calls `git_history_diagrams.bat`. Use `ghdiag --check` to
 verify that committed history diagrams match their declarative scenarios.

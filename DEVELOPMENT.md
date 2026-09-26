@@ -1338,7 +1338,8 @@ leaving only `brel` for the author. It resolves to
 [`instructions/prepare-release.md`](instructions/prepare-release.md).
 
 It does not replace the other skills, it calls them, signalling each through
-a git-ignored flag file `a.prepare-release.active` so the callee returns
+the flag file `a.prepare-release.active` in the review artifact home
+(`.reviews`) so the callee returns
 control instead of ending on its own:
 
 - `group-commits-msg`  --  to commit a dirty tree, and to commit any fixes a

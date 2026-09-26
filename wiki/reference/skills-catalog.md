@@ -108,7 +108,8 @@ collection checkpoint.
   `Q0x | Title | Recommended Answer` table and never runs the next skill
   itself.
 - `/prepare-release` and `/update-merge-commit-msg` coordinate through the
-  git-ignored flag file `a.prepare-release.active`.
+  flag file `a.prepare-release.active` in the review artifact home
+  (`.reviews`).
 - `/write-requirement` refuses to infer the version: type, `vX.Y.Z` and
   topic label are validated one by one, and the run stops for correction
   on each invalid field.
