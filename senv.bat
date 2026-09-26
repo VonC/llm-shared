@@ -143,6 +143,10 @@ if defined UV_CERT set "CURL_CA_BUNDLE=%UV_CERT%"
 rem uv / uvw / uvx are left unaliased so they resolve to the venv binaries
 rem on PATH. uv honours SSL_CERT_FILE directly: on a non-corporate machine
 rem if no PEM is found, assume a personal machine where no extra cert is needed.
+rem UV_SYSTEM_CERTS makes a direct uv call also trust the platform certificate
+rem store, where a managed machine keeps its TLS-inspection CA and a personal
+rem one the public roots, so `uv lock` works without a PEM or --system-certs.
+set "UV_SYSTEM_CERTS=1"
 doskey uv=
 doskey uvw=
 doskey uvx=
