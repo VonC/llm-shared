@@ -153,11 +153,44 @@ the target role's recorded nature: `/` and `(claude)`, or `$llm-shared:` and
 `(codex)`. An unrecorded nature uses the detected host prefix and ends with the
 role, `(requestor)` or `(reviewer)`, instead.
 
+During the coding steps, a `journal` line follows the `step` line once the
+code writer has created the current step's private journal:
+
+```text
+step      3/8: Wire the navigation index (2/8 verified)
+journal   C:\src\app\.reviews\a.dex-navigation.step3.journal.md
+```
+
 `pw progress` reads the documents and Git without changing them. The review
 status collection runs the same bounded migration preflight as `rwst`, which
 only moves review artifacts of an old layout into the artifact home. The
 command exits `0` with a resolved topic, and `3` with `topic none resolved`
 otherwise.
+
+## 📓 Private step journal and handoff
+
+```text
+pw step-journal 3
+```
+
+The code writer runs this command as the first action of a plan step, as
+`instructions/step-journal.md` requires. It creates the review artifact home
+with its `*` ignore file when missing, then prints whether the step starts (no
+journal yet) or resumes (journal present), with the exact note paths:
+
+```text
+state     start
+journal   C:\src\app\.reviews\a.dex-navigation.step3.journal.md
+handoff   C:\src\app\.reviews\a.dex-navigation.step3.handoff.md
+tmp       C:\src\app\.reviews\a.dex-navigation.step3.tmp.*
+```
+
+The journal opens with the step's objectives, main goal, and plan and umbrella
+context, then keeps an append-only milestone log. The handoff holds the
+verified state, next actions, decisions, and record tables a new session
+resumes from. Every other file of the step is a `tmp` file in the same home,
+which `prepare-release` deletes. The command exits `3` without a resolved
+topic and `2` for an invalid step id or artifact home.
 
 ## 🔎 Stateless document lookup
 
