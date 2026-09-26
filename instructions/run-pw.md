@@ -72,5 +72,7 @@ prints nothing and exits non-zero.
 `pw progress` is the exception: it prints a short aligned report (`branch`,
 `topic`, `umbrella`, `phase`, `step`, one `review` line per active review
 exchange or `no review in progress`, `next`) and its `next` line carries the
-same command bare `pw skill` prints. With no resolved topic it prints only
+same command bare `pw skill` prints. When the topic's requestor is known from
+an active exchange or the topic's review transcripts, that command is rendered
+for the requestor's host and ends with `(claude)` or `(codex)`. With no resolved topic it prints only
 `branch`, `topic none resolved`, and the `review` lines, and exits non-zero.

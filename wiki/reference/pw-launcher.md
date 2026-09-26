@@ -73,7 +73,8 @@ row starts or resumes its workflow; only an exhausted table emits
 ## 📍 Where the topic stands
 
 `pw progress` resolves the topic like bare `pw skill` and prints the same next
-command, preceded by where the topic stands and how far along it is:
+command, preceded by where the topic stands and how far along it is. The next
+command may be rendered for the topic's requestor, as described below:
 
 ```text
 branch    shared-wait-service
@@ -82,7 +83,7 @@ umbrella  no_polling, topic 1/9: Run one durable monitoring service (0/9 topics 
 phase     implementation (5/5)
 step      6/8: Implement delivery, cancellation and consumption settlement (6/8 verified)
 review    round 2 for step 6: wait for the human choice: Commit, or Rework and review again
-next      /code-review-requestor on docs/v0.13.0/plan.v0.13.0.shared-wait-service.md step 6
+next      /code-review-requestor on docs/v0.13.0/plan.v0.13.0.shared-wait-service.md step 6 (claude)
 ```
 
 Positions are counted in document order, not read from ids. The step list is
@@ -107,6 +108,23 @@ exchange with its round, the reviewed step (code) or document type
 exchange's recorded evidence and reads `unrecorded` when none exists. An
 exchange of another topic names its slug. Damaged candidates and an
 unavailable status point back to `rwst`.
+
+When the topic's requestor, the code or document writer, is clearly known, the
+`next` command is rendered for that host and names it at the end of the line:
+`/` for Claude, `$llm-shared:` for Codex, then `(claude)` or `(codex)`:
+
+```text
+next      $llm-shared:implement-step on docs/plan.v10.0.0.dex-navigation.md step 3 (codex)
+```
+
+The requestor comes from the topic's active exchanges when they all record the
+same Claude or Codex requestor. Once an exchange completes, `rwst` reports
+`no review in progress`, so the report then reads the topic's committed review
+transcripts, `review.<type>.<version>.<slug>.md`, and takes the requestor of
+the most recently recorded entry. An unrecorded or disagreeing requestor, or no
+transcript, leaves the command as bare `pw skill` prints it. A reviewer handoff
+(`code-reviewer`, `spec-reviewer`) is also left as is, since the requestor does
+not run it.
 
 `pw progress` reads the documents and Git without changing them. The review
 status collection runs the same bounded migration preflight as `rwst`, which
