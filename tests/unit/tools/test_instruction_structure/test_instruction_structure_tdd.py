@@ -25,6 +25,7 @@ if TYPE_CHECKING:
 
 _INSTRUCTIONS = steps.llm_shared_dir() / "instructions"
 _EXPECTED_DIAGRAM_COUNT = 4
+_GROUNDHOG_SENV_CALLS = 2
 
 
 def _read(name: str) -> str:
@@ -577,7 +578,28 @@ def test_run_commands_documents_python_script_invocation() -> None:
         encoding="utf-8",
     )
     assert "Python scripts use wrappers" in content
-    assert "set NO_MORE_SENV_%PRJ_DIR_NAME%=& senv.bat && python" in content
+    assert "set NO_MORE_SENV_%PRJ_DIR_NAME%=& .\\senv.bat && python" in content
+
+
+def test_chained_environment_calls_activate_the_project_senv() -> None:
+    r"""Every chained shape calls `.\senv.bat`, and the rule says why.
+
+    Fix: a bare `senv.bat` resolves through `PATH` on hosts that skip the
+    current directory, reaching a home `senv.bat` that lacks the project's
+    paths and variables.
+    """
+    root = steps.llm_shared_dir()
+    rules = (root / "rules" / "run_commands.md").read_text(encoding="utf-8")
+    groundhog = _read("groundhog.md")
+    normalized = " ".join(rules.split())
+
+    assert "## Activate the project senv.bat, never another one" in rules
+    assert "NoDefaultCurrentDirectoryInExePath" in rules
+    assert "Only the project's own `senv.bat` sets that project's paths and variables" in normalized
+    for content in (rules, groundhog):
+        assert '/c "senv.bat &&' not in content
+        assert "=& senv.bat &&" not in content
+    assert groundhog.count('/c ".\\senv.bat && ') == _GROUNDHOG_SENV_CALLS
 
 
 def test_merge_reword_skill_covers_all_llms_and_shared_targets() -> None:

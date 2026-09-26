@@ -10,9 +10,28 @@ An environment wrapper such as `senv.bat` — always at the project root (`%PRJ_
 - Otherwise run a plain direct command (`rg`, `type`, `Get-Content`) with no wrapper.
 - Never chain `senv.bat && <file read>`: the wrapper adds its whole setup output, its own failure modes (sandbox blocks, missing tools), and an extra quoting layer, for a task that needs none of it.
 
+## Activate the project senv.bat, never another one
+
+Call the project environment as `.\senv.bat` from the project root (or by its
+full path, `"%PRJ_DIR%\senv.bat"`), never as a bare `senv.bat`. Only the
+project's own `senv.bat` sets that project's paths and variables: its
+`PRJ_DIR`, its virtual environment and Python, its `bin` on `PATH`, its
+package index and certificate settings, and its aliases. Another `senv.bat`
+knows none of them.
+
+A bare name is not guaranteed to reach the project file. Some agent hosts run
+their shells with `NoDefaultCurrentDirectoryInExePath` set, as Claude Code
+does, and then `cmd` skips the current directory and resolves `senv.bat`
+through `PATH`: typically a user-level home `senv.bat`, which prints its own
+activation line and stops. The chained command then runs without the project
+environment, and it can even appear to work, because the shell inherited
+variables from the console that started the session. `where senv.bat` does not
+reveal this, since it always lists the current directory first. The `.\`
+prefix removes the ambiguity on every host.
+
 ## One shell per command, no nested quoting
 
-Never embed a quoted shell inside another quoted shell. A form like `cmd /c "senv.bat && powershell -Command "<script>""` cannot work: `cmd.exe` has no `\"` escaping, so the inner double quotes split the command line, and `$`, `;`, `&&` inside the script are parsed by the wrong shell. The visible symptom is a parse error such as `The term '\' is not recognized` or `'X' is not recognized as an internal or external command`.
+Never embed a quoted shell inside another quoted shell. A form like `cmd /c ".\senv.bat && powershell -Command "<script>""` cannot work: `cmd.exe` has no `\"` escaping, so the inner double quotes split the command line, and `$`, `;`, `&&` inside the script are parsed by the wrong shell. The visible symptom is a parse error such as `The term '\' is not recognized` or `'X' is not recognized as an internal or external command`.
 
 - When a `.bat` wrapper is the toolchain entrypoint, try the wrapper first from
   the project root: `cmd /d /v:on /c "<one-executable> <plain arguments>"`.
@@ -22,12 +41,15 @@ Never embed a quoted shell inside another quoted shell. A form like `cmd /c "sen
   guard `NO_MORE_SENV_%PRJ_DIR_NAME%`.
 - When the project environment is required and the guard is not defined, chain
   exactly one simple command from the project root, where `senv.bat` sits
-  (`%PRJ_DIR%\senv.bat` when `PRJ_DIR` is set, never `bin\senv.bat`):
-  `cmd /d /v:on /c "senv.bat && <one-executable> <plain arguments>"` -- no
-  inner double quotes, no `$`, no multi-statement script in the chained part.
+  (`%PRJ_DIR%\senv.bat` when `PRJ_DIR` is set, never `bin\senv.bat`), and
+  call it as `.\senv.bat` so the project file runs, not another `senv.bat`
+  found on `PATH` (see *Activate the project senv.bat, never another one*):
+  `cmd /d /v:on /c ".\senv.bat && <one-executable> <plain arguments>"` -- no
+  other inner double quotes, no `$`, no multi-statement script in the chained
+  part.
 - When `NO_MORE_SENV_%PRJ_DIR_NAME%` is defined, clear it in the same `cmd`
-  process before calling `senv.bat`:
-  `cmd /d /v:on /c "set NO_MORE_SENV_%PRJ_DIR_NAME%=& senv.bat && <one-executable> <plain arguments>"`.
+  process before calling the project `.\senv.bat`:
+  `cmd /d /v:on /c "set NO_MORE_SENV_%PRJ_DIR_NAME%=& .\senv.bat && <one-executable> <plain arguments>"`.
 - Issue any `cmd /c` form (and `.bat` toolchain scripts such as `ghog`, `check.bat`, `build.bat`/`brel`, `update-changelog.bat`) from PowerShell or cmd.exe, never from Git Bash or another MSYS/POSIX shell. A POSIX shell rewrites the `/c`, `/d`, and `/v:on` switches into Windows paths, so `cmd.exe` never sees `/c`: it opens an interactive session, prints its banner, and exits 0 without running anything. The command silently does nothing, and a redirect like `> a.out.log 2>&1` is left empty or stale — which a careless read takes for a fresh, successful result. Run these from the PowerShell tool (or have the user run them in a real console).
 - When a multi-statement PowerShell script is genuinely needed, write it to a temporary `.ps1` file first and run `powershell -ExecutionPolicy Bypass -File <script.ps1>` as the single chained command.
 - When neither form fits, split the work: one command for the environment-bound step, harness file tools for everything else.
@@ -41,13 +63,16 @@ calling `tools\open_questions_md.py` directly.
 
 When no wrapper exists and a Python script must run in the consuming project's
 environment, clear the project-specific `NO_MORE_SENV_%PRJ_DIR_NAME%` guard in
-the same `cmd` process before calling `senv.bat`. Do this unconditionally; there
-is no need to check whether the variable is currently defined.
+the same `cmd` process before calling the project `.\senv.bat`. Do this
+unconditionally; there is no need to check whether the variable is currently
+defined. The `.\` prefix is what makes `python` the project's own interpreter:
+a home `senv.bat` reached through `PATH` would leave whichever Python the shell
+inherited.
 
 Use this first-attempt shape from the project root:
 
 ```bat
-cmd /d /v:on /c "set NO_MORE_SENV_%PRJ_DIR_NAME%=& senv.bat && python path\to\<a_script.py> <plain args>"
+cmd /d /v:on /c "set NO_MORE_SENV_%PRJ_DIR_NAME%=& .\senv.bat && python path\to\<a_script.py> <plain args>"
 ```
 
 Keep the chained part to one Python executable plus plain arguments. Do not add
