@@ -3,9 +3,9 @@ agent: ask
 description: 'Write a conventional commit message based on the provided code changes.'
 ---
 
-Your goal is to analyse the set of Git diff hunks in #file:../../a.diff , and create a commit message based on the 'conventional commit' convention.
+Your goal is to analyse the set of Git diff hunks in #file:../../.reviews/a.diff , and create a commit message based on the 'conventional commit' convention.
 
-Consider the diff #file:../../a.diff , but also any other file in your context and write a conventional commit message:
+Consider the diff #file:../../.reviews/a.diff , but also any other file in your context and write a conventional commit message:
 
 ```log
 type(topic): subject
@@ -45,6 +45,6 @@ Make sure the body includes two sections, 'Why' and 'What':
 
 Make sure to read your instructions ( #file:..\copilot-instructions.md ): those include a list a word you must not use in the commit message (beside code/snippets).
 
-Note that `git diff` (when #file:../../a.diff is present in your context) output includes context lines (lines that start with neither '`+`' nor '`-`'). These context lines show code that exists before or after the changes but were not modified. Only analyze the actual changes (lines starting with '`+`' or '`-`') when generating the commit message.
+Note that `git diff` (when #file:../../.reviews/a.diff is present in your context) output includes context lines (lines that start with neither '`+`' nor '`-`'). These context lines show code that exists before or after the changes but were not modified. Only analyze the actual changes (lines starting with '`+`' or '`-`') when generating the commit message.
 
 Do pay attention to line lengths (52 chars max for title, 80 chars max for each lines in the commit body message), and do not use words listed in the "Blacklist of words to avoid in the response" of #file:..\copilot-instructions.md .

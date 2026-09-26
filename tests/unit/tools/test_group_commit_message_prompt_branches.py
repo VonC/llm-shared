@@ -5,6 +5,9 @@ fatal-exit handling, and `__main__` execution in
 `tools.group_commit_message_prompt`.
 
 Fix: Cover staged porcelain filtering when a line should be kept and trimmed.
+
+Fix: The script writes `a.diff` in the review artifact home, and an invalid
+artifact home is reported as a fatal exit, not a traceback.
 """
 
 from __future__ import annotations
@@ -208,8 +211,39 @@ def test_group_commit_message_prompt_script_runs_as_main(
         runpy.run_path(str(script_path), run_name="__main__")
 
     assert excinfo.value.code == 0
-    assert (tmp_path / "a.diff").read_text(encoding="utf-8") == diff_text
+    assert (tmp_path / ".reviews" / "a.diff").read_text(encoding="utf-8") == diff_text
+    assert not (tmp_path / "a.diff").exists()
     assert (tmp_path / "a.commit").read_text(encoding="utf-8") == ""
+
+
+def test_group_commit_message_prompt_script_logs_fatal_on_invalid_home(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """An artifact home with the wrong ignore bytes exits 2 through `_log_fatal`."""
+    script_path = Path(group_commit_message_prompt.__file__)
+    (tmp_path / ".reviews").mkdir()
+    (tmp_path / ".reviews" / ".gitignore").write_text("*.log\n", encoding="utf-8")
+
+    def fake_run(
+        command: list[str],
+        **kwargs: object,
+    ) -> subprocess.CompletedProcess[str]:
+        del kwargs
+        if command[0] == "git" and command[1] in {"diff", "status"}:
+            return subprocess.CompletedProcess(command, 0, stdout="")
+        msg = f"Unexpected command: {command}"
+        raise AssertionError(msg)
+
+    monkeypatch.setattr(shutil, "which", _which_identity)
+    monkeypatch.setattr(subprocess, "run", fake_run)
+    monkeypatch.setattr(sys, "argv", [str(script_path), "--root", str(tmp_path)])
+
+    with pytest.raises(SystemExit) as excinfo:
+        runpy.run_path(str(script_path), run_name="__main__")
+
+    assert excinfo.value.code == _FATAL_EXIT_CODE
+    assert not (tmp_path / ".reviews" / "a.diff").exists()
 
 
 def test_group_commit_message_prompt_script_logs_fatal_on_git_error(

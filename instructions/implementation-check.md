@@ -1,6 +1,6 @@
 # Implementation check instructions
 
-Your goal is to analyze if the step from the `<effort-dir>/plan.vX.Y.Z.<topic>.md` plan in your context -- step indicated in your prompt -- has been fully implemented, based on the files present in your context, or based on a Git diff `a.diff` present at the root folder of the project. Write this analysis as a markdown answer, and update `<effort-dir>/plan.vX.Y.Z.<topic>.validation.md` with that analysis. Use the exact paths supplied by `pw`; `<effort-dir>` is the canonical draft's parent directory.
+Your goal is to analyze if the step from the `<effort-dir>/plan.vX.Y.Z.<topic>.md` plan in your context -- step indicated in your prompt -- has been fully implemented, based on the files present in your context, or based on a Git diff `a.diff` present in the project's review artifact home (`.reviews\a.diff` unless `.review-artifacts.ini` declares another home). Write this analysis as a markdown answer, and update `<effort-dir>/plan.vX.Y.Z.<topic>.validation.md` with that analysis. Use the exact paths supplied by `pw`; `<effort-dir>` is the canonical draft's parent directory.
 
 Check your prompt and your context for the step to check, for example "step 2 v9.3.0 sentinels", checking if yes or no step XXXXX from `<effort-dir>/plan.vX.Y.Z.<topic>.md` was fully implemented, and asserting the state of the DDD-Hexagonal architecture (is there any smell or violation?).
 

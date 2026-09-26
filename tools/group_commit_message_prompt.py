@@ -2,11 +2,19 @@
 
 Prepare one grouped-commit prompt from the current staged Git state.
 
-From the project root, this tool writes `a.diff` from `git diff --cached`,
-counts staged diff entries, clears `a.commit`, builds one
+From the project root, this tool writes `a.diff` (in the artifact home) from
+`git diff --cached`, counts staged diff entries, clears `a.commit`, builds one
 `/group-commits-msg ...` prompt with a blank line, a fenced `log` block, and
 a trailing `Context: ` line from staged porcelain lines, copies that full
 prompt to the clipboard, and prints only one ready line to stdout.
+
+Fix: Write `a.diff` in the review artifact home (`.reviews` unless
+`.review-artifacts.ini` declares another home) instead of the project root,
+through `tools.artifact_home.artifact_path`, so the staged-diff snapshot is
+never a root file (see `rules/artifact_files.md`). A stale root `a.diff` moves
+into the home and is overwritten there. `a.commit` stays at the root: the
+human reviews and edits it there. An invalid artifact home is reported as a
+fatal error.
 """
 
 from __future__ import annotations
@@ -21,6 +29,7 @@ from pathlib import Path
 from typing import NoReturn
 
 from tools import find_project_root
+from tools.artifact_home import artifact_path
 
 LOGGER = logging.getLogger("group_commit_message_prompt")
 _DIFF_PATTERN = re.compile(r"^diff ", re.MULTILINE)
@@ -136,11 +145,14 @@ def _build_ready_line(file_count: int) -> str:
 
 
 def _prepare_group_commit_prompt(root: Path) -> tuple[str, str]:
-    """Write Git artifacts in the root and return the summary line and prompt."""
+    """Write Git artifacts and return the summary line and prompt.
+
+    `a.diff` goes to the artifact home, `a.commit` stays at the root.
+    """
     diff_text = _run_git_text(["diff", "--cached"], cwd=root)
     status_text = _run_git_text(["status", "--porcelain"], cwd=root)
 
-    (root / "a.diff").write_text(diff_text, encoding="utf-8")
+    artifact_path(root, "a.diff").write_text(diff_text, encoding="utf-8")
     (root / "a.commit").write_text("", encoding="utf-8")
 
     file_count = _count_cached_diff_files(diff_text)
@@ -191,7 +203,7 @@ def _log_fatal(err: Exception) -> NoReturn:
 if __name__ == "__main__":
     try:
         raise SystemExit(main())
-    except (GroupCommitMessagePromptError, OSError) as err:
+    except (GroupCommitMessagePromptError, OSError, ValueError) as err:
         _log_fatal(err)
 
 

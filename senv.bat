@@ -151,7 +151,11 @@ doskey uv=
 doskey uvw=
 doskey uvx=
 
-doskey gdca=git diff --cached ^> a.diff ^& grep "^diff " a.diff ^| wc -l ^& git status --porcelain ^| grep -v "^[ \?]"
+REM gdca snapshots the staged diff into the review artifact home, never the
+REM project root (see rules\artifact_files.md). ARTIFACT_HOME is resolved once
+REM here and expanded into the macro text when the doskey line is parsed.
+call "%LLM_SHARED_DIR%\bin\artifact_home.bat" "%PRJ_DIR%"
+doskey gdca=git diff --cached ^> "%ARTIFACT_HOME%\a.diff" ^& grep "^diff " "%ARTIFACT_HOME%\a.diff" ^| wc -l ^& git status --porcelain ^| grep -v "^[ \?]"
 doskey gcma=gcm.bat a ^& git commit --amend
 
 

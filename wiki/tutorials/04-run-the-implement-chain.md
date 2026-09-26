@@ -69,7 +69,7 @@ multi-choice built by `pw skill --after-commit 1`:
 3. Type something else
 ```
 
-Read `a.commit` (the staged diff snapshot in `a.diff` justifies the
+Read `a.commit` (the staged diff snapshot in `.reviews\a.diff` justifies the
 grouping). Edit it if a group or a wording is off.
 
 ## 5. Replay the commits

@@ -122,14 +122,18 @@ Do not edit the `## Open questions` section of the document by hand. Use the
 [`open_questions_md.py`](../tools/open_questions_md.py) through the consuming
 project environment) to manage that section. It finds the project root,
 resolves the exact path in any supported docs layout, and works through the
-companion scratch file `a.<base>.open.questions.md` kept at the project root,
-where `<base>` is the document name without its `.md` suffix.
+companion scratch file `a.<base>.open.questions.md` kept in the review artifact
+home (`.reviews` unless `.review-artifacts.ini` declares another home, see
+[`../rules/artifact_files.md`](../rules/artifact_files.md)), where `<base>` is
+the document name without its `.md` suffix. `oqm` moves a companion left at the
+project root by an older run into the artifact home on first use; never create
+the companion at the project root.
 
 The companion scratch file `a.<base>.open.questions.md` is the one file you author by hand: write the new open questions there, starting with the `## Open questions for the vX.Y.Z ...` line and following [`open-question.template.md`](../templates/open-question.template.md). `oqm` then removes any older `## Open questions` section from the document and appends the new section taken from `a.<base>.open.questions.md`, so the questions you wrote in the companion become the document's only `## Open questions` section.
 
 The tool has three modes, each taking the exact repository-relative document path:
 
-- `& "<LLM_SHARED_DIR>\bin\oqm.bat" <document-path> --create`: write an empty `a.<base>.open.questions.md` companion at the project root (truncating it when it already exists).
+- `& "<LLM_SHARED_DIR>\bin\oqm.bat" <document-path> --create`: write an empty `a.<base>.open.questions.md` companion in the artifact home (truncating it when it already exists) and print its full path.
 - `& "<LLM_SHARED_DIR>\bin\oqm.bat" <document-path> --strip`: drop the `## Open questions` line and every line after it from the document (a no-op when there is none).
 - `& "<LLM_SHARED_DIR>\bin\oqm.bat" <document-path> --append`: add the `## Open questions` section of `a.<base>.open.questions.md` to the document, with one empty line before it.
 
@@ -138,7 +142,7 @@ Run these steps, in order:
 1. `& "<LLM_SHARED_DIR>\bin\oqm.bat" <document-path> --strip` once you have integrated every existing answer into the document body and the decision table, to remove the consolidated `## Open questions` section.
 2. Stop here when you have no new question to ask, and say you are ready for the next step.
 3. `& "<LLM_SHARED_DIR>\bin\oqm.bat" <document-path> --create` to start an empty `a.<base>.open.questions.md` companion when you do have new questions.
-4. Write your new questions into `a.<base>.open.questions.md`, starting with the `## Open questions for the vX.Y.Z ...` line and following the template.
+4. Write your new questions into the `a.<base>.open.questions.md` path that `--create` printed, starting with the `## Open questions for the vX.Y.Z ...` line and following the template.
 5. `& "<LLM_SHARED_DIR>\bin\oqm.bat" <document-path> --append` to move the questions from `a.<base>.open.questions.md` into the document.
 6. Present the placed questions in your reply as the mandatory three-column table described in "Presenting any follow-up questions" below — never as a bulleted list.
 

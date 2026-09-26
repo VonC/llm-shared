@@ -30,7 +30,7 @@ intermediate state coherent.
 
 ## 🔍 What the skill rebuilds from the diff
 
-The skill reads the staged diff (`a.diff` keeps the snapshot), regroups
+The skill reads the staged diff (`.reviews\a.diff` keeps the snapshot), regroups
 the files by dependency, and writes one conventional message per group
 into `a.commit` — rebuilding the story of the change from the evidence,
 including the parts the author forgot. The author reviews the plan;

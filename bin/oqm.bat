@@ -3,7 +3,7 @@ setlocal EnableDelayedExpansion
 
 if not defined LLM_SHARED_DIR for %%i in ("%~dp0..") do set "LLM_SHARED_DIR=%%~fi"
 
-REM Project environment first: open_questions_md writes project-root files and
+REM Project environment first: open_questions_md writes artifact-home files and
 REM must see the consuming project's Python environment when the project owns
 REM helper dependencies. senv.bat can be skipped by a stale project-specific
 REM NO_MORE_SENV guard inherited by a harness, so clear that guard before
@@ -11,7 +11,11 @@ REM calling it.
 if not defined PRJ_DIR set "PRJ_DIR=%CD%"
 for %%i in ("%PRJ_DIR%") do set "LLM_SHARED_PRJ_DIR_NAME=%%~nxi"
 if defined LLM_SHARED_PRJ_DIR_NAME set "NO_MORE_SENV_!LLM_SHARED_PRJ_DIR_NAME!="
-set "OQM_SENV_LOG=%PRJ_DIR%\a.oqm.senv.log"
+REM The captured senv output is a working file: it lives in the artifact home
+REM (.reviews unless .review-artifacts.ini declares another home), never at
+REM the project root (see rules\artifact_files.md).
+call "%~dp0artifact_home.bat" "%PRJ_DIR%"
+set "OQM_SENV_LOG=%ARTIFACT_HOME%\a.oqm.senv.log"
 if exist "%PRJ_DIR%\senv.bat" call <NUL "%PRJ_DIR%\senv.bat" > "%OQM_SENV_LOG%" 2>&1
 set "OQM_SENV_EXIT=%ERRORLEVEL%"
 set "LLM_SHARED_PRJ_DIR_NAME="

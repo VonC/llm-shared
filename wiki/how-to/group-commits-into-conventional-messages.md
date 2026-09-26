@@ -25,8 +25,8 @@ ordered series of conventional commits, each with a `Why:` / `What:` body.
    gcmp
    ```
 
-   `gcmp` writes `a.diff` (a snapshot of the staged diff), clears
-   `a.commit`, builds a `/group-commits-msg` prompt from the staged files
+   `gcmp` writes `.reviews\a.diff` (a snapshot of the staged diff, kept
+   in the review artifact home), clears `a.commit`, builds a `/group-commits-msg` prompt from the staged files
    and copies it to the clipboard.
 
 3. Paste the prompt into the agent and add a word of context after the
@@ -37,7 +37,7 @@ ordered series of conventional commits, each with a `Why:` / `What:` body.
 
 4. Review `a.commit`. The grouping is only as good as the staged diff: if
    a feature and an unrelated refactor are mixed, edit the file by hand or
-   stage in two passes. `a.diff` is there to justify each group.
+   stage in two passes. `.reviews\a.diff` is there to justify each group.
 
 5. Replay:
 

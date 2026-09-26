@@ -2,7 +2,7 @@
 
 The tool manages the ``## Open questions`` section of a
 ``docs/<type>.vX.Y.Z.<topic>.md`` document and its
-``a.<base>.open.questions.md`` companion kept at the project root, across three
+``a.<base>.open.questions.md`` companion kept in the artifact home, across three
 mutually exclusive modes: ``--create``, ``--strip`` and ``--append``.
 
 These tests cover the pure helpers (version extraction, companion naming,
@@ -16,6 +16,11 @@ temporary project root so the tool stays self-contained, mirroring the EOF tool
 tests. The ``__main__`` script guard is run with ``runpy`` for both the success
 exit and the fatal exit through ``_log_fatal``, and the append helper is covered
 for a section with no trailing newline.
+
+Fix: The companion lives in the review artifact home (``.reviews``). A legacy
+companion left at the project root is moved into the home on first use, so
+its questions are appended rather than lost; ``--strip`` never creates the
+home; and an invalid home ends the script with ``EXIT_FATAL``.
 """
 
 from __future__ import annotations
@@ -28,6 +33,7 @@ import pytest
 
 from tools import find_project_root as shared_find_project_root
 from tools import open_questions_md
+from tools.artifact_home import artifact_home
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -49,6 +55,11 @@ def _patch_shared_root(monkeypatch: pytest.MonkeyPatch, root: Path) -> None:
         return root
 
     monkeypatch.setattr("tools.find_project_root", fake_find_project_root)
+
+
+def _companion(root: Path) -> Path:
+    """Return the test document's companion path inside the artifact home."""
+    return root / ".reviews" / "a.design.v1.2.3.topic.open.questions.md"
 
 
 def _write_doc(
@@ -292,7 +303,7 @@ def test_create_makes_empty_companion(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    """--create writes an empty companion at the project root."""
+    """--create writes an empty companion in the artifact home."""
     # Arrange
     _patch_root(monkeypatch, tmp_path)
     _write_doc(tmp_path, "design.v1.2.3.topic.md", "# Body\n")
@@ -301,10 +312,12 @@ def test_create_makes_empty_companion(
     exit_code = open_questions_md.main(["design.v1.2.3.topic.md", "--create"])
 
     # Assert
-    companion = tmp_path / "a.design.v1.2.3.topic.open.questions.md"
+    companion = _companion(tmp_path)
     assert exit_code == 0
     assert companion.is_file()
     assert companion.read_text(encoding="utf-8") == ""
+    assert (tmp_path / ".reviews" / ".gitignore").read_bytes() == b"*\n"
+    assert not (tmp_path / "a.design.v1.2.3.topic.open.questions.md").exists()
 
 
 def test_create_is_no_op_when_companion_already_empty(
@@ -315,7 +328,8 @@ def test_create_is_no_op_when_companion_already_empty(
     # Arrange
     _patch_root(monkeypatch, tmp_path)
     _write_doc(tmp_path, "design.v1.2.3.topic.md", "# Body\n")
-    companion = tmp_path / "a.design.v1.2.3.topic.open.questions.md"
+    companion = _companion(tmp_path)
+    artifact_home(tmp_path)
     companion.write_text("", encoding="utf-8")
 
     # Act
@@ -334,7 +348,8 @@ def test_create_empties_existing_non_empty_companion(
     # Arrange
     _patch_root(monkeypatch, tmp_path)
     _write_doc(tmp_path, "design.v1.2.3.topic.md", "# Body\n")
-    companion = tmp_path / "a.design.v1.2.3.topic.open.questions.md"
+    companion = _companion(tmp_path)
+    artifact_home(tmp_path)
     companion.write_text("## Open questions\ndrop me\n", encoding="utf-8")
 
     # Act
@@ -371,6 +386,7 @@ def test_strip_truncates_document_at_marker(
     # Assert
     assert exit_code == 0
     assert doc.read_text(encoding="utf-8") == "# Design\n\nBody line.\n"
+    assert not (tmp_path / ".reviews").exists()
 
 
 def test_strip_without_marker_leaves_document_untouched(
@@ -409,7 +425,8 @@ def test_append_adds_section_after_one_empty_line(
     # Arrange
     _patch_root(monkeypatch, tmp_path)
     doc = _write_doc(tmp_path, "design.v1.2.3.topic.md", "# Design\n\nSome body.\n\n")
-    companion = tmp_path / "a.design.v1.2.3.topic.open.questions.md"
+    companion = _companion(tmp_path)
+    artifact_home(tmp_path)
     companion.write_text(
         "intro junk\n## Open questions for v1.2.3\n\n### Q01: foo\n",
         encoding="utf-8",
@@ -424,6 +441,55 @@ def test_append_adds_section_after_one_empty_line(
     )
     assert exit_code == 0
     assert doc.read_text(encoding="utf-8") == expected
+
+
+def test_append_moves_a_legacy_root_companion_into_the_home(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """A companion left at the root by an older run moves home and is appended.
+
+    Questions written before the companion moved to the artifact home are
+    neither lost nor left behind at the project root.
+    """
+    # Arrange
+    _patch_root(monkeypatch, tmp_path)
+    doc = _write_doc(tmp_path, "design.v1.2.3.topic.md", "# Design\n")
+    legacy = tmp_path / "a.design.v1.2.3.topic.open.questions.md"
+    section = "## Open questions for v1.2.3\n\n### Q01: kept\n"
+    legacy.write_text(section, encoding="utf-8")
+
+    # Act
+    exit_code = open_questions_md.main(["design.v1.2.3.topic.md", "--append"])
+
+    # Assert
+    assert exit_code == 0
+    assert not legacy.exists()
+    assert _companion(tmp_path).read_text(encoding="utf-8") == section
+    assert doc.read_text(encoding="utf-8") == f"# Design\n\n{section}"
+
+
+def test_create_never_overwrites_a_home_companion_with_a_root_copy(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """With both copies present, --create resets the home one and keeps the root one."""
+    # Arrange
+    _patch_root(monkeypatch, tmp_path)
+    _write_doc(tmp_path, "design.v1.2.3.topic.md", "# Design\n")
+    legacy = tmp_path / "a.design.v1.2.3.topic.open.questions.md"
+    legacy.write_text("## Open questions\nroot copy\n", encoding="utf-8")
+    companion = _companion(tmp_path)
+    artifact_home(tmp_path)
+    companion.write_text("## Open questions\nhome copy\n", encoding="utf-8")
+
+    # Act
+    exit_code = open_questions_md.main(["design.v1.2.3.topic.md", "--create"])
+
+    # Assert
+    assert exit_code == 0
+    assert companion.read_text(encoding="utf-8") == ""
+    assert legacy.read_text(encoding="utf-8") == "## Open questions\nroot copy\n"
 
 
 def test_append_missing_companion_raises(
@@ -448,7 +514,8 @@ def test_append_companion_without_marker_raises(
     # Arrange
     _patch_root(monkeypatch, tmp_path)
     _write_doc(tmp_path, "design.v1.2.3.topic.md", "# Design\n")
-    companion = tmp_path / "a.design.v1.2.3.topic.open.questions.md"
+    companion = _companion(tmp_path)
+    artifact_home(tmp_path)
     companion.write_text("just notes, no section\n", encoding="utf-8")
 
     # Act / Assert
@@ -496,7 +563,7 @@ def test_script_runs_as_main_and_creates_companion(
 
     # Assert
     assert excinfo.value.code == 0
-    assert (tmp_path / "a.design.v1.2.3.topic.open.questions.md").is_file()
+    assert _companion(tmp_path).is_file()
 
 
 def test_script_logs_fatal_on_error(
@@ -515,6 +582,28 @@ def test_script_logs_fatal_on_error(
 
     # Assert
     assert excinfo.value.code == open_questions_md.EXIT_FATAL
+
+
+def test_script_logs_fatal_on_invalid_artifact_home(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """An artifact home with the wrong ignore bytes exits with EXIT_FATAL."""
+    # Arrange
+    _patch_shared_root(monkeypatch, tmp_path)
+    _write_doc(tmp_path, "design.v1.2.3.topic.md", "# Body\n")
+    (tmp_path / ".reviews").mkdir()
+    (tmp_path / ".reviews" / ".gitignore").write_text("*.log\n", encoding="utf-8")
+    script_path = open_questions_md.__file__
+    monkeypatch.setattr(sys, "argv", [script_path, "design.v1.2.3.topic.md", "--create"])
+
+    # Act
+    with pytest.raises(SystemExit) as excinfo:
+        runpy.run_path(script_path, run_name="__main__")
+
+    # Assert
+    assert excinfo.value.code == open_questions_md.EXIT_FATAL
+    assert not _companion(tmp_path).exists()
 
 
 # eof

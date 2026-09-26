@@ -2,7 +2,8 @@
 
 This tool operates on a ``<type>.vX.Y.Z.<topic>.md`` document (for example
 ``design.v1.2.3.cdc-gap.md``) and its companion scratch file
-``a.<base>.open.questions.md`` kept at the project root, where ``<base>`` is the
+``a.<base>.open.questions.md`` kept in the review artifact home (``.reviews``
+unless ``.review-artifacts.ini`` declares another home), where ``<base>`` is the
 document name without its ``.md`` suffix. The companion of
 ``design.v1.2.3.cdc-gap.md`` is therefore
 ``a.design.v1.2.3.cdc-gap.open.questions.md``.
@@ -16,7 +17,7 @@ exist and be non-empty; otherwise the tool fails early with a fatal error.
 
 Exactly one of three mutually exclusive modes must be selected:
 
-- ``--create``: create the companion file at the project root, truncating it
+- ``--create``: create the companion file in the artifact home, truncating it
   back to empty when it already exists.
 - ``--strip``: remove from the document the first line matching
   ``^## Open questions.*$`` and every line after it (truncate at the marker),
@@ -30,6 +31,14 @@ Exactly one of three mutually exclusive modes must be selected:
   non-empty line and the section.
 
 Exit codes: ``0`` on success, ``EXIT_FATAL`` (2) for any fatal error.
+
+Fix: Keep the companion in the review artifact home instead of the project
+root, so no ``a.*`` scratch file lands at the root (see
+``rules/artifact_files.md``). ``--create`` and ``--append`` resolve it through
+``tools.artifact_home.artifact_path``, which prepares the home and moves a
+legacy root companion into it once, so questions written before the move are
+not lost. ``--strip`` never touches the companion or the home. An invalid
+artifact home is reported as a fatal error.
 """
 
 from __future__ import annotations
@@ -48,6 +57,7 @@ if __name__ == "__main__":
         sys.path.insert(0, str(_project_root))
 
 from tools import find_project_root
+from tools.artifact_home import artifact_path
 from tools.prompt_workflow_docs import docs_dirs
 
 # Suffix of the documents this tool operates on.
@@ -242,7 +252,7 @@ def _mode_create(companion_path: Path) -> int:
     """Create the companion file, truncating it back to empty when it exists.
 
     Args:
-        companion_path: The companion file path at the project root.
+        companion_path: The companion file path in the artifact home.
 
     Returns:
         ``0`` on success.
@@ -284,7 +294,7 @@ def _mode_append(doc_path: Path, companion_path: Path) -> int:
 
     Args:
         doc_path: The resolved document path.
-        companion_path: The companion file path at the project root.
+        companion_path: The companion file path in the artifact home.
 
     Returns:
         ``0`` on success.
@@ -342,7 +352,10 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
         "-c",
         "--create",
         action="store_true",
-        help="Create an empty a.<base>.open.questions.md companion at the root.",
+        help=(
+            "Create an empty a.<base>.open.questions.md companion in the "
+            "artifact home."
+        ),
     )
     group.add_argument(
         "-s",
@@ -389,12 +402,14 @@ def main(argv: list[str] | None = None) -> int:
     doc_path = _resolve_doc(root, args.docfile)
     LOGGER.info("Document: %s", doc_path)
 
-    companion_path = root / _companion_name(base)
+    if args.strip:
+        return _mode_strip(doc_path)
+
+    # The companion lives in the artifact home; a legacy root copy moves there.
+    companion_path = artifact_path(root, _companion_name(base))
 
     if args.create:
         return _mode_create(companion_path)
-    if args.strip:
-        return _mode_strip(doc_path)
     return _mode_append(doc_path, companion_path)
 
 
@@ -407,7 +422,7 @@ def _log_fatal(err: Exception) -> NoReturn:
 if __name__ == "__main__":
     try:
         raise SystemExit(main())
-    except (OpenQuestionsError, OSError) as err:
+    except (OpenQuestionsError, OSError, ValueError) as err:
         _log_fatal(err)
 
 

@@ -4,6 +4,9 @@ Fix: Verify the staged-diff prompt tool writes `a.diff`, clears `a.commit`,
 formats the staged porcelain lines inside a fenced `log` block, and copies one
 ready-to-paste grouped commit message prompt with a trailing `Context: ` line.
 Step 4 also pins the canonical read-only checker before any commit menu.
+
+Fix: `a.diff` is written in the review artifact home, not at the root, and a
+stale root `a.diff` from before the move does not survive the next run.
 """
 
 from __future__ import annotations
@@ -78,6 +81,7 @@ class TestGroupCommitMessagePromptTDD:
             "existing grouped commit text",
             encoding="utf-8",
         )
+        (tmp_path / "a.diff").write_text("stale root diff", encoding="utf-8")
 
         diff_text = (
             "diff --git a/one.py b/one.py\n"
@@ -116,7 +120,10 @@ class TestGroupCommitMessagePromptTDD:
             "```\n\n"
             "Context: "
         )
-        assert (tmp_path / "a.diff").read_text(encoding="utf-8") == diff_text
+        home_diff = tmp_path / ".reviews" / "a.diff"
+        assert home_diff.read_text(encoding="utf-8") == diff_text
+        assert (tmp_path / ".reviews" / ".gitignore").read_bytes() == b"*\n"
+        assert not (tmp_path / "a.diff").exists()
         assert (tmp_path / "a.commit").read_text(encoding="utf-8") == ""
 
     def test_main_logs_ready_line_and_copies_prompt(

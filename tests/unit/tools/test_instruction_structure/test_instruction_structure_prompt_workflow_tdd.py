@@ -2,6 +2,10 @@
 
 Split from the v0.9.0 instruction-structure test: keeps pw launch, question,
 writer-review, document-layout, and wrapper guarantees in one focused leaf.
+
+Fix: The oqm wrapper captures the project senv output in the review artifact
+home, never at the project root, and both question skills keep their
+`a.<base>.open.questions.md` companion there.
 """
 
 from __future__ import annotations
@@ -45,6 +49,9 @@ def test_question_skills_use_the_oqm_wrapper() -> None:
         assert "run_commands.md" in content
         assert "oqm.bat" in content
         assert "python <LLM_SHARED_DIR>\\tools\\open_questions_md.py" not in content
+        assert "kept in the review artifact\nhome" in content
+        assert "companion in the artifact home (truncating" in content
+        assert "kept at the project root" not in content
 
 
 def test_writer_handoffs_review_the_artifact_that_was_just_written() -> None:
@@ -134,6 +141,9 @@ def test_oqm_wrapper_clears_the_project_senv_guard() -> None:
     assert "NO_MORE_SENV_!LLM_SHARED_PRJ_DIR_NAME!=" in content
     assert "%PRJ_DIR%\\senv.bat" in content
     assert "open_questions_md.py" in content
+    assert 'call "%~dp0artifact_home.bat" "%PRJ_DIR%"' in content
+    assert 'set "OQM_SENV_LOG=%ARTIFACT_HOME%\\a.oqm.senv.log"' in content
+    assert "%PRJ_DIR%\\a.oqm.senv.log" not in content
 
 
 def test_python_tool_instructions_use_wrappers() -> None:
