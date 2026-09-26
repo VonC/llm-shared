@@ -94,6 +94,57 @@ The root-level `commit-plan-check.bat` launcher follows the same rule but is
 not under `bin`: call it as
 `& "<LLM_SHARED_DIR>\commit-plan-check.bat" --format json`.
 
+## Quiet waits preserve model quota
+
+A quiet long-running command must also be quiet at the tool transport layer.
+Starting one watcher process is not enough if the host resumes the model every
+minute to receive "still running" and issue another wait. Those resumptions
+spend quota even when the command emits no output and no `status` call runs.
+
+`review_exchange.bat wait-any-request` must run in the background relative to
+the chat and must not monopolize the chat. Use a host-managed background
+execution session that keeps the command running after the assistant's turn
+ends. The command itself remains a blocking watcher inside that session; it
+does not need a new daemon, service, or detached agent.
+
+- Start the watcher once, retain its process or tool-session handle, then
+  return control of the chat while leaving it running. Reuse an existing live
+  watcher instead of launching another for each question or review round.
+- Do not hold the chat in a long `functions.wait`, `write_stdin`, or equivalent
+  foreground tool call while the global watcher is idle. Replacing one-minute
+  resumptions with a ten-minute chat-blocking wait does not satisfy this rule.
+  The user must be able to ask questions without pressing Esc to release the
+  chat. Do not assume a queued message interrupts a running tool call.
+- Let the watcher observe requests and return its final JSON. Retrieve that
+  result through a supported completion notification, or check the retained
+  session without a long wait on the next user turn. Do not schedule recurring
+  model turns, `status` calls, or idle commentary just to check progress.
+- Keep the result, including any ownership capability, in the tool session or
+  session memory. Do not redirect it to a persistent log or save the capability
+  to files or environment variables.
+- Distinguish request detection from model resumption. A background watcher
+  can detect a request promptly even when the host cannot automatically start
+  the next assistant turn. If that host needs another user turn to process the
+  result, say so once; do not promise automatic review or invent a callback.
+
+The watcher owns filesystem observation and protocol deadlines. A tool
+transport timeout is not a protocol outcome: it does not authorize restarting
+the process, resetting its deadline, or interpreting silence as completion.
+
+For bounded `wait-request` and `wait-answer` operations, or continuations inside
+a background tool execution, use the longest supported transport interval
+permitted by higher-priority instructions. Prefer several minutes (for example,
+600000 ms when supported) to recurring 60000 ms model wake-ups. A short default
+yield is not a mandatory maximum. Check every outer tool layer too: a long
+inner wait does not help if its wrapper resumes the model every minute or
+blocks the chat.
+
+If the host cannot keep a background execution alive after the turn, or a
+higher-priority instruction prevents it, explain that limitation once. Do not
+claim the watcher is running or the chat remains available when that is not
+true. Preserve role isolation and do not silently substitute a foreground
+wait that the user must interrupt.
+
 ## Targeted reads instead of whole-document dumps
 
 Never concatenate several whole documents in one command "to gather context": that output is huge, mostly unread, and already wasted when the next action needs a specific section.
