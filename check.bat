@@ -65,13 +65,19 @@ if "%ruff_status%"=="0" (
   call :record_failure ruff %ruff_status%
 )
 
+REM The radon report is a working file: it lives in the review artifact home
+REM (.reviews unless .review-artifacts.ini declares another home), never at
+REM the project root (see rules\artifact_files.md). A root copy left by an
+REM earlier run is stale, since every run rewrites the report, so drop it.
+call "%~dp0bin\artifact_home.bat" "%PRJ_DIR%"
+set "radon_cc_report=%ARTIFACT_HOME%\a.radon_cc_report.txt"
+if exist "%PRJ_DIR%\a.radon_cc_report.txt" del /q "%PRJ_DIR%\a.radon_cc_report.txt"
 %_info% "radon cc --show-closures -a --total-average -s '%PRJ_DIR%\tools' '%PRJ_DIR%\tests'"
-radon cc --show-closures -a --total-average -s "%PRJ_DIR%\tools" "%PRJ_DIR%\tests" > "%PRJ_DIR%\a.radon_cc_report.txt"
+radon cc --show-closures -a --total-average -s "%PRJ_DIR%\tools" "%PRJ_DIR%\tests" > "%radon_cc_report%"
 set "radon_cc_status=%ERRORLEVEL%"
 
 REM Radon sometimes exits 0 even when it prints complexity alerts.
 REM Treat a non-empty report file as a failure.
-set "radon_cc_report=%PRJ_DIR%\a.radon_cc_report.txt"
 set "radon_cc_report_size=0"
 if exist "%radon_cc_report%" (
   for %%A in ("%radon_cc_report%") do set "radon_cc_report_size=%%~zA"
@@ -200,6 +206,7 @@ goto:eof
 :check_unset
 set "cmd="
 call "%check_dir%\senv.bat" unset
+set "ARTIFACT_HOME="
 set "big_file_status="
 set "check_dir="
 set "check_status="

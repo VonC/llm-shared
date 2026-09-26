@@ -12,9 +12,12 @@ REM result, redoing it is pure cost. `ghog.bat` is the case that motivated
 REM this: it clears NO_MORE_SENV on purpose so senv can repair a stale PATH,
 REM and then pays the full price even when the PATH needs no repair at all.
 REM
-REM So this script records a fingerprint of %PATH% in %PRJ_DIR%\a.prj.path.sum
-REM and compares against it on the next run. The file is in the a.* family
-REM every project ignores, so the fingerprint stays local to one machine.
+REM So this script records a fingerprint of %PATH% in a.prj.path.sum and
+REM compares against it on the next run. The file lives in the project's
+REM review artifact home (.reviews unless .review-artifacts.ini declares
+REM another home, see rules\artifact_files.md), never at the project root.
+REM That home ignores everything it holds, so the fingerprint stays local to
+REM one machine.
 REM
 REM Usage:
 REM   call "%LLM_SHARED_DIR%\bin\prj_path_sum.bat" check
@@ -42,7 +45,6 @@ REM Without a project root there is no file to compare against.
 if not defined PRJ_DIR (
     endlocal & set "PRJ_PATH_SUM_MATCH=" & exit /b 2
 )
-set "PRJ_PATH_SUM_FILE=%PRJ_DIR%\a.prj.path.sum"
 
 REM A matching PATH is not on its own enough to skip the activation. switchpy
 REM also exports VIRTUAL_ENV and UV_PROJECT_ENVIRONMENT, and a console can
@@ -94,6 +96,22 @@ if /i not "!UV_PROJECT_ENVIRONMENT:~0,%PRJ_PATH_SUM_LEN%!"=="%PRJ_DIR%" (
 )
 :prj_path_sum_venv_done
 
+REM Resolve the artifact home through the shared helper, which creates it with
+REM its ignore file when missing. ARTIFACT_HOME dies with this setlocal. No
+REM home means no file to compare against: answer 2, never a skip.
+call "%~dp0artifact_home.bat" "%PRJ_DIR%"
+if not exist "%ARTIFACT_HOME%\" (
+    endlocal & set "PRJ_PATH_SUM_MATCH=" & exit /b 2
+)
+set "PRJ_PATH_SUM_HOME=%ARTIFACT_HOME%"
+set "PRJ_PATH_SUM_FILE=%PRJ_PATH_SUM_HOME%\a.prj.path.sum"
+REM A fingerprint an earlier version recorded at the project root moves into
+REM the home once, so the move costs no extra full activation. A home copy
+REM always wins: a root copy is then stale and is left alone.
+if not exist "%PRJ_PATH_SUM_FILE%" if exist "%PRJ_DIR%\a.prj.path.sum" (
+    move /y "%PRJ_DIR%\a.prj.path.sum" "%PRJ_PATH_SUM_FILE%" >NUL 2>&1
+)
+
 REM sha256sum.exe ships with Git for Windows. senv.bat has not set GIT_HOME
 REM yet at the point this runs, so look on PATH first, then at the usual Git
 REM location. Its absence is not an error: the caller simply proceeds.
@@ -116,13 +134,14 @@ REM command and the loop captures a fragment of PATH instead of a hash.
 REM Redirecting `echo(!PATH!` stays in this process, where delayed expansion
 REM does protect the value.
 REM
-REM The hashing runs from inside PRJ_DIR so the operand is a bare file name.
+REM The hashing runs from inside the artifact home so the operand is a bare
+REM file name, and the side file never lands at the project root.
 REM GNU coreutils escapes an operand containing a backslash and marks the line
 REM with a leading backslash, which would otherwise be stored as part of the
 REM hash. The outer ^" ^" pair is needed too: a command that merely starts
 REM with a quoted path loses its quotes to cmd /c.
 set "PRJ_PATH_SUM_NOW="
-pushd "%PRJ_DIR%"
+pushd "%PRJ_PATH_SUM_HOME%"
 if errorlevel 1 (
     endlocal & set "PRJ_PATH_SUM_MATCH=" & exit /b 2
 )
