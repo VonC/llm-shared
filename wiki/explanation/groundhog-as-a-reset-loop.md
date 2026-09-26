@@ -36,7 +36,8 @@ branch, and each branch hands back to the walk.
 The fresh database is what makes every later `ghog affected` cheap and
 truthful — stale test-impact data would let a change slip through the
 fast pass. The full run is slow on purpose: it is the objective verdict,
-and the day snapshot (`a.ghog.day.ok`) makes repeating a green one free.
+and the day snapshot (`a.ghog.day.ok`, kept in the artifact home) makes
+repeating a green one free.
 
 ## 👥 One output, two audiences
 

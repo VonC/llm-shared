@@ -34,15 +34,16 @@ At the end of the step, run `ghog day` once — the groundhog walk (manual in [`
 cmd /d /c "<llm-shared>\bin\ghog.bat day > a.ghog.log 2>&1"
 ```
 
-Issue that call from **PowerShell or cmd.exe**, never from Git Bash or another MSYS/POSIX shell: a POSIX shell rewrites the `/d` and `/c` arguments into paths, so `cmd` starts interactively and exits 0 without running the tool, leaving a stale `a.ghog.log` that reads as a fresh green result. Prove the run happened with a freshness flag before trusting the log — stamp `a.ghog.started`, run the walk, confirm `a.ghog.log` is newer than the flag, delete it; an untouched log means the walk did not run, so fix the invocation and retry rather than reading old content (the per-step `started`/`ended` timestamp headers in the log make staleness obvious too). From PowerShell:
+Issue that call from **PowerShell or cmd.exe**, never from Git Bash or another MSYS/POSIX shell: a POSIX shell rewrites the `/d` and `/c` arguments into paths, so `cmd` starts interactively and exits 0 without running the tool, leaving a stale `a.ghog.log` that reads as a fresh green result. Prove the run happened with a freshness flag before trusting the log — stamp `a.ghog.started` in the artifact home (`.reviews` unless `.review-artifacts.ini` declares another home, see [`artifact_files.md`](../rules/artifact_files.md)), run the walk, confirm `a.ghog.log` at the project root is newer than the flag, delete the flag; an untouched log means the walk did not run, so fix the invocation and retry rather than reading old content (the per-step `started`/`ended` timestamp headers in the log make staleness obvious too). From PowerShell, where the first line prepares the home and resolves its path through `artifact_home.bat`:
 
 ```powershell
-ni a.ghog.started -Force | Out-Null; $t = (gi a.ghog.started).LastWriteTime
+$h = cmd /d /v:on /c "call <llm-shared>\bin\artifact_home.bat . && echo !ARTIFACT_HOME!"; $f = "$h\a.ghog.started"
+ni $f -Force | Out-Null; $t = (gi $f).LastWriteTime
 cmd /d /c "<llm-shared>\bin\ghog.bat day > a.ghog.log 2>&1"; $code = $LASTEXITCODE
 if (-not ((Test-Path a.ghog.log) -and (gi a.ghog.log).LastWriteTime -gt $t)) {
     "STALE: a.ghog.log not refreshed - the walk did not run; fix the invocation before reading"
 }
-ri a.ghog.started -Force; "exit=$code"
+ri $f -Force; "exit=$code"
 ```
 
 `<llm-shared>` is the resolved absolute llm-shared directory that contains

@@ -67,8 +67,8 @@ ghog day
 ```
 
 If nothing changed since the green walk, this second run is a noop: the
-walk recorded a snapshot of every Python file in `a.ghog.day.ok` and
-checks it first. Touch any source file and the walk re-arms. `ghog day
+walk recorded a snapshot of every Python file in `a.ghog.day.ok` (in the
+artifact home, `.reviews` by default) and checks it first. Touch any source file and the walk re-arms. `ghog day
 --force` walks regardless.
 
 ## 5. Hand the loop to the LLM

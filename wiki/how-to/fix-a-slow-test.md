@@ -55,15 +55,18 @@ at its measured time so the gate stops flagging it:
 ghog exclude "<NODE ID>" <measured seconds>
 ```
 
-The entry lands in the `[exclusion]` section of `a.ghog.outliers`, with
-the measured time as its baseline. The call stays timed on every later
+The entry lands in the `[exclusion]` section of `a.ghog.outliers` in the
+artifact home (`.reviews` unless `.review-artifacts.ini` declares another
+home; the confirmation line prints the path), with the measured time as
+its baseline. The call stays timed on every later
 run and is classified against that baseline — `ok`, `slower`, `faster` or
 `stale` — so an excluded test that drifts even slower does not go
 unnoticed.
 
 ## 🎚️ Tuning the gate floor for the whole suite
 
-The floor is line 2 of `a.ghog.outliers`, default `1.0` second (line 1 is
+The floor is line 2 of that same artifact-home `a.ghog.outliers`, default
+`1.0` second (line 1 is
 a per-run record of `10 x median`, for reference only). Edit line 2 to
 move the bar for every test at once:
 

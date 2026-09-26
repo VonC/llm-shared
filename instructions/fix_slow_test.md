@@ -1,6 +1,6 @@
 # Fix a slow test: profile it, find the cost, shorten it
 
-Goal of this instruction: bring a slow test call under the duration floor without weakening what it checks. The groundhog full run flags a call as a duration outlier (exit 8) when it runs far outside the norm and at or above the floor (one second by default, or the line-2 override of `a.ghog.outliers`). This file is the per-call procedure the exit-8 next-step line and the [`groundhog.md`](groundhog.md) playbook point to.
+Goal of this instruction: bring a slow test call under the duration floor without weakening what it checks. The groundhog full run flags a call as a duration outlier (exit 8) when it runs far outside the norm and at or above the floor (one second by default, or the line-2 override of `a.ghog.outliers`, which lives in the artifact home: `.reviews` unless `.review-artifacts.ini` declares another home, see [`artifact_files.md`](../rules/artifact_files.md)). This file is the per-call procedure the exit-8 next-step line and the [`groundhog.md`](groundhog.md) playbook point to.
 
 ## When to follow this fix-slow-test instruction
 
@@ -68,7 +68,7 @@ Run the `ghog` add-exclusion command with the call's measured time, from the pro
 ghog exclude "<NODE ID>" <measured seconds>
 ```
 
-`<measured seconds>` is the time the call ran at in the re-measure above — the recorded baseline. The tool writes the entry to the `[exclusion]` section of `a.ghog.outliers`, the only place it writes that section, while the floor lines (1 and 2) stay yours. The next full run spares the call from the outlier rule whatever the floor and holds it to that baseline within two seconds:
+`<measured seconds>` is the time the call ran at in the re-measure above — the recorded baseline. The tool writes the entry to the `[exclusion]` section of `a.ghog.outliers` in the artifact home (the confirmation line prints its path), the only place it writes that section, while the floor lines (1 and 2) stay yours. The next full run spares the call from the outlier rule whatever the floor and holds it to that baseline within two seconds:
 
 - within two seconds of the baseline either way: the call reads `ok` in the exclusion block, and the run stays green.
 - more than two seconds slower than the baseline: a regression against the accepted baseline, not a new baseline. The run goes to exit 8 with `excluded=1`, and the fix is to bring the call back to within two seconds of its recorded time — restore it, do not push it below the floor.

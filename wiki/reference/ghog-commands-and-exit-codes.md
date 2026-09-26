@@ -75,8 +75,9 @@ collected tests plus one per 60 silent seconds, for example
 `ghog full: 50% (125/250) fail=2 warn=1 xfail=0`. Both end with the same
 next-step message and closing line.
 
-Environment activation output is parked in `a.ghog.senv.log` and replayed by
-default. Defining `GHOG_SENV_LIVE` streams that setup output immediately.
+Environment activation output is parked in `a.ghog.senv.log`, in the
+artifact home, and replayed by default; an LLM run keeps the raw text in
+`a.ghog.senv.txt` there, behind one summary line naming its path. Defining `GHOG_SENV_LIVE` streams that setup output immediately.
 The interactive `ghdy`, `gha`, `ghc`, `ghf`, and `ghs` aliases select live
 setup output for `day`, `affected`, `check`, `full`, and `single` respectively.
 
@@ -123,7 +124,10 @@ z-score is undefined and the rule falls back to the floor alone. The
 report also names up to three under-floor runners-up, the data for tuning
 the floor.
 
-The gate is configured through `a.ghog.outliers` at the project root:
+The gate is configured through `a.ghog.outliers` in the artifact home
+(`.reviews` unless `.review-artifacts.ini` declares another home); a copy
+an older version left at the project root is moved there on first use,
+its floor and exclusions kept:
 
 ```txt
 0.0                                   line 1: auto floor, 10 x median (record only)
@@ -148,7 +152,7 @@ tests/unit/pkg/test_mod.py::test_x = 11.41
 
 The coverage gate is `fail_under` (default 100) from `pyproject.toml`,
 `.coveragerc` or `setup.cfg`. The duration gate reads its floor and
-exclusions from `a.ghog.outliers` (see above). The full spec, decision
+exclusions from the artifact-home `a.ghog.outliers` (see above). The full spec, decision
 table and acceptance tests, lives in `tools/Pytest reset specs.md`.
 
 Related: [Groundhog as a reset loop](../explanation/groundhog-as-a-reset-loop.md),

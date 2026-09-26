@@ -65,7 +65,7 @@ Every wrapper loads `senv.bat` itself, inside its own cmd process, so a single c
 
 ## 📸 The day snapshot: duplicate walks are free
 
-A fully green `ghog day` records a source snapshot, `a.ghog.day.ok`: a digest over the path, size and mtime of every Python file plus the gate configuration files (pyproject.toml, .coveragerc, setup.cfg, check.bat). The next `ghog day` checks it first — when nothing changed, the walk is a noop:
+A fully green `ghog day` records a source snapshot, `a.ghog.day.ok` in the artifact home: a digest over the path, size and mtime of every Python file plus the gate configuration files (pyproject.toml, .coveragerc, setup.cfg, check.bat). The next `ghog day` checks it first — when nothing changed, the walk is a noop:
 
 ```txt
 No Python file changed since the last green ghog day walk - nothing to do (use --force to walk anyway)
@@ -143,7 +143,7 @@ The exit-8 stop above is the visible half of a rule that keeps the whole suite f
 
 When more than half the calls tie and the MAD collapses to zero, the z-score is undefined and the rule falls back to the floor alone. The report also names up to three under-floor runners-up, the data for tuning the floor.
 
-The gate is configured through `a.ghog.outliers` at the project root (the usual `a.*` git-ignored family):
+The gate is configured through `a.ghog.outliers` in the artifact home (`.reviews` unless `.review-artifacts.ini` declares another home, see [rules/artifact_files.md](rules/artifact_files.md)); a copy an older version left at the project root is moved into the home on first use, its floor and exclusions kept. Every report line that names the file prints its real path:
 
 ```txt
 0.0                                   line 1: auto floor, 10 x median of this run (record only)
@@ -177,7 +177,7 @@ The redirected form buys three things at once:
 
 Lifecycle of the file: each run overwrites it (`>`, not append), so its tail is always the current run; it is never deleted, so the last report stays readable after the loop ends; the `a.*` ignore pattern keeps it out of git; and the day snapshot never digests it (Python files and gate configuration only), so writing it cannot re-arm a walk.
 
-The tool also backstops a forgotten redirect (Q31): when stdout turns out to be a harness capture — a pipe, or a regular file other than the project's own `a.ghog.log` — the run writes its full report to `a.ghog.log` anyway and hands the capture only an envelope: one notice naming the log, then the next-step and closing lines, so the caller still branches on the exit code without one unbounded line landing in its context. The senv.bat preamble of ghog.bat is parked in a side file, `a.ghog.senv.log`, that the tool replays into the report stream and deletes; ghog.bat types a leftover side file itself when the tool never ran, keeping the sandbox-block markers visible. The redirected call above stays the form to type — the guard is the safety net, not the contract.
+The tool also backstops a forgotten redirect (Q31): when stdout turns out to be a harness capture — a pipe, or a regular file other than the project's own `a.ghog.log` — the run writes its full report to `a.ghog.log` anyway and hands the capture only an envelope: one notice naming the log, then the next-step and closing lines, so the caller still branches on the exit code without one unbounded line landing in its context. The senv.bat preamble of ghog.bat is parked in a side file, `a.ghog.senv.log` in the artifact home, that the tool consumes and deletes (a user run streams it; an LLM run keeps the raw text in `a.ghog.senv.txt`, also in the artifact home, behind one summary line naming its path); ghog.bat types a leftover side file itself when the tool never ran, keeping the sandbox-block markers visible. The redirected call above stays the form to type — the guard is the safety net, not the contract.
 
 covg runs are the one exception: their output is exactly the data the model needs in full, so they are never redirected. `ghog status` is the other one: its two-line envelope needs no redirect, and a redirect to `a.ghog.log` would truncate the live walk's log before the tool could refuse.
 
@@ -233,7 +233,7 @@ The nag line appears only on success, when warnings or expected failures remain 
 | --- | --- | --- |
 | check.bat failing | the check.bat output | `Next: fix the compile errors above, re-run ghog day (the walk opens with this check)` |
 | affected failing | full failure context | `Next: fix these, re-run ghog affected --no-cov until green, then ghog day` |
-| full failing | full tracebacks, baseline written to `a.ghog.failures` | `Next: ghog single <failing test files>` |
+| full failing | full tracebacks, baseline written to `a.ghog.failures` (artifact home) | `Next: ghog single <failing test files>` |
 | focus run (`ghog single`) | the two lists: still failing in focus (fix first), passing in focus but failing in the full suite (interaction suspects, fix second) | `Stay on ghog single until green, then restart the walk: ghog day` |
 | coverage gap | the term-missing rows under `Uncovered lines` — the covg input | `Next: covg <file> <ranges> ... add tests, verify with ghog affected` |
 | affected at the gate | — | `Coverage gate reached - run ghog check (new tests are code too), then ghog day` |
@@ -293,17 +293,19 @@ covg names the enclosing functions and branches of those lines and builds a read
 
 ## 🗃️ Files groundhog reads and writes
 
-| File | Role |
-| --- | --- |
-| `.testmondata` | the testmon database; deleted and rebuilt by `ghog full`, consumed by `ghog affected` |
-| `a.ghog.failures` | the failing node ids of the last full run, the focus-comparison baseline; emptied on a green full run |
-| `a.ghog.day.ok` | the source snapshot of the last green `ghog day` walk; an unchanged snapshot makes the next walk a noop |
-| `pyproject.toml` / `.coveragerc` / `setup.cfg` | where the coverage gate (`fail_under`) is read from, default 100 |
-| `a.ghog.log` | the redirect target of every LLM-driven run, written by the Q31 guard even when the caller forgot the redirect; overwritten per run, never deleted, so the user can follow the loop live (direct human runs keep stdout) |
-| `a.ghog.senv.log` | the parked senv.bat preamble of one ghog.bat call; replayed into the report stream and deleted by the tool, typed by ghog.bat itself when the tool never ran |
-| `a.ghog.status` | the run lifecycle line (Q32): `state=running pid=` while a run works, `state=done exit=` after; read by `ghog status` and by the live-run refusal; cleared by a detached launch before its spawn |
+| File | Location | Role |
+| --- | --- | --- |
+| `.testmondata` | project root | the testmon database; deleted and rebuilt by `ghog full`, consumed by `ghog affected` |
+| `pyproject.toml` / `.coveragerc` / `setup.cfg` | project root | where the coverage gate (`fail_under`) is read from, default 100 |
+| `a.ghog.log` | project root | the redirect target of every LLM-driven run, written by the Q31 guard even when the caller forgot the redirect; overwritten per run, never deleted, so the user can follow the loop live (direct human runs keep stdout) |
+| `a.ghog.status` | project root | the run lifecycle line (Q32): `state=running pid=` while a run works, `state=done exit=` after; read by `ghog status` and by the live-run refusal; cleared by a detached launch before its spawn |
+| `a.ghog.failures` | artifact home | the failing node ids of the last full run, the focus-comparison baseline; emptied on a green full run |
+| `a.ghog.day.ok` | artifact home | the source snapshot of the last green `ghog day` walk; an unchanged snapshot makes the next walk a noop |
+| `a.ghog.outliers` | artifact home | the duration floor (line 2) and the `[exclusion]` section of accepted slow calls |
+| `a.ghog.senv.log` | artifact home | the parked senv.bat preamble of one ghog.bat call; consumed and deleted by the tool, typed by ghog.bat itself when the tool never ran |
+| `a.ghog.senv.txt` | artifact home | the raw senv.bat preamble of the last LLM run, kept out of the report behind one summary line |
 
-All of them are covered by the usual `a.*` and `.testmondata*` ignore patterns.
+The artifact home is `.reviews` unless a versioned `.review-artifacts.ini` declares another home; it carries its own `*` ignore file, so nothing in it is committed (see [rules/artifact_files.md](rules/artifact_files.md)). The tool prepares it on first use and moves a legacy root copy of a home file into it once, never overwriting a home copy. The root files are covered by the usual `a.*` and `.testmondata*` ignore patterns.
 
 ## 🔧 Troubleshooting groundhog
 

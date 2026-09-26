@@ -32,7 +32,8 @@ branch names, and stop when an iteration makes no progress — never beyond
   `ghog affected --no-cov` until green, then `ghog day`.
 
 - **exit 2 on the full run** — the failing node ids land in
-  `a.ghog.failures`. Focus first:
+  `a.ghog.failures` in the artifact home (`.reviews` by default). Focus
+  first:
 
   ```cmd
   ghog single <failing test files>
