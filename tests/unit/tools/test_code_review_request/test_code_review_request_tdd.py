@@ -101,6 +101,16 @@ def test_render_transcript_uses_project_relative_identity(tmp_path: Path) -> Non
     assert tmp_path.as_posix() not in rendered.transcript_summary
 
 
+def test_render_transcript_rejects_a_plan_outside_the_project_root(tmp_path: Path) -> None:
+    """A plan outside the declared root cannot get a portable transcript path."""
+    project = tmp_path / "project"
+    project.mkdir()
+    source = replace(_round_input(tmp_path), project_root=project)
+
+    with pytest.raises(ReviewExchangeError, match="within the project root"):
+        requestor.render_code_review_request(source)
+
+
 def test_render_nests_and_qualifies_caller_headings_for_each_output(
     tmp_path: Path,
 ) -> None:
