@@ -74,5 +74,8 @@ prints nothing and exits non-zero.
 exchange or `no review in progress`, `next`) and its `next` line carries the
 same command bare `pw skill` prints. When the topic's requestor is known from
 an active exchange or the topic's review transcripts, that command is rendered
-for the requestor's host and ends with `(claude)` or `(codex)`. With no resolved topic it prints only
+for the requestor's host and ends with `(claude)` or `(codex)`. An abandoned,
+interrupted, escalated, or inconsistent exchange also adds a `resume` line
+after the `review` lines: a one-line prompt for the role that recovers it,
+ending with the name of the session to paste it into. With no resolved topic it prints only
 `branch`, `topic none resolved`, and the `review` lines, and exits non-zero.

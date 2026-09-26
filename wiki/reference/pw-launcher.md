@@ -126,6 +126,33 @@ transcript, leaves the command as bare `pw skill` prints it. A reviewer handoff
 (`code-reviewer`, `spec-reviewer`) is also left as is, since the requestor does
 not run it.
 
+An exchange in an abnormal state adds one `resume` line after the `review`
+lines: a one-line prompt to paste so the review cycle can restart. No review in
+progress, or reviews waiting normally for a counterpart, the human choice, or
+the authorized `Commit` or `Consolidate`, add no such line.
+
+```text
+review    round 2 for step 3: resolve-escalation: Resolve the escalation before continuing.
+resume    /code-review-requestor on docs/plan.v10.0.0.dex-navigation.md step 3: escalated, show me the escalation reason, then ask me to choose reclaim --force, resolve, or archive to restart the cycle (claude)
+```
+
+The prompt calls the role instruction that recovers the exchange, with the
+reviewed document, the step, and the umbrella when there is one:
+
+| State | Pasted to | Asks the role to |
+| --- | --- | --- |
+| `abandoned-*` | the role `rwst` names to continue | reclaim the abandoned round and continue it |
+| interrupted or repair pending | the role `rwst` names to continue | rerun the interrupted operation with the same content |
+| `escalated` | the requestor | show the reason and ask for `reclaim --force`, `resolve`, or `archive` |
+| `inconsistent` | the requestor | explain the evidence and propose a repair, editing nothing |
+
+The escalation choice stays with the human, as the recovery commands require.
+The prompt is not a `review-resume` call: that inspection blocks escalated,
+interrupted, and inconsistent exchanges. Its prefix and trailing name come from
+the target role's recorded nature: `/` and `(claude)`, or `$llm-shared:` and
+`(codex)`. An unrecorded nature uses the detected host prefix and ends with the
+role, `(requestor)` or `(reviewer)`, instead.
+
 `pw progress` reads the documents and Git without changing them. The review
 status collection runs the same bounded migration preflight as `rwst`, which
 only moves review artifacts of an old layout into the artifact home. The
