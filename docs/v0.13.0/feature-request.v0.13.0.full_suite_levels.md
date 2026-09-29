@@ -57,15 +57,22 @@ review round and the human commit gate.
    suite was not run. A default invocation does not itself establish fresh
    coverage or speed proof; its report separately identifies any stronger
    valid saved proof it reuses.
-2. Level selection: `ghog day` accepts a level through the `--full=pass|cov|speed`
-   parameter or the `GHOG_FULL` environment variable. The parameter takes
-   precedence over the variable. An unknown value is a setup error (exit 5),
-   never a silent fallback to the default.
-3. Level verdicts: at `pass`, a coverage gap and duration outliers do not fail
-   the run. At `cov`, duration outliers do not fail it. At `speed`, the run
-   keeps today's verdicts. At `pass`, the full suite runs without coverage
-   collection or duration enforcement; any recorded durations are
-   informational.
+2. Level selection: `ghog day` and a direct `ghog full` both accept a level
+   through the `--full=pass|cov|speed` parameter or the `GHOG_FULL`
+   environment variable, with one precedence rule (Q02): the explicit
+   parameter, then `GHOG_FULL`, then the command default (`ghog day`: no full
+   step; `ghog full`: `speed`). Development walks called with no level pick
+   `GHOG_FULL` up. An unknown value is a setup error (exit 5), never a silent
+   fallback to the default. Examples:
+   - `GHOG_FULL` unset: `ghog day` stops after the affected tests; `ghog full`
+     runs at `speed`;
+   - `GHOG_FULL=cov`: `ghog day` and `ghog full` both run the full suite at
+     `cov`;
+   - `GHOG_FULL=cov` and `--full=speed`: both commands run at `speed`.
+3. Level verdicts: at `pass`, the whole suite runs and must pass without a
+   suite crash; it runs without coverage collection or duration enforcement,
+   and any recorded durations are informational (Q01). At `cov`, duration
+   outliers do not fail the run. At `speed`, the run keeps today's verdicts.
 4. Closing instructions by level: the report ends with the instruction the
    LLM must act on, as listed in "Closing instructions for the LLM by level"
    below. It only asks for the work its level covers: no covg or
@@ -74,51 +81,98 @@ review round and the human commit gate.
    example `ghog day --full=cov`), whatever the source of that level, so an
    LLM following the line literally never drops back to the default walk. A
    default walk restarts with plain `ghog day`.
-5. Noop snapshot records the level: `a.ghog.day.ok` stores the highest level
-   the green walk proved (none, `pass`, `cov`, `speed`). A walk is a noop only
-   when sources are unchanged and the recorded level is at least the requested
-   one. A green default walk never turns a later `cov` or `speed` walk into a
-   noop.
-6. Direct `ghog full`: `ghog full` accepts the same level through the same
-   selectors as `ghog day` (their precedence is settled by Q02) and keeps
-   `speed` as its default when no selector is supplied, so a plain direct call
-   behaves as today.
-7. Development skills use the default walk: `implement-step.md`,
-   `implement-missing-step.md`, `split-large-file.md`, and the plan command
-   written by `write-plans.md` use `ghog day` with no level. Their wording no
-   longer promises a full coverage pass.
-8. The groundhog loop keeps the caller's level: `groundhog.md` restarts every
-   fix with the same level the loop was started with, so a fix never raises or
-   drops the objective. `fix_slow_test.md` applies only to a `speed` walk and
-   restarts it at `speed`.
-9. Requestor validation at `cov`: the code-review requestor project default
-   becomes the `cov` walk (`DEFAULT_PROJECT_VALIDATION_COMMANDS` in
-   `tools/code_review_validation.py`), run green before any request is
-   published.
-10. Prepare-release green gate at `cov`: the green-gate routine in
+5. Evidence reported by every walk (Q08): the closing report and
+   `ghog status` state the selected objective and its source (parameter,
+   variable, or default), the strongest valid saved proof, and whether each
+   step ran or was reused. A detached walk keeps the level selected for its
+   invocation. Field names and encoding are left to the design; compatibility
+   with the supported consumers of the closing line is a requirement to
+   verify.
+6. Level-aware snapshot: `a.ghog.day.ok` stores the highest level the green
+   walk proved (none, `pass`, `cov`, `speed`). A walk is a noop only when
+   sources are unchanged and the recorded level is at least the requested
+   one; a green default walk never turns a later `cov` or `speed` walk into a
+   noop. A green full run at a lower level never proves a higher one.
+7. Level upgrade on unchanged sources (Q03): a walk that requests a higher
+   level than the recorded one may reuse the successful check and
+   affected-test results of the same validated snapshot, runs the missing
+   full-suite objective, and identifies the reused results in its report.
+8. Snapshots without an established level (Q10): a saved result that cannot
+   establish its achieved level (a snapshot written before this change, or
+   missing or invalid level information) satisfies no requested level. The
+   first requested walk after the upgrade revalidates its selected objective,
+   which may be the lightweight default; the next successful walk records
+   explicit evidence.
+9. Direct `ghog full`: `ghog full` follows the selection rule of gap 2 and
+   keeps `speed` as its default when no selector is supplied, so a plain
+   direct call behaves as today.
+10. Development skills use the default walk: `implement-step.md`,
+    `implement-missing-step.md`, `split-large-file.md`, and the plan command
+    written by `write-plans.md` use `ghog day` with no level. Their wording no
+    longer promises a full coverage pass.
+11. The groundhog loop keeps the caller's level: `groundhog.md` restarts every
+    fix with the same level the loop was started with, so a fix never raises
+    or drops the objective. `fix_slow_test.md` applies only to a `speed` walk
+    and restarts it at `speed`.
+12. Requestor validation at `cov`: the code-review requestor project default
+    becomes the `cov` walk (`DEFAULT_PROJECT_VALIDATION_COMMANDS` in
+    `tools/code_review_validation.py`), run green before any request is
+    published.
+13. Prepare-release green gate at `cov`: the green-gate routine in
     `prepare-release.md` and both `run ghog day` operations in
     `prepare_release_plan_workflow.py` name the `cov` walk.
-11. Requestor speed pass at convergence: when the requestor receives a
+14. Test-only boundary (Q04): a change qualifies as test-only only when every
+    changed file is established to serve tests exclusively. Shared runtime
+    code, configuration or tooling that can affect production behavior, and
+    any file whose exclusive test use cannot be established, require another
+    review. Path names and collection roots alone are insufficient evidence.
+    How test-only use is established is left to the design.
+15. Duration-exclusion exception (Q07): accepting a genuinely slow call with
+    `ghog exclude` is a separate, narrow exception to gap 14, allowed only
+    after an attempted improvement. The gate evidence names the excluded
+    call, its measured time, the attempted improvement, and the reason for
+    accepting the duration. The exception covers duration acceptance only,
+    never unrelated configuration changes or the removal of correctness or
+    coverage checks.
+16. Requestor speed pass at convergence: when the requestor receives a
     commit-ready answer, it runs one `speed` walk before the human gate, then
-    loops on it until exit 0:
+    loops on it until exit 0. For repairable test, coverage, crash, or
+    duration failures, it restores the `speed` objective, preserves test
+    coverage and assertions, and classifies the complete repair delta with
+    gaps 14 and 15, whatever failure triggered the repair (Q05). Existing
+    operational stop and interruption rules still apply: this never
+    authorizes weakening checks to reach exit 0, or retrying a setup error
+    without end.
     - if a green `speed` walk needed no change, or only changes within the
-      test-only boundary (Q04) or a duration exclusion (Q07), the requestor
-      stages those changes, amends `a.commit` when its groups no longer
-      match, accepts the commit-ready answer, and presents the human gate
-      (`Commit` or `Rework and review again`) with those changes listed in
-      its evidence;
-    - if any repair the walk needed falls outside that boundary, whatever
-      failure triggered it (Q05), the requestor starts another review round
-      covering that change, instead of presenting the human gate. This
-      extends the current rule that the requestor cannot start a new round
-      from convergence, for this case only.
-12. Reviewer unchanged: the code reviewer and implementation-check still never
+      test-only boundary or a duration exclusion, the requestor stages those
+      changes, amends `a.commit` when its groups no longer match, accepts the
+      commit-ready answer, and presents the human gate (`Commit` or
+      `Rework and review again`) with those changes listed in its evidence;
+    - if any repair falls outside both the test-only boundary and the
+      duration-exclusion exception, the requestor starts an ordinary
+      replacement round for the same step, whose change summary and writer
+      response name that change (Q06), instead of presenting the human gate.
+      This extends the current rule that the requestor cannot start a new
+      round from convergence, for this case only. At the next commit-ready
+      answer, the `speed` validation is repeated, reusing an unchanged
+      successful result.
+17. Speed pass without review mode (Q09): with review mode disabled, the same
+    speed pass runs before the ordinary human commit gate. Test-only changes
+    and duration exclusions join the commit; any other change returns through
+    the implementation check and the `speed` validation before that gate. No
+    review exchange is created for this path. The prepare-release gate stays
+    at `cov`.
+18. Reviewer unchanged: the code reviewer and implementation-check still never
     run `ghog day` or `ghog full` at any level.
-13. Documentation and tests: `GROUNDHOG.md`, `tools/Pytest reset specs.md`
+19. Documentation and tests: `GROUNDHOG.md`, `tools/Pytest reset specs.md`
     (new decision rows), the day walk docstrings, and the groundhog acceptance
     tests (AT11 day walk, AT16 day noop) cover the default walk, the three
     levels, the level precedence, the level-aware snapshot, and the closing
     instruction of every level and outcome, restart lines included.
+    Acceptance coverage exercises a default failure against a full-level
+    failure, an environment-selected level restarted explicitly, a lower
+    requested level backed by a stronger saved proof, ignored duration
+    observations, and the permitted duration-exclusion path.
 
 ## Closing instructions for the LLM by level
 
@@ -188,305 +242,17 @@ level.
 - `GROUNDHOG.md`, `tools/Pytest reset specs.md`: the groundhog manual and
   specification.
 
-## Open questions for the v0.13.0 full suite levels feature request
-
-### Q01: What the `pass` level runs
-
-Question description: the default walk (no level) already stops after check.bat and `ghog affected --no-cov`, without the full suite. The `pass` level is described as "full run just to check there is no error". The question is whether `pass` runs the whole test suite at all, and what it measures on the way.
-
-#### BBQ for Q01
-
-The default walk tastes the dishes that changed since the last service. `pass` should be the one where every dish on the menu is tasted once, only to check nothing is burnt: no weighing of portions, no stopwatch on the grill. If `pass` skipped tasting altogether, it would be the same as the default and the level would have no reason to exist.
-
-In this picture: tasting the changed dishes is the affected run, tasting every dish is the full suite, burnt means a failure or a crash, weighing portions is the coverage measure, and the stopwatch is the duration-outlier verdict.
-
-#### Options for Q01
-
-- Option A: `pass` runs the whole suite with no coverage collection and no duration verdict; any recorded durations are informational only.
-  - pro: it is the cheapest run that still proves the whole suite passes, which the default walk never proves;
-  - pro: it keeps a distinct purpose for each level (default: affected only; `pass`: whole suite; `cov`: plus gate; `speed`: plus timing).
-  - con: informational durations are bookkeeping nobody acts on at this level.
-- Option B: `pass` skips the test suite entirely (check.bat and the affected tests only).
-  - pro: fastest possible walk.
-  - con: it is the default walk under another name, so the level adds nothing.
-- Option C: `pass` runs the whole suite with coverage collected, but the gate is not enforced.
-  - pro: the coverage figure stays visible in the report.
-  - con: the measure costs run time at a level whose goal is to be fast, and a figure nobody acts on invites coverage work during development.
-
-#### Recommended option for Q01 (with arguments for this choice)
-
-Option A: the only thing the default walk cannot tell is whether a test outside the affected set now fails. `pass` answers exactly that, at the lowest cost, and leaves coverage and speed to the levels that act on them.
-
-#### Answer to Q01: option A (with reason why it must be accepted as the answer)
-
-Option A: `pass` executes the entire test suite and requires its tests to pass without a suite crash. It does not collect coverage or enforce duration thresholds; any recorded durations are informational. This gives `pass` a purpose the default walk lacks without paying for measures the level ignores.
-
-### Q02: Level selection for `ghog day` and direct `ghog full`
-
-Question description: the level comes from `--full=<level>` or from `GHOG_FULL`, the parameter winning. Two cases are open. First, the development skills call `ghog day` with no level: if a human sets `GHOG_FULL=speed` in their shell, do those walks pick it up? Second, a direct `ghog full` keeps `speed` as its default when no selector is supplied (settled), but with `GHOG_FULL=cov` set, it is not stated whether plain `ghog full` runs at `cov` or `speed`.
-
-#### BBQ for Q02
-
-The recipe cards for weekday cooking say nothing about the oven setting, and the special dinners say "high". A dial on the wall sets the oven for any card that says nothing. The chef also has a "full roast" button that has always meant the hottest setting. Either the dial governs the button too, or the button ignores the dial.
-
-In this picture: the recipe cards are the skill instructions, the weekday cards are development walks with no level, the special dinners are the requestor and release walks with an explicit level, the dial is `GHOG_FULL`, and the "full roast" button is a direct `ghog full`.
-
-#### Options for Q02
-
-- Option A: one precedence rule for both commands: explicit `--full`, then `GHOG_FULL`, then the command default (`ghog day`: no full step; `ghog full`: `speed`). Development walks pick up `GHOG_FULL`.
-  - pro: one predictable selector for every command, and one knob that lets the human raise every walk of a session with no instruction edit;
-  - con: a variable left set in a shell silently changes both development walks and direct `ghog full` calls.
-- Option B: `GHOG_FULL` applies to `ghog day` only; a direct `ghog full` without `--full` always runs at `speed`.
-  - pro: a direct `ghog full` keeps one unconditional meaning.
-  - con: the two commands follow different selection rules, which is easy to forget.
-- Option C: `GHOG_FULL` only applies to human calls; skill instructions always pass an explicit level, including an explicit "none" for development walks.
-  - pro: skill behavior never depends on the shell state.
-  - con: needs a "none" value and edits every development instruction, and the human loses the knob for those walks.
-
-#### Recommended option for Q02 (with arguments for this choice)
-
-Option A: a single precedence rule is the easiest to predict and to document, and the variable exists precisely so the human can raise the objective without changing instructions. The risk of a forgotten setting is covered by the report stating the selected objective and where it came from (Q08). Examples:
-
-- `GHOG_FULL` unset: `ghog day` stops after the affected tests; `ghog full` runs at `speed`.
-- `GHOG_FULL=cov`: `ghog day` and `ghog full` both run the full suite at `cov`.
-- `GHOG_FULL=cov` and `--full=speed`: both commands run at `speed`.
-
-#### Answer to Q02: option A (with reason why it must be accepted as the answer)
-
-Option A: both commands resolve an explicit level before `GHOG_FULL`. When neither is set, `ghog day` has no full step and `ghog full` uses `speed`. The lightweight default walk applies only when no level is supplied at all. This keeps one predictable rule while final-phase callers stay pinned by their explicit parameter.
-
-### Q03: Level upgrade on unchanged sources
-
-Question description: the level-aware snapshot makes a `cov` walk after a green default walk run again, even with unchanged sources. check.bat and the affected tests were already proven green for those exact sources. The question is whether the upgraded walk re-runs all three steps or goes straight to the full run.
-
-#### BBQ for Q03
-
-The inspector already signed the wiring and the plumbing of an unchanged house. Now the buyer asks for the full structural survey. Sending the wiring and plumbing inspectors back costs a morning for a verdict already on file; going straight to the survey relies on the signed sheet being about this exact house.
-
-In this picture: the house is the source snapshot, the wiring and plumbing sign-offs are the green check.bat and affected steps, the structural survey is the full run at the requested level, and the signed sheet is `a.ghog.day.ok`.
-
-#### Options for Q03
-
-- Option A: reuse the successful check.bat and affected results when the snapshot proves them green on the same sources; run only the full step at the requested level.
-  - pro: no step is paid twice, which is the whole point of the change;
-  - pro: consistent with today's noop rule, which already trusts the snapshot.
-  - con: the report must say clearly which results were reused, or a reader may think they ran (Q08).
-- Option B: always re-run the three steps when the requested level is higher than the recorded one.
-  - pro: every verdict in the report comes from this walk.
-  - con: check.bat and the affected tests run again for nothing, at exactly the moment (review, release) where the full run is already the long part.
-
-#### Recommended option for Q03 (with arguments for this choice)
-
-Option A: the snapshot is already trusted to skip a whole walk; trusting it to skip two thirds of one is the same rule, and the report stays honest by naming the reused results. A green full run at a lower level never counts as proof of a higher one.
-
-#### Answer to Q03: option A (with reason why it must be accepted as the answer)
-
-Option A: an upgrade may reuse successful check and affected-test results for the same validated snapshot, runs the missing full-suite objective, and identifies the reused results in its report. It saves those runs at every level upgrade with the same guarantee the noop already relies on.
-
-### Q04: What counts as a test-only change in the requestor speed pass
-
-Question description: at a commit-ready convergence, the requestor runs a `speed` walk. A test-only change goes to the human gate; any other change starts another review round. The boundary decides whether a change skips review, so an error in the wrong direction lets production code reach a commit unreviewed. Consuming projects lay out their tests differently, and a pytest collection root may even be the project root, holding application code.
-
-#### BBQ for Q04
-
-The tailor may shorten the fitting pins without calling the customer back, but touching the fabric means another fitting. Someone has to decide, for each piece in the workshop, whether it is a pin or fabric. If "everything on the pin table" counts as a pin, and the fabric was left on that table, the fabric gets cut with no fitting.
-
-In this picture: the pins are files that serve tests exclusively, the fabric is production code, shared helpers and configuration, another fitting is a new review round, and the pin table is a test collection root or a test-like file name.
-
-#### Options for Q04
-
-- Option A: a change qualifies as test-only only when every changed file is established to serve tests exclusively. Shared runtime code, configuration or tooling that can affect production behavior, and any file whose test-only use cannot be established, require another review. Path names and collection roots alone are not sufficient evidence.
-  - pro: when exclusive test use cannot be established, the change requires another review;
-  - pro: the rule is stated as observable behavior, leaving how test-only use is established to the design.
-  - con: helper files that really are test-only but cannot be positively identified cost an extra round.
-- Option B: a path is test-side when it is under a pytest collection root, or has a test-like file name.
-  - pro: simple and mechanical.
-  - con: a collection root such as the project root makes every production file test-side, so production changes can bypass review.
-- Option C: the requestor classifies by judgement and states its classification in the human gate evidence.
-  - pro: handles every edge case.
-  - con: not reproducible, and the decision to skip a review round becomes an unverifiable claim.
-
-#### Recommended option for Q04 (with arguments for this choice)
-
-Option A: the only acceptable failure mode for a review-skipping rule is an unnecessary review. Positive evidence is required to use the exception; uncertainty must lead to another review. B lets a broad collection root exempt production code, and C cannot be checked. The duration-exclusion case is a separate, narrow exception (Q07), not part of this classification.
-
-#### Answer to Q04: option A (with reason why it must be accepted as the answer)
-
-Option A: the post-review delta qualifies for the test-only exception only when every changed file is established to serve tests exclusively. Shared runtime code, configuration or tooling that can affect production behavior, and uncertain files require another review. Path names and collection roots alone are insufficient evidence. The duration-exclusion exception of Q07 stays separate.
-
-### Q05: Other failures found by the requestor speed pass
-
-Question description: the reviewer never runs the full suite, and the reviewer may stage repairs. So the `speed` walk at convergence can fail for a reason other than slowness: a test failure (exit 2), a coverage gap (exit 3), or a crash (exit 4) introduced by those repairs. The feature request only defines the outcome for duration outliers.
-
-#### BBQ for Q05
-
-The final dress rehearsal is meant to check the show runs on time. If an actor forgets a line, the stage manager still has to decide: fix it backstage and carry on to opening night, or call the director back for another rehearsal.
-
-In this picture: the dress rehearsal is the `speed` walk, running on time is the duration verdict, a forgotten line is a failure, coverage gap or crash, fixing backstage is a test-only fix before the human gate, and calling the director back is another review round.
-
-#### Options for Q05
-
-- Option A: apply the same rule to every repair the speed walk needs: restore the `speed` objective, then classify the complete repair delta with Q04 and Q07; test-only changes go to the human gate, anything else starts another round.
-  - pro: one rule for every outcome of the walk, easy to follow;
-  - pro: a production repair is always reviewed, whatever triggered it.
-  - con: a coverage gap closed with new tests reaches the human gate without review of those tests.
-- Option B: any failure other than duration outliers starts another review round, whatever the repair touches.
-  - pro: the reviewer sees every correction of a reviewed step.
-  - con: a round for a single missing test is heavy, and it reopens the review loop the change is meant to shorten.
-- Option C: any failure other than duration outliers escalates to the human.
-  - pro: the human knows the reviewed work was not green.
-  - con: stops automation for problems the requestor can fix itself.
-
-#### Recommended option for Q05 (with arguments for this choice)
-
-Option A: the dividing line that matters is what the repair changed, not why it was needed. New tests are still listed in the human gate evidence, where the human can choose `Rework and review again`.
-
-#### Answer to Q05: option A (with reason why it must be accepted as the answer)
-
-Option A: for repairable test, coverage, crash, or duration failures, the requestor restores the selected `speed` objective, preserves test coverage and assertions, and classifies the complete repair delta using Q04 and Q07 before the gate. Existing operational stop and interruption rules still apply: this never authorizes weakening checks to reach exit 0, or retrying a setup error without end.
-
-### Q06: Scope of the review round started by the speed pass
-
-Question description: when a repair made during speed validation falls outside both the test-only boundary (Q04) and the narrow duration-exclusion exception (Q07), the requestor starts another review round instead of presenting the human gate. The question is what that round asks the reviewer to look at, and what happens when it converges again.
-
-#### BBQ for Q06
-
-After the final inspection, the builder moved a load-bearing wall to make the hallway faster to walk through. The inspector comes back. Either they walk the whole house again with the moved wall flagged on the plan, or they look only at the wall and sign. Then, before handing the keys over, someone times the hallway again.
-
-In this picture: the moved wall is the production-code speed repair, the whole house is the implementation step, the flag on the plan is the writer response naming the speed change, and timing the hallway again is the next `speed` walk at the new convergence.
-
-#### Options for Q06
-
-- Option A: an ordinary replacement round for the same step, whose change summary and writer response name the speed change; at its next commit-ready answer, the requestor runs the `speed` validation again.
-  - pro: reuses the existing round mechanism with no new round type;
-  - pro: the reviewer sees the speed change in the context of the whole step.
-  - con: the reviewer reads the whole step again, even if only one function changed.
-- Option B: a dedicated speed-review round limited to the diff of the speed repair.
-  - pro: shorter review.
-  - con: a new round type in the exchange protocol, and a repair reviewed without its context.
-
-#### Recommended option for Q06 (with arguments for this choice)
-
-Option A: the exchange already knows how to replace a round. When the reviewer stages no further repair, the unchanged, already successful `speed` result can be reused at the next convergence; further reviewer repairs can legitimately require another validation or round.
-
-#### Answer to Q06: option A (with reason why it must be accepted as the answer)
-
-Option A: it changes only when the requestor may start a round, not what a round is. The speed change is reviewed in the context of its step, and the `speed` validation is repeated at each new convergence, reusing an unchanged successful result.
-
-### Q07: Slow calls accepted with `ghog exclude` during the speed pass
-
-Question description: today a slow call can be shortened or, when it is genuinely slow, accepted with `ghog exclude` after a real attempt to shorten it. An exclusion changes neither tests nor production code, but it changes what the `speed` level accepts, and the file it writes may not serve tests exclusively in the sense of Q04. The question is how the requestor treats an exclusion at convergence.
-
-#### BBQ for Q07
-
-The race marshal can either make a slow runner faster or write "medical exemption" next to their name. The exemption changes no runner, but it changes what finishing on time means for this race, and the race director may want to know.
-
-In this picture: the slow runner is a flagged test call, making them faster is a test or production change, the exemption is `ghog exclude`, and the race director is the human at the commit gate.
-
-#### Options for Q07
-
-- Option A: a duration exclusion is an explicit, narrow exception to Q04: allowed at convergence after an attempted fix, it goes to the human gate with evidence naming the excluded call, its measured time, the attempted improvement, and the reason for accepting the duration. The exception covers duration acceptance only.
-  - pro: the human sees and can reject it through `Rework and review again`;
-  - pro: no review round for a decision that touches no code, with a boundary narrow enough to review.
-  - con: the requestor can take the easy way out on a call it could have shortened.
-- Option B: the requestor may not exclude at convergence; only a human can add an exclusion.
-  - pro: no silent acceptance of slowness.
-  - con: every genuinely slow call blocks the gate until a human steps in.
-- Option C: an exclusion starts another review round.
-  - pro: the reviewer judges whether the exemption is legitimate.
-  - con: a round for a one-line configuration decision.
-
-#### Recommended option for Q07 (with arguments for this choice)
-
-Option A: `fix_slow_test.md` already demands a real attempt before excluding. Requiring the attempt and the measured time in the gate evidence gives the human the final say without a round, and keeping the exception to duration acceptance stops it from covering unrelated configuration changes.
-
-#### Answer to Q07: option A (with reason why it must be accepted as the answer)
-
-Option A: a duration exclusion is an explicit exception to Q04, limited to accepting a measured duration after an attempted fix. The gate evidence states the excluded call, its measured time, the attempted improvement, and the reason. It never covers unrelated configuration changes or the removal of correctness or coverage checks.
-
-### Q08: What a walk reports about its objective and evidence
-
-Question description: after the change, `exit=0` can mean affected tests green, whole suite green, coverage gate met, or speed met. With a level-aware snapshot (gap 5) and reused results (Q03), a single walk also involves three distinct facts: the objective selected for this invocation (and where it came from, Q02), the strongest valid saved proof, and which steps actually ran or were reused. For example, after a green `speed` walk, an unchanged default walk is a noop: no suite ran, the requested objective is none, and the saved proof is `speed`.
-
-#### BBQ for Q08
-
-A pass stamp on a car could mean "the lights work" or "the full road test passed". A stamp dated today may also just copy last week's road test result. A useful stamp says what was asked today, what the car holds on file, and what was actually checked this morning.
-
-In this picture: the stamp is the green closing report, the lights check is the default walk, the road test is the `speed` level, last week's result is the saved snapshot proof, and this morning's checks are the steps run in this invocation.
-
-#### Options for Q08
-
-- Option A: the closing report and `ghog status` state the selected objective and its source (parameter, variable, or default), the strongest valid saved proof, and whether each step ran or was reused; a default walk states that the full suite did not run; a detached walk keeps the level selected for its invocation. Supported consumers of the closing line keep working.
-  - pro: every green result names what it proves, for humans and for the tools that branch on the output;
-  - pro: a forgotten `GHOG_FULL`, and a noop backed by a stronger proof, both become visible.
-  - con: the closing report grows, and its consumers must be checked for compatibility.
-- Option B: keep the closing report unchanged and rely on `cov=skipped` and the absence of a full step header.
-  - pro: no report change.
-  - con: `cov=skipped` does not distinguish the default walk from `pass`, the level is never stated, and a noop cannot say what it relies on.
-
-#### Recommended option for Q08 (with arguments for this choice)
-
-Option A: the closing report is the branching signal of every caller; it must say what was proven, what was reused, and what was requested. The field names and their encoding belong to the design.
-
-#### Answer to Q08: option A (with reason why it must be accepted as the answer)
-
-Option A: without these three facts, a green default walk can be mistaken for a proven coverage or speed objective, and a noop can hide that it rests on an earlier, stronger proof. Compatibility with the supported consumers of the closing line is a requirement to verify, not an assumption.
-
-### Q09: Speed pass when review mode is disabled
-
-Question description: the `speed` walk only happens at a code-review convergence. When review mode is disabled, the requestor keeps the ordinary human commit gate and creates no exchange, so a project working without review mode would never run a `speed` walk before a commit, and prepare-release only proves `cov`.
-
-#### BBQ for Q09
-
-The bakery times every loaf only when the quality inspector visits. On days without an inspector, the loaves go out untimed, and the release to the shops only checks their weight.
-
-In this picture: timing a loaf is the `speed` walk, the inspector's visit is a code-review convergence, days without an inspector are commits with review mode disabled, and the weight check at the shop is the `cov` gate of prepare-release.
-
-#### Options for Q09
-
-- Option A: without review mode, run the same speed pass before the ordinary human commit gate; test-only changes (Q04) and duration exclusions (Q07) join the commit, and any other change returns through the implementation check and the `speed` validation before that gate. No review exchange is created for this path.
-  - pro: every committed step meets the speed objective, with or without review mode;
-  - pro: same boundary in both workflows.
-  - con: adds the one slow walk to the non-review path as well.
-- Option B: no speed pass without review mode; speed is proven only on reviewed steps or when a human asks for it.
-  - pro: the non-review path stays as fast as possible.
-  - con: suite speed can drift across a whole release without any walk noticing.
-- Option C: prepare-release proves `speed` instead of `cov` when the project has no review mode.
-  - pro: one speed check per release.
-  - con: all slow calls surface at once at release time, far from the steps that introduced them.
-
-#### Recommended option for Q09 (with arguments for this choice)
-
-Option A: the commit gate is the final phase of a step in both workflows; the speed objective should not depend on whether a reviewer was involved. The agreed release `cov` gate stays unchanged.
-
-#### Answer to Q09: option A (with reason why it must be accepted as the answer)
-
-Option A: with review mode disabled, the speed pass runs before the ordinary human commit gate. Changes outside the test-only and exclusion scope return through the implementation check and the `speed` validation before that gate, and no review exchange is created. Suite speed stays guarded at every commit.
-
-### Q10: What an existing snapshot without a level may prove
-
-Question description: snapshots written before this change (`a.ghog.day.ok`) record no level. A legacy green walk did prove the equivalent of `speed`, but a file with missing or unreadable level information cannot be told apart from a damaged one. The first walk after the upgrade needs one defined outcome.
-
-#### BBQ for Q10
-
-The garage switches to a new inspection form that has a box for the level of inspection. Old certificates have no such box. The garage can either inspect once more and fill in the new form, or read every old certificate as a full inspection, trusting that the old process always did one.
-
-In this picture: the old certificates are legacy snapshots, the level box is the recorded level, inspecting once more is re-running the walk, and reading them as a full inspection is treating a legacy snapshot as `speed`.
-
-#### Options for Q10
-
-- Option A: a saved result that cannot establish its achieved level satisfies no requested level; the next successful walk records explicit evidence.
-  - pro: every reuse rests on explicit, inspectable evidence;
-  - pro: one rule for legacy, missing, and invalid level information.
-  - con: the first requested walk after the upgrade must revalidate its selected objective instead of reusing evidence with no established level, even when sources did not change.
-- Option B: a positively identified legacy all-green snapshot counts as `speed`; missing or invalid level information in any other form satisfies nothing.
-  - pro: saves one run per project after the upgrade.
-  - con: needs an explicit compatibility guarantee that every legacy green snapshot really came from a full walk with all gates.
-
-#### Recommended option for Q10 (with arguments for this choice)
-
-Option A: the first requested walk after the upgrade revalidates its selected objective, which may be the lightweight default; later level upgrades still follow Q03. The benefit is that no result is ever reused on an assumption, and a single rule covers every snapshot that cannot state its level.
-
-#### Answer to Q10: option A (with reason why it must be accepted as the answer)
-
-Option A: a saved result that cannot establish its achieved level must not satisfy a requested level, and the next successful walk records explicit evidence. Revalidating the selected objective once after the upgrade is a small price for evidence that never rests on an assumption.
+## Requirement clarifications for full suite levels
+
+| Question | Decision | Integrated in | Rejected alternatives |
+| --- | --- | --- | --- |
+| Q01 | `pass` runs the whole suite and requires it to pass without a crash, with no coverage collection and no duration enforcement; durations are informational. It proves what the default walk cannot: no test outside the affected set fails. | Gap 3; closing instructions (`pass` rows) | Skip the suite entirely at `pass` (the default walk under another name); collect coverage without enforcing it (costs time for a figure nobody acts on). |
+| Q02 | One precedence rule for `ghog day` and direct `ghog full`: `--full`, then `GHOG_FULL`, then the command default (no full step, or `speed`). Development walks pick `GHOG_FULL` up. | Gaps 2 and 9 | `GHOG_FULL` for `ghog day` only (two rules to remember); variable for humans only with explicit levels in every skill (needs a "none" value and removes the human knob). |
+| Q03 | A level upgrade on unchanged sources reuses the successful check and affected results of the same validated snapshot, runs only the missing full-suite objective, and names the reused results. | Gap 7 | Re-run all three steps on every upgrade (pays check and affected twice at review and release time). |
+| Q04 | The test-only exception needs positive evidence that every changed file serves tests exclusively; shared, configuration, tooling or uncertain files go to review. Path names and collection roots are insufficient. | Gap 14; gap 16 | Collection root or file-name classifier (a broad root lets production code skip review); requestor judgement (not verifiable). |
+| Q05 | Every repair the speed walk needs (failure, coverage gap, crash, duration) restores `speed`, preserves coverage and assertions, and is classified as a whole with gaps 14 and 15; operational stop rules still apply. | Gap 16 | Always start a round for non-speed failures (heavy for one missing test); escalate to the human (stops fixable automation). |
+| Q06 | A repair outside both exceptions starts an ordinary replacement round for the same step, naming the change; `speed` validation repeats at the next convergence, reusing an unchanged successful result. | Gap 16 | A dedicated speed-review round limited to the diff (new protocol round type, reviewed without context). |
+| Q07 | A duration exclusion is a narrow exception to Q04, allowed after an attempted improvement, with the call, measured time, attempt and reason in the gate evidence; it covers duration acceptance only. | Gap 15; closing instructions (`speed` outliers row) | Only a human may exclude (blocks the gate on every slow call); an exclusion starts a round (heavy for a configuration decision). |
+| Q08 | Every walk reports the selected objective and its source, the strongest valid saved proof, and which steps ran or were reused; detached walks keep their level; consumer compatibility is verified. | Gaps 1 and 5; closing instructions (noop paragraph) | Keep the closing line unchanged (cannot tell the default walk from `pass`, nor a noop from a fresh run). |
+| Q09 | With review mode disabled, the same speed pass runs before the ordinary human commit gate; other changes return through the implementation check; no review exchange is created. | Gap 17 | No speed pass without review mode (speed drifts unnoticed); `speed` at prepare-release instead (all slow calls surface at release time). |
+| Q10 | A saved result that cannot establish its level satisfies no requested level; the first requested walk after the upgrade revalidates its selected objective. | Gap 8 | Treat a positively identified legacy green snapshot as `speed` (needs a compatibility guarantee that every legacy snapshot came from an all-gates walk). |
