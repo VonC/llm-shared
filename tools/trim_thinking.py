@@ -27,6 +27,9 @@ present in the source text unless the caller forces one:
 
 The module holds the parsing only. Clipboard access and the command line live
 in `tools.trim_thinking_cli`.
+
+Fix: `drop_tool_blocks` delegates the tool-block scan and the blank-line
+collapse to two helpers, bringing its radon rank below C.
 """
 
 from __future__ import annotations
@@ -380,24 +383,56 @@ def drop_tool_blocks(lines: Sequence[str]) -> list[str]:
     collapsing = False
     index = 0
     while index < len(lines):
-        line = lines[index]
-        if _starts_answer(line):
-            end = index + 1
-            while end < len(lines) and not _ends_answer_block(lines[end]):
-                end += 1
-            if any(_is_tool_output(block_line) for block_line in lines[index:end]):
-                if not kept or not _is_blank(kept[-1]):
-                    kept.append("")
-                collapsing = True
-                index = end
-                continue
-        if not _is_blank(line):
-            collapsing = False
-            kept.append(line)
-        elif not (collapsing and kept and _is_blank(kept[-1])):
-            kept.append(line)
+        end = _tool_block_end(lines, index)
+        if end is not None:
+            if not kept or not _is_blank(kept[-1]):
+                kept.append("")
+            collapsing = True
+            index = end
+            continue
+        collapsing = _append_kept(kept, lines[index], collapsing=collapsing)
         index += 1
     return kept
+
+
+def _tool_block_end(lines: Sequence[str], index: int) -> int | None:
+    """Return where the answer block at ``index`` ends, when it holds tool output.
+
+    Args:
+        lines: Lines of one Claude export.
+        index: Index of the line to test as an answer block opening.
+
+    Returns:
+        The index right after the block when the line at ``index`` opens an
+        answer block with at least one tool output line, otherwise None.
+    """
+    if not _starts_answer(lines[index]):
+        return None
+    end = index + 1
+    while end < len(lines) and not _ends_answer_block(lines[end]):
+        end += 1
+    if any(_is_tool_output(block_line) for block_line in lines[index:end]):
+        return end
+    return None
+
+
+def _append_kept(kept: list[str], line: str, *, collapsing: bool) -> bool:
+    """Keep one line, skipping the blank run right after a dropped block.
+
+    Args:
+        kept: Lines kept so far, extended in place.
+        line: The line to keep or skip.
+        collapsing: Whether blank lines after a dropped block are being skipped.
+
+    Returns:
+        Whether blank lines are still being skipped after this line.
+    """
+    if not _is_blank(line):
+        kept.append(line)
+        return False
+    if not (collapsing and kept and _is_blank(kept[-1])):
+        kept.append(line)
+    return collapsing
 
 
 def trim_claude_transcript(text: str) -> str:
