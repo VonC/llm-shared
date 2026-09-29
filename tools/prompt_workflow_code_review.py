@@ -4,6 +4,9 @@ The adapter derives one exact plan-step context from the current workflow,
 checks only that identity's fixed exchange paths, and delegates authorized
 batch commits. A durable phase marker separates the reviewed commit plan from
 an optional residual plan, and completion requires a clean working tree.
+
+Fix: route resolution delegates its step guard, live-evidence probe, and
+authorized-context choice to small helpers, bringing its radon rank below C.
 """
 
 # ruff: noqa: EM101, EM102, TRY003
@@ -38,6 +41,8 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from tools.prompt_workflow_models import MemoryRecord, Topic, WorkflowState
+    from tools.review_exchange_models import ArtifactPaths
+    from tools.review_exchange_models_coordination import CoordinationRecord
 
 CODE_REVIEW_POLICY: Final[FamilyPolicy] = FamilyPolicy(
     "commit-ready",
@@ -167,6 +172,55 @@ def _core(root: Path, context: ReviewContext) -> ReviewExchangeCore:
     )
 
 
+def _reject_other_live_step(
+    persisted: CoordinationRecord | None,
+    probe_context: ReviewContext,
+) -> None:
+    """Fail closed when the live exchange belongs to another implementation step."""
+    if (
+        persisted is not None
+        and persisted.context.implementation_step
+        != probe_context.implementation_step
+    ):
+        raise CodeReviewRoutingError(
+            "live code exchange uses another implementation step",
+        )
+
+
+def _has_exact_evidence(paths: ArtifactPaths) -> bool:
+    """Report whether any fixed exchange file exists for this exact identity."""
+    live_paths = (
+        paths.request,
+        paths.answer,
+        paths.coordination,
+        paths.tombstone,
+        paths.transition_lock,
+    )
+    return any(path.exists() for path in live_paths)
+
+
+def _authorized_context(
+    persisted: CoordinationRecord | None,
+    context: ReviewContext,
+) -> ReviewContext:
+    """Prefer the persisted context the human authorized for this exact step.
+
+    Commit the exact exchange the human authorized, even if workflow routing
+    later discovers an umbrella that the exchange did not carry.
+    """
+    if (
+        persisted is not None
+        and persisted.status is CoordinationStatus.AWAITING_HUMAN_CONFIRMATION
+        and persisted.confirmed_outcome
+        is ConfirmationOutcome.CONTINUE_OWNING_WORKFLOW
+        and persisted.context.identity == context.identity
+        and persisted.context.document_path == context.document_path
+        and persisted.context.implementation_step == context.implementation_step
+    ):
+        return persisted.context
+    return context
+
+
 def resolve_code_review_route(
     root: Path,
     topic: Topic,
@@ -200,38 +254,11 @@ def resolve_code_review_route(
     paths = derive_artifact_paths(root, probe_context)
     store = ReviewExchangeStore(paths)
     persisted = store.read_coordination()
-    if (
-        persisted is not None
-        and persisted.context.implementation_step
-        != probe_context.implementation_step
-    ):
-        raise CodeReviewRoutingError(
-            "live code exchange uses another implementation step",
-        )
+    _reject_other_live_step(persisted, probe_context)
     configuration = load_review_configuration(root)
-    live_paths = (
-        paths.request,
-        paths.answer,
-        paths.coordination,
-        paths.tombstone,
-        paths.transition_lock,
-    )
-    has_exact_evidence = any(path.exists() for path in live_paths)
-    if not configuration.enabled and not has_exact_evidence:
+    if not configuration.enabled and not _has_exact_evidence(paths):
         return None
-    context = _context(root, topic, state, record)
-    if (
-        persisted is not None
-        and persisted.status is CoordinationStatus.AWAITING_HUMAN_CONFIRMATION
-        and persisted.confirmed_outcome
-        is ConfirmationOutcome.CONTINUE_OWNING_WORKFLOW
-        and persisted.context.identity == context.identity
-        and persisted.context.document_path == context.document_path
-        and persisted.context.implementation_step == context.implementation_step
-    ):
-        # Commit the exact exchange the human authorized, even if workflow
-        # routing later discovers an umbrella that the exchange did not carry.
-        context = persisted.context
+    context = _authorized_context(persisted, _context(root, topic, state, record))
     observation = ReviewExchangeCore(
         store,
         context,
