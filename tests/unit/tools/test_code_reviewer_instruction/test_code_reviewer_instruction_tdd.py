@@ -6,6 +6,9 @@ mechanical readiness separate from assessment and human commit authority.
 Fix: the reviewer modifies no implementation code or tests unless human
 guidance instructs it, never runs `ghog day` or `ghog full`, and limits
 executed evidence to `ghog check` and `ghog affected --no-cov`.
+
+Fix: the always-wait test checks its phrases through `_assert_contains_all`
+instead of one `assert` each, which kept its radon complexity at C.
 """
 
 from __future__ import annotations
@@ -155,24 +158,25 @@ def test_instruction_forbids_writer_human_and_commit_authority() -> None:
 
 def test_instruction_requires_the_reviewer_to_always_wait() -> None:
     """The background watcher stays active while chat control returns to the user."""
-    content = _content()
-    normalized = " ".join(content.split())
+    normalized = " ".join(_content().split())
 
-    assert "## A reviewer always waits" in content
-    assert "Return control of the chat while the background watcher remains active" in normalized
     assert "publishing an answer never returns control to the user" not in normalized
-    for phrase in (
-        "The round wait.",
-        "The artifact-home wait.",
-        "Do not restrict that wait to the exchange just finished",
-        "Neither wait is optional and neither is a question for the user",
-    ):
-        assert phrase in normalized
-    assert "GlobalReviewerWait" in content
-    assert "wait-any-request" in normalized
-    assert "quiet background operation" in normalized
-    assert "must not monopolize the chat" in normalized
-    assert "writes no idle progress" in normalized
+    _assert_contains_all(
+        normalized,
+        (
+            "## A reviewer always waits",
+            "Return control of the chat while the background watcher remains active",
+            "The round wait.",
+            "The artifact-home wait.",
+            "Do not restrict that wait to the exchange just finished",
+            "Neither wait is optional and neither is a question for the user",
+            "GlobalReviewerWait",
+            "wait-any-request",
+            "quiet background operation",
+            "must not monopolize the chat",
+            "writes no idle progress",
+        ),
+    )
 
 
 def test_instruction_requires_independent_commit_plan_readiness_evidence() -> None:
