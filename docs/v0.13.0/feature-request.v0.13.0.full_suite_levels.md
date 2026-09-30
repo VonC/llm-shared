@@ -5,9 +5,11 @@
 ## CDC revision that introduces full suite levels
 
 Until v0.12.0, the groundhog objective was a single one: every `ghog day` walk
-runs check.bat, then `ghog affected --no-cov`, then `ghog full`, and is green
-only when the full suite passes, meets the coverage gate, and shows no
-duration outlier. Every development skill closes its work with that walk.
+runs check.bat, then `ghog affected --no-cov`, then `ghog full`, and is meant
+to be green only when the full suite passes, meets the coverage gate, and
+shows no duration outlier (in a parallel project, the full run does not
+actually measure durations; see "Current behavior in v0.12.0"). Every
+development skill closes its work with that walk.
 
 The revision keeps that objective for the final phases only. During
 development, the walk stops after the affected tests. The full suite runs on
@@ -19,10 +21,24 @@ demand, at one of three levels chosen by the caller:
 | `cov` | exits 2 and 4, coverage gap (exit 3) | duration outliers (exit 8) |
 | `speed` | exits 2, 4, 3 and duration outliers (exit 8) | nothing (today's behavior) |
 
-The code-review requestor and the prepare-release green gate ask for `cov`.
-The code-review requestor also runs one `speed` walk when a review round
-converges on a commit-ready answer, and that walk decides between another
-review round and the human commit gate.
+The prepare-release green gate asks for `cov`. Under the default requestor
+validation policy, every code-review request, from round 1, is published
+after a green `speed` walk, so each request enters review with `speed`
+evidence, and every change made for speed (tests, production code, or a
+duration exclusion) goes through ordinary review. An explicit project
+validation declaration is governed by Q14. No `speed` walk runs at the
+commit-ready answer.
+
+Revision of 2026-09-30: the first consolidated version of this requirement
+ran the `speed` pass after review, at the commit-ready answer, and needed a
+test-only exception, a repair baseline, and a new requestor transition out of
+the convergence gate to handle the repairs it made there. The requirement
+was reopened to move `speed` before review instead; the superseded decisions
+are marked in "Requirement clarifications for full suite levels". A recheck
+of `speed` at the commit-ready answer was considered during the reopening and
+dropped by the human: under the default validation policy, the last request
+was already validated at `speed`, and only polishing edits may accompany a
+commit-ready answer.
 
 ## Current behavior in v0.12.0
 
@@ -46,6 +62,10 @@ review round and the human commit gate.
   (`tools/prepare_release/prepare_release_plan_workflow.py`).
 - At a commit-ready convergence, the requestor presents the human gate
   directly; it cannot start a new round from convergence.
+- In a project with a `.ghog-parallel` marker (llm-shared included),
+  `ghog full` runs on xdist workers without measuring durations; only the
+  sequential `ghog timings` pass judges the duration gate there, and no
+  instruction runs it, so no workflow judges speed in such a project today.
 - The code reviewer and implementation-check never run `ghog day` or
   `ghog full`; they are limited to `ghog check` and `ghog affected --no-cov`.
 
@@ -72,7 +92,10 @@ review round and the human commit gate.
 3. Level verdicts: at `pass`, the whole suite runs and must pass without a
    suite crash; it runs without coverage collection or duration enforcement,
    and any recorded durations are informational (Q01). At `cov`, duration
-   outliers do not fail the run. At `speed`, the run keeps today's verdicts.
+   outliers do not fail the run. At `speed`, the run keeps today's verdicts,
+   and the duration gate is judged by a run that measures call times without
+   worker contention: in a parallel project, a `speed` walk includes the
+   sequential timing pass.
 4. Closing instructions by level: the report ends with the instruction the
    LLM must act on, as listed in "Closing instructions for the LLM by level"
    below. It only asks for the work its level covers: no covg or
@@ -105,7 +128,11 @@ review round and the human commit gate.
    explicit evidence.
 9. Direct `ghog full`: `ghog full` follows the selection rule of gap 2 and
    keeps `speed` as its default when no selector is supplied, so a plain
-   direct call behaves as today.
+   direct call behaves as today. A direct run states only the objective it
+   actually established: in a parallel project, a green direct run at
+   `speed` discloses that durations were not measured and names
+   `ghog day --full=speed` for that proof, and never claims that no
+   unaccepted duration outlier remains.
 10. Development skills use the default walk: `implement-step.md`,
     `implement-missing-step.md`, `split-large-file.md`, and the plan command
     written by `write-plans.md` use `ghog day` with no level. Their wording no
@@ -114,57 +141,49 @@ review round and the human commit gate.
     fix with the same level the loop was started with, so a fix never raises
     or drops the objective. `fix_slow_test.md` applies only to a `speed` walk
     and restarts it at `speed`.
-12. Requestor validation at `cov`: the code-review requestor project default
-    becomes the `cov` walk (`DEFAULT_PROJECT_VALIDATION_COMMANDS` in
-    `tools/code_review_validation.py`), run green before any request is
-    published.
+12. Requestor validation at `speed`: the code-review requestor project
+    default becomes the `speed` walk (`DEFAULT_PROJECT_VALIDATION_COMMANDS` in
+    `tools/code_review_validation.py`). Under that default policy, every
+    code-review request, round 1 and each replacement round (Q11), is
+    published after a green `speed` walk, which may reuse valid `speed`
+    evidence under the snapshot rules of gaps 6 to 8. Each request therefore
+    enters review with `speed` evidence. Edits that lead to a replacement
+    request are covered by that request's validation. If the answer is
+    commit-ready, only the permitted polishing edits may accompany it, and no
+    further `speed` walk runs. Every change the requestor
+    makes to reach `speed` (a test, a production file, or a duration
+    exclusion) is part of the work the reviewer assesses in that round. A
+    project that declares its own `.review-validation` set keeps authority
+    over it (Q14).
 13. Prepare-release green gate at `cov`: the green-gate routine in
     `prepare-release.md` and both `run ghog day` operations in
     `prepare_release_plan_workflow.py` name the `cov` walk.
-14. Test-only boundary (Q04): a change qualifies as test-only only when every
-    changed file is established to serve tests exclusively. Shared runtime
-    code, configuration or tooling that can affect production behavior, and
-    any file whose exclusive test use cannot be established, require another
-    review. Path names and collection roots alone are insufficient evidence.
-    How test-only use is established is left to the design.
-15. Duration-exclusion exception (Q07): accepting a genuinely slow call with
-    `ghog exclude` is a separate, narrow exception to gap 14, allowed only
-    after an attempted improvement. The gate evidence names the excluded
-    call, its measured time, the attempted improvement, and the reason for
-    accepting the duration. The exception covers duration acceptance only,
-    never unrelated configuration changes or the removal of correctness or
-    coverage checks.
-16. Requestor speed pass at convergence: when the requestor receives a
-    commit-ready answer, it runs one `speed` walk before the human gate, then
-    loops on it until exit 0. For repairable test, coverage, crash, or
-    duration failures, it restores the `speed` objective, preserves test
-    coverage and assertions, and classifies the complete repair delta with
-    gaps 14 and 15, whatever failure triggered the repair (Q05). Existing
-    operational stop and interruption rules still apply: this never
-    authorizes weakening checks to reach exit 0, or retrying a setup error
-    without end.
-    - if a green `speed` walk needed no change, or only changes within the
-      test-only boundary or a duration exclusion, the requestor stages those
-      changes, amends `a.commit` when its groups no longer match, accepts the
-      commit-ready answer, and presents the human gate (`Commit` or
-      `Rework and review again`) with those changes listed in its evidence;
-    - if any repair falls outside both the test-only boundary and the
-      duration-exclusion exception, the requestor starts an ordinary
-      replacement round for the same step, whose change summary and writer
-      response name that change (Q06), instead of presenting the human gate.
-      This extends the current rule that the requestor cannot start a new
-      round from convergence, for this case only. At the next commit-ready
-      answer, the `speed` validation is repeated, reusing an unchanged
-      successful result.
-17. Speed pass without review mode (Q09): with review mode disabled, the same
-    speed pass runs before the ordinary human commit gate. Test-only changes
-    and duration exclusions join the commit; any other change returns through
-    the implementation check and the `speed` validation before that gate. No
-    review exchange is created for this path. The prepare-release gate stays
-    at `cov`.
-18. Reviewer unchanged: the code reviewer and implementation-check still never
+14. Duration exclusions before review (Q07, revised): accepting a genuinely
+    slow call with `ghog exclude` is allowed during the requestor's `speed`
+    validation, only after an attempted improvement. The review request names
+    the excluded call, its measured time, the attempted improvement, and the
+    reason for accepting the duration, so the reviewer judges the exclusion
+    like any other change. An exclusion never covers unrelated configuration
+    changes or the removal of correctness or coverage checks.
+15. Speed pass without review mode (Q09, reopened as Q13): this gap applies
+    only when review mode is disabled. There, no review exists, and the flow
+    goes from implementation-check straight to the commit menu; the `speed`
+    pass runs between the two, once implementation-check reports the step
+    complete. Any change it makes (tests, production code, or a duration
+    exclusion) sends the step back through implementation-check, then through
+    a `speed` pass that must be green, possibly by valid snapshot reuse,
+    before the menu. No test-only exemption and no review exchange exist on
+    this path. The prepare-release gate stays at `cov`.
+16. No post-review speed work: with review mode enabled, no `speed` walk runs
+    at the commit-ready answer, and the requirement defines no test-only
+    boundary and no requestor transition out of the convergence gate; every
+    change made for speed in review mode is made before a request and
+    reviewed. A project whose declared `.review-validation` set does not
+    establish `speed` therefore gets no `speed` validation before commit; the
+    migration notice of Q14 is the signal to change its declaration.
+17. Reviewer unchanged: the code reviewer and implementation-check still never
     run `ghog day` or `ghog full` at any level.
-19. Documentation and tests: `GROUNDHOG.md`, `tools/Pytest reset specs.md`
+18. Documentation and tests: `GROUNDHOG.md`, `tools/Pytest reset specs.md`
     (new decision rows), the day walk docstrings, and the groundhog acceptance
     tests (AT11 day walk, AT16 day noop) cover the default walk, the three
     levels, the level precedence, the level-aware snapshot, and the closing
@@ -172,7 +191,15 @@ review round and the human commit gate.
     Acceptance coverage exercises a default failure against a full-level
     failure, an environment-selected level restarted explicitly, a lower
     requested level backed by a stronger saved proof, ignored duration
-    observations, and the permitted duration-exclusion path.
+    observations, and the permitted duration-exclusion path. It also
+    exercises a default-policy request withheld until its `speed` walk is
+    green, a repaired replacement request validated again, a valid unchanged
+    `speed` snapshot reused, a declared validation set preserved with its
+    migration notice, a review-disabled speed repair returning through
+    implementation-check before the final green `speed` pass and the menu,
+    the disclosure of a green direct parallel run at `speed`, and the
+    absence of any `speed` walk at a commit-ready answer, including when a
+    declared validation set supplies no `speed` proof.
 
 ## Closing instructions for the LLM by level
 
@@ -213,8 +240,8 @@ checks ran in this invocation (Q08). It never claims that a stronger saved
 proof lacks coverage or speed merely because the current request is weaker.
 
 For direct `ghog full` calls, the full-suite outcome instructions apply for
-the resolved level as well; any suggested day-walk restart preserves that
-level.
+the resolved level as well, limited to the objective the run actually
+established (gap 9); any suggested day-walk restart preserves that level.
 
 ## Code references for full suite levels
 
@@ -249,10 +276,105 @@ level.
 | Q01 | `pass` runs the whole suite and requires it to pass without a crash, with no coverage collection and no duration enforcement; durations are informational. It proves what the default walk cannot: no test outside the affected set fails. | Gap 3; closing instructions (`pass` rows) | Skip the suite entirely at `pass` (the default walk under another name); collect coverage without enforcing it (costs time for a figure nobody acts on). |
 | Q02 | One precedence rule for `ghog day` and direct `ghog full`: `--full`, then `GHOG_FULL`, then the command default (no full step, or `speed`). Development walks pick `GHOG_FULL` up. | Gaps 2 and 9 | `GHOG_FULL` for `ghog day` only (two rules to remember); variable for humans only with explicit levels in every skill (needs a "none" value and removes the human knob). |
 | Q03 | A level upgrade on unchanged sources reuses the successful check and affected results of the same validated snapshot, runs only the missing full-suite objective, and names the reused results. | Gap 7 | Re-run all three steps on every upgrade (pays check and affected twice at review and release time). |
-| Q04 | The test-only exception needs positive evidence that every changed file serves tests exclusively; shared, configuration, tooling or uncertain files go to review. Path names and collection roots are insufficient. | Gap 14; gap 16 | Collection root or file-name classifier (a broad root lets production code skip review); requestor judgement (not verifiable). |
-| Q05 | Every repair the speed walk needs (failure, coverage gap, crash, duration) restores `speed`, preserves coverage and assertions, and is classified as a whole with gaps 14 and 15; operational stop rules still apply. | Gap 16 | Always start a round for non-speed failures (heavy for one missing test); escalate to the human (stops fixable automation). |
-| Q06 | A repair outside both exceptions starts an ordinary replacement round for the same step, naming the change; `speed` validation repeats at the next convergence, reusing an unchanged successful result. | Gap 16 | A dedicated speed-review round limited to the diff (new protocol round type, reviewed without context). |
-| Q07 | A duration exclusion is a narrow exception to Q04, allowed after an attempted improvement, with the call, measured time, attempt and reason in the gate evidence; it covers duration acceptance only. | Gap 15; closing instructions (`speed` outliers row) | Only a human may exclude (blocks the gate on every slow call); an exclusion starts a round (heavy for a configuration decision). |
+| Q04 | Superseded on 2026-09-30: `speed` now runs before review, so every speed change is reviewed and no test-only exception exists (gap 16). The earlier decision required positive evidence that every changed file serves tests exclusively. | Gap 16 | Collection root or file-name classifier; requestor judgement. |
+| Q05 | Superseded on 2026-09-30: no speed work happens at the commit-ready answer (gap 16); repairs happen before publication and are reviewed. The earlier decision classified every post-review repair delta with the test-only boundary. | Gaps 12 and 16 | Always start a round for non-speed failures; escalate to the human. |
+| Q06 | Superseded on 2026-09-30: no round is started from convergence by the requestor (gap 16). The earlier decision started an ordinary replacement round for a production speed repair made after review. | Gap 16 | A dedicated speed-review round limited to the diff. |
+| Q07 | Revised on 2026-09-30: a duration exclusion is allowed during the requestor's `speed` validation, after an attempted improvement, and the review request names the call, measured time, attempt and reason so the reviewer judges it; it covers duration acceptance only. | Gap 14; closing instructions (`speed` outliers row) | Only a human may exclude (blocks validation on every slow call); exclusion accepted without being shown to the reviewer. |
 | Q08 | Every walk reports the selected objective and its source, the strongest valid saved proof, and which steps ran or were reused; detached walks keep their level; consumer compatibility is verified. | Gaps 1 and 5; closing instructions (noop paragraph) | Keep the closing line unchanged (cannot tell the default walk from `pass`, nor a noop from a fresh run). |
-| Q09 | With review mode disabled, the same speed pass runs before the ordinary human commit gate; other changes return through the implementation check; no review exchange is created. | Gap 17 | No speed pass without review mode (speed drifts unnoticed); `speed` at prepare-release instead (all slow calls surface at release time). |
+| Q09 | Reopened on 2026-09-30 as Q13: with review mode disabled, where the `speed` pass runs. The earlier decision ran it before the ordinary human commit gate, with test-only changes joining the commit. | Gap 15 | No speed pass without review mode; `speed` at prepare-release instead. |
 | Q10 | A saved result that cannot establish its level satisfies no requested level; the first requested walk after the upgrade revalidates its selected objective. | Gap 8 | Treat a positively identified legacy green snapshot as `speed` (needs a compatibility guarantee that every legacy snapshot came from an all-gates walk). |
+
+## Open questions for the v0.13.0 full suite levels feature request (reopened)
+
+### Q11: Which review rounds re-validate at `speed`
+
+Question description: under the default validation policy, the requestor proves `speed` before round 1. A review round can change code: the reviewer stages repairs, and the requestor applies accepted feedback before the replacement request. The question is whether each replacement request is validated at `speed` again, or at a lower level. A `speed` walk is a noop when the validated snapshot is still valid and its recorded proof satisfies `speed`; otherwise it runs the work needed to establish `speed`, reusing successful check and affected results only as permitted by gap 7. No `speed` walk runs at the commit-ready answer (gap 16), so the last request's validation is the last `speed` proof before the commit.
+
+#### BBQ for Q11
+
+The dish is timed before it goes to the taster. The taster asks for more salt, the cook adjusts, and the dish goes back. Either it is timed again every time it goes back, or only the first plate was timed and later plates are assumed to cook as fast.
+
+In this picture: timing the dish is the `speed` walk, the taster is the reviewer, the adjustments are review-round changes, and each plate sent back is a replacement review request.
+
+#### Options for Q11
+
+- Option A: every request, round 1 and each replacement round, is validated at `speed`.
+  - pro: each request enters review with `speed` evidence, and the last request before a commit-ready answer carries the final `speed` proof;
+  - pro: one rule, and a round may reuse valid `speed` evidence under the snapshot rules.
+  - con: a round whose changes invalidate the snapshot pays a full `speed` walk before the next request.
+- Option B: round 1 at `speed`, replacement rounds at `cov`.
+  - pro: cheaper replacement rounds.
+  - con: with no `speed` walk at the commit-ready answer, a speed regression introduced during review reaches the commit unnoticed.
+- Option C: round 1 at `speed`, replacement rounds with the default walk.
+  - pro: cheapest.
+  - con: neither coverage nor speed is proven for review-round changes before the commit.
+
+#### Recommended option for Q11 (with arguments for this choice)
+
+Option A: the reopening relies on the reviewer assessing code that meets `speed`, and, since no walk runs at the commit-ready answer, on the last request carrying the final proof; both hold only if every request is validated at `speed`. Valid snapshot reuse keeps rounds cheap when their changes leave the proof valid.
+
+#### Answer to Q11: option A (with reason why it must be accepted as the answer)
+
+Option A: under the default policy, every code-review request is published only after a green `speed` walk, so every round is reviewed on code that meets the full objective and the committed tree differs from the last proven one only by the polishing edits allowed with a commit-ready answer.
+
+### Q13: Where the `speed` pass runs when review mode is disabled
+
+Question description: this question applies only when review mode is disabled. There, no review exists, and the flow goes from implementation-check straight to the commit menu. The `speed` pass still has to run somewhere before the step is committed, without bringing speed work back into the development loop that the default walk keeps light. With review mode enabled, the answer is already settled: under the default validation policy, `speed` runs before each request (Q11); declared validation sets follow Q14, and no `speed` walk runs at the commit-ready answer.
+
+#### BBQ for Q13
+
+Without a taster, the kitchen still times each dish once before it leaves. It can time it right after the head cook approves it, at the end of every cooking attempt, or never.
+
+In this picture: the head cook's approval is implementation-check, every cooking attempt is the `ghog day` walk that closes implement-step, timing is the `speed` pass, and the dish leaving is the step commit.
+
+#### Options for Q13
+
+- Option A: run the `speed` pass between implementation-check and the commit menu, once the check reports the step complete; any change it makes (tests, production code, or a duration exclusion) sends the step back through implementation-check, then through a `speed` pass that must be green (possibly by valid snapshot reuse) before the menu.
+  - pro: speed work happens once per step, on code already judged complete;
+  - pro: every change made for speed is checked like the rest of the step, with no test-only exemption.
+  - con: a speed repair costs one more implementation check.
+- Option B: run the `speed` pass at the end of implement-step, before implementation-check.
+  - pro: the check then sees the speed changes directly.
+  - con: brings speed work into the development loop, and a step with missing work pays for speed before it is complete.
+- Option C: no `speed` pass without review mode; prepare-release proves `cov` only.
+  - pro: simplest.
+  - con: suite speed is never judged for projects that work without review mode.
+
+#### Recommended option for Q13 (with arguments for this choice)
+
+Option A: it mirrors the review-mode rule (speed proven once the step is otherwise complete, and every speed change checked) at the only point where a review-less step is both complete and not yet committed.
+
+#### Answer to Q13: option A (with reason why it must be accepted as the answer)
+
+Option A: without review mode, the step reaches its commit menu proven at `speed`, every change made for speed goes back through implementation-check, and development walks stay on the light default.
+
+### Q14: Projects that declare their own `.review-validation`
+
+Question description: the new default validation is `ghog day --full=speed`, but a project that declares `.review-validation` keeps authority over its mandatory commands. A declaration containing plain `ghog day` can now prove only check.bat and the affected tests when no full level is selected. If its validation commands establish no `speed` evidence, no additional `speed` walk runs before commit (gap 16). Other means can still establish `speed`: `GHOG_FULL=speed` (gap 2), another declared command requesting `speed`, or valid saved proof (gaps 6 to 8); the notice does not claim they are absent.
+
+#### BBQ for Q14
+
+The kitchen's new rule is to time every dish before the taster sees it. One restaurant in the chain has its own written checklist that says "cook the dish", which used to mean "cook and time it" and now means "cook it" only, and nobody times the dish later.
+
+In this picture: the new rule is the `speed` default validation, the restaurant's own checklist is `.review-validation`, "cook the dish" is plain `ghog day`, and nobody timing it later is the absence of a `speed` walk at the commit-ready answer.
+
+#### Options for Q14
+
+- Option A: keep the project's authority; when its declared set holds a `ghog day` without `--full`, the review request shows a migration notice recommending `ghog day --full=speed`, and no additional `speed` validation is supplied by the workflow: if the declared validation does not establish `speed`, the step reaches commit without that proof.
+  - pro: no silent change to a versioned project declaration;
+  - pro: the notice makes the weaker validation visible to requestor, reviewer and human on every request.
+  - con: a project whose declared validation establishes no `speed` evidence reaches commit without that proof until someone edits the file.
+- Option B: always add `ghog day --full=speed` on top of any declared set for a project with a pytest suite.
+  - pro: every Python project reviews code that meets `speed`.
+  - con: overrides a project's explicit declaration, which the file exists to prevent.
+- Option C: treat a plain `ghog day` in a declaration as `ghog day --full=speed`.
+  - pro: old declarations keep their old strength.
+  - con: the same command means different things in a declaration and on the command line.
+
+#### Recommended option for Q14 (with arguments for this choice)
+
+Option A: the declaration is versioned project policy; making its weakened meaning visible on every request respects that policy and gives the project a one-line fix. The human accepted, when dropping the commit-time recheck, that the workflow supplies no additional `speed` validation: if a declared set establishes no `speed` evidence, the step reaches commit without that proof.
+
+#### Answer to Q14: option A (with reason why it must be accepted as the answer)
+
+Option A: the project keeps authority over its validation, and the migration notice on every request makes sure nobody mistakes a plain `ghog day` declaration for a `speed` proof.
