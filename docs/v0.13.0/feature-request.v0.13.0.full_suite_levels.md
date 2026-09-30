@@ -50,6 +50,13 @@ and the review-off `speed` pass run the effort's group;
 for a grouped effort, only prepare-release runs the whole suite, at `cov`.
 Ungrouped efforts and explicit whole-suite commands still run everything.
 
+Revision of 2026-09-30, group activation: the requirement said how a group is
+declared, but not when an effort is asked about one, how a group is turned
+on, changed or off partway through an effort (setting `GHOG_GROUP` cannot do
+it for workflow walks, since an ungrouped effort uses the explicit whole-suite
+selector), what an active code review learns of a scope change, or where the
+current scope is shown. Gap 24 and questions Q22 to Q26 cover these.
+
 ## Current behavior in v0.12.0
 
 - `run_day` in `tools/groundhog/day.py` always walks the three steps and
@@ -258,7 +265,23 @@ Ungrouped efforts and explicit whole-suite commands still run everything.
     default-level noops and level upgrades as well as full levels. Group
     runs judge durations against the saved whole-suite floor, or its
     one-second fallback, without rewriting it (Q19).
-24. Documentation and tests: `GROUNDHOG.md`, `tools/Pytest reset specs.md`
+24. Group activation and change: the effort records an explicit scope
+    choice, a named group or the whole suite, when its draft is processed,
+    and the requirement carries it (Q22, Q26). Once the requirement exists,
+    it alone controls the effort's workflow scope; its absent `Test group:`
+    line means the whole suite, and a draft is never a fallback. Selecting a
+    group is distinct from editing its shared definition: activation adds the
+    name to the requirement, switching replaces it, deactivation removes it,
+    and none of them deletes or overwrites a group entry other efforts may
+    use (Q23). A scope change is a change of selected group, a switch to or
+    from the whole suite, or a change to the selected group's resolved
+    definition (patterns or membership). It takes effect at the next eligible
+    workflow boundary, never inside a published review round or a walk
+    already started (Q24). No proof from a different scope is ever reused; a
+    destination scope may reuse its own still-valid proof under Q18. The
+    effort's declared scope, its source, and any change still pending for an
+    active round are visible in `pw progress` (Q25).
+25. Documentation and tests: `GROUNDHOG.md`, `tools/Pytest reset specs.md`
     (new decision rows), the day walk docstrings, and the groundhog acceptance
     tests (AT11 day walk, AT16 day noop) cover the default walk, the three
     levels, the level precedence, the level-aware snapshot, and the closing
@@ -290,7 +313,21 @@ Ungrouped efforts and explicit whole-suite commands still run everything.
     a declared validation set preserved without a false group claim,
     implementation-check and reviewer affected calls staying in the group,
     group success lines naming their scope, and group runs leaving the saved
-    timing floor unchanged.
+    timing floor unchanged. For activation, it covers initial selection of
+    an existing group, creation of a new valid group, an explicit whole-suite
+    answer never asked again, `write-requirement` asking only when no choice
+    was recorded, activation after the effort started, switching groups and
+    deactivation (with `GHOG_GROUP` unable to override the workflow choice), a
+    stale draft not overriding a changed or removed requirement selection, a
+    shared group entry surviving deactivation, a same-name definition change
+    recognized as a scope change, a published round and a detached run keeping
+    their bound scope, a replacement request carrying new-scope validation and
+    the disclosure of the change, a commit-ready answer never admitting an
+    unreviewed scope change as polishing, exact-scope proof reuse, and
+    `pw progress` showing the declared scope, its source and any pending
+    change. `GROUNDHOG.md` and the workflow documentation show how to choose,
+    change and remove an effort's group, and how that differs from manual
+    `--group` or `GHOG_GROUP` selection.
 
 ## Closing instructions for the LLM by level
 
@@ -394,3 +431,160 @@ the resolved scope (gap 19).
 | Q19 | Group runs judge durations against the saved whole-suite floor, or the one-second fallback, and never rewrite it; no automatic whole-suite `speed` run seeds the floor. | Gap 23 | One floor per group (lenient standards per group); group runs rewriting the shared floor (floor depends on the last scope run). |
 | Q20 | An explicit whole-suite selector wins over `GHOG_GROUP`, even an invalid one; prepare-release, ungrouped efforts, whole-suite restarts and detached runs use it. | Gaps 19 and 21 | Wrappers clearing `GHOG_GROUP` (standalone restarts and new shells inherit the group again); environment decides even for release (breaks the whole-suite release gate). |
 | Q21 | A selected group whose patterns resolve to no test file or no source file is a setup error (exit 5) naming the empty side. | Gaps 18 and 19 | Empty group as a green success (vacuous proof); silent fallback to the whole suite (scope and cost change unnoticed). |
+
+## Open questions for the v0.13.0 full suite levels feature request (group activation)
+
+### Q22: When an effort is asked about its group, and how the entry is created
+
+Question description: Q16 settled that the requirement's `Test group:` line drives workflow scope. Nothing says when the author is asked, nor who creates or checks the group file entry. An effort whose author never thinks of it silently runs the whole suite. Which document controls scope once a requirement exists, and how a deliberate whole-suite answer is remembered, is Q26.
+
+#### BBQ for Q22
+
+A catering order can say "pastry only". The customer can be asked when the order is first taken, when it is written up in detail, or never, leaving it to whoever remembers to add a note later.
+
+In this picture: the order first taken is the draft (`process-draft`), the detailed write-up is the requirement (`write-requirement`), the note is the recorded scope choice, and the kitchen's list of what "pastry" covers is the group file entry.
+
+#### Options for Q22
+
+- Option A: `process-draft` asks for the effort's scope (an existing group, a new group, or the whole suite) and records the answer; `write-requirement` carries it into the requirement and asks only when no answer was recorded. An existing group's entry is validated and reused; a new group's test and source patterns are obtained and a valid entry is created before the first grouped walk. An unknown, unreadable or empty group keeps Q21's setup failure.
+  - pro: the question is asked once, at the start, when the author knows the effort's scope;
+  - pro: the entry exists and resolves before the first walk needs it.
+  - con: two skills change.
+- Option B: only `write-requirement` asks and creates the entry.
+  - pro: one skill changes.
+  - con: the draft cannot state the intended scope.
+- Option C: no prompt; the author adds the line and the entry by hand.
+  - pro: no workflow change.
+  - con: easy to forget, and a missing entry only shows as an exit 5 at the first walk.
+
+#### Recommended option for Q22 (with arguments for this choice)
+
+Option A: the scope of an effort is known when the draft is processed; asking there, validating or creating the entry at once, and carrying the answer forward makes the scope a deliberate choice.
+
+#### Answer to Q22: option A (with reason why it must be accepted as the answer)
+
+Option A: the effort's scope is asked once when the draft is processed, carried into the requirement, and backed by a valid group entry before the first grouped walk.
+
+### Q23: Turning a group on, switching it, or turning it off mid-effort
+
+Question description: an effort may start without a group and later need one, or switch or drop it. `GHOG_GROUP` cannot do it for workflow walks (Q20). A group entry is shared: other efforts may select the same name, so changing an effort's selection must not change or delete the entry, and changing the entry itself is a different kind of scope change.
+
+#### BBQ for Q23
+
+Halfway through the catering order, the customer decides only the pastry needs a tasting. The kitchen can accept a note on this order at any time, require the whole order to be re-approved, or refuse any change once cooking started. Crossing "pastry" off the kitchen's shared list to stop this order's tasting would also stop every other order's.
+
+In this picture: the note on this order is the requirement's `Test group:` line, re-approval is reopening the requirement's review, "cooking started" is the first implemented step, and the kitchen's shared list is the group file.
+
+#### Options for Q23
+
+- Option A: activation adds the group name to the requirement, switching replaces it, deactivation removes it, at any point of the effort and without reopening the requirement's review; none of these deletes or overwrites a group entry. Changing a group's patterns is a separate edit of the shared entry, and counts as a scope change for every effort selecting it. A change takes effect at the next eligible workflow boundary (Q24). No proof from a different scope is reused; a destination scope may reuse its own still-valid proof under Q18.
+  - pro: the scope follows the effort's needs without a review cycle for a one-line change;
+  - pro: shared entries are never damaged by one effort's choice, and the existing proof rules keep the switch safe.
+  - con: a reviewed requirement can change its test scope without a review of that change (Q24 keeps an active code review informed).
+- Option B: any change of the selection reopens the requirement's review.
+  - pro: every scope change is reviewed.
+  - con: a full review cycle for a one-line change, in the middle of implementation.
+- Option C: the selection can only change before the first plan step is implemented.
+  - pro: every step of the effort shares one scope.
+  - con: an effort that discovers its scope late cannot adopt a group.
+
+#### Recommended option for Q23 (with arguments for this choice)
+
+Option A: the selection changes which tests run, not what the effort delivers; separating it from the shared definition protects other efforts, and Q18 already decides which proof stays valid.
+
+#### Answer to Q23: option A (with reason why it must be accepted as the answer)
+
+Option A: an effort turns its group on, switches it or turns it off by editing its requirement's `Test group:` line, never by editing or deleting the shared entry, with no proof carried across scopes.
+
+### Q24: A scope change while a code review is active
+
+Question description: a scope change can happen between two rounds, while a request or an answer is pending, or just before a commit-ready answer, where no replacement request follows. A published round was validated and reviewed on its scope; its evidence must keep that meaning. A walk already started, detached included, runs on its invocation scope. A scope change also includes a changed definition under the same group name.
+
+#### BBQ for Q24
+
+The taster is tasting today's plate, checked against the full menu. The chef decides, mid-tasting, that from now on plates are checked against the pastry list only. Today's plate stays checked against the full menu; the next plate follows the new rule and says so; and a plate already approved cannot pick up the new rule on its way out of the kitchen.
+
+In this picture: the taster is the reviewer, today's plate is the published round, the next plate is the replacement request, the approved plate is a commit-ready answer, and the rule change is the scope change.
+
+#### Options for Q24
+
+- Option A: the change waits for the next eligible boundary. A published round keeps its validation scope, reviewer affected commands and evidence; a started walk keeps its scope. A replacement request resolves the new scope, satisfies the applicable validation on it (by default a green `speed` walk; a declared `.review-validation` set stays authoritative, Q14), and states the previous scope, the new scope and the reason. At a commit-ready answer, a pending scope change is never treated as polishing and never reuses the old round's proof: the gate evidence names it, and if deferred until after the commit, the pending selection or definition edits stay outside the approved commit, whose reviewed scope remains unchanged; otherwise the human uses the existing `Rework and review again` choice so a replacement round validates it. A pending change is the difference between the effort's currently resolved scope (the requirement selection and the selected group's patterns and effective membership) and the scope bound to the active round. No new exchange operation and no automatic transition out of convergence.
+  - pro: every round's evidence keeps its meaning, and the reviewer sees each change;
+  - pro: uses only existing rounds and the existing human gate.
+  - con: a change made during a round takes effect one round later.
+- Option B: a scope change is refused while a code-review exchange is active.
+  - pro: every exchange has one scope.
+  - con: blocks a legitimate change until a possibly long review ends.
+- Option C: a scope change restarts the exchange from round 1.
+  - pro: clean evidence per exchange.
+  - con: discards review progress for a change in test selection.
+
+#### Recommended option for Q24 (with arguments for this choice)
+
+Option A: binding each round to its scope and moving changes to the next boundary keeps evidence honest without blocking or restarting reviews, and the existing human gate covers the commit-ready case.
+
+#### Answer to Q24: option A (with reason why it must be accepted as the answer)
+
+Option A: a scope change never alters a published round or a started walk; the next replacement request validates and discloses it, and at a commit-ready answer it waits or goes through the human's rework choice.
+
+### Q25: Where the effort's scope is shown
+
+Question description: the scope decides which tests every workflow walk runs, yet a user or an agent can only find it by reading the requirement and the group file. With Q24, the declared scope can also differ from the scope bound to an active review round.
+
+#### BBQ for Q25
+
+The catering order's "pastry only" note is on page three. The kitchen can also write it on the board every cook reads at the start of the shift, including "changing to pastry after this tasting", or on every ticket too.
+
+In this picture: page three is the requirement's line, the board is `pw progress`, the pending note is a scope change waiting for its boundary, and every ticket is every handoff prompt.
+
+#### Options for Q25
+
+- Option A: `pw progress` shows the effort's declared scope (group name or whole suite) and the document it comes from; when an active round is bound to another scope, it shows both, marking the declared one as pending. The ghog reports keep showing the actual run scope. The declared effort scope alone never implies group proof; the request reports what the custom validation commands actually established, and claims group proof only when their evidence establishes that exact scope and level.
+  - pro: visible at the decision point, before any walk runs;
+  - pro: makes a pending change or an unexpected scope obvious.
+  - con: one or two more lines in the progress report.
+- Option B: the scope appears only in the ghog closing lines and `ghog status`.
+  - pro: no `pw` change.
+  - con: only visible after a walk ran.
+- Option C: both `pw progress` and every handoff prompt name the scope.
+  - pro: impossible to miss.
+  - con: repeats the same line in every prompt.
+
+#### Recommended option for Q25 (with arguments for this choice)
+
+Option A: `pw progress` is where a user or agent looks before the next step; showing the declared scope, its source and any pending change there makes the scope known before it matters.
+
+#### Answer to Q25: option A (with reason why it must be accepted as the answer)
+
+Option A: `pw progress` names the declared scope, its source and any pending change, while the ghog reports keep naming the scope each run actually used.
+
+### Q26: Remembering a whole-suite answer, and which document controls scope
+
+Question description: an absent `Test group:` line means the whole suite (Q16, Q20), but during authoring it cannot tell a deliberate whole-suite answer from an author who was never asked. Q22 also records the answer in the draft first; once the requirement exists, a stale draft must not bring back a group the requirement removed.
+
+#### BBQ for Q26
+
+The order form has an empty "tasting" box. It may mean "taste the whole menu" or "nobody asked". And once the kitchen copy of the order exists, the customer's first scribbled note must not override later changes to the kitchen copy.
+
+In this picture: the empty box is an absent `Test group:` line, the customer's first note is the draft, the kitchen copy is the requirement, and "taste the whole menu" is an explicit whole-suite answer.
+
+#### Options for Q26
+
+- Option A: authoring records an explicit choice, a named group or the whole suite, and asks only while no choice is recorded. Once the requirement exists, it alone controls workflow scope; its absent `Test group:` line still means the whole suite. The draft is an input to requirement creation, never a fallback, and regenerating from it never overwrites a later requirement selection.
+  - pro: no repeated question, one runtime authority, and a deactivation survives a stale draft;
+  - pro: the runtime meaning of an absent line does not change.
+  - con: authoring must distinguish "unanswered" from "whole suite".
+- Option B: absence always means the whole suite, and `write-requirement` never asks when the draft has no line.
+  - pro: no extra state.
+  - con: an effort never asked is never asked.
+- Option C: absence means unanswered at every authoring stage, and the draft stays a fallback.
+  - pro: little explicit state.
+  - con: asks a settled question again, and can resurrect a group removed from the requirement.
+
+#### Recommended option for Q26 (with arguments for this choice)
+
+Option A: a deliberate answer must be remembered as such, and one document must control the effort once it exists; how the choice is encoded is left to the design, without inventing a group named "none".
+
+#### Answer to Q26: option A (with reason why it must be accepted as the answer)
+
+Option A: the authoring workflow remembers an explicit whole-suite or group answer, and from the requirement onward only the requirement controls the effort's scope.
