@@ -31,11 +31,16 @@ coverage and test-speed work it demands before the code has even settled.
 
 - Development skills (implement-step, implement-missing-step, split-large-file,
   and the groundhog loop they start) use the default walk.
-- The code-review requestor proves `cov` before it publishes a review request.
+- The code-review requestor proves `speed` before it publishes a review
+  request, from round 1, so every change made for speed is reviewed like the
+  rest of the step.
 - The prepare-release green gate proves `cov`.
-- When the code-review requestor receives a commit-ready answer, it runs one
-  `speed` walk:
-  - if shortening the slow calls needs a change in production code (not only
-    in tests), it requests another review round;
-  - otherwise (no outlier, or test-only changes), it accepts the commit-ready
-    answer and waits for the human to validate the commit.
+- When the code-review requestor receives a commit-ready answer, no `speed`
+  walk runs: the last request was already validated at `speed`.
+- Without review mode, the `speed` pass runs between implementation-check and
+  the commit menu.
+
+Revised on 2026-09-30: an earlier intent ran the `speed` walk after review, at
+the commit-ready answer, sending production-code speed repairs to another
+round and letting test-only repairs skip review. Moving `speed` before review
+keeps every speed change under review and removes that post-review exception.
