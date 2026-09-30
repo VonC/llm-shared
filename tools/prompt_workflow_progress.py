@@ -27,6 +27,12 @@ resumes. No review, or reviews in a normal state, add no such line.
 Fix: during the coding steps, a `journal` line follows the `step` line with
 the full path of the current step's private journal, once the code writer has
 created it (see `prompt_workflow_step_journal`).
+
+Fix: a specification routing refusal no longer aborts the report. `pw skill`
+still fails closed when one topic has several live specification exchanges,
+since it must hand off to exactly one; `pw progress` only reports, so it
+keeps every other line (the `review` lines already name each exchange) and
+states the refusal on its `next` line.
 """
 
 from __future__ import annotations
@@ -42,6 +48,7 @@ from tools import prompt_workflow_handoff as handoff
 from tools import prompt_workflow_memory as memory
 from tools import prompt_workflow_plan as plan
 from tools import prompt_workflow_progress_review as progress_review
+from tools import prompt_workflow_review as review
 from tools import prompt_workflow_review_history as review_history
 from tools import prompt_workflow_skill as skill
 from tools import prompt_workflow_step_journal as step_journal
@@ -364,11 +371,27 @@ def next_line(  # noqa: PLR0913
         requestor: The Claude or Codex requestor of the topic, or None.
 
     Returns:
-        `none resolved` without a command; the command for the environment or
-        override host when no requestor is known or the command addresses a
-        reviewer; otherwise the command for the requestor's host followed by
-        ` (claude)` or ` (codex)`.
+        `none resolved` without a command; `none resolved (<reason>)` when
+        specification routing refuses to pick one exchange; the command for
+        the environment or override host when no requestor is known or the
+        command addresses a reviewer; otherwise the command for the
+        requestor's host followed by ` (claude)` or ` (codex)`.
     """
+    try:
+        return _next_command(root, topic, branch, env, override, requestor)
+    except review.SpecificationReviewRoutingError as error:
+        return f"none resolved ({error})"
+
+
+def _next_command(  # noqa: PLR0913
+    root: Path,
+    topic: Topic,
+    branch: str,
+    env: Mapping[str, str],
+    override: str | None,
+    requestor: LlmNature | None,
+) -> str:
+    """Return the next command line; routing refusals propagate to `next_line`."""
     host = requestor.value if requestor is not None else override
     command, _note = skill.current_command(root, topic, branch, env, host)
     if command is None:
