@@ -438,3 +438,282 @@ Human choice: Consolidate
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-3 -->
+
+## Round 1 by requestor (exchange 2)
+
+- Recorded: 2026-09-30T10:41:42+02:00
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: unrecorded
+- Outcome: request
+
+### Review identity for feature-request full_suite_levels (exchange 2) (round 1)
+
+Umbrella draft: none
+Reviewed specification: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+Review round: 1
+
+### Requestor assessment for feature-request full_suite_levels (exchange 2) (round 1)
+
+The feature request was consolidated after three review rounds, then reopened by the human on 2026-09-30, before any design was adopted: the `speed` validation moves from the commit-ready convergence to the requestor's validation before every code-review request, from round 1. The design that had been started on the earlier requirement was dropped.
+
+The body is revised accordingly (revision paragraph, current-behavior bullet on parallel projects, gap 3 timing pass at `speed`, gaps 12 and 14 to 17), and the clarification rows Q04 to Q07 and Q09 are marked superseded, revised or reopened. Four open questions cover what the reopening leaves undecided: which rounds re-validate at `speed` (Q11), a failing recheck at the commit-ready answer (Q12), the `speed` pass without review mode (Q13), and declared `.review-validation` sets (Q14).
+
+Please check whether a question is missing, whether the recommendations are sound, and whether any remaining text still assumes the superseded post-review `speed` pass.
+
+### Change summary for feature-request full_suite_levels (exchange 2) (round 1)
+
+- "CDC revision" section: the requestor proves `speed` before every code-review request and only rechecks it at the commit-ready answer; a dated revision paragraph explains the reopening.
+- "Current behavior": new bullet stating that a parallel project's full run never judges speed, only `ghog timings` does, and that no instruction runs it.
+- Gap 3: at `speed`, durations are judged without worker contention; in a parallel project a `speed` walk includes the sequential timing pass.
+- Gap 12: requestor validation at `speed` from round 1, every speed change reviewed; `.review-validation` authority (Q14).
+- Gap 14: duration exclusions allowed before review, with call, measured time, attempt and reason in the request.
+- Gap 15: speed recheck at the commit-ready answer, no repair there, no transition out of the convergence gate (Q12).
+- Gap 16: without review mode, `speed` before the commit gate, changes back through implementation-check (Q13).
+- Gap 17: no test-only boundary and no requestor transition out of the convergence gate.
+- Clarification rows: Q04, Q05, Q06 superseded; Q07 revised; Q09 reopened as Q13.
+- The draft's intent is aligned with the same change.
+
+### Writer response for feature-request full_suite_levels (exchange 2) (round 1)
+
+Writer response:
+
+This is a new exchange on a reopened document. The human decided to move `speed` before review after comparing both approaches: the post-review approach needed a test-only exception, a repair baseline and candidate evidence, and a new transition out of the convergence gate, while the pre-review approach reviews every speed change through the existing round mechanism at the cost of re-validating at `speed` per request. The settled level model, selectors, snapshot rules, reporting and closing instructions (Q01 to Q03, Q08, Q10 and the closing-instruction table) are unchanged and should not be reopened.
+
+### Reviewer focus for feature-request full_suite_levels (exchange 2) (round 1)
+
+Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
+
+<!-- review-entry-id: request-round-1-exchange-2 -->
+
+### LLM nature completion for reviewer (exchange 2)
+
+Recorded nature: `codex`
+
+Completed artifacts:
+
+- `.reviews/a.review-active.specification.feature-request.v0.13.0.full_suite_levels.md`
+- `.reviews/a.review-requested.feature-request.v0.13.0.full_suite_levels.md`
+
+<!-- review-entry-id: llm-nature-completion-reviewer-exchange-2 -->
+
+## Round 1 by reviewer (exchange 2)
+
+- Recorded: 2026-09-30T10:52:41+02:00
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Outcome: answer
+
+### Reviewer assessment for feature-request full_suite_levels (exchange 2) (round 1)
+
+Convergence recommended. The reopened requirement moves speed repair work before publication and subjects it to ordinary review. It explicitly removes the post-review test-only exception, repair-delta classifier and requestor transition out of convergence. The earlier design's unresolved mechanisms are therefore outside this review and are not conditions for this requirement to converge.
+
+I choose option A for Q11, Q12, Q13 and Q14. Together they define the default validation on every request, human handling of an unsuccessful convergence recheck, validation when review mode is disabled, and explicit project-policy overrides. No additional question is missing at the requirement level. The remaining corrections qualify claims that are currently too broad and align the text with the selected answers; they do not require another workflow choice.
+
+Recommend convergence and consolidation after the existing human confirmation. This answer does not authorize consolidation or a commit.
+
+### Question verdicts for feature-request full_suite_levels (exchange 2) (round 1)
+
+| Question | Assessment and chosen answer |
+| --- | --- |
+| Q11, which rounds validate speed | Choose A. The options are distinct: lowering the objective on replacement rounds would defer newly introduced speed problems until the restricted convergence phase. Validate every request at speed under the default policy; existing valid speed evidence may satisfy that invocation through the snapshot rule. Qualify this with Q14's explicit project-policy exception. Also say the request enters review with speed evidence, not that every tree the reviewer might subsequently edit has already been validated; gap 15 supplies that final check. |
+| Q12, unsuccessful convergence recheck | Choose A. Showing the result and recommending the existing human rework choice preserves the decision to add no requestor transition. B restores the removed automation; C removes the human's deliberate ability to accept a disclosed failure. Make clear that the requestor does not follow the report's generic repair instructions at this phase. A human choosing Commit despite that report accepts a disclosed validation exception; the result must remain recorded as failing or unproven, never as a met speed objective. |
+| Q13, review-disabled validation | Choose A. It keeps development walks lightweight, puts speed validation at the plan-step commit boundary, and sends every repair back through implementation-check. B moves the cost into development; C omits the intended speed check. The subsequent pass must be green, possibly by valid snapshot reuse, before the ordinary menu. This includes duration-acceptance changes and does not introduce a test-only exemption or a review exchange. |
+| Q14, declared validation policy | Choose A. Respect the project's versioned validation commands and disclose the changed meaning of an unqualified day command. B makes speed mandatory regardless of that declaration; C silently changes command semantics. A necessarily makes the before-every-request speed guarantee a default-policy guarantee, not a universal one. Gap 15 still requires the speed check at convergence; for a project whose declared pre-review set omitted it, that can be its first speed validation, and a failure takes Q12's human path. State that consequence plainly rather than calling it a proven-speed recheck in every project. |
+
+All four questions belong to this reopening and have materially distinct options. None is redundant, and no additional question is required. The previously settled level names, selectors, level order, snapshot reuse policy and command ownership remain settled. The retained superseded rows are clearly historical, not active requirements.
+
+### Convergence evidence for feature-request full_suite_levels (exchange 2) (round 1)
+
+Covered wording:
+
+1. **Qualify the default-policy speed guarantee.** In the introduction, gap 12 and Q11, use wording such as: “Under the default requestor validation policy, every code-review request is published after a green speed walk; an explicit project validation declaration is governed by Q14.” Keep the migration notice for a declared day command without an explicit level. Do not claim that every project has proved speed before review when option A of Q14 deliberately permits otherwise. Add the direct consequence already implied by gaps 12 and 15: “The convergence speed check still applies to projects with a declared validation set. When that set did not establish speed, this check may be the first speed validation; failure is handled through Q12, without a requestor repair.” No stronger forced validation policy is requested.
+
+2. **Use the settled valid-snapshot condition for noops.** Replace the new shorthand “a noop when no Python file changed” in gap 15 and Q11 with “a noop when the validated snapshot is still valid and its recorded proof satisfies speed.” The number or extension of edited files alone is not the acceptance condition in gaps 6-8. Likewise, describe a round as potentially reusing evidence rather than unconditionally free whenever it changed no Python file. This preserves the settled snapshot contract; the new design can determine its representation and invalidation details.
+
+3. **Keep direct parallel reporting truthful within the existing compatibility boundary.** The new current-behavior paragraph establishes that a direct parallel full run does not measure durations, while gap 9 preserves that direct call's behavior. Qualify the paragraph applying the full-suite closing table to direct calls: a direct run may state only the objective it actually established. A green direct parallel call at selected speed must disclose that duration proof was not measured and direct a caller needing that proof to `ghog day --full=speed`; it must not use the table's unconditional “no unaccepted duration outlier” claim. This does not add timings to direct full or change its default selector. Also describe the introductory v0.12.0 all-gates statement as the intended objective, with the documented parallel measurement limitation, rather than implying that every old run measured speed.
+
+4. **Make the final-phase instruction take precedence over generic repair lines.** In gap 15/Q12, state that the requestor records and presents an unsuccessful recheck without editing code, tests or exclusions, even if the ordinary report recommends repairs. Recommend the existing human rework choice. If the human knowingly chooses Commit, preserve the failed or unavailable validation evidence and the human decision; do not relabel that result as green. Existing operational-stop rules continue to apply, and no automatic retry or new requestor transition is introduced.
+
+5. **Align acceptance wording with the four selected answers.** Extend gap 19's coverage summary to include: a default-policy request withheld until its speed validation is green; a repaired replacement request validated again; a valid unchanged speed snapshot reused; an unsuccessful convergence check shown without repair; a project declaration preserved with its migration notice; and a review-disabled speed repair returning through implementation-check before the final green check and menu. Include the direct parallel disclosure in the reporting cases. These cases express the chosen behavior and add no new policy.
+
+Convergence rationale:
+
+Every question raised by this reopening has a selected answer consistent with the existing role boundaries. Speed repairs happen in the ordinary pre-publication requestor loop, and all such repairs are assessed in review. Convergence permits a check and a human decision, not autonomous repairs. Review-disabled work sends repairs back through implementation-check, and explicit project validation declarations remain authoritative.
+
+The covered corrections make the default-policy exception, valid-snapshot condition, direct parallel measurement limit and final-phase authority explicit. None requires restoring the superseded post-review machinery or selecting another option. They can be incorporated through the authorized consolidation workflow after human confirmation. Convergence is advisory; no consolidation has been performed.
+
+### Writer instructions for feature-request full_suite_levels (exchange 2) (round 1)
+
+Apply the covered wording corrections while consolidating the four selected option A answers into the requirement, after the human chooses the existing consolidation action. Preserve the dated reopening note and the explicit superseded decisions so their historical purpose stays clear. Do not restore the dropped design's baseline/candidate protocol, test-only declaration or automatic convergence-reopen transition.
+
+No additional automated review round is required for the covered edits. Keep the convergence gate pending until the human choice arrives; this reviewer has not consolidated or changed the specification. A new behavioral decision beyond these clarifications would require its own review.
+
+### Final reviewer decision for feature-request full_suite_levels (exchange 2) (round 1)
+
+Decision: convergence-recommended. This recommendation is advisory; consolidation is not confirmed and remains at the durable human gate.
+
+<!-- review-entry-id: answer-round-1-exchange-2 -->
+
+## Round 1 by human - human-confirmation (exchange 2)
+
+- Recorded: 2026-09-30T11:01:21+02:00
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Outcome: human-confirmation
+
+Human choice: Revise and review again
+Outcome: another-round
+Guidance: Drop the `speed` recheck at the commit-ready answer: remove gap 15 and Q12. When the last review is commit-ready, the request was already validated at `speed` (Q11), and only polishing edits may accompany a commit-ready answer, so no speed walk runs before the commit in review mode. Accept the consequence that a project whose declared `.review-validation` set does not establish `speed` gets no speed validation before commit; the migration notice of Q14 stays the only signal. Clarify Q13: it applies only when review mode is disabled, where the flow goes from implementation-check straight to the commit menu and the `speed` pass runs in between. Apply the reviewer's other covered wording that does not depend on the recheck.
+
+<!-- review-entry-id: human-confirmation-round-1 -->
+
+## Round 2 by requestor (exchange 2)
+
+- Recorded: 2026-09-30T11:05:03+02:00
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Outcome: request
+
+### Review identity for feature-request full_suite_levels (exchange 2) (round 2)
+
+Umbrella draft: none
+Reviewed specification: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+Review round: 2
+
+### Requestor assessment for feature-request full_suite_levels (exchange 2) (round 2)
+
+The human chose another round at the round-1 convergence gate, with guidance to drop the `speed` recheck at the commit-ready answer and to clarify Q13. Both are applied, together with every round-1 covered wording correction that does not depend on the dropped recheck. Three open questions remain (Q11, Q13, Q14), all with option A recommended as chosen in round 1. Please check that no text still assumes a `speed` walk at the commit-ready answer, and that the consequence for declared validation sets is stated plainly.
+
+### Change summary for feature-request full_suite_levels (exchange 2) (round 2)
+
+Human guidance applied:
+
+- Recheck dropped: former gap 15 and Q12 removed. New gap 16 ("No post-review speed work") states that no `speed` walk runs at the commit-ready answer and that a project whose declared `.review-validation` set does not establish `speed` gets no `speed` validation before commit, the Q14 migration notice being the signal. The introduction, the revision paragraph (the dropped recheck is recorded there), Q11, Q14 and the draft intent say the same.
+- Q13 clarified: former gap 16, now gap 15, and Q13 state that they apply only when review mode is disabled, where the flow goes from implementation-check straight to the commit menu, with the `speed` pass in between; any change goes back through implementation-check, then a green `speed` pass (possibly by snapshot reuse) before the menu; no test-only exemption and no review exchange.
+
+Round-1 covered wording applied:
+
+1. Default-policy qualification in the introduction, gap 12 and Q11 ("under the default requestor validation policy ..."; each request enters review with `speed` evidence; declarations governed by Q14).
+2. Snapshot wording: "a noop when the validated snapshot is still valid and its recorded proof satisfies `speed`" (Q11), and "may reuse valid `speed` evidence under the snapshot rules of gaps 6 to 8" (gap 12).
+3. Direct parallel truthfulness: gap 9 now says a direct run states only the objective it established, and a green direct parallel run at `speed` discloses that durations were not measured and names `ghog day --full=speed`; the direct-run paragraph of the closing instructions refers to it; the v0.12.0 all-gates sentence is described as the intended objective with the parallel limitation.
+4. Covered wording 5, gap 18 (documentation and tests) lists the requested acceptance cases, minus the dropped recheck.
+
+Covered wording 4 (no repair at a failing recheck) no longer applies, since the recheck is gone.
+Renumbering: former gaps 16 to 19 are now 15 to 18; clarification rows Q05, Q06 and Q09 point to the new gap numbers.
+
+### Human guidance and writer response for feature-request full_suite_levels (exchange 2) (round 2)
+
+Human guidance:
+
+Drop the `speed` recheck at the commit-ready answer: remove gap 15 and Q12. When the last review is commit-ready, the request was already validated at `speed` (Q11), and only polishing edits may accompany a commit-ready answer, so no speed walk runs before the commit in review mode. Accept the consequence that a project whose declared `.review-validation` set does not establish `speed` gets no speed validation before commit; the migration notice of Q14 stays the only signal. Clarify Q13: it applies only when review mode is disabled, where the flow goes from implementation-check straight to the commit menu and the `speed` pass runs in between. Apply the reviewer's other covered wording that does not depend on the recheck.
+
+Writer response:
+
+The round-1 answer is accepted, with no disagreement on its covered wording. The only departure is the human's decision to drop the recheck, which the reviewer had kept under Q12 and gap 15; the consequence the reviewer identified for declared validation sets is now stated in gap 16 and Q14 rather than covered by a convergence check.
+
+### Reviewer focus for feature-request full_suite_levels (exchange 2) (round 2)
+
+Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
+
+<!-- review-entry-id: request-round-2-exchange-2 -->
+
+## Round 2 by reviewer (exchange 2)
+
+- Recorded: 2026-09-30T11:32:15+02:00
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Outcome: answer
+
+### Reviewer assessment for feature-request full_suite_levels (exchange 2) (round 2)
+
+Convergence recommended for occurrence 2, round 2. No missing question remains. I agree with the three current questions and choose A for Q11, Q13, and Q14.
+
+The current specification removes the commit-ready speed recheck: the introduction, gap 16, Q11, and Q14 explicitly prohibit it; Q12 is absent. References to the former check in the dated revision and superseded decisions are historical. Gap 15 and Q13 now unambiguously apply only when review mode is disabled and require every speed repair to return through implementation-check before the final green speed pass and commit menu.
+
+The consequence of retaining project-declared validation is explicit: a declared set that establishes no speed evidence receives no additional speed validation before commit. The migration notice is the signal, and the workflow does not silently strengthen the declaration. A few qualifications below make the wording consistent with the existing selector, snapshot, and polishing-edit rules; they require no new behavior or decision.
+
+### Question verdicts for feature-request full_suite_levels (exchange 2) (round 2)
+
+| Question | Assessment and chosen answer |
+| --- | --- |
+| Q11: validation before replacement requests | Relevant and sufficiently specified. A, B, and C differ in the objective enforced on replacement requests. Choose A under the default requestor policy: every publication follows green speed validation, with valid snapshot reuse allowed. Since there is no commit-ready recheck, this is the last speed proof; it applies to the submitted tree, with only the permitted polishing edits allowed afterwards. Retain the Q14 exception for explicit project declarations. |
+| Q13: review mode disabled | Relevant, clear, and distinct from Q11. Choose A: after implementation-check reports completion, run speed before the commit menu; any test, production, or exclusion repair returns through implementation-check and then a green speed pass. B moves the cost back into development, and C removes this gate. No review exchange or test-only exemption is needed. |
+| Q14: declared validation sets | Relevant and adequately exposes the accepted tradeoff. Choose A: keep project authority and show the migration notice on every request containing plain ghog day. B adds an unchosen mandatory command; C changes command semantics by context. If the declared validation supplies no speed proof, there is no later workflow-supplied speed check. Qualify the prose as below so the notice is not mistaken for a verdict about commands or environment settings that actually establish speed. |
+
+No missing decision needs another question. The removed Q12 should remain removed. The superseded test-only classifier, repair baseline, and convergence transition remain outside the current requirement.
+
+### Convergence evidence for feature-request full_suite_levels (exchange 2) (round 2)
+
+Covered wording:
+
+1. Qualify the reviewer-edit sentence in gap 12. Replace "edits the reviewer makes afterwards are covered by the next request's validation" with: "Edits that lead to a replacement request are covered by that request's validation. If the answer is commit-ready, only the permitted polishing edits may accompany it, and no further speed walk runs." The current unconditional sentence suggests a next request even when the exchange converges.
+
+2. Keep the default-policy exception visible in two short summaries. In the dated revision, say "under the default validation policy, the last request was already validated at speed"; in Q13's review-enabled summary, say "under the default validation policy, speed runs before each request (Q11); declared validation sets follow Q14, and no speed walk runs at the commit-ready answer." These qualifications agree with gaps 12 and 16.
+
+3. In Q14, distinguish the migration notice from actual validation evidence. Suggested question wording: "A declaration containing plain ghog day can now prove only check and affected tests when no full level is selected. If its validation commands establish no speed evidence, no additional speed walk runs before commit." In option A and its rationale, replace the unconditional "no speed ... until it changes its declaration" consequence with "no additional speed validation is supplied by the workflow; if the declared validation does not establish speed, the step reaches commit without that proof." Keep the required notice for a declared ghog day without --full. Gap 2 still permits GHOG_FULL=speed, another declared command can already request speed, and gaps 6 to 8 permit valid saved proof; a notice alone must not claim these are absent. This preserves the human's accepted consequence for declarations that actually establish no speed.
+
+4. In Q11's description, replace "and runs in full otherwise" with "otherwise it runs the work needed to establish speed, reusing successful check and affected results only as permitted by gap 7." An upgrade from a valid lower-level snapshot does not require rerunning every step.
+
+5. In clarification Q04, change both references to gap 17 to gap 16. Gap 16 now owns the absence of a test-only boundary; gap 17 concerns the unchanged reviewer validation scope.
+
+For the acceptance summary in gap 18, explicitly name the already-required absence of a speed walk at a commit-ready answer, including when declared validation supplies no speed proof. This documents gap 16's expected behavior and guards against carrying the superseded recheck into the design; it adds no new requirement.
+
+Convergence rationale:
+
+All three remaining policy choices are settled with A. The current text implements the human's decision to drop the commit-ready recheck and clearly locates the review-disabled speed pass. The remaining edits qualify existing statements and repair a stale reference; none changes the selected gates, review transitions, project authority, or snapshot semantics. Consolidation can proceed after the existing human gate, without another automated review round for this wording alone.
+
+### Human guidance response for feature-request full_suite_levels (exchange 2) (round 2)
+
+Human guidance:
+
+Drop the `speed` recheck at the commit-ready answer: remove gap 15 and Q12. When the last review is commit-ready, the request was already validated at `speed` (Q11), and only polishing edits may accompany a commit-ready answer, so no speed walk runs before the commit in review mode. Accept the consequence that a project whose declared `.review-validation` set does not establish `speed` gets no speed validation before commit; the migration notice of Q14 stays the only signal. Clarify Q13: it applies only when review mode is disabled, where the flow goes from implementation-check straight to the commit menu and the `speed` pass runs in between. Apply the reviewer's other covered wording that does not depend on the recheck.
+
+Guidance response:
+
+The literal Human guidance block is accepted. I checked the entire current requirement: Q12 and the former commit-ready recheck gap are removed, gap 16 prohibits that walk, and the remaining references to the old check describe superseded history.
+
+I also accept the explicitly chosen consequence for a declared validation set that establishes no speed proof: no additional speed validation occurs before commit, and Q14's migration notice remains the signal. The Q14 wording qualification above only preserves the already-agreed selector and evidence rules; it does not add a fallback speed check.
+
+Q13 and gap 15 now apply exclusively to review mode disabled, between implementation-check and the commit menu, and route every repair back through implementation-check before the final green speed pass. No test-only exemption or review exchange is introduced. The other round-1 wording corrections have been incorporated; the former failing-recheck correction no longer applies.
+
+### Writer instructions for feature-request full_suite_levels (exchange 2) (round 2)
+
+Keep A for Q11, Q13, and Q14 and preserve the human's removal of the commit-ready speed recheck. Apply the covered wording corrections below during the authorized consolidation workflow. They align the prose with decisions already present; they do not authorize a new check, an automatic change to project declarations, or another requestor transition.
+
+Do not consolidate on this answer alone. Convergence is advisory and the existing human gate owns that choice. No additional automated review round is needed for these wording corrections unless the writer introduces different behavior or a new decision.
+
+### Final reviewer decision for feature-request full_suite_levels (exchange 2) (round 2)
+
+Decision: convergence-recommended. This recommendation is advisory; consolidation is not confirmed and remains at the durable human gate.
+
+<!-- review-entry-id: answer-round-2-exchange-2 -->
+
+## Round 2 by human - human-confirmation (exchange 2)
+
+- Recorded: 2026-09-30T12:08:03+02:00
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Outcome: human-confirmation
+
+Human choice: Consolidate
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-2 -->
