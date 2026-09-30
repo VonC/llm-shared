@@ -1000,3 +1000,268 @@ Human choice: Consolidate
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-2 -->
+
+## Round 1 by requestor (exchange 4)
+
+- Recorded: 2026-09-30T16:11:02+02:00
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: unrecorded
+- Outcome: request
+
+### Review identity for feature-request full_suite_levels (exchange 4) (round 1)
+
+Umbrella draft: none
+Reviewed specification: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+Review round: 1
+
+### Requestor assessment for feature-request full_suite_levels (exchange 4) (round 1)
+
+The feature request is reopened a third time, at the human's request, for group activation. The consolidated requirement said how a group is declared (a `Test group:` line read by `pw`) and when a declared group is used, but not when an effort is asked about a group, how a group is turned on, changed or turned off partway through an effort (setting `GHOG_GROUP` cannot do it for workflow walks, since an ungrouped effort uses the explicit whole-suite selector), what an active code review learns of a scope change, or where the current scope is shown.
+
+A dated revision paragraph and gap 24 state these needs; four open questions cover them: where the group is declared and when it is asked (Q22), changing the group mid-effort (Q23), a scope change during an active code review (Q24), and where the current scope is shown (Q25). Please check whether a question is missing and whether the recommendations are consistent with Q16, Q18, Q20 and Q21.
+
+### Change summary for feature-request full_suite_levels (exchange 4) (round 1)
+
+- New dated revision paragraph "Revision of 2026-09-30, group activation".
+- New gap 24 "Group activation and change", referring to Q22 to Q25; former gap 24 (documentation and tests) is now gap 25.
+- The draft's test-group intent gains one line on activation, change and visibility.
+
+### Writer response for feature-request full_suite_levels (exchange 4) (round 1)
+
+Writer response:
+
+This is a new exchange on a reopened document. The human asked whether it is clear when a group is used and how to activate one when it was not initially activated; the answer was that the requirement covers the first but not the second. The settled decisions Q01 to Q21 should not be reopened.
+
+### Reviewer focus for feature-request full_suite_levels (exchange 4) (round 1)
+
+Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
+
+<!-- review-entry-id: request-round-1-exchange-4 -->
+
+### LLM nature completion for reviewer (exchange 4)
+
+Recorded nature: `codex`
+
+Completed artifacts:
+
+- `.reviews/a.review-active.specification.feature-request.v0.13.0.full_suite_levels.md`
+- `.reviews/a.review-requested.feature-request.v0.13.0.full_suite_levels.md`
+
+<!-- review-entry-id: llm-nature-completion-reviewer-exchange-4 -->
+
+## Round 1 by reviewer (exchange 4)
+
+- Recorded: 2026-09-30T16:35:01+02:00
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Outcome: answer
+
+### Reviewer assessment for feature-request full_suite_levels (exchange 4) (round 1)
+
+Changes are requested for the group-activation reopening (occurrence 4, round 1). I read the complete current requirement and validated request. The request accurately describes the additions; Q01-Q21 remain settled.
+
+I support the direction of option A for Q22-Q25: ask early, carry the selection into the requirement, allow later changes without automatically reopening specification review, disclose changed validation scope, and show scope in pw progress. However, the current wording leaves substantive lifecycle and source-of-truth gaps:
+
+- Q22 cannot distinguish an author who deliberately chose the whole suite from an author who was never asked. It also introduces a draft copy without saying which document wins after the requirement exists.
+- Q23 says a change applies to the next printed command at any time, while Q24 handles only the next request. A request can already be under review and receive a commit-ready answer with no next request. Neither new-scope validation nor review of the scope change is then guaranteed.
+- A group's definition is shared, while an effort's selection is local to its requirement. Q23's instruction to edit the line "and the group file entry" can imply deleting or changing a shared definition merely to stop selecting it. Q24 must also recognize a changed definition under the same group name.
+- "No proof reused across the change" needs to preserve Q18's exact-scope validity rule rather than silently introduce a new ban on otherwise valid proof for the destination scope.
+- Gap 25 has not gained acceptance cases for the activation and change behavior being introduced.
+
+These require decisions and observable requirements, beyond wording-only polish. No implementation tests were run; this assessment concerns the requirement.
+
+### Question verdicts for feature-request full_suite_levels (exchange 4) (round 1)
+
+| Question | Verdict and chosen answer |
+| --- | --- |
+| Q22: declaration and asking point | Relevant; partly overlaps settled Q16, so frame it around authoring and prompting while keeping the requirement as the runtime authority. Choose A with R1: ask at process-draft, carry the result into write-requirement, and ask there only if no choice was actually recorded. A confirmed whole-suite choice must count as an answer. B delays the decision and C leaves activation undiscoverable. The creation or reuse of a group entry must follow the selected answer. |
+| Q23: later activation, switching and deactivation | Relevant and distinct from initial authoring. Choose A with R2-R4: changing the selection need not reopen specification review, but must respect an already-published code-review round and exact-scope proof rules. B imposes a specification-review cycle for every selection change; C unnecessarily freezes scope after implementation starts. Define activation, switching and deactivation as selection changes, separately from modifying shared definitions. |
+| Q24: active code review | Necessary, but the options and answer currently address only changes between rounds. Choose A for ordinary replacement requests, with R2 defining what happens while a request or answer is pending and when the current answer reaches convergence. Disclosure alone cannot validate a changed scope if no replacement request is published. B is unnecessarily broad if changes can be prepared for the next legal boundary; C restarts more review state than needed. Include same-name definition changes under R3. |
+| Q25: visibility | Clear and in scope. Choose A: pw progress shows the effort's declared scope and the authoritative document it came from; existing ghog reports show the actual run scope. B lacks visibility before running; C duplicates information without resolving the lifecycle gaps. If a scope change is deferred by R2, distinguish the pending choice from the scope bound to the active round. Do not imply that a declared custom validation command proved the effort's group. |
+
+One missing question should be added: how an explicit whole-suite choice and an unanswered choice are represented during authoring, and which document is authoritative afterward.
+
+Suggested question: "How do we remember a deliberate whole-suite choice, and which document controls the effort after its requirement exists?"
+
+- Option A (recommended): record an explicit authoring choice, either a named group or the whole suite. Ask only while that choice is missing. When the requirement exists it alone controls workflow scope; its absent Test group line still means the whole suite under Q16/Q20. The draft is an input to creation, never a fallback that reactivates a removed group. Pro: no repeated question, one runtime authority, deactivation survives a stale draft. Con: the authoring workflow must distinguish unanswered from explicitly whole-suite.
+- Option B: absence always means the whole suite, and write-requirement does not ask when a draft has no group line. Pro: no additional choice state. Con: cannot meet Q22's intended fallback prompt for an effort never asked.
+- Option C: treat absence as unanswered at each authoring stage and let the draft remain a fallback. Pro: little explicit state. Con: repeats a settled choice and can resurrect a group removed from the requirement.
+
+The encoding of the recorded choice is a design detail; it must not invent a group named "none" or alter the settled runtime meaning of an absent declaration. R2 can be resolved by expanding Q24 rather than adding another question.
+
+### Requested changes for feature-request full_suite_levels (exchange 4) (round 1)
+
+Requested changes:
+
+R1. Make the authoring choice durable and establish one authoritative document.
+Q22 A says write-requirement asks again when the draft has no Test group line, which also describes a deliberate whole-suite choice. State that an explicitly answered "whole suite" is remembered and is not asked again; only an unrecorded choice triggers the fallback prompt. Existing explicit human input can supply the answer without a duplicate prompt.
+Once a requirement exists, it is the runtime source of scope. Removing its Test group line selects the whole suite, even if an older draft still names a group. Draft metadata is carried forward only during requirement creation; subsequent regeneration must not silently overwrite a later requirement selection.
+For an existing named group, validate and reuse its entry. For a new group, obtain its test and source patterns and create a valid entry before the first grouped walk. An unknown, unreadable or empty selected group retains Q21's setup failure rather than falling back.
+
+R2. Define when a change can take effect during an active code review.
+Replace Q23's unconditional "next pw command" with the next eligible workflow boundary. A published round retains its reviewed content and resolved validation scope; editing the live requirement must not silently change that round's reviewer affected commands or relabel its existing evidence. A walk already started, including a detached walk, likewise retains its invocation scope.
+For an ordinary replacement round, resolve the new scope, satisfy the applicable validation policy, and publish the new scope and evidence together with the previous scope and reason. The default still requires green speed evidence for the new scope, while Q14's declared validation set remains authoritative.
+Cover the case where the current answer is commit-ready and no replacement round exists: a scope change cannot be treated as polishing, silently join the reviewed result, or reuse the old round's proof as proof of the new scope. Defer the change or use the existing human rework/recovery path before committing it as part of the effort. Do not add a post-review speed pass, a new exchange operation, or an automatic requestor transition out of convergence.
+State how a change requested while a round is pending is represented until that boundary. This closes the gap without requiring cancellation of every exchange or reopening specification review for every selection edit.
+
+R3. Separate selecting a group from editing its shared definition, and detect same-name changes.
+Activation adds the chosen name to the authoritative requirement; switching replaces it; deactivation removes the selection. None requires deleting the old group's entry. A group entry may serve other efforts, so selecting a group must not overwrite its patterns, and stopping its use must not delete it.
+Changing a group's test patterns, source patterns or effective membership is a distinct scope change under Q18, even if its name stays the same. Q24's disclosure must describe such a change as well as group-to-group, group-to-whole and whole-to-group switches. A name-only comparison is insufficient.
+Suggested wording: "A scope change includes a change of selected group, selection of the whole suite, or a change to the selected group's resolved definition. The next eligible request identifies what changed and why, and binds its evidence to the resulting scope." Leave the concrete comparison mechanism to design.
+
+R4. Align switching and proof reuse with Q18.
+Clarify that the previous scope's proof never satisfies a different scope. A destination scope may use its own already-valid saved proof if it still meets all existing source, level, membership and gate-configuration rules; otherwise the next walk establishes new proof. A change of patterns or membership invalidates the affected proof even when the name is unchanged.
+Replace the absolute "no proof reused across the change" with "no proof from a different scope is reused." If the intended policy is instead to force a fresh walk whenever selection changes, explicitly raise and decide that extra rule rather than deriving it from Q18.
+
+R5. Add acceptance cases and actionable user documentation for activation.
+Extend gap 25 to cover:
+
+- initial selection of an existing group, creation of a new valid group, an explicit whole-suite answer not being asked again, and write-requirement's fallback when no answer was recorded;
+- activation after an effort starts, switching groups and deactivation, including GHOG_GROUP being unable to override the workflow choice;
+- a stale draft not overriding a changed or removed requirement selection;
+- shared entries surviving deactivation and same-name definition changes being recognized;
+- a pending round and a detached run retaining their bound scope, a replacement request carrying appropriate new-scope validation and disclosure, and a commit-ready answer not admitting an unreviewed scope change as polishing;
+- exact-scope reuse behavior and pw progress showing the authoritative source, including any deferred choice under R2.
+
+Require the user-facing documentation to show how to choose, change and remove the effort selection and how that differs from manual CLI/environment selection. Preserve the custom-validation and whole-suite release exceptions.
+
+### Writer instructions for feature-request full_suite_levels (exchange 4) (round 1)
+
+Revise gap 24, Q22-Q25 and the affected acceptance criteria using R1-R5, and add the missing question about explicit whole-suite choice and document authority. Preserve Q01-Q21, including declared .review-validation authority, prepare-release at whole-suite cov, exact-scope proof validity, and no post-review speed walk or new automatic transition out of convergence.
+
+Keep selector spelling, group-file encoding, state encoding and fingerprint implementation for design. Specify the observable boundaries here. Publish another ordinary specification-review round after these substantive changes; do not consolidate this round.
+
+### Final reviewer decision for feature-request full_suite_levels (exchange 4) (round 1)
+
+Decision: changes-requested. The writer should apply the concrete instructions and publish another automated review round.
+
+<!-- review-entry-id: answer-round-1-exchange-4 -->
+
+## Round 2 by requestor (exchange 4)
+
+- Recorded: 2026-09-30T16:50:45+02:00
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Outcome: request
+
+### Review identity for feature-request full_suite_levels (exchange 4) (round 2)
+
+Umbrella draft: none
+Reviewed specification: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+Review round: 2
+
+### Requestor assessment for feature-request full_suite_levels (exchange 4) (round 2)
+
+All five round-1 requested changes are applied and the missing question is added as Q26. The five questions (Q22 to Q26) all recommend option A, matching the reviewer's choices. Please check that gap 24, gap 25 and the questions define consistent observable boundaries: authoring and authority, selection versus shared definition, the next eligible boundary during a code review (published round, started walk, replacement request, commit-ready answer), exact-scope proof reuse, and pending-scope visibility.
+
+### Change summary for feature-request full_suite_levels (exchange 4) (round 2)
+
+- R1, authoring and authority: gap 24 records an explicit choice (group or whole suite) at `process-draft`, carried by the requirement, which alone controls scope once it exists; the draft is never a fallback. Q22 now asks only while no answer is recorded, validates and reuses an existing entry or creates a valid new one before the first grouped walk, and keeps Q21's failures. New Q26 covers the remembered whole-suite answer and document authority.
+- R2, eligible boundary: Q24 and gap 24 keep a published round's scope, reviewer affected commands and evidence, and a started walk's scope (detached included); a replacement request validates the new scope under the applicable policy (default green `speed`, Q14 declarations authoritative) and states previous scope, new scope and reason; at a commit-ready answer a pending change is never polishing, never reuses old proof, is named in the gate evidence, and either waits for after the commit or goes through the human's rework choice; the pending change is the requirement's line compared with the round's bound scope. No new exchange operation or automatic transition.
+- R3, selection versus definition: Q23 and gap 24 define activation, switching and deactivation as edits of the requirement's line that never delete or overwrite a shared entry; a changed definition under the same name is a scope change for every effort selecting it, and Q24's disclosure covers it.
+- R4, proof: "no proof from a different scope is reused; a destination scope may reuse its own still-valid proof under Q18".
+- R5, acceptance and documentation: gap 25 lists the requested activation cases and requires user documentation on choosing, changing and removing an effort's group versus manual `--group`/`GHOG_GROUP`. Q25 shows declared scope, source and any pending change, without presenting a custom validation command as a group proof.
+
+### Writer response for feature-request full_suite_levels (exchange 4) (round 2)
+
+Writer response:
+
+All round-1 findings are accepted, with no disagreement. For the commit-ready case, the answer offers the two paths the reviewer allowed (wait until after the commit, or the human's rework choice) rather than a new transition. Encodings (the recorded choice, the pending comparison, the definition fingerprint) are left to the design.
+
+### Reviewer focus for feature-request full_suite_levels (exchange 4) (round 2)
+
+Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
+
+<!-- review-entry-id: request-round-2-exchange-4 -->
+
+## Round 2 by reviewer (exchange 4)
+
+- Recorded: 2026-09-30T16:53:27+02:00
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Outcome: answer
+
+### Reviewer assessment for feature-request full_suite_levels (exchange 4) (round 2)
+
+The current requirement supports convergence for the group-activation reopening, occurrence 4, round 2. I read the complete current document and validated request. The request accurately describes the revisions. No additional in-scope decision is missing; Q01-Q21 remain settled.
+
+All round-1 findings are substantively resolved:
+
+- R1: Q22 and Q26 distinguish a recorded whole-suite answer from no answer, preserve existing explicit choices, make the requirement the sole runtime authority, prevent stale draft fallback, and require a usable group entry before the first grouped walk.
+- R2: gap 24 and Q24 bind published rounds and started walks to their scope. Replacement requests validate and disclose the new scope under the existing default or declared policy. Commit-ready changes wait or use the existing human rework choice; they are not polishing and create no new automatic convergence transition.
+- R3: gap 24 and Q23 separate effort selection from the shared definition. Deactivation does not delete the entry, and definition or membership changes count as scope changes even when the name is unchanged.
+- R4: gap 24 and Q23 preserve destination-scope reuse when that scope's own proof still satisfies Q18; evidence does not cross scopes.
+- R5: gap 25 now covers initial authoring, later selection changes, shared entries, review boundaries, proof reuse, visibility and user documentation.
+
+A few isolated phrases should be aligned with those governing rules, as listed in the covered wording. These are clarifications of decisions already stated in the current document, not new behavior. This is a requirement assessment, not implementation validation.
+
+### Question verdicts for feature-request full_suite_levels (exchange 4) (round 2)
+
+No further question is needed. I agree with option A for Q22-Q26.
+
+| Question | Assessment and chosen answer |
+| --- | --- |
+| Q22: asking and creating an entry | Relevant and now distinct from Q16's runtime declaration. A asks early, carries an answer forward, asks at write-requirement only if needed, and validates or creates the group entry. B delays authoring support; C leaves the feature undiscoverable. Unknown or invalid selected groups keep their setup failure. |
+| Q23: later activation, switching and deactivation | Relevant and adequately bounded by Q24. A permits selection changes without reopening specification review, preserves shared definitions, and follows Q18 for evidence. B adds a review cycle for every selection edit; C prevents legitimate later changes. The chosen answer covers the requested activation and deactivation use cases. |
+| Q24: active review | Necessary and substantively complete. A preserves each published round and started walk, validates and discloses an ordinary replacement, and uses deferral or the existing human rework choice at commit-ready. B freezes an entire exchange unnecessarily; C restarts it unnecessarily. Clarify the comparison and deferred-commit wording below so implementations cannot mistake names for resolved scopes. |
+| Q25: visibility | Clear and in scope. A shows the declared scope, authoritative document and pending difference before execution; ghog reports retain the actual run scope. B lacks that early visibility; C repeats it in every handoff. Refine the custom-validation sentence to preserve truthful reporting when a declared command really does prove the group. |
+| Q26: remembered answer and authority | This closes the missing question. A distinguishes unanswered from deliberately whole-suite during authoring, then makes the requirement authoritative while preserving the settled runtime meaning of an absent Test group line. B loses the fallback prompt; C repeats questions and risks stale draft reactivation. The encoding belongs to design. |
+
+The choices are materially distinct and their trade-offs support the recommendations. No settled level, proof-scope, release or review policy needs reopening.
+
+### Convergence evidence for feature-request full_suite_levels (exchange 4) (round 2)
+
+Covered wording:
+
+1. In Q24 option A, replace "The pending change is the requirement's current line compared with the scope bound to the active round" with: "A pending change is the difference between the effort's currently resolved scope (the requirement selection and the selected group's patterns and effective membership) and the scope bound to the active round." Gap 24 and Q24's introduction already include same-name definition changes; a line-only formulation obscures that rule.
+2. Make the deferral branch in Q24 explicit: "If deferred until after the commit, the pending selection or definition edits stay outside the approved commit, whose reviewed scope remains unchanged; otherwise the human uses the existing rework choice." This spells out the current prohibition on admitting an unreviewed scope change as polishing. It does not grant a new commit authority or prescribe a Git mechanism.
+3. Replace Q25's absolute sentence "A declared custom validation command is never presented as having proved the effort's group" with: "The declared effort scope alone never implies group proof; report what the custom validation commands actually established, and claim group proof only when their evidence establishes that exact scope and level." This aligns Q25 with gap 21, which permits truthful reporting of a declared command that does establish the group proof while preserving Q14's authority.
+4. Update the dated activation revision paragraph from "Q22 to Q25" to "Q22 to Q26".
+5. In Q26's BBQ, replace the analogy "no tasting needed" with "taste the whole menu". A whole-suite choice means broader validation, so the current analogy suggests the opposite behavior.
+
+Convergence rationale:
+
+The requirement now defines the complete activation lifecycle: asking and remembering the choice, establishing a group entry, using one authoritative effort declaration, switching or removing that selection without damaging shared definitions, preserving scope while work is in flight, and validating and disclosing changes at the next eligible review boundary. It also specifies exact-scope proof reuse, pending-scope visibility and acceptance coverage.
+
+The remaining wording edits follow directly from those existing requirements. They introduce no new choice, no extra validation policy and no new exchange transition. Recommend convergence and consolidation; the human retains the consolidation decision.
+
+### Writer instructions for feature-request full_suite_levels (exchange 4) (round 2)
+
+Recommend convergence and consolidation, subject to the human's choice at the durable gate. The reviewer has not changed or consolidated the requirement.
+
+Apply the covered wording without changing the selected option A answers for Q22-Q26. Retain gap 25's new acceptance cases and the settled Q01-Q21 constraints. Selector spelling, file and authoring-state encodings, bound-scope representation and definition comparison mechanisms remain design work.
+
+The remaining edits restate existing decisions and need no additional automated round by themselves.
+
+### Final reviewer decision for feature-request full_suite_levels (exchange 4) (round 2)
+
+Decision: convergence-recommended. This recommendation is advisory; consolidation is not confirmed and remains at the durable human gate.
+
+<!-- review-entry-id: answer-round-2-exchange-4 -->
+
+## Round 2 by human - human-confirmation (exchange 4)
+
+- Recorded: 2026-09-30T20:20:06+02:00
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Outcome: human-confirmation
+
+Human choice: Consolidate
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-2 -->
