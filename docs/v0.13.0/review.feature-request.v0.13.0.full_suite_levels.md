@@ -717,3 +717,286 @@ Human choice: Consolidate
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-2 -->
+
+## Round 1 by requestor (exchange 3)
+
+- Recorded: 2026-09-30T14:06:44+02:00
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: unrecorded
+- Outcome: request
+
+### Review identity for feature-request full_suite_levels (exchange 3) (round 1)
+
+Umbrella draft: none
+Reviewed specification: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+Review round: 1
+
+### Requestor assessment for feature-request full_suite_levels (exchange 3) (round 1)
+
+The feature request is reopened a second time, for test groups, at the human's request while the design's first round was under review (that design review is paused, its answer retained). A declared group narrows the full suite to its test files and the coverage gate to its declared sources, covered by its tests only; development walks, the requestor's `speed` validation before each review request, and the review-off `speed` pass run the effort's group; prepare-release alone runs the whole suite at `cov`.
+
+The human settled four points: coverage over declared source files, a versioned group file plus `--group`/`GHOG_GROUP` selection, the workflow scope above, and this process. Five open questions cover the rest: the affected step's scope with a group (Q15), where an effort declares its group (Q16), the pattern syntax (Q17), proofs across scopes (Q18), and the timing floor for group runs (Q19).
+
+Please check whether a question is missing, whether the recommendations are sound, and whether the group gaps are consistent with the settled level, snapshot and review rules.
+
+### Change summary for feature-request full_suite_levels (exchange 3) (round 1)
+
+- New dated revision paragraph "Revision of 2026-09-30, test groups" in the CDC section.
+- New gaps 18 to 23: group declaration (versioned file, test and source patterns), group selection (`--group`, `GHOG_GROUP`, same precedence as the level, unknown or unreadable group is exit 5, restart lines carry the group, the effort declares its group), group-scoped runs (full-suite step of every level runs only the group's tests; coverage gate on the declared sources, from the group's tests only, never-executed source at 0%), group scope in the workflow (prepare-release always whole suite at `cov`), the group trade-off (outside breakages surface at prepare-release), and group evidence (scope named in the closing line and status; proofs per scope).
+- Former gap 18 (documentation and tests) is now gap 24, with group acceptance coverage added.
+- Code references: `tools/groundhog/runner.py` and `tools/groundhog/gate.py` added.
+- The draft intent gains a dated test-group paragraph.
+
+### Writer response for feature-request full_suite_levels (exchange 3) (round 1)
+
+Writer response:
+
+This is a new exchange on a reopened document. The human asked for groups: a sentinel development runs only the tests under `tests` folders whose name contains `sentinel`, its 100% coverage applies to its own scope, and only prepare-release runs everything. The earlier decisions (Q01 to Q14, the closing-instruction table, speed before review, no walk at the commit-ready answer) are settled and should not be reopened.
+
+### Reviewer focus for feature-request full_suite_levels (exchange 3) (round 1)
+
+Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
+
+<!-- review-entry-id: request-round-1-exchange-3 -->
+
+### LLM nature completion for reviewer (exchange 3)
+
+Recorded nature: `codex`
+
+Completed artifacts:
+
+- `.reviews/a.review-active.specification.feature-request.v0.13.0.full_suite_levels.md`
+- `.reviews/a.review-requested.feature-request.v0.13.0.full_suite_levels.md`
+
+<!-- review-entry-id: llm-nature-completion-reviewer-exchange-3 -->
+
+## Round 1 by reviewer (exchange 3)
+
+- Recorded: 2026-09-30T14:20:21+02:00
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Outcome: answer
+
+### Reviewer assessment for feature-request full_suite_levels (exchange 3) (round 1)
+
+Changes requested for the reopened test-group requirement, occurrence 3, round 1.
+
+The selected direction is coherent: groups restrict test execution and define their own coverage denominator; coverage must come from that group's tests, and prepare-release retains the whole-suite cov gate. I recommend A for Q15 through Q19. The previous level decisions, speed before review, declared validation authority, and absence of a commit-ready speed recheck remain settled.
+
+Implementation cannot yet proceed unambiguously. Two missing decisions need questions: how a caller explicitly selects the whole suite despite GHOG_GROUP, and what happens when group patterns resolve to an empty test or source set. Q18 also needs to bind proof to the current group definition and membership, rather than just its name. Finally, the new workflow assertions must be reconciled with Q14 and the existing closing instructions, which still claim that the whole suite passed after a group-only run.
+
+These are consequences of adding group scope, not reasons to reopen the earlier level or review policies. The pending design review is outside this exact request; this answer reviews only the current requirement.
+
+### Question verdicts for feature-request full_suite_levels (exchange 3) (round 1)
+
+| Question | Assessment and chosen answer |
+| --- | --- |
+| Q15: affected tests with a group | A. This matches the confirmed request that a group effort runs its own tests and accepts outside failures being deferred. B intentionally runs outside tests; C still pays that cost and weakens their verdicts. State that the rule also governs group-selected standalone affected calls made by implementation-check and the reviewer; their permitted command set need not change. An empty affected selection on a valid group is distinct from an invalid empty group. |
+| Q16: effort declaration | A. A versioned Test group line gives sessions a stable effort scope without inferring it from a slug. B depends on ambient shell state and C couples unrelated names. The missing whole-suite override below is necessary for A's promise that an effort without the line runs ungrouped. Also qualify "every workflow command" to respect Q14's declared-command authority. |
+| Q17: pattern syntax | A. Globs meet the stated directory-name matching need without a second regex language. Specify repository-relative normalized paths; leave the declaration encoding and detailed matching implementation to the design. Remove the reference to .review-test-only-like declarations: the withdrawn test-only mechanism is not a dependency of this feature. |
+| Q18: proof across scopes | A. Whole-suite coverage may be provided by outside tests, so it cannot establish group coverage. Separate scopes are a sound conservative rule, including at pass. Extend the answer to require the current group definition and effective membership; an unchanged name is not sufficient evidence. |
+| Q19: timing floor | A. Group runs use the saved whole-suite floor, or the stated one-second fallback, without changing it. B creates different standards by group and C lets the last scope redefine the common standard. Accept that group workflows and the cov release gate may never initialize a whole-suite speed floor; do not introduce an automatic whole-suite speed run to compensate. |
+
+Add two questions, using the next available numbers:
+
+| Missing question | Options and recommendation |
+| --- | --- |
+| Explicit whole-suite selection | A: provide an explicit whole-suite selector that overrides GHOG_GROUP; workflows use it for prepare-release and efforts with no declared group. Pro: one reproducible scope selection carried through commands, repair lines, and detached runs; con: one additional selector value or equivalent CLI form. B: clear GHOG_GROUP only in workflow wrappers. Pro: no new selector; con: standalone restart commands and new shells can inherit a group again. C: let the environment decide even for release. Pro: simplest; con: violates the confirmed whole-suite release gate. Choose A; the exact spelling can be chosen in the design. |
+| Empty resolved group | A: reject a selected group whose patterns collectively resolve to no test files or no source files as setup error 5. Pro: a typo cannot create an empty success or vacuous coverage proof; con: group declarations must be kept current. B: allow it as a successful empty group. Pro: permits placeholders; con: green no longer means the requested tests and sources were checked. C: fall back to the whole suite. Pro: still runs tests; con: silently changes scope and cost. Choose A. Keep a valid group's empty testmon affected selection separate from invalid group resolution. |
+
+The rest of the changes below complete or align existing answers rather than add new policy questions.
+
+### Requested changes for feature-request full_suite_levels (exchange 3) (round 1)
+
+Requested changes:
+
+R1 — Make whole-suite workflow scope explicit and reproducible.
+
+Gap 19 offers only `--group=<declared name>`, `GHOG_GROUP`, or absence. Absence allows the environment to win. Gap 21 and Q16 nevertheless promise the whole suite for prepare-release and an effort with no group.
+
+Add the explicit whole-suite choice described in the missing question. A valid explicit scope, including whole suite, must win over an ambient group, even an invalid ambient name, consistently with parameter precedence. Workflow-owned commands use the effort's declared group or explicit whole suite; prepare-release always uses explicit whole suite at cov. Manual commands with no explicit scope may still honor GHOG_GROUP. Restart/repair lines and detached execution must preserve the resolved group or explicit whole scope, not merely omit --group and hope the environment is clear.
+
+Acceptance: GHOG_GROUP=sentinel cannot narrow prepare-release or an ungrouped effort; explicit whole-suite selection overrides an invalid environment group; a grouped failure restarts in the same group; a whole-suite restart remains whole-suite despite an ambient group.
+
+R2 — Define invalid empty scopes without rejecting legitimate affected noops.
+
+Gap 18 currently validates only the presence of test and source patterns. A readable declaration can contain a misspelled pattern matching no files. Adopt the missing question's setup-error rule for empty aggregate test-file or source-file sets. Do not silently accept, weaken the denominator, or fall back to the whole suite. A grouped full/timing invocation that collects no tests must not establish a green full-level proof; preserve the existing no-tests/operational-stop handling where applicable.
+
+Distinguish this from a valid nonempty group for which testmon selects no affected tests: that can complete the affected step under its normal no-work rules and proves no full-suite level by itself.
+
+Acceptance: empty test matches, empty source matches, and a valid group with an empty affected selection have distinct outcomes. Retain the settled rule that a matched source file never executed by the group's tests contributes 0% coverage.
+
+R3 — Bind proof to the current scope, not just a label.
+
+Complete gap 23 and Q18: changing the selected group's test patterns, source patterns, or effective file membership invalidates the relevant saved proof, even if its group name and existing Python file contents are unchanged. For example, adding an existing source file to sentinel's declared source scope cannot leave a prior sentinel speed marker usable. Proof must also remain valid under the applicable gate configuration, including the timing floor.
+
+Apply the scope rule to default-level noops and level upgrades as well as full levels. Do not require a particular cache layout or a group-only digest here; a conservative invalidation scheme is sufficient. The scoped coverage measurement must not reuse accumulated coverage supplied by tests outside the group.
+
+Acceptance: same name with changed source patterns revalidates and exposes a previously unmeasured source; changed test membership revalidates; group A proof does not satisfy group B or whole-suite requests; whole-suite cov proof cannot mask missing coverage by the group's own tests.
+
+R4 — Preserve declared validation authority and specify the permitted affected checks.
+
+Gap 21 and Q16 currently require every requestor validation to run the effort's group, while gap 12 and Q14 keep explicitly declared validation commands authoritative. Apply that existing exception explicitly: workflow-owned default validation carries the effort scope; do not silently append selectors to or rewrite arbitrary .review-validation commands. If a declaration explicitly chooses another scope or otherwise does not establish the effort's group proof, report what it actually validates rather than claiming the default group's guarantee. This follows Q14 and does not add a mandatory fallback walk.
+
+Also state that the effort's scope reaches the existing affected calls in implementation-check and code review. Q15 otherwise narrows only the affected step inside a day walk, leaving those separate permitted checks able to run outside the group. Keep the reviewers' permitted commands unchanged and keep check.bat's existing project checks; the new restriction concerns which test files the affected run executes.
+
+Acceptance: the default requestor command validates the effort group; an authoritative declaration is preserved without a false group-proof claim; reviewer and implementation-check affected calls stay within the selected group.
+
+R5 — Make success and restart wording scope-aware.
+
+The level table still says "the whole suite passes" in every full-level success row (lines 262-264). The new group behavior cannot truthfully emit that statement. Use "all tests in the selected scope pass", name the group or whole suite, and identify the corresponding coverage source scope and timing objective. Apply the same qualification to gap 3, Q01's clarification, and introductory summaries.
+
+Carry group selection alongside the existing level through every printed restart and repair command, including default walks: "plain ghog day" means no --full selector, not loss of the selected group. Keep direct parallel full-run duration disclosure and the no-false-speed-proof rule.
+
+Qualify "prepare-release alone runs the whole suite" to describe grouped workflow efforts. Ungrouped efforts and explicit human whole-suite commands remain permitted by gap 21 and the CLI selection rules. Document Q19's one-second fallback without implying that the cov release gate refreshes the speed floor.
+
+Acceptance: group success never claims whole-suite success; a default grouped walk's repair line retains its group; group runs leave the saved whole-suite timing floor unchanged.
+
+### Writer instructions for feature-request full_suite_levels (exchange 3) (round 1)
+
+Revise the requirement with the two missing questions and their recommended A answers, complete Q18's proof-validity rule, and reconcile the new group workflow with Q14 and the closing table. Keep A for Q15-Q19.
+
+Update gaps 18-24, the relevant earlier summaries and closing instructions, and the acceptance cases together. Keep the new guarantees at requirement level; marker layout, parser implementation, group-file encoding, and command spelling can be designed later. Publish another automated review round. Do not consolidate yet.
+
+Do not restore post-review speed work, a test-only exception, or a new convergence transition. Retain the existing requirement that a review-disabled speed repair, including a duration exclusion, returns through implementation-check.
+
+### Final reviewer decision for feature-request full_suite_levels (exchange 3) (round 1)
+
+Decision: changes-requested. The writer should apply the concrete instructions and publish another automated review round.
+
+<!-- review-entry-id: answer-round-1-exchange-3 -->
+
+## Round 2 by requestor (exchange 3)
+
+- Recorded: 2026-09-30T14:24:47+02:00
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Outcome: request
+
+### Review identity for feature-request full_suite_levels (exchange 3) (round 2)
+
+Umbrella draft: none
+Reviewed specification: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+Review round: 2
+
+### Requestor assessment for feature-request full_suite_levels (exchange 3) (round 2)
+
+All five round-1 requested changes are applied, and the two missing decisions are added as Q20 (explicit whole-suite selector) and Q21 (empty group). The seven questions (Q15 to Q21) all recommend option A, matching the reviewer's choices. Please check that the scope rules (selection, restart and detached propagation, empty groups, proof binding, declared validation authority, affected checks outside the walk, scoped success wording) are consistent across gaps 3, 18 to 24, the closing-instruction table and the questions.
+
+### Change summary for feature-request full_suite_levels (exchange 3) (round 2)
+
+Where each round-1 requested change is resolved:
+
+- R1, whole-suite scope: gap 19 adds an explicit whole-suite selector that wins over `GHOG_GROUP`, even an invalid one; restart, repair and detached runs carry the resolved scope, and a whole-suite restart names the selector. Gap 21: workflow-owned commands use the effort's group or the whole-suite selector; prepare-release always uses the whole-suite selector at `cov`; manual commands with no explicit scope may follow `GHOG_GROUP`. New Q20.
+- R2, empty scopes: gap 18 requires a selected group to resolve to at least one test file and one source file; gap 19 makes an empty group exit 5; gap 20 says a grouped full or timing run collecting no test never establishes a green proof, and that an empty affected selection on a valid group is a normal no-work step proving no full level. New Q21.
+- R3, proof binding: gap 23 binds a proof to the same group name, patterns and effective membership (or the whole suite) under the same gate configuration and timing floor, for noops and upgrades too; gap 20 forbids coverage accumulated by outside tests; Q18's answer extended.
+- R4, declared validation and affected checks: gap 21 keeps `.review-validation` commands untouched and requires the request to report what they actually validate instead of claiming the group guarantee; the group reaches implementation-check's and the reviewer's `ghog affected` checks, with their permitted commands unchanged; Q15 and Q16 answers extended.
+- R5, scope-aware wording: the three success rows of the closing-instruction table name the selected scope and its sources; gap 3 and the Q01 clarification row speak of the selected scope; the group revision paragraph qualifies "only prepare-release runs the whole suite" to grouped efforts; gap 19 says plain `ghog day` never drops the group; Q19's answer states the one-second fallback when no whole-suite floor exists, with no automatic whole-suite `speed` run.
+- Q17: the `.review-test-only` reference removed; patterns match normalized repository-relative paths.
+- Gap 24: the requested acceptance cases added.
+
+### Writer response for feature-request full_suite_levels (exchange 3) (round 2)
+
+Writer response:
+
+All round-1 findings are accepted, with no disagreement. Command spellings, the group-file encoding, and the proof invalidation scheme are left to the design, as the reviewer suggested.
+
+### Reviewer focus for feature-request full_suite_levels (exchange 3) (round 2)
+
+Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
+
+<!-- review-entry-id: request-round-2-exchange-3 -->
+
+## Round 2 by reviewer (exchange 3)
+
+- Recorded: 2026-09-30T14:45:05+02:00
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Outcome: answer
+
+### Reviewer assessment for feature-request full_suite_levels (exchange 3) (round 2)
+
+The current round-2 requirement supports convergence. I read the complete current specification and validated request for occurrence 3, round 2. The request's account of the revisions matches the document. No missing in-scope decision or substantive disagreement remains; Q01-Q14 and the earlier level/review policy remain settled.
+
+All five round-1 findings are resolved:
+
+- R1: gaps 19 and 21 and Q20 require an explicit whole-suite selector that overrides even an invalid GHOG_GROUP. Workflow defaults, release, repair/restart instructions and detached execution preserve the resolved scope.
+- R2: gaps 18-20 and Q21 distinguish an invalid group with an empty test/source file set, a full or timing run collecting no tests, and a valid group with no affected tests. Empty groups fail with exit 5; none of these no-test cases can manufacture full-level proof.
+- R3: gaps 20 and 23 and Q18 bind reuse to group identity, patterns, effective membership and gate configuration, including the timing floor. Outside-test coverage cannot satisfy the group's coverage gate.
+- R4: gap 21 and Q15/Q16 preserve declared .review-validation commands and truthful evidence reporting while carrying effort scope into workflow-owned affected checks. Reviewer and implementation-check command permissions stay unchanged.
+- R5: the success rows name their scope, gap 3 defines pass within that scope, and gap 19 governs every restart. Q19 explicitly permits the one-second fallback to persist without an automatic whole-suite speed run.
+
+Gap 24 names acceptance cases for these boundaries. The remaining suggestions make existing rules explicit in isolated examples; they do not change scope, behavior, or policy. This is a requirement review, not evidence that implementation or tests have passed.
+
+### Question verdicts for feature-request full_suite_levels (exchange 3) (round 2)
+
+No additional question is needed. Q15-Q21 are relevant, materially distinct decisions with meaningful alternatives and consequences. I choose option A for all seven.
+
+| Question | Assessment and chosen answer |
+| --- | --- |
+| Q15: affected tests | Clear and necessary. A restricts testmon's selection to group tests, consistent with the accepted deferral of outside failures. B checks outside tests and C still runs them, so both change that trade-off. The answer correctly covers reviewer/implementation-check affected calls and valid empty affected selections. |
+| Q16: effort declaration | Clear decision, with one wording refinement to option A below. A makes the requirement's Test group line the versioned source for workflow-owned scope. B relies on shell state and C couples scope to naming. The answer correctly preserves Q14's declared validation authority. |
+| Q17: pattern syntax | Clear and in scope. A uses one familiar glob syntax for normalized repository-relative paths and expresses the stated sentinel-folder example. B adds regex complexity; C adds two languages. Exact encoding and parser details belong to design. |
+| Q18: proof reuse | Clear and necessary. A keeps evidence within the exact scope and its current configuration, including changes to patterns or membership. B is a deliberate extra reuse rule; C can conceal missing group-only coverage. Neither is needed for this requirement. |
+| Q19: timing floor | Clear, with the fresh-project consequence explicitly accepted. A uses the saved whole-suite floor or one-second fallback without changing it on group runs. B introduces separate standards; C makes the shared floor depend on the most recent scope. The answer correctly adds no seeding run. |
+| Q20: explicit whole suite | Necessary and now complete. A preserves whole-suite intent across ambient state, restarts and detached execution, including an invalid GHOG_GROUP. B does not preserve standalone command intent; C violates the release scope. Selector spelling belongs to design. |
+| Q21: empty group | Necessary and now complete. A rejects an empty test or source file set with exit 5 and identifies the empty side. B permits vacuous success and C silently changes scope. A normal empty affected selection remains distinct. |
+
+None of these questions is redundant or outside the selected scope. Q20 and Q21 close the two missing decisions identified in round 1.
+
+### Convergence evidence for feature-request full_suite_levels (exchange 3) (round 2)
+
+Covered wording:
+
+1. Before the closing-instruction table, add: "Every command example in this table also carries the resolved scope required by gap 19: the selected group or the explicit whole-suite selector. Commands that request or restart a level preserve that same scope." This makes the already-settled scope rule visible alongside examples such as ghog day --full=cov and ghog single, without choosing the selector's spelling.
+2. In Q16 option A, replace "every workflow command it prints passes `--group=<name>`" with "every workflow-owned ghog validation command it prints carries the effort's resolved scope; project-declared .review-validation commands remain unchanged under Q14." This aligns the option with its answer and gap 21.
+3. In the Q01 clarification row, replace "no test outside the affected set fails" with "no test in the selected scope outside the affected set fails." The existing gap 3 and row opening already establish this boundary.
+4. In the opening test-group revision paragraph, qualify the requestor clause as "the requestor's default validation before each review request" and refer to Q14 for a project-declared validation set. Gap 21 already states this exception.
+5. For the direct-full closing paragraph, say any suggested day-walk restart preserves "that level and the resolved scope (gap 19)." This repeats the governing restart rule where readers encounter direct-full guidance.
+
+Convergence rationale:
+
+Every in-scope decision has an explicit, consistent answer. Scope selection overrides ambient state when required; groups cannot be empty successes; group-only coverage and proof reuse have precise boundaries; declared validation remains authoritative; reviewer permissions are preserved; and the timing floor has a defined fallback. The five prior requested changes are substantively closed, and gap 24 covers their observable outcomes.
+
+Only wording polish remains. The proposed edits restate requirements already present in gaps 3, 19 and 21, so they require neither a new design decision nor another automated review round. Recommend convergence; consolidation remains the human's decision.
+
+### Writer instructions for feature-request full_suite_levels (exchange 3) (round 2)
+
+Recommend convergence and consolidation, subject to the human's choice at the shared convergence gate. The reviewer has not consolidated or edited the specification.
+
+Apply only the wording suggestions listed in the covered-wording input. Retain option A for Q15-Q21, the resolved behavior in gaps 18-24, and the settled Q01-Q14 decisions. Do not introduce a new policy decision or another round solely for these edits.
+
+Keep the whole-suite selector spelling, group-file encoding and concrete proof invalidation mechanism for design, as the request states. The revised acceptance cases remain requirements to implement and verify later.
+
+### Final reviewer decision for feature-request full_suite_levels (exchange 3) (round 2)
+
+Decision: convergence-recommended. This recommendation is advisory; consolidation is not confirmed and remains at the durable human gate.
+
+<!-- review-entry-id: answer-round-2-exchange-3 -->
+
+## Round 2 by human - human-confirmation (exchange 3)
+
+- Recorded: 2026-09-30T15:57:42+02:00
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Outcome: human-confirmation
+
+Human choice: Consolidate
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-2 -->
