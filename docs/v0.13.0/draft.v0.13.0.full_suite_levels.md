@@ -63,6 +63,9 @@ coverage and test-speed work it demands before the code has even settled.
   threshold.
 - The trade-off is accepted: a breakage outside the group surfaces only at the
   prepare-release gate, which runs every test at `cov`.
+- An effort is asked about its group at a defined point, can turn a group on,
+  change it or turn it off partway through, and always shows its current
+  scope; an active code review learns of a scope change.
 
 ## Revisions of the full suite levels intent
 
