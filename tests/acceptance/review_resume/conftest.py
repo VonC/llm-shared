@@ -7,6 +7,12 @@ including status failure JSON delivered on the error stream.
 Fix: the independent-waiter helpers moved here from the concurrency module.
 That module was split so its scenarios run on separate xdist workers, and both
 halves need the same process start, idle-silence and terminal-result helpers.
+
+Fix: every real subprocess bound shares ``PROCESS_TIMEOUT_SECONDS``. The bounds
+are hang guards, not performance assertions: under the parallel full run, a
+``publish-request`` of a fixture's setup (Python start plus its few ``git``
+calls, with no lock wait) once took longer than the former 30 seconds while
+every worker was spawning processes, and the same file passed in focus.
 """
 
 # ruff: noqa: S603, S607, PLR0913
@@ -18,7 +24,7 @@ import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Final
 
 import pytest
 
@@ -44,6 +50,10 @@ from tools.review_exchange_paths import derive_artifact_paths
 SHARED_ROOT = Path(__file__).resolve().parents[3]
 EXCHANGE_LAUNCHER = SHARED_ROOT / "bin" / "review_exchange.bat"
 EXCHANGE_MODULE = ("-m", "tools.review_exchange_cli")
+# Hang guard for every real child process and for a waiter's wake-up: long
+# enough to absorb process creation while all xdist workers spawn children at
+# once, short enough that a genuinely stuck command still fails the test.
+PROCESS_TIMEOUT_SECONDS: Final = 120
 
 
 def module_session_environment(nature: str) -> dict[str, str]:
@@ -93,7 +103,7 @@ class ReviewRepository:
     def git(self, *arguments: str) -> str:
         """Keep setup and Git observations on bounded real subprocesses."""
         result = subprocess.run(["git", *arguments], cwd=self.root, check=True,
-                                capture_output=True, text=True, timeout=20)
+                                capture_output=True, text=True, timeout=PROCESS_TIMEOUT_SECONDS)
         return result.stdout.strip()
 
     def run(self, *arguments: str, nature: str = "codex", launcher: Path | None = None) -> ProcessResult:
@@ -111,7 +121,7 @@ class ReviewRepository:
                    else [sys.executable, *EXCHANGE_MODULE, *arguments])
         result = subprocess.run(command, cwd=self.root,
                                 env=module_session_environment(nature), check=False,
-                                capture_output=True, text=True, timeout=30)
+                                capture_output=True, text=True, timeout=PROCESS_TIMEOUT_SECONDS)
         lines = (result.stdout or result.stderr).splitlines()
         assert len(lines) == 1, (result.returncode, result.stdout, result.stderr)
         return ProcessResult(result.returncode, result.stdout, result.stderr, json.loads(lines[0]))
@@ -227,7 +237,7 @@ def lifecycle_journey(tmp_path_factory: pytest.TempPathFactory, request: pytest.
     status = repo.run("--format", "json", launcher=SHARED_ROOT / "rvw_status.bat")
     human = subprocess.run([str(SHARED_ROOT / "rvw_status.bat")], cwd=repo.root,
                            env=session_environment(os.environ, "codex"), check=False,
-                           capture_output=True, text=True, timeout=30)
+                           capture_output=True, text=True, timeout=PROCESS_TIMEOUT_SECONDS)
     after_status = repo.evidence()
     gate = repo.resume("resume")
     label = "Commit" if family is ReviewFamily.CODE else "Consolidate"
@@ -238,7 +248,8 @@ def lifecycle_journey(tmp_path_factory: pytest.TempPathFactory, request: pytest.
     final_status = repo.exchange("status")
     workflow = subprocess.run([str(SHARED_ROOT / "bin" / "prompt_workflow.bat"), "skill"],
                               cwd=repo.root, env=session_environment(os.environ, "codex"),
-                              check=False, capture_output=True, text=True, timeout=30)
+                              check=False, capture_output=True, text=True,
+                              timeout=PROCESS_TIMEOUT_SECONDS)
     return {"repo": repo, "writer": writer, "pending": pending, "first": first, "lost": lost,
                 "stale": stale, "answer": answer, "before": before, "after_status": after_status,
                 "status": status, "human": human, "gate": gate, "confirmed": confirmed, "owning": owning,

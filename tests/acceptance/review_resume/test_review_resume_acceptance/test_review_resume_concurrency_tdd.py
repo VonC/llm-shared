@@ -4,6 +4,10 @@ Fix: the parked-wait scenarios moved to ``test_review_resume_parked_wait_tdd``
 and the independent-waiter helpers to the package conftest. ``--dist loadscope``
 keeps one module on one worker, so the split lets both halves run in parallel.
 Every remaining scenario and assertion is unchanged.
+
+Fix: the waiters' claim bounds use the shared ``PROCESS_TIMEOUT_SECONDS`` hang
+guard instead of 15 seconds, since a claim runs the same Python and ``git``
+children that once outlasted a 30-second bound under the parallel full run.
 """
 
 # ruff: noqa: PLR2004, S603
@@ -20,6 +24,7 @@ from unittest.mock import patch
 import pytest
 
 from tests.acceptance.review_resume.conftest import (
+    PROCESS_TIMEOUT_SECONDS,
     ReviewRepository,
     assert_still_quiet,
     start_wait,
@@ -41,13 +46,13 @@ pytestmark = pytest.mark.xdist_group("resume-concurrency")
 
 def first_completed(processes: list[subprocess.Popen[str]]) -> list[int]:
     """Bound the initial claim without starting the losing process's pipe deadline."""
-    deadline = monotonic() + 15
+    deadline = monotonic() + PROCESS_TIMEOUT_SECONDS
     while True:
         completed = [index for index, process in enumerate(processes) if process.poll() is not None]
         if completed:
             return completed
         remaining = deadline - monotonic()
-        assert remaining > 0, "No reviewer claimed the initial request within 15 seconds"
+        assert remaining > 0, f"No reviewer claimed the initial request within {PROCESS_TIMEOUT_SECONDS} seconds"
         sleep(min(0.05, remaining))
 
 
@@ -85,7 +90,7 @@ def competing_journey(tmp_path_factory: pytest.TempPathFactory) -> dict[str, Any
         assert other.poll() is None
         resumed = _advance_review_round(repo, first)
         # Start the losing waiter's deadline only after replacement publication.
-        second = terminal_result(other, other.communicate(timeout=15))
+        second = terminal_result(other, other.communicate(timeout=PROCESS_TIMEOUT_SECONDS))
         return {"first": first, "second": second, "resumed": resumed, "evidence": repo.evidence()}
     finally:
         for process in processes:
