@@ -120,3 +120,4 @@ docs/llm-shared_presentation.pptx
 build/
 .claude/skills/synced/
 .claude/skills/.trash/
+.agents/skills/
