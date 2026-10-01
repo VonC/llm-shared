@@ -8,8 +8,9 @@ Read [`../rules/docs_layout.md`](../rules/docs_layout.md). Resolve the effort
 directory from the parent of the requirement or canonical draft named in the
 prompt. Write `design.vX.Y.Z.<topic>.md` beside that source document. Do not add
 a topic subdirectory. The generated document should stay at design level:
-describe scope, confirmed facts, constraints, target behavior, and major design
-areas. Do not turn the document into an implementation plan.
+describe scope, confirmed facts, constraints, target behavior, major design
+areas, and security architecture with threat surface. Do not turn the document
+into an implementation plan.
 
 Follow the template from [`write-design.template.md`](../templates/write-design.template.md) to write the design document, and adapt it as needed if some sections are not relevant for the specific design you are writing.
 
@@ -18,6 +19,7 @@ Notes for the writer:
 - Keep section titles specific to the topic and version; do not reuse generic repeated titles.
 - Use the current-behavior and target-behavior sections only when the design depends on comparing flows.
 - Put facts already confirmed from the codebase in the confirmed-facts section.
+- Address trust boundaries, untrusted input handling, and threat vectors in the dedicated security architecture section, applying least privilege, fail-safe defaults, and secret protection.
 - Put implementation steps, file-by-file task lists, and rollout steps in the later implementation plan, not in the design.
 - Do not add the open-questions section in this skill output; it will be addressed by the `review-ask-questions` skill (see [`review-ask-questions.md`](review-ask-questions.md)) in a later follow-up review step.
 
