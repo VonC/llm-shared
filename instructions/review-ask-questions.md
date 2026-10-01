@@ -6,11 +6,13 @@ Check your prompt for type (feature-request, issue, design or plan), vX.Y.Z and 
 
 Be mindful of the type of the document you are reviewing, because the kind of question you may ask changes with it. A question that fits one type is out of place in another:
 
-- a feature-request or an issue document takes only questions that clarify the feature or the issue itself: scope, expected behaviour, acceptance criteria, edge cases. No design choice, no implementation detail.
-- a design document takes only questions about design choices: structure, data flow, trade-offs, interfaces, target behaviour. No implementation detail, and nothing that re-opens the feature or the issue.
-- an implementation plan document takes only questions about implementation details: which files to create or change, the order of the steps, the gate-test and acceptance-test strategy, the line budget and split decisions, the per-step command checklist. No design choice, and nothing that re-opens the feature, the issue or the design.
+- a feature-request or an issue document takes only questions that clarify the feature or the issue itself: scope, expected behaviour, acceptance criteria, edge cases, trust boundaries, and abuse/misuse cases. No design choice, no implementation detail.
+- a design document takes only questions about design choices: structure, data flow, trade-offs, interfaces, target behaviour, security architecture, threat model, and untrusted input boundaries. No implementation detail, and nothing that re-opens the feature or the issue.
+- an implementation plan document takes only questions about implementation details: which files to create or change, the order of the steps, the gate-test, security-audit and acceptance-test strategy, the line budget and split decisions, the per-step command checklist. No design choice, and nothing that re-opens the feature, the issue or the design.
 
 Never carry a question across types: a plan review does not re-ask a design question the design already settled, and it does not re-clarify the feature or the issue. If the right place for a question is an earlier document, say so instead of asking it here.
+
+Every review round must actively probe security and risk boundaries: whenever an untrusted input, external file, shell invocation, authorization check, or data transformation is involved, verify that the document specifies strict validation, fail-safe defaults, and protection against OWASP Top 10 vulnerabilities.
 
 Review the exact `<effort-dir>\<type>.vX.Y.Z.<topic>.md` document named in the
 prompt (see other documents beside it when provided), and write your new
