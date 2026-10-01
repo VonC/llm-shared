@@ -18,7 +18,8 @@ Implement the full vX.Y.Z {topic} feature set as described in `docs/design.vX.Y.
 - **Step 0 goal**: {Perf-gate baseline, test-first guard, or first setup step if relevant}.
 - **Step 1 goal**: {First implementation slice}.
 - **Step 2 goal**: {Second implementation slice}.
-- **Step N goal**: {Final integration, acceptance, tooling, or rollout slice}.
+- **Step N-1 goal**: {Integration and acceptance test slice}.
+- **Step N goal**: {Final security & OWASP Top 10 side-effect review}.
 
 {Add Step N.1 follow-up goals when the repo needs an inserted cleanup, split, or alignment slice between two main steps.}
 
@@ -231,4 +232,72 @@ Time-gated status for Step N:
 
 ---
 
-{Repeat the Step N block for each implementation slice. Use Step N.1 when the plan inserts a follow-up slice between two main steps. Keep the document at implementation level only: files, tests, commands, budgets, rollout order, and completion checks.}
+### Step {Final}. Final Security & OWASP Top 10 Side-Effect Review
+
+#### Step {Final} -- analysis and intent for security audit
+
+Issues to address:
+
+- Comprehensive audit of the cumulative changes introduced across all steps.
+- Identification of potential security regressions or unintended side effects.
+- Verification against the OWASP Top 10 vulnerability matrix.
+
+Fix intent:
+
+- Run automated security checks (SAST, secret scanner, dependency audit).
+- Perform code-level security analysis on all modified entry points, data flows, and external integrations.
+- Remediate immediately any finding classified as Critical or High before authorizing merge.
+
+Expected outcome:
+
+- Zero High/Critical security vulnerabilities introduced.
+- Clean bill of health documented in the validation plan.
+
+Step framing:
+
+- Design link: {Design security architecture section}.
+- Execution checklist reference: {Name of the shared execution checklist section in this document}.
+
+#### Step {Final} -- implementation for security audit
+
+**Files involved**:
+
+- All files modified across this topic (`git diff --stat <base_ref>...HEAD`).
+- `{path/to/security_test_file}` ({new|update|existing if regression tests are added}).
+
+**Security review checklist (OWASP Top 10)**:
+
+1. **A01 Broken Access Control**: Path traversal (`../`), unauthorized file/resource access, insecure permissions.
+2. **A02 Cryptographic Failures**: Plaintext secrets, weak hashing, broken encryption primitives.
+3. **A03 Injection**: Command injection, SQL/NoSQL injection, unsafe string formatting in OS calls.
+4. **A04 Insecure Design**: Unrestricted resource consumption, missing trust boundary checks.
+5. **A05 Security Misconfiguration**: Default insecure settings, verbose stack traces exposed, unsafe temporary files.
+6. **A06 Vulnerable and Outdated Components**: Unvetted or insecure third-party packages added.
+7. **A07 Identification and Authentication Failures**: Session leakage, credential mishandling.
+8. **A08 Software and Data Integrity Failures**: Unsafe deserialization (`pickle`, unvalidated JSON/YAML), unverified code execution.
+9. **A09 Security Logging and Monitoring Failures**: Sensitive data (keys, passwords) leaked in logs, absence of audit trails on failures.
+10. **A10 Server-Side Request Forgery (SSRF) / Uncontrolled Fetch**: Unvalidated URL fetching or IPC redirection.
+
+**Completion criteria**:
+
+- Audit report completed with 0 Critical/High issues.
+- `ghog day` (including any security tests) exits 0.
+- All secrets checks pass cleanly.
+
+#### Step {Final} -- addendums for security audit
+
+Line-budget checkpoint:
+
+- `{path/to/file}`: before {x}; repository ceiling <= 650.
+
+Full workflow timing run readiness:
+
+- `ghog day`
+
+Time-gated status for Step {Final}:
+
+- No perf gates affected.
+
+---
+
+{Repeat the Step N block for each implementation slice, followed by the mandatory Step Final security review block. Keep the document at implementation level only: files, tests, commands, budgets, rollout order, security checks, and completion checks.}
