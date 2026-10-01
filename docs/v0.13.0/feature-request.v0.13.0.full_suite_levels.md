@@ -414,6 +414,16 @@ the resolved scope (gap 19).
 - `GROUNDHOG.md`, `tools/Pytest reset specs.md`: the groundhog manual and
   specification.
 
+## File-based IO cost clarification for v0.13.0 requirements
+
+Deciding whether a walk is a noop or an upgrade reads one small saved-proof
+record for the selected scope, beside the source digest groundhog already
+computes; it never loads other scopes' records. A whole-suite run never reads
+the group declaration, and a grouped run resolves its membership from the same
+project file walk as the digest. Showing or carrying an effort's scope reads
+only the requirement's metadata lines, never the draft. No index, cache or
+latency target is introduced.
+
 ## Requirement clarifications for full suite levels
 
 | Question | Decision | Integrated in | Rejected alternatives |

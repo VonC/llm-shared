@@ -1299,6 +1299,17 @@ The destination scope reuses only its own still-valid proof (see
 | saved `speed` proof, only an exclusion changed, `--full=speed` | upgrade: check and affected reused, full run at `speed` | timing change caps at `cov` |
 | saved `speed` proof, a Python file changed, `--full=cov` | digest differs, whole chain runs | ordinary digest change still invalidates |
 
+## File-based IO cost clarification for v0.13.0 design
+
+The noop and upgrade decision reads only the walk's own scope marker (five
+key=value lines) and the floor file for the timing fingerprint, beside the
+existing digest walk. Group membership reuses that single file walk;
+`.ghog-groups` is read once, only when a group is selected. A `--scope-file`
+run reads one capture and checks each listed file once, without pattern
+matching. Markers, status lines and capture copies are written through a
+temporary file and an atomic replace. The effort-scope reader stops at the
+requirement's first heading. No index, cache or latency target is introduced.
+
 ## Design decisions for v0.13.0 full suite levels
 
 | Question | Decision | Integrated in | Rejected alternatives |
