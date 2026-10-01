@@ -5,6 +5,37 @@ code review stands, who acts next, or which umbrella owns it. This workflow is
 migration-aware: it may perform one bounded safe migration preflight, after
 which ordinary status discovery, projection, and rendering remain read-only.
 
+## Codex status-check isolation
+
+When Codex delegates a user-requested status check, start a fresh status-only
+helper with `fork_turns="none"`. Never pass the active conversation context:
+no conversation history, summary, previous review assessment, inferred active
+document, or session ownership capability. Pass only the absolute repository
+root, the resolved canonical instruction and launcher paths, and the request
+to report the command's current status. Do not create a requestor or reviewer
+agent for this check.
+
+Use this self-contained helper task, substituting only the resolved paths:
+
+```text
+Report review status for <absolute-project-root>. Read and follow
+<LLM_SHARED_DIR>/instructions/review-status-command.md, then run
+<LLM_SHARED_DIR>/rvw_status.bat once from that repository root. Return the
+exit code and status output. You are a status observer only. Do not delegate,
+start a watcher, claim ownership, resume a review, or act as either review role.
+```
+
+This delegation rule applies to the parent, not recursively to its helper.
+If fresh-context delegation is unavailable, run the launcher directly using
+the same path-only inputs and report its output; do not use a helper that
+inherits the conversation. Base the report on the command result alone.
+
+During a Codex attached reviewer wait, the parent retains the existing watcher
+handle and its session-only capability, then continues that same wait after
+reporting status. A user-requested status check is one operation, never a
+periodic substitute for `wait-any-request`. Claude's status execution and
+background completion behavior are unchanged.
+
 ## Run the status command
 
 Read [`../rules/run_commands.md`](../rules/run_commands.md) before invoking the

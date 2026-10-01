@@ -126,49 +126,77 @@ Starting one watcher process is not enough if the host resumes the model every
 minute to receive "still running" and issue another wait. Those resumptions
 spend quota even when the command emits no output and no `status` call runs.
 
-`review_exchange.bat wait-any-request` must run in the background relative to
-the chat and must not monopolize the chat. Use a host-managed background
-execution session that keeps the command running after the assistant's turn
-ends. The command itself remains a blocking watcher inside that session; it
-does not need a new daemon, service, or detached agent.
+`review_exchange.bat wait-any-request` must resume reviewer work on detection
+without requiring another user message. Request detection and model resumption
+are separate: a process can keep watching after an assistant turn ends without
+being able to start the next turn. Select the transport by host.
 
-- Start the watcher once, retain its process or tool-session handle, then
-  return control of the chat while leaving it running. Reuse an existing live
-  watcher instead of launching another for each question or review round.
-- Do not hold the chat in a long `functions.wait`, `write_stdin`, or equivalent
-  foreground tool call while the global watcher is idle. Replacing one-minute
-  resumptions with a ten-minute chat-blocking wait does not satisfy this rule.
-  The user must be able to ask questions without pressing Esc to release the
-  chat. Do not assume a queued message interrupts a running tool call.
-- Let the watcher observe requests and return its final JSON. Retrieve that
-  result through a supported completion notification, or check the retained
-  session without a long wait on the next user turn. Do not schedule recurring
-  model turns, `status` calls, or idle commentary just to check progress.
-- Keep the result, including any ownership capability, in the tool session or
-  session memory. Do not redirect it to a persistent log or save the capability
-  to files or environment variables.
-- Distinguish request detection from model resumption. A background watcher
-  can detect a request promptly even when the host cannot automatically start
-  the next assistant turn. If that host needs another user turn to process the
-  result, say so once; do not promise automatic review or invent a callback.
+### Codex uses an attached wait
+
+Codex must keep the assistant turn active and await the watcher through an
+attached tool execution. Do not send a final response while waiting, leave only
+a background process running, or defer processing its result to the next user
+turn. A live watcher alone does not satisfy active waiting in Codex.
+
+If the tool yields a process or session handle before completion, retain it
+and continue awaiting that same execution with the host's continuation tool
+(`functions.wait`, `write_stdin`, or equivalent). A tool transport yield does
+not end the reviewer task. When final JSON reports `found`, immediately follow
+the identity and ownership gates in `instructions/review-resume.md`, then
+review the selected request in the same active session. After publishing an
+answer, enter the attached global wait again.
+
+Use the longest supported transport interval permitted by higher-priority
+instructions at every tool layer. Awaiting the existing process is transport
+continuation, not a new protocol poll. Do not add repeated `status` calls,
+filesystem scans, watcher restarts, or idle progress messages merely to check
+whether a request appeared. Follow higher-priority progress requirements when
+they apply. Handle user messages as steering, retaining the wait handle and
+any completed result; resume waiting unless the user stops or replaces the task.
+
+When the user asks for review status during an attached wait, follow the
+[Codex status-check isolation rule](../instructions/review-status-command.md#codex-status-check-isolation).
+Use a fresh, status-only helper with no active conversation context; the
+waiting reviewer retains its execution handle and ownership capability.
+A status check neither replaces nor restarts the attached watcher, and must
+not become recurring polling.
+
+### Claude uses background completion
+
+Claude may run the watcher in a host-managed background execution session and
+return control of the chat. Retain the handle and use the supported completion
+notification to resume automatically, retrieve final JSON, and dispatch the
+selected request. Do not require a new user message. This background transport
+must not monopolize the chat with an outer tool wait.
+
+Do not apply Claude's return-control rule to Codex. Other hosts retain their
+supported execution and completion mechanisms; report unavailable automatic
+resumption instead of inventing a callback.
+
+### Shared wait safeguards
+
+Start the watcher once and reuse its live handle instead of launching another
+for each user message or transport yield. The command remains a blocking
+watcher inside its execution session; it needs no daemon, service, or detached
+agent. Keep its result, including any ownership capability, in the tool session
+or session memory. Never redirect it to a persistent log or save the capability
+to files or environment variables.
 
 The watcher owns filesystem observation and protocol deadlines. A tool
 transport timeout is not a protocol outcome: it does not authorize restarting
 the process, resetting its deadline, or interpreting silence as completion.
 
-For bounded `wait-request` and `wait-answer` operations, or continuations inside
-a background tool execution, use the longest supported transport interval
+For bounded `wait-request` and `wait-answer` operations and watcher
+continuations, use the longest supported transport interval
 permitted by higher-priority instructions. Prefer several minutes (for example,
 600000 ms when supported) to recurring 60000 ms model wake-ups. A short default
 yield is not a mandatory maximum. Check every outer tool layer too: a long
-inner wait does not help if its wrapper resumes the model every minute or
-blocks the chat.
+inner wait does not help if its wrapper needlessly resumes the model every
+minute. Respect the host-specific attached or background transport above.
 
-If the host cannot keep a background execution alive after the turn, or a
-higher-priority instruction prevents it, explain that limitation once. Do not
-claim the watcher is running or the chat remains available when that is not
-true. Preserve role isolation and do not silently substitute a foreground
-wait that the user must interrupt.
+If the host or a higher-priority instruction prevents the required transport,
+explain the limitation once. Do not claim automatic review will resume when
+only request detection remains possible. Preserve role isolation.
 
 ## Targeted reads instead of whole-document dumps
 

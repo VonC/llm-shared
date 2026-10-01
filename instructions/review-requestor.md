@@ -238,8 +238,10 @@ without arranging a new reviewer invocation.
 
 All counterpart waits follow the
 [quiet-wait transport rules](../rules/run_commands.md#quiet-waits-preserve-model-quota).
-The reviewer's global watcher runs in the background and leaves the chat
-available. For bounded protocol waits, use the longest permitted transport
+The reviewer's global watcher uses an attached wait in Codex: keep the
+assistant turn active and process detection without another user message.
+Claude keeps its background watcher and resumes on the completion notification.
+For bounded protocol waits, use the longest permitted transport
 interval without recurring idle model resumptions. A transport timeout does
 not end or restart a bounded protocol wait.
 
