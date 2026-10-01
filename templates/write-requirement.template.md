@@ -28,6 +28,14 @@ Describe the earlier CDC state, then quote or summarize the revision that adds t
 2. <Requested change 2>
 3. <Requested change 3>
 
+## Security expectations and abuse cases for <topic>
+
+- **Trust boundary**: <Who provides the data and who consumes it: user arguments, external files, network endpoints, or internal components>.
+- **Abuse cases (misuse cases)**:
+  - <Hostile or malformed input scenario 1: e.g. path traversal, unescaped characters, oversized payload>.
+  - <Hostile or malformed input scenario 2: e.g. unauthorized invocation, state tampering, replay>.
+- **Required security controls**: <Strict validation, type constraints, neutral error handling, sanitization>.
+
 ## Code references for <topic>
 
 - `<path/to/file.ext>`: <Current responsibility>
@@ -77,6 +85,14 @@ Explain how the CDC wording differs from the current behavior and list the concr
 
 - `<Example input>` -> <Expected result>
 - `<Example input>` -> <Expected result>
+
+## Security expectations and abuse cases for `<topic>`
+
+- **Trust boundary**: <Identifies the caller and untrusted data origin>.
+- **Abuse cases (misuse cases)**:
+  - <Adverse input or side-effect scenario 1>.
+  - <Adverse input or side-effect scenario 2>.
+- **Required security controls**: <Input validation, boundary enforcement, safe default behavior>.
 
 ## Code references for `<topic>`
 
