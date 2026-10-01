@@ -10,6 +10,14 @@ subcommand (Q01); ``--pick`` stays top-level only. The ``handoff`` subcommand
 carries a ``task`` word and a plain-string ``step`` positional, so a sub-step id
 such as ``4A`` is accepted and validated by the resolver, not the parser (Q04,
 Q56).
+
+Fix: ``--root`` and ``--debug`` given before the subcommand were lost. Argparse
+applies each subparser's own defaults to the shared namespace after the
+top-level parser has filled it, so ``pw --root <dir> handoff check 4A`` came
+back with ``root=None`` and ``debug=False``. Only the top-level copy of the
+common options now carries the ``None`` and ``False`` defaults; the subparser
+copy suppresses its defaults, so it sets ``root`` or ``debug`` only when the
+option is given after the subcommand, where the later value wins.
 """
 
 from __future__ import annotations
@@ -26,11 +34,13 @@ def build_arg_parser() -> argparse.ArgumentParser:
 
     Returns:
         The top-level parser with its ``handoff``, ``skill``, ``progress``,
-        ``document``, ``step-journal`` and ``code-review-commit`` subparsers.
+        ``document``, ``step-journal`` and ``code-review-commit`` subparsers;
+        ``--root`` and ``--debug`` keep the value given on either side of the
+        subcommand.
     """
-    common = _common_parser()
+    common = _common_parser(suppress_defaults=True)
     parser = argparse.ArgumentParser(
-        parents=[common],
+        parents=[_common_parser(suppress_defaults=False)],
         description="Generate and copy the next-step LLM prompt for the current topic.",
     )
     parser.add_argument(
@@ -93,17 +103,28 @@ def build_arg_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _common_parser() -> argparse.ArgumentParser:
-    """Return the parent parser carrying ``--root`` and ``--debug`` (Q01)."""
+def _common_parser(*, suppress_defaults: bool) -> argparse.ArgumentParser:
+    """Return the parent parser carrying ``--root`` and ``--debug`` (Q01).
+
+    Args:
+        suppress_defaults: True for the copy shared by the subparsers, whose
+            defaults would otherwise overwrite a value parsed before the
+            subcommand; False for the top-level copy, which owns the
+            ``None`` and ``False`` defaults.
+
+    Returns:
+        The parent parser, without its own help option.
+    """
     common = argparse.ArgumentParser(add_help=False)
     common.add_argument(
         "--root",
-        default=None,
+        default=argparse.SUPPRESS if suppress_defaults else None,
         help="Project root override. If not provided, scan upward for the root.",
     )
     common.add_argument(
         "--debug",
         action="store_true",
+        default=argparse.SUPPRESS if suppress_defaults else False,
         help="Enable debug logging.",
     )
     return common
