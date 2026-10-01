@@ -65,6 +65,7 @@ def find_plan_step(state: WorkflowState, step: str) -> PlanStep:
     if state.validation_plan is None:
         msg = "No validation plan resolved; run write-plans before a handoff."
         raise PromptWorkflowError(msg)
+    print(f"DEBUG: validation plan is {state.validation_plan}")
     plan_steps = plan.parse_validation_steps(
         state.validation_plan.read_text(encoding="utf-8"),
     )
