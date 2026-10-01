@@ -79,6 +79,28 @@ These facts were confirmed by inspecting the current codebase before writing thi
 
 ---
 
+## Security Architecture & Threat Surface for vX.Y.Z {topic}
+
+### Trust Boundaries & Data Ingestion
+
+- **Untrusted inputs**: {List all external or caller-provided inputs: CLI args, file paths, payloads, environment values, or network responses}.
+- **Sanitization & validation policy**: {Validation schema, boundary checks, path canonicalization, strict typing, or allowlist enforcement}.
+
+### Threat Modeling (STRIDE / OWASP Mapping)
+
+- **Spoofing / Authentication**: {Identified risk or N/A with rationale}.
+- **Tampering / Integrity**: {Guards against state or data manipulation, file tampering, or parameter pollution}.
+- **Information Disclosure**: {Protection against leaking credentials, internal paths, stack traces, or sensitive data in logs/transcripts}.
+- **Denial of Service**: {Boundaries, payload limits, timeouts, algorithmic complexity bounds}.
+- **Elevation of Privilege / Broken Access Control**: {Least privilege enforcement, access validation, path traversal prevention}.
+
+### Fail-safe & Secret Management
+
+- {Fail-closed / safe default policy upon error or invalid input}.
+- {Zero plaintext secrets in source code, secure configuration/environment lookup}.
+
+---
+
 ## Acceptance Cases for vX.Y.Z {topic}
 
 {Add this section when concrete examples, edge cases, or boundary cases are needed to make the design testable and unambiguous.}
