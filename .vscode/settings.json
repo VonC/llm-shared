@@ -51,6 +51,7 @@
     "EDEADLK",
     "fcntl",
     "fixturenames",
+    "fnmatch",
     "forceable",
     "frontmatter",
     "gabc",
