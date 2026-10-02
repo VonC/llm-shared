@@ -34,6 +34,10 @@ all — so its console children (check.bat, pytest) allocated a fresh
 visible console window on the user's desktop for the whole walk.
 CREATE_NO_WINDOW gives the survivor a hidden console those children
 inherit: a detached walk no longer pops any window.
+
+Fix (v0.13.0 full_suite_levels, Step 1): the lifecycle bracket takes its
+subcommand label from ``progress.sub_label``, where the label moved with the
+progress sink out of ``commands.py``.
 """
 
 from __future__ import annotations
@@ -49,7 +53,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Final
 
-from tools.groundhog import commands, day, redirect, reporting, runner
+from tools.groundhog import commands, day, progress, redirect, reporting, runner
 from tools.groundhog.models import EXIT_RUN_LIVE, EXIT_RUN_LOST, EXIT_SETUP_ERROR
 
 if TYPE_CHECKING:
@@ -303,7 +307,7 @@ def run_with_lifecycle(invocation: Invocation, deps: Deps) -> int:
     Returns:
         The dispatched contract exit code.
     """
-    label = commands.sub_label(invocation)
+    label = progress.sub_label(invocation)
     write_running(invocation.root, label)
     code = EXIT_SETUP_ERROR
     try:

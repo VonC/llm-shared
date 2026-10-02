@@ -5,8 +5,8 @@ fix step and the ``avg=``/``outliers=`` verdict, and writes ``a.ghog.outliers``
 in the artifact home (Q34, Q37, Q42, Q47); a tidy run exits 0 with
 ``outliers=0``; a raised override spares the slow call; a failing run keeps
 exit 2 and withholds the timing
-verdict (outliers judged last). The classification precedence is asserted
-directly, and the user-mode bar carries the same verdict in its postfix (Q37).
+verdict (outliers judged last). The user-mode bar carries the same verdict in
+its postfix (Q37).
 
 Also cover Step 3: a full run whose freak is in the ``[exclusion]`` section
 within tolerance spares it from the outliers, exits 0 with no outlier window,
@@ -18,23 +18,48 @@ so the real parsing, rule, floor, classification and report run together.
 
 Fix: the deps also fake the pytest-suite probe as a pytest project, so the
 scenarios run from a bare temporary root.
+
+Fix (v0.13.0 full_suite_levels, Step 1): the direct outliers-last
+classification case moved to ``test_groundhog_verdicts`` and the postfix
+verdict case to ``test_groundhog_progress``, beside the helpers that moved
+out of ``commands.py``; the end-to-end duration scenarios stay here. The file
+now also drives every remaining executor path of ``commands.py`` through the
+CLI, so it covers that module on its own: check.bat missing or exiting 0 over
+colored ERROR lines, the exit-9 and missing-pytest stops, a sequential full
+run (testmon reset, baseline, nag), its coverage-gap rows and missing TOTAL
+reason, a crash, a covered affected run, a focus run with and without a
+baseline, and init success and failure.
 """
 
 from __future__ import annotations
 
+from dataclasses import replace
 from typing import TYPE_CHECKING
 
-from tests.unit.tools.groundhog_acceptance_support import Spawns, make_deps
-from tools.groundhog import cli, commands, exclusions, floor, reporting_nextstep
-from tools.groundhog.durations import DurationCall, DurationSummary
+from tests.unit.tools.groundhog_acceptance_support import (
+    Spawns,
+    failing_transcript,
+    make_deps,
+    passing_transcript,
+)
+from tools.groundhog import (
+    baseline,
+    cli,
+    commands,
+    exclusions,
+    floor,
+    init_files,
+    reporting_nextstep,
+)
 from tools.groundhog.models import (
     EXIT_COVERAGE_GAP,
     EXIT_DURATION_OUTLIERS,
+    EXIT_NOT_PYTEST_PROJECT,
     EXIT_OBJECTIVE_MET,
+    EXIT_SETUP_ERROR,
+    EXIT_SUITE_CRASH,
     EXIT_TEST_FAILURES,
-    Mode,
-    RunResult,
-    RunStats,
+    GroundhogError,
 )
 
 if TYPE_CHECKING:
@@ -44,7 +69,6 @@ if TYPE_CHECKING:
 
 # A pre-written override that sits above the freak, so it is spared (Q43).
 _OVERRIDE = 10.0
-_GATE_FULL = 100.0
 # Calls near the median plus one order-of-magnitude freak: the single outlier.
 _FREAK_NODE = "tests/test_slow.py::test_freak"
 _SLOW_CALLS = (
@@ -139,74 +163,6 @@ def _full_transcript(
     return lines
 
 
-def _result(stats: RunStats, pytest_exit: int) -> RunResult:
-    """Build a non-crashed run result for the classification tests.
-
-    Args:
-        stats: The run statistics.
-        pytest_exit: The pytest child exit code.
-
-    Returns:
-        The run result.
-    """
-    return RunResult(
-        stats=stats,
-        pytest_exit=pytest_exit,
-        crashed=False,
-        failure_block=(),
-        tail=(),
-    )
-
-
-def _invocation(root: Path) -> cli.Invocation:
-    """Build a full-run invocation for the classification tests.
-
-    Args:
-        root: The project root.
-
-    Returns:
-        The invocation.
-    """
-    return cli.Invocation(
-        sub="full",
-        files=(),
-        no_cov=False,
-        mode=Mode.LLM,
-        root=root,
-    )
-
-
-def _summary(outliers: tuple[DurationCall, ...]) -> DurationSummary:
-    """Build a duration verdict for the postfix test.
-
-    Args:
-        outliers: The flagged outliers carried by the verdict.
-
-    Returns:
-        The summary, with a fixed average and floor.
-    """
-    return DurationSummary(
-        average=0.10,
-        outliers=outliers,
-        runners_up=(),
-        floor=1.05,
-        median=0.10,
-    )
-
-
-def _green_full(stats: RunStats) -> RunStats:
-    """Mark statistics green on tests and coverage for classification.
-
-    Args:
-        stats: The statistics to complete.
-
-    Returns:
-        The same statistics with a full coverage percentage.
-    """
-    stats.cov_percent = _GATE_FULL
-    return stats
-
-
 def _assert_blank_before(out: str, marker: str) -> None:
     """Assert the rendered report separates a named line from prior content."""
     lines = out.splitlines()
@@ -227,38 +183,6 @@ def _assert_green_but_slow_report(out: str) -> None:
     assert "outliers=1" in out
     assert "exit=8" in out
     _assert_blank_before(out, "Duration outliers")
-
-
-def test_classify_judges_outliers_last(tmp_path: Path) -> None:
-    """Exit 8 only on a green run; a gap or a failure keeps its code (Q34)."""
-    invocation = _invocation(tmp_path)
-    green = _result(_green_full(RunStats()), 0)
-    assert commands.classify(invocation, green, _GATE_FULL, 1) == (
-        EXIT_DURATION_OUTLIERS
-    )
-    assert commands.classify(invocation, green, _GATE_FULL, 0) == EXIT_OBJECTIVE_MET
-    low = RunStats()
-    low.cov_percent = 90.0
-    assert commands.classify(invocation, _result(low, 0), _GATE_FULL, 1) == (
-        EXIT_COVERAGE_GAP
-    )
-    failing = RunStats()
-    failing.failed = 1
-    assert commands.classify(invocation, _result(failing, 1), _GATE_FULL, 1) == (
-        EXIT_TEST_FAILURES
-    )
-
-
-def test_postfix_appends_the_timing_verdict() -> None:
-    """The closed-bar postfix gains avg= and outliers= once judged (Q37)."""
-    stats = RunStats()
-    stats.cov_percent = _GATE_FULL
-    plain = commands.postfix(stats)
-    assert "avg=" not in plain
-    outlier = DurationCall(node=_FREAK_NODE, seconds=5.0, ratio=50.0)
-    judged = commands.postfix(stats, _summary((outlier,)))
-    assert "avg=0.100s" in judged
-    assert "outliers=1" in judged
 
 
 def test_section_keeps_an_existing_blank_separator() -> None:
@@ -413,6 +337,164 @@ def test_user_mode_without_tests_closes_no_bar(tmp_path: Path) -> None:
     )
     assert code == EXIT_OBJECTIVE_MET
     assert bars == []
+
+
+def _run(argv: list[str], spawns: Spawns, root: Path) -> int:
+    """Run one LLM-mode subcommand on a root through the CLI.
+
+    Args:
+        argv: The subcommand and its own arguments.
+        spawns: The recording process factory.
+        root: The project root.
+
+    Returns:
+        The contract exit code.
+    """
+    return cli.main([*argv, "--root", str(root), "--llm"], make_deps(spawns))
+
+
+def test_check_without_check_bat_is_skipped(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A root without check.bat spawns nothing and moves on (Q10)."""
+    spawns = Spawns([], 0)
+    assert _run(["check"], spawns, tmp_path) == EXIT_OBJECTIVE_MET
+    assert spawns.commands == []
+    assert reporting_nextstep.MSG_CHECK_MISSING in capsys.readouterr().out
+
+
+def test_check_error_lines_fail_a_zero_exit(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Colored ERROR lines turn a 0 exit into a failed check (Q26, Q29)."""
+    (tmp_path / "check.bat").write_text("@echo off\n", encoding="utf-8")
+    lines = ["\x1b[32m OK    : [check.bat] fine\x1b[0m", "\x1b[31m ERROR : [check.bat] boom\x1b[0m"]
+    assert _run(["check"], Spawns(lines, 0), tmp_path) == 1
+    out = capsys.readouterr().out
+    assert " ERROR : [check.bat] boom" in out
+    assert "\x1b[" not in out
+    assert reporting_nextstep.MSG_CHECK_EXIT_MISMATCH in out
+
+
+def test_pytest_steps_stop_before_pytest(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """No pytest suite exits 9; a missing pytest executable exits 5 (Q21)."""
+
+    def _no_suite(_root: Path) -> bool:
+        return False
+
+    def _no_pytest(_name: str) -> str | None:
+        return None
+
+    deps = make_deps(Spawns([], 0))
+    argv = ["single", "tests/test_a.py", "--root", str(tmp_path), "--llm"]
+    assert cli.main(argv, replace(deps, pytest_project=_no_suite)) == EXIT_NOT_PYTEST_PROJECT
+    assert cli.main(argv, replace(deps, which=_no_pytest)) == EXIT_SETUP_ERROR
+    out = capsys.readouterr().out
+    assert reporting_nextstep.MSG_NOT_PYTEST_PROJECT in out
+    assert reporting_nextstep.MSG_NO_PYTEST in out
+    assert "ghog single done" in out
+
+
+def test_sequential_full_run_resets_testmon_and_records_the_baseline(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A green sequential full run resets testmon, records failures and nags (Q05, Q09)."""
+    (tmp_path / ".testmondata").write_text("stale", encoding="utf-8")
+    spawns = Spawns(passing_transcript(2, "TOTAL    100    0   100%"), 0)
+    assert _run(["full"], spawns, tmp_path) == EXIT_OBJECTIVE_MET
+    assert not (tmp_path / ".testmondata").exists()
+    assert baseline.read_baseline(tmp_path) == ()
+    out = capsys.readouterr().out
+    assert reporting_nextstep.MSG_FULL_OK in out
+    assert "nag: warn=2 xfail=0 worth a look" in out
+
+
+def test_full_run_gap_and_missing_total_are_reported(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A gap lists the uncovered rows (Q24); a missing TOTAL names the reason (Q19)."""
+    gap = passing_transcript(1, None)
+    gap.extend(
+        [
+            "Name                  Stmts   Miss  Cover   Missing",
+            "src/pkg/mod.py          120      7    94%   48, 86-88",
+            "TOTAL    100    3    97%",
+        ],
+    )
+    assert _run(["full"], Spawns(gap, 0), tmp_path) == EXIT_COVERAGE_GAP
+    out = capsys.readouterr().out
+    assert reporting_nextstep.MSG_GAP_LINES_HEADER in out
+    assert "src/pkg/mod.py" in out
+    assert _run(["full"], Spawns(passing_transcript(1, None), 0), tmp_path) == EXIT_SETUP_ERROR
+    assert "coverage TOTAL line not found" in capsys.readouterr().out
+
+
+def test_crashed_run_prints_the_crash_block(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A mid-run crash exits 4 with the crash block and no baseline (Q06)."""
+    lines = [
+        "collected 2 items",
+        "tests/test_a.py::test_one PASSED [ 50%]",
+        "INTERNALERROR> Traceback (most recent call last):",
+    ]
+    assert _run(["full"], Spawns(lines, 3), tmp_path) == EXIT_SUITE_CRASH
+    assert baseline.read_baseline(tmp_path) is None
+    assert "ghog: the test suite crashed mid-run." in capsys.readouterr().out
+
+
+def test_covered_affected_run_reaches_the_gate(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A covered affected run at the gate needs no full run (Q14)."""
+    spawns = Spawns(passing_transcript(1, "TOTAL    100    0   100%"), 0)
+    assert _run(["affected"], spawns, tmp_path) == EXIT_OBJECTIVE_MET
+    assert reporting_nextstep.MSG_AFFECTED_COV_OK in capsys.readouterr().out
+
+
+def test_single_run_compares_with_the_full_run_baseline(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A focus run skips the comparison without a baseline, then uses it (Q07, Q18)."""
+    argv = ["single", "tests/test_a.py"]
+    assert _run(argv, Spawns(failing_transcript(), 1), tmp_path) == EXIT_TEST_FAILURES
+    assert reporting_nextstep.MSG_NO_BASELINE in capsys.readouterr().out
+    baseline.write_baseline(tmp_path, ["tests/test_a.py::test_two"])
+    assert _run(argv, Spawns(failing_transcript(), 1), tmp_path) == EXIT_TEST_FAILURES
+    out = capsys.readouterr().out
+    assert reporting_nextstep.MSG_NO_BASELINE not in out
+    assert reporting_nextstep.MSG_SINGLE_RESTART in out
+
+
+def test_init_reports_success_and_failure(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Init registers the pointers, or exits 5 naming a missing instruction (Q23)."""
+    deps = replace(make_deps(Spawns([], 0)), home=lambda: tmp_path / "home")
+    argv = ["init", "--root", str(tmp_path), "--llm"]
+    assert cli.main(argv, deps) == EXIT_OBJECTIVE_MET
+    assert "ghog init done" in capsys.readouterr().out
+
+    def _missing(root: Path, home: Path | None = None) -> list[str]:
+        del root, home
+        message = "instruction file missing"
+        raise GroundhogError(message)
+
+    monkeypatch.setattr(init_files, "run_init", _missing)
+    assert cli.main(argv, deps) == EXIT_SETUP_ERROR
+    assert "ghog: instruction file missing" in capsys.readouterr().out
 
 
 # eof

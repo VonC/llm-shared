@@ -30,7 +30,8 @@ Split for the repo line budget: this module keeps the argument parsing,
 the mode pick, the logging setup and the dispatch; the subcommand
 executors live in ``commands.py`` — except the trivial non-pytest
 ``exclude`` executor, which stays here beside its dispatch since
-``commands.py`` is at its line budget — and the injectable seams in
+``commands.py`` was at its line budget when it was added — and the
+injectable seams in
 ``context.py``.
 
 Usage::
@@ -44,6 +45,10 @@ Fix: the ``exclude`` confirmation names the floor file at its real location
 in the review artifact home (``.reviews`` unless ``.review-artifacts.ini``
 declares another home), where ``a.ghog.outliers`` now lives, instead of a
 bare file name that read as a project-root file.
+
+Fix (v0.13.0 full_suite_levels, Step 1): the ``exclude`` closing line takes
+its subcommand label from ``progress.sub_label``, where the label moved with
+the progress sink out of ``commands.py``.
 """
 
 from __future__ import annotations
@@ -66,6 +71,7 @@ from tools.groundhog import (
     commands,
     exclusions,
     floor,
+    progress,
     redirect,
     reporting,
     runner,
@@ -166,7 +172,7 @@ def run_exclude(invocation: Invocation) -> int:
     existing entry, then prints the standard envelope. The next full run then
     holds the call within two seconds of that baseline (Q56) and spares it from
     the floor (Q54). It lives here, not in ``commands.py``, only because that
-    module is at its line budget.
+    module was at its line budget when the executor was added.
 
     Args:
         invocation: The parsed invocation, carrying the node id and seconds.
@@ -186,7 +192,7 @@ def run_exclude(invocation: Invocation) -> int:
     )
     closing = reporting.closing_line(
         invocation.root.name,
-        commands.sub_label(invocation),
+        progress.sub_label(invocation),
         RunStats(),
         EXIT_OBJECTIVE_MET,
         reporting.ClosingMetrics(reporting.COV_SKIPPED),

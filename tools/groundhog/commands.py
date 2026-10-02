@@ -13,6 +13,11 @@ caller still branches without reading the log.
 Fix: the pytest steps first ask the ``pytest_project`` seam whether the root
 has a pytest suite at all. A project with none exits 9 with its own reason and
 next step, instead of the missing-pytest setup error that blamed senv.bat.
+
+Fix (v0.13.0 full_suite_levels, Step 1): the exit-code classification and
+setup reasons moved to ``verdicts.py``, the progress sink, postfix and
+subcommand label to ``progress.py``, with no behavior change, so this module
+keeps headroom for the level-shaped runs of the next steps.
 """
 
 from __future__ import annotations
@@ -27,10 +32,12 @@ from tools.groundhog import (
     durations_summary,
     gate,
     init_files,
+    progress,
     redirect,
     reporting,
     reporting_nextstep,
     runner,
+    verdicts,
 )
 from tools.groundhog.models import (
     EXIT_COVERAGE_GAP,
@@ -38,12 +45,7 @@ from tools.groundhog.models import (
     EXIT_NOT_PYTEST_PROJECT,
     EXIT_OBJECTIVE_MET,
     EXIT_SETUP_ERROR,
-    EXIT_SUITE_CRASH,
-    EXIT_TEST_FAILURES,
-    PYTEST_NO_TESTS,
-    PYTEST_USAGE_ERROR,
     GroundhogError,
-    Mode,
     RunStats,
 )
 
@@ -53,7 +55,6 @@ if TYPE_CHECKING:
     from tools.groundhog.context import Deps, Invocation
     from tools.groundhog.durations import DurationSummary
     from tools.groundhog.models import RunResult
-    from tools.groundhog.render import ProgressBar
 
 LOGGER = logging.getLogger("groundhog")
 
@@ -64,88 +65,6 @@ _CHECK_ERROR_RE = re.compile(r"^\s*ERROR\s*:")
 # guard matches and before the line is re-emitted (Q29): a real colored
 # check.bat hid its ERROR lines from the Q26 guard behind color codes.
 _ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
-
-
-class _Progress:
-    """Per-mode progress sink: governed LLM lines or the user bar (Q03).
-
-    In LLM mode the cadence governor decides when a key=value line goes
-    out (Q04, Q16). In user mode a tqdm bar advances per finished test
-    and its postfix carries the same counters to the end of the run (Q20).
-    A run that ended without crashing tops the bar off to its total, so
-    the bar always closes full instead of just short of 100%.
-    """
-
-    def __init__(self, invocation: Invocation, deps: Deps) -> None:
-        """Wire the sink for one run.
-
-        Args:
-            invocation: The parsed invocation, for the mode and label.
-            deps: The injectable seams, for the clock and bar factory.
-        """
-        self._label = sub_label(invocation)
-        self._mode = invocation.mode
-        self._deps = deps
-        self._governor = reporting.ProgressGovernor(deps.clock)
-        self._bar: ProgressBar | None = None
-        self._seen = 0
-
-    def update(self, stats: RunStats) -> None:
-        """Handle one statistics update from the streamed run.
-
-        Args:
-            stats: The counters parsed so far.
-        """
-        if self._mode is Mode.LLM:
-            if self._governor.should_emit(stats):
-                LOGGER.info("%s", reporting.progress_line(self._label, stats))
-            return
-        if self._bar is None and stats.total > 0:
-            self._bar = self._deps.bar_factory(stats.total, f"ghog {self._label}")
-        if self._bar is not None:
-            if stats.done > self._seen:
-                self._bar.update(stats.done - self._seen)
-                self._seen = stats.done
-            self._bar.set_postfix_str(postfix(stats))
-
-    def finish(
-        self,
-        stats: RunStats,
-        *,
-        completed: bool,
-        summary: DurationSummary | None = None,
-    ) -> None:
-        """Close the run with the final counters and the timing verdict (Q20).
-
-        In LLM mode a full run emits exactly one final summary line carrying
-        the ``avg=``/``outliers=`` verdict, after the governor's bare 100%
-        line (Q52); any other run emits nothing here, as before.
-
-        In user mode a completed run fills the bar to its total before closing,
-        so it reads 100% even when a parameterized node id escaped the parser
-        pattern; a crashed run only catches up to the parsed count (Q06). The
-        closed bar carries the same verdict in its postfix (Q37).
-
-        Args:
-            stats: The final counters of the run.
-            completed: Whether the child ended without crashing.
-            summary: The duration verdict of a full run, or ``None``.
-        """
-        if self._mode is Mode.LLM:
-            if summary is not None:
-                LOGGER.info(
-                    "%s",
-                    reporting.progress_line(self._label, stats, summary),
-                )
-            return
-        if self._bar is None:
-            return
-        target = stats.total if completed else stats.done
-        if target > self._seen:
-            self._bar.update(target - self._seen)
-            self._seen = target
-        self._bar.set_postfix_str(postfix(stats, summary))
-        self._bar.close()
 
 
 def run_check(invocation: Invocation, deps: Deps) -> int:
@@ -228,28 +147,28 @@ def run_tests(invocation: Invocation, deps: Deps) -> int:
         files=invocation.files,
         parallel=parallel,
     )
-    progress = _Progress(invocation, deps)
+    sink = progress.Progress(invocation, deps)
     config = runner.StreamConfig(
         command=command,
         cwd=invocation.root,
         popen_factory=deps.popen_factory,
     )
-    result = runner.run_pytest(config, progress.update)
+    result = runner.run_pytest(config, sink.update)
     gate_value = (
         gate.read_coverage_gate(invocation.root)
-        if _measures_coverage(invocation)
+        if verdicts.measures_coverage(invocation)
         else None
     )
     # Judge outliers last (Q34): the base code gates the verdict, so a failure
     # or a gap keeps its own exit code and withholds the timing verdict.
-    base_code = classify(invocation, result, gate_value)
+    base_code = verdicts.classify(invocation, result, gate_value)
     summary = durations_summary.judge(invocation, result, base_code)
-    progress.finish(result.stats, completed=not result.crashed, summary=summary)
+    sink.finish(result.stats, completed=not result.crashed, summary=summary)
     if invocation.sub == runner.SUB_FULL and not result.crashed:
         baseline.write_baseline(invocation.root, result.stats.failed_ids)
     # Exit 8 fires on a slower-drifted exclusion too, already spared from outliers (Q57).
     flagged = 0 if summary is None else len(summary.outliers) + reporting.excluded_count(summary)
-    exit_code = classify(invocation, result, gate_value, flagged)
+    exit_code = verdicts.classify(invocation, result, gate_value, flagged)
     _report(invocation, result, exit_code, gate_value, summary)
     return exit_code
 
@@ -301,102 +220,13 @@ def _exit_before_pytest(invocation: Invocation, lines: Sequence[str], code: int)
     emit_summary(_section(lines))
     closing = reporting.closing_line(
         invocation.root.name,
-        sub_label(invocation),
+        progress.sub_label(invocation),
         RunStats(),
         code,
         reporting.ClosingMetrics(reporting.COV_SKIPPED),
     )
     emit_summary(_section([closing]))
     return code
-
-
-def _measures_coverage(invocation: Invocation) -> bool:
-    """Tell whether the invocation measures coverage.
-
-    Args:
-        invocation: The parsed invocation.
-
-    Returns:
-        True for ``full`` and covered ``affected`` runs.
-    """
-    covered_subs = (runner.SUB_FULL, runner.SUB_AFFECTED)
-    return invocation.sub in covered_subs and not invocation.no_cov
-
-
-def classify(
-    invocation: Invocation,
-    result: RunResult,
-    gate_value: float | None,
-    flagged: int = 0,
-) -> int:
-    """Map a run result to the contract exit code (Q12).
-
-    Args:
-        invocation: The parsed invocation.
-        result: The parsed run result.
-        gate_value: The coverage gate, ``None`` for uncovered runs.
-        flagged: The outliers plus slower-drifted exclusions judged last, turning a green run to exit 8 (Q34, Q57).
-
-    Returns:
-        The contract exit code; exit 8 only on a run already green on tests and
-        coverage that still carries a true outlier or slower-drift (Q34, Q57).
-    """
-    if result.crashed:
-        return EXIT_SUITE_CRASH
-    if result.pytest_exit == PYTEST_USAGE_ERROR:
-        return EXIT_SETUP_ERROR
-    if result.pytest_exit == PYTEST_NO_TESTS:
-        return _classify_no_tests(invocation, result, gate_value)
-    if result.stats.failed > 0:
-        return EXIT_TEST_FAILURES
-    code = _classify_coverage(result.stats.cov_percent, gate_value)
-    if code == EXIT_OBJECTIVE_MET and flagged > 0:
-        return EXIT_DURATION_OUTLIERS
-    return code
-
-
-def _classify_no_tests(
-    invocation: Invocation,
-    result: RunResult,
-    gate_value: float | None,
-) -> int:
-    """Classify a run that collected no tests.
-
-    An ``affected`` run with nothing affected is a green step; an empty
-    ``full`` or ``single`` run is a setup error.
-
-    Args:
-        invocation: The parsed invocation.
-        result: The parsed run result.
-        gate_value: The coverage gate, ``None`` for uncovered runs.
-
-    Returns:
-        The contract exit code.
-    """
-    if invocation.sub != runner.SUB_AFFECTED:
-        return EXIT_SETUP_ERROR
-    if gate_value is not None and result.stats.cov_percent is not None:
-        return _classify_coverage(result.stats.cov_percent, gate_value)
-    return EXIT_OBJECTIVE_MET
-
-
-def _classify_coverage(cov_percent: float | None, gate_value: float | None) -> int:
-    """Classify a green run against the coverage gate (Q14, Q19).
-
-    Args:
-        cov_percent: The parsed TOTAL percentage, ``None`` on a miss.
-        gate_value: The coverage gate, ``None`` for uncovered runs.
-
-    Returns:
-        The contract exit code; a TOTAL parse miss is the loud exit 5.
-    """
-    if gate_value is None:
-        return EXIT_OBJECTIVE_MET
-    if cov_percent is None:
-        return EXIT_SETUP_ERROR
-    if cov_percent < gate_value:
-        return EXIT_COVERAGE_GAP
-    return EXIT_OBJECTIVE_MET
 
 
 def _report(
@@ -419,7 +249,7 @@ def _report(
     _report_run_context(invocation, result, exit_code, summary)
     emit_summary(_section(_next_steps(invocation, result, exit_code, summary)))
     if exit_code == EXIT_SETUP_ERROR and not result.crashed:
-        emit_summary(_section([setup_reason(result, measured=measured)]))
+        emit_summary(_section([verdicts.setup_reason(result, measured=measured)]))
     if exit_code == EXIT_OBJECTIVE_MET and measured:
         nag = reporting.nag_line(result.stats)
         if nag is not None:
@@ -427,7 +257,7 @@ def _report(
     times_calls = durations_summary.measures_durations(invocation)
     closing = reporting.closing_line(
         invocation.root.name,
-        sub_label(invocation),
+        progress.sub_label(invocation),
         result.stats,
         exit_code,
         reporting.ClosingMetrics(
@@ -537,58 +367,6 @@ def _single_lines(invocation: Invocation, result: RunResult) -> list[str]:
         comparison,
         failed=result.stats.failed > 0,
     )
-
-
-def setup_reason(result: RunResult, *, measured: bool) -> str:
-    """Name the failing precondition of a setup-error exit.
-
-    Args:
-        result: The parsed run result.
-        measured: Whether the run measured coverage.
-
-    Returns:
-        The reason line of the run-state table.
-    """
-    if result.pytest_exit == PYTEST_USAGE_ERROR:
-        return "ghog: pytest usage error; check the command and project configuration."
-    if result.pytest_exit == PYTEST_NO_TESTS:
-        return "ghog: no tests collected; check the test files and arguments."
-    if measured and result.stats.cov_percent is None:
-        return "ghog: coverage TOTAL line not found; cannot judge the gate (Q19)."
-    return "ghog: setup error."
-
-
-def sub_label(invocation: Invocation) -> str:
-    """Return the subcommand label of the progress and closing lines.
-
-    Args:
-        invocation: The parsed invocation.
-
-    Returns:
-        The label, ``affected --no-cov`` for the ptanc variant.
-    """
-    if invocation.sub == runner.SUB_AFFECTED and invocation.no_cov:
-        return f"{runner.SUB_AFFECTED} --no-cov"
-    return invocation.sub
-
-
-def postfix(stats: RunStats, summary: DurationSummary | None = None) -> str:
-    """Build the user-bar postfix carrying the runtime counters (Q20).
-
-    Args:
-        stats: The counters parsed so far.
-        summary: The duration verdict of a full run, for the closed bar (Q37).
-
-    Returns:
-        The postfix text, with the coverage percentage once parsed and the
-        ``avg=``/``outliers=`` verdict once the run is judged.
-    """
-    text = f"fail={stats.failed} warn={stats.warnings} xfail={stats.xfailed}"
-    if stats.cov_percent is not None:
-        text = f"{text} cov={reporting.format_percent(stats.cov_percent)}"
-    if summary is not None:
-        text = f"{text} {reporting.progress_suffix(summary)}"
-    return text
 
 
 def emit(lines: Sequence[str]) -> None:
