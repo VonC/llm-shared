@@ -1,4 +1,9 @@
-"""TDD contracts for immutable mandatory validation resolution."""
+"""TDD contracts for immutable mandatory validation resolution.
+
+Fix (v0.13.0 full_suite_levels, Step 2): the built-in project default names
+the ``speed`` level, since plain ``ghog day`` no longer runs the full suite;
+the sample project commands follow it.
+"""
 
 from __future__ import annotations
 
@@ -25,13 +30,13 @@ if TYPE_CHECKING:
 def test_resolver_preserves_defaults_adds_checks_and_merges_sources() -> None:
     """First appearance orders commands and every contributing source is retained."""
     resolved = resolve_code_review_validation(
-        ("ghog day", "project lint"),
+        ("ghog day --full=speed", "project lint"),
         ("focused tests", "project lint"),
         ("request audit", "focused tests"),
     )
 
     assert resolved.command_lines == (
-        "ghog day",
+        "ghog day --full=speed",
         "project lint",
         "focused tests",
         "request audit",
@@ -48,10 +53,10 @@ def test_resolver_preserves_defaults_adds_checks_and_merges_sources() -> None:
 
 def test_resolver_is_deterministic_and_exposes_drift_inputs() -> None:
     """Equal inputs are stable while later additions produce a comparable value."""
-    before = resolve_code_review_validation(("ghog day",), ("focused tests",))
-    repeated = resolve_code_review_validation(("ghog day",), ("focused tests",))
+    before = resolve_code_review_validation(("ghog day --full=speed",), ("focused tests",))
+    repeated = resolve_code_review_validation(("ghog day --full=speed",), ("focused tests",))
     after = resolve_code_review_validation(
-        ("ghog day",),
+        ("ghog day --full=speed",),
         ("focused tests",),
         ("security audit",),
     )
@@ -66,8 +71,8 @@ def test_resolver_is_deterministic_and_exposes_drift_inputs() -> None:
     [
         ((), (), (), "project validation defaults must be non-empty"),
         ((" ",), (), (), "validation command must be non-empty"),
-        (("ghog day",), ("",), (), "validation command must be non-empty"),
-        (("ghog day",), (), ("\n",), "validation command must be non-empty"),
+        (("ghog day --full=speed",), ("",), (), "validation command must be non-empty"),
+        (("ghog day --full=speed",), (), ("\n",), "validation command must be non-empty"),
     ],
 )
 def test_resolver_rejects_missing_defaults_and_empty_additions(
@@ -86,13 +91,13 @@ def test_typed_validation_values_reject_invalid_direct_construction() -> None:
     with pytest.raises(ReviewExchangeError, match="validation command must be non-empty"):
         ResolvedValidationCommand(" ", ("project",))
     with pytest.raises(ReviewExchangeError, match="sources must be non-empty and unique"):
-        ResolvedValidationCommand("ghog day", ())
+        ResolvedValidationCommand("ghog day --full=speed", ())
     with pytest.raises(ReviewExchangeError, match="source is unsupported"):
-        ResolvedValidationCommand("ghog day", (cast("ValidationSource", "writer"),))
+        ResolvedValidationCommand("ghog day --full=speed", (cast("ValidationSource", "writer"),))
     with pytest.raises(ReviewExchangeError, match="set must be non-empty"):
         ResolvedValidationSet(())
 
-    command = ResolvedValidationCommand("ghog day", ("project",))
+    command = ResolvedValidationCommand("ghog day --full=speed", ("project",))
     with pytest.raises(ReviewExchangeError, match="commands must be unique"):
         ResolvedValidationSet((command, command))
 
@@ -100,6 +105,7 @@ def test_typed_validation_values_reject_invalid_direct_construction() -> None:
 def test_project_declaration_absent_keeps_the_built_in_default(tmp_path: Path) -> None:
     """A project that declares nothing inherits the built-in mandatory floor."""
     assert load_project_validation_commands(tmp_path) == DEFAULT_PROJECT_VALIDATION_COMMANDS
+    assert DEFAULT_PROJECT_VALIDATION_COMMANDS == ("ghog day --full=speed",)
 
 
 def test_project_declaration_replaces_the_default_and_stays_mandatory(
@@ -121,7 +127,7 @@ def test_project_declaration_replaces_the_default_and_stays_mandatory(
 
     declared = load_project_validation_commands(tmp_path)
     assert declared == ("shellcheck src/install.sh", "bash verify.sh --step 2")
-    assert "ghog day" not in declared
+    assert "ghog day --full=speed" not in declared
 
     resolved = resolve_code_review_validation(declared, ("plan check",), ())
     assert resolved.command_lines == (
@@ -159,7 +165,7 @@ def test_unreadable_project_declaration_is_reported(
 ) -> None:
     """Filesystem read failures retain their cause and declaration context."""
     declaration = tmp_path / PROJECT_VALIDATION_FILE
-    declaration.write_text("ghog day\n", encoding="utf-8")
+    declaration.write_text("ghog day --full=speed\n", encoding="utf-8")
 
     def denied_read(*_args: object, **_kwargs: object) -> str:
         raise OSError

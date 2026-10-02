@@ -6,6 +6,9 @@ transcript reads while public render and exchange validation remain active.
 Envelope-failure cases use one deterministic valid tree object because the
 real Git capture boundary is covered in its focused temporary-repository leaf.
 Active-exchange setup is prepared before measured duplicate and escalation checks.
+
+Fix (v0.13.0 full_suite_levels, Step 2): the project validation command
+follows the new default, ``ghog day --full=speed``.
 """
 
 from __future__ import annotations
@@ -129,7 +132,7 @@ def test_mismatched_plan_step_round_and_umbrella_fail_closed(
             change_summary="The staged diff and a.commit are ready.",
             writer_response="The writer requests review.",
             request_index_tree=_REQUEST_INDEX_TREE,
-            resolved_validation_set=resolve_code_review_validation(("ghog day",)),
+            resolved_validation_set=resolve_code_review_validation(("ghog day --full=speed",)),
             commit_plan_result=CommitPlanCheckResult(CommitPlanCheckState.VALID),
         ),
     )

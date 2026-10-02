@@ -1,4 +1,10 @@
-"""Resolve mandatory code-review validation commands and their sources."""
+"""Resolve mandatory code-review validation commands and their sources.
+
+Fix (v0.13.0 full_suite_levels, Step 2): plain ``ghog day`` now stops after
+the affected tests, so the built-in project default names the ``speed`` level
+explicitly: every request under the default policy enters review with a full
+suite, coverage and duration proof.
+"""
 
 # ruff: noqa: EM101, TRY003
 
@@ -14,7 +20,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 ValidationSource = Literal["project", "plan", "request"]
-DEFAULT_PROJECT_VALIDATION_COMMANDS = ("ghog day",)
+DEFAULT_PROJECT_VALIDATION_COMMANDS = ("ghog day --full=speed",)
 _SOURCE_ORDER: tuple[ValidationSource, ...] = ("project", "plan", "request")
 
 PROJECT_VALIDATION_FILE = ".review-validation"
@@ -23,8 +29,9 @@ PROJECT_VALIDATION_FILE = ".review-validation"
 def load_project_validation_commands(project_root: Path) -> tuple[str, ...]:
     """Read the project's declared mandatory commands, or the built-in default.
 
-    The default assumes a Python project: `ghog day` walks a check step and a
-    pytest step. A repository without a Python suite cannot satisfy it and, since
+    The default assumes a Python project: `ghog day --full=speed` walks a check
+    step, the affected tests, then the full suite with its coverage and duration
+    gates. A repository without a Python suite cannot satisfy it and, since
     the resolver has no removal operation, could never reach a complete
     validation floor whatever it did. That made commit-readiness unreachable for
     every non-Python repository rather than for one, which is a policy nobody

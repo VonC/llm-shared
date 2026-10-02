@@ -2,6 +2,9 @@
 
 The helpers keep Git setup outside measured test calls where practical while
 leaving every scenario on the public renderer, evidence, and exchange seams.
+
+Fix (v0.13.0 full_suite_levels, Step 2): the project validation command
+follows the new default, ``ghog day --full=speed``.
 """
 
 from __future__ import annotations
@@ -191,7 +194,7 @@ def render_request(
             writer_response="Please assess the exact staged subject.",
             request_index_tree=tree or capture_index_tree(effort.root),
             resolved_validation_set=resolve_code_review_validation(
-                ("ghog day",),
+                ("ghog day --full=speed",),
                 ("focused Step 6 acceptance",),
             ),
             commit_plan_result=ready_commit_plan_result(),

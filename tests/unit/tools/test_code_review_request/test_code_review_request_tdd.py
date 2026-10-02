@@ -2,6 +2,9 @@
 
 The tests pin one immutable code-round identity to both rendered artifacts and
 exercise the caller-owned UTF-8 file boundary without involving the exchange.
+
+Fix (v0.13.0 full_suite_levels, Step 2): the rendered project default is now
+``ghog day --full=speed (sources: project)``.
 """
 
 from __future__ import annotations
@@ -40,7 +43,7 @@ _READY_RESULT = CommitPlanCheckResult(CommitPlanCheckState.VALID)
 
 def _validation_set() -> requestor.ResolvedValidationSet:
     """Return one resolved default-plus-plan validation set."""
-    return resolve_code_review_validation(("ghog day",), ("focused Step 1 tests",))
+    return resolve_code_review_validation(("ghog day --full=speed",), ("focused Step 1 tests",))
 
 
 def _plan(tmp_path: Path, name: str = f"plan.{_VERSION}.{_SLUG}.md") -> Path:
@@ -198,7 +201,7 @@ def test_render_carries_one_canonical_evidence_object_and_round_trips(
         "request_index_tree": _TREE,
         "resolved_validation_set": {
             "commands": [
-                {"command": "ghog day", "sources": ["project"]},
+                {"command": "ghog day --full=speed", "sources": ["project"]},
                 {"command": "focused Step 1 tests", "sources": ["plan"]},
             ],
         },
@@ -207,8 +210,8 @@ def test_render_carries_one_canonical_evidence_object_and_round_trips(
     assert parse_envelope_markdown(rendered.request_content) == (envelope, authored)
     assert f"request_index_tree: {_TREE}" in rendered.transcript_summary
     assert "commit_plan_result:\n\n```text\nstate: valid\nready: true" in rendered.transcript_summary
-    assert "resolved_validation_set:\n\n- ghog day" in rendered.transcript_summary
-    assert "ghog day (sources: project)" in rendered.transcript_summary
+    assert "resolved_validation_set:\n\n- ghog day --full=speed" in rendered.transcript_summary
+    assert "ghog day --full=speed (sources: project)" in rendered.transcript_summary
 
 
 def _assert_visible_identity(

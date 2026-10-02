@@ -2,6 +2,9 @@
 
 The tests bind rendered evidence to one stable index tree and prove that every
 non-ready, operational, or drifting state is rejected before paired writes.
+
+Fix (v0.13.0 full_suite_levels, Step 2): the project validation command
+follows the new default, ``ghog day --full=speed``.
 """
 
 from __future__ import annotations
@@ -57,7 +60,7 @@ def _round_input(tmp_path: Path) -> requestor.CodeReviewRoundInput:
         change_summary="The Step 3 paths are staged.",
         writer_response="No earlier response exists.",
         request_index_tree=_TREE_A,
-        resolved_validation_set=resolve_code_review_validation(("ghog day",)),
+        resolved_validation_set=resolve_code_review_validation(("ghog day --full=speed",)),
         commit_plan_result=_ready_result(),
     )
 
@@ -118,7 +121,7 @@ def _always_ignored(_root: Path, _path: Path) -> bool:
 
 def _project_validation_commands(_root: Path) -> tuple[str, ...]:
     """Return the mandatory project command for focused rendering tests."""
-    return ("ghog day",)
+    return ("ghog day --full=speed",)
 
 
 def test_direct_renderer_requires_one_typed_ready_result(tmp_path: Path) -> None:
