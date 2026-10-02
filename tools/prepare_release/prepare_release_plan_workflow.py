@@ -1,4 +1,10 @@
-"""Branch-role detection and operation planning for prepare-release."""
+"""Branch-role detection and operation planning for prepare-release.
+
+Fix (v0.13.0 full_suite_levels, Step 2): plain ``ghog day`` now stops after
+the affected tests, so the integration sync and the feature replay name the
+``cov`` level explicitly and keep proving the full suite and its coverage
+gate before the release merge.
+"""
 
 # Planner errors intentionally include the rejected refs at the raise site.
 # ruff: noqa: EM102, TRY003
@@ -176,7 +182,7 @@ def _plan_integration(  # noqa: PLR0913
         operations = (
             f"git switch {branch}",
             f"git merge --no-ff {main_branch}",
-            "run ghog day",
+            "run ghog day --full=cov",
             f"git switch --ignore-other-worktrees {main_branch}",
             f"git merge --no-ff {branch}",
         )
@@ -352,7 +358,7 @@ def _plan_feature(  # noqa: PLR0913
         operations=(
             f"git branch {promotion} {branch}",
             f"git rebase --onto {target_branch} {boundary.base} {promotion}",
-            "run git range-diff and ghog day",
+            "run git range-diff and ghog day --full=cov",
             f"git switch --ignore-other-worktrees {target_branch}",
             f"git merge --no-ff {promotion}",
         ),

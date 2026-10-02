@@ -1,4 +1,9 @@
-"""Planner tests over synthetic branch, reflog, tag, and conflict graphs."""
+"""Planner tests over synthetic branch, reflog, tag, and conflict graphs.
+
+Fix (v0.13.0 full_suite_levels, Step 2): the integration sync and the feature
+replay name ``ghog day --full=cov``, since plain ``ghog day`` no longer runs
+the full suite.
+"""
 
 from __future__ import annotations
 
@@ -203,6 +208,7 @@ def test_plan_integration_previews_main_sync_conflict(
     assert plan.merge_preview.clean is False
     assert plan.merge_preview.conflicted_files == ("shared.txt",)
     assert plan.operations[1] == "git merge --no-ff main"
+    assert plan.operations[2] == "run ghog day --full=cov"
 
 
 @pytest.fixture
@@ -469,6 +475,7 @@ def test_plan_single_parent_candidate_is_selected_without_ranking(
     (candidate,) = plan.boundary_candidates
     assert candidate.parent_refs == ("main",)
     assert plan.action is ReleaseAction.REBASE_ONTO_MAIN_THEN_MERGE
+    assert plan.operations[2] == "run git range-diff and ghog day --full=cov"
 
 
 def test_plan_ambiguous_parents_select_the_unique_nearest_boundary(
