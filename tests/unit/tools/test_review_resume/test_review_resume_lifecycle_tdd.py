@@ -1,4 +1,11 @@
-"""Exercise persistent discovery, including concurrent and interrupted publication."""
+"""Exercise persistent discovery, including concurrent and interrupted publication.
+
+Fix: the one-discovery scenario ran three discover, claim and answer cycles in
+one call (0.6s to 0.8s alone, above one second under suite load). The first
+cycle is now the ``first_round_answered`` fixture, and two tests each drive one
+more cycle with that same discovery: the code exchange's next round, and a
+later specification exchange.
+"""
 
 from __future__ import annotations
 
@@ -73,19 +80,35 @@ def prepared_review_families(tmp_path: Path) -> tuple[_RequestDiscovery, ReviewE
     return discovery, core, specification
 
 
-def test_one_discovery_serves_next_round_and_new_family(
+@pytest.fixture
+def first_round_answered(
     prepared_review_families: tuple[_RequestDiscovery, ReviewExchangeCore, ReviewExchangeCore],
-) -> None:
-    """An idle reviewer stays global during requestor work and handles a later specification."""
-    discovery, core, specification = prepared_review_families
+) -> tuple[_RequestDiscovery, ReviewExchangeCore, ReviewExchangeCore]:
+    """Let the idle discovery find, claim and answer round 1 of the code exchange."""
+    discovery, core, _ = prepared_review_families
     assert discovery.rescan() == ()
     _publish_request(core, 1)
     _review_once(discovery, core, 1)
+    return prepared_review_families
+
+
+def test_one_discovery_serves_the_next_round(
+    first_round_answered: tuple[_RequestDiscovery, ReviewExchangeCore, ReviewExchangeCore],
+) -> None:
+    """An idle reviewer stays global during requestor work and serves round 2."""
+    discovery, core, _ = first_round_answered
     core.pickup_ownership(Actor.REQUESTOR)
     core.consume_answer(reviewed_work_changed=True)
     core.continue_round()
     _publish_request(core, 2)
     _review_once(discovery, core, 2)
+
+
+def test_one_discovery_serves_a_later_family(
+    first_round_answered: tuple[_RequestDiscovery, ReviewExchangeCore, ReviewExchangeCore],
+) -> None:
+    """The same idle reviewer handles a later specification request."""
+    discovery, _, specification = first_round_answered
     specification.start()
     _publish_request(specification, 1)
     _review_once(discovery, specification, 1)

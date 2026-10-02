@@ -8,6 +8,12 @@ Every remaining scenario and assertion is unchanged.
 Fix: the waiters' claim bounds use the shared ``PROCESS_TIMEOUT_SECONDS`` hang
 guard instead of 15 seconds, since a claim runs the same Python and ``git``
 children that once outlasted a 30-second bound under the parallel full run.
+
+Fix: the foreground cancellation runs in process, and its preflight spawned
+four ``git`` processes (three home-tracking checks and one ignore check), which
+kept the call above the one-second duration floor. ``_IgnoredHomeGit`` answers
+those two reads as real git does for the fixture's self-ignored home; the
+process-based scenarios of this package keep the real git path covered.
 """
 
 # ruff: noqa: PLR2004, S603
@@ -17,8 +23,9 @@ import json
 import subprocess
 from contextlib import chdir, redirect_stderr, redirect_stdout
 from io import StringIO
+from pathlib import Path
 from time import monotonic, sleep
-from typing import TYPE_CHECKING, Any
+from typing import Any
 from unittest.mock import patch
 
 import pytest
@@ -35,9 +42,6 @@ from tools import review_exchange_cli
 from tools.review_exchange_models import ReviewFamily, ReviewRole
 from tools.review_exchange_paths import derive_artifact_paths
 from tools.review_resume_notifications import WatchdogNotificationAdapter
-
-if TYPE_CHECKING:
-    import subprocess
 
 # Keep this module's scenarios on one xdist worker so its module-scoped
 # fixtures are built once rather than once per worker (--dist loadgroup).
@@ -145,14 +149,56 @@ def _home_bytes(repo: ReviewRepository) -> dict[str, bytes]:
     return {path.name: path.read_bytes() for path in repo.home.iterdir() if path.is_file()}
 
 
+class _IgnoredHomeGit:
+    """Answer the preflight's two git reads for a home git ignores and never tracks.
+
+    The fixture's home holds its own ``*`` ignore file, so real git lists
+    nothing tracked below it and reports every path under it ignored. Any
+    other command, or a query outside the home, fails the test.
+    """
+
+    def __init__(self, repo: ReviewRepository) -> None:
+        """Bind the stand-in to one repository and its home.
+
+        Args:
+            repo: The fixture repository whose home the preflight checks.
+        """
+        self._root = repo.root.resolve()
+        self._home = repo.home.resolve()
+
+    def __call__(self, command: list[str], **options: Any) -> subprocess.CompletedProcess[str]:
+        """Return the completed git process real git gives for one home query.
+
+        Args:
+            command: The git command line.
+            **options: The ``subprocess.run`` options: ``cwd`` and ``input``.
+
+        Returns:
+            The completed process with git's exit code and output.
+        """
+        assert Path(options["cwd"]).resolve() == self._root
+        if command[:3] == ["git", "ls-files", "--"]:
+            assert (self._root / command[3]).resolve() == self._home
+            return subprocess.CompletedProcess(command, 0, "", "")
+        assert command == ["git", "check-ignore", "-z", "--stdin"]
+        queried = [path for path in options["input"].split("\0") if path]
+        assert all((self._root / path).resolve().is_relative_to(self._home) for path in queried)
+        return subprocess.CompletedProcess(command, 0, options["input"], "")
+
+
 def test_graceful_foreground_cancellation_has_one_result_and_no_durable_waiter(
     repository: ReviewRepository, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """AC19: interrupt the host wait seam after real preflight and discovery, then stop quietly."""
+    """AC19: interrupt the host wait seam after real preflight and discovery, then stop quietly.
+
+    The preflight's git reads are answered in process (``_IgnoredHomeGit``):
+    they spawned four git processes and kept the call above one second.
+    """
     repo = repository
     before = _home_bytes(repo)
     stdout, stderr = StringIO(), StringIO()
     monkeypatch.setenv("PRJ_DIR", str(repo.root))
+    monkeypatch.setattr(subprocess, "run", _IgnoredHomeGit(repo))
     with (chdir(repo.root), redirect_stdout(stdout), redirect_stderr(stderr),
           patch.object(WatchdogNotificationAdapter, "wait", side_effect=KeyboardInterrupt)):
         code = review_exchange_cli.main(["wait-any-request"])
