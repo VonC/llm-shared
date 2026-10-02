@@ -4,8 +4,8 @@ No, it is not implemented.
 
 This document tracks the nine steps of the
 [implementation plan](plan.v0.13.0.full_suite_levels.md), from the Step 0 cost
-gates to the Step 8 acceptance mapping; Steps 0 and 1 are implemented and
-checked, and Steps 2 to 8 are not implemented yet.
+gates to the Step 8 acceptance mapping; Steps 0 to 2 are implemented and
+checked, and Steps 3 to 8 are not implemented yet.
 
 > Markdown lint note: never leave a space immediately inside an inline code span
 > (MD038); write a needed space as the token `[space]`, as in `` `[space]${x}` ``.
@@ -387,10 +387,42 @@ No existing feature or reporting capability appears impaired.
 
 ### Analysis of Step 2 implementation state
 
-Not started. Step 2 is not implemented because Step 1 has not landed yet.
+Yes. Step 2 has been fully implemented.
 
-The CLI still has no `--full`, the walk still runs three steps, and the
-marker still holds one digest.
+The level-shaped walks, saved-proof reuse, evidence reporting and caller
+defaults are implemented. Independent reviewer assessment of rounds 1 to 3
+found two gaps, both now fixed with their regressions:
+
+- **R1**: a pytest child interruption was treated as a contradicted gate and
+  could discard valid saved proof. Round 2 matched only the bare banner;
+  round 3 recognized the bare and messaged `KeyboardInterrupt` banners and
+  the `pytest.exit` banner, but a `pytest.exit` returning 0 or 1 still read
+  as a finished run, green and earning proof. Round 4 makes the banner crash
+  the run whatever its return code, so such a child exits 4, earns nothing
+  and judges no gate.
+- **R2**: the no-baseline `ghog single` message now keeps the carried level
+  (confirmed by the round 2 assessment).
+
+The requestor found and fixed a third gap while validating round 3:
+
+- **Digest after check.bat**: the walk recorded the digest taken before
+  check.bat. When check.bat auto-fixed a source, the saved proof matched no
+  source state, and a forced walk could carry an older saved proof onto the
+  fixed sources. The walk now takes the digest again after a green
+  check.bat, as the tests then run on those sources (confirmed by the
+  round 3 assessment).
+
+The requestor's `ghog day --full=speed` and `ghog day --full=cov` validation
+walks are green on the repaired sources.
+
+Round 4 independent reviewer assessment confirms R1 is complete: the
+interruption banner sets `crashed` independently of the child's return code,
+so custom codes 0 and 1 exit 4 and earn no proof. The regression cases cover
+direct full runs, walks without a marker, and interrupted affected, full and
+timing children with a saved marker. Failures or internal errors reported
+first still judge a gate. R2 and the source-digest repair remain complete.
+The reviewer inspected coverage statically and found no gap; the validation
+walks above remain requestor evidence.
 
 ### Goal for Step 2
 
@@ -411,27 +443,316 @@ explicit levels.
 
 ### What was implemented for Step 2
 
-_(empty — no check has taken place yet.)_.
+- **Invocation and seams**: `context.Invocation` gains `level` (`None` means
+  the command default), `level_source` and `in_walk`, the flag a step derived
+  by the walk carries so its report leaves the next step to the walk;
+  `context.Deps` gains `environ`, the one read of `GHOG_FULL`.
+- **CLI resolution**: a `leveled` parent parser gives `check`, `full`,
+  `affected`, `single` and `day` a free-string `--full`; `cli.main` resolves
+  the level after the root and before the live-run check and the lifecycle
+  bracket (`_with_level`), and a `LevelError` prints
+  `ghog: invalid full level '<value>' from <--full|GHOG_FULL>; accepted values: pass, cov, speed`
+  and returns 5 without writing `a.ghog.status`. `timings`, `status`,
+  `init` and `exclude` never read the variable.
+- **Run shapes**: `runner.pytest_command(..., level=FullLevel.SPEED)` builds a
+  `full` run at `pass` with `--no-cov` and no `--durations`, at `cov` covered
+  without `--durations`, at `speed` as before; `runner._measures` holds that
+  decision. `verdicts.measures_coverage` is false for `full` at `pass`, and
+  `durations_summary.measures_durations` builds its probe command at the
+  effective level, so a run below `speed` never rewrites the floor file.
+- **Evidence**: new `tools/groundhog/evidence.py` holds `Reused`,
+  `RunEvidence` (`closing_keys`, `running_keys`), `RunOutcome` (code,
+  evidence, the last counters and closing values) and `for_invocation`:
+  level keys for a walk and a direct `ghog full`, `scope=` alone for any other
+  run and every step inside a walk.
+- **Day walk**: `day.walk` reads `snapshot.effective_proof` and asks
+  `proof.decide`: a noop prints the noop line (`reused=all`), an upgrade
+  prints a `reused from snapshot` header for check and affected and runs the
+  full step, otherwise the whole chain runs. At `none` it stops after a green
+  affected step with the skip line; at parallel `speed` a green full step is
+  followed by a timed `timings` step. Each failed gate is recorded, the proof
+  is accumulated and capped (`proof.accumulate`), and `snapshot.save_proof`
+  rewrites or removes the marker on the digest the test steps ran on; exits
+  5 and 9 write nothing. The walk ends
+  with its own `ghog day done` closing line repeating the last step's
+  counters with the five evidence keys.
+- **Direct runs**: `commands.run_tests_outcome` runs a pytest subcommand at
+  its level and returns a `RunOutcome`; a direct `ghog full` reports
+  `proof.earned_by_direct_full` and, green on a parallel project at `speed`,
+  the `cov` success line plus the line saying durations were not measured.
+- **Next-step builders**: `reporting_nextstep` replaces every fixed restart
+  string with builders fed by `restart_command(level, scope_selector="")`
+  and `carried_selector(level)`: check, affected, single, coverage-gap,
+  outlier and timing-failure lines carry the level, never a `none` selector;
+  `success_line` gives one line per level naming the whole suite,
+  `noop_line` names the request, the saved proof and that no check ran, the
+  covered-affected gate-reached line names `ghog check` then the walk at the
+  carried level, and a standalone `ghog affected --no-cov` with no level keeps
+  `Next: ghog full`. `StepContext` carries the level, the walk flag and the
+  parallel flag. The exclusion hint states that an exclusion is accepted only
+  after an attempted improvement.
+- **Reporting**: `reporting.ClosingMetrics` gains `evidence`, appended by
+  `closing_line` after `exit=` (the value object keeps the line at the
+  five-argument lint limit, so the plan's `closing_line(..., evidence="")`
+  reads as this field); `step_reused_line` heads a reused step,
+  `status_killed_line(level)` relaunches a killed run at its recorded level,
+  and `crash_block` restarts at the carried level.
+- **Status and detach**: `status.write_running` and `write_done` add the
+  running and closing keys (before `exit=` on the done line), `_dispatch`
+  returns a `RunOutcome`, and a killed run is relaunched at the `full=` of
+  its recorded line. `status.py` passed the plan's 550-line trigger, so its
+  split guidance applies: `run_day_detached`, `default_detach_factory`,
+  `_spawn_survivor` and `_detached_day_command` move to new
+  `tools/groundhog/detach.py`, where `--full=<token>` is forwarded only for
+  a `param` level.
+- **Snapshot**: the one-line digest writer and its comparison are removed;
+  `effective_proof(root, scope_key, fingerprint, files=None)` returns the
+  current digest and the saved proof valid for it, and `save_proof` writes or
+  removes the scope's marker with a timing fingerprint computed after the
+  walk's own writes.
+- **Levels**: `levels.py` no longer imports `runner` (a local `_FULL_SUB`
+  names the subcommand); the runner now imports `FullLevel`, so the old
+  import would have been a load-order cycle, and the pure model no longer
+  depends on the process adapter.
+- **Callers**: `code_review_validation.DEFAULT_PROJECT_VALIDATION_COMMANDS`
+  is `("ghog day --full=speed",)`; `prepare_release_plan_workflow` names
+  `run ghog day --full=cov` and `run git range-diff and ghog day --full=cov`;
+  the no-argument `bin/ghog_cycle.bat` runs `day` alone, as its header says.
+- **Integer wrappers removed**: the plan's Q05 kept `day.run_day` and
+  `commands.run_tests` as integer wrappers to avoid test churn. Once the
+  status dispatch uses `walk` and `run_tests_outcome`, no caller or test
+  calls them, so they are removed rather than kept as dead code.
+- **Review repairs (R1, R2)**:
+  - The parser records pytest's interruption banner: the crash message pytest
+    prints between `!` runs for a `KeyboardInterrupt`, bare or with a message,
+    or an explicit `pytest.exit`. A collection error prints `Interrupted: N
+    errors during collection` instead. The banner marks the run crashed
+    whatever its return code, 0 and 1 included, since `pytest.exit` may end
+    an unfinished suite with either. `RunResult.interrupted` marks a child
+    stopped by a signal or with that banner, before it reported any failure
+    or internal error.
+  - The pure `proof.judges_gate` names the outcomes that judge no gate: a
+    setup error, a project without a pytest suite and such an interrupted
+    child. `RunOutcome.judged` carries it, and the walk writes nothing after
+    them, so the saved proof stays as it was. A collection error (the same
+    exit without the banner) and a failure reported before the interruption
+    still contradict their gate.
+  - `reporting_nextstep.no_baseline_line(level)` replaces the fixed
+    no-baseline notice, so `ghog single ... --full=cov` without a failure
+    baseline names `ghog full --full=cov`, and plain `ghog full` with no
+    level.
+- **Digest after check.bat**: HEAD's walk wrote its digest at the end, after
+  any check.bat auto-fix. The first Step 2 walk froze the digest of its start
+  instead. A round 3 validation walk showed the effect: check.bat's Ruff fix
+  moved the sources, and the next `ghog day --full=cov` ran the whole chain
+  again instead of a noop. A green check.bat now moves the walk's state to a
+  fresh digest (`EffectiveProof.on_sources`), which keeps the saved proof
+  only when that digest did not change. The marker records the sources the
+  test steps judged, and a saved proof of the sources before a fix no longer
+  survives a forced walk.
+- **Speed validation repairs**: the first `ghog day --full=speed` walk, the
+  first ever to judge speed in this parallel project, flagged eight
+  pre-existing Git-bound test calls above the one-second floor. They were
+  shortened, not excluded. `test_prompt_workflow_docs_layout_acceptance_tdd.py`
+  answers the six read-only `git` commands of `pw` in process from the files
+  on disk (`_FreshBranchGit`, any other command fails). The `review_resume`
+  foreground cancellation answers its preflight's two home queries in process
+  (`_IgnoredHomeGit`). The `review_resume` acceptance `ReviewRepository` copies
+  a seed repository built once per test process. The slowest repaired call
+  dropped from 6.21s to 0.10s, with every assertion kept. A later walk saw the
+  markdown-check launcher contract at 1.08s (a `cmd.exe` and Python start of
+  about half a second); its real launch now runs once in a fixture, outside
+  the measured call. A third saw the three-cycle one-discovery review scenario
+  at 1.03s (0.6s to 0.8s alone); its first cycle is now a fixture, and two
+  tests each drive one more cycle with the same discovery (0.30s and 0.26s).
+- **Tests**: new `test_groundhog_acceptance_levels` (a `support` module, one
+  test per level row in `test_groundhog_acceptance_levels_tdd.py`, one per
+  proof row plus the exit-5 and exit-9 no-gate cases in
+  `test_groundhog_acceptance_proof_tdd.py`) and `test_groundhog_evidence`;
+  AT11 and AT16 of `test_groundhog_acceptance_day.py` cover the default
+  two-step walk, the `--full=cov` chain, the proof marker and its removal;
+  the runner, reporting, next-step, status, detach, snapshot, CLI, commands,
+  verdicts and acceptance tests follow the builders and the new keys; the
+  review tests carry the new default literal and the prepare-release test
+  pins the two operation strings. The shared `conftest.py` clears
+  `GHOG_FULL` for every unit test and `make_deps` takes an `environ`
+  mapping. The three Step 2 cost gates lose their `xfail`.
+- **Validation evidence**: the `ghog day --full=cov` walk ended on 2026-10-02
+  at 17:03:53 +02:00 with `exit=0`: check green with no ruff auto-fix,
+  `ghog affected --no-cov` green, `ghog full` green with `xfail=2` (the two
+  Step 4 gates) and `cov=100`; its closing line ends with
+  `full=cov src=param proof=cov reused=none scope=whole` and `ghog status`
+  replays it with `exit=0`. After the review repairs, the speed repairs and
+  the digest fix, the requestor validation `ghog day --full=speed` ended on
+  2026-10-02 at 22:36:26 +02:00 with `exit=0` on the whole chain: check with
+  no auto-fix, affected, the parallel full run at `cov=100`, then the
+  sequential timing pass with `outliers=0 excluded=0` (slowest call 0.41s),
+  closing `proof=speed reused=none`. A following `ghog day --full=cov` was a
+  noop met by that saved `speed` proof (`reused=all`). The four plan `rg`
+  patterns return nothing.
+- **Line counts**: `commands.py` 531, `status.py` 391 after the split,
+  `detach.py` 194, `reporting.py` 509, `cli.py` 459,
+  `reporting_nextstep.py` 581, `runner.py` 315, `day.py` 401,
+  `evidence.py` 149, `snapshot.py` 485, `context.py` 121, `parser.py` 270;
+  tests: acceptance levels 257, acceptance proof 403, support 169,
+  `test_groundhog_acceptance_day.py` 299, `test_groundhog_status.py` 484,
+  `test_groundhog_detach.py` 407, `test_code_review_request_tdd.py` 600 (three
+  docstring lines beside the literal update). Counts above their advisory
+  estimates (`reporting_nextstep.py` in the 550-through-650 band, `reporting`,
+  `cli`, `runner`, `day`, `evidence`, the status and detach tests) are
+  variance at or below 650, not missing work.
 
 ### New types or classes introduced for Step 2
 
-_(empty — no check has taken place yet.)_.
+- `evidence.Reused` (`StrEnum`: `none`, `check+affected`, `all`).
+- `evidence.RunEvidence` (frozen dataclass: scope key, resolved level,
+  proof, reuse) and `evidence.RunOutcome` (frozen dataclass: code, evidence,
+  last counters and closing values).
+- `snapshot.EffectiveProof` (frozen dataclass: current digest, valid saved
+  proof; `on_sources(digest)` moves it to the digest after check.bat).
+- `reporting_nextstep.StepContext` (frozen dataclass: carried level, walk
+  flag, parallel flag).
+- `day._Walk` (private dataclass: the running record of one walk) and
+  `commands._Judged` (private frozen dataclass: one judged pytest run).
+- `tools/groundhog/detach.py`: a module, not a class, holding the detached
+  launch moved out of `status.py`.
 
 ### Architecture check for Step 2
 
-_(empty — no check has taken place yet.)_.
+- **Pure models stay pure**: `levels.py` and `proof.py` import only each
+  other and `models`; `levels.py` dropped its `runner` import, so the
+  adapter now depends on the model and not the reverse.
+- **Adapters and the walk**: `snapshot.py` (file adapter) applies the
+  pure `proof.effective_saved` rule and writes markers; `day.py`
+  sequences the steps through `commands` and `snapshot`; `status.py`
+  owns the lifecycle file and `detach.py` the survivor spawn, each importing
+  downward only (`detach` uses `status` for the lifecycle file; `context`
+  and `cli` import `detach`). No import cycle: every changed module imports
+  cleanly whichever loads first.
+- **Evidence placement**: `evidence.py` holds value objects and one builder;
+  it imports subcommand names from `runner` and the whole-suite scope key
+  from `snapshot`, the modules that own those names since Step 1, and calls
+  no IO there. Text rendering stays in `reporting` and `reporting_nextstep`,
+  which stay pure.
+- **Seams**: the environment is read only through `Deps.environ`, and the
+  survivor spawn only through `Deps.detach_factory`; tests never touch the
+  process environment.
+- **No-gate rule**: which outcomes judge no gate is the pure
+  `proof.judges_gate`; the parser and the runner only report what the child
+  printed and returned, and the walk reads the `judged` flag of the outcome.
+
+No DDD-Hexagonal violation or adapter smell is visible. No, there is nothing
+that needs to be addressed.
 
 ### Performance check for Step 2
 
-_(empty — no check has taken place yet.)_.
+- **No new `O(n^2)` or `O(n log n)` path**: a noop or an upgrade computes
+  the source digest once over the existing sorted file walk; the whole chain
+  computes it once more after a green check.bat, as HEAD's walk did at its
+  end, so its IO stays at today's two digest walks. The marker read parses
+  five lines, and the timing fingerprint reads the floor file only when a
+  marker was read, then once more at the marker write.
+- **Noop cost**: a noop now skips check.bat as well as the tests; an upgrade
+  skips check and affected; the default walk skips the full run, which the
+  three cost gates verify by counting spawned children.
+- **Status and reports**: the evidence keys are fixed-size strings; the
+  killed-run relaunch applies one regular expression to one status line.
+- **Startup or background path**: none added; the detached launch keeps its
+  bounded handshake.
+
+No, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 2
 
-_(empty — no check has taken place yet.)_.
+The gate measures `source = ["tools"]` and omits `*/tests/*` and
+`*/__init__.py` in `pyproject.toml`; every staged production class file sits
+under `tools`, and the docstring-only `tools/groundhog/__init__.py` is
+omitted by design. The requestor reports `cov=100`. The reviewer assessed
+the source scope and unit tests statically and did not measure coverage.
+
+- `evidence.py`: `test_groundhog_evidence` covers both key renderings, the
+  absent proof, the scope-only evidence, `for_invocation` per subcommand,
+  with an earned proof and inside a walk, and the outcome defaults.
+- `day.py`: its packages (`test_groundhog_acceptance_levels`,
+  `test_groundhog_levels_perf`) and `test_groundhog_acceptance_day.py` reach
+  the noop, the upgrade, the whole chain, the check and affected stops, the
+  exit-9 affected stop, the exit-5 full and timing stops, the parallel timing
+  pass (green, failing, crashing, outliers) and the marker write and removal.
+- `detach.py`: `test_groundhog_detach.py`, its namesake, covers the launch,
+  the handshake, the spawn failure, the silent child, the forced and the
+  parameter-level forwarding, the environment level left out, and every
+  survivor spawn branch.
+- `status.py`: `test_groundhog_status.py` covers the keyed running and done
+  lines, the walk and pytest-subcommand lifecycle, the check dispatch, and the
+  killed-run relaunch with a recorded, an unknown and no level.
+- `reporting_nextstep.py`, `reporting.py`, `runner.py`, `snapshot.py`,
+  `cli.py`, `verdicts.py` and `commands.py`: their namesake tests cover every
+  new builder and branch: the per-level lines and the extended Q30 rule, the
+  appended keys, the reused and killed lines, the run shape per level,
+  `effective_proof` and `save_proof`, the level resolution and its errors,
+  `measures_coverage` per level, and the direct runs.
+- `durations_summary.py` and `context.py`: one argument and three dataclass
+  fields changed; neither module has a namesake unit test from before this
+  effort, and their lines are reached by the commands and CLI tests under the
+  gate.
+- `code_review_validation.py` and `prepare_release_plan_workflow.py`: their
+  namesake tests pin the new default and the two operation strings.
+
+- Review repairs:
+  - `test_groundhog_parser.py` covers the three real interruption banners
+    (bare and messaged `KeyboardInterrupt`, `pytest.exit`) and the
+    collection-error banner it must not match.
+  - `test_groundhog_runner.py` covers the crash and interrupted flags for a
+    signal, each banner, a `pytest.exit` returning 3, 1 or 0, a bare
+    interrupted exit, the collection-error banner, a failure first (exit 2
+    and exit 1) and an internal error first.
+  - `test_groundhog_proof_tdd.py` covers `judges_gate` per outcome.
+  - The proof acceptance file runs a forced walk with a saved `speed` marker
+    for each banner and return code (bare, messaged, `pytest.exit` returning
+    2, 1 and 0), whose affected, full or timing child is interrupted. Each
+    exits 4 and leaves the marker byte for byte unchanged. For the same five
+    children, a walk at `pass` without a saved marker writes none and closes
+    `proof=unproven`, and a direct `ghog full --full=pass` exits 4 and claims
+    no proof. One more walk, whose failure precedes the interruption, is
+    capped to `none`.
+  - The next-step and level acceptance files cover the no-baseline line at
+    `pass`, `cov`, `speed` and `none`, never printing `--full=none`.
+  - `test_groundhog_snapshot.py` covers `EffectiveProof.on_sources` on an
+    unchanged and a moved digest. The proof acceptance file runs a walk
+    whose check.bat fixes a source, and the same walk again is a noop. A
+    forced walk over a saved `speed` proof records `cov` on the fixed digest.
+
+No, there is no unit-tested class below 100% that needs completing for
+Step 2.
 
 ### Feature integrity for Step 2
 
-_(empty — no check has taken place yet.)_.
+- **Existing feature behavior**: plain `ghog day` now stops after the
+  affected tests, as the design requires; every caller that needs a
+  full-suite proof names its level in the same step (requestor default
+  `speed`, prepare-release `cov`), and the no-argument cycle runs `day` alone.
+  A direct `ghog full` keeps its single-run shape at its `speed` default.
+- **Reporting or diagnostics**: closing and status lines keep every current
+  key and append the evidence keys after them, so readers matching keys by
+  name keep working; `ghog status` replays the new done line. The groundhog
+  manual, the specification and the wiki page still quote
+  `Objective reached`; Step 7 updates the manual and specification, and the
+  wiki is left to the prepare-release documentation audit, as the plan's
+  rollout note states.
+- **Compatibility or rollout note**: a marker written before this step reads
+  as no proof, so the first walk after the upgrade runs in full and rewrites
+  it with `proof=` keys. Restart lines carry no scope selector until Step 4
+  adds `--whole-suite`. The two grouped cost gates stay strict `xfail` for
+  Step 4.
+
+- **Review repairs**: an interrupted child exits 4 with its crash block, as
+  a pytest interruption did before; a `pytest.exit` returning 0 or 1, which
+  read as a finished green run, now does too. Only the interruption's effect
+  on the saved proof changed. The no-baseline notice keeps its wording with
+  the level selector added. A walk whose check.bat auto-fixes sources again
+  serves the next walk, as HEAD's end-of-walk digest did.
+
+No existing feature or reporting capability appears impaired.
 
 ---
 
