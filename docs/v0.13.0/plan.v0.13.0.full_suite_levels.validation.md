@@ -4,8 +4,8 @@ No, it is not implemented.
 
 This document tracks the nine steps of the
 [implementation plan](plan.v0.13.0.full_suite_levels.md), from the Step 0 cost
-gates to the Step 8 acceptance mapping; no step has been implemented or
-checked yet.
+gates to the Step 8 acceptance mapping; Step 0 is implemented and checked,
+and Steps 1 to 8 are not implemented yet.
 
 > Markdown lint note: never leave a space immediately inside an inline code span
 > (MD038); write a needed space as the token `[space]`, as in `` `[space]${x}` ``.
@@ -51,9 +51,18 @@ Performance check section.
 
 ### Analysis of Step 0 implementation state
 
-Not started. Step 0 is not implemented because no implementation has begun.
+Yes. Step 0 has been fully implemented.
 
-The five strict `xfail` cost gates and their package do not exist yet.
+The new `tests/unit/tools/test_groundhog_levels_perf` package holds the five
+planned gates, each bounded by `GATE_TIMEOUT_SECONDS` and marked strict
+`xfail` with its owning step. They assert spawned child commands and exit
+codes through `cli.main`, and the fresh `ghog day` walk reports them as the
+five xfails of both the affected and the full phase.
+
+Independent reviewer assessment (round 1) confirms that the staged tests match
+Step 0 and that `a.commit` passes the mechanical checker with both groups in
+dependency order. The reviewer assessed coverage statically and relied on the
+requestor's recorded green walk; no validation command was repeated.
 
 ### Goal for Step 0
 
@@ -70,27 +79,103 @@ Step 2 or Step 4.
 
 ### What was implemented for Step 0
 
-_(empty — no check has taken place yet.)_.
+- **Gate package**: `tests/unit/tools/test_groundhog_levels_perf/__init__.py`
+  carries the package docstring and `# eof`;
+  `test_groundhog_levels_perf_tdd.py` holds the gates, with
+  `GATE_TIMEOUT_SECONDS: Final = 5` on each.
+- **Step 2 gates**: `test_default_walk_spawns_no_full_run` expects exactly the
+  check.bat and `--no-cov` affected children of a green default walk;
+  `test_upgrade_spawns_only_the_full_run` expects one covered full child
+  (`--cov-report`, no `--cov-append`, no `--durations=0`) from
+  `ghog day --full=cov` after a green default walk;
+  `test_stronger_saved_proof_spawns_nothing` expects a sequential
+  `--full=speed` walk to make the following `--full=cov` walk spawn nothing.
+- **Step 4 gates**: on a `tmp_path` project whose `.ghog-groups` declares
+  `sentinel`, `test_grouped_walk_passes_only_group_test_files` expects the
+  affected and full children of `ghog day --full=pass --group=sentinel` to
+  carry exactly `tests/sentinel/test_core.py` as their `.py` positional paths
+  (the group's `conftest.py` and the outside `tests/test_mod.py` excluded);
+  `test_grouped_walk_walks_the_tree_once` expects the same walk to exit 0
+  with its two group children and one `pathlib.Path.rglob` call, counted
+  through `monkeypatch`.
+- **Assertion-only failure before the owner**: `_run(argv, deps)` returns
+  argparse's `SystemExit` code, every spawn queue holds the children the
+  pre-change walk pops, and an autouse fixture clears `GHOG_FULL` and
+  `GHOG_GROUP`, so each gate fails on an exit-code or spawn-count assertion
+  today, never on an error or an ambient selector.
+- **Validation evidence**: the `ghog day` walk ended on 2026-10-02 at
+  09:26:28 +02:00 with `exit=0`: check green, `ghog affected --no-cov` with
+  `xfail=5`, and `ghog full` with `fail=0 xfail=5 cov=100`. Both plan `rg`
+  patterns (`xfail\(strict=True` and `timeout\(GATE_TIMEOUT_SECONDS\)`) list
+  five gates. Physical counts are 7 for the initializer and 265 for the gate
+  file; the gate file exceeds the advisory 190 because of its documented
+  project builders, which is variance below the 550 band, not missing work.
 
 ### New types or classes introduced for Step 0
 
-_(empty — no check has taken place yet.)_.
+No new type or class was introduced. The step is test-only: module-level
+project builders, the `_run` exit-code helper, the `_count_rglob` counter and
+the five gate functions reuse `QueueSpawns`, `make_deps` and
+`passing_transcript` from `tests/unit/tools/groundhog_acceptance_support.py`.
 
 ### Architecture check for Step 0
 
-_(empty — no check has taken place yet.)_.
+- **Test boundary**: the gates drive the public `tools.groundhog.cli.main`
+  entry point and read only `EXIT_OBJECTIVE_MET` from
+  `tools.groundhog.models`; the single faked element is the process factory,
+  as in the existing groundhog acceptance tests.
+- **Production code**: no file under `tools/` changed, so no layer gained an
+  import or a responsibility.
+- **Global patch scope**: the `Path.rglob` counter and the environment
+  clearing go through `monkeypatch`, restored after each gate.
+
+No DDD-Hexagonal violation or adapter smell is visible. No, there is nothing
+that needs to be addressed.
 
 ### Performance check for Step 0
 
-_(empty — no check has taken place yet.)_.
+- **No new `O(n^2)` or `O(n log n)` path**: no production computation was
+  added; each gate builds a project of at most eight files.
+- **Hot-path bound**: the rglob counter appends one entry per call and
+  delegates the walk unchanged; the spawn assertions read the recorded
+  command lists once.
+- **Startup or background path**: none; the gates spawn no real process.
+- **Plan-bound alignment**: the gates encode the plan's bounds as counts
+  (no full child by default, one child on upgrade, none on noop, one tree
+  walk per grouped invocation), so a later regression fails on work done,
+  not on wall-clock time.
+
+No, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 0
 
-_(empty — no check has taken place yet.)_.
+The coverage gate measures `source = ["tools"]` and omits `*/tests/*` in
+`pyproject.toml`, so both staged files sit outside it and the walk's
+`cov=100` says nothing about them. No class file under `tools/` is impacted.
+Statically, every top-level helper of the gate file is referenced by a gate
+or another helper: `_write`, `_project`, `_grouped_project`, `_green_walk`,
+`_green_group_walk`, `_day`,
+`_run`, `_python_paths`, `_group_spawn_count` and `_count_rglob`;
+`clear_ambient_selectors` is an autouse fixture that pytest applies to every
+gate. Until the owning steps land, the code after each gate's first failing
+assertion does not execute, by design of a strict `xfail` gate.
+
+No, there is no unit-tested class below 100% that needs completing for Step 0.
+No, no top-level symbol of the staged files outside the coverage gate is
+unreferenced.
 
 ### Feature integrity for Step 0
 
-_(empty — no check has taken place yet.)_.
+- **Existing feature behavior**: no production file changed; the full suite
+  passed with no failure and only the five new xfails.
+- **Reporting or diagnostics**: the groundhog closing lines now count five
+  xfails in a walk that runs the gates; no report format changed.
+- **Compatibility or rollout note**: Step 2 removes `xfail` from the three
+  Step 2 gates and Step 4 from the two Step 4 gates; a strict `xfail` that
+  passes earlier fails the suite, which surfaces any premature behavior
+  change.
+
+No existing feature or reporting capability appears impaired.
 
 ---
 
