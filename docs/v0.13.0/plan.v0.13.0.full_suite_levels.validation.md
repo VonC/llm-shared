@@ -4,8 +4,8 @@ No, it is not implemented.
 
 This document tracks the nine steps of the
 [implementation plan](plan.v0.13.0.full_suite_levels.md), from the Step 0 cost
-gates to the Step 8 acceptance mapping; Step 0 is implemented and checked,
-and Steps 1 to 8 are not implemented yet.
+gates to the Step 8 acceptance mapping; Steps 0 and 1 are implemented and
+checked, and Steps 2 to 8 are not implemented yet.
 
 > Markdown lint note: never leave a space immediately inside an inline code span
 > (MD038); write a needed space as the token `[space]`, as in `` `[space]${x}` ``.
@@ -183,10 +183,21 @@ No existing feature or reporting capability appears impaired.
 
 ### Analysis of Step 1 implementation state
 
-Not started. Step 1 is not implemented because no implementation has begun.
+Yes. Step 1 has been fully implemented.
 
-`commands.py` is still at 637 lines and the level, proof and marker models do
-not exist yet.
+`tools/groundhog/commands.py` drops from 637 to 415 lines, under its
+mandatory 500, once the verdicts and the progress sink move out verbatim to
+`verdicts.py` and `progress.py`. The pure `levels.py` and `proof.py` modules
+and the key=value proof marker in `snapshot.py` exist with TDD and PBT tests
+and stay unused by the walk, which is unchanged. The `ghog day` walk ends
+with `exit=0`, both plan `rg` checks return nothing, and no groundhog
+acceptance test was edited.
+
+Independent reviewer assessment (round 1) confirms the Step 1 implementation
+and its static unit-test coverage. The received index matches the request,
+the validation resolver has no drift, and the independent `a.commit` checker
+reports four valid groups with no diagnostics. The reviewer relied on the
+requestor's recorded green walk and did not repeat tests or measure coverage.
 
 ### Goal for Step 1
 
@@ -204,27 +215,171 @@ and property tests.
 
 ### What was implemented for Step 1
 
-_(empty — no check has taken place yet.)_.
+- **Verdicts module**: `tools/groundhog/verdicts.py` holds `classify`,
+  `_classify_no_tests`, `_classify_coverage`, `setup_reason` and
+  `measures_coverage` (the former `_measures_coverage`), moved verbatim;
+  `commands.run_tests` and `_report` call them through `verdicts.`.
+- **Progress module**: `tools/groundhog/progress.py` holds `Progress` (the
+  former `_Progress`) and `postfix`, moved verbatim, plus `sub_label`, which
+  `Progress` calls: leaving it in `commands.py` would have made `progress`
+  import `commands` back. `commands.py`, `cli.run_exclude` and
+  `status.run_with_lifecycle` call `progress.sub_label`.
+- **commands.py headroom**: the module keeps the executors, the report
+  assembly and the emitters; its docstring records the move, and the
+  `cli.py` comments that called it at its line budget now say it was.
+- **Levels**: `tools/groundhog/levels.py` adds `FullLevel` (`NONE < PASS <
+  COV < SPEED`, with `token`), `LevelSource`, `ResolvedLevel`,
+  `ACCEPTED_LEVELS`, `GHOG_FULL_ENV`, `LevelError(GroundhogError)` naming
+  the value, its origin (`--full` or `GHOG_FULL`) and the accepted values,
+  `command_default`, `resolve_level` (parameter, then a non-empty variable,
+  then the default; the environment is an injected lookup, never read when
+  the parameter is given), `effective_level`, `level_selector` (empty at
+  `none`), `proof_token` (`unproven` for `None`) and `level_from_token`
+  for the marker reader.
+- **Proof rules**: `tools/groundhog/proof.py` adds `Gate` (valued by the
+  lowest level its failure contradicts), `Decision` (`NOOP`, `UPGRADE`,
+  `WALK`), `accumulate`, `cap_for_timing`, `decide`, `effective_saved`
+  (scope, fingerprint and digest must match, then the timing cap) and
+  `earned_by_direct_full` (the design's direct `ghog full` table, `cov` for
+  a green parallel `speed` run). Markers reach it through the `SavedProof`
+  protocol.
+- **Proof marker**: `tools/groundhog/snapshot.py` adds `ProofMarker`, the
+  strict `read_proof_marker` (exactly the five keys in order, a valid scope
+  key, sha256 hex values, a known proof token), `write_proof_marker` (side
+  file then `replace`, a failure logged), `remove_proof_marker`,
+  `marker_path_for` (`a.ghog.day.ok` for `whole`, `a.ghog.day.<name>.ok`
+  for `group:<name>`, `ValueError` otherwise), the public `source_files`,
+  `source_digest(root, files=None)`, `timing_fingerprint` (active gate floor
+  and exclusion entries, line 1 left out) and `WHOLE_SCOPE_FINGERPRINT`.
+  `is_unchanged` and `write_marker` stay for Step 2 to remove.
+- **Package docstring**: `tools/groundhog/__init__.py` names the four new
+  modules and the marker.
+- **Tests**: new packages `test_groundhog_verdicts` (the classify and
+  setup-reason cases moved unchanged from `test_groundhog_cli.py`, the
+  outliers-last case from `test_groundhog_commands.py`, plus a
+  `measures_coverage` case), `test_groundhog_progress` (the label and
+  postfix cases moved there, plus direct sink cases in both modes),
+  `test_groundhog_levels` (TDD and PBT), `test_groundhog_proof` (TDD and PBT)
+  and `test_groundhog_snapshot_marker`. `test_groundhog_commands.py` gains
+  nine CLI-driven tests and `test_groundhog_cli.py` four dispatch tests, so
+  each covers its namesake module on its own.
+- **Transcript lint**: the staged-path and commit-plan paths of the Step 0
+  code review transcript are now code spans; their bare `__init__.py` read as
+  underscore emphasis (MD050) and failed the markdown check of the walk.
+  Formatting only.
+- **Validation evidence**: the `ghog day` walk ended on 2026-10-02 at
+  11:57:02 +02:00 with `exit=0`: check green, `ghog affected --no-cov`
+  green, `ghog full` with `fail=0 xfail=5 cov=100`; `ghog status` reports
+  `state=done exit=0`. An earlier walk at 11:47 crashed in the xdist
+  scheduler (`KeyError` on a worker controller) and did not reproduce;
+  `ghog single` on the eight step test targets passed in focus (158 tests,
+  the five Step 0 gates xfailed). Both plan `rg` patterns return nothing.
+- **Line counts**: `commands.py` 415 (mandatory at most 500), `verdicts.py`
+  140, `progress.py` 145, `levels.py` 212, `proof.py` 240, `snapshot.py`
+  406, `cli.py` 399, `status.py` 507; tests `test_groundhog_cli.py` 468,
+  `test_groundhog_commands.py` 500, verdicts 186, progress 239, levels 151,
+  levels PBT 64, proof 207, proof PBT 87, marker 268. Counts above their
+  advisory estimates (`levels`, `proof`, `snapshot`, the verdicts and marker
+  tests, `test_groundhog_commands.py`) are variance below the 550 band, not
+  missing work.
 
 ### New types or classes introduced for Step 1
 
-_(empty — no check has taken place yet.)_.
+- `progress.Progress`: the per-mode progress sink, moved and made public.
+- `levels.FullLevel` (`IntEnum`), `levels.LevelSource` (`StrEnum`),
+  `levels.ResolvedLevel` (frozen dataclass) and `levels.LevelError`
+  (`GroundhogError` carrying `value` and `origin`).
+- `proof.Gate` and `proof.Decision` (enums) and `proof.SavedProof`, the
+  read-only protocol of a saved marker.
+- `snapshot.ProofMarker`: the frozen five-field marker record, which
+  satisfies `SavedProof`.
 
 ### Architecture check for Step 1
 
-_(empty — no check has taken place yet.)_.
+- **Pure domain modules**: `levels.py` and `proof.py` touch no file, process
+  or environment; `resolve_level` receives the environment as a callable.
+  `proof.py` imports only `levels` and the exit codes of `models`;
+  `levels.py` imports `models` and the `SUB_FULL` name from `runner`, the
+  module that owns every groundhog subcommand name, and calls nothing there.
+- **Port direction**: `proof.effective_saved` reads the marker through the
+  `SavedProof` protocol declared in `proof.py`; `snapshot.py`, the file
+  adapter, imports `levels` and supplies a structurally compatible marker.
+  The proof rules do not import the snapshot adapter.
+- **No cycle**: `verdicts`, `levels` and `proof` never import `commands` (the
+  plan `rg` check returns nothing); `progress` imports `reporting`,
+  `runner` and `models` only, and `commands` imports `progress` and
+  `verdicts`.
+- **Responsibilities**: classification lives in `verdicts`, presentation of
+  progress in `progress`, run orchestration and reports in `commands`; the
+  new models hold rules only and are not wired yet.
+
+No DDD-Hexagonal violation or adapter smell is visible. No, there is nothing
+that needs to be addressed.
 
 ### Performance check for Step 1
 
-_(empty — no check has taken place yet.)_.
+- **No new `O(n^2)` or `O(n log n)` path**: `source_files` keeps the one
+  existing sort; `source_digest(root, files)` lets a later caller reuse that
+  walk instead of walking twice.
+- **Marker and fingerprint IO**: the reader parses one five-line file; the
+  writer writes one side file and replaces; `timing_fingerprint` reads the
+  floor file through the existing floor and exclusion readers and hashes the
+  entries in file order, linear in the entries.
+- **Pure rules**: `accumulate`, `decide`, `effective_saved` and
+  `earned_by_direct_full` are constant-time over at most four gates.
+- **Startup or background path**: none added; the walk does not call the new
+  modules yet.
+
+No, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 1
 
-_(empty — no check has taken place yet.)_.
+The gate measures `source = ["tools"]` and omits `*/tests/*` and
+`*/__init__.py` in `pyproject.toml`; every staged class file sits under
+`tools/groundhog`, so the walk's `cov=100` covers them, and the
+docstring-only `tools/groundhog/__init__.py` is omitted by design.
+
+- `verdicts.py`: `test_groundhog_verdicts` reaches every branch (crash,
+  usage error, no tests per subcommand, failures, gate unset, TOTAL miss,
+  gap, outliers last, each setup reason, `measures_coverage`).
+- `progress.py`: `test_groundhog_progress` drives the sink in LLM mode
+  (governed and suppressed lines, plain and judged finish) and user mode
+  (no total, bar opening, advance, top-off, crash catch-up, no bar), plus
+  `postfix` and `sub_label`.
+- `levels.py` and `proof.py`: their TDD files cover every function and
+  branch; the PBT files add the rejection, source, accumulation, noop, walk
+  and timing-cap invariants.
+- `snapshot.py`: the plan splits it between the unchanged
+  `test_groundhog_snapshot.py`, which covers the pre-existing digest and
+  legacy marker functions, and `test_groundhog_snapshot_marker`, which covers
+  every Step 1 addition, including the write and remove failure paths and
+  each malformed-marker case.
+- `commands.py`: `test_groundhog_commands.py` now reaches every executor
+  path on its own (missing and failing check.bat, the exit-9 and
+  missing-pytest stops, sequential full with reset, baseline and nag, gap
+  rows, missing TOTAL, crash, covered affected, focus run with and without a
+  baseline, init success and failure, plus the duration scenarios).
+- `cli.py`: `test_groundhog_cli.py` now routes status, the live-run
+  refusal, the detached walk, init and the `__main__` guard beside its
+  existing cases, so it covers the module on its own.
+- `status.py`: only its label lookup changed, to `progress.sub_label`, with
+  identical behavior; `test_groundhog_status.py` was not edited by the step.
+
+No, there is no unit-tested class below 100% that needs completing for
+Step 1.
 
 ### Feature integrity for Step 1
 
-_(empty — no check has taken place yet.)_.
+- **Existing feature behavior**: the moved functions are unchanged and keep
+  the `groundhog` logger, so progress, closing and next-step lines are
+  identical; the day walk, its snapshot noop and its markers are untouched.
+- **Reporting or diagnostics**: no report format changed; the closing lines
+  of the walk read as before.
+- **Compatibility or rollout note**: the five Step 0 gates stay strict
+  `xfail`; the new modules wait for Step 2, which also removes
+  `is_unchanged` and `write_marker`.
+
+No existing feature or reporting capability appears impaired.
 
 ---
 
