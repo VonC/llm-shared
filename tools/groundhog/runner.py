@@ -15,6 +15,16 @@ and owns the incremental map, so nothing resets that database any more.
 Fix: :func:`is_pytest_project` tells whether the root carries a pytest suite at
 all, so the pytest steps refuse a project with no pytest configuration before
 looking for pytest on PATH.
+
+Fix (v0.13.0 full_suite_levels, Step 2): :func:`pytest_command` shapes the full
+run by its level. At ``pass`` it is today's full command with ``--no-cov`` and
+no ``--durations``; at ``cov`` it keeps coverage and drops ``--durations``; at
+``speed`` it is today's command. Runs below ``speed`` therefore never rewrite
+the floor file, and the duration verdict, derived from the built command,
+follows the level by construction. :func:`run_pytest` also flags a child
+interrupted before it reported any failure, which judges no proof gate. An
+interruption banner marks the run crashed whatever its return code, since
+``pytest.exit`` may end an unfinished suite with 0 or 1.
 """
 
 from __future__ import annotations
@@ -23,6 +33,7 @@ import subprocess
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Final
 
+from tools.groundhog.levels import FullLevel
 from tools.groundhog.models import (
     PYTEST_INTERNAL_ERROR,
     PYTEST_INTERRUPTED,
@@ -137,13 +148,14 @@ def is_pytest_project(root: Path) -> bool:
     return False
 
 
-def pytest_command(
+def pytest_command(  # noqa: PLR0913
     pytest_exe: str,
     sub: str,
     *,
     no_cov: bool,
     files: Sequence[str],
     parallel: bool = False,
+    level: FullLevel = FullLevel.SPEED,
 ) -> list[str]:
     """Build the pytest command of one groundhog subcommand.
 
@@ -153,10 +165,14 @@ def pytest_command(
         no_cov: Whether coverage is disabled (the ptanc variant).
         files: The test files of a ``single`` run.
         parallel: Whether this project opted its full run into xdist workers.
+        level: The full-suite level shaping a ``full`` run: below ``cov`` it
+            measures no coverage, below ``speed`` it times no call; every
+            other subcommand ignores it.
 
     Returns:
         The pytest command line, alias-faithful plus ``-v`` for node ids;
-        the full run also times every call with ``--durations`` (Q39).
+        the full run at ``speed`` also times every call with ``--durations``
+        (Q39).
 
     The full run is the only parallel one. It is the only subcommand wide
     enough for worker startup to pay for itself, and ``pytest-testmon`` cannot
@@ -172,10 +188,10 @@ def pytest_command(
         # call time measures the scheduler, not the test (Q39).
         return [pytest_exe, "--no-header", "--no-cov", "-v",
                 "--durations=0", "--durations-min=0"]
-    command = [pytest_exe]
     worker_run = sub == SUB_FULL and parallel
-    command.extend(PARALLEL_OPTIONS if worker_run else ("--testmon",))
-    if no_cov:
+    command = [pytest_exe, *(PARALLEL_OPTIONS if worker_run else ("--testmon",))]
+    covered, timed = _measures(sub, level, no_cov=no_cov, worker_run=worker_run)
+    if not covered:
         command.extend(["--no-header", "--no-cov", "-v"])
         return command
     if sub == SUB_AFFECTED:
@@ -183,11 +199,31 @@ def pytest_command(
     command.extend(
         ["--no-header", "--cov-report", "term-missing:skip-covered", "-v"],
     )
-    if sub == SUB_FULL and not worker_run:
-        # A sequential full run still sees every test and still measures it
-        # honestly, so it keeps the outlier rule exactly as before (Q39).
+    if timed:
         command.extend(["--durations=0", "--durations-min=0"])
     return command
+
+
+def _measures(sub: str, level: FullLevel, *, no_cov: bool, worker_run: bool) -> tuple[bool, bool]:
+    """Tell what a covered or affected pytest run measures at its level.
+
+    Args:
+        sub: The subcommand: ``full`` or ``affected``.
+        level: The full-suite level shaping a ``full`` run.
+        no_cov: Whether coverage is disabled (the ptanc variant).
+        worker_run: Whether the run spreads over xdist workers.
+
+    Returns:
+        Whether it measures coverage (never for a ``full`` run below
+        ``cov``) and whether it times each call. A sequential full run still
+        sees every test and still measures it honestly, so at ``speed`` it
+        keeps the outlier rule exactly as before (Q39); below ``speed``
+        nothing judges the timing, so nothing is timed.
+    """
+    full_run = sub == SUB_FULL
+    covered = not no_cov and not (full_run and level < FullLevel.COV)
+    timed = covered and full_run and not worker_run and level is FullLevel.SPEED
+    return covered, timed
 
 
 def reset_testmon(root: Path) -> None:
@@ -227,7 +263,8 @@ def run_pytest(
 
     Returns:
         The parsed run result, with the crash flag set when the child
-        died mid-suite (Q06).
+        died mid-suite (Q06), and the interrupted flag when it was stopped
+        before judging anything.
     """
     parser = PytestOutputParser()
 
@@ -236,8 +273,11 @@ def run_pytest(
         on_update(parser.stats)
 
     code = run_streaming(config, _feed)
+    # An interruption banner means the suite never finished, whatever return
+    # code pytest.exit chose (0 and 1 included).
     crashed = (
         parser.internal_error
+        or parser.interruption_banner
         or code < 0
         or code in (PYTEST_INTERRUPTED, PYTEST_INTERNAL_ERROR)
     )
@@ -248,7 +288,28 @@ def run_pytest(
         failure_block=parser.failure_block,
         tail=parser.tail,
         coverage_block=parser.coverage_block,
+        interrupted=_interrupted(parser, code),
     )
+
+
+def _interrupted(parser: PytestOutputParser, code: int) -> bool:
+    """Tell whether a child was interrupted before it judged anything.
+
+    A signal exit, or pytest's interruption banner (a ``KeyboardInterrupt``
+    or a ``pytest.exit``, whatever its message or return code, 0 included; a
+    collection error ends with exit 2 and another banner), counts only while
+    no failure and no internal error were reported: a failure seen before the
+    interruption is still evidence about the sources.
+
+    Args:
+        parser: The parser that read the child's output.
+        code: The child exit code.
+
+    Returns:
+        True for an interruption that judged no gate.
+    """
+    stopped = code < 0 or parser.interruption_banner
+    return stopped and not parser.internal_error and parser.stats.failed == 0
 
 
 # eof

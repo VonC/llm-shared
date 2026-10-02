@@ -6,6 +6,11 @@ maps one parsed run to the contract exit code, tells whether a run measures
 coverage, and names the failing precondition of a setup-error exit. The
 functions moved verbatim; ``measures_coverage`` is the former private
 ``_measures_coverage``, made public for its callers.
+
+Fix (v0.13.0 full_suite_levels, Step 2): a ``full`` run at ``pass`` measures
+no coverage (its command carries ``--no-cov``), so ``measures_coverage`` is
+false for it and :func:`classify` reads no gate: a coverage gap is never
+judged below the ``cov`` level.
 """
 
 from __future__ import annotations
@@ -13,6 +18,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from tools.groundhog import runner
+from tools.groundhog.levels import FullLevel, effective_level
 from tools.groundhog.models import (
     EXIT_COVERAGE_GAP,
     EXIT_DURATION_OUTLIERS,
@@ -36,10 +42,13 @@ def measures_coverage(invocation: Invocation) -> bool:
         invocation: The parsed invocation.
 
     Returns:
-        True for ``full`` and covered ``affected`` runs.
+        True for covered ``affected`` runs and for ``full`` runs at ``cov``
+        or ``speed``; a ``full`` run at ``pass`` measures no coverage.
     """
-    covered_subs = (runner.SUB_FULL, runner.SUB_AFFECTED)
-    return invocation.sub in covered_subs and not invocation.no_cov
+    if invocation.sub == runner.SUB_FULL:
+        level = effective_level(invocation.level, invocation.sub)
+        return not invocation.no_cov and level >= FullLevel.COV
+    return invocation.sub == runner.SUB_AFFECTED and not invocation.no_cov
 
 
 def classify(

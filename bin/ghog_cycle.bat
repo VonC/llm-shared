@@ -20,7 +20,11 @@ REM   ghog_cycle.bat day
 REM   ghog_cycle.bat day timings
 REM   ghog_cycle.bat check "affected --no-cov" full
 REM
-REM With no argument it runs the default cycle: day then timings.
+REM With no argument it runs the default cycle: one ghog day walk, alone.
+REM The walk follows the level rule (--full, else GHOG_FULL, else none), so
+REM GHOG_FULL=speed already adds the timing pass inside the walk in a
+REM parallel project; an explicit sequence such as "day timings" still runs
+REM each command as given.
 REM The exit code is the first non-zero of the sequence, so a failing phase
 REM still reports its own contract code and the later commands are skipped.
 
@@ -54,7 +58,6 @@ set "CYCLE_EXIT=0"
 
 if "%~1"=="" (
     call :run_one day
-    if !CYCLE_EXIT! equ 0 call :run_one timings
     goto :done
 )
 

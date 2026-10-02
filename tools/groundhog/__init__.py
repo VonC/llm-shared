@@ -20,6 +20,13 @@ of ``commands``; ``levels`` adds the full-suite level value and its
 resolution, ``proof`` the accumulation, cap, noop and upgrade rules, and
 ``snapshot`` the key=value proof marker of each scope with the timing
 fingerprint, all pure or adapter models the walk wires from Step 2.
+
+v0.13.0 full_suite_levels, Step 2: the walk, the full run, the reports and
+the status file run by level with saved proof; ``evidence`` holds the run
+evidence (objective, source, proof, reuse and scope) that the closing line
+and ``a.ghog.status`` append, and the outcome each executor returns; and
+``detach`` the detached day walk and its survivor spawn, split out of
+``status``.
 """
 
 from tools.groundhog.models import (

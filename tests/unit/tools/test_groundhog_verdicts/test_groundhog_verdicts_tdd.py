@@ -5,14 +5,19 @@ outliers-last cases moved here unchanged from ``test_groundhog_cli.py`` and
 ``test_groundhog_commands.py``, beside the functions that moved from
 ``commands.py`` to ``verdicts.py``; the coverage-measure rule, now public as
 ``measures_coverage``, gains its own case.
+
+Fix (v0.13.0 full_suite_levels, Step 2): a full run at ``pass`` measures no
+coverage, so no gate is read below ``cov``.
 """
 
 from __future__ import annotations
 
+from dataclasses import replace
 from typing import TYPE_CHECKING
 
 from tools.groundhog import runner, verdicts
 from tools.groundhog.context import Invocation
+from tools.groundhog.levels import FullLevel
 from tools.groundhog.models import (
     EXIT_COVERAGE_GAP,
     EXIT_DURATION_OUTLIERS,
@@ -181,6 +186,15 @@ def test_measures_coverage_per_subcommand(tmp_path: Path) -> None:
     assert verdicts.measures_coverage(_invocation(runner.SUB_AFFECTED, no_cov=False, root=tmp_path))
     assert not verdicts.measures_coverage(_invocation(runner.SUB_AFFECTED, no_cov=True, root=tmp_path))
     assert not verdicts.measures_coverage(_invocation(runner.SUB_SINGLE, no_cov=False, root=tmp_path))
+
+
+def test_full_run_measures_coverage_from_cov_up(tmp_path: Path) -> None:
+    """A full run at pass reads no coverage gate; cov and speed do."""
+    full = _invocation(runner.SUB_FULL, no_cov=False, root=tmp_path)
+    assert not verdicts.measures_coverage(replace(full, level=FullLevel.PASS))
+    assert verdicts.measures_coverage(replace(full, level=FullLevel.COV))
+    assert verdicts.measures_coverage(replace(full, level=FullLevel.SPEED))
+    assert not verdicts.measures_coverage(replace(full, no_cov=True))
 
 
 # eof

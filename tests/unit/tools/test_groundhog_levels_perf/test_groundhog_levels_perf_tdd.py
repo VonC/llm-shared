@@ -15,6 +15,10 @@ on an assertion, never by an error: an unknown ``--full`` or ``--group``
 option makes argparse exit 2, which :func:`_run` returns as a code, and every
 spawn queue holds the children the pre-change walk pops, so no spawn ever
 finds an empty queue.
+
+Fix (v0.13.0 full_suite_levels, Step 2): the leveled walk landed, so the
+default-walk, upgrade and noop gates lose their ``xfail`` mark and keep their
+timeout; the two grouped gates stay strict ``xfail`` until Step 4.
 """
 
 from __future__ import annotations
@@ -186,7 +190,6 @@ def _count_rglob(monkeypatch: pytest.MonkeyPatch) -> list[str]:
 
 
 @pytest.mark.timeout(GATE_TIMEOUT_SECONDS)
-@pytest.mark.xfail(strict=True, reason="removed in Step 2")
 def test_default_walk_spawns_no_full_run(tmp_path: pathlib.Path) -> None:
     """A green default walk spawns check.bat and affected --no-cov, no full run."""
     check_bat = _project(tmp_path)
@@ -199,7 +202,6 @@ def test_default_walk_spawns_no_full_run(tmp_path: pathlib.Path) -> None:
 
 
 @pytest.mark.timeout(GATE_TIMEOUT_SECONDS)
-@pytest.mark.xfail(strict=True, reason="removed in Step 2")
 def test_upgrade_spawns_only_the_full_run(tmp_path: pathlib.Path) -> None:
     """An upgrade to cov reuses check and affected: one covered full child only."""
     _project(tmp_path)
@@ -217,7 +219,6 @@ def test_upgrade_spawns_only_the_full_run(tmp_path: pathlib.Path) -> None:
 
 
 @pytest.mark.timeout(GATE_TIMEOUT_SECONDS)
-@pytest.mark.xfail(strict=True, reason="removed in Step 2")
 def test_stronger_saved_proof_spawns_nothing(tmp_path: pathlib.Path) -> None:
     """Saved speed proof on a sequential project meets --full=cov: nothing runs."""
     _project(tmp_path)

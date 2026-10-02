@@ -8,9 +8,10 @@ A ``FullLevel`` is ordered by the proof it establishes, ``none < pass < cov
 < speed``: ``cov`` implies ``pass`` because a covered full run still requires
 every test to pass, and ``speed`` implies ``cov``. ``none`` is the internal
 level of the default walk, never an accepted ``--full`` or ``GHOG_FULL``
-value, so no selector or restart line can ever carry ``--full=none``. The
-reporting value ``unproven`` (no valid proof for the current sources) is not
-a level: :func:`proof_token` renders it for an absent proof.
+value, so no selector or restart line can ever carry a ``none`` level (its
+selector is empty). The reporting value ``unproven`` (no valid proof for the
+current sources) is not a level: :func:`proof_token` renders it for an absent
+proof.
 
 Resolution happens once per invocation (:func:`resolve_level`): an explicit
 ``--full`` wins and the environment is then not read at all, so a valid
@@ -18,6 +19,12 @@ parameter overrides an invalid variable; otherwise a non-empty ``GHOG_FULL``;
 otherwise the command default, ``speed`` for ``ghog full`` and ``none`` for
 every other command. Any other value, ``none`` included, raises
 :class:`LevelError`, a setup error naming the accepted values.
+
+Fix (v0.13.0 full_suite_levels, Step 2): the model no longer imports the
+``runner`` process adapter for the ``full`` subcommand name. The runner now
+shapes the full run by level and imports :class:`FullLevel`, so the pure model
+names that subcommand itself and the dependency points one way only, from the
+adapter to the model.
 """
 
 from __future__ import annotations
@@ -26,7 +33,6 @@ from dataclasses import dataclass
 from enum import IntEnum, StrEnum
 from typing import TYPE_CHECKING, Final
 
-from tools.groundhog import runner
 from tools.groundhog.models import GroundhogError
 
 if TYPE_CHECKING:
@@ -34,6 +40,10 @@ if TYPE_CHECKING:
 
 # The environment variable carrying the level of every groundhog call.
 GHOG_FULL_ENV: Final = "GHOG_FULL"
+# The ``ghog full`` subcommand name (``runner.SUB_FULL``), the one command
+# whose default level is ``speed``; named here so the model never imports the
+# process adapter.
+_FULL_SUB: Final = "full"
 # The origin named by a rejected parameter, as the caller typed it.
 PARAM_ORIGIN: Final = "--full"
 # The text rendered for an absent proof; never a level, never a selector.
@@ -110,7 +120,7 @@ def command_default(sub: str) -> FullLevel:
     Returns:
         ``speed`` for ``full``, ``none`` for every other command.
     """
-    return FullLevel.SPEED if sub == runner.SUB_FULL else FullLevel.NONE
+    return FullLevel.SPEED if sub == _FULL_SUB else FullLevel.NONE
 
 
 def resolve_level(

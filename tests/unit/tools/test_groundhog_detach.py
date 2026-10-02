@@ -20,6 +20,12 @@ pid probe, verdict and lifecycle tests stay in that file.
 Groundhog duration gate: the real survivor test now checks real process spawn
 and preamble handoff without polling for child output; the fake-Popen tests below
 already pin stdout/stderr wiring and preamble variants without OS process cost.
+
+Fix (v0.13.0 full_suite_levels, Step 2): cover the level forwarding of the
+detached walk: a ``--full`` parameter is appended to the survivor command, a
+``GHOG_FULL`` level is not, since the survivor inherits the environment and
+resolves the same level from the same source. The launch and the survivor
+spawn moved from ``status.py`` to ``detach.py``, this file's namesake.
 """
 
 from __future__ import annotations
@@ -27,10 +33,11 @@ from __future__ import annotations
 import os
 import subprocess
 import sys
+from dataclasses import replace
 from typing import TYPE_CHECKING, Final, cast
 
 from tools.artifact_home import artifact_path
-from tools.groundhog import cli, redirect, reporting, runner, status
+from tools.groundhog import cli, detach, redirect, reporting, runner, status
 from tools.groundhog.models import (
     EXIT_OBJECTIVE_MET,
     EXIT_RUN_LIVE,
@@ -163,6 +170,29 @@ def test_day_detach_forwards_the_force_flag(
     assert "--force" in commands_seen[0]
 
 
+def test_day_detach_forwards_a_parameter_level_only(
+    tmp_path: Path,
+) -> None:
+    """--full reaches the survivor; a GHOG_FULL level is left to the environment."""
+    commands_seen: list[list[str]] = []
+
+    def _factory(command: list[str], log_path: Path, preamble: str, cwd: Path) -> int:
+        del log_path, preamble, cwd
+        commands_seen.append(command)
+        status.write_running(tmp_path, "day")
+        return _DETACHED_PID
+
+    deps = cli.Deps(detach_factory=_factory, sleep=lambda _seconds: None)
+    argv = ["day", "--detach", "--full=cov", "--root", str(tmp_path), "--llm"]
+    assert cli.main(argv, deps) == EXIT_RUN_LIVE
+    assert commands_seen[0][-1] == "--full=cov"
+    status.clear_status(tmp_path)
+    inherited = replace(deps, environ={"GHOG_FULL": "speed"}.get)
+    argv = ["day", "--detach", "--root", str(tmp_path), "--llm"]
+    assert cli.main(argv, inherited) == EXIT_RUN_LIVE
+    assert not any(part.startswith("--full") for part in commands_seen[1])
+
+
 def test_day_detach_clears_a_stale_status_before_the_handshake(
     tmp_path: Path,
 ) -> None:
@@ -214,7 +244,7 @@ def test_day_detach_reports_a_silent_child(
     code = cli.main(["day", "--detach", "--root", str(tmp_path), "--llm"], deps)
     assert code == EXIT_SETUP_ERROR
     assert reporting.MSG_DETACH_SILENT in capsys.readouterr().out
-    assert len(naps) == status._HANDSHAKE_TRIES
+    assert len(naps) == detach._HANDSHAKE_TRIES
 
 
 def test_day_detach_keeps_the_launcher_envelope_on_stdout(
@@ -245,7 +275,7 @@ def test_default_detach_factory_spawns_a_real_survivor(tmp_path: Path) -> None:
         if sys.platform == "win32"
         else [sys.executable, "-S", "-c", ""]
     )
-    pid = status.default_detach_factory(command, log_path, "senv preamble", tmp_path)
+    pid = detach.default_detach_factory(command, log_path, "senv preamble", tmp_path)
     assert pid > 0
     assert log_path.read_text(encoding="utf-8").startswith("senv preamble\n")
 
@@ -262,7 +292,7 @@ def test_default_detach_factory_skips_an_empty_preamble(
 
     monkeypatch.setattr(subprocess, "Popen", _fake_popen)
     log_path = tmp_path / "detached.log"
-    pid = status.default_detach_factory(["child"], log_path, "", tmp_path)
+    pid = detach.default_detach_factory(["child"], log_path, "", tmp_path)
     assert pid == _DETACHED_PID
     assert log_path.read_text(encoding="utf-8") == ""
 
@@ -279,7 +309,7 @@ def test_default_detach_factory_keeps_a_terminated_preamble(
 
     monkeypatch.setattr(subprocess, "Popen", _fake_popen)
     log_path = tmp_path / "detached.log"
-    status.default_detach_factory(["child"], log_path, "preamble\n", tmp_path)
+    detach.default_detach_factory(["child"], log_path, "preamble\n", tmp_path)
     assert log_path.read_text(encoding="utf-8") == "preamble\n"
 
 
@@ -302,7 +332,7 @@ def test_spawn_survivor_hides_the_console_window(
 
     monkeypatch.setattr(subprocess, "Popen", _fake_popen)
     log_path = tmp_path / "detached.log"
-    pid = status.default_detach_factory(["child"], log_path, "", tmp_path)
+    pid = detach.default_detach_factory(["child"], log_path, "", tmp_path)
     assert pid == _DETACHED_PID
     flags = cast("int", kwargs_seen.get("creationflags", 0))
     assert flags & subprocess.CREATE_NO_WINDOW
@@ -329,7 +359,7 @@ def test_spawn_survivor_falls_back_when_breakaway_is_denied(
 
     monkeypatch.setattr(subprocess, "Popen", _fake_popen)
     log_path = tmp_path / "detached.log"
-    pid = status.default_detach_factory(["child"], log_path, "", tmp_path)
+    pid = detach.default_detach_factory(["child"], log_path, "", tmp_path)
     assert pid == _DETACHED_PID
     expected_attempts = 2
     assert len(attempts) == expected_attempts
@@ -353,7 +383,7 @@ def test_spawn_survivor_uses_a_new_session_off_windows(
 
     monkeypatch.setattr(subprocess, "Popen", _fake_popen)
     log_path = tmp_path / "detached.log"
-    pid = status.default_detach_factory(["child"], log_path, "", tmp_path)
+    pid = detach.default_detach_factory(["child"], log_path, "", tmp_path)
     assert pid == _DETACHED_PID
     assert kwargs_seen.get("start_new_session") is True
     assert "creationflags" not in kwargs_seen

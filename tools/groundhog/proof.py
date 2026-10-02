@@ -22,6 +22,11 @@ reads a file; the snapshot adapter hands its marker over through the
   cap applies.
 - :func:`earned_by_direct_full` is the proof of a direct ``ghog full`` run,
   which never reads or writes the marker.
+
+Fix (v0.13.0 full_suite_levels, Step 2): :func:`judges_gate` names the step
+outcomes that judge no gate and so leave the saved proof as it was: a setup
+error (exit 5), a project without a pytest suite (exit 9), and a pytest child
+interrupted before it reported any failure.
 """
 
 from __future__ import annotations
@@ -33,7 +38,9 @@ from tools.groundhog.levels import FullLevel
 from tools.groundhog.models import (
     EXIT_COVERAGE_GAP,
     EXIT_DURATION_OUTLIERS,
+    EXIT_NOT_PYTEST_PROJECT,
     EXIT_OBJECTIVE_MET,
+    EXIT_SETUP_ERROR,
 )
 
 if TYPE_CHECKING:
@@ -97,6 +104,23 @@ _EARNED_BELOW_FAILED_GATE: Final = {
     EXIT_COVERAGE_GAP: FullLevel.PASS,
     EXIT_DURATION_OUTLIERS: FullLevel.COV,
 }
+# The exits that judge no gate: they say nothing about the sources.
+_NO_GATE_EXITS: Final = (EXIT_SETUP_ERROR, EXIT_NOT_PYTEST_PROJECT)
+
+
+def judges_gate(exit_code: int, *, interrupted: bool) -> bool:
+    """Tell whether one step outcome judged a gate, so it may move the proof.
+
+    Args:
+        exit_code: The contract exit code of the step.
+        interrupted: Whether the step's child was interrupted before it
+            reported any failure.
+
+    Returns:
+        False for a setup error, a project without a pytest suite and an
+        interrupted child; True for every other outcome, green or failing.
+    """
+    return not interrupted and exit_code not in _NO_GATE_EXITS
 
 
 def accumulate(

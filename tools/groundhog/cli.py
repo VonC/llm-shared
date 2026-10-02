@@ -4,9 +4,9 @@ Subcommands (Q02, Q15): ``check`` runs check.bat from the project root,
 ``full`` re-runs the whole suite with a fresh testmon database and
 coverage (ptr), ``affected`` runs the testmon-selected tests (pta, with
 ``--no-cov`` for ptanc), ``single`` runs named test files in focus (pts),
-``day`` walks the whole chain — check, then affected --no-cov, then
-full — stopping at the first non-green step (Q22), ``init`` registers
-the skill pointers (Claude skill, AGENTS.md section) in the consuming
+``day`` walks the chain — check, then affected --no-cov, then the full
+run of its level — stopping at the first non-green step (Q22), ``init``
+registers the skill pointers (Claude skill, AGENTS.md section) in the consuming
 project (Q23), ``status`` replays the run lifecycle recorded in
 ``a.ghog.status`` (Q32), and ``exclude`` accepts one must-stay-slow call
 into the ``[exclusion]`` section of ``a.ghog.outliers`` in the artifact
@@ -49,6 +49,16 @@ bare file name that read as a project-root file.
 Fix (v0.13.0 full_suite_levels, Step 1): the ``exclude`` closing line takes
 its subcommand label from ``progress.sub_label``, where the label moved with
 the progress sink out of ``commands.py``.
+
+Fix (v0.13.0 full_suite_levels, Step 2): ``check``, ``full``, ``affected``,
+``single`` and ``day`` accept ``--full``, a free string validated by groundhog
+rather than by argparse choices, so a bad value is a setup error (exit 5),
+never argparse's exit 2. :func:`main` resolves the level once, after the root
+and before the live-run check and the lifecycle bracket: the parameter, else a
+non-empty ``GHOG_FULL`` read through the ``environ`` seam, else the command
+default. ``timings``, ``status``, ``init`` and ``exclude`` neither accept
+``--full`` nor read ``GHOG_FULL``. The detached walk is launched from
+``detach.py``, split out of ``status.py``.
 """
 
 from __future__ import annotations
@@ -58,8 +68,9 @@ import contextlib
 import io
 import logging
 import sys
+from dataclasses import replace
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Final
 
 if __name__ == "__main__":
     with contextlib.suppress(Exception):
@@ -69,6 +80,7 @@ if __name__ == "__main__":
 from tools import find_project_root
 from tools.groundhog import (
     commands,
+    detach,
     exclusions,
     floor,
     progress,
@@ -78,12 +90,22 @@ from tools.groundhog import (
     status,
 )
 from tools.groundhog.context import Deps, Invocation
+from tools.groundhog.levels import LevelError, resolve_level
 from tools.groundhog.models import EXIT_OBJECTIVE_MET, EXIT_SETUP_ERROR, Mode, RunStats
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
 LOGGER = logging.getLogger("groundhog")
+
+# The commands that run or repair the suite, the only ones resolving a level.
+_LEVEL_SUBS: Final = (
+    runner.SUB_CHECK,
+    runner.SUB_FULL,
+    runner.SUB_AFFECTED,
+    runner.SUB_SINGLE,
+    runner.SUB_DAY,
+)
 
 
 def pick_mode(*, user: bool, llm: bool, tty: bool) -> Mode:
@@ -130,12 +152,18 @@ def main(argv: Sequence[str] | None = None, deps: Deps | None = None) -> int:
     if invocation.sub == runner.SUB_STATUS:
         redirect.consume_senv_log()
         return status.run_status(invocation)
+    try:
+        invocation = _with_level(invocation, getattr(args, "full", None), active)
+    except LevelError as error:
+        redirect.consume_senv_log()
+        commands.emit_summary([f"ghog: {error}"])
+        return EXIT_SETUP_ERROR
     live = status.live_run(invocation.root)
     if live is not None:
         redirect.consume_senv_log()
         return status.refuse_live_run(live)
     if invocation.sub == runner.SUB_DAY and invocation.detach:
-        return status.run_day_detached(invocation, active)
+        return detach.run_day_detached(invocation, active)
     redirect.activate_if_captured(invocation.mode, invocation.root)
     redirect.replay_senv_log(invocation.mode, invocation.root)
     return _run_post_redirect(invocation, active)
@@ -201,6 +229,28 @@ def run_exclude(invocation: Invocation) -> int:
     return EXIT_OBJECTIVE_MET
 
 
+def _with_level(invocation: Invocation, param: str | None, deps: Deps) -> Invocation:
+    """Resolve the full-suite level of a run or repair command, once.
+
+    Args:
+        invocation: The parsed invocation.
+        param: The ``--full`` value, ``None`` when absent.
+        deps: The injectable seams, for the environment lookup.
+
+    Returns:
+        The invocation carrying its level and source; any other command
+        unchanged, without reading ``GHOG_FULL``.
+
+    Raises:
+        LevelError: When the parameter, or the variable read without one, is
+            not ``pass``, ``cov`` or ``speed``.
+    """
+    if invocation.sub not in _LEVEL_SUBS:
+        return invocation
+    resolved = resolve_level(invocation.sub, param, deps.environ)
+    return replace(invocation, level=resolved.level, level_source=resolved.source)
+
+
 def _build_invocation(args: argparse.Namespace, root: Path) -> Invocation:
     """Build the parsed invocation from the namespace and resolved root.
 
@@ -250,6 +300,15 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Force LLM mode: plain progress lines (Q03).",
     )
+    leveled = argparse.ArgumentParser(add_help=False, parents=[common])
+    leveled.add_argument(
+        "--full",
+        default=None,
+        help=(
+            "Full-suite level: pass, cov or speed (else GHOG_FULL, else the "
+            "command default: speed for full, none for the others)."
+        ),
+    )
     parser = argparse.ArgumentParser(
         prog="ghog",
         description="groundhog: pytest reset tool (see tools/Pytest reset specs.md).",
@@ -257,13 +316,13 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="sub", required=True)
     subparsers.add_parser(
         runner.SUB_CHECK,
-        parents=[common],
+        parents=[leveled],
         help="Run check.bat from the project root (Q10).",
     )
     subparsers.add_parser(
         runner.SUB_FULL,
-        parents=[common],
-        help="Full suite, fresh testmon data, coverage (ptr).",
+        parents=[leveled],
+        help="Full suite, fresh testmon data, shaped by its level (ptr).",
     )
     subparsers.add_parser(
         runner.SUB_TIMINGS,
@@ -272,7 +331,7 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     )
     affected = subparsers.add_parser(
         runner.SUB_AFFECTED,
-        parents=[common],
+        parents=[leveled],
         help="testmon-selected tests with appended coverage (pta).",
     )
     affected.add_argument(
@@ -282,22 +341,23 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     )
     single = subparsers.add_parser(
         runner.SUB_SINGLE,
-        parents=[common],
+        parents=[leveled],
         help="Named test files in focus, no coverage (pts).",
     )
     single.add_argument("files", nargs="+", help="Test files, not functions.")
     day = subparsers.add_parser(
         runner.SUB_DAY,
-        parents=[common],
+        parents=[leveled],
         help=(
-            "Walk the chain: check, then affected --no-cov, then full, "
-            "stopping at the first non-green step (Q22)."
+            "Walk the chain: check, then affected --no-cov, then the full "
+            "run of the selected level (none by default), stopping at the "
+            "first non-green step (Q22)."
         ),
     )
     day.add_argument(
         "--force",
         action="store_true",
-        help="Walk even when nothing changed since the last green walk (Q28).",
+        help="Walk even when the saved proof meets the level on unchanged sources (Q28).",
     )
     day.add_argument(
         "--detach",

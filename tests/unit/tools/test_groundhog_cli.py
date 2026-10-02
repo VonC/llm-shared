@@ -25,6 +25,12 @@ out of ``commands.py``; the user-bar flows stay here, driving the moved
 progress sink through the CLI. The file now also routes every dispatch path
 of ``main`` (status, the live-run refusal, the detached walk, init, and the
 script's ``__main__`` guard), so it covers ``cli.py`` on its own.
+
+Fix (v0.13.0 full_suite_levels, Step 2): cover the one-time level resolution
+of ``main``: an unknown or reserved ``--full`` and an invalid ``GHOG_FULL``
+exit 5 with the accepted values before any lifecycle write, a command without
+``--full`` never reads the variable, and a valid parameter wins over the
+variable and shapes the full run.
 """
 
 from __future__ import annotations
@@ -43,6 +49,7 @@ from tools.groundhog import (
     reporting_nextstep,
     status,
 )
+from tools.groundhog.levels import FullLevel
 from tools.groundhog.models import (
     EXIT_NOT_PYTEST_PROJECT,
     EXIT_OBJECTIVE_MET,
@@ -355,8 +362,69 @@ def test_affected_no_cov_failure_message(
     code = cli.main(argv, deps)
     assert code == EXIT_TEST_FAILURES
     out = capsys.readouterr().out
-    assert reporting_nextstep.MSG_AFFECTED_NOCOV_FAIL in out
+    assert reporting_nextstep.affected_fail_line(FullLevel.NONE) in out
     assert "ghog affected --no-cov done" in out
+
+
+def test_invalid_full_parameter_is_a_setup_error(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """An unknown or reserved --full value exits 5, never argparse's 2."""
+    bars: list[_FakeBar] = []
+    for value in ("fast", "none"):
+        code = cli.main(["day", f"--full={value}", "--root", str(tmp_path), "--llm"], _deps([], 0, bars))
+        assert code == EXIT_SETUP_ERROR
+        out = capsys.readouterr().out
+        assert f"ghog: invalid full level '{value}' from --full; accepted values: pass, cov, speed" in out
+    assert status.read_status(tmp_path) is None
+
+
+def test_invalid_level_variable_is_a_setup_error(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """GHOG_FULL is read through the environ seam and validated the same way."""
+    bars: list[_FakeBar] = []
+    deps = replace(_deps([], 0, bars), environ={"GHOG_FULL": "fast"}.get)
+    code = cli.main(["check", "--root", str(tmp_path), "--llm"], deps)
+    assert code == EXIT_SETUP_ERROR
+    assert "from GHOG_FULL; accepted values: pass, cov, speed" in capsys.readouterr().out
+
+
+def test_timings_never_reads_the_level_variable(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A command without --full ignores even an invalid GHOG_FULL."""
+    lines = ["collected 1 items", "tests/test_a.py::test_one PASSED [100%]"]
+    bars: list[_FakeBar] = []
+    deps = replace(_deps(lines, 0, bars), environ={"GHOG_FULL": "fast"}.get)
+    code = cli.main(["timings", "--root", str(tmp_path), "--llm"], deps)
+    assert code == EXIT_OBJECTIVE_MET
+    assert "invalid full level" not in capsys.readouterr().out
+
+
+def test_resolved_level_shapes_the_full_run(tmp_path: Path) -> None:
+    """A valid --full wins over the variable and reaches the pytest command."""
+    seen: list[list[str]] = []
+    lines = ["collected 1 items", "tests/test_a.py::test_one PASSED [100%]"]
+
+    def _factory(command: list[str], cwd: Path) -> subprocess.Popen[str]:
+        del cwd
+        seen.append(command)
+        return cast("subprocess.Popen[str]", _FakeProcess(lines, 0))
+
+    bars: list[_FakeBar] = []
+    deps = replace(
+        _deps(lines, 0, bars),
+        popen_factory=_factory,
+        environ={"GHOG_FULL": "cov"}.get,
+    )
+    code = cli.main(["full", "--full=pass", "--root", str(tmp_path), "--llm"], deps)
+    assert code == EXIT_OBJECTIVE_MET
+    assert "--no-cov" in seen[0]
+    assert "--durations=0" not in seen[0]
 
 
 def test_single_without_baseline_notice(
@@ -373,7 +441,7 @@ def test_single_without_baseline_notice(
     argv = ["single", "tests/test_a.py", "--root", str(tmp_path), "--llm"]
     code = cli.main(argv, deps)
     assert code == EXIT_OBJECTIVE_MET
-    assert reporting_nextstep.MSG_NO_BASELINE in capsys.readouterr().out
+    assert reporting_nextstep.no_baseline_line(FullLevel.NONE) in capsys.readouterr().out
 
 
 def test_exclude_subcommand_writes_the_entry(

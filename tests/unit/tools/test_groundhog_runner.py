@@ -19,6 +19,14 @@ with pytest's own section.
 
 The real streaming child skips site initialization and inherited Python setup;
 the scenario needs only builtin output and exit status.
+
+Fix (v0.13.0 full_suite_levels, Step 2): cover the full-run shape per level,
+sequential and parallel: ``pass`` carries ``--no-cov`` and no ``--durations``,
+``cov`` keeps coverage without ``--durations``, ``speed`` is today's command;
+the level never shapes another subcommand. Cover the interrupted flag too: a
+signal, or pytest's interruption banner (a bare or messaged
+KeyboardInterrupt, a pytest.exit with any return code), before any failure or
+internal error, never a collection error.
 """
 
 from __future__ import annotations
@@ -27,7 +35,13 @@ import sys
 from typing import TYPE_CHECKING, cast
 
 from tools.groundhog import runner
-from tools.groundhog.models import PYTEST_INTERNAL_ERROR, PYTEST_INTERRUPTED
+from tools.groundhog.levels import FullLevel
+from tools.groundhog.models import (
+    PYTEST_INTERNAL_ERROR,
+    PYTEST_INTERRUPTED,
+    PYTEST_OK,
+    PYTEST_TEST_FAILURES,
+)
 
 if TYPE_CHECKING:
     import subprocess
@@ -126,6 +140,31 @@ def test_opted_in_full_command_runs_on_workers_without_timing_or_testmon() -> No
     ]
     assert "--testmon" not in command
     assert "--durations=0" not in command
+
+
+def test_full_command_shape_per_level() -> None:
+    """Pass drops coverage and timing, cov drops timing, speed keeps both."""
+    for parallel in (False, True):
+        passing = runner.pytest_command(
+            "pytest", runner.SUB_FULL, no_cov=False, files=(), parallel=parallel, level=FullLevel.PASS,
+        )
+        assert "--no-cov" in passing
+        assert "--durations=0" not in passing
+        covered = runner.pytest_command(
+            "pytest", runner.SUB_FULL, no_cov=False, files=(), parallel=parallel, level=FullLevel.COV,
+        )
+        assert "--cov-report" in covered
+        assert "--durations=0" not in covered
+    speed = runner.pytest_command("pytest", runner.SUB_FULL, no_cov=False, files=(), level=FullLevel.SPEED)
+    assert speed == runner.pytest_command("pytest", runner.SUB_FULL, no_cov=False, files=())
+
+
+def test_level_never_shapes_the_other_subcommands() -> None:
+    """Only the full run is shaped: affected stays covered at pass."""
+    affected = runner.pytest_command(
+        "pytest", runner.SUB_AFFECTED, no_cov=False, files=(), level=FullLevel.PASS,
+    )
+    assert "--cov-append" in affected
 
 
 def test_timings_command_is_sequential_uninstrumented_and_timed() -> None:
@@ -300,6 +339,41 @@ def test_run_pytest_flags_crash_exit_codes(tmp_path: Path) -> None:
     for code in (PYTEST_INTERRUPTED, PYTEST_INTERNAL_ERROR, -9):
         result = runner.run_pytest(_config([], code, tmp_path), lambda _stats: None)
         assert result.crashed is True
+
+
+def test_run_pytest_flags_an_interruption_that_judged_nothing(tmp_path: Path) -> None:
+    """A signal, a KeyboardInterrupt or a pytest.exit before any failure judged no gate.
+
+    The banners are the ones the installed pytest prints. A pytest.exit
+    crashes the run with any return code of its own, 0 and 1 included, since
+    the suite never finished. pytest's interrupted exit with the
+    collection-error banner is a collection error, and a failure or an
+    internal error seen first is still evidence: neither counts as an
+    interruption.
+    """
+    banner = "!!!!!!!!!!!!!!!!!!!! KeyboardInterrupt !!!!!!!!!!!!!!!!!!!!"
+    messaged = "!!!!!!!!!!!!!!!!!!!!!!!!! KeyboardInterrupt: stopped !!!!!!!!!!!!!!!!!!!!!!!!!!"
+    exited = "!!!!!!!!!!!!!!!!!!!!!!! _pytest.outcomes.Exit: stopped !!!!!!!!!!!!!!!!!!!!!!!!"
+    collection = "!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!"
+    passed = "tests/test_a.py::test_one PASSED [ 50%]"
+    failed = "tests/test_a.py::test_two FAILED [100%]"
+    cases = (
+        ([passed, banner], PYTEST_INTERRUPTED, True),
+        ([passed, messaged], PYTEST_INTERRUPTED, True),
+        ([passed, exited], PYTEST_INTERRUPTED, True),
+        ([passed, exited], PYTEST_INTERNAL_ERROR, True),
+        ([passed, exited], PYTEST_TEST_FAILURES, True),
+        ([passed, exited], PYTEST_OK, True),
+        ([failed, exited], PYTEST_TEST_FAILURES, False),
+        ([passed], -9, True),
+        ([passed], PYTEST_INTERRUPTED, False),
+        ([collection], PYTEST_INTERRUPTED, False),
+        ([failed, banner], PYTEST_INTERRUPTED, False),
+        (["INTERNALERROR> boom", banner], PYTEST_INTERRUPTED, False),
+    )
+    for lines, code, expected in cases:
+        result = runner.run_pytest(_config(lines, code, tmp_path), lambda _stats: None)
+        assert (result.crashed, result.interrupted) == (True, expected), (lines, code)
 
 
 # eof

@@ -34,6 +34,10 @@ Fix: the half-floor restore (Q70) gains its own scenario -- a freak improved
 by less than two seconds yet back under half the one-second floor has its
 entry removed all the same, so an entry recorded near the floor, which can
 never improve by two seconds, does not stay ``ok`` forever.
+
+Fix (v0.13.0 full_suite_levels, Step 2): the exit-8 next step is the
+level-aware outlier line; a standalone ``ghog timings`` carries no level, so
+it restarts with a plain ``ghog day``.
 """
 
 from __future__ import annotations
@@ -46,6 +50,7 @@ from tests.unit.tools.groundhog_acceptance_support import (
     make_deps,
 )
 from tools.groundhog import cli, exclusions, floor, reporting_nextstep
+from tools.groundhog.levels import FullLevel
 from tools.groundhog.models import (
     EXIT_DURATION_OUTLIERS,
     EXIT_OBJECTIVE_MET,
@@ -98,7 +103,7 @@ _SLOW_REPORT: Final = (
     "Duration warnings requiring action:",
     f"{_FREAK}  current=1.83s  floor=1.00s  shorten below the floor with margin",
     "avg=",
-    reporting_nextstep.MSG_OUTLIERS,
+    reporting_nextstep.outliers_line(FullLevel.NONE),
     "outliers=1 excluded=0 exit=8",
 )
 # The exclusion block header rendered after the floor window (Q58), asserted as

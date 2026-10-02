@@ -29,6 +29,12 @@ colored ERROR lines, the exit-9 and missing-pytest stops, a sequential full
 run (testmon reset, baseline, nag), its coverage-gap rows and missing TOTAL
 reason, a crash, a covered affected run, a focus run with and without a
 baseline, and init success and failure.
+
+Fix (v0.13.0 full_suite_levels, Step 2): the next-step pins follow the
+level-aware builders: a standalone ``ghog timings`` and ``ghog single`` carry
+no level (plain ``ghog day`` restart), and a direct sequential ``ghog full``
+runs at its default ``speed``, prints the ``speed`` success line and appends
+``full=speed src=default proof=speed scope=whole`` to its closing line.
 """
 
 from __future__ import annotations
@@ -51,6 +57,7 @@ from tools.groundhog import (
     init_files,
     reporting_nextstep,
 )
+from tools.groundhog.levels import FullLevel
 from tools.groundhog.models import (
     EXIT_COVERAGE_GAP,
     EXIT_DURATION_OUTLIERS,
@@ -176,7 +183,7 @@ def _assert_green_but_slow_report(out: str) -> None:
     assert "Duration warnings requiring action:" in out
     assert _FREAK_NODE in out
     assert "shorten below the floor with margin" in out
-    assert reporting_nextstep.MSG_OUTLIERS in out
+    assert reporting_nextstep.outliers_line(FullLevel.NONE) in out
     # The exit-8 hint now names the add-exclusion command, not raising line 2.
     assert "ghog exclude" in out
     assert "avg=" in out
@@ -411,8 +418,9 @@ def test_sequential_full_run_resets_testmon_and_records_the_baseline(
     assert not (tmp_path / ".testmondata").exists()
     assert baseline.read_baseline(tmp_path) == ()
     out = capsys.readouterr().out
-    assert reporting_nextstep.MSG_FULL_OK in out
+    assert reporting_nextstep.success_line(FullLevel.SPEED) in out
     assert "nag: warn=2 xfail=0 worth a look" in out
+    assert "exit=0 full=speed src=default proof=speed scope=whole" in out
 
 
 def test_full_run_gap_and_missing_total_are_reported(
@@ -468,12 +476,12 @@ def test_single_run_compares_with_the_full_run_baseline(
     """A focus run skips the comparison without a baseline, then uses it (Q07, Q18)."""
     argv = ["single", "tests/test_a.py"]
     assert _run(argv, Spawns(failing_transcript(), 1), tmp_path) == EXIT_TEST_FAILURES
-    assert reporting_nextstep.MSG_NO_BASELINE in capsys.readouterr().out
+    assert reporting_nextstep.no_baseline_line(FullLevel.NONE) in capsys.readouterr().out
     baseline.write_baseline(tmp_path, ["tests/test_a.py::test_two"])
     assert _run(argv, Spawns(failing_transcript(), 1), tmp_path) == EXIT_TEST_FAILURES
     out = capsys.readouterr().out
-    assert reporting_nextstep.MSG_NO_BASELINE not in out
-    assert reporting_nextstep.MSG_SINGLE_RESTART in out
+    assert reporting_nextstep.no_baseline_line(FullLevel.NONE) not in out
+    assert reporting_nextstep.single_restart_line(FullLevel.NONE) in out
 
 
 def test_init_reports_success_and_failure(

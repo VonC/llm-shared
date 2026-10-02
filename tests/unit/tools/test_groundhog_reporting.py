@@ -17,6 +17,11 @@ Fix: cover the duration-outlier additions (Q37, Q47) — the ``avg=``/
 Fix: cover the per-test exclusion additions (Q58, Q65) — the slower-drift
 count behind ``excluded_count`` and the ``excluded=`` value of the closing
 line through ``ClosingMetrics``.
+
+Fix (v0.13.0 full_suite_levels, Step 2): cover the evidence keys appended
+after ``exit=`` through ``ClosingMetrics``, the reused-step header of an
+upgrade walk, the killed-run relaunch at the recorded level, and the crash
+instruction restarting at the carried level.
 """
 
 from __future__ import annotations
@@ -29,6 +34,7 @@ from tools.groundhog.durations import (
     DurationExclusion,
     DurationSummary,
 )
+from tools.groundhog.levels import FullLevel
 from tools.groundhog.models import (
     EXIT_OBJECTIVE_MET,
     EXIT_TEST_FAILURES,
@@ -241,7 +247,40 @@ def test_closing_metrics_default_the_timing_keys_to_skipped() -> None:
         EXIT_OBJECTIVE_MET,
         reporting.ClosingMetrics(reporting.COV_SKIPPED),
     )
-    assert "cov=skipped outliers=skipped excluded=skipped exit=0" in line
+    assert line.endswith("cov=skipped outliers=skipped excluded=skipped exit=0")
+
+
+def test_closing_line_appends_the_evidence_keys_after_exit() -> None:
+    """The evidence keys follow exit=, never inserted among the current keys."""
+    line = reporting.closing_line(
+        "myapp",
+        "day",
+        _stats(),
+        EXIT_OBJECTIVE_MET,
+        reporting.ClosingMetrics(
+            reporting.COV_SKIPPED,
+            evidence="full=none src=default proof=none reused=none scope=whole",
+        ),
+    )
+    assert line == (
+        "myapp: ghog day done fail=0 warn=0 xfail=0 cov=skipped outliers=skipped "
+        "excluded=skipped exit=0 full=none src=default proof=none reused=none scope=whole"
+    )
+
+
+def test_step_reused_line_names_the_saved_proof() -> None:
+    """An upgrade reports each reused step with the saved proof it stands on."""
+    assert reporting.step_reused_line("proj", "check", FullLevel.PASS) == (
+        "proj: == ghog check == reused from snapshot (saved proof=pass)"
+    )
+
+
+def test_status_killed_line_relaunches_at_the_recorded_level() -> None:
+    """A killed run is relaunched at its level, never with a none selector."""
+    assert "Next: ghog day --full=cov (--detach" in reporting.status_killed_line(FullLevel.COV)
+    plain = reporting.status_killed_line(FullLevel.NONE)
+    assert "Next: ghog day (--detach" in plain
+    assert "--full=" not in plain
 
 
 def test_nag_line_only_with_material() -> None:
@@ -261,6 +300,9 @@ def test_crash_block_carries_tests_tail_and_instruction() -> None:
     assert "- tests/test_a.py::test_one" in block
     assert "  Traceback line" in block
     assert block[-1].startswith("Fix the test suite now:")
+    assert block[-1].endswith("Then re-run ghog day.")
+    leveled = reporting.crash_block(stats, (), FullLevel.SPEED)
+    assert leveled[-1].endswith("Then re-run ghog day --full=speed.")
 
 
 def test_governor_emits_per_percent_step() -> None:

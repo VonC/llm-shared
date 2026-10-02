@@ -20,6 +20,11 @@ handed -- baselines ratcheted down, below-floor and stale entries removed.
 Fix: the floor file now lives in the review artifact home, not at the project
 root, so the verdict carries its real location (``floor_file``) for the report
 lines that name it; the pure rule cannot resolve it, having no IO.
+
+Fix (v0.13.0 full_suite_levels, Step 2): :func:`measures_durations` builds the
+command at the invocation's effective level, so a ``full`` run below ``speed``
+times no call, forms no verdict and leaves the floor file and its exclusion
+section untouched.
 """
 
 from __future__ import annotations
@@ -28,6 +33,7 @@ from dataclasses import replace
 from typing import TYPE_CHECKING
 
 from tools.groundhog import durations, exclusions, floor, runner
+from tools.groundhog.levels import effective_level
 from tools.groundhog.models import EXIT_OBJECTIVE_MET
 
 if TYPE_CHECKING:
@@ -54,7 +60,8 @@ def measures_durations(invocation: Invocation) -> bool:
         scheduler rather than the test, so there the sequential
         ``timings`` run owns the rule and keeps its whole-suite scope.
         Deriving the answer from the built command keeps the verdict and
-        the measurement from drifting apart.
+        the measurement from drifting apart. A ``full`` run below ``speed``
+        is built without ``--durations``, so it never judges speed.
     """
     command = runner.pytest_command(
         "pytest",
@@ -62,6 +69,7 @@ def measures_durations(invocation: Invocation) -> bool:
         no_cov=invocation.no_cov,
         files=invocation.files,
         parallel=runner.parallel_enabled(invocation.root),
+        level=effective_level(invocation.level, invocation.sub),
     )
     return "--durations=0" in command
 

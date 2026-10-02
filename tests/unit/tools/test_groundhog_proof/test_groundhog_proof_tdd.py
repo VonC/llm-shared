@@ -6,6 +6,10 @@ the saved proof, the noop, upgrade and walk decision with its timing cap,
 the one effective-saved rule (scope, fingerprint and digest must match, a
 timing mismatch caps at ``cov``), and the earned proof of a direct
 ``ghog full`` per level, result and parallel flag.
+
+Fix (v0.13.0 full_suite_levels, Step 2): cover ``judges_gate``: a setup
+error, a missing pytest suite and an interrupted child judge no gate; every
+other outcome, a crash included, does.
 """
 
 from __future__ import annotations
@@ -19,6 +23,7 @@ from tools.groundhog.levels import FullLevel
 from tools.groundhog.models import (
     EXIT_COVERAGE_GAP,
     EXIT_DURATION_OUTLIERS,
+    EXIT_NOT_PYTEST_PROJECT,
     EXIT_OBJECTIVE_MET,
     EXIT_SETUP_ERROR,
     EXIT_SUITE_CRASH,
@@ -202,6 +207,22 @@ def test_earned_by_direct_full_follows_the_design_table(
 ) -> None:
     """A direct ghog full earns its level, the level below one failed gate, or nothing."""
     assert proof.earned_by_direct_full(level, exit_code, parallel=parallel) is expected
+
+
+@pytest.mark.parametrize(
+    ("exit_code", "interrupted", "judged"),
+    [
+        (EXIT_OBJECTIVE_MET, False, True),
+        (EXIT_TEST_FAILURES, False, True),
+        (EXIT_SUITE_CRASH, False, True),
+        (EXIT_SUITE_CRASH, True, False),
+        (EXIT_SETUP_ERROR, False, False),
+        (EXIT_NOT_PYTEST_PROJECT, False, False),
+    ],
+)
+def test_judges_gate_per_outcome(exit_code: int, *, interrupted: bool, judged: bool) -> None:
+    """Setup errors, a missing suite and an interrupted child judge no gate."""
+    assert proof.judges_gate(exit_code, interrupted=interrupted) is judged
 
 
 # eof

@@ -8,6 +8,13 @@ Fix (split): the detached day walk and survivor-spawn tests moved to
 ``test_groundhog_detach.py`` so each test file stays within the repository
 line budget; the ``write_running``/``write_done`` round trip split into a
 write_running test and a write_done test, each below the complexity gate.
+
+Fix (v0.13.0 full_suite_levels, Step 2): cover the evidence keys of the status
+lines (after ``state=`` on the running line, before ``exit=`` on the done
+line), the running and done evidence a day walk records through the
+lifecycle bracket, the ``scope=`` of a check run, and the killed-run relaunch
+at the level the recorded running line carried (``none`` for none or an
+unknown value).
 """
 
 from __future__ import annotations
@@ -22,6 +29,7 @@ import pytest
 
 from tools.artifact_home import artifact_path
 from tools.groundhog import cli, commands, redirect, reporting, runner, status
+from tools.groundhog.levels import FullLevel
 from tools.groundhog.models import (
     EXIT_COVERAGE_GAP,
     EXIT_OBJECTIVE_MET,
@@ -122,6 +130,20 @@ def test_write_running_records_the_running_pid(tmp_path: Path) -> None:
     assert recorded.pid == os.getpid()
     assert recorded.exit_code is None
     assert f"{tmp_path.name}: ghog affected --no-cov state=running" in recorded.line
+
+
+def test_status_lines_carry_the_evidence_keys(tmp_path: Path) -> None:
+    """The running line adds its keys after state=, the done line before exit=."""
+    status.write_running(tmp_path, "day", "full=cov src=param scope=whole proof=pending")
+    running = status.read_status(tmp_path)
+    assert running is not None
+    assert "state=running full=cov src=param scope=whole proof=pending pid=" in running.line
+    assert running.pid == os.getpid()
+    status.write_done(tmp_path, "day", EXIT_OBJECTIVE_MET, "full=cov src=param proof=cov reused=none scope=whole")
+    done = status.read_status(tmp_path)
+    assert done is not None
+    assert "state=done full=cov src=param proof=cov reused=none scope=whole exit=0 ended=" in done.line
+    assert done.exit_code == EXIT_OBJECTIVE_MET
 
 
 def test_write_done_drops_the_pid_for_the_exit_code(tmp_path: Path) -> None:
@@ -257,7 +279,39 @@ def test_lifecycle_brackets_a_run_with_running_and_done(
     assert recorded is not None
     assert recorded.state == status.STATE_DONE
     assert recorded.exit_code == EXIT_OBJECTIVE_MET
+    assert "state=done scope=whole exit=0" in recorded.line
     assert "ghog check done" in capsys.readouterr().out
+
+
+def test_lifecycle_records_the_running_and_done_evidence_of_a_walk(tmp_path: Path) -> None:
+    """A day walk records its level and proof; a pytest subcommand its scope."""
+    seen: list[str] = []
+    lines = ["collected 1 items", "tests/test_a.py::test_one PASSED [100%]"]
+
+    def _factory(command: list[str], cwd: Path) -> subprocess.Popen[str]:
+        del command, cwd
+        recorded = status.read_status(tmp_path)
+        seen.append("" if recorded is None else recorded.line)
+        return cast("subprocess.Popen[str]", _FakeProcess(lines, 0))
+
+    deps = cli.Deps(
+        popen_factory=_factory,
+        clock=lambda: 0.0,
+        which=lambda _name: "pytest",
+        pytest_project=lambda _root: True,
+    )
+    code = cli.main(["day", "--root", str(tmp_path), "--llm"], deps)
+    assert code == EXIT_OBJECTIVE_MET
+    assert "state=running full=none src=default scope=whole proof=pending" in seen[0]
+    recorded = status.read_status(tmp_path)
+    assert recorded is not None
+    assert "state=done full=none src=default proof=none reused=none scope=whole exit=0" in recorded.line
+    code = cli.main(["affected", "--no-cov", "--root", str(tmp_path), "--llm"], deps)
+    assert code == EXIT_OBJECTIVE_MET
+    assert "state=running scope=whole pid=" in seen[-1]
+    recorded = status.read_status(tmp_path)
+    assert recorded is not None
+    assert "ghog affected --no-cov state=done scope=whole exit=0" in recorded.line
 
 
 def test_lifecycle_records_done_even_when_the_dispatch_raises(
@@ -319,7 +373,27 @@ def test_status_on_a_killed_run(
     )
     code = cli.main(["status", "--root", str(tmp_path), "--llm"])
     assert code == EXIT_RUN_LOST
-    assert reporting.MSG_STATUS_KILLED in capsys.readouterr().out
+    assert reporting.status_killed_line(FullLevel.NONE) in capsys.readouterr().out
+
+
+def test_killed_run_relaunches_at_its_recorded_level(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """The relaunch carries the recorded full= level; an unknown one reads none."""
+    path = tmp_path / status.STATUS_FILE_NAME
+    path.write_text(
+        f"x: ghog day state=running full=cov src=param pid={_NEVER_A_PID} started=now\n",
+        encoding="utf-8",
+    )
+    assert cli.main(["status", "--root", str(tmp_path), "--llm"]) == EXIT_RUN_LOST
+    assert reporting.status_killed_line(FullLevel.COV) in capsys.readouterr().out
+    path.write_text(
+        f"x: ghog day state=running full=fast pid={_NEVER_A_PID} started=now\n",
+        encoding="utf-8",
+    )
+    assert cli.main(["status", "--root", str(tmp_path), "--llm"]) == EXIT_RUN_LOST
+    assert reporting.status_killed_line(FullLevel.NONE) in capsys.readouterr().out
 
 
 def test_status_done_passes_the_recorded_exit_through(

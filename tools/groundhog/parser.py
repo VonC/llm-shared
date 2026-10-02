@@ -26,6 +26,13 @@ prefixes the worker and the percentage and then reverses the pair, as in
 pattern cannot match. Without this the full run parsed no result at all, so it
 reported ``fail=0`` however many tests failed and left the failing-id list
 empty.
+
+Fix (v0.13.0 full_suite_levels, Step 2): the parser also records pytest's
+interruption banner, the crash message pytest prints between ``!`` runs for a
+``KeyboardInterrupt`` (with or without a message) or an explicit
+``pytest.exit``. pytest exits 2 both on an interruption and on collection
+errors; only the banner tells them apart, and an interrupted child judges no
+gate, so the saved proof of a walk stays as it was.
 """
 
 from __future__ import annotations
@@ -84,6 +91,13 @@ _WARNINGS_RE: Final = re.compile(r"(\d+) warnings?\b")
 _FAILURE_SECTIONS: Final = ("FAILURES", "ERRORS")
 # The pytest internal-error marker, a crash signal (Q06).
 _INTERNAL_ERROR_PREFIX: Final = "INTERNALERROR"
+# The banner pytest prints for an interruption: its crash message between "!"
+# runs, for a KeyboardInterrupt ("KeyboardInterrupt", "KeyboardInterrupt:
+# stopped") or an explicit pytest.exit ("_pytest.outcomes.Exit: stopped"). A
+# collection error prints "Interrupted: 1 error during collection" instead.
+_INTERRUPTION_BANNER_RE: Final = re.compile(
+    r"^!+ (?:KeyboardInterrupt|_pytest\.outcomes\.Exit)(?:: .*)? !+$",
+)
 # Result statuses counted as a failing test.
 _FAILING_STATUSES: Final = ("FAILED", "ERROR")
 # Result status counted as an expected failure.
@@ -113,6 +127,7 @@ class PytestOutputParser:
         """Start a parser with empty statistics."""
         self.stats = RunStats()
         self.internal_error = False
+        self.interruption_banner = False
         self._failure_lines: list[str] = []
         self._capturing_failures = False
         self._coverage_lines: list[str] = []
@@ -147,6 +162,8 @@ class PytestOutputParser:
             self._tail.append(line)
         if line.startswith(_INTERNAL_ERROR_PREFIX):
             self.internal_error = True
+        if _INTERRUPTION_BANNER_RE.match(line):
+            self.interruption_banner = True
         self._feed_failure_block(line)
         self._feed_coverage_table(line)
         self._feed_durations(line)

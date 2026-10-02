@@ -25,6 +25,13 @@ built in ``durations_report.py`` and the exit-8 next step in
 Fix: the per-test exclusion feature adds the ``excluded=`` key of the closing
 line through :class:`ClosingMetrics` (Q58, Q65), counting the slower-drifted
 exclusions with :func:`excluded_count`.
+
+Fix (v0.13.0 full_suite_levels, Step 2): the closing line appends the run
+evidence keys (``full=``, ``src=``, ``proof=``, ``reused=``, ``scope=``) after
+its current keys, carried by :class:`ClosingMetrics` so the line keeps its
+five-argument signature; :func:`step_reused_line` heads a day-walk step taken
+from the saved proof, and :func:`status_killed_line` relaunches a killed run
+with the level its recorded running line carried, never a ``none`` selector.
 """
 
 from __future__ import annotations
@@ -33,12 +40,13 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Final
 
-from tools.groundhog import durations
+from tools.groundhog import durations, reporting_nextstep
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
 
     from tools.groundhog.durations import DurationSummary
+    from tools.groundhog.levels import FullLevel
     from tools.groundhog.models import RunStats
 
 # One progress line per this percentage step (Q04).
@@ -114,15 +122,45 @@ def step_ended_line(project: str, sub: str, when: str, duration_s: float) -> str
     )
 
 
+def step_reused_line(project: str, sub: str, saved: FullLevel) -> str:
+    """Build the header of a day-walk step taken from the saved proof.
+
+    An upgrade walk runs no check.bat and no affected tests: their proof is
+    on the same digest, so each of them is reported by this header alone.
+
+    Args:
+        project: The consuming project name, the report prefix.
+        sub: The step label, ``check`` or ``affected --no-cov``.
+        saved: The saved proof the step is reused from.
+
+    Returns:
+        The header saying the step was reused from the snapshot.
+    """
+    return f"{project}: == ghog {sub} == reused from snapshot (saved proof={saved.token})"
+
+
+def status_killed_line(level: FullLevel) -> str:
+    """Build the killed-run verdict, relaunching at the recorded level (Q32).
+
+    Args:
+        level: The level of the recorded running line, ``none`` when the line
+            carried no level, so the relaunch never prints a ``none`` selector.
+
+    Returns:
+        The verdict naming the day walk to relaunch.
+    """
+    return (
+        "ghog: the recorded pid is gone without state=done - the run was killed; "
+        f"Next: {reporting_nextstep.restart_command(level)} "
+        "(--detach when the harness kills long calls)"
+    )
+
+
 # Lifecycle verdicts of the ghog status reporter (Q32).
 MSG_STATUS_NONE: Final = "ghog: no run recorded in a.ghog.status - Next: ghog day"
 MSG_STATUS_RUNNING: Final = (
     "ghog: run in progress - poll ghog status until state=done; "
     "never start a second run while this one is alive"
-)
-MSG_STATUS_KILLED: Final = (
-    "ghog: the recorded pid is gone without state=done - the run was killed; "
-    "Next: ghog day (--detach when the harness kills long calls)"
 )
 MSG_STATUS_DONE: Final = (
     "ghog: run finished - branch on the exit= above, then read the a.ghog.log tail"
@@ -135,7 +173,7 @@ _MSG_CRASH_HEADER: Final = "ghog: the test suite crashed mid-run."
 _MSG_CRASH_INSTRUCTION: Final = (
     "Fix the test suite now: make it robust against this exception, based on "
     "the tests and stack above, so it cannot break the suite again. "
-    "Then re-run ghog day."
+    "Then re-run {restart}."
 )
 # Coverage placeholders of the closing line (Q16).
 COV_SKIPPED: Final = "skipped"
@@ -156,16 +194,23 @@ class ClosingMetrics:
     five-argument limit; the simple callers pass only the coverage value and
     let the outlier and excluded values default to ``skipped``.
 
+    Fix (v0.13.0 full_suite_levels, Step 2): the object also carries the run
+    evidence keys appended after the current keys, so the closing line keeps
+    its five arguments.
+
     Attributes:
         cov: The ``cov=`` value, from :func:`cov_text`.
         outliers: The ``outliers=`` value, from :func:`outliers_text`.
         excluded: The ``excluded=`` value, from :func:`excluded_text`: the count
             of slower-drifted exclusions, the ones that drive a fix (Q65).
+        evidence: The appended ``key=value`` evidence keys (``full=``,
+            ``src=``, ``proof=``, ``reused=``, ``scope=``), empty for none.
     """
 
     cov: str
     outliers: str = OUTLIERS_SKIPPED
     excluded: str = OUTLIERS_SKIPPED
+    evidence: str = ""
 
 
 class ProgressGovernor:
@@ -375,17 +420,19 @@ def closing_line(
         stats: The final counters of the run.
         exit_code: The groundhog exit code (Q12).
         metrics: The ``cov=``, ``outliers=`` and ``excluded=`` values
-            (Q16, Q37, Q58).
+            (Q16, Q37, Q58), and the evidence keys appended after them.
 
     Returns:
-        The closing key=value line (Q16).
+        The closing key=value line (Q16), the evidence keys appended after
+        ``exit=`` so a reader matching the current keys by name keeps working.
     """
-    return (
+    line = (
         f"{project}: ghog {sub_label} done fail={stats.failed} "
         f"warn={stats.warnings} xfail={stats.xfailed} "
         f"cov={metrics.cov} outliers={metrics.outliers} "
         f"excluded={metrics.excluded} exit={exit_code}"
     )
+    return f"{line} {metrics.evidence}" if metrics.evidence else line
 
 
 def nag_line(stats: RunStats) -> str | None:
@@ -432,22 +479,30 @@ def detached_line(pid: int) -> str:
     )
 
 
-def crash_block(stats: RunStats, tail: Sequence[str]) -> list[str]:
+def crash_block(
+    stats: RunStats,
+    tail: Sequence[str],
+    level: FullLevel | None = None,
+) -> list[str]:
     """Build the crash block printed when the suite dies mid-run (Q06).
 
     Args:
         stats: The counters parsed before the crash.
         tail: The most recent raw output lines, the stack context.
+        level: The carried level the restart names, ``None`` or ``none``
+            for a plain ``ghog day``.
 
     Returns:
         The crash block lines: header, last started tests, output tail,
-        and the immediate-fix instruction.
+        and the immediate-fix instruction restarting the walk at the
+        carried level.
     """
     lines = [_MSG_CRASH_HEADER, "Last started tests:"]
     lines.extend(f"- {node_id}" for node_id in stats.last_started)
     lines.append("Output tail:")
     lines.extend(f"  {raw}" for raw in tail)
-    lines.append(_MSG_CRASH_INSTRUCTION)
+    restart = reporting_nextstep.restart_command(level) if level is not None else "ghog day"
+    lines.append(_MSG_CRASH_INSTRUCTION.format(restart=restart))
     return lines
 
 

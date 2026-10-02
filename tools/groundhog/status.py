@@ -23,21 +23,22 @@ backs the live-run refusal: no run command starts while another one is
 alive, so a second walk can never trample the first one's log or
 testmon state.
 
-``ghog day --detach`` spawns the walk as a survivor process — a
-hidden console, broken away from the harness job object when
-allowed — wired by the tool itself to ``a.ghog.log`` (the parked senv
-preamble folded in first), and acknowledges with exit 6 once the
-child has written its first status line.
-
-Fix: the survivor used to start with DETACHED_PROCESS — no console at
-all — so its console children (check.bat, pytest) allocated a fresh
-visible console window on the user's desktop for the whole walk.
-CREATE_NO_WINDOW gives the survivor a hidden console those children
-inherit: a detached walk no longer pops any window.
+``ghog day --detach`` spawns the walk as a survivor process polled through
+``ghog status``; the launch and the survivor spawn live in ``detach.py``.
 
 Fix (v0.13.0 full_suite_levels, Step 1): the lifecycle bracket takes its
 subcommand label from ``progress.sub_label``, where the label moved with the
 progress sink out of ``commands.py``.
+
+Fix (v0.13.0 full_suite_levels, Step 2): the status lines carry the run
+evidence. The running line adds ``full=``, ``src=``, ``scope=`` and
+``proof=pending`` (``scope=`` alone for a run without a level), and the done
+line adds the closing keys before ``exit=``, so ``ghog status`` replays the
+same evidence a foreground walk prints. The dispatch returns a
+``RunOutcome``. A killed run is relaunched at the level its recorded running
+line carried. The detached launch, the survivor spawn and their handshake
+moved to ``detach.py``, the plan's extraction once this module passed 550
+lines.
 """
 
 from __future__ import annotations
@@ -46,20 +47,20 @@ import ctypes
 import logging
 import os
 import re
-import subprocess
 import sys
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from pathlib import Path
 from typing import TYPE_CHECKING, Final
 
-from tools.groundhog import commands, day, progress, redirect, reporting, runner
+from tools.groundhog import commands, day, evidence, progress, reporting, runner
+from tools.groundhog.levels import FullLevel, level_from_token
 from tools.groundhog.models import EXIT_RUN_LIVE, EXIT_RUN_LOST, EXIT_SETUP_ERROR
 
 if TYPE_CHECKING:
-    from typing import TextIO
+    from pathlib import Path
 
     from tools.groundhog.context import Deps, Invocation
+    from tools.groundhog.evidence import RunOutcome
 
 LOGGER = logging.getLogger("groundhog")
 
@@ -72,15 +73,13 @@ STATE_DONE: Final = "done"
 # grants, and the GetExitCodeProcess value of a still-running process.
 _PROCESS_QUERY_LIMITED_INFORMATION: Final = 0x1000
 _STILL_ACTIVE: Final = 259
-# The detach handshake: how many short naps the launcher waits for the
-# survivor's first a.ghog.status write before calling it silent.
-_HANDSHAKE_TRIES: Final = 50
-_HANDSHAKE_PAUSE_SECONDS: Final = 0.2
 
 # The status-line keys, the same key=value grammar as Q16.
 _STATE_RE: Final = re.compile(r"\bstate=(running|done)\b")
 _PID_RE: Final = re.compile(r"\bpid=(\d+)\b")
 _EXIT_RE: Final = re.compile(r"\bexit=(\d+)\b")
+# The recorded objective of a running line, for the killed-run relaunch.
+_FULL_RE: Final = re.compile(r"\bfull=([a-z]+)\b")
 
 
 @dataclass(frozen=True)
@@ -121,32 +120,42 @@ def clear_status(root: Path) -> None:
     status_path(root).unlink(missing_ok=True)
 
 
-def write_running(root: Path, label: str) -> None:
+def write_running(root: Path, label: str, keys: str = "") -> None:
     """Record that a run started, with the pid owning it (Q32).
 
     Args:
         root: The project root directory.
         label: The subcommand label of the run.
+        keys: The running evidence keys, such as ``full=cov src=param
+            scope=whole proof=pending``; empty for none.
     """
     _write(
         root,
-        f"{root.name}: ghog {label} state={STATE_RUNNING} "
+        f"{root.name}: ghog {label} state={STATE_RUNNING}{_spaced(keys)} "
         f"pid={os.getpid()} started={_now()}",
     )
 
 
-def write_done(root: Path, label: str, exit_code: int) -> None:
-    """Record that a run ended, with its exit code (Q32).
+def write_done(root: Path, label: str, exit_code: int, keys: str = "") -> None:
+    """Record that a run ended, with its evidence and exit code (Q32).
 
     Args:
         root: The project root directory.
         label: The subcommand label of the run.
         exit_code: The contract exit code of the run.
+        keys: The closing evidence keys, written before ``exit=``; empty for
+            none.
     """
     _write(
         root,
-        f"{root.name}: ghog {label} state={STATE_DONE} exit={exit_code} ended={_now()}",
+        f"{root.name}: ghog {label} state={STATE_DONE}{_spaced(keys)} "
+        f"exit={exit_code} ended={_now()}",
     )
+
+
+def _spaced(keys: str) -> str:
+    """Return evidence keys with their leading separator, empty for none."""
+    return f" {keys}" if keys else ""
 
 
 def read_status(root: Path) -> RunStatus | None:
@@ -276,8 +285,23 @@ def run_status(invocation: Invocation) -> int:
     if recorded.pid is not None and pid_alive(recorded.pid):
         commands.emit_summary([recorded.line, reporting.MSG_STATUS_RUNNING])
         return EXIT_RUN_LIVE
-    commands.emit_summary([recorded.line, reporting.MSG_STATUS_KILLED])
+    commands.emit_summary([recorded.line, reporting.status_killed_line(_recorded_level(recorded.line))])
     return EXIT_RUN_LOST
+
+
+def _recorded_level(line: str) -> FullLevel:
+    """Read the objective a recorded status line carried.
+
+    Args:
+        line: The recorded status line.
+
+    Returns:
+        The ``full=`` level of the line, ``none`` when it carries none or an
+        unknown value, so the relaunch never invents a level.
+    """
+    match = _FULL_RE.search(line)
+    level = level_from_token(match.group(1)) if match else None
+    return FullLevel.NONE if level is None else level
 
 
 def refuse_live_run(live: RunStatus) -> int:
@@ -308,16 +332,17 @@ def run_with_lifecycle(invocation: Invocation, deps: Deps) -> int:
         The dispatched contract exit code.
     """
     label = progress.sub_label(invocation)
-    write_running(invocation.root, label)
-    code = EXIT_SETUP_ERROR
+    write_running(invocation.root, label, evidence.for_invocation(invocation).running_keys())
+    code, keys = EXIT_SETUP_ERROR, ""
     try:
-        code = _dispatch(invocation, deps)
+        outcome = _dispatch(invocation, deps)
+        code, keys = outcome.code, outcome.evidence.closing_keys()
     finally:
-        write_done(invocation.root, label, code)
+        write_done(invocation.root, label, code, keys)
     return code
 
 
-def _dispatch(invocation: Invocation, deps: Deps) -> int:
+def _dispatch(invocation: Invocation, deps: Deps) -> RunOutcome:
     """Route one run subcommand to its executor.
 
     ``init`` and ``status`` never reach this: the CLI routes them
@@ -328,155 +353,14 @@ def _dispatch(invocation: Invocation, deps: Deps) -> int:
         deps: The injectable seams.
 
     Returns:
-        The executor's contract exit code.
+        The executor's outcome: exit code and evidence.
     """
     if invocation.sub == runner.SUB_CHECK:
-        return commands.run_check(invocation, deps)
+        code = commands.run_check(invocation, deps)
+        return evidence.RunOutcome(code, evidence.for_invocation(invocation))
     if invocation.sub == runner.SUB_DAY:
-        return day.run_day(invocation, deps)
-    return commands.run_tests(invocation, deps)
-
-
-def run_day_detached(invocation: Invocation, deps: Deps) -> int:
-    """Launch the day walk as a survivor process (Q32).
-
-    The launcher consumes the parked senv preamble for the child's
-    log, clears any stale lifecycle file, spawns the survivor, then
-    waits for the child's first status write — the start handshake —
-    before acknowledging, so a caller polling right away never reads
-    the void between the spawn and the child's first write.
-
-    Args:
-        invocation: The parsed invocation.
-        deps: The injectable seams.
-
-    Returns:
-        ``EXIT_RUN_LIVE`` once the walk is provably started, the
-        setup-error code on a spawn failure or a silent child.
-    """
-    preamble = redirect.consume_senv_log()
-    clear_status(invocation.root)
-    try:
-        pid = deps.detach_factory(
-            _detached_day_command(invocation),
-            invocation.root / redirect.LOG_NAME,
-            preamble,
-            invocation.root,
-        )
-    except OSError as error:
-        commands.emit_summary([f"ghog: detached walk failed to start: {error}"])
-        return EXIT_SETUP_ERROR
-    for _ in range(_HANDSHAKE_TRIES):
-        if read_status(invocation.root) is not None:
-            commands.emit_summary([reporting.detached_line(pid)])
-            return EXIT_RUN_LIVE
-        deps.sleep(_HANDSHAKE_PAUSE_SECONDS)
-    commands.emit_summary([reporting.MSG_DETACH_SILENT])
-    return EXIT_SETUP_ERROR
-
-
-def default_detach_factory(
-    command: list[str],
-    log_path: Path,
-    preamble: str,
-    cwd: Path,
-) -> int:
-    """Spawn a survivor child wired to the report log (Q32).
-
-    The tool opens the log itself — no caller redirect exists to be
-    truncated — writes the senv preamble first, then hands the file
-    position to the child; the parent handle closes right after the
-    spawn, leaving the child as the only writer.
-
-    Args:
-        command: The survivor command line.
-        log_path: The report log the child writes to.
-        preamble: The parked senv text folded in before the child.
-        cwd: The working directory, the consuming project root.
-
-    Returns:
-        The survivor pid.
-
-    Raises:
-        OSError: When the log cannot be opened or the spawn fails.
-    """
-    with log_path.open("w", encoding="utf-8", errors="replace") as log:
-        if preamble:
-            log.write(preamble if preamble.endswith("\n") else f"{preamble}\n")
-            log.flush()
-        return _spawn_survivor(command, log, cwd).pid
-
-
-def _spawn_survivor(
-    command: list[str],
-    log: TextIO,
-    cwd: Path,
-) -> subprocess.Popen[bytes]:
-    """Start the detached child, breaking away from the job if allowed.
-
-    The Windows spawn hides the console with CREATE_NO_WINDOW instead
-    of dropping it with DETACHED_PROCESS: a console-free survivor
-    hands its console children (check.bat, pytest) a fresh visible
-    console window, while a hidden console is inherited silently.
-
-    Args:
-        command: The survivor command line.
-        log: The opened report log receiving stdout and stderr.
-        cwd: The working directory of the child.
-
-    Returns:
-        The started survivor process.
-    """
-    if sys.platform != "win32":
-        return subprocess.Popen(  # noqa: S603
-            command,
-            cwd=str(cwd),
-            stdin=subprocess.DEVNULL,
-            stdout=log,
-            stderr=subprocess.STDOUT,
-            start_new_session=True,
-        )
-    flags = subprocess.CREATE_NO_WINDOW | subprocess.CREATE_NEW_PROCESS_GROUP
-    try:
-        return subprocess.Popen(  # noqa: S603
-            command,
-            cwd=str(cwd),
-            stdin=subprocess.DEVNULL,
-            stdout=log,
-            stderr=subprocess.STDOUT,
-            creationflags=flags | subprocess.CREATE_BREAKAWAY_FROM_JOB,
-        )
-    except OSError:
-        return subprocess.Popen(  # noqa: S603
-            command,
-            cwd=str(cwd),
-            stdin=subprocess.DEVNULL,
-            stdout=log,
-            stderr=subprocess.STDOUT,
-            creationflags=flags,
-        )
-
-
-def _detached_day_command(invocation: Invocation) -> list[str]:
-    """Build the survivor command of a detached day walk (Q32).
-
-    Args:
-        invocation: The parsed invocation carrying root and force.
-
-    Returns:
-        The python command running ``cli.py day`` in LLM mode.
-    """
-    command = [
-        sys.executable,
-        str(Path(__file__).resolve().with_name("cli.py")),
-        runner.SUB_DAY,
-        "--root",
-        str(invocation.root),
-        "--llm",
-    ]
-    if invocation.force:
-        command.append("--force")
-    return command
+        return day.walk(invocation, deps)
+    return commands.run_tests_outcome(invocation, deps)
 
 
 def _now() -> str:
