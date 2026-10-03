@@ -3869,3 +3869,789 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-2 -->
+
+## Round 1 by requestor - Step 4
+
+- Recorded: 2026-10-03T14:55:08+02:00
+- Exchange: code/code/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: unrecorded
+- Implementation step: 4
+- Outcome: request
+
+### Review identity for step 4 full_suite_levels (round 1)
+
+Umbrella draft: none
+Implementation plan: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+Implementation step: 4
+Review round: 1
+
+### Code review evidence for step 4 full_suite_levels (round 1)
+
+request_index_tree: e8d27daf6858f9eebfd2afb83ece236e891dfb87
+resolved_validation_set:
+
+- ghog day --full=speed (sources: project)
+- ghog day --full=cov --whole-suite (sources: plan)
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(ghog): run and prove selected test groups
+group 1 path: tests/unit/tools/groundhog_group_support.py
+group 1 path: tests/unit/tools/test_groundhog_acceptance.py
+group 1 path: tests/unit/tools/test_groundhog_acceptance_groups/__init__.py
+group 1 path: tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_boundaries_tdd.py
+group 1 path: tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_capture_tdd.py
+group 1 path: tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_gate_tdd.py
+group 1 path: tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py
+group 1 path: tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_levels_tdd.py
+group 1 path: tests/unit/tools/test_groundhog_commands.py
+group 1 path: tests/unit/tools/test_groundhog_detach.py
+group 1 path: tests/unit/tools/test_groundhog_durations.py
+group 1 path: tests/unit/tools/test_groundhog_group_coverage/__init__.py
+group 1 path: tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_pbt.py
+group 1 path: tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_tdd.py
+group 1 path: tests/unit/tools/test_groundhog_levels_perf/test_groundhog_levels_perf_tdd.py
+group 1 path: tests/unit/tools/test_groundhog_reporting.py
+group 1 path: tests/unit/tools/test_groundhog_reporting_nextstep.py
+group 1 path: tests/unit/tools/test_groundhog_runner.py
+group 1 path: tests/unit/tools/test_groundhog_scope/__init__.py
+group 1 path: tests/unit/tools/test_groundhog_scope/test_groundhog_scope_tdd.py
+group 1 path: tools/groundhog/__init__.py
+group 1 path: tools/groundhog/cli.py
+group 1 path: tools/groundhog/commands.py
+group 1 path: tools/groundhog/context.py
+group 1 path: tools/groundhog/day.py
+group 1 path: tools/groundhog/detach.py
+group 1 path: tools/groundhog/durations.py
+group 1 path: tools/groundhog/durations_summary.py
+group 1 path: tools/groundhog/evidence.py
+group 1 path: tools/groundhog/group_coverage.py
+group 1 path: tools/groundhog/reporting.py
+group 1 path: tools/groundhog/reporting_nextstep.py
+group 1 path: tools/groundhog/runner.py
+group 1 path: tools/groundhog/scope.py
+group 1 path: tools/groundhog/status.py
+group 1 path: tools/groundhog/verdicts.py
+group 2: fix(release): require whole-suite coverage
+group 2 path: tests/unit/tools/prepare_release/test_prepare_release_plan_workflow.py
+group 2 path: tools/prepare_release/prepare_release_plan_workflow.py
+group 3: docs(full_suite_levels): record step 4 validation
+group 3 path: docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md
+staged path: docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md
+staged path: tests/unit/tools/groundhog_group_support.py
+staged path: tests/unit/tools/prepare_release/test_prepare_release_plan_workflow.py
+staged path: tests/unit/tools/test_groundhog_acceptance.py
+staged path: tests/unit/tools/test_groundhog_acceptance_groups/__init__.py
+staged path: tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_boundaries_tdd.py
+staged path: tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_capture_tdd.py
+staged path: tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_gate_tdd.py
+staged path: tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py
+staged path: tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_levels_tdd.py
+staged path: tests/unit/tools/test_groundhog_commands.py
+staged path: tests/unit/tools/test_groundhog_detach.py
+staged path: tests/unit/tools/test_groundhog_durations.py
+staged path: tests/unit/tools/test_groundhog_group_coverage/__init__.py
+staged path: tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_pbt.py
+staged path: tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_tdd.py
+staged path: tests/unit/tools/test_groundhog_levels_perf/test_groundhog_levels_perf_tdd.py
+staged path: tests/unit/tools/test_groundhog_reporting.py
+staged path: tests/unit/tools/test_groundhog_reporting_nextstep.py
+staged path: tests/unit/tools/test_groundhog_runner.py
+staged path: tests/unit/tools/test_groundhog_scope/__init__.py
+staged path: tests/unit/tools/test_groundhog_scope/test_groundhog_scope_tdd.py
+staged path: tools/groundhog/__init__.py
+staged path: tools/groundhog/cli.py
+staged path: tools/groundhog/commands.py
+staged path: tools/groundhog/context.py
+staged path: tools/groundhog/day.py
+staged path: tools/groundhog/detach.py
+staged path: tools/groundhog/durations.py
+staged path: tools/groundhog/durations_summary.py
+staged path: tools/groundhog/evidence.py
+staged path: tools/groundhog/group_coverage.py
+staged path: tools/groundhog/reporting.py
+staged path: tools/groundhog/reporting_nextstep.py
+staged path: tools/groundhog/runner.py
+staged path: tools/groundhog/scope.py
+staged path: tools/groundhog/status.py
+staged path: tools/groundhog/verdicts.py
+staged path: tools/prepare_release/prepare_release_plan_workflow.py
+```
+
+### Requestor assessment for step 4 full_suite_levels (round 1)
+
+Step 4 is fully implemented. Its validation entry begins with the required Yes sentence.
+
+The required worktree command ghog day --full=cov --whole-suite passed at 2026-10-03T14:44:28+02:00: check green, fail=0, warn=2, xfail=0, cov=100, exit=0, proof=cov, scope=whole. Log freshness and ghog status state=done were confirmed. This self-hosted change uses the worktree bin/ghog.bat so the new implementation is tested.
+
+The mandatory default ghog day also returned exit=0 at 2026-10-03T14:53:08+02:00, with full=none, proof=cov, reused=all and scope=whole. It reused the same unchanged-source proof and ran no checks or tests. Its log freshness and done status were confirmed.
+
+Static review found the pure domain models independent of adapters, one shared inventory for scope and proof, linear folder and duration reductions, and no required architectural or performance repair. Every changed file is below 650 lines. commands.py (557) and reporting_nextstep.py (596) are in the advisory risk band. Both Step 4 cost gates are active with their timeouts retained and no xfail.
+
+Coverage source is tools with the configured omissions; all changed production behavior is measured. The package initializer is documentation-only. Unit, property and CLI acceptance tests cover the new boundaries. The cov gate performs no full timing pass; grouped timing and detached behavior are tested using deterministic doubles. Whole-suite behavior, reporting, explicit single-file runs and shared timing settings remain covered.
+
+### Implementation report for step 4 full_suite_levels (round 1)
+
+Scope resolution now selects explicit group, whole-suite or bound capture before consulting GHOG_GROUP, then defaults to whole. Invalid selectors and unusable captures fail before child execution. Invocation carries the resolved scope and shared inventory.
+
+Grouped affected, full and timing commands collect the resolved test files. Group coverage uses isolated data, exact sources, branch configuration and a 100% gate. Full resets data; affected appends without proving a full run. Invalid or stale evidence and malformed sources cannot establish proof. Spawn environment overrides are restored on success and exception.
+
+Grouped durations use the saved floor and group-local exclusions read-only. Scope-specific markers and fingerprints isolate proof. Reports, restarts and detached commands retain the selected scope; detachment writes a capture before spawn. Release operations explicitly select whole-suite coverage.
+
+New scope and coverage unit packages, folder-reduction PBT and grouped CLI acceptance packages cover the plan boundaries. Existing runner, reporting, duration, detach and release tests were updated. Both Step 4 performance gates are active. Validation records the result while later steps remain pending.
+
+Writer notes: .reviews/a.full_suite_levels.step4.journal.md and .reviews/a.full_suite_levels.step4.handoff.md.
+
+### Change summary for step 4 full_suite_levels (round 1)
+
+The root a.commit passes wac formatting and commit-plan-check with ready=true, diagnostics=[].
+
+Proposed groups, from least to most dependent:
+
+1. feat(ghog): run and prove selected test groups (36 implementation and test files).
+2. fix(release): require whole-suite coverage (release workflow and its tests).
+3. docs(full_suite_levels): record step 4 validation (validation plan only).
+
+Every staged path is included exactly once. The validation group is last.
+
+Staged paths:
+
+- `docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md`
+- `tests/unit/tools/groundhog_group_support.py`
+- `tests/unit/tools/prepare_release/test_prepare_release_plan_workflow.py`
+- `tests/unit/tools/test_groundhog_acceptance.py`
+- `tests/unit/tools/test_groundhog_acceptance_groups/__init__.py`
+- `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_boundaries_tdd.py`
+- `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_capture_tdd.py`
+- `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_gate_tdd.py`
+- `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py`
+- `tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_levels_tdd.py`
+- `tests/unit/tools/test_groundhog_commands.py`
+- `tests/unit/tools/test_groundhog_detach.py`
+- `tests/unit/tools/test_groundhog_durations.py`
+- `tests/unit/tools/test_groundhog_group_coverage/__init__.py`
+- `tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_pbt.py`
+- `tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_tdd.py`
+- `tests/unit/tools/test_groundhog_levels_perf/test_groundhog_levels_perf_tdd.py`
+- `tests/unit/tools/test_groundhog_reporting.py`
+- `tests/unit/tools/test_groundhog_reporting_nextstep.py`
+- `tests/unit/tools/test_groundhog_runner.py`
+- `tests/unit/tools/test_groundhog_scope/__init__.py`
+- `tests/unit/tools/test_groundhog_scope/test_groundhog_scope_tdd.py`
+- `tools/groundhog/__init__.py`
+- `tools/groundhog/cli.py`
+- `tools/groundhog/commands.py`
+- `tools/groundhog/context.py`
+- `tools/groundhog/day.py`
+- `tools/groundhog/detach.py`
+- `tools/groundhog/durations.py`
+- `tools/groundhog/durations_summary.py`
+- `tools/groundhog/evidence.py`
+- `tools/groundhog/group_coverage.py`
+- `tools/groundhog/reporting.py`
+- `tools/groundhog/reporting_nextstep.py`
+- `tools/groundhog/runner.py`
+- `tools/groundhog/scope.py`
+- `tools/groundhog/status.py`
+- `tools/groundhog/verdicts.py`
+- `tools/prepare_release/prepare_release_plan_workflow.py`
+
+### Writer response for step 4 full_suite_levels (round 1)
+
+Writer response:
+
+This is the initial review round for step 4. There is no earlier feedback to accept or dispute. The writer considers the step complete and requests independent assessment of the staged implementation and commit grouping.
+
+### Reviewer focus for step 4 full_suite_levels (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-4-round-1 -->
+
+## Round 1 by reviewer - Step 4
+
+- Recorded: 2026-10-03T15:06:13+02:00
+- Exchange: code/code/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 4
+- Outcome: answer
+
+### Assessed index identity for step 4 full_suite_levels (exchange 1) (round 1)
+
+Baseline index tree: e8d27daf6858f9eebfd2afb83ece236e891dfb87
+
+Assessed index tree: 7c0b5e8548cd1211b3bfdb1be553db7eee547e36
+
+### Implementation check for step 4 full_suite_levels (exchange 1) (round 1)
+
+Result:
+
+No. Step 4 has NOT been fully implemented.
+
+Most of the step is present and follows the plan:
+
+- one scope is resolved per invocation, and `--whole-suite` wins over an invalid `GHOG_GROUP`;
+- captures stay bound through detachment, and the spawn-only `COVERAGE_FILE` override is restored in `finally`;
+- coverage data is isolated per group and judged at 100% through the coverage API;
+- grouped durations use only the saved floor and leave the floor file untouched;
+- markers are per scope, restart and repair lines carry the selector, and both prepare-release strings end with `--whole-suite`;
+- both Step 4 cost gates lost their `xfail`.
+
+Five gaps remain (R1 to R5): the project speed walk never ran, grouped no-test affected runs report a false gap, whole-suite leveled commands gained a tree walk, five new files mix line endings, and ten modules lost their docstring titles. The exact Step 4 validation rows now say No and list them under Missing work for Step 4.
+
+Architecture: the plan's direction holds. `scope.py` and `group_coverage.py` are adapters, the floor-only rule in `durations.py` stays pure, and `durations_summary.py` keeps all floor and exclusion writes on the whole-suite branch (`_judge_map`), behind the group early return. One small smell, not a separate finding: `detach._detached_day_command` writes the capture file while building the command line.
+
+Performance: `cov_folders` uses a linear prefix scan over trie-ordered folders. Lexicographic order keeps every descendant contiguous after its ancestor, so the scan is correct. `summarize_by_floor` orders durations by IEEE-754 big-endian bytes, which is monotonic for non-negative values. No new comparison sort. The eager inventory walk (R3) breaks the plan's IO bound.
+
+Static coverage: `source = ["tools"]` at 100%, and every changed module is measured. `scope.py` and `group_coverage.py` have their own TDD and PBT packages. The R2 branch is executed by existing tests, but no test asserts its outcome for a grouped covered run without tests.
+
+Validation plan effects:
+
+Only Step 4 rows changed in `docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md`:
+
+- the exact No sentence and a short rationale;
+- a new Missing work for Step 4 section after What was implemented, listing R1 to R5;
+- a performance paragraph on the eager walk, with the matching "Yes, there is a performance issue" conclusion;
+- a feature-integrity paragraph on the two regressions.
+
+The document-level line stays `No, it is not implemented.`, and no umbrella applies. The plan, other steps, implementation, tests and `a.commit` were not edited. The evidence launcher attributed the patch from pre-edit blob `a60c7f507a8a317d299025f54d69020f01c038f2`, and only that patch was staged. `markdown-check.bat` exits 0. This is review metadata, not a substantive repair.
+
+### Pre-repair mandatory checks and coverage for step 4 full_suite_levels (exchange 1) (round 1)
+
+Requestor evidence: `ghog day --full=cov --whole-suite` ended 2026-10-03 14:44:28 +02:00 with `fail=0 warn=2 xfail=0 cov=100 exit=0 proof=cov scope=whole`. A plain `ghog day` (`full=none src=default proof=cov reused=all`) followed at 14:53:08. The root `a.ghog.status`, the `a.ghog.log` tail and `.reviews/a.ghog.day.ok` (`proof=cov`) agree. That marker's `digest=504c9246d08a6833e659fe6dd1a1399f026e57451f8e795495e20442c9f2968d` equals `snapshot.source_digest` recomputed read-only, so the cov proof covers the reviewed sources. No `ghog day --full=speed` walk is recorded (R1).
+
+Reviewer evidence:
+
+- static reading of plan Step 4, the validation plan, the full staged diff and the new tests;
+- comparison of the request-time and live index trees;
+- the commit-plan check, run independently before and after staging;
+- a scan of every staged blob's line endings against HEAD;
+- the three plan searches, reproduced read-only;
+- a read-only timing of `snapshot.source_files` on this repository (594 files, 0.648 s and 0.643 s over two runs);
+- a read-only probe that called `cli.main` with the existing acceptance fakes on temporary projects outside the repository. It showed a covered `affected` with no tests and `TOTAL 50%` exiting 0 for `--whole-suite` and 3 for `--group=sentinel`.
+
+The reviewer ran no repository test, walk or coverage measurement. `ghog check` and `ghog affected --no-cov` were not needed, because the findings are deterministic.
+
+### Resolved validation set and sources for step 4 full_suite_levels (exchange 1) (round 1)
+
+The request embeds:
+
+1. `ghog day --full=speed` (project).
+2. `ghog day --full=cov --whole-suite` (plan).
+
+The current resolver contract gives, for the exact plan and step:
+
+1. `ghog day --full=speed` (project): `.review-validation` is absent, so the built-in default applies.
+2. `ghog day --full=cov --whole-suite` (plan).
+3. `rg -n "write_floor|write_exclusions" tools/groundhog/durations_summary.py` (plan).
+4. `rg -n "COVERAGE_FILE" tools/groundhog` (plan).
+5. `rg -n "ghog day --full=cov --whole-suite" tools/prepare_release/prepare_release_plan_workflow.py` (plan).
+
+There are no request additions. The reviewer did not execute this requestor-owned set. The searches were reproduced read-only:
+
+- the two writes sit only in `_judge_map` (lines 155 and 166), the whole-suite path behind the grouped early return;
+- `COVERAGE_FILE` appears only at `group_coverage.py:68`, and the runner applies generic `env_overrides`;
+- both release operations appear, at lines 185 and 361.
+
+### Resolver drift and direction for step 4 full_suite_levels (exchange 1) (round 1)
+
+Drift found, the same pattern as Step 3 round 1. The request set omits the three plan completion searches listed in the resolved validation set section. Pass each one with `--plan-validation-command` on the replacement request (R6). The project command `ghog day --full=speed` is present but was not run; the plain `ghog day` that did run is not that command (R1).
+
+### Repository state around validation for step 4 full_suite_levels (exchange 1) (round 1)
+
+The request-time index tree and the reviewer baseline are the same: `e8d27daf6858f9eebfd2afb83ece236e891dfb87`. Final assessed index: `7c0b5e8548cd1211b3bfdb1be553db7eee547e36`.
+
+The validation state was captured before and after over the same 45 ordered paths: the 39 staged Step 4 paths, validation plan included, plus `a.ghog.log`, `a.ghog.status`, `a.ghog.affected.log`, `.testmondata` and two unused reviewer log paths. The comparison reports tracked differences only for the validation plan and `<index>`. The raw `acceptable=false` comes from the intended review-metadata edit, and the attributed patch keeps every change inside the Step 4 section. No tracked validation side effect, no untracked or ignored change, and no overlap with writer work. The unstaged protocol transcript entry is outside the staged set and untouched. The probe wrote only to temporary directories outside the repository.
+
+Umbrella: none. The launcher comparison returns `applicable=false`, `changed=false`.
+
+### Repair inventory for step 4 full_suite_levels (exchange 1) (round 1)
+
+Repairs made:
+
+- Review metadata only, polishing-only, not substantive. The Step 4 validation rows now carry the exact No sentence and rationale, a Missing work for Step 4 section (R1 to R5), a performance verdict on the eager walk, and a feature-integrity note. The request has no Human guidance block, so no implementation or test repair was made.
+
+Paths staged:
+
+- docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md (reviewer metadata patch only, attributed from pre-edit blob a60c7f507a8a317d299025f54d69020f01c038f2)
+
+### Commit plan assessment for step 4 full_suite_levels (exchange 1) (round 1)
+
+`commit-plan-check.bat --format json` was run independently before assessment and again after staging the Step 4 metadata (`.reviews/a.full_suite_levels.step4.tmp.r1.cpc.json` and `cpc-final.json`). Both runs returned exit 0, `state=valid`, `ready=true`, three ordered groups, 39 staged paths and `diagnostics=[]`.
+
+Ordered groups:
+
+1. `feat(ghog): run and prove selected test groups` (36 paths)
+2. `fix(release): require whole-suite coverage` (2 paths)
+3. `docs(full_suite_levels): record step 4 validation` (1 path)
+
+Membership, dependency order and conventional subjects match the staged work, so `a.commit` was not amended. After the rework, the Group 3 body must no longer describe a fully implemented step if the rows still say No. Any new test for R2 or R3 belongs in Group 1. This mechanical result does not authorize a commit.
+
+### Findings and boundaries for step 4 full_suite_levels (exchange 1) (round 1)
+
+Unresolved findings:
+
+- R1 (P1): run the project's default validation, which never ran. The resolved set requires `ghog day --full=speed` (project). The only walks are `ghog day --full=cov --whole-suite` (`proof=cov`) and a plain `ghog day` (`full=none`, reusing that proof). `.reviews/a.ghog.day.ok` holds `proof=cov` for the current digest. `speed` implies `cov`, not the reverse, so the duration gate has not judged the new tests or the two newly active Step 4 cost gates. Run `ghog day --full=speed` on the staged tree until exit 0, and record both closing lines in the request and the Step 4 analysis. The plan's `--full=cov --whole-suite` is then met by the saved proof. The 14:44 cov walk also reported `warn=2`, while Step 3 closed at `warn=0`: name both warnings and remove them if the new tests raise them.
+- R2 (P2): false coverage gap for a grouped covered run that collects no test. In `tools/groundhog/commands.py`, `_coverage_result` returns the 100% gate for a group whenever the child crashed, failed or collected no test, without judging group evidence. For `PYTEST_NO_TESTS` on `affected`, `verdicts._classify_no_tests` then judges `result.stats.cov_percent`, which is still the child's project-wide `TOTAL` (addopts `--cov` plus the group folders), against 100. A read-only probe through `cli.main` used a no-test transcript with `TOTAL 50%` and exit 5. `affected --whole-suite` returned 0, but `affected --group=sentinel` returned 3 and printed the `covg` repair line. A standalone covered `ghog affected --group=x` with nothing affected therefore fails as a coverage gap. On that branch, return no gate (or set `cov_percent` to `None`) so nothing-affected stays green. Add a grouped acceptance case with that transcript, expecting exit 0 and an unchanged saved proof.
+- R3 (P2): whole-suite leveled commands gained a tree walk. `cli.main` runs `files = tuple(snapshot.source_files(root))` for every subcommand in `_LEVEL_SUBS` before `resolve_scope`, even when the scope is whole. Before Step 4, only `day` walked the tree (`git grep` at HEAD), so whole-suite `ghog check`, `full`, `affected` and `single` now pay one full walk each: 594 files, about 0.65 s per call on this repository. The plan's IO bound says "nothing adds a scan", and the design says a whole-suite run keeps today's IO. Walk only when a group must be resolved (explicit `--group`, or a non-empty `GHOG_GROUP` without an explicit selector), for example by giving `resolve_scope` a lazy inventory and storing it when built. Otherwise leave `Invocation.inventory` as `None` for `day.walk`, which already builds it. Add a test where a whole-suite `ghog check` (no selector, no `GHOG_GROUP`) performs no `source_files` call.
+- R4 (P3): mixed line endings in five new files. `tools/groundhog/group_coverage.py` has 74 CRLF and 28 LF lines, `tools/groundhog/scope.py` 76 and 3, `test_groundhog_acceptance_group_capture_tdd.py` 71 and 1, `test_groundhog_acceptance_group_gate_tdd.py` 71 and 3, and `test_groundhog_acceptance_groups_tdd.py` 132 and 29. Every other new Step 3 and Step 4 file is LF. Normalize these to LF, restage, and check that no staged blob mixes conventions.
+- R5 (P3): module docstring titles replaced. The original, still-relevant first docstring line was overwritten in `tools/groundhog/cli.py` ("groundhog (alias ``ghog``): the pytest reset tool entry point."), `commands.py`, `context.py`, `day.py`, `detach.py`, `durations.py`, `durations_summary.py`, `reporting_nextstep.py`, `verdicts.py` and `tools/prepare_release/prepare_release_plan_workflow.py` ("Branch-role detection and operation planning for prepare-release."). `rules/preserve_code.md` allows trimming only text the change makes obsolete. Restore each title and add the Step 4 note as a `Fix (v0.13.0 full_suite_levels, Step 4): ...` paragraph, as the earlier steps did (the test files already kept their titles). Also correct `reporting_nextstep.carried_selector` (Returns still says "empty at ``none``") and `no_baseline_line` ("plain at ``none``"), because both now always carry a scope selector.
+- R6 (P3, requestor): resolver drift. The resolved set omits the plan's three completion searches. Pass them with `--plan-validation-command` on the replacement request.
+
+Boundary-crossing work:
+
+- `tools/groundhog/snapshot.py:81` still defines `WHOLE_SCOPE_FINGERPRINT = hashlib.sha256(b"scope=whole").hexdigest()`. Step 4 moved `day.py` and `evidence.py` to `invocation.scope`, so no production code reads that constant any more; only three test modules do. It duplicates `tools.scope_capture.WHOLE_SCOPE.fingerprint`, as noted in the Step 3 review. `snapshot.py` is not in the Step 4 file list. Derive it from `WHOLE_SCOPE.fingerprint`, or retire it and point those tests at `WHOLE_SCOPE`, in the step that next owns `snapshot.py`, or in this step if the human approves widening it.
+
+### Writer instructions for step 4 full_suite_levels (exchange 1) (round 1)
+
+Fix R2 to R5 inside Step 4: the grouped no-test branch and its acceptance case, the lazy inventory and its no-walk test, LF normalization of the five new files, and restored module titles with corrected selector docstrings. Then rerun the Step 4 implementation check and update the Step 4 rows, removing Missing work for Step 4 once it is done. Run `ghog day --full=speed` on the staged tree until exit 0, and report the two warnings of the cov walk (R1). Refresh the Group 3 body of `a.commit`. Publish the replacement request with all five resolved commands, passing the three plan searches as `--plan-validation-command` (R6). The reviewer made no implementation or test repair, and the request carried no Human guidance block.
+
+### Decision rationale for step 4 full_suite_levels (exchange 1) (round 1)
+
+Recommend changes-requested. The six readiness-floor results:
+
+1. Identity: PASS. The exact plan, step 4, round 1, occurrence 1, the code identity, `Umbrella draft: none` and request tree `e8d27daf...` agree with the live exchange, the envelope and the live index.
+2. Implementation completeness: FAIL. A grouped covered no-test run reports a false gap (R2), and whole-suite leveled commands break the plan's IO bound (R3).
+3. Validation and coverage: FAIL. The project command `ghog day --full=speed` was never run; the proof is `cov`, and `warn=2` is unexplained (R1). The request set omits three plan commands (R6). Static coverage finds no unmeasured module, but R2 lacks an outcome assertion.
+4. Staged attribution: PASS. The only reviewer change is attributable Step 4 validation metadata.
+5. Unresolved findings: FAIL. R1 to R6 are open.
+6. `a.commit`: PASS mechanically. The independent check returned exit 0, `state=valid`, `ready=true`, 39 paths in three groups and no diagnostics.
+
+These failures block commit-readiness.
+
+### Final reviewer decision for step 4 full_suite_levels (exchange 1) (round 1)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-4-round-1 -->
+
+## Round 2 by requestor - Step 4
+
+- Recorded: 2026-10-03T16:01:53+02:00
+- Exchange: code/code/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 4
+- Outcome: request
+
+### Review identity for step 4 full_suite_levels (round 2)
+
+Umbrella draft: none
+Implementation plan: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+Implementation step: 4
+Review round: 2
+
+### Code review evidence for step 4 full_suite_levels (round 2)
+
+request_index_tree: 0fcdb5ccaf9eeeb50707fe5cf1e4d3612cc58f1c
+resolved_validation_set:
+
+- ghog day --full=speed (sources: project)
+- ghog day --full=cov --whole-suite (sources: plan)
+- rg -n "write_floor|write_exclusions" tools/groundhog/durations_summary.py (sources: plan)
+- rg -n "COVERAGE_FILE" tools/groundhog (sources: plan)
+- rg -n "ghog day --full=cov --whole-suite" tools/prepare_release/prepare_release_plan_workflow.py (sources: plan)
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(ghog): run and prove selected test groups
+group 1 path: tests/unit/tools/groundhog_group_support.py
+group 1 path: tests/unit/tools/test_groundhog_acceptance.py
+group 1 path: tests/unit/tools/test_groundhog_acceptance_groups/__init__.py
+group 1 path: tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_boundaries_tdd.py
+group 1 path: tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_capture_tdd.py
+group 1 path: tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_gate_tdd.py
+group 1 path: tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py
+group 1 path: tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_levels_tdd.py
+group 1 path: tests/unit/tools/test_groundhog_commands.py
+group 1 path: tests/unit/tools/test_groundhog_detach.py
+group 1 path: tests/unit/tools/test_groundhog_durations.py
+group 1 path: tests/unit/tools/test_groundhog_group_coverage/__init__.py
+group 1 path: tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_pbt.py
+group 1 path: tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_tdd.py
+group 1 path: tests/unit/tools/test_groundhog_levels_perf/test_groundhog_levels_perf_tdd.py
+group 1 path: tests/unit/tools/test_groundhog_reporting.py
+group 1 path: tests/unit/tools/test_groundhog_reporting_nextstep.py
+group 1 path: tests/unit/tools/test_groundhog_runner.py
+group 1 path: tests/unit/tools/test_groundhog_scope/__init__.py
+group 1 path: tests/unit/tools/test_groundhog_scope/test_groundhog_scope_tdd.py
+group 1 path: tools/groundhog/__init__.py
+group 1 path: tools/groundhog/cli.py
+group 1 path: tools/groundhog/commands.py
+group 1 path: tools/groundhog/context.py
+group 1 path: tools/groundhog/day.py
+group 1 path: tools/groundhog/detach.py
+group 1 path: tools/groundhog/durations.py
+group 1 path: tools/groundhog/durations_summary.py
+group 1 path: tools/groundhog/evidence.py
+group 1 path: tools/groundhog/group_coverage.py
+group 1 path: tools/groundhog/reporting.py
+group 1 path: tools/groundhog/reporting_nextstep.py
+group 1 path: tools/groundhog/runner.py
+group 1 path: tools/groundhog/scope.py
+group 1 path: tools/groundhog/status.py
+group 1 path: tools/groundhog/verdicts.py
+group 2: fix(release): require whole-suite coverage
+group 2 path: tests/unit/tools/prepare_release/test_prepare_release_plan_workflow.py
+group 2 path: tools/prepare_release/prepare_release_plan_workflow.py
+group 3: docs(full_suite_levels): record step 4 validation
+group 3 path: docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md
+group 3 path: docs/v0.13.0/review.code.v0.13.0.full_suite_levels.md
+staged path: docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md
+staged path: docs/v0.13.0/review.code.v0.13.0.full_suite_levels.md
+staged path: tests/unit/tools/groundhog_group_support.py
+staged path: tests/unit/tools/prepare_release/test_prepare_release_plan_workflow.py
+staged path: tests/unit/tools/test_groundhog_acceptance.py
+staged path: tests/unit/tools/test_groundhog_acceptance_groups/__init__.py
+staged path: tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_boundaries_tdd.py
+staged path: tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_capture_tdd.py
+staged path: tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_gate_tdd.py
+staged path: tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py
+staged path: tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_levels_tdd.py
+staged path: tests/unit/tools/test_groundhog_commands.py
+staged path: tests/unit/tools/test_groundhog_detach.py
+staged path: tests/unit/tools/test_groundhog_durations.py
+staged path: tests/unit/tools/test_groundhog_group_coverage/__init__.py
+staged path: tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_pbt.py
+staged path: tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_tdd.py
+staged path: tests/unit/tools/test_groundhog_levels_perf/test_groundhog_levels_perf_tdd.py
+staged path: tests/unit/tools/test_groundhog_reporting.py
+staged path: tests/unit/tools/test_groundhog_reporting_nextstep.py
+staged path: tests/unit/tools/test_groundhog_runner.py
+staged path: tests/unit/tools/test_groundhog_scope/__init__.py
+staged path: tests/unit/tools/test_groundhog_scope/test_groundhog_scope_tdd.py
+staged path: tools/groundhog/__init__.py
+staged path: tools/groundhog/cli.py
+staged path: tools/groundhog/commands.py
+staged path: tools/groundhog/context.py
+staged path: tools/groundhog/day.py
+staged path: tools/groundhog/detach.py
+staged path: tools/groundhog/durations.py
+staged path: tools/groundhog/durations_summary.py
+staged path: tools/groundhog/evidence.py
+staged path: tools/groundhog/group_coverage.py
+staged path: tools/groundhog/reporting.py
+staged path: tools/groundhog/reporting_nextstep.py
+staged path: tools/groundhog/runner.py
+staged path: tools/groundhog/scope.py
+staged path: tools/groundhog/status.py
+staged path: tools/groundhog/verdicts.py
+staged path: tools/prepare_release/prepare_release_plan_workflow.py
+```
+
+### Requestor assessment for step 4 full_suite_levels (round 2)
+
+Yes. Step 4 has been fully implemented.
+
+The scope, collection, exact-source coverage gate, read-only group duration gate, isolated proof, scope-aware reports, detached capture and whole-suite release operations are implemented. R1-R6 are addressed. The writer implementation-check was repeated by static inspection without running tests inside that check. Only Step 4 rows were updated; completed Missing work is removed, and later steps and document-level No remain unchanged.
+
+Validation on the final staged sources:
+
+- `ghog day --full=speed` ended at 2026-10-03T15:53:20+02:00. Check and affected passed. Full coverage closed `fail=0 warn=0 xfail=0 cov=100 outliers=skipped excluded=skipped exit=0 scope=whole`. Sequential timings closed `fail=0 warn=0 xfail=0 cov=skipped outliers=0 excluded=0 exit=0 scope=whole`. Day closed `full=speed src=param proof=speed reused=none scope=whole exit=0`. Freshness and `ghog status state=done` were confirmed.
+- `ghog day --full=cov --whole-suite` ended at 2026-10-03T15:54:23+02:00 with `proof=speed reused=all scope=whole exit=0`, using unchanged sources. Its log is fresh and status is done.
+- `rg -n "write_floor|write_exclusions" tools/groundhog/durations_summary.py` finds the two writes at lines 157 and 168, both inside the whole-suite `_judge_map`, behind the grouped early return.
+- `rg -n "COVERAGE_FILE" tools/groundhog` finds only the group coverage adapter's spawn environment mapping at line 69; the runner applies generic overrides and restores the environment in finally.
+- `rg -n "ghog day --full=cov --whole-suite" tools/prepare_release/prepare_release_plan_workflow.py` finds both release operations, lines 187 and 363.
+
+Both former suite warnings were PytestUnraisableExceptionWarning wrapping ResourceWarning for unclosed SQLite connections during corrupt coverage-data loading. The coverage adapter now closes its data object on all paths, and malformed-evidence cases assert no warning after garbage collection. The focused regression run and final full and timing runs report warn=0. A diagnostic run with global PYTHONWARNINGS=error also exposed an existing parent-runner stdout ResourceWarning outside pytest; that separate warning is not claimed repaired.
+
+Architecture: the existing pure scope and proof models remain independent of filesystem, process and coverage adapters. Scope resolution and coverage inspection stay in adapters; duration policy is pure; orchestration uses existing runner ports. No required architecture repair remains.
+
+Performance: group resolution builds one lazy inventory and shares it with proof. Whole-suite and captured scopes do not request inventory. Default and explicit whole-suite check regressions forbid a scan; the existing grouped-day gate still requires one. Radix folder and duration ordering avoids new comparison sorting or quadratic work. Both Step 4 cost gates run without xfail, and sequential timings report no outliers.
+
+Coverage: pyproject measures tools at 100%; named thin adapters, protocols and initializers are omitted. Changed behavioral production modules are measured. The changed initializer is documentation only. Dedicated scope TDD, coverage TDD/PBT and existing per-module unit tests cover the new paths; CLI acceptance tests check orchestration without a separate per-module unit coverage claim.
+
+Integrity: the no-test grouped covered affected regression uses exit 5 with TOTAL 50%, expects exit 0 and byte-identical saved proof. Existing whole-suite behavior, explicit single-file paths, error precedence, reporting, capture validation and shared timing settings remain covered.
+
+The staged byte/title audit passes: no mixed endings, all ten original module titles preserved. Every changed Python file is below 650 lines; cli.py 553, commands.py 559 and reporting_nextstep.py 597 occupy the advisory band. The remaining production and test counts are recorded in Step 4 validation. The whitespace check passes.
+
+Root a.commit is formatted and commit-plan-check returns state=valid, ready=true and no diagnostics, with groups of 36, 2 and 2 paths. after-check added the protocol transcript to the trailing documentation group; it was not read as working context. Publication may append later protocol evidence for the authorized residual continuation.
+
+Retained validation logs: `.reviews/a.full_suite_levels.step4.tmp.r2.speed-final.log` and `.reviews/a.full_suite_levels.step4.tmp.r2.cov-final.log`.
+
+### Implementation report for step 4 full_suite_levels (round 2)
+
+Scope resolution selects an explicit group, whole-suite or validated capture before consulting GHOG_GROUP, then defaults to whole. Only declaration-based group selection requests the lazy inventory. A grouped day shares it with proof; whole and captured day let the walk build its own inventory once. Other whole-suite commands do not scan.
+
+Grouped affected, full and timing commands collect the bound test files. Coverage uses isolated data, exact sources, branch configuration and a 100% gate. Full resets data; affected appends without proving a full run. Failed, crashed and empty runs do not compare the child's unrelated TOTAL against the group gate. A no-test affected run stays green and leaves saved proof unchanged. Spawn environment overrides are restored in finally.
+
+Grouped durations use the saved floor and group-local exclusions read-only. Scope-specific markers and fingerprints isolate proof. Reports, restarts and detached commands retain scope; detachment writes a capture before spawn. Both release operations explicitly select whole-suite coverage.
+
+Dedicated scope and coverage tests, folder-reduction PBT and grouped CLI acceptance tests cover the plan boundaries. Both Step 4 performance gates remain active. Round 2 adds a TOTAL 50% no-tests regression and zero-inventory whole-check regressions, and checks lazy capture resolution. Existing module titles are preserved with separate Step 4 notes; the scope selector docstrings now match their behavior. New files use LF.
+
+Malformed coverage-data loads now close their SQLite-backed CoverageData handle on every path. The existing bad-evidence regression explicitly checks that garbage collection produces no resource warning; this removes the two new suite warnings identified in round 1.
+
+Writer notes: .reviews/a.full_suite_levels.step4.journal.md and .reviews/a.full_suite_levels.step4.handoff.md.
+
+### Change summary for step 4 full_suite_levels (round 2)
+
+The 40 staged paths are grouped from least to most dependent in root a.commit:
+
+1. feat(ghog): run and prove selected test groups (36 paths).
+2. fix(release): require whole-suite coverage (2 paths).
+3. docs(full_suite_levels): record step 4 validation (2 paths, including the protocol transcript staged by after-check).
+
+The plan is formatted; commit-plan-check reports valid, ready=true, with no diagnostics.
+
+Staged inventory:
+
+- docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md
+- docs/v0.13.0/review.code.v0.13.0.full_suite_levels.md
+- tests/unit/tools/groundhog_group_support.py
+- tests/unit/tools/prepare_release/test_prepare_release_plan_workflow.py
+- tests/unit/tools/test_groundhog_acceptance.py
+- `tests/unit/tools/test_groundhog_acceptance_groups/__init__.py`
+- tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_boundaries_tdd.py
+- tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_capture_tdd.py
+- tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_gate_tdd.py
+- tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py
+- tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_levels_tdd.py
+- tests/unit/tools/test_groundhog_commands.py
+- tests/unit/tools/test_groundhog_detach.py
+- tests/unit/tools/test_groundhog_durations.py
+- `tests/unit/tools/test_groundhog_group_coverage/__init__.py`
+- tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_pbt.py
+- tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_tdd.py
+- tests/unit/tools/test_groundhog_levels_perf/test_groundhog_levels_perf_tdd.py
+- tests/unit/tools/test_groundhog_reporting.py
+- tests/unit/tools/test_groundhog_reporting_nextstep.py
+- tests/unit/tools/test_groundhog_runner.py
+- `tests/unit/tools/test_groundhog_scope/__init__.py`
+- tests/unit/tools/test_groundhog_scope/test_groundhog_scope_tdd.py
+- `tools/groundhog/__init__.py`
+- tools/groundhog/cli.py
+- tools/groundhog/commands.py
+- tools/groundhog/context.py
+- tools/groundhog/day.py
+- tools/groundhog/detach.py
+- tools/groundhog/durations.py
+- tools/groundhog/durations_summary.py
+- tools/groundhog/evidence.py
+- tools/groundhog/group_coverage.py
+- tools/groundhog/reporting.py
+- tools/groundhog/reporting_nextstep.py
+- tools/groundhog/runner.py
+- tools/groundhog/scope.py
+- tools/groundhog/status.py
+- tools/groundhog/verdicts.py
+- tools/prepare_release/prepare_release_plan_workflow.py
+
+### Writer response for step 4 full_suite_levels (round 2)
+
+Writer response:
+
+Accept R1-R6 without disagreement. Reviewer edits were confined to Step 4 validation metadata and correctly marked the missing work. The updated assessment records evidence after repairs; removing completed Missing work is fulfillment of those findings, not reversal of a reviewer repair.
+
+R1: the required final staged-source speed walk passed at 15:53:20+02:00 with full coverage 100%, fail=0, warn=0, xfail=0, and sequential timing outliers=0, excluded=0. The explicit cov/whole-suite command then reused speed proof. Both original warnings came from unclosed SQLite connections when corrupt coverage data failed during load. The adapter now closes CoverageData on every path; malformed-data cases assert no resource warning after collection. Both complete closing lines and timestamps are recorded in the assessment and Step 4 validation.
+
+R2: commands._coverage_result returns no coverage gate when a group child failed, crashed or collected no tests. A real CLI acceptance regression supplies exit 5 and TOTAL 50%, expects exit 0 for affected, and verifies the previously saved group proof byte-for-byte.
+
+R3: scope.resolve_scope accepts a lazy inventory callback and invokes it only for a group declaration. cli._with_scope retains the inventory only when requested. Whole/capture commands leave it absent so day builds it once. Default and explicit whole-suite check regressions forbid source_files; capture and conflicting-selector unit tests also forbid an inventory request. The existing grouped-day cost gate still asserts one walk.
+
+R4-R5: normalize the five new files to LF; restore all ten original module titles with a separate Fix (v0.13.0 full_suite_levels, Step 4) paragraph; correct carried_selector and no_baseline_line documentation. Audit staged bytes, titles and line budgets.
+
+R6: pass all four exact plan additions to the paired renderer, including the three completion searches, alongside the mandatory project speed command. The replacement request includes the resulting five-command validation set.
+
+The snapshot.WHOLE_SCOPE_FINGERPRINT observation remains outside this step's scope, as the reviewer specified; no snapshot implementation change is included.
+
+The reviewed a.commit retains its three subjects and dependency order. after-check staged the current transcript, so the trailing documentation group now contains it alongside the validation plan. The Group 3 body records full speed evidence and zero warnings instead of claiming no timing pass. Formatting and readiness checks pass for all 40 paths.
+
+### Reviewer focus for step 4 full_suite_levels (round 2)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-4-round-2 -->
+
+## Round 2 by reviewer - Step 4
+
+- Recorded: 2026-10-03T16:06:16+02:00
+- Exchange: code/code/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 4
+- Outcome: answer
+
+### Assessed index identity for step 4 full_suite_levels (exchange 1) (round 2)
+
+Baseline index tree: 0fcdb5ccaf9eeeb50707fe5cf1e4d3612cc58f1c
+
+Assessed index tree: 0fcdb5ccaf9eeeb50707fe5cf1e4d3612cc58f1c
+
+### Implementation check for step 4 full_suite_levels (exchange 1) (round 2)
+
+Result:
+
+Yes. Step 4 has been fully implemented.
+
+All six round 1 findings are resolved in the staged tree:
+
+- R1: `.reviews/a.ghog.day.ok` holds `proof=speed`, and its `digest=c1bcf7a1...` equals `snapshot.source_digest` recomputed read-only on the current tree. The retained log `.reviews/a.full_suite_levels.step4.tmp.r2.speed-final.log` shows:
+  - check and affected green;
+  - full `fail=0 warn=0 xfail=0 cov=100 exit=0`;
+  - timings `outliers=0 excluded=0 exit=0`;
+  - day `full=speed proof=speed reused=none exit=0` at 15:53:20 +02:00.
+
+  The cov log closes `proof=speed reused=all`. The two round 1 warnings were unclosed SQLite connections in `group_coverage._report`, which now closes `coverage.get_data()` through `contextlib.closing`. `test_bad_evidence` asserts that no `ResourceWarning` appears after `gc.collect()`.
+- R2: `_coverage_result` returns no gate for a grouped run that crashed, failed or collected no test, so `_classify_no_tests` stays green and the closing line prints `cov=skipped` rather than an unrelated `TOTAL`. The same read-only probe as round 1 now returns 0 for both `--whole-suite` and `--group=sentinel`. `test_empty_covered_affected_keeps_group_proof` asserts exit 0 and a byte-identical group marker.
+- R3: `cli._with_scope` passes `resolve_scope` a lazy `source_files` callback, which runs only for a declaration-based group, and stores the inventory only when it was built. `test_whole_check_does_not_scan_sources` forbids `snapshot.source_files` for a default and an explicit whole-suite `check`. The scope tests forbid an inventory request for whole, capture and conflicting selections, and the grouped-day cost gate still requires exactly one walk.
+- R4: no staged blob mixes line endings.
+- R5: the ten module titles are restored verbatim, each with a separate `Fix (v0.13.0 full_suite_levels, Step 4): ...` paragraph. `carried_selector` and `no_baseline_line` now document the always-present scope selector.
+- R6: the resolved set carries the three plan searches.
+
+Architecture: unchanged since round 1 and sound. Scope resolution and coverage inspection are adapters, the floor-only rule is pure, and all floor and exclusion writes stay in `_judge_map`, behind the group early return.
+
+Performance: whole-suite leveled commands keep their pre-Step 4 IO, and grouped resolution shares one walk with proof. The radix folder and duration orderings are unchanged. `cli.py` (553), `commands.py` (559) and `reporting_nextstep.py` (597) sit in the advisory 550 to 650 band. The validation rows record this, and nothing is above the 650 ceiling.
+
+Static coverage: `source = ["tools"]` at 100%. Every changed module is measured, and `scope.py` and `group_coverage.py` have dedicated TDD and PBT packages.
+
+Validation plan effects:
+
+No reviewer edit. The writer's Step 4 rows were checked against the staged tree and found accurate:
+
+- the exact Yes sentence;
+- the speed and cov closing values, which agree with the retained logs and the saved marker;
+- the Missing work for Step 4 section removed;
+- the lazy-inventory performance text;
+- line counts that match the blobs;
+- the warning explanation.
+
+The document-level status line correctly stays `No, it is not implemented.` while Steps 5 to 8 are pending, and no umbrella applies. A pre-edit blob (`26dc15fa83b2e2dbda8e4e57915847c1d499125c`) was recorded, but no repair followed.
+
+### Pre-repair mandatory checks and coverage for step 4 full_suite_levels (exchange 1) (round 2)
+
+Requestor evidence: `ghog day --full=speed` ended at 15:53:20 +02:00 (retained `.reviews/a.full_suite_levels.step4.tmp.r2.speed-final.log`):
+
+- check: green at 15:42:21;
+- `affected --no-cov`: `fail=0 warn=0`;
+- full: `fail=0 warn=0 xfail=0 cov=100 exit=0`;
+- timings: `outliers=0 excluded=0 exit=0`;
+- day: `full=speed proof=speed reused=none scope=whole exit=0`.
+
+`ghog day --full=cov --whole-suite` then ended at 15:54:23 with `proof=speed reused=all exit=0`. `.reviews/a.ghog.day.ok` holds `proof=speed` with a digest equal to the read-only recomputation on the current tree.
+
+Reviewer evidence:
+
+- static reading of the round 1 to round 2 delta (`git diff --ignore-cr-at-eol` between assessed tree `7c0b5e85...` and request tree `0fcdb5cc...`);
+- comparison of the request-time and live index trees;
+- the commit-plan check, run independently;
+- a line-ending scan of every staged blob;
+- an AST read of the ten restored module titles;
+- the three plan searches, reproduced read-only;
+- the round 1 probe through `cli.main` on temporary projects outside the repository, re-run: both selectors now return 0.
+
+`ghog check` and `ghog affected --no-cov` were not needed, because a speed proof matching the current digest covers the delta. The reviewer ran no repository test, walk or coverage measurement.
+
+### Resolved validation set and sources for step 4 full_suite_levels (exchange 1) (round 2)
+
+The request and the current resolver contract give the same ordered set:
+
+1. `ghog day --full=speed` (project): `.review-validation` is absent, so the built-in default applies.
+2. `ghog day --full=cov --whole-suite` (plan).
+3. `rg -n "write_floor|write_exclusions" tools/groundhog/durations_summary.py` (plan).
+4. `rg -n "COVERAGE_FILE" tools/groundhog` (plan).
+5. `rg -n "ghog day --full=cov --whole-suite" tools/prepare_release/prepare_release_plan_workflow.py` (plan).
+
+There are no request additions. The reviewer did not execute this requestor-owned set. The searches were reproduced read-only:
+
+- writes only at lines 157 and 168, inside `_judge_map`, behind the group early return at line 105;
+- `COVERAGE_FILE` only at `group_coverage.py:69`;
+- both release operations, at lines 187 and 363.
+
+### Resolver drift and direction for step 4 full_suite_levels (exchange 1) (round 2)
+
+None. The round 1 drift (R6) is resolved: the three plan searches appear with source `plan`, after the project default and the plan's whole-suite cov walk, in the order the current resolver contract produces.
+
+### Repository state around validation for step 4 full_suite_levels (exchange 1) (round 2)
+
+The request-time index tree, the reviewer baseline and the final assessed index are the same: `0fcdb5ccaf9eeeb50707fe5cf1e4d3612cc58f1c`.
+
+The validation state was captured before and after over the same 46 ordered paths: the 40 staged paths plus `a.ghog.log`, `a.ghog.status`, `a.ghog.affected.log`, `.testmondata` and two unused reviewer log paths. The comparison returns `acceptable=true` with no tracked, untracked or ignored difference.
+
+The staged transcript `docs/v0.13.0/review.code.v0.13.0.full_suite_levels.md` also has unstaged protocol appends: the round 2 request now, and this answer after publication. The reviewer neither edits nor stages it. The probe wrote only to temporary directories outside the repository.
+
+Umbrella: none. The launcher comparison returns `applicable=false`, `changed=false`.
+
+### Repair inventory for step 4 full_suite_levels (exchange 1) (round 2)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 4 full_suite_levels (exchange 1) (round 2)
+
+`commit-plan-check.bat --format json` was run independently against the received state (retained in `.reviews/a.full_suite_levels.step4.tmp.r2.cpc.json`). It returned exit 0, `state=valid`, `ready=true`, three ordered groups, 40 staged paths and `diagnostics=[]`. The reviewer staged nothing, so the result stands for the assessed index.
+
+Ordered groups:
+
+1. `feat(ghog): run and prove selected test groups` (36 paths)
+2. `fix(release): require whole-suite coverage` (2 paths)
+3. `docs(full_suite_levels): record step 4 validation` (2 paths: the validation plan and the protocol transcript)
+
+Membership, dependency order and conventional subjects match the staged work. The Group 3 body names both the validation evidence and the preserved review exchange.
+
+Staging the transcript inside Group 3 follows `group-commits-msg`'s rule to cover every staged change. It differs from Steps 0 to 3, which committed their transcript only in a separate "record step N review" commit. The staged blob holds round 1 only, and the round 2 request and this answer remain unstaged for the residual continuation. That split is acceptable as long as the residual commit carries the remainder.
+
+`a.commit` remains accurate and needs no amendment. This mechanical result does not authorize a commit.
+
+### Findings and boundaries for step 4 full_suite_levels (exchange 1) (round 2)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 4 full_suite_levels (exchange 1) (round 2)
+
+No further Step 4 work is required. Present this advisory commit-ready recommendation at the convergence gate, where the human chooses the next action. The reviewer made no repair, and the request carried no Human guidance block.
+
+Carried note for a later step, not Step 4 work: `snapshot.WHOLE_SCOPE_FINGERPRINT` still duplicates `tools.scope_capture.WHOLE_SCOPE.fingerprint`, and only tests read it. Derive or retire it in the step that next owns `snapshot.py`.
+
+### Decision rationale for step 4 full_suite_levels (exchange 1) (round 2)
+
+Recommend commit-ready. The six readiness-floor results:
+
+1. Identity: PASS. The exact plan, step 4, round 2, occurrence 1, the code identity, `Umbrella draft: none` and request tree `0fcdb5cc...` agree with the live exchange, the envelope and the live index.
+2. Implementation completeness: PASS. Every Step 4 deliverable is present. Grouped no-test runs stay green (R2), and whole-suite commands keep their IO (R3).
+3. Validation and coverage: PASS. The project speed walk is green with `warn=0 outliers=0`, and its saved proof digest matches the current sources. The plan's cov command reused that proof, and the three plan searches return the expected results. The static review finds no coverage gap. The reviewer's optional focused commands were not needed.
+4. Staged attribution: PASS. No reviewer change was made. The delta since round 1 is the writer's R1 to R5 repairs, the validation rows and the requestor's after-check staging of the protocol transcript.
+5. Unresolved findings: PASS. R1 to R6 are resolved, and no new finding was raised.
+6. `a.commit`: PASS. The independent check returned exit 0, `state=valid`, `ready=true`, 40 paths in three accurate groups and no diagnostics.
+
+This round made no substantive repair. The recommendation is advisory and does not authorize a commit.
+
+### Final reviewer decision for step 4 full_suite_levels (exchange 1) (round 2)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-4-round-2 -->
+
+## Round 2 by human - Step 4 - human-confirmation
+
+- Recorded: 2026-10-03T22:05:47+02:00
+- Exchange: code/code/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 4
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-2 -->

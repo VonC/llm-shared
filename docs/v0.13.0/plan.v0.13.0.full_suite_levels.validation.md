@@ -941,10 +941,24 @@ capability appears impaired.
 
 ### Analysis of Step 4 implementation state
 
-Not started. Step 4 is not implemented because Step 3 has not landed yet.
+Yes. Step 4 has been fully implemented.
 
-Run commands accept no scope selector and every run still covers the whole
-suite.
+Run commands retain one scope through collection, coverage, duration judging,
+proof, reporting and detachment. Group evidence is isolated; grouped timing
+preserves shared settings. The final staged-source `ghog day --full=speed`
+completed at 2026-10-03T15:53:20+02:00 with `proof=speed`, `reused=none`,
+`scope=whole` and `exit=0`. Its full coverage step reported `fail=0 warn=0
+xfail=0 cov=100 exit=0`; sequential timings reported `fail=0 warn=0 xfail=0
+cov=skipped outliers=0 excluded=0 exit=0`. Freshness and `state=done` were
+confirmed. The plan's explicit `ghog day --full=cov --whole-suite` also
+passed by reusing this stronger proof.
+
+Review repairs keep empty grouped affected runs green without changing saved
+proof, avoid an extra whole-suite inventory scan, normalize new files to LF
+and preserve original module titles. Both former suite warnings were SQLite
+connections left open when corrupt coverage data failed to load. Closing the
+data handle on every path removes them; the malformed-evidence regression
+checks for resource warnings, and the final whole-suite run reports none.
 
 ### Goal for Step 4
 
@@ -964,27 +978,140 @@ evidence keys, the detached walk and the prepare-release operations.
 
 ### What was implemented for Step 4
 
-_(empty — no check has taken place yet.)_.
+- `scope.py`, `cli.py` and `context.py` resolve explicit selectors before
+  `GHOG_GROUP`, default to whole-suite scope, reject conflicting selectors
+  with setup exit 5, validate bound captures and retain a shared inventory.
+  Explicit selection does not consult the environment default.
+- `runner.py` narrows grouped affected, full and timing collection to the
+  resolved test paths. Covered runs add the minimal source folders and
+  disable pytest's aggregate coverage gate. Spawn environment overrides are
+  restored in `finally`, including when the spawn factory raises.
+- `group_coverage.py`, `commands.py` and `verdicts.py` use isolated coverage
+  data, resetting it for full runs and appending for affected runs. Coverage's
+  configured line/branch calculation judges exactly the resolved sources at
+  100%, including never-executed sources and sources outside project defaults.
+  Missing, stale, corrupt or incompatible evidence produces setup exit 5;
+  malformed sources cannot be silently ignored. Failed, empty and crashed
+  test runs retain their original verdicts. Coverage data is closed even
+  when corrupt input fails while opening the database.
+- `durations.py` and `durations_summary.py` judge grouped timing against the
+  saved floor and group-local exclusions without writing shared settings.
+  Existing floor and exclusion writes remain confined to the whole-suite
+  branch.
+- `day.py` and `evidence.py` use scope-specific markers, membership
+  fingerprints and the shared inventory for proof. Membership, patterns and
+  source changes invalidate the appropriate proof; timing changes cap proof
+  at `cov`. A covered affected run records no full proof.
+- `reporting.py`, `reporting_nextstep.py`, `status.py` and `detach.py` carry
+  scope through evidence, repair commands, success/noop messages and lost-run
+  recovery. Detachment writes a bound group capture atomically before spawn,
+  or passes `--whole-suite` explicitly.
+- Both prepare-release operations now end in
+  `ghog day --full=cov --whole-suite`. Unit and CLI acceptance cases cover
+  the new paths, and both Step 4 performance gates retain their timeouts with
+  their `xfail` markers removed.
 
 ### New types or classes introduced for Step 4
 
-_(empty — no check has taken place yet.)_.
+- `ScopeError` represents scope-selection setup failures.
+- `GroupCoverage` carries the full-precision percentage, gap rows and an
+  evidence error from the coverage adapter.
+- `Invocation` now carries the resolved scope and optional shared inventory;
+  `StreamConfig` carries spawn-only environment overrides. These extend
+  existing types rather than introduce competing execution models.
+- Test support adds `CoverageSpawns`, a deterministic spawn factory that
+  records commands and writes coverage evidence to the supplied data path.
 
 ### Architecture check for Step 4
 
-_(empty — no check has taken place yet.)_.
+The existing pure scope and proof models remain independent of process,
+filesystem and coverage libraries. Scope resolution and coverage inspection
+are adapters; command/day orchestration connects them to runner ports and
+reporting. The floor-only duration calculation is pure, while reading and
+persisting settings remain in the duration adapter. Shared inventory is
+passed through the invocation rather than recovered by a hidden traversal.
+No new reverse dependency, misplaced domain rule or duplicated proof model
+was found.
+
+No, there is nothing that needs to be addressed in the architecture.
 
 ### Performance check for Step 4
 
-_(empty — no check has taken place yet.)_.
+Declaration-based group selection requests one lazy inventory, shared with
+the day proof. Whole-suite and captured scopes do not request it; day builds
+its existing inventory when needed. Default and explicit whole-suite check
+regressions forbid a scan, and the grouped-day cost gate requires exactly
+one. Whole-suite full, affected and single commands retain their existing IO.
+
+Coverage folder reduction uses linear radix ordering and a single reduction;
+grouped duration ordering uses fixed-width float radix ordering. The new
+paths introduce no quadratic or comparison-sort computation. Both active
+performance gates pass, and the final sequential timing pass reports zero
+outliers and zero exclusions.
+
+Final production line counts are `scope.py` 81, `group_coverage.py` 104,
+`context.py` 133, `cli.py` 553, `runner.py` 339, `commands.py` 559,
+`verdicts.py` 154, `durations.py` 396, `durations_summary.py` 172, `day.py`
+406, `evidence.py` 149, `reporting.py` 514, `reporting_nextstep.py` 597,
+`status.py` 401, `detach.py` 201 and `__init__.py` 73. The release workflow
+is 442 lines. New test/support files are at most 180 lines; modified legacy
+test files are at most 510. All remain below the 650-line ceiling.
+`cli.py`, `commands.py` and `reporting_nextstep.py` fall within the
+550-650 advisory risk band; further growth belongs in focused collaborators.
+The detached adapter keeps `status.py` below its 550-line extraction trigger.
+The staged byte audit finds no mixed line endings and confirms all ten
+original module summary lines are preserved.
+
+No, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 4
 
-_(empty — no check has taken place yet.)_.
+The configured coverage source is `tools`, with a 100% gate. Tests,
+`__init__.py`, ports/protocols and the configuration's named thin adapters
+are omitted. All changed production behavior is inside the measured scope;
+the changed package initializer contains documentation only. The existing
+green walk provides `cov=100` evidence for that scope. This implementation
+check did not run tests.
+
+Static inspection connects `scope.py` to its dedicated TDD package and
+`group_coverage.py` to its dedicated TDD/PBT package. Those cases cover
+selection precedence, invalid environment values, capture validation,
+minimal folder reduction, configured coverage and relative paths, branch
+gaps, never-executed sources, strict source errors and evidence failures.
+The folder-reduction PBT checks coverage and non-nesting properties.
+
+Existing runner, duration, detach, command, reporting and release unit tests
+cover their respective extensions, including all four environment-restoration
+combinations and the unchanged whole-suite behavior. The group acceptance
+package exercises orchestration, failure precedence, proof isolation,
+invalidation, saved-floor timing, readonly exclusions and captured membership
+through `cli.main`. These cross-module acceptance cases are assessed for
+their behavior rather than assigned a separate per-file unit coverage target.
+Boundary cases also exercise unknown CLI options, missing duration rows and
+direct invocations without a prebuilt inventory.
+
+No, there is no unit-tested class below 100% that needs completing.
 
 ### Feature integrity for Step 4
 
-_(empty — no check has taken place yet.)_.
+Whole-suite collection, coverage judging, duration persistence and inventory
+cost retain their existing behavior. Explicit whole-suite restart and release
+commands remain stable even when `GHOG_GROUP` names another scope. Unknown
+options retain argparse's usage-error behavior. Single-file runs preserve
+their explicit test paths, and the check phase remains project-wide.
+
+Grouped runs isolate coverage files and proof, retain prior proof on unusable
+coverage evidence, and leave shared floor/exclusion data unchanged. A covered
+affected run with no selected test and an unrelated project `TOTAL 50%`
+returns exit 0 and preserves the saved group marker byte-for-byte. Captures
+retain bound membership after declaration edits and reject deleted or altered
+members without falling back. Reporting carries scope in normal and recovery
+paths. No existing feature or reporting loss was found.
+
+The real whole-suite speed walk proves coverage and sequential durations.
+Grouped timing and detachment use deterministic test doubles for their
+boundary cases. This Step 4 result does not complete the later workflow and
+documentation steps.
 
 ---
 
