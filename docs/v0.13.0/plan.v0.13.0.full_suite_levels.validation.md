@@ -760,10 +760,25 @@ No existing feature or reporting capability appears impaired.
 
 ### Analysis of Step 3 implementation state
 
-Not started. Step 3 is not implemented because Step 2 has not landed yet.
+Yes. Step 3 has been fully implemented.
 
-No group declaration, matcher, capture model, `ghog groups` or exclusion
-listing exists yet.
+Declarations resolve against the shared inventory, captures round-trip with
+strict identity and file checks, and group and exclusion listings provide
+the specified read-only output and exit-5 diagnostics. Slashed and anchored
+folder patterns include descendants, the exclusion module has direct unit
+tests for its strict APIs, and the changed CRLF files retain their format.
+
+The project `ghog day --full=speed` walk finished on 2026-10-03 at 10:37:12
++02:00. Its coverage phase reported `cov=100`; the final timing phase closed
+with `fail=0 warn=0 xfail=2 cov=skipped outliers=0 excluded=0 exit=0
+full=speed src=param proof=speed reused=none scope=whole`. The final
+`cov=skipped` describes that timing phase, not the earlier coverage phase.
+The plan's `ghog day --full=cov` then finished at 10:38:35 +02:00 with
+`fail=0 warn=0 xfail=0 cov=skipped outliers=skipped excluded=skipped exit=0
+full=cov src=param proof=speed reused=all scope=whole`: the unchanged-source
+speed proof met the requested objective without repeating tests. Both logs
+passed the freshness check and `ghog status` confirmed `state=done exit=0`.
+The two expected failures in the measured walk remain assigned to Step 4.
 
 ### Goal for Step 3
 
@@ -781,27 +796,144 @@ and fingerprint, the tools-level captured-scope model, and the read-only
 
 ### What was implemented for Step 3
 
-_(empty — no check has taken place yet.)_.
+- `group_patterns.py` compiles normalized rules with `glob.translate` and
+  applies ordered inclusion and exclusion. Segment wildcards, recursive
+  wildcards, basename rules, folder rules and last-match precedence are
+  covered, including the sentinel example and descendant matching for
+  slashed and anchored folder names.
+- `project_settings.py` reads pytest and coverage settings once per
+  resolution phase. Its public accessors expose filename patterns, omissions,
+  sources and branch measurement; coverage lists preserve spaces and Windows
+  separators. `gate.py` imports the shared TOML table helper.
+- `groups.py` validates declarations and names, resolves both sides from the
+  supplied `snapshot.source_files` inventory, filters pytest filenames and
+  coverage omissions, and rejects empty membership with the side named.
+  Sources outside the configured coverage source remain eligible.
+- `scope_capture.py` provides complete scope values, canonical fingerprints,
+  JSON serialization, strict schema and identity checks, missing-file checks
+  and atomic capture replacement. Provenance is retained separately from
+  identity, and whole-suite identity preserves the established fingerprint.
+- `linear_order.py` supplies iterative UTF-8 trie ordering for canonical
+  membership, fingerprints and exclusion output without a comparison sort.
+- `exclusions.py` adds strict reading, complete saved-listing parsing and
+  comparisons that report only added or raised exceptions. Reading respects
+  the configured artifact home and legacy location without migration.
+- `listings.py`, `cli.py`, `context.py` and `runner.py` wire `ghog groups
+  [name]` and `ghog exclude --list [--since=<file>]`. Listings dispatch before
+  live-run and lifecycle handling, consume environment setup output, and
+  return exit 5 for invalid combinations or unusable evidence.
 
 ### New types or classes introduced for Step 3
 
-_(empty — no check has taken place yet.)_.
+- `ScopeKind` distinguishes whole and group scopes; frozen `ResolvedScope`
+  carries patterns, membership, fingerprint and provenance, with stable key,
+  selector, label and JSON representations. `CaptureError` preserves the
+  shared `bound scope unusable` diagnostic prefix.
+- Frozen `Pattern` holds a compiled expression and its inclusion decision;
+  frozen `Declaration` holds the two ordered pattern lists. `GroupError`
+  identifies declaration and membership failures.
+- Frozen `Settings` holds one resolution phase's collection and coverage
+  settings. Internal `_Node` stores trie edges and terminal values, including
+  duplicates. `_SubcommandParser` converts listing parser failures to setup
+  errors while preserving other commands' argparse behavior.
 
 ### Architecture check for Step 3
 
-_(empty — no check has taken place yet.)_.
+Matching and fingerprint computation are pure. The shared capture module has
+no groundhog or review-exchange dependency; its explicit filesystem helpers
+validate listed files and publish captures without resolving a group again.
+Declaration and configuration IO stays in the group and settings adapters.
+Listings orchestrate those adapters and render through `commands.emit_summary`;
+the CLI owns argument validation and read-only dispatch.
+
+The structural checks find no `pathspec` or `fnmatch` in the group matcher,
+no groundhog or review imports in the capture module, and only the declaration
+read in `groups.py`. The existing inventory is passed into resolution.
+
+Every changed Python file remains below the 650-line ceiling. Production
+counts are CLI 528, exclusions 270, gate 107, context 128, runner 319,
+package initializer 69, capture 243, ordering 56, patterns 89, groups 169,
+listings 69 and settings 136. New unit-test files are at most 133 lines;
+the modified gate test is 118 lines and the exclusion unit tests remain below
+350 lines. No split is required. The staged CLI and runner blobs contain
+only CRLF line endings. The staged whitespace check passes with
+`core.whitespace=cr-at-eol`, preserving that established convention.
+
+No DDD-Hexagonal violation or adapter smell is visible. No, there is nothing
+that needs to be addressed.
 
 ### Performance check for Step 3
 
-_(empty — no check has taken place yet.)_.
+The resolver does not walk the tree again or open source and test contents.
+All-group listing reads the declaration and settings once, and each group's
+rules are compiled once before scanning the supplied inventory. For fixed
+declarations, membership work is linear in the inventory and path input.
+Across variable declarations the explicit bound is the inventory multiplied
+by the declared rules, as the plan permits.
+
+Canonical ordering uses an iterative trie over UTF-8 bytes with at most 256
+edges per node. It is linear in input bytes, preserves duplicate values and
+does not recurse on long prefixes. Fingerprinting and capture serialization
+are linear passes over their content; capture validation checks each distinct
+listed file once. Exclusion comparison uses dictionary membership and a
+single pass. No new comparison sort or pairwise membership scan is introduced.
+
+No, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 3
 
-_(empty — no check has taken place yet.)_.
+The configured gate measures `source = ["tools"]` with `fail_under = 100`.
+It omits tests, package initializers and the existing explicitly listed thin
+adapters and interfaces. Every changed executable production module is in
+scope; the changed groundhog initializer contains documentation only.
+The completed `day --full=speed` walk's coverage phase reports `cov=100`, and
+its separate timing phase reports no outliers. This implementation check
+assessed the source and unit tests statically and ran no test command.
+
+- `test_scope_capture` covers whole and group round trips, selectors, labels,
+  schema/type errors, malformed or altered content, invalid relative paths,
+  fingerprint mismatch, vanished files and atomic-write failure cleanup.
+  Its property test proves file-order independence.
+- `test_groundhog_group_patterns` covers the required wildcard and precedence
+  examples, with properties for basename depth, cancelling exclusions and
+  segment boundaries.
+- `test_groundhog_groups` covers declaration errors, empty sides, settings
+  filters, non-Python inventory entries, sources outside the coverage root,
+  membership identity and the single declaration read.
+- `test_groundhog_project_settings` covers defaults, accessors, configuration
+  formats, precedence, malformed optional settings and coverage path syntax.
+  Existing `test_groundhog_gate.py` still exercises the moved table helper
+  through gate loading.
+- `test_groundhog_listings` covers both CLI commands, output and comparisons,
+  malformed and unreadable evidence, duplicate saved entries, exit-5 argument
+  diagnostics, preserved live-run state and legacy files, and unchanged parser
+  errors for other commands. Existing CLI and runner unit tests retain
+  coverage of their prior behavior; invocation fields are exercised through
+  the CLI tests.
+- `test_groundhog_exclusions.py` directly covers the strict reader's absent
+  file and section, root fallback without migration, home precedence,
+  comment and blank lines, malformed and non-finite or negative durations,
+  and undecodable evidence. It covers stable listing order and counts,
+  round trips, empty and ambiguous saved output, duplicate nodes and invalid
+  counts, and added, raised, lowered, unchanged and removed exceptions.
+  Together with its existing tolerant-read and write tests, every statement
+  of `exclusions.py` is exercised by its own unit test file.
+- `test_linear_order` compares Unicode ordering with Python's lexical order
+  using generated lists and covers long shared prefixes without recursion.
+
+No, there is no unit-tested class below 100% that needs completing for Step 3.
+No changed executable production file lies outside the coverage gate.
 
 ### Feature integrity for Step 3
 
-_(empty — no check has taken place yet.)_.
+Existing whole-suite execution, proof markers, duration collection and
+reporting remain unchanged. This step introduces no run scope selector;
+grouped execution and its two expected-failure gates belong to Step 4.
+The tolerant exclusion reader and exclusion writes retain their prior roles;
+strict evidence reading is confined to the new listings. Read-only listings
+do not replace lifecycle state, migrate a legacy floor file or replay setup
+text into saved exclusion evidence. No existing feature or reporting
+capability appears impaired.
 
 ---
 
