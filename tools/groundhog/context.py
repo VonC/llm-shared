@@ -21,7 +21,8 @@ invocation keeps its old behavior: ``full`` at ``speed``, every other command
 at ``none``), and ``in_walk`` tells a step derived by the day walk from a
 standalone command, so a step report never prints the standalone next step.
 The default survivor spawn now comes from ``detach.py``, split out of
-``status.py``.
+``status.py``. Step 3 carries group-listing names and exclusion-listing options
+without assigning a run scope to these read-only commands.
 """
 
 from __future__ import annotations
@@ -102,6 +103,9 @@ class Invocation:
             environment variable or the command default.
         in_walk: Whether this step was derived by the day walk, whose own
             report carries the next step and the closing evidence.
+        name: Optional group name to validate with ``groups``.
+        list_exclusions: Whether ``exclude`` lists instead of accepting a call.
+        since: Optional saved listing for a semantic exclusion comparison.
     """
 
     sub: str
@@ -116,6 +120,9 @@ class Invocation:
     level: FullLevel | None = None
     level_source: LevelSource = LevelSource.DEFAULT
     in_walk: bool = False
+    name: str | None = None
+    list_exclusions: bool = False
+    since: str | None = None
 
 
 # eof

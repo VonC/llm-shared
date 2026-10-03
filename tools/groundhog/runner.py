@@ -1,5 +1,8 @@
 """Child-process running for groundhog (Q17).
 
+Step 3 adds the groups command name for read-only CLI dispatch; the runner
+continues to execute the whole suite until group execution is introduced.
+
 groundhog runs from the llm-shared venv and spawns pytest (or check.bat) as
 a child process of the project environment prepared by senv.bat, reading
 its output streams live. A hard crash of the suite kills only the child,
@@ -77,6 +80,7 @@ SUB_DAY: Final = "day"
 SUB_INIT: Final = "init"
 SUB_STATUS: Final = "status"
 SUB_EXCLUDE: Final = "exclude"
+SUB_GROUPS: Final = "groups"
 
 
 @dataclass(frozen=True)

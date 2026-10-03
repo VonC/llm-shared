@@ -27,6 +27,10 @@ evidence (objective, source, proof, reuse and scope) that the closing line
 and ``a.ghog.status`` append, and the outcome each executor returns; and
 ``detach`` the detached day walk and its survivor spawn, split out of
 ``status``.
+
+Step 3 adds ``group_patterns``, ``groups`` and ``project_settings`` for group
+resolution, plus read-only ``listings``. The shared ``tools.scope_capture``
+value records exact resolutions for future run and review consumers.
 """
 
 from tools.groundhog.models import (

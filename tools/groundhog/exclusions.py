@@ -30,15 +30,22 @@ Fix: the floor file now lives in the review artifact home, resolved by
 home once, so the recorded exclusions are kept. A home that cannot be prepared
 is treated as one more read or write failure: the read is ``{}`` and the write
 is logged, never raised.
+
+Step 3 adds a strict, read-only listing reader and semantic comparison. It
+never creates or migrates the artifact home, and never treats unreadable
+evidence as an empty set of accepted duration exceptions.
 """
 
 from __future__ import annotations
 
 import contextlib
 import logging
+import math
 from typing import TYPE_CHECKING, Final
 
 from tools.groundhog import floor
+from tools.linear_order import ordered_strings
+from tools.review_artifact_configuration import ReviewArtifactConfiguration
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -181,6 +188,83 @@ def _read_text(root: Path) -> str | None:
     with contextlib.suppress(OSError, ValueError):
         return floor.floor_path(root).read_text(encoding="utf-8")
     return None
+
+
+def read_exclusions_strict(root: Path) -> dict[str, float]:
+    """Read effective exclusions without hiding malformed or unreadable evidence.
+
+    Args:
+        root: The consuming project root.
+
+    Returns:
+        Effective exclusions, empty only for an absent file or section.
+
+    Raises:
+        OSError: When the existing file cannot be read.
+        ValueError: For invalid configuration, encoding or exclusion entries.
+    """
+    path = ReviewArtifactConfiguration.load(root).home / floor.FLOOR_FILE
+    if not path.exists():
+        path = root / floor.FLOOR_FILE
+    try:
+        text = path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return {}
+    result: dict[str, float] = {}
+    in_section = False
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not in_section:
+            in_section = line == _EXCLUSION_HEADER
+        elif line and not line.startswith("#"):
+            node, seconds = _strict_entry(line)
+            result[node] = seconds
+    return result
+
+
+def _strict_entry(line: str) -> tuple[str, float]:
+    """Reuse the gate's parser while refusing invalid duration values."""
+    entry = _parse_entry(line)
+    if entry is None or not math.isfinite(entry[1]) or entry[1] < 0:
+        msg = f"malformed exclusion entry: {line}"
+        raise ValueError(msg)
+    return entry
+
+
+def listing_lines(entries: Mapping[str, float]) -> list[str]:
+    """Return stable entry lines followed by their count."""
+    return [*(f"{node} = {entries[node]}" for node in ordered_strings(entries)), f"exclusions={len(entries)}"]
+
+
+def parse_listing(text: str) -> dict[str, float]:
+    """Parse a complete saved listing, refusing incomplete or ambiguous evidence.
+
+    Args:
+        text: Output previously saved from the strict listing command.
+
+    Returns:
+        The saved effective exclusion map.
+
+    Raises:
+        ValueError: For missing counts, malformed entries or duplicate nodes.
+    """
+    lines = text.splitlines()
+    result: dict[str, float] = {}
+    for line in lines[:-1]:
+        node, seconds = _strict_entry(line)
+        if node in result:
+            msg = "duplicate exclusion entry"
+            raise ValueError(msg)
+        result[node] = seconds
+    if not lines or lines[-1] != f"exclusions={len(result)}":
+        msg = "missing or invalid exclusion count"
+        raise ValueError(msg)
+    return result
+
+
+def compare_listings(saved: Mapping[str, float], current: Mapping[str, float]) -> dict[str, float]:
+    """Return only newly added exceptions or raised accepted baselines."""
+    return {node: seconds for node, seconds in current.items() if node not in saved or seconds > saved[node]}
 
 
 # eof

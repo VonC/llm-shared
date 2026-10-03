@@ -59,6 +59,10 @@ non-empty ``GHOG_FULL`` read through the ``environ`` seam, else the command
 default. ``timings``, ``status``, ``init`` and ``exclude`` neither accept
 ``--full`` nor read ``GHOG_FULL``. The detached walk is launched from
 ``detach.py``, split out of ``status.py``.
+
+Step 3 adds read-only group and exclusion listings outside the lifecycle.
+Their argument combinations are validated here, including free-form exclusion
+seconds, so invalid listing requests return setup exit 5 instead of argparse 2.
 """
 
 from __future__ import annotations
@@ -67,6 +71,7 @@ import argparse
 import contextlib
 import io
 import logging
+import math
 import sys
 from dataclasses import replace
 from pathlib import Path
@@ -83,6 +88,7 @@ from tools.groundhog import (
     detach,
     exclusions,
     floor,
+    listings,
     progress,
     redirect,
     reporting,
@@ -95,6 +101,7 @@ from tools.groundhog.models import EXIT_OBJECTIVE_MET, EXIT_SETUP_ERROR, Mode, R
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+    from typing import NoReturn
 
 LOGGER = logging.getLogger("groundhog")
 
@@ -106,6 +113,16 @@ _LEVEL_SUBS: Final = (
     runner.SUB_SINGLE,
     runner.SUB_DAY,
 )
+
+
+class _SubcommandParser(argparse.ArgumentParser):
+    """Return setup diagnostics for malformed listing options, preserving other CLIs."""
+
+    def error(self, message: str) -> NoReturn:
+        """Convert listing parse errors before argparse can exit with status two."""
+        if self.prog in ("ghog groups", "ghog exclude"):
+            raise ValueError(message)
+        super().error(message)
 
 
 def pick_mode(*, user: bool, llm: bool, tty: bool) -> Mode:
@@ -139,19 +156,19 @@ def main(argv: Sequence[str] | None = None, deps: Deps | None = None) -> int:
     """
     _configure_logging()
     active = deps if deps is not None else Deps()
-    args = _build_arg_parser().parse_args(list(argv) if argv is not None else None)
     try:
+        args = _parse_args(argv)
         root = _resolve_root(args.root)
-    except FileNotFoundError as error:
+        invocation = _build_invocation(args, root)
+    except (FileNotFoundError, ValueError) as error:
         LOGGER.info("ghog: %s", error)
         return EXIT_SETUP_ERROR
-    invocation = _build_invocation(args, root)
     # The Q32 paths keep their bounded envelope on stdout: no guard, no
     # senv replay, and no mirror left armed by an earlier in-process run.
     redirect.disarm()
-    if invocation.sub == runner.SUB_STATUS:
-        redirect.consume_senv_log()
-        return status.run_status(invocation)
+    read_only = _run_read_only(invocation)
+    if read_only is not None:
+        return read_only
     try:
         invocation = _with_level(invocation, getattr(args, "full", None), active)
     except LevelError as error:
@@ -167,6 +184,50 @@ def main(argv: Sequence[str] | None = None, deps: Deps | None = None) -> int:
     redirect.activate_if_captured(invocation.mode, invocation.root)
     redirect.replay_senv_log(invocation.mode, invocation.root)
     return _run_post_redirect(invocation, active)
+
+
+def _run_read_only(invocation: Invocation) -> int | None:
+    """Dispatch evidence listings without redirecting or starting a lifecycle."""
+    if invocation.sub == runner.SUB_STATUS:
+        redirect.consume_senv_log()
+        return status.run_status(invocation)
+    if invocation.sub == runner.SUB_GROUPS:
+        redirect.consume_senv_log()
+        return listings.run_groups(invocation)
+    if invocation.sub == runner.SUB_EXCLUDE and invocation.list_exclusions:
+        redirect.consume_senv_log()
+        return listings.run_exclude_list(invocation)
+    return None
+
+
+def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
+    """Validate listing arguments with groundhog's setup-error contract."""
+    parser = _build_arg_parser()
+    args, unknown = parser.parse_known_args(list(argv) if argv is not None else None)
+    if unknown:
+        message = f"unrecognized arguments: {' '.join(unknown)}"
+        if args.sub in (runner.SUB_GROUPS, runner.SUB_EXCLUDE):
+            raise ValueError(message)
+        parser.error(message)
+    if args.sub == runner.SUB_EXCLUDE:
+        _validate_exclude(args)
+    return args
+
+
+def _validate_exclude(args: argparse.Namespace) -> None:
+    """Refuse incomplete writes or mixed listing and mutation arguments."""
+    if args.list_exclusions:
+        if args.node is not None or args.seconds is not None or args.since == "":
+            msg = "exclude --list accepts only an optional --since=<saved listing>"
+            raise ValueError(msg)
+    else:
+        if not args.node or args.seconds is None or args.since is not None:
+            msg = "exclude requires a node and measured seconds, or --list"
+            raise ValueError(msg)
+        seconds = float(args.seconds)
+        if not math.isfinite(seconds) or seconds < 0:
+            msg = "exclude seconds must be finite and nonnegative"
+            raise ValueError(msg)
 
 
 def _run_post_redirect(invocation: Invocation, deps: Deps) -> int:
@@ -274,8 +335,11 @@ def _build_invocation(args: argparse.Namespace, root: Path) -> Invocation:
         root=root,
         force=bool(getattr(args, "force", False)),
         detach=bool(getattr(args, "detach", False)),
-        node=str(getattr(args, "node", "")),
-        seconds=float(getattr(args, "seconds", 0.0)),
+        node=str(getattr(args, "node", "") or ""),
+        seconds=float(getattr(args, "seconds", 0.0) or 0.0),
+        name=getattr(args, "name", None),
+        list_exclusions=bool(getattr(args, "list_exclusions", False)),
+        since=getattr(args, "since", None),
     )
 
 
@@ -285,7 +349,7 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     Returns:
         The configured parser.
     """
-    common = argparse.ArgumentParser(add_help=False)
+    common = _SubcommandParser(add_help=False)
     common.add_argument(
         "--root",
         help="Project root override (defaults to the .git root, Q14).",
@@ -300,7 +364,7 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Force LLM mode: plain progress lines (Q03).",
     )
-    leveled = argparse.ArgumentParser(add_help=False, parents=[common])
+    leveled = _SubcommandParser(add_help=False, parents=[common])
     leveled.add_argument(
         "--full",
         default=None,
@@ -313,7 +377,7 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         prog="ghog",
         description="groundhog: pytest reset tool (see tools/Pytest reset specs.md).",
     )
-    subparsers = parser.add_subparsers(dest="sub", required=True)
+    subparsers = parser.add_subparsers(dest="sub", required=True, parser_class=_SubcommandParser)
     subparsers.add_parser(
         runner.SUB_CHECK,
         parents=[leveled],
@@ -394,13 +458,18 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     )
     exclude.add_argument(
         "node",
+        nargs="?",
         help="The full pytest node id to accept as slow (quote a parametrized id).",
     )
     exclude.add_argument(
         "seconds",
-        type=float,
+        nargs="?",
         help="The call's measured time in seconds, the recorded baseline.",
     )
+    exclude.add_argument("--list", dest="list_exclusions", action="store_true", help="List effective duration exclusions.")
+    exclude.add_argument("--since", nargs="?", const="", help="Compare exclusions with a saved listing.")
+    groups = subparsers.add_parser(runner.SUB_GROUPS, parents=[common], help="List or validate declared test groups.")
+    groups.add_argument("name", nargs="?", help="Validate this group only.")
     return parser
 
 
