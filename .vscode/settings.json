@@ -124,6 +124,7 @@
     "putpixel",
     "pycparser",
     "pyrb",
+    "PYTHONWARNINGS",
     "Rebundle",
     "recognise",
     "reimplementation",
