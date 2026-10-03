@@ -10,6 +10,7 @@ requestor, from an active exchange or else the topic's transcripts, renders the
 
 Fix: a specification routing refusal (several live exchanges for one topic)
 becomes a `none resolved (<reason>)` next line instead of aborting the report.
+Topic reports include the requirement-owned scope after their phase or step.
 """
 
 from __future__ import annotations
@@ -261,6 +262,7 @@ def test_progress_lines_for_an_umbrella_child_in_implementation(
         ("umbrella", "family, topic 2/3: Title beta-one (1/3 topics completed)"),
         ("phase", "implementation (5/5)"),
         ("step", "3.2 (5/7): Wire the parser (4/7 verified)"),
+        ("scope", "whole suite (no Test group line in docs/feature-request.v10.0.0.beta-one.md)"),
         ("review", "review of beta-one"),
         ("next", "/next"),
     ]
@@ -299,6 +301,7 @@ def test_progress_lines_for_a_standalone_draft_and_an_empty_plan(
         ("topic", f"{_VERSION} solo"),
         ("umbrella", "none, standalone topic"),
         ("phase", "draft (1/5)"),
+        ("scope", "whole suite (no requirement yet)"),
         ("review", "review of solo"),
         ("next", "/process-draft on docs/draft.v10.0.0.solo.md"),
     ]

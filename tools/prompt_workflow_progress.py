@@ -33,6 +33,9 @@ still fails closed when one topic has several live specification exchanges,
 since it must hand off to exactly one; `pw progress` only reports, so it
 keeps every other line (the `review` lines already name each exchange) and
 states the refusal on its `next` line.
+
+The requirement-owned `scope` follows the step and optional journal, or the
+phase when no step exists. Invalid declarations are displayed without fallback.
 """
 
 from __future__ import annotations
@@ -50,6 +53,7 @@ from tools import prompt_workflow_plan as plan
 from tools import prompt_workflow_progress_review as progress_review
 from tools import prompt_workflow_review as review
 from tools import prompt_workflow_review_history as review_history
+from tools import prompt_workflow_scope as scope
 from tools import prompt_workflow_skill as skill
 from tools import prompt_workflow_step_journal as step_journal
 from tools import prompt_workflow_steps as steps
@@ -326,7 +330,7 @@ def progress_lines(
 
     Returns:
         `(label, value)` pairs: branch, topic, umbrella, then phase and step
-        for a topic (not for its umbrella integration branch), then one
+        for a topic (not for its umbrella integration branch), its scope, then one
         review line per active review exchange, one resume line per abnormal
         exchange, then next, rendered for the topic's requestor when it is
         known (see `next_line`).
@@ -405,7 +409,7 @@ def _next_command(  # noqa: PLR0913
 
 
 def _topic_lines(root: Path, topic: Topic, branch: str) -> list[tuple[str, str]]:
-    """Return the branch, topic, umbrella, phase, and step lines of a topic."""
+    """Return the topic position, optional journal and requirement-owned scope."""
     lines = [("branch", branch)]
     if skill.is_umbrella_branch(topic, branch):
         lines.append(("topic", f"{topic.version} {topic.slug} (umbrella)"))
@@ -436,6 +440,7 @@ def _topic_lines(root: Path, topic: Topic, branch: str) -> list[tuple[str, str]]
         if progress is not None:
             lines.append(("step", progress.render()))
             lines.extend(journal_lines(root, topic, progress))
+    lines.extend(scope.scope_lines(root, topic, state))
     return lines
 
 

@@ -3,6 +3,7 @@
 `--root` and `--debug` parse on either side of every subcommand (Q01), the
 `handoff` step stays a plain string (Q04, Q56), and `skill` and `progress`
 share the same `--host` choices.
+`scope` preserves the remaining ghog arguments, including level options.
 
 Fix: the options given before the subcommand are no longer reset by the
 subparser defaults; the test that pinned the lost values now asserts that they
@@ -45,6 +46,7 @@ def test_common_options_parse_on_the_top_level_and_after_a_subcommand() -> None:
         ("handoff", "check", "4A"),
         ("skill",),
         ("progress",),
+        ("scope", "day"),
         ("step-journal", "2"),
         ("code-review-commit",),
     ],
@@ -127,6 +129,15 @@ def test_report_and_document_subcommands() -> None:
     assert (document["version"], document["slug"]) == ("v1.2.3", "topic")
     assert _parse("code-review-commit", "--residual")["residual"] is True
     assert _parse("code-review-commit")["residual"] is False
+
+
+@pytest.mark.parametrize("arguments", [[], ["day", "--full=speed"]])
+def test_scope_carries_remaining_ghog_arguments(arguments: list[str]) -> None:
+    """Scope owns no ghog flags; it preserves them after the command word."""
+    args = _parse("--root", "X", "scope", *arguments)
+    assert args["root"] == "X"
+    assert args["command"] == "scope"
+    assert args["ghog_args"] == arguments
 
 
 # eof

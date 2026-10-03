@@ -10,6 +10,8 @@ subcommand (Q01); ``--pick`` stays top-level only. The ``handoff`` subcommand
 carries a ``task`` word and a plain-string ``step`` positional, so a sub-step id
 such as ``4A`` is accepted and validated by the resolver, not the parser (Q04,
 Q56).
+The ``scope`` subcommand carries remaining ghog arguments unchanged, so their
+level options belong to groundhog rather than this parser.
 
 Fix: ``--root`` and ``--debug`` given before the subcommand were lost. Argparse
 applies each subparser's own defaults to the shared namespace after the
@@ -34,7 +36,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
 
     Returns:
         The top-level parser with its ``handoff``, ``skill``, ``progress``,
-        ``document``, ``step-journal`` and ``code-review-commit`` subparsers;
+        ``scope``, ``document``, ``step-journal`` and ``code-review-commit`` subparsers;
         ``--root`` and ``--debug`` keep the value given on either side of the
         subcommand.
     """
@@ -69,6 +71,12 @@ def build_arg_parser() -> argparse.ArgumentParser:
         help="Print where the current topic stands, then its next command.",
     )
     _add_host_option(progress_parser)
+    scope_parser = subparsers.add_parser(
+        "scope",
+        parents=[common],
+        help="Print the effort selector or complete a ghog command with it.",
+    )
+    scope_parser.add_argument("ghog_args", nargs=argparse.REMAINDER, help="Arguments for ghog, starting with its command.")
     document_parser = subparsers.add_parser(
         "document",
         parents=[common],

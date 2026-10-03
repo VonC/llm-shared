@@ -42,6 +42,8 @@ dispatch to each subcommand.
 
 See ``docs/design.v0.1.0.pw_handoff.md`` for the full specification and the design
 decisions (Q01 to Q64) behind this tool.
+
+``scope`` reports the requirement-owned selector or completes a ghog command.
 """
 
 from __future__ import annotations
@@ -68,6 +70,7 @@ from tools import prompt_workflow_memory as memory
 from tools import prompt_workflow_menu as menu
 from tools import prompt_workflow_plan as plan
 from tools import prompt_workflow_progress as progress
+from tools import prompt_workflow_scope as scope
 from tools import prompt_workflow_skill as skill
 from tools import prompt_workflow_step_journal as step_journal
 from tools import prompt_workflow_steps as steps
@@ -515,11 +518,13 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def _run_report(root: Path, args: argparse.Namespace) -> int | None:
-    """Run the read-mostly `progress` or `step-journal` report, else return None."""
+    """Run the read-mostly `progress`, `scope` or `step-journal` report."""
     if args.command == "progress":
         return progress.run_progress(root, args.host_override)
     if args.command == "step-journal":
         return step_journal.run_step_journal(root, args.step)
+    if args.command == "scope":
+        return scope.run_scope(root, args.ghog_args)
     return None
 
 
