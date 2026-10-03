@@ -208,7 +208,7 @@ def test_plan_integration_previews_main_sync_conflict(
     assert plan.merge_preview.clean is False
     assert plan.merge_preview.conflicted_files == ("shared.txt",)
     assert plan.operations[1] == "git merge --no-ff main"
-    assert plan.operations[2] == "run ghog day --full=cov"
+    assert plan.operations[2] == "run ghog day --full=cov --whole-suite"
 
 
 @pytest.fixture
@@ -475,7 +475,7 @@ def test_plan_single_parent_candidate_is_selected_without_ranking(
     (candidate,) = plan.boundary_candidates
     assert candidate.parent_refs == ("main",)
     assert plan.action is ReleaseAction.REBASE_ONTO_MAIN_THEN_MERGE
-    assert plan.operations[2] == "run git range-diff and ghog day --full=cov"
+    assert plan.operations[2] == "run git range-diff and ghog day --full=cov --whole-suite"
 
 
 def test_plan_ambiguous_parents_select_the_unique_nearest_boundary(
