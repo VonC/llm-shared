@@ -1,4 +1,6 @@
-"""Unit tests for the duration-outlier wiring of the groundhog commands.
+"""Scope-aware repair and restart expectations.
+
+Unit tests for the duration-outlier wiring of the groundhog commands.
 
 Cover Step 4: a green-but-slow full run exits 8 with the windowed list, the
 fix step and the ``avg=``/``outliers=`` verdict, and writes ``a.ghog.outliers``
@@ -466,7 +468,7 @@ def test_covered_affected_run_reaches_the_gate(
     """A covered affected run at the gate needs no full run (Q14)."""
     spawns = Spawns(passing_transcript(1, "TOTAL    100    0   100%"), 0)
     assert _run(["affected"], spawns, tmp_path) == EXIT_OBJECTIVE_MET
-    assert reporting_nextstep.MSG_AFFECTED_COV_OK in capsys.readouterr().out
+    assert reporting_nextstep.MSG_AFFECTED_COV_OK.replace("ghog check", "ghog check --whole-suite") in capsys.readouterr().out
 
 
 def test_single_run_compares_with_the_full_run_baseline(

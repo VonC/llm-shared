@@ -1,4 +1,6 @@
-"""Acceptance tests for groundhog, the per-subcommand scenarios.
+"""Scope-aware repair and restart expectations.
+
+Acceptance tests for groundhog, the per-subcommand scenarios.
 
 Each scenario drives ``cli.main`` end to end; the one faked element is
 the process boundary (a canned pytest transcript and exit code injected
@@ -210,7 +212,7 @@ def test_at5_coverage_gap_and_gate_reached(
         make_deps(reached),
     )
     assert code == EXIT_OBJECTIVE_MET
-    assert reporting_nextstep.MSG_AFFECTED_COV_OK in capsys.readouterr().out
+    assert reporting_nextstep.MSG_AFFECTED_COV_OK.replace("ghog check", "ghog check --whole-suite") in capsys.readouterr().out
 
 
 def test_at6_crash_prints_the_crash_block(

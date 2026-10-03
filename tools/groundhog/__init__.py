@@ -31,6 +31,10 @@ and ``a.ghog.status`` append, and the outcome each executor returns; and
 Step 3 adds ``group_patterns``, ``groups`` and ``project_settings`` for group
 resolution, plus read-only ``listings``. The shared ``tools.scope_capture``
 value records exact resolutions for future run and review consumers.
+
+Step 4 adds ``scope`` for explicit and environment selection and ``group_coverage``
+for isolated source evidence. Walks share one inventory, carry scope in reports
+and detached captures, and judge group durations without writing shared settings.
 """
 
 from tools.groundhog.models import (

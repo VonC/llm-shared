@@ -1,5 +1,7 @@
 """groundhog (alias ``ghog``): the pytest reset tool entry point.
 
+Fix (v0.13.0 full_suite_levels, Step 4): groundhog entry point, resolving explicit or ambient scope once per run.
+
 Subcommands (Q02, Q15): ``check`` runs check.bat from the project root,
 ``full`` re-runs the whole suite with a fresh testmon database and
 coverage (ptr), ``affected`` runs the testmon-selected tests (pta, with
@@ -93,6 +95,8 @@ from tools.groundhog import (
     redirect,
     reporting,
     runner,
+    scope,
+    snapshot,
     status,
 )
 from tools.groundhog.context import Deps, Invocation
@@ -116,11 +120,13 @@ _LEVEL_SUBS: Final = (
 
 
 class _SubcommandParser(argparse.ArgumentParser):
-    """Return setup diagnostics for malformed listing options, preserving other CLIs."""
+    """Return setup diagnostics for listing and free scope option errors."""
 
     def error(self, message: str) -> NoReturn:
         """Convert listing parse errors before argparse can exit with status two."""
-        if self.prog in ("ghog groups", "ghog exclude"):
+        if self.prog in ("ghog groups", "ghog exclude") or any(
+            option in message for option in ("--group", "--scope-file", "--whole-suite")
+        ):
             raise ValueError(message)
         super().error(message)
 
@@ -171,7 +177,9 @@ def main(argv: Sequence[str] | None = None, deps: Deps | None = None) -> int:
         return read_only
     try:
         invocation = _with_level(invocation, getattr(args, "full", None), active)
-    except LevelError as error:
+        if invocation.sub in _LEVEL_SUBS:
+            invocation = _with_scope(invocation, args, active)
+    except (LevelError, scope.ScopeError) as error:
         redirect.consume_senv_log()
         commands.emit_summary([f"ghog: {error}"])
         return EXIT_SETUP_ERROR
@@ -290,6 +298,20 @@ def run_exclude(invocation: Invocation) -> int:
     return EXIT_OBJECTIVE_MET
 
 
+def _with_scope(invocation: Invocation, args: argparse.Namespace, deps: Deps) -> Invocation:
+    """Resolve scope lazily, sharing a group inventory with the subsequent walk."""
+    inventory: tuple[Path, ...] | None = None
+
+    def source_files() -> tuple[Path, ...]:
+        """Build the inventory only when declarations need membership resolution."""
+        nonlocal inventory
+        inventory = tuple(snapshot.source_files(invocation.root))
+        return inventory
+
+    resolved = scope.resolve_scope(args, deps.environ, invocation.root, source_files)
+    return replace(invocation, scope=resolved, inventory=inventory)
+
+
 def _with_level(invocation: Invocation, param: str | None, deps: Deps) -> Invocation:
     """Resolve the full-suite level of a run or repair command, once.
 
@@ -373,6 +395,9 @@ def _build_arg_parser() -> argparse.ArgumentParser:
             "command default: speed for full, none for the others)."
         ),
     )
+    leveled.add_argument("--group", help="Run the named test and source group (else GHOG_GROUP).")
+    leveled.add_argument("--whole-suite", action="store_true", help="Run the whole suite regardless of GHOG_GROUP.")
+    leveled.add_argument("--scope-file", help="Run a validated bound scope capture.")
     parser = argparse.ArgumentParser(
         prog="ghog",
         description="groundhog: pytest reset tool (see tools/Pytest reset specs.md).",

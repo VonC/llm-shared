@@ -24,7 +24,7 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import TYPE_CHECKING, Final
 
-from tools.groundhog import runner, snapshot
+from tools.groundhog import runner
 from tools.groundhog.levels import ResolvedLevel, effective_level, proof_token
 from tools.groundhog.models import RunStats
 
@@ -135,7 +135,7 @@ def for_invocation(invocation: Invocation, proof: FullLevel | None = None) -> Ru
         (``reused=none`` for the walk); the scope alone for any other run and
         for every step inside a walk.
     """
-    scope_key = snapshot.WHOLE_SCOPE_KEY
+    scope_key = invocation.scope.key()
     if invocation.in_walk or invocation.sub not in _LEVEL_SUBS:
         return RunEvidence(scope_key)
     resolved = ResolvedLevel(

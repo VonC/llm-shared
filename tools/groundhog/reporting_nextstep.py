@@ -1,5 +1,7 @@
 """The run-state table text of a groundhog run: next steps and focus lists.
 
+Fix (v0.13.0 full_suite_levels, Step 4): Run-state instructions carrying explicit scope after the selected level.
+
 This module owns the words the run-state table prints after each step: the
 next-step messages of every branch (check, affected, full, single), the
 coverage-gap and no-tests notices, the day-walk noop line, the exit-8 outlier
@@ -59,6 +61,7 @@ from tools.groundhog.models import (
     EXIT_OBJECTIVE_MET,
     EXIT_TEST_FAILURES,
 )
+from tools.scope_capture import WHOLE_SCOPE, ResolvedScope
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -68,8 +71,6 @@ if TYPE_CHECKING:
 
 # The restart command every post-fix line names (Q30).
 _DAY: Final = "ghog day"
-# The scope every Step 2 success line names: groups arrive with Step 4.
-_WHOLE_SUITE: Final = "the whole suite"
 # Next-step messages of the run-state table in the spec.
 MSG_CHECK_OK: Final = "Next: ghog affected --no-cov"
 MSG_CHECK_MISSING: Final = (
@@ -151,7 +152,7 @@ _SUCCESS: Final = {
 
 @dataclass(frozen=True)
 class StepContext:
-    """What a step's next-step lines need beyond its exit code.
+    """Carry the resolved scope through every level-shaped repair instruction.
 
     Attributes:
         level: The carried level the restart lines name.
@@ -163,9 +164,10 @@ class StepContext:
     level: FullLevel = FullLevel.NONE
     in_walk: bool = False
     parallel: bool = False
+    scope: ResolvedScope = WHOLE_SCOPE
 
 
-def restart_command(level: FullLevel, scope_selector: str = "") -> str:
+def restart_command(level: FullLevel, scope_selector: str = "--whole-suite") -> str:
     """Render the walk restart every post-fix line names (Q30).
 
     Args:
@@ -180,36 +182,39 @@ def restart_command(level: FullLevel, scope_selector: str = "") -> str:
     return " ".join(part for part in parts if part)
 
 
-def carried_selector(level: FullLevel) -> str:
+def carried_selector(level: FullLevel, scope: ResolvedScope = WHOLE_SCOPE) -> str:
     """Render the level suffix a repair command carries.
 
     Args:
+        scope: The resolved scope carried by every repair and restart.
         level: The carried level.
 
     Returns:
-        `` --full=<level>`` with its leading space, empty at ``none``.
+        The scope selector and any level selector, prefixed by spaces.
     """
-    selector = level_selector(level)
-    return f" {selector}" if selector else ""
+    selector = " ".join(part for part in (level_selector(level), scope.selector()) if part)
+    return f" {selector}"
 
 
-def success_line(level: FullLevel) -> str:
+def success_line(level: FullLevel, scope: ResolvedScope = WHOLE_SCOPE) -> str:
     """Render the success line of one level, naming its scope.
 
     Args:
+        scope: The resolved scope carried by every repair and restart.
         level: The level the walk or run met.
 
     Returns:
         The skip line at ``none``, else the objective-met line of the level.
     """
-    choices = ", ".join(restart_command(choice) for choice in ACCEPTED_LEVELS)
-    return _SUCCESS[level].format(scope=_WHOLE_SUITE, choices=choices)
+    choices = ", ".join(restart_command(choice, scope.selector()) for choice in ACCEPTED_LEVELS)
+    return _SUCCESS[level].format(scope=scope.label(), choices=choices)
 
 
-def noop_line(requested: FullLevel, saved: FullLevel) -> str:
+def noop_line(requested: FullLevel, saved: FullLevel, scope: ResolvedScope = WHOLE_SCOPE) -> str:
     """Render the noop line of a day walk met by saved proof.
 
     Args:
+        scope: The resolved scope carried by every repair and restart.
         requested: The level the walk was asked to prove.
         saved: The valid saved proof that meets it.
 
@@ -218,46 +223,49 @@ def noop_line(requested: FullLevel, saved: FullLevel) -> str:
         and saying nothing ran, not even check.bat.
     """
     return (
-        f"Requested objective {requested.token} for {_WHOLE_SUITE} is met by "
+        f"Requested objective {requested.token} for {scope.label()} is met by "
         f"saved proof at {saved.token} on unchanged sources - nothing ran in "
         "this invocation, not even check.bat (use --force to walk anyway)"
     )
 
 
-def check_fail_line(level: FullLevel) -> str:
+def check_fail_line(level: FullLevel, scope: ResolvedScope = WHOLE_SCOPE) -> str:
     """Render the compile-error next step, restarting at the carried level.
 
     Args:
+        scope: The resolved scope carried by every repair and restart.
         level: The carried level.
 
     Returns:
         The next step naming the walk restart.
     """
     return (
-        f"Next: fix the compile errors above, re-run {restart_command(level)} "
+        f"Next: fix the compile errors above, re-run {restart_command(level, scope.selector())} "
         "(the walk opens with this check)"
     )
 
 
-def affected_fail_line(level: FullLevel) -> str:
+def affected_fail_line(level: FullLevel, scope: ResolvedScope = WHOLE_SCOPE) -> str:
     """Render the affected-failure next step, carrying the level.
 
     Args:
+        scope: The resolved scope carried by every repair and restart.
         level: The carried level.
 
     Returns:
         The next step naming the ptanc repair and the walk restart.
     """
     return (
-        f"Next: fix these, re-run ghog affected --no-cov{carried_selector(level)} "
-        f"until green, then {restart_command(level)}"
+        f"Next: fix these, re-run ghog affected --no-cov{carried_selector(level, scope)} "
+        f"until green, then {restart_command(level, scope.selector())}"
     )
 
 
-def coverage_gap_line(level: FullLevel) -> str:
+def coverage_gap_line(level: FullLevel, scope: ResolvedScope = WHOLE_SCOPE) -> str:
     """Render the coverage-gap next step, carrying the level.
 
     Args:
+        scope: The resolved scope carried by every repair and restart.
         level: The carried level.
 
     Returns:
@@ -266,11 +274,11 @@ def coverage_gap_line(level: FullLevel) -> str:
     return (
         "Next: covg <file> <ranges> to name the uncovered functions "
         "(use the Missing column above, never a coverage.json export), "
-        f"add tests, verify with ghog affected{carried_selector(level)}"
+        f"add tests, verify with ghog affected{carried_selector(level, scope)}"
     )
 
 
-def outliers_line(level: FullLevel) -> str:
+def outliers_line(level: FullLevel, scope: ResolvedScope = WHOLE_SCOPE) -> str:
     """Render the exit-8 next step (Q47), restarting at the carried level.
 
     Fix only the calls above the floor, confirm the new time alone, then
@@ -280,6 +288,7 @@ def outliers_line(level: FullLevel) -> str:
     walk.
 
     Args:
+        scope: The resolved scope carried by every repair and restart.
         level: The carried level.
 
     Returns:
@@ -290,59 +299,62 @@ def outliers_line(level: FullLevel) -> str:
         "so do not just re-measure - shorten each call listed above the floor (how "
         "to: <llm-shared>/instructions/fix_slow_test.md) until it lands well below "
         "the floor with margin to spare, confirm it alone with ghog single "
-        f"<file>{carried_selector(level)}, then {restart_command(level)}"
+        f"<file>{carried_selector(level, scope)}, then {restart_command(level, scope.selector())}"
     )
 
 
-def no_baseline_line(level: FullLevel) -> str:
+def no_baseline_line(level: FullLevel, scope: ResolvedScope = WHOLE_SCOPE) -> str:
     """Render the focus-run notice when no full run left a failure baseline.
 
     Args:
+        scope: The resolved scope carried by every repair and restart.
         level: The carried level, so the full run that writes the baseline
             keeps the selected objective.
 
     Returns:
-        The notice naming ``ghog full`` with the level selector, plain at
-        ``none``.
+        The notice naming ``ghog full`` with the scope and any level selector.
     """
-    return _NO_BASELINE.format(selector=carried_selector(level))
+    return _NO_BASELINE.format(selector=carried_selector(level, scope))
 
 
-def single_restart_line(level: FullLevel) -> str:
+def single_restart_line(level: FullLevel, scope: ResolvedScope = WHOLE_SCOPE) -> str:
     """Render the failing focus-run next step, carrying the level.
 
     Args:
+        scope: The resolved scope carried by every repair and restart.
         level: The carried level.
 
     Returns:
         The line keeping the caller on ghog single, then restarting the walk.
     """
     return (
-        f"Stay on ghog single{carried_selector(level)} until green, then restart "
-        f"the walk: {restart_command(level)}"
+        f"Stay on ghog single{carried_selector(level, scope)} until green, then restart "
+        f"the walk: {restart_command(level, scope.selector())}"
     )
 
 
-def single_green_line(level: FullLevel) -> str:
+def single_green_line(level: FullLevel, scope: ResolvedScope = WHOLE_SCOPE) -> str:
     """Render the green focus-run next step, restarting at the carried level.
 
     Args:
+        scope: The resolved scope carried by every repair and restart.
         level: The carried level.
 
     Returns:
         The walk restart, naming what the walk re-proves at that level.
     """
     proves = "check and affected" if level is FullLevel.NONE else "check, affected and full"
-    return f"Next: {restart_command(level)} (the walk re-proves {proves})"
+    return f"Next: {restart_command(level, scope.selector())} (the walk re-proves {proves})"
 
 
-def timings_failed_line(level: FullLevel, failing_files: Sequence[str]) -> str:
+def timings_failed_line(level: FullLevel, failing_files: Sequence[str], scope: ResolvedScope = WHOLE_SCOPE) -> str:
     """Render the next step of a failure inside the sequential timing pass.
 
     A failure there is a real failure, fixed with ghog single before any
     duration verdict is trusted.
 
     Args:
+        scope: The resolved scope carried by every repair and restart.
         level: The carried level.
         failing_files: The unique failing test files, for the focus run.
 
@@ -352,8 +364,8 @@ def timings_failed_line(level: FullLevel, failing_files: Sequence[str]) -> str:
     files = "".join(f" {name}" for name in failing_files)
     return (
         "Next: a failure in the sequential timing pass is a real failure; fix it "
-        f"with ghog single{files}{carried_selector(level)} before trusting any "
-        f"duration verdict, then {restart_command(level)}"
+        f"with ghog single{files}{carried_selector(level, scope)} before trusting any "
+        f"duration verdict, then {restart_command(level, scope.selector())}"
     )
 
 
@@ -378,12 +390,12 @@ def next_after_timings(
         The next-step lines of the run-state table.
     """
     if exit_code == EXIT_DURATION_OUTLIERS:
-        return [outliers_line(context.level), _exclusion_hint(summary)]
+        return [outliers_line(context.level, context.scope), _exclusion_hint(summary)]
     if exit_code == EXIT_TEST_FAILURES:
-        return [timings_failed_line(context.level, failing_files)]
+        return [timings_failed_line(context.level, failing_files, context.scope)]
     if exit_code == EXIT_OBJECTIVE_MET:
         if context.in_walk:
-            return [success_line(context.level)]
+            return [success_line(context.level, context.scope)]
         return [MSG_TIMINGS_OK]
     return []
 
@@ -407,11 +419,11 @@ def next_after_full(
     """
     if exit_code == EXIT_TEST_FAILURES:
         files = " ".join(failing_files)
-        return [f"Next: ghog single {files}".rstrip() + carried_selector(context.level)]
+        return [f"Next: ghog single {files}".rstrip() + carried_selector(context.level, context.scope)]
     if exit_code == EXIT_COVERAGE_GAP:
-        return [coverage_gap_line(context.level)]
+        return [coverage_gap_line(context.level, context.scope)]
     if exit_code == EXIT_DURATION_OUTLIERS:
-        return [outliers_line(context.level), _exclusion_hint(summary)]
+        return [outliers_line(context.level, context.scope), _exclusion_hint(summary)]
     if exit_code == EXIT_OBJECTIVE_MET:
         return _full_success(context)
     return []
@@ -433,8 +445,8 @@ def _full_success(context: StepContext) -> list[str]:
     if context.level is FullLevel.SPEED and context.parallel:
         if context.in_walk:
             return []
-        return [success_line(FullLevel.COV), MSG_SPEED_NOT_MEASURED]
-    return [success_line(context.level)]
+        return [success_line(FullLevel.COV, context.scope), f"{MSG_SPEED_NOT_MEASURED} {context.scope.selector()}"]
+    return [success_line(context.level, context.scope)]
 
 
 def _exclusion_hint(summary: DurationSummary | None) -> str:
@@ -471,10 +483,11 @@ def _exclusion_hint(summary: DurationSummary | None) -> str:
     )
 
 
-def next_after_affected_cov(exit_code: int, level: FullLevel) -> list[str]:
+def next_after_affected_cov(exit_code: int, level: FullLevel, scope: ResolvedScope = WHOLE_SCOPE) -> list[str]:
     """Build the next-step lines after a covered ``ghog affected`` run.
 
     Args:
+        scope: The resolved scope carried by every repair and restart.
         exit_code: The groundhog exit code of the run.
         level: The carried level.
 
@@ -484,16 +497,16 @@ def next_after_affected_cov(exit_code: int, level: FullLevel) -> list[str]:
     """
     if exit_code == EXIT_OBJECTIVE_MET:
         if level is FullLevel.NONE:
-            return [MSG_AFFECTED_COV_OK]
+            return [MSG_AFFECTED_COV_OK.replace("ghog check", f"ghog check{carried_selector(level, scope)}")]
         return [
             "Coverage gate reached - finish with ghog check"
-            f"{carried_selector(level)} (new tests are code too), then "
-            f"{restart_command(level)}",
+            f"{carried_selector(level, scope)} (new tests are code too), then "
+            f"{restart_command(level, scope.selector())}",
         ]
     if exit_code == EXIT_COVERAGE_GAP:
-        return [coverage_gap_line(level)]
+        return [coverage_gap_line(level, scope)]
     if exit_code == EXIT_TEST_FAILURES:
-        return [affected_fail_line(level)]
+        return [affected_fail_line(level, scope)]
     return []
 
 
@@ -510,18 +523,19 @@ def next_after_affected_nocov(*, failed: bool, context: StepContext) -> list[str
         carried level, the walk restart otherwise.
     """
     if failed:
-        return [affected_fail_line(context.level)]
+        return [affected_fail_line(context.level, context.scope)]
     if context.in_walk:
         return []
     if context.level is FullLevel.NONE:
-        return [MSG_AFFECTED_NOCOV_OK]
-    return [f"Next: {restart_command(context.level)}"]
+        return [f"{MSG_AFFECTED_NOCOV_OK}{carried_selector(context.level, context.scope)}"]
+    return [f"Next: {restart_command(context.level, context.scope.selector())}"]
 
 
-def next_after_check(*, code: int, missing: bool, level: FullLevel) -> list[str]:
+def next_after_check(*, code: int, missing: bool, level: FullLevel, scope: ResolvedScope = WHOLE_SCOPE) -> list[str]:
     """Build the next-step lines after a ``ghog check`` run.
 
     Args:
+        scope: The resolved scope carried by every repair and restart.
         code: The check.bat exit code, 0 when it was skipped.
         missing: Whether check.bat was absent (Q10).
         level: The carried level.
@@ -529,10 +543,10 @@ def next_after_check(*, code: int, missing: bool, level: FullLevel) -> list[str]
     Returns:
         The next-step lines of the run-state table.
     """
-    green = f"{MSG_CHECK_OK}{carried_selector(level)}"
+    green = f"{MSG_CHECK_OK}{carried_selector(level, scope)}"
     if missing:
         return [MSG_CHECK_MISSING, green]
-    return [green] if code == 0 else [check_fail_line(level)]
+    return [green] if code == 0 else [check_fail_line(level, scope)]
 
 
 def comparison_lines(
@@ -540,10 +554,12 @@ def comparison_lines(
     *,
     failed: bool,
     level: FullLevel,
+    scope: ResolvedScope = WHOLE_SCOPE,
 ) -> list[str]:
     """Build the focus-run lines: the two Q07 lists and the next step.
 
     Args:
+        scope: The resolved scope carried by every repair and restart.
         comparison: The baseline comparison, or ``None`` without baseline.
         failed: Whether the focus run had failing tests.
         level: The carried level the restart names.
@@ -552,7 +568,7 @@ def comparison_lines(
         The comparison and next-step lines of the run-state table.
     """
     if comparison is None:
-        return [no_baseline_line(level)]
+        return [no_baseline_line(level, scope)]
     lines = ["Still failing in focus (fix these first):"]
     lines.extend(_id_lines(comparison.still_failing))
     lines.append(
@@ -560,7 +576,7 @@ def comparison_lines(
         "(interaction or ordering suspects, fix second):",
     )
     lines.extend(_id_lines(comparison.suspects))
-    lines.append(single_restart_line(level) if failed else single_green_line(level))
+    lines.append(single_restart_line(level, scope) if failed else single_green_line(level, scope))
     return lines
 
 

@@ -1,5 +1,7 @@
 """The pure duration rule for a groundhog full run (Q35, Q46).
 
+Fix (v0.13.0 full_suite_levels, Step 4): Pure duration rules: suite distribution or saved floor alone for a group.
+
 A full run captures each test's call-phase seconds (Q36); this module judges
 that map with no IO and no import of the IO, report or floor modules, so the
 whole rule is unit-testable in isolation. It owns the auto floor
@@ -37,7 +39,10 @@ composing seam in ``durations_summary.py`` sets it on the verdict it returns.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from struct import pack
 from typing import TYPE_CHECKING, Final
+
+from tools.linear_order import ordered_strings
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
@@ -183,6 +188,29 @@ def summarize(durations: Mapping[str, float], floor: float) -> DurationSummary:
         floor=floor,
         median=median,
     )
+
+
+def summarize_by_floor(durations: Mapping[str, float], floor: float) -> DurationSummary:
+    """Judge groups by the saved floor alone, retaining the ordinary report shape.
+
+    Positive IEEE float keys give linear radix ordering by time. The median
+    is descriptive only; neither it nor MAD contributes to this group's gate.
+    """
+    buckets: dict[str, list[tuple[str, float]]] = {}
+    for node, seconds in durations.items():
+        buckets.setdefault(pack(">d", seconds).hex(), []).append((node, seconds))
+    ordered = [item for key in reversed(ordered_strings(buckets)) for item in buckets[key]]
+    if not ordered:
+        return DurationSummary(0.0, (), (), floor, 0.0)
+    count = len(ordered)
+    median = (ordered[(count - 1) // 2][1] + ordered[count // 2][1]) / 2
+    outliers: list[DurationCall] = []
+    spared: list[DurationCall] = []
+    for node, seconds in ordered:
+        target = outliers if floor > 0 and seconds >= floor else spared
+        target.append(_call(node, seconds, median))
+    average = sum(call.seconds for call in spared) / len(spared) if spared else 0.0
+    return DurationSummary(average, tuple(outliers), tuple(spared[:_RUNNERS_UP_MAX]), floor, median)
 
 
 def apply_exclusions(

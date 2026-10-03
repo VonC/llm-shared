@@ -1,5 +1,7 @@
 """The detached ghog day walk: a survivor process polled through ghog status (Q32).
 
+Fix (v0.13.0 full_suite_levels, Step 4): Detach a walk with explicit whole scope or a bound group capture before spawn.
+
 ``ghog day --detach`` spawns the walk as a survivor process — a hidden
 console, broken away from the harness job object when allowed — wired by the
 tool itself to ``a.ghog.log`` (the parked senv preamble folded in first), and
@@ -27,9 +29,10 @@ import sys
 from pathlib import Path
 from typing import TYPE_CHECKING, Final
 
-from tools.groundhog import commands, redirect, reporting, runner, status
+from tools.groundhog import commands, redirect, reporting, runner, scope, status
 from tools.groundhog.levels import LevelSource, level_selector
 from tools.groundhog.models import EXIT_RUN_LIVE, EXIT_SETUP_ERROR
+from tools.scope_capture import ScopeKind
 
 if TYPE_CHECKING:
     from typing import TextIO
@@ -68,7 +71,7 @@ def run_day_detached(invocation: Invocation, deps: Deps) -> int:
             preamble,
             invocation.root,
         )
-    except OSError as error:
+    except (OSError, ValueError) as error:
         commands.emit_summary([f"ghog: detached walk failed to start: {error}"])
         return EXIT_SETUP_ERROR
     for _ in range(_HANDSHAKE_TRIES):
@@ -188,6 +191,10 @@ def _detached_day_command(invocation: Invocation) -> list[str]:
         command.append("--force")
     if invocation.level is not None and invocation.level_source is LevelSource.PARAM:
         command.append(level_selector(invocation.level))
+    if invocation.scope.kind is ScopeKind.GROUP:
+        command.append(f"--scope-file={scope.write_detach_capture(invocation.root, invocation.scope)}")
+    else:
+        command.append("--whole-suite")
     return command
 
 

@@ -1,5 +1,7 @@
 """Exit-code verdicts of the groundhog pytest runs (Q12).
 
+Fix (v0.13.0 full_suite_levels, Step 4): Exit-code verdicts, including unusable group coverage evidence as setup error.
+
 Split out of ``commands.py`` (v0.13.0 full_suite_levels, Step 1) so the
 subcommand executors keep headroom for the level-shaped runs: this module
 maps one parsed run to the contract exit code, tells whether a run measures
@@ -56,6 +58,8 @@ def classify(
     result: RunResult,
     gate_value: float | None,
     flagged: int = 0,
+    *,
+    evidence_error: str = "",
 ) -> int:
     """Map a run result to the contract exit code (Q12).
 
@@ -64,6 +68,7 @@ def classify(
         result: The parsed run result.
         gate_value: The coverage gate, ``None`` for uncovered runs.
         flagged: The outliers plus slower-drifted exclusions judged last, turning a green run to exit 8 (Q34, Q57).
+        evidence_error: The unusable group coverage evidence diagnostic, if any.
 
     Returns:
         The contract exit code; exit 8 only on a run already green on tests and
@@ -71,7 +76,7 @@ def classify(
     """
     if result.crashed:
         return EXIT_SUITE_CRASH
-    if result.pytest_exit == PYTEST_USAGE_ERROR:
+    if result.pytest_exit == PYTEST_USAGE_ERROR or evidence_error:
         return EXIT_SETUP_ERROR
     if result.pytest_exit == PYTEST_NO_TESTS:
         return _classify_no_tests(invocation, result, gate_value)

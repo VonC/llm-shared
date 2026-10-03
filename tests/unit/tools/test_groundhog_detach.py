@@ -1,4 +1,6 @@
-"""Unit tests for the detached groundhog day walk and its survivor spawn (Q32).
+"""Scope-aware repair and restart expectations.
+
+Unit tests for the detached groundhog day walk and its survivor spawn (Q32).
 
 Cover the launcher hand-off (command shape, log path, senv preamble and
 root), the exit-6 acknowledgment once the child's first status write lands,
@@ -185,7 +187,7 @@ def test_day_detach_forwards_a_parameter_level_only(
     deps = cli.Deps(detach_factory=_factory, sleep=lambda _seconds: None)
     argv = ["day", "--detach", "--full=cov", "--root", str(tmp_path), "--llm"]
     assert cli.main(argv, deps) == EXIT_RUN_LIVE
-    assert commands_seen[0][-1] == "--full=cov"
+    assert commands_seen[0][-2:] == ["--full=cov", "--whole-suite"]
     status.clear_status(tmp_path)
     inherited = replace(deps, environ={"GHOG_FULL": "speed"}.get)
     argv = ["day", "--detach", "--root", str(tmp_path), "--llm"]

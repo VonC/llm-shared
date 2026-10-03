@@ -1,5 +1,7 @@
 """Subcommand executors of the groundhog CLI.
 
+Fix (v0.13.0 full_suite_levels, Step 4): Execute scoped commands and judge isolated group coverage at 100 percent.
+
 Split out of ``cli.py`` so the entry point stays under the repo line
 budget: this module runs the subcommands — check (Q10, Q26, Q29), the
 pytest runs, the day walk (Q22, Q28) and init (Q23, Q25) — classifies
@@ -38,7 +40,7 @@ from __future__ import annotations
 
 import logging
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING
 
 from tools.groundhog import (
@@ -47,6 +49,7 @@ from tools.groundhog import (
     durations_summary,
     evidence,
     gate,
+    group_coverage,
     init_files,
     progress,
     redirect,
@@ -62,13 +65,16 @@ from tools.groundhog.models import (
     EXIT_NOT_PYTEST_PROJECT,
     EXIT_OBJECTIVE_MET,
     EXIT_SETUP_ERROR,
+    PYTEST_NO_TESTS,
     GroundhogError,
     RunStats,
 )
 from tools.groundhog.proof import earned_by_direct_full, judges_gate
+from tools.scope_capture import ScopeKind
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+    from pathlib import Path
 
     from tools.groundhog.context import Deps, Invocation
     from tools.groundhog.durations import DurationSummary
@@ -89,7 +95,7 @@ _ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
 
 @dataclass(frozen=True)
 class _Judged:
-    """One judged pytest run, the input of its report.
+    """One judged run, including a group coverage evidence error when unusable.
 
     Attributes:
         result: The parsed run result.
@@ -104,6 +110,7 @@ class _Judged:
     gate_value: float | None
     summary: DurationSummary | None
     parallel: bool
+    evidence_error: str = ""
 
 
 def run_check(invocation: Invocation, deps: Deps) -> int:
@@ -141,7 +148,7 @@ def run_check(invocation: Invocation, deps: Deps) -> int:
             code = 1
     level = effective_level(invocation.level, invocation.sub)
     emit_summary(
-        _section(reporting_nextstep.next_after_check(code=code, missing=missing, level=level)),
+        _section(reporting_nextstep.next_after_check(code=code, missing=missing, level=level, scope=invocation.scope)),
     )
     closing = reporting.closing_line(
         invocation.root.name,
@@ -181,7 +188,10 @@ def run_tests_outcome(invocation: Invocation, deps: Deps) -> RunOutcome:
     pytest_exe = deps.which("pytest")
     if pytest_exe is None:
         return _exit_before_pytest(invocation, [reporting_nextstep.MSG_NO_PYTEST], EXIT_SETUP_ERROR)
-    judged = _run_pytest(invocation, deps, pytest_exe)
+    try:
+        judged = _run_pytest(invocation, deps, pytest_exe)
+    except (OSError, ValueError) as error:
+        return _exit_before_pytest(invocation, [f"ghog: run setup failed: {error}"], EXIT_SETUP_ERROR)
     run_evidence = evidence.for_invocation(invocation, _earned(invocation, judged))
     metrics = _report(invocation, judged, run_evidence)
     return evidence.RunOutcome(
@@ -217,30 +227,46 @@ def _run_pytest(invocation: Invocation, deps: Deps, pytest_exe: str) -> _Judged:
         files=invocation.files,
         parallel=parallel,
         level=effective_level(invocation.level, invocation.sub),
+        test_paths=invocation.scope.test_files,
+        cov_folders=group_coverage.cov_folders(invocation.scope.source_files),
     )
+    measure = None
+    if invocation.scope.kind is ScopeKind.GROUP and verdicts.measures_coverage(invocation):
+        measure = group_coverage.prepare(invocation.root, invocation.scope.name, fresh=invocation.sub == runner.SUB_FULL)
     sink = progress.Progress(invocation, deps)
     config = runner.StreamConfig(
         command=command,
         cwd=invocation.root,
         popen_factory=deps.popen_factory,
+        env_overrides=group_coverage.environment(measure[0]) if measure is not None else {},
     )
     result = runner.run_pytest(config, sink.update)
-    gate_value = (
-        gate.read_coverage_gate(invocation.root)
-        if verdicts.measures_coverage(invocation)
-        else None
-    )
+    result, gate_value, evidence_error = _coverage_result(invocation, result, measure)
     # Judge outliers last (Q34): the base code gates the verdict, so a failure
     # or a gap keeps its own exit code and withholds the timing verdict.
-    base_code = verdicts.classify(invocation, result, gate_value)
+    base_code = verdicts.classify(invocation, result, gate_value, evidence_error=evidence_error)
     summary = durations_summary.judge(invocation, result, base_code)
     sink.finish(result.stats, completed=not result.crashed, summary=summary)
     if invocation.sub == runner.SUB_FULL and not result.crashed:
         baseline.write_baseline(invocation.root, result.stats.failed_ids)
     # Exit 8 fires on a slower-drifted exclusion too, already spared from outliers (Q57).
     flagged = 0 if summary is None else len(summary.outliers) + reporting.excluded_count(summary)
-    exit_code = verdicts.classify(invocation, result, gate_value, flagged)
-    return _Judged(result, exit_code, gate_value, summary, parallel)
+    exit_code = verdicts.classify(invocation, result, gate_value, flagged, evidence_error=evidence_error)
+    return _Judged(result, exit_code, gate_value, summary, parallel, evidence_error)
+
+
+def _coverage_result(
+    invocation: Invocation, result: RunResult, measure: tuple[Path, float] | None,
+) -> tuple[RunResult, float | None, str]:
+    """Judge exact group evidence independently of the child's project TOTAL."""
+    if measure is None:
+        value = gate.read_coverage_gate(invocation.root) if verdicts.measures_coverage(invocation) else None
+        return result, value, ""
+    if result.crashed or result.stats.failed or result.pytest_exit == PYTEST_NO_TESTS:
+        return result, None, ""
+    judged = group_coverage.judge(invocation.root, invocation.scope, *measure)
+    result.stats.cov_percent = judged.percent
+    return replace(result, coverage_block=judged.gap_rows), 100.0, judged.error
 
 
 def _earned(invocation: Invocation, judged: _Judged) -> FullLevel | None:
@@ -357,7 +383,7 @@ def _report(
     _report_run_context(invocation, judged)
     emit_summary(_section(_next_steps(invocation, judged)))
     if exit_code == EXIT_SETUP_ERROR and not result.crashed:
-        emit_summary(_section([verdicts.setup_reason(result, measured=measured)]))
+        emit_summary(_section([judged.evidence_error or verdicts.setup_reason(result, measured=measured)]))
     if exit_code == EXIT_OBJECTIVE_MET and measured:
         nag = reporting.nag_line(result.stats)
         if nag is not None:
@@ -396,7 +422,7 @@ def _report_run_context(invocation: Invocation, judged: _Judged) -> None:
     result, exit_code, summary = judged.result, judged.code, judged.summary
     if result.crashed:
         level = effective_level(invocation.level, invocation.sub)
-        emit(_section(reporting.crash_block(result.stats, result.tail, level)))
+        emit(_section(reporting.crash_block(result.stats, result.tail, level, invocation.scope.selector())))
     elif result.stats.failed > 0:
         emit(_section(result.failure_block))
     if exit_code == EXIT_COVERAGE_GAP and result.coverage_block:
@@ -433,6 +459,7 @@ def _next_steps(invocation: Invocation, judged: _Judged) -> list[str]:
         effective_level(invocation.level, invocation.sub),
         in_walk=invocation.in_walk,
         parallel=judged.parallel,
+        scope=invocation.scope,
     )
     if invocation.sub in (runner.SUB_FULL, runner.SUB_TIMINGS):
         failing = baseline.failing_files(result.stats.failed_ids)
@@ -448,7 +475,7 @@ def _next_steps(invocation: Invocation, judged: _Judged) -> list[str]:
                 failed=result.stats.failed > 0,
                 context=context,
             )
-        return reporting_nextstep.next_after_affected_cov(exit_code, context.level)
+        return reporting_nextstep.next_after_affected_cov(exit_code, context.level, context.scope)
     return _single_lines(invocation, result, context)
 
 
@@ -482,6 +509,7 @@ def _single_lines(
         comparison,
         failed=result.stats.failed > 0,
         level=context.level,
+        scope=context.scope,
     )
 
 

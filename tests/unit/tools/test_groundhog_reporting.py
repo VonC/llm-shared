@@ -1,4 +1,6 @@
-"""Unit tests for the groundhog report contract (Q04, Q16).
+"""Scope-aware repair and restart expectations.
+
+Unit tests for the groundhog report contract (Q04, Q16).
 
 Cover the key=value progress and closing lines, the coverage placeholder
 rules, the cadence governor (percent step and silence floor), the crash
@@ -277,9 +279,9 @@ def test_step_reused_line_names_the_saved_proof() -> None:
 
 def test_status_killed_line_relaunches_at_the_recorded_level() -> None:
     """A killed run is relaunched at its level, never with a none selector."""
-    assert "Next: ghog day --full=cov (--detach" in reporting.status_killed_line(FullLevel.COV)
+    assert "Next: ghog day --full=cov --whole-suite (--detach" in reporting.status_killed_line(FullLevel.COV)
     plain = reporting.status_killed_line(FullLevel.NONE)
-    assert "Next: ghog day (--detach" in plain
+    assert "Next: ghog day --whole-suite (--detach" in plain
     assert "--full=" not in plain
 
 
@@ -300,9 +302,9 @@ def test_crash_block_carries_tests_tail_and_instruction() -> None:
     assert "- tests/test_a.py::test_one" in block
     assert "  Traceback line" in block
     assert block[-1].startswith("Fix the test suite now:")
-    assert block[-1].endswith("Then re-run ghog day.")
+    assert block[-1].endswith("Then re-run ghog day --whole-suite.")
     leveled = reporting.crash_block(stats, (), FullLevel.SPEED)
-    assert leveled[-1].endswith("Then re-run ghog day --full=speed.")
+    assert leveled[-1].endswith("Then re-run ghog day --full=speed --whole-suite.")
 
 
 def test_governor_emits_per_percent_step() -> None:

@@ -1,5 +1,7 @@
 """The ghog day walk: check, affected --no-cov, then the full step(s) of a level.
 
+Fix (v0.13.0 full_suite_levels, Step 4): Walk one scope with shared inventory, isolated proof and level-shaped steps.
+
 Split out of ``commands.py`` so that module stays under the repo line budget
 (Q22): the walk orchestration and its per-step timestamp headers live here,
 while the individual step executors (check and the pytest runs) stay in
@@ -178,10 +180,13 @@ def walk(invocation: Invocation, deps: Deps) -> RunOutcome:
         the last step; the evidence of the closing and done lines.
     """
     level = effective_level(invocation.level, runner.SUB_DAY)
+    if invocation.inventory is None:
+        invocation = replace(invocation, inventory=tuple(snapshot.source_files(invocation.root)))
     state = snapshot.effective_proof(
         invocation.root,
-        snapshot.WHOLE_SCOPE_KEY,
-        snapshot.WHOLE_SCOPE_FINGERPRINT,
+        invocation.scope.key(),
+        invocation.scope.fingerprint,
+        files=invocation.inventory,
     )
     # effective_proof already matched the digest and capped a timing change.
     decision = decide(
@@ -193,7 +198,7 @@ def walk(invocation: Invocation, deps: Deps) -> RunOutcome:
     )
     saved = state.proof
     if saved is not None and decision is Decision.NOOP:
-        commands.emit_summary(["", reporting_nextstep.noop_line(level, saved)])
+        commands.emit_summary(["", reporting_nextstep.noop_line(level, saved, invocation.scope)])
         return _close(invocation, EXIT_OBJECTIVE_MET, _evidence(invocation, saved, Reused.ALL), None)
     record = _Walk(invocation, deps, level, state)
     if saved is not None and decision is Decision.UPGRADE:
@@ -229,7 +234,7 @@ def _whole_chain(record: _Walk) -> int:
         record.contradicted.append(Gate.CHECK_OR_AFFECTED)
         return code
     # check.bat may have fixed sources: the test steps judge the fixed ones.
-    record.state = record.state.on_sources(snapshot.source_digest(record.invocation.root))
+    record.state = record.state.on_sources(snapshot.source_digest(record.invocation.root, record.invocation.inventory))
     code = record.run_pytest_step(_AFFECTED_LABEL, runner.SUB_AFFECTED, no_cov=True)
     if not record.judged:
         return code
@@ -238,7 +243,7 @@ def _whole_chain(record: _Walk) -> int:
         return code
     record.earned = FullLevel.NONE
     if record.level is FullLevel.NONE:
-        commands.emit_summary(["", reporting_nextstep.success_line(FullLevel.NONE)])
+        commands.emit_summary(["", reporting_nextstep.success_line(FullLevel.NONE, record.invocation.scope)])
         return code
     return _full_steps(record)
 
@@ -296,8 +301,8 @@ def _record_proof(record: _Walk) -> FullLevel | None:
     proof = accumulate(record.earned, record.state.proof, record.contradicted)
     snapshot.save_proof(
         record.invocation.root,
-        snapshot.WHOLE_SCOPE_KEY,
-        snapshot.WHOLE_SCOPE_FINGERPRINT,
+        record.invocation.scope.key(),
+        record.invocation.scope.fingerprint,
         record.state.digest,
         proof,
     )

@@ -27,12 +27,17 @@ the level never shapes another subcommand. Cover the interrupted flag too: a
 signal, or pytest's interruption banner (a bare or messaged
 KeyboardInterrupt, a pytest.exit with any return code), before any failure or
 internal error, never a collection error.
+
+Step 4: verify group paths, coverage options and environment restoration on successful and raising spawns.
 """
 
 from __future__ import annotations
 
+import os
 import sys
 from typing import TYPE_CHECKING, cast
+
+import pytest
 
 from tools.groundhog import runner
 from tools.groundhog.levels import FullLevel
@@ -374,6 +379,47 @@ def test_run_pytest_flags_an_interruption_that_judged_nothing(tmp_path: Path) ->
     for lines, code, expected in cases:
         result = runner.run_pytest(_config(lines, code, tmp_path), lambda _stats: None)
         assert (result.crashed, result.interrupted) == (True, expected), (lines, code)
+
+
+@pytest.mark.parametrize("sub", ["full", "affected", "timings", "single"])
+def test_group_collection_and_coverage_options(sub: str) -> None:
+    """Scope narrows suite commands while single retains explicitly named files."""
+    command = runner.pytest_command("pytest", sub, no_cov=False, files=("focus.py",),
+                                    test_paths=("tests/group/test_a.py",), cov_folders=("src/group",))
+    assert command[-1] == ("focus.py" if sub == "single" else "tests/group/test_a.py")
+    if sub in ("full", "affected"):
+        assert "--cov=src/group" in command
+        assert "--cov-fail-under=0" in command
+    else:
+        assert "--cov=src/group" not in command
+
+
+@pytest.mark.parametrize("previous", [None, "previous.coverage"])
+@pytest.mark.parametrize("raises", [True, False])
+def test_spawn_environment_restored(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, previous: str | None, *, raises: bool) -> None:
+    """A temporary coverage override ends immediately after either spawn outcome."""
+    if previous is None:
+        monkeypatch.delenv("COVERAGE_FILE", raising=False)
+    else:
+        monkeypatch.setenv("COVERAGE_FILE", previous)
+
+    def factory(_command: list[str], _cwd: Path) -> subprocess.Popen[str]:
+        assert os.environ["COVERAGE_FILE"] == "group.coverage"
+        if raises:
+            message = "spawn failed"
+            raise OSError(message)
+        return cast("subprocess.Popen[str]", _FakeProcess(["output"], 0))
+
+    def on_line(_line: str) -> None:
+        assert os.environ.get("COVERAGE_FILE") == previous
+
+    config = runner.StreamConfig(["pytest"], tmp_path, factory, env_overrides={"COVERAGE_FILE": "group.coverage"})
+    if raises:
+        with pytest.raises(OSError, match="spawn failed"):
+            runner.run_streaming(config, on_line)
+    else:
+        assert runner.run_streaming(config, on_line) == 0
+    assert os.environ.get("COVERAGE_FILE") == previous
 
 
 # eof

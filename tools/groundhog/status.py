@@ -39,6 +39,8 @@ same evidence a foreground walk prints. The dispatch returns a
 line carried. The detached launch, the survivor spawn and their handshake
 moved to ``detach.py``, the plan's extraction once this module passed 550
 lines.
+
+Step 4: killed-run recovery carries the recorded scope after its level.
 """
 
 from __future__ import annotations
@@ -285,8 +287,16 @@ def run_status(invocation: Invocation) -> int:
     if recorded.pid is not None and pid_alive(recorded.pid):
         commands.emit_summary([recorded.line, reporting.MSG_STATUS_RUNNING])
         return EXIT_RUN_LIVE
-    commands.emit_summary([recorded.line, reporting.status_killed_line(_recorded_level(recorded.line))])
+    commands.emit_summary([recorded.line, reporting.status_killed_line(
+        _recorded_level(recorded.line), _recorded_scope(recorded.line),
+    )])
     return EXIT_RUN_LOST
+
+
+def _recorded_scope(line: str) -> str:
+    """Keep a killed run's validated group name, defaulting legacy evidence to whole."""
+    match = re.search(r"(?:^| )scope=group:([a-z][a-z0-9_-]*)(?: |$)", line)
+    return f"--group={match[1]}" if match is not None else "--whole-suite"
 
 
 def _recorded_level(line: str) -> FullLevel:

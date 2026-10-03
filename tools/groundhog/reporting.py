@@ -32,6 +32,8 @@ its current keys, carried by :class:`ClosingMetrics` so the line keeps its
 five-argument signature; :func:`step_reused_line` heads a day-walk step taken
 from the saved proof, and :func:`status_killed_line` relaunches a killed run
 with the level its recorded running line carried, never a ``none`` selector.
+
+Step 4: crash and lost-run instructions preserve the explicit scope.
 """
 
 from __future__ import annotations
@@ -41,12 +43,12 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Final
 
 from tools.groundhog import durations, reporting_nextstep
+from tools.groundhog.levels import FullLevel
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
 
     from tools.groundhog.durations import DurationSummary
-    from tools.groundhog.levels import FullLevel
     from tools.groundhog.models import RunStats
 
 # One progress line per this percentage step (Q04).
@@ -139,10 +141,11 @@ def step_reused_line(project: str, sub: str, saved: FullLevel) -> str:
     return f"{project}: == ghog {sub} == reused from snapshot (saved proof={saved.token})"
 
 
-def status_killed_line(level: FullLevel) -> str:
+def status_killed_line(level: FullLevel, scope_selector: str = "--whole-suite") -> str:
     """Build the killed-run verdict, relaunching at the recorded level (Q32).
 
     Args:
+        scope_selector: The explicit scope selector carried by the restart.
         level: The level of the recorded running line, ``none`` when the line
             carried no level, so the relaunch never prints a ``none`` selector.
 
@@ -151,7 +154,7 @@ def status_killed_line(level: FullLevel) -> str:
     """
     return (
         "ghog: the recorded pid is gone without state=done - the run was killed; "
-        f"Next: {reporting_nextstep.restart_command(level)} "
+        f"Next: {reporting_nextstep.restart_command(level, scope_selector)} "
         "(--detach when the harness kills long calls)"
     )
 
@@ -483,10 +486,12 @@ def crash_block(
     stats: RunStats,
     tail: Sequence[str],
     level: FullLevel | None = None,
+    scope_selector: str = "--whole-suite",
 ) -> list[str]:
     """Build the crash block printed when the suite dies mid-run (Q06).
 
     Args:
+        scope_selector: The explicit scope selector carried by the restart.
         stats: The counters parsed before the crash.
         tail: The most recent raw output lines, the stack context.
         level: The carried level the restart names, ``None`` or ``none``
@@ -501,7 +506,7 @@ def crash_block(
     lines.extend(f"- {node_id}" for node_id in stats.last_started)
     lines.append("Output tail:")
     lines.extend(f"  {raw}" for raw in tail)
-    restart = reporting_nextstep.restart_command(level) if level is not None else "ghog day"
+    restart = reporting_nextstep.restart_command(level or FullLevel.NONE, scope_selector)
     lines.append(_MSG_CRASH_INSTRUCTION.format(restart=restart))
     return lines
 

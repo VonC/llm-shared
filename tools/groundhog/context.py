@@ -1,5 +1,7 @@
 """Injectable seams and parsed invocation of the groundhog CLI.
 
+Fix (v0.13.0 full_suite_levels, Step 4): Injectable seams and a resolved scope plus inventory for each invocation.
+
 Split out of ``cli.py`` so the entry point stays under the repo line
 budget: this module carries the two dataclasses every command executor
 receives — the ``Deps`` seams faked by the tests, and the ``Invocation``
@@ -36,6 +38,7 @@ from typing import TYPE_CHECKING
 
 from tools.groundhog import detach, render, runner
 from tools.groundhog.levels import LevelSource
+from tools.scope_capture import WHOLE_SCOPE, ResolvedScope
 
 if TYPE_CHECKING:
     import subprocess
@@ -81,7 +84,7 @@ class Deps:
 
 @dataclass(frozen=True)
 class Invocation:
-    """One parsed groundhog invocation.
+    """One parsed invocation with a resolved scope and reusable tree inventory.
 
     Attributes:
         sub: The subcommand name (Q15).
@@ -123,6 +126,8 @@ class Invocation:
     name: str | None = None
     list_exclusions: bool = False
     since: str | None = None
+    scope: ResolvedScope = WHOLE_SCOPE
+    inventory: tuple[Path, ...] | None = None
 
 
 # eof

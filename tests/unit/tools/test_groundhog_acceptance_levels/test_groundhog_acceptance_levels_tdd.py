@@ -1,4 +1,6 @@
-"""Acceptance tests of the full-suite levels (v0.13.0 full_suite_levels).
+"""Scope-aware repair and restart expectations.
+
+Acceptance tests of the full-suite levels (v0.13.0 full_suite_levels).
 
 Step 2: one test per level row of the design's "Acceptance Cases", driven
 through ``cli.main`` on a ``tmp_path`` project with the process boundary
@@ -213,7 +215,7 @@ def test_single_without_baseline_keeps_the_carried_level(
     code, _ = run(project(tmp_path), ["single", "tests/test_a.py", "--full=cov"], [focus])
     assert code == EXIT_OBJECTIVE_MET
     assert reporting_nextstep.no_baseline_line(FullLevel.COV) in capsys.readouterr().out
-    assert "run ghog full --full=cov for suite-level truth" in reporting_nextstep.no_baseline_line(FullLevel.COV)
+    assert "run ghog full --full=cov --whole-suite for suite-level truth" in reporting_nextstep.no_baseline_line(FullLevel.COV)
 
 
 def test_environment_speed_restarts_a_failing_check_explicitly(

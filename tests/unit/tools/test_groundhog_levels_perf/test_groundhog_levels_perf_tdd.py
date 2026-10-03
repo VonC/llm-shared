@@ -18,7 +18,7 @@ finds an empty queue.
 
 Fix (v0.13.0 full_suite_levels, Step 2): the leveled walk landed, so the
 default-walk, upgrade and noop gates lose their ``xfail`` mark and keep their
-timeout; the two grouped gates stay strict ``xfail`` until Step 4.
+timeout; Step 4 activates the two grouped gates with their timeouts unchanged.
 """
 
 from __future__ import annotations
@@ -232,7 +232,6 @@ def test_stronger_saved_proof_spawns_nothing(tmp_path: pathlib.Path) -> None:
 
 
 @pytest.mark.timeout(GATE_TIMEOUT_SECONDS)
-@pytest.mark.xfail(strict=True, reason="removed in Step 4")
 def test_grouped_walk_passes_only_group_test_files(tmp_path: pathlib.Path) -> None:
     """A grouped walk gives affected and full exactly the group's test files."""
     check_bat = _grouped_project(tmp_path)
@@ -247,7 +246,6 @@ def test_grouped_walk_passes_only_group_test_files(tmp_path: pathlib.Path) -> No
 
 
 @pytest.mark.timeout(GATE_TIMEOUT_SECONDS)
-@pytest.mark.xfail(strict=True, reason="removed in Step 4")
 def test_grouped_walk_walks_the_tree_once(
     tmp_path: pathlib.Path,
     monkeypatch: pytest.MonkeyPatch,

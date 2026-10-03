@@ -1,7 +1,7 @@
 """Child-process running for groundhog (Q17).
 
-Step 3 adds the groups command name for read-only CLI dispatch; the runner
-continues to execute the whole suite until group execution is introduced.
+Step 4 narrows group collection and applies coverage environment overrides
+only while spawning, restoring even an absent variable after a factory error.
 
 groundhog runs from the llm-shared venv and spawns pytest (or check.bat) as
 a child process of the project environment prepared by senv.bat, reading
@@ -28,12 +28,15 @@ follows the level by construction. :func:`run_pytest` also flags a child
 interrupted before it reported any failure, which judges no proof gate. An
 interruption banner marks the run crashed whatever its return code, since
 ``pytest.exit`` may end an unfinished suite with 0 or 1.
+
+Step 4: group paths narrow collection; coverage options and spawn-only environment overrides isolate group evidence.
 """
 
 from __future__ import annotations
 
+import os
 import subprocess
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Final
 
 from tools.groundhog.levels import FullLevel
@@ -45,7 +48,7 @@ from tools.groundhog.models import (
 from tools.groundhog.parser import PytestOutputParser
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Sequence
+    from collections.abc import Callable, Mapping, Sequence
     from pathlib import Path
 
     from tools.groundhog.models import RunStats
@@ -85,7 +88,7 @@ SUB_GROUPS: Final = "groups"
 
 @dataclass(frozen=True)
 class StreamConfig:
-    """One streaming child run.
+    """One streaming child run with environment overrides confined to spawn.
 
     Attributes:
         command: The child command line.
@@ -96,6 +99,7 @@ class StreamConfig:
     command: list[str]
     cwd: Path
     popen_factory: Callable[[list[str], Path], subprocess.Popen[str]]
+    env_overrides: Mapping[str, str] = field(default_factory=dict[str, str])
 
 
 def default_popen_factory(command: list[str], cwd: Path) -> subprocess.Popen[str]:
@@ -160,10 +164,14 @@ def pytest_command(  # noqa: PLR0913
     files: Sequence[str],
     parallel: bool = False,
     level: FullLevel = FullLevel.SPEED,
+    test_paths: Sequence[str] = (),
+    cov_folders: Sequence[str] = (),
 ) -> list[str]:
     """Build the pytest command of one groundhog subcommand.
 
     Args:
+        test_paths: The bound group test files; empty for whole-suite collection.
+        cov_folders: The minimal containing folders of the group sources.
         pytest_exe: The pytest executable of the project environment.
         sub: The subcommand: ``full``, ``affected`` or ``single``.
         no_cov: Whether coverage is disabled (the ptanc variant).
@@ -191,13 +199,13 @@ def pytest_command(  # noqa: PLR0913
         # Sequential and uninstrumented on purpose: a contended or covered
         # call time measures the scheduler, not the test (Q39).
         return [pytest_exe, "--no-header", "--no-cov", "-v",
-                "--durations=0", "--durations-min=0"]
+                "--durations=0", "--durations-min=0", *test_paths]
     worker_run = sub == SUB_FULL and parallel
     command = [pytest_exe, *(PARALLEL_OPTIONS if worker_run else ("--testmon",))]
     covered, timed = _measures(sub, level, no_cov=no_cov, worker_run=worker_run)
     if not covered:
         command.extend(["--no-header", "--no-cov", "-v"])
-        return command
+        return [*command, *test_paths]
     if sub == SUB_AFFECTED:
         command.append("--cov-append")
     command.extend(
@@ -205,7 +213,10 @@ def pytest_command(  # noqa: PLR0913
     )
     if timed:
         command.extend(["--durations=0", "--durations-min=0"])
-    return command
+    if cov_folders:
+        command.extend(f"--cov={folder}" for folder in cov_folders)
+        command.append("--cov-fail-under=0")
+    return [*command, *test_paths]
 
 
 def _measures(sub: str, level: FullLevel, *, no_cov: bool, worker_run: bool) -> tuple[bool, bool]:
@@ -249,7 +260,16 @@ def run_streaming(config: StreamConfig, on_line: Callable[[str], None]) -> int:
     Returns:
         The child exit code.
     """
-    process = config.popen_factory(config.command, config.cwd)
+    previous = {name: os.environ.get(name) for name in config.env_overrides}
+    try:
+        os.environ.update(config.env_overrides)
+        process = config.popen_factory(config.command, config.cwd)
+    finally:
+        for name, value in previous.items():
+            if value is None:
+                os.environ.pop(name, None)
+            else:
+                os.environ[name] = value
     for raw in process.stdout or []:
         on_line(raw.rstrip("\n"))
     return process.wait()

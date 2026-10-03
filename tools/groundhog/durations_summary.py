@@ -1,5 +1,7 @@
 """Compose the floor file, the pure duration rule and the exclusion section.
 
+Fix (v0.13.0 full_suite_levels, Step 4): Compose duration rules, with read-only floor and exclusions for grouped runs.
+
 The true-outlier rule in ``durations.py`` stays pure — no IO, no floor import
 — so it is judged in isolation. This module is the application seam between a
 run and that rule: it tells whether a run times its calls (``full`` only, Q39),
@@ -35,6 +37,7 @@ from typing import TYPE_CHECKING
 from tools.groundhog import durations, exclusions, floor, runner
 from tools.groundhog.levels import effective_level
 from tools.groundhog.models import EXIT_OBJECTIVE_MET
+from tools.scope_capture import ScopeKind
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -99,7 +102,22 @@ def judge(
         return None
     if base_code != EXIT_OBJECTIVE_MET:
         return None
+    if invocation.scope.kind is ScopeKind.GROUP:
+        return _judge_group(invocation, result.stats.durations)
     return _judge_map(invocation.root, result.stats.durations)
+
+
+def _judge_group(invocation: Invocation, durations_map: Mapping[str, float]) -> DurationSummary | None:
+    """Judge only group nodes using saved settings, without any persistence."""
+    if not durations_map:
+        return None
+    members = set(invocation.scope.test_files)
+    measured = {node: seconds for node, seconds in durations_map.items() if node.split("::", 1)[0] in members}
+    accepted = {node: seconds for node, seconds in exclusions.read_exclusions(invocation.root).items()
+                if node.split("::", 1)[0] in members}
+    summary = durations.summarize_by_floor(measured, floor.active_floor(floor.read_floor(invocation.root)))
+    spared, _ = durations.apply_exclusions(summary, measured, accepted)
+    return replace(spared, floor_file=floor.floor_location(invocation.root))
 
 
 def _judge_map(

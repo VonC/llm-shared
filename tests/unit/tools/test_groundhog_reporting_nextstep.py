@@ -1,4 +1,6 @@
-"""Unit tests for the groundhog run-state table text (Q07, Q30, Q47).
+"""Scope-aware repair and restart expectations.
+
+Unit tests for the groundhog run-state table text (Q07, Q30, Q47).
 
 Cover the next-step messages of every branch (check, affected, full), the
 exit-8 outlier next step with its ``ghog exclude`` escape hint, and the focus
@@ -79,21 +81,21 @@ def _summary(*, outliers: tuple[DurationCall, ...]) -> DurationSummary:
 
 def test_restart_command_carries_the_level_and_the_scope() -> None:
     """The one restart helper omits the level selector at none only."""
-    assert reporting_nextstep.restart_command(FullLevel.NONE) == "ghog day"
-    assert reporting_nextstep.restart_command(FullLevel.COV) == "ghog day --full=cov"
+    assert reporting_nextstep.restart_command(FullLevel.NONE) == "ghog day --whole-suite"
+    assert reporting_nextstep.restart_command(FullLevel.COV) == "ghog day --full=cov --whole-suite"
     assert (
         reporting_nextstep.restart_command(FullLevel.SPEED, "--whole-suite")
         == "ghog day --full=speed --whole-suite"
     )
-    assert reporting_nextstep.carried_selector(FullLevel.NONE) == ""
-    assert reporting_nextstep.carried_selector(FullLevel.PASS) == " --full=pass"
+    assert reporting_nextstep.carried_selector(FullLevel.NONE) == " --whole-suite"
+    assert reporting_nextstep.carried_selector(FullLevel.PASS) == " --full=pass --whole-suite"
 
 
 def test_success_lines_are_one_per_level() -> None:
     """Each level has its own success line naming the whole suite."""
     skip = reporting_nextstep.success_line(FullLevel.NONE)
     assert skip.startswith("Full suite skipped on purpose")
-    for choice in ("ghog day --full=pass", "ghog day --full=cov", "ghog day --full=speed"):
+    for choice in ("ghog day --full=pass --whole-suite", "ghog day --full=cov --whole-suite", "ghog day --full=speed --whole-suite"):
         assert choice in skip
     assert reporting_nextstep.success_line(FullLevel.PASS).startswith(
         "Objective met at pass for the whole suite",
@@ -118,8 +120,8 @@ def test_noop_line_names_both_levels_and_no_check() -> None:
 @pytest.mark.parametrize(
     ("level", "single"),
     [
-        (FullLevel.PASS, "Next: ghog single tests/test_a.py tests/test_b.py --full=pass"),
-        (FullLevel.SPEED, "Next: ghog single tests/test_a.py tests/test_b.py --full=speed"),
+        (FullLevel.PASS, "Next: ghog single tests/test_a.py tests/test_b.py --full=pass --whole-suite"),
+        (FullLevel.SPEED, "Next: ghog single tests/test_a.py tests/test_b.py --full=speed --whole-suite"),
     ],
 )
 def test_next_after_full_failure_carries_the_level(level: FullLevel, single: str) -> None:
@@ -145,7 +147,7 @@ def test_parallel_speed_full_success_depends_on_the_walk() -> None:
     direct = StepContext(FullLevel.SPEED, parallel=True)
     assert reporting_nextstep.next_after_full(EXIT_OBJECTIVE_MET, (), None, direct) == [
         reporting_nextstep.success_line(FullLevel.COV),
-        reporting_nextstep.MSG_SPEED_NOT_MEASURED,
+        reporting_nextstep.MSG_SPEED_NOT_MEASURED + " --whole-suite",
     ]
     walk = StepContext(FullLevel.SPEED, in_walk=True, parallel=True)
     assert reporting_nextstep.next_after_full(EXIT_OBJECTIVE_MET, (), None, walk) == []
@@ -153,7 +155,9 @@ def test_parallel_speed_full_success_depends_on_the_walk() -> None:
     assert reporting_nextstep.next_after_full(EXIT_OBJECTIVE_MET, (), None, sequential) == [
         reporting_nextstep.success_line(FullLevel.SPEED),
     ]
-    assert "ghog day --full=speed" in reporting_nextstep.MSG_SPEED_NOT_MEASURED
+    assert "ghog day --full=speed --whole-suite" in reporting_nextstep.next_after_full(
+        EXIT_OBJECTIVE_MET, (), None, direct,
+    )[-1]
 
 
 def test_next_after_timings_per_exit_code() -> None:
@@ -180,8 +184,8 @@ def test_next_after_timings_per_exit_code() -> None:
 def test_timings_failed_line_names_the_focus_run_and_the_restart() -> None:
     """A timing-pass failure is fixed with ghog single, then the walk restarts."""
     line = reporting_nextstep.timings_failed_line(FullLevel.SPEED, _FAILING)
-    assert "ghog single tests/test_a.py tests/test_b.py --full=speed" in line
-    assert line.endswith("then ghog day --full=speed")
+    assert "ghog single tests/test_a.py tests/test_b.py --full=speed --whole-suite" in line
+    assert line.endswith("then ghog day --full=speed --whole-suite")
 
 
 def test_next_after_timings_outliers_names_the_fix_and_the_exclusion() -> None:
@@ -190,7 +194,7 @@ def test_next_after_timings_outliers_names_the_fix_and_the_exclusion() -> None:
     context = StepContext(FullLevel.SPEED, in_walk=True)
     lines = reporting_nextstep.next_after_timings(EXIT_DURATION_OUTLIERS, (), summary, context)
     assert lines[0] == reporting_nextstep.outliers_line(FullLevel.SPEED)
-    assert lines[0].endswith("then ghog day --full=speed")
+    assert lines[0].endswith("then ghog day --full=speed --whole-suite")
     assert "ghog exclude" in lines[1]
 
 
@@ -228,11 +232,11 @@ def test_next_after_full_outliers_without_a_summary() -> None:
 def test_next_after_affected_cov_per_exit_code() -> None:
     """The covered affected-run next step follows the table at its level."""
     assert reporting_nextstep.next_after_affected_cov(EXIT_OBJECTIVE_MET, FullLevel.NONE) == [
-        reporting_nextstep.MSG_AFFECTED_COV_OK,
+        reporting_nextstep.MSG_AFFECTED_COV_OK.replace("ghog check", "ghog check --whole-suite"),
     ]
     (reached,) = reporting_nextstep.next_after_affected_cov(EXIT_OBJECTIVE_MET, FullLevel.COV)
-    assert "finish with ghog check --full=cov" in reached
-    assert reached.endswith("then ghog day --full=cov")
+    assert "finish with ghog check --full=cov --whole-suite" in reached
+    assert reached.endswith("then ghog day --full=cov --whole-suite")
     assert reporting_nextstep.next_after_affected_cov(EXIT_COVERAGE_GAP, FullLevel.COV) == [
         reporting_nextstep.coverage_gap_line(FullLevel.COV),
     ]
@@ -246,11 +250,11 @@ def test_next_after_affected_nocov() -> None:
     """A walk owns its green step; a standalone run keeps or restarts by level."""
     standalone = StepContext()
     assert reporting_nextstep.next_after_affected_nocov(failed=False, context=standalone) == [
-        reporting_nextstep.MSG_AFFECTED_NOCOV_OK,
+        reporting_nextstep.MSG_AFFECTED_NOCOV_OK + " --whole-suite",
     ]
     carried = StepContext(FullLevel.COV)
     assert reporting_nextstep.next_after_affected_nocov(failed=False, context=carried) == [
-        "Next: ghog day --full=cov",
+        "Next: ghog day --full=cov --whole-suite",
     ]
     walk = StepContext(FullLevel.NONE, in_walk=True)
     assert reporting_nextstep.next_after_affected_nocov(failed=False, context=walk) == []
@@ -263,10 +267,10 @@ def test_next_after_check() -> None:
     """The check next step covers missing, green and failing (Q10)."""
     assert reporting_nextstep.next_after_check(code=0, missing=True, level=FullLevel.NONE) == [
         reporting_nextstep.MSG_CHECK_MISSING,
-        reporting_nextstep.MSG_CHECK_OK,
+        reporting_nextstep.MSG_CHECK_OK + " --whole-suite",
     ]
     assert reporting_nextstep.next_after_check(code=0, missing=False, level=FullLevel.SPEED) == [
-        "Next: ghog affected --no-cov --full=speed",
+        "Next: ghog affected --no-cov --full=speed --whole-suite",
     ]
     assert reporting_nextstep.next_after_check(code=1, missing=False, level=FullLevel.SPEED) == [
         reporting_nextstep.check_fail_line(FullLevel.SPEED),
@@ -298,28 +302,28 @@ def test_post_fix_messages_restart_at_ghog_day() -> None:
                 assert f"ghog day --full={level.token}" in message
         crash = reporting.crash_block(RunStats(), (), level)
         assert crash[-1].endswith(f"Then re-run {reporting_nextstep.restart_command(level)}.")
-    assert reporting.crash_block(RunStats(), ())[-1].endswith("Then re-run ghog day.")
+    assert reporting.crash_block(RunStats(), ())[-1].endswith("Then re-run ghog day --whole-suite.")
 
 
 def test_single_green_line_names_what_the_walk_reproves() -> None:
     """At none the walk re-proves check and affected; at a level also full."""
     assert reporting_nextstep.single_green_line(FullLevel.NONE) == (
-        "Next: ghog day (the walk re-proves check and affected)"
+        "Next: ghog day --whole-suite (the walk re-proves check and affected)"
     )
     assert reporting_nextstep.single_green_line(FullLevel.COV) == (
-        "Next: ghog day --full=cov (the walk re-proves check, affected and full)"
+        "Next: ghog day --full=cov --whole-suite (the walk re-proves check, affected and full)"
     )
 
 
 def test_comparison_lines_without_baseline() -> None:
     """No baseline yields the comparison-skipped notice (Q18), at its level."""
     assert reporting_nextstep.comparison_lines(None, failed=True, level=FullLevel.NONE) == [
-        "no full-run baseline, comparison skipped; run ghog full for suite-level truth",
+        "no full-run baseline, comparison skipped; run ghog full --whole-suite for suite-level truth",
     ]
     for level in (FullLevel.PASS, FullLevel.COV, FullLevel.SPEED):
         (line,) = reporting_nextstep.comparison_lines(None, failed=False, level=level)
         assert line == reporting_nextstep.no_baseline_line(level)
-        assert f"run ghog full --full={level.token} for suite-level truth" in line
+        assert f"run ghog full --full={level.token} --whole-suite for suite-level truth" in line
     assert _NONE_SELECTOR not in reporting_nextstep.no_baseline_line(FullLevel.NONE)
 
 
@@ -341,7 +345,7 @@ def test_comparison_lines_green_focus() -> None:
     comparison = FocusComparison(still_failing=(), suspects=())
     lines = reporting_nextstep.comparison_lines(comparison, failed=False, level=FullLevel.COV)
     assert lines.count("- none") == len(("still", "suspects"))
-    assert lines[-1] == "Next: ghog day --full=cov (the walk re-proves check, affected and full)"
+    assert lines[-1] == "Next: ghog day --full=cov --whole-suite (the walk re-proves check, affected and full)"
 
 
 # eof
