@@ -1119,10 +1119,18 @@ documentation steps.
 
 ### Analysis of Step 5 implementation state
 
-Not started. Step 5 is not implemented because Step 4 has not landed yet.
+Yes. Step 5 has been fully implemented.
 
-No effort-scope reader, `pw scope` command or `scope` progress line exists
-yet.
+The shared reader resolves requirement metadata, `pw scope` prints the
+explicit selector or completed ghog command, and `pw progress` shows the
+scope and its source. The fresh `ghog day --full=cov --whole-suite` walk
+passed with `fail=0 warn=0 xfail=0 cov=100 exit=0`, and `ghog status`
+confirmed `state=done proof=cov scope=whole`. The local launcher prints
+`ghog day --full=cov --whole-suite` for this effort. A following
+`ghog day --full=speed --whole-suite` added the timing pass at
+2026-10-03T23:26:46+02:00 with `outliers=0 excluded=0 proof=speed`. The
+project default `ghog day --full=speed` then reused that whole-suite speed
+proof on unchanged sources at 23:31:30.
 
 ### Goal for Step 5
 
@@ -1139,27 +1147,97 @@ of `pw progress`, reading only the requirement's `- Test group:` line.
 
 ### What was implemented for Step 5
 
-_(empty — no check has taken place yet.)_.
+- `tools/effort_scope.py` reads only metadata before the first level-two heading
+  from the selected requirement. Missing requirements and absent metadata
+  return whole-suite scope with distinct reasons. Explicit whole-suite
+  metadata avoids a project inventory; named groups use the existing group
+  resolver over one `snapshot.source_files` inventory.
+- Empty or duplicate metadata, unreadable requirements and invalid or empty
+  groups raise `EffortScopeError` naming the requirement and cause. The
+  reader never consults draft metadata or `GHOG_GROUP`.
+- `tools/prompt_workflow_scope.py` resolves the current topic and workflow
+  state, prints an explicit selector or a command retaining the caller's
+  ghog arguments, and refuses existing selectors in equals or separated
+  forms. Invalid scope exits 2; an unresolved topic exits 3. Command
+  rendering preserves arguments containing spaces.
+- The parser accepts the `scope` subcommand and remaining ghog arguments;
+  the main report dispatcher calls it. Progress appends the scope after the
+  step and optional journal, or after the phase without a step. Invalid
+  declarations appear as errors without a fallback or a proof claim.
+- `instructions/run-pw.md` documents the command forms and progress row.
+  Dedicated reader and workflow test packages cover the new behavior,
+  including activation after step 2, switching and removal. Existing parser
+  tests cover the command forms and root option. Two legacy progress
+  expectations were updated for the added row; new progress cases stay in
+  the new scope package, as the plan's split guidance intends.
 
 ### New types or classes introduced for Step 5
 
-_(empty — no check has taken place yet.)_.
+`EffortScope` is an immutable dataclass carrying the existing `ResolvedScope`,
+the source requirement path and a display reason. `EffortScopeError` is the
+reader's validation error, translated into command diagnostics or a progress
+row by the workflow adapter. No additional scope model or matching policy
+was introduced.
 
 ### Architecture check for Step 5
 
-_(empty — no check has taken place yet.)_.
+The reader owns requirement IO and delegates group rules to groundhog's
+existing resolver. The workflow adapter owns topic selection, command output
+and progress rendering. Parser and dispatch changes stay at the CLI
+boundary; domain scope models do not import workflow presentation. No
+DDD-Hexagonal layer violation or duplicated scope policy was found.
+
+No, there is nothing that needs to be addressed.
 
 ### Performance check for Step 5
 
-_(empty — no check has taken place yet.)_.
+Header parsing stops at the first level-two heading. Whole-suite selection
+does not scan the project. Group selection obtains one inventory and reuses
+the established group resolver; a unit test asserts that single inventory
+call. Selector rejection and command construction are linear in the input
+arguments. No new quadratic or comparison-sort computation was introduced.
+
+Final production line counts are `effort_scope.py` 92,
+`prompt_workflow_scope.py` 69, `prompt_workflow.py` 545,
+`prompt_workflow_parser.py` 190 and `prompt_workflow_progress.py` 492.
+The new reader and workflow test modules are 143 and 178 lines, their package
+markers one line each, parser tests 143 and existing progress tests 505.
+Every changed Python file remains below the 650-line ceiling.
+
+No, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 5
 
-_(empty — no check has taken place yet.)_.
+The configured coverage source is `tools`, with a 100% gate; tests,
+`__init__.py`, protocols and named thin adapters are omitted. All five
+changed production modules are measured. The writer's completed walk and
+read-only coverage report show 100% for each, totaling 523 statements and
+zero misses. This implementation check did not run tests.
+
+Static inspection connects the reader to its dedicated TDD package covering
+all source forms, fingerprint and provenance, duplicate and empty metadata,
+unknown and empty groups, unreadable files, header termination and inventory
+cost. The workflow package covers command output, caller-selector rejection,
+resolution failures, scope changes, ambient-group independence and progress
+ordering with and without a journal. Existing main, parser and progress
+unit tests continue covering their respective modules. Every new top-level
+production symbol is exercised or called by these adapters.
+
+The finite metadata cases use parameterization. No additional PBT is needed
+for this step: pattern matching and fingerprint properties remain covered by
+the group resolver's earlier tests.
+
+No, there is no unit-tested class below 100% that needs completing.
 
 ### Feature integrity for Step 5
 
-_(empty — no check has taken place yet.)_.
+Existing workflow routing and progress fields are retained, including the
+umbrella-specific report. Requirement changes take effect on the next scope
+command without changing group declarations; stale draft metadata and
+ambient group selection cannot override the explicit selector. Invalid
+metadata prints no runnable command. Tests and the full coverage walk show
+no loss of existing features or reporting. Round-bound review scope remains
+the separately planned Step 6 work.
 
 ---
 
