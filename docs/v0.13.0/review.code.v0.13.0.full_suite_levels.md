@@ -4655,3 +4655,703 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-2 -->
+
+## Round 1 by requestor - Step 5
+
+- Recorded: 2026-10-03T23:33:15+02:00
+- Exchange: code/code/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: unrecorded
+- Implementation step: 5
+- Outcome: request
+
+### Review identity for step 5 full_suite_levels (round 1)
+
+Umbrella draft: none
+Implementation plan: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+Implementation step: 5
+Review round: 1
+
+### Code review evidence for step 5 full_suite_levels (round 1)
+
+request_index_tree: e237a0be427727e38fcdcbcbf194d30616ad8a5e
+resolved_validation_set:
+
+- ghog day --full=speed (sources: project)
+- ghog day --full=cov --whole-suite (sources: plan)
+- ghog day --full=speed --whole-suite (sources: request)
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(workflow): read requirement test scope
+group 1 path: tools/effort_scope.py
+group 1 path: tests/unit/tools/test_effort_scope/__init__.py
+group 1 path: tests/unit/tools/test_effort_scope/test_effort_scope_tdd.py
+group 2: feat(pw): print and report effort test scope
+group 2 path: tools/prompt_workflow_scope.py
+group 2 path: tools/prompt_workflow.py
+group 2 path: tools/prompt_workflow_parser.py
+group 2 path: tools/prompt_workflow_progress.py
+group 2 path: tests/unit/tools/test_prompt_workflow_scope/__init__.py
+group 2 path: tests/unit/tools/test_prompt_workflow_scope/test_prompt_workflow_scope_tdd.py
+group 2 path: tests/unit/tools/test_prompt_workflow_parser.py
+group 2 path: tests/unit/tools/test_prompt_workflow_progress/test_prompt_workflow_progress_tdd.py
+group 2 path: instructions/run-pw.md
+group 3: docs(full_suite_levels): record step 5 validation
+group 3 path: docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md
+staged path: docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md
+staged path: instructions/run-pw.md
+staged path: tests/unit/tools/test_effort_scope/__init__.py
+staged path: tests/unit/tools/test_effort_scope/test_effort_scope_tdd.py
+staged path: tests/unit/tools/test_prompt_workflow_parser.py
+staged path: tests/unit/tools/test_prompt_workflow_progress/test_prompt_workflow_progress_tdd.py
+staged path: tests/unit/tools/test_prompt_workflow_scope/__init__.py
+staged path: tests/unit/tools/test_prompt_workflow_scope/test_prompt_workflow_scope_tdd.py
+staged path: tools/effort_scope.py
+staged path: tools/prompt_workflow.py
+staged path: tools/prompt_workflow_parser.py
+staged path: tools/prompt_workflow_progress.py
+staged path: tools/prompt_workflow_scope.py
+```
+
+### Requestor assessment for step 5 full_suite_levels (round 1)
+
+Yes. Step 5 has been fully implemented.
+
+The validation plan records the completed implementation, architecture,
+performance, coverage and feature-integrity checks. The staged code implements
+the requirement-only reader, explicit pw scope output and progress scope row;
+later steps remain pending.
+
+Validation passed through the current worktree's groundhog launcher:
+
+- `ghog day --full=cov --whole-suite`: exit 0, fresh log and status done at
+  22:58:06 on 2026-10-03; `fail=0 warn=0 xfail=0 cov=100 proof=cov scope=whole`.
+  All five changed production modules have 100% measured coverage, with 523
+  statements and zero missed statements. The walk included static checks and
+  affected tests; no production or test changes followed it.
+- `ghog day --full=speed --whole-suite`: exit 0, fresh log and status done at
+  23:26:46 on 2026-10-03; `fail=0 warn=0 xfail=0 cov=skipped outliers=0
+  excluded=0 proof=speed reused=check+affected scope=whole`. This adds the timing
+  gate to the earlier coverage proof. It satisfies this branch's speed default.
+- `ghog day`: exit 0, fresh log and status done at 23:28:16 on 2026-10-03;
+  `full=none src=default proof=speed reused=all scope=whole`. Groundhog reported
+  that saved speed proof on unchanged sources satisfied the objective; no
+  checks or tests ran during this auxiliary no-op invocation.
+- `ghog day --full=speed`: exit 0, fresh log and status done at 23:31:30 on
+  2026-10-03; `full=speed src=param proof=speed reused=all scope=whole`. This
+  exact project-default command reused the saved whole-suite speed proof on
+  unchanged sources. The canonical launcher loaded this branch's resolver,
+  so this is the project command actually captured in the rendered evidence.
+- `pw scope day --full=cov` prints `ghog day --full=cov --whole-suite` for this
+  effort. `git diff --check` and the mandatory Markdown wrapper passed.
+- Root `a.commit` was formatted and its readiness checker returned ready=true
+  without diagnostics for all three groups and 13 staged paths.
+
+The reader delegates existing group policy, and the workflow adapter owns
+presentation and topic selection. No architecture violation or duplicated
+matching policy was found. Whole-suite selection skips inventory; named scope
+uses one inventory, verified by tests. All changed Python files remain below
+650 lines; the largest is 545. The tests exercise observable behavior and
+failure paths. Existing resolver properties remain covered by earlier steps;
+finite metadata cases are parameterized here.
+
+The only plan-guidance adjustment updates two legacy progress expected rows
+to account for the required new scope row; new scenarios remain in the new
+scope package. This is recorded in the validation plan. No feature-integrity
+regression was found.
+
+### Implementation report for step 5 full_suite_levels (round 1)
+
+The requirement header now owns workflow scope selection. `read_effort_scope`
+returns whole-suite scope for an absent requirement or missing metadata,
+preserving distinct reasons, and delegates named groups to the existing
+resolver with one source inventory. It rejects empty or duplicate metadata,
+unreadable requirements, unknown groups and empty group membership with a
+diagnostic naming the requirement. It stops at the first level-two heading.
+
+`pw scope` prints the explicit selector. With ghog arguments it prints the
+completed command, preserves arguments containing spaces and rejects an
+existing selector. Invalid scope exits 2; an unresolved topic exits 3.
+`pw progress` shows scope and source after the step and optional journal, or
+after the phase when there is no step. Errors remain visible without fallback.
+Draft metadata and ambient `GHOG_GROUP` cannot select the workflow scope.
+
+The parser, dispatcher and run-pw instruction expose the new command. Dedicated
+tests cover metadata, source provenance, failures, inventory count, command
+forms, progress ordering and live activation, switching and removal. Two
+existing progress expectations were updated for the required new row; all new
+progress scenarios live in the new scope package. That minimal departure from
+the plan's unchanged-test guidance is recorded in the validation plan.
+
+This implements step 5 only. Review-round scope capture and binding remain
+step 6. The reader reuses the existing scope model and group policy.
+
+Writer notes: `.reviews/a.full_suite_levels.step5.journal.md` and `.reviews/a.full_suite_levels.step5.handoff.md`.
+
+### Change summary for step 5 full_suite_levels (round 1)
+
+Root `a.commit` contains these three validated groups, covering all 13 staged
+paths in order.
+
+#### Requirement scope reader for step 5 full_suite_levels (round 1)
+
+`feat(workflow): read requirement test scope`
+
+- `tools/effort_scope.py`
+- `tests/unit/tools/test_effort_scope/__init__.py`
+- `tests/unit/tools/test_effort_scope/test_effort_scope_tdd.py`
+
+#### Workflow commands and progress for step 5 full_suite_levels (round 1)
+
+`feat(pw): print and report effort test scope`
+
+- `tools/prompt_workflow_scope.py`
+- `tools/prompt_workflow.py`
+- `tools/prompt_workflow_parser.py`
+- `tools/prompt_workflow_progress.py`
+- `tests/unit/tools/test_prompt_workflow_scope/__init__.py`
+- `tests/unit/tools/test_prompt_workflow_scope/test_prompt_workflow_scope_tdd.py`
+- `tests/unit/tools/test_prompt_workflow_parser.py`
+- `tests/unit/tools/test_prompt_workflow_progress/test_prompt_workflow_progress_tdd.py`
+- `instructions/run-pw.md`
+
+#### Validation evidence for step 5 full_suite_levels (round 1)
+
+`docs(full_suite_levels): record step 5 validation`
+
+- `docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md`
+
+The step is marked fully implemented; later steps remain pending. No commit
+has been made or authorized.
+
+### Writer response for step 5 full_suite_levels (round 1)
+
+Writer response:
+
+Initial review request for step 5. There is no earlier feedback or disagreement
+in this exchange. Please assess the exact staged implementation and its
+step-specific validation evidence.
+
+### Reviewer focus for step 5 full_suite_levels (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-5-round-1 -->
+
+## Round 1 by reviewer - Step 5
+
+- Recorded: 2026-10-03T23:39:46+02:00
+- Exchange: code/code/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 5
+- Outcome: answer
+
+### Assessed index identity for step 5 full_suite_levels (exchange 1) (round 1)
+
+Baseline index tree: e237a0be427727e38fcdcbcbf194d30616ad8a5e
+
+Assessed index tree: a4318eca58ad14342be8ef0196359870ecea481b
+
+### Implementation check for step 5 full_suite_levels (exchange 1) (round 1)
+
+Result:
+
+Yes. Step 5 has been fully implemented.
+
+`tools/effort_scope.py` meets the design's reader contract:
+
+- it reads `- Test group:` only before the first `##[space]` heading of `WorkflowState.requirement`;
+- it returns the whole suite with distinct reasons for no requirement, no line and an explicit `whole suite`, and never reads the draft or `GHOG_GROUP`;
+- it resolves a named group through `groundhog.groups.resolve_group` over one `snapshot.source_files` call;
+- it raises `EffortScopeError` naming the requirement and the cause for an empty value, two lines, an unreadable file, an unknown group or an empty side.
+
+`tools/prompt_workflow_scope.py` covers the command and the progress row:
+
+- `run_scope` refuses caller selectors in both spellings (`--group`, `--scope-file`, `--whole-suite`);
+- it exits 2 on an invalid scope and 3 on an unresolved topic;
+- it prints the bare selector, or the `list2cmdline` command with the selector appended;
+- `scope_lines` renders `group <name> (<source>)`, `whole suite (<reason>)` or `error: ...`.
+
+The parser's `REMAINDER` subcommand, the `_run_report` dispatch, the progress row placement (after the step and optional journal, or after the phase, and never on the umbrella branch, which returns earlier) and `instructions/run-pw.md` follow the plan.
+
+The two legacy progress expectations changed because the new row necessarily alters those outputs. The plan's split guidance kept new cases out of that file, and they are in the new package. The validation plan records this departure.
+
+The live `pw scope day --full=cov` printed `ghog day --full=cov --whole-suite` for this effort. `rg -n "draft" tools/effort_scope.py` matches only the module docstring sentence that says no draft is consulted. `rg -n "pw scope" instructions/run-pw.md` lists the command.
+
+Architecture: the reader owns requirement IO and delegates matching to groundhog, and the adapter owns topic resolution and rendering. No new scope model, no layer inversion.
+
+Performance: the header read stops early, whole-suite selection makes no tree walk, and a named group makes one, which the plan accepts. The changed files stay at or under 545 lines.
+
+Static coverage: `source = ["tools"]` at 100%. Both new modules have dedicated TDD packages, and the parser test covers the new subcommand. No class is below 100% in its own tests.
+
+Validation plan effects:
+
+One Step 5 row changed in `docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md`. The Analysis summary now also records the project-required speed evidence: `ghog day --full=speed --whole-suite` at 23:26:46 with `outliers=0 excluded=0 proof=speed`, then the project default `ghog day --full=speed` reusing that proof at 23:31:30. The marker and floor-file timestamps corroborate it.
+
+The Yes sentence, the other Step 5 sub-sections, the other steps and the document-level line are unchanged. The evidence launcher attributed the patch from pre-edit blob `1475072ea236c2c1158b1e07653c0b03e54d6cd5`, and only that patch was staged. `markdown-check.bat` exits 0. This is polishing-only review metadata.
+
+### Pre-repair mandatory checks and coverage for step 5 full_suite_levels (exchange 1) (round 1)
+
+Requestor evidence, in order:
+
+1. `ghog day --full=cov --whole-suite` ended 22:58:06 with `fail=0 warn=0 xfail=0 cov=100 proof=cov`.
+2. `ghog day --full=speed --whole-suite` ended 23:26:46 with `outliers=0 excluded=0 proof=speed reused=check+affected`.
+3. A plain `ghog day` reused that proof.
+4. `ghog day --full=speed` ended 23:31:30 with `proof=speed reused=all scope=whole`.
+
+The root `a.ghog.log` tail and `a.ghog.status` show the final 23:31:30 reuse. `.reviews/a.ghog.day.ok` (written 23:26:46, beside `a.ghog.outliers` at 23:26:44) holds `proof=speed`, and its digest `5736621c...` equals `snapshot.source_digest` recomputed read-only, so the speed proof covers the reviewed sources.
+
+Reviewer evidence:
+
+- static reading of plan Step 5, the design sections "The effort's declared scope", "Scope-carrying workflow commands" and "Scope display in pw progress", the staged diff and both new test packages;
+- comparison of the request-time and live index trees;
+- the commit-plan check, run independently before and after staging;
+- a line-ending scan of the staged blobs (all LF);
+- the plan's two `rg` searches, reproduced read-only;
+- the read-only launcher call `pw scope day --full=cov`, which printed `ghog day --full=cov --whole-suite`.
+
+The reviewer ran no test, walk or coverage measurement.
+
+### Resolved validation set and sources for step 5 full_suite_levels (exchange 1) (round 1)
+
+The request embeds:
+
+1. `ghog day --full=speed` (project).
+2. `ghog day --full=cov --whole-suite` (plan).
+3. `ghog day --full=speed --whole-suite` (request).
+
+The current resolver contract gives, for the exact plan and step:
+
+1. `ghog day --full=speed` (project): `.review-validation` is absent.
+2. `ghog day --full=cov --whole-suite` (plan).
+3. `pw scope day --full=cov` (plan): the completion criterion says it prints that same command for this effort.
+4. `rg -n "draft" tools/effort_scope.py` (plan).
+5. `rg -n "pw scope" instructions/run-pw.md` (plan).
+6. `ghog day --full=speed --whole-suite` (request).
+
+The reviewer did not execute the ghog commands. The checks were reproduced read-only:
+
+- `pw scope day --full=cov` printed `ghog day --full=cov --whole-suite`;
+- the `draft` search matched only docstring line 1;
+- the `pw scope` search matched lines 5, 44, 45 and 87.
+
+### Resolver drift and direction for step 5 full_suite_levels (exchange 1) (round 1)
+
+Drift found, the same pattern as Step 3 and Step 4 round 1. The request set is narrower than the plan: it omits three plan-sourced completion commands, `pw scope day --full=cov`, `rg -n "draft" tools/effort_scope.py` and `rg -n "pw scope" instructions/run-pw.md`. Pass each one with `--plan-validation-command` on the replacement request (R1). The request-sourced `ghog day --full=speed --whole-suite` is a legitimate addition and needs no change.
+
+### Repository state around validation for step 5 full_suite_levels (exchange 1) (round 1)
+
+The request-time index tree and the reviewer baseline are the same: `e237a0be427727e38fcdcbcbf194d30616ad8a5e`. Final assessed index: `a4318eca58ad14342be8ef0196359870ecea481b`.
+
+The validation state was captured before and after over the same 19 ordered paths: the 13 staged Step 5 paths plus `a.ghog.log`, `a.ghog.status`, `a.ghog.affected.log`, `.testmondata` and two unused reviewer log paths. Tracked differences appear only for the validation plan and `<index>`. The raw `acceptable=false` comes from the intended Step 5 metadata edit, and the attributed patch changes one Analysis paragraph. No tracked validation side effect and no untracked or ignored change. The read-only `pw scope` call changed no tracked file. The unstaged protocol transcript entry is untouched.
+
+Umbrella: none. The launcher comparison returns `applicable=false`, `changed=false`.
+
+### Repair inventory for step 5 full_suite_levels (exchange 1) (round 1)
+
+Repairs made:
+
+- Review metadata only, polishing-only, not substantive. The Step 5 Analysis paragraph in the validation plan now records the speed walk and the project-default speed reuse. No implementation, test or `a.commit` change, and the request carried no Human guidance block.
+
+Paths staged:
+
+- docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md (reviewer metadata patch only, attributed from pre-edit blob 1475072ea236c2c1158b1e07653c0b03e54d6cd5)
+
+### Commit plan assessment for step 5 full_suite_levels (exchange 1) (round 1)
+
+`commit-plan-check.bat --format json` was run independently before assessment and again after staging the Step 5 metadata (`.reviews/a.full_suite_levels.step5.tmp.r1.cpc.json` and `cpc-final.json`). Both runs returned exit 0, `state=valid`, `ready=true`, three ordered groups, 13 staged paths and `diagnostics=[]`.
+
+Ordered groups:
+
+1. `feat(workflow): read requirement test scope` (3 paths)
+2. `feat(pw): print and report effort test scope` (9 paths)
+3. `docs(full_suite_levels): record step 5 validation` (1 path)
+
+Membership, dependency order and conventional subjects match the staged work. The reviewer's metadata edit stays within Group 3's path and purpose. `a.commit` remains accurate and was not amended. This mechanical result does not authorize a commit.
+
+### Findings and boundaries for step 5 full_suite_levels (exchange 1) (round 1)
+
+Unresolved findings:
+
+- R1 (P3, requestor only): resolver drift. The resolved validation set omits the three plan-sourced completion commands: `pw scope day --full=cov`, `rg -n "draft" tools/effort_scope.py` and `rg -n "pw scope" instructions/run-pw.md`. Step 3 and Step 4 each needed a round for this same omission, and both round 2 requests then carried their searches. All three return the expected results on the staged tree (reproduced read-only), so no code, test or `a.commit` change is required. Publish the replacement request with these three `--plan-validation-command` additions, keeping the existing project, plan and request commands. As a process fix, take every command in the plan step's Completion criteria as plan validation commands when rendering the request.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 5 full_suite_levels (exchange 1) (round 1)
+
+The implementation is complete and needs no change. Consume this answer with the reviewed work unchanged, apart from the staged polishing edit to the Step 5 validation Analysis. Publish the replacement request whose resolved set adds the three plan completion commands from R1. The existing walk evidence still applies to the same digest, so no new walk is needed unless sources change. Keep `a.commit` as is.
+
+### Decision rationale for step 5 full_suite_levels (exchange 1) (round 1)
+
+Recommend changes-requested, for request metadata only. The six readiness-floor results:
+
+1. Identity: PASS. The exact plan, step 5, round 1, occurrence 1, the code identity, `Umbrella draft: none` and request tree `e237a0be...` agree with the live exchange, the envelope and the live index.
+2. Implementation completeness: PASS. The reader, the command, the progress row, the parser and the documentation match the plan and the design.
+3. Validation and coverage: FAIL on the request set only. The walks are green, and `proof=speed` matches the current digest. The static coverage review finds no gap. The resolved set, however, omits three plan commands (R1).
+4. Staged attribution: PASS. The only reviewer change is one attributable, polishing-only Step 5 validation paragraph.
+5. Unresolved findings: FAIL. R1 is open.
+6. `a.commit`: PASS. The independent check returned exit 0, `state=valid`, `ready=true`, 13 paths in three accurate groups and no diagnostics.
+
+Once R1 is fixed, a replacement request with the complete set and an otherwise unchanged tree would meet every readiness-floor result.
+
+### Final reviewer decision for step 5 full_suite_levels (exchange 1) (round 1)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-5-round-1 -->
+
+## Round 2 by requestor - Step 5
+
+- Recorded: 2026-10-03T23:43:02+02:00
+- Exchange: code/code/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 5
+- Outcome: request
+
+### Review identity for step 5 full_suite_levels (round 2)
+
+Umbrella draft: none
+Implementation plan: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+Implementation step: 5
+Review round: 2
+
+### Code review evidence for step 5 full_suite_levels (round 2)
+
+request_index_tree: a4318eca58ad14342be8ef0196359870ecea481b
+resolved_validation_set:
+
+- ghog day --full=speed (sources: project)
+- ghog day --full=cov --whole-suite (sources: plan)
+- pw scope day --full=cov (sources: plan)
+- rg -n "draft" tools/effort_scope.py (sources: plan)
+- rg -n "pw scope" instructions/run-pw.md (sources: plan)
+- ghog day --full=speed --whole-suite (sources: request)
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(workflow): read requirement test scope
+group 1 path: tools/effort_scope.py
+group 1 path: tests/unit/tools/test_effort_scope/__init__.py
+group 1 path: tests/unit/tools/test_effort_scope/test_effort_scope_tdd.py
+group 2: feat(pw): print and report effort test scope
+group 2 path: tools/prompt_workflow_scope.py
+group 2 path: tools/prompt_workflow.py
+group 2 path: tools/prompt_workflow_parser.py
+group 2 path: tools/prompt_workflow_progress.py
+group 2 path: tests/unit/tools/test_prompt_workflow_scope/__init__.py
+group 2 path: tests/unit/tools/test_prompt_workflow_scope/test_prompt_workflow_scope_tdd.py
+group 2 path: tests/unit/tools/test_prompt_workflow_parser.py
+group 2 path: tests/unit/tools/test_prompt_workflow_progress/test_prompt_workflow_progress_tdd.py
+group 2 path: instructions/run-pw.md
+group 3: docs(full_suite_levels): record step 5 validation
+group 3 path: docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md
+staged path: docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md
+staged path: instructions/run-pw.md
+staged path: tests/unit/tools/test_effort_scope/__init__.py
+staged path: tests/unit/tools/test_effort_scope/test_effort_scope_tdd.py
+staged path: tests/unit/tools/test_prompt_workflow_parser.py
+staged path: tests/unit/tools/test_prompt_workflow_progress/test_prompt_workflow_progress_tdd.py
+staged path: tests/unit/tools/test_prompt_workflow_scope/__init__.py
+staged path: tests/unit/tools/test_prompt_workflow_scope/test_prompt_workflow_scope_tdd.py
+staged path: tools/effort_scope.py
+staged path: tools/prompt_workflow.py
+staged path: tools/prompt_workflow_parser.py
+staged path: tools/prompt_workflow_progress.py
+staged path: tools/prompt_workflow_scope.py
+```
+
+### Requestor assessment for step 5 full_suite_levels (round 2)
+
+Yes. Step 5 has been fully implemented.
+
+Round 1 independently confirmed completeness, architecture, performance,
+coverage and commit grouping. Its only finding was the omission of three
+read-only plan completion commands from the resolved validation set. All are
+now supplied as plan additions and were rerun successfully by the writer.
+
+Validation evidence on unchanged production and test sources:
+
+- `ghog day --full=cov --whole-suite`: exit 0, fresh log, status done at
+  2026-10-03T22:58:06+02:00; fail/warn/xfail=0, cov=100, proof=cov, scope=whole.
+  Static checks and affected tests passed. All five changed production modules
+  have 100% measured coverage: 523 statements, zero missed.
+- `ghog day --full=speed --whole-suite`: exit 0, fresh log, status done at
+  2026-10-03T23:26:46+02:00; fail/warn/xfail/outliers/excluded=0,
+  cov=skipped, proof=speed, reused=check+affected, scope=whole.
+- `ghog day --full=speed`: exit 0, fresh log, status done at
+  2026-10-03T23:31:30+02:00; proof=speed, reused=all, scope=whole. The exact
+  project default reused saved proof on unchanged sources; nothing ran again.
+- `pw scope day --full=cov` prints `ghog day --full=cov --whole-suite`.
+- `rg -n "draft" tools/effort_scope.py` matches only the module docstring at
+  line 1; it states that no draft is consulted.
+- `rg -n "pw scope" instructions/run-pw.md` matches lines 5, 44, 45 and 87.
+- The independent commit-plan checker returned ready=true, three groups,
+  13 staged paths and no diagnostics after the reviewer's metadata repair.
+
+The existing full-walk evidence remains valid: the only staged repair adds
+the already-established speed evidence to the validation plan's Step 5
+Analysis paragraph. No production code, tests or commit boundaries changed.
+The writer accepts this polishing edit, with no disagreement.
+
+The reader reuses the scope model and group resolver; the adapter owns topic
+selection and presentation. Whole-suite selection skips inventory; named
+groups make one inventory call, verified by tests. All changed Python files
+are below 650 lines, with the largest at 545. Finite metadata cases are
+parameterized; earlier resolver property coverage remains applicable.
+
+Two existing progress expectations necessarily include the new row. All new
+scenarios are in the new scope test package; this minor plan-guidance
+adjustment is recorded. Later implementation steps remain pending.
+
+### Implementation report for step 5 full_suite_levels (round 2)
+
+Step 5 adds the requirement-only scope reader, `pw scope` selector and ghog
+command output, and the scope/source row in `pw progress`. Missing requirement
+and missing metadata yield whole-suite scope with distinct reasons. Named
+groups use one source inventory and the existing group resolver. Invalid,
+duplicate, empty or unreadable declarations produce requirement-specific
+errors. The reader stops at the first level-two heading and never consults
+draft metadata or ambient group selection.
+
+The parser, dispatcher and run-pw documentation expose the command. Caller
+selectors are rejected; arguments containing spaces are preserved. Invalid
+scope exits 2 and unresolved topic exits 3. Progress displays errors without
+falling back. Dedicated tests cover metadata, errors, provenance, inventory
+cost, command forms, live scope changes and progress row ordering.
+
+Since round 1, only the validation plan's Step 5 Analysis paragraph gained
+the speed-walk and default-reuse evidence. The writer accepts that staged,
+polishing-only reviewer edit. Code and tests are unchanged. The replacement
+request also includes all three missing plan completion commands in its typed
+validation evidence. Review-bound scope remains step 6.
+
+Writer notes: `.reviews/a.full_suite_levels.step5.journal.md` and `.reviews/a.full_suite_levels.step5.handoff.md`.
+
+### Change summary for step 5 full_suite_levels (round 2)
+
+Root `a.commit` remains accurate and ready for these 13 staged paths in three
+ordered groups. The reviewer's sole repair stays inside Group 3.
+
+#### Requirement scope reader for step 5 full_suite_levels (round 2)
+
+`feat(workflow): read requirement test scope`
+
+- `tools/effort_scope.py`
+- `tests/unit/tools/test_effort_scope/__init__.py`
+- `tests/unit/tools/test_effort_scope/test_effort_scope_tdd.py`
+
+#### Workflow commands and progress for step 5 full_suite_levels (round 2)
+
+`feat(pw): print and report effort test scope`
+
+- `tools/prompt_workflow_scope.py`
+- `tools/prompt_workflow.py`
+- `tools/prompt_workflow_parser.py`
+- `tools/prompt_workflow_progress.py`
+- `tests/unit/tools/test_prompt_workflow_scope/__init__.py`
+- `tests/unit/tools/test_prompt_workflow_scope/test_prompt_workflow_scope_tdd.py`
+- `tests/unit/tools/test_prompt_workflow_parser.py`
+- `tests/unit/tools/test_prompt_workflow_progress/test_prompt_workflow_progress_tdd.py`
+- `instructions/run-pw.md`
+
+#### Validation evidence for step 5 full_suite_levels (round 2)
+
+`docs(full_suite_levels): record step 5 validation`
+
+- `docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md`
+
+The versioned protocol transcript has unstaged generated entries and remains
+outside these implementation groups. No commit is authorized or made.
+
+### Writer response for step 5 full_suite_levels (round 2)
+
+Writer response:
+
+R1 accepted. The replacement request retains every existing validation command
+and adds these three exact plan-sourced completion commands:
+
+- `pw scope day --full=cov`
+- `rg -n "draft" tools/effort_scope.py`
+- `rg -n "pw scope" instructions/run-pw.md`
+
+The writer ran all three and confirmed the expected command and search
+matches. Future request preparation must include every command in the step's
+Completion criteria, including read-only searches and command-output checks.
+
+The reviewer-staged validation paragraph accurately records the completed
+speed run and its default-command reuse. It is accepted as polishing-only.
+The reviewed-work-changed signal was true because this paragraph changes the
+staged tree; no code, test, acceptance behavior or commit grouping changed.
+No disagreement. Existing speed and coverage evidence still applies.
+
+### Reviewer focus for step 5 full_suite_levels (round 2)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-5-round-2 -->
+
+## Round 2 by reviewer - Step 5
+
+- Recorded: 2026-10-03T23:47:22+02:00
+- Exchange: code/code/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 5
+- Outcome: answer
+
+### Assessed index identity for step 5 full_suite_levels (exchange 1) (round 2)
+
+Baseline index tree: a4318eca58ad14342be8ef0196359870ecea481b
+
+Assessed index tree: a4318eca58ad14342be8ef0196359870ecea481b
+
+### Implementation check for step 5 full_suite_levels (exchange 1) (round 2)
+
+Result:
+
+Yes. Step 5 has been fully implemented.
+
+The request tree `a4318eca...` is the exact index the reviewer assessed and staged in round 1, so the round 1 implementation check stands unchanged:
+
+- the requirement-only reader `tools/effort_scope.py`;
+- `pw scope` with selector refusal and exit codes 2 and 3;
+- the `scope` row of `pw progress` after the step and optional journal, or after the phase;
+- the parser and dispatcher wiring, and `instructions/run-pw.md`;
+- dedicated TDD packages for both new modules.
+
+No code, test or `a.commit` content changed. The only round 1 to round 2 change is the resolved validation set, which now carries the three plan completion commands (R1). The validation plan's Step 5 rows, including the reviewer's speed-evidence paragraph, are accurate.
+
+Architecture, performance and static coverage are as assessed in round 1. The reader delegates matching to groundhog, whole-suite selection makes no tree walk and a named group makes one, the files stay at or under 545 lines, and coverage of `tools` is at 100%. No finding.
+
+Validation plan effects:
+
+No reviewer edit this round. The Step 5 rows, including the round 1 reviewer paragraph recording the speed walk and the default-command reuse, were rechecked and are accurate. The document-level line stays `No, it is not implemented.` while Steps 6 to 8 are pending. A pre-edit blob was recorded, but no repair followed.
+
+### Pre-repair mandatory checks and coverage for step 5 full_suite_levels (exchange 1) (round 2)
+
+Requestor evidence is unchanged from round 1:
+
+- `ghog day --full=cov --whole-suite` (22:58:06, `cov=100 proof=cov`);
+- `ghog day --full=speed --whole-suite` (23:26:46, `outliers=0 excluded=0 proof=speed`);
+- `ghog day --full=speed` (23:31:30, `proof=speed reused=all`);
+- the three plan completion commands, now recorded as passing.
+
+`.reviews/a.ghog.day.ok` still holds `proof=speed` with `digest=5736621c...`, equal to `snapshot.source_digest` recomputed read-only now.
+
+Reviewer evidence:
+
+- the live index tree equals the request tree and the round 1 assessed tree;
+- the independent commit-plan check;
+- the read-only launcher call `pw scope day --full=cov`, which printed `ghog day --full=cov --whole-suite` again;
+- the round 1 searches, which apply to the identical tree.
+
+The reviewer ran no test, walk or coverage measurement.
+
+### Resolved validation set and sources for step 5 full_suite_levels (exchange 1) (round 2)
+
+The request and the current resolver contract give the same ordered set:
+
+1. `ghog day --full=speed` (project): `.review-validation` is absent.
+2. `ghog day --full=cov --whole-suite` (plan).
+3. `pw scope day --full=cov` (plan).
+4. `rg -n "draft" tools/effort_scope.py` (plan).
+5. `rg -n "pw scope" instructions/run-pw.md` (plan).
+6. `ghog day --full=speed --whole-suite` (request).
+
+The reviewer did not execute the ghog commands. The read-only checks match:
+
+- `pw scope day --full=cov` printed `ghog day --full=cov --whole-suite`;
+- the `draft` search matched only the docstring at line 1;
+- the `pw scope` search matched lines 5, 44, 45 and 87.
+
+### Resolver drift and direction for step 5 full_suite_levels (exchange 1) (round 2)
+
+None. The round 1 drift (R1) is resolved: all three plan completion commands appear with source `plan`, in the resolver's order, and the request-sourced speed walk is retained.
+
+### Repository state around validation for step 5 full_suite_levels (exchange 1) (round 2)
+
+The request-time index tree, the reviewer baseline and the final assessed index are the same: `a4318eca58ad14342be8ef0196359870ecea481b`, also the round 1 assessed tree.
+
+The validation state was captured before and after over the same 19 ordered paths: the 13 staged paths plus `a.ghog.log`, `a.ghog.status`, `a.ghog.affected.log`, `.testmondata` and two unused reviewer log paths. The comparison returns `acceptable=true` with no difference. The unstaged protocol transcript entries are untouched.
+
+Umbrella: none. The launcher comparison returns `applicable=false`, `changed=false`.
+
+### Repair inventory for step 5 full_suite_levels (exchange 1) (round 2)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 5 full_suite_levels (exchange 1) (round 2)
+
+`commit-plan-check.bat --format json` was run independently against the received state (`.reviews/a.full_suite_levels.step5.tmp.r2.cpc.json`). It returned exit 0, `state=valid`, `ready=true`, three ordered groups, 13 staged paths and `diagnostics=[]`.
+
+Ordered groups:
+
+1. `feat(workflow): read requirement test scope` (3 paths)
+2. `feat(pw): print and report effort test scope` (9 paths)
+3. `docs(full_suite_levels): record step 5 validation` (1 path)
+
+Membership, dependency order and conventional subjects match the staged work. The round 1 reviewer paragraph stays within Group 3's path and purpose, and the protocol transcript stays unstaged, outside these groups. `a.commit` remains accurate and needs no amendment. This mechanical result does not authorize a commit.
+
+### Findings and boundaries for step 5 full_suite_levels (exchange 1) (round 2)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 5 full_suite_levels (exchange 1) (round 2)
+
+No further Step 5 work is required. Present this advisory commit-ready recommendation at the convergence gate, where the human chooses the next action. The reviewer made no repair this round, and the request carried no Human guidance block.
+
+### Decision rationale for step 5 full_suite_levels (exchange 1) (round 2)
+
+Recommend commit-ready. The six readiness-floor results:
+
+1. Identity: PASS. The exact plan, step 5, round 2, occurrence 1, the code identity, `Umbrella draft: none` and request tree `a4318eca...` agree with the live exchange, the envelope and the live index.
+2. Implementation completeness: PASS. This is the round 1 assessed tree, with a complete Step 5 implementation.
+3. Validation and coverage: PASS. The speed proof matches the current digest, the plan's cov command reused it, and the three plan completion commands return the expected output. No static coverage gap.
+4. Staged attribution: PASS. No reviewer change this round. The round 1 reviewer paragraph is polishing-only metadata, which the writer accepted.
+5. Unresolved findings: PASS. R1 is resolved, and no new finding was raised.
+6. `a.commit`: PASS. The independent check returned exit 0, `state=valid`, `ready=true`, 13 paths in three accurate groups and no diagnostics.
+
+This round made no substantive repair. The recommendation is advisory and does not authorize a commit.
+
+### Final reviewer decision for step 5 full_suite_levels (exchange 1) (round 2)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-5-round-2 -->
+
+## Round 2 by human - Step 5 - human-confirmation
+
+- Recorded: 2026-10-04T00:03:58+02:00
+- Exchange: code/code/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 5
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-2 -->
