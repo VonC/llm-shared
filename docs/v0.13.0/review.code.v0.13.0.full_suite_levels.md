@@ -6823,3 +6823,798 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-3 -->
+
+## Round 1 by requestor - Step 7
+
+- Recorded: 2026-10-05T00:47:25+02:00
+- Exchange: code/code/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: unrecorded
+- Implementation step: 7
+- Outcome: request
+
+### Review identity for step 7 full_suite_levels (round 1)
+
+Umbrella draft: none
+Implementation plan: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+Implementation step: 7
+Review round: 1
+
+### Code review evidence for step 7 full_suite_levels (round 1)
+
+request_index_tree: 334723433a7707df64eac82664cc0a1a3a04015b
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+- `ghog day --full=cov --whole-suite` (sources: plan)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(groundhog): align workflow levels and scope
+group 1 path: .agent/workflows/fix-slow-test.md
+group 1 path: .agents/llm-shared/skills/fix-slow-test/SKILL.md
+group 1 path: .claude/skills/prepare-release/SKILL.md
+group 1 path: .github/skills/prepare-release/SKILL.md
+group 1 path: DEVELOPMENT.md
+group 1 path: GROUNDHOG.md
+group 1 path: instructions/code-review-requestor.md
+group 1 path: instructions/fix_slow_test.md
+group 1 path: instructions/groundhog.md
+group 1 path: instructions/group-commits-msg.md
+group 1 path: instructions/implement-missing-step.md
+group 1 path: instructions/implement-step.md
+group 1 path: instructions/prepare-release.md
+group 1 path: instructions/process-draft.md
+group 1 path: instructions/split-large-file.md
+group 1 path: instructions/step-journal.md
+group 1 path: instructions/write-plans.md
+group 1 path: instructions/write-requirement.md
+group 1 path: templates/step-handoff.template.md
+group 1 path: templates/write-plans.template.md
+group 1 path: templates/write-requirement.template.md
+group 1 path: tests/unit/tools/test_code_review_requestor_instruction/test_code_review_requestor_instruction_tdd.py
+group 1 path: tests/unit/tools/test_full_suite_levels_instructions/__init__.py
+group 1 path: tests/unit/tools/test_full_suite_levels_instructions/test_full_suite_levels_instructions_tdd.py
+group 1 path: tools/Pytest reset specs.md
+group 2: docs(full_suite_levels): record step 7 validation
+group 2 path: docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md
+staged path: .agent/workflows/fix-slow-test.md
+staged path: .agents/llm-shared/skills/fix-slow-test/SKILL.md
+staged path: .claude/skills/prepare-release/SKILL.md
+staged path: .github/skills/prepare-release/SKILL.md
+staged path: DEVELOPMENT.md
+staged path: GROUNDHOG.md
+staged path: docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md
+staged path: instructions/code-review-requestor.md
+staged path: instructions/fix_slow_test.md
+staged path: instructions/groundhog.md
+staged path: instructions/group-commits-msg.md
+staged path: instructions/implement-missing-step.md
+staged path: instructions/implement-step.md
+staged path: instructions/prepare-release.md
+staged path: instructions/process-draft.md
+staged path: instructions/split-large-file.md
+staged path: instructions/step-journal.md
+staged path: instructions/write-plans.md
+staged path: instructions/write-requirement.md
+staged path: templates/step-handoff.template.md
+staged path: templates/write-plans.template.md
+staged path: templates/write-requirement.template.md
+staged path: tests/unit/tools/test_code_review_requestor_instruction/test_code_review_requestor_instruction_tdd.py
+staged path: tests/unit/tools/test_full_suite_levels_instructions/__init__.py
+staged path: tests/unit/tools/test_full_suite_levels_instructions/test_full_suite_levels_instructions_tdd.py
+staged path: tools/Pytest reset specs.md
+```
+
+### Validation scope for step 7 full_suite_levels (round 1)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 7 full_suite_levels (round 1)
+
+Yes. Step 7 has been fully implemented.
+
+The 25 implementation paths match the step's instruction, template, adapter,
+manual and text-contract scope. The separate implementation-check records
+completion in the validation plan; Step 8 remains pending.
+
+The plan gate `ghog day --full=cov --whole-suite` ended at
+2026-10-05T00:22:09+02:00 with exit=0, fail=0, warn=0, xfail=0,
+cov=100 and proof=cov. `ghog status` confirmed state=done. This includes
+the repository static checks and the affected and full suites. Independent
+markdownlint on the 22 implementation Markdown files found zero issues, and
+the mandatory staged Markdown launcher passed after the validation update.
+
+The new instruction contracts and updated requestor contracts pass. The
+649-line instruction-structure test stays untouched, including its contract
+for exactly two literal project senv calls in the groundhog instruction.
+New tests have 138 lines; the updated requestor test has 254, below 650.
+
+No runtime class, architecture dependency, algorithm or IO path changes.
+The configured runtime coverage scope is tools, with the project's existing
+omissions; cov=100 is not a coverage claim for Markdown or test files.
+Text contracts do not require property-based testing. Existing instruction
+and feature tests remain green.
+
+Requestor validation `ghog day --full=speed --whole-suite` ended at
+2026-10-05T00:45:17+02:00 with exit=0, proof=speed,
+reused=check+affected, fail=0, warn=0, xfail=0, outliers=0 and excluded=0.
+The timing phase reported cov=skipped because it measures sequential
+durations; the earlier covered whole-suite result supplies coverage.
+`ghog status` confirmed state=done, proof=speed and scope=whole.
+Both exclusion listings report exclusions=0; no baseline was accepted or
+raised. The final speed walk left all 26 staged paths unchanged.
+
+### Implementation report for step 7 full_suite_levels (round 1)
+
+Development instructions now execute the command printed by `pw scope day`
+and describe check plus affected tests and the deliberate default full skip.
+The review-off chain captures the staged tree and exclusion listing, runs
+speed in the effort scope, then returns through implementation-check and
+grouping whenever the evidence changed or cannot be verified.
+
+Requestor policy documents speed before each request, authoritative declared
+commands, migration from plain day, captured scope, accepted exclusion
+disclosure and pending scope changes at the human gate. Release gates name
+`ghog day --full=cov --whole-suite`. Draft and requirement workflows carry
+the scope choice, while templates and private step notes record resolved
+commands. Manuals cover levels, groups, proof invalidation, timing and the
+new Q71-Q79 decisions and AT20-AT28 acceptance cases.
+
+The four provider adapter bodies remain single redirect headings, preserving
+their metadata and satisfying both the redirect boundary and Markdown H1
+rules. New instruction tests pin these policies and requestor tests pin the
+updated review contracts. No runtime Python code changes.
+
+The whole-suite coverage gate passed with cov=100 and no failures, warnings
+or expected failures. An initial Ruff check found two magic counts in the new
+test; named constants fixed them before the successful walk.
+
+The pre-review and post-speed exclusion listings both report `exclusions=0`. There are no
+existing accepted baselines to disclose and none have been introduced by
+this step. Scope is whole suite; the requirement has no Test group line.
+
+The review speed walk completed at 2026-10-05T00:45:17+02:00 with proof=speed,
+exit=0, outliers=0 and excluded=0. It reused check and affected evidence and
+completed sequential timing in 9m 59.3s. No repair or exclusion was needed.
+
+Writer notes: `.reviews/a.full_suite_levels.step7.journal.md` and `.reviews/a.full_suite_levels.step7.handoff.md`.
+
+### Change summary for step 7 full_suite_levels (round 1)
+
+﻿The root a.commit is formatted and its readiness check returned ready=true with no diagnostics.
+
+Group 1: feat(groundhog): align workflow levels and scope
+
+The 25 implementation paths keep the workflow contracts and their tests together.
+
+Group 2: docs(full_suite_levels): record step 7 validation
+
+The validation plan is the final dedicated commit group.
+
+Staged paths:
+
+- `.agent/workflows/fix-slow-test.md`
+- `.agents/llm-shared/skills/fix-slow-test/SKILL.md`
+- `.claude/skills/prepare-release/SKILL.md`
+- `.github/skills/prepare-release/SKILL.md`
+- `DEVELOPMENT.md`
+- `GROUNDHOG.md`
+- `docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md`
+- `instructions/code-review-requestor.md`
+- `instructions/fix_slow_test.md`
+- `instructions/groundhog.md`
+- `instructions/group-commits-msg.md`
+- `instructions/implement-missing-step.md`
+- `instructions/implement-step.md`
+- `instructions/prepare-release.md`
+- `instructions/process-draft.md`
+- `instructions/split-large-file.md`
+- `instructions/step-journal.md`
+- `instructions/write-plans.md`
+- `instructions/write-requirement.md`
+- `templates/step-handoff.template.md`
+- `templates/write-plans.template.md`
+- `templates/write-requirement.template.md`
+- `tests/unit/tools/test_code_review_requestor_instruction/test_code_review_requestor_instruction_tdd.py`
+- `tests/unit/tools/test_full_suite_levels_instructions/__init__.py`
+- `tests/unit/tools/test_full_suite_levels_instructions/test_full_suite_levels_instructions_tdd.py`
+- `tools/Pytest reset specs.md`
+
+### Writer response for step 7 full_suite_levels (round 1)
+
+Writer response:
+
+This is the first review round for Step 7. There is no earlier reviewer
+feedback, accepted repair or disagreement. Please assess the exact staged
+step against its plan and the two-group root `a.commit`.
+
+### Reviewer focus for step 7 full_suite_levels (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-7-round-1 -->
+
+## Round 1 by reviewer - Step 7
+
+- Recorded: 2026-10-05T00:54:06+02:00
+- Exchange: code/code/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 7
+- Outcome: answer
+
+### Assessed index identity for step 7 full_suite_levels (exchange 1) (round 1)
+
+Baseline index tree: 334723433a7707df64eac82664cc0a1a3a04015b
+
+Assessed index tree: 470158434e4d0cbcdd1c2d787a598bfbd708b4f5
+
+### Implementation check for step 7 full_suite_levels (exchange 1) (round 1)
+
+Result:
+
+Yes. Step 7 has been fully implemented.
+
+The 25 implementation paths are exactly the plan's Step 7 file list, plus the validation plan. Each named instruction, template, adapter and manual carries the design's command, level and scope for its phase.
+
+Development:
+
+- `implement-step.md`, `implement-missing-step.md` and `split-large-file.md` run the command printed by `pw scope day`, describe check.bat plus affected tests with a deliberately skipped full stage, and keep printed repair and restart lines.
+- `implement-step.md` adds the review-off speed pass after the review-mode sample, in this order: `git add -A`, `git write-tree`, the saved `ghog exclude --list` file, `pw scope day --full=speed`, `--since=`, the three comparison outcomes, the return through `pw handoff check <x>`, then the commit menu.
+- `group-commits-msg.md` defers its menu until that pass and lists accepted exclusions.
+
+Loop and timing:
+
+- `groundhog.md` states level and scope resolution, exit 8 only at `speed`, `proof=pending`, and restart lines as the only re-entry. It keeps exactly two `.\senv.bat &&` calls, as `test_instruction_structure_tdd.py` requires (that file is untouched).
+- `fix_slow_test.md` restarts with `ghog day --full=speed` in the same scope.
+
+Review and release:
+
+- `code-review-requestor.md` adds the speed default in the effort scope, authoritative declared commands, the migration notice, the exact-group claim, exclusion disclosure, the pending scope change at the gate, and no walk at a commit-ready answer.
+- `prepare-release.md` and both adapters name `ghog day --full=cov --whole-suite`.
+
+Scope recording:
+
+- `process-draft.md` adds the test-scope menu after the branch-layout menu, with no scope on an umbrella draft.
+- `write-requirement.md` and its template carry `- Test group:` and ask only when no choice was recorded.
+
+Templates, adapters and manuals:
+
+- `write-plans.md` and the plan and step-handoff templates resolve `pw scope day` at execution and record the selector in the Last gate.
+- The four adapters keep single-line redirect bodies.
+- `GROUNDHOG.md`, `DEVELOPMENT.md` and the specification (Q71 to Q79, AT20 to AT28) cover levels, groups, proof, timing and migration. The spot-checked marker names, coverage data name and exit codes match the code.
+
+One stale line remains, recorded in the Step 7 feature-integrity rows: `split-large-file.md:60` still ends "then run `ghog day` again" (R3).
+
+Architecture and performance: no runtime Python changes. Static coverage: the new contract package and the updated requestor test pin these phrases; Markdown carries no coverage target.
+
+Validation plan effects:
+
+Only the Step 7 feature-integrity rows changed in `docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md`: a paragraph records the stale `ghog day` ending of `split-large-file.md:60` and the printed-restart replacement. The Yes sentence, the other Step 7 sub-sections, the other steps and the document-level line are unchanged. The evidence launcher attributed the patch from pre-edit blob `161278b5da090bfa9d477d556a34e3d4c52a6138`, and only that patch was staged. `markdown-check.bat` exits 0. This is review metadata, not a substantive repair.
+
+### Pre-repair mandatory checks and coverage for step 7 full_suite_levels (exchange 1) (round 1)
+
+Requestor evidence:
+
+- `ghog day --full=cov --whole-suite` ended 2026-10-05 00:22:09 +02:00 with `fail=0 warn=0 xfail=0 cov=100 exit=0 proof=cov`.
+- `ghog day --full=speed --whole-suite` ended 00:45:17 with `proof=speed reused=check+affected outliers=0 excluded=0 exit=0`.
+- Both exclusion listings report `exclusions=0`.
+
+`.reviews/a.ghog.day.ok` holds `proof=speed` with `digest=f3ee6384...`, equal to the read-only `snapshot.source_digest` recomputation. `status` reports `bound_scope` whole.
+
+Reviewer evidence:
+
+- static reading of plan Step 7 and the full staged diff of the development, loop, requestor, release, scope and template instructions;
+- spot checks of the manuals against `snapshot.marker_path_for` and the documented exit codes;
+- comparison of the request-time and live index trees, and the commit-plan check, run independently before and after staging;
+- a line-ending scan (no mixed blob);
+- a BOM scan of the staged blobs (none) and of the requestor's Step 7 inputs, which found a BOM at offset 0 of `change-summary.md`, carried into `request-content.md`, `transcript-summary.md` and transcript line 6993 (R2);
+- the plan's three `rg` searches, reproduced read-only, and `markdown-check.bat` (exit 0).
+
+The reviewer ran no walk, test or coverage measurement. `ghog check` and the bound-scope `ghog affected` were not needed for a Markdown-and-contract-test step whose speed proof matches the digest.
+
+### Resolved validation set and sources for step 7 full_suite_levels (exchange 1) (round 1)
+
+The request embeds:
+
+1. `ghog day --full=speed --whole-suite` (project).
+2. `ghog day --full=cov --whole-suite` (plan).
+
+The current resolver contract gives, for the exact plan and step:
+
+1. `ghog day --full=speed --whole-suite` (project), the completed built-in default.
+2. `ghog day --full=cov --whole-suite` (plan).
+3. `rg -n "full coverage pass" instructions` (plan).
+4. `rg -n "ghog day --full=cov --whole-suite" instructions/prepare-release.md .claude/skills/prepare-release .github/skills/prepare-release` (plan).
+5. `rg -n "Rework and review again|ghog day --full=speed" instructions/code-review-requestor.md` (plan).
+6. The Markdown lint of every edited Markdown file (plan), for example `markdown-check.bat`.
+
+The reviewer did not execute the walks. The read-only checks match their criteria:
+
+- search 3 returned no match;
+- search 4 listed the eight `prepare-release.md` gate mentions and both adapters;
+- search 5 showed the gate label and the `ghog day --full=speed` default;
+- `markdown-check.bat` exited 0 on the repository.
+
+### Resolver drift and direction for step 7 full_suite_levels (exchange 1) (round 1)
+
+Drift found, the fourth recurrence (Steps 3 to 6 each needed a round for it). The request set omits the plan's three `rg` completion searches and its Markdown-lint criterion. Add them with `--plan-validation-command` on the replacement request (R1).
+
+### Repository state around validation for step 7 full_suite_levels (exchange 1) (round 1)
+
+The request-time index tree and the reviewer baseline are the same: `334723433a7707df64eac82664cc0a1a3a04015b`. Final assessed index: `470158434e4d0cbcdd1c2d787a598bfbd708b4f5`.
+
+The validation state was captured before and after over the same 32 ordered paths: the 26 staged paths plus `a.ghog.log`, `a.ghog.status`, `a.ghog.affected.log`, `.testmondata` and two unused reviewer log paths. Tracked differences appear only for the validation plan, through the attributed Step 7 paragraph, and `<index>`. No ignored or untracked change, and no overlap with writer work. The unstaged protocol transcript, including its line 6993 BOM, is untouched.
+
+Umbrella: none. The launcher comparison returns `applicable=false`, `changed=false`.
+
+### Repair inventory for step 7 full_suite_levels (exchange 1) (round 1)
+
+Repairs made:
+
+- Review metadata only, polishing-only, not substantive. The Step 7 feature-integrity rows in the validation plan now record the stale `split-large-file.md:60` ending. No instruction, test, transcript or `a.commit` change, and the request carried no Human guidance block.
+
+Paths staged:
+
+- `docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md` (reviewer metadata patch only, attributed from pre-edit blob `161278b5da090bfa9d477d556a34e3d4c52a6138`)
+
+### Commit plan assessment for step 7 full_suite_levels (exchange 1) (round 1)
+
+`commit-plan-check.bat --format json` was run independently before assessment and again after staging the Step 7 metadata (`.reviews/a.full_suite_levels.step7.tmp.r1.rv-cpc.json` and `rv-cpc-final.json`). Both runs returned exit 0, `state=valid`, `ready=true`, groups of 25 and 1 paths (26 in total) and `diagnostics=[]`.
+
+Ordered groups:
+
+1. `feat(groundhog): align workflow levels and scope` (25 paths)
+2. `docs(full_suite_levels): record step 7 validation` (1 path)
+
+Membership and order match the staged work. The changes are mostly instruction, manual and contract-test text. A `docs(...)` subject would describe Group 1 at least as well as `feat(groundhog)`, but the subject is the writer's judgment and stays valid. `a.commit` was not amended. After the rework, the Group 2 body must reflect the updated rows. This mechanical result does not authorize a commit.
+
+### Findings and boundaries for step 7 full_suite_levels (exchange 1) (round 1)
+
+Unresolved findings:
+
+- R1 (P2, requestor): resolver drift, a fourth recurrence. The resolved set omits the plan's three completion searches and its Markdown-lint criterion. Steps 3 to 6 each needed a round for this, and the Step 5 round 2 response committed to including every Completion criteria command. All four pass when reproduced read-only. Add them with `--plan-validation-command` on the replacement request. To stop the recurrence, derive the plan additions from the step's Completion criteria list each time, before rendering.
+- R2 (P3, requestor process): a byte-order mark entered the protocol artifacts. `.reviews/a.full_suite_levels.step7.tmp.r1.change-summary.md` begins with the UTF-8 BOM `EF BB BF`, the usual result of PowerShell `Out-File -Encoding utf8` or `Set-Content -Encoding utf8`. The renderer read it as text, so U+FEFF now sits inside the rendered request, the transcript summary and versioned transcript line 6993, before "The root a.commit". `markdown-check.bat` still passes, but the transcript now carries an invisible character. Write caller-owned inputs without a BOM, for example with `[IO.File]::WriteAllText`, which defaults to BOM-free UTF-8, and check them before rendering. Removing the existing character from the transcript is optional and needs the human's authorization, as for the Step 6 formatting fixes.
+- R3 (P3): a stale `ghog day` remains in `split-large-file.md`. At `instructions/split-large-file.md:60`, the "Check for files too big" bullet ends "finish the split first, then run `ghog day` again". The step changed the bullets above it to run the command printed by `pw scope day` and its printed restart lines, which keep level and scope. Replace that ending with the printed restart command (or the `pw scope day` command), so the split flow cannot drop a group selector.
+
+Boundary-crossing work:
+
+- `tools/code_review_request_files.read_utf8`, from the committed Step 6, reads caller-owned inputs with plain `utf-8`, so a leading BOM passes into request and transcript content. Rejecting a leading BOM, or reading with `utf-8-sig`, would stop R2 at the boundary for every requestor. That is a renderer change outside the Step 7 file list: take it into Step 8 or a follow-up, with the human's agreement.
+
+### Writer instructions for step 7 full_suite_levels (exchange 1) (round 1)
+
+Fix R3 in `instructions/split-large-file.md:60`, then update the Step 7 feature-integrity rows. Rerun the requestor validation if any tracked text changes; a Markdown-only edit alters no Python digest, but the walk's check step lints it. Refresh the Group 2 body of `a.commit`.
+
+Publish the replacement request with all six resolved commands: the three searches and the Markdown lint as `--plan-validation-command` (R1). Write every authored input without a BOM (R2), and lint the rendered transcript summary before `publish-request`. The optional removal of the transcript BOM needs the human's authorization.
+
+The reviewer made no instruction or test repair, and the request carried no Human guidance block.
+
+### Decision rationale for step 7 full_suite_levels (exchange 1) (round 1)
+
+Recommend changes-requested. The six readiness-floor results:
+
+1. Identity: PASS. The exact plan, step 7, round 1, occurrence 1, the code identity, `Umbrella draft: none`, request tree `33472343...` and the whole-suite `test_scope` agree with the live exchange and `bound_scope`.
+2. Implementation completeness: PASS, with one stale line (R3) recorded in the rows. Every planned instruction, template, adapter and manual change is present.
+3. Validation and coverage: FAIL on the request set. The speed proof matches the current digest and `markdown-check.bat` passes, but the resolved set omits four plan commands (R1).
+4. Staged attribution: PASS. The only reviewer change is attributable Step 7 validation metadata.
+5. Unresolved findings: FAIL. R1 to R3 are open.
+6. `a.commit`: PASS mechanically. The independent check returned exit 0, `state=valid`, `ready=true`, 26 paths in two groups and no diagnostics.
+
+These failures block commit-readiness.
+
+### Final reviewer decision for step 7 full_suite_levels (exchange 1) (round 1)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-7-round-1 -->
+
+## Round 2 by requestor - Step 7
+
+- Recorded: 2026-10-05T01:01:10+02:00
+- Exchange: code/code/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 7
+- Outcome: request
+
+### Review identity for step 7 full_suite_levels (round 2)
+
+Umbrella draft: none
+Implementation plan: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+Implementation step: 7
+Review round: 2
+
+### Code review evidence for step 7 full_suite_levels (round 2)
+
+request_index_tree: 9710917b4edf1787997bee6e762a1a0b7a0b882c
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+- `ghog day --full=cov --whole-suite` (sources: plan)
+- `rg -n 'full coverage pass' instructions` (sources: plan)
+- `rg -n 'ghog day --full=cov --whole-suite' instructions/prepare-release.md .claude/skills/prepare-release .github/skills/prepare-release` (sources: plan)
+- `rg -n 'Rework and review again|ghog day --full=speed' instructions/code-review-requestor.md` (sources: plan)
+- `markdown-check.bat` (sources: plan)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(groundhog): align workflow levels and scope
+group 1 path: .agent/workflows/fix-slow-test.md
+group 1 path: .agents/llm-shared/skills/fix-slow-test/SKILL.md
+group 1 path: .claude/skills/prepare-release/SKILL.md
+group 1 path: .github/skills/prepare-release/SKILL.md
+group 1 path: DEVELOPMENT.md
+group 1 path: GROUNDHOG.md
+group 1 path: instructions/code-review-requestor.md
+group 1 path: instructions/fix_slow_test.md
+group 1 path: instructions/groundhog.md
+group 1 path: instructions/group-commits-msg.md
+group 1 path: instructions/implement-missing-step.md
+group 1 path: instructions/implement-step.md
+group 1 path: instructions/prepare-release.md
+group 1 path: instructions/process-draft.md
+group 1 path: instructions/split-large-file.md
+group 1 path: instructions/step-journal.md
+group 1 path: instructions/write-plans.md
+group 1 path: instructions/write-requirement.md
+group 1 path: templates/step-handoff.template.md
+group 1 path: templates/write-plans.template.md
+group 1 path: templates/write-requirement.template.md
+group 1 path: tests/unit/tools/test_code_review_requestor_instruction/test_code_review_requestor_instruction_tdd.py
+group 1 path: tests/unit/tools/test_full_suite_levels_instructions/__init__.py
+group 1 path: tests/unit/tools/test_full_suite_levels_instructions/test_full_suite_levels_instructions_tdd.py
+group 1 path: tools/Pytest reset specs.md
+group 2: docs(full_suite_levels): record step 7 validation
+group 2 path: docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md
+staged path: .agent/workflows/fix-slow-test.md
+staged path: .agents/llm-shared/skills/fix-slow-test/SKILL.md
+staged path: .claude/skills/prepare-release/SKILL.md
+staged path: .github/skills/prepare-release/SKILL.md
+staged path: DEVELOPMENT.md
+staged path: GROUNDHOG.md
+staged path: docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md
+staged path: instructions/code-review-requestor.md
+staged path: instructions/fix_slow_test.md
+staged path: instructions/groundhog.md
+staged path: instructions/group-commits-msg.md
+staged path: instructions/implement-missing-step.md
+staged path: instructions/implement-step.md
+staged path: instructions/prepare-release.md
+staged path: instructions/process-draft.md
+staged path: instructions/split-large-file.md
+staged path: instructions/step-journal.md
+staged path: instructions/write-plans.md
+staged path: instructions/write-requirement.md
+staged path: templates/step-handoff.template.md
+staged path: templates/write-plans.template.md
+staged path: templates/write-requirement.template.md
+staged path: tests/unit/tools/test_code_review_requestor_instruction/test_code_review_requestor_instruction_tdd.py
+staged path: tests/unit/tools/test_full_suite_levels_instructions/__init__.py
+staged path: tests/unit/tools/test_full_suite_levels_instructions/test_full_suite_levels_instructions_tdd.py
+staged path: tools/Pytest reset specs.md
+```
+
+### Validation scope for step 7 full_suite_levels (round 2)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 7 full_suite_levels (round 2)
+
+Yes. Step 7 has been fully implemented.
+
+The 25 implementation paths match the step's instruction, template, adapter,
+manual and text-contract scope. The separate implementation-check records
+completion in the validation plan; Step 8 remains pending.
+
+The plan gate `ghog day --full=cov --whole-suite` ended at
+2026-10-05T00:22:09+02:00 with exit=0, fail=0, warn=0, xfail=0,
+cov=100 and proof=cov. `ghog status` confirmed state=done. This includes
+the repository static checks and the affected and full suites. Independent
+markdownlint on the 22 implementation Markdown files found zero issues, and
+the mandatory staged Markdown launcher passed after the validation update.
+
+The new instruction contracts and updated requestor contracts pass. The
+649-line instruction-structure test stays untouched, including its contract
+for exactly two literal project senv calls in the groundhog instruction.
+New tests have 138 lines; the updated requestor test has 254, below 650.
+
+No runtime class, architecture dependency, algorithm or IO path changes.
+The configured runtime coverage scope is tools, with the project's existing
+omissions; cov=100 is not a coverage claim for Markdown or test files.
+Text contracts do not require property-based testing. Existing instruction
+and feature tests remain green.
+
+Requestor validation `ghog day --full=speed --whole-suite` ended at
+2026-10-05T00:45:17+02:00 with exit=0, proof=speed,
+reused=check+affected, fail=0, warn=0, xfail=0, outliers=0 and excluded=0.
+The timing phase reported cov=skipped because it measures sequential
+durations; the earlier covered whole-suite result supplies coverage.
+`ghog status` confirmed state=done, proof=speed and scope=whole.
+Both exclusion listings report exclusions=0; no baseline was accepted or
+raised. The final speed walk left all 26 staged paths unchanged.
+
+Round 2 revalidation: speed ended at 2026-10-05T00:56:28+02:00 and cov at
+2026-10-05T00:57:37+02:00, both exit=0, proof=speed and reused=all.
+Both status calls confirmed state=done. No tests or check.bat reran because
+the source digest was unchanged. The explicit Markdown check returned exit 0,
+and all three plan searches met their stated completion criteria.
+
+### Implementation report for step 7 full_suite_levels (round 2)
+
+Development instructions now execute the command printed by `pw scope day`
+and describe check plus affected tests and the deliberate default full skip.
+The review-off chain captures the staged tree and exclusion listing, runs
+speed in the effort scope, then returns through implementation-check and
+grouping whenever the evidence changed or cannot be verified.
+
+Requestor policy documents speed before each request, authoritative declared
+commands, migration from plain day, captured scope, accepted exclusion
+disclosure and pending scope changes at the human gate. Release gates name
+`ghog day --full=cov --whole-suite`. Draft and requirement workflows carry
+the scope choice, while templates and private step notes record resolved
+commands. Manuals cover levels, groups, proof invalidation, timing and the
+new Q71-Q79 decisions and AT20-AT28 acceptance cases.
+
+The four provider adapter bodies remain single redirect headings, preserving
+their metadata and satisfying both the redirect boundary and Markdown H1
+rules. New instruction tests pin these policies and requestor tests pin the
+updated review contracts. No runtime Python code changes.
+
+The whole-suite coverage gate passed with cov=100 and no failures, warnings
+or expected failures. An initial Ruff check found two magic counts in the new
+test; named constants fixed them before the successful walk.
+
+The pre-review and post-speed exclusion listings both report `exclusions=0`. There are no
+existing accepted baselines to disclose and none have been introduced by
+this step. Scope is whole suite; the requirement has no Test group line.
+
+The review speed walk completed at 2026-10-05T00:45:17+02:00 with proof=speed,
+exit=0, outliers=0 and excluded=0. It reused check and affected evidence and
+completed sequential timing in 9m 59.3s. No repair or exclusion was needed.
+
+Round 2 corrects the split-size failure restart to keep its resolved level
+and scope, records the correction in the validation plan and commit body,
+and declares every plan completion command in the rendered evidence.
+The speed and cov invocations reused valid speed proof; explicit Markdown
+validation checked the corrected text. No exclusion or runtime source changed.
+
+Writer notes: `.reviews/a.full_suite_levels.step7.journal.md` and `.reviews/a.full_suite_levels.step7.handoff.md`.
+
+### Change summary for step 7 full_suite_levels (round 2)
+
+The root a.commit is formatted and its readiness check returned ready=true with no diagnostics.
+
+Group 1: feat(groundhog): align workflow levels and scope
+
+The 25 implementation paths keep the workflow contracts and their tests together.
+
+Group 2: docs(full_suite_levels): record step 7 validation
+
+The validation plan is the final dedicated commit group.
+
+Staged paths:
+
+- `.agent/workflows/fix-slow-test.md`
+- `.agents/llm-shared/skills/fix-slow-test/SKILL.md`
+- `.claude/skills/prepare-release/SKILL.md`
+- `.github/skills/prepare-release/SKILL.md`
+- `DEVELOPMENT.md`
+- `GROUNDHOG.md`
+- `docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md`
+- `instructions/code-review-requestor.md`
+- `instructions/fix_slow_test.md`
+- `instructions/groundhog.md`
+- `instructions/group-commits-msg.md`
+- `instructions/implement-missing-step.md`
+- `instructions/implement-step.md`
+- `instructions/prepare-release.md`
+- `instructions/process-draft.md`
+- `instructions/split-large-file.md`
+- `instructions/step-journal.md`
+- `instructions/write-plans.md`
+- `instructions/write-requirement.md`
+- `templates/step-handoff.template.md`
+- `templates/write-plans.template.md`
+- `templates/write-requirement.template.md`
+- `tests/unit/tools/test_code_review_requestor_instruction/test_code_review_requestor_instruction_tdd.py`
+- `tests/unit/tools/test_full_suite_levels_instructions/__init__.py`
+- `tests/unit/tools/test_full_suite_levels_instructions/test_full_suite_levels_instructions_tdd.py`
+- `tools/Pytest reset specs.md`
+
+### Writer response for step 7 full_suite_levels (round 2)
+
+Writer response:
+
+All three round 1 findings are accepted; there is no disagreement.
+
+- R1: derived the additions from Step 7 Completion criteria before rendering.
+  The replacement declares the cov walk, all three exact rg searches and
+  markdown-check.bat, in addition to the built-in scoped speed default. Each
+  criterion was rerun successfully. The negative search correctly returned
+  no matches (rg exit 1); the positive searches returned their expected
+  matches and exit 0. Markdown check returned exit 0.
+- R2: every new authored input is written with BOM-free UTF-8 and scanned
+  before rendering. The paired renderer outputs are also scanned, and the
+  transcript summary is linted before publication. The historical round 1
+  transcript entry is retained without a manual protocol edit. Renderer
+  hardening remains outside Step 7 and has not been added to this change.
+- R3: the split-size failure now follows the printed restart with its
+  resolved level and scope. The reviewer-added Step 7 validation paragraph
+  now records that correction and the speed result. The final commit-group
+  body records that evidence; membership, order and subjects are unchanged.
+
+After the Markdown correction, speed and cov invocations returned exit 0
+with proof=speed and reused=all. No test or check.bat ran in those cached
+invocations because the Python digest did not change. The explicit Markdown
+check validates the changed text; the prior cov=100 and timing proof remain
+the test evidence. No baseline or exclusion changed. No new runtime code or
+test was needed for this wording correction.
+
+### Reviewer focus for step 7 full_suite_levels (round 2)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-7-round-2 -->
+
+## Round 2 by reviewer - Step 7
+
+- Recorded: 2026-10-05T01:06:51+02:00
+- Exchange: code/code/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 7
+- Outcome: answer
+
+### Assessed index identity for step 7 full_suite_levels (exchange 1) (round 2)
+
+Baseline index tree: 9710917b4edf1787997bee6e762a1a0b7a0b882c
+
+Assessed index tree: 9710917b4edf1787997bee6e762a1a0b7a0b882c
+
+### Implementation check for step 7 full_suite_levels (exchange 1) (round 2)
+
+Result:
+
+Yes. Step 7 has been fully implemented.
+
+The round 1 to round 2 delta (`git diff --ignore-cr-at-eol 47015843... 9710917b...`) is exactly two edits:
+
+- `instructions/split-large-file.md:60` now ends "finish the split first, then follow the printed restart command with its resolved level and scope" (R3);
+- the Step 7 feature-integrity paragraph records that correction and the speed result.
+
+The remaining `ghog day` at line 62 is the generic "until `ghog day` reports the objective" statement, not a restart command.
+
+R1: the resolved set now carries the three plan searches and `markdown-check.bat` beside the walks.
+
+R2: the requestor's round 2 inputs and outputs are BOM-free, confirmed by a scan of `a.full_suite_levels.step7.tmp.r2.*.md`. The round 1 transcript character stays, as the optional human-authorized removal was not taken. That is acceptable, since it breaks no gate.
+
+Everything assessed in round 1 stands: all 25 planned instruction, template, adapter, manual and contract-test paths. No runtime Python changes, so architecture and performance are unaffected. The new contract package and the updated requestor test pin the policies.
+
+Validation plan effects:
+
+No reviewer edit this round. The writer replaced the reviewer's round 1 paragraph with an accurate record of the corrected `split-large-file.md` bullet and the speed evidence. The Yes sentence and the other Step 7 rows are accurate, and the document-level line stays `No, it is not implemented.` while Step 8 is pending. A pre-edit blob was recorded, but no repair followed.
+
+### Pre-repair mandatory checks and coverage for step 7 full_suite_levels (exchange 1) (round 2)
+
+Requestor evidence: the speed walk at 00:45:17 with `proof=speed outliers=0 excluded=0 exit=0`, the cov walk at 00:22:09 with `cov=100`, and a round 2 revalidation in which speed and cov both returned `exit=0 proof=speed reused=all`. The three plan searches met their criteria, and `markdown-check.bat` exited 0. `.reviews/a.ghog.day.ok` holds `proof=speed` with `digest=f3ee6384...`, still equal to the read-only `snapshot.source_digest` recomputation: the round 2 edits are Markdown only and do not change the Python digest.
+
+Reviewer evidence:
+
+- static reading of the round 2 delta;
+- `markdown-check.bat` (exit 0) on the full repository, versioned transcript included;
+- `rg -n "full coverage pass" instructions` (no match, exit 1);
+- BOM and line-ending scans (clean);
+- comparison of the request-time and live index trees, and the independent commit-plan check;
+- live `status` (`bound_scope` whole).
+
+The reviewer ran no walk, test or coverage measurement.
+
+### Resolved validation set and sources for step 7 full_suite_levels (exchange 1) (round 2)
+
+The request and the current resolver contract give the same ordered set:
+
+1. `ghog day --full=speed --whole-suite` (project).
+2. `ghog day --full=cov --whole-suite` (plan).
+3. `rg -n 'full coverage pass' instructions` (plan).
+4. `rg -n 'ghog day --full=cov --whole-suite' instructions/prepare-release.md .claude/skills/prepare-release .github/skills/prepare-release` (plan).
+5. `rg -n 'Rework and review again|ghog day --full=speed' instructions/code-review-requestor.md` (plan).
+6. `markdown-check.bat` (plan): the plan's "Markdown lint on every edited Markdown file".
+
+The reviewer did not execute the walks. Search 3 and the Markdown check were reproduced read-only, and searches 4 and 5 target files that are unchanged since round 1.
+
+### Resolver drift and direction for step 7 full_suite_levels (exchange 1) (round 2)
+
+None. The round 1 drift (R1) is resolved: every Step 7 completion criterion appears with source `plan`, after the completed project default.
+
+### Repository state around validation for step 7 full_suite_levels (exchange 1) (round 2)
+
+The request-time index tree, the reviewer baseline and the final assessed index are the same: `9710917b4edf1787997bee6e762a1a0b7a0b882c`.
+
+The validation state was captured before and after over the same 32 ordered paths: the 26 staged paths plus `a.ghog.log`, `a.ghog.status`, `a.ghog.affected.log`, `.testmondata` and two unused reviewer log paths. The comparison returns `acceptable=true` with no difference. The unstaged protocol transcript is untouched.
+
+Umbrella: none. The launcher comparison returns `applicable=false`, `changed=false`.
+
+### Repair inventory for step 7 full_suite_levels (exchange 1) (round 2)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 7 full_suite_levels (exchange 1) (round 2)
+
+`commit-plan-check.bat --format json` was run independently against the received state (`.reviews/a.full_suite_levels.step7.tmp.r2.rv-cpc.json`). It returned exit 0, `state=valid`, `ready=true`, groups of 25 and 1 paths (26 in total) and `diagnostics=[]`.
+
+Ordered groups:
+
+1. `feat(groundhog): align workflow levels and scope` (25 paths, now including the corrected `split-large-file.md`)
+2. `docs(full_suite_levels): record step 7 validation` (1 path)
+
+Membership, order and subjects match the staged work, and the writer refreshed the Group 2 body. `a.commit` remains accurate and needs no amendment. This mechanical result does not authorize a commit.
+
+### Findings and boundaries for step 7 full_suite_levels (exchange 1) (round 2)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 7 full_suite_levels (exchange 1) (round 2)
+
+No further Step 7 work is required. Present this advisory commit-ready recommendation at the convergence gate, where the human chooses the next action. The reviewer made no repair this round, and the request carried no Human guidance block.
+
+Carried notes, not Step 7 work: the round 1 transcript BOM at line 6993 can be removed only with the human's authorization, and BOM rejection in `code_review_request_files.read_utf8` remains a possible follow-up for Step 8 or later.
+
+### Decision rationale for step 7 full_suite_levels (exchange 1) (round 2)
+
+Recommend commit-ready. The six readiness-floor results:
+
+1. Identity: PASS. The exact plan, step 7, round 2, occurrence 1, the code identity, `Umbrella draft: none`, request tree `9710917b...` and the whole-suite `test_scope` agree with the live exchange and `bound_scope`.
+2. Implementation completeness: PASS. Every planned Step 7 change is present, and R3 is corrected.
+3. Validation and coverage: PASS. The speed proof matches the current digest, all six resolved commands are green, and `markdown-check.bat` passes. No runtime code changed.
+4. Staged attribution: PASS. No reviewer change was made this round.
+5. Unresolved findings: PASS. R1 to R3 are resolved, and the optional transcript BOM removal is the human's choice.
+6. `a.commit`: PASS. The independent check returned exit 0, `state=valid`, `ready=true`, 26 paths in two accurate groups and no diagnostics.
+
+This round made no substantive repair. The recommendation is advisory and does not authorize a commit.
+
+### Final reviewer decision for step 7 full_suite_levels (exchange 1) (round 2)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-7-round-2 -->
+
+## Round 2 by human - Step 7 - human-confirmation
+
+- Recorded: 2026-10-05T01:30:37+02:00
+- Exchange: code/code/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 7
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-2 -->
