@@ -20,7 +20,7 @@ This skill calls other skills and tools:
 - `prepare_release_plan.bat` automatically, first for topology-only evidence
   and again for the exact Git 2.50+ `merge-tree` conflict preview after main
   is current.
-- `group-commits-msg` when the working tree is dirty, and when a `ghog day`
+- `group-commits-msg` when the working tree is dirty, and when a `ghog day --full=cov --whole-suite`
   green gate needed fixes that must be committed.
 - `update-merge-commit-msg` after it merges an integration, feature, or
   landing branch into its target.
@@ -33,7 +33,7 @@ This skill calls other skills and tools:
   or `docs/wiki/` exists, before release notes are generated.
 - `prepare_release_notes` for the `version.txt` summary and the
   `CHANGELOG.md`.
-- the `ghog day` groundhog loop (the `groundhog` skill) to prove the suite
+- the `ghog day --full=cov --whole-suite` groundhog loop (the `groundhog` skill) to prove the suite
   is green after a feature-only `--onto` replay or after main was merged into
   an integration branch.
 
@@ -211,19 +211,19 @@ Existence is the whole signal; the file content does not matter.
 
 ## The green-gate routine
 
-Some steps drive the project to a green test suite with `ghog day` before
+Some steps drive the project to a green test suite with `ghog day --full=cov --whole-suite` before
 the release goes on. When a step calls for the green gate:
 
-1. Run the groundhog loop with `ghog day`, following the `groundhog` skill
+1. Run the groundhog loop with `ghog day --full=cov --whole-suite`, following the `groundhog` skill
    ([`groundhog.md`](groundhog.md)): from the project root, `cmd /d /c
-   "<LLM_SHARED_DIR>\bin\ghog.bat day > a.ghog.log 2>&1"`, issued from
+   "<LLM_SHARED_DIR>\bin\ghog.bat day --full=cov --whole-suite > a.ghog.log 2>&1"`, issued from
    PowerShell or cmd.exe, never from Git Bash (an MSYS shell mangles the
    `/d` / `/c` switches and `cmd` exits 0 without running the walk, leaving a
    stale log; see groundhog.md). Branch on the exit code, and fix and re-run
    until it reaches exit 0 (every check, the affected tests, and the full
    suite at the coverage gate). The groundhog loop owns running `check.bat`
    and the tests; never run them directly here.
-2. When the first `ghog day` is green with nothing changed, there is
+2. When the first `ghog day --full=cov --whole-suite` is green with nothing changed, there is
    nothing to commit: continue with the next skill step.
 3. When fixes were needed to reach green, the working tree now carries
    them. Create the flag file, run the `group-commits-msg` skill to group
@@ -1066,7 +1066,7 @@ Step 10 has written `version.txt` and `CHANGELOG.md`. Stop here, before Step
 12, so the user can refine the release notes. This pause is for the
 release-notes content only: the `version.txt` summary and the
 `.changelog.fixes` rules that shape how `CHANGELOG.md` reads. It is not for
-coding a project fix; the code was already taken to green by the `ghog day`
+coding a project fix; the code was already taken to green by the `ghog day --full=cov --whole-suite`
 gate earlier.
 
 1. Stage the two files Step 10 changed, as a baseline that makes any later
@@ -1290,12 +1290,12 @@ Run the skill twice and the second run does nothing harmful:
   With no remote, or unpushed main, it uses local main
   as-is. Feature mode also makes the resolved integration destination current
   when present; a diverged published integration ref stops for reconciliation.
-- Reaching a green suite uses the `ghog day` loop (the `groundhog` skill).
+- Reaching a green suite uses the `ghog day --full=cov --whole-suite` loop (the `groundhog` skill).
   Integration branches are never rebased: main is merged into them before
   the gate when they do not contain the latest main. Feature replays use a
   separate landing branch so the original feature ref is never rewritten.
   Rebase conflicts are resolved by the user; on a go-ahead selection the
-  skill resumes non-interactively with `GIT_EDITOR=true`. A `ghog day` failure
+  skill resumes non-interactively with `GIT_EDITOR=true`. A `ghog day --full=cov --whole-suite` failure
   is fixed, then committed through `group-commits-msg` with the user's review
   before the release goes on.
 - Conflict previews require Git 2.50+ and are produced by the shared

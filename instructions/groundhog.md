@@ -1,6 +1,35 @@
 # Groundhog loop: drive the test suite to its objective
 
-Goal of this instruction: reach the global objective of the project under work — every test passes on the full suite, and coverage reaches the project gate (`fail_under`, default 100) — by looping the groundhog tool and code fixes until done. The tool walks and reports; you fix and loop.
+Goal of this instruction: reach the objective of the starting level and scope
+by looping the groundhog tool and code fixes until done. The tool walks and
+reports; you fix and loop. Do not silently strengthen or weaken that objective.
+
+## Resolve the loop objective
+
+An explicit `--full=pass`, `--full=cov` or `--full=speed` wins over nonempty
+`GHOG_FULL`. With neither, direct `full` defaults to `speed`; other run commands
+default to internal `none`. `--full=none` is invalid (exit 5). The default day
+runs check.bat plus affected tests without coverage: the full stage is
+deliberately skipped, with a printed skip line. `pass` adds tests, `cov` adds
+coverage, and `speed` adds the duration gate. Exit 8 is possible only at `speed`.
+In a parallel project a speed day follows covered full with sequential timings;
+a direct parallel full establishes only `cov`, never `speed`.
+
+Explicit `--group=<name>`, `--whole-suite` or `--scope-file=<capture>` wins over
+`GHOG_GROUP`, then whole suite is the fallback. Conflicting selectors, invalid
+groups or unusable captures stop with exit 5, never silently fall back.
+Check remains project-wide; single runs its named files, carrying scope for
+restart. A captured scope keeps its exact members and fingerprint.
+
+For an effort, start with the command printed by `pw scope day` (see
+[`run-pw.md`](run-pw.md)); append the requested level to that resolver when
+needed. For a direct loop, retain the caller's resolved objective. Follow the
+printed repair and restart lines as the only re-entry commands: they keep the
+starting level and scope, including selectors on focused repairs. All bare
+`ghog day` and repair examples below are shorthand for those resolved lines.
+`<day-arguments>` means `day` plus the resolved level and selector.
+The day closing and done-status keys include `full`, `src`, `proof`, `reused`
+and `scope`; running status reports `proof=pending`, never old green evidence.
 
 ## Invocation contract for the groundhog loop
 
@@ -15,7 +44,7 @@ Goal of this instruction: reach the global objective of the project under work �
   ```powershell
   $h = cmd /d /v:on /c "call <llm-shared>\bin\artifact_home.bat . && echo !ARTIFACT_HOME!"; $f = "$h\a.ghog.started"
   ni $f -Force | Out-Null; $t = (gi $f).LastWriteTime
-  cmd /d /c "<llm-shared>\bin\ghog.bat day > a.ghog.log 2>&1"; $code = $LASTEXITCODE
+  cmd /d /c "<llm-shared>\bin\ghog.bat <day-arguments> > a.ghog.log 2>&1"; $code = $LASTEXITCODE
   if (-not ((Test-Path a.ghog.log) -and (gi a.ghog.log).LastWriteTime -gt $t)) {
       "STALE: a.ghog.log was not refreshed - the tool did not run; fix the invocation before reading the log"
   }
@@ -30,7 +59,7 @@ Goal of this instruction: reach the global objective of the project under work �
 - Without a TTY the tool picks LLM mode on its own: progress lines, a final report ending with a next-step message, a closing key=value line (`fail= warn= xfail= cov= outliers= excluded= exit=`), and an exit code: `0` objective met, `2` test failures, `3` coverage gap, `4` suite crash, `5` setup error, `6` a run is live (wait and poll `ghog status`), `7` the last run is lost (relaunch `ghog day`), `8` a true duration outlier on an otherwise-green full run (shorten the slow calls, see the exit-8 branch); `ghog check` passes the check.bat exit code through. The walk's full-suite step closes with `ghog full done` — that line is the ptr step of the old aliases.
 - Every run brackets itself in `a.ghog.status` at the project root (Q32): `state=running pid=` at start, `state=done exit=` at the end of every exit path. A run is finished if and only if that file reads `state=done` — progress lines in `a.ghog.log`, per-step `done` lines, a growing log file, process listings or file timestamps prove nothing: an orphaned test runner keeps feeding the log after its walk was killed. Never wait with sleeps, never inspect processes; the status file already is the answer — and `ghog status` is its only reader: never read `a.ghog.status` with a direct file read (`Get-Content`, `cat`, Read). Only the command probes the recorded pid, so a direct read shows a killed run as `state=running` forever; the exit-7 verdict exists only through `ghog status`.
 - `cmd /d /c "<llm-shared>\bin\ghog.bat status"` is the poll, and the one ghog call to run without any redirect: its whole output is two bounded lines, and a `> a.ghog.log` redirect would truncate the live walk's log. It replays the status line and exits `6` while the run is live (poll again later, start nothing), `7` when the last run is lost — killed mid-walk or never recorded, so relaunch `ghog day` — and passes the recorded exit code through on `state=done`: branch on it exactly as if the walk had just returned it.
-- When the harness can kill long calls (a tool timeout you do not control, or one walk already lost that way), run the walk detached: `cmd /d /c "<llm-shared>\bin\ghog.bat day --detach"`, without any redirect — the tool opens `a.ghog.log` itself for a survivor process the timeout cannot reach. The call returns exit `6` at once; from there, poll `ghog status`. Never size a timeout around a walk instead: no portable upper bound exists, and a timed-out foreground call loses the exit code even when the walk keeps running for a while.
+- When the harness can kill long calls (a tool timeout you do not control, or one walk already lost that way), run the walk detached: `cmd /d /c "<llm-shared>\bin\ghog.bat <day-arguments> --detach"`, without any redirect — the tool opens `a.ghog.log` itself for a survivor process the timeout cannot reach. The call returns exit `6` at once; from there, poll `ghog status`. Never size a timeout around a walk instead: no portable upper bound exists, and a timed-out foreground call loses the exit code even when the walk keeps running for a while.
 - A run command started while another run is live answers `a run is already live (pid=...)` with exit `6` and starts nothing: poll `ghog status`, never retry the command. A second walk would truncate the live walk's log and corrupt its testmon state.
 
 ## Sandboxed harness rules (Codex and similar)
@@ -41,16 +70,29 @@ Goal of this instruction: reach the global objective of the project under work �
 
 ## Loop sequence to follow
 
-`ghog day` is the loop's spine and its only entry and re-entry point: the same day is relived — one walk, the fix it names, one walk again — until everything is perfect at once (check, affected tests, full suite at the coverage gate). The subcommands named below live only inside their branch, as verifiers cheaper than a walk while fixing that one branch; never run one as a preflight or a confirmation around a walk. In particular, a standalone `ghog check` right before a `ghog day` runs check.bat twice for nothing: after a fix, the report itself names `ghog day` as the restart, and that is the one command to type.
+`ghog day` is the loop's spine and its only entry and re-entry point: one walk,
+the fix it names, one walk again until the starting objective is proved. The
+subcommands below are inner verifiers for their failure branch, never preflight
+or confirmation calls around a walk. A standalone `ghog check` immediately
+before day pays check.bat twice; use the printed restart command instead.
 
-1. Run `ghog day` — that is, `cmd /d /c "<llm-shared>\bin\ghog.bat day > a.ghog.log 2>&1"`: it walks check.bat, then the affected tests without coverage, then the full suite with a fresh coverage measure, and stops at the first non-green step. When nothing changed since the last green walk, it answers with a noop notice and exit 0 — calling it twice costs nothing, so always prefer running it over wondering whether it already ran. On a harness that kills long calls, use the detached form instead — `cmd /d /c "<llm-shared>\bin\ghog.bat day --detach"`, no redirect — then poll `ghog status` until its exit code is no longer 6, and branch on that code below as if the walk had returned it.
+1. Run the resolved day command with the invocation contract above. It walks
+   check.bat, affected tests without coverage, then the requested full stage
+   (if any), stopping at the first non-green step. Matching saved proof at or
+   above the requested level gives a noop; an upgrade reuses check and affected.
+   On a harness that kills long calls, use `<day-arguments> --detach`, without
+   redirect, then use `ghog status` until its exit code is no longer 6 and
+   branch on that code below.
 2. Branch on the exit code of that walk:
    - `0`: objective reached. Read the last 5 log lines, relay the closing line and the nag line (warnings and xfails) when present, then stop.
    - check.bat failure (its own non-zero code): read the log tail and fix what it names, then go back to step 1 directly — the walk opens with that same check, so a separate `ghog check` run first would only pay check.bat twice. Two common cases. Compile or lint errors: fix them in place. A "Big files found" / "Check for files too big" breach of the per-file line limit: ghog only reports the over-limit files (it never splits anything), so split the named file with the `split-large-file` skill (see [`split-large-file.md`](split-large-file.md)) before the next walk — that failure is expected mid-split while the original file still exists.
    - `2` with failures from the affected step: fix them from the failure context in the log tail, re-run `ghog affected --no-cov` until green, then go back to step 1 — not straight to `ghog full`: the fixes made the earlier check verdict stale, and the walk re-checks first.
    - `2` with failures from the full suite: the next-step line names the failing files. Run `ghog single <those files>` once; its report splits the failures into two lists. Fix the "still failing in focus" tests first, then the "passing in focus but failing in the full suite" ones (test interaction or ordering issues, harder to fix). Stay on `ghog single` while fixing — do not re-run the full suite per fix. Once the focus run is green, go back to step 1, as the report says: one `ghog day`, not a standalone `ghog check`.
-   - `3` (coverage gap): this is an action branch, not a stopping point. When the closing line says `exit=3` or the next-step line starts `Next: covg`, immediately run `covg` for every file/range row in the "Uncovered lines" table before asking the user what to do next. The report replays the term-missing table under "Uncovered lines"; its Missing column is the covg input. For each listed file run `cmd /d /v:on /c ".\senv.bat && <llm-shared>\bin\covg.bat <file> <ranges>"` (for example `covg.bat src\pkg\mod.py 48 86-88 100`) to name the uncovered functions and branches. Never generate, read or parse a coverage.json export: it is huge, and everything covg needs is in the report's Missing lines. Write the tests covg points at, verify with `ghog affected` only, and repeat covg/tests while it stays below the gate. When it reports the gate is reached, run `ghog check` — the new tests are code too (ruff and the other checks gate them). When that check is green, go back to step 1 and run `ghog day` again: only a fresh walk proves check, affected, full coverage and outliers are all green together after the coverage fix. On a check failure, fix what it names and go back to step 1 directly, without re-running `ghog check` on its own first; same when production code (not only tests) changed.
-   - `8` (a true duration outlier, Q34): the full suite passes and meets the coverage gate, but a call runs far outside the norm. Outliers are judged last, so exit 8 never masks a failure or a coverage gap. The next-step line names the slow calls above the floor; shorten them as the exit-8 playbook below says — never the runners-up shown under the floor — then go back to step 1, whose full run re-measures the whole suite.
+   - `3` (coverage gap): this is an action branch, not a stopping point. When the closing line says `exit=3` or the next-step line starts `Next: covg`, immediately run `covg` for every file/range row in the "Uncovered lines" table before asking the user what to do next. The report replays the term-missing table under "Uncovered lines"; its Missing column is the covg input. For each listed file run `cmd /d /v:on /c ".\senv.bat && <llm-shared>\bin\covg.bat <file> <ranges>"` (for example `covg.bat src\pkg\mod.py 48 86-88 100`) to name the uncovered functions and branches. Never generate, read or parse a coverage.json export: it is huge, and everything covg needs is in the report's Missing lines. Write the tests covg points at, verify with `ghog affected` only, and repeat covg/tests while it stays below the gate. When it reports the gate is reached, run `ghog check` — the new tests are code too (ruff and the other checks gate them). When that check is green, go back to step 1 and run `ghog day` again: only a fresh walk proves the starting level and scope after the coverage fix. On a check failure, fix what it names and go back to step 1 directly, without re-running `ghog check` on its own first; same when production code (not only tests) changed.
+   - `8` (a true duration outlier, only at `speed`): tests and coverage pass,
+     but a call exceeds the duration rule. Shorten only the flagged calls as
+     the playbook below says, then follow the printed restart in the same scope.
+     A parallel speed walk re-measures through its sequential timings step.
    - `4` (suite crash): the crash block lists the last started tests, the call-stack tail and an instruction; act on it immediately — make the test suite robust against that exception, so it cannot break the suite again — then go back to step 1.
    - `5` (setup error): relay the printed reason from the log tail and stop; looping cannot fix it.
    - `9` (not a pytest project): the project root has no `pyproject.toml`, `pytest.ini` or `conftest.py`, and no pytest section in `setup.cfg` or `tox.ini`, so groundhog has no test step to run; the walk's check step, when present, already ran green. Stop the loop and report that groundhog does not apply to this project. Never install pytest, create a venv or add a `pyproject.toml` to get past it.
@@ -73,8 +115,11 @@ Exit 8 means the full suite passes and meets the coverage gate, yet at least one
    - heavy data or iteration — a large generated input, a long loop: shrink it to a representative size that still proves the behavior.
    - per-call heavy construction — an object or fixture built inside the test body: move it to a module- or session-scoped fixture, so the cost is paid once, not per call, which also takes it out of the call phase the rule measures.
 3. If the call is legitimately slow and cannot be shortened without dropping what it must exercise — a genuine integration test against a real slow path — do not fake the slowness away. Run `ghog exclude <node id> <measured seconds>` instead (the command the next-step hint names), so the suite accepts that one call at its measured time. Line 2 of `a.ghog.outliers` is project-wide floor tuning, not the way to accept one call: the tool holds the excluded call to its recorded baseline within two seconds, and a slower drift keeps the run on exit 8 with a restore-to-baseline instruction. See [`fix_slow_test.md`](fix_slow_test.md) for the per-call procedure.
-4. Confirm the trimmed call alone with `ghog single <file>`: it must pass after the fix. The focused run carries no timing of its own — only the full run measures durations — so the new call time is re-read by the next walk, not here.
-5. Restart the walk with `ghog day`: its full run re-measures every call against the whole suite, so the trimmed call falls under the floor and drops off the list.
+4. Confirm the trimmed call alone with `ghog single <file>`: it must pass after the fix. The focused run carries no timing of its own — the full run or sequential timings step measures durations — so the new call time is re-read by the next walk, not here.
+5. Restart with the printed `ghog day --full=speed` command and the same scope.
+   Its full run, or the sequential timings step in a parallel project,
+   re-measures the calls. Grouped runs use the saved floor (1 second if absent)
+   and exclusions without rewriting the project floor or exclusion file.
 
 **Convergence rule — lower while you have headroom, then exclude; never loop.** A walk after a lowering can still flag the same call: it landed closer to the floor but not below, or load nudged it back over. Do not answer that by shaving a little more and re-walking again and again — that endless lower-then-walk is the infinite loop this section guards against. Each time a call you already lowered comes back above the floor, make a deliberate judgement before the next walk: is there real headroom left to cut — a remaining real wait, an oversized fixture, a heavy per-call construction `fix_slow_test.md` can still trim — and is that cut worth it? If yes, lower it further and re-walk once to confirm it drops. If no — the call already does the least work it can and is simply that slow — stop lowering and `ghog exclude <node id> <measured seconds>` it at its current time (step 3), then move on. Lower while there is headroom, exclude the moment there is not, and never re-walk a call you cannot or will not lower further.
 

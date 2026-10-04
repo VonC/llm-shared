@@ -119,7 +119,7 @@ Use local system time with its numeric offset. `<kind>` is one of:
 For example:
 
 ```text
-- 2026-09-26T12:54:03+02:00 | gate | ghog day exit 0 (a.ghog.log)
+- 2026-09-26T12:54:03+02:00 | gate | ghog day --full=speed --whole-suite exit 0 (a.ghog.log)
 - 2026-09-26T13:10:41+02:00 | review | round 2 request published, waiting for the reviewer
 ```
 
@@ -127,6 +127,10 @@ Never edit or delete a past line. Correct a wrong line with a new line that
 names it. Log a stage change once, not every poll of a wait.
 
 ## Handoff upkeep between milestones
+
+Record every gate's full resolved command with its selector and level in the
+journal and handoff's Last gate, along with exit code, date and evidence path.
+This preserves the actual proof boundary across resumes and scope changes.
 
 Rewrite the handoff's verified state and next actions whenever a milestone
 changes them, and always before: the `pw handoff check` call, publishing a

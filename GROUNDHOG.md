@@ -2,7 +2,7 @@
 
 <img src="wiki/assets/logo-llm-shared-groundhog-transparent.png" alt="" height="90" align="right">
 
-groundhog (alias `ghog`) drives a project to one objective: **every test passes on the full suite, and coverage reaches the project gate** (`fail_under`, default 100). Like the movie, it relives the same day — compile check, affected tests, full suite with a freshly reset coverage measure — until the result is flawless.
+groundhog (alias `ghog`) walks a project to the requested level and scope. The default day runs check plus affected tests. Choose `pass` for a full test run, `cov` to add coverage, or `speed` to add duration checks. The fixing loop repeats the same resolved objective until it is green.
 
 It replaces the old `ptr` / `pta` / `pts` doskey aliases with one Python tool whose output is mastered for two audiences at once: small enough for an LLM token budget, alive enough for a user terminal. The full specification lives in [tools/Pytest reset specs.md](tools/Pytest%20reset%20specs.md); this document is the user manual.
 
@@ -15,64 +15,148 @@ It replaces the old `ptr` / `pta` / `pts` doskey aliases with one Python tool wh
 
 Every wrapper loads `senv.bat` itself, inside its own cmd process, so a single call is self-contained from any shell — a user console, Claude Code, or the Codex sandbox (where environment changes never survive between tool calls).
 
-## 👀 The groundhog walk at a glance
+## Levels and scope selection
 
-`ghog day` executes the steps below in order. Each step only runs when the previous one passed; the walk stops at the first non-green step, and the last report on screen always names the fix to apply.
+| Command | Work at the selected scope |
+| --- | --- |
+| `ghog day` | check.bat, affected tests without coverage, deliberate full-stage skip |
+| `ghog day --full=pass` | check, affected, full tests without coverage or durations |
+| `ghog day --full=cov` | check, affected, full tests and fresh coverage |
+| `ghog day --full=speed` | check, affected, full tests, coverage and duration gate |
+| `ghog full` | direct full, defaulting to speed; no day snapshot read or write |
 
-```txt
-   +------------------------------------------+
-   |  ghog day   (one self-contained call;    |
-   |  the wrapper loads senv.bat itself)      |
-   +-------+----------------------------------+
-           |
-           v
-   +------------------------------------------+
-   |  1. check          check.bat             |
-   |     pass: exit 0 and no ERROR lines      |
-   |     missing check.bat: skip with notice  |
-   +-------+----------------------------------+
-           |  non-zero -> STOP
-           |  (fix the compile errors, restart)
-           v
-   +------------------------------------------+
-   |  2. affected --no-cov        (ptanc)     |
-   |     testmon-selected tests, fast         |
-   |     0 tests selected = green, says so    |
-   +-------+----------------------------------+
-           |  exit 2 -> STOP
-           |  (fix, re-run this step to green,
-           |   then restart the walk)
-           v
-   +------------------------------------------+
-   |  3. full                     (ptr)       |
-   |     del .testmondata, full suite,        |
-   |     coverage measured against the gate   |
-   +-------+----------------------------------+
-           |
-           +-- exit 2 -> STOP: ghog single <failing files>,
-           |             fix the two lists, restart
-           +-- exit 3 -> STOP: covg on the Missing rows,
-           |             add tests, ghog affected to the
-           |             gate, ghog check, then ghog day
-           +-- exit 4 -> STOP: crash block, harden the suite
-           +-- exit 5 -> STOP: setup error, not loopable
-           v
-   +------------------------------------------+
-   |  exit 0: Objective reached               |
-   |  fail=0, coverage at the gate (+ nag)    |
-   +------------------------------------------+
+Explicit `--full` wins over nonempty `GHOG_FULL`, then the command default
+applies (`speed` for direct full, internal `none` otherwise). Only `pass`,
+`cov` and `speed` are accepted input values; `none`, unknown or malformed
+values exit 5. `status`, `timings`, `init`, `exclude` and `groups` take no level.
+The resolved level travels on repair commands even when that command's own
+work does not change. Exit 8 is possible only at speed.
+
+Explicit `--group=<name>`, `--whole-suite` or `--scope-file=<capture>` wins over
+`GHOG_GROUP`; without either, use the whole suite. An explicit selector ignores
+even an invalid environment group. Conflicting selectors or invalid selections
+exit 5 without fallback. Check always runs project-wide; single runs the files
+the caller names and carries scope on its restart line.
+
+### Parallel coverage and sequential timings
+
+On a sequential project, speed measures coverage and durations in the full run.
+On a parallel project, `ghog day --full=speed` runs covered full first and then
+sequential `ghog timings` in the same scope. The separate timings step avoids
+using contended worker durations as speed proof. A direct parallel
+`ghog full --full=speed` establishes only `proof=cov` and explicitly says speed
+is not established; follow its printed speed-day command. Direct full never
+reads or writes the day marker, even when it proves coverage.
+
+## The resolved walk at a glance
+
+```text
+check.bat -> affected --no-cov -> full at requested level -> timings if needed
+                                  none: deliberate skip    parallel speed only
 ```
 
-## 📸 The day snapshot: duplicate walks are free
+Each step requires the previous one to pass. A default green day says
+`Full suite skipped on purpose (no level requested)`; `pass`, `cov` and `speed`
+success reports name their established objective. Follow the printed repair
+and restart lines verbatim: they preserve the level and scope on day, affected
+and single commands. Do not replace a scoped restart with bare `ghog day`.
 
-A fully green `ghog day` records a source snapshot, `a.ghog.day.ok` in the artifact home: a digest over the path, size and mtime of every Python file plus the gate configuration files (pyproject.toml, .coveragerc, setup.cfg, check.bat). The next `ghog day` checks it first — when nothing changed, the walk is a noop:
+## The day snapshot and proof reuse
 
-```txt
-No Python file changed since the last green ghog day walk - nothing to do (use --force to walk anyway)
-my-project: ghog day done fail=0 warn=0 xfail=0 cov=skipped exit=0
+The artifact home holds `a.ghog.day.ok` for the whole suite and
+`a.ghog.day.<group>.ok` for a group. Each records `scope`, `fingerprint`,
+`timing`, `digest` and `proof`. Proof ranks from unproven through `none`
+(check and affected green), `pass`, `cov`, to `speed`.
+
+The source digest covers Python paths, sizes and mtimes plus gate configuration.
+A changed digest, scope or group fingerprint invalidates proof; a changed timing
+signature caps saved speed at cov. With matching inputs, saved proof at least
+as strong as the request is a noop. An upgrade reuses check and affected and
+runs only the missing full work (and timings when needed). `--force` runs all
+steps. Direct full neither consumes nor changes this marker.
+
+Failure caps evidence: check or affected failure is unproven, full test failure
+leaves `none`, coverage failure leaves `pass`, duration failure leaves `cov`.
+A failed forced run replaces older stronger proof with that honest lower bound.
+Old, malformed or unusable markers cannot authorize a noop.
+
+## Named test groups and their coverage boundary
+
+Declare groups in the repository-root `.ghog-groups` INI file:
+
+```ini
+[parser]
+tests =
+    tests/unit/parser/**
+    !tests/unit/parser/legacy/**
+sources =
+    src/parser/**
 ```
 
-So instructions that each end with a walk (a split flow inside an implement flow, for example) can both call `ghog day` without paying twice. Any file change, addition or removal re-arms the walk; `ghog day --force` walks regardless; only the day walk writes the marker (a standalone green `ptr` proves the suite but not the compile check, so it records nothing).
+Names identify sections. `tests` and `sources` are multiline path patterns,
+matched against normalized repository-relative paths with gitignore-like `*`,
+`?`, `**` and `!` negation; the last matching pattern wins. Tests also obey
+pytest `python_files`; sources are Python files after coverage omit rules.
+An empty effective tests or sources set is a setup error. `ghog groups` lists
+valid groups; `ghog groups <name>` validates and shows the resolved members.
+
+Grouped cov and speed require **100% of every declared source**, including
+sources outside configured coverage source roots. Unexecuted declared files
+count as zero. Runs use a fresh artifact-home coverage data file; missing,
+unreadable or stale data exits 5 and cannot borrow another run's proof.
+Grouped affected and full select only the group's test files. Grouped timing
+uses the saved floor (1 second if absent), floor-only classification and the
+effective exclusions. It never writes the project floor or exclusion file.
+
+This saves work but cannot detect regressions outside the declared set. The
+release gate is always `ghog day --full=cov --whole-suite` to catch them.
+
+### Choose, change or remove an effort group
+
+`process-draft` offers Whole suite, valid groups, New group, and Type something
+else after the branch-layout choice. A new group asks for its name, tests and
+sources and validates with `ghog groups <name>` before recording it. The draft
+stores `- Test group: <name>` or `- Test group: whole suite` next to `- Type:`;
+an umbrella has no scope, each focused child does. `write-requirement` copies
+and revalidates that choice, asking only when no choice was recorded.
+
+Once a requirement exists, it alone is authoritative. To activate or change a
+group, edit its `- Test group:` and validate the definition. To deactivate,
+remove the line or write `whole suite`. A missing line or absent requirement
+means whole suite; an old draft never overrides it. `pw scope` prints the
+selector; `pw scope day` or `pw scope day --full=speed` prints the complete
+command with exactly one selector and rejects an already supplied selector.
+The explicit output defeats ambient `GHOG_GROUP`. Manual `--group` and
+`GHOG_GROUP` choose an invocation; they do not edit effort metadata.
+
+Changes take effect on the next eligible command, never in an active walk or
+published review round. `--scope-file` binds exact paths, patterns and
+fingerprint from a review capture without re-resolving current definitions;
+unusable captures exit 5 as missing evidence.
+
+### Review validation migration and accepted exclusions
+
+The built-in review default is `ghog day --full=speed` completed with the effort
+selector. `.review-validation` commands remain authoritative and are never
+rewritten or selector-injected. A declared plain `ghog day` now defaults to
+check plus affected; recommend explicit speed where intended. `GHOG_FULL`,
+other commands or valid saved proof may still provide stronger evidence.
+A group speed claim about the declared set requires a command explicitly
+naming speed and that group. Replacement rounds validate before publication;
+scope/fingerprint changes require a recorded reason. At commit-ready, disclose
+pending scope changes and offer Commit on the bound scope or Rework and review
+again on the new scope, without starting a walk at the gate.
+
+`ghog exclude --list` prints sorted effective node/baseline entries plus
+`exclusions=<count>`. An unreadable file exits 5, never an empty success.
+`ghog exclude --list --since=<saved-listing>` reports `exclusions=changed` for
+added or raised baselines, `exclusions=unchanged` for only lowered or removed
+ones, and `exclusions=unverified` with exit 5 for missing or damaged comparison
+data. Save listings in the step artifact home before a review-off speed pass.
+If its staged tree or exclusions change, or comparison is unverified, return
+through implementation-check and regroup commits before a new comparison.
+Disclose each accepted exclusion's node, seconds, attempted improvement and
+reason in the journal, handoff, review report and commit-menu summary.
 
 ## 🔁 The fixing loop around the walk
 
@@ -96,16 +180,16 @@ The walk is also the loop's only re-entry point. After a fix, the next command i
 
 | Alias | Subcommand | Behavior |
 | --- | --- | --- |
-| (none) | `ghog day` | walk the chain: check, then `affected --no-cov`, then `full`, stopping at the first non-green step; a noop when nothing changed since the last green walk (`--force` overrides); `--detach` runs the walk as a survivor process polled through `ghog status` |
+| (none) | `ghog day` | walk check and `affected --no-cov`, then the selected full level (default skip), stopping at the first non-green step; reuse matching proof (`--force` overrides); `--detach` runs the walk as a survivor process polled through `ghog status` |
 | (none) | `ghog status` | replay the run lifecycle recorded in `a.ghog.status` without starting anything: the recorded exit code once done, 6 while a run is live, 7 when the last run is lost |
 | (none) | `ghog check` | run check.bat from the project root, exit code passed through |
-| ptr | `ghog full` | delete `.testmondata`, full suite with `--testmon` and coverage |
+| ptr | `ghog full` | reset testmon, full tests at the requested level (default speed) |
 | pta | `ghog affected` | testmon-selected tests, `--cov-append`, coverage report |
 | ptanc | `ghog affected --no-cov` | testmon-selected tests, no coverage |
 | pts | `ghog single <test files>` | named test files (files, not functions), no coverage, `-rxX` |
 | (none) | `ghog init` | register the skill pointers in the project (see below) |
 
-The aliases are doskey macros from `senv.doskey`, available after `senv.bat`; the `bin\*.bat` wrappers behind them work from any shell, loaded or not. `ghog full` stays on a single worker on purpose: pytest-testmon does not cooperate with pytest-xdist, and the rebuilt testmon database is what keeps every later `ghog affected` run cheap.
+The aliases are doskey macros from `senv.doskey`, available after `senv.bat`; the `bin\*.bat` wrappers behind them work from any shell, loaded or not. Sequential full rebuilds testmon for later affected selection. Parallel full uses the project parallel runner; speed day adds sequential timings as described above.
 
 ## 🚦 Exit codes and the closing line
 
@@ -126,22 +210,22 @@ The keys are the contract; `cov=` reads `skipped` (not measured), `withheld` (fa
 | 5 | environment or setup error | read the printed reason; looping cannot fix it |
 | 6 | a run is live (Q32) | wait; poll `ghog status` until `state=done`, start nothing |
 | 7 | the last run is lost (Q32) | only from `ghog status`: the run was killed or never recorded; relaunch `ghog day` |
-| 8 | a duration outlier on an otherwise-green run (Q34) | the full suite passed and met the coverage gate, but a test call ran far outside the norm; shorten the named slow calls (see [`instructions/fix_slow_test.md`](instructions/fix_slow_test.md)), or `ghog exclude` a genuinely slow one, then re-run `ghog day` |
+| 8 | a duration outlier at speed on an otherwise-green run (Q34) | the full suite passed and met the coverage gate, but a test call ran far outside the norm; shorten the named slow calls (see [`instructions/fix_slow_test.md`](instructions/fix_slow_test.md)), or `ghog exclude` a genuinely slow one, then re-run `ghog day` |
 | 9 | not a pytest project | the root has no `pyproject.toml`, `pytest.ini` or `conftest.py`, and no pytest section in `setup.cfg` or `tox.ini`; the pytest steps do not apply (in `ghog day`, the check step already ran). Validate with the project's own test commands; never install pytest or create a venv to get past it |
 | other | `ghog check` passthrough | check.bat's own exit code: fix what it names — compile/lint errors in place, or a file over the line limit ("Big files found") by splitting it with `/split-large-file` (ghog reports the over-limit files, it never splits) |
 
 A check.bat that prints `ERROR :` lines yet exits 0 is treated as failed (exit 1) with an explicit mismatch notice, so a broken check script can never green-light the walk.
 
-Beyond pass/fail and coverage, the full run also times every test call, so `ghog day` trims test execution time: a call running far outside the norm (a robust outlier score, at or above a one-second floor) keeps the walk on exit 8 with the slow calls named, judged last so it never masks a failure or a coverage gap. The named calls are shortened (`instructions/fix_slow_test.md`: fake the slow resource, the clock, or shrink the data) or, when a call is legitimately slow, accepted at its measured time with `ghog exclude`. That is how the suite stays fast, the project target being under one second per test.
+At speed, the full run or sequential timings step also times every test call, so `ghog day` trims test execution time: a call running far outside the norm (a robust outlier score, at or above a one-second floor) keeps the walk on exit 8 with the slow calls named, judged last so it never masks a failure or a coverage gap. The named calls are shortened (`instructions/fix_slow_test.md`: fake the slow resource, the clock, or shrink the data) or, when a call is legitimately slow, accepted at its measured time with `ghog exclude`. That is how the suite stays fast, the project target being under one second per test.
 
 ## 🐢 The duration gate: how tests stay under a second
 
-The exit-8 stop above is the visible half of a rule that keeps the whole suite fast enough to run willingly. The full run captures the call-phase seconds of every test, and a call is flagged as a true outlier only when two conditions hold at once:
+The exit-8 stop above is the visible half of a rule that keeps the whole suite fast enough to run willingly. At speed, the full run or sequential timings step captures the call-phase seconds of every test, and a call is flagged as a true outlier only when two conditions hold at once:
 
 - a robust statistic — the Iglewicz-Hoaglin modified z-score, median and MAD based, cutoff 3.5 — says the call sits far outside this run's norm (a call two or three times the median is merely slower, never an outlier);
 - the call is at or above an absolute floor in seconds.
 
-When more than half the calls tie and the MAD collapses to zero, the z-score is undefined and the rule falls back to the floor alone. The report also names up to three under-floor runners-up, the data for tuning the floor.
+For whole-suite runs, when more than half the calls tie and the MAD collapses to zero, the z-score is undefined and the rule falls back to the floor alone. The report also names up to three under-floor runners-up, the data for tuning the floor.
 
 The gate is configured through `a.ghog.outliers` in the artifact home (`.reviews` unless `.review-artifacts.ini` declares another home, see [rules/artifact_files.md](rules/artifact_files.md)); a copy an older version left at the project root is moved into the home on first use, its floor and exclusions kept. Every report line that names the file prints its real path:
 
@@ -152,7 +236,7 @@ The gate is configured through `a.ghog.outliers` in the artifact home (`.reviews
 tests/unit/pkg/test_mod.py::test_x = 11.41
 ```
 
-Line 1 is a write-only record the gate never reads back. Line 2 is the knob: default `1.0` second, seeded on a fresh run; raise it to tolerate slower calls, lower it to catch faster ones, set it to `0` to switch the gate off; a missing, malformed or negative value falls back to the default, and deleting the file re-seeds it. Each `[exclusion]` entry — written by `ghog exclude "<node id>" <seconds>` — spares one call at its recorded baseline; excluded calls stay timed, are left out of the run average, and are classified against their baseline on every run (`ok`, `slower`, `faster` or `stale`), so an accepted slow test that drifts even slower does not go unnoticed. An entry whose call drops back under half the floor is removed by the tool even when the improvement is under two seconds, so a test that became fast again returns to the normal rule on its own.
+Whole-suite speed runs may update this file; grouped runs read it without writing. Line 1 is a write-only record the gate never reads back. Line 2 is the knob: default `1.0` second, seeded on a fresh run; raise it to tolerate slower calls, lower it to catch faster ones, set it to `0` to switch the gate off; a missing, malformed or negative value falls back to the default, and deleting the file re-seeds it. Each `[exclusion]` entry — written by `ghog exclude "<node id>" <seconds>` — spares one call at its recorded baseline; excluded calls stay timed, are left out of the run average, and are classified against their baseline on every run (`ok`, `slower`, `faster` or `stale`), so an accepted slow test that drifts even slower does not go unnoticed. An entry whose call drops back under half the floor is removed by the tool even when the improvement is under two seconds, so a test that became fast again returns to the normal rule on its own.
 
 The wiki covers the three angles: [fixing a flagged call](wiki/how-to/fix-a-slow-test.md) (profile it, shorten it, or exclude it), [the gate rule and file format](wiki/reference/ghog-commands-and-exit-codes.md) in reference form, and [why slower is deliberately not outlier](wiki/explanation/groundhog-as-a-reset-loop.md).
 
@@ -215,17 +299,18 @@ One caveat: a recycled pid can keep a killed run reading as live; that conservat
 
 ## ✅ What success looks like
 
-A green `ghog day` walk prints one closing line per step and ends on the full run's objective report:
+The final day line follows the last step's report and appends `full`, `src`,
+`proof`, `reused` and `scope`. `full` is the requested level; `src` is `param`,
+`env` or `default`; `proof` is the effective established evidence, which can be
+stronger than the request; `reused` is `none`, `check+affected` on an upgrade, or `all` on a noop.
 
-```txt
-my-project: ghog check done fail=0 warn=0 xfail=0 cov=skipped exit=0
-my-project: ghog affected --no-cov done fail=0 warn=0 xfail=0 cov=skipped exit=0
-Objective reached
-nag: warn=0 xfail=11 worth a look
-my-project: ghog full done fail=0 warn=0 xfail=11 cov=100 exit=0
+```text
+my-project: ghog day done fail=0 warn=0 xfail=0 cov=skipped outliers=skipped excluded=skipped exit=0 full=none src=default proof=none reused=none scope=whole
 ```
 
-The nag line appears only on success, when warnings or expected failures remain worth a look; they never block the objective.
+`ghog status` shows `full`, `src`, `scope` and `proof=pending` while the day
+runs. Done status repeats its final proof and reuse evidence. Warnings and
+xfails appear in the nag line when present but do not block success.
 
 ## 🛑 What each stop looks like
 
@@ -240,7 +325,7 @@ The nag line appears only on success, when warnings or expected failures remain 
 | crash | last 5 started tests, stack tail | the immediate-fix instruction: make the suite robust against that exception |
 | nothing affected | — | `0 tests ran in this step (testmon: nothing affected since the last run) - treated as green` |
 
-Every next-step message that follows a fix names `ghog day` directly (Q30): the walk is the loop's only re-entry point and its first step is the check, so no standalone `ghog check` run is ever needed before it (see [instructions/groundhog.md](instructions/groundhog.md)).
+The table abbreviates selectors: every printed post-fix message names `ghog day` with the original level and scope (Q30): the walk is the loop's only re-entry point and its first step is the check, so no standalone `ghog check` run is ever needed before it (see [instructions/groundhog.md](instructions/groundhog.md)).
 
 ## 📌 Registering groundhog in a project: ghog init
 
@@ -289,7 +374,7 @@ On exit 3, the report replays the pytest term-missing rows under an `Uncovered l
 cmd /d /v:on /c "senv.bat && ..\llm-shared\bin\covg.bat src\pkg\mod.py 48 86-88 100"
 ```
 
-covg names the enclosing functions and branches of those lines and builds a ready-to-paste test-coverage prompt. Never generate or parse a `coverage.json` export — it is huge, and everything covg needs is already in the replayed rows. Verify the new tests with `ghog affected` only (coverage appends across runs); when it reports the gate is reached, run one `ghog check` because new tests are code too, then restart the walk with `ghog day` so check, affected tests, full coverage, and outliers are proven together.
+covg names the enclosing functions and branches of those lines and builds a ready-to-paste test-coverage prompt. Never generate or parse a `coverage.json` export — it is huge, and everything covg needs is already in the replayed rows. Verify the new tests with `ghog affected` only (coverage appends across runs); when it reports the gate is reached, run one `ghog check` because new tests are code too, then restart the walk with `ghog day` so the requested level and scope are proved together.
 
 ## 🗃️ Files groundhog reads and writes
 
@@ -300,7 +385,7 @@ covg names the enclosing functions and branches of those lines and builds a read
 | `a.ghog.log` | project root | the redirect target of every LLM-driven run, written by the Q31 guard even when the caller forgot the redirect; overwritten per run, never deleted, so the user can follow the loop live (direct human runs keep stdout) |
 | `a.ghog.status` | project root | the run lifecycle line (Q32): `state=running pid=` while a run works, `state=done exit=` after; read by `ghog status` and by the live-run refusal; cleared by a detached launch before its spawn |
 | `a.ghog.failures` | artifact home | the failing node ids of the last full run, the focus-comparison baseline; emptied on a green full run |
-| `a.ghog.day.ok` | artifact home | the source snapshot of the last green `ghog day` walk; an unchanged snapshot makes the next walk a noop |
+| `a.ghog.day.ok` / `a.ghog.day.<group>.ok` | artifact home | per-scope digest, fingerprint, timing signature and proof; reuse requires matching inputs and adequate proof |
 | `a.ghog.outliers` | artifact home | the duration floor (line 2) and the `[exclusion]` section of accepted slow calls |
 | `a.ghog.senv.log` | artifact home | the parked senv.bat preamble of one ghog.bat call; consumed and deleted by the tool, typed by ghog.bat itself when the tool never ran |
 | `a.ghog.senv.txt` | artifact home | the raw senv.bat preamble of the last LLM run, kept out of the report behind one summary line |
@@ -320,7 +405,7 @@ The artifact home is `.reviews` unless a versioned `.review-artifacts.ini` decla
 
 ## 🔗 Related groundhog documents
 
-- [tools/Pytest reset specs.md](tools/Pytest%20reset%20specs.md) — the full specification with its decision table (Q01-Q32) and acceptance tests (AT1-AT19).
+- [tools/Pytest reset specs.md](tools/Pytest%20reset%20specs.md) — the full specification with its decision table (including Q71 onward) and acceptance tests (AT1 onward).
 - [instructions/groundhog.md](instructions/groundhog.md) — the fixing loop both LLM harnesses follow.
 - [DEVELOPMENT.md](DEVELOPMENT.md) — where the walk fits in the overall step-based workflow.
 - [wiki/how-to/fix-a-red-groundhog-walk.md](wiki/how-to/fix-a-red-groundhog-walk.md) — the recipe per exit code.

@@ -13,7 +13,7 @@ whenever they change; the journal stays the authoritative, append-only log.
 ## Step {x} verified state
 
 - Branch and head: `{branch}` at `{short sha}` ({clean, or: n files changed, staged or not})
-- Last gate: {`ghog day` exit code and date, or: not run yet}
+- Last gate: {full resolved command with its selector and level, exit code and date, or: not run yet}
 - Review: {no review, or: round n and state, as `pw progress` reports it}
 - {any other fact checked on disk, with how it was checked}
 

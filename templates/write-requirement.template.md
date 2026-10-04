@@ -12,6 +12,9 @@ Do not include open questions yet: they will be added later by a separate skill,
 ```md
 # <Short title for <topic>>
 
+- Type: feature-request
+- Test group: <validated group name or whole suite>
+
 ## CDC revision that introduces <topic>
 
 Describe the earlier CDC state, then quote or summarize the revision that adds the requested behavior.
@@ -40,6 +43,9 @@ Use this template when the current behavior, the target rule, and the implementa
 
 ```md
 # <Short title for <topic>>
+
+- Type: issue
+- Test group: <validated group name or whole suite>
 
 ## CDC revision history for <topic>
 

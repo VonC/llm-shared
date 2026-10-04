@@ -48,16 +48,16 @@ canonical instruction, following
 [`run_commands.md`](../rules/run_commands.md). Never substitute a guessed
 relative checkout or an environment variable.
 
-- execute `ghog day` (from the root of the project): the groundhog walk runs check.bat, the tests affected by the split, and the full suite with coverage, stopping at the first non-green step with the fix to apply. Do not call `check.bat` or `pytest` directly; groundhog is in charge of check and tests (see [`GROUNDHOG.md`](../GROUNDHOG.md) and [`groundhog.md`](groundhog.md)). An LLM runs it as one redirected shell call from the project root, then branches on the exit code and reads only the tail of `a.ghog.log`:
+- execute the command printed by `pw scope day` (from the root of the project, via [`run-pw.md`](run-pw.md)): it runs check.bat and the affected tests. At the default level the full stage is deliberately skipped. Follow the printed repair and restart commands to preserve level and scope. Do not call `check.bat` or `pytest` directly; groundhog is in charge of check and tests (see [`GROUNDHOG.md`](../GROUNDHOG.md) and [`groundhog.md`](groundhog.md)). In the examples, `<day-arguments>` includes `day`, its resolved selector and any requested level. An LLM runs it as one redirected shell call from the project root, then branches on the exit code and reads only the tail of `a.ghog.log`:
 
   ```bat
-  cmd /d /c "<llm-shared>\bin\ghog.bat day > a.ghog.log 2>&1"
+  cmd /d /c "<llm-shared>\bin\ghog.bat <day-arguments> > a.ghog.log 2>&1"
   ```
 
   Issue that call from PowerShell or cmd.exe, never from Git Bash or another MSYS/POSIX shell: a POSIX shell rewrites the `/d` and `/c` switches into paths, so `cmd` opens interactively and exits 0 without running the walk, leaving a stale `a.ghog.log` that reads as a fresh green result (see [`../rules/run_commands.md`](../rules/run_commands.md) and [`groundhog.md`](groundhog.md)).
 
-- the walk is finished only when `a.ghog.status` reads `state=done` — a verdict to read through `ghog status`, never with a direct read of that file (only the command probes the pid); a growing log proves nothing. When the harness can kill long calls, run `cmd /d /c "<llm-shared>\bin\ghog.bat day --detach"` (no redirect) instead, then poll `cmd /d /c "<llm-shared>\bin\ghog.bat status"` (never redirected) until its exit code is no longer 6: exit 7 means the run was lost (relaunch), any other code is the walk's own.
-- a "Check for files too big" failure from check.bat is expected while the split is in progress (the original file still exists): finish the split first, then run `ghog day` again.
+- the walk is finished only when `a.ghog.status` reads `state=done` — a verdict to read through `ghog status`, never with a direct read of that file (only the command probes the pid); a growing log proves nothing. When the harness can kill long calls, run `cmd /d /c "<llm-shared>\bin\ghog.bat <day-arguments> --detach"` (no redirect) instead, then poll `cmd /d /c "<llm-shared>\bin\ghog.bat status"` (never redirected) until its exit code is no longer 6: exit 7 means the run was lost (relaunch with the same arguments), any other code is the walk's own.
+- a "Check for files too big" failure from check.bat is expected while the split is in progress (the original file still exists): finish the split first, then follow the printed restart command with its resolved level and scope.
 
 Repeat fix-and-walk until `ghog day` reports the objective (`exit=0`).
 
