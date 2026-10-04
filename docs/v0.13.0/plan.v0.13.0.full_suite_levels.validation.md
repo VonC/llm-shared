@@ -4,8 +4,8 @@ No, it is not implemented.
 
 This document tracks the nine steps of the
 [implementation plan](plan.v0.13.0.full_suite_levels.md), from the Step 0 cost
-gates to the Step 8 acceptance mapping; Steps 0 to 2 are implemented and
-checked, and Steps 3 to 8 are not implemented yet.
+gates to the Step 8 acceptance mapping; Steps 0 to 6 are implemented and
+checked, and Steps 7 and 8 are not implemented yet.
 
 > Markdown lint note: never leave a space immediately inside an inline code span
 > (MD038); write a needed space as the token `[space]`, as in `` `[space]${x}` ``.
@@ -1245,10 +1245,19 @@ the separately planned Step 6 work.
 
 ### Analysis of Step 6 implementation state
 
-Not started. Step 6 is not implemented because Step 5 has not landed yet.
+Yes. Step 6 has been fully implemented.
 
-The renderer still renders the default without a selector and the exchange
-keeps no scope for a published round.
+Requests now resolve the effort scope, preserve declared validation commands,
+render exact-scope proof, and require disclosure of changed replacement scopes.
+Publication validates and binds a capture to the round; status, reviewer
+collection, progress and every coordination cleanup use that capture. The
+required whole-suite coverage walk passed on 2026-10-04 with `exit=0`.
+
+The renderer's transcript summary now renders validation commands as literal
+Markdown code spans, using a fence longer than any embedded backtick run.
+Six regression cases preserve angle brackets, dunder paths and boundary
+backticks without changing the JSON command strings. The human-authorized
+one-line transcript correction is applied, and fresh full validation passes.
 
 ### Goal for Step 6
 
@@ -1281,27 +1290,230 @@ arguments.
 
 ### What was implemented for Step 6
 
-_(empty — no check has taken place yet.)_.
+- Extracted the renderer's four file helpers to `code_review_request_files.py`
+  and added `code_review_request_scope.py` for workflow-based requirement
+  lookup, `snapshot.effective_proof`, previous-round scope and change reasons.
+- Added declared/default provenance in `code_review_validation.py`. Only the
+  built-in default receives the effort selector. Declared walks retain their
+  literal commands, receive the qualified migration notice when appropriate,
+  and claim a grouped speed walk only with the explicit matching selector.
+- Added required `--scope-capture-output`, optional `--scope-change-file`,
+  `test_scope` in the envelope and evidence, and paired request/transcript
+  scope sections. Invalid groups and unsupported plan layouts fail explicitly.
+- Added `review_exchange_scope.py` to validate publication input, atomically
+  write `paths.scope`, validate bound status, and remove or archive the capture.
+  Publication rejects incomplete, mismatched or missing captures before any
+  publication mutation and records the fingerprint inside the transition lock.
+- Added the request-only CLI input and optional core port argument. Status
+  reports `bound_scope` and exposes `paths.scope` only for valid bound evidence;
+  legacy publications clear old captures and report missing evidence.
+- Wired capture retirement into completion, forced completion and escalation
+  resolution, and capture archival into archive resolution. The capture is
+  retired before coordination, preserving retry context on cleanup failure.
+- Added current/bound scope comparison to progress, including same-name group
+  definition changes and damaged-coordination reporting.
+- Updated the four minimum instruction contracts and the request template.
+  Reviewers consume `ghog affected --no-cov --scope-file=<paths.scope>` and
+  treat missing, legacy or refused captures as missing evidence.
+- Added tests for proof invalidation and recovery, capture lifecycle, legacy
+  behavior, model strictness, command provenance, instruction contracts and a
+  renderer/publish/status/frozen-affected/replacement round trip. Extended the
+  registry PBT for the new capture kind and adapted existing renderer fixtures.
+
+Plan variances are limited to test support: the CLI fake core must accept and
+record the new optional capture argument, so its existing test file changed
+despite the plan's freeze guidance. It remains at 647 lines; new boundary cases
+live in the boundary module. Renderer tests now import extracted helpers and
+use supported `docs/` plan layouts. The store test excludes the new JSON
+archive kind from its Markdown-only parameterization; scope archival has its
+own tests. The production store and both status modules remain unchanged.
+
+The pre-review speed run exposed a ten-second Git setup timeout in the
+reviewer acceptance fixture. Its bounded timeout is now thirty seconds;
+real-Git behavior, assertions and the separate duration gate are unchanged.
+The request template has a local MD041 directive at its end because the
+renderer supplies the document title and the authored first heading must
+remain unchanged. Focused renderer and reviewer acceptance tests pass.
+
+The pre-review speed gate also flagged the new round-trip call at 1.00s.
+Pyinstrument identified repeated Windows path resolution as its largest
+filesystem cost. A fixture used by that test alone caches actual resolutions
+of stable, symlink-free paths. Every assertion, capture read and core
+transition remains real; the isolated call now measures 0.75s and its focused
+test file passes. The fresh whole-suite timing pass measured it at 0.80s,
+with zero duration outliers.
 
 ### New types or classes introduced for Step 6
 
-_(empty — no check has taken place yet.)_.
+`ProjectValidation` carries commands and their declared/default provenance.
+Existing round input and evidence types, `Envelope`, `CoordinationRecord` and
+`ArtifactPaths` gain optional scope metadata or the capture path. `ArchiveKind`
+and `RegisteredArtifactKind` gain scope variants. The three new modules contain
+functions and introduce no parallel scope or proof model.
 
 ### Architecture check for Step 6
 
-_(empty — no check has taken place yet.)_.
+Workflow selection remains in the request/progress adapters; proof validity
+remains in `snapshot.effective_proof`; capture validity remains in
+`scope_capture.validate_capture`. Exchange filesystem work is isolated in the
+scope helper and invoked by the existing locked publication and human
+transitions. Models validate data without importing workflow or filesystem
+adapters. No DDD-Hexagonal layer violation was found.
+
+Post-change physical line counts satisfy the mandatory limits:
+
+| Files | Lines |
+| --- | --- |
+| `code_review_request.py` | 578 (mandatory target 590) |
+| `code_review_request_files.py`, `code_review_request_scope.py`, `review_exchange_scope.py` | 82, 78, 76 |
+| `code_review_validation.py`, `prompt_workflow_scope.py` | 235, 93 |
+| `review_exchange_models.py`, `review_exchange_models_coordination.py`, `review_exchange_models_envelope.py` | 564, 311, 268 |
+| `review_exchange_cli.py`, `review_exchange_cli_ownership.py`, `review_exchange_cli_parser.py` | 523, 193, 161 |
+| `review_exchange_human.py`, `review_exchange_publication.py` | 489, 413 |
+| `review_artifact_registry.py`, `review_exchange_paths.py`, `tools/__init__.py` | 308, 230, 94 |
+| Renderer tests, commit-plan tests, IO acceptance tests | 605, 254, 301 |
+| New request-scope tests, exchange-scope tests, model-scope tests | 411, 207, 76 |
+| CLI tests, CLI boundary tests, paths tests, store tests | 647, 457, 425, 456 |
+| Progress scope tests, validation tests | 234, 212 |
+| Registry tests and PBT | 138, 53 |
+| Reviewer acceptance fixture helpers | 295 |
+| Requestor, shared-requestor, reviewer and implementation-check instruction tests | 240, 91, 248, 105 |
+| Commit-plan acceptance contracts, each new test-package initializer | 280, 1 |
+
+Advisory estimate differences require no split; every changed Python file is
+at or below 650 lines.
+
+The two round 1 maintainability findings are resolved:
+
+- `code_review_request_scope.resolve_request_scope` receives the renderer's
+  validated `context.identity` and builds the `Topic` from its version and
+  slug. `_PLAN_RE` remains the single plan-name parser. The request-scope test
+  package passes, including unsupported layouts and the round trip.
+- The staged
+  `tests/acceptance/commit_plan_check/test_commit_plan_check_acceptance/test_commit_plan_check_contracts_tdd.py`
+  now has 280 CRLF lines and no LF-only lines, preserving its HEAD convention.
+  The scan of all 45 staged paths found no mixed line endings.
+
+No, there is nothing that needs to be addressed in the architecture check.
 
 ### Performance check for Step 6
 
-_(empty — no check has taken place yet.)_.
+New command recognition and payload construction are linear in their input;
+scope comparisons and the number of lifecycle artifacts are bounded. The
+implementation reuses existing scope resolution and proof validation instead
+of adding another membership scan or validity algorithm. No new quadratic or
+sorting computation was introduced. New behavior tests use temporary files,
+in-process calls and fake child execution; no new subprocess is added to their
+round trips. This step changes no performance gate. The post-review whole-suite
+`speed` walk establishes duration proof separately from the required `cov`
+objective. No performance issue needs addressing.
 
 ### Unit test coverage check for Step 6
 
-_(empty — no check has taken place yet.)_.
+The configured coverage source is `tools` with `fail_under = 100`; it includes
+every production Python file changed by this step. Tests and Markdown are not
+production coverage targets. Existing unit packages cover renderer/file
+helpers, validation, CLI/ownership/parser, models, paths, registry and progress.
+The new request-scope and exchange-scope packages exercise their helpers and
+the publication/human paths through the real core; the existing model package
+contains the strict optional-scope tests. Registry round-trip PBT includes the
+new kind. Additional PBT is unnecessary for the finite transition matrix.
+
+Static review confirms coverage of declared/default commands, invalid input,
+legacy records, proof changes from timing configuration or group definitions,
+all capture exits, archive collisions and write failure. The final missing
+branch, damaged coordination in progress, has a regression test preserving
+current scope while reporting bound evidence as missing.
+
+Pre-review requestor gate evidence after the test-support repairs:
+
+```text
+ghog day --full=speed --whole-suite
+ghog full: fail=0 warn=0 xfail=0 cov=100 exit=0
+ghog day: fail=0 warn=0 xfail=0 cov=skipped outliers=0 excluded=0 exit=0
+full=speed src=param proof=speed reused=none scope=whole
+timings ended=2026-10-04T03:02:00+02:00
+
+ghog day --full=cov --whole-suite
+fail=0 warn=0 xfail=0 cov=skipped outliers=skipped excluded=skipped exit=0
+full=cov src=param proof=speed reused=all scope=whole
+```
+
+The speed walk completed successfully, including the whole-suite 100% coverage
+pass and timing pass. The explicit plan command then reused that stronger
+proof on unchanged sources. Static checks passed, including type checking,
+lint, complexity and line limits; the separate mandatory Markdown gate also
+passed. No unit-tested production module below 100% needed completing at that
+point. Round 1 subsequently found three MD050 errors in the published
+transcript and requested the identity/line-ending repairs above. The focused
+request-scope tests pass after those repairs. The human authorized the exact
+three-line transcript formatting correction; it is applied and the Markdown
+gate passes.
+
+Fresh round 2 validation after all repairs passed on 2026-10-04:
+
+```text
+ghog day --full=speed --whole-suite
+ghog full: fail=0 warn=0 xfail=0 cov=100 exit=0
+ghog day: fail=0 warn=0 xfail=0 cov=skipped outliers=0 excluded=0 exit=0
+full=speed src=param proof=speed reused=none scope=whole
+timings ended=2026-10-04T16:57:58+02:00
+
+ghog day --full=cov --whole-suite
+fail=0 warn=0 xfail=0 cov=skipped outliers=skipped excluded=skipped exit=0
+full=cov src=param proof=speed reused=all scope=whole
+```
+
+Both logs passed the freshness check and `ghog status` confirmed completion.
+The timing phase's `cov=skipped` does not replace the full phase's measured
+100% coverage. The explicit coverage command reused the stronger speed proof
+on unchanged sources. All seven plan additions, including the five completion
+searches and the focused round-trip test, meet their criteria and are supplied
+to the replacement review renderer without altering the project default.
+
+Fresh round 3 validation after the command-formatting repair passed:
+
+```text
+ghog day --full=speed --whole-suite
+ghog full: fail=0 warn=0 xfail=0 cov=100 exit=0
+ghog day: fail=0 warn=0 xfail=0 cov=skipped outliers=0 excluded=0 exit=0
+full=speed src=param proof=speed reused=none scope=whole
+timings ended=2026-10-04T17:51:56+02:00
+
+ghog day --full=cov --whole-suite
+fail=0 warn=0 xfail=0 cov=skipped outliers=skipped excluded=skipped exit=0
+full=cov src=param proof=speed reused=all scope=whole
+```
+
+Both logs passed the freshness check. The full phase measured 100% coverage;
+the explicit coverage command reused that stronger speed proof on unchanged
+sources. The round-trip call measured 0.78s against the 1.00s floor. Focused
+renderer and scope tests pass, including the six command-formatting cases.
+No unit-tested production module below 100% needs completing.
 
 ### Feature integrity for Step 6
 
-_(empty — no check has taken place yet.)_.
+Legacy envelopes and records round-trip without scope fields, while new code
+requests carry strictly validated evidence. Direct renderer inputs retain
+their optional defaults. Declared validation and plan/request additions remain
+literal, and changed requirement/group data cannot silently alter a published
+round's test collection. The round-trip test proves that the core-owned capture
+still selects the original tests after a definition edit and ambient override.
+
+Required inspections confirm extraction of the renderer's private file
+helpers, a request-only capture parser option, cleanup in every required
+transition, and all four instruction contracts. `git diff --check` passes.
+
+Validation commands now remain literal in the transcript summary, including
+`scope-file=<paths.scope>`, dunder paths and backtick runs. JSON retains the
+exact original command strings. The repository Markdown checker rejects the
+old summary preview with MD033 and accepts the corrected preview. Publication
+preflight uses this checker as well as the mandatory npm Markdown gate.
+
+Upgrade documentation follow-up for Step 7 or release notes: restart
+long-running review processes after upgrading to the new scope artifact kind.
+A watcher started with older code cannot classify the new capture file;
+fresh processes using the current code recognize it.
 
 ---
 
