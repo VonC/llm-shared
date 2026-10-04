@@ -4,8 +4,8 @@ No, it is not implemented.
 
 This document tracks the nine steps of the
 [implementation plan](plan.v0.13.0.full_suite_levels.md), from the Step 0 cost
-gates to the Step 8 acceptance mapping; Steps 0 to 6 are implemented and
-checked, and Steps 7 and 8 are not implemented yet.
+gates to the Step 8 acceptance mapping; Steps 0 to 7 are implemented and
+checked, and Step 8 is not implemented yet.
 
 > Markdown lint note: never leave a space immediately inside an inline code span
 > (MD038); write a needed space as the token `[space]`, as in `` `[space]${x}` ``.
@@ -1521,9 +1521,13 @@ fresh processes using the current code recognize it.
 
 ### Analysis of Step 7 implementation state
 
-Not started. Step 7 is not implemented because Step 6 has not landed yet.
+Yes. Step 7 has been fully implemented.
 
-The instructions still describe one walk objective and no scope.
+The workflow instructions, templates, provider adapters and manuals now name
+the level and scope required by each phase. The whole-suite coverage walk
+passed with `proof=cov`, `cov=100` and `exit=0` on 2026-10-05; all 22 edited
+implementation Markdown files passed markdownlint. Step 8's acceptance
+mapping remains separate work.
 
 ### Goal for Step 7
 
@@ -1544,27 +1548,111 @@ and specification.
 
 ### What was implemented for Step 7
 
-_(empty — no check has taken place yet.)_.
+- Development instructions (`implement-step`, `implement-missing-step` and
+  `split-large-file`) execute the command printed by `pw scope day`, describe
+  check plus affected tests and the deliberate default full-stage skip, and
+  preserve the printed repair and restart arguments.
+- `implement-step` now orders the review-off speed pass after review-mode
+  sampling and before the commit menu. It compares staged trees and saved
+  exclusion listings, returns changed or unverified evidence through
+  implementation-check and grouping, and records accepted exclusions in the
+  journal, handoff and menu. `group-commits-msg` defers its menu accordingly.
+- `write-plans` and its template resolve scope at execution time; the step
+  handoff and journal record the actual gate command, selector and level.
+- The groundhog loop states level and scope precedence, proof/status keys,
+  parallel timing limits and exit 8 only at speed, retaining its lifecycle and
+  freshness safeguards and exactly two `.\senv.bat &&` calls. The slow-test
+  procedure restarts at speed in the same scope.
+- The requestor instruction requires resolved validation before every
+  publication, keeps declared commands authoritative, explains migration,
+  records accepted exclusions and scope-change reasons, and discloses pending
+  scope differences without starting a walk at a commit-ready answer.
+- Every release gate now explicitly requires
+  `ghog day --full=cov --whole-suite`. The four changed provider adapters
+  retain metadata and a single canonical redirect body.
+- `process-draft` places the scope menu after branch layout, validates new
+  group sections and carries them to a new child worktree. `write-requirement`
+  copies the draft choice only for new requirements and retains the existing
+  requirement's authority. Both requirement template shapes include scope.
+- `GROUNDHOG.md`, `DEVELOPMENT.md` and `tools/Pytest reset specs.md` cover
+  levels, selection, proof reuse, grouped coverage and timing, scope changes,
+  review migration and exclusion comparison. The specification adds Q71-Q79
+  and AT20-AT28 while identifying superseded historical rules.
+- A new instruction-contract test package pins these boundaries; requestor
+  contracts cover the new policy while retaining role-isolation checks.
 
 ### New types or classes introduced for Step 7
 
-_(empty — no check has taken place yet.)_.
+None. This step changes Markdown instructions and tests only. The new test
+module adds whitespace-normalizing `_read` and assertion helper `_contains`;
+both are used by its collected policy tests. Its package includes `__init__.py`.
 
 ### Architecture check for Step 7
 
-_(empty — no check has taken place yet.)_.
+Runtime domain, application and infrastructure dependencies are unchanged.
+Canonical instructions own workflow policy, and provider adapters point
+directly to canonical files. The requestor retains its shared exchange
+lifecycle and cannot initiate a reviewer.
+
+| Python file | Before | After | Limit |
+| --- | --- | --- | --- |
+| New instruction-contract module | 0 | 138 | 650 |
+| Requestor instruction-contract module | 240 | 254 | 650 |
+| Existing instruction-structure module | 649 | 649, unchanged | 650 |
+
+No architecture smell, violation or file-size issue needs to be addressed.
 
 ### Performance check for Step 7
 
-_(empty — no check has taken place yet.)_.
+No runtime computation or performance gate changed. Contract tests read
+bounded documentation and perform whitespace normalization and fixed token
+checks; their work is linear in the text size, with no new quadratic or
+sorting algorithm. Property-based tests are unnecessary for these literal
+policy contracts. The plan explicitly requires coverage, rather than a speed
+gate, for this step's implementation proof.
+
+No performance issue needs to be addressed.
 
 ### Unit test coverage check for Step 7
 
-_(empty — no check has taken place yet.)_.
+The recorded `ghog day --full=cov --whole-suite` walk finished on
+2026-10-05 at 00:22:09 +02:00 with `fail=0`, `warn=0`, `xfail=0`, `cov=100`,
+`proof=cov` and `exit=0`; `ghog status` confirmed `state=done`. Its check
+phase also passed typing, lint, file-size and repository Markdown checks.
+The initial Ruff failure on two literal counts was corrected with named
+constants before the successful walk.
+
+`pyproject.toml` measures `source = ["tools"]` and omits tests, package
+initializers and the listed thin wrappers. This gate therefore establishes
+100% for its configured runtime scope, not a percentage for Markdown or the
+new test module. No runtime class was added or modified. Static inspection
+shows every new test helper is referenced and all public `test_*` functions
+are pytest collection entry points. Existing instruction-structure tests
+remain unchanged and passed in the whole-suite walk.
+
+No unit-tested class below 100% needs completing. No top-level symbol outside
+the measured scope is unreferenced.
 
 ### Feature integrity for Step 7
 
-_(empty — no check has taken place yet.)_.
+All 25 implementation paths match Step 7's scope. Required searches found no
+`full coverage pass` phrase under `instructions`, found every explicit release
+coverage gate, and confirmed the requestor speed default and
+`Rework and review again` label. Independent markdownlint on all 22 changed
+implementation Markdown files reported `Summary: 0 issues in 0 files`.
+
+Existing groundhog lifecycle, printed repair commands, review role isolation
+and adapter responsibilities remain represented in the contracts. No runtime
+feature or reporting capability was removed. The private journal retains
+before/after line counts and the successful coverage log; the validation
+plan records the durable verdict without claiming Step 8 is complete.
+
+The first review found a stale `ghog day` restart in the "Check for files too
+big" bullet of `instructions/split-large-file.md`. That bullet now follows
+the printed restart command with its resolved level and scope, matching the
+scope-preserving development flow above it. The requestor also completed
+whole-suite speed validation with `proof=speed`, `outliers=0`, `excluded=0`
+and `exit=0` at 00:45:17 +02:00 on 2026-10-05.
 
 ---
 
