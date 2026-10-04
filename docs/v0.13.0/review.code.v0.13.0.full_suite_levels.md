@@ -5355,3 +5355,1471 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-2 -->
+
+## Round 1 by requestor - Step 6
+
+- Recorded: 2026-10-04T03:05:29+02:00
+- Exchange: code/code/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: unrecorded
+- Implementation step: 6
+- Outcome: request
+
+### Review identity for step 6 full_suite_levels (round 1)
+
+Umbrella draft: none
+Implementation plan: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+Implementation step: 6
+Review round: 1
+
+### Code review evidence for step 6 full_suite_levels (round 1)
+
+request_index_tree: 6444510e39980cff205fd00124630d1ecea003ed
+resolved_validation_set:
+
+- ghog day --full=speed --whole-suite (sources: project)
+- ghog day --full=cov --whole-suite (sources: plan)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(review): bind scope captures to review rounds
+group 1 path: tools/review_artifact_registry.py
+group 1 path: tools/review_exchange_models.py
+group 1 path: tools/review_exchange_models_coordination.py
+group 1 path: tools/review_exchange_models_envelope.py
+group 1 path: tools/review_exchange_paths.py
+group 1 path: tools/review_exchange_scope.py
+group 1 path: tools/review_exchange_publication.py
+group 1 path: tools/review_exchange_human.py
+group 1 path: tools/review_exchange_cli.py
+group 1 path: tools/review_exchange_cli_ownership.py
+group 1 path: tools/review_exchange_cli_parser.py
+group 1 path: tests/unit/tools/test_review_artifact_home/test_review_artifact_registry_pbt.py
+group 1 path: tests/unit/tools/test_review_artifact_home/test_review_artifact_registry_tdd.py
+group 1 path: tests/unit/tools/test_review_exchange_cli/test_review_exchange_cli_boundaries_tdd.py
+group 1 path: tests/unit/tools/test_review_exchange_cli/test_review_exchange_cli_tdd.py
+group 1 path: tests/unit/tools/test_review_exchange_models/test_review_exchange_models_scope_tdd.py
+group 1 path: tests/unit/tools/test_review_exchange_paths/test_review_exchange_paths_tdd.py
+group 1 path: tests/unit/tools/test_review_exchange_scope/__init__.py
+group 1 path: tests/unit/tools/test_review_exchange_scope/test_review_exchange_scope_tdd.py
+group 1 path: tests/unit/tools/test_review_exchange_store/test_review_exchange_store_tdd.py
+group 2: feat(review): render effort scope and proof evidence
+group 2 path: tools/__init__.py
+group 2 path: tools/code_review_request_files.py
+group 2 path: tools/code_review_request_scope.py
+group 2 path: tools/code_review_validation.py
+group 2 path: tools/code_review_request.py
+group 2 path: tools/prompt_workflow_scope.py
+group 2 path: instructions/code-review-requestor.md
+group 2 path: instructions/code-reviewer.md
+group 2 path: instructions/implementation-check.md
+group 2 path: instructions/review-requestor.md
+group 2 path: templates/code-review-request.template.md
+group 2 path: tests/acceptance/commit_plan_check/test_commit_plan_check_acceptance/test_commit_plan_check_contracts_tdd.py
+group 2 path: tests/unit/tools/test_code_review_request/test_code_review_request_tdd.py
+group 2 path: tests/unit/tools/test_code_review_request_commit_plan/test_code_review_request_commit_plan_tdd.py
+group 2 path: tests/unit/tools/test_code_review_request_scope/__init__.py
+group 2 path: tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py
+group 2 path: tests/unit/tools/test_code_review_requestor_acceptance/test_code_review_requestor_io_acceptance_tdd.py
+group 2 path: tests/unit/tools/test_code_review_requestor_instruction/test_code_review_requestor_instruction_tdd.py
+group 2 path: tests/unit/tools/test_code_review_validation/test_code_review_validation_tdd.py
+group 2 path: tests/unit/tools/test_code_reviewer_instruction/test_code_reviewer_instruction_tdd.py
+group 2 path: tests/unit/tools/test_code_reviewer_acceptance/fixtures.py
+group 2 path: tests/unit/tools/test_implementation_check_reviewer_mode/test_implementation_check_reviewer_mode_tdd.py
+group 2 path: tests/unit/tools/test_prompt_workflow_scope/test_prompt_workflow_scope_tdd.py
+group 2 path: tests/unit/tools/test_review_requestor_instruction/test_review_requestor_instruction_tdd.py
+group 3: docs(full_suite_levels): record step 6 validation
+group 3 path: docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md
+staged path: docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md
+staged path: instructions/code-review-requestor.md
+staged path: instructions/code-reviewer.md
+staged path: instructions/implementation-check.md
+staged path: instructions/review-requestor.md
+staged path: templates/code-review-request.template.md
+staged path: tests/acceptance/commit_plan_check/test_commit_plan_check_acceptance/test_commit_plan_check_contracts_tdd.py
+staged path: tests/unit/tools/test_code_review_request/test_code_review_request_tdd.py
+staged path: tests/unit/tools/test_code_review_request_commit_plan/test_code_review_request_commit_plan_tdd.py
+staged path: tests/unit/tools/test_code_review_request_scope/__init__.py
+staged path: tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py
+staged path: tests/unit/tools/test_code_review_requestor_acceptance/test_code_review_requestor_io_acceptance_tdd.py
+staged path: tests/unit/tools/test_code_review_requestor_instruction/test_code_review_requestor_instruction_tdd.py
+staged path: tests/unit/tools/test_code_review_validation/test_code_review_validation_tdd.py
+staged path: tests/unit/tools/test_code_reviewer_acceptance/fixtures.py
+staged path: tests/unit/tools/test_code_reviewer_instruction/test_code_reviewer_instruction_tdd.py
+staged path: tests/unit/tools/test_implementation_check_reviewer_mode/test_implementation_check_reviewer_mode_tdd.py
+staged path: tests/unit/tools/test_prompt_workflow_scope/test_prompt_workflow_scope_tdd.py
+staged path: tests/unit/tools/test_review_artifact_home/test_review_artifact_registry_pbt.py
+staged path: tests/unit/tools/test_review_artifact_home/test_review_artifact_registry_tdd.py
+staged path: tests/unit/tools/test_review_exchange_cli/test_review_exchange_cli_boundaries_tdd.py
+staged path: tests/unit/tools/test_review_exchange_cli/test_review_exchange_cli_tdd.py
+staged path: tests/unit/tools/test_review_exchange_models/test_review_exchange_models_scope_tdd.py
+staged path: tests/unit/tools/test_review_exchange_paths/test_review_exchange_paths_tdd.py
+staged path: tests/unit/tools/test_review_exchange_scope/__init__.py
+staged path: tests/unit/tools/test_review_exchange_scope/test_review_exchange_scope_tdd.py
+staged path: tests/unit/tools/test_review_exchange_store/test_review_exchange_store_tdd.py
+staged path: tests/unit/tools/test_review_requestor_instruction/test_review_requestor_instruction_tdd.py
+staged path: tools/__init__.py
+staged path: tools/code_review_request.py
+staged path: tools/code_review_request_files.py
+staged path: tools/code_review_request_scope.py
+staged path: tools/code_review_validation.py
+staged path: tools/prompt_workflow_scope.py
+staged path: tools/review_artifact_registry.py
+staged path: tools/review_exchange_cli.py
+staged path: tools/review_exchange_cli_ownership.py
+staged path: tools/review_exchange_cli_parser.py
+staged path: tools/review_exchange_human.py
+staged path: tools/review_exchange_models.py
+staged path: tools/review_exchange_models_coordination.py
+staged path: tools/review_exchange_models_envelope.py
+staged path: tools/review_exchange_paths.py
+staged path: tools/review_exchange_publication.py
+staged path: tools/review_exchange_scope.py
+```
+
+### Validation scope for step 6 full_suite_levels (round 1)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 6 full_suite_levels (round 1)
+
+Yes. Step 6 has been fully implemented.
+
+The exact step's required behavior, scope binding, lifecycle, minimum invocation
+contracts and file budgets are recorded in the validation plan. Steps 7 and 8
+remain outside this review.
+
+Validation is green for both resolved commands:
+
+- ghog day --full=speed --whole-suite: exit=0, full coverage=100%, no warnings,
+  failures or xfails, zero timing outliers, proof=speed, reused=none. The timing
+  pass ended at 2026-10-04T03:02:00+02:00. Evidence is retained in
+  .reviews/a.full_suite_levels.step6.tmp.speed.log.
+- ghog day --full=cov --whole-suite: exit=0, proof=speed, reused=all on unchanged
+  sources. The command correctly reuses the stronger saved proof. Evidence is
+  a.ghog.log.
+
+The walk passed type checking, lint, complexity and file-size checks. Separate
+Markdown and staged-whitespace gates pass. The root a.commit covers all 45
+staged paths in three groups. The renderer is 569 lines against its 590-line
+target; the largest changed Python file is 647 lines against the 650-line cap.
+
+Architecture inspection found no new layer violation: adapters resolve effort
+scope; shared capture and snapshot rules own validation and proof; exchange
+filesystem operations remain in the scope helper under existing core locking.
+New processing is linear or bounded. Production store/status modules remain
+unchanged, and compatibility, reporting and strict publication failures are
+covered. The profiled round-trip test retains every assertion and now measures
+0.80s in the full suite, below the unchanged 1.00s duration floor.
+
+### Implementation report for step 6 full_suite_levels (round 1)
+
+Step 6 binds each review request to the effort's resolved test scope. The
+request renderer resolves the requirement once, completes only built-in
+validation defaults with the explicit scope selector, and preserves declared
+project commands and additive checks literally. Its envelope, authored JSON,
+prose and transcript carry the same scope and effective proof.
+
+New request file and scope helpers keep the renderer at 569 lines. Scope
+evidence uses the existing capture validator and snapshot.effective_proof.
+Changed replacement scopes or fingerprints require a nonempty reason.
+
+Exchange publication validates captures before mutation and publishes a
+core-owned capture under the transition lock before writing final coordination.
+Status exposes valid bound scope evidence. Completion, forced completion,
+resolution and archival retire the capture with its coordination record.
+Legacy evidence reports missing scope. The fixed artifact set, production
+review_exchange_store.py and review_status modules remain unchanged.
+
+Workflow progress now shows the bound and pending scope, including changes to
+the definition of an existing group. Minimum requestor, reviewer and
+implementation-check invocation contracts ship with the required arguments.
+
+Tests cover strict validation, legacy behavior, publication refusal before
+mutation, lifecycle and IO failures, timing and definition invalidation,
+recovery, and an in-process render/publish/status/frozen-affected/replacement
+round trip. The largest changed Python file has 647 lines, below 650.
+
+Recorded plan deviations are limited to test support: the existing CLI FakeCore
+accepts and records the new optional scope argument; renderer fixtures use
+supported docs layouts and the extracted file helpers; the store's Markdown
+archive parameterization excludes the new JSON scope archive, which has
+separate lifecycle coverage. The request template explicitly marks itself as
+a fragment for MD041 because the exchange renderer supplies its title. A
+pre-review full run also exposed the shared reviewer fixture's ten-second Git
+setup timeout. Its bounded timeout is thirty seconds now, with real Git,
+assertions and the separate duration gate unchanged; focused tests pass.
+
+The speed gate flagged the new round-trip call at 1.00s. Pyinstrument identified
+repeated Windows path resolution as its largest filesystem cost. That test
+alone caches real resolutions of stable, symlink-free paths; every assertion,
+capture read and core transition still runs. Its isolated call measures 0.75s,
+and the focused test file passes. The request-scope test file is 377 lines.
+The full speed walk measured the call at 0.80s, with zero duration outliers,
+100% coverage and exit=0; the required cov command reused the stronger proof.
+
+Writer notes: `.reviews/a.full_suite_levels.step6.journal.md` and
+`.reviews/a.full_suite_levels.step6.handoff.md`.
+
+### Change summary for step 6 full_suite_levels (round 1)
+
+The 45 staged paths are grouped in root a.commit as follows:
+
+1. feat(review): bind scope captures to review rounds
+2. feat(review): render effort scope and proof evidence
+3. docs(full_suite_levels): record step 6 validation
+
+Staged paths:
+
+- docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md
+- instructions/code-review-requestor.md
+- instructions/code-reviewer.md
+- instructions/implementation-check.md
+- instructions/review-requestor.md
+- templates/code-review-request.template.md
+- tests/acceptance/commit_plan_check/test_commit_plan_check_acceptance/test_commit_plan_check_contracts_tdd.py
+- tests/unit/tools/test_code_review_request/test_code_review_request_tdd.py
+- tests/unit/tools/test_code_review_request_commit_plan/test_code_review_request_commit_plan_tdd.py
+- `tests/unit/tools/test_code_review_request_scope/__init__.py`
+- tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py
+- tests/unit/tools/test_code_review_requestor_acceptance/test_code_review_requestor_io_acceptance_tdd.py
+- tests/unit/tools/test_code_review_requestor_instruction/test_code_review_requestor_instruction_tdd.py
+- tests/unit/tools/test_code_review_validation/test_code_review_validation_tdd.py
+- tests/unit/tools/test_code_reviewer_acceptance/fixtures.py
+- tests/unit/tools/test_code_reviewer_instruction/test_code_reviewer_instruction_tdd.py
+- tests/unit/tools/test_implementation_check_reviewer_mode/test_implementation_check_reviewer_mode_tdd.py
+- tests/unit/tools/test_prompt_workflow_scope/test_prompt_workflow_scope_tdd.py
+- tests/unit/tools/test_review_artifact_home/test_review_artifact_registry_pbt.py
+- tests/unit/tools/test_review_artifact_home/test_review_artifact_registry_tdd.py
+- tests/unit/tools/test_review_exchange_cli/test_review_exchange_cli_boundaries_tdd.py
+- tests/unit/tools/test_review_exchange_cli/test_review_exchange_cli_tdd.py
+- tests/unit/tools/test_review_exchange_models/test_review_exchange_models_scope_tdd.py
+- tests/unit/tools/test_review_exchange_paths/test_review_exchange_paths_tdd.py
+- `tests/unit/tools/test_review_exchange_scope/__init__.py`
+- tests/unit/tools/test_review_exchange_scope/test_review_exchange_scope_tdd.py
+- tests/unit/tools/test_review_exchange_store/test_review_exchange_store_tdd.py
+- tests/unit/tools/test_review_requestor_instruction/test_review_requestor_instruction_tdd.py
+- `tools/__init__.py`
+- tools/code_review_request.py
+- tools/code_review_request_files.py
+- tools/code_review_request_scope.py
+- tools/code_review_validation.py
+- tools/prompt_workflow_scope.py
+- tools/review_artifact_registry.py
+- tools/review_exchange_cli.py
+- tools/review_exchange_cli_ownership.py
+- tools/review_exchange_cli_parser.py
+- tools/review_exchange_human.py
+- tools/review_exchange_models.py
+- tools/review_exchange_models_coordination.py
+- tools/review_exchange_models_envelope.py
+- tools/review_exchange_paths.py
+- tools/review_exchange_publication.py
+- tools/review_exchange_scope.py
+
+### Writer response for step 6 full_suite_levels (round 1)
+
+Writer response:
+
+This is the first review round for step 6. There is no earlier feedback or
+disagreement. Steps 7 and 8 remain outside this implementation.
+
+### Reviewer focus for step 6 full_suite_levels (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-6-round-1 -->
+
+## Round 1 by reviewer - Step 6
+
+- Recorded: 2026-10-04T03:18:37+02:00
+- Exchange: code/code/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 6
+- Outcome: answer
+
+### Assessed index identity for step 6 full_suite_levels (exchange 1) (round 1)
+
+Baseline index tree: 6444510e39980cff205fd00124630d1ecea003ed
+
+Assessed index tree: 363c0847d4cb8f6573d6e41c80221bda693ca2a2
+
+### Implementation check for step 6 full_suite_levels (exchange 1) (round 1)
+
+Result:
+
+Yes. Step 6 has been fully implemented.
+
+The functional contract matches the plan.
+
+Renderer side:
+
+- `code_review_request_files.py` holds the four helpers, moved verbatim, and the renderer drops to 569 lines (target 590).
+- `ProjectValidation`, `complete_project_default`, `migration_notice` and `group_claim_statement` complete only the built-in default with the effort selector. The project command is now `ghog day --full=speed --whole-suite`.
+- `code_review_request_scope.py` resolves the requirement once and computes `proof` through `snapshot.effective_proof`. It reads the bound capture through the exchange's validator and requires `--scope-change-file` when scope or fingerprint changes.
+- The renderer writes the capture only after both outputs.
+
+Exchange side:
+
+- `publish_request` validates the capture against the envelope's `test_scope` (fingerprint and key) before any write, then publishes it under the transition lock before the final coordination write. A request without `test_scope` clears any stale capture.
+- `status` returns `bound_scope` and `paths.scope`, with `missing` for legacy records.
+- `complete`, `force_complete` and `_resolve_live_evidence` retire or archive the capture before the coordination record.
+- `review_exchange_store.py`, `review_status.py` and `review_status_models.py` are untouched.
+
+Instructions and display:
+
+- The reviewer, requestor and implementation-check instructions carry the minimum invocation contracts.
+- `pw progress` shows the `bound` row.
+
+Live evidence from this round:
+
+- status returned `bound_scope {"scope": "whole", "group": null, "fingerprint": "686958cd..."}` with `paths.scope`;
+- `ghog affected --no-cov --scope-file=<paths.scope>` exited 0 with `scope=whole` (testmon: nothing affected since the speed walk);
+- `pw progress` printed `bound whole suite`.
+
+The three test-file departures (the `FakeCore` signature, the Git-setup timeout of the reviewer fixture and the test-local `Path.resolve` cache) are recorded and justified. None changes production behavior or an assertion.
+
+Architecture: no layer violation. Two maintainability items, now recorded in the Step 6 validation rows:
+
+- `resolve_request_scope` re-parses the plan name with `split(".", 4)` although the renderer already validated it with `_PLAN_RE` and holds `context.identity`;
+- one staged test file mixes line endings.
+
+Performance: capture validation is linear in listed files, publication adds one validation and one atomic write, and whole-suite resolution makes no tree walk. No issue.
+
+Static coverage: `source = ["tools"]` at 100%, and the new modules have dedicated packages (request scope, exchange scope, model scope). No gap.
+
+Validation plan effects:
+
+Only the Step 6 architecture conclusion changed in `docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md`. It now lists the duplicated plan-name parser and the mixed line endings of `test_commit_plan_check_contracts_tdd.py`, and closes with "Yes, there is something that needs to be addressed". The Yes sentence, the other Step 6 sub-sections, the other steps and the document-level line are unchanged. The evidence launcher attributed the patch from pre-edit blob `59ff7cb231646a7e0eba8eb335f17f57cee3a36d`, and only that patch was staged. This is review metadata, not a substantive repair.
+
+### Pre-repair mandatory checks and coverage for step 6 full_suite_levels (exchange 1) (round 1)
+
+Requestor evidence: `ghog day --full=speed --whole-suite` reached its timing pass end at 2026-10-04 03:02:00 +02:00 with `cov=100`, no warnings, failures or xfails, `outliers=0` and `proof=speed reused=none` (retained in `.reviews/a.full_suite_levels.step6.tmp.speed.log`). `ghog day --full=cov --whole-suite` then reused that proof. `.reviews/a.ghog.day.ok` holds `proof=speed` with `digest=fc006972...`, equal to `snapshot.source_digest` recomputed read-only, so the proof covers the reviewed sources.
+
+Reviewer evidence, under the new Step 6 reviewer contract:
+
+1. `ghog affected --no-cov --scope-file=<paths.scope>` ran once, through the redirected form with a log-freshness check (`.reviews/a.full_suite_levels.step6.tmp.r1.affected.log`). It exited 0 with `scope=whole`, and testmon selected nothing on the speed-proven sources.
+2. `ghog check` ran once (`.reviews/a.full_suite_levels.step6.tmp.r1.check.log`). It exited 1, and its only failed step was `markdown(1)`: three MD050 errors at lines 5591, 5606 and 5610 of the unstaged versioned transcript `docs/v0.13.0/review.code.v0.13.0.full_suite_levels.md`, inside the Step 6 round 1 change-summary entry appended by `publish-request` (R1). Pyright, ruff, complexity, file-size and EOF checks passed.
+
+Further static and read-only evidence:
+
+- static reading of plan Step 6 and the full staged diff of the tools, the instructions and the template;
+- comparison of the request-time and live index trees;
+- the commit-plan check, run independently before and after staging;
+- a line-ending scan of every staged blob;
+- the plan's five `rg` completion searches, reproduced read-only;
+- live `status` (`bound_scope`, `paths.scope`) and `pw progress` (`bound whole suite`).
+
+The reviewer ran no walk and measured no coverage.
+
+### Resolved validation set and sources for step 6 full_suite_levels (exchange 1) (round 1)
+
+The request embeds:
+
+1. `ghog day --full=speed --whole-suite` (project): the built-in default completed with the effort selector.
+2. `ghog day --full=cov --whole-suite` (plan).
+
+The current resolver contract gives, for the exact plan and step:
+
+1. `ghog day --full=speed --whole-suite` (project): `.review-validation` is absent, so `complete_project_default` appends `--whole-suite`.
+2. `ghog day --full=cov --whole-suite` (plan).
+3. `rg -n "def _root_file|def _is_effectively_ignored" tools/code_review_request.py` (plan).
+4. `rg -n "scope" tools/review_status.py tools/review_status_models.py` (plan).
+5. `rg -n "scope-capture-file" tools/review_exchange_cli_parser.py` (plan).
+6. `rg -n "remove_scope_capture|archive_scope_capture" tools/review_exchange_human.py` (plan).
+7. `rg -n "scope-capture-output|scope-capture-file|scope-file=<paths.scope>" instructions/code-review-requestor.md instructions/review-requestor.md instructions/code-reviewer.md instructions/implementation-check.md` (plan).
+8. The Step 6 round-trip test (plan), for example the exact test `tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py::test_render_publish_status_affected_and_replacement`.
+
+The reviewer did not execute the walks. The searches were reproduced read-only, and each matched its criterion:
+
+- no match for search 3;
+- no scope match in the status modules, which are untouched (search 4);
+- the request parser only, at line 82 (search 5);
+- `complete` at line 238, `_resolve_live_evidence` at lines 408 and 412, and `force_complete` at line 484 (search 6);
+- each of the four instructions (search 7).
+
+### Resolver drift and direction for step 6 full_suite_levels (exchange 1) (round 1)
+
+Drift found. The request set is narrower than the plan: it omits the five plan completion searches and the round-trip test listed in the resolved validation set section. The Step 5 round 2 writer response committed to including every Completion criteria command, so this is a recurrence. Add them as `--plan-validation-command` entries on the replacement request (R2).
+
+### Repository state around validation for step 6 full_suite_levels (exchange 1) (round 1)
+
+The request-time index tree and the reviewer baseline are the same: `6444510e39980cff205fd00124630d1ecea003ed`. Final assessed index: `363c0847d4cb8f6573d6e41c80221bda693ca2a2`.
+
+The validation state was captured before and after over the same 51 ordered paths: the 45 staged Step 6 paths plus `a.ghog.log`, `a.ghog.status`, `a.ghog.affected.log`, `.testmondata` and the two reviewer logs.
+
+- Tracked differences: only the validation plan, through the attributed Step 6 architecture paragraph, and `<index>`.
+- Ignored differences: `a.ghog.log`, `a.ghog.status`, `.testmondata` and the two reviewer logs, all written by the two permitted evidence commands, which is acceptable.
+- No untracked change, no tracked validation side effect, and no overlap with writer work.
+
+The unstaged protocol transcript carries the requestor's round 1 entry (R1) and is untouched by the reviewer.
+
+Umbrella: none. The launcher comparison returns `applicable=false`, `changed=false`.
+
+### Repair inventory for step 6 full_suite_levels (exchange 1) (round 1)
+
+Repairs made:
+
+- Review metadata only, polishing-only, not substantive. The Step 6 architecture conclusion in the validation plan now records the duplicated plan-name parser and the mixed line endings, closing with "Yes, there is something that needs to be addressed". No implementation, test, transcript or `a.commit` change, and the request carried no Human guidance block.
+
+Paths staged:
+
+- `docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md` (reviewer metadata patch only, attributed from pre-edit blob `59ff7cb231646a7e0eba8eb335f17f57cee3a36d`)
+
+### Commit plan assessment for step 6 full_suite_levels (exchange 1) (round 1)
+
+`commit-plan-check.bat --format json` was run independently before assessment and again after staging the Step 6 metadata (`.reviews/a.full_suite_levels.step6.tmp.r1.cpc.json` and `cpc-final.json`). Both runs returned exit 0, `state=valid`, `ready=true`, three ordered groups, 45 staged paths and `diagnostics=[]`.
+
+Ordered groups:
+
+1. `feat(review): bind scope captures to review rounds` (20 paths)
+2. `feat(review): render effort scope and proof evidence` (24 paths)
+3. `docs(full_suite_levels): record step 6 validation` (1 path)
+
+The exchange-side group precedes the renderer that depends on it, and the subjects are conventional and accurate. `a.commit` was not amended. After the rework, the Group 3 body must reflect the updated architecture rows. This mechanical result does not authorize a commit.
+
+### Findings and boundaries for step 6 full_suite_levels (exchange 1) (round 1)
+
+Unresolved findings:
+
+- R1 (P1, requestor): the published round 1 transcript entry turns `ghog check` red. Publishing this request appended its authored change summary to the versioned transcript `docs/v0.13.0/review.code.v0.13.0.full_suite_levels.md`. That summary lists bare paths outside code spans, so `__init__` in three of them renders as strong emphasis: lines 5591, 5606 and 5610 (the `test_code_review_request_scope`, `test_review_exchange_scope` and `tools` package initializers). `markdown-check.bat` reports MD050 on each line, and `check.bat` runs `markdown-check.bat`. The reviewer's `ghog check` exited 1 with only `markdown(1)` failing, so every later `ghog check` and the check step of every `ghog day` walk on this tree fail until the entry is corrected. The transcript is protocol-owned, and the reviewer must not edit it. Decide with the human how to correct these three lines (for example, a human-authorized one-time code-span fix of the three paths), then show a clean `markdown-check.bat` before the next walk. Process fix: put every path in code spans in authored request inputs, as Steps 0 to 5 did, and lint the rendered `--transcript-summary-output` before `publish-request`.
+- R2 (P2, requestor): resolver drift, again. The resolved set omits the plan's five `rg` completion searches and the Step 6 round-trip test (see the resolver drift section), although the Step 5 round 2 response committed to including every Completion criteria command. All five searches match their criteria on the staged tree, and the round-trip test is part of the green speed walk. Add them with `--plan-validation-command` on the replacement request.
+- R3 (P3): the plan name is parsed twice. `tools/code_review_request_scope.py` `resolve_request_scope(root, plan)` rebuilds version and slug with `plan.name.split(".", 4)` and a comment about dot counts. Its only caller, the renderer, has already matched the same name with `_PLAN_RE` (`code_review_request.py:72`) and carries the result in `context.identity`. Pass the identity, or the version and slug, into `resolve_request_scope` and build the `Topic` from them, so one parser owns the plan-name contract. Keep `test_cli_rejects_unsupported_plan_layout` and the round-trip test green.
+- R4 (P3): mixed line endings. At HEAD, `tests/acceptance/commit_plan_check/test_commit_plan_check_acceptance/test_commit_plan_check_contracts_tdd.py` has 275 CRLF lines; the staged blob has 270 CRLF and 10 LF lines. Normalize the added lines to CRLF and check that no staged blob mixes conventions.
+
+Boundary-crossing work:
+
+- The R1 correction touches the protocol-owned transcript, which neither role may edit by hand under the current rules. Restoring a lint-clean transcript therefore needs an explicit human decision, outside the Step 6 implementation.
+- Older llm-shared processes cannot classify the new `a.review-scope.*.json` artifact. A global reviewer wait started on pre-Step 6 code stopped with `global wait requires trustworthy review status` once this request published its capture; a fresh wait on the current code is unaffected. This is expected for a new artifact kind. Mention it in the Step 7 instructions or release notes, so a long-running reviewer is restarted after upgrading.
+
+### Writer instructions for step 6 full_suite_levels (exchange 1) (round 1)
+
+Address R1 first: with the human, decide and apply the correction of the three transcript lines, then confirm `markdown-check.bat` exits 0. Then fix R3 (pass `context.identity` to `resolve_request_scope`) and R4 (CRLF normalization) inside Step 6. Update the Step 6 architecture rows once they are done.
+
+Run `ghog day --full=speed --whole-suite` on the staged tree until exit 0 (the check step needs R1 fixed first). Refresh the Group 3 body of `a.commit`. Publish the replacement request with the five completion searches and the round-trip test as plan validation commands (R2), with every path in the authored inputs written as a code span. Lint the rendered transcript summary before publication.
+
+The reviewer made no implementation or test repair, and the request carried no Human guidance block.
+
+### Decision rationale for step 6 full_suite_levels (exchange 1) (round 1)
+
+Recommend changes-requested. The six readiness-floor results:
+
+1. Identity: PASS. The exact plan, step 6, round 1, occurrence 1, the code identity, `Umbrella draft: none`, request tree `6444510e...` and the envelope `test_scope` agree with the live exchange. `status` reports the matching `bound_scope`.
+2. Implementation completeness: PASS. Every Step 6 behavior is present, and the bound-scope reviewer contract works live.
+3. Validation and coverage: FAIL. The speed proof matches the current digest, and the bound-scope `ghog affected` is green. However, the reviewer's `ghog check` is red on the transcript entry this round appended (R1), and the request set omits six plan commands (R2). No static coverage gap.
+4. Staged attribution: PASS. The only reviewer change is attributable Step 6 validation metadata.
+5. Unresolved findings: FAIL. R1 to R4 are open.
+6. `a.commit`: PASS mechanically. The independent check returned exit 0, `state=valid`, `ready=true`, 45 paths in three groups and no diagnostics.
+
+These failures block commit-readiness.
+
+### Final reviewer decision for step 6 full_suite_levels (exchange 1) (round 1)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-6-round-1 -->
+
+## Round 2 by requestor - Step 6
+
+- Recorded: 2026-10-04T17:03:02+02:00
+- Exchange: code/code/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 6
+- Outcome: request
+
+### Review identity for step 6 full_suite_levels (round 2)
+
+Umbrella draft: none
+Implementation plan: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+Implementation step: 6
+Review round: 2
+
+### Code review evidence for step 6 full_suite_levels (round 2)
+
+request_index_tree: 9cc234aba4b770783c2277076bbe3edcc44be621
+resolved_validation_set:
+
+- ghog day --full=speed --whole-suite (sources: project)
+- ghog day --full=cov --whole-suite (sources: plan)
+- rg -n "def _root_file|def _is_effectively_ignored" tools/code_review_request.py (sources: plan)
+- rg -n "scope" tools/review_status.py tools/review_status_models.py (sources: plan)
+- rg -n "scope-capture-file" tools/review_exchange_cli_parser.py (sources: plan)
+- rg -n "remove_scope_capture|archive_scope_capture" tools/review_exchange_human.py (sources: plan)
+- `rg -n "scope-capture-output|scope-capture-file|scope-file=<paths.scope>" instructions/code-review-requestor.md instructions/review-requestor.md instructions/code-reviewer.md instructions/implementation-check.md` (sources: plan)
+- ghog single tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py::test_render_publish_status_affected_and_replacement (sources: plan)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(review): bind scope captures to review rounds
+group 1 path: tools/review_artifact_registry.py
+group 1 path: tools/review_exchange_models.py
+group 1 path: tools/review_exchange_models_coordination.py
+group 1 path: tools/review_exchange_models_envelope.py
+group 1 path: tools/review_exchange_paths.py
+group 1 path: tools/review_exchange_scope.py
+group 1 path: tools/review_exchange_publication.py
+group 1 path: tools/review_exchange_human.py
+group 1 path: tools/review_exchange_cli.py
+group 1 path: tools/review_exchange_cli_ownership.py
+group 1 path: tools/review_exchange_cli_parser.py
+group 1 path: tests/unit/tools/test_review_artifact_home/test_review_artifact_registry_pbt.py
+group 1 path: tests/unit/tools/test_review_artifact_home/test_review_artifact_registry_tdd.py
+group 1 path: tests/unit/tools/test_review_exchange_cli/test_review_exchange_cli_boundaries_tdd.py
+group 1 path: tests/unit/tools/test_review_exchange_cli/test_review_exchange_cli_tdd.py
+group 1 path: tests/unit/tools/test_review_exchange_models/test_review_exchange_models_scope_tdd.py
+group 1 path: tests/unit/tools/test_review_exchange_paths/test_review_exchange_paths_tdd.py
+group 1 path: tests/unit/tools/test_review_exchange_scope/__init__.py
+group 1 path: tests/unit/tools/test_review_exchange_scope/test_review_exchange_scope_tdd.py
+group 1 path: tests/unit/tools/test_review_exchange_store/test_review_exchange_store_tdd.py
+group 2: feat(review): render effort scope and proof evidence
+group 2 path: tools/__init__.py
+group 2 path: tools/code_review_request_files.py
+group 2 path: tools/code_review_request_scope.py
+group 2 path: tools/code_review_validation.py
+group 2 path: tools/code_review_request.py
+group 2 path: tools/prompt_workflow_scope.py
+group 2 path: instructions/code-review-requestor.md
+group 2 path: instructions/code-reviewer.md
+group 2 path: instructions/implementation-check.md
+group 2 path: instructions/review-requestor.md
+group 2 path: templates/code-review-request.template.md
+group 2 path: tests/acceptance/commit_plan_check/test_commit_plan_check_acceptance/test_commit_plan_check_contracts_tdd.py
+group 2 path: tests/unit/tools/test_code_review_request/test_code_review_request_tdd.py
+group 2 path: tests/unit/tools/test_code_review_request_commit_plan/test_code_review_request_commit_plan_tdd.py
+group 2 path: tests/unit/tools/test_code_review_request_scope/__init__.py
+group 2 path: tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py
+group 2 path: tests/unit/tools/test_code_review_requestor_acceptance/test_code_review_requestor_io_acceptance_tdd.py
+group 2 path: tests/unit/tools/test_code_review_requestor_instruction/test_code_review_requestor_instruction_tdd.py
+group 2 path: tests/unit/tools/test_code_review_validation/test_code_review_validation_tdd.py
+group 2 path: tests/unit/tools/test_code_reviewer_instruction/test_code_reviewer_instruction_tdd.py
+group 2 path: tests/unit/tools/test_code_reviewer_acceptance/fixtures.py
+group 2 path: tests/unit/tools/test_implementation_check_reviewer_mode/test_implementation_check_reviewer_mode_tdd.py
+group 2 path: tests/unit/tools/test_prompt_workflow_scope/test_prompt_workflow_scope_tdd.py
+group 2 path: tests/unit/tools/test_review_requestor_instruction/test_review_requestor_instruction_tdd.py
+group 3: docs(full_suite_levels): record step 6 validation
+group 3 path: docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md
+staged path: docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md
+staged path: instructions/code-review-requestor.md
+staged path: instructions/code-reviewer.md
+staged path: instructions/implementation-check.md
+staged path: instructions/review-requestor.md
+staged path: templates/code-review-request.template.md
+staged path: tests/acceptance/commit_plan_check/test_commit_plan_check_acceptance/test_commit_plan_check_contracts_tdd.py
+staged path: tests/unit/tools/test_code_review_request/test_code_review_request_tdd.py
+staged path: tests/unit/tools/test_code_review_request_commit_plan/test_code_review_request_commit_plan_tdd.py
+staged path: tests/unit/tools/test_code_review_request_scope/__init__.py
+staged path: tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py
+staged path: tests/unit/tools/test_code_review_requestor_acceptance/test_code_review_requestor_io_acceptance_tdd.py
+staged path: tests/unit/tools/test_code_review_requestor_instruction/test_code_review_requestor_instruction_tdd.py
+staged path: tests/unit/tools/test_code_review_validation/test_code_review_validation_tdd.py
+staged path: tests/unit/tools/test_code_reviewer_acceptance/fixtures.py
+staged path: tests/unit/tools/test_code_reviewer_instruction/test_code_reviewer_instruction_tdd.py
+staged path: tests/unit/tools/test_implementation_check_reviewer_mode/test_implementation_check_reviewer_mode_tdd.py
+staged path: tests/unit/tools/test_prompt_workflow_scope/test_prompt_workflow_scope_tdd.py
+staged path: tests/unit/tools/test_review_artifact_home/test_review_artifact_registry_pbt.py
+staged path: tests/unit/tools/test_review_artifact_home/test_review_artifact_registry_tdd.py
+staged path: tests/unit/tools/test_review_exchange_cli/test_review_exchange_cli_boundaries_tdd.py
+staged path: tests/unit/tools/test_review_exchange_cli/test_review_exchange_cli_tdd.py
+staged path: tests/unit/tools/test_review_exchange_models/test_review_exchange_models_scope_tdd.py
+staged path: tests/unit/tools/test_review_exchange_paths/test_review_exchange_paths_tdd.py
+staged path: tests/unit/tools/test_review_exchange_scope/__init__.py
+staged path: tests/unit/tools/test_review_exchange_scope/test_review_exchange_scope_tdd.py
+staged path: tests/unit/tools/test_review_exchange_store/test_review_exchange_store_tdd.py
+staged path: tests/unit/tools/test_review_requestor_instruction/test_review_requestor_instruction_tdd.py
+staged path: tools/__init__.py
+staged path: tools/code_review_request.py
+staged path: tools/code_review_request_files.py
+staged path: tools/code_review_request_scope.py
+staged path: tools/code_review_validation.py
+staged path: tools/prompt_workflow_scope.py
+staged path: tools/review_artifact_registry.py
+staged path: tools/review_exchange_cli.py
+staged path: tools/review_exchange_cli_ownership.py
+staged path: tools/review_exchange_cli_parser.py
+staged path: tools/review_exchange_human.py
+staged path: tools/review_exchange_models.py
+staged path: tools/review_exchange_models_coordination.py
+staged path: tools/review_exchange_models_envelope.py
+staged path: tools/review_exchange_paths.py
+staged path: tools/review_exchange_publication.py
+staged path: tools/review_exchange_scope.py
+```
+
+### Validation scope for step 6 full_suite_levels (round 2)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 6 full_suite_levels (round 2)
+
+Yes. Step 6 has been fully implemented.
+
+The validation plan records the required behavior, scope binding and lifecycle,
+minimum invocation contracts, architecture, performance and measured file
+budgets. Steps 7 and 8 remain outside this review.
+
+The complete validation set meets its criteria after the round 1 repairs:
+
+- `ghog day --full=speed --whole-suite`: `exit=0`, measured coverage 100%,
+  no failures, warnings or expected failures, zero timing outliers,
+  `proof=speed reused=none scope=whole`. The timing pass ended at
+  `2026-10-04T16:57:58+02:00`. Evidence:
+  `.reviews/a.full_suite_levels.step6.tmp.r2.speed.log`.
+- `ghog day --full=cov --whole-suite`: `exit=0 proof=speed reused=all` on
+  unchanged sources. Evidence: `.reviews/a.full_suite_levels.step6.tmp.r2.cov.log`.
+- All five plan completion searches meet their stated criteria, including the
+  expected absence of private file helpers and scope changes in protected status
+  modules. Every exact search is retained in the resolved validation set.
+- The focused request-scope tests and exact render/publish/status/affected/
+  replacement test pass. Evidence:
+  `.reviews/a.full_suite_levels.step6.tmp.r2.scope-tests.log` and
+  `.reviews/a.full_suite_levels.step6.tmp.r2.round-trip.log`.
+
+The full walk passed type checking, lint, complexity and line limits. The
+mandatory Markdown gate passes after the human-authorized three-line transcript
+formatting correction. The staged whitespace check allows the existing CRLF
+convention; all 45 staged blobs contain no mixed endings. Root `a.commit`
+covers those paths in three dependency-ordered groups. The renderer has 569
+lines against its 590-line target; the largest changed Python file has 647
+lines against the 650-line cap.
+
+Adapters resolve effort scope; the shared capture and snapshot rules own
+validation and proof; exchange filesystem operations remain in the scope
+helper under existing core locking. New processing is linear or bounded.
+The renderer now passes its validated identity into scope resolution, removing
+duplicate plan-name parsing. Protected production store/status modules remain
+unchanged. Tests cover compatibility, reporting, frozen scope membership and
+strict rejection before publication. No architecture, performance or feature
+integrity issue remains within Step 6.
+
+### Implementation report for step 6 full_suite_levels (round 2)
+
+Step 6 binds each review request to the effort's resolved test scope. The
+request renderer resolves the requirement once, completes only built-in
+validation defaults with the explicit scope selector, and preserves declared
+project commands and additive checks literally. Its envelope, authored JSON,
+prose and transcript carry the same scope and effective proof.
+
+The renderer's validated `context.identity` now supplies the version and slug
+to `resolve_request_scope`; no second plan-name parser remains. Request file
+and scope helpers keep the renderer at 569 lines. Scope evidence uses the
+existing capture validator and `snapshot.effective_proof`. Changed replacement
+scopes or fingerprints require a nonempty reason.
+
+Exchange publication validates captures before mutation and publishes a
+core-owned capture under the transition lock before writing final coordination.
+Status exposes valid bound scope evidence. Completion, forced completion,
+resolution and archival retire the capture with its coordination record.
+Legacy evidence reports missing scope. The fixed artifact set and production
+`tools/review_exchange_store.py`, `tools/review_status.py` and
+`tools/review_status_models.py` remain unchanged.
+
+Workflow progress shows bound and pending scope, including changes to an
+existing group's definition. Minimum requestor, reviewer and
+implementation-check invocation contracts ship with the required arguments.
+
+Tests cover strict validation, legacy behavior, publication refusal before
+mutation, lifecycle and IO failures, timing and definition invalidation,
+recovery, and the in-process render/publish/status/frozen-affected/replacement
+round trip. The largest changed Python file has 647 lines, below 650.
+
+Recorded plan deviations are limited to test support: the existing CLI
+`FakeCore` accepts and records the new optional scope argument; renderer
+fixtures use supported documentation layouts and the extracted file helpers;
+the store's Markdown archive parameterization excludes the new JSON scope
+archive, which has separate lifecycle coverage. The request template marks
+itself as a fragment for MD041 because the exchange renderer supplies its title.
+The reviewer fixture's bounded Git setup timeout is thirty seconds, retaining
+real Git, all assertions and the separate duration gate.
+
+The profiled round-trip test caches actual resolutions of its stable,
+symlink-free paths. Every assertion, capture read and core transition remains
+real. The request-scope test file is 381 lines after the identity repair.
+The acceptance contract test consistently uses CRLF, preserving its original
+convention. The scan of all 45 staged blobs found no mixed endings.
+
+The human authorized the exact three-line code-span repair in the round 1
+transcript. It has been applied and the mandatory Markdown gate passes. This
+exception changes only path formatting and does not authorize a commit.
+The validation plan records the upgrade note for Step 7 or release notes:
+restart long-running review processes after introducing the scope artifact.
+
+Writer notes: `.reviews/a.full_suite_levels.step6.journal.md` and
+`.reviews/a.full_suite_levels.step6.handoff.md`.
+
+### Change summary for step 6 full_suite_levels (round 2)
+
+The 45 staged paths are grouped in root `a.commit` as follows:
+
+1. `feat(review): bind scope captures to review rounds`
+2. `feat(review): render effort scope and proof evidence`
+3. `docs(full_suite_levels): record step 6 validation`
+
+Staged paths:
+
+- `docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md`
+- `instructions/code-review-requestor.md`
+- `instructions/code-reviewer.md`
+- `instructions/implementation-check.md`
+- `instructions/review-requestor.md`
+- `templates/code-review-request.template.md`
+- `tests/acceptance/commit_plan_check/test_commit_plan_check_acceptance/test_commit_plan_check_contracts_tdd.py`
+- `tests/unit/tools/test_code_review_request/test_code_review_request_tdd.py`
+- `tests/unit/tools/test_code_review_request_commit_plan/test_code_review_request_commit_plan_tdd.py`
+- `tests/unit/tools/test_code_review_request_scope/__init__.py`
+- `tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py`
+- `tests/unit/tools/test_code_review_requestor_acceptance/test_code_review_requestor_io_acceptance_tdd.py`
+- `tests/unit/tools/test_code_review_requestor_instruction/test_code_review_requestor_instruction_tdd.py`
+- `tests/unit/tools/test_code_review_validation/test_code_review_validation_tdd.py`
+- `tests/unit/tools/test_code_reviewer_acceptance/fixtures.py`
+- `tests/unit/tools/test_code_reviewer_instruction/test_code_reviewer_instruction_tdd.py`
+- `tests/unit/tools/test_implementation_check_reviewer_mode/test_implementation_check_reviewer_mode_tdd.py`
+- `tests/unit/tools/test_prompt_workflow_scope/test_prompt_workflow_scope_tdd.py`
+- `tests/unit/tools/test_review_artifact_home/test_review_artifact_registry_pbt.py`
+- `tests/unit/tools/test_review_artifact_home/test_review_artifact_registry_tdd.py`
+- `tests/unit/tools/test_review_exchange_cli/test_review_exchange_cli_boundaries_tdd.py`
+- `tests/unit/tools/test_review_exchange_cli/test_review_exchange_cli_tdd.py`
+- `tests/unit/tools/test_review_exchange_models/test_review_exchange_models_scope_tdd.py`
+- `tests/unit/tools/test_review_exchange_paths/test_review_exchange_paths_tdd.py`
+- `tests/unit/tools/test_review_exchange_scope/__init__.py`
+- `tests/unit/tools/test_review_exchange_scope/test_review_exchange_scope_tdd.py`
+- `tests/unit/tools/test_review_exchange_store/test_review_exchange_store_tdd.py`
+- `tests/unit/tools/test_review_requestor_instruction/test_review_requestor_instruction_tdd.py`
+- `tools/__init__.py`
+- `tools/code_review_request.py`
+- `tools/code_review_request_files.py`
+- `tools/code_review_request_scope.py`
+- `tools/code_review_validation.py`
+- `tools/prompt_workflow_scope.py`
+- `tools/review_artifact_registry.py`
+- `tools/review_exchange_cli.py`
+- `tools/review_exchange_cli_ownership.py`
+- `tools/review_exchange_cli_parser.py`
+- `tools/review_exchange_human.py`
+- `tools/review_exchange_models.py`
+- `tools/review_exchange_models_coordination.py`
+- `tools/review_exchange_models_envelope.py`
+- `tools/review_exchange_paths.py`
+- `tools/review_exchange_publication.py`
+- `tools/review_exchange_scope.py`
+
+### Writer response for step 6 full_suite_levels (round 2)
+
+Writer response:
+
+All round 1 findings are accepted. No reviewer repair was reversed and there
+is no disagreement.
+
+- R1: the human explicitly authorized the exact three-line code-span correction
+  in `.reviews/a.full_suite_levels.step6.tmp.r2.transcript-fix.patch`.
+  It has been applied and the mandatory Markdown gate passes. All paths in the
+  replacement change summary use code spans. The rendered request and transcript
+  summary receive a separate pre-publication Markdown check.
+- R2: all seven additive plan commands are recorded in
+  `.reviews/a.full_suite_levels.step6.tmp.r2.plan-validation-commands.json`.
+  Each is supplied using `--plan-validation-command`; the built-in project speed
+  command remains mandatory. All five searches match their criteria, including
+  the two expected no-match searches. Fresh speed and explicit coverage walks
+  passed after the repairs: 100% coverage, zero duration outliers, `proof=speed`.
+  The timing pass ended at `2026-10-04T16:57:58+02:00`; the coverage command
+  reused that proof on unchanged sources.
+- R3: `resolve_request_scope` now receives the renderer's validated identity.
+  The version and slug have one parser. The request-scope test package passes,
+  including the unsupported-layout and round-trip cases.
+- R4: the acceptance test has 280 CRLF lines and no LF-only lines. No staged
+  blob mixes conventions in the 45-path scan.
+
+The older-watcher artifact classification limitation is retained for Step 7
+or release notes: restart long-running review processes after upgrading to the
+new scope artifact kind. It does not expand Step 6 implementation.
+
+Fresh validation logs are retained as
+`.reviews/a.full_suite_levels.step6.tmp.r2.speed.log` and
+`.reviews/a.full_suite_levels.step6.tmp.r2.cov.log`.
+
+### Reviewer focus for step 6 full_suite_levels (round 2)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-6-round-2 -->
+
+## Round 2 by reviewer - Step 6
+
+- Recorded: 2026-10-04T17:10:15+02:00
+- Exchange: code/code/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 6
+- Outcome: answer
+
+### Assessed index identity for step 6 full_suite_levels (exchange 1) (round 2)
+
+Baseline index tree: 9cc234aba4b770783c2277076bbe3edcc44be621
+
+Assessed index tree: 80981d06333cfee75cf58eb6f781951da17fc01b
+
+### Implementation check for step 6 full_suite_levels (exchange 1) (round 2)
+
+Result:
+
+No. Step 6 has NOT been fully implemented.
+
+Round 1 findings R2 to R4 are resolved in the staged tree, and the R1 transcript lines were corrected:
+
+- R1: the human-authorized patch `.reviews/a.full_suite_levels.step6.tmp.r2.transcript-fix.patch` touches exactly transcript lines 5591, 5606 and 5610, wrapping the three paths in code spans. Those MD050 errors are gone.
+- R2: the resolved set now carries the five plan searches and the exact round-trip test (`ghog single ...::test_render_publish_status_affected_and_replacement`).
+- R3: `resolve_request_scope(root, plan, identity)` builds the `Topic` from the renderer's validated `context.identity`, so `_PLAN_RE` is the only plan-name parser left.
+- R4: `test_commit_plan_check_contracts_tdd.py` is CRLF only (280 lines), and no staged blob mixes conventions.
+
+One gap remains in the Step 6 renderer. `_CodeReviewEvidence.summary()` in `tools/code_review_request.py` writes each resolved validation command as a bare list item, `- {entry.command} (sources: ...)`. Step 6 itself changed this method, adding the `test_scope` lines, and Step 6's plan commands are the first to contain HTML-like text. When the round 2 request was published, the plan search containing `scope-file=<paths.scope>` reached the versioned transcript at line 5862 as raw HTML. `markdown-check.bat` reports MD033 there and exits 1. `check.bat` runs `markdown-check.bat` (line 131), so the check step of every walk fails again, as in round 1. The exact Step 6 validation rows now say No and list the renderer fix under Missing work for Step 6.
+
+Architecture, performance and static coverage are unchanged from round 1 and sound, now with a single plan-name parser. `proof=speed` matches the current digest `2491dc85...`.
+
+Validation plan effects:
+
+Only Step 6 rows changed in `docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md`:
+
+- the exact No sentence and the transcript-summary rationale;
+- a new Missing work for Step 6 section, after What was implemented, naming the code-span rendering fix and its regression test;
+- a feature-integrity paragraph on the reporting defect.
+
+The writer's resolved round 1 architecture items stay as written. The document-level line stays `No, it is not implemented.`, and no umbrella applies. The evidence launcher attributed the patch from pre-edit blob `92fde52e932ce229f277be95c3e38ad6d5dae312`, and only that patch was staged. Apart from the known transcript line, `markdown-check.bat` reports nothing for the validation plan. This is review metadata, not a substantive repair.
+
+### Pre-repair mandatory checks and coverage for step 6 full_suite_levels (exchange 1) (round 2)
+
+Requestor evidence, from the retained `.reviews/a.full_suite_levels.step6.tmp.r2.speed.log`. `ghog day --full=speed --whole-suite` ran:
+
+- check: `exit=0`;
+- `affected --no-cov`: `exit=0`;
+- full: `fail=0 warn=0 xfail=0 cov=100 exit=0`;
+- timings: `outliers=0 excluded=0 exit=0`;
+- day: `full=speed proof=speed reused=none scope=whole exit=0`.
+
+`ghog day --full=cov --whole-suite` then reused that proof. The focused request-scope and round-trip `ghog single` logs close with `exit=0`. `.reviews/a.ghog.day.ok` holds `proof=speed` with a digest equal to the read-only recomputation, `2491dc85...`.
+
+All of that predates the round 2 publication. The publication itself appended the line that now fails `markdown-check.bat` (MD033 at transcript line 5862), so the next check step fails.
+
+Reviewer evidence:
+
+- static reading of the round 1 to round 2 delta (`git diff --ignore-cr-at-eol 363c0847... 9cc234ab...`: the renderer call, `resolve_request_scope`, its tests and the validation rows);
+- the transcript fix patch;
+- `markdown-check.bat`, run twice: once on receipt, and once after the reviewer's validation-plan edit, reporting only the transcript line;
+- comparison of the request-time and live index trees, and the independent commit-plan check;
+- a line-ending scan of the staged blobs;
+- live `status` (`bound_scope` whole, `paths.scope`).
+
+`ghog check` was not re-run: its round 1 run proved that `check.bat` fails on any `markdown-check.bat` error, and this round's lint result is deterministic. `ghog affected --no-cov --scope-file=<paths.scope>` was not needed for a delta of one call site, one helper and its tests, all covered by the green speed walk on this digest. The reviewer ran no walk and measured no coverage.
+
+### Resolved validation set and sources for step 6 full_suite_levels (exchange 1) (round 2)
+
+The request and the current resolver contract give the same ordered set:
+
+1. `ghog day --full=speed --whole-suite` (project), the completed built-in default.
+2. `ghog day --full=cov --whole-suite` (plan).
+3. `rg -n "def _root_file|def _is_effectively_ignored" tools/code_review_request.py` (plan).
+4. `rg -n "scope" tools/review_status.py tools/review_status_models.py` (plan).
+5. `rg -n "scope-capture-file" tools/review_exchange_cli_parser.py` (plan).
+6. `rg -n "remove_scope_capture|archive_scope_capture" tools/review_exchange_human.py` (plan).
+7. The instruction search for `scope-capture-output`, `scope-capture-file` and `scope-file=<paths.scope>` (plan).
+8. `ghog single tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py::test_render_publish_status_affected_and_replacement` (plan).
+
+The reviewer did not execute the walks or the `ghog single` command. The round 1 search results stand for the unchanged searched files.
+
+### Resolver drift and direction for step 6 full_suite_levels (exchange 1) (round 2)
+
+None. The round 1 drift (R2) is resolved: the five completion searches and the exact round-trip test appear with source `plan`, after the completed project default and the plan's cov walk.
+
+### Repository state around validation for step 6 full_suite_levels (exchange 1) (round 2)
+
+The request-time index tree and the reviewer baseline are the same: `9cc234aba4b770783c2277076bbe3edcc44be621`. Final assessed index: `80981d06333cfee75cf58eb6f781951da17fc01b`.
+
+The validation state was captured before and after over the same 51 ordered paths: the 45 staged paths plus `a.ghog.log`, `a.ghog.status`, `a.ghog.affected.log`, `.testmondata` and two unused reviewer log paths. Tracked differences appear only for the validation plan, through the attributed Step 6 patch, and `<index>`. No ignored or untracked change, and no overlap with writer work.
+
+The unstaged protocol transcript carries the human-authorized three-line correction and this round's appended request, which holds the MD033 line. The reviewer edits neither.
+
+Umbrella: none. The launcher comparison returns `applicable=false`, `changed=false`.
+
+### Repair inventory for step 6 full_suite_levels (exchange 1) (round 2)
+
+Repairs made:
+
+- Review metadata only, polishing-only, not substantive. The Step 6 validation rows now carry the No sentence, Missing work for Step 6 (code-span rendering of validation commands and its regression test) and a feature-integrity note. No implementation, test, transcript or `a.commit` change, and the request carried no Human guidance block.
+
+Paths staged:
+
+- `docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md` (reviewer metadata patch only, attributed from pre-edit blob `92fde52e932ce229f277be95c3e38ad6d5dae312`)
+
+### Commit plan assessment for step 6 full_suite_levels (exchange 1) (round 2)
+
+`commit-plan-check.bat --format json` was run independently before assessment and again after staging the Step 6 metadata (`.reviews/a.full_suite_levels.step6.tmp.r2.cpc.json` and `cpc-final.json`). Both runs returned exit 0, `state=valid`, `ready=true`, groups of 20, 24 and 1 paths (45 in total) and `diagnostics=[]`.
+
+Ordered groups:
+
+1. `feat(review): bind scope captures to review rounds`
+2. `feat(review): render effort scope and proof evidence`
+3. `docs(full_suite_levels): record step 6 validation`
+
+Membership, order and subjects match the staged work, so `a.commit` was not amended. The renderer fix belongs in Group 2, and the Group 3 body must reflect the updated rows after the rework. This mechanical result does not authorize a commit.
+
+### Findings and boundaries for step 6 full_suite_levels (exchange 1) (round 2)
+
+Unresolved findings:
+
+- R5 (P1): the renderer's transcript summary breaks the Markdown gate again. In `tools/code_review_request.py`, `_CodeReviewEvidence.summary()` (around line 186) appends `f"- {entry.command} (sources: {sources})"`, so validation commands enter the versioned transcript as live Markdown. Publishing this round put the plan's instruction search, which contains `scope-file=<paths.scope>`, at transcript line 5862 as raw HTML. `markdown-check.bat` exits 1 with MD033 there, and `check.bat` (line 131) fails with it, so every later `ghog check` and walk check step is red, just as after round 1. Step 6 edited this method and introduced the first plan command with angle brackets, so the fix belongs to this step. Render each command as a code span whose backtick fence is longer than any backtick run in the command. Add a renderer regression test with commands containing `<paths.scope>`, a dunder file name and a backtick, asserting the code-span output. As in round 1, ask the human to authorize correcting transcript line 5862 (wrapping that command in a code span), confirm `markdown-check.bat` exits 0, then rerun the requestor validation. A pre-publication lint of `--transcript-summary-output` with the repository configuration would have caught this.
+
+Boundary-crossing work:
+
+- Transcript line 5862 is protocol-owned. Correcting it needs a second explicit human authorization, like the round 1 three-line fix. The reviewer did not touch it.
+
+### Writer instructions for step 6 full_suite_levels (exchange 1) (round 2)
+
+Fix R5 inside Step 6: render each validation command as a code span in `_CodeReviewEvidence.summary()`, add the regression test, and remove Missing work for Step 6 after rerunning the implementation check. With the human's explicit authorization, correct transcript line 5862, then confirm `markdown-check.bat` exits 0.
+
+Run `ghog day --full=speed --whole-suite` until exit 0. Lint the rendered transcript summary with the repository configuration before `publish-request`. Refresh the Group 3 body of `a.commit`. Keep the eight-command validation set unchanged.
+
+The reviewer made no implementation or test repair, and the request carried no Human guidance block.
+
+### Decision rationale for step 6 full_suite_levels (exchange 1) (round 2)
+
+Recommend changes-requested. The six readiness-floor results:
+
+1. Identity: PASS. The exact plan, step 6, round 2, occurrence 1, the code identity, `Umbrella draft: none`, request tree `9cc234ab...`, the envelope `test_scope` and the status `bound_scope` all agree.
+2. Implementation completeness: FAIL. The Step 6 renderer still emits unescaped commands into the transcript summary (R5).
+3. Validation and coverage: FAIL. The speed proof matches the current digest and all eight commands passed before publication, but the publication made `markdown-check.bat`, and therefore `check.bat`, fail again.
+4. Staged attribution: PASS. The only reviewer change is attributable Step 6 validation metadata.
+5. Unresolved findings: FAIL. R5 is open; R1 to R4 are resolved.
+6. `a.commit`: PASS mechanically. The independent check returned exit 0, `state=valid`, `ready=true`, 45 paths in three groups and no diagnostics.
+
+These failures block commit-readiness.
+
+### Final reviewer decision for step 6 full_suite_levels (exchange 1) (round 2)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-6-round-2 -->
+
+## Round 3 by requestor - Step 6
+
+- Recorded: 2026-10-04T18:00:11+02:00
+- Exchange: code/code/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 6
+- Outcome: request
+
+### Review identity for step 6 full_suite_levels (round 3)
+
+Umbrella draft: none
+Implementation plan: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+Implementation step: 6
+Review round: 3
+
+### Code review evidence for step 6 full_suite_levels (round 3)
+
+request_index_tree: af7bca7d7ee36535e728d1a451779badaac2f4d0
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+- `ghog day --full=cov --whole-suite` (sources: plan)
+- `rg -n "def _root_file|def _is_effectively_ignored" tools/code_review_request.py` (sources: plan)
+- `rg -n "scope" tools/review_status.py tools/review_status_models.py` (sources: plan)
+- `rg -n "scope-capture-file" tools/review_exchange_cli_parser.py` (sources: plan)
+- `rg -n "remove_scope_capture|archive_scope_capture" tools/review_exchange_human.py` (sources: plan)
+- `rg -n "scope-capture-output|scope-capture-file|scope-file=<paths.scope>" instructions/code-review-requestor.md instructions/review-requestor.md instructions/code-reviewer.md instructions/implementation-check.md` (sources: plan)
+- `ghog single tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py::test_render_publish_status_affected_and_replacement` (sources: plan)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(review): bind scope captures to review rounds
+group 1 path: tools/review_artifact_registry.py
+group 1 path: tools/review_exchange_models.py
+group 1 path: tools/review_exchange_models_coordination.py
+group 1 path: tools/review_exchange_models_envelope.py
+group 1 path: tools/review_exchange_paths.py
+group 1 path: tools/review_exchange_scope.py
+group 1 path: tools/review_exchange_publication.py
+group 1 path: tools/review_exchange_human.py
+group 1 path: tools/review_exchange_cli.py
+group 1 path: tools/review_exchange_cli_ownership.py
+group 1 path: tools/review_exchange_cli_parser.py
+group 1 path: tests/unit/tools/test_review_artifact_home/test_review_artifact_registry_pbt.py
+group 1 path: tests/unit/tools/test_review_artifact_home/test_review_artifact_registry_tdd.py
+group 1 path: tests/unit/tools/test_review_exchange_cli/test_review_exchange_cli_boundaries_tdd.py
+group 1 path: tests/unit/tools/test_review_exchange_cli/test_review_exchange_cli_tdd.py
+group 1 path: tests/unit/tools/test_review_exchange_models/test_review_exchange_models_scope_tdd.py
+group 1 path: tests/unit/tools/test_review_exchange_paths/test_review_exchange_paths_tdd.py
+group 1 path: tests/unit/tools/test_review_exchange_scope/__init__.py
+group 1 path: tests/unit/tools/test_review_exchange_scope/test_review_exchange_scope_tdd.py
+group 1 path: tests/unit/tools/test_review_exchange_store/test_review_exchange_store_tdd.py
+group 2: feat(review): render effort scope and proof evidence
+group 2 path: tools/__init__.py
+group 2 path: tools/code_review_request_files.py
+group 2 path: tools/code_review_request_scope.py
+group 2 path: tools/code_review_validation.py
+group 2 path: tools/code_review_request.py
+group 2 path: tools/prompt_workflow_scope.py
+group 2 path: instructions/code-review-requestor.md
+group 2 path: instructions/code-reviewer.md
+group 2 path: instructions/implementation-check.md
+group 2 path: instructions/review-requestor.md
+group 2 path: templates/code-review-request.template.md
+group 2 path: tests/acceptance/commit_plan_check/test_commit_plan_check_acceptance/test_commit_plan_check_contracts_tdd.py
+group 2 path: tests/unit/tools/test_code_review_request/test_code_review_request_tdd.py
+group 2 path: tests/unit/tools/test_code_review_request_commit_plan/test_code_review_request_commit_plan_tdd.py
+group 2 path: tests/unit/tools/test_code_review_request_scope/__init__.py
+group 2 path: tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py
+group 2 path: tests/unit/tools/test_code_review_requestor_acceptance/test_code_review_requestor_io_acceptance_tdd.py
+group 2 path: tests/unit/tools/test_code_review_requestor_instruction/test_code_review_requestor_instruction_tdd.py
+group 2 path: tests/unit/tools/test_code_review_validation/test_code_review_validation_tdd.py
+group 2 path: tests/unit/tools/test_code_reviewer_instruction/test_code_reviewer_instruction_tdd.py
+group 2 path: tests/unit/tools/test_code_reviewer_acceptance/fixtures.py
+group 2 path: tests/unit/tools/test_implementation_check_reviewer_mode/test_implementation_check_reviewer_mode_tdd.py
+group 2 path: tests/unit/tools/test_prompt_workflow_scope/test_prompt_workflow_scope_tdd.py
+group 2 path: tests/unit/tools/test_review_requestor_instruction/test_review_requestor_instruction_tdd.py
+group 3: docs(full_suite_levels): record step 6 validation
+group 3 path: docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md
+staged path: docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md
+staged path: instructions/code-review-requestor.md
+staged path: instructions/code-reviewer.md
+staged path: instructions/implementation-check.md
+staged path: instructions/review-requestor.md
+staged path: templates/code-review-request.template.md
+staged path: tests/acceptance/commit_plan_check/test_commit_plan_check_acceptance/test_commit_plan_check_contracts_tdd.py
+staged path: tests/unit/tools/test_code_review_request/test_code_review_request_tdd.py
+staged path: tests/unit/tools/test_code_review_request_commit_plan/test_code_review_request_commit_plan_tdd.py
+staged path: tests/unit/tools/test_code_review_request_scope/__init__.py
+staged path: tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py
+staged path: tests/unit/tools/test_code_review_requestor_acceptance/test_code_review_requestor_io_acceptance_tdd.py
+staged path: tests/unit/tools/test_code_review_requestor_instruction/test_code_review_requestor_instruction_tdd.py
+staged path: tests/unit/tools/test_code_review_validation/test_code_review_validation_tdd.py
+staged path: tests/unit/tools/test_code_reviewer_acceptance/fixtures.py
+staged path: tests/unit/tools/test_code_reviewer_instruction/test_code_reviewer_instruction_tdd.py
+staged path: tests/unit/tools/test_implementation_check_reviewer_mode/test_implementation_check_reviewer_mode_tdd.py
+staged path: tests/unit/tools/test_prompt_workflow_scope/test_prompt_workflow_scope_tdd.py
+staged path: tests/unit/tools/test_review_artifact_home/test_review_artifact_registry_pbt.py
+staged path: tests/unit/tools/test_review_artifact_home/test_review_artifact_registry_tdd.py
+staged path: tests/unit/tools/test_review_exchange_cli/test_review_exchange_cli_boundaries_tdd.py
+staged path: tests/unit/tools/test_review_exchange_cli/test_review_exchange_cli_tdd.py
+staged path: tests/unit/tools/test_review_exchange_models/test_review_exchange_models_scope_tdd.py
+staged path: tests/unit/tools/test_review_exchange_paths/test_review_exchange_paths_tdd.py
+staged path: tests/unit/tools/test_review_exchange_scope/__init__.py
+staged path: tests/unit/tools/test_review_exchange_scope/test_review_exchange_scope_tdd.py
+staged path: tests/unit/tools/test_review_exchange_store/test_review_exchange_store_tdd.py
+staged path: tests/unit/tools/test_review_requestor_instruction/test_review_requestor_instruction_tdd.py
+staged path: tools/__init__.py
+staged path: tools/code_review_request.py
+staged path: tools/code_review_request_files.py
+staged path: tools/code_review_request_scope.py
+staged path: tools/code_review_validation.py
+staged path: tools/prompt_workflow_scope.py
+staged path: tools/review_artifact_registry.py
+staged path: tools/review_exchange_cli.py
+staged path: tools/review_exchange_cli_ownership.py
+staged path: tools/review_exchange_cli_parser.py
+staged path: tools/review_exchange_human.py
+staged path: tools/review_exchange_models.py
+staged path: tools/review_exchange_models_coordination.py
+staged path: tools/review_exchange_models_envelope.py
+staged path: tools/review_exchange_paths.py
+staged path: tools/review_exchange_publication.py
+staged path: tools/review_exchange_scope.py
+```
+
+### Validation scope for step 6 full_suite_levels (round 3)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 6 full_suite_levels (round 3)
+
+Yes. Step 6 has been fully implemented.
+
+The validation plan records the required behavior, scope binding and lifecycle,
+minimum invocation contracts, architecture, performance and measured file
+budgets. Steps 7 and 8 remain outside this review.
+
+The complete validation set meets its criteria after all round 1 and round 2 repairs:
+
+- `ghog day --full=speed --whole-suite`: `exit=0`, measured coverage 100%,
+  no failures, warnings or expected failures, zero timing outliers,
+  `proof=speed reused=none scope=whole`. The timing pass ended at
+  `2026-10-04T17:51:56+02:00`. Evidence:
+  `.reviews/a.full_suite_levels.step6.tmp.r3.speed.log`.
+- `ghog day --full=cov --whole-suite`: `exit=0 proof=speed reused=all` on
+  unchanged sources. Evidence: `.reviews/a.full_suite_levels.step6.tmp.r3.cov.log`.
+- All five plan completion searches meet their stated criteria, including the
+  expected absence of private file helpers and scope changes in protected status
+  modules. Every exact search is retained in the resolved validation set.
+- The focused request-scope tests and exact render/publish/status/affected/
+  replacement test pass. Evidence:
+  `.reviews/a.full_suite_levels.step6.tmp.r3.focused.log` and
+  `.reviews/a.full_suite_levels.step6.tmp.r3.round-trip.log`.
+
+The full walk passed type checking, lint, complexity and line limits. The
+mandatory Markdown gate passes after the human-authorized one-line command and earlier three-line path transcript
+formatting correction. The staged whitespace check allows the existing CRLF
+convention; all 45 staged blobs contain no mixed endings. Root `a.commit`
+covers those paths in three dependency-ordered groups. The renderer has 578
+lines against its 590-line target; the largest changed Python file has 647
+lines against the 650-line cap.
+
+Adapters resolve effort scope; the shared capture and snapshot rules own
+validation and proof; exchange filesystem operations remain in the scope
+helper under existing core locking. New processing is linear or bounded.
+The renderer now passes its validated identity into scope resolution, removing
+duplicate plan-name parsing. Protected production store/status modules remain
+unchanged. Tests cover compatibility, reporting, frozen scope membership and
+strict rejection before publication. No architecture, performance or feature
+integrity issue remains within Step 6.
+
+### Implementation report for step 6 full_suite_levels (round 3)
+
+Step 6 binds each review request to the effort's resolved test scope. The
+request renderer resolves the requirement once, completes only built-in
+validation defaults with the explicit scope selector, and preserves declared
+project commands and additive checks literally. Its envelope, authored JSON,
+prose and transcript carry the same scope and effective proof.
+
+The renderer's validated `context.identity` now supplies the version and slug
+to `resolve_request_scope`; no second plan-name parser remains. Request file
+and scope helpers keep the renderer at 578 lines. Scope evidence uses the
+existing capture validator and `snapshot.effective_proof`. Changed replacement
+scopes or fingerprints require a nonempty reason.
+
+Exchange publication validates captures before mutation and publishes a
+core-owned capture under the transition lock before writing final coordination.
+Status exposes valid bound scope evidence. Completion, forced completion,
+resolution and archival retire the capture with its coordination record.
+Legacy evidence reports missing scope. The fixed artifact set and production
+`tools/review_exchange_store.py`, `tools/review_status.py` and
+`tools/review_status_models.py` remain unchanged.
+
+Workflow progress shows bound and pending scope, including changes to an
+existing group's definition. Minimum requestor, reviewer and
+implementation-check invocation contracts ship with the required arguments.
+
+Tests cover strict validation, legacy behavior, publication refusal before
+mutation, lifecycle and IO failures, timing and definition invalidation,
+recovery, and the in-process render/publish/status/frozen-affected/replacement
+round trip. The largest changed Python file has 647 lines, below 650.
+
+Recorded plan deviations are limited to test support: the existing CLI
+`FakeCore` accepts and records the new optional scope argument; renderer
+fixtures use supported documentation layouts and the extracted file helpers;
+the store's Markdown archive parameterization excludes the new JSON scope
+archive, which has separate lifecycle coverage. The request template marks
+itself as a fragment for MD041 because the exchange renderer supplies its title.
+The reviewer fixture's bounded Git setup timeout is thirty seconds, retaining
+real Git, all assertions and the separate duration gate.
+
+The profiled round-trip test caches actual resolutions of its stable,
+symlink-free paths. Every assertion, capture read and core transition remains
+real. The request-scope test file is 411 lines after the literal-command regressions.
+The acceptance contract test consistently uses CRLF, preserving its original
+convention. The scan of all 45 staged blobs found no mixed endings.
+
+The renderer now renders each validation command as a Markdown code span with a fence longer than any embedded backtick run. Six regression cases preserve angle brackets, dunder paths and interior or boundary backticks, while JSON commands remain unchanged.
+
+The human authorized the one-line command-span correction in the round 2 transcript and the earlier three-line path-span repair in the round 1
+transcript. It has been applied and the mandatory Markdown gate passes. This
+exception changes formatting only and does not authorize a commit. The repository Markdown checker now validates the caller-owned summary preview before publication.
+The validation plan records the upgrade note for Step 7 or release notes:
+restart long-running review processes after introducing the scope artifact.
+
+Writer notes: `.reviews/a.full_suite_levels.step6.journal.md` and
+`.reviews/a.full_suite_levels.step6.handoff.md`.
+
+### Change summary for step 6 full_suite_levels (round 3)
+
+The 45 staged paths are grouped in root `a.commit` as follows:
+
+1. `feat(review): bind scope captures to review rounds`
+2. `feat(review): render effort scope and proof evidence`
+3. `docs(full_suite_levels): record step 6 validation`
+
+Staged paths:
+
+- `docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md`
+- `instructions/code-review-requestor.md`
+- `instructions/code-reviewer.md`
+- `instructions/implementation-check.md`
+- `instructions/review-requestor.md`
+- `templates/code-review-request.template.md`
+- `tests/acceptance/commit_plan_check/test_commit_plan_check_acceptance/test_commit_plan_check_contracts_tdd.py`
+- `tests/unit/tools/test_code_review_request/test_code_review_request_tdd.py`
+- `tests/unit/tools/test_code_review_request_commit_plan/test_code_review_request_commit_plan_tdd.py`
+- `tests/unit/tools/test_code_review_request_scope/__init__.py`
+- `tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py`
+- `tests/unit/tools/test_code_review_requestor_acceptance/test_code_review_requestor_io_acceptance_tdd.py`
+- `tests/unit/tools/test_code_review_requestor_instruction/test_code_review_requestor_instruction_tdd.py`
+- `tests/unit/tools/test_code_review_validation/test_code_review_validation_tdd.py`
+- `tests/unit/tools/test_code_reviewer_acceptance/fixtures.py`
+- `tests/unit/tools/test_code_reviewer_instruction/test_code_reviewer_instruction_tdd.py`
+- `tests/unit/tools/test_implementation_check_reviewer_mode/test_implementation_check_reviewer_mode_tdd.py`
+- `tests/unit/tools/test_prompt_workflow_scope/test_prompt_workflow_scope_tdd.py`
+- `tests/unit/tools/test_review_artifact_home/test_review_artifact_registry_pbt.py`
+- `tests/unit/tools/test_review_artifact_home/test_review_artifact_registry_tdd.py`
+- `tests/unit/tools/test_review_exchange_cli/test_review_exchange_cli_boundaries_tdd.py`
+- `tests/unit/tools/test_review_exchange_cli/test_review_exchange_cli_tdd.py`
+- `tests/unit/tools/test_review_exchange_models/test_review_exchange_models_scope_tdd.py`
+- `tests/unit/tools/test_review_exchange_paths/test_review_exchange_paths_tdd.py`
+- `tests/unit/tools/test_review_exchange_scope/__init__.py`
+- `tests/unit/tools/test_review_exchange_scope/test_review_exchange_scope_tdd.py`
+- `tests/unit/tools/test_review_exchange_store/test_review_exchange_store_tdd.py`
+- `tests/unit/tools/test_review_requestor_instruction/test_review_requestor_instruction_tdd.py`
+- `tools/__init__.py`
+- `tools/code_review_request.py`
+- `tools/code_review_request_files.py`
+- `tools/code_review_request_scope.py`
+- `tools/code_review_validation.py`
+- `tools/prompt_workflow_scope.py`
+- `tools/review_artifact_registry.py`
+- `tools/review_exchange_cli.py`
+- `tools/review_exchange_cli_ownership.py`
+- `tools/review_exchange_cli_parser.py`
+- `tools/review_exchange_human.py`
+- `tools/review_exchange_models.py`
+- `tools/review_exchange_models_coordination.py`
+- `tools/review_exchange_models_envelope.py`
+- `tools/review_exchange_paths.py`
+- `tools/review_exchange_publication.py`
+- `tools/review_exchange_scope.py`
+
+### Writer response for step 6 full_suite_levels (round 3)
+
+Writer response:
+
+All findings are accepted. No reviewer repair was reversed and there is no
+disagreement. The round 2 validation metadata accurately recorded the remaining
+gap; the writer has refreshed it after implementing and validating the repair.
+
+- R1 through R4 remain resolved: the authorized path formatting corrections
+  are applied, all eight exact validation commands remain in the request,
+  scope resolution reuses the renderer's validated identity, and the acceptance
+  contract test preserves its CRLF convention.
+- R5: `_CodeReviewEvidence.summary()` now renders every validation command
+  as a Markdown code span. The fence exceeds the longest embedded backtick
+  run, with boundary padding when needed. Six regression cases cover angle
+  brackets, dunder paths, interior single/double backticks, and leading/trailing
+  backticks. They also assert that JSON preserves each exact original command.
+- The human explicitly authorized the prepared one-line transcript correction
+  in `.reviews/a.full_suite_levels.step6.tmp.r3.transcript-fix.patch`.
+  It is applied, and the repository Markdown checker passes. This exception
+  changes formatting only and does not authorize a commit.
+- The repository checker, unlike the npm checker, detects the old summary's
+  MD033 error. A caller-owned preview now uses the repository parser and policy
+  with the transcript destination. The old summary fails only MD033; the
+  repaired preview passes. This check runs on the new summary before publication.
+
+Fresh `ghog day --full=speed --whole-suite` passed after the repairs, measuring
+100% coverage with zero failures, warnings, expected failures or timing
+outliers. Timing ended at `2026-10-04T17:51:56+02:00`; the round-trip call took
+0.78s. The explicit `ghog day --full=cov --whole-suite` then passed by reusing
+the stronger speed proof on unchanged sources.
+
+Evidence is retained in `.reviews/a.full_suite_levels.step6.tmp.r3.speed.log`,
+`.reviews/a.full_suite_levels.step6.tmp.r3.cov.log`, and the focused renderer
+and scope log `.reviews/a.full_suite_levels.step6.tmp.r3.focused.log`.
+The five completion searches still meet their criteria. The same eight-command
+validation set is preserved in
+`.reviews/a.full_suite_levels.step6.tmp.r3.plan-validation-commands.json`.
+
+The validation plan now records the exact Yes result, removes Missing work for
+Step 6, updates line counts, and records fresh evidence. Root `a.commit` keeps
+the same three groups and 45 paths; Group 2 records literal command rendering
+and Group 3 records the refreshed validation and Markdown evidence.
+
+The older-watcher upgrade note remains a Step 7 or release-notes follow-up.
+
+### Reviewer focus for step 6 full_suite_levels (round 3)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-6-round-3 -->
+
+## Round 3 by reviewer - Step 6
+
+- Recorded: 2026-10-04T18:06:17+02:00
+- Exchange: code/code/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 6
+- Outcome: answer
+
+### Assessed index identity for step 6 full_suite_levels (exchange 1) (round 3)
+
+Baseline index tree: af7bca7d7ee36535e728d1a451779badaac2f4d0
+
+Assessed index tree: af7bca7d7ee36535e728d1a451779badaac2f4d0
+
+### Implementation check for step 6 full_suite_levels (exchange 1) (round 3)
+
+Result:
+
+Yes. Step 6 has been fully implemented.
+
+R5 is resolved. In `tools/code_review_request.py`, `_CodeReviewEvidence.summary()` now emits each command through `_command_code_span`:
+
+- the fence is one backtick longer than the longest backtick run in the command;
+- one space of padding is added only when the command starts or ends with a backtick, as CommonMark's span stripping and MD038 expect.
+
+`test_transcript_validation_commands_stay_literal` covers angle brackets, a dunder path, interior single and double backticks, and leading or trailing backticks. It also asserts that the JSON keeps each exact command. Two existing renderer assertions were updated for the code-span form. The renderer is 578 lines (target 590).
+
+The human-authorized patch `.reviews/a.full_suite_levels.step6.tmp.r3.transcript-fix.patch` changes only transcript line 5862, wrapping that command in a code span. The round 3 request entry itself was rendered by the fixed code, and its eight commands appear as code spans.
+
+`markdown-check.bat` now exits 0 on the whole repository, versioned transcript included.
+
+R1 to R4 remain resolved: the path spans, the eight-command set, the identity-based scope resolution, and line endings with no mixed blob.
+
+Architecture, performance and static coverage are as assessed in rounds 1 and 2, and sound. No finding remains.
+
+Validation plan effects:
+
+No reviewer edit this round. The writer's Step 6 rows were checked against the staged tree and found accurate:
+
+- the exact Yes sentence;
+- the Missing work for Step 6 section removed;
+- the renderer line count of 578;
+- the fresh round 3 speed and cov evidence, which agrees with the retained log and the saved marker;
+- the feature-integrity text on literal commands.
+
+The document-level line correctly stays `No, it is not implemented.` while Steps 7 and 8 are pending. A pre-edit blob was recorded, but no repair followed.
+
+### Pre-repair mandatory checks and coverage for step 6 full_suite_levels (exchange 1) (round 3)
+
+Requestor evidence, from `.reviews/a.full_suite_levels.step6.tmp.r3.speed.log`:
+
+- full: `fail=0 warn=0 xfail=0 cov=100 exit=0`;
+- timings: `outliers=0 excluded=0 exit=0`;
+- day: `full=speed proof=speed reused=none scope=whole exit=0`, with timings ending at 17:51:56 +02:00.
+
+`ghog day --full=cov --whole-suite` then reused that proof. The focused and round-trip logs are green. `.reviews/a.ghog.day.ok` holds `proof=speed` with `digest=985894d1...`, equal to the read-only `snapshot.source_digest` recomputation.
+
+Reviewer evidence:
+
+- `markdown-check.bat` exits 0 on the full repository after this round's publication;
+- static reading of the round 2 to round 3 delta (`git diff --ignore-cr-at-eol 80981d06... af7bca7d...`) and of the transcript fix patch;
+- comparison of the request-time and live index trees, and the independent commit-plan check;
+- a line-ending scan of the staged blobs;
+- live `status` (`bound_scope` whole);
+- a read of the round 3 transcript evidence section, which shows all eight commands as code spans.
+
+`ghog check` was not re-run: the only failing step in rounds 1 and 2 was the Markdown gate, which now passes directly, and the remaining checks passed in the speed walk on this digest. The reviewer ran no walk and measured no coverage.
+
+### Resolved validation set and sources for step 6 full_suite_levels (exchange 1) (round 3)
+
+The request and the current resolver contract give the same eight ordered commands as round 2:
+
+1. the completed project default, `ghog day --full=speed --whole-suite`;
+2. the plan's `ghog day --full=cov --whole-suite`;
+3. to 7. the five plan completion searches;
+4. The command 8 is the exact round-trip `ghog single` test (all plan-sourced).
+
+The reviewer did not execute this requestor-owned set. The searched files are unchanged since round 1, where each search matched its criterion.
+
+### Resolver drift and direction for step 6 full_suite_levels (exchange 1) (round 3)
+
+None. The command order and source labels match the current resolver contract.
+
+### Repository state around validation for step 6 full_suite_levels (exchange 1) (round 3)
+
+The request-time index tree, the reviewer baseline and the final assessed index are the same: `af7bca7d7ee36535e728d1a451779badaac2f4d0`.
+
+The validation state was captured before and after over the same 51 ordered paths: the 45 staged paths plus `a.ghog.log`, `a.ghog.status`, `a.ghog.affected.log`, `.testmondata` and two unused reviewer log paths. The comparison returns `acceptable=true` with no difference. The unstaged protocol transcript carries the two human-authorized formatting corrections and the appended round entries, and the reviewer edits neither.
+
+Umbrella: none. The launcher comparison returns `applicable=false`, `changed=false`.
+
+### Repair inventory for step 6 full_suite_levels (exchange 1) (round 3)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 6 full_suite_levels (exchange 1) (round 3)
+
+`commit-plan-check.bat --format json` was run independently against the received state (`.reviews/a.full_suite_levels.step6.tmp.r3.rv-cpc.json`). It returned exit 0, `state=valid`, `ready=true`, groups of 20, 24 and 1 paths (45 in total) and `diagnostics=[]`.
+
+Ordered groups:
+
+1. `feat(review): bind scope captures to review rounds`
+2. `feat(review): render effort scope and proof evidence`, which includes the literal-command rendering
+3. `docs(full_suite_levels): record step 6 validation`
+
+Membership, dependency order and conventional subjects match the staged work, and the protocol transcript stays outside these groups. `a.commit` remains accurate and needs no amendment. This mechanical result does not authorize a commit.
+
+### Findings and boundaries for step 6 full_suite_levels (exchange 1) (round 3)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 6 full_suite_levels (exchange 1) (round 3)
+
+No further Step 6 work is required. Present this advisory commit-ready recommendation at the convergence gate, where the human chooses the next action. The reviewer made no repair this round, and the request carried no Human guidance block.
+
+A note carried to Step 7 or the release notes, not Step 6 work: restart long-running review processes after upgrading, because older code cannot classify the new scope capture artifact. The validation plan already records this note.
+
+### Decision rationale for step 6 full_suite_levels (exchange 1) (round 3)
+
+Recommend commit-ready. The six readiness-floor results:
+
+1. Identity: PASS. The exact plan, step 6, round 3, occurrence 1, the code identity, `Umbrella draft: none`, request tree `af7bca7d...`, the envelope `test_scope` and the status `bound_scope` all agree.
+2. Implementation completeness: PASS. Every Step 6 behavior is present, including literal command rendering in transcript summaries.
+3. Validation and coverage: PASS. The speed proof matches the current digest, all eight resolved commands are green, and `markdown-check.bat` passes on the full repository after this round's publication. No static coverage gap.
+4. Staged attribution: PASS. No reviewer change was made this round. The earlier reviewer metadata was superseded by the writer's accurate rows.
+5. Unresolved findings: PASS. R1 to R5 are resolved.
+6. `a.commit`: PASS. The independent check returned exit 0, `state=valid`, `ready=true`, 45 paths in three accurate groups and no diagnostics.
+
+This round made no substantive repair. The recommendation is advisory and does not authorize a commit.
+
+### Final reviewer decision for step 6 full_suite_levels (exchange 1) (round 3)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-6-round-3 -->
+
+## Round 3 by human - Step 6 - human-confirmation
+
+- Recorded: 2026-10-04T23:34:43+02:00
+- Exchange: code/code/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 6
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-3 -->
