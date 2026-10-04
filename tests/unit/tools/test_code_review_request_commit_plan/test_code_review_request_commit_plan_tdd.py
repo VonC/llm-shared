@@ -17,7 +17,11 @@ from typing import TYPE_CHECKING
 import pytest
 
 from tools import code_review_request as requestor
-from tools.code_review_validation import resolve_code_review_validation
+from tools import code_review_request_files as request_files
+from tools.code_review_validation import (
+    ProjectValidation,
+    resolve_code_review_validation,
+)
 from tools.commit_plan_check import CommitPlanCheckResult, CommitPlanCheckState
 from tools.git_batch_commit_models import CommitPlanGroup
 from tools.review_exchange_models import ReviewExchangeError
@@ -49,7 +53,8 @@ def _ready_result() -> CommitPlanCheckResult:
 
 def _round_input(tmp_path: Path) -> requestor.CodeReviewRoundInput:
     """Build one direct public-renderer input with ready checker evidence."""
-    plan = tmp_path / "plan.v0.11.0.commit-plan-check.md"
+    plan = tmp_path / "docs/plan.v0.11.0.commit-plan-check.md"
+    plan.parent.mkdir(exist_ok=True)
     plan.write_text("# Plan\n", encoding="utf-8")
     return requestor.CodeReviewRoundInput(
         context=requestor.code_review_context(plan, "3"),
@@ -84,7 +89,8 @@ def _files(tmp_path: Path) -> dict[str, Path]:
 
 def _arguments(tmp_path: Path, files: dict[str, Path]) -> Namespace:
     """Build the private command adapter input used by the focused gate tests."""
-    plan = tmp_path / "plan.v0.11.0.commit-plan-check.md"
+    plan = tmp_path / "docs/plan.v0.11.0.commit-plan-check.md"
+    plan.parent.mkdir(exist_ok=True)
     plan.write_text("# Plan\n", encoding="utf-8")
     return Namespace(
         plan=str(plan),
@@ -100,16 +106,18 @@ def _arguments(tmp_path: Path, files: dict[str, Path]) -> Namespace:
         request_validation_command=[],
         request_content_output=str(files["content"]),
         transcript_summary_output=str(files["summary"]),
+        scope_capture_output=str(files["summary"].with_name("a.scope.json")),
+        scope_change_file=None,
     )
 
 
 def _prepare_command(monkeypatch: pytest.MonkeyPatch) -> None:
     """Keep focused command tests on the gate rather than Git ignore setup."""
-    monkeypatch.setattr(requestor, "_is_effectively_ignored", _always_ignored)
+    monkeypatch.setattr(request_files, "is_effectively_ignored", _always_ignored)
     monkeypatch.setattr(requestor, "format_local_timestamp", lambda: _TIMESTAMP)
     monkeypatch.setattr(
         requestor,
-        "load_project_validation_commands",
+        "load_project_validation",
         _project_validation_commands,
     )
 
@@ -119,9 +127,9 @@ def _always_ignored(_root: Path, _path: Path) -> bool:
     return True
 
 
-def _project_validation_commands(_root: Path) -> tuple[str, ...]:
+def _project_validation_commands(_root: Path) -> ProjectValidation:
     """Return the mandatory project command for focused rendering tests."""
-    return ("ghog day --full=speed",)
+    return ProjectValidation(("ghog day --full=speed",), declared=False)
 
 
 def test_direct_renderer_requires_one_typed_ready_result(tmp_path: Path) -> None:
@@ -158,13 +166,13 @@ def test_command_checks_once_between_matching_tree_captures_before_writes(
 
     monkeypatch.setattr(requestor, "capture_index_tree", capture)
     monkeypatch.setattr(requestor, "check_commit_plan", check)
-    original_write = requestor._write_utf8
+    original_write = request_files.write_utf8
 
     def recording_write(path: Path, content: str, label: str) -> None:
         events.append("write")
         original_write(path, content, label)
 
-    monkeypatch.setattr(requestor, "_write_utf8", recording_write)
+    monkeypatch.setattr(request_files, "write_utf8", recording_write)
     requestor._render_from_arguments(_arguments(tmp_path, files), tmp_path)
 
     assert events == ["capture", "check", "capture", "write", "write"]

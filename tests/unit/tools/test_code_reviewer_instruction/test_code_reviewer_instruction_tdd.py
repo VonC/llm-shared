@@ -230,12 +230,19 @@ def test_reviewer_limits_executed_evidence_to_check_and_affected_tests() -> None
             "The reviewer does not repeat it",
             "Never run `ghog day` or `ghog full`, and never measure or recheck coverage",
             "`ghog check`, which runs `check.bat`",
-            "`ghog affected --no-cov`, the focused tests",
+            "`ghog affected --no-cov --scope-file=<paths.scope>`, the focused tests",
             "do not follow the ghog report's next-step line",
             "do not run that set: the requestor owns it",
         ),
     )
     assert "Run every resolved mandatory validation command" not in content
+
+
+def test_reviewer_requires_the_bound_capture() -> None:
+    """Missing or refused scope evidence cannot be replaced by ambient scope."""
+    content = " ".join(_content().split())
+    for fragment in ("paths.scope", "bound_scope: missing", "missing evidence", "Do not substitute"):
+        assert fragment in content
 
 
 # eof

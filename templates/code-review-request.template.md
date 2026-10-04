@@ -8,6 +8,10 @@ $identity_fields
 $code_review_evidence
 ```
 
+## Validation scope for $identity_label (round $round_number)
+
+$validation_scope
+
 ## Review scope for $identity_label (round $round_number)
 
 Apply `implementation-check` to the exact implementation plan step and inspect
@@ -42,3 +46,6 @@ polishing-only, and state whether `a.commit` remains accurate. A substantive
 repair changes code, tests, acceptance behavior, or commit grouping and cannot
 validly finish the workflow in the same round. A commit-ready recommendation
 never authorizes a commit.
+
+<!-- The exchange renderer supplies the document title before this fragment. -->
+<!-- markdownlint-disable-file MD041 -->

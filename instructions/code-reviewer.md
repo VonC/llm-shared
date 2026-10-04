@@ -276,13 +276,18 @@ included, in earlier stages such as
 gap before the requestor publishes a review request. The reviewer does not
 repeat it.
 
+The reviewer uses the core-owned `paths.scope` returned by exchange status.
+A missing capture, a legacy `bound_scope: missing`, or a capture refused by
+groundhog is missing evidence. Do not substitute the current requirement or
+an ambient group for the bound round scope.
+
 - Never run `ghog day` or `ghog full`, and never measure or recheck coverage
   during a review. Assess coverage statically, as the unit test coverage
   sub-section of `implementation-check.md` describes.
 - When the assessment needs executed evidence, run at most these two commands,
   each once per round, from the project root:
   - `ghog check`, which runs `check.bat` (compile and lint);
-  - `ghog affected --no-cov`, the focused tests of the staged change.
+  - `ghog affected --no-cov --scope-file=<paths.scope>`, the focused tests of the staged change.
 - Use the redirected call form and the log-freshness proof from
   `implement-step.md` (`<LLM_SHARED_DIR>\bin\ghog.bat` from PowerShell), then
   read only the log tail.
@@ -309,7 +314,7 @@ change is substantive and forces `changes-requested` in the same round.
 
 Do not run the resolved validation commands; the request records them as
 requestor evidence. A reviewer evidence command (`ghog check` or
-`ghog affected --no-cov`) that was needed but cannot run is missing evidence,
+`ghog affected --no-cov --scope-file=<paths.scope>`) that was needed but cannot run is missing evidence,
 never a pass. Resolver drift is reported with its direction as a finding for
 the requestor. Do not revert or stage a tracked validation side effect. Recheck the umbrella digest after both a Yes and No result and
 never complete an umbrella row from reviewer mode.

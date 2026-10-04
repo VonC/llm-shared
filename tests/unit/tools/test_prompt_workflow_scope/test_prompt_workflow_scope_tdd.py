@@ -1,4 +1,4 @@
-"""Prove pw scope dispatch, live requirement changes and progress ordering.
+"""Prove pw scope dispatch, live changes, progress ordering and damaged capture reporting.
 
 Git and review discovery are stubbed; document selection, metadata reading,
 group resolution, parser dispatch and the rendered scope use the real modules.
@@ -6,16 +6,24 @@ group resolution, parser dispatch and the rendered scope use the real modules.
 
 from __future__ import annotations
 
+from dataclasses import replace
 from typing import TYPE_CHECKING
 
 import pytest
 
 from tests.unit.tools.groundhog_group_support import group_project
+from tests.unit.tools.review_exchange_test_support import configured_home, review_policy
 from tools import prompt_workflow
 from tools import prompt_workflow_progress as progress
 from tools import prompt_workflow_scope as scope
+from tools.code_review_request import code_review_context
 from tools.prompt_workflow_models import Topic
 from tools.prompt_workflow_progress_review import ReviewReport
+from tools.review_exchange_models import Actor, CoordinationStatus
+from tools.review_exchange_models_coordination import CoordinationRecord
+from tools.review_exchange_paths import derive_artifact_paths
+from tools.review_exchange_store import ReviewExchangeStore
+from tools.scope_capture import write_capture
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -173,6 +181,54 @@ def test_progress_scope_follows_step_and_optional_journal(tmp_path: Path, topic:
     lines = progress.progress_lines(tmp_path, topic, "topic", {})
     labels = [label for label, _value in lines]
     assert labels.index("scope") == labels.index("journal" if journal else "step") + 1
+
+
+@pytest.mark.parametrize("change", ["none", "whole", "definition", "missing", "legacy"])
+def test_progress_reports_bound_and_pending_scope(tmp_path: Path, topic: Topic, change: str) -> None:
+    """Bound capture persists while requirement or same-name definition changes."""
+    configured_home(tmp_path)
+    requirement = _requirement(topic, "sentinel")
+    plan = topic.draft_path.with_name("plan.v1.0.0.topic.md")
+    plan.write_text("# Plan\n", encoding="utf-8")
+    context = code_review_context(plan, "6")
+    paths = derive_artifact_paths(tmp_path, context)
+    captured = scope.effort_scope.read_effort_scope(tmp_path, requirement).scope
+    record = CoordinationRecord(context, review_policy(context), CoordinationStatus.ACTIVE,
+                                Actor.REQUESTOR, Actor.REVIEWER, 1, "2026-10-04T12:00:00+02:00")
+    if change != "legacy":
+        record = replace(record, bound_scope_fingerprint=captured.fingerprint)
+    ReviewExchangeStore(paths).write_coordination(record)
+    if change != "missing":
+        write_capture(paths.scope, captured)
+    if change == "whole":
+        _requirement(topic, None)
+    elif change == "definition":
+        groups = tmp_path / ".ghog-groups"
+        groups.write_text(groups.read_text(encoding="utf-8").replace("src/sentinel/**", "src/sentinel/*.py"), encoding="utf-8")
+    lines = scope.scope_lines(tmp_path, topic, scope.steps.compute_state(tmp_path, topic, None))
+    bound = dict(lines)["bound"]
+    if change in {"missing", "legacy"}:
+        assert bound == "missing"
+    else:
+        assert "group sentinel" in bound
+        assert ("pending change" in bound) is (change != "none")
+
+
+def test_progress_reports_missing_bound_scope_for_damaged_coordination(tmp_path: Path, topic: Topic) -> None:
+    """Unreadable coordination preserves current scope without inventing bound evidence."""
+    configured_home(tmp_path)
+    _requirement(topic, "sentinel")
+    plan = topic.draft_path.with_name("plan.v1.0.0.topic.md")
+    plan.write_text("# Plan\n", encoding="utf-8")
+    paths = derive_artifact_paths(tmp_path, code_review_context(plan, "6"))
+    paths.coordination.write_text("{damaged", encoding="utf-8")
+
+    lines = scope.scope_lines(tmp_path, topic, scope.steps.compute_state(tmp_path, topic, None))
+
+    assert dict(lines) == {
+        "scope": "group sentinel (docs/feature-request.v1.0.0.topic.md)",
+        "bound": "missing",
+    }
 
 
 # eof

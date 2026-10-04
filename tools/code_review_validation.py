@@ -4,12 +4,16 @@ Fix (v0.13.0 full_suite_levels, Step 2): plain ``ghog day`` now stops after
 the affected tests, so the built-in project default names the ``speed`` level
 explicitly: every request under the default policy enters review with a full
 suite, coverage and duration proof.
+
+Step 6 preserves declared commands and completes only the built-in default
+with the effort selector, disclosing migration and exact-group guarantees.
 """
 
 # ruff: noqa: EM101, TRY003
 
 from __future__ import annotations
 
+import shlex
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal
 
@@ -26,7 +30,20 @@ _SOURCE_ORDER: tuple[ValidationSource, ...] = ("project", "plan", "request")
 PROJECT_VALIDATION_FILE = ".review-validation"
 
 
+@dataclass(frozen=True)
+class ProjectValidation:
+    """Commands with their declaration provenance, before scope completion."""
+
+    commands: tuple[str, ...]
+    declared: bool
+
+
 def load_project_validation_commands(project_root: Path) -> tuple[str, ...]:
+    """Keep the command-only interface for existing validation consumers."""
+    return load_project_validation(project_root).commands
+
+
+def load_project_validation(project_root: Path) -> ProjectValidation:
     """Read the project's declared mandatory commands, or the built-in default.
 
     The default assumes a Python project: `ghog day --full=speed` walks a check
@@ -60,7 +77,7 @@ def load_project_validation_commands(project_root: Path) -> tuple[str, ...]:
     """
     declaration = project_root / PROJECT_VALIDATION_FILE
     if not declaration.exists():
-        return DEFAULT_PROJECT_VALIDATION_COMMANDS
+        return ProjectValidation(DEFAULT_PROJECT_VALIDATION_COMMANDS, declared=False)
     if not declaration.is_file():
         message = f"invalid {PROJECT_VALIDATION_FILE}: declaration is not a file"
         raise ReviewExchangeError(message)
@@ -80,7 +97,65 @@ def load_project_validation_commands(project_root: Path) -> tuple[str, ...]:
             "omit the file to keep the built-in default"
         )
         raise ReviewExchangeError(message)
-    return commands
+    return ProjectValidation(commands, declared=True)
+
+
+def complete_project_default(validation: ProjectValidation, selector: str) -> tuple[str, ...]:
+    """Complete only the built-in project commands with the explicit scope."""
+    if validation.declared:
+        return validation.commands
+    return tuple(f"{command} {selector}" for command in validation.commands)
+
+
+def _walk_arguments(command: str) -> tuple[str, ...] | None:
+    """Recognize a direct ghog walk without interpreting arbitrary shell code."""
+    try:
+        tokens = shlex.split(command)
+    except ValueError:
+        return None
+    if tokens[:2] != ["ghog", "day"]:
+        return None
+    return tuple(tokens[2:])
+
+
+def migration_notice(validation: ProjectValidation) -> str:
+    """Explain plain declared walks without guessing environment or saved proof."""
+    if not validation.declared:
+        return ""
+    for command in validation.commands:
+        arguments = _walk_arguments(command)
+        if arguments is not None and not any(arg.split("=", 1)[0] == "--full" for arg in arguments):
+            return (
+                "Migration notice: when no full level is selected, plain ghog day runs "
+                "only check.bat and affected tests. Declare ghog day --full=speed to keep "
+                "full-suite proof before review. GHOG_FULL can select a level, another "
+                "declared command can establish speed, and valid saved proof can make "
+                "the walk a noop reporting speed; this notice claims none of those."
+            )
+    return ""
+
+
+def group_claim_statement(validation: ProjectValidation, group: str | None) -> str:
+    """Claim a grouped speed walk only for an explicit exact-group declaration."""
+    if not group:
+        return ""
+    if not validation.declared or any(
+        _claims_group_speed(args, group)
+        for command in validation.commands
+        for args in (_walk_arguments(command),)
+        if args is not None
+    ):
+        return f"The project validation names a speed walk for group {group}."
+    return f"The declared commands establish no speed proof for group {group}."
+
+
+def _claims_group_speed(args: tuple[str, ...], group: str) -> bool:
+    """Recognize exactly one full level and group with no other selector."""
+    selectors = tuple(arg for arg in args if arg.split("=", 1)[0] in {
+        "--full", "--group", "--whole-suite", "--scope-file",
+    })
+    expected = {"--full=speed", f"--group={group}"}
+    return len(selectors) == len(expected) and set(selectors) == expected
 
 
 @dataclass(frozen=True)

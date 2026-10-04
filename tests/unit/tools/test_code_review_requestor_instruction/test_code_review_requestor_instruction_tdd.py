@@ -229,4 +229,12 @@ def test_authorized_commit_replays_owner_action_before_completion() -> None:
     assert "reviewer never commits" in content.lower()
 
 
+def test_requestor_renders_and_publishes_scope_capture() -> None:
+    """The caller-owned capture accompanies publication and scope changes."""
+    content = _content()
+    for fragment in ("--scope-capture-output", "--scope-capture-file", "--scope-change-file",
+                     "a.<slug>.step<x>.tmp.scope-capture.json"):
+        assert fragment in content
+
+
 # eof

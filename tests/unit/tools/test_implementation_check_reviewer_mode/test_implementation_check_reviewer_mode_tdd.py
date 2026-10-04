@@ -94,4 +94,12 @@ def test_missing_umbrella_records_not_applicable_evidence() -> None:
     assert '"applicable": false' in content
 
 
+def test_reviewer_check_requires_bound_scope_evidence() -> None:
+    """The reviewer consumes the published capture and fails closed without it."""
+    content = " ".join(_instruction().split())
+    for fragment in ("ghog affected --no-cov --scope-file=<paths.scope>",
+                     "bound_scope: missing", "missing evidence", "Do not substitute"):
+        assert fragment in content
+
+
 # eof

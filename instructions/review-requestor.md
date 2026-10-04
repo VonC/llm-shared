@@ -253,6 +253,10 @@ not end or restart a bounded protocol wait.
    exchange.
 3. Finish the request content and transcript summary files, then call
    `publish-request --content-file <path> --summary-file <path>`.
+   For code requests carrying `test_scope`, also pass
+   `--scope-capture-file <caller-owned-capture-path>`. Publication validates it
+   and copies it to core-owned `paths.scope`; use that returned path for the
+   round's evidence. Legacy requests report `bound_scope: missing`.
 4. Without invoking or contacting a reviewer, call `wait-answer` once. This is
    one bounded in-process wait, not repeated
    short slices. Progress JSON is written only to standard error. Read the

@@ -3,6 +3,9 @@
 Fix (v0.13.0 full_suite_levels, Step 2): the built-in project default names
 the ``speed`` level, since plain ``ghog day`` no longer runs the full suite;
 the sample project commands follow it.
+
+Step 6 checks migration parsing and exact-group claims without changing
+declared commands or interpreting arbitrary shell commands.
 """
 
 from __future__ import annotations
@@ -15,10 +18,13 @@ import pytest
 from tools.code_review_validation import (
     DEFAULT_PROJECT_VALIDATION_COMMANDS,
     PROJECT_VALIDATION_FILE,
+    ProjectValidation,
     ResolvedValidationCommand,
     ResolvedValidationSet,
     ValidationSource,
+    group_claim_statement,
     load_project_validation_commands,
+    migration_notice,
     resolve_code_review_validation,
 )
 from tools.review_exchange_models import ReviewExchangeError
@@ -174,3 +180,33 @@ def test_unreadable_project_declaration_is_reported(
 
     with pytest.raises(ReviewExchangeError, match=r"invalid \.review-validation"):
         load_project_validation_commands(tmp_path)
+
+
+@pytest.mark.parametrize(
+    ("command", "needs_notice"),
+    [
+        ("ghog   day", True),
+        ("ghog day --whole-suite", True),
+        ("ghog day --full=speed --whole-suite", False),
+        ("ghog day --full cov", False),
+        ("ghog full", False),
+        ('ghog day "unterminated', False),
+    ],
+)
+def test_migration_notice_only_recognizes_unselected_declared_walks(
+    command: str, *, needs_notice: bool,
+) -> None:
+    """Whitespace is harmless; non-walks and invalid quoting make no claim."""
+    validation = ProjectValidation((command,), declared=True)
+
+    assert bool(migration_notice(validation)) is needs_notice
+
+
+def test_default_and_whole_suite_group_statements() -> None:
+    """Default grouped validation promises its completed command, whole does not."""
+    default = ProjectValidation(DEFAULT_PROJECT_VALIDATION_COMMANDS, declared=False)
+
+    assert group_claim_statement(default, None) == ""
+    assert group_claim_statement(default, "sentinel") == (
+        "The project validation names a speed walk for group sentinel."
+    )

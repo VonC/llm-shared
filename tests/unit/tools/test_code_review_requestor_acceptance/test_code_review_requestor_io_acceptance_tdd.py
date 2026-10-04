@@ -205,6 +205,8 @@ def tracked_scratch_result(tmp_path: Path) -> tuple[int, bool, bool]:
             str(request_output),
             "--transcript-summary-output",
             str(summary_output),
+            "--scope-capture-output",
+            str(home / "a.scope.json"),
         ],
         project_root=root,
     )

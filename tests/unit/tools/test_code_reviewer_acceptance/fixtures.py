@@ -68,7 +68,9 @@ def git(root: Path, *arguments: str, check: bool = True) -> str:
         check=check,
         capture_output=True,
         text=True,
-        timeout=10,
+        # Keep real Git setup bounded while allowing parallel worker startup.
+        # Test-call speed remains checked by the separate timing gate.
+        timeout=30,
     )
     return result.stdout.strip()
 

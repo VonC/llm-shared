@@ -16,6 +16,15 @@ from tools import prompt_workflow_git as git
 from tools import prompt_workflow_handoff as handoff
 from tools import prompt_workflow_memory as memory
 from tools import prompt_workflow_steps as steps
+from tools.review_exchange_models import (
+    ExchangeIdentity,
+    ReviewContext,
+    ReviewExchangeError,
+    ReviewFamily,
+)
+from tools.review_exchange_paths import derive_artifact_paths
+from tools.review_exchange_scope import bound_scope_payload
+from tools.review_exchange_store import ReviewExchangeStore
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -52,18 +61,33 @@ def run_scope(root: Path, ghog_args: Sequence[str]) -> int:
 
 
 def scope_lines(root: Path, topic: Topic, state: WorkflowState) -> list[tuple[str, str]]:
-    """Return declared scope and source, or its validation error, for a topic.
-
-    The already computed state supplies the requirement. The topic parameter
-    keeps this adapter ready for round-bound scope reporting in the next step.
-    """
-    del topic
+    """Report current effort scope and the independently validated round capture."""
     try:
         resolved = effort_scope.read_effort_scope(root, state.requirement)
     except effort_scope.EffortScopeError as error:
         return [("scope", f"error: {error}")]
     label = resolved.scope.label().removeprefix("the ")
-    return [("scope", f"{label} ({resolved.reason})")]
+    lines = [("scope", f"{label} ({resolved.reason})")]
+    if state.plan is None:
+        return lines
+    context = ReviewContext(
+        ExchangeIdentity(ReviewFamily.CODE, "code", topic.version, topic.slug), state.plan,
+        umbrella_path=None, implementation_step="scope-display",
+    )
+    paths = derive_artifact_paths(root, context)
+    try:
+        record = ReviewExchangeStore(paths).read_coordination()
+    except ReviewExchangeError:
+        return [*lines, ("bound", "missing")]
+    if record is not None:
+        bound = bound_scope_payload(paths, record)
+        value = "missing"
+        if isinstance(bound, dict):
+            value = f"group {bound['group']}" if bound["group"] else "whole suite"
+            if (bound["scope"], bound["fingerprint"]) != (resolved.scope.key(), resolved.scope.fingerprint):
+                value += f"; pending change to {label}"
+        lines.append(("bound", value))
+    return lines
 
 
 # eof

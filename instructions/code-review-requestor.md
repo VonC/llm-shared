@@ -66,8 +66,15 @@ Only then pass the complete paired artifacts to `publish-request`.
 3. Prepare separate ignored root UTF-8 assessment, implementation report,
    change summary, writer response, and optional guidance files. Run
    `& "<LLM_SHARED_DIR>\bin\code_review_request.bat"` with every applicable additive validation
-   command and two distinct ignored output paths.
-4. Pass the complete request and substantive summary to `publish-request`.
+   command and distinct ignored output paths. Always pass
+   `--scope-capture-output <artifact-home>/a.<slug>.step<x>.tmp.scope-capture.json`.
+   A replacement that changes the bound scope or its fingerprint also requires
+   `--scope-change-file <ignored-a.*-reason-file>` with a nonempty reason.
+4. Pass the complete request and substantive summary to `publish-request`,
+   including `--scope-capture-file <artifact-home>/a.<slug>.step<x>.tmp.scope-capture.json`.
+   The renderer resolves the requirement once, completes only the built-in
+   default with its selector, and records exact-scope effective proof.
+   Declared project commands and plan/request additions remain unchanged.
 5. Do not start, spawn, delegate, invoke, or message a reviewer. Run
    `wait-answer` immediately in this same requestor session using the complete
    marker timeout. Read only the exact `paths.answer` file returned for this
