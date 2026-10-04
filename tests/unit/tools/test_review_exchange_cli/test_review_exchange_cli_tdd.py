@@ -46,7 +46,7 @@ _SECOND_EXCHANGE = 2
 
 
 class FakeCore:
-    """Record CLI delegation and presented ownership capability values."""
+    """Record CLI delegation, optional scope capture and ownership capabilities."""
 
     def __init__(self, record: CoordinationRecord) -> None:
         """Start in a normal active round with an empty call log."""
@@ -87,9 +87,13 @@ class FakeCore:
         self,
         markdown: str,
         transcript_content: str,
+        scope_capture: str | None = None,
     ) -> CoordinationRecord:
-        """Record request publication inputs."""
-        self._call("publish_request", markdown, transcript_content)
+        """Record request publication inputs with the optional scope contract."""
+        if scope_capture is None:
+            self._call("publish_request", markdown, transcript_content)
+        else:
+            self._call("publish_request", markdown, transcript_content, scope_capture)
         return self.record
 
     def publish_answer(

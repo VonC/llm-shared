@@ -3,7 +3,7 @@
 These tests cover construction, parser limits, Git ignore probing, unreadable
 caller inputs, ownership pickup, disabled status, defensive dispatch, and the
 script entry point. Lifecycle behavior remains covered by the core and the
-primary CLI tests.
+primary CLI tests. Step 6 verifies the request-only capture input boundary.
 """
 
 from __future__ import annotations
@@ -45,6 +45,44 @@ _OWNERSHIP_GENERATION = 4
 _PICKED_UP_GENERATION = 2
 _REJECTED_GENERATION = 3
 
+
+def test_request_forwards_scope_capture_content(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+) -> None:
+    """The request adapter reads the caller capture and passes its exact bytes."""
+    runtime, core = _runtime(tmp_path)
+    content = runtime.paths.scope.with_name("a.request.md")
+    summary = runtime.paths.scope.with_name("a.summary.md")
+    capture = runtime.paths.scope.with_name("a.capture.json")
+    content.parent.mkdir(exist_ok=True)
+    content.write_text("request", encoding="utf-8")
+    summary.write_text("summary", encoding="utf-8")
+    capture.write_text('{"scope": "whole"}', encoding="utf-8")
+
+    code, _payload, error = _run(monkeypatch, capsys, runtime, [
+        "publish-request", *_common(runtime),
+        "--content-file", str(content), "--summary-file", str(summary),
+        "--scope-capture-file", str(capture),
+    ])
+
+    assert code == 0
+    assert error == ""
+    assert core.calls[-1] == (
+        "publish_request", ("request", "summary", '{"scope": "whole"}'), {},
+    )
+
+
+def test_answer_parser_refuses_scope_capture(tmp_path: Path) -> None:
+    """A reviewer cannot replace the requestor-owned scope when answering."""
+    runtime, _core = _runtime(tmp_path)
+
+    with pytest.raises(ReviewExchangeError, match="unrecognized arguments: --scope-capture-file"):
+        cli._parser().parse_args([
+            "publish-answer", *_common(runtime), "--content-file", "answer.md",
+            "--summary-file", "summary.md", "--scope-capture-file", "capture.json",
+        ])
 
 def test_positive_number_parsers_reject_zero() -> None:
     """Wait durations and intervals must be positive before dispatch."""

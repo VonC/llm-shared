@@ -78,6 +78,8 @@ def parser() -> JsonArgumentParser:
         command = subparsers.add_parser(name, parents=[common])
         command.add_argument("--content-file", required=True)
         command.add_argument("--summary-file", required=True)
+        if name == "publish-request":
+            command.add_argument("--scope-capture-file")
     repair_request = subparsers.add_parser(
         "repair-request-transcript",
         parents=[common],

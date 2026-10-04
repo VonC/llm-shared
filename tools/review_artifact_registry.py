@@ -38,9 +38,10 @@ _ANSWER_RE: Final = re.compile(rf"^a\.review-answer\.{_TYPE}\.{_VERSION}\.{_SLUG
 _COORDINATION_RE: Final = re.compile(rf"^a\.review-active\.{_FAMILY}\.{_TYPE}\.{_VERSION}\.{_SLUG}\.md$")
 _TOMBSTONE_RE: Final = re.compile(rf"^a\.review-consumed\.{_FAMILY}\.{_TYPE}\.{_VERSION}\.{_SLUG}\.md$")
 _LOCK_RE: Final = re.compile(rf"^a\.review-lock\.{_FAMILY}\.{_TYPE}\.{_VERSION}\.{_SLUG}\.lock$")
+_SCOPE_RE: Final = re.compile(rf"^a\.review-scope\.{_TYPE}\.{_VERSION}\.{_SLUG}\.json$")
 _ARCHIVE_RE: Final = re.compile(
     rf"^a\.review-archive\.{_FAMILY}\.{_TYPE}\.{_VERSION}\.{_SLUG}\."
-    r"\d{8}-\d{6}\.(?P<archive_kind>request|answer|consumed|coordination)\.md$",
+    r"\d{8}-\d{6}\.(?:(?P<archive_kind>request|answer|consumed|coordination)\.md|scope\.json)$",
 )
 _GUIDANCE_RE: Final = re.compile(r"^a\.review-guidance\.[a-z0-9][a-z0-9_-]*\.md$")
 _RETAINED_RE: Final = re.compile(
@@ -49,13 +50,14 @@ _RETAINED_RE: Final = re.compile(
 
 
 class RegisteredArtifactKind(StrEnum):
-    """Protocol-owned runtime artifact kinds accepted by migration."""
+    """Protocol-owned runtime artifacts, including captures, accepted by migration."""
 
     REQUEST = "request"
     ANSWER = "answer"
     COORDINATION = "coordination"
     TOMBSTONE = "tombstone"
     TRANSITION_LOCK = "transition-lock"
+    SCOPE_CAPTURE = "scope-capture"
     ARCHIVE = "archive"
     REVIEW_MODE = "review-mode"
     RETAINED_MANIFEST = "retained-manifest"
@@ -89,7 +91,7 @@ def _identity(match: re.Match[str]) -> ExchangeIdentity:
 
 
 class ReviewArtifactRegistry:
-    """Render and parse only the closed set of protocol runtime names."""
+    """Render and parse the closed protocol set and live or archived captures."""
 
     _QUESTION_NAMES: Final = frozenset(
         {
@@ -114,6 +116,7 @@ class ReviewArtifactRegistry:
             RegisteredArtifactKind.COORDINATION: f"a.review-active.{family_suffix}.md",
             RegisteredArtifactKind.TOMBSTONE: f"a.review-consumed.{family_suffix}.md",
             RegisteredArtifactKind.TRANSITION_LOCK: f"a.review-lock.{family_suffix}.lock",
+            RegisteredArtifactKind.SCOPE_CAPTURE: f"a.review-scope.{suffix}.json",
         }
         try:
             return names[kind]
@@ -128,12 +131,14 @@ class ReviewArtifactRegistry:
             (_COORDINATION_RE, RegisteredArtifactKind.COORDINATION, None, True),
             (_TOMBSTONE_RE, RegisteredArtifactKind.TOMBSTONE, ReviewRole.REVIEWER, True),
             (_LOCK_RE, RegisteredArtifactKind.TRANSITION_LOCK, None, False),
+            (_SCOPE_RE, RegisteredArtifactKind.SCOPE_CAPTURE, None, False),
             (_ARCHIVE_RE, RegisteredArtifactKind.ARCHIVE, None, True),
         )
         for pattern, kind, role, carries_nature in patterns:
             match = pattern.fullmatch(name)
             if match is not None:
-                return RegisteredArtifact(kind, name, _identity(match), role, carries_nature)
+                return RegisteredArtifact(kind, name, _identity(match), role,
+                                          carries_nature and not name.endswith(".scope.json"))
         fixed = {
             "a.review-mode": (RegisteredArtifactKind.REVIEW_MODE, None),
             "a.review-artifact-migration.json": (
@@ -189,9 +194,10 @@ class ReviewArtifactRegistry:
         kind: ArchiveKind,
     ) -> str:
         """Render one registered archive name from validated components."""
+        extension = "json" if kind is ArchiveKind.SCOPE else "md"
         name = (
             f"a.review-archive.{identity.family.value}.{identity.type_token}."
-            f"{identity.version}.{identity.slug}.{compact_timestamp}.{kind.value}.md"
+            f"{identity.version}.{identity.slug}.{compact_timestamp}.{kind.value}.{extension}"
         )
         parsed = self.parse_name(name)
         if parsed is None or parsed.kind is not RegisteredArtifactKind.ARCHIVE:
@@ -222,7 +228,7 @@ class ReviewArtifactRegistry:
 
 
 class ReviewArtifactLocator:
-    """Derive all runtime paths from one loaded artifact-home configuration."""
+    """Derive runtime paths, including captures, from one artifact-home configuration."""
 
     def __init__(
         self,
@@ -251,6 +257,7 @@ class ReviewArtifactLocator:
             identity=identity,
             project_root=root,
             transcript=transcript,
+            scope=home / self.registry.name_for(RegisteredArtifactKind.SCOPE_CAPTURE, identity),
             request=home / self.registry.name_for(RegisteredArtifactKind.REQUEST, identity),
             answer=home / self.registry.name_for(RegisteredArtifactKind.ANSWER, identity),
             coordination=home / self.registry.name_for(

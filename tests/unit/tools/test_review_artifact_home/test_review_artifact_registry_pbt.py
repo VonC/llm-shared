@@ -27,6 +27,7 @@ from tools.review_exchange_models import ExchangeIdentity, ReviewFamily
             RegisteredArtifactKind.COORDINATION,
             RegisteredArtifactKind.TOMBSTONE,
             RegisteredArtifactKind.TRANSITION_LOCK,
+            RegisteredArtifactKind.SCOPE_CAPTURE,
         ),
     ),
 )

@@ -3,6 +3,7 @@
 Step 1: specify stable derivation for both review families, reversible artifact
 identity, archive naming, and one fail-closed effective Git-ignore check.
 Generated identity checks reuse configuration and document-directory setup.
+Step 6 names and ignores live scope captures and their recovery archives.
 """
 
 from __future__ import annotations
@@ -41,7 +42,7 @@ if TYPE_CHECKING:
 _VERSION = "v0.11.0"
 _SLUG = "review-exchange-core"
 _IGNORE_TIMESTAMP = "20000101-000000"
-_IGNORE_PROBE_COUNT = 10
+_IGNORE_PROBE_COUNT = 12
 
 
 def _context(tmp_path: Path, family: ReviewFamily) -> ReviewContext:
@@ -113,6 +114,16 @@ def test_code_paths_keep_intentional_code_code_names(tmp_path: Path) -> None:
     assert paths.transition_lock.name == (
         "a.review-lock.code.code.v0.11.0.review-exchange-core.lock"
     )
+
+
+def test_code_scope_capture_is_separate_and_ignored(tmp_path: Path) -> None:
+    """Scope is core-owned and ignored without changing the fixed artifact set."""
+    paths = derive_artifact_paths(tmp_path, _context(tmp_path, ReviewFamily.CODE))
+
+    assert paths.scope.name == "a.review-scope.code.v0.11.0.review-exchange-core.json"
+    assert paths.scope.parent == tmp_path / ".reviews"
+    assert paths.scope not in paths.fixed_paths
+    assert paths.scope in transient_paths_for_ignore(paths)
 
 
 def test_archive_path_uses_only_settled_kinds_and_compact_time(tmp_path: Path) -> None:
