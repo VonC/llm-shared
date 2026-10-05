@@ -8,17 +8,10 @@ gate drives ``cli.main`` through the faked process boundary on a ``tmp_path``
 project and asserts the spawned child commands, so it measures the work
 avoided rather than wall-clock jitter; its timeout only bounds a runaway walk.
 
-Each gate stays a strict ``xfail`` until its owning step lands: Step 2 removes
-the mark from the default-walk, upgrade and noop gates, Step 4 from the two
-grouped-walk gates, and both keep the timeout. Before its owner, a gate fails
-on an assertion, never by an error: an unknown ``--full`` or ``--group``
-option makes argparse exit 2, which :func:`_run` returns as a code, and every
-spawn queue holds the children the pre-change walk pops, so no spawn ever
-finds an empty queue.
-
-Fix (v0.13.0 full_suite_levels, Step 2): the leveled walk landed, so the
-default-walk, upgrade and noop gates lose their ``xfail`` mark and keep their
-timeout; Step 4 activates the two grouped gates with their timeouts unchanged.
+Steps 2 and 4 activated the default-walk, upgrade, noop and grouped gates,
+keeping their timeouts. Step 8 updates this description to reflect the active
+contracts. Unknown options still become assertion failures through
+:func:`_run`, and every spawn queue contains all expected child processes.
 """
 
 from __future__ import annotations
