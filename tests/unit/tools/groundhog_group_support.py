@@ -1,4 +1,4 @@
-"""Group projects and real coverage data at the injected process boundary."""
+"""Group projects and real coverage data with configurable child transcripts."""
 
 from __future__ import annotations
 
@@ -37,9 +37,9 @@ def group_project(root: Path) -> Path:
 class CoverageSpawns(Spawns):
     """Write actual coverage evidence only while the child sees its override."""
 
-    def __init__(self, root: Path, *, data: str = "good") -> None:
+    def __init__(self, root: Path, *, data: str = "good", extra_lines: tuple[str, ...] = ()) -> None:
         """Default to passing tests with a deliberately untrustworthy TOTAL."""
-        super().__init__(passing_transcript(1, "TOTAL 1 0 100%"), 0)
+        super().__init__([*passing_transcript(1, "TOTAL 1 0 100%"), *extra_lines], 0)
         self.root = root
         self.data = data
         self.lines = {str(root / "src" / name / "core.py"): [1] for name in ("sentinel", "other")}

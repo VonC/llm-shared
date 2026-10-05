@@ -2,7 +2,10 @@
 
 The round-trip test caches real resolutions of its stable, symlink-free paths
 to avoid repeatedly paying Windows filesystem lookup cost at every boundary.
+Its published first-round baseline is initialized and checked in a fixture;
+the measured call exercises membership edits and replacement publication.
 Transcript commands preserve HTML-like text, dunder paths and backtick runs.
+Step 8 explicitly checks that unscoped declared walks cannot claim group speed.
 """
 
 from __future__ import annotations
@@ -100,6 +103,8 @@ def test_default_scope_and_declared_commands(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize(("command", "claims"), [
+    ("ghog day --full=speed", False),
+    ("ghog day", False),
     ("ghog day --full=speed --group=sentinel", True),
     ("ghog day --full=cov --group=sentinel", False),
     ("ghog day --full=speed --group=other", False),
@@ -302,32 +307,41 @@ def _owned_cli(core: ReviewExchangeCore, arguments: list[str]) -> int:
 
 
 @pytest.fixture
-def cached_round_trip_paths(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Reuse actual path resolutions only where no symlink or rename changes them."""
-    monkeypatch.setattr(Path, "resolve", cache(Path.resolve))
-
-
-@pytest.mark.usefixtures("cached_round_trip_paths")
-def test_render_publish_status_affected_and_replacement(
+def published_group_exchange(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str],
-) -> None:
-    """The reviewer consumes frozen files, and changed replacements demand disclosure."""
+) -> tuple[exchange_cli.Runtime, ReviewExchangeCore, dict[str, Path], list[str], str, bytes]:
+    """Build and validate the published baseline before exercising its replacement."""
+    # Reuse real resolutions only where no symlink or rename changes them.
+    monkeypatch.setattr(Path, "resolve", cache(Path.resolve))
     runtime, core, files, arguments = _exchange_fixture(tmp_path, monkeypatch)
-    context, paths = runtime.context, runtime.paths
     assert renderer.main(arguments, project_root=tmp_path) == 0
-    publication = ["publish-request", *common_arguments(context),
-                   "--content-file", str(files["content"]), "--summary-file", str(files["summary"]),
-                   "--scope-capture-file", str(files["summary"].with_name("a.scope.json"))]
-    assert _owned_cli(core, publication) == 0
+    assert _owned_cli(core, _publication_arguments(runtime, files)) == 0
     capsys.readouterr()
-    assert _owned_cli(core, ["status", *common_arguments(context)]) == 0
+    assert _owned_cli(core, ["status", *common_arguments(runtime.context)]) == 0
     status = json.loads(capsys.readouterr().out)
     assert status["bound_scope"]["scope"] == "group:sentinel"
-    bound = paths.scope.read_bytes()
+    return runtime, core, files, arguments, status["paths"]["scope"], runtime.paths.scope.read_bytes()
+
+
+def _publication_arguments(runtime: exchange_cli.Runtime, files: dict[str, Path]) -> list[str]:
+    """Use identical actual CLI inputs for the initial and replacement rounds."""
+    return ["publish-request", *common_arguments(runtime.context),
+            "--content-file", str(files["content"]), "--summary-file", str(files["summary"]),
+            "--scope-capture-file", str(files["summary"].with_name("a.scope.json"))]
+
+
+def test_render_publish_status_affected_and_replacement(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str],
+    published_group_exchange: tuple[exchange_cli.Runtime, ReviewExchangeCore,
+                                    dict[str, Path], list[str], str, bytes],
+) -> None:
+    """The reviewer consumes frozen files, and changed replacements demand disclosure."""
+    runtime, core, files, arguments, capture, bound = published_group_exchange
+    context, paths = runtime.context, runtime.paths
     # An unrelated definition edit must not change the reviewer's collection.
     declaration = tmp_path / ".ghog-groups"
     declaration.write_text(declaration.read_text(encoding="utf-8").replace("tests/sentinel/**", "tests/**/*.py"), encoding="utf-8")
-    _assert_frozen_affected(tmp_path, status["paths"]["scope"])
+    _assert_frozen_affected(tmp_path, capture)
     capsys.readouterr()
     reason = _assert_scope_change(tmp_path, files, arguments, capsys)
     assert paths.scope.read_bytes() == bound
@@ -337,7 +351,7 @@ def test_render_publish_status_affected_and_replacement(
     core.continue_round()
     arguments[arguments.index("--round-number") + 1] = "2"
     assert renderer.main([*arguments, "--scope-change-file", str(reason)], project_root=tmp_path) == 0
-    assert _owned_cli(core, publication) == 0
+    assert _owned_cli(core, _publication_arguments(runtime, files)) == 0
     capsys.readouterr()
     assert paths.scope.read_bytes() != bound
 
