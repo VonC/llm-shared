@@ -47,7 +47,11 @@ the test files under `tests` folders whose name contains `sentinel`, and its
 the group's tests only. Development walks, the requestor's default validation
 before each review request (a project-declared validation set follows Q14),
 and the review-off `speed` pass run the effort's group;
-for a grouped effort, only prepare-release runs the whole suite, at `cov`.
+for a grouped effort, prepare-release runs the whole suite at `cov` before
+every promotion to main, generic integration or umbrella integration, and
+before release preparation directly on main. This applies even when the
+source already contains its latest destination, and before a resumed
+already-integrated topic advances to the next umbrella item.
 Ungrouped efforts and explicit whole-suite commands still run everything.
 
 Revision of 2026-09-30, group activation: the requirement said how a group is

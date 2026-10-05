@@ -800,7 +800,12 @@ the same rule.
 With a group, a change that breaks a test outside the group, or leaves code
 outside the group's sources uncovered, is not caught before review or commit;
 it surfaces at the prepare-release gate, which always runs the whole suite at
-`cov` (feature-request gap 22). No gate of a grouped effort judges the speed
+`cov` (feature-request gap 22). That gate precedes every topic promotion to
+main, generic integration or umbrella integration, every integration promotion
+to main, and release preparation directly on main. A current destination does
+not waive it; resumed integrated-topic work validates the destination before
+the umbrella checkpoint. Valid unchanged whole-suite proof may be reused,
+and group proof cannot satisfy this gate. No gate of a grouped effort judges the speed
 of tests outside its group.
 
 ---

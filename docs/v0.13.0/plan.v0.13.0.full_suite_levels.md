@@ -2005,8 +2005,12 @@ Issues to address:
 Fix intent:
 
 - Add an acceptance package driving the real modules through their public
-  entry points on `tmp_path` Git repositories, faking only the pytest process
-  boundary, and record a row-to-test mapping in the validation plan.
+  entry points on tiny `tmp_path` efforts, substituting unrelated Git seams
+  and the pytest process boundary, and record a row-to-test mapping in the
+  validation plan. Retain at most two execution journeys below one second.
+- Close every prepare-release whole-suite gate bypass, including main
+  preparation, current integration promotion, direct topic promotion to
+  generic or umbrella integration, and resumed integrated-topic continuation.
 
 Expected outcome:
 
@@ -2031,6 +2035,12 @@ Step framing:
 - `tests/unit/tools/test_full_suite_levels_acceptance/conftest.py` (new, to be created).
 - `tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_review_acceptance_tdd.py` (new, to be created).
 - `tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_workflow_acceptance_tdd.py` (new, to be created).
+- `tools/prepare_release/prepare_release_plan_workflow.py` (amend).
+- `tests/unit/tools/test_prepare_release_whole_suite/` (new synthetic regressions).
+- `tests/unit/tools/prepare_release/test_prepare_release_plan_workflow.py` (amend expectations).
+- `tests/unit/tools/prepare_release/test_prepare_release_plan_targets_workflow.py` (amend expectations).
+- `tests/unit/tools/test_instruction_structure/test_prepare_release_instruction_tdd.py` (amend).
+- `instructions/prepare-release.md` and `.github/skills/prepare-release/SKILL.md` (amend).
 
 **Tests first**:
 
@@ -2060,13 +2070,24 @@ Step framing:
   listing reporting `unverified` with exit 5); a whole-suite `cov` gate on a
   grouped effort's prepare-release.
 - No PBT: the properties live in Steps 1, 3 and 4.
+- Parametrize synthetic topology regressions over main, develop, a configured
+  integration name and an umbrella slug: direct and replayed topic promotion,
+  resumed integrated topics, current and stale integration promotion. Confirm
+  the gate runs on the candidate before destination switching/merging, and
+  already-released topics remain a no-op.
 
 **Classes and behavior**:
 
-- Test-only step. `conftest.py` builds a `tmp_path` Git repository with
+- Acceptance and release lifecycle correction. `conftest.py` builds a tiny
+  `tmp_path` effort without Git subprocesses, with
   `docs/v9.9.0/` effort documents, a `.ghog-groups` file and an artifact home,
   and reuses `groundhog_group_support.py` and the existing review-exchange
   test harness.
+- Planner operations and canonical instructions require
+  `ghog day --full=cov --whole-suite` on every promotion/preparation candidate.
+  Already-integrated continuation tests its destination before the umbrella
+  checkpoint. Valid unchanged whole-suite proof may be reused; group proof
+  never satisfies the gate.
 
 **Completion criteria**:
 

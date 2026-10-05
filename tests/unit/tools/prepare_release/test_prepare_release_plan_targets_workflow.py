@@ -293,6 +293,8 @@ def test_plan_feature_can_land_on_current_integration(
     assert plan.action is ReleaseAction.MERGE_NO_FF
     assert plan.feature_target_branch == "develop"
     assert plan.operations == (
+        "git switch feature",
+        "run ghog day --full=cov --whole-suite",
         "git switch --ignore-other-worktrees develop",
         "git merge --no-ff feature",
     )

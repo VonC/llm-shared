@@ -42,7 +42,7 @@ def recorded_workflow_repository(monkeypatch: pytest.MonkeyPatch) -> None:
 
 @pytest.fixture
 def integration_merge_plan(tmp_path: Path) -> ReleasePlan:
-    """Prepare the real-Git integration merge plan outside assertion time."""
+    """Prepare the synthetic integration merge plan outside assertion time."""
     repo = tmp_path / "repo"
     initialize_repository(repo)
     git(repo, "switch", "-c", "develop")
@@ -144,7 +144,7 @@ def rebased_feature_plan(tmp_path: Path) -> tuple[str, ReleasePlan]:
 
 @pytest.fixture
 def main_plan(tmp_path: Path) -> ReleasePlan:
-    """Prepare the real-Git on-main plan outside assertion time."""
+    """Prepare the synthetic on-main plan outside assertion time."""
     repo = tmp_path / "repo"
     initialize_repository(repo)
     commit_file(repo, "main.txt", "main\n", "feat: release work")
@@ -158,7 +158,10 @@ def test_plan_on_main_prepares_in_place(main_plan: ReleasePlan) -> None:
     assert plan.mode is ReleaseMode.ON_MAIN
     assert plan.action is ReleaseAction.PREPARE_IN_PLACE
     assert plan.scope == "v1.0.0..main"
-    assert plan.operations == ("prepare version and release notes in place",)
+    assert plan.operations == (
+        "run ghog day --full=cov --whole-suite",
+        "prepare version and release notes in place",
+    )
 
 
 def test_plan_integration_merges_no_ff_when_it_contains_main(
@@ -171,7 +174,10 @@ def test_plan_integration_merges_no_ff_when_it_contains_main(
     assert plan.action is ReleaseAction.MERGE_NO_FF
     assert plan.merge_preview is not None
     assert plan.merge_preview.clean is True
-    assert plan.operations[0] == "git switch --ignore-other-worktrees main"
+    assert plan.operations[:2] == (
+        "git switch develop",
+        "run ghog day --full=cov --whole-suite",
+    )
     assert plan.operations[-1] == "git merge --no-ff develop"
 
 
@@ -245,6 +251,8 @@ def test_plan_nested_feature_uses_exact_integration_replay(
     assert [commit.oid for commit in plan.commits] == [feature_tip]
     assert plan.rebase_preview is None
     assert plan.operations == (
+        "git switch feature",
+        "run ghog day --full=cov --whole-suite",
         "git switch --ignore-other-worktrees develop",
         "git merge --no-ff feature",
     )
