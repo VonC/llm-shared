@@ -7618,3 +7618,2026 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-2 -->
+
+## Round 1 by requestor - Step 8
+
+- Recorded: 2026-10-05T10:40:38+02:00
+- Exchange: code/code/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: unrecorded
+- Implementation step: 8
+- Outcome: request
+
+### Review identity for step 8 full_suite_levels (round 1)
+
+Umbrella draft: none
+Implementation plan: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+Implementation step: 8
+Review round: 1
+
+### Code review evidence for step 8 full_suite_levels (round 1)
+
+request_index_tree: cece392538dc23f7463a085081d935649537150e
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+- `ghog day --full=cov --whole-suite` (sources: plan)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "missing", "requirement": "docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: test(levels): describe active performance gates
+group 1 path: tests/unit/tools/test_groundhog_levels_perf/__init__.py
+group 1 path: tests/unit/tools/test_groundhog_levels_perf/test_groundhog_levels_perf_tdd.py
+group 2: test(levels): prove scoped workflow acceptance
+group 2 path: tests/unit/tools/test_full_suite_levels_acceptance/__init__.py
+group 2 path: tests/unit/tools/test_full_suite_levels_acceptance/conftest.py
+group 2 path: tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_review_acceptance_tdd.py
+group 2 path: tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_workflow_acceptance_tdd.py
+group 3: docs(full_suite_levels): record step 8 validation
+group 3 path: docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md
+staged path: docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md
+staged path: tests/unit/tools/test_full_suite_levels_acceptance/__init__.py
+staged path: tests/unit/tools/test_full_suite_levels_acceptance/conftest.py
+staged path: tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_review_acceptance_tdd.py
+staged path: tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_workflow_acceptance_tdd.py
+staged path: tests/unit/tools/test_groundhog_levels_perf/__init__.py
+staged path: tests/unit/tools/test_groundhog_levels_perf/test_groundhog_levels_perf_tdd.py
+```
+
+### Validation scope for step 8 full_suite_levels (round 1)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 8 full_suite_levels (round 1)
+
+Step 8's original acceptance implementation passed the required whole-suite
+coverage walk on 2026-10-05 at 09:50:42 +02:00: exit=0, fail=0, warn=0,
+xfail=0, cov=100, proof=cov, scope=whole across 3,585 tests. Static checks
+passed. The validation plan maps all 95 design rows to collected passing nodes.
+
+The current work is not commit-ready. Requestor speed validation finished
+exit=8 at 10:23:09 +02:00 with 27 slow acceptance calls, while tests and
+coverage passed. No timing exclusions have been accepted. Fixture selection of
+the native Windows Git binary reduces real-process overhead; the largest
+isolated call decreased from 40.71s to 21.83s but remains above the 1s floor.
+That fixture edit has not yet passed a fresh full walk.
+
+The user now requires removing the long execution tests, retaining at most
+one or two essential journeys, improving fixture initialization, and bringing
+every retained call below one second. This supersedes the original breadth of
+the acceptance package. Existing component tests must supply replacement
+evidence for removed journeys, and the validation mapping must be updated.
+These changes and fresh speed/coverage validation remain pending.
+
+The user explicitly requested this first review publication while that repair
+is pending because the reviewer is waiting. Accordingly this round discloses
+the failed mandatory speed validation instead of representing it as green.
+Assess the implementation and required reduction; do not recommend Commit
+until the requested reduction and fresh validation are complete.
+
+No production behavior, domain dependency or application complexity changed.
+The five existing performance gates retain their timeouts and assertions.
+The staged seven-path scope is covered by the prepared three-group a.commit;
+its descriptions will require reassessment after the requested reduction.
+
+### Implementation report for step 8 full_suite_levels (round 1)
+
+Step 8 adds acceptance journeys connecting the real groundhog CLI, workflow
+resolver, request renderer, review exchange and release planner. Fixtures use
+real Git repositories and existing process support; only pytest children are
+replaced. The fixture isolates both the working directory and `PRJ_DIR`.
+
+Review journeys cover published captures and portable status paths, drift in
+same-name definitions, missing members, legacy evidence, conflicting selectors,
+scope-switch reasons, literal project policies, noop replacements, stale proof,
+exclusion-only proof downgrade and restoration, and capture archival or removal.
+
+Workflow journeys cover authoritative requirement selection, stale drafts,
+activation, switching and deactivation, invalid groups, reuse after switching
+back, whole-suite gates on divergent release graphs, staged-tree changes,
+exclusion comparisons, lowered baselines, stale removal, pending scope edits,
+unexecuted external sources, pattern invalidation and unrelated exclusions.
+
+The performance package's descriptions now match its five active gates; their
+timeouts and assertions are unchanged. The validation plan records every one
+of the 95 design acceptance rows against passing test IDs and marks all nine
+steps implemented. No production behavior changed. No new property-based tests
+are needed; the relevant properties are already covered by Steps 1, 3 and 4.
+
+Pending performance repair: whole-suite speed validation failed with 27
+acceptance outliers; no exclusions are accepted. The fixture now selects
+the native Windows Git executable without mocking Git. An isolated largest
+call fell from 40.71s to 21.83s, still above the one-second floor.
+
+The user requires removing the long execution tests, keeping at most one or
+two essential journeys, improving initialization and bringing retained calls
+below one second. The existing mapping and completion verdict describe the
+previous coverage-validated implementation, not completion of this new
+constraint. Component evidence, mapping updates and a fresh green speed walk
+remain required. The user requested this first round immediately while those
+repairs are pending; the mandatory speed set is explicitly not yet green.
+
+Writer notes: `.reviews/a.full_suite_levels.step8.journal.md` and
+`.reviews/a.full_suite_levels.step8.handoff.md`
+
+### Change summary for step 8 full_suite_levels (round 1)
+
+The root `a.commit` contains three dependency-ordered groups:
+
+1. `test(levels): describe active performance gates`
+2. `test(levels): prove scoped workflow acceptance`
+3. `docs(full_suite_levels): record step 8 validation`
+
+Current staged paths:
+
+- `tests/unit/tools/test_groundhog_levels_perf/__init__.py`
+- `tests/unit/tools/test_groundhog_levels_perf/test_groundhog_levels_perf_tdd.py`
+- `tests/unit/tools/test_full_suite_levels_acceptance/__init__.py`
+- `tests/unit/tools/test_full_suite_levels_acceptance/conftest.py`
+- `tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_review_acceptance_tdd.py`
+- `tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_workflow_acceptance_tdd.py`
+- `docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md`
+
+The commit plan covers every staged path exactly once. The validation record
+is the trailing documentation group with the required exact subject.
+
+### Writer response for step 8 full_suite_levels (round 1)
+
+Writer response:
+
+This is the first review request for Step 8. There is no earlier reviewer
+feedback or disagreement to carry forward. The implementation-check records
+Step 8 as fully implemented and maps all 95 design acceptance cases for the
+original implementation. The user's subsequent speed constraint remains
+pending: remove long execution tests, retain at most one or two essential
+journeys, optimize initialization and keep every retained call below 1s.
+The user explicitly requested this round before that repair is complete.
+
+### Reviewer focus for step 8 full_suite_levels (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-8-round-1 -->
+
+## Round 1 by reviewer - Step 8
+
+- Recorded: 2026-10-05T10:46:39+02:00
+- Exchange: code/code/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 8
+- Outcome: answer
+
+### Assessed index identity for step 8 full_suite_levels (exchange 1) (round 1)
+
+Baseline index tree: cece392538dc23f7463a085081d935649537150e
+
+Assessed index tree: 2f989bd8254f9c7f69da79b5caee55933d74dee4
+
+### Implementation check for step 8 full_suite_levels (exchange 1) (round 1)
+
+Result:
+
+No. Step 8 has NOT been fully implemented.
+
+The request itself discloses the state accurately. The staged package (`conftest.py`, the review file with 10 tests and the workflow file with 10 tests) passed the whole-suite coverage walk at 09:50:42. The project's `ghog day --full=speed --whole-suite` then ended at exit 8 at 10:23:09 with 27 acceptance calls above the 1.00s floor, from 1.17s up to 45.79s, and `excluded=0`. The human's new constraint (at most one or two essential journeys, every call under one second) is not yet applied. The `test_scope` in the envelope reports `proof: missing`: the saved marker holds `proof=cov` for digest `f1be790c...`, while the current sources hash to `d0898a3a...` after the later `conftest.py` change.
+
+Where the time goes, from the writer's own profile `.reviews/a.full_suite_levels.step8.tmp.profile-native-git.txt` of the slowest call: about 0.5s per Git subprocess on this machine.
+
+- `Effort.render` takes 13.5s of the 21.8s; `root_file` alone takes 7.2s, one `git check-ignore` plus one `ReviewArtifactConfiguration.load` per caller file.
+- `ReviewArtifactConfiguration.load` runs `git ls-files` (`_tracked_directory`) on every artifact-path lookup: floor, exclusions, marker and snapshot.
+- `capture_index_tree` and the commit-plan check add more.
+
+Step 6's `test_render_publish_status_affected_and_replacement` covers render, publish, status, frozen affected and replacement in 0.78s by faking exactly those seams.
+
+The validation rows now say No and list the reduction under Missing work for Step 8. The staged opening line `Yes, it is implemented.` must return to `No` (R2).
+
+Architecture: test-only, no production change; the private `spawns._lines` access is a small smell (R3). Performance: the 27 floor violations (R1). Coverage: unaffected, `cov=100` in the earlier walk. The perf-gate docstring update is accurate, and `rg -n "xfail" tests/unit/tools/test_groundhog_levels_perf` returns nothing.
+
+Validation plan effects:
+
+Only Step 8 rows changed in `docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md`:
+
+- the exact No sentence, with the failed speed walk and the pending reduction;
+- a new Missing work for Step 8 section, after What was implemented, covering the two-journey reduction, the fixture seams, the row remapping, the private-attribute fix and fresh speed validation;
+- the performance conclusion, now "Yes, there is a performance issue".
+
+The document's opening line is outside the reviewed step's rows and was left as staged, `Yes, it is implemented.`; R2 asks the writer to restore `No`. The evidence launcher attributed the patch from pre-edit blob `372bbc1b283cb4ec9b5c90b35a21db1532f4f654`, and only that patch was staged. `markdown-check.bat` exits 0. This is review metadata, not a substantive repair.
+
+### Pre-repair mandatory checks and coverage for step 8 full_suite_levels (exchange 1) (round 1)
+
+Requestor evidence, all disclosed in the request:
+
+- `.reviews/a.full_suite_levels.step8.tmp.cov-gate.log`: `ghog day --full=cov --whole-suite` exit 0 with `cov=100` at 09:50:42, before the `conftest.py` change;
+- `.reviews/a.full_suite_levels.step8.tmp.speed-gate.exit8.log`: the speed walk at exit 8, `outliers=27 excluded=0`;
+- the profile and isolated-call measurements, where the native-Git fixture brought the slowest call from 45.79s to 23.96s and the next from 27.04s to 15.34s.
+
+No green speed walk exists for the current sources. `.reviews/a.ghog.day.ok` holds `proof=cov` for a superseded digest.
+
+Reviewer evidence:
+
+- static reading of plan Step 8, the staged `conftest.py`, both acceptance files and the perf-gate docstrings;
+- the speed log's outlier list and the writer's profiles;
+- the Step 6 round-trip test's seam technique;
+- comparison of the request-time and live index trees, and the commit-plan check, run independently before and after staging;
+- `markdown-check.bat` (exit 0) and `rg -n "xfail" tests/unit/tools/test_groundhog_levels_perf` (no match).
+
+The reviewer ran no walk, test or coverage measurement. Running the slow acceptance calls again would add no information beyond the requestor's log and profile.
+
+### Resolved validation set and sources for step 8 full_suite_levels (exchange 1) (round 1)
+
+The request embeds:
+
+1. `ghog day --full=speed --whole-suite` (project).
+2. `ghog day --full=cov --whole-suite` (plan).
+
+The current resolver contract gives, for the exact plan and step:
+
+1. `ghog day --full=speed --whole-suite` (project).
+2. `ghog day --full=cov --whole-suite` (plan).
+3. `rg -n "xfail" tests/unit/tools/test_groundhog_levels_perf` (plan): it returns nothing, reproduced read-only.
+4. A check that the Step 8 validation section maps every design acceptance row to test node ids (plan). It has no single command; for example, a reviewer-visible count of mapped rows against the design table, or the writer's mapping tool output.
+
+The reviewer did not execute the walks. Command 1 is currently red (exit 8).
+
+### Resolver drift and direction for step 8 full_suite_levels (exchange 1) (round 1)
+
+Drift found. The request omits the plan's `rg -n "xfail" tests/unit/tools/test_groundhog_levels_perf` completion search and a mapping-completeness check. Add both with `--plan-validation-command` on the replacement request, deriving them from the Step 8 Completion criteria (R4).
+
+### Repository state around validation for step 8 full_suite_levels (exchange 1) (round 1)
+
+The request-time index tree and the reviewer baseline are the same: `cece392538dc23f7463a085081d935649537150e`. Final assessed index: `2f989bd8254f9c7f69da79b5caee55933d74dee4`.
+
+The validation state was captured before and after over the same 13 ordered paths: the 7 staged paths plus `a.ghog.log`, `a.ghog.status`, `a.ghog.affected.log`, `.testmondata` and two unused reviewer log paths. Tracked differences appear only for the validation plan, through the attributed Step 8 patch, and `<index>`. No ignored or untracked change, and no overlap with writer work: a mid-review `git status` showed no writer edit in progress. The unstaged protocol transcript is untouched.
+
+Umbrella: none. The launcher comparison returns `applicable=false`, `changed=false`.
+
+### Repair inventory for step 8 full_suite_levels (exchange 1) (round 1)
+
+Repairs made:
+
+- Review metadata only, polishing-only, not substantive. The Step 8 validation rows now carry the No sentence, Missing work for Step 8 (reduction, seams, remapping, private access, fresh speed walk) and the performance conclusion. No test, transcript or `a.commit` change, and the request carried no Human guidance block.
+
+Paths staged:
+
+- `docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md` (reviewer metadata patch only, attributed from pre-edit blob `372bbc1b283cb4ec9b5c90b35a21db1532f4f654`)
+
+### Commit plan assessment for step 8 full_suite_levels (exchange 1) (round 1)
+
+`commit-plan-check.bat --format json` was run independently before assessment and again after staging the Step 8 metadata (`.reviews/a.full_suite_levels.step8.tmp.r1.rv-cpc.json` and `rv-cpc-final.json`). Both runs returned exit 0, `state=valid`, `ready=true`, groups of 2, 4 and 1 paths (7 in total) and `diagnostics=[]`.
+
+Ordered groups:
+
+1. `test(levels): describe active performance gates`
+2. `test(levels): prove scoped workflow acceptance`
+3. `docs(full_suite_levels): record step 8 validation`
+
+The plan is mechanically valid for the current tree, but the Group 2 and Group 3 bodies describe the original 20-test package and a completed validation. Rewrite them after the reduction, as the request already anticipates. `a.commit` was not amended. This result does not authorize a commit.
+
+### Findings and boundaries for step 8 full_suite_levels (exchange 1) (round 1)
+
+Unresolved findings:
+
+- R1 (P1): acceptance calls far exceed the duration floor. The project validation `ghog day --full=speed --whole-suite` ends at exit 8 with 27 calls above the 1.00s floor. The slowest are `test_exclusion_only_replacement_caps_and_restores_proof` at 45.79s, `test_unchanged_speed_replacement_is_noop` at 27.04s and the `test_replacement_revalidates_stale_evidence` cases at about 22 to 26s. Following the human's constraint, keep at most two journeys and delete the rest:
+- Review journey: render a grouped request, publish its capture, read `paths.scope` from `status`, edit the same group's patterns, then run `ghog affected --no-cov --scope-file=<paths.scope>` on only the captured files, with `pw progress` showing `pending change`.
+- Workflow journey: `pw scope` against an ambient `GHOG_GROUP`, the review-off exclusion sequence (`ghog exclude --list`, a speed walk that only lowers a baseline, `--since` reporting `unchanged`, then an added entry reporting `changed`), and the whole-suite release operation strings.
+  Make each retained call well under one second. The writer's profile puts about 0.5s on each Git subprocess. Replace only the Git-backed seams the journey does not assert, as Step 6's 0.78s round trip does: `files.is_effectively_ignored`, `check_commit_plan`, `capture_index_tree` and exchange activation. Run in a repository-less `tmp_path` when no assertion needs Git; otherwise build one seed repository per module and copy it per test. Keep `Path.resolve` caching local, and drop the MinGW `git.exe` PATH rewrite. Then remap every design acceptance row whose journey is removed to existing component node ids from Steps 1 to 7, listing any row without evidence for a human decision. Rerun `ghog day --full=speed --whole-suite` until exit 0 with `outliers=0`, and accept no exclusion for these calls.
+- R2 (P1): the staged opening line claims completion. The opening line of `docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md` is staged as `Yes, it is implemented.`, and its summary says all nine steps are implemented (HEAD reads `No, it is not implemented.`). The speed validation is red and the reduction pending, so committing this would let prepare-release treat the effort as finished. Restore `No, it is not implemented.` and its summary sentence until Step 8 legitimately reads Yes after a green speed walk.
+- R3 (P3): `tests/unit/tools/test_full_suite_levels_acceptance/conftest.py` accesses a private attribute. `Effort.walk` mutates `spawns._lines` of the shared `CoverageSpawns` and `Spawns` support. Add a public constructor parameter or helper (for example, extra transcript lines) to the support class and use it, so the acceptance fixture does not depend on a private attribute.
+- R4 (P3, requestor): resolver drift. The resolved set omits the plan's `rg -n "xfail" tests/unit/tools/test_groundhog_levels_perf` completion search and a mapping-completeness check. Add both as plan validation commands on the replacement request.
+
+Boundary-crossing work:
+
+- The writer's profile also shows a production cost. `ReviewArtifactConfiguration.load` runs `git ls-files` (`_tracked_directory`) every time `artifact_home`, `artifact_path`, `floor_path`, `marker_path_for` or `caller_file_parents` resolves the home. The renderer adds one `git check-ignore` per caller file. One real render therefore pays about 18 Git subprocesses, roughly 7s on this machine, and `ghog` walks pay several more. Caching the loaded configuration per invocation and batching `check-ignore` paths in one call would speed real commands as well as tests. That is a production change outside the test-only Step 8 file list. Take it as a follow-up with the human's agreement, not inside this step.
+
+### Writer instructions for step 8 full_suite_levels (exchange 1) (round 1)
+
+Apply R1 to R3 within Step 8:
+
+1. Reduce the package to the two journeys and delete the others.
+2. Make the retained calls fast through the existing seams and a shared or no-Git seed, and remove the PATH rewrite and the private `_lines` access.
+3. Remap the removed rows to component node ids.
+4. Restore the document opening line to No.
+5. Rerun the Step 8 implementation check, so Missing work for Step 8 disappears only when the reduction is complete.
+6. Run `ghog day --full=speed --whole-suite` until exit 0 with `outliers=0`.
+7. Rewrite the Group 2 and Group 3 bodies of `a.commit`.
+
+Publish the replacement request with the speed walk, the cov walk, the `xfail` search and the mapping check (R4). Write the inputs without a BOM and lint the transcript summary before publication.
+
+The reviewer made no test or instruction repair, and the request carried no Human guidance block.
+
+### Decision rationale for step 8 full_suite_levels (exchange 1) (round 1)
+
+Recommend changes-requested, as the request itself anticipates. The six readiness-floor results:
+
+1. Identity: PASS. The exact plan, step 8, round 1, occurrence 1, the code identity, `Umbrella draft: none`, request tree `cece3925...` and the whole-suite `test_scope` agree with the live exchange and `bound_scope`.
+2. Implementation completeness: FAIL. The required reduction to at most two sub-second journeys and the row remapping are pending (R1), and the staged opening line overclaims completion (R2).
+3. Validation and coverage: FAIL. The project speed validation is at exit 8 with 27 outliers. The envelope reports `proof: missing` for the current sources, and the request set omits two plan checks (R4).
+4. Staged attribution: PASS. The only reviewer change is attributable Step 8 validation metadata.
+5. Unresolved findings: FAIL. R1 to R4 are open.
+6. `a.commit`: PASS mechanically. The independent check returned exit 0, `state=valid`, `ready=true`, 7 paths in three groups and no diagnostics. Its bodies need rewriting after the reduction.
+
+These failures block commit-readiness.
+
+### Final reviewer decision for step 8 full_suite_levels (exchange 1) (round 1)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-8-round-1 -->
+
+## Round 2 by requestor - Step 8
+
+- Recorded: 2026-10-05T11:56:34+02:00
+- Exchange: code/code/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 8
+- Outcome: request
+
+### Review identity for step 8 full_suite_levels (round 2)
+
+Umbrella draft: none
+Implementation plan: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+Implementation step: 8
+Review round: 2
+
+### Code review evidence for step 8 full_suite_levels (round 2)
+
+request_index_tree: 158b7ec6cc150b8efdb15eb91648f0065a7b6c13
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+- `ghog day --full=cov --whole-suite` (sources: plan)
+- `rg -n "xfail" tests/unit/tools/test_groundhog_levels_perf` (sources: plan)
+- `python .reviews/a.full_suite_levels.step8.tmp.mapping.py` (sources: plan)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: test(levels): describe active performance gates
+group 1 path: tests/unit/tools/test_groundhog_levels_perf/__init__.py
+group 1 path: tests/unit/tools/test_groundhog_levels_perf/test_groundhog_levels_perf_tdd.py
+group 2: test(levels): prove scoped workflow acceptance
+group 2 path: tests/unit/tools/test_full_suite_levels_acceptance/__init__.py
+group 2 path: tests/unit/tools/test_full_suite_levels_acceptance/conftest.py
+group 2 path: tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_review_acceptance_tdd.py
+group 2 path: tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_workflow_acceptance_tdd.py
+group 2 path: tests/unit/tools/groundhog_group_support.py
+group 2 path: tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py
+group 3: docs(full_suite_levels): record step 8 validation
+group 3 path: docs/v0.13.0/review.code.v0.13.0.full_suite_levels.md
+group 3 path: docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md
+staged path: docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md
+staged path: docs/v0.13.0/review.code.v0.13.0.full_suite_levels.md
+staged path: tests/unit/tools/groundhog_group_support.py
+staged path: tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py
+staged path: tests/unit/tools/test_full_suite_levels_acceptance/__init__.py
+staged path: tests/unit/tools/test_full_suite_levels_acceptance/conftest.py
+staged path: tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_review_acceptance_tdd.py
+staged path: tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_workflow_acceptance_tdd.py
+staged path: tests/unit/tools/test_groundhog_levels_perf/__init__.py
+staged path: tests/unit/tools/test_groundhog_levels_perf/test_groundhog_levels_perf_tdd.py
+```
+
+### Validation scope for step 8 full_suite_levels (round 2)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 8 full_suite_levels (round 2)
+
+#### Assessment of Step 8 implementation for step 8 full_suite_levels (round 2)
+
+Yes. Step 8 has been fully implemented.
+
+Exactly two acceptance journeys remain. They drive the real groundhog CLI,
+workflow resolver, request renderer and exchange while substituting unrelated
+Git/readiness seams. Measured calls are 0.42s and 0.20s; setup is 0.05s each.
+All removed journeys are replaced in the design mapping by existing component
+evidence. Two new declaration parameters prove that unscoped commands cannot
+claim grouped speed validation.
+
+The whole-suite speed walk ended at 2026-10-05T11:36:40+02:00, exit 0,
+fail=0 warn=0 xfail=0 outliers=0 excluded=0 proof=speed scope=whole. Its
+covered full stage reported cov=100. The subsequent explicit coverage walk
+reused that unchanged speed proof, exit 0. No actual timing exclusion or
+raised floor was accepted. The speed log is
+`.reviews/a.full_suite_levels.step8.tmp.speed-gate.green.log`; the cov log is
+`.reviews/a.full_suite_levels.step8.tmp.cov-gate.log`.
+
+The concrete mapping check passed 95 ordered design rows, 95 nonempty
+mappings, 102 exact collected selectors and source-function existence, with
+private evidence equal to the validation table. The performance-package
+xfail search returned no matches (rg exit 1 is its successful negative result).
+Both checks are included as plan additions in this replacement request.
+
+Static checks passed in the fresh speed walk. The final Markdown gate and
+commit-plan readiness check also pass. The architecture is unchanged:
+orchestration remains in test adapters, with no production type or dependency
+added. Transcript configuration uses a public constructor argument. There is
+no new application computation, quadratic path or sorting path. Existing
+scope, proof, reporting and performance contracts passed the whole suite.
+
+Coverage measures tools with its configured omissions, at a 100% gate. These
+test fixtures and journeys are outside that measured source scope. Their
+helpers and methods are referenced by collected tests or package helpers;
+there is no unreferenced top-level symbol or impacted production class.
+The validation plan records the exact Yes sentence for all nine steps and
+has no remaining Missing work for Step 8 section. This is standalone work.
+
+### Implementation report for step 8 full_suite_levels (round 2)
+
+#### Implementation report for Step 8 for step 8 full_suite_levels (round 2)
+
+The package retains only `test_published_capture_survives_same_name_drift` and
+`test_review_off_scope_comparison_and_release`. The other execution journeys
+were deleted, following the human's two-journey limit. Tiny repository-less
+fixtures create documents, group declarations and real coverage data.
+Unrelated Git ignore/readiness/tree-identity/activation and branch discovery
+use existing seams; release planning uses the existing in-memory Git protocol.
+Fixture-local Path.resolve caching is restored by monkeypatch. There are no
+Git init/add/commit subprocesses and no PATH rewrite.
+
+The review journey earns grouped speed proof, renders its concrete scoped
+validation command, publishes the captured members, reads paths.scope from
+status and proves that same-name definition drift cannot alter bound affected
+collection. pw progress reports pending change. The workflow journey proves
+requirement precedence over ambient group selection, review-off baseline
+tightening versus added exclusions, and whole-suite release command execution.
+Scope matching, proof, capture persistence and exclusion comparison stay real.
+
+CoverageSpawns accepts public extra_lines. Two parameters added to the existing
+test_declared_group_statement reject group-speed claims for plain ghog day
+and unscoped ghog day --full=speed. The five existing performance tests keep
+their assertions and timeouts; only their obsolete docstrings changed.
+No new PBT is needed for these concrete journeys; earlier property tests cover
+the rules. Acceptance file sizes are 1, 190, 72 and 71 lines.
+
+The actual retained calls measured 0.42s and 0.20s, setup 0.05s each, teardown
+0.00s, through groundhog single with real subprocess spawning and duration
+observation. Evidence:
+`.reviews/a.full_suite_levels.step8.tmp.retained-durations.txt`.
+The whole-suite speed walk passed with zero outliers and zero exclusions;
+its covered full stage reached cov=100. The explicit cov command reused the
+unchanged speed proof. No timing baseline was raised and no actual exclusion
+was accepted for any call.
+
+The validation table maps all 95 design rows to 102 existing collected
+selectors. The checker verifies ordered scenario equality, nonempty entries,
+private-evidence equality, collection membership and AST function existence.
+The performance-package xfail search returns no matches. The implementation
+check now marks Step 8 and the document complete; its obsolete Missing work
+section is removed. Validation line endings match HEAD's LF convention.
+
+Writer notes: `.reviews/a.full_suite_levels.step8.journal.md` and
+`.reviews/a.full_suite_levels.step8.handoff.md`.
+
+### Change summary for step 8 full_suite_levels (round 2)
+
+#### Staged changes for Step 8 for step 8 full_suite_levels (round 2)
+
+The handoff staged all ten changed paths. The prepared, formatted root a.commit
+is mechanically ready, with these ordered groups:
+
+1. test(levels): describe active performance gates (two paths)
+2. test(levels): prove scoped workflow acceptance (six paths)
+3. docs(full_suite_levels): record step 8 validation (two paths)
+
+The staged paths are:
+
+- `tests/unit/tools/test_groundhog_levels_perf/__init__.py`
+- tests/unit/tools/test_groundhog_levels_perf/test_groundhog_levels_perf_tdd.py
+- `tests/unit/tools/test_full_suite_levels_acceptance/__init__.py`
+- tests/unit/tools/test_full_suite_levels_acceptance/conftest.py
+- tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_review_acceptance_tdd.py
+- tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_workflow_acceptance_tdd.py
+- tests/unit/tools/groundhog_group_support.py
+- tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py
+- docs/v0.13.0/review.code.v0.13.0.full_suite_levels.md
+- docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md
+
+The transcript's staged snapshot includes Round 1. Publication will append
+Round 2 to its working copy; the authorized residual continuation retains those
+later protocol entries if the human selects Commit. No commit is authorized.
+The requirement and group definitions are unchanged; whole-suite scope and
+its fingerprint remain the same as Round 1. No scope change is requested.
+
+### Human guidance and writer response for step 8 full_suite_levels (round 2)
+
+Human guidance:
+
+#### Human guidance for Step 8 for step 8 full_suite_levels (round 2)
+
+Human constraint: remove long execution tests, retain at most one or two
+essential journeys, improve their fixture initialization, and keep their
+calls below one second with margin. No actual timing exclusions are accepted.
+
+Writer response:
+
+#### Writer response to Round 1 findings for step 8 full_suite_levels (round 2)
+
+Accepted all four Round 1 findings; there is no disagreement.
+
+- R1: Reduced the package to exactly two essential journeys. Removed the
+  long execution tests, avoided Git subprocess initialization and unrelated
+  readiness/branch queries, retained local resolve caching, and removed the
+  PATH rewrite. Calls measure 0.42s and 0.20s with 0.05s setup each. Remapped
+  every removed selector to existing component evidence; all 95 rows check.
+  Fresh whole-suite speed validation is green, with no exclusion or outlier.
+- R2: Kept the opening and Step 8 at No while repairs were pending. After the
+  fresh speed walk and valid explicit cov noop, reassessed implementation:
+  all nine steps now read Yes, the opening reads Yes, and Missing work is gone.
+- R3: Added the public `extra_lines` constructor parameter to `CoverageSpawns`
+  and removed private `_lines` access.
+- R4: Added the cov command, exact no-xfail search and concrete mapping-check
+  command as plan-validation additions. The search's expected no-match exit
+  is 1; the mapping checker exits 0. The project speed command remains intact.
+
+The reviewer's attributed Step 8 metadata repair was accepted and replaced by
+the completed reassessment after green evidence. The commit plan was rewritten
+to describe the two-journey package, support/declaration changes, full mapping
+and completed gates. The commit handoff included the Round 1 transcript, so the
+plan now covers all ten staged paths, in three dependency-ordered groups.
+
+The production artifact-resolution cost noted outside Step 8 is not changed
+by this test-only implementation. Its related Git seams are represented by
+existing component tests. It is separate follow-up work, without a new
+production change in this request.
+
+### Reviewer focus for step 8 full_suite_levels (round 2)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-8-round-2 -->
+
+## Round 2 by reviewer - Step 8
+
+- Recorded: 2026-10-05T12:02:45+02:00
+- Exchange: code/code/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 8
+- Outcome: answer
+
+### Assessed index identity for step 8 full_suite_levels (exchange 1) (round 2)
+
+Baseline index tree: 158b7ec6cc150b8efdb15eb91648f0065a7b6c13
+
+Assessed index tree: 158b7ec6cc150b8efdb15eb91648f0065a7b6c13
+
+### Implementation check for step 8 full_suite_levels (exchange 1) (round 2)
+
+Result:
+
+Yes. Step 8 has been fully implemented.
+
+Round 1 findings R1 to R4 are resolved.
+
+R1, the reduction: the package now holds exactly two journeys, as the human required.
+
+- `test_published_capture_survives_same_name_drift` walks to grouped speed proof and renders `ghog day --full=speed --group=sentinel` with `test_scope` at `speed`. It publishes, reads `paths.scope` and `bound_scope` from `status`, and checks that the persisted capture lists only `tests/old/test_core.py`. After the same-name pattern drift, `ghog affected --no-cov --scope-file=<paths.scope>` still collects only the old member, with `GHOG_GROUP=other` set, and `pw progress` shows `pending change`.
+- `test_review_off_scope_comparison_and_release` proves that `pw scope day --full=speed` ignores an ambient `GHOG_GROUP`. A speed walk lowering a baseline leaves `exclusions=unchanged`, and a newly accepted entry gives `exclusions=changed`. Both divergent release plans carry exactly `ghog day --full=cov --whole-suite`, and that command runs the whole suite despite `GHOG_GROUP`.
+
+The fixture makes no Git subprocess calls and has no PATH rewrite. It replaces only the ignore, readiness, index-tree, activation and branch-discovery seams, as Step 6's round trip does. Scope matching, proof, capture persistence and exclusion comparison stay real. The validation plan records this departure from the plan's "pytest boundary only" wording. Measured calls are 0.42s and 0.20s, with 0.05s setup (`.reviews/a.full_suite_levels.step8.tmp.retained-durations.txt`).
+
+The speed walk is green with `outliers=0 excluded=0` (`.reviews/a.full_suite_levels.step8.tmp.speed-gate.green.log`), and `proof=speed` matches the current digest `9658061a...`.
+
+R2: the document opening line now reads Yes legitimately, after the green speed walk.
+
+R3: `CoverageSpawns` gains a public `extra_lines` parameter.
+
+R4: the request carries the `xfail` search and the mapping check. Run read-only, the mapping check reports 95 ordered design rows, 95 nonempty mappings and 102 collected selectors, and the `xfail` search returns no match.
+
+`test_declared_group_statement` gains two parameters proving that unscoped declared walks claim no group speed.
+
+The remaining finding (R5) concerns the protocol transcript, not the Step 8 implementation.
+
+Validation plan effects:
+
+No reviewer edit this round. The writer's Step 8 rows were checked and found accurate:
+
+- the Yes sentence;
+- the green speed and cov evidence;
+- the seam departure note;
+- the 95-row mapping;
+- the Missing work for Step 8 section removed.
+
+The document's opening line `Yes, it is implemented.` is now consistent, with all nine steps reading Yes after a green speed walk. A pre-edit blob was recorded, but no repair followed.
+
+### Pre-repair mandatory checks and coverage for step 8 full_suite_levels (exchange 1) (round 2)
+
+Requestor evidence: `ghog day --full=speed --whole-suite` ended at 11:36:40 with:
+
+- full: `fail=0 warn=0 xfail=0 cov=100 exit=0`;
+- timings: `outliers=0 excluded=0 exit=0`;
+- day: `full=speed proof=speed reused=none scope=whole exit=0`.
+
+The cov command reused that proof. `.reviews/a.ghog.day.ok` holds `proof=speed` with `digest=9658061a...`, equal to the read-only `snapshot.source_digest` recomputation.
+
+Reviewer evidence:
+
+- static reading of both retained journeys, the new fixture and the two support-file diffs;
+- the retained-durations file and the speed log;
+- the mapping check, run read-only: it parses source with AST and reads `.pytest_cache` node ids, running no test, and passes;
+- the `xfail` search through `rg`, with no match;
+- comparison of the request-time and live index trees, and the independent commit-plan check;
+- line-ending and BOM scans: the only staged BOM is the one already committed at HEAD from Step 7, transcript line 6993;
+- `markdown-check.bat`, which exits 1 with MD050 at versioned transcript lines 8124 and 8126 (R5).
+
+The reviewer ran no walk, test or coverage measurement.
+
+### Resolved validation set and sources for step 8 full_suite_levels (exchange 1) (round 2)
+
+The request and the current resolver contract give the same ordered set:
+
+1. `ghog day --full=speed --whole-suite` (project).
+2. `ghog day --full=cov --whole-suite` (plan).
+3. `rg -n "xfail" tests/unit/tools/test_groundhog_levels_perf` (plan).
+4. `python .reviews/a.full_suite_levels.step8.tmp.mapping.py` (plan): the mapping-completeness check.
+
+Command 4 lives in the ignored artifact home, so it is requestor-private evidence that a later reader cannot rerun from the repository. That is acceptable for this round, because the reviewer ran it read-only and it passed.
+
+The reviewer did not execute the walks. Commands 3 and 4 match their criteria.
+
+### Resolver drift and direction for step 8 full_suite_levels (exchange 1) (round 2)
+
+None. The round 1 drift (R4) is resolved: the `xfail` search and the mapping check appear with source `plan`.
+
+### Repository state around validation for step 8 full_suite_levels (exchange 1) (round 2)
+
+The request-time index tree, the reviewer baseline and the final assessed index are the same: `158b7ec6cc150b8efdb15eb91648f0065a7b6c13`.
+
+The validation state was captured before and after over the same 16 ordered paths: the 10 staged paths, versioned transcript included, plus `a.ghog.log`, `a.ghog.status`, `a.ghog.affected.log`, `.testmondata` and two unused reviewer log paths. The comparison returns `acceptable=true` with no difference.
+
+The transcript is staged in Group 3 (lines up to the round 1 answer) and also carries the unstaged round 2 request entry, where the MD050 lines are. The reviewer edits neither.
+
+Umbrella: none. The launcher comparison returns `applicable=false`, `changed=false`.
+
+### Repair inventory for step 8 full_suite_levels (exchange 1) (round 2)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 8 full_suite_levels (exchange 1) (round 2)
+
+`commit-plan-check.bat --format json` was run independently against the received state (`.reviews/a.full_suite_levels.step8.tmp.r2.rv-cpc.json`). It returned exit 0, `state=valid`, `ready=true`, groups of 2, 6 and 2 paths (10 in total) and `diagnostics=[]`.
+
+Ordered groups:
+
+1. `test(levels): describe active performance gates` (2 paths)
+2. `test(levels): prove scoped workflow acceptance` (6 paths, now including `tests/unit/tools/groundhog_group_support.py` and the request-scope test)
+3. `docs(full_suite_levels): record step 8 validation` (2 paths: the validation plan and the protocol transcript staged by after-check, as in Step 4)
+
+Membership, order and subjects match the staged work, so `a.commit` needs no amendment for the implementation. The staged transcript in Group 3 ends before the round 2 request, so the MD050 lines (R5) are not in the staged blob, but the residual review commit will carry them unless they are corrected. This mechanical result does not authorize a commit.
+
+### Findings and boundaries for step 8 full_suite_levels (exchange 1) (round 2)
+
+Unresolved findings:
+
+- R5 (P1, requestor): the round 2 transcript entry breaks the Markdown gate. The round 2 change summary ("Staged changes for Step 8", transcript heading at line 8113) lists staged paths as bare list items. The two `test_groundhog_levels_perf` and `test_full_suite_levels_acceptance` package initializer paths render their dunder name as strong emphasis. `markdown-check.bat` exits 1 with MD050 at versioned transcript lines 8124 and 8126, and `check.bat` runs `markdown-check.bat`, so `ghog check` and every walk check step on this worktree fail again. This is the same failure class as Step 6 round 1. With the human's explicit authorization, wrap those two paths in code spans and confirm `markdown-check.bat` exits 0. For the replacement round, write every path in authored inputs as a code span. Lint the rendered `--transcript-summary-output` with `markdown-check.bat` before `publish-request`, for example by copying it, with `.markdownlint.json` and an empty `{"version": 1, "allowances": []}` baseline, into a scratch Git repository, because a fragment linted outside the repository's own checker misses MD050. The implementation, tests and validation evidence need no change.
+
+Boundary-crossing work:
+
+- Transcript lines 8124 and 8126 are protocol-owned. Correcting them needs the human's explicit authorization, as for the Step 6 corrections.
+- Making the renderer lint, or code-span, path-like list items of authored inputs before writing the transcript summary would remove this recurring failure class for every requestor. That is a change to the committed Step 6 renderer, outside the test-only Step 8. It belongs with the follow-ups already noted (caller-input BOM rejection and per-invocation caching of `ReviewArtifactConfiguration.load`).
+
+### Writer instructions for step 8 full_suite_levels (exchange 1) (round 2)
+
+Do not change the implementation. With the human's explicit authorization, correct transcript lines 8124 and 8126 (code spans around the two package initializer paths), then confirm `markdown-check.bat` exits 0. Publish the replacement request with the same four validation commands. Write every path in the authored inputs as a code span, and lint the rendered transcript summary with `markdown-check.bat` in a scratch repository before `publish-request`.
+
+The speed proof applies unchanged, because the correction touches only Markdown and leaves the Python digest as it is. The reviewer made no repair, and the request carried no Human guidance block.
+
+### Decision rationale for step 8 full_suite_levels (exchange 1) (round 2)
+
+Recommend changes-requested, for the transcript gate only. The six readiness-floor results:
+
+1. Identity: PASS. The exact plan, step 8, round 2, occurrence 1, the code identity, `Umbrella draft: none`, request tree `158b7ec6...` and the whole-suite `test_scope` (`proof: speed`) agree with the live exchange and `bound_scope`.
+2. Implementation completeness: PASS. Two journeys remain under 0.5s each, the 95 design rows are mapped, and the opening line is legitimate.
+3. Validation and coverage: FAIL. The staged tree's speed and cov evidence is green, but this round's publication left the worktree's mandatory Markdown gate red (R5), so `ghog check` fails on the current worktree.
+4. Staged attribution: PASS. No reviewer change was made.
+5. Unresolved findings: FAIL. R5 is open; R1 to R4 are resolved.
+6. `a.commit`: PASS. The independent check returned exit 0, `state=valid`, `ready=true`, 10 paths in three accurate groups and no diagnostics.
+
+Once the authorized two-line transcript correction lands and the next request lints clean, nothing else blocks commit-readiness.
+
+### Final reviewer decision for step 8 full_suite_levels (exchange 1) (round 2)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-8-round-2 -->
+
+## Round 3 by requestor - Step 8
+
+- Recorded: 2026-10-05T12:17:53+02:00
+- Exchange: code/code/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 8
+- Outcome: request
+
+### Review identity for step 8 full_suite_levels (round 3)
+
+Umbrella draft: none
+Implementation plan: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+Implementation step: 8
+Review round: 3
+
+### Code review evidence for step 8 full_suite_levels (round 3)
+
+request_index_tree: 158b7ec6cc150b8efdb15eb91648f0065a7b6c13
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+- `ghog day --full=cov --whole-suite` (sources: plan)
+- `rg -n "xfail" tests/unit/tools/test_groundhog_levels_perf` (sources: plan)
+- `python .reviews/a.full_suite_levels.step8.tmp.mapping.py` (sources: plan)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: test(levels): describe active performance gates
+group 1 path: tests/unit/tools/test_groundhog_levels_perf/__init__.py
+group 1 path: tests/unit/tools/test_groundhog_levels_perf/test_groundhog_levels_perf_tdd.py
+group 2: test(levels): prove scoped workflow acceptance
+group 2 path: tests/unit/tools/test_full_suite_levels_acceptance/__init__.py
+group 2 path: tests/unit/tools/test_full_suite_levels_acceptance/conftest.py
+group 2 path: tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_review_acceptance_tdd.py
+group 2 path: tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_workflow_acceptance_tdd.py
+group 2 path: tests/unit/tools/groundhog_group_support.py
+group 2 path: tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py
+group 3: docs(full_suite_levels): record step 8 validation
+group 3 path: docs/v0.13.0/review.code.v0.13.0.full_suite_levels.md
+group 3 path: docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md
+staged path: docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md
+staged path: docs/v0.13.0/review.code.v0.13.0.full_suite_levels.md
+staged path: tests/unit/tools/groundhog_group_support.py
+staged path: tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py
+staged path: tests/unit/tools/test_full_suite_levels_acceptance/__init__.py
+staged path: tests/unit/tools/test_full_suite_levels_acceptance/conftest.py
+staged path: tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_review_acceptance_tdd.py
+staged path: tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_workflow_acceptance_tdd.py
+staged path: tests/unit/tools/test_groundhog_levels_perf/__init__.py
+staged path: tests/unit/tools/test_groundhog_levels_perf/test_groundhog_levels_perf_tdd.py
+```
+
+### Validation scope for step 8 full_suite_levels (round 3)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 8 full_suite_levels (round 3)
+
+#### Assessment of Step 8 implementation for step 8 full_suite_levels (round 3)
+
+Yes. Step 8 has been fully implemented.
+
+Exactly two acceptance journeys remain. They drive the real groundhog CLI,
+workflow resolver, request renderer and exchange while substituting unrelated
+Git/readiness seams. Measured calls are 0.42s and 0.20s; setup is 0.05s each.
+All removed journeys are replaced in the design mapping by existing component
+evidence. Two new declaration parameters prove that unscoped commands cannot
+claim grouped speed validation.
+
+The whole-suite speed walk ended at 2026-10-05T11:36:40+02:00, exit 0,
+fail=0 warn=0 xfail=0 outliers=0 excluded=0 proof=speed scope=whole. Its
+covered full stage reported cov=100. The subsequent explicit coverage walk
+reused that unchanged speed proof, exit 0. No actual timing exclusion or
+raised floor was accepted. The speed log is
+`.reviews/a.full_suite_levels.step8.tmp.speed-gate.green.log`; the cov log is
+`.reviews/a.full_suite_levels.step8.tmp.cov-gate.log`.
+
+The concrete mapping check passed 95 ordered design rows, 95 nonempty
+mappings, 102 exact collected selectors and source-function existence, with
+private evidence equal to the validation table. The performance-package
+xfail search returned no matches (rg exit 1 is its successful negative result).
+Both checks are included as plan additions in this replacement request.
+
+Static checks passed in the fresh speed walk. The final Markdown gate and
+commit-plan readiness check also pass. The architecture is unchanged:
+orchestration remains in test adapters, with no production type or dependency
+added. Transcript configuration uses a public constructor argument. There is
+no new application computation, quadratic path or sorting path. Existing
+scope, proof, reporting and performance contracts passed the whole suite.
+
+Coverage measures tools with its configured omissions, at a 100% gate. These
+test fixtures and journeys are outside that measured source scope. Their
+helpers and methods are referenced by collected tests or package helpers;
+there is no unreferenced top-level symbol or impacted production class.
+The validation plan records the exact Yes sentence for all nine steps and
+has no remaining Missing work for Step 8 section. This is standalone work.
+
+### Implementation report for step 8 full_suite_levels (round 3)
+
+#### Implementation report for Step 8 for step 8 full_suite_levels (round 3)
+
+The package retains only `test_published_capture_survives_same_name_drift` and
+`test_review_off_scope_comparison_and_release`. The other execution journeys
+were deleted, following the human's two-journey limit. Tiny repository-less
+fixtures create documents, group declarations and real coverage data.
+Unrelated Git ignore/readiness/tree-identity/activation and branch discovery
+use existing seams; release planning uses the existing in-memory Git protocol.
+Fixture-local Path.resolve caching is restored by monkeypatch. There are no
+Git init/add/commit subprocesses and no PATH rewrite.
+
+The review journey earns grouped speed proof, renders its concrete scoped
+validation command, publishes the captured members, reads paths.scope from
+status and proves that same-name definition drift cannot alter bound affected
+collection. pw progress reports pending change. The workflow journey proves
+requirement precedence over ambient group selection, review-off baseline
+tightening versus added exclusions, and whole-suite release command execution.
+Scope matching, proof, capture persistence and exclusion comparison stay real.
+
+CoverageSpawns accepts public extra_lines. Two parameters added to the existing
+test_declared_group_statement reject group-speed claims for plain ghog day
+and unscoped ghog day --full=speed. The five existing performance tests keep
+their assertions and timeouts; only their obsolete docstrings changed.
+No new PBT is needed for these concrete journeys; earlier property tests cover
+the rules. Acceptance file sizes are 1, 190, 72 and 71 lines.
+
+The actual retained calls measured 0.42s and 0.20s, setup 0.05s each, teardown
+0.00s, through groundhog single with real subprocess spawning and duration
+observation. Evidence:
+`.reviews/a.full_suite_levels.step8.tmp.retained-durations.txt`.
+The whole-suite speed walk passed with zero outliers and zero exclusions;
+its covered full stage reached cov=100. The explicit cov command reused the
+unchanged speed proof. No timing baseline was raised and no actual exclusion
+was accepted for any call.
+
+The validation table maps all 95 design rows to 102 existing collected
+selectors. The checker verifies ordered scenario equality, nonempty entries,
+private-evidence equality, collection membership and AST function existence.
+The performance-package xfail search returns no matches. The implementation
+check now marks Step 8 and the document complete; its obsolete Missing work
+section is removed. Validation line endings match HEAD's LF convention.
+
+Writer notes: `.reviews/a.full_suite_levels.step8.journal.md` and
+`.reviews/a.full_suite_levels.step8.handoff.md`.
+
+### Change summary for step 8 full_suite_levels (round 3)
+
+#### Staged changes for Step 8 for step 8 full_suite_levels (round 3)
+
+The handoff staged all ten changed paths. The prepared, formatted root `a.commit`
+is mechanically ready, with these ordered groups:
+
+1. `test(levels): describe active performance gates` (two paths)
+2. `test(levels): prove scoped workflow acceptance` (six paths)
+3. `docs(full_suite_levels): record step 8 validation` (two paths)
+
+The staged paths are:
+
+- `tests/unit/tools/test_groundhog_levels_perf/__init__.py`
+- `tests/unit/tools/test_groundhog_levels_perf/test_groundhog_levels_perf_tdd.py`
+- `tests/unit/tools/test_full_suite_levels_acceptance/__init__.py`
+- `tests/unit/tools/test_full_suite_levels_acceptance/conftest.py`
+- `tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_review_acceptance_tdd.py`
+- `tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_workflow_acceptance_tdd.py`
+- `tests/unit/tools/groundhog_group_support.py`
+- `tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py`
+- `docs/v0.13.0/review.code.v0.13.0.full_suite_levels.md`
+- `docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md`
+
+The transcript's staged snapshot includes Round 1. Later review entries remain
+in its working copy for the authorized residual continuation if the human
+selects Commit. No commit is authorized. R5 is a two-line formatting correction
+in the unstaged Round 2 entry; every path in this replacement input has code
+spans. Commit membership, order and subjects remain accurate.
+
+The requirement and group definitions are unchanged; whole-suite scope and
+its fingerprint remain the same as Rounds 1 and 2. No scope change is requested.
+
+### Human guidance and writer response for step 8 full_suite_levels (round 3)
+
+Human guidance:
+
+#### Human guidance for Step 8 for step 8 full_suite_levels (round 3)
+
+Human constraint: remove long execution tests, retain at most one or two
+essential journeys, improve their fixture initialization, and keep their
+calls below one second with margin. No actual timing exclusions are accepted.
+
+The human explicitly authorized the two-line transcript code-span correction
+and continuation to the replacement review round. That authorization covers
+the formatting repair and review submission; no commit is authorized.
+
+Writer response:
+
+#### Writer response to Round 2 findings for step 8 full_suite_levels (round 3)
+
+Round 2 confirms that Step 8 is fully implemented and all Round 1 findings
+are resolved. Its only remaining finding, R5, is accepted without disagreement.
+
+R5 concerns two bare initializer paths in the Round 2 transcript entry. The
+replacement change summary writes every staged path in code spans. Its rendered
+transcript summary passed the repository's actual Markdown rule catalog, using
+a scratch Git repository, an empty baseline and normal transcript wrappers.
+
+The human explicitly authorized the narrow historical transcript correction
+after the answer. Only the two initializer paths at lines 8124 and 8126 were
+wrapped in code spans, adding exactly four delimiters and preserving the
+original encoding and line endings. The whole-repository Markdown gate then
+passed, exit 0. No implementation or test change was made.
+
+The implementation, acceptance tests, validation mapping, requirement and group
+definitions need no change. The fresh whole-suite speed proof remains valid:
+calls measured 0.42s and 0.20s, with zero outliers and zero exclusions. The
+explicit cov command reused this proof. All four validation commands and their
+sources remain unchanged in the replacement request.
+
+The reviewer made no repairs. The independent commit-plan assessment returned
+ready with no diagnostics for ten paths in groups of two, six and two. The
+prepared `a.commit` therefore needs no membership, grouping or subject change.
+
+Generic renderer hardening is outside this Step 8 test implementation and is
+not included in this request.
+
+### Reviewer focus for step 8 full_suite_levels (round 3)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-8-round-3 -->
+
+## Round 3 by reviewer - Step 8
+
+- Recorded: 2026-10-05T12:25:13+02:00
+- Exchange: code/code/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 8
+- Outcome: answer
+
+### Assessed index identity for step 8 full_suite_levels (exchange 1) (round 3)
+
+Baseline index tree: 158b7ec6cc150b8efdb15eb91648f0065a7b6c13
+
+Assessed index tree: 158b7ec6cc150b8efdb15eb91648f0065a7b6c13
+
+### Implementation check for step 8 full_suite_levels (exchange 1) (round 3)
+
+Result:
+
+Yes. Step 8 has been fully implemented.
+
+The request tree `158b7ec6...` is the exact index assessed in round 2, so the round 2 implementation assessment stands unchanged:
+
+- two sub-second acceptance journeys driving the real scope, proof, capture, exchange, workflow and release paths through fixture seams;
+- `CoverageSpawns.extra_lines`;
+- the two declared-policy parameters;
+- the 95-row mapping;
+- the active perf-gate docstrings.
+
+The only change since round 2 is outside the index: the human-authorized correction of transcript lines 8124 and 8126 (R5). With it, `markdown-check.bat` exits 0 on the full repository, including this round's newly appended request entry, whose change summary writes every staged path in a code span.
+
+Architecture, performance and coverage are as in round 2: test-only, no production change, both calls under 0.5s, and `cov=100` in the green speed walk on the current digest.
+
+Validation plan effects:
+
+No reviewer edit this round. The Step 8 rows and the document's opening line `Yes, it is implemented.` are unchanged since round 2 and remain accurate. A pre-edit blob was recorded, but no repair followed.
+
+### Pre-repair mandatory checks and coverage for step 8 full_suite_levels (exchange 1) (round 3)
+
+Requestor evidence is unchanged from round 2. The green `ghog day --full=speed --whole-suite` at 11:36:40 reported `cov=100 outliers=0 excluded=0 proof=speed`, the cov command reused that proof, and the retained calls measured 0.42s and 0.20s. `.reviews/a.ghog.day.ok` still holds `proof=speed` with `digest=9658061a...`, equal to the read-only recomputation now.
+
+Reviewer evidence:
+
+- `markdown-check.bat` exits 0 on the full repository;
+- a line-by-line comparison of the saved pre-fix transcript with the current one shows exactly lines 8124 and 8126 changed, each gaining one code span;
+- the mapping check, rerun read-only, passes with 95 rows and 102 collected selectors;
+- the live index tree equals the request tree, and the independent commit-plan check is ready.
+
+The reviewer ran no walk, test or coverage measurement.
+
+### Resolved validation set and sources for step 8 full_suite_levels (exchange 1) (round 3)
+
+The request and the current resolver contract give the same four commands as round 2:
+
+1. `ghog day --full=speed --whole-suite` (project).
+2. `ghog day --full=cov --whole-suite` (plan).
+3. `rg -n "xfail" tests/unit/tools/test_groundhog_levels_perf` (plan).
+4. `python .reviews/a.full_suite_levels.step8.tmp.mapping.py` (plan).
+
+The reviewer did not execute the walks. Commands 3 and 4 still match their criteria on the identical tree.
+
+### Resolver drift and direction for step 8 full_suite_levels (exchange 1) (round 3)
+
+None. The command order and source labels match the current resolver contract.
+
+### Repository state around validation for step 8 full_suite_levels (exchange 1) (round 3)
+
+The request-time index tree, the reviewer baseline and the final assessed index are the same: `158b7ec6cc150b8efdb15eb91648f0065a7b6c13`, also the round 2 tree.
+
+The validation state was captured before and after over the same 16 ordered paths: the 10 staged paths plus `a.ghog.log`, `a.ghog.status`, `a.ghog.affected.log`, `.testmondata` and two unused reviewer log paths. The comparison returns `acceptable=true` with no difference. The unstaged transcript carries the authorized two-line correction and the appended round 3 entry; the reviewer edits neither.
+
+Umbrella: none. The launcher comparison returns `applicable=false`, `changed=false`.
+
+### Repair inventory for step 8 full_suite_levels (exchange 1) (round 3)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 8 full_suite_levels (exchange 1) (round 3)
+
+`commit-plan-check.bat --format json` was run independently against the received state (`.reviews/a.full_suite_levels.step8.tmp.r3.rv-cpc.json`). It returned exit 0, `state=valid`, `ready=true`, groups of 2, 6 and 2 paths (10 in total) and `diagnostics=[]`.
+
+Ordered groups:
+
+1. `test(levels): describe active performance gates`
+2. `test(levels): prove scoped workflow acceptance`
+3. `docs(full_suite_levels): record step 8 validation`, which holds the validation plan and the staged protocol transcript
+
+Membership, order and subjects match the staged work. `a.commit` remains accurate and needs no amendment. This mechanical result does not authorize a commit.
+
+### Findings and boundaries for step 8 full_suite_levels (exchange 1) (round 3)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Human guidance response for step 8 full_suite_levels (exchange 1) (round 3)
+
+Human guidance:
+
+Human constraint: remove long execution tests, retain at most one or two essential journeys, improve their fixture initialization, and keep their calls below one second with margin. No actual timing exclusions are accepted.
+
+The human explicitly authorized the two-line transcript code-span correction and continuation to the replacement review round. That authorization covers the formatting repair and review submission; no commit is authorized.
+
+Guidance response:
+
+The guidance is satisfied and asks the reviewer for no repair:
+
+- Journey limit: exactly two essential journeys remain.
+- Fixture initialization: the fixture creates no Git repository, runs no Git subprocess and rewrites no PATH, with 0.05s setup per test.
+- Call times: the calls measure 0.42s and 0.20s, well below the 1.00s floor.
+- No exclusions: the green speed walk reports `excluded=0` and no raised baseline.
+- Transcript correction: the authorized correction changed exactly lines 8124 and 8126, wrapping two paths in code spans. A line-by-line comparison with the saved pre-fix copy shows no other difference within that span.
+- Commit authority: this answer only recommends commit-readiness. It does not authorize the commit, which remains the human's decision at the gate.
+
+### Writer instructions for step 8 full_suite_levels (exchange 1) (round 3)
+
+No further Step 8 work is required. Present this advisory commit-ready recommendation at the convergence gate, where the human chooses the next action. The reviewer made no repair, and the Human guidance block is addressed in the guidance response.
+
+Follow-ups carried for after this effort, outside Step 8 and only with the human's agreement:
+
+- per-invocation caching of `ReviewArtifactConfiguration.load`;
+- caller-input BOM rejection in the renderer;
+- a renderer-side lint or code-span guard for path-like list items in transcript summaries.
+
+### Decision rationale for step 8 full_suite_levels (exchange 1) (round 3)
+
+Recommend commit-ready. The six readiness-floor results:
+
+1. Identity: PASS. The exact plan, step 8, round 3, occurrence 1, the code identity, `Umbrella draft: none`, request tree `158b7ec6...` and the whole-suite `test_scope` (`proof: speed`) agree with the live exchange and `bound_scope`.
+2. Implementation completeness: PASS. Two sub-second journeys remain, all 95 design rows are mapped, and the opening line is legitimate.
+3. Validation and coverage: PASS. The speed proof matches the current digest with `cov=100 outliers=0 excluded=0`, the `xfail` search and the mapping check pass, and `markdown-check.bat` exits 0 on the full repository.
+4. Staged attribution: PASS. No reviewer change was made, and the transcript correction is exactly the human-authorized two lines.
+5. Unresolved findings: PASS. R1 to R5 are resolved, and the Human guidance is satisfied.
+6. `a.commit`: PASS. The independent check returned exit 0, `state=valid`, `ready=true`, 10 paths in three accurate groups and no diagnostics.
+
+This round made no substantive repair. The recommendation is advisory and does not authorize a commit.
+
+### Final reviewer decision for step 8 full_suite_levels (exchange 1) (round 3)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-8-round-3 -->
+
+## Round 3 by human - Step 8 - human-confirmation
+
+- Recorded: 2026-10-05T17:28:46+02:00
+- Exchange: code/code/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 8
+- Outcome: human-confirmation
+
+Human choice: Rework and review again
+Outcome: another-round
+Guidance: # Human guidance
+
+Close the whole-suite validation gaps for main and every long-lived integration destination, including develop and umbrella branches integrating topic branches. Run the whole-suite coverage gate before promotion or in-place release preparation even when the source already contains the latest destination. Keep the fast fixtures, at most two execution journeys, sub-second test calls and no timing exclusions.
+
+<!-- review-entry-id: human-confirmation-round-3 -->
+
+## Round 4 by requestor - Step 8
+
+- Recorded: 2026-10-05T18:27:51+02:00
+- Exchange: code/code/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 8
+- Outcome: request
+
+### Review identity for step 8 full_suite_levels (round 4)
+
+Umbrella draft: none
+Implementation plan: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+Implementation step: 8
+Review round: 4
+
+### Code review evidence for step 8 full_suite_levels (round 4)
+
+request_index_tree: dc3293fba956b9757dcacc4622fbd0eb183e957c
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+- `ghog day --full=cov --whole-suite` (sources: plan)
+- `rg -n xfail tests/unit/tools/test_groundhog_levels_perf` (sources: plan)
+- `python .reviews/a.full_suite_levels.step8.tmp.mapping.py` (sources: request)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: test(levels): describe active performance gates
+group 1 path: tests/unit/tools/test_groundhog_levels_perf/__init__.py
+group 1 path: tests/unit/tools/test_groundhog_levels_perf/test_groundhog_levels_perf_tdd.py
+group 2: fix(prepare-release): gate every promotion
+group 2 path: tools/prepare_release/prepare_release_plan_workflow.py
+group 2 path: instructions/prepare-release.md
+group 2 path: .github/skills/prepare-release/SKILL.md
+group 2 path: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+group 2 path: docs/v0.13.0/design.v0.13.0.full_suite_levels.md
+group 2 path: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+group 2 path: tests/unit/tools/prepare_release/test_prepare_release_plan_workflow.py
+group 2 path: tests/unit/tools/prepare_release/test_prepare_release_plan_targets_workflow.py
+group 2 path: tests/unit/tools/test_prepare_release_whole_suite/__init__.py
+group 2 path: tests/unit/tools/test_prepare_release_whole_suite/test_prepare_release_whole_suite_tdd.py
+group 2 path: tests/unit/tools/test_instruction_structure/test_prepare_release_instruction_tdd.py
+group 3: test(levels): prove scoped workflow acceptance
+group 3 path: tests/unit/tools/test_full_suite_levels_acceptance/__init__.py
+group 3 path: tests/unit/tools/test_full_suite_levels_acceptance/conftest.py
+group 3 path: tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_review_acceptance_tdd.py
+group 3 path: tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_workflow_acceptance_tdd.py
+group 3 path: tests/unit/tools/groundhog_group_support.py
+group 3 path: tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py
+group 3 path: tests/unit/tools/test_code_review_request_scope/__init__.py
+group 4: docs(full_suite_levels): record step 8 validation
+group 4 path: docs/v0.13.0/review.code.v0.13.0.full_suite_levels.md
+group 4 path: docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md
+staged path: .github/skills/prepare-release/SKILL.md
+staged path: docs/v0.13.0/design.v0.13.0.full_suite_levels.md
+staged path: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+staged path: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+staged path: docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md
+staged path: docs/v0.13.0/review.code.v0.13.0.full_suite_levels.md
+staged path: instructions/prepare-release.md
+staged path: tests/unit/tools/groundhog_group_support.py
+staged path: tests/unit/tools/prepare_release/test_prepare_release_plan_targets_workflow.py
+staged path: tests/unit/tools/prepare_release/test_prepare_release_plan_workflow.py
+staged path: tests/unit/tools/test_code_review_request_scope/__init__.py
+staged path: tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py
+staged path: tests/unit/tools/test_full_suite_levels_acceptance/__init__.py
+staged path: tests/unit/tools/test_full_suite_levels_acceptance/conftest.py
+staged path: tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_review_acceptance_tdd.py
+staged path: tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_workflow_acceptance_tdd.py
+staged path: tests/unit/tools/test_groundhog_levels_perf/__init__.py
+staged path: tests/unit/tools/test_groundhog_levels_perf/test_groundhog_levels_perf_tdd.py
+staged path: tests/unit/tools/test_instruction_structure/test_prepare_release_instruction_tdd.py
+staged path: tests/unit/tools/test_prepare_release_whole_suite/__init__.py
+staged path: tests/unit/tools/test_prepare_release_whole_suite/test_prepare_release_whole_suite_tdd.py
+staged path: tools/prepare_release/prepare_release_plan_workflow.py
+```
+
+### Validation scope for step 8 full_suite_levels (round 4)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 8 full_suite_levels (round 4)
+
+#### Writer assessment for Round 4 for step 8 full_suite_levels (round 4)
+
+Yes. Step 8 has been fully implemented and validated.
+
+The planner requires whole-suite coverage before on-main preparation, direct
+topic promotion, current integration promotion and resumed integrated-topic
+continuation. Existing replay and sync gates remain. The destinations include
+main, develop, arbitrary configured integration names and umbrella slugs.
+Already-released topics remain a no-op. The canonical workflow requires tree
+equality after merging; any different destination tree must pass the gate.
+
+Exactly two acceptance execution journeys remain. Their tiny effort fixtures
+substitute unrelated Git seams and the pytest child boundary; scope, proof,
+coverage data, persistence and exclusion comparisons remain real. Nineteen fast
+synthetic release cases establish candidate ordering and destination handling.
+Nine static contracts establish the corresponding lifecycle instructions.
+
+The review-scope replacement test was profiled after the speed gate flagged
+its call at 1.14s. Publication filesystem work dominated. Its first-round
+baseline is now initialized and validated in a fixture, retaining every
+assertion; the call still exercises frozen membership and replacement
+publication. The resolution cache remains fixture-local and restored.
+
+The production correction adds constant-size operation tuples, with no new
+domain dependency, quadratic traversal or sorting. The measured source scope
+is tools; acceptance and support files are outside that gate. Every added
+fixture, helper and test has a static reference. No new PBT is needed because
+the existing level, group and proof property suites cover these rules.
+
+Physical line counts are 458 for the planner, 425 for the scope test, 190 for
+the acceptance fixture, 72 and 71 for the two journeys, and 139 for the
+synthetic topology module. Each is below the 650-line ceiling. No architecture
+smell, size issue, unreferenced helper or feature loss was found.
+
+The unchanged whole-suite scope identity is independent of membership. New
+source and test content requires fresh proof but no scope-change disclosure.
+All 95 design rows retain their ordered mapping to 102 exact collected
+selectors, supplemented by the new lifecycle cases for row 53.
+
+Fresh whole-suite speed validation completed at 2026-10-05T18:18:00+02:00: 3,585 tests passed, coverage reached 100%, and warnings, xfails, outliers and exclusions were zero. The explicit whole-suite coverage command completed at 18:19:53+02:00, reusing the valid unchanged speed proof. Freshness was verified for both commands.
+
+Focused measurements are 0.33s and 0.23s for the two acceptance calls, with 0.04s setup each. The repaired scope replacement measures 0.48s call and 0.33s setup. All 19 synthetic calls are below one second. The mapping checker passes 95 ordered rows and 102 exact selectors; the performance-package xfail search has no matches.
+
+The root commit plan contains four groups covering all 22 staged paths, with Step 8 validation last. No timing exclusion or commit is authorized.
+
+### Implementation report for step 8 full_suite_levels (round 4)
+
+#### Implementation report for Round 4 for step 8 full_suite_levels (round 4)
+
+The release lifecycle now requires whole-suite coverage even when a candidate
+already contains its destination. On-main preparation and resumed integration
+continuation require the same gate. This covers develop, configured long-lived
+integration names and the umbrella branch integrating its topic branches.
+
+The planner changes are in
+`tools/prepare_release/prepare_release_plan_workflow.py`. The canonical routine
+is in `instructions/prepare-release.md`; provider discovery metadata and the
+requirement, design and plan are aligned. A merge with the tested source tree
+can reuse the validation; conflict resolution or another tree change requires
+validation of the destination before continuation.
+
+`tests/unit/tools/test_prepare_release_whole_suite/` adds 12 topic cases across
+direct, replayed and already-integrated routes, six integration-to-main cases
+across current and stale main, and one already-released no-op. The existing
+planner expectations and nine static instruction cases cover the same changes.
+The workflow journey additionally establishes the main preparation gate.
+
+The acceptance package retains one publication journey and one workflow and
+release journey. Fixtures create tiny isolated efforts without Git processes;
+real scope, proof, coverage data, captures and exclusion comparisons remain.
+The public coverage-spawn constructor carries extra transcript lines. Two
+declaration parameters prove unscoped walks cannot claim grouped speed.
+
+The flagged scope round trip now initializes and validates its first published
+baseline in a fixture. All original assertions remain, including frozen
+collection, scope-change disclosure and replacement publication. Its local
+resolution cache is restored by monkeypatch. This is a fixture initialization
+change to an existing component test, preserving the two-journey limit.
+
+The fresh whole-suite speed day passed 3,585 tests with 100% coverage, no warnings or xfails, and zero outliers or exclusions. Its unchanged whole-suite proof satisfied the explicit coverage day. The two acceptance calls measure 0.33s and 0.23s, with 0.04s setup each; the scope component replacement measures 0.48s call and 0.33s setup. All 19 synthetic release calls remain below one second.
+
+The ordered mapping covers 95 design rows and 102 exact collected selectors. The complete staged inventory has 22 paths in four commit groups, with validation and the review record last. No production type is added, no timing policy is weakened and no commit is authorized.
+
+Writer notes: `.reviews/a.full_suite_levels.step8.journal.md` and
+`.reviews/a.full_suite_levels.step8.handoff.md`.
+
+### Change summary for step 8 full_suite_levels (round 4)
+
+#### Changes since Round 3 for step 8 full_suite_levels (round 4)
+
+The human requested a new implementation round after commit-ready, to close
+whole-suite lifecycle bypasses for main and all long-lived integration branches.
+
+- The release planner now gates main preparation, direct feature promotion,
+  current integration promotion and resumed integrated-topic continuation.
+- The canonical release workflow requires the gate for generic and umbrella
+  integration destinations, even when the candidate contains the latest
+  destination. It also checks post-merge tree equality and gates a changed tree.
+- The umbrella-exhaustion continuation gates integration promotion even when no
+  main sync is needed. Already-released topics remain a no-op.
+- Requirement, design, plan and provider metadata state the expanded lifecycle
+  contract and valid unchanged whole-suite proof reuse.
+- Fast synthetic regressions cover main, develop, an arbitrary configured
+  integration and an umbrella slug. Existing planner expectations and static
+  instruction contracts are updated. The retained workflow journey also covers
+  on-main preparation; exactly two execution journeys remain.
+- The earlier fixture, declaration, performance-description and review repairs
+  remain part of the reviewed Step 8 scope. No timing exclusion is authorized.
+- Profiling the one remaining timing outlier identified review publication I/O.
+  A fixture now initializes and validates the published first-round baseline;
+  every assertion remains, including frozen membership and changed replacement
+  publication. Focused measurement is 0.48s call and 0.33s setup.
+
+The source and test inventory changed because a new synthetic test module was
+added. Replacement validation therefore needs fresh proof. Whole-suite scope
+identity remains constant and covers the current inventory; this is no group
+definition or selector change and needs no scope-change authorization.
+
+No commit is authorized.
+
+##### Commit group 1 inventory for step 8 full_suite_levels (round 4)
+
+`test(levels): describe active performance gates`
+
+- `tests/unit/tools/test_groundhog_levels_perf/__init__.py`
+- `tests/unit/tools/test_groundhog_levels_perf/test_groundhog_levels_perf_tdd.py`
+
+##### Commit group 2 inventory for step 8 full_suite_levels (round 4)
+
+`fix(prepare-release): gate every promotion`
+
+- `tools/prepare_release/prepare_release_plan_workflow.py`
+- `instructions/prepare-release.md`
+- `.github/skills/prepare-release/SKILL.md`
+- `docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md`
+- `docs/v0.13.0/design.v0.13.0.full_suite_levels.md`
+- `docs/v0.13.0/plan.v0.13.0.full_suite_levels.md`
+- `tests/unit/tools/prepare_release/test_prepare_release_plan_workflow.py`
+- `tests/unit/tools/prepare_release/test_prepare_release_plan_targets_workflow.py`
+- `tests/unit/tools/test_prepare_release_whole_suite/__init__.py`
+- `tests/unit/tools/test_prepare_release_whole_suite/test_prepare_release_whole_suite_tdd.py`
+- `tests/unit/tools/test_instruction_structure/test_prepare_release_instruction_tdd.py`
+
+##### Commit group 3 inventory for step 8 full_suite_levels (round 4)
+
+`test(levels): prove scoped workflow acceptance`
+
+- `tests/unit/tools/test_full_suite_levels_acceptance/__init__.py`
+- `tests/unit/tools/test_full_suite_levels_acceptance/conftest.py`
+- `tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_review_acceptance_tdd.py`
+- `tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_workflow_acceptance_tdd.py`
+- `tests/unit/tools/groundhog_group_support.py`
+- `tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py`
+- `tests/unit/tools/test_code_review_request_scope/__init__.py`
+
+##### Commit group 4 inventory for step 8 full_suite_levels (round 4)
+
+`docs(full_suite_levels): record step 8 validation`
+
+- `docs/v0.13.0/review.code.v0.13.0.full_suite_levels.md`
+- `docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md`
+
+### Human guidance and writer response for step 8 full_suite_levels (round 4)
+
+Human guidance:
+
+#### Human guidance for step 8 full_suite_levels (round 4)
+
+Close the whole-suite validation gaps for main and every long-lived integration destination, including develop and umbrella branches integrating topic branches. Run the whole-suite coverage gate before promotion or in-place release preparation even when the source already contains the latest destination. Keep the fast fixtures, at most two execution journeys, sub-second test calls and no timing exclusions.
+
+Writer response:
+
+#### Writer response for Round 4 for step 8 full_suite_levels (round 4)
+
+Round 3 was commit-ready with R1-R5 resolved. The human then requested closing
+the whole-suite lifecycle gaps for all long-lived integration destinations.
+The exchange confirmed Rework and review again for Round 4; it did not authorize
+a commit. This is human-directed additional work, with no disagreement with the
+preceding review.
+
+The replacement adds production planner behavior, canonical release instructions
+and fast synthetic regressions. It preserves the two-journey limit, real scope
+and proof checks, public constructor seam, additive validation commands and the
+earlier protocol formatting correction.
+
+Review the candidate gate ordering, every integration role, resumed umbrella
+handoff and already-released no-op. The new request binds the updated whole-suite
+capture and fresh validation evidence. The reviewer must not commit.
+
+### Reviewer focus for step 8 full_suite_levels (round 4)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-8-round-4 -->
+
+## Round 4 by reviewer - Step 8
+
+- Recorded: 2026-10-05T18:36:45+02:00
+- Exchange: code/code/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 8
+- Outcome: answer
+
+### Assessed index identity for step 8 full_suite_levels (exchange 1) (round 4)
+
+Baseline index tree: dc3293fba956b9757dcacc4622fbd0eb183e957c
+
+Assessed index tree: dc3293fba956b9757dcacc4622fbd0eb183e957c
+
+### Implementation check for step 8 full_suite_levels (exchange 1) (round 4)
+
+Result:
+
+Yes. Step 8 has been fully implemented.
+
+The round 4 rework adds the human-directed release-lifecycle correction on top of the round 3 Step 8 package, which is unchanged except for one fixture move.
+
+Planner, in `prepare_release_plan_workflow.py`:
+
+- `_plan_on_main` gates before in-place preparation.
+- The `contains_main` branch of `_plan_integration` and the already-based route of `_plan_feature` switch to the source and gate before the `--no-ff` merge. That merge's tree equals the tested source when the source contains its destination.
+- `_already_integrated_feature` gates the destination for an unreleased integrated topic and keeps the released-topic no-op.
+- The operation tuples are constant-size, with no new dependency.
+
+The canonical `instructions/prepare-release.md` and `.github/skills/prepare-release/SKILL.md` match, including post-merge tree equality. The requirement, design and plan record the extended contract and the new Step 8 files.
+
+Tests:
+
+- 19 synthetic topology regressions (12 topic, 6 integration, 1 no-op);
+- updated planner expectations;
+- nine static instruction cases.
+
+In `test_code_review_request_scope`, the first-round baseline publication moved into a fixture. Setup (0.33s) plus call (0.48s) stays under one second in total, so this does not shift cost out of view. All assertions remain.
+
+Evidence: the 18:18 speed walk is green with `cov=100 outliers=0 excluded=0`, and `proof=speed` matches the current digest `d2ceaaec...`. The mapping check passes (95 rows, 102 selectors), the `xfail` search returns no match, and `markdown-check.bat` exits 0.
+
+One defect remains (R6): the edited design and plan documents now mix LF lines into CRLF files.
+
+Validation plan effects:
+
+No reviewer edit this round. The writer's Step 8 rows record the round 4 lifecycle correction and its evidence, and the document's opening line reads Yes. The R6 line-ending fix touches only the design and plan documents, not these rows. A pre-edit blob was recorded, but no repair followed.
+
+### Pre-repair mandatory checks and coverage for step 8 full_suite_levels (exchange 1) (round 4)
+
+Requestor evidence, from `.reviews/a.full_suite_levels.step8.tmp.r4.speed.log`, 18:18: `ghog day --full=speed --whole-suite` reported:
+
+- full: `fail=0 warn=0 xfail=0 cov=100 exit=0`;
+- timings: `outliers=0 excluded=0 exit=0`;
+- day: `proof=speed reused=none scope=whole exit=0`.
+
+`ghog day --full=cov --whole-suite` reused that proof (`.reviews/a.full_suite_levels.step8.tmp.r4.cov.log`). In `.reviews/a.full_suite_levels.step8.tmp.r4.durations.txt`, every listed call is at or under 0.59s. `.reviews/a.ghog.day.ok` holds `proof=speed` with `digest=d2ceaaec...`, equal to the read-only recomputation.
+
+Reviewer evidence:
+
+- static reading of the planner diff, the canonical instruction and adapter diffs, the requirement, design and plan text, the new synthetic regression module and the scope-test fixture change;
+- the mapping check (pass) and the `xfail` search (no match);
+- `markdown-check.bat` (exit 0);
+- the BOM scan, whose only hit is the transcript BOM already committed at HEAD;
+- the line-ending scan, with two mixed documents (R6);
+- comparison of the request-time and live index trees, and the independent commit-plan check.
+
+The reviewer ran no walk, test or coverage measurement.
+
+### Resolved validation set and sources for step 8 full_suite_levels (exchange 1) (round 4)
+
+The request and the current resolver contract give the same four commands:
+
+1. `ghog day --full=speed --whole-suite` (project).
+2. `ghog day --full=cov --whole-suite` (plan).
+3. `rg -n xfail tests/unit/tools/test_groundhog_levels_perf` (plan).
+4. `python .reviews/a.full_suite_levels.step8.tmp.mapping.py` (plan).
+
+The reviewer did not execute the walks. Commands 3 and 4 match their criteria.
+
+### Resolver drift and direction for step 8 full_suite_levels (exchange 1) (round 4)
+
+None. The command order and source labels match the current resolver contract.
+
+### Repository state around validation for step 8 full_suite_levels (exchange 1) (round 4)
+
+The request-time index tree, the reviewer baseline and the final assessed index are the same: `dc3293fba956b9757dcacc4622fbd0eb183e957c`.
+
+The validation state was captured before and after over the same 28 ordered paths: the 22 staged paths plus `a.ghog.log`, `a.ghog.status`, `a.ghog.affected.log`, `.testmondata` and two unused reviewer log paths. The comparison returns `acceptable=true` with no difference. The transcript carries unstaged protocol appends, and the reviewer edits none of it.
+
+Umbrella: none. The launcher comparison returns `applicable=false`, `changed=false`.
+
+### Repair inventory for step 8 full_suite_levels (exchange 1) (round 4)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 8 full_suite_levels (exchange 1) (round 4)
+
+`commit-plan-check.bat --format json` was run independently against the received state (`.reviews/a.full_suite_levels.step8.tmp.r4.rv-cpc.json`). It returned exit 0, `state=valid`, `ready=true`, groups of 2, 11, 7 and 2 paths (22 in total) and `diagnostics=[]`.
+
+Ordered groups:
+
+1. `test(levels): describe active performance gates`
+2. `fix(prepare-release): gate every promotion`: planner, canonical instruction, adapter, the requirement, design and plan, and the release regressions
+3. `test(levels): prove scoped workflow acceptance`
+4. `docs(full_suite_levels): record step 8 validation`: the validation plan and the staged transcript
+
+The groups separate the lifecycle correction from the acceptance package, and the subjects are conventional. `a.commit` remains accurate and needs no amendment. The R6 fix stays inside Group 2's existing paths. This mechanical result does not authorize a commit.
+
+### Findings and boundaries for step 8 full_suite_levels (exchange 1) (round 4)
+
+Unresolved findings:
+
+- R6 (P3): mixed line endings in two edited documents. At HEAD, `docs/v0.13.0/design.v0.13.0.full_suite_levels.md` has 1335 CRLF lines and `docs/v0.13.0/plan.v0.13.0.full_suite_levels.md` has 2133. The staged blobs carry 1334 CRLF and 6 LF lines, and 2126 CRLF and 28 LF lines: every line added in round 4 is LF. This is the same defect fixed in Steps 3, 4 and 6. Convert the added lines to CRLF, restage, and confirm that no staged blob mixes conventions. The change is Markdown-only, so the Python source digest and the green speed proof stay valid, and no new walk is needed. Keep the four validation commands unchanged in the replacement request.
+
+Boundary-crossing work: None.
+
+### Human guidance response for step 8 full_suite_levels (exchange 1) (round 4)
+
+Human guidance:
+
+Close the whole-suite validation gaps for main and every long-lived integration destination, including develop and umbrella branches integrating topic branches. Run the whole-suite coverage gate before promotion or in-place release preparation even when the source already contains the latest destination. Keep the fast fixtures, at most two execution journeys, sub-second test calls and no timing exclusions.
+
+Guidance response:
+
+The guidance is implemented, and it instructed no reviewer repair. `tools/prepare_release/prepare_release_plan_workflow.py` now emits `run ghog day --full=cov --whole-suite` in four places:
+
+- before release preparation in place on main;
+- on the source before an integration-to-main `--no-ff` merge when integration already contains main;
+- on the source before a direct topic promotion whose range already sits on its destination;
+- on the destination of an already-integrated, unreleased topic, before continuation. A released topic stays a no-op.
+
+The existing sync and replay gates are unchanged. `test_prepare_release_whole_suite` exercises main, `develop`, a configured `next` and the umbrella slug `umbrella_flow`, across direct, replay and integrated routes and current or stale main. `instructions/prepare-release.md` and the GitHub adapter state the same contract, including post-merge tree equality and gating a changed destination tree.
+
+The constraints from earlier rounds still hold: two execution journeys at 0.33s and 0.23s, every synthetic call under one second, and `excluded=0` in the green speed walk at 18:18. This answer does not authorize a commit.
+
+### Writer instructions for step 8 full_suite_levels (exchange 1) (round 4)
+
+Fix R6 only: normalize the round 4 lines of the design and plan documents to CRLF and restage them. Confirm with a staged-blob scan that no file mixes line endings, and that `markdown-check.bat` still exits 0. Publish the replacement request with the same four validation commands. The existing speed proof stays valid, because Markdown is outside the source digest.
+
+The reviewer made no repair, and the Human guidance block is addressed in the guidance response.
+
+### Decision rationale for step 8 full_suite_levels (exchange 1) (round 4)
+
+Recommend changes-requested, for line endings only. The six readiness-floor results:
+
+1. Identity: PASS. The exact plan, step 8, round 4, occurrence 1, the code identity, `Umbrella draft: none`, request tree `dc3293fb...` and the whole-suite `test_scope` (`proof: speed`) agree with the live exchange and `bound_scope`.
+2. Implementation completeness: PASS. The human-directed lifecycle gates are implemented in the planner and the instructions for every destination, and the two fast journeys remain.
+3. Validation and coverage: PASS. The green speed walk matches the current digest, the mapping check and the `xfail` search pass, and `markdown-check.bat` exits 0.
+4. Staged attribution: PASS. No reviewer change was made.
+5. Unresolved findings: FAIL. R6, the mixed line endings in two documents, is open.
+6. `a.commit`: PASS. The independent check returned exit 0, `state=valid`, `ready=true`, 22 paths in four accurate groups and no diagnostics.
+
+Once R6 is fixed, nothing else blocks commit-readiness.
+
+### Final reviewer decision for step 8 full_suite_levels (exchange 1) (round 4)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-8-round-4 -->
+
+## Round 5 by requestor - Step 8
+
+- Recorded: 2026-10-05T18:43:50+02:00
+- Exchange: code/code/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 8
+- Outcome: request
+
+### Review identity for step 8 full_suite_levels (round 5)
+
+Umbrella draft: none
+Implementation plan: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+Implementation step: 8
+Review round: 5
+
+### Code review evidence for step 8 full_suite_levels (round 5)
+
+request_index_tree: cc91aba405bddab598db49cc018122884f011edf
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+- `ghog day --full=cov --whole-suite` (sources: plan)
+- `rg -n xfail tests/unit/tools/test_groundhog_levels_perf` (sources: plan)
+- `python .reviews/a.full_suite_levels.step8.tmp.mapping.py` (sources: request)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: test(levels): describe active performance gates
+group 1 path: tests/unit/tools/test_groundhog_levels_perf/__init__.py
+group 1 path: tests/unit/tools/test_groundhog_levels_perf/test_groundhog_levels_perf_tdd.py
+group 2: fix(prepare-release): gate every promotion
+group 2 path: tools/prepare_release/prepare_release_plan_workflow.py
+group 2 path: instructions/prepare-release.md
+group 2 path: .github/skills/prepare-release/SKILL.md
+group 2 path: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+group 2 path: docs/v0.13.0/design.v0.13.0.full_suite_levels.md
+group 2 path: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+group 2 path: tests/unit/tools/prepare_release/test_prepare_release_plan_workflow.py
+group 2 path: tests/unit/tools/prepare_release/test_prepare_release_plan_targets_workflow.py
+group 2 path: tests/unit/tools/test_prepare_release_whole_suite/__init__.py
+group 2 path: tests/unit/tools/test_prepare_release_whole_suite/test_prepare_release_whole_suite_tdd.py
+group 2 path: tests/unit/tools/test_instruction_structure/test_prepare_release_instruction_tdd.py
+group 3: test(levels): prove scoped workflow acceptance
+group 3 path: tests/unit/tools/test_full_suite_levels_acceptance/__init__.py
+group 3 path: tests/unit/tools/test_full_suite_levels_acceptance/conftest.py
+group 3 path: tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_review_acceptance_tdd.py
+group 3 path: tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_workflow_acceptance_tdd.py
+group 3 path: tests/unit/tools/groundhog_group_support.py
+group 3 path: tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py
+group 3 path: tests/unit/tools/test_code_review_request_scope/__init__.py
+group 4: docs(full_suite_levels): record step 8 validation
+group 4 path: docs/v0.13.0/review.code.v0.13.0.full_suite_levels.md
+group 4 path: docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md
+staged path: .github/skills/prepare-release/SKILL.md
+staged path: docs/v0.13.0/design.v0.13.0.full_suite_levels.md
+staged path: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+staged path: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+staged path: docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md
+staged path: docs/v0.13.0/review.code.v0.13.0.full_suite_levels.md
+staged path: instructions/prepare-release.md
+staged path: tests/unit/tools/groundhog_group_support.py
+staged path: tests/unit/tools/prepare_release/test_prepare_release_plan_targets_workflow.py
+staged path: tests/unit/tools/prepare_release/test_prepare_release_plan_workflow.py
+staged path: tests/unit/tools/test_code_review_request_scope/__init__.py
+staged path: tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py
+staged path: tests/unit/tools/test_full_suite_levels_acceptance/__init__.py
+staged path: tests/unit/tools/test_full_suite_levels_acceptance/conftest.py
+staged path: tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_review_acceptance_tdd.py
+staged path: tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_workflow_acceptance_tdd.py
+staged path: tests/unit/tools/test_groundhog_levels_perf/__init__.py
+staged path: tests/unit/tools/test_groundhog_levels_perf/test_groundhog_levels_perf_tdd.py
+staged path: tests/unit/tools/test_instruction_structure/test_prepare_release_instruction_tdd.py
+staged path: tests/unit/tools/test_prepare_release_whole_suite/__init__.py
+staged path: tests/unit/tools/test_prepare_release_whole_suite/test_prepare_release_whole_suite_tdd.py
+staged path: tools/prepare_release/prepare_release_plan_workflow.py
+```
+
+### Validation scope for step 8 full_suite_levels (round 5)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 8 full_suite_levels (round 5)
+
+#### Writer assessment for Round 5 for step 8 full_suite_levels (round 5)
+
+Yes. Step 8 has been fully implemented and validated.
+
+The planner requires whole-suite coverage before on-main preparation, direct
+topic promotion, current integration promotion and resumed integrated-topic
+continuation. Existing replay and sync gates remain. The destinations include
+main, develop, arbitrary configured integration names and umbrella slugs.
+Already-released topics remain a no-op. The canonical workflow requires tree
+equality after merging; any different destination tree must pass the gate.
+
+Exactly two acceptance execution journeys remain. Their tiny effort fixtures
+substitute unrelated Git seams and the pytest child boundary; scope, proof,
+coverage data, persistence and exclusion comparisons remain real. Nineteen fast
+synthetic release cases establish candidate ordering and destination handling.
+Nine static contracts establish the corresponding lifecycle instructions.
+
+The review-scope replacement test was profiled after the speed gate flagged
+its call at 1.14s. Publication filesystem work dominated. Its first-round
+baseline is now initialized and validated in a fixture, retaining every
+assertion; the call still exercises frozen membership and replacement
+publication. The resolution cache remains fixture-local and restored.
+
+The production correction adds constant-size operation tuples, with no new
+domain dependency, quadratic traversal or sorting. The measured source scope
+is tools; acceptance and support files are outside that gate. Every added
+fixture, helper and test has a static reference. No new PBT is needed because
+the existing level, group and proof property suites cover these rules.
+
+Physical line counts are 458 for the planner, 425 for the scope test, 190 for
+the acceptance fixture, 72 and 71 for the two journeys, and 139 for the
+synthetic topology module. Each is below the 650-line ceiling. No architecture
+smell, size issue, unreferenced helper or feature loss was found.
+
+The unchanged whole-suite scope identity is independent of membership. New
+source and test content requires fresh proof but no scope-change disclosure.
+All 95 design rows retain their ordered mapping to 102 exact collected
+selectors, supplemented by the new lifecycle cases for row 53.
+
+Fresh whole-suite speed validation completed at 2026-10-05T18:18:00+02:00: 3,585 tests passed, coverage reached 100%, and warnings, xfails, outliers and exclusions were zero. The explicit whole-suite coverage command completed at 18:19:53+02:00, reusing the valid unchanged speed proof. Freshness was verified for both commands.
+
+Focused measurements are 0.33s and 0.23s for the two acceptance calls, with 0.04s setup each. The repaired scope replacement measures 0.48s call and 0.33s setup. All 19 synthetic calls are below one second. The mapping checker passes 95 ordered rows and 102 exact selectors; the performance-package xfail search has no matches.
+
+The root commit plan contains four groups covering all 22 staged paths, with Step 8 validation last. No timing exclusion or commit is authorized.
+
+Round 4 independently confirmed implementation completeness, fresh proof, timings and commit-plan readiness. Its only finding, R6, is corrected: the design and plan now preserve their original CRLF convention. Their text is unchanged, all staged blobs pass the line-ending scan, and the source digest and whole-suite speed proof remain unchanged.
+
+### Implementation report for step 8 full_suite_levels (round 5)
+
+#### Implementation report for Round 5 for step 8 full_suite_levels (round 5)
+
+The release lifecycle now requires whole-suite coverage even when a candidate
+already contains its destination. On-main preparation and resumed integration
+continuation require the same gate. This covers develop, configured long-lived
+integration names and the umbrella branch integrating its topic branches.
+
+The planner changes are in
+`tools/prepare_release/prepare_release_plan_workflow.py`. The canonical routine
+is in `instructions/prepare-release.md`; provider discovery metadata and the
+requirement, design and plan are aligned. A merge with the tested source tree
+can reuse the validation; conflict resolution or another tree change requires
+validation of the destination before continuation.
+
+`tests/unit/tools/test_prepare_release_whole_suite/` adds 12 topic cases across
+direct, replayed and already-integrated routes, six integration-to-main cases
+across current and stale main, and one already-released no-op. The existing
+planner expectations and nine static instruction cases cover the same changes.
+The workflow journey additionally establishes the main preparation gate.
+
+The acceptance package retains one publication journey and one workflow and
+release journey. Fixtures create tiny isolated efforts without Git processes;
+real scope, proof, coverage data, captures and exclusion comparisons remain.
+The public coverage-spawn constructor carries extra transcript lines. Two
+declaration parameters prove unscoped walks cannot claim grouped speed.
+
+The flagged scope round trip now initializes and validates its first published
+baseline in a fixture. All original assertions remain, including frozen
+collection, scope-change disclosure and replacement publication. Its local
+resolution cache is restored by monkeypatch. This is a fixture initialization
+change to an existing component test, preserving the two-journey limit.
+
+The fresh whole-suite speed day passed 3,585 tests with 100% coverage, no warnings or xfails, and zero outliers or exclusions. Its unchanged whole-suite proof satisfied the explicit coverage day. The two acceptance calls measure 0.33s and 0.23s, with 0.04s setup each; the scope component replacement measures 0.48s call and 0.33s setup. All 19 synthetic release calls remain below one second.
+
+The ordered mapping covers 95 design rows and 102 exact collected selectors. The complete staged inventory has 22 paths in four commit groups, with validation and the review record last. No production type is added, no timing policy is weakened and no commit is authorized.
+
+Writer notes: `.reviews/a.full_suite_levels.step8.journal.md` and
+`.reviews/a.full_suite_levels.step8.handoff.md`.
+
+### Change summary for step 8 full_suite_levels (round 5)
+
+#### Replacement after Round 4 for step 8 full_suite_levels (round 5)
+
+R6 is accepted and corrected: the design and plan preserve their original
+CRLF convention without changing document text. No staged blob mixes line
+endings. Production code, tests, validation proof, scope and commit grouping
+are unchanged from Round 4. The complete Step 8 inventory remains below.
+
+- The release planner now gates main preparation, direct feature promotion,
+  current integration promotion and resumed integrated-topic continuation.
+- The canonical release workflow requires the gate for generic and umbrella
+  integration destinations, even when the candidate contains the latest
+  destination. It also checks post-merge tree equality and gates a changed tree.
+- The umbrella-exhaustion continuation gates integration promotion even when no
+  main sync is needed. Already-released topics remain a no-op.
+- Requirement, design, plan and provider metadata state the expanded lifecycle
+  contract and valid unchanged whole-suite proof reuse.
+- Fast synthetic regressions cover main, develop, an arbitrary configured
+  integration and an umbrella slug. Existing planner expectations and static
+  instruction contracts are updated. The retained workflow journey also covers
+  on-main preparation; exactly two execution journeys remain.
+- The earlier fixture, declaration, performance-description and review repairs
+  remain part of the reviewed Step 8 scope. No timing exclusion is authorized.
+- Profiling the one remaining timing outlier identified review publication I/O.
+  A fixture now initializes and validates the published first-round baseline;
+  every assertion remains, including frozen membership and changed replacement
+  publication. Focused measurement is 0.48s call and 0.33s setup.
+
+Round 4 established fresh whole-suite speed proof for the expanded source and
+test inventory. Round 5 changes only the two Markdown documents' line endings;
+the source digest and proof remain unchanged. Whole-suite scope identity covers
+the current inventory. No group definition or selector changed, so no
+scope-change authorization is needed.
+
+No commit is authorized.
+
+##### Commit group 1 inventory for step 8 full_suite_levels (round 5)
+
+`test(levels): describe active performance gates`
+
+- `tests/unit/tools/test_groundhog_levels_perf/__init__.py`
+- `tests/unit/tools/test_groundhog_levels_perf/test_groundhog_levels_perf_tdd.py`
+
+##### Commit group 2 inventory for step 8 full_suite_levels (round 5)
+
+`fix(prepare-release): gate every promotion`
+
+- `tools/prepare_release/prepare_release_plan_workflow.py`
+- `instructions/prepare-release.md`
+- `.github/skills/prepare-release/SKILL.md`
+- `docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md`
+- `docs/v0.13.0/design.v0.13.0.full_suite_levels.md`
+- `docs/v0.13.0/plan.v0.13.0.full_suite_levels.md`
+- `tests/unit/tools/prepare_release/test_prepare_release_plan_workflow.py`
+- `tests/unit/tools/prepare_release/test_prepare_release_plan_targets_workflow.py`
+- `tests/unit/tools/test_prepare_release_whole_suite/__init__.py`
+- `tests/unit/tools/test_prepare_release_whole_suite/test_prepare_release_whole_suite_tdd.py`
+- `tests/unit/tools/test_instruction_structure/test_prepare_release_instruction_tdd.py`
+
+##### Commit group 3 inventory for step 8 full_suite_levels (round 5)
+
+`test(levels): prove scoped workflow acceptance`
+
+- `tests/unit/tools/test_full_suite_levels_acceptance/__init__.py`
+- `tests/unit/tools/test_full_suite_levels_acceptance/conftest.py`
+- `tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_review_acceptance_tdd.py`
+- `tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_workflow_acceptance_tdd.py`
+- `tests/unit/tools/groundhog_group_support.py`
+- `tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py`
+- `tests/unit/tools/test_code_review_request_scope/__init__.py`
+
+##### Commit group 4 inventory for step 8 full_suite_levels (round 5)
+
+`docs(full_suite_levels): record step 8 validation`
+
+- `docs/v0.13.0/review.code.v0.13.0.full_suite_levels.md`
+- `docs/v0.13.0/plan.v0.13.0.full_suite_levels.validation.md`
+
+### Human guidance and writer response for step 8 full_suite_levels (round 5)
+
+Human guidance:
+
+#### Human guidance for step 8 full_suite_levels (round 5)
+
+Close the whole-suite validation gaps for main and every long-lived integration destination, including develop and umbrella branches integrating topic branches. Run the whole-suite coverage gate before promotion or in-place release preparation even when the source already contains the latest destination. Keep the fast fixtures, at most two execution journeys, sub-second test calls and no timing exclusions.
+
+Writer response:
+
+#### Writer response for Round 5 for step 8 full_suite_levels (round 5)
+
+R6 is accepted, with no disagreement. The two writer-owned design and plan
+documents now use their original CRLF convention throughout, and their
+normalized text is unchanged. Only those two paths were restaged. No staged
+blob mixes line endings. No transcript or protocol artifact was repaired.
+
+Round 4 confirmed Step 8 complete, the expanded lifecycle gates, the two
+sub-second journeys, current whole-suite speed proof and the four-group
+commit plan. Those remain unchanged. The same four validation commands are
+retained; no new walk is needed for this Markdown-only formatting repair.
+
+The reviewer made no repair. No timing exclusion or commit is authorized.
+
+### Reviewer focus for step 8 full_suite_levels (round 5)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-8-round-5 -->
+
+## Round 5 by reviewer - Step 8
+
+- Recorded: 2026-10-05T18:49:15+02:00
+- Exchange: code/code/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 8
+- Outcome: answer
+
+### Assessed index identity for step 8 full_suite_levels (exchange 1) (round 5)
+
+Baseline index tree: cc91aba405bddab598db49cc018122884f011edf
+
+Assessed index tree: cc91aba405bddab598db49cc018122884f011edf
+
+### Implementation check for step 8 full_suite_levels (exchange 1) (round 5)
+
+Result:
+
+Yes. Step 8 has been fully implemented.
+
+R6 is resolved. Between the round 4 tree `dc3293fb...` and this request tree `cc91aba4...`, `git diff --stat` shows only the design (12 lines) and plan (56 lines) documents, that is the 6 and 28 previously LF lines rewritten. `git diff --ignore-cr-at-eol` between the same trees is empty, so the text is identical. Both staged blobs are now CRLF only (1340 and 2154 lines), and no staged blob mixes conventions.
+
+The round 4 assessment therefore stands:
+
+- whole-suite gates for on-main preparation, every promotion and resumed integrated topics, across main, generic and umbrella integration destinations;
+- matching canonical instructions and documents;
+- 19 synthetic regressions;
+- two acceptance journeys under 0.35s;
+- the fixture-initialized scope round trip;
+- the 95-row mapping.
+
+Validation plan effects:
+
+No reviewer edit this round. The Step 8 rows and the document's opening line `Yes, it is implemented.` are unchanged since round 4 and remain accurate. A pre-edit blob was recorded, but no repair followed.
+
+### Pre-repair mandatory checks and coverage for step 8 full_suite_levels (exchange 1) (round 5)
+
+Requestor evidence is unchanged from round 4. The green speed walk at 18:18 reported `cov=100 outliers=0 excluded=0 proof=speed`, and the cov command reused that proof. `.reviews/a.ghog.day.ok` still holds `proof=speed` with `digest=d2ceaaec...`, equal to the read-only recomputation, because Markdown line endings are outside the source digest.
+
+Reviewer evidence:
+
+- `git diff --stat` and `git diff --ignore-cr-at-eol` between the round 4 and round 5 trees;
+- a line-ending scan of every staged blob (no mixed file);
+- `markdown-check.bat` (exit 0);
+- the mapping check (pass);
+- comparison of the request-time and live index trees, and the independent commit-plan check.
+
+The reviewer ran no walk, test or coverage measurement.
+
+### Resolved validation set and sources for step 8 full_suite_levels (exchange 1) (round 5)
+
+The request and the current resolver contract give the same four commands as round 4:
+
+1. `ghog day --full=speed --whole-suite` (project).
+2. `ghog day --full=cov --whole-suite` (plan).
+3. `rg -n xfail tests/unit/tools/test_groundhog_levels_perf` (plan).
+4. `python .reviews/a.full_suite_levels.step8.tmp.mapping.py` (plan).
+
+The reviewer did not execute the walks. Command 4 was rerun read-only and passes, and command 3's target files are unchanged.
+
+### Resolver drift and direction for step 8 full_suite_levels (exchange 1) (round 5)
+
+None. The command order and source labels match the current resolver contract.
+
+### Repository state around validation for step 8 full_suite_levels (exchange 1) (round 5)
+
+The request-time index tree, the reviewer baseline and the final assessed index are the same: `cc91aba405bddab598db49cc018122884f011edf`.
+
+The validation state was captured before and after over the same 28 ordered paths: the 22 staged paths plus `a.ghog.log`, `a.ghog.status`, `a.ghog.affected.log`, `.testmondata` and two unused reviewer log paths. The comparison returns `acceptable=true` with no difference. The transcript's unstaged protocol appends are untouched.
+
+Umbrella: none. The launcher comparison returns `applicable=false`, `changed=false`.
+
+### Repair inventory for step 8 full_suite_levels (exchange 1) (round 5)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 8 full_suite_levels (exchange 1) (round 5)
+
+`commit-plan-check.bat --format json` was run independently against the received state (`.reviews/a.full_suite_levels.step8.tmp.r5.rv-cpc.json`). It returned exit 0, `state=valid`, `ready=true`, groups of 2, 11, 7 and 2 paths (22 in total) and `diagnostics=[]`.
+
+Ordered groups:
+
+1. `test(levels): describe active performance gates`
+2. `fix(prepare-release): gate every promotion`
+3. `test(levels): prove scoped workflow acceptance`
+4. `docs(full_suite_levels): record step 8 validation`
+
+Membership, order and subjects match the staged work. `a.commit` remains accurate and needs no amendment. This mechanical result does not authorize a commit.
+
+### Findings and boundaries for step 8 full_suite_levels (exchange 1) (round 5)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Human guidance response for step 8 full_suite_levels (exchange 1) (round 5)
+
+Human guidance:
+
+Close the whole-suite validation gaps for main and every long-lived integration destination, including develop and umbrella branches integrating topic branches. Run the whole-suite coverage gate before promotion or in-place release preparation even when the source already contains the latest destination. Keep the fast fixtures, at most two execution journeys, sub-second test calls and no timing exclusions.
+
+Guidance response:
+
+The guidance remains satisfied, and it instructed no reviewer repair.
+
+The planner and the canonical release instruction gate whole-suite coverage before in-place preparation on main, before every integration-to-main promotion, before direct topic promotion to main, generic integration or umbrella integration, and before resumed integrated-topic continuation. A released topic stays a no-op. The synthetic regressions cover main, `develop`, a configured `next` and an umbrella slug.
+
+The fast constraints hold: two execution journeys at 0.33s and 0.23s, sub-second calls, and `excluded=0` in the green speed walk. This round changed only line endings in the design and plan documents. This answer does not authorize a commit.
+
+### Writer instructions for step 8 full_suite_levels (exchange 1) (round 5)
+
+No further Step 8 work is required. Present this advisory commit-ready recommendation at the convergence gate, where the human chooses the next action. The reviewer made no repair, and the Human guidance block is addressed in the guidance response.
+
+### Decision rationale for step 8 full_suite_levels (exchange 1) (round 5)
+
+Recommend commit-ready. The six readiness-floor results:
+
+1. Identity: PASS. The exact plan, step 8, round 5, occurrence 1, the code identity, `Umbrella draft: none`, request tree `cc91aba4...` and the whole-suite `test_scope` (`proof: speed`) agree with the live exchange and `bound_scope`.
+2. Implementation completeness: PASS. The release lifecycle gates and the reduced acceptance package are complete.
+3. Validation and coverage: PASS. The speed proof matches the current digest, the mapping check and the `xfail` search pass, and `markdown-check.bat` exits 0.
+4. Staged attribution: PASS. No reviewer change was made, and the round 5 delta is line endings only.
+5. Unresolved findings: PASS. R6 is resolved, and no finding remains.
+6. `a.commit`: PASS. The independent check returned exit 0, `state=valid`, `ready=true`, 22 paths in four accurate groups and no diagnostics.
+
+This round made no substantive repair. The recommendation is advisory and does not authorize a commit.
+
+### Final reviewer decision for step 8 full_suite_levels (exchange 1) (round 5)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-8-round-5 -->
+
+## Round 5 by human - Step 8 - human-confirmation
+
+- Recorded: 2026-10-05T20:21:41+02:00
+- Exchange: code/code/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/plan.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 8
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-5 -->

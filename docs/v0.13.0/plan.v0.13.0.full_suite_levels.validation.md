@@ -1,11 +1,12 @@
 # v0.13.0 full_suite_levels implementation tracking and validation
 
-No, it is not implemented.
+Yes, it is implemented.
 
 This document tracks the nine steps of the
 [implementation plan](plan.v0.13.0.full_suite_levels.md), from the Step 0 cost
-gates to the Step 8 acceptance mapping; Steps 0 to 7 are implemented and
-checked, and Step 8 is not implemented yet.
+gates to the Step 8 acceptance mapping. All nine steps are implemented,
+including two sub-second acceptance journeys, the complete design mapping
+and whole-suite lifecycle gates for every integration destination.
 
 > Markdown lint note: never leave a space immediately inside an inline code span
 > (MD038); write a needed space as the token `[space]`, as in `` `[space]${x}` ``.
@@ -1660,48 +1661,269 @@ and `exit=0` at 00:45:17 +02:00 on 2026-10-05.
 
 ### Analysis of Step 8 implementation state
 
-Not started. Step 8 is not implemented because Step 7 has not landed yet.
+Yes. Step 8 has been fully implemented.
 
-The cross-component acceptance package and the row-to-test mapping do not
-exist yet.
+Two compact journeys exercise the groundhog CLI, workflow resolver, request
+renderer and review exchange on tiny isolated efforts. Their measured calls
+are 0.33s and 0.23s, with 0.04s and 0.04s
+setup. The fresh whole-suite speed walk ended at 2026-10-05T18:18:00+02:00 with 3,585 tests
+passing, 100% coverage and no outlier or exclusion. The explicit whole-suite
+coverage command reused the unchanged speed proof. All 95 design acceptance
+rows map to collected tests. Every long-lived integration destination now
+requires whole-suite validation before promotion or resumed topic handoff.
 
 ### Goal for Step 8
 
-Add an acceptance package that drives groundhog, `pw`, the request renderer and
-the review exchange together on `tmp_path` repositories, and map every design
-acceptance row to its passing tests.
+Prove the cross-component workflows, map every design acceptance case to
+exact passing test node IDs, and close the release lifecycle bypasses for
+main, generic integration and umbrella integration.
 
 ### Step 8 improvement expectations
 
-- Review flows (captured scope after a same-name edit, refused capture, legacy
-  request, replacement with and without a scope-change reason, migration
-  notice, no false group claim) pass end to end.
-- Workflow flows (`pw scope` precedence over `GHOG_GROUP`, stale draft,
-  prepare-release on the whole suite, the review-off exclusion comparison)
-  pass end to end.
-- This section gains a table mapping every design acceptance row to its test
-  node ids.
+- Published review scope remains bound to its captured members; replacements
+  disclose scope changes and validate current proof before publication.
+- Requirement scope overrides ambient selection. Every promotion candidate,
+  on-main preparation and resumed integrated topic requires whole-suite cov.
+- Valid whole-suite proof may be reused for unchanged sources; group proof
+  cannot satisfy that gate. A different post-merge tree requires validation.
+- Review-off comparisons distinguish added timing exclusions from automatic
+  tightening. Every design row has executable evidence, with no remaining
+  expected-failure marker in the active performance package.
 
 ### What was implemented for Step 8
 
-_(empty — no check has taken place yet.)_.
+The acceptance package contains
+`tests/unit/tools/test_full_suite_levels_acceptance/__init__.py`,
+`tests/unit/tools/test_full_suite_levels_acceptance/conftest.py`,
+`tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_review_acceptance_tdd.py`
+and
+`tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_workflow_acceptance_tdd.py`.
+
+Its fixture initializes real effort documents, group declarations, coverage
+data and ignored review artifacts without launching Git. It isolates
+`PRJ_DIR` and the working directory. Unrelated Git readiness, staged-tree
+identity, activation and branch discovery use existing injected seams. The
+release graph uses the existing in-memory Git protocol. Fixture-local path
+resolution caching is restored by monkeypatch. Scope, proof, captures,
+persistence and exclusion comparisons remain real. `CoverageSpawns` accepts
+public `extra_lines` rather than requiring private transcript mutation.
+
+The review journey earns grouped speed proof, renders the scoped default
+command and publishes the capture. Same-name definition drift preserves the
+captured affected files despite the ambient group; progress reports pending
+change. The workflow journey resolves an ungrouped requirement against an
+ambient group, distinguishes baseline tightening from added exclusions and
+executes the printed whole-suite coverage gate. It also checks main
+preparation and divergent topic and integration promotions.
+
+`tools/prepare_release/prepare_release_plan_workflow.py` now gates on-main
+preparation, direct topic promotion, current integration promotion and
+already-integrated topic continuation. Existing replay and main-sync gates
+remain; already-released topics remain a no-op. The canonical release
+instruction requires the tested candidate tree for main, develop, configured
+integration names and umbrella slugs. It checks post-merge tree equality and
+requires a new gate when the tree differs. Requirement, design, plan and
+provider metadata reflect that lifecycle contract.
+
+`tests/unit/tools/test_prepare_release_whole_suite/__init__.py` and
+`tests/unit/tools/test_prepare_release_whole_suite/test_prepare_release_whole_suite_tdd.py`
+provide 12 topic cases across direct, replay and integrated routes, six
+current/sync integration cases and one released-topic no-op. Existing planner
+expectations and nine parametrized static instruction contracts are updated.
+These fast synthetic cases supplement acceptance row 53.
+
+The scope component test now initializes and validates its published
+first-round baseline in a fixture. Every original assertion remains; the
+call still verifies frozen membership, required scope-change disclosure and
+replacement publication. Its package and module docstrings describe the
+initialization. Two additional declaration parameters establish that plain
+day and unscoped speed commands cannot claim group speed. Removed execution
+journeys retain coverage through existing component tests in the mapping.
+
+The performance-package docstrings describe its five active cost gates;
+their assertions and timeout limits are unchanged. Its xfail search returns
+no matches. No new PBT is needed for the concrete journeys and topology
+cases; Steps 1, 3 and 4 cover the relevant level, group and proof properties.
 
 ### New types or classes introduced for Step 8
 
-_(empty — no check has taken place yet.)_.
+`Effort` is a test-only dataclass grouping the tiny project, document context,
+artifact paths and public-entry helpers. No production type was added.
 
 ### Architecture check for Step 8
 
-_(empty — no check has taken place yet.)_.
+Release planning retains its existing repository port and model. The new
+operation tuples add no technical import or layer dependency. Acceptance
+orchestration belongs to the test adapter and uses public entry points and
+the existing pytest process boundary. Every fixture helper is referenced.
+
+Physical line counts are 458 for the planner, 425 for the scope component
+test, 190 for the acceptance fixture, 72 and 71 for its two journeys, and
+139 for the synthetic topology module. Every file is below 650 lines.
+
+No architecture smell, violation or size issue needs addressing.
 
 ### Performance check for Step 8
 
-_(empty — no check has taken place yet.)_.
+The production correction adds constant-size operation tuples. It introduces
+no quadratic computation, sorting process or extra repository traversal.
+Existing default, upgrade, noop and grouped gates still check child counts
+and tree-walk counts under their five-second timeouts.
+
+The retained review and workflow calls measure 0.33s and
+0.23s; setup measures 0.04s and 0.04s. The flagged
+scope replacement call measures 0.48s, setup 0.33s, after
+profiling publication I/O and initializing its validated baseline in the
+fixture. All 19 synthetic topology calls are below one second. The full
+speed verdict reports zero outliers and exclusions; no timing floor was
+raised and no exclusion was accepted.
+
+No, there is no performance issue that needs to be addressed in Step 8.
 
 ### Unit test coverage check for Step 8
 
-_(empty — no check has taken place yet.)_.
+The gate measures `tools` under `[tool.coverage.run]`, with
+`fail_under = 100` and configured omissions. The speed walk's covered full
+stage met `cov=100`; the explicit cov command reused its speed proof.
+The amended release planner is inside that measured scope and has 100%
+line coverage. Its existing and new synthetic unit cases exercise every
+changed route. The acceptance, support and scope test files are outside the
+measured source scope, so the gate percentage does not describe them.
+
+Static exercise is complete: pytest collects every new test and fixture;
+the fixture constructs `Effort` and every method and helper is referenced
+by a journey or another package helper. The shared support constructor is
+exercised by group tests and the two journeys. Both declaration parameters
+and all lifecycle cases passed in the whole-suite walk. The mapping checker
+verifies 95 ordered scenarios, nonempty mappings, private-evidence equality
+and 102 exact collected selectors with existing source functions.
+
+No unit-tested class below 100% needs completing. No top-level symbol outside
+the configured coverage scope is unreferenced.
 
 ### Feature integrity for Step 8
 
-_(empty — no check has taken place yet.)_.
+The expanded whole-suite gate closes lifecycle bypasses while retaining
+destination routing, replay, integration history and released-topic no-ops.
+Tests assert public command output, gate ordering, proof, publication
+artifacts, captured membership and exclusion comparisons. Grouped
+development and review remain supported; group proof cannot waive promotion
+validation. The fresh whole-suite speed walk ended at 2026-10-05T18:18:00+02:00 with:
+
+```text
+llm-shared_full_suite_levels: ghog day done fail=0 warn=0 xfail=0 cov=skipped outliers=0 excluded=0 exit=0 full=speed src=param proof=speed reused=none scope=whole
+```
+
+Its covered full stage reported `cov=100 exit=0`; the separate sequential
+timing stage accounts for the closing `cov=skipped`. The explicit
+`ghog day --full=cov --whole-suite` returned
+`exit=0 proof=speed reused=all` on unchanged sources. No exclusion is accepted.
+The performance-package xfail search returns no matches. Whole-suite
+scope identity remains unchanged and independent of membership; changed
+sources required fresh proof. All design rows have executable evidence.
+
+### Design acceptance mapping for Step 8
+
+Rows follow the order of the design's "Acceptance Cases for v0.13.0 full suite
+levels" table. Instruction-only cases combine the Step 7 text contracts with
+the tests for their called tools. Each listed node ID passed in the recorded
+whole-suite speed walk; the mapping checker verifies the complete ordered
+design table and each selector's collected ID and existing source function.
+
+| Row | Design acceptance scenario | Passing test node IDs |
+| --- | --- | --- |
+| 1 | `ghog day`, `GHOG_FULL` unset, all green | `tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_levels_tdd.py::test_default_walk_skips_the_full_suite` |
+| 2 | `GHOG_FULL=cov`, `ghog day` | `tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_levels_tdd.py::test_environment_level_walks_and_restarts_explicitly` |
+| 3 | `GHOG_FULL=speed`, `ghog_cycle.bat` with no argument | `tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_levels_tdd.py::test_cycle_without_arguments_runs_day_alone`, `tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_levels_tdd.py::test_parallel_speed_walk_judges_the_timing_pass` |
+| 4 | `GHOG_FULL=cov`, `ghog full --full=pass` | `tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_levels_tdd.py::test_parameter_wins_over_the_environment` |
+| 5 | `GHOG_FULL=fast`, `ghog day` | `tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_levels_tdd.py::test_invalid_levels_exit_five_naming_the_values[argv0-environ0-'fast' from GHOG_FULL]` |
+| 6 | `ghog day --full=fast` or `--full=none` | `tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_levels_tdd.py::test_invalid_levels_exit_five_naming_the_values[argv1-environ1-'fast' from --full]`, `tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_levels_tdd.py::test_invalid_levels_exit_five_naming_the_values[argv2-environ2-'none' from --full]` |
+| 7 | `GHOG_FULL=fast`, `ghog day --full=cov` | `tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_levels_tdd.py::test_valid_parameter_overrides_an_invalid_variable` |
+| 8 | `--full=pass`, a coverage gap and slow calls | `tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_levels_tdd.py::test_pass_level_judges_neither_coverage_nor_speed` |
+| 9 | `--full=cov`, parallel project, green | `tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_levels_tdd.py::test_cov_level_in_a_parallel_project_runs_no_timing_pass` |
+| 10 | `--full=speed`, parallel day walk, outlier in timings | `tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_levels_tdd.py::test_parallel_speed_walk_judges_the_timing_pass` |
+| 11 | direct `ghog full`, parallel project, green | `tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_levels_tdd.py::test_direct_parallel_full_never_claims_speed` |
+| 12 | direct `ghog full --full=pass`, test failure | `tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_levels_tdd.py::test_direct_pass_failure_is_unproven_and_carries_the_level` |
+| 13 | `--full=cov` full fails, then `ghog single` green | `tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_levels_tdd.py::test_green_single_restarts_the_walk_at_the_carried_level` |
+| 14 | `GHOG_FULL=speed`, check fails | `tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_levels_tdd.py::test_environment_speed_restarts_a_failing_check_explicitly` |
+| 15 | default walk fails in the affected step | `tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_levels_tdd.py::test_failing_default_walk_restarts_plainly` |
+| 16 | saved `speed`, unchanged sources, `ghog day` | `tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_proof_tdd.py::test_stronger_saved_proof_is_a_noop` |
+| 17 | saved `none`, unchanged sources, `--full=cov` | `tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_proof_tdd.py::test_lower_saved_proof_is_upgraded` |
+| 18 | saved `pass`, `--full=cov`, coverage gap | `tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_proof_tdd.py::test_higher_gate_failure_keeps_the_lower_proof` |
+| 19 | saved `pass`, `--full=cov`, full test failure | `tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_proof_tdd.py::test_full_failure_caps_the_saved_proof` |
+| 20 | parallel `--full=speed`, no marker, green full run, timing pass fails a test | `tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_proof_tdd.py::test_timing_pass_failure_caps_the_earned_proof` |
+| 21 | parallel `--full=speed`, no marker, green full run, timing pass crashes | `tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_proof_tdd.py::test_timing_pass_crash_caps_the_earned_proof` |
+| 22 | parallel `--force --full=speed`, saved `speed`, timing pass fails a test | `tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_proof_tdd.py::test_forced_timing_failure_caps_the_saved_proof` |
+| 23 | parallel `--full=speed`, green full run, outliers only in timings | `tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_proof_tdd.py::test_timing_outliers_keep_the_cov_proof` |
+| 24 | legacy one-line marker, unchanged sources, `ghog day` | `tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_proof_tdd.py::test_legacy_marker_is_no_proof` |
+| 25 | `--detach --full=cov` | `tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_proof_tdd.py::test_detached_walk_keeps_its_level_and_evidence` |
+| 26 | review mode on, default policy, round 1 | `tests/unit/tools/test_code_review_requestor_instruction/test_code_review_requestor_instruction_tdd.py::test_requestor_owns_the_full_validation_walk`, `tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_review_acceptance_tdd.py::test_published_capture_survives_same_name_drift` |
+| 27 | review mode on, replacement round, unchanged validated digest, readable marker recording `speed` for the same scope | `tests/unit/tools/test_code_review_requestor_instruction/test_code_review_requestor_instruction_tdd.py::test_requestor_owns_the_full_validation_walk`, `tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_proof_tdd.py::test_stronger_saved_proof_is_a_noop`, `tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py::test_requirement_scope_and_current_proof` |
+| 28 | review mode on, replacement round, marker unreadable, legacy, or proving only `cov` | `tests/unit/tools/test_code_review_requestor_instruction/test_code_review_requestor_instruction_tdd.py::test_requestor_owns_the_full_validation_walk`, `tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_proof_tdd.py::test_legacy_marker_is_no_proof`, `tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_proof_tdd.py::test_lower_saved_proof_is_upgraded`, `tests/unit/tools/test_groundhog_snapshot.py::test_unreadable_marker_means_no_proof` |
+| 29 | review mode on, replacement round changed only a gate configuration file | `tests/unit/tools/test_code_review_requestor_instruction/test_code_review_requestor_instruction_tdd.py::test_requestor_owns_the_full_validation_walk`, `tests/unit/tools/test_groundhog_snapshot.py::test_digest_covers_the_gate_configuration` |
+| 30 | review mode on, replacement round changed Python code | `tests/unit/tools/test_code_review_requestor_instruction/test_code_review_requestor_instruction_tdd.py::test_requestor_owns_the_full_validation_walk`, `tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_proof_tdd.py::test_python_change_invalidates_the_saved_proof` |
+| 31 | requestor needs `ghog exclude` to reach `speed` | `tests/unit/tools/test_code_review_requestor_instruction/test_code_review_requestor_instruction_tdd.py::test_validation_policy_preserves_declared_commands_and_bound_scope`, `tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py::test_rendered_proof_downgrades_and_recovers[exclusions---whole-suite]` |
+| 32 | commit-ready answer | `tests/unit/tools/test_code_review_requestor_instruction/test_code_review_requestor_instruction_tdd.py::test_validation_policy_preserves_declared_commands_and_bound_scope`, `tests/unit/tools/test_code_review_requestor_acceptance/test_code_review_requestor_acceptance_tdd.py::test_substantive_commit_ready_stays_at_gate_for_human_override` |
+| 33 | `.review-validation` declares plain `ghog day` | `tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py::test_default_scope_and_declared_commands` |
+| 34 | review mode off, `speed` pass changes nothing | `tests/unit/tools/test_full_suite_levels_instructions/test_full_suite_levels_instructions_tdd.py::test_review_off_compares_tree_and_exclusions_before_menu`, `tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_workflow_acceptance_tdd.py::test_review_off_scope_comparison_and_release`, `tests/unit/tools/test_groundhog_listings/test_groundhog_listings_tdd.py::test_listing_and_semantic_comparison` |
+| 35 | review mode off, `speed` pass changes a test or production file | `tests/unit/tools/test_full_suite_levels_instructions/test_full_suite_levels_instructions_tdd.py::test_review_off_compares_tree_and_exclusions_before_menu`, `tests/unit/tools/test_code_review_evidence/test_code_review_evidence_tdd.py::test_capture_index_tree_uses_the_index_without_inspecting_worktree`, `tests/unit/tools/test_code_review_evidence/test_code_review_evidence_boundaries_tdd.py::test_umbrella_and_validation_payload_failures_are_typed` |
+| 36 | review mode off, `speed` pass needs only `ghog exclude` | `tests/unit/tools/test_full_suite_levels_instructions/test_full_suite_levels_instructions_tdd.py::test_review_off_compares_tree_and_exclusions_before_menu`, `tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_workflow_acceptance_tdd.py::test_review_off_scope_comparison_and_release`, `tests/unit/tools/test_groundhog_listings/test_groundhog_listings_tdd.py::test_listing_and_semantic_comparison` |
+| 37 | review mode off, pre-existing exclusions untouched, the walk only lowers a baseline or drops a stale entry and rewrites line 1 | `tests/unit/tools/test_full_suite_levels_instructions/test_full_suite_levels_instructions_tdd.py::test_review_off_compares_tree_and_exclusions_before_menu`, `tests/unit/tools/test_groundhog_listings/test_groundhog_listings_tdd.py::test_listing_and_semantic_comparison`, `tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_workflow_acceptance_tdd.py::test_review_off_scope_comparison_and_release` |
+| 38 | review mode off, second pass after an exclusion recheck | `tests/unit/tools/test_full_suite_levels_instructions/test_full_suite_levels_instructions_tdd.py::test_review_off_compares_tree_and_exclusions_before_menu`, `tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_workflow_acceptance_tdd.py::test_review_off_scope_comparison_and_release`, `tests/unit/tools/test_groundhog_listings/test_groundhog_listings_tdd.py::test_listing_and_semantic_comparison` |
+| 39 | review mode off, `--since` cannot read the saved or current listing | `tests/unit/tools/test_full_suite_levels_instructions/test_full_suite_levels_instructions_tdd.py::test_review_off_compares_tree_and_exclusions_before_menu`, `tests/unit/tools/test_groundhog_listings/test_groundhog_listings_tdd.py::test_unreadable_exclusion_file`, `tests/unit/tools/test_groundhog_listings/test_groundhog_listings_tdd.py::test_bad_saved_listing_is_unverified[None]`, `tests/unit/tools/test_groundhog_listings/test_groundhog_listings_tdd.py::test_bad_saved_listing_is_unverified[]`, `tests/unit/tools/test_groundhog_listings/test_groundhog_listings_tdd.py::test_bad_saved_listing_is_unverified[exclusions=unreadable\n]`, `tests/unit/tools/test_groundhog_listings/test_groundhog_listings_tdd.py::test_bad_saved_listing_is_unverified[junk\nexclusions=1\n]`, `tests/unit/tools/test_groundhog_listings/test_groundhog_listings_tdd.py::test_bad_saved_listing_is_unverified[node = 1\nexclusions=0\n]`, `tests/unit/tools/test_groundhog_listings/test_groundhog_listings_tdd.py::test_bad_saved_listing_is_unverified[node = 1\nnode = 2\nexclusions=2\n]` |
+| 40 | `ghog exclude --list`, floor file absent or without a section | `tests/unit/tools/test_groundhog_listings/test_groundhog_listings_tdd.py::test_absent_exclusions_are_empty[1\n2\n]`, `tests/unit/tools/test_groundhog_listings/test_groundhog_listings_tdd.py::test_absent_exclusions_are_empty[None]` |
+| 41 | commit-ready answer, declared set that establishes no `speed` | `tests/unit/tools/test_code_review_requestor_instruction/test_code_review_requestor_instruction_tdd.py::test_validation_policy_preserves_declared_commands_and_bound_scope`, `tests/unit/tools/test_code_review_requestor_acceptance/test_code_review_requestor_acceptance_tdd.py::test_substantive_commit_ready_stays_at_gate_for_human_override`, `tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py::test_default_scope_and_declared_commands`, `tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py::test_declared_group_statement[ghog day-False]` |
+| 42 | `ghog day --full=cov --group=sentinel` | `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py::test_walk_narrows_collection_and_names_scope` |
+| 43 | group source file never executed by the group's tests | `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_gate_tdd.py::test_unexecuted_source_fails_hundred_percent_gate` |
+| 44 | whole-suite `cov` proof on unchanged sources, then `--full=cov --group=sentinel` | `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py::test_proof_isolated_by_scope` |
+| 45 | saved `sentinel` proof, then `--full=cov --group=other` | `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py::test_proof_isolated_by_scope` |
+| 46 | `--group=nope`, or `.ghog-groups` unreadable with `--group=sentinel` | `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py::test_bad_group_stops_before_spawn[malformed]`, `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py::test_bad_group_stops_before_spawn[source]`, `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py::test_bad_group_stops_before_spawn[test]`, `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py::test_bad_group_stops_before_spawn[unknown]`, `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py::test_bad_group_stops_before_spawn[unreadable]` |
+| 47 | `.ghog-groups` unreadable, whole-suite walk | `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py::test_whole_ignores_invalid_environment_and_declaration` |
+| 48 | group whose test patterns match no test file | `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py::test_bad_group_stops_before_spawn[malformed]`, `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py::test_bad_group_stops_before_spawn[source]`, `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py::test_bad_group_stops_before_spawn[test]`, `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py::test_bad_group_stops_before_spawn[unknown]`, `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py::test_bad_group_stops_before_spawn[unreadable]` |
+| 49 | group whose source patterns match no source file | `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py::test_bad_group_stops_before_spawn[malformed]`, `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py::test_bad_group_stops_before_spawn[source]`, `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py::test_bad_group_stops_before_spawn[test]`, `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py::test_bad_group_stops_before_spawn[unknown]`, `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py::test_bad_group_stops_before_spawn[unreadable]` |
+| 50 | valid group, nothing affected, default walk | `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py::test_nothing_affected_is_green_but_empty_full_is_error[day-extra0-0-none]`, `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py::test_nothing_affected_is_green_but_empty_full_is_error[full-extra1-5-unproven]` |
+| 51 | valid group whose test files hold no test, `--full=pass` | `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py::test_nothing_affected_is_green_but_empty_full_is_error[day-extra0-0-none]`, `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py::test_nothing_affected_is_green_but_empty_full_is_error[full-extra1-5-unproven]` |
+| 52 | `GHOG_GROUP=nope`, `ghog day --whole-suite` | `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py::test_whole_ignores_invalid_environment_and_declaration` |
+| 53 | `GHOG_GROUP=sentinel`, prepare-release green gate | `tests/unit/tools/test_full_suite_levels_instructions/test_full_suite_levels_instructions_tdd.py::test_release_requires_coverage_of_whole_suite`, `tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_workflow_acceptance_tdd.py::test_review_off_scope_comparison_and_release` |
+| 54 | `GHOG_GROUP=sentinel`, ungrouped effort, development walk | `tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_workflow_acceptance_tdd.py::test_review_off_scope_comparison_and_release`, `tests/unit/tools/test_prompt_workflow_scope/test_prompt_workflow_scope_tdd.py::test_cli_prints_explicit_scope_independent_of_environment[None-arguments1---whole-suite]` |
+| 55 | grouped `--full=cov` walk fails a test | `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py::test_failure_repair_carries_explicit_scope[--group=sentinel]`, `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py::test_failure_repair_carries_explicit_scope[--whole-suite]`, `tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_levels_tdd.py::test_green_single_restarts_the_walk_at_the_carried_level` |
+| 56 | whole-suite walk fails with `GHOG_GROUP=sentinel` set | `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py::test_failure_repair_carries_explicit_scope[--group=sentinel]`, `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py::test_failure_repair_carries_explicit_scope[--whole-suite]` |
+| 57 | saved group proof, a test file added under the group folder | `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py::test_group_edits_invalidate_proof[membership]`, `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py::test_group_edits_invalidate_proof[pattern]` |
+| 58 | saved group proof, the group's source patterns edited | `tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py::test_definition_edit_invalidates_previously_saved_proof` |
+| 59 | grouped `--full=speed`, a call above the floor | `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py::test_grouped_speed_reads_floor_and_preserves_exclusions` |
+| 60 | grouped `speed` walk, an exclusion recorded for a test outside the group | `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py::test_grouped_speed_reads_floor_and_preserves_exclusions` |
+| 61 | saved group `speed` proof, then `ghog exclude` adds an entry | `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py::test_changed_exclusions_cap_group_speed_proof` |
+| 62 | `--detach --group=sentinel` | `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_capture_tdd.py::test_detach_writes_capture_before_child_and_status_keeps_scope[--group=sentinel]`, `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_capture_tdd.py::test_detach_writes_capture_before_child_and_status_keeps_scope[--whole-suite]` |
+| 63 | detached grouped walk running, requirement switched to another group | `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_capture_tdd.py::test_detach_writes_capture_before_child_and_status_keeps_scope[--group=sentinel]`, `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_capture_tdd.py::test_detach_writes_capture_before_child_and_status_keeps_scope[--whole-suite]`, `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_capture_tdd.py::test_capture_survives_changed_declaration` |
+| 64 | reviewer evidence in a grouped round | `tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_review_acceptance_tdd.py::test_published_capture_survives_same_name_drift` |
+| 65 | grouped effort, default policy | `tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_review_acceptance_tdd.py::test_published_capture_survives_same_name_drift` |
+| 66 | grouped effort, `.review-validation` declares `ghog day --full=speed` | `tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py::test_default_scope_and_declared_commands`, `tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py::test_declared_group_statement[ghog day --full=speed-False]` |
+| 67 | process-draft, existing valid group chosen | `tests/unit/tools/test_full_suite_levels_instructions/test_full_suite_levels_instructions_tdd.py::test_scope_menu_follows_branch_choice_and_handles_children`, `tests/unit/tools/test_groundhog_listings/test_groundhog_listings_tdd.py::test_groups_listing`, `tests/unit/tools/test_prompt_workflow_scope/test_prompt_workflow_scope_tdd.py::test_scope_changes_take_effect_after_step_two`, `tests/unit/tools/test_prompt_workflow_scope/test_prompt_workflow_scope_tdd.py::test_cli_prints_explicit_scope_independent_of_environment[sentinel-arguments0---group=sentinel]` |
+| 68 | process-draft, new group | `tests/unit/tools/test_full_suite_levels_instructions/test_full_suite_levels_instructions_tdd.py::test_scope_menu_follows_branch_choice_and_handles_children`, `tests/unit/tools/test_groundhog_listings/test_groundhog_listings_tdd.py::test_groups_listing`, `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py::test_bad_group_stops_before_spawn[malformed]`, `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py::test_bad_group_stops_before_spawn[source]`, `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py::test_bad_group_stops_before_spawn[test]`, `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py::test_bad_group_stops_before_spawn[unknown]`, `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py::test_bad_group_stops_before_spawn[unreadable]` |
+| 69 | process-draft whole suite, then write-requirement | `tests/unit/tools/test_full_suite_levels_instructions/test_full_suite_levels_instructions_tdd.py::test_scope_menu_follows_branch_choice_and_handles_children`, `tests/unit/tools/test_prompt_workflow_scope/test_prompt_workflow_scope_tdd.py::test_cli_prints_explicit_scope_independent_of_environment[whole suite-arguments2-ghog day --whole-suite]` |
+| 70 | write-requirement on a draft without the line | `tests/unit/tools/test_full_suite_levels_instructions/test_full_suite_levels_instructions_tdd.py::test_scope_menu_follows_branch_choice_and_handles_children`, `tests/unit/tools/test_prompt_workflow_scope/test_prompt_workflow_scope_tdd.py::test_no_requirement_prints_whole_suite` |
+| 71 | requirement line added after step 2 | `tests/unit/tools/test_prompt_workflow_scope/test_prompt_workflow_scope_tdd.py::test_scope_changes_take_effect_after_step_two` |
+| 72 | requirement switched to another group, or set to `whole suite` | `tests/unit/tools/test_prompt_workflow_scope/test_prompt_workflow_scope_tdd.py::test_scope_changes_take_effect_after_step_two` |
+| 73 | draft still names `sentinel`, requirement line removed | `tests/unit/tools/test_prompt_workflow_scope/test_prompt_workflow_scope_tdd.py::test_cli_prints_explicit_scope_independent_of_environment[None-arguments1---whole-suite]` |
+| 74 | deactivation of `sentinel` | `tests/unit/tools/test_prompt_workflow_scope/test_prompt_workflow_scope_tdd.py::test_scope_changes_take_effect_after_step_two`, `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py::test_proof_isolated_by_scope` |
+| 75 | same group name, patterns edited while a round is published | `tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_review_acceptance_tdd.py::test_published_capture_survives_same_name_drift` |
+| 76 | scope changed while a round is published | `tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_review_acceptance_tdd.py::test_published_capture_survives_same_name_drift`, `tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py::test_render_publish_status_affected_and_replacement` |
+| 77 | replacement request rendered after a scope change without `--scope-change-file` | `tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py::test_scope_change_requires_reason`, `tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py::test_render_publish_status_affected_and_replacement` |
+| 78 | commit-ready answer with a pending scope change | `tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_review_acceptance_tdd.py::test_published_capture_survives_same_name_drift`, `tests/unit/tools/test_code_review_requestor_instruction/test_code_review_requestor_instruction_tdd.py::test_validation_policy_preserves_declared_commands_and_bound_scope`, `tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py::test_render_publish_status_affected_and_replacement`, `tests/unit/tools/test_prompt_workflow_scope/test_prompt_workflow_scope_tdd.py::test_progress_reports_bound_and_pending_scope[definition]` |
+| 79 | scope switched back to a group whose marker is still valid | `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_groups_tdd.py::test_proof_isolated_by_scope` |
+| 80 | `pw progress`, grouped effort with an active round | `tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_review_acceptance_tdd.py::test_published_capture_survives_same_name_drift`, `tests/unit/tools/test_prompt_workflow_scope/test_prompt_workflow_scope_tdd.py::test_progress_reports_bound_and_pending_scope[definition]`, `tests/unit/tools/test_prompt_workflow_scope/test_prompt_workflow_scope_tdd.py::test_progress_reports_bound_and_pending_scope[legacy]`, `tests/unit/tools/test_prompt_workflow_scope/test_prompt_workflow_scope_tdd.py::test_progress_reports_bound_and_pending_scope[missing]`, `tests/unit/tools/test_prompt_workflow_scope/test_prompt_workflow_scope_tdd.py::test_progress_reports_bound_and_pending_scope[none]`, `tests/unit/tools/test_prompt_workflow_scope/test_prompt_workflow_scope_tdd.py::test_progress_reports_bound_and_pending_scope[whole]` |
+| 81 | `pw scope`, requirement naming an unknown group | `tests/unit/tools/test_prompt_workflow_scope/test_prompt_workflow_scope_tdd.py::test_bad_group_prints_only_a_diagnostic` |
+| 82 | round published for `sentinel` with tests under `tests/old/**`, then the same group's patterns edited to `tests/new/**` before reviewer evidence | `tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_review_acceptance_tdd.py::test_published_capture_survives_same_name_drift` |
+| 83 | same, with a captured test file deleted before reviewer evidence | `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_capture_tdd.py::test_unusable_bound_scope_stops[deleted]` |
+| 84 | capture edited after publication (fingerprint no longer matches its content) | `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_capture_tdd.py::test_unusable_bound_scope_stops[conflict]`, `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_capture_tdd.py::test_unusable_bound_scope_stops[deleted]`, `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_capture_tdd.py::test_unusable_bound_scope_stops[edited]` |
+| 85 | live code-review request published without `test_scope` | `tests/unit/tools/test_code_review_requestor_instruction/test_code_review_requestor_instruction_tdd.py::test_validation_policy_preserves_declared_commands_and_bound_scope`, `tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py::test_legacy_replacement_clears_scope`, `tests/unit/tools/test_prompt_workflow_scope/test_prompt_workflow_scope_tdd.py::test_progress_reports_bound_and_pending_scope[legacy]` |
+| 86 | `--scope-file` together with `--group` or `--whole-suite` | `tests/unit/tools/test_groundhog_scope/test_groundhog_scope_tdd.py::test_conflicting_selectors[options1]`, `tests/unit/tools/test_groundhog_scope/test_groundhog_scope_tdd.py::test_conflicting_selectors[options2]` |
+| 87 | detached grouped walk, `.ghog-groups` edited between launch and the child's start | `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_capture_tdd.py::test_detach_writes_capture_before_child_and_status_keeps_scope[--group=sentinel]`, `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_capture_tdd.py::test_detach_writes_capture_before_child_and_status_keeps_scope[--whole-suite]`, `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_capture_tdd.py::test_capture_survives_changed_declaration` |
+| 88 | group source `lib/widget.py` outside the project's coverage `source`, fully exercised by the group's tests | `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_gate_tdd.py::test_external_source_and_omit` |
+| 89 | same source never executed by the group's tests | `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_gate_tdd.py::test_external_source_and_omit`, `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_gate_tdd.py::test_unexecuted_source_fails_hundred_percent_gate` |
+| 90 | group source pattern matching a file the project's `omit` excludes | `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_gate_tdd.py::test_external_source_and_omit` |
+| 91 | grouped covered run whose data file is missing, unreadable or older than the run | `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_gate_tdd.py::test_bad_data_preserves_saved_proof[invalid]`, `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_gate_tdd.py::test_bad_data_preserves_saved_proof[missing]`, `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_gate_tdd.py::test_bad_data_preserves_saved_proof[stale]` |
+| 92 | project measuring branches, group source with every line run but a branch missed | `tests/unit/tools/test_groundhog_acceptance_groups/test_groundhog_acceptance_group_gate_tdd.py::test_missed_branch_fails_group_gate` |
+| 93 | saved `cov` proof, only line 2 of `a.ghog.outliers` or an exclusion changed, `--full=cov` | `tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_proof_tdd.py::test_timing_change_keeps_a_lower_saved_proof` |
+| 94 | saved `speed` proof, only an exclusion changed, `--full=speed` | `tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_proof_tdd.py::test_timing_change_caps_a_saved_speed_proof`, `tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py::test_rendered_proof_downgrades_and_recovers[exclusions---whole-suite]` |
+| 95 | saved `speed` proof, a Python file changed, `--full=cov` | `tests/unit/tools/test_groundhog_acceptance_levels/test_groundhog_acceptance_proof_tdd.py::test_python_change_invalidates_the_saved_proof` |
