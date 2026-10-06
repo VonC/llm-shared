@@ -238,8 +238,10 @@ without arranging a new reviewer invocation.
 
 All counterpart waits follow the
 [quiet-wait transport rules](../rules/run_commands.md#quiet-waits-preserve-model-quota).
-The reviewer's global watcher runs in the background and leaves the chat
-available. For bounded protocol waits, use the longest permitted transport
+The reviewer's global watcher uses an attached wait in Codex: keep the
+assistant turn active and process detection without another user message.
+Claude keeps its background watcher and resumes on the completion notification.
+For bounded protocol waits, use the longest permitted transport
 interval without recurring idle model resumptions. A transport timeout does
 not end or restart a bounded protocol wait.
 
@@ -251,6 +253,10 @@ not end or restart a bounded protocol wait.
    exchange.
 3. Finish the request content and transcript summary files, then call
    `publish-request --content-file <path> --summary-file <path>`.
+   For code requests carrying `test_scope`, also pass
+   `--scope-capture-file <caller-owned-capture-path>`. Publication validates it
+   and copies it to core-owned `paths.scope`; use that returned path for the
+   round's evidence. Legacy requests report `bound_scope: missing`.
 4. Without invoking or contacting a reviewer, call `wait-answer` once. This is
    one bounded in-process wait, not repeated
    short slices. Progress JSON is written only to standard error. Read the

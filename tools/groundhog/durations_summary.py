@@ -1,5 +1,7 @@
 """Compose the floor file, the pure duration rule and the exclusion section.
 
+Fix (v0.13.0 full_suite_levels, Step 4): Compose duration rules, with read-only floor and exclusions for grouped runs.
+
 The true-outlier rule in ``durations.py`` stays pure — no IO, no floor import
 — so it is judged in isolation. This module is the application seam between a
 run and that rule: it tells whether a run times its calls (``full`` only, Q39),
@@ -20,6 +22,11 @@ handed -- baselines ratcheted down, below-floor and stale entries removed.
 Fix: the floor file now lives in the review artifact home, not at the project
 root, so the verdict carries its real location (``floor_file``) for the report
 lines that name it; the pure rule cannot resolve it, having no IO.
+
+Fix (v0.13.0 full_suite_levels, Step 2): :func:`measures_durations` builds the
+command at the invocation's effective level, so a ``full`` run below ``speed``
+times no call, forms no verdict and leaves the floor file and its exclusion
+section untouched.
 """
 
 from __future__ import annotations
@@ -28,7 +35,9 @@ from dataclasses import replace
 from typing import TYPE_CHECKING
 
 from tools.groundhog import durations, exclusions, floor, runner
+from tools.groundhog.levels import effective_level
 from tools.groundhog.models import EXIT_OBJECTIVE_MET
+from tools.scope_capture import ScopeKind
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -54,7 +63,8 @@ def measures_durations(invocation: Invocation) -> bool:
         scheduler rather than the test, so there the sequential
         ``timings`` run owns the rule and keeps its whole-suite scope.
         Deriving the answer from the built command keeps the verdict and
-        the measurement from drifting apart.
+        the measurement from drifting apart. A ``full`` run below ``speed``
+        is built without ``--durations``, so it never judges speed.
     """
     command = runner.pytest_command(
         "pytest",
@@ -62,6 +72,7 @@ def measures_durations(invocation: Invocation) -> bool:
         no_cov=invocation.no_cov,
         files=invocation.files,
         parallel=runner.parallel_enabled(invocation.root),
+        level=effective_level(invocation.level, invocation.sub),
     )
     return "--durations=0" in command
 
@@ -91,7 +102,22 @@ def judge(
         return None
     if base_code != EXIT_OBJECTIVE_MET:
         return None
+    if invocation.scope.kind is ScopeKind.GROUP:
+        return _judge_group(invocation, result.stats.durations)
     return _judge_map(invocation.root, result.stats.durations)
+
+
+def _judge_group(invocation: Invocation, durations_map: Mapping[str, float]) -> DurationSummary | None:
+    """Judge only group nodes using saved settings, without any persistence."""
+    if not durations_map:
+        return None
+    members = set(invocation.scope.test_files)
+    measured = {node: seconds for node, seconds in durations_map.items() if node.split("::", 1)[0] in members}
+    accepted = {node: seconds for node, seconds in exclusions.read_exclusions(invocation.root).items()
+                if node.split("::", 1)[0] in members}
+    summary = durations.summarize_by_floor(measured, floor.active_floor(floor.read_floor(invocation.root)))
+    spared, _ = durations.apply_exclusions(summary, measured, accepted)
+    return replace(spared, floor_file=floor.floor_location(invocation.root))
 
 
 def _judge_map(

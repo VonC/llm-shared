@@ -3,6 +3,7 @@
 This package contains modules for API inspection, guardrail checking, result
 dumping, review support, workflow-routing submodules, and shared models that
 prevent circular dependencies between the main scripts.
+Review scope capture adapters share groundhog's validator and proof rules.
 """
 
 from tools._models import (

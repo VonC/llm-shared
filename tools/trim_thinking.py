@@ -30,6 +30,9 @@ in `tools.trim_thinking_cli`.
 
 Fix: `drop_tool_blocks` delegates the tool-block scan and the blank-line
 collapse to two helpers, bringing its radon rank below C.
+
+Fix: the dated-prompt cut moves to `tools.trim_thinking_dates`, keeping this
+module under the repository line budget; `trim_transcript` still applies it.
 """
 
 from __future__ import annotations
@@ -38,6 +41,8 @@ import re
 from dataclasses import dataclass
 from enum import StrEnum
 from typing import TYPE_CHECKING
+
+from tools.trim_thinking_dates import drop_lines_before_dated_prompts
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Sequence
@@ -63,9 +68,6 @@ CODEX_SECTION_HEADINGS = frozenset({"user", "assistant", "activity"})
 _CODEX_HEADING_PATTERN = re.compile(r"^##\s+(?P<name>\S.*?)\s*$")
 _BLANK_LINE_PATTERN = re.compile(r"^\s*$")
 _TOOL_OUTPUT_PATTERN = re.compile(rf"^ *{TOOL_OUTPUT_MARKER}")
-# A dated prompt opens with an optional one-character marker and its space,
-# then an eight-digit YYYYMMDD date followed by a space.
-_DATED_LINE_PATTERN = re.compile(r"^(?:.\s)?(?P<date>\d{8})\s")
 
 _PERCENT = 100
 
@@ -577,49 +579,6 @@ _TRIMMERS: dict[TranscriptFormat, Callable[[str], str]] = {
     TranscriptFormat.CLAUDE: trim_claude_transcript,
     TranscriptFormat.CODEX: trim_codex_transcript,
 }
-
-
-def date_forms(day: date) -> frozenset[str]:
-    """Return the digit string one date is recognized as.
-
-    Args:
-        day: The date a dated prompt line may carry.
-
-    Returns:
-        Its `YYYYMMDD` rendering.
-    """
-    return frozenset({day.strftime("%Y%m%d")})
-
-
-def drop_lines_before_dated_prompts(
-    lines: Sequence[str],
-    dates: Iterable[date],
-) -> list[str]:
-    """Drop every line before the first prompt bearing one of these dates.
-
-    A dated prompt is a line whose first token, after an optional one-character
-    marker such as the Claude prompt ornament, is a date followed by a space.
-    Only the dates given are recognized, so an unrelated number opening a line
-    keeps the transcript unchanged.
-
-    Args:
-        lines: Lines of the already trimmed conversation.
-        dates: Dates a prompt line may be stamped with.
-
-    Returns:
-        The lines from the first matching dated prompt onward, or all lines
-        when no dated prompt matches.
-    """
-    wanted: set[str] = set()
-    for day in dates:
-        wanted |= date_forms(day)
-    if not wanted:
-        return list(lines)
-    for index, line in enumerate(lines):
-        match = _DATED_LINE_PATTERN.match(line)
-        if match is not None and match.group("date") in wanted:
-            return list(lines[index:])
-    return list(lines)
 
 
 def trim_transcript(

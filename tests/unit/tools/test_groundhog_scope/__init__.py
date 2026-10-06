@@ -1,0 +1,1 @@
+"""Scope selection contract tests."""

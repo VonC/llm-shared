@@ -4,6 +4,10 @@ Fix: split out of ``test_review_resume_concurrency_tdd``. Its two parameters
 were the longest-running fixture of that module, and ``--dist loadscope``
 keeps a whole module on one worker, so they held the module's scenarios
 behind them. The scenario and every assertion are unchanged.
+
+Fix: the wake-up bound uses the shared ``PROCESS_TIMEOUT_SECONDS`` hang guard
+instead of 15 seconds, since the woken claim runs the same Python and ``git``
+children that once outlasted a 30-second bound under the parallel full run.
 """
 
 # ruff: noqa: PLR2004
@@ -14,6 +18,7 @@ from typing import Any
 import pytest
 
 from tests.acceptance.review_resume.conftest import (
+    PROCESS_TIMEOUT_SECONDS,
     ReviewRepository,
     assert_still_quiet,
     start_wait,
@@ -61,7 +66,7 @@ def parked_wait_journey(tmp_path_factory: pytest.TempPathFactory, request: pytes
             repo.context = review_context(repo.root, ReviewFamily.SPECIFICATION, "later-specification")
             repo.paths = derive_artifact_paths(repo.root, repo.context)
             repo.start_request()
-        result = terminal_result(process, process.communicate(timeout=15))
+        result = terminal_result(process, process.communicate(timeout=PROCESS_TIMEOUT_SECONDS))
         return {"kind": request.param, "result": result, "before": before, "unchanged": unchanged}
     finally:
         if process.poll() is None:

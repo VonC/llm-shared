@@ -26,12 +26,31 @@ Before writing the requirement document, read and follow
     effort directory as the parent of the canonical draft named in the prompt,
     and confirm that it matches one of the supported layouts for the
     settled version.
-17. After validation succeeds, write the file as
+17. Resolve the test scope as described below. After validation succeeds, write the file as
     `<effort-dir>\<type>.vX.Y.Z.<topic>.md` in markdown format, beside the
     canonical draft. Do not add a topic subdirectory.
 18. Fill the document body from the user story, bug report, feature request, and associated documents in your context. Use only the user-provided version that you confirmed as valid for the file name and version references.
 19. Include these core items in the document: the user story or bug summary, the current behavior, the expected behavior or gap, and acceptance criteria or confirmed rules.
 20. Add concrete examples, code references, and technical constraints only when they are directly mentioned in the user input or in associated documents.
+
+## Test scope of the requirement
+
+For a new requirement, copy the draft's `- Test group:` choice into the
+requirement metadata next to `- Type:`. Revalidate a named group with
+`ghog groups <name>` in the target repository before writing. Accept
+`whole suite` as the explicit unrestricted choice. Use plain values, without
+backticks or quotes.
+
+Present the [process-draft test-scope menu](process-draft.md#test-scope-menu)
+only when the draft records no choice: `Whole suite`, valid `ghog groups`
+entries, `New group`, and `Type something else`. A malformed or no-longer-valid
+recorded choice needs correction; never silently treat it as whole suite.
+
+When reopening an existing requirement, the requirement is authoritative.
+Retain and revalidate its selection; never fall back to an old draft value.
+Removing its `- Test group:` line or setting `whole suite` deactivates the
+group. A missing line in an existing requirement means whole suite, not an
+invitation to restore the draft's selection.
 
 ## Requirement document templates
 

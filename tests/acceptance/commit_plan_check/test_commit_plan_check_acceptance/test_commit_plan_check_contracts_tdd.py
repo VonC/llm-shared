@@ -211,8 +211,11 @@ def _request_arguments(root: Path) -> Namespace:
     (home / ".gitignore").write_bytes(b"*\n")
     for name in ("assessment", "report", "changes", "response"):
         (home / f"a.{name}.md").write_text(f"{name}\n", encoding="utf-8")
+    plan = root / "docs/v0.11.0/plan.v0.11.0.commit-plan-check.md"
+    plan.parent.mkdir(parents=True, exist_ok=True)
+    plan.write_text("# Plan\n", encoding="utf-8")
     return Namespace(
-        plan="docs/v0.11.0/plan.v0.11.0.commit-plan-check.md",
+        plan=str(plan),
         implementation_step="4",
         umbrella=None,
         round_number=1,
@@ -225,6 +228,8 @@ def _request_arguments(root: Path) -> Namespace:
         request_validation_command=[],
         request_content_output=str(home / "a.request.md"),
         transcript_summary_output=str(home / "a.summary.md"),
+        scope_capture_output=str(home / "a.scope.json"),
+        scope_change_file=None,
     )
 
 

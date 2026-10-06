@@ -1,4 +1,4 @@
-"""TDD contracts for the closed review-artifact registry and locator."""
+"""TDD registry contracts, including live and archived Step 6 scope captures."""
 
 from __future__ import annotations
 
@@ -40,6 +40,7 @@ def test_registry_recognizes_every_exchange_kind_and_role() -> None:
         RegisteredArtifactKind.COORDINATION: None,
         RegisteredArtifactKind.TOMBSTONE: ReviewRole.REVIEWER,
         RegisteredArtifactKind.TRANSITION_LOCK: None,
+        RegisteredArtifactKind.SCOPE_CAPTURE: None,
     }
 
     for kind, role in expected.items():

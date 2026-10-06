@@ -1,4 +1,9 @@
-"""Planner tests over synthetic branch, reflog, tag, and conflict graphs."""
+"""Planner tests over synthetic branch, reflog, tag, and conflict graphs.
+
+Fix (v0.13.0 full_suite_levels, Step 2): the integration sync and the feature
+replay name ``ghog day --full=cov``, since plain ``ghog day`` no longer runs
+the full suite.
+"""
 
 from __future__ import annotations
 
@@ -37,7 +42,7 @@ def recorded_workflow_repository(monkeypatch: pytest.MonkeyPatch) -> None:
 
 @pytest.fixture
 def integration_merge_plan(tmp_path: Path) -> ReleasePlan:
-    """Prepare the real-Git integration merge plan outside assertion time."""
+    """Prepare the synthetic integration merge plan outside assertion time."""
     repo = tmp_path / "repo"
     initialize_repository(repo)
     git(repo, "switch", "-c", "develop")
@@ -139,7 +144,7 @@ def rebased_feature_plan(tmp_path: Path) -> tuple[str, ReleasePlan]:
 
 @pytest.fixture
 def main_plan(tmp_path: Path) -> ReleasePlan:
-    """Prepare the real-Git on-main plan outside assertion time."""
+    """Prepare the synthetic on-main plan outside assertion time."""
     repo = tmp_path / "repo"
     initialize_repository(repo)
     commit_file(repo, "main.txt", "main\n", "feat: release work")
@@ -153,7 +158,10 @@ def test_plan_on_main_prepares_in_place(main_plan: ReleasePlan) -> None:
     assert plan.mode is ReleaseMode.ON_MAIN
     assert plan.action is ReleaseAction.PREPARE_IN_PLACE
     assert plan.scope == "v1.0.0..main"
-    assert plan.operations == ("prepare version and release notes in place",)
+    assert plan.operations == (
+        "run ghog day --full=cov --whole-suite",
+        "prepare version and release notes in place",
+    )
 
 
 def test_plan_integration_merges_no_ff_when_it_contains_main(
@@ -166,7 +174,10 @@ def test_plan_integration_merges_no_ff_when_it_contains_main(
     assert plan.action is ReleaseAction.MERGE_NO_FF
     assert plan.merge_preview is not None
     assert plan.merge_preview.clean is True
-    assert plan.operations[0] == "git switch --ignore-other-worktrees main"
+    assert plan.operations[:2] == (
+        "git switch develop",
+        "run ghog day --full=cov --whole-suite",
+    )
     assert plan.operations[-1] == "git merge --no-ff develop"
 
 
@@ -203,6 +214,7 @@ def test_plan_integration_previews_main_sync_conflict(
     assert plan.merge_preview.clean is False
     assert plan.merge_preview.conflicted_files == ("shared.txt",)
     assert plan.operations[1] == "git merge --no-ff main"
+    assert plan.operations[2] == "run ghog day --full=cov --whole-suite"
 
 
 @pytest.fixture
@@ -239,6 +251,8 @@ def test_plan_nested_feature_uses_exact_integration_replay(
     assert [commit.oid for commit in plan.commits] == [feature_tip]
     assert plan.rebase_preview is None
     assert plan.operations == (
+        "git switch feature",
+        "run ghog day --full=cov --whole-suite",
         "git switch --ignore-other-worktrees develop",
         "git merge --no-ff feature",
     )
@@ -469,6 +483,7 @@ def test_plan_single_parent_candidate_is_selected_without_ranking(
     (candidate,) = plan.boundary_candidates
     assert candidate.parent_refs == ("main",)
     assert plan.action is ReleaseAction.REBASE_ONTO_MAIN_THEN_MERGE
+    assert plan.operations[2] == "run git range-diff and ghog day --full=cov --whole-suite"
 
 
 def test_plan_ambiguous_parents_select_the_unique_nearest_boundary(

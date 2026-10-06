@@ -20,7 +20,7 @@ This skill calls other skills and tools:
 - `prepare_release_plan.bat` automatically, first for topology-only evidence
   and again for the exact Git 2.50+ `merge-tree` conflict preview after main
   is current.
-- `group-commits-msg` when the working tree is dirty, and when a `ghog day`
+- `group-commits-msg` when the working tree is dirty, and when a `ghog day --full=cov --whole-suite`
   green gate needed fixes that must be committed.
 - `update-merge-commit-msg` after it merges an integration, feature, or
   landing branch into its target.
@@ -33,9 +33,9 @@ This skill calls other skills and tools:
   or `docs/wiki/` exists, before release notes are generated.
 - `prepare_release_notes` for the `version.txt` summary and the
   `CHANGELOG.md`.
-- the `ghog day` groundhog loop (the `groundhog` skill) to prove the suite
-  is green after a feature-only `--onto` replay or after main was merged into
-  an integration branch.
+- the `ghog day --full=cov --whole-suite` groundhog loop (the `groundhog` skill) to prove the suite
+  is green before every promotion to main, generic integration or umbrella
+  integration, before on-main preparation, and before resumed topic handoff.
 
 It uses a flag file (`a.prepare-release.active` in the review artifact home,
 see "The run flag file and other working files" below) so those sub-skills
@@ -211,19 +211,28 @@ Existence is the whole signal; the file content does not matter.
 
 ## The green-gate routine
 
-Some steps drive the project to a green test suite with `ghog day` before
-the release goes on. When a step calls for the green gate:
+Every feature promotion to main, a generic integration branch such as `develop`,
+or an umbrella integration branch requires `ghog day --full=cov --whole-suite`
+on the candidate tree. Integration promotion to main and release preparation
+directly on main require the same gate. Containing the latest destination does
+not waive validation. A resumed already-integrated topic must validate its
+destination before the Step 7A checkpoint.
 
-1. Run the groundhog loop with `ghog day`, following the `groundhog` skill
+The explicit whole-suite selector overrides effort groups and ambient
+`GHOG_GROUP`; group proof cannot satisfy this gate. Groundhog may reuse valid
+whole-suite coverage or speed proof for unchanged sources. When a step calls
+for the green gate:
+
+1. Run the groundhog loop with `ghog day --full=cov --whole-suite`, following the `groundhog` skill
    ([`groundhog.md`](groundhog.md)): from the project root, `cmd /d /c
-   "<LLM_SHARED_DIR>\bin\ghog.bat day > a.ghog.log 2>&1"`, issued from
+   "<LLM_SHARED_DIR>\bin\ghog.bat day --full=cov --whole-suite > a.ghog.log 2>&1"`, issued from
    PowerShell or cmd.exe, never from Git Bash (an MSYS shell mangles the
    `/d` / `/c` switches and `cmd` exits 0 without running the walk, leaving a
    stale log; see groundhog.md). Branch on the exit code, and fix and re-run
    until it reaches exit 0 (every check, the affected tests, and the full
    suite at the coverage gate). The groundhog loop owns running `check.bat`
    and the tests; never run them directly here.
-2. When the first `ghog day` is green with nothing changed, there is
+2. When the first `ghog day --full=cov --whole-suite` is green with nothing changed, there is
    nothing to commit: continue with the next skill step.
 3. When fixes were needed to reach green, the working tree now carries
    them. Create the flag file, run the `group-commits-msg` skill to group
@@ -773,8 +782,9 @@ without the preview.
 
 #### Base the selected branch on its latest destination
 
-Skip this half in on-main mode: there is no branch to base, the half above
-already made local main current, and Step 6 is skipped on main too.
+In on-main mode, there is no branch to base: the half above already made local
+main current. Run the green-gate routine on main before continuing to release
+preparation; Step 6 is skipped on main.
 
 In integration mode, check whether local main is already an ancestor of the
 branch tip:
@@ -783,8 +793,9 @@ branch tip:
 git -C "<PRJ_DIR>" merge-base --is-ancestor main HEAD
 ```
 
-When that succeeds (exit 0), integration already contains the latest main: go
-straight to Step 6, with no rebase and no extra test. When it does not, never
+When that succeeds (exit 0), integration already contains the latest main:
+run the green-gate routine on the integration branch, then continue to Step 6
+only when it is green. When it does not, never
 offer to rebase the long-lived integration branch. Offer only:
 
 1. Merge main into the integration branch, then test:
@@ -809,13 +820,15 @@ In feature mode, use the boundary and commit list confirmed in Step 3 and the
   When it is, do not create a landing branch or attempt an empty replay. Report
   that the feature is already integrated into `<target_branch>`. If the target
   tip is the feature's merge commit and already has the required `Why:` /
-  `What:` message, switch to the target and continue at the Step 7A umbrella
-  checkpoint. Otherwise stop with the merge OID; the skill cannot safely
+  `What:` message, switch to the target, run the green-gate routine on that
+  destination, and continue at the Step 7A umbrella checkpoint only when it is
+  green. Otherwise stop with the merge OID; the skill cannot safely
   invent or reword a non-tip historical merge.
 - Otherwise, when `<feature_base>` is an ancestor of `<target_branch>` **and**
   `<target_branch>` is an ancestor of `<feature_branch>`, the feature already
   contains the latest destination without carrying a parent-only base. Use
-  `<feature_branch>` as `<source_branch>` and go directly to Step 6.
+  `<feature_branch>` as `<source_branch>`, switch to it, and run the green-gate
+  routine before continuing to Step 6.
 - Otherwise, replay only the confirmed range onto the destination. Preserve
   the original feature ref: create a uniquely named temporary landing branch
   at the feature tip, then rebase that branch with the explicit boundary:
@@ -900,9 +913,12 @@ worktree matters, and its cleanliness was already checked in Step 4. Do not
 stop because the destination is checked out elsewhere, and do not write outside the
 current tree.
 
-The green gate already ran after a feature `--onto` replay or integration sync
-in Step 5, or was not needed because the selected branch already contained the
-latest destination. Do not run it again after the Step 6 merge.
+The whole-suite green gate ran on every promotion candidate in Step 5. Since
+the source contains the latest destination, the Step 6 merge has the tested
+source tree. Verify that equality before proceeding; if conflict resolution
+or any other change produced a different tree, run the green-gate routine on
+the destination before continuing. An unchanged tested tree needs no duplicate
+run after the merge.
 
 ### Step 7 — Reword the merge commit
 
@@ -975,8 +991,9 @@ the prefix the tool selected.
   - if the feature destination was main, reclassify the remainder as on-main
     release preparation and continue to Step 8;
   - if the destination was integration, rerun the planner in integration mode,
-    perform the integration sync from Step 5 when needed, then run Steps 6 and
-    7 once more for the integration-to-main merge. Do not run this checkpoint
+    perform the integration sync from Step 5 when needed, run its whole-suite
+    green gate even when no sync is needed, then run Steps 6 and 7 once more
+    for the integration-to-main merge. Do not run this checkpoint
     again for that final merge; continue to Step 8.
 - When the lookup exits non-zero or prints no command, stop without release
   artifacts and report the exact lookup error. Never guess that the collection
@@ -1066,7 +1083,7 @@ Step 10 has written `version.txt` and `CHANGELOG.md`. Stop here, before Step
 12, so the user can refine the release notes. This pause is for the
 release-notes content only: the `version.txt` summary and the
 `.changelog.fixes` rules that shape how `CHANGELOG.md` reads. It is not for
-coding a project fix; the code was already taken to green by the `ghog day`
+coding a project fix; the code was already taken to green by the `ghog day --full=cov --whole-suite`
 gate earlier.
 
 1. Stage the two files Step 10 changed, as a baseline that makes any later
@@ -1258,9 +1275,11 @@ Run the skill twice and the second run does nothing harmful:
   commit since the last tag, with "release already done" (HEAD on a tag),
   "branch tip already released" (an old branch contained by a later tag), or
   "nothing to release yet".
-- The Step 5 base check is a no-op once integration contains the latest main,
-  recognizes an already-integrated feature, or is a no-op once a feature's
-  confirmed range already sits safely on its latest destination.
+- The Step 5 basing operations are a no-op once integration contains the latest
+  main or a feature's confirmed range already sits safely on its latest
+  destination. Its whole-suite green gate still applies, including an
+  already-integrated feature continuation; unchanged valid whole-suite proof
+  may be reused.
 - The Step 7A lookup repeats the same ordered collection decision from disk.
   Once one item is complete it advances to the next; once all are complete it
   returns `prepare-release` and the current run crosses the artifact boundary.
@@ -1290,12 +1309,12 @@ Run the skill twice and the second run does nothing harmful:
   With no remote, or unpushed main, it uses local main
   as-is. Feature mode also makes the resolved integration destination current
   when present; a diverged published integration ref stops for reconciliation.
-- Reaching a green suite uses the `ghog day` loop (the `groundhog` skill).
+- Reaching a green suite uses the `ghog day --full=cov --whole-suite` loop (the `groundhog` skill).
   Integration branches are never rebased: main is merged into them before
   the gate when they do not contain the latest main. Feature replays use a
   separate landing branch so the original feature ref is never rewritten.
   Rebase conflicts are resolved by the user; on a go-ahead selection the
-  skill resumes non-interactively with `GIT_EDITOR=true`. A `ghog day` failure
+  skill resumes non-interactively with `GIT_EDITOR=true`. A `ghog day --full=cov --whole-suite` failure
   is fixed, then committed through `group-commits-msg` with the user's review
   before the release goes on.
 - Conflict previews require Git 2.50+ and are produced by the shared

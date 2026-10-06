@@ -89,7 +89,8 @@ Run this section before the ordinary numbered steps when the prompt contains
    item. Write this source as an actual Markdown file; do not keep the derived
    draft only in the conversation. Never edit, rename, or delete the umbrella
    draft.
-5. Continue at Step 7 and present only the branch-layout choice. Pass the
+5. Continue at Step 7 and present the branch-layout choice, followed by its
+   test-scope menu for this child. Pass the
    temporary child source to `new_draft --from-draft` with the already settled
    slug, version, and inherited `--docs-layout` value. The tool moves that child
    source to `draft.vX.Y.Z.<item-slug>.md` in the derived effort directory in
@@ -263,10 +264,34 @@ directory records it for `pw` and every later writing skill.
 
 Hand the mechanical part to the `new_draft` tool rather than running git by hand,
 so the slug, worktree-path, and branch rules stay in one tested place. Present
-the branch-layout choices, then call the tool:
+the branch-layout choices, then resolve the test scope below and call the tool:
 
 - A separate worktree: a sibling folder next to the repository root, named `<base>_<slug>`, where `<base>` is the root folder name with any trailing `_<suffix>` dropped (so a root `llm-shared` or `llm-shared_main` both give `..\llm-shared_<slug>`).
 - The current working tree: the branch is created in place.
+
+### Test-scope menu
+
+For a single-topic draft or an umbrella-derived child, after the branch-layout
+menu run `ghog groups` and offer `Whole suite`, each valid group it lists,
+`New group`, and `Type something else`. Recommend `Whole suite` unless the
+author has selected a narrower boundary. An umbrella draft carries no scope:
+skip this menu for a collection; each focused child makes its own choice.
+
+Validate an existing selection with `ghog groups <name>`. For `New group`,
+ask for the group name, test path patterns and source path patterns; explain
+that grouped coverage requires 100% of those declared sources. Add only the
+new named section to `.ghog-groups`, using `tests` and `sources` multiline
+fields. Preserve every existing section. Run `ghog groups <name>` and correct
+invalid names, patterns or empty matches before recording the choice.
+
+Write `- Test group: <name>` or `- Test group: whole suite` immediately next
+to `- Type:` in the draft metadata. Values are plain text, without quotes or
+backticks. In a new worktree, carry any newly authored group section into that
+tree and validate it there before the handoff; do not leave the child pointing
+to a definition that exists only in the source tree. The later requirement
+copies this choice and becomes authoritative for `pw scope`.
+
+### Create the selected draft branch
 
 Call the `new_draft` `--from-draft` mode with the values already gathered, passed as
 flags so the tool prompts for nothing: the draft path, `--slug`, `--version`,

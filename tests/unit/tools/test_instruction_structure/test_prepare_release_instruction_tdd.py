@@ -10,6 +10,8 @@ planner's preview object directories, scratch copies, and the release-notes
 `a.md` all live in the review artifact home, never at the project root.
 """
 
+import pytest
+
 from tools import prompt_workflow_steps as steps
 
 _INSTRUCTIONS = steps.llm_shared_dir() / "instructions"
@@ -88,6 +90,29 @@ def test_prepare_release_keeps_run_files_in_the_artifact_home() -> None:
     assert "`<ARTIFACT_HOME>/a.md`" in notes
     assert "`a.prepare-release.active` in the review artifact home" in notes
     assert "<PRJ_DIR>/a." not in notes
+
+
+@pytest.mark.parametrize(
+    "required",
+    [
+        "or an umbrella integration branch requires `ghog day --full=cov --whole-suite`",
+        "group proof cannot satisfy this gate",
+        "Containing the latest destination does not waive validation",
+        "Run the green-gate routine on main before continuing",
+        "run the green-gate routine on the integration branch",
+        "switch to the target, run the green-gate routine on that destination",
+        "switch to it, and run the green-gate routine before continuing to Step 6",
+        "green gate even when no sync is needed",
+        "if conflict resolution or any other change produced a different tree",
+    ],
+    ids=["umbrella", "whole-proof", "current", "main", "integration", "resume", "direct", "exhausted", "changed-tree"],
+)
+def test_prepare_release_gates_every_promotion_and_preparation_route(required: str) -> None:
+    """Current branches and resumed umbrella work cannot bypass whole-suite proof."""
+    content = " ".join(_read("prepare-release.md").split())
+    assert required in content
+    assert "no extra test" not in content
+    assert "was not needed because the selected branch" not in content
 
 
 # eof

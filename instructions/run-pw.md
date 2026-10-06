@@ -2,7 +2,8 @@
 
 The workflow handoffs call `pw` commands: `pw skill`, `pw skill --after-write
 <role>`, `pw skill --after-commit <x>`, `pw skill --after-merge
-<umbrella-draft>`, `pw progress`, `pw step-journal <x>`, and `pw handoff <mode> <x>`. This note gives the one reliable
+<umbrella-draft>`, `pw progress`, `pw scope [ghog arguments]`,
+`pw step-journal <x>`, and `pw handoff <mode> <x>`. This note gives the one reliable
 way to run them, so each instruction can point here instead of repeating the
 call.
 
@@ -40,6 +41,8 @@ Replace `skill` with the actual sub-command and its arguments.
 | `pw skill --after-commit <x>` | `& "<LLM_SHARED_DIR>\bin\prompt_workflow.bat" skill --after-commit <x>` |
 | `pw skill --after-merge <umbrella-draft>` | `& "<LLM_SHARED_DIR>\bin\prompt_workflow.bat" skill --after-merge <umbrella-draft>` |
 | `pw progress` | `& "<LLM_SHARED_DIR>\bin\prompt_workflow.bat" progress` |
+| `pw scope` | `& "<LLM_SHARED_DIR>\bin\prompt_workflow.bat" scope` |
+| `pw scope day --full=cov` | `& "<LLM_SHARED_DIR>\bin\prompt_workflow.bat" scope day --full=cov` |
 | `pw step-journal <x>` | `& "<LLM_SHARED_DIR>\bin\prompt_workflow.bat" step-journal <x>` |
 | `pw handoff check <x>` | `& "<LLM_SHARED_DIR>\bin\prompt_workflow.bat" handoff check <x>` |
 | `pw handoff after-check <x>` | `& "<LLM_SHARED_DIR>\bin\prompt_workflow.bat" handoff after-check <x>` |
@@ -71,7 +74,7 @@ verbatim and act on it as the calling handoff describes; the not-applicable case
 prints nothing and exits non-zero.
 
 `pw progress` is the exception: it prints a short aligned report (`branch`,
-`topic`, `umbrella`, `phase`, `step`, one `review` line per active review
+`topic`, `umbrella`, `phase`, `step`, optional `journal`, `scope`, one `review` line per active review
 exchange or `no review in progress`, `next`) and its `next` line carries the
 same command bare `pw skill` prints. When the topic's requestor is known from
 an active exchange or the topic's review transcripts, that command is rendered
@@ -80,3 +83,21 @@ interrupted, escalated, or inconsistent exchange also adds a `resume` line
 after the `review` lines: a one-line prompt for the role that recovers it,
 ending with the name of the session to paste it into. With no resolved topic it prints only
 `branch`, `topic none resolved`, and the `review` lines, and exits non-zero.
+
+`pw scope` prints the requirement's explicit selector: `--group=<name>` or
+`--whole-suite`. With ghog arguments it prints the completed command, such as
+`ghog day --full=cov --group=sentinel`. Put pw options such as `--root` before
+the ghog command word. Arguments already containing `--group`, `--scope-file`
+or `--whole-suite` are refused; the selector comes from the requirement.
+
+Only the requirement's `- Test group:` metadata before its first level-two
+heading controls this scope. A missing line or a requirement not yet created
+means the whole suite, regardless of the draft or `GHOG_GROUP`. A named group
+must validate through groundhog; an empty or duplicated line is an error.
+Invalid declarations print a diagnostic and exit 2 without a command.
+With no resolved topic the command exits 3 without a selector.
+
+The `scope` progress row follows `step` and its optional `journal`, or `phase`
+when there is no step. It names the selected scope and source requirement, the
+reason for the whole-suite default, or the validation error. This row describes
+the declaration; saved proof remains the responsibility of groundhog reports.

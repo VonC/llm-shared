@@ -146,8 +146,9 @@ reuse the preceding document, step, round, or occurrence for a new request.
     both are successful publication outcomes.
 13. After a `changes-requested` publication returns `answer-pending`,
     immediately run the quiet global `wait-any-request` in this same reviewer
-    session, in the background. Return control of the chat while keeping the
-    watcher active; do not require another invocation to start it.
+    session, using the host-specific wait transport below. Codex stays attached;
+    Claude resumes from background completion. Do not require another
+    invocation to start the wait or process its result.
     Waiting does not transfer requestor
     authority: the requestor still consumes the answer, assesses repairs,
     continues the exchange, and publishes the replacement request.
@@ -166,10 +167,11 @@ reuse the preceding document, step, round, or occurrence for a new request.
 
 ## A reviewer always waits
 
-A reviewer keeps watching after publishing an answer. Return control of the
-chat while the background watcher remains active; ending a chat turn does not
-end the reviewer session or transfer workflow authority. There are two kinds
-of wait.
+A reviewer keeps watching after publishing an answer. Codex must use an attached
+wait and keep the assistant turn active until the watcher returns;
+do not send a final response while waiting. Claude may return control of the
+chat with its background watcher active and resume on the completion notification.
+Neither transport transfers workflow authority. There are two kinds of wait.
 
 **The round wait.** Use exact `wait-request` to validate access to a selected
 request before assessment. After every answer, including `changes-requested`,
@@ -184,9 +186,10 @@ document, or step may publish the next request.
 
 Neither wait is optional and neither is a question for the user. Do not ask
 whether to start waiting or offer waiting as a choice. A long session or a
-completed round is not a reason to stop the watcher. Returning chat control
-with the background watcher active preserves the next request; stopping both
-the reviewer and its watcher would leave the exchange unwatched.
+completed round is not a reason to stop the watcher. Preserve both request
+detection and automatic review resumption: Codex remains attached, while
+Claude keeps its background completion notification. A watcher that needs
+another user message to resume review does not satisfy active waiting.
 
 Never start or contact a requestor to produce that next round.
 The absence of a request never authorizes reviewer-to-requestor delegation.
@@ -200,16 +203,17 @@ wait. These script-managed operations are the only sanctioned mechanisms.
 
 `& "<LLM_SHARED_DIR>\bin\review_exchange.bat" wait-request` remains bound to
 one exact exchange and validates selected request access. After every answer,
-run `wait-any-request` once as a quiet background operation and retain its
-session handle. It watches the configured artifact home without model-side polling,
+run `wait-any-request` once using the host-specific wait transport and retain
+its session handle. It watches the configured artifact home without model-side polling,
 claims only its selected request, returns `found`, `ambiguous`, or `cancelled`,
 and writes no idle progress. `GlobalReviewerWait` owns the watcher loop.
 
 Follow the [quiet-wait transport rules](../rules/run_commands.md#quiet-waits-preserve-model-quota)
-for both reviewer waits. The global watcher must not monopolize the chat:
-return chat control instead of entering a long outer tool wait. Retrieve its
-final JSON on a supported completion notification or the next user turn, and
-report any host limitation once. Do not add idle polling or progress updates.
+for both reviewer waits. In Codex, await the same tool execution through any
+transport yields and dispatch final JSON immediately in the active turn.
+In Claude, retrieve it on the background completion notification. Do not defer
+either host's result until the next user turn. Report any host limitation once
+and preserve the existing watcher instead of starting another.
 
 ## Exact evidence delegation
 
@@ -272,13 +276,18 @@ included, in earlier stages such as
 gap before the requestor publishes a review request. The reviewer does not
 repeat it.
 
+The reviewer uses the core-owned `paths.scope` returned by exchange status.
+A missing capture, a legacy `bound_scope: missing`, or a capture refused by
+groundhog is missing evidence. Do not substitute the current requirement or
+an ambient group for the bound round scope.
+
 - Never run `ghog day` or `ghog full`, and never measure or recheck coverage
   during a review. Assess coverage statically, as the unit test coverage
   sub-section of `implementation-check.md` describes.
 - When the assessment needs executed evidence, run at most these two commands,
   each once per round, from the project root:
   - `ghog check`, which runs `check.bat` (compile and lint);
-  - `ghog affected --no-cov`, the focused tests of the staged change.
+  - `ghog affected --no-cov --scope-file=<paths.scope>`, the focused tests of the staged change.
 - Use the redirected call form and the log-freshness proof from
   `implement-step.md` (`<LLM_SHARED_DIR>\bin\ghog.bat` from PowerShell), then
   read only the log tail.
@@ -305,7 +314,7 @@ change is substantive and forces `changes-requested` in the same round.
 
 Do not run the resolved validation commands; the request records them as
 requestor evidence. A reviewer evidence command (`ghog check` or
-`ghog affected --no-cov`) that was needed but cannot run is missing evidence,
+`ghog affected --no-cov --scope-file=<paths.scope>`) that was needed but cannot run is missing evidence,
 never a pass. Resolver drift is reported with its direction as a finding for
 the requestor. Do not revert or stage a tracked validation side effect. Recheck the umbrella digest after both a Yes and No result and
 never complete an umbrella row from reviewer mode.

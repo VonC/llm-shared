@@ -70,22 +70,28 @@ Dispatch the action from the successful claim (or idle inspection):
 - `wait-exact-answer` routes to the matching requestor's exact answer wait.
 - `continue-requestor` routes to the requestor's owned action.
 - `follow-workflow` runs and follows `pw skill`.
-- `wait-any-request` runs the quiet background watcher below.
+- `wait-any-request` runs the quiet watcher below using the host-specific transport.
 
-For a global reviewer wait, run this command once in a host-managed background
-execution session, retaining its handle and final JSON without an LLM polling
-loop:
+For a global reviewer wait, run this command once, retaining its execution
+handle and final JSON without an external protocol polling loop:
 
 ```powershell
 & "<LLM_SHARED_DIR>\bin\review_exchange.bat" wait-any-request
 ```
 
 Apply the [quiet-wait transport rules](../rules/run_commands.md#quiet-waits-preserve-model-quota).
-Return control of the chat while the watcher runs; do not hold an outer tool
-wait open or require the user to press Esc to ask questions. Retrieve its
-result on a supported completion notification or the next user turn. Repeated
-minute-by-minute model resumptions to receive "still running" are an LLM
-polling loop even when the watcher emits nothing.
+Codex must use an attached wait: keep the assistant turn active, continue
+awaiting the same execution if the tool yields, and process its final JSON
+immediately. Do not send a final response or wait for another user message
+while the watcher runs. Claude may return chat control with a background
+watcher and resume through its supported completion notification. Use the
+longest permitted transport interval; do not add idle status polling or
+restart the watcher on a transport timeout.
+
+For a user-requested status check during a Codex attached wait, follow
+[status-check isolation](review-status-command.md#codex-status-check-isolation).
+Keep the watcher and capability in the waiting session; give the status helper
+no active conversation context and resume the same attached wait afterward.
 
 The command emits no idle output. `found` exits 0 and includes the session-only
 ownership capability; `ambiguous` and `cancelled` exit 3; invalid input and an

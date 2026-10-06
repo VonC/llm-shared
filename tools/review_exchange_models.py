@@ -123,12 +123,13 @@ class ArtifactState(StrEnum):
 
 
 class ArchiveKind(StrEnum):
-    """Evidence kinds allowed in human-recovery archive names."""
+    """Evidence kinds, including scope captures, in human-recovery archives."""
 
     REQUEST = "request"
     ANSWER = "answer"
     CONSUMED = "consumed"
     COORDINATION = "coordination"
+    SCOPE = "scope"
 
 
 def strict_fields(
@@ -535,7 +536,7 @@ def _wait_timeout_from_marker(content: str, default_wait: int) -> int:
 
 @dataclass(frozen=True)
 class ArtifactPaths:
-    """All fixed exact paths derived for one exchange identity."""
+    """Exact exchange paths with the scope capture outside the fixed set."""
 
     identity: ExchangeIdentity
     project_root: Path
@@ -545,6 +546,7 @@ class ArtifactPaths:
     coordination: Path
     tombstone: Path
     transition_lock: Path
+    scope: Path
 
     @property
     def fixed_paths(self) -> tuple[Path, ...]:

@@ -81,4 +81,11 @@ def test_provider_files_redirect_directly_to_canonical_instruction() -> None:
     assert len(packaged.splitlines()) == 1
 
 
+def test_code_publication_uses_the_core_owned_scope() -> None:
+    """The shared requestor distinguishes input capture and bound core path."""
+    content = (steps.llm_shared_dir() / "instructions/review-requestor.md").read_text(encoding="utf-8")
+    for fragment in ("--scope-capture-file", "paths.scope", "bound_scope: missing"):
+        assert fragment in content
+
+
 # eof

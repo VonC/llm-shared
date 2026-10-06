@@ -3,9 +3,9 @@
 The tests pin required policy tokens and ordering while leaving prose free to
 improve. Shared lifecycle mechanics remain owned by review-requestor.md.
 
-Fix: the resolved validation set, `ghog day` included, is requestor-side; the
-writer runs it green before a request, and the reviewer limits itself to
-`ghog check` and `ghog affected --no-cov`.
+Fix: the resolved validation set defaults to speed in the effort scope. The
+writer proves it before every request, discloses exclusions and scope changes,
+and preserves declared commands and commit-ready human authority.
 """
 
 from __future__ import annotations
@@ -83,7 +83,7 @@ def test_instruction_captures_and_publishes_typed_request_evidence() -> None:
         "## Code review evidence",
     ):
         assert token in content
-    assert "cannot remove the `ghog day` project default" in content
+    assert "cannot remove the resolved project default" in content
     _assert_in_order(
         content,
         ("capture_index_tree", "resolve_code_review_validation", "render", "publish-request"),
@@ -91,17 +91,31 @@ def test_instruction_captures_and_publishes_typed_request_evidence() -> None:
 
 
 def test_requestor_owns_the_full_validation_walk() -> None:
-    """The writer runs `ghog day` green before a request; the reviewer does not."""
+    """The writer proves the resolved speed default before every publication."""
     content = " ".join(_content().split())
 
     for token in (
         "That set is requestor-side validation",
-        "must have run it green, `ghog day` included",
-        "fixed every failure and coverage gap",
+        "must have run it green before every request and replacement",
+        "failures, coverage gaps and duration outliers",
         "never runs `ghog day` or `ghog full`",
         "`ghog check` and `ghog affected --no-cov`",
     ):
         assert token in content
+
+
+def test_validation_policy_preserves_declared_commands_and_bound_scope() -> None:
+    """Migration is explicit and pending scope changes cannot bypass review."""
+    content = " ".join(_content().split())
+    for token in (
+        "ghog day --full=speed", "effort scope", ".review-validation",
+        "never rewrite", "plain `ghog day`", "GHOG_FULL", "saved proof",
+        "declared set", "accepted exclusion", "measured seconds",
+        "attempted improvement", "pending scope", "no validation walk",
+        "bound scope", "requirement", "group-definition", "not polishing",
+        "long-running review watchers",
+    ):
+        assert token in content, token
 
 
 def test_requestor_cannot_initiate_the_reviewer() -> None:
@@ -227,6 +241,14 @@ def test_authorized_commit_replays_owner_action_before_completion() -> None:
         ),
     )
     assert "reviewer never commits" in content.lower()
+
+
+def test_requestor_renders_and_publishes_scope_capture() -> None:
+    """The caller-owned capture accompanies publication and scope changes."""
+    content = _content()
+    for fragment in ("--scope-capture-output", "--scope-capture-file", "--scope-change-file",
+                     "a.<slug>.step<x>.tmp.scope-capture.json"):
+        assert fragment in content
 
 
 # eof

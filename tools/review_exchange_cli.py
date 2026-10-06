@@ -60,6 +60,7 @@ from tools.review_exchange_paths import (
     load_review_configuration,
     validate_activation,
 )
+from tools.review_exchange_scope import bound_scope_payload
 from tools.review_exchange_store import ReviewExchangeStore
 from tools.review_exchange_transcript_identity import current_request_occurrence
 from tools.review_exchange_wait import WaitOutcome, WaitProgress
@@ -293,7 +294,11 @@ def _dispatch_publication(
     content = _read_input_file(runtime.project_root, args.content_file, "content")
     summary = _read_input_file(runtime.project_root, args.summary_file, "summary")
     if args.operation == "publish-request":
-        runtime.core.publish_request(content, summary)
+        if args.scope_capture_file is None:
+            runtime.core.publish_request(content, summary)
+        else:
+            capture = _read_input_file(runtime.project_root, args.scope_capture_file, "scope capture")
+            runtime.core.publish_request(content, summary, scope_capture=capture)
     else:
         runtime.core.publish_answer(content, summary)
     return OperationResult("published")
@@ -436,9 +441,10 @@ def _dispatch(
         )
 
 
-def _paths_payload(paths: ArtifactPaths) -> dict[str, str]:
+def _paths_payload(paths: ArtifactPaths, *, bound: bool = False) -> dict[str, str]:
     """Render every applicable fixed path with stable keys."""
     return {
+        **({"scope": paths.scope.as_posix()} if bound else {}),
         "answer": paths.answer.as_posix(),
         "coordination": paths.coordination.as_posix(),
         "request": paths.request.as_posix(),
@@ -459,12 +465,14 @@ def _success_payload(runtime: Runtime, operation: str, result: OperationResult) 
         state = observation.state.value
         record = observation.record
         diagnostic = observation.diagnostic
+    bound_scope = bound_scope_payload(runtime.paths, record)
     payload: dict[str, Any] = {
         "diagnostic": diagnostic,
         "identity": runtime.context.identity.to_dict(),
         "operation": operation,
         "outcome": result.outcome,
-        "paths": _paths_payload(runtime.paths),
+        "paths": _paths_payload(runtime.paths, bound=isinstance(bound_scope, dict)),
+        "bound_scope": bound_scope,
         "round": record.round_number if record is not None else None,
         "state": state,
     }

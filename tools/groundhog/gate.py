@@ -3,7 +3,8 @@
 The gate is the ``fail_under`` value the project already declares in its
 coverage configuration — ``pyproject.toml`` first, then ``.coveragerc``,
 then ``setup.cfg`` — with a default of 100 when no file declares one. The
-tool never demands more than the project's own gate.
+tool never demands more than the project's own gate. Step 3 shares its TOML
+table reader with the project-settings adapter used by group resolution.
 """
 
 from __future__ import annotations
@@ -11,7 +12,9 @@ from __future__ import annotations
 import configparser
 import contextlib
 import tomllib
-from typing import TYPE_CHECKING, Final, cast
+from typing import TYPE_CHECKING, Final
+
+from tools.groundhog.project_settings import dict_get as _dict_get
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -60,22 +63,6 @@ def _from_pyproject(root: Path) -> float | None:
         report = _dict_get(_dict_get(data.get("tool"), "coverage"), "report")
         return _as_gate(_dict_get(report, _FAIL_UNDER))
     return None
-
-
-def _dict_get(mapping: object, key: str) -> object | None:
-    """Read one key of a TOML table, tolerating any non-table value.
-
-    Args:
-        mapping: The candidate table, of any TOML type.
-        key: The key to read.
-
-    Returns:
-        The value, or ``None`` when the candidate is not a table or has
-        no such key.
-    """
-    if not isinstance(mapping, dict):
-        return None
-    return cast("dict[str, object]", mapping).get(key)
 
 
 def _from_ini(path: Path, section: str) -> float | None:

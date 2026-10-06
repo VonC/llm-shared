@@ -7,6 +7,10 @@ marker, the umbrella draft a topic resolved through, or one same-version
 umbrella listing the slug; anything else is a standalone topic. A known
 requestor, from an active exchange or else the topic's transcripts, renders the
 `next` command for its host and labels it, except for a reviewer handoff.
+
+Fix: a specification routing refusal (several live exchanges for one topic)
+becomes a `none resolved (<reason>)` next line instead of aborting the report.
+Topic reports include the requirement-owned scope after their phase or step.
 """
 
 from __future__ import annotations
@@ -258,6 +262,7 @@ def test_progress_lines_for_an_umbrella_child_in_implementation(
         ("umbrella", "family, topic 2/3: Title beta-one (1/3 topics completed)"),
         ("phase", "implementation (5/5)"),
         ("step", "3.2 (5/7): Wire the parser (4/7 verified)"),
+        ("scope", "whole suite (no Test group line in docs/feature-request.v10.0.0.beta-one.md)"),
         ("review", "review of beta-one"),
         ("next", "/next"),
     ]
@@ -296,6 +301,7 @@ def test_progress_lines_for_a_standalone_draft_and_an_empty_plan(
         ("topic", f"{_VERSION} solo"),
         ("umbrella", "none, standalone topic"),
         ("phase", "draft (1/5)"),
+        ("scope", "whole suite (no requirement yet)"),
         ("review", "review of solo"),
         ("next", "/process-draft on docs/draft.v10.0.0.solo.md"),
     ]
@@ -380,6 +386,26 @@ def test_next_line_leaves_reviewer_handoffs_and_missing_commands(
     answers = iter([("/code-reviewer on docs/x.md", ""), (None, "note")])
     monkeypatch.setattr(progress.skill, "current_command", lambda *_a: next(answers))
     assert progress.next_line(tmp_path, topic, "b", {}, None, LlmNature.CLAUDE) == "none resolved"
+
+
+def test_next_line_reports_a_routing_refusal_instead_of_failing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Several live specification exchanges leave the report whole, with the reason."""
+    topic = _topic(_docs(tmp_path), "dex-navigation")
+    reason = "multiple live specification exchanges for one topic: a; b"
+
+    def refuse(*_a: object) -> tuple[str, str]:
+        raise progress.review.SpecificationReviewRoutingError(reason)
+
+    monkeypatch.setattr(progress.skill, "current_command", refuse)
+
+    assert progress.next_line(tmp_path, topic, "b", {}, None, LlmNature.CLAUDE) == (
+        f"none resolved ({reason})"
+    )
+    assert progress.progress_lines(tmp_path, topic, "b", {})[-1] == (
+        "next", f"none resolved ({reason})",
+    )
 
 
 def test_progress_lines_prefer_the_live_requestor_then_the_transcripts(

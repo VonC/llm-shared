@@ -116,6 +116,7 @@ def transient_paths_for_ignore(paths: ArtifactPaths) -> tuple[Path, ...]:
         paths.coordination,
         paths.tombstone,
         paths.transition_lock,
+        paths.scope,
         *archives,
     )
 

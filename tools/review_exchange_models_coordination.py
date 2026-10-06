@@ -122,7 +122,7 @@ def _ownership_from_mapping(
 
 @dataclass(frozen=True)
 class CoordinationRecord:
-    """Durable cross-process state with digest-only transition ownership."""
+    """Durable state with digest-only ownership and an optional bound scope."""
 
     context: ReviewContext
     policy: FamilyPolicy
@@ -146,6 +146,7 @@ class CoordinationRecord:
     role_natures: RoleNatureSnapshot = field(default_factory=RoleNatureSnapshot)
     ownership_generation: int = 0
     ownership_token_digest: str | None = None
+    bound_scope_fingerprint: str | None = None
 
     def __post_init__(self) -> None:
         """Validate status, marker, confirmation, and ownership invariants."""
@@ -157,6 +158,10 @@ class CoordinationRecord:
         _validate_incomplete_transition(self)
         _validate_confirmation(self)
         _validate_ownership(self)
+        if self.bound_scope_fingerprint is not None and (
+            _OWNERSHIP_DIGEST_RE.fullmatch(self.bound_scope_fingerprint) is None
+        ):
+            raise ReviewExchangeError("invalid bound scope fingerprint")
 
     def to_dict(self) -> dict[str, Any]:
         """Return strict JSON-compatible coordination data."""
@@ -188,6 +193,8 @@ class CoordinationRecord:
             "human_guidance": self.human_guidance,
             "role_natures": self.role_natures.to_dict(),
         }
+        if self.bound_scope_fingerprint is not None:
+            result["bound_scope_fingerprint"] = self.bound_scope_fingerprint
         if self.ownership_generation > 0:
             result["ownership_generation"] = self.ownership_generation
             result["ownership_token_digest"] = self.ownership_token_digest
@@ -211,6 +218,8 @@ class CoordinationRecord:
             data,
             expected,
         )
+        if "bound_scope_fingerprint" in data:
+            expected.add("bound_scope_fingerprint")
         strict_fields(data, expected, "coordination record")
         marker_value = data["incomplete_transition"]
         outcome_value = data["confirmed_outcome"]
@@ -295,6 +304,7 @@ class CoordinationRecord:
             ),
             ownership_generation=ownership_generation,
             ownership_token_digest=ownership_digest,
+            bound_scope_fingerprint=optional_string(data.get("bound_scope_fingerprint"), "bound scope fingerprint"),
         )
 
 

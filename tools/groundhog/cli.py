@@ -1,12 +1,14 @@
 """groundhog (alias ``ghog``): the pytest reset tool entry point.
 
+Fix (v0.13.0 full_suite_levels, Step 4): groundhog entry point, resolving explicit or ambient scope once per run.
+
 Subcommands (Q02, Q15): ``check`` runs check.bat from the project root,
 ``full`` re-runs the whole suite with a fresh testmon database and
 coverage (ptr), ``affected`` runs the testmon-selected tests (pta, with
 ``--no-cov`` for ptanc), ``single`` runs named test files in focus (pts),
-``day`` walks the whole chain — check, then affected --no-cov, then
-full — stopping at the first non-green step (Q22), ``init`` registers
-the skill pointers (Claude skill, AGENTS.md section) in the consuming
+``day`` walks the chain — check, then affected --no-cov, then the full
+run of its level — stopping at the first non-green step (Q22), ``init``
+registers the skill pointers (Claude skill, AGENTS.md section) in the consuming
 project (Q23), ``status`` replays the run lifecycle recorded in
 ``a.ghog.status`` (Q32), and ``exclude`` accepts one must-stay-slow call
 into the ``[exclusion]`` section of ``a.ghog.outliers`` in the artifact
@@ -30,7 +32,8 @@ Split for the repo line budget: this module keeps the argument parsing,
 the mode pick, the logging setup and the dispatch; the subcommand
 executors live in ``commands.py`` — except the trivial non-pytest
 ``exclude`` executor, which stays here beside its dispatch since
-``commands.py`` is at its line budget — and the injectable seams in
+``commands.py`` was at its line budget when it was added — and the
+injectable seams in
 ``context.py``.
 
 Usage::
@@ -44,6 +47,24 @@ Fix: the ``exclude`` confirmation names the floor file at its real location
 in the review artifact home (``.reviews`` unless ``.review-artifacts.ini``
 declares another home), where ``a.ghog.outliers`` now lives, instead of a
 bare file name that read as a project-root file.
+
+Fix (v0.13.0 full_suite_levels, Step 1): the ``exclude`` closing line takes
+its subcommand label from ``progress.sub_label``, where the label moved with
+the progress sink out of ``commands.py``.
+
+Fix (v0.13.0 full_suite_levels, Step 2): ``check``, ``full``, ``affected``,
+``single`` and ``day`` accept ``--full``, a free string validated by groundhog
+rather than by argparse choices, so a bad value is a setup error (exit 5),
+never argparse's exit 2. :func:`main` resolves the level once, after the root
+and before the live-run check and the lifecycle bracket: the parameter, else a
+non-empty ``GHOG_FULL`` read through the ``environ`` seam, else the command
+default. ``timings``, ``status``, ``init`` and ``exclude`` neither accept
+``--full`` nor read ``GHOG_FULL``. The detached walk is launched from
+``detach.py``, split out of ``status.py``.
+
+Step 3 adds read-only group and exclusion listings outside the lifecycle.
+Their argument combinations are validated here, including free-form exclusion
+seconds, so invalid listing requests return setup exit 5 instead of argparse 2.
 """
 
 from __future__ import annotations
@@ -52,9 +73,11 @@ import argparse
 import contextlib
 import io
 import logging
+import math
 import sys
+from dataclasses import replace
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Final
 
 if __name__ == "__main__":
     with contextlib.suppress(Exception):
@@ -64,20 +87,48 @@ if __name__ == "__main__":
 from tools import find_project_root
 from tools.groundhog import (
     commands,
+    detach,
     exclusions,
     floor,
+    listings,
+    progress,
     redirect,
     reporting,
     runner,
+    scope,
+    snapshot,
     status,
 )
 from tools.groundhog.context import Deps, Invocation
+from tools.groundhog.levels import LevelError, resolve_level
 from tools.groundhog.models import EXIT_OBJECTIVE_MET, EXIT_SETUP_ERROR, Mode, RunStats
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+    from typing import NoReturn
 
 LOGGER = logging.getLogger("groundhog")
+
+# The commands that run or repair the suite, the only ones resolving a level.
+_LEVEL_SUBS: Final = (
+    runner.SUB_CHECK,
+    runner.SUB_FULL,
+    runner.SUB_AFFECTED,
+    runner.SUB_SINGLE,
+    runner.SUB_DAY,
+)
+
+
+class _SubcommandParser(argparse.ArgumentParser):
+    """Return setup diagnostics for listing and free scope option errors."""
+
+    def error(self, message: str) -> NoReturn:
+        """Convert listing parse errors before argparse can exit with status two."""
+        if self.prog in ("ghog groups", "ghog exclude") or any(
+            option in message for option in ("--group", "--scope-file", "--whole-suite")
+        ):
+            raise ValueError(message)
+        super().error(message)
 
 
 def pick_mode(*, user: bool, llm: bool, tty: bool) -> Mode:
@@ -111,28 +162,80 @@ def main(argv: Sequence[str] | None = None, deps: Deps | None = None) -> int:
     """
     _configure_logging()
     active = deps if deps is not None else Deps()
-    args = _build_arg_parser().parse_args(list(argv) if argv is not None else None)
     try:
+        args = _parse_args(argv)
         root = _resolve_root(args.root)
-    except FileNotFoundError as error:
+        invocation = _build_invocation(args, root)
+    except (FileNotFoundError, ValueError) as error:
         LOGGER.info("ghog: %s", error)
         return EXIT_SETUP_ERROR
-    invocation = _build_invocation(args, root)
     # The Q32 paths keep their bounded envelope on stdout: no guard, no
     # senv replay, and no mirror left armed by an earlier in-process run.
     redirect.disarm()
-    if invocation.sub == runner.SUB_STATUS:
+    read_only = _run_read_only(invocation)
+    if read_only is not None:
+        return read_only
+    try:
+        invocation = _with_level(invocation, getattr(args, "full", None), active)
+        if invocation.sub in _LEVEL_SUBS:
+            invocation = _with_scope(invocation, args, active)
+    except (LevelError, scope.ScopeError) as error:
         redirect.consume_senv_log()
-        return status.run_status(invocation)
+        commands.emit_summary([f"ghog: {error}"])
+        return EXIT_SETUP_ERROR
     live = status.live_run(invocation.root)
     if live is not None:
         redirect.consume_senv_log()
         return status.refuse_live_run(live)
     if invocation.sub == runner.SUB_DAY and invocation.detach:
-        return status.run_day_detached(invocation, active)
+        return detach.run_day_detached(invocation, active)
     redirect.activate_if_captured(invocation.mode, invocation.root)
     redirect.replay_senv_log(invocation.mode, invocation.root)
     return _run_post_redirect(invocation, active)
+
+
+def _run_read_only(invocation: Invocation) -> int | None:
+    """Dispatch evidence listings without redirecting or starting a lifecycle."""
+    if invocation.sub == runner.SUB_STATUS:
+        redirect.consume_senv_log()
+        return status.run_status(invocation)
+    if invocation.sub == runner.SUB_GROUPS:
+        redirect.consume_senv_log()
+        return listings.run_groups(invocation)
+    if invocation.sub == runner.SUB_EXCLUDE and invocation.list_exclusions:
+        redirect.consume_senv_log()
+        return listings.run_exclude_list(invocation)
+    return None
+
+
+def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
+    """Validate listing arguments with groundhog's setup-error contract."""
+    parser = _build_arg_parser()
+    args, unknown = parser.parse_known_args(list(argv) if argv is not None else None)
+    if unknown:
+        message = f"unrecognized arguments: {' '.join(unknown)}"
+        if args.sub in (runner.SUB_GROUPS, runner.SUB_EXCLUDE):
+            raise ValueError(message)
+        parser.error(message)
+    if args.sub == runner.SUB_EXCLUDE:
+        _validate_exclude(args)
+    return args
+
+
+def _validate_exclude(args: argparse.Namespace) -> None:
+    """Refuse incomplete writes or mixed listing and mutation arguments."""
+    if args.list_exclusions:
+        if args.node is not None or args.seconds is not None or args.since == "":
+            msg = "exclude --list accepts only an optional --since=<saved listing>"
+            raise ValueError(msg)
+    else:
+        if not args.node or args.seconds is None or args.since is not None:
+            msg = "exclude requires a node and measured seconds, or --list"
+            raise ValueError(msg)
+        seconds = float(args.seconds)
+        if not math.isfinite(seconds) or seconds < 0:
+            msg = "exclude seconds must be finite and nonnegative"
+            raise ValueError(msg)
 
 
 def _run_post_redirect(invocation: Invocation, deps: Deps) -> int:
@@ -166,7 +269,7 @@ def run_exclude(invocation: Invocation) -> int:
     existing entry, then prints the standard envelope. The next full run then
     holds the call within two seconds of that baseline (Q56) and spares it from
     the floor (Q54). It lives here, not in ``commands.py``, only because that
-    module is at its line budget.
+    module was at its line budget when the executor was added.
 
     Args:
         invocation: The parsed invocation, carrying the node id and seconds.
@@ -186,13 +289,49 @@ def run_exclude(invocation: Invocation) -> int:
     )
     closing = reporting.closing_line(
         invocation.root.name,
-        commands.sub_label(invocation),
+        progress.sub_label(invocation),
         RunStats(),
         EXIT_OBJECTIVE_MET,
         reporting.ClosingMetrics(reporting.COV_SKIPPED),
     )
     commands.emit_summary([closing])
     return EXIT_OBJECTIVE_MET
+
+
+def _with_scope(invocation: Invocation, args: argparse.Namespace, deps: Deps) -> Invocation:
+    """Resolve scope lazily, sharing a group inventory with the subsequent walk."""
+    inventory: tuple[Path, ...] | None = None
+
+    def source_files() -> tuple[Path, ...]:
+        """Build the inventory only when declarations need membership resolution."""
+        nonlocal inventory
+        inventory = tuple(snapshot.source_files(invocation.root))
+        return inventory
+
+    resolved = scope.resolve_scope(args, deps.environ, invocation.root, source_files)
+    return replace(invocation, scope=resolved, inventory=inventory)
+
+
+def _with_level(invocation: Invocation, param: str | None, deps: Deps) -> Invocation:
+    """Resolve the full-suite level of a run or repair command, once.
+
+    Args:
+        invocation: The parsed invocation.
+        param: The ``--full`` value, ``None`` when absent.
+        deps: The injectable seams, for the environment lookup.
+
+    Returns:
+        The invocation carrying its level and source; any other command
+        unchanged, without reading ``GHOG_FULL``.
+
+    Raises:
+        LevelError: When the parameter, or the variable read without one, is
+            not ``pass``, ``cov`` or ``speed``.
+    """
+    if invocation.sub not in _LEVEL_SUBS:
+        return invocation
+    resolved = resolve_level(invocation.sub, param, deps.environ)
+    return replace(invocation, level=resolved.level, level_source=resolved.source)
 
 
 def _build_invocation(args: argparse.Namespace, root: Path) -> Invocation:
@@ -218,8 +357,11 @@ def _build_invocation(args: argparse.Namespace, root: Path) -> Invocation:
         root=root,
         force=bool(getattr(args, "force", False)),
         detach=bool(getattr(args, "detach", False)),
-        node=str(getattr(args, "node", "")),
-        seconds=float(getattr(args, "seconds", 0.0)),
+        node=str(getattr(args, "node", "") or ""),
+        seconds=float(getattr(args, "seconds", 0.0) or 0.0),
+        name=getattr(args, "name", None),
+        list_exclusions=bool(getattr(args, "list_exclusions", False)),
+        since=getattr(args, "since", None),
     )
 
 
@@ -229,7 +371,7 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     Returns:
         The configured parser.
     """
-    common = argparse.ArgumentParser(add_help=False)
+    common = _SubcommandParser(add_help=False)
     common.add_argument(
         "--root",
         help="Project root override (defaults to the .git root, Q14).",
@@ -244,20 +386,32 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Force LLM mode: plain progress lines (Q03).",
     )
+    leveled = _SubcommandParser(add_help=False, parents=[common])
+    leveled.add_argument(
+        "--full",
+        default=None,
+        help=(
+            "Full-suite level: pass, cov or speed (else GHOG_FULL, else the "
+            "command default: speed for full, none for the others)."
+        ),
+    )
+    leveled.add_argument("--group", help="Run the named test and source group (else GHOG_GROUP).")
+    leveled.add_argument("--whole-suite", action="store_true", help="Run the whole suite regardless of GHOG_GROUP.")
+    leveled.add_argument("--scope-file", help="Run a validated bound scope capture.")
     parser = argparse.ArgumentParser(
         prog="ghog",
         description="groundhog: pytest reset tool (see tools/Pytest reset specs.md).",
     )
-    subparsers = parser.add_subparsers(dest="sub", required=True)
+    subparsers = parser.add_subparsers(dest="sub", required=True, parser_class=_SubcommandParser)
     subparsers.add_parser(
         runner.SUB_CHECK,
-        parents=[common],
+        parents=[leveled],
         help="Run check.bat from the project root (Q10).",
     )
     subparsers.add_parser(
         runner.SUB_FULL,
-        parents=[common],
-        help="Full suite, fresh testmon data, coverage (ptr).",
+        parents=[leveled],
+        help="Full suite, fresh testmon data, shaped by its level (ptr).",
     )
     subparsers.add_parser(
         runner.SUB_TIMINGS,
@@ -266,7 +420,7 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     )
     affected = subparsers.add_parser(
         runner.SUB_AFFECTED,
-        parents=[common],
+        parents=[leveled],
         help="testmon-selected tests with appended coverage (pta).",
     )
     affected.add_argument(
@@ -276,22 +430,23 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     )
     single = subparsers.add_parser(
         runner.SUB_SINGLE,
-        parents=[common],
+        parents=[leveled],
         help="Named test files in focus, no coverage (pts).",
     )
     single.add_argument("files", nargs="+", help="Test files, not functions.")
     day = subparsers.add_parser(
         runner.SUB_DAY,
-        parents=[common],
+        parents=[leveled],
         help=(
-            "Walk the chain: check, then affected --no-cov, then full, "
-            "stopping at the first non-green step (Q22)."
+            "Walk the chain: check, then affected --no-cov, then the full "
+            "run of the selected level (none by default), stopping at the "
+            "first non-green step (Q22)."
         ),
     )
     day.add_argument(
         "--force",
         action="store_true",
-        help="Walk even when nothing changed since the last green walk (Q28).",
+        help="Walk even when the saved proof meets the level on unchanged sources (Q28).",
     )
     day.add_argument(
         "--detach",
@@ -328,13 +483,18 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     )
     exclude.add_argument(
         "node",
+        nargs="?",
         help="The full pytest node id to accept as slow (quote a parametrized id).",
     )
     exclude.add_argument(
         "seconds",
-        type=float,
+        nargs="?",
         help="The call's measured time in seconds, the recorded baseline.",
     )
+    exclude.add_argument("--list", dest="list_exclusions", action="store_true", help="List effective duration exclusions.")
+    exclude.add_argument("--since", nargs="?", const="", help="Compare exclusions with a saved listing.")
+    groups = subparsers.add_parser(runner.SUB_GROUPS, parents=[common], help="List or validate declared test groups.")
+    groups.add_argument("name", nargs="?", help="Validate this group only.")
     return parser
 
 

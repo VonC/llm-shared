@@ -16,6 +16,11 @@ pattern cannot match, so the full run parsed no result and reported
 ``fail=0`` however many tests failed, and its header reads
 ``14 workers [2683 items]`` where the sequential run says ``collected``,
 so the run total stayed zero and silenced the progress lines.
+
+Fix (v0.13.0 full_suite_levels, Step 2): pytest's interruption banners are
+recorded (a bare or messaged ``KeyboardInterrupt``, an explicit
+``pytest.exit``), and a collection-error banner, which pytest ends with the
+same exit code, is not.
 """
 
 from __future__ import annotations
@@ -257,6 +262,25 @@ def test_internal_error_marker_sets_the_crash_flag() -> None:
     parser = PytestOutputParser()
     parser.feed("INTERNALERROR> Traceback (most recent call last):")
     assert parser.internal_error is True
+
+
+def test_interruption_banners_are_recorded() -> None:
+    """Pytest's real interruption banners mark an interruption; a collection error does not.
+
+    The banners are the ones the installed pytest prints: a bare or messaged
+    KeyboardInterrupt, and an explicit pytest.exit.
+    """
+    collection = PytestOutputParser()
+    collection.feed("!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!")
+    assert collection.interruption_banner is False
+    for banner in (
+        "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! KeyboardInterrupt !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+        "!!!!!!!!!!!!!!!!!!!!!!!!! KeyboardInterrupt: stopped !!!!!!!!!!!!!!!!!!!!!!!!!!",
+        "!!!!!!!!!!!!!!!!!!!!!!! _pytest.outcomes.Exit: stopped !!!!!!!!!!!!!!!!!!!!!!!!",
+    ):
+        parser = PytestOutputParser()
+        parser.feed(banner)
+        assert parser.interruption_banner is True, banner
 
 
 def test_last_started_keeps_the_most_recent_tests() -> None:

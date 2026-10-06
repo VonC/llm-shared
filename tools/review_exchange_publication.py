@@ -27,6 +27,11 @@ from tools.review_exchange_models_envelope import (
     render_envelope_markdown,
     validate_summary_identity,
 )
+from tools.review_exchange_scope import (
+    publish_scope_capture,
+    remove_scope_capture,
+    validate_scope_capture,
+)
 from tools.review_exchange_store import TranscriptEntry
 from tools.review_exchange_transcript_identity import (
     current_request_occurrence,
@@ -44,7 +49,7 @@ if TYPE_CHECKING:
 
 
 class ReviewExchangePublicationMixin(ABC):
-    """Publish exact artifacts and keep their transcript entries collision-free."""
+    """Publish exact artifacts and validated scopes with collision-free transcripts."""
 
     store: ReviewExchangeStore
     context: ReviewContext
@@ -122,6 +127,7 @@ class ReviewExchangePublicationMixin(ABC):
         self,
         markdown: str,
         transcript_content: str,
+        scope_capture: str | None = None,
     ) -> CoordinationRecord:
         """Publish and append one validated current-round request idempotently."""
         with self.store.transition_lock():
@@ -133,6 +139,7 @@ class ReviewExchangePublicationMixin(ABC):
             if not repairing and observation.state is not ArtifactState.ROUND_IN_PROGRESS:
                 raise ReviewExchangeError("request publication requires a round in progress")
             envelope, authored = self._validate_envelope(markdown, ReviewRole.REQUESTOR, record)
+            fingerprint = self._request_scope_fingerprint(envelope, scope_capture)
             snapshot = self._acting_snapshot(record, envelope, ReviewRole.REQUESTOR)
             envelope = replace(envelope, role_natures=snapshot)
             record = replace(record, role_natures=snapshot)
@@ -190,8 +197,27 @@ class ReviewExchangePublicationMixin(ABC):
                 transcript_offset=None,
                 human_guidance=None,
             )
+            if scope_capture is not None and fingerprint is not None:
+                publish_scope_capture(self.store.paths, scope_capture, fingerprint)
+            else:
+                remove_scope_capture(self.store.paths)
+            final = replace(final, bound_scope_fingerprint=fingerprint)
             self.store.write_coordination(final)
             return final
+
+    def _request_scope_fingerprint(self, envelope: Envelope, text: str | None) -> str | None:
+        """Validate every scope input before publication can mutate live evidence."""
+        if envelope.test_scope is None:
+            if text is not None:
+                raise ReviewExchangeError("scope capture requires request test_scope")
+            return None
+        if text is None:
+            raise ReviewExchangeError("request test_scope requires --scope-capture-file")
+        fingerprint = cast("str", envelope.test_scope["fingerprint"])
+        captured = validate_scope_capture(self.store.paths, text, fingerprint)
+        if captured.key() != envelope.test_scope["scope"]:
+            raise ReviewExchangeError("scope capture identity differs from request test_scope")
+        return fingerprint
 
     def publish_answer(
         self,

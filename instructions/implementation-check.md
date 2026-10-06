@@ -59,6 +59,11 @@ detected change, or grants workflow authority.
 
 ### Reviewer evidence setup before applying criteria
 
+The reviewer uses the core-owned `paths.scope` returned by exchange status.
+A missing capture, a legacy `bound_scope: missing`, or a capture refused by
+groundhog is missing evidence. Do not substitute the current requirement or
+an ambient group for the bound round scope.
+
 Use `& "<LLM_SHARED_DIR>\bin\code_review_evidence.bat"` for every Git and filesystem evidence
 operation. Do not replace these calls with prose or equivalent shell commands.
 
@@ -74,7 +79,7 @@ check.
    contain every staged path that belongs to the reviewed step, the exact
    validation plan, and every known validation-artifact path named by the
    reviewer evidence commands it may run (`ghog check`,
-   `ghog affected --no-cov`; never `ghog day` or `ghog full`, see
+   `ghog affected --no-cov --scope-file=<paths.scope>`; never `ghog day` or `ghog full`, see
    `code-reviewer.md`). Never omit a staged step path because a validation
    command is expected not to touch it.
 2. Run `& "<LLM_SHARED_DIR>\bin\code_review_evidence.bat" --repository <root> umbrella-digest

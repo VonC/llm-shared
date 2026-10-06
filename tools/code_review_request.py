@@ -4,6 +4,8 @@
 Step 3 binds one ready commit-plan result to a stable request index tree before
 the command writes either artifact. Pure rendering keeps the shared exchange
 envelope and both evidence projections on one frozen source of truth.
+Step 6 binds the resolved effort capture and effective proof to that evidence.
+Validation commands stay literal in transcript Markdown, including backticks.
 """
 
 # ruff: noqa: EM101, EM102, TRY003
@@ -14,8 +16,6 @@ import argparse
 import contextlib
 import json
 import re
-import shutil
-import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -31,11 +31,16 @@ if __name__ == "__main__":  # pragma: no cover - thin launcher boundary
         _project_root = Path(__file__).parent.parent.resolve()
         sys.path.insert(0, str(_project_root))
 
+from tools import code_review_request_files as files
+from tools import code_review_request_scope as scopes
 from tools._models import find_project_root
 from tools.code_review_evidence import capture_index_tree
 from tools.code_review_validation import (
     ResolvedValidationSet,
-    load_project_validation_commands,
+    complete_project_default,
+    group_claim_statement,
+    load_project_validation,
+    migration_notice,
     resolve_code_review_validation,
 )
 from tools.commit_plan_check import (
@@ -44,7 +49,7 @@ from tools.commit_plan_check import (
     check_commit_plan,
     render_human,
 )
-from tools.review_artifact_configuration import caller_file_parents
+from tools.effort_scope import EffortScopeError
 from tools.review_exchange_models import (
     ExchangeIdentity,
     ReviewContext,
@@ -60,6 +65,7 @@ from tools.review_exchange_models_envelope import (
     render_envelope_markdown,
 )
 from tools.review_markdown_headings import qualify_round_headings
+from tools.scope_capture import CaptureError, write_capture
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -98,7 +104,7 @@ def _validate_request_evidence(
 
 @dataclass(frozen=True)
 class CodeReviewRoundInput:
-    """Validated code-review identity and separate authored round inputs."""
+    """Validated round inputs with optional scope for legacy direct callers."""
 
     context: ReviewContext
     round_number: int
@@ -112,6 +118,8 @@ class CodeReviewRoundInput:
     commit_plan_result: CommitPlanCheckResult
     human_guidance: str | None = None
     project_root: Path | None = None
+    test_scope: dict[str, str | None] | None = None
+    validation_scope: str = "Scope evidence is missing."
 
     def __post_init__(self) -> None:
         """Reject invalid identity, round, timestamp, or authored content."""
@@ -151,11 +159,12 @@ class CodeReviewRequestRender:
 
 @dataclass(frozen=True)
 class _CodeReviewEvidence:
-    """One typed source for canonical JSON and human-readable evidence."""
+    """One source for JSON, scope and evidence with Markdown-safe commands."""
 
     request_index_tree: str
     resolved_validation_set: ResolvedValidationSet
     commit_plan_result: CommitPlanCheckResult
+    test_scope: dict[str, str | None] | None = None
 
     def to_payload(self) -> dict[str, object]:
         """Return the canonical authored JSON object."""
@@ -163,6 +172,7 @@ class _CodeReviewEvidence:
             "commit_plan_result": self.commit_plan_result.structured_payload(),
             "request_index_tree": self.request_index_tree,
             "resolved_validation_set": self.resolved_validation_set.to_payload(),
+            **({"test_scope": self.test_scope} if self.test_scope is not None else {}),
         }
 
     def summary(self) -> str:
@@ -174,7 +184,9 @@ class _CodeReviewEvidence:
         ]
         for entry in self.resolved_validation_set.commands:
             sources = ", ".join(entry.sources)
-            lines.append(f"- {entry.command} (sources: {sources})")
+            lines.append(f"- {_command_code_span(entry.command)} (sources: {sources})")
+        if self.test_scope is not None:
+            lines.extend(("", "test_scope:", json.dumps(self.test_scope, sort_keys=True)))
         lines.extend(
             (
                 "",
@@ -186,6 +198,14 @@ class _CodeReviewEvidence:
             ),
         )
         return "\n".join(lines)
+
+
+def _command_code_span(command: str) -> str:
+    """Fence literal command text without colliding with its backtick runs."""
+    longest = max((len(match[0]) for match in re.finditer(r"`+", command)), default=0)
+    fence = "`" * (longest + 1)
+    padding = " " if command.startswith("`") or command.endswith("`") else ""
+    return f"{fence}{padding}{command}{padding}{fence}"
 
 
 class _ArgumentParser(argparse.ArgumentParser):
@@ -323,6 +343,7 @@ def _code_review_evidence(source: CodeReviewRoundInput) -> _CodeReviewEvidence:
         source.request_index_tree,
         source.resolved_validation_set,
         source.commit_plan_result,
+        source.test_scope,
     )
 
 
@@ -358,6 +379,7 @@ def _request_authored_content(source: CodeReviewRoundInput) -> str:
         "round_number": str(source.round_number),
         "identity_fields": _identity_fields(source),
         "code_review_evidence": _code_review_evidence_json(source),
+        "validation_scope": _authored_body(source, source.validation_scope, parent_heading_level=2),
         "assessment": _authored_body(source, source.assessment, parent_heading_level=2),
         "implementation_report": _authored_body(
             source,
@@ -386,6 +408,8 @@ def _transcript_summary(source: CodeReviewRoundInput) -> str:
         f"{_transcript_identity_fields(source)}",
         f"### Code review evidence for {label} (round {source.round_number})\n\n"
         f"{_code_review_evidence_summary(source)}",
+        f"### Validation scope for {label} (round {source.round_number})\n\n"
+        f"{_authored_body(source, source.validation_scope, parent_heading_level=3)}",
         f"### Requestor assessment for {label} (round {source.round_number})\n\n"
         f"{_authored_body(source, source.assessment, parent_heading_level=3)}",
         f"### Implementation report for {label} (round {source.round_number})\n\n"
@@ -411,6 +435,7 @@ def render_code_review_request(source: CodeReviewRoundInput) -> CodeReviewReques
         role=ReviewRole.REQUESTOR,
         round_number=source.round_number,
         created_at=source.created_at,
+        test_scope=source.test_scope,
     )
     request_content = render_envelope_markdown(
         envelope,
@@ -420,73 +445,6 @@ def render_code_review_request(source: CodeReviewRoundInput) -> CodeReviewReques
     if parsed != envelope or _JSON_SECTION not in request_content:
         raise ReviewExchangeError("rendered request failed shared envelope validation")
     return CodeReviewRequestRender(request_content, _transcript_summary(source))
-
-
-def _is_effectively_ignored(project_root: Path, path: Path) -> bool:
-    """Ask Git whether one exact caller-owned root path is ignored."""
-    git_executable = shutil.which("git")
-    if git_executable is None:
-        raise ReviewExchangeError("cannot validate ignored file: git was not found")
-    try:
-        result = subprocess.run(  # noqa: S603 - fixed Git executable and arguments
-            [
-                git_executable,
-                "-C",
-                str(project_root),
-                "check-ignore",
-                "-q",
-                "--",
-                str(path.relative_to(project_root)),
-            ],
-            check=False,
-            capture_output=True,
-            text=True,
-        )
-    except OSError as error:
-        raise ReviewExchangeError(f"cannot validate ignored file: {error}") from error
-    return result.returncode == 0
-
-
-def _root_file(
-    project_root: Path,
-    value: str | Path,
-    label: str,
-    *,
-    input_file: bool,
-) -> Path:
-    """Validate one ignored caller-owned home-local input or output path."""
-    path = Path(value).expanduser().resolve()
-    if path.parent not in caller_file_parents(project_root):
-        raise ReviewExchangeError(f"{label} must be in the review artifact home")
-    if not path.name.startswith("a."):
-        raise ReviewExchangeError(f"{label} must use an a.* name")
-    if input_file and not path.is_file():
-        raise ReviewExchangeError(f"{label} does not exist")
-    if not input_file and path.exists() and not path.is_file():
-        raise ReviewExchangeError(f"{label} must not be a directory")
-    if not _is_effectively_ignored(project_root, path):
-        raise ReviewExchangeError(f"{label} is not effectively ignored")
-    return path
-
-
-def _read_utf8(path: Path, label: str) -> str:
-    """Read one validated caller-owned input exactly once as UTF-8."""
-    try:
-        with path.open(encoding="utf-8", newline="") as stream:
-            return stream.read()
-    except UnicodeError as error:
-        raise ReviewExchangeError(f"{label} is not valid UTF-8") from error
-    except OSError as error:
-        raise ReviewExchangeError(f"cannot read {label}: {error}") from error
-
-
-def _write_utf8(path: Path, content: str, label: str) -> None:
-    """Write one validated caller-owned output in one UTF-8 operation."""
-    try:
-        with path.open("w", encoding="utf-8", newline="\n") as stream:
-            stream.write(content)
-    except OSError as error:
-        raise ReviewExchangeError(f"cannot write {label}: {error}") from error
 
 
 def _parser() -> _ArgumentParser:
@@ -501,10 +459,12 @@ def _parser() -> _ArgumentParser:
     parser.add_argument("--change-summary-file", required=True)
     parser.add_argument("--writer-response-file", required=True)
     parser.add_argument("--guidance-file")
+    parser.add_argument("--scope-change-file")
     parser.add_argument("--plan-validation-command", action="append", default=[])
     parser.add_argument("--request-validation-command", action="append", default=[])
     parser.add_argument("--request-content-output", required=True)
     parser.add_argument("--transcript-summary-output", required=True)
+    parser.add_argument("--scope-capture-output", required=True)
     return parser
 
 
@@ -519,36 +479,51 @@ def _render_from_arguments(args: argparse.Namespace, project_root: Path) -> None
         ("writer_response", args.writer_response_file, "writer response file"),
     )
     inputs = {
-        key: _root_file(root, value, label, input_file=True)
+        key: files.root_file(root, value, label, input_file=True)
         for key, value, label in input_specs
     }
-    guidance = None if args.guidance_file is None else _root_file(
+    guidance = None if args.guidance_file is None else files.root_file(
         root, args.guidance_file, "guidance file", input_file=True,
     )
-    request_output = _root_file(
+    reason = None if args.scope_change_file is None else files.root_file(
+        root, args.scope_change_file, "scope change file", input_file=True,
+    )
+    request_output = files.root_file(
         root, args.request_content_output, "request content output", input_file=False,
     )
-    summary_output = _root_file(
+    summary_output = files.root_file(
         root, args.transcript_summary_output, "transcript summary output", input_file=False,
     )
-    all_paths = (*inputs.values(), request_output, summary_output)
+    capture_output = files.root_file(
+        root, args.scope_capture_output, "scope capture output", input_file=False,
+    )
+    all_paths = (*inputs.values(), request_output, summary_output, capture_output)
     if guidance is not None:
         all_paths = (*all_paths, guidance)
+    if reason is not None:
+        all_paths = (*all_paths, reason)
     if len(set(all_paths)) != len(all_paths):
         raise ReviewExchangeError("caller-owned input and output paths must be distinct")
+    effort = scopes.resolve_request_scope(root, context.document_path, context.identity)
+    evidence = scopes.scope_evidence(root, effort)
+    policy = load_project_validation(root)
+    change = scopes.scope_change_block(
+        scopes.bound_capture(root, context), evidence,
+        None if reason is None else files.read_utf8(reason, "scope change file"),
+    )
     resolved_validation_set = resolve_code_review_validation(
-        load_project_validation_commands(root),
+        complete_project_default(policy, effort.scope.selector()),
         args.plan_validation_command,
         args.request_validation_command,
     )
     authored_inputs = {
-        "assessment": _read_utf8(inputs["assessment"], "assessment file"),
-        "implementation_report": _read_utf8(
+        "assessment": files.read_utf8(inputs["assessment"], "assessment file"),
+        "implementation_report": files.read_utf8(
             inputs["implementation_report"],
             "implementation report file",
         ),
-        "change_summary": _read_utf8(inputs["change_summary"], "change summary file"),
-        "writer_response": _read_utf8(inputs["writer_response"], "writer response file"),
+        "change_summary": files.read_utf8(inputs["change_summary"], "change summary file"),
+        "writer_response": files.read_utf8(inputs["writer_response"], "writer response file"),
     }
     request_index_tree = capture_index_tree(root)
     commit_plan_result = _ready_commit_plan(root)
@@ -566,12 +541,18 @@ def _render_from_arguments(args: argparse.Namespace, project_root: Path) -> None
         request_index_tree=request_index_tree,
         resolved_validation_set=resolved_validation_set,
         commit_plan_result=commit_plan_result,
-        human_guidance=None if guidance is None else _read_utf8(guidance, "guidance file"),
+        human_guidance=None if guidance is None else files.read_utf8(guidance, "guidance file"),
         project_root=root,
+        test_scope=evidence,
+        validation_scope="\n\n".join(filter(None, (
+            f"Validation scope: {effort.scope.label()}.", migration_notice(policy),
+            group_claim_statement(policy, effort.scope.name), change,
+        ))),
     )
     rendered = render_code_review_request(source)
-    _write_utf8(request_output, rendered.request_content, "request content output")
-    _write_utf8(summary_output, rendered.transcript_summary, "transcript summary output")
+    files.write_utf8(request_output, rendered.request_content, "request content output")
+    files.write_utf8(summary_output, rendered.transcript_summary, "transcript summary output")
+    write_capture(capture_output, effort.scope)
 
 
 def main(
@@ -584,7 +565,7 @@ def main(
         args = _parser().parse_args(argv)
         root = find_project_root(Path.cwd()) if project_root is None else project_root
         _render_from_arguments(args, root)
-    except (ReviewExchangeError, OSError) as error:
+    except (ReviewExchangeError, EffortScopeError, CaptureError, OSError) as error:
         sys.stderr.write(f"ERROR: {error}\n")
         return _FATAL_EXIT
     return 0

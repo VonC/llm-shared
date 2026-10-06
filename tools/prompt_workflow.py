@@ -36,13 +36,18 @@ prepares the review artifact home and prints whether the code writer is
 starting or resuming step ``<x>``, with its private journal, handoff, and
 temporary-file paths.
 
+Fix (parser split): the argument parser moves to ``prompt_workflow_parser``,
+so this module stays under the repository line budget; ``main`` keeps the
+dispatch to each subcommand.
+
 See ``docs/design.v0.1.0.pw_handoff.md`` for the full specification and the design
 decisions (Q01 to Q64) behind this tool.
+
+``scope`` reports the requirement-owned selector or completes a ghog command.
 """
 
 from __future__ import annotations
 
-import argparse
 import contextlib
 import logging
 import shutil
@@ -57,7 +62,7 @@ if __name__ == "__main__":
         _bootstrap_root = Path(__file__).parent.parent.resolve()
         sys.path.insert(0, str(_bootstrap_root))
 
-from tools import find_project_root
+from tools import find_project_root, prompt_workflow_parser
 from tools import prompt_workflow_docs as docs
 from tools import prompt_workflow_git as git
 from tools import prompt_workflow_handoff as handoff
@@ -65,6 +70,7 @@ from tools import prompt_workflow_memory as memory
 from tools import prompt_workflow_menu as menu
 from tools import prompt_workflow_plan as plan
 from tools import prompt_workflow_progress as progress
+from tools import prompt_workflow_scope as scope
 from tools import prompt_workflow_skill as skill
 from tools import prompt_workflow_step_journal as step_journal
 from tools import prompt_workflow_steps as steps
@@ -74,6 +80,8 @@ from tools.review_exchange_models import ReviewExchangeError
 from tools.review_exchange_paths import load_review_configuration
 
 if TYPE_CHECKING:
+    import argparse
+
     from tools.prompt_workflow_models import StepAlternative, Topic, WorkflowState
     from tools.prompt_workflow_plan import CycleAction, CycleState
 
@@ -475,140 +483,13 @@ def run_handoff(root: Path, task: str, step: str) -> int:
     return 0
 
 
-def _get_arg_parser() -> argparse.ArgumentParser:
-    """Create and return the argument parser.
-
-    ``--root`` and ``--debug`` live on a shared parent parser passed to both the
-    top-level parser and the ``handoff`` subparser, so they parse on either side
-    of the subcommand (Q01); ``--pick`` stays top-level only. The ``handoff``
-    subcommand carries a ``task`` word and a plain-string ``step`` positional, so
-    a sub-step id such as ``4A`` is accepted and validated by the resolver, not
-    the parser (Q04, Q56).
-    """
-    common = argparse.ArgumentParser(add_help=False)
-    common.add_argument(
-        "--root",
-        default=None,
-        help="Project root override. If not provided, scan upward for the root.",
-    )
-    common.add_argument(
-        "--debug",
-        action="store_true",
-        help="Enable debug logging.",
-    )
-    parser = argparse.ArgumentParser(
-        parents=[common],
-        description="Generate and copy the next-step LLM prompt for the current topic.",
-    )
-    parser.add_argument(
-        "--pick",
-        action="store_true",
-        help="Reopen the topic menu even when a topic is locked to the branch.",
-    )
-    subparsers = parser.add_subparsers(dest="command")
-    handoff_parser = subparsers.add_parser(
-        "handoff",
-        parents=[common],
-        help="Write the prompt for one named step without the menu.",
-    )
-    handoff_parser.add_argument(
-        "task",
-        help=f"The handoff task, one of: {', '.join(handoff.TASK_TOKENS)}.",
-    )
-    handoff_parser.add_argument(
-        "step",
-        help="The plan step id the prompt is for, such as 2 or 4A.",
-    )
-    skill_parser = subparsers.add_parser(
-        "skill",
-        parents=[common],
-        help="Print the bare next-step command for the current topic (skill mode).",
-    )
-    skill_parser.add_argument(
-        "skill_name",
-        nargs="?",
-        default=None,
-        help="Force this skill's command when its document exists, not the next step.",
-    )
-    skill_parser.add_argument(
-        "--host",
-        dest="host_override",
-        default=None,
-        choices=[skill.HOST_CLAUDE, skill.HOST_CODEX],
-        help="Force the command prefix host instead of detecting it.",
-    )
-    skill_parser.add_argument(
-        "--after-commit",
-        dest="after_commit",
-        default=None,
-        help="Print the post-commit next action for the named just-committed plan step.",
-    )
-    skill_parser.add_argument(
-        "--after-write",
-        dest="after_write",
-        default=None,
-        choices=skill.AFTER_WRITE_ROLES,
-        help="Review the named artifact role that was just written.",
-    )
-    skill_parser.add_argument(
-        "--after-merge",
-        dest="after_merge",
-        default=None,
-        help="Print the next ordered item from the named umbrella draft.",
-    )
-    progress_parser = subparsers.add_parser(
-        "progress",
-        parents=[common],
-        help="Print where the current topic stands, then its next command.",
-    )
-    progress_parser.add_argument(
-        "--host",
-        dest="host_override",
-        default=None,
-        choices=[skill.HOST_CLAUDE, skill.HOST_CODEX],
-        help="Force the command prefix host instead of detecting it.",
-    )
-    document_parser = subparsers.add_parser(
-        "document",
-        parents=[common],
-        help="Find one document from its version, slug, and type.",
-    )
-    document_parser.add_argument("version", help="Document version, such as v1.2.3.")
-    document_parser.add_argument("slug", help="Document topic slug.")
-    document_parser.add_argument(
-        "document_type",
-        choices=docs.DOCUMENT_TYPES,
-        help="Document type to resolve.",
-    )
-    step_journal_parser = subparsers.add_parser(
-        "step-journal",
-        parents=[common],
-        help="Print the start or resume state and private note paths of one plan step.",
-    )
-    step_journal_parser.add_argument(
-        "step",
-        help="The plan step id being implemented, such as 2 or 4A.",
-    )
-    code_review_commit_parser = subparsers.add_parser(
-        "code-review-commit",
-        parents=[common],
-        help="Resume one durably authorized clean code-review commit flow.",
-    )
-    code_review_commit_parser.add_argument(
-        "--residual",
-        action="store_true",
-        help="Execute the grouped residual commit plan and require a clean tree.",
-    )
-    return parser
-
-
 def main(argv: list[str] | None = None) -> int:
     """CLI entry point.
 
     Dispatch to ``run_handoff`` when the ``handoff`` subcommand is selected
     (Q56), otherwise to the interactive ``run``.
     """
-    parser = _get_arg_parser()
+    parser = prompt_workflow_parser.build_arg_parser()
     args = parser.parse_args(argv)
     _configure_logging(debug=args.debug)
     root = Path(args.root).resolve() if args.root else find_project_root(Path.cwd())
@@ -637,11 +518,13 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def _run_report(root: Path, args: argparse.Namespace) -> int | None:
-    """Run the read-mostly `progress` or `step-journal` report, else return None."""
+    """Run the read-mostly `progress`, `scope` or `step-journal` report."""
     if args.command == "progress":
         return progress.run_progress(root, args.host_override)
     if args.command == "step-journal":
         return step_journal.run_step_journal(root, args.step)
+    if args.command == "scope":
+        return scope.run_scope(root, args.ghog_args)
     return None
 
 

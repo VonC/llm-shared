@@ -1,7 +1,8 @@
 """Unit tests for the groundhog coverage gate resolution (Q14).
 
 Cover the pyproject.toml, .coveragerc and setup.cfg readers, their
-precedence, the default of 100, and the value conversion guards.
+precedence, the default of 100, and the value conversion guards. Step 3 keeps
+these gate behaviors intact while sharing the TOML table reader with settings.
 """
 
 from __future__ import annotations

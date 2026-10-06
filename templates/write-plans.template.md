@@ -141,7 +141,7 @@ Use these template forms in each step, substituting actual paths.
 - Line count before: `{line-count command}`
 - Targeted tests: `ghog single {step test files}` (groundhog runs the tests; never a direct `pytest`)
 - Grep checks: `{rg command}`
-- Shared gate loop: `ghog day`, repeated fix-and-walk until it reports the objective (`exit=0`): check.bat, affected tests, full suite with coverage, in order
+- Ready-to-run command and shared gate loop: run the command printed by `pw scope day` (through the shared launcher), then follow printed repair and restart lines until `exit=0`: check.bat plus affected tests; full is deliberately skipped at the default level. Resolve the selector from the requirement at execution time, never freeze it here.
 - Line count after: `{line-count command}`
 
 ---
@@ -206,7 +206,7 @@ Step framing:
 
 **Completion criteria**:
 
-- `ghog day` reports the objective (`exit=0`).
+- The command printed by `pw scope day` reports the objective (`exit=0`) in the current effort scope.
 - `{rg command}`.
 - {Observable outcome that proves the step is done}.
 

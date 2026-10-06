@@ -19,15 +19,34 @@ with pytest's own section.
 
 The real streaming child skips site initialization and inherited Python setup;
 the scenario needs only builtin output and exit status.
+
+Fix (v0.13.0 full_suite_levels, Step 2): cover the full-run shape per level,
+sequential and parallel: ``pass`` carries ``--no-cov`` and no ``--durations``,
+``cov`` keeps coverage without ``--durations``, ``speed`` is today's command;
+the level never shapes another subcommand. Cover the interrupted flag too: a
+signal, or pytest's interruption banner (a bare or messaged
+KeyboardInterrupt, a pytest.exit with any return code), before any failure or
+internal error, never a collection error.
+
+Step 4: verify group paths, coverage options and environment restoration on successful and raising spawns.
 """
 
 from __future__ import annotations
 
+import os
 import sys
 from typing import TYPE_CHECKING, cast
 
+import pytest
+
 from tools.groundhog import runner
-from tools.groundhog.models import PYTEST_INTERNAL_ERROR, PYTEST_INTERRUPTED
+from tools.groundhog.levels import FullLevel
+from tools.groundhog.models import (
+    PYTEST_INTERNAL_ERROR,
+    PYTEST_INTERRUPTED,
+    PYTEST_OK,
+    PYTEST_TEST_FAILURES,
+)
 
 if TYPE_CHECKING:
     import subprocess
@@ -126,6 +145,31 @@ def test_opted_in_full_command_runs_on_workers_without_timing_or_testmon() -> No
     ]
     assert "--testmon" not in command
     assert "--durations=0" not in command
+
+
+def test_full_command_shape_per_level() -> None:
+    """Pass drops coverage and timing, cov drops timing, speed keeps both."""
+    for parallel in (False, True):
+        passing = runner.pytest_command(
+            "pytest", runner.SUB_FULL, no_cov=False, files=(), parallel=parallel, level=FullLevel.PASS,
+        )
+        assert "--no-cov" in passing
+        assert "--durations=0" not in passing
+        covered = runner.pytest_command(
+            "pytest", runner.SUB_FULL, no_cov=False, files=(), parallel=parallel, level=FullLevel.COV,
+        )
+        assert "--cov-report" in covered
+        assert "--durations=0" not in covered
+    speed = runner.pytest_command("pytest", runner.SUB_FULL, no_cov=False, files=(), level=FullLevel.SPEED)
+    assert speed == runner.pytest_command("pytest", runner.SUB_FULL, no_cov=False, files=())
+
+
+def test_level_never_shapes_the_other_subcommands() -> None:
+    """Only the full run is shaped: affected stays covered at pass."""
+    affected = runner.pytest_command(
+        "pytest", runner.SUB_AFFECTED, no_cov=False, files=(), level=FullLevel.PASS,
+    )
+    assert "--cov-append" in affected
 
 
 def test_timings_command_is_sequential_uninstrumented_and_timed() -> None:
@@ -300,6 +344,82 @@ def test_run_pytest_flags_crash_exit_codes(tmp_path: Path) -> None:
     for code in (PYTEST_INTERRUPTED, PYTEST_INTERNAL_ERROR, -9):
         result = runner.run_pytest(_config([], code, tmp_path), lambda _stats: None)
         assert result.crashed is True
+
+
+def test_run_pytest_flags_an_interruption_that_judged_nothing(tmp_path: Path) -> None:
+    """A signal, a KeyboardInterrupt or a pytest.exit before any failure judged no gate.
+
+    The banners are the ones the installed pytest prints. A pytest.exit
+    crashes the run with any return code of its own, 0 and 1 included, since
+    the suite never finished. pytest's interrupted exit with the
+    collection-error banner is a collection error, and a failure or an
+    internal error seen first is still evidence: neither counts as an
+    interruption.
+    """
+    banner = "!!!!!!!!!!!!!!!!!!!! KeyboardInterrupt !!!!!!!!!!!!!!!!!!!!"
+    messaged = "!!!!!!!!!!!!!!!!!!!!!!!!! KeyboardInterrupt: stopped !!!!!!!!!!!!!!!!!!!!!!!!!!"
+    exited = "!!!!!!!!!!!!!!!!!!!!!!! _pytest.outcomes.Exit: stopped !!!!!!!!!!!!!!!!!!!!!!!!"
+    collection = "!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!"
+    passed = "tests/test_a.py::test_one PASSED [ 50%]"
+    failed = "tests/test_a.py::test_two FAILED [100%]"
+    cases = (
+        ([passed, banner], PYTEST_INTERRUPTED, True),
+        ([passed, messaged], PYTEST_INTERRUPTED, True),
+        ([passed, exited], PYTEST_INTERRUPTED, True),
+        ([passed, exited], PYTEST_INTERNAL_ERROR, True),
+        ([passed, exited], PYTEST_TEST_FAILURES, True),
+        ([passed, exited], PYTEST_OK, True),
+        ([failed, exited], PYTEST_TEST_FAILURES, False),
+        ([passed], -9, True),
+        ([passed], PYTEST_INTERRUPTED, False),
+        ([collection], PYTEST_INTERRUPTED, False),
+        ([failed, banner], PYTEST_INTERRUPTED, False),
+        (["INTERNALERROR> boom", banner], PYTEST_INTERRUPTED, False),
+    )
+    for lines, code, expected in cases:
+        result = runner.run_pytest(_config(lines, code, tmp_path), lambda _stats: None)
+        assert (result.crashed, result.interrupted) == (True, expected), (lines, code)
+
+
+@pytest.mark.parametrize("sub", ["full", "affected", "timings", "single"])
+def test_group_collection_and_coverage_options(sub: str) -> None:
+    """Scope narrows suite commands while single retains explicitly named files."""
+    command = runner.pytest_command("pytest", sub, no_cov=False, files=("focus.py",),
+                                    test_paths=("tests/group/test_a.py",), cov_folders=("src/group",))
+    assert command[-1] == ("focus.py" if sub == "single" else "tests/group/test_a.py")
+    if sub in ("full", "affected"):
+        assert "--cov=src/group" in command
+        assert "--cov-fail-under=0" in command
+    else:
+        assert "--cov=src/group" not in command
+
+
+@pytest.mark.parametrize("previous", [None, "previous.coverage"])
+@pytest.mark.parametrize("raises", [True, False])
+def test_spawn_environment_restored(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, previous: str | None, *, raises: bool) -> None:
+    """A temporary coverage override ends immediately after either spawn outcome."""
+    if previous is None:
+        monkeypatch.delenv("COVERAGE_FILE", raising=False)
+    else:
+        monkeypatch.setenv("COVERAGE_FILE", previous)
+
+    def factory(_command: list[str], _cwd: Path) -> subprocess.Popen[str]:
+        assert os.environ["COVERAGE_FILE"] == "group.coverage"
+        if raises:
+            message = "spawn failed"
+            raise OSError(message)
+        return cast("subprocess.Popen[str]", _FakeProcess(["output"], 0))
+
+    def on_line(_line: str) -> None:
+        assert os.environ.get("COVERAGE_FILE") == previous
+
+    config = runner.StreamConfig(["pytest"], tmp_path, factory, env_overrides={"COVERAGE_FILE": "group.coverage"})
+    if raises:
+        with pytest.raises(OSError, match="spawn failed"):
+            runner.run_streaming(config, on_line)
+    else:
+        assert runner.run_streaming(config, on_line) == 0
+    assert os.environ.get("COVERAGE_FILE") == previous
 
 
 # eof

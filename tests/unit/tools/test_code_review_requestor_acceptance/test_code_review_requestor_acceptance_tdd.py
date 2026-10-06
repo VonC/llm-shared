@@ -6,6 +6,9 @@ and clean completion. Deferred answers come from the test-local strict builder;
 only the final batch subprocess boundary is replaced. Renderer-only journeys
 use one deterministic valid tree object; the real Git capture boundary has its
 own temporary-repository tests.
+
+Fix (v0.13.0 full_suite_levels, Step 2): the project validation command
+follows the new default, ``ghog day --full=speed``.
 """
 
 from __future__ import annotations
@@ -165,7 +168,7 @@ def _request(
             writer_response=writer_response,
             request_index_tree=_REQUEST_INDEX_TREE,
             resolved_validation_set=resolve_code_review_validation(
-                ("ghog day",),
+                ("ghog day --full=speed",),
                 ("focused acceptance tests",),
             ),
             commit_plan_result=CommitPlanCheckResult(CommitPlanCheckState.VALID),

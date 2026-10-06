@@ -2,6 +2,9 @@
 
 Each named test corresponds to one design acceptance case. Repository setup and
 multi-command journeys run in fixtures so measured calls stay deterministic.
+
+Fix (v0.13.0 full_suite_levels, Step 2): the project validation command
+follows the new default, ``ghog day --full=speed``.
 """
 
 from __future__ import annotations
@@ -155,7 +158,7 @@ def malformed_request_rejections(tmp_path: Path) -> None:
             change_summary="summary",
             writer_response="response",
             request_index_tree="",
-            resolved_validation_set=resolve_code_review_validation(("ghog day",), ()),
+            resolved_validation_set=resolve_code_review_validation(("ghog day --full=speed",), ()),
             commit_plan_result=ready_commit_plan_result(),
         )
 

@@ -3,6 +3,10 @@
 The module accepts either a narrow early rejection or a complete assessed
 implementation. It owns no command parsing, Git access, publication, manifest
 retirement, or review-exchange mutation.
+
+Fix: the inventory renderer types its line accumulator as `list[str]`, so
+pyright no longer reports its `append` and `extend` calls as partially
+unknown.
 """
 
 # ruff: noqa: EM101, EM102, TRY003
@@ -285,7 +289,7 @@ def _section(
 def _inventory(label: str, values: tuple[str, ...]) -> str:
     if not values:
         return f"{label}: None."
-    rendered = []
+    rendered: list[str] = []
     for value in values:
         first, *continuation = value.splitlines()
         marker = re.match(r"(?:[-*+] |\d+[.)] )", first)

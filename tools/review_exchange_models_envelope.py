@@ -43,7 +43,7 @@ _JSON_SECTION_RE = re.compile(r"\A\r?\n## JSON\r?\n\r?\n```json\r?\n")
 
 @dataclass(frozen=True)
 class Envelope:
-    """Strict machine-readable metadata for request and answer Markdown."""
+    """Strict review metadata with optional legacy-compatible test scope evidence."""
 
     identity: ExchangeIdentity
     umbrella_path: Path | None
@@ -54,6 +54,7 @@ class Envelope:
     created_at: str
     disposition: ReviewDisposition | None = None
     role_natures: RoleNatureSnapshot = field(default_factory=RoleNatureSnapshot)
+    test_scope: dict[str, str | None] | None = None
 
     def __post_init__(self) -> None:
         """Validate role, round, timestamp, and family context fields."""
@@ -62,6 +63,8 @@ class Envelope:
             object.__setattr__(self, "umbrella_path", self.umbrella_path.resolve())
         positive_integer(self.round_number, "envelope round")
         validate_local_timestamp(self.created_at)
+        self._validate_test_scope()
+
         if self.role is ReviewRole.REVIEWER and self.disposition is None:
             raise ReviewExchangeError("reviewer envelope requires a disposition")
         if self.role is not ReviewRole.REVIEWER and self.disposition is not None:
@@ -76,9 +79,16 @@ class Envelope:
                 "implementation step is only valid for code review",
             )
 
+    def _validate_test_scope(self) -> None:
+        """Allow validated test scope only on code request envelopes."""
+        if self.test_scope is not None:
+            validate_test_scope(self.test_scope)
+            if self.identity.family is not ReviewFamily.CODE or self.role is not ReviewRole.REQUESTOR:
+                raise ReviewExchangeError("test_scope is only valid for code requests")
+
     def to_dict(self) -> dict[str, Any]:
         """Return strict JSON-compatible envelope data."""
-        return {
+        result = {
             "identity": self.identity.to_dict(),
             "umbrella_path": (
                 self.umbrella_path.as_posix() if self.umbrella_path is not None else None
@@ -91,6 +101,9 @@ class Envelope:
             "disposition": self.disposition.value if self.disposition is not None else None,
             "role_natures": self.role_natures.to_dict(),
         }
+        if self.test_scope is not None:
+            result["test_scope"] = self.test_scope
+        return result
 
     @classmethod
     def from_dict(cls, data: Mapping[str, Any]) -> Envelope:
@@ -102,6 +115,8 @@ class Envelope:
         legacy = "role_natures" not in data
         if not legacy:
             expected.add("role_natures")
+        if "test_scope" in data:
+            expected.add("test_scope")
         strict_fields(data, expected, "envelope")
         identity_data = mapping_value(data["identity"], "envelope identity")
         disposition_value = data["disposition"]
@@ -129,12 +144,34 @@ class Envelope:
             round_number=positive_integer(data["round_number"], "envelope round"),
             created_at=created_at,
             disposition=disposition,
+            test_scope=None if "test_scope" not in data else dict(mapping_value(data["test_scope"], "test scope")),
             role_natures=RoleNatureSnapshot.from_optional_dict(
                 None
                 if legacy
                 else mapping_value(data["role_natures"], "envelope role natures"),
             ),
         )
+
+
+def validate_test_scope(data: Mapping[str, Any]) -> None:
+    """Reject malformed scope evidence before it enters the exchange."""
+    strict_fields(data, {"scope", "group", "fingerprint", "requirement", "proof"}, "test scope")
+    if any(value is not None and not isinstance(value, str) for value in data.values()):
+        raise ReviewExchangeError("test scope values must be strings or null")
+    key, group, fingerprint = data["scope"], data["group"], data["fingerprint"]
+    if not isinstance(fingerprint, str) or re.fullmatch(r"[0-9a-f]{64}", fingerprint) is None:
+        raise ReviewExchangeError("invalid test scope fingerprint")
+    if not _valid_scope_identity(key, group):
+        raise ReviewExchangeError("invalid test scope identity")
+    if data["proof"] not in {"missing", "none", "pass", "cov", "speed"}:
+        raise ReviewExchangeError("invalid test scope proof")
+
+
+def _valid_scope_identity(key: object, group: object) -> bool:
+    """Match the whole-suite sentinel or a well-formed named group."""
+    if group is None:
+        return key == "whole"
+    return isinstance(group, str) and re.fullmatch(r"[a-z][a-z0-9_-]*", group) is not None and key == f"group:{group}"
 
 
 def render_json_markdown(title: str, data: Mapping[str, Any], content: str) -> str:

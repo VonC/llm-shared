@@ -1,11 +1,7 @@
 """Unit tests for the groundhog CLI seams.
 
-Cover the mode pick (Q03), the root resolution, the exit-code
-classification (Q12), the setup reasons, the labels and postfix (Q20),
-and the user-mode bar flow against a fake bar.
-
-Fix: follow the cli.py line-budget split — the classification, reason,
-label and postfix helpers now live in ``tools.groundhog.commands``.
+Cover the mode pick (Q03), the root resolution, the exit-code paths of the
+CLI (Q12), and the user-mode bar flow against a fake bar (Q20).
 
 Fix: the bar finish now tops the bar off — a completed run fills it to
 the collected total even when some result lines escaped the parser, and
@@ -21,44 +17,55 @@ first, then stops at its first pytest step.
 
 Fix: the exclude confirmation names ``a.ghog.outliers`` at its real location
 in the artifact home, not as a bare project-root file name.
+
+Fix (v0.13.0 full_suite_levels, Step 1): the direct classification and
+setup-reason cases moved to ``test_groundhog_verdicts``, the label and
+postfix cases to ``test_groundhog_progress``, beside the helpers that moved
+out of ``commands.py``; the user-bar flows stay here, driving the moved
+progress sink through the CLI. The file now also routes every dispatch path
+of ``main`` (status, the live-run refusal, the detached walk, init, and the
+script's ``__main__`` guard), so it covers ``cli.py`` on its own.
+
+Fix (v0.13.0 full_suite_levels, Step 2): cover the one-time level resolution
+of ``main``: an unknown or reserved ``--full`` and an invalid ``GHOG_FULL``
+exit 5 with the accepted values before any lifecycle write, a command without
+``--full`` never reads the variable, and a valid parameter wins over the
+variable and shapes the full run.
 """
 
 from __future__ import annotations
 
+import runpy
+import sys
 from dataclasses import replace
 from typing import TYPE_CHECKING, cast
 
+import pytest
+
 from tools.groundhog import (
     cli,
-    commands,
     exclusions,
     floor,
     reporting_nextstep,
-    runner,
+    status,
 )
+from tools.groundhog.levels import FullLevel
 from tools.groundhog.models import (
-    EXIT_COVERAGE_GAP,
     EXIT_NOT_PYTEST_PROJECT,
     EXIT_OBJECTIVE_MET,
+    EXIT_RUN_LIVE,
+    EXIT_RUN_LOST,
     EXIT_SETUP_ERROR,
     EXIT_SUITE_CRASH,
     EXIT_TEST_FAILURES,
     PYTEST_INTERNAL_ERROR,
-    PYTEST_NO_TESTS,
-    PYTEST_USAGE_ERROR,
     Mode,
-    RunResult,
-    RunStats,
 )
 
 if TYPE_CHECKING:
     import subprocess
     from pathlib import Path
 
-    import pytest
-
-_GATE_FULL = 100.0
-_GATE_LOW = 90.0
 _TWO_TESTS = 2
 _THREE_TESTS = 3
 
@@ -173,46 +180,6 @@ def _deps(
         bar_factory=_bar_factory,
         which=_which,
         pytest_project=_pytest_project,
-    )
-
-
-def _result(stats: RunStats, pytest_exit: int, *, crashed: bool = False) -> RunResult:
-    """Build a run result for classification tests.
-
-    Args:
-        stats: The run statistics.
-        pytest_exit: The pytest child exit code.
-        crashed: The crash flag.
-
-    Returns:
-        The run result.
-    """
-    return RunResult(
-        stats=stats,
-        pytest_exit=pytest_exit,
-        crashed=crashed,
-        failure_block=(),
-        tail=(),
-    )
-
-
-def _invocation(sub: str, *, no_cov: bool, root: Path) -> cli.Invocation:
-    """Build an invocation for direct helper tests.
-
-    Args:
-        sub: The subcommand name.
-        no_cov: The coverage toggle.
-        root: The project root.
-
-    Returns:
-        The invocation.
-    """
-    return cli.Invocation(
-        sub=sub,
-        files=(),
-        no_cov=no_cov,
-        mode=Mode.LLM,
-        root=root,
     )
 
 
@@ -395,8 +362,69 @@ def test_affected_no_cov_failure_message(
     code = cli.main(argv, deps)
     assert code == EXIT_TEST_FAILURES
     out = capsys.readouterr().out
-    assert reporting_nextstep.MSG_AFFECTED_NOCOV_FAIL in out
+    assert reporting_nextstep.affected_fail_line(FullLevel.NONE) in out
     assert "ghog affected --no-cov done" in out
+
+
+def test_invalid_full_parameter_is_a_setup_error(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """An unknown or reserved --full value exits 5, never argparse's 2."""
+    bars: list[_FakeBar] = []
+    for value in ("fast", "none"):
+        code = cli.main(["day", f"--full={value}", "--root", str(tmp_path), "--llm"], _deps([], 0, bars))
+        assert code == EXIT_SETUP_ERROR
+        out = capsys.readouterr().out
+        assert f"ghog: invalid full level '{value}' from --full; accepted values: pass, cov, speed" in out
+    assert status.read_status(tmp_path) is None
+
+
+def test_invalid_level_variable_is_a_setup_error(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """GHOG_FULL is read through the environ seam and validated the same way."""
+    bars: list[_FakeBar] = []
+    deps = replace(_deps([], 0, bars), environ={"GHOG_FULL": "fast"}.get)
+    code = cli.main(["check", "--root", str(tmp_path), "--llm"], deps)
+    assert code == EXIT_SETUP_ERROR
+    assert "from GHOG_FULL; accepted values: pass, cov, speed" in capsys.readouterr().out
+
+
+def test_timings_never_reads_the_level_variable(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A command without --full ignores even an invalid GHOG_FULL."""
+    lines = ["collected 1 items", "tests/test_a.py::test_one PASSED [100%]"]
+    bars: list[_FakeBar] = []
+    deps = replace(_deps(lines, 0, bars), environ={"GHOG_FULL": "fast"}.get)
+    code = cli.main(["timings", "--root", str(tmp_path), "--llm"], deps)
+    assert code == EXIT_OBJECTIVE_MET
+    assert "invalid full level" not in capsys.readouterr().out
+
+
+def test_resolved_level_shapes_the_full_run(tmp_path: Path) -> None:
+    """A valid --full wins over the variable and reaches the pytest command."""
+    seen: list[list[str]] = []
+    lines = ["collected 1 items", "tests/test_a.py::test_one PASSED [100%]"]
+
+    def _factory(command: list[str], cwd: Path) -> subprocess.Popen[str]:
+        del cwd
+        seen.append(command)
+        return cast("subprocess.Popen[str]", _FakeProcess(lines, 0))
+
+    bars: list[_FakeBar] = []
+    deps = replace(
+        _deps(lines, 0, bars),
+        popen_factory=_factory,
+        environ={"GHOG_FULL": "cov"}.get,
+    )
+    code = cli.main(["full", "--full=pass", "--root", str(tmp_path), "--llm"], deps)
+    assert code == EXIT_OBJECTIVE_MET
+    assert "--no-cov" in seen[0]
+    assert "--durations=0" not in seen[0]
 
 
 def test_single_without_baseline_notice(
@@ -413,91 +441,7 @@ def test_single_without_baseline_notice(
     argv = ["single", "tests/test_a.py", "--root", str(tmp_path), "--llm"]
     code = cli.main(argv, deps)
     assert code == EXIT_OBJECTIVE_MET
-    assert reporting_nextstep.MSG_NO_BASELINE in capsys.readouterr().out
-
-
-def test_classify_usage_error(tmp_path: Path) -> None:
-    """A pytest usage error is a setup error (Q12)."""
-    invocation = _invocation(runner.SUB_FULL, no_cov=False, root=tmp_path)
-    result = _result(RunStats(), PYTEST_USAGE_ERROR)
-    assert commands.classify(invocation, result, _GATE_FULL) == EXIT_SETUP_ERROR
-
-
-def test_classify_crash_wins(tmp_path: Path) -> None:
-    """The crash flag beats every other signal (Q06)."""
-    invocation = _invocation(runner.SUB_FULL, no_cov=False, root=tmp_path)
-    result = _result(RunStats(), 0, crashed=True)
-    assert commands.classify(invocation, result, _GATE_FULL) == EXIT_SUITE_CRASH
-
-
-def test_classify_no_tests_per_subcommand(tmp_path: Path) -> None:
-    """No tests collected: green for affected, setup error elsewhere."""
-    full = _invocation(runner.SUB_FULL, no_cov=False, root=tmp_path)
-    affected = _invocation(runner.SUB_AFFECTED, no_cov=False, root=tmp_path)
-    bare = _result(RunStats(), PYTEST_NO_TESTS)
-    assert commands.classify(full, bare, _GATE_FULL) == EXIT_SETUP_ERROR
-    assert commands.classify(affected, bare, None) == EXIT_OBJECTIVE_MET
-    covered = RunStats()
-    covered.cov_percent = _GATE_LOW
-    below = _result(covered, PYTEST_NO_TESTS)
-    assert commands.classify(affected, below, _GATE_FULL) == EXIT_COVERAGE_GAP
-
-
-def test_classify_coverage_rules(tmp_path: Path) -> None:
-    """Coverage classification: gate, parse miss and gap (Q14, Q19)."""
-    invocation = _invocation(runner.SUB_FULL, no_cov=False, root=tmp_path)
-    unread = _result(RunStats(), 0)
-    assert commands.classify(invocation, unread, _GATE_FULL) == EXIT_SETUP_ERROR
-    low = RunStats()
-    low.cov_percent = _GATE_LOW
-    assert commands.classify(invocation, _result(low, 0), _GATE_FULL) == (
-        EXIT_COVERAGE_GAP
-    )
-    full = RunStats()
-    full.cov_percent = _GATE_FULL
-    assert commands.classify(invocation, _result(full, 0), _GATE_FULL) == (
-        EXIT_OBJECTIVE_MET
-    )
-    assert commands.classify(invocation, _result(RunStats(), 0), None) == (
-        EXIT_OBJECTIVE_MET
-    )
-
-
-def test_classify_failures(tmp_path: Path) -> None:
-    """Failing tests classify as exit 2 before any coverage look."""
-    invocation = _invocation(runner.SUB_FULL, no_cov=False, root=tmp_path)
-    stats = RunStats()
-    stats.failed = 1
-    assert commands.classify(invocation, _result(stats, 1), _GATE_FULL) == (
-        EXIT_TEST_FAILURES
-    )
-
-
-def test_setup_reason_per_precondition() -> None:
-    """Every setup-error reason names its failing precondition."""
-    usage = _result(RunStats(), PYTEST_USAGE_ERROR)
-    assert "usage error" in commands.setup_reason(usage, measured=True)
-    empty = _result(RunStats(), PYTEST_NO_TESTS)
-    assert "no tests collected" in commands.setup_reason(empty, measured=True)
-    unread = _result(RunStats(), 0)
-    assert "TOTAL line not found" in commands.setup_reason(unread, measured=True)
-    assert commands.setup_reason(unread, measured=False) == "ghog: setup error."
-
-
-def test_sub_label_for_the_ptanc_variant(tmp_path: Path) -> None:
-    """The label spells the --no-cov variant (Q16)."""
-    nocov = _invocation(runner.SUB_AFFECTED, no_cov=True, root=tmp_path)
-    assert commands.sub_label(nocov) == "affected --no-cov"
-    plain = _invocation(runner.SUB_AFFECTED, no_cov=False, root=tmp_path)
-    assert commands.sub_label(plain) == "affected"
-
-
-def test_postfix_with_and_without_coverage() -> None:
-    """The bar postfix adds the coverage once parsed (Q20)."""
-    stats = RunStats()
-    assert commands.postfix(stats) == "fail=0 warn=0 xfail=0"
-    stats.cov_percent = _GATE_FULL
-    assert commands.postfix(stats) == "fail=0 warn=0 xfail=0 cov=100"
+    assert reporting_nextstep.no_baseline_line(FullLevel.NONE) in capsys.readouterr().out
 
 
 def test_exclude_subcommand_writes_the_entry(
@@ -520,6 +464,73 @@ def test_exclude_subcommand_writes_the_entry(
     assert f"in {tmp_path.resolve() / '.reviews' / floor.FLOOR_FILE};" in out
     assert "ghog exclude done" in out
     assert "exit=0" in out
+
+
+def test_main_routes_status_then_refuses_a_live_run(tmp_path: Path) -> None:
+    """Status replays the lifecycle; a run over a live one refuses (Q32)."""
+    bars: list[_FakeBar] = []
+    assert cli.main(["status", "--root", str(tmp_path), "--llm"]) == EXIT_RUN_LOST
+    status.write_running(tmp_path, "day")
+    code = cli.main(["full", "--root", str(tmp_path), "--llm"], _deps([], 0, bars))
+    assert code == EXIT_RUN_LIVE
+    assert bars == []
+
+
+def test_main_routes_a_detached_day_walk(tmp_path: Path) -> None:
+    """A detached day walk is handed to the survivor spawn (Q32)."""
+    spawned: list[list[str]] = []
+
+    def _factory(command: list[str], log_path: Path, preamble: str, cwd: Path) -> int:
+        del log_path, preamble, cwd
+        spawned.append(command)
+        status.write_running(tmp_path, "day")
+        return 1
+
+    def _no_sleep(_seconds: float) -> None:
+        return None
+
+    bars: list[_FakeBar] = []
+    deps = replace(_deps([], 0, bars), detach_factory=_factory, sleep=_no_sleep)
+    code = cli.main(["day", "--detach", "--root", str(tmp_path), "--llm"], deps)
+    assert code == EXIT_RUN_LIVE
+    assert len(spawned) == 1
+
+
+def test_main_routes_init(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Init registers the skill pointers outside the lifecycle bracket (Q23)."""
+    bars: list[_FakeBar] = []
+    deps = replace(_deps([], 0, bars), home=lambda: tmp_path / "home")
+    assert cli.main(["init", "--root", str(tmp_path), "--llm"], deps) == EXIT_OBJECTIVE_MET
+    assert "ghog init done" in capsys.readouterr().out
+
+
+def test_cli_script_runs_as_main(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The cli script runs through its __main__ guard with the contract code."""
+    transcript = ["collected 1 items", "tests/test_a.py::test_one PASSED [100%]"]
+
+    def _fake_popen(*args: object, **kwargs: object) -> object:
+        del args, kwargs
+        return _FakeProcess(transcript, 0)
+
+    def _fake_which(_name: str) -> str:
+        return "pytest"
+
+    monkeypatch.setattr("subprocess.Popen", _fake_popen)
+    monkeypatch.setattr("shutil.which", _fake_which)
+    # The script keeps the real pytest-suite probe, so the root needs a marker.
+    (tmp_path / "pyproject.toml").write_text("", encoding="utf-8")
+    script_path = cli.__file__
+    argv = [script_path, "single", "tests/test_a.py", "--root", str(tmp_path), "--llm"]
+    monkeypatch.setattr(sys, "argv", argv)
+    with pytest.raises(SystemExit) as raised:
+        runpy.run_path(script_path, run_name="__main__")
+    assert raised.value.code == EXIT_OBJECTIVE_MET
 
 
 # eof

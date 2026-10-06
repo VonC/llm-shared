@@ -8,12 +8,12 @@ Include "Step XXXX" in the title of this conversation (replace XXXX with the ste
 
 The missing work falls into two kinds, and one step may need both. Decide, for each item of the `Missing work for Step N` list, which kind it is, then apply the matching flow:
 
-- missing code or tests: follow [`implement-step.md`](implement-step.md) and write only what the `Missing work for Step N` section reports as absent. Verify with one `ghog day` walk as that instruction describes — do not run `check.bat` or `pytest` directly; groundhog is in charge of check and tests.
+- missing code or tests: follow [`implement-step.md`](implement-step.md) and write only what the `Missing work for Step N` section reports as absent. Run the command printed by `pw scope day` as that instruction describes: check.bat plus the affected tests; at the default level the full stage is deliberately skipped. Follow the printed repair and restart commands to preserve level and scope. Do not run `check.bat` or `pytest` directly; groundhog is in charge of check and tests.
 - a file over the line budget: follow [`split-large-file.md`](split-large-file.md) and split the over-budget file by responsibility. Split it, do not reduce it: never trim code, docstrings or comments to fit the 650-line limit. Splitting keeps every responsibility in its own smaller file; reducing would drop behaviour the step still needs.
 
 When a step is incomplete only because a file grew too big, the split alone closes the gap. When code or tests are genuinely absent, write them. When both are true, split first so the new code lands in a file that is already under budget.
 
-Both flows end with a `ghog day` walk, and that is fine: a walk right after a green one, with no file changed since, is a noop (one notice, exit 0), so duplicate groundhog calls cost nothing.
+Both flows end with the resolved walk. A matching scope and unchanged inputs can reuse saved proof at or above the requested level; let groundhog decide that reuse.
 
 ## Project rules for the missing-work step
 

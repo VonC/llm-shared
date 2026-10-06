@@ -2,23 +2,35 @@
 
 Cover the digest stability and sensitivity (touch, add, remove,
 excluded folders, gate configuration files), the marker round-trip, and
-the safe directions of ``is_unchanged`` (no marker, mismatch,
+the safe directions of the saved-proof read (no marker, mismatch,
 unreadable marker).
 
 Fix: the marker lives in the artifact home (``.reviews`` by default), not at
 the project root; a root marker left by an older walk is moved there on first
 use, and a home that cannot be prepared reads as changed.
+
+Fix (v0.13.0 full_suite_levels, Step 2): the one-line ``write_marker`` and
+``is_unchanged`` are gone; their round-trip and safe-direction cases now drive
+``save_proof`` and ``effective_proof``: a saved proof holds on unchanged
+sources, falls on a touched file, is capped at ``cov`` by a timing change, is
+removed when nothing is proven, and a legacy, unreadable or unpreparable
+marker proves nothing. A saved proof moves to the digest a walk's test steps
+run on only when that digest did not change.
 """
 
 from __future__ import annotations
 
+import logging
 import os
 from typing import TYPE_CHECKING
 
-from tools.groundhog import snapshot
+from tools.groundhog import exclusions, snapshot
+from tools.groundhog.levels import FullLevel
 
 if TYPE_CHECKING:
     from pathlib import Path
+
+    import pytest
 
 
 def _touch(path: Path, mtime_ns: int) -> None:
@@ -124,40 +136,84 @@ def test_digest_covers_the_gate_configuration(tmp_path: Path) -> None:
     assert snapshot.source_digest(tmp_path) != before
 
 
-def test_marker_round_trip(tmp_path: Path) -> None:
-    """A written marker reads back as unchanged until a file moves."""
+def _effective(root: Path) -> snapshot.EffectiveProof:
+    """Read the whole-suite proof valid for the current sources of a root."""
+    return snapshot.effective_proof(root, snapshot.WHOLE_SCOPE_KEY, snapshot.WHOLE_SCOPE_FINGERPRINT)
+
+
+def _save(root: Path, proof: FullLevel | None) -> None:
+    """Record a whole-suite proof on the current digest of a root."""
+    digest = snapshot.source_digest(root)
+    snapshot.save_proof(root, snapshot.WHOLE_SCOPE_KEY, snapshot.WHOLE_SCOPE_FINGERPRINT, digest, proof)
+
+
+def test_saved_proof_round_trip_until_a_file_moves(tmp_path: Path) -> None:
+    """A saved proof holds on unchanged sources and falls on a touched file."""
     source = _seed_project(tmp_path)
-    assert snapshot.is_unchanged(tmp_path) is False
-    path = snapshot.write_marker(tmp_path)
+    assert _effective(tmp_path) == snapshot.EffectiveProof(snapshot.source_digest(tmp_path), None)
+    _save(tmp_path, FullLevel.COV)
+    path = snapshot.marker_path(tmp_path)
     assert path == tmp_path.resolve() / ".reviews" / snapshot.MARKER_FILE_NAME
     assert not (tmp_path / snapshot.MARKER_FILE_NAME).exists()
-    assert snapshot.is_unchanged(tmp_path) is True
+    assert _effective(tmp_path).proof is FullLevel.COV
     _touch(source, 3_000_000_000)
-    assert snapshot.is_unchanged(tmp_path) is False
+    assert _effective(tmp_path).proof is None
 
 
-def test_legacy_root_marker_moves_into_the_home(tmp_path: Path) -> None:
-    """A marker an older walk left at the root still proves the noop."""
+def test_saved_proof_moves_only_with_an_unchanged_digest() -> None:
+    """A saved proof follows the sources only while their digest stays the same."""
+    state = snapshot.EffectiveProof("before", FullLevel.SPEED)
+    assert state.on_sources("before") is state
+    assert state.on_sources("fixed") == snapshot.EffectiveProof("fixed", None)
+
+
+def test_timing_change_caps_saved_speed_at_cov(tmp_path: Path) -> None:
+    """A new exclusion keeps the digest but caps a saved speed proof at cov."""
+    _seed_project(tmp_path)
+    _save(tmp_path, FullLevel.SPEED)
+    assert _effective(tmp_path).proof is FullLevel.SPEED
+    exclusions.write_exclusions(tmp_path, {"tests/test_slow.py::test_freak": 2.5})
+    assert _effective(tmp_path).proof is FullLevel.COV
+
+
+def test_unproven_save_removes_the_marker(tmp_path: Path) -> None:
+    """Recording no proof removes the marker, and a missing one is fine."""
+    _seed_project(tmp_path)
+    _save(tmp_path, FullLevel.PASS)
+    _save(tmp_path, None)
+    assert not snapshot.marker_path(tmp_path).exists()
+    _save(tmp_path, None)
+    assert _effective(tmp_path).proof is None
+
+
+def test_legacy_root_marker_moves_into_the_home_as_no_proof(tmp_path: Path) -> None:
+    """A one-line digest an older walk left at the root proves nothing now."""
     _seed_project(tmp_path)
     legacy = tmp_path / snapshot.MARKER_FILE_NAME
     legacy.write_text(f"{snapshot.source_digest(tmp_path)}\n", encoding="utf-8")
-    assert snapshot.is_unchanged(tmp_path) is True
+    assert _effective(tmp_path).proof is None
     assert not legacy.exists()
     assert snapshot.marker_path(tmp_path).is_file()
 
 
-def test_unusable_home_means_walk_again(tmp_path: Path) -> None:
-    """A root whose artifact home cannot be prepared reads as changed."""
+def test_unusable_home_means_no_proof_and_no_write(
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """A root whose artifact home cannot be prepared has no proof, and saving logs."""
     not_a_dir = tmp_path / "blocker"
     not_a_dir.write_text("x\n", encoding="utf-8")
-    assert snapshot.is_unchanged(not_a_dir) is False
+    assert _effective(not_a_dir).proof is None
+    with caplog.at_level(logging.INFO, logger="groundhog"):
+        _save(not_a_dir, FullLevel.COV)
+    assert "could not record the proof marker" in caplog.text
 
 
-def test_unreadable_marker_means_walk_again(tmp_path: Path) -> None:
-    """A non-UTF-8 marker reads as changed, the safe direction."""
+def test_unreadable_marker_means_no_proof(tmp_path: Path) -> None:
+    """A non-UTF-8 marker reads as no proof, the safe direction."""
     _seed_project(tmp_path)
     snapshot.marker_path(tmp_path).write_bytes(b"\xff\xfe")
-    assert snapshot.is_unchanged(tmp_path) is False
+    assert _effective(tmp_path).proof is None
 
 
 # eof

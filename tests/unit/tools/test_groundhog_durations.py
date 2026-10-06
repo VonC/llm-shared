@@ -23,6 +23,8 @@ keeps its entry, the margin against flip-flopping.
 Fix: float comparisons use ``math.isclose`` like the property test, so the
 strict pyright gate (``reportUnknownMemberType`` on ``pytest.approx``) stays
 green.
+
+Step 4: grouped timing uses only the saved floor, including a disabled floor and an empty measurement.
 """
 
 from __future__ import annotations
@@ -315,6 +317,19 @@ def test_apply_exclusions_keeps_a_call_between_half_floor_and_floor() -> None:
     )
     assert spared.exclusions[0].status == durations.STATUS_OK
     assert updated == {_NEAR_FLOOR_NODE: _NEAR_FLOOR_RECORDED}
+
+
+def test_group_floor_alone_and_disabled_floor() -> None:
+    """Group samples use the saved floor even when every call has similar cost."""
+    summary = durations.summarize_by_floor({"a": 1.2, "b": 1.1, "c": 0.8}, 1.0)
+    assert [call.node for call in summary.outliers] == ["a", "b"]
+    assert math.isclose(summary.average, 0.8)
+    assert math.isclose(summary.median, 1.1)
+    assert [call.node for call in summary.runners_up] == ["c"]
+    disabled = durations.summarize_by_floor({"a": 1.2}, 0)
+    assert disabled.outliers == ()
+    assert math.isclose(disabled.average, 1.2)
+    assert durations.summarize_by_floor({}, 1).outliers == ()
 
 
 # eof

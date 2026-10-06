@@ -1,4 +1,6 @@
-"""Acceptance tests for groundhog, the per-subcommand scenarios.
+"""Scope-aware repair and restart expectations.
+
+Acceptance tests for groundhog, the per-subcommand scenarios.
 
 Each scenario drives ``cli.main`` end to end; the one faked element is
 the process boundary (a canned pytest transcript and exit code injected
@@ -19,6 +21,12 @@ the affected run owns that incremental map.
 Fix: the deps built here fake the pytest-suite probe, and the main-guard
 scenario, which keeps the real probe, writes a ``pyproject.toml`` marker at its
 root.
+
+Fix (v0.13.0 full_suite_levels, Step 2): a direct ``ghog full`` runs at its
+default ``speed`` level, so its green line is the ``speed`` success line and
+its closing line appends ``full=speed src=default proof=<earned> scope=whole``;
+the repair commands (check, single) restart at their carried level, here the
+default ``none``, and append ``scope=whole``.
 """
 
 from __future__ import annotations
@@ -37,11 +45,13 @@ from tests.unit.tools.groundhog_acceptance_support import (
     SteppingClock,
     assert_blank_before,
     assert_closing_grammar,
+    closing_line_of,
     failing_transcript,
     make_deps,
     passing_transcript,
 )
 from tools.groundhog import baseline, cli, commands, reporting_nextstep, runner
+from tools.groundhog.levels import FullLevel
 from tools.groundhog.models import (
     EXIT_COVERAGE_GAP,
     EXIT_OBJECTIVE_MET,
@@ -73,7 +83,8 @@ def test_at1_green_full_run_reaches_the_objective(
     assert "--testmon" in spawns.commands[0]
     assert "-n" not in spawns.commands[0]
     out = capsys.readouterr().out
-    assert reporting_nextstep.MSG_FULL_OK in out
+    assert reporting_nextstep.success_line(FullLevel.SPEED) in out
+    assert closing_line_of(out).endswith("full=speed src=default proof=speed scope=whole")
     assert "cov=100" in out
     assert "nag: warn=2 xfail=0 worth a look" in out
     assert "exit=0" in out
@@ -148,7 +159,8 @@ def test_at3_focus_run_prints_the_two_lists(
     assert "Still failing in focus (fix these first):" in out
     assert "- tests/test_a.py::test_two" in out
     assert "- tests/test_b.py::test_three" in out
-    assert reporting_nextstep.MSG_SINGLE_RESTART in out
+    assert reporting_nextstep.single_restart_line(FullLevel.NONE) in out
+    assert closing_line_of(out).endswith("exit=2 scope=whole")
     assert_closing_grammar(out)
 
 
@@ -166,7 +178,7 @@ def test_at4_green_focus_run_restarts_the_chain(
     argv = ["single", "tests/test_a.py", "--root", str(tmp_path), "--llm"]
     code = cli.main(argv, make_deps(spawns))
     assert code == EXIT_OBJECTIVE_MET
-    assert reporting_nextstep.MSG_SINGLE_GREEN in capsys.readouterr().out
+    assert reporting_nextstep.single_green_line(FullLevel.NONE) in capsys.readouterr().out
 
 
 def test_at5_coverage_gap_and_gate_reached(
@@ -188,9 +200,11 @@ def test_at5_coverage_gap_and_gate_reached(
     out = capsys.readouterr().out
     assert reporting_nextstep.MSG_GAP_LINES_HEADER in out
     assert "src/pkg/mod.py" in out
-    assert reporting_nextstep.MSG_COVERAGE_GAP in out
+    gap_line = reporting_nextstep.coverage_gap_line(FullLevel.SPEED)
+    assert gap_line in out
+    assert closing_line_of(out).endswith("full=speed src=default proof=pass scope=whole")
     assert_blank_before(out, reporting_nextstep.MSG_GAP_LINES_HEADER)
-    assert_blank_before(out, reporting_nextstep.MSG_COVERAGE_GAP)
+    assert_blank_before(out, gap_line)
     assert_closing_grammar(out)
     reached = Spawns(passing_transcript(2, "TOTAL    100    0   100%"), 0)
     code = cli.main(
@@ -198,7 +212,7 @@ def test_at5_coverage_gap_and_gate_reached(
         make_deps(reached),
     )
     assert code == EXIT_OBJECTIVE_MET
-    assert reporting_nextstep.MSG_AFFECTED_COV_OK in capsys.readouterr().out
+    assert reporting_nextstep.MSG_AFFECTED_COV_OK.replace("ghog check", "ghog check --whole-suite") in capsys.readouterr().out
 
 
 def test_at6_crash_prints_the_crash_block(
@@ -258,7 +272,7 @@ def test_at8_check_missing_and_failing(
     assert code == CHECK_FAIL_CODE
     out = capsys.readouterr().out
     assert "compile error detail" in out
-    assert reporting_nextstep.MSG_CHECK_FAIL in out
+    assert reporting_nextstep.check_fail_line(FullLevel.NONE) in out
     assert failing.commands == [["cmd.exe", "/d", "/c", str(check_bat)]]
     assert_closing_grammar(out)
 
@@ -291,7 +305,7 @@ def test_at14_lying_check_bat_is_treated_as_failed(
     assert code == 1
     out = capsys.readouterr().out
     assert reporting_nextstep.MSG_CHECK_EXIT_MISMATCH in out
-    assert reporting_nextstep.MSG_CHECK_FAIL in out
+    assert reporting_nextstep.check_fail_line(FullLevel.NONE) in out
     assert "exit=1" in out
 
 

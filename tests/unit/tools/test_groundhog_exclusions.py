@@ -12,11 +12,17 @@ write failure logged not raised (Q53, Q66). Reaches 100% of ``exclusions.py``.
 Fix: the floor file lives in the artifact home (``.reviews`` by default); a
 root file from an older run is moved there on first use, its recorded
 exclusions kept, and a home that cannot be prepared reads as ``{}``.
+
+Step 3 also covers strict read-only evidence: root fallback without migration,
+home precedence, rejected malformed durations and encoding, stable listings,
+complete saved-listing parsing and comparisons of added or raised baselines.
 """
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+
+import pytest
 
 from tools.groundhog import exclusions, floor
 
@@ -206,6 +212,85 @@ def test_legacy_root_exclusions_are_moved_not_lost(tmp_path: Path) -> None:
         "[exclusion]",
     ]
     assert not legacy.exists()
+
+
+def test_strict_missing_file_does_not_create_home(tmp_path: Path) -> None:
+    """Absent evidence is empty and the strict reader creates no directory."""
+    assert exclusions.read_exclusions_strict(tmp_path) == {}
+    assert not (tmp_path / ".reviews").exists()
+
+
+def test_strict_legacy_read_does_not_migrate(tmp_path: Path) -> None:
+    """A legacy file supplies evidence without moving it into the home."""
+    legacy = tmp_path / floor.FLOOR_FILE
+    legacy.write_text(f"0.0\n1.0\n[exclusion]\n{_PARAM_NODE} = 3.5\n", encoding="utf-8")
+    assert exclusions.read_exclusions_strict(tmp_path) == {_PARAM_NODE: _RECORDED_PARAM}
+    assert legacy.exists()
+    assert not (tmp_path / ".reviews").exists()
+
+
+def test_strict_home_wins_and_skips_comments(tmp_path: Path) -> None:
+    """The home file wins over a legacy copy, with comments and blanks ignored."""
+    legacy = tmp_path / floor.FLOOR_FILE
+    legacy.write_text("invalid legacy evidence", encoding="utf-8")
+    artifact_home = tmp_path / ".reviews"
+    artifact_home.mkdir()
+    (artifact_home / floor.FLOOR_FILE).write_text(
+        f"0.0\n1.0\n[exclusion]\n\n# note\n{_FAST_NODE} = {_RECORDED_FAST}\n", encoding="utf-8",
+    )
+    assert exclusions.read_exclusions_strict(tmp_path) == {_FAST_NODE: _RECORDED_FAST}
+    assert legacy.read_text(encoding="utf-8") == "invalid legacy evidence"
+
+
+def test_strict_missing_section_is_empty(tmp_path: Path) -> None:
+    """Floor-only evidence contains no accepted exceptions."""
+    (tmp_path / floor.FLOOR_FILE).write_text("0.0\n1.0\n", encoding="utf-8")
+    assert exclusions.read_exclusions_strict(tmp_path) == {}
+
+
+@pytest.mark.parametrize("entry", ["broken", "= 1", "test = invalid", "test = nan", "test = inf", "test = -1"])
+def test_strict_reader_rejects_malformed_entries(tmp_path: Path, entry: str) -> None:
+    """Invalid or non-finite durations cannot become accepted evidence."""
+    (tmp_path / floor.FLOOR_FILE).write_text(f"0.0\n1.0\n[exclusion]\n{entry}\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="malformed exclusion entry"):
+        exclusions.read_exclusions_strict(tmp_path)
+
+
+def test_strict_reader_rejects_binary_file(tmp_path: Path) -> None:
+    """Unreadable encoding must not silently read as no exceptions."""
+    (tmp_path / floor.FLOOR_FILE).write_bytes(b"\xff")
+    with pytest.raises(UnicodeDecodeError):
+        exclusions.read_exclusions_strict(tmp_path)
+
+
+def test_listing_order_count_and_round_trip() -> None:
+    """Listings order node ids, retain parameter equals and verify their count."""
+    entries = {"z_test": 1.0, _PARAM_NODE: _RECORDED_PARAM, "a_test": 0.0}
+    lines = exclusions.listing_lines(entries)
+    assert lines == ["a_test = 0.0", f"{_PARAM_NODE} = 3.5", "z_test = 1.0", "exclusions=3"]
+    assert exclusions.parse_listing("\n".join(lines) + "\n") == entries
+    assert exclusions.listing_lines({}) == ["exclusions=0"]
+    assert exclusions.parse_listing("exclusions=0\n") == {}
+
+
+@pytest.mark.parametrize(("text", "message"), [
+    ("test = 1\ntest = 2\nexclusions=2", "duplicate exclusion entry"),
+    ("", "missing or invalid exclusion count"),
+    ("test = 1", "missing or invalid exclusion count"),
+    ("test = 1\nexclusions=0", "missing or invalid exclusion count"),
+    ("test = nan\nexclusions=1", "malformed exclusion entry"),
+])
+def test_listing_parser_rejects_incomplete_or_ambiguous_evidence(text: str, message: str) -> None:
+    """Duplicate entries and incomplete or malformed saved output are refused."""
+    with pytest.raises(ValueError, match=message):
+        exclusions.parse_listing(text)
+
+
+def test_listing_comparison_reports_only_added_or_raised() -> None:
+    """Lowered, unchanged and removed exceptions are absent from the changes."""
+    saved = {"raised": 1.0, "lowered": 2.0, "unchanged": 3.0, "removed": 4.0}
+    current = {"raised": 2.0, "lowered": 1.0, "unchanged": 3.0, "added": 0.0}
+    assert exclusions.compare_listings(saved, current) == {"raised": 2.0, "added": 0.0}
 
 
 # eof

@@ -388,12 +388,12 @@ def test_complete_append_repairs_marker_without_duplicate(
     assert transcript.count("review-entry-id: request-round-1") == 1
 
 
-@pytest.mark.parametrize("kind", list(ArchiveKind))
+@pytest.mark.parametrize("kind", [kind for kind in ArchiveKind if kind is not ArchiveKind.SCOPE])
 def test_archive_evidence_moves_only_the_selected_exact_artifact(
     tmp_path: Path,
     kind: ArchiveKind,
 ) -> None:
-    """Recovery moves one validated artifact to its identity-scoped archive."""
+    """Recovery archives store-owned Markdown; scope IO has its own helper."""
     store, context = _store(tmp_path)
     record = _record(context)
     sources = {

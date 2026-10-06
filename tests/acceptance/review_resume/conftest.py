@@ -7,6 +7,18 @@ including status failure JSON delivered on the error stream.
 Fix: the independent-waiter helpers moved here from the concurrency module.
 That module was split so its scenarios run on separate xdist workers, and both
 halves need the same process start, idle-silence and terminal-result helpers.
+
+Fix: every real subprocess bound shares ``PROCESS_TIMEOUT_SECONDS``. The bounds
+are hang guards, not performance assertions: under the parallel full run, a
+``publish-request`` of a fixture's setup (Python start plus its few ``git``
+calls, with no lock wait) once took longer than the former 30 seconds while
+every worker was spawning processes, and the same file passed in focus.
+
+Fix: a ``ReviewRepository`` copies a seed repository built once per test
+process and per home and family, under pytest's temporary root, instead of
+running ``git init``, two configuration writes, an add and a commit for every
+scenario. The copy is byte for byte the seeded repository, so every scenario
+still starts from a real committed Git history.
 """
 
 # ruff: noqa: S603, S607, PLR0913
@@ -14,11 +26,12 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import subprocess
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any, Final
 
 import pytest
 
@@ -30,6 +43,7 @@ from tests.unit.tools.review_exchange_test_support import (
     review_context,
     session_environment,
 )
+from tools.review_artifact_configuration import ReviewArtifactConfiguration
 from tools.review_exchange_models import (
     ReviewDisposition,
     ReviewFamily,
@@ -41,9 +55,16 @@ from tools.review_exchange_models_envelope import (
 )
 from tools.review_exchange_paths import derive_artifact_paths
 
+if TYPE_CHECKING:
+    from tools.review_exchange_models import ReviewContext
+
 SHARED_ROOT = Path(__file__).resolve().parents[3]
 EXCHANGE_LAUNCHER = SHARED_ROOT / "bin" / "review_exchange.bat"
 EXCHANGE_MODULE = ("-m", "tools.review_exchange_cli")
+# Hang guard for every real child process and for a waiter's wake-up: long
+# enough to absorb process creation while all xdist workers spawn children at
+# once, short enough that a genuinely stuck command still fails the test.
+PROCESS_TIMEOUT_SECONDS: Final = 120
 
 
 def module_session_environment(nature: str) -> dict[str, str]:
@@ -69,32 +90,84 @@ class ProcessResult:
     payload: dict[str, Any]
 
 
-class ReviewRepository:
-    """Build real repositories while every scenario transition uses the public launcher."""
+def _run_git(root: Path, *arguments: str) -> str:
+    """Run one bounded real ``git`` command in a repository."""
+    result = subprocess.run(["git", *arguments], cwd=root, check=True,
+                            capture_output=True, text=True, timeout=PROCESS_TIMEOUT_SECONDS)
+    return result.stdout.strip()
 
-    def __init__(self, root: Path, *, home: str = ".reviews", family: ReviewFamily = ReviewFamily.CODE) -> None:
-        """Seed ordinary Git documents and an ignored runtime home."""
-        self.root = root
+
+@dataclass(frozen=True)
+class _Seed:
+    """One real seeded repository, the template every scenario copies."""
+
+    root: Path
+    context: ReviewContext
+
+    @classmethod
+    def build(cls, root: Path, home: str, family: ReviewFamily) -> _Seed:
+        """Seed ordinary Git documents and an ignored runtime home with real Git."""
         root.mkdir(parents=True)
-        self.git("init", "-q", "-b", "resume-acceptance")
-        self.git("config", "user.name", "Resume Acceptance")
-        self.git("config", "user.email", "resume@example.invalid")
+        _run_git(root, "init", "-q", "-b", "resume-acceptance")
+        _run_git(root, "config", "user.name", "Resume Acceptance")
+        _run_git(root, "config", "user.email", "resume@example.invalid")
         (root / ".gitignore").write_text("a.*\ndocs/**/review.*.md\n", encoding="utf-8")
-        self.home = configured_home(root, home)
-        (self.home / "a.review-mode").write_text("wait_timeout_seconds=300\n", encoding="utf-8")
-        self.context = review_context(root, family, "resume-acceptance", step="6" if family is ReviewFamily.CODE else None)
-        self.paths = derive_artifact_paths(root, self.context)
-        docs = self.context.document_path.parent
+        home_path = configured_home(root, home)
+        (home_path / "a.review-mode").write_text("wait_timeout_seconds=300\n", encoding="utf-8")
+        context = review_context(root, family, "resume-acceptance", step="6" if family is ReviewFamily.CODE else None)
+        docs = context.document_path.parent
         (docs / "draft.v0.11.0.resume-acceptance.md").write_text("# Resume acceptance draft\n", encoding="utf-8")
         (docs / "feature-request.v0.11.0.resume-acceptance.md").write_text("# Resume acceptance requirement\n", encoding="utf-8")
-        self.git("add", "-A")
-        self.git("commit", "-qm", "test: seed resume acceptance")
+        _run_git(root, "add", "-A")
+        _run_git(root, "commit", "-qm", "test: seed resume acceptance")
+        return cls(root, context)
+
+
+# The seeded templates of this test process, one per home and family, kept
+# under pytest's temporary root by the session fixture below.
+_SEEDS: dict[tuple[str, ReviewFamily], _Seed] = {}
+_SEED_BASE: list[Path] = []
+
+
+@pytest.fixture(scope="session", autouse=True)
+def seeded_repository_base(tmp_path_factory: pytest.TempPathFactory) -> None:
+    """Hold this session's seeded repositories under pytest's temporary root."""
+    _SEED_BASE[:] = [tmp_path_factory.mktemp("seeded-repositories")]
+    _SEEDS.clear()
+
+
+def _seeded(home: str, family: ReviewFamily) -> _Seed:
+    """Return the seed of one home and family, building it with real Git once."""
+    key = (home, family)
+    if key not in _SEEDS:
+        _SEEDS[key] = _Seed.build(_SEED_BASE[0] / f"seed-{len(_SEEDS)}" / "caller", home, family)
+    return _SEEDS[key]
+
+
+class ReviewRepository:
+    """Build real repositories while every scenario transition uses the public launcher.
+
+    Fix: each repository is a copy of a seed built once per test process with
+    real Git, instead of a fresh ``git init``, configuration, add and commit
+    per scenario. The copy carries the same commit, index, ignore files and
+    home byte for byte, and loads its configuration once, so a fixture now
+    spawns one ``git`` process instead of about seven.
+    """
+
+    def __init__(self, root: Path, *, home: str = ".reviews", family: ReviewFamily = ReviewFamily.CODE) -> None:
+        """Copy the seeded Git documents and the ignored runtime home of this family."""
+        seed = _seeded(home, family)
+        shutil.copytree(seed.root, root)
+        self.root = root
+        configuration = ReviewArtifactConfiguration.load(root)
+        self.home = configuration.home
+        document = root.resolve() / seed.context.document_path.relative_to(seed.root.resolve())
+        self.context = replace(seed.context, document_path=document)
+        self.paths = derive_artifact_paths(root, self.context, configuration=configuration)
 
     def git(self, *arguments: str) -> str:
         """Keep setup and Git observations on bounded real subprocesses."""
-        result = subprocess.run(["git", *arguments], cwd=self.root, check=True,
-                                capture_output=True, text=True, timeout=20)
-        return result.stdout.strip()
+        return _run_git(self.root, *arguments)
 
     def run(self, *arguments: str, nature: str = "codex", launcher: Path | None = None) -> ProcessResult:
         """Execute one real, isolated public entry point with a fresh host environment.
@@ -111,7 +184,7 @@ class ReviewRepository:
                    else [sys.executable, *EXCHANGE_MODULE, *arguments])
         result = subprocess.run(command, cwd=self.root,
                                 env=module_session_environment(nature), check=False,
-                                capture_output=True, text=True, timeout=30)
+                                capture_output=True, text=True, timeout=PROCESS_TIMEOUT_SECONDS)
         lines = (result.stdout or result.stderr).splitlines()
         assert len(lines) == 1, (result.returncode, result.stdout, result.stderr)
         return ProcessResult(result.returncode, result.stdout, result.stderr, json.loads(lines[0]))
@@ -227,7 +300,7 @@ def lifecycle_journey(tmp_path_factory: pytest.TempPathFactory, request: pytest.
     status = repo.run("--format", "json", launcher=SHARED_ROOT / "rvw_status.bat")
     human = subprocess.run([str(SHARED_ROOT / "rvw_status.bat")], cwd=repo.root,
                            env=session_environment(os.environ, "codex"), check=False,
-                           capture_output=True, text=True, timeout=30)
+                           capture_output=True, text=True, timeout=PROCESS_TIMEOUT_SECONDS)
     after_status = repo.evidence()
     gate = repo.resume("resume")
     label = "Commit" if family is ReviewFamily.CODE else "Consolidate"
@@ -238,7 +311,8 @@ def lifecycle_journey(tmp_path_factory: pytest.TempPathFactory, request: pytest.
     final_status = repo.exchange("status")
     workflow = subprocess.run([str(SHARED_ROOT / "bin" / "prompt_workflow.bat"), "skill"],
                               cwd=repo.root, env=session_environment(os.environ, "codex"),
-                              check=False, capture_output=True, text=True, timeout=30)
+                              check=False, capture_output=True, text=True,
+                              timeout=PROCESS_TIMEOUT_SECONDS)
     return {"repo": repo, "writer": writer, "pending": pending, "first": first, "lost": lost,
                 "stale": stale, "answer": answer, "before": before, "after_status": after_status,
                 "status": status, "human": human, "gate": gate, "confirmed": confirmed, "owning": owning,

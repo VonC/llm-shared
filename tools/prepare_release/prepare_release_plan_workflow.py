@@ -1,4 +1,14 @@
-"""Branch-role detection and operation planning for prepare-release."""
+"""Branch-role detection and operation planning for prepare-release.
+
+Fix (v0.13.0 full_suite_levels, Step 8): Every promotion and in-place release
+preparation proves cov over the whole suite, including generic and umbrella
+integration destinations and resumed already-integrated topics.
+
+Fix (v0.13.0 full_suite_levels, Step 2): plain ``ghog day`` now stops after
+the affected tests, so the integration sync and the feature replay name the
+``cov`` level explicitly and keep proving the full suite and its coverage
+gate before the release merge.
+"""
 
 # Planner errors intentionally include the rejected refs at the raise site.
 # ruff: noqa: EM102, TRY003
@@ -147,7 +157,10 @@ def _plan_on_main(
         action=ReleaseAction.PREPARE_IN_PLACE,
         scope=scope,
         commits=repository.commits(scope),
-        operations=("prepare version and release notes in place",),
+        operations=(
+            "run ghog day --full=cov --whole-suite",
+            "prepare version and release notes in place",
+        ),
         notes=("No rebase and no branch merge are required.",),
     )
 
@@ -167,6 +180,8 @@ def _plan_integration(  # noqa: PLR0913
     if contains_main:
         action = ReleaseAction.MERGE_NO_FF
         operations = (
+            f"git switch {branch}",
+            "run ghog day --full=cov --whole-suite",
             f"git switch --ignore-other-worktrees {main_branch}",
             f"git merge --no-ff {branch}",
         )
@@ -176,7 +191,7 @@ def _plan_integration(  # noqa: PLR0913
         operations = (
             f"git switch {branch}",
             f"git merge --no-ff {main_branch}",
-            "run ghog day",
+            "run ghog day --full=cov --whole-suite",
             f"git switch --ignore-other-worktrees {main_branch}",
             f"git merge --no-ff {branch}",
         )
@@ -315,6 +330,8 @@ def _plan_feature(  # noqa: PLR0913
             scope=scope,
             commits=commits,
             operations=(
+                f"git switch {branch}",
+                "run ghog day --full=cov --whole-suite",
                 f"git switch --ignore-other-worktrees {target_branch}",
                 f"git merge --no-ff {branch}",
             ),
@@ -352,7 +369,7 @@ def _plan_feature(  # noqa: PLR0913
         operations=(
             f"git branch {promotion} {branch}",
             f"git rebase --onto {target_branch} {boundary.base} {promotion}",
-            "run git range-diff and ghog day",
+            "run git range-diff and ghog day --full=cov --whole-suite",
             f"git switch --ignore-other-worktrees {target_branch}",
             f"git merge --no-ff {promotion}",
         ),
@@ -399,7 +416,7 @@ def _already_integrated_feature(
     context: _FeaturePlanContext,
     target_branch: str,
 ) -> ReleasePlan | None:
-    """Return the terminal plan when the feature is already integrated."""
+    """Gate an integrated-topic continuation; already released work is a no-op."""
     if not context.repository.is_ancestor(context.branch, target_branch):
         return None
     tags = (
@@ -425,7 +442,14 @@ def _already_integrated_feature(
         action=action,
         scope=f"{context.branch}..{target_branch}",
         commits=(),
-        operations=(),
+        operations=(
+            ()
+            if tags
+            else (
+                f"git switch --ignore-other-worktrees {target_branch}",
+                "run ghog day --full=cov --whole-suite",
+            )
+        ),
         containing_release_tags=tags,
         notes=(note,),
     )

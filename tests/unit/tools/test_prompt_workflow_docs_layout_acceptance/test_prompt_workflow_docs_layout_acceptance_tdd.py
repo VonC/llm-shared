@@ -1,9 +1,21 @@
-"""Exercise layout discovery through real Git, CLI and post-commit resolution.
+"""Exercise layout discovery through the CLI and post-commit resolution.
 
 Step 4 proves canonical preference, current-content fallback and fatal errors
 across the real modules. No layout, selection, state or Git helper is stubbed.
 The script entry point supplies its actual exit-2 boundary; explicit host
 arguments keep successful skill commands independent of the test host.
+
+Fix: the ``git`` process boundary is answered in process. Every scenario runs
+on one repository state, a branch freshly created from ``main`` with each
+effort file untracked, and each ``pw`` call spawned four to six real ``git``
+processes for it, so a test took one to six seconds. ``_FreshBranchGit``
+replaces ``prompt_workflow_git.run_git``, the seam that module documents for
+tests, and answers the six read commands ``pw`` runs from the files actually
+on disk; any other command fails the test, so a new git dependency of ``pw``
+cannot pass unnoticed. The ``git`` helpers above that seam (branch, fork point,
+changed files, porcelain parsing) still run for real, and
+``test_prompt_workflow_git.py`` covers ``run_git`` itself against a real
+subprocess boundary.
 """
 
 from __future__ import annotations
@@ -11,7 +23,7 @@ from __future__ import annotations
 import os
 import runpy
 import sys
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Final
 
 import pytest
 
@@ -22,6 +34,12 @@ from tools.prompt_workflow_models import PromptWorkflowError, Topic
 
 if TYPE_CHECKING:
     from pathlib import Path
+
+# The default branch, the commit both branches point at, and the read-only
+# commands pw runs on a branch created from it with no commit of its own.
+_MAIN: Final = "main"
+_HEAD: Final = "1" * 40
+_STATUS: Final = ("status", "--porcelain", "--untracked-files=all")
 
 _VERSION = "v1.2.3"
 _SLUG = "my_effort"
@@ -42,23 +60,60 @@ _VALIDATION_NEXT = (
 )
 
 
+class _FreshBranchGit:
+    """Answer pw's git reads for a branch freshly created from ``main``.
+
+    ``main`` holds one commit, the current branch ``my_effort`` was created on
+    it with no commit of its own, and every file in the working tree is
+    untracked. The answers are the outputs real ``git`` gives for that state:
+    the fork-point ``rev-list`` is empty, so the branch start is ``HEAD`` and
+    ``base..HEAD`` changes nothing, and ``status`` lists each file on disk as
+    ``??`` in path order.
+    """
+
+    def __init__(self, root: Path) -> None:
+        """Bind the stand-in to one repository root.
+
+        Args:
+            root: The repository root whose working tree ``status`` lists.
+        """
+        self._root = root
+        self._fixed: dict[tuple[str, ...], str] = {
+            ("rev-parse", "--abbrev-ref", "HEAD"): f"{_SLUG}\n",
+            ("for-each-ref", "--format=%(refname:short)", "refs/heads/"): f"{_MAIN}\n{_SLUG}\n",
+            ("rev-list", "--first-parent", "--boundary", "HEAD", "--not", _MAIN, "--"): "",
+            ("rev-parse", "HEAD"): f"{_HEAD}\n",
+            ("diff", "--name-only", "--diff-filter=AMR", _HEAD, "HEAD", "--"): "",
+        }
+
+    def __call__(self, args: list[str], *, cwd: Path) -> str:
+        """Return the stdout real git gives for one read command.
+
+        Args:
+            args: The git arguments, without the program name.
+            cwd: The working directory, always the repository root.
+
+        Returns:
+            The command stdout.
+        """
+        assert cwd.resolve() == self._root.resolve()
+        command = tuple(args)
+        if command == _STATUS:
+            return "".join(f"?? {path}\n" for path in self._untracked())
+        assert command in self._fixed, f"unexpected git call: {args}"
+        return self._fixed[command]
+
+    def _untracked(self) -> list[str]:
+        """List the working-tree files, outside ``.git``, in git's path order."""
+        files = (path.relative_to(self._root) for path in self._root.rglob("*") if path.is_file())
+        return sorted(path.as_posix() for path in files if path.parts[0] != ".git")
+
+
 @pytest.fixture
-def repository(tmp_path: Path) -> Path:
-    """Create an isolated Git history with a real branch and no inherited hooks."""
-    git.run_git(["init", "--initial-branch=main"], cwd=tmp_path)
-    hooks = tmp_path / ".git" / "empty-hooks"
-    hooks.mkdir()
-    git.run_git(["config", "core.hooksPath", str(hooks)], cwd=tmp_path)
-    git.run_git(
-        [
-            "-c", "user.name=Layout acceptance",
-            "-c", "user.email=layout@example.invalid",
-            "-c", "commit.gpgSign=false",
-            "commit", "--allow-empty", "-m", "Initial fixture",
-        ],
-        cwd=tmp_path,
-    )
-    git.run_git(["checkout", "-b", _SLUG], cwd=tmp_path)
+def repository(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """Create a repository root whose git reads are answered in process."""
+    (tmp_path / ".git").mkdir()
+    monkeypatch.setattr(git, "run_git", _FreshBranchGit(tmp_path))
     return tmp_path
 
 

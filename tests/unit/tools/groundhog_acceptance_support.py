@@ -8,6 +8,12 @@ baseline behavior stays under test.
 
 Fix: the shared deps also fake the pytest-suite probe as a pytest project, so
 the scenarios run from a bare temporary root.
+
+Fix (v0.13.0 full_suite_levels, Step 2): the shared deps also fake the
+environment lookup, empty unless a scenario passes its own variables (such as
+``GHOG_FULL``), so no scenario reads the process environment; and
+:func:`closing_line_of` returns the last closing line of a report, where the
+level, proof and scope evidence keys are asserted.
 """
 
 from __future__ import annotations
@@ -18,6 +24,7 @@ from tools.groundhog import cli, reporting
 
 if TYPE_CHECKING:
     import subprocess
+    from collections.abc import Mapping
     from pathlib import Path
 
 # The non-contract exit code used for check.bat passthrough scenarios.
@@ -126,21 +133,39 @@ class SteppingClock:
         return current
 
 
-def make_deps(spawns: Spawns | QueueSpawns) -> cli.Deps:
+def make_deps(
+    spawns: Spawns | QueueSpawns,
+    environ: Mapping[str, str] | None = None,
+) -> cli.Deps:
     """Build CLI deps around a recording factory.
 
     Args:
         spawns: The recording process factory.
+        environ: The environment variables the run sees, none by default.
 
     Returns:
         The injectable seams.
     """
+    variables = dict(environ or {})
     return cli.Deps(
         popen_factory=spawns,
         clock=lambda: 0.0,
         which=lambda _name: "pytest",
         pytest_project=lambda _root: True,
+        environ=variables.get,
     )
+
+
+def closing_line_of(out: str) -> str:
+    """Return the last closing line of a captured report.
+
+    Args:
+        out: The captured run output.
+
+    Returns:
+        The last line carrying the closing keys.
+    """
+    return [line for line in out.splitlines() if " done fail=" in line][-1]
 
 
 def passing_transcript(count: int, total_line: str | None) -> list[str]:

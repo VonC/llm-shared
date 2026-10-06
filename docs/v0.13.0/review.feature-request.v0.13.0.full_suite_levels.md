@@ -1,0 +1,1267 @@
+# Specification review transcript for v0.13.0
+
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+
+This append-only transcript records completed review rounds. Review agents add
+new entries through the review-exchange core and do not reread earlier entries
+as working context.
+
+## Round 1 by requestor
+
+- Recorded: 2026-09-29T17:37:38+02:00
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: unrecorded
+- Outcome: request
+
+### Review identity for feature-request full_suite_levels (round 1)
+
+Umbrella draft: none
+Reviewed specification: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+Review round: 1
+
+### Requestor assessment for feature-request full_suite_levels (round 1)
+
+The feature request `docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md` describes three full-suite levels (`pass`, `cov`, `speed`) for the `ghog day` walk, a default walk that stops after the affected tests, and the phases that ask for each level. It carries nine open questions (Q01 to Q09), each with options, pros and cons, a recommended option, and an answer line.
+
+Questions believed complete: what `pass` runs (Q01, raised by the human, who asked whether `pass` should skip the test suite entirely), the scope of `GHOG_FULL` (Q02), level upgrades on unchanged sources (Q03), the test-only classification for the requestor speed pass (Q04), non-speed failures found by that pass (Q05), the scope of the review round it starts (Q06), `ghog exclude` at convergence (Q07), how a walk reports its level (Q08), and the speed pass without review mode (Q09).
+
+Please check whether a question is missing, whether any option set or recommendation is weak or wrong, and whether any question drifts into design or implementation detail, which a feature request must not carry. No reviewer wording suggestion has been applied yet: this is round 1.
+
+### Change summary for feature-request full_suite_levels (round 1)
+
+Round 1: the document is new. It was written from the draft `docs/v0.13.0/draft.v0.13.0.full_suite_levels.md`, then nine open questions were appended through `oqm`. A tenth question (level of a direct `ghog full` call inside the groundhog loop) was dropped before publication, because the loop never calls `ghog full` directly and gap 6 already settles the human call.
+
+### Writer response for feature-request full_suite_levels (round 1)
+
+Writer response:
+
+No earlier feedback to answer: this is round 1. The human already agreed to the level names, the parameter and variable names, the level-aware snapshot, the `speed` default of a direct `ghog full`, and the extension of the convergence rule for production-code speed fixes. Those points are settled and should not be reopened as questions.
+
+### Reviewer focus for feature-request full_suite_levels (round 1)
+
+Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
+
+<!-- review-entry-id: request-round-1 -->
+
+### LLM nature completion for reviewer (exchange 1)
+
+Recorded nature: `codex`
+
+Completed artifacts:
+
+- `.reviews/a.review-active.specification.feature-request.v0.13.0.full_suite_levels.md`
+- `.reviews/a.review-requested.feature-request.v0.13.0.full_suite_levels.md`
+
+<!-- review-entry-id: llm-nature-completion-reviewer-exchange-1 -->
+
+## Round 1 by reviewer
+
+- Recorded: 2026-09-29T17:52:15+02:00
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Outcome: answer
+
+### Reviewer assessment for feature-request full_suite_levels round 1
+
+Changes requested. The three levels and the development/review/release split are coherent. I agree with the direction of all nine recommendations except Q04's proposed classifier, which does not provide its claimed conservative guarantee. The remaining issues concern observable behavior, not a request to choose implementation structures.
+
+1. Q04 can bypass review for production changes. A project collection root could include application code (for example, a root of `.`), and a filename alone does not establish exclusive test use. Under option A, every file below such a root qualifies as test-side. Its claim that the only classification error triggers extra review is therefore false. Keep the test-only exception, but require positive evidence of exclusive test use and route mixed-use or uncertain changes to another review. Treat Q07's narrow exclusion exception separately from this file classification.
+2. The direct command's environment behavior is missing. Gap 6 gives `ghog full` the same level and a `speed` default; Q02 consistently speaks about walks and development calls. With `GHOG_FULL=cov`, it is not explicit whether plain `ghog full` means `cov` or `speed`. Settle that case without reopening the agreed level names, parameter, variable, or unset-environment default.
+3. Cached validation needs an unambiguous evidence contract. Gap 5 retains the highest proved level, Q03 reuses earlier steps, and Q08 proposes a single level key. After a successful `speed` walk, an unchanged default walk can be a noop: the requested level is none, the saved proof is speed, and no suite ran in this invocation. These are distinct facts. Also settle whether a pre-feature snapshot without a level can satisfy a new requested level. Otherwise the first walk after upgrade has no stated acceptance behavior.
+
+The request and current document agree on scope and the nine questions. No material request/document drift was found. The request's reference to a project-root answer location is obsolete coordination wording; publication must use the artifact-home paths returned by the shared exchange, as required by the canonical workflow. This does not require a specification change.
+
+### Question verdicts for feature-request full_suite_levels round 1
+
+Q01 — Relevant, clear, and materially distinct options. Choose A: run the entire suite without coverage collection or a duration verdict. B duplicates the default walk; C adds optional measurement that this level does not need. Keep this as behavior, leaving measurement implementation to design. Suggested answer: "`pass` executes the entire test suite and requires its tests to pass without a suite crash. It does not collect coverage or enforce duration thresholds; any recorded durations are informational."
+
+Q02 — Relevant and distinct options. Choose A for every `ghog day` caller, including development skills. State that the lightweight default applies only when neither a parameter nor an environment level is supplied; current gap 1's "with no level requested" should retain that meaning. Add the direct-command case described below. Reporting a selected environment level is useful; the source of selection can be described without prescribing a data structure.
+
+Q03 — Relevant behavioral choice, not merely an implementation detail: users can observe whether expensive checks rerun. Choose A when an unchanged snapshot actually proves the preliminary checks passed. The reasoning from the existing noop guarantee is sound. Suggested answer: "An upgrade may reuse successful check and affected-test results for the same validated snapshot, runs the missing full-suite objective, and identifies the reused results in its report." Do not suggest that a green lower-level full run proves a higher level.
+
+Q04 — Necessary question, but do not accept A as written. The options are distinct, yet none states the required conservative boundary correctly. A pytest collection root or filename is not proof that every matched file serves tests exclusively. C's unrestricted judgment also makes the bypass hard to verify. Replace A with a reproducible classification supported by explicit test-only scope, with mixed-use and unclassified paths requiring review. Choose that revised A. Suggested answer: "The post-review delta qualifies for the test-only exception only when every changed file is established to serve tests exclusively. Shared runtime code, configuration or tooling that can affect production behavior, and uncertain files require another review. Path names and collection roots alone are insufficient evidence. Preserve the narrow duration-exclusion exception in Q07 separately." Specify this boundary in the requirement; defer recognition algorithms and configuration representation to design.
+
+Q05 — Relevant missing failure branch and distinct options. Choose A, subject to the corrected Q04 boundary. It is reasonable to use the changed content rather than the original failure category to decide whether another review is required. Suggested answer: "For repairable test, coverage, crash, or duration failures, restore the selected speed objective, preserve test coverage and assertions, and classify the complete repair delta using Q04 and Q07 before the gate. Existing operational stop and interruption rules still apply." This does not authorize weakening checks to obtain exit 0 or endlessly retrying setup failures.
+
+Q06 — Relevant, distinct options. Choose A: ordinary review of the same implementation step, with the additional changes explicit and speed validation repeated at the next convergence. This is within scope as workflow behavior. Replace "the loop ends by itself" and "terminates naturally" with the conditional statement that an unchanged, already successful speed result can be reused; further reviewer repairs can legitimately require another validation or round.
+
+Q07 — Relevant exceptional case and distinct options. Choose A with the existing attempted-fix requirement retained. Require the gate evidence to state the exact excluded call, measured time, attempted improvement and reason for accepting the duration. Identify this as an explicit exception to Q04, since an exclusion configuration change can be outside test-only paths. The exception must cover duration acceptance only, not unrelated configuration changes or removal of correctness/coverage checks. This makes its boundary reviewable without adding a new human gate.
+
+Q08 — Necessary and distinct options. Choose A with clearer evidence semantics. Describe the selected objective, the strongest valid saved proof, and whether steps ran or were reused. A single ambiguous `full` value cannot describe all three. Example: after a green speed walk, an unchanged default noop must not claim a fresh full run or hide that the saved proof is stronger. Leave field names and encoding to design. Replace "existing parsers keep working" with a compatibility requirement for supported consumers; adding a key is not by itself proof of parser compatibility. Detached execution must preserve the effective level selected for that invocation.
+
+Q09 — Relevant final-phase behavior with distinct options. Choose A. It closes the speed-validation gap without changing the agreed release `cov` gate. State explicitly that, with review mode disabled, changes outside the permitted test-only/exclusion scope return through implementation-check and speed validation before the ordinary human gate. No review exchange should be manufactured for that path. This is a scope extension proposed by the document's existing question, not a reason to reopen settled naming or levels.
+
+Missing decision A — Does `GHOG_FULL` select the level of direct `ghog full` calls? Choose the common precedence rule: explicit parameter, then environment, then the command default. Its advantage is one predictable selector; its cost is that a shell setting changes direct calls too. The alternative is to limit the variable to day walks, preserving an unconditional direct-call speed default but giving the two commands different selection rules. Recommended wording: "Both commands resolve an explicit level before `GHOG_FULL`. When neither is set, `ghog day` has no full step and `ghog full` uses speed." Include examples for unset environment, an environment level, and an explicit override.
+
+Missing decision B — What may an existing saved result with no level prove after this change? Choose to rerun once rather than silently assigning a level. This costs one validation but establishes explicit, inspectable evidence. An alternative may reuse a positively identified legacy all-gates-green result as speed, avoiding that run but requiring an explicit compatibility guarantee. Do not conflate a proven legacy result with arbitrary missing or invalid metadata. Recommended wording: "A saved result that cannot establish its achieved level must not satisfy a requested level. The next successful walk records explicit evidence." Settle this observable behavior now; leave format and migration mechanics to design.
+
+### Requested changes for feature-request full_suite_levels round 1
+
+Requested changes:
+
+Changes requested because the current Q04 rule can incorrectly exempt production changes from review, and selector/cache behavior still has observable undecided cases. These are more than wording edits.
+
+The next round should demonstrate:
+
+- A collection root that includes production files does not make those files eligible for the test-only exception; ambiguous or shared files require review.
+- A duration exclusion has a narrowly described exception with supporting evidence, while other configuration changes follow the conservative rule.
+- `ghog full` with `GHOG_FULL=cov`, and the same call with an explicit speed override, each have one stated expected level.
+- An unchanged default walk after a green speed walk reports reuse honestly, without confusing this invocation's work with the saved stronger proof.
+- A snapshot without an established level has one defined reuse/revalidation outcome.
+
+No consolidation or human convergence recommendation is warranted until these decisions and cross-question corrections are settled.
+
+### Writer instructions for feature-request full_suite_levels round 1
+
+Revise the open questions and their proposed answers, then publish another specification-review round. Do not consolidate yet.
+
+1. Replace Q04's classifier and its false fail-safe rationale with the conservative test-only boundary in this answer. Apply it consistently to Q05, Q06, Q09 and gap 11. Make Q07's duration-exclusion exception explicit and narrow.
+2. Add or extend a question to settle direct `ghog full` environment precedence, preserving its agreed speed default when no selector is supplied. Align gap 6 and Q02.
+3. Extend Q08 to distinguish requested objective, reused proof and actual execution, including the stronger-snapshot/lower-request case and detached execution. Specify consumer compatibility as a requirement, not an unverified assertion.
+4. Add the saved-result compatibility decision for existing snapshots with no level. State the chosen observable behavior without prescribing serialization or migration algorithms.
+5. Apply the bounded wording corrections to Q05 and Q06. Keep implementation mechanics out of this feature request: in particular, replace Q04's parser/filename algorithm and Q08's concrete report-key prescription with acceptance behavior where they are currently normative.
+
+Keep the accepted level names, selector names, level-aware snapshot, unset-selector direct speed default and production-change review extension. The nine existing topics are in scope; none needs removal as redundant. The two missing decisions may be folded into Q02/Q08 if that keeps the document clearer. Identify the amended answers and any disagreement in the next request.
+
+### Final reviewer decision for feature-request full_suite_levels round 1
+
+Decision: changes-requested. The writer should apply the concrete instructions and publish another automated review round.
+
+<!-- review-entry-id: answer-round-1 -->
+
+## Round 2 by requestor
+
+- Recorded: 2026-09-29T17:55:52+02:00
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Outcome: request
+
+### Review identity for feature-request full_suite_levels (round 2)
+
+Umbrella draft: none
+Reviewed specification: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+Review round: 2
+
+### Requestor assessment for feature-request full_suite_levels (round 2)
+
+All five round-1 writer instructions are applied. The document now carries ten open questions (Q01 to Q10). The conservative test-only boundary of Q04 is applied consistently to Q05, Q06, Q09 and gap 11, and Q07 is an explicit, narrow exception to it. Direct `ghog full` selection is folded into Q02 with the three requested examples, Q08 separates requested objective, saved proof and actual execution, and the new Q10 settles legacy snapshots with no level.
+
+No question is believed missing. Please confirm the revised boundaries and whether any remaining text is still normative about implementation mechanics.
+
+### Change summary for feature-request full_suite_levels (round 2)
+
+- Q01: answer reworded with the suggested behavior (whole suite, no coverage collection, no duration threshold, informational durations).
+- Q02: retitled "Level selection for `ghog day` and direct `ghog full`"; one precedence rule (parameter, then `GHOG_FULL`, then command default) with examples for unset, environment, and explicit override; new option B limits the variable to `ghog day`.
+- Q03: answer reworded; states that a green lower-level full run never proves a higher level.
+- Q04: option A replaced by the positive-evidence boundary (every changed file established to serve tests exclusively; shared, configuration, tooling or uncertain files require review; path names and collection roots are insufficient); the former classifier is now option B with the collection-root bypass as its con; the false fail-safe claim is removed.
+- Q05: answer reworded: restore the `speed` objective, preserve coverage and assertions, classify the complete repair delta with Q04 and Q07; operational stop rules still apply.
+- Q06: "ends by itself" and "terminates naturally" replaced by the conditional reuse of an unchanged successful result.
+- Q07: option A is an explicit exception to Q04, limited to duration acceptance, with evidence naming the call, measured time, attempted improvement and reason.
+- Q08: retitled "What a walk reports about its objective and evidence"; covers selected objective and source, strongest saved proof, ran or reused steps, the noop after a stronger proof, and detached walks; field names left to design; parser compatibility stated as a requirement to verify.
+- Q09: states that changes outside the test-only and exclusion scope return through implementation-check and `speed` validation, with no review exchange created.
+- Q10 (new): a saved result that cannot establish its level satisfies no requested level.
+- Gaps 1, 2, 3, 6 and 11 aligned: default walk only when neither selector is set, settled selector names no longer marked "recommended", informational durations, `ghog full` uses the same selectors, and gap 11 uses the Q04/Q05/Q07 boundary.
+
+### Writer response for feature-request full_suite_levels (round 2)
+
+Writer response:
+
+All round-1 findings are accepted, with no disagreement. The Q04 fail-safe claim was indeed false: a collection root such as the project root would have exempted production code from review. Missing decision A is folded into Q02 and missing decision B is added as Q10, which keeps each question focused. The obsolete project-root answer location in the request template is noted as a coordination wording issue outside this specification.
+
+### Reviewer focus for feature-request full_suite_levels (round 2)
+
+Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
+
+<!-- review-entry-id: request-round-2 -->
+
+## Round 2 by reviewer
+
+- Recorded: 2026-09-29T18:40:51+02:00
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Outcome: answer
+
+### Reviewer assessment for feature-request full_suite_levels round 2
+
+Convergence recommended. I assessed the complete current specification against the validated round-2 request. The reported amendments are present, and no material request/document drift remains.
+
+The substantive findings are resolved. Q04 now requires positive evidence of exclusive test use and sends shared or uncertain changes to review. Q05 applies that boundary to the complete repair delta without weakening checks; Q07 establishes a separate, narrow duration-exclusion exception. Q02 explicitly applies parameter/environment/default precedence to both commands, with examples. Q08 separates this invocation's objective and execution from the strongest valid saved proof, including detached execution and stronger-proof noops. Q10 prevents reuse of evidence whose achieved level cannot be established.
+
+I agree with all ten proposed option-A answers. No additional in-scope decision is missing. The remaining edits below clarify statements already settled by those answers; they require no new behavioral choice or review round.
+
+The requirement appropriately leaves test-only recognition, report fields and encoding, and snapshot compatibility mechanics to design. The retained command names, level names, precedence, exit behavior and workflow boundaries are observable requirements or already confirmed constraints, not newly imposed implementation mechanics. The code references identify affected areas without dictating their implementation.
+
+This is a specification assessment, not implementation or test validation. The recommendation does not authorize consolidation or any commit.
+
+### Question verdicts for feature-request full_suite_levels round 2
+
+Q01 — Agree with A. This relevant question distinguishes a whole-suite passing objective from the affected-only default, and its options describe materially different work. The answer clearly excludes coverage collection and duration enforcement while allowing informational timings. No decision remains; align gap 3's tentative wording with the answer.
+
+Q02 — Agree with A. The expanded question now covers both development inheritance and direct `ghog full`. Its alternatives expose the consequences of command-specific or human-only environment behavior, while the selected common precedence is explicit. The unset, environment and explicit-override examples settle the missing direct-command case. No further selector question is needed.
+
+Q03 — Agree with A. Reusing proved preliminary checks for the same validated snapshot is consistent with the existing reuse principle. The option to rerun everything is distinct and its cost is stated. The text now explicitly denies that a lower-level full result proves a higher level and requires honest reporting of reuse. This is sufficient behavioral scope for the requirement.
+
+Q04 — Agree with revised A. The options distinguish evidence-based classification, the unsafe path heuristic, and unrestricted judgment. The answer rejects the root/filename bypass and routes uncertainty conservatively while leaving the recognition method to design. The claim that every possible classification error is safe is still too absolute; replace it with the uncertainty rule already established by the answer, as covered in the wording input. This is a precision edit, not another decision.
+
+Q05 — Agree with A. The alternatives materially change automation and review routing. The selected rule handles repairable failures consistently, preserves assertions and coverage, classifies the complete repair delta, and retains operational stopping rules. No additional failure-category decision remains.
+
+Q06 — Agree with A. An ordinary replacement review of the same step retains context and avoids a separate review type. The unconditional termination claim is gone, and reuse is now conditional on a successful unchanged result. The next convergence repeats speed validation as required. Its description should mention the Q07 exception alongside Q04 so its shorthand cannot obscure the already settled boundary.
+
+Q07 — Agree with A. Its alternatives differ on who may accept an exclusion and whether another review is required. The selected exception now requires an attempted improvement, the measured call and duration, and a reason visible at the human gate. It explicitly excludes unrelated configuration changes and removal of correctness or coverage checks. This resolves its relationship with Q04.
+
+Q08 — Agree with A. It now states the selected objective and source, strongest valid saved proof, and execution/reuse information, including the default noop backed by speed evidence. Compatibility is a requirement to verify rather than an unsupported assertion. Field names and encoding are correctly deferred. No missing reporting decision remains.
+
+Q09 — Agree with A. The alternatives distinguish per-commit validation, optional speed checking, and release-time validation. The selected path retains speed validation before the ordinary human gate, routes other changes back through implementation-check, and expressly creates no review exchange. It remains consistent with the agreed release cov gate.
+
+Q10 — Agree with A. The two options state the cost of revalidation versus legacy compatibility, and the chosen conservative rule gives a defined outcome for level-less or invalid evidence. It is sufficient to require that such evidence cannot satisfy a requested objective and that successful validation records explicit evidence. Clarify that revalidation performs the selected objective, which may be the lightweight default; it does not unconditionally force a full-suite run.
+
+All ten questions are relevant and sufficiently distinct; none needs removal as redundant or out of scope. No new open question is requested.
+
+### Convergence evidence for feature-request full_suite_levels round 2
+
+Covered wording:
+
+1. In gap 3, replace "The recommended direction for pass is to skip the coverage measure, since nothing reads it" with: "At `pass`, the full suite runs without coverage collection or duration enforcement; any recorded durations are informational." This makes the main requirement agree with Q01's settled answer.
+
+2. In Q04, replace the option-A pro "every classification error falls on the side of one more review" with: "when exclusive test use cannot be established, the change requires another review." Replace "Requiring positive evidence of exclusive test use gives that guarantee" with: "Positive evidence is required to use the exception; uncertainty must lead to another review." A conservative rule handles uncertainty without claiming that an implementation cannot misclassify evidence.
+
+3. In Q06's description, replace "when a speed repair falls outside the test-only exception" with: "when a repair made during speed validation falls outside both the test-only boundary (Q04) and the narrow duration-exclusion exception (Q07)." This restates the existing joint boundary without changing it.
+
+4. In Q10's cost and rationale, describe "the first requested walk after upgrade must revalidate its selected objective instead of reusing evidence with no established level." The selected objective may be the lightweight default; later level upgrades still follow Q03. Avoid implying that upgrade alone forces a speed run or that every project's total cost is exactly one full-suite run.
+
+5. When aligning gap 1 with Q08, state: "A default invocation does not itself establish fresh coverage or speed proof; its report separately identifies any stronger valid saved proof it reuses." This preserves the intended distinction between work performed now and earlier evidence.
+
+These edits resolve shorthand or tentative wording using decisions already present in the current document. They introduce no new acceptance behavior.
+
+Convergence rationale:
+
+Every substantive round-1 concern is addressed by the current specification: the review-skipping boundary is conservative, duration exclusions have a narrow explicit exception, direct-command environment precedence is defined, cached proof is distinguished from execution, and level-less evidence has a stated outcome. The complete repair and no-review workflows remain consistent with these decisions.
+
+All ten option-A answers can be carried into a coherent requirement without an additional decision. No new question, substantive disagreement, missing evidence for specification acceptance, or cross-document correction is needed. Remaining changes are the wording-only alignments provided with this answer.
+
+Recommend convergence and consolidation subject to the existing human choice. The reviewer leaves that choice and all document consolidation to the authorized requestor workflow.
+
+### Writer instructions for feature-request full_suite_levels round 2
+
+Present this convergence recommendation through the existing human gate. Do not consolidate merely because the reviewer recommends it.
+
+If the human authorizes Consolidate, incorporate the ten agreed answers and the covered wording into the consolidated requirement. Keep the existing level names, selector names, default behavior and workflow boundaries. Carry Q09's non-review path and Q10's saved-evidence rule into the resulting requirements rather than losing them when removing the question section.
+
+The covered wording is editorial alignment with settled answers. No further automated round is needed solely for these edits. A new substantive change or disagreement would still require the normal review route.
+
+The request template's project-root answer wording remains a coordination issue outside this reviewed document. This answer is published through the shared exchange at its returned artifact-home path.
+
+### Final reviewer decision for feature-request full_suite_levels round 2
+
+Decision: convergence-recommended. This recommendation is advisory; consolidation is not confirmed and remains at the durable human gate.
+
+<!-- review-entry-id: answer-round-2 -->
+
+## Round 2 by human - human-confirmation
+
+- Recorded: 2026-09-29T19:00:27+02:00
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Outcome: human-confirmation
+
+Human choice: Revise and review again
+Outcome: another-round
+Guidance: Add the LLM-facing closing instructions as requirements. Rewrite gap 4 as a table of the required closing instruction for each level (default with the full suite skipped, `pass`, `cov`, `speed`) and each outcome (green, failure, coverage gap, duration outliers). A skipped full run must say the skip is expected, that the walk objective (check plus affected tests) is met, that the full suite must not be run unless the calling instruction asks for a level, and how to ask for one (`ghog day --full=pass|cov|speed`). Add a rule that every printed restart line names the level of the walk it restarts (for example `ghog day --full=cov`), so an LLM following it literally never drops back to the default walk.
+
+<!-- review-entry-id: human-confirmation-round-2 -->
+
+## Round 3 by requestor
+
+- Recorded: 2026-09-29T19:02:05+02:00
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Outcome: request
+
+### Review identity for feature-request full_suite_levels (round 3)
+
+Umbrella draft: none
+Reviewed specification: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+Review round: 3
+
+### Requestor assessment for feature-request full_suite_levels (round 3)
+
+Round 2 converged, and the human chose another round with guidance: the specification did not state what a walk tells the LLM at its end, for each level and outcome, nor what a skipped full run says. Those closing instructions are now requirements. Gap 4 points to a new section, "Closing instructions for the LLM by level", holding one required instruction per level and outcome, and adds the rule that every printed restart line names the level of the walk it restarts. Gap 13 now covers those instructions in the documentation and tests.
+
+The ten open questions and their answers are unchanged since round 2, apart from the covered wording edits. Please check that the table is complete (levels, outcomes, noop), consistent with Q01, Q03, Q05, Q07 and Q08, and that it states behavior without fixing message wording, which is left to the design.
+
+### Change summary for feature-request full_suite_levels (round 3)
+
+- Gap 4 rewritten as "Closing instructions by level": the report ends with the instruction of the new table, asks only for the work its level covers, and every printed restart line names the level of the walk it restarts (`ghog day --full=<level>`); a default walk restarts with plain `ghog day`.
+- New section "Closing instructions for the LLM by level": a table for default, `pass`, `cov` and `speed` against green, check or affected failure, full-suite failure, suite crash, coverage gap and duration outliers. The default green line says the skip is expected, the walk objective is met, the full suite must not be run unless the calling instruction asks for a level, and how to ask for one. A noop follows the green instruction of its requested level and states the reused proof.
+- Gap 13: documentation and tests also cover the closing instruction of every level and outcome, restart lines included.
+- The five round-2 covered wording edits are present (gap 3, gap 1, Q04, Q06, Q10).
+
+### Human guidance and writer response for feature-request full_suite_levels (round 3)
+
+Human guidance:
+
+Add the LLM-facing closing instructions as requirements. Rewrite gap 4 as a table of the required closing instruction for each level (default with the full suite skipped, `pass`, `cov`, `speed`) and each outcome (green, failure, coverage gap, duration outliers). A skipped full run must say the skip is expected, that the walk objective (check plus affected tests) is met, that the full suite must not be run unless the calling instruction asks for a level, and how to ask for one (`ghog day --full=pass|cov|speed`). Add a rule that every printed restart line names the level of the walk it restarts (for example `ghog day --full=cov`), so an LLM following it literally never drops back to the default walk.
+
+Writer response:
+
+The five round-2 covered wording edits were applied before the gate and are listed in the change summary. At the gate, the human asked whether the specification defines the instructions printed at the end of a full run for each level, and whether a skipped full run tells the LLM so. It did only negatively (gap 4 listed what not to ask for) and gap 1 only stated the skip. In particular, today's restart lines name plain `ghog day`, which an LLM following them literally would run at the default level, losing the objective it was proving. The new section and the restart rule close both gaps. No disagreement with the round-2 answer.
+
+### Reviewer focus for feature-request full_suite_levels (round 3)
+
+Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
+
+<!-- review-entry-id: request-round-3 -->
+
+## Round 3 by reviewer
+
+- Recorded: 2026-09-29T19:08:10+02:00
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Outcome: answer
+
+### Reviewer assessment for feature-request full_suite_levels round 3
+
+Convergence recommended. The complete current specification and the validated round-3 request agree. The human-requested closing instructions are now requirements: the default success case explains the intentional skip, each full-suite level identifies its objective and corrective work, restart commands retain the selected level, and noops identify reused evidence. Gap 13 includes these instructions and restart lines in documentation and acceptance coverage.
+
+The new table is consistent in direction with the ten settled answers. Its ordinary success, test-failure, crash, coverage and duration cases cover the requested behavior. Existing operational stop and interruption rules remain applicable through Q05; the table must not turn those stops into automatic retries.
+
+Only wording alignment remains. In particular, the rows labelled "any level" should explicitly name the three full-suite levels to avoid overlapping the default row; exclusion wording should repeat the already required attempted fix; and green/noop wording should distinguish what the requested level requires from any stronger saved proof. The exact replacements are supplied separately. These edits restate settled behavior and introduce no new decision.
+
+All ten option-A answers remain accepted, and no additional open question is needed. The table specifies the information and action a caller must receive while expressly leaving final prose to design. The command forms preserve already confirmed interfaces rather than choosing new implementation mechanisms. This assessment does not validate implementation or authorize consolidation.
+
+### Question verdicts for feature-request full_suite_levels round 3
+
+| Question | Reviewer answer and assessment |
+| --- | --- |
+| Q01 | A. The whole-suite pass objective remains distinct from the affected-only default. The table correctly requires no coverage or duration repair at pass; informational observations must not displace the green instruction. The alternatives remain meaningful and in scope. |
+| Q02 | A. Common parameter/environment/default precedence remains explicit. Restarting a selected full-suite level with an explicit parameter preserves the resolved objective even when it originally came from the environment. The default remains plain `ghog day` under its no-selector conditions. |
+| Q03 | A. Validated preliminary results may be reused on unchanged sources. The table's noop rule is compatible with reuse, provided it reports saved proof and does not imply fresh execution. No new reuse choice is needed. |
+| Q04 | A. The conservative test-only boundary is unchanged. The round-2 wording correction now describes how uncertainty is handled without asserting that classification cannot fail. The table does not grant a separate exception for production changes. |
+| Q05 | A. Complete repair deltas remain subject to the agreed boundary, and tests and coverage may not be weakened. The table's test, crash and coverage repair directions fit this rule; operational stops remain stops. |
+| Q06 | A. Repairs outside both permitted exceptions still require ordinary review of the same step and speed validation at the next convergence. "Carry on with the calling instruction" correctly leaves that routing to the requestor workflow. |
+| Q07 | A. Duration acceptance remains a narrow exception after an attempted improvement with the required evidence. The table's shorthand "shorten ... or exclude" should explicitly carry that prerequisite; it does not justify changing the settled answer. |
+| Q08 | A. Requested objective, execution/reuse and strongest valid saved proof remain distinct. Qualify the table's "not checked" language by the requested level or current invocation so a lower-level noop backed by speed proof is not described misleadingly. |
+| Q09 | A. The same speed pass still precedes the non-review human gate, with implementation-check for changes outside the exceptions and no manufactured review exchange. The new closing instruction appropriately returns control to that calling workflow. |
+| Q10 | A. Evidence that cannot establish its level cannot satisfy the requested objective. Its corrected wording now revalidates the selected objective without mandating an unconditional full-suite run. The table's noop instruction applies only when valid evidence actually permits reuse. |
+
+The options and their tradeoffs remain adequate for all ten questions. None is redundant or outside scope, and the closing-instruction addition creates no unresolved choice requiring an eleventh question. The covered wording aligns the new table with these existing answers.
+
+### Convergence evidence for feature-request full_suite_levels round 3
+
+Covered wording:
+
+1. Replace "any level" in the three non-default failure/crash rows with "`pass`, `cov`, `speed`". State that the default row covers applicable check/affected failures, including their crash diagnostics, and restarts with plain `ghog day` when existing recovery rules permit a restart. This removes overlapping instructions and prevents an invented `--full=default` or `--full=none`. Default walks have no full-suite outcome. Existing setup-error, interruption and other operational stop rules still apply.
+
+2. Qualify the pass/cov green rows: "Coverage and duration gates are not required by the requested `pass` objective" and "The duration gate is not required by the requested `cov` objective." Report what actually ran or was reused separately under Q08. For a noop, state that the requested objective is met by valid saved evidence, identify its achieved level, and state that no checks ran in this invocation. Do not claim that a stronger saved proof lacks coverage or speed merely because the current request is weaker.
+
+3. Replace the speed/outlier instruction with: "Attempt to shorten the flagged calls through `fix_slow_test.md`; accept a genuinely slow call with `ghog exclude` only after the attempted improvement and with the evidence required by Q07; then restart with `ghog day --full=speed`." In speed/green, use "no unaccepted duration outlier remains under the configured exclusions" rather than implying that an accepted slow call became fast. This preserves the existing exclusion policy and its visibility.
+
+4. Add: "Rows marked 'Not judged' describe observations outside the selected objective; they are not failure outcomes. If no enforced failure remains, emit the requested level's green closing instruction and continue the calling workflow. Otherwise emit the applicable enforced-failure instruction." This keeps informational durations from replacing the required completion instruction at pass or cov, and does not prescribe a new failure-precedence policy.
+
+5. Spell out the default green alternatives as three complete examples: `ghog day --full=pass`, `ghog day --full=cov`, and `ghog day --full=speed`. The current abbreviated "cov or speed" conveys the intended choice, but complete commands better serve the explicitly requested literal LLM instructions.
+
+6. Make the existing scope explicit: "For direct `ghog full` calls, apply the full-suite outcome instructions for the resolved level as well; any suggested day-walk restart preserves that level." This carries gap 6 and the human's concern about full-run closing instructions into the table without changing selector precedence or the direct command's default.
+
+These are wording clarifications of existing decisions and human guidance. No new option, behavior choice, or implementation structure is proposed.
+
+Convergence rationale:
+
+The human-requested addition is now present as a requirement rather than an implication: a deliberate full-suite skip is explained, the met objective and next action are stated, higher levels have their own completion/repair instructions, and restarts preserve the resolved level. Noops explicitly reuse evidence, and documentation/tests cover the closing behavior.
+
+The ten settled answers remain coherent with the new section. The covered edits remove shorthand that could obscure existing distinctions (default versus full levels, attempted repair before exclusion, requested objective versus saved proof). None requires another substantive decision.
+
+Recommend convergence and consolidation subject to the existing human choice. The requestor retains responsibility for presenting that choice and applying authorized consolidation; the reviewer grants neither consolidation nor commit authority.
+
+### Human guidance response for feature-request full_suite_levels round 3
+
+Human guidance:
+
+Add the LLM-facing closing instructions as requirements. Rewrite gap 4 as a table of the required closing instruction for each level (default with the full suite skipped, `pass`, `cov`, `speed`) and each outcome (green, failure, coverage gap, duration outliers). A skipped full run must say the skip is expected, that the walk objective (check plus affected tests) is met, that the full suite must not be run unless the calling instruction asks for a level, and how to ask for one (`ghog day --full=pass|cov|speed`). Add a rule that every printed restart line names the level of the walk it restarts (for example `ghog day --full=cov`), so an LLM following it literally never drops back to the default walk.
+
+Guidance response:
+
+The current document implements the requested closing-instruction table and the explicit-level restart rule. The default green row states all four required facts: the skip is deliberate, check plus affected tests met the objective, no unsolicited full run is required, and a caller can request a full level. Its next action is to continue the calling instruction. The pass/cov/speed rows specify the objective, the applicable corrective work and the preserved restart level, and the noop paragraph identifies reuse.
+
+I support this addition and keep it in requirement scope. The supplied wording makes the table reliable when followed literally: distinguish default from the three full levels, preserve the attempted-fix condition before exclusion, show complete alternative commands, and describe cached proof honestly. Apply the full-level instructions to direct full runs as well. These points restate the guidance and existing answers, so they do not require a new question or another substantive review round.
+
+No consolidation has been performed. The human retains the existing convergence choice.
+
+### Writer instructions for feature-request full_suite_levels round 3
+
+Present the convergence recommendation at the existing human gate. Do not consolidate based solely on this reviewer answer.
+
+Carry the supplied wording into the closing-instruction requirements when the human authorizes consolidation, together with the ten agreed answers. Keep the intentional default skip, the explicit level on non-default restart commands, and the distinction between executed work and reused proof. Preserve the ordinary requestor routing after successful validation; a green report is not commit authorization.
+
+No additional automated round is needed solely for these wording alignments. Keep final message phrasing and rendering mechanics in design. Acceptance coverage should exercise the already specified default failure versus full-level failure, an environment-selected level restarted explicitly, a lower requested level backed by stronger saved proof, ignored duration observations, and the permitted duration-exclusion path.
+
+The obsolete project-root answer location in the request template remains outside this specification. This answer is published only through the shared exchange at the returned artifact-home path.
+
+### Final reviewer decision for feature-request full_suite_levels round 3
+
+Decision: convergence-recommended. This recommendation is advisory; consolidation is not confirmed and remains at the durable human gate.
+
+<!-- review-entry-id: answer-round-3 -->
+
+## Round 3 by human - human-confirmation
+
+- Recorded: 2026-09-29T19:10:42+02:00
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Outcome: human-confirmation
+
+Human choice: Consolidate
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-3 -->
+
+## Round 1 by requestor (exchange 2)
+
+- Recorded: 2026-09-30T10:41:42+02:00
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: unrecorded
+- Outcome: request
+
+### Review identity for feature-request full_suite_levels (exchange 2) (round 1)
+
+Umbrella draft: none
+Reviewed specification: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+Review round: 1
+
+### Requestor assessment for feature-request full_suite_levels (exchange 2) (round 1)
+
+The feature request was consolidated after three review rounds, then reopened by the human on 2026-09-30, before any design was adopted: the `speed` validation moves from the commit-ready convergence to the requestor's validation before every code-review request, from round 1. The design that had been started on the earlier requirement was dropped.
+
+The body is revised accordingly (revision paragraph, current-behavior bullet on parallel projects, gap 3 timing pass at `speed`, gaps 12 and 14 to 17), and the clarification rows Q04 to Q07 and Q09 are marked superseded, revised or reopened. Four open questions cover what the reopening leaves undecided: which rounds re-validate at `speed` (Q11), a failing recheck at the commit-ready answer (Q12), the `speed` pass without review mode (Q13), and declared `.review-validation` sets (Q14).
+
+Please check whether a question is missing, whether the recommendations are sound, and whether any remaining text still assumes the superseded post-review `speed` pass.
+
+### Change summary for feature-request full_suite_levels (exchange 2) (round 1)
+
+- "CDC revision" section: the requestor proves `speed` before every code-review request and only rechecks it at the commit-ready answer; a dated revision paragraph explains the reopening.
+- "Current behavior": new bullet stating that a parallel project's full run never judges speed, only `ghog timings` does, and that no instruction runs it.
+- Gap 3: at `speed`, durations are judged without worker contention; in a parallel project a `speed` walk includes the sequential timing pass.
+- Gap 12: requestor validation at `speed` from round 1, every speed change reviewed; `.review-validation` authority (Q14).
+- Gap 14: duration exclusions allowed before review, with call, measured time, attempt and reason in the request.
+- Gap 15: speed recheck at the commit-ready answer, no repair there, no transition out of the convergence gate (Q12).
+- Gap 16: without review mode, `speed` before the commit gate, changes back through implementation-check (Q13).
+- Gap 17: no test-only boundary and no requestor transition out of the convergence gate.
+- Clarification rows: Q04, Q05, Q06 superseded; Q07 revised; Q09 reopened as Q13.
+- The draft's intent is aligned with the same change.
+
+### Writer response for feature-request full_suite_levels (exchange 2) (round 1)
+
+Writer response:
+
+This is a new exchange on a reopened document. The human decided to move `speed` before review after comparing both approaches: the post-review approach needed a test-only exception, a repair baseline and candidate evidence, and a new transition out of the convergence gate, while the pre-review approach reviews every speed change through the existing round mechanism at the cost of re-validating at `speed` per request. The settled level model, selectors, snapshot rules, reporting and closing instructions (Q01 to Q03, Q08, Q10 and the closing-instruction table) are unchanged and should not be reopened.
+
+### Reviewer focus for feature-request full_suite_levels (exchange 2) (round 1)
+
+Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
+
+<!-- review-entry-id: request-round-1-exchange-2 -->
+
+### LLM nature completion for reviewer (exchange 2)
+
+Recorded nature: `codex`
+
+Completed artifacts:
+
+- `.reviews/a.review-active.specification.feature-request.v0.13.0.full_suite_levels.md`
+- `.reviews/a.review-requested.feature-request.v0.13.0.full_suite_levels.md`
+
+<!-- review-entry-id: llm-nature-completion-reviewer-exchange-2 -->
+
+## Round 1 by reviewer (exchange 2)
+
+- Recorded: 2026-09-30T10:52:41+02:00
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Outcome: answer
+
+### Reviewer assessment for feature-request full_suite_levels (exchange 2) (round 1)
+
+Convergence recommended. The reopened requirement moves speed repair work before publication and subjects it to ordinary review. It explicitly removes the post-review test-only exception, repair-delta classifier and requestor transition out of convergence. The earlier design's unresolved mechanisms are therefore outside this review and are not conditions for this requirement to converge.
+
+I choose option A for Q11, Q12, Q13 and Q14. Together they define the default validation on every request, human handling of an unsuccessful convergence recheck, validation when review mode is disabled, and explicit project-policy overrides. No additional question is missing at the requirement level. The remaining corrections qualify claims that are currently too broad and align the text with the selected answers; they do not require another workflow choice.
+
+Recommend convergence and consolidation after the existing human confirmation. This answer does not authorize consolidation or a commit.
+
+### Question verdicts for feature-request full_suite_levels (exchange 2) (round 1)
+
+| Question | Assessment and chosen answer |
+| --- | --- |
+| Q11, which rounds validate speed | Choose A. The options are distinct: lowering the objective on replacement rounds would defer newly introduced speed problems until the restricted convergence phase. Validate every request at speed under the default policy; existing valid speed evidence may satisfy that invocation through the snapshot rule. Qualify this with Q14's explicit project-policy exception. Also say the request enters review with speed evidence, not that every tree the reviewer might subsequently edit has already been validated; gap 15 supplies that final check. |
+| Q12, unsuccessful convergence recheck | Choose A. Showing the result and recommending the existing human rework choice preserves the decision to add no requestor transition. B restores the removed automation; C removes the human's deliberate ability to accept a disclosed failure. Make clear that the requestor does not follow the report's generic repair instructions at this phase. A human choosing Commit despite that report accepts a disclosed validation exception; the result must remain recorded as failing or unproven, never as a met speed objective. |
+| Q13, review-disabled validation | Choose A. It keeps development walks lightweight, puts speed validation at the plan-step commit boundary, and sends every repair back through implementation-check. B moves the cost into development; C omits the intended speed check. The subsequent pass must be green, possibly by valid snapshot reuse, before the ordinary menu. This includes duration-acceptance changes and does not introduce a test-only exemption or a review exchange. |
+| Q14, declared validation policy | Choose A. Respect the project's versioned validation commands and disclose the changed meaning of an unqualified day command. B makes speed mandatory regardless of that declaration; C silently changes command semantics. A necessarily makes the before-every-request speed guarantee a default-policy guarantee, not a universal one. Gap 15 still requires the speed check at convergence; for a project whose declared pre-review set omitted it, that can be its first speed validation, and a failure takes Q12's human path. State that consequence plainly rather than calling it a proven-speed recheck in every project. |
+
+All four questions belong to this reopening and have materially distinct options. None is redundant, and no additional question is required. The previously settled level names, selectors, level order, snapshot reuse policy and command ownership remain settled. The retained superseded rows are clearly historical, not active requirements.
+
+### Convergence evidence for feature-request full_suite_levels (exchange 2) (round 1)
+
+Covered wording:
+
+1. **Qualify the default-policy speed guarantee.** In the introduction, gap 12 and Q11, use wording such as: “Under the default requestor validation policy, every code-review request is published after a green speed walk; an explicit project validation declaration is governed by Q14.” Keep the migration notice for a declared day command without an explicit level. Do not claim that every project has proved speed before review when option A of Q14 deliberately permits otherwise. Add the direct consequence already implied by gaps 12 and 15: “The convergence speed check still applies to projects with a declared validation set. When that set did not establish speed, this check may be the first speed validation; failure is handled through Q12, without a requestor repair.” No stronger forced validation policy is requested.
+
+2. **Use the settled valid-snapshot condition for noops.** Replace the new shorthand “a noop when no Python file changed” in gap 15 and Q11 with “a noop when the validated snapshot is still valid and its recorded proof satisfies speed.” The number or extension of edited files alone is not the acceptance condition in gaps 6-8. Likewise, describe a round as potentially reusing evidence rather than unconditionally free whenever it changed no Python file. This preserves the settled snapshot contract; the new design can determine its representation and invalidation details.
+
+3. **Keep direct parallel reporting truthful within the existing compatibility boundary.** The new current-behavior paragraph establishes that a direct parallel full run does not measure durations, while gap 9 preserves that direct call's behavior. Qualify the paragraph applying the full-suite closing table to direct calls: a direct run may state only the objective it actually established. A green direct parallel call at selected speed must disclose that duration proof was not measured and direct a caller needing that proof to `ghog day --full=speed`; it must not use the table's unconditional “no unaccepted duration outlier” claim. This does not add timings to direct full or change its default selector. Also describe the introductory v0.12.0 all-gates statement as the intended objective, with the documented parallel measurement limitation, rather than implying that every old run measured speed.
+
+4. **Make the final-phase instruction take precedence over generic repair lines.** In gap 15/Q12, state that the requestor records and presents an unsuccessful recheck without editing code, tests or exclusions, even if the ordinary report recommends repairs. Recommend the existing human rework choice. If the human knowingly chooses Commit, preserve the failed or unavailable validation evidence and the human decision; do not relabel that result as green. Existing operational-stop rules continue to apply, and no automatic retry or new requestor transition is introduced.
+
+5. **Align acceptance wording with the four selected answers.** Extend gap 19's coverage summary to include: a default-policy request withheld until its speed validation is green; a repaired replacement request validated again; a valid unchanged speed snapshot reused; an unsuccessful convergence check shown without repair; a project declaration preserved with its migration notice; and a review-disabled speed repair returning through implementation-check before the final green check and menu. Include the direct parallel disclosure in the reporting cases. These cases express the chosen behavior and add no new policy.
+
+Convergence rationale:
+
+Every question raised by this reopening has a selected answer consistent with the existing role boundaries. Speed repairs happen in the ordinary pre-publication requestor loop, and all such repairs are assessed in review. Convergence permits a check and a human decision, not autonomous repairs. Review-disabled work sends repairs back through implementation-check, and explicit project validation declarations remain authoritative.
+
+The covered corrections make the default-policy exception, valid-snapshot condition, direct parallel measurement limit and final-phase authority explicit. None requires restoring the superseded post-review machinery or selecting another option. They can be incorporated through the authorized consolidation workflow after human confirmation. Convergence is advisory; no consolidation has been performed.
+
+### Writer instructions for feature-request full_suite_levels (exchange 2) (round 1)
+
+Apply the covered wording corrections while consolidating the four selected option A answers into the requirement, after the human chooses the existing consolidation action. Preserve the dated reopening note and the explicit superseded decisions so their historical purpose stays clear. Do not restore the dropped design's baseline/candidate protocol, test-only declaration or automatic convergence-reopen transition.
+
+No additional automated review round is required for the covered edits. Keep the convergence gate pending until the human choice arrives; this reviewer has not consolidated or changed the specification. A new behavioral decision beyond these clarifications would require its own review.
+
+### Final reviewer decision for feature-request full_suite_levels (exchange 2) (round 1)
+
+Decision: convergence-recommended. This recommendation is advisory; consolidation is not confirmed and remains at the durable human gate.
+
+<!-- review-entry-id: answer-round-1-exchange-2 -->
+
+## Round 1 by human - human-confirmation (exchange 2)
+
+- Recorded: 2026-09-30T11:01:21+02:00
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Outcome: human-confirmation
+
+Human choice: Revise and review again
+Outcome: another-round
+Guidance: Drop the `speed` recheck at the commit-ready answer: remove gap 15 and Q12. When the last review is commit-ready, the request was already validated at `speed` (Q11), and only polishing edits may accompany a commit-ready answer, so no speed walk runs before the commit in review mode. Accept the consequence that a project whose declared `.review-validation` set does not establish `speed` gets no speed validation before commit; the migration notice of Q14 stays the only signal. Clarify Q13: it applies only when review mode is disabled, where the flow goes from implementation-check straight to the commit menu and the `speed` pass runs in between. Apply the reviewer's other covered wording that does not depend on the recheck.
+
+<!-- review-entry-id: human-confirmation-round-1 -->
+
+## Round 2 by requestor (exchange 2)
+
+- Recorded: 2026-09-30T11:05:03+02:00
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Outcome: request
+
+### Review identity for feature-request full_suite_levels (exchange 2) (round 2)
+
+Umbrella draft: none
+Reviewed specification: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+Review round: 2
+
+### Requestor assessment for feature-request full_suite_levels (exchange 2) (round 2)
+
+The human chose another round at the round-1 convergence gate, with guidance to drop the `speed` recheck at the commit-ready answer and to clarify Q13. Both are applied, together with every round-1 covered wording correction that does not depend on the dropped recheck. Three open questions remain (Q11, Q13, Q14), all with option A recommended as chosen in round 1. Please check that no text still assumes a `speed` walk at the commit-ready answer, and that the consequence for declared validation sets is stated plainly.
+
+### Change summary for feature-request full_suite_levels (exchange 2) (round 2)
+
+Human guidance applied:
+
+- Recheck dropped: former gap 15 and Q12 removed. New gap 16 ("No post-review speed work") states that no `speed` walk runs at the commit-ready answer and that a project whose declared `.review-validation` set does not establish `speed` gets no `speed` validation before commit, the Q14 migration notice being the signal. The introduction, the revision paragraph (the dropped recheck is recorded there), Q11, Q14 and the draft intent say the same.
+- Q13 clarified: former gap 16, now gap 15, and Q13 state that they apply only when review mode is disabled, where the flow goes from implementation-check straight to the commit menu, with the `speed` pass in between; any change goes back through implementation-check, then a green `speed` pass (possibly by snapshot reuse) before the menu; no test-only exemption and no review exchange.
+
+Round-1 covered wording applied:
+
+1. Default-policy qualification in the introduction, gap 12 and Q11 ("under the default requestor validation policy ..."; each request enters review with `speed` evidence; declarations governed by Q14).
+2. Snapshot wording: "a noop when the validated snapshot is still valid and its recorded proof satisfies `speed`" (Q11), and "may reuse valid `speed` evidence under the snapshot rules of gaps 6 to 8" (gap 12).
+3. Direct parallel truthfulness: gap 9 now says a direct run states only the objective it established, and a green direct parallel run at `speed` discloses that durations were not measured and names `ghog day --full=speed`; the direct-run paragraph of the closing instructions refers to it; the v0.12.0 all-gates sentence is described as the intended objective with the parallel limitation.
+4. Covered wording 5, gap 18 (documentation and tests) lists the requested acceptance cases, minus the dropped recheck.
+
+Covered wording 4 (no repair at a failing recheck) no longer applies, since the recheck is gone.
+Renumbering: former gaps 16 to 19 are now 15 to 18; clarification rows Q05, Q06 and Q09 point to the new gap numbers.
+
+### Human guidance and writer response for feature-request full_suite_levels (exchange 2) (round 2)
+
+Human guidance:
+
+Drop the `speed` recheck at the commit-ready answer: remove gap 15 and Q12. When the last review is commit-ready, the request was already validated at `speed` (Q11), and only polishing edits may accompany a commit-ready answer, so no speed walk runs before the commit in review mode. Accept the consequence that a project whose declared `.review-validation` set does not establish `speed` gets no speed validation before commit; the migration notice of Q14 stays the only signal. Clarify Q13: it applies only when review mode is disabled, where the flow goes from implementation-check straight to the commit menu and the `speed` pass runs in between. Apply the reviewer's other covered wording that does not depend on the recheck.
+
+Writer response:
+
+The round-1 answer is accepted, with no disagreement on its covered wording. The only departure is the human's decision to drop the recheck, which the reviewer had kept under Q12 and gap 15; the consequence the reviewer identified for declared validation sets is now stated in gap 16 and Q14 rather than covered by a convergence check.
+
+### Reviewer focus for feature-request full_suite_levels (exchange 2) (round 2)
+
+Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
+
+<!-- review-entry-id: request-round-2-exchange-2 -->
+
+## Round 2 by reviewer (exchange 2)
+
+- Recorded: 2026-09-30T11:32:15+02:00
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Outcome: answer
+
+### Reviewer assessment for feature-request full_suite_levels (exchange 2) (round 2)
+
+Convergence recommended for occurrence 2, round 2. No missing question remains. I agree with the three current questions and choose A for Q11, Q13, and Q14.
+
+The current specification removes the commit-ready speed recheck: the introduction, gap 16, Q11, and Q14 explicitly prohibit it; Q12 is absent. References to the former check in the dated revision and superseded decisions are historical. Gap 15 and Q13 now unambiguously apply only when review mode is disabled and require every speed repair to return through implementation-check before the final green speed pass and commit menu.
+
+The consequence of retaining project-declared validation is explicit: a declared set that establishes no speed evidence receives no additional speed validation before commit. The migration notice is the signal, and the workflow does not silently strengthen the declaration. A few qualifications below make the wording consistent with the existing selector, snapshot, and polishing-edit rules; they require no new behavior or decision.
+
+### Question verdicts for feature-request full_suite_levels (exchange 2) (round 2)
+
+| Question | Assessment and chosen answer |
+| --- | --- |
+| Q11: validation before replacement requests | Relevant and sufficiently specified. A, B, and C differ in the objective enforced on replacement requests. Choose A under the default requestor policy: every publication follows green speed validation, with valid snapshot reuse allowed. Since there is no commit-ready recheck, this is the last speed proof; it applies to the submitted tree, with only the permitted polishing edits allowed afterwards. Retain the Q14 exception for explicit project declarations. |
+| Q13: review mode disabled | Relevant, clear, and distinct from Q11. Choose A: after implementation-check reports completion, run speed before the commit menu; any test, production, or exclusion repair returns through implementation-check and then a green speed pass. B moves the cost back into development, and C removes this gate. No review exchange or test-only exemption is needed. |
+| Q14: declared validation sets | Relevant and adequately exposes the accepted tradeoff. Choose A: keep project authority and show the migration notice on every request containing plain ghog day. B adds an unchosen mandatory command; C changes command semantics by context. If the declared validation supplies no speed proof, there is no later workflow-supplied speed check. Qualify the prose as below so the notice is not mistaken for a verdict about commands or environment settings that actually establish speed. |
+
+No missing decision needs another question. The removed Q12 should remain removed. The superseded test-only classifier, repair baseline, and convergence transition remain outside the current requirement.
+
+### Convergence evidence for feature-request full_suite_levels (exchange 2) (round 2)
+
+Covered wording:
+
+1. Qualify the reviewer-edit sentence in gap 12. Replace "edits the reviewer makes afterwards are covered by the next request's validation" with: "Edits that lead to a replacement request are covered by that request's validation. If the answer is commit-ready, only the permitted polishing edits may accompany it, and no further speed walk runs." The current unconditional sentence suggests a next request even when the exchange converges.
+
+2. Keep the default-policy exception visible in two short summaries. In the dated revision, say "under the default validation policy, the last request was already validated at speed"; in Q13's review-enabled summary, say "under the default validation policy, speed runs before each request (Q11); declared validation sets follow Q14, and no speed walk runs at the commit-ready answer." These qualifications agree with gaps 12 and 16.
+
+3. In Q14, distinguish the migration notice from actual validation evidence. Suggested question wording: "A declaration containing plain ghog day can now prove only check and affected tests when no full level is selected. If its validation commands establish no speed evidence, no additional speed walk runs before commit." In option A and its rationale, replace the unconditional "no speed ... until it changes its declaration" consequence with "no additional speed validation is supplied by the workflow; if the declared validation does not establish speed, the step reaches commit without that proof." Keep the required notice for a declared ghog day without --full. Gap 2 still permits GHOG_FULL=speed, another declared command can already request speed, and gaps 6 to 8 permit valid saved proof; a notice alone must not claim these are absent. This preserves the human's accepted consequence for declarations that actually establish no speed.
+
+4. In Q11's description, replace "and runs in full otherwise" with "otherwise it runs the work needed to establish speed, reusing successful check and affected results only as permitted by gap 7." An upgrade from a valid lower-level snapshot does not require rerunning every step.
+
+5. In clarification Q04, change both references to gap 17 to gap 16. Gap 16 now owns the absence of a test-only boundary; gap 17 concerns the unchanged reviewer validation scope.
+
+For the acceptance summary in gap 18, explicitly name the already-required absence of a speed walk at a commit-ready answer, including when declared validation supplies no speed proof. This documents gap 16's expected behavior and guards against carrying the superseded recheck into the design; it adds no new requirement.
+
+Convergence rationale:
+
+All three remaining policy choices are settled with A. The current text implements the human's decision to drop the commit-ready recheck and clearly locates the review-disabled speed pass. The remaining edits qualify existing statements and repair a stale reference; none changes the selected gates, review transitions, project authority, or snapshot semantics. Consolidation can proceed after the existing human gate, without another automated review round for this wording alone.
+
+### Human guidance response for feature-request full_suite_levels (exchange 2) (round 2)
+
+Human guidance:
+
+Drop the `speed` recheck at the commit-ready answer: remove gap 15 and Q12. When the last review is commit-ready, the request was already validated at `speed` (Q11), and only polishing edits may accompany a commit-ready answer, so no speed walk runs before the commit in review mode. Accept the consequence that a project whose declared `.review-validation` set does not establish `speed` gets no speed validation before commit; the migration notice of Q14 stays the only signal. Clarify Q13: it applies only when review mode is disabled, where the flow goes from implementation-check straight to the commit menu and the `speed` pass runs in between. Apply the reviewer's other covered wording that does not depend on the recheck.
+
+Guidance response:
+
+The literal Human guidance block is accepted. I checked the entire current requirement: Q12 and the former commit-ready recheck gap are removed, gap 16 prohibits that walk, and the remaining references to the old check describe superseded history.
+
+I also accept the explicitly chosen consequence for a declared validation set that establishes no speed proof: no additional speed validation occurs before commit, and Q14's migration notice remains the signal. The Q14 wording qualification above only preserves the already-agreed selector and evidence rules; it does not add a fallback speed check.
+
+Q13 and gap 15 now apply exclusively to review mode disabled, between implementation-check and the commit menu, and route every repair back through implementation-check before the final green speed pass. No test-only exemption or review exchange is introduced. The other round-1 wording corrections have been incorporated; the former failing-recheck correction no longer applies.
+
+### Writer instructions for feature-request full_suite_levels (exchange 2) (round 2)
+
+Keep A for Q11, Q13, and Q14 and preserve the human's removal of the commit-ready speed recheck. Apply the covered wording corrections below during the authorized consolidation workflow. They align the prose with decisions already present; they do not authorize a new check, an automatic change to project declarations, or another requestor transition.
+
+Do not consolidate on this answer alone. Convergence is advisory and the existing human gate owns that choice. No additional automated review round is needed for these wording corrections unless the writer introduces different behavior or a new decision.
+
+### Final reviewer decision for feature-request full_suite_levels (exchange 2) (round 2)
+
+Decision: convergence-recommended. This recommendation is advisory; consolidation is not confirmed and remains at the durable human gate.
+
+<!-- review-entry-id: answer-round-2-exchange-2 -->
+
+## Round 2 by human - human-confirmation (exchange 2)
+
+- Recorded: 2026-09-30T12:08:03+02:00
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Outcome: human-confirmation
+
+Human choice: Consolidate
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-2 -->
+
+## Round 1 by requestor (exchange 3)
+
+- Recorded: 2026-09-30T14:06:44+02:00
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: unrecorded
+- Outcome: request
+
+### Review identity for feature-request full_suite_levels (exchange 3) (round 1)
+
+Umbrella draft: none
+Reviewed specification: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+Review round: 1
+
+### Requestor assessment for feature-request full_suite_levels (exchange 3) (round 1)
+
+The feature request is reopened a second time, for test groups, at the human's request while the design's first round was under review (that design review is paused, its answer retained). A declared group narrows the full suite to its test files and the coverage gate to its declared sources, covered by its tests only; development walks, the requestor's `speed` validation before each review request, and the review-off `speed` pass run the effort's group; prepare-release alone runs the whole suite at `cov`.
+
+The human settled four points: coverage over declared source files, a versioned group file plus `--group`/`GHOG_GROUP` selection, the workflow scope above, and this process. Five open questions cover the rest: the affected step's scope with a group (Q15), where an effort declares its group (Q16), the pattern syntax (Q17), proofs across scopes (Q18), and the timing floor for group runs (Q19).
+
+Please check whether a question is missing, whether the recommendations are sound, and whether the group gaps are consistent with the settled level, snapshot and review rules.
+
+### Change summary for feature-request full_suite_levels (exchange 3) (round 1)
+
+- New dated revision paragraph "Revision of 2026-09-30, test groups" in the CDC section.
+- New gaps 18 to 23: group declaration (versioned file, test and source patterns), group selection (`--group`, `GHOG_GROUP`, same precedence as the level, unknown or unreadable group is exit 5, restart lines carry the group, the effort declares its group), group-scoped runs (full-suite step of every level runs only the group's tests; coverage gate on the declared sources, from the group's tests only, never-executed source at 0%), group scope in the workflow (prepare-release always whole suite at `cov`), the group trade-off (outside breakages surface at prepare-release), and group evidence (scope named in the closing line and status; proofs per scope).
+- Former gap 18 (documentation and tests) is now gap 24, with group acceptance coverage added.
+- Code references: `tools/groundhog/runner.py` and `tools/groundhog/gate.py` added.
+- The draft intent gains a dated test-group paragraph.
+
+### Writer response for feature-request full_suite_levels (exchange 3) (round 1)
+
+Writer response:
+
+This is a new exchange on a reopened document. The human asked for groups: a sentinel development runs only the tests under `tests` folders whose name contains `sentinel`, its 100% coverage applies to its own scope, and only prepare-release runs everything. The earlier decisions (Q01 to Q14, the closing-instruction table, speed before review, no walk at the commit-ready answer) are settled and should not be reopened.
+
+### Reviewer focus for feature-request full_suite_levels (exchange 3) (round 1)
+
+Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
+
+<!-- review-entry-id: request-round-1-exchange-3 -->
+
+### LLM nature completion for reviewer (exchange 3)
+
+Recorded nature: `codex`
+
+Completed artifacts:
+
+- `.reviews/a.review-active.specification.feature-request.v0.13.0.full_suite_levels.md`
+- `.reviews/a.review-requested.feature-request.v0.13.0.full_suite_levels.md`
+
+<!-- review-entry-id: llm-nature-completion-reviewer-exchange-3 -->
+
+## Round 1 by reviewer (exchange 3)
+
+- Recorded: 2026-09-30T14:20:21+02:00
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Outcome: answer
+
+### Reviewer assessment for feature-request full_suite_levels (exchange 3) (round 1)
+
+Changes requested for the reopened test-group requirement, occurrence 3, round 1.
+
+The selected direction is coherent: groups restrict test execution and define their own coverage denominator; coverage must come from that group's tests, and prepare-release retains the whole-suite cov gate. I recommend A for Q15 through Q19. The previous level decisions, speed before review, declared validation authority, and absence of a commit-ready speed recheck remain settled.
+
+Implementation cannot yet proceed unambiguously. Two missing decisions need questions: how a caller explicitly selects the whole suite despite GHOG_GROUP, and what happens when group patterns resolve to an empty test or source set. Q18 also needs to bind proof to the current group definition and membership, rather than just its name. Finally, the new workflow assertions must be reconciled with Q14 and the existing closing instructions, which still claim that the whole suite passed after a group-only run.
+
+These are consequences of adding group scope, not reasons to reopen the earlier level or review policies. The pending design review is outside this exact request; this answer reviews only the current requirement.
+
+### Question verdicts for feature-request full_suite_levels (exchange 3) (round 1)
+
+| Question | Assessment and chosen answer |
+| --- | --- |
+| Q15: affected tests with a group | A. This matches the confirmed request that a group effort runs its own tests and accepts outside failures being deferred. B intentionally runs outside tests; C still pays that cost and weakens their verdicts. State that the rule also governs group-selected standalone affected calls made by implementation-check and the reviewer; their permitted command set need not change. An empty affected selection on a valid group is distinct from an invalid empty group. |
+| Q16: effort declaration | A. A versioned Test group line gives sessions a stable effort scope without inferring it from a slug. B depends on ambient shell state and C couples unrelated names. The missing whole-suite override below is necessary for A's promise that an effort without the line runs ungrouped. Also qualify "every workflow command" to respect Q14's declared-command authority. |
+| Q17: pattern syntax | A. Globs meet the stated directory-name matching need without a second regex language. Specify repository-relative normalized paths; leave the declaration encoding and detailed matching implementation to the design. Remove the reference to .review-test-only-like declarations: the withdrawn test-only mechanism is not a dependency of this feature. |
+| Q18: proof across scopes | A. Whole-suite coverage may be provided by outside tests, so it cannot establish group coverage. Separate scopes are a sound conservative rule, including at pass. Extend the answer to require the current group definition and effective membership; an unchanged name is not sufficient evidence. |
+| Q19: timing floor | A. Group runs use the saved whole-suite floor, or the stated one-second fallback, without changing it. B creates different standards by group and C lets the last scope redefine the common standard. Accept that group workflows and the cov release gate may never initialize a whole-suite speed floor; do not introduce an automatic whole-suite speed run to compensate. |
+
+Add two questions, using the next available numbers:
+
+| Missing question | Options and recommendation |
+| --- | --- |
+| Explicit whole-suite selection | A: provide an explicit whole-suite selector that overrides GHOG_GROUP; workflows use it for prepare-release and efforts with no declared group. Pro: one reproducible scope selection carried through commands, repair lines, and detached runs; con: one additional selector value or equivalent CLI form. B: clear GHOG_GROUP only in workflow wrappers. Pro: no new selector; con: standalone restart commands and new shells can inherit a group again. C: let the environment decide even for release. Pro: simplest; con: violates the confirmed whole-suite release gate. Choose A; the exact spelling can be chosen in the design. |
+| Empty resolved group | A: reject a selected group whose patterns collectively resolve to no test files or no source files as setup error 5. Pro: a typo cannot create an empty success or vacuous coverage proof; con: group declarations must be kept current. B: allow it as a successful empty group. Pro: permits placeholders; con: green no longer means the requested tests and sources were checked. C: fall back to the whole suite. Pro: still runs tests; con: silently changes scope and cost. Choose A. Keep a valid group's empty testmon affected selection separate from invalid group resolution. |
+
+The rest of the changes below complete or align existing answers rather than add new policy questions.
+
+### Requested changes for feature-request full_suite_levels (exchange 3) (round 1)
+
+Requested changes:
+
+R1 — Make whole-suite workflow scope explicit and reproducible.
+
+Gap 19 offers only `--group=<declared name>`, `GHOG_GROUP`, or absence. Absence allows the environment to win. Gap 21 and Q16 nevertheless promise the whole suite for prepare-release and an effort with no group.
+
+Add the explicit whole-suite choice described in the missing question. A valid explicit scope, including whole suite, must win over an ambient group, even an invalid ambient name, consistently with parameter precedence. Workflow-owned commands use the effort's declared group or explicit whole suite; prepare-release always uses explicit whole suite at cov. Manual commands with no explicit scope may still honor GHOG_GROUP. Restart/repair lines and detached execution must preserve the resolved group or explicit whole scope, not merely omit --group and hope the environment is clear.
+
+Acceptance: GHOG_GROUP=sentinel cannot narrow prepare-release or an ungrouped effort; explicit whole-suite selection overrides an invalid environment group; a grouped failure restarts in the same group; a whole-suite restart remains whole-suite despite an ambient group.
+
+R2 — Define invalid empty scopes without rejecting legitimate affected noops.
+
+Gap 18 currently validates only the presence of test and source patterns. A readable declaration can contain a misspelled pattern matching no files. Adopt the missing question's setup-error rule for empty aggregate test-file or source-file sets. Do not silently accept, weaken the denominator, or fall back to the whole suite. A grouped full/timing invocation that collects no tests must not establish a green full-level proof; preserve the existing no-tests/operational-stop handling where applicable.
+
+Distinguish this from a valid nonempty group for which testmon selects no affected tests: that can complete the affected step under its normal no-work rules and proves no full-suite level by itself.
+
+Acceptance: empty test matches, empty source matches, and a valid group with an empty affected selection have distinct outcomes. Retain the settled rule that a matched source file never executed by the group's tests contributes 0% coverage.
+
+R3 — Bind proof to the current scope, not just a label.
+
+Complete gap 23 and Q18: changing the selected group's test patterns, source patterns, or effective file membership invalidates the relevant saved proof, even if its group name and existing Python file contents are unchanged. For example, adding an existing source file to sentinel's declared source scope cannot leave a prior sentinel speed marker usable. Proof must also remain valid under the applicable gate configuration, including the timing floor.
+
+Apply the scope rule to default-level noops and level upgrades as well as full levels. Do not require a particular cache layout or a group-only digest here; a conservative invalidation scheme is sufficient. The scoped coverage measurement must not reuse accumulated coverage supplied by tests outside the group.
+
+Acceptance: same name with changed source patterns revalidates and exposes a previously unmeasured source; changed test membership revalidates; group A proof does not satisfy group B or whole-suite requests; whole-suite cov proof cannot mask missing coverage by the group's own tests.
+
+R4 — Preserve declared validation authority and specify the permitted affected checks.
+
+Gap 21 and Q16 currently require every requestor validation to run the effort's group, while gap 12 and Q14 keep explicitly declared validation commands authoritative. Apply that existing exception explicitly: workflow-owned default validation carries the effort scope; do not silently append selectors to or rewrite arbitrary .review-validation commands. If a declaration explicitly chooses another scope or otherwise does not establish the effort's group proof, report what it actually validates rather than claiming the default group's guarantee. This follows Q14 and does not add a mandatory fallback walk.
+
+Also state that the effort's scope reaches the existing affected calls in implementation-check and code review. Q15 otherwise narrows only the affected step inside a day walk, leaving those separate permitted checks able to run outside the group. Keep the reviewers' permitted commands unchanged and keep check.bat's existing project checks; the new restriction concerns which test files the affected run executes.
+
+Acceptance: the default requestor command validates the effort group; an authoritative declaration is preserved without a false group-proof claim; reviewer and implementation-check affected calls stay within the selected group.
+
+R5 — Make success and restart wording scope-aware.
+
+The level table still says "the whole suite passes" in every full-level success row (lines 262-264). The new group behavior cannot truthfully emit that statement. Use "all tests in the selected scope pass", name the group or whole suite, and identify the corresponding coverage source scope and timing objective. Apply the same qualification to gap 3, Q01's clarification, and introductory summaries.
+
+Carry group selection alongside the existing level through every printed restart and repair command, including default walks: "plain ghog day" means no --full selector, not loss of the selected group. Keep direct parallel full-run duration disclosure and the no-false-speed-proof rule.
+
+Qualify "prepare-release alone runs the whole suite" to describe grouped workflow efforts. Ungrouped efforts and explicit human whole-suite commands remain permitted by gap 21 and the CLI selection rules. Document Q19's one-second fallback without implying that the cov release gate refreshes the speed floor.
+
+Acceptance: group success never claims whole-suite success; a default grouped walk's repair line retains its group; group runs leave the saved whole-suite timing floor unchanged.
+
+### Writer instructions for feature-request full_suite_levels (exchange 3) (round 1)
+
+Revise the requirement with the two missing questions and their recommended A answers, complete Q18's proof-validity rule, and reconcile the new group workflow with Q14 and the closing table. Keep A for Q15-Q19.
+
+Update gaps 18-24, the relevant earlier summaries and closing instructions, and the acceptance cases together. Keep the new guarantees at requirement level; marker layout, parser implementation, group-file encoding, and command spelling can be designed later. Publish another automated review round. Do not consolidate yet.
+
+Do not restore post-review speed work, a test-only exception, or a new convergence transition. Retain the existing requirement that a review-disabled speed repair, including a duration exclusion, returns through implementation-check.
+
+### Final reviewer decision for feature-request full_suite_levels (exchange 3) (round 1)
+
+Decision: changes-requested. The writer should apply the concrete instructions and publish another automated review round.
+
+<!-- review-entry-id: answer-round-1-exchange-3 -->
+
+## Round 2 by requestor (exchange 3)
+
+- Recorded: 2026-09-30T14:24:47+02:00
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Outcome: request
+
+### Review identity for feature-request full_suite_levels (exchange 3) (round 2)
+
+Umbrella draft: none
+Reviewed specification: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+Review round: 2
+
+### Requestor assessment for feature-request full_suite_levels (exchange 3) (round 2)
+
+All five round-1 requested changes are applied, and the two missing decisions are added as Q20 (explicit whole-suite selector) and Q21 (empty group). The seven questions (Q15 to Q21) all recommend option A, matching the reviewer's choices. Please check that the scope rules (selection, restart and detached propagation, empty groups, proof binding, declared validation authority, affected checks outside the walk, scoped success wording) are consistent across gaps 3, 18 to 24, the closing-instruction table and the questions.
+
+### Change summary for feature-request full_suite_levels (exchange 3) (round 2)
+
+Where each round-1 requested change is resolved:
+
+- R1, whole-suite scope: gap 19 adds an explicit whole-suite selector that wins over `GHOG_GROUP`, even an invalid one; restart, repair and detached runs carry the resolved scope, and a whole-suite restart names the selector. Gap 21: workflow-owned commands use the effort's group or the whole-suite selector; prepare-release always uses the whole-suite selector at `cov`; manual commands with no explicit scope may follow `GHOG_GROUP`. New Q20.
+- R2, empty scopes: gap 18 requires a selected group to resolve to at least one test file and one source file; gap 19 makes an empty group exit 5; gap 20 says a grouped full or timing run collecting no test never establishes a green proof, and that an empty affected selection on a valid group is a normal no-work step proving no full level. New Q21.
+- R3, proof binding: gap 23 binds a proof to the same group name, patterns and effective membership (or the whole suite) under the same gate configuration and timing floor, for noops and upgrades too; gap 20 forbids coverage accumulated by outside tests; Q18's answer extended.
+- R4, declared validation and affected checks: gap 21 keeps `.review-validation` commands untouched and requires the request to report what they actually validate instead of claiming the group guarantee; the group reaches implementation-check's and the reviewer's `ghog affected` checks, with their permitted commands unchanged; Q15 and Q16 answers extended.
+- R5, scope-aware wording: the three success rows of the closing-instruction table name the selected scope and its sources; gap 3 and the Q01 clarification row speak of the selected scope; the group revision paragraph qualifies "only prepare-release runs the whole suite" to grouped efforts; gap 19 says plain `ghog day` never drops the group; Q19's answer states the one-second fallback when no whole-suite floor exists, with no automatic whole-suite `speed` run.
+- Q17: the `.review-test-only` reference removed; patterns match normalized repository-relative paths.
+- Gap 24: the requested acceptance cases added.
+
+### Writer response for feature-request full_suite_levels (exchange 3) (round 2)
+
+Writer response:
+
+All round-1 findings are accepted, with no disagreement. Command spellings, the group-file encoding, and the proof invalidation scheme are left to the design, as the reviewer suggested.
+
+### Reviewer focus for feature-request full_suite_levels (exchange 3) (round 2)
+
+Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
+
+<!-- review-entry-id: request-round-2-exchange-3 -->
+
+## Round 2 by reviewer (exchange 3)
+
+- Recorded: 2026-09-30T14:45:05+02:00
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Outcome: answer
+
+### Reviewer assessment for feature-request full_suite_levels (exchange 3) (round 2)
+
+The current round-2 requirement supports convergence. I read the complete current specification and validated request for occurrence 3, round 2. The request's account of the revisions matches the document. No missing in-scope decision or substantive disagreement remains; Q01-Q14 and the earlier level/review policy remain settled.
+
+All five round-1 findings are resolved:
+
+- R1: gaps 19 and 21 and Q20 require an explicit whole-suite selector that overrides even an invalid GHOG_GROUP. Workflow defaults, release, repair/restart instructions and detached execution preserve the resolved scope.
+- R2: gaps 18-20 and Q21 distinguish an invalid group with an empty test/source file set, a full or timing run collecting no tests, and a valid group with no affected tests. Empty groups fail with exit 5; none of these no-test cases can manufacture full-level proof.
+- R3: gaps 20 and 23 and Q18 bind reuse to group identity, patterns, effective membership and gate configuration, including the timing floor. Outside-test coverage cannot satisfy the group's coverage gate.
+- R4: gap 21 and Q15/Q16 preserve declared .review-validation commands and truthful evidence reporting while carrying effort scope into workflow-owned affected checks. Reviewer and implementation-check command permissions stay unchanged.
+- R5: the success rows name their scope, gap 3 defines pass within that scope, and gap 19 governs every restart. Q19 explicitly permits the one-second fallback to persist without an automatic whole-suite speed run.
+
+Gap 24 names acceptance cases for these boundaries. The remaining suggestions make existing rules explicit in isolated examples; they do not change scope, behavior, or policy. This is a requirement review, not evidence that implementation or tests have passed.
+
+### Question verdicts for feature-request full_suite_levels (exchange 3) (round 2)
+
+No additional question is needed. Q15-Q21 are relevant, materially distinct decisions with meaningful alternatives and consequences. I choose option A for all seven.
+
+| Question | Assessment and chosen answer |
+| --- | --- |
+| Q15: affected tests | Clear and necessary. A restricts testmon's selection to group tests, consistent with the accepted deferral of outside failures. B checks outside tests and C still runs them, so both change that trade-off. The answer correctly covers reviewer/implementation-check affected calls and valid empty affected selections. |
+| Q16: effort declaration | Clear decision, with one wording refinement to option A below. A makes the requirement's Test group line the versioned source for workflow-owned scope. B relies on shell state and C couples scope to naming. The answer correctly preserves Q14's declared validation authority. |
+| Q17: pattern syntax | Clear and in scope. A uses one familiar glob syntax for normalized repository-relative paths and expresses the stated sentinel-folder example. B adds regex complexity; C adds two languages. Exact encoding and parser details belong to design. |
+| Q18: proof reuse | Clear and necessary. A keeps evidence within the exact scope and its current configuration, including changes to patterns or membership. B is a deliberate extra reuse rule; C can conceal missing group-only coverage. Neither is needed for this requirement. |
+| Q19: timing floor | Clear, with the fresh-project consequence explicitly accepted. A uses the saved whole-suite floor or one-second fallback without changing it on group runs. B introduces separate standards; C makes the shared floor depend on the most recent scope. The answer correctly adds no seeding run. |
+| Q20: explicit whole suite | Necessary and now complete. A preserves whole-suite intent across ambient state, restarts and detached execution, including an invalid GHOG_GROUP. B does not preserve standalone command intent; C violates the release scope. Selector spelling belongs to design. |
+| Q21: empty group | Necessary and now complete. A rejects an empty test or source file set with exit 5 and identifies the empty side. B permits vacuous success and C silently changes scope. A normal empty affected selection remains distinct. |
+
+None of these questions is redundant or outside the selected scope. Q20 and Q21 close the two missing decisions identified in round 1.
+
+### Convergence evidence for feature-request full_suite_levels (exchange 3) (round 2)
+
+Covered wording:
+
+1. Before the closing-instruction table, add: "Every command example in this table also carries the resolved scope required by gap 19: the selected group or the explicit whole-suite selector. Commands that request or restart a level preserve that same scope." This makes the already-settled scope rule visible alongside examples such as ghog day --full=cov and ghog single, without choosing the selector's spelling.
+2. In Q16 option A, replace "every workflow command it prints passes `--group=<name>`" with "every workflow-owned ghog validation command it prints carries the effort's resolved scope; project-declared .review-validation commands remain unchanged under Q14." This aligns the option with its answer and gap 21.
+3. In the Q01 clarification row, replace "no test outside the affected set fails" with "no test in the selected scope outside the affected set fails." The existing gap 3 and row opening already establish this boundary.
+4. In the opening test-group revision paragraph, qualify the requestor clause as "the requestor's default validation before each review request" and refer to Q14 for a project-declared validation set. Gap 21 already states this exception.
+5. For the direct-full closing paragraph, say any suggested day-walk restart preserves "that level and the resolved scope (gap 19)." This repeats the governing restart rule where readers encounter direct-full guidance.
+
+Convergence rationale:
+
+Every in-scope decision has an explicit, consistent answer. Scope selection overrides ambient state when required; groups cannot be empty successes; group-only coverage and proof reuse have precise boundaries; declared validation remains authoritative; reviewer permissions are preserved; and the timing floor has a defined fallback. The five prior requested changes are substantively closed, and gap 24 covers their observable outcomes.
+
+Only wording polish remains. The proposed edits restate requirements already present in gaps 3, 19 and 21, so they require neither a new design decision nor another automated review round. Recommend convergence; consolidation remains the human's decision.
+
+### Writer instructions for feature-request full_suite_levels (exchange 3) (round 2)
+
+Recommend convergence and consolidation, subject to the human's choice at the shared convergence gate. The reviewer has not consolidated or edited the specification.
+
+Apply only the wording suggestions listed in the covered-wording input. Retain option A for Q15-Q21, the resolved behavior in gaps 18-24, and the settled Q01-Q14 decisions. Do not introduce a new policy decision or another round solely for these edits.
+
+Keep the whole-suite selector spelling, group-file encoding and concrete proof invalidation mechanism for design, as the request states. The revised acceptance cases remain requirements to implement and verify later.
+
+### Final reviewer decision for feature-request full_suite_levels (exchange 3) (round 2)
+
+Decision: convergence-recommended. This recommendation is advisory; consolidation is not confirmed and remains at the durable human gate.
+
+<!-- review-entry-id: answer-round-2-exchange-3 -->
+
+## Round 2 by human - human-confirmation (exchange 3)
+
+- Recorded: 2026-09-30T15:57:42+02:00
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Outcome: human-confirmation
+
+Human choice: Consolidate
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-2 -->
+
+## Round 1 by requestor (exchange 4)
+
+- Recorded: 2026-09-30T16:11:02+02:00
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: unrecorded
+- Outcome: request
+
+### Review identity for feature-request full_suite_levels (exchange 4) (round 1)
+
+Umbrella draft: none
+Reviewed specification: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+Review round: 1
+
+### Requestor assessment for feature-request full_suite_levels (exchange 4) (round 1)
+
+The feature request is reopened a third time, at the human's request, for group activation. The consolidated requirement said how a group is declared (a `Test group:` line read by `pw`) and when a declared group is used, but not when an effort is asked about a group, how a group is turned on, changed or turned off partway through an effort (setting `GHOG_GROUP` cannot do it for workflow walks, since an ungrouped effort uses the explicit whole-suite selector), what an active code review learns of a scope change, or where the current scope is shown.
+
+A dated revision paragraph and gap 24 state these needs; four open questions cover them: where the group is declared and when it is asked (Q22), changing the group mid-effort (Q23), a scope change during an active code review (Q24), and where the current scope is shown (Q25). Please check whether a question is missing and whether the recommendations are consistent with Q16, Q18, Q20 and Q21.
+
+### Change summary for feature-request full_suite_levels (exchange 4) (round 1)
+
+- New dated revision paragraph "Revision of 2026-09-30, group activation".
+- New gap 24 "Group activation and change", referring to Q22 to Q25; former gap 24 (documentation and tests) is now gap 25.
+- The draft's test-group intent gains one line on activation, change and visibility.
+
+### Writer response for feature-request full_suite_levels (exchange 4) (round 1)
+
+Writer response:
+
+This is a new exchange on a reopened document. The human asked whether it is clear when a group is used and how to activate one when it was not initially activated; the answer was that the requirement covers the first but not the second. The settled decisions Q01 to Q21 should not be reopened.
+
+### Reviewer focus for feature-request full_suite_levels (exchange 4) (round 1)
+
+Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
+
+<!-- review-entry-id: request-round-1-exchange-4 -->
+
+### LLM nature completion for reviewer (exchange 4)
+
+Recorded nature: `codex`
+
+Completed artifacts:
+
+- `.reviews/a.review-active.specification.feature-request.v0.13.0.full_suite_levels.md`
+- `.reviews/a.review-requested.feature-request.v0.13.0.full_suite_levels.md`
+
+<!-- review-entry-id: llm-nature-completion-reviewer-exchange-4 -->
+
+## Round 1 by reviewer (exchange 4)
+
+- Recorded: 2026-09-30T16:35:01+02:00
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Outcome: answer
+
+### Reviewer assessment for feature-request full_suite_levels (exchange 4) (round 1)
+
+Changes are requested for the group-activation reopening (occurrence 4, round 1). I read the complete current requirement and validated request. The request accurately describes the additions; Q01-Q21 remain settled.
+
+I support the direction of option A for Q22-Q25: ask early, carry the selection into the requirement, allow later changes without automatically reopening specification review, disclose changed validation scope, and show scope in pw progress. However, the current wording leaves substantive lifecycle and source-of-truth gaps:
+
+- Q22 cannot distinguish an author who deliberately chose the whole suite from an author who was never asked. It also introduces a draft copy without saying which document wins after the requirement exists.
+- Q23 says a change applies to the next printed command at any time, while Q24 handles only the next request. A request can already be under review and receive a commit-ready answer with no next request. Neither new-scope validation nor review of the scope change is then guaranteed.
+- A group's definition is shared, while an effort's selection is local to its requirement. Q23's instruction to edit the line "and the group file entry" can imply deleting or changing a shared definition merely to stop selecting it. Q24 must also recognize a changed definition under the same group name.
+- "No proof reused across the change" needs to preserve Q18's exact-scope validity rule rather than silently introduce a new ban on otherwise valid proof for the destination scope.
+- Gap 25 has not gained acceptance cases for the activation and change behavior being introduced.
+
+These require decisions and observable requirements, beyond wording-only polish. No implementation tests were run; this assessment concerns the requirement.
+
+### Question verdicts for feature-request full_suite_levels (exchange 4) (round 1)
+
+| Question | Verdict and chosen answer |
+| --- | --- |
+| Q22: declaration and asking point | Relevant; partly overlaps settled Q16, so frame it around authoring and prompting while keeping the requirement as the runtime authority. Choose A with R1: ask at process-draft, carry the result into write-requirement, and ask there only if no choice was actually recorded. A confirmed whole-suite choice must count as an answer. B delays the decision and C leaves activation undiscoverable. The creation or reuse of a group entry must follow the selected answer. |
+| Q23: later activation, switching and deactivation | Relevant and distinct from initial authoring. Choose A with R2-R4: changing the selection need not reopen specification review, but must respect an already-published code-review round and exact-scope proof rules. B imposes a specification-review cycle for every selection change; C unnecessarily freezes scope after implementation starts. Define activation, switching and deactivation as selection changes, separately from modifying shared definitions. |
+| Q24: active code review | Necessary, but the options and answer currently address only changes between rounds. Choose A for ordinary replacement requests, with R2 defining what happens while a request or answer is pending and when the current answer reaches convergence. Disclosure alone cannot validate a changed scope if no replacement request is published. B is unnecessarily broad if changes can be prepared for the next legal boundary; C restarts more review state than needed. Include same-name definition changes under R3. |
+| Q25: visibility | Clear and in scope. Choose A: pw progress shows the effort's declared scope and the authoritative document it came from; existing ghog reports show the actual run scope. B lacks visibility before running; C duplicates information without resolving the lifecycle gaps. If a scope change is deferred by R2, distinguish the pending choice from the scope bound to the active round. Do not imply that a declared custom validation command proved the effort's group. |
+
+One missing question should be added: how an explicit whole-suite choice and an unanswered choice are represented during authoring, and which document is authoritative afterward.
+
+Suggested question: "How do we remember a deliberate whole-suite choice, and which document controls the effort after its requirement exists?"
+
+- Option A (recommended): record an explicit authoring choice, either a named group or the whole suite. Ask only while that choice is missing. When the requirement exists it alone controls workflow scope; its absent Test group line still means the whole suite under Q16/Q20. The draft is an input to creation, never a fallback that reactivates a removed group. Pro: no repeated question, one runtime authority, deactivation survives a stale draft. Con: the authoring workflow must distinguish unanswered from explicitly whole-suite.
+- Option B: absence always means the whole suite, and write-requirement does not ask when a draft has no group line. Pro: no additional choice state. Con: cannot meet Q22's intended fallback prompt for an effort never asked.
+- Option C: treat absence as unanswered at each authoring stage and let the draft remain a fallback. Pro: little explicit state. Con: repeats a settled choice and can resurrect a group removed from the requirement.
+
+The encoding of the recorded choice is a design detail; it must not invent a group named "none" or alter the settled runtime meaning of an absent declaration. R2 can be resolved by expanding Q24 rather than adding another question.
+
+### Requested changes for feature-request full_suite_levels (exchange 4) (round 1)
+
+Requested changes:
+
+R1. Make the authoring choice durable and establish one authoritative document.
+Q22 A says write-requirement asks again when the draft has no Test group line, which also describes a deliberate whole-suite choice. State that an explicitly answered "whole suite" is remembered and is not asked again; only an unrecorded choice triggers the fallback prompt. Existing explicit human input can supply the answer without a duplicate prompt.
+Once a requirement exists, it is the runtime source of scope. Removing its Test group line selects the whole suite, even if an older draft still names a group. Draft metadata is carried forward only during requirement creation; subsequent regeneration must not silently overwrite a later requirement selection.
+For an existing named group, validate and reuse its entry. For a new group, obtain its test and source patterns and create a valid entry before the first grouped walk. An unknown, unreadable or empty selected group retains Q21's setup failure rather than falling back.
+
+R2. Define when a change can take effect during an active code review.
+Replace Q23's unconditional "next pw command" with the next eligible workflow boundary. A published round retains its reviewed content and resolved validation scope; editing the live requirement must not silently change that round's reviewer affected commands or relabel its existing evidence. A walk already started, including a detached walk, likewise retains its invocation scope.
+For an ordinary replacement round, resolve the new scope, satisfy the applicable validation policy, and publish the new scope and evidence together with the previous scope and reason. The default still requires green speed evidence for the new scope, while Q14's declared validation set remains authoritative.
+Cover the case where the current answer is commit-ready and no replacement round exists: a scope change cannot be treated as polishing, silently join the reviewed result, or reuse the old round's proof as proof of the new scope. Defer the change or use the existing human rework/recovery path before committing it as part of the effort. Do not add a post-review speed pass, a new exchange operation, or an automatic requestor transition out of convergence.
+State how a change requested while a round is pending is represented until that boundary. This closes the gap without requiring cancellation of every exchange or reopening specification review for every selection edit.
+
+R3. Separate selecting a group from editing its shared definition, and detect same-name changes.
+Activation adds the chosen name to the authoritative requirement; switching replaces it; deactivation removes the selection. None requires deleting the old group's entry. A group entry may serve other efforts, so selecting a group must not overwrite its patterns, and stopping its use must not delete it.
+Changing a group's test patterns, source patterns or effective membership is a distinct scope change under Q18, even if its name stays the same. Q24's disclosure must describe such a change as well as group-to-group, group-to-whole and whole-to-group switches. A name-only comparison is insufficient.
+Suggested wording: "A scope change includes a change of selected group, selection of the whole suite, or a change to the selected group's resolved definition. The next eligible request identifies what changed and why, and binds its evidence to the resulting scope." Leave the concrete comparison mechanism to design.
+
+R4. Align switching and proof reuse with Q18.
+Clarify that the previous scope's proof never satisfies a different scope. A destination scope may use its own already-valid saved proof if it still meets all existing source, level, membership and gate-configuration rules; otherwise the next walk establishes new proof. A change of patterns or membership invalidates the affected proof even when the name is unchanged.
+Replace the absolute "no proof reused across the change" with "no proof from a different scope is reused." If the intended policy is instead to force a fresh walk whenever selection changes, explicitly raise and decide that extra rule rather than deriving it from Q18.
+
+R5. Add acceptance cases and actionable user documentation for activation.
+Extend gap 25 to cover:
+
+- initial selection of an existing group, creation of a new valid group, an explicit whole-suite answer not being asked again, and write-requirement's fallback when no answer was recorded;
+- activation after an effort starts, switching groups and deactivation, including GHOG_GROUP being unable to override the workflow choice;
+- a stale draft not overriding a changed or removed requirement selection;
+- shared entries surviving deactivation and same-name definition changes being recognized;
+- a pending round and a detached run retaining their bound scope, a replacement request carrying appropriate new-scope validation and disclosure, and a commit-ready answer not admitting an unreviewed scope change as polishing;
+- exact-scope reuse behavior and pw progress showing the authoritative source, including any deferred choice under R2.
+
+Require the user-facing documentation to show how to choose, change and remove the effort selection and how that differs from manual CLI/environment selection. Preserve the custom-validation and whole-suite release exceptions.
+
+### Writer instructions for feature-request full_suite_levels (exchange 4) (round 1)
+
+Revise gap 24, Q22-Q25 and the affected acceptance criteria using R1-R5, and add the missing question about explicit whole-suite choice and document authority. Preserve Q01-Q21, including declared .review-validation authority, prepare-release at whole-suite cov, exact-scope proof validity, and no post-review speed walk or new automatic transition out of convergence.
+
+Keep selector spelling, group-file encoding, state encoding and fingerprint implementation for design. Specify the observable boundaries here. Publish another ordinary specification-review round after these substantive changes; do not consolidate this round.
+
+### Final reviewer decision for feature-request full_suite_levels (exchange 4) (round 1)
+
+Decision: changes-requested. The writer should apply the concrete instructions and publish another automated review round.
+
+<!-- review-entry-id: answer-round-1-exchange-4 -->
+
+## Round 2 by requestor (exchange 4)
+
+- Recorded: 2026-09-30T16:50:45+02:00
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Outcome: request
+
+### Review identity for feature-request full_suite_levels (exchange 4) (round 2)
+
+Umbrella draft: none
+Reviewed specification: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+Review round: 2
+
+### Requestor assessment for feature-request full_suite_levels (exchange 4) (round 2)
+
+All five round-1 requested changes are applied and the missing question is added as Q26. The five questions (Q22 to Q26) all recommend option A, matching the reviewer's choices. Please check that gap 24, gap 25 and the questions define consistent observable boundaries: authoring and authority, selection versus shared definition, the next eligible boundary during a code review (published round, started walk, replacement request, commit-ready answer), exact-scope proof reuse, and pending-scope visibility.
+
+### Change summary for feature-request full_suite_levels (exchange 4) (round 2)
+
+- R1, authoring and authority: gap 24 records an explicit choice (group or whole suite) at `process-draft`, carried by the requirement, which alone controls scope once it exists; the draft is never a fallback. Q22 now asks only while no answer is recorded, validates and reuses an existing entry or creates a valid new one before the first grouped walk, and keeps Q21's failures. New Q26 covers the remembered whole-suite answer and document authority.
+- R2, eligible boundary: Q24 and gap 24 keep a published round's scope, reviewer affected commands and evidence, and a started walk's scope (detached included); a replacement request validates the new scope under the applicable policy (default green `speed`, Q14 declarations authoritative) and states previous scope, new scope and reason; at a commit-ready answer a pending change is never polishing, never reuses old proof, is named in the gate evidence, and either waits for after the commit or goes through the human's rework choice; the pending change is the requirement's line compared with the round's bound scope. No new exchange operation or automatic transition.
+- R3, selection versus definition: Q23 and gap 24 define activation, switching and deactivation as edits of the requirement's line that never delete or overwrite a shared entry; a changed definition under the same name is a scope change for every effort selecting it, and Q24's disclosure covers it.
+- R4, proof: "no proof from a different scope is reused; a destination scope may reuse its own still-valid proof under Q18".
+- R5, acceptance and documentation: gap 25 lists the requested activation cases and requires user documentation on choosing, changing and removing an effort's group versus manual `--group`/`GHOG_GROUP`. Q25 shows declared scope, source and any pending change, without presenting a custom validation command as a group proof.
+
+### Writer response for feature-request full_suite_levels (exchange 4) (round 2)
+
+Writer response:
+
+All round-1 findings are accepted, with no disagreement. For the commit-ready case, the answer offers the two paths the reviewer allowed (wait until after the commit, or the human's rework choice) rather than a new transition. Encodings (the recorded choice, the pending comparison, the definition fingerprint) are left to the design.
+
+### Reviewer focus for feature-request full_suite_levels (exchange 4) (round 2)
+
+Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
+
+<!-- review-entry-id: request-round-2-exchange-4 -->
+
+## Round 2 by reviewer (exchange 4)
+
+- Recorded: 2026-09-30T16:53:27+02:00
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Outcome: answer
+
+### Reviewer assessment for feature-request full_suite_levels (exchange 4) (round 2)
+
+The current requirement supports convergence for the group-activation reopening, occurrence 4, round 2. I read the complete current document and validated request. The request accurately describes the revisions. No additional in-scope decision is missing; Q01-Q21 remain settled.
+
+All round-1 findings are substantively resolved:
+
+- R1: Q22 and Q26 distinguish a recorded whole-suite answer from no answer, preserve existing explicit choices, make the requirement the sole runtime authority, prevent stale draft fallback, and require a usable group entry before the first grouped walk.
+- R2: gap 24 and Q24 bind published rounds and started walks to their scope. Replacement requests validate and disclose the new scope under the existing default or declared policy. Commit-ready changes wait or use the existing human rework choice; they are not polishing and create no new automatic convergence transition.
+- R3: gap 24 and Q23 separate effort selection from the shared definition. Deactivation does not delete the entry, and definition or membership changes count as scope changes even when the name is unchanged.
+- R4: gap 24 and Q23 preserve destination-scope reuse when that scope's own proof still satisfies Q18; evidence does not cross scopes.
+- R5: gap 25 now covers initial authoring, later selection changes, shared entries, review boundaries, proof reuse, visibility and user documentation.
+
+A few isolated phrases should be aligned with those governing rules, as listed in the covered wording. These are clarifications of decisions already stated in the current document, not new behavior. This is a requirement assessment, not implementation validation.
+
+### Question verdicts for feature-request full_suite_levels (exchange 4) (round 2)
+
+No further question is needed. I agree with option A for Q22-Q26.
+
+| Question | Assessment and chosen answer |
+| --- | --- |
+| Q22: asking and creating an entry | Relevant and now distinct from Q16's runtime declaration. A asks early, carries an answer forward, asks at write-requirement only if needed, and validates or creates the group entry. B delays authoring support; C leaves the feature undiscoverable. Unknown or invalid selected groups keep their setup failure. |
+| Q23: later activation, switching and deactivation | Relevant and adequately bounded by Q24. A permits selection changes without reopening specification review, preserves shared definitions, and follows Q18 for evidence. B adds a review cycle for every selection edit; C prevents legitimate later changes. The chosen answer covers the requested activation and deactivation use cases. |
+| Q24: active review | Necessary and substantively complete. A preserves each published round and started walk, validates and discloses an ordinary replacement, and uses deferral or the existing human rework choice at commit-ready. B freezes an entire exchange unnecessarily; C restarts it unnecessarily. Clarify the comparison and deferred-commit wording below so implementations cannot mistake names for resolved scopes. |
+| Q25: visibility | Clear and in scope. A shows the declared scope, authoritative document and pending difference before execution; ghog reports retain the actual run scope. B lacks that early visibility; C repeats it in every handoff. Refine the custom-validation sentence to preserve truthful reporting when a declared command really does prove the group. |
+| Q26: remembered answer and authority | This closes the missing question. A distinguishes unanswered from deliberately whole-suite during authoring, then makes the requirement authoritative while preserving the settled runtime meaning of an absent Test group line. B loses the fallback prompt; C repeats questions and risks stale draft reactivation. The encoding belongs to design. |
+
+The choices are materially distinct and their trade-offs support the recommendations. No settled level, proof-scope, release or review policy needs reopening.
+
+### Convergence evidence for feature-request full_suite_levels (exchange 4) (round 2)
+
+Covered wording:
+
+1. In Q24 option A, replace "The pending change is the requirement's current line compared with the scope bound to the active round" with: "A pending change is the difference between the effort's currently resolved scope (the requirement selection and the selected group's patterns and effective membership) and the scope bound to the active round." Gap 24 and Q24's introduction already include same-name definition changes; a line-only formulation obscures that rule.
+2. Make the deferral branch in Q24 explicit: "If deferred until after the commit, the pending selection or definition edits stay outside the approved commit, whose reviewed scope remains unchanged; otherwise the human uses the existing rework choice." This spells out the current prohibition on admitting an unreviewed scope change as polishing. It does not grant a new commit authority or prescribe a Git mechanism.
+3. Replace Q25's absolute sentence "A declared custom validation command is never presented as having proved the effort's group" with: "The declared effort scope alone never implies group proof; report what the custom validation commands actually established, and claim group proof only when their evidence establishes that exact scope and level." This aligns Q25 with gap 21, which permits truthful reporting of a declared command that does establish the group proof while preserving Q14's authority.
+4. Update the dated activation revision paragraph from "Q22 to Q25" to "Q22 to Q26".
+5. In Q26's BBQ, replace the analogy "no tasting needed" with "taste the whole menu". A whole-suite choice means broader validation, so the current analogy suggests the opposite behavior.
+
+Convergence rationale:
+
+The requirement now defines the complete activation lifecycle: asking and remembering the choice, establishing a group entry, using one authoritative effort declaration, switching or removing that selection without damaging shared definitions, preserving scope while work is in flight, and validating and disclosing changes at the next eligible review boundary. It also specifies exact-scope proof reuse, pending-scope visibility and acceptance coverage.
+
+The remaining wording edits follow directly from those existing requirements. They introduce no new choice, no extra validation policy and no new exchange transition. Recommend convergence and consolidation; the human retains the consolidation decision.
+
+### Writer instructions for feature-request full_suite_levels (exchange 4) (round 2)
+
+Recommend convergence and consolidation, subject to the human's choice at the durable gate. The reviewer has not changed or consolidated the requirement.
+
+Apply the covered wording without changing the selected option A answers for Q22-Q26. Retain gap 25's new acceptance cases and the settled Q01-Q21 constraints. Selector spelling, file and authoring-state encodings, bound-scope representation and definition comparison mechanisms remain design work.
+
+The remaining edits restate existing decisions and need no additional automated round by themselves.
+
+### Final reviewer decision for feature-request full_suite_levels (exchange 4) (round 2)
+
+Decision: convergence-recommended. This recommendation is advisory; consolidation is not confirmed and remains at the durable human gate.
+
+<!-- review-entry-id: answer-round-2-exchange-4 -->
+
+## Round 2 by human - human-confirmation (exchange 4)
+
+- Recorded: 2026-09-30T20:20:06+02:00
+- Exchange: specification/feature-request/v0.13.0/full_suite_levels
+- Umbrella: none
+- Reviewed document: docs/v0.13.0/feature-request.v0.13.0.full_suite_levels.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Outcome: human-confirmation
+
+Human choice: Consolidate
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-2 -->

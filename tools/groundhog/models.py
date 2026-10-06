@@ -102,6 +102,12 @@ class RunStats:
 class RunResult:
     """Outcome of one pytest child run.
 
+    Fix (v0.13.0 full_suite_levels, Step 2): ``interrupted`` marks a crashed
+    run that was interrupted (pytest's ``KeyboardInterrupt`` or
+    ``pytest.exit``, whatever its return code, or a signal) before it
+    reported any failure: it judged no gate, so a walk keeps its saved proof
+    instead of reading the interruption as a contradiction.
+
     Attributes:
         stats: Counters parsed from the streamed output.
         pytest_exit: Exit code returned by the pytest child process.
@@ -110,6 +116,8 @@ class RunResult:
         tail: The last raw output lines, the crash stack context.
         coverage_block: The term-missing table rows, the covg input
             replayed on a coverage gap (Q24).
+        interrupted: True when the run was interrupted before it reported
+            any failure or internal error, so it judged nothing.
     """
 
     stats: RunStats
@@ -118,6 +126,7 @@ class RunResult:
     failure_block: tuple[str, ...]
     tail: tuple[str, ...]
     coverage_block: tuple[str, ...] = ()
+    interrupted: bool = False
 
 
 # eof

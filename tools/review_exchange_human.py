@@ -27,6 +27,7 @@ from tools.review_exchange_models import (
     ReviewRole,
 )
 from tools.review_exchange_models_coordination import CoordinationRecord
+from tools.review_exchange_scope import archive_scope_capture, remove_scope_capture
 from tools.review_exchange_store import TranscriptEntry
 
 if TYPE_CHECKING:
@@ -58,7 +59,7 @@ class ResolutionResult:
 
 
 class ReviewExchangeHumanMixin(ABC):
-    """Provide human transitions to the bound review-exchange core facade."""
+    """Provide human transitions, retiring bound scope with its coordination."""
 
     store: ReviewExchangeStore
     context: ReviewContext
@@ -234,6 +235,7 @@ class ReviewExchangeHumanMixin(ABC):
             ):
                 raise ReviewExchangeError("owning action is not durably authorized")
             self.store.remove_exact(self.store.paths.answer)
+            remove_scope_capture(self.store.paths)
             self.store.remove_exact(self.store.paths.coordination)
             return True
 
@@ -399,9 +401,15 @@ class ReviewExchangeHumanMixin(ABC):
             raise ReviewExchangeError("confirmation retry differs from durable choice")
 
     def _resolve_live_evidence(self, *, archive: bool) -> tuple[Path, ...]:
-        """Archive or clear only the fixed live transient evidence paths."""
+        """Archive or clear live evidence, retiring scope before coordination."""
         archived: list[Path] = []
         compact = self._wall_clock().astimezone().strftime("%Y%m%d-%H%M%S")
+        if archive:
+            captured = archive_scope_capture(self.store.paths, compact)
+            if captured is not None:
+                archived.append(captured)
+        else:
+            remove_scope_capture(self.store.paths)
         ordered = (
             (ArchiveKind.REQUEST, self.store.paths.request),
             (ArchiveKind.ANSWER, self.store.paths.answer),
@@ -473,6 +481,7 @@ class ReviewExchangeHumanMixin(ABC):
                 entry=entry,
                 clear_marker=False,
             )
+            remove_scope_capture(self.store.paths)
             self.store.remove_exact(self.store.paths.coordination)
             return True
 

@@ -85,6 +85,12 @@ self-locate and do not need an `senv.bat` pre-call.
 
 8. Once `a.commit` is generated, formatted, and mechanically ready, display it for user review (the author may edit it first), then read [`../rules/command_prefix_char.md`](../rules/command_prefix_char.md), read [`../rules/interactive_menu.md`](../rules/interactive_menu.md) and present the go-ahead choices. Run `pw skill --after-commit <x>` (via its launcher, see [`run-pw.md`](run-pw.md)) from the project root, where `<x>` is the plan step this commit completes (the "step XXXX" of the cycle), to get the contextual next command. This lookup is read-only and exists only to build the commit-gate labels; it is not the go-ahead and it does not replace the commit. The concrete choices are:
 
+   In the implement chain, first return to `implement-step.md` for its
+   review-mode sample. When off, defer these choices until its review-off speed
+   pass has green, unchanged tree and exclusion comparisons. Include every
+   accepted exclusion, measured baseline, attempted improvement and reason in
+   the menu summary. When on, follow its code-review path instead of this menu.
+
    - `Go ahead` — commit, then stop.
    - the contextual option, when a development effort is in flight — `Go ahead, and implement step <next>` for the next plan step, or `Go ahead, and prepare-release` once every step is committed. A standalone call with no plan prints nothing and exits non-zero, so omit this row when there is no contextual option.
    - `Type something else` — let the author provide a different command or correction before committing.

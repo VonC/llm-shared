@@ -212,8 +212,8 @@ Windows at all.
 - `ruffc`: Doskey alias to `ruff check`. Use it right after code generation
   or manual edits.
 - `ghog`: Doskey alias to `bin\ghog.bat`, the groundhog pytest reset tool that
-  backs every pytest alias below. `ghog day` walks the whole chain — check,
-  affected tests, full suite with coverage — stopping at the first non-green
+  backs every pytest alias below. `ghog day` defaults to check plus
+  affected tests, deliberately skipping full, and stops at the first non-green
   step; `ghog init` registers the LLM fixing loop in a consuming project. The
   manual is [GROUNDHOG.md](GROUNDHOG.md).
 - `ptanc`: Doskey alias to `ghog affected --no-cov`. It reruns only the tests
@@ -253,60 +253,105 @@ Windows at all.
   is detected from the markers, and `--format claude` or `--format codex`
   forces it.
 
-## 🧪 Groundhog: the test loop behind the pytest aliases
+## 🧪 Groundhog: levels and scope in the development cycle
 
-All the pytest aliases above are one tool, groundhog, and `ghog day` is the
-single command that walks them in order, gating each step on the previous
-one:
+Run the command printed by `pw scope day` while implementing. It resolves the
+requirement at execution time, runs check.bat plus affected tests without
+coverage, and deliberately skips full at the default level. Use printed repair
+and restart commands so their level and scope survive each fix.
 
-```txt
-   +---------------------------------+
-   |  ghog day                       |
-   +-------+-------------------------+
-           |
-           |  check.bat              (exit 0, no ERROR lines)
-           |  ptanc                  (affected tests green)
-           |  ptr                    (full suite green, cov at gate)
-           v
-   +---------------------------------+
-   |  exit 0: objective reached      |
-   |  (else: stop at the first       |
-   |   non-green step, with the      |
-   |   exact fix to apply)           |
-   +---------------------------------+
-```
+| Phase or request | Gate |
+| --- | --- |
+| Development | `pw scope day`, then its printed command |
+| Full test pass | `ghog day --full=pass` with the chosen scope |
+| Coverage | `ghog day --full=cov` with the chosen scope |
+| Review publication and review-off commit preparation | `pw scope day --full=speed`, then its printed command |
+| Release | `ghog day --full=cov --whole-suite` |
 
-The full-suite step does more than pass/fail and coverage: it times every
-test call and trims execution time. A call running far outside the norm (a
-robust outlier score, at or above a one-second floor) keeps the walk on
-exit 8 with the slow calls named, judged last so it never hides a failure or
-a coverage gap; the named calls get shortened (see
-[`instructions/fix_slow_test.md`](instructions/fix_slow_test.md)) or, when
-genuinely slow, accepted at their measured time with `ghog exclude`. That is
-how `ghog day` keeps the suite under the project's one-second-per-test
-target.
+Explicit `--full` wins over nonempty `GHOG_FULL`; otherwise direct full defaults
+to speed and other run commands to internal none. `--full=none` is invalid.
+Pass adds tests, cov adds coverage, speed adds durations. Helpers (`status`,
+`timings`, `init`, `exclude`, `groups`) take no level. Explicit `--group`,
+`--whole-suite` or `--scope-file` wins over `GHOG_GROUP`, then whole suite is the
+fallback. Invalid/conflicting selectors exit 5. Check remains project-wide;
+single uses the named files and preserves scope for restart.
 
-An LLM can drive the same walk in a fixing loop — run `ghog day`, apply the
-fix the report names, run it again — registered per project with `ghog init`
-for both Claude Code (`/groundhog`) and ChatGPT Codex. The exit codes, the
-report grammar, the coverage-gap flow with `covg`, and the registration are
-all detailed in [GROUNDHOG.md](GROUNDHOG.md).
+Sequential speed combines coverage and durations. A parallel speed day runs
+covered full followed by sequential timings; direct parallel full speed proves
+only cov and says speed is not established. Exit 8 occurs only at speed. Follow
+[`fix_slow_test.md`](instructions/fix_slow_test.md) to shorten flagged calls
+or accept an irreducible baseline after an attempted improvement.
 
-In that LLM loop, no ghog output reaches the conversation: the instruction
-file routes every ghog call through `> a.ghog.log 2>&1` at the project root.
-The exit code alone drives the branching; the model then reads only the log
-tail (5 lines on green, 100 on a stop), so the chat context carries bounded
-tail reads instead of full reports. The log is overwritten by each run and
-never deleted — watch it from a second console to follow a run live. The
-redirect belongs to the LLM invocation only: ghog itself writes to stdout,
-and console runs (`ghog day`, `ptr`, `pta`, ...) are untouched.
+### Activate an effort's group
 
-Run completion is a file contract, not a log guess: every run brackets
-itself in `a.ghog.status` (`state=running pid=` then `state=done exit=`),
-`ghog status` replays it without starting anything, and a harness whose
-tool timeouts kill long calls runs the walk with `ghog day --detach` — a
-survivor process the timeout cannot reach, polled through `ghog status`
-(see GROUNDHOG.md, Q32).
+After branch layout, `process-draft` offers Whole suite, valid `ghog groups`
+entries, New group and Type something else. Each umbrella child chooses;
+the umbrella itself carries no scope. New groups are `.ghog-groups` INI sections
+with multiline `tests` and `sources`, validated by `ghog groups <name>` before
+recording `- Test group: <name>` next to `- Type:`. `write-requirement` copies
+and revalidates the draft choice, asking only when none was recorded.
+
+The requirement alone then controls `pw scope`. Edit its Test group line to
+change scope; remove it or set `whole suite` to deactivate. An absent line or
+requirement means whole suite, never a stale draft fallback. `pw scope` prints
+one selector, or a complete command when given day and level arguments; it
+rejects preexisting selectors. The explicit output ignores ambient GHOG_GROUP.
+Manual flags/environment choose a command only, without changing the effort.
+
+Patterns match normalized relative paths using `*`, `?`, `**` and `!`, last
+match wins. Tests also match pytest `python_files`; sources are Python after
+coverage omit. Empty tests or sources is a setup error. Group cov/speed demands
+100% of declared sources, including files outside configured coverage roots;
+unexecuted sources count as zero. Fresh artifact-home data is required; missing,
+unreadable or stale coverage exits 5. Group duration checks use the saved floor
+(1 second fallback) and exclusions, floor-only, without rewriting either.
+This boundary saves time but misses failures outside the set, hence the
+whole-suite release gate. Changes affect the next eligible command, not an
+active walk or review. Review `--scope-file` captures bind exact paths, patterns
+and fingerprint; unusable captures stop with missing evidence, exit 5.
+
+### Read the evidence before handing off
+
+Day markers `a.ghog.day.ok` and `a.ghog.day.<group>.ok` record scope, fingerprint,
+timing signature, digest and proof. Scope/fingerprint/digest changes invalidate
+them; timing changes cap speed at cov. Matching stronger proof gives a noop;
+an upgrade reuses check and affected. Force runs everything; direct full never
+reads or writes markers. Check/affected failure is unproven, test failure leaves
+none, coverage failure pass, duration failure cov, even after stronger proof.
+
+The closing day line appends `full`, `src`, `proof`, `reused`, `scope`; done
+status repeats that evidence, running status says `proof=pending`. Default
+success prints a deliberate skip; stronger success states the proved level.
+Only `ghog status` determines completion. Keep the LLM redirect to `a.ghog.log`
+and freshness check, read five tail lines on success or 100 on failure. A
+harness that kills long calls uses the same arguments plus `--detach`, then
+status, never a duplicate walk. See [GROUNDHOG.md](GROUNDHOG.md) for lifecycle,
+level-shaped repairs and exact exit meanings.
+
+### Review migration and the commit boundary
+
+Without `.review-validation`, review defaults to speed in the effort scope.
+Declared commands are authoritative, never rewritten or selector-injected.
+Plain declared `ghog day` now defaults to check and affected; recommend explicit
+speed when intended. GHOG_FULL, other commands and saved proof can still prove
+more. Claim group speed in a declared set only when a command explicitly names
+speed and that exact group. Run resolved validation before each publication;
+changed bound scope/fingerprint requires a reason file. Restart long-running
+review watchers after upgrading the scope artifact kind. At commit-ready, do
+not run a walk: disclose pending scope differences, Commit on the bound scope
+excluding pending scope edits, or Rework and review again with new validation.
+
+With review off, after preparing `a.commit` stage with `git add -A`, record
+`git write-tree` and save `ghog exclude --list`. Run the resolved speed day,
+stage again and compare the tree and `ghog exclude --list --since=<listing>`.
+Listings sort effective baselines and print `exclusions=<count>`; unreadable
+input exits 5. Added/raised baselines mean changed, removed/lowered mean
+unchanged; missing/damaged comparison means `exclusions=unverified`, exit 5.
+Any changed tree, changed exclusions or unverified comparison returns through
+implementation-check and grouping before new reference values and another
+pass. Only green plus unchanged comparisons permit the commit menu. Journal,
+handoff, review report and menu disclose each accepted exclusion's node,
+seconds, attempted improvement and reason.
 
 ## 📝 Draft capture for a feature or fix
 
@@ -997,7 +1042,7 @@ drive a step yourself.
 5. Run `pts <test path>` when you want a single test, class, or file on its
   own. It is coverage-off too, and it compares the result with the failing
   tests of the last full run.
-6. `ptr` (or the whole `ghog day` walk) is the full coverage pass. It is still
+6. `ptr` defaults to speed; `ghog day --full=cov --whole-suite` proves full coverage. It is still
   the slow step, but its output is budgeted — progress lines and a final
   report instead of raw pytest output — so an LLM can run it too. On a
   coverage gap it replays the uncovered lines; `covg` maps them to the
@@ -1037,7 +1082,7 @@ keeps going.
 Three calls chain the cycle, each run from the project root once the
 current step is done:
 
-- after `/implement-step <x>` ends with a green `ghog day` walk:
+- after `/implement-step <x>` ends with the green command printed by `pw scope day`:
   `pw handoff check <x>` writes the `implementation-check.md` prompt.
 - after `/implementation-check <x>` records its `Analysis of Step x`
   verdict: `pw handoff after-check <x>`. The task is neutral; `pw` reads
@@ -1092,7 +1137,7 @@ later merge to `main` needs its own reworded message as well.
            |
            |  git fetch
            |  git rebase origin/main
-           |  ghog day (check + ptanc + ptr)
+           |  ghog day --full=cov --whole-suite
            v
    +---------------------------------+
    |  branch rebased and green       |
@@ -1144,7 +1189,7 @@ merge commit exists, and rerun the same checks you used during step execution.
 
 1. Run `git fetch` to refresh your remote references.
 2. Run `git rebase origin/main` and resolve any conflict before continuing.
-3. Run `ghog day`: it walks the compile check (check.bat), the affected tests
+3. Run `ghog day --full=cov --whole-suite`: it walks the compile check (check.bat), the affected tests
   without coverage, and the full suite with the coverage report — stopping at
   the first non-green step with the fix to apply. This is the one place the
   100% gate from `pyproject.toml` is checked before the merge; the individual
@@ -1343,7 +1388,7 @@ the flag file `a.prepare-release.active` in the review artifact home
 control instead of ending on its own:
 
 - `group-commits-msg`  --  to commit a dirty tree, and to commit any fixes a
-  `ghog day` gate needed.
+  `ghog day --full=cov --whole-suite` gate needed.
 - `update-merge-commit-msg`  --  to give the merge commit the `Why:` /
   `What:` structure (a free-form merge message is refused).
 - `review-and-update-project-docs`  --  to audit every existing Diataxis wiki
@@ -1351,7 +1396,7 @@ control instead of ending on its own:
   release notes.
 - `prepare_release_notes`  --  for the `version.txt` summary and the
   `CHANGELOG.md` (the six steps above).
-- the `ghog day` groundhog loop  --  the green gate, run on a rebased branch
+- the `ghog day --full=cov --whole-suite` groundhog loop  --  the green gate, run on a rebased branch
   or after a stale-base merge, to prove the suite is green before the
   release goes on.
 
@@ -1364,7 +1409,7 @@ a decision or an action, and several resume only on an explicit "go ahead":
 | Branch behind the latest main (Step 5) | Choose: rebase onto main, merge `--no-ff` anyway, or abort the prep |
 | Rebase conflict (Step 5) | Resolve the conflicts (edit, `git add`), then say "go ahead" so the skill resumes the rebase non-interactively |
 | Local main diverged from origin/main (Step 5) | Decide how to reconcile; the skill will not reset and drop local commits on its own |
-| `ghog day` not green (Step 5 or 6) | Review the fixes the skill grouped through group-commits-msg, then say "go ahead" to commit them |
+| `ghog day --full=cov --whole-suite` not green (Step 5 or 6) | Review the fixes the skill grouped through group-commits-msg, then say "go ahead" to commit them |
 | Merge message (Step 7) | Review, and edit if wanted, the `Why:` / `What:` merge message before it is applied |
 | Diataxis wiki audit (Step 8) | Review grouped wiki corrections before they are committed into the release history |
 | Title choice (Step 10) | Pick one of the three witty title / subtitle pairs for the release notes |

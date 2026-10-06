@@ -157,7 +157,7 @@ def test_instruction_forbids_writer_human_and_commit_authority() -> None:
 
 
 def test_instruction_requires_the_reviewer_to_always_wait() -> None:
-    """The background watcher stays active while chat control returns to the user."""
+    """Codex stays attached; Claude resumes from its background watcher."""
     normalized = " ".join(_content().split())
 
     assert "publishing an answer never returns control to the user" not in normalized
@@ -165,15 +165,18 @@ def test_instruction_requires_the_reviewer_to_always_wait() -> None:
         normalized,
         (
             "## A reviewer always waits",
-            "Return control of the chat while the background watcher remains active",
+            "Codex must use an attached wait",
+            "keep the assistant turn active",
+            "do not send a final response while waiting",
+            "Claude may return control of the chat with its background watcher active",
+            "resume on the completion notification",
             "The round wait.",
             "The artifact-home wait.",
             "Do not restrict that wait to the exchange just finished",
             "Neither wait is optional and neither is a question for the user",
             "GlobalReviewerWait",
             "wait-any-request",
-            "quiet background operation",
-            "must not monopolize the chat",
+            "host-specific wait transport",
             "writes no idle progress",
         ),
     )
@@ -227,12 +230,19 @@ def test_reviewer_limits_executed_evidence_to_check_and_affected_tests() -> None
             "The reviewer does not repeat it",
             "Never run `ghog day` or `ghog full`, and never measure or recheck coverage",
             "`ghog check`, which runs `check.bat`",
-            "`ghog affected --no-cov`, the focused tests",
+            "`ghog affected --no-cov --scope-file=<paths.scope>`, the focused tests",
             "do not follow the ghog report's next-step line",
             "do not run that set: the requestor owns it",
         ),
     )
     assert "Run every resolved mandatory validation command" not in content
+
+
+def test_reviewer_requires_the_bound_capture() -> None:
+    """Missing or refused scope evidence cannot be replaced by ambient scope."""
+    content = " ".join(_content().split())
+    for fragment in ("paths.scope", "bound_scope: missing", "missing evidence", "Do not substitute"):
+        assert fragment in content
 
 
 # eof

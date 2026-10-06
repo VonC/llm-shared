@@ -1,4 +1,10 @@
-"""Subprocess contract for the repository-root Markdown launcher."""
+"""Subprocess contract for the repository-root Markdown launcher.
+
+Fix: the real launcher run moves into the ``launcher_run`` fixture, beside
+the Git input it already built there, so the measured call only asserts on
+the recorded result. The run itself is unchanged: the shipped batch file,
+no activated environment, a real check of a clean repository.
+"""
 
 # ruff: noqa: S603, S607
 
@@ -39,15 +45,18 @@ def clean_repository(tmp_path: Path) -> Path:
     return tmp_path
 
 
-def test_root_launcher_runs_without_an_activated_project_environment(
-    clean_repository: Path,
-) -> None:
-    """The root batch launcher self-locates Python and enters cli.main."""
+@pytest.fixture
+def launcher_run(clean_repository: Path) -> subprocess.CompletedProcess[str]:
+    """Run the real root launcher once, outside the measured test call.
+
+    A launch is a ``cmd.exe`` start, the venv's Python start and a real check
+    of the fixture repository: about half a second that grew past the
+    one-second duration floor under suite load. The test asserts on its result.
+    """
     environment = os.environ.copy()
     environment.pop("VIRTUAL_ENV", None)
     environment.pop("PYTHONPATH", None)
-
-    completed = subprocess.run(
+    return subprocess.run(
         [
             str(steps.llm_shared_dir() / "markdown-check.bat"),
             "--root",
@@ -60,8 +69,13 @@ def test_root_launcher_runs_without_an_activated_project_environment(
         text=True,
     )
 
-    assert completed.returncode == 0, completed.stderr
-    assert completed.stdout == ""
+
+def test_root_launcher_runs_without_an_activated_project_environment(
+    launcher_run: subprocess.CompletedProcess[str],
+) -> None:
+    """The root batch launcher self-locates Python and enters cli.main."""
+    assert launcher_run.returncode == 0, launcher_run.stderr
+    assert launcher_run.stdout == ""
 
 
 def test_cli_main_uses_explicit_paths_and_preserves_streams(

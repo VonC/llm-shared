@@ -71,12 +71,9 @@ if errorlevel 1 (
     set "PYTHONPATH=%PRJ_DIR%\bin;%PYTHONPATH%"
 )
 
-pushd "%PRJ_DIR%"
-call switchpy %PYTHON_VERSION% local
-popd
-REM restore echos macros unset by switchpy
-call "%PRJ_DIR%\tools\batcolors\echos_macros.bat" export
-%_ok% "Environment initialized for project '%PRJ_DIR_NAME%'"
+REM switchpy runs further down, once the uv index, the certificates, and the
+REM uv.lock filter are in place: its `uv sync --frozen` downloads from the
+REM exact URLs listed in uv.lock, so those must already name the mirror.
 
 set "GIT_HOME=%PRGS%\gits\current"
 set "GCYGPATH=%GIT_HOME%\usr\bin\cygpath.exe"
@@ -178,24 +175,45 @@ if exist "%PRJ_DIR%\bin\senv.local.bat" (
   %_info% "No local environment variables file (senv.local.bat) found in '%PRJ_DIR%\bin\'. Skipping."
 )
 
-REM llm-shared is a public repository: keep local uv usage unchanged, but
-REM rewrite staged uv.lock URLs to public hosts before commit.
+REM llm-shared is a public repository: rewrite staged uv.lock URLs to public
+REM hosts before commit (clean), and back to the corporate mirror on checkout
+REM (smudge), so a fresh worktree syncs from the mirror too.
 if not defined UV_INDEX_URL if defined PYPI_HOST set "UV_INDEX_URL=https://%PYPI_HOST%"
+
+REM The smudge bakes the mirror URLs in at senv time instead of reading
+REM UV_INDEX_URL at checkout time: the filter config is shared by every
+REM worktree of this clone, and `git worktree add` can run from a shell that
+REM never loaded an index. Without a corporate index the smudge stays `cat`.
+REM The package base drops the trailing `/simple/` of the index URL:
+REM .../repository/pnexus/simple/ -> .../repository/pnexus/packages/.
+set "LOCK_FILTER_SMUDGE=cat"
+set "LOCK_INDEX_BASE=%UV_INDEX_URL%"
+if defined LOCK_INDEX_BASE if "%LOCK_INDEX_BASE:~-1%"=="/" set "LOCK_INDEX_BASE=%LOCK_INDEX_BASE:~0,-1%"
+if defined LOCK_INDEX_BASE if /i "%LOCK_INDEX_BASE:~-7%"=="/simple" set "LOCK_INDEX_BASE=%LOCK_INDEX_BASE:~0,-7%"
+if defined LOCK_INDEX_BASE set "LOCK_FILTER_SMUDGE=sed -E 's#https://pypi\.org/simple/?#%UV_INDEX_URL%#g; s#https://files\.pythonhosted\.org/packages/#%LOCK_INDEX_BASE%/packages/#g'"
+set "LOCK_INDEX_BASE="
 
 REM Versioned filter install (same pattern as my-project): the filter is
 REM reapplied whenever the stored filter.uv-lock-public.version differs from
 REM LOCK_FILTER_VERSION, so older or corrupted values (slash-excluding
 REM /simple/ class, caret eaten by cmd) are replaced on the next senv run.
+REM It is also reapplied when the stored smudge differs from the one derived
+REM above, which follows the active corporate index.
 REM Bump LOCK_FILTER_VERSION whenever the smudge or clean command changes.
 REM The two variables differ by more than case: cmd variables are
 REM case-insensitive, so LOCK_FILTER_VERSION vs lock_filter_version would be
 REM one and the same variable and the comparison below would always match.
-set "LOCK_FILTER_VERSION=1"
+set "LOCK_FILTER_VERSION=2"
 set "LOCK_FILTER_VERSION_CUR="
+set "LOCK_FILTER_SMUDGE_CUR="
+set "LOCK_FILTER_INSTALL="
 for /f "tokens=* delims=" %%i in ('git -C "%PRJ_DIR%" config filter."uv-lock-public".version 2^>nul') do set "LOCK_FILTER_VERSION_CUR=%%i"
-if not "%LOCK_FILTER_VERSION_CUR%"=="%LOCK_FILTER_VERSION%" (
+for /f "tokens=* delims=" %%i in ('git -C "%PRJ_DIR%" config filter."uv-lock-public".smudge 2^>nul') do set "LOCK_FILTER_SMUDGE_CUR=%%i"
+if not "%LOCK_FILTER_VERSION_CUR%"=="%LOCK_FILTER_VERSION%" set "LOCK_FILTER_INSTALL=true"
+if not "%LOCK_FILTER_SMUDGE_CUR%"=="%LOCK_FILTER_SMUDGE%" set "LOCK_FILTER_INSTALL=true"
+if defined LOCK_FILTER_INSTALL (
   %_task% "Must set git config filter.uv-lock-public for public uv.lock content"
-  git -C "%PRJ_DIR%" config filter.uv-lock-public.smudge "cat"
+  git -C "%PRJ_DIR%" config filter.uv-lock-public.smudge "%LOCK_FILTER_SMUDGE%"
   if errorlevel 1 (
     %_fatal% "git -C '%PRJ_DIR%' config filter.uv-lock-public failed" 232
   )
@@ -216,6 +234,46 @@ if not "%LOCK_FILTER_VERSION_CUR%"=="%LOCK_FILTER_VERSION%" (
 )
 set "LOCK_FILTER_VERSION="
 set "LOCK_FILTER_VERSION_CUR="
+set "LOCK_FILTER_SMUDGE="
+set "LOCK_FILTER_SMUDGE_CUR="
+set "LOCK_FILTER_INSTALL="
+
+REM A worktree checked out before the smudge knew the mirror keeps public
+REM URLs in uv.lock, and switchpy's `uv sync --frozen` then gets a 403 from
+REM files.pythonhosted.org. In a corporate shell, check out an unmodified
+REM uv.lock again so the smudge rewrites it; a local edit is left alone.
+if defined UV_INDEX_URL if exist "%PRJ_DIR%\uv.lock" (
+  findstr /C:"https://files.pythonhosted.org/packages/" "%PRJ_DIR%\uv.lock" >NUL 2>&1
+  if not errorlevel 1 (
+    set "UV_LOCK_DIRTY="
+    for /f "delims=" %%i in ('git -C "%PRJ_DIR%" status --porcelain -- uv.lock 2^>nul') do set "UV_LOCK_DIRTY=%%i"
+    if defined UV_LOCK_DIRTY (
+      %_warning% "uv.lock has local changes: not re-smudging it to the corporate index"
+    ) else (
+      %_task% "Must re-smudge uv.lock through filter.uv-lock-public for the corporate index"
+      del /q "%PRJ_DIR%\uv.lock"
+      git -C "%PRJ_DIR%" checkout -- uv.lock
+      if errorlevel 1 (
+        %_fatal% "Unable to re-smudge uv.lock through filter.uv-lock-public" 234
+      ) else (
+        findstr /C:"https://files.pythonhosted.org/packages/" "%PRJ_DIR%\uv.lock" >NUL 2>&1
+        if not errorlevel 1 (
+          %_fatal% "uv.lock still lists public package URLs after re-smudge: check git config filter.uv-lock-public.smudge" 235
+        ) else (
+          %_ok% "uv.lock re-smudged to the corporate index"
+        )
+      )
+    )
+    set "UV_LOCK_DIRTY="
+  )
+)
+
+pushd "%PRJ_DIR%"
+call switchpy %PYTHON_VERSION% local
+popd
+REM restore echos macros unset by switchpy
+call "%PRJ_DIR%\tools\batcolors\echos_macros.bat" export
+%_ok% "Environment initialized for project '%PRJ_DIR_NAME%'"
 
 REM Install composable hooks with this project's Python, but only for the
 REM managed repo the console currently sits in. The repo merges the common

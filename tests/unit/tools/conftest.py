@@ -1,4 +1,10 @@
-"""Shared fast boundaries for tools unit tests."""
+"""Shared fast boundaries for tools unit tests.
+
+Fix (v0.13.0 full_suite_levels, Step 2): groundhog now reads ``GHOG_FULL``
+through its default ``environ`` seam, and a leveled walk of this very suite
+may run with that variable set; every unit test therefore starts with it
+cleared, so no ambient level changes what a test's walk runs.
+"""
 
 from __future__ import annotations
 
@@ -17,6 +23,12 @@ if TYPE_CHECKING:
 
 def _complete_fsync(_descriptor: int) -> None:
     """Model a successful kernel flush without paying physical disk latency."""
+
+
+@pytest.fixture(autouse=True)
+def no_ambient_full_level(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Clear GHOG_FULL, so a walk of the suite never leaks its level into a test."""
+    monkeypatch.delenv("GHOG_FULL", raising=False)
 
 
 @pytest.fixture(autouse=True)

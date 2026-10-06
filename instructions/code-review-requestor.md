@@ -43,15 +43,39 @@ The renderer calls `resolve_code_review_validation` with the mandatory project
 default and additive checks. Pass every exact plan-step addition through a
 repeatable `--plan-validation-command` and every stricter current-request
 addition through a repeatable `--request-validation-command`. An addition may
-share a command with another source, but it cannot remove the `ghog day` project default.
+share a command with another source, but it cannot remove the resolved project default.
 The resulting `resolved_validation_set` retains each command's project, plan,
 or request sources in deterministic order.
 
-That set is requestor-side validation. Before publishing a request, the writer
-must have run it green, `ghog day` included, and fixed every failure and
-coverage gap, as [`implement-step.md`](implement-step.md) does. The reviewer
+Without `.review-validation`, the built-in default is `ghog day --full=speed`
+in the effort scope, completed by the renderer with the requirement's exact
+selector. Commands declared in `.review-validation` are authoritative:
+never rewrite them or inject a selector into them. Plan and request additions
+also remain unchanged.
+
+That set is requestor-side validation. The writer
+must have run it green before every request and replacement, resolving
+failures, coverage gaps and duration outliers through groundhog's printed
+repair and restart commands, as [`implement-step.md`](implement-step.md) does. The reviewer
 never runs `ghog day` or `ghog full` and does not recheck coverage; it may only
 run `ghog check` and `ghog affected --no-cov` as focused evidence.
+
+For every accepted exclusion, put its node id, measured seconds, attempted
+improvement and reason in the implementation report, including raised
+baselines. Reviewers and the human need to see what the speed proof accepts.
+
+Migration notice: a plain `ghog day` in `.review-validation` now defaults to
+check plus affected tests, deliberately skipping full. Recommend changing it
+to explicit `ghog day --full=speed` (with the intended scope) when that is the
+project's policy, but do not silently edit it. Nonempty `GHOG_FULL`, other
+declared commands or valid saved proof can still supply stronger evidence;
+describe what was actually proved rather than assuming plain day is always
+weak. Claim that a declared set provides group speed validation only when it
+contains a command explicitly naming both `--full=speed` and that exact group.
+The renderer reports effective proof for the captured scope separately.
+
+After upgrading support for the scope artifact kind, restart long-running
+review watchers before the next exchange so both roles recognize that kind.
 
 Render both fields from that one typed value under the authored
 `## Code review evidence` heading. Keep this fenced JSON object distinct from
@@ -66,8 +90,15 @@ Only then pass the complete paired artifacts to `publish-request`.
 3. Prepare separate ignored root UTF-8 assessment, implementation report,
    change summary, writer response, and optional guidance files. Run
    `& "<LLM_SHARED_DIR>\bin\code_review_request.bat"` with every applicable additive validation
-   command and two distinct ignored output paths.
-4. Pass the complete request and substantive summary to `publish-request`.
+   command and distinct ignored output paths. Always pass
+   `--scope-capture-output <artifact-home>/a.<slug>.step<x>.tmp.scope-capture.json`.
+   A replacement that changes the bound scope, group or its fingerprint also requires
+   `--scope-change-file <ignored-a.*-reason-file>` with a nonempty reason.
+4. Pass the complete request and substantive summary to `publish-request`,
+   including `--scope-capture-file <artifact-home>/a.<slug>.step<x>.tmp.scope-capture.json`.
+   The renderer resolves the requirement once, completes only the built-in
+   default with its selector, and records exact-scope effective proof.
+   Declared project commands and plan/request additions remain unchanged.
 5. Do not start, spawn, delegate, invoke, or message a reviewer. Run
    `wait-answer` immediately in this same requestor session using the complete
    marker timeout. Read only the exact `paths.answer` file returned for this
@@ -211,6 +242,18 @@ Do not call `consume-answer` for a commit-ready recommendation. Convergence
 answers remain evidence at the human gate.
 
 ## Commit-ready convergence and human authority
+
+At a commit-ready answer, perform no validation walk and start no new round.
+Compare the current requirement and group definitions with the round's bound
+scope and disclose any pending scope difference at this gate. Such changes
+are not polishing. Show the bound scope, current scope and changed definitions.
+`Commit` uses the reviewed bound scope and excludes pending requirement and
+group-definition edits; `Rework and review again` validates and reviews the
+new scope in a replacement round, with `--scope-change-file` explaining why.
+Keep pending scope edits outside the authorized commit and residual batches;
+preserve them for separate work rather than silently including or discarding
+them. A clean-tree postcondition may require resolving that pending work with
+the human; it never expands the reviewed authorization.
 
 Present the exact umbrella or `none`, plan, step, round, reviewer recommendation,
 repaired paths, staged evidence, `a.commit`, and writer assessment. Show

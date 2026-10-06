@@ -4,7 +4,7 @@ Goal of this instruction: bring a slow test call under the duration floor withou
 
 ## When to follow this fix-slow-test instruction
 
-- `ghog full` exited 8 and the report listed one or more calls above the floor, or you are cutting a test you already know is slow.
+- A `speed` walk exited 8 and the report listed one or more calls above the floor, or you are cutting a test you already know is slow.
 - Fix only the calls listed above the floor — the named outliers. The few next-slowest calls shown under the floor are tuning context, not fix targets; leave them alone.
 - One call at a time: profile it, shorten it, move to the next.
 
@@ -53,10 +53,10 @@ Keep the test honest while you cut its time:
   pytest "<NODE ID>" --no-cov -p no:testmon -q --durations=1
   ```
 
-- confirm it still passes on its own with `ghog single <file>`. The focused run carries no timing of its own — only the full run measures durations — so the new call time is re-read by the next walk, not here.
-- restart the walk with `ghog day`: its full run re-measures every call against the whole suite, so the trimmed call falls under the floor and drops off the list.
+- confirm it still passes on its own with `ghog single <file>`. The focused run carries no timing of its own — the full run or sequential timings step measures durations — so the new call time is re-read by the next walk, not here.
+- restart the walk with `ghog day --full=speed`: keep the same scope and follow the printed restart line; its full run or sequential timings step re-measures the calls, so the trimmed call falls under the floor and drops off the list.
 
-Fixing a slow call is a sub-step of the walk, not the end of it: exit 8 is one more non-green step, no different from a failure or a coverage gap. Keep looping from `ghog day` (the loop is in [`groundhog.md`](groundhog.md)) until it reports `exit=0`, then carry on with whatever instruction sent you to the walk -- the handoff, the commit, or the next step. Shortening a call never ends the work; it clears one blocker so the walk can reach the objective.
+Fixing a slow call is a sub-step of the walk, not the end of it: exit 8 is one more non-green step, no different from a failure or a coverage gap. Keep looping from `ghog day --full=speed` (the loop is in [`groundhog.md`](groundhog.md)) until it reports `exit=0`, then carry on with whatever instruction sent you to the walk -- the handoff, the commit, or the next step. Shortening a call never ends the work; it clears one blocker so the walk can reach the objective.
 
 ## When a call has to stay slow
 

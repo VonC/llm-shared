@@ -3,6 +3,9 @@
 Cover format detection, the Claude tool-block pass and line state machine,
 the Codex section filter, the trimming entry point, and the summary line of
 `tools.trim_thinking`.
+
+Fix: the dated-prompt cut is tested through `tools.trim_thinking_dates`, the
+module it moved to; `trim_transcript` still applies it.
 """
 
 from __future__ import annotations
@@ -12,6 +15,7 @@ from datetime import date
 import pytest
 
 from tools import trim_thinking as trimmer
+from tools import trim_thinking_dates as dated
 
 # pyright: reportPrivateUsage=false
 # ruff: noqa: RUF001, RUF002, SLF001
@@ -458,12 +462,12 @@ _DATED_EXPORT = """❯ first ask
 
 def test_date_forms_covers_the_eight_digit_rendering() -> None:
     """One date is recognized only in YYYYMMDD form."""
-    assert trimmer.date_forms(_DAY) == {"20260903"}
+    assert dated.date_forms(_DAY) == {"20260903"}
 
 
 def test_dated_prompt_drops_every_line_before_it() -> None:
     """The entire prefix goes; the dated prompt and the rest stay."""
-    kept = trimmer.drop_lines_before_dated_prompts(
+    kept = dated.drop_lines_before_dated_prompts(
         ["first", "second", "", "❯ 20260903 the ask", "after"],
         [_DAY],
     )
@@ -473,7 +477,7 @@ def test_dated_prompt_drops_every_line_before_it() -> None:
 
 def test_dated_prompt_is_matched_without_a_marker() -> None:
     """The one-character prompt marker is optional."""
-    assert trimmer.drop_lines_before_dated_prompts(
+    assert dated.drop_lines_before_dated_prompts(
         ["gone", "20260903 bare ask"],
         [_DAY],
     ) == ["20260903 bare ask"]
@@ -490,7 +494,7 @@ def test_dated_prompt_is_matched_without_a_marker() -> None:
 )
 def test_unmatched_leading_number_keeps_its_predecessor(line: str) -> None:
     """Only a recognized eight-digit date truncates the transcript."""
-    assert trimmer.drop_lines_before_dated_prompts(["before", line], [_DAY]) == [
+    assert dated.drop_lines_before_dated_prompts(["before", line], [_DAY]) == [
         "before",
         line,
     ]
@@ -498,7 +502,7 @@ def test_unmatched_leading_number_keeps_its_predecessor(line: str) -> None:
 
 def test_dated_prompt_on_the_first_line_keeps_the_whole_text() -> None:
     """A dated prompt opening the text leaves no prefix to drop."""
-    assert trimmer.drop_lines_before_dated_prompts(
+    assert dated.drop_lines_before_dated_prompts(
         ["20260903 the ask", "after"],
         [_DAY],
     ) == ["20260903 the ask", "after"]
@@ -508,7 +512,7 @@ def test_no_dates_leaves_every_line_in_place() -> None:
     """With no date to match, the trimmed text is returned untouched."""
     lines = ["before", "20260903 the ask"]
 
-    assert trimmer.drop_lines_before_dated_prompts(lines, []) == lines
+    assert dated.drop_lines_before_dated_prompts(lines, []) == lines
 
 
 def test_trim_transcript_applies_the_dated_pass_after_trimming() -> None:
