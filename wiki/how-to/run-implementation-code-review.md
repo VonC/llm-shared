@@ -56,6 +56,24 @@ continuation stages all of them and preserves durable authorization. Run
 `pw code-review-commit --residual`. Do not complete the exchange, run
 `pw skill`, or begin another step until `git status --porcelain` is empty.
 
+## Validate the scope of every round
+
+The built-in requestor validation is `ghog day --full=speed`, completed with
+the requirement's scope. Every round runs the required validation. A committed
+`.review-validation` replaces the built-in command list: one command per line,
+ignoring comments and blanks, with at least one command. Its commands are
+authoritative and receive no automatic level or scope selector. A declared
+plain day prints a migration notice; its success alone does not prove speed.
+Project, plan, and request additions extend the required list.
+
+At publication, the requestor binds resolved membership in `paths.scope`.
+Review evidence states requested scope and achieved proof. The reviewer uses
+that capture for `check` and focused `affected --no-cov` evidence, adding
+`--scope-file=<paths.scope>`. It never repeats `ghog day`, `ghog full`, or
+coverage validation. Later requirement edits affect later rounds and cannot
+silently change the current round. Group proof cannot establish whole-suite
+proof. Read returned paths rather than reconstructing capture names.
+
 ## Resume an implementation code review
 
 1. Open the same repository in the requestor agent session.

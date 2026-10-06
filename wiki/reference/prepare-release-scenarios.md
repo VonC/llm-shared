@@ -163,10 +163,16 @@ remain pending notes.
 
 ## Base synchronization
 
+Every promotion merge requires `ghog day --full=cov --whole-suite` on the
+source or landing tree, including an already synchronized branch and resumed
+handoff. Valid whole-suite `cov` or `speed` proof may be reused. A group marker
+cannot satisfy this gate, and environment defaults cannot override its explicit
+level and scope.
+
 | State | Integration mode | Effort mode |
 | --- | --- | --- |
 | target is ancestor of source | Merge is ready | Merge directly only when the confirmed base belongs to the selected target; otherwise replay the feature-only range |
-| source lacks latest target | Merge main into integration, then `ghog day` | `rebase --onto <target>` on a landing branch, `range-diff`, then `ghog day` |
+| source lacks latest target | Merge main into integration, then `ghog day --full=cov --whole-suite` | `rebase --onto <target>` on a landing branch, `range-diff`, then `ghog day --full=cov --whole-suite` |
 | feature tip is already an ancestor of its target | Not applicable | Continue only for a verifiable current-tip merge; otherwise stop before historical rewording |
 | local main behind origin/main | Move the off-main local ref to origin/main | Same |
 | local main diverged from origin/main | Stop for reconciliation | Same |

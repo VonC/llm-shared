@@ -21,6 +21,13 @@ Never re-walk without a change, use the cheaper inner verifiers each
 branch names, and stop when an iteration makes no progress — never beyond
 10 iterations.
 
+Keep the original level and scope on every retry. For a coverage objective use
+`ghog day --full=cov --whole-suite`; for an effort's speed gate use
+`ghog day --full=speed --group=<name>` or the selector printed by `pw scope`.
+Use the same scope on focused `single` and `affected` calls. Plain day defaults
+to check and affected tests only and cannot confirm a full coverage or speed
+objective.
+
 ## 📋 Recipe per exit code
 
 - **check failing (passthrough exit)** — fix the compile or lint errors in
@@ -47,7 +54,7 @@ branch names, and stop when an iteration makes no progress — never beyond
   under `Uncovered lines`. Feed each row to covg:
 
   ```cmd
-  cmd /d /v:on /c "senv.bat && ..\llm-shared\bin\covg.bat src\pkg\mod.py 48 86-88 100"
+  cmd /d /v:on /c ".\senv.bat && ..\llm-shared\bin\covg.bat src\pkg\mod.py 48 86-88 100"
   ```
 
   covg names the enclosing functions and builds a ready-to-paste
@@ -90,9 +97,10 @@ and `ghog status` (a redirect would truncate the live walk's log).
 
 ## ✅ Check the objective
 
-The green walk ends with `Objective reached` and a closing line such as
-`myproject: ghog full done fail=0 warn=0 xfail=11 cov=100 exit=0`. The nag
-line about warnings or xfails never blocks it.
+Require exit 0 and evidence for the requested level and scope. A saved-proof
+noop is valid when `proof` meets the objective and `scope` matches, even when
+coverage reads `skipped` because nothing ran. Warnings or xfails do not block
+the objective.
 
 Related: [ghog commands and exit codes](../reference/ghog-commands-and-exit-codes.md),
 [Groundhog as a reset loop](../explanation/groundhog-as-a-reset-loop.md).

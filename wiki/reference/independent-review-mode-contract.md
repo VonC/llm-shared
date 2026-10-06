@@ -25,11 +25,17 @@ provenance.
 
 Automatic intermediate exchange uses reciprocal waiting. The requestor's
 `wait-answer` is bounded to its exact exchange. After every answer the reviewer
-runs the quiet foreground `wait-any-request` in the same session. This global
+runs the quiet `wait-any-request` in the same session. This global
 wait has no exchange timeout while idle and accepts either review family under
 the configured home. A replacement request wakes it after requestor work or a
 human's another-round choice; convergence leaves the human gate intact.
 Native events trigger authoritative rescans, with bounded polling fallback.
+
+Codex keeps its assistant turn active through an attached wait and continues
+awaiting the same process handle after a transport yield. Claude uses
+host-managed background completion with automatic resumption. Neither host
+requires another user message when a request appears. A transport timeout
+does not authorize restarting the watcher or resetting protocol deadlines.
 `already-claimed` losers return to waiting. Intact expired leases remain
 recoverable; damaged, inconsistent, escalated and repair-required evidence stops
 the operation. Repeated status calls are not the wait interface.
@@ -312,15 +318,16 @@ Each invocation writes one final JSON object on standard output. During a wait,
 standard error is progress only. The returned `paths` object is authoritative
 for artifact access; a caller must not infer a path from the identity grammar.
 
-The success payload always has seven fields:
+The success payload has these core fields:
 
 | Field | Meaning |
 | --- | --- |
 | `diagnostic` | Human-readable state or failure detail |
+| `bound_scope` | Validated bound identity, or `missing` when evidence is unavailable |
 | `identity` | Exact family, type, version, and slug, except null on fatal input |
 | `operation` | Requested CLI operation |
 | `outcome` | One value from the reviewed snapshot |
-| `paths` | Six fixed path keys, except an empty object on fatal input |
+| `paths` | Six fixed keys, plus `scope` when a validated capture is bound; empty on fatal input |
 | `round` | Current positive round, or null when no round exists |
 | `state` | One value from the state matrix |
 
@@ -334,6 +341,21 @@ The six success-path keys are:
 | `tombstone` | Consumed request evidence |
 | `transcript` | Versioned append-only review record |
 | `transition_lock` | Transition lock |
+
+Results with validated bound evidence also expose `paths.scope`, the capture bound to the current
+round. It records the selected scope, patterns, membership, and fingerprint.
+Reviewers validate and use this capture rather than current requirement
+metadata or `GHOG_GROUP`. Later scope changes apply to later publications.
+The capture follows exchange archive and cleanup operations.
+
+`bound_scope` reports the validated `scope`, `group`, and `fingerprint`, or
+`missing` for legacy, absent, or unreadable evidence. Missing evidence must
+never be interpreted as whole-suite proof. Request and answer evidence state
+the requested scope and achieved proof separately.
+
+Code-review test inventories accept `-` or `*` list markers and wrapped
+continuation lines without losing one logical item. Inventory evidence remains
+separate from the prose assessment of the implementation.
 
 Additional fields are conditional. `exchange_occurrence` appears for a pending
 request, `owning_action_authorized` appears after human confirmation,
@@ -435,7 +457,7 @@ its internal operations; no shell resume launcher is installed.
 | `claim` | Exact selected document, role, round and occurrence | Automatic pickup or idempotent reuse of the supplied capability |
 | `wait-any-request` | Identity-free reviewer wait in the configured home | One claimed request, ambiguity, cancellation, or operational failure |
 
-The foreground global wait writes no idle output. Its final JSON has
+The global wait writes no idle output. Its final JSON has
 `operation`, `outcome`, `identity`, `candidates`, and `diagnostic`.
 Only `found` includes the session-only ownership generation and token.
 Exit codes are 0 for `found`, 3 for `ambiguous` or `cancelled`, and 2

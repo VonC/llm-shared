@@ -44,8 +44,8 @@ run still needs a new Codex thread before the refreshed skill registry appears.
 
 | Alias | Runs | Purpose |
 | --- | --- | --- |
-| `ghog` | `bin\ghog.bat` | the groundhog reset tool; `ghog day` walks check, affected, full |
-| `ptr` | `ghog full` | full suite with the coverage gate; rebuild testmon in default sequential mode |
+| `ghog` | `bin\ghog.bat` | check and affected tests by default; `day --full=pass\|cov\|speed` adds the selected full gate |
+| `ptr` | `ghog full` | selected suite at speed by default; rebuild testmon in default sequential mode |
 | `pta` | `ghog affected` | testmon-selected tests with appended coverage |
 | `ptanc` | `ghog affected --no-cov` | the fast focused pass, coverage off |
 | `pts` | `ghog single <test files>` | named files in focus, compared with the last full-run baseline |
@@ -82,7 +82,7 @@ trims a file; the alias forwards every argument. See
 | `tth.bat` | `tools\trim_thinking_cli.py` | trim an exported conversation from a file or the clipboard, result to the clipboard |
 | `python_check.bat` | vulture, big-file check, `enforce_eof.py` | the check station of the walk |
 | `python_check_types.bat` | type checking | the typing gate |
-| `ghog_cycle.bat` | `bin\ghog.bat` | activate once for a sequence; default `day` then `timings`, stop at the first nonzero exit |
+| `ghog_cycle.bat` | `bin\ghog.bat` | activate once for a sequence; default `day` alone, following level selection; stop at the first nonzero exit |
 | `prj_path_sum.bat` | `sha256sum.exe` | check or update the `a.prj.path.sum` environment fingerprint in the review artifact home (`.reviews`) |
 | `commit-plan-check.bat` | `tools\commit_plan_check.py` | read-only readiness verdict for the root `a.commit` against the staged set, `--format json` for machine use |
 | `rvw_status.bat` | `tools\review_status_cli.py` | migration-aware schema-2 status for every active review without resuming it |

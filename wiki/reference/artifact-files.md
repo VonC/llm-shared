@@ -162,6 +162,7 @@ them.
 | --- | --- |
 | `a.review-*` | current request, answer, coordination, tombstone, lock, migration journal, or archived recovery evidence |
 | `a.code-review-evidence.<version>.<slug>.step-<step>.json` | retained code-review evidence manifest, retired after answer publication |
+| returned `paths.scope` | core-owned resolved test-scope capture bound to the current code-review round; archived or removed with the exchange |
 
 The versioned `review.<type>.<version>.<slug>.md` transcript is the exception:
 it stays beside the reviewed document rather than in the runtime home. See the
@@ -213,13 +214,19 @@ file and move a legacy root copy of the same name into it once.
 
 | File | Where | Role |
 | --- | --- | --- |
-| `.testmondata` | root | the testmon database; deleted and rebuilt by `ghog full` |
+| `.testmondata` | root | the testmon database; deleted and rebuilt by sequential `ghog full`, preserved by parallel full runs |
 | `a.ghog.log` | root | redirect target of every LLM-driven run; overwritten per run, never deleted |
 | `a.ghog.status` | root | run lifecycle line: `state=running pid=...`, then `state=done exit=...` |
 | `a.ghog.failures` | artifact home | failing node ids of the last full run, the focus baseline |
-| `a.ghog.day.ok` | artifact home | source snapshot of the last green walk; unchanged means the next walk is a noop |
+| `a.ghog.day.ok` | artifact home | whole-suite proof marker: scope, fingerprint, timing, digest, and proof level |
+| `a.ghog.day.<group>.ok` | artifact home | isolated proof marker for the named group; never whole-suite proof |
 | `a.ghog.outliers` | artifact home | duration-outlier floor and accepted exclusions |
 | `a.ghog.senv.log`, `a.ghog.senv.txt` | artifact home | parked senv preamble of one call, replayed and deleted by the tool |
+
+The project-root `.ghog-groups` declares test/source membership patterns.
+Requirement metadata selects the effort's scope. See
+[levels, groups, and saved proof](ghog-commands-and-exit-codes.md) for matching
+rules and proof invalidation.
 
 ## 🚀 Version and release files
 

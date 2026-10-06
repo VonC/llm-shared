@@ -17,6 +17,15 @@ cleanly for the next ordered umbrella requirement or continue to
 one `chore(release): prepare for vX.Y.Z release` commit on `main` when the
 umbrella is exhausted.
 
+## Prove coverage before promotion
+
+Before each promotion merge, let the skill run
+`ghog day --full=cov --whole-suite` in the source or landing tree that will be
+merged. This applies to already synchronized branches, replayed ranges, and
+resumed handoffs. A valid whole-suite `cov` or `speed` proof can make the gate
+a noop; group proof cannot satisfy it. Keep these explicit selectors so local
+`GHOG_FULL` and `GHOG_GROUP` settings cannot weaken the release gate.
+
 ## 🧭 Choose the invocation branch
 
 | Goal | Start from | Result |
@@ -98,7 +107,7 @@ branch selected them.
 4. Confirm the bulk promotion.
 
 If develop lacks a main hotfix, accept the proposed merge of main into
-develop and let the `ghog day` gate finish before promotion. Do not rebase
+develop and let `ghog day --full=cov --whole-suite` finish before promotion. Do not rebase
 the shared integration branch.
 
 Use this bulk path only when every topic currently represented by develop is
@@ -211,7 +220,7 @@ Otherwise it creates a temporary landing branch and runs:
 git rebase --onto <destination> <feature-base> <landing-branch>
 ```
 
-It verifies the replay with `git range-diff`, runs `ghog day`, and merges the
+It verifies the replay with `git range-diff`, runs `ghog day --full=cov --whole-suite`, and merges the
 landing branch with `--no-ff`. The original feature ref remains unchanged.
 With develop, this is the continuous-integration pick. Without develop, main
 is the destination.
@@ -268,7 +277,7 @@ root. The skill resolves that home with
 | Conflict preview is red | inspect the predicted paths and conflict types before deciding whether to proceed |
 | Rebase conflict | resolve, `git add`, then "go ahead" |
 | Local main diverged | decide how to reconcile; the skill never resets local commits |
-| `ghog day` not green | review the grouped fixes, then "go ahead" |
+| `ghog day --full=cov --whole-suite` not green | review the grouped fixes, then "go ahead" |
 | Merge message | review or edit the `Why:` / `What:` message |
 | Umbrella has a pending row | take the printed `process-draft` command as the next effort; release files remain untouched |
 | Umbrella status and evidence disagree | rerun or repair the final implementation check; never infer completion |

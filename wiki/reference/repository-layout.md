@@ -100,6 +100,15 @@ version.txt, CHANGELOG.md    release state
 pyproject.toml, uv.lock      dependencies, managed with uv
 ```
 
+## Dependency environment
+
+The project environment sets `UV_SYSTEM_CERTS=1` so direct uv commands use the
+platform certificate store. Its Git lockfile filter keeps committed package
+URLs public and restores configured mirror URLs in working copies. Filter
+installation precedes environment synchronization, and an unchanged lockfile
+can be refreshed through the filter; local lockfile edits are preserved.
+The dependency set pins pip 26.2 for CVE-2026-13346.
+
 ## 🌍 What is generalized versus project-specific
 
 The skills, rules, templates and tools are meant to be referenced from

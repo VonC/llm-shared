@@ -122,6 +122,40 @@ generated left navigation always orders them as Explanation, Tutorials,
 How-to guides, then Reference. Pages inside each section remain sorted by
 filename.
 
+## Use an existing external docs service
+
+To refresh documentation through an existing service, put an external client
+configuration in the folder's `serve_docs.ini`:
+
+```ini
+[serve_docs]
+mode = external
+external_command =
+    ../.venv/Scripts/python.exe
+    -m
+    sample_notes.refresh
+external_watch =
+    .
+    @include
+include =
+    ../shared-notes.md
+external_open =
+    https://manual.example.test/guide/
+external_debounce_seconds = 1
+```
+
+Start the same docs launcher on that folder. It runs the configured command
+once, watches for settled edits, and coalesces changes before refreshing again.
+This mode uses the configured service and skips local MkDocs setup.
+
+Put one command argument per line. Executable paths starting with `.` and
+watch paths resolve relative to the folder. `@include` and `@assets` reuse
+their configured path lists. The command can return JSON with an `open_urls`
+list of absolute HTTP(S) targets; otherwise `external_open` is the fallback.
+Use `--no-browser` to suppress opening. Command output and errors are not
+copied into diagnostics. If refresh fails, check or start the configured
+service; retained pages can still open when the service remains available.
+
 ## Add a project alias
 
 A project can pin its own docs tree behind a Doskey alias in its

@@ -27,11 +27,21 @@ The skill reads the plan, the design and the requirement, writes a short
 analysis, then writes the classes and their tests in full — no
 placeholders, tests first for a new class, `__init__.py` files updated.
 
+Its first action is `pw step-journal 1`. The private journal and handoff in
+the artifact home retain the step's findings and restart point through the
+implementation, validation, and commit chain.
+
 ## 2. Watch the green gate
 
-The step is not done until one `ghog day` walk is green. The model runs
+The model first prints the development command with `pw scope day`, then
+runs it with the requirement's explicit scope. Plain day defaults to check
+and affected tests; full-suite gates are added explicitly. The model runs
 it redirected to `a.ghog.log`, branches on the exit code, and fixes what
 the report names. You can follow along from a second console.
+
+If ghog exits 9 because the project has no pytest suite, the model validates
+with the project's own test commands and records that evidence. It does not
+install pytest to change the project type.
 
 ## 3. The chain hands off by itself
 
@@ -58,6 +68,19 @@ temporary `draft.v10.0.0.route-cleanup.md` alias.
    one conventional commit message per group into `a.commit`.
 
 ## 4. Stop at the commit gate
+
+Before a review-off commit gate, the model runs the command printed by
+`pw scope day --full=speed`. It compares the staged reference tree and a
+saved `ghog exclude --list` with the final tree and exclusions. A changed
+tree, changed exclusions, or unverified comparison refreshes implementation
+checking and grouping, then repeats validation. The menu requires an unchanged
+tree and verified unchanged exclusions. Accepted slow calls need a measured
+baseline, attempted improvement, and reason in the evidence.
+
+With independent review enabled, the requestor runs the required speed
+validation before each round and publishes a bound scope capture. The reviewer
+uses that capture for focused checks; convergence stops at the human `Commit`
+gate described in [the code-review guide](../how-to/run-implementation-code-review.md).
 
 The chain always stops at `a.commit`: writing the messages is automatic,
 making the commits is not. The model shows the commit plan and a

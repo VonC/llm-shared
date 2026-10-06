@@ -19,16 +19,89 @@ same contract into local automation.
 
 | Alias | Subcommand | Behavior |
 | --- | --- | --- |
-| — | `ghog day` | walk check, then `affected --no-cov`, then `full`, stopping at the first non-green step; a noop when nothing changed since the last green walk (`--force` overrides); `--detach` runs a survivor process polled through `ghog status` |
+| — | `ghog day` | check, then `affected --no-cov`, with an optional full step at the selected level; stops at the first non-green step; valid saved proof can make it a noop (`--force` overrides); `--detach` runs a survivor process observed through `ghog status` |
 | — | `ghog status` | replay the run lifecycle from `a.ghog.status` without starting anything |
 | — | `ghog check` | run `check.bat` from the project root, exit code passed through |
-| `ptr` | `ghog full` | full suite with coverage; the default sequential mode rebuilds `.testmondata` with `--testmon` |
+| `ptr` | `ghog full` | selected suite at `speed` by default; the default sequential mode rebuilds `.testmondata` with `--testmon` |
 | `pta` | `ghog affected` | testmon-selected tests, `--cov-append`, coverage report |
 | `ptanc` | `ghog affected --no-cov` | testmon-selected tests, no coverage |
 | `pts` | `ghog single <test files>` | named test files in focus, no coverage, compared with the last full-run baseline |
 | — | `ghog timings` | sequential, uninstrumented whole-suite pass that judges the duration gate |
 | — | `ghog init` | register the skill pointers in the project |
 | — | `ghog exclude "<node id>" <seconds>` | accept a genuinely slow call at its measured time |
+| — | `ghog groups [name]` | validate group declarations and print patterns and resolved test/source counts |
+| — | `ghog exclude --list [--since=<saved-list>]` | list effective exclusions, or compare them with saved evidence |
+
+## Full-suite levels
+
+`check`, `full`, `affected`, `single`, and `day` accept `--full=pass|cov|speed`.
+Selection is the explicit parameter, then nonempty `GHOG_FULL`, then the command
+default. `full` defaults to `speed`; the others default to internal `none`.
+An explicit `none`, empty value, or unknown level fails with exit 5.
+`timings`, `status`, `init`, `groups`, and `exclude` do not read `GHOG_FULL`.
+
+| Level | Full-step gates |
+| --- | --- |
+| `pass` | All selected tests pass; no coverage or duration verdict |
+| `cov` | Passing tests and the coverage gate |
+| `speed` | Passing tests, coverage, and the duration gate |
+
+Plain `ghog day` runs check and affected tests only unless `GHOG_FULL` selects
+a full step. `--full` selects the walk objective; it does not turn a direct
+`check`, `affected`, or `single` call into a full-suite run.
+
+## Test groups and explicit scopes
+
+The level-capable commands accept exactly one of `--group=<name>`,
+`--whole-suite`, or `--scope-file=<capture>`. An explicit selector overrides
+`GHOG_GROUP`; otherwise nonempty `GHOG_GROUP` selects a group, and the default
+is the whole suite. `timings` remains a whole-suite command.
+
+Declare groups in the project-root `.ghog-groups`:
+
+```ini
+[parser]
+tests =
+    /tests/unit/parser/
+sources =
+    /src/parser/
+```
+
+Names match `[a-z][a-z0-9_-]*`. Each section requires both `tests` and `sources`,
+with nonempty resolved membership; `DEFAULT` patterns are forbidden. Inventory
+is Python files only. Test membership follows pytest's configured `python_files`
+and excludes `conftest.py`; coverage omit rules apply to source membership.
+
+Patterns use `/` after backslash normalization. Blank lines and `#` comments
+are ignored. A slash-free pattern matches basenames at any depth; a leading
+`/` anchors at the root. Directory patterns include descendants, `**` recurses,
+`!` excludes, and the last matching pattern wins. Grouped coverage measures
+the group's resolved sources. Group proof never proves the whole suite.
+
+A scope capture records patterns, ordered membership, and fingerprint.
+`--scope-file` validates that capture instead of selecting today's declaration
+or environment. `ghog groups` is read-only: exit 0 means valid declarations,
+and exit 5 means invalid input or membership. Exclusion listings also leave
+proof and run lifecycle untouched. A `--since` comparison reports `changed`,
+`unchanged`, or `unverified`; invalid evidence exits 5.
+
+## Saved day proof
+
+A green day stores proof in the artifact home: `a.ghog.day.ok` for the whole
+suite, or `a.ghog.day.<group>.ok` for a group. Each marker contains five
+`key=value` lines: `scope`, `fingerprint`, `timing`, `digest`, and `proof`.
+The digest covers Python files and gate configuration; the scope fingerprint
+must match too. Legacy one-line snapshots provide no valid proof.
+
+Valid proof at or above the requested level skips the entire walk, including
+`check.bat`. An upgrade from a lower valid proof reuses check and affected tests
+and runs the full step at the requested level. Changing the duration floor or
+exclusions caps a saved `speed` proof at `cov`. A failed judged gate lowers
+proof below that gate; a setup failure or interruption without a verdict
+preserves prior proof. Direct `ghog full` reports earned proof but never reads
+or writes a day marker.
+
+## Sequential and parallel full runs
 
 `ghog full` stays on a single worker by default: testmon does not cooperate
 with xdist, and the rebuilt database keeps every later `ghog affected` cheap.
@@ -38,7 +111,9 @@ at its root, which runs `-n auto --dist loadgroup` so a module carrying an
 mode omits `--testmon` and leaves the existing testmon database untouched;
 `ghog affected` still uses that database. A parallel full run skips the
 duration gate, because a contended call time measures the
-scheduler rather than the test; `ghog timings` judges it sequentially instead.
+scheduler rather than the test. Direct parallel `full --full=speed` earns at
+most `cov` proof. A parallel `day --full=speed` follows the full step with
+sequential, uninstrumented timings before earning `speed` proof.
 
 ## 🚦 Exit codes
 
@@ -58,7 +133,7 @@ scheduler rather than the test; `ghog timings` judges it sequentially instead.
 ## 🏁 The closing line
 
 ```txt
-myproject: ghog full done fail=0 warn=0 xfail=11 cov=100 exit=0
+myproject: ghog day done fail=0 warn=0 xfail=11 cov=100 exit=0 full=cov src=param proof=cov reused=none scope=whole
 ```
 
 `cov=` reads `skipped` (not measured), `withheld` (failures hide it),
@@ -66,6 +141,11 @@ myproject: ghog full done fail=0 warn=0 xfail=11 cov=100 exit=0
 exit code, not the text, is the branching signal. A `check.bat` printing
 `ERROR :` lines while exiting 0 is treated as failed anyway (ANSI colors
 stripped before matching).
+
+Day evidence adds `full`, `src` (`param`, `env`, or `default`), `proof`,
+`reused` (`none`, `check+affected`, or `all`), and `scope` (`whole` or
+`group:<name>`). Direct full evidence adds level, source, proof, and scope;
+other runs carry scope only. A running record uses `proof=pending`.
 
 ## 🖥️ Output modes
 
@@ -82,8 +162,9 @@ The interactive `ghdy`, `gha`, `ghc`, `ghf`, and `ghs` aliases select live
 setup output for `day`, `affected`, `check`, `full`, and `single` respectively.
 
 `bin\ghog_cycle.bat` activates the project environment once, then runs each
-argument as a ghog subcommand line. With no arguments it runs `day`, then
-`timings`; a nonzero phase stops the sequence and supplies its exit code.
+argument as a ghog subcommand line. With no arguments it runs `day` alone,
+following the normal level selection; a nonzero phase stops the sequence and
+supplies its exit code. Pass `"day --full=speed"` for the complete speed gate.
 The wrapper sets `GHOG_SENV_READY` for its child calls after activation.
 An inherited `NO_MORE_SENV_<project>` guard alone does not bypass setup.
 
@@ -110,7 +191,7 @@ run reading as live — break that verdict by deleting `a.ghog.status`.
 
 ## 🐢 The duration gate in detail
 
-The sequential full run and `ghog timings` measure each test's call phase.
+The sequential full run at `speed` and `ghog timings` measure each test's call phase.
 A call is flagged as an
 outlier — exit 8 on an otherwise-green run — only when two conditions
 hold at once:

@@ -6,15 +6,17 @@
 
 ## Invocation model
 
-During implementation, the AI normally owns this loop: it calls `ghog day`,
+During implementation, the AI normally owns this loop: it calls a scoped `ghog day`,
 uses the exit contract to fix failures, coverage gaps, or duration outliers,
 and walks again. Run `ghog` directly to learn the gate, reproduce it locally,
 or diagnose a specific station without starting an AI workflow.
 
-🧪 Like the movie, groundhog relives the same day — compile check,
-affected tests, full suite with a freshly reset coverage measure — until
-the day is flawless. The design choices all follow from one split: the
-walk never fixes, and the fixer never walks.
+🧪 Groundhog repeats compile checks and affected tests until the selected
+objective is met. Full-suite work is explicit: `pass` proves passing tests,
+`cov` adds coverage, and `speed` adds durations. A plain day defaults to the
+development walk without a full step, while release preparation requires
+whole-suite coverage and implementation commit validation requires speed in
+the effort's scope. The walk reports a verdict; its caller applies fixes.
 
 ## ⚖️ Why walk and fix are separate
 
@@ -26,18 +28,31 @@ rule — no progress, or ten iterations — instead of a model quietly
 thrashing.
 
 The walk is also the only re-entry point. After a fix, the next command
-is `ghog day` itself, never a standalone subcommand as confirmation: the
+is `ghog day` with the same level and scope, never a standalone subcommand as confirmation: the
 cheaper inner verifiers (`ghog single`, `ghog affected`) exist inside a
 branch, and each branch hands back to the walk.
 
-## ♻️ Why the full run resets testmon
+## Why proof has a level and a scope
 
-`ghog full` deletes `.testmondata` and rebuilds it on a single worker.
+A saved green result is useful only for the objective it proved. A passing
+suite does not establish coverage, and a group's coverage does not establish
+whole-suite coverage. Separate scope markers and ordered proof levels let a
+walk reuse a valid lower result while running the stronger requested gate.
+Proof at or above the request makes the whole walk free, including check.
+
+Python or gate-configuration changes invalidate source proof. Scope patterns
+and membership must also match. Duration-floor or exclusion changes retain
+coverage proof but require timing validation again. This makes accepted slow
+tests part of the proof contract rather than an invisible workaround.
+
+## ♻️ Why sequential full runs reset testmon
+
+Sequential `ghog full` deletes `.testmondata` and rebuilds it on a single worker.
 The fresh database is what makes every later `ghog affected` cheap and
 truthful — stale test-impact data would let a change slip through the
-fast pass. The full run is slow on purpose: it is the objective verdict,
-and the day snapshot (`a.ghog.day.ok`, kept in the artifact home) makes
-repeating a green one free.
+fast pass. Parallel full runs leave the database untouched and avoid judging
+contended duration measurements. A speed day in a parallel project adds a
+sequential timing pass, so concurrency does not weaken the timing verdict.
 
 ## 👥 One output, two audiences
 
@@ -60,7 +75,7 @@ both the log and the testmon state.
 
 ## 🐢 Why slow tests stop a green run
 
-Exit 8 flags a duration outlier even when everything passes, judged last
+At the speed gate, exit 8 flags a duration outlier even when everything passes, judged last
 so it never masks a failure. A suite that creeps past one second per test
 stops being run willingly; the gate keeps the feedback loop fast enough
 that running it stays the default.

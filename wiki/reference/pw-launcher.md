@@ -167,6 +167,28 @@ only moves review artifacts of an old layout into the artifact home. The
 command exits `0` with a resolved topic, and `3` with `topic none resolved`
 otherwise.
 
+## Effort test scope
+
+`pw scope` prints one explicit ghog selector. `pw scope day --full=speed`
+prints a complete command such as `ghog day --full=speed --group=parser`;
+it does not execute tests. The requirement or issue header, before its first
+level-two heading, is the sole declaration:
+
+```markdown
+- Test group: parser
+```
+
+Use `whole suite` to select the whole suite. A missing line or requirement
+defaults to whole suite. Empty, duplicate, invalid, or unresolved declarations
+fail closed. Draft metadata and `GHOG_GROUP` do not select effort scope.
+Named groups must resolve through the project-root `.ghog-groups`.
+
+`pw scope` rejects caller-supplied `--group`, `--whole-suite`, or `--scope-file`
+with exit 2. An unresolved topic exits 3; valid output exits 0. `pw progress`
+shows the current scope and its provenance, plus the validated bound scope of
+the current code-review round. A changed requirement is shown as a pending
+change; missing captures read `bound missing` and never imply proof.
+
 ## 📓 Private step journal and handoff
 
 ```text
@@ -292,7 +314,8 @@ skill instructions, not by `pw`.
 | `pw document <version> <slug> <type>` | prints the unique document path without branch or memory resolution |
 | `pw progress [--host claude\|codex]` | prints branch, topic, umbrella position or standalone, phase, step position, and condensed review status above the bare next command |
 | `pw --pick` | reopens the topic menu when the branch lock is wrong |
-| `--root`, `--debug` | shared flags of the underlying tool |
+| `pw scope [ghog arguments]` | prints the requirement's explicit scope selector, or a completed ghog command |
+| `--root`, `--debug` | shared flags, accepted before or after the subcommand |
 
 ## 🚦 Exit and error behavior
 

@@ -73,8 +73,9 @@ artifacts, both LLM-nature values and evidence arrays, and the typed next action
 
 For continuation, enter `resume` in the agent session. Requestors use the
 bounded `wait-answer` for their exact exchange. Reviewers use one quiet
-foreground `wait-any-request` across rounds and families; do not substitute
-repeated status calls for that wait.
+`wait-any-request` across rounds and families. Codex keeps an attached active
+turn; Claude uses host-managed background completion with automatic resumption.
+Do not substitute repeated status calls for that wait.
 
 For exact fields and configuration, see the
 [independent review mode contract](../reference/independent-review-mode-contract.md).

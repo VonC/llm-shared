@@ -33,28 +33,37 @@ recognized and left alone.
 ## 2. Walk the day
 
 ```cmd
-ghog day
+ghog day --whole-suite
 ```
 
-The walk relives the same three stations until flawless:
+With no `GHOG_FULL` override, this development walk has two stations:
 
 1. `check` — runs `check.bat` (compile, lint, big-file gate),
 2. `affected --no-cov` — the tests affected by your changes, fast,
-   coverage off,
-3. `full` — deletes `.testmondata`, reruns the whole suite, measures
-   coverage against the project gate (`fail_under`, default 100).
+   coverage off.
+
+Now request whole-suite coverage explicitly:
+
+```cmd
+ghog day --full=cov --whole-suite
+```
+
+The walk adds a full step, measures coverage against `fail_under` (default 100),
+and rebuilds testmon in sequential mode. Use `--full=pass` for passing tests
+alone, or `--full=speed` to add the duration gate. These explicit parameters
+override `GHOG_FULL` and `GHOG_GROUP` from your console.
 
 In a console you see a progress bar with live counters; the run ends on a
 key=value closing line such as:
 
 ```txt
-myproject: ghog full done fail=0 warn=0 xfail=11 cov=100 exit=0
+myproject: ghog day done fail=0 warn=0 xfail=11 cov=100 exit=0 full=cov src=param proof=cov reused=none scope=whole
 ```
 
 ## 3. Read the verdict
 
 The exit code is the branching signal: `0` means objective reached, `2`
-test failures, `3` a coverage gap, `8` a green run with one test far
+test failures, `3` a coverage gap, `8` a speed run with one test far
 slower than the rest. Each stop names its own next move in the report —
 `ghog single <failing files>` after a full-run failure, `covg` on the
 uncovered lines after a gap. The full contract is in
@@ -63,17 +72,19 @@ uncovered lines after a gap. The full contract is in
 ## 4. Run it a second time
 
 ```cmd
-ghog day
+ghog day --full=cov --whole-suite
 ```
 
-If nothing changed since the green walk, this second run is a noop: the
-walk recorded a snapshot of every Python file in `a.ghog.day.ok` (in the
-artifact home, `.reviews` by default) and checks it first. Touch any source file and the walk re-arms. `ghog day
---force` walks regardless.
+If sources, gate configuration, and scope still match the saved proof, this
+second run skips everything, even check. `proof=cov reused=all scope=whole`
+shows why. The marker `a.ghog.day.ok` lives in the artifact home (`.reviews`
+by default). Change a Python file and the walk re-arms; add `--force` to run
+regardless. A later `--full=speed` request can reuse check and affected tests
+while upgrading the proof with a full speed run.
 
 ## 5. Hand the loop to the LLM
 
-Ask your agent to "run groundhog" (or type `/groundhog`). The model then
+Ask your agent to "run groundhog day --full=cov --whole-suite". The model then
 follows the fixing loop: run the walk redirected to `a.ghog.log`, apply
 the fix the report names, walk again, and stop when green or when an
 iteration makes no progress. You can follow the run live from a second

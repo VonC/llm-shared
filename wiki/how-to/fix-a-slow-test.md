@@ -15,7 +15,8 @@ the one-second target, without weakening any assertion.
 
 ## 🐢 What exit 8 means
 
-The full run times every test call. A robust outlier score at or above a
+The sequential full run at `speed`, or `ghog timings`, times every test call.
+A robust outlier score at or above a
 one-second floor stops an otherwise-green walk on exit 8, with the slow
 calls named. The verdict is judged last, so it never masks a failure or a
 coverage gap.
@@ -44,7 +45,9 @@ coverage gap.
 
 4. Re-measure the call; aim under one second.
 
-5. Restart the walk with `ghog day`.
+5. Restart with `ghog day --full=speed` and the original explicit scope.
+   Use `pw scope day --full=speed` to print the effort's command; execute the
+   printed command through the resolved ghog launcher.
 
 ## 🤝 Accepting a genuinely slow call
 
@@ -81,8 +84,11 @@ the bar for the whole suite, an exclusion accepts one known call.
 
 ## ✅ Check after the fix
 
-`ghog day` runs green with no exit-8 stop, and the report names no slow
-call. Report the hotspot and the before/after timing in your summary.
+The scoped `ghog day --full=speed` reaches exit 0 with matching `proof=speed`.
+Report the hotspot and before/after timing. For an accepted exclusion, also
+report its node id, measured baseline, attempted improvement, and reason.
+Changing the floor or exclusions caps saved speed proof at coverage until
+the speed gate is proved again.
 
 Related: [Fix a red groundhog walk](fix-a-red-groundhog-walk.md),
 [ghog commands and exit codes](../reference/ghog-commands-and-exit-codes.md).

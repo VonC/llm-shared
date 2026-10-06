@@ -78,7 +78,7 @@ switches this worktree to main, performs the non-fast-forward merge, and
 rewords the merge through `update-merge-commit-msg`.
 
 If develop does not contain the latest main, the skill does not rebase it. It
-offers to merge main into develop, runs the `ghog day` gate there, and only
+offers to merge main into develop, runs `ghog day --full=cov --whole-suite` there, and only
 then returns to the promotion.
 
 ## 4. Let the wiki catch up

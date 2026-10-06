@@ -70,8 +70,10 @@ request, the reviewer actively waits after a change-request answer, and each
 replacement round wakes the counterpart without another user instruction.
 Neither role may create or contact the other; the human or an external reviewer
 service starts each role independently. Convergence still stops at the human
-gate. The reviewer continues in the quiet foreground `wait-any-request` for
-another request under the configured artifact home. Enter `resume` to recover a
+gate. The reviewer continues in the quiet `wait-any-request` for another
+request under the configured artifact home. Codex keeps an attached active
+turn; Claude uses background completion with automatic resumption. Enter
+`resume` to recover a
 session through migration, role selection, and automatic ownership pickup.
 
 ## Four officially supported AI environments

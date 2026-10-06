@@ -126,6 +126,23 @@ branch-matched canonical umbrella with a nonempty ordered table and prints the
 `process-draft ... based on <slug>` command for its first valid pending row.
 An absent or ambiguous umbrella remains not applicable.
 
+## Print the effort's test command
+
+Declare `- Test group: parser` in the requirement header and define that group
+in `.ghog-groups`. Use `whole suite`, or omit the line, for whole-suite scope.
+Then run:
+
+```powershell
+& "<LLM_SHARED_DIR>\bin\prompt_workflow.bat" scope
+& "<LLM_SHARED_DIR>\bin\prompt_workflow.bat" scope day --full=speed
+```
+
+The first call prints a selector; the second prints a ghog command to execute
+through the resolved launcher. Do not supply a scope selector to `pw scope`.
+Use `pw progress` to compare the current requirement scope with the capture
+bound to an active review round. Fix invalid metadata before retrying.
+`--root` and `--debug` work before or after these subcommands.
+
 ## ✅ Check the launcher works
 
 `& "<LLM_SHARED_DIR>\bin\prompt_workflow.bat" skill` prints exactly one
