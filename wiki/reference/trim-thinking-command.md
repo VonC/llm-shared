@@ -67,6 +67,7 @@ prompt, reflection, or recap line. When any of its lines starts with `⎿`
 | `## User` | Opens a turn |
 | `## Assistant` | Opens a step or the answer of that turn |
 | `## Activity` | Tool activity, always dropped |
+| `## Reasoning` | Reasoning summary, always dropped |
 
 Heading names are matched case-insensitively, and a deeper heading such as
 `### Files` is body text, not a section boundary.
@@ -77,14 +78,17 @@ Each turn keeps three regions and drops the rest.
 
 | Region | Claude | Codex |
 | --- | --- | --- |
-| Ask | Prompt line through the first answer marker, blank lines included | `## User` section up to the first `## Assistant` heading |
+| Ask | Prompt line through the first answer marker, blank lines included | `## User` section up to the first `## Assistant`, `## Activity` or `## Reasoning` heading |
 | Opening | Non-blank run under that first answer marker | That first `## Assistant` section, to the next heading |
 | Answer | Last answer block of the turn, with the reflection line closing it and the recap line under that | Last `## Assistant` section of the turn |
 
 Every answer block, or assistant section, between the opening and the last one
-is treated as work rather than answer, and resets the answer region. A turn cut
-short with no closing line still keeps its last block. Text before the first
-prompt line, or the first `## User` heading, belongs to no turn and is dropped.
+is treated as work rather than answer, and resets the answer region. A Codex
+message sent while the turn was working is followed by the activity and
+reasoning sections the turn was already writing; they close the ask, so they
+are dropped too. A turn cut short with no closing line still keeps its last
+block. Text before the first prompt line, or the first `## User` heading,
+belongs to no turn and is dropped.
 
 ## Dated-prompt pass
 

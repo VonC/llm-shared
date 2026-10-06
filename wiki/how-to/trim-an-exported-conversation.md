@@ -65,9 +65,10 @@ From a shell with no Doskey aliases, call the self-locating launcher:
 ## Force the export format
 
 The format is detected from the markers in the text: the Claude prompt, answer,
-reflection, and recap prefixes against the Codex `## User`, `## Assistant`, and
-`## Activity` headings. Override the detection when a transcript mixes both,
-for instance a Codex export that quotes a Claude session:
+reflection, and recap prefixes against the Codex `## User`, `## Assistant`,
+`## Activity`, and `## Reasoning` headings. Override the detection when a
+transcript mixes both, for instance a Codex export that quotes a Claude
+session:
 
 ```text
 tth docs\session-export.md --format codex
@@ -87,7 +88,9 @@ export:
 
 A Codex export keeps the same three regions, read from its headings: the
 `## User` section, the first `## Assistant` section, and the last
-`## Assistant` section of the turn. `## Activity` is dropped.
+`## Assistant` section of the turn. `## Activity` and `## Reasoning` are
+dropped, including those written under a message you sent while the turn was
+still working.
 
 The reflection line itself is kept on purpose. It marks where reasoning was
 removed, so a reader can see that something was elided instead of wondering
