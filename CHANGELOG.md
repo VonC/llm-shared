@@ -6,6 +6,214 @@ release. The groundhog test loop (ghog), the prompt-workflow cycle (pw),
 and the commit and changelog helpers are mutualized across sibling
 projects.
 
+## [v0.13.0-SNAPSHOT unreleased] Groundhog Gets a Receipt - b3c1435a3a65adaaa533cbe01731203c6ebd5722
+
+Each test group keeps captured membership and its own validation proof.
+
+- Been There, Proved That
+  -- Pass, coverage and speed levels reuse proof for unchanged sources.
+- Small Groups, Whole-Suite Alibis
+  -- Scoped development and review; whole-suite coverage before promotion.
+
+Release 0.13.0 gives Groundhog explicit pass, cov and speed objectives and
+saved validation proof. Plain ghog day runs checks and affected tests without
+coverage; full defaults to speed. A matching proof at or above the requested
+level skips the entire day. A lower valid proof carries completed work into
+an upgrade. Parallel full runs leave duration verdicts to sequential timing.
+Declared test groups select tests and coverage sources together, with isolated
+proof that cannot satisfy the whole-suite release gate.
+
+Effort scope now follows the requirement through pw scope, progress reports and
+review captures. Default review preparation proves speed for that scope;
+declared project validation commands retain their exact meaning. Every release
+promotion requires whole-suite coverage. Progress also reports the requestor's
+next command, review resume context and private step journals. Working reports
+move into the ignored artifact home, and serve-docs can watch a folder and call
+a configured external refresh command.
+
+### Key changes (v0.13.0)
+
+- **Choose the objective and reuse proof**: Select pass, cov or speed explicitly
+  with --full. Saved evidence records the achieved level and matching inputs;
+  duration settings can invalidate speed while leaving coverage proof valid.
+  Group declarations bind test and source patterns, and listing commands expose
+  membership and duration exclusions without starting a walk.
+
+- **Carry scope through review and release**: A requirement's Test group header
+  controls effort validation. pw scope prints its selector or complete command,
+  and review rounds bind captured membership to the published request. Reviewers
+  use that capture for focused checks and affected tests. Whole-suite coverage
+  gates every promotion, including synchronized and resumed paths.
+
+- **Keep workflow state visible and local**: pw progress shows phase, completed
+  steps, scope, review state and the current step journal. Review roles retain
+  separate ownership, with host-specific waiting instructions.
+  Temporary reports use the configured artifact home. The external docs client
+  adds configured watch paths, command arguments and browser targets. Setup pins
+  pip 26.2 and uses system certificates for direct uv calls.
+
+### 🚀 Features (v0.13.0)
+
+- *(serve-docs)* Add configured external client
+- *(review)* Stop after owning action commits
+- *(review)* Keep reviewer off code and ghog day
+- *(serve-docs)* Integrate external client mode
+- *(pw)* Add progress report command
+- *(review)* Report progress after owning commits
+- *(pw)* Condense review status in progress
+- *(pw)* Integrate progress report command
+- *(doskey)* Add the pwp and tagl aliases
+- *(ghog)* Exit 9 on a root with no pytest suite
+- *(trim-thinking)* Drop Claude tool blocks
+- *(pw-progress)* Read requestor from transcripts
+- *(pw-progress)* Label next command for requestor
+- *(pw-progress)* Build review resume prompts
+- *(pw-progress)* Print resume line for stuck review
+- *(pw)* Add step-journal command
+- *(pw-progress)* Show the current step journal
+- *(artifact-home)* Add shared home path helpers
+- *(groundhog)* Move working files to the home
+- *(commits)* Keep diff and questions in the home
+- *(prepare-release)* Keep release files in the home
+- *(reports)* Write reports and scans in the home
+- *(groundhog)* Add level, proof and marker models
+- *(groundhog)* Walk by level with saved proof
+- *(review)* Default validation proves speed
+- *(prepare-release)* Prove cov before merging
+- *(scope)* Capture resolved test membership
+- *(groundhog)* Resolve declared test groups
+- *(groundhog)* List groups and duration exclusions
+- *(ghog)* Run and prove selected test groups
+- *(workflow)* Read requirement test scope
+- *(pw)* Print and report effort test scope
+- *(review)* Bind scope captures to review rounds
+- *(review)* Render effort scope and proof evidence
+- *(groundhog)* Align workflow levels and scope
+- *(ghog)* Integrate full suite levels
+
+### 🐛 Bug Fixes (v0.13.0)
+
+- *(models)* Prefer start worktree over sibling PRJ_DIR
+- *(review-status)* Report requestor for open round
+- *(pw)* Keep one status per validation step
+- *(code-review-request)* Relative transcript paths
+- *(code-review-answer)* Keep wrapped inventory items
+- *(code-review)* Keep authorized route context
+- *(step-journal)* Use braces for template fields
+- *(step-journal)* Add the missing LLM adapters
+- *(code-review-answer)* Type inventory lines
+- *(pw)* Report routing refusal in progress
+- *(pw)* Keep --root and --debug before subcommand
+- *(senv)* Smudge uv.lock back to the Nexus mirror
+- *(release)* Require whole-suite coverage
+- *(prepare-release)* Gate every promotion
+
+### 🚜 Refactor (v0.13.0)
+
+- *(docs)* Extract pinned rendering contract
+- *(code-review)* Split route resolution
+- *(trim-thinking)* Split tool-block drop
+- *(pw)* Split argument parser
+- *(trim-thinking)* Split dated-prompt cut
+- *(groundhog)* Extract verdicts and progress
+
+### 📚 Documentation (v0.13.0)
+
+- *(workflow)* Explain effort discovery invocation
+- *(markdown)* Explain markdownlint validation
+- *(ghog)* Document the not-a-pytest-project exit
+- *(implement-step)* Verify steps without pytest
+- *(trim-thinking)* Document tool-block removal
+- *(markdown)* Forbid stacked list markers
+- *(code-reviewer)* Document inventory list markers
+- *(markdown)* Spell out blank lines around lists
+- *(pw-progress)* Describe requestor next line
+- *(pw-progress)* Describe the resume line
+- *(step-journal)* Define the writer step notes
+- *(workflow)* Keep step notes through the chain
+- *(pw)* Document pw step-journal
+- *(rules)* Keep quiet waits off the model quota
+- *(review)* Run the reviewer watcher in background
+- *(review)* Apply quiet waits to resume and requestor
+- *(prepare-release)* Bump package.json with version
+- *(rules)* Activate the project senv.bat explicitly
+- *(rules)* Keep a.* working files in .reviews
+- *(groundhog)* Place working files in the home
+- *(reference)* Split root and home a.* files
+- *(draft)* Plan release tooling in llm-shared
+- *(feature)* Record pre-consolidation questions
+- *(draft)* Add full suite levels intent
+- *(review)* Record full suite levels spec review
+- *(feature)* Consolidate full suite levels
+- *(feature)* Record pre-consolidation questions
+- *(draft)* Move speed before code review
+- *(review)* Record reopened feature request review
+- *(feature)* Consolidate speed before review
+- *(feature)* Record pre-consolidation questions
+- *(draft)* Align intent with test groups
+- *(review)* Record test group requirement review
+- *(feature)* Consolidate test groups
+- *(design)* Record paused full suite levels design
+- *(feature)* Record pre-consolidation questions
+- *(draft)* Add group activation intent
+- *(review)* Record group activation review
+- *(feature)* Consolidate group activation
+- *(design)* Record pre-consolidation questions
+- *(review)* Split reviewer wait transport by host
+- *(review)* Record design review rounds 2 and 3
+- *(design)* Consolidate full suite levels
+- *(plan)* Record pre-consolidation questions
+- *(design)* Add full suite levels IO cost notes
+- *(plan)* Consolidate full suite levels plan
+- *(review)* Record plan review rounds 1 and 2
+- *(full_suite_levels)* Record step 0 validation
+- *(full_suite_levels)* Record step 0 code review
+- *(full_suite_levels)* Record step 1 code review
+- *(full_suite_levels)* Record step 1 validation
+- *(full_suite_levels)* Record step 2 code review
+- *(full_suite_levels)* Record step 2 validation
+- *(full_suite_levels)* Record step 3 validation
+- *(full_suite_levels)* Record step 3 review
+- *(full_suite_levels)* Record step 4 validation
+- *(full_suite_levels)* Record step 5 validation
+- *(full_suite_levels)* Record step 5 review
+- *(full_suite_levels)* Record step 6 validation
+- *(review)* Record step 6 scope review
+- *(full_suite_levels)* Record step 7 validation
+- *(full_suite_levels)* Record step 7 code review
+- *(full_suite_levels)* Record step 8 validation
+- *(wiki)* Cover v0.13.0 workflow contracts
+
+### 🧪 Testing (v0.13.0)
+
+- *(code-review-request)* Cover out-of-root plans
+- *(reviewers)* Group always-wait phrase checks
+- *(review-resume)* Widen subprocess hang guards
+- *(groundhog)* Add leveled walk cost gates
+- *(tools)* Answer git in process in slow tests
+- *(levels)* Describe active performance gates
+- *(levels)* Prove scoped workflow acceptance
+
+### ⚙️ Miscellaneous Tasks (v0.13.0)
+
+- *(git)* Ignore synced Claude Code skills
+- *(vscode)* Tint inactive bar, accept uver
+- *(vscode)* Accept cutover, pubspec, uverr
+- *(vscode)* Accept gabc in the cSpell list
+- *(vscode)* Accept NOCOV, uncontended, unjudged
+- *(vscode)* Add two design spelling words
+- *(vscode)* Add fnmatch word and tab color
+- *(vscode)* Add three step 2 review spelling words
+- *(editor)* Accept hexdigest spelling
+- *(vscode)* Recognize PYTHONWARNINGS spelling
+- *(editor)* Recognize overclaims spelling
+
+### 🔨 Build (v0.13.0)
+
+- *(deps)* Pin pip 26.2 for CVE-2026-13346
+- *(senv)* Trust system certs for direct uv calls
+- *(check)* Write check reports in the home
+
 ## [v0.12.0] - 2026-09-13 - Resume Where You Filed It
 
 Reviews keep their place; effort folders prove theirs.

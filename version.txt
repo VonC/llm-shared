@@ -1,44 +1,45 @@
-0.12.0 -- Resume Where You Filed It
+0.13.0-SNAPSHOT -- Groundhog Gets a Receipt
 
-Reviews keep their place; effort folders prove theirs.
+Each test group keeps captured membership and its own validation proof.
 
-- Folder Names Need an Alibi
-  -- Five layouts, matching documents, and no ambiguous fallback.
-- Two Agents, One Paper Trail
-  -- Separate reviewers, retained evidence, and a human commit decision.
+- Been There, Proved That
+  -- Pass, coverage and speed levels reuse proof for unchanged sources.
+- Small Groups, Whole-Suite Alibis
+  -- Scoped development and review; whole-suite coverage before promotion.
 
-Release 0.12.0 makes specification and implementation reviews durable exchanges.
-Requests, answers, coordination records and transcripts live in a configured
-artifact home, `.reviews` by default. Independent requestor and reviewer
-sessions hold separate ownership capabilities; neither may start the other.
-Typing `resume` checks artifact placement, handles supported legacy migration
-and restores the recorded role with new session ownership. Status inspection
-reports active exchanges without resuming them, and commit decisions remain
-with the human.
+Release 0.13.0 gives Groundhog explicit pass, cov and speed objectives and
+saved validation proof. Plain ghog day runs checks and affected tests without
+coverage; full defaults to speed. A matching proof at or above the requested
+level skips the entire day. A lower valid proof carries completed work into
+an upgrade. Parallel full runs leave duration verdicts to sequential timing.
+Declared test groups select tests and coverage sources together, with isolated
+proof that cannot satisfy the whole-suite release gate.
 
-Ruben's original layout PR adds `docs/vX.Y.Z/<slug>/` beside the four existing
-layouts. This release hardens that support: a folder needs a matching immediate
-document filename to qualify, workflow selection prefers its canonical folder,
-and an external fallback must be unique. Stateless `pw document` lookups retain
-strict duplicate rejection. Fresh filesystem lookup and real CLI acceptance
-coverage check these boundaries; the README and wiki explain the changes from
-the original PR.
+Effort scope now follows the requirement through pw scope, progress reports and
+review captures. Default review preparation proves speed for that scope;
+declared project validation commands retain their exact meaning. Every release
+promotion requires whole-suite coverage. Progress also reports the requestor's
+next command, review resume context and private step journals. Working reports
+move into the ignored artifact home, and serve-docs can watch a folder and call
+a configured external refresh command.
 
 ### Key changes
 
-- **Reviews survive interrupted sessions**: Specification and code review roles
-  share durable rounds, retained implementation evidence and fenced ownership.
-  Bare `resume` restores the selected role; schema-2 status reports migration
-  and role context. Approved consolidation and commit cleanup require a clean
-  working tree before the next workflow step.
+- **Choose the objective and reuse proof**: Select pass, cov or speed explicitly
+  with --full. Saved evidence records the achieved level and matching inputs;
+  duration settings can invalidate speed while leaving coverage proof valid.
+  Group declarations bind test and source patterns, and listing commands expose
+  membership and duration exclusions without starting a walk.
 
-- **Five layouts with defined selection rules**: Matching document evidence
-  distinguishes effort folders from empty or asset-only directories. Canonical
-  siblings take precedence, competing fallback paths produce an error, and
-  existing layouts and public lookup imports keep their established behavior.
+- **Carry scope through review and release**: A requirement's Test group header
+  controls effort validation. pw scope prints its selector or complete command,
+  and review rounds bind captured membership to the published request. Reviewers
+  use that capture for focused checks and affected tests. Whole-suite coverage
+  gates every promotion, including synchronized and resumed paths.
 
-- **Checks before commits and separate timing runs**: `markdown-check` applies
-  the repository's Markdown policy, and `commit-plan-check` validates the exact
-  staged plan without committing. Groundhog can run full suites in parallel
-  while `ghog timings` measures durations sequentially; live setup output and a
-  cycle launcher make environment activation visible and reusable.
+- **Keep workflow state visible and local**: pw progress shows phase, completed
+  steps, scope, review state and the current step journal. Review roles retain
+  separate ownership, with host-specific waiting instructions.
+  Temporary reports use the configured artifact home. The external docs client
+  adds configured watch paths, command arguments and browser targets. Setup pins
+  pip 26.2 and uses system certificates for direct uv calls.
