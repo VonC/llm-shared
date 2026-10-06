@@ -6,7 +6,7 @@ release. The groundhog test loop (ghog), the prompt-workflow cycle (pw),
 and the commit and changelog helpers are mutualized across sibling
 projects.
 
-## [v0.13.0-SNAPSHOT unreleased] Groundhog Gets a Receipt - b3c1435a3a65adaaa533cbe01731203c6ebd5722
+## [v0.13.0] - 2026-10-06 - Groundhog Gets a Receipt
 
 Each test group keeps captured membership and its own validation proof.
 
@@ -107,6 +107,7 @@ a configured external refresh command.
 - *(senv)* Smudge uv.lock back to the Nexus mirror
 - *(release)* Require whole-suite coverage
 - *(prepare-release)* Gate every promotion
+- *(trim-thinking)* Drop Codex steps after asks
 
 ### 🚜 Refactor (v0.13.0)
 
@@ -183,6 +184,7 @@ a configured external refresh command.
 - *(full_suite_levels)* Record step 7 code review
 - *(full_suite_levels)* Record step 8 validation
 - *(wiki)* Cover v0.13.0 workflow contracts
+- *(trim-thinking)* Explain Codex ask boundaries
 
 ### 🧪 Testing (v0.13.0)
 

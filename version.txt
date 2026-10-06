@@ -1,4 +1,4 @@
-0.13.0-SNAPSHOT -- Groundhog Gets a Receipt
+0.13.0 -- Groundhog Gets a Receipt
 
 Each test group keeps captured membership and its own validation proof.
 
