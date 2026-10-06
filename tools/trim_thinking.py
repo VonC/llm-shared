@@ -20,10 +20,11 @@ present in the source text unless the caller forces one:
   blank line, so a tool call is never kept as the opening or the answer of
   a turn, and a replacement never leaves two blank lines in a row.
 - A Codex export keeps the same three regions of every turn: the `## User`
-  section up to the first `## Assistant` heading, that first assistant
-  section, and the last assistant section of the turn. Every assistant
-  heading in between is a step the turn took, not its answer, so it resets
-  the region. `## Activity` and anything else is dropped.
+  section up to the first `## Assistant`, `## Activity` or `## Reasoning`
+  heading, the first assistant section, and the last assistant section of
+  the turn. Every assistant heading in between is a step the turn took, not
+  its answer, so it resets the region. `## Activity`, `## Reasoning` and
+  anything else is dropped.
 
 The module holds the parsing only. Clipboard access and the command line live
 in `tools.trim_thinking_cli`.
@@ -33,6 +34,13 @@ collapse to two helpers, bringing its radon rank below C.
 
 Fix: the dated-prompt cut moves to `tools.trim_thinking_dates`, keeping this
 module under the repository line budget; `trim_transcript` still applies it.
+
+Fix: the Codex section vocabulary and trimmer move to
+`tools.trim_thinking_codex`, keeping this module under the repository line
+budget; detection still reads that vocabulary, and `trim_transcript` still
+dispatches to the trimmer. There, the ask of a message sent mid-turn now
+stops at the first `## Activity` or `## Reasoning` heading, and
+`## Reasoning` counts toward detection.
 """
 
 from __future__ import annotations
@@ -42,6 +50,11 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import TYPE_CHECKING
 
+from tools.trim_thinking_codex import (
+    CODEX_SECTION_HEADINGS,
+    codex_heading_name,
+    trim_codex_transcript,
+)
 from tools.trim_thinking_dates import drop_lines_before_dated_prompts
 
 if TYPE_CHECKING:
@@ -63,9 +76,6 @@ RECAP_MARKER = "※ "
 # block a tool block.
 TOOL_OUTPUT_MARKER = "⎿"
 
-CODEX_SECTION_HEADINGS = frozenset({"user", "assistant", "activity"})
-
-_CODEX_HEADING_PATTERN = re.compile(r"^##\s+(?P<name>\S.*?)\s*$")
 _BLANK_LINE_PATTERN = re.compile(r"^\s*$")
 _TOOL_OUTPUT_PATTERN = re.compile(rf"^ *{TOOL_OUTPUT_MARKER}")
 
@@ -140,14 +150,6 @@ def _ends_answer_block(line: str) -> bool:
     )
 
 
-def _codex_heading_name(line: str) -> str | None:
-    """Return the heading text of one `## ` line, or None when there is none."""
-    match = _CODEX_HEADING_PATTERN.match(line)
-    if match is None:
-        return None
-    return match.group("name")
-
-
 def count_claude_markers(lines: Sequence[str]) -> int:
     """Count the lines carrying one of the Claude export markers."""
     return sum(
@@ -164,7 +166,7 @@ def count_codex_headings(lines: Sequence[str]) -> int:
     return sum(
         1
         for line in lines
-        if (name := _codex_heading_name(line)) is not None
+        if (name := codex_heading_name(line)) is not None
         and name.casefold() in CODEX_SECTION_HEADINGS
     )
 
@@ -189,7 +191,7 @@ def detect_format(text: str) -> TranscriptFormat:
         msg = (
             "Unrecognized export: no Claude marker (U+25CF, U+23FA, U+273B, "
             "U+276F) and no Codex section heading (## User, ## Assistant, "
-            "## Activity) was found. Force one with --format."
+            "## Activity, ## Reasoning) was found. Force one with --format."
         )
         raise UnknownTranscriptFormatError(msg)
 
@@ -440,139 +442,6 @@ def _append_kept(kept: list[str], line: str, *, collapsing: bool) -> bool:
 def trim_claude_transcript(text: str) -> str:
     """Drop the tool blocks and the reflection bodies of one Claude export."""
     return "\n".join(_ClaudeTrimmer(drop_tool_blocks(text.splitlines())).trim())
-
-
-def _is_codex_assistant(line: str) -> bool:
-    """Report whether one line opens a Codex assistant section."""
-    name = _codex_heading_name(line)
-    return name is not None and name.casefold() == "assistant"
-
-
-def _is_codex_user(line: str) -> bool:
-    """Report whether one line opens a Codex user section."""
-    name = _codex_heading_name(line)
-    return name is not None and name.casefold() == "user"
-
-
-class _CodexTrimmer:
-    """Scan Codex export lines, keeping the ask, the opening, and the answer.
-
-    A Codex turn opens one assistant section per step it takes, so a working
-    session carries hundreds of them and keeping every one trimmed nothing.
-    The three regions mirror the Claude side, and are marked by line number
-    so that a turn holding a single assistant section emits it once:
-
-    - the ask: the user section, up to the first assistant heading;
-    - the opening: that first assistant heading and its body, to the next
-      heading of any kind;
-    - the answer: the last assistant heading of the turn and its body. Every
-      earlier assistant heading resets the region, so the steps in between
-      are dropped and only the section that closes the turn survives.
-    """
-
-    def __init__(self, lines: Sequence[str]) -> None:
-        """Store the source lines and start with nothing marked."""
-        self._lines = list(lines)
-        self._kept: set[int] = set()
-
-    def trim(self) -> list[str]:
-        """Return the kept lines, in source order."""
-        index = 0
-        while index < len(self._lines):
-            if _is_codex_user(self._lines[index]):
-                index = self._keep_turn(index)
-            else:
-                index += 1
-        return [self._lines[i] for i in sorted(self._kept)]
-
-    def _keep_turn(self, start: int) -> int:
-        """Mark the three regions of one turn, and report where it ends.
-
-        Args:
-            start: Index of the user heading opening the turn.
-
-        Returns:
-            Index of the heading that closes the turn, or the line count.
-        """
-        first_assistant = self._keep_ask(start)
-        if first_assistant >= len(self._lines):
-            return first_assistant
-        self._keep_opening(first_assistant)
-        return self._keep_answer(start, first_assistant)
-
-    def _keep_ask(self, start: int) -> int:
-        """Mark the user section, up to the first assistant heading.
-
-        Args:
-            start: Index of the user heading.
-
-        Returns:
-            Index of that first assistant heading, or the line count when the
-            turn holds none.
-        """
-        index = start
-        while index < len(self._lines) and not _is_codex_assistant(
-            self._lines[index],
-        ):
-            if index > start and _is_codex_user(self._lines[index]):
-                break
-            self._kept.add(index)
-            index += 1
-        return index
-
-    def _keep_opening(self, first_assistant: int) -> None:
-        """Mark the first assistant section, to the next heading of any kind.
-
-        Args:
-            first_assistant: Index of that first assistant heading.
-        """
-        self._kept.add(first_assistant)
-        index = first_assistant + 1
-        while (
-            index < len(self._lines) and _codex_heading_name(self._lines[index]) is None
-        ):
-            self._kept.add(index)
-            index += 1
-
-    def _keep_answer(self, start: int, first_assistant: int) -> int:
-        """Mark the last assistant section of the turn.
-
-        Args:
-            start: Index of the user heading opening the turn.
-            first_assistant: Index of the first assistant heading.
-
-        Returns:
-            Index of the heading that closes the turn, or the line count.
-        """
-        last_assistant = first_assistant
-        index = first_assistant
-        while index < len(self._lines):
-            line = self._lines[index]
-            if index > start and _is_codex_user(line):
-                break
-            if _is_codex_assistant(line):
-                # Another step of the same turn: what came before it was
-                # working, not answering, so the region restarts here.
-                last_assistant = index
-            index += 1
-        turn_end = index
-
-        self._kept.add(last_assistant)
-        index = last_assistant + 1
-        while index < turn_end:
-            # No assistant heading can remain, so any heading here opens a
-            # section that is neither the ask nor the answer, `## Activity`
-            # among them, and it closes the region.
-            if _codex_heading_name(self._lines[index]) is not None:
-                break
-            self._kept.add(index)
-            index += 1
-        return turn_end
-
-
-def trim_codex_transcript(text: str) -> str:
-    """Keep the ask, the opening, and the closing answer of each Codex turn."""
-    return "\n".join(_CodexTrimmer(text.splitlines()).trim())
 
 
 _TRIMMERS: dict[TranscriptFormat, Callable[[str], str]] = {

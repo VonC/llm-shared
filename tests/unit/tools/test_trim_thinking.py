@@ -6,6 +6,12 @@ the Codex section filter, the trimming entry point, and the summary line of
 
 Fix: the dated-prompt cut is tested through `tools.trim_thinking_dates`, the
 module it moved to; `trim_transcript` still applies it.
+
+Fix: the Codex section filter is tested through `tools.trim_thinking_codex`,
+the module it moved to. A Codex message sent mid-turn is followed by
+`## Activity` and `## Reasoning` before any assistant heading; the tests pin
+that the ask drops them, keeps the user's own `## ` headings, and that
+`## Reasoning` counts toward detection.
 """
 
 from __future__ import annotations
@@ -15,6 +21,7 @@ from datetime import date
 import pytest
 
 from tools import trim_thinking as trimmer
+from tools import trim_thinking_codex as codex
 from tools import trim_thinking_dates as dated
 
 # pyright: reportPrivateUsage=false
@@ -110,6 +117,11 @@ def test_detect_format_reads_the_markers_of_each_export() -> None:
     """Detection should follow the marker family present in the source text."""
     assert trimmer.detect_format(_CLAUDE_EXPORT) is trimmer.TranscriptFormat.CLAUDE
     assert trimmer.detect_format(_CODEX_EXPORT) is trimmer.TranscriptFormat.CODEX
+
+
+def test_detect_format_counts_the_reasoning_heading() -> None:
+    """A Codex reasoning section is one of the export's own headings."""
+    assert trimmer.count_codex_headings(["## Reasoning", "## Notes"]) == 1
 
 
 def test_detect_format_ignores_headings_that_open_no_codex_section() -> None:
@@ -369,21 +381,21 @@ def test_trim_claude_keeps_prose_when_a_turn_ends_on_a_tool_block() -> None:
 
 def test_trim_codex_keeps_the_user_and_assistant_sections() -> None:
     """A Codex export should keep only what the two sides actually said."""
-    assert trimmer.trim_codex_transcript(_CODEX_EXPORT) == _TRIMMED_CODEX_EXPORT
+    assert codex.trim_codex_transcript(_CODEX_EXPORT) == _TRIMMED_CODEX_EXPORT
 
 
 def test_trim_codex_keeps_a_user_section_that_never_got_an_answer() -> None:
     """An export ending on the ask still carries that ask."""
     text = "## User\n\nask\n"
 
-    assert trimmer.trim_codex_transcript(text) == text.rstrip("\n")
+    assert codex.trim_codex_transcript(text) == text.rstrip("\n")
 
 
 def test_trim_codex_keeps_two_asks_that_follow_each_other() -> None:
     """A user section closes on the next one, with no assistant in between."""
     text = "## User\n\nask one\n\n## User\n\nask two\n\n## Assistant\n\nthe answer\n"
 
-    assert trimmer.trim_codex_transcript(text) == text.rstrip("\n")
+    assert codex.trim_codex_transcript(text) == text.rstrip("\n")
 
 
 def test_trim_codex_closes_a_turn_on_the_ask_of_the_next_one() -> None:
@@ -393,7 +405,48 @@ def test_trim_codex_closes_a_turn_on_the_ask_of_the_next_one() -> None:
         "## User\n\nask two\n\n## Assistant\n\nanswer two\n"
     )
 
-    assert trimmer.trim_codex_transcript(text) == text.rstrip("\n")
+    assert codex.trim_codex_transcript(text) == text.rstrip("\n")
+
+
+def test_trim_codex_drops_the_steps_under_a_mid_turn_ask() -> None:
+    """A message sent while the turn works must not keep the turn's activity."""
+    text = (
+        "## User\n\nask one\n\n## Assistant\n\nanswer one\n\n"
+        "## User\n\nsteer mid-turn\n\n"
+        "## Activity\n\n    $ rg trim\n    output\n\n"
+        "## Reasoning\n\n**Checking the trimmer**\n\n"
+        "## Assistant\n\nopening two\n\n"
+        "## Activity\n\n    $ pytest -q\n\n"
+        "## Assistant\n\nanswer two\n"
+    )
+
+    assert codex.trim_codex_transcript(text) == (
+        "## User\n\nask one\n\n## Assistant\n\nanswer one\n\n"
+        "## User\n\nsteer mid-turn\n\n"
+        "## Assistant\n\nopening two\n\n"
+        "## Assistant\n\nanswer two"
+    )
+
+
+def test_trim_codex_keeps_the_markdown_headings_of_an_ask() -> None:
+    """A `## ` heading the user wrote is part of the ask, not a step."""
+    text = (
+        "## User\n\nstatus:\n\n## What's verified\n\n- step 7\n\n"
+        "## Activity\n\n    $ rg step\n\n"
+        "## Assistant\n\nthe answer\n"
+    )
+
+    assert codex.trim_codex_transcript(text) == (
+        "## User\n\nstatus:\n\n## What's verified\n\n- step 7\n\n"
+        "## Assistant\n\nthe answer"
+    )
+
+
+def test_trim_codex_drops_the_steps_of_an_ask_that_never_got_an_answer() -> None:
+    """An ask cut short while the turn worked still loses that work."""
+    text = "## User\n\nsteer\n\n## Activity\n\n    $ rg trim\n"
+
+    assert codex.trim_codex_transcript(text) == "## User\n\nsteer\n"
 
 
 def test_trim_transcript_honors_a_forced_format_and_counts_both_sides() -> None:
