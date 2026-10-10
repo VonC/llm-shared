@@ -184,6 +184,22 @@ Also record how many topics the draft holds (one, or several), because the hand-
 in step 7 branches on that count. If the draft already declares its type clearly,
 keep the user's wording and only confirm it.
 
+Assess also the security sensitivity profile of the draft. Identify whether the topic touches sensitive components:
+- authentication, authorization, session/token management, or privilege checks;
+- secrets, credentials, API keys, private keys, or sensitive personal data;
+- system execution, shell calls, sub-processes, IPC, or command invocation;
+- filesystem paths, arbitrary file reads/writes, symlinks, or file permissions;
+- ingestion or parsing of external/untrusted data (sockets, HTTP requests, serialization/deserialization);
+- third-party dependency additions or updates.
+
+Record this assessment as a metadata line immediately below the type line, for example:
+
+```md
+- Security profile: standard
+```
+
+Use `critical` when the effort touches authentication, cryptography, secrets, or privileged execution; `elevated` when it touches filesystem IO, external inputs, network calls, sub-processes, or dependencies; and `standard` for self-contained business logic, documentation, or refactoring.
+
 When the draft holds several topics, watch for one exception: if the draft states,
 in plain words, that those topics must stay one single feature-request or one
 single issue, treat it as one topic for step 7 even though it reads as several.
