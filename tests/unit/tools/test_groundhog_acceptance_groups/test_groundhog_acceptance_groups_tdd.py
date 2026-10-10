@@ -42,6 +42,17 @@ def _assert_group_commands(commands: list[list[str]]) -> None:
     assert "--cov-fail-under=0" in commands[-1]
 
 
+@pytest.mark.parametrize(("selector", "kept"), [("--group=sentinel", True), ("--whole-suite", False)])
+def test_only_whole_suite_full_resets_the_testmon_map(tmp_path: Path, selector: str, *, kept: bool) -> None:
+    """A grouped full run keeps out-of-group testmon records; a whole-suite run rebuilds them."""
+    group_project(tmp_path)
+    (tmp_path / ".testmondata").write_text("stale", encoding="utf-8")
+    spawns = CoverageSpawns(tmp_path)
+    assert cli.main(["full", "--full=pass", selector, "--root", str(tmp_path)], make_deps(spawns)) == 0
+    assert (tmp_path / ".testmondata").exists() is kept
+    assert ("--testmon-noselect" in spawns.commands[0]) is kept
+
+
 def test_proof_isolated_by_scope(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """Whole and different group proofs never satisfy another group's walk."""
     group_project(tmp_path)

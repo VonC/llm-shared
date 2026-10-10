@@ -2,6 +2,9 @@
 
 Fix (v0.13.0 full_suite_levels, Step 4): Execute scoped commands and judge isolated group coverage at 100 percent.
 
+Fix: only a whole-suite sequential full run resets the testmon database; a
+grouped one keeps the records of every test outside its group.
+
 Split out of ``cli.py`` so the entry point stays under the repo line
 budget: this module runs the subcommands — check (Q10, Q26, Q29), the
 pytest runs, the day walk (Q22, Q28) and init (Q23, Q25) — classifies
@@ -216,9 +219,12 @@ def _run_pytest(invocation: Invocation, deps: Deps, pytest_exe: str) -> _Judged:
         parallel flag.
     """
     parallel = runner.parallel_enabled(invocation.root)
-    if invocation.sub == runner.SUB_FULL and not parallel:
+    grouped = invocation.scope.kind is ScopeKind.GROUP
+    if invocation.sub == runner.SUB_FULL and not parallel and not grouped:
         # A worker run carries no testmon, so it owns no map to reset and
-        # must leave the affected run's database alone.
+        # must leave the affected run's database alone. A grouped run
+        # refreshes only its own tests' records: a reset would drop every
+        # other test and make the next out-of-group affected run select it.
         runner.reset_testmon(invocation.root)
     command = runner.pytest_command(
         pytest_exe,
@@ -231,7 +237,7 @@ def _run_pytest(invocation: Invocation, deps: Deps, pytest_exe: str) -> _Judged:
         cov_folders=group_coverage.cov_folders(invocation.scope.source_files),
     )
     measure = None
-    if invocation.scope.kind is ScopeKind.GROUP and verdicts.measures_coverage(invocation):
+    if grouped and verdicts.measures_coverage(invocation):
         measure = group_coverage.prepare(invocation.root, invocation.scope.name, fresh=invocation.sub == runner.SUB_FULL)
     sink = progress.Progress(invocation, deps)
     config = runner.StreamConfig(

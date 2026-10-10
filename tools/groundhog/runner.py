@@ -30,6 +30,10 @@ interruption banner marks the run crashed whatever its return code, since
 ``pytest.exit`` may end an unfinished suite with 0 or 1.
 
 Step 4: group paths narrow collection; coverage options and spawn-only environment overrides isolate group evidence.
+
+Fix: a grouped sequential full run adds ``--testmon-noselect``. It runs every
+group test while refreshing only their testmon records, since the reset of the
+shared map now belongs to the whole-suite full run alone.
 """
 
 from __future__ import annotations
@@ -60,7 +64,7 @@ if TYPE_CHECKING:
 # the critical path. A module whose fixtures must not be rebuilt per worker
 # carries a module-level mark; everything else is distributed test by test.
 PARALLEL_OPTIONS: Final = ("-n", "auto", "--dist", "loadgroup")
-# The testmon database a sequential full run resets, the reset of ptr (Q05).
+# The testmon database a whole-suite sequential full run resets, the reset of ptr (Q05).
 TESTMON_DATA_FILE: Final = ".testmondata"
 # Versioned opt-in marker at the consuming project root. groundhog is shared
 # tooling: a project without pytest-xdist installed would fail outright on
@@ -192,6 +196,10 @@ def pytest_command(  # noqa: PLR0913
     an ``INTERNALERROR``. So the full run drops ``--testmon`` and the affected
     run keeps it: the full run proves every test, the affected run owns the
     incremental selection map.
+
+    A sequential full run over group paths keeps the map instead of rebuilding
+    it, so ``--testmon-noselect`` stops testmon from deselecting group tests
+    whose recorded dependencies are unchanged.
     """
     if sub == SUB_SINGLE:
         return [pytest_exe, "--no-header", "--no-cov", "-rxX", "-v", *files]
@@ -201,7 +209,7 @@ def pytest_command(  # noqa: PLR0913
         return [pytest_exe, "--no-header", "--no-cov", "-v",
                 "--durations=0", "--durations-min=0", *test_paths]
     worker_run = sub == SUB_FULL and parallel
-    command = [pytest_exe, *(PARALLEL_OPTIONS if worker_run else ("--testmon",))]
+    command = [pytest_exe, *_selection_options(sub, worker_run=worker_run, grouped=bool(test_paths))]
     covered, timed = _measures(sub, level, no_cov=no_cov, worker_run=worker_run)
     if not covered:
         command.extend(["--no-header", "--no-cov", "-v"])
@@ -217,6 +225,26 @@ def pytest_command(  # noqa: PLR0913
         command.extend(f"--cov={folder}" for folder in cov_folders)
         command.append("--cov-fail-under=0")
     return [*command, *test_paths]
+
+
+def _selection_options(sub: str, *, worker_run: bool, grouped: bool) -> tuple[str, ...]:
+    """Choose worker scheduling or testmon selection for one pytest run.
+
+    Args:
+        sub: The subcommand: ``full`` or ``affected``.
+        worker_run: Whether the run spreads over xdist workers.
+        grouped: Whether bound group test paths narrow the collection.
+
+    Returns:
+        The worker options of a parallel full run, ``--testmon`` otherwise,
+        plus ``--testmon-noselect`` for a grouped sequential full run, which
+        must run every group test while keeping the map it does not reset.
+    """
+    if worker_run:
+        return PARALLEL_OPTIONS
+    if sub == SUB_FULL and grouped:
+        return ("--testmon", "--testmon-noselect")
+    return ("--testmon",)
 
 
 def _measures(sub: str, level: FullLevel, *, no_cov: bool, worker_run: bool) -> tuple[bool, bool]:
@@ -242,7 +270,7 @@ def _measures(sub: str, level: FullLevel, *, no_cov: bool, worker_run: bool) -> 
 
 
 def reset_testmon(root: Path) -> None:
-    """Delete the testmon database, the reset of a sequential full run (Q05).
+    """Delete the testmon database, the reset of a whole-suite sequential full run (Q05).
 
     Args:
         root: The project root directory.

@@ -394,6 +394,19 @@ def test_group_collection_and_coverage_options(sub: str) -> None:
         assert "--cov=src/group" not in command
 
 
+def test_only_a_grouped_sequential_full_run_disables_testmon_selection() -> None:
+    """A grouped full run keeps every group test; other runs keep their testmon flags."""
+    group = ("tests/group/test_a.py",)
+    grouped = runner.pytest_command("pytest", runner.SUB_FULL, no_cov=False, files=(), test_paths=group)
+    assert grouped[1:3] == ["--testmon", "--testmon-noselect"]
+    for command in (
+        runner.pytest_command("pytest", runner.SUB_FULL, no_cov=False, files=()),
+        runner.pytest_command("pytest", runner.SUB_AFFECTED, no_cov=False, files=(), test_paths=group),
+        runner.pytest_command("pytest", runner.SUB_FULL, no_cov=False, files=(), parallel=True, test_paths=group),
+    ):
+        assert "--testmon-noselect" not in command
+
+
 @pytest.mark.parametrize("previous", [None, "previous.coverage"])
 @pytest.mark.parametrize("raises", [True, False])
 def test_spawn_environment_restored(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, previous: str | None, *, raises: bool) -> None:
