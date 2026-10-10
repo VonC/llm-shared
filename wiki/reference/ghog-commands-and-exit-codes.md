@@ -22,7 +22,7 @@ same contract into local automation.
 | — | `ghog day` | check, then `affected --no-cov`, with an optional full step at the selected level; stops at the first non-green step; valid saved proof can make it a noop (`--force` overrides); `--detach` runs a survivor process observed through `ghog status` |
 | — | `ghog status` | replay the run lifecycle from `a.ghog.status` without starting anything |
 | — | `ghog check` | run `check.bat` from the project root, exit code passed through |
-| `ptr` | `ghog full` | selected suite at `speed` by default; the default sequential mode rebuilds `.testmondata` with `--testmon` |
+| `ptr` | `ghog full` | selected suite at `speed` by default; the default sequential mode rebuilds `.testmondata` with `--testmon` for the whole suite, and keeps it with `--testmon-noselect` for a group |
 | `pta` | `ghog affected` | testmon-selected tests, `--cov-append`, coverage report |
 | `ptanc` | `ghog affected --no-cov` | testmon-selected tests, no coverage |
 | `pts` | `ghog single <test files>` | named test files in focus, no coverage, compared with the last full-run baseline |

@@ -43,6 +43,9 @@ gitignore-like `*`, `?`, `**` and `!`, last match wins. Tests obey pytest
 `python_files`; sources are Python after coverage omit. Empty effective tests
 or sources is invalid. `ghog groups` lists valid groups; `ghog groups <name>`
 validates and displays members. Grouped full/affected select that test set.
+Only a whole-suite sequential full deletes `.testmondata`; a grouped one keeps
+it and adds `--testmon-noselect`, refreshing only its tests' records so the
+next out-of-group affected run still selects precisely.
 Grouped cov/speed demands 100% of all declared sources, even outside configured
 coverage roots; unexecuted sources are zero. A fresh artifact-home coverage
 file is required, and missing/unreadable/stale data exits 5. Group duration

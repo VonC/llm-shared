@@ -50,8 +50,10 @@ tests part of the proof contract rather than an invisible workaround.
 Sequential `ghog full` deletes `.testmondata` and rebuilds it on a single worker.
 The fresh database is what makes every later `ghog affected` cheap and
 truthful — stale test-impact data would let a change slip through the
-fast pass. Parallel full runs leave the database untouched and avoid judging
-contended duration measurements. A speed day in a parallel project adds a
+fast pass. A grouped full run keeps the database and refreshes only its own
+tests' records: a reset would make the next run outside the group treat every
+other test as new and execute it. Parallel full runs leave the database
+untouched and avoid judging contended duration measurements. A speed day in a parallel project adds a
 sequential timing pass, so concurrency does not weaken the timing verdict.
 
 ## 👥 One output, two audiences

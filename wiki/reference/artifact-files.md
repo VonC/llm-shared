@@ -214,7 +214,7 @@ file and move a legacy root copy of the same name into it once.
 
 | File | Where | Role |
 | --- | --- | --- |
-| `.testmondata` | root | the testmon database; deleted and rebuilt by sequential `ghog full`, preserved by parallel full runs |
+| `.testmondata` | root | the testmon database; deleted and rebuilt by a whole-suite sequential `ghog full`, preserved by grouped and parallel full runs |
 | `a.ghog.log` | root | redirect target of every LLM-driven run; overwritten per run, never deleted |
 | `a.ghog.status` | root | run lifecycle line: `state=running pid=...`, then `state=done exit=...` |
 | `a.ghog.failures` | artifact home | failing node ids of the last full run, the focus baseline |
