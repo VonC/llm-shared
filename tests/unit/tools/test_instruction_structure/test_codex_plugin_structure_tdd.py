@@ -67,7 +67,7 @@ def duplicate_markdown_bodies() -> dict[Path, Path]:
         "docs",
         "wiki",
     )
-    adapter_roots = (".agent", ".agents", ".claude", ".github")
+    adapter_roots = (".agent", ".agents", ".claude", ".github", ".grok")
     adapter_contents = _markdown_bodies_by_path(root, adapter_roots)
     adapter_bodies = set(adapter_contents.values())
     canonical = _matching_canonical_bodies(root, canonical_roots, adapter_bodies)

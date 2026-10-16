@@ -6,7 +6,7 @@ instruction, rule, skill, prompt, and documentation content only in those
 folders.
 
 Files registered for a particular LLM under `.agent/`, `.agents/`, `.claude/`,
-`.github/`, or another provider-specific folder are adapters, not sources.
+`.github/`, `.grok/`, or another provider-specific folder are adapters, not sources.
 They may keep front matter or other metadata required for discovery, but their
 body must only direct the LLM to read and follow the canonical root file.
 
