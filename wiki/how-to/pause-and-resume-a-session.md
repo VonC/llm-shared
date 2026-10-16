@@ -21,8 +21,15 @@ Invoke the pause skill in your host:
 Give the consuming checkout path explicitly when it could be confused with
 the llm-shared clone. The agent refreshes existing notes and saves the latest
 prompt as `.reviews/a.session-resume.local.md`, or in the configured review
-artifact home. It reports the path, then stops task work. Each pause replaces
-that checkout's latest prompt; journals and evidence retain the longer history.
+artifact home. On success, its final response starts with:
+
+> pause-session: paused. Detailed resume prompt saved to `.reviews/a.session-resume.local.md`.
+> Use `resume-session` to continue from this prompt.
+
+The reported path is relative to the consuming checkout root and reflects any
+configured artifact home. The agent briefly describes the saved context, then
+stops task work. Each pause replaces that checkout's latest prompt; journals
+and evidence retain the longer history.
 
 The prompt preserves the objective, user steering, permissions, decisions,
 verified state, dirty-work ownership, evidence, live runs, blockers and ordered
@@ -38,9 +45,19 @@ lists the context it preserves.
 ## Continue from a new session
 
 Open the same checkout and invoke `resume-session` using the same host syntax,
-or the corresponding Grok/canonical file. The agent reads the latest prompt
-and required notes, checks disk and job state, then writes
-`a.session-resume.used.local.md` beside the prompt before continuing.
+or the corresponding Grok/canonical file. Once the agent finds an eligible
+prompt, its opening resume status names the relative path and confirms its use:
+
+> resume-session: found resume prompt `.reviews/a.session-resume.local.md` (unused); I will use it to resume this session.
+
+The state can also be `new prompt since previous use` or `forced reread`.
+The agent then reads the latest prompt and required notes, checks disk and job
+state, and writes `a.session-resume.used.local.md` beside the prompt before
+continuing the authorized work in the same turn. Its response goes on with the
+work instructed by the reconciled prompt and its results, or a concrete blocker
+or pending human decision; it does not stop at the announcement or a summary.
+If the initial checks prevent resuming, the opening diagnostic names the
+relative path and reason instead of promising to use the prompt.
 
 That flag records the prompt's SHA-256, checkout, time and whether force was
 used. It confirms context recovery, not completion. A normal second invocation

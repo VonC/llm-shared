@@ -27,15 +27,29 @@ for Forced. Compare resolved project paths using the filesystem's rules.
 | --- | --- |
 | Prompt missing | Report that no pause-session prompt exists; leave the flag alone and stop |
 | Prompt empty, unreadable or incomplete | Report the problem; write no flag and stop |
-| Flag absent | State `resume-session: unused`, then read and reconcile |
+| Flag absent | Announce the found prompt as `unused`, then read and reconcile |
 | Valid flag identifies this prompt, root and digest | State `resume-session: already used`; stop unless `--force` was supplied |
-| Valid flag has a different digest | State `resume-session: new prompt since previous use`, then read and reconcile |
+| Valid flag has a different digest | Announce the found prompt as `new prompt since previous use`, then read and reconcile |
 | Malformed or unreadable flag, wrong prompt basename or project root | Report the diagnostic and stop; do not treat a failed check as absence |
 
-State the sampled result before acting. With a matching flag and `--force`,
-state `resume-session: forced reread`. Force bypasses only the already-used
-check. It does not bypass missing inputs, ownership checks, approval
-boundaries, running-job checks, or current instructions.
+Once these initial checks permit reading the prompt, make the first resume
+status a clear announcement that it was found and will be used:
+
+> resume-session: found resume prompt `<relative-path>` ({state}); I will use
+> it to resume this session.
+
+Substitute the actual prompt path relative to the consuming project's checkout
+root, such as `.reviews/a.session-resume.local.md`, honoring any configured
+artifact home. Replace `{state}` with `unused`, `new prompt since previous use`,
+or `forced reread` for a matching flag with `--force`. Send this as a progress
+message before reading and reconciling the saved context, any recovery summary,
+or task execution. Do not end the turn at this announcement.
+
+For a stopping state, include the same relative pathname in the diagnostic
+instead; do not claim the prompt will be used. State the sampled result before
+acting. Force bypasses only the already-used check. It does not bypass missing
+inputs, ownership checks, approval boundaries, running-job checks, or current
+instructions.
 
 ## Read and reconcile before continuing
 
@@ -88,7 +102,11 @@ Once the prompt and required references have been read and state reconciled:
    its handoff. Record the prompt path, reconciled state and next action;
    never record session secrets. Leave the saved prompt unchanged.
 4. Briefly state the recovered objective, any material changes since pause,
-   and the next action. Continue the authorized task in the same turn.
+   and the next action. Continue the authorized task in the same turn, following
+   the prompt's reconciled continuation. The response after the opening status
+   must carry out that work and report its results, or explain a concrete blocker
+   or pending human decision. A receipt confirmation, summary, or offer to
+   continue alone does not complete a resume.
 
 The flag means context was read and reconciled, not that the task completed.
 Write it before task execution so a later failure does not silently replay

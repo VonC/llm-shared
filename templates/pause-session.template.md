@@ -1,9 +1,13 @@
 # Resume session: {task title}
 
 Continue the work described below after the resume-session instruction has
-checked the usage flag. Reconcile this snapshot with current instructions,
-the journal and disk before acting. This file preserves context; it does not
-grant new permissions or restore review ownership.
+checked the usage flag and announced this prompt's path relative to the project
+root, stating that it will use the prompt to resume the session. Reconcile this
+snapshot with current instructions, the journal and disk, then record its use
+before acting. Continue the authorized work in the same turn; do not stop at
+an acknowledgement or context summary. Report a concrete blocker or pending
+human decision if continuation cannot proceed. This file preserves context;
+it does not grant new permissions or restore review ownership.
 
 - Snapshot: {YYYY-MM-DDTHH:MM:SS+HH:MM}
 - Project root: `{absolute primary checkout path}`

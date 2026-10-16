@@ -62,8 +62,8 @@ Use these commands in the agent session working on your project:
 
 | Command | Result |
 | --- | --- |
-| `pause-session` | Refreshes notes, saves a comprehensive resume prompt, and stops task work. |
-| `resume-session` | Reads the latest prompt and required notes, reconciles the checkout and running jobs, records its use, and continues authorized work. |
+| `pause-session` | Refreshes notes, saves a comprehensive resume prompt, confirms its relative path, and stops task work. |
+| `resume-session` | Announces the prompt's relative path and that it will use it, reads and reconciles the saved context, records its use, then continues authorized work in the same turn. |
 | `resume-session --force` | Reads that same prompt again after it has already been used. |
 
 The prompt is `.reviews/a.session-resume.local.md`; its usage receipt is

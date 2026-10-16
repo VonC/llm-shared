@@ -99,5 +99,16 @@ gates in [review-resume.md](review-resume.md), not a saved capability.
    tracked. If it or the flag is tracked, report the problem without changing
    the user's index. Do not claim a private checkpoint was saved safely.
 
-Return the absolute prompt path, a brief description of what it preserves,
-and the invocation `resume-session`. Then stop the session's task work.
+After successful publication and verification, begin the final response with
+this clear completion status, substituting the actual prompt path relative
+to the consuming project's checkout root:
+
+> pause-session: paused. Detailed resume prompt saved to `<relative-path>`.
+> Use `resume-session` to continue from this prompt.
+
+For the default home, the relative path is `.reviews/a.session-resume.local.md`.
+If the artifact home is configured elsewhere, report that actual relative
+path; do not hard-code `.reviews` or show only the basename or absolute path.
+Briefly describe what the prompt preserves, then stop the session's task work.
+If publication or verification failed, report the failure instead of the
+success status above.
