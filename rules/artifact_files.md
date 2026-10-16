@@ -34,6 +34,7 @@ Name each file so its owner and lifetime are clear:
 | No effort | `a.tmp.<what>[.<ext>]` | by hand, once no longer needed |
 | Step journal and handoff | see [`step-journal.md`](../instructions/step-journal.md) | never by the workflow |
 | Private notes kept across efforts | `a.<what>.local.md` | never by the workflow |
+| Latest session prompt and usage receipt | see [pause-session.md](../instructions/pause-session.md#pause-inputs-and-artifact-contract) | replaced by pause/resume, never by release cleanup |
 
 A helper script and its captured output share one stem, such as
 `a.<slug>.step3.tmp.probe.sh` and `a.<slug>.step3.tmp.probe.raw.txt`. A script
