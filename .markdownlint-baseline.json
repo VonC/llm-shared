@@ -1,7 +1,6 @@
 {
   "version": 1,
   "allowances": [
-    {"path": ".github/prompts/write-commit-message.prompt.md", "rule": "MD033", "count": 1},
     {"path": "LICENSE.md", "rule": "LS001", "count": 1},
     {"path": "LICENSE.md", "rule": "LS002", "count": 1},
     {"path": "changelog-header.md", "rule": "LS002", "count": 1},
