@@ -223,6 +223,20 @@ retain the longer history. A successful pause publishes the complete prompt
 before clearing the old receipt. The exact filename selects the checkpoint;
 neither modification times nor older unused handoffs are used for selection.
 
+`status-session` samples the same exact prompt and receipt without modifying
+them. A complete prompt with no receipt, or a valid receipt for the same basename
+and checkout but a different SHA-256, is unprocessed. A matching receipt means
+already used, not task completed. Missing prompts and already-used prompts both
+produce an explicit no-unprocessed-prompt status and a three-point summary from
+the latest notes, handoffs and journals. Unprocessed prompts instead supply the
+three-point summary themselves. Each response names relative source paths.
+
+Status reports malformed or unreadable state as undetermined, with the diagnostic;
+it never treats a failed check as absence. It honors the configured artifact home
+using read-only validation, creates nothing if the home is missing, and neither
+updates the receipt nor executes recorded actions. Its
+[template](../../templates/status-session.template.md) produces a response only.
+
 | State sampled when `resume-session` is invoked | Behavior |
 | --- | --- |
 | Complete prompt, no receipt | Read, reconcile, record use, continue |

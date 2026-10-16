@@ -79,6 +79,7 @@ They are LLM skills, with no new shell executable or `pw` subcommand.
 
 | Skill | Inputs | Result |
 | --- | --- | --- |
+| `status-session` | latest prompt and receipt; latest notes, handoffs and journals when no unprocessed prompt exists | reports prompt state and exactly three points about the saved task or latest recorded work; changes no files and resumes no work |
 | `pause-session` | current conversation, checkout, journals, handoffs, and evidence | refreshes notes, publishes `a.session-resume.local.md`, clears the previous usage receipt, then stops task work |
 | `resume-session` | the checkout's latest prompt and its required references | reconciles current state, writes `a.session-resume.used.local.md`, then continues authorized work; stops if that exact prompt was already used |
 | `resume-session --force` | the same saved prompt | bypasses only the already-used check and writes a fresh receipt after reconciliation |

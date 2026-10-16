@@ -67,7 +67,9 @@ At any phase, `pause-session` saves a comprehensive private prompt in the
 checkout's review artifact home and stops task work. `resume-session` reads it,
 reconciles current state, records use, and continues authorized work. A usage
 receipt prevents accidental rereading of that exact prompt; `--force` permits
-an explicit reread while preserving pending approvals. Start with
+an explicit reread while preserving pending approvals. `status-session` reports
+whether an unprocessed prompt exists and gives three summary points from it or
+the latest notes, handoffs and journals, without resuming work. Start with
 [Pause and resume a working session](how-to/pause-and-resume-a-session.md), or
 consult the [template](reference/templates.md#session-continuity-templates) and
 [artifact](reference/artifact-files.md#session-checkpoints-and-usage-receipts)

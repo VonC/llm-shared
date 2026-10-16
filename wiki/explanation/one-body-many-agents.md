@@ -24,14 +24,16 @@ templates, supporting files, and tools those instructions require**. A host's
 | --- | --- |
 | `instructions/` | Defines the task, inputs, sequence, checks, and stopping conditions; `instructions/prompts/` holds one-shot bodies |
 | `rules/` | Defines common behavior such as shell execution, artifact placement, and human decisions |
-| `templates/` | Defines the shape of generated documents, handoffs, or receipts |
+| `templates/` | Defines the shape of generated documents, handoffs, receipts, or responses |
 | Supporting files and `scripts/`, `bin/`, `tools/` | Supply resources and executable operations when the instruction needs them |
 
 Not every skill needs every component. For example, `pause-session` combines
 its instruction, artifact rules, a prompt template, and existing artifact-home
 tooling. `resume-session` uses a separate instruction and receipt template.
-Neither introduces a standalone shell command. The generated checkpoint belongs
-to the consuming project; the reusable instruction and template stay shared.
+`status-session` needs only an instruction, a response template and read-only
+inspection of those artifacts and existing notes. These skills introduce no
+standalone shell commands. The generated checkpoint belongs to the consuming
+project; the reusable instructions and templates stay shared.
 
 ## What scaffolding means here
 

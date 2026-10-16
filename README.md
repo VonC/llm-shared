@@ -62,6 +62,7 @@ Use these commands in the agent session working on your project:
 
 | Command | Result |
 | --- | --- |
+| `status-session` | Reports whether an unprocessed pause prompt exists, then gives three points from it or the latest notes, handoffs and journals. Leaves files and tasks unchanged. |
 | `pause-session` | Refreshes notes, saves a comprehensive resume prompt, confirms its relative path, and stops task work. |
 | `resume-session` | Announces the prompt's relative path and that it will use it, reads and reconciles the saved context, records its use, then continues authorized work in the same turn. |
 | `resume-session --force` | Reads that same prompt again after it has already been used. |

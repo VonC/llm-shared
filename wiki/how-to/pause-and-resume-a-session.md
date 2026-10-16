@@ -6,6 +6,35 @@ LLM host that can read and write that checkout.
 
 These are commands to the LLM, not shell executables or `pw` subcommands.
 
+## Check what is waiting before continuing
+
+Invoke `status-session` to inspect the saved state without resuming work:
+
+| Host | Invocation |
+| --- | --- |
+| ChatGPT/Codex with the llm-shared plugin | `$llm-shared:status-session` |
+| Claude Code or Copilot skills | `/status-session` |
+| Gemini through Antigravity workflows | `/status-session` |
+| Grok with filesystem access | Ask it to read `.grok/commands/status-session.md` in the llm-shared clone |
+| Another file-capable LLM | Ask it to read `instructions/status-session.md` in the llm-shared clone |
+
+The first line tells you whether an unprocessed resume prompt exists and names
+its path relative to your checkout. Exactly three points follow: objective,
+progress, and next actions or blockers, with source paths. For example:
+
+> status-session: unprocessed resume prompt found at `.reviews/a.session-resume.local.md`
+> (unused). Summary of the saved prompt; no work resumed.
+
+When there is no prompt, or the exact prompt has already been used, the opening
+says `no unprocessed resume prompt`. The three points then summarize the latest
+notes, handoffs and journals in the artifact home, reconciling completed journal
+entries with older next-action lists. Missing notes or uncertain state are
+reported explicitly; an unreadable receipt is not treated as an absent one.
+
+Status leaves the prompt, receipt and notes unchanged and creates no folder
+when the artifact home is missing. It does not execute the recorded actions.
+To continue a pending task, invoke `resume-session` as described below.
+
 ## Save the current session before leaving
 
 Invoke the pause skill in your host:
@@ -93,7 +122,8 @@ pending commit or review decision.
 
 ## Use the canonical files when discovery is unavailable
 
-Load [pause-session](../../instructions/pause-session.md) or
+Load [status-session](../../instructions/status-session.md),
+[pause-session](../../instructions/pause-session.md) or
 [resume-session](../../instructions/resume-session.md) directly. Grok's
 portable adapters are [here](../../.grok/commands/); native discovery is
 not assumed. A plain chat can help compose text but cannot verify a local

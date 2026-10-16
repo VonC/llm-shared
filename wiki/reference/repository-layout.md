@@ -67,6 +67,7 @@ shared `review-requestor` wrapper. The exact host matrix is in the
 
 ```txt
 instructions/                one canonical markdown body per shared skill
+├─ status-session.md         inspect the checkpoint or latest recorded work
 ├─ pause-session.md          save the latest private session checkpoint
 ├─ resume-session.md         consume it once, or reread with --force
 └─ prompts/                  canonical one-shot and humanizer bodies
