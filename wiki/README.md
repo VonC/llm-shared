@@ -28,7 +28,8 @@ decisions**.
   observability, tests, and any additional quality criteria the team defines.
   Missing work produces an explicit `No` verdict, is implemented, and is
   checked again. A human reviews the evidence before the workflow advances.
-- The AI then drives the [groundhog reset loop](explanation/groundhog-as-a-reset-loop.md):
+- Before handing implementation to its check, the AI drives the
+  [groundhog reset loop](explanation/groundhog-as-a-reset-loop.md):
   linters and structural checks, affected tests, then the complete test suite
   with a fresh coverage measurement. The objective is the project coverage
   gate—100% by default—and a duration gate stops an otherwise-green run when a
@@ -54,6 +55,23 @@ decisions**.
   and later runs the final build/tag action. Start with
   [why release branch roles matter](explanation/why-release-branch-roles-matter.md)
   or [prepare a release from any branch](how-to/prepare-a-release.md).
+
+The human decision points are collected in
+[Where the human stays in the loop](explanation/where-the-human-stays-in-the-loop.md):
+draft setup and child approval, document questions and consolidation, commit
+replay, optional independent-review convergence, and release choices. Between
+those points the agent owns the next skill and its supporting commands. A
+settled plan proceeds to implementation unless the human requests `stop here`.
+
+At any phase, `pause-session` saves a comprehensive private prompt in the
+checkout's review artifact home and stops task work. `resume-session` reads it,
+reconciles current state, records use, and continues authorized work. A usage
+receipt prevents accidental rereading of that exact prompt; `--force` permits
+an explicit reread while preserving pending approvals. Start with
+[Pause and resume a working session](how-to/pause-and-resume-a-session.md), or
+consult the [template](reference/templates.md#session-continuity-templates) and
+[artifact](reference/artifact-files.md#session-checkpoints-and-usage-receipts)
+references.
 
 This makes self-review part of the workflow topology, not optional prompting
 advice. The first generated answer is a draft; the reviewed, human-validated
@@ -87,8 +105,11 @@ mechanism of four supported environments:
 - GitHub Copilot.
 
 The wrappers differ, but the workflow, templates, review gates, and artifacts
-do not. Any other agent that can read and write workspace files can also be
-handed the same instruction bodies. See [One body, many agents](explanation/one-body-many-agents.md).
+do not. Grok has portable redirects for every shared command and one-shot prompt
+under `.grok/commands/`, loaded explicitly; native discovery is unverified.
+Any other agent that can read and write workspace files can also be handed the
+same instruction bodies. Plain chat without filesystem tools cannot complete
+local pause/resume verification. See [One body, many agents](explanation/one-body-many-agents.md).
 
 ## Additional utilities are first-class too
 
@@ -170,6 +191,7 @@ Recipes for a precise goal, for readers who already know the basics.
 - 🤖 [Inspect independent review status](how-to/inspect-independent-review-status.md)
 - 🤖 [Read review results and continue](how-to/read-independent-review-results-and-continue.md)
 - 🤖 [Recover an independent review](how-to/recover-an-independent-review.md)
+- 🤖 [Pause and resume a working session](how-to/pause-and-resume-a-session.md)
 
 ### AI-environment compatibility
 
@@ -195,6 +217,7 @@ Recipes for a precise goal, for readers who already know the basics.
 - 📊 [Update a Git history diagram](how-to/update-git-history-diagrams.md)
 - 🤖 [Serve a Markdown folder as a local website](how-to/serve-a-docs-folder-as-a-website.md)
 - 🤖 [Trim an exported conversation](how-to/trim-an-exported-conversation.md)
+- 🤖 [Set up the shared Python tools](how-to/set-up-shared-python-tools.md)
 
 ## 📖 Reference
 

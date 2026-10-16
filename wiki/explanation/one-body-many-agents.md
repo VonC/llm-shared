@@ -24,10 +24,17 @@ the self-contained plugin package under `.agents/llm-shared/`
 ([the how-to](../how-to/register-skills-as-a-codex-plugin.md)).
 Antigravity gets one workflow wrapper per skill under
 `.agent/workflows/`, junctioned into the project
-([the how-to](../how-to/use-the-skills-from-antigravity.md)). A fifth
-agent that understands none of these folders is simply handed the body
-file as context — the slash command name and the file name are always
-the same.
+([the how-to](../how-to/use-the-skills-from-antigravity.md)). Grok gets
+portable command redirects under `.grok/commands/`; explicit file loading
+works without assuming native discovery. Another agent can be handed the
+canonical body as context. Command names usually match their body filenames;
+`fix-slow-test` points to `fix_slow_test.md`, and `prepare_release_notes` is a
+compatibility alias.
+
+The same rule covers one-shot prompts and humanizer: their bodies live under
+`instructions/prompts/`, with metadata and direct references in the provider
+folders. A new host gets adapters to existing content rather than its own
+copy of the workflow.
 
 The clone always sits beside the projects that use it, never inside
 them: no vendoring, no Git submodule required. Every discovery mechanism
@@ -102,4 +109,4 @@ release build reads.
 - [Repository layout](../reference/repository-layout.md) for who reads
   which folder.
 - [Plug llm-shared into your project](../tutorials/01-plug-llm-shared-into-your-project.md)
-  for the three wiring options.
+  for host registration and explicit file loading.

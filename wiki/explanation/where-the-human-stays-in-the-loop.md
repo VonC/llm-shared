@@ -26,7 +26,8 @@ is reversible text on disk, so the chain runs it without asking.
 - **The five menus of /process-draft** — title, slug, version, documentation
   layout, and branch layout. Naming and versioning shape everything downstream;
   the documentation-layout choice decides where every document for the effort
-  will live.
+  will live. A direct effort or focused child also gets a test-scope choice;
+  a collection defers that choice to its children.
 - **The umbrella-child approval** — a child derived from one pending umbrella
   row is an interpretation of that row's boundary. The author may revise the
   focused draft repeatedly, and only an explicit `Go ahead` releases it to
@@ -35,6 +36,11 @@ is reversible text on disk, so the chain runs it without asking.
   consolidate loop: the model asks, the human answers the
   `Q0x | Title | Recommended Answer` table. The chain resumes on the
   consolidation, not on a "go ahead".
+
+Requesting consolidation authorizes its question-snapshot commit and, once the
+document settles, its grouped cleanup commits before the next phase. Those
+commits belong to the chosen consolidation action; the agent does not add a
+second approval menu for them.
 
 ## 🚪 The optional stop between documents and code
 
@@ -67,12 +73,33 @@ the branch is behind `main`, each rebase conflict, the merge message
 review, the title pick, the notes review — and it never tags and never
 pushes. `brel`, the tag, is always typed by the author.
 
-## 🔒 What is never automated
+## Independent review decisions remain human
 
-Four acts stay manual by design: approving an umbrella-derived child, answering
-the review questions, approving the commits, and creating the tag. They are the
-points where the author's intent enters the system — everything else is
-derivable from what is already on disk.
+Opt-in independent review adds a second agent's assessment. The human or an
+external service starts the requestor and reviewer separately; neither role
+may launch or contact the other. Intermediate rounds continue automatically,
+while convergence and marked recovery decisions return to the human. This
+preserves the distinction between a review result and authorization to act on
+it. See [independent review authority](independent-review-mode-and-human-authority.md).
+
+## Session pauses preserve the decision boundaries
+
+A deliberate session pause can happen in any phase, including while a human
+answer is pending. `pause-session` preserves the objective, accepted decisions,
+specific permissions, unresolved questions, evidence, live jobs, and next action
+in a private prompt. It stops task work without implying that an active job has
+finished.
+
+`resume-session` restores that context and checks it against the current
+checkout, journals, and running jobs. This matters because a handoff can still
+name an action that a later journal entry records as completed. Current evidence
+determines what remains to be done.
+
+The usage receipt records successful context recovery. It is neither task
+completion nor approval of a pending choice. `--force` allows rereading the
+same checkpoint; it leaves approval boundaries and review ownership checks
+intact. Already-granted, still-applicable permissions survive the pause, and
+new user direction takes precedence over the saved prompt.
 
 ## 👉 Where each gate is described
 
@@ -86,3 +113,5 @@ derivable from what is already on disk.
   for the commit gate.
 - [Prepare a release from any branch](../how-to/prepare-a-release.md) for
   the full pause table.
+- [Pause and resume a working session](../how-to/pause-and-resume-a-session.md)
+  for saving context and returning without losing pending decisions.

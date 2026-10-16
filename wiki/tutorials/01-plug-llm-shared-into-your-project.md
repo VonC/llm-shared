@@ -37,6 +37,8 @@ intended default.)
 Using the shared skills needs no Python environment: they are plain
 markdown. The bundled `bin\*.bat` launchers (`pw`, `ghog`, `gcba`, ...)
 self-locate their own Python from the llm-shared `venvs\` folder.
+Follow [Set up the shared Python tools](../how-to/set-up-shared-python-tools.md)
+before using those executable helpers.
 
 ## 2. Wire it into VS Code (Copilot or Claude extension)
 
@@ -84,7 +86,7 @@ on every file write.
 The clone ships a self-contained Codex plugin package under
 `.agents/llm-shared/`. Wiring it takes a personal marketplace file, one
 junction pointing at the clone, and three `codex plugin` commands; every
-new Codex session then offers the 22 skills as `$llm-shared:<skill>`.
+new Codex session then offers the registered skills as `$llm-shared:<skill>`.
 The full recipe with its pitfalls is in
 [Register the skills as a Codex plugin](../how-to/register-skills-as-a-codex-plugin.md).
 For one session only, `codex --add-dir ..\llm-shared` puts the clone in
@@ -100,16 +102,37 @@ the `/` menu of the agent panel — same slash syntax, same names as
 Claude Code. The recipe and the version caveats are in
 [Use the skills from Google Antigravity](../how-to/use-the-skills-from-antigravity.md).
 
-## 6. Or hand the bodies to any other LLM
+## 6. Or load a Grok command explicitly
+
+In a Grok host that can read local files, give it this instruction, substituting
+your clone and project paths:
+
+```text
+Read and follow C:/src/llm-shared/.grok/commands/write-requirement.md.
+Use C:/src/my-project as the working checkout.
+```
+
+The folder covers shared instructions, one-shot prompts, and humanizer.
+These are portable redirects; native Grok discovery and slash commands have
+not been verified. For independent reviews, these adapters use the existing
+`unknown` host identity and the canonical review identity gates.
+
+## 7. Or hand the bodies to another LLM
 
 Every slash command resolves to a plain markdown body under `instructions/`,
 with the same name: `/write-design` is `instructions/write-design.md`. The
 [repository layout](../reference/repository-layout.md#-shared-bodies-and-rules)
 shows where those bodies live. Give the model that file as context,
 plus the inputs the body expects (a draft, a requirement, a plan), and it
-runs the same skill without knowing about `.github/` or `.claude/`.
+runs the same skill without knowing about `.github/` or `.claude/`. One-shot
+prompt bodies live under `instructions/prompts/`. Most command names match
+their filenames; `fix-slow-test` uses `fix_slow_test.md`.
 
-## 7. Check that a skill resolves
+For ChatGPT or Gemini outside a coding host, supply the instruction and required
+context yourself. A plain chat without filesystem tools cannot inspect a local
+checkout or create and verify the pause/resume usage receipt.
+
+## 8. Check that a skill resolves
 
 In a chat session opened on your project, type `/write-requirement` (or ask
 "write a requirement"). The agent should answer by asking for the three
@@ -120,4 +143,6 @@ mandatory inputs: type, version, topic. If it does, discovery works.
 - [From draft note to settled requirement](02-from-draft-to-settled-requirement.md)
   to run the first phase of the workflow.
 - [One body, many agents](../explanation/one-body-many-agents.md) for why
-  the same skill text serves three different agents.
+  the same skill text serves different agents.
+- [Pause and resume a working session](../how-to/pause-and-resume-a-session.md)
+  when you need to stop and continue in another session.

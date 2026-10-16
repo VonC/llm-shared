@@ -25,6 +25,7 @@ human validation gates the normal AI-orchestrated workflow would provide.
 | Release preparation | Ask for `prepare-release` with release intent | planner, conflict previews, synchronization, merges, notes, version updates, and preparation commit | approve topology and notes; run `brel` later |
 | History sanitization | Ask for `sanitize-git-history` | contextual scan, rule validation, fresh-clone rewrite, and re-audit | approve replacement rules and destructive phase; push later if desired |
 | Reports and maintenance skills | Ask for the named skill | activity/dashboard builders, doc review, file split, or slow-test workflow | validate the requested output |
+| Session continuity | Ask for `pause-session`, then `resume-session` when returning | snapshot and note updates on pause; context reading, state reconciliation, and usage receipt on resume | choose when to stop and return; explicitly use `--force` to reread a consumed prompt; resolve any still-pending decision |
 
 The user should not be told to run an internal prerequisite merely because it
 has a command-line interface. The owning skill calls it and reports the
@@ -33,6 +34,12 @@ evidence.
 Review roles remain isolated: a requestor never starts or messages a reviewer,
 and a reviewer never starts or messages a requestor. Durable state naming the
 next actor does not authorize the other automated role to launch it.
+
+`pause-session` and `resume-session` are LLM commands, not launcher names or
+`pw` subcommands. Resuming preserves applicable authorization and pending gates.
+Its usage receipt confirms context recovery before task execution; it grants
+no new approval. The [session guide](../how-to/pause-and-resume-a-session.md)
+also distinguishes checkpoint recovery from the review-specific bare `resume`.
 
 ## Commands normally called inside automation
 

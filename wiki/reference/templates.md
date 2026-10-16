@@ -84,6 +84,30 @@ The exchange renderers use eight versioned shapes:
 Their identity, artifact, and result relationships are summarized in the
 [independent review mode contract](independent-review-mode-contract.md).
 
+## Session continuity templates
+
+These templates produce private files in the consuming checkout's configured
+review artifact home, `.reviews` by default. They complement the existing
+[step journal](../../templates/step-journal.template.md) and
+[step handoff](../../templates/step-handoff.template.md).
+
+| Template | Generated file | Contents |
+| --- | --- | --- |
+| [pause-session.template.md](../../templates/pause-session.template.md) | `a.session-resume.local.md` | objective and latest steering; reading order; checkout, branch, HEAD and dirty-work ownership; completed work and proof limits; decisions, permissions and pending gates; live processes and reviews; remaining work and ordered actions; failed approaches and private references |
+| [resume-session.template.md](../../templates/resume-session.template.md) | `a.session-resume.used.local.md` | schema `1`, prompt basename, lowercase SHA-256 of the exact bytes, absolute project root, use timestamp with UTC offset, `Forced: true` or `false`, and reconciliation outcome |
+
+The pause template is addressed to the next session. Every placeholder is
+replaced with a fact or an explicit unknown. The resume template is the usage
+receipt; it is written after reading and reconciliation, before task execution.
+It confirms context recovery, not completion, and contains no credentials or
+review ownership capabilities.
+
+The canonical [pause](../../instructions/pause-session.md) and
+[resume](../../instructions/resume-session.md) instructions define publication,
+validation, and `--force` behavior. See the
+[artifact reference](artifact-files.md#session-checkpoints-and-usage-receipts)
+for lifetime and reuse rules.
+
 ## 🏷️ prepare-release-notes.version-txt.template.txt
 
 Plain text, not markdown. First line

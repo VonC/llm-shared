@@ -10,6 +10,8 @@ resolves to the same-named body under `instructions/`; see the
 through `.github/skills/` and `.claude/skills/`; OpenAI ChatGPT Codex uses the
 self-contained `.agents/llm-shared/` plugin; Google Gemini Antigravity uses
 `.agent/workflows/`. These are the four officially supported environments.
+Portable Grok redirects under `.grok/commands/` cover the shared commands and
+one-shot prompts through explicit loading; native discovery is unverified.
 
 ## Invocation model
 
@@ -70,12 +72,39 @@ The `review-resume` skill handles a bare `resume`: it checks migration,
 selects the exchange and role, and claims the session's ownership before
 continuing. It installs no separate shell resume launcher.
 
-## Claude-only writing support
+## Session continuity skills
 
-The [humanizer skill](../../.claude/skills/humanizer/SKILL.md) edits supplied
+These commands apply at any development phase or during standalone work.
+They are LLM skills, with no new shell executable or `pw` subcommand.
+
+| Skill | Inputs | Result |
+| --- | --- | --- |
+| `pause-session` | current conversation, checkout, journals, handoffs, and evidence | refreshes notes, publishes `a.session-resume.local.md`, clears the previous usage receipt, then stops task work |
+| `resume-session` | the checkout's latest prompt and its required references | reconciles current state, writes `a.session-resume.used.local.md`, then continues authorized work; stops if that exact prompt was already used |
+| `resume-session --force` | the same saved prompt | bypasses only the already-used check and writes a fresh receipt after reconciliation |
+
+Both artifacts live in the configured review artifact home (`.reviews` by
+default). The receipt binds the prompt's SHA-256 to its checkout; it records
+context recovery, not task completion. See the
+[session how-to](../how-to/pause-and-resume-a-session.md),
+[artifact contract](artifact-files.md#session-checkpoints-and-usage-receipts),
+and [templates](templates.md#session-continuity-templates).
+
+The bare `resume` handled by `review-resume` remains specific to independent
+review recovery. `resume-session` restores broader task context and routes any
+review continuation through those existing ownership gates.
+
+## One-shot prompts and writing support
+
+Canonical bodies under [`instructions/prompts/`](../../instructions/prompts/)
+cover analysis, API review, discussion, issue repair, coverage, complexity,
+docstrings, and commit messages. Copilot's `.github/prompts/` and Grok's
+`.grok/commands/` point to them.
+
+The [humanizer body](../../instructions/prompts/humanizer.md) edits supplied
 text for natural wording while preserving its information and avoiding
-invented facts. Its complete body lives under `.claude/skills/`; it has no
-shared `instructions/` body or corresponding adapter for the other hosts.
+invented facts. Claude and Grok provide adapters; other hosts can load the
+canonical file directly.
 
 ## 🔗 Chaining behavior of the writing skills
 

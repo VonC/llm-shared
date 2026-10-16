@@ -29,10 +29,11 @@ the integration or diagnosing discovery.
 AGENTS.md                    the Codex channel: run_commands pointer + groundhog section
 .agents/llm-shared/          source-linked ChatGPT Codex plugin package
 ├─ .codex-plugin/plugin.json manifest; "skills": "./skills/" drives discovery
-├─ skills/<skill>/SKILL.md   24 BOM-less wrappers (name + description only)
+├─ skills/<skill>/SKILL.md   BOM-less wrappers with discovery metadata
 └─ instructions/             compatibility redirects to root instructions/
-.agent/workflows/<skill>.md  24 Google Antigravity workflow wrappers,
+.agent/workflows/<skill>.md  Google Antigravity workflow wrappers,
                              junctioned into projects, slash-invoked
+.grok/commands/<command>.md  portable Grok redirects, explicitly loaded
 ```
 
 Independent review adapters live in the Codex and Antigravity wrapper sets.
@@ -43,14 +44,24 @@ shared `review-requestor` wrapper. The exact host matrix is in the
 ## 📚 Shared bodies and rules
 
 ```txt
-instructions/                one markdown body per skill — the single source
+instructions/                one canonical markdown body per shared skill
+├─ pause-session.md          save the latest private session checkpoint
+├─ resume-session.md         consume it once, or reread with --force
+└─ prompts/                  canonical one-shot and humanizer bodies
 rules/                       canonical shared rules, including chat and
                              LLM-specific adapter maintenance
 templates/                   document skeletons the skills fill
 ```
 
-Both skill folders delegate to `instructions/`; a third agent is handed
-the matching body file directly.
+Provider skill and workflow folders delegate to `instructions/`; another agent
+can load the matching canonical body directly.
+
+Grok adapters cover all shared commands, including the one-shot prompts;
+automatic discovery is host-dependent and unverified. ChatGPT or Gemini
+outside their coding hosts can be given the same canonical files explicitly.
+Session prompt and usage-flag templates live in `templates/`; their generated
+files stay in the consuming project's ignored review artifact home. See
+[pause/resume usage](../how-to/pause-and-resume-a-session.md).
 
 ## ⚙️ Executable support
 

@@ -186,7 +186,7 @@ on purpose. The root `a.*` gitignore line keeps them out of Git.
 
 Any other root file needs the human's confirmation first.
 
-## 🧾 Transient a-dot files in the artifact home
+## 🧾 Working a-dot files in the artifact home
 
 Every other `a.*` file lives in the review artifact home described above,
 never at the root. Tools resolve it through `tools/artifact_home.py` (Python)
@@ -209,6 +209,37 @@ file and move a legacy root copy of the same name into it once.
 | `a.<slug>.step<x>.journal.md`, `a.<slug>.step<x>.handoff.md` | the code writer's private step notes, see `instructions/step-journal.md` |
 | `a.<slug>.step<x>.tmp.*`, `a.<slug>.tmp.*` | step and effort scratch, deleted by `prepare-release` |
 | `a.tmp.*` | scratch of no effort, deleted by hand |
+
+## Session checkpoints and usage receipts
+
+| File in the artifact home | Contract |
+| --- | --- |
+| `a.session-resume.local.md` | One latest comprehensive resume prompt per checkout, independent of branch and topic; replaced only after a new pause snapshot is complete |
+| `a.session-resume.used.local.md` | Usage receipt identifying the prompt basename, exact-byte SHA-256, absolute checkout, timestamp with offset, and whether `--force` was used |
+
+These are retained private artifacts, never staged or committed, and are not
+`tmp` scratch removed by release preparation. Existing journals and handoffs
+retain the longer history. A successful pause publishes the complete prompt
+before clearing the old receipt. The exact filename selects the checkpoint;
+neither modification times nor older unused handoffs are used for selection.
+
+| State sampled when `resume-session` is invoked | Behavior |
+| --- | --- |
+| Complete prompt, no receipt | Read, reconcile, record use, continue |
+| Valid receipt matches the prompt, checkout, and SHA-256 | Stop as already used; `--force` permits rereading and reconciliation |
+| Valid receipt for this prompt path and checkout has a different SHA-256 | Treat as a new prompt, then read and reconcile |
+| Missing, empty, unreadable, or incomplete prompt | Report the problem and stop without changing the receipt |
+| Malformed or unreadable receipt, wrong prompt basename or checkout | Report the problem and stop, including with `--force` |
+
+Before recording use, the agent verifies required references, reconciles the
+checkout and live jobs, and samples the prompt digest and receipt again.
+A blocking discrepancy or receipt-write failure stops task execution. The
+receipt means the context was recovered; it neither proves completion nor locks
+the checkout against another agent. `--force` changes only reuse eligibility.
+
+The root `a.prompt.txt` belongs to `pw` routing and is not a session checkpoint.
+See [session templates](templates.md#session-continuity-templates) and
+[pause/resume usage](../how-to/pause-and-resume-a-session.md).
 
 ## 🧪 Groundhog files
 
