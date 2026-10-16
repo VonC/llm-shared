@@ -14,6 +14,28 @@ the host entry points; AI agents then discover and read the shared bodies,
 instructions, and tools automatically. Consult paths directly when maintaining
 the integration or diagnosing discovery.
 
+## LLM compatibility
+
+This table describes the integrations shipped in the current tree. A supported
+host integration does not imply that every auxiliary command has a native
+adapter there. Canonical instructions remain available for explicit loading.
+
+| LLM / host | Entry point | Coverage and limits |
+| --- | --- | --- |
+| OpenAI ChatGPT/Codex | `.agents/llm-shared/skills/<skill>/SKILL.md` and `.codex-plugin/plugin.json` | Supported plugin registration; commands use `$llm-shared:<skill>`; redirects resolve from the installed plugin layout |
+| Anthropic Claude Code | `.claude/skills/<skill>/SKILL.md` | Supported skill discovery; includes humanizer and the family-specific review roles |
+| Google Gemini through Antigravity | `.agent/workflows/<skill>.md` | Supported workflow registration through the host's workflow directory; applies to Antigravity, not every Gemini interface |
+| GitHub Copilot | `.github/skills/`, `.github/prompts/`, `.github/agents/` | Supported skill, one-shot prompt, and agent entry points; command surfaces depend on the entry-point type |
+| Grok | `.grok/commands/<command>.md` | Portable redirects cover shared instructions, one-shot prompts, humanizer, and compatibility aliases; native discovery and slash commands are unverified; review identity is `unknown` |
+| Another host, including plain ChatGPT or Gemini chat | Canonical `instructions/` files supplied explicitly | No native integration implied; local execution requires the relevant filesystem, shell, and host capabilities |
+
+For review-specific adapter coverage, use the
+[host adapter matrix](independent-review-mode-contract.md#host-adapter-matrix).
+For the composition of a skill and the meaning of scaffolding, see
+[One body, many agents](../explanation/one-body-many-agents.md).
+To integrate another host, follow
+[Add scaffolding for another LLM](../how-to/add-an-llm-adapter.md).
+
 ## 🚪 Agent entry points
 
 ```txt

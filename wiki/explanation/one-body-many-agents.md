@@ -14,6 +14,53 @@ Handing an instruction body to an unsupported LLM is the direct fallback.
 and Google Antigravity because the skill is not written four times. Each
 host gets a thin pointer; the body lives once under `instructions/`.
 
+## What makes a skill
+
+In llm-shared, a skill is a reusable task composed of **instructions plus the
+templates, supporting files, and tools those instructions require**. A host's
+`SKILL.md` is its entry point, not the whole implementation.
+
+| Shared component | Responsibility |
+| --- | --- |
+| `instructions/` | Defines the task, inputs, sequence, checks, and stopping conditions; `instructions/prompts/` holds one-shot bodies |
+| `rules/` | Defines common behavior such as shell execution, artifact placement, and human decisions |
+| `templates/` | Defines the shape of generated documents, handoffs, or receipts |
+| Supporting files and `scripts/`, `bin/`, `tools/` | Supply resources and executable operations when the instruction needs them |
+
+Not every skill needs every component. For example, `pause-session` combines
+its instruction, artifact rules, a prompt template, and existing artifact-home
+tooling. `resume-session` uses a separate instruction and receipt template.
+Neither introduces a standalone shell command. The generated checkpoint belongs
+to the consuming project; the reusable instruction and template stay shared.
+
+## What scaffolding means here
+
+Scaffolding is the small host-specific layer that makes a shared skill
+discoverable and loadable: folders with the host's expected names, metadata
+such as a skill name and description, a redirect, and any registration or
+plugin manifest the host requires. Each Markdown redirect is an **adapter**.
+The host discovers the adapter, follows its direct link to the canonical
+instruction, and reads the templates and tools that instruction calls for.
+
+The adapter body contains only that redirect. Keeping a summary or copied
+workflow there would create another version to maintain. A new LLM therefore
+needs an entry point and access to the shared files, rather than rewritten
+instructions for each task. This boundary is defined in the
+[adapter rule](../../rules/llm-specific-adapters.md).
+
+Compatibility depends on the **host application and its tools**, not only on
+the model name. Codex supplies a different integration surface from plain
+ChatGPT, as Antigravity does from plain Gemini chat. A chat that accepts pasted
+text can discuss the instructions; performing local work also needs access to
+the project and the tools the skill uses. A Markdown adapter cannot supply a
+missing filesystem, shell, approval UI, or background-job capability.
+
+Grok currently has portable file redirects. Their presence does not establish
+native Grok discovery or slash-command support. The
+[compatibility reference](../reference/repository-layout.md#llm-compatibility)
+distinguishes shipped integrations from explicit file loading; the
+[adapter guide](../how-to/add-an-llm-adapter.md) covers adding another host.
+
 ## 🔗 The pointer pattern
 
 `.github/skills/<skill>/SKILL.md` and `.claude/skills/<skill>/SKILL.md`
@@ -36,11 +83,10 @@ The same rule covers one-shot prompts and humanizer: their bodies live under
 folders. A new host gets adapters to existing content rather than its own
 copy of the workflow.
 
-The clone always sits beside the projects that use it, never inside
-them: no vendoring, no Git submodule required. Every discovery mechanism
-— workspace folder, `--add-dir`, symlink, plugin junction — references
-the one clone in place, which is why a single `git pull` updates the
-skills everywhere.
+The usual setup keeps one clone beside the projects that use it. A workspace
+folder, `--add-dir`, symlink, or plugin junction references that shared clone,
+so one `git pull` updates the source for every integration pointing to it.
+Hosts with a cached plugin copy may require a refresh before using an edit.
 
 ## 🚪 The session references it, the project never does
 
@@ -81,8 +127,8 @@ What actually differs between hosts is kept out of the bodies:
   native choice mechanism and never assumes a TTY,
 - shell mechanics go through `rules/run_commands.md`, and the `bin\*.bat`
   launchers self-locate so no host needs an environment first,
-- sandbox quirks (Codex needing escalation for `senv.bat`) are documented
-  in the one place that hits them.
+- filesystem, shell, and job-handling limits remain properties of the host;
+  an adapter does not change its permissions or supply missing tools.
 
 ## 📜 Why MIT fits this model
 

@@ -110,6 +110,11 @@ under `.grok/commands/`, loaded explicitly; native discovery is unverified.
 Any other agent that can read and write workspace files can also be handed the
 same instruction bodies. Plain chat without filesystem tools cannot complete
 local pause/resume verification. See [One body, many agents](explanation/one-body-many-agents.md).
+That explanation covers how instructions, templates, supporting files, and
+tools form a skill, and how host-specific scaffolding redirects to it. The
+[compatibility reference](reference/repository-layout.md#llm-compatibility)
+lists current entry points; the
+[adapter guide](how-to/add-an-llm-adapter.md) covers adding your preferred host.
 
 ## Additional utilities are first-class too
 
@@ -197,6 +202,7 @@ Recipes for a precise goal, for readers who already know the basics.
 
 - 🤖 [Register the skills as a Codex plugin](how-to/register-skills-as-a-codex-plugin.md)
 - 🤖 [Use the skills from Google Antigravity](how-to/use-the-skills-from-antigravity.md)
+- 🤖 [Add scaffolding for another LLM](how-to/add-an-llm-adapter.md)
 - 🤖 [Pick up skill edits without restarting](how-to/pick-up-skill-edits-without-restarting.md)
 
 ### Additional utilities guides

@@ -7,12 +7,25 @@ from a rough idea to a tagged release. The AI writes, reviews, implements, and
 checks; **you settle the decisions, approve the commits, and release**.
 Every phase leaves documents and evidence that another person or model can use.
 
-[Set up your agent](wiki/tutorials/01-plug-llm-shared-into-your-project.md)
-for ChatGPT/Codex, Claude Code, Gemini/Antigravity, or GitHub Copilot.
-[Grok adapters](.grok/commands/) cover all commands through explicit file
-loading; native Grok discovery is unverified. Other agents can read the same
-[canonical instructions](instructions/) directly. Local automation needs a
-host with filesystem and tool access.
+A **skill** combines canonical instructions with the templates, supporting
+files, and tools it needs. **LLM-specific scaffolding** supplies the discovery
+metadata and redirects the host to those shared instructions; the workflow
+body stays in one place.
+
+| LLM / host | Current compatibility |
+| --- | --- |
+| OpenAI ChatGPT/Codex | Supported Codex plugin with skill adapters in `.agents/llm-shared/` |
+| Anthropic Claude Code | Supported skills in `.claude/skills/` |
+| Google Gemini through Antigravity | Supported workflows in `.agent/workflows/` |
+| GitHub Copilot | Supported skills, prompts, and agent adapters in `.github/` |
+| Grok | Portable redirects for all shared commands in `.grok/commands/`; explicit loading, native discovery unverified |
+| Other LLMs, including plain ChatGPT or Gemini chat | Load the canonical files explicitly; local automation requires filesystem and tool access |
+
+[Set up your agent](wiki/tutorials/01-plug-llm-shared-into-your-project.md),
+read [how skills and scaffolding fit together](wiki/explanation/one-body-many-agents.md),
+or [add scaffolding for another LLM](wiki/how-to/add-an-llm-adapter.md).
+The [compatibility reference](wiki/reference/repository-layout.md#llm-compatibility)
+records entry points and coverage limits.
 
 ## 1. The development workflow
 
