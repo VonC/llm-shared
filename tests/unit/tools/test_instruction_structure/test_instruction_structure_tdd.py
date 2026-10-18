@@ -140,10 +140,15 @@ def test_umbrella_child_stops_for_review_before_requirement_handoff() -> None:
 
 
 def test_process_draft_docs_keep_the_on_disk_umbrella_child_contract() -> None:
-    """README and Diataxis pages keep the file-backed child review gate."""
+    """Diataxis pages keep the file-backed child review gate the README links to.
+
+    The README was reduced to the workflow on 2026-10-16 and no longer repeats
+    the child-file details: it links to the draft tutorial instead, so only the
+    tutorial, how-to and reference pages must state the gate and its preview.
+    """
     root = steps.llm_shared_dir()
+    readme = (root / "README.md").read_text(encoding="utf-8")
     pages = {
-        "README": (root / "README.md").read_text(encoding="utf-8"),
         "tutorial": (
             root / "wiki/tutorials/02-from-draft-to-settled-requirement.md"
         ).read_text(encoding="utf-8"),
@@ -155,9 +160,7 @@ def test_process_draft_docs_keep_the_on_disk_umbrella_child_contract() -> None:
         ),
     }
 
-    assert "writes and verifies the canonical focused child Markdown file" in pages[
-        "README"
-    ]
+    assert "wiki/tutorials/02-from-draft-to-settled-requirement.md" in readme
     assert "Review the file itself" in pages["tutorial"]
     assert "Review that file itself" in pages["how-to"]
     assert "required on-disk artifact" in pages["reference"]
