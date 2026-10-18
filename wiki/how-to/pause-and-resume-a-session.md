@@ -6,6 +6,14 @@ LLM host that can read and write that checkout.
 
 These are commands to the LLM, not shell executables or `pw` subcommands.
 
+## Invocation model
+
+The user invokes each command in the agent session; the AI then follows its
+instruction: it reports or lists the saved state, saves the prompt, or reads,
+reconciles and continues the saved work. The AI never pauses or resumes on its
+own initiative, and only the user can consent to resuming a session that
+another agent paused.
+
 ## Check what is waiting before continuing
 
 Invoke `status-session` to inspect the saved state without resuming work:
@@ -189,7 +197,7 @@ Load [list-session](../../instructions/list-session.md),
 [status-session](../../instructions/status-session.md),
 [pause-session](../../instructions/pause-session.md) or
 [resume-session](../../instructions/resume-session.md) directly. Grok's
-portable adapters are [here](../../.grok/commands/); native discovery is
+portable adapters are in [`.grok/commands/`](../../.grok/commands/); native discovery is
 not assumed. A plain chat can help compose text but cannot verify a local
 checkpoint or flag without filesystem tools.
 

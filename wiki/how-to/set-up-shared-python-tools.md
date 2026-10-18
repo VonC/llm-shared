@@ -5,6 +5,14 @@ Python tools. Reading the Markdown skills alone requires no Python setup.
 Dependencies are declared in [`pyproject.toml`](../../pyproject.toml) and pinned
 in [`uv.lock`](../../uv.lock); the project uses the `dev` dependency group.
 
+## Invocation model
+
+A human prepares this environment once per machine and decides on dependency
+upgrades. An AI working in the checkout may run the documented launchers,
+checks and dependency reports when asked, following the
+[shell execution policy](../../rules/run_commands.md); installing Python or uv
+and changing `uv.lock` stay the user's decisions.
+
 ## Prepare the environment for the Windows launchers
 
 Work from the llm-shared checkout. Install Python in the range declared by

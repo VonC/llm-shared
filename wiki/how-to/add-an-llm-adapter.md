@@ -7,6 +7,14 @@ You need the llm-shared checkout and the host's current integration
 documentation. For the concepts, read
 [What scaffolding means here](../explanation/one-body-many-agents.md#what-scaffolding-means-here).
 
+## Invocation model
+
+Adding an adapter is human-led repository work: the user chooses the host,
+confirms its integration from that host's documentation, registers the adapter
+and exercises it in a scratch checkout. An AI can draft the redirect and its
+metadata and run the structural tests when asked, but it cannot confirm that a
+host it does not run discovers the new adapter.
+
 ## 1. Choose the host's actual entry point
 
 Check how the application loads custom instructions: a skill file, prompt,
