@@ -67,6 +67,7 @@ shared `review-requestor` wrapper. The exact host matrix is in the
 
 ```txt
 instructions/                one canonical markdown body per shared skill
+├─ list-session.md           list paused sessions across checkouts
 ├─ status-session.md         inspect the checkpoint or latest recorded work
 ├─ pause-session.md          save the latest private session checkpoint
 ├─ resume-session.md         consume it once, or reread with --force
@@ -83,7 +84,8 @@ Grok adapters cover all shared commands, including the one-shot prompts;
 automatic discovery is host-dependent and unverified. ChatGPT or Gemini
 outside their coding hosts can be given the same canonical files explicitly.
 Session prompt and usage-flag templates live in `templates/`; their generated
-files stay in the consuming project's ignored review artifact home. See
+files stay in the consuming project's ignored review artifact home, and the
+session journal in `%USERPROFILE%\.llm-shared`. See
 [pause/resume usage](../how-to/pause-and-resume-a-session.md).
 
 ## ⚙️ Executable support

@@ -214,8 +214,8 @@ file and move a legacy root copy of the same name into it once.
 
 | File in the artifact home | Contract |
 | --- | --- |
-| `a.session-resume.local.md` | One latest comprehensive resume prompt per checkout, independent of branch and topic; replaced only after a new pause snapshot is complete |
-| `a.session-resume.used.local.md` | Usage receipt identifying the prompt basename, exact-byte SHA-256, absolute checkout, timestamp with offset, and whether `--force` was used |
+| `a.session-resume.local.md` | One latest comprehensive resume prompt per checkout, independent of branch and topic; its first line starts with the pausing agent id, as in `# claude: Resume session: ...`; replaced only after a new pause snapshot is complete |
+| `a.session-resume.used.local.md` | Usage receipt identifying the prompt basename, exact-byte SHA-256, absolute checkout, timestamp with offset, whether `--force` was used, the pausing and resuming agent ids, and any user-approved agent override |
 
 These are retained private artifacts, never staged or committed, and are not
 `tmp` scratch removed by release preparation. Existing journals and handoffs
@@ -240,16 +240,34 @@ updates the receipt nor executes recorded actions. Its
 | State sampled when `resume-session` is invoked | Behavior |
 | --- | --- |
 | Complete prompt, no receipt | Read, reconcile, record use, continue |
-| Valid receipt matches the prompt, checkout, and SHA-256 | Stop as already used; `--force` permits rereading and reconciliation |
+| Valid receipt matches the prompt, checkout, and SHA-256 | Resume from the latest notes, with the used prompt as background; `--force` rereads the prompt instead |
 | Valid receipt for this prompt path and checkout has a different SHA-256 | Treat as a new prompt, then read and reconcile |
-| Missing, empty, unreadable, or incomplete prompt | Report the problem and stop without changing the receipt |
+| Missing prompt | Resume from the latest notes, as after a reboot without a pause; write no receipt |
+| Empty, unreadable, or incomplete prompt | Report the problem and stop without changing the receipt |
 | Malformed or unreadable receipt, wrong prompt basename or checkout | Report the problem and stop, including with `--force` |
+
+Before reconciling, the agent compares the prompt's agent id (`claude`,
+`chatgpt`, `gemini`, `copilot`, `grok` or another host name) with its own.
+A different or missing id stops the turn with a notice asking the user to
+consent to resuming here; `--force` does not skip that question. A pause asks
+the same question before replacing an unresumed prompt from another agent.
 
 Before recording use, the agent verifies required references, reconciles the
 checkout and live jobs, and samples the prompt digest and receipt again.
 A blocking discrepancy or receipt-write failure stops task execution. The
 receipt means the context was recovered; it neither proves completion nor locks
 the checkout against another agent. `--force` changes only reuse eligibility.
+
+Outside every checkout, one private session journal per user indexes these
+checkpoints: `%USERPROFILE%\.llm-shared\sessions.journal.md`, or
+`$HOME/.llm-shared/sessions.journal.md` where `USERPROFILE` is unset. Its
+folder holds a `.gitignore` containing `*`. Each pause appends an entry with
+the agent id, branch, HEAD, prompt SHA-256 and a short summary; each resume
+appends one with its source (prompt or notes), agent and override outcome.
+Per checkout, a new entry replaces the older entry of the same kind, so at most
+one pause and one resume entry remain. `list-session` reads it without
+changing it, checking each waiting prompt's SHA-256 on disk. The journal is an
+index: the prompt and receipt still decide what `resume-session` does.
 
 The root `a.prompt.txt` belongs to `pw` routing and is not a session checkpoint.
 See [session templates](templates.md#session-continuity-templates) and

@@ -69,7 +69,11 @@ reconciles current state, records use, and continues authorized work. A usage
 receipt prevents accidental rereading of that exact prompt; `--force` permits
 an explicit reread while preserving pending approvals. `status-session` reports
 whether an unprocessed prompt exists and gives three summary points from it or
-the latest notes, handoffs and journals, without resuming work. Start with
+the latest notes, handoffs and journals, without resuming work. `list-session`
+lists, from a private journal in `%USERPROFILE%\.llm-shared`, every folder with
+a session waiting to be resumed and the agent that should resume it. Without
+an unprocessed prompt, as after a reboot, `resume-session` resumes from the
+latest notes. Start with
 [Pause and resume a working session](how-to/pause-and-resume-a-session.md), or
 consult the [template](reference/templates.md#session-continuity-templates) and
 [artifact](reference/artifact-files.md#session-checkpoints-and-usage-receipts)

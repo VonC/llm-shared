@@ -80,8 +80,9 @@ They are LLM skills, with no new shell executable or `pw` subcommand.
 | Skill | Inputs | Result |
 | --- | --- | --- |
 | `status-session` | latest prompt and receipt; latest notes, handoffs and journals when no unprocessed prompt exists | reports prompt state and exactly three points about the saved task or latest recorded work; changes no files and resumes no work |
-| `pause-session` | current conversation, checkout, journals, handoffs, and evidence | refreshes notes, publishes `a.session-resume.local.md`, clears the previous usage receipt, then stops task work |
-| `resume-session` | the checkout's latest prompt and its required references | reconciles current state, writes `a.session-resume.used.local.md`, then continues authorized work; stops if that exact prompt was already used |
+| `list-session` | the private session journal in `%USERPROFILE%\.llm-shared`, and each listed checkout's prompt and receipt | lists every folder with a session waiting to be resumed and the agent that should resume it, then every session in progress (resumed and not paused since, possibly interrupted); changes no files |
+| `pause-session` | current conversation, checkout, journals, handoffs, and evidence | refreshes notes, publishes `a.session-resume.local.md` with the pausing agent id on its first line, clears the previous usage receipt, adds a session journal entry, then stops task work |
+| `resume-session` | the checkout's latest prompt and its required references, or its latest notes when no prompt is unprocessed | asks for consent when another agent paused the session, reconciles current state, writes `a.session-resume.used.local.md` (prompt only), adds a session journal entry, then continues authorized work |
 | `resume-session --force` | the same saved prompt | bypasses only the already-used check and writes a fresh receipt after reconciliation |
 
 Both artifacts live in the configured review artifact home (`.reviews` by

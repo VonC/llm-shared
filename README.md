@@ -63,9 +63,10 @@ Use these commands in the agent session working on your project:
 | Command | Result |
 | --- | --- |
 | `status-session` | Reports whether an unprocessed pause prompt exists, then gives three points from it or the latest notes, handoffs and journals. Leaves files and tasks unchanged. |
-| `pause-session` | Refreshes notes, saves a comprehensive resume prompt, confirms its relative path, and stops task work. |
-| `resume-session` | Announces the prompt's relative path and that it will use it, reads and reconciles the saved context, records its use, then continues authorized work in the same turn. |
-| `resume-session --force` | Reads that same prompt again after it has already been used. |
+| `list-session` | Lists every folder with a session waiting to be resumed, the agent that should resume it and a short summary, then every session in progress (resumed and not paused since, possibly interrupted). Reads the private journal `%USERPROFILE%\.llm-shared\sessions.journal.md`; changes no files. |
+| `pause-session` | Refreshes notes, saves a comprehensive resume prompt whose first line names the pausing agent (`claude`, `chatgpt`, `gemini`, `copilot`, `grok`), adds a session journal entry, confirms its relative path, and stops task work. |
+| `resume-session` | Asks for consent when the prompt was paused by another agent or names none; otherwise announces the prompt's relative path and that it will use it, reads and reconciles the saved context, records its use, then continues authorized work in the same turn. Without an unprocessed prompt (reboot, already used), resumes from the latest notes. |
+| `resume-session --force` | Reads that same prompt again after it has already been used, instead of the latest notes. |
 
 The prompt is `.reviews/a.session-resume.local.md`; its usage receipt is
 `a.session-resume.used.local.md` beside it. A configured review artifact home
