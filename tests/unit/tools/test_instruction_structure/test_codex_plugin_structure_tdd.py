@@ -156,16 +156,22 @@ def test_llm_specific_markdown_never_copies_canonical_markdown(
 
 
 def _assert_llmup_launcher(doskeys: str, launcher: str) -> None:
-    """Check the alias and launcher validation pipeline."""
+    """Check the alias and launcher validation pipeline.
+
+    The launcher runs llm-shared's own package tool with the llm-shared Python:
+    Codex no longer installs the plugin-creator helper scripts it used to call.
+    """
     assert 'llmup="%LLM_SHARED_DIR%\\bin\\update_llm_shared_plugin.bat"' in doskeys
-    assert "--isolated --no-project --with PyYAML" in launcher
-    assert "validate_plugin.py" in launcher
-    assert "update_plugin_cachebuster.py" in launcher
+    assert "codex_plugin_package.py" in launcher
+    assert 'python "%PACKAGE_TOOL%" validate "%PLUGIN_ROOT%"' in launcher
+    assert 'python "%PACKAGE_TOOL%" bump-version "%PLUGIN_ROOT%"' in launcher
+    assert "plugin-creator\\scripts" not in launcher
+    assert "uv.exe" not in launcher
 
 
 def _assert_llmup_installation(launcher: str) -> None:
     """Check redirect generation and marketplace replacement commands."""
-    assert "read_marketplace_name.py" in launcher
+    assert 'marketplace-name "%MARKETPLACE_FILE%"' in launcher
     assert "codex_plugin_redirects.py" in launcher
     assert "--installed" in launcher
     assert "plugin add llm-shared@%MARKETPLACE_NAME%" in launcher

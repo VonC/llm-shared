@@ -5,29 +5,19 @@ REM Self-locate the llm-shared folder from this launcher's own path.
 if not defined LLM_SHARED_DIR set "LLM_SHARED_DIR=%~dp0.."
 
 set "PLUGIN_ROOT=%LLM_SHARED_DIR%\.agents\llm-shared"
-set "PLUGIN_CREATOR_ROOT=%USERPROFILE%\.codex\skills\.system\plugin-creator"
-set "VALIDATOR=%PLUGIN_CREATOR_ROOT%\scripts\validate_plugin.py"
-set "CACHEBUSTER=%PLUGIN_CREATOR_ROOT%\scripts\update_plugin_cachebuster.py"
-set "MARKETPLACE_READER=%PLUGIN_CREATOR_ROOT%\scripts\read_marketplace_name.py"
+REM llm-shared validates, versions and locates its own package: Codex no longer
+REM installs the plugin-creator helper scripts under .codex\skills\.system.
+set "PACKAGE_TOOL=%LLM_SHARED_DIR%\tools\codex_plugin_package.py"
 set "REDIRECT_VALIDATOR=%LLM_SHARED_DIR%\tools\codex_plugin_redirects.py"
+set "MARKETPLACE_FILE=%USERPROFILE%\.agents\plugins\marketplace.json"
 
 if not exist "%PLUGIN_ROOT%\.codex-plugin\plugin.json" (
     echo ERROR: llm-shared plugin manifest not found under "%PLUGIN_ROOT%".
     exit /b 1
 )
 
-if not exist "%VALIDATOR%" (
-    echo ERROR: Codex plugin validator not found at "%VALIDATOR%".
-    exit /b 1
-)
-
-if not exist "%CACHEBUSTER%" (
-    echo ERROR: Codex cachebuster helper not found at "%CACHEBUSTER%".
-    exit /b 1
-)
-
-if not exist "%MARKETPLACE_READER%" (
-    echo ERROR: Codex marketplace reader not found at "%MARKETPLACE_READER%".
+if not exist "%PACKAGE_TOOL%" (
+    echo ERROR: llm-shared plugin package tool not found at "%PACKAGE_TOOL%".
     exit /b 1
 )
 
@@ -36,17 +26,23 @@ if not exist "%REDIRECT_VALIDATOR%" (
     exit /b 1
 )
 
-set "UV_EXE="
-for %%e in (uv.exe) do set "UV_EXE=%%~$PATH:e"
-if not defined UV_EXE (
-    echo ERROR: uv.exe is not available on PATH.
+REM Both tools use the standard library only: run them with the llm-shared
+REM Python, as the other bin launchers do, never the active project's Python.
+set "PYTHON_BASE=%LLM_SHARED_DIR%\venvs"
+set "LATEST_PYTHON="
+for /f "delims=" %%d in ('dir /b /ad /o-n "%PYTHON_BASE%\python_3*" 2^>nul') do (
+    if not defined LATEST_PYTHON set "LATEST_PYTHON=%%d"
+)
+if not defined LATEST_PYTHON (
+    echo ERROR: No python_3* directory found in "%PYTHON_BASE%".
     exit /b 1
 )
+set "PATH=%PYTHON_BASE%\%LATEST_PYTHON%\Scripts;%PATH%"
 
 set "MARKETPLACE_NAME="
-for /f "usebackq delims=" %%m in (`python "%MARKETPLACE_READER%"`) do set "MARKETPLACE_NAME=%%m"
+for /f "usebackq delims=" %%m in (`python "%PACKAGE_TOOL%" marketplace-name "%MARKETPLACE_FILE%"`) do set "MARKETPLACE_NAME=%%m"
 if not defined MARKETPLACE_NAME (
-    echo ERROR: Could not read the personal Codex marketplace name.
+    echo ERROR: Could not read the personal Codex marketplace name from "%MARKETPLACE_FILE%".
     exit /b 1
 )
 set "CACHE_BASE=%USERPROFILE%\.codex\plugins\cache\%MARKETPLACE_NAME%\llm-shared"
@@ -61,19 +57,19 @@ if not defined CODEX_EXE (
     exit /b 1
 )
 
-"%UV_EXE%" run --isolated --no-project --with PyYAML python "%VALIDATOR%" "%PLUGIN_ROOT%"
+python "%PACKAGE_TOOL%" validate "%PLUGIN_ROOT%"
 if errorlevel 1 exit /b 1
 
-"%UV_EXE%" run --isolated --no-project python "%REDIRECT_VALIDATOR%" "%PLUGIN_ROOT%" "%LLM_SHARED_DIR%" "%CACHE_BASE%"
+python "%REDIRECT_VALIDATOR%" "%PLUGIN_ROOT%" "%LLM_SHARED_DIR%" "%CACHE_BASE%"
 if errorlevel 1 exit /b 1
 
-python "%CACHEBUSTER%" "%PLUGIN_ROOT%"
+python "%PACKAGE_TOOL%" bump-version "%PLUGIN_ROOT%"
 if errorlevel 1 exit /b 1
 
 "%CODEX_EXE%" plugin add llm-shared@%MARKETPLACE_NAME%
 if errorlevel 1 exit /b 1
 
-"%UV_EXE%" run --isolated --no-project python "%REDIRECT_VALIDATOR%" "%PLUGIN_ROOT%" "%LLM_SHARED_DIR%" "%CACHE_BASE%" --installed
+python "%REDIRECT_VALIDATOR%" "%PLUGIN_ROOT%" "%LLM_SHARED_DIR%" "%CACHE_BASE%" --installed
 if errorlevel 1 exit /b 1
 
 "%CODEX_EXE%" plugin list | findstr /I /C:"llm-shared@%MARKETPLACE_NAME%"
