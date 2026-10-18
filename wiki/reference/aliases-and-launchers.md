@@ -35,8 +35,10 @@ the corresponding launcher.
 | `llmup` | `bin\update_llm_shared_plugin.bat` | validate `.agents\llm-shared` and its cache-relative redirects, replace its manifest cachebuster, reinstall `llm-shared@personal`, verify the installed cache copy, and print its installed row |
 
 `llmup` requires an interactive `cmd` initialized by `senv.bat`. The launcher
-uses `uv run --isolated --no-project --with PyYAML` for plugin validation, so
-the active project's environment is not changed. It locates the standalone
+runs `tools\codex_plugin_package.py` (validation, cachebuster, marketplace
+name) and `tools\codex_plugin_redirects.py` with the llm-shared Python from
+`venvs\`, so the active project's environment is not changed and no
+plugin-creator helper script, PyYAML or `uv` is needed. It locates the standalone
 Codex executable first and falls back to `codex.exe` on `PATH`. A successful
 run still needs a new Codex thread before the refreshed skill registry appears.
 

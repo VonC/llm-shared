@@ -10,7 +10,7 @@ Plugin registration and thread restart are human-owned host configuration.
 An AI can update the package and run the requested CLI refresh, but the user
 chooses the marketplace and starts the new Codex thread that loads it.
 
-🤖 Goal: make all 24 llm-shared skills available in every ChatGPT Codex
+🤖 Goal: make every llm-shared skill available in every ChatGPT Codex
 session as `$llm-shared:<skill>`, without copying a single file out of
 the clone.
 
@@ -21,7 +21,7 @@ The plugin package lives under `.agents/llm-shared/` in the clone:
 ```txt
 .agents/llm-shared/
 ├─ .codex-plugin/plugin.json     manifest; its "skills": "./skills/" line drives discovery
-├─ skills/<skill>/SKILL.md       24 wrappers, UTF-8 without BOM, name + description frontmatter only
+├─ skills/<skill>/SKILL.md       one wrapper per root instruction, UTF-8 without BOM, name + description frontmatter
 └─ instructions/                 compatibility redirects to root instructions/
 ```
 
@@ -112,15 +112,20 @@ instruction or redirect:
 1. Initialize an interactive `cmd` with `senv.bat`.
 2. Run the repository shortcut:
 
-```cmd
-llmup
-```
+   ```cmd
+   llmup
+   ```
 
-The shortcut validates the complete package with an isolated `PyYAML`
-dependency, validates every redirect against its future cache location, replaces
-the manifest cachebuster with the plugin-creator helper, reinstalls from the
-existing personal marketplace, validates the newly installed cache copy, and
-filters the installed-plugin check to `llm-shared@personal`.
+   The shortcut reads the marketplace name from
+   `%USERPROFILE%\.agents\plugins\marketplace.json`, validates the manifest and
+   every wrapper, validates every redirect against its future cache location,
+   replaces the manifest cachebuster, reinstalls from the existing personal
+   marketplace, validates the newly installed cache copy, and filters the
+   installed-plugin check to `llm-shared@personal`. The validation,
+   cachebuster and marketplace steps are `tools\codex_plugin_package.py`
+   commands run with the llm-shared Python, so the shortcut no longer depends
+   on the Codex plugin-creator helper scripts, which Codex stopped installing
+   under `%USERPROFILE%\.codex\skills\.system`.
 
 3. Start a new thread.
 
@@ -147,7 +152,7 @@ It must list the plugin-prefixed skills (`llm-shared:process-draft`,
 `llm-shared:group-commits-msg`, ...) with no skipped-skill or
 missing-frontmatter warning. Inside a fresh session, `$llm-` completes to
 the same names, and asking "list your available skills from llm-shared"
-returns the 25 entries, including `llm-shared:install-sensitive-git-hooks`,
+returns one entry per root instruction, including `llm-shared:install-sensitive-git-hooks`,
 `llm-shared:sanitize-git-history`, and
 `llm-shared:isolate-logos`.
 
@@ -168,8 +173,8 @@ runs.
   keep them that way when editing on Windows.
 - **Underscores or extra frontmatter keys** — Codex skill names refuse
   `_` (the wrapper for `fix_slow_test.md` is named `fix-slow-test`), and
-  the validator rejects keys beyond `name`, `description` and a
-  `metadata` mapping.
+  the `llmup` validator rejects keys beyond `name`, `description`, a
+  `metadata` mapping and the `llm_nature: codex` adapter hint.
 - **Duplicate direct installs** — copying the wrappers into
   `%USERPROFILE%\.codex\skills` as well makes every skill appear twice;
   the plugin route alone is enough.

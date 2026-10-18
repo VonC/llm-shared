@@ -45,8 +45,8 @@ skills. After editing the plugin package under `.agents/llm-shared/`:
    llmup
    ```
 
-   The alias validates the complete plugin and its cache-relative redirects in
-   an isolated Python environment, replaces the manifest cachebuster, reinstalls
+   The alias validates the complete plugin and its cache-relative redirects
+   with the llm-shared Python, replaces the manifest cachebuster, reinstalls
    `llm-shared@personal`, verifies the installed cache copy, and prints only
    that plugin's installed row.
 2. Start a **new** thread — resuming the old one is not enough.
