@@ -33,6 +33,69 @@ never staged or committed, even when their names are explicitly passed to Git.
 Check that neither path is tracked before writing private content. If either
 is tracked, report the problem and stop without changing the user's index.
 
+## Name the agent that writes the prompt
+
+The prompt's first line starts with the id of the agent host whose chat holds
+this session: `# <agent-id>: Resume session: <task title>`. The id is the
+text after the leading `#` and its space, up to the first colon.
+resume-session compares it with its own id to detect a session paused by
+another agent; see
+[resume-session](resume-session.md#check-which-agent-paused-the-prompt).
+
+| Agent id | Host whose chat holds the session |
+| --- | --- |
+| `claude` | Claude Code or another Anthropic Claude host |
+| `chatgpt` | ChatGPT or OpenAI Codex |
+| `gemini` | Gemini CLI, Antigravity or another Google Gemini host |
+| `copilot` | GitHub Copilot, whatever model it runs |
+| `grok` | Grok |
+
+The id names the host, not only the model: Copilot running a Claude model
+writes `copilot`. Record the model in the `Paused by` line of the template.
+Any other host uses its lowercase product name, made of letters, digits and
+hyphens, such as `cursor`. Never write another agent's id, and do not
+copy the id from an earlier prompt.
+
+Before replacing an existing prompt, check its first line and receipt with the
+[resume state table](resume-session.md#locate-and-check-the-saved-prompt).
+If that prompt is unused or new since previous use, and its id differs from
+yours or is missing, tell the user which agent paused it (or that it is
+unknown) and ask before replacing it: replacing it discards a checkpoint that
+was never resumed. If the user declines, stop without writing a new prompt.
+
+## Session journal across checkouts
+
+Besides each checkout's prompt, pause-session and resume-session keep one
+private session journal per user. It lists the paused and resumed sessions of
+every checkout, so [list-session](list-session.md) can show which folder holds
+which conversation and which agent should resume it.
+
+- Path: `%USERPROFILE%\.llm-shared\sessions.journal.md`. Only where
+  `USERPROFILE` is unset (Linux, macOS), use
+  `$HOME/.llm-shared/sessions.journal.md`. Do not use `HOME` on Windows: a
+  shell can point it at another folder, and other agents would not find it.
+- When the `.llm-shared` folder is missing, create it with a `.gitignore`
+  containing exactly `*` and a newline. Create a missing journal with the title
+  and first paragraph of
+  [session-journal.template.md](../templates/session-journal.template.md).
+- Each entry follows one of that template's two forms: a level-two heading
+  naming the event, agent id, timestamp and resolved checkout path, then its
+  fields. Append new entries at the end of the file.
+- Per checkout, keep only the latest pause entry and the latest resume entry.
+  Writing a pause entry removes that checkout's older pause entry; writing a
+  resume entry removes its older resume entry. Compare checkout paths using
+  the filesystem's rules, and leave every other entry byte for byte.
+- Re-read the journal immediately before writing, write the complete UTF-8
+  result to a temporary file beside it, then replace it atomically where
+  supported. If it changed while you composed the update, apply your update
+  to the new content instead of overwriting it.
+- The journal is an index, not an authority: the prompt and receipt decide
+  what resume-session does. If the host needs approval to write outside the
+  checkout, ask for it. Report a write failure; it does not undo a published
+  prompt or receipt.
+- Keep it private and short: summaries only, never credentials, tokens,
+  review ownership capabilities or session secrets.
+
 ## Gather the session snapshot
 
 Read the current conversation and relevant private notes, including the
@@ -82,9 +145,10 @@ gates in [review-resume.md](review-resume.md), not a saved capability.
 ## Publish the latest prompt and finish pausing
 
 1. Fill [pause-session.template.md](../templates/pause-session.template.md)
-   as a prompt addressed to the next session. Use actual paths and observed
-   facts; replace every placeholder with a value, `none`, `not applicable`,
-   or an explicit unknown. Include a fresh timestamp with numeric UTC offset.
+   as a prompt addressed to the next session. Start its first line with your
+   agent id. Use actual paths and observed facts; replace every placeholder
+   with a value, `none`, `not applicable`, or an explicit unknown. Include a
+   fresh timestamp with numeric UTC offset.
 2. Write the complete UTF-8 draft to a temporary file in the artifact home.
    Read it back, check its referenced prerequisites, and correct obsolete
    next actions. Keep essential context inline and link detailed evidence.
@@ -95,9 +159,15 @@ gates in [review-resume.md](review-resume.md), not a saved capability.
 4. After successful publication, remove only the matching
    `a.session-resume.used.local.md` flag if it exists. A failure to remove it
    must be reported; its old digest cannot consume a different new prompt.
-5. Read back the final prompt and verify that it is ignored by Git and not
-   tracked. If it or the flag is tracked, report the problem without changing
-   the user's index. Do not claim a private checkpoint was saved safely.
+5. Read back the final prompt and verify that its first line carries your
+   agent id and that it is ignored by Git and not tracked. If it or the flag
+   is tracked, report the problem without changing the user's index. Do not
+   claim a private checkpoint was saved safely.
+6. Add a pause entry for this checkout to the
+   [session journal](#session-journal-across-checkouts), removing its older
+   pause entry: your host and model, branch and short HEAD, the prompt's
+   relative path and SHA-256, and a summary of two or three sentences (the
+   task, where it stopped, and the next action or blocker).
 
 After successful publication and verification, begin the final response with
 this clear completion status, substituting the actual prompt path relative
@@ -109,6 +179,7 @@ to the consuming project's checkout root:
 For the default home, the relative path is `.reviews/a.session-resume.local.md`.
 If the artifact home is configured elsewhere, report that actual relative
 path; do not hard-code `.reviews` or show only the basename or absolute path.
+Then name the session journal path, or the reason its update failed.
 Briefly describe what the prompt preserves, then stop the session's task work.
 If publication or verification failed, report the failure instead of the
 success status above.

@@ -6,7 +6,8 @@ This is a response template, not a file to create in the artifact home.
 ## Opening when an unprocessed prompt exists
 
 status-session: unprocessed resume prompt found at `{relative-prompt-path}`
-({unused or new since previous use}). Summary of the saved prompt; no work resumed.
+({unused or new since previous use}), paused by `{agent id or unknown}`.
+Summary of the saved prompt; no work resumed.
 
 ## Opening when no unprocessed prompt exists
 

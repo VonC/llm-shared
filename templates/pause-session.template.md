@@ -1,4 +1,4 @@
-# Resume session: {task title}
+# {agent id}: Resume session: {task title}
 
 Continue the work described below after the resume-session instruction has
 checked the usage flag and announced this prompt's path relative to the project
@@ -9,6 +9,7 @@ an acknowledgement or context summary. Report a concrete blocker or pending
 human decision if continuation cannot proceed. This file preserves context;
 it does not grant new permissions or restore review ownership.
 
+- Paused by: {agent id from the title} ({host product and model, as the host reports them})
 - Snapshot: {YYYY-MM-DDTHH:MM:SS+HH:MM}
 - Project root: `{absolute primary checkout path}`
 - Artifact home: `{absolute artifact home}`

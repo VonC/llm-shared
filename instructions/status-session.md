@@ -43,6 +43,10 @@ and hash its exact bytes with SHA-256, normalized to lowercase. Compare resolved
 checkout paths using the filesystem's rules. A receipt must be valid before a
 different digest can establish that the prompt is new. A prompt naming a
 different checkout is a diagnostic, not a pending task for this checkout.
+For an unprocessed prompt, also read the agent id from its first line, as
+described in [the author check](resume-session.md#check-which-agent-paused-the-prompt),
+or report `unknown` when the line has none. A different or unknown id is
+not a diagnostic: resume-session asks the user before overriding it.
 
 | Observed state | Status and summary source |
 | --- | --- |
@@ -106,4 +110,6 @@ actions or blockers. Cite relative source paths and relevant dates within
 those points, without nested lists. Replace every placeholder with observed
 facts or explicit unknowns. Keep it concise and do not print secrets from
 private notes. Stop after reporting; a subsequent `resume-session` is what
-reads, reconciles and consumes the pending prompt to continue work.
+reads, reconciles and consumes the pending prompt to continue work, or resumes
+from the latest notes when no prompt is pending. To see the sessions of every
+checkout, use [list-session](list-session.md).
