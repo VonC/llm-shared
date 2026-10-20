@@ -36,21 +36,31 @@ is reversible text on disk, so the chain runs it without asking.
   consolidate loop: the model asks, the human answers the
   `Q0x | Title | Recommended Answer` table. The chain resumes on the
   consolidation, not on a "go ahead".
+- **Independent specification review**: answered questions and a settled
+  document do not establish an independent assessment. The workflow requests
+  one even when the writer found no questions. Disabled review mode stops
+  phase advancement unless the human explicitly waives review for that document.
 
-Requesting consolidation authorizes its question-snapshot commit and, once the
+Expressly requesting consolidation for the exact document authorizes its question-snapshot commit and, once the
 document settles, its grouped cleanup commits before the next phase. Those
 commits belong to the chosen consolidation action; the agent does not add a
 second approval menu for them.
 
+Answering questions, requesting independent review, or invoking the combined
+consolidation/review skill with only a document path leaves the question blocks
+and answers intact. None expresses permission to remove them. The agent asks
+for intent when it is ambiguous and performs an explicitly requested review
+without consolidation.
+
 ## 🚪 The optional stop between documents and code
 
-The settled plan is the border between text and code, and crossing it is
-a default, not an inevitability. When the last consolidation settles the
-plan, the chain starts the implementation of the plan's first step by
-itself. A plan writer, on the other hand, calls `pw skill --after-write plan`,
-which always starts plan review even if the plan text already contains a
-settled-looking marker. After review, bare routing can trust consolidated
-decisions (`| Qxx` rows or the "No open questions" row) and advance.
+The settled plan is the border between text and code. Crossing it requires
+the [independent review gate](../../rules/specification-review-gate.md) and
+the applicable human authorization. A plan writer calls
+`pw skill --after-write plan`, which always starts the writer assessment even
+if the text already contains a settled-looking marker. Consolidated decisions
+(`| Qxx` rows or "No open questions") describe document state; they do not
+establish independent review or authorize execution of a printed next command.
 
 The author who wants to read the settled plan before any code moves says so:
 `stop here` in the consolidation invocation, or any explicit instruction

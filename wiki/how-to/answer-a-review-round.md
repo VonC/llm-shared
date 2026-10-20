@@ -6,9 +6,11 @@
 
 ## Invocation model
 
-The AI creates and later consolidates the review round; the human supplies the
-answers. Invoke consolidation directly only when resuming an existing answered
-document outside the original automated chain.
+The AI creates the review round; the human supplies answers. Questions and
+answers remain in the document during review. Consolidation requires an
+express human instruction for that document or the review gate's `Consolidate`
+choice. A combined-skill invocation with only a document path is ambiguous
+and preserves the questions.
 
 ## Separate independent-review rounds
 
@@ -50,10 +52,11 @@ This is a deliberate stop: nothing runs until a human answers.
    Q02: option B1, but keep the old flag as an alias
    ```
 
-3. Run (or accept) the consolidation:
+3. When you want the answered questions integrated and removed, explicitly
+   request consolidation:
 
    ```txt
-   /consolidate-then-review-ask-questions on docs/<type>.vX.Y.Z.<slug>.md
+   /consolidate-then-review-ask-questions on docs/<type>.vX.Y.Z.<slug>.md consolidate the answered questions
    ```
 
 4. The skill runs plain `git reset`, stages only the exact document, writes a
@@ -67,44 +70,47 @@ This is a deliberate stop: nothing runs until a human answers.
    design decisions, implementation decisions), and strips the
    open-questions section with `oqm.bat --strip`.
 
-6. Two endings are possible:
+6. If new questions are needed, the skill appends them and presents a new
+   `Q0x` table. Whether or not questions remain, it then applies the
+   [independent review gate](../../rules/specification-review-gate.md).
+   With review mode enabled, the exact document goes to the specification
+   requestor. With review mode disabled, the workflow stops before the next
+   phase unless the human explicitly waives independent review for that document.
+   Answering questions or asking for consolidation does not waive review.
+7. When the document is settled, the skill groups and batch-commits the
+   remaining non-ignored changes and requires `git status --porcelain` to be
+   empty before completing the workflow. An already authorized exchange
+   consolidation returns to its requestor for completion and the human's next
+   choice. A printed `pw skill` command alone does not authorize advancement.
 
-   - new questions are needed — the skill appends a fresh round and stops
-     with a new `Q0x` table; go back to step 1,
-   - the document is settled — the skill stages every remaining non-ignored
-     change with `git add -A`, groups and batch-commits the complete set without
-     another menu, and requires `git status --porcelain` to be empty. Only then
-     does it run `pw skill` and hand off to the next phase (`/write-design`,
-     `/write-plans`, or the implement chain on the plan's first step, whose id
-     comes from the validation plan and is not always `1`).
-
-Bare `pw skill` is correct here because the review or consolidation has just
-established the document's state. The writing skills use the complementary
-`pw skill --after-write requirement|design|plan` form before this point so a
-new artifact cannot skip its first review.
+The writing skills use `pw skill --after-write requirement|design|plan` so a
+new artifact receives its first writer assessment. That assessment and the
+independent review are separate gates.
 
 ## ✋ Holding the chain at the implementation gate
 
-The settled-plan handoff starts the implementation by default. To settle
-the plan without starting it, say so in the consolidation invocation:
+An explicit hold prevents phase advancement even when review is complete.
+To settle the plan and hold implementation, say so in the consolidation invocation:
 
 ```txt
-/consolidate-then-review-ask-questions on <effort-dir>/plan.vX.Y.Z.<slug>.md stop here
+/consolidate-then-review-ask-questions on <effort-dir>/plan.vX.Y.Z.<slug>.md consolidate the answered questions and stop here
 ```
 
 Any explicit instruction not to implement works the same way: the skill
 still folds the answers, strips the questions and writes the decision
-table, then prints the `/implement-step` line as the next step instead of
-running it. Without such an instruction, the default stands and the first
-step starts at once.
+table, then presents the applicable next review or workflow action and stops.
+The absence of a hold does not waive independent review.
 
 ## 🤷 When a round raises no question
 
-The review skill then writes a one-row decision table (its row keeps the
-words "No open questions", which the routing reads as the settled
-signal), so the document reads as settled and the skill runs `pw skill`
-and the command it prints, skipping the consolidation round. The same
-`stop here` hold applies when the settled document is a plan.
+When the document has no existing question blocks, the writer assessment
+records "No open questions" in the decision table, preserving existing
+decisions. When answered questions remain, keep those blocks and report that
+no additional questions were found. Neither case authorizes consolidation.
+It still applies the independent review gate. A settled design needs an
+independent design review before plans unless the human explicitly waives it.
+No-question findings are never evidence that an independent reviewer has
+assessed the document.
 
 ## ✅ Check after the fold
 
@@ -112,7 +118,8 @@ The snapshot commit immediately before the fold contains only the answered
 document. The document then has no `## Open questions` section left, its
 decision table references every `Qxx`, all post-fold changes are committed
 through `group-commits-msg`, and `git status --porcelain` is empty before
-`pw skill` prints the next phase's command.
+phase advancement. Verify that the independent review gate and any human hold
+also permit the next action.
 
 Related: [Why the LLM reviews its own work](../explanation/why-the-llm-reviews-its-own-work.md),
 [Where the human stays in the loop](../explanation/where-the-human-stays-in-the-loop.md).

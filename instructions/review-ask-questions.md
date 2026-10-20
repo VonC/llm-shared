@@ -55,35 +55,42 @@ The tool has three modes, each taking the exact repository-relative document pat
 - `& "<LLM_SHARED_DIR>\bin\oqm.bat" <document-path> --strip`: drop the `## Open questions` line and every line after it from the document (a no-op when there is none).
 - `& "<LLM_SHARED_DIR>\bin\oqm.bat" <document-path> --append`: add the `## Open questions` section of `a.<base>.open.questions.md` to the document, with one empty line before it.
 
-Run these steps for the document you are reviewing:
+Review never authorizes consolidation. Preserve existing question IDs,
+options, recommendations, explanations, and recorded answers. Removing
+answered question blocks or replacing them with decision rows requires the
+express human intent gate in
+[`consolidate-then-review-ask-questions.md`](consolidate-then-review-ask-questions.md).
+A bare combined-skill invocation with a document path does not pass that gate.
 
-1. `& "<LLM_SHARED_DIR>\bin\oqm.bat" <document-path> --strip` to drop any prior `## Open questions` section from the document.
-2. `& "<LLM_SHARED_DIR>\bin\oqm.bat" <document-path> --create` to start an empty `a.<base>.open.questions.md` companion.
-3. Write your new questions into the `a.<base>.open.questions.md` path that `--create` printed, starting with the `## Open questions for the vX.Y.Z ...` line and following the template.
-4. `& "<LLM_SHARED_DIR>\bin\oqm.bat" <document-path> --append` to move the questions from `a.<base>.open.questions.md` into the document.
-5. Present the placed questions in your reply as the mandatory three-column table described in "Presenting the review questions" below — never as a bulleted list.
+Run these steps only when adding or amending questions:
 
-## Review-mode delegation after placing questions
+1. Read and retain the complete existing `## Open questions` section before
+   creating a companion. Do not run `--strip` during review.
+2. `& "<LLM_SHARED_DIR>\bin\oqm.bat" <document-path> --create` to start an empty
+   companion, then copy every existing question and answer into it unchanged.
+   When there are no existing questions, start with the required section heading.
+3. Add new questions with unused IDs or apply accepted wording edits in the
+   companion. Verify that all prior question IDs, options, and human answers
+   remain present before replacing the document's section.
+4. `& "<LLM_SHARED_DIR>\bin\oqm.bat" <document-path> --append` to replace the
+   section with that complete preserved-and-amended set.
+5. Present newly placed questions in the mandatory three-column table below.
+   If there are no question changes, leave the section and companion untouched.
 
-Apply this block only when the workflow placed one or more new questions.
-Honor an invocation containing `stop here` before checking exchange state: keep
-the existing human-review stop and create no review artifact. Sample review
-mode here rather than recalling an earlier listing: the marker sits in a dotted
-directory a plain `ls` does not show, and the `a.*` ignore rule keeps it out of
-`git status`. Prefer the status command,
-`& "<LLM_SHARED_DIR>\rvw_status.bat"`, which resolves the artifact home itself;
-falling back to a file test means checking `<artifact-home>/a.review-mode`
-first, where `<artifact-home>` is `.reviews` unless a versioned
-`.review-artifacts.ini` declares another `home` under `[review-artifacts]`, and
-only then the project-root `a.review-mode` the loader keeps as its legacy
-fallback. When review mode is absent because neither marker exists, keep that
-same existing stop.
+## Independent review gate after the writer assessment
 
-When the marker is present, run `pw skill spec-review-requestor` through the
+Read and follow [the independent specification review gate](../rules/specification-review-gate.md).
+Apply it to every assessment, including a no-question pass. Honor `stop here`,
+preserve existing live exchanges, and freshly sample review mode. The gate
+defines the disabled-mode stop and the only explicit human waiver; author
+decisions are not evidence of independent review.
+
+When the gate requires publication, run `pw skill spec-review-requestor` through the
 launcher described in [`run-pw.md`](run-pw.md), then run the exact specialized
-role command it prints for the reviewed document. Do not duplicate round
-coordination here. A no-question pass skips this block and retains its existing
-settled-document handoff.
+role command only if it targets the exact document being reviewed. If the topic
+resolver names another existing specification, invoke the specialized requestor
+on this exact document and its umbrella instead. Do not manufacture questions,
+duplicate coordination, or advance because routing produced no command.
 
 ## Presenting the review questions
 
@@ -103,10 +110,21 @@ Before using or showing a host-prefixed workflow command, read
 prefix rule.
 
 The review is a stop, not an automatic chain: a human answers the questions
-before consolidation. Leave the next step in two forms rather than running it:
+and separately expresses intent before consolidation. Leave the next step in two forms rather than running it:
 the "Next step" command
-`<command-prefix>consolidate-then-review-ask-questions on <document-path>` using
+`<command-prefix>consolidate-then-review-ask-questions on <document-path> consolidate the answered questions` using
 the exact path just reviewed, plus the same command as a gray, Tab-completable
 hint where the host supports one.
 
-When the review round raises no question at all, do not leave the document with no section: write a one-row decisions table — the consolidate step's `Requirement clarifications`, `Design decisions`, or `Implementation decisions` section, with a single row such as "No open questions, all decisions made" — so the on-disk state reads as settled. Keep the words "No open questions" verbatim in that row: the `pw` routing reads that row (or a `| Qxx` row) as the consolidated signal, and a decisions heading without one still routes to a review. From that settled state, run `pw skill` and run the printed command straight away, the same settled handoff as the consolidate skill: from a plan that command is `<command-prefix>implement-step` on the plan's first step (its id read from the validation plan, not always 1). The same explicit hold applies here: with `stop here` in the invocation argument, or a human instruction not to start the next phase, present the printed line as the "Next step" command and stop instead of running it.
+When the document has no existing questions and the writer raises none, record that assessment in the document's
+appropriate decisions section with a row containing "No open questions".
+Preserve any existing decision rows. This marks the author's assessment as
+settled; it does not record independent review or authorize advancement.
+Apply the independent review gate above before invoking the ordinary next-phase
+handoff. After an explicit human waiver, follow the consolidation handoff and
+any human hold. Never start planning or implementation solely because the
+writer found no questions.
+
+When existing question blocks are present and no new question is needed, keep
+those blocks and answers intact and report only that no additional questions
+were found. Do not replace them with a settled decision marker.

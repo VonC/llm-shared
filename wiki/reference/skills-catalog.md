@@ -28,7 +28,7 @@ prerequisites already satisfied.
 | `/split-and-define` | a multi-topic collection draft | explicit umbrella marker, ordered pending/completed table, and requirement-detail subsections |
 | `/write-requirement` | type, `vX.Y.Z`, topic | `<effort-dir>/feature-request.vX.Y.Z.<topic>.md` or `<effort-dir>/issue.vX.Y.Z.<topic>.md` |
 | `/review-ask-questions` | a requirement, design or plan | `## Open questions` section, `Q0x` summary table |
-| `/consolidate-then-review-ask-questions` | the doc with answers | scoped one-file question snapshot, then a decision table and stripped questions; a settled fold groups every remaining change and requires a clean tree before handoff |
+| `/consolidate-then-review-ask-questions` | the doc with answers and express human consolidation intent | questions preserved without explicit intent; when authorized, scoped one-file question snapshot, then a decision table and stripped questions; independent review gate even without new questions; a settled fold groups every remaining change and requires a clean tree before handoff |
 | `/write-design` | the settled requirement | `<effort-dir>/design.vX.Y.Z.<topic>.md` |
 | `/write-plans` | the settled design | `<effort-dir>/plan.vX.Y.Z.<topic>.md` + `.validation.md` skeleton |
 | `/implement-step N` | plan, design, requirement | code and tests, green `ghog day` |
@@ -116,7 +116,9 @@ running `pw skill --after-write requirement`, `--after-write design`, or
 `/review-ask-questions` it prints. This explicit writer event prevents
 settled-looking text from skipping review; pass `stop here` in the argument to
 hold the chain and read the document first.
-`/consolidate-then-review-ask-questions` first resets the index, commits only
+`/consolidate-then-review-ask-questions` first requires express human intent for
+the exact document. Answers, review requests, and an invocation with only a
+document path preserve the questions. Once authorized, it resets the index, commits only
 the answered document with the group-commit template, and verifies an empty
 index. It then performs the fold. When the document settles, it stages every
 remaining path, runs the authorized `group-commits-msg` continuation without a

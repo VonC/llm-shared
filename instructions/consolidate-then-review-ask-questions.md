@@ -4,7 +4,35 @@ ultrathink: take the time to reason through the document deeply before drafting 
 
 Check your prompt for type (feature-request, issue, design or plan), vX.Y.Z and topic (for instance "design v9.3.0 sentinels").
 
-Consolidate the exact `<document-path>` named in the prompt by integrating
+## Express human intent before consolidation
+
+Consolidation requires express human intent for the exact document. Before
+any snapshot commit, document edit, decision-table replacement, or `oqm` mode,
+establish one of these two sources of authority:
+
+- The human explicitly says to consolidate this document, for example
+  `Consolidate the answered questions in <document-path>`.
+- The review exchange reports `owning-action-pending` after the human selected
+  `Consolidate`, with `owning_action_authorized: true`.
+
+Answering questions, requesting review, accepting recommendations, a writer
+finding no new questions, and a printed next command do not authorize
+consolidation. Invoking this combined skill with only a document path is
+ambiguous and does not authorize consolidation. Do not infer intent from the
+skill name or from automatic routing.
+
+Without that authority, preserve all question IDs, options, recommendations,
+explanations, and recorded answers. Do not make consolidation commits, strip
+questions, or replace them with a decision table. If the human requested
+independent review, follow [`spec-review-requestor.md`](spec-review-requestor.md)
+on the unchanged question-bearing document. Otherwise ask whether they want
+review with questions retained or explicit consolidation, then stop.
+
+Record the human's explicit instruction or durable exchange authorization in
+the session before proceeding. Existing authorization remains valid until the
+human changes or revokes it; never ask twice for the same authorized action.
+
+After this intent gate, consolidate the exact `<document-path>` named in the prompt by integrating
 answers given to existing questions in its "Open questions for the vX.Y.Z ..."
 section. Read [`../rules/docs_layout.md`](../rules/docs_layout.md) and preserve
 the document's effort directory. Before making any Markdown edit, read and
@@ -94,7 +122,8 @@ Never carry a question across types: a plan review does not re-ask a design ques
 
 Once all the questions are removed and their decision integrated, you now have many questions already and previously answered: ask yourself, do you have enough to start the next phase? That next phase is the design after a feature-request or an issue, the implementation plan after a design, and the coding itself after an implementation plan.
 
-If you have no more questions, say so, and we will proceed to that next phase.
+If you have no more questions, say so and apply the independent review gate
+below. This author assessment does not authorize the next phase.
 
 Do not try to ask too many questions, but ask as many as you can, as long as they are relevant and not redundant with already answered questions. The only reason to add new questions is that you think you cannot start the next step (the design, the implementation plan, or the coding) without having answers to those questions, and that those questions are not already answered in the document. Keep any new question within the nature of the current document: an implementation plan asks only implementation-detail questions, never design or feature questions. If you think you have enough information to start the next step, say so, and do not ask any new question.
 
@@ -140,33 +169,27 @@ The tool has three modes, each taking the exact repository-relative document pat
 Run these steps, in order:
 
 1. `& "<LLM_SHARED_DIR>\bin\oqm.bat" <document-path> --strip` once you have integrated every existing answer into the document body and the decision table, to remove the consolidated `## Open questions` section.
-2. Stop here when you have no new question to ask, and say you are ready for the next step.
+2. When there is no new question, skip companion creation and continue to the independent review gate below. Do not interpret the absence of questions as permission to start the next phase.
 3. `& "<LLM_SHARED_DIR>\bin\oqm.bat" <document-path> --create` to start an empty `a.<base>.open.questions.md` companion when you do have new questions.
 4. Write your new questions into the `a.<base>.open.questions.md` path that `--create` printed, starting with the `## Open questions for the vX.Y.Z ...` line and following the template.
 5. `& "<LLM_SHARED_DIR>\bin\oqm.bat" <document-path> --append` to move the questions from `a.<base>.open.questions.md` into the document.
 6. Present the placed questions in your reply as the mandatory three-column table described in "Presenting any follow-up questions" below — never as a bulleted list.
 
-## Review-mode delegation after placing follow-up questions
+## Independent review gate after consolidation
 
-Apply this block only when the workflow placed one or more new questions.
-Honor an invocation containing `stop here` before checking exchange state: keep
-the existing human-review stop and create no review artifact. Sample review
-mode here rather than recalling an earlier listing: the marker sits in a dotted
-directory a plain `ls` does not show, and the `a.*` ignore rule keeps it out of
-`git status`. Prefer the status command,
-`& "<LLM_SHARED_DIR>\rvw_status.bat"`, which resolves the artifact home itself;
-falling back to a file test means checking `<artifact-home>/a.review-mode`
-first, where `<artifact-home>` is `.reviews` unless a versioned
-`.review-artifacts.ini` declares another `home` under `[review-artifacts]`, and
-only then the project-root `a.review-mode` the loader keeps as its legacy
-fallback. When review mode is absent because neither marker exists, keep that
-same existing stop.
+Read and follow [the independent specification review gate](../rules/specification-review-gate.md).
+It applies whether or not this consolidation raises new questions. Preserve
+`stop here`, existing live exchanges, and already authorized consolidation
+replay. Freshly sample review mode; the gate defines the disabled-mode stop
+and the only explicit human waiver. Neither answered Qxx rows nor the writer's
+no-question assessment counts as independent review.
 
-When the marker is present, run `pw skill spec-review-requestor` through the
+When the gate requires publication, run `pw skill spec-review-requestor` through the
 launcher described in [`run-pw.md`](run-pw.md), then run the exact specialized
-role command it prints for the reviewed document. Do not duplicate round
-coordination here. A no-question pass skips this block and retains the existing
-settled-document handoff below.
+role command only if it targets the exact document being consolidated. If the
+topic resolver names another existing specification, invoke the specialized
+requestor on this exact document and its umbrella instead. Do not duplicate
+round coordination or advance because routing produced no command.
 
 ## Presenting any follow-up questions
 
@@ -185,9 +208,11 @@ Apply this gate only when consolidation settles the document: every existing
 answer is integrated, the decision table is present, the `## Open questions`
 section is stripped, and no follow-up question remains. It runs after the
 one-file pre-consolidation snapshot and after every consolidation edit, but
-before any `pw skill`, review-exchange completion, or next-phase command.
+before any ordinary next-phase `pw skill`, review-exchange completion, or
+next-phase command. Publishing an independent review request is permitted
+before this commit gate; it does not advance the document phase.
 
-The human's `Consolidate` choice, or a direct human invocation of this skill,
+The human's `Consolidate` choice, or express instruction to consolidate this document,
 authorizes both the pre-consolidation snapshot commit and these final grouped
 commits. Do not present another commit menu or ask for another go-ahead. Apply
 the canonical [`group-commits-msg.md`](group-commits-msg.md) process through
@@ -233,16 +258,30 @@ Before using or showing a host-prefixed workflow command, read
 [`../rules/command_prefix_char.md`](../rules/command_prefix_char.md) and use its
 prefix rule.
 
-When the consolidation settles the document — every open question answered, no new one raised, the `## Open questions` section stripped (step 1 above), the decisions table in place, all remaining changes committed through `group-commits-msg`, and `git status --porcelain` empty — hand the cycle on to the next phase, with no menu and no go-ahead. From the project root, in a PowerShell shell, run `pw skill` through its launcher (see [`run-pw.md`](run-pw.md) for the non-interactive invocation; the bare `pw` alias does not resolve in a tool shell):
+When consolidation settles the document (every answer integrated, no new
+question, the questions section stripped, the decisions table present, all
+changes committed through `group-commits-msg`, and `git status --porcelain` empty),
+apply the independent review gate before any next-phase handoff. During an
+authorized exchange replay, return to its requestor for completion and its
+human-controlled next step. With an explicit human waiver and no hold, run
+`pw skill` through its launcher from the project root (see
+[`run-pw.md`](run-pw.md)):
 
 - `pw skill`
 
-`pw skill` reads the settled document on disk and prints the next-step command: `<command-prefix>write-design` from a feature-request or issue, `<command-prefix>write-plans` from a design, or `<command-prefix>implement-step` from a plan, carrying the plan's first step id read from the validation plan (not always `step 1`: a plan may open on a step 0 or any other first number), with the prefix selected by `command_prefix_char.md`. Read that line and run it straight away: the handoff is the go-ahead to perform the next step now, so do not stop to ask whether to proceed, and do not compose the next prompt yourself.
+`pw skill` reads the settled document and prints the next command:
+`<command-prefix>write-design` from a requirement,
+`<command-prefix>write-plans` from a design, or `<command-prefix>implement-step`
+from a plan, with its actual first step id. Run that line only when the review
+gate and human hold rules permit advancement. The printed line alone is not
+permission to skip independent review.
 
-The settled handoff has one explicit hold: when the invocation argument contains the literal phrase `stop here`, or the human has explicitly asked not to start the next phase (for a plan, not to start the implementation), do not run the printed command. Still settle the document, still run `pw skill`, then present its printed line as the "Next step" command with the Tab-completable hint, and stop. The hold changes only who launches the next phase, never the on-disk state; without such an explicit instruction the default above stands and the next phase starts now.
+When the invocation contains `stop here`, or the human has asked not to start
+the next phase, preserve that hold. Present the applicable next review or
+workflow action and stop. A hold does not waive independent review.
 
 When new open questions remain, append them with `oqm`, present them in the
 three-column table, and stop for another review round. Leave the next step as
-`<command-prefix>consolidate-then-review-ask-questions on <document-path>`, using
+`<command-prefix>consolidate-then-review-ask-questions on <document-path> consolidate the answered questions`, using
 the same exact path, plus the gray Tab-completable hint where supported. Do not
 run that handoff.

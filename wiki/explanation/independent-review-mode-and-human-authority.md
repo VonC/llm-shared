@@ -35,6 +35,13 @@ answer may recommend consolidation and a code answer may recommend commit, but
 that recommendation does not authorize consolidation or commit. The exchange
 stops at its human gate until the registered choice is supplied.
 
+Answering a specification question records a decision; it does not authorize
+removing the question, its alternatives, or its explanation. Those remain
+available to the independent reviewer until the human expressly requests
+consolidation of that document. A combined-skill invocation with only a path,
+or an assessment that finds no additional questions, supplies no such intent.
+The writer's assessment also cannot substitute for independent review.
+
 ## Why role creation stays outside the exchange
 
 An exchange state identifies who may act next; it does not authorize that actor

@@ -95,6 +95,11 @@ whose `paths.answer` member identifies the exact answer to read. The requestor
 accepts the missing-severity finding, updates the reviewed specification, and
 records the change in its writer response.
 
+Keep the existing question blocks and their recorded answers during this
+revision. If the finding introduces a new choice, answer that question as the
+human before the requestor treats it as a decision. Requesting another review
+does not authorize consolidating the answered questions.
+
 The requestor consumes that intermediate answer, continues the same exchange,
 and publishes round 2. The round number changes; the umbrella and reviewed
 specification identity do not. That publication releases the reviewer session

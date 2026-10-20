@@ -7,6 +7,40 @@ from tools import prompt_workflow_steps as steps
 _MINIMUM_STATUS_CHECK_COUNT = 4
 
 
+def test_express_human_intent_precedes_every_consolidation_mutation() -> None:
+    """Bare skill invocation and answered questions cannot authorize removal."""
+    content = _instruction("consolidate-then-review-ask-questions.md")
+    intent = content.index("## Express human intent before consolidation")
+    snapshot = content.index("## Pre-consolidation question snapshot")
+    gate = " ".join(content[intent:snapshot].split())
+
+    assert intent < snapshot < content.index("git reset") < content.index("--strip")
+    for fragment in (
+        "Before any snapshot commit, document edit, decision-table replacement, or `oqm` mode",
+        "human explicitly says to consolidate this document",
+        "owning_action_authorized: true",
+        "Answering questions, requesting review",
+        "only a document path is ambiguous and does not authorize consolidation",
+        "preserve all question IDs, options, recommendations, explanations, and recorded answers",
+        "on the unchanged question-bearing document",
+        "Otherwise ask whether",
+    ):
+        assert fragment in gate
+    assert "or a direct human invocation of this skill" not in content
+    grouping = _instruction("group-commits-msg.md")
+    assert "directly invoked that consolidation skill" not in grouping
+    assert "express-intent gate must pass first" in grouping
+
+
+def test_review_edits_preserve_questions_until_durable_human_authorization() -> None:
+    """Neither intermediate feedback nor covered wording performs consolidation."""
+    content = " ".join(_instruction("spec-review-requestor.md").split())
+    assert "including intermediate edits and covered wording corrections" in content
+    assert "Recording an answer or accepting feedback never authorizes removing a question" in content
+    assert "A bare combined-skill invocation with a document path is not that choice" in content
+    assert "return `owning_action_authorized: true` before consolidation" in content
+
+
 def _instruction(name: str) -> str:
     """Read one canonical workflow instruction."""
     path = steps.llm_shared_dir() / "instructions" / name

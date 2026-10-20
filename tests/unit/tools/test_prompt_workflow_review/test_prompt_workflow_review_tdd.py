@@ -233,7 +233,7 @@ def test_marker_absence_preserves_ordinary_routing(
     assert classify is None
 
 
-def test_forced_document_requires_marker_and_one_open_question_document(
+def test_forced_document_prefers_one_open_question_document(
     tmp_path: Path,
 ) -> None:
     """Question delegation targets only one exact open specification."""
@@ -246,6 +246,31 @@ def test_forced_document_requires_marker_and_one_open_question_document(
     assert review.forced_specification_document(tmp_path, topic, state) == _path(
         state.design,
     )
+
+
+@pytest.mark.parametrize("latest_phase", ["plan", "design", "requirement", None])
+@pytest.mark.parametrize("enabled", [False, True])
+def test_forced_document_routes_settled_specifications(
+    tmp_path: Path,
+    latest_phase: str | None,
+    *,
+    enabled: bool,
+) -> None:
+    """An explicit review request includes a settled document when enabled."""
+    topic, state = _topic_and_state(tmp_path)
+    state = replace(
+        state,
+        plan=state.plan if latest_phase == "plan" else None,
+        design=state.design if latest_phase in ("plan", "design") else None,
+        requirement=state.requirement if latest_phase is not None else None,
+    )
+    if enabled:
+        (tmp_path / "a.review-mode").write_text("", encoding="utf-8")
+
+    selected = review.forced_specification_document(tmp_path, topic, state)
+
+    expected = (state.plan or state.design or state.requirement) if enabled else None
+    assert selected == expected
 
 
 def test_forced_document_prefers_an_existing_live_exchange(

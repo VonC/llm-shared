@@ -186,12 +186,17 @@ def specification_umbrella(root: Path, topic: Topic) -> Path | None:
     return _umbrella_path(root, topic)
 
 
+def _latest_specification_document(state: WorkflowState) -> Path | None:
+    """Choose the latest authored phase when no live exchange or questions exist."""
+    return state.plan or state.design or state.requirement
+
+
 def forced_specification_document(
     root: Path,
     topic: Topic,
     state: WorkflowState,
 ) -> Path | None:
-    """Return one live or newly questioned document for explicit delegation."""
+    """Return live work, questioned work, or the latest specification for review."""
     configuration = load_review_configuration(root)
     if not configuration.enabled:
         return None
@@ -212,7 +217,11 @@ def forced_specification_document(
         raise SpecificationReviewRoutingError(
             f"multiple open-question specifications for one topic: {detail}",
         )
-    return candidates[0] if candidates else None
+    if candidates:
+        return candidates[0]
+    # An explicit independent-review request also applies to settled documents.
+    # Prefer the latest authored phase; live and open-question work still wins.
+    return _latest_specification_document(state)
 
 
 # eof

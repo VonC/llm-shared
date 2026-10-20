@@ -1,7 +1,9 @@
 # Specification review requestor instruction
 
-Use this instruction when a specification writer delegates review of new open
-questions. The writer remains responsible for the reviewed requirement,
+Use this instruction when a human or specification writer requests independent
+review of a specification, with or without new open questions. A consolidated
+decision table is valid review input and is not evidence of a previous
+independent review. The writer remains responsible for the reviewed requirement,
 design, or plan, including assessment, document edits, responses, convergence
 wording, and human-authorized consolidation.
 
@@ -14,6 +16,22 @@ Before writing or editing the reviewed specification or any caller-owned
 Markdown input, read and follow [`../rules/markdown.md`](../rules/markdown.md).
 Apply those rules to every accepted edit and covered-wording edit before
 publishing the next round.
+
+## Preserve questions until explicit consolidation
+
+Review does not authorize consolidation. Preserve existing question IDs,
+options, recommendations, explanations, and recorded answers throughout
+review, including intermediate edits and covered wording corrections.
+Recording an answer or accepting feedback never authorizes removing a question
+or replacing its block with a decision-table row. Amend question wording only
+as required by accepted feedback, keeping its history and human answer clear.
+
+Consolidate only after express human intent for the exact document, following
+the intent gate in
+[`consolidate-then-review-ask-questions.md`](consolidate-then-review-ask-questions.md).
+In a live review exchange, the human's `Consolidate` choice must be recorded by
+`confirm` and return `owning_action_authorized: true` before consolidation.
+A bare combined-skill invocation with a document path is not that choice.
 
 ## Exact policy for specification requestor operations
 
@@ -82,7 +100,7 @@ Use the shared diagnostic and state without recreating its classifier:
 | `disabled` | Return to the existing non-review-mode human stop. |
 | `idle` | Activate, start round 1, render, and publish. |
 | `round-in-progress` | Resume the expected requestor work for the persisted round. |
-| `request-pending` | Keep the published request and wait for the exact answer. |
+| `request-pending` | Wait for the exact answer; an explicitly requested correction uses the shared `amend-request` gate. |
 | `answer-pending` | Read only `paths.answer`, then assess the reviewer feedback. |
 | `abandoned-request` | Call `reclaim`, then resume waiting with unchanged evidence. |
 | `abandoned-answer` | Call `reclaim`, then assess the retained exact answer. |

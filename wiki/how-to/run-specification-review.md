@@ -7,7 +7,8 @@
 ## Invocation model
 
 Use this guide when a requirement, design, or plan already exists and an
-independent agent should assess its questions. The requestor owns document
+independent agent should assess the whole specification, including a settled
+document with no open questions. The requestor owns document
 changes; the reviewer owns the answer; the human owns the final choice.
 
 Start the two role sessions independently. A requestor must not create, invoke,
@@ -27,8 +28,10 @@ final JSON `paths` member returned by the active skill.
    $llm-shared:review-ask-questions on docs/v1.4.0/design.v1.4.0.route-warnings.md
    ```
 
-3. Let `pw` route the finished question pass to the specification requestor.
-   It publishes round 1 and enters one bounded wait.
+3. Let `pw` route the finished writer assessment or consolidation to the
+   specification requestor, even when it raised no questions. Verify that the
+   route names the exact document being reviewed. The requestor publishes
+   round 1 and enters one bounded wait; publication alone is not completed review.
 4. In a separate reviewer agent session, run:
 
    ```text
@@ -43,11 +46,30 @@ final JSON `paths` member returned by the active skill.
    round when needed. That publication releases the already-waiting reviewer,
    which assesses the next round automatically.
 
+Keep the questions, options, recommendations, and recorded answers in the
+reviewed document throughout review. Answering them or requesting review
+does not authorize consolidation; neither does invoking the combined skill
+with only a document path.
+
 Stop when the requestor presents `Consolidate` and
 `Revise and review again`. A convergence recommendation and exit `3` do not
 authorize consolidation. Convergence leaves the exchange at its human gate.
 Keep the reviewer session in the quiet `wait-any-request` under the configured
 home; a replacement round or a new specification or code request will wake it.
+
+## Correct a pending specification request
+
+If the published request describes different content from the current
+specification, ask the requestor to correct it before the reviewer claims it.
+The requestor renders the corrected request and transcript summary together,
+then calls `amend-request` with `--content-file` and `--summary-file`, the
+same exact context, and its current ownership capability.
+
+The operation keeps the round number and earlier transcript entries. It
+rejects a request already claimed by the reviewer or answered. Keep an
+existing `wait-answer` running; do not start a second wait or take ownership
+away from the reviewer. After an answer, retain that evidence and describe
+any mismatch explicitly instead of rewriting the answered request.
 
 ## Resume a specification review
 

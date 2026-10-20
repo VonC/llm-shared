@@ -285,22 +285,33 @@ status line the check wrote, so the caller cannot pick the wrong branch.
 | settled plan, uncommitted validation work | `/implement-step <x>` |
 | settled plan, final step committed | `/prepare-release` |
 
+The printed consolidation route is a suggestion, not human authorization.
+Answering questions or invoking the combined skill with only a document path
+leaves the questions and answers intact. To consolidate, explicitly say to
+consolidate that document or select `Consolidate` at the review gate.
+
 "Settled" means consolidated, not merely titled: the document must carry a
 decisions section (`Requirement clarifications`, `Design decisions`, or
 `Implementation decisions`) holding at least one row opening with a question id
 (`| Qxx`) or the "No open questions" row a no-question review writes. A
 decisions heading alone does not count.
 
-Bare `pw skill` treats a complete settled marker as state and advances. Writers
+Bare `pw skill` treats a complete settled marker as state and prints a next-phase
+command. This is routing, not authorization: the calling workflow must apply
+the [independent review gate](../../rules/specification-review-gate.md) before
+executing that command, including when no questions remain. Writers
 therefore do not use bare inference: `pw skill --after-write
 requirement|design|plan` names the artifact just created and always prints its
 `/review-ask-questions`, even if its text already resembles a settled document.
 The `<x>` of `/implement-step` comes from the validation plan's own step list:
 the last verified step, or the plan's first step when none is verified, which
-is not always `1` (a plan may open on a step 0). Whether the settled-plan
-command is run at once (the default) or shown and held (`stop here` in the
-consolidation invocation, or an explicit human instruction) is decided by the
-skill instructions, not by `pw`.
+is not always `1` (a plan may open on a step 0). The skill instructions enforce
+review and human holds such as `stop here`; `pw` does not grant permission to
+cross those gates. With review mode enabled, forced
+`pw skill spec-review-requestor` selects an existing live exchange first, then
+the sole document with open questions, then the latest authored specification
+(plan, design, requirement). The caller must verify that this is the exact
+document it intends to review.
 
 ## 🚩 Flags and special forms
 

@@ -31,12 +31,13 @@ _IDENTITY_CASES = (
 )
 
 
-@pytest.fixture
-def activation_journey(tmp_path: Path) -> None:
+@pytest.fixture(params=["feature-request", "design"])
+def activation_journey(tmp_path: Path, request: pytest.FixtureRequest) -> None:
     """Run opt-in, hold, activation, and live routing outside call timing."""
     root = tmp_path / "activation"
     _init_repo(root, marker=False)
-    effort = _effort(root, "feature-request", "activation")
+    prefix = cast("str", request.param)
+    effort = _effort(root, prefix, "activation")
 
     disabled = workflow_skill.forced_command(
         root,
@@ -48,8 +49,11 @@ def activation_journey(tmp_path: Path) -> None:
     assert (disabled, coordination.exists()) == (None, False)
 
     (root / "a.review-mode").write_text("", encoding="utf-8")
+    decisions_heading = (
+        "Design decisions" if prefix == "design" else "Requirement clarifications"
+    )
     effort.document.write_text(
-        "# activation\n\n## Requirement clarifications\n\n"
+        f"# activation\n\n## {decisions_heading}\n\n"
         "| Question | Decision |\n| --- | --- |\n"
         "| Q01 | No open questions, all decisions made |\n",
         encoding="utf-8",
@@ -64,15 +68,18 @@ def activation_journey(tmp_path: Path) -> None:
     instruction = (Path("instructions") / "review-ask-questions.md").read_text(
         encoding="utf-8",
     )
-    delegation = instruction.index("## Review-mode delegation after placing questions")
+    delegation = instruction.index("## Independent review gate after the writer assessment")
     block = instruction[delegation : instruction.index("## Presenting", delegation)]
-    hold_before_marker = block.index("`stop here`") < block.index("`a.review-mode`")
-    marker_before_pw = block.index("`a.review-mode`") < block.index(
+    gate_before_pw = block.index("specification-review-gate.md") < block.index(
         "pw skill spec-review-requestor",
     )
-    assert (no_question, hold_before_marker, marker_before_pw, coordination.exists()) == (
-        None,
-        True,
+    expected = (
+        "$llm-shared:spec-review-requestor on "
+        f"docs/v0.11.0/{prefix}.v0.11.0.activation.md"
+        " with umbrella docs/v0.11.0/draft.v0.11.0.review-mode.md"
+    )
+    assert (no_question, gate_before_pw, coordination.exists()) == (
+        expected,
         True,
         False,
     )
@@ -86,11 +93,6 @@ def activation_journey(tmp_path: Path) -> None:
         effort.topic,
         "spec-review-requestor",
         {"CODEX_THREAD_ID": "acceptance"},
-    )
-    expected = (
-        "$llm-shared:spec-review-requestor on "
-        "docs/v0.11.0/feature-request.v0.11.0.activation.md"
-        " with umbrella docs/v0.11.0/draft.v0.11.0.review-mode.md"
     )
     activated = _run_cli(root, effort.context, "activate")
     started = _run_cli(root, effort.context, "start")

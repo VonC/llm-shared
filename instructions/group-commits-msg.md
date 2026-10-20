@@ -147,7 +147,9 @@ status, authorization remains pending for repair and replay; do not run
 Use this continuation only when
 `consolidate-then-review-ask-questions.md` delegates its settled
 post-consolidation working tree after the human selected `Consolidate`, or
-directly invoked that consolidation skill. The consolidation instruction owns
+expressly instructed consolidation of that exact document. A combined-skill
+invocation with only a document path does not authorize this continuation.
+The consolidation instruction's express-intent gate must pass first. It owns
 the repository-wide staging scope, the final clean-tree check, and any bounded
 recovery pass.
 
