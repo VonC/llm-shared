@@ -32,6 +32,7 @@ Before writing the requirement document, read and follow
 18. Fill the document body from the user story, bug report, feature request, and associated documents in your context. Use only the user-provided version that you confirmed as valid for the file name and version references.
 19. Include these core items in the document: the user story or bug summary, the current behavior, the expected behavior or gap, and acceptance criteria or confirmed rules.
 20. Add concrete examples, code references, and technical constraints only when they are directly mentioned in the user input or in associated documents.
+21. Include explicit security expectations, trust boundaries, and abuse cases (misuse cases): identify untrusted inputs, required validation/sanitization, and expected behavior when malformed or hostile data is encountered.
 
 ## Test scope of the requirement
 
