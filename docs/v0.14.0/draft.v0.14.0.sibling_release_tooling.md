@@ -59,7 +59,9 @@ gate and annotated tag, instead of always stopping before `brel`.
 - `build.bat rel` is a transaction around the consuming project's own gate:
   preflight, release versions and changelog, commit, annotated tag, build,
   then `[valid]`. Recovery restores only state owned by that transaction.
-- Per-project settings live in a small `.release.ini` at the project root.
+- Per-project overrides live in an optional versioned `.release.ini` at the
+  project root. Projects can omit it when the supplied defaults suit them;
+  validation rules and defaults ship with their owning llm-shared components.
 - Project fix rules move to `.changelog-fixes.toml`, created from an existing
   `.changelog.fixes` automatically by `/prepare-release`. `convert` remains
   a maintenance command; ordinary preparation requires no manual conversion.
@@ -201,6 +203,18 @@ llm-shared itself both roots can coincide, but in a consumer they do not.
 The shared launcher resolves its tooling root from its own location, rather
 than trusting an inherited variable naming another checkout.
 
+Git isolation keeps that selected project authoritative even when the caller's
+shell still carries another project's Git settings. For example, selecting B
+after activating A must target B even if inherited `GIT_DIR`, `GIT_WORK_TREE`
+or `GIT_INDEX_FILE` still names A; `git -C B` alone cannot guarantee this.
+The approved release-project-root design decision Q01 A gives each Git
+operation a controlled subprocess environment. It removes inherited routing
+and configuration-injection inputs, preserves compatible identity, signing
+and credential settings, and diagnoses ignored conflicts. The parent shell
+stays unchanged. Isolation here controls Git targeting; it creates no checkout,
+container or sandbox. The child design owns the complete enforcement policy,
+which must cover more than those three example variables.
+
 For interactive cmd use, initialize the chosen project's environment by
 calling its root `senv.bat`. If inherited guards left required build tools
 uninitialized, the caller clears that project's guard and activates it in
@@ -260,17 +274,28 @@ Other operating systems and architectures require later scope. Existing Unix
 deployment references do not extend this release-tooling support. Unsupported
 platforms must receive a clear scope diagnostic before project mutation.
 
-The selected llm-shared checkout must have a usable Python environment with
-the dependencies required by its executing revision. Setup and upgrade must
-check that readiness; the presence of a checkout or a Python executable alone
-does not establish it. Setup and upgrade reuse llm-shared's setup process to
-prepare or repair its own Python environment and required dependencies. An
-accepted setup/upgrade must produce runnable tooling. Release operations use
-the validated environment and stop before project mutation when it is unavailable. They
-must not fall back to the consuming project's Python or require Python on
-its PATH or repair their own environment mid-release. Runtime installation
-details remain design work; the engine's existing prohibition on activating
-project/global senv still applies.
+Each selected llm-shared checkout has one authoritative, setup-managed Python
+virtual environment: its interpreter and installed dependencies for llm-shared's
+tools, including the release engine. This is distinct from a shell's inherited
+environment variables. There is no separate release environment or environment
+per consumer. The consumer's build retains its own toolchain, but its Python,
+other projects' Python and global Python are never release-engine candidates.
+
+The approved release-project-root design decision Q02 C reuses that checkout's
+authoritative environment. Setup and upgrade own its designation, preparation,
+replacement and repair. The launcher locates it independently of the caller's
+activation and verifies compatibility and required dependencies for the
+executing revision. A checkout or Python executable alone does not prove
+readiness. Older environment directories, if present, do not participate in
+release-time selection; their presence does not invalidate a ready designated
+environment.
+
+An accepted setup/upgrade must produce runnable tooling. Release operations
+stop before project mutation if the authoritative environment cannot be
+identified or is unusable. They require no Python on the consumer PATH and
+perform no fallback or runtime repair mid-release. The runtime-location and
+installation mechanisms remain design work; C does not require a new selection
+record file. The prohibition on activating project/global senv still applies.
 
 ### Automatic git-cliff provisioning
 
@@ -562,6 +587,30 @@ The Python engine keeps most of those steps in memory. The files that remain
 (the git-cliff output, the tag message, the `pre` handoff) go to the project
 artifact home, following [`rules/artifact_files.md`](../../rules/artifact_files.md).
 
+Approved release-project-root design decision Q06 A (2026-10-20) uses common
+Python functions to check destinations and perform managed writes inside the
+release engine. A module is a Python source file containing related functions.
+Version, changelog and release components are code within that engine, executed
+by the one llm-shared Python selected in Q02. A shared interface means the common
+functions and arguments those components reuse; the managed-write service is
+local code requiring no additional interpreter, environment, server or user
+prompt.
+
+For example, changelog functions prepare content and ask the common functions
+to check the destination and write `CHANGELOG.md`; version functions use them
+for `version.txt`. The alternative would repeat the destination checks and
+file-writing instructions inside each component, under the same Python.
+A junction can redirect a destination after initial validation, so the common
+functions recheck physical containment and repository boundaries before
+preparing artifacts or writing.
+
+Components complete their preflight before requesting changes and retain
+transaction ordering, recovery and cleanup. Read-only resolution creates no
+artifact directory or handoff. Linked-worktree Git metadata and item 3's tooling
+cache keep distinct boundaries. Exact functions and filesystem guarantees
+belong to the child design and plan; rechecking a path alone does not establish
+atomic protection against every race.
+
 ### Per-project settings in .release.ini
 
 Existing project files keep their meaning: `version.txt`, `CHANGELOG.md`,
@@ -572,6 +621,25 @@ to differ from the defaults:
 - `.changelog-fixes.toml`, the fix rules (see "Changelog fixes without Perl");
 - `.release.ini` at the project root, same idea as `.review-artifacts.ini`,
   for everything else. A project without it gets every default.
+
+Each project versions its own `.release.ini` when it needs overrides. It may
+omit settings with defaults or omit the whole file when those defaults suit it.
+Projects do not need to understand, copy or maintain schema definitions to use
+the defaults. Custom declarations still have to supply required values for which
+no default exists; invalid values are never replaced silently with defaults.
+
+Approved release-project-root design decision Q03 A (2026-10-19) keeps schemas
+and defaults beside their owning components in llm-shared's versioned source.
+A schema describes the allowed sections, keys, value types, defaults and
+validation rules; the changelog component, for example, defines the accepted
+`generated` and `curated` modes. The common reader combines these declarations
+through an explicit registry and performs one complete validation pass.
+
+This decision concerns ownership of rules inside llm-shared. Alternative B
+would have collected every domain's definitions in one foundation-owned Python
+module in that repository. Both options use the same optional configuration
+file per consuming project; neither introduces a shared `.release.ini` for all
+projects. A keeps rules with their owners while project files hold chosen values.
 
 ```ini
 [changelog]
@@ -617,7 +685,10 @@ The `.release.ini` config file is read with interpolation off, so
 `%` and `$` in a pattern need no escaping.
 
 The common config reader validates modes, forms, paths and unknown keys before
-mutation. Version-source settings belong to version management; the git-cliff
+mutation, including declarations unused by the current command. Schemas come
+only from shipped llm-shared code; the registry rejects duplicate ownership
+and conflicting declarations. An omitted schema cannot make unknown keys
+acceptable. Version-source settings belong to version management; the git-cliff
 pin belongs to internal provisioning; generation, archives and rules belong
 to changelog management; the tooling minimum belongs to setup/upgrade checks.
 No consumer runs code from project config. There is no git-cliff executable
@@ -1202,8 +1273,10 @@ must cover the candidate engine during llm-shared's own cutover without
 pretending it is an already published stable release. A compatibility protocol,
 config schema strategy and version-range notation are left to design.
 
-Setup and upgrade reuse llm-shared's setup process to prepare or repair its own
-Python environment. An accepted tooling update is usable only after its
+Setup and upgrade reuse llm-shared's setup process to designate, prepare,
+replace or repair the selected checkout's one authoritative Python environment.
+Release callers use that environment without ranking other environment
+directories. An accepted tooling update is usable only after its
 runtime/dependencies are ready and the consumer demonstrably invokes that
 selected checkout. When a separate stable checkout is selected, ordinary
 sibling discovery must not
@@ -1390,7 +1463,7 @@ not a claim that binary compatibility or implementation has been validated.
 
 | # | Topic | Decision |
 | --- | --- | --- |
-| 1 | Per-project settings | `.release.ini` at the project root; setup generates/merges it and supplies explicit version, tooling and archive policy |
+| 1 | Per-project settings | Optional versioned `.release.ini` at the project root; omit it when defaults suit the project, or declare only needed overrides. Setup generates/merges explicit version, tooling and archive policy when needed |
 | 2 | Fix-rules file | Preparation automatically converts legacy `.changelog.fixes` when TOML is missing; `convert` is an optional maintenance command; direct brel can use the in-memory transition reader |
 | 3 | Release trigger | A confirmed workflow merge to `main` includes automatic release continuation after preparation/readiness gates; a fresh on-main run keeps an explicit final tag choice |
 | 4 | Integration confirmation | Feature-to-umbrella merges remain untagged; confirm umbrella-to-develop integration separately, allow multiple umbrellas there, then separately confirm the complete merge-and-release to main |
@@ -1474,6 +1547,9 @@ implementation mechanisms to the child designs.
   - Stale/absent `PRJ_DIR` cannot redirect calls. Alias dispatch from subfolders
     uses that worktree, warns with both roots on mismatch and fails outside Git;
     full-path build calls use their own root.
+  - Keep Git targeting isolated from inherited routing and configuration
+    injection, including during root validation. Diagnose ignored conflicts,
+    preserve compatible user settings and leave the caller's shell unchanged.
   - Verify identity before senv guards, subprocess inheritance, PowerShell
     parent isolation, directory changes and linked worktrees. Engine never
     calls senv; document same-process caller initialization.
@@ -1483,10 +1559,17 @@ implementation mechanisms to the child designs.
     binary cache is a distinct permitted write area.
   - Parse config without interpolation, validate unknown keys/paths and preserve
     quoted arguments/non-interactive options through dispatch.
+  - Compose explicitly registered schemas and defaults owned by the shipped
+    llm-shared domains; reject conflicting ownership and validate every declared
+    setting before mutation, including settings unused by the current command.
+  - Allow projects to omit `.release.ini` when defaults suit them, or version
+    only needed overrides at their root. Projects need no schema or validator
+    definitions; invalid declarations never silently fall back to defaults.
   - Support Windows x64 only initially and diagnose unsupported platforms before
-    project mutation. Validate the selected tooling's Python/runtime readiness.
-    Never substitute consumer Python; keep an explicitly selected upgrade
-    checkout from being shadowed by default discovery.
+    project mutation. Locate and validate the selected checkout's one
+    setup-managed Python environment, without selecting older directories or
+    consumer/global Python. Keep an explicitly selected upgrade checkout from
+    being shadowed by default discovery.
 
 #### 2. Synchronize authoritative project versions
 
@@ -1703,8 +1786,11 @@ implementation mechanisms to the child designs.
     stable checkout when appropriate, never overwrite cutover work. Pin updates
     for git-cliff are separate deliberate config edits with compatibility evidence.
   - Support Windows x64 only initially. Reuse llm-shared's setup process to
-    prepare or repair its own Python environment and required dependencies;
-    accepted setup/upgrade produces runnable tooling. Verify readiness after
+    designate, prepare, replace or repair its checkout's one authoritative
+    Python environment and required dependencies; expose that identity to the
+    release launcher without relying on caller activation or ranking leftover
+    directories. No new selection-record format is prescribed here.
+    Accepted setup/upgrade produces runnable tooling. Verify readiness after
     setup/update, and demonstrate that the consumer executes the selected
     checkout even when a default sibling still exists.
     Failed upgrades retain the prior usable setup and block unintended release
