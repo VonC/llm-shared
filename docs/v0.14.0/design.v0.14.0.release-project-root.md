@@ -11,12 +11,17 @@ requirement separates those identities, caller initialization and artifact
 ownership before version, changelog and release-lifecycle behavior is added.
 
 This document proposes the foundation's responsibilities and interfaces.
-Q01 A, Q02 C and Q03 A are approved with the clarifications recorded below:
+Q01 A, Q02 C, Q03 A, Q04 A, Q05 A, Q06 A and Q07 A are approved with the
+clarifications below:
 Git subprocesses isolate inherited routing, each llm-shared checkout supplies
 one authoritative setup-managed Python environment, and domain-owned schemas
 provide common configuration validation with defaults that require no project
-configuration when suitable. Q04 through Q07 remain unanswered; their proposed
-mechanisms are still subject to design review.
+configuration when suitable. The batch launcher invokes that Python directly,
+and one shared CLI renderer owns result streams and public exit statuses.
+Common Python functions check destinations and perform managed writes within
+that same release engine. A separate entrypoint for aliases discovers the
+caller's worktree and passes its explicit root to the engine. All seven
+questions remain recorded below until explicit consolidation.
 The requirement and [focused draft](draft.v0.14.0.release-project-root.md)
 retain their approved behavioral scope.
 
@@ -237,6 +242,20 @@ and read-only handlers may inspect a declaration but cannot obtain an operation
 that creates the home, migrates legacy files or writes a handoff. A mutating
 domain requests preparation only after its complete preflight succeeds.
 
+Approved Q06 A puts managed destination checks and filesystem changes in
+common Python functions inside the release engine. A module is a Python source
+file containing related functions; version, changelog and release components
+are code within that engine, all executed by the one llm-shared Python selected
+in Q02. The shared write service is those common functions, called locally
+through a shared interface: the functions and arguments available to callers.
+
+For example, changelog code prepares content and asks the common functions to
+write it to `CHANGELOG.md`; version code uses them for `version.txt`. The
+functions recheck physical containment and repository boundaries before
+artifact preparation or managed writes. Components retain their complete
+preflight, transaction ordering and cleanup. Exact Python file names and
+function signatures remain implementation-planning work.
+
 This design reuses the existing artifact policy rather than copying its parser.
 It does not modify review-exchange behavior. Per-operation temporary names,
 cleanup and transaction ownership remain with the domains that generate them;
@@ -303,9 +322,9 @@ settled.
 ## Open questions for the v0.14.0 release-project-root design
 
 These questions concern design choices only. The requirement remains settled.
-Q01 A, Q02 C and Q03 A are confirmed with the clarifications in their answers.
-Q04 through Q07 remain unanswered; their answer lines are proposals, not human
-approval. Recommendations retain the original review proposals, including Q02's
+Q01 A, Q02 C, Q03 A, Q04 A, Q05 A, Q06 A and Q07 A are confirmed with their
+clarifications. All seven existing questions have a confirmed answer.
+Recommendations retain the original review proposals, including Q02's
 recommendation of A before the user chose C. All questions and options remain
 here until explicit consolidation, after an intermediate question snapshot
 commit preserves them in Git.
@@ -317,6 +336,20 @@ the repository, worktree or index. The adapter must address environment-based
 configuration injection as well as named routing variables. Ordinary signing,
 identity and credential configuration should remain usable when it cannot
 redirect the target. Which isolation policy should the foundation provide?
+
+#### Clarifications for Q01
+
+Here, the environment means the settings inherited by a Git subprocess.
+Isolation controls those settings for each invocation, including root
+validation; it requires no extra checkout, container, sandbox or Python virtual
+environment. The parent shell remains unchanged.
+
+For example, after activating project A, an explicit operation on B must target
+B even if inherited `GIT_DIR`, `GIT_WORK_TREE` or `GIT_INDEX_FILE` still names A.
+`git -C B` alone cannot guarantee that. Option A removes routing and
+configuration-injection inputs, diagnoses ignored conflicts and preserves
+compatible identity, signing and credential settings. The complete policy must
+cover more than those three example variables.
 
 #### BBQ for Q01
 
@@ -370,6 +403,25 @@ The executing checkout's declared Python and dependency requirements determine
 readiness. Existing launchers disagree on directory-name versus modification-
 time selection. The new launcher must not use those heuristics as readiness
 checks. Which rule should select among this checkout's candidate environments?
+
+#### Clarifications for Q02
+
+Here, the environment means a Python interpreter and its installed dependencies,
+not the shell variables discussed in Q01. Each selected llm-shared checkout
+provides one authoritative setup-managed environment for all its tools. Projects
+using that checkout share this tooling environment; they need no release-only
+or per-consumer environment. A consumer build still uses its own toolchain.
+
+Setup and upgrade designate, prepare, replace and repair that environment.
+Release tooling only locates it and checks readiness for the executing revision,
+independently of caller activation. Leftover environment directories are not
+ranked or counted as competing candidates; foreign and global Python are never
+fallbacks. Release commands do not repair the runtime mid-operation.
+
+The confirmed C requires a setup-owned authoritative identity. The original
+option's selection record does not mandate a new file: an existing setup
+identity mechanism can suffice. The original recommendation of A is retained
+below as discussion history; the approved answer is C with this clarification.
 
 #### BBQ for Q02
 
@@ -430,6 +482,31 @@ design work.
 The common reader must reject malformed, conflicting or unknown declarations
 before mutation, while later items own version, changelog and setup behavior.
 How should their settings become part of one complete validation pass?
+
+#### Clarifications for Q03
+
+A schema is the definition of accepted sections and keys, value types, defaults
+and validation rules. For example, the changelog component defines that its mode
+accepts `generated` or `curated`. A project's `.release.ini` supplies values to
+those rules; projects do not write or maintain the schemas or validators.
+
+A and B concern where those definitions live inside llm-shared's versioned
+source. In A, each domain's definitions live beside its owning version, changelog
+or setup component, and an explicit registry combines them for common
+validation. In B, the central definition would be one foundation-owned Python
+module containing every domain's schemas and defaults. Exact module names are
+left to implementation planning.
+
+Both options allow each consuming project to keep its own versioned
+`.release.ini` at its root. B would not introduce one shared `.release.ini` for
+all projects. Under the approved A, a project can omit the file entirely when
+defaults suit it, or declare only the overrides it needs, without having to
+understand or copy the default rules.
+
+The common reader validates every declared setting before mutation, even when
+the current command does not use it. Unknown keys, conflicting declarations and
+invalid values fail. A custom declaration missing a required value without a
+default also fails; defaults never conceal an invalid declaration.
 
 #### BBQ for Q03
 
@@ -494,6 +571,24 @@ design currently leaves the launch boundary between the shell and the Python
 argument vector implicit. Which frontend structure should the design pursue?
 Neither choice relaxes the argument-preservation requirement.
 
+#### Clarifications for Q04
+
+The selected Python is the authoritative setup-managed environment of the
+llm-shared checkout being executed, as agreed in Q02. The batch launcher locates
+and verifies that environment, then invokes its Python directly. It does not
+select the consuming project's Python or a global interpreter from PATH.
+
+PowerShell remains a supported calling shell under A. The choice means there
+is no required PowerShell helper between the batch launcher and Python; it does
+not restrict callers to cmd. Consumer builds keep their own toolchains.
+
+The launcher forwards the shared CLI's stdout, stderr and exit status unchanged.
+As agreed in Q05, stdout carries requested results, stderr carries diagnostics,
+and public statuses are 0 for success, 1 for execution failure and 2 for invalid
+input or failed preflight. A native subprocess status can be normalized by the
+shared CLI, with its original value preserved in diagnostics; the launcher does
+not reinterpret that public status. Q05 details this contract and live output.
+
 #### BBQ for Q04
 
 A guest's written order can pass directly from the host to the cook, or through
@@ -527,15 +622,48 @@ approval instead of silently restricting accepted values.
 
 #### Answer to Q04: option A
 
-Proposed answer: accept a minimal direct bootstrap because it minimizes places
-where values can become command text. Acceptance remains conditional on the
-required argument-preservation evidence, not confidence in batch syntax.
+Confirmed by the user on 2026-10-19: choose A. Keep the batch bootstrap minimal
+and invoke the selected llm-shared checkout's authoritative Python directly,
+using the setup-managed environment agreed in Q02. Python owns validation and
+dispatch after argument capture, and the launcher returns the engine's status.
+
+The implementation must demonstrate that supported cmd, PowerShell and
+automation invocations preserve spaces, embedded quotes, `%`, `!` and `&` under
+the documented caller syntax. If the direct boundary cannot meet that contract,
+revisit the design before implementation approval; do not silently restrict
+accepted values.
 
 ### Q05: How should domains report results and failures?
 
 The requirement separates machine-consumed results from diagnostics and keeps
 failures visible through launchers. Should domains return a common outcome to
 one renderer, or directly own their CLI streams and status?
+
+#### Clarifications for Q05
+
+A domain is a component such as version handling, changelog handling or release
+execution. Under A, each returns structured result data, diagnostics and an
+outcome category. The shared CLI renderer turns those into the public interface:
+
+- stdout carries the requested result, for example the version `1.2.3`, so a
+  script can capture it without mixing in explanatory messages.
+- stderr carries warnings and errors, for example a diagnostic that inherited
+  shell settings refer to another project.
+- Exit status 0 means success, 1 means execution failure, and 2 means invalid
+  input or failed preflight. The caller can check this status independently of
+  either output stream; the batch launcher preserves it.
+
+Native failure details remain visible. For example, if an underlying build
+process exits with 7, the shared CLI can return public status 1 while its
+diagnostic identifies the failed build and its original status 7. This example
+does not assign a universal meaning to every tool's native status 7.
+
+A does not require buffering live build output until completion. Build/release
+design must provide the streaming interface while preserving the shared public
+contract. Domain data formats, combined build/postprocessing failures and
+recovery remain with their owners. B instead lets each component own its streams
+and statuses behind common preflight: this preserves existing behavior more
+directly but leaves callers with different conventions across components.
 
 #### BBQ for Q05
 
@@ -569,9 +697,14 @@ failure's identity and status in diagnostics rather than erase it.
 
 #### Answer to Q05: option A
 
-Proposed answer: accept structured outcomes and the three common status values
-because they make launcher behavior predictable without choosing later domains'
-data formats or transaction rules.
+Confirmed by the user on 2026-10-19: choose A. Domains return structured outcomes
+with result data, diagnostics and a status category. The shared CLI renders
+results to stdout and diagnostics to stderr, mapping success to 0, execution
+failure to 1, and invalid input or failed preflight to 2. Preserve native failure
+identity and status in diagnostics, and pass the public interface through the
+launcher unchanged. This makes automation predictable while live build
+streaming, domain data formats and transaction/recovery rules retain their
+respective owners, as clarified above.
 
 ### Q06: Where should managed writes be authorized and revalidated?
 
@@ -579,6 +712,43 @@ The design separates read-only configuration and artifact resolution from
 preparation, and requires physical path checks again before writes. How should
 domains receive that capability without treating the initial root check as
 permanent authorization for any later destination?
+
+#### Clarifications for Q06
+
+The release engine uses the selected llm-shared checkout's one setup-managed
+Python, as agreed in Q02. Here, a module means a Python source file containing
+related functions. A domain or component means an area of that engine's code,
+such as version handling, changelog handling or release coordination. All these
+functions execute under that same Python.
+
+A shared interface means common functions and their accepted arguments, reused
+by those components. The managed-write service is local Python code called
+through that interface. It requires no additional interpreter, environment,
+server or user prompt.
+
+For illustration, `changelog.py` could prepare the new changelog and ask a
+function in `files.py` to check its destination and write `CHANGELOG.md`.
+Functions in `versions.py` could use that same helper for `version.txt`.
+These names illustrate code organization; they do not prescribe actual files.
+The component decides what to change and when; the common functions check
+where the change will happen and perform the filesystem operation.
+
+In A, components use those common functions after completing their required
+preliminary checks (preflight). In B, each component's own functions contain
+the destination checks and instructions to open and write files. Both use the
+same llm-shared Python; B duplicates the checking and writing code.
+
+The checks must consider the destination at write time. For example, a command
+targeting `C:\projects\B` may initially validate `B\docs\CHANGELOG.md`, then
+`docs` may become a junction pointing into project A. The original path check
+cannot authorize a later write into A. Read-only resolution also stays separate
+from creating directories: reading a version must not create `.reviews`.
+
+A centralizes destination enforcement while each component keeps complete
+preflight, transaction ordering, recovery and cleanup. Git's linked-worktree
+metadata and item 3's tooling cache retain their distinct boundaries. The
+implementation plan must establish the guarantees of its filesystem operations;
+a path recheck alone does not provide atomic protection against every race.
 
 #### BBQ for Q06
 
@@ -612,10 +782,17 @@ tool cache keep their distinct boundaries.
 
 #### Answer to Q06: option A
 
-Proposed answer: accept the separate managed-write capability because it makes
-the approved no-artifact-side-effects rule easier to preserve across domains.
-The plan must establish the guarantees of its filesystem operations rather than
-claiming a path recheck alone provides atomic protection against every race.
+Confirmed by the user on 2026-10-20: choose A with the clarifications above.
+Within the release engine running under the one llm-shared Python, components
+route managed filesystem changes through common functions that revalidate
+physical containment and repository boundaries before preparing artifacts or
+writing. Read-only resolution remains separate and creates no artifacts.
+
+This choice centralizes destination checks instead of duplicating them in each
+Python component. Components retain complete preflight, transaction ordering,
+recovery and cleanup; the common functions do not become a general transaction
+engine. The plan must establish filesystem-operation guarantees without
+claiming that a path recheck alone protects atomically against every race.
 
 ### Q07: Where should current-directory alias resolution live?
 
@@ -623,6 +800,26 @@ Aliases discover the current worktree and pass an explicit root; engine and
 standalone commands must never infer a missing root. The proposed dispatcher
 mentions both invocation origins without defining the boundary. How should the
 foundation share alias discovery while keeping its engine API explicit?
+
+#### Clarifications for Q07
+
+An alias is a shortcut such as `gv`. Running it from `C:\projects\B\src` must
+discover `C:\projects\B` as the worktree root and pass that explicit path to
+the release engine. If inherited shell settings still name project A, report
+both roots and target B. Outside a Git worktree, discovery fails.
+
+In A, the alias-resolution facade is a dedicated entrypoint for shortcuts in
+llm-shared. Common Python functions use the controlled Git adapter to discover
+the worktree, then invoke the ordinary explicit-root engine path. They run
+under the same llm-shared Python agreed in Q02. Shell adapters pass the invocation
+data; they do not each implement their own project discovery. In B, each shell
+adapter, such as cmd or PowerShell, contains that discovery logic.
+
+Capture the caller's original directory before any launcher changes directories.
+Keep the shortcut entrypoint distinct from commands requiring an explicit root:
+a direct command missing its root still fails, even inside a valid worktree.
+Alias installation remains item 6's responsibility, with consuming-build
+integration in items 5 and 8.
 
 #### BBQ for Q07
 
@@ -656,6 +853,13 @@ command without its root must still fail, even from a valid worktree.
 
 #### Answer to Q07: option A
 
-Proposed answer: accept the separate facade because it centralizes discovery
-without weakening the approved explicit-root contract or moving installation
-work into this child.
+Confirmed by the user on 2026-10-20: choose A. Provide a dedicated entrypoint
+for aliases using common discovery functions and the controlled Git adapter
+under the same llm-shared Python. Capture the caller's original directory,
+resolve its worktree, and pass the resulting explicit root through the ordinary
+engine validation path. Diagnose stale-root mismatches and fail outside Git.
+
+This centralizes discovery and diagnostics across shell shortcuts while keeping
+direct engine and standalone calls explicit: a missing root remains an error.
+Alias installation and consuming-build integration retain their existing
+owners, as clarified above.
