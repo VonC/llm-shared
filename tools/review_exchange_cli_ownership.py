@@ -52,6 +52,7 @@ class CorePort(Protocol):
 
     def publish_request(
         self, markdown: str, transcript_content: str, scope_capture: str | None = None,
+        *, amend_pending: bool = False,
     ) -> CoordinationRecord: ...
 
     def publish_answer(self, markdown: str, transcript_content: str) -> CoordinationRecord: ...

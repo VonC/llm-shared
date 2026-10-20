@@ -259,6 +259,7 @@ same exact context on every invocation.
 | `start` | requestor; idle exchange | Open round 1; `started` |
 | `continue` | requestor; consumed intermediate answer | Advance to the next round; `continued` |
 | `publish-request` | requestor; round in progress | Store request and append transcript; `published` |
+| `amend-request` | human-requested correction; requestor owns the pending request | Replace live request and final request entry, keeping round and occurrence; `published` |
 | `wait-request` | reviewer; optional bounded exact-request wait | Return the next exact request as `found`, or `timed-out`, `abandoned`, `escalated`, `inconsistent`, or `repair-required` |
 | `publish-answer` | reviewer; request pending | Consume request, expose answer, and append transcript; `published` |
 | `wait-answer` | requestor; bounded wait | Return the same wait outcomes as `wait-request` |
@@ -274,6 +275,12 @@ same exact context on every invocation.
 | `complete --force` | human-authorized caller; intact artifact-free abandonment | Append the close decision and remove coordination; `force-completed` |
 | `resolve` | human-authorized caller; stopped authoritative evidence | Clear stopped artifacts and start a fresh round; `resolved` |
 | `archive` | human-authorized caller; stopped authoritative evidence | Archive stopped artifacts and start a fresh round; `archived` |
+
+`amend-request` requires paired `--content-file` and `--summary-file` inputs
+from the specialized renderer, plus `--scope-capture-file` when a code request
+carries test scope. It uses the current requestor capability and the publication
+repair marker. Earlier transcript entries remain unchanged. Reviewer ownership,
+an answered request, or a non-final request entry prevents amendment.
 
 ## Operation outcome snapshot
 

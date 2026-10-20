@@ -74,11 +74,11 @@ def parser() -> JsonArgumentParser:
     reclaim = subparsers.add_parser("reclaim", parents=[common])
     reclaim.add_argument("--force", action="store_true")
     reclaim.add_argument("--summary-file")
-    for name in ("publish-request", "publish-answer"):
+    for name in ("publish-request", "publish-answer", "amend-request"):
         command = subparsers.add_parser(name, parents=[common])
         command.add_argument("--content-file", required=True)
         command.add_argument("--summary-file", required=True)
-        if name == "publish-request":
+        if name != "publish-answer":
             command.add_argument("--scope-capture-file")
     repair_request = subparsers.add_parser(
         "repair-request-transcript",

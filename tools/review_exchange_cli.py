@@ -293,7 +293,13 @@ def _dispatch_publication(
     """Read and delegate one request or answer publication."""
     content = _read_input_file(runtime.project_root, args.content_file, "content")
     summary = _read_input_file(runtime.project_root, args.summary_file, "summary")
-    if args.operation == "publish-request":
+    if args.operation == "amend-request":
+        capture = (
+            _read_input_file(runtime.project_root, args.scope_capture_file, "scope capture")
+            if args.scope_capture_file is not None else None
+        )
+        runtime.core.publish_request(content, summary, scope_capture=capture, amend_pending=True)
+    elif args.operation == "publish-request":
         if args.scope_capture_file is None:
             runtime.core.publish_request(content, summary)
         else:
@@ -402,6 +408,7 @@ _HANDLERS: dict[str, OperationHandler] = {
     "pickup": _dispatch_pickup,
     "complete": _SIMPLE_HANDLER,
     "publish-request": _dispatch_publication,
+    "amend-request": _dispatch_publication,
     "publish-answer": _dispatch_publication,
     "repair-request-transcript": _dispatch_request_transcript_repair,
     "wait-request": _dispatch_wait,

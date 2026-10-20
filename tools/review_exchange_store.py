@@ -241,7 +241,7 @@ class ReviewExchangeStore:
         )
         return len(footer.findall(text)) + 1
 
-    def current_entry_offset(self, entry_id: str) -> int:
+    def current_entry_offset(self, entry_id: str, *, allow_first: bool = False) -> int:
         """Locate the current final legacy entry without scanning authored headings."""
         content = self.paths.transcript.read_bytes()
         footer = f"{_ENTRY_FOOTER_PREFIX} {entry_id} -->".encode()
@@ -249,6 +249,8 @@ class ReviewExchangeStore:
         if footer_offset < 0 or content[footer_offset + len(footer):].strip():
             raise ReviewExchangeError("legacy transcript entry is not the final entry")
         prior_footer = content.rfind(_ENTRY_FOOTER_PREFIX.encode(), 0, footer_offset)
+        if prior_footer < 0 and allow_first:
+            prior_footer = 0
         heading_offset = content.find(b"\n## Round ", prior_footer, footer_offset)
         if prior_footer < 0 or heading_offset < 0:
             raise ReviewExchangeError("legacy transcript entry boundary is unavailable")

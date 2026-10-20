@@ -1,1 +1,1 @@
-"""Unit tests for the Step 4 review-exchange command interface."""
+"""Review-exchange command tests and their shared fake lifecycle facade."""

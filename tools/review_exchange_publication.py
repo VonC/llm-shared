@@ -128,6 +128,8 @@ class ReviewExchangePublicationMixin(ABC):
         markdown: str,
         transcript_content: str,
         scope_capture: str | None = None,
+        *,
+        amend_pending: bool = False,
     ) -> CoordinationRecord:
         """Publish and append one validated current-round request idempotently."""
         with self.store.transition_lock():
@@ -136,8 +138,9 @@ class ReviewExchangePublicationMixin(ABC):
             repairing = record.incomplete_transition is (
                 IncompleteTransitionKind.PUBLISH_REQUEST
             )
-            if not repairing and observation.state is not ArtifactState.ROUND_IN_PROGRESS:
-                raise ReviewExchangeError("request publication requires a round in progress")
+            offset = self._request_publication_offset(
+                observation, record, amend_pending=amend_pending,
+            )
             envelope, authored = self._validate_envelope(markdown, ReviewRole.REQUESTOR, record)
             fingerprint = self._request_scope_fingerprint(envelope, scope_capture)
             snapshot = self._acting_snapshot(record, envelope, ReviewRole.REQUESTOR)
@@ -165,7 +168,7 @@ class ReviewExchangePublicationMixin(ABC):
                     )
             entry_id, occurrence = self._exchange_entry(
                 self._entry_base(ReviewRole.REQUESTOR, record.round_number),
-                before_offset=record.transcript_offset if repairing else None,
+                before_offset=offset,
             )
             entry = TranscriptEntry(
                 entry_id,
@@ -175,11 +178,14 @@ class ReviewExchangePublicationMixin(ABC):
                 transcript_content,
                 occurrence,
             )
-            marked = self._mark_transition(
-                record,
-                IncompleteTransitionKind.PUBLISH_REQUEST,
-                entry.entry_id,
-            )
+            if amend_pending:
+                marked = self._request_repair_marker(
+                    record, entry.entry_id, cast("int", offset), repairing=repairing,
+                )
+            else:
+                marked = self._mark_transition(
+                    record, IncompleteTransitionKind.PUBLISH_REQUEST, entry.entry_id,
+                )
             self.store.publish_request(markdown)
             marked = self.store.append_transcript_once(
                 marked,
@@ -204,6 +210,32 @@ class ReviewExchangePublicationMixin(ABC):
             final = replace(final, bound_scope_fingerprint=fingerprint)
             self.store.write_coordination(final)
             return final
+
+    def _request_publication_offset(
+        self,
+        observation: ExchangeObservation,
+        record: CoordinationRecord,
+        *,
+        amend_pending: bool,
+    ) -> int | None:
+        """Permit an explicit amendment only before the reviewer owns the request."""
+        if amend_pending and record.owner is not Actor.REQUESTOR:
+            raise ReviewExchangeError("request amendment requires requestor ownership")
+        if record.incomplete_transition is IncompleteTransitionKind.PUBLISH_REQUEST:
+            return record.transcript_offset
+        expected = (
+            ArtifactState.REQUEST_PENDING if amend_pending else ArtifactState.ROUND_IN_PROGRESS
+        )
+        if observation.state is not expected:
+            reason = "a pending request" if amend_pending else "a round in progress"
+            message = f"request publication requires {reason}"
+            raise ReviewExchangeError(message)
+        if not amend_pending:
+            return None
+        occurrence = current_request_occurrence(self.store, self.context, record.round_number)
+        base = self._entry_base(ReviewRole.REQUESTOR, record.round_number)
+        entry_id = base if occurrence == 1 else f"{base}-exchange-{occurrence}"
+        return self.store.current_entry_offset(entry_id, allow_first=True)
 
     def _request_scope_fingerprint(self, envelope: Envelope, text: str | None) -> str | None:
         """Validate every scope input before publication can mutate live evidence."""

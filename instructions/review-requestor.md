@@ -317,6 +317,19 @@ the existing crash-repair marker, and assigns the request a unique
 `request-round-N-exchange-M` footer. It rejects non-final, first-exchange, and
 non-request-pending shapes.
 
+Use `amend-request --content-file <path> --summary-file <path>` only when the
+human explicitly asks to correct an already published pending request.
+Render the corrected request and summary together with the specialized paired
+renderer. The core requires the current requestor capability, rejects a
+reviewer-owned or answered request, and replaces only the final request entry
+and its live artifact through the crash-repair marker. The round and exchange
+occurrence remain unchanged; all earlier transcript entries remain intact.
+Describe the correction in the authored change summary. For code requests
+carrying `test_scope`, also supply the matching `--scope-capture-file`.
+Keep the existing `wait-answer` execution when one is already active; otherwise
+start the normal bounded wait after correction. Never force ownership away
+from a reviewer to amend a request.
+
 Use `escalate --summary-file <path>` when the specialized workflow must stop
 automation with an authored reason. Use `cancel --summary-file <path>` for a
 human cancellation at convergence.
