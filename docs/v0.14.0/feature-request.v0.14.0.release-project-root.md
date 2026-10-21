@@ -43,6 +43,8 @@ remain associated with the consuming project when several projects run at once.
 This item owns the engine entrypoint, shared launcher, common configuration
 reader and dispatcher. It establishes project selection, tooling selection,
 runtime readiness and the boundaries for Git, files and artifacts.
+Approved design answer Q08 A additionally includes the narrow setup producer
+that exposes the prepared runtime's identity to the launcher.
 
 The umbrella's working names are `tools/release_workflow/` and
 `bin/release_workflow.bat`, with tests under `tests/`. These are inherited
@@ -119,8 +121,13 @@ Environment activation belongs to callers. Interactive cmd callers initialize
 the chosen project's root `senv.bat`; when a guard left build tools
 uninitialized, they clear that project's guard and activate in the same cmd
 process, following [the shell policy](../../rules/run_commands.md). PowerShell
-and automation callers use the full-path shared launcher with an explicit root,
-or the project's full-path `build.bat`, which owns its build environment.
+callers use the full-path shared launcher with an explicit root through a
+supported transport, or the project's full-path `build.bat`, which owns its
+build environment. Approved design answer Q10 A also permits Python automation
+and cross-checkout execution to invoke the selected checkout's designated
+Python and trusted bootstrap directly with a native argument list. These routes
+use the same runtime checks and explicit-root validation as the launcher;
+they never use a consumer or global Python fallback.
 The engine never calls project or global `senv.bat`.
 
 This contract covers identity assignment before guards, directory changes,
@@ -157,8 +164,17 @@ unusable, with no consumer-PATH requirement, fallback or mid-release repair.
 Setup and upgrade own designation, preparation, replacement and repair through
 llm-shared's setup process. An accepted upgrade must be runnable and actually
 invoke the selected checkout. This item supplies runtime location and readiness;
-item 6 owns installation, upgrade and compatibility policy. The location
-mechanism remains design work; a new selection-record file is not required by C.
+item 6 owns installation, upgrade and compatibility policy.
+
+On 2026-10-20, the user approved design answer Q08 A and its explicit item 1
+scope amendment: define a local runtime identity record under ignored `venvs`
+and make current llm-shared setup produce it only after `switchpy` and dependency
+preparation succeed. The record identifies the prepared environment within the
+selected checkout. Release invocation reads and validates that identity without
+rerunning setup, choosing among older environments or repairing the runtime.
+Item 6 later manages the same contract through installation, upgrades and repair.
+This narrow producer addition does not reorder the umbrella or authorize
+consolidation of the design questions.
 
 ## Configuration behavior at the selected root
 
@@ -266,8 +282,27 @@ Every prompting operation must have a non-interactive form that fails with a
 message when required input is missing. Preserve that choice through dispatch,
 build, `pre` and `post`, without hidden batch `set /p` or downstream prompts.
 
-Preserve quoted arguments and values containing spaces, quotes, `%`, `!`, `&`
-and other batch metacharacters without executing notes or titles as commands.
+Preserve values containing spaces, quotes, `%`, `!`, `&` and other batch
+metacharacters through the supported invocation channels, without executing
+notes or titles as commands.
+
+Approved design answer Q10 A, confirmed on 2026-10-20, amends the caller and
+build-title transport contract. Batch remains available for supported command
+tokens and paths. Arbitrary titles and notes travel through UTF-8 files or stdin,
+or are obtained inside Python from a console prompt or `version.txt`.
+Python automation and cross-checkout execution may pass them through native
+Python argument lists without an intermediate batch parser. Inherited arbitrary
+title arguments such as `rel_title...` are no longer a supported `build.bat`
+input; item 5 adopts the supported sources and preserves their values through
+its validated handoff. Batch must not manufacture a payload from arbitrary
+title arguments that may already have been altered by shell parsing.
+
+Paths containing metacharacters still require a supported channel that preserves
+them; the user separately confirmed the design's P1 path channel on 2026-10-20.
+This amendment does not authorize implicit target selection from ambient
+`PRJ_DIR`, restrict the accepted project paths or change the build's
+script-derived target.
+
 The inherited build handoff names `project_version`, `project_title`,
 `build_params`, `build_params_echos`, `build_must_fail` and `PRJ_REL_TITLE`.
 Item 5 owns the transaction and handoff, including failure without a partially
@@ -292,7 +327,7 @@ owns build-gate and postprocessing outcome rules.
 | AC7 | Locate and validate the selected checkout's one setup-managed environment independently of caller activation; older environment directories do not affect selection. Unsupported platforms and an unidentified or unusable authoritative runtime fail before project mutation; no consumer, other-project or global Python fallback or mid-release runtime repair occurs |
 | AC8 | Missing configuration uses defaults; unreadable, malformed or ambiguous configuration fails; interpolation is disabled, invalid settings are diagnosed and configuration is never executed |
 | AC9 | Consumer artifacts stay in the selected project's configured artifact home; invalid-root/configuration/runtime failures and read-only operations do not create or migrate project artifacts |
-| AC10 | Dispatch preserves quoted/metacharacter-containing values and non-interactive intent, propagates failure and keeps diagnostics separate from command results |
+| AC10 | Supported invocation channels preserve quoted/metacharacter-containing values and non-interactive intent, propagate failure and keep diagnostics separate from command results; arbitrary titles and notes use Q10 A's defined data sources rather than batch argument forwarding |
 | AC11 | The missing-launcher boundary permits an ordinary build with one warning and read-only version display, while rejecting release/snapshot intent anywhere among the arguments; item 5 retains lifecycle ownership |
 
 Validation uses the already selected whole suite. These criteria define
