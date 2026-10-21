@@ -34,7 +34,7 @@
 			"activityBar.activeBorder": "#15202b",
 			"activityBarTop.activeBorder": "#15202b",
 			"statusBar.inactiveBackground": "#86a1fc",
-			"tab.activeBackground": "#b8c8fd"
+			"tab.activeBackground": "#0834c5"
 		},
 		"peacock.color": "#86a1fc",
 		"github.copilot.chat.otel.dbSpanExporter.enabled": true,
