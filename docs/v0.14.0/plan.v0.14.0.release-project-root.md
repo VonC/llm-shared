@@ -901,8 +901,13 @@ must distinguish working foundation services, caller-contract fixtures and
 deferred production integration. No private path or sensitive term is required
 by any planned implementation or fixture.
 
-## Plan writer assessment
+## Implementation decisions
 
-| Review outcome | Basis |
-| --- | --- |
-| No open questions from the plan writer | Independent round 3 recommends convergence: all substantive findings are resolved, and the two covered reflow edits are applied. The requirement, design and six-step order are unchanged by the review revisions. The writer agrees that the plan is ready for the human consolidation choice; implementation and consolidation are not yet authorized by this review |
+| Question | Decision | Integrated in | Basis and rejected alternatives |
+| --- | --- | --- | --- |
+| No open questions | Retain the reviewed file layout, six-step order, test strategy and per-step checks; consolidation explicitly approved by the user | Steps 1 through 6 and planning risk pass | Three independent review rounds resolved the implementation findings; round 3 confirmed that no question was missing, and its two covered reflow edits are applied. No alternative remains unresolved. The approved requirement and design decisions remain unchanged |
+
+The user authorized consolidation, a clean working tree and push, followed by
+implementation of Step 1. That authorization is separate from the reviewer's
+recommendation. The validation plan remains unchecked until implementation
+evidence is assessed.
