@@ -346,6 +346,16 @@ the design and plans.
 - [Umbrella](draft.v0.14.0.sibling_release_tooling.md): shared contracts and
   ownership of items 2 through 8.
 
+## File-based IO cost clarification for release-project-root
+
+The synchronous foundation reads the selected runtime record, tooling dependency
+metadata and project declarations once per invocation, retaining validated data
+in memory. Avoid scanning old environments or unrelated consumer files; readiness,
+preflight and read-only work must not prepare artifacts. Necessary Git probes and
+path-ancestor checks remain, including managed-path revalidation immediately
+before mutation and same-parent temporary files for atomic replacement. There is
+no document-index, event-loop or new wall-clock performance requirement.
+
 ## Requirement clarifications
 
 | Review outcome | Basis |

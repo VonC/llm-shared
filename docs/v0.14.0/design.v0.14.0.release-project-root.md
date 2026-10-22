@@ -329,7 +329,7 @@ value in `finally`. At a cmd or PowerShell prompt, assign the variable in the
 launching command line; that value persists until reassigned or removed.
 The build initializes its root from its own script location.
 Batch grammar is a caller obligation: expansion before Python starts can
-alter a value undetectably, so rejection of surviving unsafe characters is
+alter a value undetectable, so rejection of surviving unsafe characters is
 not a guarantee that all unsafe invocations can be rejected. Implementation
 approval waits for evidence for each supported caller.
 
@@ -682,6 +682,18 @@ person is available to answer. Non-interactive execution never invents consent.
 The approved whole-suite scope applies to later validation. Plans will assign
 test files, implementation steps and rollout checks from these settled decisions.
 This consolidation supplies no implementation or full-suite validation evidence.
+
+## File-based IO cost clarification for release-project-root
+
+Read the selected runtime identity, tooling dependency metadata and project
+declarations once per synchronous invocation and retain their validated forms in
+memory. Do not scan old environments or unrelated consumer files, or prepare
+artifacts during readiness, preflight or read-only work. Git identity/configuration
+probes and managed-path ancestor checks are necessary validation; revalidate paths
+at mutation boundaries and use same-parent temporary files for atomic replacement.
+No document-index or event-loop mechanism is introduced, and no new wall-clock
+target is implied. The implementation plan assigns read-count and scan-avoidance
+checks to the owning steps.
 
 ## Design decisions
 
