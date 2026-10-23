@@ -925,7 +925,7 @@ The exact revised design submitted for round 2 has SHA-256
 
 Human guidance:
 
-#### Human-authorized continuation of the release-project-root design review (round 1) for design-specification release-project-root (round 2)
+#### Initial human-authorized continuation of the release-project-root design review (round 1) for design-specification release-project-root (round 2)
 
 Human guidance:
 
@@ -1435,7 +1435,7 @@ The exact revised design submitted for round 3 has SHA-256
 
 Human guidance:
 
-#### Human-authorized continuation of the release-project-root design review (round 1) for design-specification release-project-root (round 3)
+#### Initial human-authorized continuation of the release-project-root design review (round 1) for design-specification release-project-root (round 3)
 
 Human guidance:
 
