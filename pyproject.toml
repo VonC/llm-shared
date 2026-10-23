@@ -212,7 +212,9 @@ patterns = ["*.py"]
 ignore_patterns = []
 
 [dependency-groups]
+release = []
 dev = [
+    {include-group = "release"},
     "build",
     "hypothesis",
     "packaging",

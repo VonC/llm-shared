@@ -160,6 +160,7 @@ dev = [
     { name = "watchdog" },
     { name = "wheel" },
 ]
+release = []
 
 [[package]]
 name = "lxml"

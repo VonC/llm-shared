@@ -270,9 +270,18 @@ if defined UV_INDEX_URL if exist "%PRJ_DIR%\uv.lock" (
 
 pushd "%PRJ_DIR%"
 call switchpy %PYTHON_VERSION% local
+set "RELEASE_SETUP_STATUS=%ERRORLEVEL%"
+call "%PRJ_DIR%\bin\release_runtime_record.bat" "%PRJ_DIR%" "%RELEASE_SETUP_STATUS%"
+set "RELEASE_RUNTIME_STATUS=%ERRORLEVEL%"
 popd
 REM restore echos macros unset by switchpy
 call "%PRJ_DIR%\tools\batcolors\echos_macros.bat" export
+set "RELEASE_SETUP_STATUS="
+if not "%RELEASE_RUNTIME_STATUS%"=="0" (
+  set "RELEASE_RUNTIME_STATUS="
+  exit /b %RELEASE_RUNTIME_STATUS%
+)
+set "RELEASE_RUNTIME_STATUS="
 %_ok% "Environment initialized for project '%PRJ_DIR_NAME%'"
 
 REM Install composable hooks with this project's Python, but only for the

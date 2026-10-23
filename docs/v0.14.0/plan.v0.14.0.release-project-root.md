@@ -232,6 +232,11 @@ is linear with a visited set. Preserve existing setup, dev dependency
 installation and public tools exports. Apply the shared execution checklist
 and ready-to-run templates.
 
+Preserving setup includes successful `switchpy` choices with no environment or
+a global environment: finish setup, warn that the release identity was not
+updated, and publish nothing. A producer failure for a checkout-local environment
+still fails setup. Release invocation retains its strict local-runtime checks.
+
 ### Step 1 implementation
 
 Files involved:
