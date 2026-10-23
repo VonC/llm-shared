@@ -1,7 +1,9 @@
 """Cross-family acceptance for bare resume, durable gates and clean release.
 
-These assertions inspect real launcher journeys prepared once per family. The
-Release follows the workflow selected from current documents. The bare user
+These assertions inspect journeys prepared once per family. Ownership takeover,
+status and workflow dispatch retain real processes; surrounding CLI operations
+reuse imports and a bounded Git double. Release follows the workflow selected
+from current documents. The bare user
 text drives a documented LLM simulation; provider contract tests bind
 that simulation to the canonical instruction rather than claiming a model ran.
 """

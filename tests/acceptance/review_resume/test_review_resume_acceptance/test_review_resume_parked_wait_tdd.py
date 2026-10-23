@@ -8,6 +8,10 @@ behind them. The scenario and every assertion are unchanged.
 Fix: the wake-up bound uses the shared ``PROCESS_TIMEOUT_SECONDS`` hang guard
 instead of 15 seconds, since the woken claim runs the same Python and ``git``
 children that once outlasted a 30-second bound under the parallel full run.
+
+The parent uses the bounded Git double for ordinary exchange orchestration.
+The independent waiter still runs the public CLI with real Git and watches the
+same on-disk evidence through convergence, conclusion and replacement.
 """
 
 # ruff: noqa: PLR2004
@@ -38,7 +42,7 @@ from tools.review_exchange_paths import derive_artifact_paths
 )
 def parked_wait_journey(tmp_path_factory: pytest.TempPathFactory, request: pytest.FixtureRequest) -> dict[str, Any]:
     """Wake a reviewer from the human gate or after release into a different family."""
-    repo = ReviewRepository(tmp_path_factory.mktemp("resume-parked") / "caller")
+    repo = ReviewRepository(tmp_path_factory.mktemp("resume-parked") / "caller", fast_git=True)
     repo.start_request()
     reviewer = repo.resume("resume", role="reviewer", nature="claude")
     answer = repo.publish(ReviewRole.REVIEWER, reviewer[-1].payload, ready=True, nature="claude")

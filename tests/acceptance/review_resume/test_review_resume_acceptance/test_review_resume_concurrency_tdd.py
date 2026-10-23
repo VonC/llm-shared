@@ -14,6 +14,10 @@ four ``git`` processes (three home-tracking checks and one ignore check), which
 kept the call above the one-second duration floor. ``_IgnoredHomeGit`` answers
 those two reads as real git does for the fixture's self-ignored home; the
 process-based scenarios of this package keep the real git path covered.
+
+The competing-reviewer scenario also reuses bounded Git answers in the parent
+orchestration. Both competing reviewers remain independent real CLI processes
+with real Git and the same filesystem, locks and ownership handoff.
 """
 
 # ruff: noqa: PLR2004, S603
@@ -79,9 +83,12 @@ def _advance_review_round(repo: ReviewRepository, first: dict[str, Any]) -> list
 @pytest.fixture(scope="module")
 def competing_journey(tmp_path_factory: pytest.TempPathFactory) -> dict[str, Any]:
     """Race two real reviewer processes; the losing process survives into round two."""
-    repo = ReviewRepository(tmp_path_factory.mktemp("resume-race") / "caller", home="runtime/reviews")
-    processes = [start_wait(repo), start_wait(repo)]
+    repo = ReviewRepository(tmp_path_factory.mktemp("resume-race") / "caller",
+                            home="runtime/reviews", fast_git=True)
+    processes: list[subprocess.Popen[str]] = []
     try:
+        processes.append(start_wait(repo))
+        processes.append(start_wait(repo))
         for process in processes:
             assert_still_quiet(process)
         repo.start_request()

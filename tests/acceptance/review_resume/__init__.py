@@ -1,1 +1,1 @@
-"""Acceptance for real launcher resumption, migration and reviewer waiting."""
+"""CLI scenarios and real process boundaries with observable waiter startup."""

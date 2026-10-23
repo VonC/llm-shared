@@ -4,6 +4,10 @@ The double returns typed ``CompletedProcess`` values at the same subprocess
 seam as Git. Packages keep explicit real-Git boundary cases while orchestration
 tests avoid repeated Windows process startup for the finite command vocabulary
 they already assert.
+
+Absolute Git executables and a leading ``-C`` select the same registered
+repository as a bare command; otherwise public CLI calls escape the double
+and repeatedly start real Git while testing unrelated orchestration.
 """
 
 from __future__ import annotations
@@ -43,7 +47,7 @@ LazyRepository = Callable[[Path], RepositoryState | None]
 
 
 class GitTestDouble:
-    """Serve a finite Git command set without starting child processes."""
+    """Serve bounded Git commands, including absolute executables and -C roots."""
 
     def __init__(
         self,
@@ -78,10 +82,13 @@ class GitTestDouble:
         **kwargs: Any,
     ) -> subprocess.CompletedProcess[str]:
         """Return a real non-Git result or one bounded in-memory Git result."""
-        if not argv or argv[0] != "git":
+        if not argv or Path(argv[0]).name.lower() not in {"git", "git.exe"}:
             return self._real_run(argv, *args, cwd=cwd, check=check, **kwargs)
         root = Path(cwd or ".").resolve()
         command = _without_config(tuple(str(value) for value in argv[1:]))
+        if command[:1] == ("-C",):
+            root = (root / command[1]).resolve()
+            command = _without_config(command[2:])
         if command[:1] == ("init",):
             self._repositories[root] = RepositoryState()
             result = _completed(argv)

@@ -3,6 +3,7 @@
 The builders write protocol evidence through the production models and store.
 Only deliberately damaged candidates bypass those boundaries, so command-level
 tests exercise the same files a returning review role would inspect.
+Synthetic commits disable signing without modifying the host configuration.
 """
 
 # ruff: noqa: PLR0913, S105, S603, S607
@@ -117,7 +118,7 @@ def _initialize_repository(root: Path) -> None:
 def _commit_fixture_documents(root: Path) -> None:
     """Commit ordinary fixture documents while protocol artifacts stay ignored."""
     _git(root, "add", "-A")
-    _git(root, "commit", "--quiet", "-m", "test: seed review status fixture")
+    _git(root, "-c", "commit.gpgsign=false", "commit", "--quiet", "-m", "test: seed review status fixture")
 
 
 def _context(

@@ -1,7 +1,7 @@
-"""Real Git repositories and separate public-launcher sessions for resume acceptance.
+"""Real Git repositories and public CLI scenarios for resume acceptance.
 
-Scenario setup runs outside measured calls; the tests retain assertions over
-actual process results, protocol bytes, Git state and fenced capabilities,
+Scenario setup and teardown are included in the total-duration audit. Tests
+retain assertions over process results, protocol bytes, Git state and fenced capabilities,
 including status failure JSON delivered on the error stream.
 
 Fix: the independent-waiter helpers moved here from the concurrency module.
@@ -19,6 +19,15 @@ process and per home and family, under pytest's temporary root, instead of
 running ``git init``, two configuration writes, an add and a commit for every
 scenario. The copy is byte for byte the seeded repository, so every scenario
 still starts from a real committed Git history.
+
+Fix: scenario variants reuse imported CLI modules with a fresh runtime and
+restored host state per invocation. Lifecycle ownership pickup, status and
+workflow launchers, and independent waiters still cross real process boundaries.
+This removes repeated interpreter startup from total setup time.
+
+Independent waiters signal their first notification boundary before returning
+to the parent. Silence alone cannot distinguish startup from a parked waiter;
+the signal prevents fast parent mutations racing the initial real-Git scan.
 """
 
 # ruff: noqa: S603, S607, PLR0913
@@ -31,10 +40,14 @@ import subprocess
 import sys
 from dataclasses import dataclass, replace
 from pathlib import Path
+from time import monotonic, sleep
 from typing import TYPE_CHECKING, Any, Final
+from uuid import uuid4
 
 import pytest
 
+from tests.acceptance.review_resume.cli_support import run_inline
+from tests.unit.tools.git_test_double import GitTestDouble
 from tests.unit.tools.review_exchange_test_support import (
     capability_arguments,
     common_arguments,
@@ -103,6 +116,7 @@ class _Seed:
 
     root: Path
     context: ReviewContext
+    tracked: dict[str, bytes]
 
     @classmethod
     def build(cls, root: Path, home: str, family: ReviewFamily) -> _Seed:
@@ -119,8 +133,9 @@ class _Seed:
         (docs / "draft.v0.11.0.resume-acceptance.md").write_text("# Resume acceptance draft\n", encoding="utf-8")
         (docs / "feature-request.v0.11.0.resume-acceptance.md").write_text("# Resume acceptance requirement\n", encoding="utf-8")
         _run_git(root, "add", "-A")
-        _run_git(root, "commit", "-qm", "test: seed resume acceptance")
-        return cls(root, context)
+        _run_git(root, "-c", "commit.gpgsign=false", "commit", "-qm", "test: seed resume acceptance")
+        tracked = {name: (root / name).read_bytes() for name in _run_git(root, "ls-files", "-z").split("\0") if name}
+        return cls(root, context, tracked)
 
 
 # The seeded templates of this test process, one per home and family, kept
@@ -145,20 +160,27 @@ def _seeded(home: str, family: ReviewFamily) -> _Seed:
 
 
 class ReviewRepository:
-    """Build real repositories while every scenario transition uses the public launcher.
+    """Build real repositories while every transition uses the public CLI.
 
     Fix: each repository is a copy of a seed built once per test process with
     real Git, instead of a fresh ``git init``, configuration, add and commit
     per scenario. The copy carries the same commit, index, ignore files and
     home byte for byte, and loads its configuration once, so a fixture now
     spawns one ``git`` process instead of about seven.
+    Scenario variants reuse CLI imports; lifecycle ownership takeover explicitly
+    selects a separate process to retain restart and host-isolation coverage.
     """
 
-    def __init__(self, root: Path, *, home: str = ".reviews", family: ReviewFamily = ReviewFamily.CODE) -> None:
+    def __init__(self, root: Path, *, home: str = ".reviews", family: ReviewFamily = ReviewFamily.CODE,
+                 processes: bool = False, fast_git: bool = False) -> None:
         """Copy the seeded Git documents and the ignored runtime home of this family."""
         seed = _seeded(home, family)
         shutil.copytree(seed.root, root)
         self.root = root
+        self.processes = processes
+        self.git_queries = GitTestDouble(subprocess.run) if fast_git else None
+        if self.git_queries is not None:
+            self.git_queries.register(root, staged=seed.tracked)
         configuration = ReviewArtifactConfiguration.load(root)
         self.home = configuration.home
         document = root.resolve() / seed.context.document_path.relative_to(seed.root.resolve())
@@ -169,22 +191,26 @@ class ReviewRepository:
         """Keep setup and Git observations on bounded real subprocesses."""
         return _run_git(self.root, *arguments)
 
-    def run(self, *arguments: str, nature: str = "codex", launcher: Path | None = None) -> ProcessResult:
-        """Execute one real, isolated public entry point with a fresh host environment.
+    def run(self, *arguments: str, nature: str = "codex", launcher: Path | None = None,
+            separate_process: bool = False) -> ProcessResult:
+        """Execute the public entry point with a fresh host environment.
 
-        The exchange operations run as ``python -m tools.review_exchange_cli``
-        rather than through ``review_exchange.bat``. Both spawn a real separate
-        process over the same CLI, but the batch form spawns ``cmd.exe`` first
-        and then a second process for Python, which doubled process creation on
+        Process-bound exchange operations use ``python -m tools.review_exchange_cli``.
+        The batch form also spawns ``cmd.exe``, doubling process creation on
         the hottest path of the suite. ``rvw_status.bat`` and
         ``prompt_workflow.bat`` are still driven through their batch launchers,
         so the shipped shims keep their acceptance coverage.
+        Scenario variants invoke the same main function directly, restoring the
+        caller's directory, environment and streams even if an invocation fails.
         """
         command = ([str(launcher), *arguments] if launcher is not None
                    else [sys.executable, *EXCHANGE_MODULE, *arguments])
-        result = subprocess.run(command, cwd=self.root,
-                                env=module_session_environment(nature), check=False,
-                                capture_output=True, text=True, timeout=PROCESS_TIMEOUT_SECONDS)
+        environment = module_session_environment(nature)
+        if self.processes or separate_process or launcher is not None:
+            result = subprocess.run(command, cwd=self.root, env=environment, check=False,
+                                    capture_output=True, text=True, timeout=PROCESS_TIMEOUT_SECONDS)
+        else:
+            result = run_inline(arguments, self.root, environment, self.git_queries)
         lines = (result.stdout or result.stderr).splitlines()
         assert len(lines) == 1, (result.returncode, result.stdout, result.stderr)
         return ProcessResult(result.returncode, result.stdout, result.stderr, json.loads(lines[0]))
@@ -219,7 +245,8 @@ class ReviewRepository:
         return started.payload
 
     def resume(self, prompt: str, *, role: str | None = None, nature: str = "codex",
-               capability: dict[str, Any] | None = None, override: bool = False) -> list[ProcessResult]:
+               capability: dict[str, Any] | None = None, override: bool = False,
+               separate_process: bool = False) -> list[ProcessResult]:
         """Simulate bare-text orchestration; instruction tests separately bind this driver."""
         assert prompt == "resume"
         results = self._migration_preflight(nature)
@@ -235,7 +262,8 @@ class ReviewRepository:
             selection.extend(("--role", inspected.payload["role"]))
         ownership = [] if capability is None else capability_arguments(capability)
         results.append(self.run("claim", *selection, "--round", str(candidate["round"]),
-                                "--occurrence", str(candidate["occurrence"]), *ownership, nature=nature))
+                                "--occurrence", str(candidate["occurrence"]), *ownership, nature=nature,
+                                separate_process=separate_process))
         return results
 
     def _migration_preflight(self, nature: str) -> list[ProcessResult]:
@@ -289,11 +317,15 @@ def lifecycle_journey(tmp_path_factory: pytest.TempPathFactory, request: pytest.
     tmp_path = tmp_path_factory.mktemp("resume-lifecycle")
     family = request.param
     repo = ReviewRepository(tmp_path / "caller", family=family,
-                            home=".reviews" if family is ReviewFamily.CODE else "runtime/reviews")
+                            home=".reviews" if family is ReviewFamily.CODE else "runtime/reviews",
+                            fast_git=True)
     writer = repo.start_request()
     pending = repo.resume("resume")
     first = repo.resume("resume", role="reviewer", nature="claude")
-    lost = repo.resume("resume", nature="claude")
+    # A fresh interpreter must recover ownership from disk without the first
+    # session's capability. Surrounding orchestration reuses imports and the
+    # bounded Git double; status/workflow launchers and this pickup stay real.
+    lost = repo.resume("resume", nature="claude", separate_process=True)
     stale = repo.publish(ReviewRole.REVIEWER, first[-1].payload, nature="claude")
     answer = repo.publish(ReviewRole.REVIEWER, lost[-1].payload, ready=True, nature="claude")
     before = repo.evidence()
@@ -332,10 +364,30 @@ def legacy_natures(path: Path, snapshot: dict[str, str | None] | None) -> None:
 
 
 def start_wait(repo: ReviewRepository) -> subprocess.Popen[str]:
-    """Start an independent reviewer process using only the identity-free public operation."""
-    return subprocess.Popen([sys.executable, *EXCHANGE_MODULE, "wait-any-request", "--poll-interval", "0.05"],
-                            cwd=repo.root, env=module_session_environment("claude"),
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    """Start the real public wait and observe completion of its startup scan."""
+    ready = repo.root.parent / f"waiter-{uuid4().hex}.ready"
+    process = subprocess.Popen(
+        [sys.executable, "-m", "tests.acceptance.review_resume.waiter_driver", str(ready),
+         "wait-any-request", "--poll-interval", "0.05"],
+        cwd=repo.root, env=module_session_environment("claude"),
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+    )
+    try:
+        deadline = monotonic() + PROCESS_TIMEOUT_SECONDS
+        while not ready.is_file():
+            assert process.poll() is None, process.communicate(timeout=5)
+            remaining = deadline - monotonic()
+            assert remaining > 0, "Reviewer did not reach its notification wait"
+            sleep(min(0.01, remaining))
+    except BaseException:
+        if process.poll() is None:
+            process.kill()
+        process.communicate(timeout=5)
+        raise
+    else:
+        return process
+    finally:
+        ready.unlink(missing_ok=True)
 
 
 def assert_still_quiet(process: subprocess.Popen[str]) -> None:
