@@ -10,9 +10,10 @@ from __future__ import annotations
 
 import os
 import tempfile
+import time
 from dataclasses import dataclass, replace
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Final
 
 from tools.llm_nature import LlmNature
 from tools.review_exchange_models import ReviewExchangeError, ReviewRole
@@ -23,6 +24,8 @@ if TYPE_CHECKING:
     from typing import Any
 
 _BACKFILL_TEMP_PREFIX = ".tmp-review-nature-"
+_ATOMIC_REPLACE_ATTEMPTS: Final[int] = 5
+_ATOMIC_REPLACE_DELAY_SECONDS: Final[float] = 0.01
 
 
 @dataclass(frozen=True)
@@ -251,7 +254,7 @@ class RoleNatureBackfill:
 
     @staticmethod
     def _replace_all(rendered: Sequence[tuple[Path, str]]) -> None:
-        """Prepare all replacements and restore originals after a commit failure."""
+        """Retry transient replacements and restore originals after commit failure."""
         prepared: list[tuple[Path, Path, bytes]] = []
         committed: list[tuple[Path, bytes]] = []
         try:
@@ -269,7 +272,7 @@ class RoleNatureBackfill:
                     os.fsync(stream.fileno())
                 prepared.append((target, replacement, original))
             for target, replacement, original in prepared:
-                replacement.replace(target)
+                RoleNatureBackfill._commit_prepared(replacement, target)
                 committed.append((target, original))
         except (OSError, UnicodeError) as error:
             for target, original in reversed(committed):
@@ -279,6 +282,19 @@ class RoleNatureBackfill:
         finally:
             for _target, replacement, _original in prepared:
                 replacement.unlink(missing_ok=True)
+
+    @staticmethod
+    def _commit_prepared(replacement: Path, target: Path) -> None:
+        """Expose a prepared file with bounded transient-sharing retries."""
+        for attempt in range(_ATOMIC_REPLACE_ATTEMPTS):
+            try:
+                replacement.replace(target)
+            except PermissionError:
+                if attempt + 1 == _ATOMIC_REPLACE_ATTEMPTS:
+                    raise
+                time.sleep(_ATOMIC_REPLACE_DELAY_SECONDS * (2**attempt))
+            else:
+                return
 
 
 __all__ = [

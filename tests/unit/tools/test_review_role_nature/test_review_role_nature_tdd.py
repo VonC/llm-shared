@@ -294,6 +294,101 @@ def test_unknown_backfill_is_a_no_op(tmp_path: Path) -> None:
     assert (artifact_path.read_bytes(), transcript.read_bytes()) == originals
 
 
+def test_transient_permission_failure_retries_and_exposes_all_replacements(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """One transient sharing violation is absorbed without leftover temp files."""
+    first_path = tmp_path / "request.md"
+    second_path = tmp_path / "coordination.md"
+    first_path.write_bytes(b"original request")
+    second_path.write_bytes(b"original coordination")
+    real_replace = Path.replace
+    calls = 0
+    delays: list[float] = []
+
+    def fail_once(source: Path, target: Path) -> Path:
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            message = "transient sharing violation"
+            raise PermissionError(message)
+        return real_replace(source, target)
+
+    monkeypatch.setattr(Path, "replace", fail_once)
+    monkeypatch.setattr(review_role_nature.time, "sleep", delays.append)
+
+    RoleNatureBackfill._replace_all(
+        [(first_path, "new request"), (second_path, "new coordination")],
+    )
+
+    assert first_path.read_bytes() == b"new request"
+    assert second_path.read_bytes() == b"new coordination"
+    assert delays == [0.01]
+    assert not list(tmp_path.glob(".tmp-review-nature-*"))
+
+
+def test_persistent_permission_failure_exhausts_retries_and_restores_originals(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Exhausting the second replacement restores the already exposed first."""
+    first_path = tmp_path / "request.md"
+    second_path = tmp_path / "coordination.md"
+    first_path.write_bytes(b"original request\r\n")
+    second_path.write_bytes(b"original coordination\r\n")
+    originals = {path: path.read_bytes() for path in (first_path, second_path)}
+    real_replace = Path.replace
+    delays: list[float] = []
+
+    def fail_second_target(source: Path, target: Path) -> Path:
+        if target == second_path:
+            message = "persistent sharing violation"
+            raise PermissionError(message)
+        return real_replace(source, target)
+
+    monkeypatch.setattr(Path, "replace", fail_second_target)
+    monkeypatch.setattr(review_role_nature.time, "sleep", delays.append)
+
+    with pytest.raises(ReviewExchangeError, match="atomic role-nature backfill failed") as caught:
+        RoleNatureBackfill._replace_all(
+            [(first_path, "new request"), (second_path, "new coordination")],
+        )
+
+    assert isinstance(caught.value.__cause__, PermissionError)
+    assert delays == [0.01, 0.02, 0.04, 0.08]
+    assert all(path.read_bytes() == content for path, content in originals.items())
+    assert not list(tmp_path.glob(".tmp-review-nature-*"))
+
+
+def test_other_replace_error_fails_without_retry_or_delay(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A plain OSError is wrapped immediately and leaves originals intact."""
+    target = tmp_path / "request.md"
+    target.write_bytes(b"original request")
+    failure = OSError("non-permission failure")
+    calls: list[Path] = []
+    delays: list[float] = []
+
+    def fail_replace(_source: Path, destination: Path) -> Path:
+        calls.append(destination)
+        raise failure
+
+    monkeypatch.setattr(Path, "replace", fail_replace)
+    monkeypatch.setattr(review_role_nature.time, "sleep", delays.append)
+
+    with pytest.raises(ReviewExchangeError, match="atomic role-nature backfill failed") as caught:
+        RoleNatureBackfill._replace_all([(target, "new request")])
+
+    assert caught.value.__cause__ is failure
+    assert calls == [target]
+    assert delays == []
+    assert target.read_bytes() == b"original request"
+    assert not list(tmp_path.glob(".tmp-review-nature-*"))
+
+
 def test_commit_failure_rolls_back_every_exposed_replacement(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
