@@ -6870,3 +6870,1038 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-2 -->
+
+## Round 1 by requestor - Step 3
+
+- Recorded: 2026-10-24T23:33:19+02:00
+- Exchange: code/code/v0.14.0/release-project-root
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: unrecorded
+- Implementation step: 3
+- Outcome: request
+
+### Review identity for step 3 release-project-root (round 1)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+Implementation step: 3
+Review round: 1
+
+### Code review evidence for step 3 release-project-root (round 1)
+
+request_index_tree: 186f5f06705c9851e6c0a94c43cd77562d083b40
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.release-project-root.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(release): register owned configuration schemas
+group 1 path: tools/release_workflow/schemas.py
+group 1 path: tests/unit/tools/release_workflow/test_schemas/__init__.py
+group 1 path: tests/unit/tools/release_workflow/test_schemas/test_schemas_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_schemas/test_schemas_pbt.py
+group 2: feat(release): validate optional project configuration
+group 2 path: tools/release_workflow/configuration.py
+group 2 path: tools/release_workflow/__init__.py
+group 2 path: tests/unit/tools/release_workflow/test_configuration/__init__.py
+group 2 path: tests/unit/tools/release_workflow/test_configuration/test_configuration_tdd.py
+group 2 path: tests/unit/tools/release_workflow/test_configuration/test_configuration_pbt.py
+group 3: docs(release-project-root): record step 3 validation
+group 3 path: docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md
+staged path: docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md
+staged path: tests/unit/tools/release_workflow/test_configuration/__init__.py
+staged path: tests/unit/tools/release_workflow/test_configuration/test_configuration_pbt.py
+staged path: tests/unit/tools/release_workflow/test_configuration/test_configuration_tdd.py
+staged path: tests/unit/tools/release_workflow/test_schemas/__init__.py
+staged path: tests/unit/tools/release_workflow/test_schemas/test_schemas_pbt.py
+staged path: tests/unit/tools/release_workflow/test_schemas/test_schemas_tdd.py
+staged path: tools/release_workflow/__init__.py
+staged path: tools/release_workflow/configuration.py
+staged path: tools/release_workflow/schemas.py
+```
+
+### Validation scope for step 3 release-project-root (round 1)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 3 release-project-root (round 1)
+
+Yes. Step 3 has been fully implemented.
+
+The writer's static implementation-check records strict optional configuration,
+complete explicit schema composition, source provenance, managed-path checks and
+the fail-closed tooling minimum. No architecture, performance, feature-integrity
+or unit-coverage gap was found. The validation plan records the exact Step 3 Yes
+sentence; the overall effort remains pending through Steps 4-6.
+
+`ghog day --full=cov --whole-suite` passed at 2026-10-24T23:25:18+02:00:
+3,930 tests, fail=0, warn=2, xfail=0, cov=100. The source scope is `tools`;
+both new production modules are measured, while docstring-only initializers
+are omitted. Static/type/lint checks passed. The required publication gate,
+`ghog day --full=speed --whole-suite`, passed at 2026-10-24T23:32:34+02:00:
+fail=0, warn=2, xfail=0, cov=100, outliers=0, excluded=0, exit=0, proof=speed.
+Groundhog reused its check and affected-test proof and reran the full stage.
+
+The loader reads one file and converts each setting once. Ownership uses hash
+indexes and a prefix trie, without pairwise scans. No consumer code imports,
+schema filesystem discovery, artifact creation, future-domain implementation or
+public dispatch wiring is introduced. All Python files remain below 650 lines.
+
+### Implementation report for step 3 release-project-root (round 1)
+
+The foundation ships one tooling schema and provides source-owned descriptors
+for later domains. Registry composition verifies exact manifest completeness,
+rejects duplicate or overlapping fixed/family ownership, and indexes value rules.
+Domain validators receive the complete immutable configuration.
+
+The loader reads `.release.ini` only beneath the selected project root, using
+UTF-8 with one optional BOM, strict duplicates and no interpolation or DEFAULT
+inheritance. Missing input permits owned defaults; invalid input never does.
+Value provenance includes file, section, key, original text and default status.
+Managed values use the existing physical authorization service without writes.
+
+Any declared tooling minimum is parsed before domain validation. Only ASCII
+release MAJOR.MINOR.PATCH is well formed; every valid declaration returns a
+compatibility-unavailable status-2 error until umbrella item 6 supplies comparison.
+
+New TDD/PBT leaves cover parsing and registry responsibilities independently.
+The 64-rule test verifies one read and one conversion per rule. Failure tests
+verify no artifact creation. The full coverage run passes 3,930 tests at 100%.
+Groundhog reports two warnings and no xfails. The publication gate
+`ghog day --full=speed --whole-suite` subsequently passed with cov=100,
+outliers=0, excluded=0 and exit=0 at 2026-10-24T23:32:34+02:00.
+No duration exclusions were accepted or baselines raised; the successful
+pre-gate listing and final speed result both report zero exclusions.
+
+Writer notes: `.reviews/a.release-project-root.step3.journal.md` and `.reviews/a.release-project-root.step3.handoff.md`.
+
+### Change summary for step 3 release-project-root (round 1)
+
+The root `a.commit` is formatted and mechanically valid, with all ten staged
+paths in dependency order:
+
+- Group 1, `feat(release): register owned configuration schemas`:
+  `tools/release_workflow/schemas.py`;
+  `tests/unit/tools/release_workflow/test_schemas/__init__.py`;
+  `tests/unit/tools/release_workflow/test_schemas/test_schemas_tdd.py`;
+  `tests/unit/tools/release_workflow/test_schemas/test_schemas_pbt.py`.
+- Group 2, `feat(release): validate optional project configuration`:
+  `tools/release_workflow/configuration.py`;
+  `tools/release_workflow/__init__.py`;
+  `tests/unit/tools/release_workflow/test_configuration/__init__.py`;
+  `tests/unit/tools/release_workflow/test_configuration/test_configuration_tdd.py`;
+  `tests/unit/tools/release_workflow/test_configuration/test_configuration_pbt.py`.
+- Group 3, `docs(release-project-root): record step 3 validation`:
+  `docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md`.
+
+Schema tests have a dedicated leaf beyond the original combined test layout so
+each unit-test folder targets one source module. The package initializer change
+is documentation only. This request covers only Step 3; prior step/security work
+is already committed.
+
+### Writer response for step 3 release-project-root (round 1)
+
+Writer response:
+
+Initial Step 3 request. No earlier feedback or disagreement exists for this
+exchange. The implementation follows the confirmed design and Step 3 plan.
+
+### Reviewer focus for step 3 release-project-root (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-3-round-1 -->
+
+## Round 1 by reviewer - Step 3
+
+- Recorded: 2026-10-25T00:04:28+02:00
+- Exchange: code/code/v0.14.0/release-project-root
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 3
+- Outcome: answer
+
+### Assessed index identity for step 3 release-project-root (exchange 1) (round 1)
+
+Baseline index tree: 186f5f06705c9851e6c0a94c43cd77562d083b40
+
+Assessed index tree: 2b4c9d0f3b66fa7a7262832fe717710939750712
+
+### Implementation check for step 3 release-project-root (exchange 1) (round 1)
+
+Result:
+
+No. Step 3 has NOT been fully implemented.
+
+The loader, the explicit shipped registry, value provenance, managed-path
+checks and the fail-closed tooling minimum all match the plan. One parsing
+gap in the common reader keeps the step open (R1 below). Blank and
+whitespace-padded family instance names are accepted, although the reader
+rejects an empty instance. The reviewer reproduced every behavior below with
+the staged sources on real temporary files.
+
+Plan conformance, item by item:
+
+- Strict reading (`configuration.py:48-69`): one `read_text` with
+  `utf-8-sig`, then `ConfigParser(interpolation=None, strict=True,
+  default_section="", empty_lines_in_values=False)`. Probe results:
+  - A missing file and a comment-only file both yield the owned defaults.
+  - Two BOMs, a mid-file BOM, UTF-16, a cp1252 byte, `[]`, duplicate sections
+    and case-variant duplicate keys all fail with status 2 and the file path.
+  - `[DEFAULT]`, `[Tooling]`, `[ tooling ]` and an unowned key are unknown.
+  - `%(x)s`, `$HOME`, `%PATH%`, quotes and `# ;` reach the owner unchanged.
+  - A directory `.release.ini`, a junction to an outside directory and a
+    vanished target are errors, never defaults.
+- Tooling minimum (`configuration.py:72-82`): it runs after parsing and
+  before section ownership, so a valid minimum beside an unknown newer section
+  reports compatibility first. `Minimum-Version` and `minimum-version:` are
+  read as the same key, and a continuation line makes the value malformed.
+  Every valid declaration returns status 2 with the compatibility-unavailable
+  diagnostic, as Q12 A requires before item 6.
+- Registry (`schemas.py`): `SHIPPED_SCHEMAS` holds only `TOOLING_SCHEMA`.
+  `_complete` compares the composed tuple with the manifest by identity. The
+  ownership trie rejects duplicate fixed names, a family over a fixed name and
+  nested families, in both insertion orders. Lookup returns a family only for
+  a non-empty instance. Schema section names are checked for padding,
+  `DEFAULT`, brackets and line breaks, and keys must be lowercase INI
+  spellings.
+- Values (`configuration.py:85-119`): unknown keys fail before conversion.
+  Each rule converts once, defaults included, and `ConfigValue` keeps the
+  file, section, key, original text and defaulted flag. Managed values go
+  through Step 2's `authorize_path` and create nothing. Every registered
+  validator receives the same immutable mapping, with no operation selector.
+- The plan's scan, run read-only:
+  `rg -n 'ConfigParser|interpolation|minimum-version|importlib|exec\(' tools/release_workflow`.
+  It finds one `ConfigParser`, with interpolation disabled, and the minimum
+  gate. The only `importlib` uses are in Step 1's `bootstrap.py`, which loads
+  its own shipped modules. There is no `exec`, consumer import or schema
+  discovery.
+
+R1, the family instance gap. `load_configuration` (`configuration.py:138-143`)
+accepts any section that `SchemaRegistry.section` resolves.
+`_OwnershipNode.find` (`schemas.py:117-127`) only requires one character after
+a family prefix, and configparser keeps the whitespace inside a header. So:
+
+- `[source:]` is rejected, but `[source: ]` and a tab-only instance load as
+  instances named only by whitespace.
+- `[source: npm]` and `[source:npm ]` load as instances distinct from
+  `[source:npm]`.
+- A file with `[source:npm]` (`form=a`) and `[source:npm ]` (`form=b`) loads
+  both. The family owner receives two declarations for what reads as one
+  section declared twice.
+
+Schema names with the same padding are rejected by `_validate_section`, and
+the validation plan counts "empty family instances" as covered. The gap is
+therefore inside the reader's own rule. No shipped family exists yet, but the
+first family owners (version sources and changelog archives) would inherit
+the ambiguity.
+
+Tests: the TDD and PBT leaves cover the plan's tests-first list. That includes
+absent, unreadable and undecodable files, the BOM, malformed and duplicate
+INI, unknown sections and keys, required values without defaults, literal
+data, fixed sections, families, ownership conflicts in both orders, omitted
+and substituted owners, and cross-section validation. No test covers a blank
+or padded instance.
+
+Architecture: `schemas.py` holds pure declarations and ownership, with no I/O.
+`configuration.py` is the INI adapter and depends only on `schemas` and the
+Step 2 path service. Converters and validators are shipped callables, and
+project content selects only data. The initializer change is a docstring.
+Physical lines: `schemas.py` 196, `configuration.py` 156, configuration
+TDD/PBT 227/54, schema TDD/PBT 90/28, each test initializer 3 and the package
+initializer 9. All are below the 650-line ceiling, and `ghog check` reports
+no big file.
+
+Performance: one read, one parse and one conversion per rule. Domain names
+and keys use hash maps, and the trie inserts and looks up in time linear in
+the name length. There is no O(n^2) or O(n log n) work. The 64-rule test
+asserts the read and conversion counts.
+
+Static coverage: the gate's source is `tools`, so both modules are measured.
+Every branch is reached by a named test:
+
+- `_read`: success, absent entry, and existing entry with a vanished target.
+- `_parse`: success and failure.
+- `_minimum`: absent, malformed and valid.
+- `_value`: missing required, optional absent, empty managed, managed,
+  converted and failing.
+- `_section` and `load_configuration`: unknown key and section, injected and
+  default registry, validators present, absent and failing, and a rejected
+  source path.
+- `insert` and `find`: each conflict, family and exact branch.
+- `_rules`, `_validate_section` and `_complete`: each rejection.
+
+This agrees with the requestor's measured 100%. The R1 fix needs new tests.
+
+Feature integrity: no existing module imports the new ones, and
+review-artifact configuration is untouched. No failure path creates a file,
+which the probe confirmed.
+
+Validation plan effects:
+
+Changed only Step 3 rows in
+`docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md`:
+
+- *Analysis of Step 3 implementation state* now starts with the exact No
+  sentence, followed by a short rationale naming the family instance gap.
+- A new *Missing work for Step 3* section sits right after *What was
+  implemented for Step 3*. It holds one bullet for the reader change and one
+  for its tests (R1).
+- The *Feature integrity for Step 3* conclusion now names the same gap.
+
+The document-level opening line stays `No, it is not implemented.`. The
+header sentence still says Steps 3 through 6 remain pending. It lies outside
+the Step 3 rows and was left for the writer. The writer's evidence bullets,
+the architecture, performance and coverage sub-sections, other steps, the
+plan, the umbrella, implementation, tests and `a.commit` were not edited.
+
+The evidence launcher attributed the patch from pre-edit blob
+`8fecf87fcdbc8dc8e89646674c41613e2f4b3681` (attributable, not created), and
+its three hunks all lie inside the Step 3 section. Only that patch was staged.
+The project Markdown check (`markdown-check.bat --root .`) passes after the
+edit. This is review metadata, not a substantive repair.
+
+### Pre-repair mandatory checks and coverage for step 3 release-project-root (exchange 1) (round 1)
+
+Requestor evidence, reported and not repeated:
+
+- `ghog day --full=cov --whole-suite` passed on 2026-10-24 at 23:25:18+02:00:
+  3,930 tests, `fail=0`, `warn=2`, `xfail=0`, `cov=100`.
+- The publication gate `ghog day --full=speed --whole-suite` passed at
+  23:32:34+02:00: `cov=100`, `outliers=0`, `excluded=0`, `proof=speed`. It
+  reused the check and affected proofs and reran the full stage.
+- The last staged Python change is dated 23:20:57+02:00, so both full runs
+  measured the staged code.
+
+Reviewer evidence, each command run once from the project root through the
+shared `ghog.bat` launcher with `SWITCHPY_CHOICE=local` for that process and
+the log-freshness proof:
+
+- `ghog check`: exit 0, all `check.bat` checks passed, no big file
+  (`fail=0 warn=0`).
+- `ghog affected --no-cov --scope-file=.reviews/a.review-scope.code.v0.14.0.release-project-root.json`:
+  exit 0, scope whole, but testmon selected 0 tests because nothing changed
+  since its last recorded run. This is not an independent re-execution of the
+  suite. The requestor's full runs above are the executed test evidence.
+
+The reviewer did not run `ghog day`, `ghog full` or any coverage measurement.
+Coverage was assessed statically. R1 and the other loader behaviors come from
+separate reviewer probe scripts that call the staged loader on temporary
+directories outside the repository, not from the suite.
+
+### Resolved validation set and sources for step 3 release-project-root (exchange 1) (round 1)
+
+The request and the current resolver produce the same ordered set:
+
+1. `ghog day --full=speed --whole-suite`: source project.
+
+No `.review-validation` file exists, so the project default is the built-in
+`ghog day --full=speed`, completed with the bound `--whole-suite` selector for
+scope `whole`. The comparison ran `resolve_code_review_validation` from the
+current `tools/code_review_validation.py` with that default and no additions.
+The reviewer did not run the resolved set.
+
+### Resolver drift and direction for step 3 release-project-root (exchange 1) (round 1)
+
+None in resolver output: ordered commands and source labels agree.
+
+Direction note for the requestor: the plan's Step 3 completion names
+`rg -n 'ConfigParser|interpolation|minimum-version|importlib|exec\(' tools/release_workflow`,
+but the request does not carry it. As in Steps 1 and 2, pass it with
+`--plan-validation-command` on the next request so that it appears in the
+resolved set with its plan source. The reviewer ran it read-only for this
+assessment.
+
+### Repository state around validation for step 3 release-project-root (exchange 1) (round 1)
+
+Request-time and reviewer baseline index tree:
+`186f5f06705c9851e6c0a94c43cd77562d083b40` (identical). Final assessed index
+tree after the reviewer metadata patch:
+`2b4c9d0f3b66fa7a7262832fe717710939750712`.
+
+The same ordered 13-path validation set was captured before and after
+assessment: the 10 staged paths plus the ignored `a.ghog.log`, `a.ghog.status`
+and `.testmondata`. The comparison reports tracked differences only for
+`docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md` and `<index>`,
+ignored differences only for the three files written by the reviewer's
+evidence commands, and no untracked differences. The raw `acceptable=false`
+reflects the intentional Step 3 metadata edit. The attribution shows every
+changed hunk inside the Step 3 rows. The reviewer's ghog runs left no tracked
+side effect, and there is no overlap with writer work.
+
+The only other working-tree change is the protocol-appended round 1 request
+in the review transcript, which is unstaged.
+
+Umbrella `docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md`: applicable,
+digest `ca6fe473…0ec992` before and after, unchanged. No umbrella row was
+modified.
+
+Retained evidence:
+`.reviews/a.code-review-evidence.v0.14.0.release-project-root.step-3.json`,
+with the inputs under `.reviews/a.release-project-root.step3.tmp.r1.*`.
+
+### Repair inventory for step 3 release-project-root (exchange 1) (round 1)
+
+Repairs made:
+
+- Review metadata only: changed the Step 3 validation rows to No, added
+  *Missing work for Step 3* (R1) and qualified the feature-integrity
+  conclusion. No implementation, test, plan or `a.commit` repair.
+
+Paths staged:
+
+- docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md (reviewer metadata patch only)
+
+### Commit plan assessment for step 3 release-project-root (exchange 1) (round 1)
+
+Ran `commit-plan-check.bat --format json` independently before assessment and
+again after staging the Step 3 metadata. Both returned exit 0, `state=valid`,
+`ready=true`, three ordered groups, 10 staged paths and no diagnostics. The
+post-staging JSON is retained in
+`.reviews/a.release-project-root.step3.tmp.r1.commit-plan-after.json`.
+
+Ordered groups:
+
+1. `feat(release): register owned configuration schemas` (4 paths)
+2. `feat(release): validate optional project configuration` (5 paths)
+3. `docs(release-project-root): record step 3 validation` (1 path)
+
+Membership and conventional subjects match the staged work. Group 1 imports
+nothing from group 2. Group 2 depends only on group 1 and the committed Step 2
+path service, so each commit stands on its own. The reviewer did not amend
+`a.commit`.
+
+Two points for the writer when `a.commit` is regenerated:
+
+- Group 3's body records a completed step, which the staged validation rows no
+  longer claim. Its bullet "Retain the two reported warnings and the
+  unselected duration gate" also omits the publication gate
+  `ghog day --full=speed --whole-suite`, which ran and passed. Rewrite the
+  body together with the R1 fix.
+- The protocol-appended review transcript is unstaged and in no group. The
+  checker does not require it. Step 2 committed its transcript in a
+  `docs(review)` group. Either add one again or leave the transcript to the
+  leftover commit after the exchange completes.
+
+Mechanical readiness does not resolve R1 and does not authorize a commit.
+
+### Findings and boundaries for step 3 release-project-root (exchange 1) (round 1)
+
+Unresolved findings:
+
+- R1 (P2): the common reader accepts blank and whitespace-padded family
+  instance names, so one visible section can be declared twice. In
+  `load_configuration` (`tools/release_workflow/configuration.py:138-143`),
+  any section that `SchemaRegistry.section` resolves is accepted.
+  `_OwnershipNode.find` (`tools/release_workflow/schemas.py:117-127`) only
+  requires one character after the family prefix, and configparser keeps the
+  whitespace inside a header. Reproduced with the staged loader and a
+  `source:` family: `[source:]` is rejected, but `[source: ]` and a tab-only
+  instance load. `[source: npm]` and `[source:npm ]` load as instances
+  distinct from `[source:npm]`. A file holding `[source:npm]` with `form=a`
+  and `[source:npm ]` with `form=b` loads both, so the family owner gets two
+  declarations for what reads as one section. That conflicts with the
+  design's "Duplicate or conflicting declarations must not silently choose a
+  value" and with the reader's own non-empty instance rule. Schema names with
+  the same padding are already rejected by `_validate_section`. Reject a
+  declared family instance that is blank or has leading or trailing
+  whitespace with a status-2 `ConfigurationError` naming the file and section.
+  Keep internal whitespace and exact fixed-section lookup. Add TDD cases for
+  `[source: ]`, `[source: npm]`, `[source:npm ]` and the `[source:npm]` plus
+  `[source:npm ]` pair, each creating no file.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 3 release-project-root (exchange 1) (round 1)
+
+Fix R1 inside Step 3 and add the listed tests. The check can live in
+`load_configuration` or in `SchemaRegistry.section`. Then rewrite the Step 3
+validation rows. Remove *Missing work for Step 3* and restore the Yes sentence
+only when both bullets are done. When Step 3 becomes Yes, also refresh:
+
+- the document header sentence, which still says Steps 3 through 6 remain
+  pending;
+- the Step 3 evidence bullet, which says the duration gate was not selected,
+  so that it records the publication gate that passed;
+- the `a.commit` group 3 body, as described in the commit-plan assessment.
+
+Run the requestor-owned resolved set (`ghog day --full=speed --whole-suite`).
+Pass the plan's
+`rg -n 'ConfigParser|interpolation|minimum-version|importlib|exec\(' tools/release_workflow`
+scan as a plan validation command on the next request. Update `a.commit` if
+staged membership changes, then publish the replacement request through the
+normal requestor workflow.
+
+Forward notes for later steps, not Step 3 findings, since Step 3 ships no
+managed-path key:
+
+- Step 4 path policy: `authorize_path` accepts names that Windows cannot
+  create. Names with NUL, `?`, `*` or `|` pass and then fail only at write
+  time. It also accepts names that Windows rewrites: a trailing dot or space,
+  as in `name.`, creates `name`, and `version.txt:stream` writes an alternate
+  data stream that Git never sees. A managed declaration with such a value would pass
+  configuration preflight. `authorize_write` or the mutation preflight should
+  reject these names, so that a multi-file operation cannot fail halfway.
+- Managed paths `.`, `docs/..` and the absolute root all authorize the project
+  root itself. Only the empty spelling is rejected. A file-role owner or the
+  Step 4 write boundary must reject a directory target.
+- `SchemaRegistry()` uses `SHIPPED_SCHEMAS` as both the registry and the
+  manifest, so the default registry is complete by construction. When the
+  first later domain ships a schema, add a test proving that the default
+  registry owns its sections. Without it, a schema missing from the tuple
+  only shows up as its keys failing closed as unknown.
+
+The request asks for "every safe, unambiguous repair" but carries no literal
+`Human guidance:` block, so the reviewer repaired no implementation or test
+file. Its only staged change is the attributable Step 3 validation-row patch.
+R9 is a Step 1 item that the human's standing direction keeps nonblocking; it
+was carried as such and not reassessed.
+
+### Decision rationale for step 3 release-project-root (exchange 1) (round 1)
+
+Recommend changes-requested. The six readiness-floor results are:
+
+1. Identity: PASS. The exact plan, step 3, round 1, occurrence 1, code
+   identity, umbrella and request-time index tree agree with the live
+   exchange.
+2. Implementation completeness: FAIL. R1 remains: blank and padded family
+   instance names are accepted as separate sections.
+3. Validation and coverage: PASS for the current code.
+   - The requestor's coverage and speed runs on the staged code are green,
+     with 3,930 tests and 100% coverage.
+   - The reviewer's `ghog check` is green.
+   - The focused `ghog affected --no-cov` is green, but testmon selected 0
+     tests because nothing changed since its last recorded run.
+   - The static coverage walk finds no gap. R1 still needs new tests.
+4. Staged attribution: PASS. The only reviewer change is the attributable
+   Step 3 validation metadata. There is no substantive repair and no
+   unrelated staged work.
+5. Unresolved findings: FAIL. R1 is open.
+6. `a.commit`: PASS mechanically. The independent checker reports exit 0,
+   valid and ready, with all 10 paths in three groups. The group 3 body needs
+   a refresh.
+
+The implementation and unresolved-findings failures block commit-readiness,
+even though the walks are green and the commit plan is valid.
+
+### Final reviewer decision for step 3 release-project-root (exchange 1) (round 1)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-3-round-1 -->
+
+## Round 2 by requestor - Step 3
+
+- Recorded: 2026-10-25T00:31:39+02:00
+- Exchange: code/code/v0.14.0/release-project-root
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 3
+- Outcome: request
+
+### Review identity for step 3 release-project-root (round 2)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+Implementation step: 3
+Review round: 2
+
+### Code review evidence for step 3 release-project-root (round 2)
+
+request_index_tree: feb728522db2075eeaf5234a0ea69c4a577bec4e
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+- `rg -n 'ConfigParser|interpolation|minimum-version|importlib|exec\(' tools/release_workflow` (sources: plan)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.release-project-root.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(release): register owned configuration schemas
+group 1 path: tools/release_workflow/schemas.py
+group 1 path: tests/unit/tools/release_workflow/test_schemas/__init__.py
+group 1 path: tests/unit/tools/release_workflow/test_schemas/test_schemas_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_schemas/test_schemas_pbt.py
+group 2: feat(release): validate optional project configuration
+group 2 path: tools/release_workflow/configuration.py
+group 2 path: tools/release_workflow/__init__.py
+group 2 path: tests/unit/tools/release_workflow/test_configuration/__init__.py
+group 2 path: tests/unit/tools/release_workflow/test_configuration/test_configuration_tdd.py
+group 2 path: tests/unit/tools/release_workflow/test_configuration/test_configuration_pbt.py
+group 3: test(release): isolate physical root alias setup
+group 3 path: tests/unit/tools/release_workflow/test_paths/conftest.py
+group 3 path: tests/unit/tools/release_workflow/test_paths/test_paths_tdd.py
+group 4: docs(release-project-root): record step 3 validation
+group 4 path: docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md
+staged path: docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md
+staged path: tests/unit/tools/release_workflow/test_configuration/__init__.py
+staged path: tests/unit/tools/release_workflow/test_configuration/test_configuration_pbt.py
+staged path: tests/unit/tools/release_workflow/test_configuration/test_configuration_tdd.py
+staged path: tests/unit/tools/release_workflow/test_paths/conftest.py
+staged path: tests/unit/tools/release_workflow/test_paths/test_paths_tdd.py
+staged path: tests/unit/tools/release_workflow/test_schemas/__init__.py
+staged path: tests/unit/tools/release_workflow/test_schemas/test_schemas_pbt.py
+staged path: tests/unit/tools/release_workflow/test_schemas/test_schemas_tdd.py
+staged path: tools/release_workflow/__init__.py
+staged path: tools/release_workflow/configuration.py
+staged path: tools/release_workflow/schemas.py
+```
+
+### Validation scope for step 3 release-project-root (round 2)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 3 release-project-root (round 2)
+
+Yes. Step 3 has been fully implemented.
+
+The writer accepts R1 and has repaired the family-instance parsing gap.
+Blank and padded instances fail with status 2 and source/section context;
+internal whitespace and exact fixed-section names remain valid. The new
+regressions first reproduced the failure and passed after the reader change.
+The validation plan removes the completed missing-work list, restores its
+Step 3 Yes sentence, refreshes its header and records current speed evidence.
+Steps 4 through 6 remain pending.
+
+The required `ghog day --full=speed --whole-suite` completed on
+2026-10-25T00:28:46+02:00 with 3,946 tests, fail=0, warn=2, xfail=0,
+cov=100, outliers=0, excluded=0, exit=0, proof=speed, reused=none.
+Groundhog status independently reported state=done and exit=0. Static, type,
+lint, complexity and file-size checks passed. The plan's exact rg inspection
+also passed and is included as an additive plan command in this request.
+
+The first full run lost a worker in an existing path test. A focused run
+passed; profiling led to a minimal fixture isolation repair that preserves
+the real Git/junction checks and the timeout. The subsequent full gate above
+includes that repair. The implementation report and writer response expose it.
+
+No architecture, performance, coverage or feature-integrity gap remains in
+Step 3. The loader reads one file and converts each setting once; indexed
+ownership is linear in section-name length. Both new modules are measured by
+the tools coverage source. Docstring-only initializers are excluded.
+All changed Python files remain below 650 lines.
+
+### Implementation report for step 3 release-project-root (round 2)
+
+The foundation ships one tooling schema and explicit source-owned descriptors
+for later domains. Registry composition checks exact manifest completeness,
+rejects overlapping fixed/family ownership and indexes value rules. Every
+domain validator receives the complete immutable configuration.
+
+The reader loads only the selected root's optional .release.ini as strict
+UTF-8 with one optional BOM, no interpolation and no DEFAULT inheritance.
+Missing input permits owned defaults; invalid input fails with source context.
+Values retain their original text, source, section, key and defaulted status.
+Managed values use Step 2's physical authorization service without writes.
+ASCII release MAJOR.MINOR.PATCH is the only valid tooling minimum syntax;
+every valid declaration fails closed until umbrella item 6 supplies comparison.
+
+Round 2 adds a family-only whitespace check in configuration._section.
+Empty instances were already unowned; blank or padded suffixes now raise a
+status-2 ConfigurationError with file and exact section. No normalization is
+performed. Sixteen additional regression/positive-control cases cover both
+standalone names and duplicate-looking pairs, unchanged input and no writes.
+Internal spaces and exact fixed names remain valid.
+
+The full validation run exposed a worker crash in the existing Step 2
+equivalent-root test. Profiling its passing focused run found setup/call cost
+of 1.479/0.371 seconds. It now creates one real junction in an independent
+sandbox instead of initializing unrelated boundary fixtures and duplicate
+validations. Its two assertions and timeout(10) are unchanged. Setup/call
+measure 0.042/0.431 seconds afterward; focused and subsequent full runs pass.
+The two affected path test files form a separate commit group.
+
+The final whole-suite speed day passed 3,946 tests at 100% coverage with two
+warnings, no xfails, zero duration outliers and zero exclusions. No exclusions
+were accepted and no baselines raised. The exact plan inspection confirms
+strict parsing and no consumer imports, schema discovery or exec usage.
+No artifact creation, migration, future domain or public dispatch is added.
+
+Writer notes: `.reviews/a.release-project-root.step3.journal.md` and `.reviews/a.release-project-root.step3.handoff.md`.
+
+### Change summary for step 3 release-project-root (round 2)
+
+The root a.commit covers twelve staged paths in four dependency-ordered groups:
+
+- Group 1, `feat(release): register owned configuration schemas`:
+  `tools/release_workflow/schemas.py`;
+  `tests/unit/tools/release_workflow/test_schemas/__init__.py`;
+  `tests/unit/tools/release_workflow/test_schemas/test_schemas_tdd.py`;
+  `tests/unit/tools/release_workflow/test_schemas/test_schemas_pbt.py`.
+- Group 2, `feat(release): validate optional project configuration`:
+  `tools/release_workflow/configuration.py`;
+  `tools/release_workflow/__init__.py`;
+  `tests/unit/tools/release_workflow/test_configuration/__init__.py`;
+  `tests/unit/tools/release_workflow/test_configuration/test_configuration_tdd.py`;
+  `tests/unit/tools/release_workflow/test_configuration/test_configuration_pbt.py`.
+- Group 3, `test(release): isolate physical root alias setup`:
+  `tests/unit/tools/release_workflow/test_paths/conftest.py`;
+  `tests/unit/tools/release_workflow/test_paths/test_paths_tdd.py`.
+- Group 4, `docs(release-project-root): record step 3 validation`:
+  `docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md`.
+
+Compared with round 1, the reader and its TDD tests repair R1; the two path
+test files isolate the full-run failure's costly fixture; the validation
+metadata and commit bodies record those changes and the final speed gate.
+The schema implementation and original test coverage are unchanged.
+
+The core-written review transcript stays unstaged for the authorized residual
+continuation. No requirement, group definition, umbrella or test-scope change
+is included. The bound scope remains the whole suite with the same fingerprint.
+
+### Writer response for step 3 release-project-root (round 2)
+
+Writer response:
+
+Accepted R1 without disagreement. The common reader now checks the instance
+suffix of a resolved family section and rejects leading or trailing whitespace
+with a status-2 ConfigurationError naming the source file and exact section.
+The ownership registry still rejects an empty instance. Internal whitespace
+and exact fixed-section ownership remain valid; names are never normalized.
+
+The regression tests were added first. After correcting one test-style lint
+issue, the day passed static checks and the new blank/padded cases reproduced
+the failure. The loader repair then passed the affected tests. Cases include
+empty, space-only and tab-only names, padding on both ends, each alone and
+beside an existing source:npm declaration. Tests check source/section diagnostics,
+status 2, no new files and unchanged input; positive controls preserve internal
+whitespace and exact fixed-section names.
+
+The reviewer's only staged repair was Step 3 validation metadata. Its finding
+was accepted and that metadata is refreshed with the completed fix and current
+gate evidence. No reviewer implementation repair was reverted.
+
+The plan's exact rg inspection is included as an additive plan validation
+command in this replacement. The review transcript remains a core-owned
+unstaged residual for the authorized commit continuation. Root a.commit adds
+a dedicated fixture-repair group to the existing schema, loader and validation
+groups, covering twelve paths with refreshed parsing and validation details.
+
+The first replacement full day lost a worker in the existing Step 2
+test_equivalent_physical_roots case. Groundhog's required single run passed.
+A focused pyinstrument measurement found 1.479 seconds in shared setup and
+0.371 seconds in the call. The case unnecessarily initialized the entire
+boundary matrix: five junctions, two root validations, then its alias check.
+It now creates one real junction in its own sandbox, retaining both assertions,
+the ten-second timeout and real Git discovery. The shared fixture no longer
+creates that unused alias. Setup/call now measure 0.042/0.431 seconds; the
+focused run passed. No timing exclusion or raised baseline was introduced.
+This validation repair is included for explicit reviewer assessment.
+
+The reviewer's Windows write-path and later-schema notes concern later steps;
+they remain recorded in the review exchange and are not implemented in Step 3.
+The standing nonblocking treatment of Step 1 R9 is unchanged.
+
+### Reviewer focus for step 3 release-project-root (round 2)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-3-round-2 -->
+
+## Round 2 by reviewer - Step 3
+
+- Recorded: 2026-10-25T00:42:31+02:00
+- Exchange: code/code/v0.14.0/release-project-root
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 3
+- Outcome: answer
+
+### Assessed index identity for step 3 release-project-root (exchange 1) (round 2)
+
+Baseline index tree: feb728522db2075eeaf5234a0ea69c4a577bec4e
+
+Assessed index tree: feb728522db2075eeaf5234a0ea69c4a577bec4e
+
+### Implementation check for step 3 release-project-root (exchange 1) (round 2)
+
+Result:
+
+Yes. Step 3 has been fully implemented.
+
+Round 2 closes R1 inside the step's own files and adds no new type or
+responsibility. `_section` (`configuration.py:110-113`) takes the instance
+part of a resolved family section and rejects it when it differs from its
+stripped form. The error is a status-2 `ConfigurationError` that names the
+file and the exact section. Fixed sections skip the check, and no name is
+normalized. The reviewer re-ran its round 1 probe on the staged sources:
+
+- `[source: ]`, a tab-only instance, `[source: npm]` and `[source:npm ]` now
+  fail with "family instance must not have leading or trailing whitespace".
+- The pair `[source:npm]` (`form=a`) plus `[source:npm ]` (`form=b`) fails on
+  the padded section.
+- `[source:]` and `[ source:npm]` stay unknown sections.
+- The rest of the round 1 probe gives the same results as before. That covers
+  absent, comment-only and CR-only files, BOM and encoding failures, `[]`,
+  unknown and case-variant sections, the minimum gate's spellings, literal
+  `%(x)s` and `$HOME` data, junctioned `.release.ini` entries and managed-path
+  rejection. No probe created a file.
+
+The plan's scan, now carried in the request as a plan command, gives the same
+matches as in round 1, re-run read-only: one `ConfigParser` with
+interpolation disabled, the minimum gate, and only Step 1's own `importlib`
+use in `bootstrap.py`. There is no `exec`, consumer import or schema
+discovery.
+
+Tests: `test_blank_or_padded_family_instances_fail_without_writes` crosses
+seven instance spellings (empty, space, tab, and space or tab on either end)
+with standalone and beside-`[source:npm]` declarations. It asserts status 2,
+the file and section in the message, no new file and unchanged input.
+`test_internal_whitespace_and_exact_fixed_names_are_preserved` keeps
+`source:npm public` as a family instance and `source: npm` as an exact fixed
+name. Together they add the 16 cases the request reports.
+
+The full-run repair in the Step 2 path tests is sound, with one limit noted
+for the writer:
+
+- `test_equivalent_physical_roots` now uses the function-scoped `git_sandbox`
+  and creates its own `alias` junction to `B`. It keeps real Git discovery,
+  the upper-case spelling, both assertions and `timeout(10)`.
+- The unused `alias` junction leaves the module-scoped `boundary_matrix`. No
+  other test referenced it.
+- The limit: `boundary_matrix` still builds four junctions and two real root
+  validations, and pytest-timeout counts fixture setup. That cost now lands
+  inside the 10-second budget of its first remaining consumer,
+  `test_internal_junction_and_future_ancestors`. The total risk is lower than
+  before, not gone.
+
+Architecture: unchanged layering. `schemas.py` holds pure declarations and
+ownership, and `configuration.py` is the INI adapter over `schemas` and the
+Step 2 path service. The new check sits with the other per-section
+validation. Physical lines: `configuration.py` 160, configuration TDD 256, and
+the rest as in round 1. All are below the 650-line ceiling, and `ghog check`
+reports no big file.
+
+Performance: the check is one slice and one strip per declared section,
+linear in the name length. Nothing else changes.
+
+Static coverage: both sides of the new branch are reached. The padded cases
+raise, while the family cases in `test_families_and_every_domain_cross_section_validation`
+and the internal-space control pass. Every other branch stays covered as in
+round 1. This agrees with the requestor's measured 100%.
+
+Feature integrity: existing valid family and fixed names load unchanged.
+Failures create no file and leave the input untouched. Review-artifact
+configuration and Step 2's path behavior are unchanged.
+
+Validation plan effects:
+
+None by the reviewer in this round. The writer-staged Step 3 rows already
+match this assessment:
+
+- They open with the exact Yes sentence.
+- *Missing work for Step 3* is removed.
+- They record the R1 repair, the path-test isolation, the final speed gate and
+  the plan scan.
+- The line counts and coverage wording are current.
+
+The header sentence now names Step 3 and leaves Steps 4 through 6 pending. The
+document-level line correctly stays `No, it is not implemented.`. No umbrella
+row was touched. The project Markdown check (`markdown-check.bat --root .`)
+passes.
+
+### Pre-repair mandatory checks and coverage for step 3 release-project-root (exchange 1) (round 2)
+
+Requestor evidence, reported and not repeated:
+
+- `ghog day --full=speed --whole-suite` passed on 2026-10-25 at
+  00:28:46+02:00: 3,946 tests, `fail=0`, `warn=2`, `xfail=0`, `cov=100`,
+  `outliers=0`, `excluded=0`, `proof=speed`, `reused=none`.
+- The last staged Python change is dated 00:22:47+02:00, before that run
+  started, so it measured the staged code.
+- An earlier replacement run lost a worker in the Step 2 equivalent-root test
+  and was not counted. The path-test repair assessed in the implementation
+  check followed it.
+
+Reviewer evidence, each command run once from the project root through the
+shared `ghog.bat` launcher with `SWITCHPY_CHOICE=local` for that process and
+the log-freshness proof:
+
+- `ghog check`: exit 0, all `check.bat` checks passed, no big file
+  (`fail=0 warn=0`).
+- `ghog affected --no-cov --scope-file=.reviews/a.review-scope.code.v0.14.0.release-project-root.json`:
+  exit 0, scope whole, but testmon selected 0 tests because nothing changed
+  since its last recorded run. This is not an independent re-execution of the
+  suite. The requestor's full run above is the executed test evidence.
+
+The reviewer did not run `ghog day`, `ghog full` or any coverage measurement.
+Coverage was assessed statically. The R1 checks come from the reviewer's
+probe scripts, which call the staged loader on temporary directories outside
+the repository, not from the suite.
+
+### Resolved validation set and sources for step 3 release-project-root (exchange 1) (round 2)
+
+The request and the current resolver produce the same ordered set:
+
+1. `ghog day --full=speed --whole-suite`: source project.
+2. `rg -n 'ConfigParser|interpolation|minimum-version|importlib|exec\(' tools/release_workflow`:
+   source plan.
+
+No `.review-validation` file exists, so the project default is the built-in
+`ghog day --full=speed`, completed with the bound `--whole-suite` selector for
+scope `whole`. The comparison ran `resolve_code_review_validation` from the
+current `tools/code_review_validation.py` with that default and the plan scan
+as the only plan addition. The reviewer did not run the resolved set.
+
+### Resolver drift and direction for step 3 release-project-root (exchange 1) (round 2)
+
+None. The ordered commands and their source labels agree. The round 1
+direction note is resolved: the plan's scan now appears in the resolved set
+with its plan source.
+
+### Repository state around validation for step 3 release-project-root (exchange 1) (round 2)
+
+The request-time, reviewer baseline and final assessed index trees are all
+`feb728522db2075eeaf5234a0ea69c4a577bec4e`. The reviewer made no tracked
+change in this round.
+
+The same ordered 15-path validation set was captured before and after
+assessment: the 12 staged paths plus the ignored `a.ghog.log`,
+`a.ghog.status` and `.testmondata`. The comparison reports `acceptable=true`,
+with no tracked or untracked differences. The only ignored differences are
+the three files written by the reviewer's evidence commands. The reviewer's
+runs left no tracked side effect, and there is no overlap with writer work.
+
+The only unstaged working-tree change is the protocol-appended review
+transcript. As the request states, it stays out of `a.commit` and goes to the
+residual commit after the exchange completes.
+
+The umbrella `docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md` is
+applicable, with digest `ca6fe473…0ec992` before and after (unchanged). No
+umbrella row was modified.
+
+Retained evidence:
+`.reviews/a.code-review-evidence.v0.14.0.release-project-root.step-3.json`,
+with the inputs under `.reviews/a.release-project-root.step3.tmp.r2.*`.
+
+### Repair inventory for step 3 release-project-root (exchange 1) (round 2)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 3 release-project-root (exchange 1) (round 2)
+
+Ran `commit-plan-check.bat --format json` independently before and after
+assessment. Both returned exit 0, `state=valid`, `ready=true`, four ordered
+groups, 12 staged paths and no diagnostics. The JSON is retained in
+`.reviews/a.release-project-root.step3.tmp.r2.commit-plan-after.json`.
+
+Ordered groups:
+
+1. `feat(release): register owned configuration schemas` (4 paths)
+2. `feat(release): validate optional project configuration` (5 paths)
+3. `test(release): isolate physical root alias setup` (2 paths)
+4. `docs(release-project-root): record step 3 validation` (1 path)
+
+Membership and conventional subjects match the staged work. Group 2 depends
+only on group 1 and the committed Step 2 path service. Group 3 touches only
+Step 2 path tests and imports nothing from groups 1 and 2, so every
+intermediate commit stands on its own. The round 1 points are addressed:
+
+- Group 2 now lists the instance-whitespace rejection.
+- Group 4 records the publication speed gate and the 3,946 tests.
+- The review transcript stays an unstaged residual by the requestor's stated
+  choice.
+
+The reviewer did not amend `a.commit`. A valid plan does not authorize a
+commit.
+
+### Findings and boundaries for step 3 release-project-root (exchange 1) (round 2)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 3 release-project-root (exchange 1) (round 2)
+
+No further Step 3 work is requested. The `Commit` choice at the convergence
+gate belongs to the human. Neither this recommendation nor the valid
+`a.commit` authorizes it.
+
+Note for later runs, not a Step 3 finding: `boundary_matrix` in
+`tests/unit/tools/release_workflow/test_paths/conftest.py` is module-scoped
+and still builds four junctions and two real root validations. pytest-timeout
+counts fixture setup, so that cost now runs inside the 10-second budget of
+`test_internal_junction_and_future_ancestors`, its first remaining consumer.
+If a full run loses a worker there, apply the same treatment, or move the
+matrix construction out of any one test's timeout.
+
+The round 1 forward notes still apply to later steps: the Windows name checks
+for Step 4's write boundary, managed paths that resolve to the root, and a
+test that the default registry owns each later domain's sections.
+
+The request asks for "every safe, unambiguous repair" but carries no literal
+`Human guidance:` block, and the reviewer found nothing to repair. R9 is a
+Step 1 item that the human's standing direction keeps nonblocking; it was
+carried as such and not reassessed.
+
+### Decision rationale for step 3 release-project-root (exchange 1) (round 2)
+
+Recommend commit-ready (advisory). The six readiness-floor results are:
+
+1. Identity: PASS. The exact plan, step 3, round 2, occurrence 1, code
+   identity, umbrella and request-time index tree agree with the live
+   exchange.
+2. Implementation completeness: PASS. R1 is fixed within the step, and the
+   reviewer's probe of each round 1 spelling now fails closed while valid
+   names still load.
+3. Validation and coverage: PASS.
+   - The requestor's speed run on the staged code is green, with 3,946 tests
+     and 100% coverage.
+   - The reviewer's `ghog check` is green.
+   - The focused `ghog affected --no-cov` is green, but testmon selected 0
+     tests because nothing changed since its last recorded run.
+   - The static coverage walk finds no gap.
+4. Staged attribution: PASS. There is no reviewer change in this round. The
+   Step 2 path-test repair is the writer's disclosed validation fix in its own
+   group, and nothing unrelated is staged.
+5. Unresolved findings: PASS. R1 is resolved and no new finding was raised.
+   R9 stays carried as the human's nonblocking Step 1 item.
+6. `a.commit`: PASS. The independent checker reports exit 0, valid and ready,
+   with all 12 paths in four accurate groups.
+
+This round made no substantive repair. The recommendation does not authorize
+a commit.
+
+### Final reviewer decision for step 3 release-project-root (exchange 1) (round 2)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-3-round-2 -->
+
+## Round 2 by human - Step 3 - human-confirmation
+
+- Recorded: 2026-10-25T00:52:31+02:00
+- Exchange: code/code/v0.14.0/release-project-root
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 3
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-2 -->
