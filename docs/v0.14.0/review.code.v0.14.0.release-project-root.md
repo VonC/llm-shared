@@ -197,7 +197,7 @@ Writer notes: `.reviews/a.release-project-root.step1.journal.md` and
 
 The staged work contains 39 paths, assigned exactly once to four groups in root a.commit. The canonical commit-plan-check reports ready=true with no diagnostics.
 
-##### Staged paths for step 1 release-project-root (round 1)
+#### Staged paths for step 1 release-project-root (round 1)
 
 - bin/release_runtime_record.bat
 - docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md
@@ -205,34 +205,34 @@ The staged work contains 39 paths, assigned exactly once to four groups in root 
 - pyproject.toml
 - senv.bat
 - tests/acceptance/commit_plan_check/commit_plan_check_support.py
-- tests/acceptance/release_workflow/__init__.py
+- tests/acceptance/release_workflow/**init**.py
 - tests/acceptance/release_workflow/conftest.py
 - tests/acceptance/release_workflow/process_support.py
 - tests/acceptance/release_workflow/test_release_readiness_tdd.py
 - tests/acceptance/release_workflow/test_uv_readiness_tdd.py
-- tests/acceptance/review_resume/__init__.py
+- tests/acceptance/review_resume/**init**.py
 - tests/acceptance/review_resume/cli_support.py
 - tests/acceptance/review_resume/conftest.py
 - tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_identity_tdd.py
 - tests/acceptance/review_status/conftest.py
 - tests/unit/tools/git_test_double.py
-- tests/unit/tools/release_workflow/__init__.py
+- tests/unit/tools/release_workflow/**init**.py
 - tests/unit/tools/release_workflow/conftest.py
-- tests/unit/tools/release_workflow/test_bootstrap/__init__.py
+- tests/unit/tools/release_workflow/test_bootstrap/**init**.py
 - tests/unit/tools/release_workflow/test_bootstrap/test_bootstrap_tdd.py
-- tests/unit/tools/release_workflow/test_markers/__init__.py
+- tests/unit/tools/release_workflow/test_markers/**init**.py
 - tests/unit/tools/release_workflow/test_markers/test_markers_pbt.py
 - tests/unit/tools/release_workflow/test_markers/test_markers_tdd.py
-- tests/unit/tools/release_workflow/test_readiness/__init__.py
+- tests/unit/tools/release_workflow/test_readiness/**init**.py
 - tests/unit/tools/release_workflow/test_readiness/test_faults_tdd.py
 - tests/unit/tools/release_workflow/test_readiness/test_metadata_tdd.py
 - tests/unit/tools/release_workflow/test_readiness/test_readiness_pbt.py
 - tests/unit/tools/release_workflow/test_readiness/test_readiness_tdd.py
-- tests/unit/tools/release_workflow/test_runtime/__init__.py
+- tests/unit/tools/release_workflow/test_runtime/**init**.py
 - tests/unit/tools/release_workflow/test_runtime/test_runtime_tdd.py
 - tests/unit/tools/release_workflow/test_support.py
 - tests/unit/tools/test_code_reviewer_acceptance/fixtures.py
-- tools/release_workflow/__init__.py
+- tools/release_workflow/**init**.py
 - tools/release_workflow/bootstrap.py
 - tools/release_workflow/markers.py
 - tools/release_workflow/readiness.py
@@ -266,7 +266,7 @@ What:
 ##### Group 2: Shorter shared test initialization for step 1 release-project-root (round 1)
 
 git add -A tests/acceptance/commit_plan_check/commit_plan_check_support.py
-git add -A tests/acceptance/review_resume/__init__.py
+git add -A tests/acceptance/review_resume/**init**.py
 git add -A tests/acceptance/review_resume/cli_support.py
 git add -A tests/acceptance/review_resume/conftest.py
 git add -A tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_identity_tdd.py
@@ -299,27 +299,27 @@ What:
 git add -A bin/release_runtime_record.bat
 git add -A pyproject.toml
 git add -A senv.bat
-git add -A tests/acceptance/release_workflow/__init__.py
+git add -A tests/acceptance/release_workflow/**init**.py
 git add -A tests/acceptance/release_workflow/conftest.py
 git add -A tests/acceptance/release_workflow/process_support.py
 git add -A tests/acceptance/release_workflow/test_release_readiness_tdd.py
 git add -A tests/acceptance/release_workflow/test_uv_readiness_tdd.py
-git add -A tests/unit/tools/release_workflow/__init__.py
+git add -A tests/unit/tools/release_workflow/**init**.py
 git add -A tests/unit/tools/release_workflow/conftest.py
-git add -A tests/unit/tools/release_workflow/test_bootstrap/__init__.py
+git add -A tests/unit/tools/release_workflow/test_bootstrap/**init**.py
 git add -A tests/unit/tools/release_workflow/test_bootstrap/test_bootstrap_tdd.py
-git add -A tests/unit/tools/release_workflow/test_markers/__init__.py
+git add -A tests/unit/tools/release_workflow/test_markers/**init**.py
 git add -A tests/unit/tools/release_workflow/test_markers/test_markers_pbt.py
 git add -A tests/unit/tools/release_workflow/test_markers/test_markers_tdd.py
-git add -A tests/unit/tools/release_workflow/test_readiness/__init__.py
+git add -A tests/unit/tools/release_workflow/test_readiness/**init**.py
 git add -A tests/unit/tools/release_workflow/test_readiness/test_faults_tdd.py
 git add -A tests/unit/tools/release_workflow/test_readiness/test_metadata_tdd.py
 git add -A tests/unit/tools/release_workflow/test_readiness/test_readiness_pbt.py
 git add -A tests/unit/tools/release_workflow/test_readiness/test_readiness_tdd.py
-git add -A tests/unit/tools/release_workflow/test_runtime/__init__.py
+git add -A tests/unit/tools/release_workflow/test_runtime/**init**.py
 git add -A tests/unit/tools/release_workflow/test_runtime/test_runtime_tdd.py
 git add -A tests/unit/tools/release_workflow/test_support.py
-git add -A tools/release_workflow/__init__.py
+git add -A tools/release_workflow/**init**.py
 git add -A tools/release_workflow/bootstrap.py
 git add -A tools/release_workflow/markers.py
 git add -A tools/release_workflow/readiness.py
@@ -2577,6 +2577,7 @@ runs and 80 diagnostic journeys did not reproduce the failure. This is an open
 functional finding, not a timing exception or a proven fix.
 
 Evidence:
+
 - .reviews/a.release-project-root.step1.tmp.r4.waiters.log: parked/concurrent
   focused groundhog, exit 0.
 - .reviews/a.release-project-root.step1.tmp.timing/round4-first-groundhog.log:
@@ -4015,7 +4016,7 @@ Validation scope: the whole suite.
 
 No. Step 1 has NOT been fully implemented.
 
-The human explicitly directed: "OK keep R9 unresolve, but let not it block any
+The human explicitly directed: "OK keep R9 unresolved, but let not it block any
 review for now. Do publish round 6". R9 remains unresolved but is not a blocker
 to review publication for now. This standing review guidance supersedes the
 earlier publication prerequisite for this known gap. It does not claim a repair,
@@ -4239,7 +4240,7 @@ is authorized or performed.
 
 Human guidance:
 
-The latest human instruction is: "OK keep R9 unresolve, but let not it block
+The latest human instruction is: "OK keep R9 unresolved, but let not it block
 any review for now. Do publish round 6".
 
 Publish Round 6 now with R9 explicitly unresolved. R9 must not block any review
@@ -4279,7 +4280,7 @@ so no speculative test or production change was made. The early capability
 diagnostic remains. A production review-exchange repair still requires evidence
 and scope direction; no such repair is requested or authorized here.
 
-The human now says: "OK keep R9 unresolve, but let not it block any review for
+The human now says: "OK keep R9 unresolved, but let not it block any review for
 now. Do publish round 6". Treat R9 as unresolved and non-blocking for review
 publication for now. Do not require another publication exception for this
 same finding while that instruction remains in force. Continue the independent
@@ -4531,7 +4532,7 @@ Boundary-crossing work:
 
 Human guidance:
 
-The latest human instruction is: "OK keep R9 unresolve, but let not it block
+The latest human instruction is: "OK keep R9 unresolved, but let not it block
 any review for now. Do publish round 6".
 
 Publish Round 6 now with R9 explicitly unresolved. R9 must not block any review
@@ -5387,3 +5388,1485 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-7 -->
+
+## Round 1 by requestor - Step 2
+
+- Recorded: 2026-10-24T16:47:44+02:00
+- Exchange: code/code/v0.14.0/release-project-root
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: unrecorded
+- Implementation step: 2
+- Outcome: request
+
+### Review identity for step 2 release-project-root (round 1)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+Implementation step: 2
+Review round: 1
+
+### Code review evidence for step 2 release-project-root (round 1)
+
+request_index_tree: 6f96be7f882d33a6bafad4bf123ada99cdca97ef
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.release-project-root.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: test(review-resume): isolate immediate discovery
+group 1 path: tests/unit/tools/test_review_resume/test_review_resume_expiry_tdd.py
+group 2: test(suite): bound covered suite contention
+group 2 path: tests/conftest.py
+group 2 path: tests/unit/tools/markdown_check/test_runner/test_runner_tdd.py
+group 2 path: tests/unit/tools/release_workflow/test_readiness/test_readiness_pbt.py
+group 2 path: tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py
+group 2 path: tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_review_acceptance_tdd.py
+group 2 path: tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_pbt.py
+group 2 path: tests/unit/tools/test_linear_order/test_linear_order_tdd.py
+group 2 path: tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_final_acceptance_tdd.py
+group 2 path: tests/unit/tools/test_scope_capture/test_scope_capture_pbt.py
+group 3: style(docs): format release review transcript
+group 3 path: docs/v0.14.0/review.code.v0.14.0.release-project-root.md
+group 4: feat(release): isolate Git and physical roots
+group 4 path: tools/release_workflow/__init__.py
+group 4 path: tools/release_workflow/git_environment.py
+group 4 path: tools/release_workflow/git.py
+group 4 path: tools/release_workflow/paths.py
+group 4 path: tests/unit/tools/release_workflow/conftest.py
+group 4 path: tests/unit/tools/release_workflow/git_test_support.py
+group 4 path: tests/unit/tools/release_workflow/test_git/__init__.py
+group 4 path: tests/unit/tools/release_workflow/test_git/test_config_files_tdd.py
+group 4 path: tests/unit/tools/release_workflow/test_git/test_git_tdd.py
+group 4 path: tests/unit/tools/release_workflow/test_git_environment/__init__.py
+group 4 path: tests/unit/tools/release_workflow/test_git_environment/test_git_environment_tdd.py
+group 4 path: tests/unit/tools/release_workflow/test_paths/__init__.py
+group 4 path: tests/unit/tools/release_workflow/test_paths/conftest.py
+group 4 path: tests/unit/tools/release_workflow/test_paths/test_paths_faults_tdd.py
+group 4 path: tests/unit/tools/release_workflow/test_paths/test_paths_pbt.py
+group 4 path: tests/unit/tools/release_workflow/test_paths/test_paths_tdd.py
+group 5: docs(release-project-root): record step 2 validation
+group 5 path: docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md
+staged path: docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md
+staged path: docs/v0.14.0/review.code.v0.14.0.release-project-root.md
+staged path: tests/conftest.py
+staged path: tests/unit/tools/markdown_check/test_runner/test_runner_tdd.py
+staged path: tests/unit/tools/release_workflow/conftest.py
+staged path: tests/unit/tools/release_workflow/git_test_support.py
+staged path: tests/unit/tools/release_workflow/test_git/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git/test_config_files_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git/test_git_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_environment/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_environment/test_git_environment_tdd.py
+staged path: tests/unit/tools/release_workflow/test_paths/__init__.py
+staged path: tests/unit/tools/release_workflow/test_paths/conftest.py
+staged path: tests/unit/tools/release_workflow/test_paths/test_paths_faults_tdd.py
+staged path: tests/unit/tools/release_workflow/test_paths/test_paths_pbt.py
+staged path: tests/unit/tools/release_workflow/test_paths/test_paths_tdd.py
+staged path: tests/unit/tools/release_workflow/test_readiness/test_readiness_pbt.py
+staged path: tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py
+staged path: tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_review_acceptance_tdd.py
+staged path: tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_pbt.py
+staged path: tests/unit/tools/test_linear_order/test_linear_order_tdd.py
+staged path: tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_final_acceptance_tdd.py
+staged path: tests/unit/tools/test_review_resume/test_review_resume_expiry_tdd.py
+staged path: tests/unit/tools/test_scope_capture/test_scope_capture_pbt.py
+staged path: tools/release_workflow/__init__.py
+staged path: tools/release_workflow/git.py
+staged path: tools/release_workflow/git_environment.py
+staged path: tools/release_workflow/paths.py
+```
+
+### Validation scope for step 2 release-project-root (round 1)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 2 release-project-root (round 1)
+
+Yes. Step 2 has been fully implemented.
+
+Static implementation-check on 2026-10-24 confirmed the exact Step 2 Git,
+environment and physical-path boundaries. The validation plan records that
+verdict; the overall topic remains incomplete because Steps 3 through 6 remain.
+No tests ran during implementation-check.
+
+- Validation: the completed `ghog day --full=speed --whole-suite` exited 0 at
+  2026-10-24T01:01:03+02:00. Static checks took 49.0s; affected tests 35.6s;
+  full passed 3,855 tests at 100% coverage in 4m05.4s. There were no failures,
+  warnings, xfails, call outliers or exclusions. Maximum call was 0.862s.
+- Timing provenance: coverage and setup/call/teardown durations came from one
+  covered parallel full execution; there was no second timing traversal.
+  The repaired canonical Groundhog runner is separate, uncommitted work.
+  Measurements retain timing information but are not numerically equivalent
+  to the previous sequential, uninstrumented pass.
+- Performance: path validation walks only relevant ancestors; alias discovery
+  reuses inspected metadata. No sibling scan or Git subprocess per ancestor
+  appears. The four-worker full passed the five-minute phase bound but is
+  slower overall than the preceding six-worker 3m35s full. Fixture moves do
+  not themselves prove a total-runtime gain.
+- Timing limits: the same-run inventory has 82 setup+call+teardown totals above
+  one second. These are disclosed diagnostics, not a total-duration pass.
+  The plan's current gate is call-only. The 33 path cases total 13.2459 worker
+  seconds, including 5.0450s setup; the first shared-matrix consumer has 2.2313s
+  setup and 2.7791s total. These sums are not elapsed wall time.
+- Architecture: environment policy, native process execution and physical
+  identity services are separated. New production modules have 143, 129 and
+  151 physical lines; initializer 8. New test/support files are at most 167
+  lines. The largest modified Python file is 435 lines, below the 550 risk
+  band and 650 ceiling. The legacy Git helper is unchanged.
+- Coverage: `[tool.coverage.run]` measures `tools`, with 100% reported by the
+  completed full run. Dedicated tests cover policy matrices, native argument
+  contracts, failures and real A/B, linked/nested repository and junction
+  cases. Static reference inspection accounts for all changed test helpers;
+  test/support files are outside the coverage percentage.
+- Integrity: inherited routing cannot redirect explicit B to A; compatible
+  user configuration survives. Separate linked Git metadata remains valid
+  while managed paths reject foreign boundaries. The native watcher fixture
+  repair does not claim a production watchdog fix. Real file-symlink evidence
+  is unavailable on this host (Windows error 1314) and remains for later steps.
+- Commit readiness: canonical `commit-plan-check --format json` reports
+  ready=true, no diagnostics, all 28 staged paths in five groups. The final
+  subject is `docs(release-project-root): record step 2 validation`.
+
+R9 remains unresolved and explicitly nonblocking for review under the user's
+instruction. Round 1 publication is authorized; no Step 2 commit is authorized.
+
+### Implementation report for step 2 release-project-root (round 1)
+
+The release foundation now has a dedicated controlled Git adapter and physical
+project/path validation. The existing cross-platform Git helper remains unchanged.
+
+- `git_environment.py` copies caller state into a read-only mapping, removes
+  routing/configuration injection and execution/output controls, and preserves
+  compatible identity, signing, credentials and configuration-file selectors.
+  Configuration records retain scope, origin, key and value. The closed routing
+  keys are accepted only from repository-owned scopes; command scope is rejected.
+- `git.py` selects the first eligible absolute `git.exe` outside the original
+  physical cwd, requires Git 2.31.0, and never retries another executable after
+  selection. Every subprocess uses native arguments, explicit absolute cwd and
+  the controlled environment. Child status/stdout/stderr remain available.
+  Configuration inspection precedes internal output overrides. An empty
+  `GIT_CONFIG` selector is rejected because it hides the normal configuration chain.
+- `paths.py` distinguishes physical worktree, per-worktree Git directory and
+  common directory. Explicit roots must equal the physical top-level. Alias
+  discovery shares the same physical-root validator and reuses already inspected
+  metadata, avoiding duplicate configuration/discovery subprocesses. Managed paths check original and
+  resolved ancestor chains for escapes, nested repositories and non-directory
+  ancestors, without scanning siblings or invoking Git per ancestor.
+- Tests cover environment and configuration tables, first-executable policy,
+  preserved subprocess failures, real A/B and linked/nested repositories,
+  directory junctions, future destinations, fault boundaries and in-process
+  path normalization properties. One minimal real repository is built per
+  session and copied per case. A separate read-only linked worktree is shared
+  by its configuration and identity checks. Tests select the installed native
+  Git binary where available, verify it once and reuse that verified context;
+  production executable selection remains unchanged. The real-Git modules
+  share an xdist worker. Real fixture subprocesses have ten-second hang bounds.
+
+The full suite exposed a Windows watchdog shutdown hang in the existing expiry
+discovery fixture. That immediate-discovery test now injects notifications and
+asserts no waiting is needed, while retaining actual request publication,
+discovery, expiry and ownership checks. Native watcher acceptance stays intact.
+This repairs the test fixture; it does not claim to fix watchdog's native
+Windows CloseHandle race in production.
+
+The Windows file-symlink capability probe returned privilege error 1314. No real
+file-symlink evidence is claimed; the later Step 4 configuration-symlink cases
+and complete-topic acceptance remain pending. Step 2's real directory-junction
+cases are exercised.
+
+The historical Step 1 transcript has only mechanical Markdown formatting repairs
+identified by the static gate. It was not read as working context.
+
+The user also directed a canonical tooling repair in `../llm-shared`: a speed
+full run now collects coverage and durations together, and day no longer adds
+a second whole-suite timings pass. That separate checkout's source, regression
+tests, instructions and Diataxis changes are not part of this staged step.
+The repair passed 250 focused tests and a real two-worker smoke that fails if
+any test is executed twice. Four Diataxis pages, 13 links and three existing
+wiki structure checks were verified there.
+
+Covered parallel timing exposed contention and repeated fixture work. The
+suite's automatic worker count is capped at four; explicit counts and xdist's
+environment override still win. The real path authorization matrix shares
+immutable validated A/B roots and real junctions, removing repeated config,
+discovery and junction processes. Mutation/discovery cases remain isolated.
+The Markdown inventory test uses installed native Git when available; it
+still executes production lookup and a real tracked-file query. Selected
+scope journeys cache real resolutions only for their stable symlink-free
+paths; all file contents and review operations remain real.
+
+Only named property-test outliers use smaller generated-example budgets.
+Their strategies and assertions are unchanged; explicit shortest, deepest,
+dense/cyclic, duplicate, Unicode and maximum-size cases retain boundary
+coverage. Isolated profiles dropped graph generation from 1.231s to 0.229s,
+fingerprint generation from 0.801s to 0.164s, folder reduction from 0.938s to
+0.202s and lexical ordering from 0.641s to 0.213s. These profiles are diagnostic;
+the covered full remains authoritative. No duration exclusions or raised
+floor are used. Setup and total costs are recorded separately from call time.
+
+The nine-outlier follow-up removes the second real config inspection in the
+repository-owned routing test by observing validation's own result. Stable
+path resolutions are reused in expiry fixtures; the read-only documentation
+audit also reuses file contents. Prepared index and published-review baselines
+are asserted in fixtures, with mutations and their assertions in the test call.
+Those fixture moves alone are not claimed as total-runtime improvements;
+the duration inventory records setup and total cost as well as call time.
+The extra Path.resolve wrapper in the full-suite review test was removed
+because its existing effort fixture already provides that cache.
+
+Final validation: `ghog day --full=speed --whole-suite` passed with exit 0
+and proof=speed at 2026-10-24T01:01:03+02:00. Static checks passed in
+49.0s and affected tests in 35.6s. The covered full passed all 3,855 tests
+at 100% coverage in 4m05.4s, with zero failures, warnings, xfails, call
+outliers or exclusions. Maximum call was 0.862s. No second timings run
+followed. Four workers satisfy this gate and the five-minute phase bound;
+this is longer than the earlier six-worker 3m35s full, so no overall runtime
+reduction is claimed.
+
+The same-run setup/call/teardown inventory contains 82 totals above one
+second; that is diagnostic, not the plan's call-only gate. Its 33 path
+cases sum to 5.0450s setup, 8.1528s call, 0.0481s teardown and 13.2459s
+total worker time. Shared fixture setup is charged to its first consumer;
+equivalent-physical-roots has 2.2313s setup and 2.7791s total. These sums
+are not wall time. Evidence is in the private timing folder's groundhog.log
+and durations.json, measured 2026-10-23T23:01:00.785951+00:00.
+
+Formal implementation-check is complete: Step 2 is fully implemented, while
+Steps 3 through 6 and whole-topic completion remain pending. The validation
+document records the static source, architecture, coverage, performance and
+integrity assessment. No tests were repeated for this static check.
+
+Root `a.commit` contains five ordered groups covering all 28 staged paths
+exactly once. The canonical formatter completed and commit-plan-check returned
+ready=true with no diagnostics. The validation record is the last group, titled
+`docs(release-project-root): record step 2 validation`.
+
+The user authorized Step 2 Round 1 publication on resume if ready. R9 remains
+unresolved and explicitly nonblocking for review. Canonical tooling changes
+are to be committed later. No Step 2 commit has been made or authorized.
+
+Writer notes: `.reviews/a.release-project-root.step2.journal.md` and
+`.reviews/a.release-project-root.step2.handoff.md`.
+
+### Change summary for step 2 release-project-root (round 1)
+
+The staged index contains 28 paths, assigned exactly once to five ordered groups
+in root `a.commit`. The canonical readiness check reports ready=true with no
+diagnostics. No canonical sibling-checkout repair is included.
+
+#### Group 1 immediate expiry discovery for step 2 release-project-root (round 1)
+
+Subject: `test(review-resume): isolate immediate discovery`
+
+- `tests/unit/tools/test_review_resume/test_review_resume_expiry_tdd.py`
+
+Inject notifications only for an already-published request, assert no wait and
+one cleanup, retain real expiry/discovery/ownership and stable path resolution.
+
+#### Group 2 covered suite contention for step 2 release-project-root (round 1)
+
+Subject: `test(suite): bound covered suite contention`
+
+- `tests/conftest.py`
+- `tests/unit/tools/markdown_check/test_runner/test_runner_tdd.py`
+- `tests/unit/tools/release_workflow/test_readiness/test_readiness_pbt.py`
+- `tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py`
+- `tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_review_acceptance_tdd.py`
+- `tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_pbt.py`
+- `tests/unit/tools/test_linear_order/test_linear_order_tdd.py`
+- `tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_final_acceptance_tdd.py`
+- `tests/unit/tools/test_scope_capture/test_scope_capture_pbt.py`
+
+Cap automatic workers at four, retain overrides, use native installed Git,
+reuse stable resolution/read-only content and assert published baselines in
+fixtures. Four named property suites use 25 examples plus explicit boundaries.
+
+#### Group 3 transcript formatting for step 2 release-project-root (round 1)
+
+Subject: `style(docs): format release review transcript`
+
+- `docs/v0.14.0/review.code.v0.14.0.release-project-root.md`
+
+Mechanical historical heading, emphasis and list-spacing repairs from the
+static Markdown gate. Review publication appends the new evidence separately.
+
+#### Group 4 Git and physical project boundaries for step 2 release-project-root (round 1)
+
+Subject: `feat(release): isolate Git and physical roots`
+
+- `tools/release_workflow/__init__.py`
+- `tools/release_workflow/git_environment.py`
+- `tools/release_workflow/git.py`
+- `tools/release_workflow/paths.py`
+- `tests/unit/tools/release_workflow/conftest.py`
+- `tests/unit/tools/release_workflow/git_test_support.py`
+- `tests/unit/tools/release_workflow/test_git/__init__.py`
+- `tests/unit/tools/release_workflow/test_git/test_config_files_tdd.py`
+- `tests/unit/tools/release_workflow/test_git/test_git_tdd.py`
+- `tests/unit/tools/release_workflow/test_git_environment/__init__.py`
+- `tests/unit/tools/release_workflow/test_git_environment/test_git_environment_tdd.py`
+- `tests/unit/tools/release_workflow/test_paths/__init__.py`
+- `tests/unit/tools/release_workflow/test_paths/conftest.py`
+- `tests/unit/tools/release_workflow/test_paths/test_paths_faults_tdd.py`
+- `tests/unit/tools/release_workflow/test_paths/test_paths_pbt.py`
+- `tests/unit/tools/release_workflow/test_paths/test_paths_tdd.py`
+
+Implement copied environment/configuration policy, pinned native Git and
+physical root/destination validation, with deterministic faults and real
+repository/junction matrices. Reuse small real templates and immutable setup;
+mutation cases remain isolated. The path property retains 20 examples plus
+explicit shortest/deepest boundaries.
+
+#### Group 5 validation record for step 2 release-project-root (round 1)
+
+Subject: `docs(release-project-root): record step 2 validation`
+
+- `docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md`
+
+Record the fully implemented Step 2 verdict, measured evidence and limitations.
+The overall topic remains incomplete, and R9 remains nonblocking for review.
+
+### Writer response for step 2 release-project-root (round 1)
+
+Writer response:
+
+This is Step 2 round 1. There is no earlier Step 2 feedback to accept or dispute.
+The user authorized publication on resume if ready. The static check is complete
+and the grouped commit plan is mechanically ready. The requestor publishes and
+waits; the independent reviewer is externally started. No Step 2 commit has been
+authorized. R9 remains unresolved and nonblocking as directed by the user.
+
+### Reviewer focus for step 2 release-project-root (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-2-round-1 -->
+
+## Round 1 by reviewer - Step 2
+
+- Recorded: 2026-10-24T17:30:45+02:00
+- Exchange: code/code/v0.14.0/release-project-root
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 2
+- Outcome: answer
+
+### Assessed index identity for step 2 release-project-root (exchange 1) (round 1)
+
+Baseline index tree: 6f96be7f882d33a6bafad4bf123ada99cdca97ef
+
+Assessed index tree: 25f55aeb2b4e568fa512f856221a319614f60e4f
+
+### Implementation check for step 2 release-project-root (exchange 1) (round 1)
+
+Result:
+
+No. Step 2 has NOT been fully implemented.
+
+The pinned executable, copied environment, configuration origin/scope check,
+physical identity and managed-path services are in place. Their real A/B,
+linked/nested repository and junction tests pass. Three gaps keep Step 2
+open, each reproduced against the staged sources with real
+`git version 2.54.0.windows.1` (R1 to R3 below). The worst one silently
+disables the configuration scope check that Q01 and AC3 rely on.
+
+Plan conformance, checked item by item:
+
+- Q11 selection: `_select_executable` (`git.py:49`) skips empty, relative,
+  cwd-identical and inaccessible entries and only considers `git.exe`, so no
+  `PATHEXT` shim can win. It returns the first eligible file without fallback.
+  `create` rejects unknown, malformed and pre-2.31.0 versions.
+- Subprocess boundary: the plan's
+  `rg -n 'subprocess|cwd=|shell=|GIT_' tools/release_workflow` scan, run
+  read-only, finds one production `subprocess.run` (`git.py:106`). It uses
+  the pinned absolute path, native argument lists, `shell=False`, an absolute
+  existing cwd checked per call, the copied environment, and detached stdin in
+  non-interactive mode. Configuration inspection adds no `-c` option, so
+  internal overrides never show as command scope.
+- Environment classes: routing, counted and parameter injection, executable
+  and template, and pathspec/diff output controls are removed and diagnosed,
+  case-insensitively, without mutating the source mapping. Selectors, identity,
+  signing, SSH and credential settings survive. The Windows stream-redirection
+  variables are missing from the output class (R2).
+- Configuration policy: the closed key set `core.worktree`, `core.bare`,
+  `extensions.worktreeConfig` is accepted only in `local`/`worktree` scope,
+  and every `command` entry fails, with scope, origin and key in the message.
+  This holds only while the child's output decodes (R1).
+- Identity: `ProjectIdentity` keeps the physical root, per-worktree Git
+  directory and common directory apart. Explicit roots must be Git's physical
+  top-level by filesystem identity. Discovery reuses the metadata it already
+  inspected from the start directory. Its `_validated_identity` call compares
+  the discovered root with itself, which is equivalent rather than an extra
+  check.
+- `authorize_path` walks the supplied spelling and the resolved path once each,
+  stops at a filesystem-identical root, and rejects nested worktrees, gitfiles,
+  bare layouts, non-directory ancestors and escapes. It does not reject a
+  linked worktree's own `.git` gitfile (R3).
+
+Probe evidence (reviewer scratch script run on temporary repositories, outside
+the staged tree):
+
+- R1: a global file holding `[user] name = Jos\xe9` (one cp1252 byte) makes
+  the config child return exit 0 with `stdout=None`. The strict UTF-8 reader
+  thread fails, prints a traceback and drops the stream. `inspect_config`
+  then returns `()`. Add `[core] worktree = ../A` to that file and
+  `validate_project` accepts the root. The same key without the byte is
+  rejected.
+- R2: `GIT_REDIRECT_STDOUT`, `GIT_REDIRECT_STDERR` and `GIT_REDIRECT_STDIN`
+  survive `controlled_environment`. With `GIT_REDIRECT_STDERR=off`, a failing
+  `rev-parse` gives a `GitCommandError` with return code 128 and stderr `''`.
+  With `GIT_REDIRECT_STDOUT=off`, `create` fails as "Cannot establish Git
+  version". With a file value, Git first writes `git version ...` into that
+  file. `GIT_REDIRECT_STDIN` was not probed.
+- R3: in a real linked worktree, `authorize_path(identity, ".git")` returns
+  `<linked>\.git`, the gitfile that ties the worktree to its metadata. The
+  ordinary repository case is rejected.
+
+Architecture: environment policy (`git_environment.py`) is pure data
+transformation with no process or filesystem access. `git.py` owns the only
+production subprocess boundary. `paths.py` uses that context plus filesystem
+identity. The package initializer stays dependency-free for the readiness
+bootstrap. The legacy `tools/git_command.py` and its test are unchanged. No
+layer violation was found. Physical lines: `git.py` 143, `git_environment.py`
+129, `paths.py` 151, initializer 8. The largest new test file is 167 lines and
+the largest modified Python file is 435. All are below the 550-line risk band.
+
+Performance: environment copying and configuration parsing are single passes.
+Executable selection is linear in PATH entries. Root validation makes one
+inspection and one `rev-parse`. Authorization makes two ancestor walks with a
+constant number of stat calls per ancestor, with no sibling scan, sort or
+pairwise work. No O(n^2) or O(n log n) computation was added.
+
+Static coverage: `[tool.coverage.run] source = ["tools"]` with
+`fail_under = 100` measures the three new modules. `__init__.py` is omitted.
+Walking each branch of `git_environment.py`, `git.py` and `paths.py` against
+`test_git_environment`, `test_git` (adapter and real config files) and
+`test_paths` (real, faults, properties) found every existing branch exercised.
+This agrees with the requestor's 100%. Test support files are outside the
+gate. `GitSandbox`, `create_template`, `copy_template`, `RecordingGit` and the
+new fixtures are all referenced. The code R1 to R3 call for needs new tests,
+listed in the findings.
+
+Feature integrity: explicit B stays B under stale A routing and index inputs.
+Compatible user configuration survives and the parent mapping is unchanged.
+The suite-contention changes keep every assertion; the property-test example
+caps add explicit boundary examples. The expiry fixture's injected
+notification adapter is bound before the `with` block
+(`tools/review_exchange_cli_resume.py:331-340`), so its "no wait" and
+"one exit" assertions check real calls. R1 to R3 are integrity gaps in the new
+services, not regressions of existing features.
+
+Validation plan effects:
+
+Changed only Step 2 rows in
+`docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md`:
+
+- *Analysis of Step 2 implementation state* now starts with the exact No
+  sentence, followed by a short rationale naming the three gaps.
+- A new *Missing work for Step 2* section sits right after *What was
+  implemented for Step 2*. It holds one concrete bullet per code or test change
+  for R1 to R3.
+- The *Feature integrity for Step 2* conclusion now names the same three gaps.
+
+The document-level opening line stays `No, it is not implemented.`. The header
+sentence "Step 2's controlled Git and physical-path services pass the full
+speed day and static implementation check." lies outside the Step 2 rows and
+was left for the writer to refresh. The architecture, performance and coverage
+sub-sections, other steps, the plan, the umbrella, implementation, tests and
+`a.commit` were not edited.
+
+The evidence launcher attributed the patch from pre-edit blob
+`7f63747df61b0a69703fc3bb8ff80bff18f30867` (attributable, not created). Only
+that patch was staged. The project Markdown check (`markdown-check.bat --root .`)
+passes after the edit. This is review metadata, not a substantive repair.
+
+### Pre-repair mandatory checks and coverage for step 2 release-project-root (exchange 1) (round 1)
+
+Requestor evidence: `ghog day --full=speed --whole-suite` completed on
+2026-10-24 at 01:01:03+02:00 with exit 0 and `proof=speed`: 3,855 tests,
+100% coverage, no failures, warnings, xfails, call outliers or exclusions.
+The request states that this walk used the uncommitted canonical groundhog
+repair in the main llm-shared checkout. This is reported evidence; the
+reviewer did not repeat it.
+
+Reviewer evidence, each command run once from the project root through the
+shared `ghog.bat` launcher with `SWITCHPY_CHOICE=local` for that process and
+the log-freshness proof:
+
+- `ghog check`: exit 0, all `check.bat` checks passed for the project
+  (`fail=0 warn=0`).
+- `ghog affected --no-cov --scope-file=.reviews/a.review-scope.code.v0.14.0.release-project-root.json`:
+  exit 0, scope whole, 3,855 tests, `fail=0 warn=0 xfail=0`. The changed
+  `tests/conftest.py` selects the whole suite.
+
+The reviewer did not run `ghog day`, `ghog full` or any coverage measurement.
+Coverage was assessed statically. R1 to R3 come from a separate reviewer probe
+script on temporary repositories, not from the suite.
+
+### Resolved validation set and sources for step 2 release-project-root (exchange 1) (round 1)
+
+The request and the current resolver produce the same ordered set:
+
+1. `ghog day --full=speed --whole-suite`: source project.
+
+No `.review-validation` file exists, so the project default is the built-in
+`ghog day --full=speed`, completed with the bound `--whole-suite` selector for
+scope `whole`. The comparison ran `resolve_code_review_validation` from the
+current `tools/code_review_validation.py` with that default and no additions.
+The reviewer did not run the resolved set.
+
+### Resolver drift and direction for step 2 release-project-root (exchange 1) (round 1)
+
+None in resolver output: ordered commands and source labels agree.
+
+Direction note for the requestor: the plan's Step 2 completion names
+`rg -n 'subprocess|cwd=|shell=|GIT_' tools/release_workflow`, but the request
+does not carry it. As in Step 1 round 1, pass it with
+`--plan-validation-command` on the next request so it appears in the resolved
+set with its plan source. The reviewer ran it read-only for this assessment.
+
+### Repository state around validation for step 2 release-project-root (exchange 1) (round 1)
+
+Request-time and reviewer baseline index tree:
+`6f96be7f882d33a6bafad4bf123ada99cdca97ef` (identical). Final assessed index
+tree after the reviewer metadata patch:
+`25f55aeb2b4e568fa512f856221a319614f60e4f`.
+
+The same ordered 30-path validation set (the 28 staged paths plus the ignored
+`a.ghog.log` and `a.ghog.status`) was captured before and after assessment.
+The comparison reports tracked differences only for
+`docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md` and `<index>`,
+ignored differences only for the two ghog files written by the reviewer's
+evidence commands, and no untracked differences. The raw `acceptable=false`
+reflects the intentional Step 2 metadata edit; the attribution shows every
+changed hunk lies in the Step 2 rows. The reviewer's ghog runs left no tracked
+side effect. There is no overlap with writer work. The only other working-tree
+change is the protocol-appended round 1 request in the review transcript.
+
+Umbrella `docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md`: applicable,
+digest `ca6fe473…0ec992` before and after, unchanged. No umbrella row was
+modified.
+
+Retained evidence:
+`.reviews/a.code-review-evidence.v0.14.0.release-project-root.step-2.json`,
+with the inputs under `.reviews/a.release-project-root.step2.tmp.r1.*`.
+
+### Repair inventory for step 2 release-project-root (exchange 1) (round 1)
+
+Repairs made:
+
+- Review metadata only: changed the Step 2 validation rows to No, added
+  *Missing work for Step 2* (R1 to R3) and qualified the feature-integrity
+  conclusion. No implementation, test, plan or `a.commit` repair.
+
+Paths staged:
+
+- docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md (reviewer metadata patch only)
+
+### Commit plan assessment for step 2 release-project-root (exchange 1) (round 1)
+
+Ran `commit-plan-check.bat --format json` independently before assessment and
+again after staging the Step 2 metadata. Both returned exit 0, `state=valid`,
+`ready=true`, five ordered groups, 28 staged paths and no diagnostics. The
+post-staging JSON is retained in
+`.reviews/a.release-project-root.step2.tmp.r1.commit-plan-after.json`.
+
+Ordered groups:
+
+1. `test(review-resume): isolate immediate discovery` (1 path)
+2. `test(suite): bound covered suite contention` (9 paths)
+3. `style(docs): format release review transcript` (1 path)
+4. `feat(release): isolate Git and physical roots` (16 paths)
+5. `docs(release-project-root): record step 2 validation` (1 path)
+
+Membership and conventional subjects match the staged work. Groups 1 to 3
+import nothing introduced by group 4, so each intermediate commit stands on
+its own. The reviewer did not amend `a.commit`.
+
+Two points need the writer when `a.commit` is regenerated:
+
+- Group 5's body says "Step 2 is fully implemented", which the staged
+  validation rows no longer claim. Rewrite it together with the R1 to R3
+  fixes.
+- Group 3 (R4): batch commit re-runs each block's `git add -A <path>` before
+  committing (`tools/git_batch_commit_workflow.py:297`). So group 3 will commit
+  the working transcript, which already holds the 362-line protocol-appended
+  Step 2 round 1 request and will hold every later round, under a `style(docs)`
+  subject that describes only the historical formatting.
+
+Mechanical readiness does not resolve the findings and does not authorize a
+commit.
+
+### Findings and boundaries for step 2 release-project-root (exchange 1) (round 1)
+
+Unresolved findings:
+
+- R1 (P1): a non-UTF-8 byte in Git output turns the configuration scope check
+  into a silent pass. `_execute` (`tools/release_workflow/git.py:106-110`) uses
+  `text=True, encoding="utf-8"` with strict errors. On Windows,
+  `subprocess.run(capture_output=True)` decodes in reader threads. A decode
+  error only prints a thread traceback, and the run returns exit 0 with
+  `stdout=None`. `validate_config(None)` (`git_environment.py:104`) returns
+  `()`. Reproduced with real Git: a selected global file holding
+  `[user] name = Jos\xe9` plus `[core] worktree = ../A` passes `inspect_config`
+  with no entries, and `validate_project` accepts the root. The same key
+  without the byte is rejected. A cp1252-saved `.gitconfig` with an accented
+  name is a normal Windows setup, so the AC3/Q01 guarantee ("reject routing
+  keys supplied outside the selected repository's own configuration") fails
+  open there. Capture bytes and decode in `_execute`. Never return an
+  undecodable or missing stream as success: either raise `GitPolicyError`
+  naming the command, or decode configuration output losslessly (for example
+  with `surrogateescape`) so every record is still checked. Recommended:
+  lossless decoding for configuration values, so legacy files keep working,
+  and strict UTF-8 that fails closed for metadata paths. Add a real-Git case
+  to `test_config_files_tdd.py` (cp1252 byte plus external `core.worktree`
+  must be rejected) and a unit case in `test_git_tdd.py` for the undecodable
+  or missing stream.
+- R2 (P2): Git for Windows' stream-redirection variables survive the
+  output-shaping policy. The design's output class says "do not inherit
+  output-shaping or pathspec overrides" and requires the implementation to
+  enumerate that class. `GIT_REDIRECT_STDIN`, `GIT_REDIRECT_STDOUT` and
+  `GIT_REDIRECT_STDERR` are absent from `_OUTPUT`
+  (`git_environment.py:29-34`). Reproduced: with `GIT_REDIRECT_STDERR=off`, a
+  failing child's retained result has return code 128 and stderr `''`. That
+  breaks the plan's "keep original child status/stderr available".
+  `GIT_REDIRECT_STDOUT=off` makes `create` fail with the misleading
+  "Cannot establish Git version ... ''". A file value makes Git write the
+  version text into that arbitrary file first. `GIT_REDIRECT_STDIN` would
+  replace the detached stdin chosen for non-interactive mode; not probed.
+  Add the three names to the removed output inputs, and add them to `REMOVED`
+  in `test_git_environment_tdd.py`.
+- R3 (P2): a linked worktree's own `.git` gitfile is authorized as a managed
+  destination. In a real linked worktree, `authorize_path(identity, ".git")`
+  returns `<linked>\.git`. The target is a file, so
+  `_check_ancestors` (`paths.py:110-127`) skips the foreign-boundary test, and
+  the non-directory test exempts the target itself. A managed write there
+  would detach the worktree from its Git directory. In an ordinary
+  repository, `.git` is rejected through the bare-layout check, and
+  `test_git_metadata_is_not_a_managed_destination` covers only that case. The
+  plan keeps linked Git metadata distinct from managed destinations. Reject
+  the worktree's own `.git` entry, directory or gitfile, as a target or
+  ancestor, and add the linked-worktree case to `test_paths_tdd.py` using the
+  existing `linked_sandbox` fixture.
+- R4 (P3): `a.commit` group 3 will commit more than its subject says (see the
+  commit plan assessment). Step 1 recorded its rounds as
+  `docs(review): record step 1 code review` (53f5b8a). When regenerating
+  `a.commit` at convergence, give the transcript a subject and body that cover
+  the Step 2 review record with the mechanical formatting, or split them.
+- R5 (P3): the staged `tests/conftest.py` docstring now places slowness
+  detection in "the covered ``ghog full`` run". That describes the uncommitted
+  canonical groundhog repair in the main checkout. This branch's
+  `tools/groundhog/day.py:24-28` still runs a timed sequential `timings` step
+  after a green speed full. Keep wording that is true for this branch, such as
+  "the project's own duration gate", until that repair lands here.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 2 release-project-root (exchange 1) (round 1)
+
+Fix R1 to R3 within Step 2 and add the listed tests. R1 comes first because
+it disables the policy check the other cases depend on. For R1, choose between
+fail-closed and lossless decoding of configuration output inside the step; the
+recommendation is in the finding. Then fix R5 and rewrite the Step 2
+validation rows after the fixes. Remove *Missing work for Step 2* only when
+every bullet is done, and restore the Yes sentence only then. Also refresh the
+document header sentence about Step 2 and the `a.commit` group 5 body, which
+the reviewer did not touch. Handle R4 when `a.commit` is regenerated.
+
+Run the requestor-owned resolved set (`ghog day --full=speed --whole-suite`).
+Pass the plan's `rg -n 'subprocess|cwd=|shell=|GIT_' tools/release_workflow`
+scan as a plan validation command on the next request. Update `a.commit` if
+staged membership changes, then publish the replacement request through the
+normal requestor workflow.
+
+The request asks for "every safe, unambiguous repair" but carries no literal
+`Human guidance:` block, so the reviewer repaired no implementation or test
+file. Its only staged change is the attributable Step 2 validation-row patch.
+R9 was carried as the user's nonblocking item and was not reassessed.
+
+### Decision rationale for step 2 release-project-root (exchange 1) (round 1)
+
+Recommend changes-requested. The six readiness-floor results are:
+
+1. Identity: PASS. Exact plan, step 2, round 1, occurrence 1, code identity,
+   umbrella and request-time index tree agree with the live exchange.
+2. Implementation completeness: FAIL. R1 (configuration check fails open on
+   undecodable output), R2 (stream-redirection variables survive) and R3
+   (linked-worktree gitfile is a managed destination) remain.
+3. Validation and coverage: PASS for the current code. Requestor speed and
+   coverage evidence is green. The reviewer's `ghog check` and focused
+   `ghog affected --no-cov` run (3,855 tests) are green, and the static
+   coverage walk finds no gap in the staged code. R1 to R3 still need new
+   tests.
+4. Staged attribution: PASS. The sole reviewer change is the attributable
+   Step 2 validation metadata. There is no substantive repair and no unrelated
+   staged work.
+5. Unresolved findings: FAIL. R1 to R5 remain open, R1 at P1.
+6. `a.commit`: PASS mechanically. The independent checker reports exit 0,
+   valid, ready, with all 28 paths in five groups. The group 5 body and the
+   group 3 subject (R4) need a refresh.
+
+The implementation and unresolved-findings failures block commit-readiness,
+even though the walks are green and the commit plan is valid.
+
+### Final reviewer decision for step 2 release-project-root (exchange 1) (round 1)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-2-round-1 -->
+
+## Round 2 by requestor - Step 2
+
+- Recorded: 2026-10-24T18:25:17+02:00
+- Exchange: code/code/v0.14.0/release-project-root
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 2
+- Outcome: request
+
+### Review identity for step 2 release-project-root (round 2)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+Implementation step: 2
+Review round: 2
+
+### Code review evidence for step 2 release-project-root (round 2)
+
+request_index_tree: c93fd095b4e72643398210377ca589a21b1d1d0e
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+- `rg -n 'subprocess|cwd=|shell=|GIT_' tools/release_workflow` (sources: plan)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.release-project-root.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: test(review-resume): isolate immediate discovery
+group 1 path: tests/unit/tools/test_review_resume/test_review_resume_expiry_tdd.py
+group 2: test(suite): bound covered suite contention
+group 2 path: tests/conftest.py
+group 2 path: tests/unit/tools/markdown_check/test_runner/test_runner_tdd.py
+group 2 path: tests/unit/tools/release_workflow/test_readiness/test_readiness_pbt.py
+group 2 path: tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py
+group 2 path: tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_review_acceptance_tdd.py
+group 2 path: tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_pbt.py
+group 2 path: tests/unit/tools/test_instruction_structure/conftest.py
+group 2 path: tests/unit/tools/test_instruction_structure/test_instruction_structure_tdd.py
+group 2 path: tests/unit/tools/test_linear_order/test_linear_order_tdd.py
+group 2 path: tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_final_acceptance_tdd.py
+group 2 path: tests/unit/tools/test_scope_capture/test_scope_capture_pbt.py
+group 3: docs(review): record step 2 code review
+group 3 path: docs/v0.14.0/review.code.v0.14.0.release-project-root.md
+group 4: feat(release): isolate Git and physical roots
+group 4 path: tools/release_workflow/__init__.py
+group 4 path: tools/release_workflow/git_environment.py
+group 4 path: tools/release_workflow/git.py
+group 4 path: tools/release_workflow/paths.py
+group 4 path: tests/unit/tools/release_workflow/conftest.py
+group 4 path: tests/unit/tools/release_workflow/git_test_support.py
+group 4 path: tests/unit/tools/release_workflow/test_git/__init__.py
+group 4 path: tests/unit/tools/release_workflow/test_git/conftest.py
+group 4 path: tests/unit/tools/release_workflow/test_git/test_config_files_tdd.py
+group 4 path: tests/unit/tools/release_workflow/test_git/test_git_tdd.py
+group 4 path: tests/unit/tools/release_workflow/test_git_environment/__init__.py
+group 4 path: tests/unit/tools/release_workflow/test_git_environment/test_git_environment_tdd.py
+group 4 path: tests/unit/tools/release_workflow/test_paths/__init__.py
+group 4 path: tests/unit/tools/release_workflow/test_paths/conftest.py
+group 4 path: tests/unit/tools/release_workflow/test_paths/test_paths_faults_tdd.py
+group 4 path: tests/unit/tools/release_workflow/test_paths/test_paths_pbt.py
+group 4 path: tests/unit/tools/release_workflow/test_paths/test_paths_tdd.py
+group 5: docs(release-project-root): record step 2 validation
+group 5 path: docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md
+staged path: docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md
+staged path: docs/v0.14.0/review.code.v0.14.0.release-project-root.md
+staged path: tests/conftest.py
+staged path: tests/unit/tools/markdown_check/test_runner/test_runner_tdd.py
+staged path: tests/unit/tools/release_workflow/conftest.py
+staged path: tests/unit/tools/release_workflow/git_test_support.py
+staged path: tests/unit/tools/release_workflow/test_git/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git/conftest.py
+staged path: tests/unit/tools/release_workflow/test_git/test_config_files_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git/test_git_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git_environment/__init__.py
+staged path: tests/unit/tools/release_workflow/test_git_environment/test_git_environment_tdd.py
+staged path: tests/unit/tools/release_workflow/test_paths/__init__.py
+staged path: tests/unit/tools/release_workflow/test_paths/conftest.py
+staged path: tests/unit/tools/release_workflow/test_paths/test_paths_faults_tdd.py
+staged path: tests/unit/tools/release_workflow/test_paths/test_paths_pbt.py
+staged path: tests/unit/tools/release_workflow/test_paths/test_paths_tdd.py
+staged path: tests/unit/tools/release_workflow/test_readiness/test_readiness_pbt.py
+staged path: tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py
+staged path: tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_review_acceptance_tdd.py
+staged path: tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_pbt.py
+staged path: tests/unit/tools/test_instruction_structure/conftest.py
+staged path: tests/unit/tools/test_instruction_structure/test_instruction_structure_tdd.py
+staged path: tests/unit/tools/test_linear_order/test_linear_order_tdd.py
+staged path: tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_final_acceptance_tdd.py
+staged path: tests/unit/tools/test_review_resume/test_review_resume_expiry_tdd.py
+staged path: tests/unit/tools/test_scope_capture/test_scope_capture_pbt.py
+staged path: tools/release_workflow/__init__.py
+staged path: tools/release_workflow/git.py
+staged path: tools/release_workflow/git_environment.py
+staged path: tools/release_workflow/paths.py
+```
+
+### Validation scope for step 2 release-project-root (round 2)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 2 release-project-root (round 2)
+
+Yes. Step 2 has been fully implemented.
+
+Round 2 repairs the accepted Round 1 gaps in explicit byte decoding,
+Windows stream-redirection removal and own-Git-metadata authorization. Real
+regressions reproduced the defects first; focused Git/environment/path tests
+and the unchanged legacy Git-helper regression pass. The final static
+implementation-check updates only Step 2 and the document's summary; Steps
+3 through 6 remain pending and the overall status stays No.
+
+The required `ghog day --full=speed --whole-suite` completed on
+2026-10-24T18:17:42+02:00, exit 0, proof=speed, reused=none. Static checks
+passed in 1m23.7s, affected tests in 18.0s, and the full passed all 3,866 tests
+at 100% measured tools coverage in 3m12.0s. There were zero failures, warnings,
+xfails, call outliers or exclusions. Maximum call was 0.6740s. Coverage and
+durations were collected in that same full run, with no second timing pass.
+Evidence: `.reviews/a.release-project-root.step2.tmp.r2.timing/groundhog.log`
+and `durations.json` (measured 2026-10-24T16:17:40.839600+00:00).
+
+The exact plan scan `rg -n 'subprocess|cwd=|shell=|GIT_' tools/release_workflow`
+was inspected and is included as a plan validation command. The adapter has
+one pinned subprocess boundary, native arguments, explicit cwd, copied
+environment and shell=False. The existing cross-platform Git helper is
+unchanged. Production responsibilities remain separated; no new production
+types were added during repair. Production files have 159/130/160 lines;
+all changed Python files stay under 650. The existing instruction-structure
+test shrinks to 648 lines, with its fixture in a separate 28-line file.
+
+Setup remains accounted for: 67 suite totals exceed one second, a diagnostic
+separate from the plan's call gate. The 36 path cases sum to 5.2901s setup,
+8.5492s call and 0.0418s teardown, 13.8811s worker time rather than wall time.
+The largest total is legacy migration at 30.2061s, including 30.2035s setup.
+The final explicit outside-Git probe has setup/call/total
+0.6836/0.0012/0.6858s; repository routing 0.8397/0.0011/0.8419s;
+diagram check 0.0050/0.0030/0.0087s. Three flagged include cases have
+setup 0.3180s to 0.3345s, calls about 0.001s and total 0.3202s to 0.3369s.
+Fixtures retain real operations and every assertion/parameter. Phase moves
+and variable host contention are not claimed as a causal total-runtime gain.
+
+Static coverage inspection confirms module-named unit suites exercise every
+new production boundary. Files under tests are outside the tools coverage
+scope; each new helper and fixture is referenced or pytest-discovered. Real
+subprocess execution supplies behavior evidence, not child-process coverage.
+There is no architecture, call-gate performance, coverage or unreferenced
+top-level-symbol issue requiring further Step 2 implementation.
+
+Real directory junctions are covered. File-symlink capability failed with
+Windows error 1314, leaving later Step 4/whole-topic evidence pending. The
+fixture change does not claim a production watchdog-race repair. Canonical
+Groundhog changes remain separate uncommitted sibling work. R9 stays
+unresolved and explicitly nonblocking under the user's standing direction.
+No Step 2 commit is authorized or made.
+
+### Implementation report for step 2 release-project-root (round 2)
+
+The release foundation has a dedicated controlled Git adapter and physical
+project/path validation. Step 2 Round 2 repairs all five accepted Round 1
+findings; the existing cross-platform Git helper remains unchanged.
+
+- `git_environment.py` copies caller state into a read-only mapping, removes
+  routing/configuration injection and execution/output controls, and preserves
+  compatible identity, signing, credentials and configuration-file selectors.
+  Configuration records retain scope, origin, key and value. Routing keys are
+  accepted only from repository-owned scopes; command scope is rejected.
+  The removed output inputs now include all three Windows stream redirects,
+  with case-insensitive removal and parent-state preservation tests.
+- `git.py` selects the first eligible absolute `git.exe` outside the original
+  physical cwd and requires Git 2.31.0. Every subprocess uses native arguments,
+  explicit absolute cwd and the copied environment. Capture now returns bytes;
+  decoding runs on the caller thread. Missing streams raise a command-naming
+  policy error. Configuration, stderr and failed-command stdout decode
+  losslessly; successful ordinary command output must be UTF-8. This preserves
+  every configuration record and original failure byte. Real-Git cp1252 tests
+  prove that a legacy name cannot hide external routing and benign values
+  round-trip. Unit tests cover missing streams, invalid metadata and check=False.
+- `paths.py` separates physical worktree, per-worktree Git and common directory
+  identities. Explicit roots equal the physical top-level; alias discovery
+  shares validation and reuses inspected metadata. Managed paths check original
+  and resolved ancestors without sibling scans or per-ancestor Git subprocesses.
+  Existing ancestors are now compared with the worktree's own `.git` entry by
+  filesystem identity, rejecting both directory metadata and linked gitfiles
+  as targets or ancestors. Real linked-worktree regressions cover both forms.
+- Test support builds one small real repository template, isolates mutation
+  cases and shares immutable matrices. Native Git is selected where installed;
+  real fixture subprocesses have hang bounds. Four automatic workers reduce
+  covered contention while explicit overrides remain available. Existing
+  scope/document tests cache only stable paths and read-only contents. Named
+  property tests keep their assertions and representative explicit boundaries.
+
+The immediate-discovery expiry fixture still performs actual publication,
+discovery, expiry and ownership checks. Injected notifications assert that an
+already-published request needs no notification wait; native watcher acceptance
+remains. This fixes the fixture hang, without claiming a production Windows
+watchdog shutdown-race repair. The suite docstring now describes the project's
+duration gate accurately before the separate Groundhog repair lands here.
+
+The Round 2 regression-first run reproduced the legacy-config bypass, lost
+benign value, stream redirects and writable linked gitfile. The focused
+Git/environment/path suites and unchanged legacy helper then passed without
+warnings. Required static checks prompted small helper extractions and explicit
+regex literals before full validation.
+
+The first repaired full passed 3,866 tests and 100% coverage but reported the
+explicit outside-Git call at 1.08s. Profiling attributed 0.525s of its isolated
+0.527s to the two native Git operations. The explicit case now captures that
+same real operation's exception in fixture setup and asserts its type, message
+and original root in the test call; alias discovery still runs in its call.
+The focused path file passes, and the explicit assertion profiles at 0.001s.
+This is a call-phase reduction, not evidence of lower total runtime. No
+exclusions or floor changes were made; final setup/call/teardown costs are
+reported in the assessment and validation record.
+
+The next required full passed the same 3,866 tests at 100% coverage, but found
+five different call outliers (1.06s to 1.28s). Isolated profiles located almost
+all Git time in native startup/capture and diagram-check time in real reads.
+The routing test fixtures now retain actual selected-file exceptions and
+local/worktree identity/configuration results. The parametrized include test
+uses the same fixture for its six parameters, retaining every scope/origin/key
+assertion. The diagram fixture captures the actual launcher, aliases and four
+ordered Diataxis pages; source existence and asset-count checks remain in the
+call. Focused tests pass; the four named Git calls profile at 0.001s and the
+diagram check at 0.004s. This separates phases without a total-runtime claim.
+The failed run and pre-change profiles are preserved under
+`.reviews/a.release-project-root.step2.tmp.r2.five-outliers/`.
+
+The user-directed canonical Groundhog repair remains separate uncommitted work
+in `../llm-shared`. Its speed full collects coverage and durations together;
+day adds no second full-suite timing traversal. Earlier verification there
+passed 250 focused tests and a six-test real two-worker smoke with duplicate
+execution sentinels. Four Diataxis pages, 13 links and three wiki structure
+checks were verified there. No canonical files enter this step's staged scope.
+Covered parallel timing retains the data and reporting but is not numerically
+equivalent to the old sequential uninstrumented pass.
+
+The exact plan subprocess scan is included through --plan-validation-command
+in the replacement request. Source inspection confirms one pinned native
+subprocess boundary with explicit cwd, copied environment and shell=False.
+The final assessment supplies the fresh speed proof and static implementation
+check; no extra tests are run merely to perform that static check.
+
+Root `a.commit` keeps five groups and now covers 31 paths, adding two fixture
+files and the diagram test adjustment to their owning groups. Group 3 now
+uses `docs(review): record step 2 code review`, covering protocol-appended
+requests, findings and responses as well as historical formatting. Group 5
+describes the repaired validation record. The versioned transcript was never
+read as working context.
+
+Real directory-junction evidence is present. File-symlink capability failed
+with Windows privilege error 1314, leaving that evidence for Step 4 and complete
+topic acceptance. Steps 3 through 6 remain pending. R9 remains nonblocking for
+review under the user's direction; this step makes no new R9 closure claim.
+No Step 2 commit is authorized or made; canonical tooling commits are deferred.
+
+Writer notes: `.reviews/a.release-project-root.step2.journal.md` and
+`.reviews/a.release-project-root.step2.handoff.md`.
+
+### Change summary for step 2 release-project-root (round 2)
+
+The staged index contains 31 paths, assigned exactly once to five ordered groups
+in root `a.commit`. The canonical readiness check reports ready=true with no
+diagnostics. No canonical sibling-checkout repair is included.
+
+#### Group 1 immediate expiry discovery for step 2 release-project-root (round 2)
+
+Subject: `test(review-resume): isolate immediate discovery`
+
+- `tests/unit/tools/test_review_resume/test_review_resume_expiry_tdd.py`
+
+Inject notifications only for an already-published request, assert no wait and
+one cleanup, retain real expiry/discovery/ownership and stable path resolution.
+
+#### Group 2 covered suite contention for step 2 release-project-root (round 2)
+
+Subject: `test(suite): bound covered suite contention`
+
+- `tests/conftest.py`
+- `tests/unit/tools/markdown_check/test_runner/test_runner_tdd.py`
+- `tests/unit/tools/release_workflow/test_readiness/test_readiness_pbt.py`
+- `tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py`
+- `tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_review_acceptance_tdd.py`
+- `tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_pbt.py`
+- `tests/unit/tools/test_instruction_structure/conftest.py`
+- `tests/unit/tools/test_instruction_structure/test_instruction_structure_tdd.py`
+- `tests/unit/tools/test_linear_order/test_linear_order_tdd.py`
+- `tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_final_acceptance_tdd.py`
+- `tests/unit/tools/test_scope_capture/test_scope_capture_pbt.py`
+
+Cap automatic workers at four, retain overrides, use native installed Git,
+reuse stable resolution/read-only content and assert published baselines in
+fixtures. Four named property suites use 25 examples plus explicit boundaries.
+The diagram check retains actual launcher/alias/Diataxis texts in setup, with
+the original content, file-existence and SVG-count assertions preserved.
+
+#### Group 3 review record and transcript formatting for step 2 release-project-root (round 2)
+
+Subject: `docs(review): record step 2 code review`
+
+- `docs/v0.14.0/review.code.v0.14.0.release-project-root.md`
+
+Protocol-appended Step 2 requests, findings, writer responses and validation
+evidence, plus mechanical historical heading, emphasis and list-spacing
+repairs from the static Markdown gate. Round 2 publication appends its new
+evidence through the protocol.
+
+#### Group 4 Git and physical project boundaries for step 2 release-project-root (round 2)
+
+Subject: `feat(release): isolate Git and physical roots`
+
+- `tools/release_workflow/__init__.py`
+- `tools/release_workflow/git_environment.py`
+- `tools/release_workflow/git.py`
+- `tools/release_workflow/paths.py`
+- `tests/unit/tools/release_workflow/conftest.py`
+- `tests/unit/tools/release_workflow/git_test_support.py`
+- `tests/unit/tools/release_workflow/test_git/__init__.py`
+- `tests/unit/tools/release_workflow/test_git/conftest.py`
+- `tests/unit/tools/release_workflow/test_git/test_config_files_tdd.py`
+- `tests/unit/tools/release_workflow/test_git/test_git_tdd.py`
+- `tests/unit/tools/release_workflow/test_git_environment/__init__.py`
+- `tests/unit/tools/release_workflow/test_git_environment/test_git_environment_tdd.py`
+- `tests/unit/tools/release_workflow/test_paths/__init__.py`
+- `tests/unit/tools/release_workflow/test_paths/conftest.py`
+- `tests/unit/tools/release_workflow/test_paths/test_paths_faults_tdd.py`
+- `tests/unit/tools/release_workflow/test_paths/test_paths_pbt.py`
+- `tests/unit/tools/release_workflow/test_paths/test_paths_tdd.py`
+
+Implement copied environment/configuration policy, pinned native Git and
+physical root/destination validation, with deterministic faults and real
+repository/junction matrices. Reuse small real templates and immutable setup;
+mutation cases remain isolated. The path property retains 20 examples plus
+explicit shortest/deepest boundaries. The explicit outside-Git rejection
+retains its real operation in setup and its captured-error assertions in the
+call; both phases remain measured and no total-runtime gain is claimed.
+Routing fixtures similarly retain native Git rejection/identity/config results
+and preserve every assertion and configuration parameter.
+
+#### Group 5 validation record for step 2 release-project-root (round 2)
+
+Subject: `docs(release-project-root): record step 2 validation`
+
+- `docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md`
+
+Record the fully implemented Step 2 verdict, measured evidence and limitations.
+The overall topic remains incomplete, and R9 remains nonblocking for review.
+
+### Writer response for step 2 release-project-root (round 2)
+
+Writer response:
+
+All Round 1 findings are accepted. There is no disagreement and no reversal of
+the reviewer's staged validation metadata. The No verdict was appropriate for
+the reviewed code; replacement evidence assesses the repairs.
+
+- R1: capture binary subprocess streams and decode on the calling thread.
+  Missing streams fail explicitly with the command. Configuration uses
+  surrogateescape so a legacy value cannot discard records; successful command
+  output, including metadata paths, must be valid UTF-8. Failed-command output
+  and stderr are decoded losslessly, retaining status and original bytes.
+  Real Git tests reproduce cp1252 configuration with an external core.worktree
+  and now reject its global origin. Benign legacy values round-trip intact.
+  Unit tests cover each missing stream, invalid metadata bytes and lossless
+  failure output, including check=False.
+- R2: remove GIT_REDIRECT_STDIN, GIT_REDIRECT_STDOUT and GIT_REDIRECT_STDERR
+  through the output-input policy. Each has a table-driven removal/parent-state
+  test; lowercase stderr redirection is also covered.
+- R3: compare existing targets/ancestors with the worktree's own .git entry
+  by filesystem identity before checking foreign repositories. Both directory
+  metadata and linked-worktree gitfiles are rejected as targets or ancestors.
+  The new linked-worktree cases use the existing real linked_sandbox fixture.
+- R4: group 3 now uses docs(review): record step 2 code review. Its body covers
+  the protocol-appended Step 2 review rounds and historical formatting. Group 5
+  describes the current validation record without retaining the disproved
+  pre-review claim. The five-group order is unchanged; subsequent duration
+  repairs add two fixtures and the existing diagram test file to membership.
+- R5: the test-suite docstring refers to the project's own duration gate,
+  which remains accurate before the separate canonical Groundhog repair lands
+  in this checkout.
+
+The regression-first run reproduced the legacy-config bypass, lost benign
+configuration, surviving redirects and authorized linked gitfile. The focused
+Git/environment/path suites and unchanged legacy Git helper then passed without
+warnings. The first day attempt stopped at static type, regex and complexity
+checks before running the suite; those checks prompted small helper extractions
+and explicit regex literals before the replacement day.
+
+That day passed static checks, all 3,866 tests and 100% coverage, but exited 8
+for the explicit outside-Git call at 1.08s. An isolated pyinstrument profile
+measured 0.527s, almost entirely in the two native Git startup/capture paths.
+Both config inspection and discovery are required. The explicit case now
+captures that real operation's exception in fixture setup and checks its type,
+message and original root; the alias operation still runs in its test call.
+The focused path file passes, and the explicit assertion call profiles at
+0.001s. The fixture move does not prove a total-runtime improvement; the
+replacement full retains setup, call and teardown measurements. The plan's
+no-exclusion rule remains intact.
+
+The following full again passed 3,866 tests at 100% coverage, with five call
+outliers: repository-owned routing 1.28s, diagram documentation 1.26s, system
+core.bare 1.21s, system extensions.worktreeConfig 1.21s and global
+extensions.worktreeConfig 1.06s. Fresh isolated profiles measured 0.367s,
+0.005s, 0.188s, 0.221s and 0.188s, respectively, attributing Git cost to native
+startup/capture and diagram cost to filesystem reads. Real routing results
+and real diagram texts are now captured in fixtures, preserving all assertions
+and all six include-test parameters. Focused confirmation passes; the named
+Git calls measure 0.001s and diagram call 0.004s. Final same-run setup/total
+costs remain visible; no total-runtime reduction is inferred from phase moves.
+
+The next request includes the exact plan subprocess scan as a plan validation
+command. The validation record removes the Missing work section only after
+all listed repairs and the required evidence are complete. No additional
+scope or duration exclusion is requested. R9 remains explicitly nonblocking.
+
+### Reviewer focus for step 2 release-project-root (round 2)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-2-round-2 -->
+
+## Round 2 by reviewer - Step 2
+
+- Recorded: 2026-10-24T18:47:49+02:00
+- Exchange: code/code/v0.14.0/release-project-root
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 2
+- Outcome: answer
+
+### Assessed index identity for step 2 release-project-root (exchange 1) (round 2)
+
+Baseline index tree: c93fd095b4e72643398210377ca589a21b1d1d0e
+
+Assessed index tree: c93fd095b4e72643398210377ca589a21b1d1d0e
+
+### Implementation check for step 2 release-project-root (exchange 1) (round 2)
+
+Result:
+
+Yes. Step 2 has been fully implemented.
+
+Round 2 closes R1 to R3 inside the step's own files, with no new types or
+responsibilities. The reviewer re-ran each round 1 defect, plus nearby
+variants, against the staged sources with real `git version 2.54.0.windows.1`
+on temporary repositories:
+
+- R1, decoding (`git.py:69-79`, `git.py:114-132`): `_execute` now captures
+  bytes and decodes on the calling thread through `_decode_stream`. A missing
+  stream raises `GitPolicyError` naming the command. Configuration output,
+  stderr and failed-command stdout decode with `surrogateescape`. Successful
+  ordinary stdout must be strict UTF-8. Probe results:
+  - A global file holding `name = Jos\xe9` plus `core.worktree = ../A` is now
+    rejected as `global scope, file:...combined.cfg, core.worktree`.
+  - A system file with the same byte that includes a `core.bare = true` file
+    is rejected, naming the included origin.
+  - A benign cp1252 value still validates, and a non-ASCII root directory
+    validates under strict decoding.
+  - Reading the legacy value through `run()` fails closed with a UTF-8 error
+    that names the command. That is the stated design.
+- R2, stream redirects (`git_environment.py:34`): `GIT_REDIRECT_STDIN`,
+  `GIT_REDIRECT_STDOUT` and `GIT_REDIRECT_STDERR` join the removed output
+  class, matched case-insensitively. Probe results:
+  - None of them survives `controlled_environment`, including a lowercase
+    `git_redirect_stderr`.
+  - `GIT_REDIRECT_STDOUT=off` and a file value no longer affect `create`, and
+    no sink file is written.
+  - With `GIT_REDIRECT_STDERR=off`, a failing `rev-parse` keeps return code 128
+    and stderr `fatal: Needed a single revision`.
+- R3, own metadata (`paths.py:110-118`): `_check_repository_boundary` checks
+  each existing target and ancestor against the worktree's own `.git` entry by
+  filesystem identity, before the foreign-repository test. Probe results:
+  - Linked worktree: `.git`, `.GIT`, `.git.`, `.\.git`, `sub/../.git` and
+    `.git/child` are rejected.
+  - Ordinary repository: `.git`, `.GIT`, `.git/config`, `.git/objects/new` and
+    `link/config` through an internal junction to `.git` are rejected.
+  - An absolute path into the linked worktree's Git directory is rejected.
+  - Ordinary destinations such as `docs/new.md` and `version.txt` stay
+    authorized.
+
+The rest of the plan conformance checked in round 1 is unchanged:
+
+- Q11 executable selection and the version floor.
+- The closed routing-key policy.
+- Separate physical, per-worktree and common identities.
+- A single subprocess boundary. A read-only search equivalent to the plan's
+  scan finds one production `subprocess.run` (`git.py:118`), with the pinned
+  path, native arguments, explicit cwd, copied environment and `shell=False`.
+
+Tests:
+
+- `test_config_files_tdd.py` adds the real-Git cp1252 rejection and the benign
+  value round-trip.
+- `test_git_tdd.py` covers missing stdout and stderr, strict metadata decoding,
+  and lossless failure output for both `check=True` and `check=False`.
+- `REMOVED` gains the three redirects, and the case test adds a lowercase one.
+- `test_paths_tdd.py` parametrizes the ordinary `.git` targets and adds linked
+  `.git` and `.git/child` cases on the existing `linked_sandbox`.
+
+Three fixtures move work out of the call phase for the call-duration gate: the
+routing results, the explicit outside-Git rejection and the diagram texts.
+Each keeps every assertion and parameter, and the real operations still run in
+setup.
+
+Architecture: the layering is unchanged. `git_environment.py` holds pure
+policy, `git.py` owns the only subprocess boundary, and `paths.py` uses
+filesystem identity. Physical line counts are 159 for `git.py`, 130 for
+`git_environment.py`, 160 for `paths.py` and 8 for the initializer. The largest
+new test file is `test_git_tdd.py` at 190 lines. The modified
+`test_instruction_structure_tdd.py` drops from 649 to 648 lines, under the
+650-line ceiling, and `ghog check` reports no big file.
+
+Performance: decoding is linear in output size. Authorization adds one `.git`
+existence check and one identity comparison per existing ancestor. It still
+makes two ancestor walks with no sibling scan, and adds no O(n^2) or
+O(n log n) work.
+
+Static coverage: every branch of `_decode_stream` (missing stream, strict
+failure, success) and of `_check_repository_boundary` (own metadata, foreign
+repository, pass) is reached by the named tests. This agrees with the
+requestor's measured 100%.
+
+Feature integrity:
+
+- Legacy configuration files keep working.
+- Failures keep their status and original bytes.
+- Explicit B stays B under stale A routing.
+- The legacy `tools/git_command.py` helper is untouched.
+- No module outside `tools/release_workflow` consumes the adapter yet.
+
+Validation plan effects:
+
+None. The reviewer made no edit to the validation plan in round 2.
+
+The writer's staged Step 2 rows already open with the exact Yes sentence and
+no longer have *Missing work for Step 2*. They also describe the round 2
+repairs in the implemented, architecture, performance, coverage and
+feature-integrity sub-sections, and the header sentence about Step 2 is
+refreshed. The reviewer checked these figures against the staged files and
+the requestor's evidence and found each one accurate:
+
+- the recorded line counts;
+- the 3,866-test speed proof and the 0.67s slowest call;
+- the 67-test above-one-second inventory.
+
+The document-level verdict stays `No, it is not implemented.`, with Steps 3 to
+6 pending. The reviewer did not edit the plan, the umbrella, other steps,
+implementation, tests or `a.commit`.
+
+### Pre-repair mandatory checks and coverage for step 2 release-project-root (exchange 1) (round 2)
+
+Requestor evidence, reported and not repeated by the reviewer:
+`ghog day --full=speed --whole-suite` ended on 2026-10-24 at 18:17:42+02:00,
+with exit 0, `proof=speed` and `reused=none`. Static checks took 1m23.7s,
+affected tests 18.0s, and the full run 3m12.0s. The full run passed all 3,866
+tests at 100% coverage, with no failures, warnings, xfails, call outliers or
+exclusions. The slowest call was 0.67s. The log is
+`.reviews/a.release-project-root.step2.tmp.r2.timing/groundhog.log`. Every
+staged Python file was last modified before that walk began (latest 18:10:56).
+Only the validation plan and the transcript changed afterwards, so the walk
+covers the staged code.
+
+Reviewer evidence. Each command ran once from the project root through the
+shared `ghog.bat` launcher, with `SWITCHPY_CHOICE=local` and the log-freshness
+proof:
+
+- `ghog check`: exit 0. All `check.bat` checks passed (`fail=0 warn=0`). Log:
+  `.reviews/a.release-project-root.step2.tmp.r2.ghog-check.log`.
+- `ghog affected --no-cov --scope-file=.reviews/a.review-scope.code.v0.14.0.release-project-root.json`:
+  exit 0, scope whole. Testmon reported nothing affected since its last
+  recorded run, selected 0 tests and treated the stage as green. This confirms
+  that no source change follows the last recorded green run. It is not an
+  independent re-execution of the suite. Log:
+  `.reviews/a.release-project-root.step2.tmp.r2.ghog-affected.log`.
+
+Executed behaviour evidence for the R1 to R3 repairs comes from the
+reviewer's real-Git probe script on temporary repositories, outside the staged
+tree. The reviewer did not run `ghog day`, `ghog full` or any coverage
+measurement. Coverage was assessed statically.
+
+### Resolved validation set and sources for step 2 release-project-root (exchange 1) (round 2)
+
+The request and the current resolver produce the same ordered set:
+
+1. `ghog day --full=speed --whole-suite`: source project.
+2. `rg -n 'subprocess|cwd=|shell=|GIT_' tools/release_workflow`: source plan.
+
+No `.review-validation` file exists, so the project default is the built-in
+`ghog day --full=speed`, completed with the bound `--whole-suite` selector for
+scope `whole`. The comparison ran `resolve_code_review_validation` from the
+current `tools/code_review_validation.py` with that default and the plan scan
+as the only plan addition. The reviewer did not run the resolved set.
+
+### Resolver drift and direction for step 2 release-project-root (exchange 1) (round 2)
+
+None. The ordered commands and their source labels agree. The round 1
+direction note is resolved: the plan's scan now appears in the resolved set
+with its plan source.
+
+### Repository state around validation for step 2 release-project-root (exchange 1) (round 2)
+
+The request-time, reviewer baseline and final assessed index trees are all
+`c93fd095b4e72643398210377ca589a21b1d1d0e`. The reviewer made no tracked
+change in this round.
+
+The same ordered 33-path validation set was captured before and after
+assessment: the 31 staged paths plus the ignored `a.ghog.log` and
+`a.ghog.status`. The comparison reports `acceptable=true`, with no tracked or
+untracked differences. The only ignored differences are the two ghog files
+written by the reviewer's evidence commands. The reviewer's runs left no
+tracked side effect, and there is no overlap with writer work.
+
+The only unstaged working-tree change is the protocol-appended round 2
+request in the review transcript. `a.commit` group 3 picks it up at commit
+time.
+
+The umbrella `docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md` is
+applicable, with digest `ca6fe473…0ec992` before and after (unchanged). No
+umbrella row was modified.
+
+Retained evidence:
+`.reviews/a.code-review-evidence.v0.14.0.release-project-root.step-2.json`,
+with the inputs under `.reviews/a.release-project-root.step2.tmp.r2.*`.
+
+### Repair inventory for step 2 release-project-root (exchange 1) (round 2)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 2 release-project-root (exchange 1) (round 2)
+
+The reviewer ran `commit-plan-check.bat --format json` independently before
+assessment and again after it. Both runs returned exit 0, `state=valid`,
+`ready=true`, five ordered groups, 31 staged paths and no diagnostics. The
+JSON is retained in
+`.reviews/a.release-project-root.step2.tmp.r2.commit-plan-before.json` and
+`.reviews/a.release-project-root.step2.tmp.r2.commit-plan-after.json`.
+
+Ordered groups:
+
+1. `test(review-resume): isolate immediate discovery` (1 path)
+2. `test(suite): bound covered suite contention` (11 paths)
+3. `docs(review): record step 2 code review` (1 path)
+4. `feat(release): isolate Git and physical roots` (17 paths)
+5. `docs(release-project-root): record step 2 validation` (1 path)
+
+Membership matches the staged work, and each path appears once.
+
+- R4 is resolved. Group 3's subject and body now cover the protocol-appended
+  Step 2 rounds along with the historical formatting. Batch commit re-runs
+  each block's `git add -A`, so group 3 will also carry the unstaged round 2
+  request and this answer. The subject describes that content accurately.
+- Group 5's body now describes the repaired record and agrees with the staged
+  rows.
+- Groups 1 to 3 use nothing introduced by group 4, so each intermediate
+  commit stands on its own:
+  - the group 2 readiness property test imports only existing release
+    modules;
+  - the new instruction-structure fixture imports only the existing
+    `tools.prompt_workflow_steps`.
+
+The reviewer did not amend `a.commit`, and it remains accurate. Mechanical
+readiness does not authorize a commit.
+
+### Findings and boundaries for step 2 release-project-root (exchange 1) (round 2)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 2 release-project-root (exchange 1) (round 2)
+
+No further Step 2 work is requested. The `Commit` choice at the convergence
+gate belongs to the human. Neither this recommendation nor the valid
+`a.commit` authorizes it.
+
+Note for a later step, not a Step 2 finding: `GitCommandError` messages and
+configuration values can now hold surrogate-escaped characters from legacy
+bytes. When a later public boundary prints or writes them, use an explicit
+error handler such as `backslashreplace`, so that the diagnostic itself
+cannot raise `UnicodeEncodeError`.
+
+The request asks for "every safe, unambiguous repair" but carries no literal
+`Human guidance:` block, and the reviewer found nothing to repair. R9 is a
+Step 1 item that the human's standing direction keeps unresolved and
+nonblocking for review. It was carried as such and not reassessed. The
+file-symlink evidence (Windows error 1314) remains for Step 4 and the whole
+topic, as the request states.
+
+### Decision rationale for step 2 release-project-root (exchange 1) (round 2)
+
+Recommend commit-ready (advisory). The six readiness-floor results are:
+
+1. Identity: PASS. The exact plan, step 2, round 2, occurrence 1, code
+   identity, umbrella and request-time index tree agree with the live
+   exchange.
+2. Implementation completeness: PASS. R1 to R3 are fixed within the step, and
+   real-Git probes of each defect and nearby spellings now fail closed.
+3. Validation and coverage: PASS.
+   - The requestor's speed walk on the staged code is green, with 3,866 tests
+     and 100% coverage.
+   - The reviewer's `ghog check` is green.
+   - The focused `ghog affected --no-cov` is green, but testmon selected 0
+     tests because nothing changed since its last recorded run.
+   - The static coverage walk finds no gap.
+4. Staged attribution: PASS. There is no reviewer change in this round and no
+   unrelated staged work.
+5. Unresolved findings: PASS. R1 to R5 are resolved and no new finding was
+   raised. R9 stays carried as the human's nonblocking Step 1 item.
+6. `a.commit`: PASS. The independent checker reports exit 0, valid and ready,
+   with all 31 paths in five accurate groups.
+
+This round made no substantive repair. The recommendation does not authorize
+a commit.
+
+### Final reviewer decision for step 2 release-project-root (exchange 1) (round 2)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-2-round-2 -->
+
+## Round 2 by human - Step 2 - human-confirmation
+
+- Recorded: 2026-10-24T21:26:46+02:00
+- Exchange: code/code/v0.14.0/release-project-root
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 2
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-2 -->
