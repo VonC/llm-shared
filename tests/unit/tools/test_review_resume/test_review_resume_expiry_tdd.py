@@ -1,8 +1,11 @@
-"""Exercise lease expiry during one persistent wait and the selected CLI continuation."""
+"""Exercise real expiry artifacts, caching only stable symlink-free path identities."""
 
 from __future__ import annotations
 
+from functools import cache
+from pathlib import Path
 from typing import TYPE_CHECKING
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -17,7 +20,6 @@ from tools.review_resume import can_resume_expired_leases
 from tools.review_resume_wait import GlobalReviewerWait, GlobalWaitOutcome
 
 if TYPE_CHECKING:
-    from pathlib import Path
     from typing import Any
 
 _NEXT_ROUND = 2
@@ -36,6 +38,8 @@ def _ignore_fixture_paths(*_paths: object) -> bool:
 @pytest.fixture
 def request_for_expiry(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> PreparedRequest:
     """Publish real artifacts with a deterministic host and a shared short lease."""
+    # Artifact bytes change, but these fixtures never rename or retarget paths.
+    monkeypatch.setattr(Path, "resolve", cache(Path.resolve))
     monkeypatch.delenv("CLAUDECODE", raising=False)
     monkeypatch.setenv("CODEX_THREAD_ID", "expiry-fixture")
     core, store, context, clock = lifecycle._harness(tmp_path)
@@ -119,7 +123,20 @@ def _discover_expired_request(
         return discovery
 
     monkeypatch.setattr(cli, "_RequestDiscovery", current_discovery)
-    return cli.execute_resume_operation(parser().parse_args(["wait-any-request"]), root)
+    # The request already exists: discovery must succeed before any notification
+    # wait. Native observer delivery and shutdown have their own acceptance tests.
+    notifications = MagicMock(spec=cli.WatchdogNotificationAdapter)
+    notifications.wait.side_effect = AssertionError("Existing request must be found on the initial scan")
+
+    def notification_factory(_directory: Path) -> MagicMock:
+        """Bind notification IO separately from real artifact discovery."""
+        return notifications
+
+    monkeypatch.setattr(cli, "WatchdogNotificationAdapter", notification_factory)
+    result = cli.execute_resume_operation(parser().parse_args(["wait-any-request"]), root)
+    notifications.wait.assert_not_called()
+    notifications.__exit__.assert_called_once()
+    return result
 
 
 def test_expired_request_passes_wait_startup(
