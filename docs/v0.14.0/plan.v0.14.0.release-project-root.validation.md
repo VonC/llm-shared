@@ -8,8 +8,9 @@ and strict duration assessment with the human's two named live-UV exceptions.
 The one-second total-duration audit remains separate from
 groundhog's call-only speed gate. Step 2's controlled Git and physical-path
 services, including the Round 1 boundary repairs, pass the replacement full
-speed day and static implementation check. Steps 3
-through 6, including the public caller matrix and rollout, remain pending.
+speed day and static implementation check. Step 3's strict configuration and
+schema registration pass the full speed gate after the family-instance repair.
+Steps 4 through 6, including the public caller matrix and rollout, remain pending.
 
 ## File-based IO cost clarification for v0.14.0 release-project-root implementation
 
@@ -561,7 +562,13 @@ unresolved and nonblocking for review as directed by the user.
 
 ### Analysis of Step 3 implementation state
 
-Not started. Step 3 is not implemented because the common configuration reader and shipped schema registry have not been implemented.
+Yes. Step 3 has been fully implemented.
+
+The strict loader, explicit shipped registry, value provenance, managed-path
+checks and fail-closed tooling minimum are implemented and tested. The round 1
+family-instance gap is repaired: empty, blank and whitespace-padded instances
+fail with file and section context, including duplicate-looking declarations.
+Internal whitespace and exact fixed-section lookup remain valid.
 
 ### Goal for Step 3
 
@@ -576,27 +583,114 @@ Parse optional project configuration strictly with domain-owned schemas and a fa
 
 ### What was implemented for Step 3
 
-_(empty — no check has taken place yet.)_.
+- `configuration.py` reads only the selected project's `.release.ini`, once,
+  using UTF-8 with one optional leading BOM. Strict INI rejects malformed and
+  duplicate declarations, disables interpolation and DEFAULT inheritance, and
+  preserves literal regex, percent, dollar, quotes and inline comment text.
+- Missing files permit schema defaults. Read/encoding errors, dangling or
+  disappearing targets, unknown sections/keys, invalid values and required
+  values without defaults raise status-2 errors. Supplied/defaulted values keep
+  their file, section, key and original text in immutable mappings.
+- Family instances reject leading and trailing whitespace without normalizing
+  names. Regression cases cover empty, space-only and tab-only instances,
+  padding on either end, and each spelling beside an existing declaration.
+  They verify status 2, source/section diagnostics, no new files and unchanged
+  input. Positive controls preserve internal spaces and exact fixed names.
+- `schemas.py` composes explicit domain declarations, indexes fixed and
+  prefix-family ownership, rejects overlaps and missing/substituted shipped
+  schemas, and invokes every owner's cross-section validator. Production ships
+  only `tooling`; tests supply synthetic domains without filesystem discovery
+  or consumer imports.
+- Managed paths use Step 2's physical authorization boundary without creating
+  targets. Any declared `minimum-version` is checked before domain validation:
+  ASCII release `MAJOR.MINOR.PATCH` is required, and valid declarations fail
+  with compatibility-unavailable status 2 until item 6 supplies comparison.
+- TDD and PBT cover strict input, literal preservation, defaults/provenance,
+  ownership/completeness, families, all-owner validation and read-only failure.
+  Separate `test_configuration` and `test_schemas` leaves keep each unit-test
+  folder aligned with one production module. The package initializer remains
+  lazy and changes only its description.
+- The first replacement full run lost a worker in the existing physical-root
+  alias test. A focused run passed; profiling found unrelated shared setup
+  dominated its cost. That case now creates its own single real junction,
+  retaining real Git, both filesystem assertions and its ten-second timeout.
+  Setup plus call fell from 1.85 to 0.47 seconds in the focused measurement.
+  The shared path fixture no longer creates the alias it does not use.
+- Writer gate: `ghog day --full=speed --whole-suite` completed on
+  2026-10-25 at 00:28:46 +02:00 with exit 0, 3,946 full-suite tests, no failures
+  or xfails, two warnings, 100% measured coverage, zero duration outliers and
+  zero exclusions. Groundhog status confirmed completion and `proof=speed`.
+  No exclusion was added or baseline raised. This implementation check used
+  that evidence and static inspection without rerunning tests.
+- The plan's `rg -n 'ConfigParser|interpolation|minimum-version|importlib|exec\(' tools/release_workflow`
+  inspection finds one strict parser with interpolation disabled, the minimum
+  gate and only the existing bootstrap imports. It finds no consumer import,
+  schema discovery or execution of project configuration.
 
 ### New types or classes introduced for Step 3
 
-_(empty — no check has taken place yet.)_.
+- `ValueRule`, `SectionSchema` and `DomainSchema` declare conversions, defaults,
+  managed-path roles, section ownership and whole-configuration validation.
+- `RegisteredSection`, `_OwnershipNode` and `SchemaRegistry` retain indexed
+  rules, detect ownership conflicts and verify the complete shipped manifest.
+- `ConfigValue` and `ConfigSections` describe validated values with provenance;
+  `Configuration` retains their immutable section mappings and source path.
+- `SchemaError` and `ConfigurationError` identify status-2 composition and
+  project-input failures respectively.
 
 ### Architecture check for Step 3
 
-_(empty — no check has taken place yet.)_.
+Schema declarations and ownership are separate from the INI adapter. Domain
+converters and validators are shipped callables; project content selects only
+data. The loader uses the existing physical-path service and neither imports
+consumer code nor prepares artifacts. No future domain implementation, upgrade
+comparator or command wiring is introduced by this step.
+
+Line counts are within the 650-line ceiling: new `schemas.py` 196 and
+`configuration.py` 160; configuration TDD/PBT 256/54; schema TDD/PBT 90/28;
+both new test initializers 3. All have baseline 0. The existing package
+initializer grows from 8 to 9 lines, below its under-30 advisory band.
+
+No, there is nothing that needs to be addressed.
 
 ### Performance check for Step 3
 
-_(empty — no check has taken place yet.)_.
+The loader performs one file read, parses each declaration once and converts
+each supplied or defaulted value once. A 64-rule operation-count test verifies
+the read and conversion bounds. Hash maps index domain names and keys; a trie
+checks section ownership and resolves families in time linear in their name
+lengths. There is no pairwise prefix scan or sorting. Whole-config callbacks
+run once per registered owner, and managed values reuse Step 2's path checks.
+
+No, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 3
 
-_(empty — no check has taken place yet.)_.
+The configured coverage source is `tools`; both new production modules are
+inside it. `test_configuration` targets `configuration.py`, and `test_schemas`
+targets `schemas.py`, with TDD and PBT in each leaf. Static review accounts for
+every loader helper and schema type through those tests or their package
+callers, including read failures, duplicate ownership in both orders, empty
+or padded family instances, missing required values, immutable section access, managed
+path rejection and domain validation errors. The writer's full coverage gate
+reports 100% for its measured source scope.
+
+Initializers are excluded by the coverage configuration and contain only
+documentation. Test helpers are referenced by the collected tests; no new
+executable production symbol lies outside the measured source scope.
+
+No, there is no unit-tested class below 100% that needs completing.
+No, there is no unreferenced top-level symbol outside the coverage gate.
 
 ### Feature integrity for Step 3
 
-_(empty — no check has taken place yet.)_.
+The full 3,946-test suite passes. Existing runtime readiness, Git isolation,
+physical path handling and review-artifact formats remain intact. Configuration
+loading and its failures create no files or directories and perform no
+migration. Public dispatch wiring remains in its planned Step 5 scope.
+The family-instance gap is covered by rejecting ambiguous declarations while
+preserving valid names. Steps 4-6 are still pending, so the document-level
+status remains No.
 
 ## Step 4. Managed writes, artifact capabilities and operation ownership
 
