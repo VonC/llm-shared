@@ -4,6 +4,8 @@ Share a worker with the configuration matrix to build its session template
 once, avoiding concurrent copies of identical native Git initialization.
 Read-only authorization cases share validated roots and real junctions;
 discovery and mutation cases retain independent repositories.
+The equivalent-root case creates only its own junction, so its timeout does
+not include unrelated boundary construction and duplicate root validation.
 The explicit outside-Git case asserts its fixture's real captured failure;
 both native probes still run and their setup duration is recorded.
 """
@@ -82,11 +84,10 @@ def test_alias_discovers_from_subfolder(git_sandbox: GitSandbox) -> None:
     assert identity.root.samefile(git_sandbox.home / "B")
 
 
-def test_equivalent_physical_roots(boundary_matrix: tuple[GitSandbox, ProjectIdentity, ProjectIdentity]) -> None:
+def test_equivalent_physical_roots(git_sandbox: GitSandbox) -> None:
     """Case and directory-junction spellings retain the same physical root."""
-    git_sandbox, _, identity_b = boundary_matrix
-    root = identity_b.root
-    alias = git_sandbox.home / "alias"
+    root = git_sandbox.home / "B"
+    alias = git_sandbox.junction("alias", root)
     identity = validate_project(str(alias).upper(), context(git_sandbox))
     assert identity.root.samefile(root)
     assert identity.supplied_root == str(alias).upper()

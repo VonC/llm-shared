@@ -25,7 +25,6 @@ def boundary_matrix(
     """Validate A/B once, retaining actual junctions and nested Git metadata."""
     sandbox = copy_template(git_template, tmp_path_factory.mktemp("path-boundaries"))
     root_a, root_b = sandbox.home / "A", sandbox.home / "B"
-    sandbox.junction("alias", root_b)
     sandbox.junction("A/shortcut", root_a / "nested")
     sandbox.junction("B/internal", root_b / "sub")
     sandbox.junction("B/external", root_a)
