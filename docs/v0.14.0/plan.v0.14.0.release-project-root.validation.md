@@ -1,13 +1,15 @@
 # v0.14.0 release-project-root implementation tracking and validation
 
-No, it is not implemented
+No, it is not implemented.
 
 This document tracks the six steps of the [implementation plan](plan.v0.14.0.release-project-root.md).
 Step 1's round 7 boundary repair passes the full speed day, final static checks
 and strict duration assessment with the human's two named live-UV exceptions.
 The one-second total-duration audit remains separate from
-groundhog's call-only speed gate. Steps 2 through 6, including the public caller
-matrix and rollout, remain pending.
+groundhog's call-only speed gate. Step 2's controlled Git and physical-path
+services, including the Round 1 boundary repairs, pass the replacement full
+speed day and static implementation check. Steps 3
+through 6, including the public caller matrix and rollout, remain pending.
 
 ## File-based IO cost clarification for v0.14.0 release-project-root implementation
 
@@ -366,7 +368,17 @@ pending.
 
 ### Analysis of Step 2 implementation state
 
-Not started. Step 2 is not implemented because the pinned Git adapter, environment policy and physical path validator have not been implemented.
+Yes. Step 2 has been fully implemented.
+
+The pinned Git adapter, copied environment policy, configuration origin/scope
+checks and physical project/path validation are in place, with dedicated unit
+suites and real Windows repository/junction cases. Round 2 repairs all three
+boundary gaps found in Round 1: binary capture with explicit decoding retains
+every configuration record, Windows stream redirects are removed, and the own
+`.git` entry is rejected by filesystem identity, including linked gitfiles.
+Regression-first evidence reproduced the defects; the repaired whole-suite
+speed day passes 3,866 tests with 100% coverage and no outliers or exclusions.
+The static implementation check confirms the planned Step 2 boundaries.
 
 ### Goal for Step 2
 
@@ -381,27 +393,169 @@ Keep every operation on the validated worktree using one eligible Git executable
 
 ### What was implemented for Step 2
 
-_(empty — no check has taken place yet.)_.
+- `tools/release_workflow/git_environment.py` copies the caller environment
+  into a read-only mapping, removes the enumerated routing/injection/execution
+  inputs, sets explicit output/interaction policy and retains compatible user
+  settings. NUL-delimited configuration records retain their scope and origin;
+  all surviving command-scope entries and externally scoped routing keys fail.
+- `tools/release_workflow/git.py` pins the first eligible absolute `git.exe`
+  outside the original physical cwd, verifies Git 2.31.0 or newer and retains
+  the selected executable without fallback. Every child uses native arguments,
+  an explicit absolute cwd and the copied environment. Original child status,
+  stdout and stderr remain attached to failures. Configuration is inspected
+  before internal output overrides; even an empty `GIT_CONFIG` selector is
+  rejected because it hides the effective configuration chain. Binary streams
+  are decoded on the caller thread; missing streams fail with the command.
+  Configuration, diagnostics and failed-command output decode losslessly;
+  successful ordinary output must be valid UTF-8.
+- `tools/release_workflow/paths.py` separates worktree, per-worktree Git and
+  common directory identities. Explicit and discovered roots share physical
+  validation. Managed destinations check both original and resolved ancestor
+  chains, including future paths, nested repositories, gitfiles, bare metadata,
+  external junctions and non-directory ancestors. No sibling scan or Git call
+  per ancestor is introduced. The worktree's own `.git` entry is rejected by
+  filesystem identity as a target or ancestor, for directories and gitfiles.
+- Dedicated `test_git`, `test_git_environment` and `test_paths` suites cover
+  selection, environment/configuration matrices, retained failures, malformed
+  metadata and filesystem faults. Real A/B, linked/nested repository and
+  directory-junction fixtures complement in-process normalization properties.
+- Test support reuses minimal real repositories and a verified native Git
+  executable. Read-only matrices share setup; mutation cases stay isolated.
+  Automatic xdist selection is capped at four while explicit overrides remain.
+  Existing scope/documentation tests reuse only stable paths or read-only
+  contents. Named property tests retain their strategies/assertions with
+  bounded example counts and explicit boundary cases.
+- The immediate-discovery expiry fixture injects notifications and asserts
+  that no wait occurs, avoiding its native shutdown hang while preserving real
+  publication, discovery, expiry and ownership. Native watcher acceptance is
+  retained. Historical transcript formatting is mechanical; protocol publication
+  also appends the Step 2 requests, findings and writer responses.
+- Real cp1252 tests retain benign values and reject external routing despite a
+  legacy byte. Unit tests cover missing streams, strict metadata decoding and
+  lossless failure output. All three `GIT_REDIRECT_*` controls are removed,
+  including case variants, without changing the parent environment. Linked
+  worktree tests reject `.git` targets and descendants.
 
 ### New types or classes introduced for Step 2
 
-_(empty — no check has taken place yet.)_.
+- `GitEnvironment`: immutable child environment and ignored-input diagnostics.
+- `ConfigEntry`: effective configuration scope, origin, key and optional value.
+- `GitPolicyError`: failed selection, policy or machine-output validation.
+- `GitExecutionContext`: pinned executable/version, environment, original cwd
+  and interaction policy, owning the subprocess boundary.
+- `GitCommandError`: policy failure retaining the unmodified child result.
+- `ProjectIdentity`: physical worktree, Git and common directories plus the
+  supplied root spelling.
+- `ProjectPathError`: invalid project identity or managed destination.
+- Test-only `GitSandbox` builds real repository/junction evidence;
+  `RecordingGit` observes arguments and process policy in unit tests.
 
 ### Architecture check for Step 2
 
-_(empty — no check has taken place yet.)_.
+Environment/configuration policy is independent of process execution. The Git
+adapter owns the sole production subprocess boundary; physical path services
+consume that context and filesystem identities. The package initializer stays
+dependency-free. No domain behavior or release mutation is introduced, and the
+existing cross-platform Git helper and its regression test are unchanged.
+
+Physical-line counts are 159 for `git.py`, 130 for `git_environment.py`, 160 for
+`paths.py` and 8 for the package initializer. New test/support files range from
+3 to 190 lines, including the 94-line Git helper, 63-line routing fixtures and
+54-line path fixtures. The existing instruction-structure test shrinks to 648
+lines, within its existing risk band and below the 650-line ceiling; its new
+28-line fixture lives separately. Other changed Python files remain below 550,
+and initializers below 30. No inappropriate layer dependency or required
+responsibility split was found.
+
+No, there is nothing that needs to be addressed in the Step 2 architecture.
 
 ### Performance check for Step 2
 
-_(empty — no check has taken place yet.)_.
+Environment copying and configuration parsing traverse their inputs once.
+Executable selection visits eligible PATH entries in order. Root validation
+uses one configuration inspection and one metadata probe; alias discovery
+reuses that metadata. Path authorization makes two ancestor walks with bounded
+metadata checks per ancestor, independent of unrelated worktree size. It adds
+no sorting or pairwise search. Path construction/resolution still incurs the
+normal platform cost for the supplied path length.
+
+The completed `ghog day --full=speed --whole-suite` ended on
+2026-10-24T18:17:42+02:00 with exit 0 and speed proof: static checks 1m23.7s,
+affected tests 18.0s, full 3,866 passed with 100% coverage in 3m12.0s, zero
+failures/warnings/xfails, zero call outliers and zero exclusions. Maximum call
+was 0.6740s. Coverage and durations came from that same full execution; no
+second timings traversal followed. The separate shared-tooling repair is not
+part of this step's staged source.
+
+The same-run setup/call/teardown inventory records 67 totals above one second.
+That diagnostic does not pass a one-second total-duration ceiling and is not
+substituted for the plan's call-only gate. The 36 path cases sum to 5.2901s
+setup, 8.5492s call and 0.0418s teardown (13.8811s worker time, not wall time).
+The largest suite total is a legacy migration case at 30.2061s, including
+30.2035s setup. Private writer evidence retains the complete phase inventory.
+
+Profiled Round 2 outliers were the explicit outside-Git call at 1.08s, then
+four routing calls at 1.06s to 1.28s and the diagram check at 1.26s. Native Git
+startup/capture and real file reads dominated their isolated profiles. Fixtures
+now retain actual exceptions, identity/configuration results and diagram texts;
+every assertion and parameter remains. Final outside-Git setup/call/total is
+0.6836/0.0012/0.6858s, repository-owned routing 0.8397/0.0011/0.8419s, and the
+diagram check 0.0050/0.0030/0.0087s. The three named include cases have setup
+0.3180s to 0.3345s, calls about 0.001s and totals 0.3202s to 0.3369s.
+The shared fixture also retains all six include-test parameters. Moving these
+operations into setup does not itself demonstrate lower total runtime. The
+four-worker full meets the call gate and five-minute phase bound; no causal
+overall speedup is inferred from run-to-run timing differences.
+
+No, there is no Step 2 performance issue that needs to be addressed under the
+current plan's gate.
 
 ### Unit test coverage check for Step 2
 
-_(empty — no check has taken place yet.)_.
+`pyproject.toml` configures coverage source as `["tools"]`. The completed
+whole-suite gate reports 100% for that measured source. Static inspection of
+the module-named unit folders confirms selection/version/error branches,
+environment and scope matrices, explicit/discovered identities, ancestor
+boundaries and filesystem failures are exercised. The unchanged legacy Git
+helper retains its dedicated unit test. Real subprocess evidence supplements
+these tests; child-process execution is not claimed as coverage.
+
+Files under `tests/` are outside that percentage. Static reference inspection
+confirms `GitSandbox`, `create_template` and `copy_template` feed the real Git
+fixtures; `RecordingGit` is used by adapter tests. New path/index fixtures,
+the proven-scope and published-capture fixtures, and existing expiry helpers
+are requested by tests. New routing fixtures feed the config assertions;
+`explicit_outside_git` and `diagram_file_texts` feed their named tests. The
+worker-count function is a registered pytest hook;
+test functions and fixtures are discovered by pytest. All other changed
+top-level helpers are referenced within their test package. The reduced PBT
+budgets retain assertions and add explicit shortest/deepest, dense/cyclic,
+Unicode, duplicate and maximum-size cases.
+
+No, no unit-tested class below 100% needs completing.
+No, no top-level symbol outside the coverage gate is unreferenced.
 
 ### Feature integrity for Step 2
 
-_(empty — no check has taken place yet.)_.
+Explicit B remains B under stale A routing, including a distinct inherited
+index. Compatible identity/signing/credential settings and selected benign
+configuration files survive; the parent mapping is unchanged. Linked metadata
+may live outside the worktree while managed destinations cannot cross foreign
+repository or physical boundaries. Original inputs and child failures remain
+available for diagnostics. Legacy configuration bytes cannot empty the scope
+check; missing streams fail explicitly, stream redirects cannot hide output,
+and linked `.git` gitfiles are not authorized managed destinations.
+
+The fixture repair does not claim to fix the production Windows watchdog
+shutdown race. Timing data and gate/reporting information remain available,
+but covered parallel measurements are not numerically equivalent to the old
+uninstrumented sequential timings. No Step 2 commit has been made.
+
+Real directory-junction evidence is present. The file-symlink capability probe
+failed with Windows privilege error 1314; real configuration-file symlink
+evidence remains pending for Step 4 and whole-topic acceptance. Steps 3 through
+6 retain their configuration, write-boundary, caller and rollout work. R9 stays
+unresolved and nonblocking for review as directed by the user.
 
 ## Step 3. Strict configuration and domain schema registration
 
