@@ -1,9 +1,11 @@
-"""One review journey proves policy, publication, frozen collection and drift."""
+"""Prove publication and drift, preparing and asserting the published baseline once."""
 
 from __future__ import annotations
 
 import json
 from typing import TYPE_CHECKING
+
+import pytest
 
 from tests.unit.tools.review_exchange_test_support import common_arguments
 from tools import prompt_workflow
@@ -11,21 +13,25 @@ from tools import review_exchange_cli as exchange_cli
 from tools.scope_capture import validate_capture
 
 if TYPE_CHECKING:
-    import pytest
-
     from tests.unit.tools.test_full_suite_levels_acceptance.conftest import Effort
 
 
-def test_published_capture_survives_same_name_drift(
-    effort: Effort, capsys: pytest.CaptureFixture[str],
-) -> None:
-    """Published evidence selects old files while progress discloses the new definition."""
+@pytest.fixture
+def published_capture(effort: Effort, capsys: pytest.CaptureFixture[str]) -> tuple[Effort, str]:
+    """Publish actual evidence and assert its baseline before the drift operation."""
     assert effort.walk("day", "--full=speed", "--group=sentinel")[0] == 0
     assert effort.render() == 0
     fingerprint = _assert_grouped_request(effort)
     assert effort.publish() == 0
     capture = _published_scope(effort, capsys, fingerprint)
+    return effort, capture
 
+
+def test_published_capture_survives_same_name_drift(
+    published_capture: tuple[Effort, str], capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Published evidence selects old files while progress discloses the new definition."""
+    effort, capture = published_capture
     groups = effort.root / ".ghog-groups"
     groups.write_text(groups.read_text(encoding="utf-8").replace("tests/old/**", "tests/new/**"), encoding="utf-8")
     _assert_bound_collection(effort, capture)

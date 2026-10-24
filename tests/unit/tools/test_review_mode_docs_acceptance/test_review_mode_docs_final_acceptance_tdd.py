@@ -3,10 +3,13 @@
 This sibling keeps final coverage, inventory, and connected-set contracts
 separate from the incremental Steps 1 through 4 assertions. Review-resume Step 6
 also checks the connected public pages for shipped resumption and waiting.
+The read-only connected-set audit reuses resolved paths and page contents.
 """
 
 from __future__ import annotations
 
+from functools import cache
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from .conftest import (
@@ -27,7 +30,7 @@ from .conftest import (
 )
 
 if TYPE_CHECKING:
-    from pathlib import Path
+    import pytest
 
 _CONNECTED_DOCUMENTATION = (
     "README.md",
@@ -112,9 +115,12 @@ def test_step_5_coverage_finalizes_every_inventory_candidate(docs_root: Path) ->
 
 
 def test_step_5_connected_set_closes_links_terms_logos_and_gates(
-    docs_root: Path,
+    docs_root: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Step 5 acceptance: the bounded connected set retains its contracts."""
+    # No writes occur during this audit; every distinct path/content is read once.
+    monkeypatch.setattr(Path, "resolve", cache(Path.resolve))
+    monkeypatch.setattr(Path, "read_text", cache(Path.read_text))
     assert_named_paths(docs_root, (*_CONNECTED_DOCUMENTATION, _COVERAGE))
     assert_local_links(docs_root, _CONNECTED_DOCUMENTATION)
 

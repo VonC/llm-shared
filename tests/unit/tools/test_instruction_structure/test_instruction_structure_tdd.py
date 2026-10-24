@@ -6,6 +6,7 @@ added in Steps 4 and 5: the writing and consolidation instructions carry a
 consolidation hint, and the splitting instructions present a multi-choice list
 with a free-text entry. The check runs on every walk, so a later edit that drops
 one fails fast (Q06).
+Diagram file contents are captured in setup; assertions retain real-file evidence.
 """
 
 from __future__ import annotations
@@ -443,15 +444,13 @@ def test_sensitive_history_scanner_has_package_launcher_and_alias() -> None:
     assert "automatically" in instruction
 
 
-def test_git_history_diagrams_have_package_launcher_alias_and_docs() -> None:
+def test_git_history_diagrams_have_package_launcher_alias_and_docs(diagram_file_texts: dict[str, str]) -> None:
     """Diagram sources, tests, launcher, alias, assets, and Diátaxis set stay together."""
     root = steps.llm_shared_dir()
     source = root / "tools" / "git_history_diagrams"
     tests = root / "tests" / "unit" / "tools" / "git_history_diagrams"
-    launcher = (root / "bin" / "git_history_diagrams.bat").read_text(
-        encoding="utf-8",
-    )
-    doskeys = (root / "senv.doskey").read_text(encoding="utf-8")
+    launcher = diagram_file_texts["bin/git_history_diagrams.bat"]
+    doskeys = diagram_file_texts["senv.doskey"]
 
     assert (source / "generate_git_history_diagrams.py").is_file()
     assert (source / "scenarios.py").is_file()
@@ -469,7 +468,7 @@ def test_git_history_diagrams_have_package_launcher_alias_and_docs() -> None:
         "wiki/how-to/update-git-history-diagrams.md",
         "wiki/reference/git-history-diagram-generator.md",
     ):
-        content = (root / page).read_text(encoding="utf-8")
+        content = diagram_file_texts[page]
         assert ".svg" in content
 
 

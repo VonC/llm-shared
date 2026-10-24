@@ -1,6 +1,6 @@
 """Scope evidence reuses validated identity, declared commands and proof validity.
 
-The round-trip test caches real resolutions of its stable, symlink-free paths
+The scope journeys cache real resolutions of their stable, symlink-free paths
 to avoid repeatedly paying Windows filesystem lookup cost at every boundary.
 Its published first-round baseline is initialized and checked in a fixture;
 the measured call exercises membership edits and replacement publication.
@@ -197,13 +197,12 @@ def _assert_proof(root: Path, files: dict[str, Path], arguments: list[str], proo
     return authored
 
 
-@pytest.mark.parametrize("selector", ["--whole-suite", "--group=sentinel"])
-@pytest.mark.parametrize("change", ["floor", "exclusions"])
-def test_rendered_proof_downgrades_and_recovers(  # noqa: PLR0913
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str],
-    selector: str, change: str,
-) -> None:
-    """Real walks and rendering share timing invalidation for both scope kinds."""
+@pytest.fixture
+def proven_scope_walk(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, selector: str,
+) -> tuple[dict[str, Path], list[str], CoverageSpawns, list[str]]:
+    """Construct and assert genuine speed proof before testing its invalidation."""
+    monkeypatch.setattr(Path, "resolve", cache(Path.resolve))
     group_project(tmp_path)
     plan, files, arguments = _render(tmp_path, monkeypatch)
     requirement = plan.with_name("feature-request.v0.13.0.topic.md")
@@ -213,6 +212,17 @@ def test_rendered_proof_downgrades_and_recovers(  # noqa: PLR0913
     walk = ["day", "--full=speed", selector, "--root", str(tmp_path)]
     assert cli.main(walk, make_deps(spawns)) == 0
     _assert_proof(tmp_path, files, arguments, "speed")
+    return files, arguments, spawns, walk
+
+
+@pytest.mark.parametrize("selector", ["--whole-suite", "--group=sentinel"])
+@pytest.mark.parametrize("change", ["floor", "exclusions"])
+def test_rendered_proof_downgrades_and_recovers(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], selector: str, change: str,
+    proven_scope_walk: tuple[dict[str, Path], list[str], CoverageSpawns, list[str]],
+) -> None:
+    """Real walks and rendering share timing invalidation for both scope kinds."""
+    files, arguments, spawns, walk = proven_scope_walk
     if change == "floor":
         floor.write_floor(tmp_path, 99, 2.0)
     else:
@@ -380,14 +390,13 @@ def _assert_frozen_affected(root: Path, capture: str) -> None:
 
 
 def test_legacy_replacement_clears_scope(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str],
+    tmp_path: Path, capsys: pytest.CaptureFixture[str],
+    published_group_exchange: tuple[exchange_cli.Runtime, ReviewExchangeCore,
+                                    dict[str, Path], list[str], str, bytes],
 ) -> None:
     """A legacy replacement cannot inherit scope evidence from the preceding round."""
-    runtime, core, files, arguments = _exchange_fixture(tmp_path, monkeypatch)
+    runtime, core, files, arguments, _capture, _bound = published_group_exchange
     _assert_proof(tmp_path, files, arguments, "missing")
-    core.publish_request(files["content"].read_text(encoding="utf-8"),
-                         files["summary"].read_text(encoding="utf-8"),
-                         files["summary"].with_name("a.scope.json").read_text(encoding="utf-8"))
     core.publish_answer(review_artifact(runtime.context, ReviewRole.REVIEWER, 1,
                         disposition=ReviewDisposition.CHANGES_REQUESTED), "Legacy next.")
     core.consume_answer(reviewed_work_changed=True)
@@ -404,6 +413,7 @@ def test_definition_edit_invalidates_previously_saved_proof(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """An unchanged source digest cannot preserve proof for a changed declaration."""
+    monkeypatch.setattr(Path, "resolve", cache(Path.resolve))
     group_project(tmp_path)
     plan, files, arguments = _render(tmp_path, monkeypatch)
     plan.with_name("feature-request.v0.13.0.topic.md").write_text(
