@@ -352,10 +352,10 @@ def lifecycle_journey(tmp_path: Path) -> None:
     authorized_before_handoff = canonical.index(
         "owning_action_authorized: true",
     ) < canonical.index(
-        "consolidate-then-review-ask-questions",
+        "`consolidate-then-review-ask-questions` workflow",
     )
     handoff_before_completion = canonical.index(
-        "consolidate-then-review-ask-questions",
+        "`consolidate-then-review-ask-questions` workflow",
     ) < canonical.index("call `complete`")
     assert (
         second_publication.code,
