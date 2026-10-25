@@ -76,8 +76,8 @@ def _declaration_value(path: Path) -> tuple[str, bool]:
     return parser[_SECTION][_HOME_KEY].strip(), True
 
 
-def _resolve_home(root: Path, value: str) -> tuple[Path, str]:
-    """Normalize one portable path and enforce the physical root boundary."""
+def _lexical_home(root: Path, value: str) -> Path:
+    """Reject non-relative spelling before any consumer can access the path."""
     if not value:
         raise ReviewExchangeError("artifact home must be a non-empty relative path")
     windows = PureWindowsPath(value)
@@ -90,7 +90,15 @@ def _resolve_home(root: Path, value: str) -> tuple[Path, str]:
         or "%" in value
     ):
         raise ReviewExchangeError("artifact home must be repository-relative")
-    candidate = (root / value.replace("\\", "/")).resolve(strict=False)
+    return root / value.replace("\\", "/")
+
+
+def _resolve_home(root: Path, value: str, validate_home: Callable[[Path], None] | None = None) -> tuple[Path, str]:
+    """Check spelling before consumer validation, then enforce physical containment."""
+    lexical = _lexical_home(root, value)
+    if validate_home is not None:
+        validate_home(lexical)
+    candidate = lexical.resolve(strict=False)
     try:
         relative = candidate.relative_to(root)
     except ValueError as error:
@@ -102,7 +110,11 @@ def _resolve_home(root: Path, value: str) -> tuple[Path, str]:
 
 @dataclass(frozen=True)
 class ReviewArtifactConfiguration:
-    """Validated physical and portable paths for one artifact home."""
+    """Validated paths with consumer checks after lexical validation, before resolution.
+
+    Consumers can retain lexical authorization while parsing and preparation
+    remain shared. Existing callers need no additional validation callback.
+    """
 
     project_root: Path
     home: Path
@@ -115,11 +127,12 @@ class ReviewArtifactConfiguration:
         project_root: Path,
         *,
         tracked_directory: Callable[[Path, str], bool] = _tracked_directory,
+        validate_home: Callable[[Path], None] | None = None,
     ) -> ReviewArtifactConfiguration:
         """Load and validate the optional root declaration without writing."""
         root = project_root.resolve(strict=True)
         value, declared = _declaration_value(root / _DECLARATION_NAME)
-        home, relative = _resolve_home(root, value)
+        home, relative = _resolve_home(root, value, validate_home)
         if home.exists():
             if not home.is_dir():
                 raise ReviewExchangeError("artifact home is not a directory")

@@ -27,6 +27,49 @@ def test_absent_declaration_uses_portable_default(tmp_path: Path) -> None:
     assert configuration.declaration_path == tmp_path / ".review-artifacts.ini"
 
 
+@pytest.mark.parametrize("value", [".reviews", "runtime/../reviews"])
+def test_consumer_validation_receives_lexical_home(tmp_path: Path, value: str) -> None:
+    """The optional boundary sees the configured spelling before resolution."""
+    if value != ".reviews":
+        (tmp_path / ".review-artifacts.ini").write_text(f"[review-artifacts]\nhome={value}\n", encoding="utf-8")
+    seen: list[Path] = []
+
+    configuration = ReviewArtifactConfiguration.load(tmp_path, validate_home=seen.append)
+
+    assert seen == [tmp_path.resolve() / value]
+    assert configuration.home == (tmp_path / value).resolve()
+    assert not configuration.home.exists()
+
+
+def test_consumer_rejection_precedes_physical_normalization(tmp_path: Path) -> None:
+    """A lexically relative home reaches the consumer before physical resolution."""
+    declaration = tmp_path / ".review-artifacts.ini"
+    content = b"[review-artifacts]\nhome=../outside\n"
+    declaration.write_bytes(content)
+
+    def reject(_path: Path) -> None:
+        message = "consumer boundary rejected"
+        raise ReviewExchangeError(message)
+
+    with pytest.raises(ReviewExchangeError, match="consumer boundary rejected"):
+        ReviewArtifactConfiguration.load(tmp_path, validate_home=reject)
+
+    assert declaration.read_bytes() == content
+    assert set(tmp_path.iterdir()) == {declaration}
+
+
+@pytest.mark.parametrize("value", ["", "C:relative", "C:/absolute", "//server/share", "\\\\server\\share", "/rooted", "\\rooted", "$HOME/reviews", "%TEMP%/reviews", "~/reviews"])
+def test_lexically_invalid_home_never_reaches_consumer(tmp_path: Path, value: str) -> None:
+    """Reject invalid spelling before a consumer can probe an external path."""
+    (tmp_path / ".review-artifacts.ini").write_text(f"[review-artifacts]\nhome={value}\n", encoding="utf-8")
+    validate = Mock()
+
+    with pytest.raises(ReviewExchangeError, match="artifact home must be"):
+        ReviewArtifactConfiguration.load(tmp_path, validate_home=validate)
+
+    validate.assert_not_called()
+
+
 def test_valid_declaration_normalizes_separators_and_dot_segments(
     tmp_path: Path,
 ) -> None:
