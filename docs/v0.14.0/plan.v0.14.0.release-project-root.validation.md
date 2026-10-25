@@ -10,7 +10,9 @@ groundhog's call-only speed gate. Step 2's controlled Git and physical-path
 services, including the Round 1 boundary repairs, pass the replacement full
 speed day and static implementation check. Step 3's strict configuration and
 schema registration pass the full speed gate after the family-instance repair.
-Steps 4 through 6, including the public caller matrix and rollout, remain pending.
+Step 4's managed writes, artifact capabilities and operation ownership pass the
+repaired full speed gate. Steps 5 and 6, including the public caller matrix and
+rollout, remain pending.
 
 ## File-based IO cost clarification for v0.14.0 release-project-root implementation
 
@@ -696,7 +698,15 @@ status remains No.
 
 ### Analysis of Step 4 implementation state
 
-Not started. Step 4 is not implemented because the managed-write service, read-only artifact adapter and shared operation lock have not been implemented.
+Yes. Step 4 has been fully implemented.
+
+Managed writes, separate artifact capabilities and durable operation ownership
+are implemented and pass the repaired full speed gate. The optional
+`validate_home` callback runs after lexical rejection and before physical
+resolution. The transition mutex waits up to one second for a brief contender
+record check, preserving owner release, retention and transfer. The plan now
+records the helper seam and measured line counts as a Step 4 implementation
+adjustment; the requirement and design remain unchanged.
 
 ### Goal for Step 4
 
@@ -713,27 +723,107 @@ Separate resolution from mutation, revalidate managed destinations and retain ex
 
 ### What was implemented for Step 4
 
-_(empty — no check has taken place yet.)_.
+- `managed_files.py` retains lexical and physical destination authorization,
+  revalidates at mutation boundaries and publishes flushed same-parent
+  temporaries atomically. Failure cleanup checks ownership of its temporary.
+- `artifacts.py` separates read-only declarations from prepared capabilities.
+  The existing helper owns parsing, exact ignore bytes and rollback. Its new
+  optional `validate_home` callback lets the release adapter authorize the
+  original path after lexical checks, before normalization, and retain it
+  through preparation. Invalid spellings cannot trigger consumer probes.
+- `windows_process.py` queries native PID and creation time, distinguishing
+  dead processes from unknown identity and PID reuse. `operation_lock.py`
+  flushes complete versioned records before non-replacing publication, uses
+  a project mutex with a bounded transition wait and retains ownership through handoffs.
+  Recovery requires an exact dead owner without retained ownership; malformed
+  records and unknown versions fail conservatively with diagnostic context.
+- TDD covers containment, aliases, tracking, rollback, write failures, native
+  process identity, contention and retained transfer. A property test checks
+  ownership transitions against an independent state model. The two lexical
+  alias regressions failed before the repair and pass afterward. Sixteen
+  callback-ordering and mutex-contention checks also failed before repair and
+  now pass. Native contention checks synchronize on actual mutex contention
+  without sleeps; all three owner transitions are covered.
+
+The resolved `ghog day --full=speed --whole-suite` passed compile, lint,
+complexity, affected, full coverage and timing gates after the repairs, with
+4,036 tests, `exit=0`, `fail=0`, `warn=2`, `cov=100`, `outliers=0`,
+`excluded=0`, `proof=speed` and `reused=none`. `ghog status` confirmed
+`state=done` and `exit=0` at `2026-10-25T20:40:22+01:00`.
 
 ### New types or classes introduced for Step 4
 
-_(empty — no check has taken place yet.)_.
+`ManagedTarget`, `ArtifactDeclaration`, `PreparedArtifacts`, `ProcessIdentity`,
+`ProcessState`, `OperationLock`, `RetainedOwnership` and their typed errors
+separate path, artifact, process and operation responsibilities.
 
 ### Architecture check for Step 4
 
-_(empty — no check has taken place yet.)_.
+Path authorization, artifact policy, operation state and Windows interrogation
+have separate responsibilities. The artifact helper accepts an optional
+consumer callback and does not import release services. Parsing, ignore policy
+and rollback remain single-sourced. Domains retain transaction ordering and
+must revalidate mutable state after acquiring ownership. The write-boundary
+inspection finds project writes behind managed services; runtime setup writes
+retain their separate tooling boundary.
+
+The callback is the narrow helper seam that the amended Step 4 checkpoint
+records: the helper grows from 184 to 197 lines and its existing test leaf from
+218 to 261, preserving legacy behavior for callers that omit it. Without this seam,
+the adapter loses lexical repository boundaries or must duplicate parsing.
+New source files have 123/133/233/132 lines; new TDD/PBT leaves have
+226/140/285/97/92 lines, and test initializers have 3 each. The package
+initializer grows from 9 to 10 lines. All remain below the 650-line ceiling.
+
+The plan's file list, implementation text, baseline table, Step 4 checkpoint
+and implementation decisions now record this integration seam. The amendment
+claims no separate human agreement; the human accepts or rejects it at the
+Step 4 commit gate, which commits the plan change with this validation.
+
+No, there is nothing that needs to be addressed.
 
 ### Performance check for Step 4
 
-_(empty — no check has taken place yet.)_.
+Checks visit affected ancestors, JSON fields and fixed native API calls without
+tree scans or sorting. No new quadratic or n-log-n processing was introduced.
+The first repaired speed run flagged the lock property test at 1.25 seconds.
+Profiling identified repeated native filesystem checks and lock-record I/O;
+bounding generated traces from 15 to 6 reduced isolated profiled time from
+0.939 to 0.366 seconds. Strategy bounds, the explicit lifecycle, independent
+state model and all assertions are preserved. The final full speed gate has
+zero outliers and exclusions; no duration floor or baseline was raised.
+No, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 4
 
-_(empty — no check has taken place yet.)_.
+The configured source scope is `tools`, including all four new source modules
+and the modified artifact helper. The full gate reports 100% line coverage.
+Each new module has its own unit-test folder; the existing helper leaf adds
+default/configured callback and rejection coverage. Static inspection accounts
+for all executable helpers through these tests or internal callers, including
+error translation, strict record decoding and owned cleanup. Initializers are
+excluded from the gate and contain only documentation.
+
+Real directory-junction regressions prove rejection of nested aliases returning
+inside the project and internal aliases repointed before preparation. Native
+file-symlink creation is unavailable here (Windows error 1314); its test skips
+only that capability error, with a separate deterministic resolved-target
+rejection test. No native file-symlink execution evidence is claimed. Native
+process and mutex tests passed.
+
+No, there is no unit-tested class below 100% that needs completing.
+No, there is no unreferenced top-level symbol outside the coverage gate.
 
 ### Feature integrity for Step 4
 
-_(empty — no check has taken place yet.)_.
+Existing artifact-configuration regressions pass with the optional callback
+omitted. Read-only resolution and rejected paths leave artifacts unchanged and
+do not migrate legacy files. Tests preserve original bytes and ownership on
+failed writes and transitions. No existing feature or reporting regression is
+identified. An owner's cleanup or handoff now tolerates brief contention;
+a mutex still busy after the bound fails visibly and conservatively. Launcher
+composition and cross-process acceptance remain in their planned Steps 5 and
+6, so the document-level status remains No.
 
 ## Step 5. Invocation context, dispatch and actual launchers
 

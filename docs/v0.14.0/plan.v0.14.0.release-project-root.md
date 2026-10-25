@@ -91,7 +91,7 @@ substitute the standalone checker's fallback limit.
 | `.gitignore` | 121 | Reference; already ignores `venvs/` |
 | `tools/__init__.py` | 94 | Reference; safe, unchanged |
 | `tools/git_command.py` | 102 | Reference; safe, unchanged |
-| `tools/review_artifact_configuration.py` | 184 | Reuse unchanged; safe |
+| `tools/review_artifact_configuration.py` | 184 | Step 4 optional validation seam; final 197, safe |
 | `tools/artifact_home.py` | 101 | Reference; safe, unchanged |
 | `tests/__init__.py` | 7 | Existing parent, unchanged; safe |
 | `tests/unit/__init__.py` | 6 | Existing parent, unchanged; safe |
@@ -101,7 +101,7 @@ substitute the standalone checker's fallback limit.
 | `tests/unit/tools/conftest.py` | 78 | Existing mocks, unchanged; safe |
 | `tests/unit/test_pyproject_metadata.py` | 44 | Regression suite, unchanged; safe |
 | `tests/unit/tools/test_git_command.py` | 144 | Regression suite, unchanged; safe |
-| `tests/unit/tools/test_review_artifact_home/test_review_artifact_configuration_tdd.py` | 218 | Regression suite, unchanged; safe |
+| `tests/unit/tools/test_review_artifact_home/test_review_artifact_configuration_tdd.py` | 218 | Step 4 seam regressions; final 261, safe |
 | `docs/v0.14.0/feature-request.v0.14.0.release-project-root.md` | 353 | Pre-clarification planning baseline |
 | `docs/v0.14.0/design.v0.14.0.release-project-root.md` | 706 | Pre-clarification planning baseline |
 
@@ -553,6 +553,8 @@ Files involved:
 - `tools/release_workflow/managed_files.py` (new, to be created).
 - `tools/release_workflow/operation_lock.py` (new, to be created).
 - `tools/release_workflow/windows_process.py` (new, to be created).
+- `tools/review_artifact_configuration.py` (existing, optional consumer validation seam).
+- `tests/unit/tools/test_review_artifact_home/test_review_artifact_configuration_tdd.py` (existing, seam regressions).
 - `tests/unit/tools/release_workflow/test_managed_files/__init__.py` (new, to be created).
 - `tests/unit/tools/release_workflow/test_managed_files/test_managed_files_tdd.py` (new, to be created).
 - `tests/unit/tools/release_workflow/test_operation_lock/__init__.py` (new, to be created).
@@ -575,6 +577,10 @@ Classes and behavior:
 - `resolve_artifacts` calls `ReviewArtifactConfiguration.load` with Step 2's
   tracking callback, checking the declaration and destination physically.
   It exposes a read-only declaration, not eager `artifact_home` preparation.
+  The shared loader offers an optional `validate_home` callback after its
+  lexical rejection checks and before physical resolution. The adapter uses
+  it to retain the configured spelling, so normalization cannot hide nested
+  traversal or erase an alias that must be rechecked before preparation.
 - `prepare_artifacts` is available only after complete mutation preflight;
   the managed service revalidates existing home ancestors, then delegates to
   `ReviewArtifactConfiguration.prepare_home()`. Revalidate the prepared home
@@ -618,7 +624,10 @@ Line-budget checkpoint:
 
 - [ ] New Python files: baseline 0, safe band, ceiling 650; advisory 150–400
   per source and 300–500 per test, under 30 per initializer.
-- [ ] Reused artifact configuration 184 and regression test 218 stay unchanged.
+- [ ] Artifact configuration baseline 184, final 197; regression test baseline
+  218, final 261. The optional callback is the narrow Step 4 integration seam;
+  preserve existing callers, parsing, ignore policy and rollback. Both files
+  remain below the 650-line ceiling.
 - [ ] Split lock state transitions from process interrogation, and managed-write
   tests from artifact-policy tests if any file would exceed 650.
 
@@ -911,6 +920,7 @@ by any planned implementation or fixture.
 | Question | Decision | Integrated in | Basis and rejected alternatives |
 | --- | --- | --- | --- |
 | No open questions | Retain the reviewed file layout, six-step order, test strategy and per-step checks; consolidation explicitly approved by the user | Steps 1 through 6 and planning risk pass | Three independent review rounds resolved the implementation findings; round 3 confirmed that no question was missing, and its two covered reflow edits are applied. No alternative remains unresolved. The approved requirement and design decisions remain unchanged |
+| Step 4 helper integration seam | Add optional consumer validation after lexical checks and before physical resolution; update the unchanged-helper checkpoint and measured counts | Step 4 implementation and addendums | Implementation and round 1 review exposed lost lexical boundaries and premature UNC probing. The seam preserves one parser and preparation owner, with unchanged behavior for existing callers. This implementation adjustment fulfills AC4/AC9 without changing the requirement or design |
 
 The user authorized consolidation, a clean working tree and push, followed by
 implementation of Step 1. That authorization is separate from the reviewer's
