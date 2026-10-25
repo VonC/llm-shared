@@ -110,7 +110,16 @@ Before using or showing a host-prefixed workflow command, read
 prefix rule.
 
 The review is a stop, not an automatic chain: a human answers the questions
-and separately expresses intent before consolidation. Leave the next step in two forms rather than running it:
+and separately expresses intent before consolidation. Offer
+[explain-undecided-questions.md](explain-undecided-questions.md) for a guided
+discussion. For a live independent review, its requestor offers that choice
+after convergence. The discussion preserves question blocks and ends with a
+fresh independent review of decisions, comments, inconsistencies, and new
+questions. An active explanation or required follow-up takes precedence over
+the consolidation hint below; do not present consolidation as the immediate
+next action while that work remains.
+
+Once that handoff is satisfied, leave the next step in two forms rather than running it:
 the "Next step" command
 `<command-prefix>consolidate-then-review-ask-questions on <document-path> consolidate the answered questions` using
 the exact path just reviewed, plus the same command as a gray, Tab-completable

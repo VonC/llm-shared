@@ -241,10 +241,21 @@ Supply concrete writer instructions and requested changes. If the current
 document has no open question for a live request, direct the writer to settle
 or cancel that inconsistent round.
 
-Use `convergence-recommended` only when every in-scope decision is settled and
-no more than wording-only edits remain. Supply the covered wording and
-convergence rationale. A convergence recommendation is advisory and never
-authorizes consolidation.
+Use `convergence-recommended` only when the in-scope questions, options and
+proposed answers are complete and consistent, and no more than wording-only
+edits remain in that reviewed formulation. Distinguish reviewer agreement
+from explicit human decisions: a proposed `Answer to Qxx` may pass review
+while still awaiting the user. Identify those outstanding human choices;
+never mark them confirmed yourself. Supply the covered wording and convergence
+rationale. A convergence recommendation is advisory and never authorizes
+consolidation.
+
+For a review after question explanations, assess the recorded user decisions
+and comments against the whole specification and related document scope.
+Detect contradictions with earlier answers, consequences of conditional
+choices, and new questions that those decisions or comments make necessary.
+Do not merely check that every answer is nonempty. Preserve explicit human
+choices; report conflicts and proposed corrections instead of overriding them.
 
 When the request includes a literal `Human guidance:` block, address it in a
 separate guidance-response input. Guidance informs the assessment but cannot

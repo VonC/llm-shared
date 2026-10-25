@@ -117,6 +117,12 @@ A requestor enters its specification or code requestor instruction with the
 selected exact context and capability. It consumes an available answer,
 waits for that exchange's exact answer, presents an existing convergence gate,
 or resumes an already authorized owning action according to durable status.
+At a specification convergence gate, first reconcile any selected or saved
+[question-explanation phase](explain-undecided-questions.md). Resume its
+pending explanation/decision with the original starting index, or initiate
+its authorized follow-up review when all questions are decided. An existing
+replacement round takes precedence over a stale note saying review is still
+required. Do not replace this continuation with a generic convergence menu.
 After exchange release, run and follow `pw skill` immediately. Never consume
 an arbitrary request or start a reviewer from a requestor route.
 The one exception is a release through `complete` after an authorized `Commit`

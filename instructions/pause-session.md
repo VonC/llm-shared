@@ -136,6 +136,17 @@ checkpoint. If a check cannot run, record the uncertainty instead of calling
 the state verified. When notes disagree with disk or the latest journal
 milestone, record the discrepancy and the evidence used to resolve it.
 
+For [question explanations](explain-undecided-questions.md), read and refresh
+the document-specific continuation note and copy its phase into the pause
+template. Preserve the fixed starting position `I`, endpoint and ordered IDs,
+current/next/last undecided question, whether an explanation was delivered and
+its explicit decision recorded, and the follow-up review authority or hold.
+Run the full read-only decision scan: if the last answer was recorded but the
+note still says `awaiting-user-decision`, reconcile it to
+`follow-up-review-required`. The next action must resume explanation/decision
+or initiate that review, not consolidate or restart the convergence menu.
+If the follow-up was already published, record its exact round and resume it.
+
 Keep private identifiers in the artifact home. Record credential locations
 or access instructions, never credential values. Never persist review
 ownership capabilities, tokens or session secrets in the prompt, receipt,

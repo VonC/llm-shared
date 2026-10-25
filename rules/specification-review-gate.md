@@ -43,6 +43,15 @@ exact identity and round. It is not complete merely because the request exists.
 Use the shared exchange's answer, convergence and human-authorization gates;
 never present Q01-style author decisions as reviewer findings.
 
+Reviewer convergence and explicit user decisions are separate. A proposed
+answer can pass review while remaining undecided. The human may enter
+[explain-undecided-questions.md](../instructions/explain-undecided-questions.md)
+at convergence; that discussion retains the exchange and every question block.
+After its decisions and comments are recorded, a fresh independent round must
+check their consistency and find any newly necessary questions. Earlier
+convergence does not cover those subsequent changes. Honor an explicit review
+waiver accurately, but never infer one from answering the final question.
+
 The ordinary next-phase handoff is available only after this gate has been
 satisfied by the existing review workflow or an explicit human waiver. A
 no-question pass must never bypass this gate. A printed next command describes

@@ -273,6 +273,12 @@ not end or restart a bounded protocol wait.
 7. At convergence, retain the answer and present the specialized assessment,
    reviewer recommendation, identity summary, and registered labels to the
    human. The reviewer cannot call `confirm`.
+   A specification requestor may also offer `Explain undecided questions`
+   under [explain-undecided-questions.md](explain-undecided-questions.md).
+   This discussion retains `convergence-gate`; it is not a registered label
+   or authorization for the owning action. Resume its private phase before
+   re-presenting a generic menu. Its authorized follow-up uses the existing
+   another-round label after all explicit user decisions are recorded.
 8. Pass the selected display label to `confirm --choice-label <label>`. Add
    `--guidance-file <path>` only when the human supplied guidance. Another
    round returns active authority for a replacement request. A continuing

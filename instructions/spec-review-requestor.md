@@ -105,7 +105,7 @@ Use the shared diagnostic and state without recreating its classifier:
 | `abandoned-request` | Call `reclaim`, then resume waiting with unchanged evidence. |
 | `abandoned-answer` | Call `reclaim`, then assess the retained exact answer. |
 | `abandoned-mid-round` | Call `reclaim`, then resume the persisted owner action. |
-| `convergence-gate` | Re-present the recommendation, assessment, identity, and choices. |
+| `convergence-gate` | Reconcile an active question-explanation note first and resume its discussion or required review; otherwise present the recommendation, assessment, identity, and choices. |
 | `owning-action-pending` | Resume authorized consolidation without asking again. |
 | `escalated` | Stop for the shared human-resolution path; never reclaim it. |
 
@@ -160,7 +160,29 @@ which edits are already present in the reviewed document, and show:
 - the exact reviewed specification and round;
 - the reviewer recommendation;
 - the writer assessment; and
-- `Revise and review again` and `Consolidate`.
+- `Revise and review again`, `Consolidate`, and, when questions remain
+  undecided, `Explain undecided questions`.
+
+Run the read-only scanner and use
+[explain-undecided-questions.md](explain-undecided-questions.md) for its exact
+invocation, explicit-decision rules, and private continuation note. Show the
+undecided count and next/last IDs. Reviewer convergence assesses the questions
+and proposed answers; it does not record the user's choices. A populated
+`Answer to Qxx` alone is not a decision.
+
+`Explain undecided questions` enters that instruction as a requestor activity
+within the retained gate. It is not a third protocol outcome: do not pass it
+to `confirm`. The user's selection authorizes the discussion and the required
+follow-up review of decisions and comments, not consolidation. An explicit
+invocation of that skill carries the same selection through resume routing;
+do not re-ask the convergence menu before starting it.
+
+Before offering consolidation as ready to execute, reconcile remaining
+undecided questions and any `follow-up-review-required` or in-progress batch.
+Do not silently accept proposed answers or reuse pre-decision convergence as
+review of the changed document. Resume an active explanation or required
+review from its note, preserving the original starting index. After its fresh
+review converges, offer explanation again for newly added undecided questions.
 
 The reviewer recommendation never authorizes consolidation.
 Do not call `consume-answer` for a convergence recommendation. Retain the

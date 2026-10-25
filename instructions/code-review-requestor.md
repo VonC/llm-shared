@@ -255,6 +255,15 @@ preserve them for separate work rather than silently including or discarding
 them. A clean-tree postcondition may require resolving that pending work with
 the human; it never expands the reviewed authorization.
 
+When a blocker is an undecided specification question, identify its exact
+owning requirement, design, or plan and route the human discussion through
+[explain-undecided-questions.md](explain-undecided-questions.md). Keep the code
+exchange and its bound evidence intact; never use code commit readiness as
+specification convergence. Decisions that change implementation or bound scope
+require `Rework and review again`, appropriate validation, and a replacement
+code review before committing that changed scope. The specification discussion
+authorizes its own follow-up review, not a code commit or code-round choice.
+
 Present the exact umbrella or `none`, plan, step, round, reviewer recommendation,
 repaired paths, staged evidence, `a.commit`, and writer assessment. Show
 `Rework and review again` and `Commit`.

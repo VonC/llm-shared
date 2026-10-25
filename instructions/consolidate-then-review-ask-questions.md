@@ -6,6 +6,15 @@ Check your prompt for type (feature-request, issue, design or plan), vX.Y.Z and 
 
 ## Express human intent before consolidation
 
+First reconcile any active question-explanation continuation note under
+[explain-undecided-questions.md](explain-undecided-questions.md). An unfinished
+discussion or its required follow-up review must not be skipped because all
+`Answer` headings are populated or an earlier round converged. Return that
+work to the specification requestor before granting new consolidation
+authorization. A pending proposal is not a recorded user choice. Do not reset
+an already durable `owning-action-pending` authorization; follow its existing
+replay contract and report conflicting state rather than silently rewriting it.
+
 Consolidation requires express human intent for the exact document. Before
 any snapshot commit, document edit, decision-table replacement, or `oqm` mode,
 establish one of these two sources of authority:

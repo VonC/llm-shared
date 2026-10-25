@@ -160,6 +160,19 @@ handle is not a reusable ownership capability. A process may outlive the
 previous chat without being attachable from this one; verify it before
 launching anything else.
 
+When the snapshot or latest notes name a question-explanation phase, follow
+[explain-undecided-questions.md](explain-undecided-questions.md). Reconcile its
+document-specific note against a fresh full decision scan and live review
+state. Retain the original `I` and batch endpoint. Continue the current
+explanation or pending user answer; do not skip an explained but undecided
+question. For an unfinished discussion, if every question is now explicitly
+decided, resume the authorized follow-up review, even if the saved note
+predates the last answer. A `reviewed` batch returns to the current gate
+without another review. If that
+round already exists, resume it instead of publishing again. Perform these
+actions after the usage receipt below, with review ownership restored through
+the canonical resume path; the saved phase is not an ownership capability.
+
 ## Mark this prompt used and resume the task
 
 Once the prompt or notes and required references have been read and state
