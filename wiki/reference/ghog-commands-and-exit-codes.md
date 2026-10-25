@@ -26,7 +26,7 @@ same contract into local automation.
 | `pta` | `ghog affected` | testmon-selected tests, `--cov-append`, coverage report |
 | `ptanc` | `ghog affected --no-cov` | testmon-selected tests, no coverage |
 | `pts` | `ghog single <test files>` | named test files in focus, no coverage, compared with the last full-run baseline |
-| — | `ghog timings` | sequential, uninstrumented whole-suite pass that judges the duration gate |
+| — | `ghog timings` | optional sequential, uninstrumented whole-suite diagnostic that judges the duration gate; never appended by `day` |
 | — | `ghog init` | register the skill pointers in the project |
 | — | `ghog exclude "<node id>" <seconds>` | accept a genuinely slow call at its measured time |
 | — | `ghog groups [name]` | validate group declarations and print patterns and resolved test/source counts |
@@ -96,7 +96,10 @@ must match too. Legacy one-line snapshots provide no valid proof.
 Valid proof at or above the requested level skips the entire walk, including
 `check.bat`. An upgrade from a lower valid proof reuses check and affected tests
 and runs the full step at the requested level. Changing the duration floor or
-exclusions caps a saved `speed` proof at `cov`. A failed judged gate lowers
+exclusions caps a saved `speed` proof at `cov`. The timing fingerprint also
+identifies the measurement method: speed proof from the former separate
+timing pass is capped at `cov` until a full speed run revalidates it.
+A failed judged gate lowers
 proof below that gate; a setup failure or interruption without a verdict
 preserves prior proof. Direct `ghog full` reports earned proof but never reads
 or writes a day marker.
@@ -109,11 +112,11 @@ A project opts its full run into workers by adding a `.ghog-parallel` marker
 at its root, which runs `-n auto --dist loadgroup` so a module carrying an
 `xdist_group` mark keeps its module-scoped fixtures on one worker. Parallel
 mode omits `--testmon` and leaves the existing testmon database untouched;
-`ghog affected` still uses that database. A parallel full run skips the
-duration gate, because a contended call time measures the
-scheduler rather than the test. Direct parallel `full --full=speed` earns at
-most `cov` proof. A parallel `day --full=speed` follows the full step with
-sequential, uninstrumented timings before earning `speed` proof.
+`ghog affected` still uses that database. At speed, both modes collect call
+durations alongside coverage during full. A successful direct parallel
+`full --full=speed` earns `speed` proof, and day runs no additional timing
+pass. Durations include coverage overhead and worker contention. Explicit
+`ghog timings` remains an optional sequential diagnostic.
 
 ## 🚦 Exit codes
 
@@ -191,7 +194,12 @@ run reading as live — break that verdict by deleting `a.ghog.status`.
 
 ## 🐢 The duration gate in detail
 
-The sequential full run at `speed` and `ghog timings` measure each test's call phase.
+At `speed`, sequential and parallel full runs measure each selected test's
+call phase during the covered execution. Setup and teardown are outside the
+duration gate. The optional `ghog timings` diagnostic measures whole-suite
+calls sequentially without coverage; those measurements are not directly
+comparable to covered, potentially contended full-run measurements.
+
 A call is flagged as an
 outlier — exit 8 on an otherwise-green run — only when two conditions
 hold at once:

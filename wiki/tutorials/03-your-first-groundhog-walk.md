@@ -50,8 +50,11 @@ ghog day --full=cov --whole-suite
 
 The walk adds a full step, measures coverage against `fail_under` (default 100),
 and rebuilds testmon in sequential mode. Use `--full=pass` for passing tests
-alone, or `--full=speed` to add the duration gate. These explicit parameters
-override `GHOG_FULL` and `GHOG_GROUP` from your console.
+alone, or choose `--full=speed` when you also want the duration gate. At speed,
+the full step collects coverage and timings together, on either one worker
+or parallel workers; the walk ends without a second suite run for timing.
+These explicit parameters override `GHOG_FULL` and `GHOG_GROUP` from your
+console.
 
 In a console you see a progress bar with live counters; the run ends on a
 key=value closing line such as:
@@ -96,7 +99,7 @@ type a.ghog.log
 
 ## 👉 Next steps after the first walk
 
-- [Fix a red groundhog walk](../how-to/fix-a-red-groundhog-walk.md) for
-  the per-exit-code recipes.
 - [Groundhog as a reset loop](../explanation/groundhog-as-a-reset-loop.md)
   for why the tool relives the day instead of watching files.
+- [Fix a red groundhog walk](../how-to/fix-a-red-groundhog-walk.md) for
+  the per-exit-code recipes.

@@ -15,8 +15,8 @@ the one-second target, without weakening any assertion.
 
 ## 🐢 What exit 8 means
 
-The sequential full run at `speed`, or `ghog timings`, times every test call.
-A robust outlier score at or above a
+The full run at `speed` times every selected test call while collecting
+coverage, in sequential and parallel mode. A robust outlier score at or above a
 one-second floor stops an otherwise-green walk on exit 8, with the slow
 calls named. The verdict is judged last, so it never masks a failure or a
 coverage gap.
@@ -43,11 +43,18 @@ coverage gap.
 
    Keep every assertion: the goal is a shorter road to the same checks.
 
-4. Re-measure the call; aim under one second.
+4. Re-measure the call; aim comfortably under one second. An isolated profile
+   without coverage is useful for finding the hotspot, but it does not prove
+   the covered full-run gate. Include fixture setup and teardown when comparing
+   total cost, especially after moving construction into a shared fixture.
 
 5. Restart with `ghog day --full=speed` and the original explicit scope.
    Use `pw scope day --full=speed` to print the effort's command; execute the
-   printed command through the resolved ghog launcher.
+   printed command through the resolved ghog launcher. Read the new call time
+   from that covered full run, which also includes worker contention in
+   parallel mode. Do not append `ghog timings`: the full step already supplies
+   the timing verdict. Use that separate, sequential, uninstrumented command
+   only when you specifically need a whole-suite diagnostic.
 
 ## 🤝 Accepting a genuinely slow call
 

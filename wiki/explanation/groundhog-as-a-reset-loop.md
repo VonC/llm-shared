@@ -53,8 +53,21 @@ truthful — stale test-impact data would let a change slip through the
 fast pass. A grouped full run keeps the database and refreshes only its own
 tests' records: a reset would make the next run outside the group treat every
 other test as new and execute it. Parallel full runs leave the database
-untouched and avoid judging contended duration measurements. A speed day in a parallel project adds a
-sequential timing pass, so concurrency does not weaken the timing verdict.
+untouched.
+
+## Why coverage and timing share one full run
+
+At speed, both sequential and parallel modes collect coverage and call
+durations in the same full run. The walk never repeats the suite solely to
+measure timing: one execution supplies the passing-test, coverage, and speed
+verdicts. This keeps the cost of the speed gate close to the coverage run.
+
+These durations include coverage overhead and, with parallel workers,
+contention. They describe the validation workload the project actually runs.
+An optional `ghog timings` diagnostic measures calls sequentially without
+coverage, so its results can differ. It is not a required stage of the walk.
+Saved speed proof from the former separate timing pass is capped at coverage
+until a full run proves speed with the current measurement method.
 
 ## 👥 One output, two audiences
 
@@ -95,7 +108,7 @@ afterwards.
 
 ## 👉 Where the contract is written
 
-- [ghog commands and exit codes](../reference/ghog-commands-and-exit-codes.md)
-  for the full tables.
 - [Fix a red groundhog walk](../how-to/fix-a-red-groundhog-walk.md) for
   the per-branch recipes.
+- [ghog commands and exit codes](../reference/ghog-commands-and-exit-codes.md)
+  for the full tables.
