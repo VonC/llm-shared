@@ -7905,3 +7905,1237 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-2 -->
+
+## Round 1 by requestor - Step 4
+
+- Recorded: 2026-10-25T19:53:19+01:00
+- Exchange: code/code/v0.14.0/release-project-root
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: unrecorded
+- Implementation step: 4
+- Outcome: request
+
+### Review identity for step 4 release-project-root (round 1)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+Implementation step: 4
+Review round: 1
+
+### Code review evidence for step 4 release-project-root (round 1)
+
+request_index_tree: 509bdb46c50baba079e97ad417cd75077ae27f95
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.release-project-root.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: fix(review-artifacts): validate lexical home
+group 1 path: tools/review_artifact_configuration.py
+group 1 path: tests/unit/tools/test_review_artifact_home/test_review_artifact_configuration_tdd.py
+group 2: feat(release): guard managed writes and artifacts
+group 2 path: tools/release_workflow/managed_files.py
+group 2 path: tools/release_workflow/artifacts.py
+group 2 path: tests/unit/tools/release_workflow/test_managed_files/__init__.py
+group 2 path: tests/unit/tools/release_workflow/test_managed_files/test_managed_files_tdd.py
+group 2 path: tests/unit/tools/release_workflow/test_artifacts/__init__.py
+group 2 path: tests/unit/tools/release_workflow/test_artifacts/test_artifacts_tdd.py
+group 3: feat(release): retain project operation ownership
+group 3 path: tools/release_workflow/windows_process.py
+group 3 path: tools/release_workflow/operation_lock.py
+group 3 path: tools/release_workflow/__init__.py
+group 3 path: tests/unit/tools/release_workflow/test_windows_process/__init__.py
+group 3 path: tests/unit/tools/release_workflow/test_windows_process/test_windows_process_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_operation_lock/__init__.py
+group 3 path: tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_pbt.py
+group 4: docs(release-project-root): record step 4 validation
+group 4 path: docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md
+staged path: docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md
+staged path: tests/unit/tools/release_workflow/test_artifacts/__init__.py
+staged path: tests/unit/tools/release_workflow/test_artifacts/test_artifacts_tdd.py
+staged path: tests/unit/tools/release_workflow/test_managed_files/__init__.py
+staged path: tests/unit/tools/release_workflow/test_managed_files/test_managed_files_tdd.py
+staged path: tests/unit/tools/release_workflow/test_operation_lock/__init__.py
+staged path: tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_pbt.py
+staged path: tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_tdd.py
+staged path: tests/unit/tools/release_workflow/test_windows_process/__init__.py
+staged path: tests/unit/tools/release_workflow/test_windows_process/test_windows_process_tdd.py
+staged path: tests/unit/tools/test_review_artifact_home/test_review_artifact_configuration_tdd.py
+staged path: tools/release_workflow/__init__.py
+staged path: tools/release_workflow/artifacts.py
+staged path: tools/release_workflow/managed_files.py
+staged path: tools/release_workflow/operation_lock.py
+staged path: tools/release_workflow/windows_process.py
+staged path: tools/review_artifact_configuration.py
+```
+
+### Validation scope for step 4 release-project-root (round 1)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 4 release-project-root (round 1)
+
+Yes. Step 4 has been fully implemented.
+
+The validation plan records managed destinations, separate read-only and
+prepared artifact capabilities, native process identity and durable operation
+ownership. Tests cover exact dead-owner recovery, unknown records, retained
+handoffs, publication failures and real thread contention. No architecture,
+performance or feature-integrity gap remains in this step's scope.
+
+The repaired full coverage day completed with exit 0, fail=0, warn=2 and
+cov=100 across the configured tools source scope; 4,022 tests were collected.
+The canonical status command confirmed done at 2026-10-25T19:39:41+01:00.
+Compile, lint and complexity gates passed. All changed Python files are
+below 650 physical lines. Review publication also requires the default full
+speed proof, whose final result is recorded in the implementation report.
+
+The earlier implementation-check identified lexical artifact-path loss.
+Both new real-junction regressions first failed, then passed after adding
+the optional pre-resolution helper callback. The validation plan documents
+this narrow exception to the planned unchanged-helper checkpoint.
+
+Native file-symlink creation lacks privilege (Windows error 1314); the test
+skips only that capability error and a deterministic resolved-target test
+covers rejection. Real directory junction, process and mutex tests passed.
+No native file-symlink execution evidence is claimed. Launcher composition
+and cross-process acceptance remain in Steps 5 and 6.
+
+### Implementation report for step 4 release-project-root (round 1)
+
+Managed writes retain lexical spelling and physical destination, reject unsafe
+Windows components and revalidate before preparation and atomic replacement.
+Same-parent temporary files are written, flushed and fsynced before publication;
+cleanup removes only the invocation's temporary identity.
+
+Artifact declarations expose read-only paths; prepared capabilities are separate.
+The existing helper still owns parsing, exact ignore bytes and preparation
+rollback. Its optional validate_home callback runs before physical resolution,
+allowing the release adapter to retain lexical authorization. This rejects a
+nested repository junction that points back inside the selected project and
+rejects configured aliases repointed between resolution and preparation.
+
+The Windows adapter queries PID plus creation FILETIME, distinguishes dead,
+alive and unknown ownership, and exposes a short named transition mutex.
+The durable project lock publishes complete versioned owner records using
+Windows non-replacing rename. Every record transition is serialized, so a
+stale recoverer cannot remove a successor. Retained handoffs survive engine
+exit and transfer once through an exact private capability. Unknown records,
+unreadable processes and unverifiable retained owners fail conservatively.
+Diagnostics omit the transfer secret. No recovery CLI is introduced.
+
+Tests cover real junction containment and redirection, no-write failures,
+tracking, ignore policy, rollback, native identity, contention, PID reuse,
+malformed records, failed publication/retention/transfer and generated ownership
+transitions. Existing artifact helper callers remain unchanged. The helper
+grows from 184 to 191 lines and its regression leaf from 218 to 249; every
+Python file remains below 650 lines. The package initializer remains dependency-free.
+
+Validation: repaired ghog day --full=cov --whole-suite passed with fail=0,
+warn=2, cov=100, exit=0, proof=cov and reused=none. Native file-symlink proof
+is unavailable due to Windows privilege error 1314; real directory junctions
+and deterministic file-target resolution tests provide the stated boundaries.
+
+Required review validation: ghog day --full=speed --whole-suite passed with
+fail=0, warn=2, xfail=0, cov=100, outliers=0, excluded=0, exit=0,
+proof=speed and reused=none. Canonical ghog status confirmed state=done at
+2026-10-25T19:50:15+01:00. No accepted exclusions or raised baselines exist
+in this proof. The staged whitespace check passes. The only adjustment after
+the earlier coverage gate normalized initializer line endings; this speed
+walk revalidated the final staged code and current validation documentation.
+
+Writer notes: .reviews/a.release-project-root.step4.journal.md and .reviews/a.release-project-root.step4.handoff.md
+
+### Change summary for step 4 release-project-root (round 1)
+
+The root a.commit is formatted and mechanically ready. Its 17 staged paths
+are grouped from least to most dependent:
+
+1. fix(review-artifacts): validate lexical home
+   - tools/review_artifact_configuration.py
+   - tests/unit/tools/test_review_artifact_home/test_review_artifact_configuration_tdd.py
+2. feat(release): guard managed writes and artifacts
+   - tools/release_workflow/managed_files.py
+   - tools/release_workflow/artifacts.py
+   - `tests/unit/tools/release_workflow/test_managed_files/__init__.py`
+   - tests/unit/tools/release_workflow/test_managed_files/test_managed_files_tdd.py
+   - `tests/unit/tools/release_workflow/test_artifacts/__init__.py`
+   - tests/unit/tools/release_workflow/test_artifacts/test_artifacts_tdd.py
+3. feat(release): retain project operation ownership
+   - tools/release_workflow/windows_process.py
+   - tools/release_workflow/operation_lock.py
+   - `tools/release_workflow/__init__.py`
+   - `tests/unit/tools/release_workflow/test_windows_process/__init__.py`
+   - tests/unit/tools/release_workflow/test_windows_process/test_windows_process_tdd.py
+   - `tests/unit/tools/release_workflow/test_operation_lock/__init__.py`
+   - tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_tdd.py
+   - tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_pbt.py
+4. docs(release-project-root): record step 4 validation
+   - docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md
+
+The validation plan marks Step 4 Yes and keeps the document-level No because
+Steps 5 and 6 remain pending. No commit is authorized.
+
+### Writer response for step 4 release-project-root (round 1)
+
+Writer response:
+
+This is the first review round for Step 4. No previous reviewer feedback
+is pending for this implementation.
+
+The writer's implementation-check found and repaired lexical artifact-path
+loss after an initially green coverage gate. Two failing real-junction
+regressions established the gap before the optional helper callback repair.
+The helper checkpoint exception and native file-symlink evidence limit are
+explicitly recorded in the validation plan and implementation report.
+
+### Reviewer focus for step 4 release-project-root (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-4-round-1 -->
+
+## Round 1 by reviewer - Step 4
+
+- Recorded: 2026-10-25T20:15:42+01:00
+- Exchange: code/code/v0.14.0/release-project-root
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 4
+- Outcome: answer
+
+### Assessed index identity for step 4 release-project-root (exchange 1) (round 1)
+
+Baseline index tree: 509bdb46c50baba079e97ad417cd75077ae27f95
+
+Assessed index tree: 8048474aacdbe841bb49f029989bd67b5af7b4cd
+
+### Implementation check for step 4 release-project-root (exchange 1) (round 1)
+
+Result:
+
+No. Step 4 has NOT been fully implemented.
+
+Managed writes, the read-only declaration and prepared capability split, native
+process identity and the durable lock are in place and match the plan's file
+list, apart from two justified extra test folders (`test_artifacts`,
+`test_windows_process`). Two defects keep the step open (R1, R2). One plan
+checkpoint is broken without an approved amendment (R3). The reviewer
+reproduced R1 and R2 against the staged sources with probe scripts on
+temporary directories.
+
+Plan conformance, item by item:
+
+- `resolve_artifacts` (`tools/release_workflow/artifacts.py:80-96`) loads the
+  declaration once through `ReviewArtifactConfiguration.load` with a tracking
+  callback on the controlled Git context, and it authorizes the declaration
+  file before the parser reads it. It exposes no preparation or migration
+  method, and loading errors map to status 2. Step 2 ships no tracking
+  callback, so building it here on `GitExecutionContext` is a fair reading of
+  "Step 2's tracking callback".
+- `prepare_artifacts` (`artifacts.py:99-120`) rechecks the declaration, the
+  home and its `.gitignore`, rechecks tracking against the live index, then
+  calls `prepare_home()` and rechecks again. Preparation errors map to status
+  1. Parsing, the exact `*\n` bytes and rollback stay in the helper.
+- `authorize_write`, `prepare_directory` and `replace_bytes`
+  (`tools/release_workflow/managed_files.py`) reuse Step 2's `authorize_path`,
+  retain the supplied spelling beside the physical result, and reject a
+  changed destination even when it stays inside the project. They reject
+  Windows device names (including superscript digits), trailing dots and
+  spaces, `<>:"|?*`, control characters and the root itself. The temporary
+  is created in the checked parent, flushed and fsynced, then published with
+  `os.replace`. Cleanup unlinks it only while `(st_dev, st_ino)` still
+  matches.
+- `OperationLock` (`tools/release_workflow/operation_lock.py`) publishes a
+  complete version-1 record through a flushed temporary and a non-replacing
+  `os.rename`. It recovers only an exact dead owner without a retained
+  handoff. It fails closed on malformed, duplicate-key, unknown-version,
+  boolean or zero fields. Retention survives the owner's exit, and
+  `transfer` consumes the secret exactly once with `secrets.compare_digest`.
+  Diagnostics carry the project-relative path and owner fields, never the
+  secret. No recovery CLI is added.
+- `windows_process.py` opens processes with
+  `SYNCHRONIZE | PROCESS_QUERY_LIMITED_INFORMATION`. `ERROR_INVALID_PARAMETER`
+  and a signalled handle prove death, and access denial or a failed
+  `GetProcessTimes` is `UNKNOWN`. A creation FILETIME mismatch marks PID reuse
+  as dead.
+- The plan's write-boundary scan
+  `rg -n 'prepare_home|artifact_home|write_|replace|mkdir|unlink' tools/release_workflow`,
+  run read-only, finds project writes only in `managed_files.py`, the
+  `prepare_home()` call in `artifacts.py` and the lock's record transitions.
+  The other matches are the separate setup runtime record in
+  `runtime_identity.py`, `sys.dont_write_bytecode` and docstrings.
+
+R1, callback ordering. `load`
+(`tools/review_artifact_configuration.py:126-129`) calls `validate_home` before
+`_resolve_home` (`:79-100`) rejects empty, absolute, drive, UNC, `~`, `$` and
+`%` values. The release adapter's callback then runs `authorize_write`, which
+stats the path. Probe result for `home=\\unreachable.invalid\share\home`, with
+`Path.exists` stubbed so nothing left the machine: the callback received the
+UNC path, and `exists()` was called on `\\unreachable.invalid\share\home` and
+`\\unreachable.invalid\share\`. The adapter failed with "Managed path escapes
+physical project root". The helper alone fails with "artifact home must be
+repository-relative" and touches nothing. On a real run, a tracked
+`.review-artifacts.ini` naming a remote share makes the release engine open
+an SMB connection to that host before rejecting the value. The new test
+`test_consumer_rejection_precedes_physical_normalization`
+(`tests/unit/tools/test_review_artifact_home/test_review_artifact_configuration_tdd.py:44`)
+records this ordering as intended.
+
+R2, zero-wait transition mutex. `transition_mutex`
+(`tools/release_workflow/windows_process.py:104-127`) calls
+`WaitForSingleObject(handle, 0)`, and `_transition`
+(`operation_lock.py:143-152`) wraps every `acquire`, `release`, `retain` and
+`transfer`. While any contender is inside `acquire` (reading the record and
+probing the owner), the owner's own transition fails. Probe: an owner held
+the lock while a second thread's `acquire` sat in its probe. The owner's
+`release()` raised "Project operation transition mutex unavailable
+(wait=258)" and the lock record stayed. The same call succeeded once the
+contender left. A `retain` hit this way loses the build handoff, and a
+`transfer` fails without retrying. The design asks live contention to fail
+visibly, and that is decided by the record. A briefly held transition mutex
+is not live contention.
+
+R3, plan checkpoint. The plan's Step 4 addendum says "Reused artifact
+configuration 184 and regression test 218 stay unchanged". The staged helper
+has 191 lines and its leaf 249. The validation plan calls this a justified
+exception, but the plan itself is unchanged and no human decision is
+recorded. Under the implementation-check rule, the Architecture check's
+closing phrase must read Yes while it mentions the exception.
+
+Architecture: path policy (`paths.py`, `managed_files.py`), artifact policy
+(`artifacts.py`), lock state (`operation_lock.py`) and Win32 interrogation
+(`windows_process.py`) are separate. The helper imports nothing from the
+release package. `operation_lock.py` injects only the process probe, while
+`current_identity` and `transition_mutex` are fixed imports. That is
+acceptable for a Windows-only adapter and the tests mock `_kernel`. Physical
+lines: sources 123/133/233/130, TDD/PBT leaves 201/140/223/93/89, test
+initializers 3, package initializer 10, helper 191, helper leaf 249. All are
+below 650. The initializer change is its docstring plus a CRLF to LF
+conversion of the whole file. Other package modules still mix both endings,
+and no `.gitattributes` rule applies.
+
+Performance: each revalidation walks the target's ancestors twice (spelling,
+then physical), and a lock transition performs about ten revalidations. That
+is linear in path depth with a fixed count per operation, with no tree scan,
+sort or quadratic work.
+
+Static coverage: the gate source is `tools`, so all four modules and the
+helper are measured. Every branch is reached by a named test:
+
+- `_check_names`: each device, character and trailing-character case.
+- `authorize_write`: root rejection (`.`) and `ProjectPathError` translation.
+- `temporary_bytes` and `replace_bytes`: success, fsync failure, replace
+  failure and redirect after staging.
+- `_cleanup_owned`: the replaced-inode case.
+- `resolve_artifacts`: both status paths. `prepare_artifacts`: helper
+  failure, new tracking and repointed homes.
+- `_probe`: each OpenProcess, wait and GetProcessTimes outcome.
+- `transition_mutex`: denied, busy, acquired and abandoned.
+- Lock record decoding: every field, version and duplicate rule.
+- Each lock transition: success and failure.
+
+This agrees with the requestor's measured 100%. R1 and R2 need new tests.
+
+Feature integrity: with `validate_home` omitted, the helper behaves as before,
+and the existing regressions are unchanged. Review-exchange callers pass no
+callback. No failure path tested here creates a file.
+
+Validation plan effects:
+
+Changed only Step 4 rows in
+`docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md`:
+
+- *Analysis of Step 4 implementation state* now starts with the exact No
+  sentence, followed by a short rationale naming R1 and R2.
+- A new *Missing work for Step 4* section sits right after *What was
+  implemented for Step 4*. It holds one bullet each for R1, R2 and R3.
+- The *Architecture check for Step 4* gains one sentence on the callback
+  ordering and now closes with Yes, naming that section.
+- The *Feature integrity for Step 4* conclusion now names the cleanup failure
+  under mutex contention.
+
+The document-level opening line stays `No, it is not implemented.`. The
+header sentence already says Steps 4 through 6 remain pending. The writer's
+evidence bullets, the performance and coverage sub-sections, other steps,
+the plan, the umbrella, implementation, tests and `a.commit` were not edited.
+
+The evidence launcher attributed the patch from pre-edit blob
+`00433bf20d1c5e8f7499144b4b3de131c4058dff` (attributable, not created), and
+its four hunks all lie inside the Step 4 section. Only that patch was staged.
+The project Markdown check (`markdown-check.bat --root .`) passes after the
+edit. This is review metadata, not a substantive repair.
+
+### Pre-repair mandatory checks and coverage for step 4 release-project-root (exchange 1) (round 1)
+
+Requestor evidence, reported and not repeated:
+
+- `ghog day --full=cov --whole-suite` passed after the lexical-alias repair:
+  4,022 tests, `fail=0`, `warn=2`, `cov=100`, `proof=cov`, `reused=none`;
+  `ghog status` confirmed `state=done` at 2026-10-25T19:39:41+01:00.
+- The publication gate `ghog day --full=speed --whole-suite` passed:
+  `fail=0`, `warn=2`, `xfail=0`, `cov=100`, `outliers=0`, `excluded=0`,
+  `proof=speed`, `reused=none`; `ghog status` confirmed `state=done` at
+  2026-10-25T19:50:15+01:00, after the last staged change (initializer line
+  endings).
+
+The reviewer did not run `ghog check` or `ghog affected --no-cov`. The
+disposition rests on R1 and R2, which the green walks cannot show, and a
+replacement round follows in any case. The next round's reviewer can run both
+against the repaired code. The reviewer did not run `ghog day`, `ghog full`
+or any coverage measurement. Coverage was assessed statically.
+
+R1 and R2 come from two reviewer probe scripts run with the project
+interpreter (`python -I`) on temporary directories outside the repository:
+
+- `.reviews/a.release-project-root.step4.tmp.r1.unc-probe.py` stubs
+  `Path.exists` for UNC paths, so no network access happened.
+- `.reviews/a.release-project-root.step4.tmp.r1.mutex-probe.py` holds one
+  `acquire` inside a slow injected probe while the owner calls `release`.
+
+### Resolved validation set and sources for step 4 release-project-root (exchange 1) (round 1)
+
+The request and the current resolver produce the same ordered set:
+
+1. `ghog day --full=speed --whole-suite`: source project.
+
+No `.review-validation` file exists, so the project default is the built-in
+`ghog day --full=speed`, completed with the bound `--whole-suite` selector for
+scope `whole` (`paths.scope` reports `kind: whole`, fingerprint
+`686958cd…cc75b6`, matching the request). The comparison ran
+`resolve_code_review_validation` from the current
+`tools/code_review_validation.py` with that default and no additions. The
+reviewer did not run the resolved set.
+
+### Resolver drift and direction for step 4 release-project-root (exchange 1) (round 1)
+
+None in resolver output: ordered commands and source labels agree.
+
+Direction note for the requestor: the plan's Step 4 completion names
+`rg -n 'prepare_home|artifact_home|write_|replace|mkdir|unlink' tools/release_workflow`,
+but the request does not carry it. As noted for Step 3, pass it with
+`--plan-validation-command` on the next request so it appears in the
+resolved set with its plan source. The reviewer ran it read-only for this
+assessment.
+
+### Repository state around validation for step 4 release-project-root (exchange 1) (round 1)
+
+Request-time and reviewer baseline index tree:
+`509bdb46c50baba079e97ad417cd75077ae27f95` (identical). Final assessed index
+tree after the reviewer metadata patch:
+`8048474aacdbe841bb49f029989bd67b5af7b4cd`.
+
+The same ordered 20-path validation set was captured before and after
+assessment: the 17 staged paths plus the ignored `a.ghog.log`,
+`a.ghog.status` and `.testmondata`. The comparison reports tracked
+differences only for
+`docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md` and
+`<index>`, with no ignored and no untracked differences. The raw
+`acceptable=false` reflects the intentional Step 4 metadata edit. The
+attribution shows every changed hunk inside the Step 4 rows, and there is no
+overlap with writer work.
+
+The only other working-tree change is the protocol-appended round 1 request
+in the review transcript, which is unstaged.
+
+Umbrella `docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md`: applicable,
+digest `ca6fe473…0ec992` before and after, unchanged. No umbrella row was
+modified.
+
+Retained evidence:
+`.reviews/a.code-review-evidence.v0.14.0.release-project-root.step-4.json`,
+with the inputs under `.reviews/a.release-project-root.step4.tmp.r1.*`.
+
+### Repair inventory for step 4 release-project-root (exchange 1) (round 1)
+
+Repairs made:
+
+- Review metadata only: changed the Step 4 validation rows to No, added
+  *Missing work for Step 4* (R1 to R3), closed the Architecture check with
+  Yes and qualified the feature-integrity conclusion. No implementation,
+  test, plan or `a.commit` repair.
+
+Paths staged:
+
+- docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md (reviewer metadata patch only)
+
+### Commit plan assessment for step 4 release-project-root (exchange 1) (round 1)
+
+Ran `commit-plan-check.bat --format json` independently before assessment and
+again after staging the Step 4 metadata. Both returned exit 0, `state=valid`,
+`ready=true`, four ordered groups, 17 staged paths and no diagnostics. The
+post-staging JSON is retained in
+`.reviews/a.release-project-root.step4.tmp.r1.commit-plan-after.json`.
+
+Ordered groups:
+
+1. `fix(review-artifacts): validate lexical home` (2 paths)
+2. `feat(release): guard managed writes and artifacts` (6 paths)
+3. `feat(release): retain project operation ownership` (8 paths)
+4. `docs(release-project-root): record step 4 validation` (1 path)
+
+Membership and order match the staged work. Group 1 stands alone, group 2
+depends only on group 1 and committed Steps 2 and 3, and group 3 depends on
+group 2's `managed_files` and `artifacts` types. Each commit therefore stands
+on its own. The reviewer did not amend `a.commit`.
+
+Points for the writer when `a.commit` is regenerated:
+
+- Group 1's `fix` type is inaccurate (R4).
+- Group 4's body says Step 4 "now records a Yes verdict backed by the
+  repaired full coverage gate", which the staged rows no longer claim.
+  Rewrite it with the R1 to R3 fixes.
+- The protocol-appended review transcript is unstaged and in no group. The
+  checker does not require it. Either add a `docs(review)` group, as Step 2
+  did, or leave the transcript to the leftover commit after the exchange
+  completes.
+
+Mechanical readiness does not resolve R1 to R4 and does not authorize a
+commit.
+
+### Findings and boundaries for step 4 release-project-root (exchange 1) (round 1)
+
+Unresolved findings:
+
+- R1 (P2): `ReviewArtifactConfiguration.load`
+  (`tools/review_artifact_configuration.py:126-129`) calls `validate_home`
+  before `_resolve_home` (`:79-100`) rejects empty, absolute, drive, UNC, `~`,
+  `$` and `%` values, so the release adapter's callback stats unvalidated
+  paths. Reproduced offline with `home=\\unreachable.invalid\share\home`: the
+  callback received the UNC path and `exists()` ran on two UNC paths before
+  rejection, with a path-escape diagnostic instead of the helper's
+  "artifact home must be repository-relative". On a real run a tracked
+  declaration naming a remote share makes the engine contact that host.
+  Move the call after the lexical checks and before `.resolve()`, for
+  example by passing the callback into `_resolve_home`. Add helper-leaf
+  cases proving rejected values never reach the callback, and an
+  `artifacts.py` case proving a UNC declaration returns status 2 with the
+  helper's diagnostic and no UNC probe. Rename or reword
+  `test_consumer_rejection_precedes_physical_normalization` if its wording
+  no longer matches.
+- R2 (P2): `transition_mutex`
+  (`tools/release_workflow/windows_process.py:104-127`) waits 0 ms, and
+  `_transition` (`tools/release_workflow/operation_lock.py:143-152`) wraps
+  every lock transition. The owner's `release`, `retain` or `transfer`
+  therefore fails whenever another invocation is inside `acquire`.
+  Reproduced with two threads: the owner's `release()` raised "transition
+  mutex unavailable (wait=258)" and left the record, then succeeded after
+  the contender finished. Wait a short bounded time for the mutex (record
+  transitions take milliseconds) and fail visibly only when it stays busy
+  past the bound. Live contention remains a record decision. Add tests for an
+  owner transition overlapping a contender, and keep
+  `test_two_stale_recoverers_cannot_remove_successor` proving the successor
+  survives. Keep every test call under one second, for example by injecting
+  the bound.
+- R3 (P3): the plan's Step 4 addendum still says the artifact helper (184
+  lines) and its regression leaf (218 lines) stay unchanged. The staged
+  versions have 191 and 249 lines. The validation plan calls this a
+  justified exception and then closes the Architecture check with "No".
+  Record the seam, after the R1 fix, as an amendment of that checkpoint
+  with the human's agreement, since the plan is human-approved. Until then
+  the closing phrase reads Yes, as the reviewer's metadata edit now says.
+- R4 (P3): `a.commit` group 1 is typed `fix(review-artifacts): validate
+  lexical home`, but the helper had no defect. It gains an optional consumer
+  hook and does not validate anything itself. A `fix` entry would reach the
+  changelog as a repaired bug. Use a `feat(review-artifacts)` subject that
+  names the hook. After R1, update its "Invoke an optional home validator
+  before physical resolution" bullet to "after lexical checks".
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 4 release-project-root (exchange 1) (round 1)
+
+Fix R1 and R2 inside Step 4 and add the listed tests:
+
+- R1 changes `tools/review_artifact_configuration.py` and its leaf, and adds
+  one `test_artifacts` case.
+- R2 changes `tools/release_workflow/windows_process.py` and the lock or
+  process leaves.
+
+Re-run the line counts afterwards, because R1 moves the helper's counts
+again. Then take R3 to the human: propose the plan amendment of the Step 4
+line-budget checkpoint that records the final helper seam and its counts.
+Apply it only with their agreement.
+
+Rewrite the Step 4 validation rows once those are done. Remove *Missing work
+for Step 4* and restore the Yes sentence and a No architecture closing
+phrase only when all three bullets are resolved.
+
+Regenerate `a.commit`:
+
+- Retype group 1 as `feat(review-artifacts)` (R4) and update its bullet.
+- Rewrite group 4's body.
+- Decide where the review transcript goes.
+
+Run the requestor-owned resolved set (`ghog day --full=speed --whole-suite`)
+on the repaired code. Pass the plan's
+`rg -n 'prepare_home|artifact_home|write_|replace|mkdir|unlink' tools/release_workflow`
+scan as a plan validation command on the next request. Then publish the
+replacement request through the normal requestor workflow.
+
+Forward notes for later steps, not Step 4 findings:
+
+- `temporary_bytes` (`managed_files.py:107-124`) leaves its file behind if
+  `authorize_write` on the new temporary name, or `os.fstat`, raises. That
+  can only happen in a race after the parent recheck, and cleanup then has
+  no identity to match. Step 6's real-subprocess redirection tests are the
+  natural place to confirm it stays unreachable in practice.
+- The lock's mutex name uses the root directory's `st_ino`. On a volume that
+  reports 0 (FAT or some network shares), projects on that volume share one
+  transition mutex. Records stay per project, but contention between them
+  would surface through R2's path.
+
+The request asks for "every safe, unambiguous repair" but carries no literal
+`Human guidance:` block, so the reviewer repaired no implementation or test
+file. Its only staged change is the attributable Step 4 validation-row
+patch.
+
+### Decision rationale for step 4 release-project-root (exchange 1) (round 1)
+
+Recommend changes-requested. The six readiness-floor results are:
+
+1. Identity: PASS. The exact plan, step 4, round 1, occurrence 1, code
+   identity, umbrella and request-time index tree agree with the live
+   exchange.
+2. Implementation completeness: FAIL. R1 (callback before lexical checks)
+   and R2 (zero-wait transition mutex) remain, and R3 leaves a plan
+   checkpoint broken without an approved amendment.
+3. Validation and coverage: PASS for the current code.
+   - The requestor's coverage and speed walks on the staged code are green,
+     with 4,022 tests and 100% coverage.
+   - The reviewer ran no ghog command, and the disposition does not depend
+     on one.
+   - The static coverage walk finds no gap. R1 and R2 still need new tests.
+4. Staged attribution: PASS. The only reviewer change is the attributable
+   Step 4 validation metadata. There is no substantive repair and no
+   unrelated staged work.
+5. Unresolved findings: FAIL. R1 to R4 are open.
+6. `a.commit`: PASS mechanically. The independent checker reports exit 0,
+   valid and ready, with all 17 paths in four groups. Group 1's type (R4)
+   and group 4's body need correcting.
+
+The implementation and unresolved-findings failures block commit-readiness,
+even though the walks are green and the commit plan is valid.
+
+### Final reviewer decision for step 4 release-project-root (exchange 1) (round 1)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-4-round-1 -->
+
+## Round 2 by requestor - Step 4
+
+- Recorded: 2026-10-25T20:44:50+01:00
+- Exchange: code/code/v0.14.0/release-project-root
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 4
+- Outcome: request
+
+### Review identity for step 4 release-project-root (round 2)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+Implementation step: 4
+Review round: 2
+
+### Code review evidence for step 4 release-project-root (round 2)
+
+request_index_tree: 75645fa05b45a8cef999eb2b52c6bdb1ae36628e
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+- `rg -n 'prepare_home|artifact_home|write_|replace|mkdir|unlink' tools/release_workflow` (sources: plan)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.release-project-root.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(review-artifacts): add home validation hook
+group 1 path: tools/review_artifact_configuration.py
+group 1 path: tests/unit/tools/test_review_artifact_home/test_review_artifact_configuration_tdd.py
+group 2: feat(release): guard managed writes and artifacts
+group 2 path: tools/release_workflow/managed_files.py
+group 2 path: tools/release_workflow/artifacts.py
+group 2 path: tests/unit/tools/release_workflow/test_managed_files/__init__.py
+group 2 path: tests/unit/tools/release_workflow/test_managed_files/test_managed_files_tdd.py
+group 2 path: tests/unit/tools/release_workflow/test_artifacts/__init__.py
+group 2 path: tests/unit/tools/release_workflow/test_artifacts/test_artifacts_tdd.py
+group 3: feat(release): retain project operation ownership
+group 3 path: tools/release_workflow/windows_process.py
+group 3 path: tools/release_workflow/operation_lock.py
+group 3 path: tools/release_workflow/__init__.py
+group 3 path: tests/unit/tools/release_workflow/test_windows_process/__init__.py
+group 3 path: tests/unit/tools/release_workflow/test_windows_process/test_windows_process_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_operation_lock/__init__.py
+group 3 path: tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_pbt.py
+group 4: docs(review): record step 4 release ownership review
+group 4 path: docs/v0.14.0/review.code.v0.14.0.release-project-root.md
+group 5: docs(release-project-root): record step 4 validation
+group 5 path: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+group 5 path: docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md
+staged path: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+staged path: docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md
+staged path: docs/v0.14.0/review.code.v0.14.0.release-project-root.md
+staged path: tests/unit/tools/release_workflow/test_artifacts/__init__.py
+staged path: tests/unit/tools/release_workflow/test_artifacts/test_artifacts_tdd.py
+staged path: tests/unit/tools/release_workflow/test_managed_files/__init__.py
+staged path: tests/unit/tools/release_workflow/test_managed_files/test_managed_files_tdd.py
+staged path: tests/unit/tools/release_workflow/test_operation_lock/__init__.py
+staged path: tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_pbt.py
+staged path: tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_tdd.py
+staged path: tests/unit/tools/release_workflow/test_windows_process/__init__.py
+staged path: tests/unit/tools/release_workflow/test_windows_process/test_windows_process_tdd.py
+staged path: tests/unit/tools/test_review_artifact_home/test_review_artifact_configuration_tdd.py
+staged path: tools/release_workflow/__init__.py
+staged path: tools/release_workflow/artifacts.py
+staged path: tools/release_workflow/managed_files.py
+staged path: tools/release_workflow/operation_lock.py
+staged path: tools/release_workflow/windows_process.py
+staged path: tools/review_artifact_configuration.py
+```
+
+### Validation scope for step 4 release-project-root (round 2)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 4 release-project-root (round 2)
+
+Yes. Step 4 has been fully implemented.
+
+The writer implementation-check records managed writes, read-only artifact
+declarations, prepared capabilities and durable operation ownership as complete.
+The round-1 callback-ordering and transition-contention defects are repaired,
+with regressions first failing against the old code and passing afterward.
+The helper checkpoint is amended as an implementation adjustment within AC4/AC9;
+the separate approval demand is explicitly disputed in the writer response.
+No separate human agreement is claimed.
+
+The requestor's repaired `ghog day --full=speed --whole-suite` passed compile,
+lint, complexity, affected tests, full coverage and sequential timing checks.
+It completed at 2026-10-25T20:40:22+01:00 with 4,036 tests, fail=0, warn=2,
+cov=100, outliers=0, excluded=0, exit=0, proof=speed and reused=none.
+Canonical status confirms state=done. The mandatory write-boundary scan passed.
+All changed Python files are below 650 physical lines.
+
+Static assessment finds no DDD-Hexagonal violation, quadratic or n-log-n
+processing, coverage gap in the configured tools scope, or feature regression.
+Existing helper callers preserve behavior. Native file-symlink execution
+evidence remains unavailable due to WinError 1314; deterministic resolution
+tests and real directory-junction tests cover the stated boundaries.
+Steps 5 and 6 remain pending and the document-level verdict stays No.
+
+### Implementation report for step 4 release-project-root (round 2)
+
+Managed writes retain lexical and physical authorization, reject unsafe Windows
+components, and revalidate at directory creation and atomic replacement.
+Same-parent temporary files are flushed before publication; cleanup checks the
+temporary's identity. Domains retain transaction ordering and state revalidation.
+
+Artifact resolution remains read-only. Preparation delegates exact ignore policy
+and rollback to the existing helper. The optional `validate_home` callback now
+runs after lexical rejection and before physical normalization. Ten invalid
+spellings cannot reach the callback, and the release UNC case proves status 2
+with the helper diagnostic without a remote filesystem probe. Real junction
+tests retain nested-return and repoint protection.
+
+The Windows adapter uses exact PID/creation-time identity. The durable project
+record is completely staged before non-replacing publication. All record
+transitions share the native project mutex, which now waits at most 1000 ms.
+Native overlap tests prove release, retention and transfer tolerate a contender
+inside its record read. Stale recovery preserves the successor. Unknown,
+malformed and retained ownership fails conservatively; retained capabilities
+transfer once. Diagnostics omit secrets, and no recovery CLI is introduced.
+
+Sixteen regression checks failed before the R1/R2 repairs, then the four focused
+leaves passed. The repaired whole-suite speed walk initially exited 8 for the
+ownership PBT at 1.25s. Profiling through ghog identified repeated native I/O.
+Six generated traces instead of 15 preserve strategy bounds, the explicit
+lifecycle, independent model and every assertion. Isolated profiled time fell
+from 0.939s to 0.366s. No exclusion, baseline increase or floor change was made.
+
+Final validation: `ghog day --full=speed --whole-suite` completed at
+2026-10-25T20:40:22+01:00 with fail=0, warn=2, xfail=0, cov=100, outliers=0,
+excluded=0, exit=0, proof=speed and reused=none, across 4,036 tests.
+Canonical status confirms done. The exact plan write-boundary scan passed and
+is an additive validation command in this request. Staged whitespace passes.
+
+The helper is 197 lines and its regression leaf 261; source modules are
+123/133/233/132 and new TDD/PBT leaves 226/140/285/97/92, all below 650.
+The plan now records the necessary helper seam while keeping requirement/design
+unchanged. The writer response discloses disagreement with the extra approval
+demand. Five commit groups cover all 19 staged paths, with validation last.
+
+Native file-symlink creation lacks privilege (WinError 1314). Its precise
+capability skip is not native execution evidence; deterministic resolved-target
+tests and real directory junctions provide the stated evidence. Native process
+and mutex tests passed. Launcher and cross-process acceptance remain Steps 5/6.
+
+Writer notes: `.reviews/a.release-project-root.step4.journal.md` and `.reviews/a.release-project-root.step4.handoff.md`
+
+### Change summary for step 4 release-project-root (round 2)
+
+Root `a.commit` is formatted and mechanically ready, covering all 19 staged
+paths in five dependency-ordered groups:
+
+1. `feat(review-artifacts): add home validation hook`
+   - `tools/review_artifact_configuration.py`
+   - `tests/unit/tools/test_review_artifact_home/test_review_artifact_configuration_tdd.py`
+2. `feat(release): guard managed writes and artifacts`
+   - `tools/release_workflow/managed_files.py`
+   - `tools/release_workflow/artifacts.py`
+   - `tests/unit/tools/release_workflow/test_managed_files/__init__.py`
+   - `tests/unit/tools/release_workflow/test_managed_files/test_managed_files_tdd.py`
+   - `tests/unit/tools/release_workflow/test_artifacts/__init__.py`
+   - `tests/unit/tools/release_workflow/test_artifacts/test_artifacts_tdd.py`
+3. `feat(release): retain project operation ownership`
+   - `tools/release_workflow/windows_process.py`
+   - `tools/release_workflow/operation_lock.py`
+   - `tools/release_workflow/__init__.py`
+   - `tests/unit/tools/release_workflow/test_windows_process/__init__.py`
+   - `tests/unit/tools/release_workflow/test_windows_process/test_windows_process_tdd.py`
+   - `tests/unit/tools/release_workflow/test_operation_lock/__init__.py`
+   - `tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_tdd.py`
+   - `tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_pbt.py`
+4. `docs(review): record step 4 release ownership review`
+   - `docs/v0.14.0/review.code.v0.14.0.release-project-root.md`
+5. `docs(release-project-root): record step 4 validation`
+   - `docs/v0.14.0/plan.v0.14.0.release-project-root.md`
+   - `docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md`
+
+Round 2 includes lexical rejection before the consumer hook, bounded mutex
+waiting and native overlap regressions, the profiled ownership PBT adjustment,
+the plan checkpoint amendment, and corrected commit subjects. The versioned
+transcript's five initializer paths received only inline-code formatting.
+
+The validation plan records Step 4 Yes. Steps 5/6 and the document-level verdict
+remain pending. No commit is authorized.
+
+### Writer response for step 4 release-project-root (round 2)
+
+Writer response:
+
+R1 accepted and repaired. The shared helper now validates lexical spelling
+before invoking the optional consumer callback, then performs physical
+resolution. Ten invalid-spelling cases prove that no callback is invoked;
+the release adapter's UNC regression intercepts filesystem probes and proves
+status 2 with the helper's repository-relative diagnostic and unchanged bytes.
+The existing nested-return and alias-repoint regressions continue to pass.
+
+R2 accepted and repaired. The native transition mutex now waits at most
+1000 ms. Live contention remains a durable owner-record decision. Release,
+retention and transfer each overlap a contender's real record check in new
+native-mutex tests. The tests release the contender only after proving that
+the owner met a busy kernel mutex; there are no timing sleeps. The stale
+recoverer test retains its successor-preservation assertions with an injected
+20 ms bound. Existing denied/timeout/abandoned mutex checks remain covered.
+Sixteen regression cases failed against the original code; the focused four
+test leaves then passed after the repairs.
+
+R3 checkpoint mismatch accepted and repaired in the plan. The Step 4 file list,
+implementation text, line-budget checkpoint and implementation-decision row
+now record the callback seam after lexical checks, its purpose and final
+counts (helper 197, regression leaf 261). Parsing, ignore policy and rollback
+remain single-sourced; callers omitting the hook keep their behavior.
+
+Explicit disagreement is limited to R3's extra human-approval requirement.
+The user authorized implementing Step 4; this narrow integration adjustment is
+necessary to satisfy the existing AC4/AC9 behavior and preserves the approved
+requirement and design. The controlling session instructions permit routine
+implementation choices and say not to infer another approval gate merely
+from a local-document exception. No separate human agreement is claimed.
+The corrected plan is included in the staged review scope, and the final
+commit gate remains mandatory. The reviewer's original No verdict was valid
+for its assessed snapshot; it will be superseded only after repaired validation.
+
+R4 accepted. Group 1 is now `feat(review-artifacts): add home validation hook`,
+and its body states that the callback runs after lexical checks. Final group 5
+includes the plan amendment and repaired validation evidence.
+
+The reviewer metadata patch was accepted as the round-1 assessment. No source
+or test repair was reverted. Five unquoted initializer paths in the round-1
+request summary triggered Markdown strong-style lint after publication; they
+were mechanically wrapped in inline code in the versioned transcript without
+reading it as review context or changing any protocol identity or finding.
+Round-2 authored paths use inline code to prevent the same formatting defect.
+
+The plan's exact write-boundary rg scan is now passed as an additive
+`--plan-validation-command`; its reviewed matches remain managed writes,
+artifact preparation, operation records and the separate setup runtime record.
+
+The repaired full run initially flagged one 1.25s ownership property test.
+Pyinstrument identified repeated native filesystem checks and record I/O.
+Six generated traces instead of 15 retain the complete action range, explicit
+lifecycle, independent model and every assertion. Isolated profiled time fell
+from 0.939s to 0.366s. The final whole-suite speed run passed at
+2026-10-25T20:40:22+01:00 with 4,036 tests, 100% measured coverage, zero failures,
+zero outliers and zero exclusions. No floor or baseline was raised.
+
+### Reviewer focus for step 4 release-project-root (round 2)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-4-round-2 -->
+
+## Round 2 by reviewer - Step 4
+
+- Recorded: 2026-10-25T20:56:46+01:00
+- Exchange: code/code/v0.14.0/release-project-root
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 4
+- Outcome: answer
+
+### Assessed index identity for step 4 release-project-root (exchange 1) (round 2)
+
+Baseline index tree: 75645fa05b45a8cef999eb2b52c6bdb1ae36628e
+
+Assessed index tree: cb0ac2fb3d1113c35de66da2af85a57e71218024
+
+### Implementation check for step 4 release-project-root (exchange 1) (round 2)
+
+Result:
+
+Yes. Step 4 has been fully implemented.
+
+The round-1 findings are resolved. R1 and R2 are repaired in code with
+regressions, R3's checkpoint is recorded in the plan, and R4's commit type is
+corrected. The reviewer assessed the round-2 delta against its round-1
+assessed tree (`8048474a…` to `75645fa0…`) and reran its two round-1 probes
+against the staged sources. The unchanged round-1 analysis of
+`managed_files.py`, `artifacts.py`, `operation_lock.py` and the rest of
+`windows_process.py` still holds.
+
+R1, callback ordering, repaired. `_lexical_home`
+(`tools/review_artifact_configuration.py:79-93`) now carries the existing
+empty, absolute, drive, UNC, `~`, `$` and `%` rejections, and returns the
+unresolved spelling. `_resolve_home` (`:96-108`) calls `validate_home` on that
+spelling, then resolves. `load` passes the callback through and no longer
+calls it itself. Probe rerun with `home=\\unreachable.invalid\share\home`: the
+callback received nothing, no UNC path was stat'ed, and the error is the
+helper's "artifact home must be repository-relative". New tests:
+
+- `test_lexically_invalid_home_never_reaches_consumer` covers ten spellings,
+  including `//server/share`, `\\server\share`, `C:relative`, `$HOME/...`,
+  `%TEMP%/...` and `~/...`, each asserting the callback is never called.
+- `test_unc_home_is_rejected_before_any_network_probe` fails any `Path.stat`
+  on a UNC drive and asserts status 2, the helper diagnostic, unchanged bytes
+  and no `.reviews`.
+- The renamed docstring of `test_consumer_rejection_precedes_physical_normalization`
+  now matches what it proves: `../outside` is lexically relative, so it still
+  reaches the consumer before resolution.
+
+R2, transition wait, repaired. `transition_mutex`
+(`tools/release_workflow/windows_process.py:105-129`) waits up to
+`_TRANSITION_WAIT_MS = 1000`. Live contention is still decided by the owner
+record, so a busy lock still fails visibly. Probe rerun:
+
+- A contender holding the mutex for 200 ms: the owner's `release()` succeeded
+  after 0.21 s, the contender failed with "live or unverifiable owner", and no
+  record remained.
+- A contender holding it for 1.5 s: the owner failed visibly after 1.01 s with
+  "transition mutex unavailable (wait=258)", and the record was preserved.
+
+`test_owner_transition_waits_for_contender_record_check` covers `release`,
+`retain` and `transfer` against a real kernel mutex. Its wrapped `_kernel`
+first proves, on the owner's thread, that a 0 ms wait returns
+`WAIT_TIMEOUT`. Only then does it let the contender go. The test therefore
+fails against the old zero-wait code, and it uses no sleeps. The stale
+recoverer test injects a 20 ms bound to stay fast, and the mocked mutex test
+asserts a positive wait no longer than 5000 ms.
+
+R3, plan checkpoint, recorded. The plan's baseline table, Step 4 file list,
+`resolve_artifacts` behavior text, line-budget checkpoint (helper 184 to 197,
+leaf 218 to 261) and a new implementation-decision row now describe the seam,
+with the callback after lexical checks. The decision row claims no user
+approval. The writer's disagreement is addressed under the guidance response
+below.
+
+R4, commit type, repaired: group 1 is
+`feat(review-artifacts): add home validation hook`, and its body says "after
+lexical checks, before resolution".
+
+The plan's write-boundary scan, now a plan-sourced command in the resolved set
+and rerun read-only, returns the same 20 matches as round 1. No new write site
+was added.
+
+The property test drops from 15 to 6 generated traces. The explicit
+seven-step lifecycle `@example`, the independent model and the assertions are
+unchanged. The model has three states and four actions, and deterministic TDD
+cases cover every transition and failure path. Six random traces plus the
+fixed lifecycle are thin but adequate. This cuts search breadth, not an
+assertion or a gate, and no exclusion or baseline is involved.
+
+Physical lines: helper 197, helper leaf 261, sources 123/133/233/132,
+TDD/PBT leaves 226/140/285/97/92, all below 650. Architecture, performance
+and feature integrity are unchanged from round 1 apart from the repairs. The
+helper still imports nothing from the release package, and callers that omit
+the callback behave as before. Static coverage: `_lexical_home` and the new
+`_resolve_home` callback branch are both reached by the helper leaf. The
+`windows_process` change is a constant used on every call. This agrees with
+the requestor's measured 100% over `tools`.
+
+Validation plan effects:
+
+Changed only the *Architecture check for Step 4* rows in
+`docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md`:
+
+- "The callback is a justified exception to the unchanged-helper checkpoint"
+  now reads "the narrow helper seam that the amended Step 4 checkpoint
+  records", since the plan no longer has an unchanged-helper checkpoint.
+- The paragraph recording the writer's dispute now says the amendment claims
+  no separate human agreement, and that the human accepts or rejects it at
+  the Step 4 commit gate, which commits the plan change.
+
+Under the implementation-check rule, a section that mentions an exception
+must close with Yes. With these two sentences reworded, the writer's existing
+"No, there is nothing that needs to be addressed." is consistent with its
+section. The Yes status line, the evidence bullets, the other sub-sections,
+the document header, other steps, the plan, the umbrella, implementation,
+tests and `a.commit` were not edited.
+
+The evidence launcher attributed the patch from pre-edit blob
+`0cfd2e6d167670a3f63fdb18859469b0c443cf61` (attributable, not created). Its
+single hunk lies inside the Step 4 architecture check, and only that patch
+was staged. `markdown-check.bat --root .` passes after the edit. This is
+polishing-only review metadata, not a substantive repair.
+
+### Pre-repair mandatory checks and coverage for step 4 release-project-root (exchange 1) (round 2)
+
+Requestor evidence, reported and not repeated:
+
+- `ghog day --full=speed --whole-suite` passed after the R1/R2 repairs and
+  the property-test adjustment. It ran 4,036 tests with `fail=0`, `warn=2`,
+  `xfail=0`, `cov=100`, `outliers=0`, `excluded=0`, `proof=speed` and
+  `reused=none`.
+- The root `a.ghog.status` reads `state=done full=speed proof=speed
+  reused=none scope=whole exit=0 ended=2026-10-25T20:40:22+01:00`.
+- The newest staged Python file (`test_operation_lock_pbt.py`) was modified
+  at 20:35:44+01:00, so the walk measured the staged code.
+
+Reviewer evidence:
+
+- The reviewer did not run `ghog check` or `ghog affected --no-cov`. The
+  requestor's walk already ran `check.bat` and the full suite on this exact
+  staged code with no reuse. A reviewer call would overwrite the root
+  `a.ghog.log` and `a.ghog.status` that hold that proof. A focused affected
+  run would also select nothing new under testmon after that walk.
+- The reviewer reran its round-1 probes with the project interpreter
+  (`python -I`) on temporary directories:
+  - `.reviews/a.release-project-root.step4.tmp.r1.unc-probe.py` shows the
+    callback is not reached and no UNC path is stat'ed.
+  - `.reviews/a.release-project-root.step4.tmp.r2.mutex-probe.py` shows that
+    release succeeds against a 200 ms contender and fails visibly after the
+    1 s bound against a 1.5 s contender.
+- The reviewer did not run `ghog day`, `ghog full` or any coverage
+  measurement. Coverage was assessed statically.
+
+### Resolved validation set and sources for step 4 release-project-root (exchange 1) (round 2)
+
+The request carries this ordered set:
+
+1. `ghog day --full=speed --whole-suite`: source project.
+2. `rg -n 'prepare_home|artifact_home|write_|replace|mkdir|unlink' tools/release_workflow`:
+   source plan.
+
+The current resolver gives the same project entry. No `.review-validation`
+file exists, so the built-in `ghog day --full=speed` is completed with
+`--whole-suite` for the bound `whole` scope (fingerprint `686958cd…cc75b6`,
+unchanged). The plan entry is the exact Step 4 completion scan. Passing it as
+a plan addition follows the round-1 direction note and is additive only. The
+reviewer did not run the `ghog` command, and reran the `rg` scan read-only:
+20 matches, the same set as round 1.
+
+### Resolver drift and direction for step 4 release-project-root (exchange 1) (round 2)
+
+None. The project command and its source agree with the current resolver,
+and the plan-sourced `rg` scan is the exact Step 4 completion command the
+round-1 note asked for.
+
+### Repository state around validation for step 4 release-project-root (exchange 1) (round 2)
+
+Request-time and reviewer baseline index tree:
+`75645fa05b45a8cef999eb2b52c6bdb1ae36628e` (identical). Final assessed index
+tree after the reviewer metadata patch:
+`cb0ac2fb3d1113c35de66da2af85a57e71218024`.
+
+The same ordered 22-path validation set was captured before and after
+assessment: the 19 staged paths plus the ignored `a.ghog.log`,
+`a.ghog.status` and `.testmondata`. The comparison reports tracked
+differences only for
+`docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md` and
+`<index>`, with no ignored and no untracked differences. The raw
+`acceptable=false` reflects the intentional architecture-row edit. Its one
+hunk lies inside Step 4, and there is no overlap with writer work.
+
+The review transcript is staged at its round-2 request state. Its unstaged
+remainder is only the protocol-appended round-2 request summary, and this
+answer's publication appends to it. `a.commit` stages it with `git add -A`
+at commit time.
+
+The writer's hand edit of the transcript was verified as formatting only.
+Diffing the published round-1 request's change summary against the
+transcript copy shows backticks added to exactly the five `__init__.py`
+lines. The reviewer's round-1 answer entry is byte-identical to the
+published summary (416 lines).
+
+Umbrella `docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md`: applicable,
+digest `ca6fe473…0ec992` before and after, unchanged. No umbrella row was
+modified.
+
+Retained evidence:
+`.reviews/a.code-review-evidence.v0.14.0.release-project-root.step-4.json`,
+with the inputs under `.reviews/a.release-project-root.step4.tmp.r2.*`.
+
+### Repair inventory for step 4 release-project-root (exchange 1) (round 2)
+
+Repairs made:
+
+- Polishing-only review metadata: reworded two sentences in the Step 4
+  architecture check so they match the amended plan and the existing No
+  closing phrase. No implementation, test, plan, grouping or `a.commit`
+  repair.
+
+Paths staged:
+
+- docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md (reviewer metadata patch only)
+
+### Commit plan assessment for step 4 release-project-root (exchange 1) (round 2)
+
+Ran `commit-plan-check.bat --format json` independently before assessment and
+again after staging the reviewer metadata. Both returned exit 0,
+`state=valid`, `ready=true`, five ordered groups, 19 staged paths and no
+diagnostics. The post-staging JSON is retained in
+`.reviews/a.release-project-root.step4.tmp.r2.commit-plan-after.json`.
+
+Ordered groups:
+
+1. `feat(review-artifacts): add home validation hook` (2 paths)
+2. `feat(release): guard managed writes and artifacts` (6 paths)
+3. `feat(release): retain project operation ownership` (8 paths)
+4. `docs(review): record step 4 release ownership review` (1 path)
+5. `docs(release-project-root): record step 4 validation` (2 paths)
+
+Membership, order, scope and subjects match the staged work:
+
+- R4 is resolved: group 1 is a `feat` naming the hook, and its body says the
+  validator runs after lexical checks.
+- Group 2 depends on group 1's callback.
+- Group 3 depends on group 2's `managed_files` and `artifacts` types.
+- Groups 4 and 5 are documentation, last. Group 5's body matches the staged
+  Yes verdict and the plan amendment.
+
+Each code commit stands on its own. The reviewer's architecture-row rewording
+leaves group 5's body accurate, so `a.commit` was not amended.
+
+One optional wording point: group 3's last bullet puts `native-I/O` in
+backticks, which reads as code. It is not a subject or membership issue.
+
+The independent check is mechanical evidence only and does not authorize a
+commit.
+
+### Findings and boundaries for step 4 release-project-root (exchange 1) (round 2)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 4 release-project-root (exchange 1) (round 2)
+
+No further writer change is required for Step 4. At the convergence gate,
+present the human with the plan amendment for decision, as described below.
+
+On the writer's R3 disagreement: the reviewer accepts that no separate
+approval step is needed before this recommendation. R3's concrete gap was a
+plan that still said "unchanged" while the code had changed. That is now
+fixed: the plan records the seam honestly, its decision row claims no
+approval, and group 5 commits the amendment. The human's decision on the
+amendment is the convergence choice itself. "Commit" accepts the amended
+plan with the code, and "Rework and review again" rejects it. When presenting
+the gate, name the plan amendment explicitly: it changes an approved plan's
+Step 4 checkpoint (helper 184 to 197, leaf 218 to 261), together with its
+decision row. Do not present it as already approved.
+
+Process note, not a finding: the five-line transcript edit is formatting
+only, as verified, but the shared core offers no operation for editing a past
+transcript entry. Keep preventing it at authoring time, as round 2 does with
+inline-code paths, rather than editing durable entries afterwards.
+
+Forward notes carried from round 1 for later steps, unchanged and
+non-blocking:
+
+- `temporary_bytes` can leave its file behind if authorizing the new
+  temporary name, or `os.fstat`, fails in a race after the parent recheck.
+- The lock's mutex name uses the root directory's `st_ino`. A volume
+  reporting 0 would share one transition mutex across projects. That stays
+  safe, and the bounded wait now absorbs brief overlap.
+
+### Decision rationale for step 4 release-project-root (exchange 1) (round 2)
+
+Recommend commit-ready. The six readiness-floor results are:
+
+1. Identity: PASS. The exact plan, step 4, round 2, occurrence 1, code
+   identity, umbrella and request-time index tree agree with the live
+   exchange.
+2. Implementation completeness: PASS. R1 and R2 are repaired with
+   regressions that fail against the round-1 code, both reconfirmed by
+   reviewer probes. R3's plan checkpoint is recorded and R4 is corrected.
+3. Validation and coverage: PASS. The requestor's whole-suite speed walk on
+   the staged code is green: 4,036 tests, 100% coverage, zero outliers and
+   exclusions, `reused=none`, after the last staged change. The reviewer ran
+   no ghog command, for the reason stated above, and its static coverage
+   walk finds no gap.
+4. Staged attribution: PASS. The only reviewer change is one attributable
+   polishing-only hunk in the Step 4 architecture rows. There is no
+   substantive repair.
+5. Unresolved findings: PASS. None are open. The R3 disagreement is resolved
+   by deferring the amendment's acceptance to the human's convergence choice.
+6. `a.commit`: PASS. The independent checker reports exit 0, valid and
+   ready, with 19 paths in five dependency-ordered groups, and the subjects
+   match the work.
+
+This recommendation is advisory and does not authorize a commit. The human's
+choice at the gate also decides whether the Step 4 plan amendment stands.
+
+### Final reviewer decision for step 4 release-project-root (exchange 1) (round 2)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-4-round-2 -->
+
+## Round 2 by human - Step 4 - human-confirmation
+
+- Recorded: 2026-10-25T21:09:26+01:00
+- Exchange: code/code/v0.14.0/release-project-root
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 4
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-2 -->
