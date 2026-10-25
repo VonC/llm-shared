@@ -4,11 +4,11 @@ Step 2: one test per proof row of the design's "Acceptance Cases", driven
 through ``cli.main`` on a ``tmp_path`` project with the process boundary
 faked: a noop on stronger saved proof; an upgrade reusing check and affected;
 a proof kept below a higher-gate failure and capped by a contradicted lower
-gate, the timing pass included; a legacy one-line marker read as no proof; a
+gate, durations included; a legacy one-line marker read as no proof; a
 detached walk keeping its level and evidence in ``ghog status``; and the
 timing fingerprint capping a saved ``speed`` proof at ``cov`` while a Python
 file change invalidates the whole proof. Setup errors (exit 5), a project
-without a pytest suite (exit 9) and an affected, full or timing child
+without a pytest suite (exit 9) and an affected or full child
 interrupted before any failure (each of pytest's interruption banners, a
 ``pytest.exit`` returning 0 or 1 included) judge no gate and leave the saved
 marker byte for byte as it was. Such a child crashes its step and earns no
@@ -38,10 +38,10 @@ from tests.unit.tools.test_groundhog_acceptance_levels.support import (
     FAILED_THEN_INTERRUPTED,
     FULL_GAP,
     FULL_GREEN,
+    GREEN_TOTAL,
     INTERRUPTED_CHILDREN,
     INTERRUPTION_IDS,
     TESTS_FAILING,
-    TIMINGS_GREEN,
     project,
     run,
     save,
@@ -66,10 +66,6 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from tests.unit.tools.test_groundhog_acceptance_levels.support import Child
-
-# The parallel speed chain up to a green covered worker run.
-_PARALLEL_FULL_GREEN = [CHECK_OK, AFFECTED_OK, FULL_GREEN]
-
 
 def test_stronger_saved_proof_is_a_noop(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """Saved speed on unchanged sources meets a default walk: nothing runs."""
@@ -116,46 +112,45 @@ def test_full_failure_caps_the_saved_proof(tmp_path: Path, capsys: pytest.Captur
     assert len(spawns.commands) == 1
 
 
-def _timing_pass(root: Path, timings: Child, *options: str) -> int:
-    """Run a parallel speed walk whose timing pass ends with one child."""
-    code, _ = run(root, ["day", "--full=speed", *options], [*_PARALLEL_FULL_GREEN, timings])
+def _speed_full(root: Path, full: Child, *options: str) -> int:
+    """Run a parallel speed walk with one covered, timed full child."""
+    code, spawns = run(root, ["day", "--full=speed", *options], [CHECK_OK, AFFECTED_OK, full])
+    assert len(spawns.commands) == len(("check", "affected", "full"))
     return code
 
 
-def test_timing_pass_failure_caps_the_earned_proof(tmp_path: Path) -> None:
-    """A failing timing pass after a green full run leaves proof none."""
+def test_speed_full_failure_caps_the_earned_proof(tmp_path: Path) -> None:
+    """A failing speed full run leaves proof none."""
     root = project(tmp_path, parallel=True)
-    assert _timing_pass(root, TESTS_FAILING) == EXIT_TEST_FAILURES
+    assert _speed_full(root, TESTS_FAILING) == EXIT_TEST_FAILURES
     assert saved(root) is FullLevel.NONE
     code, spawns = run(root, ["day", "--full=cov"], [FULL_GREEN])
     assert code == EXIT_OBJECTIVE_MET
     assert len(spawns.commands) == 1
 
 
-def test_timing_pass_crash_caps_the_earned_proof(tmp_path: Path) -> None:
-    """A crashing timing pass contradicts pass: proof none, --full=pass walks."""
+def test_speed_full_crash_caps_the_earned_proof(tmp_path: Path) -> None:
+    """A crashing speed full run contradicts pass: proof none."""
     root = project(tmp_path, parallel=True)
-    assert _timing_pass(root, CRASHING) == EXIT_SUITE_CRASH
+    assert _speed_full(root, CRASHING) == EXIT_SUITE_CRASH
     assert saved(root) is FullLevel.NONE
 
 
-def test_forced_timing_failure_caps_the_saved_proof(tmp_path: Path) -> None:
-    """--force over saved speed and a failing timing pass: proof none."""
+def test_forced_speed_failure_caps_the_saved_proof(tmp_path: Path) -> None:
+    """--force over saved speed and a failing full run: proof none."""
     root = project(tmp_path, parallel=True)
     save(root, FullLevel.SPEED)
-    code, spawns = run(root, ["day", "--full=speed", "--force"], [*_PARALLEL_FULL_GREEN, TESTS_FAILING])
-    assert code == EXIT_TEST_FAILURES
-    assert len(spawns.commands) == len(("check", "affected", "full", "timings"))
+    assert _speed_full(root, TESTS_FAILING, "--force") == EXIT_TEST_FAILURES
     assert saved(root) is FullLevel.NONE
 
 
 def test_timing_outliers_keep_the_cov_proof(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
-    """Outliers only in the timing pass: exit 8, proof cov."""
+    """Outliers in the covered full run: exit 8, proof cov; a repair earns speed."""
     root = project(tmp_path, parallel=True)
-    assert _timing_pass(root, (slow_transcript(None), 0)) == EXIT_DURATION_OUTLIERS
+    assert _speed_full(root, (slow_transcript(GREEN_TOTAL), 0)) == EXIT_DURATION_OUTLIERS
     assert "proof=cov" in closing_line_of(capsys.readouterr().out)
     assert saved(root) is FullLevel.COV
-    assert _timing_pass(root, TIMINGS_GREEN, "--force") == EXIT_OBJECTIVE_MET
+    assert _speed_full(root, FULL_GREEN, "--force") == EXIT_OBJECTIVE_MET
     assert saved(root) is FullLevel.SPEED
 
 
@@ -245,7 +240,7 @@ def test_timing_change_caps_a_saved_speed_proof(tmp_path: Path, capsys: pytest.C
 
 
 def test_setup_errors_judge_no_gate(tmp_path: Path) -> None:
-    """Exit 5 in the full step or the timing pass writes nothing: saved proof stays."""
+    """Exit 5 at either cov or speed writes nothing: saved proof stays."""
     root = project(tmp_path, parallel=True)
     save(root, FullLevel.COV)
     no_total = (passing_transcript(4, None), 0)
@@ -253,7 +248,7 @@ def test_setup_errors_judge_no_gate(tmp_path: Path) -> None:
     assert code == EXIT_SETUP_ERROR
     assert saved(root) is FullLevel.COV
     empty = (["no tests ran in 0.01s"], 5)
-    code, _ = run(root, ["day", "--full=speed", "--force"], [*_PARALLEL_FULL_GREEN, empty])
+    code, _ = run(root, ["day", "--full=speed", "--force"], [CHECK_OK, AFFECTED_OK, empty])
     assert code == EXIT_SETUP_ERROR
     assert saved(root) is FullLevel.COV
 
@@ -279,7 +274,7 @@ def test_interrupted_children_keep_the_saved_proof(
     capsys: pytest.CaptureFixture[str],
     interrupted: Child,
 ) -> None:
-    """An affected, full or timing child interrupted before any failure judges no gate.
+    """An affected or full child interrupted before any failure judges no gate.
 
     Each of pytest's interruption banners (a bare or messaged
     KeyboardInterrupt, an explicit pytest.exit with its interrupted, failing
@@ -292,7 +287,6 @@ def test_interrupted_children_keep_the_saved_proof(
     for children in (
         [CHECK_OK, interrupted],
         [CHECK_OK, AFFECTED_OK, interrupted],
-        [*_PARALLEL_FULL_GREEN, interrupted],
     ):
         code, spawns = run(root, ["day", "--full=speed", "--force"], children)
         assert (code, len(spawns.commands)) == (EXIT_SUITE_CRASH, len(children))

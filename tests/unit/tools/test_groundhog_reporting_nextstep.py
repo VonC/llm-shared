@@ -142,22 +142,14 @@ def test_next_after_full_per_exit_code() -> None:
     assert reporting_nextstep.next_after_full(EXIT_SUITE_CRASH, (), None, context) == []
 
 
-def test_parallel_speed_full_success_depends_on_the_walk() -> None:
-    """A green parallel speed run proves cov alone; inside a walk timings own it."""
-    direct = StepContext(FullLevel.SPEED, parallel=True)
-    assert reporting_nextstep.next_after_full(EXIT_OBJECTIVE_MET, (), None, direct) == [
-        reporting_nextstep.success_line(FullLevel.COV),
-        reporting_nextstep.MSG_SPEED_NOT_MEASURED + " --whole-suite",
-    ]
-    walk = StepContext(FullLevel.SPEED, in_walk=True, parallel=True)
-    assert reporting_nextstep.next_after_full(EXIT_OBJECTIVE_MET, (), None, walk) == []
-    sequential = StepContext(FullLevel.SPEED)
-    assert reporting_nextstep.next_after_full(EXIT_OBJECTIVE_MET, (), None, sequential) == [
+@pytest.mark.parametrize("parallel", [False, True])
+@pytest.mark.parametrize("in_walk", [False, True])
+def test_speed_full_success_needs_no_additional_pass(*, parallel: bool, in_walk: bool) -> None:
+    """A green speed full run establishes speed in every execution mode."""
+    context = StepContext(FullLevel.SPEED, parallel=parallel, in_walk=in_walk)
+    assert reporting_nextstep.next_after_full(EXIT_OBJECTIVE_MET, (), None, context) == [
         reporting_nextstep.success_line(FullLevel.SPEED),
     ]
-    assert "ghog day --full=speed --whole-suite" in reporting_nextstep.next_after_full(
-        EXIT_OBJECTIVE_MET, (), None, direct,
-    )[-1]
 
 
 def test_next_after_timings_per_exit_code() -> None:

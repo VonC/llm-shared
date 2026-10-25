@@ -32,8 +32,8 @@ lines come from the level-aware builders of
 ``reporting_nextstep``, so every restart names the carried level; a step the
 day walk derived (``in_walk``) leaves its next step to the walk. A direct
 ``ghog full`` reports the proof it earned (``proof.earned_by_direct_full``)
-and, when green on a parallel project at ``speed``, the line saying
-durations were not measured. Every outcome says whether it judged a gate
+including speed from the same covered run in either execution mode.
+Every outcome says whether it judged a gate
 (``proof.judges_gate``): a setup error, a project without a pytest suite and
 a child interrupted before any failure did not, so the walk keeps its saved
 proof. Every closing line appends its evidence keys.
@@ -289,7 +289,7 @@ def _earned(invocation: Invocation, judged: _Judged) -> FullLevel | None:
     if invocation.sub != runner.SUB_FULL or invocation.in_walk:
         return None
     level = effective_level(invocation.level, invocation.sub)
-    return earned_by_direct_full(level, judged.code, parallel=judged.parallel)
+    return earned_by_direct_full(level, judged.code)
 
 
 def run_init(invocation: Invocation, deps: Deps) -> int:

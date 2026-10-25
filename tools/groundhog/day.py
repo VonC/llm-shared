@@ -25,12 +25,11 @@ proof. It first reads the whole-suite proof marker
 - otherwise the whole chain: check.bat, the affected tests, then, above the
   default level ``none``, the full step at the level. At ``none`` the walk
   stops after a green affected step with the skip success line. At ``speed``
-  in a parallel project a green full step is followed by a timed sequential
-  ``timings`` step, whose exit becomes the walk's.
+  the full step collects coverage and durations together in either run mode.
 
 The walk records each gate it judged: a failure contradicts the level that
-gate guards (check.bat or the affected tests: ``none``; the full tests or the
-timing pass: ``pass``; the coverage gate: ``cov``; the duration outliers:
+gate guards (check.bat or the affected tests: ``none``; the full tests:
+``pass``; the coverage gate: ``cov``; the duration outliers:
 ``speed``). It then accumulates the proof (``proof.accumulate``) and rewrites
 the marker, or removes it when nothing is proven. The marker records the
 digest the test steps ran on, taken again after a green check.bat, whose
@@ -84,7 +83,7 @@ if TYPE_CHECKING:
     from tools.groundhog.context import Deps, Invocation
     from tools.groundhog.snapshot import EffectiveProof
 
-# The gate a failing full step or timing pass contradicts, by exit code.
+# The gate a failing full step contradicts, by exit code.
 _FULL_GATES: Final = {
     EXIT_TEST_FAILURES: Gate.FULL_TESTS,
     EXIT_SUITE_CRASH: Gate.FULL_TESTS,
@@ -249,29 +248,23 @@ def _whole_chain(record: _Walk) -> int:
 
 
 def _full_steps(record: _Walk) -> int:
-    """Run the full step at the walk's level, then the timing pass at parallel speed.
+    """Run the full step once, including durations at speed.
 
     Args:
         record: The walk record, its check and affected steps green or reused.
 
     Returns:
-        The exit code of the full step, or of the timing pass after it.
+        The exit code of the full step, including its duration verdict.
     """
-    parallel = runner.parallel_enabled(record.invocation.root)
     code = record.run_pytest_step(runner.SUB_FULL, runner.SUB_FULL, no_cov=False)
     if not record.judged:
         return code
-    _judge(record, code, earned_by_direct_full(record.level, code, parallel=parallel))
-    if code != EXIT_OBJECTIVE_MET or not (record.level is FullLevel.SPEED and parallel):
-        return code
-    code = record.run_pytest_step(runner.SUB_TIMINGS, runner.SUB_TIMINGS, no_cov=True)
-    if record.judged:
-        _judge(record, code, FullLevel.SPEED if code == EXIT_OBJECTIVE_MET else None)
+    _judge(record, code, earned_by_direct_full(record.level, code))
     return code
 
 
 def _judge(record: _Walk, code: int, earned: FullLevel | None) -> None:
-    """Record what one full step or timing pass established and contradicted.
+    """Record what one full step established and contradicted.
 
     Args:
         record: The walk record.

@@ -245,10 +245,11 @@ def remove_proof_marker(path: Path) -> None:
 
 
 def timing_fingerprint(root: Path) -> str:
-    """Digest the duration gate inputs: the gate floor and the exclusions.
+    """Digest the timing method, gate floor and exclusions.
 
     Line 1 of the floor file, the write-only auto floor, is left out, so a run
-    that only records its auto floor keeps the fingerprint.
+    that only records its auto floor keeps the fingerprint. The method version
+    caps proof from the former separate timing pass at coverage after upgrade.
 
     Args:
         root: The project root directory.
@@ -257,7 +258,7 @@ def timing_fingerprint(root: Path) -> str:
         A hex digest over the active gate floor (line 2, else the default)
         and the effective exclusion entries, in file order.
     """
-    hasher = hashlib.sha256()
+    hasher = hashlib.sha256(b"timing=covered-full-v1\n")
     hasher.update(f"floor={floor.active_floor(floor.read_floor(root))!r}\n".encode())
     for node, seconds in exclusions.read_exclusions(root).items():
         hasher.update(f"{node} = {seconds!r}\n".encode())

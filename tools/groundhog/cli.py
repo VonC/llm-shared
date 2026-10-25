@@ -416,7 +416,7 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     subparsers.add_parser(
         runner.SUB_TIMINGS,
         parents=[common],
-        help="Sequential whole-suite timing pass that judges the duration gate.",
+        help="Optional sequential duration diagnostic; full already measures durations at speed.",
     )
     affected = subparsers.add_parser(
         runner.SUB_AFFECTED,

@@ -176,37 +176,32 @@ def test_effective_saved_caps_speed_at_cov_on_a_timing_mismatch() -> None:
 
 
 @pytest.mark.parametrize(
-    ("level", "exit_code", "parallel", "expected"),
+    ("level", "exit_code", "expected"),
     [
-        (FullLevel.PASS, EXIT_OBJECTIVE_MET, False, FullLevel.PASS),
-        (FullLevel.PASS, EXIT_TEST_FAILURES, False, None),
-        (FullLevel.PASS, EXIT_COVERAGE_GAP, False, None),
-        (FullLevel.COV, EXIT_OBJECTIVE_MET, True, FullLevel.COV),
-        (FullLevel.COV, EXIT_COVERAGE_GAP, False, FullLevel.PASS),
-        (FullLevel.COV, EXIT_DURATION_OUTLIERS, False, None),
-        (FullLevel.COV, EXIT_SUITE_CRASH, False, None),
-        (FullLevel.SPEED, EXIT_OBJECTIVE_MET, False, FullLevel.SPEED),
-        (FullLevel.SPEED, EXIT_DURATION_OUTLIERS, False, FullLevel.COV),
-        (FullLevel.SPEED, EXIT_COVERAGE_GAP, False, FullLevel.PASS),
-        (FullLevel.SPEED, EXIT_SETUP_ERROR, False, None),
-        # A green parallel speed run never measured durations: cov only.
-        (FullLevel.SPEED, EXIT_OBJECTIVE_MET, True, FullLevel.COV),
-        (FullLevel.SPEED, EXIT_COVERAGE_GAP, True, FullLevel.PASS),
-        (FullLevel.SPEED, EXIT_DURATION_OUTLIERS, True, None),
-        (FullLevel.SPEED, EXIT_TEST_FAILURES, True, None),
+        (FullLevel.PASS, EXIT_OBJECTIVE_MET, FullLevel.PASS),
+        (FullLevel.PASS, EXIT_TEST_FAILURES, None),
+        (FullLevel.PASS, EXIT_COVERAGE_GAP, None),
+        (FullLevel.COV, EXIT_OBJECTIVE_MET, FullLevel.COV),
+        (FullLevel.COV, EXIT_COVERAGE_GAP, FullLevel.PASS),
+        (FullLevel.COV, EXIT_DURATION_OUTLIERS, None),
+        (FullLevel.COV, EXIT_SUITE_CRASH, None),
+        (FullLevel.SPEED, EXIT_OBJECTIVE_MET, FullLevel.SPEED),
+        (FullLevel.SPEED, EXIT_DURATION_OUTLIERS, FullLevel.COV),
+        (FullLevel.SPEED, EXIT_COVERAGE_GAP, FullLevel.PASS),
+        (FullLevel.SPEED, EXIT_SETUP_ERROR, None),
+        (FullLevel.SPEED, EXIT_TEST_FAILURES, None),
         # A direct full run never runs at none.
-        (FullLevel.NONE, EXIT_OBJECTIVE_MET, False, None),
+        (FullLevel.NONE, EXIT_OBJECTIVE_MET, None),
     ],
 )
 def test_earned_by_direct_full_follows_the_design_table(
     level: FullLevel,
     exit_code: int,
     *,
-    parallel: bool,
     expected: FullLevel | None,
 ) -> None:
     """A direct ghog full earns its level, the level below one failed gate, or nothing."""
-    assert proof.earned_by_direct_full(level, exit_code, parallel=parallel) is expected
+    assert proof.earned_by_direct_full(level, exit_code) is expected
 
 
 @pytest.mark.parametrize(

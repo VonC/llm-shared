@@ -122,13 +122,8 @@ def test_full_command_is_alias_faithful() -> None:
     ]
 
 
-def test_opted_in_full_command_runs_on_workers_without_timing_or_testmon() -> None:
-    """The opted-in full run swaps testmon and timing flags for workers.
-
-    testmon cannot share a session with xdist, and a contended call time
-    measures the scheduler rather than the test, so the sequential timings run
-    owns the outlier rule for such a project.
-    """
+def test_opted_in_full_command_times_workers_without_testmon() -> None:
+    """Workers collect coverage and durations together without incompatible testmon."""
     command = runner.pytest_command(
         "pytest", runner.SUB_FULL, no_cov=False, files=(), parallel=True,
     )
@@ -142,9 +137,10 @@ def test_opted_in_full_command_runs_on_workers_without_timing_or_testmon() -> No
         "--cov-report",
         "term-missing:skip-covered",
         "-v",
+        "--durations=0",
+        "--durations-min=0",
     ]
     assert "--testmon" not in command
-    assert "--durations=0" not in command
 
 
 def test_full_command_shape_per_level() -> None:
@@ -173,11 +169,7 @@ def test_level_never_shapes_the_other_subcommands() -> None:
 
 
 def test_timings_command_is_sequential_uninstrumented_and_timed() -> None:
-    """The timing pass sees every test with no workers and no coverage (Q39).
-
-    Workers make a call time a measure of contention and coverage inflates it,
-    so the only run that judges durations carries neither.
-    """
+    """Explicit timings remains an optional sequential, uncovered diagnostic."""
     command = runner.pytest_command("pytest", runner.SUB_TIMINGS, no_cov=False, files=())
     assert command == [
         "pytest",

@@ -6,7 +6,7 @@ Step 2: one test per level row of the design's "Acceptance Cases", driven
 through ``cli.main`` on a ``tmp_path`` project with the process boundary
 faked: the default walk with its skip line; ``GHOG_FULL`` and ``--full``
 resolution, precedence and their exit-5 errors (never argparse's 2); each
-level's run shape and verdict, including the parallel ``speed`` timing pass
+level's run shape and verdict, including parallel ``speed`` duration collection
 and the direct ``ghog full`` that never claims speed; the level carried by
 every restart line, the no-baseline focus notice included; and the
 no-argument ``ghog_cycle.bat`` running ``day`` alone.
@@ -28,6 +28,7 @@ from tests.unit.tools.test_groundhog_acceptance_levels.support import (
     CHECK_OK,
     FULL_GREEN,
     GAP_TOTAL,
+    GREEN_TOTAL,
     TESTS_FAILING,
     project,
     run,
@@ -150,33 +151,36 @@ def test_cov_level_in_a_parallel_project_runs_no_timing_pass(
     assert reporting_nextstep.success_line(FullLevel.COV) in capsys.readouterr().out
 
 
-def test_parallel_speed_walk_judges_the_timing_pass(
+def test_parallel_speed_walk_judges_durations_without_rerunning_tests(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """An outlier in the timing pass exits 8 and restarts at --full=speed."""
+    """An outlier in full exits 8, with exactly one full-suite traversal."""
     root = project(tmp_path, parallel=True)
-    timings = (slow_transcript(None), 0)
-    code, spawns = run(root, ["day", "--full=speed"], [CHECK_OK, AFFECTED_OK, FULL_GREEN, timings])
+    full = (slow_transcript(GREEN_TOTAL), 0)
+    code, spawns = run(root, ["day", "--full=speed"], [CHECK_OK, AFFECTED_OK, full])
     assert code == EXIT_DURATION_OUTLIERS
-    assert "--durations=0" in spawns.commands[3]
+    assert len(spawns.commands) == len(("check", "affected", "full"))
+    assert "--durations=0" in spawns.commands[2]
+    assert "--cov-report" in spawns.commands[2]
+    assert "-n" in spawns.commands[2]
     out = capsys.readouterr().out
-    assert "== ghog timings == started" in out
+    assert "== ghog timings == started" not in out
     assert reporting_nextstep.outliers_line(FullLevel.SPEED) in out
     assert "ghog day --full=speed" in reporting_nextstep.outliers_line(FullLevel.SPEED)
 
 
-def test_direct_parallel_full_never_claims_speed(
+def test_direct_parallel_full_establishes_speed(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """A green direct parallel ghog full proves cov and says speed was not measured."""
-    code, _ = run(project(tmp_path, parallel=True), ["full"], [FULL_GREEN])
+    """A green direct parallel ghog full proves speed in a single run."""
+    code, spawns = run(project(tmp_path, parallel=True), ["full"], [FULL_GREEN])
     assert code == EXIT_OBJECTIVE_MET
+    assert len(spawns.commands) == 1
     out = capsys.readouterr().out
-    assert reporting_nextstep.MSG_SPEED_NOT_MEASURED in out
-    assert reporting_nextstep.success_line(FullLevel.SPEED) not in out
-    assert closing_line_of(out).endswith("full=speed src=default proof=cov scope=whole")
+    assert reporting_nextstep.success_line(FullLevel.SPEED) in out
+    assert closing_line_of(out).endswith("full=speed src=default proof=speed scope=whole")
 
 
 def test_direct_pass_failure_is_unproven_and_carries_the_level(

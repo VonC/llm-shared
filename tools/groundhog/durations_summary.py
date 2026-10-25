@@ -57,11 +57,9 @@ def measures_durations(invocation: Invocation) -> bool:
     Returns:
         True for whichever run actually carries ``--durations`` (Q39).
 
-        A sequential full run measures each call honestly and keeps the
-        rule, exactly as before. A project that opts its full run into
-        xdist workers gets a contended call time, which measures the
-        scheduler rather than the test, so there the sequential
-        ``timings`` run owns the rule and keeps its whole-suite scope.
+        Sequential and parallel full runs measure calls during the same
+        covered execution. Durations include instrumentation overhead and
+        worker contention; no second suite run is needed for speed proof.
         Deriving the answer from the built command keeps the verdict and
         the measurement from drifting apart. A ``full`` run below ``speed``
         is built without ``--durations``, so it never judges speed.

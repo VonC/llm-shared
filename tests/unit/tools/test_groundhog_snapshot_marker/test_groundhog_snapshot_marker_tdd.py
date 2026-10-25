@@ -13,6 +13,7 @@ ignoring line 1. A read marker feeds the pure effective-proof rule directly.
 
 from __future__ import annotations
 
+import hashlib
 import logging
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -249,6 +250,19 @@ def test_whole_scope_fingerprint_is_a_sha256() -> None:
     """The fixed whole-suite fingerprint has the marker's sha256 shape."""
     assert len(snapshot.WHOLE_SCOPE_FINGERPRINT) == len(_DIGEST)
     assert set(snapshot.WHOLE_SCOPE_FINGERPRINT) <= set("0123456789abcdef")
+
+
+def test_separate_timing_pass_proof_requires_a_new_speed_run(tmp_path: Path) -> None:
+    """A legacy speed result retains coverage but cannot skip the combined run."""
+    old_timing = hashlib.sha256(f"floor={floor.DEFAULT_FLOOR!r}\n".encode()).hexdigest()
+    marker = ProofMarker("whole", snapshot.WHOLE_SCOPE_FINGERPRINT, old_timing, _DIGEST, FullLevel.SPEED)
+    assert proof.effective_saved(
+        marker,
+        scope_key="whole",
+        fingerprint=snapshot.WHOLE_SCOPE_FINGERPRINT,
+        digest=_DIGEST,
+        timing=snapshot.timing_fingerprint(tmp_path),
+    ) is FullLevel.COV
 
 
 def test_read_marker_feeds_the_effective_proof_rule(tmp_path: Path) -> None:

@@ -222,22 +222,21 @@ def effective_saved(
     return cap_for_timing(marker.proof, timing_matches=marker.timing == timing)
 
 
-def earned_by_direct_full(level: FullLevel, exit_code: int, *, parallel: bool) -> FullLevel | None:
+def earned_by_direct_full(level: FullLevel, exit_code: int) -> FullLevel | None:
     """Return the proof a direct ``ghog full`` run earned.
 
-    A parallel run at ``speed`` never measures durations, so it earns at most
-    ``cov``. A failing run keeps the level below its one failed gate when that
+    Both sequential and parallel runs measure durations at ``speed``.
+    A failing run keeps the level below its one failed gate when that
     gate was judged at the run's level; any other failure earns nothing.
 
     Args:
         level: The level the run was asked for.
         exit_code: The contract exit code of the run.
-        parallel: Whether the project runs its full suite on xdist workers.
 
     Returns:
         The earned proof, or ``None`` (``unproven``).
     """
-    judged = FullLevel.COV if level is FullLevel.SPEED and parallel else level
+    judged = level
     if judged is FullLevel.NONE:
         return None
     if exit_code == EXIT_OBJECTIVE_MET:

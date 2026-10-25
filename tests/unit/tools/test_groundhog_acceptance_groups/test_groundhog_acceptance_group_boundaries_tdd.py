@@ -61,7 +61,11 @@ def test_parallel_timing_keeps_group_and_readonly_exclusions(tmp_path: Path, sec
     spawns = CoverageSpawns(tmp_path)
     spawns._lines.extend(["=== slowest durations ===", f"{seconds:.2f}s call tests/sentinel/test_core.py::test_ok"])
     assert cli.main(["day", "--full=speed", "--group=sentinel", "--root", str(tmp_path)], make_deps(spawns)) == code
+    # This fixture has no check.bat, so only the two pytest children spawn.
+    assert len(spawns.commands) == len(("affected", "full"))
     assert "--durations=0" in spawns.commands[-1]
+    assert "-n" in spawns.commands[-1]
+    assert "--cov-report" in spawns.commands[-1]
     assert spawns.commands[-1][-1] == "tests/sentinel/test_core.py"
     assert path.read_bytes() == before
 

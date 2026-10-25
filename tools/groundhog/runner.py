@@ -204,13 +204,12 @@ def pytest_command(  # noqa: PLR0913
     if sub == SUB_SINGLE:
         return [pytest_exe, "--no-header", "--no-cov", "-rxX", "-v", *files]
     if sub == SUB_TIMINGS:
-        # Sequential and uninstrumented on purpose: a contended or covered
-        # call time measures the scheduler, not the test (Q39).
+        # Optional standalone diagnostic; day never adds this second run.
         return [pytest_exe, "--no-header", "--no-cov", "-v",
                 "--durations=0", "--durations-min=0", *test_paths]
     worker_run = sub == SUB_FULL and parallel
     command = [pytest_exe, *_selection_options(sub, worker_run=worker_run, grouped=bool(test_paths))]
-    covered, timed = _measures(sub, level, no_cov=no_cov, worker_run=worker_run)
+    covered, timed = _measures(sub, level, no_cov=no_cov)
     if not covered:
         command.extend(["--no-header", "--no-cov", "-v"])
         return [*command, *test_paths]
@@ -247,25 +246,23 @@ def _selection_options(sub: str, *, worker_run: bool, grouped: bool) -> tuple[st
     return ("--testmon",)
 
 
-def _measures(sub: str, level: FullLevel, *, no_cov: bool, worker_run: bool) -> tuple[bool, bool]:
+def _measures(sub: str, level: FullLevel, *, no_cov: bool) -> tuple[bool, bool]:
     """Tell what a covered or affected pytest run measures at its level.
 
     Args:
         sub: The subcommand: ``full`` or ``affected``.
         level: The full-suite level shaping a ``full`` run.
         no_cov: Whether coverage is disabled (the ptanc variant).
-        worker_run: Whether the run spreads over xdist workers.
 
     Returns:
         Whether it measures coverage (never for a ``full`` run below
-        ``cov``) and whether it times each call. A sequential full run still
-        sees every test and still measures it honestly, so at ``speed`` it
-        keeps the outlier rule exactly as before (Q39); below ``speed``
-        nothing judges the timing, so nothing is timed.
+        ``cov``) and whether it times each call. At ``speed``, sequential and
+        parallel full runs both collect durations during the covered run;
+        below ``speed`` nothing judges the timing, so nothing is timed.
     """
     full_run = sub == SUB_FULL
     covered = not no_cov and not (full_run and level < FullLevel.COV)
-    timed = covered and full_run and not worker_run and level is FullLevel.SPEED
+    timed = covered and full_run and level is FullLevel.SPEED
     return covered, timed
 
 

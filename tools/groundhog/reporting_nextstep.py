@@ -39,8 +39,8 @@ travels through the whole repair loop: ``ghog day --full=<level>``, or plain
 ``none`` level. Each repair command the report sends the caller to carries
 ``--full=<level>`` the same way (:func:`carried_selector`). Success lines are
 one per level (:func:`success_line`), the noop line names the requested level
-and the saved proof (:func:`noop_line`), and a green parallel ``speed`` full
-run outside a walk says durations were not measured. A :class:`StepContext`
+and the saved proof (:func:`noop_line`), and a green ``speed`` full run
+establishes speed in either execution mode. A :class:`StepContext`
 carries the level, the walk flag and the parallel flag, so a step inside a day
 walk leaves its next step to the walk and a standalone ``ghog affected
 --no-cov`` with no carried level keeps ``Next: ghog full``. A focus run
@@ -104,7 +104,7 @@ MSG_GAP_LINES_HEADER: Final = "Uncovered lines (file and ranges are the covg inp
 # The floor file named by the exclusion hint when the verdict carries no
 # location: it lives in the artifact home, never at the project root.
 _FLOOR_FILE_IN_HOME: Final = "a.ghog.outliers in the artifact home (.reviews by default)"
-MSG_TIMINGS_OK: Final = "Duration gate clean; the parallel walk carries the rest"
+MSG_TIMINGS_OK: Final = "Diagnostic duration gate clean; use ghog full for tests, coverage and speed proof"
 # The covered standalone affected run at no carried level (unchanged).
 MSG_AFFECTED_COV_OK: Final = (
     "Coverage gate reached - no ghog full needed; "
@@ -115,12 +115,6 @@ MSG_AFFECTED_COV_OK: Final = (
 _NO_BASELINE: Final = (
     "no full-run baseline, comparison skipped; run ghog full{selector} for "
     "suite-level truth"
-)
-# A green parallel full run outside a walk never measured durations.
-MSG_SPEED_NOT_MEASURED: Final = (
-    "Durations were not measured: the parallel full run carries no timing "
-    "pass, so the speed objective is not established; prove it with "
-    "ghog day --full=speed"
 )
 # The per-level success lines, each naming its scope (filled in by
 # :func:`success_line`); ``none`` is the skip line of the default walk.
@@ -432,9 +426,8 @@ def next_after_full(
 def _full_success(context: StepContext) -> list[str]:
     """Build the success lines of a green full run.
 
-    A parallel full run at ``speed`` never measures durations: inside a walk
-    the timing pass follows and owns the success line; a direct run proves
-    ``cov`` and says the speed objective is not established.
+    At ``speed`` the full run has judged durations as well as coverage,
+    whether it ran sequentially or on workers.
 
     Args:
         context: The run level, the walk flag and the parallel flag.
@@ -442,10 +435,6 @@ def _full_success(context: StepContext) -> list[str]:
     Returns:
         The success lines of the run, possibly none.
     """
-    if context.level is FullLevel.SPEED and context.parallel:
-        if context.in_walk:
-            return []
-        return [success_line(FullLevel.COV, context.scope), f"{MSG_SPEED_NOT_MEASURED} {context.scope.selector()}"]
     return [success_line(context.level, context.scope)]
 
 
