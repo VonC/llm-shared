@@ -38,21 +38,21 @@ even an invalid environment group. Conflicting selectors or invalid selections
 exit 5 without fallback. Check always runs project-wide; single runs the files
 the caller names and carries scope on its restart line.
 
-### Parallel coverage and sequential timings
+### Coverage and durations in one full run
 
-On a sequential project, speed measures coverage and durations in the full run.
-On a parallel project, `ghog day --full=speed` runs covered full first and then
-sequential `ghog timings` in the same scope. The separate timings step avoids
-using contended worker durations as speed proof. A direct parallel
-`ghog full --full=speed` establishes only `proof=cov` and explicitly says speed
-is not established; follow its printed speed-day command. Direct full never
-reads or writes the day marker, even when it proves coverage.
+At speed, sequential and parallel full runs collect coverage and call durations
+together. `ghog day --full=speed` runs the full suite once; a successful direct
+`ghog full --full=speed` also establishes `proof=speed`. Durations reflect
+coverage overhead and worker contention in that execution. The optional
+`ghog timings` command remains a sequential diagnostic and is never appended
+by day. Direct full never reads or writes the day marker.
 
 ## The resolved walk at a glance
 
 ```text
-check.bat -> affected --no-cov -> full at requested level -> timings if needed
-                                  none: deliberate skip    parallel speed only
+check.bat -> affected --no-cov -> full at requested level
+                                  none: deliberate skip
+                                  speed: coverage + durations together
 ```
 
 Each step requires the previous one to pass. A default green day says
@@ -72,7 +72,7 @@ The source digest covers Python paths, sizes and mtimes plus gate configuration.
 A changed digest, scope or group fingerprint invalidates proof; a changed timing
 signature caps saved speed at cov. With matching inputs, saved proof at least
 as strong as the request is a noop. An upgrade reuses check and affected and
-runs only the missing full work (and timings when needed). `--force` runs all
+runs only the missing full work. `--force` runs all
 steps. Direct full neither consumes nor changes this marker.
 
 Failure caps evidence: check or affected failure is unproven, full test failure
@@ -189,7 +189,7 @@ The walk is also the loop's only re-entry point. After a fix, the next command i
 | pts | `ghog single <test files>` | named test files (files, not functions), no coverage, `-rxX` |
 | (none) | `ghog init` | register the skill pointers in the project (see below) |
 
-The aliases are doskey macros from `senv.doskey`, available after `senv.bat`; the `bin\*.bat` wrappers behind them work from any shell, loaded or not. Sequential full rebuilds testmon for later affected selection. Parallel full uses the project parallel runner; speed day adds sequential timings as described above.
+The aliases are doskey macros from `senv.doskey`, available after `senv.bat`; the `bin\*.bat` wrappers behind them work from any shell, loaded or not. Sequential full rebuilds testmon for later affected selection. Parallel full uses the project parallel runner; both modes collect durations during full at speed.
 
 ## 🚦 Exit codes and the closing line
 
@@ -216,11 +216,11 @@ The keys are the contract; `cov=` reads `skipped` (not measured), `withheld` (fa
 
 A check.bat that prints `ERROR :` lines yet exits 0 is treated as failed (exit 1) with an explicit mismatch notice, so a broken check script can never green-light the walk.
 
-At speed, the full run or sequential timings step also times every test call, so `ghog day` trims test execution time: a call running far outside the norm (a robust outlier score, at or above a one-second floor) keeps the walk on exit 8 with the slow calls named, judged last so it never masks a failure or a coverage gap. The named calls are shortened (`instructions/fix_slow_test.md`: fake the slow resource, the clock, or shrink the data) or, when a call is legitimately slow, accepted at its measured time with `ghog exclude`. That is how the suite stays fast, the project target being under one second per test.
+At speed, the full run also times every test call, so `ghog day` trims test execution time: a call running far outside the norm (a robust outlier score, at or above a one-second floor) keeps the walk on exit 8 with the slow calls named, judged last so it never masks a failure or a coverage gap. The named calls are shortened (`instructions/fix_slow_test.md`: fake the slow resource, the clock, or shrink the data) or, when a call is legitimately slow, accepted at its measured time with `ghog exclude`. That is how the suite stays fast, the project target being under one second per test.
 
 ## 🐢 The duration gate: how tests stay under a second
 
-The exit-8 stop above is the visible half of a rule that keeps the whole suite fast enough to run willingly. At speed, the full run or sequential timings step captures the call-phase seconds of every test, and a call is flagged as a true outlier only when two conditions hold at once:
+The exit-8 stop above is the visible half of a rule that keeps the whole suite fast enough to run willingly. At speed, the full run captures the call-phase seconds of every test, and a call is flagged as a true outlier only when two conditions hold at once:
 
 - a robust statistic — the Iglewicz-Hoaglin modified z-score, median and MAD based, cutoff 3.5 — says the call sits far outside this run's norm (a call two or three times the median is merely slower, never an outlier);
 - the call is at or above an absolute floor in seconds.

@@ -53,8 +53,8 @@ Keep the test honest while you cut its time:
   pytest "<NODE ID>" --no-cov -p no:testmon -q --durations=1
   ```
 
-- confirm it still passes on its own with `ghog single <file>`. The focused run carries no timing of its own — the full run or sequential timings step measures durations — so the new call time is re-read by the next walk, not here.
-- restart the walk with `ghog day --full=speed`: keep the same scope and follow the printed restart line; its full run or sequential timings step re-measures the calls, so the trimmed call falls under the floor and drops off the list.
+- confirm it still passes on its own with `ghog single <file>`. The focused run carries no timing of its own — the full run measures durations — so the new call time is re-read by the next walk, not here.
+- restart the walk with `ghog day --full=speed`: keep the same scope and follow the printed restart line; its full run re-measures the calls alongside coverage, so the trimmed call falls under the floor and drops off the list.
 
 Fixing a slow call is a sub-step of the walk, not the end of it: exit 8 is one more non-green step, no different from a failure or a coverage gap. Keep looping from `ghog day --full=speed` (the loop is in [`groundhog.md`](groundhog.md)) until it reports `exit=0`, then carry on with whatever instruction sent you to the walk -- the handoff, the commit, or the next step. Shortening a call never ends the work; it clears one blocker so the walk can reach the objective.
 

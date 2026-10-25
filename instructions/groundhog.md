@@ -12,8 +12,9 @@ default to internal `none`. `--full=none` is invalid (exit 5). The default day
 runs check.bat plus affected tests without coverage: the full stage is
 deliberately skipped, with a printed skip line. `pass` adds tests, `cov` adds
 coverage, and `speed` adds the duration gate. Exit 8 is possible only at `speed`.
-In a parallel project a speed day follows covered full with sequential timings;
-a direct parallel full establishes only `cov`, never `speed`.
+At speed, full collects coverage and durations together, including on parallel
+workers. A successful full establishes `speed`; day never adds a second suite
+run for timings. Durations include coverage overhead and worker contention.
 
 Explicit `--group=<name>`, `--whole-suite` or `--scope-file=<capture>` wins over
 `GHOG_GROUP`, then whole suite is the fallback. Conflicting selectors, invalid
@@ -92,7 +93,7 @@ before day pays check.bat twice; use the printed restart command instead.
    - `8` (a true duration outlier, only at `speed`): tests and coverage pass,
      but a call exceeds the duration rule. Shorten only the flagged calls as
      the playbook below says, then follow the printed restart in the same scope.
-     A parallel speed walk re-measures through its sequential timings step.
+     A parallel speed walk re-measures during its covered full step.
    - `4` (suite crash): the crash block lists the last started tests, the call-stack tail and an instruction; act on it immediately — make the test suite robust against that exception, so it cannot break the suite again — then go back to step 1.
    - `5` (setup error): relay the printed reason from the log tail and stop; looping cannot fix it.
    - `9` (not a pytest project): the project root has no `pyproject.toml`, `pytest.ini` or `conftest.py`, and no pytest section in `setup.cfg` or `tox.ini`, so groundhog has no test step to run; the walk's check step, when present, already ran green. Stop the loop and report that groundhog does not apply to this project. Never install pytest, create a venv or add a `pyproject.toml` to get past it.
@@ -115,9 +116,9 @@ Exit 8 means the full suite passes and meets the coverage gate, yet at least one
    - heavy data or iteration — a large generated input, a long loop: shrink it to a representative size that still proves the behavior.
    - per-call heavy construction — an object or fixture built inside the test body: move it to a module- or session-scoped fixture, so the cost is paid once, not per call, which also takes it out of the call phase the rule measures.
 3. If the call is legitimately slow and cannot be shortened without dropping what it must exercise — a genuine integration test against a real slow path — do not fake the slowness away. Run `ghog exclude <node id> <measured seconds>` instead (the command the next-step hint names), so the suite accepts that one call at its measured time. Line 2 of `a.ghog.outliers` is project-wide floor tuning, not the way to accept one call: the tool holds the excluded call to its recorded baseline within two seconds, and a slower drift keeps the run on exit 8 with a restore-to-baseline instruction. See [`fix_slow_test.md`](fix_slow_test.md) for the per-call procedure.
-4. Confirm the trimmed call alone with `ghog single <file>`: it must pass after the fix. The focused run carries no timing of its own — the full run or sequential timings step measures durations — so the new call time is re-read by the next walk, not here.
+4. Confirm the trimmed call alone with `ghog single <file>`: it must pass after the fix. The focused run carries no timing of its own — the full run measures durations — so the new call time is re-read by the next walk, not here.
 5. Restart with the printed `ghog day --full=speed` command and the same scope.
-   Its full run, or the sequential timings step in a parallel project,
+   Its full run, including in a parallel project,
    re-measures the calls. Grouped runs use the saved floor (1 second if absent)
    and exclusions without rewriting the project floor or exclusion file.
 

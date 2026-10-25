@@ -26,10 +26,10 @@ none for other run commands. Invalid values, including explicit none, exit 5.
 Helpers status, timings, init, exclude and groups accept no level. A default
 day runs check plus affected without coverage and prints a deliberate full
 skip. Pass adds full tests without coverage/durations, cov adds fresh coverage,
-speed adds durations. Exit 8 belongs only to speed. A sequential speed full
-proves both; a parallel speed day follows covered full with sequential timings.
-Direct parallel full speed reports proof=cov and says speed is not established;
-it never reads or writes a day snapshot.
+speed adds durations. Exit 8 belongs only to speed. Sequential and parallel
+speed full runs collect coverage and durations together and can prove speed.
+Day never repeats the suite solely for timing. Direct full never reads or
+writes a day snapshot. Durations include coverage overhead and contention.
 
 Explicit `--group=<name>`, `--whole-suite` or `--scope-file=<capture>` takes
 precedence over `GHOG_GROUP`, then whole suite. Explicit scope ignores invalid
@@ -121,7 +121,7 @@ For the interactive console, `senv.doskey` maps each short name (ghog, ptr, pta,
 
 Beyond pytest, the tool also chains the environment and compile steps (Q02): its bat wrappers call `call <NUL "%PRJ_DIR%\senv.bat"` first, the pattern of `bin\python_check.bat` — senv.bat is idempotent (`NO_MORE_SENV_%PRJ_DIR_NAME%` guard), so a user who already loaded the shell pays nothing, while an LLM launching from a fresh CMD (plain CMD, no PowerShell needed) gets the project environment set up within that same call. `ghog check` then runs check.bat from the project root and passes its exit code through — in the loop, any non-zero there means fixing compile errors before any test step. When check.bat is missing, the step is skipped with a printed notice, since pytest collection still catches compile errors a moment later (Q10). One guard backs the passthrough (Q26): when check.bat prints echos-style `ERROR :` lines yet exits 0 — a real check.bat template did exactly that, its cleanup clearing the status variable before the final `exit /b` read it — ghog reports the mismatch and treats the check as failed with exit 1, so a lying check script can never green-light the walk. The guard matches and re-emits check lines with their ANSI escape sequences stripped (Q29): a real colored check.bat hid its `ERROR :` lines from the guard behind color codes, and the stripped lines also keep the LLM logs free of escape noise. The stdout logger replaces unencodable characters instead of crashing (Q29): a child line carrying characters outside the console code page (the box-drawing output of ty) used to kill the logging handler and drop the line.
 
-Sequential full rebuilds testmon for affected selection. Parallel projects use their configured runner; a speed day adds sequential timings to avoid treating contended worker timings as proof (Q73).
+Sequential full rebuilds testmon for affected selection. Parallel projects use their configured runner; at speed, both modes collect durations during the covered full run (Q73).
 
 ## Process architecture for groundhog
 
@@ -184,7 +184,7 @@ A real Codex session showed the bare phrase is not enough (Q25): AGENTS.md is pa
 1. senv.bat: never a separate step — the ghog bat wrappers chain it inside each call (Q21); a user launching from their console has it loaded already.
 2. `ghog check`: compile check (skipped with a notice when check.bat is absent, Q10).
 3. `ghog affected --no-cov`: confirm the recently modified files pass, the fast feedback step.
-4. The requested full stage: skip at default none, tests at pass, add coverage at cov and durations at speed; parallel speed follows full with sequential timings.
+4. The requested full stage: skip at default none, tests at pass, add coverage at cov and durations at speed; coverage and durations share one full execution in either mode.
 5. Branch on the exit code (Q12):
    - `4` (crash): act on the crash block immediately — fix the suite robustness based on the last started tests and the call stack (Q06), then restart the walk (`ghog day`, Q30).
    - `2` (failures): run one `ghog single test_file1.py test_file2.py ...` call with every failing test file (files, not functions). The tool prints the comparison against the `a.ghog.failures` baseline per test node id (Q07, Q18). Fix first the tests failing in focus; then the ones passing in focus but failing in the full suite, which point at test interaction or ordering issues, harder to fix. While fixing, stay on `ghog single` until the focus run is green — do not re-run `ghog full` per fix — then restart the walk (`ghog day`, Q30).
@@ -218,7 +218,7 @@ The final report of every run closes with a next-step message naming the workflo
 | `ghog full` crash | 4 | the crash block: last 5 started tests, stack tail, immediate-fix instruction (Q06) |
 | `ghog full` failures | 2 | `Next: ghog single <failing test files>`, baseline written (Q18), coverage withheld |
 | `ghog full` coverage gap | 3 | the term-missing rows under `Uncovered lines` (Q24), then the covg message naming the Missing column as its input |
-| `ghog full` objective met | 0 | level-specific success; direct parallel speed states only cov proved; nag when warnings or xfails remain |
+| `ghog full` objective met | 0 | level-specific success, including parallel speed; nag when warnings or xfails remain |
 | `ghog affected` (coverage) at gate | 0 | `Coverage gate reached - run ghog check (new tests are code too), then the printed day restart` (Q24) |
 | `ghog affected` (coverage) below gate | 3 | the same covg message as the full coverage gap |
 | `ghog single`, baseline present, failing | 2 | the two Q07 lists, then `Stay on ghog single until green, then restart the walk: ghog day` (Q30) |
@@ -270,7 +270,7 @@ The acceptance tests drive `cli.main` end to end; the one faked element is the p
 
 - AT20 level resolution: explicit wins over nonempty environment and default; invalid none exits 5; default day spawns no full, pass omits coverage/durations, cov omits durations, speed gates both (Q71).
 - AT21 proof reuse: matching stronger proof noops, upgrades reuse check/affected, force runs all, source/scope/fingerprint changes invalidate and timing changes cap speed at cov. Failures downgrade old stronger proof (Q72).
-- AT22 parallel speed: day runs covered full then sequential timings; direct full establishes only cov, reports missing speed, and leaves day markers untouched (Q73).
+- AT22 parallel speed: day runs full once with coverage and durations; direct full establishes speed, and leaves day markers untouched. Outliers retain coverage proof; failures and crashes cap proof normally (Q73).
 - AT23 groups: pattern order, exclusions, python_files and coverage omit resolve exact members; empty sets fail. Explicit whole suite overrides invalid GHOG_GROUP, conflicting selectors fail without fallback (Q74).
 - AT24 grouped gates: unexecuted declared sources outside coverage roots count as zero, fresh missing/unreadable/stale coverage exits 5, and grouped duration classification never writes the floor/exclusions (Q75).
 - AT25 effort selection: draft choice is copied once, requirement changes take effect next command, removal means whole suite; pw scope rejects existing selectors and no stale draft can restore a group (Q76).
@@ -321,7 +321,7 @@ single-worker-only full and an all-or-nothing snapshot.
 | Q33 | The survivor spawn hides its console with CREATE_NO_WINDOW instead of dropping it with DETACHED_PROCESS | Invoking groundhog from LLM shells | A console-free survivor made its console children (check.bat, pytest) allocate a fresh visible console window on the user's desktop for the whole detached walk; a hidden console is inherited silently | DETACHED_PROCESS (console-free survivor, the window source); a minimized but visible window; a pythonw.exe relaunch |
 | Q71 | Explicit level, then GHOG_FULL, then command default; default day skips full | Full levels, scope and proof contract | Avoid an expensive full stage during development | Always full; accept explicit none |
 | Q72 | Per-scope ranked proof with invalidation, upgrades and failure caps | Full levels, scope and proof contract | Reuse only evidence still true | Boolean green marker; preserve stale stronger proof |
-| Q73 | Parallel speed day adds sequential timings; direct parallel full proves cov | Full levels, scope and proof contract | Avoid contended worker durations | Claim speed from parallel durations |
+| Q73 | Full collects coverage and durations together in both modes; day never adds timings | Full levels, scope and proof contract; user correction 2026-10-23 | Avoid repeating the whole suite; measure costs in the actual full run | Automatic sequential timing rerun |
 | Q74 | Explicit scope, environment, whole suite; ordered patterns and validated members | Full levels, scope and proof contract | Deterministic narrow test boundaries | Silent fallback; conflicting selectors |
 | Q75 | Group coverage is 100% of declared sources; read-only floor/exclusions | Full levels, scope and proof contract | Prevent omitted sources and cross-scope timing writes | Global coverage denominator; retune floor per group |
 | Q76 | Requirement owns effort scope; pw scope resolves when invoked | Full levels, scope and proof contract | Scope can change without rewriting plans | Frozen plan selector; stale draft fallback |
