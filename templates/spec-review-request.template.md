@@ -8,6 +8,12 @@ Review the specification and its open questions. Check whether implementation
 can proceed from the existing options and answers, identify any missing
 question, and suggest clearer wording where useful.
 
+Distinguish proposed answers from explicit user decisions. For a follow-up
+after human explanations and decisions, review the recorded choices and
+comments for whole-specification and cross-document inconsistencies, and
+identify new questions arising from them. Earlier convergence does not cover
+later decisions. Report conflicts without overwriting human choices.
+
 ## Requestor assessment for $identity_label (round $round_number)
 
 $assessment
@@ -35,7 +41,8 @@ At the end of your review, publish the project-root
 `$answer_name` through the shared review exchange, leave instructions for the
 writer to make the recommended changes, and make a decision:
 
-- if there are very few edits (just word polishing), recommend convergence and
-  consolidation
+- if there are very few edits (just word polishing), recommend convergence of
+  the reviewed formulation and identify any outstanding human decisions;
+  consolidation remains a separate human choice
 - if there are more than word-polishing edits, request the recommended changes
   and another automated review round.

@@ -35,3 +35,15 @@ Option XY: Do list the arguments for the recommended option, and explain why it 
 #### Answer to Qxx: option XY (with reason why it must be accepted as the answer)
 
 Option XY: Do not leave empty, but explain why the user should consider the recommended option as the answer to the question, and why it should be accepted as the answer, taking into account the arguments for the recommended option, as well as the overall goals and constraints of the feature request, issue, design or implementation plan.
+
+User decision: pending
+
+The answer above is a proposal until the user explicitly chooses. On that
+choice, replace the active pending line with
+`User decision: confirmed — <choice and agreed qualifications>` and record the
+reason, relevant comments, and date in this answer section. Do not generate a
+confirmed record from the recommendation or reviewer agreement. A deferral
+uses `User decision: deferred` and remains undecided. Preserve existing
+`Confirmed by the user: ...` records; do not rewrite older questions merely
+to adopt this format. Quote superseded status text when retaining history so
+it cannot be mistaken for a second active decision.

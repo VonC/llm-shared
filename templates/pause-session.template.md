@@ -61,6 +61,19 @@ actions needing fresh approval only when that requirement actually applies.}
 
 ## Live processes, external runs and reviews
 
+### Question explanation phase
+
+{Use not applicable when absent. Otherwise link the document-specific private
+continuation note and record: exact document/exchange; phase; fixed I and Total
+with their question IDs and ordered batch IDs; current question; explanation
+delivered and explicit decision recorded; next/last undecided; decisions and
+comments to review; follow-up review authority and any hold; already-published
+follow-up round. Resume the pending explanation/decision, or initiate the
+required review if all questions are now decided. Never reset I or infer a
+decision from a proposed answer. Never duplicate a published round.}
+
+### Processes and review ownership
+
 {Use none when there are no active runs. Otherwise include each run's identity,
 owner, start time, last verified state, status command and evidence location.
 Explain which host handles survive and which must be rediscovered. Record
