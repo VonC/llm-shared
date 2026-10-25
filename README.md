@@ -37,17 +37,18 @@ Command names here omit the host prefix: for example, Claude uses
 | Stage | What the AI produces and checks | Your intervention |
 | --- | --- | --- |
 | Frame the work | `process-draft` names and branches the effort; `split-and-define` separates a collection into ordered requirements | Choose the title, slug, version, document/branch layout, and test scope where applicable. Approve each focused child draft derived from a collection. |
-| Settle the requirement | `write-requirement`, followed by review questions with options, pros, cons, and recommendations | Answer the questions and request consolidation; repeat until settled. |
+| Settle the requirement | `write-requirement`, review questions, then `explain-undecided-questions` for guided decisions and a fresh consistency review | Decide each question, review any new questions, then request consolidation. |
 | Design and plan | `write-design` defines the solution and acceptance scenarios; `write-plans` creates numbered steps and a validation plan. Each gets the same review loop. | Settle design and plan questions. Say `stop here` when consolidating the plan if you want to hold before implementation; otherwise it starts automatically. |
 | Implement and verify | `implement-step` writes code and tests, runs the Groundhog quality loop, then chains `implementation-check` and any `implement-missing-step` repairs | Resolve blockers that require your judgment. The agent handles ordinary repairs and reruns. |
 | Commit each step | `group-commits-msg` prepares coherent groups and Conventional Commit messages in `a.commit` | Review the evidence and groups; approve commit replay, optionally with continuation to the next step or release preparation. |
 | Integrate and release | `prepare-release` integrates the effort, reviews project docs, and prepares notes, versions, and changelog. Collections return to their next requirement until complete. | Approve the proposed Git operations, resolve conflicts, and review the release title and notes. Run `brel` for the final build/tag; pushing remains your decision. |
 
-The two recurring loops are **write → review → human answers → consolidate**
+The two recurring loops are **write → review → explain and decide → review → consolidate**
 for documents, and **implement → test → check → repair** for code. Groundhog
 restarts its checks, affected tests, and full test/coverage gate after fixes.
 The written requirement, plan, and validation evidence keep each loop tied to
-the original objective.
+the original objective. The [guided question phase](wiki/how-to/explain-undecided-questions.md)
+preserves questions, records explicit decisions, and resumes where you paused.
 
 Choosing consolidation also authorizes its documented snapshot and cleanup
 commits; the implementation commit gate is separate. See

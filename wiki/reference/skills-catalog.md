@@ -28,6 +28,7 @@ prerequisites already satisfied.
 | `/split-and-define` | a multi-topic collection draft | explicit umbrella marker, ordered pending/completed table, and requirement-detail subsections |
 | `/write-requirement` | type, `vX.Y.Z`, topic | `<effort-dir>/feature-request.vX.Y.Z.<topic>.md` or `<effort-dir>/issue.vX.Y.Z.<topic>.md` |
 | `/review-ask-questions` | a requirement, design or plan | `## Open questions` section, `Q0x` summary table |
+| `/explain-undecided-questions` | the exact specification, normally at review convergence | explicit human decisions with all questions preserved; private progress and pause/resume state; follow-up review of decisions, comments, and new questions |
 | `/consolidate-then-review-ask-questions` | the doc with answers and express human consolidation intent | questions preserved without explicit intent; when authorized, scoped one-file question snapshot, then a decision table and stripped questions; independent review gate even without new questions; a settled fold groups every remaining change and requires a clean tree before handoff |
 | `/write-design` | the settled requirement | `<effort-dir>/design.vX.Y.Z.<topic>.md` |
 | `/write-plans` | the settled design | `<effort-dir>/plan.vX.Y.Z.<topic>.md` + `.validation.md` skeleton |

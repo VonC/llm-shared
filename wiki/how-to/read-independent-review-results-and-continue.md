@@ -35,6 +35,11 @@ returned `paths` object even when a neighbouring filename looks predictable.
 
 1. At `convergence-gate`, present the exact family choices. Only the human may
    select `Consolidate` or `Commit` instead of another round.
+   For specifications with undecided questions, also offer
+   [Explain undecided questions](explain-undecided-questions.md). This local
+   discussion retains the gate and ends with a fresh review of the decisions;
+   its label is not a protocol `confirm` choice. Complete a pending discussion
+   and its follow-up review before presenting consolidation as ready.
 2. Let the requestor record that choice. Continue only when the result includes
    `owning_action_authorized: true` and state `owning-action-pending`.
 3. Resume the owning skill rather than composing a direct launcher sequence:

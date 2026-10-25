@@ -16,6 +16,12 @@ is knowing the workflow: everything between two stops runs by itself.
 
 ## 📏 The design rule behind the stops
 
+Specification review convergence and human decisions are separate milestones.
+The [guided question phase](../how-to/explain-undecided-questions.md) explains
+unconfirmed proposals one at a time and records your choices explicitly. Those
+choices and comments receive a fresh consistency review, which may reveal new
+questions. The questions remain available until you authorize consolidation.
+
 A stop earns its place when the decision is irreversible, or when only
 the author knows the answer. Everything else — writing a document,
 running a review, checking an implementation, drafting commit messages —

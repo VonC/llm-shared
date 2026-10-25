@@ -51,8 +51,12 @@ reviewed document throughout review. Answering them or requesting review
 does not authorize consolidation; neither does invoking the combined skill
 with only a document path.
 
-Stop when the requestor presents `Consolidate` and
-`Revise and review again`. A convergence recommendation and exit `3` do not
+At convergence the requestor presents `Consolidate`,
+`Revise and review again`, and, when user decisions are missing,
+[Explain undecided questions](explain-undecided-questions.md). Selecting the
+discussion records your choices one at a time and authorizes a fresh review
+of the resulting decisions, comments, and any new questions, with all question
+blocks preserved. A convergence recommendation and exit `3` do not
 authorize consolidation. Convergence leaves the exchange at its human gate.
 Keep the reviewer session in the quiet `wait-any-request` under the configured
 home; a replacement round or a new specification or code request will wake it.
@@ -82,7 +86,8 @@ any mismatch explicitly instead of rewriting the answered request.
    artifact should exist beside another one.
 5. If the result says `request-pending`, keep the request and let the reviewer
    answer. If it says `answer-pending`, assess that returned answer. If it says
-   `convergence-gate`, present the human choices without consuming the answer.
+   `convergence-gate`, resume any saved question discussion or required follow-up
+   review; otherwise present the human choices without consuming the answer.
 6. Stop on escalation, inconsistent evidence, or interrupted transition and use
    [the recovery guide](recover-an-independent-review.md).
 

@@ -42,6 +42,21 @@ consolidation of that document. A combined-skill invocation with only a path,
 or an assessment that finds no additional questions, supplies no such intent.
 The writer's assessment also cannot substitute for independent review.
 
+## Reviewer convergence and human decisions
+
+Specification convergence means the independent review has settled its findings
+about the questions, options, and proposals. It does not turn a proposal into a
+human decision. At that gate, `Explain undecided questions` opens a requestor-led
+discussion with explicit decision records and progress saved across sessions.
+The retained convergence gate stays in place during discussion.
+
+Human answers can expose contradictions or create new questions. Completing
+the discussion therefore requires a fresh independent review of the decisions
+and comments before consolidation. Selecting the discussion authorizes that
+review, while consolidation remains a separate human choice. The
+[guided discussion](../how-to/explain-undecided-questions.md) is a local workflow
+phase: the protocol still uses `Revise and review again` for its next round.
+
 ## Why role creation stays outside the exchange
 
 An exchange state identifies who may act next; it does not authorize that actor

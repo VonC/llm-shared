@@ -194,6 +194,7 @@ Recipes for a precise goal, for readers who already know the basics.
 
 - 📝 [Split a mixed draft into requirements](how-to/split-a-mixed-draft.md)
 - 🔁 [Answer a review round](how-to/answer-a-review-round.md)
+- 🔁 [Explain and decide remaining questions](how-to/explain-undecided-questions.md)
 - 🔁 [Run pw from any shell](how-to/run-pw-from-any-shell.md)
 - 🤖 [Keep project docs in sync with the code](how-to/update-project-docs-from-code.md)
 - 🤖 [Enable independent review mode](how-to/enable-independent-review-mode.md)
@@ -242,6 +243,7 @@ Exact descriptions of commands, formats, files, and supported behavior.
 - 🔁 [pw launcher](reference/pw-launcher.md)
 - 📝 [Artifact files and naming conventions](reference/artifact-files.md)
 - 🤖 [Independent review mode contract](reference/independent-review-mode-contract.md)
+- 📝 [Question decision scanner and progress](reference/question-decisions.md)
 - 📝 [Document templates](reference/templates.md)
 - 🤖 [Writing and agent rules](reference/writing-rules.md)
 - 🤖 [Repository layout and AI entry points](reference/repository-layout.md)

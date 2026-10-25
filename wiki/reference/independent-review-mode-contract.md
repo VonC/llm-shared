@@ -379,8 +379,15 @@ later fenced mutations.
 - Exit `2` reports invalid input or an unexpected fatal error. Correct the
   input; do not open or edit an artifact from the empty fatal `paths` object.
 
-Specification convergence presents `Consolidate` and
-`Revise and review again`. Code convergence presents `Commit` and
+Specification convergence retains the protocol choices `Consolidate` and
+`Revise and review again`. When explicit human decisions are missing, the
+requestor also offers `Explain undecided questions` as a local discussion
+phase. That label is never passed to `confirm`. The discussion saves progress
+outside protocol coordination and uses `Revise and review again` for the
+authorized follow-up review of decisions and comments. A pending discussion or
+follow-up review must be reconciled before consolidation is presented as ready.
+See [question decisions](question-decisions.md) for its state and scanner.
+Code convergence presents `Commit` and
 `Rework and review again`. A reviewer recommendation is advisory; only the
 registered human choice can authorize consolidation or commit.
 An authorized specification consolidation first creates a one-file Git commit

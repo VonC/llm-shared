@@ -114,9 +114,18 @@ document it just wrote and posts its open questions as a table:
 | Q0x | Title | Recommended Answer |
 ```
 
-This is the one human stop of the document phase. Read each `Qxx` block in
+This is a human decision point in the document phase. Read each `Qxx` block in
 the document (options, pros and cons, recommended choice) and answer in
 the chat, for example: `Q01: option A2. Q02: option B1.`
+
+For guided explanations, invoke `/explain-undecided-questions on docs/...`.
+With independent review enabled, enter this discussion after review convergence.
+The agent explains one question at a time and records only your explicit
+decisions. After the final answer, it launches the authorized fresh review to
+check the decisions and comments for inconsistencies and new questions. Work
+through any new questions before choosing consolidation. You can pause and
+resume this phase without losing your place; see the
+[guided question workflow](../how-to/explain-undecided-questions.md).
 
 ## 5. Consolidate and settle
 

@@ -59,6 +59,22 @@ rewording closed by an "In this picture: ..." mapping of each analogy
 element to its concrete concept, an options section with pros and cons per
 option, the recommended option, and an explicit `Answer to Qxx` slot.
 
+New answers include `User decision: pending`; proposals and recommendations
+alone do not count as explicit human choices. The
+[scanner reference](question-decisions.md) defines accepted confirmation records.
+
+## Question explanation templates
+
+| Template | Purpose |
+| --- | --- |
+| [question-explanation.template.md](../../templates/question-explanation.template.md) | One question's progress, behavior, example, analogy, options, recommendation, dependencies, and user choice |
+| [question-explanation-state.template.md](../../templates/question-explanation-state.template.md) | Private document and review identity, fixed starting position, ordered question IDs, pending decision, comments, and follow-up review phase |
+
+The state note lives in the configured artifact home as
+`a.question-explanation.<document-stem>.local.md`. Pause/resume snapshots link
+it and retain its next action. It contains no ownership token and does not
+extend the review protocol's coordination schema.
+
 ## ✉️ group-commits-msg.template.md
 
 The `a.commit` format: a `## Group x: [topic]` header, the `git add`

@@ -119,10 +119,20 @@ grants no consolidation authority.
 ### Requestor agent session — present the specification gate
 
 Return to the requestor agent session. It presents the reviewer recommendation,
-its own assessment, and exactly these choices:
+its own assessment, and these actions:
 
 - `Consolidate`
 - `Revise and review again`
+- `Explain undecided questions` when explicit user decisions are missing
+
+For this exercise, select `Explain undecided questions` if proposals remain.
+Read each explanation, ask for clarifications, and choose an option. The agent
+records your decision while preserving every question and alternative. After
+your last answer it announces and launches a fresh review for inconsistencies
+and new questions arising from your decisions and comments. At the next
+convergence, decide any newly added questions in a new batch. See the
+[question guide](../how-to/explain-undecided-questions.md) for progress and pause
+behavior.
 
 Only your `Consolidate` choice authorizes the owning workflow to fold the
 settled answers into the specification. The recommendation alone does not

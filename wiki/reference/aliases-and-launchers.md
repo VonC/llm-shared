@@ -76,6 +76,7 @@ trims a file; the alias forwards every argument. See
 | --- | --- | --- |
 | `wac.bat` | `tools\wrap_commit.py` | reflow and format a commit message (`--no-delimiters` for a single message) |
 | `oqm.bat` | `tools\open_questions_md.py` | manage open-questions sections: `--create`, `--strip`, `--append` |
+| `question_decisions.bat` | `tools\question_decisions.py` | read-only JSON report of explicit user decisions, next and last undecided questions; optional `--after Qxx`; [contract](question-decisions.md) |
 | `new_draft.bat` | `tools\new_draft.py` | rename a draft and create its effort branch or worktree |
 | `ghd.bat` | `tools\git_history_dashboard\build.py` | build the commit-history dashboard |
 | `sensitive_history_scan.bat` | `tools\sensitive_history\sensitive_history_scan.py` | report sensitive terms across commit, tag, path, and blob history |

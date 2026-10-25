@@ -111,6 +111,13 @@ matches where you intended to stop. The agent fills the
 [template reference](../reference/templates.md#session-continuity-templates)
 lists the context it preserves.
 
+During [guided question decisions](explain-undecided-questions.md), the snapshot
+also preserves the fixed starting position, current question and explanation,
+recorded decision, remaining endpoints, and follow-up review authority. Resume
+rescans the document and continues the pending explanation or clarification.
+After the final recorded answer it initiates the required review; if that round
+was already published, it resumes it without launching a duplicate.
+
 ## Continue from a new session
 
 Open the same checkout and invoke `resume-session` using the same host syntax,
