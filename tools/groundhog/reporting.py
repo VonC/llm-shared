@@ -117,7 +117,7 @@ def _format_duration(seconds: float) -> str:
 
 
 def step_ended_line(project: str, sub: str, when: str, duration_s: float) -> str:
-    """Build the per-step end header of a day walk: timestamp plus duration."""
+    """Build the end header of a day-walk step or a whole run: timestamp plus duration."""
     return (
         f"{project}: == ghog {sub} == ended | {when} "
         f"| duration={_format_duration(duration_s)}"

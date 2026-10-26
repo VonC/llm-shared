@@ -11,6 +11,9 @@ affected tests with the skip success line, and ``--full=cov`` walks the whole
 three-step chain (AT11); the snapshot is the key=value proof marker, rewritten
 with ``proof=none`` by a green default walk, met by the next default walk as a
 noop, and removed when a failing walk leaves nothing proven (AT16).
+
+Fix: the whole walk also ends with its own timestamped ``ended`` header,
+right after the day closing line.
 """
 
 from __future__ import annotations
@@ -294,6 +297,14 @@ def test_day_brackets_each_step_with_timestamped_headers(
             rf"{project}: == ghog {step} == ended \| {timestamp} \| duration=\d+\.\d+s",
             out,
         )
+    _assert_walk_ends_with_its_header(out, project, timestamp)
+
+
+def _assert_walk_ends_with_its_header(out: str, project: str, timestamp: str) -> None:
+    """Check the whole walk's ended header follows the day closing line."""
+    lines = [line for line in out.splitlines() if line]
+    assert lines[-2] == closing_line_of(out)
+    assert re.fullmatch(rf"{project}: == ghog day == ended \| {timestamp} \| duration=\d+\.\d+s", lines[-1])
 
 
 # eof

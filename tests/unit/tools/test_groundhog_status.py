@@ -15,12 +15,16 @@ line), the running and done evidence a day walk records through the
 lifecycle bracket, the ``scope=`` of a check run, and the killed-run relaunch
 at the level the recorded running line carried (``none`` for none or an
 unknown value).
+
+Fix: a bracketed run ends with its timestamped ``ended`` header right after
+its closing line, and a crashing dispatch still prints it.
 """
 
 from __future__ import annotations
 
 import logging
 import os
+import re
 import subprocess
 import sys
 from typing import TYPE_CHECKING, Final, cast
@@ -46,6 +50,8 @@ if TYPE_CHECKING:
 # A pid no Windows or POSIX system hands out in practice: DWORD-safe,
 # multiple of 4, close to the 32-bit ceiling.
 _NEVER_A_PID: Final = 0xFFFF_FFF0
+# The local ISO timestamp, with its UTC offset, of an ended header.
+_TIMESTAMP: Final = r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d[+-]\d\d:\d\d"
 
 
 class _FakeProcess:
@@ -280,7 +286,17 @@ def test_lifecycle_brackets_a_run_with_running_and_done(
     assert recorded.state == status.STATE_DONE
     assert recorded.exit_code == EXIT_OBJECTIVE_MET
     assert "state=done scope=whole exit=0" in recorded.line
-    assert "ghog check done" in capsys.readouterr().out
+    _assert_ends_with_ended_header(capsys.readouterr().out, tmp_path.name, "check")
+
+
+def _assert_ends_with_ended_header(out: str, project: str, sub: str) -> None:
+    """Check a run's report ends with its closing line, then its ended header."""
+    lines = [line for line in out.splitlines() if line]
+    assert f"ghog {sub} done" in lines[-2]
+    assert re.fullmatch(
+        rf"{re.escape(project)}: == ghog {sub} == ended \| {_TIMESTAMP} \| duration=\d+\.\d+s",
+        lines[-1],
+    )
 
 
 def test_lifecycle_records_the_running_and_done_evidence_of_a_walk(tmp_path: Path) -> None:
@@ -317,8 +333,9 @@ def test_lifecycle_records_the_running_and_done_evidence_of_a_walk(tmp_path: Pat
 def test_lifecycle_records_done_even_when_the_dispatch_raises(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """A crashing dispatch still leaves state=done with the setup code."""
+    """A crashing dispatch still leaves state=done and its timestamped end."""
     monkeypatch.setattr(redirect, "_summary", None)
 
     def _boom(invocation: cli.Invocation, deps: cli.Deps) -> int:
@@ -336,6 +353,7 @@ def test_lifecycle_records_done_even_when_the_dispatch_raises(
     assert recorded is not None
     assert recorded.state == status.STATE_DONE
     assert recorded.exit_code == EXIT_SETUP_ERROR
+    assert re.search(rf"== ghog check == ended \| {_TIMESTAMP} \| duration=", caplog.text)
 
 
 def test_status_without_a_recorded_run(

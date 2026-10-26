@@ -41,6 +41,19 @@ moved to ``detach.py``, the plan's extraction once this module passed 550
 lines.
 
 Step 4: killed-run recovery carries the recorded scope after its level.
+
+Fix: a standalone ``check``, ``affected``, ``full``, ``single`` or
+``timings`` run ended on its closing line with no date, and the next run's
+redirect truncated ``a.ghog.log`` before any later line could tell when it
+finished. Every bracketed run now ends with the same ``== ghog <sub> ==
+ended | <local timestamp> | duration=...`` header a day-walk step prints,
+emitted on every exit path after the closing line; a whole ``day`` walk gets
+one too.
+
+Fix: on-access scanning can hold the fresh status side file while it is moved
+into place, and a lost ``done`` line made the next run refuse itself as live
+(exit 6). Status lines are published through ``atomic.replace``, which
+retries that transient lock.
 """
 
 from __future__ import annotations
@@ -54,7 +67,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Final
 
-from tools.groundhog import commands, day, evidence, progress, reporting, runner
+from tools.groundhog import atomic, commands, day, evidence, progress, reporting, runner
 from tools.groundhog.levels import FullLevel, level_from_token
 from tools.groundhog.models import EXIT_RUN_LIVE, EXIT_RUN_LOST, EXIT_SETUP_ERROR
 
@@ -333,6 +346,9 @@ def run_with_lifecycle(invocation: Invocation, deps: Deps) -> int:
     The done line lands on every exit path, even a crashing dispatch
     (recorded as the setup-error code before the exception travels
     on); only a hard kill of this process leaves ``running`` behind.
+    The report then ends with the run's ``ended`` header: its local
+    timestamp and duration follow the closing line of every run, so a
+    standalone stage carries its end date like a day-walk step does.
 
     Args:
         invocation: The parsed invocation.
@@ -343,12 +359,17 @@ def run_with_lifecycle(invocation: Invocation, deps: Deps) -> int:
     """
     label = progress.sub_label(invocation)
     write_running(invocation.root, label, evidence.for_invocation(invocation).running_keys())
+    start = deps.clock()
     code, keys = EXIT_SETUP_ERROR, ""
     try:
         outcome = _dispatch(invocation, deps)
         code, keys = outcome.code, outcome.evidence.closing_keys()
     finally:
         write_done(invocation.root, label, code, keys)
+        duration = max(0.0, deps.clock() - start)
+        commands.emit_summary(
+            [reporting.step_ended_line(invocation.root.name, label, reporting.now_local(), duration)],
+        )
     return code
 
 
@@ -393,7 +414,7 @@ def _write(root: Path, line: str) -> None:
     side = path.with_name(f"{STATUS_FILE_NAME}.tmp")
     try:
         side.write_text(f"{line}\n", encoding="utf-8")
-        side.replace(path)
+        atomic.replace(side, path)
     except OSError as error:
         LOGGER.info("ghog: could not write %s: %s", STATUS_FILE_NAME, error)
 
