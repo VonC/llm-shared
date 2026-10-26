@@ -1,9 +1,14 @@
-"""Real-launcher identity acceptance for legacy completion across providers.
+"""Public CLI identity acceptance for legacy completion across providers.
 
 Fix: the conflict scenarios moved to ``test_review_resume_conflict_tdd`` and
 ``legacy_natures`` to the package conftest, so ``--dist loadscope`` can run the
 four-provider journey and the conflict journey on separate workers. Neither
 scenario changed.
+
+Provider variants reuse imported CLI code and restore the host environment
+between calls. Both full lifecycle journeys retain separate-process proof.
+Check the first resume before using its capability so a failed transition
+reports its operation and diagnostic without exposing ownership tokens.
 """
 
 # ruff: noqa: PLR2004
@@ -27,7 +32,7 @@ from tools.review_exchange_models_envelope import parse_json_markdown
 )
 def identity_journey(tmp_path_factory: pytest.TempPathFactory, request: pytest.FixtureRequest) -> dict[str, Any]:
     """Resume legacy evidence under each supported provider without outer host leakage."""
-    repo = ReviewRepository(tmp_path_factory.mktemp("resume-identity") / "caller")
+    repo = ReviewRepository(tmp_path_factory.mktemp("resume-identity") / "caller", fast_git=True)
     repo.start_request()
     legacy_natures(repo.paths.request, None)
     legacy_natures(repo.paths.coordination, None)
@@ -36,6 +41,10 @@ def identity_journey(tmp_path_factory: pytest.TempPathFactory, request: pytest.F
     ambiguous = repo.run("resume-inspect", nature="unknown")
     after_ambiguous = repo.evidence()
     trace = repo.resume("resume", role="reviewer", nature=request.param)
+    assert all(result.code == 0 for result in trace), [
+        (result.code, result.payload.get("operation"), result.payload.get("outcome"),
+         result.payload.get("diagnostic")) for result in trace
+    ]
     capability = trace[-1].payload
     same = repo.resume("resume", role="reviewer", nature=request.param, capability=capability)
     recorded = {path.name: repo.natures(path) for path in (repo.paths.request, repo.paths.coordination)}

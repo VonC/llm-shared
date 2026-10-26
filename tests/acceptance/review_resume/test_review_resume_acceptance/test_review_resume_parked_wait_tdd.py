@@ -8,6 +8,13 @@ behind them. The scenario and every assertion are unchanged.
 Fix: the wake-up bound uses the shared ``PROCESS_TIMEOUT_SECONDS`` hang guard
 instead of 15 seconds, since the woken claim runs the same Python and ``git``
 children that once outlasted a 30-second bound under the parallel full run.
+
+The parent uses the bounded Git double for ordinary exchange orchestration.
+The independent waiter still runs the public CLI with real Git and watches the
+same on-disk evidence through convergence, conclusion and replacement.
+
+Fix: the cleanup calls ``stop_waiter``, which reaches the real interpreter
+behind the virtual-environment launcher instead of only the stub.
 """
 
 # ruff: noqa: PLR2004
@@ -22,6 +29,7 @@ from tests.acceptance.review_resume.conftest import (
     ReviewRepository,
     assert_still_quiet,
     start_wait,
+    stop_waiter,
     terminal_result,
 )
 from tests.unit.tools.review_exchange_test_support import review_context
@@ -38,7 +46,7 @@ from tools.review_exchange_paths import derive_artifact_paths
 )
 def parked_wait_journey(tmp_path_factory: pytest.TempPathFactory, request: pytest.FixtureRequest) -> dict[str, Any]:
     """Wake a reviewer from the human gate or after release into a different family."""
-    repo = ReviewRepository(tmp_path_factory.mktemp("resume-parked") / "caller")
+    repo = ReviewRepository(tmp_path_factory.mktemp("resume-parked") / "caller", fast_git=True)
     repo.start_request()
     reviewer = repo.resume("resume", role="reviewer", nature="claude")
     answer = repo.publish(ReviewRole.REVIEWER, reviewer[-1].payload, ready=True, nature="claude")
@@ -69,9 +77,7 @@ def parked_wait_journey(tmp_path_factory: pytest.TempPathFactory, request: pytes
         result = terminal_result(process, process.communicate(timeout=PROCESS_TIMEOUT_SECONDS))
         return {"kind": request.param, "result": result, "before": before, "unchanged": unchanged}
     finally:
-        if process.poll() is None:
-            process.kill()
-        process.communicate(timeout=5)
+        stop_waiter(process)
 
 
 def test_wait_survives_convergence_and_conclusion_then_wakes(parked_wait_journey: dict[str, Any]) -> None:
