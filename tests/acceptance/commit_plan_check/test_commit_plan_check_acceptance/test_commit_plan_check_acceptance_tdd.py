@@ -2,7 +2,8 @@
 
 Step 4 exercises real repositories, exact state snapshots, rename inventory,
 caller-owned redirection, operational failures, and request publication gates.
-Slow Git setup runs in fixtures so measured assertion calls remain bounded.
+Git setup uses independent copies of a shared real repository baseline; the
+total-duration audit includes fixture setup, assertions and teardown.
 
 Fix: this module now holds only the readiness-state parity scenario, and the
 shared builders moved to ``commit_plan_check_support``. The remaining
@@ -46,10 +47,11 @@ if TYPE_CHECKING:
 def evidence_case(
     tmp_path: Path,
     request: pytest.FixtureRequest,
+    commit_plan_repository_seed: Path,
 ) -> tuple[str, int, tuple[subprocess.CompletedProcess[str], ...], RepositoryState, RepositoryState]:
-    """Run both formats and adapters outside the measured assertion phase."""
+    """Run both real adapters and formats from an independent baseline copy."""
     scenario, expected_state, expected_status, stage_sample_file = request.param
-    initialize_repository(tmp_path)
+    initialize_repository(tmp_path, commit_plan_repository_seed)
     if stage_sample_file:
         stage_sample(tmp_path)
     if scenario in {"valid", "empty-staged-set"}:

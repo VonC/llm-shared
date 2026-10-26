@@ -9,6 +9,11 @@ test of one module on a single worker.
 Fix: extract the builders so the scenarios can live in sibling modules that
 run on separate workers. No builder changed behavior; only their names became
 public, since they now cross a module boundary.
+
+Synthetic fixture commits explicitly disable signing; host key-selection
+configuration must not turn repository setup into failed external work.
+Each scenario copies one session-owned real Git baseline, retaining independent
+indexes and working trees without repeating init, add and commit.
 """
 
 # ruff: noqa: S603, S607
@@ -16,6 +21,7 @@ public, since they now cross a module boundary.
 from __future__ import annotations
 
 import os
+import shutil
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -62,6 +68,8 @@ def commit(root: Path, message: str) -> None:
             "user.name=Commit Plan Acceptance",
             "-c",
             "user.email=acceptance@example.invalid",
+            "-c",
+            "commit.gpgsign=false",
             "commit",
             "-q",
             "-m",
@@ -72,13 +80,18 @@ def commit(root: Path, message: str) -> None:
     )
 
 
-def initialize_repository(root: Path) -> None:
+def build_repository_seed(root: Path) -> None:
     """Create a repository with one stable HEAD and ignored root evidence."""
     subprocess.run(["git", "init", "-q", str(root)], check=True)
     (root / ".gitignore").write_text("a.*\n", encoding="utf-8")
     (root / "baseline.txt").write_text("baseline\n", encoding="utf-8")
     git(root, "add", "--", ".gitignore", "baseline.txt")
     commit(root, "test: create baseline")
+
+
+def initialize_repository(root: Path, seed: Path) -> None:
+    """Copy the real committed baseline into an independent scenario root."""
+    shutil.copytree(seed, root, dirs_exist_ok=True)
 
 
 def valid_plan(

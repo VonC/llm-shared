@@ -3,6 +3,10 @@
 The builders write protocol evidence through the production models and store.
 Only deliberately damaged candidates bypass those boundaries, so command-level
 tests exercise the same files a returning review role would inspect.
+Synthetic commits disable signing without modifying the host configuration.
+
+Fix: the fixture identity travels as ``-c`` options of the one commit instead
+of two ``git config`` processes per repository, five repositories per run.
 """
 
 # ruff: noqa: PLR0913, S105, S603, S607
@@ -106,8 +110,6 @@ def _initialize_repository(root: Path) -> None:
     """Create one committed Git repository with realistic review ignores."""
     root.mkdir(parents=True, exist_ok=True)
     _git(root, "init", "--quiet")
-    _git(root, "config", "user.email", "review-status@example.invalid")
-    _git(root, "config", "user.name", "Review Status Acceptance")
     (root / ".gitignore").write_text(
         "a.*\ndocs/**/review.*.md\n",
         encoding="utf-8",
@@ -117,7 +119,8 @@ def _initialize_repository(root: Path) -> None:
 def _commit_fixture_documents(root: Path) -> None:
     """Commit ordinary fixture documents while protocol artifacts stay ignored."""
     _git(root, "add", "-A")
-    _git(root, "commit", "--quiet", "-m", "test: seed review status fixture")
+    _git(root, "-c", "user.email=review-status@example.invalid", "-c", "user.name=Review Status Acceptance",
+         "-c", "commit.gpgsign=false", "commit", "--quiet", "-m", "test: seed review status fixture")
 
 
 def _context(

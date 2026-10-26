@@ -2,7 +2,8 @@
 
 Covers the validation-plan subject marker, rename inventory, operational Git
 failure, caller-owned stdout redirection and the request publication gates.
-Slow Git setup runs in fixtures so measured assertion calls remain bounded.
+Git setup copies a shared real baseline; the total-duration audit includes
+fixture setup, assertions and teardown.
 
 Fix: split out of ``test_commit_plan_check_acceptance_tdd`` so these scenarios
 run on a different xdist worker from the readiness-state parity scenario. The
@@ -47,12 +48,13 @@ if TYPE_CHECKING:
 @pytest.fixture
 def validation_marker_results(
     tmp_path: Path,
+    commit_plan_repository_seed: Path,
 ) -> tuple[
     commit_plan_check.CommitPlanCheckResult,
     commit_plan_check.CommitPlanCheckResult,
 ]:
-    """Build real Git evidence outside the duration-measured assertion call."""
-    initialize_repository(tmp_path)
+    """Build real Git evidence from an independent committed baseline copy."""
+    initialize_repository(tmp_path, commit_plan_repository_seed)
     docs = tmp_path / "docs" / "v1.2.3"
     docs.mkdir(parents=True)
     relative = "docs/v1.2.3/plan.v1.2.3.release-ready.validation.md"
@@ -106,9 +108,10 @@ def test_checker_rejects_update_for_newly_completed_validation_plan(
 @pytest.fixture
 def rename_results(
     tmp_path: Path,
+    commit_plan_repository_seed: Path,
 ) -> tuple[subprocess.CompletedProcess[str], subprocess.CompletedProcess[str]]:
     """Run both adapters against a real staged rename during setup."""
-    initialize_repository(tmp_path)
+    initialize_repository(tmp_path, commit_plan_repository_seed)
     (tmp_path / "old.txt").write_text("renamed\n", encoding="utf-8")
     git(tmp_path, "add", "--", "old.txt")
     commit(tmp_path, "test: add rename source")
@@ -166,9 +169,10 @@ def test_failed_git_inventory_has_stable_operational_diagnostic(
 @pytest.fixture
 def redirected_evidence(
     tmp_path: Path,
+    commit_plan_repository_seed: Path,
 ) -> tuple[RepositoryState, RepositoryState, subprocess.CompletedProcess[str], Path]:
     """Redirect launcher stdout as a caller-owned ignored file during setup."""
-    initialize_repository(tmp_path)
+    initialize_repository(tmp_path, commit_plan_repository_seed)
     stage_sample(tmp_path)
     (tmp_path / "a.commit").write_text(valid_plan("sample.txt"), encoding="utf-8")
     evidence = tmp_path / "a.check-evidence.json"
@@ -237,9 +241,10 @@ def _request_arguments(root: Path) -> Namespace:
 def requestor_rejections(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
+    commit_plan_repository_seed: Path,
 ) -> tuple[str, str, bool, bool]:
     """Exercise both real-Git request rejections outside the measured call."""
-    initialize_repository(tmp_path)
+    initialize_repository(tmp_path, commit_plan_repository_seed)
     stage_sample(tmp_path)
     (tmp_path / "a.commit").write_text(valid_plan("other.txt"), encoding="utf-8")
     arguments = _request_arguments(tmp_path)
