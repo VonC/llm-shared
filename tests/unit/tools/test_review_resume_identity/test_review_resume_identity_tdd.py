@@ -1,6 +1,10 @@
 """Real-artifact resume tests with independent stores and locked concurrent claims.
 
 Conflict request setup precedes the measured rejection and Override transitions.
+
+Fix: the live-session pickup publishes its Codex-natured first round in a
+fixture, since every first open of a freshly written artifact pays on-access
+scanning; the measured call runs the claim, the fence and their assertions.
 """
 
 from __future__ import annotations
@@ -35,13 +39,26 @@ if TYPE_CHECKING:
     from tools.review_exchange_store import ReviewExchangeStore
 
 
-def test_pickup_backfills_and_fences_a_live_session(tmp_path: Path) -> None:
-    """A bare resume claim needs no lease expiry and preserves counterpart nature."""
+@pytest.fixture
+def codex_requested_session(tmp_path: Path) -> tuple[
+    ReviewExchangeCore, ReviewExchangeStore, lifecycle.ReviewContext, lifecycle.FakeTime, CoordinationRecord,
+]:
+    """Publish round one with a Codex requestor nature before the measured resume claim."""
     old, store, context, clock = lifecycle._harness(tmp_path)
     lifecycle._start_and_request(old, context, clock)
     record = store.read_coordination(required=True)
     assert record is not None
     store.write_coordination(replace(record, role_natures=RoleNatureSnapshot(LlmNature.CODEX, None)))
+    return old, store, context, clock, record
+
+
+def test_pickup_backfills_and_fences_a_live_session(
+    codex_requested_session: tuple[
+        ReviewExchangeCore, ReviewExchangeStore, lifecycle.ReviewContext, lifecycle.FakeTime, CoordinationRecord,
+    ],
+) -> None:
+    """A bare resume claim needs no lease expiry and preserves counterpart nature."""
+    old, store, context, clock, record = codex_requested_session
     resumed = ReviewExchangeCore(store, context, old.policy, old.configuration, wall_clock=clock.now)
     capability = claim_selected(resumed, ReviewRole.REVIEWER, LlmNature.CLAUDE, round_number=1, occurrence=1, override=False)
     updated = store.read_coordination(required=True)

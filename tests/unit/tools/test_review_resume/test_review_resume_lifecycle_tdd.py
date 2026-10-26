@@ -5,6 +5,10 @@ one call (0.6s to 0.8s alone, above one second under suite load). The first
 cycle is now the ``first_round_answered`` fixture, and two tests each drive one
 more cycle with that same discovery: the code exchange's next round, and a
 later specification exchange.
+
+Fix: each of those two tests now publishes its request in a fixture as well,
+since every first open of a freshly written artifact pays on-access scanning;
+the measured call is the discovery, claim and answer cycle alone.
 """
 
 from __future__ import annotations
@@ -92,25 +96,43 @@ def first_round_answered(
     return prepared_review_families
 
 
-def test_one_discovery_serves_the_next_round(
+@pytest.fixture
+def second_round_requested(
     first_round_answered: tuple[_RequestDiscovery, ReviewExchangeCore, ReviewExchangeCore],
-) -> None:
-    """An idle reviewer stays global during requestor work and serves round 2."""
+) -> tuple[_RequestDiscovery, ReviewExchangeCore]:
+    """Let the requestor consume round 1 and publish round 2 before its discovery."""
     discovery, core, _ = first_round_answered
     core.pickup_ownership(Actor.REQUESTOR)
     core.consume_answer(reviewed_work_changed=True)
     core.continue_round()
     _publish_request(core, 2)
+    return discovery, core
+
+
+def test_one_discovery_serves_the_next_round(
+    second_round_requested: tuple[_RequestDiscovery, ReviewExchangeCore],
+) -> None:
+    """An idle reviewer stays global during requestor work and serves round 2."""
+    discovery, core = second_round_requested
     _review_once(discovery, core, 2)
 
 
-def test_one_discovery_serves_a_later_family(
+@pytest.fixture
+def later_family_requested(
     first_round_answered: tuple[_RequestDiscovery, ReviewExchangeCore, ReviewExchangeCore],
-) -> None:
-    """The same idle reviewer handles a later specification request."""
+) -> tuple[_RequestDiscovery, ReviewExchangeCore]:
+    """Start the specification exchange and publish its first request."""
     discovery, _, specification = first_round_answered
     specification.start()
     _publish_request(specification, 1)
+    return discovery, specification
+
+
+def test_one_discovery_serves_a_later_family(
+    later_family_requested: tuple[_RequestDiscovery, ReviewExchangeCore],
+) -> None:
+    """The same idle reviewer handles a later specification request."""
+    discovery, specification = later_family_requested
     _review_once(discovery, specification, 1)
 
 

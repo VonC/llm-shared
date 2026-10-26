@@ -11,6 +11,10 @@ that runs after every block has been committed in the root workflow.
 
 Fix: Cover that the root workflow forwards its interactive flag to the commit
 loop, so `--non-interactive --root-a-commit` runs without prompting.
+
+Fix: the failed-emptying case refuses the write at the `write_text` seam
+instead of creating a directory at the `a.commit` path, whose real open once
+stalled 10s under load before failing.
 """
 
 from __future__ import annotations
@@ -276,15 +280,21 @@ def test_run_root_a_commit_workflow_forwards_interactive_flag(
 def test_empty_a_commit_file_warns_when_write_fails(
     tmp_path: Path,
     caplog: pytest.LogCaptureFixture,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Emptying should warn and return instead of raising when the write fails."""
-    # A directory at the a.commit path makes write_text raise OSError.
-    (tmp_path / "a.commit").mkdir()
+
+    def refuse(path: Path, *_args: object, **_kwargs: object) -> int:
+        message = f"locked: {path.name}"
+        raise PermissionError(message)
+
+    monkeypatch.setattr(type(tmp_path), "write_text", refuse)
     caplog.set_level("WARNING")
 
     git_batch_workflow._empty_a_commit_file(tmp_path)
 
     assert "Could not empty" in caplog.text
+    assert "locked: a.commit" in caplog.text
 
 
 # eof

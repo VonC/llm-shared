@@ -1,9 +1,15 @@
 """Scope evidence reuses validated identity, declared commands and proof validity.
 
-The round-trip test caches real resolutions of its stable, symlink-free paths
+The scope journeys cache real resolutions of their stable, symlink-free paths
 to avoid repeatedly paying Windows filesystem lookup cost at every boundary.
 Its published first-round baseline is initialized and checked in a fixture;
 the measured call exercises membership edits and replacement publication.
+
+Fix: every first open of a freshly written artifact costs about 30ms under
+on-access scanning. The membership journey is split in two: one call checks
+the frozen collection and the disclosure demand, the other publishes the
+disclosed replacement from an answered round prepared in a fixture. The legacy
+and definition-edit journeys also reach their starting state in fixtures.
 Transcript commands preserve HTML-like text, dunder paths and backtick runs.
 Step 8 explicitly checks that unscoped declared walks cannot claim group speed.
 """
@@ -197,13 +203,12 @@ def _assert_proof(root: Path, files: dict[str, Path], arguments: list[str], proo
     return authored
 
 
-@pytest.mark.parametrize("selector", ["--whole-suite", "--group=sentinel"])
-@pytest.mark.parametrize("change", ["floor", "exclusions"])
-def test_rendered_proof_downgrades_and_recovers(  # noqa: PLR0913
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str],
-    selector: str, change: str,
-) -> None:
-    """Real walks and rendering share timing invalidation for both scope kinds."""
+@pytest.fixture
+def proven_scope_walk(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, selector: str,
+) -> tuple[dict[str, Path], list[str], CoverageSpawns, list[str]]:
+    """Construct and assert genuine speed proof before testing its invalidation."""
+    monkeypatch.setattr(Path, "resolve", cache(Path.resolve))
     group_project(tmp_path)
     plan, files, arguments = _render(tmp_path, monkeypatch)
     requirement = plan.with_name("feature-request.v0.13.0.topic.md")
@@ -213,6 +218,17 @@ def test_rendered_proof_downgrades_and_recovers(  # noqa: PLR0913
     walk = ["day", "--full=speed", selector, "--root", str(tmp_path)]
     assert cli.main(walk, make_deps(spawns)) == 0
     _assert_proof(tmp_path, files, arguments, "speed")
+    return files, arguments, spawns, walk
+
+
+@pytest.mark.parametrize("selector", ["--whole-suite", "--group=sentinel"])
+@pytest.mark.parametrize("change", ["floor", "exclusions"])
+def test_rendered_proof_downgrades_and_recovers(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], selector: str, change: str,
+    proven_scope_walk: tuple[dict[str, Path], list[str], CoverageSpawns, list[str]],
+) -> None:
+    """Real walks and rendering share timing invalidation for both scope kinds."""
+    files, arguments, spawns, walk = proven_scope_walk
     if change == "floor":
         floor.write_floor(tmp_path, 99, 2.0)
     else:
@@ -330,35 +346,62 @@ def _publication_arguments(runtime: exchange_cli.Runtime, files: dict[str, Path]
             "--scope-capture-file", str(files["summary"].with_name("a.scope.json"))]
 
 
-def test_render_publish_status_affected_and_replacement(
+def _widen_declaration(root: Path) -> None:
+    """Make the unrelated definition edit that widens the sentinel membership."""
+    declaration = root / ".ghog-groups"
+    declaration.write_text(declaration.read_text(encoding="utf-8").replace("tests/sentinel/**", "tests/**/*.py"), encoding="utf-8")
+
+
+def test_render_publish_status_and_frozen_affected(
     tmp_path: Path, capsys: pytest.CaptureFixture[str],
     published_group_exchange: tuple[exchange_cli.Runtime, ReviewExchangeCore,
                                     dict[str, Path], list[str], str, bytes],
 ) -> None:
-    """The reviewer consumes frozen files, and changed replacements demand disclosure."""
-    runtime, core, files, arguments, capture, bound = published_group_exchange
-    context, paths = runtime.context, runtime.paths
+    """The reviewer consumes frozen files, and a changed scope demands disclosure."""
+    runtime, _core, files, arguments, capture, bound = published_group_exchange
     # An unrelated definition edit must not change the reviewer's collection.
-    declaration = tmp_path / ".ghog-groups"
-    declaration.write_text(declaration.read_text(encoding="utf-8").replace("tests/sentinel/**", "tests/**/*.py"), encoding="utf-8")
+    _widen_declaration(tmp_path)
     _assert_frozen_affected(tmp_path, capture)
     capsys.readouterr()
-    reason = _assert_scope_change(tmp_path, files, arguments, capsys)
-    assert paths.scope.read_bytes() == bound
-    core.publish_answer(review_artifact(context, ReviewRole.REVIEWER, 1,
+    _assert_scope_change(tmp_path, files, arguments, capsys)
+    assert runtime.paths.scope.read_bytes() == bound
+
+
+@pytest.fixture
+def answered_definition_edit(
+    tmp_path: Path,
+    published_group_exchange: tuple[exchange_cli.Runtime, ReviewExchangeCore,
+                                    dict[str, Path], list[str], str, bytes],
+) -> tuple[exchange_cli.Runtime, ReviewExchangeCore, dict[str, Path], list[str], Path, bytes]:
+    """Edit the definition, answer round one and open round two before its replacement."""
+    runtime, core, files, arguments, _capture, bound = published_group_exchange
+    _widen_declaration(tmp_path)
+    reason = files["summary"].with_name("a.scope-change.md")
+    reason.write_text("Cover the expanded membership.", encoding="utf-8")
+    core.publish_answer(review_artifact(runtime.context, ReviewRole.REVIEWER, 1,
                         disposition=ReviewDisposition.CHANGES_REQUESTED), "Changes needed.")
     core.consume_answer(reviewed_work_changed=True)
     core.continue_round()
     arguments[arguments.index("--round-number") + 1] = "2"
+    return runtime, core, files, arguments, reason, bound
+
+
+def test_disclosed_replacement_rebinds_scope(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str],
+    answered_definition_edit: tuple[exchange_cli.Runtime, ReviewExchangeCore,
+                                    dict[str, Path], list[str], Path, bytes],
+) -> None:
+    """A disclosed replacement round publishes and binds the changed scope."""
+    runtime, core, files, arguments, reason, bound = answered_definition_edit
     assert renderer.main([*arguments, "--scope-change-file", str(reason)], project_root=tmp_path) == 0
     assert _owned_cli(core, _publication_arguments(runtime, files)) == 0
     capsys.readouterr()
-    assert paths.scope.read_bytes() != bound
+    assert runtime.paths.scope.read_bytes() != bound
 
 
 def _assert_scope_change(
     tmp_path: Path, files: dict[str, Path], arguments: list[str], capsys: pytest.CaptureFixture[str],
-) -> Path:
+) -> None:
     """A replacement discloses its reason and cannot silently change scope."""
     assert renderer.main(arguments, project_root=tmp_path) == _FATAL_EXIT
     assert "--scope-change-file" in capsys.readouterr().err
@@ -367,7 +410,6 @@ def _assert_scope_change(
     authored = _assert_proof(tmp_path, files, [*arguments, "--scope-change-file", str(reason)], "missing")
     assert "Scope change:" in authored
     assert "Cover the expanded membership." in authored
-    return reason
 
 
 def _assert_frozen_affected(root: Path, capture: str) -> None:
@@ -379,19 +421,28 @@ def _assert_frozen_affected(root: Path, capture: str) -> None:
     assert "tests/other/test_core.py" not in spawns.commands[-1]
 
 
-def test_legacy_replacement_clears_scope(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str],
-) -> None:
-    """A legacy replacement cannot inherit scope evidence from the preceding round."""
-    runtime, core, files, arguments = _exchange_fixture(tmp_path, monkeypatch)
+@pytest.fixture
+def answered_scoped_round(
+    tmp_path: Path,
+    published_group_exchange: tuple[exchange_cli.Runtime, ReviewExchangeCore,
+                                    dict[str, Path], list[str], str, bytes],
+) -> tuple[exchange_cli.Runtime, ReviewExchangeCore]:
+    """Check the unproven render, then answer round one and open round two."""
+    runtime, core, files, arguments, _capture, _bound = published_group_exchange
     _assert_proof(tmp_path, files, arguments, "missing")
-    core.publish_request(files["content"].read_text(encoding="utf-8"),
-                         files["summary"].read_text(encoding="utf-8"),
-                         files["summary"].with_name("a.scope.json").read_text(encoding="utf-8"))
     core.publish_answer(review_artifact(runtime.context, ReviewRole.REVIEWER, 1,
                         disposition=ReviewDisposition.CHANGES_REQUESTED), "Legacy next.")
     core.consume_answer(reviewed_work_changed=True)
     core.continue_round()
+    return runtime, core
+
+
+def test_legacy_replacement_clears_scope(
+    capsys: pytest.CaptureFixture[str],
+    answered_scoped_round: tuple[exchange_cli.Runtime, ReviewExchangeCore],
+) -> None:
+    """A legacy replacement cannot inherit scope evidence from the preceding round."""
+    runtime, core = answered_scoped_round
     core.publish_request(review_artifact(runtime.context, ReviewRole.REQUESTOR, 2), "Legacy report.")
     assert exchange_cli.main(["status", *common_arguments(runtime.context)]) == 0
     status = json.loads(capsys.readouterr().out)
@@ -400,10 +451,10 @@ def test_legacy_replacement_clears_scope(
     assert not runtime.paths.scope.exists()
 
 
-def test_definition_edit_invalidates_previously_saved_proof(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """An unchanged source digest cannot preserve proof for a changed declaration."""
+@pytest.fixture
+def cov_proven_render(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[dict[str, Path], list[str]]:
+    """Earn group coverage proof and check the renderer reports it."""
+    monkeypatch.setattr(Path, "resolve", cache(Path.resolve))
     group_project(tmp_path)
     plan, files, arguments = _render(tmp_path, monkeypatch)
     plan.with_name("feature-request.v0.13.0.topic.md").write_text(
@@ -415,6 +466,14 @@ def test_definition_edit_invalidates_previously_saved_proof(
     envelope, _ = parse_envelope_markdown(files["content"].read_text(encoding="utf-8"))
     assert envelope.test_scope is not None
     assert envelope.test_scope["proof"] == "cov"
+    return files, arguments
+
+
+def test_definition_edit_invalidates_previously_saved_proof(
+    tmp_path: Path, cov_proven_render: tuple[dict[str, Path], list[str]],
+) -> None:
+    """An unchanged source digest cannot preserve proof for a changed declaration."""
+    files, arguments = cov_proven_render
     declaration = tmp_path / ".ghog-groups"
     declaration.write_text(declaration.read_text(encoding="utf-8").replace(
         "src/sentinel/**", "src/sentinel/*.py",

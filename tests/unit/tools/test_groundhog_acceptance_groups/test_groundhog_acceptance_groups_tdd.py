@@ -1,4 +1,11 @@
-"""Exercise grouped walks and proof reuse through the real CLI."""
+"""Exercise grouped walks and proof reuse through the real CLI.
+
+Fix: every walk writes and reads back fresh report and proof files, each first
+open paying on-access scanning. The scope-isolation chain is split in two,
+each test earning its baseline proofs in a fixture (whole-suite, then
+sentinel), and the timing-edit test earns its group speed proof in a fixture;
+the measured calls keep the walks and assertions about reuse.
+"""
 
 from pathlib import Path
 
@@ -53,17 +60,38 @@ def test_only_whole_suite_full_resets_the_testmon_map(tmp_path: Path, selector: 
     assert ("--testmon-noselect" in spawns.commands[0]) is kept
 
 
-def test_proof_isolated_by_scope(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
-    """Whole and different group proofs never satisfy another group's walk."""
+def _walk_proves(root: Path, spawns: CoverageSpawns, selector: str) -> None:
+    """Run one covered walk and check it spawned its affected and full steps."""
+    before = len(spawns.commands)
+    assert cli.main(["day", "--full=cov", selector, "--root", str(root)], make_deps(spawns)) == 0
+    assert len(spawns.commands) == before + 2
+
+
+@pytest.fixture
+def proven_scopes(tmp_path: Path, request: pytest.FixtureRequest) -> CoverageSpawns:
+    """Earn coverage proof for each scope the test names, in order."""
     group_project(tmp_path)
     spawns = CoverageSpawns(tmp_path)
-    for selector in ("--whole-suite", "--group=sentinel", "--group=other"):
-        before = len(spawns.commands)
-        assert cli.main(["day", "--full=cov", selector, "--root", str(tmp_path)], make_deps(spawns)) == 0
-        assert len(spawns.commands) == before + 2
-    before = len(spawns.commands)
-    assert cli.main(["day", "--full=cov", "--group=sentinel", "--root", str(tmp_path)], make_deps(spawns)) == 0
-    assert len(spawns.commands) == before
+    for selector in request.param:
+        _walk_proves(tmp_path, spawns, selector)
+    return spawns
+
+
+@pytest.mark.parametrize("proven_scopes", [("--whole-suite",)], indirect=True)
+def test_whole_suite_proof_never_satisfies_a_group(tmp_path: Path, proven_scopes: CoverageSpawns) -> None:
+    """A whole-suite proof leaves a group walk to run its own steps."""
+    _walk_proves(tmp_path, proven_scopes, "--group=sentinel")
+
+
+@pytest.mark.parametrize("proven_scopes", [("--whole-suite", "--group=sentinel")], indirect=True)
+def test_proof_isolated_by_scope(
+    tmp_path: Path, proven_scopes: CoverageSpawns, capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Another group's proof neither satisfies nor replaces a group's own proof."""
+    _walk_proves(tmp_path, proven_scopes, "--group=other")
+    before = len(proven_scopes.commands)
+    assert cli.main(["day", "--full=cov", "--group=sentinel", "--root", str(tmp_path)], make_deps(proven_scopes)) == 0
+    assert len(proven_scopes.commands) == before
     assert "for group sentinel is met by saved proof" in capsys.readouterr().out
 
 
@@ -158,13 +186,22 @@ def test_grouped_speed_reads_floor_and_preserves_exclusions(tmp_path: Path, caps
     assert "tests/other/test_core.py::test_ok" not in capsys.readouterr().out
 
 
-def test_changed_exclusions_cap_group_speed_proof(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
-    """A timing fingerprint edit reuses check and affected but re-establishes speed."""
+@pytest.fixture
+def group_speed_proven(tmp_path: Path) -> tuple[CoverageSpawns, list[str]]:
+    """Earn group speed proof with a measured fast call before the timing edit."""
     group_project(tmp_path)
     spawns = CoverageSpawns(tmp_path)
     spawns._lines.extend(["=== slowest durations ===", "0.10s call tests/sentinel/test_core.py::test_ok"])
     arguments = ["day", "--full=speed", "--group=sentinel", "--root", str(tmp_path)]
     assert cli.main(arguments, make_deps(spawns)) == 0
+    return spawns, arguments
+
+
+def test_changed_exclusions_cap_group_speed_proof(
+    tmp_path: Path, group_speed_proven: tuple[CoverageSpawns, list[str]], capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A timing fingerprint edit reuses check and affected but re-establishes speed."""
+    spawns, arguments = group_speed_proven
     exclusions.write_exclusions(tmp_path, {"tests/other/test_core.py::test_ok": 5.0})
     assert cli.main(arguments, make_deps(spawns)) == 0
     expected_spawns = 3

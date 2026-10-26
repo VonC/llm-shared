@@ -6,11 +6,14 @@ added in Steps 4 and 5: the writing and consolidation instructions carry a
 consolidation hint, and the splitting instructions present a multi-choice list
 with a free-text entry. The check runs on every walk, so a later edit that drops
 one fails fast (Q06).
+Diagram file contents are captured in setup; assertions retain real-file evidence.
+
+Fix: the prepare-release wiki-audit, planner, unsupported-path and gitworkflow
+contracts moved to ``test_prepare_release_instruction_tdd.py``, so this module
+stays under the 650-line limit of the big-file check.
 """
 
 from __future__ import annotations
-
-from typing import TYPE_CHECKING
 
 import pytest
 
@@ -19,9 +22,6 @@ from tools import prompt_workflow_steps as steps
 # Keep this module's scenarios on one xdist worker so its module-scoped
 # fixtures are built once rather than once per worker (--dist loadgroup).
 pytestmark = pytest.mark.xdist_group("instruction-structure")
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 _INSTRUCTIONS = steps.llm_shared_dir() / "instructions"
 _EXPECTED_DIAGRAM_COUNT = 4
@@ -189,184 +189,6 @@ def test_group_commits_carries_the_commit_gate_multi_choice() -> None:
     assert "Type something else" in content
 
 
-def _assert_release_wiki_step(instruction: str) -> None:
-    """Check the prepare-release instruction's wiki-audit contract."""
-    content = " ".join(instruction.split())
-    assert "### Step 8 — Audit and update existing Diataxis wiki roots" in instruction
-    assert "`<PRJ_DIR>/wiki`" in instruction
-    assert "`<PRJ_DIR>/docs/wiki`" in instruction
-    assert "complete release range `<last_tag>..HEAD`" in content
-    assert "`review-and-update-project-docs`" in instruction
-    assert "`group-commits-msg`" in instruction
-    assert instruction.index("### Step 8") < instruction.index(
-        "### Step 10 — Prepare the release notes",
-    )
-
-
-def _assert_release_wiki_review_contract(review: str) -> None:
-    """Check the project-doc review contract used by release preparation."""
-    content = " ".join(review.split())
-    assert "`wiki/` or `docs/wiki/`" in content
-    assert "If a Git range was provided" in review
-    assert "explanation, tutorials, how-to guides, then reference" in content
-    assert "a.prepare-release.active" in review
-
-
-def _assert_release_wiki_files(root: Path) -> None:
-    """Check Diataxis coverage and host entry-point coverage."""
-    pages = (
-        root / "wiki" / "explanation" / "why-documents-before-code.md",
-        root / "wiki" / "tutorials" / "05-prepare-a-release-from-develop.md",
-        root / "wiki" / "how-to" / "prepare-a-release.md",
-        root / "wiki" / "reference" / "skills-catalog.md",
-    )
-    for path in pages:
-        assert "wiki" in path.read_text(encoding="utf-8").lower()
-
-    entry_points = (
-        root / ".github" / "skills" / "prepare-release" / "SKILL.md",
-        root / ".claude" / "skills" / "prepare-release" / "SKILL.md",
-        root / ".agents" / "llm-shared" / "skills" / "prepare-release" / "SKILL.md",
-        root / ".agent" / "workflows" / "prepare-release.md",
-    )
-    for path in entry_points:
-        assert "wiki" in path.read_text(encoding="utf-8").lower()
-
-
-def test_prepare_release_audits_existing_diataxis_wikis_before_notes() -> None:
-    """Release prep covers every release commit before generating its notes."""
-    root = steps.llm_shared_dir()
-    instruction = _read("prepare-release.md")
-    review = _read("review-and-update-project-docs.md")
-    _assert_release_wiki_step(instruction)
-    _assert_release_wiki_review_contract(review)
-    _assert_release_wiki_files(root)
-
-
-def test_prepare_release_stops_historical_feature_merges() -> None:
-    """prepare-release does not reword a non-tip historical feature merge."""
-    content = " ".join(_read("prepare-release.md").split())
-    assert "branch tip already released" in content
-    assert "feature is already integrated into `<target_branch>`" in content
-    assert "cannot safely invent or reword a non-tip historical merge" in content
-
-
-def test_prepare_release_uses_read_only_planner_and_merge_tree_preview() -> None:
-    """prepare-release plans topology and conflicts before changing branches."""
-    content = " ".join(_read("prepare-release.md").split())
-    assert "prepare_release_plan.bat" in content
-    assert "--no-conflict-preview" in content
-    assert "--feature-base" in content
-    assert "git merge-tree --write-tree -z --name-only --messages" in content
-    assert "isolated temporary object directory" in content
-    assert "first conflict because a human resolution changes" in content
-
-
-def test_prepare_release_planner_uses_package_directories() -> None:
-    """Planner sources and tests live in matching prepare_release packages."""
-    root = steps.llm_shared_dir()
-    source = root / "tools" / "prepare_release"
-    tests = root / "tests" / "unit" / "tools" / "prepare_release"
-    launcher = (root / "bin" / "prepare_release_plan.bat").read_text(
-        encoding="utf-8",
-    )
-
-    assert (source / "__init__.py").is_file()
-    assert (source / "prepare_release_plan.py").is_file()
-    assert (tests / "__init__.py").is_file()
-    assert (tests / "test_prepare_release_plan_workflow.py").is_file()
-    assert "tools\\prepare_release\\prepare_release_plan.py" in launcher
-
-
-def test_prepare_release_treats_later_versions_as_notes() -> None:
-    """The invocation branch selects content while the lowest new version labels it."""
-    content = " ".join(_read("prepare-release.md").split())
-    assert "Choose the lowest version strictly greater than the last" in content
-    assert "feature-request" in content
-    assert "forward-looking notes for later efforts" in content
-    assert "Drafts never trigger Step 2" in content
-    assert "selecting the invocation branch selects its content" in content
-    assert "Later-version plans are forward-looking notes" in content
-
-
-def test_prepare_release_owns_planner_invocation_end_to_end() -> None:
-    """The caller supplies context; the skill runs every planner command itself."""
-    content = " ".join(_read("prepare-release.md").split())
-    assert "The user only has to invoke `$llm-shared:prepare-release`" in content
-    assert "Never ask the user to run `prepare_release_plan.bat`" in content
-    assert "Do not depend on the user's current shell having `LLM_SHARED_DIR`" in content
-    assert "automatically rerun the release planner" in content
-
-    root = steps.llm_shared_dir()
-    tutorial = (root / "wiki/tutorials/05-prepare-a-release-from-develop.md").read_text(
-        encoding="utf-8",
-    )
-    how_to = (root / "wiki/how-to/prepare-a-release.md").read_text(encoding="utf-8")
-    for page in (tutorial, how_to):
-        assert "$llm-shared:prepare-release" in page
-        assert "$env:LLM_SHARED_DIR" not in page
-
-
-def test_prepare_release_gives_actionable_unsupported_path_handoffs() -> None:
-    """Unsupported planner paths stop safely with commands and a re-entry point."""
-    content = " ".join(_read("prepare-release.md").split())
-
-    assert "Unsupported planner handoffs" in content
-    assert "Every unsupported result must end with an actionable block" in content
-    assert "git revert -m 1 <excluded_merge_oid>" in content
-    assert "git cherry-pick --abort" in content
-    assert "Re-enter prepare-release" in content
-    assert "no combined planner run can model an evolving main" in content
-    assert "do not claim that the planner accepts an explicit commit list" in content
-    assert "Independently count `main..<integration_branch>`" in content
-
-
-def test_prepare_release_wiki_marks_planner_capability_boundaries() -> None:
-    """Diátaxis pages distinguish supported paths from actionable stops."""
-    root = steps.llm_shared_dir()
-    scenarios = (root / "wiki/reference/prepare-release-scenarios.md").read_text(
-        encoding="utf-8",
-    )
-    planner = (root / "wiki/reference/prepare-release-planner.md").read_text(
-        encoding="utf-8",
-    )
-    how_to = (root / "wiki/how-to/prepare-a-release.md").read_text(encoding="utf-8")
-    tutorial = (root / "wiki/tutorials/05-prepare-a-release-from-develop.md").read_text(
-        encoding="utf-8",
-    )
-
-    assert "Required unsupported-path output" in scenarios
-    assert "Supported and unsupported planning paths" in planner
-    assert "git switch -c prepare-release/exclude-<topic>" in how_to
-    assert "git switch -c prepare-release/<feature>-clean main" in how_to
-    assert "The `main..develop` scope must contain at least one commit" in tutorial
-
-
-def test_prepare_release_names_and_applies_gitworkflow_precisely() -> None:
-    """Topic graduation is gitworkflow, while bulk develop promotion is explicit."""
-    content = " ".join(_read("prepare-release.md").split())
-    assert "Workflow model: gitworkflow topic graduation" in content
-    assert 'Do not call this generic "Git flow"' in content
-    assert "oldest integration branch it may eventually enter" in content
-    assert "all-topics-ready bulk exception" in content
-    assert "GitFlow-style recovery shortcut, not normal gitworkflow" in content
-    assert "does not preview this revert path" in content
-    assert "https://git-scm.com/docs/gitworkflows" in content
-    assert "https://github.com/rocketraman/gitworkflow" in content
-
-
-def test_gitworkflow_explanation_links_the_primary_context() -> None:
-    """The explanation distinguishes the named workflow and cites its context."""
-    explanation = (
-        steps.llm_shared_dir() / "wiki/explanation/why-release-branch-roles-matter.md"
-    ).read_text(encoding="utf-8")
-    assert "The model is gitworkflow, one word" in explanation
-    assert "This is not a spelling variant of generic" in explanation
-    assert "https://stackoverflow.com/a/44470240/6309" in explanation
-    assert "https://stackoverflow.com/a/216228/6309" in explanation
-    assert "https://stackoverflow.com/a/53405887/6309" in explanation
-
-
 def test_llm_shared_pwiki_alias_serves_wiki_and_loads_before_guard() -> None:
     """The llm-shared console always gets a pwiki macro for the root wiki."""
     root = steps.llm_shared_dir()
@@ -446,15 +268,13 @@ def test_sensitive_history_scanner_has_package_launcher_and_alias() -> None:
     assert "automatically" in instruction
 
 
-def test_git_history_diagrams_have_package_launcher_alias_and_docs() -> None:
+def test_git_history_diagrams_have_package_launcher_alias_and_docs(diagram_file_texts: dict[str, str]) -> None:
     """Diagram sources, tests, launcher, alias, assets, and Diátaxis set stay together."""
     root = steps.llm_shared_dir()
     source = root / "tools" / "git_history_diagrams"
     tests = root / "tests" / "unit" / "tools" / "git_history_diagrams"
-    launcher = (root / "bin" / "git_history_diagrams.bat").read_text(
-        encoding="utf-8",
-    )
-    doskeys = (root / "senv.doskey").read_text(encoding="utf-8")
+    launcher = diagram_file_texts["bin/git_history_diagrams.bat"]
+    doskeys = diagram_file_texts["senv.doskey"]
 
     assert (source / "generate_git_history_diagrams.py").is_file()
     assert (source / "scenarios.py").is_file()
@@ -472,7 +292,7 @@ def test_git_history_diagrams_have_package_launcher_alias_and_docs() -> None:
         "wiki/how-to/update-git-history-diagrams.md",
         "wiki/reference/git-history-diagram-generator.md",
     ):
-        content = (root / page).read_text(encoding="utf-8")
+        content = diagram_file_texts[page]
         assert ".svg" in content
 
 

@@ -3,6 +3,10 @@
 The main lifecycle module proves successful publication and repair. These
 focused tests keep rejection and corrupt-marker branches out of that growing
 journey file while exercising the same real core and store.
+
+Fix: the restarted-exchange answer test closes and restarts its exchange in a
+fixture, since every first open of a freshly written artifact pays on-access
+scanning; the measured call is the answer and its paired-heading assertions.
 """
 
 from __future__ import annotations
@@ -198,18 +202,24 @@ def test_same_round_in_a_different_step_has_its_own_identity(
     assert different_step_identity_journey is None
 
 
-def test_answer_occurrence_follows_a_restarted_request_without_prior_answer(
-    tmp_path: Path,
-) -> None:
-    """A closed request-only exchange cannot desynchronize paired headings."""
+@pytest.fixture
+def restarted_request(tmp_path: Path) -> tuple[ReviewExchangeCore, ReviewExchangeStore, ReviewContext, FakeTime]:
+    """Close a request-only exchange, then restart it with a new first request."""
     core, store, context, clock = _harness(tmp_path)
     core.start()
     core.publish_request(_request(context, clock, 1), "First request only.")
     store.paths.request.unlink()
     store.paths.coordination.unlink()
-
     core.start()
     core.publish_request(_request(context, clock, 1), "Restarted request.")
+    return core, store, context, clock
+
+
+def test_answer_occurrence_follows_a_restarted_request_without_prior_answer(
+    restarted_request: tuple[ReviewExchangeCore, ReviewExchangeStore, ReviewContext, FakeTime],
+) -> None:
+    """A closed request-only exchange cannot desynchronize paired headings."""
+    core, store, context, clock = restarted_request
     core.publish_answer(_answer(context, clock, 1), "Restarted answer.")
 
     transcript = store.paths.transcript.read_text(encoding="utf-8")
