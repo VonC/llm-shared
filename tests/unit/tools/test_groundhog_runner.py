@@ -29,6 +29,11 @@ KeyboardInterrupt, a pytest.exit with any return code), before any failure or
 internal error, never a collection error.
 
 Step 4: verify group paths, coverage options and environment restoration on successful and raising spawns.
+
+Fix: cover the bounded ``-n auto`` default (a quarter of the logical CPUs, at
+most two), the caller's ``PYTEST_XDIST_AUTO_NUM_WORKERS`` winning, and children
+started below normal priority. The real streaming child is now the platform
+shell, which starts faster than an interpreter behind a venv launcher.
 """
 
 from __future__ import annotations
@@ -285,21 +290,48 @@ def test_single_command_names_the_files() -> None:
 
 def test_run_streaming_with_the_real_factory(tmp_path: Path) -> None:
     """The default factory streams a real child and returns its code."""
-    config = runner.StreamConfig(
-        command=[
-            sys.executable,
-            "-I",
-            "-S",
-            "-c",
-            "import sys; print('alpha'); print('beta'); sys.exit(3)",
-        ],
-        cwd=tmp_path,
-        popen_factory=runner.default_popen_factory,
+    command = (
+        ["cmd.exe", "/d", "/c", "echo alpha& echo beta& exit 3"]
+        if sys.platform == "win32"
+        else ["sh", "-c", "echo alpha; echo beta; exit 3"]
     )
+    config = runner.StreamConfig(command=command, cwd=tmp_path, popen_factory=runner.default_popen_factory)
     seen: list[str] = []
     code = runner.run_streaming(config, seen.append)
     assert seen == ["alpha", "beta"]
     assert code == _CHILD_EXIT
+
+
+def test_default_factory_starts_children_below_normal_priority(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Every child, and so its workers, yields the CPUs to interactive work."""
+    seen: dict[str, object] = {}
+
+    def popen(command: list[str], **kwargs: object) -> list[str]:
+        seen.update(kwargs)
+        return command
+
+    monkeypatch.setattr(runner.subprocess, "Popen", popen)
+    runner.default_popen_factory(["pytest"], tmp_path)
+    assert seen["creationflags"] == runner.CHILD_PRIORITY_FLAGS
+    if sys.platform == "win32":
+        assert runner.CHILD_PRIORITY_FLAGS == runner.subprocess.BELOW_NORMAL_PRIORITY_CLASS
+
+
+@pytest.mark.parametrize(("cpus", "workers"), [(None, 1), (1, 1), (4, 1), (8, 2), (14, 2), (64, 2)])
+def test_auto_workers_is_a_quarter_of_the_cpus_within_bounds(cpus: int | None, workers: int) -> None:
+    """The default share is a quarter of the logical CPUs, at least one, at most two."""
+    assert runner.auto_workers(cpus) == workers
+
+
+def test_worker_environment_bounds_only_an_unset_parallel_run() -> None:
+    """A caller's value wins; a sequential run needs no bound."""
+    unset: dict[str, str] = {}
+    chosen = {runner.AUTO_WORKERS_VARIABLE: "3"}
+    assert runner.worker_environment(unset.get, parallel=True, cpu_count=14) == {runner.AUTO_WORKERS_VARIABLE: "2"}
+    assert runner.worker_environment(chosen.get, parallel=True, cpu_count=14) == {}
+    assert runner.worker_environment(unset.get, parallel=False, cpu_count=14) == {}
 
 
 def test_run_pytest_parses_and_reports(tmp_path: Path) -> None:

@@ -27,13 +27,18 @@ default ``speed`` level, so its green line is the ``speed`` success line and
 its closing line appends ``full=speed src=default proof=<earned> scope=whole``;
 the repair commands (check, single) restart at their carried level, here the
 default ``none``, and append ``scope=whole``.
+
+Fix: AT1b also checks that the parallel full run hands its child the bounded
+``PYTEST_XDIST_AUTO_NUM_WORKERS`` default.
 """
 
 from __future__ import annotations
 
 import io
+import os
 import runpy
 import sys
+from dataclasses import replace
 from typing import TYPE_CHECKING
 
 import pytest
@@ -61,6 +66,7 @@ from tools.groundhog.models import (
 )
 
 if TYPE_CHECKING:
+    import subprocess
     from pathlib import Path
 
 _CADENCE_TESTS = 20
@@ -95,13 +101,21 @@ def test_at1b_opted_in_full_run_uses_workers_and_spares_the_testmon_map(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """AT1b: the marker swaps the ptr run for workers and leaves testmon alone."""
+    """AT1b: the marker swaps the ptr run for bounded workers and leaves testmon alone."""
     transcript = passing_transcript(4, "TOTAL    100    0   100%")
     spawns = Spawns(transcript, 0)
+    workers: list[str | None] = []
+
+    def recording(command: list[str], cwd: Path) -> subprocess.Popen[str]:
+        workers.append(os.environ.get(runner.AUTO_WORKERS_VARIABLE))
+        return spawns(command, cwd)
+
     (tmp_path / ".testmondata").write_text("stale", encoding="utf-8")
     (tmp_path / runner.PARALLEL_MARKER).write_text("opt in\n", encoding="utf-8")
-    code = cli.main(["full", "--root", str(tmp_path), "--llm"], make_deps(spawns))
+    deps = replace(make_deps(spawns), popen_factory=recording)
+    code = cli.main(["full", "--root", str(tmp_path), "--llm"], deps)
     assert code == EXIT_OBJECTIVE_MET
+    assert workers == [str(runner.auto_workers(os.cpu_count()))]
     # The affected run owns the incremental map when full cannot carry testmon.
     assert (tmp_path / ".testmondata").read_text(encoding="utf-8") == "stale"
     assert "--testmon" not in spawns.commands[0]

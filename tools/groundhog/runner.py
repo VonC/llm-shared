@@ -34,6 +34,16 @@ Step 4: group paths narrow collection; coverage options and spawn-only environme
 Fix: a grouped sequential full run adds ``--testmon-noselect``. It runs every
 group test while refreshing only their testmon records, since the reset of the
 shared map now belongs to the whole-suite full run alone.
+
+Fix: two checkouts walking at once pinned every CPU and skewed each other's
+duration gate. :func:`run_streaming` now runs each child inside the user's
+machine-wide run slot (``slot.py``): a stage of another checkout waits for it.
+
+Fix: ``-n auto`` spawned one worker per logical CPU on a shared workstation.
+:func:`worker_environment` bounds it through ``PYTEST_XDIST_AUTO_NUM_WORKERS``
+(a quarter of the logical CPUs, at most two) unless the caller set that variable,
+and :func:`default_popen_factory` starts every child below normal priority
+on Windows.
 """
 
 from __future__ import annotations
@@ -41,8 +51,10 @@ from __future__ import annotations
 import os
 import subprocess
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import TYPE_CHECKING, Final
 
+from tools.groundhog import slot
 from tools.groundhog.levels import FullLevel
 from tools.groundhog.models import (
     PYTEST_INTERNAL_ERROR,
@@ -53,7 +65,6 @@ from tools.groundhog.parser import PytestOutputParser
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping, Sequence
-    from pathlib import Path
 
     from tools.groundhog.models import RunStats
 
@@ -64,6 +75,18 @@ if TYPE_CHECKING:
 # the critical path. A module whose fixtures must not be rebuilt per worker
 # carries a module-level mark; everything else is distributed test by test.
 PARALLEL_OPTIONS: Final = ("-n", "auto", "--dist", "loadgroup")
+# pytest-xdist reads this variable to size ``-n auto``; the caller's value wins.
+AUTO_WORKERS_VARIABLE: Final = "PYTEST_XDIST_AUTO_NUM_WORKERS"
+# The default bound of ``-n auto``: a quarter of the logical CPUs, at most this
+# many. Each worker's file and process churn also keeps the virus scanner busy
+# at normal priority, so a walk stays light on a shared workstation.
+MAX_AUTO_WORKERS: Final = 2
+# The share of the logical CPUs an automatic run may take: one in this many.
+_CPUS_PER_WORKER: Final = 4
+# Every child runs below normal priority on Windows, its own children (xdist
+# workers, git) inheriting it, so interactive work keeps the CPUs first. The
+# attribute is absent elsewhere, where 0 means no creation flag.
+CHILD_PRIORITY_FLAGS: Final[int] = getattr(subprocess, "BELOW_NORMAL_PRIORITY_CLASS", 0)
 # The testmon database a whole-suite sequential full run resets, the reset of ptr (Q05).
 TESTMON_DATA_FILE: Final = ".testmondata"
 # Versioned opt-in marker at the consuming project root. groundhog is shared
@@ -109,6 +132,8 @@ class StreamConfig:
 def default_popen_factory(command: list[str], cwd: Path) -> subprocess.Popen[str]:
     """Spawn a streaming child process, stderr folded into stdout.
 
+    The child starts below normal priority on Windows (``CHILD_PRIORITY_FLAGS``).
+
     Args:
         command: The child command line.
         cwd: The working directory of the child.
@@ -125,7 +150,42 @@ def default_popen_factory(command: list[str], cwd: Path) -> subprocess.Popen[str
         encoding="utf-8",
         errors="replace",
         bufsize=1,
+        creationflags=CHILD_PRIORITY_FLAGS,
     )
+
+
+def auto_workers(cpu_count: int | None) -> int:
+    """Return the default worker count of ``-n auto``: a quarter of the CPUs, bounded.
+
+    Args:
+        cpu_count: The logical CPU count, ``None`` when unknown.
+
+    Returns:
+        A quarter of the logical CPUs, at least 1 and at most ``MAX_AUTO_WORKERS``.
+    """
+    return max(1, min(MAX_AUTO_WORKERS, (cpu_count or 1) // _CPUS_PER_WORKER))
+
+
+def worker_environment(
+    environ: Callable[[str], str | None],
+    *,
+    parallel: bool,
+    cpu_count: int | None,
+) -> dict[str, str]:
+    """Bound the worker count of a parallel run unless the caller chose one.
+
+    Args:
+        environ: The environment lookup of the run.
+        parallel: Whether the full run spawns xdist workers.
+        cpu_count: The logical CPU count, ``None`` when unknown.
+
+    Returns:
+        ``PYTEST_XDIST_AUTO_NUM_WORKERS`` at the default bound for a parallel
+        run without a caller value; no override otherwise.
+    """
+    if not parallel or environ(AUTO_WORKERS_VARIABLE):
+        return {}
+    return {AUTO_WORKERS_VARIABLE: str(auto_workers(cpu_count))}
 
 
 def parallel_enabled(root: Path) -> bool:
@@ -285,19 +345,21 @@ def run_streaming(config: StreamConfig, on_line: Callable[[str], None]) -> int:
     Returns:
         The child exit code.
     """
-    previous = {name: os.environ.get(name) for name in config.env_overrides}
-    try:
-        os.environ.update(config.env_overrides)
-        process = config.popen_factory(config.command, config.cwd)
-    finally:
-        for name, value in previous.items():
-            if value is None:
-                os.environ.pop(name, None)
-            else:
-                os.environ[name] = value
-    for raw in process.stdout or []:
-        on_line(raw.rstrip("\n"))
-    return process.wait()
+    child = Path(config.command[0]).name if config.command else "child"
+    with slot.machine_slot(f"{config.cwd}: {child}"):
+        previous = {name: os.environ.get(name) for name in config.env_overrides}
+        try:
+            os.environ.update(config.env_overrides)
+            process = config.popen_factory(config.command, config.cwd)
+        finally:
+            for name, value in previous.items():
+                if value is None:
+                    os.environ.pop(name, None)
+                else:
+                    os.environ[name] = value
+        for raw in process.stdout or []:
+            on_line(raw.rstrip("\n"))
+        return process.wait()
 
 
 def run_pytest(

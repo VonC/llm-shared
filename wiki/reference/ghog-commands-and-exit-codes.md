@@ -118,6 +118,14 @@ durations alongside coverage during full. A successful direct parallel
 pass. Durations include coverage overhead and worker contention. Explicit
 `ghog timings` remains an optional sequential diagnostic.
 
+`-n auto` is bounded: unless the caller sets `PYTEST_XDIST_AUTO_NUM_WORKERS`,
+groundhog sets it for the child to a quarter of the logical CPUs, at least 1
+and at most 2. Each worker's file and process churn also keeps the virus
+scanner busy at normal priority, so the bound stays low on a shared
+workstation. On Windows, every child that groundhog starts (`check.bat` or
+pytest) runs below normal priority, and its workers and `git` calls inherit
+that, so interactive applications keep the CPUs first.
+
 ## 🚦 Exit codes
 
 | Exit | Meaning | Next move |
@@ -150,13 +158,42 @@ Day evidence adds `full`, `src` (`param`, `env`, or `default`), `proof`,
 `group:<name>`). Direct full evidence adds level, source, proof, and scope;
 other runs carry scope only. A running record uses `proof=pending`.
 
+Every run, standalone stage or whole walk, then ends with an end header
+carrying the local date and time and the run duration:
+
+```txt
+myproject: == ghog affected --no-cov == ended | 2026-06-12T21:02:41+02:00 | duration=19.4s
+```
+
+Inside `ghog day`, each step is also framed by its own `started` and `ended`
+headers, so every stage of `a.ghog.log` closes on a timestamp.
+
+## 🚦 Machine run slot
+
+Every child groundhog streams, `check.bat` or pytest, runs inside one
+per-user slot: a lock on `ghog.slot.lock` in `%USERPROFILE%\.llm-shared`
+(`$HOME/.llm-shared` where `USERPROFILE` is unset). A stage of another
+checkout or project waits for it, printing once who holds the slot, then
+how long it waited:
+
+```txt
+ghog: waiting for the machine run slot held by C:\src\other: pytest.exe (pid 4242, since 2026-06-12T21:02:41+02:00)
+ghog: machine run slot taken after 192.0s of waiting
+```
+
+So two agents never run two suites at once: the CPUs are not saturated, and
+each duration gate measures its own calls. The operating system releases the
+lock with its process, so a killed run never leaves the slot taken. The
+holder's children inherit `GHOG_SLOT_HELD` and pass through, as does a test
+session that sets it.
+
 ## 🖥️ Output modes
 
 TTY auto-detection, forced with `--user` or `--llm`. User mode shows a
 progress bar with live counters; LLM mode prints one plain line per 10% of
 collected tests plus one per 60 silent seconds, for example
 `ghog full: 50% (125/250) fail=2 warn=1 xfail=0`. Both end with the same
-next-step message and closing line.
+next-step message, closing line and end header.
 
 Environment activation output is parked in `a.ghog.senv.log`, in the
 artifact home, and replayed by default; an LLM run keeps the raw text in

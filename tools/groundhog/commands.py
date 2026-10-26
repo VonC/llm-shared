@@ -37,11 +37,16 @@ Every outcome says whether it judged a gate
 (``proof.judges_gate``): a setup error, a project without a pytest suite and
 a child interrupted before any failure did not, so the walk keeps its saved
 proof. Every closing line appends its evidence keys.
+
+Fix: a parallel full run passes ``runner.worker_environment`` to its child, so
+``-n auto`` stays bounded to a quarter of the logical CPUs (at most two) unless
+the caller set ``PYTEST_XDIST_AUTO_NUM_WORKERS``.
 """
 
 from __future__ import annotations
 
 import logging
+import os
 import re
 from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING
@@ -244,7 +249,7 @@ def _run_pytest(invocation: Invocation, deps: Deps, pytest_exe: str) -> _Judged:
         command=command,
         cwd=invocation.root,
         popen_factory=deps.popen_factory,
-        env_overrides=group_coverage.environment(measure[0]) if measure is not None else {},
+        env_overrides=_child_environment(invocation, deps, measure, parallel=parallel),
     )
     result = runner.run_pytest(config, sink.update)
     result, gate_value, evidence_error = _coverage_result(invocation, result, measure)
@@ -259,6 +264,28 @@ def _run_pytest(invocation: Invocation, deps: Deps, pytest_exe: str) -> _Judged:
     flagged = 0 if summary is None else len(summary.outliers) + reporting.excluded_count(summary)
     exit_code = verdicts.classify(invocation, result, gate_value, flagged, evidence_error=evidence_error)
     return _Judged(result, exit_code, gate_value, summary, parallel, evidence_error)
+
+
+def _child_environment(
+    invocation: Invocation, deps: Deps, measure: tuple[Path, float] | None, *, parallel: bool,
+) -> dict[str, str]:
+    """Return the spawn-only environment of one pytest child.
+
+    Args:
+        invocation: The parsed invocation.
+        deps: The injectable seams, for the environment lookup.
+        measure: The group coverage file and its start time, if any.
+        parallel: Whether the project opted its full run into workers.
+
+    Returns:
+        The group coverage file override, and the worker bound of a parallel
+        full run unless the caller chose one.
+    """
+    overrides = group_coverage.environment(measure[0]) if measure is not None else {}
+    workers = runner.worker_environment(
+        deps.environ, parallel=parallel and invocation.sub == runner.SUB_FULL, cpu_count=os.cpu_count(),
+    )
+    return {**overrides, **workers}
 
 
 def _coverage_result(
