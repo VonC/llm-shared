@@ -34,6 +34,9 @@ is logged, never raised.
 Step 3 adds a strict, read-only listing reader and semantic comparison. It
 never creates or migrates the artifact home, and never treats unreadable
 evidence as an empty set of accepted duration exceptions.
+
+Fix: the section is published through ``atomic.replace``, which retries the
+transient lock on-access scanning holds on the fresh side file.
 """
 
 from __future__ import annotations
@@ -43,7 +46,7 @@ import logging
 import math
 from typing import TYPE_CHECKING, Final
 
-from tools.groundhog import floor
+from tools.groundhog import atomic, floor
 from tools.linear_order import ordered_strings
 from tools.review_artifact_configuration import ReviewArtifactConfiguration
 
@@ -121,7 +124,7 @@ def write_exclusions(root: Path, exclusions: Mapping[str, float]) -> None:
         path = floor.floor_path(root)
         side = path.with_name(f"{floor.FLOOR_FILE}.tmp")
         side.write_text(text, encoding="utf-8")
-        side.replace(path)
+        atomic.replace(side, path)
     except (OSError, ValueError) as error:
         LOGGER.info("ghog: could not write %s exclusions: %s", floor.FLOOR_FILE, error)
 

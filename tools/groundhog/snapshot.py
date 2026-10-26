@@ -49,6 +49,9 @@ with the proof a walk left valid, or removes it when that proof is
 ``unproven``, a home that cannot be prepared logged and never raised.
 :meth:`EffectiveProof.on_sources` moves that proof to the digest a walk's
 test steps run on, once check.bat may have fixed sources.
+
+Fix: the marker is published through ``atomic.replace``, which retries the
+transient lock on-access scanning holds on the fresh side file.
 """
 
 from __future__ import annotations
@@ -61,7 +64,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Final
 
 from tools.artifact_home import artifact_path
-from tools.groundhog import exclusions, floor
+from tools.groundhog import atomic, exclusions, floor
 from tools.groundhog.levels import FullLevel, level_from_token
 from tools.groundhog.proof import effective_saved
 from tools.review_artifact_configuration import ReviewArtifactConfiguration
@@ -225,7 +228,7 @@ def write_proof_marker(path: Path, marker: ProofMarker) -> None:
     text = "".join(f"{key}={value}\n" for key, value in zip(_MARKER_KEYS, values, strict=True))
     try:
         side.write_text(text, encoding="utf-8")
-        side.replace(path)
+        atomic.replace(side, path)
     except OSError as error:
         LOGGER.info("ghog: could not write %s: %s", path.name, error)
 

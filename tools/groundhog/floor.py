@@ -22,6 +22,9 @@ project's tuned line 2 and its recorded ``[exclusion]`` entries survive the
 move. A home that cannot be prepared is one more read or write failure: the
 read falls back to the default floor, the write is logged, never raised.
 :func:`floor_location` gives report lines the file's real location.
+
+Fix: the floor lines are published through ``atomic.replace``, which retries
+the transient lock on-access scanning holds on the fresh side file.
 """
 
 from __future__ import annotations
@@ -31,6 +34,7 @@ import logging
 from typing import TYPE_CHECKING, Final
 
 from tools.artifact_home import artifact_path
+from tools.groundhog import atomic
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -140,7 +144,7 @@ def write_floor(root: Path, auto: float, override: float) -> None:
         path = floor_path(root)
         side = path.with_name(f"{FLOOR_FILE}.tmp")
         side.write_text(f"{auto}\n{override}\n", encoding="utf-8")
-        side.replace(path)
+        atomic.replace(side, path)
     except (OSError, ValueError) as error:
         LOGGER.info("ghog: could not write %s: %s", FLOOR_FILE, error)
 
