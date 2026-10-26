@@ -6,13 +6,18 @@ start real waiters in setup and check, through the pid each driver reported,
 that the shared cleanup ends that exact interpreter, and that a waiter exits
 by itself once the test process that started it is gone (a short-lived
 stand-in process plays that test process).
+
+The stand-in runs the base interpreter on Windows: a virtual environment's
+``python`` is a launcher stub, so ``sys.executable`` would start two processes.
 """
 
 # ruff: noqa: S603
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
+from pathlib import Path
 from time import monotonic, sleep
 from typing import TYPE_CHECKING
 
@@ -27,10 +32,11 @@ from tests.acceptance.review_resume.conftest import (
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
-    from pathlib import Path
 
 # Seconds an orphaned driver may take to notice its test process is gone.
 _ORPHAN_EXIT_SECONDS = 5.0
+# A single-process interpreter for the stand-in test process.
+_STAND_IN_INTERPRETER = str(Path(sys.base_prefix) / "python.exe") if os.name == "nt" else sys.executable
 
 
 @pytest.fixture
@@ -47,7 +53,7 @@ def started_waiter(tmp_path: Path) -> Iterator[subprocess.Popen[str]]:
 @pytest.fixture
 def orphanable_waiter(tmp_path: Path) -> Iterator[tuple[subprocess.Popen[str], subprocess.Popen[str]]]:
     """Start a waiter that watches a stand-in test process instead of this one."""
-    stand_in = subprocess.Popen([sys.executable, "-I", "-S", "-c", "import time; time.sleep(120)"], text=True)
+    stand_in = subprocess.Popen([_STAND_IN_INTERPRETER, "-I", "-S", "-c", "import time; time.sleep(120)"], text=True)
     try:
         process = start_wait(ReviewRepository(tmp_path / "caller", fast_git=True), parent_pid=stand_in.pid)
         try:
