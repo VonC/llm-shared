@@ -1,12 +1,20 @@
-"""Decision scans preserve human authority and never mutate the specification."""
+"""Decision scans preserve human authority and never mutate the specification.
+
+Fix: the 58-of-73 scenario builds its document in one helper and splits its
+report and cursor checks into two tests, keeping each under the radon gate.
+Direct execution of the module file is covered too, as the launcher runs it.
+"""
 
 from __future__ import annotations
 
 import json
+import runpy
+import sys
 from typing import TYPE_CHECKING
 
 import pytest
 
+from tools import question_decisions
 from tools.question_decisions import decision_report, main, parse_questions
 
 if TYPE_CHECKING:
@@ -31,10 +39,8 @@ def _question(
     )
 
 
-def test_detects_fifteen_proposals_after_fifty_eight_human_decisions(
-    tmp_path: Path,
-) -> None:
-    """Nonempty Answer sections do not turn Q59-Q73 into human decisions."""
+def _fifty_eight_of_seventy_three(tmp_path: Path) -> Path:
+    """Write a CRLF document whose Q01-Q58 are confirmed and Q59-Q73 proposed."""
     document = tmp_path / "feature-request.v1.0.0.example.md"
     text = SECTION + "".join(
         _question(number, "Confirmed by the user: Option A.")
@@ -43,12 +49,24 @@ def test_detects_fifteen_proposals_after_fifty_eight_human_decisions(
         for number in range(1, TOTAL_COUNT + 1)
     )
     document.write_bytes(text.replace("\n", "\r\n").encode("utf-8"))
-    before = document.read_bytes()
-    result = decision_report(document)
+    return document
+
+
+def test_detects_fifteen_proposals_after_fifty_eight_human_decisions(
+    tmp_path: Path,
+) -> None:
+    """Nonempty Answer sections do not turn Q59-Q73 into human decisions."""
+    result = decision_report(_fifty_eight_of_seventy_three(tmp_path))
     assert result["question_count"] == TOTAL_COUNT
     assert result["undecided_count"] == UNDECIDED_COUNT
     assert result["first_undecided"] == result["next_undecided"] == "Q59"
     assert result["last_undecided"] == result["last_question"] == "Q73"
+
+
+def test_cursor_keeps_the_full_count_and_never_writes(tmp_path: Path) -> None:
+    """--after moves only next_undecided; the scan leaves the document untouched."""
+    document = _fifty_eight_of_seventy_three(tmp_path)
+    before = document.read_bytes()
     assert decision_report(document, "Q59")["next_undecided"] == "Q60"
     assert decision_report(document, "Q73")["next_undecided"] is None
     assert decision_report(document, "Q73")["undecided_count"] == UNDECIDED_COUNT
@@ -256,6 +274,21 @@ def test_cli_success_and_missing_file(
     document.write_text(SECTION + _question(1), encoding="utf-8")
     assert main([str(document), "--after", "Q01"]) == 0
     assert json.loads(capsys.readouterr().out)["next_undecided"] is None
+
+
+def test_direct_execution_exits_with_the_cli_status(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Running the module file, as the launcher does, delegates to main."""
+    document = tmp_path / "questions.md"
+    document.write_text(SECTION + _question(1), encoding="utf-8")
+    monkeypatch.setattr(sys, "argv", ["question_decisions.py", str(document)])
+    with pytest.raises(SystemExit) as raised:
+        runpy.run_path(question_decisions.__file__, run_name="__main__")
+    assert raised.value.code == 0
+    assert json.loads(capsys.readouterr().out)["next_undecided"] == "Q01"
 
 
 # eof

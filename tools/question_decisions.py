@@ -3,6 +3,10 @@
 Only decision records inside a question's own ``Answer to Qxx`` section count.
 Recommendations, examples in fences, and quoted historical answers do not.
 The caller owns explanation progress and its persistent starting position.
+
+Fix: answer extraction, record classification, section lookup, cursor
+resolution and report endpoints are separate helpers, so no function exceeds
+the project's radon complexity gate; the JSON report is unchanged.
 """
 
 from __future__ import annotations
@@ -29,6 +33,7 @@ PENDING = re.compile(
     re.IGNORECASE,
 )
 DECISION = re.compile(r"^(?:Confirmed by the user\b|User decision:)", re.IGNORECASE)
+DIAGNOSTIC_REASONS = frozenset({"conflicting-decision-records", "ambiguous-decision-record"})
 
 
 @dataclass(frozen=True)
@@ -83,48 +88,69 @@ def _visible_lines(text: str) -> list[tuple[int, str]]:
     return result
 
 
-def _classify(
+def _answer_body(
     lines: list[tuple[int, str]],
     question_id: str,
-) -> tuple[str, str, int | None]:
-    """Classify only the active answer, preserving conflicting evidence."""
+) -> list[tuple[int, str]] | None:
+    """Return the lines of the question's single answer section, or None without one."""
     starts = [
         (index, match)
         for index, (_, line) in enumerate(lines)
         if (match := ANSWER.match(line))
     ]
     if not starts:
-        return "undecided", "missing-answer", None
+        return None
     if len(starts) != 1 or _question_id(starts[0][1][1]) != question_id:
         msg = f"{question_id}: duplicate or mismatched answer heading"
         raise ValueError(msg)
-    answer: list[tuple[int, str]] = []
-    for number, line in lines[starts[0][0] + 1 :]:
-        if re.match(r"^#{1,4}\s", line):
-            break
-        answer.append((number, line))
-    confirmed = [(number, line) for number, line in answer if CONFIRMED.match(line)]
-    pending = any(PENDING.match(line) for _, line in answer)
-    ambiguous = any(
-        DECISION.match(line) and not CONFIRMED.match(line) and not PENDING.match(line)
-        for _, line in answer
+    body = lines[starts[0][0] + 1 :]
+    end = next(
+        (offset for offset, (_, line) in enumerate(body) if re.match(r"^#{1,4}\s", line)),
+        len(body),
     )
-    if confirmed and (pending or ambiguous or len(confirmed) > 1):
+    return body[:end]
+
+
+def _record_kind(line: str) -> str | None:
+    """Name the decision record one answer line holds, or None for plain text."""
+    if CONFIRMED.match(line):
+        return "confirmed"
+    if PENDING.match(line):
+        return "pending"
+    if DECISION.match(line):
+        return "ambiguous"
+    return None
+
+
+def _classify(
+    lines: list[tuple[int, str]],
+    question_id: str,
+) -> tuple[str, str, int | None]:
+    """Classify only the active answer, preserving conflicting evidence."""
+    answer = _answer_body(lines, question_id)
+    if answer is None:
+        return "undecided", "missing-answer", None
+    records: dict[str, list[int]] = {}
+    for number, line in answer:
+        kind = _record_kind(line)
+        if kind:
+            records.setdefault(kind, []).append(number)
+    confirmed = records.get("confirmed", [])
+    if confirmed and sum(map(len, records.values())) > 1:
         return "undecided", "conflicting-decision-records", None
-    if ambiguous:
+    if "ambiguous" in records:
         return "undecided", "ambiguous-decision-record", None
     if confirmed:
-        return "confirmed", "explicit-user-decision", confirmed[0][0]
+        return "confirmed", "explicit-user-decision", confirmed[0]
     return (
         "undecided",
-        "pending-user-decision" if pending else "no-explicit-user-decision",
+        "pending-user-decision" if "pending" in records else "no-explicit-user-decision",
         None,
     )
 
 
-def parse_questions(text: str) -> list[QuestionDecision]:
-    """Parse one open-questions section, rejecting malformed or duplicate IDs."""
-    lines = _visible_lines(text)
+def _section(lines: list[tuple[int, str]]) -> list[tuple[int, str]]:
+    """Return the lines of the single open-questions section, empty without one."""
     sections = [index for index, (_, line) in enumerate(lines) if SECTION.match(line)]
     if len(sections) > 1:
         msg = "Multiple open-questions sections"
@@ -143,7 +169,12 @@ def parse_questions(text: str) -> list[QuestionDecision]:
         ),
         len(section),
     )
-    section = section[:end]
+    return section[:end]
+
+
+def parse_questions(text: str) -> list[QuestionDecision]:
+    """Parse one open-questions section, rejecting malformed or duplicate IDs."""
+    section = _section(_visible_lines(text))
     result: list[QuestionDecision] = []
     seen: set[str] = set()
     for index, (number, line) in enumerate(section):
@@ -182,6 +213,26 @@ def parse_questions(text: str) -> list[QuestionDecision]:
     return result
 
 
+def _cursor(questions: list[QuestionDecision], after: str | None) -> int:
+    """Return the document position of the ``--after`` question, or 0 without one."""
+    if after is None:
+        return 0
+    if not re.fullmatch(r"Q\d+", after, re.IGNORECASE):
+        msg = "--after must be a question ID such as Q59"
+        raise ValueError(msg)
+    cursor_id = _question_id(after[1:])
+    cursor = next((item.position for item in questions if item.id == cursor_id), 0)
+    if not cursor:
+        msg = f"Unknown question cursor: {after}"
+        raise ValueError(msg)
+    return cursor
+
+
+def _endpoint(questions: list[QuestionDecision], index: int) -> str | None:
+    """Return the ID at one end of an ordered question list, or None when empty."""
+    return questions[index].id if questions else None
+
+
 def decision_report(document: Path, after: str | None = None) -> dict[str, object]:
     """Return ordered decision evidence and the next/last unresolved question."""
     content = document.read_bytes()
@@ -189,33 +240,23 @@ def decision_report(document: Path, after: str | None = None) -> dict[str, objec
         msg = "Document is empty"
         raise ValueError(msg)
     questions = parse_questions(content.decode("utf-8-sig"))
-    cursor = 0
-    if after is not None:
-        if not re.fullmatch(r"Q\d+", after, re.IGNORECASE):
-            msg = "--after must be a question ID such as Q59"
-            raise ValueError(msg)
-        cursor_id = _question_id(after[1:])
-        cursor = next((item.position for item in questions if item.id == cursor_id), 0)
-        if not cursor:
-            msg = f"Unknown question cursor: {after}"
-            raise ValueError(msg)
+    cursor = _cursor(questions, after)
     undecided = [item for item in questions if item.status == "undecided"]
-    following = next((item for item in undecided if item.position > cursor), None)
+    following = [item for item in undecided if item.position > cursor]
     return {
         "document": str(document.resolve()),
         "document_sha256": hashlib.sha256(content).hexdigest(),
         "question_count": len(questions),
-        "last_question": questions[-1].id if questions else None,
+        "last_question": _endpoint(questions, -1),
         "undecided_count": len(undecided),
-        "first_undecided": undecided[0].id if undecided else None,
-        "next_undecided": following.id if following else None,
-        "last_undecided": undecided[-1].id if undecided else None,
+        "first_undecided": _endpoint(undecided, 0),
+        "next_undecided": _endpoint(following, 0),
+        "last_undecided": _endpoint(undecided, -1),
         "questions": [asdict(item) for item in questions],
         "diagnostics": [
             f"{item.id}: {item.reason}"
             for item in undecided
-            if item.reason
-            in {"conflicting-decision-records", "ambiguous-decision-record"}
+            if item.reason in DIAGNOSTIC_REASONS
         ],
     }
 
