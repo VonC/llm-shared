@@ -64,6 +64,34 @@ def _tracked_text(root: Path, path: str, *, index: bool) -> str | None:
     return content.stdout
 
 
+def _rename_source_for_path(root: Path, path: str) -> str | None:
+    """Find the HEAD source path if this path was renamed in the index."""
+    try:
+        result = run_cross_platform_git_command(
+            ("diff", "--cached", "-M", "--name-status", "-z"),
+            cwd=root,
+            options=GitCommandOptions(capture_output=True, encoding="utf-8"),
+        )
+    except Exception:
+        return None
+    tokens = [t for t in result.stdout.split("\0") if t]
+    i = 0
+    while i < len(tokens):
+        status = tokens[i]
+        if status.startswith(("R", "C")):
+            if i + 2 < len(tokens):
+                old_p = tokens[i + 1]
+                new_p = tokens[i + 2]
+                if new_p == path:
+                    return old_p
+                i += 3
+            else:
+                break
+        else:
+            i += 2
+    return None
+
+
 def completed_validation_subject_requirements(
     root: Path,
     paths: tuple[str, ...],
@@ -77,7 +105,12 @@ def completed_validation_subject_requirements(
         staged_text = _tracked_text(root, path, index=True)
         if staged_text is None:
             continue
-        head_text = _tracked_text(root, path, index=False) or ""
+        head_text = _tracked_text(root, path, index=False)
+        if head_text is None:
+            source_path = _rename_source_for_path(root, path)
+            if source_path is not None:
+                head_text = _tracked_text(root, source_path, index=False)
+        head_text = head_text or ""
         head_steps = {step.number: step.verified for step in parse_validation_steps(head_text)}
         for step in parse_validation_steps(staged_text):
             if not step.verified or head_steps.get(step.number, False):

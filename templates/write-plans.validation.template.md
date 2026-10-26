@@ -10,8 +10,8 @@
 > `Step N improvement expectations`, opens every `Analysis of Step N
 > implementation state` with "Not started. Step N is not implemented because ...",
 > and fills every other section (`What was implemented`, `New types or classes
-> introduced`, `Architecture check`, `Performance check`, `Unit test coverage
-> check`, `Feature integrity`) with the literal placeholder
+> introduced`, `Architecture check`, `Performance check`, `Security check`,
+> `Unit test coverage check`, `Feature integrity`) with the literal placeholder
 > `_(empty — no check has taken place yet.)_.`. The `{...}` guidance below applies
 > only once an implementation check replaces those placeholders.
 >
@@ -100,6 +100,14 @@ Every implemented step should be reviewed against this bound in its Performance 
 
 {Close the section with a short conclusion that states whether the step stays inside the plan's complexity target.}
 
+### Security check for Step N
+
+- **Input validation & sanitization**: {State whether all step inputs/parameters are strictly validated and sanitized}.
+- **Safe execution & resource access**: {State whether system calls, filesystem paths, and resources are accessed safely without injection or traversal risks}.
+- **Data protection & logging**: {State whether sensitive information, secrets, or internal stack traces are prevented from leaking in logs, errors, or commits}.
+
+{Close the section with a short conclusion that states whether any security vulnerability or smell is visible in the current step.}
+
 ### Unit test coverage check for Step N
 
 {This is only for unit test, not for integration, smoke, regression or acceptance tests.}
@@ -124,4 +132,43 @@ Yes, there is a unit-tested class below 100% that needs completing for Step N: {
 
 ---
 
-{Repeat the Step N block for every planned implementation step. Keep this document review-only: compare the current state to the plan, record evidence, call out incomplete work, and avoid new design-choice questions.}
+{Repeat the Step N block for every planned implementation step, followed by the mandatory Step Final security review block below.}
+
+---
+
+## Step {Final}. Final Security & OWASP Top 10 Review
+
+### Analysis of Step {Final} implementation state
+
+{Start with: `Yes. Step Final has been fully implemented.` or `No. Step Final has NOT been fully implemented.`}
+
+(empty line)
+{Short summary of the security audit results.}
+
+### Goal for Step {Final}
+
+Audit the cumulative changes against the OWASP Top 10 vulnerability matrix and verify that no side effects or regressions are introduced.
+
+### What was implemented for Step {Final}
+
+- **Audit execution**: {Summary of static checks, dependency scan, secret scan, and code inspection}.
+- **Validation evidence**: {Audit output, security test suite pass, zero High/Critical findings}.
+
+### OWASP Top 10 Audit Findings Matrix
+
+| OWASP Category | Applicable? | Findings / Evidence | Status (Pass/Fail) |
+| --- | --- | --- | --- |
+| A01 Broken Access Control | {Yes/No} | {Checked path traversal, permissions, access checks} | {PASS/FAIL} |
+| A02 Cryptographic Failures | {Yes/No} | {No hardcoded secrets, verified sensitive-hooks} | {PASS/FAIL} |
+| A03 Injection Flaws | {Yes/No} | {No raw shell execution, parameter injection, or SQLi} | {PASS/FAIL} |
+| A04 Insecure Design | {Yes/No} | {Trust boundaries and fail-safe defaults respected} | {PASS/FAIL} |
+| A05 Security Misconfiguration | {Yes/No} | {No debug/verbose error leaks in production paths} | {PASS/FAIL} |
+| A06 Vulnerable Dependencies | {Yes/No} | {Dependency audit check confirmed no known CVEs} | {PASS/FAIL} |
+| A07 Auth & Identification | {Yes/No} | {Authentication and session controls intact} | {PASS/FAIL} |
+| A08 Software/Data Integrity | {Yes/No} | {Safe serialization/deserialization confirmed} | {PASS/FAIL} |
+| A09 Logging & Monitoring | {Yes/No} | {Sanitized logs, no credentials/PII logged} | {PASS/FAIL} |
+| A10 SSRF / Remote Fetch | {Yes/No} | {Network endpoints and fetch targets strictly bounded} | {PASS/FAIL} |
+
+### Security Review Conclusion
+
+{State clearly if the effort is certified free of major OWASP Top 10 vulnerabilities or if remediation is required.}
