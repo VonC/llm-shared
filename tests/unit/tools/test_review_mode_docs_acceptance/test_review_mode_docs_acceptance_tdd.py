@@ -4,6 +4,10 @@ The suite pins discovery, terminology, tutorials, task ownership, recovery,
 the exact reference contract, and the incremental AC01-through-AC12 record.
 Final Step 5 coverage belongs to the sibling final-acceptance module. Resume
 Step 6 updates recovery expectations for the shipped automatic pickup flow.
+
+Fix: the 2026-10-16 README shortening keeps one independent-review row that
+links the explanation and the recovery guide; the review-mode terminology and
+the `resume` entry now live on the wiki home, so those checks read it there.
 """
 
 from __future__ import annotations
@@ -74,9 +78,9 @@ def test_step_1_entry_points_distinguish_review_modes_and_keep_diataxis_order(
     root_readme = read_declared(docs_root, "README.md")
     wiki_readme = read_declared(docs_root, "wiki/README.md")
 
-    assert "independent review mode" in root_readme
+    assert "independent second review" in root_readme
     assert _EXPLANATION in root_readme
-    assert "self-review loop" in root_readme
+    assert "self-review loop" in wiki_readme
     assert "independent review mode" in wiki_readme
     assert "explanation/independent-review-mode-and-human-authority.md" in wiki_readme
     headings = tuple(
@@ -295,11 +299,13 @@ def test_step_3_new_session_pickup_is_discoverable_and_precise(
 ) -> None:
     """Bare resume recovers the session while retaining the established ownership fence."""
     readme = read_declared(docs_root, "README.md")
+    wiki_readme = read_declared(docs_root, "wiki/README.md")
     explanation = read_declared(docs_root, _EXPLANATION)
     recovery = read_declared(docs_root, _RECOVERY_GUIDE)
     reference = read_declared(docs_root, _REFERENCE)
 
-    _assert_phrases(readme, ("enter `resume`", "automatic pickup"))
+    assert _RECOVERY_GUIDE in readme
+    _assert_phrases(wiki_readme, ("Enter `resume`", "automatic ownership pickup"))
     _assert_phrases(
         recovery,
         (

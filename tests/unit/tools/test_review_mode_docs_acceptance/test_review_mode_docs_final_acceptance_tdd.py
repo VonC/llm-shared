@@ -3,10 +3,18 @@
 This sibling keeps final coverage, inventory, and connected-set contracts
 separate from the incremental Steps 1 through 4 assertions. Review-resume Step 6
 also checks the connected public pages for shipped resumption and waiting.
+
+Fix: since the 2026-10-16 README shortening, the README row only names the
+automatic intermediate rounds and links status and recovery; the wait
+commands, ownership pickup and `.review-artifacts.ini` are checked on the wiki
+home and the reference contract, where that text now lives.
+The read-only connected-set audit reuses resolved paths and page contents.
 """
 
 from __future__ import annotations
 
+from functools import cache
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from .conftest import (
@@ -27,7 +35,7 @@ from .conftest import (
 )
 
 if TYPE_CHECKING:
-    from pathlib import Path
+    import pytest
 
 _CONNECTED_DOCUMENTATION = (
     "README.md",
@@ -112,9 +120,12 @@ def test_step_5_coverage_finalizes_every_inventory_candidate(docs_root: Path) ->
 
 
 def test_step_5_connected_set_closes_links_terms_logos_and_gates(
-    docs_root: Path,
+    docs_root: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Step 5 acceptance: the bounded connected set retains its contracts."""
+    # No writes occur during this audit; every distinct path/content is read once.
+    monkeypatch.setattr(Path, "resolve", cache(Path.resolve))
+    monkeypatch.setattr(Path, "read_text", cache(Path.read_text))
     assert_named_paths(docs_root, (*_CONNECTED_DOCUMENTATION, _COVERAGE))
     assert_local_links(docs_root, _CONNECTED_DOCUMENTATION)
 
@@ -159,7 +170,7 @@ def test_reviewer_rounds_use_reciprocal_active_waits_across_the_docs(
     )
     reference = read_declared(docs_root, _REFERENCE)
 
-    assert "automatic requestor-reviewer exchange" in readme
+    assert "automatic intermediate rounds" in readme
     assert "main goal is the automatic" in wiki_home
     assert "reciprocal waiting is the default" in explanation
     assert "Without another command from you" in spec_tutorial
@@ -181,15 +192,18 @@ def test_resume_public_docs_describe_shipped_waiting_and_automatic_pickup(docs_r
         assert "not shipped yet" not in text
         assert "planned for Step 5" not in text
     readme = read_declared(docs_root, "README.md")
-    assert_contains(readme, (".review-artifacts.ini", "home = .reviews", "automatic pickup",
-                            "wait-any-request", "wait-answer", "pw skill"))
+    assert_contains(readme, ("automatic intermediate rounds", "inspect-independent-review-status.md",
+                            "recover-an-independent-review.md", "pw skill"))
+    wiki_home = read_declared(docs_root, "wiki/README.md")
+    assert_contains(wiki_home, ("wait-any-request", "automatic ownership pickup"))
     recovery = read_declared(docs_root, "wiki/how-to/recover-an-independent-review.md")
     assert "enter `resume`" in recovery
     assert "automatic pickup" in recovery
     assert "force requestor ownership pickup" not in recovery
     reference = read_declared(docs_root, _REFERENCE)
     assert_contains(reference, ("migration-check", "resume-inspect", "claim",
-                               "wait-any-request", "cancelled", "already-claimed"))
+                               "wait-any-request", "wait-answer", "cancelled", "already-claimed",
+                               ".review-artifacts.ini"))
 
 
 # eof
