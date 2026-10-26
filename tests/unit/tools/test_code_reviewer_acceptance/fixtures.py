@@ -5,6 +5,7 @@ leaving every scenario on the public renderer, evidence, and exchange seams.
 
 Fix (v0.13.0 full_suite_levels, Step 2): the project validation command
 follows the new default, ``ghog day --full=speed``.
+Synthetic baseline commits disable signing independently of host key settings.
 """
 
 from __future__ import annotations
@@ -123,6 +124,8 @@ def create_repository_template(root: Path) -> None:
         "user.name=Acceptance",
         "-c",
         "user.email=acceptance@example.invalid",
+        "-c",
+        "commit.gpgsign=false",
         "commit",
         "-qm",
         "baseline",

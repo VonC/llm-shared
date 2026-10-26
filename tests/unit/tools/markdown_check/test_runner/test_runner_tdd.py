@@ -1,4 +1,9 @@
-"""TDD contracts for inventory, evaluation, and stable runner diagnostics."""
+"""TDD contracts for inventory, evaluation, and stable runner diagnostics.
+
+The tracked-inventory test keeps the actual executable lookup and subprocess;
+the root conftest puts installed native Git first on ``PATH``, so the lookup
+avoids its Windows launcher.
+"""
 
 # ruff: noqa: S603, S607
 
@@ -6,8 +11,8 @@ from __future__ import annotations
 
 import json
 import subprocess
-from pathlib import PurePosixPath
-from typing import TYPE_CHECKING, Never
+from pathlib import Path, PurePosixPath
+from typing import Never
 
 import pytest
 
@@ -17,9 +22,6 @@ from tools.markdown_check.runner import (
     InventoryError,
     tracked_markdown_paths,
 )
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 
 def _policy(tmp_path: Path) -> None:
@@ -36,13 +38,10 @@ def _policy(tmp_path: Path) -> None:
 @pytest.fixture
 def tracked_repository(tmp_path: Path) -> Path:
     """Build a real tracked inventory outside the measured test call."""
-    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True, timeout=10)
     (tmp_path / "note.MD").write_text("# Note\n", encoding="utf-8")
     (tmp_path / "skip.txt").write_text("skip\n", encoding="utf-8")
-    subprocess.run(
-        ["git", "-C", str(tmp_path), "add", "."],
-        check=True,
-    )
+    subprocess.run(["git", "-C", str(tmp_path), "add", "."], check=True, timeout=10)
     return tmp_path
 
 
