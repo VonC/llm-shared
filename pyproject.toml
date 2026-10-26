@@ -41,6 +41,9 @@ filterwarnings = [
 ]
 
 [tool.coverage.run]
+# sys.monitoring (Python 3.12+, line coverage) stops tracing unmeasured code:
+# the default C tracer added 35-45% CPU to test calls (Hypothesis, pytest).
+core = "sysmon"
 source = ["tools"]
 omit = [
     "*/tests/*",
