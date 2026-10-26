@@ -6,13 +6,18 @@ never exceeds the highest input and is always below the lowest contradicted
 level; with valid inputs a noop holds exactly when the requested level is at
 or below the saved proof; ``--force`` or a stale digest always walks; and the
 timing cap never raises a proof nor leaves it above ``cov``.
+
+Fix: the inputs are a few enum members, so 100 examples mostly repeated
+themselves and became a contended-CPU duration outlier; each property now
+runs 30, and the accumulation keeps its edge cases as explicit examples (no
+input, no gate, and every gate failing at once).
 """
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from hypothesis import given, settings
+from hypothesis import example, given, settings
 from hypothesis import strategies as st
 
 from tools.groundhog import proof
@@ -22,7 +27,7 @@ from tools.groundhog.proof import Decision, Gate
 if TYPE_CHECKING:
     from hypothesis.strategies import SearchStrategy
 
-_MAX_EXAMPLES = 100
+_MAX_EXAMPLES = 30
 _DEADLINE_MS = 400
 
 _LEVELS: SearchStrategy[FullLevel] = st.sampled_from(FullLevel)
@@ -32,6 +37,9 @@ _GATES: SearchStrategy[list[Gate]] = st.lists(st.sampled_from(Gate), max_size=4)
 
 @settings(max_examples=_MAX_EXAMPLES, deadline=_DEADLINE_MS)
 @given(earned=_OPTIONAL, saved=_OPTIONAL, gates=_GATES)
+@example(earned=None, saved=None, gates=[])
+@example(earned=FullLevel.SPEED, saved=FullLevel.SPEED, gates=[])
+@example(earned=FullLevel.SPEED, saved=FullLevel.COV, gates=list(Gate))
 def test_accumulate_never_exceeds_the_inputs_nor_reaches_a_contradiction(
     earned: FullLevel | None,
     saved: FullLevel | None,

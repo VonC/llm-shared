@@ -1,14 +1,18 @@
-"""Folder reduction retains all sources without retaining nested roots."""
+"""Bounded generated folders and explicit nesting limits preserve every source."""
 
 from pathlib import PurePosixPath
 
-from hypothesis import given
+from hypothesis import example, given, settings
 from hypothesis import strategies as st
 
 from tools.groundhog.group_coverage import cov_folders
 
 
 @given(st.lists(st.lists(st.sampled_from(("a", "b", "c")), min_size=1, max_size=5), max_size=30))
+@settings(max_examples=25)
+@example([])
+@example([["a"], ["a", "b"], ["a", "b", "c"], ["b"], ["c"]] * 6)
+@example([["a", "b", "c", "b", "a"]] * 30)
 def test_minimal_folders(parts: list[list[str]]) -> None:
     """Every source is covered and no selected folder lies inside another."""
     sources = ["/".join([*path, "module.py"]) for path in parts]

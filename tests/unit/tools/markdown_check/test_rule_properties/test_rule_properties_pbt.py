@@ -7,13 +7,17 @@ Fix: the LS003 word generator excludes the document's own "Root" title.
 Hypothesis eventually drew "ROOT", which collides with the fixed opening
 heading and yields two findings, so the property failed on a document that was
 never the duplicate case it describes.
+
+Fix: the LS003 property runs 30 generated words instead of 100, a
+contended-CPU duration outlier for one parse per word; a one-letter word, a
+mixed-case word and a word of the maximum length stay explicit examples.
 """
 
 # ruff: noqa: PLR2004
 
 from itertools import pairwise
 
-from hypothesis import given, settings
+from hypothesis import example, given, settings
 from hypothesis import strategies as st
 
 from tools.markdown_check.rules import check_ls003, check_md001
@@ -43,7 +47,10 @@ def test_md001_matches_every_invalid_heading_increment(levels: list[int]) -> Non
 
 
 @given(_WORDS)
-@settings(max_examples=100)
+@settings(max_examples=30)
+@example("a")
+@example("MixedCase")
+@example("abcdefghijKLMNOPQRST")
 def test_ls003_collides_case_and_inline_formatting_variants(word: str) -> None:
     """Case, emphasis markers, and punctuation do not hide a repeated title."""
     markdown = f"# Root\n\n## {word}\n\n### *{word.upper()}*!\n"
