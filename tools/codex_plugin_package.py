@@ -13,6 +13,11 @@ the llm-shared Python, without PyYAML or an isolated ``uv`` environment:
   a newer timestamp, so Codex installs a fresh cache copy.
 - ``marketplace-name`` prints the personal marketplace name once it lists the
   plugin.
+
+Fix: decoded JSON values go through ``_json_object``, which types an object as
+``dict[str, object]`` and returns None for anything else, so strict pyright
+sees no partially unknown manifest or marketplace value; a non-object plugin
+entry still never matches.
 """
 
 from __future__ import annotations
@@ -23,6 +28,7 @@ import re
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import cast
 
 _KEBAB = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 _SEMVER = re.compile(r"\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?")
@@ -33,6 +39,11 @@ _MAX_NAME = 64
 _MAX_DESCRIPTION = 1024
 _BOM = b"\xef\xbb\xbf"
 _FENCE = "---"
+
+
+def _json_object(value: object) -> dict[str, object] | None:
+    """Return a decoded JSON object with typed keys, or None for any other value."""
+    return cast("dict[str, object]", value) if isinstance(value, dict) else None
 
 
 def _scalar(text: str) -> str:
@@ -151,10 +162,11 @@ def _read_manifest(root: Path) -> dict[str, object]:
     except (OSError, ValueError) as error:
         message = f"unreadable manifest {manifest}: {error}"
         raise ValueError(message) from error
-    if not isinstance(data, dict):
+    fields = _json_object(data)
+    if fields is None:
         message = f"manifest must be a JSON object: {manifest}"
-        raise ValueError(message)  # noqa: TRY004 - one error type for every manifest problem
-    return data
+        raise ValueError(message)
+    return fields
 
 
 def _skills_root(data: dict[str, object], root: Path) -> Path:
@@ -175,7 +187,7 @@ def _skills_root(data: dict[str, object], root: Path) -> Path:
 
 def _manifest_problems(data: dict[str, object], folder: str) -> list[str]:
     """Check the manifest name against its folder and its semantic version."""
-    problems = []
+    problems: list[str] = []
     name = data.get("name")
     if not isinstance(name, str) or not _KEBAB.fullmatch(name):
         problems.append("manifest name must be hyphen-case")
@@ -231,13 +243,14 @@ def marketplace_name(marketplace: Path, plugin: str) -> str:
     except (OSError, ValueError) as error:
         message = f"unreadable marketplace {marketplace}: {error}"
         raise ValueError(message) from error
-    name = data.get("name") if isinstance(data, dict) else None
+    fields = _json_object(data) or {}
+    name = fields.get("name")
     if not isinstance(name, str) or not _MARKETPLACE.fullmatch(name):
         message = f"marketplace name must use letters, digits, '_', '.' or '-': {marketplace}"
         raise ValueError(message)
-    entries = data.get("plugins")
+    entries = fields.get("plugins")
     if not isinstance(entries, list) or not any(
-        isinstance(entry, dict) and entry.get("name") == plugin for entry in entries
+        (_json_object(entry) or {}).get("name") == plugin for entry in cast("list[object]", entries)
     ):
         message = f"marketplace {name} has no {plugin} entry: {marketplace}"
         raise ValueError(message)

@@ -3,6 +3,9 @@
 Codex no longer installs the plugin-creator scripts that ``llmup`` called, so
 ``tools/codex_plugin_package.py`` validates the package, replaces its manifest
 cachebuster and reads the personal marketplace name with the standard library.
+
+Fix: typed JSON access keeps strict pyright clean; a marketplace whose plugin
+list holds non-object entries still reports the missing plugin entry.
 """
 
 from __future__ import annotations
@@ -307,6 +310,8 @@ def test_marketplace_name_reads_a_bom_file_with_the_plugin_entry(
         (["personal"], "llm-shared", "marketplace name must use letters"),
         ({"name": "my market"}, "llm-shared", "marketplace name must use letters"),
         ({"name": "personal", "plugins": {}}, "llm-shared", "has no llm-shared entry"),
+        # A non-object entry is never a match.
+        ({"name": "personal", "plugins": ["llm-shared", None]}, "llm-shared", "has no llm-shared entry"),
         ({"name": "personal", "plugins": [{"name": "llm-shared"}]}, "other", "has no other entry"),
     ],
 )
