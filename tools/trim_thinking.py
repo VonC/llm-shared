@@ -18,7 +18,10 @@ present in the source text unless the caller forces one:
   reasoning. Before those regions are marked, every answer block holding a
   tool-output line (U+23BF after zero or more spaces) is replaced by one
   blank line, so a tool call is never kept as the opening or the answer of
-  a turn, and a replacement never leaves two blank lines in a row.
+  a turn, and a replacement never leaves two blank lines in a row. Then
+  every run of tool output left in any block, a prompt included, is cut the
+  same way: from an indented U+23BF followed by two spaces to the next line
+  starting with a non-space character.
 - A Codex export keeps the same three regions of every turn: the `## User`
   section up to the first `## Assistant`, `## Activity` or `## Reasoning`
   heading, the first assistant section, and the last assistant section of
@@ -78,6 +81,11 @@ TOOL_OUTPUT_MARKER = "⎿"
 
 _BLANK_LINE_PATTERN = re.compile(r"^\s*$")
 _TOOL_OUTPUT_PATTERN = re.compile(rf"^ *{TOOL_OUTPUT_MARKER}")
+# Outside a tool block, as under a prompt, a tool-output run opens on the
+# marker after an indent and before two spaces, and lasts until the next line
+# that starts with a non-space character.
+_TOOL_OUTPUT_RUN_PATTERN = re.compile(rf"^\s+{TOOL_OUTPUT_MARKER}  ")
+_UNINDENTED_LINE_PATTERN = re.compile(r"^\S")
 
 _PERCENT = 100
 
@@ -389,14 +397,68 @@ def drop_tool_blocks(lines: Sequence[str]) -> list[str]:
     while index < len(lines):
         end = _tool_block_end(lines, index)
         if end is not None:
-            if not kept or not _is_blank(kept[-1]):
-                kept.append("")
+            _append_stand_in(kept)
             collapsing = True
             index = end
             continue
         collapsing = _append_kept(kept, lines[index], collapsing=collapsing)
         index += 1
     return kept
+
+
+def cut_tool_output_runs(lines: Sequence[str]) -> list[str]:
+    """Replace every tool-output run left by the tool-block pass with one blank line.
+
+    A run opens on a line holding the tool-output marker after at least one
+    whitespace character and before two spaces. It runs to the next line
+    that starts with a non-space character, excluded, so the indented and
+    blank lines under the marker belong to it. The pass reaches every block,
+    a prompt included, which drops the hook or command output printed under
+    an ask. The blank line standing in for a run is left out after a blank
+    line, so no two blank lines follow each other.
+
+    Args:
+        lines: Lines of one Claude export, its tool blocks already dropped.
+
+    Returns:
+        The lines with every tool-output run replaced.
+    """
+    kept: list[str] = []
+    index = 0
+    while index < len(lines):
+        end = _tool_output_run_end(lines, index)
+        if end is None:
+            kept.append(lines[index])
+            index += 1
+            continue
+        _append_stand_in(kept)
+        index = end
+    return kept
+
+
+def _tool_output_run_end(lines: Sequence[str], index: int) -> int | None:
+    """Return where the tool-output run at ``index`` ends, when one opens there.
+
+    Args:
+        lines: Lines of one Claude export.
+        index: Index of the line to test as a run opening.
+
+    Returns:
+        The index of the first unindented line after the run, or the line
+        count, when the line at ``index`` opens a run, otherwise None.
+    """
+    if _TOOL_OUTPUT_RUN_PATTERN.match(lines[index]) is None:
+        return None
+    end = index + 1
+    while end < len(lines) and _UNINDENTED_LINE_PATTERN.match(lines[end]) is None:
+        end += 1
+    return end
+
+
+def _append_stand_in(kept: list[str]) -> None:
+    """Add the blank line standing in for a dropped run, unless one ends ``kept``."""
+    if not kept or not _is_blank(kept[-1]):
+        kept.append("")
 
 
 def _tool_block_end(lines: Sequence[str], index: int) -> int | None:
@@ -440,8 +502,13 @@ def _append_kept(kept: list[str], line: str, *, collapsing: bool) -> bool:
 
 
 def trim_claude_transcript(text: str) -> str:
-    """Drop the tool blocks and the reflection bodies of one Claude export."""
-    return "\n".join(_ClaudeTrimmer(drop_tool_blocks(text.splitlines())).trim())
+    """Drop the tool blocks, the tool-output runs and the reflection bodies.
+
+    The tool blocks go first: cutting the runs first would strip the output
+    lines that mark a tool block, and leave its call line behind.
+    """
+    lines = cut_tool_output_runs(drop_tool_blocks(text.splitlines()))
+    return "\n".join(_ClaudeTrimmer(lines).trim())
 
 
 _TRIMMERS: dict[TranscriptFormat, Callable[[str], str]] = {

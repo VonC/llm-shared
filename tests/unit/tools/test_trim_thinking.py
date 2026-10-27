@@ -12,6 +12,10 @@ the module it moved to. A Codex message sent mid-turn is followed by
 `## Activity` and `## Reasoning` before any assistant heading; the tests pin
 that the ask drops them, keeps the user's own `## ` headings, and that
 `## Reasoning` counts toward detection.
+
+Fix: the tool-block tests move to `test_trim_thinking_tool_output.py`, beside
+the tests of the new tool-output-run cut, keeping this file under the
+repository line budget.
 """
 
 from __future__ import annotations
@@ -295,88 +299,6 @@ def test_trim_claude_keeps_nothing_before_the_first_prompt() -> None:
     text = "banner noise\n● an answer with no question\n✻ done\n"
 
     assert trimmer.trim_claude_transcript(text) == ""
-
-
-def test_drop_tool_blocks_replaces_a_block_with_one_blank_line() -> None:
-    """A block holding tool output anywhere goes whole, and a blank line stays."""
-    lines = [
-        "● the plan",
-        "● Update(tools/a.py)",
-        "  a line before the output",
-        "  ⎿ Added 2 lines",
-        "  a line after the output",
-        "● the answer",
-    ]
-
-    assert trimmer.drop_tool_blocks(lines) == ["● the plan", "", "● the answer"]
-
-
-@pytest.mark.parametrize("line", ["⎿ unindented", "      ⎿ deeply indented"])
-def test_drop_tool_blocks_matches_the_output_marker_at_any_indent(line: str) -> None:
-    """Zero or more spaces may precede the tool-output marker."""
-    assert trimmer.drop_tool_blocks(["● Bash(ls)", line]) == [""]
-
-
-def test_drop_tool_blocks_keeps_a_block_without_tool_output() -> None:
-    """A marker that is not at the start of a line leaves the block in place."""
-    lines = ["● the answer mentions ⎿ in passing", "  and x ⎿ too"]
-
-    assert trimmer.drop_tool_blocks(lines) == lines
-
-
-@pytest.mark.parametrize(
-    "closing",
-    ["❯ next ask", "✻ done", "※ recap: summary", "  ※ indented recap", "⏺ next"],
-)
-def test_drop_tool_blocks_ends_a_block_on_the_next_marker(closing: str) -> None:
-    """The marker that follows a tool block is not part of it."""
-    assert trimmer.drop_tool_blocks(["● Bash(ls)", "  ⎿ output", closing]) == [
-        "",
-        closing,
-    ]
-
-
-def test_drop_tool_blocks_never_leaves_two_blank_lines() -> None:
-    """Blank lines around a dropped block collapse into one."""
-    lines = [
-        "● the plan",
-        "",
-        "● Bash(ls)",
-        "  ⎿ output",
-        "",
-        "● Read(a.py)",
-        "  ⎿ read 3 lines",
-        "",
-        "",
-        "● the answer",
-    ]
-
-    assert trimmer.drop_tool_blocks(lines) == ["● the plan", "", "● the answer"]
-
-
-def test_drop_tool_blocks_keeps_blank_runs_away_from_a_dropped_block() -> None:
-    """Only a replacement collapses blank lines; the ask keeps its own."""
-    lines = ["❯ ask", "", "", "  second paragraph", "● the answer"]
-
-    assert trimmer.drop_tool_blocks(lines) == lines
-
-
-def test_trim_claude_keeps_prose_when_a_turn_ends_on_a_tool_block() -> None:
-    """A tool call can be neither the opening nor the answer of a turn."""
-    text = (
-        "❯ ask\n"
-        "● Bash(ls)\n"
-        "  ⎿ output\n"
-        "● the answer so far\n"
-        "  its continuation\n"
-        "● Bash(pytest)\n"
-        "  ⎿ Interrupted\n"
-        "✻ done\n"
-    )
-
-    assert trimmer.trim_claude_transcript(text) == (
-        "❯ ask\n\n● the answer so far\n  its continuation\n\n✻ done"
-    )
 
 
 def test_trim_codex_keeps_the_user_and_assistant_sections() -> None:
