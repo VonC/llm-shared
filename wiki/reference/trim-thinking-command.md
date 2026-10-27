@@ -60,6 +60,20 @@ prompt, reflection, or recap line. When any of its lines starts with `⎿`
 | Scope | Blank runs away from a dropped block, such as those of a prompt, keep their shape |
 | Order | The kept regions below are chosen among the remaining blocks, so a tool block is never the opening or the answer |
 
+## Claude tool-output runs
+
+A second pass, right after the tool blocks are dropped, cuts the tool output
+left in any other block, a prompt block included: the hook or command output
+printed under an ask, or an `⎿  Interrupted` line.
+
+| Rule | Effect |
+| --- | --- |
+| Opening | A line matching `^\s+⎿ {2}`: at least one whitespace character, `⎿` (U+23BF), then two spaces |
+| End | The next line matching `^\S`, a line starting with a non-space character, excluded; the indented and blank lines before it belong to the run |
+| Replacement | The run becomes one blank line, left out after a blank line, so no two blank lines follow each other |
+| Order | The tool blocks go first: cutting the runs first would strip the `⎿` lines that mark a tool block and keep its `●` call line |
+| Unmatched | An unindented `⎿`, a `⎿` followed by one space only, or a `⎿` after other text opens no run |
+
 ## Codex headings
 
 | Heading | Meaning |

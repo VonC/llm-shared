@@ -245,10 +245,11 @@ Windows at all.
   file argument or, with no argument, from the clipboard, removes the
   reflection blocks, copies the trimmed conversation back to the clipboard,
   and prints one summary line with the before and after line counts. A
-  Claude export keeps its prompt blocks, its answer and tool blocks, the
+  Claude export keeps its prompt blocks, its answer blocks, the
   reflection line that closes one of them (kept as an elision marker, its
   reasoning body dropped), and the recap line that follows that reflection
-  line; blank lines never cut a block short. A Codex export keeps its
+  line; blank lines never cut a block short. Its tool blocks and the `⎿`
+  tool output left under a prompt are dropped. A Codex export keeps its
   `## User` and `## Assistant` sections and drops `## Activity`. The format
   is detected from the markers, and `--format claude` or `--format codex`
   forces it.

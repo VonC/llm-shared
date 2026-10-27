@@ -79,6 +79,14 @@ block is replaced by one blank line before any region is chosen, and positions
 are then read among the blocks that remain, which are the ones where the
 session spoke.
 
+Tool output also lands outside answer blocks: a hook or a slash command prints
+under the prompt that triggered it. A second pass cuts those runs, from an
+indented `⎿` followed by two spaces to the next line starting with a
+non-space character, since every line of such a run is indented. It runs after
+the tool blocks are dropped and not before: the `⎿` lines are what marks a
+block as a tool call, and cutting them first would leave the `●` call line
+behind as if the session had said it.
+
 ## Why the reflection line stays
 
 The reflection line that closes a Claude turn is kept even though its body is

@@ -86,6 +86,10 @@ export:
 - the answer: the last answer block of the turn, plus the reflection line that
   closes it and the recap line under that.
 
+Tool calls never survive: a block holding `⎿` tool output goes whole, and the
+`⎿` output left under a prompt, such as hook output, goes too, each replaced by
+one blank line.
+
 A Codex export keeps the same three regions, read from its headings: the
 `## User` section, the first `## Assistant` section, and the last
 `## Assistant` section of the turn. `## Activity` and `## Reasoning` are
