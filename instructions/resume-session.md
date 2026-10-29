@@ -212,6 +212,14 @@ reconciled:
    or pending human decision. A receipt confirmation, summary, or offer to
    continue alone does not complete a resume.
 
+A host's planning mode, such as Codex Plan Mode, does not block steps 2 to 4:
+the receipt, the session journal, the step journal and its handoff are
+ignored or outside every repository, so writing them changes no repo-tracked
+state, as
+[pause-session](pause-session.md#pause-in-a-plan-or-read-only-mode)
+explains. Write them in that mode too. Step 5 then follows the mode: plan the
+continuation without editing tracked files.
+
 The flag means context was read and reconciled, not that the task completed.
 Write it before task execution so a later failure does not silently replay
 the same work. After an interruption, a plain `resume-session` resumes from

@@ -33,6 +33,25 @@ never staged or committed, even when their names are explicitly passed to Git.
 Check that neither path is tracked before writing private content. If either
 is tracked, report the problem and stop without changing the user's index.
 
+## Pause in a plan or read-only mode
+
+A host's planning mode, such as Codex Plan Mode, does not prevent a pause.
+Such a mode forbids changing repo-tracked state, and a pause changes none:
+the prompt and its receipt are ignored and checked untracked above, the
+step journal, handoff and question note it refreshes sit in the same ignored
+artifact home, and the session journal lives outside every repository.
+Writing them records the session; it carries out none of its plan. The user's
+pause request asks for exactly these writes: make them in that mode as in any
+other, then stop.
+
+In that mode, write nothing else: no tracked file, no decision recorded in a
+document, no command that carries the plan out. List such pending writes in
+the prompt, as decisions held in the conversation only. Never skip the save
+because of the mode alone, and never answer with a chat-only handoff before
+trying it. Only a write the host itself rejects, through its sandbox or an
+approval the user declines, stops the pause: report that rejection, give the
+handoff in the chat and say that no checkpoint was saved.
+
 ## Name the agent that writes the prompt
 
 The prompt's first line starts with the id of the agent host whose chat holds
