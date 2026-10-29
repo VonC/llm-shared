@@ -4,6 +4,10 @@ Step 5 keeps resume sequencing in its canonical instruction while this adapter
 exposes bounded migration, non-mutating inspection, and the one quiet global
 reviewer wait through the existing review-exchange launcher. Lease-only
 abandonment remains resumable without weakening migration or damage gates.
+
+Fix: with a running native observer, the global wait spaces quiet rescans up
+to about 30 seconds instead of rescanning the artifact home every poll
+interval; without one it keeps polling every interval.
 """
 
 
@@ -12,7 +16,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from datetime import datetime
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Final
 
 from tools.llm_nature import LlmNature, LlmNatureDetector
 from tools.review_artifact_configuration import ReviewArtifactConfiguration
@@ -64,6 +68,9 @@ if TYPE_CHECKING:
 _RESUME_OPERATIONS = frozenset(
     {"migration-check", "migrate-artifacts", "resume-inspect", "claim", "wait-any-request"},
 )
+# Longest spacing of hint-less rescans while a native observer runs; it bounds
+# how late a missed event, an expired lease or a lost claim race is noticed.
+_SAFETY_RESCAN_SECONDS: Final = 30.0
 
 
 def is_resume_operation(operation: str) -> bool:
@@ -329,14 +336,17 @@ def _wait_any_request(args: Namespace, root: Path) -> tuple[dict[str, Any], int]
     discovery = _RequestDiscovery(root)
     configuration = ReviewArtifactConfiguration.load(root)
     notification_wait = WatchdogNotificationAdapter(configuration.home)
-    waiter = GlobalReviewerWait(
-        rescan_candidates=discovery.rescan,
-        wait_for_notification=notification_wait.wait,
-        fallback_poll=_no_op_poll,
-        claim_candidate=discovery.claim,
-        poll_interval_seconds=args.poll_interval,
-    )
     with notification_wait:
+        waiter = GlobalReviewerWait(
+            rescan_candidates=discovery.rescan,
+            wait_for_notification=notification_wait.wait,
+            fallback_poll=_no_op_poll,
+            claim_candidate=discovery.claim,
+            poll_interval_seconds=args.poll_interval,
+            fallback_rescan_intervals=_fallback_rescan_intervals(
+                args.poll_interval, observing=notification_wait.observing,
+            ),
+        )
         result = waiter.wait()
     candidates = [_candidate_payload(item) for item in result.candidates if isinstance(item, ExchangeStatus)]
     selected = result.candidate if isinstance(result.candidate, ExchangeStatus) else None
@@ -382,6 +392,17 @@ def _candidate_payload(entry: ExchangeStatus) -> dict[str, object]:
 
 def _no_op_poll() -> None:
     """Mark a fallback boundary without streaming progress or mutating evidence."""
+
+
+def _fallback_rescan_intervals(poll_interval: float, *, observing: bool) -> int:
+    """Return the quiet-interval cap between rescans for one global wait.
+
+    Without a native observer no hint can arrive, so every interval rescans.
+    With one, quiet rescans are spaced up to the safety period.
+    """
+    if not observing:
+        return 1
+    return max(1, round(_SAFETY_RESCAN_SECONDS / poll_interval))
 
 
 __all__ = ["execute_resume_operation", "is_resume_operation"]

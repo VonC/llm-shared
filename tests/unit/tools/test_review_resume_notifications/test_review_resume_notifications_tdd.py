@@ -1,4 +1,8 @@
-"""Exercise native hints, missed notifications, startup failure, and cleanup."""
+"""Exercise native hints, missed notifications, startup failure, and cleanup.
+
+Fix: the adapter reports ``observing`` only while a started observer is held,
+so a failed startup keeps the caller's every-interval polling.
+"""
 
 from __future__ import annotations
 
@@ -79,10 +83,13 @@ def test_one_observer_and_bounded_polling(tmp_path: Path, *, fail: bool) -> None
     observer = ObserverDouble(fail=fail)
     dirty = Event()
     adapter = WatchdogNotificationAdapter(tmp_path, observer_factory=lambda: observer, event_factory=lambda: dirty)
+    assert not adapter.observing
     with adapter:
+        assert adapter.observing is not fail
         dirty.set()
         assert adapter.wait(0)
         assert not adapter.wait(0)
+    assert not adapter.observing
     assert observer.starts == 1
     assert observer.stops == 1
     assert observer.joins == 1

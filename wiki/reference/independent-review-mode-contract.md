@@ -29,7 +29,9 @@ runs the quiet `wait-any-request` in the same session. This global
 wait has no exchange timeout while idle and accepts either review family under
 the configured home. A replacement request wakes it after requestor work or a
 human's another-round choice; convergence leaves the human gate intact.
-Native events trigger authoritative rescans, with bounded polling fallback.
+Native events trigger authoritative rescans, with bounded polling fallback:
+while no event arrives, rescans back off to about one every 30 seconds, and
+a wait without a native observer rescans every poll interval.
 
 Codex keeps its assistant turn active through an attached wait and continues
 awaiting the same process handle after a transport yield. Claude uses

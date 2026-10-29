@@ -1,4 +1,8 @@
-"""Unit tests for Step 5 resume CLI support operations and terminal output."""
+"""Unit tests for Step 5 resume CLI support operations and terminal output.
+
+Fix: checks that the global wait caps hint-less rescans at the safety period
+only while a native observer runs, and polls every interval otherwise.
+"""
 # pyright: reportUnknownLambdaType=false, reportUnknownArgumentType=false
 
 from __future__ import annotations
@@ -6,7 +10,7 @@ from __future__ import annotations
 import json
 from argparse import Namespace
 from types import SimpleNamespace
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Self, cast
 
 import pytest
 
@@ -257,6 +261,58 @@ class TestResumeCliSupport:
 
         assert launcher.main(["resume-inspect"]) == _SUCCESS_EXIT
         assert '"outcome": "ready"' in capsys.readouterr().out
+
+@pytest.mark.parametrize(("observing", "poll_interval", "expected"), [
+    (True, 1.0, 30),
+    (True, 0.5, 60),
+    (True, 45.0, 1),
+    (False, 1.0, 1),
+])
+def test_wait_spaces_quiet_rescans_only_with_a_native_observer(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, *, observing: bool, poll_interval: float, expected: int,
+) -> None:
+    """The waiter gets a rescan cap of about 30 seconds only when hints can arrive."""
+    built: list[dict[str, object]] = []
+
+    class Notifications:
+        """Report one observer state through the adapter's context protocol."""
+
+        def __init__(self, _directory: object) -> None:
+            self.observing = observing
+
+        def __enter__(self) -> Self:
+            """Hold the scripted observer state for the wait."""
+            return self
+
+        def __exit__(self, *_exception: object) -> None:
+            """Release nothing: no observer was started."""
+
+        def wait(self, _seconds: float) -> bool:
+            """Report no hint."""
+            return False
+
+    class Waiter:
+        """Record the composed wait options and stop at once."""
+
+        def __init__(self, **options: object) -> None:
+            built.append(options)
+
+        def wait(self) -> SimpleNamespace:
+            """Return a terminal result without waiting."""
+            return SimpleNamespace(outcome=subject.GlobalWaitOutcome.CANCELLED,
+                                   candidate=None, candidates=(), diagnostic="stop")
+
+    monkeypatch.setattr(subject, "WatchdogNotificationAdapter", Notifications)
+    monkeypatch.setattr(subject, "GlobalReviewerWait", Waiter)
+    args = _args("wait-any-request")
+    args.poll_interval = poll_interval
+
+    _payload, code = subject._wait_any_request(args, tmp_path)
+
+    assert code == _STOP_EXIT
+    assert built[0]["fallback_rescan_intervals"] == expected
+    assert built[0]["poll_interval_seconds"] == poll_interval
+
 
 @pytest.mark.parametrize(("error", "outcome", "code"), [
     (KeyboardInterrupt(), "cancelled", 3),

@@ -2,6 +2,9 @@
 
 Only recognized request writes mark the wait dirty. Callbacks never project
 status; the foreground consumer coalesces hints and rescans authoritatively.
+
+Fix: ``observing`` reports whether the native subscription started, so the
+caller can space out quiet rescans only when hints can actually arrive.
 """
 
 from __future__ import annotations
@@ -65,7 +68,11 @@ class _RequestEventHandler(FileSystemEventHandler):
 
 
 class WatchdogNotificationAdapter:
-    """Own one observer for the whole wait and fall back when startup fails."""
+    """Own one observer for the whole wait and fall back when startup fails.
+
+    Fix: exposes ``observing`` so the wait polls every interval only when the
+    observer failed to start.
+    """
 
     def __init__(
         self,
@@ -94,6 +101,11 @@ class WatchdogNotificationAdapter:
         else:
             self._observer = observer
         return self
+
+    @property
+    def observing(self) -> bool:
+        """Return whether a started native observer can deliver hints."""
+        return self._observer is not None
 
     def wait(self, seconds: float) -> bool:
         """Block quietly and consume accumulated hints before the next scan."""
