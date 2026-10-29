@@ -67,6 +67,7 @@ if TYPE_CHECKING:
 
 
 _ACTIVE_PREFIX = "a.review-active."
+_REQUEST_PREFIX = "a.review-requested."
 
 _UNTRUSTWORTHY_STATES = frozenset(
     {
@@ -263,14 +264,13 @@ def collect_ready_review_requests(
     wall_clock: Callable[[], datetime],
     configuration: ReviewArtifactConfiguration,
 ) -> ReviewStatusResult:
-    """Project settled requests in linear directory order without migrating."""
+    """Project settled requests in directory order, parsing request names only (fix)."""
     registry = ReviewArtifactRegistry()
     invocation = _StatusInvocation(
         root, configuration, _DEFAULT_DEPENDENCIES.load_configuration(root, configuration), wall_clock(),
     )
     entries: list[StatusEntry] = []
-    paths = configuration.home.iterdir() if configuration.home.exists() else ()
-    for path in paths:
+    for path in configuration.home.glob(f"{_REQUEST_PREFIX}*"):
         registered = registry.parse_name(path.name)
         if registered is None or registered.kind is not RegisteredArtifactKind.REQUEST or registered.identity is None:
             continue

@@ -1,4 +1,7 @@
-"""Example coverage for bounded, read-only review-status discovery."""
+"""Example coverage for bounded, read-only review-status discovery.
+
+Fix: global request discovery parses only names with the request prefix.
+"""
 
 # pyright: reportPrivateUsage=false, reportUnknownLambdaType=false
 # ruff: noqa: ARG001, ARG005, C901, D103, EM102, PLR0913, PLR2004, TC003, TRY003
@@ -14,6 +17,7 @@ from typing import cast
 import pytest
 
 from tools.review_artifact_configuration import ReviewArtifactConfiguration
+from tools.review_artifact_registry import ReviewArtifactRegistry
 from tools.review_exchange_models import (
     Actor,
     ArtifactState,
@@ -42,6 +46,7 @@ from tools.review_status import (
     _relative,
     _role_for,
     _StatusDependencies,
+    collect_ready_review_requests,
     collect_review_status,
 )
 from tools.review_status_models import (
@@ -260,6 +265,30 @@ def test_empty_repository_is_trustworthy_and_loads_configuration_once(
 def test_default_candidate_enumerator_accepts_an_absent_home(tmp_path: Path) -> None:
     """An unused repository has no configured-home candidates and no error."""
     assert _enumerate_candidates(ReviewArtifactConfiguration.load(tmp_path)) == ()
+
+
+def test_ready_request_discovery_parses_only_request_names(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Unrelated home files skip the registry; a malformed request name is ignored."""
+    configuration = ReviewArtifactConfiguration.load(tmp_path)
+    configuration.home.mkdir(parents=True)
+    malformed = "a.review-requested.not-a-type.md"
+    for name in ("a.notes.md", "a.review-active.code.code.v0.1.0.example.md", malformed):
+        (configuration.home / name).write_text("", encoding="utf-8")
+    parsed: list[str] = []
+    original = ReviewArtifactRegistry.parse_name
+
+    def spy(registry: ReviewArtifactRegistry, name: str) -> object:
+        parsed.append(name)
+        return original(registry, name)
+
+    monkeypatch.setattr(ReviewArtifactRegistry, "parse_name", spy)
+
+    result = collect_ready_review_requests(tmp_path, lambda: _NOW, configuration)
+
+    assert result.exchanges == ()
+    assert parsed == [malformed]
 
 
 def test_valid_candidate_is_normalized_with_bounded_read_only_io(tmp_path: Path) -> None:
