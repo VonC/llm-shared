@@ -29,6 +29,17 @@ host; omit the hint for `unknown` and use host detection. Do not infer a model
 from its protocol role. Supply `--role requestor` or `--role reviewer` only
 when the user selected that role.
 
+With `--role reviewer` and no selected document, inspection returns only
+pending or abandoned requests that need reviewer work. A single request
+continues automatically through its identity and ownership gates; several
+such requests require a choice. With none, follow `wait-any-request` without
+claiming an answered exchange. Requestor convergence gates and other
+requestor-owned phases are not reviewer choices. Do not add those exchanges
+back into the menu or offer global waiting as a competing choice when one
+pending request has been selected automatically. Explicit document selections
+remain exact; damaged or stopped evidence still blocks inspection. An answer
+publication in progress also blocks discovery until it finishes.
+
 ## Continue the selected review role
 
 `role-selection-required`, `confirmation-required`, and

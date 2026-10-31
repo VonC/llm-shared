@@ -473,6 +473,17 @@ its internal operations; no shell resume launcher is installed.
 | `claim` | Exact selected document, role, round and occurrence | Automatic pickup or idempotent reuse of the supplied capability |
 | `wait-any-request` | Identity-free reviewer wait in the configured home | One claimed request, ambiguity, cancellation, or operational failure |
 
+For `resume-inspect --role reviewer` without `--document`, candidates include
+only `request-pending` and `abandoned-request` exchanges. One candidate routes
+to its reviewer identity and ownership checks automatically; several require
+exchange selection; none routes to `wait-any-request` without a claim.
+Answered exchanges and requestor convergence gates do not create reviewer
+ambiguity. Exact document selections, requestor inspection, and inspection
+without a selected role retain their existing selection rules. The full-home
+trustworthiness check runs before filtering, so damaged or stopped evidence
+cannot disappear from the safety gate. Discovery also stops while an answer
+publication is in progress, before applying the candidate filter.
+
 The global wait writes no idle output. Its final JSON has
 `operation`, `outcome`, `identity`, `candidates`, and `diagnostic`.
 Only `found` includes the session-only ownership generation and token.
