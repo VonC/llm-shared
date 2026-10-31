@@ -248,7 +248,7 @@ def _resume_claim(args: Namespace, root: Path) -> tuple[dict[str, Any], int]:
 
 
 def _selected_exchanges(entries: Sequence[object], args: Namespace, root: Path) -> tuple[ExchangeStatus, ...]:
-    """Apply a human-selected exact document without filename ordering guesses."""
+    """Honor exact selections and restrict reviewer discovery to pending requests."""
     document = getattr(args, "document", None)
     result = tuple(
         entry for entry in entries if isinstance(entry, ExchangeStatus)
@@ -258,6 +258,14 @@ def _selected_exchanges(entries: Sequence[object], args: Namespace, root: Path) 
     if document is not None and not result:
         message = "selected exchange is no longer active; inspect again"
         raise ReviewExchangeError(message)
+    if document is None and args.role == ReviewRole.REVIEWER.value:
+        if any(entry.state is ArtifactState.ANSWER_PUBLICATION_IN_PROGRESS for entry in result):
+            message = "reviewer discovery is blocked while answer publication is in progress; inspect again after it finishes"
+            raise ReviewExchangeError(message)
+        result = tuple(
+            entry for entry in result
+            if entry.state in {ArtifactState.REQUEST_PENDING, ArtifactState.ABANDONED_REQUEST}
+        )
     return result
 
 
