@@ -6,18 +6,3 @@ argument-hint: 'Give the sheet image path, the output folder, the column count, 
 ---
 
 [Instruction](../../../instructions/isolate-logos.md)
-
-Implementation is mutualized across the shared directories:
-
-- [`../instructions/isolate-logos.md`](../../../instructions/isolate-logos.md)
-  — the full collect-inputs, run, verify, and adjust workflow.
-- [`../tools/isolate_logos/isolate_logos.py`](../../../tools/isolate_logos/isolate_logos.py)
-  — the script: grid split, content crop, square padding, border flood fill.
-- [`../tools/isolate_logos/README.md`](../../../tools/isolate_logos/README.md)
-  — the tool reference: flags, defaults, and produced files.
-
-Inputs: the sheet image, the output folder, `--cols`, and the ordered cell
-names (`-` skips a cell, `name=basename` renames one output). The skill runs
-the script via `uv run --with pillow`, then reads each produced
-`-transparent.png` back to verify the crop and that white inside the artwork
-survived, adjusting `--white-threshold` or `--margin` when needed.

@@ -6,26 +6,3 @@ argument-hint: 'Give the start date and the working trees, for example "activity
 ---
 
 [Instruction](../../../instructions/activity-report.md)
-
-Implementation is mutualized across the shared directories:
-
-- [`../instructions/activity-report.md`](../../../instructions/activity-report.md)
-  — the full end-to-end workflow.
-- [`../templates/activity-elements.template.md`](../../../templates/activity-elements.template.md)
-  — the structure of the generated `a.md` elements document.
-- [`../templates/activity-report.french.template.md`](../../../templates/activity-report.french.template.md)
-  — the structure of the French report.
-- [`../scripts/activity_report.sh`](../../../scripts/activity_report.sh)
-  — the git log / git diff script, run from the calling project root.
-
-Inputs: a start date, an optional end date (default today), one or more
-git working trees, and an optional existing report file to update. The
-skill runs end to end: it writes `a.md` in the calling project's review
-artifact home (`.reviews`, see `rules/artifact_files.md`), presents the
-topics for selection, asks for a few words of context, then writes or
-updates `a.activity-report.<start>-<end>.md` in the same home, creating that
-conventional name, or updating it without overwriting (adding only new
-topics) when it already exists, or updating the file passed in. After the
-user reviews and says go ahead, it renders the report to HTML then PDF over
-the same base name, using `templates/md_to_pdf.py.template`. The home's own
-`*` ignore file keeps all these files out of Git.
