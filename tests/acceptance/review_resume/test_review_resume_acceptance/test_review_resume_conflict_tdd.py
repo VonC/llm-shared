@@ -51,12 +51,18 @@ def test_conflict_stop_makes_no_partial_backfill_and_returns_all_evidence(confli
 
 
 def test_override_preserves_conflict_and_fills_only_missing_selected_role(conflict_journey: dict[str, Any]) -> None:
-    """AC9: approved Override claims while keeping existing contrary evidence intact."""
+    """AC9: approved Override claims and fills the missing request reviewer.
+
+    The coordination record now names the claiming reviewer, and the transcript
+    records the replaced one, so the reviewer's next answer can be published.
+    """
     journey = conflict_journey
     repo = journey["repo"]
     assert journey["override"][-1].code == 0
-    assert journey["snapshots"][repo.paths.coordination.name] == {"requestor": "codex", "reviewer": "claude"}
+    assert journey["snapshots"][repo.paths.coordination.name] == {"requestor": "codex", "reviewer": "codex"}
     assert journey["snapshots"][repo.paths.request.name] == {"requestor": "codex", "reviewer": "codex"}
+    transcript = repo.paths.transcript.read_text(encoding="utf-8")
+    assert "llm-nature-override-reviewer-exchange-1-claude-to-codex" in transcript
     assert journey["override"][-1].payload["action"] == "review-request"
 
 
