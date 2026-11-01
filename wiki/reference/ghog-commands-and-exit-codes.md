@@ -32,6 +32,23 @@ same contract into local automation.
 | — | `ghog groups [name]` | validate group declarations and print patterns and resolved test/source counts |
 | — | `ghog exclude --list [--since=<saved-list>]` | list effective exclusions, or compare them with saved evidence |
 
+## Affected-selection threshold
+
+`GHOG_AFFECTED_MAX_PERCENT` controls the affected step inside a `day` that
+requests a full level. Default: `75`. Valid range: `0` through `100`, including
+decimals. A strictly greater affected/full percentage skips affected execution;
+an exact match retains it. `100` disables the collection probes. Invalid values
+retain the ordinary sequence, as do failed or unrecognized collection results.
+
+Two collection-only processes count the actual selected cases within the same
+scope and project configuration, excluding marker-deselected acceptance cases.
+No fixtures or test bodies run. The log reports the counts and skip/retain
+decision. Testmon collection is disabled for the affected probe; the full probe
+disables testmon. Neither probe resets its map. Full execution still applies its
+usual map policy and all requested gates. A skipped affected step earns no
+independent proof. Default days without a full level, standalone affected runs,
+and saved-proof noop/upgrade paths are unchanged.
+
 ## Full-suite levels
 
 `check`, `full`, `affected`, `single`, and `day` accept `--full=pass|cov|speed`.

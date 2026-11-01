@@ -32,6 +32,27 @@ starting level and scope, including selectors on focused repairs. All bare
 The day closing and done-status keys include `full`, `src`, `proof`, `reused`
 and `scope`; running status reports `proof=pending`, never old green evidence.
 
+## Avoid repeating a nearly full affected selection
+
+When `day` will run a full step (`pass`, `cov`, or `speed`), it first counts
+the full and affected selections with collection-only pytest processes after
+a green check. If affected tests are **strictly more than 75%** of the full
+selection, it skips affected execution and proceeds directly to that full step.
+The log records both counts, threshold, and decision. Fixtures and test bodies
+do not run during these probes; collection still imports test modules.
+
+Set `GHOG_AFFECTED_MAX_PERCENT` to a number from 0 to 100 to change the boundary.
+`100` disables the probes and preserves the original sequence. An invalid value
+or unavailable collection evidence also preserves the original sequence.
+Both probes retain the project's marker/keyword configuration and resolved group
+paths. The affected probe disables testmon data collection; neither resets the
+dependency map. A marker expression may itself make testmon select everything.
+
+Standalone `affected`, a day without a full step, and saved-proof reuse do not
+probe. Skipping affected execution earns no proof by itself: the full result
+must establish the requested gates. Collection overhead can outweigh savings
+for tiny suites; use `100` there if needed.
+
 ## Invocation contract for the groundhog loop
 
 - `<llm-shared>` below is the resolved absolute llm-shared directory that
