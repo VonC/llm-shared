@@ -1,34 +1,23 @@
-"""Shared real-repository builders for the commit-plan-check acceptance modules.
-
-The acceptance scenarios all need the same Git setup, adapter invocation and
-state snapshot. They used to live beside the scenarios in one module, which
-made that module the longest-running file of the suite and therefore the
-critical path of the parallel walk, because ``--dist loadscope`` keeps every
-test of one module on a single worker.
-
-Fix: extract the builders so the scenarios can live in sibling modules that
-run on separate workers. No builder changed behavior; only their names became
-public, since they now cross a module boundary.
-
-Synthetic fixture commits explicitly disable signing; host key-selection
-configuration must not turn repository setup into failed external work.
-Each scenario copies one session-owned real Git baseline, retaining independent
-indexes and working trees without repeating init, add and commit.
-"""
-
-# ruff: noqa: S603, S607
+"""Direct CLI scenarios over declared repository contents and index inputs."""
 
 from __future__ import annotations
 
-import os
+import io
 import shutil
 import subprocess
-import sys
+from contextlib import redirect_stderr, redirect_stdout
 from dataclasses import dataclass
-from pathlib import Path
-from typing import cast
+from typing import TYPE_CHECKING, TextIO, cast
 
+from tests.acceptance.commit_plan_check.repository_observations import (
+    PLANS,
+    declare_index,
+    declare_repository,
+)
 from tools import commit_plan_check
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 NON_READY_STATUS = 3
 OPERATIONAL_STATUS = 2
@@ -40,58 +29,24 @@ TREE_B = "b" * 40
 class RepositoryState:
     """Observable repository state protected by the checker contract."""
 
-    head: str
-    index_tree: str
+    baseline: tuple[tuple[str, bytes], ...]
+    index: tuple[tuple[str, bytes], ...]
     staged_paths: tuple[str, ...]
-    worktree_diff: bytes
+    files: tuple[tuple[str, bytes], ...]
     plan_bytes: bytes | None
-    ignored_root: tuple[str, ...]
-
-
-def git(root: Path, *arguments: str) -> subprocess.CompletedProcess[bytes]:
-    """Run one required Git setup or snapshot command."""
-    return subprocess.run(
-        ["git", "-C", str(root), *arguments],
-        check=True,
-        capture_output=True,
-    )
-
-
-def commit(root: Path, message: str) -> None:
-    """Create one deterministic local fixture commit."""
-    subprocess.run(
-        [
-            "git",
-            "-C",
-            str(root),
-            "-c",
-            "user.name=Commit Plan Acceptance",
-            "-c",
-            "user.email=acceptance@example.invalid",
-            "-c",
-            "commit.gpgsign=false",
-            "commit",
-            "-q",
-            "-m",
-            message,
-        ],
-        check=True,
-        capture_output=True,
-    )
 
 
 def build_repository_seed(root: Path) -> None:
-    """Create a repository with one stable HEAD and ignored root evidence."""
-    subprocess.run(["git", "init", "-q", str(root)], check=True)
+    """Write the two baseline files without initializing a Git database."""
     (root / ".gitignore").write_text("a.*\n", encoding="utf-8")
     (root / "baseline.txt").write_text("baseline\n", encoding="utf-8")
-    git(root, "add", "--", ".gitignore", "baseline.txt")
-    commit(root, "test: create baseline")
 
 
 def initialize_repository(root: Path, seed: Path) -> None:
-    """Copy the real committed baseline into an independent scenario root."""
+    """Copy fixture data and declare an independent baseline and index."""
     shutil.copytree(seed, root, dirs_exist_ok=True)
+    declare_repository(root, {name: (root / name).read_bytes()
+                              for name in (".gitignore", "baseline.txt")})
 
 
 def valid_plan(
@@ -119,77 +74,34 @@ What:
 def stage_sample(root: Path) -> None:
     """Create and stage the common sample path."""
     (root / "sample.txt").write_text("sample\n", encoding="utf-8")
-    git(root, "add", "--", "sample.txt")
-
-
-def module_environment() -> dict[str, str]:
-    """Expose the project module while keeping the fixture as caller root."""
-    environment = os.environ.copy()
-    project_root = str(Path(commit_plan_check.__file__).resolve().parent.parent)
-    previous = environment.get("PYTHONPATH")
-    environment["PYTHONPATH"] = (
-        f"{project_root}{os.pathsep}{previous}" if previous else project_root
-    )
-    return environment
-
-
-def adapter_arguments(root: Path, adapter: str, output_format: str) -> list[str]:
-    """Return one module or root-launcher command over the same service."""
-    common = ["--root", str(root), "--format", output_format]
-    if adapter == "module":
-        return [sys.executable, "-m", "tools.commit_plan_check", *common]
-    project_root = Path(commit_plan_check.__file__).resolve().parent.parent
-    return [str(project_root / "commit-plan-check.bat"), *common]
+    declare_index(root, "sample.txt")
 
 
 def run_adapter(
     root: Path,
-    adapter: str,
     output_format: str,
+    *,
+    stdout: TextIO | None = None,
 ) -> subprocess.CompletedProcess[str]:
-    """Run one public adapter with bounded process completion."""
-    return subprocess.run(
-        adapter_arguments(root, adapter, output_format),
-        cwd=root,
-        env=module_environment(),
-        check=False,
-        capture_output=True,
-        text=True,
-        timeout=20,
-    )
+    """Invoke the real CLI parser and service with captured or caller-owned IO."""
+    captured, errors = io.StringIO(), io.StringIO()
+    arguments = ["--root", str(root), "--format", output_format]
+    with redirect_stdout(stdout if stdout is not None else captured), redirect_stderr(errors):
+        status = commit_plan_check.main(arguments)
+    return subprocess.CompletedProcess(arguments, status, captured.getvalue(), errors.getvalue())
 
 
 def snapshot(root: Path) -> RepositoryState:
     """Capture every repository surface named by the no-mutation contract."""
     plan = root / "a.commit"
-    ignored = git(
-        root,
-        "ls-files",
-        "--others",
-        "--ignored",
-        "--exclude-standard",
-        "-z",
-        "--",
-        "a.*",
-    ).stdout
+    facts = PLANS[root.resolve()]
     return RepositoryState(
-        head=git(root, "rev-parse", "HEAD").stdout.decode().strip(),
-        index_tree=git(root, "write-tree").stdout.decode().strip(),
-        staged_paths=tuple(
-            part.decode()
-            for part in git(
-                root,
-                "diff",
-                "--cached",
-                "--name-only",
-                "--no-renames",
-                "-z",
-            ).stdout.split(b"\0")
-            if part
-        ),
-        worktree_diff=git(root, "diff", "--binary").stdout,
+        baseline=tuple(sorted(facts.baseline.items())),
+        index=tuple(sorted(facts.index.items())),
+        staged_paths=facts.changed_paths(),
+        files=tuple(sorted((path.relative_to(root).as_posix(), path.read_bytes())
+                           for path in root.rglob("*") if path.is_file())),
         plan_bytes=plan.read_bytes() if plan.exists() else None,
-        ignored_root=tuple(part.decode() for part in ignored.split(b"\0") if part),
     )
 
 

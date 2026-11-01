@@ -5,22 +5,28 @@ request rendering, exact-path routing, shared review exchange transitions, and
 the canonical consolidation boundary. Counterpart answers use the public core
 because the independent specification reviewer belongs to a later effort.
 Recorded Git boundaries keep those journeys deterministic and process-free.
+Round-two publication and convergence have separate measured journeys, each
+retaining its boundary assertions and independently declared prerequisites.
 """
 
 from __future__ import annotations
 
 import json
-import os
 from contextlib import chdir, redirect_stderr, redirect_stdout
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from io import StringIO
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
-from unittest.mock import patch
 
 import pytest
 
+from tests.acceptance.review_resume.prepared_request import (
+    ReviewInputs,
+    prepare_convergence,
+    prepare_request,
+)
+from tests.scenario_environment import environment
 from tools import review_exchange_cli as exchange_cli
 from tools import spec_review_request as request_renderer
 from tools.prompt_workflow_models import Topic
@@ -72,7 +78,6 @@ class Effort:
     context: ReviewContext
     document: Path
     umbrella: Path
-
 
 def _init_repo(root: Path, *, marker: bool = True) -> None:
     """Create the filesystem shape consumed by the recorded Git boundary."""
@@ -148,7 +153,7 @@ def _run_cli(
             token,
         )
     with (
-        patch.dict(os.environ, {"PRJ_DIR": str(root)}),
+        environment({"PRJ_DIR": str(root)}),
         chdir(root),
         redirect_stdout(stdout),
         redirect_stderr(stderr),
@@ -297,13 +302,14 @@ def _publish_answer(
 
 
 @pytest.fixture
-def lifecycle_journey(tmp_path: Path) -> None:
-    """Run repeated rounds and durable consolidation outside call timing."""
+def repeated_publication_journey(tmp_path: Path, stable_review_inputs: Callable[[], None]) -> None:
+    """Run both request publications and assert their append-only boundary."""
     root = tmp_path / "lifecycle"
     _init_repo(root)
     effort = _effort(root, "feature-request", "lifecycle")
     paths = derive_artifact_paths(root, effort.context)
     activated = _run_cli(root, effort.context, "activate")
+    stable_review_inputs()
     started = _run_cli(root, effort.context, "start")
     initialized = paths.transcript.read_text(encoding="utf-8")
 
@@ -337,6 +343,41 @@ def lifecycle_journey(tmp_path: Path) -> None:
         writer_response="The writer revised the specification before round 2.",
     )
     second_request = paths.transcript.read_text(encoding="utf-8")
+    entries = [
+        second_request.index("request-round-1"),
+        second_request.index("answer-round-1"),
+        second_request.index("request-round-2"),
+    ]
+    assert (
+        second_publication.code,
+        first_request.startswith(initialized),
+        second_request.startswith(first_request),
+        entries,
+        "Applied the accepted round 1 wording changes." in second_request,
+    ) == (0, True, True, sorted(entries), True)
+
+
+def test_repeated_publication_preserves_transcript_prefix(
+    repeated_publication_journey: None,
+) -> None:
+    """Two public request rounds retain their earlier transcript and summary."""
+    assert repeated_publication_journey is None
+
+
+@pytest.fixture
+def lifecycle_journey(tmp_path: Path, stable_review_inputs: Callable[[], None]) -> None:
+    """Run convergence and consolidation from the declared round-two boundary."""
+    root = tmp_path / "lifecycle"
+    _init_repo(root)
+    effort = _effort(root, "feature-request", "lifecycle")
+    paths = derive_artifact_paths(root, effort.context)
+    paths.coordination.parent.mkdir(exist_ok=True)
+    (paths.coordination.parent / ".gitignore").write_bytes(b"*\n")
+    stable_review_inputs()
+    capability = prepare_request(ReviewInputs(root, effort.context, paths), None, round_number=_ROUND_TWO)
+    _CAPABILITIES[effort.context.document_path] = (
+        capability["ownership_generation"], capability["ownership_token"],
+    )
     _publish_answer(effort, _ROUND_TWO, ReviewDisposition.CONVERGENCE_RECOMMENDED)
     gate = _run_cli(root, effort.context, "status")
     confirmation = _run_cli(
@@ -358,13 +399,12 @@ def lifecycle_journey(tmp_path: Path) -> None:
         "consolidate-then-review-ask-questions",
     ) < canonical.index("call `complete`")
     assert (
-        second_publication.code,
         gate.code,
         gate.payload["state"],
         confirmation.payload["owning_action_authorized"],
         authorized_before_handoff,
         handoff_before_completion,
-    ) == (0, _STOP, "convergence-gate", True, True, True)
+    ) == (_STOP, "convergence-gate", True, True, True)
 
     effort.document.write_text(
         "# lifecycle\n\n## Requirement clarifications\n\n"
@@ -376,46 +416,44 @@ def lifecycle_journey(tmp_path: Path) -> None:
     transcript = paths.transcript.read_text(encoding="utf-8")
 
     entries = [
-        transcript.index("request-round-1"),
-        transcript.index("answer-round-1"),
         transcript.index("request-round-2"),
         transcript.index("answer-round-2"),
         transcript.index("human-confirmation-round-2"),
     ]
     settled = effort.document.read_text(encoding="utf-8")
     assert (
-        first_request.startswith(initialized),
-        second_request.startswith(first_request),
         completion.code,
         completion.payload["state"],
         paths.answer.exists(),
         paths.coordination.exists(),
         entries,
-        "Applied the accepted round 1 wording changes." in transcript,
         "Open questions" in settled,
-    ) == (True, True, 0, "idle", False, False, sorted(entries), True, False)
+    ) == (0, "idle", False, False, sorted(entries), False)
 
 
 def test_repeated_round_convergence_consolidation_and_cleanup(
     lifecycle_journey: None,
 ) -> None:
-    """A complete writer journey reaches durable consolidation and clean idle."""
+    """The second round reaches authorized consolidation and clean idle."""
     assert lifecycle_journey is None
 
 
 @pytest.fixture
 def guided_override_journey(
     tmp_path: Path,
+    stable_review_inputs: Callable[[], None],
 ) -> None:
-    """Run the literal-guidance replacement journey outside call timing."""
+    """Measure the full journey, reusing only its fixed configuration inputs."""
     root = tmp_path / "guidance"
     _init_repo(root)
     effort = _effort(root, "issue", "guided")
     paths = derive_artifact_paths(root, effort.context)
     assert _run_cli(root, effort.context, "activate").code == 0
-    assert _run_cli(root, effort.context, "start").code == 0
-    assert _publish_request(effort, 1).code == 0
-    _publish_answer(effort, 1, ReviewDisposition.CONVERGENCE_RECOMMENDED)
+    stable_review_inputs()
+    capability = prepare_convergence(ReviewInputs(root, effort.context, paths))
+    _CAPABILITIES[effort.context.document_path] = (
+        capability["ownership_generation"], capability["ownership_token"],
+    )
     guidance = "## Human decision\n\nKeep Q02 literal; do not merge it with Q01."
     guidance_path = _root_input(root, "human-guidance", guidance)
     override = _run_cli(

@@ -4,15 +4,15 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
 from contextlib import chdir, redirect_stderr, redirect_stdout
 from dataclasses import dataclass
 from io import StringIO
 from typing import TYPE_CHECKING, Any, cast
-from unittest.mock import patch
 
+from tests.scenario_environment import environment
 from tools import review_exchange_cli, spec_review_answer_cli, spec_review_request
 from tools.prompt_workflow_models import Topic
+from tools.review_artifact_configuration import ReviewArtifactConfiguration
 from tools.review_exchange_core import ReviewExchangeCore
 from tools.review_exchange_models import (
     FamilyPolicy,
@@ -50,7 +50,6 @@ class Effort:
     context: ReviewContext
     document: Path
     umbrella: Path
-
 
 def init_repo(root: Path, *, marker: bool = True) -> None:
     """Create the filesystem shape consumed by the recorded Git boundary."""
@@ -139,7 +138,7 @@ def run_exchange(
         chdir(effort.root),
         redirect_stdout(stdout),
         redirect_stderr(stderr),
-        patch.dict(os.environ, {"PRJ_DIR": str(effort.root)}),
+        environment({"PRJ_DIR": str(effort.root)}),
     ):
         code = review_exchange_cli.main(
             [operation, *common(effort.context), *capability_arguments, *extra],
@@ -200,15 +199,16 @@ def render_request(effort: Effort, *, guidance: str | None = None) -> tuple[Path
 
 
 def publish_request(effort: Effort, *, guidance: str | None = None) -> CliResult:
-    """Start and publish one request through public command boundaries."""
-    assert run_exchange(effort, "activate").code == 0
-    assert run_exchange(effort, "start").code == 0
+    """Prepare the reviewer's prerequisite with the real publication core."""
+    ReviewArtifactConfiguration.load(effort.root).prepare_home()
+    active = core(effort)
+    active.start()
+    capability = active.ownership_capability
+    assert capability is not None
+    _CAPABILITIES[effort.context.document_path] = (capability.generation, capability.token)
     content, summary = render_request(effort, guidance=guidance)
-    return run_exchange(
-        effort,
-        "publish-request",
-        ("--content-file", str(content), "--summary-file", str(summary)),
-    )
+    active.publish_request(content.read_text(encoding="utf-8"), summary.read_text(encoding="utf-8"))
+    return CliResult(0, {"state": active.classify().state.value})
 
 
 def render_answer(

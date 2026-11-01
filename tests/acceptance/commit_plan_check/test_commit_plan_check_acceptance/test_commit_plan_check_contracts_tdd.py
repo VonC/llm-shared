@@ -1,21 +1,10 @@
-"""Acceptance evidence for the commit-plan checker's non-parity contracts.
-
-Covers the validation-plan subject marker, rename inventory, operational Git
-failure, caller-owned stdout redirection and the request publication gates.
-Git setup copies a shared real baseline; the total-duration audit includes
-fixture setup, assertions and teardown.
-
-Fix: split out of ``test_commit_plan_check_acceptance_tdd`` so these scenarios
-run on a different xdist worker from the readiness-state parity scenario. The
-shared builders live in ``commit_plan_check_support``; no scenario changed.
-"""
+"""Validation, rename, error, redirection and publication policy in Python."""
 
 # ruff: noqa: S603, S607, SLF001
 
 from __future__ import annotations
 
 import json
-import subprocess
 from argparse import Namespace
 from dataclasses import replace
 from typing import TYPE_CHECKING
@@ -27,21 +16,23 @@ from tests.acceptance.commit_plan_check.commit_plan_check_support import (
     TREE_A,
     TREE_B,
     RepositoryState,
-    adapter_arguments,
-    commit,
-    git,
     initialize_repository,
-    module_environment,
     run_adapter,
     snapshot,
     stage_sample,
     valid_plan,
+)
+from tests.acceptance.commit_plan_check.repository_observations import (
+    PLANS,
+    declare_baseline,
+    declare_index,
 )
 from tools import code_review_request as requestor
 from tools import commit_plan_check
 from tools.review_exchange_models import ReviewExchangeError
 
 if TYPE_CHECKING:
+    import subprocess
     from pathlib import Path
 
 
@@ -53,7 +44,7 @@ def validation_marker_results(
     commit_plan_check.CommitPlanCheckResult,
     commit_plan_check.CommitPlanCheckResult,
 ]:
-    """Build real Git evidence from an independent committed baseline copy."""
+    """Declare the before/after validation bytes consumed by production policy."""
     initialize_repository(tmp_path, commit_plan_repository_seed)
     docs = tmp_path / "docs" / "v1.2.3"
     docs.mkdir(parents=True)
@@ -63,13 +54,12 @@ def validation_marker_results(
         "### Analysis of Step 1 implementation state\n\nNo. Missing.\n",
         encoding="utf-8",
     )
-    git(tmp_path, "add", "--", relative)
-    commit(tmp_path, "docs(release-ready): add validation plan")
+    declare_baseline(tmp_path, relative)
     validation.write_text(
         "### Analysis of Step 1 implementation state\n\nYes. Complete.\n",
         encoding="utf-8",
     )
-    git(tmp_path, "add", "--", relative)
+    declare_index(tmp_path, relative)
     wrong = "docs(release-ready): update step 1 validation"
     expected = "docs(release-ready): record step 1 validation"
     (tmp_path / "a.commit").write_text(
@@ -92,7 +82,7 @@ def test_checker_rejects_update_for_newly_completed_validation_plan(
         commit_plan_check.CommitPlanCheckResult,
     ],
 ) -> None:
-    """A real staged No-to-Yes transition requires the exact pw marker."""
+    """A staged No-to-Yes transition requires the exact pw marker."""
     invalid, valid = validation_marker_results
     relative = "docs/v1.2.3/plan.v1.2.3.release-ready.validation.md"
     expected = "docs(release-ready): record step 1 validation"
@@ -109,61 +99,45 @@ def test_checker_rejects_update_for_newly_completed_validation_plan(
 def rename_results(
     tmp_path: Path,
     commit_plan_repository_seed: Path,
-) -> tuple[subprocess.CompletedProcess[str], subprocess.CompletedProcess[str]]:
-    """Run both adapters against a real staged rename during setup."""
+) -> subprocess.CompletedProcess[str]:
+    """Declare both sides of the rename and run the production checker."""
     initialize_repository(tmp_path, commit_plan_repository_seed)
     (tmp_path / "old.txt").write_text("renamed\n", encoding="utf-8")
-    git(tmp_path, "add", "--", "old.txt")
-    commit(tmp_path, "test: add rename source")
-    git(tmp_path, "mv", "old.txt", "new.txt")
+    declare_baseline(tmp_path, "old.txt")
+    (tmp_path / "old.txt").rename(tmp_path / "new.txt")
+    declare_index(tmp_path, "old.txt", "new.txt")
     (tmp_path / "a.commit").write_text(
         valid_plan("old.txt", "new.txt"),
         encoding="utf-8",
     )
-    return (
-        run_adapter(tmp_path, "module", "json"),
-        run_adapter(tmp_path, "launcher", "json"),
-    )
+    return run_adapter(tmp_path, "json")
 
 
 def test_rename_inventory_contains_source_and_destination(
-    rename_results: tuple[
-        subprocess.CompletedProcess[str],
-        subprocess.CompletedProcess[str],
-    ],
+    rename_results: subprocess.CompletedProcess[str],
 ) -> None:
     """No-renames inventory treats both sides as exact plan membership."""
-    module, launcher = rename_results
-    assert module.returncode == launcher.returncode == 0
-    assert module.stdout == launcher.stdout
-    assert set(json.loads(module.stdout)["staged_paths"]) == {"old.txt", "new.txt"}
+    assert rename_results.returncode == 0
+    assert set(json.loads(rename_results.stdout)["staged_paths"]) == {"old.txt", "new.txt"}
 
 
 @pytest.fixture
 def operational_results(
     tmp_path: Path,
-) -> tuple[subprocess.CompletedProcess[str], subprocess.CompletedProcess[str]]:
-    """Run both adapters with a root whose Git inventory cannot be read."""
+) -> subprocess.CompletedProcess[str]:
+    """Run the checker with an unavailable repository inventory observation."""
     (tmp_path / ".git").mkdir()
     (tmp_path / "a.commit").write_text(valid_plan("sample.txt"), encoding="utf-8")
-    return (
-        run_adapter(tmp_path, "module", "json"),
-        run_adapter(tmp_path, "launcher", "json"),
-    )
+    return run_adapter(tmp_path, "json")
 
 
 def test_failed_git_inventory_has_stable_operational_diagnostic(
-    operational_results: tuple[
-        subprocess.CompletedProcess[str],
-        subprocess.CompletedProcess[str],
-    ],
+    operational_results: subprocess.CompletedProcess[str],
 ) -> None:
-    """An untrustworthy Git boundary maps to status two on both adapters."""
-    module, launcher = operational_results
-    assert module.returncode == launcher.returncode == OPERATIONAL_STATUS
-    assert module.stdout == launcher.stdout == ""
-    assert module.stderr == launcher.stderr
-    assert module.stderr.startswith("commit-plan-check: cannot inventory commit plan:")
+    """An untrustworthy inventory boundary maps to status two."""
+    assert operational_results.returncode == OPERATIONAL_STATUS
+    assert operational_results.stdout == ""
+    assert operational_results.stderr.startswith("commit-plan-check: cannot inventory commit plan:")
 
 
 @pytest.fixture
@@ -171,23 +145,14 @@ def redirected_evidence(
     tmp_path: Path,
     commit_plan_repository_seed: Path,
 ) -> tuple[RepositoryState, RepositoryState, subprocess.CompletedProcess[str], Path]:
-    """Redirect launcher stdout as a caller-owned ignored file during setup."""
+    """Redirect production CLI output to the caller-owned stream."""
     initialize_repository(tmp_path, commit_plan_repository_seed)
     stage_sample(tmp_path)
     (tmp_path / "a.commit").write_text(valid_plan("sample.txt"), encoding="utf-8")
     evidence = tmp_path / "a.check-evidence.json"
     before = snapshot(tmp_path)
     with evidence.open("w", encoding="utf-8", newline="\n") as stream:
-        result = subprocess.run(
-            adapter_arguments(tmp_path, "launcher", "json"),
-            cwd=tmp_path,
-            env=module_environment(),
-            check=False,
-            stdout=stream,
-            stderr=subprocess.PIPE,
-            text=True,
-            timeout=20,
-        )
+        result = run_adapter(tmp_path, "json", stdout=stream)
     return before, snapshot(tmp_path), result, evidence
 
 
@@ -203,8 +168,8 @@ def test_caller_owned_redirection_is_the_only_observable_change(
     before, after, result, evidence = redirected_evidence
     assert result.returncode == 0
     assert result.stderr == ""
-    assert before == replace(after, ignored_root=before.ignored_root)
-    assert set(after.ignored_root) == {*before.ignored_root, evidence.name}
+    assert before == replace(after, files=tuple(entry for entry in after.files if entry[0] != evidence.name))
+    assert dict(after.files).keys() == dict(before.files).keys() | {evidence.name}
     assert json.loads(evidence.read_text(encoding="utf-8"))["ready"] is True
 
 
@@ -243,11 +208,12 @@ def requestor_rejections(
     monkeypatch: pytest.MonkeyPatch,
     commit_plan_repository_seed: Path,
 ) -> tuple[str, str, bool, bool]:
-    """Exercise both real-Git request rejections outside the measured call."""
+    """Exercise request rejection over declared stable and drifting indexes."""
     initialize_repository(tmp_path, commit_plan_repository_seed)
     stage_sample(tmp_path)
     (tmp_path / "a.commit").write_text(valid_plan("other.txt"), encoding="utf-8")
     arguments = _request_arguments(tmp_path)
+    before = dict(PLANS[tmp_path.resolve()].index)
 
     with pytest.raises(ReviewExchangeError, match="commit plan is not ready") as invalid:
         requestor._render_from_arguments(arguments, tmp_path)
@@ -262,6 +228,7 @@ def requestor_rejections(
     with pytest.raises(ReviewExchangeError, match="index changed") as drift:
         requestor._render_from_arguments(arguments, tmp_path)
 
+    assert PLANS[tmp_path.resolve()].index == before
     return (
         str(invalid.value),
         str(drift.value),

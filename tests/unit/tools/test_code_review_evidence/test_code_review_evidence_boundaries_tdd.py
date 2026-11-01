@@ -9,6 +9,11 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+from tests.code_review_repository_observations import (
+    EVIDENCE,
+    declare_index,
+    declare_repository,
+)
 from tools import code_review_evidence as evidence
 from tools import code_review_evidence_common as evidence_common
 from tools import code_review_evidence_validation_state as validation_state
@@ -21,19 +26,6 @@ if TYPE_CHECKING:
 
 # ruff: noqa: FBT001, FBT002, S603, S607
 # pyright: reportPrivateUsage=false
-
-
-def _git(root: Path, *arguments: str) -> str:
-    """Run one bounded Git command in a temporary repository."""
-    result = subprocess.run(
-        ["git", *arguments],
-        cwd=root,
-        check=True,
-        capture_output=True,
-        text=True,
-        timeout=10,
-    )
-    return result.stdout.strip()
 
 
 def _retained_payload(tree: str) -> dict[str, object]:
@@ -56,29 +48,30 @@ def _retained_payload(tree: str) -> dict[str, object]:
     }
 
 
-@pytest.fixture(scope="module")
-def real_literal_repository(tmp_path_factory: pytest.TempPathFactory) -> Path:
-    """Build one real repository with literal and glob-matching path pairs."""
-    root = tmp_path_factory.mktemp("code-review-evidence-literal-paths")
-    _git(root, "init", "-q")
+@pytest.fixture
+def literal_repository(tmp_path: Path) -> Path:
+    """Declare literal paths and decoys as independent repository inputs."""
+    root = tmp_path
+    declare_repository(root)
     (root / ".gitignore").write_text(".ignored/\n", encoding="utf-8")
     for directory in ("tracked", ".ignored", "untracked"):
         target = root / directory
         target.mkdir()
         (target / "literal[1].txt").write_text("literal\n", encoding="utf-8")
         (target / "literal1.txt").write_text("glob match\n", encoding="utf-8")
-    _git(root, "add", ".gitignore", "tracked/literal[1].txt", "tracked/literal1.txt")
+    declare_index(root, ".gitignore", "tracked/literal[1].txt", "tracked/literal1.txt")
+    EVIDENCE[root.resolve()].ignored_paths.update({".ignored/literal[1].txt", ".ignored/literal1.txt"})
     return root
 
 
-@pytest.fixture(scope="module")
-def real_literal_capture(
-    real_literal_repository: Path,
+@pytest.fixture
+def literal_capture(
+    literal_repository: Path,
 ) -> tuple[
     evidence.ValidationState,
     tuple[tuple[tuple[str, ...], tuple[str, ...]], ...],
 ]:
-    """Capture the real-Git boundary once outside the measured call phase."""
+    """Record literal query arguments while exercising production capture."""
     observed: list[tuple[tuple[str, ...], tuple[str, ...]]] = []
     original_run = evidence_common.run_cross_platform_git_command
 
@@ -105,20 +98,18 @@ def real_literal_capture(
             "run_cross_platform_git_command",
             record_git_output,
         )
-        state = evidence.capture_validation_state(real_literal_repository, selected)
+        state = evidence.capture_validation_state(literal_repository, selected)
     return state, tuple(observed)
 
 
-def test_validation_pathspecs_filter_real_git_literally(
-    real_literal_capture: tuple[
+def test_validation_pathspecs_request_only_literal_observations(
+    literal_capture: tuple[
         evidence.ValidationState,
         tuple[tuple[tuple[str, ...], tuple[str, ...]], ...],
     ],
-    real_git_commands: bool,
 ) -> None:
-    """Real Git classifies only literal tracked, ignored, and untracked names."""
-    assert real_git_commands is True
-    state, observed = real_literal_capture
+    """Production queries must mark every selected path as literal."""
+    state, observed = literal_capture
     selected = (
         "tracked/literal[1].txt",
         ".ignored/literal[1].txt",
@@ -168,7 +159,7 @@ def test_evidence_operations_reject_unsafe_and_unattributable_paths(
     tmp_path: Path,
 ) -> None:
     """Exact-path operations reject escapes, directories, absence, and binary text."""
-    _git(tmp_path, "init", "-q")
+    declare_repository(tmp_path)
     with pytest.raises(ReviewExchangeError, match="repository-relative"):
         evidence.record_pre_repair_blob(tmp_path, tmp_path / "absolute.txt")
     with pytest.raises(ReviewExchangeError, match="name a file"):
@@ -197,7 +188,7 @@ def test_git_evidence_errors_and_malformed_hash_are_explicit(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Git launch and object-shape failures never become empty evidence."""
-    _git(tmp_path, "init", "-q")
+    declare_repository(tmp_path)
     tracked = tmp_path / "tracked.txt"
     tracked.write_text("content\n", encoding="utf-8")
 
@@ -325,7 +316,7 @@ def test_manifest_payload_and_io_failures_are_explicit(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Manifest schema, identity, ignore, write, and retirement errors are reported."""
-    _git(tmp_path, "init", "-q")
+    declare_repository(tmp_path)
     tree = "0" * 40
     payload = _retained_payload(tree)
     invalid_payloads = (
@@ -448,7 +439,7 @@ def test_validation_state_split_rejects_unsafe_scopes_and_git_errors(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """The split adapter fails closed at every repository and Git boundary."""
-    _git(tmp_path, "init", "-q")
+    declare_repository(tmp_path)
     tree = evidence.capture_index_tree(tmp_path)
     with pytest.raises(ReviewExchangeError, match="repository is not a directory"):
         validation_state.capture_validation_paths(

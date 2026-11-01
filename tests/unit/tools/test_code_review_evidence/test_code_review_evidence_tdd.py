@@ -8,6 +8,12 @@ from pathlib import Path
 
 import pytest
 
+from tests.code_review_repository_observations import (
+    EVIDENCE,
+    declare_blob,
+    declare_index,
+    declare_repository,
+)
 from tools import code_review_evidence as evidence
 from tools.review_exchange_models import ReviewExchangeError
 
@@ -15,34 +21,21 @@ from tools.review_exchange_models import ReviewExchangeError
 # pyright: reportPrivateUsage=false
 
 
-def _git(root: Path, *arguments: str) -> str:
-    """Run one bounded Git command in a temporary repository."""
-    result = subprocess.run(
-        ["git", *arguments],
-        cwd=root,
-        check=True,
-        capture_output=True,
-        text=True,
-        timeout=10,
-    )
-    return result.stdout.strip()
-
-
-@pytest.fixture(scope="module")
+@pytest.fixture
 def staged_repository(
-    tmp_path_factory: pytest.TempPathFactory,
+    tmp_path: Path,
 ) -> tuple[str, str, str, str]:
-    """Build real staged Git evidence outside the measured test call."""
-    root = tmp_path_factory.mktemp("code-review-evidence")
-    _git(root, "init", "-q")
+    """Supply distinct index observations around an unstaged worktree edit."""
+    root = tmp_path
+    declare_repository(root)
     tracked = root / "tracked.txt"
     tracked.write_text("staged\n", encoding="utf-8")
-    _git(root, "add", "tracked.txt")
+    declare_index(root, "tracked.txt")
     captured = evidence.capture_index_tree(root)
-    expected = _git(root, "write-tree")
+    expected = EVIDENCE[root.resolve()].tree()
     tracked.write_text("unstaged\n", encoding="utf-8")
     after_unstaged = evidence.capture_index_tree(root)
-    _git(root, "add", "tracked.txt")
+    declare_index(root, "tracked.txt")
     after_staged = evidence.capture_index_tree(root)
     return captured, expected, after_unstaged, after_staged
 
@@ -111,11 +104,12 @@ def test_recorded_blobs_attribute_reviewer_changes_and_protect_writer_deletions(
     tmp_path: Path,
 ) -> None:
     """Blob baselines distinguish edits, creations, and writer deletions."""
-    _git(tmp_path, "init", "-q")
+    declare_repository(tmp_path)
     tracked = tmp_path / "tracked.txt"
     tracked.write_text("writer baseline\n", encoding="utf-8")
-    _git(tmp_path, "add", "tracked.txt")
+    declare_index(tmp_path, "tracked.txt")
 
+    declare_blob(tmp_path, "tracked.txt")
     baseline = evidence.record_pre_repair_blob(tmp_path, "tracked.txt")
     tracked.write_text("reviewer repair\n", encoding="utf-8")
     repair = evidence.attribute_reviewer_patch(tmp_path, baseline)
@@ -141,11 +135,11 @@ def test_umbrella_digest_and_validation_state_classify_command_artifacts(
     tmp_path: Path,
 ) -> None:
     """Ignored output is accepted while tracked-file mutation is reported."""
-    _git(tmp_path, "init", "-q")
+    declare_repository(tmp_path)
     (tmp_path / ".gitignore").write_text(".cache/\n", encoding="utf-8")
     tracked = tmp_path / "tracked.txt"
     tracked.write_text("before\n", encoding="utf-8")
-    _git(tmp_path, "add", ".gitignore", "tracked.txt")
+    declare_index(tmp_path, ".gitignore", "tracked.txt")
 
     umbrella = evidence.capture_umbrella_digest(tracked)
     assert umbrella.applicable is True
@@ -156,6 +150,7 @@ def test_umbrella_digest_and_validation_state_classify_command_artifacts(
 
     tracked.write_text("before\n", encoding="utf-8")
     validation_paths = (".gitignore", "tracked.txt", ".cache/coverage.json")
+    EVIDENCE[tmp_path.resolve()].ignored_paths.add(".cache/coverage.json")
     before = evidence.capture_validation_state(tmp_path, validation_paths)
     cache = tmp_path / ".cache"
     cache.mkdir()
@@ -177,14 +172,14 @@ def test_validation_state_reads_only_explicit_literal_paths(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Snapshot cost and evidence stay bounded to the caller's ordered scope."""
-    _git(tmp_path, "init", "-q")
+    declare_repository(tmp_path)
     selected = tmp_path / "selected.txt"
     unrelated = tmp_path / "unrelated.txt"
     selected.write_text("selected\n", encoding="utf-8")
     unrelated.write_text("unrelated\n", encoding="utf-8")
     wildcard = tmp_path / "literal[1].txt"
     wildcard.write_text("literal\n", encoding="utf-8")
-    _git(tmp_path, "add", "selected.txt", "unrelated.txt", "literal[1].txt")
+    declare_index(tmp_path, "selected.txt", "unrelated.txt", "literal[1].txt")
     reads: list[Path] = []
     original_read_bytes = Path.read_bytes
 
@@ -212,12 +207,13 @@ def test_manifest_round_trip_uses_stable_identity_and_rejects_drift(
     tmp_path: Path,
 ) -> None:
     """Retained evidence round-trips at one identity-derived ignored path."""
-    _git(tmp_path, "init", "-q")
+    declare_repository(tmp_path)
     (tmp_path / ".gitignore").write_text("a.*\n", encoding="utf-8")
     tracked = tmp_path / "tracked.txt"
     tracked.write_text("baseline\n", encoding="utf-8")
-    _git(tmp_path, "add", ".gitignore", "tracked.txt")
+    declare_index(tmp_path, ".gitignore", "tracked.txt")
     tree = evidence.capture_index_tree(tmp_path)
+    declare_blob(tmp_path, "tracked.txt")
     recorded = evidence.record_pre_repair_blob(tmp_path, "tracked.txt")
     state = evidence.capture_validation_state(tmp_path, (".gitignore", "tracked.txt"))
     retained = evidence.CodeReviewEvidence(

@@ -3,14 +3,14 @@
 from __future__ import annotations
 
 import json
-import os
 from contextlib import chdir, redirect_stderr, redirect_stdout
 from io import StringIO
 from typing import TYPE_CHECKING
-from unittest.mock import patch
 
 import pytest
 
+from tests.code_review_repository_observations import declare_blob, declare_index
+from tests.scenario_environment import environment
 from tools import review_exchange_cli
 from tools.code_review_evidence import (
     CodeReviewEvidence,
@@ -29,7 +29,6 @@ from tools.review_exchange_models import (
 
 from .fixtures import (
     Effort,
-    git,
     make_effort,
     render_assessment,
     render_request,
@@ -37,6 +36,7 @@ from .fixtures import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from pathlib import Path
 
 
@@ -112,9 +112,10 @@ def stopped_repair_manifest(tmp_path: Path) -> None:
     """Retain an assessed repair tree and detect later drift outside call timing."""
     effort = make_effort(tmp_path / "stopped")
     baseline_tree = capture_index_tree(effort.root)
+    declare_blob(effort.root, "reviewed.py")
     baseline_blob = record_pre_repair_blob(effort.root, "reviewed.py")
     effort.source.write_text("VALUE = 2\nREVIEWED = True\n", encoding="utf-8")
-    git(effort.root, "add", "reviewed.py")
+    declare_index(effort.root, "reviewed.py")
     assessed_tree = capture_index_tree(effort.root)
     retained = CodeReviewEvidence(
         "code",
@@ -131,7 +132,7 @@ def stopped_repair_manifest(tmp_path: Path) -> None:
     restored = read_manifest(effort.root, retained.identity)
     extra = effort.root / "later.py"
     extra.write_text("LATER = True\n", encoding="utf-8")
-    git(effort.root, "add", "later.py")
+    declare_index(effort.root, "later.py")
     assert manifest.is_file()
     assert restored == retained
     assert capture_index_tree(effort.root) != restored.assessed_index_tree
@@ -206,9 +207,10 @@ def _context_arguments(effort: Effort) -> list[str]:
 
 
 @pytest.fixture
-def exit_three_manifest_retirement(tmp_path: Path) -> None:
+def exit_three_manifest_retirement(tmp_path: Path, stable_review_inputs: Callable[[], None]) -> None:
     """Publish convergence through the CLI and retire retained evidence."""
     effort = make_effort(tmp_path / "exit-three")
+    stable_review_inputs()
     exchange, _request = start_request(effort)
     tree = capture_index_tree(effort.root)
     retained = CodeReviewEvidence(
@@ -234,7 +236,7 @@ def exit_three_manifest_retirement(tmp_path: Path) -> None:
         chdir(effort.root),
         redirect_stdout(stdout),
         redirect_stderr(stderr),
-        patch.dict(os.environ, {"PRJ_DIR": str(effort.root)}),
+        environment({"PRJ_DIR": str(effort.root)}),
     ):
         code = review_exchange_cli.main(
             [

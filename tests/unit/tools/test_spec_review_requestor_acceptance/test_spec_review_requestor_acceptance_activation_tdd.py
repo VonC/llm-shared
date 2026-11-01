@@ -3,6 +3,9 @@
 Step 4 keeps opt-in routing and the four registered specification identities
 separate from repeated-round lifecycle coverage. Real Git journeys run in
 fixtures so call-phase timing measures assertions rather than subprocesses.
+Opt-in hold, instruction ordering and live routing are independent cases: the
+routing decisions read state without changing it, so one journey no longer
+charges all of them to a single lifecycle.
 """
 
 from __future__ import annotations
@@ -32,8 +35,8 @@ _IDENTITY_CASES = (
 
 
 @pytest.fixture
-def activation_journey(tmp_path: Path) -> None:
-    """Run opt-in, hold, activation, and live routing outside call timing."""
+def held_routing_journey(tmp_path: Path) -> None:
+    """Refuse routing without the marker, then without an open question."""
     root = tmp_path / "activation"
     _init_repo(root, marker=False)
     effort = _effort(root, "feature-request", "activation")
@@ -60,7 +63,18 @@ def activation_journey(tmp_path: Path) -> None:
         "spec-review-requestor",
         {"CODEX_THREAD_ID": "acceptance"},
     )
+    assert (no_question, coordination.exists()) == (None, False)
 
+
+def test_routing_holds_without_marker_or_open_questions(
+    held_routing_journey: None,
+) -> None:
+    """Opt-in and no-question states route nowhere and start no exchange."""
+    assert held_routing_journey is None
+
+
+def test_requestor_instruction_holds_before_marker_and_routing() -> None:
+    """The delegation block stops first, then checks the marker, then routes."""
     instruction = (Path("instructions") / "review-ask-questions.md").read_text(
         encoding="utf-8",
     )
@@ -70,17 +84,16 @@ def activation_journey(tmp_path: Path) -> None:
     marker_before_pw = block.index("`a.review-mode`") < block.index(
         "pw skill spec-review-requestor",
     )
-    assert (no_question, hold_before_marker, marker_before_pw, coordination.exists()) == (
-        None,
-        True,
-        True,
-        False,
-    )
+    assert (hold_before_marker, marker_before_pw) == (True, True)
 
-    effort.document.write_text(
-        "# activation\n\n## Open questions for activation\n\n1. Question?\n",
-        encoding="utf-8",
-    )
+
+@pytest.fixture
+def live_routing_journey(tmp_path: Path) -> None:
+    """Route, activate and start one opted-in effort with an open question."""
+    root = tmp_path / "activation"
+    _init_repo(root)
+    # The declared effort document already carries its open question.
+    effort = _effort(root, "feature-request", "activation")
     forced = workflow_skill.forced_command(
         root,
         effort.topic,
@@ -103,11 +116,11 @@ def activation_journey(tmp_path: Path) -> None:
     assert (forced, activated.code, started.code, resumed) == (expected, 0, 0, expected)
 
 
-def test_activation_holds_and_public_pw_routing_are_composed(
-    activation_journey: None,
+def test_live_routing_activates_and_resumes_the_requestor(
+    live_routing_journey: None,
 ) -> None:
-    """Opt-in, no-question, hold, activation, and live routing stay coherent."""
-    assert activation_journey is None
+    """An opted-in effort with an open question routes, starts and resumes."""
+    assert live_routing_journey is None
 
 
 @pytest.fixture(params=_IDENTITY_CASES, ids=lambda case: case[0])

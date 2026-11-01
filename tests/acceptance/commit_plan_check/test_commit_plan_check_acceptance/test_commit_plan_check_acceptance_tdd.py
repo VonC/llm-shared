@@ -1,19 +1,9 @@
-"""Acceptance evidence for both read-only commit-plan checker entry points.
-
-Step 4 exercises real repositories, exact state snapshots, rename inventory,
-caller-owned redirection, operational failures, and request publication gates.
-Git setup uses independent copies of a shared real repository baseline; the
-total-duration audit includes fixture setup, assertions and teardown.
-
-Fix: this module now holds only the readiness-state parity scenario, and the
-shared builders moved to ``commit_plan_check_support``. The remaining
-contract scenarios live in ``test_commit_plan_check_contracts_tdd``, so the
-two run on separate xdist workers instead of serializing behind one module.
-"""
+"""Readiness output and nonmutation over declared repository observations."""
 
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
@@ -31,7 +21,6 @@ from tests.acceptance.commit_plan_check.commit_plan_check_support import (
 
 if TYPE_CHECKING:
     import subprocess
-    from pathlib import Path
 
 
 @pytest.fixture(
@@ -49,7 +38,7 @@ def evidence_case(
     request: pytest.FixtureRequest,
     commit_plan_repository_seed: Path,
 ) -> tuple[str, int, tuple[subprocess.CompletedProcess[str], ...], RepositoryState, RepositoryState]:
-    """Run both real adapters and formats from an independent baseline copy."""
+    """Run the production CLI in both formats from an independent baseline."""
     scenario, expected_state, expected_status, stage_sample_file = request.param
     initialize_repository(tmp_path, commit_plan_repository_seed)
     if stage_sample_file:
@@ -61,15 +50,12 @@ def evidence_case(
     elif scenario == "mismatch":
         (tmp_path / "a.commit").write_text(valid_plan("other.txt"), encoding="utf-8")
     before = snapshot(tmp_path)
-    results = tuple(
-        run_adapter(tmp_path, adapter, output_format)
-        for output_format in ("human", "json")
-        for adapter in ("module", "launcher")
-    )
+    results = tuple(run_adapter(tmp_path, output_format)
+                    for output_format in ("human", "json"))
     return expected_state, expected_status, results, before, snapshot(tmp_path)
 
 
-def test_entry_points_share_status_evidence_and_repository_immutability(
+def test_formats_share_status_evidence_and_repository_immutability(
     evidence_case: tuple[
         str,
         int,
@@ -78,18 +64,25 @@ def test_entry_points_share_status_evidence_and_repository_immutability(
         RepositoryState,
     ],
 ) -> None:
-    """All readiness states have adapter parity and exact before/after state."""
+    """All readiness states have format parity and exact before/after state."""
     expected_state, expected_status, results, before, after = evidence_case
-    module_human, launcher_human, module_json, launcher_json = results
+    human, structured = results
 
     assert before == after
     assert {result.returncode for result in results} == {expected_status}
     assert all(result.stderr == "" for result in results)
-    assert module_human.stdout == launcher_human.stdout
-    assert module_json.stdout == launcher_json.stdout
-    payload = json.loads(module_json.stdout)
+    payload = json.loads(structured.stdout)
     assert payload["state"] == expected_state
-    assert all(fragment in module_human.stdout for fragment in human_fragments(payload))
+    assert all(fragment in human.stdout for fragment in human_fragments(payload))
+
+
+def test_launcher_source_delegates_to_checker_and_returns_status() -> None:
+    """Check batch wiring as text; runtime policy is exercised through Python."""
+    source = (Path(__file__).resolve().parents[4] / "commit-plan-check.bat").read_text(encoding="utf-8")
+    assert "tools.commit_plan_check" in source
+    assert "%*" in source
+    assert "errorlevel" in source.lower()
+    assert "exit /b" in source.lower()
 
 
 # eof

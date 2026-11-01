@@ -9,13 +9,17 @@ follows the new default, ``ghog day --full=speed``.
 
 from __future__ import annotations
 
-import importlib
-import inspect
+import ast
 from dataclasses import replace
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 import pytest
 
+from tests.code_review_repository_observations import (
+    EVIDENCE,
+    declare_blob,
+    declare_index,
+)
 from tools import code_review_request
 from tools.code_review_evidence import (
     attribute_reviewer_patch,
@@ -39,7 +43,6 @@ from tools.review_exchange_models_envelope import parse_envelope_markdown
 
 from .fixtures import (
     core,
-    git,
     make_effort,
     publish_rendered_request,
     ready_commit_plan_result,
@@ -49,9 +52,6 @@ from .fixtures import (
     staged_paths,
     start_request,
 )
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 _REQUIREMENT_CASES = (
     (
@@ -92,7 +92,7 @@ _REQUIREMENT_CASES = (
     (
         "AC08",
         "test_code_reviewer_launcher_smoke_tdd",
-        "test_each_code_review_launcher_reaches_its_public_entry_point",
+        "test_public_entry_point_help_and_launcher_source",
     ),
 )
 
@@ -194,7 +194,7 @@ def drift_rejection(tmp_path: Path) -> None:
     request_tree = capture_index_tree(effort.root)
     extra = effort.root / "drift.py"
     extra.write_text("DRIFT = True\n", encoding="utf-8")
-    git(effort.root, "add", "drift.py")
+    declare_index(effort.root, "drift.py")
     live_tree = capture_index_tree(effort.root)
     assert request_tree != live_tree
     answer = render_early_rejection(
@@ -219,10 +219,11 @@ def small_repair_journey(tmp_path: Path) -> None:
     """Attribute, stage, and publish one bounded repair outside call timing."""
     effort = make_effort(tmp_path / "repair")
     exchange, _request = start_request(effort)
+    declare_blob(effort.root, "reviewed.py")
     baseline = record_pre_repair_blob(effort.root, "reviewed.py")
     effort.source.write_text("VALUE = 2\nREVIEWED = True\n", encoding="utf-8")
     attribution = attribute_reviewer_patch(effort.root, baseline)
-    git(effort.root, "add", "reviewed.py")
+    declare_index(effort.root, "reviewed.py")
     answer = render_assessment(
         effort,
         ReviewDisposition.CHANGES_REQUESTED,
@@ -249,8 +250,10 @@ def test_small_named_repair_stages_only_reviewer_delta_and_requests_changes(
 def overlap_refusal(tmp_path: Path) -> None:
     """Leave a writer-overlapped repair unstaged outside call timing."""
     effort = make_effort(tmp_path / "overlap")
-    git(effort.root, "restore", "--staged", "reviewed.py")
+    facts = EVIDENCE[effort.root.resolve()]
+    facts.index["reviewed.py"] = facts.baseline["reviewed.py"]
     effort.source.write_text("VALUE = 3  # writer work\n", encoding="utf-8")
+    declare_blob(effort.root, "reviewed.py")
     baseline = record_pre_repair_blob(effort.root, "reviewed.py")
     effort.source.write_text("VALUE = 3  # writer work\nREVIEWED = True\n", encoding="utf-8")
     attribution = attribute_reviewer_patch(effort.root, baseline)
@@ -271,6 +274,7 @@ def validation_row_repair(tmp_path: Path) -> None:
     """Stage one attributable validation-row update outside call timing."""
     effort = make_effort(tmp_path / "validation-row")
     relative = effort.validation.relative_to(effort.root).as_posix()
+    declare_blob(effort.root, relative)
     baseline = record_pre_repair_blob(effort.root, relative)
     effort.validation.write_text(
         "# Validation\n\n### Analysis of Step 6 implementation state\n\n"
@@ -278,7 +282,7 @@ def validation_row_repair(tmp_path: Path) -> None:
         encoding="utf-8",
     )
     attribution = attribute_reviewer_patch(effort.root, baseline)
-    git(effort.root, "add", relative)
+    declare_index(effort.root, relative)
     assert attribution.attributable
     assert effort.validation.relative_to(effort.root).as_posix() in staged_paths(effort.root)
 
@@ -358,10 +362,10 @@ def test_requirement_acceptance_criteria_have_executable_case_coverage(
     test_name: str,
 ) -> None:
     """Requirement AC01-AC08 resolve to collected Step 6 journey tests."""
-    module = importlib.import_module(f"{__package__}.{module_name}")
-    journey = getattr(module, test_name)
-    docstring = inspect.getdoc(journey)
-
-    assert callable(journey)
+    source = Path(__file__).with_name(f"{module_name}.py").read_text(encoding="utf-8")
+    functions = {node.name: node for node in ast.parse(source).body if isinstance(node, ast.FunctionDef)}
+    assert test_name.startswith("test_")
+    assert test_name in functions
+    docstring = ast.get_docstring(functions[test_name])
     assert docstring is not None
     assert f"Requirement {criterion}:" in docstring

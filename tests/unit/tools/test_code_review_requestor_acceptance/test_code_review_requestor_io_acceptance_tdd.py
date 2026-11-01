@@ -13,13 +13,13 @@ follows the new default, ``ghog day --full=speed``.
 
 from __future__ import annotations
 
-import subprocess
 from dataclasses import replace
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
 import pytest
 
+from tests.code_review_repository_observations import declare_index, declare_repository
 from tools import code_review_request as request_renderer
 from tools import prompt_workflow_code_review as code_review
 from tools.code_review_validation import resolve_code_review_validation
@@ -46,22 +46,10 @@ _FATAL = 2
 _REQUEST_INDEX_TREE = "a" * 40
 
 
-def _git(root: Path, *arguments: str) -> None:
-    """Run one bounded Git command for repository-boundary acceptance."""
-    subprocess.run(
-        ["git", *arguments],
-        cwd=root,
-        check=True,
-        capture_output=True,
-        text=True,
-        timeout=10,
-    )
-
-
 def _inputs(root: Path) -> tuple[Topic, WorkflowState, MemoryRecord]:
     """Create one exact opted-in plan context for routing failures."""
     root.mkdir()
-    _git(root, "init", "-q")
+    declare_repository(root)
     (root / ".gitignore").write_text("a.*\n", encoding="utf-8")
     (root / "a.review-mode").write_text("", encoding="utf-8")
     docs = root / "docs" / "v1.2.3"
@@ -182,7 +170,7 @@ def tracked_scratch_result(tmp_path: Path) -> tuple[int, bool, bool]:
         path = home / f"a.{name}.md"
         path.write_text(f"{name}.\n", encoding="utf-8")
         authored.append(path)
-    _git(root, "add", "-f", ".reviews/a.assessment.md")
+    declare_index(root, ".reviews/a.assessment.md")
     request_output = home / "a.request.md"
     summary_output = home / "a.summary.md"
     code = request_renderer.main(
@@ -232,7 +220,7 @@ def bounded_route_inputs(
     topic, state, record = _inputs(root)
     unrelated = root / "unrelated.txt"
     unrelated.write_text("staged but not review identity\n", encoding="utf-8")
-    _git(root, "add", "unrelated.txt")
+    declare_index(root, "unrelated.txt")
     return root, topic, state, record, unrelated
 
 

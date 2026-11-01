@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 import pytest
 
@@ -19,6 +19,9 @@ from .fixtures import (
     publish_request,
     render_answer,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 _IDENTITIES = (
     ("feature-request", "feature-request"),
@@ -83,8 +86,10 @@ def test_every_specification_type_routes_to_reviewer_with_exact_identity(
 def answer_publication_journey(
     tmp_path: Path,
     request: pytest.FixtureRequest,
+    stable_review_inputs: Callable[[], None],
 ) -> None:
-    """Run paired answer publication outside the measured call phase."""
+    """Measure paired publication with fixed paths and artifact configuration."""
+    del stable_review_inputs  # Activation may still change review-mode configuration.
     disposition = cast("ReviewDisposition", request.param)
     effort = make_effort(tmp_path / disposition.value, "plan", disposition.value)
     assert publish_request(effort).code == 0
