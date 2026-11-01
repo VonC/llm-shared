@@ -185,24 +185,19 @@ myproject: == ghog affected --no-cov == ended | 2026-06-12T21:02:41+02:00 | dura
 Inside `ghog day`, each step is also framed by its own `started` and `ended`
 headers, so every stage of `a.ghog.log` closes on a timestamp.
 
-## 🚦 Machine run slot
+## 🚦 No machine-wide queue
 
-Every child groundhog streams, `check.bat` or pytest, runs inside one
-per-user slot: a lock on `ghog.slot.lock` in `%USERPROFILE%\.llm-shared`
-(`$HOME/.llm-shared` where `USERPROFILE` is unset). A stage of another
-checkout or project waits for it, printing once who holds the slot, then
-how long it waited:
+Groundhog never makes a run wait for a run of another checkout or project:
+there is no machine-wide slot, lock or queue, and each stage starts at once.
+A former per-user run slot let one slow suite block every other checkout for
+hours, inside their own time budgets, so it was removed. Each run bounds its
+own load instead, through the worker bound and the below-normal priority
+described above.
 
-```txt
-ghog: waiting for the machine run slot held by C:\src\other: pytest.exe (pid 4242, since 2026-06-12T21:02:41+02:00)
-ghog: machine run slot taken after 192.0s of waiting
-```
-
-So two agents never run two suites at once: the CPUs are not saturated, and
-each duration gate measures its own calls. The operating system releases the
-lock with its process, so a killed run never leaves the slot taken. The
-holder's children inherit `GHOG_SLOT_HELD` and pass through, as does a test
-session that sets it.
+A run that keeps the machine busy far beyond its suite's usual duration is a
+defect, not a queue to wait behind. Stop its process tree from the `pid` that
+`ghog status` reports for it (`taskkill /T /F /PID <pid>` on Windows,
+`kill <pid>` elsewhere), then shorten the slow tests before running it again.
 
 ## 🖥️ Output modes
 
