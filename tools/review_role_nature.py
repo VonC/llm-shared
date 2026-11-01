@@ -16,7 +16,10 @@ from typing import TYPE_CHECKING
 
 from tools.llm_nature import LlmNature
 from tools.review_exchange_models import ReviewExchangeError, ReviewRole
-from tools.review_exchange_transcript_identity import render_nature_completion_entry
+from tools.review_exchange_transcript_identity import (
+    render_nature_completion_entry,
+    render_nature_override_entry,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping, Sequence
@@ -88,6 +91,20 @@ class RoleNatureSnapshot:
         if role is ReviewRole.REQUESTOR:
             return replace(self, requestor=chosen)
         return replace(self, reviewer=chosen)
+
+    def replace_role(self, role: ReviewRole, nature: LlmNature) -> RoleNatureSnapshot:
+        """Replace one role's known nature after a human-approved Override.
+
+        Unlike :meth:`record`, this rewrites conflicting evidence. Only an
+        explicit Override claim calls it, and it records the replacement in the
+        transcript, so the earlier nature stays visible.
+        """
+        if nature is LlmNature.UNKNOWN:
+            raise ReviewExchangeError("an Override replacement needs a known LLM nature")
+        self.for_role(role)
+        if role is ReviewRole.REQUESTOR:
+            return replace(self, requestor=nature)
+        return replace(self, reviewer=nature)
 
     def merge(self, other: RoleNatureSnapshot) -> RoleNatureSnapshot:
         """Combine compatible evidence while retaining the strongest value."""
@@ -231,6 +248,36 @@ class RoleNatureBackfill:
             reconciliation,
             tuple(path for path, _content in rendered),
         )
+
+    def record_override(
+        self,
+        coordination: MutableRoleNatureArtifact,
+        context: RoleNatureBackfillContext,
+        previous: LlmNature,
+    ) -> RoleNatureSnapshot:
+        """Replace the role's nature in coordination and log it, as one file set.
+
+        The transcript entry is appended once: a repeated attempt finds its
+        marker. Earlier request and answer envelopes keep the replaced nature.
+        """
+        if not context.override:
+            raise ReviewExchangeError("an LLM nature replacement requires Override")
+        snapshot = coordination.snapshot.replace_role(context.role, context.current_nature)
+        content = coordination.render(snapshot)
+        coordination.validate(content)
+        rendered = [(coordination.evidence.path.resolve(), content)]
+        entry = render_nature_override_entry(
+            context.role,
+            context.exchange_occurrence,
+            previous,
+            context.current_nature,
+        )
+        transcript = context.transcript_path.resolve()
+        transcript_content = transcript.read_text(encoding="utf-8")
+        if f"<!-- review-entry-id: {entry.entry_id} -->" not in transcript_content:
+            rendered.append((transcript, transcript_content.rstrip("\n") + entry.markdown))
+        self._replace_all(rendered)
+        return snapshot
 
     @staticmethod
     def _require_conflict_authority(
