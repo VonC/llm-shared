@@ -21,8 +21,11 @@ returned `paths` and stop on exit `2`.
    only when the complete move is safe, then checks again before selecting a
    role. On a blocked or incomplete migration, follow the diagnostic.
 3. If the role or exchange is ambiguous, select the one to continue. A known
-   identity conflict presents `Override` or `Stop`: Override keeps conflicting
-   values and fills only missing identities; Stop leaves the evidence alone.
+   identity conflict presents `Override` or `Stop`. Override lets this session
+   take over the role from another LLM: the claim records the current LLM in
+   the coordination record, logs the replaced one in the transcript, and fills
+   missing identities, while earlier rounds keep the LLM they recorded. Stop
+   leaves the evidence alone.
 4. Once these gates pass, automatic pickup replaces a missing or stale session
    capability without waiting for the previous lease to expire. You do not
    supply a token, generation, or new-session declaration.
