@@ -302,6 +302,10 @@ identity resolution.
    complete conflict set with `Override` and `Stop` choices.
 9. Override preserves conflicting values, fills only missing current-role
    identities, and continues; Stop leaves all identity evidence unchanged.
+   Superseded on 2026-11-01 by `5d40f7b`: Override now lets the session take
+   over the role. The claim replaces that role's recorded nature in the
+   coordination record and logs the replaced one in the transcript; earlier
+   request and answer envelopes keep the nature they recorded.
 10. A counterpart-role artifact without LLM nature remains readable and
     unchanged.
 11. Missing trace nature with no role argument prompts for requestor or
