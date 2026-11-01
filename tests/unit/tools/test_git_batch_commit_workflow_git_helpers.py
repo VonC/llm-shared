@@ -13,6 +13,9 @@ staged rename as its two paths, matching a plan that adds both sides.
 Fix: Cover the non-interactive commit path. A non-interactive `git_commit` must
 run without a console and detach stdin, while an interactive one without a
 console must fail fast instead of hanging.
+
+The count-mismatch case uses a path value because its staged-count stub does
+not access the filesystem, avoiding unrelated temporary-directory setup.
 """
 
 from __future__ import annotations
@@ -20,6 +23,7 @@ from __future__ import annotations
 import os
 import subprocess
 import sys
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
@@ -32,7 +36,6 @@ from tools import git_batch_commit_models as git_batch_models
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-    from pathlib import Path
 
 
 def _completed_process(
@@ -428,7 +431,6 @@ def test_validate_staged_count_matches_git_adds_passes_when_counts_match(
 
 def test_validate_staged_count_matches_git_adds_raises_on_mismatch(
     monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
 ) -> None:
     """Validation should fail when staged files outnumber the plan's git add commands."""
     blocks = [_valid_block("src/one.py")]
@@ -438,7 +440,7 @@ def test_validate_staged_count_matches_git_adds_raises_on_mismatch(
         git_batch_models.GitBatchCommitError,
         match=r"2 file\(s\) are staged",
     ):
-        git_batch_git._validate_staged_count_matches_git_adds(blocks, tmp_path)
+        git_batch_git._validate_staged_count_matches_git_adds(blocks, Path("unused-root"))
 
 
 def test_git_reset_runs_plain_git_reset(

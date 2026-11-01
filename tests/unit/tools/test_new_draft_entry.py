@@ -8,12 +8,12 @@ workflow module are monkeypatched so the run completes without a TTY.
 
 from __future__ import annotations
 
-import runpy
 import sys
 from pathlib import Path
 
 import pytest
 
+from tests.script_entry import run_main
 from tools import new_draft as new_draft_script
 from tools import new_draft_models as models
 from tools import new_draft_workflow as workflow
@@ -73,7 +73,7 @@ def test_script_runs_as_main_and_exits_zero(
 
     try:
         with pytest.raises(SystemExit) as excinfo:
-            runpy.run_path(str(script_path), run_name="__main__")
+            run_main(str(script_path))
 
         assert excinfo.value.code == _EXIT_OK
         assert expected_root in sys.path

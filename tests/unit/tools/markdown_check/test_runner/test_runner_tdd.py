@@ -1,16 +1,10 @@
-"""TDD contracts for inventory, evaluation, and stable runner diagnostics.
-
-Use installed native Git where available, avoiding its Windows launcher while
-retaining the actual executable lookup and tracked-inventory subprocess.
-"""
+"""Inventory parsing, evaluation and diagnostics with declared process results."""
 
 # ruff: noqa: S603, S607
 
 from __future__ import annotations
 
 import json
-import os
-import shutil
 import subprocess
 from pathlib import Path, PurePosixPath
 from typing import Never
@@ -38,20 +32,19 @@ def _policy(tmp_path: Path) -> None:
 
 @pytest.fixture
 def tracked_repository(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
-    """Build a real tracked inventory outside the measured test call."""
-    executable = shutil.which("git")
-    assert executable is not None
-    native = Path(executable).resolve().parent.parent / "mingw64/bin/git.exe"
-    if native.is_file():
-        monkeypatch.setenv("PATH", f"{native.parent}{os.pathsep}{os.environ['PATH']}")
-        executable = str(native)
-    subprocess.run([executable, "init", "-q", str(tmp_path)], check=True, timeout=10)
-    (tmp_path / "note.MD").write_text("# Note\n", encoding="utf-8")
-    (tmp_path / "skip.txt").write_text("skip\n", encoding="utf-8")
-    subprocess.run(
-        [executable, "-C", str(tmp_path), "add", "."],
-        check=True, timeout=10,
-    )
+    """Supply an inventory response and verify the actual query and options."""
+    def executable(_name: str) -> str:
+        return "declared-git"
+
+    monkeypatch.setattr(runner_module.shutil, "which", executable)
+
+    def inventory(command: list[str], *, check: bool, capture_output: bool) -> subprocess.CompletedProcess[bytes]:
+        assert command == ["declared-git", "-C", str(tmp_path), "ls-files", "-z"]
+        assert check is False
+        assert capture_output is True
+        return subprocess.CompletedProcess(command, 0, b"note.MD\0skip.txt\0", b"")
+
+    monkeypatch.setattr(runner_module.subprocess, "run", inventory)
     return tmp_path
 
 

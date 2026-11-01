@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 _ROOT = Path(__file__).resolve().parents[4]
 _INSTRUCTIONS = _ROOT / "instructions"
 
@@ -13,7 +15,8 @@ def _instruction(name: str) -> str:
     return (_INSTRUCTIONS / name).read_text(encoding="utf-8")
 
 
-def test_instructions_do_not_execute_shared_utilities_through_stale_locations() -> None:
+@pytest.mark.parametrize("path", sorted(_INSTRUCTIONS.glob("*.md")), ids=lambda path: path.name)
+def test_instructions_do_not_execute_shared_utilities_through_stale_locations(path: Path) -> None:
     """Executable examples never depend on caller layout or inherited variables."""
     bad_invocations = (
         'cmd /d /v:on /c "..\\llm-shared\\bin\\',
@@ -23,14 +26,10 @@ def test_instructions_do_not_execute_shared_utilities_through_stale_locations() 
         'bash -c "%LLM_SHARED_DIR_UNIX%/',
     )
 
-    offenders = {
-        path.name: tuple(token for token in bad_invocations if token in content)
-        for path in _INSTRUCTIONS.glob("*.md")
-        if (content := path.read_text(encoding="utf-8"))
-        and any(token in content for token in bad_invocations)
-    }
+    content = path.read_text(encoding="utf-8")
+    offenders = tuple(token for token in bad_invocations if token in content)
 
-    assert not offenders, f"stale shared utility invocations: {offenders!r}"
+    assert not offenders, f"stale shared utility invocations in {path.name}: {offenders!r}"
 
 
 def test_review_commands_use_resolved_full_paths_without_senv() -> None:

@@ -3,6 +3,8 @@
 Both facade entry points preserve ordered local matches and missing draft paths.
 Selection keeps local timestamp ties, rejects competing fallback documents, and
 uses one discovery inventory without matching fallback files after local success.
+The slow three-candidate validation case supplies its directory inventory at
+the lookup boundary; separate layout tests exercise directory discovery.
 """
 
 from __future__ import annotations
@@ -78,7 +80,7 @@ def test_local_matches_keep_order_ties_and_newest_policy(
 
 @pytest.mark.parametrize("count", [0, 1, 2, 3])
 def test_fallback_cardinality_and_stable_diagnostics(
-    tmp_path: Path, role_case: tuple[str, str, str], count: int,
+    tmp_path: Path, role_case: tuple[str, str, str], count: int, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Fallback lists all candidates but selection requires exactly one match."""
     role, kind, suffix = role_case
@@ -90,6 +92,13 @@ def test_fallback_cardinality_and_stable_diagnostics(
     ]
     _document(topic.draft_path.parent, f"{kind}.v1.2.4.my-effort{suffix}")
     _document(topic.draft_path.parent, f"{kind}.v1.2.3.other{suffix}")
+    if role == "validation_plan" and count == len(directories):
+        inventory = sorted([*directories, topic.draft_path.parent])
+
+        def directory_inventory(_root: Path) -> list[Path]:
+            return inventory
+
+        monkeypatch.setattr(lookup, "docs_dirs", directory_inventory)
 
     assert not topic.draft_path.exists()
     assert docs.find_matching_documents(tmp_path, topic, role) == expected

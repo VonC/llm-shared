@@ -10,6 +10,8 @@ home, never at the project root, and both question skills keep their
 
 from __future__ import annotations
 
+import pytest
+
 from tools import prompt_workflow_steps as steps
 
 _INSTRUCTIONS = steps.llm_shared_dir() / "instructions"
@@ -107,30 +109,20 @@ def test_wiki_covers_shared_menu_less_umbrella_resolution() -> None:
         assert "temporary" in path.read_text(encoding="utf-8")
 
 
-def test_wiki_covers_document_layouts_and_stateless_lookup() -> None:
+@pytest.mark.parametrize(("page", "required"), [
+    ("explanation/where-the-human-stays-in-the-loop.md", ("five menus", "documentation-layout choice")),
+    ("tutorials/02-from-draft-to-settled-requirement.md", ("docs/", "docs/vX.Y/", "docs/vX.Y.Z/", "docs/vX.Y/vX.Y.Z/")),
+    ("how-to/run-pw-from-any-shell.md", ("pw document <version> <slug> <type>", "without knowing its folder")),
+    ("reference/artifact-files.md", ("docs/", "docs/vX.Y/", "docs/vX.Y.Z/", "docs/vX.Y/vX.Y.Z/",
+                                     "version, slug, and document type",
+                                     "same selector exists in more than one supported layout")),
+])
+def test_wiki_covers_document_layouts_and_stateless_lookup(page: str, required: tuple[str, ...]) -> None:
     """Every Diataxis purpose covers its part of document organization."""
     root = steps.llm_shared_dir() / "wiki"
-    explanation = (
-        root / "explanation" / "where-the-human-stays-in-the-loop.md"
-    ).read_text(encoding="utf-8")
-    tutorial = (
-        root / "tutorials" / "02-from-draft-to-settled-requirement.md"
-    ).read_text(encoding="utf-8")
-    how_to = (root / "how-to" / "run-pw-from-any-shell.md").read_text(
-        encoding="utf-8",
-    )
-    reference = (root / "reference" / "artifact-files.md").read_text(
-        encoding="utf-8",
-    )
-    assert "five menus" in explanation
-    assert "documentation-layout choice" in explanation
-    for layout in ("docs/", "docs/vX.Y/", "docs/vX.Y.Z/", "docs/vX.Y/vX.Y.Z/"):
-        assert layout in tutorial
-        assert layout in reference
-    assert "pw document <version> <slug> <type>" in how_to
-    assert "without knowing its folder" in how_to
-    assert "version, slug, and document type" in reference
-    assert "same selector exists in more than one supported layout" in reference
+    content = (root / page).read_text(encoding="utf-8")
+    for token in required:
+        assert token in content
 
 
 def test_oqm_wrapper_clears_the_project_senv_guard() -> None:

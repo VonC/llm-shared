@@ -23,12 +23,12 @@ from ``wrap_commit_test_support`` so pyright strict accepts the
 from __future__ import annotations
 
 import logging
-import runpy
 import sys
 from typing import TYPE_CHECKING
 
 import pytest
 
+from tests.script_entry import run_main
 from tests.unit.tools.wrap_commit_test_support import (
     fixed_project_root,
     fixed_wrap_list_literals,
@@ -557,7 +557,7 @@ class TestScriptExecution:
         monkeypatch.setattr(sys, "argv", ["wrap_commit.py"])
 
         with pytest.raises(SystemExit) as excinfo:
-            runpy.run_path(wrap_commit.__file__, run_name="__main__")
+            run_main(wrap_commit.__file__)
 
         assert excinfo.value.code == 0
 
@@ -573,7 +573,7 @@ class TestScriptExecution:
         caplog.set_level(logging.ERROR)
 
         with pytest.raises(SystemExit) as excinfo:
-            runpy.run_path(wrap_commit.__file__, run_name="__main__")
+            run_main(wrap_commit.__file__)
 
         assert excinfo.value.code == _EXIT_FATAL
 

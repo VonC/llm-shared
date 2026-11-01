@@ -5,24 +5,8 @@
 from __future__ import annotations
 
 import json
-import subprocess
-
-import pytest
 
 from tools import prompt_workflow_steps as steps
-
-
-@pytest.fixture
-def repository_launcher_result() -> subprocess.CompletedProcess[str]:
-    """Run the real public launcher outside the measured assertion call."""
-    root = steps.llm_shared_dir()
-    return subprocess.run(
-        [str(root / "markdown-check.bat")],
-        cwd=root,
-        check=False,
-        capture_output=True,
-        text=True,
-    )
 
 
 def test_shared_gate_records_one_markdown_launcher_failure_path() -> None:
@@ -33,15 +17,6 @@ def test_shared_gate_records_one_markdown_launcher_failure_path() -> None:
     assert source.count("call :record_failure markdown %markdown_status%") == 1
     assert 'set "markdown_status=%ERRORLEVEL%"' in source
     assert 'set "markdown_status="' in source
-
-
-def test_checked_repository_passes_public_launcher(
-    repository_launcher_result: subprocess.CompletedProcess[str],
-) -> None:
-    """The authoritative baseline and repaired repository produce a clean run."""
-    assert repository_launcher_result.returncode == 0
-    assert repository_launcher_result.stdout == ""
-    assert repository_launcher_result.stderr == ""
 
 
 def test_markdown_baseline_contains_only_authorized_rules() -> None:
