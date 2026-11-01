@@ -28,7 +28,12 @@ def review_status(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
         outcome=subject.ReviewStatusOutcome.TRUSTWORTHY, exchanges=(),
     )
     monkeypatch.setattr(subject, "ExchangeStatus", FakeEntry)
-    monkeypatch.setattr(subject, "collect_review_status", lambda *_: status)
+
+    def collect(*_arguments: object) -> SimpleNamespace:
+        """Return the injected status for any root and clock."""
+        return status
+
+    monkeypatch.setattr(subject, "collect_review_status", collect)
     return status
 
 
