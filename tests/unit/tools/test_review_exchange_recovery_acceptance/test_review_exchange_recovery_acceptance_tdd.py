@@ -1,18 +1,18 @@
 """Recovery acceptance coverage across fresh review-exchange sessions.
 
 Step 5 injects failures only at documented durable boundaries, then constructs
-fresh public core instances over the same real files. Core recovery does not
+fresh public core instances over the same simulated files. Core recovery does not
 invoke Git, so its harness writes the opt-in and ignore fixtures directly. The
 tests prove that
 requests, answers, torn transcript suffixes, escalations, consumed answers,
 and owning authorization repair without evidence loss or duplicate entries.
-The activation journey captures its real non-repository Git result in fixture
-setup so process startup cannot make the measured assertion call an outlier.
-Abandoned-request setup likewise precedes measured reclaim and answer checks.
+The activation journey declares the non-repository Git observation. Fixture
+setup, recovery calls and cleanup all count toward the lifecycle budget.
 """
 
 from __future__ import annotations
 
+from subprocess import CompletedProcess
 from typing import TYPE_CHECKING
 
 import pytest
@@ -44,8 +44,8 @@ from tools.review_exchange_paths import (
 from tools.review_exchange_store import ReviewExchangeStore
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from pathlib import Path
-    from subprocess import CompletedProcess
 
     from tools.review_exchange_models import ArtifactPaths, ReviewContext
     from tools.review_exchange_models_coordination import CoordinationRecord
@@ -208,14 +208,14 @@ def stagnation_journey(
 def outside_git_activation(
     tmp_path: Path,
 ) -> tuple[Path, ArtifactPaths, CompletedProcess[str]]:
-    """Capture Git's real non-repository result outside the measured call."""
+    """Declare a non-repository result without invoking Git."""
     root = tmp_path / "outside-git"
     root.mkdir()
     context = _context(root, ReviewFamily.CODE, "outside-git", step="5")
     paths = derive_artifact_paths(root, context)
-    repository = paths_module._run_git(  # noqa: SLF001
+    repository = CompletedProcess(
         ["git", "rev-parse", "--is-inside-work-tree"],
-        cwd=root,
+        returncode=128, stdout="", stderr="fatal: not a git repository",
     )
     assert repository.returncode != 0
     return root, paths, repository
@@ -225,7 +225,7 @@ def test_activation_outside_git_fails_without_artifact_mutation(
     outside_git_activation: tuple[Path, ArtifactPaths, CompletedProcess[str]],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """A real non-repository cannot pass effective ignore activation."""
+    """A non-repository observation cannot pass effective ignore activation."""
     root, paths, repository = outside_git_activation
 
     def replay_repository_result(
@@ -507,8 +507,10 @@ def test_automated_stagnation_and_persistent_disagreement_stop(
 @pytest.fixture
 def isolated_wait_journey(
     tmp_path: Path,
+    stable_review_inputs: Callable[[], None],
 ) -> None:
-    """Run one isolated wait outside the measured assertion call."""
+    """Run one isolated wait with stable paths inside the measured lifecycle."""
+    del stable_review_inputs  # Durable protocol and wait state are never cached.
     root = tmp_path / "wait-isolation"
     root.mkdir(parents=True)
     (root / ".gitignore").write_text("a.*\n", encoding="utf-8")

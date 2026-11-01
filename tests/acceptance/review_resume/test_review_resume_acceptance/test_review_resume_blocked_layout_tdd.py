@@ -4,6 +4,10 @@ Fix: split out of ``test_review_resume_migration_tdd``. Its six layouts and
 the two migration journeys were the longest-running module of the suite, and
 ``--dist loadscope`` keeps a whole module on one worker, so they ran back to
 back. The scenarios and their assertions are unchanged.
+
+The healthy request and unsafe layout use the frozen repository observation
+double. Both in-process CLIs exercise production layout validation against
+those declared tracking and ignore observations.
 """
 
 # ruff: noqa: PLR2004
@@ -33,6 +37,7 @@ def blocked_layout(tmp_path_factory: pytest.TempPathFactory, request: pytest.Fix
     elif request.param == "journal":
         ReviewArtifactMigration(project_root=repo.root).journal_path.write_bytes(b"broken journal")
     elif request.param == "uncovered":
+        repo.facts.ignored = False
         (repo.home / ".gitignore").write_bytes(b"!a.*\n")
         (repo.root / ".gitignore").write_text("docs/**/review.*.md\n", encoding="utf-8")
     else:

@@ -35,6 +35,7 @@ from tools.review_exchange_models import (
     ReviewExchangeError,
     ReviewRole,
 )
+from tools.review_exchange_models_coordination import CoordinationRecord
 from tools.review_exchange_models_envelope import (
     Envelope,
     parse_envelope_markdown,
@@ -53,8 +54,6 @@ from tools.review_exchange_store import ReviewExchangeStore
 
 if TYPE_CHECKING:
     from pathlib import Path
-
-    from tools.review_exchange_models_coordination import CoordinationRecord
 
 
 def _new_core(store: ReviewExchangeStore, context: ReviewContext) -> ReviewExchangeCore:
@@ -431,8 +430,9 @@ def test_pure_classifier_defensive_states_fail_closed(tmp_path: Path) -> None:
 
 def test_pure_classifier_conflicting_shapes_fail_closed(tmp_path: Path) -> None:
     """Every unlisted artifact combination remains inconsistent."""
-    core, _, _, _ = _harness(tmp_path)
-    active = core.start()
+    active = CoordinationRecord(_context(tmp_path), FamilyPolicy("commit-ready", "Another round", "Commit"),
+                                CoordinationStatus.ACTIVE, Actor.REQUESTOR, Actor.REVIEWER, 1,
+                                "2026-08-05T09:00:00+02:00")
 
     assert classify_snapshot(
         _snapshot(answer_present=True, tombstone_present=True),

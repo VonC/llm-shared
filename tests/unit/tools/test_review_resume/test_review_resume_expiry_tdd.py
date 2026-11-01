@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from functools import cache
-from pathlib import Path
 from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
@@ -12,14 +10,19 @@ import pytest
 from tests.unit.tools.test_review_exchange_lifecycle import (
     test_review_exchange_lifecycle_tdd as lifecycle,
 )
+from tests.unit.tools.test_review_resume.prepared_phase import prepare_phase
+from tools import review_exchange_cli as launcher
 from tools import review_exchange_cli_resume as cli
-from tools.review_exchange_cli_parser import parser
-from tools.review_exchange_models import Actor, ArtifactState
+from tools.llm_nature import LlmNature
+from tools.review_exchange_models import Actor, ArtifactState, ReviewRole
 from tools.review_exchange_ownership import OwnershipCapability
 from tools.review_resume import can_resume_expired_leases
+from tools.review_resume_identity import claim_selected
 from tools.review_resume_wait import GlobalReviewerWait, GlobalWaitOutcome
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+    from pathlib import Path
     from typing import Any
 
 _NEXT_ROUND = 2
@@ -36,10 +39,10 @@ def _ignore_fixture_paths(*_paths: object) -> bool:
 
 
 @pytest.fixture
-def request_for_expiry(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> PreparedRequest:
+def expiry_harness(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, stable_review_inputs: Callable[[], None],
+) -> PreparedRequest:
     """Publish real artifacts with a deterministic host and a shared short lease."""
-    # Artifact bytes change, but these fixtures never rename or retarget paths.
-    monkeypatch.setattr(Path, "resolve", cache(Path.resolve))
     monkeypatch.delenv("CLAUDECODE", raising=False)
     monkeypatch.setenv("CODEX_THREAD_ID", "expiry-fixture")
     core, store, context, clock = lifecycle._harness(tmp_path)
@@ -48,18 +51,25 @@ def request_for_expiry(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Prepa
     (store.paths.coordination.parent / "a.review-mode").write_text(
         f"wait_timeout_seconds={core.configuration.wait_timeout_seconds}\n", encoding="utf-8",
     )
-    lifecycle._start_and_request(core, context, clock)
+    stable_review_inputs()
     monkeypatch.setattr(cli, "_wall_clock", clock.now)
     return core, store, context, clock
 
 
 @pytest.fixture
-def answered_for_expiry(request_for_expiry: PreparedRequest) -> PreparedRequest:
+def request_for_expiry(expiry_harness: PreparedRequest) -> PreparedRequest:
+    """Declare the request prerequisite without replaying publication."""
+    core, _store, context, clock = expiry_harness
+    prepare_phase(core, context, clock, "request")
+    return expiry_harness
+
+
+@pytest.fixture
+def answered_for_expiry(expiry_harness: PreparedRequest) -> PreparedRequest:
     """Prepare a real published answer before the measured persistent wait."""
-    core, _store, context, clock = request_for_expiry
-    core.reclaim()
-    core.publish_answer(lifecycle._answer(context, clock, 1), "Reviewer summary")
-    return request_for_expiry
+    core, _store, context, clock = expiry_harness
+    prepare_phase(core, context, clock, "answer")
+    return expiry_harness
 
 
 def test_running_wait_survives_answer_expiry_and_finds_next_round(
@@ -133,7 +143,7 @@ def _discover_expired_request(
         return notifications
 
     monkeypatch.setattr(cli, "WatchdogNotificationAdapter", notification_factory)
-    result = cli.execute_resume_operation(parser().parse_args(["wait-any-request"]), root)
+    result = cli.execute_resume_operation(launcher._parser().parse_args(["wait-any-request"]), root)
     notifications.wait.assert_not_called()
     notifications.__exit__.assert_called_once()
     return result
@@ -151,23 +161,32 @@ def test_expired_request_passes_wait_startup(
 
 @pytest.fixture
 def discovered_expired_request(
-    tmp_path: Path, expired_request: PreparedRequest, monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path, expired_request: PreparedRequest,
 ) -> tuple[PreparedRequest, dict[str, Any], bytes]:
-    """Prepare the already-tested discovery result before measuring selected continuation."""
-    _core, store, _context, _clock = expired_request
+    """Discover and claim the prerequisite without replaying CLI startup checks."""
+    _core, store, _context, clock = expired_request
     before = store.paths.request.read_bytes()
-    payload, code = _discover_expired_request(tmp_path, expired_request, monkeypatch)
-    assert code == 0
+    # The startup case separately asserts the public wait command and observer
+    # cleanup. This continuation needs the real discovered capability itself.
+    discovery = cli._RequestDiscovery(tmp_path, wall_clock=clock.now)
+    (candidate,) = discovery.rescan()
+    assert candidate.state is ArtifactState.ABANDONED_REQUEST
+    assert discovery.claim(candidate)
+    payload = discovery.capability(candidate)
     return expired_request, payload, before
 
 
 def test_discovered_expired_request_resumes_with_same_capability(
-    tmp_path: Path, discovered_expired_request: tuple[PreparedRequest, dict[str, Any], bytes],
+    discovered_expired_request: tuple[PreparedRequest, dict[str, Any], bytes],
 ) -> None:
     """A discovered capability survives identity completion and permits an actual answer."""
     prepared, payload, before = discovered_expired_request
     core, store, context, clock = prepared
-    capability = _complete_reviewer_identity(tmp_path, context, payload)
+    presented = OwnershipCapability(payload["ownership_generation"], payload["ownership_token"])
+    core.present_ownership(presented)
+    capability = claim_selected(core, ReviewRole.REVIEWER, LlmNature.CODEX,
+                                round_number=1, occurrence=1, override=False)
+    assert capability == presented
     assert store.paths.request.read_bytes() != before  # Missing-only reviewer nature backfill.
     core.present_ownership(capability)
     core.reclaim()
@@ -175,23 +194,15 @@ def test_discovered_expired_request_resumes_with_same_capability(
     assert core.classify().state is ArtifactState.ANSWER_PENDING
 
 
-def _complete_reviewer_identity(
-    root: Path, context: lifecycle.ReviewContext, payload: dict[str, Any],
-) -> OwnershipCapability:
-    """Inspect the expired request and reuse exactly the capability returned by discovery."""
+def test_expired_request_inspection_selects_review(
+    tmp_path: Path, expired_request: PreparedRequest,
+) -> None:
+    """The public inspection boundary selects the same recoverable reviewer action."""
+    _core, _store, context, _clock = expired_request
     common = ["--document", str(context.document_path), "--role", "reviewer", "--trusted-host-hint", "codex"]
-    inspected, code = cli.execute_resume_operation(parser().parse_args(["resume-inspect", *common]), root)
+    inspected, code = cli.execute_resume_operation(launcher._parser().parse_args(["resume-inspect", *common]), tmp_path)
     assert code == 0
     assert inspected["action"] == "review-request"
-    claimed, code = cli.execute_resume_operation(parser().parse_args([
-        "claim", *common, "--round", "1", "--occurrence", "1",
-        "--ownership-generation", str(payload["ownership_generation"]),
-        "--ownership-token", payload["ownership_token"],
-    ]), root)
-    assert code == 0
-    assert claimed["ownership_generation"] == payload["ownership_generation"]
-    assert claimed["ownership_token"] == payload["ownership_token"]
-    return OwnershipCapability(claimed["ownership_generation"], claimed["ownership_token"])
 
 
 @pytest.mark.parametrize("state", [*ArtifactState, None])

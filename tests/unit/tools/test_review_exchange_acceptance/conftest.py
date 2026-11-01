@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import fnmatch
 from typing import TYPE_CHECKING
 
 import pytest
@@ -19,15 +18,10 @@ if TYPE_CHECKING:
 
 
 def _is_ignored(root: Path, path: Path) -> bool:
-    relative = path.resolve().relative_to(root.resolve()).as_posix()
-    checks = ((root / ".gitignore", relative), (path.parent / ".gitignore", path.name))
-    return any(
-        ignore_file.is_file()
-        and any(
-            fnmatch.fnmatch(candidate, pattern)
-            for pattern in ignore_file.read_text(encoding="utf-8").splitlines()
-        )
-        for ignore_file, candidate in checks
+    """Declare ignored scratch inputs and the prepared artifact home."""
+    relative = path.relative_to(root)
+    return relative.parts[0] == ".reviews" or (
+        len(relative.parts) == 1 and relative.name.startswith("a.")
     )
 
 
@@ -37,6 +31,7 @@ def _validate_activation(root: Path, paths: ArtifactPaths) -> None:
         message = "review mode requires a Git repository"
         raise ReviewExchangeError(message)
     ReviewArtifactConfiguration.load(resolved).prepare_home()
+    assert (resolved / ".reviews/.gitignore").read_bytes() == b"*\n"
     missing = [
         path.relative_to(resolved).as_posix()
         for path in transient_paths_for_ignore(paths)

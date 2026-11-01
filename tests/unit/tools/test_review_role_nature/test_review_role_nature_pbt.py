@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
@@ -12,6 +13,7 @@ from tools.review_exchange_models import ReviewRole
 from tools.review_role_nature import RoleNatureEvidence, RoleNatureReconciler
 
 
+@pytest.mark.parametrize("_batch", range(8))
 @given(
     st.lists(
         st.sampled_from([None, *LlmNature]),
@@ -19,8 +21,9 @@ from tools.review_role_nature import RoleNatureEvidence, RoleNatureReconciler
         max_size=40,
     ),
 )
-@settings(max_examples=40)
+@settings(max_examples=5)
 def test_reconciliation_preserves_input_order_and_collects_every_conflict(
+    _batch: int,
     natures: list[LlmNature | None],
 ) -> None:
     """One linear pass returns all conflicts in their original order."""

@@ -1,10 +1,10 @@
-"""End-to-end acceptance for migration-aware review-status reporting.
+"""Programmatic acceptance for migration-aware review-status reporting.
 
-The tests compare the real Windows launcher with direct module execution from a
-nested caller repository, then assert the durable state categories and process
-statuses promised by the settled review-status design. The invalid-root case
-calls the public CLI adapter in-process so it tests the same status and stream
-contract without paying for an unrelated cold Python subprocess.
+Production Python entry points consume declared repository observations from a
+nested caller. Arguments, streams, durable categories and repeated
+read-only results are checked without executing Windows or shell launchers.
+State assertions and repeated read-only checks use independent focused shapes;
+each retains its damaged neighbor, full artifact assertions and live snapshots.
 """
 
 # ruff: noqa: PLR2004
@@ -23,14 +23,13 @@ from tools.review_status import collect_review_status
 from tools.review_status_cli import main as review_status_main
 from tools.review_status_models import DamagedCandidateStatus, ReviewStatusResult
 
-# Keep this module's scenarios on one xdist worker so its module-scoped
-# fixtures are built once rather than once per worker (--dist loadgroup).
+# Keep related scenarios together; each test has independent measured setup.
 pytestmark = pytest.mark.xdist_group("review-status-acceptance")
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
-    from tests.acceptance.review_status.conftest import CommandMatrix
+    from tests.acceptance.review_status.conftest import CommandMatrix, ProcessResult
 
 
 def _allow_git_ignore(_root: Path, _paths: Sequence[Path]) -> bool:
@@ -114,16 +113,21 @@ def _assert_escalated_wait(escalated: Mapping[str, Any]) -> None:
     assert escalated["artifacts"]["request"]["present"] is True
 
 
-def _assert_remaining_states(exchanges: Mapping[str, Mapping[str, Any]]) -> None:
-    """Check standalone, expired, and inconsistent state projections."""
-    standalone = exchanges["standalone"]
-    expired = exchanges["expired"]
-    inconsistent = exchanges["inconsistent"]
+def _assert_standalone(standalone: Mapping[str, Any]) -> None:
+    """Check the standalone implementation identity."""
     assert standalone["umbrella"] is None
     assert standalone["implementation_step"] == "4"
+
+
+def _assert_expired(expired: Mapping[str, Any]) -> None:
+    """Check the expired request and its reclaim action."""
     assert expired["state"] == "abandoned-request"
     assert expired["lease"]["freshness"] == "expired"
     assert expired["next_action"] == "reclaim"
+
+
+def _assert_inconsistent(inconsistent: Mapping[str, Any]) -> None:
+    """Check that contradictory evidence offers no safe action."""
     assert inconsistent["state"] == "inconsistent"
     assert inconsistent["next_action"] == "no-safe-action"
 
@@ -169,17 +173,13 @@ def _assert_human_state_lines(stdout: str) -> None:
 
 
 def test_no_coordination_records_are_trustworthy(
-    command_matrix: CommandMatrix,
+    empty_command: ProcessResult,
 ) -> None:
-    """Both public entry points report an empty repository as trustworthy."""
-    direct = command_matrix.empty_direct
-    launcher = command_matrix.empty_launcher
+    """The production Python entry reports an empty repository as trustworthy."""
+    direct = empty_command
 
-    assert direct.returncode == launcher.returncode == 0
-    assert direct.stderr == launcher.stderr == ""
-    assert _without_evaluation_time(direct.payload) == _without_evaluation_time(
-        launcher.payload,
-    )
+    assert direct.returncode == 0
+    assert direct.stderr == ""
     assert direct.payload["outcome"] == "trustworthy"
     assert direct.payload["schema_version"] == 2
     assert direct.payload["migration"] == {
@@ -192,36 +192,43 @@ def test_no_coordination_records_are_trustworthy(
     assert direct.payload["exchanges"] == []
 
 
-def test_launcher_and_direct_entry_match_from_nested_caller(
+@pytest.mark.parametrize("command_matrix", [
+    ("spec-request", "standalone"), ("convergence", "authorized"),
+    ("wait-timeout", "expired", "inconsistent"),
+], indirect=True)
+def test_python_entry_uses_repository_from_nested_caller(
     command_matrix: CommandMatrix,
 ) -> None:
     """Installed runtime location never replaces the caller repository root."""
     direct = command_matrix.direct
-    launcher = command_matrix.launcher
 
-    assert direct.returncode == launcher.returncode == 3
-    assert direct.stderr == launcher.stderr == ""
-    assert _without_evaluation_time(direct.payload) == _without_evaluation_time(
-        launcher.payload,
-    )
+    assert direct.returncode == 3
+    assert direct.stderr == ""
     assert direct.payload["repository_root"] == command_matrix.populated_root.as_posix()
     assert direct.payload["active_count"] > 1
     assert direct.payload["outcome"] == "untrustworthy"
 
 
+@pytest.mark.parametrize("command_matrix", [
+    ("spec-request",), ("standalone",), ("convergence",), ("authorized",),
+    ("wait-timeout",), ("expired",), ("inconsistent",),
+], indirect=True)
 def test_state_identity_and_action_matrix_is_complete(
     command_matrix: CommandMatrix,
 ) -> None:
     """Durable state, role, ownership, umbrella, and action stay distinct."""
     exchanges = _exchanges_by_slug(command_matrix.direct.payload)
-    _assert_specification_request(exchanges["spec-request"])
-    _assert_convergence_gate(exchanges["convergence"])
-    _assert_authorized_owning_action(exchanges["authorized"])
-    _assert_escalated_wait(exchanges["wait-timeout"])
-    _assert_remaining_states(exchanges)
+    checks = {"spec-request": _assert_specification_request, "standalone": _assert_standalone,
+              "convergence": _assert_convergence_gate, "authorized": _assert_authorized_owning_action,
+              "wait-timeout": _assert_escalated_wait, "expired": _assert_expired,
+              "inconsistent": _assert_inconsistent}
+    assert len(exchanges) == 1
+    for slug, exchange in exchanges.items():
+        checks[slug](exchange)
     _assert_common_exchange_fields(exchanges)
 
 
+@pytest.mark.parametrize("command_matrix", [("spec-request",)], indirect=True)
 def test_damaged_candidates_do_not_hide_healthy_exchanges(
     command_matrix: CommandMatrix,
 ) -> None:
@@ -241,28 +248,45 @@ def test_damaged_candidates_do_not_hide_healthy_exchanges(
     assert command_matrix.direct.payload["has_errors"] is True
 
 
+@pytest.mark.parametrize("command_matrix", [
+    ("spec-request", "standalone"),
+], indirect=True)
 def test_human_output_exposes_role_umbrella_and_damage(
     command_matrix: CommandMatrix,
 ) -> None:
     """The human report carries the same identity and trust facts as JSON."""
-    completed = command_matrix.human_launcher
+    completed = command_matrix.human
 
     assert completed.returncode == 3
     assert completed.stderr == ""
     assert f"Repository: {command_matrix.populated_root.as_posix()}" in completed.stdout
     _assert_human_identity_lines(completed.stdout)
+
+
+@pytest.mark.parametrize("command_matrix", [("authorized", "wait-timeout")], indirect=True)
+def test_human_output_exposes_blocked_states_and_damage(command_matrix: CommandMatrix) -> None:
+    """The human report preserves both blocked states and its damaged neighbor."""
+    completed = command_matrix.human
+    assert completed.returncode == 3
+    assert completed.stderr == ""
+    assert f"Repository: {command_matrix.populated_root.as_posix()}" in completed.stdout
     _assert_human_state_lines(completed.stdout)
 
 
-def test_repeated_status_calls_leave_protocol_and_git_state_unchanged(
+@pytest.mark.parametrize("command_matrix", [
+    ("spec-request",), ("standalone",), ("convergence",), ("authorized",),
+    ("wait-timeout",), ("expired",), ("inconsistent",),
+], indirect=True)
+def test_repeated_status_calls_leave_protocol_and_tracked_contents_unchanged(
     command_matrix: CommandMatrix,
 ) -> None:
-    """Status changes no artifact, marker, lease, index, ref, or worktree fact."""
-    assert command_matrix.before == command_matrix.after
+    """Status changes no artifact, marker, lease, or tracked file contents."""
+    before = command_matrix.before
     assert _without_evaluation_time(
-        command_matrix.launcher.payload,
-    ) == _without_evaluation_time(command_matrix.repeated_launcher.payload)
-    assert command_matrix.before.git_status == ""
+        command_matrix.direct.payload,
+    ) == _without_evaluation_time(command_matrix.repeated.payload)
+    assert before == command_matrix.after
+    assert before.git_status == ""
 
 
 def _assert_safe_migration(completed_root: Path, expected: bytes) -> None:

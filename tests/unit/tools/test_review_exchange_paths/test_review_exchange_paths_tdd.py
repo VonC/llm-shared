@@ -148,8 +148,9 @@ def identity_configuration(tmp_path: Path) -> ReviewArtifactConfiguration:
     return ReviewArtifactConfiguration.load(tmp_path)
 
 
+@pytest.mark.parametrize("_batch", range(5))
 @settings(
-    max_examples=25,
+    max_examples=5,
     deadline=None,
     suppress_health_check=[HealthCheck.function_scoped_fixture],
 )
@@ -160,9 +161,11 @@ def identity_configuration(tmp_path: Path) -> ReviewArtifactConfiguration:
         st.integers(min_value=0, max_value=20),
         st.integers(min_value=0, max_value=20),
     ).map(lambda value: f"v{value[0]}.{value[1]}.{value[2]}"),
-    slug=st.from_regex(r"[a-z0-9][a-z0-9_-]{0,20}", fullmatch=True),
+    slug=st.tuples(st.sampled_from(tuple("abcdefghijklmnopqrstuvwxyz0123456789")),
+                   st.text(alphabet="abcdefghijklmnopqrstuvwxyz0123456789_-", max_size=20)).map("".join),
 )
 def test_paths_parse_back_without_identity_collisions(
+    _batch: int,
     tmp_path: Path,
     identity_configuration: ReviewArtifactConfiguration,
     family: ReviewFamily,

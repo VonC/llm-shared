@@ -5,12 +5,16 @@ paths, multi-round lifecycle, convergence choices, archives, and deterministic
 wait reporting in temporary consuming repositories. Public commands run
 in-process while preserving their JSON and environment boundaries. Step 6 shares
 the exact context and artifact builders with real public-launcher acceptance.
+Completed first-round prerequisites use typed records; the asserted transitions
+and their persistence still run through the public command adapter.
+Activation refusals, duplicate start and identity isolation are independent
+cases, so no single lifecycle carries all eight transactions of the former
+combined journey.
 """
 
 from __future__ import annotations
 
 import json
-import os
 import re
 from contextlib import chdir, redirect_stderr, redirect_stdout
 from dataclasses import dataclass
@@ -18,10 +22,15 @@ from datetime import UTC, datetime, timedelta
 from io import StringIO
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
-from unittest.mock import patch
 
 import pytest
 
+from tests.acceptance.review_resume.prepared_request import (
+    prepare_assessed_round,
+    prepare_convergence,
+    prepare_request,
+)
+from tests.scenario_environment import environment
 from tests.unit.tools.review_exchange_test_support import (
     common_arguments as _common,
 )
@@ -49,7 +58,7 @@ from tools.review_exchange_store import ReviewExchangeStore
 
 if TYPE_CHECKING:
     from argparse import Namespace
-    from collections.abc import Sequence
+    from collections.abc import Callable, Sequence
 
 _EXPECTED_STOP = 3
 _SECOND_ROUND = 2
@@ -58,8 +67,25 @@ _CAPABILITIES: dict[Path, tuple[int, str]] = {}
 
 
 @dataclass(frozen=True)
+class ReviewInputs:
+    """Exact existing repository inputs for typed first-round prerequisites."""
+
+    root: Path
+    context: ReviewContext
+    paths: ArtifactPaths
+
+
+def _prepared_review(root: Path, context: ReviewContext) -> ReviewInputs:
+    """Declare the artifact home already established by the prerequisite round."""
+    paths = derive_artifact_paths(root, context)
+    paths.coordination.parent.mkdir(exist_ok=True)
+    (paths.coordination.parent / ".gitignore").write_bytes(b"*\n")
+    return ReviewInputs(root, context, paths)
+
+
+@dataclass(frozen=True)
 class CliResult:
-    """One parsed CLI subprocess result."""
+    """One parsed in-process CLI result."""
 
     code: int
     payload: dict[str, Any]
@@ -67,20 +93,17 @@ class CliResult:
 
 @dataclass(frozen=True)
 class IsolationJourney:
-    """Observable results for activation and concurrent identity acceptance."""
+    """Observable results for two concurrent identities in one repository."""
 
-    disabled: CliResult
-    unignored: CliResult
     specification_status: CliResult
     code_status: CliResult
-    duplicate_start: CliResult
     specification: ReviewContext
     code: ReviewContext
 
 
 @dataclass(frozen=True)
 class CodeJourney:
-    """Observable results for a complete multi-round implementation exchange."""
+    """Observable results for replayable authorization of a completed review."""
 
     gate: CliResult
     first_confirmation: CliResult
@@ -107,6 +130,9 @@ def _init_repo(root: Path, *, ignored: bool = True, marker: bool = True) -> None
     """Create the filesystem shape consumed by the recorded Git boundary."""
     root.mkdir(parents=True, exist_ok=True)
     (root / ".git").mkdir()
+    (root / ".review-exchange.ini").write_text(
+        "[review-exchange]\nwait_timeout_seconds = 10800\n", encoding="utf-8",
+    )
     if ignored:
         (root / ".gitignore").write_text("a.*\n", encoding="utf-8")
     if marker:
@@ -135,7 +161,7 @@ def _run_cli(
         chdir(root),
         redirect_stdout(stdout),
         redirect_stderr(stderr),
-        patch.dict(os.environ, {"PRJ_DIR": str(root)}),
+        environment({"PRJ_DIR": str(root)}),
     ):
         code = cli.main(
             [operation, *_common(context), *capability_arguments, *extra],
@@ -170,7 +196,7 @@ def _publish(
     disposition: ReviewDisposition | None = None,
     guidance: str | None = None,
 ) -> CliResult:
-    """Publish one role artifact through the real subprocess boundary."""
+    """Publish one role artifact through the production command adapter."""
     root = context.document_path.parents[2]
     content = _input(
         root,
@@ -198,8 +224,11 @@ def _publish(
 
 
 @pytest.fixture
-def isolation_journey(tmp_path: Path) -> IsolationJourney:
-    """Run activation failures and two independent public exchanges."""
+def activation_results(
+    tmp_path: Path, stable_review_inputs: Callable[[], None],
+) -> tuple[CliResult, CliResult]:
+    """Activate without the marker, then with an unignored home."""
+    del stable_review_inputs  # Paths are stable; activation state stays live.
     disabled_root = tmp_path / "disabled"
     _init_repo(disabled_root, marker=False)
     disabled_context = _context(disabled_root, ReviewFamily.CODE, "disabled", step="5")
@@ -209,51 +238,61 @@ def isolation_journey(tmp_path: Path) -> IsolationJourney:
     _init_repo(unignored_root, ignored=False)
     unignored_context = _context(unignored_root, ReviewFamily.CODE, "unignored", step="5")
     unignored = _run_cli(unignored_root, unignored_context, "activate")
+    return disabled, unignored
 
+
+def test_activation_is_inert_until_opted_in_and_covers_the_home(
+    activation_results: tuple[CliResult, CliResult],
+) -> None:
+    """Activation is inert without the marker and covers an unignored home."""
+    disabled, unignored = activation_results
+    actual = (disabled.code, disabled.payload["outcome"], unignored.code)
+    assert actual == (_EXPECTED_STOP, "disabled", 0)
+    assert unignored.payload["outcome"] == "activated"
+
+
+@pytest.fixture
+def duplicate_start(
+    tmp_path: Path, stable_review_inputs: Callable[[], None],
+) -> tuple[CliResult, CliResult]:
+    """Start one identity twice, then read its unchanged state."""
+    del stable_review_inputs  # Paths are stable; activation state stays live.
+    root = tmp_path / "active"
+    _init_repo(root)
+    code = _context(root, ReviewFamily.CODE, "implementation", step="5")
+    assert _run_cli(root, code, "start").code == 0
+    return _run_cli(root, code, "start"), _run_cli(root, code, "status")
+
+
+def test_duplicate_start_is_rejected_without_disturbing_the_round(
+    duplicate_start: tuple[CliResult, CliResult],
+) -> None:
+    """A second start of one identity fails and leaves its round in progress."""
+    rejected, status = duplicate_start
+    assert (rejected.code, status.payload["state"]) == (_SECOND_ROUND, "round-in-progress")
+
+
+@pytest.fixture
+def isolation_journey(tmp_path: Path, stable_review_inputs: Callable[[], None]) -> IsolationJourney:
+    """Run two independent public exchanges in one Git-backed repository."""
+    del stable_review_inputs  # Paths are stable; activation state stays live.
     active_root = tmp_path / "active"
     _init_repo(active_root)
     specification = _context(active_root, ReviewFamily.SPECIFICATION, "specification")
     code = _context(active_root, ReviewFamily.CODE, "implementation", step="5")
     assert _run_cli(active_root, specification, "start").code == 0
     assert _run_cli(active_root, code, "start").code == 0
-    duplicate_start = _run_cli(active_root, code, "start")
     assert _publish(specification, ReviewRole.REQUESTOR, 1).code == 0
     specification_status = _run_cli(active_root, specification, "status")
     code_status = _run_cli(active_root, code, "status")
-    return IsolationJourney(
-        disabled,
-        unignored,
-        specification_status,
-        code_status,
-        duplicate_start,
-        specification,
-        code,
-    )
+    return IsolationJourney(specification_status, code_status, specification, code)
 
 
-def test_opt_in_git_protocol_and_exact_identity_isolation(
+def test_exact_identities_stay_isolated_in_one_repository(
     isolation_journey: IsolationJourney,
 ) -> None:
-    """Activation is inert by default and isolates Git-backed exchanges."""
-    _assert_activation_failures(isolation_journey)
+    """Git-backed exchanges of two identities keep independent states and paths."""
     _assert_identity_isolation(isolation_journey)
-
-
-def _assert_activation_failures(journey: IsolationJourney) -> None:
-    """Check disabled, home-covered, and duplicate-start outcomes."""
-    actual = (
-        journey.disabled.code,
-        journey.disabled.payload["outcome"],
-        journey.unignored.code,
-        journey.duplicate_start.code,
-    )
-    assert actual == (
-        _EXPECTED_STOP,
-        "disabled",
-        0,
-        _SECOND_ROUND,
-    )
-    assert journey.unignored.payload["outcome"] == "activated"
 
 
 def _assert_identity_isolation(journey: IsolationJourney) -> None:
@@ -266,35 +305,50 @@ def _assert_identity_isolation(journey: IsolationJourney) -> None:
 
 
 @pytest.fixture
-def code_journey(tmp_path: Path) -> CodeJourney:
-    """Run two code rounds through convergence and replayed owning authorization."""
+def multiround_publication(tmp_path: Path, stable_review_inputs: Callable[[], None]) -> tuple[CliResult, str]:
+    """Exercise next-round publication and convergence from assessed records.
+
+    The gate is the real convergence publication's own result: its payload
+    state comes from a fresh classification of the durable records. The
+    status command's report of a convergence gate keeps its separate public
+    assertion in ``code_journey``, so no second status read is replayed here.
+    """
+    # This journey changes protocol records, never configuration or symlinks.
+    # Parse each immutable observation once, inside the measured setup; every
+    # CLI invocation still creates its own core and reads current durable state.
     root = tmp_path / "code-journey"
     _init_repo(root)
+    stable_review_inputs()
     context = _context(root, ReviewFamily.CODE, "multi-round", step="5")
-    paths = derive_artifact_paths(root, context)
-    assert _run_cli(root, context, "start").code == 0
-    assert _publish(context, ReviewRole.REQUESTOR, 1).code == 0
-    assert _publish(
-        context,
-        ReviewRole.REVIEWER,
-        1,
-        disposition=ReviewDisposition.CHANGES_REQUESTED,
-    ).code == 0
-    consumed = _run_cli(
-        root,
-        context,
-        "consume-answer",
-        ("--reviewed-work-changed", "true"),
-    )
-    assert consumed.code == 0
+    repo = _prepared_review(root, context)
+    paths = repo.paths
+    prepare_request(repo, None)
+    capability = prepare_assessed_round(repo)
+    _CAPABILITIES[context.document_path] = (capability.generation, capability.token)
     assert _run_cli(root, context, "continue").payload["round"] == _SECOND_ROUND
     assert _publish(context, ReviewRole.REQUESTOR, _SECOND_ROUND).code == 0
-    assert _publish(
+    gate = _publish(
         context,
         ReviewRole.REVIEWER,
         _SECOND_ROUND,
         disposition=ReviewDisposition.CONVERGENCE_RECOMMENDED,
-    ).code == _EXPECTED_STOP
+    )
+    return gate, paths.transcript.read_text(encoding="utf-8")
+
+
+@pytest.fixture
+def code_journey(tmp_path: Path, stable_review_inputs: Callable[[], None]) -> CodeJourney:
+    """Exercise authorization replay and cleanup from typed convergence records."""
+    root = tmp_path / "code-journey"
+    _init_repo(root)
+    stable_review_inputs()
+    context = _context(root, ReviewFamily.CODE, "multi-round", step="5")
+    repo = _prepared_review(root, context)
+    paths = repo.paths
+    capability = prepare_convergence(repo, round_number=_SECOND_ROUND)
+    _CAPABILITIES[context.document_path] = (
+        capability["ownership_generation"], capability["ownership_token"],
+    )
     gate = _run_cli(root, context, "status")
     first_confirmation = _run_cli(root, context, "confirm", ("--choice-label", "Commit"))
     replayed_confirmation = _run_cli(
@@ -318,6 +372,20 @@ def code_journey(tmp_path: Path) -> CodeJourney:
 
 
 def test_multiround_convergence_and_cross_session_authorization_replay(
+    multiround_publication: tuple[CliResult, str],
+) -> None:
+    """Real next-round publication preserves prior evidence and reaches the gate."""
+    gate, transcript = multiround_publication
+    assert (gate.code, gate.payload["state"]) == (_EXPECTED_STOP, "convergence-gate")
+    ordered = [transcript.index(marker) for marker in (
+        "request-step-5-round-1", "answer-step-5-round-1",
+        "request-step-5-round-2", "answer-step-5-round-2",
+    )]
+    assert ordered == sorted(ordered)
+    assert re.search(r"Recorded: .*[-+]\d\d:\d\d", transcript)
+
+
+def test_converged_authorization_replays_across_sessions_then_cleans_up(
     code_journey: CodeJourney,
 ) -> None:
     """Intermediate automation ends only after replayable human authorization."""
@@ -351,8 +419,6 @@ def _assert_owning_authorization(journey: CodeJourney) -> None:
 def _assert_code_transcript_order(journey: CodeJourney) -> None:
     """Check round order, stable confirmation identity, and offset timestamps."""
     ordered = [
-        journey.transcript.index("request-step-5-round-1"),
-        journey.transcript.index("answer-step-5-round-1"),
         journey.transcript.index("request-step-5-round-2"),
         journey.transcript.index("answer-step-5-round-2"),
         journey.transcript.index("human-confirmation-round-2"),
@@ -363,20 +429,18 @@ def _assert_code_transcript_order(journey: CodeJourney) -> None:
 
 
 @pytest.fixture
-def resolution_journey(tmp_path: Path) -> ResolutionJourney:
+def resolution_journey(tmp_path: Path, stable_review_inputs: Callable[[], None]) -> ResolutionJourney:
     """Run a specification override, escalation, archive, and fresh resumption."""
     root = tmp_path / "resolution-journey"
     _init_repo(root)
+    stable_review_inputs()
     context = _context(root, ReviewFamily.SPECIFICATION, "human-resolution")
-    paths = derive_artifact_paths(root, context)
-    assert _run_cli(root, context, "start").code == 0
-    assert _publish(context, ReviewRole.REQUESTOR, 1).code == 0
-    assert _publish(
-        context,
-        ReviewRole.REVIEWER,
-        1,
-        disposition=ReviewDisposition.CONVERGENCE_RECOMMENDED,
-    ).code == _EXPECTED_STOP
+    repo = _prepared_review(root, context)
+    paths = repo.paths
+    capability = prepare_convergence(repo)
+    _CAPABILITIES[context.document_path] = (
+        capability["ownership_generation"], capability["ownership_token"],
+    )
     guidance = "Recheck the exact transcript boundary."
     guidance_file = _input(root, "acceptance-guidance", guidance)
     override = _run_cli(
@@ -470,8 +534,10 @@ def test_long_wait_has_progress_stderr_and_one_monotonic_deadline(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
+    stable_review_inputs: Callable[[], None],
 ) -> None:
     """A long logical wait reports progress without a real-time test dependency."""
+    del stable_review_inputs  # Resolve paths once while all wait observations stay live.
     root = tmp_path / "wait"
     root.mkdir()
     context = _context(root, ReviewFamily.CODE, "wait", step="5")

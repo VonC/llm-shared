@@ -1,6 +1,7 @@
 """Real-artifact resume tests with independent stores and locked concurrent claims.
 
-Conflict request setup precedes the measured rejection and Override transitions.
+Typed pickup prerequisites avoid replaying publication. Setup and the real
+backfill, fencing, and Override transitions remain inside lifecycle measurement.
 """
 
 from __future__ import annotations
@@ -20,28 +21,66 @@ from tools.review_exchange_core import ReviewExchangeCore
 from tools.review_exchange_models import (
     Actor,
     ArtifactState,
+    CoordinationStatus,
     ReviewExchangeError,
     ReviewRole,
 )
-from tools.review_exchange_models_envelope import parse_envelope_markdown
-from tools.review_exchange_ownership import OwnershipRejectedError
+from tools.review_exchange_models_coordination import CoordinationRecord
+from tools.review_exchange_models_envelope import (
+    parse_envelope_markdown,
+    render_json_markdown,
+)
+from tools.review_exchange_ownership import (
+    OwnershipCapability,
+    OwnershipRejectedError,
+    OwnershipService,
+)
+from tools.review_exchange_store import TranscriptEntry
 from tools.review_resume_identity import claim_discovered_request, claim_selected
 from tools.review_role_nature import RoleNatureSnapshot
 
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from tools.review_exchange_models_coordination import CoordinationRecord
     from tools.review_exchange_store import ReviewExchangeStore
+
+
+def _prepare_live_request(
+    core: ReviewExchangeCore, context: lifecycle.ReviewContext, clock: lifecycle.FakeTime,
+    *, owner: Actor = Actor.REQUESTOR,
+) -> CoordinationRecord:
+    """Declare the prior writer and pending request without running publication."""
+    capability = OwnershipCapability(1, "scenario-live-request-token-000000000")
+    timestamp = lifecycle._timestamp(clock)
+    record = CoordinationRecord(
+        context, core.policy, CoordinationStatus.ACTIVE, owner,
+        Actor.REVIEWER, 1, timestamp,
+        role_natures=RoleNatureSnapshot(LlmNature.CODEX, LlmNature.CLAUDE if owner is Actor.REVIEWER else None),
+        ownership_generation=capability.generation,
+        ownership_token_digest=OwnershipService.digest(capability.token),
+    )
+    store = core.store
+    store.initialize_transcript(context)
+    store.paths.coordination.parent.mkdir(parents=True, exist_ok=True)
+    store.paths.coordination.write_text(
+        render_json_markdown(f"Review exchange coordination for {context.identity.key}", record.to_dict(), ""),
+        encoding="utf-8",
+    )
+    store.paths.request.write_text(lifecycle._request(context, clock, 1), encoding="utf-8")
+    entry = TranscriptEntry(f"request-step-{context.implementation_step}-round-1",
+                            ReviewRole.REQUESTOR, "request", timestamp, "Prepared request.\n")
+    with store.paths.transcript.open("a", encoding="utf-8") as transcript:
+        transcript.write(store._render_transcript_entry(record, entry))
+    core.present_ownership(capability)
+    return record
 
 
 def test_pickup_backfills_and_fences_a_live_session(tmp_path: Path) -> None:
     """A bare resume claim needs no lease expiry and preserves counterpart nature."""
     old, store, context, clock = lifecycle._harness(tmp_path)
-    lifecycle._start_and_request(old, context, clock)
+    _prepare_live_request(old, context, clock)
     record = store.read_coordination(required=True)
     assert record is not None
-    store.write_coordination(replace(record, role_natures=RoleNatureSnapshot(LlmNature.CODEX, None)))
     resumed = ReviewExchangeCore(store, context, old.policy, old.configuration, wall_clock=clock.now)
     capability = claim_selected(resumed, ReviewRole.REVIEWER, LlmNature.CLAUDE, round_number=1, occurrence=1, override=False)
     updated = store.read_coordination(required=True)
@@ -54,7 +93,14 @@ def test_pickup_backfills_and_fences_a_live_session(tmp_path: Path) -> None:
     assert capability.token not in store.paths.coordination.read_text(encoding="utf-8")
     with pytest.raises(OwnershipRejectedError):
         old.publish_request(lifecycle._request(context, clock, 1), "Displaced writer")
-    resumed.present_ownership(capability)
+
+
+def test_pickup_reuses_the_presented_current_capability(tmp_path: Path) -> None:
+    """An independently claimed prerequisite keeps its capability on pickup."""
+    resumed, _, context, clock = lifecycle._harness(tmp_path)
+    _prepare_live_request(resumed, context, clock, owner=Actor.REVIEWER)
+    capability = resumed.ownership_capability
+    assert capability is not None
     same = claim_selected(resumed, ReviewRole.REVIEWER, LlmNature.CLAUDE, round_number=1, occurrence=1, override=False)
     assert same == capability
 
@@ -84,9 +130,9 @@ def test_locked_state_recheck_blocks_interrupted_continuation(tmp_path: Path, mo
 
 @pytest.fixture
 def conflicting_role_request(tmp_path: Path) -> tuple[ReviewExchangeCore, ReviewExchangeStore, CoordinationRecord]:
-    """Publish real conflicting evidence before measuring its guarded pickup."""
+    """Prepare conflicting records inside the measured guarded-pickup lifecycle."""
     core, store, context, clock = lifecycle._harness(tmp_path)
-    lifecycle._start_and_request(core, context, clock)
+    _prepare_live_request(core, context, clock)
     record = store.read_coordination(required=True)
     assert record is not None
     store.write_coordination(replace(record, role_natures=RoleNatureSnapshot(None, LlmNature.CLAUDE)))

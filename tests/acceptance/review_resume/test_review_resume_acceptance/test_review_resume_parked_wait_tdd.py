@@ -1,92 +1,110 @@
-"""A parked reviewer wait woken by a replacement round or a new family.
+"""Scheduled publication wakes a reviewer parked at a gate or after conclusion.
 
-Fix: split out of ``test_review_resume_concurrency_tdd``. Its two parameters
-were the longest-running fixture of that module, and ``--dist loadscope``
-keeps a whole module on one worker, so they held the module's scenarios
-behind them. The scenario and every assertion are unchanged.
-
-Fix: the wake-up bound uses the shared ``PROCESS_TIMEOUT_SECONDS`` hang guard
-instead of 15 seconds, since the woken claim runs the same Python and ``git``
-children that once outlasted a 30-second bound under the parallel full run.
-
-The parent uses the bounded Git double for ordinary exchange orchestration.
-The independent waiter still runs the public CLI with real Git and watches the
-same on-disk evidence through convergence, conclusion and replacement.
+Prerequisite ownership uses the production identity transaction directly;
+publication, notification rescans and the eventual wait claim remain live.
 """
 
-# ruff: noqa: PLR2004
 from __future__ import annotations
 
-from typing import Any
+import os
+from typing import TYPE_CHECKING
 
 import pytest
 
-from tests.acceptance.review_resume.conftest import (
-    PROCESS_TIMEOUT_SECONDS,
-    ReviewRepository,
-    assert_still_quiet,
-    start_wait,
-    terminal_result,
+from tests.acceptance.review_resume.notification_simulation import (
+    NotificationSchedule,
+    assert_quiet,
 )
-from tests.unit.tools.review_exchange_test_support import review_context
-from tools.review_exchange_models import ReviewFamily, ReviewRole
+from tests.acceptance.review_resume.prepared_request import prepare_convergence
+from tests.unit.tools.review_exchange_test_support import (
+    review_artifact,
+    review_context,
+    review_policy,
+    session_environment,
+)
+from tools import review_exchange_cli_resume as resume_cli
+from tools.llm_nature import LlmNature
+from tools.review_exchange_core import ReviewExchangeCore
+from tools.review_exchange_models import (
+    ConfirmationOutcome,
+    ReviewConfiguration,
+    ReviewFamily,
+    ReviewRole,
+)
 from tools.review_exchange_paths import derive_artifact_paths
+from tools.review_exchange_store import ReviewExchangeStore
+from tools.review_resume_identity import claim_selected
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
-@pytest.fixture(
-    scope="module",
-    params=[
-        pytest.param(kind, marks=pytest.mark.xdist_group(f"parked-{kind}"))
-        for kind in ("gate", "concluded")
-    ],
-)
-def parked_wait_journey(tmp_path_factory: pytest.TempPathFactory, request: pytest.FixtureRequest) -> dict[str, Any]:
-    """Wake a reviewer from the human gate or after release into a different family."""
-    repo = ReviewRepository(tmp_path_factory.mktemp("resume-parked") / "caller", fast_git=True)
-    repo.start_request()
-    reviewer = repo.resume("resume", role="reviewer", nature="claude")
-    answer = repo.publish(ReviewRole.REVIEWER, reviewer[-1].payload, ready=True, nature="claude")
-    assert answer.code == 3
-    assert answer.payload["outcome"] == "published"
-    assert answer.payload["state"] == "convergence-gate"
-    requestor = repo.resume("resume")
-    if request.param == "concluded":
-        repo.exchange("confirm", "--choice-label", "Commit", capability=requestor[-1].payload)
-        assert repo.exchange("complete", capability=requestor[-1].payload).code == 0
-    process = start_wait(repo)
-    try:
-        assert_still_quiet(process)
-        before = repo.evidence()
+    from tests.acceptance.review_resume.conftest import ReviewRepository
+
+@pytest.mark.parametrize("kind", ["gate", "concluded"])
+def test_wait_survives_convergence_and_conclusion_then_wakes(
+    repository: ReviewRepository, monkeypatch: pytest.MonkeyPatch, kind: str,
+    stable_review_inputs: Callable[[], None],
+) -> None:
+    """Rescan on unrelated hints without claiming, then claim only the new request."""
+    stable_review_inputs()
+    repo = repository
+    _prepare_parked_state(repo, kind)
+    before = repo.evidence()
+
+    def unrelated_hint() -> bool:
+        """A notification is only a hint; it conveys no pending request."""
+        assert_quiet()
         (repo.home / "a.unrelated.md").write_text("unrelated notification", encoding="utf-8")
-        assert_still_quiet(process)
-        unchanged = repo.evidence()
-        if request.param == "gate":
-            confirmed = repo.exchange("confirm", "--choice-label", "Rework and review again",
-                                      capability=requestor[-1].payload)
-            assert confirmed.code == 0, confirmed
-            published = repo.publish(ReviewRole.REQUESTOR, requestor[-1].payload, round_number=2)
-            assert published.code == 0, published
-        else:
-            repo.context = review_context(repo.root, ReviewFamily.SPECIFICATION, "later-specification")
-            repo.paths = derive_artifact_paths(repo.root, repo.context)
-            repo.start_request()
-        result = terminal_result(process, process.communicate(timeout=PROCESS_TIMEOUT_SECONDS))
-        return {"kind": request.param, "result": result, "before": before, "unchanged": unchanged}
-    finally:
-        if process.poll() is None:
-            process.kill()
-        process.communicate(timeout=5)
+        return True
+
+    def publication() -> bool:
+        """Publish after the unrelated rescan remained quiet and read-only."""
+        assert_quiet()
+        assert repo.evidence() == before
+        _publish_next(repo, kind)
+        return True
+
+    schedule = NotificationSchedule(unrelated_hint, publication)
+    monkeypatch.setattr(resume_cli, "WatchdogNotificationAdapter", schedule.adapter)
+    result = repo.run("wait-any-request", nature="claude")
+    assert result.code == 0
+    assert result.payload["outcome"] == "found"
+    expected_family, expected_round = {"gate": ("code", 2), "concluded": ("specification", 1)}[kind]
+    assert result.payload["identity"]["family"] == expected_family
+    assert result.payload["candidates"][0]["round"] == expected_round
+    assert not schedule.actions
+    assert schedule.lifecycle == ["schedule", "start", "stop", "join"]
 
 
-def test_wait_survives_convergence_and_conclusion_then_wakes(parked_wait_journey: dict[str, Any]) -> None:
-    """AC12: a gate wakes for a replacement; a released exchange wakes for a new specification."""
-    journey = parked_wait_journey
-    assert journey["before"] == journey["unchanged"]
-    result = journey["result"]
-    assert result["outcome"] == "found"
-    expected_family = "code" if journey["kind"] == "gate" else "specification"
-    assert result["identity"]["family"] == expected_family
-    assert result["candidates"][0]["round"] == (2 if journey["kind"] == "gate" else 1)
+def _prepare_parked_state(repo: ReviewRepository, kind: str) -> None:
+    """Declare the gate prerequisite; completion and subsequent waits remain live."""
+    capability = prepare_convergence(repo, authorized=kind == "concluded")
+    if kind == "concluded":
+        assert repo.exchange("complete", capability=capability).code == 0
+
+
+def _publish_next(repo: ReviewRepository, kind: str) -> None:
+    """Advance the selected gate state before a notification rescan."""
+    if kind == "gate":
+        _continue_gate(repo)
+    else:
+        repo.context = review_context(repo.root, ReviewFamily.SPECIFICATION, "later-specification")
+        repo.paths = derive_artifact_paths(repo.root, repo.context)
+        repo.start_request()
+
+
+def _continue_gate(repo: ReviewRepository) -> None:
+    """Use real requestor transitions while the public reviewer wait is parked."""
+    core = ReviewExchangeCore(ReviewExchangeStore(repo.paths), repo.context,
+                              review_policy(repo.context), ReviewConfiguration(enabled=True))
+    capability = claim_selected(core, ReviewRole.REQUESTOR, LlmNature.CODEX,
+                                round_number=1, occurrence=1, override=False)
+    core.present_ownership(capability)
+    confirmed = core.confirm("Rework and review again")
+    assert confirmed.outcome is ConfirmationOutcome.ANOTHER_ROUND
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(os, "environ", session_environment(os.environ, "codex"))
+        core.publish_request(review_artifact(repo.context, ReviewRole.REQUESTOR, 2), "Replacement request.\n")
 
 
 # eof
