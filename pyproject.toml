@@ -23,10 +23,19 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+test_lifecycle_limit = "0.1"
+# Keep verbose outcomes without formatting a terminal progress bar per report.
+console_output_style = "classic"
 addopts = [
   "-v",
+  # Process-free tests assert Python streams; avoid native fd/tempfile capture.
+  "--capture=sys",
+  # Reuse collected package identities without repeated sys.path discovery.
+  "--import-mode=importlib",
   "-p",
   "no:anyio",
+  "-p",
+  "no:asyncio",
   "--strict-markers",
   "--tb=short",
   "--cov=tools",
@@ -41,6 +50,8 @@ filterwarnings = [
 ]
 
 [tool.coverage.run]
+# Use Python's monitoring API for line coverage; keep the same sources and gate.
+core = "sysmon"
 source = ["tools"]
 omit = [
     "*/tests/*",
