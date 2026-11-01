@@ -127,6 +127,7 @@ their choices.
 
 - 🤖 [Why project logos use a shared visual system](explanation/why-project-logos-use-a-shared-visual-system.md)
 - 🧪 [Groundhog as a reset loop](explanation/groundhog-as-a-reset-loop.md)
+- 🧪 [Why fast tests keep the work they assert](explanation/why-fast-tests-keep-the-work-they-assert.md)
 - 📊 [Why grouped commits, least dependent first](explanation/why-grouped-commits.md)
 - 📊 [Why release branch roles matter](explanation/why-release-branch-roles-matter.md)
 - 📊 [Why Git history diagrams use explicit arrows](explanation/why-git-history-diagrams-use-explicit-arrows.md)
