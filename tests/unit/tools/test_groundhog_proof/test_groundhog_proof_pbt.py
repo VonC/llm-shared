@@ -1,54 +1,45 @@
 """Property-based checks for the groundhog proof rules (v0.13.0 Step 1).
 
-Invariants of the pure rules, bounded in examples and deadline so the
-property run never becomes a duration outlier itself: the accumulated proof
+Exhaustive invariants of the bounded pure rules: the accumulated proof
 never exceeds the highest input and is always below the lowest contradicted
 level; with valid inputs a noop holds exactly when the requested level is at
 or below the saved proof; ``--force`` or a stale digest always walks; and the
-timing cap never raises a proof nor leaves it above ``cov``.
+timing cap never raises a proof nor leaves it above ``cov``. Every ordered
+gate list of length zero through four is exercised for every input pair,
+including repeated gates. Enumeration happens inside the measured test.
 """
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from itertools import product
 
-from hypothesis import given, settings
-from hypothesis import strategies as st
+import pytest
 
 from tools.groundhog import proof
 from tools.groundhog.levels import FullLevel
 from tools.groundhog.proof import Decision, Gate
 
-if TYPE_CHECKING:
-    from hypothesis.strategies import SearchStrategy
 
-_MAX_EXAMPLES = 100
-_DEADLINE_MS = 400
-
-_LEVELS: SearchStrategy[FullLevel] = st.sampled_from(FullLevel)
-_OPTIONAL: SearchStrategy[FullLevel | None] = st.none() | _LEVELS
-_GATES: SearchStrategy[list[Gate]] = st.lists(st.sampled_from(Gate), max_size=4)
-
-
-@settings(max_examples=_MAX_EXAMPLES, deadline=_DEADLINE_MS)
-@given(earned=_OPTIONAL, saved=_OPTIONAL, gates=_GATES)
+@pytest.mark.parametrize("earned", [None, *FullLevel])
+@pytest.mark.parametrize("saved", [None, *FullLevel])
 def test_accumulate_never_exceeds_the_inputs_nor_reaches_a_contradiction(
     earned: FullLevel | None,
     saved: FullLevel | None,
-    gates: list[Gate],
 ) -> None:
-    """The result is at most the highest input and below every contradiction."""
-    result = proof.accumulate(earned, saved, gates)
-    inputs = [level for level in (earned, saved) if level is not None]
-    if result is None:
-        return
-    assert inputs
-    assert result <= max(inputs)
-    assert all(result < gate.contradicts for gate in gates)
+    """Check all 341 ordered gate lists for this independent input pair."""
+    for size in range(5):
+        for gates in product(Gate, repeat=size):
+            result = proof.accumulate(earned, saved, list(gates))
+            inputs = [level for level in (earned, saved) if level is not None]
+            if result is None:
+                continue
+            assert inputs
+            assert result <= max(inputs)
+            assert all(result < gate.contradicts for gate in gates)
 
 
-@settings(max_examples=_MAX_EXAMPLES, deadline=_DEADLINE_MS)
-@given(saved=_OPTIONAL, requested=_LEVELS)
+@pytest.mark.parametrize("saved", [None, *FullLevel])
+@pytest.mark.parametrize("requested", list(FullLevel))
 def test_noop_holds_exactly_when_requested_is_at_or_below_saved(
     saved: FullLevel | None,
     requested: FullLevel,
@@ -58,8 +49,10 @@ def test_noop_holds_exactly_when_requested_is_at_or_below_saved(
     assert (decision is Decision.NOOP) == (saved is not None and requested <= saved)
 
 
-@settings(max_examples=_MAX_EXAMPLES, deadline=_DEADLINE_MS)
-@given(saved=_OPTIONAL, requested=_LEVELS, timing_matches=st.booleans(), force=st.booleans())
+@pytest.mark.parametrize("saved", [None, *FullLevel])
+@pytest.mark.parametrize("requested", list(FullLevel))
+@pytest.mark.parametrize("timing_matches", [False, True])
+@pytest.mark.parametrize("force", [False, True])
 def test_force_or_a_stale_digest_always_walks(
     saved: FullLevel | None,
     requested: FullLevel,
@@ -74,8 +67,7 @@ def test_force_or_a_stale_digest_always_walks(
     assert forced is Decision.WALK
 
 
-@settings(max_examples=_MAX_EXAMPLES, deadline=_DEADLINE_MS)
-@given(saved=_LEVELS)
+@pytest.mark.parametrize("saved", list(FullLevel))
 def test_timing_cap_never_raises_and_stops_at_cov(saved: FullLevel) -> None:
     """A timing mismatch keeps the proof at most cov and never above itself."""
     capped = proof.cap_for_timing(saved, timing_matches=False)

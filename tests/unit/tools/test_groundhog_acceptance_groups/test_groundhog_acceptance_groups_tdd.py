@@ -1,5 +1,10 @@
-"""Exercise grouped walks and proof reuse through the real CLI."""
+"""Exercise grouped walks and proof reuse through the real CLI.
 
+The scope-isolation journey reuses its fixed source inventory and settings;
+each scope resolution, coverage report and persisted proof remains live.
+"""
+
+from functools import cache
 from pathlib import Path
 
 import pytest
@@ -11,12 +16,13 @@ from tests.unit.tools.groundhog_acceptance_support import (
     make_deps,
 )
 from tests.unit.tools.groundhog_group_support import CoverageSpawns, group_project
-from tools.groundhog import cli, exclusions, floor
+from tools.groundhog import cli, exclusions, floor, snapshot
 from tools.groundhog.models import (
     EXIT_DURATION_OUTLIERS,
     EXIT_SETUP_ERROR,
     EXIT_TEST_FAILURES,
 )
+from tools.groundhog.project_settings import Settings
 
 
 def test_walk_narrows_collection_and_names_scope(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
@@ -53,9 +59,15 @@ def test_only_whole_suite_full_resets_the_testmon_map(tmp_path: Path, selector: 
     assert ("--testmon-noselect" in spawns.commands[0]) is kept
 
 
-def test_proof_isolated_by_scope(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+def test_proof_isolated_by_scope(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch,
+    stable_review_inputs: object,
+) -> None:
     """Whole and different group proofs never satisfy another group's walk."""
+    del stable_review_inputs
     group_project(tmp_path)
+    monkeypatch.setattr(snapshot, "source_files", cache(snapshot.source_files))
+    monkeypatch.setattr(Settings, "load", cache(Settings.load))
     spawns = CoverageSpawns(tmp_path)
     for selector in ("--whole-suite", "--group=sentinel", "--group=other"):
         before = len(spawns.commands)

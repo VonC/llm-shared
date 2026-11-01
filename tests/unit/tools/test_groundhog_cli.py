@@ -35,13 +35,13 @@ variable and shapes the full run.
 
 from __future__ import annotations
 
-import runpy
 import sys
 from dataclasses import replace
 from typing import TYPE_CHECKING, cast
 
 import pytest
 
+from tests.script_entry import run_main
 from tools.groundhog import (
     cli,
     exclusions,
@@ -529,7 +529,7 @@ def test_cli_script_runs_as_main(
     argv = [script_path, "single", "tests/test_a.py", "--root", str(tmp_path), "--llm"]
     monkeypatch.setattr(sys, "argv", argv)
     with pytest.raises(SystemExit) as raised:
-        runpy.run_path(script_path, run_name="__main__")
+        run_main(script_path)
     assert raised.value.code == EXIT_OBJECTIVE_MET
 
 

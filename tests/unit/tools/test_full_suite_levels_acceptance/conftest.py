@@ -3,6 +3,8 @@
 Only unrelated Git readiness, activation and branch discovery are substituted.
 Scope matching, proof, captures, persistence and coverage data stay real. Path
 resolution caching is local to each symlink-free fixture and undone afterward.
+Walks use the shared acceptance deps, which declare the pytest executable
+instead of searching PATH for it on every child launch.
 """
 
 from __future__ import annotations
@@ -15,9 +17,14 @@ from typing import TYPE_CHECKING, Any
 
 import pytest
 
+from tests.unit.tools.groundhog_acceptance_support import make_deps
 from tests.unit.tools.groundhog_group_support import CoverageSpawns, group_project
 from tests.unit.tools.prepare_release.prepare_release_plan_test_support import (
-    SyntheticGitRepository,
+    BASE,
+    MERGE,
+    PARENT,
+    TIP,
+    RepositoryFacts,
 )
 from tests.unit.tools.review_exchange_test_support import (
     common_arguments,
@@ -30,8 +37,8 @@ from tools import prompt_workflow_progress as progress
 from tools import review_exchange_cli as exchange_cli
 from tools.commit_plan_check import CommitPlanCheckResult, CommitPlanCheckState
 from tools.groundhog import cli
-from tools.groundhog.context import Deps
 from tools.prepare_release import prepare_release_plan_workflow as release_workflow
+from tools.prepare_release.prepare_release_plan_models import CommitSummary
 from tools.prompt_workflow_progress_review import ReviewReport
 from tools.review_exchange_core import ReviewExchangeCore
 from tools.review_exchange_models import ReviewConfiguration
@@ -83,6 +90,7 @@ class Effort:
 
     def publish(self) -> int:
         """Present session ownership through the real exchange publication CLI."""
+        self.core.start()
         capability = self.core.ownership_capability
         assert capability is not None
         return exchange_cli.main([
@@ -94,12 +102,17 @@ class Effort:
 
     def walk(self, *arguments: str, environment: Mapping[str, str] | None = None,
              seconds: float = 0.1) -> tuple[int, CoverageSpawns]:
-        """Fake only the pytest child, including its measured duration evidence."""
+        """Fake only the pytest child, including its measured duration evidence.
+
+        The shared acceptance deps also declare the pytest executable and
+        project detection, so a walk never searches every PATH entry for each
+        executable extension; these journeys assert scope, proof and captures,
+        not executable lookup.
+        """
         spawns = CoverageSpawns(self.root, extra_lines=(
             "=== slowest durations ===", f"{seconds:.2f}s call tests/old/test_core.py::test_ok",
         ))
-        deps = Deps(popen_factory=spawns, environ=dict(environment or {}).get)
-        return cli.main([*arguments, "--root", str(self.root)], deps), spawns
+        return cli.main([*arguments, "--root", str(self.root)], make_deps(spawns, environment)), spawns
 
 
 def _ignored(_root: Path, _path: Path) -> bool:
@@ -170,21 +183,20 @@ def effort(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Effort:
     monkeypatch.setenv("PRJ_DIR", str(root))
     result = Effort(root, home, plan, docs / "feature-request.v9.9.0.topic.md", context, paths, files, core)
     result.set_group("sentinel")
-    core.start()
     return result
 
 
 @pytest.fixture
 def release_base(effort: Effort, monkeypatch: pytest.MonkeyPatch) -> str:
-    """Initialize a divergent release graph with the existing in-memory Git protocol."""
-    repository = SyntheticGitRepository(effort.root)
-    base = repository.add_commit("chore: seed", frozenset({"seed.txt"}))
-    repository.refs.update(develop=base, topic=base)
-    repository.current = "develop"
-    repository.add_commit("feat: integration work", frozenset({"integration.txt"}))
-    repository.current = "topic"
-    repository.add_commit("feat: effort", frozenset({"effort.txt"}))
-    repository.current = "main"
-    repository.add_commit("fix: independent main work", frozenset({"main.txt"}))
+    """Declare divergent branch observations without constructing a commit graph."""
+    repository = RepositoryFacts(
+        effort.root, current="main", refs={"main": MERGE, "develop": PARENT, "topic": TIP},
+        ancestors={(BASE, MERGE), (BASE, PARENT), (BASE, TIP)},
+        ranges={f"{BASE}..topic": (CommitSummary(TIP, "feat: effort"),),
+                "main..develop": (CommitSummary(PARENT, "feat: integration work"),),
+                "main": (CommitSummary(MERGE, "fix: independent main work"),
+                         CommitSummary(BASE, "chore: seed"))},
+        latest_tags={"main": None},
+    )
     monkeypatch.setattr(release_workflow, "GitRepository", lambda _root: repository)
-    return base
+    return BASE
