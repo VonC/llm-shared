@@ -250,23 +250,35 @@ def _resume_claim(args: Namespace, root: Path) -> tuple[dict[str, Any], int]:
 def _selected_exchanges(entries: Sequence[object], args: Namespace, root: Path) -> tuple[ExchangeStatus, ...]:
     """Honor exact selections and restrict reviewer discovery to pending requests."""
     document = getattr(args, "document", None)
+    step = getattr(args, "implementation_step", None)
     result = tuple(
-        entry for entry in entries if isinstance(entry, ExchangeStatus)
-        and (document is None or (root / entry.reviewed_document).resolve() == (root / document).resolve())
-        and (getattr(args, "implementation_step", None) is None or entry.implementation_step == args.implementation_step)
+        entry for entry in entries
+        if isinstance(entry, ExchangeStatus) and _matches_selection(entry, root, document, step)
     )
     if document is not None and not result:
         message = "selected exchange is no longer active; inspect again"
         raise ReviewExchangeError(message)
     if document is None and args.role == ReviewRole.REVIEWER.value:
-        if any(entry.state is ArtifactState.ANSWER_PUBLICATION_IN_PROGRESS for entry in result):
-            message = "reviewer discovery is blocked while answer publication is in progress; inspect again after it finishes"
-            raise ReviewExchangeError(message)
-        result = tuple(
-            entry for entry in result
-            if entry.state in {ArtifactState.REQUEST_PENDING, ArtifactState.ABANDONED_REQUEST}
-        )
+        return _reviewer_requests(result)
     return result
+
+
+def _matches_selection(entry: ExchangeStatus, root: Path, document: str | None, step: object) -> bool:
+    """Return whether one exchange matches the exact document and step selection."""
+    if document is not None and (root / entry.reviewed_document).resolve() != (root / document).resolve():
+        return False
+    return step is None or entry.implementation_step == step
+
+
+def _reviewer_requests(entries: tuple[ExchangeStatus, ...]) -> tuple[ExchangeStatus, ...]:
+    """Keep pending requests, refusing discovery while an answer is being published."""
+    if any(entry.state is ArtifactState.ANSWER_PUBLICATION_IN_PROGRESS for entry in entries):
+        message = "reviewer discovery is blocked while answer publication is in progress; inspect again after it finishes"
+        raise ReviewExchangeError(message)
+    return tuple(
+        entry for entry in entries
+        if entry.state in {ArtifactState.REQUEST_PENDING, ArtifactState.ABANDONED_REQUEST}
+    )
 
 
 @dataclass
