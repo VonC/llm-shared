@@ -36,7 +36,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from tools.groundhog import detach, render, runner
+from tools.groundhog import detach, render, runner, selection
 from tools.groundhog.levels import LevelSource
 from tools.scope_capture import WHOLE_SCOPE, ResolvedScope
 
@@ -64,7 +64,9 @@ class Deps:
         pytest_project: Root probe for a pytest suite, gating the pytest
             steps before the pytest lookup.
         environ: Environment lookup, read only for ``GHOG_FULL`` when no
-            ``--full`` parameter selects a level.
+            ``--full`` parameter selects a level, and for the affected threshold.
+        selection_counts: Collection-only affected/full counts; no result
+            retains the ordinary day sequence.
     """
 
     popen_factory: Callable[[list[str], Path], subprocess.Popen[str]] = (
@@ -80,6 +82,7 @@ class Deps:
     sleep: Callable[[float], None] = time.sleep
     pytest_project: Callable[[Path], bool] = runner.is_pytest_project
     environ: Callable[[str], str | None] = os.environ.get
+    selection_counts: Callable[[Invocation, Deps], tuple[int, int] | None] = selection.counts
 
 
 @dataclass(frozen=True)

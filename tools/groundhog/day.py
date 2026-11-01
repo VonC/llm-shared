@@ -57,6 +57,7 @@ from tools.groundhog import (
     reporting,
     reporting_nextstep,
     runner,
+    selection,
     snapshot,
 )
 from tools.groundhog.evidence import Reused, RunOutcome
@@ -234,6 +235,8 @@ def _whole_chain(record: _Walk) -> int:
         return code
     # check.bat may have fixed sources: the test steps judge the fixed ones.
     record.state = record.state.on_sources(snapshot.source_digest(record.invocation.root, record.invocation.inventory))
+    if _skip_affected(record):
+        return _full_steps(record)
     code = record.run_pytest_step(_AFFECTED_LABEL, runner.SUB_AFFECTED, no_cov=True)
     if not record.judged:
         return code
@@ -245,6 +248,27 @@ def _whole_chain(record: _Walk) -> int:
         commands.emit_summary(["", reporting_nextstep.success_line(FullLevel.NONE, record.invocation.scope)])
         return code
     return _full_steps(record)
+
+
+def _skip_affected(record: _Walk) -> bool:
+    """Skip execution only when reliable counts exceed the configured share."""
+    if record.level is FullLevel.NONE:
+        return False
+    percent = selection.threshold(record.deps)
+    if percent is None or percent == selection.DISABLED_PERCENT:
+        return False
+    commands.emit_summary([f"{record.project}: ghog day collecting affected/full selection counts"])
+    counts = record.deps.selection_counts(record.invocation, record.deps)
+    if counts is None:
+        commands.emit_summary([f"{record.project}: selection counts unavailable; keeping affected step"])
+        return False
+    affected, total = counts
+    skip = total > 0 and affected * 100 > percent * total
+    action = "skipped; proceeding to full" if skip else "retained"
+    commands.emit_summary([
+        f"{record.project}: affected {affected}/{total}; threshold={percent:g}%; execution {action}",
+    ])
+    return skip
 
 
 def _full_steps(record: _Walk) -> int:

@@ -153,6 +153,7 @@ def make_deps(
         which=lambda _name: "pytest",
         pytest_project=lambda _root: True,
         environ=variables.get,
+        selection_counts=lambda _invocation, _deps: None,
     )
 
 
