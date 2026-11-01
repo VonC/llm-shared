@@ -35,9 +35,11 @@ Fix: a grouped sequential full run adds ``--testmon-noselect``. It runs every
 group test while refreshing only their testmon records, since the reset of the
 shared map now belongs to the whole-suite full run alone.
 
-Fix: two checkouts walking at once pinned every CPU and skewed each other's
-duration gate. :func:`run_streaming` now runs each child inside the user's
-machine-wide run slot (``slot.py``): a stage of another checkout waits for it.
+Fix: the machine-wide run slot is gone. Serializing every checkout's children
+behind one per-user lock let one slow suite block the runs of every other
+checkout for hours, inside their own time budgets. :func:`run_streaming` now
+starts its child at once; the worker bound and the below-normal priority below
+keep each run's load on the machine bounded.
 
 Fix: ``-n auto`` spawned one worker per logical CPU on a shared workstation.
 :func:`worker_environment` bounds it through ``PYTEST_XDIST_AUTO_NUM_WORKERS``
@@ -51,10 +53,8 @@ from __future__ import annotations
 import os
 import subprocess
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import TYPE_CHECKING, Final
 
-from tools.groundhog import slot
 from tools.groundhog.levels import FullLevel
 from tools.groundhog.models import (
     PYTEST_INTERNAL_ERROR,
@@ -65,6 +65,7 @@ from tools.groundhog.parser import PytestOutputParser
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping, Sequence
+    from pathlib import Path
 
     from tools.groundhog.models import RunStats
 
@@ -336,7 +337,10 @@ def reset_testmon(root: Path) -> None:
 
 
 def run_streaming(config: StreamConfig, on_line: Callable[[str], None]) -> int:
-    """Run one child and hand each output line to a callback.
+    """Run one child at once and hand each output line to a callback.
+
+    The child never waits for a run of another checkout or project: groundhog
+    holds no machine-wide slot, lock or queue.
 
     Args:
         config: The command, working directory and process factory.
@@ -345,21 +349,19 @@ def run_streaming(config: StreamConfig, on_line: Callable[[str], None]) -> int:
     Returns:
         The child exit code.
     """
-    child = Path(config.command[0]).name if config.command else "child"
-    with slot.machine_slot(f"{config.cwd}: {child}"):
-        previous = {name: os.environ.get(name) for name in config.env_overrides}
-        try:
-            os.environ.update(config.env_overrides)
-            process = config.popen_factory(config.command, config.cwd)
-        finally:
-            for name, value in previous.items():
-                if value is None:
-                    os.environ.pop(name, None)
-                else:
-                    os.environ[name] = value
-        for raw in process.stdout or []:
-            on_line(raw.rstrip("\n"))
-        return process.wait()
+    previous = {name: os.environ.get(name) for name in config.env_overrides}
+    try:
+        os.environ.update(config.env_overrides)
+        process = config.popen_factory(config.command, config.cwd)
+    finally:
+        for name, value in previous.items():
+            if value is None:
+                os.environ.pop(name, None)
+            else:
+                os.environ[name] = value
+    for raw in process.stdout or []:
+        on_line(raw.rstrip("\n"))
+    return process.wait()
 
 
 def run_pytest(

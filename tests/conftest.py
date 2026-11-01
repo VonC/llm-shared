@@ -26,11 +26,8 @@ Automatic worker selection is capped at four: spawning a worker per core
 multiplies coverage and filesystem contention in this I/O-heavy suite.
 An explicit worker count or PYTEST_XDIST_AUTO_NUM_WORKERS still wins.
 
-Fix: groundhog now runs each child inside the user's machine-wide run slot.
-The suite drives groundhog in-process with faked children, so the session
-marks itself as a slot holder (``GHOG_SLOT_HELD``): a plain pytest run never
-takes, or waits for, the slot of a real walk in another checkout. The slot's
-own tests clear the mark and use a temporary slot folder.
+Fix: groundhog no longer has a machine-wide run slot, so the session no
+longer marks itself as a slot holder.
 
 Fix: a plain ``pytest -n auto`` uses groundhog's own default bound
 (``tools.groundhog.runner.auto_workers``: a quarter of the logical CPUs, at
@@ -83,14 +80,6 @@ def pytest_configure() -> None:
     """Start the native ``git.exe`` instead of its launcher for every Git child."""
     path = os.environ.get("PATH", "")
     os.environ["PATH"] = native_git_path(path, shutil.which("git", path=path))
-
-
-@pytest.fixture(scope="session", autouse=True)
-def groundhog_slot_held() -> Iterator[None]:
-    """Let in-process groundhog runs pass through the machine-wide run slot."""
-    with pytest.MonkeyPatch.context() as patch:
-        patch.setenv("GHOG_SLOT_HELD", "1")
-        yield
 
 
 @pytest.hookimpl(optionalhook=True)
