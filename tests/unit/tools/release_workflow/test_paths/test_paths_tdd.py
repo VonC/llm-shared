@@ -3,11 +3,14 @@
 Share a worker with the configuration matrix to build its session template
 once, avoiding concurrent copies of identical native Git initialization.
 Read-only authorization cases share validated roots and real junctions;
-discovery and mutation cases retain independent repositories.
-The equivalent-root case creates only its own junction, so its timeout does
+discovery reuses immutable template metadata; mutation cases stay independent.
+The equivalent-root fixture creates only its own junction, so its timeout does
 not include unrelated boundary construction and duplicate root validation.
 The explicit outside-Git case asserts its fixture's real captured failure;
 both native probes still run and their setup duration is recorded.
+Textual escapes and file ancestors reuse the same validated boundary matrix,
+removing three repository copies and six native probes from those cases.
+Linked Git-file rejection shares one native validated identity for both targets.
 """
 
 from __future__ import annotations
@@ -24,6 +27,8 @@ from tools.release_workflow.paths import (
 )
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from tests.unit.tools.release_workflow.git_test_support import GitSandbox
     from tools.release_workflow.git import GitExecutionContext
     from tools.release_workflow.paths import ProjectIdentity
@@ -51,7 +56,7 @@ def test_stale_a_index_still_reads_b(indexed_sandbox: GitSandbox) -> None:
     """Real tracked entries come from B even when the caller selects A's index."""
     root_a, root_b = indexed_sandbox.home / "A", indexed_sandbox.home / "B"
     git = context(indexed_sandbox, GIT_INDEX_FILE=str(root_a / ".git" / "index"))
-    assert git.run(["ls-files", "-z"], cwd=root_b).stdout == "B.txt\0"
+    assert git.index(cwd=root_b) == ("B.txt",)
 
 
 def test_linked_worktree_configuration_is_repository_owned(linked_sandbox: GitSandbox) -> None:
@@ -78,16 +83,15 @@ def test_invalid_explicit_roots(supplied: str | None, git_sandbox: GitSandbox) -
         validate_project(supplied, context(git_sandbox))
 
 
-def test_alias_discovers_from_subfolder(git_sandbox: GitSandbox) -> None:
+def test_alias_discovers_from_subfolder(git_template: GitSandbox, discovered_project: ProjectIdentity) -> None:
     """Alias discovery uses the same physical-root validation from a subfolder."""
-    identity = discover_project(git_sandbox.home / "B" / "sub", context(git_sandbox))
-    assert identity.root.samefile(git_sandbox.home / "B")
+    assert discovered_project.root.samefile(git_template.home / "B")
 
 
-def test_equivalent_physical_roots(git_sandbox: GitSandbox) -> None:
+def test_equivalent_physical_roots(git_sandbox: GitSandbox, equivalent_alias: Path) -> None:
     """Case and directory-junction spellings retain the same physical root."""
     root = git_sandbox.home / "B"
-    alias = git_sandbox.junction("alias", root)
+    alias = equivalent_alias
     identity = validate_project(str(alias).upper(), context(git_sandbox))
     assert identity.root.samefile(root)
     assert identity.supplied_root == str(alias).upper()
@@ -122,9 +126,9 @@ def test_nested_repository_is_rejected(name: str, boundary_matrix: tuple[GitSand
 
 
 @pytest.mark.parametrize("name", ["../A/new", "../../elsewhere", "B.txt/child"])
-def test_escape_or_file_ancestor_is_rejected(name: str, git_sandbox: GitSandbox) -> None:
+def test_escape_or_file_ancestor_is_rejected(name: str, boundary_matrix: tuple[GitSandbox, ProjectIdentity, ProjectIdentity]) -> None:
     """Textual prefixes and existing file ancestors do not authorize a write."""
-    identity = validate_project(git_sandbox.home / "B", context(git_sandbox))
+    _, _, identity = boundary_matrix
     with pytest.raises(ProjectPathError):
         authorize_path(identity, name)
 
@@ -161,11 +165,10 @@ def test_git_metadata_is_not_a_managed_destination(name: str, boundary_matrix: t
 
 
 @pytest.mark.parametrize("name", [".git", ".git/child"])
-def test_linked_gitfile_is_not_a_managed_destination(name: str, linked_sandbox: GitSandbox) -> None:
+def test_linked_gitfile_is_not_a_managed_destination(name: str, linked_identity: ProjectIdentity) -> None:
     """Protect a linked worktree's pointer file as both target and ancestor."""
-    identity = validate_project(linked_sandbox.home / "linked", context(linked_sandbox))
     with pytest.raises(ProjectPathError, match="Git metadata"):
-        authorize_path(identity, name)
+        authorize_path(linked_identity, name)
 
 
 # eof

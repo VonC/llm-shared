@@ -1,4 +1,4 @@
-"""Prove artifact loading is read-only and preparation reuses existing policy."""
+"""Prove artifact policy with an empty-index double and real tracking mutations."""
 
 from __future__ import annotations
 
@@ -18,13 +18,22 @@ if TYPE_CHECKING:
     from os import stat_result
 
     from tests.unit.tools.release_workflow.git_test_support import GitSandbox
+    from tools.release_workflow.artifacts import ArtifactDeclaration
+    from tools.release_workflow.git import GitExecutionContext
 
 
 @pytest.mark.parametrize("home", [".reviews", "scratch/release"])
-def test_read_only_resolution_and_explicit_preparation(git_sandbox: GitSandbox, home: str) -> None:
+def test_read_only_resolution_and_explicit_preparation(git_sandbox: GitSandbox, home: str, monkeypatch: pytest.MonkeyPatch) -> None:
     """Loading does not initialize the home or migrate legacy scratch files."""
     root = git_sandbox.home / "B"
     project = ProjectIdentity(root, root / ".git", root / ".git", str(root))
+
+    def untracked(_git: GitExecutionContext, actual_root: Path, relative: str) -> bool:
+        assert actual_root == root
+        assert relative == home
+        return False
+
+    monkeypatch.setattr("tools.release_workflow.artifacts._tracked", untracked)
     if home != ".reviews":
         (root / ".review-artifacts.ini").write_text(f"[review-artifacts]\nhome={home}\n", encoding="utf-8")
     legacy = root / "a.legacy.txt"
@@ -40,8 +49,9 @@ def test_read_only_resolution_and_explicit_preparation(git_sandbox: GitSandbox, 
     assert prepare_artifacts(declaration, git_sandbox.context()).home == prepared.home
 
 
-def test_invalid_and_tracked_artifact_homes_are_preflight_failures(git_sandbox: GitSandbox) -> None:
+def test_invalid_and_tracked_artifact_homes_are_preflight_failures(tracked_artifact_sandbox: GitSandbox) -> None:
     """The controlled project's index determines tracking without preparation."""
+    git_sandbox = tracked_artifact_sandbox
     root = git_sandbox.home / "B"
     project = ProjectIdentity(root, root / ".git", root / ".git", str(root))
     source = root / ".review-artifacts.ini"
@@ -51,8 +61,6 @@ def test_invalid_and_tracked_artifact_homes_are_preflight_failures(git_sandbox: 
     expected_status = 2
     assert invalid.value.exit_code == expected_status
     source.write_text("[review-artifacts]\nhome=sub\n", encoding="utf-8")
-    (root / "sub/tracked").write_bytes(b"tracked")
-    git_sandbox.git(["add", "sub/tracked"], cwd=root)
     with pytest.raises(ArtifactError, match="tracked"):
         resolve_artifacts(project, git_sandbox.context())
     assert not (root / "sub/.gitignore").exists()
@@ -185,14 +193,9 @@ def test_resolved_declaration_escape_is_rejected(git_sandbox: GitSandbox, monkey
     assert not (root / "private").exists()
 
 
-def test_preparation_rejects_new_tracking(git_sandbox: GitSandbox) -> None:
+def test_preparation_rejects_new_tracking(git_sandbox: GitSandbox, newly_tracked_artifacts: ArtifactDeclaration) -> None:
     """An index change between resolution and preparation is checked again."""
-    root = git_sandbox.home / "B"
-    project = ProjectIdentity(root, root / ".git", root / ".git", str(root))
-    declaration = resolve_artifacts(project, git_sandbox.context())
-    declaration.home.mkdir()
-    (declaration.home / "tracked").write_bytes(b"keep")
-    git_sandbox.git(["add", ".reviews/tracked"], cwd=root)
+    declaration = newly_tracked_artifacts
     with pytest.raises(ArtifactError, match="tracked") as caught:
         prepare_artifacts(declaration, git_sandbox.context())
     assert caught.value.exit_code == 1

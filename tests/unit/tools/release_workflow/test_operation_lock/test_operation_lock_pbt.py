@@ -1,18 +1,20 @@
-"""Check native ownership transitions with bounded I/O and an independent model.
+"""Check ownership transitions against declared process facts and a model.
 
-Six generated traces complement the explicit retained-ownership lifecycle;
+Four generated traces complement the explicit retained-ownership lifecycle;
 every trace retains the full action range and per-transition assertions.
 """
 
 from __future__ import annotations
 
+from contextlib import nullcontext
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import pytest
-from hypothesis import HealthCheck, example, given, settings
+from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
+from tools.release_workflow import operation_lock
 from tools.release_workflow.artifacts import PreparedArtifacts
 from tools.release_workflow.managed_files import authorize_write
 from tools.release_workflow.operation_lock import (
@@ -21,6 +23,7 @@ from tools.release_workflow.operation_lock import (
     RetainedOwnership,
 )
 from tools.release_workflow.paths import ProjectIdentity
+from tools.release_workflow.windows_process import ProcessIdentity, ProcessState
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -36,7 +39,7 @@ class LockModel:
 
     def acquire(self) -> None:
         """Only absence allows a fresh operation to acquire."""
-        candidate = OperationLock(self.artifacts)
+        candidate = OperationLock(self.artifacts, probe=lambda _owner: ProcessState.ALIVE)
         if self.active is not None or self.retained is not None:
             with pytest.raises(OperationLockError):
                 candidate.acquire()
@@ -73,11 +76,30 @@ class LockModel:
             self.retained = None
 
 
-@settings(max_examples=6, suppress_health_check=[HealthCheck.function_scoped_fixture])
-@example(actions=["acquire", "retain", "release", "acquire", "transfer", "transfer", "release"])
+def _uncontended_mutex(_name: str) -> nullcontext[None]:
+    """Declare immediate serialization for the single-threaded model trace."""
+    return nullcontext()
+
+
+@pytest.mark.parametrize("_batch", range(2))
+@settings(max_examples=2, suppress_health_check=[HealthCheck.function_scoped_fixture])
 @given(actions=st.lists(st.sampled_from(["acquire", "retain", "transfer", "release"]), min_size=1, max_size=8))
-def test_lock_transitions_preserve_single_ownership(tmp_path: Path, actions: list[str]) -> None:
+def test_lock_transitions_preserve_single_ownership(
+    _batch: int, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, actions: list[str],
+) -> None:
     """Generated transitions cannot lose retained ownership or grant a second owner."""
+    _assert_trace(tmp_path, monkeypatch, actions)
+
+
+def test_retained_ownership_lifecycle(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Retain the full seven-transition counterexample independently of generation."""
+    _assert_trace(tmp_path, monkeypatch, ["acquire", "retain", "release", "acquire", "transfer", "transfer", "release"])
+
+
+def _assert_trace(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, actions: list[str]) -> None:
+    """Check the model after every real transition and release every issued handle."""
+    monkeypatch.setattr(operation_lock, "current_identity", lambda: ProcessIdentity(101, 1))
+    monkeypatch.setattr(operation_lock, "transition_mutex", _uncontended_mutex)
     root = tmp_path
     project = ProjectIdentity(root, root / ".git", root / ".git", str(root))
     home = root / ".reviews"

@@ -20,8 +20,11 @@ def test_repository_release_declarations() -> None:
     """The stdlib-only release group is empty in both project and generated lock."""
     root = Path(__file__).resolve().parents[5]
     project = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))
-    lock = tomllib.loads((root / "uv.lock").read_text(encoding="utf-8"))
-    package = next(item for item in lock["package"] if item["source"] == {"virtual": "."})
+    # The generated lock has independent package tables. Parse the project's
+    # real declaration without constructing every unrelated wheel record.
+    sections = (root / "uv.lock").read_text(encoding="utf-8").split("[[package]]")
+    section = next(part for part in sections[1:] if 'source = { virtual = "." }' in part)
+    package = tomllib.loads("[[package]]" + section)["package"][0]
     assert project["dependency-groups"]["release"] == package["metadata"]["requires-dev"]["release"] == []
     assert {"include-group": "release"} in project["dependency-groups"]["dev"]
 

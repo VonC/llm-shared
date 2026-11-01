@@ -1,4 +1,4 @@
-"""Prove write boundaries reject changed destinations and preserve original data."""
+"""Prove writes preserve data and reject drive-relative paths before probing."""
 
 from __future__ import annotations
 
@@ -42,6 +42,19 @@ def test_authorization_is_read_only_and_replacement_is_atomic(tmp_path: Path) ->
 def test_unsafe_windows_destinations_fail_without_changes(tmp_path: Path, name: str) -> None:
     """Root aliases, escape, reserved devices and alternate streams are invalid."""
     with pytest.raises(ManagedWriteError):
+        authorize_write(identity(tmp_path), name)
+    assert list(tmp_path.iterdir()) == []
+
+
+@pytest.mark.parametrize("name", ["x:stream", "C:relative", "C:"])
+def test_drive_relative_paths_fail_before_filesystem_authorization(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, name: str) -> None:
+    """Ambient drive directories must never influence a managed destination."""
+    def unexpected(_project: ProjectIdentity, _supplied: Path) -> Path:
+        msg = "Drive-relative input reached filesystem authorization"
+        raise AssertionError(msg)
+
+    monkeypatch.setattr(managed_files, "authorize_path", unexpected)
+    with pytest.raises(ManagedWriteError, match="drive-relative"):
         authorize_write(identity(tmp_path), name)
     assert list(tmp_path.iterdir()) == []
 

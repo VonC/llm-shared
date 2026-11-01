@@ -12,14 +12,13 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from tools.release_workflow.git_environment import GitPolicyError
+from tools.release_workflow.git_environment import ConfigEntry, GitPolicyError
 from tools.release_workflow.paths import ProjectPathError, validate_project
 
 if TYPE_CHECKING:
     from pathlib import Path
 
     from tests.unit.tools.release_workflow.git_test_support import GitSandbox
-    from tools.release_workflow.git_environment import ConfigEntry
     from tools.release_workflow.paths import ProjectIdentity
 
 pytestmark = [pytest.mark.timeout(10), pytest.mark.xdist_group("release_git")]
@@ -42,9 +41,10 @@ def test_selected_files_preserve_identity_signing_and_credentials(git_sandbox: G
     included = git_sandbox.home / "benign.cfg"
     selected.write_text("[include]\n path = benign.cfg\n", encoding="utf-8")
     included.write_text("[user]\n name = Release User\n signingkey = test-key\n[commit]\n gpgsign = true\n[credential]\n helper = fixture-helper\n[gpg]\n program = fixture-signer\n", encoding="utf-8")
+    expected = {"user.name": "Release User", "user.signingkey": "test-key", "commit.gpgsign": "true", "credential.helper": "fixture-helper", "gpg.program": "fixture-signer"}
+    git_sandbox.configure(selected, *(ConfigEntry("global", f"file:{included}", key, value) for key, value in expected.items()))
     git = git_sandbox.context(GIT_CONFIG_GLOBAL=str(selected), GIT_AUTHOR_NAME="Preserved Author")
     entries = {entry.key: entry for entry in git.inspect_config(cwd=git_sandbox.home / "B")}
-    expected = {"user.name": "Release User", "user.signingkey": "test-key", "commit.gpgsign": "true", "credential.helper": "fixture-helper", "gpg.program": "fixture-signer"}
     assert {key: entries[key].value for key in expected} == expected
     assert all(entries[key].scope == "global" and "benign.cfg" in entries[key].origin for key in expected)
     assert git.environment.values["GIT_AUTHOR_NAME"] == "Preserved Author"
@@ -64,6 +64,9 @@ def test_legacy_config_encoding_cannot_hide_external_routing(git_sandbox: GitSan
     """A cp1252 value cannot drop all records and bypass the origin policy."""
     selected = git_sandbox.home / "legacy.cfg"
     selected.write_bytes(b"[user]\n name = Jos\xe9\n[core]\n worktree = ../A\n")
+    git_sandbox.configure(selected,
+        ConfigEntry("global", f"file:{selected}", "user.name", b"Jos\xe9".decode("utf-8", errors="surrogateescape")),
+        ConfigEntry("global", f"file:{selected}", "core.worktree", "../A"))
     git = git_sandbox.context(GIT_CONFIG_GLOBAL=str(selected))
     with pytest.raises(ProjectPathError, match=r"global.*legacy\.cfg.*core\.worktree"):
         validate_project(git_sandbox.home / "B", git)
@@ -73,6 +76,7 @@ def test_legacy_benign_config_value_is_preserved(git_sandbox: GitSandbox) -> Non
     """Lossless decoding preserves legacy values without discarding records."""
     selected = git_sandbox.home / "legacy.cfg"
     selected.write_bytes(b"[user]\n name = Jos\xe9\n")
+    git_sandbox.configure(selected, ConfigEntry("global", f"file:{selected}", "user.name", b"Jos\xe9".decode("utf-8", errors="surrogateescape")))
     git = git_sandbox.context(GIT_CONFIG_GLOBAL=str(selected))
     entries = git.inspect_config(cwd=git_sandbox.home / "B")
     name = next(entry for entry in entries if entry.key == "user.name")

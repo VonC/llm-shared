@@ -2,14 +2,17 @@
 
 from __future__ import annotations
 
-from hypothesis import given
+import pytest
+from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from tools.release_workflow.markers import evaluate, satisfies
 
 
+@pytest.mark.parametrize("_batch", range(20))
+@settings(max_examples=5)
 @given(st.integers(min_value=0, max_value=99), st.integers(min_value=0, max_value=99))
-def test_padding_is_equivalent(major: int, minor: int) -> None:
+def test_padding_is_equivalent(_batch: int, major: int, minor: int) -> None:
     """Trailing zero components never change release-version equality."""
     version = f"{major}.{minor}"
     assert satisfies(version, f"=={version}.0")

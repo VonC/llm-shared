@@ -1,63 +1,106 @@
-"""Real isolated processes prove producer authority and import failure isolation."""
+"""Production runtime publication and readiness with explicit interpreter facts."""
 
 from __future__ import annotations
 
-import json
-from typing import TYPE_CHECKING, cast
+import sys
+from pathlib import Path
 
 import pytest
 
-if TYPE_CHECKING:
-    import subprocess
+from tests.unit.tools.release_workflow.launcher_simulation import decoded, tooling
+from tests.unit.tools.release_workflow.repository_simulation import create_template
+from tools.release_workflow import runtime_identity
+
+_ROOT = Path(__file__).resolve().parents[3]
 
 
 @pytest.mark.parametrize(("scenario", "status"), [
-    ("success", 0), ("failed_setup", 7), ("no_environment", 0),
-    ("missing_python", 2), ("foreign_python", 0),
+    ("success", 0), ("failed_setup", 7), ("missing_python", 2), ("foreign_python", 0),
 ])
-def test_setup_entry(processes: dict[str, object], scenario: str, status: int) -> None:
-    """Batch entry propagates saved status and only publishes measured success."""
-    result = cast("subprocess.CompletedProcess[str]", processes[scenario])
-    assert result.returncode == status, result.stdout + result.stderr
-    assert processes["preserved"]
-    assert processes["nonlocal_preserved"]
-    assert processes["record"] == "1\nvenvs/prepared\n"
-    if scenario in ("no_environment", "foreign_python"):
-        assert "Warning: release runtime identity not updated" in result.stderr
+def test_setup_entry(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str],
+                     scenario: str, status: int) -> None:
+    """Only successful local measurement publishes; failures preserve prior bytes."""
+    selected = tooling(tmp_path / "tooling")
+    record = selected.root / "venvs/release-runtime.v1.txt"
+    before = record.read_bytes()
+    if scenario == "success":
+        record.unlink()
+    if scenario == "missing_python":
+        selected.identity.executable.unlink()
+    prefix = tmp_path / "foreign" if scenario == "foreign_python" else selected.identity.prefix
+    monkeypatch.setattr(sys, "prefix", str(prefix))
+    monkeypatch.setattr(sys, "executable", str(prefix / "Scripts/python.exe"))
+    code = runtime_identity.main([str(selected.root), "7" if scenario == "failed_setup" else "0"])
+    assert code == status
+    assert record.read_bytes() == before
+    if scenario == "foreign_python":
+        assert "Warning: release runtime identity not updated" in capsys.readouterr().err
+
+
+def test_setup_status_cleanup_source() -> None:
+    """The batch boundary preserves status and clears its temporary variables."""
+    source = (_ROOT / "senv.bat").read_text(encoding="utf-8")
+    start = source.index('pushd "%PRJ_DIR%"\ncall switchpy')
+    block = source[start:source.index("REM Install composable hooks", start)]
+    assert 'set "RELEASE_SETUP_STATUS=%ERRORLEVEL%"' in block
+    assert 'set "RELEASE_RUNTIME_STATUS=%ERRORLEVEL%"' in block
+    assert 'set "RELEASE_SETUP_STATUS="' in block
+    assert 'set "RELEASE_RUNTIME_STATUS="' in block
+    assert "exit /b" in block
 
 
 @pytest.mark.parametrize(("scenario", "status"), [
-    ("clean_success", 0), ("clean_setup_failure", 7), ("clean_producer_failure", 2),
+    ("ready", 0), ("missing_record", 2), ("escaped_record", 2), ("missing_engine", 2),
 ])
-def test_setup_status_cleanup(processes: dict[str, object], scenario: str, status: int) -> None:
-    """The actual senv block preserves failures and never leaks its temporaries."""
-    result = cast("subprocess.CompletedProcess[str]", processes[scenario])
-    assert result.returncode == status, result.stdout + result.stderr
-    assert "STATUS_CLEAN" in result.stdout
-    assert ("SETUP_CONTINUED" in result.stdout) == (status == 0)
+def test_bootstrap_readiness(tmp_path: Path, scenario: str, status: int) -> None:
+    """Readiness rejects invalid records and leaves caller contents untouched."""
+    selected = tooling(tmp_path / "tooling")
+    home = tmp_path / "repository"
+    home.mkdir()
+    sandbox = create_template(home)
+    root = home / "B"
+    sentinel = root / "keep.txt"
+    sentinel.write_bytes(b"caller content")
+    record = selected.root / "venvs/release-runtime.v1.txt"
+    if scenario == "missing_record":
+        record.unlink()
+    elif scenario == "missing_engine":
+        (selected.root / "tools/release_workflow/cli.py").unlink()
+    elif scenario == "escaped_record":
+        outside = tmp_path / "outside/Scripts"
+        outside.mkdir(parents=True)
+        (outside / "python.exe").write_bytes(b"data only")
+        # The frozen filesystem simulation supplies the escaping junction.
+        import _winapi  # noqa: PLC0415 - Windows filesystem boundary
 
-
-@pytest.mark.parametrize(("scenario", "status", "imported"), [
-    ("ready", 0, True), ("missing_engine", 2, True), ("missing_record", 2, False),
-    ("escaped_record", 2, False),
-])
-def test_isolated_bootstrap(processes: dict[str, object], scenario: str, status: int, *, imported: bool) -> None:
-    """Failure before readiness leaves tools unimported and consumer untouched."""
-    result = cast("subprocess.CompletedProcess[str]", processes[scenario])
-    assert result.returncode == 0, result.stderr
-    observed = json.loads(result.stdout)
-    assert observed == {"status": status, "tools": imported, "isolated": 1, "utf8": 1, "bytecode": True}
+        _winapi.CreateJunction(str(outside.parent), str(selected.root / "venvs/escaped"))
+        record.write_text("1\nvenvs/escaped\n", encoding="utf-8")
+    result = selected.run(["probe", "--project-root", str(root)], sandbox=sandbox, cwd=root)
+    assert result.returncode == status
     if status:
-        assert "Run this checkout's setup" in result.stderr
-    assert processes["cache_files"] == []
-    assert processes["consumer_unchanged"]
+        assert b"Run this checkout's setup" in result.stderr
+        assert not result.stdout
+    assert sentinel.read_bytes() == b"caller content"
 
 
-def test_eager_import_closure(eager_closure: subprocess.CompletedProcess[str]) -> None:
-    """The real tools initializer and its closure need no third-party packages."""
-    assert eager_closure.returncode == 0, eager_closure.stderr
-    imports = json.loads(eager_closure.stdout)
-    assert "tools.review_exchange_publication" in imports
-    assert "tools.release_workflow" in imports
+def test_bootstrap_disables_bytecode(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Production bootstrap changes the interpreter flag before dispatch."""
+    selected = tooling(tmp_path / "tooling")
+    monkeypatch.setattr(sys, "dont_write_bytecode", False)
+    home = tmp_path / "repository"
+    home.mkdir()
+    sandbox = create_template(home)
+    root = home / "B"
+    result = selected.run(["probe", "--project-root", str(root)], sandbox=sandbox, cwd=root)
+    assert result.returncode == 0
+    assert decoded(result)["dont_write_bytecode"] is True
+
+
+def test_isolated_interpreter_source() -> None:
+    """The shipped entries explicitly request isolated, UTF-8 Python startup."""
+    for name in ("release_workflow.bat", "release_alias.bat"):
+        source = (_ROOT / "bin" / name).read_text(encoding="utf-8")
+        assert 'python.exe" -I -X utf8' in source
+
 
 # eof

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import replace
+from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
@@ -38,14 +39,26 @@ def test_native_probe_failures_are_conservative(
     monkeypatch: pytest.MonkeyPatch, *, opened: bool, wait: int, error: int, expected: ProcessState,
 ) -> None:
     """Only missing/signalled processes prove death; permissions are uncertainty."""
-    api = MagicMock()
-    api.OpenProcess.return_value = int(opened)
-    api.WaitForSingleObject.return_value = wait
-    api.GetProcessTimes.return_value = 0
+    def open_process(*_args: object) -> int:
+        return int(opened)
+
+    def wait_for_process(*_args: object) -> int:
+        return wait
+
+    def get_times(*_args: object) -> int:
+        return 0
+
+    closed: list[int] = []
+    api = SimpleNamespace(
+        OpenProcess=open_process,
+        WaitForSingleObject=wait_for_process,
+        GetProcessTimes=get_times,
+        CloseHandle=closed.append,
+    )
     monkeypatch.setattr(windows_process, "_kernel", lambda: api)
     monkeypatch.setattr(windows_process.ctypes, "get_last_error", lambda: error)
     assert process_state(ProcessIdentity(123, 456)) is expected
-    assert api.CloseHandle.call_count == int(opened)
+    assert closed == ([1] if opened else [])
 
 
 def test_invalid_identity_and_unavailable_current_identity(monkeypatch: pytest.MonkeyPatch) -> None:

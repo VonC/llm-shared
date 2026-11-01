@@ -1,35 +1,55 @@
-"""Prove shared lock ownership, conservative recovery and validated handoffs."""
+"""Prove shared lock ownership, conservative recovery and validated handoffs.
+
+Lock-only cases start with a prepared authorized home and declared process and
+transition observations. Contention is scheduled at the transition boundary;
+the Windows adapter has its own API contract tests, without native waits here.
+"""
 
 from __future__ import annotations
 
 import json
-from concurrent.futures import ThreadPoolExecutor
+from contextlib import contextmanager, nullcontext
 from dataclasses import replace
-from threading import Event, get_ident
 from typing import TYPE_CHECKING
-from unittest.mock import MagicMock
 
 import pytest
 
 from tools.release_workflow import operation_lock, windows_process
-from tools.release_workflow.artifacts import prepare_artifacts, resolve_artifacts
+from tools.release_workflow.artifacts import (
+    PreparedArtifacts,
+    prepare_artifacts,
+    resolve_artifacts,
+)
+from tools.release_workflow.managed_files import authorize_write
 from tools.release_workflow.operation_lock import OperationLock, OperationLockError
 from tools.release_workflow.paths import ProjectIdentity
 from tools.release_workflow.windows_process import ProcessIdentity, ProcessState
 
 if TYPE_CHECKING:
+    from collections.abc import Generator
     from pathlib import Path
 
     from tests.unit.tools.release_workflow.git_test_support import GitSandbox
-    from tools.release_workflow.artifacts import PreparedArtifacts
 
 
 @pytest.fixture
-def artifacts(git_sandbox: GitSandbox) -> PreparedArtifacts:
-    """Prepare only this case's isolated project home through the real adapter."""
-    root = git_sandbox.home / "B"
+def artifacts(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> PreparedArtifacts:
+    """Give each lock case independent files and deterministic process facts."""
+    monkeypatch.setattr(operation_lock, "current_identity", lambda: ProcessIdentity(42, 123))
+    def process_alive(_pid: int) -> tuple[ProcessState, int]:
+        return ProcessState.ALIVE, 123
+
+    def uncontended(_name: str) -> nullcontext[None]:
+        return nullcontext()
+
+    monkeypatch.setattr(windows_process, "_probe", process_alive)
+    monkeypatch.setattr(operation_lock, "transition_mutex", uncontended)
+    root = tmp_path / "lock-project"
+    home = root / ".reviews"
+    home.mkdir(parents=True)
+    (home / ".gitignore").write_bytes(b"*\n")
     project = ProjectIdentity(root, root / ".git", root / ".git", str(root))
-    return prepare_artifacts(resolve_artifacts(project, git_sandbox.context()), git_sandbox.context())
+    return PreparedArtifacts(project, authorize_write(project, home))
 
 
 def test_live_owner_blocks_other_domains_and_release_is_owned(artifacts: PreparedArtifacts) -> None:
@@ -157,15 +177,18 @@ def test_unreadable_record_is_preserved(artifacts: PreparedArtifacts, monkeypatc
 
 
 def test_two_stale_recoverers_cannot_remove_successor(artifacts: PreparedArtifacts, monkeypatch: pytest.MonkeyPatch) -> None:
-    """Real kernel serialization excludes another thread during dead-owner proof."""
-    monkeypatch.setattr(windows_process, "_TRANSITION_WAIT_MS", 20, raising=False)
+    """A busy transition rejects the contender before it can remove a successor."""
     first = OperationLock(artifacts).acquire()
     contender = OperationLock(artifacts, probe=lambda _owner: ProcessState.DEAD)
+    def busy(_name: str) -> None:
+        message = "Project operation transition mutex unavailable (wait=258)"
+        raise OSError(message)
+
     def dead_after_contention(_owner: ProcessIdentity) -> ProcessState:
-        with ThreadPoolExecutor(max_workers=1) as executor:
-            future = executor.submit(contender.acquire)
+        with monkeypatch.context() as patch:
+            patch.setattr(operation_lock, "transition_mutex", busy)
             with pytest.raises(OperationLockError, match="mutex"):
-                future.result(timeout=2)
+                contender.acquire()
         return ProcessState.DEAD
     successor = OperationLock(artifacts, probe=dead_after_contention).acquire()
     before = (artifacts.home / "a.release-operation.lock").read_bytes()
@@ -179,58 +202,35 @@ def test_two_stale_recoverers_cannot_remove_successor(artifacts: PreparedArtifac
 def test_owner_transition_waits_for_contender_record_check(
     artifacts: PreparedArtifacts, monkeypatch: pytest.MonkeyPatch, transition: str,
 ) -> None:
-    """A real busy kernel mutex delays owner cleanup and handoff without losing them."""
+    """Owner transitions wait for a scheduled contender check before changing bytes."""
     owner = OperationLock(artifacts).acquire()
     proof = owner.retain("build") if transition == "transfer" else None
     successor = OperationLock(artifacts)
     contender = OperationLock(artifacts)
-    entered, finish = Event(), Event()
-    read, kernel = OperationLock._read, windows_process._kernel
-    owner_thread = get_ident()
+    before = (artifacts.home / "a.release-operation.lock").read_bytes()
+    checked: list[bool] = []
 
-    def held_read(lock: OperationLock) -> operation_lock._Owner | None:
-        record = read(lock)
-        if lock is contender:
-            entered.set()
-            assert finish.wait(0.5), "Owner never attempted the contended transition"
-        return record
-
-    def observed_kernel() -> MagicMock:
-        native = kernel()
-        api = MagicMock(wraps=native)
-
-        def wait(handle: int, milliseconds: int) -> int:
-            if api.CreateMutexW.called and get_ident() == owner_thread and not finish.is_set():
-                timeout = 0x102
-                assert native.WaitForSingleObject(handle, 0) == timeout
-                finish.set()
-                if milliseconds == 0:
-                    return timeout
-            return native.WaitForSingleObject(handle, milliseconds)
-
-        api.WaitForSingleObject.side_effect = wait
-        return api
-
-    monkeypatch.setattr(OperationLock, "_read", held_read)
-    monkeypatch.setattr(windows_process, "_kernel", observed_kernel)
-    with ThreadPoolExecutor(max_workers=1) as executor:
-        future = executor.submit(contender.acquire)
-        try:
-            assert entered.wait(0.5), "Contender never entered its record check"
-            if transition == "release":
-                owner.release()
-            elif transition == "retain":
-                proof = owner.retain("build")
-                successor.transfer(proof)
-                successor.release()
-            else:
-                assert proof is not None
-                successor.transfer(proof)
-                successor.release()
+    @contextmanager
+    def after_contender(_name: str) -> Generator[None]:
+        if not checked:
+            checked.append(True)
             with pytest.raises(OperationLockError, match=r"live or unverifiable owner|retained owner"):
-                future.result(timeout=0.5)
-        finally:
-            finish.set()
+                contender.acquire()
+            assert (artifacts.home / "a.release-operation.lock").read_bytes() == before
+        yield
+
+    monkeypatch.setattr(operation_lock, "transition_mutex", after_contender)
+    if transition == "release":
+        owner.release()
+    elif transition == "retain":
+        proof = owner.retain("build")
+        successor.transfer(proof)
+        successor.release()
+    else:
+        assert proof is not None
+        successor.transfer(proof)
+        successor.release()
+    assert checked == [True]
     assert {path.name for path in artifacts.home.iterdir()} == {".gitignore"}
 
 

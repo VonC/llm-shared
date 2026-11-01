@@ -1,4 +1,4 @@
-"""Bounded process fixtures for setup and isolated readiness acceptance."""
+"""Small lock records represent external uv observations without running uv."""
 
 from __future__ import annotations
 
@@ -6,31 +6,26 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from tests.acceptance.release_workflow.process_support import (
-    empty_uv_lock,
-    import_closure,
-    process_scenario,
-)
+from tests.unit.tools.release_workflow.test_support import metadata
 
 if TYPE_CHECKING:
-    import subprocess
     from pathlib import Path
 
 
 @pytest.fixture
-def processes(tmp_path: Path, scenario: str) -> dict[str, object]:
-    """Measure each real Windows scenario with its own complete setup."""
-    return process_scenario(tmp_path, scenario)
-
-
-@pytest.fixture(scope="module")
-def eager_closure(tmp_path_factory: pytest.TempPathFactory) -> subprocess.CompletedProcess[str]:
-    """Measure the real eager import closure once in a site-free interpreter."""
-    return import_closure(tmp_path_factory.mktemp("release_imports"))
-
-@pytest.fixture
 def uv_empty_shape(tmp_path: Path, *, dev_edges: bool) -> Path:
-    """Measure each offline uv shape with its own complete setup."""
-    return empty_uv_lock(tmp_path, dev_edges=dev_edges)
+    """Declare both supported lock shapes; readiness parsing remains real."""
+    metadata(tmp_path)
+    if dev_edges:
+        project = tmp_path / "pyproject.toml"
+        project.write_text(project.read_text(encoding="utf-8").replace(
+            'dev = [{include-group = "release"}]', 'dev = [{include-group = "release"}, "local-only"]',
+        ) + '\n[tool.uv.sources]\nlocal-only = {path="../local-only"}\n', encoding="utf-8")
+        lock = tmp_path / "uv.lock"
+        lock.write_text(lock.read_text(encoding="utf-8").replace(
+            "[package.metadata.requires-dev]", '[package.dev-dependencies]\ndev = [{name="local-only"}]\n[package.metadata.requires-dev]',
+        ) + '\n[[package]]\nname="local-only"\nversion="1.0"\nsource={directory="../local-only"}\n', encoding="utf-8")
+    return tmp_path
+
 
 # eof

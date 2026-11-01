@@ -104,6 +104,29 @@ def test_all_calls_pin_cwd_environment_and_native_arguments(selected_git: tuple[
     assert "-c" not in recorder.calls[1][0]
 
 
+@pytest.mark.parametrize(("directory", "output", "expected"), [
+    (None, "", ()),
+    (None, "a b.txt\0line\nbreak.txt\0", ("a b.txt", "line\nbreak.txt")),
+    ("a & b", 'a & b/quote".txt\0', ('a & b/quote".txt',)),
+])
+def test_index_decodes_literal_names_and_preserves_scope(
+    selected_git: tuple[GitExecutionContext, RecordingGit],
+    monkeypatch: pytest.MonkeyPatch, directory: str | None, output: str, expected: tuple[str, ...],
+) -> None:
+    """Typed index reads preserve NUL-delimited names and literal directory scope."""
+    context, _ = selected_git
+    directory_path = context.original_cwd
+    calls: list[tuple[list[str], Path]] = []
+
+    def observed(_context: GitExecutionContext, arguments: Sequence[str], *, cwd: Path) -> subprocess.CompletedProcess[str]:
+        calls.append((list(arguments), cwd))
+        return subprocess.CompletedProcess(arguments, 0, output, "")
+
+    monkeypatch.setattr(GitExecutionContext, "run", observed)
+    assert context.index(cwd=directory_path, directory=directory) == expected
+    assert calls == [(["ls-files", "-z", *([] if directory is None else ["--", directory])], directory_path)]
+
+
 def test_failure_retains_child_status_and_stderr(selected_git: tuple[GitExecutionContext, RecordingGit], tmp_path: Path) -> None:
     """Failures expose the original child result for the later public boundary."""
     context, recorder = selected_git

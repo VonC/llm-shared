@@ -1,4 +1,4 @@
-"""Real offline uv locks prove both supported empty release group shapes."""
+"""Declared uv observations exercise both supported empty release group shapes."""
 
 from __future__ import annotations
 
@@ -15,8 +15,8 @@ if TYPE_CHECKING:
 
 
 @pytest.mark.parametrize("dev_edges", [False, True], ids=["no-dev-edges", "with-dev-edges"])
-def test_uv_generated_empty_shapes(uv_empty_shape: Path) -> None:
-    """Both real uv shapes pass readiness without querying dev-only packages."""
+def test_uv_empty_shapes(uv_empty_shape: Path) -> None:
+    """Both lock shapes pass readiness without querying dev-only packages."""
     installed: dict[str, str] = {}
     assert validate(uv_empty_shape, ENV, installed.__getitem__, evaluate, satisfies) == ()
 

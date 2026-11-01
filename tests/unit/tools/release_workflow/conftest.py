@@ -1,4 +1,4 @@
-"""Reusable runtime and real Git templates for release identity contracts."""
+"""Data-only runtime and repository fixtures for production release contracts."""
 
 from __future__ import annotations
 
@@ -12,11 +12,18 @@ from tests.unit.tools.release_workflow.git_test_support import (
     copy_template,
     create_template,
 )
+from tests.unit.tools.release_workflow.invocation_test_support import probe_result
+from tests.unit.tools.release_workflow.launcher_simulation import (
+    ToolingSimulation,
+    tooling,
+)
 from tests.unit.tools.release_workflow.test_support import prepared_runtime
+from tools.release_workflow.git import GitExecutionContext
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
+    from collections.abc import Iterator, Sequence
     from pathlib import Path
+    from subprocess import CompletedProcess
 
 
 @pytest.fixture
@@ -43,7 +50,7 @@ def runtime(tmp_path: Path) -> tuple[Path, Path, Path]:
 
 @pytest.fixture(scope="session")
 def git_template(tmp_path_factory: pytest.TempPathFactory) -> GitSandbox:
-    """Initialize minimal real Git metadata and verify the executable once."""
+    """Declare minimal repository metadata and a non-executable Git port."""
     return create_template(tmp_path_factory.mktemp("release-git-template"))
 
 
@@ -53,11 +60,34 @@ def git_sandbox(git_template: GitSandbox, tmp_path: Path) -> GitSandbox:
     return copy_template(git_template, tmp_path)
 
 
+@pytest.fixture
+def read_only_git(git_sandbox: GitSandbox, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Avoid process startup in composition cases that do not test Git itself."""
+    def execute(context: GitExecutionContext, arguments: Sequence[str], *, cwd: Path,
+                check: bool = True, lossless_stdout: bool = False) -> CompletedProcess[str]:
+        del lossless_stdout
+        return probe_result(git_sandbox, context, arguments, cwd=cwd, check=check)
+
+    monkeypatch.setattr(GitExecutionContext, "_execute", execute)
+
+
 @pytest.fixture(scope="session")
 def linked_sandbox(git_template: GitSandbox, tmp_path_factory: pytest.TempPathFactory) -> GitSandbox:
-    """Share read-only real linked metadata between config and identity checks."""
+    """Share read-only linked metadata between config and identity checks."""
     sandbox = copy_template(git_template, tmp_path_factory.mktemp("release-linked"))
     sandbox.linked_worktree()
     return sandbox
+
+
+@pytest.fixture(scope="session")
+def launcher_tooling(tmp_path_factory: pytest.TempPathFactory) -> ToolingSimulation:
+    """Prepare runtime data without copying code or creating an interpreter."""
+    return tooling(tmp_path_factory.mktemp("release-launchers") / "tooling é % ^ ! & space")
+
+
+@pytest.fixture(scope="session")
+def alternate_launcher_tooling(tmp_path_factory: pytest.TempPathFactory) -> ToolingSimulation:
+    """Provide another independent tooling designation for dispatch."""
+    return tooling(tmp_path_factory.mktemp("release-alternate") / "alternate é % ^ ! & space")
 
 # eof
