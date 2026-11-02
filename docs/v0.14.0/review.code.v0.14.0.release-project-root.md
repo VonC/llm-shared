@@ -14328,3 +14328,1075 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-6 -->
+
+## Round 1 by requestor - Step 6
+
+- Recorded: 2026-11-02T17:43:35+01:00
+- Exchange: code/code/v0.14.0/release-project-root
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: unrecorded
+- Implementation step: 6
+- Outcome: request
+
+### Review identity for step 6 release-project-root (round 1)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+Implementation step: 6
+Review round: 1
+
+### Code review evidence for step 6 release-project-root (round 1)
+
+request_index_tree: 70dce7a7239e9e05395b9a280dfb809bf48ad46e
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+- `rg -n 'release_workflow|release_alias|project-root-env|input-file-env' README.md wiki/reference/aliases-and-launchers.md wiki/reference/automation-and-direct-invocation.md tools/release_workflow bin tests/unit/tools/release_workflow` (sources: plan)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "cov", "requirement": "docs/v0.14.0/feature-request.v0.14.0.release-project-root.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: docs(release-project-root): record step 6 evidence route
+group 1 path: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+group 2: test(release): accept the assembled foundation
+group 2 path: tests/unit/tools/release_workflow/acceptance_support.py
+group 2 path: tests/unit/tools/release_workflow/conftest.py
+group 2 path: tests/unit/tools/release_workflow/test_release_acceptance/__init__.py
+group 2 path: tests/unit/tools/release_workflow/test_release_acceptance/test_release_acceptance_tdd.py
+group 2 path: tests/unit/tools/release_workflow/test_release_transport/__init__.py
+group 2 path: tests/unit/tools/release_workflow/test_release_transport/test_release_transport_tdd.py
+group 2 path: tests/unit/tools/release_workflow/test_release_locking/__init__.py
+group 2 path: tests/unit/tools/release_workflow/test_release_locking/test_release_locking_tdd.py
+group 3: docs(release): document the foundation launchers
+group 3 path: wiki/reference/aliases-and-launchers.md
+group 3 path: wiki/reference/automation-and-direct-invocation.md
+group 3 path: README.md
+group 4: docs(release-project-root): record step 6 validation
+group 4 path: docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md
+group 4 path: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+staged path: README.md
+staged path: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+staged path: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+staged path: docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md
+staged path: tests/unit/tools/release_workflow/acceptance_support.py
+staged path: tests/unit/tools/release_workflow/conftest.py
+staged path: tests/unit/tools/release_workflow/test_release_acceptance/__init__.py
+staged path: tests/unit/tools/release_workflow/test_release_acceptance/test_release_acceptance_tdd.py
+staged path: tests/unit/tools/release_workflow/test_release_locking/__init__.py
+staged path: tests/unit/tools/release_workflow/test_release_locking/test_release_locking_tdd.py
+staged path: tests/unit/tools/release_workflow/test_release_transport/__init__.py
+staged path: tests/unit/tools/release_workflow/test_release_transport/test_release_transport_tdd.py
+staged path: wiki/reference/aliases-and-launchers.md
+staged path: wiki/reference/automation-and-direct-invocation.md
+```
+
+### Validation scope for step 6 release-project-root (round 1)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 6 release-project-root (round 1)
+
+Step 6 is fully implemented: the validation plan's Step 6 analysis starts with
+`Yes. Step 6 has been fully implemented.`, and the document-level status is now
+`Yes, it is implemented.` because all six steps read Yes. The sibling release
+tooling umbrella marks row 1, `release-project-root`, completed with its
+requirement and validation plan paths, in the same trailing validation group.
+
+Evidence route. The plan's Step 6 text predates the user's 2026-10-29
+simulation-only rule. On 2026-11-02 the user chose how Step 6 proves the real
+host: every automated test stays in process, and a one-off private host probe
+outside pytest exercises the real launchers. The plan's Step 6 addendums record
+that decision, the replacement of the missing `console_support.py` by Step 5's
+simulation helpers, the human's acceptance of the missing file-symlink
+evidence on a host without the symbolic-link privilege, and the approved speed
+walk as the final coverage proof. Please assess the step against those
+addendums.
+
+Tests and static checks:
+
+- `ghog single` on the three new leaves: 33 and 26 cases, all passing; the
+  highest new lifecycle used 0.031 s of CPU in focus.
+- `ghog day --whole-suite` (default level, check plus affected) exit 0 after
+  one restart. The first walk's only failure was a timing miss of 0.297 s CPU
+  on an unchanged Step 5 property case
+  (`test_groundhog_durations_pbt.py::test_a_call_back_under_half_the_floor_is_never_kept[13]`)
+  never measured before in this checkout; it passed in focus at 0.0 s and on
+  the restart. Check passed every component, Markdown included.
+- With the user's go-ahead, `ghog day --full=speed --whole-suite` exit 0:
+  5,351 tests, 100% coverage, no outlier, no exclusion, `proof=speed`, check
+  and affected reused from the green default walk; slowest call 0.39 s. Under
+  the CPU stability band every lifecycle was proven, one used the band at
+  0.109 s, and no exception exists.
+- After that walk only Markdown changed (the plan's file-symlink addendum,
+  the validation plan and the umbrella row). The repository Markdown checker
+  passes on them, including the two new wiki pages.
+- Proof disclosure: as in Step 5, the walks ran through the main checkout's
+  `bin\ghog.bat`, which runs the main checkout's groundhog code with this
+  checkout's interpreter. The whole-scope proof marker reads `proof=speed`
+  with the main groundhog's timing fingerprint, which this checkout's renderer
+  does not recognize, so the request's effective proof is `cov`. The walk did
+  measure durations: no outlier and no exclusion.
+
+Coverage. The gate measures `tools` only. Step 6 changes no file under `tools`
+or `bin`; the speed walk re-measured that scope at 100%. Every top-level symbol
+of the new test support is referenced by a test or fixture.
+
+Architecture. No production change. Acceptance handlers and the reference
+missing-launcher caller live under `tests`; production keeps an empty registry
+and no injection surface, and a test proves the shipped registry rejects every
+acceptance name. The handlers use only the public services a domain receives.
+Watch point, not a defect: the batch launchers' own `_release_*` variables
+reach the engine's environment and the controlled Git environment.
+
+Performance. No new `O(n^2)` or `O(n log n)` path; snapshots are linear in a
+small consumer tree; the host probe is a manual run outside the suite.
+
+Feature integrity. Existing features are untouched; the foundation stays
+opt-in and ships no release operation. Production AC11 remains unproven until
+item 5; the reference caller is a fixture for items 5 and 8.
+
+### Implementation report for step 6 release-project-root (round 1)
+
+Step 6 composes the foundation services that Steps 1 to 5 proved one at a time,
+documents the invocation routes, and records the real-host evidence.
+
+Integrated acceptance, all in process with Step 5's data-only interpreter and
+repository ports:
+
+- `tests/unit/tools/release_workflow/acceptance_support.py` (new, 168 lines):
+  consumer projects with version data, ignored output and legacy scratch;
+  whole-tree snapshots; acceptance handlers injected only in tests (`describe`,
+  `build_step`, `native_status`, `LockedWrite`); `LockFacts` for declared lock
+  owner identities and states; `hold` for a competing owner record; and the
+  reference missing-launcher caller `build_caller` with `CallerOutcome`.
+- `tests/unit/tools/release_workflow/conftest.py` (93 to 132 lines): the
+  `consumers`, `lock_facts` and `acceptance_registry` fixtures; the transition
+  mutex is uncontended, as in the lock contract tests.
+- `test_release_acceptance_tdd.py` (33 cases): roots A, B, nested and linked
+  through explicit, batch and alias entries with the six derived locations;
+  stale `PRJ_DIR`, legacy variables, `PYTHONPATH` and `VIRTUAL_ENV` without
+  authority and absent from Git's environment; another checkout's interpreter
+  refused with no write; current-directory and `sys.path` helper shadows never
+  loaded; read-only and failed calls leaving consumers and tooling
+  byte-identical; a locked write adding only its target and the prepared home;
+  the shipped registry rejecting every acceptance name; the missing-launcher
+  caller contract.
+- `test_release_transport_tdd.py` (18 cases): a relative input path frozen
+  against the project root before a build step changes directory, for every
+  entry kind and both tooling copies; invalid UTF-8 refused before dispatch;
+  public statuses 0, 1 and 2 with child status 7 normalized; UTF-8/LF streams;
+  caller and process environments unchanged.
+- `test_release_locking_tdd.py` (8 cases): live, dead, retained, unverifiable
+  and unknown-state owners; independent projects; interruption inside the
+  lock; a read beside a live writer, which shows unlocked reads promise no
+  multi-file snapshot.
+
+Documentation: `wiki/reference/aliases-and-launchers.md` gains the release
+foundation launchers section (entries, options, payload rules, batch character
+rule, safe channels). `wiki/reference/automation-and-direct-invocation.md`
+gains the release foundation invocation contract (availability boundary,
+readiness repair, PowerShell selector lifetime and pipe caveat, native
+automation against cmd's termination question, statuses, streams, legacy
+variables). `README.md` gains one status row pointing to both.
+
+Real-host evidence, sanitized: a private host probe, run outside pytest on
+Windows x64 with Windows PowerShell 5.1, built a disposable tooling copy whose
+source differs from the shipped tree only by a generated handler module and its
+registry line, gave it a bare virtual environment and a record published by the
+real setup producer, and drove cmd, Windows PowerShell 5.1 and the native entry
+against real Git repositories. It passed 42 of 43 cases: roots, alias
+discovery, selectors with `%`, `!` and `&`, stdin forms, refusals, status
+normalization, console codepage and caller state restoration, readiness
+failures, the bare-environment import closure, real lock contention, dead and
+retained owners, Ctrl+C on both entries, a junction artifact home, and the
+reference caller against the real launchers. Two findings went into the
+automation reference: a Windows PowerShell 5.1 pipe adds a byte-order mark and
+a trailing line break and can replace non-ASCII text, so PowerShell callers
+should use `--input-file`; after Ctrl+C a batch call ends with status 1 and the
+lock released, then cmd asks its localized terminate question. The 43rd case,
+a file symlink, could not run because the host lacks the symbolic-link
+privilege; the human accepted that gap.
+
+Plan and validation: the plan's Step 6 addendums record the evidence route, the
+file-symlink decision and the coverage proof; the validation plan records the
+Step 6 analysis and the document-level `Yes, it is implemented.`; the umbrella
+marks row 1 completed.
+
+No production code, launcher or configuration changed in Step 6.
+
+Writer notes: `.reviews/a.release-project-root.step6.journal.md` and
+`.reviews/a.release-project-root.step6.handoff.md`.
+
+### Change summary for step 6 release-project-root (round 1)
+
+Fourteen staged paths, in four `a.commit` groups (the canonical commit-plan
+checker reports state valid, ready, no diagnostics):
+
+1. `docs(release-project-root): record step 6 evidence route`
+   - `docs/v0.14.0/plan.v0.14.0.release-project-root.md`
+2. `test(release): accept the assembled foundation`
+   - `tests/unit/tools/release_workflow/acceptance_support.py` (new)
+   - `tests/unit/tools/release_workflow/conftest.py`
+   - `tests/unit/tools/release_workflow/test_release_acceptance/` (new
+     initializer and `test_release_acceptance_tdd.py`)
+   - `tests/unit/tools/release_workflow/test_release_transport/` (new
+     initializer and `test_release_transport_tdd.py`)
+   - `tests/unit/tools/release_workflow/test_release_locking/` (new
+     initializer and `test_release_locking_tdd.py`)
+3. `docs(release): document the foundation launchers`
+   - `wiki/reference/aliases-and-launchers.md`
+   - `wiki/reference/automation-and-direct-invocation.md`
+   - `README.md`
+4. `docs(release-project-root): record step 6 validation`
+   - `docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md`
+   - `docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md`
+
+### Writer response for step 6 release-project-root (round 1)
+
+Writer response:
+
+Round 1 of the Step 6 review: there is no earlier reviewer feedback for this
+step to accept or dispute.
+
+Two human decisions of 2026-11-02 frame the request and are already recorded in
+the plan's Step 6 addendums: real-host evidence comes from a private host probe
+outside pytest while every automated test stays simulation-only, and the
+missing file-symlink evidence on a host without the symbolic-link privilege is
+accepted. The user also approved the single whole-suite speed walk that serves
+as the final coverage proof.
+
+### Reviewer focus for step 6 release-project-root (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-6-round-1 -->
+
+## Round 1 by reviewer - Step 6
+
+- Recorded: 2026-11-02T20:12:40+01:00
+- Exchange: code/code/v0.14.0/release-project-root
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: claude
+- Implementation step: 6
+- Outcome: answer
+
+### Assessed index identity for step 6 release-project-root (exchange 1) (round 1)
+
+Baseline index tree: 70dce7a7239e9e05395b9a280dfb809bf48ad46e
+
+Assessed index tree: 70dce7a7239e9e05395b9a280dfb809bf48ad46e
+
+### Implementation check for step 6 release-project-root (exchange 1) (round 1)
+
+Result:
+
+No. Step 6 has NOT been fully implemented.
+
+The in-process acceptance leaves, the shared acceptance support, the two
+reference pages and the README pointer are in place and match the evidence
+route the user chose on 2026-11-02. What is missing is the evidence side of
+that route. The plan's Step 6 text asks for the complete Step 5 transport
+matrix through the real launchers, cancellation included, and its
+evidence-route addendum says that any caller or behavior the host probe does
+not reach is recorded in the validation plan as missing evidence for the human
+to accept or resolve. The validation plan records only the file-symlink gap,
+yet its sanitized probe outcomes cover neither the Windows PowerShell 5.1
+cancellation route, nor both answers to cmd's terminate question, nor doskey
+expansion, nor console-attached standard input, nor a tooling checkout path
+with batch-hostile characters. The Step 6 `Yes` therefore claims real-host
+completeness for routes with neither evidence nor a recorded human acceptance.
+
+**Missing work for Step 6** (each item is a finding below):
+
+- Probe, or record as missing evidence for the human to accept, each real-host
+  route listed in the first finding.
+- Show `try`/`finally` removal of the PowerShell selector variable in the
+  automation reference and state that it otherwise persists in the session.
+- Remove the two stale "Step 6 pending" sentences from the validation plan.
+
+**Integrated acceptance, reviewed.** `test_release_acceptance_tdd.py` (33
+cases), `test_release_transport_tdd.py` (18) and `test_release_locking_tdd.py`
+(8) drive production `bootstrap.main`, readiness, `cli.main`, invocation,
+artifact preparation, the operation lock, managed replacement and rendering in
+process through Step 5's `launcher_simulation`. Assertions are concrete: whole
+consumer and tooling snapshots before and after failed and read-only calls, the
+exact new paths of a locked write, the stale `PRJ_DIR` warning text, legacy
+names absent from the Git child environment, status 7 normalized to 1 with its
+diagnostic, LF-only UTF-8 streams, and byte-identical competing lock records.
+The shadow test is meaningful because `bootstrap.helper` executes each helper
+from its exact path on every call, so a shadow found through the current
+directory or `sys.path` would raise. `test_shipped_registry_rejects_acceptance_names`
+passes `handlers=None`, which `cli.main` maps to the empty `SHIPPED_HANDLERS`.
+
+**Reference pages, checked against the code.** Option names, single-use
+options (`_single` rejects a repeat even with the same value), the selector
+name pattern, the batch character set `%^!"`, the native-only `--text`, the
+unavailable-operation diagnostic, the second record line naming the
+environment, the deny-list behavior for legacy variables and the stale
+`PRJ_DIR` warning all match `cli.py`, `invocation.py` and
+`runtime_identity.py`. The emoji anchor `#-release-foundation-launchers`
+follows the convention used elsewhere in the wiki. The README row sits in the
+"Status of main areas" table, whose third column is "Tested with".
+
+**Architecture check.** No production file changes. Acceptance handlers and
+the reference caller live under `tests`; production keeps an empty registry and
+no injection surface. The handlers use only `prepare_artifacts`,
+`OperationLock`, `authorize_write` and `replace_bytes`, the public services a
+domain receives. The writer's `_release_*` watch point concerns committed
+Step 5 launcher code and is reported as boundary-crossing work. Yes, there is
+something to address: the missing-evidence and documentation findings below.
+
+**Performance check.** No new `O(n^2)` or `O(n log n)` path: snapshots are
+linear in a small temporary tree, and each case runs one in-process
+invocation. No, there is no performance issue that needs to be addressed.
+
+**Unit test coverage check.** The gate measures `tools` only
+(`source = ["tools"]`, tests omitted), and Step 6 changes nothing under
+`tools` or `bin`. Every top-level symbol of `acceptance_support.py` is
+referenced: `consumer`, `handlers` and `LockFacts` by `conftest.py`;
+`snapshot`, `TARGET`, `VERSION`, `CallerOutcome`, `build_caller` and `hold` by
+the leaves; `describe`, `build_step`, `native_status` and `LockedWrite` through
+`handlers`. No, there is no unit-tested class below 100% that needs
+completing. No, none of the staged test-support symbols outside the gate is
+unreferenced.
+
+**Feature integrity.** Existing features are untouched; the foundation stays
+opt-in and ships no release operation. Production AC11 remains owned by item 5.
+
+Validation plan effects:
+
+No reviewer edit to the validation plan, the plan, the umbrella or `a.commit`.
+
+The reviewer's implementation-check result is No, but it was not written into
+the Step 6 rows: a Step 6 `No` would contradict the document-level
+`Yes, it is implemented.` line and the umbrella's completed row 1, neither of
+which reviewer mode may change. The writer owns that correction, either by
+supplying the missing evidence or by recording the human's acceptance of each
+gap, as the writer instructions describe.
+
+The applicable umbrella digest is unchanged
+(873d04d5cc1c5280a5450a6b47465fe4e448964462280a2f66a159f4c9b6cc45 before and
+after). The ordered 16-path validation-state comparison is acceptable, with no
+tracked, untracked or ignored difference.
+
+### Pre-repair mandatory checks and coverage for step 6 release-project-root (exchange 1) (round 1)
+
+No repair was performed, so no pre-repair blob was recorded.
+
+Requestor evidence, reviewed and not rerun: `ghog single` on the three new
+leaves passed; the default `ghog day --whole-suite` exited 0 after one restart
+for a disclosed timing miss on an unchanged Step 5 property case; with the
+user's go-ahead, `ghog day --full=speed --whole-suite` exited 0 with 5,351
+tests, 100% coverage, no outlier and no exclusion. Only Markdown changed after
+that walk, and the request reports the repository Markdown checker green on
+those files.
+
+The bound round scope is whole, fingerprint
+686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6. The request
+discloses that the walks ran through the main checkout's groundhog with this
+checkout's interpreter, so this checkout's renderer caps the effective proof at
+`cov`; the same arrangement was accepted for Step 5.
+
+No reviewer `ghog check` or `ghog affected` run was needed this round: every
+finding rests on static comparison of the plan, the validation plan and the
+reference pages, and none depends on a test or lint result. Coverage was
+assessed statically against `source = ["tools"]`; Step 6 changes no measured
+file.
+
+### Resolved validation set and sources for step 6 release-project-root (exchange 1) (round 1)
+
+1. Project: `ghog day --full=speed --whole-suite`
+2. Plan: `rg -n 'release_workflow|release_alias|project-root-env|input-file-env' README.md wiki/reference/aliases-and-launchers.md wiki/reference/automation-and-direct-invocation.md tools/release_workflow bin tests/unit/tools/release_workflow`
+
+These are requestor-owned validation commands. Their evidence was reviewed; the
+reviewer did not rerun them.
+
+### Resolver drift and direction for step 6 release-project-root (exchange 1) (round 1)
+
+No drift. The project has no `.review-validation` declaration, so the project
+source is the built-in `ghog day --full=speed` default completed with the bound
+`--whole-suite` selector. The plan source is the Step 6 completion `rg` scan,
+copied unchanged from the plan. There are no request additions. The ordered
+commands and source labels match the request exactly.
+
+### Repository state around validation for step 6 release-project-root (exchange 1) (round 1)
+
+The request-time index tree, the retained baseline and the final assessed index
+all equal 70dce7a7239e9e05395b9a280dfb809bf48ad46e. The evidence launcher
+confirmed an unchanged umbrella digest and no difference across the ordered
+validation path set. The only unstaged change is the protocol-owned review
+transcript. No repair or staging operation was performed.
+
+### Repair inventory for step 6 release-project-root (exchange 1) (round 1)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 6 release-project-root (exchange 1) (round 1)
+
+The independent canonical commit-plan checker returned exit 0, state valid,
+ready true, 14 staged paths, four ordered groups and no diagnostics.
+
+The grouping, order and conventional subjects match the staged Step 6 work:
+the plan addendum first, then the acceptance tests, then the reference pages,
+then the validation record with the umbrella row. `a.commit` needs no
+amendment for this round; the requested corrections fit groups 1, 3 and 4.
+
+1. docs(release-project-root): record step 6 evidence route
+   Paths: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+2. test(release): accept the assembled foundation
+   Paths: tests/unit/tools/release_workflow/acceptance_support.py,
+   tests/unit/tools/release_workflow/conftest.py, the three new test packages
+   and their `_tdd.py` leaves
+3. docs(release): document the foundation launchers
+   Paths: wiki/reference/aliases-and-launchers.md,
+   wiki/reference/automation-and-direct-invocation.md, README.md
+4. docs(release-project-root): record step 6 validation
+   Paths: docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md,
+   docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+
+### Findings and boundaries for step 6 release-project-root (exchange 1) (round 1)
+
+Unresolved findings:
+
+- Missing real-host evidence, neither probed nor recorded for human
+  acceptance (`docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md`,
+  Step 6 sections). Plan Step 6 asks for the complete Step 5 transport matrix
+  through the real launchers, cancellation included, and its 2026-11-02
+  evidence-route addendum requires every caller or behavior the probe does not
+  reach to be recorded as missing evidence; Step 5's validation also deferred
+  empirical evidence of doskey expansion, localized termination prompts and
+  real caller restoration. The sanitized outcomes record none of these routes:
+  (a) Windows PowerShell 5.1 Ctrl+C, whether the host stops the pipeline before
+  or after the launcher's status is forwarded, and what happens to the selector
+  variable; (b) each localized answer to cmd's terminate question, since only
+  one batch outcome (status 1) is recorded, while the plan expects Yes to end
+  the job and No to return 1 with diagnostics; (c) doskey macro expansion to
+  `bin\release_alias.bat` in a real console, using a macro defined by the probe
+  because no `release` alias is installed yet; (d) console-attached standard
+  input for an operation that requires input, with and without
+  `--non-interactive`, refused with status 2 and no prompt through the real
+  `GetConsoleMode` route; (e) a tooling checkout path containing spaces,
+  Unicode, `%`, `^`, `!` and `&` through both batch launchers' self-location
+  and runtime-record read. Only the file symlink is recorded as accepted
+  missing evidence, so the Step 6 `Yes` and the expectation "Every supported
+  caller has real transport/cancellation evidence" are not supported.
+- The PowerShell selector example in
+  `wiki/reference/automation-and-direct-invocation.md` ("Selector variables in
+  PowerShell") removes `RELEASE_PROJECT` on the line after the launcher call,
+  so Ctrl+C or a terminating error leaves the variable set in the session.
+  Plan Step 5 asks for `finally` restoration or removal and for prompt
+  examples that explain persistence; the page states neither.
+- Two stale sentences in the staged validation plan contradict its new
+  `Yes, it is implemented.` status: the end of "Current simulation migration
+  (2026-10-29)" still reads "Step 6 implementation and rollout remain pending."
+  (lines 39 to 40), and the end of "Feature integrity for Step 5" still reads "human
+  commit authorization remains pending. Step 6 integrated acceptance and
+  rollout remain unimplemented." (lines 1166 to 1167), although the opening
+  paragraph now says Step 5 is reviewed and committed and Step 6 is
+  implemented.
+
+Boundary-crossing work:
+
+- The batch launchers' own `_release_*` variables reach the engine's
+  environment and, through the deny-list in
+  `tools/release_workflow/git_environment.py`, the controlled Git environment.
+  The writer recorded this as a harmless watch point; changing it touches
+  committed Step 5 production code (`bin/release_workflow.bat`,
+  `bin/release_alias.bat` or the Git environment filter), which is outside
+  Step 6. Leave it to a later item that touches the launchers, or to an
+  explicit human decision.
+
+### Writer instructions for step 6 release-project-root (exchange 1) (round 1)
+
+1. For each route (a) to (e) of the first finding, either extend the private
+   host probe and record its sanitized outcome in the Step 6 "What was
+   implemented" host-probe list, or record it in the validation plan as
+   missing evidence and obtain the human's explicit acceptance, as was done
+   for the file symlink. For doskey, a probe-defined macro is enough; for the
+   batch terminate question, record both localized answers. If any route is
+   accepted as missing, add it to the plan's Step 6 addendum beside the
+   file-symlink decision, and keep the Step 6 `Yes` only once every gap is
+   either evidenced or accepted.
+2. In `wiki/reference/automation-and-direct-invocation.md`, rewrite the
+   PowerShell selector example as
+   `$env:RELEASE_PROJECT = '...'; try { & "<llm-shared>\bin\release_workflow.bat" <operation> --project-root-env RELEASE_PROJECT } finally { Remove-Item Env:RELEASE_PROJECT }`
+   (as a multi-line block), and add one sentence saying that without
+   `finally` the variable stays set in the session after Ctrl+C or a
+   terminating error. Align it with the Ctrl+C outcome found in step 1.
+3. In `docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md`, replace
+   "Step 6 implementation and rollout remain pending." (end of "Current
+   simulation migration (2026-10-29)") and "human commit authorization remains
+   pending. Step 6 integrated acceptance and rollout remain unimplemented."
+   (end of "Feature integrity for Step 5") with their current state.
+4. Keep the existing `a.commit` grouping: the changes above stay in group 1
+   (plan addendum), group 3 (automation reference) and group 4 (validation
+   plan). Rerun the Markdown check on the touched pages and the commit-plan
+   checker, then publish the replacement request. No test or production change
+   is requested.
+
+### Decision rationale for step 6 release-project-root (exchange 1) (round 1)
+
+Four readiness-floor results pass: exact identity and index tree, attributable
+staged scope with no reviewer mutation, requestor validation with a static
+coverage assessment that finds no gap, and a mechanically valid, accurate
+`a.commit`. Two fail: completeness, because Step 6 claims real-host
+completeness for routes the probe did not reach and the human has not
+accepted as missing evidence; and unresolved findings, three of them, all
+documentation or evidence work with no test or production change. The round
+made no repair. Publish changes-requested.
+
+### Final reviewer decision for step 6 release-project-root (exchange 1) (round 1)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-6-round-1 -->
+
+## Round 2 by requestor - Step 6
+
+- Recorded: 2026-11-02T20:38:45+01:00
+- Exchange: code/code/v0.14.0/release-project-root
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: claude
+- Implementation step: 6
+- Outcome: request
+
+### Review identity for step 6 release-project-root (round 2)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+Implementation step: 6
+Review round: 2
+
+### Code review evidence for step 6 release-project-root (round 2)
+
+request_index_tree: 734fdb6cfd1ba25532982a5051c0b9ef47b596d7
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+- `rg -n 'release_workflow|release_alias|project-root-env|input-file-env' README.md wiki/reference/aliases-and-launchers.md wiki/reference/automation-and-direct-invocation.md tools/release_workflow bin tests/unit/tools/release_workflow` (sources: plan)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "cov", "requirement": "docs/v0.14.0/feature-request.v0.14.0.release-project-root.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: docs(release-project-root): record step 6 evidence route
+group 1 path: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+group 2: test(release): accept the assembled foundation
+group 2 path: tests/unit/tools/release_workflow/acceptance_support.py
+group 2 path: tests/unit/tools/release_workflow/conftest.py
+group 2 path: tests/unit/tools/release_workflow/test_release_acceptance/__init__.py
+group 2 path: tests/unit/tools/release_workflow/test_release_acceptance/test_release_acceptance_tdd.py
+group 2 path: tests/unit/tools/release_workflow/test_release_transport/__init__.py
+group 2 path: tests/unit/tools/release_workflow/test_release_transport/test_release_transport_tdd.py
+group 2 path: tests/unit/tools/release_workflow/test_release_locking/__init__.py
+group 2 path: tests/unit/tools/release_workflow/test_release_locking/test_release_locking_tdd.py
+group 3: docs(release): document the foundation launchers
+group 3 path: wiki/reference/aliases-and-launchers.md
+group 3 path: wiki/reference/automation-and-direct-invocation.md
+group 3 path: README.md
+group 4: docs(release-project-root): record step 6 validation
+group 4 path: docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md
+group 4 path: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+staged path: README.md
+staged path: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+staged path: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+staged path: docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md
+staged path: tests/unit/tools/release_workflow/acceptance_support.py
+staged path: tests/unit/tools/release_workflow/conftest.py
+staged path: tests/unit/tools/release_workflow/test_release_acceptance/__init__.py
+staged path: tests/unit/tools/release_workflow/test_release_acceptance/test_release_acceptance_tdd.py
+staged path: tests/unit/tools/release_workflow/test_release_locking/__init__.py
+staged path: tests/unit/tools/release_workflow/test_release_locking/test_release_locking_tdd.py
+staged path: tests/unit/tools/release_workflow/test_release_transport/__init__.py
+staged path: tests/unit/tools/release_workflow/test_release_transport/test_release_transport_tdd.py
+staged path: wiki/reference/aliases-and-launchers.md
+staged path: wiki/reference/automation-and-direct-invocation.md
+```
+
+### Validation scope for step 6 release-project-root (round 2)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 6 release-project-root (round 2)
+
+Step 6 is fully implemented: the validation plan's Step 6 analysis starts with
+`Yes. Step 6 has been fully implemented.`, and the document-level status reads
+`Yes, it is implemented.` because all six steps read Yes. The sibling release
+tooling umbrella marks row 1, `release-project-root`, completed with its
+requirement and validation plan paths, in the same trailing validation group.
+
+Round 1 findings. Every real-host route named in the first finding now has
+probe evidence; none had to be recorded as missing, so the only accepted gap
+stays the file symlink. The extended private host probe passed 55 of its 56
+cases. Console routes ran in a hidden real console, where the probe typed
+through the console input buffer and read the console screen:
+
+- (a) Windows PowerShell 5.1 Ctrl+C: with a standalone call, cmd asked its
+  question inside PowerShell, which then stopped the script. The line after
+  the call never ran; `finally` ran with `$LASTEXITCODE` 1 and the selector
+  still set, and removed it. Without `finally`, the removal line never ran.
+  With output captured in a variable, PowerShell ended the launcher itself:
+  `$LASTEXITCODE` -1, no question, the engine still reported `interrupted`
+  and released the lock, and the console stayed on codepage 65001.
+- (b) cmd's terminate question in a real console: the probe read the keys from
+  the localized prompt (`O/N`). No returned 1 and restored codepage 850; yes
+  ended the batch at once with status 255 and left codepage 65001.
+- (c) doskey: a probe-defined `release` macro for the alias launcher, typed
+  from a consumer subfolder, discovered that consumer's root with status 0.
+- (d) console-attached standard input for an operation that requires input:
+  with `--non-interactive`, status 2, `Missing required input`, no prompt and
+  no write. Without it, the engine asked `Release input:` on standard error,
+  read one typed line and wrote it byte-exact with status 0, which is the
+  designed interactive route (see the writer response).
+- (e) a tooling checkout path with a space, a non-ASCII letter, `%`, `^`, `!`
+  and `&`: the setup producer, the explicit and alias launchers started
+  directly, and the build-adapter route (`pushd`, then a relative `call`) all
+  self-located that checkout and read its record with status 0. A cmd `call`
+  with the quoted path doubled its caret and never reached the launcher.
+
+The PowerShell selector example now removes the variable in `finally`, and the
+automation reference states its persistence and the Ctrl+C outcomes above. The
+two stale "Step 6 pending" sentences of the validation plan now state the
+current state.
+
+Tests and static checks:
+
+- `ghog single` on the three new leaves: 33 and 26 cases, all passing; the
+  highest new lifecycle used 0.031 s of CPU in focus.
+- `ghog day --whole-suite` (default level, check plus affected) exit 0 after
+  one restart; the first walk's only failure was a timing miss of 0.297 s CPU
+  on an unchanged Step 5 property case
+  (`test_groundhog_durations_pbt.py::test_a_call_back_under_half_the_floor_is_never_kept[13]`),
+  which passed in focus and on the restart.
+- With the user's go-ahead, `ghog day --full=speed --whole-suite` exit 0:
+  5,351 tests, 100% coverage, no outlier, no exclusion, `proof=speed`; slowest
+  call 0.39 s. Under the CPU stability band every lifecycle was proven and one
+  used the band at 0.109 s.
+- Since that walk only Markdown changed: in round 1 the plan's file-symlink
+  addendum, the validation plan and the umbrella row; in this round the two
+  reference pages and the validation plan. The repository Markdown checker
+  passes on the whole tree after this round's edits (exit 0).
+- Proof disclosure, unchanged from round 1: the walks ran through the main
+  checkout's `bin\ghog.bat`, whose groundhog code writes a proof marker timing
+  fingerprint this checkout's renderer does not recognize, so the effective
+  proof shown is `cov`. The walk did measure durations: no outlier and no
+  exclusion.
+
+Coverage. The gate measures `tools` only. Step 6 changes no file under `tools`
+or `bin`; the speed walk measured that scope at 100%. Every top-level symbol of
+the new test support is referenced by a test or fixture.
+
+Architecture. No production change. Acceptance handlers and the reference
+missing-launcher caller live under `tests`; production keeps an empty registry
+and no injection surface. The `_release_*` launcher variables stay a watch
+point for a later item that touches the launchers, as the round 1 answer
+recorded under boundary-crossing work.
+
+Performance. No new `O(n^2)` or `O(n log n)` path; the host probe is a manual
+run outside the suite.
+
+Feature integrity. Existing features are untouched; the foundation stays
+opt-in and ships no release operation. Production AC11 remains unproven until
+item 5; the reference caller is a fixture for items 5 and 8.
+
+### Implementation report for step 6 release-project-root (round 2)
+
+Step 6 composes the foundation services that Steps 1 to 5 proved one at a time,
+documents the invocation routes, and records the real-host evidence. Round 2
+completes that evidence and corrects the documentation, as round 1 requested.
+
+Integrated acceptance (unchanged since round 1), all in process with Step 5's
+data-only interpreter and repository ports:
+
+- `tests/unit/tools/release_workflow/acceptance_support.py` (new, 168 lines):
+  consumer projects with version data, ignored output and legacy scratch;
+  whole-tree snapshots; acceptance handlers injected only in tests (`describe`,
+  `build_step`, `native_status`, `LockedWrite`); `LockFacts` for declared lock
+  owner identities and states; `hold` for a competing owner record; and the
+  reference missing-launcher caller `build_caller` with `CallerOutcome`.
+- `tests/unit/tools/release_workflow/conftest.py` (93 to 132 lines): the
+  `consumers`, `lock_facts` and `acceptance_registry` fixtures.
+- `test_release_acceptance_tdd.py` (33 cases), `test_release_transport_tdd.py`
+  (18 cases) and `test_release_locking_tdd.py` (8 cases), as described in
+  round 1.
+
+Documentation changed in round 2:
+
+- `wiki/reference/automation-and-direct-invocation.md` (145 to 167 lines): the
+  PowerShell selector example is a `try`/`finally` block that assigns the
+  variable fresh for each call. New paragraphs state that the variable belongs
+  to the session, and that on Ctrl+C Windows PowerShell 5.1 waits for the
+  launcher and then stops the script, so only `finally` removes it. They also
+  cover the captured-output stop (`$LASTEXITCODE` -1, no question, codepage
+  65001, a dead owner record recovered by the next call). The batch-question
+  paragraph adds both answers (no returns 1 and restores the codepage; yes ends
+  the batch, 255 for a `cmd /c` caller, codepage 65001), the question inside
+  PowerShell, and `NUL` input. The streams paragraph adds the console input
+  prompt and its `--non-interactive` refusal.
+- `wiki/reference/aliases-and-launchers.md` (172 to 175 lines): a launcher's
+  own checkout path may contain a space, non-ASCII letters, `%`, `^`, `!` or
+  `&`. From a cmd script, start it directly, or `pushd` to its folder and use
+  a relative `call`, because `call` doubles a caret inside a quoted path.
+- `docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md`: the Step 6
+  analysis cites 55 of 56 probe cases. The host-probe list gains the real
+  console routes and the special tooling path. The documentation bullet and
+  line counts are refreshed, the two stale "Step 6 pending" sentences now state
+  the current state, and the Step 5 note on missing empirical shell evidence
+  points to the Step 6 probe.
+
+Real-host evidence, sanitized. The private host probe runs outside pytest on
+Windows x64 with Windows PowerShell 5.1. Its disposable tooling copy differs
+from the shipped tree only by a generated handler module and its registry
+line, and has a bare virtual environment and a record published by the real
+setup producer. In round 2 it passed 55 of 56 cases. The 43 round 1 cases are
+unchanged; the file symlink is still the one accepted gap. The 13 new cases
+follow:
+
+- cmd's terminate question in a real console, answered yes and answered no
+  with the keys read from the localized prompt.
+- Windows PowerShell 5.1 Ctrl+C in a real console: a standalone call in
+  `try`/`finally`, a standalone call with removal on the next line, and a
+  call whose output is captured in a variable.
+- A probe-defined doskey macro typed in a real console, reaching the alias
+  launcher.
+- Console-attached standard input for an operation that requires input, with
+  and without `--non-interactive`.
+- A second tooling copy at a path with a space, `é`, `%`, `^`, `!` and `&`:
+  setup record publication, the explicit and alias launchers started
+  directly, the build-adapter `pushd` and relative `call`, and an observation
+  of `call` with the quoted path.
+
+The real console routes use a hidden console of their own. The probe types
+through the console input buffer (`WriteConsoleInputW`) and reads the console
+screen (`ReadConsoleOutputCharacterW`). Ctrl+C reaches the console through
+`GenerateConsoleCtrlEvent`, after a wrapper restores the Ctrl+C handling that
+the agent host turns off for its children.
+
+No production code, launcher or configuration changed in Step 6.
+
+Writer notes: `.reviews/a.release-project-root.step6.journal.md` and
+`.reviews/a.release-project-root.step6.handoff.md`.
+
+### Change summary for step 6 release-project-root (round 2)
+
+Fourteen staged paths, in four `a.commit` groups (the canonical commit-plan
+checker reports state valid, ready, no diagnostics). Round 2 changed three of
+them: `wiki/reference/aliases-and-launchers.md`,
+`wiki/reference/automation-and-direct-invocation.md` and
+`docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md`, plus group 3's
+commit body.
+
+1. `docs(release-project-root): record step 6 evidence route`
+   - `docs/v0.14.0/plan.v0.14.0.release-project-root.md`
+2. `test(release): accept the assembled foundation`
+   - `tests/unit/tools/release_workflow/acceptance_support.py` (new)
+   - `tests/unit/tools/release_workflow/conftest.py`
+   - `tests/unit/tools/release_workflow/test_release_acceptance/` (new
+     initializer and `test_release_acceptance_tdd.py`)
+   - `tests/unit/tools/release_workflow/test_release_transport/` (new
+     initializer and `test_release_transport_tdd.py`)
+   - `tests/unit/tools/release_workflow/test_release_locking/` (new
+     initializer and `test_release_locking_tdd.py`)
+3. `docs(release): document the foundation launchers`
+   - `wiki/reference/aliases-and-launchers.md`
+   - `wiki/reference/automation-and-direct-invocation.md`
+   - `README.md`
+4. `docs(release-project-root): record step 6 validation`
+   - `docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md`
+   - `docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md`
+
+### Writer response for step 6 release-project-root (round 2)
+
+Writer response:
+
+All three round 1 findings are accepted and addressed; no reviewer repair was
+made, so none is reversed.
+
+1. Missing real-host evidence: the private host probe was extended rather than
+   recording gaps. Routes (a) to (e) all have sanitized outcomes in the Step 6
+   "What was implemented" host-probe list, and the analysis now cites 55 of
+   56 cases. No route needed the human's acceptance, so the plan's Step 6
+   addendums are unchanged and the file symlink stays the only accepted gap.
+   One clarification on (d): the finding expected status 2 with no prompt both
+   with and without `--non-interactive`. The approved design says otherwise:
+   "With console stdin and no explicit non-interactive request, Python may
+   prompt" (`design.v0.14.0.release-project-root.md`, "Dispatch and result
+   interfaces"), and
+   committed Step 5 code implements it in `tools/release_workflow/inputs.py`
+   (`read_payload`). The probe confirms both sides on a real console: with
+   `--non-interactive`, status 2 and no prompt; without it, the
+   `Release input:` prompt on standard error and a byte-exact write. The
+   automation reference now states both outcomes.
+2. PowerShell selector example: rewritten as the multi-line `try`/`finally`
+   block requested, with the sentence on session persistence, aligned with the
+   observed Ctrl+C outcome (the line after the call never runs, `finally`
+   does). The page also records the captured-output stop and both answers to
+   cmd's question. The probe also showed that cmd's `call` doubles a caret in
+   a quoted tooling path. `aliases-and-launchers.md` now names the two
+   working routes; this stays within group 3.
+3. The two stale validation sentences now state the current state: Step 6 is
+   implemented with its host-probe evidence, and Step 5 is committed after the
+   human's authorization.
+
+The commit grouping is unchanged (14 paths, four groups, checker valid and
+ready). Group 3's body was reworded to name the new caller behaviors, and the
+formatter reflowed it.
+
+The boundary-crossing `_release_*` watch point stays outside Step 6, as the
+answer directs.
+
+### Reviewer focus for step 6 release-project-root (round 2)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-6-round-2 -->
+
+## Round 2 by reviewer - Step 6
+
+- Recorded: 2026-11-02T20:46:28+01:00
+- Exchange: code/code/v0.14.0/release-project-root
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: claude
+- Implementation step: 6
+- Outcome: answer
+
+### Assessed index identity for step 6 release-project-root (exchange 1) (round 2)
+
+Baseline index tree: 734fdb6cfd1ba25532982a5051c0b9ef47b596d7
+
+Assessed index tree: 734fdb6cfd1ba25532982a5051c0b9ef47b596d7
+
+### Implementation check for step 6 release-project-root (exchange 1) (round 2)
+
+Result:
+
+Yes. Step 6 has been fully implemented.
+
+Round 2 closes the three round 1 findings without touching tests or
+production code; the index-tree difference from round 1 is limited to the two
+reference pages and the validation plan. The Step 6 `Yes` is now supported:
+every real-host route is either evidenced by the private probe (55 of 56
+cases) or, for the file symlink only, recorded as missing evidence that the
+human accepted on 2026-11-02.
+
+**Round 1 findings, rechecked.**
+
+- Real-host evidence: the validation plan's sanitized outcomes now cover both
+  localized answers to cmd's terminate question (no returns 1 and restores the
+  codepage; yes ends the batch with 255 and leaves 65001), Windows PowerShell
+  5.1 Ctrl+C with `finally`, with removal on the next line and with captured
+  output, a probe-defined doskey macro reaching the alias launcher, console
+  stdin with and without `--non-interactive`, and a tooling checkout path with
+  a space, a non-ASCII letter, `%`, `^`, `!` and `&` through the setup
+  producer, both launchers and the build-adapter `pushd` route. I checked each
+  claim against the private probe results, read only; every row named passes.
+  The redirected-stream statement (cmd prints the question, reads the end of
+  `NUL` input and returns 1) is backed by the round 1 batch Ctrl+C case, which
+  ran with standard input from `NUL`.
+- Correction of round 1 route (d): the writer is right. The approved design
+  states "With console stdin and no explicit non-interactive request, Python
+  may prompt", and `read_payload` in `tools/release_workflow/inputs.py` asks
+  `Release input:` on standard error in that case. My round 1 wording that
+  both variants must refuse with status 2 was wrong; the probe now shows the
+  refusal with `--non-interactive` and the designed prompt without it, and
+  the automation reference states both.
+- PowerShell example: the selector is assigned per call and removed in
+  `finally`, and the page explains that the variable belongs to the session
+  and that only `finally` runs after Ctrl+C. The captured-output stop
+  (`$LASTEXITCODE` -1, no question, codepage left at 65001, a left lock record
+  recovered later as a dead owner) is documented as observed behavior rather
+  than promised cleanup, which matches the plan's rule on terminal aborts.
+  The new caret note in `aliases-and-launchers.md` names the two routes the
+  probe proved and the failing quoted `call`.
+- Stale sentences: both now state the current state, and the Step 5 note on
+  missing empirical shell evidence points to the Step 6 probe.
+
+**Integrated acceptance and reference pages.** Unchanged since round 1 apart
+from the documentation above: 59 in-process acceptance cases through
+production bootstrap, dispatch, invocation, artifact, lock, write and
+rendering services; reference-page claims match `cli.py`, `invocation.py`,
+`inputs.py` and `runtime_identity.py`. Recorded page sizes (175 and 167
+lines) match the files.
+
+**Architecture check.** No production file changes; handlers and the
+reference caller stay under `tests`, and the shipped registry stays empty. The
+validation plan records one watch point, the launchers' `_release_*`
+variables reaching the engine and Git environments; it is harmless, belongs to
+committed Step 5 launcher code, needs no Step 6 work and is left to a later
+item that touches the launchers. Yes, there is something to note: that watch
+point, which is not a defect.
+
+**Performance check.** No new `O(n^2)` or `O(n log n)` path; the probe runs
+outside the suite. No, there is no performance issue that needs to be
+addressed.
+
+**Unit test coverage check.** The gate measures `tools` only and Step 6
+changes nothing there; every top-level symbol of `acceptance_support.py` is
+referenced by a test, a fixture or `handlers`. No, there is no unit-tested
+class below 100% that needs completing. No, none of the staged test-support
+symbols outside the gate is unreferenced.
+
+**Feature integrity.** Existing features are untouched; the foundation stays
+opt-in. Production AC11 remains owned by item 5.
+
+Validation plan effects:
+
+No reviewer edit to the validation plan, the plan, the umbrella or `a.commit`.
+The writer's Step 6 `Yes`, the document-level `Yes, it is implemented.` and
+the completed umbrella row 1 agree with this round's assessment.
+
+The applicable umbrella digest is unchanged
+(873d04d5cc1c5280a5450a6b47465fe4e448964462280a2f66a159f4c9b6cc45 before and
+after). The ordered 16-path validation-state comparison is acceptable: no
+tracked or untracked difference, and the only ignored difference is
+`a.ghog.log`, rewritten by the reviewer's two evidence commands.
+
+### Pre-repair mandatory checks and coverage for step 6 release-project-root (exchange 1) (round 2)
+
+No repair was performed, so no pre-repair blob was recorded.
+
+Reviewer evidence, run once each from the project root through the shared
+`ghog.bat` with this checkout's virtual environment active:
+
+- `ghog check`: exit 0, fail=0, warn=0, scope=whole (compile, lint and the
+  Markdown checker over the round 2 pages).
+- `ghog affected --no-cov --scope-file=.reviews/a.review-scope.code.v0.14.0.release-project-root.json`:
+  exit 0. It selected no test: testmon found nothing affected since the last
+  recorded run, the writer's green whole-suite walk. That is consistent with
+  the tree difference since round 1, which holds only three Markdown files;
+  it is not an independent rerun of the 59 acceptance cases.
+
+Requestor evidence, reviewed and not rerun: `ghog day --full=speed
+--whole-suite` exit 0 with 5,351 tests, 100% coverage, no outlier and no
+exclusion; only Markdown changed after it. The bound round scope is whole,
+fingerprint 686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6;
+the effective proof shown is `cov` because the walk ran through the main
+checkout's groundhog, as disclosed and accepted in round 1.
+
+Coverage was assessed statically against `source = ["tools"]`; Step 6 changes
+no measured file.
+
+### Resolved validation set and sources for step 6 release-project-root (exchange 1) (round 2)
+
+1. Project: `ghog day --full=speed --whole-suite`
+2. Plan: `rg -n 'release_workflow|release_alias|project-root-env|input-file-env' README.md wiki/reference/aliases-and-launchers.md wiki/reference/automation-and-direct-invocation.md tools/release_workflow bin tests/unit/tools/release_workflow`
+
+These are requestor-owned validation commands. Their evidence was reviewed; the
+reviewer did not rerun them.
+
+### Resolver drift and direction for step 6 release-project-root (exchange 1) (round 2)
+
+No drift. The project has no `.review-validation` declaration, so the project
+source is the built-in `ghog day --full=speed` default completed with the bound
+`--whole-suite` selector, and the plan source is the unchanged Step 6
+completion `rg` scan. There are no request additions. The ordered commands and
+source labels match the request and round 1 exactly.
+
+### Repository state around validation for step 6 release-project-root (exchange 1) (round 2)
+
+The request-time index tree, the retained baseline and the final assessed index
+all equal 734fdb6cfd1ba25532982a5051c0b9ef47b596d7. Against the round 1 tree
+(70dce7a7239e9e05395b9a280dfb809bf48ad46e), only
+`docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md`,
+`wiki/reference/aliases-and-launchers.md` and
+`wiki/reference/automation-and-direct-invocation.md` differ. The evidence
+launcher confirmed an unchanged umbrella digest and no tracked difference
+across the ordered validation path set. The only unstaged change is the
+protocol-owned review transcript. No repair or staging operation was
+performed.
+
+### Repair inventory for step 6 release-project-root (exchange 1) (round 2)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 6 release-project-root (exchange 1) (round 2)
+
+The independent canonical commit-plan checker returned exit 0, state valid,
+ready true, 14 staged paths, four ordered groups and no diagnostics.
+
+Grouping, order and subjects are unchanged from round 1 and still match the
+staged work. Group 3's reworded body now names the PowerShell Ctrl+C outcome,
+both answers to cmd's question and the caret routes, which matches the
+round 2 pages; group 4's body carries no stale probe count. `a.commit` needs
+no amendment.
+
+1. docs(release-project-root): record step 6 evidence route
+   Paths: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+2. test(release): accept the assembled foundation
+   Paths: tests/unit/tools/release_workflow/acceptance_support.py,
+   tests/unit/tools/release_workflow/conftest.py, the three new test packages
+   and their `_tdd.py` leaves
+3. docs(release): document the foundation launchers
+   Paths: wiki/reference/aliases-and-launchers.md,
+   wiki/reference/automation-and-direct-invocation.md, README.md
+4. docs(release-project-root): record step 6 validation
+   Paths: docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md,
+   docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+
+### Findings and boundaries for step 6 release-project-root (exchange 1) (round 2)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 6 release-project-root (exchange 1) (round 2)
+
+Present the advisory commit-ready recommendation at the human gate. No further
+Step 6 implementation, documentation or evidence work is requested. Keep the
+private host probe and its results out of the commit, as the plan's evidence
+route requires. The `_release_*` watch point stays with a later item that
+touches the launchers. Commit authority remains with the human.
+
+### Decision rationale for step 6 release-project-root (exchange 1) (round 2)
+
+All six readiness-floor results pass: exact identity and index tree; complete
+Step 6 implementation, with every real-host route evidenced or, for the file
+symlink only, accepted by the human; validation and coverage, with the
+reviewer's `ghog check` and focused `ghog affected` green and no static
+coverage gap; attributable staged scope with no reviewer mutation; no
+unresolved current or carried finding, since the three round 1 findings are
+closed and route (d) was my own error; and a mechanically valid, accurate
+`a.commit`. The round made no repair. Recommend commit-ready as advisory only.
+
+### Final reviewer decision for step 6 release-project-root (exchange 1) (round 2)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-6-round-2 -->
+
+## Round 2 by human - Step 6 - human-confirmation
+
+- Recorded: 2026-11-02T20:51:45+01:00
+- Exchange: code/code/v0.14.0/release-project-root
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: claude
+- Implementation step: 6
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-2 -->
