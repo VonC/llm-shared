@@ -9139,3 +9139,5192 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-2 -->
+
+## Round 1 by requestor - Step 5
+
+- Recorded: 2026-10-27T13:41:27+01:00
+- Exchange: code/code/v0.14.0/release-project-root
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: unrecorded
+- Implementation step: 5
+- Outcome: request
+
+### Review identity for step 5 release-project-root (round 1)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+Implementation step: 5
+Review round: 1
+
+### Code review evidence for step 5 release-project-root (round 1)
+
+request_index_tree: ae520b263378786f528c0d14fac756d5b6356f9c
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+- `rg -n 'senv|PYTHONPATH|set /p|shell=True|pushd|GetConsoleMode' tools/release_workflow bin/release_alias.bat bin/release_workflow.bat` (sources: plan)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.release-project-root.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(release): wire context and Windows launchers
+group 1 path: tools/release_workflow/__init__.py
+group 1 path: tools/release_workflow/bootstrap.py
+group 1 path: tools/release_workflow/cli.py
+group 1 path: tools/release_workflow/inputs.py
+group 1 path: tools/release_workflow/invocation.py
+group 1 path: tools/release_workflow/results.py
+group 1 path: tests/acceptance/release_workflow/process_support.py
+group 1 path: tests/unit/tools/release_workflow/test_bootstrap/test_bootstrap_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_cli/__init__.py
+group 1 path: tests/unit/tools/release_workflow/test_cli/test_cli_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_inputs/__init__.py
+group 1 path: tests/unit/tools/release_workflow/test_inputs/test_inputs_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_invocation/__init__.py
+group 1 path: tests/unit/tools/release_workflow/test_invocation/test_invocation_pbt.py
+group 1 path: tests/unit/tools/release_workflow/test_invocation/test_invocation_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_results/__init__.py
+group 1 path: tests/unit/tools/release_workflow/test_results/test_results_tdd.py
+group 1 path: tests/unit/tools/release_workflow/invocation_test_support.py
+group 1 path: .gitattributes
+group 1 path: bin/release_alias.bat
+group 1 path: bin/release_workflow.bat
+group 1 path: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+group 1 path: tests/unit/tools/release_workflow/conftest.py
+group 1 path: tests/unit/tools/release_workflow/console_host.py
+group 1 path: tests/unit/tools/release_workflow/console_scenarios.py
+group 1 path: tests/unit/tools/release_workflow/console_support.py
+group 1 path: tests/unit/tools/release_workflow/console_text.py
+group 1 path: tests/unit/tools/release_workflow/launcher_support.py
+group 1 path: tests/unit/tools/release_workflow/test_console_text/__init__.py
+group 1 path: tests/unit/tools/release_workflow/test_console_text/test_console_text_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_launchers/__init__.py
+group 1 path: tests/unit/tools/release_workflow/test_launchers/test_boundaries_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_launchers/test_console_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_launchers/test_launchers_tdd.py
+group 2: fix(release): reject drive-relative managed paths
+group 2 path: tools/release_workflow/managed_files.py
+group 2 path: tests/unit/tools/release_workflow/test_managed_files/test_managed_files_tdd.py
+group 3: perf(validation): reduce Git and fixture overhead
+group 3 path: check.bat
+group 3 path: pyproject.toml
+group 3 path: tests/conftest.py
+group 3 path: tests/git_isolation.py
+group 3 path: tests/unit/tools/test_suite_git_isolation.py
+group 3 path: tests/acceptance/commit_plan_check/commit_plan_check_support.py
+group 3 path: tests/acceptance/review_status/conftest.py
+group 3 path: tests/unit/tools/test_groundhog_group_patterns/test_groundhog_group_patterns_pbt.py
+group 3 path: tests/unit/tools/release_workflow/test_artifacts/conftest.py
+group 3 path: tests/unit/tools/release_workflow/test_artifacts/test_artifacts_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_configuration/test_configuration_pbt.py
+group 3 path: tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_pbt.py
+group 3 path: tests/unit/tools/release_workflow/test_paths/conftest.py
+group 3 path: tests/unit/tools/release_workflow/test_paths/test_paths_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_schemas/test_schemas_pbt.py
+group 3 path: tests/unit/tools/test_groundhog_proof/test_groundhog_proof_pbt.py
+group 3 path: tests/unit/tools/test_review_exchange_scope/test_review_exchange_scope_tdd.py
+group 4: test(fixtures): clean up waiter processes and leak checks
+group 4 path: tests/acceptance/review_resume/waiter_driver.py
+group 4 path: tests/acceptance/review_resume/conftest.py
+group 4 path: tests/acceptance/review_resume/waiter_processes.py
+group 4 path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_concurrency_tdd.py
+group 4 path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_parked_wait_tdd.py
+group 4 path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_waiter_cleanup_tdd.py
+group 4 path: tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_tdd.py
+group 5: perf(markdown): reduce code-span and membership scanning
+group 5 path: tools/markdown_check/rules.py
+group 5 path: tools/markdown_check/source.py
+group 6: docs(release-project-root): record step 5 validation
+group 6 path: docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md
+staged path: .gitattributes
+staged path: bin/release_alias.bat
+staged path: bin/release_workflow.bat
+staged path: check.bat
+staged path: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+staged path: docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md
+staged path: pyproject.toml
+staged path: tests/acceptance/commit_plan_check/commit_plan_check_support.py
+staged path: tests/acceptance/release_workflow/process_support.py
+staged path: tests/acceptance/review_resume/conftest.py
+staged path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_concurrency_tdd.py
+staged path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_parked_wait_tdd.py
+staged path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_waiter_cleanup_tdd.py
+staged path: tests/acceptance/review_resume/waiter_driver.py
+staged path: tests/acceptance/review_resume/waiter_processes.py
+staged path: tests/acceptance/review_status/conftest.py
+staged path: tests/conftest.py
+staged path: tests/git_isolation.py
+staged path: tests/unit/tools/release_workflow/conftest.py
+staged path: tests/unit/tools/release_workflow/console_host.py
+staged path: tests/unit/tools/release_workflow/console_scenarios.py
+staged path: tests/unit/tools/release_workflow/console_support.py
+staged path: tests/unit/tools/release_workflow/console_text.py
+staged path: tests/unit/tools/release_workflow/invocation_test_support.py
+staged path: tests/unit/tools/release_workflow/launcher_support.py
+staged path: tests/unit/tools/release_workflow/test_artifacts/conftest.py
+staged path: tests/unit/tools/release_workflow/test_artifacts/test_artifacts_tdd.py
+staged path: tests/unit/tools/release_workflow/test_bootstrap/test_bootstrap_tdd.py
+staged path: tests/unit/tools/release_workflow/test_cli/__init__.py
+staged path: tests/unit/tools/release_workflow/test_cli/test_cli_tdd.py
+staged path: tests/unit/tools/release_workflow/test_configuration/test_configuration_pbt.py
+staged path: tests/unit/tools/release_workflow/test_console_text/__init__.py
+staged path: tests/unit/tools/release_workflow/test_console_text/test_console_text_tdd.py
+staged path: tests/unit/tools/release_workflow/test_inputs/__init__.py
+staged path: tests/unit/tools/release_workflow/test_inputs/test_inputs_tdd.py
+staged path: tests/unit/tools/release_workflow/test_invocation/__init__.py
+staged path: tests/unit/tools/release_workflow/test_invocation/test_invocation_pbt.py
+staged path: tests/unit/tools/release_workflow/test_invocation/test_invocation_tdd.py
+staged path: tests/unit/tools/release_workflow/test_launchers/__init__.py
+staged path: tests/unit/tools/release_workflow/test_launchers/test_boundaries_tdd.py
+staged path: tests/unit/tools/release_workflow/test_launchers/test_console_tdd.py
+staged path: tests/unit/tools/release_workflow/test_launchers/test_launchers_tdd.py
+staged path: tests/unit/tools/release_workflow/test_managed_files/test_managed_files_tdd.py
+staged path: tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_pbt.py
+staged path: tests/unit/tools/release_workflow/test_paths/conftest.py
+staged path: tests/unit/tools/release_workflow/test_paths/test_paths_tdd.py
+staged path: tests/unit/tools/release_workflow/test_results/__init__.py
+staged path: tests/unit/tools/release_workflow/test_results/test_results_tdd.py
+staged path: tests/unit/tools/release_workflow/test_schemas/test_schemas_pbt.py
+staged path: tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_tdd.py
+staged path: tests/unit/tools/test_groundhog_group_patterns/test_groundhog_group_patterns_pbt.py
+staged path: tests/unit/tools/test_groundhog_proof/test_groundhog_proof_pbt.py
+staged path: tests/unit/tools/test_review_exchange_scope/test_review_exchange_scope_tdd.py
+staged path: tests/unit/tools/test_suite_git_isolation.py
+staged path: tools/markdown_check/rules.py
+staged path: tools/markdown_check/source.py
+staged path: tools/release_workflow/__init__.py
+staged path: tools/release_workflow/bootstrap.py
+staged path: tools/release_workflow/cli.py
+staged path: tools/release_workflow/inputs.py
+staged path: tools/release_workflow/invocation.py
+staged path: tools/release_workflow/managed_files.py
+staged path: tools/release_workflow/results.py
+```
+
+### Validation scope for step 5 release-project-root (round 1)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 5 release-project-root (round 1)
+
+Step 5 is fully implemented according to the static assessment in
+`docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md`.
+The overall effort remains incomplete because Step 6 is pending.
+
+Architecture: fixed caller context composes the prior validated services.
+Platform and transport adapters remain separate from handler policy. There is
+no production registry injection, activation, cwd switch or ambient project
+fallback. Changed Python files remain below the 650-line ceiling.
+
+Tests cover context, input, dispatch, output and bootstrap boundaries. Real cmd,
+doskey, PowerShell 5.1, script-rooted build, native and alternate-checkout fixtures
+exercise supported transports and cancellation/restoration outcomes.
+
+The canonical `ghog day --full=speed --whole-suite` ended at
+2026-10-27T11:40:14+01:00 with exit=0, proof=speed, reused=none, scope=whole.
+All 4184 tests passed with 100% coverage, zero failures, warnings, xfails,
+duration outliers and exclusions. Check took 40.5s, affected 2.4s (zero selected),
+and full 253.9s. The day took 298.2s and its measured wrapper 299.085s, within
+the user's 360-second whole-day ceiling. Two workers and the one-second call
+floor were unchanged; the slowest call was 0.76s. The preceding interrupted day
+had already completed affected tests, so this is not a cold-affected timing claim.
+
+Only evidence documentation changed after that successful run; implementation,
+tests and configuration are identical. The original successful static check does
+not cover the later documentation wording. The paired renderer reports current
+exact-scope proof separately; original measured evidence is not relabelled.
+
+Publication check: `ghog check` ended 2026-10-27T13:40:43+01:00 with exit=0,
+fail=0/warn=0/xfail=0, validating the current documentation and staged working
+tree. It took 110.5s; this separate check is not a new whole-day timing claim.
+The additive plan scan passed with only intended GetConsoleMode references.
+The canonical commit-plan checker reports ready=true for all 63 staged paths
+in six groups; cached whitespace checks also pass.
+
+Feature integrity: existing release operations remain unmigrated and the new
+foundation is opt-in. Read-only invocation creates no artifacts. Fixture setup
+costs remain separately disclosed; the call gate is not a one-second total-time
+claim. Forced host termination does not promise cleanup. The writer's
+cancellation-plan reconciliation lacked separate human approval and is explicitly
+submitted for review.
+
+### Implementation report for step 5 release-project-root (round 1)
+
+The implementation composes runtime readiness, controlled Git identity,
+configuration and artifact boundaries into immutable invocation context.
+Explicit modes require a selector; only the authenticated alias entry discovers
+from the original working directory. Input channels preserve native text and
+UTF-8 payloads. Result rendering separates data and diagnostics and maps public
+statuses to 0, 1 or 2 with original child failure details.
+
+The explicit and alias batch launchers self-locate, use their own designated
+Python with isolation and UTF-8 flags, preserve caller cwd and environment, and
+restore the captured codepage wherever control returns. CRLF attributes preserve
+batch parsing. No activation or production handler-registration override was
+introduced. Built-in validation replaces two subprocess pipelines; real tests
+cover rejected parent-path spellings for both launchers.
+
+Real fixtures exercise cmd, doskey, PowerShell 5.1, script-rooted build calls,
+native Python and another checkout. Verified disposable tooling copies supply
+test-only handlers. Hidden ConPTY handles own their process lifetime; incremental
+UTF-8/VT decoding preserves offsets. Localized cancellation answers use bounded
+acknowledgement with unchanged route and restoration assertions. Module xdist
+groups avoid rebuilding a shared scenario on multiple workers. Independent
+tooling copies, byte checks, transport cases and console cases overlap on two
+threads, retaining every real process and assertion. Startup stderr is captured
+before console teardown can interrupt children.
+
+Validation optimizations select native Git before collection and pass synthetic
+seed identities with `git -c`, avoiding wrapper and configuration processes.
+Coverage uses sysmon with unchanged source and 100% gate; Pyright uses two threads.
+Commit-plan snapshot `write-tree` completes before four independent real read
+queries overlap on two threads. Markdown checks find maximal backtick runs by
+regex and query existing sets without allocating a union per line. Complete
+checker output was identical before/after (18.047s to 14.830s).
+
+Profiled tests use strict doubles only for known read-only composition probes;
+boundary, identity and tracking-mutation checks retain real Git. Real unusable
+and missing runtimes, discovery, junctions, index mutations and persisted review
+scope are prepared in fixtures. The artifact idempotence test alone doubles its
+empty-index lookup. Bounded configuration, schema, proof and group-pattern
+properties retain explicit edges; the native lock property keeps three generated
+traces plus the complete lifecycle and every transition assertion. Staticmethod
+wrappers remove descriptor warnings. Setup costs remain visible separately:
+fixture phase moves alone are not claimed as total elapsed improvements.
+
+Review fixtures atomically publish closed readiness markers with the real waiter
+interpreter PID, reap the interpreter behind the venv stub, stop orphaned waiters,
+and assert no survivors. Transient denied marker reads retry within the original
+deadline. Real child-process regressions cover cleanup, parent loss and one
+injected denied read. The coverage leak check collects prior garbage before the
+operation and retains its post-operation resource-warning assertion.
+
+Profiling exposed ambient-drive probing for drive-relative managed paths.
+Production validation now rejects them before authorization. Three regressions
+cover `x:stream`, `C:relative` and `C:` with an authorization-failure sentinel.
+This production correction has its own commit group.
+
+Final measured proof: `ghog day --full=speed --whole-suite` ended at
+2026-10-27T11:40:14+01:00, exit=0/proof=speed/reused=none/scope=whole.
+All 4184 tests passed, coverage=100%, fail=0/warn=0/xfail=0/outliers=0/excluded=0.
+Check=40.5s, affected=2.4s (zero selected), full=253.9s, day=298.2s and wrapper=
+299.085s, below the 360-second whole-day ceiling. The prior interrupted day had
+already completed affected tests; this does not establish cold-affected cost.
+Two workers, the one-second floor and assertions remain unchanged; slowest
+call=0.76s. No exclusion or raised baseline is accepted. Evidence documentation
+updates followed the run; no source, tests or configuration changed. Current
+renderer proof is reported separately from this measured run.
+
+The publication `ghog check` passed at 2026-10-27T13:40:43+01:00 with zero
+failures, warnings and xfails in 110.5s. This validates the later documentation
+wording without relabelling the earlier 299.085s whole-day measurement. The plan's
+source scan found only intended GetConsoleMode references. Commit-plan readiness
+and staged whitespace checks pass for all 63 paths in six groups.
+
+The sibling analysis is reconciled: native Git, seed identities, sysmon and waiter
+cleanup align. Four fixture phase moves, an LS003 cap and a write-error seam were
+deferred after all locally measured calls were below the one-second floor.
+Request-amendment functionality is absent locally and outside this task.
+
+Cancellation qualification: redirected application input never prompts. cmd may
+still print its localized batch-termination question with NUL and consume EOF.
+Native Python is the design's prompt-free cancellation route. Batch no allows
+cleanup; yes may terminate before cleanup or final diagnostics. PowerShell
+pipeline termination and finally restoration are tested separately. The writer
+reconciled plan wording with approved design guidance; the user did not separately
+approve an amendment. The review must assess that change.
+
+Writer notes: `.reviews/a.release-project-root.step5.journal.md` and
+`.reviews/a.release-project-root.step5.handoff.md`.
+
+### Change summary for step 5 release-project-root (round 1)
+
+The root a.commit contains 63 staged paths in six groups (2-7).
+Group 1 (workspace tab color) was already committed separately. No Step 5 implementation commit exists. Validation remains last. Native Git helper precedes review-fixture consumers. All later speed repairs are included.
+
+#### Group 2: Invocation, launchers and caller contracts for step 5 release-project-root (round 1)
+
+- tools/release_workflow/**init**.py
+- tools/release_workflow/bootstrap.py
+- tools/release_workflow/cli.py
+- tools/release_workflow/inputs.py
+- tools/release_workflow/invocation.py
+- tools/release_workflow/results.py
+- tests/acceptance/release_workflow/process_support.py
+- tests/unit/tools/release_workflow/test_bootstrap/test_bootstrap_tdd.py
+- tests/unit/tools/release_workflow/test_cli/**init**.py
+- tests/unit/tools/release_workflow/test_cli/test_cli_tdd.py
+- tests/unit/tools/release_workflow/test_inputs/**init**.py
+- tests/unit/tools/release_workflow/test_inputs/test_inputs_tdd.py
+- tests/unit/tools/release_workflow/test_invocation/**init**.py
+- tests/unit/tools/release_workflow/test_invocation/test_invocation_pbt.py
+- tests/unit/tools/release_workflow/test_invocation/test_invocation_tdd.py
+- tests/unit/tools/release_workflow/test_results/**init**.py
+- tests/unit/tools/release_workflow/test_results/test_results_tdd.py
+- tests/unit/tools/release_workflow/invocation_test_support.py
+- .gitattributes
+- bin/release_alias.bat
+- bin/release_workflow.bat
+- docs/v0.14.0/plan.v0.14.0.release-project-root.md
+- tests/unit/tools/release_workflow/conftest.py
+- tests/unit/tools/release_workflow/console_host.py
+- tests/unit/tools/release_workflow/console_scenarios.py
+- tests/unit/tools/release_workflow/console_support.py
+- tests/unit/tools/release_workflow/console_text.py
+- tests/unit/tools/release_workflow/launcher_support.py
+- tests/unit/tools/release_workflow/test_console_text/**init**.py
+- tests/unit/tools/release_workflow/test_console_text/test_console_text_tdd.py
+- tests/unit/tools/release_workflow/test_launchers/**init**.py
+- tests/unit/tools/release_workflow/test_launchers/test_boundaries_tdd.py
+- tests/unit/tools/release_workflow/test_launchers/test_console_tdd.py
+- tests/unit/tools/release_workflow/test_launchers/test_launchers_tdd.py
+
+#### Group 3: Drive-relative managed-path rejection for step 5 release-project-root (round 1)
+
+- tools/release_workflow/managed_files.py
+- tests/unit/tools/release_workflow/test_managed_files/test_managed_files_tdd.py
+
+#### Group 4: Profiled validation and fixture reductions for step 5 release-project-root (round 1)
+
+- check.bat
+- pyproject.toml
+- tests/conftest.py
+- tests/git_isolation.py
+- tests/unit/tools/test_suite_git_isolation.py
+- tests/acceptance/commit_plan_check/commit_plan_check_support.py
+- tests/acceptance/review_status/conftest.py
+- tests/unit/tools/test_groundhog_group_patterns/test_groundhog_group_patterns_pbt.py
+- tests/unit/tools/release_workflow/test_artifacts/conftest.py
+- tests/unit/tools/release_workflow/test_artifacts/test_artifacts_tdd.py
+- tests/unit/tools/release_workflow/test_configuration/test_configuration_pbt.py
+- tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_pbt.py
+- tests/unit/tools/release_workflow/test_paths/conftest.py
+- tests/unit/tools/release_workflow/test_paths/test_paths_tdd.py
+- tests/unit/tools/release_workflow/test_schemas/test_schemas_pbt.py
+- tests/unit/tools/test_groundhog_proof/test_groundhog_proof_pbt.py
+- tests/unit/tools/test_review_exchange_scope/test_review_exchange_scope_tdd.py
+
+#### Group 5: Full-suite fixture isolation for step 5 release-project-root (round 1)
+
+- tests/acceptance/review_resume/waiter_driver.py
+- tests/acceptance/review_resume/conftest.py
+- tests/acceptance/review_resume/waiter_processes.py
+- tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_concurrency_tdd.py
+- tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_parked_wait_tdd.py
+- tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_waiter_cleanup_tdd.py
+- tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_tdd.py
+
+#### Group 6: Markdown scan performance for step 5 release-project-root (round 1)
+
+- tools/markdown_check/rules.py
+- tools/markdown_check/source.py
+
+#### Group 7: Step 5 implementation validation for step 5 release-project-root (round 1)
+
+- docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md
+
+### Writer response for step 5 release-project-root (round 1)
+
+Writer response:
+
+This is the first Step 5 request. No earlier Step 5 reviewer feedback exists.
+The writer retains all inherited Step 1–4 boundary decisions and has not
+committed or pushed Step 5. No human commit authorization exists.
+
+Please assess the explicitly disclosed cancellation-plan interpretation against
+the approved design and actual caller evidence. The user asked for a plain
+explanation of Step 5 and the launchers; that was not explicit approval of the
+writer's plan amendment. No universal suppression of cmd's termination question
+or cleanup after forced host termination is claimed.
+
+### Reviewer focus for step 5 release-project-root (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-5-round-1 -->
+
+## Round 1 by reviewer - Step 5
+
+- Recorded: 2026-10-27T14:08:00+01:00
+- Exchange: code/code/v0.14.0/release-project-root
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 5
+- Outcome: answer
+
+### Assessed index identity for step 5 release-project-root (exchange 1) (round 1)
+
+Baseline index tree: ae520b263378786f528c0d14fac756d5b6356f9c
+
+Assessed index tree: 852cf63ed19cbb627bfda5c70a709a9e129271b1
+
+### Implementation check for step 5 release-project-root (exchange 1) (round 1)
+
+Result:
+
+No. Step 5 has NOT been fully implemented.
+
+The invocation context, input and result adapters, source-owned dispatch,
+bootstrap entry protocol and both launchers exist and follow most of the
+plan. Two plan requirements fail. First, code-page restoration: the launchers
+discard a localized `chcp` value when punctuation follows its digits, so they
+skip restoring the caller's code page. Second, the launchers' own handling of
+a native status outside 0 to 2 has no real evidence. Python normalizes the
+only out-of-range case (status 23) before either launcher sees it. Smaller
+test-precision, diagnostic, duplication and record defects are listed with
+the unresolved findings.
+
+**Evidence checked.** The reviewer read the exact plan Step 5 (lines 638 to
+
+785) and its shared IO, checklist and test-architecture sections. The
+
+reviewer also read the approved design's result, cancellation and Q14 text
+(design lines 580 to 622). The reviewer read the complete staged diff of all
+63 paths, file by file, plus the writer's Step 5 validation rows and the root
+`a.commit`. The reviewer executed the launchers' exact code-page block, lines
+9 to 22 of `bin/release_workflow.bat` copied verbatim into an ignored scratch
+harness, on four `chcp` lines:
+
+```text
+[Aktive Codepage: 850.] => restore value []
+[Page de codes active : 437] => restore value [437]
+[Active code page: 65001] => restore value [65001]
+[Actieve codetabel: 850.] => restore value []
+```
+
+An empty value makes `:cleanup` skip `chcp`. The caller stays at 65001 after
+the launcher's own `chcp 65001`. The plan asks for "the digits after the last
+colon", not for a tail made only of digits. The French host used by the real
+console tests prints no trailing period, so the existing suite cannot see this.
+
+**Architecture.** Composition stays in `invocation.py`. Win32 stdin detection
+stays in `inputs.py`, stream rendering in `results.py` and dispatch in
+`cli.py`. The batch files carry no domain policy. No environment, argument or
+configuration path registers a production handler. The read-only Git double is
+test-only. No layer violation was found. Two smells need addressing:
+
+- The two launchers are identical 62-line files apart from the entry-kind
+  literal, so the code-page defect is duplicated. The design's per-file
+  literal kind justifies two files. Any fix must change both, and its
+  regression must cover both.
+- The review-resume module fixture `native_git_path` re-implements
+  `tests/git_isolation.native_git_path`. It is inert once the root
+  `pytest_configure` has selected native Git.
+
+Physical lines by the gate metric: `bootstrap.py` 175, `invocation.py` 192,
+`cli.py` 142, `inputs.py` 68, `results.py` 51, `managed_files.py` 137, each
+launcher 62 and the largest test helper, `console_support.py`, 256. All are
+in the safe band. Yes, there is something to address: the duplicated
+native-Git fixture, plus the launcher duplication when fixing code pages.
+
+**Performance.** Argument, environment and payload handling is linear. A real
+launch reads `venvs/release-runtime.v1.txt` three times: in batch, in
+bootstrap `check`, and again in `cli.main` through `RuntimeIdentity.load`.
+That exceeds the plan's once-per-component bound, and Step 5 adds no
+read-count assertion although the plan's performance gate asks each owning
+step for one. The test console waiter rescans its whole transcript on each
+output notification. That cost is quadratic in transcript length, but the
+transcripts are bounded and the code is test-only. Hypothesis example caps
+were lowered as disclosed, with explicit edge examples added. Yes, there is a
+performance issue to address: the repeated runtime-record read.
+
+**Unit test coverage (static; no tests run by the reviewer).** The gate
+measures `tools` at 100%. Every branch of `cli.py`, `inputs.py`,
+`invocation.py`, `results.py`, the new `bootstrap.py` entry and failure
+branches, and the `managed_files.py` drive-relative guard is reached by its
+matching `test_*` folder on inspection. No unit-tested class is below 100%.
+Batch launchers and test helpers are outside the gate. Every top-level helper
+symbol is referenced. No real test executes the launchers' out-of-range
+status branch, lines 51 to 54 of each file.
+
+**Feature integrity.** No existing build, alias or release workflow is
+migrated, and the production registry stays empty. The writer's
+cancellation-plan amendment matches design lines 594 to 597 ("automation must
+use the selected non-batch transport where batch termination could prompt")
+and lines 614 to 615. The reviewer reads it as a clarification inside the
+approved design, not a new decision. The human approves plan changes at the
+gate. This assessment does not approve it on the human's behalf.
+
+Validation plan effects:
+
+The reviewer changed only the Step 5 rows of
+`docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md`:
+
+- The `Analysis of Step 5 implementation state` status sentence is now
+  `No. Step 5 has NOT been fully implemented.`, followed by a short reviewer
+  summary. The writer's earlier evidence paragraphs are kept below it.
+- A new `Missing work for Step 5` section follows `What was implemented for
+  Step 5` and lists eight concrete items covering all ten unresolved
+  findings. Its diagnostics item groups the stdin, entry-protocol and
+  `test_engine_failure` findings.
+
+The pre-repair blob was recorded first. `attribute-reviewer-patch` reported
+the change as attributable (59 insertions, 1 deletion), and only that patch
+was staged. No other row, step, document-level line or umbrella row changed.
+The document-level status was already `No, it is not implemented.` and stays
+unchanged. The umbrella digest is unchanged.
+
+### Pre-repair mandatory checks and coverage for step 5 release-project-root (exchange 1) (round 1)
+
+Requestor evidence, not repeated by the reviewer: `ghog day --full=speed
+--whole-suite` ended 2026-10-27T11:40:14+01:00 with exit 0, proof speed,
+scope whole, 4184 tests passed, 100% coverage and no failures, warnings,
+xfails, outliers or exclusions. The publication `ghog check` ended
+2026-10-27T13:40:43+01:00 with exit 0. The reviewer accepts these as
+requestor-side validation.
+
+The reviewer ran neither `ghog check` nor
+`ghog affected --no-cov --scope-file=<paths.scope>`. The static assessment
+plus one executed launcher-parse harness (an ignored reviewer scratch batch)
+decide this round. The finding they establish does not depend on suite
+results.
+
+The pre-assessment validation state was captured over 64 ordered paths: the
+63 staged paths, the validation plan and `uv.lock`. Its index tree was
+`ae520b263378786f528c0d14fac756d5b6356f9c`, equal to the request-time tree.
+
+### Resolved validation set and sources for step 5 release-project-root (exchange 1) (round 1)
+
+The request carries two commands:
+
+- `ghog day --full=speed --whole-suite`, source project (bound scope whole,
+  proof speed, fingerprint `686958cd...75b6` matching `paths.scope`).
+- `rg -n 'senv|PYTHONPATH|set /p|shell=True|pushd|GetConsoleMode'
+  tools/release_workflow bin/release_alias.bat bin/release_workflow.bat`,
+  source plan.
+
+The requestor owns them; the reviewer did not run either.
+
+### Resolver drift and direction for step 5 release-project-root (exchange 1) (round 1)
+
+No drift found. The project default still resolves to the speed whole-suite
+day for the bound whole scope. The plan's Step 5 search command
+(`bin/release*.bat`) matches the request's command with the glob expanded to
+the two launchers. The reviewer compared against the plan text and the bound
+scope file. It did not run a separate resolver.
+
+### Repository state around validation for step 5 release-project-root (exchange 1) (round 1)
+
+The request-time index tree `ae520b263378786f528c0d14fac756d5b6356f9c`
+matched the live index before assessment, so no early rejection applies.
+After the reviewer staged its Step 5 validation rows, the assessed index tree
+is `852cf63ed19cbb627bfda5c70a709a9e129271b1`.
+
+The validation-state comparison over the same 64 ordered paths reports
+tracked changes only for the validation plan and the index, both from the
+reviewer's staged Step 5 rows. No other staged path, `uv.lock` or untracked
+path changed. The umbrella digest is unchanged:
+`ca6fe473ea2672766e7bfa8c5003ae5155d3c6727cb895127a77890edd0ec992` before and
+after. The only working-tree change outside the index is the protocol-owned
+transcript `docs/v0.14.0/review.code.v0.14.0.release-project-root.md`.
+
+### Repair inventory for step 5 release-project-root (exchange 1) (round 1)
+
+Repairs made:
+
+- `docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md`: Step 5
+  status sentence set to No with a reviewer summary, and a new `Missing work
+  for Step 5` section added. Review metadata only; not substantive. Staged
+  as an attributable patch.
+
+Paths staged:
+
+- `.gitattributes`
+- `bin/release_alias.bat`
+- `bin/release_workflow.bat`
+- `check.bat`
+- `docs/v0.14.0/plan.v0.14.0.release-project-root.md`
+- `docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md`
+- `pyproject.toml`
+- `tests/acceptance/commit_plan_check/commit_plan_check_support.py`
+- `tests/acceptance/release_workflow/process_support.py`
+- `tests/acceptance/review_resume/conftest.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_concurrency_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_parked_wait_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_waiter_cleanup_tdd.py`
+- `tests/acceptance/review_resume/waiter_driver.py`
+- `tests/acceptance/review_resume/waiter_processes.py`
+- `tests/acceptance/review_status/conftest.py`
+- `tests/conftest.py`
+- `tests/git_isolation.py`
+- `tests/unit/tools/release_workflow/conftest.py`
+- `tests/unit/tools/release_workflow/console_host.py`
+- `tests/unit/tools/release_workflow/console_scenarios.py`
+- `tests/unit/tools/release_workflow/console_support.py`
+- `tests/unit/tools/release_workflow/console_text.py`
+- `tests/unit/tools/release_workflow/invocation_test_support.py`
+- `tests/unit/tools/release_workflow/launcher_support.py`
+- `tests/unit/tools/release_workflow/test_artifacts/conftest.py`
+- `tests/unit/tools/release_workflow/test_artifacts/test_artifacts_tdd.py`
+- `tests/unit/tools/release_workflow/test_bootstrap/test_bootstrap_tdd.py`
+- `tests/unit/tools/release_workflow/test_cli/__init__.py`
+- `tests/unit/tools/release_workflow/test_cli/test_cli_tdd.py`
+- `tests/unit/tools/release_workflow/test_configuration/test_configuration_pbt.py`
+- `tests/unit/tools/release_workflow/test_console_text/__init__.py`
+- `tests/unit/tools/release_workflow/test_console_text/test_console_text_tdd.py`
+- `tests/unit/tools/release_workflow/test_inputs/__init__.py`
+- `tests/unit/tools/release_workflow/test_inputs/test_inputs_tdd.py`
+- `tests/unit/tools/release_workflow/test_invocation/__init__.py`
+- `tests/unit/tools/release_workflow/test_invocation/test_invocation_pbt.py`
+- `tests/unit/tools/release_workflow/test_invocation/test_invocation_tdd.py`
+- `tests/unit/tools/release_workflow/test_launchers/__init__.py`
+- `tests/unit/tools/release_workflow/test_launchers/test_boundaries_tdd.py`
+- `tests/unit/tools/release_workflow/test_launchers/test_console_tdd.py`
+- `tests/unit/tools/release_workflow/test_launchers/test_launchers_tdd.py`
+- `tests/unit/tools/release_workflow/test_managed_files/test_managed_files_tdd.py`
+- `tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_pbt.py`
+- `tests/unit/tools/release_workflow/test_paths/conftest.py`
+- `tests/unit/tools/release_workflow/test_paths/test_paths_tdd.py`
+- `tests/unit/tools/release_workflow/test_results/__init__.py`
+- `tests/unit/tools/release_workflow/test_results/test_results_tdd.py`
+- `tests/unit/tools/release_workflow/test_schemas/test_schemas_pbt.py`
+- `tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_tdd.py`
+- `tests/unit/tools/test_groundhog_group_patterns/test_groundhog_group_patterns_pbt.py`
+- `tests/unit/tools/test_groundhog_proof/test_groundhog_proof_pbt.py`
+- `tests/unit/tools/test_review_exchange_scope/test_review_exchange_scope_tdd.py`
+- `tests/unit/tools/test_suite_git_isolation.py`
+- `tools/markdown_check/rules.py`
+- `tools/markdown_check/source.py`
+- `tools/release_workflow/__init__.py`
+- `tools/release_workflow/bootstrap.py`
+- `tools/release_workflow/cli.py`
+- `tools/release_workflow/inputs.py`
+- `tools/release_workflow/invocation.py`
+- `tools/release_workflow/managed_files.py`
+- `tools/release_workflow/results.py`
+
+### Commit plan assessment for step 5 release-project-root (exchange 1) (round 1)
+
+The reviewer ran `commit-plan-check.bat --format json` independently on the
+received state: exit 0, `state: valid`, `ready: true`, six groups covering
+the same 63 staged paths, and no diagnostics. Group order and subjects:
+`feat(release): wire context and Windows launchers`,
+`fix(release): reject drive-relative managed paths`,
+`perf(validation): reduce Git and fixture overhead`,
+`test(fixtures): clean up waiter processes and leak checks`,
+`perf(markdown): reduce code-span and membership scanning` and
+`docs(release-project-root): record step 5 validation`. A rerun after the
+reviewer's validation-row staging still reports valid and ready with six
+groups and no diagnostics.
+
+Membership, ordering and subjects are accurate. One body bullet is not:
+Group 5 says "Reuse the native Git helper and inline fixture seed
+identities", but `tests/acceptance/review_resume/conftest.py` re-implements
+the helper instead of importing `tests.git_isolation`. The writer corrects it
+with the related finding. Group 7's body must describe the reworked Step 5
+record after the missing work is done. The reviewer did not edit `a.commit`.
+A mechanically ready plan does not authorize a commit.
+
+### Findings and boundaries for step 5 release-project-root (exchange 1) (round 1)
+
+Unresolved findings:
+
+- P1 code-page restoration (`bin/release_workflow.bat`,
+  `bin/release_alias.bat`, lines 9 to 22): the digit check clears the saved
+  code page when localized `chcp` output ends its digits with punctuation,
+  such as `Aktive Codepage: 850.`. `:cleanup` then skips restoration and the
+  caller stays at 65001. Executed parse evidence is in the implementation
+  check. The bare `chcp` is also resolved through `PATH`, unlike the
+  full-path `findstr`.
+- P2 missing real evidence (both launchers, lines 51 to 54): no test drives
+  a native status outside 0 to 2 through either launcher. The status-23 case
+  is normalized to 1 by Python before the batch sees it, so the launcher's
+  own normalization and diagnostic never run.
+- P2 runtime identity read twice (`tools/release_workflow/cli.py`, line 123):
+  `cli.main` calls `RuntimeIdentity.load` after bootstrap `check` already
+  loaded and verified the record. The context freezes an identity that was
+  never checked against the running interpreter. A launch reads the record
+  three times, beyond the plan's once-per-component bound, and no Step 5
+  read-count assertion exists.
+- P3 weak cancellation assertions
+  (`tests/unit/tools/release_workflow/test_launchers/test_console_tdd.py`,
+  lines 123 to 136): the batch `yes` branch and `test_redirected_batch_cancel`
+  assert only `"/" in output`. `_answer_cancellation` in
+  `console_scenarios.py` returns without failing when no termination question
+  appears. The `yes` outcome's status and caller state are captured but never
+  asserted or recorded.
+- P3 stdin diagnostic (`tools/release_workflow/inputs.py`, line 64): a stdin
+  decode failure renders as `Cannot read input file=None (None): ...`,
+  because the cli passes the file selector's source label. No invalid UTF-8
+  stdin regression exists.
+- P3 entry-protocol diagnostic (`tools/release_workflow/bootstrap.py`,
+  `entry` and `main`): a missing or duplicate `--entry-kind` is reported as
+  "Release readiness failed ... Run this checkout's setup to repair it",
+  which points callers to the wrong repair. The status 2 is correct.
+- P3 imprecise test (`test_bootstrap_tdd.py::test_engine_failure`): one
+  three-way disjunction covers every parameter, so a wrong detail for one
+  outcome can still pass.
+- P3 duplicate fixture (`tests/acceptance/review_resume/conftest.py`,
+  `native_git_path`): it duplicates `tests/git_isolation.native_git_path`.
+  After the root `pytest_configure` it resolves
+  `mingw64/mingw64/bin/git.exe` and never changes `PATH`. Its docstring
+  paragraph and the Group 5 `a.commit` bullet describe behavior that does
+  not occur.
+- P3 docstring accuracy
+  (`tests/unit/tools/test_groundhog_proof/test_groundhog_proof_pbt.py`): the
+  module says the accumulation property "keeps its 25 examples", but this
+  change lowers it from 100 to 25.
+- P3 validation record: Step 5 still says review publication is on hold. It
+  reports superseded 15m30.0s phase timings as "the full day". It states both
+  "objective remains unmet" and "objective is met". It gives
+  `OperationResult` an "optional native failure detail" field that does not
+  exist. Three line counts are wrong (launchers 62, not 58;
+  `launcher_support.py` 225, not 209; `console_scenarios.py` 174, not 160).
+  The closing yes/no phrases required for the performance and unit test
+  coverage sub-sections are missing. The document-level theme still reports
+  Step 5 as passing with publication on hold.
+
+Boundary-crossing work:
+
+- Drive-relative managed-path rejection changes Step 4's
+  `tools/release_workflow/managed_files.py`. The writer disclosed it and
+  committed it as its own `fix(release)` group. The guard and its three
+  regressions are correct. The reviewer changed nothing there.
+- Groups 4 to 6 change shared test infrastructure, Hypothesis bounds,
+  `check.bat`, coverage configuration and `tools/markdown_check`, outside
+  Step 5's file list, to meet the user's whole-day ceiling. The reviewer
+  checked them for correctness. Only the duplicate native-Git fixture and the
+  docstring findings apply. The reviewer changed nothing there.
+- The writer amended plan Step 5's cancellation wording without separate
+  human approval. The reviewer finds it consistent with design lines 594 to
+  597 and 614 to 615, but approval of plan changes belongs to the human at
+  the gate.
+
+### Writer instructions for step 5 release-project-root (exchange 1) (round 1)
+
+Work through `Missing work for Step 5` in the validation plan, in this order:
+
+1. In both launchers, keep the leading digits after the last colon, for
+   example by stripping trailing punctuation before the digit check. Call
+   `chcp` as `"%SystemRoot%\System32\chcp.com"` for capture, switch and
+   restore. Add a deterministic regression covering `Aktive Codepage: 850.`
+   and a plain localized line for both launchers. For example, run the parse
+   on fixed input in a disposable launcher copy, or substitute a recording
+   `chcp` executable in a launcher copy.
+2. Add a fixture handler in the verified tooling copy that ends the
+   interpreter with an out-of-range status (`os._exit(7)`). Assert, through
+   both real launchers, public status 1, stderr `native status 7` and caller
+   state restored in the shared console.
+3. Pass the bootstrap-verified runtime identity into `cli.main` through its
+   existing `runtime` seam, or verify the loaded identity against
+   `sys.executable` and `sys.prefix`. Add a deterministic read-count
+   assertion for `venvs/release-runtime.v1.txt` on the real launch path.
+4. Assert the localized termination question (`_CHOICE`) for every batch
+   cancellation route. Make `_answer_cancellation` fail when no question
+   appears for an unredirected route. Record and assert the `yes` outcome's
+   status and caller state explicitly.
+5. Name the stdin channel in `read_payload` failures and add an invalid
+   UTF-8 stdin test. Give entry-protocol failures an invocation diagnostic
+   (status 2 unchanged), and make `test_engine_failure` expect each outcome's
+   own detail.
+6. Remove the review-resume `native_git_path` fixture with its docstring
+   paragraph, or import `tests.git_isolation`. Fix the Group 5 `a.commit`
+   bullet, and correct the groundhog proof property docstring.
+7. Rewrite the Step 5 validation rows to the current state as listed in the
+   missing work. Add the two required closing phrases and refresh the
+   document-level theme. After focused validation passes, set the analysis
+   back to `Yes. Step 5 has been fully implemented.` and remove the
+   `Missing work for Step 5` section.
+
+Then rerun the resolved validation set, update `a.commit` (Group 7 body
+included) and publish the replacement request.
+
+### Decision rationale for step 5 release-project-root (exchange 1) (round 1)
+
+Changes requested. Readiness floor:
+
+- Identity: pass. Envelope, readable identity, plan, step 5, round 1,
+  occurrence 1, umbrella and the request-time index tree all agree.
+- Completeness: fail. Code-page restoration does not meet the plan for
+  localized `chcp` output with trailing punctuation.
+- Validation and coverage: fail on missing evidence. The requestor's
+  whole-suite speed day is green and static coverage shows no gap. No real
+  test exercises the launchers' own status normalization.
+- Staged attribution: pass. Only the reviewer's validation-row patch was
+  added, and it is attributable.
+- Unresolved findings: fail. Ten findings remain open.
+- `a.commit`: partial. The mechanical check is ready and membership is
+  accurate, but one Group 5 body bullet is inaccurate.
+
+This round made no substantive repair. The reviewer changed only Step 5
+validation rows, which are review metadata. A commit-ready recommendation
+needs every floor result to pass. This answer authorizes no commit.
+
+### Final reviewer decision for step 5 release-project-root (exchange 1) (round 1)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-5-round-1 -->
+
+## Round 2 by requestor - Step 5
+
+- Recorded: 2026-10-27T23:15:37+01:00
+- Exchange: code/code/v0.14.0/release-project-root
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 5
+- Outcome: request
+
+### Review identity for step 5 release-project-root (round 2)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+Implementation step: 5
+Review round: 2
+
+### Code review evidence for step 5 release-project-root (round 2)
+
+request_index_tree: 2916492f5e96fe3b7ae8e35a06b00ddde277c2f5
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+- `rg -n 'senv|PYTHONPATH|set /p|shell=True|pushd|GetConsoleMode' tools/release_workflow bin/release_alias.bat bin/release_workflow.bat` (sources: plan)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.release-project-root.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(release): wire context and Windows launchers
+group 1 path: tools/release_workflow/__init__.py
+group 1 path: tools/release_workflow/bootstrap.py
+group 1 path: tools/release_workflow/cli.py
+group 1 path: tools/release_workflow/inputs.py
+group 1 path: tools/release_workflow/invocation.py
+group 1 path: tools/release_workflow/results.py
+group 1 path: tests/acceptance/release_workflow/process_support.py
+group 1 path: tests/unit/tools/release_workflow/test_bootstrap/test_bootstrap_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_cli/__init__.py
+group 1 path: tests/unit/tools/release_workflow/test_cli/test_cli_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_inputs/__init__.py
+group 1 path: tests/unit/tools/release_workflow/test_inputs/test_inputs_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_invocation/__init__.py
+group 1 path: tests/unit/tools/release_workflow/test_invocation/test_invocation_pbt.py
+group 1 path: tests/unit/tools/release_workflow/test_invocation/test_invocation_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_results/__init__.py
+group 1 path: tests/unit/tools/release_workflow/test_results/test_results_tdd.py
+group 1 path: tests/unit/tools/release_workflow/invocation_test_support.py
+group 1 path: .gitattributes
+group 1 path: bin/release_alias.bat
+group 1 path: bin/release_workflow.bat
+group 1 path: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+group 1 path: tests/unit/tools/release_workflow/conftest.py
+group 1 path: tests/unit/tools/release_workflow/console_host.py
+group 1 path: tests/unit/tools/release_workflow/console_scenarios.py
+group 1 path: tests/unit/tools/release_workflow/console_support.py
+group 1 path: tests/unit/tools/release_workflow/console_text.py
+group 1 path: tests/unit/tools/release_workflow/launcher_support.py
+group 1 path: tests/unit/tools/release_workflow/test_console_text/__init__.py
+group 1 path: tests/unit/tools/release_workflow/test_console_text/test_console_text_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_launchers/__init__.py
+group 1 path: tests/unit/tools/release_workflow/test_launchers/test_boundaries_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_launchers/test_console_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_launchers/test_codepage_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_launchers/test_read_counts_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_launchers/test_launchers_tdd.py
+group 2: fix(release): reject drive-relative managed paths
+group 2 path: tools/release_workflow/managed_files.py
+group 2 path: tests/unit/tools/release_workflow/test_managed_files/test_managed_files_tdd.py
+group 3: perf(validation): reduce Git and fixture overhead
+group 3 path: check.bat
+group 3 path: pyproject.toml
+group 3 path: tests/conftest.py
+group 3 path: tests/git_isolation.py
+group 3 path: tests/unit/tools/test_suite_git_isolation.py
+group 3 path: tests/acceptance/commit_plan_check/commit_plan_check_support.py
+group 3 path: tests/acceptance/commit_plan_check/test_commit_plan_check_acceptance/test_commit_plan_check_acceptance_tdd.py
+group 3 path: tests/acceptance/review_status/conftest.py
+group 3 path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_migration_tdd.py
+group 3 path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_blocked_layout_tdd.py
+group 3 path: tests/unit/tools/test_groundhog_group_patterns/test_groundhog_group_patterns_pbt.py
+group 3 path: tests/unit/tools/release_workflow/test_artifacts/conftest.py
+group 3 path: tests/unit/tools/release_workflow/test_artifacts/test_artifacts_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_configuration/test_configuration_pbt.py
+group 3 path: tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_pbt.py
+group 3 path: tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_paths/conftest.py
+group 3 path: tests/unit/tools/release_workflow/test_paths/test_paths_tdd.py
+group 3 path: tests/unit/tools/release_workflow/test_schemas/test_schemas_pbt.py
+group 3 path: tests/unit/tools/test_groundhog_proof/test_groundhog_proof_pbt.py
+group 3 path: tests/unit/tools/test_review_exchange_scope/test_review_exchange_scope_tdd.py
+group 4: test(fixtures): clean up waiter processes and leak checks
+group 4 path: tests/acceptance/review_resume/waiter_driver.py
+group 4 path: tests/acceptance/review_resume/conftest.py
+group 4 path: tests/acceptance/review_resume/waiter_processes.py
+group 4 path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_concurrency_tdd.py
+group 4 path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_parked_wait_tdd.py
+group 4 path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_waiter_cleanup_tdd.py
+group 4 path: tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_tdd.py
+group 5: perf(markdown): reduce code-span and membership scanning
+group 5 path: tools/markdown_check/rules.py
+group 5 path: tools/markdown_check/source.py
+group 6: perf(tools): defer unrelated package exports until requested
+group 6 path: tools/__init__.py
+group 6 path: tests/unit/tools/test_package_exports.py
+group 6 path: tests/acceptance/release_workflow/conftest.py
+group 6 path: tests/acceptance/release_workflow/test_release_readiness_tdd.py
+group 7: docs(release-project-root): record step 5 validation
+group 7 path: docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md
+staged path: .gitattributes
+staged path: bin/release_alias.bat
+staged path: bin/release_workflow.bat
+staged path: check.bat
+staged path: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+staged path: docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md
+staged path: pyproject.toml
+staged path: tests/acceptance/commit_plan_check/commit_plan_check_support.py
+staged path: tests/acceptance/commit_plan_check/test_commit_plan_check_acceptance/test_commit_plan_check_acceptance_tdd.py
+staged path: tests/acceptance/release_workflow/conftest.py
+staged path: tests/acceptance/release_workflow/process_support.py
+staged path: tests/acceptance/release_workflow/test_release_readiness_tdd.py
+staged path: tests/acceptance/review_resume/conftest.py
+staged path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_blocked_layout_tdd.py
+staged path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_concurrency_tdd.py
+staged path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_migration_tdd.py
+staged path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_parked_wait_tdd.py
+staged path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_waiter_cleanup_tdd.py
+staged path: tests/acceptance/review_resume/waiter_driver.py
+staged path: tests/acceptance/review_resume/waiter_processes.py
+staged path: tests/acceptance/review_status/conftest.py
+staged path: tests/conftest.py
+staged path: tests/git_isolation.py
+staged path: tests/unit/tools/release_workflow/conftest.py
+staged path: tests/unit/tools/release_workflow/console_host.py
+staged path: tests/unit/tools/release_workflow/console_scenarios.py
+staged path: tests/unit/tools/release_workflow/console_support.py
+staged path: tests/unit/tools/release_workflow/console_text.py
+staged path: tests/unit/tools/release_workflow/invocation_test_support.py
+staged path: tests/unit/tools/release_workflow/launcher_support.py
+staged path: tests/unit/tools/release_workflow/test_artifacts/conftest.py
+staged path: tests/unit/tools/release_workflow/test_artifacts/test_artifacts_tdd.py
+staged path: tests/unit/tools/release_workflow/test_bootstrap/test_bootstrap_tdd.py
+staged path: tests/unit/tools/release_workflow/test_cli/__init__.py
+staged path: tests/unit/tools/release_workflow/test_cli/test_cli_tdd.py
+staged path: tests/unit/tools/release_workflow/test_configuration/test_configuration_pbt.py
+staged path: tests/unit/tools/release_workflow/test_console_text/__init__.py
+staged path: tests/unit/tools/release_workflow/test_console_text/test_console_text_tdd.py
+staged path: tests/unit/tools/release_workflow/test_inputs/__init__.py
+staged path: tests/unit/tools/release_workflow/test_inputs/test_inputs_tdd.py
+staged path: tests/unit/tools/release_workflow/test_invocation/__init__.py
+staged path: tests/unit/tools/release_workflow/test_invocation/test_invocation_pbt.py
+staged path: tests/unit/tools/release_workflow/test_invocation/test_invocation_tdd.py
+staged path: tests/unit/tools/release_workflow/test_launchers/__init__.py
+staged path: tests/unit/tools/release_workflow/test_launchers/test_boundaries_tdd.py
+staged path: tests/unit/tools/release_workflow/test_launchers/test_codepage_tdd.py
+staged path: tests/unit/tools/release_workflow/test_launchers/test_console_tdd.py
+staged path: tests/unit/tools/release_workflow/test_launchers/test_launchers_tdd.py
+staged path: tests/unit/tools/release_workflow/test_launchers/test_read_counts_tdd.py
+staged path: tests/unit/tools/release_workflow/test_managed_files/test_managed_files_tdd.py
+staged path: tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_pbt.py
+staged path: tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_tdd.py
+staged path: tests/unit/tools/release_workflow/test_paths/conftest.py
+staged path: tests/unit/tools/release_workflow/test_paths/test_paths_tdd.py
+staged path: tests/unit/tools/release_workflow/test_results/__init__.py
+staged path: tests/unit/tools/release_workflow/test_results/test_results_tdd.py
+staged path: tests/unit/tools/release_workflow/test_schemas/test_schemas_pbt.py
+staged path: tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_tdd.py
+staged path: tests/unit/tools/test_groundhog_group_patterns/test_groundhog_group_patterns_pbt.py
+staged path: tests/unit/tools/test_groundhog_proof/test_groundhog_proof_pbt.py
+staged path: tests/unit/tools/test_package_exports.py
+staged path: tests/unit/tools/test_review_exchange_scope/test_review_exchange_scope_tdd.py
+staged path: tests/unit/tools/test_suite_git_isolation.py
+staged path: tools/__init__.py
+staged path: tools/markdown_check/rules.py
+staged path: tools/markdown_check/source.py
+staged path: tools/release_workflow/__init__.py
+staged path: tools/release_workflow/bootstrap.py
+staged path: tools/release_workflow/cli.py
+staged path: tools/release_workflow/inputs.py
+staged path: tools/release_workflow/invocation.py
+staged path: tools/release_workflow/managed_files.py
+staged path: tools/release_workflow/results.py
+```
+
+### Validation scope for step 5 release-project-root (round 2)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 5 release-project-root (round 2)
+
+Step 5 implements invocation context, payload policy, result handling, fixed
+dispatch and both Windows launchers. All ten round 1 findings are accepted and
+have implementation or documentation repairs in the staged work. Step 5 is
+fully implemented and replacement whole-suite validation is green.
+
+The architecture retains separate composition, input, output, bootstrap and
+batch adapters. Bootstrap reuses the verified identity instead of reloading
+the record. Both launcher parsers are synchronized and exercised independently.
+No source exceeds the 650-line ceiling.
+
+The mandatory `ghog day --full=speed --whole-suite` ended successfully at
+2026-10-27T23:10:05+01:00: all 4,250 tests, 100% coverage, `proof=speed`, two
+workers, unchanged one-second call floor and zero failures, warnings, xfails,
+outliers or exclusions. Static checks took 74.4 seconds, affected validation
+10.2 seconds and full validation 256.1 seconds. The measured wrapper took
+343.0 seconds, below the 360-second ceiling. The same-run duration audit covers
+all 4,250 collected tests. Shared setup is included in whole-day timing and
+may exceed one second. The earlier 299.1-second day is historical only.
+
+The additive scan passes: its only matches are intended GetConsoleMode use in
+inputs.py. The seven-group commit plan covers 73 staged source, test and validation
+paths; it excludes the protocol transcript. No commit has been authorized.
+
+Feature boundaries remain unchanged: the new foundation is opt-in, the registry
+contains no production domain handlers, and Step 6 integration is pending.
+The cancellation-plan wording was reconciled by the writer and still requires
+disclosure at the human gate. Forced termination can prevent batch cleanup.
+
+### Implementation report for step 5 release-project-root (round 2)
+
+The implementation freezes caller and project identity, computes legacy paths
+without ambient exports, validates payload policy through the actual input
+handle, separates UTF-8 data and diagnostics, and dispatches only source-owned
+handlers. The launchers select their own checkout's recorded Python and retain
+public status across cleanup.
+
+Round 1 repairs cover localized codepage punctuation and system chcp lookup,
+real native exit 7 through both launchers, reuse of the bootstrap-verified
+runtime identity, precise cancellation evidence, stdin and entry diagnostics,
+per-case engine failure assertions, removal of the duplicate Git fixture, and
+corrected property-sampling and validation documentation.
+
+A real isolated bootstrap audit asserts one Python runtime-record read across
+dispatch. Cancellation scenarios now use separate consoles after a focused run
+exposed startup failure following earlier Ctrl+C sequences. Two real cases may
+overlap; each retains the full localized question and state assertions.
+The six failure outcomes also run in two separate consoles, with unique
+diagnostic files. No caller state or output file is shared between launchers.
+
+The readiness acceptance probe now accepts and checks the verified runtime
+passed by bootstrap. Both launchers validate record data with built-in delayed
+expansion after operator parsing, then disable it before expanding the selected
+executable. This removes the two findstr pipelines and their child shells.
+Real launcher regressions reject version/path command injection, colon,
+backslash and parent paths, while accepting literal path metacharacters up to
+the missing-interpreter check. Caller arguments retain delayed expansion off.
+
+The existing performance work uses native Git, seeded repositories, bounded
+read-only test probes, shared evidence fixtures, sysmon coverage, two workers,
+and cached Markdown scans. The Hypothesis reductions remain disclosed, including
+100 to 25 proof-accumulation examples. Real tracking mutations, native locks,
+waiter lifetime checks and acceptance assertions are retained. There are no
+accepted exclusions or raised duration baselines.
+
+Individual launcher boundary cases now share the existing two fixture threads;
+independent populated/empty status journeys overlap across separate repositories.
+Four read-only commit-plan adapter subprocesses also overlap on two threads,
+between unchanged real before/after snapshots. All cases and assertions remain.
+A diagnostic 41-test comparison including setup and teardown fell from 37.60s
+to 32.44s. Canonical focused validation of all three changed modules passed in
+59.4s with no failures, warnings or xfails; this is not full speed proof.
+
+The sixth bounded day exposed a cancellation readiness timeout under full-suite
+execution. Its focused readiness/console run passed in72.1s. Launcher fixture
+copies now precompile their verified sources with checked-hash invalidation;
+bootstrap still forbids bytecode writes, and edited sources invalidate caches.
+A native-launch diagnostic measured median1.24s from source versus1.10s with
+bytecode, at1.95s one-time compilation cost. The complete replacement day below
+validates these changes together.
+
+The replacement `ghog day --full=speed --whole-suite` ended successfully at
+2026-10-27T23:10:05+01:00. All 4,250 tests passed with 100% coverage,
+`proof=speed`, zero failures, warnings, xfails, outliers or exclusions. Check
+took 74.4 seconds, affected validation 10.2 seconds and full validation 256.1
+seconds. The day took 342.2 seconds; the measured wrapper took 343.0 seconds,
+below the 360-second ceiling without reaching the watchdog. The same-run audit
+covers all 4,250 collected tests. Two workers and the one-second call floor
+are unchanged. Shared setup may exceed one second and remains included in the
+whole-day measurement. The affected selection was warm; no cold timing is
+claimed. Historical pre-review measurements remain separate from this proof.
+
+The package initializer now resolves its existing public exports on demand;
+release children omit the unrelated review-publication and Markdown graph.
+Static type imports, every exported object's identity, normal submodule imports,
+and missing-attribute behavior remain covered. The site-free acceptance probe
+explicitly loads the real engine and every public export, preserving the former
+full-closure check. Focused package/readiness/console/boundary validation passed
+119 tests in63.8s with no failures, warnings or xfails.
+
+The partial full audit measured linked Git-file calls at1.78s and1.64s.
+Pyinstrument attributed0.736s of0.737s combined isolated call time to repeated
+native Git validation. Both rejection cases now share one real validated
+identity; the authorization calls and rejection assertions remain unchanged.
+Isolated calls measured below0.005s each, with setup still included in day cost.
+
+Profiling the two migration journeys attributed 11.44 seconds to healthy request
+seeding. The existing Git double now prepares only that precondition over real
+template repositories; native Git is restored before introducing any migrated
+or unsafe layout. Migration, status, claim, byte preservation and all six unsafe
+layout assertions still exercise real Git. Isolated migration duration fell
+from 30.27 seconds with profiling to 18.88 seconds without profiling, so this
+is diagnostic evidence rather than a controlled speed claim. Canonical focused
+validation of both modules passed all 10 tests in 32.0 seconds, without warnings
+or xfails.
+
+The validation plan records cmd's yes outcome (status 1, original cwd/selector,
+codepage 65001 when cleanup is aborted), no/redirected restoration to 437 and
+the separate PowerShell finally branch. The writer's plan amendment remains
+visible for human assessment. No Step 5 commit or Step 6 action is authorized.
+
+Lock-only unit cases now construct an independent prepared home through real
+path authorization, matching the existing model fixture. All native Windows
+mutex, filesystem and ownership assertions remain. The cross-project case
+still prepares its second home with native Git, and artifact preparation has
+its own real-Git tests. Pyinstrument attributed 6.52 seconds to repeated Git
+tracking checks in setup. The two profiled 29-test runs passed in 16.57 and
+3.56 seconds respectively; these are diagnostic timings rather than full proof.
+
+Both unchanged localized codepage parsers now run their five inputs in separate
+batch scopes under one cmd child. Every output is retained, unexpected stderr
+is rejected, and strict output cardinality rejects missing or extra results.
+One xdist group prevents rebuilding that shared matrix on both workers.
+Canonical focused validation of locks, localized parsers and real artifact
+tests passed in 10.0 seconds without failures, warnings or xfails.
+Writer notes: `.reviews/a.release-project-root.step5.journal.md` and
+`.reviews/a.release-project-root.step5.handoff.md`.
+
+### Change summary for step 5 release-project-root (round 2)
+
+Replacement validation is green: all 4,250 tests, 100% coverage, zero failures,
+warnings, xfails, call-duration outliers or exclusions in 343.0 measured seconds.
+
+Seven commit groups cover 73 implementation/test/validation paths:
+
+- Group 2: feat(release): wire context and Windows launchers (36 paths).
+- Group 3: fix(release): reject drive-relative managed paths (2 paths).
+- Group 4: perf(validation): reduce Git and fixture overhead (21 paths).
+- Group 5: test(fixtures): clean up waiter processes and leak checks (7 paths).
+- Group 6: perf(markdown): reduce code-span and membership scanning (2 paths).
+- Group 7: perf(tools): defer unrelated package exports until requested (4 paths).
+- Group 8: docs(release-project-root): record step 5 validation (1 path).
+
+Group 2 adds the localized-codepage and runtime-read regressions. Group 5 now
+describes suite-wide native Git selection accurately. The documentation group
+remains last. The protocol-owned transcript is outside this index snapshot.
+No Step 5 implementation commit exists; the plan does not authorize a commit.
+
+Exact staged paths:
+
+- `tools/__init__.py`
+- `tests/unit/tools/test_package_exports.py`
+- `tests/acceptance/release_workflow/conftest.py`
+- `tests/acceptance/release_workflow/test_release_readiness_tdd.py`
+- `.gitattributes`
+- `bin/release_alias.bat`
+- `bin/release_workflow.bat`
+- `check.bat`
+- `docs/v0.14.0/plan.v0.14.0.release-project-root.md`
+- `docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md`
+- `pyproject.toml`
+- `tests/acceptance/commit_plan_check/commit_plan_check_support.py`
+- `tests/acceptance/commit_plan_check/test_commit_plan_check_acceptance/test_commit_plan_check_acceptance_tdd.py`
+- `tests/acceptance/release_workflow/process_support.py`
+- `tests/acceptance/review_resume/conftest.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_migration_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_blocked_layout_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_concurrency_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_parked_wait_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_waiter_cleanup_tdd.py`
+- `tests/acceptance/review_resume/waiter_driver.py`
+- `tests/acceptance/review_resume/waiter_processes.py`
+- `tests/acceptance/review_status/conftest.py`
+- `tests/conftest.py`
+- `tests/git_isolation.py`
+- `tests/unit/tools/release_workflow/conftest.py`
+- `tests/unit/tools/release_workflow/console_host.py`
+- `tests/unit/tools/release_workflow/console_scenarios.py`
+- `tests/unit/tools/release_workflow/console_support.py`
+- `tests/unit/tools/release_workflow/console_text.py`
+- `tests/unit/tools/release_workflow/invocation_test_support.py`
+- `tests/unit/tools/release_workflow/launcher_support.py`
+- `tests/unit/tools/release_workflow/test_artifacts/conftest.py`
+- `tests/unit/tools/release_workflow/test_artifacts/test_artifacts_tdd.py`
+- `tests/unit/tools/release_workflow/test_bootstrap/test_bootstrap_tdd.py`
+- `tests/unit/tools/release_workflow/test_cli/__init__.py`
+- `tests/unit/tools/release_workflow/test_cli/test_cli_tdd.py`
+- `tests/unit/tools/release_workflow/test_configuration/test_configuration_pbt.py`
+- `tests/unit/tools/release_workflow/test_console_text/__init__.py`
+- `tests/unit/tools/release_workflow/test_console_text/test_console_text_tdd.py`
+- `tests/unit/tools/release_workflow/test_inputs/__init__.py`
+- `tests/unit/tools/release_workflow/test_inputs/test_inputs_tdd.py`
+- `tests/unit/tools/release_workflow/test_invocation/__init__.py`
+- `tests/unit/tools/release_workflow/test_invocation/test_invocation_pbt.py`
+- `tests/unit/tools/release_workflow/test_invocation/test_invocation_tdd.py`
+- `tests/unit/tools/release_workflow/test_launchers/__init__.py`
+- `tests/unit/tools/release_workflow/test_launchers/test_boundaries_tdd.py`
+- `tests/unit/tools/release_workflow/test_launchers/test_codepage_tdd.py`
+- `tests/unit/tools/release_workflow/test_launchers/test_console_tdd.py`
+- `tests/unit/tools/release_workflow/test_launchers/test_launchers_tdd.py`
+- `tests/unit/tools/release_workflow/test_launchers/test_read_counts_tdd.py`
+- `tests/unit/tools/release_workflow/test_managed_files/test_managed_files_tdd.py`
+- `tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_pbt.py`
+- `tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_tdd.py`
+- `tests/unit/tools/release_workflow/test_paths/conftest.py`
+- `tests/unit/tools/release_workflow/test_paths/test_paths_tdd.py`
+- `tests/unit/tools/release_workflow/test_results/__init__.py`
+- `tests/unit/tools/release_workflow/test_results/test_results_tdd.py`
+- `tests/unit/tools/release_workflow/test_schemas/test_schemas_pbt.py`
+- `tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_tdd.py`
+- `tests/unit/tools/test_groundhog_group_patterns/test_groundhog_group_patterns_pbt.py`
+- `tests/unit/tools/test_groundhog_proof/test_groundhog_proof_pbt.py`
+- `tests/unit/tools/test_review_exchange_scope/test_review_exchange_scope_tdd.py`
+- `tests/unit/tools/test_suite_git_isolation.py`
+- `tools/markdown_check/rules.py`
+- `tools/markdown_check/source.py`
+- `tools/release_workflow/__init__.py`
+- `tools/release_workflow/bootstrap.py`
+- `tools/release_workflow/cli.py`
+- `tools/release_workflow/inputs.py`
+- `tools/release_workflow/invocation.py`
+- `tools/release_workflow/managed_files.py`
+- `tools/release_workflow/results.py`
+
+### Writer response for step 5 release-project-root (round 2)
+
+Writer response:
+
+All ten round 1 findings are accepted. No reviewer repair was reversed, and
+there is no explicit disagreement. The reviewer staged only Step 5 validation
+metadata; the writer accepted that incomplete state and is replacing the
+superseded narrative with current evidence.
+
+1. Both launchers use the system chcp path and retain leading digits after the
+   final colon, including localized punctuation. The exact parser from each
+   launcher executes against German, Dutch, French, English and multiple-colon
+   samples; the digit loop also handles an empty remainder explicitly.
+2. The verified tooling copy has a test-only os._exit(7) handler. Both actual
+   launchers must normalize it to 1, write native-status detail to stderr and
+   restore cwd, selector and codepage 437.
+3. Bootstrap passes its exact verified runtime object into the existing CLI
+   seam. A unit assertion checks object identity and an isolated real-bootstrap
+   audit counts one Python record open across dispatch.
+   The isolated readiness acceptance probe also checks the passed runtime;
+   its old fake signature was the cause of the later full-suite status failure.
+4. Every batch cancellation assertion requires the localized question. The
+   answer helper rejects its absence. The observed yes result is status 1,
+   unchanged cwd/selector and codepage 65001 where cmd aborts cleanup; no and
+   redirected cases restore 437. PowerShell pipeline interruption has separate
+   finally-restoration evidence. A follow-up focused run exposed a startup
+   failure when reusing the console after cancellation; each case now owns a
+   fresh console and the two-thread bound is retained.
+5. Invalid UTF-8 stdin diagnostics name stdin and have a regression.
+6. Reserved-entry syntax raises InvocationError and reports invocation failure
+   with status 2, without setup advice.
+7. test_engine_failure now binds every parameter to its own expected detail.
+8. Removed the duplicate review-resume native-Git fixture and its stale
+   docstring paragraph. Group 5 correctly names suite-wide native Git selection.
+9. The groundhog property docstring discloses the 100-to-25 example reduction.
+10. The validation rewrite separates historical measurements from current
+    evidence, fixes OperationResult fields and physical line counts, adds the
+    required closing assessments, and refreshes the overall theme. Its status
+    is now Yes after the successful replacement whole-suite validation.
+
+The writer's cancellation-plan amendment remains disclosed. It follows the
+approved design's native automation guidance, but separate human amendment
+approval has not been granted. It must remain visible at the eventual human
+gate. No commit or Step 6 action is authorized.
+
+Replacement validation passed: `ghog day --full=speed --whole-suite`, 4,250
+tests, 100% coverage, zero failures, warnings, xfails, outliers or exclusions,
+343.0 measured seconds at 2026-10-27T23:10:05+01:00. The additive scan passes.
+
+Further focused validation exposed variable launcher startup cost. Private
+tracing found a 5.4s codepage-query delay. The launcher record checks now use
+cmd's delayed-expansion comparisons to remove two pipelines and their child
+shells, restoring expansion off before executing Python. Additional real-launcher
+cases reject attempted command injection and malformed paths. No console timeout,
+coverage gate, worker count, acceptance assertion or speed floor was relaxed.
+
+### Reviewer focus for step 5 release-project-root (round 2)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-5-round-2 -->
+
+## Round 2 by reviewer - Step 5
+
+- Recorded: 2026-10-27T23:36:36+01:00
+- Exchange: code/code/v0.14.0/release-project-root
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 5
+- Outcome: answer
+
+### Assessed index identity for step 5 release-project-root (exchange 1) (round 2)
+
+Baseline index tree: 2916492f5e96fe3b7ae8e35a06b00ddde277c2f5
+
+Assessed index tree: c6170c396647262ff34f103796270df5e589b53d
+
+### Implementation check for step 5 release-project-root (exchange 1) (round 2)
+
+Result:
+
+No. Step 5 has NOT been fully implemented.
+
+All ten round 1 findings are resolved in the staged work:
+
+- Both launchers call `"%SystemRoot%\System32\chcp.com"` three times and keep
+  the leading digits after the last colon. `test_codepage_tdd.py` runs each
+  launcher's exact parser text on German, Dutch, French, English and
+  multiple-colon lines.
+- The fixture handler `os._exit(7)` runs through both real launchers. The
+  tests assert public status 1, `native status 7` on stderr and the restored
+  cwd, selector and code page 437.
+- Bootstrap passes its verified identity to `cli.main`, and `cli.main` reads
+  the record only when no runtime is given. An audit hook on the real isolated
+  bootstrap counts one Python read of `release-runtime.v1.txt`.
+- Every batch cancellation route must show the localized question.
+  `_answer_cancellation` fails when the first match is the prompt. The `yes`
+  outcome asserts status 1, unchanged cwd and selector, and code page 65001,
+  which matches the plan's "Yes terminates without a promised final
+  diagnostic".
+- Stdin failures name stdin. Entry-protocol errors raise `InvocationError` and
+  report an invocation diagnostic with status 2 and no setup advice.
+  `test_engine_failure` checks each outcome's own detail.
+- The duplicate review-resume fixture and its docstring paragraph are gone.
+  The groundhog proof docstring discloses the 100-to-25 reduction.
+- The Step 5 validation rows have accurate line counts (checked against the
+  index), the required closing phrases and a refreshed document theme.
+
+The record checks now use delayed expansion only inside short `setlocal`
+scopes, after cmd has parsed operators, then turn it off again before `%*`
+and the interpreter path expand. I traced the version-injection,
+path-injection, colon, backslash, parent, prefix and literal-metacharacter
+records through both launchers. Each one fails or is accepted as the new
+boundary tests assert.
+
+One new defect remains. `bootstrap.check` loads `runtime_identity` through
+`helper()` under the private module name `_release_bootstrap_runtime_identity`
+and returns that module's `RuntimeIdentity` instance. `cli.main` stores it
+unchanged in `InvocationContext.runtime`, which is declared as
+`tools.release_workflow.runtime_identity.RuntimeIdentity`. A direct check with
+the project interpreter printed `False False False`: the classes are not the
+same object, the value is not an instance of the declared class, and it never
+equals an identical `RuntimeIdentity`. No current handler reads the field, so
+nothing fails today. A later domain that type-checks or compares the runtime
+would fail only on the real launch path, never under the unit seam, which
+passes a tools-class instance.
+
+The two unbulleted profiling paragraphs at the end of `What was implemented
+for Step 5` repeat the bullets and belong in the performance check or the
+journal.
+
+Validation plan effects:
+
+The reviewer changed only the Step 5 rows of
+`docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md`:
+
+- The `Analysis of Step 5 implementation state` status sentence is now
+  `No. Step 5 has NOT been fully implemented.`, followed by a short reviewer
+  summary. The writer's paragraph is kept below it.
+- A new `Missing work for Step 5` section follows `What was implemented for
+  Step 5` and lists two items: the runtime identity class and the validation
+  record's profiling paragraphs.
+
+The pre-repair blob was recorded first. `attribute-reviewer-patch` reported
+the change as attributable, and only that patch was staged. No other row,
+step, document-level line or umbrella row changed. The document-level status
+stays `No, it is not implemented.`. The umbrella digest is unchanged.
+
+### Pre-repair mandatory checks and coverage for step 5 release-project-root (exchange 1) (round 2)
+
+The request-time index tree `2916492f5e96fe3b7ae8e35a06b00ddde277c2f5`
+matched the live index before assessment. The validation state was captured
+over the 73 staged paths plus `uv.lock`, and the umbrella digest was captured
+before any edit. The only unstaged entry was the protocol-owned transcript
+`docs/v0.14.0/review.code.v0.14.0.release-project-root.md`.
+
+The reviewer ran neither `ghog check` nor `ghog affected`. The assessment
+rests on reading the round 1 to round 2 index diff (27 files) and a one-line
+interpreter check of the bootstrap runtime class.
+
+### Resolved validation set and sources for step 5 release-project-root (exchange 1) (round 2)
+
+- `ghog day --full=speed --whole-suite` (source: project). The requestor
+  reports success at 2026-10-27T23:10:05+01:00: 4,250 tests, 100% coverage,
+  `proof=speed`, zero failures, warnings, xfails, outliers or exclusions, in
+  343.0 measured seconds. The reviewer did not repeat it.
+- `rg -n 'senv|PYTHONPATH|set /p|shell=True|pushd|GetConsoleMode' tools/release_workflow bin/release_alias.bat bin/release_workflow.bat`
+  (source: plan). The requestor reports only the intended `GetConsoleMode`
+  matches in `inputs.py`. Reading both launchers and the Python sources
+  confirms that no other forbidden term appears.
+
+### Resolver drift and direction for step 5 release-project-root (exchange 1) (round 2)
+
+No drift. The request's resolved set has the same two commands and sources
+as round 1: the project day gate and the plan's additive scan. The bound
+scope is `whole` with fingerprint
+`686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6`.
+
+### Repository state around validation for step 5 release-project-root (exchange 1) (round 2)
+
+- Baseline index tree: `2916492f5e96fe3b7ae8e35a06b00ddde277c2f5`, equal to
+  the request-time tree.
+- Assessed index tree: `c6170c396647262ff34f103796270df5e589b53d`, which adds
+  only the reviewer's Step 5 validation-row patch.
+- Validation-state comparison: the only tracked differences are that
+  validation plan and the index. No untracked or ignored validation artifact
+  appeared.
+- Umbrella digest: unchanged
+  (`ca6fe473ea2672766e7bfa8c5003ae5155d3c6727cb895127a77890edd0ec992`).
+- Unstaged: only the protocol-owned transcript.
+
+### Repair inventory for step 5 release-project-root (exchange 1) (round 2)
+
+Repairs made:
+
+- `docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md`: Step 5
+  status sentence set to No, and a `Missing work for Step 5` section added.
+  This is review metadata (polishing-only), not a substantive repair. The
+  reviewer changed no code, test or `a.commit`.
+
+Paths staged:
+
+- `.gitattributes`
+- `bin/release_alias.bat`
+- `bin/release_workflow.bat`
+- `check.bat`
+- `docs/v0.14.0/plan.v0.14.0.release-project-root.md`
+- `docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md`
+- `pyproject.toml`
+- `tests/acceptance/commit_plan_check/commit_plan_check_support.py`
+- `tests/acceptance/commit_plan_check/test_commit_plan_check_acceptance/test_commit_plan_check_acceptance_tdd.py`
+- `tests/acceptance/release_workflow/conftest.py`
+- `tests/acceptance/release_workflow/process_support.py`
+- `tests/acceptance/release_workflow/test_release_readiness_tdd.py`
+- `tests/acceptance/review_resume/conftest.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_blocked_layout_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_concurrency_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_migration_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_parked_wait_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_waiter_cleanup_tdd.py`
+- `tests/acceptance/review_resume/waiter_driver.py`
+- `tests/acceptance/review_resume/waiter_processes.py`
+- `tests/acceptance/review_status/conftest.py`
+- `tests/conftest.py`
+- `tests/git_isolation.py`
+- `tests/unit/tools/release_workflow/conftest.py`
+- `tests/unit/tools/release_workflow/console_host.py`
+- `tests/unit/tools/release_workflow/console_scenarios.py`
+- `tests/unit/tools/release_workflow/console_support.py`
+- `tests/unit/tools/release_workflow/console_text.py`
+- `tests/unit/tools/release_workflow/invocation_test_support.py`
+- `tests/unit/tools/release_workflow/launcher_support.py`
+- `tests/unit/tools/release_workflow/test_artifacts/conftest.py`
+- `tests/unit/tools/release_workflow/test_artifacts/test_artifacts_tdd.py`
+- `tests/unit/tools/release_workflow/test_bootstrap/test_bootstrap_tdd.py`
+- `tests/unit/tools/release_workflow/test_cli/__init__.py`
+- `tests/unit/tools/release_workflow/test_cli/test_cli_tdd.py`
+- `tests/unit/tools/release_workflow/test_configuration/test_configuration_pbt.py`
+- `tests/unit/tools/release_workflow/test_console_text/__init__.py`
+- `tests/unit/tools/release_workflow/test_console_text/test_console_text_tdd.py`
+- `tests/unit/tools/release_workflow/test_inputs/__init__.py`
+- `tests/unit/tools/release_workflow/test_inputs/test_inputs_tdd.py`
+- `tests/unit/tools/release_workflow/test_invocation/__init__.py`
+- `tests/unit/tools/release_workflow/test_invocation/test_invocation_pbt.py`
+- `tests/unit/tools/release_workflow/test_invocation/test_invocation_tdd.py`
+- `tests/unit/tools/release_workflow/test_launchers/__init__.py`
+- `tests/unit/tools/release_workflow/test_launchers/test_boundaries_tdd.py`
+- `tests/unit/tools/release_workflow/test_launchers/test_codepage_tdd.py`
+- `tests/unit/tools/release_workflow/test_launchers/test_console_tdd.py`
+- `tests/unit/tools/release_workflow/test_launchers/test_launchers_tdd.py`
+- `tests/unit/tools/release_workflow/test_launchers/test_read_counts_tdd.py`
+- `tests/unit/tools/release_workflow/test_managed_files/test_managed_files_tdd.py`
+- `tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_pbt.py`
+- `tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_tdd.py`
+- `tests/unit/tools/release_workflow/test_paths/conftest.py`
+- `tests/unit/tools/release_workflow/test_paths/test_paths_tdd.py`
+- `tests/unit/tools/release_workflow/test_results/__init__.py`
+- `tests/unit/tools/release_workflow/test_results/test_results_tdd.py`
+- `tests/unit/tools/release_workflow/test_schemas/test_schemas_pbt.py`
+- `tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_tdd.py`
+- `tests/unit/tools/test_groundhog_group_patterns/test_groundhog_group_patterns_pbt.py`
+- `tests/unit/tools/test_groundhog_proof/test_groundhog_proof_pbt.py`
+- `tests/unit/tools/test_package_exports.py`
+- `tests/unit/tools/test_review_exchange_scope/test_review_exchange_scope_tdd.py`
+- `tests/unit/tools/test_suite_git_isolation.py`
+- `tools/__init__.py`
+- `tools/markdown_check/rules.py`
+- `tools/markdown_check/source.py`
+- `tools/release_workflow/__init__.py`
+- `tools/release_workflow/bootstrap.py`
+- `tools/release_workflow/cli.py`
+- `tools/release_workflow/inputs.py`
+- `tools/release_workflow/invocation.py`
+- `tools/release_workflow/managed_files.py`
+- `tools/release_workflow/results.py`
+
+### Commit plan assessment for step 5 release-project-root (exchange 1) (round 2)
+
+An independent `commit-plan-check.bat --format json` run reported state
+`valid`, ready `true`, no diagnostics and 73 staged paths, in seven groups:
+
+- feat(release): wire context and Windows launchers (36 paths)
+- fix(release): reject drive-relative managed paths (2 paths)
+- perf(validation): reduce Git and fixture overhead (21 paths)
+- test(fixtures): clean up waiter processes and leak checks (7 paths)
+- perf(markdown): reduce code-span and membership scanning (2 paths)
+- perf(tools): defer unrelated package exports until requested (4 paths)
+- docs(release-project-root): record step 5 validation (1 path)
+
+Membership, order and subjects match the staged work, and the Group 5 body
+now describes suite-wide native Git selection accurately. `a.commit` is
+accurate for this snapshot. The writer's fix will add paths to the first
+group and change the documentation group's content.
+
+### Findings and boundaries for step 5 release-project-root (exchange 1) (round 2)
+
+Unresolved findings:
+
+- Runtime identity class mismatch (`tools/release_workflow/bootstrap.py`
+  `check`, `tools/release_workflow/cli.py` `main`): the verified runtime
+  passed to the CLI is an instance of the private helper module's
+  `RuntimeIdentity`, not `tools.release_workflow.runtime_identity.RuntimeIdentity`
+  as `InvocationContext.runtime` declares. On the real launch path,
+  `isinstance` is false and equality with an identical tools-class identity is
+  false. The unit seam passes a tools-class instance, so no test can see it.
+- Validation record structure: two unbulleted profiling paragraphs at the end
+  of `What was implemented for Step 5` repeat the bullets with diagnostic
+  timings. They belong in the performance check or the private journal.
+
+Boundary-crossing work:
+
+- The new `perf(tools)` group changes the shared `tools/__init__.py` to PEP 562
+  lazy exports, outside Step 5's file list. The reviewer checked it: every
+  `__all__` name resolves to its defining object, `from tools import
+  <submodule>` still falls back to a real import, and the only
+  `monkeypatch.setattr(tools, ...)` callers still resolve the name first. The
+  site-free acceptance probe still loads every export. The reviewer changed
+  nothing there.
+- Groups 3 to 5 and the new fixture changes (lock homes without Git, a shared
+  linked identity, seeded migration requests, overlapped read-only
+  subprocesses) remain outside Step 5's file list. Each keeps real Git where
+  the assertion depends on it. The reviewer changed nothing there.
+- The drive-relative managed-path fix to Step 4 stays in its own group,
+  unchanged since round 1.
+- The writer's cancellation-plan amendment still needs the human's approval
+  at the gate. This review does not grant it.
+
+### Writer instructions for step 5 release-project-root (exchange 1) (round 2)
+
+Work through `Missing work for Step 5` in the validation plan:
+
+1. In `cli.main`, convert a supplied runtime once into the tools class, for
+   example `RuntimeIdentity(runtime.root, runtime.environment)`, without
+   reading the record again. Keep the `Engine` protocol and the `cli.main`
+   annotation consistent with what bootstrap actually passes. Extend the real
+   isolated bootstrap test (the audit-hook driver or the acceptance probe) so
+   it asserts that the dispatched context's runtime is an instance of
+   `tools.release_workflow.runtime_identity.RuntimeIdentity`. Keep the
+   one-read assertion.
+2. Move the two unbulleted profiling paragraphs at the end of `What was
+   implemented for Step 5` into the performance check or the journal.
+3. After focused validation passes, set the Step 5 analysis back to
+   `Yes. Step 5 has been fully implemented.`, remove `Missing work for
+   Step 5`, and update the document-level theme sentence.
+
+Then rerun the resolved validation set, update `a.commit` and publish the
+replacement request.
+
+### Decision rationale for step 5 release-project-root (exchange 1) (round 2)
+
+Changes requested. Readiness floor:
+
+- Identity: pass. Envelope, readable identity, plan, step 5, round 2,
+  occurrence 1, umbrella and the request-time index tree all agree.
+- Completeness: fail. The runtime value bootstrap passes does not have the
+  declared `RuntimeIdentity` type.
+- Validation and coverage: pass on the requestor's evidence. The whole-suite
+  speed day is green at 100%, and static coverage shows no gap. The reviewer
+  ran no executed evidence.
+- Staged attribution: pass. Only the reviewer's validation-row patch was
+  added, and it is attributable.
+- Unresolved findings: fail. Two findings remain open.
+- `a.commit`: pass. The mechanical check is ready, and membership, order and
+  subjects are accurate.
+
+All ten round 1 findings are resolved. This round made no substantive repair:
+the reviewer changed only Step 5 validation rows, which are review metadata.
+A commit-ready recommendation needs every floor result to pass. This answer
+authorizes no commit.
+
+### Final reviewer decision for step 5 release-project-root (exchange 1) (round 2)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-5-round-2 -->
+
+## Round 3 by requestor - Step 5
+
+- Recorded: 2026-10-30T11:14:27+01:00
+- Exchange: code/code/v0.14.0/release-project-root
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 5
+- Outcome: request
+
+### Review identity for step 5 release-project-root (round 3)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+Implementation step: 5
+Review round: 3
+
+### Code review evidence for step 5 release-project-root (round 3)
+
+request_index_tree: 551f9d26671c53f45975d13977779d30112eb512
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+- `rg -n 'senv|PYTHONPATH|set /p|shell=True|pushd|GetConsoleMode' tools/release_workflow bin/release_alias.bat bin/release_workflow.bat` (sources: plan)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.release-project-root.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: perf(tools): reduce import and scan overhead
+group 1 path: tools/__init__.py
+group 1 path: tools/linear_order.py
+group 1 path: tools/markdown_check/rules.py
+group 1 path: tools/markdown_check/source.py
+group 2: refactor(review): expose repository observations
+group 2 path: tools/review_artifact_configuration.py
+group 2 path: tools/review_exchange_paths.py
+group 3: fix(release): reject drive-relative managed paths
+group 3 path: tools/release_workflow/managed_files.py
+group 4: feat(release): wire context and Windows launchers
+group 4 path: .gitattributes
+group 4 path: bin/release_alias.bat
+group 4 path: bin/release_workflow.bat
+group 4 path: tools/release_workflow/__init__.py
+group 4 path: tools/release_workflow/artifacts.py
+group 4 path: tools/release_workflow/bootstrap.py
+group 4 path: tools/release_workflow/cli.py
+group 4 path: tools/release_workflow/git.py
+group 4 path: tools/release_workflow/git_environment.py
+group 4 path: tools/release_workflow/inputs.py
+group 4 path: tools/release_workflow/invocation.py
+group 4 path: tools/release_workflow/paths.py
+group 4 path: tools/release_workflow/results.py
+group 5: test(suite): simulate external workflow boundaries
+group 5 path: check.bat
+group 5 path: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+group 5 path: pyproject.toml
+group 5 path: tests/acceptance/commit_plan_check/commit_plan_check_support.py
+group 5 path: tests/acceptance/commit_plan_check/conftest.py
+group 5 path: tests/acceptance/commit_plan_check/repository_observations.py
+group 5 path: tests/acceptance/commit_plan_check/test_commit_plan_check_acceptance/test_commit_plan_check_acceptance_tdd.py
+group 5 path: tests/acceptance/commit_plan_check/test_commit_plan_check_acceptance/test_commit_plan_check_contracts_tdd.py
+group 5 path: tests/acceptance/markdown_check/test_markdown_check_acceptance/test_markdown_check_acceptance_tdd.py
+group 5 path: tests/acceptance/markdown_check/test_shared_gate/test_shared_gate_tdd.py
+group 5 path: tests/acceptance/release_workflow/conftest.py
+group 5 path: tests/acceptance/release_workflow/process_support.py
+group 5 path: tests/acceptance/release_workflow/test_release_readiness_tdd.py
+group 5 path: tests/acceptance/release_workflow/test_uv_readiness_tdd.py
+group 5 path: tests/acceptance/review_resume/cli_support.py
+group 5 path: tests/acceptance/review_resume/conftest.py
+group 5 path: tests/acceptance/review_resume/notification_simulation.py
+group 5 path: tests/acceptance/review_resume/prepared_request.py
+group 5 path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_acceptance_tdd.py
+group 5 path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_blocked_layout_tdd.py
+group 5 path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_concurrency_tdd.py
+group 5 path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_identity_tdd.py
+group 5 path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_launcher_smoke_tdd.py
+group 5 path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_migration_tdd.py
+group 5 path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_parked_wait_tdd.py
+group 5 path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_waiter_cleanup_tdd.py
+group 5 path: tests/acceptance/review_resume/waiter_driver.py
+group 5 path: tests/acceptance/review_status/conftest.py
+group 5 path: tests/acceptance/review_status/test_review_status_acceptance/test_review_status_acceptance_tdd.py
+group 5 path: tests/code_review_repository_observations.py
+group 5 path: tests/conftest.py
+group 5 path: tests/git_isolation.py
+group 5 path: tests/memory_filesystem.py
+group 5 path: tests/review_repository_observations.py
+group 5 path: tests/scenario_cli.py
+group 5 path: tests/scenario_environment.py
+group 5 path: tests/scenario_generation.py
+group 5 path: tests/scenario_sqlite.py
+group 5 path: tests/scenario_storage.py
+group 5 path: tests/scenario_streams.py
+group 5 path: tests/script_entry.py
+group 5 path: tests/simulation_policy.py
+group 5 path: tests/testmon_monitoring.py
+group 5 path: tests/unit/test_scenario_storage.py
+group 5 path: tests/unit/tools/git_history_dashboard/test_aggregate/test_aggregate_pbt.py
+group 5 path: tests/unit/tools/git_history_dashboard/test_aggregate/test_aggregate_perf_tdd.py
+group 5 path: tests/unit/tools/git_history_dashboard/test_build/test_build_tdd.py
+group 5 path: tests/unit/tools/git_test_double.py
+group 5 path: tests/unit/tools/markdown_check/test_launcher/test_launcher_tdd.py
+group 5 path: tests/unit/tools/markdown_check/test_rule_properties/test_rule_properties_pbt.py
+group 5 path: tests/unit/tools/markdown_check/test_runner/test_runner_tdd.py
+group 5 path: tests/unit/tools/prepare_release/prepare_release_plan_test_support.py
+group 5 path: tests/unit/tools/prepare_release/test_prepare_release_plan.py
+group 5 path: tests/unit/tools/prepare_release/test_prepare_release_plan_targets_workflow.py
+group 5 path: tests/unit/tools/prepare_release/test_prepare_release_plan_workflow.py
+group 5 path: tests/unit/tools/release_workflow/conftest.py
+group 5 path: tests/unit/tools/release_workflow/git_test_support.py
+group 5 path: tests/unit/tools/release_workflow/invocation_test_support.py
+group 5 path: tests/unit/tools/release_workflow/launcher_simulation.py
+group 5 path: tests/unit/tools/release_workflow/repository_simulation.py
+group 5 path: tests/unit/tools/release_workflow/test_artifacts/conftest.py
+group 5 path: tests/unit/tools/release_workflow/test_artifacts/test_artifacts_tdd.py
+group 5 path: tests/unit/tools/release_workflow/test_bootstrap/test_bootstrap_tdd.py
+group 5 path: tests/unit/tools/release_workflow/test_cli/__init__.py
+group 5 path: tests/unit/tools/release_workflow/test_cli/test_cli_tdd.py
+group 5 path: tests/unit/tools/release_workflow/test_configuration/test_configuration_pbt.py
+group 5 path: tests/unit/tools/release_workflow/test_git/conftest.py
+group 5 path: tests/unit/tools/release_workflow/test_git/test_config_files_tdd.py
+group 5 path: tests/unit/tools/release_workflow/test_git/test_git_tdd.py
+group 5 path: tests/unit/tools/release_workflow/test_inputs/__init__.py
+group 5 path: tests/unit/tools/release_workflow/test_inputs/test_inputs_tdd.py
+group 5 path: tests/unit/tools/release_workflow/test_invocation/__init__.py
+group 5 path: tests/unit/tools/release_workflow/test_invocation/test_invocation_pbt.py
+group 5 path: tests/unit/tools/release_workflow/test_invocation/test_invocation_tdd.py
+group 5 path: tests/unit/tools/release_workflow/test_launchers/__init__.py
+group 5 path: tests/unit/tools/release_workflow/test_launchers/test_boundaries_tdd.py
+group 5 path: tests/unit/tools/release_workflow/test_launchers/test_codepage_tdd.py
+group 5 path: tests/unit/tools/release_workflow/test_launchers/test_console_tdd.py
+group 5 path: tests/unit/tools/release_workflow/test_launchers/test_launchers_tdd.py
+group 5 path: tests/unit/tools/release_workflow/test_launchers/test_read_counts_tdd.py
+group 5 path: tests/unit/tools/release_workflow/test_managed_files/test_managed_files_tdd.py
+group 5 path: tests/unit/tools/release_workflow/test_markers/test_markers_pbt.py
+group 5 path: tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_pbt.py
+group 5 path: tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_tdd.py
+group 5 path: tests/unit/tools/release_workflow/test_paths/conftest.py
+group 5 path: tests/unit/tools/release_workflow/test_paths/test_paths_pbt.py
+group 5 path: tests/unit/tools/release_workflow/test_paths/test_paths_tdd.py
+group 5 path: tests/unit/tools/release_workflow/test_readiness/test_metadata_tdd.py
+group 5 path: tests/unit/tools/release_workflow/test_readiness/test_readiness_pbt.py
+group 5 path: tests/unit/tools/release_workflow/test_results/__init__.py
+group 5 path: tests/unit/tools/release_workflow/test_results/test_results_tdd.py
+group 5 path: tests/unit/tools/release_workflow/test_schemas/test_schemas_pbt.py
+group 5 path: tests/unit/tools/release_workflow/test_windows_process/test_windows_process_tdd.py
+group 5 path: tests/unit/tools/test_artifact_home/test_artifact_home_tdd.py
+group 5 path: tests/unit/tools/test_code_review_evidence/conftest.py
+group 5 path: tests/unit/tools/test_code_review_evidence/test_code_review_evidence_boundaries_tdd.py
+group 5 path: tests/unit/tools/test_code_review_evidence/test_code_review_evidence_cli_tdd.py
+group 5 path: tests/unit/tools/test_code_review_evidence/test_code_review_evidence_tdd.py
+group 5 path: tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py
+group 5 path: tests/unit/tools/test_code_review_requestor_acceptance/conftest.py
+group 5 path: tests/unit/tools/test_code_review_requestor_acceptance/test_code_review_requestor_acceptance_tdd.py
+group 5 path: tests/unit/tools/test_code_review_requestor_acceptance/test_code_review_requestor_io_acceptance_tdd.py
+group 5 path: tests/unit/tools/test_code_reviewer_acceptance/conftest.py
+group 5 path: tests/unit/tools/test_code_reviewer_acceptance/fixtures.py
+group 5 path: tests/unit/tools/test_code_reviewer_acceptance/test_code_reviewer_acceptance_tdd.py
+group 5 path: tests/unit/tools/test_code_reviewer_acceptance/test_code_reviewer_io_acceptance_tdd.py
+group 5 path: tests/unit/tools/test_code_reviewer_acceptance/test_code_reviewer_launcher_smoke_tdd.py
+group 5 path: tests/unit/tools/test_code_reviewer_acceptance/test_code_reviewer_recovery_tdd.py
+group 5 path: tests/unit/tools/test_codex_plugin_redirects/test_codex_plugin_redirects_tdd.py
+group 5 path: tests/unit/tools/test_commit_plan_check/test_commit_plan_check_adapter_tdd.py
+group 5 path: tests/unit/tools/test_coverage_gap_functions_cli.py
+group 5 path: tests/unit/tools/test_enforce_eof_branches.py
+group 5 path: tests/unit/tools/test_full_suite_levels_acceptance/conftest.py
+group 5 path: tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_review_acceptance_tdd.py
+group 5 path: tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_workflow_acceptance_tdd.py
+group 5 path: tests/unit/tools/test_git_batch_commit_entry.py
+group 5 path: tests/unit/tools/test_groundhog_acceptance.py
+group 5 path: tests/unit/tools/test_groundhog_cli.py
+group 5 path: tests/unit/tools/test_groundhog_detach.py
+group 5 path: tests/unit/tools/test_groundhog_durations_pbt.py
+group 5 path: tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_pbt.py
+group 5 path: tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_tdd.py
+group 5 path: tests/unit/tools/test_groundhog_group_patterns/test_groundhog_group_patterns_pbt.py
+group 5 path: tests/unit/tools/test_groundhog_levels/test_groundhog_levels_pbt.py
+group 5 path: tests/unit/tools/test_groundhog_proof/test_groundhog_proof_pbt.py
+group 5 path: tests/unit/tools/test_groundhog_runner.py
+group 5 path: tests/unit/tools/test_groundhog_status.py
+group 5 path: tests/unit/tools/test_group_commit_message_prompt_branches.py
+group 5 path: tests/unit/tools/test_instruction_structure/test_codex_plugin_structure_tdd.py
+group 5 path: tests/unit/tools/test_instruction_structure/test_instruction_structure_prompt_workflow_tdd.py
+group 5 path: tests/unit/tools/test_instruction_structure/test_instruction_structure_tdd.py
+group 5 path: tests/unit/tools/test_instruction_structure/test_shared_utility_invocation_tdd.py
+group 5 path: tests/unit/tools/test_isolate_logos.py
+group 5 path: tests/unit/tools/test_linear_order/test_linear_order_tdd.py
+group 5 path: tests/unit/tools/test_new_draft_entry.py
+group 5 path: tests/unit/tools/test_open_questions_md.py
+group 5 path: tests/unit/tools/test_package_exports.py
+group 5 path: tests/unit/tools/test_prepare_release_whole_suite/test_prepare_release_whole_suite_tdd.py
+group 5 path: tests/unit/tools/test_prompt_workflow_acceptance/test_prompt_workflow_acceptance_tdd.py
+group 5 path: tests/unit/tools/test_prompt_workflow_docs_layout_acceptance/test_prompt_workflow_docs_layout_acceptance_tdd.py
+group 5 path: tests/unit/tools/test_prompt_workflow_document_lookup/test_prompt_workflow_document_lookup_pbt.py
+group 5 path: tests/unit/tools/test_prompt_workflow_integration.py
+group 5 path: tests/unit/tools/test_review_artifact_home/test_review_artifact_registry_pbt.py
+group 5 path: tests/unit/tools/test_review_exchange_acceptance/conftest.py
+group 5 path: tests/unit/tools/test_review_exchange_acceptance/test_review_exchange_acceptance_tdd.py
+group 5 path: tests/unit/tools/test_review_exchange_cli/test_review_exchange_cli_boundaries_tdd.py
+group 5 path: tests/unit/tools/test_review_exchange_lifecycle/test_review_exchange_boundaries_tdd.py
+group 5 path: tests/unit/tools/test_review_exchange_models/test_review_exchange_models_pbt.py
+group 5 path: tests/unit/tools/test_review_exchange_ownership/test_review_exchange_ownership_pbt.py
+group 5 path: tests/unit/tools/test_review_exchange_paths/test_review_exchange_paths_tdd.py
+group 5 path: tests/unit/tools/test_review_exchange_recovery_acceptance/test_review_exchange_recovery_acceptance_tdd.py
+group 5 path: tests/unit/tools/test_review_exchange_scope/test_review_exchange_scope_tdd.py
+group 5 path: tests/unit/tools/test_review_exchange_state/test_review_exchange_state_pbt.py
+group 5 path: tests/unit/tools/test_review_mode_docs_acceptance/conftest.py
+group 5 path: tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_acceptance_tdd.py
+group 5 path: tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_final_acceptance_tdd.py
+group 5 path: tests/unit/tools/test_review_resume/prepared_phase.py
+group 5 path: tests/unit/tools/test_review_resume/test_review_resume_expiry_tdd.py
+group 5 path: tests/unit/tools/test_review_resume/test_review_resume_lifecycle_tdd.py
+group 5 path: tests/unit/tools/test_review_resume/test_review_resume_role_tdd.py
+group 5 path: tests/unit/tools/test_review_role_nature/test_review_role_nature_pbt.py
+group 5 path: tests/unit/tools/test_review_status/test_review_status_pbt.py
+group 5 path: tests/unit/tools/test_review_status_cli/test_review_status_cli_tdd.py
+group 5 path: tests/unit/tools/test_scenario_storage.py
+group 5 path: tests/unit/tools/test_scope_capture/test_scope_capture_pbt.py
+group 5 path: tests/unit/tools/test_spec_review_requestor_acceptance/conftest.py
+group 5 path: tests/unit/tools/test_spec_review_requestor_acceptance/test_spec_review_requestor_acceptance_tdd.py
+group 5 path: tests/unit/tools/test_spec_review_requestor_acceptance/test_spec_review_requestor_io_acceptance_tdd.py
+group 5 path: tests/unit/tools/test_spec_reviewer_acceptance/conftest.py
+group 5 path: tests/unit/tools/test_spec_reviewer_acceptance/fixtures.py
+group 5 path: tests/unit/tools/test_spec_reviewer_acceptance/test_spec_reviewer_acceptance_tdd.py
+group 5 path: tests/unit/tools/test_suite_git_isolation.py
+group 5 path: tests/unit/tools/test_trim_thinking_cli.py
+group 5 path: tests/unit/tools/test_wrap_commit_cli.py
+group 6: docs(release): retain step 5 review exchange
+group 6 path: docs/v0.14.0/review.code.v0.14.0.release-project-root.md
+group 7: docs(release-project-root): record step 5 validation
+group 7 path: docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md
+staged path: .gitattributes
+staged path: bin/release_alias.bat
+staged path: bin/release_workflow.bat
+staged path: check.bat
+staged path: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+staged path: docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md
+staged path: docs/v0.14.0/review.code.v0.14.0.release-project-root.md
+staged path: pyproject.toml
+staged path: tests/acceptance/commit_plan_check/commit_plan_check_support.py
+staged path: tests/acceptance/commit_plan_check/conftest.py
+staged path: tests/acceptance/commit_plan_check/repository_observations.py
+staged path: tests/acceptance/commit_plan_check/test_commit_plan_check_acceptance/test_commit_plan_check_acceptance_tdd.py
+staged path: tests/acceptance/commit_plan_check/test_commit_plan_check_acceptance/test_commit_plan_check_contracts_tdd.py
+staged path: tests/acceptance/markdown_check/test_markdown_check_acceptance/test_markdown_check_acceptance_tdd.py
+staged path: tests/acceptance/markdown_check/test_shared_gate/test_shared_gate_tdd.py
+staged path: tests/acceptance/release_workflow/conftest.py
+staged path: tests/acceptance/release_workflow/process_support.py
+staged path: tests/acceptance/release_workflow/test_release_readiness_tdd.py
+staged path: tests/acceptance/release_workflow/test_uv_readiness_tdd.py
+staged path: tests/acceptance/review_resume/cli_support.py
+staged path: tests/acceptance/review_resume/conftest.py
+staged path: tests/acceptance/review_resume/notification_simulation.py
+staged path: tests/acceptance/review_resume/prepared_request.py
+staged path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_acceptance_tdd.py
+staged path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_blocked_layout_tdd.py
+staged path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_concurrency_tdd.py
+staged path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_identity_tdd.py
+staged path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_launcher_smoke_tdd.py
+staged path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_migration_tdd.py
+staged path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_parked_wait_tdd.py
+staged path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_waiter_cleanup_tdd.py
+staged path: tests/acceptance/review_resume/waiter_driver.py
+staged path: tests/acceptance/review_status/conftest.py
+staged path: tests/acceptance/review_status/test_review_status_acceptance/test_review_status_acceptance_tdd.py
+staged path: tests/code_review_repository_observations.py
+staged path: tests/conftest.py
+staged path: tests/git_isolation.py
+staged path: tests/memory_filesystem.py
+staged path: tests/review_repository_observations.py
+staged path: tests/scenario_cli.py
+staged path: tests/scenario_environment.py
+staged path: tests/scenario_generation.py
+staged path: tests/scenario_sqlite.py
+staged path: tests/scenario_storage.py
+staged path: tests/scenario_streams.py
+staged path: tests/script_entry.py
+staged path: tests/simulation_policy.py
+staged path: tests/testmon_monitoring.py
+staged path: tests/unit/test_scenario_storage.py
+staged path: tests/unit/tools/git_history_dashboard/test_aggregate/test_aggregate_pbt.py
+staged path: tests/unit/tools/git_history_dashboard/test_aggregate/test_aggregate_perf_tdd.py
+staged path: tests/unit/tools/git_history_dashboard/test_build/test_build_tdd.py
+staged path: tests/unit/tools/git_test_double.py
+staged path: tests/unit/tools/markdown_check/test_launcher/test_launcher_tdd.py
+staged path: tests/unit/tools/markdown_check/test_rule_properties/test_rule_properties_pbt.py
+staged path: tests/unit/tools/markdown_check/test_runner/test_runner_tdd.py
+staged path: tests/unit/tools/prepare_release/prepare_release_plan_test_support.py
+staged path: tests/unit/tools/prepare_release/test_prepare_release_plan.py
+staged path: tests/unit/tools/prepare_release/test_prepare_release_plan_targets_workflow.py
+staged path: tests/unit/tools/prepare_release/test_prepare_release_plan_workflow.py
+staged path: tests/unit/tools/release_workflow/conftest.py
+staged path: tests/unit/tools/release_workflow/git_test_support.py
+staged path: tests/unit/tools/release_workflow/invocation_test_support.py
+staged path: tests/unit/tools/release_workflow/launcher_simulation.py
+staged path: tests/unit/tools/release_workflow/repository_simulation.py
+staged path: tests/unit/tools/release_workflow/test_artifacts/conftest.py
+staged path: tests/unit/tools/release_workflow/test_artifacts/test_artifacts_tdd.py
+staged path: tests/unit/tools/release_workflow/test_bootstrap/test_bootstrap_tdd.py
+staged path: tests/unit/tools/release_workflow/test_cli/__init__.py
+staged path: tests/unit/tools/release_workflow/test_cli/test_cli_tdd.py
+staged path: tests/unit/tools/release_workflow/test_configuration/test_configuration_pbt.py
+staged path: tests/unit/tools/release_workflow/test_git/conftest.py
+staged path: tests/unit/tools/release_workflow/test_git/test_config_files_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git/test_git_tdd.py
+staged path: tests/unit/tools/release_workflow/test_inputs/__init__.py
+staged path: tests/unit/tools/release_workflow/test_inputs/test_inputs_tdd.py
+staged path: tests/unit/tools/release_workflow/test_invocation/__init__.py
+staged path: tests/unit/tools/release_workflow/test_invocation/test_invocation_pbt.py
+staged path: tests/unit/tools/release_workflow/test_invocation/test_invocation_tdd.py
+staged path: tests/unit/tools/release_workflow/test_launchers/__init__.py
+staged path: tests/unit/tools/release_workflow/test_launchers/test_boundaries_tdd.py
+staged path: tests/unit/tools/release_workflow/test_launchers/test_codepage_tdd.py
+staged path: tests/unit/tools/release_workflow/test_launchers/test_console_tdd.py
+staged path: tests/unit/tools/release_workflow/test_launchers/test_launchers_tdd.py
+staged path: tests/unit/tools/release_workflow/test_launchers/test_read_counts_tdd.py
+staged path: tests/unit/tools/release_workflow/test_managed_files/test_managed_files_tdd.py
+staged path: tests/unit/tools/release_workflow/test_markers/test_markers_pbt.py
+staged path: tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_pbt.py
+staged path: tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_tdd.py
+staged path: tests/unit/tools/release_workflow/test_paths/conftest.py
+staged path: tests/unit/tools/release_workflow/test_paths/test_paths_pbt.py
+staged path: tests/unit/tools/release_workflow/test_paths/test_paths_tdd.py
+staged path: tests/unit/tools/release_workflow/test_readiness/test_metadata_tdd.py
+staged path: tests/unit/tools/release_workflow/test_readiness/test_readiness_pbt.py
+staged path: tests/unit/tools/release_workflow/test_results/__init__.py
+staged path: tests/unit/tools/release_workflow/test_results/test_results_tdd.py
+staged path: tests/unit/tools/release_workflow/test_schemas/test_schemas_pbt.py
+staged path: tests/unit/tools/release_workflow/test_windows_process/test_windows_process_tdd.py
+staged path: tests/unit/tools/test_artifact_home/test_artifact_home_tdd.py
+staged path: tests/unit/tools/test_code_review_evidence/conftest.py
+staged path: tests/unit/tools/test_code_review_evidence/test_code_review_evidence_boundaries_tdd.py
+staged path: tests/unit/tools/test_code_review_evidence/test_code_review_evidence_cli_tdd.py
+staged path: tests/unit/tools/test_code_review_evidence/test_code_review_evidence_tdd.py
+staged path: tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py
+staged path: tests/unit/tools/test_code_review_requestor_acceptance/conftest.py
+staged path: tests/unit/tools/test_code_review_requestor_acceptance/test_code_review_requestor_acceptance_tdd.py
+staged path: tests/unit/tools/test_code_review_requestor_acceptance/test_code_review_requestor_io_acceptance_tdd.py
+staged path: tests/unit/tools/test_code_reviewer_acceptance/conftest.py
+staged path: tests/unit/tools/test_code_reviewer_acceptance/fixtures.py
+staged path: tests/unit/tools/test_code_reviewer_acceptance/test_code_reviewer_acceptance_tdd.py
+staged path: tests/unit/tools/test_code_reviewer_acceptance/test_code_reviewer_io_acceptance_tdd.py
+staged path: tests/unit/tools/test_code_reviewer_acceptance/test_code_reviewer_launcher_smoke_tdd.py
+staged path: tests/unit/tools/test_code_reviewer_acceptance/test_code_reviewer_recovery_tdd.py
+staged path: tests/unit/tools/test_codex_plugin_redirects/test_codex_plugin_redirects_tdd.py
+staged path: tests/unit/tools/test_commit_plan_check/test_commit_plan_check_adapter_tdd.py
+staged path: tests/unit/tools/test_coverage_gap_functions_cli.py
+staged path: tests/unit/tools/test_enforce_eof_branches.py
+staged path: tests/unit/tools/test_full_suite_levels_acceptance/conftest.py
+staged path: tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_review_acceptance_tdd.py
+staged path: tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_workflow_acceptance_tdd.py
+staged path: tests/unit/tools/test_git_batch_commit_entry.py
+staged path: tests/unit/tools/test_groundhog_acceptance.py
+staged path: tests/unit/tools/test_groundhog_cli.py
+staged path: tests/unit/tools/test_groundhog_detach.py
+staged path: tests/unit/tools/test_groundhog_durations_pbt.py
+staged path: tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_pbt.py
+staged path: tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_tdd.py
+staged path: tests/unit/tools/test_groundhog_group_patterns/test_groundhog_group_patterns_pbt.py
+staged path: tests/unit/tools/test_groundhog_levels/test_groundhog_levels_pbt.py
+staged path: tests/unit/tools/test_groundhog_proof/test_groundhog_proof_pbt.py
+staged path: tests/unit/tools/test_groundhog_runner.py
+staged path: tests/unit/tools/test_groundhog_status.py
+staged path: tests/unit/tools/test_group_commit_message_prompt_branches.py
+staged path: tests/unit/tools/test_instruction_structure/test_codex_plugin_structure_tdd.py
+staged path: tests/unit/tools/test_instruction_structure/test_instruction_structure_prompt_workflow_tdd.py
+staged path: tests/unit/tools/test_instruction_structure/test_instruction_structure_tdd.py
+staged path: tests/unit/tools/test_instruction_structure/test_shared_utility_invocation_tdd.py
+staged path: tests/unit/tools/test_isolate_logos.py
+staged path: tests/unit/tools/test_linear_order/test_linear_order_tdd.py
+staged path: tests/unit/tools/test_new_draft_entry.py
+staged path: tests/unit/tools/test_open_questions_md.py
+staged path: tests/unit/tools/test_package_exports.py
+staged path: tests/unit/tools/test_prepare_release_whole_suite/test_prepare_release_whole_suite_tdd.py
+staged path: tests/unit/tools/test_prompt_workflow_acceptance/test_prompt_workflow_acceptance_tdd.py
+staged path: tests/unit/tools/test_prompt_workflow_docs_layout_acceptance/test_prompt_workflow_docs_layout_acceptance_tdd.py
+staged path: tests/unit/tools/test_prompt_workflow_document_lookup/test_prompt_workflow_document_lookup_pbt.py
+staged path: tests/unit/tools/test_prompt_workflow_integration.py
+staged path: tests/unit/tools/test_review_artifact_home/test_review_artifact_registry_pbt.py
+staged path: tests/unit/tools/test_review_exchange_acceptance/conftest.py
+staged path: tests/unit/tools/test_review_exchange_acceptance/test_review_exchange_acceptance_tdd.py
+staged path: tests/unit/tools/test_review_exchange_cli/test_review_exchange_cli_boundaries_tdd.py
+staged path: tests/unit/tools/test_review_exchange_lifecycle/test_review_exchange_boundaries_tdd.py
+staged path: tests/unit/tools/test_review_exchange_models/test_review_exchange_models_pbt.py
+staged path: tests/unit/tools/test_review_exchange_ownership/test_review_exchange_ownership_pbt.py
+staged path: tests/unit/tools/test_review_exchange_paths/test_review_exchange_paths_tdd.py
+staged path: tests/unit/tools/test_review_exchange_recovery_acceptance/test_review_exchange_recovery_acceptance_tdd.py
+staged path: tests/unit/tools/test_review_exchange_scope/test_review_exchange_scope_tdd.py
+staged path: tests/unit/tools/test_review_exchange_state/test_review_exchange_state_pbt.py
+staged path: tests/unit/tools/test_review_mode_docs_acceptance/conftest.py
+staged path: tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_acceptance_tdd.py
+staged path: tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_final_acceptance_tdd.py
+staged path: tests/unit/tools/test_review_resume/prepared_phase.py
+staged path: tests/unit/tools/test_review_resume/test_review_resume_expiry_tdd.py
+staged path: tests/unit/tools/test_review_resume/test_review_resume_lifecycle_tdd.py
+staged path: tests/unit/tools/test_review_resume/test_review_resume_role_tdd.py
+staged path: tests/unit/tools/test_review_role_nature/test_review_role_nature_pbt.py
+staged path: tests/unit/tools/test_review_status/test_review_status_pbt.py
+staged path: tests/unit/tools/test_review_status_cli/test_review_status_cli_tdd.py
+staged path: tests/unit/tools/test_scenario_storage.py
+staged path: tests/unit/tools/test_scope_capture/test_scope_capture_pbt.py
+staged path: tests/unit/tools/test_spec_review_requestor_acceptance/conftest.py
+staged path: tests/unit/tools/test_spec_review_requestor_acceptance/test_spec_review_requestor_acceptance_tdd.py
+staged path: tests/unit/tools/test_spec_review_requestor_acceptance/test_spec_review_requestor_io_acceptance_tdd.py
+staged path: tests/unit/tools/test_spec_reviewer_acceptance/conftest.py
+staged path: tests/unit/tools/test_spec_reviewer_acceptance/fixtures.py
+staged path: tests/unit/tools/test_spec_reviewer_acceptance/test_spec_reviewer_acceptance_tdd.py
+staged path: tests/unit/tools/test_suite_git_isolation.py
+staged path: tests/unit/tools/test_trim_thinking_cli.py
+staged path: tests/unit/tools/test_wrap_commit_cli.py
+staged path: tools/__init__.py
+staged path: tools/linear_order.py
+staged path: tools/markdown_check/rules.py
+staged path: tools/markdown_check/source.py
+staged path: tools/release_workflow/__init__.py
+staged path: tools/release_workflow/artifacts.py
+staged path: tools/release_workflow/bootstrap.py
+staged path: tools/release_workflow/cli.py
+staged path: tools/release_workflow/git.py
+staged path: tools/release_workflow/git_environment.py
+staged path: tools/release_workflow/inputs.py
+staged path: tools/release_workflow/invocation.py
+staged path: tools/release_workflow/managed_files.py
+staged path: tools/release_workflow/paths.py
+staged path: tools/release_workflow/results.py
+staged path: tools/review_artifact_configuration.py
+staged path: tools/review_exchange_paths.py
+```
+
+### Validation scope for step 5 release-project-root (round 3)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 5 release-project-root (round 3)
+
+Yes. Step 5 has been fully implemented.
+
+The assessment follows the accepted Simulation-only test strategy (2026-10-29)
+in the implementation plan. Earlier real-process and ConPTY requirements are
+superseded by that decision. Current automated evidence exercises production
+Python in process and checks batch source contracts; it does not establish
+real shell quoting, terminal cancellation, codepage or process behavior.
+
+The writer accepted both round-2 findings. The CLI converts the bootstrap
+identity to public RuntimeIdentity(root, environment) without another record
+read. The read-count test checks public type, equality and the single read.
+Step 5 validation is Yes, with profiling evidence in Performance and no
+remaining Missing work section. Step 6 and overall completion remain pending.
+
+Fresh required validation ended 2026-10-30T11:12:25+01:00: 4899 tests,
+100% tools-source coverage, fail=0 warn=0 xfail=0 outliers=0 excluded=0,
+proof=speed, reused=none, scope=whole. Complete lifecycle audit: max CPU
+0.078125s and wall 0.0861651s. Protected elapsed 103.5458661s,
+below the 360s ceiling; two workers and the native-process audit remained active.
+Evidence: .reviews/a.release-project-root.step5.tmp.r3-publish-speed-green.{log,limit.json,durations.json}.
+
+The first fresh day failed the recovery test's CPU limit at 0.109375s.
+Profiling led to a fixture-only group-report substitution at the _report boundary,
+preserving freshness, the walk, proof transitions and every existing assertion.
+Dedicated group-coverage tests still generate reports. The 37-test focused run
+passed; the repaired node's final covered CPU is 0.0625s and wall
+0.0666063s. The failed run remains retained as r3-resume-validation-failed.*.
+A successful intermediate day preceded restoration of the test's original LF
+format; the final evidence above covers that final source snapshot.
+
+The plan's exact additive rg scan was rerun: only the intended GetConsoleMode
+docstring/API references in inputs.py matched. Changed Python sources remain
+below 650 lines. Static helper reference assessment found no unreferenced
+candidate after imports, module attributes, fixture parameters and framework
+hooks. This is source assessment, not test-helper coverage. Production coverage
+source remains tools, with the existing exclusions unchanged.
+
+Independent review and human Commit remain required. The cancellation wording
+amendment is disclosed at that gate; no commit or Step 6 continuation is
+authorized by this assessment.
+
+### Implementation report for step 5 release-project-root (round 3)
+
+Step 5 adds self-locating Windows release launchers and a shared Python
+invocation boundary. Bootstrap captures caller cwd, authenticates the reserved
+entry prefix, validates readiness before importing the engine and carries its
+verified identity to the CLI. The CLI normalizes that data to the public
+RuntimeIdentity without rereading, parses selection/input transport, constructs
+the invocation context and dispatches only source-owned handlers. Results use
+stable public statuses and UTF-8/LF diagnostics. The managed-write boundary also
+rejects drive-relative Windows paths.
+
+The round-3 snapshot is substantially broader than round 2 because the user
+subsequently required process-free tests across the suite. Production parsers,
+dispatch, review transitions and rendering run in process. Tests inject repository
+facts and process results at external function boundaries; virtual clocks and
+scheduled events cover waits and ownership changes. Batch launcher tests inspect
+source and simulate selected outcomes. They do not prove real shell or terminal
+execution. Obsolete process/console fixtures were deleted.
+
+Shared test helpers provide memory filesystem and storage/stream/SQLite routing,
+CLI environment restoration, repository observations and script entry execution.
+Existing passing filesystem and Git emulation remains frozen by the accepted
+replacement plan. This round does not claim its removal or add a general shell
+or Git interpreter. The process audit rejects actual native process creation
+through test setup, call and teardown. Pytest worker startup is outside that
+audit. The lifecycle gate includes shared fixture costs and measures both CPU
+(0.1s maximum) and wall time (1s maximum).
+
+The supporting production changes preserve lazy tools exports, reduce Markdown
+scan allocations, use slotted prefix nodes, expose review repository facts and
+resolve the artifact loader's default observer at invocation time. Release Git
+queries expose typed index facts and retain native execution in production.
+These changes and the broad test migration cross the original Step 5 file list
+and are explicitly included in this review.
+
+The suite uses two workers, monitoring-based coverage and bounded pyright
+concurrency. Coverage remains the tools source tree with the existing exclusions.
+There are no accepted duration exclusions and no raised exclusion baselines.
+The fresh day exposed one recovery-test CPU failure. Profiling led to a local
+group-report substitution; freshness, proof transitions and all assertions remain.
+Dedicated coverage tests still generate reports. No other passing test was tuned.
+
+Whole proof and lifecycle evidence are recorded in the assessment and the
+validation plan's Performance section. Startup was not separately measured;
+total protected elapsed includes startup. Historical native-console measurements
+in private notes are diagnostic history, not evidence for the current tests.
+
+The plan amendment distinguishes application input prompts from cmd's own
+batch-termination question and routes prompt-free cancellation through native
+Python. Its human approval remains explicit at the commit gate.
+
+Writer notes: .reviews/a.release-project-root.step5.journal.md and .reviews/a.release-project-root.step5.handoff.md.
+
+### Change summary for step 5 release-project-root (round 3)
+
+The current index contains 196 intended paths, grouped least to most dependent.
+Every staged path appears once in root a.commit, and its readiness check passes.
+The protocol transcript is tool-owned; publication appends to it normally.
+
+#### Group 1: perf(tools): reduce import and scan overhead for step 5 release-project-root (round 3)
+
+4 paths.
+
+- `tools/__init__.py`
+- `tools/linear_order.py`
+- `tools/markdown_check/rules.py`
+- `tools/markdown_check/source.py`
+
+#### Group 2: refactor(review): expose repository observations for step 5 release-project-root (round 3)
+
+2 paths.
+
+- `tools/review_artifact_configuration.py`
+- `tools/review_exchange_paths.py`
+
+#### Group 3: fix(release): reject drive-relative managed paths for step 5 release-project-root (round 3)
+
+1 paths.
+
+- `tools/release_workflow/managed_files.py`
+
+#### Group 4: feat(release): wire context and Windows launchers for step 5 release-project-root (round 3)
+
+13 paths.
+
+- `.gitattributes`
+- `bin/release_alias.bat`
+- `bin/release_workflow.bat`
+- `tools/release_workflow/__init__.py`
+- `tools/release_workflow/artifacts.py`
+- `tools/release_workflow/bootstrap.py`
+- `tools/release_workflow/cli.py`
+- `tools/release_workflow/git.py`
+- `tools/release_workflow/git_environment.py`
+- `tools/release_workflow/inputs.py`
+- `tools/release_workflow/invocation.py`
+- `tools/release_workflow/paths.py`
+- `tools/release_workflow/results.py`
+
+#### Group 5: test(suite): simulate external workflow boundaries for step 5 release-project-root (round 3)
+
+174 paths.
+
+- `check.bat`
+- `docs/v0.14.0/plan.v0.14.0.release-project-root.md`
+- `pyproject.toml`
+- `tests/acceptance/commit_plan_check/commit_plan_check_support.py`
+- `tests/acceptance/commit_plan_check/conftest.py`
+- `tests/acceptance/commit_plan_check/repository_observations.py`
+- `tests/acceptance/commit_plan_check/test_commit_plan_check_acceptance/test_commit_plan_check_acceptance_tdd.py`
+- `tests/acceptance/commit_plan_check/test_commit_plan_check_acceptance/test_commit_plan_check_contracts_tdd.py`
+- `tests/acceptance/markdown_check/test_markdown_check_acceptance/test_markdown_check_acceptance_tdd.py`
+- `tests/acceptance/markdown_check/test_shared_gate/test_shared_gate_tdd.py`
+- `tests/acceptance/release_workflow/conftest.py`
+- `tests/acceptance/release_workflow/process_support.py`
+- `tests/acceptance/release_workflow/test_release_readiness_tdd.py`
+- `tests/acceptance/release_workflow/test_uv_readiness_tdd.py`
+- `tests/acceptance/review_resume/cli_support.py`
+- `tests/acceptance/review_resume/conftest.py`
+- `tests/acceptance/review_resume/notification_simulation.py`
+- `tests/acceptance/review_resume/prepared_request.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_acceptance_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_blocked_layout_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_concurrency_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_identity_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_launcher_smoke_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_migration_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_parked_wait_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_waiter_cleanup_tdd.py`
+- `tests/acceptance/review_resume/waiter_driver.py`
+- `tests/acceptance/review_status/conftest.py`
+- `tests/acceptance/review_status/test_review_status_acceptance/test_review_status_acceptance_tdd.py`
+- `tests/code_review_repository_observations.py`
+- `tests/conftest.py`
+- `tests/git_isolation.py`
+- `tests/memory_filesystem.py`
+- `tests/review_repository_observations.py`
+- `tests/scenario_cli.py`
+- `tests/scenario_environment.py`
+- `tests/scenario_generation.py`
+- `tests/scenario_sqlite.py`
+- `tests/scenario_storage.py`
+- `tests/scenario_streams.py`
+- `tests/script_entry.py`
+- `tests/simulation_policy.py`
+- `tests/testmon_monitoring.py`
+- `tests/unit/test_scenario_storage.py`
+- `tests/unit/tools/git_history_dashboard/test_aggregate/test_aggregate_pbt.py`
+- `tests/unit/tools/git_history_dashboard/test_aggregate/test_aggregate_perf_tdd.py`
+- `tests/unit/tools/git_history_dashboard/test_build/test_build_tdd.py`
+- `tests/unit/tools/git_test_double.py`
+- `tests/unit/tools/markdown_check/test_launcher/test_launcher_tdd.py`
+- `tests/unit/tools/markdown_check/test_rule_properties/test_rule_properties_pbt.py`
+- `tests/unit/tools/markdown_check/test_runner/test_runner_tdd.py`
+- `tests/unit/tools/prepare_release/prepare_release_plan_test_support.py`
+- `tests/unit/tools/prepare_release/test_prepare_release_plan.py`
+- `tests/unit/tools/prepare_release/test_prepare_release_plan_targets_workflow.py`
+- `tests/unit/tools/prepare_release/test_prepare_release_plan_workflow.py`
+- `tests/unit/tools/release_workflow/conftest.py`
+- `tests/unit/tools/release_workflow/git_test_support.py`
+- `tests/unit/tools/release_workflow/invocation_test_support.py`
+- `tests/unit/tools/release_workflow/launcher_simulation.py`
+- `tests/unit/tools/release_workflow/repository_simulation.py`
+- `tests/unit/tools/release_workflow/test_artifacts/conftest.py`
+- `tests/unit/tools/release_workflow/test_artifacts/test_artifacts_tdd.py`
+- `tests/unit/tools/release_workflow/test_bootstrap/test_bootstrap_tdd.py`
+- `tests/unit/tools/release_workflow/test_cli/__init__.py`
+- `tests/unit/tools/release_workflow/test_cli/test_cli_tdd.py`
+- `tests/unit/tools/release_workflow/test_configuration/test_configuration_pbt.py`
+- `tests/unit/tools/release_workflow/test_git/conftest.py`
+- `tests/unit/tools/release_workflow/test_git/test_config_files_tdd.py`
+- `tests/unit/tools/release_workflow/test_git/test_git_tdd.py`
+- `tests/unit/tools/release_workflow/test_inputs/__init__.py`
+- `tests/unit/tools/release_workflow/test_inputs/test_inputs_tdd.py`
+- `tests/unit/tools/release_workflow/test_invocation/__init__.py`
+- `tests/unit/tools/release_workflow/test_invocation/test_invocation_pbt.py`
+- `tests/unit/tools/release_workflow/test_invocation/test_invocation_tdd.py`
+- `tests/unit/tools/release_workflow/test_launchers/__init__.py`
+- `tests/unit/tools/release_workflow/test_launchers/test_boundaries_tdd.py`
+- `tests/unit/tools/release_workflow/test_launchers/test_codepage_tdd.py`
+- `tests/unit/tools/release_workflow/test_launchers/test_console_tdd.py`
+- `tests/unit/tools/release_workflow/test_launchers/test_launchers_tdd.py`
+- `tests/unit/tools/release_workflow/test_launchers/test_read_counts_tdd.py`
+- `tests/unit/tools/release_workflow/test_managed_files/test_managed_files_tdd.py`
+- `tests/unit/tools/release_workflow/test_markers/test_markers_pbt.py`
+- `tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_pbt.py`
+- `tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_tdd.py`
+- `tests/unit/tools/release_workflow/test_paths/conftest.py`
+- `tests/unit/tools/release_workflow/test_paths/test_paths_pbt.py`
+- `tests/unit/tools/release_workflow/test_paths/test_paths_tdd.py`
+- `tests/unit/tools/release_workflow/test_readiness/test_metadata_tdd.py`
+- `tests/unit/tools/release_workflow/test_readiness/test_readiness_pbt.py`
+- `tests/unit/tools/release_workflow/test_results/__init__.py`
+- `tests/unit/tools/release_workflow/test_results/test_results_tdd.py`
+- `tests/unit/tools/release_workflow/test_schemas/test_schemas_pbt.py`
+- `tests/unit/tools/release_workflow/test_windows_process/test_windows_process_tdd.py`
+- `tests/unit/tools/test_artifact_home/test_artifact_home_tdd.py`
+- `tests/unit/tools/test_code_review_evidence/conftest.py`
+- `tests/unit/tools/test_code_review_evidence/test_code_review_evidence_boundaries_tdd.py`
+- `tests/unit/tools/test_code_review_evidence/test_code_review_evidence_cli_tdd.py`
+- `tests/unit/tools/test_code_review_evidence/test_code_review_evidence_tdd.py`
+- `tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py`
+- `tests/unit/tools/test_code_review_requestor_acceptance/conftest.py`
+- `tests/unit/tools/test_code_review_requestor_acceptance/test_code_review_requestor_acceptance_tdd.py`
+- `tests/unit/tools/test_code_review_requestor_acceptance/test_code_review_requestor_io_acceptance_tdd.py`
+- `tests/unit/tools/test_code_reviewer_acceptance/conftest.py`
+- `tests/unit/tools/test_code_reviewer_acceptance/fixtures.py`
+- `tests/unit/tools/test_code_reviewer_acceptance/test_code_reviewer_acceptance_tdd.py`
+- `tests/unit/tools/test_code_reviewer_acceptance/test_code_reviewer_io_acceptance_tdd.py`
+- `tests/unit/tools/test_code_reviewer_acceptance/test_code_reviewer_launcher_smoke_tdd.py`
+- `tests/unit/tools/test_code_reviewer_acceptance/test_code_reviewer_recovery_tdd.py`
+- `tests/unit/tools/test_codex_plugin_redirects/test_codex_plugin_redirects_tdd.py`
+- `tests/unit/tools/test_commit_plan_check/test_commit_plan_check_adapter_tdd.py`
+- `tests/unit/tools/test_coverage_gap_functions_cli.py`
+- `tests/unit/tools/test_enforce_eof_branches.py`
+- `tests/unit/tools/test_full_suite_levels_acceptance/conftest.py`
+- `tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_review_acceptance_tdd.py`
+- `tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_workflow_acceptance_tdd.py`
+- `tests/unit/tools/test_git_batch_commit_entry.py`
+- `tests/unit/tools/test_groundhog_acceptance.py`
+- `tests/unit/tools/test_groundhog_cli.py`
+- `tests/unit/tools/test_groundhog_detach.py`
+- `tests/unit/tools/test_groundhog_durations_pbt.py`
+- `tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_pbt.py`
+- `tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_tdd.py`
+- `tests/unit/tools/test_groundhog_group_patterns/test_groundhog_group_patterns_pbt.py`
+- `tests/unit/tools/test_groundhog_levels/test_groundhog_levels_pbt.py`
+- `tests/unit/tools/test_groundhog_proof/test_groundhog_proof_pbt.py`
+- `tests/unit/tools/test_groundhog_runner.py`
+- `tests/unit/tools/test_groundhog_status.py`
+- `tests/unit/tools/test_group_commit_message_prompt_branches.py`
+- `tests/unit/tools/test_instruction_structure/test_codex_plugin_structure_tdd.py`
+- `tests/unit/tools/test_instruction_structure/test_instruction_structure_prompt_workflow_tdd.py`
+- `tests/unit/tools/test_instruction_structure/test_instruction_structure_tdd.py`
+- `tests/unit/tools/test_instruction_structure/test_shared_utility_invocation_tdd.py`
+- `tests/unit/tools/test_isolate_logos.py`
+- `tests/unit/tools/test_linear_order/test_linear_order_tdd.py`
+- `tests/unit/tools/test_new_draft_entry.py`
+- `tests/unit/tools/test_open_questions_md.py`
+- `tests/unit/tools/test_package_exports.py`
+- `tests/unit/tools/test_prepare_release_whole_suite/test_prepare_release_whole_suite_tdd.py`
+- `tests/unit/tools/test_prompt_workflow_acceptance/test_prompt_workflow_acceptance_tdd.py`
+- `tests/unit/tools/test_prompt_workflow_docs_layout_acceptance/test_prompt_workflow_docs_layout_acceptance_tdd.py`
+- `tests/unit/tools/test_prompt_workflow_document_lookup/test_prompt_workflow_document_lookup_pbt.py`
+- `tests/unit/tools/test_prompt_workflow_integration.py`
+- `tests/unit/tools/test_review_artifact_home/test_review_artifact_registry_pbt.py`
+- `tests/unit/tools/test_review_exchange_acceptance/conftest.py`
+- `tests/unit/tools/test_review_exchange_acceptance/test_review_exchange_acceptance_tdd.py`
+- `tests/unit/tools/test_review_exchange_cli/test_review_exchange_cli_boundaries_tdd.py`
+- `tests/unit/tools/test_review_exchange_lifecycle/test_review_exchange_boundaries_tdd.py`
+- `tests/unit/tools/test_review_exchange_models/test_review_exchange_models_pbt.py`
+- `tests/unit/tools/test_review_exchange_ownership/test_review_exchange_ownership_pbt.py`
+- `tests/unit/tools/test_review_exchange_paths/test_review_exchange_paths_tdd.py`
+- `tests/unit/tools/test_review_exchange_recovery_acceptance/test_review_exchange_recovery_acceptance_tdd.py`
+- `tests/unit/tools/test_review_exchange_scope/test_review_exchange_scope_tdd.py`
+- `tests/unit/tools/test_review_exchange_state/test_review_exchange_state_pbt.py`
+- `tests/unit/tools/test_review_mode_docs_acceptance/conftest.py`
+- `tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_acceptance_tdd.py`
+- `tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_final_acceptance_tdd.py`
+- `tests/unit/tools/test_review_resume/prepared_phase.py`
+- `tests/unit/tools/test_review_resume/test_review_resume_expiry_tdd.py`
+- `tests/unit/tools/test_review_resume/test_review_resume_lifecycle_tdd.py`
+- `tests/unit/tools/test_review_resume/test_review_resume_role_tdd.py`
+- `tests/unit/tools/test_review_role_nature/test_review_role_nature_pbt.py`
+- `tests/unit/tools/test_review_status/test_review_status_pbt.py`
+- `tests/unit/tools/test_review_status_cli/test_review_status_cli_tdd.py`
+- `tests/unit/tools/test_scenario_storage.py`
+- `tests/unit/tools/test_scope_capture/test_scope_capture_pbt.py`
+- `tests/unit/tools/test_spec_review_requestor_acceptance/conftest.py`
+- `tests/unit/tools/test_spec_review_requestor_acceptance/test_spec_review_requestor_acceptance_tdd.py`
+- `tests/unit/tools/test_spec_review_requestor_acceptance/test_spec_review_requestor_io_acceptance_tdd.py`
+- `tests/unit/tools/test_spec_reviewer_acceptance/conftest.py`
+- `tests/unit/tools/test_spec_reviewer_acceptance/fixtures.py`
+- `tests/unit/tools/test_spec_reviewer_acceptance/test_spec_reviewer_acceptance_tdd.py`
+- `tests/unit/tools/test_suite_git_isolation.py`
+- `tests/unit/tools/test_trim_thinking_cli.py`
+- `tests/unit/tools/test_wrap_commit_cli.py`
+
+#### Group 6: docs(release): retain step 5 review exchange for step 5 release-project-root (round 3)
+
+1 paths.
+
+- `docs/v0.14.0/review.code.v0.14.0.release-project-root.md`
+
+#### Group 7: docs(release-project-root): record step 5 validation for step 5 release-project-root (round 3)
+
+1 paths.
+
+- `docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md`
+
+### Writer response for step 5 release-project-root (round 3)
+
+Writer response:
+
+Both round-2 findings are accepted; there is no disagreement or reversal of a
+reviewer repair.
+
+1. cli.main now constructs the public RuntimeIdentity from the already verified
+   bootstrap data. The structural Identity annotation matches the private
+   bootstrap object. The in-process bootstrap/launcher read-count test asserts
+   public identity membership/equality and exactly one runtime-record read.
+   Its execution mode follows the user's later simulation strategy.
+2. Step 5's duplicate profiling prose has been reconciled under Performance.
+   Missing work is removed because the runtime fix and documentation repair
+   are complete. The refreshed implementation-check states Yes.
+
+Round 2 changed only the Step 5 validation rows. Those rows were assessed
+against the exact step, its named repaired path, the staged diff and the
+current implementation check. Updating No to Yes after repairs is completion
+of the accepted findings, not a reversal.
+
+The later user-directed suite migration changes tests and commit grouping
+substantively. reviewed-work-changed=true was supplied when consuming the
+retained round-2 answer. This is replacement round 3 in occurrence 1.
+
+All ten round-1 findings were accepted by round 2. Their current test evidence
+must now be read within the approved simulation limits, rather than the
+historical real-process descriptions. No reviewer was spawned or contacted.
+The cancellation-plan wording remains a disclosed human decision at the gate.
+
+### Reviewer focus for step 5 release-project-root (round 3)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-5-round-3 -->
+
+## Round 3 by reviewer - Step 5
+
+- Recorded: 2026-10-30T12:01:28+01:00
+- Exchange: code/code/v0.14.0/release-project-root
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 5
+- Outcome: answer
+
+### Assessed index identity for step 5 release-project-root (exchange 1) (round 3)
+
+Baseline index tree: 551f9d26671c53f45975d13977779d30112eb512
+
+Assessed index tree: 933414ca592767fdc07234ae72cb9e560d5cc793
+
+### Implementation check for step 5 release-project-root (exchange 1) (round 3)
+
+Result:
+
+No. Step 5 has NOT been fully implemented.
+
+Both round 2 findings are resolved in the staged work:
+
+- `cli.main` builds `RuntimeIdentity(runtime.root, runtime.environment)` from
+  the verified bootstrap value without another read. `Identity` now declares
+  `root` and `environment`. `test_read_counts_tdd.py` runs production
+  bootstrap with the genuinely loaded private helpers and asserts the public
+  class, equality and exactly one record read.
+- The profiling paragraphs left `What was implemented for Step 5` and now sit
+  under the performance check.
+
+The production delta since round 2 is small and correct:
+
+- Lazy imports in `cli.py` and `artifacts.py`.
+- Typed Git observations (`read_version`, `effective_config`, `metadata`,
+  `index`). Both `_metadata` callers still wrap `GitPolicyError` as
+  `ProjectPathError` with the same message.
+- `repository_present` and `ignored_paths` split out in
+  `review_exchange_paths.py`, and the late-bound `tracked_directory` default.
+- A slotted prefix node.
+- A launcher change that skips `chcp 65001` when the console already uses it.
+  `_release_cp` holds the parsed digits at `:codepage_ready`, and cleanup
+  still restores the code page.
+
+Coverage keeps `source = ["tools"]` and the same `omit` list. It switches to
+the `sysmon` core, which is safe here because the gate measures lines, not
+branches. The process audit and lifecycle gate in `tests/simulation_policy.py`
+cover setup, call and teardown. The replacement plan (written 2026-10-29
+21:40) postdates the memory filesystem and scenario routing, so freezing them
+matches the plan.
+
+The step is still not complete, for the following reasons:
+
+- The amended plan's startup report is missing.
+- The simulation migration removed every automated check of the batch
+  prerequisite path, the status normalization, `release_runtime_record.bat`
+  and the CLI `sys.path` bootstrap. The plan's replacement for real execution
+  is source contracts, and none were written for these.
+- Several converted tests assert on their own fakes or compare a call with
+  itself.
+- The property-batch disclosure overstates the distinct examples.
+- Two shared helpers leak `sys.path` or are dead code.
+
+`Missing work for Step 5` lists each item.
+
+Validation plan effects:
+
+The reviewer changed only the Step 5 rows of
+`docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md`:
+
+- The `Analysis of Step 5 implementation state` status sentence is now
+  `No. Step 5 has NOT been fully implemented.`, followed by a short reviewer
+  summary. The writer's paragraph is kept below it.
+- A new `Missing work for Step 5` section follows `What was implemented for
+  Step 5` and lists eight items. They match the unresolved findings.
+
+The pre-repair blob was recorded first. `attribute-reviewer-patch` reported
+the change as attributable, and only that patch was staged. No other row,
+step, document-level line or umbrella row changed. The document-level status
+stays `No, it is not implemented.`. The umbrella digest is unchanged. The
+repository Markdown check passes on the edited file.
+
+### Pre-repair mandatory checks and coverage for step 5 release-project-root (exchange 1) (round 3)
+
+The request-time index tree `551f9d26671c53f45975d13977779d30112eb512`
+matched the live index before assessment. The validation state was captured
+over the 196 staged paths plus `uv.lock`, and the umbrella digest was captured
+before any edit. The only unstaged entry was the protocol-owned transcript
+`docs/v0.14.0/review.code.v0.14.0.release-project-root.md`.
+
+The 197 paths exceed cmd's command-line limit for the
+`code_review_evidence.bat validation-state` launcher. The reviewer called the
+same `tools/code_review_evidence_cli.py` with the launcher's own llm-shared
+interpreter, which takes the same arguments without the cmd layer.
+
+The reviewer ran both permitted evidence commands once, from the project root,
+with fresh logs:
+
+- `ghog check`: exit 0. Ty, Pyright, Ruff, Radon, Vulture, the 650-line limit,
+  the Markdown check, ShellCheck and the EOF check all passed on the final
+  index, including the staged validation plan and plan amendment.
+- `ghog affected --no-cov --scope-file=<paths.scope>`: exit 0, with no test
+  run, because testmon saw nothing changed since the requestor's covered full
+  run. The final Python sources are therefore the ones that ran green.
+
+The assessment rests on the round 2 to round 3 tree diff (178 files): all
+production changes, the plan amendment, the validation rows, the Step 5
+launcher and simulation tests, and three parallel read-only reviews of the
+acceptance tests, the other unit tests and the shared simulation helpers.
+
+### Resolved validation set and sources for step 5 release-project-root (exchange 1) (round 3)
+
+- `ghog day --full=speed --whole-suite` (source: project). The requestor
+  reports success at 2026-10-30T11:12:25+01:00: 4,899 tests, 100% coverage,
+  `proof=speed`, zero failures, warnings, xfails, outliers or exclusions, in
+  103.5 protected seconds. Its retained log matches those figures. The
+  reviewer did not repeat it.
+- `rg -n 'senv|PYTHONPATH|set /p|shell=True|pushd|GetConsoleMode' tools/release_workflow bin/release_alias.bat bin/release_workflow.bat`
+  (source: plan). The requestor reports only the intended `GetConsoleMode`
+  matches in `inputs.py`. Reading both launchers and the changed Python
+  sources confirms that no other forbidden term appears.
+
+### Resolver drift and direction for step 5 release-project-root (exchange 1) (round 3)
+
+No drift. The request's resolved set has the same two commands and sources as
+rounds 1 and 2: the project day gate and the plan's additive scan. The plan's
+new simulation-only section adds no validation command, and Step 5 still names
+the same scan. The bound scope is `whole` with fingerprint
+`686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6`.
+
+### Repository state around validation for step 5 release-project-root (exchange 1) (round 3)
+
+- Baseline index tree: `551f9d26671c53f45975d13977779d30112eb512`, equal to
+  the request-time tree.
+- Assessed index tree: `933414ca592767fdc07234ae72cb9e560d5cc793`, which adds
+  only the reviewer's Step 5 validation-row patch.
+- Validation-state comparison: the only tracked differences are that
+  validation plan and the index. No untracked or ignored validation artifact
+  appeared, and the two reviewer `ghog` runs changed no tracked file.
+- Umbrella digest: unchanged
+  (`ca6fe473ea2672766e7bfa8c5003ae5155d3c6727cb895127a77890edd0ec992`).
+- Unstaged: only the protocol-owned transcript, which is also staged for
+  Group 6.
+
+### Repair inventory for step 5 release-project-root (exchange 1) (round 3)
+
+Repairs made:
+
+- `docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md`: Step 5
+  status sentence set to No, and a `Missing work for Step 5` section added.
+  This is review metadata (polishing-only), not a substantive repair. The
+  reviewer changed no code, test or `a.commit`.
+
+Paths staged:
+
+- `.gitattributes`
+- `bin/release_alias.bat`
+- `bin/release_workflow.bat`
+- `check.bat`
+- `docs/v0.14.0/plan.v0.14.0.release-project-root.md`
+- `docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md`
+- `docs/v0.14.0/review.code.v0.14.0.release-project-root.md`
+- `pyproject.toml`
+- `tests/acceptance/commit_plan_check/commit_plan_check_support.py`
+- `tests/acceptance/commit_plan_check/conftest.py`
+- `tests/acceptance/commit_plan_check/repository_observations.py`
+- `tests/acceptance/commit_plan_check/test_commit_plan_check_acceptance/test_commit_plan_check_acceptance_tdd.py`
+- `tests/acceptance/commit_plan_check/test_commit_plan_check_acceptance/test_commit_plan_check_contracts_tdd.py`
+- `tests/acceptance/markdown_check/test_markdown_check_acceptance/test_markdown_check_acceptance_tdd.py`
+- `tests/acceptance/markdown_check/test_shared_gate/test_shared_gate_tdd.py`
+- `tests/acceptance/release_workflow/conftest.py`
+- `tests/acceptance/release_workflow/process_support.py`
+- `tests/acceptance/release_workflow/test_release_readiness_tdd.py`
+- `tests/acceptance/release_workflow/test_uv_readiness_tdd.py`
+- `tests/acceptance/review_resume/cli_support.py`
+- `tests/acceptance/review_resume/conftest.py`
+- `tests/acceptance/review_resume/notification_simulation.py`
+- `tests/acceptance/review_resume/prepared_request.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_acceptance_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_blocked_layout_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_concurrency_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_identity_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_launcher_smoke_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_migration_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_parked_wait_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_waiter_cleanup_tdd.py`
+- `tests/acceptance/review_resume/waiter_driver.py`
+- `tests/acceptance/review_status/conftest.py`
+- `tests/acceptance/review_status/test_review_status_acceptance/test_review_status_acceptance_tdd.py`
+- `tests/code_review_repository_observations.py`
+- `tests/conftest.py`
+- `tests/git_isolation.py`
+- `tests/memory_filesystem.py`
+- `tests/review_repository_observations.py`
+- `tests/scenario_cli.py`
+- `tests/scenario_environment.py`
+- `tests/scenario_generation.py`
+- `tests/scenario_sqlite.py`
+- `tests/scenario_storage.py`
+- `tests/scenario_streams.py`
+- `tests/script_entry.py`
+- `tests/simulation_policy.py`
+- `tests/testmon_monitoring.py`
+- `tests/unit/test_scenario_storage.py`
+- `tests/unit/tools/git_history_dashboard/test_aggregate/test_aggregate_pbt.py`
+- `tests/unit/tools/git_history_dashboard/test_aggregate/test_aggregate_perf_tdd.py`
+- `tests/unit/tools/git_history_dashboard/test_build/test_build_tdd.py`
+- `tests/unit/tools/git_test_double.py`
+- `tests/unit/tools/markdown_check/test_launcher/test_launcher_tdd.py`
+- `tests/unit/tools/markdown_check/test_rule_properties/test_rule_properties_pbt.py`
+- `tests/unit/tools/markdown_check/test_runner/test_runner_tdd.py`
+- `tests/unit/tools/prepare_release/prepare_release_plan_test_support.py`
+- `tests/unit/tools/prepare_release/test_prepare_release_plan.py`
+- `tests/unit/tools/prepare_release/test_prepare_release_plan_targets_workflow.py`
+- `tests/unit/tools/prepare_release/test_prepare_release_plan_workflow.py`
+- `tests/unit/tools/release_workflow/conftest.py`
+- `tests/unit/tools/release_workflow/git_test_support.py`
+- `tests/unit/tools/release_workflow/invocation_test_support.py`
+- `tests/unit/tools/release_workflow/launcher_simulation.py`
+- `tests/unit/tools/release_workflow/repository_simulation.py`
+- `tests/unit/tools/release_workflow/test_artifacts/conftest.py`
+- `tests/unit/tools/release_workflow/test_artifacts/test_artifacts_tdd.py`
+- `tests/unit/tools/release_workflow/test_bootstrap/test_bootstrap_tdd.py`
+- `tests/unit/tools/release_workflow/test_cli/__init__.py`
+- `tests/unit/tools/release_workflow/test_cli/test_cli_tdd.py`
+- `tests/unit/tools/release_workflow/test_configuration/test_configuration_pbt.py`
+- `tests/unit/tools/release_workflow/test_git/conftest.py`
+- `tests/unit/tools/release_workflow/test_git/test_config_files_tdd.py`
+- `tests/unit/tools/release_workflow/test_git/test_git_tdd.py`
+- `tests/unit/tools/release_workflow/test_inputs/__init__.py`
+- `tests/unit/tools/release_workflow/test_inputs/test_inputs_tdd.py`
+- `tests/unit/tools/release_workflow/test_invocation/__init__.py`
+- `tests/unit/tools/release_workflow/test_invocation/test_invocation_pbt.py`
+- `tests/unit/tools/release_workflow/test_invocation/test_invocation_tdd.py`
+- `tests/unit/tools/release_workflow/test_launchers/__init__.py`
+- `tests/unit/tools/release_workflow/test_launchers/test_boundaries_tdd.py`
+- `tests/unit/tools/release_workflow/test_launchers/test_codepage_tdd.py`
+- `tests/unit/tools/release_workflow/test_launchers/test_console_tdd.py`
+- `tests/unit/tools/release_workflow/test_launchers/test_launchers_tdd.py`
+- `tests/unit/tools/release_workflow/test_launchers/test_read_counts_tdd.py`
+- `tests/unit/tools/release_workflow/test_managed_files/test_managed_files_tdd.py`
+- `tests/unit/tools/release_workflow/test_markers/test_markers_pbt.py`
+- `tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_pbt.py`
+- `tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_tdd.py`
+- `tests/unit/tools/release_workflow/test_paths/conftest.py`
+- `tests/unit/tools/release_workflow/test_paths/test_paths_pbt.py`
+- `tests/unit/tools/release_workflow/test_paths/test_paths_tdd.py`
+- `tests/unit/tools/release_workflow/test_readiness/test_metadata_tdd.py`
+- `tests/unit/tools/release_workflow/test_readiness/test_readiness_pbt.py`
+- `tests/unit/tools/release_workflow/test_results/__init__.py`
+- `tests/unit/tools/release_workflow/test_results/test_results_tdd.py`
+- `tests/unit/tools/release_workflow/test_schemas/test_schemas_pbt.py`
+- `tests/unit/tools/release_workflow/test_windows_process/test_windows_process_tdd.py`
+- `tests/unit/tools/test_artifact_home/test_artifact_home_tdd.py`
+- `tests/unit/tools/test_code_review_evidence/conftest.py`
+- `tests/unit/tools/test_code_review_evidence/test_code_review_evidence_boundaries_tdd.py`
+- `tests/unit/tools/test_code_review_evidence/test_code_review_evidence_cli_tdd.py`
+- `tests/unit/tools/test_code_review_evidence/test_code_review_evidence_tdd.py`
+- `tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py`
+- `tests/unit/tools/test_code_review_requestor_acceptance/conftest.py`
+- `tests/unit/tools/test_code_review_requestor_acceptance/test_code_review_requestor_acceptance_tdd.py`
+- `tests/unit/tools/test_code_review_requestor_acceptance/test_code_review_requestor_io_acceptance_tdd.py`
+- `tests/unit/tools/test_code_reviewer_acceptance/conftest.py`
+- `tests/unit/tools/test_code_reviewer_acceptance/fixtures.py`
+- `tests/unit/tools/test_code_reviewer_acceptance/test_code_reviewer_acceptance_tdd.py`
+- `tests/unit/tools/test_code_reviewer_acceptance/test_code_reviewer_io_acceptance_tdd.py`
+- `tests/unit/tools/test_code_reviewer_acceptance/test_code_reviewer_launcher_smoke_tdd.py`
+- `tests/unit/tools/test_code_reviewer_acceptance/test_code_reviewer_recovery_tdd.py`
+- `tests/unit/tools/test_codex_plugin_redirects/test_codex_plugin_redirects_tdd.py`
+- `tests/unit/tools/test_commit_plan_check/test_commit_plan_check_adapter_tdd.py`
+- `tests/unit/tools/test_coverage_gap_functions_cli.py`
+- `tests/unit/tools/test_enforce_eof_branches.py`
+- `tests/unit/tools/test_full_suite_levels_acceptance/conftest.py`
+- `tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_review_acceptance_tdd.py`
+- `tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_workflow_acceptance_tdd.py`
+- `tests/unit/tools/test_git_batch_commit_entry.py`
+- `tests/unit/tools/test_groundhog_acceptance.py`
+- `tests/unit/tools/test_groundhog_cli.py`
+- `tests/unit/tools/test_groundhog_detach.py`
+- `tests/unit/tools/test_groundhog_durations_pbt.py`
+- `tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_pbt.py`
+- `tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_tdd.py`
+- `tests/unit/tools/test_groundhog_group_patterns/test_groundhog_group_patterns_pbt.py`
+- `tests/unit/tools/test_groundhog_levels/test_groundhog_levels_pbt.py`
+- `tests/unit/tools/test_groundhog_proof/test_groundhog_proof_pbt.py`
+- `tests/unit/tools/test_groundhog_runner.py`
+- `tests/unit/tools/test_groundhog_status.py`
+- `tests/unit/tools/test_group_commit_message_prompt_branches.py`
+- `tests/unit/tools/test_instruction_structure/test_codex_plugin_structure_tdd.py`
+- `tests/unit/tools/test_instruction_structure/test_instruction_structure_prompt_workflow_tdd.py`
+- `tests/unit/tools/test_instruction_structure/test_instruction_structure_tdd.py`
+- `tests/unit/tools/test_instruction_structure/test_shared_utility_invocation_tdd.py`
+- `tests/unit/tools/test_isolate_logos.py`
+- `tests/unit/tools/test_linear_order/test_linear_order_tdd.py`
+- `tests/unit/tools/test_new_draft_entry.py`
+- `tests/unit/tools/test_open_questions_md.py`
+- `tests/unit/tools/test_package_exports.py`
+- `tests/unit/tools/test_prepare_release_whole_suite/test_prepare_release_whole_suite_tdd.py`
+- `tests/unit/tools/test_prompt_workflow_acceptance/test_prompt_workflow_acceptance_tdd.py`
+- `tests/unit/tools/test_prompt_workflow_docs_layout_acceptance/test_prompt_workflow_docs_layout_acceptance_tdd.py`
+- `tests/unit/tools/test_prompt_workflow_document_lookup/test_prompt_workflow_document_lookup_pbt.py`
+- `tests/unit/tools/test_prompt_workflow_integration.py`
+- `tests/unit/tools/test_review_artifact_home/test_review_artifact_registry_pbt.py`
+- `tests/unit/tools/test_review_exchange_acceptance/conftest.py`
+- `tests/unit/tools/test_review_exchange_acceptance/test_review_exchange_acceptance_tdd.py`
+- `tests/unit/tools/test_review_exchange_cli/test_review_exchange_cli_boundaries_tdd.py`
+- `tests/unit/tools/test_review_exchange_lifecycle/test_review_exchange_boundaries_tdd.py`
+- `tests/unit/tools/test_review_exchange_models/test_review_exchange_models_pbt.py`
+- `tests/unit/tools/test_review_exchange_ownership/test_review_exchange_ownership_pbt.py`
+- `tests/unit/tools/test_review_exchange_paths/test_review_exchange_paths_tdd.py`
+- `tests/unit/tools/test_review_exchange_recovery_acceptance/test_review_exchange_recovery_acceptance_tdd.py`
+- `tests/unit/tools/test_review_exchange_scope/test_review_exchange_scope_tdd.py`
+- `tests/unit/tools/test_review_exchange_state/test_review_exchange_state_pbt.py`
+- `tests/unit/tools/test_review_mode_docs_acceptance/conftest.py`
+- `tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_acceptance_tdd.py`
+- `tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_final_acceptance_tdd.py`
+- `tests/unit/tools/test_review_resume/prepared_phase.py`
+- `tests/unit/tools/test_review_resume/test_review_resume_expiry_tdd.py`
+- `tests/unit/tools/test_review_resume/test_review_resume_lifecycle_tdd.py`
+- `tests/unit/tools/test_review_resume/test_review_resume_role_tdd.py`
+- `tests/unit/tools/test_review_role_nature/test_review_role_nature_pbt.py`
+- `tests/unit/tools/test_review_status/test_review_status_pbt.py`
+- `tests/unit/tools/test_review_status_cli/test_review_status_cli_tdd.py`
+- `tests/unit/tools/test_scenario_storage.py`
+- `tests/unit/tools/test_scope_capture/test_scope_capture_pbt.py`
+- `tests/unit/tools/test_spec_review_requestor_acceptance/conftest.py`
+- `tests/unit/tools/test_spec_review_requestor_acceptance/test_spec_review_requestor_acceptance_tdd.py`
+- `tests/unit/tools/test_spec_review_requestor_acceptance/test_spec_review_requestor_io_acceptance_tdd.py`
+- `tests/unit/tools/test_spec_reviewer_acceptance/conftest.py`
+- `tests/unit/tools/test_spec_reviewer_acceptance/fixtures.py`
+- `tests/unit/tools/test_spec_reviewer_acceptance/test_spec_reviewer_acceptance_tdd.py`
+- `tests/unit/tools/test_suite_git_isolation.py`
+- `tests/unit/tools/test_trim_thinking_cli.py`
+- `tests/unit/tools/test_wrap_commit_cli.py`
+- `tools/__init__.py`
+- `tools/linear_order.py`
+- `tools/markdown_check/rules.py`
+- `tools/markdown_check/source.py`
+- `tools/release_workflow/__init__.py`
+- `tools/release_workflow/artifacts.py`
+- `tools/release_workflow/bootstrap.py`
+- `tools/release_workflow/cli.py`
+- `tools/release_workflow/git.py`
+- `tools/release_workflow/git_environment.py`
+- `tools/release_workflow/inputs.py`
+- `tools/release_workflow/invocation.py`
+- `tools/release_workflow/managed_files.py`
+- `tools/release_workflow/paths.py`
+- `tools/release_workflow/results.py`
+- `tools/review_artifact_configuration.py`
+- `tools/review_exchange_paths.py`
+
+### Commit plan assessment for step 5 release-project-root (exchange 1) (round 3)
+
+An independent `commit-plan-check.bat --format json` run reported state
+`valid`, ready `true`, no diagnostics and 196 staged paths, in seven groups:
+
+- perf(tools): reduce import and scan overhead (4 paths)
+- refactor(review): expose repository observations (2 paths)
+- fix(release): reject drive-relative managed paths (1 path)
+- feat(release): wire context and Windows launchers (13 paths)
+- test(suite): simulate external workflow boundaries (174 paths)
+- docs(release): retain step 5 review exchange (1 path)
+- docs(release-project-root): record step 5 validation (1 path)
+
+Membership, order and subjects match the staged work. Each body describes its
+group accurately, including the frozen emulation, the source-contract limits
+and the bounded checker concurrency. `a.commit` is accurate for this snapshot.
+The requested fixes add test assertions to Group 5 (and possibly
+`tests/simulation_policy.py`, also Group 5) and change Group 7's content. They
+need no new group.
+
+### Findings and boundaries for step 5 release-project-root (exchange 1) (round 3)
+
+Unresolved findings:
+
+- Startup timing not reported (plan, `Simulation-only test strategy`): the
+  staged amendment says "Report suite startup and total elapsed time
+  separately". The validation record says "Startup was not measured
+  separately", and the request says the same.
+- Batch wiring lost its only automated check. Round 2's
+  `test_missing_runtime` and the deleted
+  `tests/acceptance/release_workflow/process_support.py` ran these through
+  real cmd. Under the simulation strategy, the plan asks for source contracts,
+  and none exist for them:
+- The pre-Python prerequisite path of `bin/release_workflow.bat` and
+  `bin/release_alias.bat`: default `_release_status=2`, record existence,
+  version and length checks, environment-path sanitization, interpreter
+  existence and the `:runtime_error` diagnostic.
+- The same launchers' native-status normalization (0, 1 and 2 pass through,
+  anything else becomes 1 with a diagnostic).
+- Every branch of `bin/release_runtime_record.bat` (Step 1). No test
+  references it any more.
+- The `if __name__ == "__main__":` `sys.path` bootstrap in
+  `tools/code_review_request.py` and the evidence and answer CLIs. It sits
+  under `pragma: no cover`, and the old real launcher run was the only check
+  against "No module named 'tools'".
+  `test_code_reviewer_launcher_smoke_tdd.py` now imports the module
+  directly. For `code_review_answer_cli`, the expected usage text comes from
+  the argv the test sets itself.
+- Assertions that can no longer fail:
+- `tests/acceptance/review_status/conftest.py:363-370`: `_direct_command()`
+  and `_launcher_command("--format", "json")` return the same arguments
+  through the same `run_inline(..., entry="status")`. The parity assertions
+  in `test_review_status_acceptance_tdd.py:177` and `:205` compare a call
+  with itself, though the test names claim launcher/direct parity.
+- `tests/acceptance/release_workflow/test_release_readiness_tdd.py:84`
+  (`rglob("*.pyc") == []`): nothing is imported from the simulated tooling
+  tree, because the helpers load from the real checkout and the engine import
+  returns a `SimpleNamespace`. No test asserts the effect of
+  `sys.dont_write_bytecode = True` (`tools/release_workflow/bootstrap.py:98`).
+  The comment at `:73` ("Filesystem identity remains real") is also wrong,
+  since `tests/memory_filesystem.py` intercepts `CreateJunction`.
+- `tests/unit/tools/test_review_exchange_acceptance/conftest.py:20-25` (the
+  same rule is in the spec requestor and spec reviewer acceptance
+  `conftest.py`): `_is_ignored` now hard-codes `.reviews` instead of reading
+  `.gitignore` files as in round 2. The unignored activation
+  (`test_review_exchange_acceptance_tdd.py:211`, `:258`) therefore passes
+  whether or not `prepare_home()` writes the covering `.reviews/.gitignore`.
+- `_unchanged_tracking` in `test_review_resume_migration_tdd.py:36-41` (and
+  `test_review_resume_concurrency_tdd.py:120`, `:134`), plus the
+  review-status `_snapshot` `index_tree` and `current_ref`: these compare the
+  inert `.git/index` marker and declared facts that production cannot
+  change. The migration module docstring (`:10-15`) still says each step
+  "restores real Git".
+- Property-batch disclosure overstated. The installed Hypothesis
+  (`engine.py:1147`) starts every run with the same simplest choice sequence.
+  For example, `test_rule_properties_pbt.py` runs
+  `range(50) x max_examples=2`, which yields about 51 distinct inputs where
+  round 2 ran 100. The other affected modules are `test_aggregate_pbt.py`
+  (5 x 2), `test_prompt_workflow_document_lookup_pbt.py` (20 x 2) and every
+  5-example batch. The Step 5 performance check says the batches "preserve
+  their aggregate generated comparisons".
+- Hand-written protocol fixtures differ from production artifacts:
+- `tests/acceptance/review_resume/prepared_request.py:44-46` writes
+  `## Round 1 by requestor`, where a code transcript gets
+  `## Round 1 by requestor - Step N` plus metadata lines
+  (`tools/review_exchange_store.py`). The unique-heading assertion then
+  partly checks test-written text.
+- `tests/unit/tools/test_review_resume/prepared_phase.py:61-85` declares an
+  answer phase with no request tombstone and no answer transcript entry,
+  which `publish_answer` always leaves.
+- `tests/script_entry.py:34-35` runs the whole guard, including bootstrap
+  `sys.path.insert` calls (for example `tools/coverage_gap_functions.py:18-22`),
+  and never restores `sys.path`. Entries leak to later tests on the same
+  worker. A missing guard is reported only through `assert`.
+- `tests/git_isolation.py` (with `tests/unit/tools/test_suite_git_isolation.py`)
+  is used only by its own test. Its purpose, selecting native `git.exe` for
+  subprocess fixtures, is what the simulation strategy now forbids.
+- The process audit in `tests/simulation_policy.py` omits
+  `_winapi.CreateProcess`, which `multiprocessing` uses on Windows without a
+  `subprocess.Popen` event. It also omits `os.startfile` and `os.exec`.
+  Nothing uses these today.
+
+Boundary-crossing work:
+
+- The shared-helper review found latent fidelity defects in the frozen
+  emulation:
+- In `tests/scenario_storage.py`, a directory rename lowercases child names
+  (`:315-322`), no-follow operations do not resolve parent links
+  (`:180-181`), and `symlink`/`link` overwrite existing targets.
+- Its semantics are POSIX ones: unlinking open files and writing read-only
+  files both succeed.
+- In `tests/memory_filesystem.py`, closing a descriptor never releases its
+  lock.
+  No current test reaches these. The human's replacement plan forbids adding
+  OS behavior, so the reviewer returns them as input for the deferred
+  emulation removal instead of a change in this step.
+- No plan step owns that removal yet. The plan says only "defer removal of
+  passing emulation until after the green suite". Record where it lands
+  (Step 6 or a follow-up requirement) so the frozen emulation does not become
+  permanent.
+- `tests/review_repository_observations.py`,
+  `tests/code_review_repository_observations.py` and
+  `tests/acceptance/commit_plan_check/repository_observations.py` patch
+  `subprocess.run` with closed argv tables, and they raise on unknown
+  commands. They are not general emulators, and they are narrower than the
+  deleted `git_test_double.py`. Some patterns compute `status` or `ls-files`
+  output from files, which may count as new command patterns under the
+  freeze. That judgment belongs to the human.
+- Two old guarantees have no simulated replacement, as the user's decision
+  implies: the shared Markdown gate through its public launcher, and the
+  site-free import closure of `tools`. `check.bat` still runs the gate on the
+  real repository.
+- Plan Step 5's `Completion` paragraph still says Step 5 "cannot be complete
+  while any supported caller lacks real transport or cancellation evidence".
+  The new section supersedes it. A one-line pointer there would stop a later
+  reader from applying the old rule.
+- The writer's cancellation-plan amendment still needs the human's approval
+  at the gate. This review does not grant it.
+
+### Writer instructions for step 5 release-project-root (exchange 1) (round 3)
+
+Work through `Missing work for Step 5` in the validation plan:
+
+1. Report suite startup separately from total elapsed time, for example as
+   the time from the full stage start to the first test result in the proof
+   log. Or record the human's decision to drop that requirement.
+2. Add source-contract tests in the style of `test_codepage_tdd.py`:
+   - Both release launchers: the pre-Python prerequisite lines, the
+     `:runtime_error` diagnostic and the status normalization block.
+   - Each branch of `bin/release_runtime_record.bat`.
+   - The `__main__` `sys.path` bootstrap of `tools/code_review_request.py`,
+     `tools/code_review_evidence_cli.py` and `tools/code_review_answer_cli.py`.
+     A source or AST check is enough.
+3. For each assertion that cannot fail, either make it observe something
+   production could change, or remove it and its claim:
+   - Review-status parity: run one inline call and rename the test, or
+     compare two genuinely different entry functions.
+   - Bytecode: assert `sys.dont_write_bytecode` inside the dispatched probe,
+     instead of the `.pyc` scan.
+   - Ignore rule: read the declared `.gitignore` files as round 2 did, or
+     assert the `.reviews/.gitignore` that `prepare_home()` writes.
+   - Unchanged Git state: assert that no mutating Git argv was requested,
+     or delete the marker comparisons.
+
+   Fix the stale docstrings and the junction comment too.
+4. Correct the property-batch sentence with the effective distinct example
+   counts, or make each batch's inputs distinct (for example, derived from
+   the batch index).
+5. Seed `prepared_request` and `prepared_phase` through production store or
+   core writes, or add one test proving each declared phase matches what
+   `publish_request` and `publish_answer` leave.
+6. Restore `sys.path` in `tests/script_entry.py` and raise explicitly when no
+   guard exists.
+7. Delete `tests/git_isolation.py` and `tests/unit/tools/test_suite_git_isolation.py`.
+8. Add `_winapi.CreateProcess`, `os.startfile` and `os.exec` to the audit
+   events, with a regression for one of them.
+
+Then set the Step 5 analysis back to Yes, remove `Missing work for Step 5`,
+rerun the resolved validation set, update `a.commit` (the Group 7 body and,
+after the deletion, Group 5's membership), and publish the replacement
+request.
+
+### Decision rationale for step 5 release-project-root (exchange 1) (round 3)
+
+Changes requested. Readiness floor:
+
+- Identity: pass. Envelope, readable identity, plan, step 5, round 3,
+  occurrence 1, umbrella and the request-time index tree all agree.
+- Completeness: fail. The amended plan's startup report and the source
+  contracts for batch wiring are missing.
+- Validation and coverage: pass on the requestor's evidence, with the
+  reviewer's own green `ghog check` and `ghog affected --no-cov`. Static
+  coverage shows no gap in the measured `tools` scope. The batch files and
+  test helpers are outside that scope.
+- Staged attribution: pass. Only the reviewer's validation-row patch was
+  added, and it is attributable.
+- Unresolved findings: fail. Eight findings remain open.
+- `a.commit`: pass. The mechanical check is ready, and membership, order and
+  subjects are accurate.
+
+Both round 2 findings are resolved. This round made no substantive repair:
+the reviewer changed only Step 5 validation rows, which are review metadata.
+A commit-ready recommendation needs every floor result to pass. This answer
+authorizes no commit.
+
+### Final reviewer decision for step 5 release-project-root (exchange 1) (round 3)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-5-round-3 -->
+
+## Round 4 by requestor - Step 5
+
+- Recorded: 2026-10-30T12:37:50+01:00
+- Exchange: code/code/v0.14.0/release-project-root
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 5
+- Outcome: request
+
+### Review identity for step 5 release-project-root (round 4)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+Implementation step: 5
+Review round: 4
+
+### Code review evidence for step 5 release-project-root (round 4)
+
+request_index_tree: e45d325d133fdad26d9c27b0f06a4fd379097d87
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+- `rg -n 'senv|PYTHONPATH|set /p|shell=True|pushd|GetConsoleMode' tools/release_workflow bin/release_alias.bat bin/release_workflow.bat` (sources: plan)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.release-project-root.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: perf(tools): reduce import and scan overhead
+group 1 path: tools/__init__.py
+group 1 path: tools/linear_order.py
+group 1 path: tools/markdown_check/rules.py
+group 1 path: tools/markdown_check/source.py
+group 2: refactor(review): expose repository observations
+group 2 path: tools/review_artifact_configuration.py
+group 2 path: tools/review_exchange_paths.py
+group 3: fix(release): reject drive-relative managed paths
+group 3 path: tools/release_workflow/managed_files.py
+group 4: feat(release): wire context and Windows launchers
+group 4 path: .gitattributes
+group 4 path: bin/release_alias.bat
+group 4 path: bin/release_workflow.bat
+group 4 path: tools/release_workflow/__init__.py
+group 4 path: tools/release_workflow/artifacts.py
+group 4 path: tools/release_workflow/bootstrap.py
+group 4 path: tools/release_workflow/cli.py
+group 4 path: tools/release_workflow/git.py
+group 4 path: tools/release_workflow/git_environment.py
+group 4 path: tools/release_workflow/inputs.py
+group 4 path: tools/release_workflow/invocation.py
+group 4 path: tools/release_workflow/paths.py
+group 4 path: tools/release_workflow/results.py
+group 5: test(suite): simulate external workflow boundaries
+group 5 path: check.bat
+group 5 path: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+group 5 path: pyproject.toml
+group 5 path: tests/acceptance/commit_plan_check/commit_plan_check_support.py
+group 5 path: tests/acceptance/commit_plan_check/conftest.py
+group 5 path: tests/acceptance/commit_plan_check/repository_observations.py
+group 5 path: tests/acceptance/commit_plan_check/test_commit_plan_check_acceptance/test_commit_plan_check_acceptance_tdd.py
+group 5 path: tests/acceptance/commit_plan_check/test_commit_plan_check_acceptance/test_commit_plan_check_contracts_tdd.py
+group 5 path: tests/acceptance/markdown_check/test_markdown_check_acceptance/test_markdown_check_acceptance_tdd.py
+group 5 path: tests/acceptance/markdown_check/test_shared_gate/test_shared_gate_tdd.py
+group 5 path: tests/acceptance/release_workflow/conftest.py
+group 5 path: tests/acceptance/release_workflow/process_support.py
+group 5 path: tests/acceptance/release_workflow/test_release_readiness_tdd.py
+group 5 path: tests/acceptance/release_workflow/test_uv_readiness_tdd.py
+group 5 path: tests/acceptance/review_resume/cli_support.py
+group 5 path: tests/acceptance/review_resume/conftest.py
+group 5 path: tests/acceptance/review_resume/notification_simulation.py
+group 5 path: tests/acceptance/review_resume/prepared_request.py
+group 5 path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_acceptance_tdd.py
+group 5 path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_blocked_layout_tdd.py
+group 5 path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_concurrency_tdd.py
+group 5 path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_identity_tdd.py
+group 5 path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_launcher_smoke_tdd.py
+group 5 path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_migration_tdd.py
+group 5 path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_parked_wait_tdd.py
+group 5 path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_waiter_cleanup_tdd.py
+group 5 path: tests/acceptance/review_resume/waiter_driver.py
+group 5 path: tests/acceptance/review_status/conftest.py
+group 5 path: tests/acceptance/review_status/test_review_status_acceptance/test_review_status_acceptance_tdd.py
+group 5 path: tests/code_review_repository_observations.py
+group 5 path: tests/conftest.py
+group 5 path: tests/memory_filesystem.py
+group 5 path: tests/review_repository_observations.py
+group 5 path: tests/scenario_cli.py
+group 5 path: tests/scenario_environment.py
+group 5 path: tests/scenario_generation.py
+group 5 path: tests/scenario_sqlite.py
+group 5 path: tests/scenario_storage.py
+group 5 path: tests/scenario_streams.py
+group 5 path: tests/script_entry.py
+group 5 path: tests/simulation_policy.py
+group 5 path: tests/testmon_monitoring.py
+group 5 path: tests/unit/test_scenario_storage.py
+group 5 path: tests/unit/tools/git_history_dashboard/test_aggregate/test_aggregate_pbt.py
+group 5 path: tests/unit/tools/git_history_dashboard/test_aggregate/test_aggregate_perf_tdd.py
+group 5 path: tests/unit/tools/git_history_dashboard/test_build/test_build_tdd.py
+group 5 path: tests/unit/tools/git_test_double.py
+group 5 path: tests/unit/tools/markdown_check/test_launcher/test_launcher_tdd.py
+group 5 path: tests/unit/tools/markdown_check/test_rule_properties/test_rule_properties_pbt.py
+group 5 path: tests/unit/tools/markdown_check/test_runner/test_runner_tdd.py
+group 5 path: tests/unit/tools/prepare_release/prepare_release_plan_test_support.py
+group 5 path: tests/unit/tools/prepare_release/test_prepare_release_plan.py
+group 5 path: tests/unit/tools/prepare_release/test_prepare_release_plan_targets_workflow.py
+group 5 path: tests/unit/tools/prepare_release/test_prepare_release_plan_workflow.py
+group 5 path: tests/unit/tools/release_workflow/conftest.py
+group 5 path: tests/unit/tools/release_workflow/git_test_support.py
+group 5 path: tests/unit/tools/release_workflow/invocation_test_support.py
+group 5 path: tests/unit/tools/release_workflow/launcher_simulation.py
+group 5 path: tests/unit/tools/release_workflow/repository_simulation.py
+group 5 path: tests/unit/tools/release_workflow/test_artifacts/conftest.py
+group 5 path: tests/unit/tools/release_workflow/test_artifacts/test_artifacts_tdd.py
+group 5 path: tests/unit/tools/release_workflow/test_bootstrap/test_bootstrap_tdd.py
+group 5 path: tests/unit/tools/release_workflow/test_cli/__init__.py
+group 5 path: tests/unit/tools/release_workflow/test_cli/test_cli_tdd.py
+group 5 path: tests/unit/tools/release_workflow/test_configuration/test_configuration_pbt.py
+group 5 path: tests/unit/tools/release_workflow/test_git/conftest.py
+group 5 path: tests/unit/tools/release_workflow/test_git/test_config_files_tdd.py
+group 5 path: tests/unit/tools/release_workflow/test_git/test_git_tdd.py
+group 5 path: tests/unit/tools/release_workflow/test_inputs/__init__.py
+group 5 path: tests/unit/tools/release_workflow/test_inputs/test_inputs_tdd.py
+group 5 path: tests/unit/tools/release_workflow/test_invocation/__init__.py
+group 5 path: tests/unit/tools/release_workflow/test_invocation/test_invocation_pbt.py
+group 5 path: tests/unit/tools/release_workflow/test_invocation/test_invocation_tdd.py
+group 5 path: tests/unit/tools/release_workflow/test_launchers/__init__.py
+group 5 path: tests/unit/tools/release_workflow/test_launchers/test_boundaries_tdd.py
+group 5 path: tests/unit/tools/release_workflow/test_launchers/test_codepage_tdd.py
+group 5 path: tests/unit/tools/release_workflow/test_launchers/test_console_tdd.py
+group 5 path: tests/unit/tools/release_workflow/test_launchers/test_launchers_tdd.py
+group 5 path: tests/unit/tools/release_workflow/test_launchers/test_read_counts_tdd.py
+group 5 path: tests/unit/tools/release_workflow/test_managed_files/test_managed_files_tdd.py
+group 5 path: tests/unit/tools/release_workflow/test_markers/test_markers_pbt.py
+group 5 path: tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_pbt.py
+group 5 path: tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_tdd.py
+group 5 path: tests/unit/tools/release_workflow/test_paths/conftest.py
+group 5 path: tests/unit/tools/release_workflow/test_paths/test_paths_pbt.py
+group 5 path: tests/unit/tools/release_workflow/test_paths/test_paths_tdd.py
+group 5 path: tests/unit/tools/release_workflow/test_readiness/test_metadata_tdd.py
+group 5 path: tests/unit/tools/release_workflow/test_readiness/test_readiness_pbt.py
+group 5 path: tests/unit/tools/release_workflow/test_results/__init__.py
+group 5 path: tests/unit/tools/release_workflow/test_results/test_results_tdd.py
+group 5 path: tests/unit/tools/release_workflow/test_schemas/test_schemas_pbt.py
+group 5 path: tests/unit/tools/release_workflow/test_windows_process/test_windows_process_tdd.py
+group 5 path: tests/unit/tools/test_artifact_home/test_artifact_home_tdd.py
+group 5 path: tests/unit/tools/test_code_review_evidence/conftest.py
+group 5 path: tests/unit/tools/test_code_review_evidence/test_code_review_evidence_boundaries_tdd.py
+group 5 path: tests/unit/tools/test_code_review_evidence/test_code_review_evidence_cli_tdd.py
+group 5 path: tests/unit/tools/test_code_review_evidence/test_code_review_evidence_tdd.py
+group 5 path: tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py
+group 5 path: tests/unit/tools/test_code_review_requestor_acceptance/conftest.py
+group 5 path: tests/unit/tools/test_code_review_requestor_acceptance/test_code_review_requestor_acceptance_tdd.py
+group 5 path: tests/unit/tools/test_code_review_requestor_acceptance/test_code_review_requestor_io_acceptance_tdd.py
+group 5 path: tests/unit/tools/test_code_reviewer_acceptance/conftest.py
+group 5 path: tests/unit/tools/test_code_reviewer_acceptance/fixtures.py
+group 5 path: tests/unit/tools/test_code_reviewer_acceptance/test_code_reviewer_acceptance_tdd.py
+group 5 path: tests/unit/tools/test_code_reviewer_acceptance/test_code_reviewer_io_acceptance_tdd.py
+group 5 path: tests/unit/tools/test_code_reviewer_acceptance/test_code_reviewer_launcher_smoke_tdd.py
+group 5 path: tests/unit/tools/test_code_reviewer_acceptance/test_code_reviewer_recovery_tdd.py
+group 5 path: tests/unit/tools/test_codex_plugin_redirects/test_codex_plugin_redirects_tdd.py
+group 5 path: tests/unit/tools/test_commit_plan_check/test_commit_plan_check_adapter_tdd.py
+group 5 path: tests/unit/tools/test_coverage_gap_functions_cli.py
+group 5 path: tests/unit/tools/test_enforce_eof_branches.py
+group 5 path: tests/unit/tools/test_full_suite_levels_acceptance/conftest.py
+group 5 path: tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_review_acceptance_tdd.py
+group 5 path: tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_workflow_acceptance_tdd.py
+group 5 path: tests/unit/tools/test_git_batch_commit_entry.py
+group 5 path: tests/unit/tools/test_groundhog_acceptance.py
+group 5 path: tests/unit/tools/test_groundhog_cli.py
+group 5 path: tests/unit/tools/test_groundhog_detach.py
+group 5 path: tests/unit/tools/test_groundhog_durations_pbt.py
+group 5 path: tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_pbt.py
+group 5 path: tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_tdd.py
+group 5 path: tests/unit/tools/test_groundhog_group_patterns/test_groundhog_group_patterns_pbt.py
+group 5 path: tests/unit/tools/test_groundhog_levels/test_groundhog_levels_pbt.py
+group 5 path: tests/unit/tools/test_groundhog_proof/test_groundhog_proof_pbt.py
+group 5 path: tests/unit/tools/test_groundhog_runner.py
+group 5 path: tests/unit/tools/test_groundhog_status.py
+group 5 path: tests/unit/tools/test_group_commit_message_prompt_branches.py
+group 5 path: tests/unit/tools/test_instruction_structure/test_codex_plugin_structure_tdd.py
+group 5 path: tests/unit/tools/test_instruction_structure/test_instruction_structure_prompt_workflow_tdd.py
+group 5 path: tests/unit/tools/test_instruction_structure/test_instruction_structure_tdd.py
+group 5 path: tests/unit/tools/test_instruction_structure/test_shared_utility_invocation_tdd.py
+group 5 path: tests/unit/tools/test_isolate_logos.py
+group 5 path: tests/unit/tools/test_linear_order/test_linear_order_tdd.py
+group 5 path: tests/unit/tools/test_new_draft_entry.py
+group 5 path: tests/unit/tools/test_open_questions_md.py
+group 5 path: tests/unit/tools/test_package_exports.py
+group 5 path: tests/unit/tools/test_prepare_release_whole_suite/test_prepare_release_whole_suite_tdd.py
+group 5 path: tests/unit/tools/test_prompt_workflow_acceptance/test_prompt_workflow_acceptance_tdd.py
+group 5 path: tests/unit/tools/test_prompt_workflow_docs_layout_acceptance/test_prompt_workflow_docs_layout_acceptance_tdd.py
+group 5 path: tests/unit/tools/test_prompt_workflow_document_lookup/test_prompt_workflow_document_lookup_pbt.py
+group 5 path: tests/unit/tools/test_prompt_workflow_document_selection/test_prompt_workflow_document_selection_tdd.py
+group 5 path: tests/unit/tools/test_prompt_workflow_integration.py
+group 5 path: tests/unit/tools/test_review_artifact_home/test_review_artifact_registry_pbt.py
+group 5 path: tests/unit/tools/test_review_exchange_acceptance/conftest.py
+group 5 path: tests/unit/tools/test_review_exchange_acceptance/test_review_exchange_acceptance_tdd.py
+group 5 path: tests/unit/tools/test_review_exchange_cli/test_review_exchange_cli_boundaries_tdd.py
+group 5 path: tests/unit/tools/test_review_exchange_lifecycle/test_review_exchange_boundaries_tdd.py
+group 5 path: tests/unit/tools/test_review_exchange_models/test_review_exchange_models_pbt.py
+group 5 path: tests/unit/tools/test_review_exchange_ownership/test_review_exchange_ownership_pbt.py
+group 5 path: tests/unit/tools/test_review_exchange_paths/test_review_exchange_paths_tdd.py
+group 5 path: tests/unit/tools/test_review_exchange_recovery_acceptance/test_review_exchange_recovery_acceptance_tdd.py
+group 5 path: tests/unit/tools/test_review_exchange_scope/test_review_exchange_scope_tdd.py
+group 5 path: tests/unit/tools/test_review_exchange_state/test_review_exchange_state_pbt.py
+group 5 path: tests/unit/tools/test_review_mode_docs_acceptance/conftest.py
+group 5 path: tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_acceptance_tdd.py
+group 5 path: tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_final_acceptance_tdd.py
+group 5 path: tests/unit/tools/test_review_resume/prepared_phase.py
+group 5 path: tests/unit/tools/test_review_resume/test_review_resume_expiry_tdd.py
+group 5 path: tests/unit/tools/test_review_resume/test_review_resume_lifecycle_tdd.py
+group 5 path: tests/unit/tools/test_review_resume/test_review_resume_role_tdd.py
+group 5 path: tests/unit/tools/test_review_role_nature/test_review_role_nature_pbt.py
+group 5 path: tests/unit/tools/test_review_status/test_review_status_pbt.py
+group 5 path: tests/unit/tools/test_review_status_cli/test_review_status_cli_tdd.py
+group 5 path: tests/unit/tools/test_scenario_storage.py
+group 5 path: tests/unit/tools/test_scope_capture/test_scope_capture_pbt.py
+group 5 path: tests/unit/tools/test_simulation_boundaries.py
+group 5 path: tests/unit/tools/test_spec_review_requestor_acceptance/conftest.py
+group 5 path: tests/unit/tools/test_spec_review_requestor_acceptance/test_spec_review_requestor_acceptance_tdd.py
+group 5 path: tests/unit/tools/test_spec_review_requestor_acceptance/test_spec_review_requestor_io_acceptance_tdd.py
+group 5 path: tests/unit/tools/test_spec_reviewer_acceptance/conftest.py
+group 5 path: tests/unit/tools/test_spec_reviewer_acceptance/fixtures.py
+group 5 path: tests/unit/tools/test_spec_reviewer_acceptance/test_spec_reviewer_acceptance_tdd.py
+group 5 path: tests/unit/tools/test_trim_thinking_cli.py
+group 5 path: tests/unit/tools/test_wrap_commit_cli.py
+group 6: docs(release): retain step 5 review exchange
+group 6 path: docs/v0.14.0/review.code.v0.14.0.release-project-root.md
+group 7: docs(release-project-root): record step 5 validation
+group 7 path: docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md
+staged path: .gitattributes
+staged path: bin/release_alias.bat
+staged path: bin/release_workflow.bat
+staged path: check.bat
+staged path: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+staged path: docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md
+staged path: docs/v0.14.0/review.code.v0.14.0.release-project-root.md
+staged path: pyproject.toml
+staged path: tests/acceptance/commit_plan_check/commit_plan_check_support.py
+staged path: tests/acceptance/commit_plan_check/conftest.py
+staged path: tests/acceptance/commit_plan_check/repository_observations.py
+staged path: tests/acceptance/commit_plan_check/test_commit_plan_check_acceptance/test_commit_plan_check_acceptance_tdd.py
+staged path: tests/acceptance/commit_plan_check/test_commit_plan_check_acceptance/test_commit_plan_check_contracts_tdd.py
+staged path: tests/acceptance/markdown_check/test_markdown_check_acceptance/test_markdown_check_acceptance_tdd.py
+staged path: tests/acceptance/markdown_check/test_shared_gate/test_shared_gate_tdd.py
+staged path: tests/acceptance/release_workflow/conftest.py
+staged path: tests/acceptance/release_workflow/process_support.py
+staged path: tests/acceptance/release_workflow/test_release_readiness_tdd.py
+staged path: tests/acceptance/release_workflow/test_uv_readiness_tdd.py
+staged path: tests/acceptance/review_resume/cli_support.py
+staged path: tests/acceptance/review_resume/conftest.py
+staged path: tests/acceptance/review_resume/notification_simulation.py
+staged path: tests/acceptance/review_resume/prepared_request.py
+staged path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_acceptance_tdd.py
+staged path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_blocked_layout_tdd.py
+staged path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_concurrency_tdd.py
+staged path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_identity_tdd.py
+staged path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_launcher_smoke_tdd.py
+staged path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_migration_tdd.py
+staged path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_parked_wait_tdd.py
+staged path: tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_waiter_cleanup_tdd.py
+staged path: tests/acceptance/review_resume/waiter_driver.py
+staged path: tests/acceptance/review_status/conftest.py
+staged path: tests/acceptance/review_status/test_review_status_acceptance/test_review_status_acceptance_tdd.py
+staged path: tests/code_review_repository_observations.py
+staged path: tests/conftest.py
+staged path: tests/memory_filesystem.py
+staged path: tests/review_repository_observations.py
+staged path: tests/scenario_cli.py
+staged path: tests/scenario_environment.py
+staged path: tests/scenario_generation.py
+staged path: tests/scenario_sqlite.py
+staged path: tests/scenario_storage.py
+staged path: tests/scenario_streams.py
+staged path: tests/script_entry.py
+staged path: tests/simulation_policy.py
+staged path: tests/testmon_monitoring.py
+staged path: tests/unit/test_scenario_storage.py
+staged path: tests/unit/tools/git_history_dashboard/test_aggregate/test_aggregate_pbt.py
+staged path: tests/unit/tools/git_history_dashboard/test_aggregate/test_aggregate_perf_tdd.py
+staged path: tests/unit/tools/git_history_dashboard/test_build/test_build_tdd.py
+staged path: tests/unit/tools/git_test_double.py
+staged path: tests/unit/tools/markdown_check/test_launcher/test_launcher_tdd.py
+staged path: tests/unit/tools/markdown_check/test_rule_properties/test_rule_properties_pbt.py
+staged path: tests/unit/tools/markdown_check/test_runner/test_runner_tdd.py
+staged path: tests/unit/tools/prepare_release/prepare_release_plan_test_support.py
+staged path: tests/unit/tools/prepare_release/test_prepare_release_plan.py
+staged path: tests/unit/tools/prepare_release/test_prepare_release_plan_targets_workflow.py
+staged path: tests/unit/tools/prepare_release/test_prepare_release_plan_workflow.py
+staged path: tests/unit/tools/release_workflow/conftest.py
+staged path: tests/unit/tools/release_workflow/git_test_support.py
+staged path: tests/unit/tools/release_workflow/invocation_test_support.py
+staged path: tests/unit/tools/release_workflow/launcher_simulation.py
+staged path: tests/unit/tools/release_workflow/repository_simulation.py
+staged path: tests/unit/tools/release_workflow/test_artifacts/conftest.py
+staged path: tests/unit/tools/release_workflow/test_artifacts/test_artifacts_tdd.py
+staged path: tests/unit/tools/release_workflow/test_bootstrap/test_bootstrap_tdd.py
+staged path: tests/unit/tools/release_workflow/test_cli/__init__.py
+staged path: tests/unit/tools/release_workflow/test_cli/test_cli_tdd.py
+staged path: tests/unit/tools/release_workflow/test_configuration/test_configuration_pbt.py
+staged path: tests/unit/tools/release_workflow/test_git/conftest.py
+staged path: tests/unit/tools/release_workflow/test_git/test_config_files_tdd.py
+staged path: tests/unit/tools/release_workflow/test_git/test_git_tdd.py
+staged path: tests/unit/tools/release_workflow/test_inputs/__init__.py
+staged path: tests/unit/tools/release_workflow/test_inputs/test_inputs_tdd.py
+staged path: tests/unit/tools/release_workflow/test_invocation/__init__.py
+staged path: tests/unit/tools/release_workflow/test_invocation/test_invocation_pbt.py
+staged path: tests/unit/tools/release_workflow/test_invocation/test_invocation_tdd.py
+staged path: tests/unit/tools/release_workflow/test_launchers/__init__.py
+staged path: tests/unit/tools/release_workflow/test_launchers/test_boundaries_tdd.py
+staged path: tests/unit/tools/release_workflow/test_launchers/test_codepage_tdd.py
+staged path: tests/unit/tools/release_workflow/test_launchers/test_console_tdd.py
+staged path: tests/unit/tools/release_workflow/test_launchers/test_launchers_tdd.py
+staged path: tests/unit/tools/release_workflow/test_launchers/test_read_counts_tdd.py
+staged path: tests/unit/tools/release_workflow/test_managed_files/test_managed_files_tdd.py
+staged path: tests/unit/tools/release_workflow/test_markers/test_markers_pbt.py
+staged path: tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_pbt.py
+staged path: tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_tdd.py
+staged path: tests/unit/tools/release_workflow/test_paths/conftest.py
+staged path: tests/unit/tools/release_workflow/test_paths/test_paths_pbt.py
+staged path: tests/unit/tools/release_workflow/test_paths/test_paths_tdd.py
+staged path: tests/unit/tools/release_workflow/test_readiness/test_metadata_tdd.py
+staged path: tests/unit/tools/release_workflow/test_readiness/test_readiness_pbt.py
+staged path: tests/unit/tools/release_workflow/test_results/__init__.py
+staged path: tests/unit/tools/release_workflow/test_results/test_results_tdd.py
+staged path: tests/unit/tools/release_workflow/test_schemas/test_schemas_pbt.py
+staged path: tests/unit/tools/release_workflow/test_windows_process/test_windows_process_tdd.py
+staged path: tests/unit/tools/test_artifact_home/test_artifact_home_tdd.py
+staged path: tests/unit/tools/test_code_review_evidence/conftest.py
+staged path: tests/unit/tools/test_code_review_evidence/test_code_review_evidence_boundaries_tdd.py
+staged path: tests/unit/tools/test_code_review_evidence/test_code_review_evidence_cli_tdd.py
+staged path: tests/unit/tools/test_code_review_evidence/test_code_review_evidence_tdd.py
+staged path: tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py
+staged path: tests/unit/tools/test_code_review_requestor_acceptance/conftest.py
+staged path: tests/unit/tools/test_code_review_requestor_acceptance/test_code_review_requestor_acceptance_tdd.py
+staged path: tests/unit/tools/test_code_review_requestor_acceptance/test_code_review_requestor_io_acceptance_tdd.py
+staged path: tests/unit/tools/test_code_reviewer_acceptance/conftest.py
+staged path: tests/unit/tools/test_code_reviewer_acceptance/fixtures.py
+staged path: tests/unit/tools/test_code_reviewer_acceptance/test_code_reviewer_acceptance_tdd.py
+staged path: tests/unit/tools/test_code_reviewer_acceptance/test_code_reviewer_io_acceptance_tdd.py
+staged path: tests/unit/tools/test_code_reviewer_acceptance/test_code_reviewer_launcher_smoke_tdd.py
+staged path: tests/unit/tools/test_code_reviewer_acceptance/test_code_reviewer_recovery_tdd.py
+staged path: tests/unit/tools/test_codex_plugin_redirects/test_codex_plugin_redirects_tdd.py
+staged path: tests/unit/tools/test_commit_plan_check/test_commit_plan_check_adapter_tdd.py
+staged path: tests/unit/tools/test_coverage_gap_functions_cli.py
+staged path: tests/unit/tools/test_enforce_eof_branches.py
+staged path: tests/unit/tools/test_full_suite_levels_acceptance/conftest.py
+staged path: tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_review_acceptance_tdd.py
+staged path: tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_workflow_acceptance_tdd.py
+staged path: tests/unit/tools/test_git_batch_commit_entry.py
+staged path: tests/unit/tools/test_groundhog_acceptance.py
+staged path: tests/unit/tools/test_groundhog_cli.py
+staged path: tests/unit/tools/test_groundhog_detach.py
+staged path: tests/unit/tools/test_groundhog_durations_pbt.py
+staged path: tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_pbt.py
+staged path: tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_tdd.py
+staged path: tests/unit/tools/test_groundhog_group_patterns/test_groundhog_group_patterns_pbt.py
+staged path: tests/unit/tools/test_groundhog_levels/test_groundhog_levels_pbt.py
+staged path: tests/unit/tools/test_groundhog_proof/test_groundhog_proof_pbt.py
+staged path: tests/unit/tools/test_groundhog_runner.py
+staged path: tests/unit/tools/test_groundhog_status.py
+staged path: tests/unit/tools/test_group_commit_message_prompt_branches.py
+staged path: tests/unit/tools/test_instruction_structure/test_codex_plugin_structure_tdd.py
+staged path: tests/unit/tools/test_instruction_structure/test_instruction_structure_prompt_workflow_tdd.py
+staged path: tests/unit/tools/test_instruction_structure/test_instruction_structure_tdd.py
+staged path: tests/unit/tools/test_instruction_structure/test_shared_utility_invocation_tdd.py
+staged path: tests/unit/tools/test_isolate_logos.py
+staged path: tests/unit/tools/test_linear_order/test_linear_order_tdd.py
+staged path: tests/unit/tools/test_new_draft_entry.py
+staged path: tests/unit/tools/test_open_questions_md.py
+staged path: tests/unit/tools/test_package_exports.py
+staged path: tests/unit/tools/test_prepare_release_whole_suite/test_prepare_release_whole_suite_tdd.py
+staged path: tests/unit/tools/test_prompt_workflow_acceptance/test_prompt_workflow_acceptance_tdd.py
+staged path: tests/unit/tools/test_prompt_workflow_docs_layout_acceptance/test_prompt_workflow_docs_layout_acceptance_tdd.py
+staged path: tests/unit/tools/test_prompt_workflow_document_lookup/test_prompt_workflow_document_lookup_pbt.py
+staged path: tests/unit/tools/test_prompt_workflow_document_selection/test_prompt_workflow_document_selection_tdd.py
+staged path: tests/unit/tools/test_prompt_workflow_integration.py
+staged path: tests/unit/tools/test_review_artifact_home/test_review_artifact_registry_pbt.py
+staged path: tests/unit/tools/test_review_exchange_acceptance/conftest.py
+staged path: tests/unit/tools/test_review_exchange_acceptance/test_review_exchange_acceptance_tdd.py
+staged path: tests/unit/tools/test_review_exchange_cli/test_review_exchange_cli_boundaries_tdd.py
+staged path: tests/unit/tools/test_review_exchange_lifecycle/test_review_exchange_boundaries_tdd.py
+staged path: tests/unit/tools/test_review_exchange_models/test_review_exchange_models_pbt.py
+staged path: tests/unit/tools/test_review_exchange_ownership/test_review_exchange_ownership_pbt.py
+staged path: tests/unit/tools/test_review_exchange_paths/test_review_exchange_paths_tdd.py
+staged path: tests/unit/tools/test_review_exchange_recovery_acceptance/test_review_exchange_recovery_acceptance_tdd.py
+staged path: tests/unit/tools/test_review_exchange_scope/test_review_exchange_scope_tdd.py
+staged path: tests/unit/tools/test_review_exchange_state/test_review_exchange_state_pbt.py
+staged path: tests/unit/tools/test_review_mode_docs_acceptance/conftest.py
+staged path: tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_acceptance_tdd.py
+staged path: tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_final_acceptance_tdd.py
+staged path: tests/unit/tools/test_review_resume/prepared_phase.py
+staged path: tests/unit/tools/test_review_resume/test_review_resume_expiry_tdd.py
+staged path: tests/unit/tools/test_review_resume/test_review_resume_lifecycle_tdd.py
+staged path: tests/unit/tools/test_review_resume/test_review_resume_role_tdd.py
+staged path: tests/unit/tools/test_review_role_nature/test_review_role_nature_pbt.py
+staged path: tests/unit/tools/test_review_status/test_review_status_pbt.py
+staged path: tests/unit/tools/test_review_status_cli/test_review_status_cli_tdd.py
+staged path: tests/unit/tools/test_scenario_storage.py
+staged path: tests/unit/tools/test_scope_capture/test_scope_capture_pbt.py
+staged path: tests/unit/tools/test_simulation_boundaries.py
+staged path: tests/unit/tools/test_spec_review_requestor_acceptance/conftest.py
+staged path: tests/unit/tools/test_spec_review_requestor_acceptance/test_spec_review_requestor_acceptance_tdd.py
+staged path: tests/unit/tools/test_spec_review_requestor_acceptance/test_spec_review_requestor_io_acceptance_tdd.py
+staged path: tests/unit/tools/test_spec_reviewer_acceptance/conftest.py
+staged path: tests/unit/tools/test_spec_reviewer_acceptance/fixtures.py
+staged path: tests/unit/tools/test_spec_reviewer_acceptance/test_spec_reviewer_acceptance_tdd.py
+staged path: tests/unit/tools/test_trim_thinking_cli.py
+staged path: tests/unit/tools/test_wrap_commit_cli.py
+staged path: tools/__init__.py
+staged path: tools/linear_order.py
+staged path: tools/markdown_check/rules.py
+staged path: tools/markdown_check/source.py
+staged path: tools/release_workflow/__init__.py
+staged path: tools/release_workflow/artifacts.py
+staged path: tools/release_workflow/bootstrap.py
+staged path: tools/release_workflow/cli.py
+staged path: tools/release_workflow/git.py
+staged path: tools/release_workflow/git_environment.py
+staged path: tools/release_workflow/inputs.py
+staged path: tools/release_workflow/invocation.py
+staged path: tools/release_workflow/managed_files.py
+staged path: tools/release_workflow/paths.py
+staged path: tools/release_workflow/results.py
+staged path: tools/review_artifact_configuration.py
+staged path: tools/review_exchange_paths.py
+```
+
+### Validation scope for step 5 release-project-root (round 4)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 5 release-project-root (round 4)
+
+Yes. Step 5 has been fully implemented.
+
+All eight round-3 repair goals are complete. The assessment applies the
+user-approved Simulation-only test strategy (2026-10-29) and its replacement
+timing plan. Production Python executes in process; batch and CLI bootstrap
+wiring have source contracts. No current empirical shell, terminal, doskey or
+codepage-transport claim is made. Step 6 and overall completion remain pending.
+
+The required whole-suite speed day ended 2026-10-30T12:29:28+01:00 with exit 0:
+4910 tests, fail=0, warn=0, xfail=0, cov=100, outliers=0, excluded=0,
+proof=speed, reused=none, scope=whole. Static checks, affected validation and
+the covered full stage passed. Complete setup+call+teardown maximum CPU was
+0.09375s and maximum wall 0.1834279s, within 0.1s/1s. Two workers, coverage
+and process-creation audit remained active. Protected elapsed was 99.701156s,
+below 360s. Full-stage startup to the first controller report was 12.726874s,
+approximately 12.7s because the logged stage start has one-second precision.
+This includes worker startup, collection and first setup; it is distinct from
+total elapsed time and is not pure interpreter initialization.
+
+Proof: .reviews/a.release-project-root.step5.tmp.r4-publish-speed-green.log,
+the matching .limit.json and .durations.json. Earlier failed/intermediate
+measurements remain diagnostics. The validation document records the two
+profiled CPU repairs and their focused results. Passing parameter cases and
+the frozen emulation were not tuned. No production/test source changed after
+the final successful day; subsequent changes are documentation and commit-plan
+preparation. The additive source scan returned only intended GetConsoleMode
+references in inputs.py. Repository Markdown checking passed after the final
+validation edit; staged whitespace checking passed with CRLF recognized.
+
+Production adapters preserve validated service boundaries, immutable shipped
+dispatch, public runtime identity and one Python record read. No production
+layer violation or file-size issue was found. Changed Python files remain
+below 650 lines. Existing filesystem/Git emulation has known fidelity defects
+and remains frozen; its removal belongs to a separate follow-up requirement
+owned by test-suite maintainers after Step 5 acceptance, not to Step 6.
+
+Configured coverage measures tools with existing exclusions. Batch files,
+test helpers and excluded initializers are not covered by that percentage.
+Static exercise assessment includes helper imports, module attributes,
+fixture parameters and framework hooks. New guard/audit/AST regressions and
+the launcher source contracts address the unmeasured changed boundaries.
+
+Root a.commit contains every staged path exactly once in seven groups and
+passed the mechanical readiness checker. The validation group remains last.
+Independent review and human Commit are still required. The cancellation
+wording amendment remains explicitly unapproved and will be disclosed at that
+gate. No commit, push or Step 6 action is authorized by this assessment.
+
+### Implementation report for step 5 release-project-root (round 4)
+
+Step 5 adds self-locating Windows release launchers and a shared Python
+invocation boundary. Bootstrap captures caller cwd, authenticates the entry
+prefix, verifies readiness before importing the engine and carries verified
+runtime data to CLI. CLI constructs the public RuntimeIdentity without another
+record read, parses selectors/input, composes context and dispatches only
+shipped handlers. Results provide UTF-8/LF streams and public 0/1/2 statuses.
+Managed writes reject drive-relative Windows paths before authorization.
+
+The wider suite migration follows the user's accepted simulation strategy.
+Tests execute production parsers, dispatch, transitions and rendering in
+process, with repository/process/console facts supplied at external boundaries.
+Scheduled events cover waits and ownership changes. Existing filesystem/Git
+emulation is frozen. The round-3 repairs add no OS emulation behavior, scenario
+folders or Git command patterns. Its later removal has a separate requirement
+owner: test-suite maintainers after Step 5 acceptance.
+
+Round 4 completes these repairs without changing production code:
+
+- Source contracts cover both release launchers' ordered pre-Python checks,
+  default status 2, runtime-error diagnostic and native-status normalization,
+  every runtime-record producer branch, and three code-review CLI bootstraps.
+- Review status checks repeated-call idempotence and tracked-content
+  preservation; identical inline-call parity and static index/ref comparisons
+  are removed. Readiness observes sys.dont_write_bytecode during dispatch.
+  Prepared acceptance homes require the actual .reviews/.gitignore bytes.
+  Docstrings describe the simulated boundary.
+- Prepared request/answer/confirmation phases use production store publication
+  and transcript append. Standalone contexts use the generic envelope helper.
+  Final answer publication removes the intermediate tombstone as core does.
+- Guard execution restores sys.path in finally and raises ValueError when no
+  guard exists. Tests cover success, SystemExit and RuntimeError; existing
+  entry tests observe paths during execution and restoration afterward.
+- The unused Git executable-selection helper and test are removed. Audit
+  events now include _winapi.CreateProcess, os.startfile and os.exec, with
+  event regressions that never launch a process.
+- Property-sampling disclosure describes attempted and distinct examples:
+  repeated simplest inputs reduce distinct coverage. Five-example batches
+  yield at most 1+4 times batch count, potentially fewer, and explicit cases
+  repeat. No claim of retained distinct-input coverage remains.
+- Startup is reported separately from total elapsed time in current proof.
+
+Initial validation found standalone fixture and post-guard path assumptions,
+then two complete-lifecycle CPU failures. Profiling localized the three-entry
+validation fallback to directory discovery and the missing-evidence case to
+unrelated group setup. Only those failing parameter cases now receive typed
+inventory/resolved-scope data at their respective boundaries. Matching,
+selection, ordered diagnostics, refusals and resource assertions remain;
+dedicated discovery/coverage tests exercise their real inputs. Focused CPU/wall
+results were 0.015625s/0.037104s and below one CPU tick/0.017918s. An affected
+run passed 4862 tests; a subsequent static-only typing failure was fixed before
+the final covered whole day. No passing parameter case was tuned.
+
+Final proof: 4910 tests, configured tools coverage 100%, zero failures,
+warnings, xfails, duration outliers or exclusions; complete-lifecycle CPU
+0.09375s and wall 0.1834279s maxima; protected elapsed 99.701156s; separate
+full-stage startup approximately 12.7s. Two workers and existing coverage
+exclusions are unchanged. Startup includes collection and the first setup;
+worker creation occurs outside the test-lifecycle process audit. The final
+source scan and repository Markdown check pass. The validation plan records
+complete evidence and limits; prior native-console timings are history only.
+
+The supporting production changes from earlier rounds remain: lazy public
+exports, lower Markdown scan allocation, slotted prefix nodes, typed release
+Git observations and explicit review repository observations with late-bound
+artifact callbacks. The review explicitly includes this broader staged scope.
+
+The cancellation wording distinguishes application prompts from cmd's own
+batch-termination question and directs prompt-free cancellation to native
+Python. Cleanup after forced termination is not promised. This wording still
+requires the human's approval at the Commit gate. Step 6 remains pending.
+
+Writer notes: .reviews/a.release-project-root.step5.journal.md and
+.reviews/a.release-project-root.step5.handoff.md.
+
+### Change summary for step 5 release-project-root (round 4)
+
+The index contains 196 intended paths in seven dependency-ordered groups.
+Every path appears exactly once in root a.commit. Group subjects and boundaries
+remain as in round 3. Group 5 drops the unused git_isolation helper and test,
+adds the simulation-boundary regressions and the document-selection repair,
+and retains 174 paths. Group 7 remains last. The core owns the transcript.
+
+#### Commit group 1 for step 5 release-project-root (round 4)
+
+perf(tools): reduce import and scan overhead
+
+4 paths.
+
+- `tools/__init__.py`
+- `tools/linear_order.py`
+- `tools/markdown_check/rules.py`
+- `tools/markdown_check/source.py`
+
+#### Commit group 2 for step 5 release-project-root (round 4)
+
+refactor(review): expose repository observations
+
+2 paths.
+
+- `tools/review_artifact_configuration.py`
+- `tools/review_exchange_paths.py`
+
+#### Commit group 3 for step 5 release-project-root (round 4)
+
+fix(release): reject drive-relative managed paths
+
+1 paths.
+
+- `tools/release_workflow/managed_files.py`
+
+#### Commit group 4 for step 5 release-project-root (round 4)
+
+feat(release): wire context and Windows launchers
+
+13 paths.
+
+- `.gitattributes`
+- `bin/release_alias.bat`
+- `bin/release_workflow.bat`
+- `tools/release_workflow/__init__.py`
+- `tools/release_workflow/artifacts.py`
+- `tools/release_workflow/bootstrap.py`
+- `tools/release_workflow/cli.py`
+- `tools/release_workflow/git.py`
+- `tools/release_workflow/git_environment.py`
+- `tools/release_workflow/inputs.py`
+- `tools/release_workflow/invocation.py`
+- `tools/release_workflow/paths.py`
+- `tools/release_workflow/results.py`
+
+#### Commit group 5 for step 5 release-project-root (round 4)
+
+test(suite): simulate external workflow boundaries
+
+174 paths.
+
+- `check.bat`
+- `docs/v0.14.0/plan.v0.14.0.release-project-root.md`
+- `pyproject.toml`
+- `tests/acceptance/commit_plan_check/commit_plan_check_support.py`
+- `tests/acceptance/commit_plan_check/conftest.py`
+- `tests/acceptance/commit_plan_check/repository_observations.py`
+- `tests/acceptance/commit_plan_check/test_commit_plan_check_acceptance/test_commit_plan_check_acceptance_tdd.py`
+- `tests/acceptance/commit_plan_check/test_commit_plan_check_acceptance/test_commit_plan_check_contracts_tdd.py`
+- `tests/acceptance/markdown_check/test_markdown_check_acceptance/test_markdown_check_acceptance_tdd.py`
+- `tests/acceptance/markdown_check/test_shared_gate/test_shared_gate_tdd.py`
+- `tests/acceptance/release_workflow/conftest.py`
+- `tests/acceptance/release_workflow/process_support.py`
+- `tests/acceptance/release_workflow/test_release_readiness_tdd.py`
+- `tests/acceptance/release_workflow/test_uv_readiness_tdd.py`
+- `tests/acceptance/review_resume/cli_support.py`
+- `tests/acceptance/review_resume/conftest.py`
+- `tests/acceptance/review_resume/notification_simulation.py`
+- `tests/acceptance/review_resume/prepared_request.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_acceptance_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_blocked_layout_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_concurrency_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_identity_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_launcher_smoke_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_migration_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_parked_wait_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_waiter_cleanup_tdd.py`
+- `tests/acceptance/review_resume/waiter_driver.py`
+- `tests/acceptance/review_status/conftest.py`
+- `tests/acceptance/review_status/test_review_status_acceptance/test_review_status_acceptance_tdd.py`
+- `tests/code_review_repository_observations.py`
+- `tests/conftest.py`
+- `tests/memory_filesystem.py`
+- `tests/review_repository_observations.py`
+- `tests/scenario_cli.py`
+- `tests/scenario_environment.py`
+- `tests/scenario_generation.py`
+- `tests/scenario_sqlite.py`
+- `tests/scenario_storage.py`
+- `tests/scenario_streams.py`
+- `tests/script_entry.py`
+- `tests/simulation_policy.py`
+- `tests/testmon_monitoring.py`
+- `tests/unit/test_scenario_storage.py`
+- `tests/unit/tools/git_history_dashboard/test_aggregate/test_aggregate_pbt.py`
+- `tests/unit/tools/git_history_dashboard/test_aggregate/test_aggregate_perf_tdd.py`
+- `tests/unit/tools/git_history_dashboard/test_build/test_build_tdd.py`
+- `tests/unit/tools/git_test_double.py`
+- `tests/unit/tools/markdown_check/test_launcher/test_launcher_tdd.py`
+- `tests/unit/tools/markdown_check/test_rule_properties/test_rule_properties_pbt.py`
+- `tests/unit/tools/markdown_check/test_runner/test_runner_tdd.py`
+- `tests/unit/tools/prepare_release/prepare_release_plan_test_support.py`
+- `tests/unit/tools/prepare_release/test_prepare_release_plan.py`
+- `tests/unit/tools/prepare_release/test_prepare_release_plan_targets_workflow.py`
+- `tests/unit/tools/prepare_release/test_prepare_release_plan_workflow.py`
+- `tests/unit/tools/release_workflow/conftest.py`
+- `tests/unit/tools/release_workflow/git_test_support.py`
+- `tests/unit/tools/release_workflow/invocation_test_support.py`
+- `tests/unit/tools/release_workflow/launcher_simulation.py`
+- `tests/unit/tools/release_workflow/repository_simulation.py`
+- `tests/unit/tools/release_workflow/test_artifacts/conftest.py`
+- `tests/unit/tools/release_workflow/test_artifacts/test_artifacts_tdd.py`
+- `tests/unit/tools/release_workflow/test_bootstrap/test_bootstrap_tdd.py`
+- `tests/unit/tools/release_workflow/test_cli/__init__.py`
+- `tests/unit/tools/release_workflow/test_cli/test_cli_tdd.py`
+- `tests/unit/tools/release_workflow/test_configuration/test_configuration_pbt.py`
+- `tests/unit/tools/release_workflow/test_git/conftest.py`
+- `tests/unit/tools/release_workflow/test_git/test_config_files_tdd.py`
+- `tests/unit/tools/release_workflow/test_git/test_git_tdd.py`
+- `tests/unit/tools/release_workflow/test_inputs/__init__.py`
+- `tests/unit/tools/release_workflow/test_inputs/test_inputs_tdd.py`
+- `tests/unit/tools/release_workflow/test_invocation/__init__.py`
+- `tests/unit/tools/release_workflow/test_invocation/test_invocation_pbt.py`
+- `tests/unit/tools/release_workflow/test_invocation/test_invocation_tdd.py`
+- `tests/unit/tools/release_workflow/test_launchers/__init__.py`
+- `tests/unit/tools/release_workflow/test_launchers/test_boundaries_tdd.py`
+- `tests/unit/tools/release_workflow/test_launchers/test_codepage_tdd.py`
+- `tests/unit/tools/release_workflow/test_launchers/test_console_tdd.py`
+- `tests/unit/tools/release_workflow/test_launchers/test_launchers_tdd.py`
+- `tests/unit/tools/release_workflow/test_launchers/test_read_counts_tdd.py`
+- `tests/unit/tools/release_workflow/test_managed_files/test_managed_files_tdd.py`
+- `tests/unit/tools/release_workflow/test_markers/test_markers_pbt.py`
+- `tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_pbt.py`
+- `tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_tdd.py`
+- `tests/unit/tools/release_workflow/test_paths/conftest.py`
+- `tests/unit/tools/release_workflow/test_paths/test_paths_pbt.py`
+- `tests/unit/tools/release_workflow/test_paths/test_paths_tdd.py`
+- `tests/unit/tools/release_workflow/test_readiness/test_metadata_tdd.py`
+- `tests/unit/tools/release_workflow/test_readiness/test_readiness_pbt.py`
+- `tests/unit/tools/release_workflow/test_results/__init__.py`
+- `tests/unit/tools/release_workflow/test_results/test_results_tdd.py`
+- `tests/unit/tools/release_workflow/test_schemas/test_schemas_pbt.py`
+- `tests/unit/tools/release_workflow/test_windows_process/test_windows_process_tdd.py`
+- `tests/unit/tools/test_artifact_home/test_artifact_home_tdd.py`
+- `tests/unit/tools/test_code_review_evidence/conftest.py`
+- `tests/unit/tools/test_code_review_evidence/test_code_review_evidence_boundaries_tdd.py`
+- `tests/unit/tools/test_code_review_evidence/test_code_review_evidence_cli_tdd.py`
+- `tests/unit/tools/test_code_review_evidence/test_code_review_evidence_tdd.py`
+- `tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py`
+- `tests/unit/tools/test_code_review_requestor_acceptance/conftest.py`
+- `tests/unit/tools/test_code_review_requestor_acceptance/test_code_review_requestor_acceptance_tdd.py`
+- `tests/unit/tools/test_code_review_requestor_acceptance/test_code_review_requestor_io_acceptance_tdd.py`
+- `tests/unit/tools/test_code_reviewer_acceptance/conftest.py`
+- `tests/unit/tools/test_code_reviewer_acceptance/fixtures.py`
+- `tests/unit/tools/test_code_reviewer_acceptance/test_code_reviewer_acceptance_tdd.py`
+- `tests/unit/tools/test_code_reviewer_acceptance/test_code_reviewer_io_acceptance_tdd.py`
+- `tests/unit/tools/test_code_reviewer_acceptance/test_code_reviewer_launcher_smoke_tdd.py`
+- `tests/unit/tools/test_code_reviewer_acceptance/test_code_reviewer_recovery_tdd.py`
+- `tests/unit/tools/test_codex_plugin_redirects/test_codex_plugin_redirects_tdd.py`
+- `tests/unit/tools/test_commit_plan_check/test_commit_plan_check_adapter_tdd.py`
+- `tests/unit/tools/test_coverage_gap_functions_cli.py`
+- `tests/unit/tools/test_enforce_eof_branches.py`
+- `tests/unit/tools/test_full_suite_levels_acceptance/conftest.py`
+- `tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_review_acceptance_tdd.py`
+- `tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_workflow_acceptance_tdd.py`
+- `tests/unit/tools/test_git_batch_commit_entry.py`
+- `tests/unit/tools/test_groundhog_acceptance.py`
+- `tests/unit/tools/test_groundhog_cli.py`
+- `tests/unit/tools/test_groundhog_detach.py`
+- `tests/unit/tools/test_groundhog_durations_pbt.py`
+- `tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_pbt.py`
+- `tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_tdd.py`
+- `tests/unit/tools/test_groundhog_group_patterns/test_groundhog_group_patterns_pbt.py`
+- `tests/unit/tools/test_groundhog_levels/test_groundhog_levels_pbt.py`
+- `tests/unit/tools/test_groundhog_proof/test_groundhog_proof_pbt.py`
+- `tests/unit/tools/test_groundhog_runner.py`
+- `tests/unit/tools/test_groundhog_status.py`
+- `tests/unit/tools/test_group_commit_message_prompt_branches.py`
+- `tests/unit/tools/test_instruction_structure/test_codex_plugin_structure_tdd.py`
+- `tests/unit/tools/test_instruction_structure/test_instruction_structure_prompt_workflow_tdd.py`
+- `tests/unit/tools/test_instruction_structure/test_instruction_structure_tdd.py`
+- `tests/unit/tools/test_instruction_structure/test_shared_utility_invocation_tdd.py`
+- `tests/unit/tools/test_isolate_logos.py`
+- `tests/unit/tools/test_linear_order/test_linear_order_tdd.py`
+- `tests/unit/tools/test_new_draft_entry.py`
+- `tests/unit/tools/test_open_questions_md.py`
+- `tests/unit/tools/test_package_exports.py`
+- `tests/unit/tools/test_prepare_release_whole_suite/test_prepare_release_whole_suite_tdd.py`
+- `tests/unit/tools/test_prompt_workflow_acceptance/test_prompt_workflow_acceptance_tdd.py`
+- `tests/unit/tools/test_prompt_workflow_docs_layout_acceptance/test_prompt_workflow_docs_layout_acceptance_tdd.py`
+- `tests/unit/tools/test_prompt_workflow_document_lookup/test_prompt_workflow_document_lookup_pbt.py`
+- `tests/unit/tools/test_prompt_workflow_document_selection/test_prompt_workflow_document_selection_tdd.py`
+- `tests/unit/tools/test_prompt_workflow_integration.py`
+- `tests/unit/tools/test_review_artifact_home/test_review_artifact_registry_pbt.py`
+- `tests/unit/tools/test_review_exchange_acceptance/conftest.py`
+- `tests/unit/tools/test_review_exchange_acceptance/test_review_exchange_acceptance_tdd.py`
+- `tests/unit/tools/test_review_exchange_cli/test_review_exchange_cli_boundaries_tdd.py`
+- `tests/unit/tools/test_review_exchange_lifecycle/test_review_exchange_boundaries_tdd.py`
+- `tests/unit/tools/test_review_exchange_models/test_review_exchange_models_pbt.py`
+- `tests/unit/tools/test_review_exchange_ownership/test_review_exchange_ownership_pbt.py`
+- `tests/unit/tools/test_review_exchange_paths/test_review_exchange_paths_tdd.py`
+- `tests/unit/tools/test_review_exchange_recovery_acceptance/test_review_exchange_recovery_acceptance_tdd.py`
+- `tests/unit/tools/test_review_exchange_scope/test_review_exchange_scope_tdd.py`
+- `tests/unit/tools/test_review_exchange_state/test_review_exchange_state_pbt.py`
+- `tests/unit/tools/test_review_mode_docs_acceptance/conftest.py`
+- `tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_acceptance_tdd.py`
+- `tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_final_acceptance_tdd.py`
+- `tests/unit/tools/test_review_resume/prepared_phase.py`
+- `tests/unit/tools/test_review_resume/test_review_resume_expiry_tdd.py`
+- `tests/unit/tools/test_review_resume/test_review_resume_lifecycle_tdd.py`
+- `tests/unit/tools/test_review_resume/test_review_resume_role_tdd.py`
+- `tests/unit/tools/test_review_role_nature/test_review_role_nature_pbt.py`
+- `tests/unit/tools/test_review_status/test_review_status_pbt.py`
+- `tests/unit/tools/test_review_status_cli/test_review_status_cli_tdd.py`
+- `tests/unit/tools/test_scenario_storage.py`
+- `tests/unit/tools/test_scope_capture/test_scope_capture_pbt.py`
+- `tests/unit/tools/test_simulation_boundaries.py`
+- `tests/unit/tools/test_spec_review_requestor_acceptance/conftest.py`
+- `tests/unit/tools/test_spec_review_requestor_acceptance/test_spec_review_requestor_acceptance_tdd.py`
+- `tests/unit/tools/test_spec_review_requestor_acceptance/test_spec_review_requestor_io_acceptance_tdd.py`
+- `tests/unit/tools/test_spec_reviewer_acceptance/conftest.py`
+- `tests/unit/tools/test_spec_reviewer_acceptance/fixtures.py`
+- `tests/unit/tools/test_spec_reviewer_acceptance/test_spec_reviewer_acceptance_tdd.py`
+- `tests/unit/tools/test_trim_thinking_cli.py`
+- `tests/unit/tools/test_wrap_commit_cli.py`
+
+#### Commit group 6 for step 5 release-project-root (round 4)
+
+docs(release): retain step 5 review exchange
+
+1 paths.
+
+- `docs/v0.14.0/review.code.v0.14.0.release-project-root.md`
+
+#### Commit group 7 for step 5 release-project-root (round 4)
+
+docs(release-project-root): record step 5 validation
+
+1 paths.
+
+- `docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md`
+
+### Writer response for step 5 release-project-root (round 4)
+
+Writer response:
+
+All eight substantive round-3 repair goals are accepted. There is no
+substantive disagreement and no reversal of the reviewer's repair.
+
+The reviewer staged only Step 5 validation rows, changing Yes to No and
+listing eight missing-work items. Those rows were assessed against the exact
+step, the reviewed diff and the accepted simulation strategy. After repairing
+and validating every item, the writer restored the exact Yes verdict, removed
+the completed work list, and reconciled architecture, timing and sampling
+disclosures. Overall status remains No because Step 6 is not implemented.
+
+1. Startup: current full stage began 12:28:40+01:00; first controller report
+   was 12:28:52.726874+01:00. Approximately 12.7s startup is separate from
+   99.701156s protected total. Logged-start precision and included phases are
+   disclosed.
+2. Source contracts: both release launchers' prerequisites/status mapping,
+   every release_runtime_record.bat branch and all three code-review CLI
+   `__main__` path bootstraps now have explicit source/AST assertions.
+3. Inert assertions: status tests observe repeated calls and tracked-content
+   preservation; bytecode tests observe the actual flag during dispatch;
+   ignore observations require bytes written by prepare_home(); static
+   index/ref comparisons and redundant inline parity were removed. Stale
+   native-Git and filesystem comments were corrected.
+4. Sampling: attempted batches no longer claim distinct generated inputs.
+   The validation document gives the effective upper bounds and notes repeats.
+5. Prepared phases: request, answer and authorized-confirmation fixtures use
+   production store publication and transcript append with production-shaped
+   envelopes. Standalone and umbrella contexts are supported. One factual
+   clarification: tools/review_exchange_publication.py removes the intermediate
+   request tombstone after appending the answer entry (around lines 272-278).
+   Final answer fixtures therefore correctly have an answer transcript entry
+   and no tombstone. This accepts the production-fidelity repair goal.
+6. Guard isolation: sys.path is restored in finally and absent guards raise
+   ValueError. Success/SystemExit/RuntimeError regressions and during-call path
+   observations cover the behavior.
+7. Dead helper: tests/git_isolation.py and its sole test were removed; both
+   were new staged files, so neither appears in the replacement inventory.
+8. Process audit: _winapi.CreateProcess, os.startfile and os.exec are rejected;
+   regressions emit those audit events without starting processes.
+
+The plan's historical Step 5 completion paragraph points to the later approved
+simulation strategy. Frozen emulation defects remain disclosed and assigned
+to a separate follow-up requirement owned by test-suite maintainers after
+Step 5 acceptance, not Step 6. No behavior or command-pattern additions were
+made to the frozen emulation during these repairs.
+
+The two CPU outliers exposed by validation were profiled and repaired only at
+the failing cases' data boundaries; all original decisions/assertions remain.
+Final whole proof passes all 4910 tests with configured coverage 100% and
+both lifecycle gates. Root a.commit retains seven dependency-ordered groups;
+Group 5 drops two unused files and adds the boundary regression and document
+selection repair. Group 7 records the current evidence and remains last.
+
+These test and grouping changes are substantive: consume-answer receives
+reviewed-work-changed=true, followed by replacement round 4. Production code
+and the two round-2 repairs remain unchanged. No reviewer was started or
+contacted. Cancellation wording remains a disclosed human choice at the gate.
+
+### Reviewer focus for step 5 release-project-root (round 4)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-5-round-4 -->
+
+## Round 4 by reviewer - Step 5
+
+- Recorded: 2026-10-30T12:49:45+01:00
+- Exchange: code/code/v0.14.0/release-project-root
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 5
+- Outcome: answer
+
+### Assessed index identity for step 5 release-project-root (exchange 1) (round 4)
+
+Baseline index tree: e45d325d133fdad26d9c27b0f06a4fd379097d87
+
+Assessed index tree: e45d325d133fdad26d9c27b0f06a4fd379097d87
+
+### Implementation check for step 5 release-project-root (exchange 1) (round 4)
+
+Result:
+
+Yes. Step 5 has been fully implemented.
+
+The round 3 to round 4 diff (25 files, about 400 lines outside the transcript
+and validation plan) changes no production code. All eight round 3 findings
+are resolved:
+
+- Startup: the validation record reports the full stage from its logged start
+  at 12:28:40 to the first controller report, about 12.7 seconds, separately
+  from the 99.7-second protected total. The retained proof log matches.
+- Batch wiring: `test_codepage_tdd.py` now checks, in order, every pre-Python
+  prerequisite line of both launchers, the `:runtime_error` diagnostic, the
+  single default status 2 and the exact status normalization block. It also
+  checks each branch of `bin/release_runtime_record.bat`.
+  `test_simulation_boundaries.py` adds AST checks that the three code-review
+  CLIs insert the checkout path before their first `tools` import.
+- Inert assertions:
+  - The review-status parity tests now make one call and say so.
+  - The `.pyc` scan is replaced by `test_bootstrap_disables_bytecode`. It
+    resets the flag and reads `sys.dont_write_bytecode` inside the dispatched
+    probe. Production `bootstrap.helper` sets the flag, and the simulation
+    calls that real function.
+  - The three activation fakes now require the `.reviews/.gitignore` bytes
+    that `prepare_home()` writes.
+  - The marker comparisons and their stale docstrings are gone.
+- Sampling: the performance check now gives upper bounds for distinct inputs
+  (`1 + (n - 1) x batches`) and calls them a reduction in coverage.
+- Fixtures: `prepared_request` and `prepared_phase` now write through
+  `store.publish_request`, `store.publish_answer` and
+  `append_transcript_once`. The writer's correction is right: core answer
+  publication calls `remove_exact(tombstone)` after the append
+  (`tools/review_exchange_publication.py`), so a final answer phase has no
+  tombstone. My round 3 wording was imprecise.
+- `script_entry.run_main` restores `sys.path` in `finally` and raises
+  `ValueError` when no guard exists. Regressions cover success, SystemExit and
+  RuntimeError, and the two entry tests check the path during the call and its
+  restoration afterward.
+- `tests/git_isolation.py` and its test are removed from the index.
+- The audit events include `_winapi.CreateProcess`, `os.startfile` and
+  `os.exec`. Regressions emit each event through `sys.audit` without starting
+  a process.
+
+The two lifecycle CPU repairs touch only their failing parameter cases (the
+three-candidate validation fallback and the missing-evidence refusal). Each
+keeps its assertions, and dedicated tests still exercise the real discovery
+paths. Plan Step 5's historical completion paragraph now points to the
+simulation-only strategy. The validation rows are accurate: line counts, the
+coverage scope, the source-contract limits and the closing phrases.
+
+The one remaining defect is not in the step. It sits in the transcript text
+that this round's request publication appended, and `Unresolved findings`
+records it.
+
+Validation plan effects:
+
+None. The reviewer left
+`docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md` as the writer
+staged it. The writer restored the Step 5 `Yes` verdict, removed
+`Missing work for Step 5`, and kept the document-level status at
+`No, it is not implemented.` because Step 6 is pending. The umbrella digest is
+unchanged.
+
+### Pre-repair mandatory checks and coverage for step 5 release-project-root (exchange 1) (round 4)
+
+The request-time index tree `e45d325d133fdad26d9c27b0f06a4fd379097d87`
+matched the live index before assessment. The validation state was captured
+over the 196 staged paths plus `uv.lock`, through the evidence CLI script with
+the launcher's own interpreter (the path list exceeds cmd's command-line
+limit). The umbrella digest was captured before assessment. The only unstaged
+entry was the protocol-owned transcript.
+
+The reviewer ran each permitted evidence command once, from the project root,
+with fresh logs:
+
+- `ghog check`: exit 1 at 12:44:49. Its detailed report went to the root
+  `a.ghog.log`, which the following affected run then replaced. To read the
+  failure without rerunning the walk, the reviewer ran the read-only
+  repository Markdown check, which `check.bat` also calls. Its single
+  diagnostic is the transcript MD050 at line 12985. The requestor's check at
+  12:28 passed on the same index, before publication appended that text.
+- `ghog affected --no-cov --scope-file=<paths.scope>`: exit 0, with nothing
+  affected since the requestor's covered full run.
+
+The assessment rests on the round 3 to round 4 tree diff (25 files): every
+changed test and helper, the plan sentence, the Step 5 validation rows,
+`a.commit`, the retained round 4 proof log, and the core answer-publication
+code that the writer cited.
+
+### Resolved validation set and sources for step 5 release-project-root (exchange 1) (round 4)
+
+- `ghog day --full=speed --whole-suite` (source: project). The requestor
+  reports success at 2026-10-30T12:29:28+01:00: 4,910 tests, 100% coverage,
+  `proof=speed`, zero failures, warnings, xfails, outliers or exclusions, in
+  99.7 protected seconds. Its retained log matches those figures and the
+  stage timestamps. The reviewer did not repeat it.
+- `rg -n 'senv|PYTHONPATH|set /p|shell=True|pushd|GetConsoleMode' tools/release_workflow bin/release_alias.bat bin/release_workflow.bat`
+  (source: plan). The requestor reports only the intended `GetConsoleMode`
+  matches in `inputs.py`. Round 4 changes no production file or launcher, so
+  the round 3 reading still holds.
+
+### Resolver drift and direction for step 5 release-project-root (exchange 1) (round 4)
+
+No drift. The request's resolved set has the same two commands and sources as
+rounds 1 to 3: the project day gate and the plan's additive scan. The new plan
+sentence adds no validation command. The bound scope is `whole` with
+fingerprint
+`686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6`.
+
+### Repository state around validation for step 5 release-project-root (exchange 1) (round 4)
+
+- Baseline index tree: `e45d325d133fdad26d9c27b0f06a4fd379097d87`, equal to
+  the request-time tree.
+- Assessed index tree: the same
+  `e45d325d133fdad26d9c27b0f06a4fd379097d87`. The reviewer staged nothing.
+- Validation-state comparison: no tracked, untracked or ignored validation
+  difference, and the two reviewer `ghog` runs changed no tracked file.
+- Umbrella digest: unchanged
+  (`ca6fe473ea2672766e7bfa8c5003ae5155d3c6727cb895127a77890edd0ec992`).
+- Unstaged: only the protocol-owned transcript, which is also staged for
+  Group 6.
+
+### Repair inventory for step 5 release-project-root (exchange 1) (round 4)
+
+Repairs made:
+
+- None. The reviewer changed no tracked file in round 4: no code, test,
+- validation row or `a.commit`.
+
+Paths staged:
+
+- `.gitattributes`
+- `bin/release_alias.bat`
+- `bin/release_workflow.bat`
+- `check.bat`
+- `docs/v0.14.0/plan.v0.14.0.release-project-root.md`
+- `docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md`
+- `docs/v0.14.0/review.code.v0.14.0.release-project-root.md`
+- `pyproject.toml`
+- `tests/acceptance/commit_plan_check/commit_plan_check_support.py`
+- `tests/acceptance/commit_plan_check/conftest.py`
+- `tests/acceptance/commit_plan_check/repository_observations.py`
+- `tests/acceptance/commit_plan_check/test_commit_plan_check_acceptance/test_commit_plan_check_acceptance_tdd.py`
+- `tests/acceptance/commit_plan_check/test_commit_plan_check_acceptance/test_commit_plan_check_contracts_tdd.py`
+- `tests/acceptance/markdown_check/test_markdown_check_acceptance/test_markdown_check_acceptance_tdd.py`
+- `tests/acceptance/markdown_check/test_shared_gate/test_shared_gate_tdd.py`
+- `tests/acceptance/release_workflow/conftest.py`
+- `tests/acceptance/release_workflow/process_support.py`
+- `tests/acceptance/release_workflow/test_release_readiness_tdd.py`
+- `tests/acceptance/release_workflow/test_uv_readiness_tdd.py`
+- `tests/acceptance/review_resume/cli_support.py`
+- `tests/acceptance/review_resume/conftest.py`
+- `tests/acceptance/review_resume/notification_simulation.py`
+- `tests/acceptance/review_resume/prepared_request.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_acceptance_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_blocked_layout_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_concurrency_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_identity_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_launcher_smoke_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_migration_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_parked_wait_tdd.py`
+- `tests/acceptance/review_resume/test_review_resume_acceptance/test_review_resume_waiter_cleanup_tdd.py`
+- `tests/acceptance/review_resume/waiter_driver.py`
+- `tests/acceptance/review_status/conftest.py`
+- `tests/acceptance/review_status/test_review_status_acceptance/test_review_status_acceptance_tdd.py`
+- `tests/code_review_repository_observations.py`
+- `tests/conftest.py`
+- `tests/memory_filesystem.py`
+- `tests/review_repository_observations.py`
+- `tests/scenario_cli.py`
+- `tests/scenario_environment.py`
+- `tests/scenario_generation.py`
+- `tests/scenario_sqlite.py`
+- `tests/scenario_storage.py`
+- `tests/scenario_streams.py`
+- `tests/script_entry.py`
+- `tests/simulation_policy.py`
+- `tests/testmon_monitoring.py`
+- `tests/unit/test_scenario_storage.py`
+- `tests/unit/tools/git_history_dashboard/test_aggregate/test_aggregate_pbt.py`
+- `tests/unit/tools/git_history_dashboard/test_aggregate/test_aggregate_perf_tdd.py`
+- `tests/unit/tools/git_history_dashboard/test_build/test_build_tdd.py`
+- `tests/unit/tools/git_test_double.py`
+- `tests/unit/tools/markdown_check/test_launcher/test_launcher_tdd.py`
+- `tests/unit/tools/markdown_check/test_rule_properties/test_rule_properties_pbt.py`
+- `tests/unit/tools/markdown_check/test_runner/test_runner_tdd.py`
+- `tests/unit/tools/prepare_release/prepare_release_plan_test_support.py`
+- `tests/unit/tools/prepare_release/test_prepare_release_plan.py`
+- `tests/unit/tools/prepare_release/test_prepare_release_plan_targets_workflow.py`
+- `tests/unit/tools/prepare_release/test_prepare_release_plan_workflow.py`
+- `tests/unit/tools/release_workflow/conftest.py`
+- `tests/unit/tools/release_workflow/git_test_support.py`
+- `tests/unit/tools/release_workflow/invocation_test_support.py`
+- `tests/unit/tools/release_workflow/launcher_simulation.py`
+- `tests/unit/tools/release_workflow/repository_simulation.py`
+- `tests/unit/tools/release_workflow/test_artifacts/conftest.py`
+- `tests/unit/tools/release_workflow/test_artifacts/test_artifacts_tdd.py`
+- `tests/unit/tools/release_workflow/test_bootstrap/test_bootstrap_tdd.py`
+- `tests/unit/tools/release_workflow/test_cli/__init__.py`
+- `tests/unit/tools/release_workflow/test_cli/test_cli_tdd.py`
+- `tests/unit/tools/release_workflow/test_configuration/test_configuration_pbt.py`
+- `tests/unit/tools/release_workflow/test_git/conftest.py`
+- `tests/unit/tools/release_workflow/test_git/test_config_files_tdd.py`
+- `tests/unit/tools/release_workflow/test_git/test_git_tdd.py`
+- `tests/unit/tools/release_workflow/test_inputs/__init__.py`
+- `tests/unit/tools/release_workflow/test_inputs/test_inputs_tdd.py`
+- `tests/unit/tools/release_workflow/test_invocation/__init__.py`
+- `tests/unit/tools/release_workflow/test_invocation/test_invocation_pbt.py`
+- `tests/unit/tools/release_workflow/test_invocation/test_invocation_tdd.py`
+- `tests/unit/tools/release_workflow/test_launchers/__init__.py`
+- `tests/unit/tools/release_workflow/test_launchers/test_boundaries_tdd.py`
+- `tests/unit/tools/release_workflow/test_launchers/test_codepage_tdd.py`
+- `tests/unit/tools/release_workflow/test_launchers/test_console_tdd.py`
+- `tests/unit/tools/release_workflow/test_launchers/test_launchers_tdd.py`
+- `tests/unit/tools/release_workflow/test_launchers/test_read_counts_tdd.py`
+- `tests/unit/tools/release_workflow/test_managed_files/test_managed_files_tdd.py`
+- `tests/unit/tools/release_workflow/test_markers/test_markers_pbt.py`
+- `tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_pbt.py`
+- `tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_tdd.py`
+- `tests/unit/tools/release_workflow/test_paths/conftest.py`
+- `tests/unit/tools/release_workflow/test_paths/test_paths_pbt.py`
+- `tests/unit/tools/release_workflow/test_paths/test_paths_tdd.py`
+- `tests/unit/tools/release_workflow/test_readiness/test_metadata_tdd.py`
+- `tests/unit/tools/release_workflow/test_readiness/test_readiness_pbt.py`
+- `tests/unit/tools/release_workflow/test_results/__init__.py`
+- `tests/unit/tools/release_workflow/test_results/test_results_tdd.py`
+- `tests/unit/tools/release_workflow/test_schemas/test_schemas_pbt.py`
+- `tests/unit/tools/release_workflow/test_windows_process/test_windows_process_tdd.py`
+- `tests/unit/tools/test_artifact_home/test_artifact_home_tdd.py`
+- `tests/unit/tools/test_code_review_evidence/conftest.py`
+- `tests/unit/tools/test_code_review_evidence/test_code_review_evidence_boundaries_tdd.py`
+- `tests/unit/tools/test_code_review_evidence/test_code_review_evidence_cli_tdd.py`
+- `tests/unit/tools/test_code_review_evidence/test_code_review_evidence_tdd.py`
+- `tests/unit/tools/test_code_review_request_scope/test_code_review_request_scope_tdd.py`
+- `tests/unit/tools/test_code_review_requestor_acceptance/conftest.py`
+- `tests/unit/tools/test_code_review_requestor_acceptance/test_code_review_requestor_acceptance_tdd.py`
+- `tests/unit/tools/test_code_review_requestor_acceptance/test_code_review_requestor_io_acceptance_tdd.py`
+- `tests/unit/tools/test_code_reviewer_acceptance/conftest.py`
+- `tests/unit/tools/test_code_reviewer_acceptance/fixtures.py`
+- `tests/unit/tools/test_code_reviewer_acceptance/test_code_reviewer_acceptance_tdd.py`
+- `tests/unit/tools/test_code_reviewer_acceptance/test_code_reviewer_io_acceptance_tdd.py`
+- `tests/unit/tools/test_code_reviewer_acceptance/test_code_reviewer_launcher_smoke_tdd.py`
+- `tests/unit/tools/test_code_reviewer_acceptance/test_code_reviewer_recovery_tdd.py`
+- `tests/unit/tools/test_codex_plugin_redirects/test_codex_plugin_redirects_tdd.py`
+- `tests/unit/tools/test_commit_plan_check/test_commit_plan_check_adapter_tdd.py`
+- `tests/unit/tools/test_coverage_gap_functions_cli.py`
+- `tests/unit/tools/test_enforce_eof_branches.py`
+- `tests/unit/tools/test_full_suite_levels_acceptance/conftest.py`
+- `tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_review_acceptance_tdd.py`
+- `tests/unit/tools/test_full_suite_levels_acceptance/test_full_suite_levels_workflow_acceptance_tdd.py`
+- `tests/unit/tools/test_git_batch_commit_entry.py`
+- `tests/unit/tools/test_groundhog_acceptance.py`
+- `tests/unit/tools/test_groundhog_cli.py`
+- `tests/unit/tools/test_groundhog_detach.py`
+- `tests/unit/tools/test_groundhog_durations_pbt.py`
+- `tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_pbt.py`
+- `tests/unit/tools/test_groundhog_group_coverage/test_groundhog_group_coverage_tdd.py`
+- `tests/unit/tools/test_groundhog_group_patterns/test_groundhog_group_patterns_pbt.py`
+- `tests/unit/tools/test_groundhog_levels/test_groundhog_levels_pbt.py`
+- `tests/unit/tools/test_groundhog_proof/test_groundhog_proof_pbt.py`
+- `tests/unit/tools/test_groundhog_runner.py`
+- `tests/unit/tools/test_groundhog_status.py`
+- `tests/unit/tools/test_group_commit_message_prompt_branches.py`
+- `tests/unit/tools/test_instruction_structure/test_codex_plugin_structure_tdd.py`
+- `tests/unit/tools/test_instruction_structure/test_instruction_structure_prompt_workflow_tdd.py`
+- `tests/unit/tools/test_instruction_structure/test_instruction_structure_tdd.py`
+- `tests/unit/tools/test_instruction_structure/test_shared_utility_invocation_tdd.py`
+- `tests/unit/tools/test_isolate_logos.py`
+- `tests/unit/tools/test_linear_order/test_linear_order_tdd.py`
+- `tests/unit/tools/test_new_draft_entry.py`
+- `tests/unit/tools/test_open_questions_md.py`
+- `tests/unit/tools/test_package_exports.py`
+- `tests/unit/tools/test_prepare_release_whole_suite/test_prepare_release_whole_suite_tdd.py`
+- `tests/unit/tools/test_prompt_workflow_acceptance/test_prompt_workflow_acceptance_tdd.py`
+- `tests/unit/tools/test_prompt_workflow_docs_layout_acceptance/test_prompt_workflow_docs_layout_acceptance_tdd.py`
+- `tests/unit/tools/test_prompt_workflow_document_lookup/test_prompt_workflow_document_lookup_pbt.py`
+- `tests/unit/tools/test_prompt_workflow_document_selection/test_prompt_workflow_document_selection_tdd.py`
+- `tests/unit/tools/test_prompt_workflow_integration.py`
+- `tests/unit/tools/test_review_artifact_home/test_review_artifact_registry_pbt.py`
+- `tests/unit/tools/test_review_exchange_acceptance/conftest.py`
+- `tests/unit/tools/test_review_exchange_acceptance/test_review_exchange_acceptance_tdd.py`
+- `tests/unit/tools/test_review_exchange_cli/test_review_exchange_cli_boundaries_tdd.py`
+- `tests/unit/tools/test_review_exchange_lifecycle/test_review_exchange_boundaries_tdd.py`
+- `tests/unit/tools/test_review_exchange_models/test_review_exchange_models_pbt.py`
+- `tests/unit/tools/test_review_exchange_ownership/test_review_exchange_ownership_pbt.py`
+- `tests/unit/tools/test_review_exchange_paths/test_review_exchange_paths_tdd.py`
+- `tests/unit/tools/test_review_exchange_recovery_acceptance/test_review_exchange_recovery_acceptance_tdd.py`
+- `tests/unit/tools/test_review_exchange_scope/test_review_exchange_scope_tdd.py`
+- `tests/unit/tools/test_review_exchange_state/test_review_exchange_state_pbt.py`
+- `tests/unit/tools/test_review_mode_docs_acceptance/conftest.py`
+- `tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_acceptance_tdd.py`
+- `tests/unit/tools/test_review_mode_docs_acceptance/test_review_mode_docs_final_acceptance_tdd.py`
+- `tests/unit/tools/test_review_resume/prepared_phase.py`
+- `tests/unit/tools/test_review_resume/test_review_resume_expiry_tdd.py`
+- `tests/unit/tools/test_review_resume/test_review_resume_lifecycle_tdd.py`
+- `tests/unit/tools/test_review_resume/test_review_resume_role_tdd.py`
+- `tests/unit/tools/test_review_role_nature/test_review_role_nature_pbt.py`
+- `tests/unit/tools/test_review_status/test_review_status_pbt.py`
+- `tests/unit/tools/test_review_status_cli/test_review_status_cli_tdd.py`
+- `tests/unit/tools/test_scenario_storage.py`
+- `tests/unit/tools/test_scope_capture/test_scope_capture_pbt.py`
+- `tests/unit/tools/test_simulation_boundaries.py`
+- `tests/unit/tools/test_spec_review_requestor_acceptance/conftest.py`
+- `tests/unit/tools/test_spec_review_requestor_acceptance/test_spec_review_requestor_acceptance_tdd.py`
+- `tests/unit/tools/test_spec_review_requestor_acceptance/test_spec_review_requestor_io_acceptance_tdd.py`
+- `tests/unit/tools/test_spec_reviewer_acceptance/conftest.py`
+- `tests/unit/tools/test_spec_reviewer_acceptance/fixtures.py`
+- `tests/unit/tools/test_spec_reviewer_acceptance/test_spec_reviewer_acceptance_tdd.py`
+- `tests/unit/tools/test_trim_thinking_cli.py`
+- `tests/unit/tools/test_wrap_commit_cli.py`
+- `tools/__init__.py`
+- `tools/linear_order.py`
+- `tools/markdown_check/rules.py`
+- `tools/markdown_check/source.py`
+- `tools/release_workflow/__init__.py`
+- `tools/release_workflow/artifacts.py`
+- `tools/release_workflow/bootstrap.py`
+- `tools/release_workflow/cli.py`
+- `tools/release_workflow/git.py`
+- `tools/release_workflow/git_environment.py`
+- `tools/release_workflow/inputs.py`
+- `tools/release_workflow/invocation.py`
+- `tools/release_workflow/managed_files.py`
+- `tools/release_workflow/paths.py`
+- `tools/release_workflow/results.py`
+- `tools/review_artifact_configuration.py`
+- `tools/review_exchange_paths.py`
+
+### Commit plan assessment for step 5 release-project-root (exchange 1) (round 4)
+
+An independent `commit-plan-check.bat --format json` run reported state
+`valid`, ready `true`, no diagnostics and 196 staged paths, in seven groups:
+
+- perf(tools): reduce import and scan overhead (4 paths)
+- refactor(review): expose repository observations (2 paths)
+- fix(release): reject drive-relative managed paths (1 path)
+- feat(release): wire context and Windows launchers (13 paths)
+- test(suite): simulate external workflow boundaries (174 paths)
+- docs(release): retain step 5 review exchange (1 path)
+- docs(release-project-root): record step 5 validation (1 path)
+
+Membership, order and subjects match the staged work. Group 5 adds
+`tests/unit/tools/test_simulation_boundaries.py` and no longer lists the two
+removed helper files. Its body names each round 4 repair. Group 7's body
+describes the refreshed validation record. `a.commit` is accurate for this
+snapshot.
+
+### Findings and boundaries for step 5 release-project-root (exchange 1) (round 4)
+
+Unresolved findings:
+
+- Red `ghog check` from the transcript (`docs/v0.14.0/review.code.v0.14.0.release-project-root.md:12985`,
+  in `Writer response for step 5 release-project-root (round 4)`). The
+  repository Markdown check reports
+  `MD050: strong style [Expected: asterisk; Actual: underscore]`. It is the
+  only diagnostic. Item 2 of the round 4 writer response contains a bare
+  `__main__`, which Markdown reads as underscore emphasis. Publishing the
+  request appended that text to the tracked transcript after the requestor's
+  passing check at 12:28. The transcript belongs to Group 6, so `check.bat`
+  and every later day fail on it. The step's code, tests and validation rows
+  are otherwise commit-ready, and all eight round 3 findings are resolved.
+
+Boundary-crossing work:
+
+- The validation record and `a.commit` now assign removal of the frozen
+  filesystem/Git emulation to "a separate follow-up requirement owned by
+  test-suite maintainers after Step 5 acceptance". No such requirement or
+  umbrella row exists yet, and the step journal records no human decision on
+  that placement. The human should confirm it at the gate, or say where the
+  removal belongs, so the emulation's known fidelity defects do not become
+  permanent.
+- The round 3 boundary items still stand as the human's choices: the
+  argv-table repository observations under the freeze, and the two guarantees
+  with no simulated replacement (public Markdown launcher, site-free import
+  closure).
+- The writer's cancellation-plan amendment still needs the human's approval
+  at the gate. This review does not grant it.
+
+### Writer instructions for step 5 release-project-root (exchange 1) (round 4)
+
+1. Repair the MD050 diagnostic in the tracked transcript at line 12985 by
+   writing `__main__` as a code span. The transcript is tool-owned, and this
+   installed `review_exchange.bat` offers no operation that corrects a
+   published entry (`amend-request` is not available, and
+   `repair-request-transcript` covers only legacy identity collisions). Ask the
+   human to authorize that one-token manual correction, or to choose another
+   remedy. Do not disable MD050.
+2. In every later authored request, response or summary, put identifiers such
+   as `__main__`, `__init__` and `*.pyc` in code spans before publication. The
+   renderer does not escape them, and the transcript keeps them.
+3. Rerun the resolved validation set once the repository Markdown check
+   passes, and publish the replacement request. No code, test, validation-row
+   or `a.commit` change is requested. The replacement request should say so,
+   so that review can confirm the unchanged index.
+
+### Decision rationale for step 5 release-project-root (exchange 1) (round 4)
+
+Changes requested. Readiness floor:
+
+- Identity: pass. Envelope, readable identity, plan, step 5, round 4,
+  occurrence 1, umbrella and the request-time index tree all agree.
+- Completeness: pass. All eight round 3 repair goals are implemented, with no
+  production change.
+- Validation and coverage: fail. The requestor's whole-suite day is green, and
+  the reviewer's `ghog affected --no-cov` is green. The reviewer's `ghog check`
+  exited 1 on one MD050 diagnostic in the transcript text that publishing this
+  round's request appended. Static coverage shows no gap.
+- Staged attribution: pass. The reviewer staged nothing.
+- Unresolved findings: fail. One finding, the red check, remains.
+- `a.commit`: pass. The mechanical check is ready, and membership, order and
+  subjects are accurate.
+
+This round made no repair. Once the transcript passes the Markdown check and
+the index is otherwise unchanged, the next round can recommend
+`commit-ready`. This answer authorizes no commit.
+
+### Final reviewer decision for step 5 release-project-root (exchange 1) (round 4)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-5-round-4 -->
+
+### LLM nature override for requestor (exchange 1)
+
+Human-approved Override: the requestor continues as `claude` instead of `codex`.
+
+Previous nature: `codex`
+
+Recorded nature: `claude`
+
+<!-- review-entry-id: llm-nature-override-requestor-exchange-1-codex-to-claude -->
+
+## Round 5 by requestor - Step 5
+
+- Recorded: 2026-11-01T23:57:37+01:00
+- Exchange: code/code/v0.14.0/release-project-root
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: claude
+- Implementation step: 5
+- Outcome: request
+
+### Review identity for step 5 release-project-root (round 5)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+Implementation step: 5
+Review round: 5
+
+### Code review evidence for step 5 release-project-root (round 5)
+
+request_index_tree: 3c535816bdd7539ea8eab8e8f7714ea2e568dc49
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+- `rg -n 'senv|PYTHONPATH|set /p|shell=True|pushd|GetConsoleMode' tools/release_workflow bin/release_alias.bat bin/release_workflow.bat` (sources: plan)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "cov", "requirement": "docs/v0.14.0/feature-request.v0.14.0.release-project-root.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: perf(tools): reduce import and scan overhead
+group 1 path: tools/__init__.py
+group 1 path: tools/linear_order.py
+group 1 path: tools/markdown_check/rules.py
+group 1 path: tools/markdown_check/source.py
+group 2: perf(review): build only the selected subcommand
+group 2 path: tools/review_exchange_cli.py
+group 2 path: tools/review_exchange_cli_parser.py
+group 3: refactor(review): share one template reader
+group 3 path: tools/code_review_answer.py
+group 3 path: tools/code_review_request.py
+group 3 path: tools/spec_review_answer.py
+group 3 path: tools/spec_review_request.py
+group 3 path: tools/review_exchange_store.py
+group 4: refactor(review): expose repository observations
+group 4 path: tools/review_artifact_configuration.py
+group 4 path: tools/review_exchange_paths.py
+group 5: fix(release): reject drive-relative managed paths
+group 5 path: tools/release_workflow/managed_files.py
+group 6: build(check): bound pyright to two threads
+group 6 path: check.bat
+group 7: feat(release): wire context and Windows launchers
+group 7 path: .gitattributes
+group 7 path: bin/release_alias.bat
+group 7 path: bin/release_workflow.bat
+group 7 path: tools/release_workflow/__init__.py
+group 7 path: tools/release_workflow/artifacts.py
+group 7 path: tools/release_workflow/bootstrap.py
+group 7 path: tools/release_workflow/cli.py
+group 7 path: tools/release_workflow/git.py
+group 7 path: tools/release_workflow/git_environment.py
+group 7 path: tools/release_workflow/inputs.py
+group 7 path: tools/release_workflow/invocation.py
+group 7 path: tools/release_workflow/paths.py
+group 7 path: tools/release_workflow/results.py
+group 7 path: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+group 8: docs(release): retain step 5 review exchange
+group 8 path: docs/v0.14.0/review.code.v0.14.0.release-project-root.md
+group 9: docs(release-project-root): record step 5 validation
+group 9 path: docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md
+staged path: .gitattributes
+staged path: bin/release_alias.bat
+staged path: bin/release_workflow.bat
+staged path: check.bat
+staged path: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+staged path: docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md
+staged path: docs/v0.14.0/review.code.v0.14.0.release-project-root.md
+staged path: tools/__init__.py
+staged path: tools/code_review_answer.py
+staged path: tools/code_review_request.py
+staged path: tools/linear_order.py
+staged path: tools/markdown_check/rules.py
+staged path: tools/markdown_check/source.py
+staged path: tools/release_workflow/__init__.py
+staged path: tools/release_workflow/artifacts.py
+staged path: tools/release_workflow/bootstrap.py
+staged path: tools/release_workflow/cli.py
+staged path: tools/release_workflow/git.py
+staged path: tools/release_workflow/git_environment.py
+staged path: tools/release_workflow/inputs.py
+staged path: tools/release_workflow/invocation.py
+staged path: tools/release_workflow/managed_files.py
+staged path: tools/release_workflow/paths.py
+staged path: tools/release_workflow/results.py
+staged path: tools/review_artifact_configuration.py
+staged path: tools/review_exchange_cli.py
+staged path: tools/review_exchange_cli_parser.py
+staged path: tools/review_exchange_paths.py
+staged path: tools/review_exchange_store.py
+staged path: tools/spec_review_answer.py
+staged path: tools/spec_review_request.py
+```
+
+### Validation scope for step 5 release-project-root (round 5)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 5 release-project-root (round 5)
+
+Step 5 (invocation context, dispatch and actual launchers) is fully implemented.
+Round 4's only finding, the MD050 diagnostic in the transcript, is repaired
+with the human-approved code-span correction, and `ghog check` passes on this
+snapshot.
+
+Evidence for this round:
+
+- Tests and coverage: `ghog day --full=speed --whole-suite` passed on
+  2026-11-01T23:55:35+01:00 with 5,238 tests, `fail=0 warn=0 xfail=0 cov=100
+  outliers=0 excluded=0 proof=speed reused=none scope=whole`. Its working tree
+  is this round's staged index plus three unstaged changes outside it, listed
+  in the writer response. The 19:20:10 day (5,148 tests, the same result)
+  measured the staged content without them, and the validation plan cites it.
+  Its proof marker was retired at 22:30 because applying and reverting main's
+  fix rewrote source mtimes; the staged content is byte-identical.
+- Lifecycle gates: the covered two-worker full stage holds all 5,238
+  lifecycles with maximum CPU 0.078 s, maximum lifecycle wall 0.102 s, maximum
+  setup 0.049 s and maximum teardown 0.033 s. No CPU or setup/teardown limit
+  was missed. 45 lifecycles exceed the preferred 0.04 s aim.
+- Days that did not pass, 22:34 to 23:03, all with the unstaged changes: one
+  functional failure, the shared AC9 acceptance test, now aligned with main's
+  `9c220ba`; then timing misses in `test_groundhog_durations_pbt.py` under
+  machine load, which re-batching that file removed. The 23:03 day's only miss
+  was its affected stage's first test (0.141 s CPU), whose reproduction is
+  kernel-dominant. Under the user's 2026-11-01 rule it was re-measured once in
+  the same order, and it passed in the 23:55 day's affected stage.
+- Groundhog observation, reported to main: the 22:39 day's summary counted no
+  failure, although its lifecycle audit recorded pytest exit 1 for one
+  teardown CPU failure. The 23:55 audit records pytest exit 0 and no failed
+  phase, so its summary and audit agree.
+- Effective proof disclosure: this request's `test_scope` reads `proof: cov`.
+  The canonical renderer runs main's newer groundhog, whose timing fingerprint
+  is seeded with `timing=covered-full-v1` and caps proof saved by an older
+  timing model at `cov` by design. This branch's own groundhog ran the day and
+  wrote the marker with `proof=speed`. The timing evidence itself is the 23:55
+  covered full stage, which measured every lifecycle; the mismatch disappears
+  when this branch takes main's groundhog at integration.
+- Static check: the 23:55 day's `ghog check` stage passed at 23:54:22,
+  including Ruff, pyright, the repository Markdown catalog, size and
+  complexity checks.
+- Plan scan: the additive `rg` scan over `tools/release_workflow` and both
+  launchers finds only the intended `GetConsoleMode` lines in `inputs.py`.
+- Architecture: the production changes since round 4 are confined to a
+  per-subcommand exchange parser with full-grammar fallback, a single template
+  reader used by five renderers, and a pyright thread bound in `check.bat`. No
+  new layer dependency was introduced.
+- Feature integrity: every repair kept its assertions; the release invocation,
+  inputs, results and launcher contracts are unchanged since round 4.
+
+The test part was committed before this round at the user's request
+(`bf48d33` to `a05eeb6`, seven commits, 199 paths). Those tests rely on the
+staged implementation in this request, so the commits are complete only once
+this request's `a.commit` lands.
+
+### Implementation report for step 5 release-project-root (round 5)
+
+Round 4 asked only for the transcript MD050 repair. That repair is applied, and
+this round also reports the test-speed campaign run between rounds 4 and 5,
+because it touched shared test infrastructure and three production files.
+
+Production changes since round 4:
+
+- `tools/review_exchange_cli_parser.py` and `tools/review_exchange_cli.py`
+  build only the requested subcommand from the shared argument declarations,
+  with the full grammar kept as fallback. Parser-equivalence tests in
+  `tests/unit/tools/test_review_exchange_cli/test_review_exchange_parser_tdd.py`
+  pin the result for every subcommand.
+- Five renderers (`code_review_request.py`, `code_review_answer.py`,
+  `spec_review_request.py`, `spec_review_answer.py`, `review_exchange_store.py`)
+  read their template through `tools/template_text.read_template`. That module
+  and its tests are in commit `bf48d33`.
+- `check.bat` runs pyright with two threads.
+
+Test-side changes, now committed in `bf48d33` to `a05eeb6`:
+
+- One setup-through-teardown CPU window and a wall gate per lifecycle, with an
+  audit hook that rejects process creation.
+- Declared prerequisite records replace replayed review journeys. Records use
+  the core's registered policy, which the observer validates.
+- Session caches for immutable CLI grammars and template text; live records
+  are never cached.
+- No inherited agent-host signals (`CLAUDECODE`, `CODEX_THREAD_ID`).
+- Scenario scratch paths keep the canonical upper-case drive, which restored a
+  covered group walk that read 0% coverage.
+- Simulated walks declare the pytest executable instead of searching `PATH`.
+- Property tests draw Unicode text from `tests/scalar_text.py` over the same
+  domain, without loading Hypothesis category tables.
+- New instruction `instructions/write-fast-python-tests.md` and the public
+  explanation `wiki/explanation/why-fast-tests-keep-the-work-they-assert.md`.
+
+Every test file was first qualified in twelve measured groups (5,143
+lifecycles, 57 above the 0.04 s aim, maximum 0.09375 s), then the whole-suite
+day passed with no lifecycle miss. Under the user's 2026-11-01 rule, a
+timing-only miss whose CPU is mostly kernel time, or whose setup waits with
+little CPU, is re-measured once in the same order. The 19:20 whole-suite day
+needed no confirmation; the 23:55 day confirmed the 23:03 day's single
+first-test miss, as the assessment describes.
+
+Writer notes: `.reviews/a.release-project-root.step5.journal.md` and
+`.reviews/a.release-project-root.step5.handoff.md`.
+
+### Change summary for step 5 release-project-root (round 5)
+
+The staged index holds the remaining Step 5 work: 31 paths. The test part was
+committed before this round in seven commits, `bf48d33` to `a05eeb6`.
+
+Root `a.commit` (mechanically ready, nine groups):
+
+1. `perf(tools): reduce import and scan overhead`: `tools/__init__.py`,
+   `tools/linear_order.py`, `tools/markdown_check/rules.py`,
+   `tools/markdown_check/source.py`.
+2. `perf(review): build only the selected subcommand`:
+   `tools/review_exchange_cli.py`, `tools/review_exchange_cli_parser.py`.
+3. `refactor(review): share one template reader`: the four request and answer
+   renderers and `tools/review_exchange_store.py`.
+4. `refactor(review): expose repository observations`:
+   `tools/review_artifact_configuration.py`, `tools/review_exchange_paths.py`.
+5. `fix(release): reject drive-relative managed paths`:
+   `tools/release_workflow/managed_files.py`.
+6. `build(check): bound pyright to two threads`: `check.bat`.
+7. `feat(release): wire context and Windows launchers`: `.gitattributes`, both
+   batch launchers, ten `tools/release_workflow` modules and the plan.
+8. `docs(release): retain step 5 review exchange`: the transcript.
+9. `docs(release-project-root): record step 5 validation`: the validation plan,
+   refreshed with the 2026-11-01 whole-suite proof.
+
+Since round 4, the three production changes above (groups 2, 3 and 6) and the
+validation record are new; groups 1, 4, 5 and 7 carry the same production
+content that round 4 reviewed.
+
+### Writer response for step 5 release-project-root (round 5)
+
+Writer response:
+
+Accepted round 4 feedback:
+
+- Instruction 1: the transcript MD050 at the round 4 writer response is
+  repaired. The human authorized the one-token correction that writes
+  `__main__` as a code span; the repository Markdown check passes.
+- Instruction 2: authored inputs now put identifiers such as `__main__`,
+  `__init__` and `*.pyc` in code spans before publication.
+- Instruction 3: the resolved validation set was rerun green before this
+  request. This round is not index-unchanged: the test-speed campaign changed
+  tests and three production files. The implementation report lists them.
+
+Disagreement: none.
+
+Boundary items still awaiting the human at the gate, unchanged by this round:
+
+- Where removal of the frozen filesystem and Git emulation belongs. No follow-up
+  requirement or umbrella row exists yet.
+- The argv-table repository observations under the freeze, and the two
+  guarantees with no simulated replacement (public Markdown launcher, site-free
+  import closure).
+- The writer's cancellation-plan amendment.
+
+Rendered proof: `test_scope` shows `proof: cov` only because main's renderer
+uses a newer timing fingerprint than this branch's groundhog; the assessment
+explains the two readings. No timing evidence is missing.
+
+Process notes: the human selected `Override` to continue this exchange from a
+Claude requestor session after Codex authored rounds 1 to 4. The working tree
+carries three unstaged changes outside this round's index and its `a.commit`,
+and the 23:55 whole-suite day ran with them:
+
+- main's role-nature Override fix, which lets this session publish as
+  `claude`: three exchange tool modules, two tests and two docs, committed in
+  main as `5d40f7b` and `9acdd69`;
+- the shared AC9 acceptance assertion, flipped to that Override rule as main
+  did in `9c220ba`;
+- `tests/unit/tools/test_groundhog_durations_pbt.py`, re-batched to one random
+  example per lifecycle (20 batches of 2, still 20 random examples per
+  property).
+
+The human also
+asked to commit the test part before this round. Those commits (`bf48d33` to
+`a05eeb6`) are outside the staged index this round binds, but their content is
+part of the Step 5 evidence above.
+
+### Reviewer focus for step 5 release-project-root (round 5)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-5-round-5 -->
+
+### LLM nature override for reviewer (exchange 1)
+
+Human-approved Override: the reviewer continues as `codex` instead of `claude`.
+
+Previous nature: `claude`
+
+Recorded nature: `codex`
+
+<!-- review-entry-id: llm-nature-override-reviewer-exchange-1-claude-to-codex -->
+
+## Round 5 by reviewer - Step 5
+
+- Recorded: 2026-11-02T00:15:20+01:00
+- Exchange: code/code/v0.14.0/release-project-root
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 5
+- Outcome: answer
+
+### Assessed index identity for step 5 release-project-root (exchange 1) (round 5)
+
+Baseline index tree: 3c535816bdd7539ea8eab8e8f7714ea2e568dc49
+
+Assessed index tree: 35fab51ed195834de6a9d711fd7458a3346cafe5
+
+### Implementation check for step 5 release-project-root (exchange 1) (round 5)
+
+Result:
+
+Yes. Step 5 has been fully implemented.
+
+The assessment is limited to Step 5 of the named plan and applies its accepted simulation-only strategy. Static review of the staged bootstrap, invocation, dispatch, input/output adapters and Windows launchers found no new production defect. The parser-equivalence tests cover all exchange subcommands; template-reader, lazy-export, repository-observation and managed-path tests exercise the associated refactors. No production layer violation or new performance concern was identified.
+
+Coverage configuration measures `tools` and omits tests, package initializers, interfaces and the listed unrelated thin adapters. Static inspection found no missing class exercise; package exports and launcher wiring have explicit tests/source contracts outside the percentage claim. The configured 100% result is requestor evidence, not a reviewer measurement.
+
+The preserved filesystem/Git emulation concern and the guarantees without simulated replacements remain carried boundary work. This Yes records implementation completeness within the accepted scope; it does not resolve those decisions, approve the cancellation amendment, complete Step 6, or authorize a commit.
+
+Validation plan effects:
+
+Updated only the Step 5 summary and feature-integrity conclusion in `docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md` to record this independent review and the unresolved boundary decisions. The exact Yes sentence remains intact. The document-level No, every other step and the umbrella remain unchanged.
+
+The evidence launcher attributed the patch to the recorded pre-edit blob. Only that patch was staged; no implementation, tests, transcript, `a.commit`, writer journal or handoff was edited.
+
+### Pre-repair mandatory checks and coverage for step 5 release-project-root (exchange 1) (round 5)
+
+No reviewer tests, coverage measurement, resolved-validation commands, `ghog day` or `ghog full` were run.
+
+The request reports a successful 2026-11-01 23:55:35+01:00 whole-suite speed day: 5,238 tests, 100% configured coverage, zero exclusions and no lifecycle miss. That walk included the disclosed unstaged Override/AC9 and duration-test changes. The earlier 19:20:10 walk reports 5,148 tests against the staged implementation; its marker was retired after timestamp changes, with byte identity attested by the writer. These are requestor evidence with those limits, not an assertion that the latest walk tested the index alone.
+
+The bound whole-suite capture is present with fingerprint `686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6`. Its effective `proof: cov` is disclosed: the request attributes the speed downgrade to the canonical tool's newer timing fingerprint. Explicit lifecycle timings are supplied separately. The previous transcript MD050 finding is reported repaired and covered by the requestor's successful Markdown check; the transcript was not used as review context.
+
+No literal `Human guidance:` block authorizes implementation or test repairs in this request.
+
+### Resolved validation set and sources for step 5 release-project-root (exchange 1) (round 5)
+
+The request-time and current resolved set is:
+
+1. `ghog day --full=speed --whole-suite` — project source.
+2. `rg -n 'senv|PYTHONPATH|set /p|shell=True|pushd|GetConsoleMode' tools/release_workflow bin/release_alias.bat bin/release_workflow.bat` — plan source.
+
+These commands belong to the requestor; the reviewer did not rerun them.
+
+### Resolver drift and direction for step 5 release-project-root (exchange 1) (round 5)
+
+No drift identified. With `.review-validation` absent, the resolver's built-in project command is completed by the bound whole-suite selector and combined with the plan's additive scan in first-seen order.
+
+### Repository state around validation for step 5 release-project-root (exchange 1) (round 5)
+
+Request and baseline index: `3c535816bdd7539ea8eab8e8f7714ea2e568dc49`.
+
+Assessed index after the attributable Step 5 metadata patch: `35fab51ed195834de6a9d711fd7458a3346cafe5`.
+
+The launcher's ordered 35-path before/after comparison reports `acceptable: false` with exactly the validation plan and `<index>` as tracked differences, and no changed ignored or untracked validation artifacts. These two differences are the permitted Step 5 metadata patch and its staging, not validation side effects. Attribution was established before applying the patch to the index; pre-existing writer work was not staged.
+
+The umbrella comparison reports `changed: false`; both digests are `ca6fe473ea2672766e7bfa8c5003ae5155d3c6727cb895127a77890edd0ec992`. No other tracked validation-path difference was found.
+
+### Repair inventory for step 5 release-project-root (exchange 1) (round 5)
+
+Repairs made:
+
+- `docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md`: polishing-only review metadata; records the completed assessment and carried boundary decisions within Step 5. No substantive repair.
+
+Paths staged:
+
+- `docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md`: only the evidence-attributed reviewer metadata patch; the existing 31-path staged membership is unchanged.
+
+### Commit plan assessment for step 5 release-project-root (exchange 1) (round 5)
+
+The independent canonical checker returns exit 0, `state: valid`, `ready: true`, 31 staged paths, nine ordered groups and no diagnostics, both before and after the reviewer metadata edit. It was run from this worktree with process-local `PRJ_DIR` set to this exact repository.
+
+The initial ambient call returned `missing-plan`, although this worktree has `a.commit`; explicit `--root` rejected its linked-worktree `.git` file. The supported environment selector resolves the root correctly, so those discovery failures are not missing evidence or findings against the submitted implementation.
+
+Membership, dependency order, scope and conventional subjects match the staged work. The groups are:
+
+1. `perf(tools): reduce import and scan overhead` — `tools/__init__.py`, `tools/linear_order.py`, `tools/markdown_check/rules.py`, `tools/markdown_check/source.py`.
+2. `perf(review): build only the selected subcommand` — `tools/review_exchange_cli.py`, `tools/review_exchange_cli_parser.py`.
+3. `refactor(review): share one template reader` — `tools/code_review_answer.py`, `tools/code_review_request.py`, `tools/spec_review_answer.py`, `tools/spec_review_request.py`, `tools/review_exchange_store.py`.
+4. `refactor(review): expose repository observations` — `tools/review_artifact_configuration.py`, `tools/review_exchange_paths.py`.
+5. `fix(release): reject drive-relative managed paths` — `tools/release_workflow/managed_files.py`.
+6. `build(check): bound pyright to two threads` — `check.bat`.
+7. `feat(release): wire context and Windows launchers` — `.gitattributes`, `bin/release_alias.bat`, `bin/release_workflow.bat`, `tools/release_workflow/__init__.py`, `tools/release_workflow/artifacts.py`, `tools/release_workflow/bootstrap.py`, `tools/release_workflow/cli.py`, `tools/release_workflow/git.py`, `tools/release_workflow/git_environment.py`, `tools/release_workflow/inputs.py`, `tools/release_workflow/invocation.py`, `tools/release_workflow/paths.py`, `tools/release_workflow/results.py`, `docs/v0.14.0/plan.v0.14.0.release-project-root.md`.
+8. `docs(release): retain step 5 review exchange` — `docs/v0.14.0/review.code.v0.14.0.release-project-root.md`.
+9. `docs(release-project-root): record step 5 validation` — `docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md`.
+
+`a.commit` was not changed. The checker validates grouping only and does not authorize a commit.
+
+### Findings and boundaries for step 5 release-project-root (exchange 1) (round 5)
+
+Unresolved findings:
+
+- No new production defect was identified. The request explicitly leaves the three carried boundary items below unresolved; describing them as awaiting the human gate does not close them for the current review readiness floor.
+
+Boundary-crossing work:
+
+- Frozen filesystem/Git emulation: the accepted plan defers removal, but the request says no follow-up requirement or umbrella row exists. The requestor must obtain and record the human disposition of its ownership and scope; do not expand Step 5 or silently assign it to Step 6.
+- Frozen argv-table repository observations and the public Markdown-launcher/site-free import-closure guarantees: the request still reports no simulated replacements for the latter two. Supply the agreed deterministic contracts where required, or record the explicit scope/deferment decision and its owner. Static inspection of the bootstrap's stdlib-only imports is not proof of isolated execution.
+- Cancellation-plan amendment: obtain and record its explicit human disposition. The accepted simulation-only strategy governs test evidence; it does not independently approve the pending wording amendment.
+
+### Writer instructions for step 5 release-project-root (exchange 1) (round 5)
+
+1. Resolve the three carried boundary items through the existing human decision workflow and record the decisions or concrete follow-up ownership. Do not publish an unchanged automatic round that merely repeats that they await a gate.
+2. For any guarantee retained in the current scope, add its agreed simulation or source-contract coverage and validation evidence. No real subprocess or console run is requested; retain the accepted simulation-only strategy.
+3. Preserve the disclosed distinction between the staged implementation and the newer whole-suite walk with unstaged changes. Publish a replacement request with current identity, validation evidence and accurate `a.commit` after the boundary dispositions or required work are recorded.
+4. Keep pre-existing unstaged work separate. No implementation or test repair was made by this reviewer, and no commit or workflow continuation is authorized by this answer.
+
+### Decision rationale for step 5 release-project-root (exchange 1) (round 5)
+
+Disposition: changes-requested.
+
+The six readiness results are: exact identity passes; Step 5 implementation completeness passes within the accepted scope; validation/coverage assessment finds no new static gap and retains the disclosed requestor-evidence limits; reviewer staging attribution passes; absence of unresolved current/carried work fails because the request explicitly retains three boundary items; mechanical and semantic `a.commit` assessment passes.
+
+The answer renderer and reviewer policy prohibit `commit-ready` while boundary-crossing work remains unresolved. This decision does not introduce a new production defect or reinstate superseded real-terminal requirements. The sole reviewer edit is polishing-only metadata, and implementation remains Yes.
+
+### Final reviewer decision for step 5 release-project-root (exchange 1) (round 5)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-5-round-5 -->
+
+## Round 6 by requestor - Step 5
+
+- Recorded: 2026-11-02T09:29:38+01:00
+- Exchange: code/code/v0.14.0/release-project-root
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 5
+- Outcome: request
+
+### Review identity for step 5 release-project-root (round 6)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+Implementation step: 5
+Review round: 6
+
+### Code review evidence for step 5 release-project-root (round 6)
+
+request_index_tree: 2a067ce25274b999782f98e88d46a77eedc0955f
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+- `rg -n 'senv|PYTHONPATH|set /p|shell=True|pushd|GetConsoleMode' tools/release_workflow bin/release_alias.bat bin/release_workflow.bat` (sources: plan)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "cov", "requirement": "docs/v0.14.0/feature-request.v0.14.0.release-project-root.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: perf(tools): reduce import and scan overhead
+group 1 path: tools/__init__.py
+group 1 path: tools/linear_order.py
+group 1 path: tools/markdown_check/rules.py
+group 1 path: tools/markdown_check/source.py
+group 2: perf(review): build only the selected subcommand
+group 2 path: tools/review_exchange_cli.py
+group 2 path: tools/review_exchange_cli_parser.py
+group 3: refactor(review): share one template reader
+group 3 path: tools/code_review_answer.py
+group 3 path: tools/code_review_request.py
+group 3 path: tools/spec_review_answer.py
+group 3 path: tools/spec_review_request.py
+group 3 path: tools/review_exchange_store.py
+group 4: refactor(review): expose repository observations
+group 4 path: tools/review_artifact_configuration.py
+group 4 path: tools/review_exchange_paths.py
+group 5: fix(release): reject drive-relative managed paths
+group 5 path: tools/release_workflow/managed_files.py
+group 6: build(check): bound pyright to two threads
+group 6 path: check.bat
+group 7: feat(release): wire context and Windows launchers
+group 7 path: .gitattributes
+group 7 path: bin/release_alias.bat
+group 7 path: bin/release_workflow.bat
+group 7 path: tools/release_workflow/__init__.py
+group 7 path: tools/release_workflow/artifacts.py
+group 7 path: tools/release_workflow/bootstrap.py
+group 7 path: tools/release_workflow/cli.py
+group 7 path: tools/release_workflow/git.py
+group 7 path: tools/release_workflow/git_environment.py
+group 7 path: tools/release_workflow/inputs.py
+group 7 path: tools/release_workflow/invocation.py
+group 7 path: tools/release_workflow/paths.py
+group 7 path: tools/release_workflow/results.py
+group 7 path: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+group 8: docs(release): retain step 5 review exchange
+group 8 path: docs/v0.14.0/review.code.v0.14.0.release-project-root.md
+group 9: docs(release-project-root): record step 5 validation
+group 9 path: docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md
+staged path: .gitattributes
+staged path: bin/release_alias.bat
+staged path: bin/release_workflow.bat
+staged path: check.bat
+staged path: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+staged path: docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md
+staged path: docs/v0.14.0/review.code.v0.14.0.release-project-root.md
+staged path: tools/__init__.py
+staged path: tools/code_review_answer.py
+staged path: tools/code_review_request.py
+staged path: tools/linear_order.py
+staged path: tools/markdown_check/rules.py
+staged path: tools/markdown_check/source.py
+staged path: tools/release_workflow/__init__.py
+staged path: tools/release_workflow/artifacts.py
+staged path: tools/release_workflow/bootstrap.py
+staged path: tools/release_workflow/cli.py
+staged path: tools/release_workflow/git.py
+staged path: tools/release_workflow/git_environment.py
+staged path: tools/release_workflow/inputs.py
+staged path: tools/release_workflow/invocation.py
+staged path: tools/release_workflow/managed_files.py
+staged path: tools/release_workflow/paths.py
+staged path: tools/release_workflow/results.py
+staged path: tools/review_artifact_configuration.py
+staged path: tools/review_exchange_cli.py
+staged path: tools/review_exchange_cli_parser.py
+staged path: tools/review_exchange_paths.py
+staged path: tools/review_exchange_store.py
+staged path: tools/spec_review_answer.py
+staged path: tools/spec_review_request.py
+```
+
+### Validation scope for step 5 release-project-root (round 6)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 5 release-project-root (round 6)
+
+Step 5 (invocation context, dispatch and actual launchers) is fully implemented.
+Round 5 found no production defect and blocked only on the three carried
+boundary items. The user decided all of them on 2026-11-02, and the staged
+Step 5 validation row now records those decisions. No code or test changed
+since round 5.
+
+Evidence for this round:
+
+- Tests and coverage, unchanged since round 5: `ghog day --full=speed
+  --whole-suite` passed on 2026-11-01T23:55:35+01:00 with 5,238 tests,
+  `fail=0 warn=0 xfail=0 cov=100 outliers=0 excluded=0 proof=speed
+  reused=none scope=whole`. Its working tree is the staged index plus three
+  unstaged changes outside it, listed in the writer response. No `.py` file
+  changed since that day, so its proof marker still matches the source digest.
+  The 19:20:10 day (5,148 tests, the same result) measured the staged content
+  without those changes, and the validation plan cites it.
+- Lifecycle gates, unchanged: the covered two-worker full stage of the 23:55
+  day holds all 5,238 lifecycles with maximum CPU 0.078 s, maximum lifecycle
+  wall 0.102 s, maximum setup 0.049 s and maximum teardown 0.033 s. No CPU or
+  setup/teardown limit was missed; 45 lifecycles exceed the preferred 0.04 s
+  aim.
+- Effective proof disclosure, corrected: this request's `test_scope` reads
+  `proof: cov`, as in round 5, but round 5 named the two sides the wrong way
+  round. The day ran main's groundhog code: main's `ghog.bat` launcher runs
+  main's `tools/groundhog/cli.py`, and the saved marker's timing hash equals
+  main's timing fingerprint, which is seeded with `timing=covered-full-v1`.
+  The renderer and the exchange launchers run this checkout's `tools`, because
+  the session's `LLM_SHARED_DIR` points at this checkout. This branch's
+  groundhog computes a different timing fingerprint and caps the saved proof at
+  `cov` by design. The timing evidence itself is the 23:55 covered full stage,
+  which measured every lifecycle. The mismatch disappears once this branch
+  takes main's groundhog at integration.
+- Static check: the 23:55 day's `ghog check` stage passed, including Ruff,
+  pyright, the repository Markdown catalog, size and complexity checks. Since
+  then only Markdown changed; the repository Markdown check passes on this
+  snapshot (2026-11-02, exit 0).
+- Plan scan: the additive `rg` scan over `tools/release_workflow` and both
+  launchers finds only the intended `GetConsoleMode` lines in `inputs.py`.
+- Architecture: no production change since round 5. The frozen filesystem/Git
+  emulation and the argv-table repository observations stay frozen; their
+  review or removal is a separate follow-up requirement, by the user's
+  decision.
+- Feature integrity: unchanged since round 5. The two guarantees without a
+  simulated replacement are recorded as accepted gaps of the simulation-only
+  decision, and the cancellation wording amendment as approved.
+- Commit plan: the canonical checker returns `state: valid`, `ready: true`,
+  31 staged paths and nine groups, with no diagnostics, on this snapshot.
+
+The test part was committed before round 5 at the user's request (`bf48d33`
+to `a05eeb6`, seven commits, 199 paths). Those tests rely on the staged
+implementation in this request, so the commits are complete only once this
+request's `a.commit` lands.
+
+### Implementation report for step 5 release-project-root (round 6)
+
+Round 5 found no production defect and asked only that the three carried
+boundary items go through the human decision workflow. This round records
+those decisions. No code or test changed.
+
+Change since round 5, in `docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md`:
+
+- The reviewer's round 5 metadata patch is accepted as staged.
+- The Step 5 analysis now lists the user's four decisions of 2026-11-02 and
+  states that no boundary decision remains open for Step 5. The exact Yes
+  sentence is unchanged and the document-level status stays No.
+- The architecture check places removal of the frozen filesystem/Git
+  emulation in a separate follow-up requirement after release-project-root,
+  owned by test-suite maintenance, outside Step 5 and Step 6. It adds that the
+  argv-table repository observations are within the same freeze.
+- Feature integrity records the approved cancellation wording amendment and
+  the two guarantees without a simulated replacement as accepted gaps, owned
+  by the same follow-up.
+
+Consequences for Step 5: none of the decisions adds code or tests here. The
+follow-up's umbrella row comes later through process-draft; Step 5 and Step 6
+scope are unchanged.
+
+Writer notes: `.reviews/a.release-project-root.step5.journal.md` and
+`.reviews/a.release-project-root.step5.handoff.md`.
+
+### Change summary for step 5 release-project-root (round 6)
+
+The staged index holds the remaining Step 5 work: 31 paths, the same
+membership as round 5. The test part was committed before round 5 in seven
+commits, `bf48d33` to `a05eeb6`.
+
+Root `a.commit` (mechanically ready, nine groups, unchanged):
+
+1. `perf(tools): reduce import and scan overhead`: `tools/__init__.py`,
+   `tools/linear_order.py`, `tools/markdown_check/rules.py`,
+   `tools/markdown_check/source.py`.
+2. `perf(review): build only the selected subcommand`:
+   `tools/review_exchange_cli.py`, `tools/review_exchange_cli_parser.py`.
+3. `refactor(review): share one template reader`: the four request and answer
+   renderers and `tools/review_exchange_store.py`.
+4. `refactor(review): expose repository observations`:
+   `tools/review_artifact_configuration.py`, `tools/review_exchange_paths.py`.
+5. `fix(release): reject drive-relative managed paths`:
+   `tools/release_workflow/managed_files.py`.
+6. `build(check): bound pyright to two threads`: `check.bat`.
+7. `feat(release): wire context and Windows launchers`: `.gitattributes`, both
+   batch launchers, ten `tools/release_workflow` modules and the plan.
+8. `docs(release): retain step 5 review exchange`: the transcript.
+9. `docs(release-project-root): record step 5 validation`: the validation plan,
+   with the reviewer's round 5 metadata and the user's boundary decisions.
+
+Since round 5, only group 9's content changed. Group boundaries and subjects
+remain accurate, so `a.commit` needs no amendment.
+
+### Writer response for step 5 release-project-root (round 6)
+
+Writer response:
+
+Accepted round 5 feedback:
+
+- Instruction 1: the user decided the three carried boundary items on
+  2026-11-02 in this requestor session ("choice 1 each", applied on resume).
+  The Step 5 validation row records them:
+  1. Removal of the frozen filesystem/Git emulation (`tests/scenario_storage.py`,
+     `tests/memory_filesystem.py`) belongs to a separate follow-up requirement
+     after release-project-root, owned by test-suite maintenance. Its umbrella
+     row comes later through process-draft; Step 5 and Step 6 scope are
+     unchanged.
+  2. The argv-table repository observations
+     (`tests/review_repository_observations.py`,
+     `tests/code_review_repository_observations.py`,
+     `tests/acceptance/commit_plan_check/repository_observations.py`) are within
+     that freeze; their review or removal goes with decision 1.
+  3. The shared Markdown gate through its public launcher and the site-free
+     import closure of `tools` are accepted gaps of the simulation-only
+     decision, owned with decision 1. No new Step 5 code.
+  4. The cancellation wording amendment in the staged plan ("Redirected stdin
+     must never trigger an application input prompt ...") is approved as
+     staged.
+- Instruction 2: no guarantee stays in the current scope without coverage. The
+  user placed both guarantees outside Step 5 as accepted gaps, so this round
+  adds no simulation or source contract, and no real subprocess or console run.
+- Instruction 3: the distinction between the staged implementation and the
+  newer whole-suite walk with unstaged changes is kept; the assessment repeats
+  it. `a.commit` was re-checked on this snapshot: valid and ready.
+- Instruction 4: pre-existing unstaged work stays separate (listed below).
+- The reviewer's staged metadata patch is accepted unchanged; the decisions
+  are added after it.
+
+Disagreement: none.
+
+Correction to round 5: its proof disclosure said this branch's groundhog ran
+the day and main's renderer read the marker. It was the other way round: main's
+groundhog code ran the day, and this checkout's renderer read the marker. The
+assessment gives the evidence. The proof reading, `cov`, and the timing
+evidence are unchanged.
+
+Process notes: the working tree carries three unstaged changes outside this
+round's index and its `a.commit`, and the 23:55 whole-suite day ran with them:
+
+- main's role-nature Override fix, which lets this session publish as
+  `claude`: three exchange tool modules, two tests and two docs, committed in
+  main as `5d40f7b` and `9acdd69`;
+- the shared AC9 acceptance assertion, flipped to that Override rule as main
+  did in `9c220ba`;
+- `tests/unit/tools/test_groundhog_durations_pbt.py`, re-batched to one random
+  example per lifecycle (20 batches of 2, still 20 random examples per
+  property).
+
+### Reviewer focus for step 5 release-project-root (round 6)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-5-round-6 -->
+
+## Round 6 by reviewer - Step 5
+
+- Recorded: 2026-11-02T09:47:39+01:00
+- Exchange: code/code/v0.14.0/release-project-root
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 5
+- Outcome: answer
+
+### Assessed index identity for step 5 release-project-root (exchange 1) (round 6)
+
+Baseline index tree: 2a067ce25274b999782f98e88d46a77eedc0955f
+
+Assessed index tree: 2a067ce25274b999782f98e88d46a77eedc0955f
+
+### Implementation check for step 5 release-project-root (exchange 1) (round 6)
+
+Result:
+
+Yes. Step 5 has been fully implemented.
+
+The staged invocation context, bootstrap, CLI, input and result adapters compose the completed foundation services with explicit repository identity and required-input handling. The batch adapters preserve the selected Python, caller context, payload and result protocol. The reviewed supporting changes cover lazy imports, Markdown scanning, parser construction, template reads, repository observations and drive-relative managed-path rejection.
+
+The static review found no new production defect, architecture violation or missing unit-test branch in the agreed Step 5 scope. Existing unit suites cover context immutability, selectors, diagnostics, input refusal, Unicode, errors and exit/status transport. The configured 100% coverage gate measures tools with its declared exclusions; it does not establish coverage for batch files, excluded adapters or test helpers. Their exercise was assessed from the existing simulated tests and source contracts.
+
+The user decisions recorded on 2026-11-02 resolve the carried boundaries: frozen filesystem/Git emulation and argv-table repository observations belong to a separate test-suite-maintenance follow-up; public Markdown-launcher exercise and site-free tools import closure are accepted gaps assigned there; the staged cancellation wording is approved. These decisions add no Step 5 or Step 6 work. Historical real-process requirements are assessed under the superseding simulation-only decision.
+
+The existing Step 5 validation rows accurately record this result. Step 6 remains incomplete, so the document-level status stays No.
+
+Validation plan effects:
+
+No reviewer edit to the validation plan. The Step 5 Yes result and recorded decisions remain unchanged. The applicable umbrella digest is unchanged, and the ordered 31-path validation-state comparison is acceptable with no tracked, untracked or ignored differences. No implementation, test, a.commit or other-step change was made by this reviewer.
+
+### Pre-repair mandatory checks and coverage for step 5 release-project-root (exchange 1) (round 6)
+
+No repair was performed. The retained pre-repair validation blob is 6b630f020483a14f7e457ecfd4faeb903fff277f for docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md.
+
+The archived .reviews/a.release-project-root.step5.tmp.claude-day1.log confirms the 2026-11-01T19:20:10+01:00 whole-suite result: 5,148 tests, fail=0, warn=0, xfail=0, cov=100, outliers=0, excluded=0, exit=0, proof=speed, reused=none, scope=whole. This is the requestor's evidence for the staged implementation. The later 23:55 result of 5,238 tests includes the disclosed unstaged Override, acceptance and duration-test changes, so it is supplementary working-tree evidence.
+
+The bound round scope is whole, with fingerprint 686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6. The request reports effective proof cov. Main's groundhog produced the timing evidence; this checkout's renderer computes a different timing fingerprint and caps that marker at cov. The saved timing log remains evidence, without claiming a speed marker from this checkout's resolver.
+
+No reviewer test, check, full-suite or coverage execution was needed in this round. Coverage was assessed statically against the configured source scope and existing tests.
+
+### Resolved validation set and sources for step 5 release-project-root (exchange 1) (round 6)
+
+1. Project: ghog day --full=speed --whole-suite
+2. Plan: rg -n 'senv|PYTHONPATH|set /p|shell=True|pushd|GetConsoleMode' tools/release_workflow bin/release_alias.bat bin/release_workflow.bat
+
+These are requestor-owned validation commands. Their evidence was reviewed; the reviewer did not rerun them.
+
+### Resolver drift and direction for step 5 release-project-root (exchange 1) (round 6)
+
+No drift. The project has no .review-validation declaration, so load_project_validation selects the built-in ghog day --full=speed default. complete_project_default adds the bound whole-suite selector. resolve_code_review_validation then appends the Step 5 scan with plan provenance; there are no request additions. The resulting ordered commands and source labels match the request exactly.
+
+### Repository state around validation for step 5 release-project-root (exchange 1) (round 6)
+
+The request, retained baseline and final assessed index all equal 2a067ce25274b999782f98e88d46a77eedc0955f. The evidence launcher confirmed an unchanged umbrella digest and no differences across the ordered validation path set. Existing unrelated unstaged work remains outside the assessed index and a.commit. No repair or staging operation was performed.
+
+### Repair inventory for step 5 release-project-root (exchange 1) (round 6)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 5 release-project-root (exchange 1) (round 6)
+
+The independent canonical commit-plan checker returned exit 0, state valid, ready true, 31 staged paths, nine ordered groups and no diagnostics. It selected this linked worktree through process-local PRJ_DIR; the explicit-root route rejects a linked-worktree .git file.
+
+The grouping, order and conventional subjects match the reviewed remaining Step 5 work. The already committed tests precede their remaining implementation. a.commit requires no amendment.
+
+1. perf(tools): reduce import and scan overhead
+   Paths: tools/__init__.py, tools/linear_order.py, tools/markdown_check/rules.py, tools/markdown_check/source.py
+2. perf(review): build only the selected subcommand
+   Paths: tools/review_exchange_cli.py, tools/review_exchange_cli_parser.py
+3. refactor(review): share one template reader
+   Paths: tools/code_review_answer.py, tools/code_review_request.py, tools/spec_review_answer.py, tools/spec_review_request.py, tools/review_exchange_store.py
+4. refactor(review): expose repository observations
+   Paths: tools/review_artifact_configuration.py, tools/review_exchange_paths.py
+5. fix(release): reject drive-relative managed paths
+   Paths: tools/release_workflow/managed_files.py
+6. build(check): bound pyright to two threads
+   Paths: check.bat
+7. feat(release): wire context and Windows launchers
+   Paths: .gitattributes, bin/release_alias.bat, bin/release_workflow.bat, tools/release_workflow/__init__.py, tools/release_workflow/artifacts.py, tools/release_workflow/bootstrap.py, tools/release_workflow/cli.py, tools/release_workflow/git.py, tools/release_workflow/git_environment.py, tools/release_workflow/inputs.py, tools/release_workflow/invocation.py, tools/release_workflow/paths.py, tools/release_workflow/results.py, docs/v0.14.0/plan.v0.14.0.release-project-root.md
+8. docs(release): retain step 5 review exchange
+   Paths: docs/v0.14.0/review.code.v0.14.0.release-project-root.md
+9. docs(release-project-root): record step 5 validation
+   Paths: docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md
+
+### Findings and boundaries for step 5 release-project-root (exchange 1) (round 6)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 5 release-project-root (exchange 1) (round 6)
+
+Present the advisory commit-ready recommendation through the existing human gate. Retain the accepted follow-up decisions and the distinction between staged-content validation and the later working-tree run. Preserve the unrelated unstaged changes. No additional Step 5 implementation or review repair is requested. Commit authority remains with the human.
+
+### Decision rationale for step 5 release-project-root (exchange 1) (round 6)
+
+All six readiness-floor results pass: exact identity and index; complete Step 5 implementation under the recorded decisions; sufficient requestor validation and static coverage evidence; attributable staged scope with no reviewer mutation; no unresolved current or carried finding; and mechanically valid, substantively accurate a.commit grouping. The round made no substantive or polishing repair. Recommend commit-ready as advisory only.
+
+### Final reviewer decision for step 5 release-project-root (exchange 1) (round 6)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-5-round-6 -->
+
+## Round 6 by human - Step 5 - human-confirmation
+
+- Recorded: 2026-11-02T09:56:55+01:00
+- Exchange: code/code/v0.14.0/release-project-root
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.release-project-root.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 5
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-6 -->
