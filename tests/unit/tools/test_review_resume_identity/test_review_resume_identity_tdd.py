@@ -142,14 +142,15 @@ def conflicting_role_request(tmp_path: Path) -> tuple[ReviewExchangeCore, Review
 def test_conflicting_role_needs_override_and_preserves_recorded_evidence(
     conflicting_role_request: tuple[ReviewExchangeCore, ReviewExchangeStore, CoordinationRecord],
 ) -> None:
-    """Override fills only gaps and cannot rewrite known contrary role evidence."""
+    """Override replaces the contrary role nature and the transcript keeps the old one."""
     core, store, record = conflicting_role_request
     with pytest.raises(ReviewExchangeError, match="conflicts require Override"):
         claim_selected(core, ReviewRole.REVIEWER, LlmNature.CODEX, round_number=1, occurrence=1, override=False)
     capability = claim_selected(core, ReviewRole.REVIEWER, LlmNature.CODEX, round_number=1, occurrence=1, override=True)
     updated = store.read_coordination(required=True)
     assert updated is not None
-    assert updated.role_natures.reviewer is LlmNature.CLAUDE
+    assert updated.role_natures.reviewer is LlmNature.CODEX
+    assert "llm-nature-override-reviewer-exchange-1-claude-to-codex" in store.paths.transcript.read_text(encoding="utf-8")
     assert capability.generation > record.ownership_generation
 
 @pytest.mark.timeout(3)
