@@ -40,6 +40,9 @@ selection as `--document <returned-document>` on inspection and claim. Carry
 the returned `--implementation-step` for code exchanges sharing a plan. For a
 role conflict show both natures and all returned evidence and ask `Override`
 or `Stop`; only an explicit `Override` permits `--override` for this attempt.
+With Override, pass `--override` to both `resume-inspect` and `claim`: the
+claim then records this LLM for the role in coordination and logs the replaced
+one in the transcript, so later publications of either role succeed.
 Stop on blocked, inconsistent, interrupted, or escalated evidence.
 
 For every selected concrete live exchange, run automatic `claim` before
