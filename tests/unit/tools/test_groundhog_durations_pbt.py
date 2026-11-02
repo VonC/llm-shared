@@ -32,8 +32,14 @@ from tools.groundhog import durations
 if TYPE_CHECKING:
     from hypothesis.strategies import SearchStrategy
 
-# Bounded so the property run stays tiny (Time-gated status for Step 2).
-_MAX_EXAMPLES = 5
+# Bounded so each lifecycle stays tiny (Time-gated status for Step 2). Each
+# batch is one Hypothesis run that first tries its minimal example, then one
+# random draw: twenty batches keep 20 random examples per property, at least
+# the 19 of a single 20-example run. Generating these dictionaries costs far
+# more than the rule under test, most of all under testmon tracing, so one
+# random dictionary per lifecycle keeps every lifecycle under the limit.
+_BATCHES = 20
+_MAX_EXAMPLES = 2
 _DEADLINE_MS = 400
 _REL_TOL = 1e-9
 
@@ -58,7 +64,7 @@ _SCALE: SearchStrategy[float] = st.floats(
 )
 
 
-@pytest.mark.parametrize("_batch", range(4))
+@pytest.mark.parametrize("_batch", range(_BATCHES))
 @settings(max_examples=_MAX_EXAMPLES, deadline=_DEADLINE_MS)
 @given(values=_DURATIONS, factor=_SCALE)
 def test_auto_floor_scales_with_the_durations(
@@ -75,7 +81,7 @@ def test_auto_floor_scales_with_the_durations(
     )
 
 
-@pytest.mark.parametrize("_batch", range(4))
+@pytest.mark.parametrize("_batch", range(_BATCHES))
 @settings(max_examples=_MAX_EXAMPLES, deadline=_DEADLINE_MS)
 @given(values=_DURATIONS)
 def test_a_call_below_the_floor_is_never_an_outlier(
@@ -91,7 +97,7 @@ def test_a_call_below_the_floor_is_never_an_outlier(
             assert node not in flagged
 
 
-@pytest.mark.parametrize("_batch", range(4))
+@pytest.mark.parametrize("_batch", range(_BATCHES))
 @settings(max_examples=_MAX_EXAMPLES, deadline=_DEADLINE_MS)
 @given(values=_DURATIONS)
 def test_excluding_every_node_leaves_no_outlier(
@@ -105,7 +111,7 @@ def test_excluding_every_node_leaves_no_outlier(
     assert spared.outliers == ()
 
 
-@pytest.mark.parametrize("_batch", range(4))
+@pytest.mark.parametrize("_batch", range(_BATCHES))
 @settings(max_examples=_MAX_EXAMPLES, deadline=_DEADLINE_MS)
 @given(values=_DURATIONS, recorded=_SECS)
 def test_a_written_baseline_never_rises_above_the_recorded_one(
@@ -124,7 +130,7 @@ def test_a_written_baseline_never_rises_above_the_recorded_one(
         assert updated[node] <= recorded
 
 
-@pytest.mark.parametrize("_batch", range(4))
+@pytest.mark.parametrize("_batch", range(_BATCHES))
 @settings(max_examples=_MAX_EXAMPLES, deadline=_DEADLINE_MS)
 @given(values=_DURATIONS, recorded=_SECS)
 def test_a_call_back_under_half_the_floor_is_never_kept(
