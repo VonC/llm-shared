@@ -5,6 +5,7 @@ Step 3 delegates capability parsing, lifecycle typing, and token-safe ownership
 stops to a focused adapter. This hub retains caller-file validation, operation
 dispatch, gate-aware new-session pickup, and one stable JSON result while
 staying below its risk-band target.
+Known operations construct only the selected command's argument grammar.
 """
 
 # ruff: noqa: BLE001, EM101, EM102, TRY003
@@ -36,6 +37,9 @@ from tools.review_exchange_cli_parser import (
 )
 from tools.review_exchange_cli_parser import (
     parser as _parser,
+)
+from tools.review_exchange_cli_parser import (
+    parser_for as _parser_for,
 )
 from tools.review_exchange_cli_result import add_issued_capability
 from tools.review_exchange_cli_result import fatal_payload as _fatal_payload
@@ -492,7 +496,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     arguments = list(sys.argv[1:] if argv is None else argv)
     operation = _operation_name(arguments)
     try:
-        args = _parser().parse_args(arguments)
+        command_parser = _parser_for(arguments[0]) if arguments else _parser()
+        args = command_parser.parse_args(arguments)
         operation = args.operation
         project_root = find_project_root(Path.cwd()).resolve()
         if is_resume_operation(operation):
