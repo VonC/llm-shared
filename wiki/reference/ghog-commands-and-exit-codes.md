@@ -148,7 +148,7 @@ that, so interactive applications keep the CPUs first.
 | Exit | Meaning | Next move |
 | --- | --- | --- |
 | 0 | objective met, or this step green | continue the walk, or stop on the full run |
-| 2 | test failures | fix them; from a full run, `ghog single <failing files>` first |
+| 2 | test failures, also when pytest exited 1 but its output named no failing test and no coverage gap explains it | fix them; from a full run, `ghog single <failing files>` first; with no test named, read the printed output tail and re-run the step's pytest command |
 | 3 | coverage gap | covg on the replayed Missing rows, add tests, `ghog affected` to the gate, `ghog check`, then `ghog day` |
 | 4 | suite crash | make the suite robust against that exception |
 | 5 | environment or setup error | read the printed reason; looping cannot fix it |
