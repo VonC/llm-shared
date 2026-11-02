@@ -127,7 +127,7 @@ Tests also stopped inheriting the agent that launched them. Production detects
 the calling agent from environment signals; the suite removes those signals
 so a run from one agent host behaves like a run from another.
 
-## Why a few timing misses are confirmed, not trusted
+## Why a proven test passes a load spike inside a band
 
 After these changes, a full round over every group measured 5,143 test
 lifecycles, all under the hard CPU gate, with 57 above the 0.04 second target
@@ -136,10 +136,32 @@ thousand lifecycles, and their shape was not test work: kernel time with
 little user time, or setup that waited a tenth of a second while using almost
 no CPU. They hit a different test each run.
 
-Lowering such a test further cannot help, so the gates stay unchanged and a
-timing-only miss with that shape is measured again once, in the same order. If
-the same test misses again, it is a real cost and gets fixed. Every
-confirmation is recorded with its user, kernel and garbage-collection time.
+Lowering such a test further cannot help. At first, a timing-only miss with
+that shape was measured again once, in the same order, but every confirmation
+cost another walk. The gate now remembers, per checkout, which tests already
+passed under the 0.1 second CPU ceiling. A test proven that way passes up to
+2.5 times the ceiling, 0.25 second, without a rerun, and the end of the run
+lists every such band pass. A test never proven, or measured above the band,
+still has to meet 0.1 second.
+
+The band cannot hide a real slowdown. A proven test measured above the ceiling
+on three runs in a row loses its proof, and the strict ceiling applies again
+until a run brings it back under 0.1 second. The wall-clock limit has no band.
+A test that must stay slower is accepted only as a listed exception, with its
+measured CPU, the improvement already attempted and the reason the cost stays.
+That CPU becomes the test's own ceiling, and the same band and drift guard
+apply to it: one rule for every test. A fresh clone has no record, so it
+starts strict.
+
+The numbers are this repository's choice, not a property of the gate. The
+ceiling, the band factor, the drift run count and the wall limit are pytest
+settings a project sets in `pyproject.toml` or overrides for one run. A proof
+counts only under the ceiling it was earned against, so lowering the ceiling
+never keeps an old, looser proof. The
+[test lifecycle limits reference](../reference/test-lifecycle-limits.md) lists
+the settings and the record, and
+[Set the test lifecycle limits](../how-to/set-test-lifecycle-limits.md) shows
+how to change them.
 
 ## What the whole suite measured afterwards
 

@@ -11,10 +11,12 @@ in the wiki page *Why fast tests keep the work they assert*.
 ## Budget for one test lifecycle
 
 - Count the whole lifecycle, not only the call: setup, call and teardown, with
-  every fixture they create. A lifecycle stays under 0.1 second of CPU and one
-  second of wall time, and setup and teardown each stay under 0.1 second of
-  wall time. Aim for 0.04 second of CPU so coverage, two workers and a busy
-  machine leave headroom.
+  every fixture they create. A lifecycle stays under the project's CPU ceiling
+  and wall limit, `test_lifecycle_limit` and `test_lifecycle_wall_limit` (0.1
+  and one second by default), and setup and teardown each stay under 0.1
+  second of wall time. Aim for 0.04 second of CPU so coverage, two workers and
+  a busy machine leave headroom. The stability band that lets a proven test
+  pass a load spike is a tolerance for the machine, never a target.
 - Keep first-use work inside the test that first needs it. Building a grammar,
   a template or a cache in worker startup, at collection, or in an unmeasured
   session fixture hides its cost; it does not remove it.

@@ -221,6 +221,7 @@ file and move a legacy root copy of the same name into it once.
 | `a.ghog.day.ok` | artifact home | whole-suite proof marker: scope, fingerprint, timing, digest, and proof level |
 | `a.ghog.day.<group>.ok` | artifact home | isolated proof marker for the named group; never whole-suite proof |
 | `a.ghog.outliers` | artifact home | duration-outlier floor and accepted exclusions |
+| `a.test-lifecycle-cpu.local.json` | artifact home | per-checkout lifecycle CPU proofs and accepted slow-test exceptions; see [test lifecycle limits](test-lifecycle-limits.md) |
 | `a.ghog.senv.log`, `a.ghog.senv.txt` | artifact home | parked senv preamble of one call, replayed and deleted by the tool |
 
 The project-root `.ghog-groups` declares test/source membership patterns.
