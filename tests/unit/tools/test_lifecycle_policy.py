@@ -2,6 +2,11 @@
 
 Synthetic clock samples exercise accounting directly; no workload is moved
 outside its test and no real process is created.
+
+Fix (CPU stability band, 2026-11-02): the hook now reads its limits from the
+configured ``LifecycleGate``. A strict gate with no record keeps the original
+0.1 s CPU and 1 s wall thresholds, and the final report also carries the limit
+it was judged by and that the lifecycle was measured.
 """
 
 from __future__ import annotations
@@ -12,9 +17,12 @@ from typing import TYPE_CHECKING, cast
 import pytest
 
 from tests import simulation_policy as policy
+from tests.lifecycle_cpu_record import LifecycleGate
 
 if TYPE_CHECKING:
     from collections.abc import Generator
+
+_CPU_LIMIT = 0.1
 
 
 @pytest.mark.parametrize("setup_fails", [False, True])
@@ -34,10 +42,10 @@ def test_one_cpu_window_keeps_initialization_hooks_cleanup_and_limits(
         readings.append(current)
         return current
 
-    limits = {"test_lifecycle_limit": "0.1", "test_lifecycle_wall_limit": "1.0"}
+    config = SimpleNamespace(stash=pytest.Stash())
+    config.stash[policy._GATE] = LifecycleGate.strict(_CPU_LIMIT, 1.0)
     item = cast("pytest.Item", SimpleNamespace(
-        stash=pytest.Stash(), config=SimpleNamespace(getini=limits.__getitem__),
-        nodeid="accounting-boundary",
+        stash=pytest.Stash(), config=config, nodeid="accounting-boundary",
     ))
     with pytest.MonkeyPatch.context() as patch:
         patch.setattr(policy, "process_time", clock)
@@ -75,8 +83,11 @@ def _assert_final_report(item: pytest.Item, cpu: float, wall: float, outcome: st
     )
     _deliver_report(item, report)
     assert report.outcome == outcome
-    assert dict(report.user_properties)["test_lifecycle_cpu_seconds"] == cpu
-    assert dict(report.user_properties)["test_lifecycle_seconds"] == wall
+    properties = dict(report.user_properties)
+    assert properties["test_lifecycle_cpu_seconds"] == cpu
+    assert properties["test_lifecycle_seconds"] == wall
+    assert properties["test_lifecycle_cpu_limit"] == _CPU_LIMIT
+    assert properties["test_lifecycle_measured"] is True
 
 
 def _finish_setup(setup: Generator[None, object, object], *, fails: bool) -> None:
