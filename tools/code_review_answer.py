@@ -7,6 +7,9 @@ retirement, or review-exchange mutation.
 Fix: the inventory renderer types its line accumulator as `list[str]`, so
 pyright no longer reports its `append` and `extend` calls as partially
 unknown.
+
+The answer template is read through `template_text.read_template`, the single
+template-reading function shared by every renderer.
 """
 
 # ruff: noqa: EM101, EM102, TRY003
@@ -19,6 +22,7 @@ from pathlib import Path
 from string import Template
 from typing import cast
 
+from tools import template_text
 from tools.review_exchange_models import (
     ReviewContext,
     ReviewDisposition,
@@ -441,7 +445,7 @@ def _answer_authored_content(source: CodeReviewAssessment) -> str:
         "final_decision": _final_decision(source),
     }
     try:
-        template = Template(_TEMPLATE_PATH.read_text(encoding="utf-8"))
+        template = Template(template_text.read_template(_TEMPLATE_PATH))
     except (OSError, UnicodeError) as error:
         raise ReviewExchangeError(f"cannot read answer template: {error}") from error
     return template.substitute(values).rstrip() + "\n"

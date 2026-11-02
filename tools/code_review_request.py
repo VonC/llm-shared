@@ -6,6 +6,8 @@ the command writes either artifact. Pure rendering keeps the shared exchange
 envelope and both evidence projections on one frozen source of truth.
 Step 6 binds the resolved effort capture and effective proof to that evidence.
 Validation commands stay literal in transcript Markdown, including backticks.
+The request template is read through `template_text.read_template`, shared by
+every renderer.
 """
 
 # ruff: noqa: EM101, EM102, TRY003
@@ -33,6 +35,7 @@ if __name__ == "__main__":  # pragma: no cover - thin launcher boundary
 
 from tools import code_review_request_files as files
 from tools import code_review_request_scope as scopes
+from tools import template_text
 from tools._models import find_project_root
 from tools.code_review_evidence import capture_index_tree
 from tools.code_review_validation import (
@@ -394,7 +397,7 @@ def _request_authored_content(source: CodeReviewRoundInput) -> str:
         "response_section": _response_section(source, heading_level=2),
     }
     try:
-        template = Template(_TEMPLATE_PATH.read_text(encoding="utf-8"))
+        template = Template(template_text.read_template(_TEMPLATE_PATH))
     except (OSError, UnicodeError) as error:
         raise ReviewExchangeError(f"cannot read request template: {error}") from error
     return template.substitute(values).rstrip() + "\n"
