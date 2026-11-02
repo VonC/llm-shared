@@ -64,6 +64,104 @@ An AI may execute a direct maintenance command when the user asks for that
 maintenance task. The distinction is about the normal workflow owner, not a
 technical restriction.
 
+## Release foundation invocation
+
+The v0.14.0 release foundation is reachable through `bin\release_workflow.bat`,
+`bin\release_alias.bat` and the native bootstrap entry; their syntax is in
+[Aliases and launchers](aliases-and-launchers.md#-release-foundation-launchers).
+This section is the contract an automation relies on.
+
+### Availability boundary of the foundation
+
+This version ships the foundation only: runtime readiness, project and Git
+identity, strict configuration, read-only artifact resolution, managed writes,
+the project operation lock, input transport and result rendering. No release
+operation is registered, so every operation ends with status 2. Version
+sources, changelog generation, release transactions, installation and
+upgrades, the move of existing build and `senv` callers, alias installation and
+consumer cutover belong to later items of the sibling release tooling effort.
+
+### Runtime readiness and its repair
+
+Each launcher reads `venvs\release-runtime.v1.txt`, which this checkout's setup
+publishes after preparing its environment (`senv.bat` calls
+`bin\release_runtime_record.bat`). The bootstrap then checks that the running
+interpreter and prefix are the recorded ones, that the platform is Windows x64,
+and that the release dependency group is installed. A missing or invalid
+record, another checkout's interpreter or a missing dependency ends with
+`Release readiness failed: ... Run this checkout's setup` and status 2. The
+repair is to run that checkout's setup again; nothing is written to the
+consumer project or the tooling checkout on the way.
+
+### Selector variables in PowerShell
+
+A selector names a variable instead of carrying a value, so a path with `%`,
+`^`, `!` or `"` reaches the engine unchanged. In PowerShell, assign the
+variable fresh for each call and remove it in `finally`; the launcher reads it
+once, and a later change has no effect on a running operation:
+
+```powershell
+$env:RELEASE_PROJECT = 'C:\work\project 100%'
+try {
+    & "<llm-shared>\bin\release_workflow.bat" <operation> --project-root-env RELEASE_PROJECT
+} finally {
+    Remove-Item Env:RELEASE_PROJECT
+}
+```
+
+The variable belongs to the PowerShell session, not to the call. On Ctrl+C,
+Windows PowerShell 5.1 waits for the launcher, then stops the script: the
+line after the call never runs, but `finally` does. Without `finally`, Ctrl+C
+or a terminating error leaves the variable set in the session, where the next
+call that names it would read the old value.
+
+When the call's output is captured, as in `$out = & ...`, Ctrl+C makes
+Windows PowerShell 5.1 end the launcher itself: `$LASTEXITCODE` is `-1`, cmd
+asks no question and the console stays on codepage 65001. The engine still
+reports `interrupted`; a lock record left by an engine that was ended is
+recovered by the next call as a dead owner.
+
+From Windows PowerShell 5.1, pass input with `--input-file` or
+`--input-file-env`, not through a pipe. Its pipe to a native command adds a
+byte-order mark and a trailing line break, and it can replace non-ASCII
+characters even when `$OutputEncoding` is set to UTF-8.
+
+### Native automation without the batch question
+
+On Ctrl+C, the running operation ends with status 1 and releases its project
+lock, but cmd then asks `Terminate batch job (Y/N)?`, in the console's
+language, before a batch launcher returns, also when Windows PowerShell started
+it. Answering no lets the launcher return 1 and restore the caller's codepage.
+Answering yes ends the batch at once: the launcher's status is lost (a
+`cmd /c` caller sees 255) and the console stays on codepage 65001. With
+standard input redirected from `NUL`, cmd still prints the question, reads the
+end of input and lets the launcher return 1. An automation
+that must not meet that question calls the recorded
+interpreter directly with `-I -X utf8 tools\release_workflow\bootstrap.py
+--entry-kind explicit-native -- <operation> ...`. The native entry is also the
+only one that accepts `--text`.
+
+### Statuses and streams
+
+| Status | Meaning |
+| --- | --- |
+| `0` | the operation succeeded |
+| `1` | the operation failed or was interrupted; any other child status becomes 1, with the original status in a diagnostic |
+| `2` | the invocation, the preflight or the runtime readiness failed; no operation ran |
+
+Standard output carries operation data, standard error carries diagnostics;
+both are UTF-8 with LF line endings. The batch launchers switch the console
+to codepage 65001 for the call and restore the caller's codepage on exit. When
+no input source is given and standard input is not a console, the call is
+non-interactive and never prompts. On a console without `--non-interactive`,
+an operation that requires input asks `Release input:` on standard error and
+reads one line; with `--non-interactive` it ends with status 2 instead.
+
+Inherited `PRJ_DIR` and the other legacy location variables have no
+authority: the project comes only from the explicit root or, for the alias
+launcher, the current directory. A disagreeing `PRJ_DIR` produces a warning,
+and none of those variables reaches Git.
+
 Related: [Where the human stays in the loop](../explanation/where-the-human-stays-in-the-loop.md),
 [Independent review mode contract](independent-review-mode-contract.md),
 [Skills catalog](skills-catalog.md), and [Aliases and launchers](aliases-and-launchers.md).

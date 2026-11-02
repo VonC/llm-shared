@@ -1074,6 +1074,7 @@ command name and the instruction file name are always the same.
 | Groundhog pytest loop | draft | Copilot, Claude Code, OpenAI Codex, Google Antigravity | `ghog day` walk, `ghog init` registration, LLM fixing loop; see `GROUNDHOG.md`. |
 | Prompt-workflow handoff | draft | Copilot, Claude Code, OpenAI Codex, Google Antigravity | `pw handoff` chains implement-step, check, implement-missing, and the `a.commit` group-commit step with no menu. |
 | Prompt-workflow skill | draft | Copilot, Claude Code, OpenAI Codex, Google Antigravity | `pw skill` chains the document phase (write -> review -> consolidate -> next phase) and feeds the commit-gate multi-choice via `--after-commit`. |
+| Release foundation launchers | foundation only | Windows x64 (`cmd.exe`, Windows PowerShell 5.1, native Python) | `bin\release_workflow.bat` and `bin\release_alias.bat` validate the runtime, project identity and input; no release operation is shipped yet. See [Aliases and launchers](wiki/reference/aliases-and-launchers.md#-release-foundation-launchers) and [Automation and direct invocation](wiki/reference/automation-and-direct-invocation.md#release-foundation-invocation). |
 
 ---
 
