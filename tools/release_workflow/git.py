@@ -20,12 +20,14 @@ from tools.release_workflow.git_environment import (
     GitPolicyError,
     controlled_environment,
     validate_config,
+    validate_entry,
 )
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
 _MINIMUM_VERSION = (2, 31, 0)
+_METADATA_PATH_COUNT = 3
 _VERSION = re.compile(r"git version (\d+)\.(\d+)\.(\d+)(?:\.windows\.\d+)?\s*")
 
 
@@ -100,16 +102,20 @@ class GitExecutionContext:
         executable = _select_executable(source, cwd)
         environment = controlled_environment(source, non_interactive=non_interactive)
         probe = cls(executable, (0, 0, 0), environment, cwd, non_interactive)
-        result = probe._execute(["--version"], cwd=cwd)
-        match = _VERSION.fullmatch(result.stdout)
-        if match is None:
-            msg = f"Cannot establish Git version from {executable}: {result.stdout!r}"
-            raise GitPolicyError(msg)
-        version = (int(match[1]), int(match[2]), int(match[3]))
+        version = probe.read_version(cwd=cwd)
         if version < _MINIMUM_VERSION:
             msg = f"Git version {version} at {executable} is older than required 2.31.0"
             raise GitPolicyError(msg)
         return cls(executable, version, environment, cwd, non_interactive)
+
+    def read_version(self, *, cwd: Path) -> tuple[int, int, int]:
+        """Read the native version once at the executable adapter boundary."""
+        result = self._execute(["--version"], cwd=cwd)
+        match = _VERSION.fullmatch(result.stdout)
+        if match is None:
+            msg = f"Cannot establish Git version from {self.executable}: {result.stdout!r}"
+            raise GitPolicyError(msg)
+        return (int(match[1]), int(match[2]), int(match[3]))
 
     def _execute(self, arguments: Sequence[str], *, cwd: Path, check: bool = True, lossless_stdout: bool = False) -> subprocess.CompletedProcess[str]:
         """Own the sole subprocess boundary, including startup/config probes."""
@@ -131,10 +137,14 @@ class GitExecutionContext:
             raise GitCommandError(result)
         return result
 
+    def effective_config(self, *, cwd: Path) -> tuple[ConfigEntry, ...]:
+        """Read effective values through the native config parser."""
+        result = self._execute(["--no-pager", "config", "--null", "--list", "--includes", "--show-origin", "--show-scope"], cwd=cwd, lossless_stdout=True)
+        return validate_config(result.stdout)
+
     def inspect_config(self, *, cwd: Path) -> tuple[ConfigEntry, ...]:
         """Inspect genuine scopes before adding our own output-only options."""
-        result = self._execute(["--no-pager", "config", "--null", "--list", "--includes", "--show-origin", "--show-scope"], cwd=cwd, lossless_stdout=True)
-        entries = validate_config(result.stdout)
+        entries = tuple(validate_entry(entry) for entry in self.effective_config(cwd=cwd))
         # Even an empty command-scoped selected file hides the normal config
         # chain. No emitted entry does not mean that chain was inspected.
         selector = next((value for key, value in self.environment.values.items() if key.upper() == "GIT_CONFIG"), None)
@@ -142,6 +152,22 @@ class GitExecutionContext:
             msg = f"Rejected Git configuration: command scope, file:{selector}, GIT_CONFIG selector"
             raise GitPolicyError(msg)
         return entries
+
+    def metadata(self, *, cwd: Path) -> tuple[Path, Path, Path]:
+        """Read typed worktree and Git metadata from the native adapter."""
+        result = self.run(["rev-parse", "--path-format=absolute", "--show-toplevel", "--absolute-git-dir", "--git-common-dir"], cwd=cwd)
+        lines = result.stdout.splitlines()
+        if len(lines) != _METADATA_PATH_COUNT or any(not Path(line).is_absolute() for line in lines):
+            msg = "Git did not report three absolute project metadata paths"
+            raise GitPolicyError(msg)
+        return Path(lines[0]), Path(lines[1]), Path(lines[2])
+
+    def index(self, *, cwd: Path, directory: str | None = None) -> tuple[str, ...]:
+        """Return tracked names without exposing NUL-delimited command output."""
+        arguments = ["ls-files", "-z"]
+        if directory is not None:
+            arguments.extend(["--", directory])
+        return tuple(filter(None, self.run(arguments, cwd=cwd).stdout.split("\0")))
 
     def run(self, arguments: Sequence[str], *, cwd: Path, check: bool = True) -> subprocess.CompletedProcess[str]:
         """Run a trusted domain command with explicit output and literal paths.

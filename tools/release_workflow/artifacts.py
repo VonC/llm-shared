@@ -15,8 +15,6 @@ from tools.release_workflow.managed_files import (
     ManagedWriteError,
     authorize_write,
 )
-from tools.review_artifact_configuration import ReviewArtifactConfiguration
-from tools.review_exchange_models import ReviewExchangeError
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -67,7 +65,7 @@ class PreparedArtifacts:
 
 def _tracked(git: GitExecutionContext, root: Path, relative: str) -> bool:
     """Use the operation's controlled executable, environment and literal paths."""
-    return bool(git.run(["ls-files", "-z", "--", relative], cwd=root).stdout)
+    return bool(git.index(cwd=root, directory=relative))
 
 
 def _require_untracked(git: GitExecutionContext, root: Path, relative: str) -> None:
@@ -79,6 +77,10 @@ def _require_untracked(git: GitExecutionContext, root: Path, relative: str) -> N
 
 def resolve_artifacts(project: ProjectIdentity, git: GitExecutionContext) -> ArtifactDeclaration:
     """Load once, retain lexical authorization and leave all artifacts untouched."""
+    # Review configuration is needed at artifact preflight, not CLI import.
+    from tools import review_artifact_configuration as artifacts  # noqa: PLC0415
+    from tools.review_exchange_models import ReviewExchangeError  # noqa: PLC0415
+
     destinations: list[ManagedTarget] = []
 
     def validate_home(path: Path) -> None:
@@ -86,7 +88,7 @@ def resolve_artifacts(project: ProjectIdentity, git: GitExecutionContext) -> Art
 
     try:
         source = authorize_write(project, ".review-artifacts.ini")
-        configuration = ReviewArtifactConfiguration.load(
+        configuration = artifacts.ReviewArtifactConfiguration.load(
             project.root, tracked_directory=lambda root, relative: _tracked(git, root, relative), validate_home=validate_home,
         )
         destination, = destinations
@@ -103,13 +105,16 @@ def prepare_artifacts(declaration: ArtifactDeclaration, git: GitExecutionContext
     by a changed declaration. Parsing and preparation semantics stay in the
     existing helper. Domains must revalidate mutable state after taking the lock.
     """
+    from tools import review_artifact_configuration as artifacts  # noqa: PLC0415
+    from tools.review_exchange_models import ReviewExchangeError  # noqa: PLC0415
+
     try:
         declaration.source.revalidate()
         home = declaration.destination.revalidate()
         ignore = authorize_write(declaration.project, home / ".gitignore")
         relative = home.relative_to(declaration.project.root).as_posix()
         _require_untracked(git, declaration.project.root, relative)
-        configuration = ReviewArtifactConfiguration(declaration.project.root, home, relative, declaration.declared)
+        configuration = artifacts.ReviewArtifactConfiguration(declaration.project.root, home, relative, declaration.declared)
         declaration.destination.revalidate()
         ignore.revalidate()
         configuration.prepare_home()

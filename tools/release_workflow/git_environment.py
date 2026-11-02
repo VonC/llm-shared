@@ -118,13 +118,19 @@ def validate_config(output: str) -> tuple[ConfigEntry, ...]:
 def _validate_entry(scope: str, origin: str, record: str) -> ConfigEntry:
     """Apply the closed routing-key and command-scope policy to one record."""
     key, separator, value = record.partition("\n")
+    return validate_entry(ConfigEntry(scope, origin, key, value if separator else None))
+
+
+def validate_entry(entry: ConfigEntry) -> ConfigEntry:
+    """Validate a typed effective value independently of Git's wire format."""
+    scope, origin, key = entry.scope, entry.origin, entry.key
     if not key or not origin or not scope:
         msg = "Malformed Git configuration identity"
         raise GitPolicyError(msg)
     if scope == "command" or (key.lower() in _ROUTING_KEYS and scope not in {"local", "worktree"}):
         msg = f"Rejected Git configuration: {scope} scope, {origin}, {key}"
         raise GitPolicyError(msg)
-    return ConfigEntry(scope, origin, key, value if separator else None)
+    return entry
 
 
 # eof

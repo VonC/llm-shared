@@ -17,9 +17,6 @@ from tools.release_workflow.git_environment import GitPolicyError
 if TYPE_CHECKING:
     from tools.release_workflow.git import GitExecutionContext
 
-_METADATA_PATH_COUNT = 3
-
-
 class ProjectPathError(ValueError):
     """A supplied root or managed path cannot be physically authorized."""
 
@@ -51,12 +48,7 @@ def _directory(supplied: str | Path | None, git: GitExecutionContext) -> Path:
 def _metadata(directory: Path, git: GitExecutionContext) -> tuple[Path, Path, Path]:
     """Check configuration before trusting any worktree discovery result."""
     git.inspect_config(cwd=directory)
-    result = git.run(["rev-parse", "--path-format=absolute", "--show-toplevel", "--absolute-git-dir", "--git-common-dir"], cwd=directory)
-    lines = result.stdout.splitlines()
-    if len(lines) != _METADATA_PATH_COUNT or any(not Path(line).is_absolute() for line in lines):
-        msg = "Git did not report three absolute project metadata paths"
-        raise ProjectPathError(msg)
-    root, git_dir, common = (Path(line).resolve(strict=True) for line in lines)
+    root, git_dir, common = (path.resolve(strict=True) for path in git.metadata(cwd=directory))
     return root, git_dir, common
 
 

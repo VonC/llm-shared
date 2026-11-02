@@ -182,6 +182,35 @@ owning step. Bound subprocess tests to detect hangs and hidden prompts; those
 test-harness safety timeouts are not product performance targets. Groundhog
 owns duration measurement and any necessary slow-test repairs.
 
+## Simulation-only test strategy (2026-10-29)
+
+The user replaced the earlier real-process test requirement: automated tests
+must use programmatic simulation, with no Git executable, shell interpreter,
+console host, or child interpreter. This decision supersedes the real-process
+evidence requirements and one-second timing floor elsewhere in this plan.
+
+Exercise production Python parsers, dispatch, validation, transitions and
+rendering in process. Inject explicit repository facts and process results at
+external boundaries; use virtual clocks and scheduled events for waits and
+ownership races. Do not implement a general Git or shell emulator. Check thin
+launcher wiring as source contracts; these checks are not evidence that a real
+shell or terminal was executed.
+
+The replacement plan accepted on 2026-10-29 measures setup, call and teardown
+combined against a 0.1-second CPU limit and a 1-second wall limit. Report both;
+shared fixture preparation remains charged to the test that requests it.
+Freeze existing filesystem and Git emulation: add no OS behavior, scenario
+folders or command patterns. Fix failing tests with plain data at the nearest
+function boundary; defer removal of passing emulation until after the green
+suite. Do not optimize tests that already pass.
+
+Report suite startup and total elapsed time separately. Retain the 100% Python
+coverage gate, two test workers, zero duration exclusions and 360-second whole
+day ceiling. Block accidental process creation during test execution and
+replace real sleeps with explicit virtual-time dependencies. Record measured
+results under current load; arbitrary CPU starvation cannot have a wall-clock
+guarantee.
+
 ## Shared test architecture and coverage
 
 In-process tests cover every new production Python line. `bootstrap.py` and
@@ -743,10 +772,20 @@ actual cancellation outcome: batch routes show `Terminate batch job (Y/N)?`
 (or the localized equivalent); use the localized yes and no answers, reading
 their keys from the captured prompt. Yes terminates without a promised final
 diagnostic; no lets the launcher return 1 with stderr diagnostics. Native
-execution returns 1 with diagnostics. Redirected stdin must never prompt.
+execution returns 1 with diagnostics. Redirected stdin must never trigger an
+application input prompt. As required by the approved design, prompt-free
+cancellation in automation uses the native-Python route: cmd can still print
+its own batch-termination question on redirected stdin, then consume EOF.
+Record PowerShell host termination separately when Ctrl+C stops its pipeline
+before it can forward the launcher's result; verify its `finally` restoration.
 Verify environment, cwd and codepage restoration wherever cleanup can run;
 capture terminal-abort behavior explicitly rather than claiming cleanup after
 termination.
+
+The simulation-only strategy above supersedes the real-process evidence in
+this historical completion paragraph. Current completion uses production
+Python with explicit boundary facts and batch source contracts; it supplies no
+current shell or terminal execution proof.
 
 Completion: real launcher tests exercise Windows cmd, doskey expansion,
 PowerShell 5.1, Python native automation and explicit alternate checkout.
