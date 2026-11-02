@@ -13,6 +13,9 @@ Both asserting tests execute the relevant operation on current records;
 migration/preflight sequencing has separate acceptance coverage.
 Legacy records are declared at the data boundary instead of replaying request
 publication and transcript append transactions during prerequisite setup.
+Since the 2026-11-01 Override takeover rule, the Override case expects the
+coordination record to name the claiming nature and the transcript to log the
+replaced one.
 """
 
 # ruff: noqa: PLR2004
@@ -113,13 +116,15 @@ def test_conflict_stop_makes_no_partial_backfill_and_returns_all_evidence(confli
 def test_override_preserves_conflict_and_fills_only_missing_selected_role(
     conflict_journey: dict[str, Any],
 ) -> None:
-    """AC9: approved Override claims while keeping existing contrary evidence intact."""
+    """AC9: approved Override claims and records the claiming nature, logging the replaced one."""
     journey = conflict_journey
     repo = journey["repo"]
     journey["override"] = [repo.claim_known(role="reviewer", nature="codex", override=True)]
     journey["snapshots"] = {path.name: repo.natures(path) for path in (repo.paths.request, repo.paths.coordination)}
     assert journey["override"][-1].code == 0
-    assert journey["snapshots"][repo.paths.coordination.name] == {"requestor": "codex", "reviewer": "claude"}
+    assert journey["snapshots"][repo.paths.coordination.name] == {"requestor": "codex", "reviewer": "codex"}
+    transcript = repo.paths.transcript.read_text(encoding="utf-8")
+    assert "llm-nature-override-reviewer-exchange-1-claude-to-codex" in transcript
     assert journey["snapshots"][repo.paths.request.name] == {"requestor": "codex", "reviewer": "codex"}
     assert journey["override"][-1].payload["action"] == "review-request"
 
