@@ -8,6 +8,11 @@ outliers-last cases moved here unchanged from ``test_groundhog_cli.py`` and
 
 Fix (v0.13.0 full_suite_levels, Step 2): a full run at ``pass`` measures no
 coverage, so no gate is read below ``cov``.
+
+Fix: pytest exit 1 with no parsed failure fails closed. A covered run at the
+gate and an uncovered run give test failures, outliers included; a coverage
+gap stays a gap, since pytest-cov's fail-under also exits 1, and a covered
+run with no TOTAL line keeps its setup error.
 """
 
 from __future__ import annotations
@@ -26,6 +31,7 @@ from tools.groundhog.models import (
     EXIT_SUITE_CRASH,
     EXIT_TEST_FAILURES,
     PYTEST_NO_TESTS,
+    PYTEST_TEST_FAILURES,
     PYTEST_USAGE_ERROR,
     Mode,
     RunResult,
@@ -167,6 +173,28 @@ def test_classify_judges_outliers_last(tmp_path: Path) -> None:
     assert verdicts.classify(invocation, _result(failing, 1), _GATE_FULL, 1) == (
         EXIT_TEST_FAILURES
     )
+
+
+def test_classify_unexplained_exit_one_fails_closed(tmp_path: Path) -> None:
+    """Pytest exit 1 with no parsed failure is a test failure unless coverage explains it.
+
+    pytest-cov's fail-under also exits 1, so a gap keeps its own code, and a
+    covered run with no TOTAL line keeps its setup error. At the gate, or on
+    an uncovered run where coverage cannot explain it, exit 1 fails closed,
+    before any outlier verdict.
+    """
+    full = _invocation(runner.SUB_FULL, no_cov=False, root=tmp_path)
+    at_gate = _result(_green_full(RunStats()), PYTEST_TEST_FAILURES)
+    assert verdicts.classify(full, at_gate, _GATE_FULL) == EXIT_TEST_FAILURES
+    assert verdicts.classify(full, at_gate, _GATE_FULL, 1) == EXIT_TEST_FAILURES
+    low = RunStats()
+    low.cov_percent = _GATE_LOW
+    gap = _result(low, PYTEST_TEST_FAILURES)
+    assert verdicts.classify(full, gap, _GATE_FULL) == EXIT_COVERAGE_GAP
+    unread = _result(RunStats(), PYTEST_TEST_FAILURES)
+    assert verdicts.classify(full, unread, _GATE_FULL) == EXIT_SETUP_ERROR
+    uncovered = _invocation(runner.SUB_AFFECTED, no_cov=True, root=tmp_path)
+    assert verdicts.classify(uncovered, unread, None) == EXIT_TEST_FAILURES
 
 
 def test_setup_reason_per_precondition() -> None:

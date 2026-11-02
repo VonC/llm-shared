@@ -41,6 +41,12 @@ proof. Every closing line appends its evidence keys.
 Fix: a parallel full run passes ``runner.worker_environment`` to its child, so
 ``-n auto`` stays bounded to a quarter of the logical CPUs (at most two) unless
 the caller set ``PYTEST_XDIST_AUTO_NUM_WORKERS``.
+
+Fix: a run that pytest failed with exit 1 although its output named no failing
+test now fails closed (``verdicts.classify``). Its failure context is
+``verdicts.MSG_UNPARSED_FAILURE`` plus the output tail, chosen by
+:func:`_failure_context`, and the uncovered affected and focus runs take their
+failing next step from the verdict too, not only from the parsed count.
 """
 
 from __future__ import annotations
@@ -73,6 +79,7 @@ from tools.groundhog.models import (
     EXIT_NOT_PYTEST_PROJECT,
     EXIT_OBJECTIVE_MET,
     EXIT_SETUP_ERROR,
+    EXIT_TEST_FAILURES,
     PYTEST_NO_TESTS,
     GroundhogError,
     RunStats,
@@ -453,11 +460,7 @@ def _report_run_context(invocation: Invocation, judged: _Judged) -> None:
         judged: The judged run.
     """
     result, exit_code, summary = judged.result, judged.code, judged.summary
-    if result.crashed:
-        level = effective_level(invocation.level, invocation.sub)
-        emit(_section(reporting.crash_block(result.stats, result.tail, level, invocation.scope.selector())))
-    elif result.stats.failed > 0:
-        emit(_section(result.failure_block))
+    emit(_section(_failure_context(invocation, judged)))
     if exit_code == EXIT_COVERAGE_GAP and result.coverage_block:
         emit(
             _section(
@@ -475,6 +478,41 @@ def _report_run_context(invocation: Invocation, judged: _Judged) -> None:
         emit(durations_report.exclusion_block(summary))
         if exit_code == EXIT_DURATION_OUTLIERS:
             emit(durations_report.action_block(summary))
+
+
+def _failure_context(invocation: Invocation, judged: _Judged) -> Sequence[str]:
+    """Choose the failure material of the run: crash, failures or unparsed exit.
+
+    Args:
+        invocation: The parsed invocation.
+        judged: The judged run.
+
+    Returns:
+        The crash block (Q06), the verbatim failure block (Q08), the unparsed
+        failure diagnostic with the output tail, or nothing for a run that
+        did not fail.
+    """
+    result = judged.result
+    if result.crashed:
+        level = effective_level(invocation.level, invocation.sub)
+        return reporting.crash_block(result.stats, result.tail, level, invocation.scope.selector())
+    if result.stats.failed > 0:
+        return result.failure_block
+    if judged.code == EXIT_TEST_FAILURES:
+        return [verdicts.MSG_UNPARSED_FAILURE, *result.tail]
+    return ()
+
+
+def _failed(judged: _Judged) -> bool:
+    """Tell whether the run failed tests, parsed or only reported by pytest.
+
+    Args:
+        judged: The judged run.
+
+    Returns:
+        True when a failing test was parsed or the verdict is test failures.
+    """
+    return judged.result.stats.failed > 0 or judged.code == EXIT_TEST_FAILURES
 
 
 def _next_steps(invocation: Invocation, judged: _Judged) -> list[str]:
@@ -505,17 +543,19 @@ def _next_steps(invocation: Invocation, judged: _Judged) -> list[str]:
     if invocation.sub == runner.SUB_AFFECTED:
         if invocation.no_cov:
             return reporting_nextstep.next_after_affected_nocov(
-                failed=result.stats.failed > 0,
+                failed=_failed(judged),
                 context=context,
             )
         return reporting_nextstep.next_after_affected_cov(exit_code, context.level, context.scope)
-    return _single_lines(invocation, result, context)
+    return _single_lines(invocation, result, context, failed=_failed(judged))
 
 
 def _single_lines(
     invocation: Invocation,
     result: RunResult,
     context: reporting_nextstep.StepContext,
+    *,
+    failed: bool,
 ) -> list[str]:
     """Build the focus-run comparison lines (Q07, Q18).
 
@@ -523,6 +563,7 @@ def _single_lines(
         invocation: The parsed invocation.
         result: The parsed run result.
         context: The carried level the restart names.
+        failed: Whether the focus run failed, parsed or only reported by pytest.
 
     Returns:
         The two comparison lists and the next step, or the no-baseline
@@ -540,7 +581,7 @@ def _single_lines(
     )
     return reporting_nextstep.comparison_lines(
         comparison,
-        failed=result.stats.failed > 0,
+        failed=failed,
         level=context.level,
         scope=context.scope,
     )

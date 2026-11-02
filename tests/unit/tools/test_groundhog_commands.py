@@ -37,6 +37,11 @@ level-aware builders: a standalone ``ghog timings`` and ``ghog single`` carry
 no level (plain ``ghog day`` restart), and a direct sequential ``ghog full``
 runs at its default ``speed``, prints the ``speed`` success line and appends
 ``full=speed src=default proof=speed scope=whole`` to its closing line.
+
+Fix: a run that pytest failed with exit 1 although its output named no failing
+test fails closed. It exits 2, prints the diagnostic and the output tail as
+its failure context, and its next step is the failing one, for an uncovered
+affected run and for a focus run alike.
 """
 
 from __future__ import annotations
@@ -58,6 +63,7 @@ from tools.groundhog import (
     floor,
     init_files,
     reporting_nextstep,
+    verdicts,
 )
 from tools.groundhog.levels import FullLevel
 from tools.groundhog.models import (
@@ -484,6 +490,24 @@ def test_single_run_compares_with_the_full_run_baseline(
     out = capsys.readouterr().out
     assert reporting_nextstep.no_baseline_line(FullLevel.NONE) not in out
     assert reporting_nextstep.single_restart_line(FullLevel.NONE) in out
+
+
+def test_unexplained_exit_one_fails_closed_with_the_output_tail(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Pytest exit 1 with no named failure exits 2, shows the tail, and says fix."""
+    passing = passing_transcript(1, None)
+    assert _run(["affected", "--no-cov"], Spawns(passing, 1), tmp_path) == EXIT_TEST_FAILURES
+    out = capsys.readouterr().out
+    assert verdicts.MSG_UNPARSED_FAILURE in out
+    assert out.index(verdicts.MSG_UNPARSED_FAILURE) < out.index(passing[-1])
+    assert "Next: fix these, re-run ghog affected --no-cov" in out
+    baseline.write_baseline(tmp_path, ["tests/test_ok.py::test_0"])
+    assert _run(["single", "tests/test_ok.py"], Spawns(passing, 1), tmp_path) == EXIT_TEST_FAILURES
+    out = capsys.readouterr().out
+    assert reporting_nextstep.single_restart_line(FullLevel.NONE) in out
+    assert reporting_nextstep.single_green_line(FullLevel.NONE) not in out
 
 
 def test_init_reports_success_and_failure(
