@@ -11,8 +11,31 @@ services, including the Round 1 boundary repairs, pass the replacement full
 speed day and static implementation check. Step 3's strict configuration and
 schema registration pass the full speed gate after the family-instance repair.
 Step 4's managed writes, artifact capabilities and operation ownership pass the
-repaired full speed gate. Steps 5 and 6, including the public caller matrix and
-rollout, remain pending.
+repaired full speed gate. Step 5 code-review rounds 1 through 3 are repaired,
+including runtime class normalization, source contracts and test isolation.
+Round 4's transcript MD050 finding is repaired. After the test-speed campaign
+of 2026-10-31 to 2026-11-01, the simulation suite passes 5,148 tests with 100%
+coverage, zero outliers or exclusions, and no CPU or wall lifecycle miss. The
+test part is committed separately (`bf48d33` to `a05eeb6`). Step 5 is fully
+implemented; independent replacement review and human Commit remain pending.
+Step 6's integrated acceptance and rollout remain pending. No Step 5 commit
+has been authorized.
+
+## Current simulation migration (2026-10-29)
+
+The user now requires programmatic simulation with no Git, shell, console or
+child-interpreter execution inside tests. The owning plan records this change;
+it supersedes previous requirements to retain real-process evidence and the
+one-second ceiling. The accepted replacement timing plan measures CPU <=0.1s
+and wall <=1s per test, including setup and teardown, retaining 100% coverage
+and zero duration exclusions.
+
+Migration and current whole-suite validation have passed as recorded in Step 5.
+Earlier timing, shell and OS results below are historical evidence, not proof
+of the replacement suite. Source checks on launcher wiring and simulated
+cancellation do not establish real-shell parsing or OS signal behavior. The
+Step 5 strategy supersedes earlier real-process test requirements; Step 6
+implementation and rollout remain pending.
 
 ## File-based IO cost clarification for v0.14.0 release-project-root implementation
 
@@ -829,46 +852,317 @@ composition and cross-process acceptance remain in their planned Steps 5 and
 
 ### Analysis of Step 5 implementation state
 
-Not started. Step 5 is not implemented because the context/transport/result interfaces and real explicit-root and alias launchers have not been implemented.
+Yes. Step 5 has been fully implemented.
+
+Code review round 3's eight repair goals are complete: batch and CLI source
+contracts, observable assertions, accurate sampling disclosure, production
+fixture rendering, guard isolation, unused-helper removal, audit events and
+separate startup timing. The invocation, input, result and dispatch adapters
+and both batch launchers are implemented; the earlier runtime-class and
+validation-layout repairs remain intact.
+
+The final whole-suite day passed 5,148 tests at 100% configured coverage and
+met both complete-lifecycle limits with no miss. This assessment applies the
+user-approved simulation-only strategy and replacement timing plan of
+2026-10-29, the single setup-through-teardown CPU window approved on
+2026-10-31, and the 2026-11-01 rule for confirming timing-only misses.
+Independent round-5 review found no new production defect or static coverage
+gap in the staged implementation. The independent commit-plan checker accepts
+all 31 paths in nine groups when its process-local `PRJ_DIR` selects this
+worktree. No reviewer tests were run; the disclosed requestor evidence remains
+the executed validation source.
+
+The user decided the four carried boundary items on 2026-11-02:
+
+1. Removal of the frozen filesystem/Git emulation (`tests/scenario_storage.py`,
+   `tests/memory_filesystem.py`) belongs to a separate follow-up requirement
+   after release-project-root, owned by test-suite maintenance. Its umbrella
+   row comes later through process-draft; Step 5 and Step 6 scope are
+   unchanged.
+2. The argv-table repository observations
+   (`tests/review_repository_observations.py`,
+   `tests/code_review_repository_observations.py`,
+   `tests/acceptance/commit_plan_check/repository_observations.py`) are within
+   that freeze; their review or removal goes with the same follow-up.
+3. The shared Markdown gate through its public launcher and the site-free
+   import closure of `tools` have no simulated replacement. Both are accepted
+   gaps of the simulation-only decision, owned by the same follow-up; Step 5
+   adds no code for them.
+4. The cancellation wording amendment in the plan is approved as staged.
+
+No boundary decision remains open for Step 5. Human commit authorization is
+still pending. Step 6 remains outside this assessment and the document-level
+status stays No.
 
 ### Goal for Step 5
 
-Compose the foundation into fixed invocation context and prove supported Windows/native caller channels.
+Compose the foundation into a fixed invocation context, expose the Windows
+entrypoints and verify their Python behavior and thin batch source contracts
+under the accepted simulation-only test strategy.
 
 ### Step 5 improvement expectations
 
-- Explicit selectors, alias discovery and script-derived build roots preserve intended project identity.
-- GetConsoleMode and explicit non-interactive policy prevent hidden prompts and assumed consent.
-- UTF-8/LF streams remain separate; public 0/1/2 and original child failure details survive launcher cleanup.
-- The reserved entry prefix distinguishes explicit batch, alias batch and explicit native input; missing/duplicate kinds and missing explicit roots fail.
-- ASCII launchers report pre-Python record/interpreter failure with status 2, use their own checkout, parse localized code-page output and restore state wherever cleanup regains control.
-- The pseudo console reads localized answer keys and proves doskey and Ctrl+C outcomes: batch yes termination, batch no status 1 with diagnostics, native status 1 with diagnostics, and no prompts for redirected stdin.
-- Context derives the project name, Windows/POSIX roots and six legacy locations without exporting variables or trusting inherited values.
-- Real test handlers exist only in the verified tooling copy; the unmodified checkout rejects their names.
+- Explicit selectors, alias discovery and script-derived build roots preserve project identity.
+- GetConsoleMode and explicit non-interactive policy prevent hidden application prompts and assumed consent.
+- UTF-8/LF streams remain separate; public 0/1/2 statuses retain original failure detail.
+- Reserved entry kinds distinguish explicit batch, alias batch and native input; missing or duplicate kinds fail.
+- ASCII launchers select their own recorded interpreter, diagnose prerequisites and preserve status through cleanup.
+- Context derives project paths without exporting legacy variables or trusting inherited values.
+- Production rejects test handlers; in-process injection remains confined to tests.
+- Every test lifecycle rejects process creation and meets CPU <=0.1s and wall <=1s, including fixtures.
 
 ### What was implemented for Step 5
 
-_(empty — no check has taken place yet.)_.
+- `invocation.py` composes runtime, Git, project, configuration and artifact
+  services. Selectors are explicit data; alias discovery starts at captured cwd.
+  Missing/conflicting selectors fail, stale-root diagnostics name both roots,
+  and input locators resolve from the selected project. Computed paths ignore
+  inherited legacy values; a copied Git environment removes those values.
+- `inputs.py` uses GetConsoleMode and reads explicit UTF-8 file/stdin or native
+  text. Required non-interactive input fails without a prompt or consent.
+  Invalid stdin encoding identifies stdin independently of the file selector.
+- `cli.py` parses and dispatches through an immutable shipped registry. It
+  converts verified bootstrap data to public `RuntimeIdentity` without another
+  record read, preserving public type identity and equality. No configuration
+  or environment mechanism registers production handlers.
+- `results.py` separates UTF-8/LF data and diagnostics, retains original failure
+  status in diagnostics and maps outcomes to 0/1/2. Bootstrap captures cwd,
+  validates the reserved entry protocol and completes readiness before importing
+  the engine. Invocation errors return 2 without unrelated setup advice.
+- Both batch launchers self-locate, read the runtime record and execute its
+  Python with `-I -X utf8`. Prerequisite failures return 2 before Python.
+  Runtime-record checks use cmd built-ins and delayed data expansion, which is
+  disabled again before executing Python. Codepage operations use system
+  `chcp.com`; parsing retains digits after the final colon. Cleanup preserves
+  status, without environment activation or cwd changes. `.gitattributes`
+  retains CRLF for both files.
+- `launcher_simulation.py` runs production bootstrap and CLI with explicit
+  interpreter, repository and console facts. Tests preserve Unicode payloads,
+  alternate tooling identity, entry modes, public runtime type/equality,
+  required-input failures, cancellation normalization and the one-read contract.
+  Batch source tests check flags, entry literals, codepage parsing, cleanup,
+  ordered prerequisite checks and native-status normalization. They cover all
+  runtime-record producer branches. AST contracts check the three code-review
+  CLIs' path bootstrap before their first tools import.
+  Obsolete console, copied-tooling, waiter-process and process-driver fixtures
+  were removed. These tests do not execute or emulate a shell.
+- Typed Git observation methods expose version, effective configuration,
+  metadata and index facts while retaining native production adapters and
+  configuration validation. Review repository/ignore observations similarly
+  separate facts from policy; artifact callback defaults resolve at call time.
+  Tests inject data at these boundaries instead of starting executables.
+- Shared test helpers supply scenario storage/streams, explicit repository
+  observations, scheduled notifications and in-process CLI calls. Existing
+  passing filesystem/Git emulation remains frozen as required by the replacement
+  plan; complete removal is not claimed. Process creation is rejected by an
+  audit hook during setup, call and teardown. CPU and wall reports include all
+  three phases, including shared fixture initialization and cleanup.
+- Prepared review phases use production store publication and transcript
+  rendering, including answer and authorized-confirmation entries. Completed
+  answer publication removes its intermediate tombstone, matching the core.
+  Standalone and umbrella contexts use the same generic envelope builder.
+- Review status asserts repeated-call idempotence and tracked-content
+  preservation; identical inline-call parity and static index/ref comparisons
+  were removed. Bootstrap tests observe `sys.dont_write_bytecode`, and prepared
+  acceptance homes must contain the actual `.gitignore` bytes before ignore
+  observations permit activation. Docstrings describe the simulated boundary.
+- Guard execution restores `sys.path` in `finally` and rejects absent guards
+  explicitly. Regressions cover success, SystemExit and RuntimeError; existing
+  entry tests observe bootstrap paths during execution and restoration afterward.
+  The unused Git executable helper and its test were removed. Audit regressions
+  reject `_winapi.CreateProcess`, `os.startfile` and `os.exec` events.
+- Managed writes reject drive-relative Windows spellings before filesystem
+  authorization. Sentinel regressions cover `x:stream`, `C:relative` and `C:`.
+  This correction retains a separate commit group.
+- Public package exports load on demand without changing their identities.
+  Markdown classification caches and direct membership lookups avoid repeated
+  scans; radix-order nodes use slots. Tests retain public export, ordering and
+  checker-result contracts. Shared check setup is reused, and coverage uses
+  sysmon with the original measured source scope and 100% threshold.
 
 ### New types or classes introduced for Step 5
 
-_(empty — no check has taken place yet.)_.
+- Frozen `InvocationRequest` holds parsed choices; frozen `InvocationContext`
+  holds validated identities, caller data, payload and interaction policy.
+- Frozen `Handler` associates a callable with its input requirement;
+  `_Parser` and `_Arguments` keep parser failures and fields typed.
+- Frozen `OperationResult` holds status, data and diagnostics;
+  `_BufferedInput` describes the binary stdin seam.
+- `InvocationError` separates entry syntax from readiness failures; bootstrap
+  protocols describe verified identity and engine interfaces.
+- Test-only `ToolingSimulation`, `GitSandbox`, repository fact records,
+  `ScenarioFilesystem`, `ScenarioStorage`, `ScenarioStreams`, `FileBuffer`,
+  `ScenarioConnection` and `NotificationSchedule` support in-process evidence.
+  They are outside the production coverage denominator.
 
 ### Architecture check for Step 5
 
-_(empty — no check has taken place yet.)_.
+Composition uses validated services; input, output, Win32 and batch details
+remain adapters. Bootstrap loads isolated helpers before exposing the engine.
+CLI normalizes the private runtime class through the public data constructor,
+without rereading mutable runtime metadata. Typed Git observations isolate
+external data acquisition while policy still validates configuration and paths.
+Test helpers do not become production imports or registration hooks.
+
+The existing filesystem/Git emulation is frozen and still has known fidelity
+limits. Its removal belongs to a separate follow-up requirement after
+release-project-root, owned by test-suite maintenance (user decision of
+2026-11-02); it is not added to Step 5 or Step 6. The argv-table repository
+observations are within the same freeze.
+The round-3 repairs add no emulated OS behavior, scenario folders or Git command
+patterns.
+
+Physical line counts, including blanks: `bootstrap.py` 199, `invocation.py`
+192, `cli.py` 149, `inputs.py` 69, `results.py` 51, `git.py` 185,
+`git_environment.py` 136, `paths.py` 152, `artifacts.py` 128 and
+`managed_files.py` 137. Both launchers contain 78 lines. Bootstrap entered
+Step 5 at 139 lines; new modules started at zero. The largest new shared
+test helper, `scenario_storage.py`, contains 400 lines; `memory_filesystem.py`
+contains 302. All changed Python files remain below the 650-line ceiling.
+The private static inventory records every changed path and count.
+
+The frozen test emulation remains an architecture concern for the separately
+owned follow-up. No production layer violation or file-size issue was found;
+the accepted Step 5 scope requires freezing that concern, not removing it here.
 
 ### Performance check for Step 5
 
-_(empty — no check has taken place yet.)_.
+Argument, environment and payload processing is linear in input size; discovery
+follows ancestor depth. No new quadratic or n-log-n production computation was
+identified. Batch reads the designation to select Python; production bootstrap
+reads it once for verification. An in-process dispatch regression observes that
+single Python read and asserts the public identity's class and equality.
+
+The accepted replacement plan freezes passing filesystem/Git emulation and
+repairs failing tests through nearby data boundaries. It retains two workers,
+100% coverage, zero duration exclusions, the process-creation audit and a
+360-second whole-day ceiling. Complete setup + call + teardown must consume
+CPU <=0.1s and wall <=1s. The ordinary groundhog call-outlier floor is separate
+from these stricter lifecycle gates. No exclusions or raised baselines are used.
+Earlier property-sampling reductions remain disclosed: proof accumulation uses
+25 examples and enum properties 30. Later bounded batches limit attempted
+examples, not distinct generated inputs: Hypothesis repeats the simplest case
+at each run. LS003's 50 two-example batches provide at most about 51 distinct
+inputs, aggregate properties' five batches at most about six each, and document
+lookup's 20 batches at most about 21 each. Five-example batches provide at most
+1 + 4 times the batch count (81 for 20 batches, 33 for eight, 21 for five and
+nine for two), potentially fewer. Explicit examples repeat edge checks and do
+not guarantee uniqueness. This is a reduction in distinct-input coverage;
+fixture cost remains included in measurement.
+
+The final `ghog day --full=speed --whole-suite` ended on
+2026-11-01T19:20:10+01:00 with exit 0: 5,148 tests, fail=0, warn=0,
+xfail=0, cov=100, outliers=0, excluded=0, proof=speed, reused=none,
+scope=whole. Static checks passed (51.5s), affected validation ran 2,249 of
+5,148 tests under testmon (38.6s), and the covered two-worker full stage took
+31.9s. The protected runner took 136.828053 seconds, including command startup
+and orchestration, below the 360-second ceiling. The round-5 rerun at
+2026-11-01T20:47:35+01:00 reused that proof on unchanged sources
+(`reused=all`); no `.py` file changed in between.
+
+Full-stage startup is measured separately from its logged start at
+19:19:38+01:00 to the first controller report at 19:19:46.168568+01:00:
+8.168568 seconds, including worker startup, collection and first setup. The
+start timestamp has one-second precision, so this is approximately 8.2s.
+It is a stage-start measurement, not pure interpreter initialization.
+
+The same covered stage audit contains all 5,148 complete lifecycles: maximum
+CPU 0.09375 seconds, maximum lifecycle wall 0.0823104 seconds and maximum setup
+0.035 seconds; 16 lifecycles exceed the preferred 0.04-second CPU aim, none
+exceeds a limit. The proof is retained as
+`.reviews/a.release-project-root.step5.tmp.claude-day1` log, limit JSON and
+duration JSON artifacts; the step journal records its provenance.
+
+Between rounds 4 and 5, every test file was qualified in twelve measured
+groups (5,143 group-run lifecycles, 57 above the aim, maximum 0.09375s) before
+the whole-suite day. Repairs kept every assertion: declared prerequisite
+records instead of replayed journeys, session caches for immutable grammars
+and template text, removed native lookups, host-signal isolation, and
+equivalent cheaper property domains. Production changes in this interval are
+limited to `review_exchange_cli.py` and `review_exchange_cli_parser.py`
+building only the selected subcommand (full grammar fallback retained, parser
+equivalence tests added), the `tools/template_text.py` seam used by five
+renderers, and `check.bat` running pyright with two threads. A timing-only
+miss whose CPU is mostly kernel time, or whose setup waits with little CPU, is
+re-measured once in the same order under the user's 2026-11-01 rule; the
+whole-suite day needed no confirmation. The public explanation is
+`wiki/explanation/why-fast-tests-keep-the-work-they-assert.md`.
+
+The round-4 preparation first exposed standalone prepared-fixture and
+post-guard path assumptions, now repaired, plus two CPU outliers. The
+three-candidate validation fallback case used 0.125s CPU / 0.129941s wall;
+profiling identified repeated directory discovery. Only that parameter case
+now supplies an inventory at the lookup boundary, retaining matching,
+selection and ordered diagnostics. Its focused retest used 0.015625s CPU /
+0.037104s wall. The missing-coverage-evidence case used 0.203125s CPU /
+0.206334s wall; its profile identified unrelated group setup and discovery.
+It now receives resolved scope data, keeping all refusal and resource checks;
+its focused retest used less than one CPU timer tick and 0.017918s wall.
+Dedicated discovery and coverage tests retain their real-input checks.
+The subsequent affected run passed 4,862 tests before the final covered day.
+Passing parameter cases and the frozen emulation were not optimized.
+
+Round 3's earlier proof-recovery repair remains: its fixture supplies group
+report data while freshness, production walk and rendering stay active. The
+current covered case used 0.0625s CPU / 0.071272s wall. Earlier green runs and
+failed static checks are retained as diagnostics rather than current proof.
+
+Earlier native-process profiles, watchdog cutoffs and the 21:50 run with one
+CPU failure are historical diagnostics, not current proof. Their detailed
+measurements remain in the private journal. The simulation decision superseded
+their real-process requirements. No causal speedup across different host loads,
+cold-affected timing or real terminal execution is inferred from the final run.
+
+No performance issue remains to be addressed for the accepted test gates.
 
 ### Unit test coverage check for Step 5
 
-_(empty — no check has taken place yet.)_.
+`[tool.coverage.run]` measures `tools`, omitting tests, initializers, interfaces
+and the explicitly listed unrelated thin adapters. The threshold remains 100%.
+The final covered whole suite reports 100% for this configured scope, including
+bootstrap and the four new production modules. This percentage does not apply
+to batch files, package initializers or test helpers.
+
+Matching `test_bootstrap`, `test_invocation`, `test_cli`, `test_inputs` and
+`test_results` folders cover selectors, identity, paths, payloads, environment
+isolation, exception boundaries and rendering. Git/paths/artifacts unit tests
+cover the extracted typed observations and validation failures. Export and
+Markdown tests retain their existing contracts. Static inspection finds no
+missing class exercise; no tests were rerun solely for this implementation check.
+
+Out-of-gate helpers are referenced by tests, internal helper callers or
+module-level registration. The static symbol inventory includes imports,
+attribute and module-level references; pytest collects test functions/classes,
+fixtures and registered plugin hooks. `reject_process` is registered through
+`sys.addaudithook`; scenario storage and stream helpers have direct regressions.
+Both release launchers and the runtime-record producer have source-contract
+assertions, as do the three code-review CLI path bootstraps. No removed console
+fixture or historical native run is counted as current exercise.
+
+No unit-tested class below 100% was identified by static inspection.
+No out-of-gate top-level symbol is unreferenced.
 
 ### Feature integrity for Step 5
 
-_(empty — no check has taken place yet.)_.
+The foundation remains opt-in: existing builds, aliases and release domains
+are not migrated. Preflight/read-only invocation creates no artifacts and the
+production registry rejects unavailable commands. Input policy and cancellation
+normalization run through production Python with explicit boundary facts.
+The accepted suite supplies no current empirical evidence of shell quoting,
+doskey expansion, localized termination prompts or real caller restoration.
+Batch cleanup is assessed from source; cleanup after forced termination is
+not promised. Native Python remains the documented automation route for avoiding
+cmd's own batch-termination question.
+
+The user approved the cancellation wording amendment as staged on 2026-11-02.
+The shared Markdown gate through its public launcher and the site-free import
+closure of `tools` have no simulated replacement; the user accepted both as
+gaps of the simulation-only decision on the same date, owned by the emulation
+follow-up. The later user-approved simulation strategy governs test evidence.
+No existing feature or reporting regression was identified. Independent
+round-5 review is complete and the user decided every carried boundary item;
+human commit authorization remains pending. Step 6 integrated acceptance and
+rollout remain unimplemented.
 
 ## Step 6. Integrated acceptance and foundation rollout
 
