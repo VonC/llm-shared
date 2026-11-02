@@ -21,6 +21,14 @@ Fix (v0.13.0 full_suite_levels, Step 2): pytest's interruption banners are
 recorded (a bare or messaged ``KeyboardInterrupt``, an explicit
 ``pytest.exit``), and a collection-error banner, which pytest ends with the
 same exit code, is not.
+
+Fix: a failure that no result line names still counts. The final tally's
+``failed`` and ``error`` counts raise ``stats.failed`` when they exceed the
+failing result lines, and the ``short test summary info`` section adds each
+``FAILED``/``ERROR`` node not already listed, ignoring an xdist ``@group``
+suffix. A tally ``xfailed`` count, a failing line outside that section, and
+a collection error without a node id add nothing. A measured day once
+reported ``fail=0`` while pytest exited 1 for a teardown error.
 """
 
 from __future__ import annotations
@@ -415,6 +423,89 @@ def test_durations_keep_a_parametrized_id_with_spaces() -> None:
         ],
     )
     assert parser.stats.durations == {"tests/test_p.py::test_x[a b]": _PARAM_CALL_SECS}
+
+
+def test_tally_counts_a_failure_no_result_line_named() -> None:
+    """A teardown error missing from the result lines still fails the run.
+
+    Its node passed, its ``ERROR`` line never reached the parser, and only the
+    final tally, which the xdist controller prints too, carries the error.
+    """
+    parser = PytestOutputParser()
+    _feed_lines(
+        parser,
+        [
+            f"{_WORKERS} workers [2 items]",
+            "[gw0] [ 50%] PASSED tests/test_a.py::test_one",
+            "[gw1] [100%] PASSED tests/test_a.py::test_two",
+            "====== 2 passed, 1 error in 3.21s ======",
+        ],
+    )
+    assert parser.stats.failed == 1
+    assert parser.stats.failed_ids == []
+
+
+def test_tally_never_double_counts_parsed_failures() -> None:
+    """The tally only raises the count; xfailed tests never count as failed."""
+    parser = PytestOutputParser()
+    _feed_lines(
+        parser,
+        [
+            "tests/test_a.py::test_one FAILED [ 50%]",
+            "tests/test_a.py::test_one ERROR [ 50%]",
+            "tests/test_a.py::test_two XFAIL [100%]",
+            "====== 1 failed, 1 xfailed, 1 error in 0.50s ======",
+        ],
+    )
+    assert parser.stats.failed == _EXPECTED_FAILED
+    xfailed = PytestOutputParser()
+    xfailed.feed("====== 3 passed, 2 xfailed in 1.00s ======")
+    assert xfailed.stats.failed == 0
+
+
+def test_short_summary_names_a_failure_of_quiet_output() -> None:
+    """Quiet output names its failing test only in the short summary."""
+    parser = PytestOutputParser()
+    _feed_lines(
+        parser,
+        [
+            "collected 2 items",
+            "tests/test_a.py .E",
+            "============ short test summary info ============",
+            "ERROR tests/test_a.py::test_two - Failed: lifecycle CPU above budget",
+            "====== 2 passed, 1 error in 0.50s ======",
+        ],
+    )
+    assert parser.stats.failed == 1
+    assert parser.stats.failed_ids == ["tests/test_a.py::test_two"]
+
+
+def test_short_summary_adds_only_nodes_not_already_listed() -> None:
+    """A summary node already failed by its result line is not counted twice.
+
+    The comparison ignores an xdist ``@group`` suffix, and a parametrized id
+    holding `` - `` stays whole. A failing line outside the summary section,
+    as in captured output, and a collection error without a node add nothing.
+    """
+    parser = PytestOutputParser()
+    _feed_lines(
+        parser,
+        [
+            "ERROR tests/test_c.py::test_captured - printed by a test",
+            "[gw1] [ 50%] FAILED tests/test_a.py::test_one[a - b]@grp",
+            "============ short test summary info ============",
+            "FAILED tests/test_a.py::test_one[a - b] - AssertionError",
+            "FAILED tests/test_b.py::test_two",
+            "ERROR tests/test_d.py - ImportError: no module",
+            "====== 2 failed in 0.50s ======",
+            "ERROR tests/test_e.py::test_late - after the section",
+        ],
+    )
+    assert parser.stats.failed == _EXPECTED_FAILED
+    assert parser.stats.failed_ids == [
+        "tests/test_a.py::test_one[a - b]@grp",
+        "tests/test_b.py::test_two",
+    ]
 
 
 # eof

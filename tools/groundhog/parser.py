@@ -33,6 +33,15 @@ interruption banner, the crash message pytest prints between ``!`` runs for a
 ``pytest.exit``. pytest exits 2 both on an interruption and on collection
 errors; only the banner tells them apart, and an interrupted child judges no
 gate, so the saved proof of a walk stays as it was.
+
+Fix: a failure that no result line names still counts. A measured day once
+reported ``fail=0`` while pytest exited 1 for a teardown error, because its
+``ERROR`` result line never matched. The final tally's ``failed`` and
+``error`` counts, which the xdist controller prints too, now raise
+``stats.failed`` when they exceed the failing result lines. Each ``FAILED`` or
+``ERROR`` node of the ``short test summary info`` section joins
+``failed_ids`` unless already listed, compared without an xdist ``@group``
+suffix, so quiet output names its failures too.
 """
 
 from __future__ import annotations
@@ -87,6 +96,17 @@ _BANNER_RE: Final = re.compile(r"^=+ (?P<title>.+?) =+$")
 _SUMMARY_RE: Final = re.compile(r"^=+ .* in \d+(?:\.\d+)?s.* =+$")
 # The warnings count inside the final tally line.
 _WARNINGS_RE: Final = re.compile(r"(\d+) warnings?\b")
+# The failed and error counts inside the final tally line; "2 xfailed" does
+# not match, since the count must stand right before the word.
+_TALLY_FAILING_RE: Final = re.compile(r"\b(\d+) (?:failed|errors?)\b")
+# The short-summary section title, opening the failing-node capture.
+_SHORT_SUMMARY_TITLE: Final = "short test summary info"
+# One short-summary failing line: "FAILED tests/test_a.py::test_one - Error".
+# The optional bracket group keeps a parametrized id holding " - " whole; a
+# collection error names no "::" node and stays out.
+_SHORT_SUMMARY_RE: Final = re.compile(
+    r"^(?:FAILED|ERROR) (?P<node>[^\s\[]+::[^\s\[]+(?:\[.*?\])?(?:@[A-Za-z0-9._-]+)?)(?: - .*)?$",
+)
 # Section banners that carry failure details, captured verbatim (Q08).
 _FAILURE_SECTIONS: Final = ("FAILURES", "ERRORS")
 # The pytest internal-error marker, a crash signal (Q06).
@@ -133,6 +153,7 @@ class PytestOutputParser:
         self._coverage_lines: list[str] = []
         self._capturing_coverage = False
         self._capturing_durations = False
+        self._capturing_short_summary = False
         self._last_started: deque[str] = deque(maxlen=LAST_STARTED_KEPT)
         self._tail: deque[str] = deque(maxlen=TAIL_LINES_KEPT)
 
@@ -167,6 +188,7 @@ class PytestOutputParser:
         self._feed_failure_block(line)
         self._feed_coverage_table(line)
         self._feed_durations(line)
+        self._feed_short_summary(line)
         self._feed_counters(line)
 
     def _feed_failure_block(self, line: str) -> None:
@@ -225,6 +247,31 @@ class PytestOutputParser:
             node = _GROUP_SUFFIX_RE.sub("", duration.group("node"))
             self.stats.durations[node] = float(duration.group("secs"))
 
+    def _feed_short_summary(self, line: str) -> None:
+        """Add the short-summary failing nodes no result line named.
+
+        The ``short test summary info`` banner opens the capture and the next
+        banner, the final tally included, closes it, so a failing line in
+        captured output elsewhere is never read.
+
+        Args:
+            line: The raw line being parsed.
+        """
+        banner = _BANNER_RE.match(line)
+        if banner is not None:
+            self._capturing_short_summary = banner.group("title") == _SHORT_SUMMARY_TITLE
+            return
+        if not self._capturing_short_summary:
+            return
+        summary = _SHORT_SUMMARY_RE.match(line)
+        if summary is None:
+            return
+        node = summary.group("node")
+        listed = {_GROUP_SUFFIX_RE.sub("", failed) for failed in self.stats.failed_ids}
+        if _GROUP_SUFFIX_RE.sub("", node) not in listed:
+            self.stats.failed += 1
+            self.stats.failed_ids.append(node)
+
     def _feed_counters(self, line: str) -> None:
         """Update the run statistics from one output line.
 
@@ -246,9 +293,22 @@ class PytestOutputParser:
         if total is not None:
             self.stats.cov_percent = float(total.group(1))
         if _SUMMARY_RE.match(line) is not None:
-            warned = _WARNINGS_RE.search(line)
-            if warned is not None:
-                self.stats.warnings = int(warned.group(1))
+            self._feed_tally(line)
+
+    def _feed_tally(self, line: str) -> None:
+        """Read the warnings and failing counts of the final tally line.
+
+        The tally only raises ``stats.failed``: a failing result line already
+        counted is never counted twice.
+
+        Args:
+            line: The final tally line.
+        """
+        warned = _WARNINGS_RE.search(line)
+        if warned is not None:
+            self.stats.warnings = int(warned.group(1))
+        failing = sum(int(count) for count in _TALLY_FAILING_RE.findall(line))
+        self.stats.failed = max(self.stats.failed, failing)
 
     def _record_result(self, node: str, status: str) -> None:
         """Record one finished test result.
