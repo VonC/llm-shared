@@ -42,7 +42,7 @@ if "%ty_status%"=="0" (
 )
 
 %_info% "pyright '%PRJ_DIR%'"
-pyright
+pyright --threads 2
 set "pyright_status=%ERRORLEVEL%"
 if "%pyright_status%"=="0" (
   %_ok% "Pyright check passed for project '%PRJ_DIR_NAME%'"
