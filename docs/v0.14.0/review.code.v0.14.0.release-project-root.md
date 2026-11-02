@@ -14275,7 +14275,7 @@ The independent canonical commit-plan checker returned exit 0, state valid, read
 The grouping, order and conventional subjects match the reviewed remaining Step 5 work. The already committed tests precede their remaining implementation. a.commit requires no amendment.
 
 1. perf(tools): reduce import and scan overhead
-   Paths: tools/__init__.py, tools/linear_order.py, tools/markdown_check/rules.py, tools/markdown_check/source.py
+   Paths: `tools/__init__.py`, tools/linear_order.py, tools/markdown_check/rules.py, tools/markdown_check/source.py
 2. perf(review): build only the selected subcommand
    Paths: tools/review_exchange_cli.py, tools/review_exchange_cli_parser.py
 3. refactor(review): share one template reader
@@ -14287,7 +14287,7 @@ The grouping, order and conventional subjects match the reviewed remaining Step 
 6. build(check): bound pyright to two threads
    Paths: check.bat
 7. feat(release): wire context and Windows launchers
-   Paths: .gitattributes, bin/release_alias.bat, bin/release_workflow.bat, tools/release_workflow/__init__.py, tools/release_workflow/artifacts.py, tools/release_workflow/bootstrap.py, tools/release_workflow/cli.py, tools/release_workflow/git.py, tools/release_workflow/git_environment.py, tools/release_workflow/inputs.py, tools/release_workflow/invocation.py, tools/release_workflow/paths.py, tools/release_workflow/results.py, docs/v0.14.0/plan.v0.14.0.release-project-root.md
+   Paths: .gitattributes, bin/release_alias.bat, bin/release_workflow.bat, `tools/release_workflow/__init__.py`, tools/release_workflow/artifacts.py, tools/release_workflow/bootstrap.py, tools/release_workflow/cli.py, tools/release_workflow/git.py, tools/release_workflow/git_environment.py, tools/release_workflow/inputs.py, tools/release_workflow/invocation.py, tools/release_workflow/paths.py, tools/release_workflow/results.py, docs/v0.14.0/plan.v0.14.0.release-project-root.md
 8. docs(release): retain step 5 review exchange
    Paths: docs/v0.14.0/review.code.v0.14.0.release-project-root.md
 9. docs(release-project-root): record step 5 validation
