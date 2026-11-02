@@ -934,6 +934,28 @@ Full-workflow timing readiness: focused acceptance, resolved day objective and
 final resolved coverage objective. Groundhog owns durations; investigate actual
 outliers without weakening assertions. No timing xfails may mask acceptance.
 
+Evidence route amendment (user decision, 2026-11-02): the simulation-only
+strategy governs every automated Step 6 test. The acceptance, transport and
+locking leaves run production bootstrap, readiness, dispatch, invocation, the
+artifact, write and lock services and rendering in process, with the data-only
+interpreter and repository ports of Step 5 and acceptance handlers injected
+only in tests. Real-host evidence for the shipped launchers comes from a
+one-off host probe run outside pytest on supported Windows x64: it is kept as
+private step evidence, never committed, and its sanitized outcomes are
+recorded in the validation plan. A caller or behavior the probe cannot reach,
+such as interactive console cancellation, is recorded there as missing
+evidence for the human to accept or resolve. `console_support.py` no longer
+exists; Step 5's `launcher_simulation.py`, `invocation_test_support.py` and
+`repository_simulation.py` replace it, so it is not updated.
+
+File-symlink evidence decision (user, 2026-11-02): the supported Windows host
+grants no symbolic-link privilege (no Developer Mode or elevation), so a real
+file-symlink case cannot run there. The human accepts this as expected missing
+evidence. Junction links are exercised for real, and the symlink path policy
+stays covered in process by the Step 2 and Step 4 tests; a host with that
+privilege can rerun the probe case later. One `--full=speed` whole-suite walk,
+approved the same day, serves as the final whole-scope coverage proof.
+
 ## Planning risk pass and rollout order
 
 The current tree supports the paths above. Implement runtime production before
