@@ -1517,7 +1517,7 @@ implementation mechanisms to the child designs.
 
 | Order | Type | Key title | Slug | Status | Requirement | Validation plan |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | Feature-request | Establish explicit release project identity | `release-project-root` | pending | - | - |
+| 1 | Feature-request | Establish explicit release project identity | `release-project-root` | completed | `docs/v0.14.0/feature-request.v0.14.0.release-project-root.md` | `docs/v0.14.0/plan.v0.14.0.release-project-root.validation.md` |
 | 2 | Feature-request | Synchronize authoritative project versions | `version-sources` | pending | - | - |
 | 3 | Feature-request | Provision pinned git-cliff automatically | `git-cliff-provisioning` | pending | - | - |
 | 4 | Feature-request | Manage generated and curated changelogs | `changelog-management` | pending | - | - |

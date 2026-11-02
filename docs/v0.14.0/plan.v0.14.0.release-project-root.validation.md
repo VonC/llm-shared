@@ -1,6 +1,6 @@
 # v0.14.0 release-project-root implementation tracking and validation
 
-No, it is not implemented.
+Yes, it is implemented.
 
 This document tracks the six steps of the [implementation plan](plan.v0.14.0.release-project-root.md).
 Step 1's round 7 boundary repair passes the full speed day, final static checks
@@ -17,9 +17,11 @@ Round 4's transcript MD050 finding is repaired. After the test-speed campaign
 of 2026-10-31 to 2026-11-01, the simulation suite passes 5,148 tests with 100%
 coverage, zero outliers or exclusions, and no CPU or wall lifecycle miss. The
 test part is committed separately (`bf48d33` to `a05eeb6`). Step 5 is fully
-implemented; independent replacement review and human Commit remain pending.
-Step 6's integrated acceptance and rollout remain pending. No Step 5 commit
-has been authorized.
+implemented, reviewed and committed. Step 6's integrated acceptance,
+reference pages and host probe are implemented, and the whole-suite speed
+walk passes 5,351 tests at 100% coverage under the CPU stability band. Real
+file-symlink evidence is missing on hosts without the symbolic-link
+privilege, a gap the human accepted. All six steps are implemented.
 
 ## Current simulation migration (2026-10-29)
 
@@ -34,8 +36,9 @@ Migration and current whole-suite validation have passed as recorded in Step 5.
 Earlier timing, shell and OS results below are historical evidence, not proof
 of the replacement suite. Source checks on launcher wiring and simulated
 cancellation do not establish real-shell parsing or OS signal behavior. The
-Step 5 strategy supersedes earlier real-process test requirements; Step 6
-implementation and rollout remain pending.
+Step 5 strategy supersedes earlier real-process test requirements. Step 6 is
+implemented; its real-host evidence comes from a private host probe run
+outside the tests, recorded in the Step 6 sections below.
 
 ## File-based IO cost clarification for v0.14.0 release-project-root implementation
 
@@ -1149,7 +1152,8 @@ are not migrated. Preflight/read-only invocation creates no artifacts and the
 production registry rejects unavailable commands. Input policy and cancellation
 normalization run through production Python with explicit boundary facts.
 The accepted suite supplies no current empirical evidence of shell quoting,
-doskey expansion, localized termination prompts or real caller restoration.
+doskey expansion, localized termination prompts or real caller restoration;
+Step 6's host probe supplies that evidence outside the suite.
 Batch cleanup is assessed from source; cleanup after forced termination is
 not promised. Native Python remains the documented automation route for avoiding
 cmd's own batch-termination question.
@@ -1161,14 +1165,25 @@ gaps of the simulation-only decision on the same date, owned by the emulation
 follow-up. The later user-approved simulation strategy governs test evidence.
 No existing feature or reporting regression was identified. Independent
 round-5 review is complete and the user decided every carried boundary item;
-human commit authorization remains pending. Step 6 integrated acceptance and
-rollout remain unimplemented.
+the human then authorized the commit, and Step 5 is committed. Step 6
+integrated acceptance and rollout are recorded in the next section.
 
 ## Step 6. Integrated acceptance and foundation rollout
 
 ### Analysis of Step 6 implementation state
 
-Not started. Step 6 is not implemented because the subprocess acceptance matrix and invocation documentation have not been implemented.
+Yes. Step 6 has been fully implemented.
+
+The integrated acceptance leaves, the shared acceptance support, the two
+reference pages and the README pointer are implemented. The default groundhog
+walk and the user-approved whole-suite speed walk are green at 100% coverage,
+with no outlier and no exclusion. The real-host probe passed 55 of its 56
+cases, including both answers to cmd's terminate question, Windows
+PowerShell 5.1 Ctrl+C, doskey expansion, console-attached standard input and
+a tooling checkout path with batch-hostile characters. The remaining case, a
+file symlink, cannot run on a host without the symbolic-link privilege; the
+human accepted that missing evidence on 2026-11-02, as the plan's Step 6
+addendum records.
 
 ### Goal for Step 6
 
@@ -1183,26 +1198,214 @@ Prove the assembled foundation on supported Windows x64 and document usable rout
 - Every supported caller has real transport/cancellation evidence; unavailable console or file-symlink evidence cannot become a passing completeness claim.
 - Detailed contracts live in the two existing reference pages; README supplies a short pointer and category links retain the required order.
 
+The user's evidence-route decision of 2026-11-02, recorded in the plan's Step 6
+addendums, applies to the first and fifth expectations: automated tests stay
+simulation-only, and real processes, filesystems and consoles are exercised by
+a private host probe run outside pytest.
+
 ### What was implemented for Step 6
 
-_(empty — no check has taken place yet.)_.
+- **Evidence route**: the plan's Step 6 addendum records the user's 2026-11-02
+  decision. Every automated test runs production bootstrap, readiness,
+  dispatch, invocation, the artifact, write and lock services and rendering in
+  process, with Step 5's data-only interpreter and repository ports. Real-host
+  evidence comes from a one-off probe outside pytest whose evidence stays
+  private; its sanitized outcomes are recorded here.
+- **Acceptance support**: `tests/unit/tools/release_workflow/acceptance_support.py`
+  builds consumer projects with version data, ignored output and legacy
+  scratch, snapshots whole trees, and provides acceptance handlers injected
+  only in process (read, locked write, interrupted locked write, build-directory
+  step, child status 7). It also holds the declared lock facts, a competing
+  owner builder and the reference missing-launcher caller for items 5 and 8.
+  `conftest.py` adds the `consumers`, `lock_facts` and `acceptance_registry`
+  fixtures; the transition mutex is uncontended, as in the lock contract tests.
+- **Integrated acceptance** (`test_release_acceptance`, 33 cases): projects A,
+  B, nested and linked worktrees through explicit, batch and alias entries
+  derive the same root and the six legacy locations; stale `PRJ_DIR`, the
+  other legacy variables, `PYTHONPATH` and `VIRTUAL_ENV` have no authority and
+  never reach Git; another checkout's interpreter is refused with no write;
+  current-directory and `sys.path` shadows of the bootstrap helpers are never
+  loaded; read-only and failed calls leave consumers, ignored files, legacy
+  scratch and tooling byte-identical; a locked write adds only its target and
+  the prepared home; the shipped registry rejects every acceptance name; the
+  reference caller decides absence by the launcher file and propagates an
+  installed launcher's 1 or 2 without fallback.
+- **Transport acceptance** (`test_release_transport`, 18 cases): for every
+  entry kind and both tooling copies, a relative input path is frozen against
+  the project root before a build step changes directory; invalid UTF-8 fails
+  before dispatch with no write; only 0, 1 or 2 reach the caller, child status
+  7 becomes 1 with its diagnostic, and streams stay UTF-8 with LF; the caller's
+  environment object and the process environment are unchanged.
+- **Lock acceptance** (`test_release_locking`, 8 cases): a live owner blocks a
+  second invocation and keeps its record byte-identical until it releases;
+  only an exact dead owner is recovered; retained, unverifiable and
+  unknown-state owners are preserved; project B proceeds while A is held;
+  interruption inside the lock releases it; a read proceeds beside a live
+  writer, which shows that unlocked reads carry no multi-file snapshot promise.
+- **Documentation**: `wiki/reference/aliases-and-launchers.md` gains the
+  release foundation launchers (entries, options, payload rules, batch
+  character rule and safe channels).
+  `wiki/reference/automation-and-direct-invocation.md` gains the release
+  foundation invocation contract (availability boundary, readiness repair,
+  PowerShell selector lifetime with `finally` removal, its Ctrl+C outcomes
+  and pipe caveat, both answers to cmd's termination question, native
+  automation, statuses, streams, the console input prompt and legacy
+  variables). The launcher page also states how a cmd script starts a
+  launcher whose checkout path contains a caret. `README.md` gains one status
+  row pointing to both. Category order is unchanged.
+- **Host probe, sanitized outcomes**: on Windows x64 with Windows PowerShell
+  5.1, a disposable tooling copy whose manifest differs from the shipped tree
+  only by a generated handler module and its registry line, a bare virtual
+  environment and a record published by the real setup producer, the real
+  launchers passed 55 of 56 cases. Console routes ran in a hidden real
+  console: the probe typed through the console input buffer and read the
+  console screen.
+  - cmd: explicit and alias roots for a repository, a nested repository and a
+    linked worktree; a selector carrying a path with `%`, `!` and `&`; a
+    relative input file from a build directory; redirected, piped and `NUL`
+    standard input; invalid UTF-8, batch free text and surviving caret
+    refusals; child status 7 to 1 with UTF-8/LF streams; an unavailable
+    operation; the unmodified checkout rejecting the generated names; the
+    console codepage, the launcher variables and the current directory
+    restored in a real console; a missing record.
+  - Native entry: another checkout's interpreter refused; free text with every
+    batch-hostile character in a bare environment, which shows that the
+    import closure needs no site packages.
+  - Windows PowerShell 5.1: selector lifetime, status 1 from child status 7,
+    and byte-exact `--input-file` input. Its pipe to a native command added a
+    byte-order mark and a trailing line break and could replace non-ASCII
+    characters; the automation reference now directs PowerShell callers to
+    `--input-file`.
+  - Real processes: a locked write; a live holder blocking a second write; an
+    independent project writing meanwhile; a killed holder's record recovered;
+    a retained owner blocking after its process exited; a junction artifact
+    home refused before any write.
+  - Ctrl+C with redirected streams: the native and batch entries both ended
+    with status 1, `interrupted`, and released the lock; cmd then printed its
+    localized terminate question, read the end of `NUL` input and returned 1.
+    The native entry avoids the question.
+  - Ctrl+C in a real console: the engine reported `interrupted` and released
+    the lock, then cmd asked `Terminer le programme de commandes (O/N) ?`.
+    The probe read the keys from that prompt. Answering no returned 1 and
+    restored codepage 850; answering yes ended the batch at once with status
+    255 and left the console on codepage 65001.
+  - Windows PowerShell 5.1 Ctrl+C in a real console: with a standalone call,
+    cmd asked the same question inside PowerShell, which then stopped the
+    script. The line after the call never ran; `finally` ran with
+    `$LASTEXITCODE` 1 and the selector still set, and removed it. Without
+    `finally`, the removal line never ran. With output captured in a
+    variable, PowerShell ended the launcher itself: `$LASTEXITCODE` was -1,
+    no question appeared, the engine still reported `interrupted` and
+    released the lock, and the console stayed on codepage 65001.
+  - doskey: a macro defined by the probe, `release` for the alias launcher,
+    typed in a real console from a consumer subfolder, discovered that
+    consumer's root through the alias entry with status 0.
+  - Console-attached standard input for an operation that requires input:
+    with `--non-interactive`, status 2 with `Missing required input`, no
+    prompt and no write. Without it, the engine asked `Release input:` on
+    standard error, read one typed line with non-ASCII and batch-hostile
+    characters, and wrote it byte-exact with status 0.
+  - Tooling checkout path with a space, a non-ASCII letter, `%`, `^`, `!` and
+    `&`: the setup producer published the record; the explicit and alias
+    launchers started directly and the build-adapter route (`pushd`, then
+    `call .\release_workflow.bat`) self-located that checkout, read its
+    record and ran with status 0. A cmd `call` with the quoted path doubled
+    its caret and never reached the launcher (status 1, path not found); the
+    launcher page records the two working routes.
+  - Reference caller: an absent launcher warns and reads the local version, a
+    snapshot intent fails, and the shipped and copied launchers' statuses 2 and
+    1 propagate without fallback.
+  - Read-only and failed calls left both consumers and the tooling copy
+    unchanged.
+  - File symlink: the host refused to create one (symbolic-link privilege not
+    held). The human accepted this expected missing evidence; the symlink
+    path policy stays covered in process by the Step 2 and Step 4 tests.
+- **Validation evidence**: `ghog single` on the three new leaves passed 33 and
+  26 cases; the highest new lifecycle used 0.031 s of CPU in focus. The
+  resolved `ghog day --whole-suite` (default level, full stage skipped by
+  design) passed check, Markdown included, and the affected tests after one
+  restart. The first walk's only failure was a timing miss of 0.297 s CPU on
+  an unchanged Step 5 property case never measured before on this checkout;
+  that case passed in focus at 0.0 s and on the restart. With the user's
+  go-ahead, the resolved `ghog day --full=speed --whole-suite` then passed
+  5,351 tests at 100% coverage with no outlier and no exclusion
+  (`proof=speed`); its slowest call took 0.39 s. Under the CPU stability band
+  every lifecycle was proven, one used the band at 0.109 s, and no exception
+  was recorded. The documentation
+  search named by the plan finds the new release contracts in the README and
+  both reference pages. Physical lines: `acceptance_support.py` 168,
+  `conftest.py` 132 (from 93), `test_release_acceptance_tdd.py` 206,
+  `test_release_transport_tdd.py` 104, `test_release_locking_tdd.py` 137, each
+  new initializer 3, `README.md` 1127 (from 1126),
+  `aliases-and-launchers.md` 175 (from 130),
+  `automation-and-direct-invocation.md` 167 (from 69). Every Python file is in
+  the safe band.
 
 ### New types or classes introduced for Step 6
 
-_(empty — no check has taken place yet.)_.
+- `LockFacts`: declared lock owner identity and owner states for the injected process probe.
+- `LockedWrite`: acceptance handler that prepares the home, holds the lock and replaces one managed file.
+- `CallerOutcome` and `build_caller`: the reference missing-launcher caller for items 5 and 8.
+- `consumer`, `snapshot`, `describe`, `build_step`, `native_status`, `handlers`, `hold`: acceptance builders and handlers.
+- `test_release_acceptance`, `test_release_transport`, `test_release_locking`: the three integrated acceptance suites.
 
 ### Architecture check for Step 6
 
-_(empty — no check has taken place yet.)_.
+- **No production change**: Step 6 adds tests and documentation only;
+  `tools/release_workflow` and the launchers are unchanged, so no layer
+  boundary moves.
+- **Test-only handlers**: acceptance handlers and the reference caller live
+  under `tests/`; production keeps an empty registry and no injection
+  surface, and a test proves the shipped registry rejects every acceptance
+  name.
+- **Boundary use**: the handlers compose only the public foundation services
+  later domains receive (context paths, `prepare_artifacts`, `OperationLock`,
+  `authorize_write`, `replace_bytes`), which confirms those ports suffice for
+  a mutating domain without reaching into adapters.
+- **Watch point**: the batch launchers' own `_release_*` variables reach the
+  engine's environment and the controlled Git environment. This is harmless
+  but visible, and it can be cleared when a later item touches the launchers.
+
+Yes, there is something to address: the launcher variable watch point above,
+which is not a defect.
 
 ### Performance check for Step 6
 
-_(empty — no check has taken place yet.)_.
+- **No new `O(n^2)` or `O(n log n)` path**: no production code changed;
+  snapshots are linear in a small consumer tree.
+- **Hot-path bound**: each acceptance case runs one in-process invocation; the
+  highest new lifecycle measured 0.031 s of CPU in focus, and one band pass at
+  0.141 s under the full affected load.
+- **Startup or background path**: the host probe is a manual, private run,
+  outside the suite.
+- **Plan-bound alignment**: the read-count and scan-avoidance bounds of
+  earlier steps are untouched.
+
+No, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 6
 
-_(empty — no check has taken place yet.)_.
+The configured coverage gate measures `tools` only (`[tool.coverage.run]`
+`source = ["tools"]`, tests omitted). Step 6 changes no file under `tools`,
+and the whole-suite speed walk re-measured that scope at 100%. The new files
+are test code outside the gate. Every
+top-level symbol of `acceptance_support.py` is referenced by a test or a
+fixture: `consumer` and `handlers` by `conftest.py`, `snapshot`, `TARGET`,
+`VERSION`, `CallerOutcome` and `build_caller` by the acceptance leaves, `hold`
+by the lock leaf, and `describe`, `build_step`, `native_status` and
+`LockedWrite` through `handlers`.
+
+No, there is no unit-tested class below 100% that needs completing for Step 6.
+No, none of the staged test-support symbols outside the gate is unreferenced.
 
 ### Feature integrity for Step 6
 
-_(empty — no check has taken place yet.)_.
+- **Existing feature behavior**: no production code or launcher changed; the
+  default walk's affected tests and the whole-suite speed walk passed.
+- **Reporting or diagnostics**: unchanged; the reference pages now describe
+  the existing statuses, streams and diagnostics.
+- **Compatibility or rollout note**: the foundation stays opt-in, no release
+  operation is shipped, and existing build and `senv` callers are untouched.
+  Production AC11 remains unproven until item 5: the reference caller is a
+  fixture for items 5 and 8. Real file-symlink evidence is missing on hosts
+  without the symbolic-link privilege, as the human accepted.
