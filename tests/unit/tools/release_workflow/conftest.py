@@ -1,12 +1,23 @@
-"""Data-only runtime and repository fixtures for production release contracts."""
+"""Data-only runtime and repository fixtures for production release contracts.
+
+Step 6 (2026-11-02): integrated acceptance adds consumer projects A and B with
+version data, ignored output and legacy scratch, plus declared lock process
+facts; the transition mutex is uncontended, as in the lock contract tests.
+"""
 
 from __future__ import annotations
 
 import sys
+from contextlib import nullcontext
 from typing import TYPE_CHECKING
 
 import pytest
 
+from tests.unit.tools.release_workflow.acceptance_support import (
+    LockFacts,
+    consumer,
+    handlers,
+)
 from tests.unit.tools.release_workflow.git_test_support import (
     GitSandbox,
     copy_template,
@@ -18,12 +29,15 @@ from tests.unit.tools.release_workflow.launcher_simulation import (
     tooling,
 )
 from tests.unit.tools.release_workflow.test_support import prepared_runtime
+from tools.release_workflow import operation_lock
 from tools.release_workflow.git import GitExecutionContext
 
 if TYPE_CHECKING:
     from collections.abc import Iterator, Sequence
     from pathlib import Path
     from subprocess import CompletedProcess
+
+    from tools.release_workflow import cli
 
 
 @pytest.fixture
@@ -89,5 +103,30 @@ def launcher_tooling(tmp_path_factory: pytest.TempPathFactory) -> ToolingSimulat
 def alternate_launcher_tooling(tmp_path_factory: pytest.TempPathFactory) -> ToolingSimulation:
     """Provide another independent tooling designation for dispatch."""
     return tooling(tmp_path_factory.mktemp("release-alternate") / "alternate é % ^ ! & space")
+
+
+@pytest.fixture
+def consumers(git_sandbox: GitSandbox) -> tuple[Path, Path]:
+    """Give projects A and B version data, ignored output and legacy scratch."""
+    return consumer(git_sandbox.home / "A"), consumer(git_sandbox.home / "B")
+
+
+@pytest.fixture
+def lock_facts(monkeypatch: pytest.MonkeyPatch) -> LockFacts:
+    """Declare lock owner identities and states; no native process or mutex call."""
+    facts = LockFacts()
+
+    def uncontended(_name: str) -> nullcontext[None]:
+        return nullcontext()
+
+    monkeypatch.setattr(operation_lock, "current_identity", facts.identity)
+    monkeypatch.setattr(operation_lock, "transition_mutex", uncontended)
+    return facts
+
+
+@pytest.fixture
+def acceptance_registry(lock_facts: LockFacts) -> dict[str, cli.Handler]:
+    """Return the in-process acceptance handlers bound to this case's lock facts."""
+    return handlers(lock_facts)
 
 # eof
