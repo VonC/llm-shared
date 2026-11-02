@@ -126,7 +126,7 @@ class ReviewArtifactConfiguration:
         cls,
         project_root: Path,
         *,
-        tracked_directory: Callable[[Path, str], bool] = _tracked_directory,
+        tracked_directory: Callable[[Path, str], bool] | None = None,
         validate_home: Callable[[Path], None] | None = None,
     ) -> ReviewArtifactConfiguration:
         """Load and validate the optional root declaration without writing."""
@@ -136,7 +136,7 @@ class ReviewArtifactConfiguration:
         if home.exists():
             if not home.is_dir():
                 raise ReviewExchangeError("artifact home is not a directory")
-            if tracked_directory(root, relative):
+            if (tracked_directory or _tracked_directory)(root, relative):
                 raise ReviewExchangeError("artifact home names an existing tracked directory")
         return cls(root, home, relative, declared)
 
