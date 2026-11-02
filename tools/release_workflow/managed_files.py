@@ -2,6 +2,7 @@
 
 Authorization retains the supplied spelling as well as its physical destination.
 Ordinary junction changes therefore invalidate the capability before mutation.
+Drive-relative names are rejected before probing ambient per-drive directories.
 Domains still own transaction ordering; these checks are not a hostile-race or
 multi-file snapshot guarantee.
 """
@@ -37,6 +38,9 @@ class ManagedWriteError(ValueError):
 
 def _check_names(path: Path) -> None:
     """Reject Windows aliases before filesystem resolution can normalize them."""
+    if path.drive and not path.root:
+        msg = f"Invalid drive-relative managed path: {path}"
+        raise ManagedWriteError(msg)
     for part in path.parts:
         if part in {path.anchor, ".", ".."}:
             continue
