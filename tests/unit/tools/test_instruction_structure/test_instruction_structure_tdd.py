@@ -15,9 +15,14 @@ stays under the 650-line limit of the big-file check.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
 
 from tools import prompt_workflow_steps as steps
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 # Keep this module's scenarios on one xdist worker so its module-scoped
 # fixtures are built once rather than once per worker (--dist loadgroup).
@@ -357,22 +362,16 @@ def test_sensitive_history_reference_shows_both_input_file_formats() -> None:
     assert "regex:(?i)example[._-]internal==>public-name" in content
 
 
-@pytest.fixture(scope="session")
-def diataxis_page_texts() -> tuple[str, ...]:
-    """Read every Diataxis page outside the measured test-call phase."""
-    root = steps.llm_shared_dir() / "wiki"
-    return tuple(
-        page.read_text(encoding="utf-8")
-        for section in ("explanation", "tutorials", "how-to", "reference")
-        for page in (root / section).glob("*.md")
-    )
-
-
+@pytest.mark.parametrize("page", [
+    page
+    for section in ("explanation", "tutorials", "how-to", "reference")
+    for page in (steps.llm_shared_dir() / "wiki" / section).glob("*.md")
+], ids=lambda page: page.relative_to(steps.llm_shared_dir()).as_posix())
 def test_every_diataxis_page_states_its_invocation_model(
-    diataxis_page_texts: tuple[str, ...],
+    page: Path,
 ) -> None:
-    """Each page says whether a human or the AI normally invokes its subject."""
-    assert all("## Invocation model" in content for content in diataxis_page_texts)
+    """Read and check every page independently inside its measured lifecycle."""
+    assert "## Invocation model" in page.read_text(encoding="utf-8")
 
 
 def test_wiki_logos_match_the_home_page_width() -> None:

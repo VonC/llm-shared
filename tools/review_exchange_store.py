@@ -1,4 +1,9 @@
-"""Exact-path persistence with delegated ownership and unlocked publication."""
+"""Exact-path persistence with delegated ownership and unlocked publication.
+
+Transcript initialization reads its family template through
+`template_text.read_template`, the template-reading function shared with the
+request and answer renderers.
+"""
 
 # ruff: noqa: EM101, EM102, TRY003
 
@@ -13,6 +18,7 @@ from pathlib import Path
 from string import Template
 from typing import TYPE_CHECKING, Final
 
+from tools import template_text
 from tools.review_exchange_models import (
     ArchiveKind,
     ArtifactPaths,
@@ -270,7 +276,7 @@ class ReviewExchangeStore:
         )
         try:
             template = Template(
-                (self._template_root / template_name).read_text(encoding="utf-8"),
+                template_text.read_template(self._template_root / template_name),
             )
             content = template.substitute(
                 version=context.identity.version,

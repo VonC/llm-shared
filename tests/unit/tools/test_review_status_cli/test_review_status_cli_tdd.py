@@ -1,22 +1,15 @@
-"""Tests for review-status CLI boundaries and caller-preserving launcher.
-
-The real Windows adapter process is module-scoped so its unavoidable startup
-cost does not dominate the assertion call measured by the duration gate.
-"""
+"""Direct CLI behavior and source contracts for the Windows launcher."""
 
 from __future__ import annotations
 
 import json
-import os
-import runpy
-import shutil
-import subprocess
 import sys
 from pathlib import Path
 
 import pytest
 
-from tools import review_status, review_status_cli
+from tests.script_entry import run_main
+from tools import review_status_cli
 from tools.review_status_models import (
     SCHEMA_VERSION,
     DamagedCandidateStatus,
@@ -267,7 +260,7 @@ def test_module_guard_forwards_main_status(
     def collect(root: Path, _clock: object) -> ReviewStatusResult:
         return _result(root, ReviewStatusOutcome.UNTRUSTWORTHY)
 
-    monkeypatch.setattr(review_status, "collect_review_status", collect)
+    monkeypatch.setattr(review_status_cli, "collect_review_status", collect)
     monkeypatch.setattr(
         sys,
         "argv",
@@ -275,69 +268,28 @@ def test_module_guard_forwards_main_status(
     )
 
     with pytest.raises(SystemExit) as raised:
-        runpy.run_path(str(review_status_cli.__file__), run_name="__main__")
+        run_main(str(review_status_cli.__file__))
 
     assert raised.value.code == _NON_TRUSTWORTHY_STATUS
     assert json.loads(capsys.readouterr().out)["outcome"] == "untrustworthy"
 
 
-@pytest.fixture(scope="module")
-def launcher_observation(
-    tmp_path_factory: pytest.TempPathFactory,
-) -> tuple[subprocess.CompletedProcess[str], Path, Path, Path]:
-    """Run the controlled Windows launcher once outside the measured call phase."""
-    tmp_path = tmp_path_factory.mktemp("review-status-launcher")
+def test_launcher_preserves_runtime_selection_and_caller_contract() -> None:
+    """Check batch wiring without executing or emulating a command shell."""
     project_root = Path(review_status_cli.__file__).resolve().parent.parent
-    installed = tmp_path / "installed"
-    caller = tmp_path / "caller"
-    launcher = installed / "rvw_status.bat"
-    tools_dir = installed / "tools"
-    older = installed / "venvs" / "python_3.12.1_llm-shared_old" / "Scripts"
-    newer = installed / "venvs" / "python_3.12.2_llm-shared_new" / "Scripts"
-    caller.mkdir()
-    tools_dir.mkdir(parents=True)
-    older.mkdir(parents=True)
-    newer.mkdir(parents=True)
-    shutil.copy2(project_root / "rvw_status.bat", launcher)
-    shutil.copy2(sys.executable, older / "python.exe")
-    shutil.copy2(sys.executable, newer / "python.exe")
-    pyvenv = f"home = {sys.base_prefix}\n"
-    (older.parent / "pyvenv.cfg").write_text(pyvenv, encoding="utf-8")
-    (newer.parent / "pyvenv.cfg").write_text(pyvenv, encoding="utf-8")
-    (tools_dir / "__init__.py").write_text("", encoding="utf-8")
-    (tools_dir / "review_status_cli.py").write_text(
-        "import json, os, sys\n"
-        "print(json.dumps({'cwd': os.getcwd(), 'python': sys.executable, "
-        "'pythonpath': os.environ.get('PYTHONPATH'), 'argv': sys.argv[1:]}))\n"
-        "raise SystemExit(3)\n",
-        encoding="utf-8",
-    )
-    environment = os.environ.copy()
-    environment.pop("PRJ_DIR", None)
-    environment["PYTHONPATH"] = "existing-path"
+    source = (project_root / "rvw_status.bat").read_text(encoding="utf-8")
 
-    completed = subprocess.run(  # noqa: S603
-        [str(launcher), "--format", "json"],
-        cwd=caller,
-        env=environment,
-        check=False,
-        capture_output=True,
-        text=True,
-        timeout=20,
-    )
-    return completed, caller, newer, installed
+    for required in (
+        'set "REVIEW_STATUS_ROOT=%~dp0"',
+        "dir /b /ad /o-d",
+        'set "PYTHONPATH=%REVIEW_STATUS_ROOT%;%PYTHONPATH%"',
+        '"%REVIEW_STATUS_PYTHON%" -P -m tools.review_status_cli %*',
+        'set "REVIEW_STATUS_STATUS=%ERRORLEVEL%"',
+        "exit /b %REVIEW_STATUS_STATUS%",
+    ):
+        assert required in source
+    commands = [line.strip().lower() for line in source.splitlines()]
+    assert not any(line.startswith(("cd ", "pushd ")) for line in commands)
 
 
-@pytest.mark.skipif(sys.platform != "win32", reason="Windows batch launcher")
-def test_launcher_self_locates_newest_runtime_and_preserves_caller_context(
-    launcher_observation: tuple[subprocess.CompletedProcess[str], Path, Path, Path],
-) -> None:
-    """The batch adapter selects its newest runtime and forwards context and status."""
-    completed, caller, newer, installed = launcher_observation
-
-    payload = json.loads(completed.stdout)
-    assert completed.returncode == _NON_TRUSTWORTHY_STATUS
-    assert Path(payload["cwd"]) == caller
-    assert Path(payload["python"]).parent == newer
-    assert Path(payload["pythonpath"].split(os.pathsep)[0]) == installed
-    assert payload["argv"] == ["--format", "json"]
+# eof

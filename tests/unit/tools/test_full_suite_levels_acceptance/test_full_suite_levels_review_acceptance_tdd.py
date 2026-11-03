@@ -1,8 +1,9 @@
-"""Prove publication and drift, preparing and asserting the published baseline once."""
+"""Prove publication and drift while reusing immutable artifact/path observations."""
 
 from __future__ import annotations
 
 import json
+from functools import cache
 from typing import TYPE_CHECKING
 
 import pytest
@@ -10,21 +11,52 @@ import pytest
 from tests.unit.tools.review_exchange_test_support import common_arguments
 from tools import prompt_workflow
 from tools import review_exchange_cli as exchange_cli
+from tools.groundhog import snapshot
+from tools.groundhog.groups import resolve_group
+from tools.groundhog.levels import FullLevel
+from tools.groundhog.project_settings import Settings
 from tools.scope_capture import validate_capture
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from tests.unit.tools.test_full_suite_levels_acceptance.conftest import Effort
 
 
 @pytest.fixture
-def published_capture(effort: Effort, capsys: pytest.CaptureFixture[str]) -> tuple[Effort, str]:
-    """Publish actual evidence and assert its baseline before the drift operation."""
-    assert effort.walk("day", "--full=speed", "--group=sentinel")[0] == 0
+def published_capture(
+    effort: Effort, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch,
+    stable_review_inputs: Callable[[], None],
+) -> tuple[Effort, str]:
+    """Start at a persisted proof boundary, then exercise real publication."""
+    del stable_review_inputs  # Artifact declaration and symlink targets stay fixed.
+    # Drift changes group contents, not inventory or pytest/coverage settings.
+    # Group parsing, content digests and capture validation remain uncached.
+    monkeypatch.setattr(snapshot, "source_files", cache(snapshot.source_files))
+    monkeypatch.setattr(Settings, "load", cache(Settings.load))
+    scope = resolve_group(effort.root, "sentinel", snapshot.source_files(effort.root))
+    snapshot.save_proof(effort.root, scope.key(), scope.fingerprint,
+                        snapshot.source_digest(effort.root), FullLevel.SPEED)
     assert effort.render() == 0
     fingerprint = _assert_grouped_request(effort)
     assert effort.publish() == 0
     capture = _published_scope(effort, capsys, fingerprint)
     return effort, capture
+
+
+def test_speed_walk_produces_renderable_group_proof(
+    effort: Effort, monkeypatch: pytest.MonkeyPatch, stable_review_inputs: Callable[[], None],
+) -> None:
+    """The producer independently establishes the proof consumed by publication."""
+    del stable_review_inputs  # Keep proof, SQLite reporting and rendering live.
+    # Only ignored evidence changes in this journey. Share immutable source
+    # inventory and settings observations; retain real proof production, digest
+    # checks, persisted SQLite coverage, and the consuming renderer.
+    monkeypatch.setattr(snapshot, "source_files", cache(snapshot.source_files))
+    monkeypatch.setattr(Settings, "load", cache(Settings.load))
+    assert effort.walk("day", "--full=speed", "--group=sentinel")[0] == 0
+    assert effort.render() == 0
+    _assert_grouped_request(effort)
 
 
 def test_published_capture_survives_same_name_drift(

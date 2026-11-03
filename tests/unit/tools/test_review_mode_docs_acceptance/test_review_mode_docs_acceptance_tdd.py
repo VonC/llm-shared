@@ -15,6 +15,8 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
+import pytest
+
 from tools.review_exchange_models import ArtifactState
 
 from .conftest import (
@@ -120,9 +122,10 @@ def test_step_1_explanation_names_authorities_and_canonical_policy(
         assert f"../../{instruction}" in explanation
 
 
-def test_step_1_declared_links_and_named_paths_resolve(docs_root: Path) -> None:
+@pytest.mark.parametrize("page", [page for page in _STEP_1_PAGES if page != "wiki/README.md"])
+def test_step_1_declared_links_and_named_paths_resolve(docs_root: Path, page: str) -> None:
     """Step 1 links: bounded declared pages resolve local targets and fragments."""
-    assert_local_links(docs_root, _STEP_1_PAGES)
+    assert_local_links(docs_root, (page,))
     assert_named_paths(
         docs_root,
         (
@@ -132,6 +135,17 @@ def test_step_1_declared_links_and_named_paths_resolve(docs_root: Path) -> None:
             "wiki/assets/logo-llm-shared-review-transparent.png",
         ),
     )
+
+
+@pytest.mark.parametrize("partition", range(4))
+def test_step_1_wiki_index_links_resolve(docs_root: Path, partition: int) -> None:
+    """Four disjoint cases check every index link with real path resolution.
+
+    The profiled whole-index case spent most of its time resolving targets.
+    Partitioning keeps every check in a measured lifecycle, including the
+    first read, without precomputing link results or changing file semantics.
+    """
+    assert_local_links(docs_root, ("wiki/README.md",), partition=(partition, 4))
 
 
 def test_step_1_coverage_keeps_complete_enumerations_and_evidence(
@@ -242,16 +256,19 @@ def test_step_3_five_how_to_pages_assign_all_seven_goals(docs_root: Path) -> Non
     assert_local_links(docs_root, (*_HOW_TO_GUIDES, "wiki/README.md"))
 
 
+@pytest.mark.parametrize("path", _HOW_TO_GUIDES)
 def test_step_3_procedures_follow_returned_paths_and_exit_contract(
-    docs_root: Path,
+    docs_root: Path, path: str,
 ) -> None:
     """Step 3 results: paths are authoritative and exits retain their meaning."""
-    for path in _HOW_TO_GUIDES:
-        guide = read_declared(docs_root, path)
-        assert "final JSON" in guide
-        assert "`paths`" in guide
-        assert "Do not reconstruct protocol filenames or edit protocol artifacts." in guide
+    guide = read_declared(docs_root, path)
+    assert "final JSON" in guide
+    assert "`paths`" in guide
+    assert "Do not reconstruct protocol filenames or edit protocol artifacts." in guide
 
+
+def test_step_3_results_preserve_exit_and_authorization_contract(docs_root: Path) -> None:
+    """Exit codes distinguish success, a human gate and invalid requests."""
     results = read_declared(docs_root, _HOW_TO_GUIDES[3])
     for exit_code in ("Exit `0`", "Exit `3`", "Exit `2`"):
         assert exit_code in results
@@ -449,4 +466,9 @@ def test_step_4_adapters_and_inventory_dispositions_are_complete(
         assert f"| `{candidate}` | Update |" in coverage
         inventory = read_declared(docs_root, candidate)
         assert "independent-review-mode-contract.md" in inventory
-    assert_local_links(docs_root, (_REFERENCE, "wiki/README.md", *_INVENTORY_CANDIDATES))
+
+
+@pytest.mark.parametrize("page", [_REFERENCE, "wiki/README.md", *_INVENTORY_CANDIDATES])
+def test_step_4_inventory_links_resolve(docs_root: Path, page: str) -> None:
+    """Validate every inventory page independently against real documentation."""
+    assert_local_links(docs_root, (page,))

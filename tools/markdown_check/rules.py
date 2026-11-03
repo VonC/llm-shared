@@ -58,7 +58,7 @@ def check_md009(source: MarkdownSource) -> tuple[Finding, ...]:
         trailing = len(line) - len(line.rstrip())
         if not trailing or trailing == _BREAK_SPACES:
             continue
-        if line_number in source.fenced_content_lines | source.indented_code_lines:
+        if line_number in source.fenced_content_lines or line_number in source.indented_code_lines:
             continue
         findings.append(
             _finding(
@@ -112,7 +112,7 @@ def check_md034(source: MarkdownSource) -> tuple[Finding, ...]:
 def _hidden_from_blank_runs(source: MarkdownSource, line_number: int) -> bool:
     """Report whether one line belongs to code or to leading frontmatter."""
     frontmatter = source.frontmatter
-    return line_number in source.fenced_lines | source.indented_code_lines or (
+    return line_number in source.fenced_lines or line_number in source.indented_code_lines or (
         frontmatter is not None
         and frontmatter.start_line <= line_number <= frontmatter.end_line
     )

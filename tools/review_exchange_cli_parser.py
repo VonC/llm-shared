@@ -2,6 +2,12 @@
 
 The command adapter imports this focused parser so JSON result rendering and
 runtime dispatch stay separate from argparse construction and filename rules.
+Known commands build only their own grammar. Full help and invalid command
+diagnostics retain the complete grammar, using the same argument declarations.
+
+Fix: ``amend-request`` is a protocol operation with the ``publish-request``
+arguments (content, summary and optional scope capture), so the per-command
+grammar keeps the pending-request correction command.
 """
 
 # ruff: noqa: EM101, TRY003
@@ -25,6 +31,15 @@ from tools.review_exchange_models import (
 _DOCUMENT_RE = re.compile(
     r"^(feature-request|issue|design|plan)\.(v\d+\.\d+\.\d+)\."
     r"([a-z0-9][a-z0-9_-]*)\.md$",
+)
+_PROTOCOL_OPERATIONS = (
+    "activate", "status", "start", "continue", "pickup", "complete", "reclaim",
+    "publish-request", "publish-answer", "amend-request", "repair-request-transcript",
+    "wait-request", "wait-answer", "consume-answer", "escalate", "cancel",
+    "resolve", "archive", "confirm",
+)
+_RESUME_OPERATIONS = (
+    "migration-check", "migrate-artifacts", "resume-inspect", "claim", "wait-any-request",
 )
 
 
@@ -53,7 +68,19 @@ def positive_float(value: str) -> float:
 
 
 def parser() -> JsonArgumentParser:
-    """Build the command parser with shared exact-context arguments."""
+    """Build the full grammar for help, diagnostics and direct parser callers."""
+    return _build_parser((*_PROTOCOL_OPERATIONS, *_RESUME_OPERATIONS))
+
+
+def parser_for(operation: str) -> JsonArgumentParser:
+    """Build only a known command, preserving full help for other first tokens."""
+    if operation not in (*_PROTOCOL_OPERATIONS, *_RESUME_OPERATIONS):
+        return parser()
+    return _build_parser((operation,))
+
+
+def _common_arguments() -> JsonArgumentParser:
+    """Declare the exact-context arguments shared by protocol operations."""
     common = JsonArgumentParser(add_help=False)
     common.add_argument("--family", choices=("specification", "code"), required=True)
     common.add_argument("--document", required=True)
@@ -63,71 +90,67 @@ def parser() -> JsonArgumentParser:
     common.add_argument("--another-round-label", required=True)
     common.add_argument("--continue-owning-workflow-label", required=True)
     add_ownership_arguments(common)
+    return common
 
+
+def _build_parser(operations: tuple[str, ...]) -> JsonArgumentParser:
+    """Construct selected commands from the single source of argument rules."""
     result = JsonArgumentParser(prog="review-exchange")
     subparsers = result.add_subparsers(dest="operation", required=True)
-    for name in ("activate", "status", "start", "continue", "pickup"):
-        subparsers.add_parser(name, parents=[common])
-    complete = subparsers.add_parser("complete", parents=[common])
-    complete.add_argument("--force", action="store_true")
-    complete.add_argument("--summary-file")
-    reclaim = subparsers.add_parser("reclaim", parents=[common])
-    reclaim.add_argument("--force", action="store_true")
-    reclaim.add_argument("--summary-file")
-    for name in ("publish-request", "publish-answer", "amend-request"):
-        command = subparsers.add_parser(name, parents=[common])
+    common = [_common_arguments()] if any(name in _PROTOCOL_OPERATIONS for name in operations) else []
+    for name in operations:
+        if name in _PROTOCOL_OPERATIONS:
+            command = subparsers.add_parser(name, parents=common)
+            _add_protocol_arguments(command, name)
+        else:
+            command = subparsers.add_parser(name)
+            _add_resume_arguments(command, name)
+    return result
+
+
+def _add_protocol_arguments(command: JsonArgumentParser, name: str) -> None:
+    """Add operation-specific arguments after the shared protocol context."""
+    if name in {"complete", "reclaim"}:
+        command.add_argument("--force", action="store_true")
+        command.add_argument("--summary-file")
+    elif name in {"publish-request", "publish-answer", "amend-request"}:
         command.add_argument("--content-file", required=True)
         command.add_argument("--summary-file", required=True)
         if name != "publish-answer":
             command.add_argument("--scope-capture-file")
-    repair_request = subparsers.add_parser(
-        "repair-request-transcript",
-        parents=[common],
-    )
-    repair_request.add_argument("--summary-file", required=True)
-    for name in ("wait-request", "wait-answer"):
-        command = subparsers.add_parser(name, parents=[common])
+    elif name in {"repair-request-transcript", "escalate", "cancel", "resolve", "archive"}:
+        command.add_argument("--summary-file", required=True)
+    elif name in {"wait-request", "wait-answer"}:
         command.add_argument("--timeout-seconds", type=positive_int)
         command.add_argument("--poll-interval", type=positive_float, default=1.0)
         command.add_argument("--progress-interval", type=positive_float, default=30.0)
-    consume = subparsers.add_parser("consume-answer", parents=[common])
-    consume.add_argument(
-        "--reviewed-work-changed",
-        choices=("true", "false"),
-        required=True,
-    )
-    consume.add_argument("--disagreement", action="store_true")
-    for name in ("escalate", "cancel", "resolve", "archive"):
-        command = subparsers.add_parser(name, parents=[common])
-        command.add_argument("--summary-file", required=True)
-    confirm = subparsers.add_parser("confirm", parents=[common])
-    confirm.add_argument("--choice-label", required=True)
-    confirm.add_argument("--guidance-file")
-    _add_resume_arguments(subparsers)
-    return result
+    elif name == "consume-answer":
+        command.add_argument("--reviewed-work-changed", choices=("true", "false"), required=True)
+        command.add_argument("--disagreement", action="store_true")
+    elif name == "confirm":
+        command.add_argument("--choice-label", required=True)
+        command.add_argument("--guidance-file")
 
 
-def _add_resume_arguments(subparsers: argparse._SubParsersAction[JsonArgumentParser]) -> None:  # pyright: ignore[reportPrivateUsage]
-    """Add the focused support contracts without growing normal protocol parsing."""
-    for name in ("migration-check", "migrate-artifacts"):
-        subparsers.add_parser(name)
-    inspect = subparsers.add_parser("resume-inspect")
-    inspect.add_argument("--role", choices=("requestor", "reviewer"))
-    inspect.add_argument("--trusted-host-hint")
-    inspect.add_argument("--document")
-    inspect.add_argument("--implementation-step")
-    inspect.add_argument("--override", action="store_true")
-    claim = subparsers.add_parser("claim")
-    claim.add_argument("--document", required=True)
-    claim.add_argument("--implementation-step")
-    claim.add_argument("--role", choices=("requestor", "reviewer"), required=True)
-    claim.add_argument("--trusted-host-hint")
-    claim.add_argument("--round", dest="round_number", type=positive_int, required=True)
-    claim.add_argument("--occurrence", type=positive_int, required=True)
-    claim.add_argument("--override", action="store_true")
-    add_ownership_arguments(claim)
-    wait_any = subparsers.add_parser("wait-any-request")
-    wait_any.add_argument("--poll-interval", type=positive_float, default=1.0)
+def _add_resume_arguments(command: JsonArgumentParser, name: str) -> None:
+    """Add support contracts without constructing unrelated protocol commands."""
+    if name == "resume-inspect":
+        command.add_argument("--role", choices=("requestor", "reviewer"))
+        command.add_argument("--trusted-host-hint")
+        command.add_argument("--document")
+        command.add_argument("--implementation-step")
+        command.add_argument("--override", action="store_true")
+    elif name == "claim":
+        command.add_argument("--document", required=True)
+        command.add_argument("--implementation-step")
+        command.add_argument("--role", choices=("requestor", "reviewer"), required=True)
+        command.add_argument("--trusted-host-hint")
+        command.add_argument("--round", dest="round_number", type=positive_int, required=True)
+        command.add_argument("--occurrence", type=positive_int, required=True)
+        command.add_argument("--override", action="store_true")
+        add_ownership_arguments(command)
+    elif name == "wait-any-request":
+        command.add_argument("--poll-interval", type=positive_float, default=1.0)
 
 
 def context_from_document(

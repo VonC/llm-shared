@@ -7,12 +7,12 @@ once, never overwriting a home copy. The shell entry prints that path.
 
 from __future__ import annotations
 
-import runpy
 import sys
 from typing import TYPE_CHECKING
 
 import pytest
 
+from tests.script_entry import run_main
 from tools import artifact_home
 from tools.review_exchange_models import ReviewExchangeError
 
@@ -104,7 +104,7 @@ def test_module_entry_exits_with_the_main_status(
     monkeypatch.setattr(sys, "argv", ["artifact_home", str(tmp_path), "a.md"])
 
     with pytest.raises(SystemExit) as raised:
-        runpy.run_module("tools.artifact_home", run_name="__main__")
+        run_main("tools.artifact_home")
 
     assert raised.value.code == artifact_home.EXIT_OK
 

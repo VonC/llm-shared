@@ -1,4 +1,4 @@
-"""Suite-wide Hypothesis defaults and Git isolation for a parallel test run.
+"""Suite-wide Hypothesis defaults and process-free test policy.
 
 The full suite runs on xdist workers, so wall-clock time inside a test now
 measures contention as much as the code under test. Hypothesis enforces a
@@ -8,58 +8,68 @@ produces: an example measured at 72ms alone was measured at 288ms under load.
 
 Fix: default ``deadline`` to ``None`` for the whole suite. This removes a
 wall-clock assertion that parallel scheduling makes unreliable; it does not
-remove slowness detection, which belongs to the project's own duration gate in
-the covered full run at speed. Several property suites already set
+remove slowness detection, which belongs to the project's own duration gate.
+Several property suites already set
 ``deadline=None`` by hand for the same reason, so this makes the established
 convention the default. A module that sets its own ``deadline`` still wins,
 because an explicit ``@settings`` value overrides the active profile.
 
-Fix: fixture repositories commit with throwaway identities, so a developer's
-global ``commit.gpgsign = true`` made every such commit fail (exit 128) when the
-signing-key command refuses an identity it does not own. The session fixture
-below appends ``commit.gpgsign=false`` through ``GIT_CONFIG_COUNT`` for every
-Git child process the suite starts, which covers the helpers that never passed
-the per-command ``-c commit.gpgsign=false``; any configuration entries already
-in the environment are kept (``tests.git_isolation`` computes them).
+The example database is disabled to avoid per-test cache I/O. Strategies,
+explicit examples and example budgets are unchanged. Random generation stays
+enabled so parametrized batches continue to explore different examples.
 
-Automatic worker selection is capped at four: spawning a worker per core
+Automatic worker selection is capped at two: spawning a worker per core
 multiplies coverage and filesystem contention in this I/O-heavy suite.
 An explicit worker count or PYTEST_XDIST_AUTO_NUM_WORKERS still wins.
 
-Fix: groundhog no longer has a machine-wide run slot, so the session no
-longer marks itself as a slot holder.
-
 Fix: a plain ``pytest -n auto`` uses groundhog's own default bound
 (``tools.groundhog.runner.auto_workers``: a quarter of the logical CPUs, at
-most two) instead of a separate cap of four, so the two never disagree.
+most two) instead of a separate cap, so the two never disagree.
 
-Fix: every Git call went through Git for Windows' launcher, two processes per
-call. ``pytest_configure`` puts the native ``git.exe`` folder first on
-``PATH`` (``tests.git_isolation.native_git_path``) before collection, so module
-level copies of the environment carry it too. That halves the Git processes of
-the suite and of the CLI children that inherit its environment.
+Fix: groundhog no longer has a machine-wide run slot, so the session does not
+mark itself as a slot holder. The suite needs no Git isolation either: the
+process audit of ``tests.simulation_policy`` fails any test that starts Git.
+
+Host-agent signals (``CLAUDECODE``, ``CODEX_THREAD_ID``) select the detected
+LLM nature. Each worker drops them from its own environment once, at import:
+a suite launched from a Claude session otherwise detected ``claude`` where a
+typed prerequisite recorded ``codex``, and in-process publications failed on
+the role-nature conflict, while the same tests passed from Codex. Tests of
+detection set the signal they assert through ``monkeypatch`` or an explicit
+mapping; launcher acceptance already strips both through
+``session_environment``.
+
 """
 
 from __future__ import annotations
 
+import gc
 import os
-import shutil
-from typing import TYPE_CHECKING
 
 import pytest
 from hypothesis import HealthCheck, settings
 
-from tests.git_isolation import native_git_path, unsigned_commit_settings
 from tools.groundhog.runner import auto_workers
 
-if TYPE_CHECKING:
-    from collections.abc import Iterator
+pytest_plugins = [
+    "tests.simulation_policy", "tests.memory_filesystem", "tests.scenario_cli",
+    "tests.scenario_generation", "tests.testmon_monitoring",
+]
+
+# Testmon creates Coverage(config_file=False), ignoring pyproject's core.
+# Use the same supported collector for both test dependencies and coverage.
+os.environ.setdefault("COVERAGE_CORE", "sysmon")
+
+# No test inherits the launching agent's host; see the module docstring.
+for _host_signal in ("CLAUDECODE", "CODEX_THREAD_ID"):
+    os.environ.pop(_host_signal, None)
 
 _PROFILE = "llm-shared"
 
 settings.register_profile(
     _PROFILE,
     deadline=None,
+    database=None,
     # Contended workers make per-example setup slow rather than wrong; the
     # duration gate, not Hypothesis, owns the verdict on how slow is too slow.
     suppress_health_check=[HealthCheck.too_slow],
@@ -67,19 +77,15 @@ settings.register_profile(
 settings.load_profile(_PROFILE)
 
 
-@pytest.fixture(scope="session", autouse=True)
-def unsigned_fixture_commits() -> Iterator[None]:
-    """Keep fixture-repository commits independent of the developer's signing setup."""
-    with pytest.MonkeyPatch.context() as patch:
-        for name, value in unsigned_commit_settings(os.environ).items():
-            patch.setenv(name, value)
-        yield
+def pytest_collection_finish() -> None:
+    """Keep the immutable collected suite out of later cyclic-GC traversals."""
+    gc.collect()
+    gc.freeze()
 
 
-def pytest_configure() -> None:
-    """Start the native ``git.exe`` instead of its launcher for every Git child."""
-    path = os.environ.get("PATH", "")
-    os.environ["PATH"] = native_git_path(path, shutil.which("git", path=path))
+def pytest_sessionfinish() -> None:
+    """Restore normal collection when pytest is embedded in a longer session."""
+    gc.unfreeze()
 
 
 @pytest.hookimpl(optionalhook=True)

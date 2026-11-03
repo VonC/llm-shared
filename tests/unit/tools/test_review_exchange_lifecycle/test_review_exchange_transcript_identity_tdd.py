@@ -2,11 +2,9 @@
 
 The main lifecycle module proves successful publication and repair. These
 focused tests keep rejection and corrupt-marker branches out of that growing
-journey file while exercising the same real core and store.
-
-Fix: the restarted-exchange answer test closes and restarts its exchange in a
-fixture, since every first open of a freshly written artifact pays on-access
-scanning; the measured call is the answer and its paired-heading assertions.
+journey file while exercising the same real core and store. Typed convergence
+prerequisites declare the harness's registered family policy, so the prepared
+state classifies as the owning-action gate it stands for.
 """
 
 from __future__ import annotations
@@ -17,10 +15,13 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+from tests.acceptance.review_resume.prepared_request import (
+    ReviewInputs,
+    prepare_convergence,
+)
 from tests.unit.tools.test_review_exchange_lifecycle.test_review_exchange_lifecycle_tdd import (
     _answer,
     _harness,
-    _reach_gate,
     _request,
 )
 from tools.llm_nature import LlmNature
@@ -30,6 +31,7 @@ from tools.review_exchange_models import (
     ReviewRole,
 )
 from tools.review_exchange_models_envelope import parse_envelope_markdown
+from tools.review_exchange_ownership import OwnershipCapability
 from tools.review_exchange_transcript_identity import render_nature_completion_entry
 
 if TYPE_CHECKING:
@@ -118,10 +120,13 @@ def test_publication_preserves_requestor_then_adds_reviewer_nature(
 def pending_legacy_request(
     tmp_path: Path,
 ) -> tuple[ReviewExchangeCore, ReviewExchangeStore, ReviewContext, FakeTime]:
-    """Prepare exchange two's legacy request outside the measured call phase."""
+    """Prepare exchange two from typed completion records inside measured setup."""
     core, store, context, clock = _harness(tmp_path)
-    _reach_gate(core, context, clock)
-    core.confirm("Commit")
+    store.paths.coordination.parent.mkdir(exist_ok=True)
+    capability = prepare_convergence(
+        ReviewInputs(tmp_path, context, store.paths), authorized=True, policy=core.policy,
+    )
+    core.present_ownership(OwnershipCapability(capability["ownership_generation"], capability["ownership_token"]))
     assert core.complete()
     core.start()
     core.publish_request(_request(context, clock, 1), "Exchange two request.")
@@ -147,7 +152,7 @@ def test_request_transcript_repair_requires_a_pending_request(tmp_path: Path) ->
 def later_round_request(
     tmp_path: Path,
 ) -> ReviewExchangeCore:
-    """Publish a normal round-two request outside the measured call phase."""
+    """Publish a normal round-two request inside the measured lifecycle."""
     core, _, context, clock = _harness(tmp_path)
     core.start()
     core.publish_request(_request(context, clock, 1), "Round one request.")
@@ -166,13 +171,25 @@ def test_first_occurrence_in_a_later_round_is_not_an_exchange_collision(
         later_round_request.repair_current_request_transcript("Round two replacement.")
 
 
-@pytest.fixture
-def different_step_identity_journey(tmp_path: Path) -> None:
-    """Publish two plan steps outside the measured assertion call."""
-    core, store, context, clock = _harness(tmp_path)
-    _reach_gate(core, context, clock)
-    core.confirm("Commit")
-    assert core.complete()
+@pytest.fixture(params=["complete-prior", "publish-next"])
+def different_step_identity_journey(tmp_path: Path, request: pytest.FixtureRequest) -> None:
+    """Check completion and next-step identity independently with typed inputs."""
+    core, store, context, _clock = _harness(tmp_path)
+    store.paths.coordination.parent.mkdir(exist_ok=True)
+    capability = prepare_convergence(
+        ReviewInputs(tmp_path, context, store.paths), authorized=True,
+        include_transcript=request.param != "complete-prior", policy=core.policy,
+    )
+    core.present_ownership(OwnershipCapability(capability["ownership_generation"], capability["ownership_token"]))
+    if request.param == "complete-prior":
+        assert core.complete()
+        assert not store.paths.coordination.exists()
+        assert not store.paths.answer.exists()
+        return
+    # Declare the prior completion's durable state. Its producer is asserted
+    # independently above; only the next step's publication is exercised here.
+    store.paths.coordination.unlink()
+    store.paths.answer.unlink()
     step_four_core, _, step_four, step_four_clock = _harness(
         tmp_path,
         implementation_step="4",
@@ -202,24 +219,18 @@ def test_same_round_in_a_different_step_has_its_own_identity(
     assert different_step_identity_journey is None
 
 
-@pytest.fixture
-def restarted_request(tmp_path: Path) -> tuple[ReviewExchangeCore, ReviewExchangeStore, ReviewContext, FakeTime]:
-    """Close a request-only exchange, then restart it with a new first request."""
+def test_answer_occurrence_follows_a_restarted_request_without_prior_answer(
+    tmp_path: Path,
+) -> None:
+    """A closed request-only exchange cannot desynchronize paired headings."""
     core, store, context, clock = _harness(tmp_path)
     core.start()
     core.publish_request(_request(context, clock, 1), "First request only.")
     store.paths.request.unlink()
     store.paths.coordination.unlink()
+
     core.start()
     core.publish_request(_request(context, clock, 1), "Restarted request.")
-    return core, store, context, clock
-
-
-def test_answer_occurrence_follows_a_restarted_request_without_prior_answer(
-    restarted_request: tuple[ReviewExchangeCore, ReviewExchangeStore, ReviewContext, FakeTime],
-) -> None:
-    """A closed request-only exchange cannot desynchronize paired headings."""
-    core, store, context, clock = restarted_request
     core.publish_answer(_answer(context, clock, 1), "Restarted answer.")
 
     transcript = store.paths.transcript.read_text(encoding="utf-8")

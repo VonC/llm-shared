@@ -20,6 +20,11 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+from tests.code_review_repository_observations import (
+    EVIDENCE,
+    declare_index,
+    declare_repository,
+)
 from tools import code_review_request as request_renderer
 from tools import prompt_workflow_code_review as code_review
 from tools import prompt_workflow_skill as skill
@@ -65,22 +70,10 @@ class Effort:
     umbrella: Path
 
 
-def _git(root: Path, *arguments: str) -> None:
-    """Run one bounded Git command in the temporary reviewed repository."""
-    subprocess.run(
-        ["git", *arguments],
-        cwd=root,
-        check=True,
-        capture_output=True,
-        text=True,
-        timeout=10,
-    )
-
-
 def _effort(root: Path, *, marker: bool = True, step: str = "4") -> Effort:
     """Create one opted-in plan effort with an exact declared step."""
     root.mkdir(parents=True)
-    _git(root, "init", "-q")
+    declare_repository(root)
     (root / ".gitignore").write_text("a.*\n", encoding="utf-8")
     if marker:
         (root / "a.review-mode").write_text("", encoding="utf-8")
@@ -272,7 +265,7 @@ def repeated_round_journey(tmp_path: Path) -> None:
     repaired = effort.root / "src" / "repair.py"
     repaired.parent.mkdir()
     repaired.write_text("VALUE = 1\n", encoding="utf-8")
-    _git(effort.root, "add", "src/repair.py")
+    declare_index(effort.root, "src/repair.py")
     (effort.root / "a.commit").write_text(
         "git add -A src/repair.py\n",
         encoding="utf-8",
@@ -318,15 +311,7 @@ def repeated_round_journey(tmp_path: Path) -> None:
 
 def _git_names(root: Path) -> tuple[str, ...]:
     """Return the exact staged-path inventory for requestor assessment."""
-    result = subprocess.run(
-        ["git", "diff", "--cached", "--name-only"],
-        cwd=root,
-        check=True,
-        capture_output=True,
-        text=True,
-        timeout=10,
-    )
-    return tuple(result.stdout.splitlines())
+    return EVIDENCE[root.resolve()].changed_paths()
 
 
 def test_substantive_repair_disagreement_and_override_start_bounded_rounds(

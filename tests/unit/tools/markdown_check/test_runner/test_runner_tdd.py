@@ -1,9 +1,4 @@
-"""TDD contracts for inventory, evaluation, and stable runner diagnostics.
-
-The tracked-inventory test keeps the actual executable lookup and subprocess;
-the root conftest puts installed native Git first on ``PATH``, so the lookup
-avoids its Windows launcher.
-"""
+"""Inventory parsing, evaluation and diagnostics with declared process results."""
 
 # ruff: noqa: S603, S607
 
@@ -36,12 +31,20 @@ def _policy(tmp_path: Path) -> None:
 
 
 @pytest.fixture
-def tracked_repository(tmp_path: Path) -> Path:
-    """Build a real tracked inventory outside the measured test call."""
-    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True, timeout=10)
-    (tmp_path / "note.MD").write_text("# Note\n", encoding="utf-8")
-    (tmp_path / "skip.txt").write_text("skip\n", encoding="utf-8")
-    subprocess.run(["git", "-C", str(tmp_path), "add", "."], check=True, timeout=10)
+def tracked_repository(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """Supply an inventory response and verify the actual query and options."""
+    def executable(_name: str) -> str:
+        return "declared-git"
+
+    monkeypatch.setattr(runner_module.shutil, "which", executable)
+
+    def inventory(command: list[str], *, check: bool, capture_output: bool) -> subprocess.CompletedProcess[bytes]:
+        assert command == ["declared-git", "-C", str(tmp_path), "ls-files", "-z"]
+        assert check is False
+        assert capture_output is True
+        return subprocess.CompletedProcess(command, 0, b"note.MD\0skip.txt\0", b"")
+
+    monkeypatch.setattr(runner_module.subprocess, "run", inventory)
     return tmp_path
 
 

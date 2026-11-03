@@ -38,24 +38,11 @@ _FATAL = 2
 _CANDIDATE_COUNT = 3
 
 
-def _git(root: Path, *arguments: str) -> None:
-    """Record the small repository protocol used by these acceptance tests."""
-    operation = arguments[0]
-    if operation == "init":
-        (root / ".git").mkdir()
-        return
-    if operation == "add":
-        tracked = root / ".unit-git-index"
-        tracked.write_text(arguments[-1] + "\n", encoding="utf-8")
-        return
-    raise AssertionError(arguments)
-
-
 def _root(tmp_path: Path, name: str) -> Path:
     """Create one opted-in Git repository with ignored root scratch files."""
     root = tmp_path / name
     root.mkdir()
-    _git(root, "init", "-q")
+    (root / ".git").mkdir()
     (root / ".gitignore").write_text("a.*\n", encoding="utf-8")
     (root / "a.review-mode").write_text("", encoding="utf-8")
     return root
@@ -125,6 +112,7 @@ def test_identity_mismatch_duplicate_exchange_and_unsupported_type_fail_closed(
 def tracked_input_journey(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Run the tracked-input rejection through the recorded Git boundary."""
     root = _root(tmp_path, "tracked-input")
@@ -138,7 +126,11 @@ def tracked_input_journey(
     assessment.write_text("Assess.\n", encoding="utf-8")
     changes.write_text("Changed.\n", encoding="utf-8")
     response.write_text("Responded.\n", encoding="utf-8")
-    _git(root, "add", "-f", ".reviews/a.assessment.md")
+    # A tracked input is explicitly observed as unignored, even under the home.
+    def ignored_input(_root: Path, path: Path) -> bool:
+        return path != assessment
+
+    monkeypatch.setattr(request_renderer, "_is_effectively_ignored", ignored_input)
     request_output = home / "a.request-output.md"
     summary_output = home / "a.summary-output.md"
 

@@ -254,7 +254,7 @@ class TestResumeCliSupport:
     ) -> None:
         """The shared launcher delegates resume operations before normal runtime setup."""
         args = _args("resume-inspect")
-        monkeypatch.setattr(launcher, "_parser", lambda: SimpleNamespace(parse_args=lambda _: args))
+        monkeypatch.setattr(launcher, "_parser_for", lambda _: SimpleNamespace(parse_args=lambda _: args))
         monkeypatch.setattr(launcher, "find_project_root", lambda _: tmp_path)
         monkeypatch.setattr(launcher, "is_resume_operation", lambda _: True)
         monkeypatch.setattr(launcher, "execute_resume_operation", lambda *_: ({"outcome": "ready"}, 0))

@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 import json
-import runpy
 import sys
 from typing import TYPE_CHECKING
 
 import pytest
 
+from tests.script_entry import run_main
 from tools import codex_plugin_redirects
 
 if TYPE_CHECKING:
@@ -191,7 +191,7 @@ def test_script_guard_exits_with_main_result(
     _set_argv(monkeypatch, plugin, canonical, cache_base)
 
     with pytest.raises(SystemExit) as raised:
-        runpy.run_path(codex_plugin_redirects.__file__, run_name="__main__")
+        run_main(codex_plugin_redirects.__file__)
 
     assert raised.value.code == 0
 

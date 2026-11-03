@@ -6,12 +6,11 @@ execution in `tools.enforce_eof`.
 
 from __future__ import annotations
 
-import runpy
 import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import tools
+from tests.script_entry import run_main
 from tools import enforce_eof
 
 if TYPE_CHECKING:
@@ -158,18 +157,18 @@ def test_enforce_eof_script_runs_as_main(
     (tmp_path / "src").mkdir()
     (tmp_path / "tools").mkdir()
     original_sys_path = list(sys.path)
+    observed_paths: list[list[str]] = []
 
     def fake_find_project_root(_start_path: Path) -> Path:
+        observed_paths.append(list(sys.path))
         return tmp_path
 
-    monkeypatch.setattr(tools, "find_project_root", fake_find_project_root)
+    monkeypatch.setattr(enforce_eof, "find_project_root", fake_find_project_root)
 
-    try:
-        runpy.run_path(str(script_path), run_name="__main__")
-        assert str(expected_root) in sys.path
-        assert str(expected_src) in sys.path
-    finally:
-        sys.path[:] = original_sys_path
+    run_main(str(script_path))
+    assert observed_paths
+    assert all(str(expected_root) in paths and str(expected_src) in paths for paths in observed_paths)
+    assert sys.path == original_sys_path
 
 
 # eof

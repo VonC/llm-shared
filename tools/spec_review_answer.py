@@ -3,7 +3,8 @@
 This module deliberately owns no command-line parsing, path trust checks, or
 review-exchange mutation.  It converts one already validated assessment into a
 complete reviewer answer and the substantive summary that a caller can publish
-through the shared exchange.
+through the shared exchange. Its template is read through
+`template_text.read_template`, shared by every renderer.
 """
 
 # ruff: noqa: EM101, EM102, TRY003
@@ -15,6 +16,7 @@ from pathlib import Path
 from string import Template
 from typing import cast
 
+from tools import template_text
 from tools.review_exchange_models import (
     ReviewContext,
     ReviewDisposition,
@@ -313,7 +315,7 @@ def _answer_authored_content(source: SpecificationAssessment) -> str:
         "final_decision": _final_decision(source),
     }
     try:
-        template = Template(_TEMPLATE_PATH.read_text(encoding="utf-8"))
+        template = Template(template_text.read_template(_TEMPLATE_PATH))
     except (OSError, UnicodeError) as error:
         raise ReviewExchangeError(f"cannot read answer template: {error}") from error
     return template.substitute(values).rstrip() + "\n"

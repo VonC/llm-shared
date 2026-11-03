@@ -1,20 +1,18 @@
-"""Evaluate complete fixture repositories with real Git inventory prepared once."""
+"""Evaluate fixture documents with explicitly declared repository inventories."""
 
 # ruff: noqa: S603, S607
 
 from __future__ import annotations
 
 import json
-import subprocess
 from typing import TYPE_CHECKING
 
 import pytest
 
-from tools import prompt_workflow_steps as steps
+from tools.markdown_check import cli
 from tools.markdown_check.runner import (
     CheckerResult,
     CheckerRunner,
-    tracked_markdown_paths,
 )
 
 if TYPE_CHECKING:
@@ -37,7 +35,6 @@ def _write_repository(
     allowances: list[dict[str, object]] | None = None,
 ) -> None:
     """Create one tracked repository with explicit policy and baseline inputs."""
-    subprocess.run(["git", "init", "-q", str(root)], check=True)
     documents = {
         ".markdownlint.json": json.dumps(policy),
         ".markdownlint-baseline.json": json.dumps(
@@ -49,7 +46,6 @@ def _write_repository(
         path = root / relative
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content, encoding="utf-8")
-    subprocess.run(["git", "-C", str(root), "add", "."], check=True)
 
 
 def _fixed_inventory_runner(root: Path, *paths: str) -> CheckerRunner:
@@ -118,22 +114,12 @@ def overlap_repository(tmp_path: Path) -> Path:
 
 
 @pytest.fixture
-def failing_launcher_result(tmp_path: Path) -> subprocess.CompletedProcess[str]:
-    """Run the real root launcher against unbaselined debt during setup."""
-    _write_repository(tmp_path, {"docs/bad.md": "## Only section\n"})
-    return subprocess.run(
-        [str(steps.llm_shared_dir() / "markdown-check.bat"), "--root", str(tmp_path)],
-        cwd=tmp_path,
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-
-
-@pytest.fixture
 def complete_repository_inventory(complete_repository: Path) -> tuple[str, ...]:
-    """Read the real Git inventory in setup while keeping evaluation measured."""
-    return tracked_markdown_paths(complete_repository)
+    """Declare tracked documents independently of production inventory discovery."""
+    del complete_repository
+    return ("docs/structured.md", ".claude/skills/example/SKILL.md",
+            ".agents/llm-shared/instructions/pointer.md", "instructions/rule.md",
+            "templates/fragment.md", "docs/code.md")
 
 
 def test_complete_repository_covers_structured_and_adapter_contracts(
@@ -193,13 +179,19 @@ def test_baseline_blocks_growth_and_reports_shrink(
     )
 
 
-def test_root_launcher_returns_failure_for_unbaselined_finding(
-    failing_launcher_result: subprocess.CompletedProcess[str],
+def test_cli_returns_failure_for_unbaselined_finding(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """The public Windows launcher preserves checker findings and status."""
-    assert failing_launcher_result.returncode == 1
-    assert "docs/bad.md:1: LS001" in failing_launcher_result.stdout
-    assert failing_launcher_result.stderr == ""
+    """The public Python entry preserves real checker findings and status."""
+    _write_repository(tmp_path, {"docs/bad.md": "## Only section\n"})
+    def selected_runner(root: Path) -> CheckerRunner:
+        return _fixed_inventory_runner(root, "docs/bad.md")
+
+    monkeypatch.setattr(cli, "CheckerRunner", selected_runner)
+    assert cli.main(["--root", str(tmp_path)]) == 1
+    captured = capsys.readouterr()
+    assert "docs/bad.md:1: LS001" in captured.out
+    assert captured.err == ""
 
 
 # eof

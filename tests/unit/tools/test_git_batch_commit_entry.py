@@ -14,13 +14,13 @@ isolated from the real repository `a.commit`.
 
 from __future__ import annotations
 
-import runpy
 import sys
 from pathlib import Path
 
 import pytest
 
 import tools
+from tests.script_entry import run_main
 from tests.unit.tools.git_batch_commit_test_support import (
     return_project_root,
     valid_commit_message,
@@ -167,25 +167,29 @@ def test_git_batch_commit_script_runs_as_main_and_exits_zero(
         encoding="utf-8",
     )
 
-    monkeypatch.setattr(tools, "find_project_root", return_project_root(project_root))
+    observed_paths: list[list[str]] = []
+
+    def find_project_root(_start_path: Path) -> Path:
+        observed_paths.append(list(sys.path))
+        return project_root
+
+    monkeypatch.setattr(tools, "find_project_root", find_project_root)
     # The workflow module binds find_project_root at import time, so the
     # tools-level patch alone would leave the run reading the real a.commit.
     monkeypatch.setattr(
         git_batch_workflow,
         "find_project_root",
-        return_project_root(project_root),
+        find_project_root,
     )
     monkeypatch.setattr(sys, "argv", [str(script_path), "a.commit", "--dry-run"])
 
-    try:
-        with pytest.raises(SystemExit) as excinfo:
-            runpy.run_path(str(script_path), run_name="__main__")
+    with pytest.raises(SystemExit) as excinfo:
+        run_main(str(script_path))
 
-        assert excinfo.value.code == 0
-        assert expected_root in sys.path
-        assert expected_src in sys.path
-    finally:
-        sys.path[:] = original_sys_path
+    assert excinfo.value.code == 0
+    assert observed_paths
+    assert all(expected_root in paths and expected_src in paths for paths in observed_paths)
+    assert sys.path == original_sys_path
 
 
 def test_git_batch_commit_script_logs_fatal_for_root_workflow_errors(
@@ -206,7 +210,7 @@ def test_git_batch_commit_script_logs_fatal_for_root_workflow_errors(
     monkeypatch.setattr(sys, "argv", [str(script_path), "--root-a-commit"])
 
     with pytest.raises(SystemExit) as excinfo:
-        runpy.run_path(str(script_path), run_name="__main__")
+        run_main(str(script_path))
 
     assert excinfo.value.code == _EXPECTED_TWO
 

@@ -1,4 +1,4 @@
-"""Planner tests over synthetic branch, reflog, tag, and conflict graphs.
+"""Planner tests over declared branch, reflog, tag, and conflict observations.
 
 Fix (v0.13.0 full_suite_levels, Step 2): the integration sync and the feature
 replay name ``ghog day --full=cov``, since plain ``ghog day`` no longer runs
@@ -7,13 +7,14 @@ the full suite.
 
 from __future__ import annotations
 
-import shutil
 from typing import TYPE_CHECKING
 
 import pytest
 
 from tools.prepare_release import prepare_release_plan_workflow as workflow
 from tools.prepare_release.prepare_release_plan_models import (
+    CommitSummary,
+    MergePreview,
     ReleaseAction,
     ReleaseMode,
     ReleasePlanError,
@@ -21,9 +22,11 @@ from tools.prepare_release.prepare_release_plan_models import (
 from tools.prepare_release.prepare_release_plan_workflow import build_release_plan
 
 from .prepare_release_plan_test_support import (
-    commit_file,
-    git,
-    initialize_repository,
+    BASE,
+    MERGE,
+    PARENT,
+    TIP,
+    declare_repository,
     repository_for,
 )
 
@@ -36,7 +39,7 @@ _EXPECTED_CANDIDATES = 2
 
 @pytest.fixture(autouse=True)
 def recorded_workflow_repository(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Run workflow decisions against the synthetic Git topology."""
+    """Run workflow decisions against declared repository observations."""
     monkeypatch.setattr(workflow, "GitRepository", repository_for)
 
 
@@ -44,22 +47,21 @@ def recorded_workflow_repository(monkeypatch: pytest.MonkeyPatch) -> None:
 def integration_merge_plan(tmp_path: Path) -> ReleasePlan:
     """Prepare the synthetic integration merge plan outside assertion time."""
     repo = tmp_path / "repo"
-    initialize_repository(repo)
-    git(repo, "switch", "-c", "develop")
-    commit_file(repo, "develop.txt", "develop\n", "feat: integrated work")
-    git(repo, "switch", "main")
+    facts = declare_repository(repo)
+    facts.refs = {"main": BASE, "develop": TIP}
+    facts.ranges["main..develop"] = (CommitSummary(TIP, "feat: integrated work"),)
+    facts.merge_previews["main", "develop"] = MergePreview(clean=True, tree_oid="tree", conflicted_files=(), conflicts=())
     return build_release_plan(repo, branch="develop", integration_branch="develop")
 
 
 @pytest.fixture
 def integration_conflict_plan(tmp_path: Path) -> ReleasePlan:
-    """Prepare the real-Git integration conflict plan outside assertion time."""
+    """Declare a divergent integration branch and its conflict observation."""
     repo = tmp_path / "repo"
-    initialize_repository(repo)
-    git(repo, "switch", "-c", "develop")
-    commit_file(repo, "shared.txt", "develop\n", "feat: develop change")
-    git(repo, "switch", "main")
-    commit_file(repo, "shared.txt", "main\n", "fix: main change")
+    facts = declare_repository(repo)
+    facts.refs = {"main": PARENT, "develop": TIP}
+    facts.ranges["main..develop"] = (CommitSummary(TIP, "feat: develop change"),)
+    facts.merge_previews["develop", "main"] = MergePreview(clean=False, tree_oid="tree", conflicted_files=("shared.txt",), conflicts=())
     return build_release_plan(repo, branch="develop", integration_branch="develop")
 
 
@@ -67,11 +69,12 @@ def integration_conflict_plan(tmp_path: Path) -> ReleasePlan:
 def explicit_parent_plan(tmp_path: Path) -> tuple[str, ReleasePlan]:
     """Prepare the first-parent boundary plan outside assertion time."""
     repo = tmp_path / "repo"
-    base = initialize_repository(repo)
-    git(repo, "switch", "-c", "feature")
-    commit_file(repo, "feature.txt", "feature\n", "feat: feature change")
-    git(repo, "switch", "-c", "develop", "main")
-    git(repo, "merge", "--no-ff", "feature", "-m", "merge feature")
+    facts = declare_repository(repo)
+    facts.refs["develop"] = MERGE
+    facts.ancestors.add((TIP, MERGE))
+    facts.histories["develop"] = (BASE, MERGE)
+    facts.parents = {BASE: (), MERGE: (BASE, TIP)}
+    facts.bases[TIP, BASE, False] = BASE
     plan = build_release_plan(
         repo,
         branch="feature",
@@ -79,75 +82,70 @@ def explicit_parent_plan(tmp_path: Path) -> tuple[str, ReleasePlan]:
         feature_target="main",
         preview_conflicts=False,
     )
-    return base, plan
+    return BASE, plan
 
 
 @pytest.fixture
 def single_parent_plan(tmp_path: Path) -> tuple[str, ReleasePlan]:
     """Prepare the sole-parent boundary plan outside assertion time."""
     repo = tmp_path / "repo"
-    base = initialize_repository(repo)
-    git(repo, "switch", "-c", "feature")
-    commit_file(repo, "feature.txt", "feature\n", "feat: feature change")
-    git(repo, "switch", "main")
-    commit_file(repo, "main.txt", "main\n", "fix: main work")
-    shutil.rmtree(repo / ".git" / "logs")
+    facts = declare_repository(repo)
+    facts.refs["main"] = PARENT
+    facts.reflogs.clear()
+    facts.bases["main", "feature", False] = BASE
     plan = build_release_plan(
         repo,
         branch="feature",
         feature_target="main",
         preview_conflicts=False,
     )
-    return base, plan
+    return BASE, plan
 
 
 @pytest.fixture
 def ambiguous_parent_plan(tmp_path: Path) -> tuple[str, ReleasePlan]:
     """Prepare the deduplicated-parent plan outside assertion time."""
     repo = tmp_path / "repo"
-    initialize_repository(repo)
-    git(repo, "switch", "-c", "develop")
-    fork_point = commit_file(repo, "parent.txt", "develop\n", "feat: parent work")
-    git(repo, "switch", "-c", "feature")
-    commit_file(repo, "feature.txt", "feature\n", "feat: feature change")
-    # Advance develop and main past the fork and drop every reflog, so no
-    # fork-point or branch-creation answer survives and the planner must
-    # weigh plain merge-base candidates from every parent branch.
-    git(repo, "switch", "develop")
-    commit_file(repo, "parent.txt", "develop again\n", "feat: later parent work")
-    git(repo, "switch", "main")
-    commit_file(repo, "main.txt", "main\n", "fix: main work")
-    git(repo, "branch", "other", "main")
-    shutil.rmtree(repo / ".git" / "logs")
+    facts = declare_repository(repo)
+    facts.refs = {"main": "5" * 40, "develop": MERGE, "feature": TIP, "other": "5" * 40}
+    # No reflog or fork-point observation survives. The planner must rank
+    # the declared merge bases and combine the same-base parent candidates.
+    facts.reflogs.clear()
+    facts.bases = {("main", "feature", False): BASE, ("other", "feature", False): BASE,
+                   ("develop", "feature", False): PARENT}
+    facts.ancestors.update({(BASE, PARENT), (PARENT, TIP)})
+    facts.ranges[f"{BASE}..feature"] = (CommitSummary(PARENT, "feat: parent work"), CommitSummary(TIP, "feat: feature change"))
+    facts.ranges[f"{PARENT}..feature"] = (CommitSummary(TIP, "feat: feature change"),)
     plan = build_release_plan(
         repo,
         branch="feature",
         feature_target="main",
         preview_conflicts=False,
     )
-    return fork_point, plan
+    return PARENT, plan
 
 
 @pytest.fixture
 def rebased_feature_plan(tmp_path: Path) -> tuple[str, ReleasePlan]:
     """Prepare the reflog-backed rebase plan outside assertion time."""
     repo = tmp_path / "repo"
-    initialize_repository(repo)
-    git(repo, "switch", "-c", "feature")
-    commit_file(repo, "feature.txt", "feature\n", "feat: feature change")
-    git(repo, "switch", "main")
-    main_tip = commit_file(repo, "main.txt", "main\n", "fix: main work")
-    git(repo, "rebase", "main", "feature")
+    facts = declare_repository(repo)
+    facts.refs["main"] = PARENT
+    facts.ancestors.add((PARENT, TIP))
+    facts.reflogs["feature"] += ((TIP, f"rebase (finish): returning to feature onto {PARENT}"),)
+    facts.ranges[f"{PARENT}..feature"] = (CommitSummary(TIP, "feat: feature change"),)
     plan = build_release_plan(repo, preview_conflicts=False)
-    return main_tip, plan
+    return PARENT, plan
 
 
 @pytest.fixture
 def main_plan(tmp_path: Path) -> ReleasePlan:
     """Prepare the synthetic on-main plan outside assertion time."""
     repo = tmp_path / "repo"
-    initialize_repository(repo)
-    commit_file(repo, "main.txt", "main\n", "feat: release work")
+    facts = declare_repository(repo)
+    facts.current = "main"
+    facts.refs = {"main": TIP}
+    facts.ranges["v1.0.0..main"] = (CommitSummary(TIP, "feat: release work"),)
     return build_release_plan(repo, preview_conflicts=False)
 
 
@@ -185,10 +183,11 @@ def test_plan_integration_merges_no_ff_when_it_contains_main(
 def configured_integration_plan(tmp_path: Path) -> ReleasePlan:
     """Prepare the configured integration plan outside assertion time."""
     repo = tmp_path / "repo"
-    initialize_repository(repo)
-    git(repo, "switch", "-c", "next")
-    commit_file(repo, "next.txt", "next\n", "feat: integrated work")
-    git(repo, "config", "prepare-release.integrationBranch", "next")
+    facts = declare_repository(repo)
+    facts.current = "next"
+    facts.refs = {"main": BASE, "next": TIP}
+    facts.config["prepare-release.integrationBranch"] = "next"
+    facts.ranges["main..next"] = (CommitSummary(TIP, "feat: integrated work"),)
     return build_release_plan(repo, preview_conflicts=False)
 
 
@@ -219,23 +218,21 @@ def test_plan_integration_previews_main_sync_conflict(
 
 @pytest.fixture
 def nested_feature_plan(tmp_path: Path) -> tuple[str, str, ReleasePlan]:
-    """Prepare the real-Git nested-feature plan outside assertion time."""
+    """Declare a feature forked from the current integration tip."""
     repo = tmp_path / "repo"
-    initialize_repository(repo)
-    git(repo, "switch", "-c", "develop")
-    develop_tip = commit_file(repo, "parent.txt", "develop\n", "feat: parent work")
-    git(repo, "switch", "-c", "feature")
-    feature_tip = commit_file(repo, "feature.txt", "feature\n", "feat: selected work")
-    git(repo, "switch", "main")
-    commit_file(repo, "main.txt", "main\n", "fix: main work")
+    facts = declare_repository(repo)
+    facts.refs.update({"develop": PARENT, "main": MERGE})
+    facts.ancestors.add((PARENT, TIP))
+    facts.ranges[f"{PARENT}..feature"] = (CommitSummary(TIP, "feat: selected work"),)
+    facts.merge_previews["develop", "feature"] = MergePreview(clean=True, tree_oid="tree", conflicted_files=(), conflicts=())
 
     plan = build_release_plan(
         repo,
         branch="feature",
         integration_branch="develop",
-        feature_base=develop_tip,
+        feature_base=PARENT,
     )
-    return develop_tip, feature_tip, plan
+    return PARENT, TIP, plan
 
 
 def test_plan_nested_feature_uses_exact_integration_replay(
@@ -262,11 +259,9 @@ def test_plan_nested_feature_uses_exact_integration_replay(
 def auto_detected_boundary_plan(tmp_path: Path) -> tuple[str, ReleasePlan]:
     """Prepare automatic branch-boundary detection outside assertion time."""
     repo = tmp_path / "repo"
-    base = initialize_repository(repo)
-    git(repo, "switch", "-c", "feature")
-    commit_file(repo, "feature.txt", "feature\n", "feat: feature")
-    repository_for(repo).reflogs["feature"].insert(0, (base, "commit: ignored"))
-    return base, build_release_plan(repo, preview_conflicts=False)
+    facts = declare_repository(repo)
+    facts.reflogs["feature"] = ((BASE, "commit: ignored"), *facts.reflogs["feature"])
+    return BASE, build_release_plan(repo, preview_conflicts=False)
 
 
 def test_plan_auto_detects_branch_creation_boundary(
@@ -286,14 +281,12 @@ def test_plan_auto_detects_branch_creation_boundary(
 def already_released_plan(tmp_path: Path) -> tuple[str, ReleasePlan]:
     """Prepare an already-released feature plan outside assertion time."""
     repo = tmp_path / "repo"
-    initialize_repository(repo)
-    git(repo, "switch", "-c", "feature")
-    feature_tip = commit_file(repo, "feature.txt", "feature\n", "feat: feature")
-    git(repo, "switch", "main")
-    git(repo, "merge", "--no-ff", "feature", "-m", "merge feature")
-    git(repo, "tag", "v1.1.0")
+    facts = declare_repository(repo)
+    facts.refs["main"] = MERGE
+    facts.ancestors.add((TIP, MERGE))
+    facts.containing_tags["feature"] = ("v1.1.0",)
     plan = build_release_plan(repo, branch="feature", preview_conflicts=False)
-    return feature_tip, plan
+    return TIP, plan
 
 
 def test_plan_stops_feature_already_contained_by_release_tag(
@@ -311,9 +304,11 @@ def test_plan_stops_feature_already_contained_by_release_tag(
 def orphan_boundary_plan(tmp_path: Path) -> ReleasePlan:
     """Prepare an orphan-branch boundary plan outside assertion time."""
     repo = tmp_path / "repo"
-    initialize_repository(repo)
-    git(repo, "switch", "--orphan", "rescue")
-    commit_file(repo, "orphan.txt", "orphan\n", "feat: unrelated history")
+    facts = declare_repository(repo)
+    facts.current = "rescue"
+    facts.refs = {"main": BASE, "rescue": TIP}
+    facts.ancestors.clear()
+    facts.reflogs.clear()
     return build_release_plan(repo, preview_conflicts=False)
 
 
@@ -332,20 +327,21 @@ def test_plan_orphan_branch_requires_a_boundary(orphan_boundary_plan: ReleasePla
 def explicit_merge_scope_plan(tmp_path: Path) -> tuple[str, ReleasePlan]:
     """Prepare the explicit merge-scope plan outside assertion time."""
     repo = tmp_path / "repo"
-    base = initialize_repository(repo)
-    git(repo, "switch", "-c", "feature")
-    commit_file(repo, "feature.txt", "feature\n", "feat: feature change")
-    git(repo, "switch", "-c", "side")
-    commit_file(repo, "side.txt", "side\n", "feat: side change")
-    git(repo, "switch", "feature")
-    git(repo, "merge", "--no-ff", "side", "-m", "merge side")
+    facts = declare_repository(repo)
+    facts.refs["feature"] = MERGE
+    facts.ancestors.add((BASE, MERGE))
+    facts.merged_ranges.add(f"{BASE}..feature")
+    facts.ranges[f"{BASE}..feature"] = (
+        CommitSummary(TIP, "feat: feature change"), CommitSummary(PARENT, "feat: side change"),
+        CommitSummary(MERGE, "merge side"),
+    )
     plan = build_release_plan(
         repo,
         branch="feature",
-        feature_base=base,
+        feature_base=BASE,
         preview_conflicts=False,
     )
-    return base, plan
+    return BASE, plan
 
 
 def test_plan_flags_merges_inside_an_explicit_feature_scope(
@@ -364,10 +360,9 @@ def test_plan_flags_merges_inside_an_explicit_feature_scope(
 def direct_merge_plan(tmp_path: Path) -> tuple[str, ReleasePlan]:
     """Prepare a direct-merge preview plan outside assertion time."""
     repo = tmp_path / "repo"
-    base = initialize_repository(repo)
-    git(repo, "switch", "-c", "feature")
-    commit_file(repo, "feature.txt", "feature\n", "feat: feature change")
-    return base, build_release_plan(repo)
+    facts = declare_repository(repo)
+    facts.merge_previews["main", "feature"] = MergePreview(clean=True, tree_oid="tree", conflicted_files=(), conflicts=())
+    return BASE, build_release_plan(repo)
 
 
 def test_plan_direct_merge_previews_conflicts(
@@ -397,10 +392,10 @@ def test_plan_explicit_parent_uses_the_first_parent_merge_boundary(
 def explicit_parent_boundary_error(tmp_path: Path) -> ReleasePlanError:
     """Capture an underivable parent-boundary error outside assertion time."""
     repo = tmp_path / "repo"
-    initialize_repository(repo)
-    git(repo, "switch", "-c", "feature")
-    commit_file(repo, "feature.txt", "feature\n", "feat: feature change")
-    git(repo, "branch", "twin", "feature")
+    facts = declare_repository(repo)
+    facts.refs["twin"] = TIP
+    facts.histories["twin"] = (BASE, TIP)
+    facts.parents = {BASE: (), TIP: (BASE,)}
 
     with pytest.raises(ReleasePlanError) as caught:
         build_release_plan(
@@ -423,9 +418,7 @@ def test_plan_explicit_parent_without_a_boundary_fails(
 def explicit_base_error(tmp_path: Path) -> ReleasePlanError:
     """Capture the improper explicit-base error outside assertion time."""
     repo = tmp_path / "repo"
-    initialize_repository(repo)
-    git(repo, "switch", "-c", "feature")
-    commit_file(repo, "feature.txt", "feature\n", "feat: feature change")
+    declare_repository(repo)
 
     with pytest.raises(ReleasePlanError) as caught:
         build_release_plan(repo, branch="feature", feature_base="feature", preview_conflicts=False)
@@ -453,12 +446,10 @@ def test_plan_rebased_feature_uses_the_reflog_onto_evidence(
 def reset_reflog_plan(tmp_path: Path) -> tuple[str, ReleasePlan]:
     """Prepare reset reflog evidence outside assertion time."""
     repo = tmp_path / "repo"
-    base = initialize_repository(repo)
-    git(repo, "switch", "-c", "feature")
-    commit_file(repo, "feature.txt", "feature\n", "feat: discarded work")
-    git(repo, "reset", "--hard", "main")
-    commit_file(repo, "feature.txt", "again\n", "feat: kept work")
-    return base, build_release_plan(repo, preview_conflicts=False)
+    facts = declare_repository(repo)
+    facts.reflogs["feature"] += ((BASE, "reset: moving to main"),)
+    facts.ranges[f"{BASE}..feature"] = (CommitSummary(TIP, "feat: kept work"),)
+    return BASE, build_release_plan(repo, preview_conflicts=False)
 
 
 def test_plan_reset_reflog_entry_wins_as_latest_evidence(

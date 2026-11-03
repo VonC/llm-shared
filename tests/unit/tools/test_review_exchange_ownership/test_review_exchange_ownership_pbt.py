@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
@@ -50,8 +51,10 @@ def _record() -> CoordinationRecord:
 
 
 @given(st.lists(st.sampled_from((Actor.REQUESTOR, Actor.REVIEWER)), min_size=1, max_size=40))
-@settings(max_examples=40)
+@pytest.mark.parametrize("_batch", range(8))
+@settings(max_examples=5)
 def test_every_forced_pickup_strictly_advances_and_rejects_prior_generations(
+    _batch: int,
     actors: list[Actor],
 ) -> None:
     """No capability from any earlier generation validates after a pickup."""

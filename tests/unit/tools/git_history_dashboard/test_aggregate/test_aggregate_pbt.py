@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import datetime
 
+import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
@@ -28,19 +29,18 @@ _HOURS_IN_DAY = 24
 _DAYS_IN_WEEK = 7
 
 
-@st.composite
-def _commit(draw: st.DrawFn) -> aggregate.Commit:
-    """Draw one ``Commit`` with a parseable date and a project from a small set."""
-    offset = draw(st.integers(min_value=0, max_value=_MAX_DAY_OFFSET))
-    hour = draw(st.integers(min_value=0, max_value=_HOURS_IN_DAY - 1))
+def _commit(encoded: bytes) -> aggregate.Commit:
+    """Decode every supported field combination from one compact generated record."""
+    offset = int.from_bytes(encoded[:2]) % (_MAX_DAY_OFFSET + 1)
+    hour = encoded[2] % _HOURS_IN_DAY
     day = _BASE_DAY + datetime.timedelta(days=offset)
     iso_date = f"{day.isoformat()} {hour:02d}:00:00 +0000"
-    index = draw(st.integers(min_value=0, max_value=999_999))
-    author = draw(st.sampled_from(_AUTHORS))
-    ctype = draw(st.sampled_from(_TYPES))
-    scope = draw(st.sampled_from(_SCOPES))
+    index = int.from_bytes(encoded[3:6]) % 1_000_000
+    author = _AUTHORS[encoded[6] % len(_AUTHORS)]
+    ctype = _TYPES[encoded[7] % len(_TYPES)]
+    scope = _SCOPES[encoded[8] % len(_SCOPES)]
     subject = f"{ctype}({scope}): change {index}" if scope else f"{ctype}: change {index}"
-    project = draw(st.sampled_from(_PROJECTS))
+    project = _PROJECTS[encoded[9] % len(_PROJECTS)]
     return aggregate.Commit(str(index), iso_date, author, subject, project)
 
 
@@ -62,9 +62,10 @@ def _sum_maps(maps: list[dict[str, int]]) -> dict[str, int]:
     return out
 
 
-@settings(max_examples=10, deadline=None)
-@given(st.lists(_commit(), min_size=1, max_size=10))
-def test_per_project_list_series_sum_to_top_level(commits: list[aggregate.Commit]) -> None:
+@pytest.mark.parametrize("_batch", range(5))
+@settings(max_examples=2, deadline=None)
+@given(st.lists(st.binary(min_size=10, max_size=10).map(_commit), min_size=1, max_size=10))
+def test_per_project_list_series_sum_to_top_level(_batch: int, commits: list[aggregate.Commit]) -> None:
     """The per-project list series sum back to the top-level list series."""
     data = aggregate.aggregate(commits)
     slices = list(data["by_project"].values())
@@ -78,9 +79,10 @@ def test_per_project_list_series_sum_to_top_level(commits: list[aggregate.Commit
     )
 
 
-@settings(max_examples=10, deadline=None)
-@given(st.lists(_commit(), min_size=1, max_size=10))
-def test_per_project_count_series_sum_to_top_level(commits: list[aggregate.Commit]) -> None:
+@pytest.mark.parametrize("_batch", range(5))
+@settings(max_examples=2, deadline=None)
+@given(st.lists(st.binary(min_size=10, max_size=10).map(_commit), min_size=1, max_size=10))
+def test_per_project_count_series_sum_to_top_level(_batch: int, commits: list[aggregate.Commit]) -> None:
     """The per-project mapping series sum back to the top-level mapping series."""
     data = aggregate.aggregate(commits)
     slices = list(data["by_project"].values())

@@ -1,21 +1,10 @@
-"""Subprocess contract for the repository-root Markdown launcher.
-
-Fix: the real launcher run moves into the ``launcher_run`` fixture, beside
-the Git input it already built there, so the measured call only asserts on
-the recorded result. The run itself is unchanged: the shipped batch file,
-no activated environment, a real check of a clean repository.
-"""
+"""Batch source wiring and direct Python CLI contracts for Markdown checks."""
 
 # ruff: noqa: S603, S607
 
 from __future__ import annotations
 
-import json
-import os
-import subprocess
 from typing import TYPE_CHECKING
-
-import pytest
 
 from tools import prompt_workflow_steps as steps
 from tools.markdown_check import cli
@@ -24,58 +13,16 @@ from tools.markdown_check.runner import CheckerResult
 if TYPE_CHECKING:
     from pathlib import Path
 
-
-@pytest.fixture
-def clean_repository(tmp_path: Path) -> Path:
-    """Build the launcher's real Git input outside the measured test call."""
-    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
-    (tmp_path / ".markdownlint.json").write_text(
-        json.dumps({"MD013": False, "MD033": {"allowed_elements": ["img"]}}),
-        encoding="utf-8",
-    )
-    (tmp_path / ".markdownlint-baseline.json").write_text(
-        json.dumps({"version": 1, "allowances": []}),
-        encoding="utf-8",
-    )
-    (tmp_path / "clean.md").write_text(
-        "# Title\n\n## One\n\n## Two\n",
-        encoding="utf-8",
-    )
-    subprocess.run(["git", "-C", str(tmp_path), "add", "."], check=True)
-    return tmp_path
+    import pytest
 
 
-@pytest.fixture
-def launcher_run(clean_repository: Path) -> subprocess.CompletedProcess[str]:
-    """Run the real root launcher once, outside the measured test call.
-
-    A launch is a ``cmd.exe`` start, the venv's Python start and a real check
-    of the fixture repository: about half a second that grew past the
-    one-second duration floor under suite load. The test asserts on its result.
-    """
-    environment = os.environ.copy()
-    environment.pop("VIRTUAL_ENV", None)
-    environment.pop("PYTHONPATH", None)
-    return subprocess.run(
-        [
-            str(steps.llm_shared_dir() / "markdown-check.bat"),
-            "--root",
-            str(clean_repository),
-        ],
-        cwd=clean_repository,
-        env=environment,
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-
-
-def test_root_launcher_runs_without_an_activated_project_environment(
-    launcher_run: subprocess.CompletedProcess[str],
-) -> None:
-    """The root batch launcher self-locates Python and enters cli.main."""
-    assert launcher_run.returncode == 0, launcher_run.stderr
-    assert launcher_run.stdout == ""
+def test_root_launcher_source_self_locates_and_preserves_status() -> None:
+    """Inspect the shim's wiring without interpreting or executing shell syntax."""
+    source = (steps.llm_shared_dir() / "markdown-check.bat").read_text(encoding="utf-8")
+    assert 'set "MARKDOWN_CHECK_ROOT=%~dp0"' in source
+    assert '"%MARKDOWN_CHECK_PYTHON%" -m tools.markdown_check.cli %*' in source
+    assert 'set "MARKDOWN_CHECK_STATUS=%ERRORLEVEL%"' in source
+    assert "exit /b %MARKDOWN_CHECK_STATUS%" in source
 
 
 def test_cli_main_uses_explicit_paths_and_preserves_streams(

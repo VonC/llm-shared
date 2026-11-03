@@ -1,10 +1,4 @@
-"""Bind one validated scope to a review and preserve legacy missing evidence.
-
-Fix: every first open of a freshly written exchange artifact costs about 30ms
-under on-access scanning, so the exit and resolution journeys publish and
-check their bound first request (and reach the state each exit starts from)
-in fixtures; the measured call runs the exit or resolution and its assertions.
-"""
+"""Bind scopes and reuse published-request setup for native lifecycle checks."""
 
 from __future__ import annotations
 
@@ -49,6 +43,7 @@ from tools.review_exchange_paths import (
 from tools.scope_capture import WHOLE_SCOPE
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from pathlib import Path
 
     from tools.review_exchange_core import ReviewExchangeCore
@@ -106,67 +101,43 @@ def _scoped_request(context: ReviewContext, clock: FakeTime, number: int = 1, sc
 
 
 @pytest.fixture
-def scoped_round(tmp_path: Path) -> tuple[ReviewExchangeCore, ReviewExchangeStore, ReviewContext, FakeTime]:
-    """Publish and check the bound first request before each measured journey."""
+def published_scope(tmp_path: Path, stable_review_inputs: Callable[[], None]) -> tuple[ReviewExchangeCore, ReviewExchangeStore, ReviewContext, FakeTime]:
+    """Prepare exact persisted scope evidence before timing lifecycle exits."""
+    del stable_review_inputs  # Cache only immutable paths and artifact settings.
     configured_home(tmp_path)
     core, store, context, clock = _harness(tmp_path)
     core.start()
     core.publish_request(_scoped_request(context, clock), "Request evidence.", WHOLE_SCOPE.to_json())
-    record = store.read_coordination()
-    assert record is not None
-    assert record.bound_scope_fingerprint == WHOLE_SCOPE.fingerprint
     return core, store, context, clock
 
 
-@pytest.fixture
-def exit_ready_round(
-    scoped_round: tuple[ReviewExchangeCore, ReviewExchangeStore, ReviewContext, FakeTime], operation: str,
-) -> tuple[ReviewExchangeCore, ReviewExchangeStore]:
-    """Reach the state each exit starts from: a confirmed convergence or a stale rework."""
-    core, store, context, clock = scoped_round
+@pytest.mark.parametrize("operation", ["complete", "force"])
+def test_capture_follows_every_coordination_exit(published_scope: tuple[ReviewExchangeCore, ReviewExchangeStore, ReviewContext, FakeTime], operation: str) -> None:
+    """Every lifecycle exit clears the live capture; archive retains exact bytes."""
+    core, store, context, clock = published_scope
+    record = store.read_coordination()
+    assert record is not None
+    assert record.bound_scope_fingerprint == WHOLE_SCOPE.fingerprint
     if operation == "complete":
         core.publish_answer(_answer(context, clock, 1, ReviewDisposition.CONVERGENCE_RECOMMENDED), "Ready.")
         core.confirm("Commit")
+        assert core.complete()
     else:
         core.publish_answer(_answer(context, clock, 1), "Rework.")
         core.consume_answer(reviewed_work_changed=True)
         core.continue_round()
         clock.sleep(600)
-    return core, store
-
-
-@pytest.mark.parametrize("operation", ["complete", "force"])
-def test_capture_follows_every_coordination_exit(
-    operation: str, exit_ready_round: tuple[ReviewExchangeCore, ReviewExchangeStore],
-) -> None:
-    """Every lifecycle exit clears the live capture; archive retains exact bytes."""
-    core, store = exit_ready_round
-    assert store.paths.scope.exists()
-    if operation == "complete":
-        assert core.complete()
-    else:
         assert core.force_complete("Abandoned work retired.")
     assert not store.paths.scope.exists()
     assert not store.paths.coordination.exists()
 
 
-@pytest.fixture
-def escalated_round(
-    scoped_round: tuple[ReviewExchangeCore, ReviewExchangeStore, ReviewContext, FakeTime],
-) -> tuple[ReviewExchangeCore, ReviewExchangeStore, bytes]:
-    """Keep the bound capture bytes, then escalate before the measured resolution."""
-    core, store, _context, _clock = scoped_round
+@pytest.mark.parametrize("archive", [True, False])
+def test_resolution_retires_scope(published_scope: tuple[ReviewExchangeCore, ReviewExchangeStore, ReviewContext, FakeTime], *, archive: bool) -> None:
+    """Resolution starts unbound and archives the exact old capture when requested."""
+    core, store, _context, _clock = published_scope
     before = store.paths.scope.read_bytes()
     core.escalate("Needs human decision.", ReviewRole.REQUESTOR)
-    return core, store, before
-
-
-@pytest.mark.parametrize("archive", [True, False])
-def test_resolution_retires_scope(
-    escalated_round: tuple[ReviewExchangeCore, ReviewExchangeStore, bytes], *, archive: bool,
-) -> None:
-    """Resolution starts unbound and archives the exact old capture when requested."""
-    core, store, before = escalated_round
     result = core.resolve_escalation("Use a fresh round.", archive=archive)
     assert scopes.bound_scope_payload(store.paths, result.record) == "missing"
     archived = [path for path in result.archived_paths if path.name.endswith(".scope.json")]

@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from itertools import permutations
 
+import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
@@ -35,9 +36,11 @@ def _damaged_entries(draw: st.DrawFn) -> tuple[DamagedCandidateStatus, ...]:
     )
 
 
-@settings(max_examples=25)
+@pytest.mark.parametrize("_batch", range(5))
+@settings(max_examples=5)
 @given(_damaged_entries(), st.data())
 def test_sort_is_independent_of_enumeration_order(
+    _batch: int,
     entries: tuple[DamagedCandidateStatus, ...],
     data: st.DataObject,
 ) -> None:

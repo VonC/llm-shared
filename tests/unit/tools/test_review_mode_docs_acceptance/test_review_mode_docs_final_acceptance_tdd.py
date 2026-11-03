@@ -15,7 +15,8 @@ from __future__ import annotations
 
 from functools import cache
 from pathlib import Path
-from typing import TYPE_CHECKING
+
+import pytest
 
 from .conftest import (
     _CODE_TUTORIAL,
@@ -33,9 +34,6 @@ from .conftest import (
     markdown_table_row,
     read_declared,
 )
-
-if TYPE_CHECKING:
-    import pytest
 
 _CONNECTED_DOCUMENTATION = (
     "README.md",
@@ -119,7 +117,17 @@ def test_step_5_coverage_finalizes_every_inventory_candidate(docs_root: Path) ->
         assert "independent-review-mode-contract.md" in row
 
 
-def test_step_5_connected_set_closes_links_terms_logos_and_gates(
+@pytest.mark.parametrize("page", _CONNECTED_DOCUMENTATION)
+def test_step_5_connected_set_closes_links(
+    docs_root: Path, monkeypatch: pytest.MonkeyPatch, page: str,
+) -> None:
+    """Each connected page retains all its local path and fragment contracts."""
+    monkeypatch.setattr(Path, "resolve", cache(Path.resolve))
+    monkeypatch.setattr(Path, "read_text", cache(Path.read_text))
+    assert_local_links(docs_root, (page,))
+
+
+def test_step_5_connected_set_closes_terms_logos_and_gates(
     docs_root: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Step 5 acceptance: the bounded connected set retains its contracts."""
@@ -127,7 +135,6 @@ def test_step_5_connected_set_closes_links_terms_logos_and_gates(
     monkeypatch.setattr(Path, "resolve", cache(Path.resolve))
     monkeypatch.setattr(Path, "read_text", cache(Path.read_text))
     assert_named_paths(docs_root, (*_CONNECTED_DOCUMENTATION, _COVERAGE))
-    assert_local_links(docs_root, _CONNECTED_DOCUMENTATION)
 
     independent_pages = (
         _EXPLANATION,
@@ -196,7 +203,7 @@ def test_resume_public_docs_describe_shipped_waiting_and_automatic_pickup(docs_r
                             "recover-an-independent-review.md", "pw skill"))
     wiki_home = read_declared(docs_root, "wiki/README.md")
     assert_contains(wiki_home, ("wait-any-request", "automatic ownership pickup"))
-    recovery = read_declared(docs_root, "wiki/how-to/recover-an-independent-review.md")
+    recovery =read_declared(docs_root, "wiki/how-to/recover-an-independent-review.md")
     assert "enter `resume`" in recovery
     assert "automatic pickup" in recovery
     assert "force requestor ownership pickup" not in recovery

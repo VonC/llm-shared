@@ -1,4 +1,8 @@
-"""Recovery and retained-context acceptance for the specification reviewer."""
+"""Recovery and retained-context acceptance for the specification reviewer.
+
+Publication recovery declares its pending-request prerequisite and renders its
+answer directly; interruption and repair still execute production persistence.
+"""
 
 from __future__ import annotations
 
@@ -9,6 +13,10 @@ from pathlib import Path
 
 import pytest
 
+from tests.acceptance.review_resume.prepared_request import (
+    ReviewInputs,
+    prepare_request,
+)
 from tools import prompt_workflow_skill
 from tools.prompt_workflow_review import SpecificationReviewRoutingError
 from tools.review_exchange_core import ReviewExchangeCore
@@ -22,13 +30,17 @@ from tools.review_exchange_models import (
 )
 from tools.review_exchange_paths import derive_artifact_paths
 from tools.review_exchange_store import ReviewExchangeStore
+from tools.spec_review_answer import (
+    SpecificationAssessment,
+    render_specification_answer,
+)
 
 from .fixtures import (
     POLICY,
+    TIMESTAMP,
     Effort,
     core,
     make_effort,
-    publish_request,
     render_answer,
     render_request,
 )
@@ -161,11 +173,17 @@ def interrupted_publication_journey(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Run interrupted publication replay outside the measured call phase."""
+    """Measure interrupted publication and repair with a typed prerequisite."""
     effort = make_effort(tmp_path / "replay", "feature-request", "replay")
-    assert publish_request(effort).code == 0
-    content, summary = render_answer(effort, ReviewDisposition.CHANGES_REQUESTED)
     paths = derive_artifact_paths(effort.root, effort.context)
+    paths.coordination.parent.mkdir(exist_ok=True)
+    (paths.coordination.parent / ".gitignore").write_bytes(b"*\n")
+    prepare_request(ReviewInputs(effort.root, effort.context, paths), None)
+    rendered = render_specification_answer(SpecificationAssessment(
+        effort.context, effort.root, 1, TIMESTAMP, ReviewDisposition.CHANGES_REQUESTED,
+        "The wording was checked.", "Q01: option A.", "Apply the verdict.",
+        requested_changes="Clarify the recovery owner.",
+    ))
     store = ReviewExchangeStore(paths)
     active = ReviewExchangeCore(
         store,
@@ -183,16 +201,16 @@ def interrupted_publication_journey(
     monkeypatch.setattr(store, "append_transcript_once", stop_after_visibility)
     with pytest.raises(ReviewExchangeError, match="append interruption"):
         active.publish_answer(
-            content.read_text(encoding="utf-8"),
-            summary.read_text(encoding="utf-8"),
+            rendered.answer_content,
+            rendered.transcript_summary,
         )
     monkeypatch.setattr(store, "append_transcript_once", original_append)
 
     repairing = core(effort)
     repairing.pickup_ownership(Actor.REVIEWER)
     repairing.publish_answer(
-        content.read_text(encoding="utf-8"),
-        summary.read_text(encoding="utf-8"),
+        rendered.answer_content,
+        rendered.transcript_summary,
     )
 
     transcript = paths.transcript.read_text(encoding="utf-8")

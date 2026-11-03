@@ -1,8 +1,13 @@
-"""Exercise resume on real artifacts with explicit host identity and prepared phases."""
+"""Exercise resume on real artifacts with explicit host identity and prepared phases.
+
+Inspection and claim each own their phase evidence through parsed Namespace
+inputs. Acceptance journeys retain public parsing and their sequencing.
+"""
 
 from __future__ import annotations
 
 import json
+from argparse import Namespace
 from dataclasses import replace
 from typing import TYPE_CHECKING
 
@@ -11,15 +16,13 @@ import pytest
 from tests.unit.tools.test_review_exchange_lifecycle import (
     test_review_exchange_lifecycle_tdd as lifecycle,
 )
+from tests.unit.tools.test_review_resume.prepared_phase import prepare_phase
 from tools import review_exchange_cli as launcher
 from tools import review_exchange_cli_resume as cli
 from tools.llm_nature import LlmNature
-from tools.review_exchange_cli_parser import parser
 from tools.review_exchange_core import ReviewExchangeCore
 from tools.review_exchange_models import (
-    Actor,
     ArtifactState,
-    ReviewDisposition,
     ReviewRole,
 )
 from tools.review_exchange_ownership import OwnershipCapability, OwnershipRejectedError
@@ -34,6 +37,7 @@ from tools.review_resume_identity import claim_discovered_request, claim_selecte
 from tools.review_resume_wait import GlobalReviewerWait, GlobalWaitOutcome
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from pathlib import Path
 
 
@@ -94,23 +98,10 @@ def _ignore_fixture_paths(*_paths: object) -> bool:
     return True
 
 
-def _advance_phase(
-    core: ReviewExchangeCore, context: lifecycle.ReviewContext,
-    clock: lifecycle.FakeTime, phase: str,
-) -> None:
-    """Prepare one real durable phase without hiding the resume operation under test."""
-    if phase != "request":
-        core.reclaim()
-        disposition = ReviewDisposition.CHANGES_REQUESTED if phase == "answer" else ReviewDisposition.CONVERGENCE_RECOMMENDED
-        core.publish_answer(lifecycle._answer(context, clock, 1, disposition), "Reviewer summary")
-        if phase == "authorized":
-            core.pickup_ownership(Actor.REQUESTOR)
-            core.confirm("Commit")
-
-
 @pytest.fixture
 def prepared_requestor_phase(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, phase: str,
+    stable_review_inputs: Callable[[], None],
 ) -> tuple[ReviewExchangeCore, lifecycle.ReviewExchangeStore, lifecycle.ReviewContext, lifecycle.FakeTime]:
     """Publish as the explicit Codex fixture host regardless of the test runner's host."""
     monkeypatch.delenv("CLAUDECODE", raising=False)
@@ -119,10 +110,30 @@ def prepared_requestor_phase(
     cli.ReviewArtifactConfiguration.load(tmp_path).prepare_home()
     monkeypatch.setattr(cli.ReviewArtifactMigration, "_default_ignore_checker", _ignore_fixture_paths)
     (store.paths.coordination.parent / "a.review-mode").write_text("", encoding="utf-8")
-    lifecycle._start_and_request(core, context, clock)
-    _advance_phase(core, context, clock, phase)
+    stable_review_inputs()
+    prepare_phase(core, context, clock, phase)
     monkeypatch.setattr(cli, "_wall_clock", clock.now)
     return core, store, context, clock
+
+
+@pytest.mark.parametrize("phase", ["request", "answer", "convergence", "authorized"])
+def test_exact_cli_inspection_preserves_each_live_requestor_phase(
+    tmp_path: Path,
+    prepared_requestor_phase: tuple[ReviewExchangeCore, lifecycle.ReviewExchangeStore, lifecycle.ReviewContext, lifecycle.FakeTime],
+) -> None:
+    """Inspection selects the exact initial occurrence without changing evidence."""
+    _core, store, context, _clock = prepared_requestor_phase
+    before = store.paths.coordination.read_bytes()
+    # The adapter accepts Namespace inputs. Public parsing and the complete
+    # inspect-then-claim journey remain covered by CLI and acceptance tests.
+    arguments = Namespace(operation="resume-inspect", document=str(context.document_path),
+                          role="requestor", trusted_host_hint="codex", implementation_step=None, override=False)
+    inspected, code = cli.execute_resume_operation(arguments, tmp_path)
+    assert code == 0
+    assert store.paths.coordination.read_bytes() == before
+    candidate = inspected["candidates"][0]
+    assert candidate["round"] == 1
+    assert candidate["occurrence"] == 1
 
 
 @pytest.mark.parametrize("phase", ["request", "answer", "convergence", "authorized"])
@@ -130,17 +141,13 @@ def test_exact_cli_claim_resumes_each_live_requestor_phase(
     tmp_path: Path, phase: str,
     prepared_requestor_phase: tuple[ReviewExchangeCore, lifecycle.ReviewExchangeStore, lifecycle.ReviewContext, lifecycle.FakeTime],
 ) -> None:
-    """Inspection is read-only; automatic claim preserves live phase and enables its next mutation."""
+    """Automatic claim preserves the declared live phase and enables its next mutation."""
     core, store, context, clock = prepared_requestor_phase
-    before = store.paths.coordination.read_bytes()
-    common = ["--document", str(context.document_path), "--role", "requestor", "--trusted-host-hint", "codex"]
-    inspected, code = cli.execute_resume_operation(parser().parse_args(["resume-inspect", *common]), tmp_path)
-    assert code == 0
-    assert store.paths.coordination.read_bytes() == before
-    candidate = inspected["candidates"][0]
-    payload, code = cli.execute_resume_operation(parser().parse_args([
-        "claim", *common, "--round", str(candidate["round"]), "--occurrence", str(candidate["occurrence"]),
-    ]), tmp_path)
+    arguments = Namespace(operation="claim", document=str(context.document_path),
+                          role="requestor", trusted_host_hint="codex", implementation_step=None,
+                          override=False, round_number=1, occurrence=1,
+                          ownership_generation=None, ownership_token=None)
+    payload, code = cli.execute_resume_operation(arguments, tmp_path)
     assert code == 0
     assert payload["role"] == "requestor"
     capability = OwnershipCapability(payload["ownership_generation"], payload["ownership_token"])
@@ -159,9 +166,9 @@ def _finish_resumed_phase(resumed: ReviewExchangeCore, phase: str, tmp_path: Pat
         resumed.confirm("Commit")
     elif phase == "authorized":
         resumed.complete()
-        idle, code = cli.execute_resume_operation(parser().parse_args([
-            "resume-inspect", "--role", "requestor", "--trusted-host-hint", "codex",
-        ]), tmp_path)
+        arguments = Namespace(operation="resume-inspect", document=None, role="requestor",
+                              trusted_host_hint="codex", implementation_step=None, override=False)
+        idle, code = cli.execute_resume_operation(arguments, tmp_path)
         assert code == 0
         assert idle["action"] == "follow-workflow"
 

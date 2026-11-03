@@ -36,13 +36,13 @@ from __future__ import annotations
 
 import io
 import os
-import runpy
 import sys
 from dataclasses import replace
 from typing import TYPE_CHECKING
 
 import pytest
 
+from tests.script_entry import run_main
 from tests.unit.tools.groundhog_acceptance_support import (
     CHECK_FAIL_CODE,
     FakeProcess,
@@ -450,7 +450,7 @@ def test_script_runs_through_its_main_guard(
     ]
     monkeypatch.setattr(sys, "argv", argv)
     with pytest.raises(SystemExit) as excinfo:
-        runpy.run_path(script_path, run_name="__main__")
+        run_main(script_path)
     assert excinfo.value.code == EXIT_OBJECTIVE_MET
 
 

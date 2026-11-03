@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
@@ -12,6 +13,13 @@ from tools.review_artifact_registry import (
 from tools.review_exchange_models import ExchangeIdentity, ReviewFamily
 
 
+def _slug_tail(data: bytes) -> str:
+    """Retain the full allowed alphabet without string-constant discovery."""
+    alphabet = "abcdefghijklmnopqrstuvwxyz0123456789_-"
+    return "".join(alphabet[value % len(alphabet)] for value in data)
+
+
+@pytest.mark.parametrize("_batch", range(20))
 @given(
     family=st.sampled_from(tuple(ReviewFamily)),
     version=st.tuples(
@@ -19,7 +27,8 @@ from tools.review_exchange_models import ExchangeIdentity, ReviewFamily
         st.integers(min_value=0, max_value=30),
         st.integers(min_value=0, max_value=30),
     ).map(lambda value: f"v{value[0]}.{value[1]}.{value[2]}"),
-    slug=st.from_regex(r"[a-z0-9][a-z0-9_-]{0,30}", fullmatch=True),
+    slug=st.tuples(st.sampled_from(tuple("abcdefghijklmnopqrstuvwxyz0123456789")),
+                   st.binary(max_size=30).map(_slug_tail)).map("".join),
     kind=st.sampled_from(
         (
             RegisteredArtifactKind.REQUEST,
@@ -31,8 +40,9 @@ from tools.review_exchange_models import ExchangeIdentity, ReviewFamily
         ),
     ),
 )
-@settings(max_examples=40)
+@settings(max_examples=2)
 def test_registered_identity_names_round_trip(
+    _batch: int,
     family: ReviewFamily,
     version: str,
     slug: str,

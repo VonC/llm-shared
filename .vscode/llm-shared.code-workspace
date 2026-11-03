@@ -42,7 +42,6 @@
 		"vscodeRadonLinter.excludeFiles": [
 			"**/*.pyx,**/a.*"
 		],
-		"ruff.nativeServer": "on",
 		"ruff.exclude": [
 			"a.*"
 		]

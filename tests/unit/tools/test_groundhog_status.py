@@ -18,15 +18,20 @@ unknown value).
 
 Fix: a bracketed run ends with its timestamped ``ended`` header right after
 its closing line, and a crashing dispatch still prints it.
+
+Fix: the crashing-dispatch test captures the ``groundhog`` logger at INFO
+itself; it read the ``ended`` header only when an earlier test had left that
+level set, which the merged suite's order no longer does.
 """
 
 from __future__ import annotations
 
+import ctypes
 import logging
 import os
 import re
-import subprocess
 import sys
+from types import SimpleNamespace
 from typing import TYPE_CHECKING, Final, cast
 
 import pytest
@@ -45,6 +50,8 @@ from tools.groundhog.models import (
 
 if TYPE_CHECKING:
     import io
+    import subprocess
+    from _ctypes import _CArgObject
     from pathlib import Path
 
 # A pid no Windows or POSIX system hands out in practice: DWORD-safe,
@@ -194,22 +201,42 @@ def test_status_write_failure_is_reported_not_fatal(
     assert "could not write" in caplog.text
 
 
-def test_pid_alive_on_windows_probes(tmp_path: Path) -> None:
-    """The probe sees this process alive, junk and finished pids dead."""
-    del tmp_path
-    assert status.pid_alive(os.getpid()) is True
-    assert status.pid_alive(0) is False
-    assert status.pid_alive(-7) is False
-    assert status.pid_alive(_NEVER_A_PID) is False
-    child = subprocess.Popen(  # noqa: S603
-        [sys.executable, "-S", "-c", "pass"],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
-    child.wait()
-    # The held Popen handle keeps the pid reserved, so the probe takes
-    # the opened-but-exited path instead of the open-failure path.
-    assert status.pid_alive(child.pid) is False
+@pytest.mark.parametrize(
+    ("pid", "handle", "queried", "exit_code", "alive"),
+    [(0, 0, 0, 0, False), (-7, 0, 0, 0, False), (123, 0, 0, 0, False),
+     (123, 42, 1, 259, True), (123, 42, 1, 0, False), (123, 42, 0, 259, False)],
+)
+def test_pid_alive_on_windows_probes(  # noqa: PLR0913 - independent OS observations
+    monkeypatch: pytest.MonkeyPatch,
+    pid: int,
+    handle: int,
+    queried: int,
+    exit_code: int,
+    *,
+    alive: bool,
+) -> None:
+    """Declared OS responses exercise liveness and handle cleanup without a child."""
+    opened: list[tuple[int, int, int]] = []
+    closed: list[int] = []
+    queries: list[int] = []
+
+    def open_process(access: int, inherit: int, selected: int) -> int:
+        opened.append((access, inherit, selected))
+        return handle
+
+    def get_exit_code(selected: int, output: _CArgObject) -> int:
+        queries.append(selected)
+        ctypes.cast(output, ctypes.POINTER(ctypes.c_ulong))[0] = exit_code
+        return queried
+
+    api = SimpleNamespace(OpenProcess=open_process, GetExitCodeProcess=get_exit_code, CloseHandle=closed.append)
+    monkeypatch.setattr(sys, "platform", "win32")
+    monkeypatch.setattr(ctypes, "windll", SimpleNamespace(kernel32=api), raising=False)
+
+    assert status.pid_alive(pid) is alive
+    assert opened == ([(0x1000, 0, pid)] if pid > 0 else [])
+    assert queries == ([handle] if handle else [])
+    assert closed == ([handle] if handle else [])
 
 
 def test_pid_alive_posix_branch(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -344,7 +371,10 @@ def test_lifecycle_records_done_even_when_the_dispatch_raises(
         raise RuntimeError(message)
 
     monkeypatch.setattr(commands, "run_check", _boom)
-    with pytest.raises(RuntimeError, match="dispatch broke"):
+    with (
+        caplog.at_level(logging.INFO, logger="groundhog"),
+        pytest.raises(RuntimeError, match="dispatch broke"),
+    ):
         status.run_with_lifecycle(
             _invocation(runner.SUB_CHECK, tmp_path),
             cli.Deps(),

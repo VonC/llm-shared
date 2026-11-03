@@ -51,6 +51,7 @@ history-repair plan.
 | Skill | Purpose |
 | --- | --- |
 | `/groundhog` | the ghog fixing loop: walk, fix what the report names, walk again |
+| `/write-fast-python-tests` | write or review Python tests so each whole lifecycle stays inside the time budget, keeping every assertion |
 | `/split-large-file` | split an over-budget file into single-responsibility files |
 | `/audit-application` | audit source code for performance, security, readability, and maintainability findings |
 | `/review-and-update-project-docs` | re-align README, architecture docs, and existing `wiki/` or `docs/wiki/` Diataxis roots with code or a Git range |

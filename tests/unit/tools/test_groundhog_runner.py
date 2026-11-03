@@ -1,8 +1,8 @@
 """Unit tests for the groundhog child-process runner (Q17).
 
 Cover the per-subcommand pytest command lines, the full run's
-``--durations`` timing flags (Q39), the live streaming loop (with the real
-process factory), and the crash classification of a pytest child (Q06).
+``--durations`` timing flags (Q39), the streaming loop with the production
+factory and a declared process boundary, and crash classification (Q06).
 
 Fix: the full command now also carries --durations=0 and
 --durations-min=0 so the full run times every call; the affected and
@@ -17,8 +17,8 @@ Fix: cover the pytest-suite probe of the project root: a bare root has no
 suite, each root marker file makes one, and setup.cfg or tox.ini count only
 with pytest's own section.
 
-The real streaming child skips site initialization and inherited Python setup;
-the scenario needs only builtin output and exit status.
+The streaming scenario supplies output and exit status in memory; it also
+checks the production factory's exact process options without starting a child.
 
 Fix (v0.13.0 full_suite_levels, Step 2): cover the full-run shape per level,
 sequential and parallel: ``pass`` carries ``--no-cov`` and no ``--durations``,
@@ -32,8 +32,11 @@ Step 4: verify group paths, coverage options and environment restoration on succ
 
 Fix: cover the bounded ``-n auto`` default (a quarter of the logical CPUs, at
 most two), the caller's ``PYTEST_XDIST_AUTO_NUM_WORKERS`` winning, and children
-started below normal priority. The real streaming child is now the platform
-shell, which starts faster than an interpreter behind a venv launcher.
+started below normal priority.
+
+Fix (merge of release-project-root): the streaming test keeps the sibling's
+in-memory ``Popen`` double, which the process audit requires, and now also
+expects the factory's below-normal ``creationflags``.
 """
 
 from __future__ import annotations
@@ -41,6 +44,7 @@ from __future__ import annotations
 import os
 import sys
 from typing import TYPE_CHECKING, cast
+from unittest.mock import Mock
 
 import pytest
 
@@ -288,18 +292,30 @@ def test_single_command_names_the_files() -> None:
     ]
 
 
-def test_run_streaming_with_the_real_factory(tmp_path: Path) -> None:
-    """The default factory streams a real child and returns its code."""
-    command = (
-        ["cmd.exe", "/d", "/c", "echo alpha& echo beta& exit 3"]
-        if sys.platform == "win32"
-        else ["sh", "-c", "echo alpha; echo beta; exit 3"]
+def test_run_streaming_with_the_real_factory(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """The production factory requests text streaming and returns the exit code."""
+    spawn = Mock(return_value=_FakeProcess(["alpha", "beta"], _CHILD_EXIT))
+    monkeypatch.setattr(runner.subprocess, "Popen", spawn)
+    config = runner.StreamConfig(
+        command=[
+            sys.executable,
+            "-I",
+            "-S",
+            "-c",
+            "import sys; print('alpha'); print('beta'); sys.exit(3)",
+        ],
+        cwd=tmp_path,
+        popen_factory=runner.default_popen_factory,
     )
-    config = runner.StreamConfig(command=command, cwd=tmp_path, popen_factory=runner.default_popen_factory)
     seen: list[str] = []
     code = runner.run_streaming(config, seen.append)
     assert seen == ["alpha", "beta"]
     assert code == _CHILD_EXIT
+    spawn.assert_called_once_with(
+        config.command, cwd=str(tmp_path), stdout=runner.subprocess.PIPE,
+        stderr=runner.subprocess.STDOUT, text=True, encoding="utf-8",
+        errors="replace", bufsize=1, creationflags=runner.CHILD_PRIORITY_FLAGS,
+    )
 
 
 def test_default_factory_starts_children_below_normal_priority(

@@ -195,8 +195,9 @@ def test_two_unchanged_rounds_escalate_without_deleting_evidence(
 
 
 @pytest.fixture
-def clarification_disagreement_journey(tmp_path: Path) -> None:
+def clarification_disagreement_journey(tmp_path: Path, stable_review_inputs: object) -> None:
     """Explicit disagreement gets one automated clarification round only."""
+    del stable_review_inputs  # Keep mutable review configuration reads live.
     core, _store, context, clock = _harness(tmp_path)
     _start_and_request(core, context, clock)
     core.publish_answer(_answer(context, clock, 1), "First disagreement.")

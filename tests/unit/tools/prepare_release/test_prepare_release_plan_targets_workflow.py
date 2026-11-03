@@ -15,16 +15,17 @@ from tools.prepare_release.prepare_release_plan_models import (
 from tools.prepare_release.prepare_release_plan_workflow import build_release_plan
 
 from .prepare_release_plan_test_support import (
-    commit_file,
-    git,
-    initialize_repository,
+    BASE,
+    PARENT,
+    TIP,
+    declare_repository,
     repository_for,
 )
 
 
 @pytest.fixture(autouse=True)
 def recorded_workflow_repository(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Run workflow decisions against the synthetic Git topology."""
+    """Run workflow decisions against declared repository observations."""
     monkeypatch.setattr(workflow, "GitRepository", repository_for)
 
 
@@ -119,22 +120,18 @@ def _stub_feature_repository(
 def umbrella_feature_repository(tmp_path: Path) -> tuple[Path, Path]:
     """Prepare a topic whose umbrella slug names an underscore branch."""
     repo = tmp_path / "repo"
-    initialize_repository(repo)
-    git(repo, "switch", "-c", "review_mode")
+    facts = declare_repository(repo)
+    facts.current = "commit-plan-check"
+    facts.refs = {"main": BASE, "review_mode": PARENT, "commit-plan-check": TIP}
+    facts.ancestors.add((PARENT, TIP))
+    facts.reflogs = {"commit-plan-check": ((PARENT, "branch: Created from review_mode"),)}
+    facts.ranges[f"{PARENT}..commit-plan-check"] = (CommitSummary(TIP, "feat: selected work"),)
     umbrella = repo / "docs/v0.11.0/draft.v0.11.0.review-mode.md"
     umbrella.parent.mkdir(parents=True)
     umbrella.write_text(
         "# Review mode\n\n- Draft role: umbrella\n",
         encoding="utf-8",
     )
-    commit_file(
-        repo,
-        "docs/v0.11.0/draft.v0.11.0.review-mode.md",
-        umbrella.read_text(encoding="utf-8"),
-        "docs: record umbrella",
-    )
-    git(repo, "switch", "-c", "commit-plan-check")
-    commit_file(repo, "feature.txt", "feature\n", "feat: selected work")
     return repo, umbrella.relative_to(repo)
 
 
@@ -263,7 +260,7 @@ def test_plan_rejects_ambiguous_folded_umbrella_branches(
 ) -> None:
     """Hyphen and underscore aliases cannot both claim one umbrella."""
     repo, umbrella = umbrella_feature_repository
-    git(repo, "branch", "review-mode", "review_mode")
+    repository_for(repo).refs["review-mode"] = PARENT
 
     with pytest.raises(ReleasePlanError, match="found review_mode, review-mode"):
         build_release_plan(repo, umbrella=umbrella, preview_conflicts=False)

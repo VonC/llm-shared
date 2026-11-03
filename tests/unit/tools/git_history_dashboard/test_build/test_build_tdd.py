@@ -1,43 +1,12 @@
-"""Tests for the shared git-history dashboard builder hub.
+"""Exercise history export, CSV parsing, build and CLI entry points in Python.
 
-Cover ``tools/git_history_dashboard/build.py``: the ``git log`` export
-into ``git_history.csv``, the pipe-separated CSV parser, the ``run_build``
-orchestration, and the ``main`` entry point in both its git-export and
-pre-exported-CSV modes. A ``runpy`` test exercises the ``__main__`` script path
-end to end.
-
-The tool resolves the calling project's root through the shared
-``find_project_root`` helper; these tests pin that resolution with
-``monkeypatch`` (or ``PRJ_DIR``) so they never depend on the real checkout. The
-export and git-mode tests build a throwaway repository under ``tmp_path`` with
-real ``git`` commands.
-
-Step 0 (v0.8.0): relocated verbatim from the flat
-``tests/unit/tools/test_git_history_dashboard_build.py`` into the nested
-``git_history_dashboard/test_build/`` subpackage (plan Q01).
-
-Step 1 (v0.8.0): the classifier, aggregation and render assertions moved to
-``test_aggregate`` and ``test_render`` when those functions were extracted from
-``build.py``; this file keeps the export, the CSV parse, ``run_build`` and the
-``main`` / ``__main__`` coverage that stay in the hub.
-
-Step 1.1 (v0.8.0): ``run_build`` gains a ``project`` argument and tags the parsed
-rows into ``Commit`` records, so the ``run_build`` test passes one and checks the
-single project lands in the payload; the CSV-parse tests are unchanged because
-``iter_commits_from_csv`` still yields raw rows.
-
-Groundhog duration gate: the export unit test fakes the ``git log`` subprocess
-at the ``subprocess.run`` boundary, asserting the exact argv and CSV behavior
-without paying real repository setup in the call that only covers this module.
-The missing-parent integration journey keeps real Git but performs its export
-in fixture setup, leaving the measured call to assert the resulting file.
+Fixed external log observations preserve argv, delimiter and failure assertions.
+Production CSV handling, orchestration and rendering remain real.
 """
 
 from __future__ import annotations
 
 import json
-import os
-import runpy
 import subprocess
 import sys
 from pathlib import Path
@@ -45,21 +14,11 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+from tests.script_entry import run_main
 from tools.git_history_dashboard import build
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-
-# Identity through the environment so the repo setup needs no `git config`
-# subprocess calls; merged onto os.environ to keep PATH and the Windows
-# system variables git relies on.
-_GIT_ENV = {
-    **os.environ,
-    "GIT_AUTHOR_NAME": "Test Author",
-    "GIT_AUTHOR_EMAIL": "test@example.com",
-    "GIT_COMMITTER_NAME": "Test Author",
-    "GIT_COMMITTER_EMAIL": "test@example.com",
-}
 
 # --- Expectations for the synthetic SAMPLE_COMMITS fixture ------------------
 
@@ -115,18 +74,6 @@ def _write_minimal_template(path: Path) -> None:
     )
 
 
-def _run_git(repo_dir: Path, *args: str) -> None:
-    """Run a git subcommand inside repo_dir for throwaway-repository setup."""
-    subprocess.run(  # noqa: S603
-        ["git", "-C", str(repo_dir), *args],  # noqa: S607
-        capture_output=True,
-        check=True,
-        text=True,
-        encoding="utf-8",
-        env=_GIT_ENV,
-    )
-
-
 def _pipe_history_subprocess(
     captured: dict[str, object],
 ) -> Callable[..., subprocess.CompletedProcess[str]]:
@@ -178,41 +125,21 @@ def _assert_pipe_history_export(
     ]
 
 
-def _make_git_repo(repo_dir: Path, subjects: list[str]) -> None:
-    """Create a git repo at repo_dir with one commit per subject line.
-
-    The author identity comes from the GIT_AUTHOR_*/GIT_COMMITTER_* env vars and
-    gpg signing is turned off inline on the commit, so no `git config`
-    subprocess calls are needed. Empty commits are enough because the dashboard
-    reads commit metadata, not tree contents.
-    """
-    repo_dir.mkdir(parents=True, exist_ok=True)
-    _run_git(repo_dir, "init", "-q")
-    for subject in subjects:
-        _run_git(
-            repo_dir,
-            "-c",
-            "commit.gpgsign=false",
-            "commit",
-            "--allow-empty",
-            "-m",
-            subject,
-        )
-
-
 @pytest.fixture
-def one_commit_repo(tmp_path: Path) -> Path:
-    """Return a metadata-only repo with one commit for export tests."""
+def one_commit_repo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """Declare one git-log response while production export parses and writes it."""
     repo_dir = tmp_path / "repo"
-    _make_git_repo(repo_dir, ["docs: only commit"])
+    repo_dir.mkdir()
+    monkeypatch.setattr(build.subprocess, "run", _pipe_history_subprocess({}))
     return repo_dir
 
 
 @pytest.fixture
-def consumer_repo(tmp_path: Path) -> Path:
-    """Return a consumer repo for the script-entry test."""
+def consumer_repo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """Supply the script entry with a declared repository and history response."""
     repo_dir = tmp_path / "consumer"
-    _make_git_repo(repo_dir, ["feat: only commit"])
+    (repo_dir / ".git").mkdir(parents=True)
+    monkeypatch.setattr(build.subprocess, "run", _pipe_history_subprocess({}))
     return repo_dir
 
 
@@ -270,13 +197,19 @@ class TestGitHistoryExport:
         assert missing_parent_export_journey.is_file()
 
     @pytest.fixture
-    def non_git_export_journey(self, tmp_path: Path) -> None:
-        """Run the rejected export outside the measured assertion call."""
+    def non_git_export_journey(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        """The export propagates a declared Git failure without creating its output."""
         plain_dir = tmp_path / "not_a_repo"
         plain_dir.mkdir()
 
+        def unavailable(command: list[str], **_options: object) -> subprocess.CompletedProcess[str]:
+            raise subprocess.CalledProcessError(128, command, stderr="not a Git repository")
+
+        monkeypatch.setattr(build.subprocess, "run", unavailable)
+
         with pytest.raises(subprocess.CalledProcessError):
             build.export_git_history_csv(plain_dir, tmp_path / "out.csv")
+        assert not (tmp_path / "out.csv").exists()
 
     def test_export_raises_for_a_non_git_directory(
         self,
@@ -350,11 +283,13 @@ class TestEndToEnd:
         ``main`` to the CLI, which opens the report by default).
         """
         monkeypatch.setenv("PRJ_DIR", str(consumer_repo))
-        monkeypatch.setattr(sys, "argv", ["build.py", "--no-open"])
+        template = consumer_repo / "template.html"
+        _write_minimal_template(template)
+        monkeypatch.setattr(sys, "argv", ["build.py", "--no-open", "--template", str(template)])
 
         build_script = build.__file__
         assert build_script is not None
-        runpy.run_path(build_script, run_name="__main__")
+        run_main(build_script)
 
         dashboard_dir = consumer_repo.joinpath(*build.DASHBOARD_SUBDIR)
         assert (dashboard_dir / build.GIT_HISTORY_CSV_NAME).is_file()

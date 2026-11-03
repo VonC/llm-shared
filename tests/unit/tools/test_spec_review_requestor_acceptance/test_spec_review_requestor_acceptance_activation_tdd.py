@@ -3,6 +3,15 @@
 Step 4 keeps opt-in routing and the four registered specification identities
 separate from repeated-round lifecycle coverage. Real Git journeys run in
 fixtures so call-phase timing measures assertions rather than subprocesses.
+Opt-in hold, instruction ordering and live routing are independent cases: the
+routing decisions read state without changing it, so one journey no longer
+charges all of them to a single lifecycle.
+
+Fix (merge of main's human consolidation intent): with review mode on, a
+feature request or a design whose questions are all decided routes to the
+requestor instead of holding, and the instruction places the specification
+review gate before ``pw skill spec-review-requestor`` in its writer-assessment
+section. Both journeys run for a feature request and for a design.
 """
 
 from __future__ import annotations
@@ -31,9 +40,21 @@ _IDENTITY_CASES = (
 )
 
 
-@pytest.fixture(params=["feature-request", "design"])
-def activation_journey(tmp_path: Path, request: pytest.FixtureRequest) -> None:
-    """Run opt-in, hold, activation, and live routing outside call timing."""
+_PREFIXES = ("feature-request", "design")
+
+
+def _expected_route(prefix: str) -> str:
+    """Return the requestor command routed for the activation effort."""
+    return (
+        "$llm-shared:spec-review-requestor on "
+        f"docs/v0.11.0/{prefix}.v0.11.0.activation.md"
+        " with umbrella docs/v0.11.0/draft.v0.11.0.review-mode.md"
+    )
+
+
+@pytest.fixture(params=_PREFIXES)
+def held_routing_journey(tmp_path: Path, request: pytest.FixtureRequest) -> None:
+    """Refuse routing without the marker, then route a settled document."""
     root = tmp_path / "activation"
     _init_repo(root, marker=False)
     prefix = cast("str", request.param)
@@ -64,26 +85,35 @@ def activation_journey(tmp_path: Path, request: pytest.FixtureRequest) -> None:
         "spec-review-requestor",
         {"CODEX_THREAD_ID": "acceptance"},
     )
+    assert (no_question, coordination.exists()) == (_expected_route(prefix), False)
 
+
+def test_routing_holds_without_marker_and_routes_a_settled_document(
+    held_routing_journey: None,
+) -> None:
+    """Without the marker nothing routes; a settled document goes to review."""
+    assert held_routing_journey is None
+
+
+def test_requestor_instruction_gates_before_routing() -> None:
+    """The writer-assessment section names the review gate before routing."""
     instruction = (Path("instructions") / "review-ask-questions.md").read_text(
         encoding="utf-8",
     )
     delegation = instruction.index("## Independent review gate after the writer assessment")
     block = instruction[delegation : instruction.index("## Presenting", delegation)]
-    gate_before_pw = block.index("specification-review-gate.md") < block.index(
+    assert block.index("specification-review-gate.md") < block.index(
         "pw skill spec-review-requestor",
     )
-    expected = (
-        "$llm-shared:spec-review-requestor on "
-        f"docs/v0.11.0/{prefix}.v0.11.0.activation.md"
-        " with umbrella docs/v0.11.0/draft.v0.11.0.review-mode.md"
-    )
-    assert (no_question, gate_before_pw, coordination.exists()) == (
-        expected,
-        True,
-        False,
-    )
 
+
+@pytest.fixture(params=_PREFIXES)
+def live_routing_journey(tmp_path: Path, request: pytest.FixtureRequest) -> None:
+    """Route, activate and start one opted-in effort with an open question."""
+    root = tmp_path / "activation"
+    _init_repo(root)
+    prefix = cast("str", request.param)
+    effort = _effort(root, prefix, "activation")
     effort.document.write_text(
         "# activation\n\n## Open questions for activation\n\n1. Question?\n",
         encoding="utf-8",
@@ -94,6 +124,7 @@ def activation_journey(tmp_path: Path, request: pytest.FixtureRequest) -> None:
         "spec-review-requestor",
         {"CODEX_THREAD_ID": "acceptance"},
     )
+    expected = _expected_route(prefix)
     activated = _run_cli(root, effort.context, "activate")
     started = _run_cli(root, effort.context, "start")
     resumed = workflow_skill.next_command(
@@ -105,11 +136,11 @@ def activation_journey(tmp_path: Path, request: pytest.FixtureRequest) -> None:
     assert (forced, activated.code, started.code, resumed) == (expected, 0, 0, expected)
 
 
-def test_activation_holds_and_public_pw_routing_are_composed(
-    activation_journey: None,
+def test_live_routing_activates_and_resumes_the_requestor(
+    live_routing_journey: None,
 ) -> None:
-    """Opt-in, no-question, hold, activation, and live routing stay coherent."""
-    assert activation_journey is None
+    """An opted-in effort with an open question routes, starts and resumes."""
+    assert live_routing_journey is None
 
 
 @pytest.fixture(params=_IDENTITY_CASES, ids=lambda case: case[0])

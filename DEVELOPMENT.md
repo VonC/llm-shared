@@ -281,7 +281,10 @@ Sequential speed combines coverage and durations. A parallel speed day runs
 covered full followed by sequential timings; direct parallel full speed proves
 only cov and says speed is not established. Exit 8 occurs only at speed. Follow
 [`fix_slow_test.md`](instructions/fix_slow_test.md) to shorten flagged calls
-or accept an irreducible baseline after an attempted improvement.
+or accept an irreducible baseline after an attempted improvement. When writing
+or reviewing a test, follow
+[`write-fast-python-tests.md`](instructions/write-fast-python-tests.md) so its
+whole lifecycle stays inside the budget from the start.
 
 ### Activate an effort's group
 

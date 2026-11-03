@@ -200,16 +200,31 @@ def validate_activation(project_root: Path, paths: ArtifactPaths) -> None:
 
 def _require_git_repository(root: Path) -> None:
     """Fail when Git cannot verify the selected project root."""
+    if not repository_present(root):
+        raise ReviewExchangeError("review mode requires a Git repository")
+
+
+def repository_present(root: Path) -> bool:
+    """Observe repository membership at the native Git boundary."""
     repository = _run_git(
         ["git", "rev-parse", "--is-inside-work-tree"],
         cwd=root,
     )
-    if repository.returncode != 0 or repository.stdout.strip() != "true":
-        raise ReviewExchangeError("review mode requires a Git repository")
+    return repository.returncode == 0 and repository.stdout.strip() == "true"
 
 
 def _require_ignored_transients(root: Path, relative: tuple[str, ...]) -> None:
     """Submit the exact transient set through one effective ignore query."""
+    matched = ignored_paths(root, relative)
+    missing = tuple(path for path in relative if path not in matched)
+    if missing:
+        raise ReviewExchangeError(
+            "review transient paths are not effectively ignored: " + ", ".join(missing),
+        )
+
+
+def ignored_paths(root: Path, relative: tuple[str, ...]) -> frozenset[str]:
+    """Read effective ignore membership without exposing the Git wire format."""
     input_text = "".join(f"{path}\0" for path in relative)
     ignored = _run_git(
         ["git", "check-ignore", "-z", "--stdin"],
@@ -219,12 +234,7 @@ def _require_ignored_transients(root: Path, relative: tuple[str, ...]) -> None:
     if ignored.returncode not in {0, 1}:
         diagnostic = ignored.stderr.strip() or "git check-ignore failed"
         raise ReviewExchangeError(f"cannot verify transient ignore coverage: {diagnostic}")
-    matched = frozenset(path for path in ignored.stdout.split("\0") if path)
-    missing = tuple(path for path in relative if path not in matched)
-    if missing:
-        raise ReviewExchangeError(
-            "review transient paths are not effectively ignored: " + ", ".join(missing),
-        )
+    return frozenset(path for path in ignored.stdout.split("\0") if path)
 
 
 # eof
