@@ -134,13 +134,20 @@ def _backfill_selected(  # noqa: PLR0913 - explicit selected identity transactio
     )
     if reconciliation.conflicts and not override:
         raise ReviewExchangeError("selected role conflicts require Override")
-    RoleNatureBackfill().apply(
-        artifacts,
-        RoleNatureBackfillContext(role, nature, store.paths.transcript, occurrence, override),
-    )
-    return replace(record, role_natures=record.role_natures.record(role, nature)) if (
-        nature is not LlmNature.UNKNOWN and record.role_natures.for_role(role) is None
-    ) else record
+    backfill = RoleNatureBackfill()
+    backfill_context = RoleNatureBackfillContext(role, nature, store.paths.transcript, occurrence, override)
+    backfill.apply(artifacts, backfill_context)
+    if nature is LlmNature.UNKNOWN:
+        return record
+    known = record.role_natures.for_role(role)
+    if known is None:
+        return replace(record, role_natures=record.role_natures.record(role, nature))
+    if override and known not in {LlmNature.UNKNOWN, nature}:
+        # The human approved this host taking over the role: later publications
+        # must record it, and the transcript keeps the replaced nature.
+        snapshot = backfill.record_override(artifacts[0], backfill_context, known)
+        return replace(record, role_natures=snapshot)
+    return record
 
 
 def claim_discovered_request(core: ReviewExchangeCore, round_number: int, occurrence: int) -> OwnershipCapability | None:

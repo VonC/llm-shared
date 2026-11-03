@@ -22,7 +22,6 @@ host override. The test also moves into the nested
 
 from __future__ import annotations
 
-import runpy
 import shutil
 import subprocess
 import sys
@@ -30,6 +29,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+from tests.script_entry import run_main
 from tools import prompt_workflow
 from tools import prompt_workflow_git as git
 from tools import prompt_workflow_memory as memory
@@ -106,7 +106,7 @@ def test_script_runs_as_main_and_writes_prompt(
     monkeypatch.setattr(sys, "argv", [script_path, "--root", str(tmp_path)])
 
     with pytest.raises(SystemExit) as excinfo:
-        runpy.run_path(script_path, run_name="__main__")
+        run_main(script_path)
 
     assert excinfo.value.code == 0
     assert (tmp_path / "a.prompt.txt").is_file()
@@ -130,7 +130,7 @@ def test_script_logs_fatal_on_workflow_error(
     monkeypatch.setattr(sys, "argv", [script_path, "--root", str(tmp_path)])
 
     with pytest.raises(SystemExit) as excinfo:
-        runpy.run_path(script_path, run_name="__main__")
+        run_main(script_path)
 
     assert excinfo.value.code == _FATAL_EXIT_CODE
 

@@ -13,7 +13,6 @@ artifact home is reported as a fatal exit, not a traceback.
 from __future__ import annotations
 
 import logging
-import runpy
 import shutil
 import subprocess
 import sys
@@ -22,6 +21,7 @@ from typing import cast
 
 import pytest
 
+from tests.script_entry import run_main
 from tools import group_commit_message_prompt
 
 # pyright: reportPrivateUsage=false
@@ -208,7 +208,7 @@ def test_group_commit_message_prompt_script_runs_as_main(
     monkeypatch.setattr(sys, "argv", [str(script_path), "--root", str(tmp_path)])
 
     with pytest.raises(SystemExit) as excinfo:
-        runpy.run_path(str(script_path), run_name="__main__")
+        run_main(str(script_path))
 
     assert excinfo.value.code == 0
     assert (tmp_path / ".reviews" / "a.diff").read_text(encoding="utf-8") == diff_text
@@ -240,7 +240,7 @@ def test_group_commit_message_prompt_script_logs_fatal_on_invalid_home(
     monkeypatch.setattr(sys, "argv", [str(script_path), "--root", str(tmp_path)])
 
     with pytest.raises(SystemExit) as excinfo:
-        runpy.run_path(str(script_path), run_name="__main__")
+        run_main(str(script_path))
 
     assert excinfo.value.code == _FATAL_EXIT_CODE
     assert not (tmp_path / ".reviews" / "a.diff").exists()
@@ -268,7 +268,7 @@ def test_group_commit_message_prompt_script_logs_fatal_on_git_error(
     monkeypatch.setattr(sys, "argv", [str(script_path), "--root", str(tmp_path)])
 
     with pytest.raises(SystemExit) as excinfo:
-        runpy.run_path(str(script_path), run_name="__main__")
+        run_main(str(script_path))
 
     assert excinfo.value.code == _FATAL_EXIT_CODE
 

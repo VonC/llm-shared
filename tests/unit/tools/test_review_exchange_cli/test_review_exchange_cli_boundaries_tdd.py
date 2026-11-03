@@ -11,7 +11,6 @@ from __future__ import annotations
 import argparse
 import io
 import json
-import runpy
 import subprocess
 import sys
 from dataclasses import replace
@@ -20,6 +19,7 @@ from typing import Any
 
 import pytest
 
+from tests.script_entry import run_main
 from tests.unit.tools.test_review_exchange_cli.test_review_exchange_cli_tdd import (
     _common,
     _run,
@@ -449,7 +449,7 @@ def test_script_entry_point_returns_fatal_json(
     """Direct script execution exits through main and retains its JSON result."""
     monkeypatch.setattr(sys, "argv", ["review_exchange_cli.py", "status"])
     with pytest.raises(SystemExit) as raised:
-        runpy.run_path(str(Path(cli.__file__)), run_name="__main__")
+        run_main(str(Path(cli.__file__)))
     assert raised.value.code == _EXIT_FATAL
     assert json.loads(capsys.readouterr().out)["outcome"] == "fatal-input"
 

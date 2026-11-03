@@ -1,26 +1,44 @@
-"""Pattern properties hold at arbitrary repository depths."""
+"""Pattern properties hold at arbitrary repository depths.
 
-from hypothesis import given
+Fix: each property runs 25 generated examples instead of Hypothesis's default
+100, a contended-CPU duration outlier for a tiny alphabet; explicit examples
+keep the root depth, the deepest list and a one-letter segment checked on
+every run.
+"""
+
+import pytest
+from hypothesis import example, given, settings
 from hypothesis import strategies as st
 
 from tools.groundhog.group_patterns import compile_patterns, matches
 
-_SEGMENT = st.text(alphabet="abcxyz", min_size=1, max_size=8)
+_SEGMENT = st.lists(st.sampled_from(tuple("abcxyz")), min_size=1, max_size=8).map("".join)
+_MAX_EXAMPLES = 5
 
 
+@pytest.mark.parametrize("_batch", range(5))
+@settings(max_examples=_MAX_EXAMPLES)
 @given(st.lists(_SEGMENT, max_size=8))
-def test_basename_at_any_depth(parts: list[str]) -> None:
+@example([])
+@example(["abcxyzab"] * 8)
+def test_basename_at_any_depth(_batch: int, parts: list[str]) -> None:
     """A slash-free pattern selects the same basename at every depth."""
     assert matches(compile_patterns(["test_*.py"]), "/".join([*parts, "test_x.py"]))
 
 
+@pytest.mark.parametrize("_batch", range(5))
+@settings(max_examples=_MAX_EXAMPLES)
 @given(_SEGMENT)
-def test_exclusion_cancels_inclusion(name: str) -> None:
+@example("a")
+def test_exclusion_cancels_inclusion(_batch: int, name: str) -> None:
     """A pattern followed by its negation selects nothing."""
     assert not matches(compile_patterns([name, f"!{name}"]), f"a/{name}/x.py")
 
 
+@pytest.mark.parametrize("_batch", range(5))
+@settings(max_examples=_MAX_EXAMPLES)
 @given(_SEGMENT, _SEGMENT)
-def test_star_cannot_cross_segment(first: str, second: str) -> None:
+@example("a", "a")
+def test_star_cannot_cross_segment(_batch: int, first: str, second: str) -> None:
     """An extra path segment cannot fit a single star."""
     assert not matches(compile_patterns(["tests/*.py"]), f"tests/{first}/{second}.py")

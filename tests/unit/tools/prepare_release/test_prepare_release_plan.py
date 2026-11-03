@@ -17,13 +17,13 @@ home holding the release run files, and its exit-2 path for an invalid home.
 from __future__ import annotations
 
 import json
-import runpy
 import sys
 from dataclasses import replace
 from typing import TYPE_CHECKING
 
 import pytest
 
+from tests.script_entry import run_main
 from tools.prepare_release import prepare_release_plan as plan_cli
 from tools.prepare_release.prepare_release_plan import main, render_plan
 from tools.prepare_release.prepare_release_plan_models import (
@@ -327,7 +327,7 @@ def test_script_runs_through_its_main_guard(
 ) -> None:
     """The planner script runs as __main__ and exits with the plan code."""
     monkeypatch.setattr(
-        "tools.prepare_release.prepare_release_plan_workflow.build_release_plan",
+        "tools.prepare_release.prepare_release_plan.build_release_plan",
         _main_guard_plan,
     )
     script_path = plan_cli.__file__
@@ -341,7 +341,7 @@ def test_script_runs_through_its_main_guard(
     monkeypatch.setattr(sys, "argv", argv)
 
     with pytest.raises(SystemExit) as excinfo:
-        runpy.run_path(script_path, run_name="__main__")
+        run_main(script_path)
 
     assert excinfo.value.code == 0
 

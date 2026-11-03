@@ -8,7 +8,6 @@ exit path of `tools.trim_thinking_cli`.
 from __future__ import annotations
 
 import logging
-import runpy
 import subprocess
 import sys
 from datetime import date
@@ -17,6 +16,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+from tests.script_entry import run_main
 from tools import trim_thinking as trimmer
 from tools import trim_thinking_cli as cli
 
@@ -249,7 +249,7 @@ def test_log_fatal_and_script_main_convert_failures_into_exit_code_two(
     )
 
     with pytest.raises(SystemExit) as script_excinfo:
-        runpy.run_path(str(script_path), run_name="__main__")
+        run_main(str(script_path))
 
     assert script_excinfo.value.code == _FATAL_EXIT_CODE
 

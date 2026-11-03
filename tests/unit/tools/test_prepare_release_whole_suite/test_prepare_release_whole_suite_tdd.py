@@ -7,13 +7,18 @@ from typing import TYPE_CHECKING
 import pytest
 
 from tests.unit.tools.prepare_release.prepare_release_plan_test_support import (
-    commit_file,
-    git,
-    initialize_repository,
+    BASE,
+    MERGE,
+    PARENT,
+    TIP,
+    declare_repository,
     repository_for,
 )
 from tools.prepare_release import prepare_release_plan_workflow as workflow
-from tools.prepare_release.prepare_release_plan_models import ReleaseAction
+from tools.prepare_release.prepare_release_plan_models import (
+    CommitSummary,
+    ReleaseAction,
+)
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -35,12 +40,13 @@ def synthetic_repository(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def _destination(repo: Path, target: str) -> Path | None:
     """Resolve generic integration through config, or an umbrella through its slug."""
-    initialize_repository(repo)
+    facts = declare_repository(repo)
+    facts.current = target
+    facts.refs = {"main": BASE, target: BASE}
     if target == "main":
         return None
-    git(repo, "switch", "-c", target)
     if target != "umbrella_flow":
-        git(repo, "config", "prepare-release.integrationBranch", target)
+        facts.config["prepare-release.integrationBranch"] = target
         return None
     umbrella = repo / "docs/draft.v9.9.0.umbrella-flow.md"
     umbrella.parent.mkdir()
@@ -56,14 +62,17 @@ def test_topic_gate_precedes_every_destination_promotion(
     """Topic promotion and resumed completion validate the exact candidate tree."""
     repo = tmp_path / "repo"
     umbrella = _destination(repo, target)
-    base = git(repo, "rev-parse", "HEAD")
-    git(repo, "switch", "-c", "topic")
-    commit_file(repo, "topic.txt", "topic\n", "feat: topic")
-    git(repo, "switch", target)
+    facts = repository_for(repo)
+    base = BASE
+    facts.refs["topic"] = TIP
+    facts.ranges[f"{BASE}..topic"] = (CommitSummary(TIP, "feat: topic"),)
     if route == "replay":
-        commit_file(repo, "later.txt", "later\n", "feat: later integration work")
+        facts.refs[target] = PARENT
+        facts.ancestors.add((BASE, PARENT))
     elif route == "integrated":
-        git(repo, "merge", "--no-ff", "topic", "-m", "merge topic")
+        facts.refs[target] = MERGE
+        facts.ancestors.update({(BASE, MERGE), (TIP, MERGE)})
+        facts.containing_tags["topic"] = ()
 
     plan = workflow.build_release_plan(
         repo, branch="topic", feature_base=base, umbrella=umbrella,
@@ -101,10 +110,12 @@ def test_integration_gate_runs_with_or_without_main_sync(
     """All long-lived integration roles validate before promotion to main."""
     repo = tmp_path / "repo"
     umbrella = _destination(repo, target)
-    commit_file(repo, "integration.txt", "integration\n", "feat: integrated topics")
-    git(repo, "switch", "main")
+    facts = repository_for(repo)
+    facts.refs[target] = TIP
+    facts.ranges[f"main..{target}"] = (CommitSummary(TIP, "feat: integrated topics"),)
     if stale:
-        commit_file(repo, "main.txt", "main\n", "fix: main hotfix")
+        facts.refs["main"] = PARENT
+        facts.ancestors.add((BASE, PARENT))
 
     plan = workflow.build_release_plan(repo, branch=target, umbrella=umbrella, preview_conflicts=False)
 
@@ -124,11 +135,10 @@ def test_already_released_topic_remains_a_noop(tmp_path: Path) -> None:
     """An old released topic cannot launch a redundant lifecycle gate."""
     repo = tmp_path / "repo"
     _destination(repo, "main")
-    git(repo, "switch", "-c", "topic")
-    commit_file(repo, "topic.txt", "topic\n", "feat: topic")
-    git(repo, "switch", "main")
-    git(repo, "merge", "--no-ff", "topic", "-m", "merge topic")
-    git(repo, "tag", "v1.1.0")
+    facts = repository_for(repo)
+    facts.refs.update(topic=TIP, main=MERGE)
+    facts.ancestors.update({(BASE, MERGE), (TIP, MERGE)})
+    facts.containing_tags["topic"] = ("v1.1.0",)
 
     plan = workflow.build_release_plan(repo, branch="topic", preview_conflicts=False)
 

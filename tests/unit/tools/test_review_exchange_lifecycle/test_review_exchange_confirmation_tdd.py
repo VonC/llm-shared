@@ -3,6 +3,11 @@
 Step 3 keeps convergence advisory until a durable human choice, repairs an
 interrupted choice without duplication, and resumes escalation only through a
 recorded fresh-round resolution.
+
+Gate fixtures declare the retained convergence answer as typed records under
+the harness's registered policy, then run the real confirmation, repair and
+cancellation they assert. Publication reaching that gate keeps its own
+lifecycle test, so it is not replayed in every confirmation setup.
 """
 
 from __future__ import annotations
@@ -12,9 +17,12 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+from tests.acceptance.review_resume.prepared_request import (
+    ReviewInputs,
+    prepare_convergence,
+)
 from tests.unit.tools.test_review_exchange_lifecycle.test_review_exchange_lifecycle_tdd import (
     _harness,
-    _reach_gate,
     _start_and_request,
     _timestamp,
 )
@@ -25,6 +33,7 @@ from tools.review_exchange_models import (
     IncompleteTransitionKind,
     ReviewExchangeError,
 )
+from tools.review_exchange_ownership import OwnershipCapability
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -51,13 +60,26 @@ def _assert_another_round_decision(decision: ConfirmationDecision) -> None:
     assert decision.record.human_guidance == "Check the crash boundary again."
 
 
+def _prepared_gate(tmp_path: Path) -> tuple[ReviewExchangeCore, ReviewExchangeStore]:
+    """Declare one retained convergence gate and present its ownership.
+
+    The record carries the harness's registered policy: a record under another
+    policy classifies as inconsistent, so a real confirmation would rightly
+    refuse it as outside the convergence gate.
+    """
+    core, store, context, _clock = _harness(tmp_path)
+    store.paths.coordination.parent.mkdir(exist_ok=True)
+    capability = prepare_convergence(ReviewInputs(tmp_path, context, store.paths), policy=core.policy)
+    core.present_ownership(OwnershipCapability(capability["ownership_generation"], capability["ownership_token"]))
+    return core, store
+
+
 @pytest.fixture
 def stalled_convergence_gate(
     tmp_path: Path,
 ) -> tuple[ReviewExchangeCore, ReviewExchangeStore]:
-    """Reach one convergence gate with stalled progress outside the measured call."""
-    core, store, context, clock = _harness(tmp_path)
-    _reach_gate(core, context, clock)
+    """Declare one convergence gate with stalled progress outside the measured call."""
+    core, store = _prepared_gate(tmp_path)
     gated = store.read_coordination(required=True)
     assert gated is not None
     store.write_coordination(
@@ -89,8 +111,7 @@ def repaired_another_round_confirmation_journey(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Repair one interrupted confirmation outside the measured call."""
-    core, store, context, clock = _harness(tmp_path)
-    _reach_gate(core, context, clock)
+    core, store = _prepared_gate(tmp_path)
     original_remove = store.remove_exact
     failed = False
 
@@ -127,9 +148,8 @@ def test_interrupted_another_round_confirmation_repairs_without_duplicate(
 def replayed_authorization_journey(
     tmp_path: Path,
 ) -> None:
-    """Replay and complete owning authorization outside the measured call."""
-    core, store, context, clock = _harness(tmp_path)
-    _reach_gate(core, context, clock)
+    """Replay and complete authorization from a typed convergence prerequisite."""
+    core, store = _prepared_gate(tmp_path)
 
     first = core.confirm("Commit")
     second = core.confirm("Commit")
@@ -157,8 +177,7 @@ def test_continue_confirmation_replays_authorization_until_complete(
 @pytest.fixture
 def cancelled_gate_journey(tmp_path: Path) -> None:
     """Cancel one convergence gate outside the measured assertion call."""
-    core, store, context, clock = _harness(tmp_path)
-    _reach_gate(core, context, clock)
+    core, store = _prepared_gate(tmp_path)
 
     first = core.cancel("The owning action is no longer wanted.")
     second = core.cancel("The owning action is no longer wanted.")

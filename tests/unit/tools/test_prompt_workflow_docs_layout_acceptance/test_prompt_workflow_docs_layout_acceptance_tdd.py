@@ -21,12 +21,12 @@ subprocess boundary.
 from __future__ import annotations
 
 import os
-import runpy
 import sys
 from typing import TYPE_CHECKING, Final
 
 import pytest
 
+from tests.script_entry import run_main
 from tools import new_draft_models, prompt_workflow
 from tools import prompt_workflow_git as git
 from tools import prompt_workflow_post_commit as post_commit
@@ -173,7 +173,7 @@ def _fatal_cli(
     script = prompt_workflow.__file__
     monkeypatch.setattr(sys, "argv", [script, *arguments, "--root", str(root)])
     with pytest.raises(SystemExit) as caught:
-        runpy.run_path(script, run_name="__main__")
+        run_main(script)
     assert caught.value.code == _FATAL
     output = capsys.readouterr()
     assert output.out.startswith("ERROR: ")

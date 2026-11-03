@@ -1,8 +1,8 @@
 """Unit tests for the groundhog child-process runner (Q17).
 
 Cover the per-subcommand pytest command lines, the full run's
-``--durations`` timing flags (Q39), the live streaming loop (with the real
-process factory), and the crash classification of a pytest child (Q06).
+``--durations`` timing flags (Q39), the streaming loop with the production
+factory and a declared process boundary, and crash classification (Q06).
 
 Fix: the full command now also carries --durations=0 and
 --durations-min=0 so the full run times every call; the affected and
@@ -17,8 +17,8 @@ Fix: cover the pytest-suite probe of the project root: a bare root has no
 suite, each root marker file makes one, and setup.cfg or tox.ini count only
 with pytest's own section.
 
-The real streaming child skips site initialization and inherited Python setup;
-the scenario needs only builtin output and exit status.
+The streaming scenario supplies output and exit status in memory; it also
+checks the production factory's exact process options without starting a child.
 
 Fix (v0.13.0 full_suite_levels, Step 2): cover the full-run shape per level,
 sequential and parallel: ``pass`` carries ``--no-cov`` and no ``--durations``,
@@ -36,6 +36,7 @@ from __future__ import annotations
 import os
 import sys
 from typing import TYPE_CHECKING, cast
+from unittest.mock import Mock
 
 import pytest
 
@@ -291,8 +292,10 @@ def test_single_command_names_the_files() -> None:
     ]
 
 
-def test_run_streaming_with_the_real_factory(tmp_path: Path) -> None:
-    """The default factory streams a real child and returns its code."""
+def test_run_streaming_with_the_real_factory(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """The production factory requests text streaming and returns the exit code."""
+    spawn = Mock(return_value=_FakeProcess(["alpha", "beta"], _CHILD_EXIT))
+    monkeypatch.setattr(runner.subprocess, "Popen", spawn)
     config = runner.StreamConfig(
         command=[
             sys.executable,
@@ -308,6 +311,11 @@ def test_run_streaming_with_the_real_factory(tmp_path: Path) -> None:
     code = runner.run_streaming(config, seen.append)
     assert seen == ["alpha", "beta"]
     assert code == _CHILD_EXIT
+    spawn.assert_called_once_with(
+        config.command, cwd=str(tmp_path), stdout=runner.subprocess.PIPE,
+        stderr=runner.subprocess.STDOUT, text=True, encoding="utf-8",
+        errors="replace", bufsize=1,
+    )
 
 
 def test_run_pytest_parses_and_reports(tmp_path: Path) -> None:

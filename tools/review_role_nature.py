@@ -10,19 +10,25 @@ from __future__ import annotations
 
 import os
 import tempfile
+import time
 from dataclasses import dataclass, replace
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Final
 
 from tools.llm_nature import LlmNature
 from tools.review_exchange_models import ReviewExchangeError, ReviewRole
-from tools.review_exchange_transcript_identity import render_nature_completion_entry
+from tools.review_exchange_transcript_identity import (
+    render_nature_completion_entry,
+    render_nature_override_entry,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping, Sequence
     from typing import Any
 
 _BACKFILL_TEMP_PREFIX = ".tmp-review-nature-"
+_ATOMIC_REPLACE_ATTEMPTS: Final[int] = 5
+_ATOMIC_REPLACE_DELAY_SECONDS: Final[float] = 0.01
 
 
 @dataclass(frozen=True)
@@ -88,6 +94,20 @@ class RoleNatureSnapshot:
         if role is ReviewRole.REQUESTOR:
             return replace(self, requestor=chosen)
         return replace(self, reviewer=chosen)
+
+    def replace_role(self, role: ReviewRole, nature: LlmNature) -> RoleNatureSnapshot:
+        """Replace one role's known nature after a human-approved Override.
+
+        Unlike :meth:`record`, this rewrites conflicting evidence. Only an
+        explicit Override claim calls it, and it records the replacement in the
+        transcript, so the earlier nature stays visible.
+        """
+        if nature is LlmNature.UNKNOWN:
+            raise ReviewExchangeError("an Override replacement needs a known LLM nature")
+        self.for_role(role)
+        if role is ReviewRole.REQUESTOR:
+            return replace(self, requestor=nature)
+        return replace(self, reviewer=nature)
 
     def merge(self, other: RoleNatureSnapshot) -> RoleNatureSnapshot:
         """Combine compatible evidence while retaining the strongest value."""
@@ -232,6 +252,36 @@ class RoleNatureBackfill:
             tuple(path for path, _content in rendered),
         )
 
+    def record_override(
+        self,
+        coordination: MutableRoleNatureArtifact,
+        context: RoleNatureBackfillContext,
+        previous: LlmNature,
+    ) -> RoleNatureSnapshot:
+        """Replace the role's nature in coordination and log it, as one file set.
+
+        The transcript entry is appended once: a repeated attempt finds its
+        marker. Earlier request and answer envelopes keep the replaced nature.
+        """
+        if not context.override:
+            raise ReviewExchangeError("an LLM nature replacement requires Override")
+        snapshot = coordination.snapshot.replace_role(context.role, context.current_nature)
+        content = coordination.render(snapshot)
+        coordination.validate(content)
+        rendered = [(coordination.evidence.path.resolve(), content)]
+        entry = render_nature_override_entry(
+            context.role,
+            context.exchange_occurrence,
+            previous,
+            context.current_nature,
+        )
+        transcript = context.transcript_path.resolve()
+        transcript_content = transcript.read_text(encoding="utf-8")
+        if f"<!-- review-entry-id: {entry.entry_id} -->" not in transcript_content:
+            rendered.append((transcript, transcript_content.rstrip("\n") + entry.markdown))
+        self._replace_all(rendered)
+        return snapshot
+
     @staticmethod
     def _require_conflict_authority(
         reconciliation: RoleNatureReconciliation,
@@ -251,7 +301,7 @@ class RoleNatureBackfill:
 
     @staticmethod
     def _replace_all(rendered: Sequence[tuple[Path, str]]) -> None:
-        """Prepare all replacements and restore originals after a commit failure."""
+        """Retry transient replacements and restore originals after commit failure."""
         prepared: list[tuple[Path, Path, bytes]] = []
         committed: list[tuple[Path, bytes]] = []
         try:
@@ -269,7 +319,7 @@ class RoleNatureBackfill:
                     os.fsync(stream.fileno())
                 prepared.append((target, replacement, original))
             for target, replacement, original in prepared:
-                replacement.replace(target)
+                RoleNatureBackfill._commit_prepared(replacement, target)
                 committed.append((target, original))
         except (OSError, UnicodeError) as error:
             for target, original in reversed(committed):
@@ -279,6 +329,19 @@ class RoleNatureBackfill:
         finally:
             for _target, replacement, _original in prepared:
                 replacement.unlink(missing_ok=True)
+
+    @staticmethod
+    def _commit_prepared(replacement: Path, target: Path) -> None:
+        """Expose a prepared file with bounded transient-sharing retries."""
+        for attempt in range(_ATOMIC_REPLACE_ATTEMPTS):
+            try:
+                replacement.replace(target)
+            except PermissionError:
+                if attempt + 1 == _ATOMIC_REPLACE_ATTEMPTS:
+                    raise
+                time.sleep(_ATOMIC_REPLACE_DELAY_SECONDS * (2**attempt))
+            else:
+                return
 
 
 __all__ = [

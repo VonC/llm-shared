@@ -41,8 +41,13 @@ def test_scope_and_legacy_metadata_round_trip(tmp_path: Path) -> None:
     assert Envelope.from_dict(legacy.to_dict()) == legacy
     scoped = replace(legacy, test_scope=_scope())
     assert Envelope.from_dict(scoped.to_dict()) == scoped
+
+
+def test_bound_and_legacy_coordination_metadata_round_trip(tmp_path: Path) -> None:
+    """Coordination serialization independently retains legacy and bound state."""
+    context = review_context(tmp_path, ReviewFamily.CODE, "topic", step="6")
     record = CoordinationRecord(context, review_policy(context), CoordinationStatus.ACTIVE,
-                                Actor.REQUESTOR, Actor.REVIEWER, 1, legacy.created_at)
+                                Actor.REQUESTOR, Actor.REVIEWER, 1, "2026-08-05T09:00:00+02:00")
     assert "bound_scope_fingerprint" not in record.to_dict()
     assert CoordinationRecord.from_dict(record.to_dict()) == record
     bound = replace(record, bound_scope_fingerprint=WHOLE_SCOPE.fingerprint)

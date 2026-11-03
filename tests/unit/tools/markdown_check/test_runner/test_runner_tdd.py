@@ -1,4 +1,4 @@
-"""TDD contracts for inventory, evaluation, and stable runner diagnostics."""
+"""Inventory parsing, evaluation and diagnostics with declared process results."""
 
 # ruff: noqa: S603, S607
 
@@ -6,8 +6,8 @@ from __future__ import annotations
 
 import json
 import subprocess
-from pathlib import PurePosixPath
-from typing import TYPE_CHECKING, Never
+from pathlib import Path, PurePosixPath
+from typing import Never
 
 import pytest
 
@@ -17,9 +17,6 @@ from tools.markdown_check.runner import (
     InventoryError,
     tracked_markdown_paths,
 )
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 
 def _policy(tmp_path: Path) -> None:
@@ -34,15 +31,20 @@ def _policy(tmp_path: Path) -> None:
 
 
 @pytest.fixture
-def tracked_repository(tmp_path: Path) -> Path:
-    """Build a real tracked inventory outside the measured test call."""
-    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
-    (tmp_path / "note.MD").write_text("# Note\n", encoding="utf-8")
-    (tmp_path / "skip.txt").write_text("skip\n", encoding="utf-8")
-    subprocess.run(
-        ["git", "-C", str(tmp_path), "add", "."],
-        check=True,
-    )
+def tracked_repository(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """Supply an inventory response and verify the actual query and options."""
+    def executable(_name: str) -> str:
+        return "declared-git"
+
+    monkeypatch.setattr(runner_module.shutil, "which", executable)
+
+    def inventory(command: list[str], *, check: bool, capture_output: bool) -> subprocess.CompletedProcess[bytes]:
+        assert command == ["declared-git", "-C", str(tmp_path), "ls-files", "-z"]
+        assert check is False
+        assert capture_output is True
+        return subprocess.CompletedProcess(command, 0, b"note.MD\0skip.txt\0", b"")
+
+    monkeypatch.setattr(runner_module.subprocess, "run", inventory)
     return tmp_path
 
 

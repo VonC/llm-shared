@@ -109,6 +109,51 @@ also verifies that `VIRTUAL_ENV` and `UV_PROJECT_ENVIRONMENT` point into the
 project. The helper is available for consuming project setup scripts; this
 repository's `senv.bat` does not call it.
 
+## 🚀 Release foundation launchers
+
+The v0.14.0 release foundation has two batch launchers and one native entry.
+All three run the same Python bootstrap with this checkout's recorded
+interpreter. No `release` Doskey alias is installed yet, and no release
+operation is shipped yet: every operation name ends with status 2,
+`Release operation '<name>' is unavailable in this tooling checkout`, until
+its domain item registers it.
+
+| Entry | Runs | Project selection |
+| --- | --- | --- |
+| `bin\release_workflow.bat <operation> ...` | bootstrap with `--entry-kind explicit-batch` | explicit: `--project-root` or `--project-root-env` is required |
+| `bin\release_alias.bat <operation> ...` | bootstrap with `--entry-kind alias-batch` | discovered from the caller's current directory when no root is given |
+| `<interpreter> -I -X utf8 tools\release_workflow\bootstrap.py --entry-kind explicit-native -- <operation> ...` | the same bootstrap, without cmd | explicit, as for `release_workflow.bat` |
+
+`<interpreter>` is the `Scripts\python.exe` of the environment named on the
+second line of `venvs\release-runtime.v1.txt`. Each launcher locates the
+checkout from its own path and changes neither the current directory nor the
+caller's variables. That path may contain spaces, non-ASCII letters, `%`, `^`,
+`!` or `&`. From a cmd script, start such a launcher directly, or `pushd` to
+its folder and `call .\release_workflow.bat`: `call` doubles a caret inside a
+quoted path, and cmd then cannot find the launcher.
+
+| Option | Value | Rule |
+| --- | --- | --- |
+| `--project-root <path>` | a worktree root | relative to the caller's current directory; resolved to the physical worktree |
+| `--project-root-env <NAME>` | a variable name | the launcher reads that variable once; conflicts with `--project-root` |
+| `--input-file <path>` | a UTF-8 file | relative to the selected project root, not to the current directory |
+| `--input-file-env <NAME>` | a variable name | the variable holds the input path; conflicts with `--input-file` |
+| `--input-stdin` | none | read the whole standard input as UTF-8 |
+| `--text <text>` | free text | native entry only; the batch launchers refuse it |
+| `--non-interactive` | none | never prompt, even on a console |
+
+Each option that takes a value may appear once; a repeated one is refused,
+even with the same value. At most one payload source is accepted. A variable name must match
+`[A-Za-z_][A-Za-z0-9_]*`.
+
+cmd rewrites `%`, `^`, `!` and `"` before the batch launcher sees them, so a
+batch argument that still contains one of them is refused. Paths and free
+text with such characters are safe through a named variable
+(`--project-root-env`, `--input-file-env`), a UTF-8 input file, standard
+input, or the native entry. The release automation contract, statuses and
+streams are in
+[Automation and direct invocation](automation-and-direct-invocation.md#release-foundation-invocation).
+
 ## 📦 Dependency shortcuts
 
 | Alias | Runs | Purpose |

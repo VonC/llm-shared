@@ -6,6 +6,7 @@ freshness and failure scenarios remain in the deterministic suite.
 
 from __future__ import annotations
 
+import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
@@ -20,7 +21,8 @@ _KINDS = (
     ("validation-plan", "plan", ".validation.md"),
 )
 _VERSIONS = st.tuples(*(st.integers(min_value=0, max_value=30) for _ in range(3)))
-_WORDS = st.lists(st.text(alphabet="abcdefghijklmnopqrstuvwxyz0123456789", min_size=1, max_size=8), min_size=2, max_size=5)
+_WORD = st.lists(st.sampled_from(tuple("abcdefghijklmnopqrstuvwxyz0123456789")), min_size=1, max_size=8).map("".join)
+_WORDS = st.lists(_WORD, min_size=2, max_size=5)
 
 
 @given(
@@ -29,8 +31,10 @@ _WORDS = st.lists(st.text(alphabet="abcdefghijklmnopqrstuvwxyz0123456789", min_s
     words=_WORDS,
     separators=st.tuples(st.sampled_from(("-", "_")), st.sampled_from(("-", "_"))),
 )
-@settings(max_examples=40)
+@pytest.mark.parametrize("_batch", range(20))
+@settings(max_examples=2)
 def test_exact_identity_folds_either_separator(
+    _batch: int,
     kind: tuple[str, str, str], version: tuple[int, int, int],
     words: list[str], separators: tuple[str, str],
 ) -> None:
@@ -45,8 +49,10 @@ def test_exact_identity_folds_either_separator(
 
 
 @given(kind=st.sampled_from(_KINDS), version=_VERSIONS, words=_WORDS)
-@settings(max_examples=40)
+@pytest.mark.parametrize("_batch", range(20))
+@settings(max_examples=2)
 def test_exact_identity_rejects_different_versions_and_topics(
+    _batch: int,
     kind: tuple[str, str, str], version: tuple[int, int, int], words: list[str],
 ) -> None:
     """Changed version, first token or added subtopic cannot qualify the identity."""

@@ -3,11 +3,16 @@
 from __future__ import annotations
 
 import json
-import subprocess
 from typing import TYPE_CHECKING
 
 import pytest
 
+from tests.code_review_repository_observations import (
+    EVIDENCE,
+    declare_blob,
+    declare_index,
+    declare_repository,
+)
 from tools import code_review_evidence_cli as cli
 
 if TYPE_CHECKING:
@@ -18,33 +23,21 @@ if TYPE_CHECKING:
 _FATAL_EXIT = 2
 
 
-def _git(root: Path, *arguments: str) -> str:
-    """Run one bounded Git command in a temporary repository."""
-    result = subprocess.run(
-        ["git", *arguments],
-        cwd=root,
-        check=True,
-        capture_output=True,
-        text=True,
-        timeout=10,
-    )
-    return result.stdout.strip()
-
-
 def test_cli_captures_index_blob_and_umbrella_evidence(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     """Typed capture commands return JSON without an input prompt."""
-    _git(tmp_path, "init", "-q")
+    declare_repository(tmp_path)
     tracked = tmp_path / "tracked.txt"
     tracked.write_text("content\n", encoding="utf-8")
-    _git(tmp_path, "add", "tracked.txt")
+    declare_index(tmp_path, "tracked.txt")
 
     assert cli.main(["--repository", str(tmp_path), "capture-index-tree"]) == 0
     captured = json.loads(capsys.readouterr().out)
-    assert captured["index_tree"] == _git(tmp_path, "write-tree")
+    assert captured["index_tree"] == EVIDENCE[tmp_path.resolve()].tree()
 
+    declare_blob(tmp_path, "tracked.txt")
     assert cli.main(
         ["--repository", str(tmp_path), "record-pre-repair-blob", "tracked.txt"],
     ) == 0
@@ -64,7 +57,7 @@ def test_cli_rejects_unsafe_paths_and_malformed_retained_evidence(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     """Exact-path and retained-model failures return the stable fatal exit."""
-    _git(tmp_path, "init", "-q")
+    declare_repository(tmp_path)
     assert cli.main(
         ["--repository", str(tmp_path), "record-pre-repair-blob", "../outside.txt"],
     ) == _FATAL_EXIT
@@ -100,7 +93,7 @@ def test_cli_rejects_repository_path_escapes(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     """Every caller-owned file operand remains inside the selected repository."""
-    _git(tmp_path, "init", "-q")
+    declare_repository(tmp_path)
     assert cli.main(
         ["--repository", str(tmp_path), "umbrella-digest", "capture", "../outside.md"],
     ) == _FATAL_EXIT
@@ -125,7 +118,7 @@ def test_cli_rejects_manifest_identity_mixture(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     """A retained manifest cannot be read under a different step identity."""
-    _git(tmp_path, "init", "-q")
+    declare_repository(tmp_path)
     home = tmp_path / ".reviews"
     home.mkdir()
     (home / ".gitignore").write_bytes(b"*\n")
@@ -192,12 +185,13 @@ def test_cli_executes_patch_and_umbrella_comparison(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     """Patch and umbrella operations remain callable through one CLI model."""
-    _git(tmp_path, "init", "-q")
+    declare_repository(tmp_path)
     (tmp_path / ".gitignore").write_text("a.*\n", encoding="utf-8")
     tracked = tmp_path / "tracked.txt"
     tracked.write_text("before\n", encoding="utf-8")
-    _git(tmp_path, "add", ".gitignore", "tracked.txt")
+    declare_index(tmp_path, ".gitignore", "tracked.txt")
 
+    declare_blob(tmp_path, "tracked.txt")
     assert cli.main(
         ["--repository", str(tmp_path), "record-pre-repair-blob", "tracked.txt"],
     ) == 0
@@ -237,10 +231,10 @@ def test_cli_executes_validation_and_manifest_lifecycle(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     """Validation snapshots and retained manifests share the same CLI model."""
-    _git(tmp_path, "init", "-q")
+    declare_repository(tmp_path)
     (tmp_path / ".gitignore").write_text("a.*\n", encoding="utf-8")
     (tmp_path / "tracked.txt").write_text("before\n", encoding="utf-8")
-    _git(tmp_path, "add", ".gitignore", "tracked.txt")
+    declare_index(tmp_path, ".gitignore", "tracked.txt")
 
     assert cli.main(
         [
@@ -313,7 +307,7 @@ def test_cli_reports_parser_json_and_dispatch_failures(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     """Parser, explicit JSON input, and unknown dispatch failures use exit 2."""
-    _git(tmp_path, "init", "-q")
+    declare_repository(tmp_path)
     assert cli.main(["--repository", str(tmp_path)]) == _FATAL_EXIT
     assert "required" in capsys.readouterr().err
     assert cli.main(

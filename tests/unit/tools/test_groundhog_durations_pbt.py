@@ -12,6 +12,9 @@ Fix: the half-floor restore (Q70) adds one invariant -- an entry whose call
 runs under half the active floor is never kept in the written section,
 whatever its recorded baseline, so a test that became fast again always
 returns to the normal rule.
+
+Node names come from ``tests.scalar_text``, the default-text domain of every
+Unicode scalar value drawn without Hypothesis's Unicode category tables.
 """
 
 from __future__ import annotations
@@ -19,20 +22,28 @@ from __future__ import annotations
 import math
 from typing import TYPE_CHECKING
 
+import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
+from tests.scalar_text import scalar_text
 from tools.groundhog import durations
 
 if TYPE_CHECKING:
     from hypothesis.strategies import SearchStrategy
 
-# Bounded so the property run stays tiny (Time-gated status for Step 2).
-_MAX_EXAMPLES = 20
+# Bounded so each lifecycle stays tiny (Time-gated status for Step 2). Each
+# batch is one Hypothesis run that first tries its minimal example, then one
+# random draw: twenty batches keep 20 random examples per property, at least
+# the 19 of a single 20-example run. Generating these dictionaries costs far
+# more than the rule under test, most of all under testmon tracing, so one
+# random dictionary per lifecycle keeps every lifecycle under the limit.
+_BATCHES = 20
+_MAX_EXAMPLES = 2
 _DEADLINE_MS = 400
 _REL_TOL = 1e-9
 
-_NODES: SearchStrategy[str] = st.text(min_size=1, max_size=12)
+_NODES: SearchStrategy[str] = scalar_text(min_size=1, max_size=12)
 _SECS: SearchStrategy[float] = st.floats(
     min_value=0.01,
     max_value=1000.0,
@@ -53,9 +64,11 @@ _SCALE: SearchStrategy[float] = st.floats(
 )
 
 
+@pytest.mark.parametrize("_batch", range(_BATCHES))
 @settings(max_examples=_MAX_EXAMPLES, deadline=_DEADLINE_MS)
 @given(values=_DURATIONS, factor=_SCALE)
 def test_auto_floor_scales_with_the_durations(
+    _batch: int,
     values: dict[str, float],
     factor: float,
 ) -> None:
@@ -68,9 +81,11 @@ def test_auto_floor_scales_with_the_durations(
     )
 
 
+@pytest.mark.parametrize("_batch", range(_BATCHES))
 @settings(max_examples=_MAX_EXAMPLES, deadline=_DEADLINE_MS)
 @given(values=_DURATIONS)
 def test_a_call_below_the_floor_is_never_an_outlier(
+    _batch: int,
     values: dict[str, float],
 ) -> None:
     """A call under the active floor is spared, whatever its z-score (Q46)."""
@@ -82,9 +97,11 @@ def test_a_call_below_the_floor_is_never_an_outlier(
             assert node not in flagged
 
 
+@pytest.mark.parametrize("_batch", range(_BATCHES))
 @settings(max_examples=_MAX_EXAMPLES, deadline=_DEADLINE_MS)
 @given(values=_DURATIONS)
 def test_excluding_every_node_leaves_no_outlier(
+    _batch: int,
     values: dict[str, float],
 ) -> None:
     """With every node excluded the post-step spares all outliers (Q54)."""
@@ -94,9 +111,11 @@ def test_excluding_every_node_leaves_no_outlier(
     assert spared.outliers == ()
 
 
+@pytest.mark.parametrize("_batch", range(_BATCHES))
 @settings(max_examples=_MAX_EXAMPLES, deadline=_DEADLINE_MS)
 @given(values=_DURATIONS, recorded=_SECS)
 def test_a_written_baseline_never_rises_above_the_recorded_one(
+    _batch: int,
     values: dict[str, float],
     recorded: float,
 ) -> None:
@@ -111,9 +130,11 @@ def test_a_written_baseline_never_rises_above_the_recorded_one(
         assert updated[node] <= recorded
 
 
+@pytest.mark.parametrize("_batch", range(_BATCHES))
 @settings(max_examples=_MAX_EXAMPLES, deadline=_DEADLINE_MS)
 @given(values=_DURATIONS, recorded=_SECS)
 def test_a_call_back_under_half_the_floor_is_never_kept(
+    _batch: int,
     values: dict[str, float],
     recorded: float,
 ) -> None:

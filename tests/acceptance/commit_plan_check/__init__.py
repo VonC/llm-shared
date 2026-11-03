@@ -1,1 +1,1 @@
-"""Acceptance coverage for read-only commit-plan checking."""
+"""Read-only commit-plan acceptance coverage with a shared real Git seed."""

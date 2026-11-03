@@ -1,29 +1,24 @@
-"""Perf gate for the combined multi-repo git-history aggregation.
+"""Count aggregation work instead of waiting for a quadratic runtime timeout.
 
-Step 0 (v0.8.0): added as an ``xfail`` gate before the aggregation existed, so
-it failed on the missing module until the code landed.
-
-Step 1.1 (v0.8.0): the combined aggregation with the per-project breakdown
-landed, so the gate runs for real and the ``xfail`` is removed. Aggregating many
-commits spread across several projects must finish within the timeout, guarding
-the per-project breakdown against an ``O(n^2)`` regression.
+Different input sizes span the same year and five projects. Each commit can
+enter at most two tallies (global and project), and the input is scanned once.
+The real aggregation and output assertions remain inside the measured test.
 """
 
 from __future__ import annotations
 
 import datetime
+from typing import TYPE_CHECKING
 
 import pytest
 
 from tools.git_history_dashboard import aggregate
 
-# Many commits so a quadratic aggregation would blow the timeout, yet a linear
-# pass stays in milliseconds.
-PERF_COMMIT_COUNT = 3000
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+
 # How many projects the synthetic commits fan out across.
 PERF_PROJECT_COUNT = 5
-# A generous wall-clock bound: linear aggregation finishes far inside it.
-PERF_TIMEOUT_SECONDS = 8
 # The synthetic commits spread across a year so the daily/weekly series stay
 # dense rather than collapsing onto a single day.
 PERF_SPAN_DAYS = 365
@@ -50,7 +45,7 @@ def _synthetic_commits(count: int) -> list[aggregate.Commit]:
     """
     commits: list[aggregate.Commit] = []
     for i in range(count):
-        day = _BASE_DAY - datetime.timedelta(days=i % PERF_SPAN_DAYS)
+        day = _BASE_DAY - datetime.timedelta(days=i * (PERF_SPAN_DAYS - 1) // (count - 1))
         hour = i % 24
         iso_date = f"{day.isoformat()} {hour:02d}:00:00 +0000"
         sha = f"{i:040x}"
@@ -63,18 +58,35 @@ def _synthetic_commits(count: int) -> list[aggregate.Commit]:
     return commits
 
 
-class TestCombinedAggregationPerf:
-    """Linear-time guard for the combined multi-project aggregation."""
+@pytest.mark.parametrize("count", [10, 50, 100])
+def test_combined_aggregation_stays_linear(count: int, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Increasing history size requires one scan and at most two tally updates."""
+    commits = _synthetic_commits(count)
+    record = aggregate._record_commit  # noqa: SLF001 - count work without replacing behavior
+    updates = 0
+    reads = 0
 
-    @pytest.mark.timeout(PERF_TIMEOUT_SECONDS)
-    def test_combined_aggregation_stays_linear(self) -> None:
-        """Aggregating many commits across projects returns within the timeout."""
-        commits = _synthetic_commits(PERF_COMMIT_COUNT)
+    def counted_record(commit: aggregate.Commit, tallies: aggregate._CommitTallies) -> bool:  # noqa: SLF001
+        nonlocal updates
+        updates += 1
+        return record(commit, tallies)
 
-        payload = aggregate.aggregate(commits)
+    class History:
+        """Count input visits while permitting multiple iterations to be detected."""
 
-        assert payload["total_commits"] == PERF_COMMIT_COUNT
-        assert len(payload["projects"]) == PERF_PROJECT_COUNT
+        def __iter__(self) -> Iterator[aggregate.Commit]:
+            nonlocal reads
+            for commit in commits:
+                reads += 1
+                yield commit
+
+    monkeypatch.setattr(aggregate, "_record_commit", counted_record)
+    payload = aggregate.aggregate(History())
+    assert payload["total_commits"] == count
+    assert len(payload["projects"]) == PERF_PROJECT_COUNT
+    assert len(payload["dates"]) == PERF_SPAN_DAYS
+    assert reads == count
+    assert updates <= 2 * count
 
 
 # eof

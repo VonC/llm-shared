@@ -4,6 +4,8 @@
 Step 1 prevents complete request Markdown and transcript feedback from drifting
 apart. The pure renderer reuses the shared exchange envelope, while the command
 adapter validates every caller-owned root file before it writes either output.
+The request template is read through `template_text.read_template`, shared by
+every renderer.
 """
 
 # ruff: noqa: EM101, EM102, TRY003
@@ -30,6 +32,7 @@ if __name__ == "__main__":  # pragma: no cover - thin launcher boundary
         _project_root = Path(__file__).parent.parent.resolve()
         sys.path.insert(0, str(_project_root))
 
+from tools import template_text
 from tools._models import find_project_root
 from tools.review_artifact_configuration import caller_file_parents
 from tools.review_exchange_models import (
@@ -241,7 +244,7 @@ def _request_authored_content(source: SpecificationRoundInput) -> str:
         "answer_name": _answer_name(source),
     }
     try:
-        template = Template(_TEMPLATE_PATH.read_text(encoding="utf-8"))
+        template = Template(template_text.read_template(_TEMPLATE_PATH))
     except (OSError, UnicodeError) as error:
         raise ReviewExchangeError(f"cannot read request template: {error}") from error
     return template.substitute(values).rstrip() + "\n"

@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterable
 
 
-@dataclass
+@dataclass(slots=True)
 class _Node:
     """One byte-prefix bucket, retaining duplicates at its terminal node."""
 

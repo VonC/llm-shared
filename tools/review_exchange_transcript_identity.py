@@ -81,10 +81,44 @@ def render_nature_completion_entry(
     return NatureCompletionEntry(entry_id, markdown)
 
 
+def render_nature_override_entry(
+    role: ReviewRole,
+    exchange_occurrence: int,
+    previous: LlmNature,
+    nature: LlmNature,
+) -> NatureCompletionEntry:
+    """Render one repeat-safe entry for a human-approved role nature replacement.
+
+    The entry keeps the replaced nature visible: earlier rounds stay credited
+    to it, and only the coordination record names the new nature.
+    """
+    if role is ReviewRole.HUMAN:
+        message = "human role has no LLM nature override"
+        raise ValueError(message)
+    if exchange_occurrence < 1:
+        message = "exchange occurrence must be positive"
+        raise ValueError(message)
+    entry_id = (
+        f"llm-nature-override-{role.value}-exchange-{exchange_occurrence}"
+        f"-{previous.value}-to-{nature.value}"
+    )
+    markdown = (
+        f"\n\n### LLM nature override for {role.value} "
+        f"(exchange {exchange_occurrence})\n\n"
+        f"Human-approved Override: the {role.value} continues as "
+        f"`{nature.value}` instead of `{previous.value}`.\n\n"
+        f"Previous nature: `{previous.value}`\n\n"
+        f"Recorded nature: `{nature.value}`\n\n"
+        f"<!-- review-entry-id: {entry_id} -->\n"
+    )
+    return NatureCompletionEntry(entry_id, markdown)
+
+
 __all__ = [
     "NatureCompletionEntry",
     "current_request_occurrence",
     "render_nature_completion_entry",
+    "render_nature_override_entry",
     "transcript_entry_base",
 ]
 

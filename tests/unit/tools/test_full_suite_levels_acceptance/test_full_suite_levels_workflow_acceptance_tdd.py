@@ -5,18 +5,18 @@ from __future__ import annotations
 import shlex
 from typing import TYPE_CHECKING
 
+import pytest
+
 from tools import prompt_workflow
 from tools.groundhog import cli, exclusions, floor
 from tools.prepare_release.prepare_release_plan_workflow import build_release_plan
 
 if TYPE_CHECKING:
-    import pytest
-
     from tests.unit.tools.test_full_suite_levels_acceptance.conftest import Effort
 
 
-def test_review_off_scope_comparison_and_release(
-    effort: Effort, release_base: str, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str],
+def test_review_off_scope_and_exclusion_comparison(
+    effort: Effort, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str],
 ) -> None:
     """Ambient selection cannot narrow the requirement or release; tightening is unchanged."""
     monkeypatch.setenv("GHOG_GROUP", "sentinel")
@@ -26,9 +26,16 @@ def test_review_off_scope_comparison_and_release(
     command = shlex.split(capsys.readouterr().out.strip())
     assert command == ["ghog", "day", "--full=speed", "--whole-suite"]
     _assert_exclusion_comparisons(effort, command, capsys)
+
+
+@pytest.mark.parametrize("branch", ["main", "topic", "develop"])
+def test_release_gates_require_whole_suite(
+    effort: Effort, release_base: str, branch: str, capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Every promotion ignores the ambient group and validates the whole suite."""
     (effort.root / "src/sentinel/core.py").write_text("value = 2\n", encoding="utf-8")
     effort.set_group("sentinel")
-    _assert_release_gates(effort, release_base, capsys)
+    _assert_release_gates(effort, release_base, branch, capsys)
 
 
 def _assert_exclusion_comparisons(
@@ -55,14 +62,13 @@ def _assert_exclusion_comparisons(
     assert "exclusions=changed" in capsys.readouterr().out
 
 
-def _assert_release_gates(effort: Effort, base: str, capsys: pytest.CaptureFixture[str]) -> None:
+def _assert_release_gates(effort: Effort, base: str, branch: str, capsys: pytest.CaptureFixture[str]) -> None:
     """Main preparation and divergent promotions require whole-suite coverage."""
-    for branch in ("main", "topic", "develop"):
-        plan = build_release_plan(effort.root, main_branch="main", integration_branch="develop", branch=branch,
-                                  feature_base=base, feature_parent="develop", preview_conflicts=False)
-        gates = [operation for operation in plan.operations if "ghog day" in operation]
-        assert len(gates) == 1
-        assert "ghog day --full=cov --whole-suite" in gates[0]
+    plan = build_release_plan(effort.root, main_branch="main", integration_branch="develop", branch=branch,
+                              feature_base=base, feature_parent="develop", preview_conflicts=False)
+    gates = [operation for operation in plan.operations if "ghog day" in operation]
+    assert len(gates) == 1
+    assert "ghog day --full=cov --whole-suite" in gates[0]
     capsys.readouterr()
     arguments = shlex.split(gates[0].split("ghog ", 1)[1])
     code, spawns = effort.walk(*arguments, environment={"GHOG_GROUP": "sentinel"})

@@ -25,12 +25,12 @@ home; and an invalid home ends the script with ``EXIT_FATAL``.
 
 from __future__ import annotations
 
-import runpy
 import sys
 from typing import TYPE_CHECKING
 
 import pytest
 
+from tests.script_entry import run_main
 from tools import find_project_root as shared_find_project_root
 from tools import open_questions_md
 from tools.artifact_home import artifact_home
@@ -552,14 +552,14 @@ def test_script_runs_as_main_and_creates_companion(
 ) -> None:
     """Running as __main__ executes a mode and exits 0 through the script guard."""
     # Arrange
-    _patch_shared_root(monkeypatch, tmp_path)
+    _patch_root(monkeypatch, tmp_path)
     _write_doc(tmp_path, "design.v1.2.3.topic.md", "# Body\n")
     script_path = open_questions_md.__file__
     monkeypatch.setattr(sys, "argv", [script_path, "design.v1.2.3.topic.md", "--create"])
 
     # Act
     with pytest.raises(SystemExit) as excinfo:
-        runpy.run_path(script_path, run_name="__main__")
+        run_main(script_path)
 
     # Assert
     assert excinfo.value.code == 0
@@ -578,7 +578,7 @@ def test_script_logs_fatal_on_error(
 
     # Act
     with pytest.raises(SystemExit) as excinfo:
-        runpy.run_path(script_path, run_name="__main__")
+        run_main(script_path)
 
     # Assert
     assert excinfo.value.code == open_questions_md.EXIT_FATAL
@@ -599,7 +599,7 @@ def test_script_logs_fatal_on_invalid_artifact_home(
 
     # Act
     with pytest.raises(SystemExit) as excinfo:
-        runpy.run_path(script_path, run_name="__main__")
+        run_main(script_path)
 
     # Assert
     assert excinfo.value.code == open_questions_md.EXIT_FATAL

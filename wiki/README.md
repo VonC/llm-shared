@@ -127,6 +127,7 @@ their choices.
 
 - 🤖 [Why project logos use a shared visual system](explanation/why-project-logos-use-a-shared-visual-system.md)
 - 🧪 [Groundhog as a reset loop](explanation/groundhog-as-a-reset-loop.md)
+- 🧪 [Why fast tests keep the work they assert](explanation/why-fast-tests-keep-the-work-they-assert.md)
 - 📊 [Why grouped commits, least dependent first](explanation/why-grouped-commits.md)
 - 📊 [Why release branch roles matter](explanation/why-release-branch-roles-matter.md)
 - 📊 [Why Git history diagrams use explicit arrows](explanation/why-git-history-diagrams-use-explicit-arrows.md)
@@ -183,6 +184,7 @@ Recipes for a precise goal, for readers who already know the basics.
 - 🧪 [Fix a red groundhog walk](how-to/fix-a-red-groundhog-walk.md)
 - 🧪 [Fix a slow test flagged as an outlier](how-to/fix-a-slow-test.md)
 - 🧪 [Register groundhog in a project](how-to/register-groundhog-in-a-project.md)
+- 🧪 [Set the test lifecycle limits](how-to/set-test-lifecycle-limits.md)
 - 🧪 [Split a large file](how-to/split-a-large-file.md)
 - 📊 [Group a dirty tree into conventional commits](how-to/group-commits-into-conventional-messages.md)
 - 📊 [Reword a merge commit from the branch docs](how-to/reword-a-merge-commit.md)
@@ -218,6 +220,7 @@ Exact descriptions of commands, formats, files, and supported behavior.
 - 🤖 [Aliases and bin launchers](reference/aliases-and-launchers.md)
 - 📊 [Commit message format](reference/commit-message-format.md)
 - 🧪 [ghog commands and exit codes](reference/ghog-commands-and-exit-codes.md)
+- 🧪 [Test lifecycle limits](reference/test-lifecycle-limits.md)
 - 📊 [Prepare-release scenarios](reference/prepare-release-scenarios.md)
 - 📊 [Prepare-release planner command](reference/prepare-release-planner.md)
 - 📊 [Sensitive replacement-rules format](reference/sensitive-replacement-rules.md)

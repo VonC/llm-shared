@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
@@ -9,128 +11,74 @@ import pytest
 from tools import prompt_workflow_steps as steps
 from tools.llm_nature import LlmNature, LlmNatureDetector
 
-# Keep this module's scenarios on one xdist worker so its module-scoped
-# fixtures are built once rather than once per worker (--dist loadgroup).
-pytestmark = pytest.mark.xdist_group("codex-plugin-structure")
-
 if TYPE_CHECKING:
-    from pathlib import Path
+    from collections.abc import Iterator
 
-PluginSnapshot = tuple[
-    set[str],
-    set[str],
-    tuple[tuple[str, str, str, bytes], ...],
-]
-
-
-def _markdown_bodies_by_path(
-    root: Path,
-    folders: tuple[str, ...],
-) -> dict[Path, bytes]:
-    """Read each Markdown body below the selected roots exactly once."""
-    return {
-        path.relative_to(root): path.read_bytes()
-        for folder in folders
-        for path in (root / folder).rglob("*.md")
-    }
+ROOT = steps.llm_shared_dir()
+INSTRUCTION_NAMES = tuple(sorted(path.name for path in (ROOT / "instructions").glob("*.md")))
+CANONICAL_ROOTS = ("instructions", "rules", "scripts", "templates", "bin", "tools", "docs", "wiki")
+ADAPTER_ROOTS = (".agent", ".agents", ".claude", ".github")
 
 
-def _matching_canonical_bodies(
-    root: Path,
-    folders: tuple[str, ...],
-    adapter_bodies: set[bytes],
-) -> dict[bytes, Path]:
-    """Read only canonical files whose sizes could match an adapter body."""
-    adapter_sizes = {len(content) for content in adapter_bodies}
-    canonical: dict[bytes, Path] = {}
-    for folder in folders:
-        for path in (root / folder).rglob("*.md"):
-            if path.stat().st_size not in adapter_sizes:
-                continue
-            content = path.read_bytes()
-            if content in adapter_bodies:
-                canonical[content] = path.relative_to(root)
-    return canonical
+def _markdown_entries(folder: Path) -> Iterator[os.DirEntry[str]]:
+    """Reuse directory metadata instead of statting every canonical file."""
+    with os.scandir(folder) as entries:
+        for entry in entries:
+            if entry.is_dir(follow_symlinks=False):
+                yield from _markdown_entries(Path(entry.path))
+            elif entry.name.endswith(".md"):
+                yield entry
 
 
-@pytest.fixture(scope="session")
-def duplicate_markdown_bodies() -> dict[Path, Path]:
-    """Scan provider and canonical Markdown once outside measured call time."""
-    root = steps.llm_shared_dir()
-    canonical_roots = (
-        "instructions",
-        "rules",
-        "scripts",
-        "templates",
-        "bin",
-        "tools",
-        "docs",
-        "wiki",
+def _duplicate_candidates() -> tuple[tuple[Path, tuple[Path, ...]], ...]:
+    """Discover test inputs by size; every content read stays in its test."""
+    canonical_by_size: dict[int, list[Path]] = {}
+    for folder in CANONICAL_ROOTS:
+        for entry in _markdown_entries(ROOT / folder):
+            canonical_by_size.setdefault(entry.stat().st_size, []).append(Path(entry.path))
+    return tuple(
+        (Path(entry.path), tuple(canonical_by_size.get(entry.stat().st_size, ())))
+        for folder in ADAPTER_ROOTS
+        for entry in _markdown_entries(ROOT / folder)
     )
-    adapter_roots = (".agent", ".agents", ".claude", ".github")
-    adapter_contents = _markdown_bodies_by_path(root, adapter_roots)
-    adapter_bodies = set(adapter_contents.values())
-    canonical = _matching_canonical_bodies(root, canonical_roots, adapter_bodies)
-    return {
-        path: canonical[content]
-        for path, content in adapter_contents.items()
-        if content in canonical
-    }
 
 
-@pytest.fixture(scope="session")
-def codex_plugin_snapshot() -> PluginSnapshot:
-    """Read the Codex package once, outside the measured test-call phase."""
-    root = steps.llm_shared_dir()
-    instructions = root / "instructions"
-    plugin = root / ".agents" / "llm-shared"
-    instruction_names = {path.name for path in instructions.glob("*.md")}
+def test_codex_plugin_inventory_matches_every_instruction() -> None:
+    """Missing and extra skill directories are both rejected."""
+    plugin = ROOT / ".agents" / "llm-shared"
     expected_skill_names = {
-        name.removesuffix(".md").replace("_", "-") for name in instruction_names
+        name.removesuffix(".md").replace("_", "-") for name in INSTRUCTION_NAMES
     }
     packaged_skill_names = {
         path.name for path in (plugin / "skills").iterdir() if path.is_dir()
     }
-    rows = tuple(
-        (
-            name,
-            (
-                plugin
-                / "skills"
-                / name.removesuffix(".md").replace("_", "-")
-                / "SKILL.md"
-            ).read_text(encoding="utf-8"),
-            (plugin / "instructions" / name).read_text(encoding="utf-8"),
-            (instructions / name).read_bytes(),
-        )
-        for name in instruction_names
-    )
-    return expected_skill_names, packaged_skill_names, rows
-
-
-def test_codex_plugin_redirects_every_instruction(
-    codex_plugin_snapshot: PluginSnapshot,
-) -> None:
-    """Every shared instruction has matching Codex redirects, never a copy."""
-    expected_skill_names, packaged_skill_names, rows = codex_plugin_snapshot
     assert packaged_skill_names == expected_skill_names
-    for instruction_name, skill, packaged, source in rows:
-        skill_redirect = (
-            "Read and follow [the canonical instruction]"
-            f"(../../../../../../../../git/llm-shared/instructions/{instruction_name})"
-        )
-        packaged_redirect = (
-            "Read and follow the canonical instruction at "
-            f"[`instructions/{instruction_name}`]"
-            f"(../../../../../../../git/llm-shared/instructions/{instruction_name}).\n"
-        )
-        assert skill.rstrip().endswith(skill_redirect)
-        packaged_body = packaged
-        if packaged.startswith("---\n"):
-            assert LlmNatureDetector.adapter_nature(packaged) is LlmNature.CODEX
-            packaged_body = packaged.split("---\n", 2)[2].lstrip("\n")
-        assert packaged_body == packaged_redirect
-        assert packaged.encode("utf-8") != source
+
+
+@pytest.mark.parametrize("instruction_name", INSTRUCTION_NAMES)
+def test_codex_plugin_redirects_every_instruction(instruction_name: str) -> None:
+    """Every shared instruction has matching Codex redirects, never a copy."""
+    plugin = ROOT / ".agents" / "llm-shared"
+    skill_name = instruction_name.removesuffix(".md").replace("_", "-")
+    skill = (plugin / "skills" / skill_name / "SKILL.md").read_text(encoding="utf-8")
+    packaged = (plugin / "instructions" / instruction_name).read_text(encoding="utf-8")
+    source = (ROOT / "instructions" / instruction_name).read_bytes()
+    skill_redirect = (
+        "Read and follow [the canonical instruction]"
+        f"(../../../../../../../../git/llm-shared/instructions/{instruction_name})"
+    )
+    packaged_redirect = (
+        "Read and follow the canonical instruction at "
+        f"[`instructions/{instruction_name}`]"
+        f"(../../../../../../../git/llm-shared/instructions/{instruction_name}).\n"
+    )
+    assert skill.rstrip().endswith(skill_redirect)
+    packaged_body = packaged
+    if packaged.startswith("---\n"):
+        assert LlmNatureDetector.adapter_nature(packaged) is LlmNature.CODEX
+        packaged_body = packaged.split("---\n", 2)[2].lstrip("\n")
+    assert packaged_body == packaged_redirect
+    assert packaged.encode("utf-8") != source
 
 
 def test_codex_plugin_redirects_to_the_docs_layout_rule() -> None:
@@ -148,11 +96,12 @@ def test_codex_plugin_redirects_to_the_docs_layout_rule() -> None:
     assert packaged != source
 
 
-def test_llm_specific_markdown_never_copies_canonical_markdown(
-    duplicate_markdown_bodies: dict[Path, Path],
-) -> None:
+@pytest.mark.parametrize(("adapter", "candidates"), _duplicate_candidates(),
+                         ids=lambda value: value.relative_to(ROOT).as_posix() if isinstance(value, Path) else None)
+def test_llm_specific_markdown_never_copies_canonical_markdown(adapter: Path, candidates: tuple[Path, ...]) -> None:
     """Provider adapters cannot duplicate a canonical Markdown body."""
-    assert duplicate_markdown_bodies == {}
+    content = adapter.read_bytes()
+    assert all(content != candidate.read_bytes() for candidate in candidates), adapter
 
 
 def _assert_llmup_launcher(doskeys: str, launcher: str) -> None:
@@ -171,13 +120,15 @@ def _assert_llmup_installation(launcher: str) -> None:
     assert "plugin add llm-shared@%MARKETPLACE_NAME%" in launcher
 
 
-def _assert_llmup_documentation(root: Path, pages: tuple[Path, ...]) -> None:
-    """Check the shortcut remains discoverable in each user-facing page."""
-    layout = (root / "wiki" / "reference" / "repository-layout.md").read_text(
-        encoding="utf-8",
-    )
-    assert all("llmup" in path.read_text(encoding="utf-8") for path in pages)
-    assert "update_llm_shared_plugin" in layout
+@pytest.mark.parametrize(("page", "expected"), [
+    ("how-to/pick-up-skill-edits-without-restarting.md", "llmup"),
+    ("how-to/register-skills-as-a-codex-plugin.md", "llmup"),
+    ("reference/aliases-and-launchers.md", "llmup"),
+    ("reference/repository-layout.md", "update_llm_shared_plugin"),
+])
+def test_llmup_documentation(page: str, expected: str) -> None:
+    """Check each independently editable page against its shortcut contract."""
+    assert expected in (steps.llm_shared_dir() / "wiki" / page).read_text(encoding="utf-8")
 
 
 def test_llmup_alias_refreshes_the_personal_codex_plugin() -> None:
@@ -187,13 +138,6 @@ def test_llmup_alias_refreshes_the_personal_codex_plugin() -> None:
     launcher = (root / "bin" / "update_llm_shared_plugin.bat").read_text(
         encoding="utf-8",
     )
-    wiki = root / "wiki"
-    pages = (
-        wiki / "how-to" / "pick-up-skill-edits-without-restarting.md",
-        wiki / "how-to" / "register-skills-as-a-codex-plugin.md",
-        wiki / "reference" / "aliases-and-launchers.md",
-    )
     _assert_llmup_launcher(doskeys, launcher)
     _assert_llmup_installation(launcher)
     assert 'findstr /I /C:"llm-shared@%MARKETPLACE_NAME%"' in launcher
-    _assert_llmup_documentation(root, pages)

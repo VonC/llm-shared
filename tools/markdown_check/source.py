@@ -40,6 +40,7 @@ _AUTOLINK_RE = re.compile(
 )
 _LINK_RE = re.compile(r"(?<!!)\[[^\]\n]*\]\((?P<target><[^>\n]+>|[^\s)\n]+)")
 _DESCRIPTION_RE = re.compile(r"^[ \t]*description[ \t]*:[ \t]*(?P<value>.*)$")
+_BACKTICK_RUN_RE = re.compile(r"`+")
 
 
 def fenced_line_numbers(lines: Sequence[str]) -> frozenset[int]:
@@ -208,18 +209,7 @@ def _visible_text(
 
 def _backtick_runs(text: str) -> list[tuple[int, int]]:
     """Collect every maximal backtick run in one pass."""
-    runs: list[tuple[int, int]] = []
-    index = 0
-    while index < len(text):
-        if text[index] != "`":
-            index += 1
-            continue
-        end = index + 1
-        while end < len(text) and text[end] == "`":
-            end += 1
-        runs.append((index, end - index))
-        index = end
-    return runs
+    return [(match.start(), match.end() - match.start()) for match in _BACKTICK_RUN_RE.finditer(text)]
 
 
 def _code_value(raw_content: str) -> str:

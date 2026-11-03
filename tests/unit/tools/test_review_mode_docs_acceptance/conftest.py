@@ -1,8 +1,8 @@
 """Bounded repository readers for review-mode documentation acceptance.
 
 The helpers inspect only paths supplied by a test, ignore external URLs, and
-resolve each local target once. Fragment checks compare links with headings in
-the resolved target instead of serving or copying the documentation tree. The
+resolve each local target once. Fragment checks lazily cache the headings in
+each resolved target instead of serving or copying the documentation tree. The
 final evidence checks select one exact Markdown table row without scanning any
 undeclared file.
 """
@@ -10,6 +10,8 @@ undeclared file.
 from __future__ import annotations
 
 import re
+from functools import cache
+from itertools import islice
 from pathlib import Path
 from typing import TYPE_CHECKING
 from urllib.parse import unquote
@@ -54,16 +56,35 @@ def assert_contains(markdown: str, values: tuple[str, ...]) -> None:
         assert value in markdown
 
 
+@cache
 def repository_root() -> Path:
     """Return the repository root from this fixed test-package location."""
     return Path(__file__).resolve().parents[4]
 
 
+@cache
+def _resolved(path: Path) -> Path:
+    """Resolve immutable source documents lazily, charging their first reader."""
+    return path.resolve()
+
+
+@cache
+def _read(path: Path) -> str:
+    """Read each immutable source document once within this module's tests."""
+    return path.read_text(encoding="utf-8")
+
+
+@cache
+def _exists(path: Path) -> bool:
+    """Observe each immutable documentation target once."""
+    return path.exists()
+
+
 def read_declared(root: Path, relative_path: str) -> str:
     """Read one declared repository-relative UTF-8 file."""
-    path = (root / relative_path).resolve()
-    path.relative_to(root.resolve())
-    return path.read_text(encoding="utf-8")
+    path = _resolved(root / relative_path)
+    path.relative_to(_resolved(root))
+    return _read(path)
 
 
 def markdown_table_row(markdown: str, key: str) -> str:
@@ -80,6 +101,14 @@ def _heading_slug(heading: str) -> str:
     return re.sub(r"[ -]+", "-", plain.strip())
 
 
+@cache
+def _fragments(path: Path) -> frozenset[str]:
+    """Compute immutable heading fragments once, inside their first test."""
+    headings = {_heading_slug(value) for value in _HEADING.findall(_read(path))}
+    headings.update(_EMOJI_FRAGMENT_PREFIX + value for value in tuple(headings) if value)
+    return frozenset(headings)
+
+
 def _local_targets(markdown: str) -> Iterator[str]:
     """Yield local targets while discarding external Markdown URLs."""
     for raw_target in _MARKDOWN_LINK.findall(markdown):
@@ -92,7 +121,7 @@ def _resolve_target(root: Path, source: Path, target: str) -> tuple[Path, str]:
     """Resolve one local target within the repository and return its fragment."""
     path_part, _separator, fragment = target.partition("#")
     destination = (
-        source if not path_part else (source.parent / unquote(path_part)).resolve()
+        source if not path_part else _resolved(source.parent / unquote(path_part))
     )
     destination.relative_to(root)
     return destination, fragment
@@ -102,25 +131,23 @@ def _assert_fragment(destination: Path, fragment: str, source_name: str) -> None
     """Assert a Markdown fragment names a heading in the resolved target."""
     if not fragment or destination.suffix.casefold() != _MARKDOWN_SUFFIX:
         return
-    headings = {
-        _heading_slug(value)
-        for value in _HEADING.findall(destination.read_text(encoding="utf-8"))
-    }
-    headings.update(_EMOJI_FRAGMENT_PREFIX + value for value in tuple(headings) if value)
-    assert unquote(fragment).casefold() in headings, (
+    assert unquote(fragment).casefold() in _fragments(destination), (
         f"{source_name}: missing fragment {fragment}"
     )
 
 
-def assert_local_links(root: Path, relative_paths: Iterable[str]) -> None:
-    """Assert every local Markdown link in the declared pages resolves."""
-    resolved_root = root.resolve()
+def assert_local_links(
+    root: Path, relative_paths: Iterable[str], *, partition: tuple[int, int] = (0, 1),
+) -> None:
+    """Check all links, or one exhaustive partition of a large index page."""
+    offset, stride = partition
+    resolved_root = _resolved(root)
     for relative_path in relative_paths:
-        source = (resolved_root / relative_path).resolve()
-        markdown = source.read_text(encoding="utf-8")
-        for target in _local_targets(markdown):
+        source = _resolved(resolved_root / relative_path)
+        markdown = _read(source)
+        for target in islice(_local_targets(markdown), offset, None, stride):
             destination, fragment = _resolve_target(resolved_root, source, target)
-            assert destination.exists(), (
+            assert _exists(destination), (
                 f"{relative_path}: missing link target {target}"
             )
             _assert_fragment(destination, fragment, relative_path)
@@ -128,11 +155,11 @@ def assert_local_links(root: Path, relative_paths: Iterable[str]) -> None:
 
 def assert_named_paths(root: Path, relative_paths: Iterable[str]) -> None:
     """Assert every declared repository-relative path exists."""
-    resolved_root = root.resolve()
+    resolved_root = _resolved(root)
     for relative_path in relative_paths:
-        path = (resolved_root / relative_path).resolve()
+        path = _resolved(resolved_root / relative_path)
         path.relative_to(resolved_root)
-        assert path.exists(), f"missing named path: {relative_path}"
+        assert _exists(path), f"missing named path: {relative_path}"
 
 
 @pytest.fixture

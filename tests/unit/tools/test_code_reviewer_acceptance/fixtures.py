@@ -1,19 +1,16 @@
-"""Real-repository fixtures for code-reviewer acceptance tests.
-
-The helpers keep Git setup outside measured test calls where practical while
-leaving every scenario on the public renderer, evidence, and exchange seams.
-
-Fix (v0.13.0 full_suite_levels, Step 2): the project validation command
-follows the new default, ``ghog day --full=speed``.
-"""
+"""Declared repository data for production reviewer and exchange scenarios."""
 
 from __future__ import annotations
 
 import shutil
-import subprocess
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from tests.code_review_repository_observations import (
+    EVIDENCE,
+    declare_index,
+    declare_repository,
+)
 from tools import code_review_answer, code_review_request
 from tools.code_review_evidence import capture_index_tree
 from tools.code_review_validation import resolve_code_review_validation
@@ -60,37 +57,20 @@ class Effort:
     source: Path
 
 
-def git(root: Path, *arguments: str, check: bool = True) -> str:
-    """Run one bounded Git command in the temporary repository."""
-    result = subprocess.run(
-        ["git", *arguments],
-        cwd=root,
-        check=check,
-        capture_output=True,
-        text=True,
-        # Keep real Git setup bounded while allowing parallel worker startup.
-        # Test-call speed remains checked by the separate timing gate.
-        timeout=30,
-    )
-    return result.stdout.strip()
-
-
 def staged_paths(root: Path) -> tuple[str, ...]:
-    """Return the exact ordered staged-path inventory."""
-    output = git(root, "diff", "--cached", "--name-only")
-    return tuple(output.splitlines()) if output else ()
+    """Read the exact declared staged inventory without a Git subprocess."""
+    return EVIDENCE[root.resolve()].changed_paths()
 
 
 def configure_repository_template(template: Path | None) -> None:
-    """Set the session-built real repository copied by acceptance efforts."""
+    """Set the session data template copied by acceptance efforts."""
     global _repository_template  # noqa: PLW0603
     _repository_template = template
 
 
 def create_repository_template(root: Path) -> None:
-    """Create one reusable real repository with baseline and staged content."""
+    """Write reusable baseline data; no Git database or process is needed."""
     root.mkdir(parents=True)
-    git(root, "init", "-q")
     (root / ".gitignore").write_text("a.*\n", encoding="utf-8")
     (root / "a.review-mode").write_text("", encoding="utf-8")
     docs = root / "docs" / "v0.11.0"
@@ -116,23 +96,11 @@ def create_repository_template(root: Path) -> None:
     )
     source = root / "reviewed.py"
     source.write_text("VALUE = 1\n", encoding="utf-8")
-    git(root, "add", ".gitignore", "docs", "reviewed.py")
-    git(
-        root,
-        "-c",
-        "user.name=Acceptance",
-        "-c",
-        "user.email=acceptance@example.invalid",
-        "commit",
-        "-qm",
-        "baseline",
-    )
     source.write_text("VALUE = 2\n", encoding="utf-8")
-    git(root, "add", "reviewed.py")
 
 
 def make_effort(root: Path, *, step: str = "6") -> Effort:
-    """Copy one marker-enabled real Git effort and bind its typed context."""
+    """Copy data, declare index/baseline observations and bind the typed context."""
     if _repository_template is None:
         create_repository_template(root)
     else:
@@ -143,6 +111,11 @@ def make_effort(root: Path, *, step: str = "6") -> Effort:
     plan = docs / "plan.v0.11.0.acceptance.md"
     validation = docs / "plan.v0.11.0.acceptance.validation.md"
     source = root / "reviewed.py"
+    baseline = {path.relative_to(root).as_posix(): path.read_bytes()
+                for path in root.rglob("*") if path.is_file() and not path.name.startswith("a.")}
+    baseline["reviewed.py"] = b"VALUE = 1\n"
+    declare_repository(root, baseline)
+    declare_index(root, "reviewed.py")
     context = code_review_request.code_review_context(plan, step, umbrella)
     topic = Topic("v0.11.0", "acceptance", draft)
     state = WorkflowState(

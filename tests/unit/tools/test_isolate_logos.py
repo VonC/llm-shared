@@ -14,13 +14,13 @@ the main() exit code) is part of the tested surface.
 from __future__ import annotations
 
 import logging
-import runpy
 import sys
 from pathlib import Path
 
 import pytest
 from PIL import Image
 
+from tests.script_entry import run_main
 from tools.isolate_logos import isolate_logos
 
 WHITE = (255, 255, 255)
@@ -298,8 +298,7 @@ class TestMainGuard:
         saved_level = root_logger.level
         try:
             with pytest.raises(SystemExit) as excinfo:
-                runpy.run_path(str(Path(isolate_logos.__file__)),
-                               run_name="__main__")
+                run_main(str(Path(isolate_logos.__file__)))
             assert excinfo.value.code == 0
         finally:
             root_logger.handlers.clear()

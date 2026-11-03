@@ -269,16 +269,25 @@ def test_day_detach_keeps_the_launcher_envelope_on_stdout(
     assert not (tmp_path / redirect.LOG_NAME).exists()
 
 
-def test_default_detach_factory_spawns_a_real_survivor(tmp_path: Path) -> None:
-    """End to end: the survivor starts and the launcher writes the preamble."""
+def test_default_detach_factory_passes_the_survivor_contract(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Production dispatch writes the preamble and passes the child boundary."""
     log_path = tmp_path / "detached.log"
-    command = (
-        ["cmd", "/d", "/c", "exit", "/b", "0"]
-        if sys.platform == "win32"
-        else [sys.executable, "-S", "-c", ""]
-    )
+    command = ["declared-child", "argument"]
+
+    def observe_spawn(arguments: list[str], **kwargs: object) -> subprocess.Popen[bytes]:
+        assert arguments == command
+        assert kwargs["cwd"] == str(tmp_path)
+        assert kwargs["stdin"] == subprocess.DEVNULL
+        assert kwargs["stderr"] == subprocess.STDOUT
+        assert kwargs["stdout"] is not None
+        return cast("subprocess.Popen[bytes]", _FakeSurvivor(_DETACHED_PID))
+
+    monkeypatch.setattr(subprocess, "Popen", observe_spawn)
     pid = detach.default_detach_factory(command, log_path, "senv preamble", tmp_path)
     assert pid > 0
+    assert pid == _DETACHED_PID
     assert log_path.read_text(encoding="utf-8").startswith("senv preamble\n")
 
 

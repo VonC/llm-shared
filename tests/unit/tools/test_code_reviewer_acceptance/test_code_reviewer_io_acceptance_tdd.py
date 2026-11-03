@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from tests.code_review_repository_observations import EVIDENCE, declare_index
 from tools.code_review_evidence import (
     capture_index_tree,
     capture_validation_state,
@@ -14,7 +15,7 @@ from tools.code_review_evidence import (
 from tools.git_batch_commit_models import CommitBlock
 from tools.git_batch_commit_validation import validate_commit_plan
 
-from .fixtures import git, make_effort, staged_paths
+from .fixtures import make_effort, staged_paths
 
 _MINIMUM_PUBLISH_REFERENCES = 2
 
@@ -24,6 +25,7 @@ def ignored_validation_artifact(tmp_path: Path) -> None:
     """Classify one ignored command artifact outside call timing."""
     effort = make_effort(tmp_path / "ignored")
     paths = ("reviewed.py", "a.validation-result.json")
+    EVIDENCE[effort.root.resolve()].ignored_paths.add("a.validation-result.json")
     before = capture_validation_state(effort.root, paths)
     (effort.root / "a.validation-result.json").write_text("{}\n", encoding="utf-8")
     after = capture_validation_state(effort.root, paths)
@@ -62,15 +64,14 @@ def test_validation_changes_tracked_file_blocks_without_staging_or_revert(
 
 
 @pytest.fixture
-def literal_explicit_path_set(tmp_path: Path, real_git_commands: object) -> None:
+def literal_explicit_path_set(tmp_path: Path) -> None:
     """Capture one metacharacter path without repository discovery."""
-    del real_git_commands
     effort = make_effort(tmp_path / "literal")
     literal = effort.root / "literal[1].txt"
     decoy = effort.root / "literal1.txt"
     literal.write_text("selected\n", encoding="utf-8")
     decoy.write_text("decoy\n", encoding="utf-8")
-    git(effort.root, "add", "literal[1].txt", "literal1.txt")
+    declare_index(effort.root, "literal[1].txt", "literal1.txt")
     state = capture_validation_state(effort.root, ("literal[1].txt",))
     assert state.paths == ("literal[1].txt",)
     assert tuple(item.path for item in state.tracked_files) == ("literal[1].txt",)

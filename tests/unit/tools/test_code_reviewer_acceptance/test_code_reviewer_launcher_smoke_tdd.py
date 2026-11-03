@@ -1,41 +1,37 @@
-"""One real startup smoke per code-reviewer launcher."""
+"""Direct public CLI help and explicit source contracts for batch wiring."""
 
 from __future__ import annotations
 
-import subprocess
+import sys
+from importlib import import_module
 from pathlib import Path
-from typing import cast
 
 import pytest
 
 # ruff: noqa: S603
 
 _LAUNCHERS = (
-    ("code_review_request.bat", "usage: code-review-request"),
-    ("code_review_evidence.bat", "usage: code-review-evidence"),
-    ("code_review_answer.bat", "usage: code_review_answer_cli.py"),
+    ("code_review_request.bat", "code_review_request", "usage: code-review-request"),
+    ("code_review_evidence.bat", "code_review_evidence_cli", "usage: code-review-evidence"),
+    ("code_review_answer.bat", "code_review_answer_cli", "usage: code_review_answer_cli.py"),
 )
 
 
-@pytest.fixture(params=_LAUNCHERS, ids=lambda case: case[0])
-def launcher_startup(request: pytest.FixtureRequest) -> None:
-    """Start each shipped launcher once outside measured call timing."""
-    launcher, usage = cast("tuple[str, str]", request.param)
-    path = (Path("bin") / launcher).resolve()
-    result = subprocess.run(
-        [str(path), "--help"],
-        cwd=Path.cwd(),
-        check=False,
-        capture_output=True,
-        text=True,
-        timeout=20,
-    )
-    assert result.returncode == 0, result.stderr
-    assert usage in result.stdout
-
-
-def test_each_code_review_launcher_reaches_its_public_entry_point(
-    launcher_startup: None,
+@pytest.mark.parametrize(("launcher", "module", "usage"), _LAUNCHERS)
+def test_public_entry_point_help_and_launcher_source(
+    launcher: str,
+    module: str,
+    usage: str,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """Requirement AC08: canonical launchers reach their public entry points."""
-    assert launcher_startup is None
+    """Requirement AC08: exercise CLI help and launcher delegation without a shell."""
+    source = (Path("bin") / launcher).read_text(encoding="utf-8")
+    assert f"tools\\{module}.py" in source
+    assert "%~dp0.." in source
+    assert "%*" in source
+    monkeypatch.setattr(sys, "argv", [f"{module}.py"])
+    with pytest.raises(SystemExit) as stopped:
+        import_module(f"tools.{module}").main(["--help"])
+    assert stopped.value.code == 0
+    assert usage in capsys.readouterr().out

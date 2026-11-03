@@ -1,1 +1,3 @@
 uv.lock filter=uv-lock-public
+bin/release_workflow.bat text eol=crlf
+bin/release_alias.bat text eol=crlf

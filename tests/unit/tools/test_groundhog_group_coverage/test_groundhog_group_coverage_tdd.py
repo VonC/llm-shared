@@ -2,10 +2,12 @@
 
 Fix (v0.13.0 full_suite_levels, Step 4): unusable evidence closes its
 database connection even when coverage fails during load.
+The missing-evidence case supplies resolved scope data directly; its refusal
+does not need to replay the separately tested group discovery and source scan.
 """
 
-import gc
 import os
+import sqlite3
 import warnings
 from pathlib import Path
 
@@ -14,6 +16,7 @@ from coverage import CoverageData
 
 from tests.unit.tools.groundhog_group_support import group_project
 from tools.groundhog import group_coverage, groups, snapshot
+from tools.scope_capture import ResolvedScope, ScopeKind
 
 
 @pytest.mark.parametrize(("sources", "expected"), [
@@ -45,11 +48,21 @@ def test_counts_unexecuted_sources(tmp_path: Path, *, executed: bool) -> None:
         assert "0%" in "\n".join(result.gap_rows)
 
 
+def _evidence_scope(root: Path, problem: str) -> ResolvedScope:
+    """Avoid unrelated project discovery only for the profiled missing-file case."""
+    if problem == "missing":
+        return ResolvedScope(
+            ScopeKind.GROUP, "sentinel", ("tests/sentinel/**",), ("src/sentinel/**",),
+            ("tests/sentinel/test_core.py",), ("src/sentinel/core.py",), "prepared-scope", {},
+        )
+    group_project(root)
+    return groups.resolve_group(root, "sentinel", snapshot.source_files(root))
+
+
 @pytest.mark.parametrize("problem", ["missing", "invalid", "stale", "directory"])
-def test_bad_evidence(tmp_path: Path, problem: str) -> None:
+def test_bad_evidence(tmp_path: Path, problem: str, monkeypatch: pytest.MonkeyPatch) -> None:
     """Invalid data names the evidence problem instead of inventing coverage."""
-    group_project(tmp_path)
-    scope = groups.resolve_group(tmp_path, "sentinel", snapshot.source_files(tmp_path))
+    scope = _evidence_scope(tmp_path, problem)
     path = group_coverage.data_file(tmp_path, scope.name)
     if problem == "directory":
         path.mkdir()
@@ -57,11 +70,24 @@ def test_bad_evidence(tmp_path: Path, problem: str) -> None:
         path.write_text("not coverage", encoding="utf-8")
         if problem == "stale":
             os.utime(path, (1, 1))
+    # Observe the operation's own connections, rather than collecting the whole
+    # test runner's object graph to find a delayed ResourceWarning.
+    opened: list[sqlite3.Connection] = []
+    connect = sqlite3.connect
+
+    def observed_connect(database: str, *, check_same_thread: bool) -> sqlite3.Connection:
+        connection = connect(database, check_same_thread=check_same_thread)
+        opened.append(connection)
+        return connection
+
+    monkeypatch.setattr(sqlite3, "connect", observed_connect)
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always", ResourceWarning)
         result = group_coverage.judge(tmp_path, scope, path, 2)
-        gc.collect()
-    assert not caught
+        for connection in opened:
+            with pytest.raises(sqlite3.ProgrammingError, match="closed"):
+                connection.execute("select 1")
+    assert not caught, [str(warning.message) for warning in caught]
     assert result.percent is None
     assert "coverage evidence" in result.error
     assert str(path) in result.error

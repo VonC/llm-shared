@@ -1,16 +1,13 @@
-"""Fast bounded Git plumbing for requestor orchestration acceptance."""
+"""Explicit repository observations for requestor orchestration acceptance."""
 
 from __future__ import annotations
 
-import subprocess
-
 import pytest
 
-from tests.unit.tools.git_test_double import GitTestDouble
+from tests.code_review_repository_observations import install_observations
 
 
 @pytest.fixture(autouse=True)
-def bounded_git_commands(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Keep lifecycle journeys in-process; focused evidence tests own real Git."""
-    double = GitTestDouble(subprocess.run)
-    monkeypatch.setattr(subprocess, "run", double.run)
+def repository_observations(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Keep production policy over declared inputs without process fallbacks."""
+    install_observations(monkeypatch)

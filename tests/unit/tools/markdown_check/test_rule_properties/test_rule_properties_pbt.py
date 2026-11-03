@@ -13,6 +13,7 @@ never the duplicate case it describes.
 
 from itertools import pairwise
 
+import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
@@ -20,19 +21,26 @@ from tools.markdown_check.rules import check_ls003, check_md001
 from tools.markdown_check.source import parse_markdown
 
 _LEVELS = st.lists(st.integers(min_value=1, max_value=6), min_size=1, max_size=30)
-_WORDS = st.text(
-    alphabet="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
+
+def _not_root(word: str) -> bool:
+    """Exclude the fixed document title without changing the ASCII domain."""
+    return word.casefold() != "root"
+
+
+_WORDS = st.lists(
+    st.sampled_from(tuple("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")),
     min_size=1,
     max_size=20,
     # The LS003 document below opens with a fixed "# Root" title, so a word
     # that normalizes to it makes three colliding titles and two findings
     # rather than the one duplicate the property is about.
-).filter(lambda word: word.casefold() != "root")
+).map("".join).filter(_not_root)
 
 
+@pytest.mark.parametrize("_batch", range(8))
 @given(_LEVELS)
-@settings(max_examples=40)
-def test_md001_matches_every_invalid_heading_increment(levels: list[int]) -> None:
+@settings(max_examples=5)
+def test_md001_matches_every_invalid_heading_increment(_batch: int, levels: list[int]) -> None:
     """A finding exists exactly when an ordered heading jumps by two or more."""
     markdown = "\n".join(
         f"{'#' * level} Heading {index}" for index, level in enumerate(levels)
@@ -42,9 +50,10 @@ def test_md001_matches_every_invalid_heading_increment(levels: list[int]) -> Non
     assert len(check_md001(parse_markdown("docs/headings.md", markdown))) == expected
 
 
+@pytest.mark.parametrize("_batch", range(50))
 @given(_WORDS)
-@settings(max_examples=100)
-def test_ls003_collides_case_and_inline_formatting_variants(word: str) -> None:
+@settings(max_examples=2)
+def test_ls003_collides_case_and_inline_formatting_variants(_batch: int, word: str) -> None:
     """Case, emphasis markers, and punctuation do not hide a repeated title."""
     markdown = f"# Root\n\n## {word}\n\n### *{word.upper()}*!\n"
 
