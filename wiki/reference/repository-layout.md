@@ -67,6 +67,7 @@ shared `review-requestor` wrapper. The exact host matrix is in the
 
 ```txt
 instructions/                one canonical markdown body per shared skill
+├─ copy-conversation.md      copy the running session, trimmed, to the clipboard
 ├─ list-session.md           list paused sessions across checkouts
 ├─ status-session.md         inspect the checkpoint or latest recorded work
 ├─ pause-session.md          save the latest private session checkpoint
@@ -93,7 +94,8 @@ session journal in `%USERPROFILE%\.llm-shared`. See
 ```txt
 bin/                         self-locating .bat launchers: prompt_workflow (pw),
                              ghog, gcba, gcmp, wac, oqm, covg, ghd, tth,
-                             new_draft, python_check, review_exchange, the
+                             copy_conversation, new_draft, python_check,
+                             review_exchange, the
                              family review renderers, update_llm_shared_plugin,
                              plus bundled venvs/
 tools/                       the Python behind the launchers:
@@ -106,6 +108,7 @@ tools/                       the Python behind the launchers:
 ├─ coverage_gap_functions*.py  covg
 ├─ wrap_commit*.py           wac
 ├─ trim_thinking*.py         tth: trim an exported conversation
+├─ copy_conversation*.py     copy-conversation: render a session transcript
 ├─ groundhog/                the ghog CLI: runner, gate, snapshot, durations
 ├─ git_history_dashboard/    the ghd builder
 ├─ git_history_diagrams/     deterministic prepare-release SVG histories
