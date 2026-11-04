@@ -12,9 +12,10 @@ paste into a report, an issue, or a document.
 ## Invocation model
 
 This is a human-run command. Export a session, run `tth`, paste the result.
-The AI may run it when explicitly asked to shorten a transcript it was handed,
-but no skill calls it as a hidden step, so direct invocation is the normal
-path.
+The AI may run it when explicitly asked to shorten a transcript it was handed.
+The one skill that uses the same trimmer is `copy-conversation`, which the user
+invokes in the session to copy; see
+[Copy the running session instead](#copy-the-running-session-instead).
 
 ## When to reach for the trimmer
 
@@ -61,6 +62,26 @@ From a shell with no Doskey aliases, call the self-locating launcher:
 ```text
 & "<LLM_SHARED_DIR>\bin\tth.bat" docs\session-export.md
 ```
+
+## Copy the running session instead
+
+`/export` wraps Claude prose near 80 columns, and no setting turns that off.
+To copy the session you are in, skip the export: invoke `copy-conversation` in
+that session (`/copy-conversation` in Claude Code,
+`$llm-shared:copy-conversation` in Codex). The agent reads its own transcript,
+renders it unwrapped, trims it with this same trimmer, and leaves this in the
+clipboard:
+
+```text
+<tab title>:
+
+<trimmed conversation>
+```
+
+The title is the tuitp tab holding the pane's tuios session, read from
+`%HOME%\bin\tuitp.list`, else the project folder name. Add a `YYYYMMDD` date
+as for `tth`, or `--title <text>` to name the block yourself. The request
+itself, the last turn, is left out of the copy.
 
 ## Force the export format
 

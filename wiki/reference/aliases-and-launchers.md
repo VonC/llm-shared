@@ -83,6 +83,7 @@ trims a file; the alias forwards every argument. See
 | `git_history_diagrams.bat` | `tools\git_history_diagrams\generate_git_history_diagrams.py` | generate or check the prepare-release SVG histories |
 | `mds.ps1` | `tools\serve_docs\serve_docs.py` | serve a markdown folder as a local website and open the browser (PowerShell so Ctrl-C stops it without cmd's terminate-batch question) |
 | `tth.bat` | `tools\trim_thinking_cli.py` | trim an exported conversation from a file or the clipboard, result to the clipboard |
+| `copy_conversation.bat` | `tools\copy_conversation.py` | render the running Claude or Codex session unwrapped, trim it as `tth` does, and put it under a `<tab title>:` line in the clipboard; the `copy-conversation` skill calls it |
 | `python_check.bat` | vulture, big-file check, `enforce_eof.py` | the check station of the walk |
 | `python_check_types.bat` | type checking | the typing gate |
 | `ghog_cycle.bat` | `bin\ghog.bat` | activate once for a sequence; default `day` alone, following level selection; stop at the first nonzero exit |
