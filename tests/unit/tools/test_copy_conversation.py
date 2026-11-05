@@ -135,49 +135,92 @@ def test_resolve_transcript_follows_the_session_variable(tmp_path: Path) -> None
 
 
 @pytest.mark.parametrize(
-    ("session", "expected"),
-    [("senv-claude", "senv"), ("DEMO-CLAUDE", "demo qal"), ("other", None)],
+    ("session", "folder", "expected"),
+    [
+        ("senv-claude", "senv", "senv"),
+        ("DEMO-CLAUDE", "git/demo", "demo qal"),
+        ("other", "unlisted", None),
+    ],
 )
 def test_tab_title_reads_the_tab_naming_the_session(
+    tmp_path: Path,
     session: str,
+    folder: str,
     expected: str | None,
 ) -> None:
-    """Comments are skipped, and a session matches without case."""
-    assert cli.tab_title(_TAB_LIST.splitlines(), session) == expected
+    """Comments are skipped and project variables expand from the given env."""
+    environ = {"USERPROFILE": str(tmp_path), "PRGS": str(tmp_path)}
+    assert cli.tab_title(_TAB_LIST.splitlines(), session, tmp_path / folder, environ) == expected
 
 
-def test_tab_title_ignores_session_lines_outside_a_tab() -> None:
+def test_tab_title_ignores_session_lines_outside_a_tab(tmp_path: Path) -> None:
     """A `+` line before any tab, or without a session field, names nothing."""
     assert (
-        cli.tab_title(["+ C:\\x|senv-claude", "=== t", "+ C:\\x"], "senv-claude")
+        cli.tab_title(
+            [f"+ {tmp_path}|senv-claude", "=== t", f"+ {tmp_path}"],
+            "senv-claude", tmp_path, {},
+        )
         is None
     )
 
 
-def test_resolve_title_falls_back_from_the_tab_to_the_project(tmp_path: Path) -> None:
-    """The tab title wins; then the tuitp project folder; then the directory."""
+@pytest.mark.parametrize("session", ["stale", "current", ""])
+def test_resolve_title_rejects_inherited_signals_for_another_project(
+    tmp_path: Path,
+    session: str,
+) -> None:
+    """A stale parent pane cannot title this checkout after another project."""
+    tab_list = tmp_path / "tuitp.list"
+    tab_list.write_text(
+        "=== unrelated\n+ %USERPROFILE%/git/stale|stale||old\n"
+        "=== llm-shared lifecycle-gate\n+ %userprofile%/git/current|current||gate\n",
+        encoding="utf-8",
+    )
+    environ = {
+        "TUIOS_SESSION": session,
+        "TUITP_PROJECT": str(tmp_path / "git/stale"),
+        "USERPROFILE": str(tmp_path),
+    }
+    assert (
+        cli.resolve_title(environ, tab_list, tmp_path / "git/current")
+        == "llm-shared lifecycle-gate"
+    )
+
+
+def test_resolve_title_uses_cwd_when_the_layout_cannot_identify_it(tmp_path: Path) -> None:
+    """Absent or unrelated layouts fall back to cwd, never a stale project."""
     tab_list = tmp_path / "tuitp.list"
     tab_list.write_text(_TAB_LIST, encoding="utf-8")
     cwd = tmp_path / "work"
+    environ = {"TUIOS_SESSION": "senv-claude", "TUITP_PROJECT": "C:\\git\\stale"}
 
-    assert cli.resolve_title({"TUIOS_SESSION": "senv-claude"}, tab_list, cwd) == "senv"
-    assert (
-        cli.resolve_title(
-            {"TUIOS_SESSION": "other", "TUITP_PROJECT": "C:\\git\\proj"},
-            tab_list,
-            cwd,
-        )
-        == "proj"
-    )
-    assert (
-        cli.resolve_title(
-            {"TUIOS_SESSION": "senv-claude"},
-            tmp_path / "absent.list",
-            cwd,
-        )
-        == "work"
-    )
-    assert cli.resolve_title({"TUIOS_SESSION": "senv-claude"}, None, cwd) == "work"
+    assert cli.resolve_title(environ, tab_list, cwd) == "work"
+    assert cli.resolve_title(environ, tmp_path / "absent.list", cwd) == "work"
+    assert cli.resolve_title(environ, None, cwd) == "work"
+
+
+def test_tab_title_prefers_the_deepest_project_and_uses_path_boundaries(tmp_path: Path) -> None:
+    """Nested checkouts beat parents; a shared string prefix is insufficient."""
+    lines = [
+        "=== parent", f"+ {tmp_path}|parent",
+        "=== nested", f"+ {tmp_path / 'child'}|nested",
+    ]
+    assert cli.tab_title(lines, "parent", tmp_path / "child/tests", {}) == "nested"
+    assert cli.tab_title(lines, "nested", tmp_path / "child-other", {}) == "parent"
+    assert cli.tab_title(["=== invalid", "+ relative|bad"], "bad", tmp_path, {}) is None
+
+
+@pytest.mark.parametrize(
+    ("session", "expected"), [("SECOND", "second"), ("unknown", None)],
+)
+def test_tab_title_uses_session_only_to_disambiguate_matching_projects(
+    tmp_path: Path,
+    session: str,
+    expected: str | None,
+) -> None:
+    """Multiple tabs of one checkout need a matching session, never list order."""
+    lines = ["=== first", f"+ {tmp_path}|first", "=== second", f"+ {tmp_path}|second"]
+    assert cli.tab_title(lines, session, tmp_path, {}) == expected
 
 
 def test_default_tab_list_lives_in_the_home_bin_folder() -> None:
@@ -314,7 +357,10 @@ def test_main_detects_codex_and_titles_the_copy_from_the_tab(
     ]
     rollout.write_text("\n".join(json.dumps(line) for line in lines), encoding="utf-8")
     (tmp_path / "bin").mkdir()
-    (tmp_path / "bin" / "tuitp.list").write_text(_TAB_LIST, encoding="utf-8")
+    (tmp_path / "bin" / "tuitp.list").write_text(
+        f"=== senv\n+ {tmp_path}|senv-claude|claude\n", encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
     for name, value in {
         "CODEX_THREAD_ID": "t1",
         "CODEX_HOME": str(tmp_path / "codex"),

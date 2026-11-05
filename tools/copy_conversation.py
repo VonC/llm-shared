@@ -16,8 +16,8 @@ optional extra one), and publishes it under a title line:
   replaces `~/.claude`), or `~/.codex/sessions/**/rollout-*-<thread id>.jsonl`
   (`CODEX_HOME` replaces `~/.codex`); `--transcript` names one directly.
 - Title: `--title`; otherwise the tab of a tuitp list (`%HOME%\\bin\\tuitp.list`
-  by default) whose `+` line names the `TUIOS_SESSION` of the pane; otherwise
-  the folder name of `TUITP_PROJECT` or of the current directory.
+  by default) whose project contains the current directory. `TUIOS_SESSION`
+  breaks ties only among matching projects; otherwise use the current folder.
 
 The clipboard is written through PowerShell from a UTF-8 temporary file, as
 `tth` does, because a redirected standard input would mangle the markers.
@@ -147,19 +147,8 @@ def resolve_transcript(
     return find_transcript(host, session_id, environ)
 
 
-def tab_title(list_lines: Iterable[str], session: str) -> str | None:
-    """Return the title of the tuitp tab holding one tuios session.
-
-    A tab opens on a `=== <title>` line; each `+ folder|session|kind|id` line
-    under it names one session. Lines starting with `#` are comments.
-
-    Args:
-        list_lines: Lines of the tuitp list.
-        session: The tuios session name, compared without case.
-
-    Returns:
-        The tab title, or None when no tab names the session.
-    """
+def _tab_projects(list_lines: Iterable[str]) -> Iterable[tuple[str, str, str]]:
+    """Yield tab title, project folder and session from uncommented entries."""
     title: str | None = None
     for line in list_lines:
         stripped = line.strip()
@@ -167,12 +156,69 @@ def tab_title(list_lines: Iterable[str], session: str) -> str | None:
             title = tab.group("title")
             continue
         entry = _SESSION_LINE_PATTERN.match(stripped)
-        if entry is None or title is None:
-            continue
-        fields = entry.group("fields").split("|")
-        if len(fields) > 1 and fields[1].strip().casefold() == session.casefold():
-            return title
-    return None
+        if entry is not None and title is not None:
+            fields = entry.group("fields").split("|")
+            if len(fields) > 1:
+                yield title, fields[0].strip(), fields[1].strip()
+
+
+def _project_directory(folder: str, environ: Mapping[str, str]) -> Path | None:
+    """Expand Windows environment references without accepting unknown ones."""
+    variables = {key.casefold(): value for key, value in environ.items()}
+    expanded = re.sub(
+        r"%([^%]+)%",
+        lambda match: variables.get(match[1].casefold(), match[0]),
+        folder,
+    )
+    project = Path(expanded)
+    if "%" in expanded or not project.is_absolute():
+        return None
+    return project.resolve()
+
+
+def _deepest_matches(
+    list_lines: Iterable[str],
+    cwd: Path,
+    environ: Mapping[str, str],
+) -> list[tuple[str, str]]:
+    """Return title and session of the deepest projects containing `cwd`."""
+    matches = [
+        (len(project.parts), title, name)
+        for title, folder, name in _tab_projects(list_lines)
+        if (project := _project_directory(folder, environ)) is not None
+        and cwd.is_relative_to(project)
+    ]
+    depth = max((parts for parts, _, _ in matches), default=-1)
+    return [(title, name) for parts, title, name in matches if parts == depth]
+
+
+def tab_title(
+    list_lines: Iterable[str],
+    session: str,
+    cwd: Path,
+    environ: Mapping[str, str],
+) -> str | None:
+    """Return the most specific tuitp tab containing the current directory.
+
+    A tab opens on a `=== <title>` line; each `+ folder|session|kind|id` line
+    under it names one session. Lines starting with `#` are comments.
+
+    Args:
+        list_lines: Lines of the tuitp list.
+        session: An optional tie breaker, compared without case.
+        cwd: The actual directory, authoritative over inherited pane variables.
+        environ: Environment values used to expand project folder references.
+
+    Returns:
+        A unique matching title, or None if absent or ambiguous.
+    """
+    candidates = _deepest_matches(list_lines, cwd.resolve(), environ)
+    folded = session.casefold()
+    session_titles = {
+        title for title, name in candidates if session and name.casefold() == folded
+    }
+    titles = session_titles or {title for title, _ in candidates}
+    return next(iter(titles)) if len(titles) == 1 else None
 
 
 def default_tab_list(environ: Mapping[str, str]) -> Path | None:
@@ -190,15 +236,14 @@ def resolve_title(environ: Mapping[str, str], tab_list: Path | None, cwd: Path) 
         cwd: The current directory, the last fallback.
 
     Returns:
-        The tab title of the pane's session, else a project folder name.
+        The tab title matching the current directory, else its folder name.
     """
-    session = environ.get("TUIOS_SESSION")
-    if session and tab_list is not None and tab_list.is_file():
+    session = environ.get("TUIOS_SESSION", "")
+    if tab_list is not None and tab_list.is_file():
         lines = tab_list.read_text(encoding="utf-8-sig", errors="replace").splitlines()
-        if (title := tab_title(lines, session)) is not None:
+        if (title := tab_title(lines, session, cwd, environ)) is not None:
             return title
-    project = environ.get("TUITP_PROJECT")
-    return Path(project).name if project else cwd.name
+    return cwd.name
 
 
 def parse_date(value: str) -> date:

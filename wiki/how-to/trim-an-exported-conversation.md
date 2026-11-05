@@ -78,10 +78,12 @@ clipboard:
 <trimmed conversation>
 ```
 
-The title is the tuitp tab holding the pane's tuios session, read from
-`%HOME%\bin\tuitp.list`, else the project folder name. Add a `YYYYMMDD` date
-as for `tth`, or `--title <text>` to name the block yourself. The request
-itself, the last turn, is left out of the copy.
+The title comes from `%HOME%\bin\tuitp.list`: the tab whose expanded project
+folder contains the current directory, choosing the deepest match. An inherited
+`TUIOS_SESSION` only breaks ties between matching projects; it cannot select a
+different checkout's title. If the layout has no unique match, the current
+folder name is used. Add a `YYYYMMDD` date as for `tth`, or `--title <text>` to
+name the block yourself. The request itself, the last turn, is left out of the copy.
 
 ## Force the export format
 

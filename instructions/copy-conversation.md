@@ -45,7 +45,7 @@ it to the conversation.
 | Rendering | Claude: prompts, text answers, closing and recap lines with the export markers, unwrapped. Codex: `## User` and `## Assistant` sections. Tool calls, tool output and reasoning are left out. Answers to the agent's questions are kept as user text |
 | Current turn | Cut when its prompt invokes `copy-conversation`, so the copy ends on the conversation before the request |
 | Trimming | `tth`'s own trimmer, with today's date and the optional `--date`: a prompt starting with one of them drops every line before it |
-| Title | `--title`; otherwise the tuitp tab whose `+` line names the pane's `TUIOS_SESSION`, read from `%HOME%\bin\tuitp.list`; otherwise the folder name of `TUITP_PROJECT` or of the current directory |
+| Title | `--title`; otherwise the tuitp tab whose expanded project folder contains the current directory, read from `%HOME%\bin\tuitp.list`; the deepest matching folder wins. `TUIOS_SESSION` breaks ties only among those matches. If no unique title matches, use the current directory's folder name; inherited `TUITP_PROJECT` cannot override it |
 | Output | The clipboard, written from a UTF-8 file so the markers survive, then one summary line on stdout |
 
 ## Report the result and stop
