@@ -140,8 +140,10 @@ groundhog sets it for the child to a quarter of the logical CPUs, at least 1
 and at most 2. Each worker's file and process churn also keeps the virus
 scanner busy at normal priority, so the bound stays low on a shared
 workstation. On Windows, every child that groundhog starts (`check.bat` or
-pytest) runs below normal priority, and its workers and `git` calls inherit
-that, so interactive applications keep the CPUs first.
+pytest) runs at normal priority, set explicitly, and its workers and `git`
+calls inherit it. Below normal priority starved the workers on a busy machine:
+they waited for a CPU inside their own tests, and the wall limit failed tests
+at random while the run took three times as long.
 
 ## 🚦 Exit codes
 
@@ -191,8 +193,7 @@ Groundhog never makes a run wait for a run of another checkout or project:
 there is no machine-wide slot, lock or queue, and each stage starts at once.
 A former per-user run slot let one slow suite block every other checkout for
 hours, inside their own time budgets, so it was removed. Each run bounds its
-own load instead, through the worker bound and the below-normal priority
-described above.
+own load instead, through the worker bound described above.
 
 A run that keeps the machine busy far beyond its suite's usual duration is a
 defect, not a queue to wait behind. Stop its process tree from the `pid` that

@@ -37,6 +37,10 @@ started below normal priority.
 Fix (merge of release-project-root): the streaming test keeps the sibling's
 in-memory ``Popen`` double, which the process audit requires, and now also
 expects the factory's below-normal ``creationflags``.
+
+Fix (2026-11-05): children start at an explicit normal priority instead of
+below normal, which starved the workers on a busy workstation and broke the
+wall limit at random; the priority test now expects ``NORMAL_PRIORITY_CLASS``.
 """
 
 from __future__ import annotations
@@ -318,10 +322,10 @@ def test_run_streaming_with_the_real_factory(tmp_path: Path, monkeypatch: pytest
     )
 
 
-def test_default_factory_starts_children_below_normal_priority(
+def test_default_factory_starts_children_at_normal_priority(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Every child, and so its workers, yields the CPUs to interactive work."""
+    """Every child, and so its workers, gets an explicit normal priority, never a caller's lower one."""
     seen: dict[str, object] = {}
 
     def popen(command: list[str], **kwargs: object) -> list[str]:
@@ -332,7 +336,7 @@ def test_default_factory_starts_children_below_normal_priority(
     runner.default_popen_factory(["pytest"], tmp_path)
     assert seen["creationflags"] == runner.CHILD_PRIORITY_FLAGS
     if sys.platform == "win32":
-        assert runner.CHILD_PRIORITY_FLAGS == runner.subprocess.BELOW_NORMAL_PRIORITY_CLASS
+        assert runner.CHILD_PRIORITY_FLAGS == runner.subprocess.NORMAL_PRIORITY_CLASS
 
 
 @pytest.mark.parametrize(("cpus", "workers"), [(None, 1), (1, 1), (4, 1), (8, 2), (14, 2), (64, 2)])
