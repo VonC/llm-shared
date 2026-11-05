@@ -47,6 +47,10 @@ test now fails closed (``verdicts.classify``). Its failure context is
 ``verdicts.MSG_UNPARSED_FAILURE`` plus the output tail, chosen by
 :func:`_failure_context`, and the uncovered affected and focus runs take their
 failing next step from the verdict too, not only from the parsed count.
+
+Fix: a group of a few hundred test files failed to spawn (``[WinError 206]``,
+exit 5). The child now spawns inside ``args_file.spilled``, which moves the
+selection tail of a command over budget into one ``@<file>`` argument, in order.
 """
 
 from __future__ import annotations
@@ -58,6 +62,7 @@ from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING
 
 from tools.groundhog import (
+    args_file,
     baseline,
     durations_report,
     durations_summary,
@@ -238,6 +243,7 @@ def _run_pytest(invocation: Invocation, deps: Deps, pytest_exe: str) -> _Judged:
         # refreshes only its own tests' records: a reset would drop every
         # other test and make the next out-of-group affected run select it.
         runner.reset_testmon(invocation.root)
+    cov_folders = group_coverage.cov_folders(invocation.scope.source_files)
     command = runner.pytest_command(
         pytest_exe,
         invocation.sub,
@@ -246,19 +252,21 @@ def _run_pytest(invocation: Invocation, deps: Deps, pytest_exe: str) -> _Judged:
         parallel=parallel,
         level=effective_level(invocation.level, invocation.sub),
         test_paths=invocation.scope.test_files,
-        cov_folders=group_coverage.cov_folders(invocation.scope.source_files),
+        cov_folders=cov_folders,
     )
     measure = None
     if grouped and verdicts.measures_coverage(invocation):
         measure = group_coverage.prepare(invocation.root, invocation.scope.name, fresh=invocation.sub == runner.SUB_FULL)
     sink = progress.Progress(invocation, deps)
-    config = runner.StreamConfig(
-        command=command,
-        cwd=invocation.root,
-        popen_factory=deps.popen_factory,
-        env_overrides=_child_environment(invocation, deps, measure, parallel=parallel),
-    )
-    result = runner.run_pytest(config, sink.update)
+    chosen = args_file.selection_arguments(invocation.scope.test_files, invocation.files, cov_folders)
+    with args_file.spilled(command, chosen, invocation.root) as spawned:
+        config = runner.StreamConfig(
+            command=spawned,
+            cwd=invocation.root,
+            popen_factory=deps.popen_factory,
+            env_overrides=_child_environment(invocation, deps, measure, parallel=parallel),
+        )
+        result = runner.run_pytest(config, sink.update)
     result, gate_value, evidence_error = _coverage_result(invocation, result, measure)
     # Judge outliers last (Q34): the base code gates the verdict, so a failure
     # or a gap keeps its own exit code and withholds the timing verdict.

@@ -56,6 +56,7 @@ _SCENARIOS = (
     "tests/unit/tools/test_prompt_workflow", "tests/unit/tools/test_scope_capture/",
     "tests/unit/tools/git_history_dashboard/",
     "tests/unit/tools/test_groundhog_acceptance_groups/",
+    "tests/unit/tools/test_groundhog_args_file/",
     "tests/unit/tools/test_groundhog_group_coverage/",
     "tests/unit/tools/test_full_suite_levels_acceptance/",
     "tests/acceptance/markdown_check/", "tests/unit/tools/serve_docs/",
