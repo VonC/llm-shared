@@ -67,8 +67,8 @@ alone do not count as explicit human choices. The
 
 | Template | Purpose |
 | --- | --- |
-| [question-explanation.template.md](../../templates/question-explanation.template.md) | One question's progress, behavior, example, analogy, options, recommendation, dependencies, and user choice |
-| [question-explanation-state.template.md](../../templates/question-explanation-state.template.md) | Private document and review identity, fixed starting position, ordered question IDs, pending decision, comments, and follow-up review phase |
+| [question-explanation.template.md](../../templates/question-explanation.template.md) | One question's context (umbrella and item, topic, phase, draft, document, batch position, review), progress, behavior, example, analogy, options, recommendation, dependencies, and user choice |
+| [question-explanation-state.template.md](../../templates/question-explanation-state.template.md) | Private document and review identity, saved question context, fixed starting position, ordered question IDs, pending decision, comments, and follow-up review phase |
 
 The state note lives in the configured artifact home as
 `a.question-explanation.<document-stem>.local.md`. Pause/resume snapshots link

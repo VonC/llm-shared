@@ -56,6 +56,27 @@ If appended questions or a reopened earlier question fall outside the captured
 batch, reconcile the batch scope before displaying progress. Never display a
 negative percentage or one above 100%, or silently reset `I` to hide the change.
 
+## Gather the context shown with every question
+
+Every explanation opens with where its question sits: umbrella, item, topic,
+phase, draft, document and review. Gather that context before the first
+explanation of a batch and again after every resume, then save it in the
+continuation note. Run, from the consuming project:
+
+```powershell
+& "<LLM_SHARED_DIR>\bin\prompt_workflow.bat" progress
+```
+
+When its `topic` line names the document's version and slug, copy its `topic`,
+`umbrella` and `phase` lines; `pw progress` calls an umbrella item a topic, as
+in `topic 2/8`. Otherwise read the topic's own draft,
+`draft.<version>.<slug>.md` in the document's effort directory: its
+`- Umbrella:` line names the umbrella draft, whose status table gives the
+item's position in table order, its key title and the completed rows. A topic
+outside any umbrella reads `none, standalone topic`. Add the document path and
+type, the batch range and the review identity. Write `not resolved` for a value
+neither source establishes; never guess it.
+
 ## Explain one question and record one decision
 
 For a new batch, save `I` as the first undecided question's **position** and
@@ -79,8 +100,10 @@ percentage. Skip already decided questions without changing `I` or renumbering.
 1. Select the first remaining undecided question from a fresh scan. Read its
    full block and dependencies, including any relevant earlier user comments.
 2. Explain it with [question-explanation.template.md](../templates/question-explanation.template.md):
-   concrete behavior, realistic example, options and tradeoffs, recommendation,
-   and effects on other questions. Keep it within the document's scope.
+   the saved context table first, with this question's position and the
+   current undecided count, then concrete behavior, realistic example, options
+   and tradeoffs, recommendation, and effects on other questions. Keep it
+   within the document's scope.
 3. Save `awaiting-user-decision`, the question ID, and whether the explanation
    was delivered. Ask for the user's choice or clarification and wait. Do not
    answer on their behalf or advance because they asked for more explanation.
@@ -151,7 +174,8 @@ another-review choices. All decisions plus review never auto-consolidate.
 
 [pause-session.md](pause-session.md) copies the phase, fixed `I` and endpoint,
 current/next IDs, decision status, follow-up authority, and exact next action
-into its snapshot, linking the continuation note. Resume rescans and reconciles:
+into its snapshot, linking the continuation note. Resume rescans, gathers the
+question context again, and reconciles:
 
 - `explaining`: explain the first still-undecided question using saved `I`.
 - `awaiting-user-decision`: restore the pending question; retain any delivered

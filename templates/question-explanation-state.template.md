@@ -4,6 +4,11 @@ Private requestor-owned note in the configured artifact home. This is not a
 review protocol artifact. Replace all placeholders; never save capabilities.
 
 - Document: {absolute path}
+- Document type: {feature-request / issue / design / plan}
+- Topic and phase: {version and slug; phase and position, such as `requirement (2/5)`}
+- Umbrella: {slug, item x/N: key title, completed/N items completed, umbrella draft path; or none, standalone topic}
+- Topic draft: {path, or not resolved}
+- Context source and refresh: {`pw progress` or drafts, with timestamp}
 - Last observed document SHA-256: {scanner digest}
 - Updated: {timestamp with timezone}
 - Review identity and role: {exact exchange, requestor, or no live exchange}

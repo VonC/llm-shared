@@ -1,4 +1,11 @@
-"""All hosts discover question discussion through one canonical instruction."""
+"""All hosts discover question discussion through one canonical instruction.
+
+Fix: every explained question now opens with its full context (umbrella and
+item position, topic, phase, draft, document, batch position and review), so
+the user knows what is being decided. The tests below pin that the template
+opens with that table, that the state note saves it, and that the instruction
+gathers it from ``pw progress`` with the drafts as fallback, never a guess.
+"""
 
 from __future__ import annotations
 
@@ -42,6 +49,35 @@ def test_command_redirect_matches_host_contract(folder: str) -> None:
     body = content.split("\n---\n", 1)[-1].strip()
     expected = existing.split("\n---\n", 1)[-1].strip()
     assert body == expected.replace("spec-review-requestor", SKILL)
+
+
+CONTEXT_ROWS = ("Umbrella", "Topic", "Phase", "Draft", "Document", "Questions", "Review")
+
+
+def test_every_explanation_opens_with_its_full_context() -> None:
+    """The context table comes before the progress line and names every field."""
+    template = (ROOT / "templates/question-explanation.template.md").read_text(encoding="utf-8")
+    context = template.index("## Where this question sits")
+    assert context < template.index("{question-id}/{last-question-id} {percentage}%")
+    section = template[context:].split("\n## ", 1)[0]
+    rows = [line.split("|")[1].strip() for line in section.splitlines() if line.startswith("| ")]
+    assert tuple(rows[2:]) == CONTEXT_ROWS
+    assert "item {x}/{N}" in template
+    assert "`none, standalone topic`" in template
+    assert "`not resolved`" in template
+
+
+def test_context_is_saved_and_gathered_without_guessing() -> None:
+    """The note keeps the context; the instruction reads pw progress, then the drafts."""
+    state = (ROOT / "templates/question-explanation-state.template.md").read_text(encoding="utf-8")
+    for field in ("- Document type:", "- Topic and phase:", "- Umbrella:", "- Topic draft:", "- Context source and refresh:"):
+        assert field in state
+    instruction = (ROOT / "instructions" / f"{SKILL}.md").read_text(encoding="utf-8")
+    section = instruction.split("## Gather the context shown with every question", 1)[1].split("\n## ", 1)[0]
+    assert "prompt_workflow.bat\" progress" in section
+    assert "`- Umbrella:`" in section
+    assert "never guess" in section
+    assert "gathers the\nquestion context again" in instruction
 
 
 # eof
