@@ -74,7 +74,7 @@ def test_context_is_saved_and_gathered_without_guessing() -> None:
         assert field in state
     instruction = (ROOT / "instructions" / f"{SKILL}.md").read_text(encoding="utf-8")
     section = instruction.split("## Gather the context shown with every question", 1)[1].split("\n## ", 1)[0]
-    assert "prompt_workflow.bat\" progress" in section
+    assert 'prompt_workflow.bat" progress' in section
     assert "`- Umbrella:`" in section
     assert "never guess" in section
     assert "gathers the\nquestion context again" in instruction
