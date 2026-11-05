@@ -19,23 +19,27 @@ optional extra one), and publishes it under a title line:
   by default) whose project contains the current directory. `TUIOS_SESSION`
   breaks ties only among matching projects; otherwise use the current folder.
 
-The clipboard is written through PowerShell from a UTF-8 temporary file, as
-`tth` does, because a redirected standard input would mangle the markers.
+On Windows the clipboard is set in-process as Unicode text through the Windows
+API: starting PowerShell for it cost about one second. Elsewhere it goes
+through PowerShell from a UTF-8 temporary file, as `tth` does, because a
+redirected standard input would mangle the markers.
 """
 
 from __future__ import annotations
 
 import argparse
 import contextlib
+import ctypes
 import os
 import re
 import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from datetime import date, datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, NoReturn
+from typing import TYPE_CHECKING, Any, NoReturn
 
 if __name__ == "__main__":
     with contextlib.suppress(Exception):
@@ -62,6 +66,11 @@ _RENDERERS: dict[str, Callable[[Iterable[str]], str]] = {
 _FORMATS = {CLAUDE: TranscriptFormat.CLAUDE, CODEX: TranscriptFormat.CODEX}
 _TAB_PATTERN = re.compile(r"^===\s+(?P<title>\S.*?)\s*$")
 _SESSION_LINE_PATTERN = re.compile(r"^\+\s*(?P<fields>.*)$")
+_CF_UNICODETEXT = 13
+_GMEM_MOVEABLE = 0x0002
+_OPEN_ATTEMPTS = 10
+_OPEN_RETRY_SECONDS = 0.02
+Win32Api = tuple[Any, Any]
 _CLIPBOARD_PREAMBLE = (
     "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; "
     "$PSModuleAutoloadingPreference = 'None'; "
@@ -264,6 +273,37 @@ def today() -> date:
     return date.today()  # noqa: DTZ011
 
 
+def trim_dates(option: str | None, positional: str | None) -> tuple[date, ...]:
+    """Return today's date plus the extra date given once, as option or bare word.
+
+    Raises:
+        CopyConversationError: When both forms name a date.
+    """
+    if option and positional:
+        msg = "Give the extra date once: YYYYMMDD or --date YYYYMMDD."
+        raise CopyConversationError(msg)
+    extra = option or positional
+    return (today(), parse_date(extra)) if extra else (today(),)
+
+
+def render_session(host: str, transcript: Path) -> str:
+    """Render the session transcript, refusing one with nothing before the request.
+
+    Raises:
+        CopyConversationError: When no turn precedes the copy request, as in a
+            new or cleared chat, whose transcript starts with that request.
+    """
+    lines = transcript.read_text(encoding="utf-8", errors="replace").splitlines()
+    rendered = _RENDERERS[host](lines)
+    if not rendered.strip():
+        msg = (
+            f"Nothing to copy: {transcript.name} holds no turn before this request "
+            "(a new or cleared chat starts a new transcript). Clipboard unchanged."
+        )
+        raise CopyConversationError(msg)
+    return rendered
+
+
 def build_copy(title: str, trimmed: str) -> str:
     """Put the title line and one empty line above the trimmed conversation."""
     return f"{title}:\n\n{trimmed}"
@@ -275,6 +315,72 @@ def powershell_executable() -> str:
 
 
 def set_clipboard_text(text: str) -> None:
+    """Set the clipboard text: the Windows API on Windows, else PowerShell."""
+    if os.name == "nt":
+        win32_clipboard(text)
+    else:
+        powershell_clipboard(text)
+
+
+def _win32_api() -> Win32Api:
+    """Load user32 and kernel32 with the handle-sized signatures the calls need."""
+    from ctypes import wintypes  # noqa: PLC0415 - Windows-only module
+
+    user32 = ctypes.WinDLL("user32", use_last_error=True)  # type: ignore[attr-defined]
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)  # type: ignore[attr-defined]
+    kernel32.GlobalAlloc.argtypes = (wintypes.UINT, ctypes.c_size_t)
+    kernel32.GlobalAlloc.restype = wintypes.HGLOBAL
+    kernel32.GlobalLock.argtypes = (wintypes.HGLOBAL,)
+    kernel32.GlobalLock.restype = wintypes.LPVOID
+    kernel32.GlobalUnlock.argtypes = (wintypes.HGLOBAL,)
+    kernel32.GlobalFree.argtypes = (wintypes.HGLOBAL,)
+    user32.OpenClipboard.argtypes = (wintypes.HWND,)
+    user32.SetClipboardData.argtypes = (wintypes.UINT, wintypes.HANDLE)
+    user32.SetClipboardData.restype = wintypes.HANDLE
+    return user32, kernel32
+
+
+def _open_clipboard(user32: Any) -> bool:  # noqa: ANN401 - a ctypes DLL
+    """Open the clipboard, retrying while another program briefly holds it."""
+    for _ in range(_OPEN_ATTEMPTS):
+        if user32.OpenClipboard(None):
+            return True
+        time.sleep(_OPEN_RETRY_SECONDS)
+    return False
+
+
+def win32_clipboard(text: str, api: Win32Api | None = None) -> None:
+    """Set the clipboard as Unicode text through the Windows API, in-process.
+
+    Starting PowerShell for the clipboard took about one second, more than
+    rendering and trimming; Unicode text keeps the markers intact.
+
+    Raises:
+        CopyConversationError: When the clipboard stays busy or refuses the text.
+    """
+    user32, kernel32 = api or _win32_api()
+    data = text.encode("utf-16-le") + b"\0\0"
+    if not _open_clipboard(user32):
+        msg = "Failed to reach the clipboard: another program keeps it open."
+        raise CopyConversationError(msg)
+    try:
+        user32.EmptyClipboard()
+        handle = kernel32.GlobalAlloc(_GMEM_MOVEABLE, len(data))
+        pointer = kernel32.GlobalLock(handle) if handle else None
+        if pointer:
+            ctypes.memmove(pointer, data, len(data))
+            kernel32.GlobalUnlock(handle)
+            if user32.SetClipboardData(_CF_UNICODETEXT, handle):
+                return
+        if handle:
+            kernel32.GlobalFree(handle)
+        msg = "Failed to reach the clipboard: Windows refused the text."
+        raise CopyConversationError(msg)
+    finally:
+        user32.CloseClipboard()
+
+
+def powershell_clipboard(text: str) -> None:
     """Set the clipboard text, handing it over as a UTF-8 temporary file.
 
     Raises:
@@ -325,6 +431,12 @@ def _get_arg_parser() -> argparse.ArgumentParser:
         help="Agent host; detected by default.",
     )
     parser.add_argument(
+        "day",
+        nargs="?",
+        metavar="YYYYMMDD",
+        help="The extra date as a bare word, after the host; same as --date.",
+    )
+    parser.add_argument(
         "--transcript",
         help="Transcript .jsonl to copy instead of the session's own.",
     )
@@ -355,9 +467,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     environ = os.environ
     host: str = args.host or detect_host(environ)
     transcript = resolve_transcript(host, args.transcript, environ)
-    dates = (today(), parse_date(args.date)) if args.date else (today(),)
-    lines = transcript.read_text(encoding="utf-8", errors="replace").splitlines()
-    result = trim_transcript(_RENDERERS[host](lines), _FORMATS[host], dates)
+    dates = trim_dates(args.date, args.day)
+    result = trim_transcript(render_session(host, transcript), _FORMATS[host], dates)
     tab_list = Path(args.tab_list) if args.tab_list else default_tab_list(environ)
     title: str = args.title or resolve_title(environ, tab_list, Path.cwd())
     copy = build_copy(title, result.text)

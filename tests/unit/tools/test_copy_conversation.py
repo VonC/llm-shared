@@ -1,11 +1,19 @@
 """Tests for the command line of `tools.copy_conversation`.
 
 Host detection, transcript lookup, the tab title, the clipboard boundary and
-the entry point. The clipboard is always replaced: no test starts PowerShell.
+the entry point. The clipboard is always replaced: no test starts PowerShell
+or touches the real clipboard.
+
+Fix: on Windows the clipboard is now set in-process through the Windows API,
+not by starting PowerShell (about one second); a bare `YYYYMMDD` after the
+host works as `--date`, since the Claude skill passes the user's words as
+typed; and a chat with no turn before the request reports `Nothing to copy`
+instead of the trimmer's `kept no line`.
 """
 
 from __future__ import annotations
 
+import ctypes
 import json
 import os
 import subprocess
@@ -19,7 +27,7 @@ from tests.script_entry import run_main
 from tools import copy_conversation as cli
 
 # pyright: reportPrivateUsage=false, reportUnusedFunction=false
-# ruff: noqa: RUF001, SLF001
+# ruff: noqa: RUF001, SLF001, N802
 
 _FATAL_EXIT_CODE = 2
 _HOST_VARIABLES = (
@@ -283,7 +291,7 @@ def test_set_clipboard_text_hands_over_a_utf8_file(
 
     monkeypatch.setattr(cli, "powershell_executable", lambda: "powershell")
     monkeypatch.setattr(cli.subprocess, "run", fake_run)
-    cli.set_clipboard_text("senv:\n\n❯ hello")
+    cli.powershell_clipboard("senv:\n\n❯ hello")
 
     assert seen[0].startswith("[Console]::OutputEncoding")
     assert seen[1] == "senv:\n\n❯ hello"
@@ -305,7 +313,129 @@ def test_set_clipboard_text_reports_a_powershell_failure(
         cli.CopyConversationError,
         match="Failed to reach the clipboard",
     ):
-        cli.set_clipboard_text("x")
+        cli.powershell_clipboard("x")
+
+
+@pytest.mark.parametrize(("os_name", "used"), [("nt", "win32"), ("posix", "powershell")])
+def test_set_clipboard_text_uses_the_windows_api_on_windows_only(
+    monkeypatch: pytest.MonkeyPatch,
+    os_name: str,
+    used: str,
+) -> None:
+    """Windows skips the one-second PowerShell start; other systems keep it."""
+    seen: list[tuple[str, str]] = []
+
+    def win32(text: str) -> None:
+        seen.append(("win32", text))
+
+    def powershell(text: str) -> None:
+        seen.append(("powershell", text))
+
+    monkeypatch.setattr(cli, "win32_clipboard", win32)
+    monkeypatch.setattr(cli, "powershell_clipboard", powershell)
+    monkeypatch.setattr(cli.os, "name", os_name)
+
+    cli.set_clipboard_text("x")
+
+    assert seen == [(used, "x")]
+
+
+class _FakeClipboardApi:
+    """Stand in for user32 and kernel32, writing into a real buffer."""
+
+    def __init__(self, *, opens: bool = True, allocates: bool = True, accepts: bool = True) -> None:
+        self.opens, self.allocates, self.accepts = opens, allocates, accepts
+        self.buffer = ctypes.create_string_buffer(64)
+        self.calls: list[tuple[object, ...]] = []
+
+    def OpenClipboard(self, owner: None) -> int:
+        self.calls.append(("open", owner))
+        return int(self.opens)
+
+    def EmptyClipboard(self) -> int:
+        self.calls.append(("empty",))
+        return 1
+
+    def GlobalAlloc(self, flags: int, size: int) -> int:
+        self.calls.append(("alloc", flags, size))
+        return 7 if self.allocates else 0
+
+    def GlobalLock(self, handle: int) -> int:
+        self.calls.append(("lock", handle))
+        return ctypes.addressof(self.buffer)
+
+    def GlobalUnlock(self, handle: int) -> int:
+        self.calls.append(("unlock", handle))
+        return 0
+
+    def SetClipboardData(self, data_format: int, handle: int) -> int:
+        self.calls.append(("set", data_format, handle))
+        return handle if self.accepts else 0
+
+    def GlobalFree(self, handle: int) -> int:
+        self.calls.append(("free", handle))
+        return 0
+
+    def CloseClipboard(self) -> int:
+        self.calls.append(("close",))
+        return 1
+
+
+def test_win32_clipboard_hands_over_null_terminated_utf16_text() -> None:
+    """The markers survive as Unicode text, and the clipboard is closed again."""
+    api = _FakeClipboardApi()
+
+    cli.win32_clipboard("❯ é", (api, api))
+
+    data = "❯ é".encode("utf-16-le") + b"\0\0"
+    assert api.buffer.raw[: len(data)] == data
+    assert api.calls == [
+        ("open", None), ("empty",), ("alloc", 2, len(data)), ("lock", 7), ("unlock", 7),
+        ("set", 13, 7), ("close",),
+    ]
+
+
+@pytest.mark.parametrize(
+    ("allocates", "accepts", "freed"), [(True, False, [("free", 7)]), (False, True, [])],
+)
+def test_win32_clipboard_frees_and_reports_a_refused_text(
+    allocates: bool,  # noqa: FBT001
+    accepts: bool,  # noqa: FBT001
+    freed: list[tuple[object, ...]],
+) -> None:
+    """Memory the clipboard did not take is freed; the clipboard still closes."""
+    api = _FakeClipboardApi(allocates=allocates, accepts=accepts)
+
+    with pytest.raises(cli.CopyConversationError, match="Windows refused the text"):
+        cli.win32_clipboard("x", (api, api))
+
+    assert [call for call in api.calls if call[0] == "free"] == freed
+    assert api.calls[-1] == ("close",)
+
+
+def _no_sleep(seconds: float) -> None:
+    del seconds
+
+
+def test_win32_clipboard_reports_a_clipboard_held_open(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Another program holding the clipboard ends the run after a few retries."""
+    api = _FakeClipboardApi(opens=False)
+    monkeypatch.setattr(cli.time, "sleep", _no_sleep)
+
+    with pytest.raises(cli.CopyConversationError, match="another program keeps it open"):
+        cli.win32_clipboard("x", (api, api))
+
+    assert api.calls == [("open", None)] * cli._OPEN_ATTEMPTS
+
+
+@pytest.mark.skipif(os.name != "nt", reason="user32 and kernel32 exist on Windows only")
+def test_win32_api_declares_handle_sized_results() -> None:
+    """64-bit handles and pointers are not truncated to a C int."""
+    user32, kernel32 = cli._win32_api()
+
+    assert kernel32.GlobalAlloc.restype is not None
+    assert kernel32.GlobalLock.restype is not None
+    assert user32.SetClipboardData.restype is not None
 
 
 def test_main_writes_the_trimmed_copy_without_the_clipboard(
@@ -377,6 +507,47 @@ def test_main_detects_codex_and_titles_the_copy_from_the_tab(
     assert capsys.readouterr().out.endswith(
         "under 'senv:'. Ready to paste from clipboard.\n",
     )
+
+
+@pytest.mark.parametrize(
+    ("option", "positional", "extra"),
+    [(None, None, None), ("20261103", None, date(2026, 11, 3)), (None, "20261102", date(2026, 11, 2))],
+)
+def test_trim_dates_takes_the_extra_date_as_option_or_bare_word(
+    monkeypatch: pytest.MonkeyPatch,
+    option: str | None,
+    positional: str | None,
+    extra: date | None,
+) -> None:
+    """The skill passes the user's words as typed, so a bare date counts too."""
+    monkeypatch.setattr(cli, "today", lambda: date(2026, 11, 5))
+    expected = (date(2026, 11, 5), extra) if extra else (date(2026, 11, 5),)
+    assert cli.trim_dates(option, positional) == expected
+    with pytest.raises(cli.CopyConversationError, match="Give the extra date once"):
+        cli.trim_dates("20261103", "20261102")
+
+
+def test_main_trims_from_a_bare_date_after_the_host(tmp_path: Path) -> None:
+    """`claude 20261103` drops the lines before the prompt stamped with that date."""
+    transcript = tmp_path / "s.jsonl"
+    entries = [
+        {"type": "user", "origin": {"kind": "human"}, "message": {"content": prompt}}
+        for prompt in ("before", "20261103 start")
+    ]
+    transcript.write_text("\n".join(json.dumps(entry) for entry in entries), encoding="utf-8")
+    output = tmp_path / "copy.txt"
+    argv = ["claude", "20261103", "--transcript", str(transcript), "--title", "t"]
+
+    assert cli.main([*argv, "--output", str(output), "--no-clipboard"]) == 0
+    assert output.read_text(encoding="utf-8") == "t:\n\n❯ 20261103 start"
+
+
+def test_main_refuses_a_chat_with_nothing_before_the_request(tmp_path: Path) -> None:
+    """A cleared chat's transcript holds only the request, which is cut: no copy."""
+    transcript = _claude_transcript(tmp_path / "new.jsonl", "/copy-conversation")
+
+    with pytest.raises(cli.CopyConversationError, match=r"Nothing to copy: new\.jsonl"):
+        cli.main(["claude", "--transcript", str(transcript), "--no-clipboard"])
 
 
 def test_log_fatal_and_script_main_exit_with_code_two(
