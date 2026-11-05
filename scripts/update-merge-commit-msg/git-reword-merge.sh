@@ -35,11 +35,22 @@ P1=$(git rev-parse "$TARGET_MERGE^1")
 P2=$(git rev-parse "$TARGET_MERGE^2")
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
+# commit-tree is plumbing and ignores commit.gpgsign, so a reword would drop
+# the signature of a signed merge: pass -S when the repository signs commits.
+SIGN_ARGS=()
+if [[ "$(git config --bool commit.gpgsign)" == "true" ]]; then
+    SIGN_ARGS=(-S)
+fi
+
 # Create the new merge commit object with original parents
-NEW_MERGE_SHA=$(git commit-tree "$TREE" -p "$P1" -p "$P2" -F "$MESSAGE_FILE")
+NEW_MERGE_SHA=$(git commit-tree "${SIGN_ARGS[@]}" "$TREE" -p "$P1" -p "$P2" -F "$MESSAGE_FILE")
 
 if [[ -z "$NEW_MERGE_SHA" ]]; then
-    echo "Error: Plumbing failed to create new commit object." >&2
+    if [[ ${#SIGN_ARGS[@]} -gt 0 ]]; then
+        echo "Error: Plumbing failed to create the signed commit object; check the signing key or agent." >&2
+    else
+        echo "Error: Plumbing failed to create new commit object." >&2
+    fi
     exit 1
 fi
 

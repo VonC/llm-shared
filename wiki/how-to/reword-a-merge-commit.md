@@ -44,7 +44,9 @@ review the exact mechanics before approving the automated step.
 5. Review the message, then say `Go ahead`. The skill runs
    `git-reword-merge.sh` (the `grmc` alias), which rebuilds the merge
    object with `git commit-tree <tree> -p P1 -p P2 -F a.commit`, moves the
-   branch ref, and empties `a.commit`.
+   branch ref, and empties `a.commit`. `commit-tree` ignores
+   `commit.gpgsign`, so the script adds `-S` when that setting is true: the
+   reworded merge stays signed like the one it replaces.
 
 6. Push with `gp` (or `git push`). Never push `develop` or `main` between
    the merge and the reword.
