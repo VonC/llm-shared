@@ -18,18 +18,22 @@ other argument instead of guessing.
 
 ## Run the launcher once
 
-Read [run_commands.md](../rules/run_commands.md) before shell work and resolve
-`<LLM_SHARED_DIR>` from this canonical file as that rule describes. Then run
-the launcher once, from PowerShell, in the current checkout:
+In Claude Code the skill runs the launcher itself while it loads and shows
+its result line: report that line and stop, with no command of your own.
+
+Otherwise run the launcher once, from PowerShell, in the current checkout.
+`<LLM_SHARED_DIR>` is the absolute parent of the `instructions` folder that
+holds this file; this one command needs no `run_commands.md` read and no
+`senv.bat` call:
 
 ```text
-& "<LLM_SHARED_DIR>\bin\copy_conversation.bat" <host> [--date YYYYMMDD] [--title "<text>"]
+& "<LLM_SHARED_DIR>\bin\copy_conversation.bat" <host> [YYYYMMDD] [--title "<text>"]
 ```
 
 | Argument | Value |
 | --- | --- |
 | `<host>` | `claude` when you run in Claude Code, `codex` when you run in OpenAI Codex; always your own host |
-| `--date` | the user's `YYYYMMDD` argument, if any |
+| `YYYYMMDD` | the user's date argument, if any, as typed; `--date YYYYMMDD` is the same |
 | `--title` | the user's title, if any; otherwise the command finds it |
 
 Any other host has no transcript reader yet: report that and stop. Do not
@@ -46,7 +50,7 @@ it to the conversation.
 | Current turn | Cut when its prompt invokes `copy-conversation`, so the copy ends on the conversation before the request |
 | Trimming | `tth`'s own trimmer, with today's date and the optional `--date`: a prompt starting with one of them drops every line before it |
 | Title | `--title`; otherwise the tuitp tab whose expanded project folder contains the current directory, read from `%HOME%\bin\tuitp.list`; the deepest matching folder wins. `TUIOS_SESSION` breaks ties only among those matches. If no unique title matches, use the current directory's folder name; inherited `TUITP_PROJECT` cannot override it |
-| Output | The clipboard, written from a UTF-8 file so the markers survive, then one summary line on stdout |
+| Output | The clipboard, set as Unicode text so the markers survive (on Windows through the Windows API, elsewhere through PowerShell from a UTF-8 file), then one summary line on stdout |
 
 ## Report the result and stop
 
@@ -60,5 +64,6 @@ transcript, another host or a copy assembled by hand.
 | --- | --- |
 | `... is not set` | The host did not export its session id to the shell; the transcript cannot be identified |
 | `No transcript found` | The host home holds no transcript for that id |
-| `kept no line` | The transcript holds no prompt the renderer recognizes |
+| `Nothing to copy` | No turn precedes the request: a new or cleared chat starts a new transcript |
+| `kept no line` | Trimming removed every rendered line |
 | `Failed to reach the clipboard` | PowerShell could not set the clipboard |

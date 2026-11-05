@@ -85,6 +85,11 @@ different checkout's title. If the layout has no unique match, the current
 folder name is used. Add a `YYYYMMDD` date as for `tth`, or `--title <text>` to
 name the block yourself. The request itself, the last turn, is left out of the copy.
 
+In Claude Code the skill runs the copy while it loads, so the agent only
+repeats the one result line, with no command of its own. A new or cleared chat
+has nothing before the request: the copy then fails with `Nothing to copy` and
+leaves the clipboard alone.
+
 ## Force the export format
 
 The format is detected from the markers in the text: the Claude prompt, answer,
