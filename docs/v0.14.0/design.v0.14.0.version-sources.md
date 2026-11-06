@@ -63,10 +63,10 @@ The v0.14.0 outcomes of item 2 are:
   readers: item 7.
 - llm-shared's own migration and the retirement of the dev_workflow version
   scripts: item 8.
-- npm and uv workspaces, Maven property forms beyond the Q15 exception,
-  per-component versions and form overrides, lower maintenance releases, and
-  the later format candidates (`Cargo.toml`, Gradle, .NET, Helm, Composer,
-  Dart, Mix, `__version__`).
+- npm and uv workspaces, Maven property forms beyond the requirement Q15
+  exception, per-component versions and form overrides (design Q14), lower
+  maintenance releases, and the later format candidates (`Cargo.toml`,
+  Gradle, .NET, Helm, Composer, Dart, Mix, `__version__`).
 - An automated recovery command for an interrupted standalone `set`; this
   version reports the retained evidence and stops.
 
@@ -75,7 +75,7 @@ The v0.14.0 outcomes of item 2 are:
 | Existing code or data | Observed behavior | Design implication |
 | --- | --- | --- |
 | `tools/release_workflow/cli.py` | `SHIPPED_HANDLERS` is an empty read-only mapping of `Handler(execute, requires_input)`. The parser accepts one `command` word plus root, input and text options and rejects any other argument | Handlers register in that source table; operation tokens such as `list` or `set 0.14.0` need a parser extension before dispatch |
-| `tools/release_workflow/results.py` | `render` returns only 0, 1 or 2; any other status is reported and returned as 1. The item 1 design applies the same normalization at the launcher boundary | Q12's distinct incomplete-restoration status needs a fourth public status in the renderer and launcher contract |
+| `tools/release_workflow/results.py` | `render` returns only 0, 1 or 2; any other status is reported and returned as 1. The item 1 design applies the same normalization at the launcher boundary | Requirement Q12's distinct incomplete-restoration status needs a fourth public status in the renderer and launcher contract |
 | `tools/release_workflow/schemas.py` | `SHIPPED_SCHEMAS = (TOOLING_SCHEMA,)`. A family `SectionSchema` claims every `[prefix<instance>]` with one rule set; rules carry `required`, `default` and `path_role="managed"`; `DomainSchema.validate` sees all sections; the registry requires the complete shipped tuple | The version domain is one more shipped schema with `source:` and `component:` families; rules that differ between a built-in override and a pattern source belong in its validator |
 | `tools/release_workflow/configuration.py` | Reads `.release.ini` once with interpolation off, rejects unknown sections and keys, validates every shipped domain even when a command does not use it, and creates nothing | AC12 follows from shipping the version schema; no separate validation pass is needed |
 | `tools/release_workflow/managed_files.py` | `authorize_write` rechecks containment; `replace_bytes` replaces one file atomically through a flushed same-parent temporary; no multi-file transaction exists | The version transition owns ordering, capture and restoration across files, on top of per-file atomic replacement |
@@ -87,7 +87,7 @@ The v0.14.0 outcomes of item 2 are:
 | Tags of the three consumers | llm-shared: 12 annotated `vX.Y.Z` tags, the latest ending with `[valid]`. my-project: 99 tags (85 annotated, 14 lightweight), one `vX.Y.Z-SNAPSHOT`, 65 annotations ending with `[valid]`. workspace-halo: `v0.0.20`, `0.0.21`, `0.0.22`, `v0.0.23`, `v0.0.24`, all annotated. No annotation holds a `Release tooling:` line. Each history is one ancestry chain with increasing versions and one tag per commit | `[valid]` already appears on legacy tags, so it cannot separate engine tags from historical ones; the trailer can. A strict ancestry rule rejects none of these histories |
 | Umbrella section "Recording the tooling version in the tag" | Engine annotations carry one `Release tooling: llm-shared <describe>` line after the `version.txt` content and before the `[valid]` line that `post` appends | Item 2 recognizes engine tags by that trailer; item 5 writes it |
 | workspace-halo `package.json`, `package-lock.json` | `version` 0.0.24, no `workspaces`; lock format 3 with top-level `version` and `packages[""].version`; the lock uses CRLF line endings | The npm adapter edits two lock fields; byte-span edits keep CRLF untouched |
-| my-project `pom.xml`, `PDF/pom.xml`, `cicd/config/.env` | Literal root `<version>`, one module `PDF` with a literal `<parent>` version; `${project.version}` appears only inside a plugin configuration value; plugin versions use properties; `.env` uses LF and defines `APP_SERVICE_VERSION=` on one line | The Q15 boundary covers my-project as it is; the umbrella's anchored pattern matches exactly one line |
+| my-project `pom.xml`, `PDF/pom.xml`, `cicd/config/.env` | Literal root `<version>`, one module `PDF` with a literal `<parent>` version; `${project.version}` appears only inside a plugin configuration value; plugin versions use properties; `.env` uses LF and defines `APP_SERVICE_VERSION=` on one line | The requirement Q15 boundary covers my-project as it is; the umbrella's anchored pattern matches exactly one line |
 | `tools/prepare_release/prepare_release_plan_git.py`, `instructions/prepare-release.md`, `instructions/prepare-release-notes.md` | Use `git describe --tags --abbrev=0`, an unfiltered last-tag query | The readers item 7 switches are both Python code and instruction-driven shell commands, so the selector needs a Python interface and a read-only command |
 
 These facts describe current code and data, not changes already made for this
@@ -204,7 +204,7 @@ a project that needs one declares a pattern source.
 | `python` (`pyproject.toml`, `uv.lock`) | `core` | `core` | Python versions cannot carry the Maven suffix (umbrella decision 6) |
 | `npm` (`package.json`, lock) | `release-only` | `release-only`, `core`, `snapshot` | The requirement allows `snapshot` for packaging that accepts it |
 | `maven` (reactor POMs) | `snapshot` | `snapshot` | A Maven build during a snapshot must not publish release coordinates |
-| pattern sources | none, declared | `snapshot`, `core`, `release-only` | Each declaration states its form (Q09) |
+| pattern sources | none, declared | `snapshot`, `core`, `release-only` | Each declaration states its form (requirement Q09) |
 
 A configured form outside the allowed set fails configuration validation
 before any command runs. The expected value of a source is the anchor token for
@@ -364,10 +364,12 @@ not a lock exists:
   specifier using `file:`, `link:` or `workspace:` that resolves into another
   participating root fails as an unsupported local link; one that resolves
   elsewhere is an external reference and stays unchanged.
-- `package-lock.json` pairs with the manifest in the same root. Lock formats 1,
-  2 and 3 are supported: the top-level `version` where present and, from
-  format 2, `packages[""].version`. Another format, or a lock whose
-  `packages[""]` names a different package, fails.
+- `package-lock.json` pairs with the manifest in the same root. Lock formats 2
+  and 3 are supported: the top-level `version` where present and
+  `packages[""].version`. A participating format 1 lock fails with status 2
+  before any write, with the remedy to regenerate it with npm 7 or later.
+  Another format, or a lock whose `packages[""]` names a different package,
+  fails. Compatibility evidence covers the supported formats 2 and 3.
 - `npm-shrinkwrap.json` takes precedence over `package-lock.json` in npm, so a
   participating root that has one fails as an unsupported lock rather than
   leaving it stale. Yarn and pnpm locks record no root version; they are not
@@ -530,9 +532,9 @@ its expected value.
 
 ### Completion boundary and cleanup failures
 
-This section describes the boundary proposed in Q17. Once verification
-succeeds, the transition atomically replaces the evidence manifest with one
-whose state is `complete`, flushed before anything else happens. For a
+Once verification succeeds, the transition atomically replaces the evidence
+manifest with one whose state is `complete`, flushed before anything else
+happens. For a
 standalone transition, that write is the completion boundary: the new versions
 are the result, and subsequent cleanup or lock-release failures do not trigger
 restoration. A lifecycle owner retains the explicit later restoration ability
@@ -620,7 +622,7 @@ regeneration exception has no user in this version; `set` never runs `uv` or
 are generated, never on tool runs during `set`.
 
 For each supported combination of tool version, lock schema (the uv
-`version`/`revision` pair, or the npm lock format) and root layout (a uv
+`version`/`revision` pair, or npm lock format 2 or 3) and root layout (a uv
 virtual or editable root, an npm root package), the evidence records:
 
 1. The real tool accepting the "before" manifest and lock pair in its locked
@@ -731,7 +733,7 @@ they already do for indexes and configuration.
 ### The release-version rule for items 5 and 7
 
 A second function exposes umbrella decision 33 without enforcing it in `set`
-(Q01). A target release version is rejected when any existing stable tag, in
+(requirement Q01). A target release version is rejected when any existing stable tag, in
 either spelling and whatever its eligibility, already names that version. It is
 also rejected unless it is higher, comparing numerically, than every eligible
 stable release reachable from `main`. With no eligible release, any well-formed
@@ -782,6 +784,7 @@ recovery rules.
 | Anchor `0.0.25-SNAPSHOT`, npm at `0.0.25` | npm expected and kept at `0.0.25`; Maven gets `0.0.25-SNAPSHOT` | AC7 |
 | `set 0.0.24` with npm `release-only` at `0.0.25` | Status 2 before any write, naming source, value and target; `check` reports drift | AC7 |
 | `set` on uv and npm locks | Only the owned version strings change; other bytes, including CRLF, identical; tool fixtures agree | AC8 |
+| Participating `package-lock.json` with `lockfileVersion` 1 | Status 2 before any write; remedy: regenerate the lock with npm 7 or later | AC4, AC8 |
 | Injected failure at the third of five writes | First two restored and verified; evidence deleted; status 1 | AC11 |
 | Injected failure while restoring | Status 3 naming each unrestored source and its retained copy | AC11 |
 | `set` to the version already in place, no drift | Lock taken and released, `unchanged`, no source written | AC11 |
@@ -810,962 +813,30 @@ recovery rules.
 | `uv.lock` with an unregistered `version` and `revision` pair | Status 2 naming the unsupported schema | AC8 |
 | Recorded evidence for a supported uv layout or npm lock format | The tool's locked mode accepts the before and edited pairs without changing either file | AC8 |
 
-## Open questions for the v0.14.0 version-sources design
-
-### Q01: Evidence that separates engine tags from historical tags
-
-Question description: umbrella decision 34 leaves the persistent tag
-eligibility mechanism to this design. The design reads it from the tag object:
-an annotated tag with a `Release tooling:` line is an engine tag, eligible only
-with a standalone `[valid]` line after that trailer; every other stable tag is
-historical and eligible. `[valid]` alone cannot decide, because legacy
-dev_workflow tags already end with it (65 of my-project's annotations, the
-latest llm-shared tag). The question is whether the umbrella's diagnostic
-tooling trailer should also carry eligibility, or whether another marker
-should.
-
-#### BBQ for Q01
-
-A wine shop sells old bottles bought from estates and new bottles from its own
-cellar. Its own bottles go on sale only once the cellar master signs the label.
-To tell them apart, the shop can look for its own cellar stamp, add a separate
-"house bottle" sticker, or keep a list in the back office that a branch shop
-never sees. In this picture: the estate bottles are historical tags, the house
-bottles are engine tags, the signature is `[valid]`, the cellar stamp is the
-`Release tooling:` trailer, the sticker is a dedicated marker line, and the
-back-office list is evidence outside the tag, such as Git notes or a local
-journal.
-
-#### Options for Q01
-
-- Option A: the `Release tooling:` trailer identifies an engine tag; a
-  standalone `[valid]` line after it validates the tag (current design).
-  - pro: uses exactly the annotation content the umbrella already specifies
-    for item 5; no new contract.
-  - pro: travels with the tag to every clone; none of the three consumers has
-    the trailer today, so no migration.
-  - con: a diagnostic line now also decides eligibility; a hand-written tag
-    copying the trailer becomes ineligible until it gets `[valid]`.
-- Option B: item 5 writes an additional dedicated line, such as
-  `Release-Engine: 1`, and only that line identifies engine tags.
-  - pro: separates provenance text from the eligibility contract, with room for
-    a format version.
-  - con: a second marker for item 5 to write and keep consistent, with no
-    present need for versioning.
-- Option C: record validity outside the annotation, in Git notes or a
-  dedicated ref namespace.
-  - pro: no change to the annotation text.
-  - con: notes and extra refs are not fetched by default, so another clone
-    would lose the evidence, which decision 34 forbids.
-
-#### Recommended option for Q01 (with arguments for this choice)
-
-Option A: the trailer is already a required part of every engine annotation
-and is placed before the point where `post` appends `[valid]`, so reading both
-from the tag needs no new writer obligation and works in any clone. The only
-failure mode is conservative: a tag that imitates the trailer is excluded until
-validated, never promoted. Matching uses whole lines at the umbrella's
-position (the trailer as the last nonempty line, or followed only by
-`[valid]`), never a substring found in the notes; a trailer line elsewhere
-makes the tag ambiguous. (Matching rule added after review round 1.)
-
-#### Answer to Q01: option A (with reason why it must be accepted as the answer)
-
-Option A: it meets decision 34 with evidence that every clone already
-receives, adds nothing for item 5 to write, and errs only toward excluding a
-tag.
-
-User decision: confirmed - Option A, as recommended: an annotated tag whose
-whole-line `Release tooling:` trailer sits at the umbrella's position is an
-engine tag, eligible only when a standalone `[valid]` line follows that
-trailer; other stable tags are historical and eligible; a misplaced or repeated
-trailer makes the tag ambiguous and never a baseline. Decided by the user on
-2026-11-05 during the explanation that followed the design review round 2
-convergence, with no further comment.
-
-### Q02: How strictly the ancestry rule treats conflicting histories
-
-Question description: the requirement asks for a documented deterministic
-ancestry rule and for conflicting tags to be reported rather than guessed. The
-design fails when the reachable eligible releases have several independent
-tips (merged parallel histories), or when the nearest release has a lower
-version than an older one. The question is whether those cases fail or
-resolve to a chosen baseline with a warning.
-
-#### BBQ for Q02
-
-A hiker follows trail markers back to the last shelter. If two trails merge and
-each has its own nearest shelter, or if the nearest shelter claims to be older
-than one further back, the hiker can stop and ask, or pick one and walk on. In
-this picture: the trail is the commit ancestry, the shelters are eligible
-release tags, the two merged trails are parallel tagged histories, the
-misnumbered shelter is a version inversion, and picking one is choosing a
-baseline with a warning.
-
-#### Options for Q02
-
-- Option A: fail on several independent tips and on a version inversion,
-  naming the tags (current design).
-  - pro: never guesses a range that changes a changelog or release notes.
-  - pro: the histories of llm-shared, my-project and workspace-halo are single
-    increasing chains, so nothing they do today fails.
-  - con: a project that merged a tagged side branch must clean up or wait for
-    the later maintenance-release policy.
-- Option B: choose the independent tip with the highest version and report the
-  others as warnings.
-  - pro: always produces a range.
-  - con: a merged maintenance release can silently drop from or duplicate in
-    the generated notes.
-- Option C: choose the tip with the latest commit date.
-  - pro: simple to explain.
-  - con: dates are not ancestry and can be rewritten; the result depends on
-    clocks, not on the graph.
-
-#### Recommended option for Q02 (with arguments for this choice)
-
-Option A: the selector feeds changelogs and release notes, where a wrong
-baseline is a silent content error. Releases only happen on `main`, by
-umbrella decision 23, and lower maintenance releases need a later policy, by
-decision 33. So the failing shapes come only from legacy history, which
-deserves a report.
-
-#### Answer to Q02: option A (with reason why it must be accepted as the answer)
-
-Option A: it reports every case the rule cannot decide, costs nothing for the
-known consumers, and leaves maintenance branches to their own later policy.
-
-User decision: confirmed - Option A, as recommended: the selection fails with
-status 2, naming the tags, when the reachable eligible releases have several
-independent tips or when the nearest release has a lower version than an older
-candidate; no baseline is chosen by highest version or by date. Decided by the
-user on 2026-11-05 during the explanation that followed the design review
-round 2 convergence, with no further comment.
-
-### Q03: How instruction-driven readers reach the range selector
-
-Question description: today `prepare-release` and `prepare-release-notes`
-instructions, and `tools/prepare_release/prepare_release_plan_git.py`, run
-`git describe --tags --abbrev=0`. Python callers can import the selector, but
-an agent following an instruction needs a command. The design adds a read-only
-`versions range [<tag>]` operation printing `target`, `baseline`, `range` and
-`commits`. The question is where that command lives.
-
-#### BBQ for Q03
-
-A library adds a new catalogue. Staff can query it from their desks, but
-visitors need a public terminal. The terminal can sit at the version-sources
-desk, get its own kiosk, or wait until the reading room is renovated. In this
-picture: the catalogue is the range selector, the staff desks are in-process
-callers (items 4, 5 and 7), the visitors are instruction-driven readers, the
-version-sources desk is the `versions` command, the kiosk is a separate
-top-level command, and the renovation is item 7's adoption.
-
-#### Options for Q03
-
-- Option A: a `versions range [<tag>]` operation of the existing `versions`
-  handler (current design).
-  - pro: one handler and one help surface for version and tag questions.
-  - pro: item 7 can switch instructions to a command that already exists.
-  - con: `versions` grows beyond the four operations the requirement lists.
-- Option B: a separate top-level `range` command.
-  - pro: keeps `versions` limited to source synchronization.
-  - con: another handler and argument contract for one read.
-- Option C: Python interface only; item 7 adds whatever command it needs.
-  - pro: the smallest item 2 surface.
-  - con: item 7 would design a second entry around the same rule, and the
-    unfiltered `describe` query stays in instructions longer.
-
-#### Recommended option for Q03 (with arguments for this choice)
-
-Option A: the requirement makes this item expose the selector to release-notes
-and release-plan callers, and some of those callers are instructions. A read
-operation under `versions` reuses the handler, its argument validation and its
-output contract.
-
-#### Answer to Q03: option A (with reason why it must be accepted as the answer)
-
-Option A: it gives every reader, Python or instruction, the same rule now, at
-the cost of one more read-only operation on an existing handler.
-
-User decision: confirmed - Option A, as recommended: the read-only
-`versions range [<stable tag>]` operation of the `versions` handler prints the
-`target`, `baseline`, `range` and `commits` lines from the shared selector;
-item 7 switches the instruction-driven readers to it. Decided by the user on
-2026-11-05 during the explanation that followed the design review round 2
-convergence, with no further comment.
-
-### Q04: The public status for an incomplete restoration
-
-Question description: Q12 of the requirement asks that a restoration that
-cannot complete fails with a status distinct from an ordinary failure. Item 1's
-renderer and launchers expose only 0, 1 and 2 and turn any other status into 1.
-The design adds a public status 3. The question is whether to extend the
-foundation's status contract or to signal the case another way.
-
-#### BBQ for Q04
-
-A fire panel has three lights: normal, fault and wrong input. A fourth
-situation, "the sprinklers ran and some rooms are still wet", can get its own
-red light, or share the fault light with a printed note underneath. In this
-picture: the panel is item 1's public status contract, the lights are statuses
-0, 1 and 2, the wet rooms are sources left unrestored, the red light is status
-3, and the printed note is a stable diagnostic line on stderr.
-
-#### Options for Q04
-
-- Option A: add public status 3 in the renderer and launchers (current design).
-  - pro: a build adapter or item 5 can branch on the exit code alone.
-  - pro: matches the requirement's wording of a distinct status.
-  - con: changes item 1's documented contract and its tests; every caller must
-    treat 3 as a recovery stop.
-- Option B: keep status 1 and print a stable `Restoration incomplete:` line
-  on stderr.
-  - pro: no foundation change.
-  - con: does not meet the requirement's distinct public status; callers must
-    parse stderr, and batch scripts usually check only the exit code.
-- Option C: status 3 only in the in-process interface; the CLI returns 1 with
-  the diagnostic.
-  - pro: item 5 gets the distinction without changing the launchers.
-  - con: does not meet the requirement for the command itself; a person or
-    script running it cannot tell the two failures apart by status.
-
-#### Recommended option for Q04 (with arguments for this choice)
-
-Option A: it is the only option that gives both the command and in-process
-callers the distinct status the requirement asks for. The case is the one where
-a user must act before anything else runs, and an exit code is the signal every
-caller reads. The foundation change is local to the renderer and the launcher
-boundary, and its contract and tests are updated explicitly. (B and C labeled
-as not meeting the requirement after review round 1.)
-
-#### Answer to Q04: option A (with reason why it must be accepted as the answer)
-
-Option A: it satisfies the requirement literally and gives every caller a
-signal it cannot miss.
-
-User decision: confirmed - Option A, as recommended: item 1's renderer and
-launcher boundary accept public status 3 for an incomplete restoration, for
-both the command and in-process callers; other unknown statuses still become
-1, and item 1's contract and tests change explicitly. Decided by the user on
-2026-11-05 during the explanation that followed the design review round 2
-convergence, with no further comment.
-
-### Q05: When `set` takes the lock relative to its validation
-
-Question description: requirement Q11 makes a standalone `set` hold the
-operation lock from capture to restoration. Taking the lock needs a prepared
-artifact home. The design plans once without the lock, so an invalid target or
-an unsupported arrangement fails without creating the home or a lock record,
-then plans again under the lock, and takes the lock even when the first plan
-is empty. The question is whether to keep that double plan.
-
-#### BBQ for Q05
-
-A locksmith can check your paperwork at the counter before opening the
-workshop, then check the door again inside; or open the workshop first and
-check everything there once. Checking only at the counter and skipping the
-inside check saves time but misses a door someone else just changed. In this
-picture: the counter check is the plan without the lock, opening the workshop
-is preparing the artifact home and taking the lock, the inside check is the
-plan under the lock, and the changed door is a source edited by another
-transition.
-
-#### Options for Q05
-
-- Option A: plan without side effects, then lock and plan again; always lock
-  for `set`, even when the first plan is empty (current design).
-  - pro: a well-formed target that fails source validation, such as an
-    unsupported workspace or a release-only refusal, leaves no artifact home
-    or lock record.
-  - pro: the authoritative plan sees the files as they are once the lock is
-    held, and a clean result is never reported during another transition.
-  - con: reads every source in one more phase.
-- Option B: lock first, then plan once.
-  - pro: one plan phase fewer.
-  - con: a well-formed target that fails source validation prepares the
-    artifact home and writes a lock record before failing. A malformed target
-    is rejected by the argument validator under either option.
-- Option C: as option A, but return `unchanged` without the lock when the first
-  plan is empty.
-  - pro: no bookkeeping for the common Step 12 re-run.
-  - con: can report a clean state while another `set` is half-way through.
-
-#### Recommended option for Q05 (with arguments for this choice)
-
-Option A: source validation failures, the most likely rejections of a valid
-command line, leave the project untouched, and the extra plan costs little
-against the files involved. The authoritative capture and plan still happen
-under the lock, as requirement Q11 asks, and always locking keeps the meaning
-of a clean `set` exact. (Comparison with B corrected after review round 1.)
-
-#### Answer to Q05: option A (with reason why it must be accepted as the answer)
-
-Option A: it keeps source-validation failures artifact-free and makes every
-`set` result reflect a state no other transition is changing.
-
-User decision: confirmed - Option A, as recommended: `set` first plans without
-a lock or artifact, then always prepares the artifact home and takes the lock,
-even after an empty first plan, checks for transition evidence and plans again;
-only the plan under the lock is authoritative. Decided by the user on
-2026-11-05 during the explanation that followed the design review round 2
-convergence, with no further comment.
-
-### Q06: What happens after a `set` process is killed mid-transition
-
-Question description: a killed process leaves its lock record and its recovery
-evidence directory. Item 1's lock recovers a proven dead owner, but the
-sources may be half-written. The design stops the next `set` with status 2,
-naming the evidence, and leaves restoration to a person; read commands warn.
-The question is whether this item should restore automatically or provide a
-recovery command.
-
-#### BBQ for Q06
-
-A power cut stops a painter half-way through relabeling the shelves, with the
-old labels kept in a box. The next painter can refuse to start until someone
-sorts the box, put the old labels back automatically, or follow a printed
-procedure for sorting it. In this picture: the power cut is a killed process,
-the box of old labels is the recovery evidence, refusing to start is the status
-2 stop, putting labels back automatically is an automatic restore, and the
-printed procedure is a `versions recover` command.
-
-#### Options for Q06
-
-- Option A: stop the next `set` until a person handles the evidence; read
-  commands warn (current design).
-  - pro: nothing guesses which state the user wants after an interruption.
-  - pro: no new command or automatic write in this item.
-  - con: the user restores or deletes the evidence by hand.
-- Option B: the next `set` restores the evidence automatically when every
-  written file still matches what the dead transition wrote, then continues.
-  - pro: the common case recovers without a person.
-  - con: decides for the user that the old state is wanted, and adds a write
-    path that runs at the start of an unrelated transition.
-- Option C: add a `versions recover` operation that restores the evidence
-  after the same checks, and point the stop diagnostic at it.
-  - pro: an explicit, repeatable recovery with the same verification.
-  - con: one more mutating operation to design and test now, while item 5 will
-    design lifecycle recovery for the same evidence.
-
-#### Recommended option for Q06 (with arguments for this choice)
-
-Option A: an interrupted standalone `set` is rare, the evidence keeps every
-original byte, and item 5 designs lifecycle recovery next. Stopping with a
-precise diagnostic is safe now and leaves room for one shared recovery command
-later.
-
-#### Answer to Q06: option A (with reason why it must be accepted as the answer)
-
-Option A: it never loses or overwrites the user's files after an interruption
-and avoids designing recovery twice.
-
-User decision: confirmed - Option A, as recommended: interrupted or unreadable
-transition evidence stops the next `set` with status 2, naming the evidence
-directory, and read commands warn; a person restores or removes it by hand; no
-automatic restore and no recovery command in this item. Decided by the user on
-2026-11-05 during the explanation that followed the design review round 2
-convergence, with no further comment.
-
-### Q07: Who keeps the recovery evidence when item 5 calls the primitive
-
-Question description: requirement Q12 leaves to this design how recovery
-evidence interacts with item 5's encompassing transaction. Item 5 must capture
-managed-file bytes before its first write and may need to undo the version
-change after later steps fail. The design lets item 5 pass its held lock,
-checked against the current project, and its transaction identity; the
-primitive writes its evidence in this project's artifact home under that
-owner, keeps it after success and returns a handle that restores the sources
-later. The question is how the two transactions share that evidence.
-
-#### BBQ for Q07
-
-A contractor renovating a kitchen hires a plumber. The plumber photographs the
-old pipes before starting. The plumber can file the photos on the site's
-shelf under the contractor's job number, throw them away when done, or take
-none because the contractor already photographed everything. In this picture:
-the contractor is item 5's release transaction, the plumber is the version
-primitive, the photos are recovery evidence, the site's shelf is this
-project's artifact home, and the job number is item 5's transaction identity.
-
-#### Options for Q07
-
-- Option A: item 5 supplies its held lock and transaction identity; the
-  primitive writes evidence in this project's artifact home owned by that
-  identity, keeps it on success and returns a restore handle (current design).
-  - pro: one capture serves both the primitive's own restoration and item 5's
-    later rollback.
-  - pro: one restoration routine for both cases.
-  - con: item 5 must manage that evidence's lifetime.
-- Option B: the primitive always deletes its evidence on success; item 5
-  captures the same files separately before calling it.
-  - pro: no lifetime shared across items.
-  - con: two captures of the same files and two restoration routines that can
-    diverge.
-- Option C: when item 5 calls it, the primitive writes no evidence and relies on
-  item 5's record.
-  - pro: one capture.
-  - con: the primitive's own restoration would depend on a record it does not
-    own, and the standalone and lifecycle paths would behave differently.
-
-#### Recommended option for Q07 (with arguments for this choice)
-
-Option A: item 5 needs exactly the evidence this primitive already produces,
-and sharing it avoids a second capture and a second restoration routine. Item 5
-keeps control of retention, as the requirement leaves it. Binding the lock and
-the evidence to the current project's artifact home, and recording the owner in
-the evidence, keeps an abandoned transaction from passing as the current one.
-(Project binding and evidence ownership added after review round 1.)
-
-#### Answer to Q07: option A (with reason why it must be accepted as the answer)
-
-Option A: it gives both transactions one source of truth for the original
-bytes, with retention decided by the caller that owns the release.
-
-User decision: confirmed - Option A, as recommended: item 5 supplies its held
-lock, checked against this process and project, and its transaction identity;
-the primitive writes evidence owned by that identity in this project's
-artifact home, keeps it on success, returns a restore handle, and never
-removes lifecycle-owned evidence; item 5 deletes it when its transaction ends.
-Decided by the user on 2026-11-05 during the explanation that followed the
-design review round 2 convergence, with no further comment.
-
-### Q08: How adapters locate and rewrite owned values
-
-Question description: the release dependency group is empty, so the engine
-runs on the standard library. `tomllib` reads TOML but cannot write it; `json`
-and `xml.etree` lose formatting. The design parses each file with the standard
-library for meaning, locates the owned values as byte spans with small
-format-aware scanners (and `expat` byte offsets for XML), checks that the span
-holds the parsed value, and replaces only those bytes. The question is whether
-to keep that approach or add format-preserving libraries.
-
-#### BBQ for Q08
-
-To correct one number on a printed form, you can use correction tape on that
-number only, retype the whole form in a new program, or search the page for
-anything that looks like the old number. In this picture: the printed form is
-a manifest or lock file, the number is the version field, correction tape is a
-byte-span replacement checked against a parser, retyping is a
-format-preserving library that rewrites the file, and searching the page is a
-plain regular expression per format.
-
-#### Options for Q08
-
-- Option A: standard-library parsing plus byte-span replacement, cross-checked
-  against the parsed value (current design).
-  - pro: no release dependency; readiness and setup stay unchanged.
-  - pro: every byte outside the owned spans is unchanged by construction,
-    including line endings.
-  - con: rare spellings (dotted TOML keys, inline tables, comments inside an
-    XML element) fail as unsupported instead of being handled.
-- Option B: add format-preserving libraries such as `tomlkit` to the `release`
-  group.
-  - pro: handles more TOML spellings.
-  - con: a new dependency in every consumer's release runtime and readiness
-    closure; round-trip fidelity is still the library's promise, not a byte
-    guarantee; no equivalent exists in the standard library for XML.
-- Option C: one regular expression per format, without parsing.
-  - pro: the smallest code.
-  - con: cannot tell the root `version` from a dependency's `version`, the very
-    defect the requirement lists for `t_build_npm.bat`.
-
-#### Recommended option for Q08 (with arguments for this choice)
-
-Option A: it gives the byte-for-byte guarantee the acceptance criteria ask for
-without changing the release runtime, and every unsupported spelling fails
-before any write with a remedy.
-
-#### Answer to Q08: option A (with reason why it must be accepted as the answer)
-
-Option A: the parser decides meaning, the span decides bytes, and no
-dependency is added to any consumer.
-
-User decision: confirmed - Option A, as recommended: each format is parsed with
-the standard library for meaning, a format-aware scanner (with `expat` byte
-offsets for XML) locates the owned field's byte span, the span must equal the
-parsed value, and only those bytes change; unsupported spellings fail before
-any write with a remedy; no release dependency is added. Decided by the user on
-2026-11-05 during the explanation that followed the design review round 2
-convergence, with no further comment.
-
-### Q09: How pattern sources match files with CRLF line endings
-
-Question description: pattern sources compile with `re.MULTILINE`. On a file
-with CRLF line endings, a pattern such as the umbrella's
-`^APP_SERVICE_VERSION=(.+)$` captures the carriage return, because `.` matches
-it and `$` stops before LF. The design matches against the decoded text with
-each CRLF presented as LF and maps the capture span back to the original
-bytes. The question is whether to keep that or make users write CRLF-aware
-patterns.
-
-#### BBQ for Q09
-
-A clerk copies a reference number from a typed card; some typewriters leave an
-invisible mark after every line. The clerk can ignore the mark while reading,
-ask every form author to describe the mark in their instructions, or refuse
-cards from those typewriters. In this picture: the clerk is the pattern
-matcher, the invisible mark is the carriage return, ignoring it while reading
-is presenting CRLF as LF, the form author's instructions are the declared
-pattern, and refusing cards is rejecting CRLF files.
-
-#### Options for Q09
-
-- Option A: match on a view where CRLF reads as LF and map spans back (current
-  design).
-  - pro: the umbrella's example pattern works on both line endings.
-  - pro: the file keeps its CRLF bytes.
-  - con: a pattern that deliberately matches `\r` behaves differently.
-- Option B: match the raw text; a capture containing `\r` is not a valid
-  version and fails with a hint to use `([^\r\n]+)`.
-  - pro: no transformation of the text.
-  - con: patterns copied from the umbrella fail on Windows files.
-- Option C: reject pattern files with CRLF line endings.
-  - pro: simple.
-  - con: Windows repositories commonly keep CRLF files.
-
-#### Recommended option for Q09 (with arguments for this choice)
-
-Option A: pattern sources mostly serve Windows projects, and the common
-`(.+)$` shape should work there; the remapping is local to pattern matching and
-leaves the file's bytes untouched.
-
-#### Answer to Q09: option A (with reason why it must be accepted as the answer)
-
-Option A: one pattern works on either line ending, and nothing is written but
-the captured version.
-
-User decision: confirmed - Option A, as recommended: pattern sources match a
-view of the decoded text in which each CRLF reads as LF, the capture span is
-mapped back to the original bytes, and only the captured version is replaced,
-so the file keeps its line endings. Decided by the user on 2026-11-05 during
-the explanation that followed the design review round 2 convergence, with no
-further comment.
-
-### Q10: Which forms each built-in adapter allows
-
-Question description: the requirement fixes the default forms and says an
-unsupported form and format combination fails before any write, but leaves the
-combinations to design. The design allows only `core` for Python, all three
-forms for npm, only `snapshot` for Maven, and any form for a pattern source.
-The question is whether Maven should also accept `core` or `release-only`.
-
-#### BBQ for Q10
-
-A bakery labels loaves either "tomorrow's batch" or with the final price. Some
-shelves can show the batch label, some cannot, and one shelf could show either
-if the manager allows it. In this picture: the batch label is the `-SNAPSHOT`
-form, the final price is the release core, the shelves are the adapters, the
-Python shelf cannot show batch labels, and the manager's permission is a
-configured form override.
-
-#### Options for Q10
-
-- Option A: Python `core` only, npm all three, Maven `snapshot` only, pattern
-  sources any form (current design).
-  - pro: a Maven snapshot build can never publish release coordinates.
-  - pro: matches every default and the requirement's explicit npm exception.
-  - con: a Maven project that never deploys snapshots cannot drop the suffix.
-- Option B: as option A, but Maven also accepts `core`.
-  - pro: flexibility for Maven projects that only build releases.
-  - con: a snapshot build would produce artifacts named like the release.
-- Option C: every adapter except Python accepts every form.
-  - pro: uniform configuration.
-  - con: opens the release-coordinate risk for Maven with no consumer asking.
-
-#### Recommended option for Q10 (with arguments for this choice)
-
-Option A: each restriction reflects a format rule or a publication risk, and
-none blocks a known consumer; a Maven need for `core` can be added later with
-its own justification.
-
-#### Answer to Q10: option A (with reason why it must be accepted as the answer)
-
-Option A: it keeps every allowed combination safe to publish and matches the
-requirement's defaults and its single npm exception.
-
-User decision: confirmed - Option A, as recommended: Python allows only `core`;
-npm allows `release-only`, `core` and `snapshot`; Maven allows only `snapshot`;
-a pattern source takes its declared form; any other configured form fails
-configuration validation before a command runs. Decided by the user on
-2026-11-05 during the explanation that followed the design review round 2
-convergence, with no further comment.
-
-### Q11: Which `package-lock.json` formats the npm adapter supports
-
-Question description: the design currently supports lock formats 1, 2 and 3.
-Format 1 comes from npm 6 and older; workspace-halo uses format 3. Requirement
-Q10 makes the compatibility guarantee rest on evidence captured with each
-supported tool version, which for format 1 means fixtures produced with an
-obsolete npm. Reviewing the design, the writer finds format 1 support costly
-for no known consumer. The question is which formats to support.
-
-#### BBQ for Q11
-
-A garage services three generations of one car model. The oldest needs special
-tools nobody in the shop still owns, and no customer drives one. The garage can
-keep the old tools anyway, or tell owners of the oldest model to upgrade first.
-In this picture: the generations are lock formats 1, 2 and 3, the special
-tools are fixtures captured with npm 6, the customers are the consumers, and
-upgrading first is regenerating the lock with a current npm.
-
-#### Options for Q11
-
-- Option A: support formats 1, 2 and 3 (current design text).
-  - pro: works on very old projects.
-  - con: requires compatibility fixtures from npm 6 and tests for a format no
-    consumer uses.
-- Option B: support formats 2 and 3; format 1 fails before any write with the
-  remedy to regenerate the lock with npm 7 or later.
-  - pro: evidence comes from npm 7 and later, the versions that write formats
-    2 and 3.
-  - pro: every known consumer is covered.
-  - con: a project still on npm 6 must regenerate its lock first.
-- Option C: support format 3 only.
-  - pro: the smallest surface.
-  - con: format 2 locks from npm 7 and 8 are still common and were written to
-    stay readable by both old and new npm.
-
-#### Recommended option for Q11 (with arguments for this choice)
-
-Option B: it covers every npm that writes formats 2 or 3, with evidence that
-can still be produced, and the failure for format 1 is explicit and fixable.
-Choosing it amends the design's npm section at consolidation.
-
-#### Answer to Q11: option B (with reason why it must be accepted as the answer)
-
-Option B: every supported format can be backed by real tool evidence, and the
-only excluded format belongs to an npm generation no consumer uses.
-
-User decision: confirmed - Option B, as recommended: the npm adapter supports
-lock formats 2 and 3; a format 1 lock fails before any write, with the remedy
-to regenerate it with npm 7 or later. Consolidation changes the npm section
-from formats 1, 2 and 3 to formats 2 and 3 and adds an acceptance row for a
-format 1 lock rejected before any write. Decided by the user on 2026-11-06
-during the explanation that followed the design review round 2 convergence,
-with no further comment.
-
-### Q12: How Maven internal dependencies are identified
-
-Question description: identifying internal references is design work. The
-design treats a dependency or dependency-management entry as internal when its
-`artifactId` and group match a reactor module, accepting a literal group or
-exactly `${project.groupId}`; an entry naming a module's `artifactId` with any
-other group expression fails as ambiguous. Module coordinates themselves must
-be literal or inherited. The question is how far identification resolves
-properties.
-
-#### BBQ for Q12
-
-A mail room delivers internal mail by department name. Some envelopes say "our
-own department" instead of its name, some use a code from a lookup sheet. The
-clerk can accept the name and "our own department", read every lookup sheet,
-or treat anything but the printed name as outside mail. In this picture: the
-department name is a literal `groupId`, "our own department" is
-`${project.groupId}`, the lookup sheet is a project-defined property, and
-outside mail is an external dependency.
-
-#### Options for Q12
-
-- Option A: literal groups and exactly `${project.groupId}`; a property group
-  on an entry naming a module's `artifactId` fails as ambiguous (current
-  design).
-  - pro: covers the common Maven idiom without a property model.
-  - pro: never misses an internal reference silently.
-  - con: a reactor using a custom group property must write the group
-    literally.
-- Option B: literal groups only; any property group is treated as external.
-  - pro: the simplest rule.
-  - con: a `${project.groupId}` sibling dependency would keep an old version
-    silently, the stale reference AC9 forbids.
-- Option C: resolve properties declared in the reactor's POMs for coordinates.
-  - pro: covers custom group properties.
-  - con: brings in the property resolution the requirement kept out of scope,
-    including profiles and inheritance order.
-
-#### Recommended option for Q12 (with arguments for this choice)
-
-Option A: it recognizes the one group expression that always names the
-declaring project, fails loudly on everything else that could be internal, and
-keeps property resolution out of the engine.
-
-#### Answer to Q12: option A (with reason why it must be accepted as the answer)
-
-Option A: it finds every internal dependency that common reactors write and
-refuses the rest instead of leaving a stale version.
-
-User decision: confirmed - Option A, as recommended: a dependency or
-dependency-management entry is internal when its `artifactId` and its literal
-group, or exactly `${project.groupId}`, identify a reactor module; an entry
-naming a module's `artifactId` with any other group expression fails as
-ambiguous; property resolution stays out of the engine. Decided by the user on
-2026-11-06 during the explanation that followed the design review round 2
-convergence, with no further comment.
-
-### Q13: Syntax that declares participating component roots
-
-Question description: the requirement leaves the component-root declaration
-syntax to this design; item 6 writes it and item 2 reads it. The design uses a
-`[component:<id>]` family with a required `root` managed path, so the id names
-the component in diagnostics and the path goes through item 1's managed-path
-validation. The question is which syntax item 6 should write.
-
-#### BBQ for Q13
-
-A building directory can list each company on its own plaque with a name and a
-floor, write all floors on one plaque, or use the floor itself as the plaque
-title. In this picture: the directory is `.release.ini`, a plaque per company is
-a `[component:<id>]` section, the floor is the `root` path, the single plaque is
-one list-valued key, and the floor as title is a section named by its path.
-
-#### Options for Q13
-
-- Option A: `[component:<id>]` with `root = <relative path>` (current design).
-  - pro: each root is a managed-path value, validated like every other path.
-  - pro: a stable id for diagnostics and for item 6 to update one entry.
-  - con: two lines per component.
-- Option B: one `[components]` section with `roots = frontend, backend`.
-  - pro: compact.
-  - con: a list inside one value needs its own splitting and quoting rules, and
-    paths with commas or spaces become fragile.
-- Option C: the path as the section instance, `[component:frontend]`, with no
-  key.
-  - pro: one line per component.
-  - con: section names cannot hold `]` or surrounding spaces, and the path
-    escapes item 1's managed-path rule.
-
-#### Recommended option for Q13 (with arguments for this choice)
-
-Option A: it reuses the schema registry's family and managed-path features
-unchanged, keeps paths as ordinary validated values, and gives item 6 a stable
-key per component.
-
-#### Answer to Q13: option A (with reason why it must be accepted as the answer)
-
-Option A: it needs no new parsing rule and validates every root with the same
-boundary as every other configured path.
-
-User decision: confirmed - Option A, as recommended: item 6 writes and item 2
-reads one `[component:<id>]` section per participating component root, with a
-required `root` managed path; the id names the component in diagnostics.
-Decided by the user on 2026-11-06 during the explanation that followed the
-design review round 2 convergence, with no further comment.
-
-### Q14: Scope of a built-in form override
-
-Question description: `[source:npm] form = snapshot` overrides the npm form.
-With declared components, a project could have npm sources at several roots.
-The design applies a built-in override to that adapter at every participating
-root and defers per-component overrides. The question is whether v0.14.0 needs
-per-component forms.
-
-#### BBQ for Q14
-
-A school sets one dress code per sport. A team could ask for its own kit, which
-means one rule per team instead of per sport. In this picture: the sport is an
-adapter such as npm, the dress code is the form, a team is a component root,
-and its own kit is a per-component form override.
-
-#### Options for Q14
-
-- Option A: one override per adapter, applied at every participating root
-  (current design).
-  - pro: one rule to read; no consumer has two npm roots needing different
-    forms.
-  - con: a future project mixing a Marketplace extension and a snapshot-tolerant
-    package in one repository must wait.
-- Option B: also allow a form key in `[component:<id>]` per adapter, overriding
-  the project-wide one.
-  - pro: covers mixed repositories now.
-  - con: more configuration and validation for a case no consumer has.
-- Option C: per-component forms only, no project-wide override.
-  - pro: explicit everywhere.
-  - con: repeats the same form at every root of a simple project.
-
-#### Recommended option for Q14 (with arguments for this choice)
-
-Option A: it covers all three consumers with the simplest rule, and option B
-can be added later without changing option A's syntax.
-
-#### Answer to Q14: option A (with reason why it must be accepted as the answer)
-
-Option A: it keeps configuration minimal now and leaves a compatible extension
-for a real mixed repository later.
-
-User decision: confirmed - Option A, as recommended: a built-in form override
-such as `[source:npm] form = snapshot` applies to that adapter at every
-participating root; per-component forms are deferred until a real mixed
-repository needs them. Decided by the user on 2026-11-06 during the
-explanation that followed the design review round 2 convergence, with no
-further comment.
-
-### Q15: How `versions list` finds undeclared nested candidates
-
-Question description: requirement Q07 has `list` report undeclared nested
-component candidates under the same exclusions as detection. The design uses
-one Git listing of tracked files plus untracked files that no ignore rule
-matches, finds manifest files outside the participating roots and reactor
-modules, and skips nested
-repositories and a fixed list of excluded directory names. The question is
-which file inventory candidate discovery uses.
-
-#### BBQ for Q15
-
-An inspector counts the rooms of a building from the owner's floor plan, from
-walking every corridor, or from the floor plan plus any rooms built since. In
-this picture: the floor plan is Git's index, walking every corridor is a
-filesystem walk, the rooms built since are untracked files, and the rooms the
-owner sealed off are ignored directories.
-
-#### Options for Q15
-
-- Option A: one Git listing of tracked files plus untracked files that no
-  ignore rule matches, with the fixed excluded names (current design).
-  - pro: one process, no tree walk; `.gitignore` already hides
-    `node_modules`, virtual environments and build output.
-  - pro: shows a new component before it is committed.
-  - con: an ignored untracked nested project is never reported, while a
-    tracked file stays listed even if an ignore rule matches it later.
-- Option B: tracked files only.
-  - pro: reports only what the repository already contains.
-  - con: a new, not yet committed component stays invisible to setup.
-- Option C: a filesystem walk with the excluded names.
-  - pro: independent of Git state.
-  - con: walks large ignored trees unless the list is complete, and reports
-    ignored projects the user deliberately keeps out.
-
-#### Recommended option for Q15 (with arguments for this choice)
-
-Option A: it is bounded by one Git call, follows the user's own ignore rules,
-and still shows candidates that setup should offer before their first commit.
-
-#### Answer to Q15: option A (with reason why it must be accepted as the answer)
-
-Option A: it finds what a person would expect to see, with a fixed cost, and
-respects what the repository deliberately ignores.
-
-User decision: confirmed - Option A, as recommended: candidate discovery uses
-one Git listing of tracked files plus untracked files that no ignore rule
-matches, skips nested repositories, and excludes the fixed directory names and
-the artifact home. Decided by the user on 2026-11-06 during the explanation
-that followed the design review round 2 convergence, with no further comment.
-
-### Q16: What the anchor's first line may hold after the token
-
-Question description: the requirement says the rest of the first line, after
-`--`, is the title. It does not say what happens when text follows the token
-without `--`, such as `0.1.0-SNAPSHOT Initial`. The design treats that as a
-malformed anchor. The question is whether to reject it, read it as a title or
-ignore it.
-
-#### BBQ for Q16
-
-A shipping label has a tracking number, then "--", then the recipient. A label
-with a name right after the number, without the dash, can be refused at the
-counter, read as the recipient anyway, or have the name ignored. In this
-picture: the tracking number is the version token, the "--" is the title
-separator, the recipient is the title, and the counter is the anchor parser.
-
-#### Options for Q16
-
-- Option A: anything after the token other than whitespace, `--` and a title
-  makes the anchor malformed (current design).
-  - pro: one unambiguous shape that item 5 can rely on for titles.
-  - con: an existing file using another separator fails until edited.
-- Option B: treat any text after the token as the title, with or without
-  `--`.
-  - pro: lenient with hand-written files.
-  - con: a typo such as `0.14.0 -SNAPSHOT` silently becomes version `0.14.0`
-    with a title.
-- Option C: ignore text after the token unless it starts with `--`.
-  - pro: never fails on the first line.
-  - con: silently drops what the author meant as a title.
-
-#### Recommended option for Q16 (with arguments for this choice)
-
-Option A: the anchor is authoritative, so a first line the parser cannot read
-in exactly one way should fail with a remedy; the three consumers already use
-`<token> -- <title>`.
-
-#### Answer to Q16: option A (with reason why it must be accepted as the answer)
-
-Option A: it turns a possible version typo into a visible error instead of a
-silent release under the wrong number.
-
-User decision: confirmed - Option A, as recommended: the anchor's first line
-holds the token, optionally followed by whitespace, `--` and the title;
-anything else after the token makes the anchor malformed, which fails with
-status 2 and a remedy before any write. Decided by the user on 2026-11-06
-during the explanation that followed the design review round 2 convergence,
-with no further comment.
-
-### Q17: When a verified version transition is complete, and what a cleanup failure reports
-
-Question description: after a `set` verifies the new versions, it removes its
-recovery evidence and releases the lock. If removing the evidence fails half
-way, some originals are already gone, so a rollback can no longer be
-promised; the same holds when releasing the lock fails afterwards. The design
-needs a point after which the transition counts as done, and a defined result
-when cleanup after that point fails. Status 3 stays reserved for an incomplete
-restoration. Added after review round 1.
-
-#### BBQ for Q17
-
-A mover finishes unloading, checks every room, and then throws away the
-inventory list and returns the keys. If the bin bag tears or the key box is
-jammed, the move itself is still done. The crew can sign a "move complete"
-sheet before cleaning up, keep the inventory until the customer clears it,
-or simply say "all fine" and ignore the torn bag. In this picture: the rooms
-are the version sources, the inventory list is the recovery evidence, the keys
-are the operation lock, the signed sheet is a durable completion marker, and
-"all fine" is a success status that hides the residue.
-
-#### Options for Q17
-
-- Option A: after verification, durably record a `complete` state in the
-  evidence manifest; before that point any failure restores from the complete
-  originals; after it, cleanup deletes the originals and then the manifest, and
-  a cleanup or lock-release failure returns status 1 stating that the new
-  versions are applied and naming the residue, with no rollback. The next
-  `set` removes standalone residue marked `complete` and still stops on
-  `writing` evidence (current design).
-  - pro: a rollback is only ever attempted with complete originals.
-  - pro: the next invocation can tell finished residue from an interrupted
-    transition.
-  - con: one more flushed write per transition, and a nonzero status for a
-    transition whose versions were applied.
-- Option B: keep the complete evidence after every successful transition until
-  an explicit cleanup, by the next `set` or a dedicated action.
-  - pro: the originals of the last transition remain available for manual
-    comparison.
-  - con: every success leaves a copy of every source in the artifact home, and
-    the cleanup action becomes part of the user's routine or a new command.
-- Option C: after verification, report success with status 0 and only warn on
-  stderr when cleanup or lock release fails.
-  - pro: callers see success whenever the versions were applied.
-  - con: residue and a possibly unreleased lock go unnoticed by callers that
-    read only the exit code, and without a marker the next invocation cannot
-    tell residue from an interrupted transition.
-
-#### Recommended option for Q17 (with arguments for this choice)
-
-Option A: it draws the line where the originals stop being needed, keeps every
-rollback backed by complete evidence, and makes leftovers self-describing for
-the next run. A nonzero status after applied versions is honest: the caller
-learns that something remains to clean, and the diagnostic says the versions
-themselves are in place.
-
-#### Answer to Q17: option A (with reason why it must be accepted as the answer)
-
-Option A: it never promises a rollback it cannot perform, never hides residue,
-and lets the next `set` recover automatically from a finished transition while
-still stopping on an interrupted one.
-
-User decision: confirmed - Option A, as recommended: after verification, the
-transition durably records a `complete` state in the evidence manifest; before
-that boundary any failure restores from the complete originals; after it,
-cleanup deletes the originals and then the manifest, and a cleanup or
-lock-release failure returns status 1 stating that the new versions are
-applied and naming the residue, with no rollback; the next `set` removes
-standalone residue marked `complete` and still stops on `writing` evidence.
-Decided by the user on 2026-11-06 during the explanation that followed the
-design review round 2 convergence, with no further comment.
+## Design decisions for the v0.14.0 version-sources design
+
+The user decided each question after an explanation (Q01 to Q10 on
+2026-11-05, Q11 to Q17 on 2026-11-06), and independent review round 3 checked
+the decisions for consistency with each other, with this design and with the
+feature request. The question blocks, with their full options and arguments,
+are kept in the commit `docs(design): record pre-consolidation questions`.
+
+| Question | Decision and reason | Integrated in | Rejected alternatives |
+| --- | --- | --- | --- |
+| Q01 | An annotated tag whose whole-line `Release tooling:` trailer sits at the umbrella's position is an engine tag, eligible only with a standalone `[valid]` line after that trailer; other stable tags are historical and eligible; a misplaced or repeated trailer makes the tag ambiguous. The evidence travels with the tag to every clone and adds nothing for item 5 to write | Persistent eligibility evidence; AC13 | A dedicated `Release-Engine:` marker line (a second marker to keep consistent); Git notes or a ref namespace (not fetched by default, so other clones lose the evidence) |
+| Q02 | Selection fails with status 2, naming the tags, on several independent eligible tips or a version inversion; no baseline is guessed, since a wrong baseline silently changes changelogs and release notes, and the three consumers' histories are single increasing chains | The deterministic ancestry rule; AC14 | The highest-version tip with warnings (a merged maintenance release can drop from or duplicate in the notes); the latest commit date (clocks, not ancestry) |
+| Q03 | A read-only `versions range [<stable tag>]` operation of the `versions` handler prints `target`, `baseline`, `range` and `commits` from the shared selector; item 7 switches the instruction-driven readers to it | Commands and their arguments; Exposure to every range reader | A separate top-level `range` command (another handler for one read); a Python interface only (item 7 would design a second entry) |
+| Q04 | Item 1's renderer and launcher boundary accept public status 3 for an incomplete restoration, for the command and in-process callers; other unknown statuses still become 1; item 1's contract and tests change explicitly | Public statuses of the version commands; Foundation changes required by the version domain; AC11 | Status 1 with a stable stderr line (no distinct public status); status 3 only in process (the command cannot tell the two failures apart) |
+| Q05 | `set` plans first without a lock or artifact, then always prepares the artifact home and takes the lock, even after an empty first plan, checks for transition evidence and plans again; only the locked plan is authoritative. Source-validation failures stay artifact-free, and a clean result never overlaps another transition | Target flow of the version commands; Planning without side effects; Ownership and the authoritative plan; AC11 | Locking first and planning once (a failed validation leaves an artifact home and a lock record); an unlocked `unchanged` (can report a clean state during another `set`) |
+| Q06 | Interrupted or unreadable `writing` evidence stops the next `set` with status 2 naming the evidence directory, and read commands warn; a person restores or removes it; no automatic restore and no recovery command in this item, since item 5 designs lifecycle recovery next | Ownership and the authoritative plan; Restoration and its distinct failure; Left to later items or later versions; AC11 | An automatic restore by the next `set` (decides for the user and adds a write path); a `versions recover` operation (recovery designed twice with item 5) |
+| Q07 | Item 5 supplies its held lock, checked against this process and project, and its transaction identity; the primitive writes evidence owned by that identity in this project's artifact home, keeps it on success, returns a restore handle and never removes lifecycle-owned evidence; item 5 deletes it when its transaction ends | Reuse by a lifecycle caller; AC11 | Always deleting the evidence, with a separate item 5 capture (two captures and two restoration routines); no primitive evidence under item 5 (its restoration would depend on a record it does not own) |
+| Q08 | Each format is parsed with the standard library for meaning; a format-aware scanner, with `expat` byte offsets for XML, locates the owned byte span, which must equal the parsed value, and only those bytes change; unsupported spellings fail before any write; no release dependency is added | Locating values with the standard library; Combining all detectors; AC2, AC8 | Format-preserving libraries such as `tomlkit` (a new release dependency, no byte guarantee, nothing for XML); one regular expression per format (cannot tell the root version from a dependency's) |
+| Q09 | Pattern sources match a view of the decoded text in which each CRLF reads as LF, and the capture span maps back to the original bytes, so the umbrella's `(.+)$` pattern works on either line ending and the file keeps its CRLF | Locating values with the standard library; Pattern sources | Raw-text matching with a `([^\r\n]+)` hint (copied patterns fail on Windows files); rejecting CRLF files (common in Windows repositories) |
+| Q10 | Python allows only `core`; npm allows `release-only`, `core` and `snapshot`; Maven allows only `snapshot`; a pattern source takes its declared form; any other configured form fails configuration validation before a command runs | Forms by adapter; Sections and keys; AC7, AC12 | Maven also accepting `core` (a snapshot build would carry release coordinates); every form for every adapter but Python (the same risk, with no consumer asking) |
+| Q11 | The npm adapter supports lock formats 2 and 3; a participating format 1 lock fails with status 2 before any write, with the remedy to regenerate it with npm 7 or later. Every supported format has tool evidence that can still be produced, and no consumer uses format 1 | npm; Lock compatibility evidence for supported tools; AC4, AC8 | Formats 1, 2 and 3 (npm 6 fixtures on an end-of-life Node, for no consumer); format 3 only (format 2 locks from npm 7 and 8 stay common) |
+| Q12 | A dependency or dependency-management entry is internal when its `artifactId` and its literal group, or exactly `${project.groupId}`, identify a reactor module; an entry naming a module's `artifactId` with another group expression fails as ambiguous; no property resolution | Maven reactors; AC9 | Literal groups only (a `${project.groupId}` sibling dependency silently stays stale); resolving reactor properties (reopens the property resolution the requirement left out) |
+| Q13 | Item 6 writes and item 2 reads one `[component:<id>]` section per participating component root, with a required `root` managed path; the id names the component in diagnostics, and item 6 updates one entry by it | Participating roots; Sections and keys; AC5 | One `[components]` list (its own splitting and quoting rules); the path as the section name (escapes managed-path validation, no id) |
+| Q14 | A built-in form override such as `[source:npm] form = snapshot` applies to that adapter at every participating root; per-component forms are deferred and can later become a key of `[component:<id>]` | Sections and keys; Left to later items or later versions | Per-component form keys now (configuration and validation for a case no consumer has); per-component forms only (repeats the same form at every root) |
+| Q15 | Candidate discovery uses one Git listing of tracked files plus untracked files that no ignore rule matches, skips nested repositories, and excludes the fixed directory names and the artifact home; a tracked file stays listed even when an ignore rule matches it later | Undeclared nested candidates; AC5, AC10 | Tracked files only (a new component stays invisible to setup until added); a filesystem walk (walks ignored trees and reports deliberately ignored projects) |
+| Q16 | The anchor's first line holds the token, optionally followed by whitespace, `--` and the title; anything else after the token makes the anchor malformed, with status 2 and a remedy before any write, so a version typo never becomes a silent title | The version.txt document; AC1 | Reading any trailing text as the title (`0.14.0 -SNAPSHOT` silently becomes `0.14.0`); ignoring text without `--` (drops the intended title, with the same typo risk) |
+| Q17 | After verification, the transition durably records a `complete` state in the evidence manifest. Before it, any failure restores from complete originals; after it, cleanup deletes the originals and then the manifest, and a cleanup or lock-release failure returns status 1, stating that the new versions are applied and naming the residue, without rollback. The next `set` removes standalone `complete` residue and still stops on `writing` evidence | Target flow of the version commands; Completion boundary and cleanup failures; Public statuses of the version commands; AC11 | Keeping the evidence until an explicit cleanup (copies left after every success, a new routine or command); status 0 with a warning (residue goes unnoticed, and the next run cannot tell it from an interruption) |
