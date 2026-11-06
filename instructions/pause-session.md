@@ -80,7 +80,9 @@ Before replacing an existing prompt, check its first line and receipt with the
 If that prompt is unused or new since previous use, and its id differs from
 yours or is missing, tell the user which agent paused it (or that it is
 unknown) and ask before replacing it: replacing it discards a checkpoint that
-was never resumed. If the user declines, stop without writing a new prompt.
+was never resumed. Ask it as a choice under
+[interactive_menu.md](../rules/interactive_menu.md). If the user declines, stop
+without writing a new prompt.
 
 ## Session journal across checkouts
 

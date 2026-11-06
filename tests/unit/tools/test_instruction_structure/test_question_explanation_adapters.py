@@ -10,6 +10,10 @@ Fix: every explanation now ends with a host-native choice instead of options
 written as text, so the host shows the agent waiting for a reply rather than
 done. The last test pins that decision step in the instruction, its resume
 path and the template.
+
+Fix: without a blocking choice (Codex Default mode), the chat list now comes
+with a ``blocked`` report to the terminal, and the answer with ``working``
+before it is recorded, both under ``rules/interactive_menu.md``.
 """
 
 from __future__ import annotations
@@ -94,19 +98,23 @@ def test_every_explanation_ends_with_a_native_choice() -> None:
     for required in (
         "(../rules/interactive_menu.md)",
         "`AskUserQuestion`",
-        "`request_user_input`",
+        "`request_user_input` in Codex Plan mode",
         "`(Recommended)`",
-        "Only when the host has no native choice",
+        "Without a blocking choice, as in Codex Default mode",
+        "report the question as `blocked` first",
         "A typed reply",
+        "report `working` before recording the answer",
     ):
         assert required in section
     resume = instruction.split("- `awaiting-user-decision`:", 1)[1].split("\n- ", 1)[0]
     assert "ask the choice again" in resume
+    assert "`blocked` report" in resume
     template = (ROOT / "templates/question-explanation.template.md").read_text(encoding="utf-8")
     decision = template.split("## Decision prompt", 1)[1]
     for required in (
         "Do not write this section as text",
         "`rules/interactive_menu.md`",
+        "as `blocked` to the\nterminal",
         "`(Recommended)`",
         "Never pre-record the recommended option",
     ):

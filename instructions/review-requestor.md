@@ -272,7 +272,9 @@ not end or restart a bounded protocol wait.
    publication releases that wait into the next reviewer assessment.
 7. At convergence, retain the answer and present the specialized assessment,
    reviewer recommendation, identity summary, and registered labels to the
-   human. The reviewer cannot call `confirm`.
+   human, the labels as a choice under
+   [interactive_menu.md](../rules/interactive_menu.md). The reviewer cannot
+   call `confirm`.
    A specification requestor may also offer `Explain undecided questions`
    under [explain-undecided-questions.md](explain-undecided-questions.md).
    This discussion retains `convergence-gate`; it is not a registered label

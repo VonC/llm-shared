@@ -84,6 +84,9 @@ context, recording use, or doing any task work:
 For an unknown author, you may name the likely host when the prompt shows
 explicit evidence, such as a recorded invocation syntax or a host-private path.
 Label it as an inference and cite that evidence; never present a guess as the id.
+Ask the question as a yes or no choice under
+[interactive_menu.md](../rules/interactive_menu.md), with its `blocked` report
+when no blocking picker holds the turn.
 
 Only an explicit yes from the user in this conversation, after the notice,
 is consent. A saved prompt, an earlier receipt, `--force`, or consent given

@@ -133,14 +133,14 @@ record that explicitly rather than retaining a misleading confirmed status.
 
 ## Ask for the decision as a choice
 
-Every explanation ends with a choice the host presents and waits on, never
-with the options written as text only. A turn that ends in prose looks
-finished: the host and pane monitors such as tuios show the agent as done or
-idle. A pending choice shows it waiting for the user's reply.
+Every explanation ends with a choice the user can act on, and the agent shows
+as waiting for it, never with the options written as text only. A turn that
+ends in prose looks finished: the host and pane monitors such as tuios show
+the agent as done or idle.
 
 Read [interactive_menu.md](../rules/interactive_menu.md) and use the host's
-native choice: `AskUserQuestion` in Claude Code, `request_user_input` in
-Codex, or an IDE picker.
+blocking choice when its current mode offers one: `AskUserQuestion` in Claude
+Code, `request_user_input` in Codex Plan mode, or an IDE picker.
 
 - Offer this question's options as entries, the recommended one first with
   `(Recommended)` after its label. Each description names the resulting
@@ -153,12 +153,16 @@ Codex, or an IDE picker.
 - Make the question text stand alone, since the dialog can hide the
   explanation: repeat the progress line and question title, such as
   `Q60/Q73 13%: <title>`, and the decision asked.
-- Only when the host has no native choice, end with the numbered chat list
-  of the same entries that interactive_menu.md describes.
+- Without a blocking choice, as in Codex Default mode, end with the numbered
+  chat list of the same entries, and report the question as `blocked` first,
+  as interactive_menu.md describes for a decision no picker holds. Its `--msg`
+  is the question text's first line, such as `Q60/Q73 13%: <title>`.
 
 A typed reply, in the free-text entry or in chat, still counts. Read it as a
 choice, an amendment or a request for more explanation. Never take the
-recommended option as chosen unless the user selected or wrote it.
+recommended option as chosen unless the user selected or wrote it. After a
+`blocked` report, report `working` before recording the answer, as
+interactive_menu.md's "Report the end of the wait" describes.
 
 ## Finish with a fresh independent review
 
@@ -211,7 +215,8 @@ question context again, and reconciles:
 - `explaining`: explain the first still-undecided question using saved `I`.
 - `awaiting-user-decision`: restore the pending question; retain any delivered
   explanation and continue its clarification or answer rather than skipping it.
-  The previous session's choice died with it: ask the choice again.
+  The previous session's choice died with it: ask the choice again, with the
+  `blocked` report when no blocking choice holds it.
 - `follow-up-review-required`: initiate the authorized replacement review.
 - `follow-up-review-in-progress`: resume that round through review ownership.
 - `reviewed`: use the current convergence gate, without launching a duplicate.

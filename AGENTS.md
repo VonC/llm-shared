@@ -26,6 +26,17 @@ Full access / never
 * If the effective permissions do not match the repository's expected configuration, report the mismatch rather than weakening global configuration or repeatedly retrying the blocked command.
 * Ordinary clarification questions to the user remain allowed when useful.
 
+## Questions that need a user decision
+
+Before ending a turn on a question that needs a user decision, read and follow:
+
+```txt
+rules/interactive_menu.md
+```
+
+In Default mode, Codex has no blocking picker: that rule's `blocked` report
+keeps the terminal showing that the user is awaited.
+
 ## Review role isolation
 
 Whenever acting in a review exchange, follow:

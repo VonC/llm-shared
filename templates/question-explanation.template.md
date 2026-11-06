@@ -52,10 +52,11 @@ to the real concept; do not make the user infer the correspondence.}
 
 ## Decision prompt
 
-Do not write this section as text. End the turn with the host's native choice,
-following the instruction's "Ask for the decision as a choice" section and
-`rules/interactive_menu.md`. Use the numbered chat list only when the host has
-no native choice.
+Do not write this section as text. End the turn with the host's blocking
+choice, following the instruction's "Ask for the decision as a choice" section
+and `rules/interactive_menu.md`. Without one, as in Codex Default mode, end
+with the numbered chat list after reporting the question as `blocked` to the
+terminal.
 
 - Question text: `{question-id}/{last-question-id} {percentage}%: {question title}`,
   then the decision asked, so it stands alone.

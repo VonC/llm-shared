@@ -38,7 +38,9 @@ defines navigation and the progress formula.
 Each explanation covers the behavior, a realistic example, an analogy, the
 options and tradeoffs, a recommendation, and effects on related questions.
 It ends with a choice your host presents, such as a Claude Code question
-dialog, so the agent shows as waiting for you rather than done. Pick an
+dialog, so the agent shows as waiting for you rather than done. Codex in
+Default mode has no such dialog: it lists the options and reports a `blocked`
+status to your terminal, which tuios and Windows Terminal show. Pick an
 option, or type your qualifications or a clarification request. The agent
 records your explicit decision and comments in that question's answer. It keeps
 the question, options, and original recommendation. A deferred question remains

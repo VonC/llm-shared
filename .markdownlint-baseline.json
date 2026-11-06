@@ -12,7 +12,6 @@
     {"path": "rules/blacklist.md", "rule": "LS002", "count": 1},
     {"path": "rules/chat.md", "rule": "LS002", "count": 1},
     {"path": "rules/command_prefix_char.md", "rule": "LS002", "count": 1},
-    {"path": "rules/interactive_menu.md", "rule": "LS002", "count": 1},
     {"path": "rules/llm-specific-adapters.md", "rule": "LS002", "count": 1},
     {"path": "rules/preserve_code.md", "rule": "LS002", "count": 1},
     {"path": "templates/group-commits-msg.template.md", "rule": "LS002", "count": 1},

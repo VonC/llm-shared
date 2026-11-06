@@ -71,6 +71,12 @@ only when the host renders them interactively. Never assume a live TTY:
 no `gum choose`, no `fzf`, no `Read-Host`. The default concrete choice of
 a go-ahead menu is `Go ahead`.
 
+When no blocking picker holds the turn (Codex in Default mode), the agent
+shows the choices, reports `blocked` with `kind=question` to its terminal
+through `bin\program_status.bat` (OSC 7501), and ends the turn without
+polling. It never decides for the user, and reports `working` once the answer
+comes, then `done`, `error`, `idle` or `clear`.
+
 ## 💬 Chat rules from CLAUDE.md and copilot-instructions.md
 
 Both agent rule files add the same session-level habits: treat opened
