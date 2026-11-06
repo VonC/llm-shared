@@ -37,7 +37,9 @@ defines navigation and the progress formula.
 
 Each explanation covers the behavior, a realistic example, an analogy, the
 options and tradeoffs, a recommendation, and effects on related questions.
-Reply with your choice and qualifications, or ask for clarification. The agent
+It ends with a choice your host presents, such as a Claude Code question
+dialog, so the agent shows as waiting for you rather than done. Pick an
+option, or type your qualifications or a clarification request. The agent
 records your explicit decision and comments in that question's answer. It keeps
 the question, options, and original recommendation. A deferred question remains
 undecided; dependent questions still need explicit decisions.

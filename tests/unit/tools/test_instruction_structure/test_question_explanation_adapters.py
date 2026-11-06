@@ -5,6 +5,11 @@ item position, topic, phase, draft, document, batch position and review), so
 the user knows what is being decided. The tests below pin that the template
 opens with that table, that the state note saves it, and that the instruction
 gathers it from ``pw progress`` with the drafts as fallback, never a guess.
+
+Fix: every explanation now ends with a host-native choice instead of options
+written as text, so the host shows the agent waiting for a reply rather than
+done. The last test pins that decision step in the instruction, its resume
+path and the template.
 """
 
 from __future__ import annotations
@@ -78,6 +83,34 @@ def test_context_is_saved_and_gathered_without_guessing() -> None:
     assert "`- Umbrella:`" in section
     assert "never guess" in section
     assert "gathers the\nquestion context again" in instruction
+
+
+def test_every_explanation_ends_with_a_native_choice() -> None:
+    """The decision goes through interactive_menu.md as a host choice, never as text only."""
+    instruction = (ROOT / "instructions" / f"{SKILL}.md").read_text(encoding="utf-8")
+    step = instruction.split("3. Save `awaiting-user-decision`", 1)[1].split("\n4. ", 1)[0]
+    assert "(#ask-for-the-decision-as-a-choice)" in step
+    section = instruction.split("## Ask for the decision as a choice", 1)[1].split("\n## ", 1)[0]
+    for required in (
+        "(../rules/interactive_menu.md)",
+        "`AskUserQuestion`",
+        "`request_user_input`",
+        "`(Recommended)`",
+        "Only when the host has no native choice",
+        "A typed reply",
+    ):
+        assert required in section
+    resume = instruction.split("- `awaiting-user-decision`:", 1)[1].split("\n- ", 1)[0]
+    assert "ask the choice again" in resume
+    template = (ROOT / "templates/question-explanation.template.md").read_text(encoding="utf-8")
+    decision = template.split("## Decision prompt", 1)[1]
+    for required in (
+        "Do not write this section as text",
+        "`rules/interactive_menu.md`",
+        "`(Recommended)`",
+        "Never pre-record the recommended option",
+    ):
+        assert required in decision
 
 
 # eof

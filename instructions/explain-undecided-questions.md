@@ -105,8 +105,10 @@ percentage. Skip already decided questions without changing `I` or renumbering.
    and tradeoffs, recommendation, and effects on other questions. Keep it
    within the document's scope.
 3. Save `awaiting-user-decision`, the question ID, and whether the explanation
-   was delivered. Ask for the user's choice or clarification and wait. Do not
-   answer on their behalf or advance because they asked for more explanation.
+   was delivered. Then end the turn with an actual choice, as
+   [ask for the decision](#ask-for-the-decision-as-a-choice) describes, and
+   wait for its answer. Do not answer on their behalf or advance because they
+   asked for more explanation.
 4. On an explicit choice, update only that question's answer and necessary
    clarifications. Replace its active pending marker with
    `User decision: confirmed — <choice and agreed qualifications>`, with the
@@ -128,6 +130,35 @@ or regenerate the entire question section merely to record an answer. Keep
 decision comments in the document, with a concise change list in the private
 note for the next review request. If an answer reopens an earlier decision,
 record that explicitly rather than retaining a misleading confirmed status.
+
+## Ask for the decision as a choice
+
+Every explanation ends with a choice the host presents and waits on, never
+with the options written as text only. A turn that ends in prose looks
+finished: the host and pane monitors such as tuios show the agent as done or
+idle. A pending choice shows it waiting for the user's reply.
+
+Read [interactive_menu.md](../rules/interactive_menu.md) and use the host's
+native choice: `AskUserQuestion` in Claude Code, `request_user_input` in
+Codex, or an IDE picker.
+
+- Offer this question's options as entries, the recommended one first with
+  `(Recommended)` after its label. Each description names the resulting
+  behavior in a few words.
+- Add an entry to explain more when the host has room for it. Amendments go
+  through the host's free-text entry, such as `Type something else`. When the
+  host caps the entry count, keep the question's options and drop the
+  explain-more entry first. With more options than fit, keep the recommended
+  one and the most distinct others, and name the rest in the question text.
+- Make the question text stand alone, since the dialog can hide the
+  explanation: repeat the progress line and question title, such as
+  `Q60/Q73 13%: <title>`, and the decision asked.
+- Only when the host has no native choice, end with the numbered chat list
+  of the same entries that interactive_menu.md describes.
+
+A typed reply, in the free-text entry or in chat, still counts. Read it as a
+choice, an amendment or a request for more explanation. Never take the
+recommended option as chosen unless the user selected or wrote it.
 
 ## Finish with a fresh independent review
 
@@ -180,6 +211,7 @@ question context again, and reconciles:
 - `explaining`: explain the first still-undecided question using saved `I`.
 - `awaiting-user-decision`: restore the pending question; retain any delivered
   explanation and continue its clarification or answer rather than skipping it.
+  The previous session's choice died with it: ask the choice again.
 - `follow-up-review-required`: initiate the authorized replacement review.
 - `follow-up-review-in-progress`: resume that round through review ownership.
 - `reviewed`: use the current convergence gate, without launching a duplicate.

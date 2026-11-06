@@ -52,5 +52,15 @@ to the real concept; do not make the user infer the correspondence.}
 
 ## Decision prompt
 
-{Ask for an option, an amendment, or further explanation. Never pre-record
-the recommended option as a confirmed user choice.}
+Do not write this section as text. End the turn with the host's native choice,
+following the instruction's "Ask for the decision as a choice" section and
+`rules/interactive_menu.md`. Use the numbered chat list only when the host has
+no native choice.
+
+- Question text: `{question-id}/{last-question-id} {percentage}%: {question title}`,
+  then the decision asked, so it stands alone.
+- Entries: the question's options, the recommended one first with
+  `(Recommended)`; an explain-more entry when the host has room; amendments
+  through the host's free-text entry.
+
+Never pre-record the recommended option as a confirmed user choice.
