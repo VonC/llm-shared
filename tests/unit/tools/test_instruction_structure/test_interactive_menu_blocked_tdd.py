@@ -33,6 +33,7 @@ def test_rule_reports_a_pending_decision_to_the_terminal() -> None:
     section = _section("rules/interactive_menu.md", "Signal a decision that no blocking picker holds")
 
     for required in (
+        "a plain-text question in the final message",
         "Codex in Default mode",
         "(https://www.superlogical.com/rex/docs/build/program-status)",
         "Present the choices",
@@ -49,6 +50,19 @@ def test_rule_reports_a_pending_decision_to_the_terminal() -> None:
         "The helper then exits 3 rather than signal the pane of the session that started the daemon",
     ):
         assert required in section
+
+
+@pytest.mark.parametrize(
+    ("relative", "scope"),
+    [
+        ("rules/interactive_menu.md", "any question the user must answer, whether a choice or a plain-text question"),
+        ("rules/chat.md", "any question the user must answer, a choice or a plain-text question"),
+        ("AGENTS.md", "any question the user must answer, a choice or a plain-text question"),
+    ],
+)
+def test_every_question_awaiting_an_answer_is_covered(relative: str, scope: str) -> None:
+    """A plain-text question waits on the user as much as a menu does."""
+    assert scope in _text(relative)
 
 
 def test_rule_tells_blocking_from_asynchronous_pickers() -> None:
@@ -97,7 +111,7 @@ def test_rule_closes_the_record_after_the_answer(row: str) -> None:
         ("instructions/resume-session.md", "yes or no choice under [interactive_menu.md](../rules/interactive_menu.md)"),
         ("instructions/pause-session.md", "Ask it as a choice under [interactive_menu.md](../rules/interactive_menu.md)"),
         ("instructions/review-requestor.md", "the labels as a choice under [interactive_menu.md](../rules/interactive_menu.md)"),
-        ("rules/chat.md", "otherwise the choices plus a `blocked` report to the terminal"),
+        ("rules/chat.md", "otherwise the question plus a `blocked` report to the terminal"),
         ("AGENTS.md", "rules/interactive_menu.md ``` Use `request_user_input` whenever this turn lists it"),
     ],
 )

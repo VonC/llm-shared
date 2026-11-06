@@ -6,7 +6,8 @@ picker, a Codex-provided interactive UI, or another tool that returns the
 selected value to the agent.
 
 Read this rule before presenting any workflow menu, and before ending a turn on
-any question that needs a user decision. The workflow instruction specifies the
+any question the user must answer, whether a choice or a plain-text question.
+The workflow instruction specifies the
 concrete choices for that decision. Add the standard final entries only when
 the current host can actually present them as part of an interactive choice:
 
@@ -40,15 +41,17 @@ the user can provide input after the command starts.
 
 ## Signal a decision that no blocking picker holds
 
-A turn that ends with a chat list, an asynchronous picker, or a final message
-holding the choices looks finished: the host, tuios and Windows Terminal show
-the agent as done or idle. Codex in Default mode is the usual case. Before such
-a turn ends, report the wait to the terminal with OSC 7501, the
+A turn that ends on a question no blocking picker holds looks finished: a chat
+list, an asynchronous picker, or a plain-text question in the final message.
+The host, tuios and Windows Terminal show the agent as done or idle. Codex in
+Default mode is the usual case. Before such a turn ends, report the wait to
+the terminal with OSC 7501, the
 [Program Status Protocol](https://www.superlogical.com/rex/docs/build/program-status):
 
-1. Present the choices: the chat list or the picker stays visible.
+1. Present the choices, or the question: the chat list or the picker stays
+   visible.
 2. Run this as the turn's last command, then end the turn with the final
-   message that shows the choices:
+   message that shows the question:
 
    ```powershell
    & "<LLM_SHARED_DIR>\bin\program_status.bat" blocked --kind question --id question --app <app> --msg "<pending question, one line>"

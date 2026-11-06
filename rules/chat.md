@@ -30,10 +30,10 @@
 - When writing or rewriting a file, follow
   [`preserve_code.md`](preserve_code.md).
 - When running a shell command, follow [`run_commands.md`](run_commands.md).
-- When ending a turn on a question that needs a user decision, follow
-  [`interactive_menu.md`](interactive_menu.md): a blocking picker when the
-  host offers one, otherwise the choices plus a `blocked` report to the
-  terminal.
+- When ending a turn on any question the user must answer, a choice or a
+  plain-text question, follow [`interactive_menu.md`](interactive_menu.md): a
+  blocking picker when the host offers one, otherwise the question plus a
+  `blocked` report to the terminal.
 - When creating any `a.*` working file (scratch, script, captured output, log,
   evidence, report, private note), follow
   [`artifact_files.md`](artifact_files.md): it lives in the review artifact

@@ -26,9 +26,10 @@ Full access / never
 * If the effective permissions do not match the repository's expected configuration, report the mismatch rather than weakening global configuration or repeatedly retrying the blocked command.
 * Ordinary clarification questions to the user remain allowed when useful.
 
-## Questions that need a user decision
+## Questions that need the user's answer
 
-Before ending a turn on a question that needs a user decision, read and follow:
+Before ending a turn on any question the user must answer, a choice or a
+plain-text question, read and follow:
 
 ```txt
 rules/interactive_menu.md
