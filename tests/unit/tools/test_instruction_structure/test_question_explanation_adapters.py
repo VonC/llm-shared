@@ -98,7 +98,7 @@ def test_every_explanation_ends_with_a_native_choice() -> None:
     for required in (
         "(../rules/interactive_menu.md)",
         "`AskUserQuestion`",
-        "`request_user_input` in Codex Plan mode",
+        "`request_user_input` in Codex (Plan mode, or Default mode with its\nfeature on)",
         "`(Recommended)`",
         "Without a blocking choice, as in Codex Default mode",
         "report the question as `blocked` first",

@@ -34,8 +34,10 @@ Before ending a turn on a question that needs a user decision, read and follow:
 rules/interactive_menu.md
 ```
 
-In Default mode, Codex has no blocking picker: that rule's `blocked` report
-keeps the terminal showing that the user is awaited.
+Use `request_user_input` whenever this turn lists it: Codex then reports the
+wait to the terminal itself. In Default mode it is listed only with the
+`default_mode_request_user_input` feature; without it, that rule's `blocked`
+report keeps the terminal showing that the user is awaited.
 
 ## Review role isolation
 

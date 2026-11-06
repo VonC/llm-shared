@@ -139,8 +139,9 @@ ends in prose looks finished: the host and pane monitors such as tuios show
 the agent as done or idle.
 
 Read [interactive_menu.md](../rules/interactive_menu.md) and use the host's
-blocking choice when its current mode offers one: `AskUserQuestion` in Claude
-Code, `request_user_input` in Codex Plan mode, or an IDE picker.
+blocking choice when the current turn lists one: `AskUserQuestion` in Claude
+Code, `request_user_input` in Codex (Plan mode, or Default mode with its
+feature on), or an IDE picker.
 
 - Offer this question's options as entries, the recommended one first with
   `(Recommended)` after its label. Each description names the resulting

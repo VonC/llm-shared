@@ -18,10 +18,14 @@ the current host can actually present them as part of an interactive choice:
 ## Present the choices with the best interface available
 
 A blocking picker holds the turn until the user selects: Claude Code's
-`AskUserQuestion`, Codex's `request_user_input` (offered in Plan mode, not in
-Default mode), or an IDE picker whose tool returns the selection. Use it
-whenever the current host and mode offer one; the host then shows the agent as
-waiting by itself.
+`AskUserQuestion`, Codex's `request_user_input`, or an IDE picker whose tool
+returns the selection. Use it whenever it is listed in the current turn's
+tools; the host then shows the agent as waiting by itself. Codex lists
+`request_user_input` in Plan mode, and in Default mode only with its
+`default_mode_request_user_input` feature. Codex's `request_user_input_async`
+returns before the user answers: it is an asynchronous picker, not a blocking
+one. A blocking picker that returns no answer leaves the decision open: never
+continue on your own judgment, as a host's default guidance may suggest.
 
 If the current host has no native menu or input tool, use a normal chat fallback
 instead of stopping. Present the concrete workflow choices as a clear numbered

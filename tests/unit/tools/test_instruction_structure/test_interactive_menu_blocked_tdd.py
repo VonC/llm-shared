@@ -51,6 +51,16 @@ def test_rule_reports_a_pending_decision_to_the_terminal() -> None:
         assert required in section
 
 
+def test_rule_tells_blocking_from_asynchronous_pickers() -> None:
+    """Codex's blocking picker is used when listed; its async picker needs the blocked report."""
+    section = _section("rules/interactive_menu.md", "Present the choices with the best interface available")
+
+    assert "Use it whenever it is listed in the current turn's tools" in section
+    assert "`default_mode_request_user_input` feature" in section
+    assert "`request_user_input_async` returns before the user answers" in section
+    assert "never continue on your own judgment" in section
+
+
 def test_rule_never_decides_for_the_user() -> None:
     """Silence, the recommendation and an unanswered question never count as a decision."""
     section = _section("rules/interactive_menu.md", "Keep the decision open until the user answers")
@@ -88,7 +98,7 @@ def test_rule_closes_the_record_after_the_answer(row: str) -> None:
         ("instructions/pause-session.md", "Ask it as a choice under [interactive_menu.md](../rules/interactive_menu.md)"),
         ("instructions/review-requestor.md", "the labels as a choice under [interactive_menu.md](../rules/interactive_menu.md)"),
         ("rules/chat.md", "otherwise the choices plus a `blocked` report to the terminal"),
-        ("AGENTS.md", "rules/interactive_menu.md ``` In Default mode, Codex has no blocking picker"),
+        ("AGENTS.md", "rules/interactive_menu.md ``` Use `request_user_input` whenever this turn lists it"),
     ],
 )
 def test_decision_points_use_the_one_rule(relative: str, pointer: str) -> None:
