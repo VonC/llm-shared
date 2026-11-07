@@ -98,12 +98,18 @@ emphasis markers, and the resulting warnings surface far from their cause:
   warning, even thousands of lines away.
 
 Write bold text with `**`, never with `__`, and never use `_` or `*` for
-emphasis around a code-like name. Before appending to a document that several
-authors or tools write, such as a review transcript, read its earlier lines
-the same way: when the linter already expects underscores, look for the bare
-name that set that style and wrap it in backticks; when that line belongs to
-generated or protocol content you must not edit, match the expected style in
-your own lines instead.
+emphasis around a code-like name. `**` is the bold style of every document, so
+an MD050 warning reading `Expected: underscore; Actual: asterisk` is never
+fixed by switching the bold to `__`. It means a bare Python-style name, such as
+`__init__.py`, `__main__` or `__name__`, sits earlier in the document and set
+the underscore style. Search the document for it (`rg -n "__[A-Za-z]" <file>`
+lists the candidates), wrap it in backticks, and lint again until the warning
+is gone.
+
+Before appending to a document that several authors or tools write, such as a
+review transcript, read its earlier lines the same way. When the bare name sits
+in generated or protocol content you must not edit, keep `**` in your own lines
+and report the remaining warning at the commit gate instead of hiding it.
 
 ## Validate a Markdown document with markdownlint
 
@@ -130,7 +136,10 @@ the fixed files, refresh the commit plan if its membership changed, and only
 then ask. Never present the commit choice while a finding remains, and never
 disable a rule or add an exception comment to make a file pass. In a document
 that several authors or tools append to, fix only the lines this work added,
-following the earlier section on code-like names and bold text.
+following the earlier section on code-like names and bold text. The only
+finding that may remain is one in a line this work must not edit, such as
+generated or protocol content: name it, with its file and line, in the commit
+question itself.
 
 ## No em dash
 
