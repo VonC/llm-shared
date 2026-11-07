@@ -11,6 +11,13 @@ colliding top-level package names, so exposing llm-shared's repository root or
 installing its Python 3.13 project is unsuitable. This design separates the
 policies and supplies prepared-environment activation without either dependency.
 
+A pytest plugin is a Python module registered with pytest for execution hooks.
+The gate receives setup-through-teardown hooks for measurement; the audit
+tracks lifecycle and fixture execution for process permissions. A loader is
+the startup module that validates the selected checks and registers them in
+the consuming project's pytest process. Environment preparation only makes
+that later loading possible; it must not import either policy into itself.
+
 The requirement's Q01-Q16 decisions remain authoritative. The design decisions
 table records Q01-Q09 confirmed on 2026-11-06 and Q10 confirmed on 2026-11-07.
 Independent review converged in round 6 before the user authorized consolidation.
@@ -68,22 +75,49 @@ Today, llm-shared's conftest loads the combined suite policy, while consumer
 pytest runs have neither policy. Groundhog executes the consumer's pytest;
 its own interpreter does not determine the test interpreter.
 
-The target flow is:
+For a consuming project with its own virtual environment, the target flow is:
 
-```text
-project senv declares selection and calls shared preparation
-    -> independent loader cache and dedicated policy directory on PYTHONPATH
-    -> early pytest loader in PYTEST_ADDOPTS
-    -> selected plugins preflighted and registered once
-    -> project pytest collects and runs in its own interpreter
+1. Its `senv.bat` chooses the project interpreter and declares the safeguards.
+2. The shared environment builder normalizes selection, verifies the needed
+   source files and loader cache, and computes the environment result. These
+   checks read sources; they do not import the policy modules.
+3. For shell activation, a Windows transport adapter encodes that successful
+   result for the calling batch shell. The launcher applies it only after
+   preparation succeeds. Escaping and temporary-output cleanup belong to this
+   transfer boundary: a child Python process cannot mutate its parent shell.
+4. Ordinary pytest starts with the dedicated directories on `PYTHONPATH` and
+   the loader selected through `PYTEST_ADDOPTS`.
+5. Inside that pytest process, the loader validates the project binding and
+   every selected policy before registering them. Pytest then runs the tests
+   with the selected lifecycle hooks and reporting.
+6. Groundhog uses the same builder for every pytest stage, passing its result
+   directly as the child environment. It bypasses Windows transport and never
+   imports the policies into the long-lived groundhog process.
 
-groundhog test stage
-    -> same selection and preparation contract in child environment
-    -> same project pytest and plugin identities
+```mermaid
+flowchart TD
+    S["Project senv: interpreter and selection"] --> B["Shared environment builder"]
+    G["Groundhog: next pytest stage"] --> B
+    B -->|Shell route| W["Windows result transport"]
+    W --> E["Calling shell applies successful result"]
+    E --> P["Project pytest starts"]
+    B -->|Groundhog route| C["Pass environment directly to child"]
+    C --> P
+    P --> L["Loader validates and registers selected plugins"]
+    L --> T["Test setup, execution, teardown and reports"]
 ```
 
 The loader carries no policy. Each selected policy supplies its own startup
 validation, runtime hooks and reporting. Unselected policies are not imported.
+
+The builder's result is shared by both routes; the shell adapter only formats
+and transfers it. It must not implement a second selection or preparation
+algorithm. The implementation plan's Q02=B1 assigns that Windows boundary to
+`tools/pytest_plugin_shell.py`, with its own focused tests. A value containing
+spaces, percent, exclamation, caret, ampersand or quotes must survive transfer
+unchanged; preparation failure must not expose partial new settings.
+These follow from preserving unrelated environment entries (Q02) and
+publishing no partial activation (Q08); they add no design decision.
 
 ## Import and activation boundary for v0.14.0 consumers
 
@@ -483,6 +517,16 @@ reduction and full runs without selection or early stop to enumerate offenders.
 Update `instructions/write-fast-python-tests.md` with the shared enforcement
 contract. Present documentation categories in explanation, tutorials, how-to
 guides, reference order; preserve each page's existing Diataxis purpose.
+
+## File-based IO cost clarification for the v0.14.0 lifecycle design
+
+Preparation reads the named loader/policy sources, verifies or atomically
+publishes a loader-only hash entry, and never scans documentation or creates an
+artifact home. Each session/worker loads artifact configuration and its initial
+record once; audit checks and measurements use in-memory state. Fixture
+validation indexes the collected registry once, and the controller retains one
+record write per run. Fresh executable compatibility preflight remains required
+for every declared day/full invocation, including saved-proof paths.
 
 ## Acceptance cases for the v0.14.0 shared lifecycle design
 

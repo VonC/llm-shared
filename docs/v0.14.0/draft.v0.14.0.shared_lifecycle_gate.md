@@ -3,6 +3,38 @@
 - Type: feature-request
 - Test group: whole suite
 
+## What pytest plugins contribute to this feature
+
+This feature makes llm-shared's existing test safeguards available to other
+projects: lifecycle timing and process-start auditing. A pytest plugin is a
+Python module that pytest registers to receive execution hooks, including test
+setup, execution and teardown. Those hooks let the safeguards enforce the
+whole lifecycle rather than relying on the test-writing instructions alone.
+
+The two safeguards become independently selectable plugins. A consuming
+project can select timing, process auditing, both or neither, while keeping its
+own Python environment and pytest. A prepared shell is the project's ordinary
+shell after its `senv.bat` has activated that environment and prepared the
+selected shared checks. No llm-shared package installation is required.
+
+The settled requirement and design refine this draft's original import-route
+exploration into the following process:
+
+1. The project selects its safeguards and activates its own Python environment.
+2. Shared preparation computes the paths, selection and pytest startup options.
+   It does not import the safeguards into the preparation process.
+3. A Windows adapter transfers the complete successful result to the calling
+   shell. It handles shell characters and temporary-output cleanup.
+4. Ordinary pytest starts in the project's interpreter. A small loader checks
+   the selection and shared modules, then registers the selected plugins.
+5. The plugins enforce test lifecycles and report results. Groundhog, the
+   shared test-loop tool, uses the same preparation for each pytest child but
+   passes environment settings directly when starting that child.
+
+The [requirement](feature-request.v0.14.0.shared_lifecycle_gate.md) defines the
+behavior; the [design](design.v0.14.0.shared_lifecycle_gate.md) explains its
+components; the [plan](plan.v0.14.0.shared_lifecycle_gate.md) assigns the work.
+
 ## Why the gate should leave llm-shared's own suite
 
 llm-shared's tests run under a gate. Each test lifecycle, setup through
@@ -44,6 +76,9 @@ Checked on 2026-11-03, the answer is nothing:
   3.13. One has pytest-xdist; six have Hypothesis.
 
 ## Intent
+
+These bullets retain the original draft's proposals. The current activation
+route is explained above and specified in the settled requirement and design.
 
 - One shared plugin, opt-in per project. A project that does nothing sees no
   change in any test run.
