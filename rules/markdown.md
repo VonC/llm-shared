@@ -147,3 +147,46 @@ Forms to avoid:
 | -------- | -------- |
 | value 1  | value 2  |
 ```
+
+## Mermaid diagrams that Codex can draw
+
+Codex draws a fenced `mermaid` block in its terminal with its own small
+renderer, [`codex-rs/mermaid`](https://github.com/openai/codex/tree/main/codex-rs/mermaid),
+whose limits are fixed in its code (Codex 0.167.0): no setting raises them.
+Past a limit, Codex shows the diagram's source under one of these notices,
+not a drawing:
+
+- "This Mermaid diagram exceeds the terminal renderer's size limits."
+- "This Mermaid diagram uses features the terminal renderer doesn't support."
+- "This Mermaid diagram doesn't fit the current terminal width."
+
+A document can end up in a Codex terminal as well as an answer, so write every
+Mermaid diagram as a `flowchart` within these limits:
+
+- Each line of a node label holds at most 40 columns. Split a longer label
+  with `<br>` inside its double quotes, each part counting on its own:
+  `A["Consumer senv:<br>own Python + selected checks"]`, not
+  `A["Consumer senv: own Python + selected checks"]` (43 columns).
+- An edge label is one line of at most 40 columns, without `<br>`:
+  `A -->|reads| B` or `A -- reads --> B`. Keep it to a word or two: its width
+  widens the whole diagram.
+- At most 16 nodes and 24 edges. `A & B --> C & D` counts as four edges.
+- Use only the node shapes `A["text"]`, `A{"text"}` and `A(["text"])`, and
+  the links `-->`, `---`, `-.->`, `-.-`, `<-->` and `<-.->`. Other shapes,
+  such as `A[(text)]` or `A[[text]]`, and links such as `==>`, `--o` or `--x`
+  are refused.
+- No `subgraph`, `style`, `classDef`, `class`, `linkStyle`, `click` or
+  `%%{init: ...}%%` line, no Markdown string (``A["`text`"]``), no HTML tag
+  other than `<br>`, and no entity such as `#quot;` or `&amp;`. Write a label
+  holding punctuation between double quotes, and never put a `"` inside it.
+- Prefer `flowchart TD`. The renderer draws every node in one column, in the
+  order the nodes first appear, with each edge in its own lane beside them.
+  The width is the longest node label line plus 4, plus the longest edge
+  label plus 5, plus 2 per edge, minus 1: keep it under 80 columns.
+  `flowchart LR` puts every node on one row, as wide as all the boxes
+  together, and soon no longer fits.
+- Two flows that no edge connects make two diagrams, each one shorter.
+
+Count the widest label line, the nodes and the edges before writing the
+diagram. For example, 12 nodes, 11 edges, no edge label and a widest line of
+38 columns give a diagram 68 columns wide (38 + 4 + 0 + 5 + 22 - 1).
