@@ -20,19 +20,73 @@ the user sees what is being decided before the question itself. Write
 | Questions | {question {k} of {B} in this batch, {first-id} to {last-id}; {U} of {Q} questions in the document still undecided} |
 | Review | {live exchange, round and gate, or no live exchange} |
 
-## Progress and explanation
+## Progress and status of the question
 
-**{question-id}/{last-question-id} {percentage}% — {question title}**
+### {question-id}/{last-question-id} {percentage}% — {question title}
 
 Status: awaiting your decision. Progress indicates position in this batch.
 
-{Explain the concrete behavior being decided and why it matters.}
+## The bigger picture around this question
 
-**Example**
+Render this section before every question, from the continuation note's
+big-picture section, as the instruction's "Compose the big picture shown
+before every question" describes. Only the marked step, the labelled diagram
+node and the close-up change from one question to the next. Use plain
+language, and define each tool-specific term where it first appears.
+
+{For an umbrella item: the umbrella's goal, its items with the completed ones,
+and what this item adds to it. Omit this paragraph for a standalone topic.}
+
+The purpose of this {feature or fix} is to **{what the project is for}**. We
+are reviewing the {document type} for it, `{version} {slug}`.
+{Implementation state, such as "Implementation has not started."}
+
+{Today and after: what exists now, and what the project changes.}
+
+| {Part} | {What it does} |
+| --- | --- |
+| {part} | {behavior} |
+
+### How {who} will use {the result}
+
+{An ordinary concrete case, such as "Consider an ordinary project with its own
+source, tests and virtual environment."}
+
+1. **{First step}** {What happens, and who or what does it.}
+2. **{Step of this question}** {What happens.} This is the part involved in **{question-id}**.
+3. **{Next step}** {What happens.}
+
+```mermaid
+flowchart TD
+    A["{first step}"] --> Q["{step of this question}: {question-id}"]
+    Q --> N["{next step}"]
+    R["{another route into the flow}"] --> N
+```
+
+### {Close-up title for each part next to the marked step}
+
+{What it computes or checks, and the earlier decisions that constrain it,
+cited by ID and choice, such as `Q01=A3`.}
+
+## The question in that picture
+
+### What {question-id} is asking
+
+{At the marked step, the concrete behavior being decided and why it matters.
+Separate the behavior already required from what this question still chooses.}
+
+### Notions you asked about, in more detail
+
+{For each notion in the continuation note's notions section that this question
+involves: explain it again in more detail than last time, how it applies to
+this question, and where the documents now introduce it. Omit this part when
+the question involves none.}
+
+### Example
 
 {A realistic scenario showing the consequences of the choice.}
 
-**BBQ explanation**
+### BBQ explanation
 
 {A short analogy. Close with an explicit mapping from each analogy element
 to the real concept; do not make the user infer the correspondence.}
@@ -42,13 +96,20 @@ to the real concept; do not make the user infer the correspondence.}
 | A | {behavior} | {pros} | {cons} |
 | B | {behavior} | {pros} | {cons} |
 
-**Recommendation: {option}**
+### Recommendation: {option}
 
 {Reasoning, assumptions, and relevant earlier decisions.}
 
-**Effects on other questions**
+### Effects on other questions
 
 {Affected decisions, conditional questions, and possible follow-up issues.}
+
+### Where the choice lands
+
+{The plan or rollout step that carries the choice, such as step 4 of 7, with
+the steps before and after it.}
+
+{question-id} remains open: no choice has been recorded.
 
 ## Decision prompt
 

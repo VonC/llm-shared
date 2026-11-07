@@ -35,14 +35,24 @@ the displayed question still needs your answer. Answering or pausing does not
 reset the starting position. The [scanner reference](../reference/question-decisions.md)
 defines navigation and the progress formula.
 
-Each explanation covers the behavior, a realistic example, an analogy, the
-options and tradeoffs, a recommendation, and effects on related questions.
+Each explanation first places the question in the project. After a table of
+where it sits and its status, it describes the bigger picture: the umbrella's
+goal when there is one, then the topic's purpose, a walkthrough of how the
+result will be used and a flow diagram, both marking the step this question
+concerns. Every question gets this picture, so you can read any one of them
+on its own. The explanation then covers the behavior, a realistic example, an
+analogy, the options and tradeoffs, a recommendation, effects on related
+questions, and the plan step where the choice lands.
 It ends with a choice your host presents, such as a Claude Code question
 dialog, so the agent shows as waiting for you rather than done. Codex in
 Default mode has no such dialog: it lists the options and reports a `blocked`
 status to your terminal, which tuios and Windows Terminal show. Pick an
-option, or type your qualifications or a clarification request. The agent
-records your explicit decision and comments in that question's answer. It keeps
+option, or type your qualifications or a clarification request. When you ask
+what a notion means, the agent explains it, then introduces it in the umbrella
+draft, the topic draft and the effort's documents up to the one under review,
+and explains it again, in more detail, in every later question that involves
+it. The agent records your explicit decision and comments in that question's
+answer. It keeps
 the question, options, and original recommendation. A deferred question remains
 undecided; dependent questions still need explicit decisions.
 

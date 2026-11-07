@@ -22,9 +22,10 @@ the user may request explanations directly; retain the independent-review gate
 for the later handoff and do not claim independent convergence occurred.
 
 Selecting `Explain undecided questions`, or explicitly invoking this skill,
-authorizes recording the user's answers and a follow-up independent review
-after all questions are decided. Tell the user this when starting. It does not
-authorize consolidation. Honor a later hold or scope correction.
+authorizes recording the user's answers, introducing the notions the user asks
+about in the effort's documents, and a follow-up independent review after all
+questions are decided. Tell the user this when starting. It does not authorize
+consolidation. Honor a later hold or scope correction.
 
 Run the read-only scanner from the consuming project:
 
@@ -77,6 +78,63 @@ outside any umbrella reads `none, standalone topic`. Add the document path and
 type, the batch range and the review identity. Write `not resolved` for a value
 neither source establishes; never guess it.
 
+## Compose the big picture shown before every question
+
+The context table says where a question sits, not what the project is for or
+how the behavior being decided fits into it. A user who reads specification
+questions one at a time loses that picture. So, after the context table and
+the question's status, every explanation describes the project around the
+question, from the widest scope down to the question, and only then explains
+the question itself.
+
+Compose the picture once per batch, after gathering the context, from these
+sources read in this order:
+
+1. The umbrella draft, when the topic belongs to one: its goal, its items in
+   table order with the completed ones, and what this item adds to it.
+2. The topic draft: the situation it starts from and the outcome it asks for.
+3. The effort's other documents in the same effort directory: the feature
+   request or issue, the design and the plan, whichever exist, with their
+   settled decisions. For a plan question, read the plan's step list too.
+
+Save the result in the continuation note's big-picture section: the purpose,
+the numbered walkthrough steps, and the step or component each batch question
+concerns. Write `not resolved` for a part no source establishes;
+never fill a gap with a guess. Recompose it after a resume, and after a
+recorded decision that changes the flow.
+
+Render it before every question of the batch, not only the first: the user may
+read each question on its own. From one question to the next, only the marked
+step, the diagram's labelled node, the close-up and the question part change.
+Write it in plain language, as these parts in this order:
+
+- Purpose: one bold sentence on what the project is for, the document under
+  review, and the implementation state, such as
+  `Implementation has not started`. For an umbrella item, start with the
+  umbrella's goal and this item's place among its items, then the topic's own
+  purpose.
+- Today and after: what exists now and what the project changes, with a short
+  table of its main parts when it has several.
+- Terms: define each tool-specific word the explanation relies on where it
+  first appears, such as what pytest calls a plugin. A notion the user already
+  asked about gets the fuller explanation that
+  [the notions section](#explain-a-notion-the-user-asks-about) requires.
+- Walkthrough: a numbered end-to-end flow of how someone uses the result, on an
+  ordinary concrete case, with the step this question concerns marked by its
+  ID, such as `This is the part involved in Q02`.
+- Flow diagram: a small diagram of that flow and of the other routes into it,
+  such as a Mermaid flowchart, with the question's node labelled with its ID.
+- Close-up: the parts next to the question's step, what they compute or check,
+  and the earlier decisions that constrain them, cited by ID and choice, such
+  as `Q01=A3`.
+- The question: what it asks at that step, separating the behavior already
+  required from what is still to choose, then the options, and where the
+  choice lands in the plan or rollout, such as step 4 of 7, with the steps
+  before and after it.
+
+Keep each part short for a small topic: a few sentences, a few walkthrough
+steps. The picture places the decision; it does not widen what is decided.
+
 ## Explain one question and record one decision
 
 For a new batch, save `I` as the first undecided question's **position** and
@@ -101,14 +159,19 @@ percentage. Skip already decided questions without changing `I` or renumbering.
    full block and dependencies, including any relevant earlier user comments.
 2. Explain it with [question-explanation.template.md](../templates/question-explanation.template.md):
    the saved context table first, with this question's position and the
-   current undecided count, then concrete behavior, realistic example, options
-   and tradeoffs, recommendation, and effects on other questions. Keep it
-   within the document's scope.
+   current undecided count, then its status, then
+   the big picture with this question's step marked, as
+   [composed above](#compose-the-big-picture-shown-before-every-question),
+   then concrete behavior, realistic example, options and tradeoffs,
+   recommendation, effects on other questions, and where the choice lands.
+   Keep the decision within the document's scope; its context comes from the
+   umbrella, the draft and the effort's other documents too.
 3. Save `awaiting-user-decision`, the question ID, and whether the explanation
    was delivered. Then end the turn with an actual choice, as
    [ask for the decision](#ask-for-the-decision-as-a-choice) describes, and
    wait for its answer. Do not answer on their behalf or advance because they
-   asked for more explanation.
+   asked for more explanation. A question about a notion follows
+   [Explain a notion the user asks about](#explain-a-notion-the-user-asks-about).
 4. On an explicit choice, update only that question's answer and necessary
    clarifications. Replace its active pending marker with
    `User decision: confirmed — <choice and agreed qualifications>`, with the
@@ -125,11 +188,44 @@ percentage. Skip already decided questions without changing `I` or renumbering.
    `--after Qxx` is a navigation aid only; earlier unresolved questions still
    count. Persist `explaining` with the next question, or the final phase below.
 
-Targeted answer/clarification edits are authorized here; do not run `oqm --strip`
-or regenerate the entire question section merely to record an answer. Keep
-decision comments in the document, with a concise change list in the private
-note for the next review request. If an answer reopens an earlier decision,
+Targeted answer/clarification edits, and the notion introductions below, are
+authorized here; do not run `oqm --strip` or regenerate the entire question
+section merely to record an answer. Keep decision comments in the document,
+with a concise change list in the private note for the next review request. If an answer reopens an earlier decision,
 record that explicitly rather than retaining a misleading confirmed status.
+
+## Explain a notion the user asks about
+
+While a question awaits a decision, the user may ask what a notion means: a
+term, a component or a mechanism the explanation relies on. An answer given
+only in the chat leaves the documents with the same gap for their next reader.
+So answer it in the chat, then:
+
+1. Introduce and explain the notion in every document of the effort that
+   relies on it, from the widest to the narrowest: the umbrella draft when
+   there is one, the topic draft, then the requirement, the design and the
+   plan, up to and including the document under review. Do not create a
+   document the effort has not reached yet. Place the explanation where the
+   notion first appears in each document, at that document's level: what it
+   is and why it matters in a draft, how it behaves in the requirement, how it
+   is built in the design, where it is built in the plan.
+2. Change only how the notion is introduced and explained. Keep every
+   decision, question ID, option, recommendation and recorded answer as they
+   are. When an explanation would change a decision, raise that with the user
+   as a question instead.
+3. Record the notion in the continuation note's notions section: its name, a
+   short definition, the question that raised it, and each document and
+   section updated. Refresh the note's document digest after the edit, and
+   add the edits to the change list, so the follow-up review examines them
+   with the decisions.
+4. Return to the pending question and ask its choice again, as
+   [ask for the decision](#ask-for-the-decision-as-a-choice) describes.
+
+Every later question of the batch, or of a later batch on the same document,
+that involves a recorded notion explains it again where it first appears in
+that explanation, in more detail than the previous time: what it is, how it
+applies to this question, and where the documents now introduce it. Never
+treat one explanation as having made a notion familiar.
 
 ## Ask for the decision as a choice
 
@@ -192,7 +288,8 @@ Unless the user has placed a hold, use the already recorded follow-up authority:
   contact a reviewer session; role isolation still applies.
 
 The replacement request must identify the decided questions, recorded comments,
-and changes since convergence, and ask for full-specification consistency,
+and changes since convergence, including the notion introductions in each
+document, and ask for full-specification consistency,
 effects on earlier decisions and related documents, and missing/new questions.
 Reviewer recommendations cannot overwrite human choices; surface conflicts.
 Use the ordinary requestor publication and exact-answer wait. Before publishing
@@ -211,7 +308,8 @@ another-review choices. All decisions plus review never auto-consolidate.
 [pause-session.md](pause-session.md) copies the phase, fixed `I` and endpoint,
 current/next IDs, decision status, follow-up authority, and exact next action
 into its snapshot, linking the continuation note. Resume rescans, gathers the
-question context again, and reconciles:
+question context again, recomposes the big picture from its sources, and
+reconciles:
 
 - `explaining`: explain the first still-undecided question using saved `I`.
 - `awaiting-user-decision`: restore the pending question; retain any delivered

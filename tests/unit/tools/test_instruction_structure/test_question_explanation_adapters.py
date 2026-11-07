@@ -14,6 +14,19 @@ path and the template.
 Fix: without a blocking choice (Codex Default mode), the chat list now comes
 with a ``blocked`` report to the terminal, and the answer with ``working``
 before it is recorded, both under ``rules/interactive_menu.md``.
+
+Fix: a user reading one question at a time lost the bigger picture. After its
+status, every explanation now describes the project around the question,
+umbrella first, then the topic draft and the effort's documents, with an
+end-to-end walkthrough and a flow diagram marking the question's step, before
+the question itself. Two tests pin that order in the instruction, the template
+and the state note, and its recomposition on resume.
+
+Fix: a notion the user asks about was explained in the chat only. It is now
+introduced in the umbrella draft, the topic draft and the effort's documents
+up to the one under review, without changing any decision, recorded in the
+note, and explained again in more detail by every later question involving
+it. The last test pins those rules, the template part and the note section.
 """
 
 from __future__ import annotations
@@ -119,6 +132,78 @@ def test_every_explanation_ends_with_a_native_choice() -> None:
         "Never pre-record the recommended option",
     ):
         assert required in decision
+
+
+def _ordered(text: str, *markers: str) -> list[int]:
+    """Return each marker's first index in ``text``, failing on a missing one."""
+    return [text.index(marker) for marker in markers]
+
+
+def test_every_explanation_places_the_question_in_the_big_picture() -> None:
+    """The instruction composes the umbrella, draft and flow picture shown before every question."""
+    instruction = (ROOT / "instructions" / f"{SKILL}.md").read_text(encoding="utf-8")
+    section = instruction.split("## Compose the big picture shown before every question", 1)[1].split("\n## ", 1)[0]
+    sources = _ordered(section, "1. The umbrella draft", "2. The topic draft", "3. The effort's other documents")
+    assert sources == sorted(sources)
+    parts = _ordered(section, "- Purpose:", "- Today and after:", "- Terms:", "- Walkthrough:", "- Flow diagram:", "- Close-up:", "- The question:")
+    assert parts == sorted(parts)
+    for required in ("before every question", "`not resolved`", "never fill a gap", "`Q01=A3`", "big-picture section"):
+        assert required in section
+    step = instruction.split("2. Explain it with", 1)[1].split("\n3. ", 1)[0]
+    assert "the big picture with this question's step marked" in step
+    assert "Keep the decision within the document's scope" in step
+    resume = instruction.split("## Pause and resume", 1)[1]
+    assert "recomposes the big picture" in resume
+
+
+def test_the_templates_render_and_save_the_big_picture() -> None:
+    """The template shows the picture after the status; the state note saves it."""
+    template = (ROOT / "templates/question-explanation.template.md").read_text(encoding="utf-8")
+    order = _ordered(
+        template,
+        "## Where this question sits",
+        "Status: awaiting your decision.",
+        "## The bigger picture around this question",
+        "{For an umbrella item",
+        "This is the part involved in **{question-id}**",
+        "```mermaid",
+        "### What {question-id} is asking",
+        "### Example",
+        "### Where the choice lands",
+        "## Decision prompt",
+    )
+    assert order == sorted(order)
+    state = (ROOT / "templates/question-explanation-state.template.md").read_text(encoding="utf-8")
+    picture = state.split("## Big picture shown before each question", 1)[1].split("\n## ", 1)[0]
+    for field in ("- Sources and refresh:", "- Purpose:", "- Walkthrough steps:", "- Step of each batch question:"):
+        assert field in picture
+
+
+def test_an_asked_notion_reaches_every_document_and_returns_in_more_detail() -> None:
+    """A notion the user asks about is written into the effort's documents and re-explained later."""
+    instruction = (ROOT / "instructions" / f"{SKILL}.md").read_text(encoding="utf-8")
+    section = instruction.split("## Explain a notion the user asks about", 1)[1].split("\n## ", 1)[0]
+    documents = _ordered(section, "the umbrella draft when", "the topic draft", "the requirement", "the design", "the\n   plan")
+    assert documents == sorted(documents)
+    for required in (
+        "up to and including the document under review",
+        "Do not create a\n   document the effort has not reached yet",
+        "Keep every\n   decision, question ID, option, recommendation and recorded answer",
+        "notions section",
+        "the follow-up review examines them",
+        "in more detail than the previous time",
+    ):
+        assert required in section
+    assert "introducing the notions the user asks\nabout" in instruction
+    step = instruction.split("3. Save `awaiting-user-decision`", 1)[1].split("\n4. ", 1)[0]
+    assert "(#explain-a-notion-the-user-asks-about)" in step
+    assert "including the notion introductions" in instruction.split("## Finish with a fresh independent review", 1)[1]
+    template = (ROOT / "templates/question-explanation.template.md").read_text(encoding="utf-8")
+    order = _ordered(template, "### What {question-id} is asking", "### Notions you asked about, in more detail", "### Example")
+    assert order == sorted(order)
+    state = (ROOT / "templates/question-explanation-state.template.md").read_text(encoding="utf-8")
+    notions = state.split("## Notions explained to the user", 1)[1].split("\n## ", 1)[0]
+    assert "raised at {question ID}; introduced in" in notions
 
 
 # eof

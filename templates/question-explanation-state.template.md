@@ -28,6 +28,25 @@ review protocol artifact. Replace all placeholders; never save capabilities.
 - Reviewed batch evidence: {none or convergence round and document identity}
 - Next action: {one concrete action and its prerequisite}
 
+## Big picture shown before each question
+
+Composed once per batch, as the instruction's "Compose the big picture shown
+before every question" describes; recomposed after a resume or a decision that
+changes the flow. Write `not resolved` for a part no source establishes.
+
+- Sources and refresh: {umbrella draft, topic draft and effort documents read, with timestamp}
+- Purpose: {umbrella goal and this item's place, then the topic's purpose and implementation state}
+- Walkthrough steps: {numbered end-to-end steps on an ordinary concrete case}
+- Step of each batch question: {question ID, then the walkthrough step or component it concerns}
+
+## Notions explained to the user
+
+One entry per notion the user asked about, as the instruction's "Explain a
+notion the user asks about" describes. Every later question that involves one
+explains it again, in more detail.
+
+- {notion}: {short definition}; raised at {question ID}; introduced in {each document path and section updated}
+
 ## Decisions and comments to include in the review
 
 {Question IDs, user decisions, rationale, comments, dependencies and possible
