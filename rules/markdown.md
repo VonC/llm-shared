@@ -72,10 +72,38 @@ Group 2:
 ```
 
 That avoids "`MD032/blanks-around-lists: Lists should be surrounded by blank lines`".
+The usual slip is a generated report or review answer where a sentence such as
+`The commands agree:` is followed on the very next line by `- first command`:
+insert the empty line between them.
 
 Do not use 3 or 4 spaces for sub-list before the list item, always 2 spaces more than the parent item list.
 
 Do not use in comments/docstring `'`, always `'`
+
+## Code-like names and bold text
+
+Wrap every file name, path, identifier, option or command fragment that
+contains `_` or `*` in backticks, in prose, list items, table cells and
+headings alike: `__init__.py`, `src/pkg/__init__.py`, `_load_state`,
+`store_reader.py`, `--max_items`. Markdown otherwise reads those characters as
+emphasis markers, and the resulting warnings surface far from their cause:
+
+- "`MD037/no-space-in-emphasis: Spaces inside emphasis markers`": two bare
+  names such as `_load_state` and `_save_state` on one line open and close an
+  emphasis whose text starts or ends with a space.
+- "`MD050/strong-style: Strong style [Expected: underscore; Actual: asterisk]`":
+  a bare `__init__` is read as bold text written with underscores. The
+  default `consistent` style takes the first bold marker of the document as
+  its norm, so that hidden underscore turns every later `**bold**` into a
+  warning, even thousands of lines away.
+
+Write bold text with `**`, never with `__`, and never use `_` or `*` for
+emphasis around a code-like name. Before appending to a document that several
+authors or tools write, such as a review transcript, read its earlier lines
+the same way: when the linter already expects underscores, look for the bare
+name that set that style and wrap it in backticks; when that line belongs to
+generated or protocol content you must not edit, match the expected style in
+your own lines instead.
 
 ## Validate a Markdown document with markdownlint
 
