@@ -19,6 +19,12 @@ declaration mechanics and validation-step launch mechanics remain design work.
 
 ## Current behavior in v0.13.0 for the lifecycle gate
 
+A pytest plugin is a Python module registered with pytest to receive its
+execution hooks. Here, the lifecycle gate uses those hooks to measure setup
+through teardown; the process audit uses lifecycle and fixture boundaries to
+check process starts. Loading the plugins means activating these checks inside
+the project's pytest process.
+
 - llm-shared's own suite runs under a lifecycle gate. Each test lifecycle,
   setup through teardown, stays at or under a CPU ceiling
   (`test_lifecycle_limit`, default 0.1 s) and a wall limit
@@ -62,6 +68,35 @@ declaration mechanics and validation-step launch mechanics remain design work.
   project's duration floor.
 
 ## Gap to close in the implementation for the shared lifecycle gate
+
+### End-to-end use of the shared pytest safeguards
+
+The feature makes the existing own-suite safeguards available to an ordinary
+consuming project with its own source, tests and Python environment:
+
+1. The project explicitly selects timing, process auditing or both in its
+   `senv.bat`, which activates the project's own interpreter.
+2. Shared preparation computes the selected checks' import paths and pytest
+   startup settings. Preparation itself does not import the checks.
+3. For an ordinary shell, the preparation launcher transfers only a complete
+   successful result to that calling shell, preserving spaces and shell
+   metacharacters in values and cleaning up its temporary transfer output.
+   A child preparation process cannot directly change its parent shell.
+4. The user runs ordinary pytest in that prepared shell. A loader runs inside
+   the project's pytest process, checks the selected modules and registers the
+   safeguards before tests. Missing selected enforcement stops startup.
+5. The selected checks enforce test setup, execution and teardown and produce
+   their existing reports and, where applicable, the per-checkout record.
+6. Groundhog, the shared test-loop tool, prepares every pytest stage through
+   the same contract. It passes the result directly as the child's environment
+   and does not need Windows shell serialization.
+
+This activates pytest extensions, without installing llm-shared into the
+consumer or switching that consumer's interpreter. Selecting neither adds no
+enforcement. The design's [activation boundary](design.v0.14.0.shared_lifecycle_gate.md#import-and-activation-boundary-for-v0140-consumers)
+describes the modules and environment values used to meet this behavior.
+
+### Required changes for independently selected safeguards
 
 1. Provide two independently selected shared pytest plugins: the lifecycle
    gate and the process audit. A project declares its opt-in, and its prepared
@@ -280,6 +315,14 @@ limits, gradual reduction, and why only a full run without selection or
 early-stop options can list every offender. Document validated interpreter and
 platform versions and unvalidated platforms as stated above. Keep consumer
 identities and private paths out of all public evidence and documentation.
+
+## File-based IO cost clarification for the shared lifecycle requirement
+
+Activation must use the declared environment and named bootstrap/policy inputs,
+without scanning project documentation. Keep per-test measurement and process
+authorization in memory. Preserve one controller record write per run and the
+strict, record-free outcome when no valid artifact home already exists. These
+clarifications preserve the accepted contracts; they add no new timing limit.
 
 ## Acceptance criteria for the shared lifecycle gate
 
