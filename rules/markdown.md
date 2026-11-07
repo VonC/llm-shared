@@ -107,13 +107,30 @@ your own lines instead.
 
 ## Validate a Markdown document with markdownlint
 
-After writing or editing a Markdown document, you can validate it with `markdownlint-cli2`. Node.js does not need to be on the `PATH` beforehand: the Node versions installed under `%PRGS%\nodes` are available, and the `switchnode` senv utility puts the chosen one first in the `PATH` for that shell. From the project root, so the repository's `.markdownlint.json` applies:
+After writing or editing a Markdown document, validate it with `markdownlint-cli2`. Node.js does not need to be on the `PATH` beforehand: the Node versions installed under `%PRGS%\nodes` are available, and the `switchnode` senv utility puts the chosen one first in the `PATH` for that shell. From the project root, so the repository's `.markdownlint.json` applies:
 
 ```bat
 cmd /c "switchnode 22 && npx --yes markdownlint-cli2 my_markdown_document_to_validate.md"
 ```
 
 Several files or a glob can follow the command name. Exit code `0` with `Summary: 0 issues` means the document is clean; any other result lists each finding as `path:line rule/name description`, to fix in the file. Run the call from PowerShell or `cmd.exe`, never from Git Bash, which rewrites `/c` into a path and runs nothing.
+
+## Lint every new or modified Markdown file before asking to commit
+
+Before presenting any choice that commits (the go-ahead menu of a grouped
+commit plan, a review convergence gate, or any other confirmation that leads
+to a commit), lint every Markdown file the commit would add or modify with the
+command above, and fix every finding first. Include the modified Markdown
+files that the same workflow commits later, such as a review transcript kept
+unstaged for a residual commit: the person approving the commit approves those
+too. List them with `git status --porcelain -- "*.md"` rather than from memory.
+
+Fixing a finding is part of preparing the commit, not a later cleanup: restage
+the fixed files, refresh the commit plan if its membership changed, and only
+then ask. Never present the commit choice while a finding remains, and never
+disable a rule or add an exception comment to make a file pass. In a document
+that several authors or tools append to, fix only the lines this work added,
+following the earlier section on code-like names and bold text.
 
 ## No em dash
 
