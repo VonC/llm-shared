@@ -124,6 +124,11 @@ Write it in plain language, as these parts in this order:
   ID, such as `This is the part involved in Q02`.
 - Flow diagram: a small diagram of that flow and of the other routes into it,
   such as a Mermaid flowchart, with the question's node labelled with its ID.
+  A Mermaid diagram follows
+  [the Mermaid rules](../rules/markdown.md#mermaid-diagrams-that-codex-can-draw),
+  or Codex shows its source instead of drawing it: at most 40 columns per
+  label line, split with `<br>`, at most 16 nodes and 24 edges, no `subgraph`
+  or `style`, and `flowchart TD` kept under 80 columns.
 - Close-up: the parts next to the question's step, what they compute or check,
   and the earlier decisions that constrain them, cited by ID and choice, such
   as `Q01=A3`.

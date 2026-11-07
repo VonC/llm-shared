@@ -22,6 +22,12 @@ end-to-end walkthrough and a flow diagram marking the question's step, before
 the question itself. Two tests pin that order in the instruction, the template
 and the state note, and its recomposition on resume.
 
+Fix: a flow diagram past the limits of Codex's terminal renderer showed as
+source under "This Mermaid diagram exceeds the terminal renderer's size
+limits.". The flow diagram part now links the Mermaid rules of
+``rules/markdown.md``. A test pins those limits, the link, and the template
+diagram within them.
+
 Fix: a notion the user asks about was explained in the chat only. It is now
 introduced in the umbrella draft, the topic draft and the effort's documents
 up to the one under review, without changing any decision, recorded in the
@@ -31,12 +37,16 @@ it. The last test pins those rules, the template part and the note section.
 
 from __future__ import annotations
 
+import re
+
 import pytest
 
 from tools import prompt_workflow_steps as steps
 
 ROOT = steps.llm_shared_dir()
 SKILL = "explain-undecided-questions"
+# Codex's terminal Mermaid renderer refuses a wider label line (MAX_LABEL).
+MERMAID_LABEL_COLUMNS = 40
 
 
 @pytest.mark.parametrize(
@@ -177,6 +187,31 @@ def test_the_templates_render_and_save_the_big_picture() -> None:
     picture = state.split("## Big picture shown before each question", 1)[1].split("\n## ", 1)[0]
     for field in ("- Sources and refresh:", "- Purpose:", "- Walkthrough steps:", "- Step of each batch question:"):
         assert field in picture
+
+
+def test_flow_diagrams_stay_within_what_codex_can_draw() -> None:
+    """The Mermaid rules give Codex's limits; the instruction and the template diagram follow them."""
+    rules = (ROOT / "rules/markdown.md").read_text(encoding="utf-8")
+    section = rules.split("## Mermaid diagrams that Codex can draw", 1)[1].split("\n## ", 1)[0]
+    for required in (
+        "at most 40 columns",
+        "with `<br>`",
+        "At most 16 nodes and 24 edges",
+        "No `subgraph`",
+        "Prefer `flowchart TD`",
+        "under 80 columns",
+    ):
+        assert required in section
+    instruction = (ROOT / "instructions" / f"{SKILL}.md").read_text(encoding="utf-8")
+    part = instruction.split("- Flow diagram:", 1)[1].split("\n- ", 1)[0]
+    assert "(../rules/markdown.md#mermaid-diagrams-that-codex-can-draw)" in part
+    template = (ROOT / "templates/question-explanation.template.md").read_text(encoding="utf-8")
+    diagram = template.split("```mermaid\n", 1)[1].split("```", 1)[0]
+    assert diagram.startswith("flowchart TD")
+    assert "subgraph" not in diagram
+    labels = re.findall(r'\["([^"]*)"\]', diagram)
+    assert labels
+    assert all(len(line) <= MERMAID_LABEL_COLUMNS for label in labels for line in re.split(r"<br\s*/?>", label))
 
 
 def test_an_asked_notion_reaches_every_document_and_returns_in_more_detail() -> None:
