@@ -60,7 +60,7 @@ Add in each step a reference to a new section which describes how to do the "exe
 
 Mutualize your "ready-to-run-command", and add a reference to it in each step. Run the command printed by `pw scope day`, through [`run-pw.md`](run-pw.md), so the current requirement supplies the selector at execution time. Never freeze a group selector in the plan. The default walk runs check.bat plus affected tests and deliberately skips full; follow its printed repair and restart lines until it reports the requested objective (see `GROUNDHOG.md`). Use the same resolver in shared gate loops and completion criteria. Do not plan direct `check.bat` or `pytest` calls; groundhog is in charge of check and tests.
 
-Prepare also an `<effort-dir>\plan.vX.Y.Z.{topic}.validation.md` skeleton, with subsections Goal for step x (you can fill out this one), "Step x improvement expectations" (you can fill out this one), "What was implemented for Step x" (leave it empty for now), "New types/classes introduced for Step x" (leave it empty), "Architecture check for Step x" (empty), "Performance check for step" (empty), "Feature integrity for step" (empty). Each section left empty in this initial skeleton holds the literal placeholder `_(empty — no check has taken place yet.)_.` (note the trailing period after the closing `_`, explained under "Markdown lint workarounds" below). Do not include a "Missing work for Step x" section in the skeleton: no check has taken place yet, and only an implementation check that concludes "No, it is not implemented" adds that section.
+Prepare also an `<effort-dir>\plan.vX.Y.Z.{topic}.validation.md` skeleton, with subsections Goal for step x (you can fill out this one), "Step x improvement expectations" (you can fill out this one), "What was implemented for Step x" (leave it empty for now), "New types/classes introduced for Step x" (leave it empty), "Architecture check for Step x" (empty), "Performance check for step" (empty), "Security check for Step x" (empty), "Unit test coverage check for Step x" (empty), "Feature integrity for step" (empty). Each section left empty in this initial skeleton holds the literal placeholder `_(empty — no check has taken place yet.)_.` (note the trailing period after the closing `_`, explained under "Markdown lint workarounds" below). Do not include a "Missing work for Step x" section in the skeleton: no check has taken place yet, and only an implementation check that concludes "No, it is not implemented" adds that section.
 
 Follow the steps detailed in `<effort-dir>\plan.vX.Y.Z.{topic}.md`.
 
@@ -76,9 +76,20 @@ Do a final pass on plan: do we need a step 0 with `pytest.mark.timeout` time-bou
 
 If yes, do add those patches.
 
-## Final step: Acceptance tests
+## Pre-final step: Acceptance tests
 
-Make sure the final step includes acceptance tests (larger than unit test, like integration tests) that are able to validate the features are working as expected.
+Make sure the plan includes acceptance tests (larger than unit test, like integration tests) that are able to validate the features are working as expected before the security review.
+
+## Mandatory Pre-Closure Step: Security & OWASP Top 10 Review
+
+Every implementation plan MUST include a dedicated security review step before closing the effort (as the final step following or concluding acceptance tests). This step evaluates the cumulative diff of the entire effort against the OWASP Top 10 to ensure that no side effect of the new code introduces a vulnerability or security regression.
+
+The security review step must:
+
+1. Audit all modified entry points, data flows, and external integrations against the OWASP Top 10 (broken access control, injection flaws, cryptographic failures, insecure design, security misconfigurations, vulnerable components, identification/authentication, software/data integrity, logging failures, SSRF).
+2. Validate that untrusted inputs are sanitized, path traversal is impossible, shell calls use safe execution, and no secrets or credentials are leaked in code, tests, or logs.
+3. Verify that all automated security checks (such as pre-commit sensitive-content checks or security linters) pass cleanly.
+4. Record findings in the validation plan's OWASP Top 10 audit matrix with a strict pass/fail verdict. Any Critical or High severity finding requires remediation before the effort can be marked implemented.
 
 ## Markdown lint workarounds for the plan documents
 
@@ -96,7 +107,7 @@ documents:
 
 The initial validation skeleton fills every not-yet-checked section (`What was
 implemented`, `New types or classes introduced`, `Architecture check`,
-`Performance check`, `Unit test coverage check`, `Feature integrity`) with that
+`Performance check`, `Security check`, `Unit test coverage check`, `Feature integrity`) with that
 exact placeholder, `_(empty — no check has taken place yet.)_.`, and opens each
 step's `Analysis of Step N implementation state` with the sentence "Not started.
 Step N is not implemented because ...". An implementation check later replaces the

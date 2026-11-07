@@ -55,11 +55,14 @@ The table is the machine-readable, authoritative delivery index:
 After the table, add `### Requirement details for the umbrella`. For every row,
 add one numbered H4 section in the same order. State its type, key title, slug,
 what content was regrouped into it, why that boundary and title were chosen,
+its security sensitivity profile (`critical`, `elevated`, or `standard`),
 and which earlier items it depends on. Preserve concrete rules, examples, and
 constraints from the source draft.
 
 Review the final order so the most independent requirement is first and each
-dependent requirement follows everything it needs. The order is an execution
+dependent requirement follows everything it needs. When an effort includes security-foundational
+items (such as authentication boundaries, permission checks, or input sanitizers),
+schedule them before the features that rely on those protections. The order is an execution
 contract: `pw skill --after-merge` and `process-draft` always select the first
 pending row.
 
