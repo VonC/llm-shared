@@ -64,7 +64,17 @@ self-locate and do not need an `senv.bat` pre-call.
 
    The tool rewrites `a.commit` in place. An exit status of 0 means the file is now canonically formatted (whether or not changes were applied); a non-zero status means the file is missing or unreadable and the underlying issue must be fixed before proceeding.
 
-7. After `a.commit` is formatted and every intended path is staged, run the
+7. After `a.commit` is formatted and every intended path is staged, lint every
+   new or modified Markdown file this commit adds or changes, and every
+   modified Markdown file the same workflow commits later (such as a review
+   transcript kept for a residual commit), as
+   [`../rules/markdown.md`](../rules/markdown.md) requires under "Lint every new
+   or modified Markdown file before asking to commit". List them with
+   `git status --porcelain -- "*.md"`. Fix every finding, restage, and format
+   `a.commit` again when its membership changed: no commit choice is presented
+   while a finding remains.
+
+   Then run the
    focused read-only readiness checker, `commit-plan-check.bat --format json`,
    from the project root through its full path:
 

@@ -244,6 +244,13 @@ answers remain evidence at the human gate.
 ## Commit-ready convergence and human authority
 
 At a commit-ready answer, perform no validation walk and start no new round.
+Before presenting the gate, lint every new or modified Markdown file of the
+staged set and the versioned review transcript, as
+[`../rules/markdown.md`](../rules/markdown.md) requires under "Lint every new
+or modified Markdown file before asking to commit", and fix every finding.
+Those fixes are polishing-only: restage the staged files, leave the transcript
+unstaged for its residual commit, and rerun the readiness checker. Never show
+`Commit` while a finding remains.
 Compare the current requirement and group definitions with the round's bound
 scope and disclose any pending scope difference at this gate. Such changes
 are not polishing. Show the bound scope, current scope and changed definitions.
