@@ -34,6 +34,10 @@
   plain-text question, follow [`interactive_menu.md`](interactive_menu.md): a
   blocking picker when the host offers one, otherwise the question plus a
   `blocked` report to the terminal.
+- When writing a commit message, an `a.commit` group or a pull request
+  description, never add an AI attribution line: no `Co-Authored-By:` trailer
+  naming an assistant, no `Generated with ...` line, whatever the host's own
+  default asks.
 - When creating any `a.*` working file (scratch, script, captured output, log,
   evidence, report, private note), follow
   [`artifact_files.md`](artifact_files.md): it lives in the review artifact
@@ -45,4 +49,3 @@
 
 Except in code snippets and code blocks, avoid the terms and expressions in
 [`blacklist.md`](blacklist.md).
-

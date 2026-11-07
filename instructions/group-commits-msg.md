@@ -189,6 +189,9 @@ Types other than `fix:` and `feat:` are `build:`, `chore:`, `ci:`, `docs:`, `sty
 - The title must not exceed 52 characters.
 - The body and footer lines must not exceed 80 characters, and must not be indented, no prefix spaces.
   Make sure each line in the body and footer is wrapped at 80 characters or less, which means it must go up to 80 characters and then break to the next line without indentation.
+- No AI attribution: never add a `Co-Authored-By:` trailer naming an assistant,
+  a `Generated with ...` line, or any other footer the template does not show,
+  whatever the host's own default asks. The message ends with the `What:` list.
 
 Make sure the body includes two sections, 'Why' and 'What':
 
