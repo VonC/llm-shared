@@ -75,6 +75,7 @@ def test_commit_gates_settle_every_spelling_finding_with_the_user() -> None:
         "`Add to settings.json`, then `Replace with <suggestion>`",
         'bin\\spellcheck.bat" add-words <word>',
         "no `cSpell.ignoreRegExpList` pattern, no `cspell:ignore` or `cspell:disable` comment",
+        "else cspell 9.8.0 on a Node 20.18 or later",
         "`dwl_inst_ver node 22`",
     ):
         assert required in spelling

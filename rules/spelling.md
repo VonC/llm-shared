@@ -29,8 +29,13 @@ extension (such as the French one), and runs the cspell command line on Node.
 | `1` | A table lists each unknown word, its `file:line:column` locations and the cSpell suggestions |
 | `2` | Operational error, printed on stderr: report it and stop |
 
-A Node older than 22.18 is an operational error: install a recent Node 22
-with the senv tools (`dwl_inst_ver node 22`), never by hand.
+The launcher sets up Node by itself: it takes `node` from the `PATH`, else the
+newest senv `%PRGS%\nodes\node<N>` link, puts it first on the `PATH` of its
+npm and cspell runs, and uses cspell 10.4.1 on a Node 22.18 or later, else
+cspell 9.8.0 on a Node 20.18 or later. The first run installs that cspell into
+llm-shared's `venvs` folder, which needs the npm registry once. Only a machine
+without a Node 20.18 or later is an operational error: install one with the
+senv tools (`dwl_inst_ver node 22`), never by hand.
 
 ## Settle every reported word with the user
 

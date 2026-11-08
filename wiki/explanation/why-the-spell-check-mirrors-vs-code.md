@@ -50,14 +50,17 @@ or replaced. The suggestions cSpell offers for code names are often useless
 (`collecteront` for `collectreport`), which is why the user, not the agent,
 picks between the two.
 
-## 🐢 A pinned cspell on a recent Node
+## 🐢 A pinned cspell on the Node at hand
 
 The check pins cspell 10, the major version of the extension's engine, and
-installs it once in llm-shared's ignored `venvs` folder. It needs Node 22.18
-or later, taken from the `PATH` or from the senv `%PRGS%\nodes\node<N>`
-links, so a machine updates Node through senv like any other tool. Calling
-`node.exe` directly, instead of `npx` or `switchnode`, keeps one check of a
-commit's files to a few seconds.
+installs it once in llm-shared's ignored `venvs` folder. cspell 10 needs Node
+22.18 or later; on an older Node 20.18 or later, the check pins cspell 9
+instead, which reported the same words on the same review transcript. It
+takes Node from the `PATH` or from the senv `%PRGS%\nodes\node<N>` links and
+puts it first on the `PATH` of npm and cspell, so a commit gate never stops
+because a machine has not upgraded Node yet. Calling `node.exe` directly,
+instead of `npx` or `switchnode`, keeps one check of a commit's files to a few
+seconds.
 
 To run the check, see
 [Settle spelling before a commit](../how-to/settle-spelling-before-a-commit.md);

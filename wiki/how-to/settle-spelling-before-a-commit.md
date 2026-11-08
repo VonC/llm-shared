@@ -17,15 +17,17 @@ replaced. Source code is not spell-checked.
 
 ## 🧰 Before the first check
 
-1. Check that a Node 22.18 or later is installed. If the check reports
-   `needs Node 22.18 or later`, install one through senv:
+1. Nothing to set up on a machine with senv Node: the launcher finds Node
+   (22.18 or later for cspell 10, else 20.18 or later for cspell 9) and puts
+   it first on the `PATH` of its own runs. Only if it reports
+   `cspell needs Node 20.18 or later`, install one through senv:
 
    ```cmd
    dwl_inst_ver node 22
    ```
 
-2. Nothing else: the first check installs the pinned cspell into llm-shared's
-   `venvs` folder by itself.
+2. The first check installs the pinned cspell into llm-shared's `venvs`
+   folder by itself, which needs the npm registry once.
 
 ## 📋 Steps
 

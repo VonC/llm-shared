@@ -52,8 +52,8 @@ trailing commas.
 
 | Item | Value |
 | --- | --- |
-| cspell | `10.4.1`, installed on first use into `<LLM_SHARED_DIR>\venvs\cspell_10.4.1` with the npm of the chosen Node |
-| Node | 22.18 or later: `node` from the `PATH` first, then `%PRGS%\nodes\node<N>\node.exe`, highest `N` first |
+| cspell | `10.4.1` on a Node 22.18 or later, else `9.8.0` on a Node 20.18 or later; installed on first use into `<LLM_SHARED_DIR>\venvs\cspell_<version>` with the npm of the chosen Node |
+| Node | `node` from the `PATH` first, then `%PRGS%\nodes\node<N>\node.exe`, highest `N` first; the first that runs cspell 10, else the first that runs cspell 9; put first on the `PATH` of npm and cspell |
 | Report | cspell's JSON reporter, with up to five suggestions per word, preferred ones first |
 | Temporary file | the merged configuration, written to the system temporary folder and removed after the run |
 
