@@ -33,14 +33,19 @@ it builds on the item 1 foundation described in
   source model and the `version.txt` anchor document.
 - **Step 3 goal**: the version configuration schema, participating roots,
   pattern sources and the claim registry that combines every detector.
-- **Step 4 goal**: the Python and uv adapter with its TOML scanner and the
-  recorded uv compatibility evidence that backs its registered lock schemas.
-- **Step 5 goal**: the npm adapter with its JSON scanner and the recorded npm
-  compatibility evidence for lock formats 2 and 3.
-- **Step 6 goal**: the Maven reactor adapter with its expat byte-offset scanner.
-- **Step 7 goal**: the recoverable transition: locked planning, recovery
+- **Step 4 goal**: the recoverable transition: locked planning, recovery
   evidence, ordered writes, verification, completion boundary, restoration and
-  lifecycle reuse.
+  lifecycle reuse, with its restoration contract proven on the anchor and
+  pattern sources.
+- **Step 5 goal**: the Python and uv adapter with its TOML scanner, the
+  recorded uv compatibility evidence that backs its registered lock schemas,
+  and its restoration contract cases.
+- **Step 6 goal**: the npm adapter with its JSON scanner, the recorded npm
+  compatibility evidence for lock formats 2 and 3, and its restoration
+  contract cases.
+- **Step 7 goal**: the Maven reactor adapter, split into reactor discovery and
+  reference rules, with its expat byte-offset scanner and its restoration
+  contract cases.
 - **Step 8 goal**: the stable and snapshot tag classifier, the range selector
   and the release-version rule.
 - **Step 9 goal**: the shipped `version` and `versions` commands, the
@@ -268,20 +273,28 @@ lock at the old version, to check that the tool notices a missed lock field.
 A planning probe on 2026-11-07, in a scratch directory outside the
 repository, confirmed that the evidence the design prescribes can be produced
 on this host. It is feasibility evidence for this plan, not the recorded
-evidence of Steps 4 and 5.
+evidence of Steps 5 and 6.
 
 | Tool and version | Lock schema | Layout | Frozen command | Observed |
 | --- | --- | --- | --- | --- |
 | uv 0.13.4 (x86_64-pc-windows-msvc), in this checkout's venv | `version = 1`, `revision = 5` (written by `uv lock --offline`) | virtual root (`[tool.uv] package = false`, `source = { virtual = "." }`) and editable root (hatchling `[build-system]`, `source = { editable = "." }`) | `uv lock --locked --offline --no-config --python <project interpreter>` | before pair and version-only edited pair: exit 0, both files unchanged; manifest-only edit: exit 1, "needs to be updated" |
 | uv 0.13.4 | `version = 1`, `revision = 3` (same lock with the revision line set to 3; llm-shared's own `uv.lock` uses this pair) | virtual and editable roots | same | same outcomes |
-| npm 10.8.3 on Node 22.9.0 (`C:\Public\SOFTWARE\nodes\node22`) | `lockfileVersion` 3, and 2 through `--lockfile-version 2` | root package, `private: true`, no dependencies | `npm ci --offline --ignore-scripts --no-audit --no-fund` | before and edited pairs: exit 0, both files unchanged; manifest-only edit also exit 0 |
+| npm 10.8.3 on Node 22.9.0 (the host's Node 22 installation) | `lockfileVersion` 3, and 2 through `--lockfile-version 2` | root package, `private: true`, no dependencies | `npm ci --offline --ignore-scripts --no-audit --no-fund` | before and edited pairs: exit 0, both files unchanged; manifest-only edit also exit 0 |
 
 uv 0.13.4 writes revision 5 for a fresh lock and accepts revision 3 locks
 unchanged; both consumer revisions come from that uv version. npm's frozen
-install does not compare the root version, so the npm records prove that the
-tool still accepts the edited pair, not that it would detect a missed field;
-the adapter tests carry the field-level proof. Node 10 and 14 installations
-(npm 6) exist on the host but are not used: lock format 1 is rejected.
+install does not compare the root version, so `npm ci` alone proves that the
+tool still accepts the edited pair, not that it would detect a missed field.
+Node 10 and 14 installations (npm 6) exist on the host but are not used: lock
+format 1 is rejected.
+
+A second npm probe the same day ran `npm install --package-lock-only --offline
+--ignore-scripts --no-audit --no-fund` on the probe projects. On a consistent
+pair it left `package-lock.json` unchanged; on the manifest-only control it
+rewrote the lock with the new root version and kept its format (2 or 3). Per
+plan decision Q05, the npm records therefore keep `npm ci` as the frozen-mode run
+and add this lock-only check on the "before" pair, the edited pair and the
+control. The adapter tests still carry the field-level proof.
 
 ---
 
@@ -307,13 +320,13 @@ New test leaf directories to create for v0.14.0 version-sources (each with an
 - `tests/unit/tools/release_workflow/test_version_settings/` (Step 3).
 - `tests/unit/tools/release_workflow/test_pattern_sources/` (Step 3).
 - `tests/unit/tools/release_workflow/test_version_detection/` (Step 3).
-- `tests/unit/tools/release_workflow/test_version_formats/` (Steps 4 to 6).
-- `tests/unit/tools/release_workflow/test_python_sources/` (Step 4).
-- `tests/unit/tools/release_workflow/test_version_lock_evidence/` (Steps 4 and 5).
-- `tests/unit/tools/release_workflow/test_npm_sources/` (Step 5).
-- `tests/unit/tools/release_workflow/test_maven_sources/` (Step 6).
-- `tests/unit/tools/release_workflow/test_version_evidence/` (Step 7).
-- `tests/unit/tools/release_workflow/test_version_transition/` (Step 7).
+- `tests/unit/tools/release_workflow/test_version_formats/` (Steps 5 to 7).
+- `tests/unit/tools/release_workflow/test_python_sources/` (Step 5).
+- `tests/unit/tools/release_workflow/test_version_lock_evidence/` (Steps 5 and 6).
+- `tests/unit/tools/release_workflow/test_npm_sources/` (Step 6).
+- `tests/unit/tools/release_workflow/test_maven_sources/` (Step 7).
+- `tests/unit/tools/release_workflow/test_version_evidence/` (Step 4).
+- `tests/unit/tools/release_workflow/test_version_transition/` (Step 4).
 - `tests/unit/tools/release_workflow/test_release_tags/` (Step 8).
 - `tests/unit/tools/release_workflow/test_version_commands/` (Step 9).
 - `tests/unit/tools/release_workflow/test_version_acceptance/` (Step 9).
@@ -329,7 +342,7 @@ New test leaf directories to create for v0.14.0 version-sources (each with an
   per-transition evidence directory, holding `original.<n>` copies and
   `manifest.json` (local time with offset; no `:` in the directory name). It
   is created exclusively; a name already taken gets a `-2`, `-3` and so on
-  suffix, and an existing directory is never reused (Step 7).
+  suffix, and an existing directory is never reused (Step 4).
   Covered by the same `.gitignore`; a standalone success deletes it.
 - `tests/unit/tools/release_workflow/test_version_lock_evidence/lock_evidence.v1.json`:
   committed evidence data, not runtime output. It holds generic project names,
@@ -389,7 +402,7 @@ environment variable.
   time). Follow its repair and restart lines until `exit=0`. The default level
   runs `check.bat` plus affected tests and deliberately skips full.
 - Final coverage proof (Step 9): `scope day --full=cov`, executed the same way.
-- Recorder (Steps 4 and 5, outside pytest, from the project root):
+- Recorder (Steps 5 and 6, outside pytest, from the project root):
   `& .\venvs\<project venv>\Scripts\python.exe -m tests.unit.tools.release_workflow.lock_evidence_recorder --uv <uv.exe> --python <project python.exe> --npm <npm.cmd> --node-dir <node 22 directory> --output tests\unit\tools\release_workflow\test_version_lock_evidence\lock_evidence.v1.json`.
 
 No step schedules a direct `pytest` or `check.bat` call.
@@ -424,7 +437,7 @@ duration exclusion.
   parents, tags with object type and annotation) from which the typed
   observations are answered, without interpreting Git arguments.
 - **Shared builders**: `tests/unit/tools/release_workflow/version_support.py`
-  (Step 2, extended through Step 7) writes small byte templates for each
+  (created in Step 2, extended by Steps 3 to 9) writes small byte templates for each
   ecosystem file (LF and CRLF variants, optional byte-order mark), builds a
   `VersionInputs` value from a `git_sandbox` project, and declares evidence
   directories and lock records as prerequisites instead of replaying a killed
@@ -441,12 +454,18 @@ duration exclusion.
   (integer triples, short ASCII line lists) so each property stays inside the
   lifecycle budget without lowering its example budget. Finite domains, such as
   the failure position among N writes, use exhaustive parametrization instead.
-- **Fault injection**: the transition takes its replacement function (default
+- **Fault injection**: the transition takes one `TransitionPorts` value
+  (plan decision Q07) carrying its replacement function (default
   `managed_files.replace_bytes`), file and directory removal, lock factory,
-  process probe, clock and process id as explicit seams (Q07 proposes one
-  `TransitionPorts` value for them); tests inject a failure at a chosen write,
-  removal, release or restoration index and fix the evidence name. No
-  module-global patch replaces a production default silently.
+  process probe, clock and process id, each with its production default; tests
+  inject a failure at a chosen write, removal, release or restoration index and
+  fix the evidence name. No module-global patch replaces a production default
+  silently.
+- **Restoration contract per adapter** (plan decision Q01): Step 4 proves the
+  transition's restoration on the anchor and pattern fixture sets; Steps 5, 6
+  and 7 each add their own adapter's fixture set to the same exhaustive
+  failure-position matrix, so every adapter step completes its AC3 contract
+  set (detection, read, expected form, write and failure restoration).
 
 ---
 
@@ -490,7 +509,7 @@ Step framing:
 - Design link: "Foundation changes required by the version domain",
   "Commands and their arguments", "Public statuses of the version commands",
   "Reuse by a lifecycle caller", "Git queries of the selector", "Undeclared
-  nested candidates"; decisions Q04, Q07, Q15.
+  nested candidates"; design decisions Q04, Q07, Q15.
 - Execution checklist reference: [Shared execution command checklist for all
   v0.14.0 version-sources steps](#shared-execution-command-checklist-for-all-v0140-version-sources-steps).
 
@@ -532,6 +551,12 @@ Step framing:
 - Launchers: extend the source-contract block of `test_codepage_tdd.py` with
   the `"3"` line for both launchers. Transport: a test handler returning 3 with
   a diagnostic passes through `launcher_tooling.run` with status 3.
+- Status consistency (plan decision Q12): one test in `test_codepage_tdd.py`
+  compares the statuses accepted by the four sites (`results.render`,
+  `bootstrap.main` and both launchers, read through the existing
+  source-contract mechanism) and requires the same set, `{0, 1, 2, 3}`; it
+  compares accepted values, not one textual spelling. Like every test of this
+  plan, it runs only in llm-shared's development suite.
 - Lock: `verify_held` returns the prepared artifacts for the current holder;
   it fails for a released handle, a handle taken for another project root, a
   declaration whose home differs, a record replaced by another owner, a
@@ -546,6 +571,13 @@ Step framing:
   `malformed object name refs/tags/<name>` for `--merged`, which raises
   `GitRevisionNotFound`; an exit 129 with other stderr stays a
   `GitCommandError`.
+- Command-line guard (plan decision Q13): `independent_commits` refuses, before
+  any process start, a candidate list whose serialized command line would
+  exceed 32,767 UTF-16 code units including the terminating NUL; boundary
+  cases just below, at and just above the limit, each with 40- and
+  64-character object ids and a long executable path, assert the refusal
+  (`GitCommandLineTooLong`, status 1, naming the limit and the candidate
+  count) and that the recording `run` saw no call.
 - PBT: not needed in this step; the token and status domains are finite and
   parametrized exhaustively.
 
@@ -581,7 +613,13 @@ Step framing:
   so a missing tag target becomes status 2 in Step 8 without a second query;
   every other failure stays a plain `GitCommandError` (status 1).
 - `GitExecutionContext.independent_commits(commits, *, cwd)`: one
-  `merge-base --independent`.
+  `merge-base --independent`. Before starting it, the method builds the exact
+  command line the call would use (`subprocess.list2cmdline` over the selected
+  executable, the fixed `run` prefix options and the arguments), measures it in
+  UTF-16 code units including the terminating NUL, and raises
+  `GitCommandLineTooLong` (execution failure, status 1) above 32,767, naming
+  the limit and the candidate count (plan decision Q13). The four-call ceiling of a
+  selection stays.
 - `GitExecutionContext.tag_names(*, cwd, merged, not_merged)`: one
   `for-each-ref --merged=<target> --no-merged=<baseline>` over `refs/tags`.
 - `GitExecutionContext.commit_count(revision_range, *, cwd)`: one
@@ -602,6 +640,8 @@ Step framing:
   pass-through line in both launchers;
   `rg -n '0, 1, 2, 3' tools/release_workflow/results.py tools/release_workflow/bootstrap.py`
   shows both public lists.
+- The cross-site status test passes and fails when one site's list is changed
+  in a synthetic copy (plan decision Q12).
 - `rg -n 'subprocess|Popen' tests/unit/tools/release_workflow/repository_simulation.py`
   finds no process start.
 - `cli.SHIPPED_HANDLERS` is still empty.
@@ -615,11 +655,11 @@ Line-budget checkpoint:
 - [ ] `tools/release_workflow/results.py`: before 51; below-550 safe; ceiling <= 650; expected +2 (advisory).
 - [ ] `tools/release_workflow/bootstrap.py`: before 199; below-550 safe; ceiling <= 650; expected +1 (advisory).
 - [ ] `tools/release_workflow/operation_lock.py`: before 233; below-550 safe; ceiling <= 650; expected +35 (advisory).
-- [ ] `tools/release_workflow/git.py`: before 185; below-550 safe; ceiling <= 650; expected +105 (advisory).
+- [ ] `tools/release_workflow/git.py`: before 185; below-550 safe; ceiling <= 650; expected +125 with the command-line guard (advisory).
 - [ ] `tests/unit/tools/release_workflow/repository_simulation.py`: before 148; below-550 safe; ceiling <= 650; expected +110 (advisory).
 - [ ] `tests/unit/tools/release_workflow/launcher_simulation.py`: before 179; below-550 safe; ceiling <= 650; expected +20 (advisory).
-- [ ] Updated test files: before 123, 177, 40, 189, 109, 104 and 285; below-550 safe; ceiling <= 650; expected +80, +12, +5, +6, +1, +10 and +65 (advisory).
-- [ ] `tests/unit/tools/release_workflow/test_git/test_git_releases_tdd.py`: before 0; ceiling <= 650; expected 220 (advisory).
+- [ ] Updated test files: before 123, 177, 40, 189, 109, 104 and 285; below-550 safe; ceiling <= 650; expected +80, +12, +5, +6, +25 (with the cross-site status test), +10 and +65 (advisory).
+- [ ] `tests/unit/tools/release_workflow/test_git/test_git_releases_tdd.py`: before 0; ceiling <= 650; expected 260 with the guard's boundary cases (advisory).
 - [ ] Both launchers: 78 lines each; non-Python, no Python ceiling.
 
 Split guidance:
@@ -674,7 +714,7 @@ Step framing:
 
 - Design link: "Version token grammar and comparison", "The version.txt
   document", "Forms by adapter", "The release-only guard", "The explicit
-  adapter tuple", "What an adapter provides"; decision Q16; AC1, AC2, AC3, AC7.
+  adapter tuple", "What an adapter provides"; design decision Q16; AC1, AC2, AC3, AC7.
 - Execution checklist reference: [Shared execution command checklist for all
   v0.14.0 version-sources steps](#shared-execution-command-checklist-for-all-v0140-version-sources-steps).
 
@@ -762,7 +802,7 @@ Step framing:
   pattern adapter first maps its LF-view offsets back to original character
   offsets in the same walk. Expat already reports byte indexes and does not
   use it.
-- Shared types for every later step (Q16 proposes this owner): `VersionInputs`
+- Shared types for every later step (plan decision Q16): `VersionInputs`
   (project, configuration, artifacts, Git) with `from_context(context)`, the
   context type imported for type checking only; `FileCapture` (path, original
   bytes or `None` when absent, SHA-256); `SourceChange` (path, field, adapter,
@@ -850,7 +890,7 @@ Step framing:
 
 - Design link: "Configuration of the version domain in .release.ini",
   "Combining all detectors", "Participating roots", "Pattern sources",
-  "Undeclared nested candidates"; decisions Q09, Q10, Q13, Q14, Q15; AC4, AC5,
+  "Undeclared nested candidates"; design decisions Q09, Q10, Q13, Q14, Q15; AC4, AC5,
   AC6, AC10, AC12.
 - Execution checklist reference: [Shared execution command checklist for all
   v0.14.0 version-sources steps](#shared-execution-command-checklist-for-all-v0140-version-sources-steps).
@@ -977,9 +1017,195 @@ Time-gated status for Step 3:
 
 ---
 
-### Step 4. Python and uv adapter with recorded uv evidence
+### Step 4. Recoverable version transition
 
-#### Step 4 -- analysis and intent for the Python and uv adapter
+#### Step 4 -- analysis and intent for the transition
+
+Issues to address:
+
+- Item 1 replaces one file atomically but has no multi-file transaction,
+  evidence, verification or restoration.
+- Item 5 needs the same primitive with its own lock and transaction identity.
+
+Fix intent:
+
+- An evidence module that writes, reads, marks and deletes the
+  per-transition directory, and classifies leftover evidence.
+- A transition module that plans without side effects, then under the lock
+  checks evidence, replans, writes evidence, replaces files in order with
+  `version.txt` last, verifies, marks completion, cleans up or restores, and
+  reports one of five outcomes.
+
+Expected outcome:
+
+- A failure before the first overwrite leaves sources unchanged and no
+  evidence; a failure after it restores every replaced file (status 1) or
+  reports each unrestored source and its retained copy (status 3).
+- A same-target clean run takes and releases the lock and reports `unchanged`
+  without writing a source; `writing` evidence stops the next `set` even for
+  the same target.
+- A lifecycle call keeps its `complete` evidence and receives a restore handle.
+
+Step framing:
+
+- Design link: "Target flow of the version commands", "The recoverable version
+  transition" and its subsections; design decisions Q04, Q05, Q06, Q07, Q17; AC3,
+  AC11.
+- Execution checklist reference: [Shared execution command checklist for all
+  v0.14.0 version-sources steps](#shared-execution-command-checklist-for-all-v0140-version-sources-steps).
+
+#### Step 4 -- implementation for the transition
+
+**Files involved**:
+
+- `tools/release_workflow/version_evidence.py` (new, to be created).
+- `tools/release_workflow/version_transition.py` (new, to be created).
+- `tests/unit/tools/release_workflow/version_support.py` (existing, to be updated).
+- `tests/unit/tools/release_workflow/test_version_evidence/__init__.py` (new, to be created).
+- `tests/unit/tools/release_workflow/test_version_evidence/test_version_evidence_tdd.py` (new, to be created).
+- `tests/unit/tools/release_workflow/test_version_transition/__init__.py` (new, to be created).
+- `tests/unit/tools/release_workflow/test_version_transition/test_version_transition_tdd.py` (new, to be created).
+- `tests/unit/tools/release_workflow/test_version_transition/test_version_restoration_tdd.py` (new, to be created).
+- `tests/unit/tools/release_workflow/test_version_transition/test_version_lifecycle_tdd.py` (new, to be created).
+
+**Tests first**:
+
+- Evidence: a written directory holds one copy per participating file and a
+  manifest with owner, paths, SHA-256, existence, target and state `writing`;
+  a failure while writing removes the partial directory; marking `complete` and
+  `restoration-incomplete` replaces the manifest atomically; deletion removes
+  copies first and the manifest last; listing classifies standalone complete
+  residue, interrupted, unreadable (including duplicate JSON keys) and
+  lifecycle-owned evidence; the listing reads only the artifact home, not
+  recursively.
+- Evidence allocation (plan decision Q17): two allocations with the
+  same injected clock and process id get distinct directories, the second
+  with the next sequence suffix; a declared pre-existing directory of that
+  name, complete or partial (no manifest, or copies only), is skipped and its
+  bytes stay identical; reaching the attempt limit fails before any source
+  write with status 1 and no partial evidence; an existing evidence directory
+  is never written into.
+- Transition: a side-effect-free plan failure (unsupported arrangement,
+  overlapping claim, release-only refusal) leaves no artifact home, lock or
+  evidence; a held lock fails with status 1 naming the owner; standalone
+  complete residue is removed with a warning before the plan; interrupted,
+  unreadable and foreign lifecycle evidence stop with status 2 naming the
+  directory, even when the locked plan is empty; an empty locked plan reports
+  `unchanged`; a successful run writes in path order with `version.txt` last,
+  verifies in a fresh view, marks complete, deletes the evidence and releases
+  the lock; the changes list carries old and new values.
+- Restoration (`test_version_restoration_tdd.py`): for the anchor and pattern
+  fixture sets available at this step, and a synthetic file with two disjoint
+  claims, a failure injected at every write position (exhaustive
+  parametrization) restores the replaced files, verifies them, deletes the
+  evidence and returns status 1; the parametrization is a registry of fixture
+  sets that Steps 5, 6 and 7 extend with their adapters (plan decision Q01), and
+  Step 7 adds the combined five-file project once every adapter exists; a concurrent change detected
+  before a replacement, a verification failure and a marker failure restore;
+  a failure while restoring returns status 3 with each unrestored source and
+  its retained copy, state `restoration-incomplete`; declared `writing`
+  evidence after the last replacement stops the same-target rerun.
+- Completion-boundary faults (same file): after the durable `complete`
+  marker, a failure deleting an original copy, deleting the manifest or
+  removing the directory, and a failure of the standalone
+  `OperationLock.release()`, each return `applied with cleanup failed`,
+  status 1, with the new source bytes in place, no restoration attempted and a
+  diagnostic naming the actual residue (directory, manifest or lock record);
+  the next `set` removes complete standalone residue. An incomplete
+  restoration followed by a lock-release failure still returns status 3 and
+  names every unrestored path and its retained original; the secondary error
+  is added as a diagnostic and never replaces the primary result.
+- Lifecycle (`test_version_lifecycle_tdd.py`): a supplied held lock is
+  verified, neither acquired nor released; a released handle or one for
+  another project fails before any source read (counting view at zero loads);
+  evidence owned by the transaction is kept `complete` and the restore handle
+  restores the sources with the same routine; the transaction's own earlier
+  evidence is accepted and any other unfinished evidence stops the call; two
+  calls under one lifecycle lock with identical injected clock and process id
+  keep two disjoint evidence directories, and the first restore handle still
+  restores the first call's originals afterwards.
+- PBT: not needed; the failure-position domain is finite and parametrized
+  exhaustively.
+
+**Classes and behavior**:
+
+- `version_evidence.EvidenceManifest` (version 1, owner, target, state,
+  created local timestamp with offset, files with path, SHA-256, existence and
+  copy name), strict decoding that rejects duplicate keys.
+- `version_evidence.allocate(prepared, project, clock, pid) -> ManagedTarget`:
+  authorizes `a.version-transition.<timestamp>-<pid>` in the prepared home and
+  creates it exclusively (`Path.mkdir(exist_ok=False)` on the revalidated
+  target, then revalidation); on `FileExistsError` it tries
+  `<timestamp>-<pid>-2`, `-3` and so on up to a fixed attempt limit, never
+  entering an existing directory. Item 1's `prepare_directory`
+  (`exist_ok=True`) is not used for evidence, and `managed_files` is
+  unchanged.
+- `version_evidence.write_evidence(directory, owner, target, captures) ->
+  EvidenceDirectory` writes copies through `authorize_write` and
+  `replace_bytes`, manifest last; `EvidenceDirectory.mark(state)` and
+  `delete()`; `find_evidence(declaration) -> tuple[EvidenceEntry, ...]`.
+- `VersionInputs`, `FileCapture`, `FileEdit`, `Inventory` and `Plan` come from
+  the Step 2 model (plan decision Q16); this step adds no second definition.
+- `version_transition.TransitionOutcome`: `APPLIED`, `UNCHANGED`, `RESTORED`,
+  `RESTORATION_INCOMPLETE`, `APPLIED_CLEANUP_FAILED`, with statuses 0, 0, 1, 3
+  and 1.
+- `version_transition.TransitionResult` (outcome, changes, diagnostics,
+  `restore: RestoreHandle | None`); `LifecycleOwnership` (held lock,
+  transaction identity); `RestoreHandle.restore()` and `discard()` for item 5.
+- `version_transition.TransitionPorts` (frozen dataclass, plan decision Q07):
+  `replace` (default `managed_files.replace_bytes`), `remove` (managed file
+  and directory removal), `lock_factory` (default `OperationLock`), `probe`
+  (default `process_state`), `clock` (local time with offset) and `pid`
+  (default `os.getpid`).
+- `version_transition.plan_transition(inputs, target) -> Plan` and
+  `set_versions(inputs, target, *, lifecycle=None, ports=TransitionPorts())
+  -> TransitionResult`, following "Ownership and the authoritative plan"
+  through "Restoration and its distinct failure" in order. A standalone run
+  releases its lock on every path after acquisition; a lifecycle run never
+  releases the supplied lock. The primary outcome is fixed before cleanup and
+  release run; their failures only add diagnostics (status 1 after the
+  completion marker, status 3 kept after an incomplete restoration).
+
+**Completion criteria**:
+
+- The command printed by `pw scope day` reports the objective (`exit=0`) in
+  the current effort scope.
+- `rg -n 'os\.replace|write_bytes|unlink' tools/release_workflow/version_transition.py tools/release_workflow/version_evidence.py`
+  shows file changes only through `managed_files` targets.
+- The anchor and pattern contract sets include failure restoration (AC3), and
+  the restoration fixture registry is ready for Steps 5 to 7 to extend.
+
+#### Step 4 -- addendums for the transition
+
+Line-budget checkpoint:
+
+- [ ] `tools/release_workflow/version_evidence.py`: before 0; below-550 safe; ceiling <= 650; expected 300 (advisory).
+- [ ] `tools/release_workflow/version_transition.py`: before 0; below-550 safe; ceiling <= 650; expected 450 (advisory).
+- [ ] `tests/unit/tools/release_workflow/version_support.py`: recount at entry; ceiling <= 650; expected +60 (advisory).
+- [ ] New test files: expected 300, 320, 460 and 240 (advisory); split `test_version_restoration_tdd.py` into a completion-boundary file if it would pass 650.
+
+Split guidance:
+
+- If `version_transition.py` would pass 650, move restoration and cleanup into
+  `tools/release_workflow/version_restoration.py`; planning, ownership and
+  ordered writes stay in `version_transition.py`.
+- If `version_support.py` would pass 650, move the ecosystem byte builders into
+  `version_project_support.py`.
+
+Full workflow timing run readiness:
+
+- `ghog single` on the Step 4 test files, then the command printed by `pw scope day`.
+
+Time-gated status for Step 4:
+
+- No perf gate is affected; each parametrized failure case runs one
+  transition over at most five small files.
+
+---
+
+### Step 5. Python and uv adapter with recorded uv evidence
+
+#### Step 5 -- analysis and intent for the Python and uv adapter
 
 Issues to address:
 
@@ -1009,12 +1235,12 @@ Expected outcome:
 Step framing:
 
 - Design link: "Python with uv", "Locating values with the standard library",
-  "Lock compatibility evidence for supported tools"; decision Q08; AC4, AC6,
+  "Lock compatibility evidence for supported tools"; design decision Q08; AC4, AC6,
   AC8, AC9.
 - Execution checklist reference: [Shared execution command checklist for all
   v0.14.0 version-sources steps](#shared-execution-command-checklist-for-all-v0140-version-sources-steps).
 
-#### Step 4 -- implementation for the Python and uv adapter
+#### Step 5 -- implementation for the Python and uv adapter
 
 **Files involved**:
 
@@ -1033,9 +1259,14 @@ Step framing:
 - `tests/unit/tools/release_workflow/test_version_lock_evidence/__init__.py` (new, to be created).
 - `tests/unit/tools/release_workflow/test_version_lock_evidence/test_version_lock_evidence_tdd.py` (new, to be created).
 - `tests/unit/tools/release_workflow/test_version_lock_evidence/lock_evidence.v1.json` (new, to be created).
+- `tests/unit/tools/release_workflow/test_version_transition/test_version_restoration_tdd.py` (existing, to be updated).
 
 **Tests first**:
 
+- Restoration contract (plan decision Q01): the Python fixture sets (virtual and
+  editable roots with their `uv.lock`) join the Step 4 restoration matrix, so
+  a failure at every write position restores `pyproject.toml` and `uv.lock`
+  byte for byte.
 - Scanner: basic and literal strings, comments and spacing around `=`, a
   `version` key in another table ignored, the matching `[[package]]` block
   among several; dotted `project.version`, an inline `project` table and a
@@ -1102,7 +1333,7 @@ Step framing:
   committed with the step; the evidence test passes.
 - `rg -n 'subprocess' tools/release_workflow/sources` finds nothing.
 
-#### Step 4 -- addendums for the Python and uv adapter
+#### Step 5 -- addendums for the Python and uv adapter
 
 Line-budget checkpoint:
 
@@ -1120,18 +1351,18 @@ Split guidance:
 
 Full workflow timing run readiness:
 
-- `ghog single` on the Step 4 test files, then the command printed by `pw scope day`.
+- `ghog single` on the Step 5 test files, then the command printed by `pw scope day`.
 
-Time-gated status for Step 4:
+Time-gated status for Step 5:
 
 - No perf gate is affected; the evidence test reads its JSON file once per
   session through one replaceable loader.
 
 ---
 
-### Step 5. npm adapter with recorded npm evidence
+### Step 6. npm adapter with recorded npm evidence
 
-#### Step 5 -- analysis and intent for the npm adapter
+#### Step 6 -- analysis and intent for the npm adapter
 
 Issues to address:
 
@@ -1159,12 +1390,12 @@ Expected outcome:
 Step framing:
 
 - Design link: "npm", "Locating values with the standard library", "Lock
-  compatibility evidence for supported tools"; decisions Q10, Q11; AC4, AC7,
+  compatibility evidence for supported tools"; design decisions Q10, Q11; AC4, AC7,
   AC8, AC9.
 - Execution checklist reference: [Shared execution command checklist for all
   v0.14.0 version-sources steps](#shared-execution-command-checklist-for-all-v0140-version-sources-steps).
 
-#### Step 5 -- implementation for the npm adapter
+#### Step 6 -- implementation for the npm adapter
 
 **Files involved**:
 
@@ -1180,9 +1411,14 @@ Step framing:
 - `tests/unit/tools/release_workflow/test_npm_sources/test_npm_sources_tdd.py` (new, to be created).
 - `tests/unit/tools/release_workflow/test_version_lock_evidence/test_version_lock_evidence_tdd.py` (existing, to be updated).
 - `tests/unit/tools/release_workflow/test_version_lock_evidence/lock_evidence.v1.json` (existing, to be updated).
+- `tests/unit/tools/release_workflow/test_version_transition/test_version_restoration_tdd.py` (existing, to be updated).
 
 **Tests first**:
 
+- Restoration contract (plan decision Q01): the npm fixture sets (formats 2 and 3,
+  LF and CRLF, with the two lock fields composed in one file) join the
+  restoration matrix; a failure at every write position restores
+  `package.json` and `package-lock.json` byte for byte.
 - Scanner: string spans of the two owned paths among nested objects and
   arrays; a duplicate key on an owned path fails as ambiguous; duplicates
   elsewhere ignored; an escape inside an owned value fails; non-object roots
@@ -1203,8 +1439,13 @@ Step framing:
   read (the view records no load).
 - Evidence: npm records exist for formats 2 and 3 and the CRLF format 3
   variant, with tool runs unchanged and the adapter reproducing each edited
-  pair; the record states that npm's frozen install does not compare the root
-  version.
+  pair; each record holds the frozen `npm ci` runs on the "before" pair and the
+  edited pair, plus the lock-only check of plan decision Q05: `npm install
+  --package-lock-only --offline --ignore-scripts --no-audit --no-fund` leaves
+  the lock of the "before" pair and of the edited pair unchanged and rewrites
+  the lock of the manifest-only control, whose root version fields must
+  actually change for the check to count; the lock format stays the selected
+  one, and actual exit codes and hashes are recorded.
 - PBT (needed): the JSON scanner over generated objects and whitespace
   locates spans whose text equals the `json` value.
 
@@ -1223,8 +1464,11 @@ Step framing:
   directory; lock generated with `npm install --package-lock-only --offline
   --lockfile-version <2|3> --ignore-scripts --no-audit --no-fund` for a root
   package `private: true` at `0.0.24`; frozen command `npm ci --offline
-  --ignore-scripts --no-audit --no-fund`; edit to `0.0.25` through the
-  adapter; CRLF variant of format 3; `node_modules` removed before each run.
+  --ignore-scripts --no-audit --no-fund`; lock-only check `npm install
+  --package-lock-only --offline --ignore-scripts --no-audit --no-fund` on the
+  "before" pair, the edited pair and a scratch copy of the manifest-only
+  control (plan decision Q05); edit to `0.0.25` through the adapter; CRLF variant of
+  format 3; `node_modules` removed before each run.
 
 **Completion criteria**:
 
@@ -1235,7 +1479,7 @@ Step framing:
 - `rg -n 'lockfileVersion' tools/release_workflow/sources/npm.py` shows the
   format check and the format 1 remedy.
 
-#### Step 5 -- addendums for the npm adapter
+#### Step 6 -- addendums for the npm adapter
 
 Line-budget checkpoint:
 
@@ -1252,17 +1496,17 @@ Split guidance:
 
 Full workflow timing run readiness:
 
-- `ghog single` on the Step 5 test files, then the command printed by `pw scope day`.
+- `ghog single` on the Step 6 test files, then the command printed by `pw scope day`.
 
-Time-gated status for Step 5:
+Time-gated status for Step 6:
 
 - No perf gate is affected.
 
 ---
 
-### Step 6. Maven reactor adapter
+### Step 7. Maven reactor adapter
 
-#### Step 6 -- analysis and intent for the Maven adapter
+#### Step 7 -- analysis and intent for the Maven adapter
 
 Issues to address:
 
@@ -1292,19 +1536,21 @@ Expected outcome:
 Step framing:
 
 - Design link: "Maven reactors", "Locating values with the standard library",
-  "Combining all detectors"; decisions Q08, Q10, Q12; AC5, AC6, AC9.
+  "Combining all detectors"; design decisions Q08, Q10, Q12; AC5, AC6, AC9.
 - Execution checklist reference: [Shared execution command checklist for all
   v0.14.0 version-sources steps](#shared-execution-command-checklist-for-all-v0140-version-sources-steps).
 
-#### Step 6 -- implementation for the Maven adapter
+#### Step 7 -- implementation for the Maven adapter
 
 **Files involved**:
 
 - `tools/release_workflow/sources/xml_scan.py` (new, to be created).
 - `tools/release_workflow/sources/maven.py` (new, to be created).
+- `tools/release_workflow/sources/maven_references.py` (new, to be created).
 - `tools/release_workflow/sources/__init__.py` (existing, to be updated).
 - `tests/unit/tools/release_workflow/version_support.py` (existing, to be updated).
 - `tests/unit/tools/release_workflow/test_version_registry/test_version_registry_tdd.py` (existing, to be updated).
+- `tests/unit/tools/release_workflow/test_version_transition/test_version_restoration_tdd.py` (existing, to be updated).
 - `tests/unit/tools/release_workflow/test_version_formats/test_xml_scan_tdd.py` (new, to be created).
 - `tests/unit/tools/release_workflow/test_version_formats/test_version_formats_pbt.py` (existing, to be updated).
 - `tests/unit/tools/release_workflow/test_maven_sources/__init__.py` (new, to be created).
@@ -1313,6 +1559,11 @@ Step framing:
 
 **Tests first**:
 
+- Restoration contract (plan decision Q01): the Maven fixture sets (root with one
+  module, inherited versions, internal dependencies) join the restoration
+  matrix, and the combined five-file project (`version.txt`, Python, npm,
+  Maven and a pattern source) is added now that every adapter exists; a
+  failure at every write position restores every replaced file byte for byte.
 - Scanner: element text spans for nested paths; whitespace and attributes
   around owned elements; a comment, CDATA, entity reference or child element
   inside an owned element fails; a non-UTF-8 declaration fails; a byte-order
@@ -1344,12 +1595,19 @@ Step framing:
   `CurrentByteIndex`; a text span starts at the first character-data event of
   an owned element and ends at the byte index of its end tag; the located bytes
   must decode to the parsed text.
-- `maven.ADAPTER`: name `maven`, forms `{snapshot}`, default `snapshot`;
-  starts at each participating root's `pom.xml`; builds the module list
-  recursively, then a dictionary keyed by `(groupId, artifactId)`; owned fields
-  per the design's "Owned fields" rule; internal references outside
-  `project/dependencies` and `project/dependencyManagement/dependencies` fail
-  as an unsupported arrangement (FR AC9).
+- `maven.ADAPTER` in `sources/maven.py` (reactor discovery, plan decision Q10):
+  name `maven`, forms `{snapshot}`, default `snapshot`; starts at each
+  participating root's `pom.xml`; builds the module list recursively and the
+  module coordinates, rejecting profile modules and properties in own
+  coordinates; then asks `maven_references` for the owned fields.
+- `sources/maven_references.py` (reference rules, plan decision Q10): the
+  dictionary keyed by `(groupId, artifactId)`; owned fields per the design's
+  "Owned fields" rule; inheritance through internal parents; the
+  `${project.version}` and `${project.groupId}` boundary; internal references
+  outside `project/dependencies` and
+  `project/dependencyManagement/dependencies` fail as an unsupported
+  arrangement (FR AC9). It contributes no adapter and is listed in the
+  registry test's support-module set.
 - `ADAPTERS = (anchor, python, npm, maven, pattern)`, the final order the
   registry test now pins.
 
@@ -1360,201 +1618,21 @@ Step framing:
 - `rg -n 'xml.etree' tools/release_workflow/sources` finds nothing.
 - The registry test pins `("anchor", "python", "npm", "maven", "pattern")`.
 
-#### Step 6 -- addendums for the Maven adapter
+#### Step 7 -- addendums for the Maven adapter
 
 Line-budget checkpoint:
 
 - [ ] `tools/release_workflow/sources/xml_scan.py`: before 0; ceiling <= 650; expected 220 (advisory).
-- [ ] `tools/release_workflow/sources/maven.py`: before 0; below-550 safe; ceiling <= 650; expected 470 (advisory).
+- [ ] `tools/release_workflow/sources/maven.py`: before 0; below-550 safe; ceiling <= 650; expected 220 (advisory).
+- [ ] `tools/release_workflow/sources/maven_references.py`: before 0; below-550 safe; ceiling <= 650; expected 280 (advisory).
 - [ ] `tests/unit/tools/release_workflow/version_support.py`: recount at entry; ceiling <= 650; expected +50 (advisory).
-- [ ] Test files: new 180, 260 and 320; updated pbt +40 (advisory).
+- [ ] Test files: new 180, 260 and 320; updated pbt +40; restoration test +40 (advisory).
 
 Split guidance:
 
-- If `maven.py` would pass 650, move the reference classification (internal
-  index, dependency and parent rules) into `sources/maven_references.py`;
-  reactor discovery stays in `maven.py`.
-
-Full workflow timing run readiness:
-
-- `ghog single` on the Step 6 test files, then the command printed by `pw scope day`.
-
-Time-gated status for Step 6:
-
-- No perf gate is affected.
-
----
-
-### Step 7. Recoverable version transition
-
-#### Step 7 -- analysis and intent for the transition
-
-Issues to address:
-
-- Item 1 replaces one file atomically but has no multi-file transaction,
-  evidence, verification or restoration.
-- Item 5 needs the same primitive with its own lock and transaction identity.
-
-Fix intent:
-
-- An evidence module that writes, reads, marks and deletes the
-  per-transition directory, and classifies leftover evidence.
-- A transition module that plans without side effects, then under the lock
-  checks evidence, replans, writes evidence, replaces files in order with
-  `version.txt` last, verifies, marks completion, cleans up or restores, and
-  reports one of five outcomes.
-
-Expected outcome:
-
-- A failure before the first overwrite leaves sources unchanged and no
-  evidence; a failure after it restores every replaced file (status 1) or
-  reports each unrestored source and its retained copy (status 3).
-- A same-target clean run takes and releases the lock and reports `unchanged`
-  without writing a source; `writing` evidence stops the next `set` even for
-  the same target.
-- A lifecycle call keeps its `complete` evidence and receives a restore handle.
-
-Step framing:
-
-- Design link: "Target flow of the version commands", "The recoverable version
-  transition" and its subsections; decisions Q04, Q05, Q06, Q07, Q17; AC3,
-  AC11.
-- Execution checklist reference: [Shared execution command checklist for all
-  v0.14.0 version-sources steps](#shared-execution-command-checklist-for-all-v0140-version-sources-steps).
-
-#### Step 7 -- implementation for the transition
-
-**Files involved**:
-
-- `tools/release_workflow/version_evidence.py` (new, to be created).
-- `tools/release_workflow/version_transition.py` (new, to be created).
-- `tests/unit/tools/release_workflow/version_support.py` (existing, to be updated).
-- `tests/unit/tools/release_workflow/test_version_evidence/__init__.py` (new, to be created).
-- `tests/unit/tools/release_workflow/test_version_evidence/test_version_evidence_tdd.py` (new, to be created).
-- `tests/unit/tools/release_workflow/test_version_transition/__init__.py` (new, to be created).
-- `tests/unit/tools/release_workflow/test_version_transition/test_version_transition_tdd.py` (new, to be created).
-- `tests/unit/tools/release_workflow/test_version_transition/test_version_restoration_tdd.py` (new, to be created).
-- `tests/unit/tools/release_workflow/test_version_transition/test_version_lifecycle_tdd.py` (new, to be created).
-
-**Tests first**:
-
-- Evidence: a written directory holds one copy per participating file and a
-  manifest with owner, paths, SHA-256, existence, target and state `writing`;
-  a failure while writing removes the partial directory; marking `complete` and
-  `restoration-incomplete` replaces the manifest atomically; deletion removes
-  copies first and the manifest last; listing classifies standalone complete
-  residue, interrupted, unreadable (including duplicate JSON keys) and
-  lifecycle-owned evidence; the listing reads only the artifact home, not
-  recursively.
-- Evidence allocation (Q17 proposes the mechanism): two allocations with the
-  same injected clock and process id get distinct directories, the second
-  with the next sequence suffix; a declared pre-existing directory of that
-  name, complete or partial (no manifest, or copies only), is skipped and its
-  bytes stay identical; reaching the attempt limit fails before any source
-  write with status 1 and no partial evidence; an existing evidence directory
-  is never written into.
-- Transition: a side-effect-free plan failure (unsupported arrangement,
-  overlapping claim, release-only refusal) leaves no artifact home, lock or
-  evidence; a held lock fails with status 1 naming the owner; standalone
-  complete residue is removed with a warning before the plan; interrupted,
-  unreadable and foreign lifecycle evidence stop with status 2 naming the
-  directory, even when the locked plan is empty; an empty locked plan reports
-  `unchanged`; a successful run writes in path order with `version.txt` last,
-  verifies in a fresh view, marks complete, deletes the evidence and releases
-  the lock; the changes list carries old and new values.
-- Restoration (`test_version_restoration_tdd.py`): for each adapter's fixture
-  set and for a combined five-file project, a failure injected at every write
-  position (exhaustive parametrization) restores the replaced files, verifies
-  them, deletes the evidence and returns status 1; a concurrent change detected
-  before a replacement, a verification failure and a marker failure restore;
-  a failure while restoring returns status 3 with each unrestored source and
-  its retained copy, state `restoration-incomplete`; declared `writing`
-  evidence after the last replacement stops the same-target rerun.
-- Completion-boundary faults (same file): after the durable `complete`
-  marker, a failure deleting an original copy, deleting the manifest or
-  removing the directory, and a failure of the standalone
-  `OperationLock.release()`, each return `applied with cleanup failed`,
-  status 1, with the new source bytes in place, no restoration attempted and a
-  diagnostic naming the actual residue (directory, manifest or lock record);
-  the next `set` removes complete standalone residue. An incomplete
-  restoration followed by a lock-release failure still returns status 3 and
-  names every unrestored path and its retained original; the secondary error
-  is added as a diagnostic and never replaces the primary result.
-- Lifecycle (`test_version_lifecycle_tdd.py`): a supplied held lock is
-  verified, neither acquired nor released; a released handle or one for
-  another project fails before any source read (counting view at zero loads);
-  evidence owned by the transaction is kept `complete` and the restore handle
-  restores the sources with the same routine; the transaction's own earlier
-  evidence is accepted and any other unfinished evidence stops the call; two
-  calls under one lifecycle lock with identical injected clock and process id
-  keep two disjoint evidence directories, and the first restore handle still
-  restores the first call's originals afterwards.
-- PBT: not needed; the failure-position domain is finite and parametrized
-  exhaustively.
-
-**Classes and behavior**:
-
-- `version_evidence.EvidenceManifest` (version 1, owner, target, state,
-  created local timestamp with offset, files with path, SHA-256, existence and
-  copy name), strict decoding that rejects duplicate keys.
-- `version_evidence.allocate(prepared, project, clock, pid) -> ManagedTarget`:
-  authorizes `a.version-transition.<timestamp>-<pid>` in the prepared home and
-  creates it exclusively (`Path.mkdir(exist_ok=False)` on the revalidated
-  target, then revalidation); on `FileExistsError` it tries
-  `<timestamp>-<pid>-2`, `-3` and so on up to a fixed attempt limit, never
-  entering an existing directory. Item 1's `prepare_directory`
-  (`exist_ok=True`) is not used for evidence, and `managed_files` is
-  unchanged.
-- `version_evidence.write_evidence(directory, owner, target, captures) ->
-  EvidenceDirectory` writes copies through `authorize_write` and
-  `replace_bytes`, manifest last; `EvidenceDirectory.mark(state)` and
-  `delete()`; `find_evidence(declaration) -> tuple[EvidenceEntry, ...]`.
-- `VersionInputs`, `FileCapture`, `FileEdit`, `Inventory` and `Plan` come from
-  the Step 2 model (Q16); this step adds no second definition.
-- `version_transition.TransitionOutcome`: `APPLIED`, `UNCHANGED`, `RESTORED`,
-  `RESTORATION_INCOMPLETE`, `APPLIED_CLEANUP_FAILED`, with statuses 0, 0, 1, 3
-  and 1.
-- `version_transition.TransitionResult` (outcome, changes, diagnostics,
-  `restore: RestoreHandle | None`); `LifecycleOwnership` (held lock,
-  transaction identity); `RestoreHandle.restore()` and `discard()` for item 5.
-- `version_transition.plan_transition(inputs, target) -> Plan` and
-  `set_versions(inputs, target, *, lifecycle=None, replace=replace_bytes,
-  remove=<managed removal>, lock_factory=OperationLock, probe=process_state,
-  clock=<local now>, pid=os.getpid) -> TransitionResult`, following "Ownership and the authoritative
-  plan" through "Restoration and its distinct failure" in order. A standalone
-  run releases its lock on every path after acquisition; a lifecycle run never
-  releases the supplied lock. The primary outcome is fixed before cleanup and
-  release run; their failures only add diagnostics (status 1 after the
-  completion marker, status 3 kept after an incomplete restoration).
-- Fault seams: the replacement function, file and directory removal, the lock
-  factory, the process probe, the clock and the process id are injectable. The
-  body shows the keyword form; Q07 proposes bundling them in one
-  `TransitionPorts` value.
-
-**Completion criteria**:
-
-- The command printed by `pw scope day` reports the objective (`exit=0`) in
-  the current effort scope.
-- `rg -n 'os\.replace|write_bytes|unlink' tools/release_workflow/version_transition.py tools/release_workflow/version_evidence.py`
-  shows file changes only through `managed_files` targets.
-- Every adapter's contract test set now includes failure restoration (AC3).
-
-#### Step 7 -- addendums for the transition
-
-Line-budget checkpoint:
-
-- [ ] `tools/release_workflow/version_evidence.py`: before 0; below-550 safe; ceiling <= 650; expected 300 (advisory).
-- [ ] `tools/release_workflow/version_transition.py`: before 0; below-550 safe; ceiling <= 650; expected 450 (advisory).
-- [ ] `tests/unit/tools/release_workflow/version_support.py`: recount at entry; ceiling <= 650; expected +60 (advisory).
-- [ ] New test files: expected 300, 320, 460 and 240 (advisory); split `test_version_restoration_tdd.py` into a completion-boundary file if it would pass 650.
-
-Split guidance:
-
-- If `version_transition.py` would pass 650, move restoration and cleanup into
-  `tools/release_workflow/version_restoration.py`; planning, ownership and
-  ordered writes stay in `version_transition.py`.
-- If `version_support.py` would pass 650, move the ecosystem byte builders into
-  `version_project_support.py`.
+- The reactor and reference responsibilities are already separate (decision
+  Q10). If `maven_references.py` would still pass 650, move inheritance
+  resolution into `sources/maven_inheritance.py`.
 
 Full workflow timing run readiness:
 
@@ -1562,8 +1640,7 @@ Full workflow timing run readiness:
 
 Time-gated status for Step 7:
 
-- No perf gate is affected; each parametrized failure case runs one
-  transition over at most five small files.
+- No perf gate is affected.
 
 ---
 
@@ -1597,9 +1674,9 @@ Prerequisite for aliased boundaries:
 
 - The design does not yet say when a boundary holding several same-version,
   same-commit tags is eligible, nor which actual tag spelling the output
-  prints for it. Q15 proposes settling both in a separately authorized design
-  clarification, reviewed before this step's aliased-boundary tests are
-  written. Until then the step implements and tests every other rule (single
+  prints for it. By plan decision Q15, both are settled in a design clarification
+  that needs its own authorization (the Q15 choice does not grant it) and must
+  be reviewed before this step's aliased-boundary tests are written. Until then the step implements and tests every other rule (single
   tags, conflicts, ancestry, counts, the release-version rule), and the cases
   that depend on the clarification stay blocked: a historical `0.13.0` with an
   unvalidated `v0.13.0` on one commit; a validated and an unvalidated alias on
@@ -1611,7 +1688,7 @@ Prerequisite for aliased boundaries:
 Step framing:
 
 - Design link: "Stable and snapshot tag classification", "Range selection and
-  the release-version rule"; decisions Q01, Q02, Q03; AC13, AC14, AC15.
+  the release-version rule"; design decisions Q01, Q02, Q03; AC13, AC14, AC15.
 - Execution checklist reference: [Shared execution command checklist for all
   v0.14.0 version-sources steps](#shared-execution-command-checklist-for-all-v0140-version-sources-steps).
 
@@ -1681,6 +1758,7 @@ Git calls of one selection, by case:
 | No eligible candidate | records, count of the target | full history |
 | One candidate | records, tags between baseline and target, count | baseline and range |
 | Several candidates | records, independent tips, tags between, count | baseline and range, or status 2 for several tips or an inversion |
+| Several candidates whose independent-tips command line would pass the Windows limit | records only; `GitCommandLineTooLong` before the tips call starts (plan decision Q13) | status 1 naming the limit and the candidate count |
 
 The release-version rule uses two calls: all tag records and the records
 merged into `main`.
@@ -1782,16 +1860,21 @@ Step framing:
   `key=value` lines; missing, extra and malformed tokens return status 2 before
   any Git call; leftover evidence produces a stderr warning on read commands;
   status 3 reaches the caller.
-- Acceptance (`test_version_acceptance_tdd.py`), through
-  `launcher_tooling.run` with whole-tree snapshots: the source rows of the
-  design's acceptance table (AC1 to AC12), including a combined Python, npm,
-  Maven and pattern project with CRLF files, the release-only refusal, the
-  injected third-of-five failure, an incomplete restoration (status 3),
+- Acceptance (`test_version_acceptance_tdd.py`), through `cli.main` with the
+  shipped registry and whole-tree snapshots (plan decision Q09): the source rows of
+  the design's acceptance table (AC1 to AC12), including a combined Python,
+  npm, Maven and pattern project with CRLF files, the release-only refusal,
+  the injected third-of-five failure, an incomplete restoration (status 3),
   lock contention, leftover `writing` evidence, configuration failures that
-  stop even `version`, and read commands that create no file or artifact.
+  stop even `version`, and read commands that create no file or artifact. No
+  restoration or no-write assertion is weaker than through the launcher.
+- Launcher cases (same file, plan decision Q09): one `launcher_tooling.run` case
+  per command (`version`, `versions list`, `check`, `set`, `range`) and per
+  public status (0, 1, 2 and 3), proving that production bootstrap, readiness
+  and rendering carry each contract.
 - Acceptance (`test_version_range_acceptance_tdd.py`): the range rows (AC13 to
-  AC15) through `versions range`, plus the release-version rule on the same
-  declared histories.
+  AC15) through `versions range` via `cli.main`, plus the release-version rule
+  on the same declared histories.
 - `test_release_acceptance_tdd.py`: the shipped registry is exactly
   `{"version", "versions"}`; the acceptance handler names stay unavailable.
 - PBT: not needed at this level; properties are owned by Steps 2 to 8.
@@ -1855,13 +1938,14 @@ Time-gated status for Step 9:
 | Design acceptance rows | Requirement | Unit proof | End-to-end proof |
 | --- | --- | --- | --- |
 | `version` output, malformed anchors, CRLF anchor write | AC1, AC2 | Step 2 anchor and model tests | Step 9 acceptance |
-| Adapter missing from the tuple | AC3 | Step 2 registry test, extended to the final order in Step 6 | n/a |
-| Root Python and npm files, tool-only pairs, undeclared candidates, conflicting component claim, overlapping pattern claims | AC4, AC5, AC10 | Steps 3 to 6 detection and adapter tests | Step 9 acceptance |
-| Dynamic version, pattern match counts, Maven expressions, external parent | AC6, AC9 | Steps 3, 4 and 6 | Step 9 acceptance |
-| Forms and release-only refusal | AC7 | Steps 2 and 5 | Step 9 acceptance |
-| uv and npm lock edits, format 1 lock, unregistered uv pair, recorded evidence | AC4, AC8 | Steps 4 and 5 adapter and evidence tests | Step 9 acceptance |
-| uv workspaces, Python and npm local links, npm workspaces, inherited Maven versions | AC9 | Steps 4, 5 and 6 | Step 9 acceptance |
-| Injected failures, restoration, unchanged, contention, leftover evidence, cleanup failure, lifecycle lock binding | AC11 | Step 7 transition tests | Step 9 acceptance |
+| Adapter missing from the tuple | AC3 | Step 2 registry test, extended to the final order in Step 7 | n/a |
+| Failure restoration for every adapter | AC3, AC11 | Step 4 matrix on anchor and pattern sources, extended by Steps 5, 6 and 7 with each adapter's fixtures and the combined project | Step 9 acceptance |
+| Root Python and npm files, tool-only pairs, undeclared candidates, conflicting component claim, overlapping pattern claims | AC4, AC5, AC10 | Steps 3 to 7 detection and adapter tests | Step 9 acceptance |
+| Dynamic version, pattern match counts, Maven expressions, external parent | AC6, AC9 | Steps 3, 5 and 7 | Step 9 acceptance |
+| Forms and release-only refusal | AC7 | Steps 2 and 6 | Step 9 acceptance |
+| uv and npm lock edits, format 1 lock, unregistered uv pair, recorded evidence | AC4, AC8 | Steps 5 and 6 adapter and evidence tests | Step 9 acceptance |
+| uv workspaces, Python and npm local links, npm workspaces, inherited Maven versions | AC9 | Steps 5, 6 and 7 | Step 9 acceptance |
+| Injected failures, restoration, unchanged, contention, leftover evidence, cleanup failure, lifecycle lock binding | AC11 | Step 4 transition tests | Step 9 acceptance |
 | Configuration failures for every command | AC12 | Step 3 settings tests | Step 9 acceptance |
 | Snapshot at HEAD, unvalidated engine tag, ambiguous tag, conflicting aliases and versions, mixed prefixes | AC13, AC14 | Step 8 classification and range tests | Step 9 range acceptance |
 | Reserved release version | AC15 | Step 8 rule tests | Step 9 range acceptance |
@@ -1870,12 +1954,13 @@ Time-gated status for Step 9:
 
 ## Planning risk pass and rollout order for v0.14.0 version-sources
 
-The steps are sequential as written: each adapter step plugs into the Step 3
-claim registry, the transition consumes only the Step 3 planned-edit interface
-and the Step 2 shared types, and the commands depend on the transition and the
-selector. Steps 4, 5 and 6 can be reordered among themselves; the registry
-test pins the final order only once the last adapter lands. Every step passes
-its own gate without a placeholder module for a later step.
+The steps are sequential: the transition (Step 4) consumes only the Step 2
+shared types and the Step 3 planned-edit interface; each adapter step (Steps 5
+to 7) plugs into the Step 3 claim registry and extends the Step 4 restoration
+matrix with its own fixtures; the commands depend on the transition and the
+selector. Steps 5, 6 and 7 can be reordered among themselves; the registry
+test pins the final order once the last adapter lands. Every step passes its
+own gate without a placeholder module for a later step.
 
 Implementation risks found by the second pass:
 
@@ -1884,20 +1969,21 @@ Implementation risks found by the second pass:
   item 1 commands and tests from importing the adapter package.
 - **Windows command-line length**: `merge-base --independent` takes candidate
   commits as arguments, and `CreateProcess` accepts at most 32,767 UTF-16 code
-  units. As written, a selection beyond the limit fails as a Git execution
-  error; Q13 proposes measuring the actual serialized command line
-  (executable, Git prefix options, quoting, 40- or 64-character object ids,
-  the terminating NUL) before the call.
-  The consumers have at most 99 tags.
+  units including the terminating NUL. `independent_commits` measures the
+  serialized command line (executable, Git prefix options, quoting, 40- or
+  64-character object ids) and refuses with status 1 before starting Git
+  (plan decision Q13). The consumers have at most 99 tags.
 - **Evidence provenance**: the uv revision 3 fixture is a uv 0.13.4 lock with
   its revision line set to 3, which uv 0.13.4 accepts unchanged; the record
-  states this and claims nothing about older tools or other revision 3 syntax.
-  `npm ci` ignores the root version (Q05 proposes an added lock-only check).
-  Recomputed hashes and edits check the records' consistency, not that the
-  commands ran; the recorded outcomes and provenance carry that.
-- **Readings of design-silent cases**: four follow from the requirement's
-  "any other unsupported or ambiguous arrangement fails" rule or from an
-  implementation mechanism, and the plan implements them as tested behavior:
+  states this and claims nothing about older tools or other revision 3 syntax
+  (plan decision Q04). `npm ci` ignores the root version, so the npm records add
+  the sensitive lock-only check (plan decision Q05). Recomputed hashes and edits
+  check the records' consistency, not that the commands ran; the recorded
+  outcomes and provenance carry that.
+- **Readings of design-silent cases** (plan decision Q15): four follow from the
+  requirement's "any other unsupported or ambiguous arrangement fails" rule or
+  from an implementation mechanism, and the plan implements them as tested
+  behavior:
   - an internal Maven reference outside `project/dependencies` and
     `project/dependencyManagement/dependencies` (a profile or a plugin
     dependency) fails rather than staying stale;
@@ -1907,1044 +1993,55 @@ Implementation risks found by the second pass:
     without any detected source yields no record;
   - an incomplete standalone restoration still releases the lock, since its
     retained `restoration-incomplete` evidence stops the next `set`.
-- **Unresolved design dependency**: the eligibility of a boundary holding
-  several aliases and the printed spelling of such a boundary are not settled
-  by the design, and the plan does not settle them. Step 8's aliased-boundary
-  cases wait for a separately authorized, reviewed design clarification (Q15);
-  every other step, and the rest of Step 8, proceed without it.
-
-## Conditional plan changes awaiting the open questions
-
-The body above still shows the written choice wherever a question proposes a
-change. The user decisions below are confirmed; separately authorized
-consolidation applies the selected options and updates their
-cross-references. Until consolidation, the body is deliberately the written
-baseline.
-
-| Question | Body change when the recommended option is chosen | Cross-references to update |
-| --- | --- | --- |
-| Q01 B | The transition becomes Step 4; Python, npm and Maven become Steps 5, 6 and 7; each adapter step adds its fixture set to the restoration matrix | Plan goal list; step headings and analysis titles; step framings; every "Step N" mention in files, tests, addendums, the runtime note, the ready-to-run recorder line, the test-leaf list and "What does not exist yet"; the acceptance ownership map; this risk pass; the validation skeleton's step headings, goals and expectations; Q06 and Q15 step references |
-| Q05 B | The npm adapter step's records add `npm install --package-lock-only --offline --ignore-scripts --no-audit --no-fund` on the "before" and edited pairs and on the manifest-only control; the uv evidence stays unchanged | The npm step's recorder and evidence tests (with its final step number after the Q01 renumbering); the runtime note on the evidence file; the planning-probe facts table stays a record of the actual probes, with the supplemental npm check described separately |
-| Q07 B | One `TransitionPorts` value (replacement, file and directory removal, lock factory, process probe, clock, process id) replaces the six keyword seams | The transition step's classes and tests; the shared test architecture's fault-injection item |
-| Q09 B | Acceptance rows run through `cli.main`; one launcher case per command and per public status | Step 9 tests first; the acceptance ownership map |
-| Q10 C | `sources/maven_references.py` is created with `maven.py` | The Maven step's files, line budgets and split guidance; the registry test's support-module set |
-| Q12 B | One cross-site status consistency test joins `test_codepage_tdd.py` | Step 1 tests first and completion criteria |
-| Q13 B | `independent_commits` measures the serialized command line in UTF-16 code units, including the terminating NUL, and refuses with status 1 before starting Git | Step 1 Git observation and tests; Step 8 call table; this risk pass |
-| Q15 B | A separately authorized design clarification must be reviewed before Step 8's aliased-boundary tests; selecting B does not authorize it | Step 8 prerequisite and completion criteria; validation skeleton Step 8 |
-| Q16 B | The shared types move to `sources/inputs.py`, created in Step 2 | Step 2 files and classes; Steps 3 and 7 type references; the registry test's support-module set; the validation skeleton's Step 2 expectations |
-| Q17 B | A name collision stops before any write instead of taking a suffix | The evidence allocation behavior and tests; the runtime note |
-
-Options that confirm the written body (Q02 A, Q03 A, Q04 A, Q06 A, Q08 A,
-Q11 A, Q14 A, Q16 A and Q17 A) need no body change beyond removing their
-question blocks.
+- **Unresolved design dependency** (plan decision Q15): the eligibility of a
+  boundary holding several aliases and the printed spelling of such a boundary
+  are not settled by the design, and the plan does not settle them. Step 8's
+  aliased-boundary cases wait for a design clarification that needs its own
+  authorization (the Q15 choice does not grant it) and its own review; every
+  other step, and the rest of Step 8, proceed without it.
 
 Roll out by keeping every legacy path unchanged: `tools/dev_workflow` and
 `prepare-release` keep their own version and range logic until items 7 and 8
 switch them. The shipped commands are new entries of the release engine and
-change no existing caller. No private path or sensitive term is needed by any
-planned file or fixture.
-
-## Open questions for the v0.14.0 version-sources implementation plan
-
-### Q01: Step position of the recoverable transition
-
-Question description: the plan builds the three language adapters (Steps 4
-to 6) before the transition (Step 7), so AC3's "failure-restoration contract
-test" for each adapter only exists once Step 7 lands. The transition depends
-on the planned-edit interface of Step 3 (`detection.plan_edits` and
-`model.compose`) and on the shared types the Step 2 model now owns (see Q16),
-not on any particular adapter, and Step 3 already has two
-real adapters (`anchor` and `pattern`). Moving the transition right after
-Step 3 would let each adapter step add its fixture set to an existing
-restoration contract.
-
-#### BBQ for Q01
-
-You can fit the plumbing to each new room as it is built, or build every room
-first and run the plumbing through all of them at the end. Plumbing first means
-each room is checked for leaks the day it is finished; plumbing last means
-three rooms wait unchecked and the plumber meets every surprise at once.
-
-In this picture: the rooms are the `python`, `npm` and `maven` adapters, the
-plumbing is the transition primitive of Step 7, and checking for leaks is the
-AC3 failure-restoration contract test of each adapter.
-
-#### Options for Q01
-
-- Option A: keep the plan's order (adapters in Steps 4 to 6, transition in
-  Step 7, restoration contracts for all adapters added in Step 7).
-  - pro: the transition is written once against all real file shapes,
-    including the two-field npm lock.
-  - con: Steps 4 to 6 finish without the AC3 restoration contract of their own
-    adapter, and the riskiest component is reviewed last.
-- Option B: move the transition to Step 4 (after configuration and claims),
-  shift the adapters to Steps 5 to 7, and make each adapter step add its
-  fixture set to the parametrized restoration test.
-  - pro: every adapter step completes its whole AC3 contract set; the
-    transition and its evidence are reviewed early, while later steps are
-    still open.
-  - con: Step 4 proves multi-field composition with synthetic fixtures until
-    the npm step adds a real two-field lock.
-- Option C: split the transition into a core step after Step 3 and a lifecycle
-  reuse step after the adapters.
-  - pro: the early step stays small.
-  - con: one more step and review cycle for an interface that has no caller
-    until item 5.
-
-#### Recommended option for Q01 (with arguments for this choice)
-
-Option B: the transition consumes only the Step 3 planned-edit interface, so
-nothing forces it after the adapters. Placing it at Step 4 makes each adapter
-step self-contained against AC3 (detection, read, expected form, write and
-failure restoration), and it moves the component with the most failure paths
-(evidence, ordered writes, completion boundary, restoration, status 3) to the
-front of the review queue. The two-field composition is already covered by
-Step 3's `model.compose` tests; the npm step then adds the real lock fixture.
-
-#### Answer to Q01: option B (with reason why it must be accepted as the answer)
-
-Option B: it keeps the same files and tests, changes only the order, and turns
-AC3 into a per-step completion criterion instead of a debt paid in Step 7.
-Renumbering both plans and every cross-reference listed in "Conditional plan
-changes awaiting the open questions" happens only in the authorized
-consolidation.
-
-User decision: confirmed - Option B, as recommended: the transition moves to
-Step 4, right after configuration and claims; Python, npm and Maven become
-Steps 5, 6 and 7, and each adapter step adds its fixture set to the
-restoration matrix. Renumbering and the cross-references listed in
-"Conditional plan changes awaiting the open questions" are applied at the
-authorized consolidation. Chosen by the user through AskUserQuestion on
-2026-11-07, no comment.
-
-### Q02: Placement of the version schema given the import cycle
-
-Question description: `schemas.py` must list the version schema in
-`SHIPPED_SCHEMAS`, and any module that builds a `DomainSchema` imports
-`schemas.py`. The plan declares the version sections in `schemas.py` and
-gives it a small validator that imports `tools.release_workflow.sources.settings`
-only when a `source:` or `component:` section is declared.
-
-#### BBQ for Q02
-
-Two neighbours each need the other's ladder to reach their own roof. Either
-one keeps a short ladder of his own and borrows the long one only on the day
-he climbs, or they build a shared shed both can reach, or one of them hopes
-the other is never home first.
-
-In this picture: the two neighbours are `schemas.py` and the version settings
-module, the short ladder is the deferred import inside the validator, the
-shared shed is a new schema-types module, and "hoping the other is never home
-first" is a module-end import that breaks depending on import order.
-
-#### Options for Q02
-
-- Option A: declare the sections in `schemas.py` with a deferred validator
-  import (the plan).
-  - pro: no new module; the idiom already exists in `cli.py` and
-    `artifacts.py`; item 1 tests that load configuration without version
-    sections never import the adapter package.
-  - con: the version keys live in `schemas.py`, away from the rest of the
-    version domain.
-- Option B: define `VERSION_SCHEMA` in `sources/settings.py` and import it at
-  the end of `schemas.py`.
-  - pro: the whole version domain sits in one package.
-  - con: the import works only when `schemas.py` is imported first; importing
-    `sources.settings` first raises a partial-initialization error.
-- Option C: move `ValueRule`, `SectionSchema` and `DomainSchema` into a new
-  `schema_types.py` that both modules import.
-  - pro: no cycle and no deferred import.
-  - con: changes item 1's module layout and every import of those types, for
-    a single new domain.
-
-#### Recommended option for Q02 (with arguments for this choice)
-
-Option A: it is the only option that changes no item 1 import, keeps import
-order irrelevant, and keeps the cost of the adapter package off every
-configuration load that declares no version section. The few lines of section
-declaration are data; the rules that matter live in `sources/settings.py`.
-
-#### Answer to Q02: option A (with reason why it must be accepted as the answer)
-
-Option A: it reuses an established project idiom, leaves item 1's layout
-alone and removes the import-order hazard of option B. Its test checks that no
-`sources` module is newly imported, independently of what earlier tests
-loaded.
-
-User decision: confirmed - Option A, as recommended: the version sections are
-declared in `schemas.py`, whose validator imports `sources.settings` only when
-a `source:` or `component:` section is declared; its test checks that no
-`sources` module is newly imported, whatever earlier tests loaded. Chosen by
-the user through AskUserQuestion on 2026-11-07, no comment.
-
-### Q03: Storage of the lock evidence and place of its recorder
-
-Question description: the evidence must record real uv and npm runs, but no
-test may start a process, and coverage measures only `tools`. The plan writes
-one committed JSON file beside the evidence test, produced by
-`tests/unit/tools/release_workflow/lock_evidence_recorder.py`, started by hand
-with the project interpreter and never imported by a test. Each record shows
-the real tool accepting the "before" pair (a manifest and its lock as a project
-has them before `versions set` changes the version, such as `pyproject.toml`
-and `uv.lock` at `0.13.0`), the adapter's version-only edit, and the tool
-accepting the resulting edited pair (both files at `0.14.0`).
-
-#### BBQ for Q03
-
-A lab sends samples to an outside testing house and files the signed results.
-The results can sit in a binder next to the bench, be retyped into the lab's
-own logbook, or the lab can bring the testing machine in-house and have its
-own inspectors certify the machine too.
-
-In this picture: the outside testing house is the real uv and npm run, the
-signed results are the recorded records, the binder is the JSON data file, the
-retyped logbook is a generated Python module, and bringing the machine
-in-house is putting the recorder under `tools/` with coverage.
-
-#### Options for Q03
-
-- Option A: JSON data beside the test, recorder under the test tree (the plan).
-  - pro: the test reads one small file once; the recorder stays out of the
-    shipped engine and out of coverage; the data is reviewable text.
-  - con: the recorder is unmeasured code, checked only by ruff, pyright and its
-    own use.
-- Option B: the recorder writes a Python module of byte constants.
-  - pro: no file read in the test.
-  - con: generated source must satisfy ruff and pyright, and its diffs are
-    harder to review than JSON.
-- Option C: the recorder lives in `tools/release_workflow/`, with pure parts
-  covered and its process boundary omitted from coverage.
-  - pro: the recorder's planning logic is measured.
-  - con: ships a process-starting developer tool inside the engine whose
-    adapters must never start a process, and needs a new coverage omission.
-
-#### Recommended option for Q03 (with arguments for this choice)
-
-Option A: the evidence is data, so it belongs in a data file; the recorder is
-a developer tool run on rare occasions (a new tool version or schema), so it
-belongs with the tests that consume its output. Its correctness is checked
-where it matters: the evidence test recomputes every hash and the adapter edit
-from the recorded "before" pair.
-
-#### Answer to Q03: option A (with reason why it must be accepted as the answer)
-
-Option A: it keeps the engine free of process starts, keeps coverage rules
-unchanged and makes every recorded value reviewable in a plain diff. Its limit
-is stated: recomputed hashes and edits check the records' consistency, not
-that the commands ran; the recorded outcomes and provenance carry that claim.
-
-User decision: confirmed - Option A, as recommended: one committed JSON file
-beside the evidence test, produced by the hand-run recorder in the test tree;
-the engine starts no process and coverage rules stay unchanged. User comment:
-the "before" pair was confusing, so every document of this effort (umbrella,
-topic draft, feature request, design, this plan and its validation plan) now
-defines it where the lock guarantee is stated, and each later question
-explanation defines it at first use. Chosen by the user on 2026-11-07.
-
-### Q04: Provenance of the uv revision 3 fixture
-
-Question description: uv 0.13.4 writes `revision = 5` for a fresh lock and
-accepts revision 3 locks unchanged; both consumer revisions were written by
-that uv version. For the revision 3 record, the plan builds the lock of the
-"before" pair (the `pyproject.toml` and `uv.lock` at the old version `0.13.0`,
-as a project has them before `versions set`) from the revision 5 lock by
-setting its revision line, records that provenance, and lets uv 0.13.4's
-locked mode accept it. No uv version that writes revision 3 natively is
-installed.
-
-#### BBQ for Q04
-
-A garage must show that its new wiper blades fit both the old and the new
-model of a car. It owns only the new model, whose manual says it takes the old
-model's mounts too. It can fit the blade to an old-style mount bolted on the
-new car, buy an old car for the test, or take an old car from the street and
-strip it until it looks like the test rig.
-
-In this picture: the new model is uv 0.13.4, the old-style mount is the
-revision 3 header on a uv 0.13.4 lock, buying an old car is installing an
-older uv that writes revision 3, and the stripped street car is llm-shared's
-real revision 3 lock with its dependencies removed.
-
-#### Options for Q04
-
-- Option A: header-substituted lock, accepted unchanged by uv 0.13.4, with
-  provenance recorded (the plan).
-  - pro: one pinned tool version, offline, reproducible; the record is honest
-    about where the bytes come from.
-  - con: the fixture is not byte-identical to a lock an older uv wrote.
-- Option B: install an older uv that writes revision 3 and record with it too.
-  - pro: native revision 3 bytes.
-  - con: a download, a second pinned tool version and a guess about which uv
-    release wrote revision 3, for a schema the supported tool already reads.
-- Option C: start from llm-shared's committed revision 3 lock, reduced to its
-  root entry.
-  - pro: real bytes from a real consumer lock.
-  - con: the reduction rewrites the file anyway, and a lock with dependencies
-    needs cached package metadata for an offline locked check.
-
-#### Recommended option for Q04 (with arguments for this choice)
-
-Option A: the design's guarantee is that the supported tool accepts the
-"before" pair (old version in both files) and the edited pair (new version in
-both); the supported tool for both consumer revisions is uv 0.13.4,
-and the planning probe showed it accepts the revision 3 pair, accepts the
-edited pair and rejects a manifest-only edit. Recording the provenance keeps
-the evidence truthful without adding a tool version nobody uses.
-
-#### Answer to Q04: option A (with reason why it must be accepted as the answer)
-
-Option A: it proves exactly the claim the design makes, for the tool version
-the consumers actually run, offline and repeatably. The record claims
-acceptance of that fixture by uv 0.13.4 only, not coverage of every historical
-revision 3 syntax or of older tools.
-
-User decision: confirmed - Option A, as recommended: the revision 3 "before"
-lock is the uv 0.13.4 revision 5 lock with its revision line set to 3, with
-that provenance recorded; the record claims acceptance by uv 0.13.4 only.
-Chosen by the user through AskUserQuestion on 2026-11-07, no comment.
-
-### Q05: Sensitivity of the npm evidence
-
-Question description: the planning probe showed that `npm ci --offline`
-accepts the manifest-only control (`package.json` edited to the new version,
-`package-lock.json` left at the old one), so the planned npm records prove
-acceptance of the "before" pair (both files at the old version, as found
-before `versions set`) and of the edited pair (both at the new version), but
-cannot show that a missed lock field would be noticed.
-A second probe showed that `npm install --package-lock-only --offline` leaves a
-consistent pair unchanged and rewrites a mismatched lock (keeping its format),
-for formats 2 and 3.
-
-#### BBQ for Q05
-
-A door inspector who only checks that the door opens will pass a door whose
-lock was never changed. A second inspector who tries the new key notices at
-once. Hiring only the first one proves the door opens; hiring both also proves
-the new key is the one that works.
-
-In this picture: the first inspector is `npm ci`, the second is
-`npm install --package-lock-only --offline`, the door is the edited
-`package.json` and `package-lock.json` pair, and the unchanged lock is a lock
-whose root version the adapter forgot to edit.
-
-#### Options for Q05
-
-- Option A: record `npm ci` only (the plan).
-  - pro: uses npm's frozen mode, as the design words it.
-  - con: the npm records cannot detect a missed root field; only the adapter
-    tests can.
-- Option B: record `npm ci` and add `npm install --package-lock-only
-  --offline` on the "before" and edited pairs (lock unchanged each time) plus
-  the manifest-only control (lock rewritten).
-  - pro: npm itself confirms each pair is current and that the check is
-    sensitive, like the uv records.
-  - con: one more command per record, and the control run writes the lock in
-    its scratch copy.
-- Option C: replace `npm ci` with the lock-only command.
-  - pro: one sensitive command.
-  - con: it is not a frozen mode, so the record no longer matches the design's
-    "locked or frozen mode" wording.
-
-#### Recommended option for Q05 (with arguments for this choice)
-
-Option B: the requirement's guarantee is that a pair the tool accepted as
-current before the transition is still accepted after it. The lock-only
-install is npm's own judgment of "current", and the control proves it would
-object. Keeping `npm ci` preserves the frozen-mode record the design asks for.
-
-#### Answer to Q05: option B (with reason why it must be accepted as the answer)
-
-Option B: it gives the npm evidence the same strength as the uv evidence at
-the cost of one command, already shown to work offline on this host. The
-added command takes the same isolation flags as lock generation
-(`--offline --ignore-scripts --no-audit --no-fund`), keeps the selected lock
-format, and each record stores its actual exit codes and before and after
-hashes; the control counts only if it really changes the root version fields
-of the lock.
-
-User decision: confirmed - Option B, as recommended: keep `npm ci` as the
-frozen-mode record and add `npm install --package-lock-only --offline
---ignore-scripts --no-audit --no-fund` on the "before" pair, the edited pair
-(lock unchanged each time) and the manifest-only control (lock rewritten),
-keeping the lock format and recording exit codes and hashes. Chosen by the
-user through AskUserQuestion on 2026-11-07, no comment.
-
-### Q06: Timing of the evidence recording
-
-Question description: the design forbids claiming support for a lock schema
-or layout without recorded evidence. The plan records the uv evidence in the
-Python step and the npm evidence in the npm step, so the registry of supported
-schemas never ships ahead of its records.
-
-#### BBQ for Q06
-
-A builder can get each floor signed off as it is poured, or pour every floor
-and call the inspector once at the end. Signing each floor means no floor is
-ever used before it is approved.
-
-In this picture: each floor is an adapter's registered lock schemas, the
-sign-off is the recorded tool evidence and its test, and calling the inspector
-at the end is a dedicated evidence step after all adapters.
-
-#### Options for Q06
-
-- Option A: record in the uv and npm adapter steps (the plan).
-  - pro: a registered pair and its evidence land in the same reviewed change.
-  - con: the recorder grows in two steps.
-- Option B: a dedicated evidence step after the last adapter.
-  - pro: the recorder is written once.
-  - con: two adapter steps would register support without evidence, which the
-    design forbids, or would have to leave their registries empty until later.
-- Option C: record in the final step.
-  - pro: one recording session.
-  - con: same gap as B, for longer.
-
-#### Recommended option for Q06 (with arguments for this choice)
-
-Option A: it is the only order in which no commit claims support without
-evidence, which is the round 3 reviewer's explicit plan requirement.
-
-#### Answer to Q06: option A (with reason why it must be accepted as the answer)
-
-Option A: support and its proof travel together through review and commit.
-
-User decision: confirmed - Option A, as recommended: the uv evidence is
-recorded and committed in the uv adapter step and the npm evidence in the npm
-adapter step, so no registered schema or format ships without its record.
-Chosen by the user through AskUserQuestion on 2026-11-07, no comment.
-
-### Q07: Shape of the transition's test seams
-
-Question description: Step 7 exposes six injectable inputs: the replacement
-function, file and directory removal, the lock factory, the process probe, the
-clock and the process id. The choice is whether to keep them as explicit
-keywords or bundle the same inputs in one `TransitionPorts` value. Both forms
-keep evidence names and failure injection deterministic.
-
-#### BBQ for Q07
-
-A test kitchen can hand the cook a spoon, then a timer, then a thermometer,
-each through a separate hatch, or hand over one tray with all the tools the
-recipe may touch. One tray is easier to swap and nothing is forgotten.
-
-In this picture: the cook is `set_versions`, the separate hatches are
-individual keyword parameters, the tray is one ports dataclass, and the tools
-are the replacement function, file and directory removal, the lock factory,
-the process probe, the clock and the process id.
-
-#### Options for Q07
-
-- Option A: keep the six explicit keyword seams with production defaults, as
-  in the revised Step 7 body.
-  - pro: no extra type.
-  - con: a wider keyword interface for callers and tests.
-- Option B: one `TransitionPorts` dataclass bundles replacement, file and
-  directory removal, the lock factory, the process probe, the clock and the
-  process id, with production defaults, passed as one keyword.
-  - pro: one stable parameter and a single home for all external inputs.
-  - con: one more small type.
-- Option C: monkeypatch module globals in tests.
-  - pro: no parameter at all.
-  - con: the plan's own test architecture rules it out, and defaults bound at
-    definition time (as in `OperationLock`) silently ignore such patches.
-
-#### Recommended option for Q07 (with arguments for this choice)
-
-Option B: the six inputs (replacement, file and directory removal, the lock
-factory, the process probe, the clock and the process id) are all external
-inputs of the writes, the cleanup, the lock and the evidence name. Bundling
-them keeps the in-process interface item 5 calls down to the inputs, the
-target and one optional ports value, and gives a later seam one home.
-
-#### Answer to Q07: option B (with reason why it must be accepted as the answer)
-
-Option B: one stable parameter carries every external input of the
-transition, for tests and for item 5. Fixing the clock and process id does not
-make evidence names unique; Q17 covers that allocation.
-
-User decision: confirmed - Option B, as recommended: one `TransitionPorts`
-dataclass carries the replacement function, file and directory removal, the
-lock factory, the process probe, the clock and the process id, with production
-defaults, passed to `set_versions` as one keyword. Chosen by the user through
-AskUserQuestion on 2026-11-07, no comment.
-
-### Q08: Model of the declared release history in tests
-
-Question description: Steps 1 and 8 need answers to five typed Git
-observations (tag records, independent tips, tags between two revisions,
-commit counts, listing) for about forty selector scenarios and generated
-chains. The plan declares commits with parents and tags in
-`repository_simulation.py` and answers the observations by reachability over
-the declared parents, without interpreting Git arguments. Item 1 froze its Git
-emulation against new command patterns.
-
-#### BBQ for Q08
-
-To rehearse a family-tree quiz you can draw the tree once and read every
-answer off it, or write each answer card by hand for each question, or keep
-the tree in a separate notebook.
-
-In this picture: the tree is the declared commits, parents and tags, reading
-answers off it is computing reachability for each typed observation, the
-answer cards are per-query declared outputs, and the separate notebook is a
-`release_history.py` module.
-
-#### Options for Q08
-
-- Option A: a declared ancestry in `repository_simulation.py` answering the
-  typed methods (the plan).
-  - pro: one declaration per scenario; generated chains for the property test
-    need no hand-written answers; no Git argument is parsed.
-  - con: a small ancestry computation lives in test support.
-- Option B: per-query declared answers.
-  - pro: no computation in test support at all.
-  - con: each scenario repeats four consistent answers by hand, and an
-    inconsistent set can make a wrong selector pass.
-- Option C: the ancestry model in its own `release_history.py` from the start.
-  - pro: `repository_simulation.py` stays at its item 1 size.
-  - con: one more support module before it is needed.
-
-#### Recommended option for Q08 (with arguments for this choice)
-
-Option A: the observations are typed and the model answers them from data, so
-it stays within item 1's rule (no Git interpreter, no command patterns), while
-guaranteeing that the four answers of one scenario agree with each other. The
-plan already gives the split to option C if the file grows past its ceiling.
-
-#### Answer to Q08: option A (with reason why it must be accepted as the answer)
-
-Option A: one consistent declaration per scenario is both cheaper to write and
-harder to get wrong than four hand-kept answers. The real adapter's argument
-vectors stay checked separately in Step 1's Git tests.
-
-User decision: confirmed - Option A, as recommended: tests declare commits
-with parents, `HEAD`, `main` and tags in `repository_simulation.py`, which
-answers the typed observations by reachability without interpreting Git
-arguments; it moves to `release_history.py` only if the file would pass 650
-lines. Chosen by the user through AskUserQuestion on 2026-11-07, no comment.
-
-### Q09: Transport of the integrated acceptance matrix
-
-Question description: Step 9 runs every row of the design's acceptance table
-through `launcher_tooling.run`, which executes production bootstrap,
-readiness, dispatch and rendering per case. The fast-test rules ask for one
-public command-line test per contract, with variants checked at a lower
-boundary.
-
-#### BBQ for Q09
-
-To test forty dishes, a restaurant can send every plate through the front
-door with a waiter, a table and a bill, or cook the forty dishes in the
-kitchen and send one plate of each menu section through the dining room.
-
-In this picture: the front door is `launcher_tooling.run` (bootstrap,
-readiness, rendering), the kitchen is `cli.main` with the shipped registry,
-the forty dishes are the design's acceptance rows and the menu sections are
-the five commands.
-
-#### Options for Q09
-
-- Option A: every row through the launcher simulation (the plan).
-  - pro: each row exercises the whole public path.
-  - con: about forty repetitions of bootstrap and readiness work, which item 1
-    already proves, against a 0.1-second CPU budget per test.
-- Option B: rows through `cli.main` with the shipped registry and whole-tree
-  snapshots, plus one launcher-simulation case per command and per status
-  (0, 1, 2, 3).
-  - pro: every row still crosses parsing, preflight, dispatch and rendering;
-    the launcher path is proven once per contract; each test stays well inside
-    its budget.
-  - con: rows other than the representative ones do not cross bootstrap.
-- Option C: rows through `cli.main` only.
-  - pro: cheapest.
-  - con: no proof that status 3 and the new commands survive the real
-    bootstrap boundary.
-
-#### Recommended option for Q09 (with arguments for this choice)
-
-Option B: the bootstrap and readiness path does not depend on the acceptance
-row, so repeating it forty times adds cost without adding evidence. One case
-per command and per public status keeps the whole public path proven where the
-version domain changes it, as the project's fast-test rules prescribe.
-
-#### Answer to Q09: option B (with reason why it must be accepted as the answer)
-
-Option B: it keeps every acceptance row end to end at the engine boundary and
-the launcher path proven per contract, within the lifecycle budget. No
-restoration or no-write assertion is weakened by the change of transport.
-
-User decision: confirmed - Option B, as recommended: every acceptance row runs
-through `cli.main` with the shipped registry and whole-tree snapshots, and one
-launcher-simulation case covers each command and each public status (0, 1, 2
-and 3); no restoration or no-write assertion is weakened. Chosen by the user
-through AskUserQuestion on 2026-11-08, no comment.
-
-### Q10: Up-front splits for the two largest adapters
-
-Question description: the advisory estimates are 470 lines for `maven.py` and
-430 for `python.py`, both in the safe band. The plan splits either one only if
-it would pass 650 (`maven_references.py`, `python_links.py`). Each file holds
-two responsibilities: discovery and pairing, and reference or link rules.
-
-#### BBQ for Q10
-
-A moving truck is filling up. You can wait until a box does not fit and then
-unload half the truck, or put the heaviest, separate load in a second van from
-the start, or book two vans for everything.
-
-In this picture: the truck is one adapter module, the box that does not fit is
-crossing the 650-line ceiling mid-step, the heavy separate load is the Maven
-reference rules, and two vans for everything is pre-splitting both adapters.
-
-#### Options for Q10
-
-- Option A: split only past 650 (the plan, per the repository policy).
-  - pro: fewest files; no split without need.
-  - con: Maven's reference rules, error messages and remedies may well push the
-    file through the risk band mid-step, forcing a split during review.
-- Option B: pre-split both adapters.
-  - pro: no mid-step split anywhere.
-  - con: one extra module for Python, whose link rules are about 120 lines.
-- Option C: pre-split Maven only (`maven.py` for reactor discovery,
-  `maven_references.py` for internal references, parents and inheritance);
-  keep Python in one module with its split guidance.
-  - pro: separates the two Maven responsibilities that reviewers check
-    differently, where the estimate is least reliable.
-  - con: one more module than the plan.
-
-#### Recommended option for Q10 (with arguments for this choice)
-
-Option C: the Maven step carries the most rules (coordinates, internal index,
-inheritance, expressions, profile and plugin references) and the least reliable
-estimate; splitting it along its natural boundary costs one file and avoids a
-forced split during review. Python's link rules are small enough that the
-on-demand guidance is sufficient.
-
-#### Answer to Q10: option C (with reason why it must be accepted as the answer)
-
-Option C: it spends one extra file where the risk is real and none where it is
-not, without inventing a tighter mandatory line target.
-
-User decision: confirmed - Option C, as recommended: the Maven step creates
-`sources/maven.py` for reactor discovery and `sources/maven_references.py` for
-internal references, parents and inheritance from the start, registered as a
-support module in the completeness test; `python.py` stays one module with its
-on-demand split guidance. Chosen by the user through AskUserQuestion on
-2026-11-08, no comment.
-
-### Q11: Test leaf layout
-
-Question description: the plan creates sixteen new test leaves, one per
-production module or concern, each with its `__init__.py`, following item 1's
-one-leaf-per-module layout and the `test_name/test_name_tdd.py` convention.
-Grouping by subsystem would need about five leaves.
-
-#### BBQ for Q11
-
-A workshop can give each tool its own labelled drawer, or sort tools into a
-few large bins by trade. Labelled drawers take more fronts to build but you
-find the right one without searching.
-
-In this picture: the drawers are test leaves mapped to production modules, the
-large bins are subsystem leaves holding several test files, and building the
-fronts is creating sixteen `__init__.py` files.
-
-#### Options for Q11
-
-- Option A: one leaf per production module or concern (the plan).
-  - pro: same layout as item 1; `ghog single` targets map to modules; failing
-    leaves point at one module.
-  - con: sixteen initializers.
-- Option B: about five subsystem leaves (`test_version_sources`,
-  `test_version_formats`, `test_version_transition`, `test_release_tags`,
-  `test_version_commands`).
-  - pro: fewer files to create and read.
-  - con: breaks the convention used by every other release-workflow leaf and
-    makes leaves large enough to approach the line ceiling.
-
-#### Recommended option for Q11 (with arguments for this choice)
-
-Option A: initializers are three lines each, the convention is already the
-norm in this package, and it keeps every test file far from the line ceiling.
-
-#### Answer to Q11: option A (with reason why it must be accepted as the answer)
-
-Option A: consistency with the existing release-workflow test tree outweighs
-the small cost of the extra initializers.
-
-User decision: confirmed - Option A, as recommended: sixteen test leaves, one
-per production module or concern, following the
-`test_<name>/test_<name>_tdd.py` convention of the item 1 leaves. Chosen by
-the user through AskUserQuestion on 2026-11-08, no comment.
-
-### Q12: Consistency of the four public status lists
-
-Question description: status 3 must be accepted in `results.render`,
-`bootstrap.main` (which cannot import `results` before readiness) and both
-batch launchers. Each of these four places is a site: one spot in
-llm-shared's own code that holds the list of exit statuses passed through
-unchanged. The tests involved are llm-shared's own development tests, run
-while llm-shared is changed, never by a consumer's `brel` or release. The plan
-updates each site and its own test, as item 1 did
-for 0, 1 and 2.
-
-#### BBQ for Q12
-
-Four doors of one building each carry a list of who may enter. You can update
-each list by hand, update them and walk past all four with one checklist, or
-wire all doors to one badge server.
-
-In this picture: the four doors are the renderer, the bootstrap and the two
-launchers, the lists are their accepted statuses, the walk with one checklist
-is a cross-site consistency test, and the badge server is a shared constant
-module.
-
-#### Options for Q12
-
-- Option A: update each site and its own test (the plan).
-  - pro: smallest change.
-  - con: a future status could be added to three sites and forgotten in the
-    fourth, with each site's test still passing.
-- Option B: option A plus one test asserting that the four sites list the same
-  statuses.
-  - pro: one short test catches drift between sites.
-  - con: the test reads two batch files as text.
-- Option C: a shared constant in a dependency-free helper that bootstrap loads
-  by file path.
-  - pro: one source for Python sites.
-  - con: the batch launchers still need their own lines, so drift remains
-    possible there, and bootstrap gains another private helper load.
-
-#### Recommended option for Q12 (with arguments for this choice)
-
-Option B: the batch files can never share a Python constant, so the only
-complete protection is a test that compares all four; it reuses the
-launcher-source reading item 1 tests already do.
-
-#### Answer to Q12: option B (with reason why it must be accepted as the answer)
-
-Option B: it guards every site, including the two batch launchers, with one
-small test and no new runtime module. The test reads the launchers through the
-existing source-contract mechanism and compares the accepted values, not one
-textual spelling.
-
-User decision: confirmed - Option B, as recommended: each site keeps its own
-test, and llm-shared's development suite gains one unit test comparing the
-statuses accepted by `results.render`, `bootstrap.main` and both batch
-launchers through the existing source-contract reading. Chosen by the user
-through AskUserQuestion on 2026-11-08, after asking what a site is and which
-tests are meant; both are now explained in the documents (see the user's
-clarification: these tests never run during a consumer's `brel` or release).
-
-### Q13: Handling of the command-line limit for independent tips
-
-Question description: `merge-base --independent` receives the candidate
-commits as arguments, and `CreateProcess` accepts a command line of at most
-32,767 UTF-16 code units. A rough estimate (41 characters per SHA-1 id) puts
-the limit near 790 candidate boundaries; the real limit also depends on the
-selected executable path, the fixed Git prefix options, quoting and on
-repositories using 64-character SHA-256 object ids. The plan as written lets a
-selection beyond it fail as a Git execution error. The consumers have at most
-99 tags.
-
-#### BBQ for Q13
-
-A lift has a weight limit. You can let an overloaded lift jam between floors,
-put a scale at the door that refuses the load with a clear sign, or send the
-load in several trips.
-
-In this picture: the lift is the one `merge-base --independent` call, the
-weight limit is the Windows command-line length, jamming is an opaque Git
-launch error, the scale is a length check before the call, and several trips
-are chunked calls that break the four-call bound.
-
-#### Options for Q13
-
-- Option A: let the call fail as a Git execution error (the plan).
-  - pro: no extra code.
-  - con: the diagnostic is the operating system's launch failure, which does
-    not say what to do.
-- Option B: build the exact command line the call would use
-  (`subprocess.list2cmdline` over the executable, the fixed Git prefix and the
-  arguments), measure it in UTF-16 code units including the terminating NUL,
-  and refuse before starting Git
-  with status 1 and a diagnostic naming the limit and the candidate count.
-  - pro: a clear message from the real measurement, valid for SHA-1 and
-    SHA-256 ids; the four-call bound stays.
-  - con: a few lines and tests (at, just below and just above the limit, with
-    both id lengths) for a case no consumer reaches.
-- Option C: split the candidates into several calls.
-  - pro: no limit.
-  - con: breaks the design's fixed call count and needs a merge step.
-
-#### Recommended option for Q13 (with arguments for this choice)
-
-Option B: it keeps the design's bound, costs a few lines, and turns an opaque
-failure into an actionable one; status 1 matches the existing meaning of an
-execution failure. Measuring the real command line instead of applying a
-per-id estimate keeps the check right for any executable path and object
-format.
-
-#### Answer to Q13: option B (with reason why it must be accepted as the answer)
-
-Option B: a clear stop is better than an obscure one, and the check is cheap
-to write and test.
-
-User decision: confirmed - Option B, as recommended: before starting Git,
-`independent_commits` builds the exact command line, measures it in UTF-16
-code units including the terminating NUL, and refuses with status 1 naming the
-limit and the candidate count; boundary tests cover both 40- and 64-character
-ids, and the four-call ceiling stays. Chosen by the user through
-AskUserQuestion on 2026-11-08, no comment.
-
-### Q14: Timing of the reference documentation
-
-Question description: Step 9 adds `wiki/reference/version-sources.md` and
-updates two reference pages that today state no operation is shipped and list
-statuses 0 to 2. The umbrella's final release preparation also runs a Diataxis
-wiki audit once all items are done.
-
-#### BBQ for Q14
-
-When a shop opens a new counter, it can put up the sign the day the counter
-opens, or wait for the yearly refit of all the shop's signs. Waiting means the
-old sign says "closed" over an open counter for months.
-
-In this picture: the new counter is the `version` and `versions` commands, the
-sign is the reference page, the old "closed" sign is the current statement
-that no operation is shipped, and the yearly refit is the umbrella's final
-Diataxis audit.
-
-#### Options for Q14
-
-- Option A: document in Step 9 (the plan, as item 1 did for its foundation).
-  - pro: the shipped behavior and its reference agree from the first commit;
-    the existing pages stop stating something false.
-  - con: the final audit may still reorganize the page.
-- Option B: defer all documentation to the umbrella's final audit.
-  - pro: one documentation pass.
-  - con: the two existing pages become wrong as soon as Step 9 lands.
-- Option C: only correct the two existing pages now.
-  - pro: no new page.
-  - con: commands, configuration keys and limits stay undocumented until the
-    audit.
-
-#### Recommended option for Q14 (with arguments for this choice)
-
-Option A: Step 9 makes the existing reference statements false, so they must
-change with it; the new page records the command contract while it is fresh,
-and the final audit can still move it.
-
-#### Answer to Q14: option A (with reason why it must be accepted as the answer)
-
-Option A: documentation that matches the shipped commands from the first
-commit, at the cost of one page. The page stays reference material, and the
-wiki navigation keeps its Diataxis category order.
-
-User decision: confirmed - Option A, as recommended: Step 9 adds
-`wiki/reference/version-sources.md` as a reference page, corrects the two
-existing reference pages (shipped operations, status 3) and links the new page
-from `wiki/README.md`; the umbrella's final audit may still reorganize it.
-Chosen by the user through AskUserQuestion on 2026-11-08, no comment.
-
-### Q15: Where the plan's readings of design-silent cases are settled
-
-Question description: the plan's risk pass names cases the design does not
-spell out. Four of them follow from the requirement's "any other unsupported or
-ambiguous arrangement fails" rule or from an implementation mechanism, and the
-plan implements them as tested behavior: internal Maven references outside the
-two owned element paths fail; `workspace:` npm specifiers match by package
-name; a missing component root fails detection while an empty one yields no
-record; an incomplete standalone restoration still releases the lock. The
-fifth is a design rule the plan does not settle: when a boundary holds several
-stable tags of one version on one commit, is the boundary eligible, and which
-actual tag spelling does the output print for it? Examples the design does not
-cover:
-
-- a historical `0.13.0` (lightweight, or annotated without a trailer) and an
-  unvalidated engine `v0.13.0` (trailer, no `[valid]`) on one commit;
-- a validated engine `v0.13.0` and an unvalidated engine `0.13.0` on one
-  commit;
-- an ambiguous alias (misplaced trailer) beside an eligible one on one commit;
-- two eligible aliases on one commit, where only the printed spelling is open.
-
-Boundary eligibility and the printed spelling are separate choices: an
-eligible boundary may still have to print only an eligible actual tag. The
-design's "missing evidence never promotes a tag" speaks of a tag, so it does
-not by itself decide the boundary. The existing conflict rules (same version on
-different commits, different versions on one commit) are not part of this
-question. This question does not decide the rule; it asks where it is decided.
-
-#### BBQ for Q15
-
-A builder finds five spots the architect's drawing leaves blank. Four are
-where a socket or a pipe goes, which the builder may decide. One is where a
-load-bearing wall goes, which only the architect should sign; the rooms that do
-not touch that wall can be finished while the architect decides.
-
-In this picture: the drawing is the consolidated design, the four sockets and
-pipes are the Maven, npm, component-root and lock-release readings, the
-load-bearing wall is the eligibility and printed spelling of an aliased
-boundary, the architect's signature is a separately authorized design
-clarification with its own review, and the rooms finished meanwhile are the
-steps and Step 8 cases that do not depend on it.
-
-#### Options for Q15
-
-- Option A: keep all five readings in the plan as tested behavior.
-  - pro: no design change; Step 8 is not blocked.
-  - con: a baseline selection and output rule would be set by an
-    implementation plan, without design review.
-- Option B: keep four readings in the plan; settle aliased-boundary
-  eligibility and the printed spelling in a short design clarification,
-  authorized separately and reviewed before Step 8's aliased-boundary tests.
-  - pro: the design keeps ownership of baseline rules; Steps 1 to 7 and the
-    other Step 8 cases proceed meanwhile.
-  - con: one design clarification and review round, and Step 8 cannot complete
-    until it lands.
-- Option C: settle all five in the design.
-  - pro: the design covers every behavior.
-  - con: four of the readings are implementation mechanisms or follow from the
-    requirement, so the clarification would reopen more than needed.
-
-#### Recommended option for Q15 (with arguments for this choice)
-
-Option B: only the aliased-boundary rule changes what a release range contains
-and what it prints, which is design territory; the other four are mechanisms
-the requirement already constrains. The plan now marks that rule as an
-explicit Step 8 prerequisite, so nothing before it waits, and the design
-clarification can weigh the stricter and the more permissive readings with
-the examples above.
-
-#### Answer to Q15: option B (with reason why it must be accepted as the answer)
-
-Option B: each rule is settled by the document that owns it; Steps 1 to 7 and
-the unaffected Step 8 cases proceed, and only Step 8's aliased-boundary cases
-wait for the reviewed clarification. Choosing B does not itself authorize the
-design clarification; that needs its own decision.
-
-User decision: confirmed - Option B, as recommended: the plan keeps the four
-mechanism readings (Maven references outside the owned paths fail,
-`workspace:` matched by package name, missing component root fails while an
-empty one yields no record, incomplete standalone restoration releases the
-lock); aliased-boundary eligibility and the printed spelling are settled in a
-separately authorized, reviewed design clarification before Step 8's
-aliased-boundary tests, while Steps 1 to 7 and the rest of Step 8 proceed.
-This choice does not authorize that clarification. Chosen by the user through
-AskUserQuestion on 2026-11-08, no comment.
-
-### Q16: Owner of the shared input and edit types
-
-Question description: Step 3's detection takes `VersionInputs` and returns
-`Inventory` and `FileEdit`, and the shared test builders create
-`VersionInputs`, but the first written plan declared `VersionInputs` only in
-the Step 7 transition module and gave `FileEdit`, `Inventory` and `Plan` no
-owner. Every numbered step must pass its gate without a module from a later
-step, and detection must not import the transition (which imports detection).
-The revised body places them in the Step 2 model: `VersionInputs` (project,
-configuration, artifacts, Git, `from_context`), `FileCapture` (path, original
-bytes or `None`, SHA-256), `SourceChange` (path, field, adapter, old and new
-values), `FileEdit` (capture, new bytes, changes), `Inventory` and `Plan`.
-
-#### BBQ for Q16
-
-A kitchen's first station needs the recipe card format before the head chef's
-station exists. The card format can be printed at the first station, kept in a
-small shared binder, or left at the head chef's station that opens last.
-
-In this picture: the recipe card format is the shared types, the first station
-is the Step 2 model, the shared binder is a separate `sources/inputs.py`
-module, and the head chef's station is the Step 7 transition module.
-
-#### Options for Q16
-
-- Option A: define them in the Step 2 source model, with `from_context` on
-  `VersionInputs` and the context type imported for type checking only.
-  - pro: no new module; dependencies point toward the model; Steps 2 and 3
-    pass their gates alone.
-  - con: the model grows by about 80 lines.
-- Option B: a small dependency-neutral `sources/inputs.py`, created in Step 2.
-  - pro: separates input and plan types from the source model.
-  - con: one more module and one more import in every consumer.
-- Option C: keep them in the transition module, with late imports or forward
-  references.
-  - pro: matches the first draft.
-  - con: Step 3 depends on a Step 7 module, and detection importing the
-    transition invites a cycle.
-
-#### Recommended option for Q16 (with arguments for this choice)
-
-Option A: the model already owns the located-source and composition types
-these build on, so the new types sit with their closest relatives, no step
-imports a later one, and no module is added. The model stays well below the
-risk band (advisory 360 lines).
-
-#### Answer to Q16: option A (with reason why it must be accepted as the answer)
-
-Option A: it repairs the step dependency with the smallest new surface and
-keeps every step independently completable.
-
-User decision: confirmed - Option A, as recommended: `VersionInputs` (with
-`from_context`), `FileCapture`, `SourceChange`, `FileEdit`, `Inventory` and
-`Plan` are defined in the Step 2 source model, `sources/model.py`; detection
-and the transition import them from there, and no step imports a later one.
-Chosen by the user through AskUserQuestion on 2026-11-08, no comment.
-
-### Q17: Allocation of a fresh evidence directory
-
-Question description: the evidence directory is named
-`a.version-transition.<timestamp>-<pid>` at second resolution, and item 1's
-`prepare_directory` creates directories with `exist_ok=True`. Two calls under
-one lifecycle lock in the same second, or with an injected clock and process
-id, would address the same directory, and writing `original.<n>` or
-`manifest.json` there would destroy the first call's captured originals and
-invalidate its restore handle. The revised body creates the directory
-exclusively and, on a collision, tries numbered suffixes up to a fixed limit,
-never entering an existing directory.
-
-#### BBQ for Q17
-
-Two guests arrive at a cloakroom in the same minute. The attendant can hand
-out the next free numbered hook, refuse the second coat, or hang both coats on
-the hook stamped with the arrival minute and hope.
-
-In this picture: the cloakroom is the artifact home, the hooks are evidence
-directories, the coats are the captured originals, the next free hook is a
-suffixed exclusive creation, refusing is stopping before any write on a
-collision, and hanging both on one hook is reusing a timestamp-and-pid
-directory.
-
-#### Options for Q17
-
-- Option A: create the directory exclusively and retry with `-2`, `-3` and so
-  on up to a fixed limit, failing before any source write past it.
-  - pro: preserves every earlier capture and handle; repeated lifecycle calls
-    work whatever the clock resolution.
-  - con: a short retry loop and its tests.
-- Option B: create it exclusively and stop before any write on a collision.
-  - pro: safe and simple.
-  - con: two quick lifecycle calls fail by timing, and item 5 must retry.
-- Option C: rely on a finer timestamp plus the process id being unique.
-  - pro: no loop.
-  - con: an injected or coarse clock still collides, and nothing then protects
-    the earlier evidence.
-
-#### Recommended option for Q17 (with arguments for this choice)
-
-Option A: exclusive creation is what protects earlier evidence; the suffix
-only decides what happens next. Retrying keeps repeated calls under one
-lifecycle lock working without making item 5 handle timing, and the attempt
-limit keeps the loop bounded. Tests use identical injected clock and process
-ids and declared pre-existing directories, complete or partial.
-
-#### Answer to Q17: option A (with reason why it must be accepted as the answer)
-
-Option A: no existing evidence is ever reused or overwritten, and callers get
-a fresh directory without retrying themselves.
-
-User decision: confirmed - Option A, as recommended: the recovery evidence
-directory is created exclusively; when `a.version-transition.<timestamp>-<pid>`
-is taken, the next suffix (`-2`, `-3` and so on, up to a fixed limit) is
-tried, an existing directory is never entered, and past the limit the call
-fails before any source write. Chosen by the user through AskUserQuestion on
-2026-11-08, no comment.
+change no existing caller, and no version command runs tests: the umbrella
+records the user's rule that `brel` never triggers the application test suite
+(item 5). No private path or sensitive term is needed by any planned file or
+fixture.
+
+---
+
+## Implementation decisions for v0.14.0 version-sources
+
+The user decided each question after an explanation (Q01 and Q02 on
+2026-11-07 afternoon, Q03 to Q08 on 2026-11-07 evening, Q09 to Q17 on
+2026-11-08), always choosing the recommended option. Independent review round
+3 checked the seventeen decisions for consistency with each other and with
+the requirement, design and drafts, and found no missing question. The
+question blocks are kept in the commit
+`docs(plan): record pre-consolidation questions`.
+
+| Question | Decision | Integrated in | Rejected alternatives |
+| --- | --- | --- | --- |
+| Q01 | B: the transition is Step 4, right after configuration and claims; Python, npm and Maven are Steps 5, 6 and 7, each adding its fixture set to the restoration matrix, so every adapter step completes its AC3 contract set | Plan goal; Steps 4 to 7; Shared test architecture ("Restoration contract per adapter"); acceptance ownership map; validation plan | A: adapters before the transition (restoration debt paid in one late step); C: transition split in two steps (one more review cycle for an interface with no caller until item 5) |
+| Q02 | A: the version sections are declared in `schemas.py`, whose validator imports `sources.settings` only when a version section exists | Step 3 | B: schema in `sources/settings.py` imported at the end of `schemas.py` (import-order hazard); C: new `schema_types.py` (item 1 layout change) |
+| Q03 | A: lock evidence is one committed JSON file beside its test, produced by a hand-run recorder in the test tree; the engine starts no process and coverage rules are unchanged | Steps 5 and 6; Runtime file note | B: generated Python module of byte constants (lint burden, poor diffs); C: recorder under `tools/` (process starts in the engine, new coverage omission) |
+| Q04 | A: the uv revision 3 "before" lock is the uv 0.13.4 revision 5 lock with its revision line set to 3, provenance recorded; the claim covers uv 0.13.4 only | Lock compatibility facts; Step 5 | B: also install an older uv (download, second tool, guessed version); C: reduce llm-shared's real lock (rewritten anyway, needs cached metadata) |
+| Q05 | B: the npm records keep `npm ci` and add `npm install --package-lock-only --offline --ignore-scripts --no-audit --no-fund` on the "before" pair, the edited pair and the manifest-only control | Lock compatibility facts; Step 6 | A: `npm ci` only (cannot detect a missed lock field); C: lock-only check instead (no frozen-mode record) |
+| Q06 | A: uv evidence is recorded in the uv step and npm evidence in the npm step, so no registered schema ships without its record | Steps 5 and 6 | B: a dedicated evidence step after the adapters; C: recording in the final step (both leave support claimed without proof) |
+| Q07 | B: one `TransitionPorts` value carries replacement, file and directory removal, lock factory, process probe, clock and process id, with production defaults | Step 4; Shared test architecture ("Fault injection") | A: six explicit keywords (wider signature); C: monkeypatching module globals (ruled out; definition-time defaults ignore it) |
+| Q08 | A: tests declare commits, parents, `HEAD`, `main` and tags in `repository_simulation.py`, which answers the typed observations by reachability without interpreting Git arguments | Step 1; Step 8 | B: hand-written answers per query (can disagree); C: separate `release_history.py` from the start (kept as split guidance) |
+| Q09 | B: acceptance rows run through `cli.main` with the shipped registry and whole-tree snapshots, plus one launcher case per command and per public status (0 to 3) | Step 9 | A: every row through the launcher (repeated bootstrap work against the budget); C: `cli.main` only (status 3 and new commands unproven through bootstrap) |
+| Q10 | C: the Maven step creates `sources/maven.py` (reactor discovery) and `sources/maven_references.py` (references, parents, inheritance) from the start; `python.py` keeps its on-demand split guidance | Step 7; Step 5 split guidance | A: split only past 650 lines (forced split during review); B: pre-split Python too (extra module for about 120 lines) |
+| Q11 | A: sixteen test leaves, one per production module or concern, following the item 1 `test_<name>/test_<name>_tdd.py` convention | Current test-tree validation snapshot; every step's files | B: about five subsystem leaves (breaks the convention, larger files) |
+| Q12 | B: one development-suite test compares the statuses accepted by the four sites (`results.render`, `bootstrap.main`, both launchers) through the source-contract mechanism | Step 1 | A: per-site tests only (a later status can miss one site); C: shared Python constant (batch files still separate) |
+| Q13 | B: `independent_commits` measures the serialized command line in UTF-16 code units including the terminating NUL and refuses with status 1 before starting Git | Step 1; Step 8 call table; risk pass | A: let Git fail (opaque launch error); C: chunked calls (break the four-call ceiling) |
+| Q14 | A: Step 9 adds `wiki/reference/version-sources.md`, corrects the two existing reference pages and links the new page; the umbrella's final audit may still reorganize it | Step 9 | B: defer to the umbrella's final audit (false statements stay published); C: correct the old pages only (commands undocumented) |
+| Q15 | B: the plan keeps four mechanism readings; aliased-boundary eligibility and printed spelling go to a separately authorized, reviewed design clarification before Step 8's alias tests | Step 8 prerequisite and completion criteria; risk pass | A: all five readings in the plan (a baseline rule set without design review); C: all five in the design (reopens settled mechanisms) |
+| Q16 | A: `VersionInputs`, `FileCapture`, `SourceChange`, `FileEdit`, `Inventory` and `Plan` are defined in the Step 2 source model | Step 2; Steps 3 and 4 | B: separate `sources/inputs.py` (one more module); C: the transition module (Step 3 depends on Step 4, import cycle) |
+| Q17 | A: the recovery evidence directory is created exclusively; a taken name gets the next `-2`, `-3` suffix up to a fixed limit, and an existing directory is never entered | Step 4; Runtime file note | B: stop on a collision (repeated lifecycle calls fail by timing); C: finer timestamp only (no protection of earlier evidence) |
+
+User comments taken into account during the explanations: the "before" pair
+of the lock evidence, a status normalization "site" and the scope of this
+item's tests (llm-shared's development suite only) are now defined in every
+effort document that relies on them; the user's rule that `brel` never
+triggers the application test suite is recorded in the umbrella for item 5.
