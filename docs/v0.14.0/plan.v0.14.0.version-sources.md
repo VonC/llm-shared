@@ -535,6 +535,8 @@ Step framing:
 - `tests/unit/tools/release_workflow/test_release_transport/test_release_transport_tdd.py` (existing, to be updated).
 - `tests/unit/tools/release_workflow/test_operation_lock/test_operation_lock_tdd.py` (existing, to be updated).
 - `tests/unit/tools/release_workflow/test_git/test_git_releases_tdd.py` (new, to be created).
+- `tests/unit/tools/release_workflow/test_git/test_git_tdd.py` (existing, to be updated).
+- `tests/unit/tools/release_workflow/test_paths/test_paths_faults_tdd.py` (existing, to be updated).
 
 **Tests first**:
 
@@ -564,19 +566,27 @@ Step framing:
   current one.
 - Git: each typed method's exact argument vector and parsing from canned
   `run` output: zero, one and several tag records, an annotation with blank
-  lines and trailing newline, a lightweight tag, merged and not-merged filters,
+  lines and trailing newline, a lightweight tag, a tag of a tag peeled fully
+  with and without its inner tag's ref and with and without `--merged` (each
+  record keeps its own annotation and reports the commit), a record still
+  dereferenced to a tag object refused with the Git 2.44 reason, merged and
+  not-merged filters,
   independent tips, a count, a listing with an embedded repository entry
   (`nested/`) dropped and a tracked gitlink kept as a name; a nonzero Git
   status keeps raising `GitCommandError`, except the canned exit 129 with
   `malformed object name refs/tags/<name>` for `--merged`, which raises
-  `GitRevisionNotFound`; an exit 129 with other stderr stays a
+  `GitRevisionNotFoundError`; an exit 129 with other stderr stays a
   `GitCommandError`.
+- Git floor: a Git older than 2.44.0, such as 2.43.9 or 2.31.0, is refused
+  when the context is created, and the error states the floor, the reason
+  (only Git 2.44 or later peels a tag of a tag to its commit in the one tag
+  listing) and the remedy to upgrade; 2.44.0 is accepted.
 - Command-line guard (plan decision Q13): `independent_commits` refuses, before
   any process start, a candidate list whose serialized command line would
   exceed 32,767 UTF-16 code units including the terminating NUL; boundary
   cases just below, at and just above the limit, each with 40- and
   64-character object ids and a long executable path, assert the refusal
-  (`GitCommandLineTooLong`, status 1, naming the limit and the candidate
+  (`GitCommandLineTooLongError`, status 1, naming the limit and the candidate
   count) and that the recording `run` saw no call.
 - PBT: not needed in this step; the token and status domains are finite and
   parametrized exhaustively.
@@ -606,18 +616,28 @@ Step framing:
 - `GitExecutionContext.tag_records(*, cwd, merged=None)`: one
   `for-each-ref` over `refs/tags` with NUL-separated fixed fields
   (`%(refname:strip=2)`, `%(objecttype)`, `%(objectname)`,
-  `%(*objectname)`, `%(contents)`) and an optional `--merged=<revision>`.
+  `%(*objecttype)`, `%(*objectname)`, `%(contents)`) and an optional
+  `--merged=<revision>`. The commit of an annotated tag is its dereferenced
+  object, which Git 2.44 or later peels fully, through a tag of a tag too,
+  even when the inner tag's own ref is deleted; a record still reporting the
+  dereferenced type `tag` comes from an older Git and raises
+  `GitPolicyError` with the floor's reason. The call stays single and no
+  tag is excluded.
   When that single call exits 129 and its stderr reports `malformed object
   name` for the supplied `--merged` revision, it raises
-  `GitRevisionNotFound` (a `GitCommandError` subclass carrying the revision),
+  `GitRevisionNotFoundError` (a `GitCommandError` subclass carrying the revision),
   so a missing tag target becomes status 2 in Step 8 without a second query;
   every other failure stays a plain `GitCommandError` (status 1).
+- `git._MINIMUM_VERSION` becomes `(2, 44, 0)` (user decision of 2026-11-08,
+  recorded in the design's "Git queries of the selector" and foundation
+  changes): `GitExecutionContext.create` refuses an older Git with the
+  floor, the reason and the remedy to upgrade, before any operation.
 - `GitExecutionContext.independent_commits(commits, *, cwd)`: one
   `merge-base --independent`. Before starting it, the method builds the exact
   command line the call would use (`subprocess.list2cmdline` over the selected
   executable, the fixed `run` prefix options and the arguments), measures it in
   UTF-16 code units including the terminating NUL, and raises
-  `GitCommandLineTooLong` (execution failure, status 1) above 32,767, naming
+  `GitCommandLineTooLongError` (execution failure, status 1) above 32,767, naming
   the limit and the candidate count (plan decision Q13). The four-call ceiling of a
   selection stays.
 - `GitExecutionContext.tag_names(*, cwd, merged, not_merged)`: one
@@ -1721,7 +1741,7 @@ Step framing:
   is nonzero for a baseline several commits behind HEAD, zero for a release at
   HEAD, and the full-history count when no boundary is eligible; a
   syntactically valid missing tag target returns status 2 through
-  `GitRevisionNotFound` from the one records call, while a canned Git
+  `GitRevisionNotFoundError` from the one records call, while a canned Git
   execution failure of that call returns status 1.
 - Aliased boundaries (design decisions Q18 and Q19), on declared histories:
   historical `0.13.0` with unvalidated `v0.13.0`, and validated `v0.13.0`
@@ -1773,12 +1793,12 @@ Git calls of one selection, by case:
 | Case | Calls | Result |
 | --- | --- | --- |
 | Malformed name, snapshot or other prerelease target | none | status 2 |
-| Missing tag target | records (raises `GitRevisionNotFound`) | status 2 |
+| Missing tag target | records (raises `GitRevisionNotFoundError`) | status 2 |
 | Ineligible or ambiguous target boundary, or conflicting tags | records | status 2 |
 | No eligible candidate | records, count of the target | full history |
 | One candidate | records, tags between baseline and target, count | baseline and range |
 | Several candidates | records, independent tips, tags between, count | baseline and range, or status 2 for several tips or an inversion |
-| Several candidates whose independent-tips command line would pass the Windows limit | records only; `GitCommandLineTooLong` before the tips call starts (plan decision Q13) | status 1 naming the limit and the candidate count |
+| Several candidates whose independent-tips command line would pass the Windows limit | records only; `GitCommandLineTooLongError` before the tips call starts (plan decision Q13) | status 1 naming the limit and the candidate count |
 
 The release-version rule uses two calls: all tag records and the records
 merged into `main`.

@@ -66,10 +66,22 @@ Performance check section.
 
 ### Analysis of Step 1 implementation state
 
-Not started. Step 1 is not implemented because no implementation work has
-begun: the parser still rejects operation tokens, status 3 is still
-normalized to 1, the lock has no public ownership check and Git has no typed
-tag, ancestry, count or listing observation.
+Yes. Step 1 has been fully implemented.
+
+Every planned file, test and class change is present: operation tokens with
+per-handler validators reach the context, status 3 is public at the four
+sites with a cross-site test, `OperationLock.verify_held` binds a held lock to
+the process, project root and artifact home, and the five typed Git release
+observations exist with their simulation counterparts. Code review finding F1
+is closed by the user's decision of 2026-11-08 to require Git 2.44 or later,
+recorded in the design: from Git 2.44, `for-each-ref` peels a tag of a tag to
+its commit in the one tag listing, also after the inner tag's ref is deleted,
+so `TagRecord.commit` is always the commit without a second call and without
+refusing valid tags. An older Git is refused when the context is created, and
+the refusal states the floor, the reason and the remedy to upgrade. The two
+new exceptions carry the repository's `Error` suffix
+(`GitRevisionNotFoundError`, `GitCommandLineTooLongError`), and the plan uses
+these names.
 
 ### Goal for Step 1
 
@@ -90,9 +102,9 @@ simulation counterparts.
   home, a replaced or retained record and another process's owner.
 - `tag_records`, `independent_commits`, `tag_names`, `commit_count` and
   `listing` each issue one Git call with the planned arguments and parse its
-  output; a missing `--merged` revision raises `GitRevisionNotFound`, other
-  failures stay `GitCommandError`; the simulations answer them from declared
-  data.
+  output; a missing `--merged` revision raises `GitRevisionNotFoundError`,
+  other failures stay `GitCommandError`; the simulations answer them from
+  declared data.
 - `independent_commits` measures its serialized command line in UTF-16 code
   units including the terminating NUL and refuses above 32,767 with status 1
   before starting Git, tested at the boundary with 40- and 64-character ids
@@ -103,27 +115,194 @@ simulation counterparts.
 
 ### What was implemented for Step 1
 
-_(empty — no check has taken place yet.)_.
+- **Operation tokens**: `cli._parse` adds the `operation` positional
+  (`nargs="*"`) and uses `parse_intermixed_args`, so options parse the same
+  before, between and after the tokens. `cli.Handler.validate_arguments`
+  receives the tokens in `_select`, before identity loading and context
+  creation; without a validator, any token fails with
+  `Release operation '<name>' takes no arguments: ...` (status 2). The tokens
+  travel through `InvocationRequest.operation` to
+  `InvocationContext.operation`, and the batch-character rule covers them.
+- **Public status 3**: `results.render` and `bootstrap.main` accept
+  `{0, 1, 2, 3}`; both launchers add
+  `if "%_release_status%"=="3" goto cleanup` before the normalization line; 4
+  and 23 still become 1 with the original value in the diagnostic.
+- **Lock binding**: `OperationLock.verify_held(declaration)` rejects a handle
+  that no longer holds the lock, an owner whose process is not the current
+  one, another project root and a record outside the declared artifact home,
+  then rereads the record under the transition mutex (`_require_owned`), which
+  rejects a replaced or retained record; it returns the prepared artifacts.
+- **Typed Git observations**: `TagRecord`, `tag_records` (one
+  `for-each-ref` with six NUL-terminated fields, `%(*objecttype)` included,
+  and an optional `--merged`), `independent_commits` (one
+  `merge-base --independent` after the command-line guard), `tag_names`,
+  `commit_count` and `listing`; `run` now shares its fixed options with the
+  guard's measurement.
+- **Peeled commit of a tag of a tag**: the release tooling now requires Git
+  2.44 or later (`_MINIMUM_VERSION = (2, 44, 0)`), the first version whose
+  `%(*objectname)` peels a tag fully, as `ref-filter.c` shows (v2.43.0 calls
+  `get_tagged_oid` once, v2.44.0 calls `peel_iterated_oid`). An annotated
+  tag's commit is therefore its dereferenced object, even when the inner
+  tag's own ref was deleted; each record keeps its own annotation. A record
+  still dereferenced to a tag object can only come from an older Git and is
+  refused with the same reason. `GitExecutionContext.create` refuses an older
+  Git before any operation: "Git version 2.43.9 at ... is older than required
+  2.44.0: release range selection reads every tag with its commit in one
+  `git for-each-ref` call, and only Git 2.44 or later peels a tag of a tag to
+  its commit there (older Git stops at the inner tag). Upgrade Git to 2.44 or
+  later." Git 2.56, installed here, peels a tag of a tag fully in a scratch
+  repository probe.
+- **Simulation**: `repository_simulation.ReleaseHistory` declares commits
+  with parents, `HEAD`, `main`, tags (including `nested_tag`, which carries
+  its inner tag's commit) and listing names; `RepositoryObservations` answers
+  the five methods by reachability, records each call and keeps the
+  production guard; `launcher_simulation` routes the five methods through
+  `_patch_release_observations`.
+- **Validation evidence**: tests first, `ghog single` on the eight Step 1
+  test files failed at collection on the missing API, then passed
+  (2026-11-08T16:04 and 16:18). `ghog day --whole-suite`, the command printed
+  by `pw scope day`, reported `exit=0` on 2026-11-08T16:20 (check and affected
+  tests; the full stage is skipped at the default level). After the Git 2.44
+  floor decision, `ghog single` on `test_git_releases_tdd.py`,
+  `test_git_tdd.py`, `test_paths_faults_tdd.py` and
+  `test_release_transport_tdd.py` passed (2026-11-08T17:33).
+  `rg -n '"3"' bin/release_workflow.bat bin/release_alias.bat` shows line 68 in
+  both launchers; `rg -n '0, 1, 2, 3'` shows `results.py:45` and
+  `bootstrap.py:191`; the `subprocess|Popen` search over
+  `tests/unit/tools/release_workflow/repository_simulation.py` matches only
+  the import and a `CompletedProcess` data value, no process start;
+  `cli.SHIPPED_HANDLERS` is empty. The cross-site status test passes, and its
+  counter-test shows that a synthetic copy dropping status 3 at one site
+  breaks the agreement.
+- **Independent reviewer reassessment (round 3)**: F1 is resolved under the
+  design's recorded Git 2.44 decision. Read-only inspection of Git v2.43.0
+  and v2.44.0 `ref-filter.c` confirms the change from one-level dereference
+  to full peeling. Context creation enforces the floor; the nested-tag and
+  version tests cover the revised contract. The current resolver matches the
+  request's `ghog day --full=speed --whole-suite` project validation set.
+  The writer reports that walk green with 100% measured coverage; the
+  reviewer assessed coverage statically and ran no tests or coverage walk.
+  The independent commit-plan checker is ready with six ordered groups and
+  no diagnostics. This reassessment changes review metadata only.
+- **Line counts after the step**: `cli.py` 168, `invocation.py` 199,
+  `results.py` 53, `bootstrap.py` 201, both launchers 79,
+  `operation_lock.py` 261, `git.py` 331, `repository_simulation.py` 253,
+  `launcher_simulation.py` 208, `test_cli_tdd.py` 200,
+  `test_invocation_tdd.py` 200, `test_results_tdd.py` 46,
+  `test_bootstrap_tdd.py` 212, `test_codepage_tdd.py` 161,
+  `test_release_transport_tdd.py` 159, `test_operation_lock_tdd.py` 337,
+  `test_git_releases_tdd.py` 288, `test_git_tdd.py` 232,
+  `test_paths_faults_tdd.py` 91; every Python file stays below 650. Recorded
+  variance above the advisory estimates: `git.py` +146 (+125, with the floor
+  and its stated reason), `launcher_simulation.py` +29 (+20),
+  `test_invocation_tdd.py` +23 (+12), `test_bootstrap_tdd.py` +23 (+6),
+  `test_codepage_tdd.py` +52 (+25), `test_release_transport_tdd.py` +55 (+10,
+  with the routing test of the five observations), `test_git_releases_tdd.py`
+  288 (260).
 
 ### New types or classes introduced for Step 1
 
-_(empty — no check has taken place yet.)_.
+- `tools.release_workflow.git.TagRecord`: frozen tag ref data (name, object
+  type, peeled commit, own annotation or `None` for a lightweight tag).
+- `tools.release_workflow.git.GitRevisionNotFoundError`: a `GitCommandError`
+  for a reachability filter naming no object, carrying the revision and
+  `exit_code = 2`.
+- `tools.release_workflow.git.GitCommandLineTooLongError`: a
+  `GitPolicyError` carrying the measured UTF-16 units, the candidate count
+  and `exit_code = 1`.
+- `tests.unit.tools.release_workflow.repository_simulation.ReleaseHistory`:
+  the declared release history behind the simulated observations.
+- `tests/unit/tools/release_workflow/test_git/test_git_releases_tdd.py`: the
+  typed observation, guard and simulation tests (`CannedRun` records the
+  domain arguments of each `run` call).
 
 ### Architecture check for Step 1
 
-_(empty — no check has taken place yet.)_.
+- **Git adapter**: the five observations and `TagRecord` live in the existing
+  Git adapter, keep `_execute` as the only process boundary and return plain
+  data; tag classification and range rules stay out of it, for Step 8.
+- **Entry boundary**: `cli` knows only an optional validator callable per
+  handler; no version vocabulary enters the parser or the dispatcher, and
+  validation runs before identity, Git and file access.
+- **Lock**: `verify_held` adds a check without changing acquisition, release,
+  retention or transfer; it depends on `ArtifactDeclaration` only for typing.
+- **Status sites**: the four sites keep separate literals by design (the
+  bootstrap may not import the tools package); the cross-site test is the
+  single point that keeps them equal.
+
+No, there is nothing that needs to be addressed: no DDD-Hexagonal violation or
+adapter smell is visible in this step.
 
 ### Performance check for Step 1
 
-_(empty — no check has taken place yet.)_.
+- **No new `O(n^2)` or `O(n log n)` path**: tag records, tag names and the
+  listing are split once, linear in the output, a tag of a tag included
+  since Git 2.44 peels it in the listing; the guard joins the candidates once;
+  token validation is linear in the tokens.
+- **Hot-path bound**: each observation is one Git call; `verify_held` adds
+  three comparisons and one record read under the existing mutex.
+- **Startup or background path**: none added.
+- **Plan-bound alignment**: the four-call selection ceiling and the linear
+  bound of the plan are kept; the test-only simulation walks declared
+  parents once per reachability query.
+
+No, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 1
 
-_(empty — no check has taken place yet.)_.
+The coverage gate measures `tools` only (`[tool.coverage.run] source`), with
+`*/tests/*` omitted.
+
+- **`tools/release_workflow/cli.py`**: the validator call, the rejection of
+  tokens without a validator and the intermixed parse are exercised by
+  `test_cli/test_cli_tdd.py`; covered.
+- **`tools/release_workflow/invocation.py`**: the new field and its copy are
+  exercised by `test_invocation/test_invocation_tdd.py`; covered.
+- **`tools/release_workflow/results.py`** and
+  **`tools/release_workflow/bootstrap.py`**: both sides of the widened status
+  check are exercised by `test_results_tdd.py` and `test_bootstrap_tdd.py`;
+  covered.
+- **`tools/release_workflow/operation_lock.py`**: every rejection branch of
+  `verify_held` and its success are exercised by
+  `test_operation_lock/test_operation_lock_tdd.py`; covered.
+- **`tools/release_workflow/git.py`**: both exceptions, the record parser
+  (valid and malformed output), every failure branch of `tag_records`, both
+  sides of the guard and each new method are exercised by
+  `test_git/test_git_releases_tdd.py`, including a tag of a tag peeled
+  fully, with and without its inner tag's ref and with and without
+  `--merged`, and a record still dereferenced to a tag refused with the
+  floor's reason; `test_git/test_git_tdd.py` covers the floor (2.43.9 and
+  2.31.0 refused, 2.44.0 accepted) and the stated reason; covered. The
+  declared history covers a tag of a tag and its inner tag sharing one commit
+  with distinct annotations, and the outer tag alone after the inner tag is
+  deleted, with and without the reachability filter.
+- **Files outside the gate**: `repository_simulation.py` (new
+  `ReleaseHistory`, `_MISSING_STATUS`) and `launcher_simulation.py` (new
+  `_patch_release_observations`) are referenced by tests and called by their
+  own module; the five routed observations run in
+  `test_release_transport_tdd.py`. Both launchers are covered by source
+  contracts.
+
+No, there is no unit-tested class below 100% that needs completing for Step 1.
+No, none of the top-level symbols added outside the coverage gate is
+unreferenced.
 
 ### Feature integrity for Step 1
 
-_(empty — no check has taken place yet.)_.
+- **Existing feature behavior**: a handler without a validator behaves as
+  before when no token is given; the unavailable-operation message is
+  unchanged; every existing CLI, invocation, lock and Git test passes in the
+  day walk.
+- **Reporting or diagnostics**: unknown statuses are still diagnosed with
+  their original value; status 3 keeps the handler's diagnostics.
+- **Compatibility or rollout note**: the parser now accepts trailing tokens,
+  but only a handler with a validator takes them; `SHIPPED_HANDLERS` stays
+  empty until Step 9.
+
+No existing feature or reporting capability appears impaired. The Git floor
+moves from 2.31.0 to 2.44.0 by the user's decision: a machine with Git 2.31
+to 2.43 is now refused for every release command, with the reason and the
+remedy to upgrade, instead of producing a wrong commit for a tag of a tag.
 
 ---
 
