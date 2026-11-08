@@ -385,6 +385,11 @@ runs never silently move the pin. No binaries are installed by this draft edit.
 
 The integration surrounds the project's own gate; it never replaces pytest,
 npm, Maven or other project build/test commands with an engine-defined gate.
+`brel` never triggers the project's application test suite (user rule,
+2026-11-08): those tests pass before release preparation starts. The release
+gate builds the release and re-runs at most the tests that failed last, a set
+expected to hold at most one test, as llm-shared's current dummy/last-failed
+pytest gate does.
 `%~dp0` identifies the consuming project, which calls its own `senv.bat` before
 `pre`. A consumer defaults to `..\llm-shared`, with a validated `LLM_SHARED_DIR`
 fallback; the explicit upgrade-selection contract below can select another
@@ -411,7 +416,8 @@ if defined release_workflow (
   call "%release_workflow%" pre "%project_root%" %*
   if errorlevel 1 exit /b 2
 )
-rem ... the project's own build (pytest, npm, mvn) ...
+rem ... the project's own build (pytest, npm, mvn); on the rel path, the
+rem project's release build and at most its last failed tests ...
 rem Capture its exit code immediately as build_status.
 if defined release_workflow (
   call "%release_workflow%" post "%project_root%" %build_status%
@@ -481,7 +487,10 @@ Release processing is a local transaction; it never pushes commits or tags.
    the release date and tooling trailer. It has no `[valid]` marker yet.
 4. **Run the consuming gate.** The project's build/test gate runs against the
    release-form files. No next snapshot is created during this phase. Record
-   its actual result; a failed gate cannot yield a valid tag.
+   its actual result; a failed gate cannot yield a valid tag. The gate never
+   re-runs the application test suite: it builds the release and re-runs at
+   most the tests that failed last (normally none or one), since the suite
+   passed before release preparation (user rule, 2026-11-08).
 5. **Finalize success.** Only `post` for this transaction and a zero gate
    result may append a standalone `[valid]` line to its annotated tag. Confirm
    HEAD, managed files and the tag still identify the prepared release;
@@ -1485,7 +1494,7 @@ not a claim that binary compatibility or implementation has been validated.
 | 20 | git-cliff invocation | Fixed internal absolute path and launcher-local `GIT_CLIFF`; no executable config or PATH discovery/mutation; provide shared `gcliff` alias and direct launcher |
 | 21 | Missing git-cliff | Attempt automatic provisioning first; if unavailable, fail generated work before project mutation with an internal setup/download diagnostic; other operations remain usable |
 | 22 | Changelog modes | Generated means commit-derived text with notes/date/fixes; curated means author-maintained bytes validated for exact headings/ranges, with no git-cliff/header dependency |
-| 23 | Release gate and validity | Only main may release; pre creates release files/commit/unvalidated annotated tag; consuming gate owns success; post adds `[valid]` after identity checks; no push |
+| 23 | Release gate and validity | Only main may release; pre creates release files/commit/unvalidated annotated tag; consuming gate owns success; post adds `[valid]` after identity checks; no push. `brel` never triggers the application test suite: the gate re-runs at most the last failed tests, normally none or one (user rule, 2026-11-08) |
 | 24 | Failure recovery | Restore only transaction-owned files, archive set, index, commit and tag with conflict checks; preserve merge/prepare commits, user changes and valid releases |
 | 25 | Next snapshot and automation | Separate higher snapshot transition with consistent source forms and no tag change; explicit non-interactive choices, no hidden prompts |
 | 26 | Snapshot tags | Development markers, never stable release baselines, release menu choices or recovery targets; share classification across engine, changelog, notes and release-plan readers |
@@ -1598,13 +1607,22 @@ implementation mechanisms to the child designs.
     Include declared nested component roots; report conflicting file claims.
     Keep adapter registration only in llm-shared, with completeness and contract
     tests so a new ecosystem needs no consumer copies or orchestration edits.
+    These are llm-shared's own development tests, run while llm-shared is
+    changed; a consumer's `brel` or release never runs them, and release-time
+    testing of a consumer stays with item 5.
   - Map snapshot `1.2.3-SNAPSHOT` to `1.2.3` for Python/default npm and retain
     the suffix for Maven/configured sources. Release maps all to `1.2.3`;
     npm release-only refuses downgrades and never keeps the old published core.
   - Update uv local-root/npm root lock fields only; preserve schema/dependency
     metadata for external dependencies and external/inherited Maven versions.
     No opportunistic dependency resolution or global replacement of fields
-    named version.
+    named version. Lock consistency compares two states of one manifest and
+    lock pair: the "before" pair (the files as found before the version change,
+    for example `pyproject.toml` and `uv.lock` both at `0.13.0`) and the edited
+    pair (both at `0.14.0`, every other byte unchanged). A pair the tool's
+    locked check accepted before the change must still be accepted after it;
+    a lock already stale before the change is not repaired (version-sources
+    feature-request clarification Q10).
     Define the supported internal component-reference boundary and maintain
     consistency within it; unsupported or ambiguous arrangements fail before
     any source writes, rather than leaving sibling references on an old version.
@@ -1729,6 +1747,9 @@ implementation mechanisms to the child designs.
     changelog set before a narrowly scoped release commit and annotated
     `vX.Y.Z`. Reuse title/notes/date; record the executing tooling revision.
     Snapshot tags remain untouched and cannot stand in for release tags.
+  - `brel` never triggers the application test suite; the gate builds the
+    release and re-runs at most the last failed tests, normally none or one
+    (user rule, 2026-11-08).
   - Pre failure skips the gate; every gate outcome reaches post with root and
     transaction identity. Only a successful owned gate adds `[valid]`; check
     source/tooling identity with the documented self-release exception, including
