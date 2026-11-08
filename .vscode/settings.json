@@ -28,6 +28,7 @@
     }
   ],
   "cSpell.words": [
+    "achive",
     "addaudithook",
     "addfinalizer",
     "addini",
@@ -153,6 +154,9 @@
     "pathsep",
     "pcomp",
     "pluginmanager",
+    "preauthorize",
+    "preauthorized",
+    "preauthorizes",
     "precheck",
     "preflighted",
     "preflights",
@@ -224,6 +228,8 @@
     "unconfigures",
     "unconstructible",
     "uncontended",
+    "undatable",
+    "Undatable",
     "underspecified",
     "undragged",
     "unevaluable",
