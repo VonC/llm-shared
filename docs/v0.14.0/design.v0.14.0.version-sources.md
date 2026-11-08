@@ -869,3 +869,225 @@ are kept in the commit `docs(design): record pre-consolidation questions`.
 | Q15 | Candidate discovery uses one Git listing of tracked files plus untracked files that no ignore rule matches, skips nested repositories, and excludes the fixed directory names and the artifact home; a tracked file stays listed even when an ignore rule matches it later | Undeclared nested candidates; AC5, AC10 | Tracked files only (a new component stays invisible to setup until added); a filesystem walk (walks ignored trees and reports deliberately ignored projects) |
 | Q16 | The anchor's first line holds the token, optionally followed by whitespace, `--` and the title; anything else after the token makes the anchor malformed, with status 2 and a remedy before any write, so a version typo never becomes a silent title | The version.txt document; AC1 | Reading any trailing text as the title (`0.14.0 -SNAPSHOT` silently becomes `0.14.0`); ignoring text without `--` (drops the intended title, with the same typo risk) |
 | Q17 | After verification, the transition durably records a `complete` state in the evidence manifest. Before it, any failure restores from complete originals; after it, cleanup deletes the originals and then the manifest, and a cleanup or lock-release failure returns status 1, stating that the new versions are applied and naming the residue, without rollback. The next `set` removes standalone `complete` residue and still stops on `writing` evidence | Target flow of the version commands; Completion boundary and cleanup failures; Public statuses of the version commands; AC11 | Keeping the evidence until an explicit cleanup (copies left after every success, a new routine or command); status 0 with a warning (residue goes unnoticed, and the next run cannot tell it from an interruption) |
+
+## Open questions for the v0.14.0 version-sources design clarification
+
+These two questions settle the design dependency that plan decision Q15
+(option B, 2026-11-08) left open for Step 8 of the implementation plan. The
+user authorized this clarification on 2026-11-08, scoped to these two rules;
+every earlier design decision (Q01 to Q17) stays as recorded.
+
+### Q18: Eligibility of a boundary whose aliases disagree
+
+Question description: "Persistent eligibility evidence" classifies each
+stable tag on its own: a historical tag (lightweight, or annotated without a
+`Release tooling:` trailer) and a validated engine tag (trailer, then
+`[valid]`) are eligible; an unvalidated engine tag (trailer without
+`[valid]`) is not; a misplaced or repeated trailer makes a tag ambiguous.
+Step 3 of "The deterministic ancestry rule" then groups the tags of one version
+on one commit into one boundary, each tag being an alias of it. The rule's
+later steps speak of eligible boundaries and of single tags, but the design
+does not say how a boundary is classified when its aliases have different
+classifications. Item 5 creates only `vX.Y.Z` engine tags and refuses a
+release whose version exists in either spelling, so such a boundary comes from
+a person or another tool adding a tag beside an existing one, or from a
+history where both spellings were created. The cases, all on one commit
+`c13`:
+
+1. historical `0.13.0` and unvalidated engine `v0.13.0` (the 0.13.0 gate
+   failed or is still running);
+2. validated engine `v0.13.0` and unvalidated engine `0.13.0` (an engine-style
+   message copied by hand);
+3. validated engine `v0.13.0` and ambiguous `0.13.0`;
+4. historical `0.13.0` and validated engine `v0.13.0` (both eligible; only
+   the printed name is open, see Q19).
+
+Whatever the rule, the boundary's classification replaces a single tag's
+classification wherever the design uses it: a tag target (step 1), the
+candidates (step 4), the tags between the baseline and the target (step 6),
+and the "eligible stable release reachable from `main`" of the
+release-version rule. The conflict checks of step 3 are unchanged, and the
+reservation part of the release-version rule already counts every alias,
+whatever its eligibility. "Missing evidence never promotes a tag" constrains
+each tag's own classification; it does not by itself choose the boundary rule.
+
+#### BBQ for Q18
+
+At a club barbecue, each skewer carries one or more tags. "Grilled by the old
+cook" is trusted as done. "New grill, thermometer check passed" is done.
+"New grill, check not done yet" is not done. A smudged tag that cannot be read
+cannot be trusted. When one skewer carries two tags that disagree, someone
+must decide whether it goes on the "served" tray, the "not served" tray, or
+back to the cook for a question. The tray decides which skewers the next
+round of guests is told about.
+
+In this picture: a skewer is a commit, each tag on it is an alias of the
+boundary, "old cook" is a historical tag, "check passed" is a validated
+engine tag, "check not done" is an unvalidated engine tag, the smudged tag is
+an ambiguous tag, the "served" tray is an eligible boundary that can be a
+baseline, the "not served" tray is an ineligible boundary excluded with a
+warning, sending it back to the cook is a status 2 failure, and telling the
+next guests is the release range given to changelogs and notes.
+
+#### Options for Q18
+
+- Option A: the most restrictive alias decides. The boundary is ambiguous when
+  any alias is ambiguous; otherwise it is not eligible when any alias is an
+  unvalidated engine tag; otherwise it is eligible. The boundary then behaves
+  as a single tag of that class: an ambiguous boundary fails as a target or
+  between the baseline and the target, and an ineligible one fails as a
+  target, is never a candidate, and between the baseline and the target is
+  excluded with step 6's warning, naming its aliases. Cases: 1 not eligible,
+  2 not eligible, 3 ambiguous, 4 eligible.
+  - pro: adding a tag can never make a boundary more eligible, so no alias,
+    lightweight or written by hand, turns a release whose gate did not pass
+    into a baseline, in every clone.
+  - pro: steps 1, 4 and 6 and the release-version rule keep their single-tag
+    behavior, applied to the boundary's class; no new branch, four small
+    cases to test.
+  - con: in case 2, a stray unvalidated alias demotes a release whose gate
+    passed on that commit until a person deletes the alias; the selection
+    falls back to the previous release, and the next notes repeat 0.13.0's
+    commits, with only a warning on stderr.
+- Option B: one eligible alias is enough. The boundary is ambiguous when any
+  alias is ambiguous; otherwise it is eligible when at least one alias is
+  eligible, and its unvalidated aliases are reported with a warning. Cases:
+  1 eligible, 2 eligible, 3 ambiguous, 4 eligible.
+  - pro: a release that passed its gate is never demoted by a stray alias, and
+    legacy histories with mixed spellings keep their baselines.
+  - con: in case 1, a lightweight `0.13.0` added beside a failed `v0.13.0`
+    makes the failed release a baseline; the next notes then omit changes
+    that were never released. A tag carrying no evidence decides eligibility,
+    which umbrella decision 34 rules out for a single tag.
+- Option C: validated evidence decides. The boundary is ambiguous when any
+  alias is ambiguous; otherwise it is eligible when any alias is a validated
+  engine tag; otherwise it is eligible only when no alias is an unvalidated
+  engine tag. Cases: 1 not eligible, 2 eligible, 3 ambiguous, 4 eligible.
+  - pro: protects case 1 as option A does, and keeps case 2 eligible as
+    option B does, since the gate evidence on that commit decides.
+  - con: a three-rank precedence to document and test, for case 2, which the
+    tooling itself never produces.
+  - con: an unvalidated engine alias beside a validated one may record a
+    second, failed transaction; option C reduces it to a warning, and the
+    stray tag still needs a manual cleanup.
+- Option D: disagreement fails. A boundary whose aliases do not all share one
+  class among eligible, not eligible and ambiguous is ambiguous; agreeing
+  aliases give their common class. Cases: 1 ambiguous, 2 ambiguous,
+  3 ambiguous, 4 eligible.
+  - pro: never guesses; follows the requirement's rule that any other
+    unsupported or ambiguous arrangement fails, and shows the person every
+    mixed boundary with status 2.
+  - con: a mixed boundary on the latest release stops every range reader,
+    including item 5's preflight and the changelog and notes of items 4 and 7,
+    until the tags are fixed, even in cases 1 and 2 where options A and C
+    give a safe answer.
+
+#### Recommended option for Q18 (with arguments for this choice)
+
+Option A: it extends the purpose of umbrella decision 34 from one tag to a
+boundary: evidence that is missing or not validated can only remove
+eligibility, never add it, so case 1 cannot promote a failed release, in every
+clone. It reuses the single-tag behavior the design already specifies for a
+target, for the candidates, for the tags after the baseline and for the
+release-version rule, so the boundary adds a classification step and no new
+selection branch. Its drawback is limited to case 2, an unprefixed engine tag
+that item 5 never writes (it creates only `vX.Y.Z` tags and refuses an
+existing version), and the warning names the alias to delete. Option B
+reopens the gap decision 34 closes. Option C adds a precedence order to
+rescue an arrangement the tooling never creates. Option D turns the
+recoverable cases 1 and 2 into a stop for every range reader.
+
+#### Answer to Q18: option A (with reason why it must be accepted as the answer)
+
+Option A: a boundary takes the most restrictive class of its aliases
+(ambiguous, then not eligible, then eligible) and behaves as a single tag of
+that class in steps 1, 4 and 6 and in the release-version rule. It keeps
+decision 34's guarantee across aliases, adds no selection branch, and limits
+the cost to a manual arrangement whose warning names the tag to remove.
+
+User decision: confirmed - Option A, as recommended: a boundary takes the
+most restrictive class of its aliases (ambiguous, then not eligible, then
+eligible) and behaves as a single tag of that class for a tag target, for the
+candidates, for the tags between the baseline and the target, and for the
+eligible releases of the release-version rule. Chosen by the user on
+2026-11-08 after the explanation of the four alias cases, with no comment.
+
+### Q19: Tag name printed for a boundary with several eligible aliases
+
+Question description: `versions range` prints `baseline=<tag>` and
+`range=<baseline>..<target>`, and the in-process selector returns the same
+baseline to items 4, 5 and 7. When the baseline boundary holds several
+eligible aliases (case 4 of Q18, or the eligible aliases of a mixed boundary
+under Q18 option B or C), the design does not say which actual tag name is
+printed. Whatever the choice, the printed name is one of the boundary's
+eligible tags, never a composed spelling. Git's range and the `commits` count
+are the same for every alias, since they all name one commit, and passing the
+printed name back as `range <tag>` selects the same boundary, because a tag
+target removes its whole boundary. The choice therefore affects only the text
+that readers display or compare, such as a changelog compare link or a notes
+heading, and whether that text is the same from one run to the next. The
+`target` line is not part of it: a tag target keeps the actual spelling the
+caller gave, as the umbrella's spelling rule requires.
+
+#### BBQ for Q19
+
+A skewer on the "served" tray carries two tags that both say done, one in the
+old cook's handwriting and one printed by the new grill. When the host
+announces "everything since the last served skewer", the host reads one tag
+aloud. Both point to the same skewer, so the guests get the same food either
+way; only the words they hear, and later repeat, differ.
+
+In this picture: the skewer is the baseline commit, the two tags are its
+eligible aliases (legacy `0.13.0` and `v0.13.0`), the announcement is the
+`baseline=` and `range=` output, and the words the guests repeat are the text
+that changelogs, notes and compare links reuse.
+
+#### Options for Q19
+
+- Option A: prefer `vX.Y.Z` when that alias is eligible, otherwise the legacy
+  `X.Y.Z`.
+  - pro: decided from the names alone, so every run and every clone prints the
+    same text.
+  - pro: matches the spelling of every new release tag, release heading and
+    effort path in the umbrella's spelling table, so output and compare links
+    agree with the tags item 5 creates.
+  - con: in a legacy history of unprefixed tags with a few `v` aliases added
+    later, the printed style changes between releases (cosmetic only).
+- Option B: follow the target's spelling. For a tag target, print the alias
+  with the same prefix as the target when it is eligible, otherwise the
+  other; for HEAD, prefer `vX.Y.Z`.
+  - pro: `range 0.14.0` prints `0.13.0..0.14.0`, one style within a line for a
+    legacy history.
+  - con: two rules and a fallback; the same boundary prints differently
+    depending on the caller's argument, so stored or compared output varies,
+    and HEAD still needs option A's rule.
+- Option C: print every eligible alias, such as `baseline=v0.13.0 0.13.0`,
+  with `range=` using the first one in option A's order.
+  - pro: nothing is hidden; a reader sees every alias of the boundary.
+  - con: changes the one-tag `baseline=` contract that item 7's
+    instruction-driven readers parse, and those readers still need a rule to
+    pick one name, so the choice is only moved to them.
+
+#### Recommended option for Q19 (with arguments for this choice)
+
+Option A: the output is a function of the tag names alone, so it is the same
+for every caller, run and clone, and it uses the spelling the umbrella fixes
+for every new release, which is what item 5 will create from now on. Legacy
+histories still get a valid, eligible actual tag and the same Git range.
+Option B makes the output depend on the argument for a gain in style only.
+Option C breaks the single-value `baseline` line that readers consume and
+moves the same choice to each reader.
+
+#### Answer to Q19: option A (with reason why it must be accepted as the answer)
+
+Option A: among the eligible aliases of the baseline boundary, `versions range`
+and the in-process selector use `vX.Y.Z` when it is one of them, otherwise
+`X.Y.Z`. The result is deterministic, matches the spelling of new release
+tags, keeps the one-tag `baseline=` contract, and changes neither the Git
+range nor the commit count.
+
+User decision: confirmed - Option A, as recommended: among the eligible
+aliases of the baseline boundary, `versions range` and the in-process selector
+use `vX.Y.Z` when it is one of them, otherwise `X.Y.Z`; the Git range, the
+commit count and the one-tag `baseline=` contract are unchanged. Chosen by the
+user on 2026-11-08 after the explanation, with no comment.
