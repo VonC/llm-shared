@@ -4,6 +4,8 @@ Helpers are loaded by exact sibling paths under private module names. Capture
 cwd and authenticate the reserved entry prefix before readiness or dispatch.
 Only a successful gate exposes the selected checkout to the release engine.
 Early diagnostics use UTF-8/LF; interruption remains an execution failure.
+The engine's public statuses are 0, 1, 2 and 3 (an incomplete restoration,
+since Step 1 of v0.14.0 version-sources); any other value becomes 1.
 """
 
 from __future__ import annotations
@@ -186,7 +188,7 @@ def main(argv: list[str] | None = None) -> int:
         detail = "interrupted" if isinstance(exc, KeyboardInterrupt) else str(exc)
         sys.stderr.write(f"Release execution failed: {detail}\n")
         return 1
-    if status not in {0, 1, 2}:
+    if status not in {0, 1, 2, 3}:
         sys.stderr.write(f"Release operation exited with native status {status}; returning 1.\n")
         return 1
     return status

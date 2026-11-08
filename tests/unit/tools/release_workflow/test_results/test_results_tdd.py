@@ -1,4 +1,9 @@
-"""Results separate data and diagnostics and preserve original failures."""
+"""Results separate data and diagnostics and preserve original failures.
+
+Step 1 of v0.14.0 version-sources: status 3, an incomplete restoration, is a
+public status like 0, 1 and 2; any other value still becomes 1 with its
+original value in a diagnostic.
+"""
 
 from __future__ import annotations
 
@@ -9,7 +14,7 @@ import pytest
 from tools.release_workflow.results import OperationResult, configure_stream, render
 
 
-@pytest.mark.parametrize("status", [0, 1, 2])
+@pytest.mark.parametrize("status", [0, 1, 2, 3])
 def test_render(status: int) -> None:
     """Unicode data and warnings go to separate LF streams."""
     out, err = io.StringIO(), io.StringIO()
@@ -18,11 +23,12 @@ def test_render(status: int) -> None:
     assert err.getvalue() == "warning\nline\n"
 
 
-def test_unexpected_child_status() -> None:
+@pytest.mark.parametrize("status", [4, 23])
+def test_unexpected_child_status(status: int) -> None:
     """An unexpected native code becomes failure with its original detail."""
     out, err = io.StringIO(), io.StringIO()
-    assert render(OperationResult(23, diagnostics=("original child failure",)), stdout=out, stderr=err) == 1
-    assert "23" in err.getvalue()
+    assert render(OperationResult(status, diagnostics=("original child failure",)), stdout=out, stderr=err) == 1
+    assert f"native status {status}; returning 1" in err.getvalue()
     assert "original child failure" in err.getvalue()
     assert not out.getvalue()
 

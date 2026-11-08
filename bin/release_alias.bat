@@ -65,6 +65,7 @@ set "_release_status=%ERRORLEVEL%"
 if "%_release_status%"=="0" goto cleanup
 if "%_release_status%"=="1" goto cleanup
 if "%_release_status%"=="2" goto cleanup
+if "%_release_status%"=="3" goto cleanup
 >&2 echo Release operation exited with native status %_release_status%; returning 1.
 set "_release_status=1"
 goto cleanup

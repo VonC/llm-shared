@@ -1,4 +1,8 @@
-"""Bootstrap authenticates origin, gates imports and normalizes interruption."""
+"""Bootstrap authenticates origin, gates imports and normalizes interruption.
+
+Step 1 of v0.14.0 version-sources: the engine's status 3 passes through the
+final process boundary like 0, 1 and 2; 4 and 23 still become 1.
+"""
 
 from __future__ import annotations
 
@@ -167,6 +171,25 @@ def test_engine_failure(outcome: int | BaseException, expected: str, monkeypatch
     assert bootstrap.main(["--entry-kind", "explicit-native", "--"]) == 1
     diagnostic = capsys.readouterr().err
     assert expected in diagnostic
+
+
+@pytest.mark.parametrize(("status", "public"), [(0, 0), (1, 1), (2, 2), (3, 3), (4, 1), (23, 1)])
+def test_engine_status_boundary(status: int, public: int, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+    """Public statuses pass through; any other value is diagnosed as 1."""
+    def passed(_root: Path) -> bootstrap.Identity:
+        return RuntimeIdentity(_root, "venvs/prepared")
+
+    def execute(_argv: list[str], **_facts: object) -> int:
+        return status
+
+    def imported(_name: str) -> SimpleNamespace:
+        return SimpleNamespace(main=execute)
+
+    monkeypatch.setattr(bootstrap, "check", passed)
+    monkeypatch.setattr(bootstrap.importlib, "import_module", imported)
+    assert bootstrap.main(["--entry-kind", "explicit-native", "--"]) == public
+    diagnostic = capsys.readouterr().err
+    assert (f"native status {status}; returning 1" in diagnostic) == (status != public)
 
 
 def test_early_diagnostic_encoding(monkeypatch: pytest.MonkeyPatch) -> None:
