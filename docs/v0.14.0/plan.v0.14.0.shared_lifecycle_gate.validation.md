@@ -2,9 +2,9 @@
 
 No, it is not implemented
 
-Step 1 of the seven-step
-[implementation plan](plan.v0.14.0.shared_lifecycle_gate.md) was checked on
-2026-11-08. Steps 2-7 remain not started; their goals describe later checks.
+Steps 1-2 of the seven-step
+[implementation plan](plan.v0.14.0.shared_lifecycle_gate.md) were checked on
+2026-11-08. Steps 3-7 remain not started; their goals describe later checks.
 
 ## Runtime context for validating the pytest plugin mechanism
 
@@ -192,8 +192,15 @@ included in this verdict.
 
 ### Analysis of Step 2 implementation state
 
-Not started. Step 2 is not implemented because the independent audit and its
-declaration/ownership adapter have not been created.
+Yes. Step 2 has been fully implemented.
+
+Round 1's four correctness findings are fixed with regression coverage. The
+fresh whole-suite speed day passed after those fixes and the timing repair.
+
+The standalone audit validates declarations before setup, enforces the preserved
+process window and binds fixture ownership to live operations on their executing
+thread. Focused ownership/declaration tests, the resolved day and the subsequent
+covered day passed. Worker coordination and reporting remain Step 3 work.
 
 ### Goal for Step 2
 
@@ -209,27 +216,122 @@ thread/token-bound fixture ownership without gate dependencies.
 
 ### What was implemented for Step 2
 
-_(empty: no check has taken place yet.)_.
+`tools/pytest_plugins/llm_shared_process_audit.py` owns one sys-guarded lifetime
+dispatcher and per-configuration audit state. Reloads and alias imports reuse
+the hub; an active-session stack selects the innermost active test, including
+the outer test during a child's collection. Detach restores the outer session.
+The preserved nine process events are enforced throughout setup, call and
+teardown, with carrying-test/event diagnostics.
+
+Collection validates original class/module marker levels, named function and
+parameter reasons, unused fixture declarations, actual decorated objects,
+imported definitions, ambiguity and conflicting reasons. The registry is indexed
+once. Definition identities retain relative source, qualified and declared names,
+registration base and scope; parameter instances share one exercised record.
+Sources on another Windows drive retain an absolute POSIX path. Failed
+collectors are skipped without retrying their objects; all other declarations
+are validated even with continued collection errors.
+
+The bounded adapter checks fixture/conftest registries, unwrap and execution/finalization
+capabilities. Execute masks requesting ownership during dependency/cache access;
+the setup hook and finish adapter enter actual own work. Nested operations
+replace and restore ownership; live thread-local tokens unwind on failure.
+Only the final detach restores callables, and only while still adapter-owned.
+Fixture permissions take precedence; unexempt function fixtures may use the
+carrying test permission, while broader scopes cannot. Credit is exclusive.
+
+The two new test packages use synthetic events and real in-process pytest
+fixture definitions. The shared inline helper now leaves capture to the parent
+session, avoiding redundant Windows console initialization with all output
+assertions preserved. Package markers are present.
 
 ### New types or classes introduced for Step 2
 
-_(empty: no check has taken place yet.)_.
+- `Permission` records an exercised definition/test, reason and exclusive use.
+- `AuditSession` holds declarations, active lifecycle, collectors and records.
+- `_Operation` binds a fixture/session owner to a live thread-local token.
+- `AuditHub` owns attachment, dispatch and bounded pytest instrumentation.
+- `Fixture` and `FixtureCall` name the pytest definition and adapter signatures.
 
 ### Architecture check for Step 2
 
-_(empty: no check has taken place yet.)_.
+The standalone policy imports only stdlib and pytest. Its Python 3.12 refusal
+precedes runtime imports and its literal loader contract follows the guard.
+Session/declaration policy stays in `AuditSession`; technical pytest ownership
+instrumentation stays in `AuditHub` and hook adapters. No timing settings,
+CPU-band collector, gate records or shared runtime helper is imported.
+
+Fresh physical counts are 395 for the audit, 353/293 for declaration/ownership
+tests and 54 for the inline helper; package markers are below the 650-line limit.
+No architecture issue needs addressing.
 
 ### Performance check for Step 2
 
-_(empty: no check has taken place yet.)_.
+Dispatch uses event membership, active-session/owner access and permission
+dictionary lookups, with no filesystem IO or declaration scan. Collection
+indexes fixture definitions once and traverses declaration sources/items
+linearly. Ownership push/pop is constant time; detach traverses attached
+sessions. No new quadratic or sorting path is introduced.
+
+`ghog day --whole-suite` passed at 2026-11-08T17:54:02+01:00 with `exit=0`,
+`fail=0`, `warn=0`, `xfail=0`. The subsequent
+`ghog day --full=cov --whole-suite` passed at 2026-11-08T17:56:52+01:00 with
+`exit=0`, `cov=100`, `proof=cov` and the same zero failure/warning/xfail counts.
+These runs precede this static implementation check. Review preflight then
+passed `ghog day --full=speed --whole-suite` at
+2026-11-08T18:16:45+01:00: `exit=0`, `cov=100`, `proof=speed`, with zero
+failures, warnings, xfails, outliers or exclusions.
+
+After the four accepted round 1 fixes, 82 focused declaration/ownership cases
+passed. The fresh `ghog day --full=speed --whole-suite` finished at
+2026-11-08T18:58:13+01:00 with `exit=0`, `cov=100`, `proof=speed` and zero
+failures, warnings, xfails, outliers or exclusions. Static checks passed.
+
+An initial first-use lifecycle CPU overrun was profiled: redundant child
+capture initialized Windows console/colorama support. Disabling only child
+capture reduced diagnostic cold CPU from 0.312s to 0.172s; the affected repair
+and both days passed afterward. Speed preflight also profiled redundant parent
+pytest startup in the combined reload/alias/nesting test. Independent import
+checks and reuse of the carrying pytest config preserve all assertions with
+one real child session. The original combined case measured 0.125s CPU;
+the passing covered speed walk measured 0.03125s for nesting and 0.015625s
+each for reload and alias. No exclusion or budget change was added.
+The strengthened nested test subsequently exceeded its lifecycle CPU band
+at 0.28125s. Profiling identified child debugger/progress startup support;
+disabling those two plugins only for that case preserves the reporter and
+all ownership assertions. Diagnostic cold CPU fell from 0.171875s to 0.046875s;
+the affected repair and fresh full speed day passed with unchanged budgets.
+No performance issue needs addressing.
 
 ### Unit test coverage check for Step 2
 
-_(empty: no check has taken place yet.)_.
+The configured source is `tools`, including this audit without an omission;
+the completed covered day measured 100% over that source scope. This check
+runs no test command. Static review maps declaration, identity and adapter
+capability paths to `test_audit_declarations`, and runtime ownership/credit,
+all event phases, nesting, reload/alias, thread/context rejection, failure
+unwind and callable restoration to `test_audit_ownership`. Together they
+exercise the complete standalone class file. Finite parametrized matrices
+cover the approved boundaries; a separate property suite is not required.
+
+The helper under `tests` is outside measured source scope; its `run_inline`
+symbol is referenced throughout both new packages and existing gate contracts.
+Every audit top-level type/function is referenced by tests, internal calls or
+pytest hook registration. No unit-tested class below 100% needs completing.
+No top-level symbol outside the coverage scope is unreferenced.
 
 ### Feature integrity for Step 2
 
-_(empty: no check has taken place yet.)_.
+The existing suite enforcer and lifecycle gate remain unchanged. Process event
+names/window and rejection attribution are preserved; fixture caching, setup
+failure caching, yield teardown and registered finalizers remain pytest-owned.
+Nested sessions restore outer state and later third-party wrappers are retained.
+No existing feature or reporting capability appears impaired.
+
+Evidence uses Windows/Python 3.13, synthetic process events and embedded pytest.
+Source parsing and static targets do not claim executable Python 3.12 coverage.
+Step 3 retains the all-worker barrier, aggregated summaries and suite migration;
+Step 6 retains actual process/compatibility harness scenarios.
 
 ## Step 3. Worker barrier, summaries and own-suite migration
 
