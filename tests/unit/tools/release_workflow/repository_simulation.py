@@ -2,16 +2,28 @@
 
 Fixtures declare metadata, indexes and configuration directly. The boundary
 supplies only observations consumed by production, never a Git interpreter.
+
+Step 1 of v0.14.0 version-sources adds a declared release history: commits
+with their parents, HEAD, main, tags and listing names. The five typed release
+observations are answered from it by reachability over the declared parents,
+without interpreting Git arguments, and each call is recorded. The tips query
+keeps the production command-line guard. A declared tag of a tag carries its
+inner tag's commit, as the production record parser reports it.
 """
 
 from __future__ import annotations
 
 import os
+import subprocess
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from tools.release_workflow.git import GitExecutionContext
+from tools.release_workflow.git import (
+    GitExecutionContext,
+    GitRevisionNotFoundError,
+    TagRecord,
+)
 from tools.release_workflow.git_environment import (
     ConfigEntry,
     GitPolicyError,
@@ -19,15 +31,65 @@ from tools.release_workflow.git_environment import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import Mapping, Sequence
+
+_MISSING_STATUS = 129
+
+
+@dataclass
+class ReleaseHistory:
+    """Declared commits, HEAD, main, tags and listing names, with recorded calls."""
+
+    parents: dict[str, tuple[str, ...]] = field(default_factory=dict[str, tuple[str, ...]])
+    head: str | None = None
+    main: str | None = None
+    tags: list[TagRecord] = field(default_factory=list[TagRecord])
+    names: tuple[str, ...] = ()
+    calls: list[tuple[str, ...]] = field(default_factory=list[tuple[str, ...]])
+
+    def commit(self, name: str, *parents: str) -> str:
+        """Declare one commit after its parents and return its id."""
+        self.parents[name] = parents
+        return name
+
+    def tag(self, name: str, commit: str, annotation: str | None = None) -> TagRecord:
+        """Declare an annotated tag, or a lightweight one without annotation."""
+        record = TagRecord(name, "commit" if annotation is None else "tag", commit, annotation)
+        self.tags.append(record)
+        return record
+
+    def nested_tag(self, name: str, inner: str, annotation: str) -> TagRecord:
+        """Declare an annotated tag of the inner tag: it carries the inner tag's commit."""
+        commit = next(tag.commit for tag in self.tags if tag.name == inner)
+        return self.tag(name, commit, annotation)
+
+    def resolve(self, revision: str) -> str:
+        """Resolve HEAD, main, a tag ref or a declared commit; anything else is missing."""
+        named = {"HEAD": self.head, "main": self.main, **{f"refs/tags/{tag.name}": tag.commit for tag in self.tags}}
+        commit = named.get(revision, revision if revision in self.parents else None)
+        if commit is None:
+            result = subprocess.CompletedProcess(["for-each-ref"], _MISSING_STATUS, "", f"error: malformed object name {revision}\n")
+            raise GitRevisionNotFoundError(result, revision)
+        return commit
+
+    def reachable(self, revision: str) -> frozenset[str]:
+        """Return the commits reachable from a revision, visiting each once."""
+        pending, seen = [self.resolve(revision)], set[str]()
+        while pending:
+            commit = pending.pop()
+            if commit not in seen:
+                seen.add(commit)
+                pending.extend(self.parents[commit])
+        return frozenset(seen)
 
 
 @dataclass
 class RepositoryFacts:
-    """Independent index and effective configuration for one scenario."""
+    """Independent index, effective configuration and release history for one scenario."""
 
     indexes: dict[Path, tuple[str, ...]] = field(default_factory=dict[Path, tuple[str, ...]])
     configurations: dict[Path, tuple[ConfigEntry, ...]] = field(default_factory=dict[Path, tuple[ConfigEntry, ...]])
+    history: ReleaseHistory = field(default_factory=ReleaseHistory)
 
 
 @dataclass(frozen=True)
@@ -72,6 +134,49 @@ class RepositoryObservations(GitExecutionContext):
         git_dir = Path(marker.read_text(encoding="utf-8").removeprefix("gitdir: ").strip()) if marker.is_file() else marker
         common = git_dir.parent.parent if marker.is_file() else git_dir
         return root, git_dir, common
+
+    def tag_records(self, *, cwd: Path, merged: str | None = None) -> tuple[TagRecord, ...]:
+        """Return the declared tags, or those reachable from the filter revision."""
+        del cwd
+        history = self.facts.history
+        history.calls.append(("tag_records", *(() if merged is None else (merged,))))
+        if merged is None:
+            return tuple(history.tags)
+        reachable = history.reachable(merged)
+        return tuple(tag for tag in history.tags if tag.commit in reachable)
+
+    def independent_commits(self, commits: Sequence[str], *, cwd: Path) -> tuple[str, ...]:
+        """Keep the candidates that no other candidate reaches, after the production guard."""
+        del cwd
+        self._independent_arguments(commits)
+        history = self.facts.history
+        history.calls.append(("independent_commits", *commits))
+        ancestors = {ancestor for commit in commits for ancestor in history.reachable(commit) - {commit}}
+        return tuple(dict.fromkeys(commit for commit in commits if commit not in ancestors))
+
+    def tag_names(self, *, cwd: Path, merged: str, not_merged: str) -> tuple[str, ...]:
+        """Name the declared tags reachable from one revision and not from another."""
+        del cwd
+        history = self.facts.history
+        history.calls.append(("tag_names", merged, not_merged))
+        included, excluded = history.reachable(merged), history.reachable(not_merged)
+        return tuple(tag.name for tag in history.tags if tag.commit in included and tag.commit not in excluded)
+
+    def commit_count(self, revision_range: str, *, cwd: Path) -> int:
+        """Count the declared commits of `end` or of `start..end`."""
+        del cwd
+        history = self.facts.history
+        history.calls.append(("commit_count", revision_range))
+        start, separator, end = revision_range.partition("..")
+        if not separator:
+            return len(history.reachable(start))
+        return len(history.reachable(end) - history.reachable(start))
+
+    def listing(self, *, cwd: Path) -> tuple[str, ...]:
+        """Return the declared candidate listing names."""
+        del cwd
+        self.facts.history.calls.append(("listing",))
+        return self.facts.history.names
 
 
 @dataclass(frozen=True)
