@@ -310,9 +310,16 @@ remedy to upgrade, instead of producing a wrong commit for a tag of a tag.
 
 ### Analysis of Step 2 implementation state
 
-Not started. Step 2 is not implemented because `tools/release_workflow/sources/`
-does not exist yet: there is no token grammar, form mapping, file view,
-source model, anchor document or adapter tuple.
+Yes. Step 2 has been fully implemented.
+
+`tools/release_workflow/sources/` now holds the token grammar with numeric
+ordering, the three forms with their expected values and the release-only
+guard, the read-once `FileView`, the located-source, composition and
+character-to-byte span model, the shared types of plan decision Q16, the
+`version.txt` document parser, the `anchor` adapter and the adapter tuple
+with its completeness test. Every planned test, property test and completion
+check is in place, and the command printed by `pw scope day` reports
+`exit=0`.
 
 ### Goal for Step 2
 
@@ -338,27 +345,156 @@ guarded by the completeness test.
 
 ### What was implemented for Step 2
 
-_(empty — no check has taken place yet.)_.
+- **Tokens and forms**: `VersionToken.parse` accepts `MAJOR.MINOR.PATCH` with
+  an optional uppercase `-SNAPSHOT`, without leading zeros or `v`, and fails
+  with `VersionError` (status 2) whose remedy states that grammar; `key` is
+  the integer triple, so `0.10.0` orders above `0.9.0` and the suffix plays no
+  part. `Form` (`snapshot`, `core`, `release-only`) parses configured names
+  and maps the anchor to each source's expected value; `check_release_only`
+  refuses a release-only value above the target's core, naming source, value
+  and target, and fails a value that is not a release token as malformed.
+- **File view**: `FileView.read` loads each path at most once per view and
+  records absence as `None`; `text` decodes strict UTF-8 through
+  `decode_utf8`, keeping the byte-order mark apart, and a decoding failure
+  names the file; `loads` counts loads per path.
+- **Composition and spans**: `compose` builds one content from one original,
+  rejecting a span past the end or overlapping another; `to_byte_spans` maps
+  character spans to byte spans in one walk, encoding each segment once.
+- **Shared model** (plan decision Q16): `Span`, `LocatedSource`,
+  `VisibleRecord`, `Detection`, `SourceError`, the `AdapterSettings` and
+  `Adapter` protocols, `VersionInputs.from_context`, `FileCapture.of`,
+  `SourceChange`, `FileEdit` (refusing an unchanged content), `Claim`,
+  `Inventory` and `Plan`. `model.py` imports only the standard library at run
+  time; foundation types are imported for type checking only.
+- **Anchor**: `parse_document` reads the token, optionally followed by
+  whitespace, `--` and the title, as the whole first line; anything else is
+  malformed with a remedy. Notes, title, byte-order mark and line endings are
+  kept, and the token's byte span is recorded. `ADAPTER` locates only the
+  project root's `version.txt` (other roots return no source), wraps every
+  failure with the file path (status 2), reads the file once and renders the
+  raw token.
+- **Registry**: `sources/__init__.py` declares `ADAPTERS = (anchor.ADAPTER,)`
+  and `SUPPORT_MODULES = frozenset({"model"})`; the registry test lists the
+  package's modules and requires each adapter module's `ADAPTER` exactly once,
+  and a synthetic listing with an unregistered module, a duplicate entry or an
+  entry without a module is reported.
+- **Test support**: `version_support.py` builds `version.txt` documents (LF,
+  CRLF, byte-order mark), writes them at a root, declares `RootSettings` and
+  reports load counts.
+- **Validation evidence**: tests first, with the `sources` package moved
+  aside, `ghog single` on the three Step 2 test folders failed at collection
+  (`ImportError`, five modules; 2026-11-08T19:58), then passed after the
+  implementation (20:00). `ghog day --whole-suite`, the command printed by
+  `pw scope day`, reported `exit=0` on 2026-11-08T20:08 (check and affected
+  tests; the full stage is skipped at the default level).
+  `rg -n 'open\(|write_bytes|write_text' tools/release_workflow/sources` finds
+  nothing.
+- **Line counts**: `sources/__init__.py` 22, `sources/model.py` 390,
+  `sources/anchor.py` 106, `version_support.py` 48,
+  `test_version_model_tdd.py` 236, `test_version_model_pbt.py` 60,
+  `test_version_anchor_tdd.py` 128, `test_version_anchor_pbt.py` 35,
+  `test_version_registry_tdd.py` 66, initializers 3 each; every file stays
+  below 650. Variance above the advisory estimates: `model.py` 390 (360),
+  `test_version_model_tdd.py` 236 (200).
+- **Independent reviewer assessment** (round 1): the staged implementation
+  and unit tests satisfy Step 2, including root-only anchor detection, strict
+  token and first-line parsing, byte-preserving composition and the shared
+  model for later steps. The validation resolver agrees with the request's
+  whole-suite speed command; the writer reports that command green with 100%
+  measured coverage and no exclusions or duration outliers. The reviewer ran
+  no tests or coverage, assessed coverage statically within the gate's scope,
+  and independently confirmed that the three-group commit plan is ready.
 
 ### New types or classes introduced for Step 2
 
-_(empty — no check has taken place yet.)_.
+- `tools.release_workflow.sources.model.VersionToken`, `VersionError`,
+  `Form`, `Span`, `LocatedSource`, `VisibleRecord`, `Detection`,
+  `SourceError`, `FileView`, `AdapterSettings`, `Adapter`, `VersionInputs`,
+  `FileCapture`, `SourceChange`, `FileEdit`, `Claim`, `Inventory`, `Plan`, and
+  the functions `check_release_only`, `decode_utf8`, `compose` and
+  `to_byte_spans`.
+- `tools.release_workflow.sources.anchor.VersionDocument`, `AnchorAdapter`,
+  `parse_document` and `ADAPTER`.
+- `tools.release_workflow.sources.ADAPTERS` and `SUPPORT_MODULES`.
+- Two additions the plan's list implies: `AdapterSettings`, a protocol
+  exposing `project_root`, so the anchor (and Step 3's pattern adapter) emit
+  only at the project root, which Step 3's `VersionSettings` satisfies
+  structurally; and `Claim` (path, field, adapter, spans), the element of
+  `Inventory.claims` that Step 3 registers.
+- Test support: `tests.unit.tools.release_workflow.version_support` and the
+  `test_version_model`, `test_version_anchor` and `test_version_registry`
+  test folders.
 
 ### Architecture check for Step 2
 
-_(empty — no check has taken place yet.)_.
+- **Domain model**: `model.py` holds plain values and pure functions over
+  bytes and text; its only file access is the read-only `FileView`, which the
+  plan places there and which adapters receive injected, so detection stays a
+  pure function of the view's bytes and the settings.
+- **Adapters**: `anchor.py` depends only on the model; it never writes, takes
+  the lock or starts a process. Rendering returns bytes for the transition.
+- **Boundary direction**: foundation types (`ProjectIdentity`,
+  `Configuration`, `ArtifactDeclaration`, `GitExecutionContext`,
+  `InvocationContext`) are imported for type checking only; no foundation
+  module imports `sources`, and no Step 2 module imports a later one.
+
+No, there is nothing that needs to be addressed: no DDD-Hexagonal violation or
+adapter smell is visible in this step.
 
 ### Performance check for Step 2
 
-_(empty — no check has taken place yet.)_.
+- **No new `O(n^2)` or `O(n log n)` path over a file**: `FileView` caches
+  each path, `to_byte_spans` encodes the text once and `compose` joins slices
+  of the original once. The only sorts are over the span offsets or edits of a
+  single file, a handful of owned fields, as the plan prescribes; they never
+  grow with file size.
+- **Hot-path bound**: each file is loaded once per phase, decoded once and
+  scanned once; token parsing is one regular-expression match.
+- **Startup or background path**: none added; importing the package builds one
+  frozen adapter.
+- **Plan-bound alignment**: one read and one scan per file per phase, linear
+  in the file.
+
+No, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 2
 
-_(empty — no check has taken place yet.)_.
+The coverage gate measures `tools` only (`[tool.coverage.run] source`), with
+`*/tests/*` and `*/__init__.py` omitted.
+
+- **`tools/release_workflow/sources/model.py`**: every branch is exercised by
+  `test_version_model/test_version_model_tdd.py` and its property tests:
+  accepted and rejected tokens, `core`, `key`, both form parses, every form's
+  expected value, every release-only outcome (other form, accepted, above the
+  target, unparsable, snapshot), present, absent and undecodable reads,
+  composition with adjacent, outside and overlapping spans, invalid spans,
+  span mapping with and without a byte-order mark and past the text, and each
+  shared type; covered.
+- **`tools/release_workflow/sources/anchor.py`**: every first-line form,
+  malformed lines, invalid tokens, notes with and without a terminator, LF,
+  CRLF and byte-order-mark replacement, project-root and other-root
+  detection, and the missing, undecodable, malformed and invalid-token
+  failures are exercised by `test_version_anchor/`; covered.
+- **`tools/release_workflow/sources/__init__.py`**: omitted by the gate; its
+  two declarations are read by `test_version_registry`.
+- **Files outside the gate**: `version_support.py` defines `BOM`,
+  `RootSettings`, `version_txt`, `write_version_txt` and `load_counts`, each
+  referenced by the Step 2 tests.
+
+No, there is no unit-tested class below 100% that needs completing for Step 2.
+No, none of the top-level symbols added outside the coverage gate is
+unreferenced.
 
 ### Feature integrity for Step 2
 
-_(empty — no check has taken place yet.)_.
+- **Existing feature behavior**: no existing module changes; the new package
+  is not imported by any shipped handler, and `SHIPPED_HANDLERS` stays empty.
+- **Reporting or diagnostics**: every new failure is a `ValueError` subclass
+  carrying `exit_code = 2` and a remedy naming the file or grammar.
+- **Compatibility or rollout note**: Step 3 builds settings, participation and
+  claims on these types, and the adapter tuple grows from `("anchor",)`.
+
+No existing feature or reporting capability appears impaired.
 
 ---
 
