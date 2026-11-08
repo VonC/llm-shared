@@ -6,6 +6,12 @@ in place of its selection tail; expanded the way pytest expands it, the
 command equals the inline command of the same run, and the file is gone once
 the child exits, passing or failing. A covered full run moves its coverage
 folder options into the file too, before the test paths.
+
+Fix: writing 60 long test files and walking them twice cost the failing case
+0.125 s of CPU, over the 0.1 s lifecycle limit. The tests now lower
+``COMMAND_LINE_BUDGET`` to what three long paths exceed on their own, so the
+smallest group that proves the spill is three files: the same split, file and
+cleanup, every assertion kept.
 """
 
 from __future__ import annotations
@@ -24,8 +30,10 @@ from tools.groundhog.models import EXIT_TEST_FAILURES
 if TYPE_CHECKING:
     import subprocess
 
-# Enough long group test paths for the command to exceed the budget.
-_EXTRA_TESTS = 60
+# Long group test paths whose selection alone exceeds the lowered budget.
+_EXTRA_TESTS = 3
+_NAME_PADDING = 120
+_BUDGET = _EXTRA_TESTS * _NAME_PADDING
 _AFFECTED = ["affected", "--no-cov", "--group=sentinel"]
 
 
@@ -57,7 +65,7 @@ def _long_group(root: Path) -> Path:
     """Add long test files to the sentinel group of the shared group project."""
     group_project(root)
     for index in range(_EXTRA_TESTS):
-        name = f"test_{index:03}_{'x' * 120}.py"
+        name = f"test_{index:03}_{'x' * _NAME_PADDING}.py"
         (root / "tests" / "sentinel" / name).write_text("def test_ok():\n    pass\n", encoding="utf-8")
     return root
 
@@ -69,6 +77,7 @@ def test_long_group_selection_reaches_pytest_through_one_file(
     """The expanded command equals the inline one, and the file never outlives the child."""
     root = _long_group(tmp_path)
     expected = EXIT_TEST_FAILURES if failing else 0
+    monkeypatch.setattr(args_file, "COMMAND_LINE_BUDGET", _BUDGET)
     spilled = _ArgsFileSpawns(root, failing=failing)
     assert cli.main([*_AFFECTED, "--root", str(root)], make_deps(spilled)) == expected
     monkeypatch.setattr(args_file, "COMMAND_LINE_BUDGET", sys.maxsize)
@@ -82,9 +91,12 @@ def test_long_group_selection_reaches_pytest_through_one_file(
     assert not spilled.args_files[0].exists()
 
 
-def test_covered_full_run_moves_coverage_folders_with_the_paths(tmp_path: Path) -> None:
+def test_covered_full_run_moves_coverage_folders_with_the_paths(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """The coverage folder options lead the file, ahead of the group test paths."""
     root = _long_group(tmp_path)
+    monkeypatch.setattr(args_file, "COMMAND_LINE_BUDGET", _BUDGET)
     spawns = _ArgsFileSpawns(root)
     assert cli.main(["full", "--full=cov", "--group=sentinel", "--root", str(root)], make_deps(spawns)) == 0
     assert len(spawns.args_files) == 1
