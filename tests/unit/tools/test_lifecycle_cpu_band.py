@@ -17,11 +17,10 @@ import json
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, Literal, cast
 
+import llm_shared_lifecycle_gate as band
+import llm_shared_lifecycle_gate as policy
 import pytest
-
-from tests import lifecycle_cpu_record as band
-from tests import simulation_policy as policy
-from tests.lifecycle_cpu_record import (
+from llm_shared_lifecycle_gate import (
     CpuException,
     LifecycleGate,
     LifecycleRecord,

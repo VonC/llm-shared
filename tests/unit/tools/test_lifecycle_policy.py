@@ -14,10 +14,9 @@ from __future__ import annotations
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, cast
 
+import llm_shared_lifecycle_gate as policy
 import pytest
-
-from tests import simulation_policy as policy
-from tests.lifecycle_cpu_record import LifecycleGate
+from llm_shared_lifecycle_gate import LifecycleGate
 
 if TYPE_CHECKING:
     from collections.abc import Generator
