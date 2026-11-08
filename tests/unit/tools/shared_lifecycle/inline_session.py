@@ -3,6 +3,7 @@
 No subprocess or plugin autoload is used; the carrying session keeps measuring
 policy execution under its own coverage. Monkeypatch restores all host state.
 The child requests plain assertions, including bypassing the host rewrite hook.
+Output stays with the carrying session, avoiding redundant console capture setup.
 """
 
 from __future__ import annotations
@@ -32,7 +33,7 @@ def run_inline(root: Path, *arguments: str, plugins: tuple[object, ...] = ()) ->
         try:
             return pytest.main([
                 str(root), "--rootdir", str(root), "--confcutdir", str(root),
-                "-p", "no:cacheprovider", "--capture=sys", "--import-mode=importlib",
+                "-p", "no:cacheprovider", "-p", "no:capture", "--import-mode=importlib",
                 "-p", "no:logging", "-p", "no:unittest", "-p", "no:doctest",
                 "-p", "no:faulthandler", "-p", "no:junitxml", "-p", "no:pastebin",
                 # Generated cases create no finalizers. Avoid the child plugin's
