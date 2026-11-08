@@ -4,6 +4,10 @@ Complete owner records are flushed before non-replacing Windows publication.
 A short kernel mutex serializes every record transition, including stale-owner
 recovery, so two recoverers cannot remove a newly published owner. Temporary
 records never own the operation; unknown records and retained handoffs survive.
+
+Step 1 of v0.14.0 version-sources adds `verify_held`: a lifecycle caller hands
+its held lock to another service, which checks that this process holds it for
+the declared project root and artifact home before any write.
 """
 
 from __future__ import annotations
@@ -32,7 +36,7 @@ from tools.release_workflow.windows_process import (
 if TYPE_CHECKING:
     from collections.abc import Callable, Generator
 
-    from tools.release_workflow.artifacts import PreparedArtifacts
+    from tools.release_workflow.artifacts import ArtifactDeclaration, PreparedArtifacts
 
 _VERSION = 1
 _NAME = "a.release-operation.lock"
@@ -172,6 +176,30 @@ class OperationLock:
             msg = "operation is not owned by this handle"
             raise self._error(msg)
         return actual
+
+    def verify_held(self, declaration: ArtifactDeclaration) -> PreparedArtifacts:
+        """Prove this handle holds the lock, in this process, for the declared home.
+
+        The check compares the held owner with the current process, the
+        declared physical project root and the lock record derived from the
+        declared artifact home, then rereads the record under the transition
+        mutex. Acquisition, release, retention and transfer are unchanged.
+        """
+        if self._held is None:
+            msg = "operation is not held by this handle"
+            raise self._error(msg)
+        if self._held.process != current_identity():
+            msg = "lock owner is not the current process"
+            raise self._error(msg)
+        if declaration.project.root != self._artifacts.project.root:
+            msg = f"lock belongs to another project root than {declaration.project.root}"
+            raise self._error(msg)
+        if declaration.home / _NAME != self._target.path:
+            msg = f"lock record is not under the declared artifact home {declaration.home}"
+            raise self._error(msg)
+        with self._transition():
+            self._require_owned()
+        return self._artifacts
 
     def acquire(self) -> OperationLock:
         """Publish without replacing, recovering only a positively dead owner."""
