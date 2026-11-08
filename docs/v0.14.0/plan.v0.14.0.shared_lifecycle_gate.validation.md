@@ -2,9 +2,9 @@
 
 No, it is not implemented
 
-Initial skeleton for the seven steps in the
-[implementation plan](plan.v0.14.0.shared_lifecycle_gate.md). No implementation
-check has taken place. Goals and expectations describe later checks, not results.
+Step 1 of the seven-step
+[implementation plan](plan.v0.14.0.shared_lifecycle_gate.md) was checked on
+2026-11-08. Steps 2-7 remain not started; their goals describe later checks.
 
 ## Runtime context for validating the pytest plugin mechanism
 
@@ -48,8 +48,13 @@ worker/process cleanup and preserve process-free own-suite validation.
 
 ### Analysis of Step 1 implementation state
 
-Not started. Step 1 is not implemented because the standalone gate and its
-contract tests have not been created.
+Yes. Step 1 has been fully implemented.
+
+The standalone gate, isolated contracts and static discovery configuration
+are present. Existing timing/record assertions now import the canonical
+module. The default day and subsequent full-speed review validation passed;
+the legacy own-suite enforcer remains
+in place until Step 3, as planned.
 
 ### Goal for Step 1
 
@@ -67,27 +72,121 @@ clock, report, configuration, proof, exception and record assertions.
 
 ### What was implemented for Step 1
 
-_(empty: no check has taken place yet.)_.
+`tools/pytest_plugins/llm_shared_lifecycle_gate.py` contains the stdlib/pytest-only
+policy, record model, measurement hooks and controller collector. Its Python
+3.12 refusal precedes all imports except `sys` and `pytest`; the literal
+`LOADER_CONTRACT_VERSION = 1` follows that guard. Strict artifact lookup copies
+ConfigParser behavior, including DEFAULT inheritance, and requires an existing
+contained directory with exact `b"*\n"` ignore bytes. It creates no home and
+imports no shared artifact helper.
+
+`pyproject.toml` exposes the dedicated module directory to pytest, Pyright and
+ty, applies Ruff py310 and Pyright 3.12 targets, and retains coverage source
+`tools` without plugin omissions. Original policy and CPU-band tests change
+imports only; the new contract tests cover artifact failures, synthetic record
+continuity, configuration precedence, guarded registration in both orders,
+usage-error refusal, source syntax and dependencies, version refusal, proof
+transitions and serialization properties.
+
+`inline_session.py` shares the isolated explicit-plugin child session, restores
+host state and removes newly imported project modules. Verification also required
+the Testmon adapter to use its ordinary source/hash fallback instead of invoking
+Git under the existing process audit; a focused regression retains source/hash
+and missing-file behavior. Named lifecycle overruns in configuration properties,
+duration properties, PNG output, resume selection and proof rendering were
+shortened while retaining assertions and property domains. A review-document
+list reflow changes no wording. The shipped-package contract derives its root
+from its own package module, avoiding unrelated workflow fingerprints while
+retaining real package validation and both assertions.
 
 ### New types or classes introduced for Step 1
 
-_(empty: no check has taken place yet.)_.
+The frozen `NodeState` carries proof, drift count, CPU and the CPU that earned
+proof; `CpuException` carries accepted CPU, attempted improvement and reason;
+`BandPolicy` validates settings and computes band ceilings. `LifecycleRecord`
+contains nodes, accepted exceptions and rejected keys, and advances measured
+proofs. `SaveOutcome` records persistence results and lost proofs.
+`LifecycleGate` loads policy/record state, judges limits and saves updates.
+`BandCollector` gathers teardown properties and performs controller persistence
+and summary reporting. These are relocated policy types, not new consumer
+dependencies.
 
 ### Architecture check for Step 1
 
-_(empty: no check has taken place yet.)_.
+The policy owns its minimal persistence adapter and depends only on stdlib and
+pytest. It installs no audit hooks and imports neither suite packages nor
+shared runtime helpers. The suite-only Hypothesis dependency stays in tests.
+Importing the module alone does not register another collector. Legacy
+`simulation_policy.py` and `lifecycle_cpu_record.py` remain unchanged.
+
+Fresh physical counts are 602 for the gate, 53 for the inline helper, 263/54
+for new contracts and 111/363 for redirected legacy tests. The package markers
+are 1-4 lines; the Testmon adapter/regression are 59/24 lines. All other changed
+Python tests are at most 360 lines, below the 650-line ceiling.
+
+No architecture issue needs addressing.
 
 ### Performance check for Step 1
 
-_(empty: no check has taken place yet.)_.
+Clock samples and per-report state updates are constant time. Record parsing,
+advancement and ordinary rendering are linear in their inputs. Deterministic
+record-key, lost-proof and terminal-summary sorting retains the inherited
+O(n log n) ordering outside the timing hot path; no new quadratic work appears.
+The gate loads once per configured process and saves once on the controller.
+
+`ghog day --whole-suite` finished at 2026-11-08T14:15:03+01:00 with
+`state=done`, `exit=0`, `fail=0`, `warn=0`, `xfail=0`, `full=none`.
+The preceding focused repair and affected run also passed. Timing repairs
+avoid unused embedded-session work and repeated immutable observations while
+retaining real proof/SQLite/render boundaries. No exclusion was added.
+
+The subsequent required review walk, `ghog day --full=speed --whole-suite`,
+finished at 2026-11-08T14:35:09+01:00 with `state=done`, `exit=0`, `fail=0`,
+`warn=0`, `xfail=0`, `cov=100`, `outliers=0`, `excluded=0`, `proof=speed`.
+It passed all 5,780 tests. A preceding package-contract wall overrun was
+profiled; its unnecessary workflow dependency was removed, with assertions
+and real package validation preserved. No accepted baseline was added or raised.
+
+No performance issue needs addressing.
 
 ### Unit test coverage check for Step 1
 
-_(empty: no check has taken place yet.)_.
+The coverage configuration measures `tools`, including the standalone gate;
+suite helpers under `tests` lie outside that source scope. This check is static:
+no test or coverage command was run during implementation-check, and the
+default day establishes no measured coverage percentage. Separately, the
+subsequent required full-speed review walk measured 100% coverage over that
+configured source scope; it ran outside implementation-check.
+
+`test_lifecycle_policy.py` and `test_lifecycle_cpu_band.py` retain the tests
+designed to cover the complete timing/record class file. They cover clock
+windows, report properties/verdicts, configuration refusal, proof/drift,
+exceptions, damaged/missing records, save failures, controller registration
+and summary output. The dedicated `test_gate_contract` folder adds strict
+artifact parsing/containment/IO, round-trip and current-ceiling contracts,
+configuration and import boundaries, plus bounded property oracles. All
+top-level gate symbols are reached through these tests or internal calls.
+
+The Testmon regression references its source/hash adapter and live bindings;
+its configure/protocol hooks are registered by the suite. The inline-session
+helper and all added property-decoding helpers are referenced by their tests.
+Static inspection identifies no unit-tested class requiring coverage completion.
+No top-level symbol outside the coverage scope is unreferenced.
 
 ### Feature integrity for Step 1
 
-_(empty: no check has taken place yet.)_.
+Schema 1, unknown document fields, accepted exception evidence, proof eligibility
+under the current ceiling, failure wording, wall aggregation, report-hook CPU,
+teardown properties and controller-only writes are preserved. Existing legacy
+assertions are unchanged. Synthetic record continuity is covered; Step 7 still
+owns continuity against the real checkout record. No record was deleted or
+migrated.
+
+Executed evidence is Windows with Python 3.13. Python 3.10 syntax parsing,
+the pre-refusal import test and static 3.12 targets do not claim an executable
+Python 3.12 or cross-platform harness run. The independent audit, loader,
+preparation and compatibility harness remain later steps. No Step 2 work is
+included in this verdict.
 
 ## Step 2. Independent process sessions and fixture ownership
 
