@@ -130,6 +130,8 @@ command above, and fix every finding first. Include the modified Markdown
 files that the same workflow commits later, such as a review transcript kept
 unstaged for a residual commit: the person approving the commit approves those
 too. List them with `git status --porcelain -- "*.md"` rather than from memory.
+Then spell-check the same Markdown files as [`spelling.md`](spelling.md)
+requires.
 
 Fixing a finding is part of preparing the commit, not a later cleanup: restage
 the fixed files, refresh the commit plan if its membership changed, and only

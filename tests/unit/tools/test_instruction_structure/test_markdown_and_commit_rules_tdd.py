@@ -11,6 +11,13 @@ Fix: a host default added a ``Co-Authored-By`` trailer naming the assistant to
 commit messages, and the user wants none, ever. ``rules/chat.md`` and the
 grouped commit message rules now forbid any AI attribution line in commit
 messages, ``a.commit`` groups and pull request descriptions.
+
+Fix: commits reached the history with words VS Code's Code Spell Checker
+underlines, because no gate looked at them outside VS Code. ``rules/spelling.md``
+now runs ``spellcheck.bat check`` on every new or modified Markdown file (never
+on source code) before any commit choice, and has the user settle each word (accepted into
+``.vscode/settings.json`` or replaced), backticks or not; both commit gates
+point to it.
 """
 
 from __future__ import annotations
@@ -56,6 +63,26 @@ def test_commit_messages_carry_no_ai_attribution() -> None:
     rules = _flat(_section(grouping, "Commit message rules for groups"))
     assert "never add a `Co-Authored-By:` trailer naming an assistant" in rules
     assert "The message ends with the `What:` list" in rules
+
+
+def test_commit_gates_settle_every_spelling_finding_with_the_user() -> None:
+    """Every reported word is accepted or replaced by the user's choice before any commit choice."""
+    spelling = _flat((ROOT / "rules/spelling.md").read_text(encoding="utf-8"))
+    for required in (
+        'bin\\spellcheck.bat" check <file.md>',
+        "Source code and other files are never spell-checked.",
+        "inside backticks, a code block or plain text alike",
+        "`Add to settings.json`, then `Replace with <suggestion>`",
+        'bin\\spellcheck.bat" add-words <word>',
+        "no `cSpell.ignoreRegExpList` pattern, no `cspell:ignore` or `cspell:disable` comment",
+        "`dwl_inst_ver node 22`",
+    ):
+        assert required in spelling
+    assert "[`spelling.md`](spelling.md)" in _flat((ROOT / "rules/chat.md").read_text(encoding="utf-8"))
+    grouping = _flat((ROOT / "instructions/group-commits-msg.md").read_text(encoding="utf-8"))
+    assert "spell-check the same Markdown files, and only them" in grouping
+    requestor = _flat((ROOT / "instructions/code-review-requestor.md").read_text(encoding="utf-8"))
+    assert "Never show `Commit` while an unknown word remains." in requestor
 
 
 # eof

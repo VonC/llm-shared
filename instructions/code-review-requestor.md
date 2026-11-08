@@ -251,6 +251,11 @@ or modified Markdown file before asking to commit", and fix every finding.
 Those fixes are polishing-only: restage the staged files, leave the transcript
 unstaged for its residual commit, and rerun the readiness checker. Never show
 `Commit` while a finding remains.
+Spell-check the same Markdown files as
+[`../rules/spelling.md`](../rules/spelling.md) requires, and settle every reported word with the user before the gate: an
+accepted word goes into `.vscode/settings.json` through
+`spellcheck.bat add-words`, staged as polishing; a refused one is replaced in
+place. Never show `Commit` while an unknown word remains.
 Compare the current requirement and group definitions with the round's bound
 scope and disclose any pending scope difference at this gate. Such changes
 are not polishing. Show the bound scope, current scope and changed definitions.

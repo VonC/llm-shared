@@ -74,6 +74,14 @@ self-locate and do not need an `senv.bat` pre-call.
    `a.commit` again when its membership changed: no commit choice is presented
    while a finding remains.
 
+   Next, spell-check the same Markdown files, and only them, as
+   [`../rules/spelling.md`](../rules/spelling.md) requires: show the unknown words with their cSpell suggestions, let the
+   user choose for each one between adding it to `.vscode/settings.json`
+   (`spellcheck.bat add-words`) and a replacement, apply the choices, restage,
+   and rerun the check until it reports no unknown word. A changed
+   `.vscode/settings.json` joins the group of the files that needed its words:
+   format `a.commit` again.
+
    Then run the
    focused read-only readiness checker, `commit-plan-check.bat --format json`,
    from the project root through its full path:

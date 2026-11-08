@@ -27,6 +27,9 @@
 - Update the docstring at the top of modified classes to explain the fix. This
   applies to test classes too.
 - When writing Markdown, follow [`markdown.md`](markdown.md).
+- Before presenting any choice that commits, spell-check every new or
+  modified Markdown file and settle each reported word with the user,
+  following [`spelling.md`](spelling.md).
 - When writing or rewriting a file, follow
   [`preserve_code.md`](preserve_code.md).
 - When running a shell command, follow [`run_commands.md`](run_commands.md).
