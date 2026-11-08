@@ -230,6 +230,9 @@ completeness test lists the package's modules and fails when an adapter module
 is missing from the tuple or appears twice.
 Adding a format means adding a module, registering it in the tuple and adding
 its contract tests; neither the release lifecycle nor a consumer changes.
+These tests, like every test of this design, belong to llm-shared's own
+development suite and run while llm-shared is changed; no version command and
+no consumer release runs them.
 
 ### What an adapter provides
 
@@ -621,6 +624,18 @@ regeneration exception has no user in this version; `set` never runs `uv` or
 `npm`. The compatibility guarantee rests on evidence recorded when fixtures
 are generated, never on tool runs during `set`.
 
+The evidence compares two states of one manifest and lock pair. The "before"
+pair is the two files as a project has them before `versions set` changes the
+version: for example a `pyproject.toml` and its `uv.lock`, both at `0.13.0`,
+which the tool accepts as current. The edited pair is the same two files after
+the adapter's version-only edit, both at `0.14.0` with every other byte
+unchanged. "Accepted as current" means the tool's locked or frozen command
+exits successfully and changes neither file. Recording the "before" acceptance
+proves the starting pair was valid, so the acceptance after the edit shows that
+the edit kept it valid; without the starting-pair acceptance, success afterwards
+would not establish preservation from an accepted starting pair, and a failure
+could come from a lock that was already stale, which `set` does not repair.
+
 For each supported combination of tool version, lock schema (the uv
 `version`/`revision` pair, or npm lock format 2 or 3) and root layout (a uv
 virtual or editable root, an npm root package), the evidence records:
@@ -812,6 +827,20 @@ recovery rules.
 | Root POM with an external parent and no `<version>` of its own | Status 2 with the remedy to declare a literal version | AC6, AC9 |
 | `uv.lock` with an unregistered `version` and `revision` pair | Status 2 naming the unsupported schema | AC8 |
 | Recorded evidence for a supported uv layout or npm lock format | The tool's locked mode accepts the before and edited pairs without changing either file | AC8 |
+
+## File-based IO cost clarification for version sources
+
+The read bounds of
+[Read-only commands and their limits](#read-only-commands-and-their-limits)
+are the whole IO contract: each read command reads each source file once, and
+`set` once per phase that must observe the disk. Detection probes fixed file
+names at participating roots and declared Maven modules, never a directory
+walk; only `list` lists the tree, with one Git call, and `range` uses at most
+four. Read commands list the artifact home once, without recursion, for
+leftover evidence. Writes are the recovery evidence, then one atomic
+replacement per changed source through item 1's managed-write boundary. No
+version command runs a build or lock tool, and no document index or wall-clock
+target is added.
 
 ## Design decisions for the v0.14.0 version-sources design
 

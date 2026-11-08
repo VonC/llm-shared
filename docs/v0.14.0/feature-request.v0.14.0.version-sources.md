@@ -288,6 +288,16 @@ changed resolver environment or every future tool version. An ordinary `set`
 never runs these tools to check its result; the design and plans choose the
 compatibility evidence.
 
+In this guarantee, the "before" pair is a manifest and its lock file as the
+project has them before `versions set` changes the version: for example a
+`pyproject.toml` and its `uv.lock`, both at `0.13.0`. The edited pair is the
+same two files after the version-only edit, both at `0.14.0` with every other
+byte unchanged. "Accepted as current" means the tool's locked or frozen check
+(such as `uv lock --locked`) succeeds and changes neither file. The promise is
+relative: when the "before" pair was accepted, the edited pair is accepted
+too; a lock that was already stale before `set` is neither detected nor
+repaired.
+
 Synchronization also covers version references between participating
 components (umbrella decision 39). Changing Maven module A while module B still
 depends on A's old version is not a consistent reactor transition. This
@@ -511,7 +521,9 @@ own efforts; llm-shared's belongs to item 8.
 
 Validation uses the selected whole suite. These criteria define expected
 behavior; test organization and implementation mechanisms belong in the design
-and plans.
+and plans. That suite is llm-shared's own development test suite, run while
+llm-shared is changed: no version command, no `brel` and no consumer release
+runs it, and release-time testing of a consumer belongs to umbrella item 5.
 
 ## Existing references for the version-sources requirement
 
@@ -538,6 +550,17 @@ and plans.
 - [Umbrella](draft.v0.14.0.sibling_release_tooling.md): shared contracts,
   decisions 5, 6, 13, 14, 15, 26, 33, 34 and 39, and ownership of items 3
   through 8.
+
+## File-based IO cost clarification for version sources
+
+Version commands are synchronous and read only what they act on: the anchor
+and the participating version sources, each once per read command, plus the
+artifact home to report leftover recovery evidence. `versions set` reads its
+sources again only where the transition must observe the disk, writes its
+recovery evidence before the first overwrite and replaces each changed file
+atomically. Only `versions list` asks Git for the project's file tree, to show
+undeclared candidates. No version command runs git-cliff, uv, npm or Maven, and
+none adds a document index or a new wall-clock target.
 
 ## Requirement clarifications for version sources
 

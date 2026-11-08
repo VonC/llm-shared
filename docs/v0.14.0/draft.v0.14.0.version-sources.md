@@ -40,6 +40,9 @@
     Include declared nested component roots; report conflicting file claims.
     Keep adapter registration only in llm-shared, with completeness and contract
     tests so a new ecosystem needs no consumer copies or orchestration edits.
+    These are llm-shared's own development tests, run while llm-shared is
+    changed; a consumer's `brel` or release never runs them, and release-time
+    testing of a consumer stays with item 5.
   - Map snapshot `1.2.3-SNAPSHOT` to `1.2.3` for Python/default npm and retain
     the suffix for Maven/configured sources. Release maps all to `1.2.3`;
     npm release-only refuses downgrades and never keeps the old published core.
@@ -258,6 +261,16 @@ not run `uv lock` or npm dependency resolution opportunistically merely because
 a tool is present. If an explicitly supported format needs regeneration,
 require its tool and limit/validate its changes; if consistency cannot be
 maintained safely, fail before mutation rather than produce a best-effort lock.
+
+Lock consistency is judged by comparing two states of the same manifest and
+lock pair. The "before" pair is the two files as the project has them before
+`versions set` changes the version, for example `pyproject.toml` and `uv.lock`
+both at `0.13.0`; the edited pair is the same files after the version-only
+edit, both at `0.14.0` with every other byte unchanged. When the tool's locked
+check (such as `uv lock --locked`) accepted the "before" pair without changing
+it, it must accept the edited pair the same way. A lock that was already stale
+before `set` is neither detected nor repaired (feature-request clarification
+Q10).
 
 ## Internal references between participating components
 
