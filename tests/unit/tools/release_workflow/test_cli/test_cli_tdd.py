@@ -1,4 +1,10 @@
-"""Dispatch isolates Git probes while preserving real context and failure policies."""
+"""Dispatch isolates Git probes while preserving real context and failure policies.
+
+Step 1 of v0.14.0 version-sources: trailing operation tokens parse around the
+options, reach a handler's argument validator and the invocation context, and
+are rejected with status 2 by a handler without a validator. A validator
+failure stops before any identity load or Git context creation.
+"""
 
 from __future__ import annotations
 
@@ -9,14 +15,18 @@ from typing import TYPE_CHECKING
 import pytest
 
 from tools.release_workflow import cli
+from tools.release_workflow.git import GitExecutionContext
 from tools.release_workflow.results import OperationResult
 from tools.release_workflow.runtime_identity import RuntimeIdentity
 
 if TYPE_CHECKING:
+    from typing import NoReturn
+
     from tests.unit.tools.release_workflow.git_test_support import GitSandbox
     from tools.release_workflow.invocation import InvocationContext
 
 _INVALID = 2
+_TOKENS = ("set", "0.14.0")
 
 
 @pytest.mark.usefixtures("read_only_git")
@@ -118,6 +128,73 @@ def test_batch_text_rejected(tmp_path: Path, capsys: pytest.CaptureFixture[str])
     assert cli.main(["probe", "--text", "hello"], entry_kind="explicit-batch", original_cwd=tmp_path,
                     handlers={"probe": cli.Handler(lambda _context: OperationResult())}) == _INVALID
     assert "UTF-8 file/stdin" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("layout", ["after", "before", "between", "first"])
+@pytest.mark.usefixtures("read_only_git")
+def test_operation_tokens_reach_validator_and_context(layout: str, git_sandbox: GitSandbox, monkeypatch: pytest.MonkeyPatch,
+                                                      capsys: pytest.CaptureFixture[str]) -> None:
+    """Options before, between and after the tokens parse the same way."""
+    monkeypatch.setattr(cli, "stdin_is_console", lambda: False)
+    root = ["--project-root", str(git_sandbox.home / "B")]
+    argv = {"after": ["versions", *_TOKENS, *root], "before": ["versions", *root, *_TOKENS],
+            "between": ["versions", "set", *root, "0.14.0"], "first": [*root, "versions", *_TOKENS]}[layout]
+    validated: list[tuple[str, ...]] = []
+
+    def handler(context: InvocationContext) -> OperationResult:
+        return OperationResult(data=" ".join(context.operation) + "\n")
+
+    status = cli.main(argv, entry_kind="explicit-native", original_cwd=git_sandbox.home,
+                      runtime=RuntimeIdentity(git_sandbox.home, "venvs/prepared"), environment=git_sandbox.environment,
+                      handlers={"versions": cli.Handler(handler, validate_arguments=validated.append)})
+    assert status == 0, capsys.readouterr().err
+    assert validated == [_TOKENS]
+    assert capsys.readouterr().out == "set 0.14.0\n"
+
+
+def test_handler_without_validator_rejects_tokens(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    """An operation that declares no validator takes no trailing token."""
+    assert cli.main(["probe", "extra"], entry_kind="explicit-native", original_cwd=tmp_path,
+                    runtime=RuntimeIdentity(tmp_path, "venvs/prepared"),
+                    handlers={"probe": cli.Handler(lambda _context: OperationResult())}) == _INVALID
+    assert "Release operation 'probe' takes no arguments: extra" in capsys.readouterr().err
+
+
+def test_validator_failure_precedes_identity_and_git(tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+                                                     capsys: pytest.CaptureFixture[str]) -> None:
+    """A rejected token returns 2 before any identity load or Git process."""
+    calls: list[str] = []
+
+    def git_created(*_arguments: object, **_options: object) -> NoReturn:
+        calls.append("git")
+        raise AssertionError
+
+    def identity_loaded(_root: Path) -> NoReturn:
+        calls.append("identity")
+        raise AssertionError
+
+    def reject(tokens: tuple[str, ...]) -> None:
+        message = f"Unsupported version token: {tokens[-1]}"
+        raise ValueError(message)
+
+    monkeypatch.setattr(GitExecutionContext, "create", git_created)
+    monkeypatch.setattr(cli.RuntimeIdentity, "load", identity_loaded)
+    assert cli.main(["versions", "set", "v0.14.0"], entry_kind="explicit-native", original_cwd=tmp_path,
+                    handlers={"versions": cli.Handler(lambda _context: OperationResult(), validate_arguments=reject)}) == _INVALID
+    assert calls == []
+    assert "Unsupported version token: v0.14.0" in capsys.readouterr().err
+
+
+def test_unavailable_operation_message_is_unchanged(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    """Tokens after an unshipped command keep the unavailable-operation message."""
+    assert cli.main(["missing", "set", "0.14.0"], entry_kind="explicit-native", original_cwd=tmp_path,
+                    runtime=RuntimeIdentity(tmp_path, "venvs/prepared"), handlers={}) == _INVALID
+    assert "Release operation 'missing' is unavailable in this tooling checkout" in capsys.readouterr().err
+
+
+def test_shipped_handlers_stay_empty() -> None:
+    """No version command ships before the version-sources commands step."""
+    assert dict(cli.SHIPPED_HANDLERS) == {}
 
 
 # eof

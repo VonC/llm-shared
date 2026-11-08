@@ -2,6 +2,8 @@
 
 Explicitly named selectors are read once as data. All project services use the
 captured cwd and selected physical root; construction performs no managed writes.
+Step 1 of v0.14.0 version-sources: the parsed operation tokens travel from the
+request to the context unchanged; the batch-character rule covers them too.
 """
 
 from __future__ import annotations
@@ -43,11 +45,15 @@ class InvocationRequest:
     text: str | None = None
     input_stdin: bool = False
     non_interactive: bool = False
+    operation: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
 class InvocationContext:
-    """Fixed identities, original caller data, computed paths and input policy."""
+    """Fixed identities, original caller data, computed paths and input policy.
+
+    `operation` holds the trailing tokens the handler's validator accepted.
+    """
 
     project: ProjectIdentity
     runtime: RuntimeIdentity
@@ -62,6 +68,7 @@ class InvocationContext:
     input_source: str
     payload: str | None
     diagnostics: tuple[str, ...]
+    operation: tuple[str, ...] = ()
 
     @property
     def project_name(self) -> str:
@@ -185,7 +192,7 @@ def create_context(request: InvocationRequest, *, runtime: RuntimeIdentity, entr
     return InvocationContext(
         project, runtime, git, load_configuration(project), resolve_artifacts(project, git),
         entry_kind, original_argv, original_cwd, non_interactive, input_file,
-        input_source, request.text, tuple(diagnostics),
+        input_source, request.text, tuple(diagnostics), request.operation,
     )
 
 
