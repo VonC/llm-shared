@@ -28,6 +28,16 @@ after list markers; an empty line before and after every list; two-space
 sub-list indentation; and compact tables — single space around cell
 content, exactly three dashes per header separator column.
 
+## 🔡 spelling.md
+
+Before any choice that commits, every new or modified Markdown file (never
+source code) goes through `bin\spellcheck.bat check`, which reports the words VS Code's Code Spell
+Checker would underline. Each reported word, in backticks or not, is either
+accepted into the project's `.vscode/settings.json` (through `add-words`)
+or replaced, as the user chooses word by word. No ignore pattern
+or `cspell:ignore` comment hides a finding. Details:
+[Spell check command](spell-check-command.md).
+
 ## 🛡️ preserve_code.md
 
 Never truncate when rewriting a file: every file is written from top to
