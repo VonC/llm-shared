@@ -77,12 +77,20 @@ copy the id from an earlier prompt.
 
 Before replacing an existing prompt, check its first line and receipt with the
 [resume state table](resume-session.md#locate-and-check-the-saved-prompt).
-If that prompt is unused or new since previous use, and its id differs from
-yours or is missing, tell the user which agent paused it (or that it is
-unknown) and ask before replacing it: replacing it discards a checkpoint that
-was never resumed. Ask it as a choice under
-[interactive_menu.md](../rules/interactive_menu.md). If the user declines, stop
-without writing a new prompt.
+If that prompt is unused or new since previous use, ask before replacing it
+when its agent id differs from yours or is missing, or when its recorded
+pausing pane or saved session role differs from the current pausing pane or
+session role, even with the same agent id. Name the existing checkpoint's
+agent, pausing pane and saved role, marking unavailable values as unknown:
+replacing it discards a checkpoint that was never resumed. Compare historical
+pausing identities, not intended future role assignments. For legacy prompts
+without pane or role fields, retain the agent-id comparison. A pane or role
+recorded as unknown, for the existing checkpoint or the current pause, is not
+by itself a difference; compare the remaining recorded fields. Ask as a choice
+under [interactive_menu.md](../rules/interactive_menu.md). If the user
+declines, preserve the existing prompt and stop without writing a new one. This guard
+applies at pause time only; it adds no confirmation to bulk resume. Keep one
+latest checkpoint per checkout.
 
 ## Session journal across checkouts
 
@@ -173,6 +181,66 @@ or access instructions, never credential values. Never persist review
 ownership capabilities, tokens or session secrets in the prompt, receipt,
 journal, logs or environment. A resumed review uses the identity and ownership
 gates in [review-resume.md](review-resume.md), not a saved capability.
+
+## Record automatic resume routing in the handoff
+
+Fill the automatic resume routing section of
+[pause-session.template.md](../templates/pause-session.template.md) on every
+pause. The handoff must preserve enough information for a later human-launched
+`resume_paused` invocation to select its targets without asking the person to
+identify a pane or repeat a role assignment. Gather this information through
+read-only inspection; never launch `resume_paused` or contact the counterpart
+to obtain it.
+
+When TUIOS is available, read `tuios list-agents --all-sessions --json` and
+reconcile the caller's `TUIOS_PANE_ID`, when present, with that listing and
+the resolved checkout. A command run by a process without its own console,
+such as the shared Codex app-server daemon, can inherit pane variables from
+another session. Record the pausing pane only when independent read-only
+evidence agrees, such as that pane's screen or agent log showing this pause
+request. Otherwise
+record it as unknown with that reason.
+
+Use the exact exchange's read-only role state and existing task notes to
+establish assignments. Exchange role state names agent host natures, not
+panes. For a same-host counterpart, record the independent evidence linking
+the role to that pane, such as its agent log or screen showing its latest
+`review-resume` role. A listing of two panes with
+the same host does not establish which one owns a role; record the identity
+evidence rather than selecting by listing order.
+
+Record the resolved checkout root, snapshot time, pausing host, saved session
+role, and the observed TUIOS session and pane identities. For the intended
+resumed agent and, when applicable, each requestor/reviewer target, record its
+agent host, intended role, session identity, pane id and name, checkout, and
+the evidence identifying that pane. A host name alone cannot distinguish
+multiple panes running the same LLM. Names are descriptive labels; preserve
+the observed identifiers and their scope as well.
+
+Separate historical authorship and observed current roles from intended
+resume assignments. Preserve the user's latest explicit role-switch direction
+and its source; otherwise retain the verified current assignment. Do not infer
+requestor status from a pause author whose saved role was not requestor. For a
+paired review, record the exchange family, reviewed document or implementation
+plan, umbrella path or none, implementation step for code review, exchange
+occurrence, and both intended targets. These fields identify the exchange for
+`resume-inspect` and `claim`. For a single-agent pause, record that counterpart
+activation is not applicable.
+Record identity and evidence only, never review ownership capabilities.
+Saving an intended assignment does not itself change ownership or prove that
+a later takeover has succeeded.
+
+If TUIOS is unavailable, a pane cannot be identified, or an assignment is
+unresolved, write an explicit unknown and its reason. Do not ask a routing
+selection question or invent an identifier just to complete the pause.
+Preserve the rest of the checkpoint. The future bulk resume must report
+missing, stale or conflicting routing and send no input to unresolved targets,
+without asking the person to choose a pane or supply routing arguments.
+Routing is evidence to validate against live checkout, host, session and pane
+identity before input, not permission to reuse an id blindly or choose the
+first matching pane. Old prompts without routing remain readable by the
+ordinary session workflow; bulk resume must report their routing limitation
+without an interactive migration question.
 
 ## Publish the latest prompt and finish pausing
 

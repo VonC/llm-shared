@@ -17,6 +17,33 @@ it does not grant new permissions or restore review ownership.
 - Topic and step: {topic, step and umbrella position, or not applicable}
 - Paused at: {precise action boundary and reason for stopping}
 
+## Automatic resume routing
+
+{Fill from read-only evidence under instructions/pause-session.md. Preserve
+historical authorship separately from intended resume roles. Record explicit
+unknowns with reasons; do not ask the person to select routing. This handoff
+supplies target selection for one human-launched resume_paused invocation,
+without routing arguments or follow-up confirmation. Validate the recorded
+identities against live panes before any input.}
+
+- Routing observed at: {timestamp with numeric UTC offset}
+- Routing checkout: `{resolved absolute checkout root}`
+- Pausing pane: {agent host, TUIOS session identity, pane id and name, or unknown with reason}
+- Saved session role: {role at pause; historical, not an inferred new assignment}
+- Intended resume assignment: {retain verified assignment or recorded user role-switch direction, with source and date}
+- Review pairing: {exchange family, reviewed document or implementation plan, umbrella path or none, code implementation step when applicable, and exchange occurrence; not applicable with reason for a single-agent pause, or unknown if unresolved}
+
+| Target | Agent host and intended role | TUIOS session identity | Pane id and name | Resolved checkout | Identity and assignment evidence |
+| --- | --- | --- | --- | --- | --- |
+| Resumed agent | {host and role} | {observed identity} | {observed id and label} | {absolute root} | {read-only evidence; user direction where applicable} |
+| Requestor | {host and role, same target as resumed agent when applicable, or not applicable} | {identity or not applicable} | {id and label or not applicable} | {root or not applicable} | {exact-exchange role evidence or reason} |
+| Reviewer | {host and role or not applicable} | {identity or not applicable} | {id and label or not applicable} | {root or not applicable} | {exact-exchange role evidence or reason} |
+
+{Use unknown with a reason for unavailable required values. State conflicts or
+missing evidence explicitly. Resume must report unresolved targets without
+input or a selection question; it must not pick a same-LLM pane by order,
+names alone, or an unchecked reused id. No ownership tokens belong here.}
+
 ## Objective and latest user direction
 
 {Original objective, expected outcome, latest corrections and remaining scope.

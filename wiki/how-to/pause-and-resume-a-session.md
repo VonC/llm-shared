@@ -97,13 +97,32 @@ and evidence retain the longer history.
 The prompt's first line starts with the id of the agent that paused it:
 `claude`, `chatgpt` (ChatGPT or Codex), `gemini`, `copilot`, `grok`, or
 another host's lowercase name, as in `# claude: Resume session: ...`. If the
-checkout already holds a prompt from another agent that was never resumed,
-the pause asks before replacing it.
+checkout already holds an unused or new-since-use prompt from another agent,
+or from a different recorded pausing pane or saved session role of the same
+agent, the pause names the existing checkpoint's agent, pane and role and asks
+before replacing it. Declining preserves that checkpoint and stops the new
+pause. Legacy prompts without pane or role fields retain the agent-id check.
+An unknown pane or role is not by itself a difference; the remaining recorded
+fields are still compared.
+This protection runs at pause time; bulk resume gains no additional
+confirmation. Each checkout still holds one latest checkpoint.
 
 The prompt preserves the objective, user steering, permissions, decisions,
 verified state, dirty-work ownership, evidence, live runs, blockers and ordered
 next actions. Existing jobs can remain running. A saved prompt neither
 finishes those jobs nor grants new authority to an external system.
+
+The handoff also records automatic resume routing: the intended resumed agent
+and review roles, observed TUIOS session and pane identities, checkout and
+supporting evidence. The pause captures these from existing state and recorded
+user direction without asking you to select panes. Unavailable values are
+marked unknown without losing the rest of the checkpoint. This prepares the
+handoff for the planned v0.14.0 `resume_paused` command, whose target selection
+must use that saved information and validate it against live panes, without
+pane-selection arguments or follow-up questions. Missing or stale routing is
+reported without input to unresolved targets. Bulk resume and its matching
+authorization changes are not implemented by this documentation change;
+the manual `resume-session` procedure below describes the current workflow.
 
 Before leaving, check the reported file exists and that the saved next action
 matches where you intended to stop. The agent fills the
