@@ -1244,3 +1244,358 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-3 -->
+
+## Round 1 by requestor - Step 2
+
+- Recorded: 2026-11-08T21:54:34+01:00
+- Exchange: code/code/v0.14.0/version-sources
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.version-sources.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: unrecorded
+- Implementation step: 2
+- Outcome: request
+
+### Review identity for step 2 version-sources (round 1)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.version-sources.md
+Implementation step: 2
+Review round: 1
+
+### Code review evidence for step 2 version-sources (round 1)
+
+request_index_tree: 4d5a54318ed1e5a62f4737436e3a4af30cf5c395
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.version-sources.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(release): add the version source model
+group 1 path: tools/release_workflow/sources/model.py
+group 1 path: tests/unit/tools/release_workflow/version_support.py
+group 1 path: tests/unit/tools/release_workflow/test_version_model/__init__.py
+group 1 path: tests/unit/tools/release_workflow/test_version_model/test_version_model_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_version_model/test_version_model_pbt.py
+group 2: feat(release): add the version.txt anchor adapter
+group 2 path: tools/release_workflow/sources/anchor.py
+group 2 path: tools/release_workflow/sources/__init__.py
+group 2 path: tests/unit/tools/release_workflow/test_version_anchor/__init__.py
+group 2 path: tests/unit/tools/release_workflow/test_version_anchor/test_version_anchor_tdd.py
+group 2 path: tests/unit/tools/release_workflow/test_version_anchor/test_version_anchor_pbt.py
+group 2 path: tests/unit/tools/release_workflow/test_version_registry/__init__.py
+group 2 path: tests/unit/tools/release_workflow/test_version_registry/test_version_registry_tdd.py
+group 3: docs(version-sources): record step 2 validation
+group 3 path: docs/v0.14.0/plan.v0.14.0.version-sources.validation.md
+group 3 path: .vscode/settings.json
+staged path: .vscode/settings.json
+staged path: docs/v0.14.0/plan.v0.14.0.version-sources.validation.md
+staged path: tests/unit/tools/release_workflow/test_version_anchor/__init__.py
+staged path: tests/unit/tools/release_workflow/test_version_anchor/test_version_anchor_pbt.py
+staged path: tests/unit/tools/release_workflow/test_version_anchor/test_version_anchor_tdd.py
+staged path: tests/unit/tools/release_workflow/test_version_model/__init__.py
+staged path: tests/unit/tools/release_workflow/test_version_model/test_version_model_pbt.py
+staged path: tests/unit/tools/release_workflow/test_version_model/test_version_model_tdd.py
+staged path: tests/unit/tools/release_workflow/test_version_registry/__init__.py
+staged path: tests/unit/tools/release_workflow/test_version_registry/test_version_registry_tdd.py
+staged path: tests/unit/tools/release_workflow/version_support.py
+staged path: tools/release_workflow/sources/__init__.py
+staged path: tools/release_workflow/sources/anchor.py
+staged path: tools/release_workflow/sources/model.py
+```
+
+### Validation scope for step 2 version-sources (round 1)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 2 version-sources (round 1)
+
+Writer assessment for Step 2 of the version-sources plan, round 1: the step is
+fully implemented, and its implementation check records
+`Yes. Step 2 has been fully implemented.` in the staged validation plan.
+
+Evidence, all on the staged tree:
+
+- Tests first: with `tools/release_workflow/sources` moved aside, `ghog
+  single` on the three Step 2 test folders failed at collection (five
+  modules, `ImportError`, exit 4), then passed after the implementation.
+- `ghog day --whole-suite`, the command printed by `pw scope day`, exit 0
+  (check.bat: ty, pyright, ruff, radon, vulture, file size, Markdown,
+  ShellCheck, end-of-file; affected tests green). A first run failed only on
+  ruff RUF043 in two test `match=` patterns, made raw and escaped.
+- `ghog day --full=speed --whole-suite`, the review validation default:
+  exit 0, no failure, coverage 100%, no duration outlier, no exclusion (check
+  and affected reused by groundhog's proof); it ran in a measured quiet
+  window (no other checkout's pytest, load below 50% on three samples). No
+  exclusion is accepted in this step.
+- Completion checks: `rg -n 'open\(|write_bytes|write_text'
+  tools/release_workflow/sources` finds nothing; the synthetic-listing test
+  reports an unregistered adapter module.
+- Spell check of the 14 staged files: one unknown word (`nargs`), added to
+  `.vscode/settings.json` at the user's choice; rechecked, none left.
+- Every file stays below 650 lines; `model.py` is 390.
+
+Architecture: the model is plain values and pure functions plus the
+read-only `FileView` the plan places there; the anchor depends only on the
+model and never writes; foundation types are imported for type checking
+only. Performance: one load, decode and scan per file per phase; the only
+sorts are over one file's few owned spans. Feature integrity: no existing
+module changes and nothing ships.
+
+Please check in particular: the token grammar and its remedy, the anchor's
+first-line rule (token, optionally whitespace, `--` and a title; anything
+else malformed, trailing whitespace alone included), the root-only anchor
+detection through `AdapterSettings.project_root`, `compose` and
+`to_byte_spans` exactness, and whether the Q16 shared types are what Steps 3
+and 4 need.
+
+### Implementation report for step 2 version-sources (round 1)
+
+Step 2, "Version tokens, the anchor document and the source model", creates
+the `tools/release_workflow/sources` package. Nothing ships yet:
+`cli.SHIPPED_HANDLERS` stays empty and no existing module imports the package.
+
+Model (`sources/model.py`, standard library only at run time):
+
+- `VersionToken.parse` accepts `MAJOR.MINOR.PATCH` with an optional uppercase
+  `-SNAPSHOT`, no leading zeros, no `v`; `VersionError` (status 2) names the
+  grammar. `core`, `key` (integer triple, the only order) and `__str__`.
+- `Form` (`StrEnum`: `snapshot`, `core`, `release-only`) with `parse` and
+  `expected(anchor)`; `check_release_only(source, anchor)` refuses a
+  release-only value above the target's core, naming source, value and
+  target, and fails a value that is not a release token as malformed; other
+  forms are not guarded there.
+- `Span` (half-open, validated), `LocatedSource` (path, field, adapter, form,
+  value, spans, root, paired manifest), `VisibleRecord` (status
+  `not-participating tool-only` or `not-participating undeclared`),
+  `Detection`, `SourceError` (status 2).
+- `decode_utf8` (strict UTF-8, byte-order mark returned apart) and `FileView`
+  (`read` caches each path once, absence as `None`; `text` decodes and names
+  the file on failure; `loads` counts loads per path).
+- `AdapterSettings` (a protocol exposing `project_root`) and `Adapter` (name,
+  default form, forms, manifest names, `detect(root, view, settings)`,
+  `render(source, value)`, `has_project_version(name, content)`).
+- `compose(original, edits)` sorts one file's edits, rejects a span past the
+  end or overlapping another, and joins slices of the one original.
+- `to_byte_spans(text, bom_length, spans)` sorts the distinct offsets once and
+  encodes each segment between consecutive offsets once.
+- Plan decision Q16 types: `VersionInputs.from_context`, `FileCapture.of`
+  (SHA-256 of present bytes, `None` when absent), `SourceChange`, `FileEdit`
+  (refuses unchanged bytes), `Claim`, `Inventory`, `Plan`. Foundation types
+  are imported for type checking only.
+
+Anchor (`sources/anchor.py`):
+
+- `parse_document(content)` decodes, splits the first line (CR removed only
+  from a CRLF terminator), and requires the token optionally followed by
+  whitespace, `--` and a title; anything else is malformed with a remedy. The
+  title is stripped; the notes are everything after the first terminator,
+  unchanged; the token's byte span starts after the byte-order mark.
+- `ADAPTER` (`AnchorAdapter`, frozen): name `anchor`, located form
+  `snapshot`, no configurable form, no candidate names. `detect` returns
+  nothing for a root other than `settings.project_root`, fails a missing file
+  with a remedy, wraps every parse failure with the path (status 2), reads the
+  file once and returns one `LocatedSource`. `render` returns the raw token.
+
+Registry (`sources/__init__.py`): `ADAPTERS = (anchor.ADAPTER,)` and
+`SUPPORT_MODULES = frozenset({"model"})`. The registry test lists the
+package's modules and requires each adapter module's `ADAPTER` exactly once;
+a synthetic listing with an unregistered module, a duplicate or an entry
+without a module is reported.
+
+Two additions the plan's list implies, recorded in the validation plan:
+`AdapterSettings`, so root-only adapters (the anchor now, Step 3's pattern
+adapter) know the project root, which Step 3's `VersionSettings` satisfies
+structurally; and `Claim`, the element of `Inventory.claims`.
+
+Tests first: with the package moved aside, the three Step 2 test folders
+failed at collection, then passed after the implementation. Property tests
+(25 examples each): token round trip and order, composition against
+right-to-left replacement, anchor token replacement over generated titles,
+notes, line endings and byte-order marks.
+
+Spell check: one unknown word, `nargs` (the argparse parameter named in the
+validation plan's Step 1 text); the user chose to add it to
+`.vscode/settings.json`.
+
+Writer notes: `.reviews/a.version-sources.step2.journal.md` and
+`.reviews/a.version-sources.step2.handoff.md`.
+
+### Change summary for step 2 version-sources (round 1)
+
+Staged paths (14), grouped in the root `a.commit` (three groups, checker
+`ready: true`):
+
+1. `feat(release): add the version source model`:
+   `tools/release_workflow/sources/model.py`,
+   `tests/unit/tools/release_workflow/version_support.py`,
+   `tests/unit/tools/release_workflow/test_version_model/__init__.py`,
+   `tests/unit/tools/release_workflow/test_version_model/test_version_model_tdd.py`,
+   `tests/unit/tools/release_workflow/test_version_model/test_version_model_pbt.py`.
+2. `feat(release): add the version.txt anchor adapter`:
+   `tools/release_workflow/sources/anchor.py`,
+   `tools/release_workflow/sources/__init__.py`,
+   `tests/unit/tools/release_workflow/test_version_anchor/__init__.py`,
+   `tests/unit/tools/release_workflow/test_version_anchor/test_version_anchor_tdd.py`,
+   `tests/unit/tools/release_workflow/test_version_anchor/test_version_anchor_pbt.py`,
+   `tests/unit/tools/release_workflow/test_version_registry/__init__.py`,
+   `tests/unit/tools/release_workflow/test_version_registry/test_version_registry_tdd.py`.
+3. `docs(version-sources): record step 2 validation`:
+   `docs/v0.14.0/plan.v0.14.0.version-sources.validation.md` (Step 2
+   sections), `.vscode/settings.json` (`nargs` added to `cSpell.words`).
+
+Group 1 is importable on its own: without `__init__.py`, `sources` is a
+namespace package. Every file except the validation plan and the settings is
+new. Before this step, the branch committed Step 1 (`a7c0d7c` to `c609947`),
+which is not part of this review.
+
+### Writer response for step 2 version-sources (round 1)
+
+Writer response:
+
+This is the first round of the Step 2 code review; there is no earlier
+reviewer feedback to answer.
+
+Choices worth checking, all within the plan:
+
+- The anchor's `LocatedSource.form` is `snapshot`, because its expected value
+  is the whole target token; its configurable `forms` set is empty, so no
+  `[source:anchor]` override can be valid.
+- A first line with only trailing whitespace after the token (`0.14.0[space]`) is
+  malformed: the design allows "whitespace, `--` and the title" together, and
+  anything else after the token is malformed.
+- `compose` and `to_byte_spans` sort per-file spans or offsets, a handful of
+  owned fields, as the plan prescribes; nothing sorts or rescans file content.
+- `check_release_only` returns for forms other than `release-only`; drift of
+  a `core` or `snapshot` source is the transition's and `check`'s concern in
+  later steps.
+
+### Reviewer focus for step 2 version-sources (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-2-round-1 -->
+
+## Round 1 by reviewer - Step 2
+
+- Recorded: 2026-11-08T22:00:53+01:00
+- Exchange: code/code/v0.14.0/version-sources
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.version-sources.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 2
+- Outcome: answer
+
+### Assessed index identity for step 2 version-sources (exchange 1) (round 1)
+
+Baseline index tree: 4d5a54318ed1e5a62f4737436e3a4af30cf5c395
+
+Assessed index tree: f6d10cd6a193ecb0440d651cd910c6329ccfdb76
+
+### Implementation check for step 2 version-sources (exchange 1) (round 1)
+
+Result:
+
+Yes. Step 2 has been fully implemented.
+
+The staged model, anchor adapter and registry implement the exact plan step. Token parsing enforces the decimal triple, uppercase optional suffix, leading-zero rule and complete-input match; comparison uses the numeric core key. Forms and the release-only guard implement the expected mappings and refusals. The anchor rejects trailing text or whitespace without the separator, accepts empty titles, detects only the configured project root, and retains the token's byte span, BOM, notes and line endings. Composition rejects outside and overlapping spans; character-to-byte mapping handles accented and non-BMP text without repeatedly encoding prefixes.
+
+The new values and protocols are VersionToken, Form, Span, LocatedSource, VisibleRecord, Detection, FileView, AdapterSettings, Adapter, VersionInputs, FileCapture, SourceChange, FileEdit, Claim, Inventory, Plan, VersionDocument and AnchorAdapter, with VersionError and SourceError. The Q16 types provide Steps 3 and 4 with shared inputs, claims, captures and edits without a dependency on the later transition.
+
+Architecture: the anchor depends on the common model and reads through the injected view; foundation imports are for type checking only. No adapter writes, takes a lock or starts a process. No architecture issue needs addressing.
+
+Performance: each view caches present and absent bytes; span mapping encodes disjoint segments and composition joins original slices. Sorting is confined to one file's spans or offsets as planned. No performance issue needs addressing.
+
+Unit coverage was assessed statically from the named model, anchor and registry tests and property tests. The gate measures `tools`, omitting tests and initializers. Test support's top-level helpers are all referenced; the omitted registry declarations are exercised explicitly. No coverage gap or unreferenced top-level symbol was identified. The writer reports 100% measured coverage; the reviewer did not measure it.
+
+Feature integrity: the new package remains unshipped, with no existing production module modified. No existing feature or reporting capability appears impaired.
+
+Validation plan effects:
+
+Updated only Step 2's "What was implemented" section in `docs/v0.14.0/plan.v0.14.0.version-sources.validation.md` with this independent assessment and the distinction between writer-executed evidence and static reviewer coverage assessment. The exact Yes verdict remains. Other steps, document-level status and umbrella remain unchanged. Markdown validation passed.
+
+### Pre-repair mandatory checks and coverage for step 2 version-sources (exchange 1) (round 1)
+
+The request reports tests first failing at collection without the package, then passing with it; `ghog day --whole-suite` green; and the required `ghog day --full=speed --whole-suite` green with 100% measured coverage, no exclusions and no duration outliers. The earlier ruff pattern failure was corrected before publication. These are writer reports on the staged tree, not reviewer-executed tests.
+
+Reviewer commands: no tests, coverage, ghog check or affected run. Static code and test assessment supplied the needed review evidence.
+
+### Resolved validation set and sources for step 2 version-sources (exchange 1) (round 1)
+
+Current resolver: `ghog day --full=speed --whole-suite`, source `project`. This exactly matches the request's resolved set. Bound scope is the core-owned `.reviews/a.review-scope.code.v0.14.0.version-sources.json`, whole suite, speed proof, fingerprint `686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6`. The request identity and envelope agree, including plan, umbrella, step 2 and round 1.
+
+### Resolver drift and direction for step 2 version-sources (exchange 1) (round 1)
+
+No drift. No added, removed or changed commands or source labels. The `.review-validation` marker was sampled absent.
+
+### Repository state around validation for step 2 version-sources (exchange 1) (round 1)
+
+Request-time and baseline index trees match: `4d5a54318ed1e5a62f4737436e3a4af30cf5c395`. Assessed index tree: `f6d10cd6a193ecb0440d651cd910c6329ccfdb76`.
+
+The evidence comparison reports tracked differences only for the reviewed validation plan and `<index>`, with no untracked or ignored differences in the captured path set. Its raw `acceptable: false` reflects the explicitly staged reviewer metadata patch; attribution proves that patch cleanly attributable, and inspection confines it to Step 2's assessment note. No implementation or test change was made. The umbrella digest is unchanged: `5abf0cb72800e9d07acba786dd90502fcb8879ff41cbcce55b961a95352aaa4c`.
+
+### Repair inventory for step 2 version-sources (exchange 1) (round 1)
+
+Repairs made:
+
+- Polishing-only review metadata: added the independent assessment note to Step 2 of `docs/v0.14.0/plan.v0.14.0.version-sources.validation.md`; no substantive repair.
+
+Paths staged:
+
+- `docs/v0.14.0/plan.v0.14.0.version-sources.validation.md`: staged only the exact patch returned by the evidence attribution operation.
+
+### Commit plan assessment for step 2 version-sources (exchange 1) (round 1)
+
+Independent `commit-plan-check.bat --format json` returned exit 0, `state: valid`, `ready: true`, 14 staged paths and no diagnostics. Its ordered groups match the received `a.commit`:
+
+1. `feat(release): add the version source model` (5 paths).
+2. `feat(release): add the version.txt anchor adapter` (7 paths).
+3. `docs(version-sources): record step 2 validation` (2 paths, including the user-approved dictionary word).
+
+Membership, dependency order, scope and subjects remain accurate after the validation metadata note. No `a.commit` edit was needed.
+
+### Findings and boundaries for step 2 version-sources (exchange 1) (round 1)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 2 version-sources (exchange 1) (round 1)
+
+No implementation rework requested. Process this advisory answer through the existing requestor convergence gate. Commit authorization remains the human's decision.
+
+### Decision rationale for step 2 version-sources (exchange 1) (round 1)
+
+All six readiness-floor results pass: exact identity; complete Step 2 implementation; writer-reported validation and static coverage assessment; attributable staged scope; no unresolved findings; and accurate, independently checked commit grouping. The reviewer made only a polishing metadata update. Recommend commit-ready; this is advisory and does not authorize a commit.
+
+The current request has no literal Human guidance block authorizing implementation or test repair. None was performed.
+
+### Final reviewer decision for step 2 version-sources (exchange 1) (round 1)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-2-round-1 -->
+
+## Round 1 by human - Step 2 - human-confirmation
+
+- Recorded: 2026-11-08T23:40:07+01:00
+- Exchange: code/code/v0.14.0/version-sources
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.version-sources.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 2
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-1 -->
