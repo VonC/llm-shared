@@ -18,6 +18,12 @@ replaced in the text: no ignore pattern or comment hides a finding.
 
 Only Markdown files are checked (user decision of 2026-11-08): ``check``
 drops every other file it is given, and needs no Node when none remains.
+
+Fix: a client stopped at its commit gate because the check demanded a Node
+22.18 that its machine could not install. The check now finds Node by itself
+(the PATH, then the senv ``%PRGS%/nodes/node<N>`` links), puts it first on
+the PATH of npm and cspell, and runs cspell 10 on a Node 22.18 or later, else
+cspell 9 on a Node 20.18 or later.
 """
 
 from __future__ import annotations
@@ -41,8 +47,10 @@ if TYPE_CHECKING:
 
     Runner = Callable[..., subprocess.CompletedProcess[str]]
 
-CSPELL_VERSION = "10.4.1"
-MINIMUM_NODE = (22, 18)
+# The cspell release pinned for each minimum Node, newest first: cspell 10 is
+# the engine of the VS Code extension; cspell 9, which gives the same findings
+# on Markdown, runs on the Node 20.18 to 22.17 that machines still carry.
+CSPELL_RELEASES: tuple[tuple[tuple[int, int], str], ...] = (((22, 18), "10.4.1"), ((20, 18), "9.8.0"))
 EXTENSION_PREFIX = "streetsidesoftware.code-spell-checker-"
 LIST_KEYS = ("words", "userWords", "flagWords", "ignoreWords", "ignorePaths", "ignoreRegExpList")
 SCALAR_KEYS = ("language", "allowCompoundWords", "caseSensitive", "minWordLength")
@@ -52,7 +60,7 @@ EXIT_CLEAN = 0
 EXIT_WORDS = 1
 EXIT_ERROR = 2
 LLM_SHARED_DIR = Path(__file__).resolve().parents[1]
-CSPELL_HOME = LLM_SHARED_DIR / "venvs" / f"cspell_{CSPELL_VERSION}"
+CSPELL_ROOT = LLM_SHARED_DIR / "venvs"
 
 _STRING = r'"(?:\\.|[^"\\])*"'
 _COMMENTS = re.compile(rf"{_STRING}|//[^\n]*|/\*.*?\*/", re.DOTALL)
@@ -202,25 +210,34 @@ def node_candidates(environ: Mapping[str, str]) -> list[Path]:
     return candidates
 
 
-def find_node(environ: Mapping[str, str], run: Runner) -> Path:
-    """Return the first Node recent enough for the pinned cspell."""
-    seen: list[str] = []
+def find_node(environ: Mapping[str, str], run: Runner) -> tuple[Path, str]:
+    """Return a Node and the newest pinned cspell it runs, preferring cspell 10."""
+    found: list[tuple[Path, tuple[int, ...]]] = []
     for node in node_candidates(environ):
         completed = run([str(node), "--version"], capture_output=True, text=True, check=False)
-        version = _version_key(completed.stdout) if completed.returncode == 0 else ()
-        if version >= MINIMUM_NODE:
-            return node
-        seen.append(f"{node} ({'.'.join(map(str, version)) or 'unknown version'})")
-    minimum = ".".join(map(str, MINIMUM_NODE))
+        found.append((node, _version_key(completed.stdout) if completed.returncode == 0 else ()))
+    for minimum, cspell in CSPELL_RELEASES:
+        for node, version in found:
+            if version >= minimum:
+                return node, cspell
+    seen = ", ".join(f"{node} ({'.'.join(map(str, version)) or 'unknown version'})" for node, version in found)
+    lowest = ".".join(map(str, CSPELL_RELEASES[-1][0]))
     message = (
-        f"cspell {CSPELL_VERSION} needs Node {minimum} or later; found: {', '.join(seen) or 'none'}. "
-        "Install it with the senv tools (dwl_inst_ver node 22), then rerun."
+        f"cspell needs Node {lowest} or later; found: {seen or 'none'}. "
+        "Install one with the senv tools (dwl_inst_ver node 22), then rerun."
     )
     raise SpellCheckError(message)
 
 
-def ensure_cspell(node: Path, home: Path, run: Runner) -> Path:
+def node_environment(node: Path, environ: Mapping[str, str]) -> dict[str, str]:
+    """Return the environment with ``node``'s folder first on the PATH, for npm and cspell."""
+    path = environ.get("PATH", "")
+    return {**environ, "PATH": f"{node.parent}{os.pathsep}{path}" if path else str(node.parent)}
+
+
+def ensure_cspell(node: Path, cspell: str, env: Mapping[str, str], run: Runner) -> Path:
     """Return the pinned cspell entry point, installing it with Node's own npm when missing."""
+    home = CSPELL_ROOT / f"cspell_{cspell}"
     entry = home / "node_modules" / "cspell" / "bin.mjs"
     if entry.is_file():
         return entry
@@ -228,14 +245,15 @@ def ensure_cspell(node: Path, home: Path, run: Runner) -> Path:
     completed = run(
         [
             str(node), str(npm), "install", "--prefix", str(home),
-            "--no-save", "--no-audit", "--no-fund", f"cspell@{CSPELL_VERSION}",
+            "--no-save", "--no-audit", "--no-fund", f"cspell@{cspell}",
         ],
         capture_output=True,
         text=True,
         check=False,
+        env=dict(env),
     )
     if completed.returncode != 0 or not entry.is_file():
-        message = f"npm could not install cspell {CSPELL_VERSION} into {home}: {completed.stderr.strip()}"
+        message = f"npm could not install cspell {cspell} into {home}: {completed.stderr.strip()}"
         raise SpellCheckError(message)
     return entry
 
@@ -243,10 +261,13 @@ def ensure_cspell(node: Path, home: Path, run: Runner) -> Path:
 def run_cspell(
     command: Sequence[str],
     root: Path,
+    env: Mapping[str, str],
     run: Runner,
 ) -> dict[str, Any]:
     """Run one cspell lint with the JSON reporter and return its parsed report."""
-    completed = run(list(command), capture_output=True, text=True, encoding="utf-8", check=False, cwd=root)
+    completed = run(
+        list(command), capture_output=True, text=True, encoding="utf-8", check=False, cwd=root, env=dict(env),
+    )
     if completed.returncode not in {0, 1}:
         message = f"cspell failed with exit code {completed.returncode}: {completed.stderr.strip()}"
         raise SpellCheckError(message)
@@ -349,14 +370,15 @@ def check(
     if not files:
         return []
     config = build_config(root, default_sources(environ))
-    node = find_node(environ, run)
-    entry = ensure_cspell(node, CSPELL_HOME, run)
+    node, cspell = find_node(environ, run)
+    env = node_environment(node, environ)
+    entry = ensure_cspell(node, cspell, env, run)
     handle, name = tempfile.mkstemp(prefix="a.spell-check.", suffix=".json")
     config_path = Path(name)
     try:
         with os.fdopen(handle, "w", encoding="utf-8") as stream:
             json.dump(config, stream, ensure_ascii=False)
-        report = run_cspell(lint_command(node, entry, root, config_path, files), root, run)
+        report = run_cspell(lint_command(node, entry, root, config_path, files), root, env, run)
     finally:
         config_path.unlink(missing_ok=True)
     return unknown_words(report, root)

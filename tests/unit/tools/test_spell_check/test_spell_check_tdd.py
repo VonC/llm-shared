@@ -10,14 +10,19 @@ else. No test starts a process: Node, npm and cspell answer through a stand-in.
 Fix: spelling is checked on Markdown files only, never on source code (user
 decision of 2026-11-08): ``check`` drops every other file and runs nothing
 when no Markdown file remains.
+
+Fix: a Node older than 22.18 no longer stops the check: cspell 9 runs on a
+Node 20.18 or later, and the chosen Node comes first on the PATH of npm and
+cspell.
 """
 
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 import pytest
 
@@ -166,47 +171,63 @@ def test_find_node_takes_the_first_recent_enough_node(tmp_path: Path) -> None:
 
     candidates = sc.node_candidates(environ)
     assert [node.parent.name for node in candidates] == ["path", "node22", "node14", "node9"]
-    assert sc.find_node(environ, run).parent.name == "node22"
+    node, cspell = sc.find_node(environ, run)
+    assert (node.parent.name, cspell) == ("node22", "10.4.1")
 
     versions.pop("node22")
+    node, cspell = sc.find_node(environ, run)
+    assert (node.parent.name, cspell) == ("path", "9.8.0")
+
+    versions["path"] = (0, "v18.20.0")
     with pytest.raises(sc.SpellCheckError) as raised:
         sc.find_node(environ, run)
     message = str(raised.value)
-    assert "needs Node 22.18 or later" in message
-    assert "(22.9.0)" in message
+    assert "cspell needs Node 20.18 or later" in message
+    assert "(18.20.0)" in message
     assert "(unknown version)" in message
     assert "dwl_inst_ver node 22" in message
     with pytest.raises(sc.SpellCheckError, match="found: none"):
         sc.find_node({"PATH": ""}, run)
 
 
-def test_ensure_cspell_installs_the_pinned_version_once(tmp_path: Path) -> None:
-    """An existing install is reused; a missing one goes through Node's own npm."""
+def test_node_environment_puts_the_chosen_node_first(tmp_path: Path) -> None:
+    """The npm and cspell runs find the chosen Node first on the PATH, even with no PATH at all."""
     node = tmp_path / "node22" / "node.exe"
-    home = tmp_path / "cspell"
-    calls: list[list[str]] = []
+    assert sc.node_environment(node, {"PATH": "C:/bin", "X": "1"}) == {
+        "PATH": f"{node.parent}{os.pathsep}C:/bin", "X": "1",
+    }
+    assert sc.node_environment(node, {}) == {"PATH": str(node.parent)}
 
-    def run(command: Sequence[str], **_: object) -> subprocess.CompletedProcess[str]:
-        calls.append(list(command))
+
+def test_ensure_cspell_installs_the_pinned_version_once(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """An existing install is reused; a missing one goes through Node's own npm, Node first on the PATH."""
+    monkeypatch.setattr(sc, "CSPELL_ROOT", tmp_path)
+    node = tmp_path / "node22" / "node.exe"
+    home = tmp_path / "cspell_9.8.0"
+    env = {"PATH": str(node.parent)}
+    calls: list[tuple[list[str], object]] = []
+
+    def run(command: Sequence[str], **options: object) -> subprocess.CompletedProcess[str]:
+        calls.append((list(command), options["env"]))
         entry = home / "node_modules" / "cspell" / "bin.mjs"
         entry.parent.mkdir(parents=True)
         entry.write_text("", encoding="utf-8")
         return _done(command)
 
-    entry = sc.ensure_cspell(node, home, run)
+    entry = sc.ensure_cspell(node, "9.8.0", env, run)
     assert entry == home / "node_modules" / "cspell" / "bin.mjs"
-    assert calls == [[
+    assert calls == [([
         str(node), str(tmp_path / "node22" / "node_modules" / "npm" / "bin" / "npm-cli.js"), "install",
-        "--prefix", str(home), "--no-save", "--no-audit", "--no-fund", f"cspell@{sc.CSPELL_VERSION}",
-    ]]
-    assert sc.ensure_cspell(node, home, run) == entry
+        "--prefix", str(home), "--no-save", "--no-audit", "--no-fund", "cspell@9.8.0",
+    ], env)]
+    assert sc.ensure_cspell(node, "9.8.0", env, run) == entry
     assert len(calls) == 1
 
     def fail(command: Sequence[str], **_: object) -> subprocess.CompletedProcess[str]:
         return _done(command, 1, stderr="E404\n")
 
-    with pytest.raises(sc.SpellCheckError, match=r"npm could not install cspell .*: E404"):
-        sc.ensure_cspell(node, tmp_path / "other", fail)
+    with pytest.raises(sc.SpellCheckError, match=r"npm could not install cspell 10\.4\.1 .*: E404"):
+        sc.ensure_cspell(node, "10.4.1", env, fail)
 
 
 @pytest.mark.parametrize(
@@ -221,7 +242,7 @@ def test_run_cspell_rejects_failures_and_unusable_reports(
         return _done(command, code, stdout, "boom\n")
 
     with pytest.raises(sc.SpellCheckError, match=expected):
-        sc.run_cspell(["cspell"], tmp_path, run)
+        sc.run_cspell(["cspell"], tmp_path, {}, run)
 
 
 def test_lint_command_uses_the_json_reporter_with_suggestions(tmp_path: Path) -> None:
@@ -277,10 +298,10 @@ def test_check_runs_cspell_with_the_merged_settings_and_removes_them(
 ) -> None:
     """The whole check: Node found, cspell reused, merged config passed, then deleted."""
     environ = _user_dirs(tmp_path)
-    home = tmp_path / "cspell"
+    home = tmp_path / "cspell_10.4.1"
     (home / "node_modules" / "cspell").mkdir(parents=True)
     (home / "node_modules" / "cspell" / "bin.mjs").write_text("", encoding="utf-8")
-    monkeypatch.setattr(sc, "CSPELL_HOME", home)
+    monkeypatch.setattr(sc, "CSPELL_ROOT", tmp_path)
     root = tmp_path / "repo"
     (root / ".vscode").mkdir(parents=True)
     (root / ".vscode" / "settings.json").write_text('{"cSpell.words": ["ghog"]}', encoding="utf-8")
@@ -294,6 +315,7 @@ def test_check_runs_cspell_with_the_merged_settings_and_removes_them(
         with open(config, encoding="utf-8") as stream:  # noqa: PTH123 - the path is a command argument
             seen["config"] = json.load(stream)
         seen["cwd"] = options["cwd"]
+        seen["path"] = cast("dict[str, str]", options["env"])["PATH"]
         seen["files"] = command[-1]
         return _done(command, 1, _report_for(root))
 
@@ -304,6 +326,7 @@ def test_check_runs_cspell_with_the_merged_settings_and_removes_them(
     assert seen["config"]["userWords"] == ["Aaaah"]
     assert seen["cwd"] == root
     assert seen["files"] == "docs/review.md"
+    assert seen["path"] == str(tmp_path / "prgs" / "nodes" / "node22")
     assert not (tmp_path / seen["config_path"]).exists()
 
 
