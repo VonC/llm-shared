@@ -1669,26 +1669,28 @@ Expected outcome:
   conflicting aliases and versions fail with status 2 naming them.
 - `0.13.0` is reserved when `v0.13.0` exists; a target must be higher than
   every eligible release reachable from `main`.
+- A boundary of several aliases takes the most restrictive class of its
+  aliases and prints its `vX.Y.Z` alias when it has one (design decisions
+  Q18 and Q19).
 
 Prerequisite for aliased boundaries:
 
-- The design does not yet say when a boundary holding several same-version,
-  same-commit tags is eligible, nor which actual tag spelling the output
-  prints for it. By plan decision Q15, both are settled in a design clarification
-  that needs its own authorization (the Q15 choice does not grant it) and must
-  be reviewed before this step's aliased-boundary tests are written. Until then the step implements and tests every other rule (single
-  tags, conflicts, ancestry, counts, the release-version rule), and the cases
-  that depend on the clarification stay blocked: a historical `0.13.0` with an
-  unvalidated `v0.13.0` on one commit; a validated and an unvalidated alias on
-  one commit; an ambiguous alias beside an eligible one; and the printed
-  spelling of any boundary with two eligible aliases. The existing conflict
-  rules (same version on different commits, different versions on one
-  commit) are not part of that dependency and are tested now.
+- Settled by the design clarification that plan decision Q15 required: the
+  user authorized it and decided design Q18 (option A) and Q19 (option A) on
+  2026-11-08, and independent review (exchange 2, round 1) converged. A
+  boundary takes the most restrictive class of its aliases (ambiguous, then
+  not eligible, then eligible), and the baseline boundary prints its
+  `vX.Y.Z` alias when it has one, otherwise its `X.Y.Z` alias. The step
+  implements and tests these rules with the others; the aliased-boundary
+  cases are listed in the tests below. The existing conflict rules (same
+  version on different commits, different versions on one commit) are
+  unchanged.
 
 Step framing:
 
 - Design link: "Stable and snapshot tag classification", "Range selection and
-  the release-version rule"; design decisions Q01, Q02, Q03; AC13, AC14, AC15.
+  the release-version rule"; design decisions Q01, Q02, Q03, Q18, Q19; AC13,
+  AC14, AC15.
 - Execution checklist reference: [Shared execution command checklist for all
   v0.14.0 version-sources steps](#shared-execution-command-checklist-for-all-v0140-version-sources-steps).
 
@@ -1721,9 +1723,26 @@ Step framing:
   syntactically valid missing tag target returns status 2 through
   `GitRevisionNotFound` from the one records call, while a canned Git
   execution failure of that call returns status 1.
+- Aliased boundaries (design decisions Q18 and Q19), on declared histories:
+  historical `0.13.0` with unvalidated `v0.13.0`, and validated `v0.13.0`
+  with an unvalidated `0.13.0`, each give a boundary that is not a
+  candidate, the baseline falling back to the previous release with a
+  warning naming both aliases; validated `v0.13.0` with an ambiguous
+  `0.13.0` after the baseline fails with status 2 naming them; two
+  unvalidated aliases give an ineligible boundary and two ambiguous aliases
+  an ambiguous one; historical `0.13.0` with validated `v0.13.0` gives
+  `v0.13.0` as `RangeSelection.baseline` and as the left endpoint of the
+  range text; a tag target addressed through either alias of the mixed
+  boundary fails with status 2, even when that alias alone is eligible;
+  for an eligible two-alias boundary on HEAD, a tag target through either
+  alias removes both, while HEAD keeps that boundary as its candidate.
+  Every case keeps the call table's Git calls.
 - Release-version rule: reserved in either spelling whatever its eligibility;
-  not higher than an eligible release on `main` rejected; numeric comparison;
-  no eligible release accepts any well-formed target; two recorded calls.
+  not higher than an eligible boundary on `main` rejected; numeric
+  comparison; the bound uses boundary classes, so `0.12.5` passes after
+  `v0.12.0` when the only later boundary is historical `0.13.0` with
+  unvalidated `v0.13.0`, while `0.13.0` stays reserved; no eligible release
+  accepts any well-formed target; two recorded calls.
 - Consumer-shaped histories declared with generic names: twelve annotated
   `vX.Y.Z` tags with `[valid]`; 99 tags mixing annotated and lightweight with
   one snapshot; the mixed `v0.0.20`, `0.0.21`, `0.0.22`, `v0.0.23`, `v0.0.24`
@@ -1743,10 +1762,11 @@ Step framing:
   `HEAD` or `refs/tags/<name>`, the printed range uses plain names.
 - `tags.check_release_version(git, *, cwd, version) -> None`, raising
   `RangeError(ValueError)` with `exit_code = 2`.
-- A boundary is the set of stable tags with one version on one commit. A
-  boundary of one tag takes that tag's eligibility and prints its name; the
-  eligibility and printed spelling of a boundary with several tags wait for
-  the prerequisite above.
+- A boundary is the set of stable tags with one version on one commit. It
+  takes the most restrictive class of its aliases (ambiguous, then not
+  eligible, then eligible; one tag keeps its own class) and prints its
+  `vX.Y.Z` alias when it has one, otherwise its `X.Y.Z` alias; that one
+  name is `RangeSelection.baseline` and the left endpoint of the range text.
 
 Git calls of one selection, by case:
 
@@ -1754,7 +1774,7 @@ Git calls of one selection, by case:
 | --- | --- | --- |
 | Malformed name, snapshot or other prerelease target | none | status 2 |
 | Missing tag target | records (raises `GitRevisionNotFound`) | status 2 |
-| Ineligible or ambiguous target, or conflicting tags | records | status 2 |
+| Ineligible or ambiguous target boundary, or conflicting tags | records | status 2 |
 | No eligible candidate | records, count of the target | full history |
 | One candidate | records, tags between baseline and target, count | baseline and range |
 | Several candidates | records, independent tips, tags between, count | baseline and range, or status 2 for several tips or an inversion |
@@ -1769,9 +1789,8 @@ merged into `main`.
   the current effort scope.
 - `rg -n 'describe' tools/release_workflow/tags.py` finds no `git describe`.
 - The recorded Git calls match the call table in every selection test.
-- The aliased-boundary cases of the prerequisite are written and pass against
-  the reviewed design clarification; until then Step 8 stays incomplete,
-  while the earlier steps and the rest of Step 8 can proceed.
+- The aliased-boundary cases of design decisions Q18 and Q19 listed in the
+  tests are written and pass.
 
 #### Step 8 -- addendums for tags and ranges
 
@@ -1947,7 +1966,7 @@ Time-gated status for Step 9:
 | uv workspaces, Python and npm local links, npm workspaces, inherited Maven versions | AC9 | Steps 5, 6 and 7 | Step 9 acceptance |
 | Injected failures, restoration, unchanged, contention, leftover evidence, cleanup failure, lifecycle lock binding | AC11 | Step 4 transition tests | Step 9 acceptance |
 | Configuration failures for every command | AC12 | Step 3 settings tests | Step 9 acceptance |
-| Snapshot at HEAD, unvalidated engine tag, ambiguous tag, conflicting aliases and versions, mixed prefixes | AC13, AC14 | Step 8 classification and range tests | Step 9 range acceptance |
+| Snapshot at HEAD, unvalidated engine tag, ambiguous tag, conflicting aliases and versions, aliased boundaries, mixed prefixes | AC13, AC14 | Step 8 classification and range tests | Step 9 range acceptance |
 | Reserved release version | AC15 | Step 8 rule tests | Step 9 range acceptance |
 
 ---
@@ -1993,12 +2012,10 @@ Implementation risks found by the second pass:
     without any detected source yields no record;
   - an incomplete standalone restoration still releases the lock, since its
     retained `restoration-incomplete` evidence stops the next `set`.
-- **Unresolved design dependency** (plan decision Q15): the eligibility of a
-  boundary holding several aliases and the printed spelling of such a boundary
-  are not settled by the design, and the plan does not settle them. Step 8's
-  aliased-boundary cases wait for a design clarification that needs its own
-  authorization (the Q15 choice does not grant it) and its own review; every
-  other step, and the rest of Step 8, proceed without it.
+- **Aliased boundaries** (plan decision Q15): the design clarification that
+  Q15 required was authorized, decided (design decisions Q18 and Q19) and
+  reviewed on 2026-11-08; Step 8 implements and tests its rules like every
+  other design rule, and no step waits on it any more.
 
 Roll out by keeping every legacy path unchanged: `tools/dev_workflow` and
 `prepare-release` keep their own version and range logic until items 7 and 8

@@ -505,8 +505,11 @@ release-version rule for items 5 and 7.
 - Recorded Git calls follow the plan's call table: a missing tag target
   returns status 2 from the one records call, a Git execution failure
   status 1.
-- The aliased-boundary cases are written and pass only after the reviewed
-  design clarification they depend on; until then the step stays incomplete.
+- Aliased boundaries follow design decisions Q18 and Q19: a boundary takes
+  the most restrictive class of its aliases for a tag target, the
+  candidates, the boundaries after the baseline and the release-version
+  bound, and the baseline boundary is named by its `vX.Y.Z` alias when it
+  has one, otherwise by its `X.Y.Z` alias.
 
 ### What was implemented for Step 8
 
