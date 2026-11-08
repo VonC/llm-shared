@@ -1,7 +1,8 @@
-"""Reviewer discovery selects actionable requests without hiding safety gates."""
+"""Reviewer discovery selects requests with declared parsed input and live policy."""
 
 from __future__ import annotations
 
+from argparse import Namespace
 from types import SimpleNamespace
 from typing import TYPE_CHECKING
 
@@ -56,7 +57,11 @@ def test_reviewer_selects_request_beside_answered_plan(
     if state is ArtifactState.ABANDONED_REQUEST:
         review_status.outcome = subject.ReviewStatusOutcome.UNTRUSTWORTHY
 
-    payload, code = _inspect(tmp_path, "--role", "reviewer")
+    # Parser journeys have their own cases; this variant asserts role selection.
+    payload, code = subject.execute_resume_operation(Namespace(
+        operation="resume-inspect", trusted_host_hint="claude", role="reviewer",
+        document=None, implementation_step=None, override=False,
+    ), tmp_path)
 
     assert code == 0
     assert payload["action"] == "review-request"
