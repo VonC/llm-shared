@@ -767,6 +767,15 @@ the information one step of the rule uses:
 | Commit count of the selected range | Output |
 
 That is at most four Git calls for one selection, whatever the number of tags.
+The peeled commit of a tag of a tag comes from that same listing: from Git
+2.44, the `%(*...)` fields of `for-each-ref` peel a tag fully to its commit,
+while older Git stops at the inner tag object, which no listing row explains
+once the inner tag's own ref is deleted. Rather than add a call or fail on
+such valid tags, the release tooling requires Git 2.44 or later (user
+decision of 2026-11-08, during the Step 1 code review). An older Git is
+refused when the operation selects its executable, with this reason and the
+remedy to upgrade; a tag record still dereferenced to a tag object is refused
+with the same reason.
 The release-version rule adds one listing of all tags and one listing of the
 tags reachable from `main`. Tests supply each observation programmatically, as
 they already do for indexes and configuration.
@@ -791,7 +800,7 @@ readers; item 2 only provides both entries.
 
 ## Foundation changes required by the version domain
 
-Five deliberate extensions change item 1's code. Two of them change a
+Six deliberate extensions change item 1's code. Three of them change a
 documented item 1 contract, and their tests change with them; the others add
 capabilities without altering existing behavior:
 
@@ -802,6 +811,7 @@ capabilities without altering existing behavior:
 | `schemas.py` adds the version schema to `SHIPPED_SCHEMAS` | None: the registry was built for more domains | Registry composition tests include the version domain |
 | `operation_lock.py` exposes a public ownership check bound to the current project's artifact home | None: acquisition, release, retention and transfer are unchanged | New tests for the check, including a handle from another project |
 | `git.py` adds typed observations for tags, independent tips, commit counts and the candidate listing | None: existing methods and Git isolation are unchanged | The repository simulation gains matching programmatic observations |
+| `git.py` raises the minimum Git version from 2.31.0 to 2.44.0, the first whose `for-each-ref` peels a tag of a tag to its commit | Item 1's minimum Git 2.31.0 (its decision Q11) becomes 2.44.0; the refusal states why and asks for an upgrade | Version tests use 2.44.0 as the floor and check the stated reason |
 
 Every other foundation guarantee stays as it is: root validation, Git
 isolation, managed-write revalidation, artifact preparation and the lock's
