@@ -778,3 +778,247 @@ Human choice: Consolidate
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-3 -->
+
+## Round 1 by requestor (exchange 2)
+
+- Recorded: 2026-11-08T14:02:39+01:00
+- Exchange: specification/design-specification/v0.14.0/version-sources
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/design.v0.14.0.version-sources.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: unrecorded
+- Outcome: request
+
+### Review identity for design-specification version-sources (exchange 2) (round 1)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Reviewed specification: docs/v0.14.0/design.v0.14.0.version-sources.md
+Review round: 1
+
+### Requestor assessment for design-specification version-sources (exchange 2) (round 1)
+
+Writer assessment of the version-sources design clarification, exchange 2,
+round 1: review of two new questions and the user's decisions on them.
+
+The design was consolidated in `06080c8` after exchange 1 converged (Q01 to
+Q17). The implementation plan was then consolidated (`05b1295`). Its decision
+Q15 (option B) left two rules to "a separately authorized, reviewed design
+clarification before Step 8's aliased-boundary tests": when a boundary of
+several same-version, same-commit tags is eligible, and which actual tag name
+`versions range` prints for it. The plan review (round 1, R6) asked that both
+be decided separately, with concrete alias cases, that the printed name be an
+eligible actual spelling, and that no stricter reading be presented as already
+mandated by "missing evidence never promotes a tag".
+
+On 2026-11-08 the user authorized that clarification, scoped to these two
+rules: add the questions to the design, explain them, record the user's
+choices, run one independent design review round, and consolidate only on the
+user's explicit word. The writer added two questions through `oqm`:
+
+| Question | Options | User decision | Same as the writer recommendation |
+| --- | --- | --- | --- |
+| Q18: Eligibility of a boundary whose aliases disagree | A most restrictive alias decides; B one eligible alias is enough; C validated evidence decides; D disagreement fails | Option A | yes |
+| Q19: Tag name printed for a boundary with several eligible aliases | A prefer `vX.Y.Z`, otherwise `X.Y.Z`; B follow the target's spelling; C print every eligible alias | Option A | yes |
+
+Each question was explained to the user before the choice, with four cases on
+one commit: historical `0.13.0` with unvalidated `v0.13.0`; validated
+`v0.13.0` with an unvalidated `0.13.0`; validated `v0.13.0` with an ambiguous
+`0.13.0`; historical `0.13.0` with validated `v0.13.0`. The user added no
+comment. Both questions are preserved with every option and argument; nothing
+is consolidated.
+
+The design body does not carry the two rules yet. Consolidation would:
+
+1. "The deterministic ancestry rule", step 3: after grouping, give each
+   boundary the most restrictive class of its aliases (ambiguous, then not
+   eligible, then eligible). Steps 1, 4 and 6 then use the boundary's class: a
+   tag target whose boundary is not eligible or ambiguous fails with status 2;
+   only eligible boundaries are candidates; between the baseline and the
+   target, an ineligible boundary is excluded with a warning naming its
+   aliases, and an ambiguous one fails naming them.
+2. "Persistent eligibility evidence": state that the table classifies single
+   tags and that the ancestry rule derives each boundary's class from them.
+3. "The release-version rule for items 5 and 7": the eligible stable releases
+   that a target must exceed are eligible boundaries; the reservation of a
+   version by any alias, whatever its eligibility, is unchanged.
+4. "Output contract on stdout", `versions range`: `baseline` prints the
+   boundary's `vX.Y.Z` alias when it has one, otherwise `X.Y.Z`, and `range`
+   uses the same name; `target` keeps the spelling the caller gave. The
+   in-process selector returns the same name.
+5. "Acceptance cases for the version-sources design": rows for the four cases
+   (not eligible, not eligible with a warning naming the unvalidated alias,
+   status 2 naming the ambiguous alias, baseline `v0.13.0`) and for
+   `range 0.13.0` when its boundary holds an unvalidated `v0.13.0` (status 2).
+6. The decision table: rows Q18 and Q19, and its introduction.
+
+Outside this document, the same consolidation commit would update the plan
+(Step 8's "Prerequisite for aliased boundaries" becomes tested behavior, its
+completion criterion, the boundary bullet of its interface list that says
+several-tag boundaries "wait for the prerequisite above", and the risk pass
+"Unresolved design dependency") and the
+validation plan's Step 8 expectation. Plan decisions Q01 to Q17 do not change.
+
+Please check:
+
+1. Whether Q18 A and Q19 A are consistent with each other, with design
+   decisions Q01 (tag classification) and Q02 (no guessed baseline), with the
+   feature request's AC13, AC14 and decision Q13 (same-commit aliases are one
+   boundary), and with the umbrella's decisions 33 and 34 and spelling table.
+2. Whether the questions miss an alias arrangement that needs its own
+   decision, such as two unvalidated aliases (not eligible under A), two
+   ambiguous aliases (ambiguous), or a mixed boundary given as `range <tag>`.
+3. Whether the consolidation list above is complete for the design, and for
+   the plan and validation-plan edits it implies.
+4. Whether any new question is needed.
+
+The writer sees no missing question. Within the user's scope, only these two
+rules were reopened; every other design decision stays as recorded.
+
+### Change summary for design-specification version-sources (exchange 2) (round 1)
+
+Changes to the design since its last independent review (exchange 1,
+round 3, consolidated in `06080c8`):
+
+- `ba38392` (2026-11-08, committed with the plan's question explanations):
+  the design's "Lock compatibility evidence for supported tools" defines the
+  lock evidence "before" pair, the edited pair and "accepted as current";
+  "The explicit adapter tuple" states that this design's tests belong to
+  llm-shared's development suite and that no version command or consumer
+  release runs them; a new section "File-based IO cost clarification for
+  version sources" restates the existing read and write bounds. No decision,
+  acceptance case or rule changed. The plan's round 3 reviewer read these
+  passages and suggested the starting-pair wording now present.
+- This round (uncommitted): a new "Open questions for the v0.14.0
+  version-sources design clarification" section at the end, holding Q18 and
+  Q19 with their options, recommendations, answers and the user's recorded
+  decisions (both option A, 2026-11-08). No other line of the design changed.
+
+The plan, validation plan, feature request, topic draft and umbrella are
+unchanged in this round.
+
+### Writer response for design-specification version-sources (exchange 2) (round 1)
+
+Writer response:
+
+This round opens a new exchange on the consolidated design, at the user's
+authorization of the clarification that plan decision Q15 (option B) reserved.
+There is no earlier reviewer feedback in this exchange to answer.
+
+The questions follow the plan review's R6 guidance: they use the concrete
+alias cases it named, decide boundary eligibility (Q18) apart from the printed
+name (Q19), keep the printed name among the boundary's eligible actual tags,
+leave the existing conflict rules unchanged, and present the permissive,
+precedence and failing alternatives beside the stricter one with their own
+advantages. The arguments for option A of Q18 rest on decision 34's purpose
+and on the reuse of the single-tag behavior, not on a claim that the stricter
+reading is mandated.
+
+The user's decisions are recorded as explicit `User decision: confirmed`
+lines; reviewer agreement will not be recorded as a decision, and the design
+body stays unconsolidated until the user chooses `Consolidate` at the gate.
+
+### Reviewer focus for design-specification version-sources (exchange 2) (round 1)
+
+Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
+
+<!-- review-entry-id: request-round-1-exchange-2 -->
+
+### LLM nature completion for reviewer (exchange 2)
+
+Recorded nature: `codex`
+
+Completed artifacts:
+
+- `.reviews/a.review-active.specification.design-specification.v0.14.0.version-sources.md`
+- `.reviews/a.review-requested.design-specification.v0.14.0.version-sources.md`
+
+<!-- review-entry-id: llm-nature-completion-reviewer-exchange-2 -->
+
+## Round 1 by reviewer (exchange 2)
+
+- Recorded: 2026-11-08T14:10:20+01:00
+- Exchange: specification/design-specification/v0.14.0/version-sources
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/design.v0.14.0.version-sources.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Outcome: answer
+
+### Reviewer assessment for design-specification version-sources (exchange 2) (round 1)
+
+The current clarification is complete and consistent. Recommend convergence of Q18 and Q19. Both answers are explicit user decisions dated 2026-11-08; this review agrees with them and supplies no additional human decision. Consolidation still requires the user's separate choice.
+
+The request accurately describes the current specification: the design body and Q01-Q17 decision table remain consolidated from the earlier exchange, and only the new question section records the two pending integrations. That deliberate state is not specification drift. The plan still records the Q15 prerequisite rather than claiming that these rules are already implemented or settled in its body.
+
+Q18 preserves the single-tag classifier of design Q01: historical and validated tags remain individually eligible, unvalidated tags remain individually ineligible, and ambiguous annotations remain ambiguous. It adds an explicit boundary reduction, rather than treating the earlier single-tag rule as if it already selected that reduction. Same-version, same-commit grouping remains the single boundary required by feature-request Q13 and AC14; the existing different-commit and different-version conflict checks remain unconditional. Design Q02's ancestry and version-order failure rules are unchanged. AC13 and umbrella decision 34 retain persistent exclusion of unvalidated evidence in another clone. Decision 33's reservation rule still sees every existing stable alias, while its numeric comparison now sees eligible boundaries.
+
+Q19 is compatible with Q18 because a boundary selected under Q18 A has only individually eligible aliases. Prefer its actual vX.Y.Z alias when present, otherwise its actual X.Y.Z alias. This is a deterministic display choice over existing names, with identical commit set and count, and it preserves the umbrella's actual-spelling rule for the caller's target argument.
+
+No new question is needed. Two unvalidated aliases reduce to ineligible; two ambiguous aliases, or an ambiguous plus an unvalidated alias, reduce to ambiguous; two historical, two validated, or historical plus validated aliases reduce to eligible. A tag target is checked using its whole boundary even when the requested alias alone is eligible. The four explanatory cases and these reductions follow directly from the selected ordering; they do not need another user choice.
+
+The proposed consolidation locations cover the affected contracts. The writer instructions below make the execution order and test assertions explicit without changing either user decision. Existing unrelated design choices remain outside this clarification.
+
+### Question verdicts for design-specification version-sources (exchange 2) (round 1)
+
+- Q18: agree with the question and choose A, matching the explicit user decision. The options distinguish restrictive reduction, existence of an eligible alias, validated-evidence precedence, and failure on disagreement. Their consequences are material, including loss of a baseline under A and possible promotion under B. The chosen conservative reduction is supported by the stated persistent-eligibility goal and its acknowledged cost. It is an authorized new rule, not a deduction forced by the old phrase "missing evidence never promotes a tag". No missing option or decision blocks implementation. Preserve the user's choice and the earlier single-tag classifications.
+- Q19: agree with the question and choose A, matching the explicit user decision. Its alternatives distinguish a stable output name, an argument-dependent output name, and a multi-value interface. A keeps the existing single-tag baseline contract, returns an eligible existing spelling, and needs no target-dependent branch. Under Q18 A, all aliases of a selectable boundary are eligible, so the two answers cannot disagree about which names may print. No missing decision blocks implementation.
+- Outstanding human decisions: neither Q18 nor Q19 remains unanswered. The separate Consolidate choice remains with the human; reviewer convergence does not authorize it.
+
+### Convergence evidence for design-specification version-sources (exchange 2) (round 1)
+
+Covered wording:
+
+Suggested consolidation wording for the ancestry rule:
+
+"Resolve HEAD or the caller's actual stable tag name to its target commit. Read and classify all stable tags reachable from that commit, including its own tags. Check the existing version/commit conflicts and group same-version, same-commit tags into boundaries. A boundary is ambiguous if any alias is ambiguous; otherwise it is ineligible if any alias is an unvalidated engine tag; otherwise it is eligible. For a tag target, reject an ambiguous or ineligible target boundary with status 2 even if the named alias is individually eligible. Remove the eligible target boundary as a whole before choosing its predecessor. For HEAD, retain eligible boundaries at HEAD as candidates. The existing ancestry, numeric-order and relevant-history rules use the boundary class; ineligible boundaries in that diagnostic window are excluded with a warning naming their aliases, and ambiguous boundaries there fail with status 2."
+
+Suggested consolidation wording for output:
+
+"For the selected eligible baseline boundary, use its actual eligible vX.Y.Z alias when present, otherwise its actual eligible X.Y.Z alias. Return that one name in the in-process selection and print it in baseline= and as the baseline endpoint of range=. Preserve the caller's actual spelling in target= and the target endpoint. Alias preference changes neither the selected commits nor their count."
+
+Suggested consolidation wording for the release-version rule:
+
+"Every existing stable tag reserves its version in either spelling, regardless of its individual or boundary eligibility. For the numeric lower bound on main, group the reachable stable tags into boundaries and use the same boundary classification as range selection: the target must be higher than every eligible boundary."
+
+The original options, arguments and explicit user decisions are already adequate for convergence. These passages clarify integration of the two choices rather than replacing or extending them.
+
+Convergence rationale:
+
+Convergence is recommended because the two in-scope rules are explicitly decided, mutually consistent, sufficiently concrete to implement, and compatible with the feature request and umbrella. Every additional alias arrangement raised in the request follows from the chosen class ordering and actual-name preference. No missing evidence, new policy choice, cross-document contradiction, or substantive disagreement remains.
+
+The body and plan edits listed by the request are the authorized-choice integrations to perform after the human consolidation gate. The suggested wording and explicit assertion list make those integrations reviewable without reopening settled decisions. No question is newly answered by the reviewer, no document is consolidated by this publication, and no implementation result is claimed.
+
+### Writer instructions for design-specification version-sources (exchange 2) (round 1)
+
+Recommend convergence; no substantive revision or additional automated round is requested. Leave the reviewed specification and related plans unconsolidated until the user explicitly chooses Consolidate.
+
+On that authorization, apply the integration list in the current request, preserving Q01-Q17 and the recorded Q18 A/Q19 A choices. Use the covered wording below to avoid an execution-order ambiguity: initially validate the target's name and resolve its commit; do not finally accept an individually eligible tag until all its aliases have been grouped, conflicts checked, and the boundary classified. Then exclude the entire target boundary from predecessor candidates.
+
+In the eligibility section, distinguish the per-tag evidence table from the derived boundary class. Use that boundary class for tag-target acceptance, eligible candidates, the existing relevant-history diagnostics, and the reachable-main comparison in the release-version rule. Keep version reservation independent of eligibility. Name the problematic aliases in warnings and failures; the diagnostics may also list the whole boundary.
+
+For the output contract, state that the selected baseline boundary supplies one actual eligible name, preferring vX.Y.Z, and that both baseline= and the left endpoint of range= use that same name. The in-process result uses it too. Keep the caller's target spelling unchanged and keep Git revisions qualified as `refs/tags/<name>` internally, as the existing plan requires.
+
+Update the design acceptance cases and decision table, the plan's Step 8 prerequisite, boundary-interface bullet and completion criterion, its unresolved-dependency risk paragraph, and the validation plan's Step 8 expectation as proposed. In Step 8's tests-first description, explicitly apply the decided cases to target acceptance, baseline fallback and diagnostics, the two output fields and in-process result, and the reachable-main release-version comparison. The design's new acceptance rows also feed the existing Step 9 acceptance ownership. These assertions implement the confirmed choices; they introduce no new policy.
+
+Include the four named alias cases, both-unvalidated and both-ambiguous reductions, and `range <tag>` addressed through either alias of a mixed boundary. For an eligible two-alias boundary, assert that a tag target removes both aliases, while HEAD can retain that boundary as its candidate. Preserve numeric ordering, conflict failures, and the existing Git-call bounds. Do not mark implementation or validation complete merely because the design dependency has been resolved.
+
+### Final reviewer decision for design-specification version-sources (exchange 2) (round 1)
+
+Decision: convergence-recommended. This recommendation is advisory; consolidation is not confirmed and remains at the durable human gate.
+
+<!-- review-entry-id: answer-round-1-exchange-2 -->
+
+## Round 1 by human - human-confirmation
+
+- Recorded: 2026-11-08T15:35:47+01:00
+- Exchange: specification/design-specification/v0.14.0/version-sources
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/design.v0.14.0.version-sources.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Outcome: human-confirmation
+
+Human choice: Consolidate
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-1 -->
