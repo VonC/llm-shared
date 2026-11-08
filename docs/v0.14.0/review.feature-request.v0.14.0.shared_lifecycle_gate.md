@@ -1106,8 +1106,8 @@ consequences).
 G1's configurability is satisfied by the current contract and by the
 recorded answer: all four `test_lifecycle_*` keys are pytest ini settings
 today, each takes a `-o` override over project configuration over the plugin
-default, and each refuses a non-finite or out-of-range value with exit code
-4. The G1 table matches that validation; J1's defaults fit within it.
+default, and each refuses a non-finite or out-of-range value with exit code 4.
+The G1 table matches that validation; J1's defaults fit within it.
 
 The request for more detail when explaining questions is applied to the new
 questions: each proposed block has a concrete description of the failure it
