@@ -3,6 +3,13 @@
 Domain owners supply value converters, defaults and cross-section validators.
 The foundation imports no consumer code and discovers no schema files. A trie
 rejects overlapping fixed/family ownership without pairwise prefix scans.
+
+Step 3 of v0.14.0 version-sources ships the version domain here, after
+tooling: the `source:` and `component:` families (plan decision Q02). Its
+validator returns at once when no version section is declared, and otherwise
+imports the source settings module when it runs, so configuration loading
+without version sections never imports the adapter package, and no version
+module needs to import this one at load time.
 """
 
 from __future__ import annotations
@@ -127,8 +134,25 @@ class _OwnershipNode:
         return node.exact
 
 
+_VERSION_FAMILIES = ("source:", "component:")
+
+
+def _validate_version(sections: ConfigSections) -> None:
+    """Apply the per-instance version rules, importing them only when a version section exists."""
+    if not any(name.startswith(_VERSION_FAMILIES) for name in sections):
+        return
+    # Deferred: only a declared version section loads the adapter package.
+    from tools.release_workflow.sources import settings  # noqa: PLC0415
+
+    settings.validate_settings(sections)
+
+
 TOOLING_SCHEMA = DomainSchema("tooling", (SectionSchema("tooling", (ValueRule("minimum-version"),)),))
-SHIPPED_SCHEMAS = (TOOLING_SCHEMA,)
+VERSION_SCHEMA = DomainSchema("version", (
+    SectionSchema("source:", (ValueRule("form"), ValueRule("file", path_role="managed"), ValueRule("pattern")), family=True),
+    SectionSchema("component:", (ValueRule("root", required=True, path_role="managed"),), family=True),
+), validate=_validate_version)
+SHIPPED_SCHEMAS = (TOOLING_SCHEMA, VERSION_SCHEMA)
 
 
 def _validate_section(domain: str, section: SectionSchema) -> None:
