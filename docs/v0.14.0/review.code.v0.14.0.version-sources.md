@@ -1976,18 +1976,18 @@ Repairs made:
 Paths staged:
 
 - docs/v0.14.0/plan.v0.14.0.version-sources.validation.md
-- tests/unit/tools/release_workflow/test_pattern_sources/__init__.py
+- `tests/unit/tools/release_workflow/test_pattern_sources/__init__.py`
 - tests/unit/tools/release_workflow/test_pattern_sources/test_pattern_sources_pbt.py
 - tests/unit/tools/release_workflow/test_pattern_sources/test_pattern_sources_tdd.py
 - tests/unit/tools/release_workflow/test_schemas/test_schemas_tdd.py
-- tests/unit/tools/release_workflow/test_version_detection/__init__.py
+- `tests/unit/tools/release_workflow/test_version_detection/__init__.py`
 - tests/unit/tools/release_workflow/test_version_detection/test_version_detection_tdd.py
 - tests/unit/tools/release_workflow/test_version_registry/test_version_registry_tdd.py
-- tests/unit/tools/release_workflow/test_version_settings/__init__.py
+- `tests/unit/tools/release_workflow/test_version_settings/__init__.py`
 - tests/unit/tools/release_workflow/test_version_settings/test_version_settings_tdd.py
 - tests/unit/tools/release_workflow/version_support.py
 - tools/release_workflow/schemas.py
-- tools/release_workflow/sources/__init__.py
+- `tools/release_workflow/sources/__init__.py`
 - tools/release_workflow/sources/detection.py
 - tools/release_workflow/sources/model.py
 - tools/release_workflow/sources/pattern.py
