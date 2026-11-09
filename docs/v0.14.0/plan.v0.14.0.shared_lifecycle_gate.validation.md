@@ -337,8 +337,12 @@ Step 6 retains actual process/compatibility harness scenarios.
 
 ### Analysis of Step 3 implementation state
 
-Not started. Step 3 is not implemented because distributed declaration
-validation/reporting and replacement of the suite-local policy are pending.
+Yes. Step 3 has been fully implemented.
+
+Workers validate before announcing collection, and the controller rejects
+missing or inconsistent evidence and merges permission usage. Real Python
+3.13 smoke evidence preceded migration to the canonical policies. The fresh
+whole-suite speed walk passed with 100% tools coverage.
 
 ### Goal for Step 3
 
@@ -364,27 +368,132 @@ once, and load the two shared canonical policies after coverage starts.
 
 ### What was implemented for Step 3
 
-_(empty: no check has taken place yet.)_.
+- `llm_shared_process_audit.py` validates declarations in a first-priority
+  collection-finish hook before xdist announces collection. Controller hooks
+  count initial workers, reject inconsistent collections and early exits,
+  and preserve identifying declaration errors with controller exit 4.
+- The initial barrier stays complete after replacement announcements. Later
+  crashes and keyboard interrupts retain xdist handling; crashes may omit
+  records, while successful workers must send them. Any transported records
+  are validated. Controller shutdown before the barrier, including collection
+  failure with `--maxfail`, preserves the existing stop reason.
+- Worker permission transport contains detached records. The controller
+  validates definitions and reasons, merges usage with boolean OR, and emits
+  separate test/fixture summaries once per stable identity. Unused exercised
+  permissions produce warnings; unexercised declarations remain absent.
+- The minimal `tools/lifecycle_compatibility/` runner generates isolated
+  projects, bounds controller waits and cleans up remaining workers. Its
+  process-free tests retain actual project construction and verdict logic.
+  Ruff/Pyright target those harness files at Python 3.12.
+- Real Windows smoke probes ran before migration using Python 3.13.9, pytest
+  9.1.0 and xdist 3.8.0. Invalid declarations, early worker exit and mismatched
+  collections each observed a valid peer announcement, no setup/body starts,
+  controller exit 4 and both workers reaped. Refactored-runner probes repeated
+  those outcomes. Private summaries remain in the step artifact home.
+- `tests/conftest.py` now loads both canonical policies after coverage starts.
+  Existing assertions passed against them before the two legacy sources were
+  removed. Native-event assertions now expect the canonical audit diagnostic.
+  Synthetic policy tests isolate their hub while the carrying dispatcher
+  continues enforcing real events without permissions.
+- The read-only pre-migration record snapshot and first migrated comparison
+  remain private for Step 7. Exception content/meaning and other fields were
+  preserved; all 5892 previously eligible proofs remained, with 9 added and
+  no missing nodes or lost eligible proofs. Normal later timing drift remains
+  live; the snapshot was never restored over the record.
+- Source scans found no executable legacy-policy references, package-qualified
+  policy imports or automatic policy selection in the unchanged `senv.bat`.
 
 ### New types or classes introduced for Step 3
 
-_(empty: no check has taken place yet.)_.
+No new production class was needed. `AuditSession` gained worker-announcement,
+collection and merge state. Harness functions handle environment isolation,
+project generation, bounded execution, cleanup and evidence aggregation.
+The test transport uses a local `Child` double to observe process boundaries.
 
 ### Architecture check for Step 3
 
-_(empty: no check has taken place yet.)_.
+The standalone audit still imports only stdlib and pytest. Worker coordination
+and reporting stay in its pytest adapter; executable compatibility orchestration
+lives separately and is never imported by the policy. No DDD-Hexagonal layer
+violation or extra standalone runtime dependency was found.
+
+Physical Python line counts: audit 497; suite conftest 101; isolated-state
+conftest 37; inline helper 62; worker tests 300; compatibility tests 248;
+runner 132; scenarios 75; changed boundary/source-scan tests 89/83. Package
+markers contain 1 to 4 lines. Every file remains within the 650-line ceiling.
+
+No architecture or size issue needs addressing.
 
 ### Performance check for Step 3
 
-_(empty: no check has taken place yet.)_.
+Worker collection comparison, record transport/merging and summaries are linear
+in their inputs; event ownership work remains constant time. No new quadratic
+or sorting computation was introduced. A source scan now reads each file once
+for all markers: actual-function profiles fell from 144 reads/0.115832 s to
+36 reads/0.014754 s while retaining all checks.
+
+Profiles of embedded pytest tests identified unused debugger/progress startup
+and plugin registration. Generated sessions omit those plugins and unused
+temporary-directory/legacy-path support, retaining real collection, fixtures,
+warnings and terminal reports. The later gate profile measured CPU 0.125 s
+both before and after; variable wall results do not establish an isolated
+improvement for that case. Focused tests and the final integrated walk passed.
+
+Round 2 review found 31 wall-limit overruns across 19 files without assertion
+failures. Those files and the worker tests passed in focus. Profiling the
+flagged process-event test identified embedded pytest startup as the largest
+cost. Omitting the unused child assertion plugin retains plain Python
+assertions and reduced that actual-function profile from CPU 0.171875 s /
+wall 0.186358 s to CPU 0.078125 s / wall 0.101997 s. The complete shared
+lifecycle focus and fresh integrated walk passed afterward with unchanged
+budgets and no exclusions.
+
+`ghog day --full=speed --whole-suite` completed on 2026-11-09 at
+11:05:14+01:00 with fresh speed proof, no reused result, exit 0, no failures,
+warnings, expected failures, outliers or exclusions. No budgets were raised.
+
+No performance issue needs addressing.
 
 ### Unit test coverage check for Step 3
 
-_(empty: no check has taken place yet.)_.
+The configured coverage source remains `tools`, with a 100% gate and no new
+omit. Static inspection ties each added audit branch to worker tests covering
+announcement order, early exit, conflicting collections, invalid declarations,
+detached transport, malformed records, reason conflicts and OR usage. Serial
+summary assertions exercise both scopes, unused warnings and omitted work.
+Regressions reject a normally finished, announced worker whose output omits
+the permission-records key, and cover post-barrier crash output with and
+without records,
+replacement announcement/finish and mismatch, both keyboard-interrupt down
+notifications before and after the barrier, and controller shutdown before
+collection announcements. The module-entrypoint test fixes its platform to
+the mocked Windows transport, preventing real POSIX signal probes.
+Compatibility tests cover actual scenario generation, environment isolation,
+each verdict condition, timeout/worker cleanup, Windows/POSIX boundaries and
+CLI aggregation without starting processes. The completed walk reports 100%
+for the measured tools scope; the real smoke is separate executable evidence.
+
+Test files and helpers lie outside that coverage scope. Their top-level tests
+are collected by pytest; fixtures are requested or automatic; `run_inline`,
+transport helpers and existing AST/source helpers have explicit references in
+their test packages, including fixture and module-level uses. No property test
+was needed for the finite worker/transport/verdict matrices enumerated here.
+
+No unit-tested production file below 100% needs completing. No top-level
+symbol outside the coverage gate is unreferenced.
 
 ### Feature integrity for Step 3
 
-_(empty: no check has taken place yet.)_.
+Existing timing, record/proof semantics, event coverage and unrelated suite
+plugins remain intact. The carrying audit received no process permission.
+Audit-only summary tests create no lifecycle record or gate output. Migration
+retains actual native-event rejection and all source-lock checks.
+Distributed failures after validation retain their original xdist outcomes;
+declaration failures and unexplained exits before the barrier remain exit 4.
+
+Executable evidence covers Windows/Python 3.13 only. Independent Python 3.12
+execution, recurring compatibility preflight and the broader harness remain
+Step 6 work; shell preparation and early loading remain Step 4 work.
 
 ## Step 4. Immutable preparation and canonical early loading
 
