@@ -74,6 +74,8 @@ _SCENARIOS = (
     "tests/unit/tools/test_groundhog_runner.py", "tests/unit/tools/test_groundhog_acceptance.py",
     "tests/unit/tools/test_new_draft_workflow_from_draft.py",
     "tests/unit/tools/test_open_questions_md.py",
+    "tests/unit/tools/test_session_journal.py",
+    "tests/unit/tools/test_lifecycle_cpu_band.py",
     "tests/unit/tools/markdown_check/test_policy/",
 )
 _active_scenario = False
