@@ -2882,3 +2882,991 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-3 -->
+
+## Round 1 by requestor - Step 4
+
+- Recorded: 2026-11-09T15:36:44+01:00
+- Exchange: code/code/v0.14.0/shared_lifecycle_gate
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: unrecorded
+- Implementation step: 4
+- Outcome: request
+
+### Review identity for step 4 shared_lifecycle_gate (round 1)
+
+Umbrella draft: none
+Implementation plan: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.md
+Implementation step: 4
+Review round: 1
+
+### Code review evidence for step 4 shared_lifecycle_gate (round 1)
+
+request_index_tree: 61d60d980883583c89eed8578bd0047ae02512d2
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+- `ghog day --whole-suite` (sources: plan)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.shared_lifecycle_gate.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(pytest): prepare bound policy loading
+group 1 path: tools/pytest_plugin_environment.py
+group 1 path: tools/pytest_plugin_shell.py
+group 1 path: tools/pytest_plugins/llm_shared_pytest_loader.py
+group 1 path: bin/prepare_pytest_plugins.bat
+group 2: test(pytest): cover prepared policy loading
+group 2 path: tests/memory_filesystem.py
+group 2 path: tests/unit/tools/shared_lifecycle/test_preparation/__init__.py
+group 2 path: tests/unit/tools/shared_lifecycle/test_preparation/test_preparation_tdd.py
+group 2 path: tests/unit/tools/shared_lifecycle/test_preparation/test_preparation_pbt.py
+group 2 path: tests/unit/tools/shared_lifecycle/test_shell_transport/__init__.py
+group 2 path: tests/unit/tools/shared_lifecycle/test_shell_transport/test_shell_transport_tdd.py
+group 2 path: tests/unit/tools/shared_lifecycle/test_loader/__init__.py
+group 2 path: tests/unit/tools/shared_lifecycle/test_loader/test_loader_tdd.py
+group 3: docs(shared_lifecycle_gate): record step 4 validation
+group 3 path: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.validation.md
+staged path: bin/prepare_pytest_plugins.bat
+staged path: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.validation.md
+staged path: tests/memory_filesystem.py
+staged path: tests/unit/tools/shared_lifecycle/test_loader/__init__.py
+staged path: tests/unit/tools/shared_lifecycle/test_loader/test_loader_tdd.py
+staged path: tests/unit/tools/shared_lifecycle/test_preparation/__init__.py
+staged path: tests/unit/tools/shared_lifecycle/test_preparation/test_preparation_pbt.py
+staged path: tests/unit/tools/shared_lifecycle/test_preparation/test_preparation_tdd.py
+staged path: tests/unit/tools/shared_lifecycle/test_shell_transport/__init__.py
+staged path: tests/unit/tools/shared_lifecycle/test_shell_transport/test_shell_transport_tdd.py
+staged path: tools/pytest_plugin_environment.py
+staged path: tools/pytest_plugin_shell.py
+staged path: tools/pytest_plugins/llm_shared_pytest_loader.py
+```
+
+### Validation scope for step 4 shared_lifecycle_gate (round 1)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 4 shared_lifecycle_gate (round 1)
+
+Yes. Step 4 has been fully implemented.
+
+The Step 4 validation section records the exact Yes verdict. The builder,
+Windows transport and independent loader match the settled design. Production
+modules stay below 650 lines; processing is linear in input entries/source
+bytes, with fixed two-policy selection. The loader imports only stdlib/pytest.
+No architecture violation or impaired reporting was found.
+
+Focused preparation, shell transport and loader tests passed. The resolved
+default day passed on 2026-11-09 at 15:15:01 +01:00. The full resolved
+ghog day --full=speed --whole-suite passed at 15:33:22 +01:00 on the same date:
+100% line coverage, zero outliers, zero exclusions, zero failures/warnings/xfails.
+Coverage scope is tools, using sysmon line coverage. Evidence is retained in
+.reviews/a.shared_lifecycle_gate.step4.tmp.speed.log.
+Real Windows caller execution remains Step 7 and real Python 3.12 execution
+remains Step 6. Those are not claimed from in-process tests.
+
+### Implementation report for step 4 shared_lifecycle_gate (round 1)
+
+The shared environment builder normalizes selection, binds the consumer root,
+preserves unrelated paths/options, and returns a complete independent mapping.
+It reads literal source contracts without importing policies, publishes only
+the loader in immutable source-SHA-256 cache directories, verifies existing
+entries and cleans failed/racing publication scratch. Counted IO tests prove
+one read per named live source and cached loader for fresh/repeated preparation.
+
+The Windows adapter owns complete-result serialization, delayed-expansion
+escaping, atomic transfer publication and cleanup. The batch caller applies
+only successful preparation. Focused tests simulate the transfer protocol for
+both expansion states without launching a process.
+
+The independent loader validates all selected live sources before imports,
+rejects stale bindings, blocked policies and foreign canonical identities,
+and registers/reuses canonical modules before initial conftests. Tests cover
+cache/checkout removal, root containment, errors, import isolation and reuse.
+
+No lifecycle budget, coverage omission or process exemption was added.
+No new duration exclusion has been accepted for Step 4.
+
+Final validation: ghog day --full=speed --whole-suite passed on 2026-11-09 at
+15:33:22 +01:00, cov=100, outliers=0, excluded=0, fail=0, warn=0, xfail=0.
+The earlier single uncovered owned-variable removal branch now has a concrete
+owned-only deselection regression; no production behavior was changed to reach
+coverage. The implementation-check and grouped commit plan were refreshed.
+
+Writer notes: .reviews/a.shared_lifecycle_gate.step4.journal.md and .reviews/a.shared_lifecycle_gate.step4.handoff.md
+
+### Change summary for step 4 shared_lifecycle_gate (round 1)
+
+The staged set contains 13 paths grouped in root a.commit:
+
+1. feat(pytest): prepare bound policy loading
+   - tools/pytest_plugin_environment.py
+   - tools/pytest_plugin_shell.py
+   - tools/pytest_plugins/llm_shared_pytest_loader.py
+   - bin/prepare_pytest_plugins.bat
+2. test(pytest): cover prepared policy loading
+   - tests/memory_filesystem.py
+   - `tests/unit/tools/shared_lifecycle/test_preparation/__init__.py`
+   - tests/unit/tools/shared_lifecycle/test_preparation/test_preparation_tdd.py
+   - tests/unit/tools/shared_lifecycle/test_preparation/test_preparation_pbt.py
+   - `tests/unit/tools/shared_lifecycle/test_shell_transport/__init__.py`
+   - tests/unit/tools/shared_lifecycle/test_shell_transport/test_shell_transport_tdd.py
+   - `tests/unit/tools/shared_lifecycle/test_loader/__init__.py`
+   - tests/unit/tools/shared_lifecycle/test_loader/test_loader_tdd.py
+3. docs(shared_lifecycle_gate): record step 4 validation
+   - docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.validation.md
+
+The validation plan's opening summary now reflects Steps 1-4 checked and
+Steps 5-7 pending. Only Step 4 detailed rows changed. The commit-plan readiness
+checker reports valid with no diagnostics; Markdown lint and spelling passed.
+
+### Writer response for step 4 shared_lifecycle_gate (round 1)
+
+Writer response:
+
+This is the first Step 4 review round. No earlier Step 4 feedback or
+disagreement exists. The writer requests independent assessment of the exact
+staged implementation and Step 4 validation against the plan boundaries.
+
+### Reviewer focus for step 4 shared_lifecycle_gate (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-4-round-1 -->
+
+## Round 1 by reviewer - Step 4
+
+- Recorded: 2026-11-09T15:56:00+01:00
+- Exchange: code/code/v0.14.0/shared_lifecycle_gate
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 4
+- Outcome: answer
+
+### Assessed index identity for step 4 shared_lifecycle_gate (exchange 1) (round 1)
+
+Baseline index tree: 61d60d980883583c89eed8578bd0047ae02512d2
+
+Assessed index tree: 61d60d980883583c89eed8578bd0047ae02512d2
+
+### Implementation check for step 4 shared_lifecycle_gate (exchange 1) (round 1)
+
+Result:
+
+No. Step 4 has NOT been fully implemented.
+
+The builder and the loader meet the plan. The Windows transfer does not: it
+corrupts non-ASCII values on a default console, and concurrent preparations
+can share one transfer file. The plan gives the shell adapter the
+complete-result protocol, value preservation and transfer-output cleanup. The
+unresolved findings list these with a low-severity builder edge and a
+transcript lint failure.
+
+What is in place and matches the plan and design:
+
+- `normalize_selection` deduplicates `lifecycle` and `process` in stable order,
+  accepts only an entirely empty declaration as "neither", and rejects
+  unknown or empty tokens.
+- `prepare_environment` never mutates its input. It recomputes owned
+  `PYTHONPATH` entries (the old policy directory and any hash-named cache
+  entry) and the injected `-p llm_shared_pytest_loader`, so re-preparation is
+  idempotent and deselection removes only owned activation. The bootstrap
+  directory comes before the policy directory, and neither the shared root
+  nor its `tools` directory is exposed.
+- Sources are checked by AST for exactly one literal integer
+  `LOADER_CONTRACT_VERSION` before any cache IO, and policy bodies never run.
+  Only the loader is cached, under its source SHA-256, outside both
+  checkouts. An existing entry is verified and never rewritten. Publication
+  uses a same-parent directory rename, verifies a racing winner and removes
+  its scratch directory on every path.
+- `pytest_plugin_shell.py` calls the shared builder once and does not
+  duplicate selection. `tools/__init__.py` loads its submodules lazily, so
+  running the adapter in the consumer's interpreter imports only stdlib.
+- For ASCII values, the rest of the transfer is correct. The launcher
+  detects the caller's delayed-expansion state, and the serializer
+  doubles carets and escapes `!` only in records that contain `!`, which
+  matches how `cmd` scans a token. Percent, ampersand and quote characters
+  arrive through FOR substitution and are never reparsed. Failure applies
+  nothing, because the caller's environment returns at `endlocal`.
+- The loader keeps the pre-refusal boundary to `sys`, `pytest`, the version
+  comparison and the raise. It checks every selected live source before
+  importing any. Through `find_spec` it requires the canonical module to
+  resolve to the bound policy file, which rules out an installed or cached
+  fallback. It rejects blocked selections, both from `PYTEST_ADDOPTS` and
+  argv at import time and through `is_blocked` in the hook. Its tryfirst
+  `pytest_load_initial_conftests` checks root containment and foreign
+  identities before registering anything, and reuses a module that was
+  already loaded explicitly. A `UsageError` raised during `-p` import
+  reaches pytest's `main` as exit 4.
+- The completion search finds only the approved contract names, and all four
+  production files parse at Python 3.10.
+
+Missing work:
+
+- A code-page-safe transfer for non-ASCII values, or a refusal before any
+  value is applied.
+- A unique transfer file for each preparation, and failure cleanup that
+  touches only its own file.
+- No empty `PYTHONPATH` entry when the incoming value is present but empty.
+
+Architecture: selection and environment computation stay in the builder,
+Windows encoding stays in the adapter, and the loader stays standalone with
+stdlib and pytest only. No DDD-Hexagonal violation was found, and no
+architecture issue needs addressing.
+
+Performance: selection, path and option cleanup are linear. Hashing and AST
+checks are linear in source bytes. The counted IO test proves one read per
+required source and cached loader. No performance issue needs addressing.
+
+Unit test coverage: the coverage source is `tools`, with a 100% gate, and the
+requestor's speed walk reports 100%. Each builder, adapter and loader branch
+has a dedicated test, and `bin/prepare_pytest_plugins.bat` lies outside the
+gate and is checked by fragment. The transport tests use ASCII values only,
+and nothing tests distinct transfer names. The fixes need those tests. The
+test files sit outside the gate, and their top-level symbols are referenced.
+
+Feature integrity: own-suite enforcement and reporting are unchanged. The
+consumer-facing transfer can alter unrelated entries (first finding) and can
+apply nothing while reporting success (second finding).
+
+Validation plan effects:
+
+No reviewer edit. The writer's Step 4 rows in
+`docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.validation.md` say
+`Yes. Step 4 has been fully implemented.`, which this assessment does not
+confirm. The rows follow the template, and the recorded line counts (226,
+92, 151, 338 and 281 for the largest test) match the staged files. The
+transfer rows do not record the code page and transfer-name defects, and the
+feature integrity row says unrelated entries are preserved, which the first
+finding contradicts.
+
+The document-level line correctly stays `No, it is not implemented`, and its
+summary now names Steps 1-4 as checked. The staged diff touches only the
+Step 4 section and that summary. Reviewer mode completed no umbrella row, and
+the effort has none.
+
+### Pre-repair mandatory checks and coverage for step 4 shared_lifecycle_gate (exchange 1) (round 1)
+
+No repair was made. The pre-repair and assessed states are therefore the same
+index tree, `61d60d980883583c89eed8578bd0047ae02512d2`, which equals the
+request-time tree.
+
+Requestor evidence, not repeated: `ghog day --whole-suite` passed at
+2026-11-09T15:15:01+01:00, and `ghog day --full=speed --whole-suite` passed at
+2026-11-09T15:33:22+01:00 with 100% tools coverage and zero failures,
+warnings, xfails, outliers and exclusions.
+
+Reviewer evidence. Each command ran once from the project root through the
+worktree's `.\senv.bat` (guard cleared, `SWITCHPY_CHOICE=local`), with the
+log-freshness check:
+
+- `ghog check` ended at 2026-11-09T15:51:53+01:00 with `exit=1`. Ty,
+  Pyright, Ruff, Radon, Vulture, the 650-line file check, ShellCheck and the
+  EOF check all passed. The Markdown check failed with MD050 at lines 3015,
+  3018 and 3020 of the unstaged review transcript (fourth finding).
+- `ghog affected --no-cov --scope-file=.reviews/a.review-scope.code.v0.14.0.shared_lifecycle_gate.json`
+  ended at 2026-11-09T15:53:09+01:00 with `exit=0`. Testmon found nothing
+  affected since the requestor's walk, so 0 tests ran.
+
+Coverage was assessed statically, and no `ghog day` or `ghog full` ran. Small
+probes, run in the reviewer's scratch directory with no repository effect,
+confirmed the first three findings:
+
+- the launcher's `for /f` construct applied a UTF-8 non-ASCII value correctly
+  under code page 65001 and incorrectly under 850, this machine's OEM
+  default;
+- four `cmd` processes started together printed the same
+  `%RANDOM%-%RANDOM%` value;
+- a trailing empty `PYTHONPATH` entry added the current directory to
+  `sys.path`.
+
+### Resolved validation set and sources for step 4 shared_lifecycle_gate (exchange 1) (round 1)
+
+The request carries two commands:
+
+- `ghog day --full=speed --whole-suite`, from the `project` source: the
+  built-in default completed with the bound whole-suite selector, because
+  the repository has no `.review-validation` declaration.
+- `ghog day --whole-suite`, from the `plan` source: the shared checklist's
+  resolved default day.
+
+The requestor owns this set. It reports the default day green at
+2026-11-09T15:15:01+01:00 and the speed day green at
+2026-11-09T15:33:22+01:00, with 100% tools coverage, zero outliers and zero
+exclusions. The root `a.ghog.log` tail and the retained
+`.reviews/a.shared_lifecycle_gate.step4.tmp.speed.log` both showed the 15:33:22
+result before the reviewer's commands ran. The reviewer ran neither command.
+
+Exchange status binds the round to scope `whole` with fingerprint `686958cd`,
+and the reviewer used that `paths.scope` capture.
+
+### Resolver drift and direction for step 4 shared_lifecycle_gate (exchange 1) (round 1)
+
+No drift. The resolver inputs are unchanged since the request. There is no
+`.review-validation` declaration, the plan is the request-time version in the
+same index tree, and the bound scope is `whole` (fingerprint `686958cd`). They
+give the same two commands from the same sources. Neither direction adds or
+drops a command.
+
+### Repository state around validation for step 4 shared_lifecycle_gate (exchange 1) (round 1)
+
+The validation path set holds the 13 staged paths, the plan and the root
+`a.ghog.log` that the reviewer evidence commands write. It was captured before
+assessment and again after both ghog commands.
+
+- `validation-state compare` reported `acceptable: true`. No tracked or
+  untracked path changed, and one ignored path changed (`a.ghog.log`).
+- `umbrella-digest compare` reported not applicable and unchanged, because the
+  request states `Umbrella draft: none`.
+- After assessment, the live index tree is still
+  `61d60d980883583c89eed8578bd0047ae02512d2`.
+- The only unstaged change is the versioned review transcript
+  `docs/v0.14.0/review.code.v0.14.0.shared_lifecycle_gate.md`. The exchange
+  appended it, and the requestor's residual commit owns it.
+- The reviewer's probes wrote only to its session scratch directory, outside
+  the repository.
+
+### Repair inventory for step 4 shared_lifecycle_gate (exchange 1) (round 1)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 4 shared_lifecycle_gate (exchange 1) (round 1)
+
+An independent `commit-plan-check.bat --format json` rerun on the received
+state exited 0 with `state: valid`, `ready: true` and no diagnostics. It listed
+the same 13 staged paths and the same three ordered groups as the request
+evidence:
+
+1. `feat(pytest): prepare bound policy loading`, 4 paths: the builder, the
+   shell adapter, the loader and the batch launcher.
+2. `test(pytest): cover prepared policy loading`, 8 paths: the three test
+   packages and the four-line `tests/memory_filesystem.py` routing change.
+3. `docs(shared_lifecycle_gate): record step 4 validation`, 1 path.
+
+Reviewer judgment on grouping and scope: every staged path belongs to exactly
+one group, and the order runs from production code to its tests to the
+validation record. `tests/memory_filesystem.py` is not in the plan's file
+list. Its change only adds the three new test folders to the existing
+in-memory scratch routing, so it is test support for this step and sits
+correctly in group 2. No AI attribution trailer is present.
+
+`a.commit` is accurate for the received state. The requested fixes belong in
+groups 1 and 2, and their validation in group 3, so the grouping can stay.
+The bodies will need a refresh.
+
+### Findings and boundaries for step 4 shared_lifecycle_gate (exchange 1) (round 1)
+
+Unresolved findings:
+
+- Non-ASCII values are corrupted by the Windows transfer on a default
+  console (`tools/pytest_plugin_shell.py` line 64,
+  `bin/prepare_pytest_plugins.bat` line 23). `publish_result` writes the
+  transfer file as UTF-8. The launcher reads it back with
+  `for /f ... do set "%%V"`, and `cmd` decodes that file with the console
+  code page. This machine's OEM code page is 850. A reviewer probe wrote
+  `PROBE_VALUE=C:\Users\Rémi\x` as UTF-8 and applied it with the launcher's
+  exact `for /f` construct. Under `chcp 850` the applied value did not equal
+  the original (`MISMATCH`). Under `chcp 65001` it did (`MATCH`). Every
+  transferred key is affected: the bound project root and policy directory,
+  the cache entry under a non-ASCII `LOCALAPPDATA` user name, and the
+  consumer's own `PYTHONPATH` and `PYTEST_ADDOPTS` entries. The design
+  requires unrelated entries to survive unchanged. Instead, a wrong value is
+  applied silently with exit 0. For the binding keys, the loader then
+  refuses every pytest run. For the consumer's own entries, the corrupted
+  value stays in place with no error at all. The focused transport tests use
+  ASCII values only, so they cannot see this.
+- Concurrent preparations can share one transfer file
+  (`bin/prepare_pytest_plugins.bat` line 12). The name is built only from
+  `%RANDOM%`, and `cmd` seeds that from the clock in whole seconds. A probe
+  started four `cmd` processes together, and all four produced the same
+  `%RANDOM%-%RANDOM%` value (`5652-19270`). Shells started together, such as
+  several console panes running their `senv.bat` at once, therefore write
+  and delete the same `%TEMP%` file. One shell can apply the other's result,
+  which carries another project root or selection. Or one shell finds the
+  file already deleted, sets nothing, and still exits 0, leaving the shell
+  unprepared without a message. The failure path (line 26) can also delete a
+  file that belongs to the other shell.
+- A present but empty `PYTHONPATH` gains a trailing empty entry
+  (`tools/pytest_plugin_environment.py` line 207). `"".split(os.pathsep)`
+  is `[""]`, so a selected preparation produces `<entry>;<policy>;`. A probe
+  with `PYTHONPATH=C:\probe-entry;` showed that CPython adds the current
+  directory to `sys.path` for the empty entry. The design adds only the
+  bootstrap and policy directories. `test_unselected_environment_preserves_option_text`
+  passes `"PYTHONPATH": ""` with a selection, but asserts only idempotence,
+  so it keeps this result. Severity is low, because `cmd` cannot hold an
+  empty variable, but the Step 5 groundhog route passes a mapping directly.
+- `ghog check` fails on the review transcript
+  (`docs/v0.14.0/review.code.v0.14.0.shared_lifecycle_gate.md`, lines 3015,
+  3018 and 3020, MD050). The round 1 request's change summary lists the three
+  new `__init__.py` package markers without code spans, so their double
+  underscores parse as strong emphasis. This is the same defect as Step 3
+  round 1. The staged files pass. The transcript is unstaged and
+  requestor-owned, but the next review-record commit would carry the lint
+  failure.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 4 shared_lifecycle_gate (exchange 1) (round 1)
+
+1. Code page: make the transfer exact for non-ASCII values, or refuse it
+   before anything is applied. Either write the file in the caller's active
+   console code page and raise `PreparationError` for a value that code page
+   cannot represent, or have the launcher switch to code page 65001 for the
+   `for /f` application and restore the previous code page afterwards. Add
+   focused tests with a non-ASCII value in both delayed-expansion states.
+   Add a non-ASCII path case on the default OEM code page to the Step 7
+   executable harness obligations.
+2. Transfer name: give each preparation its own transfer file. For example,
+   let `pytest_plugin_shell.py` create it with `tempfile.mkstemp` in `%TEMP%`
+   and print its path only on success, and have the launcher capture that
+   path and treat a missing path as failure. The failure path must delete
+   only its own file. Add a focused test showing that two preparations get
+   distinct outputs and that a failure leaves another output untouched.
+3. Empty `PYTHONPATH`: treat a present but empty value as absent when
+   building the selected path list, so no empty entry is added. Extend
+   `test_unselected_environment_preserves_option_text`, or add a test, to
+   assert that the prepared `PYTHONPATH` has no empty entry.
+4. Transcript: before the review-record commit, put the three `__init__.py`
+   paths at transcript lines 3015, 3018 and 3020 in code spans. Write every
+   path in future change summaries as a code span, as promised in Step 3.
+5. Update the Step 4 validation rows (implemented, coverage, feature
+   integrity) and the `a.commit` bodies, then rerun the focused tests and
+   the resolved walks.
+
+Non-blocking notes:
+
+- `_import_policy` wraps every exception, including the usage error that
+  `_live_module` already formatted. An origin or contract mismatch therefore
+  repeats the plugin, the selection and "prepare the shell again".
+- A project at a drive root passes `"C:\"` to Python. Under Windows
+  command-line parsing, the trailing backslash escapes the closing quote.
+  Step 7 could include that case, or the launcher could avoid it.
+
+### Decision rationale for step 4 shared_lifecycle_gate (exchange 1) (round 1)
+
+The six readiness-floor results:
+
+- Identity: pass. The envelope, the readable identity, the plan, step 4,
+  round 1, occurrence 1, `Umbrella draft: none` and the request-time index tree
+  `61d60d98` all agree with the live exchange and index.
+- Completeness: fail. Every Step 4 file and test obligation is present, but
+  the Windows transfer corrupts non-ASCII values and can share a transfer
+  file between concurrent preparations.
+- Validation and coverage: fail. Reviewer `ghog check` exited 1 on the
+  transcript's MD050 lint. `ghog affected --no-cov` exited 0 with nothing
+  affected. Static reading finds no uncovered line, but the transport tests
+  have no non-ASCII or distinct-name case.
+- Staged attribution: pass. All 13 staged paths are writer work in three
+  accurate groups. The reviewer staged nothing and edited nothing tracked.
+- Findings: fail. Four findings are unresolved.
+- `a.commit`: pass. The independent checker is valid and ready with no
+  diagnostics, and the grouping is accurate for the received state.
+
+This round made no repair, substantive or polishing. The request carries no
+literal `Human guidance:` block, so the reviewer reports findings only.
+
+Disposition: changes requested.
+
+### Final reviewer decision for step 4 shared_lifecycle_gate (exchange 1) (round 1)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-4-round-1 -->
+
+## Round 2 by requestor - Step 4
+
+- Recorded: 2026-11-09T16:15:49+01:00
+- Exchange: code/code/v0.14.0/shared_lifecycle_gate
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 4
+- Outcome: request
+
+### Review identity for step 4 shared_lifecycle_gate (round 2)
+
+Umbrella draft: none
+Implementation plan: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.md
+Implementation step: 4
+Review round: 2
+
+### Code review evidence for step 4 shared_lifecycle_gate (round 2)
+
+request_index_tree: d199f588c7a5eb432b3b138261ad5ad6eb66e7ca
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+- `ghog day --whole-suite` (sources: plan)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.shared_lifecycle_gate.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(pytest): prepare bound policy loading
+group 1 path: tools/pytest_plugin_environment.py
+group 1 path: tools/pytest_plugin_shell.py
+group 1 path: tools/pytest_plugins/llm_shared_pytest_loader.py
+group 1 path: bin/prepare_pytest_plugins.bat
+group 2: test(pytest): cover prepared policy loading
+group 2 path: tests/memory_filesystem.py
+group 2 path: tests/unit/tools/shared_lifecycle/test_preparation/__init__.py
+group 2 path: tests/unit/tools/shared_lifecycle/test_preparation/test_preparation_tdd.py
+group 2 path: tests/unit/tools/shared_lifecycle/test_preparation/test_preparation_pbt.py
+group 2 path: tests/unit/tools/shared_lifecycle/test_shell_transport/__init__.py
+group 2 path: tests/unit/tools/shared_lifecycle/test_shell_transport/test_shell_transport_tdd.py
+group 2 path: tests/unit/tools/shared_lifecycle/test_loader/__init__.py
+group 2 path: tests/unit/tools/shared_lifecycle/test_loader/test_loader_tdd.py
+group 3: docs(shared_lifecycle_gate): record step 4 validation
+group 3 path: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.md
+group 3 path: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.validation.md
+staged path: bin/prepare_pytest_plugins.bat
+staged path: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.md
+staged path: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.validation.md
+staged path: tests/memory_filesystem.py
+staged path: tests/unit/tools/shared_lifecycle/test_loader/__init__.py
+staged path: tests/unit/tools/shared_lifecycle/test_loader/test_loader_tdd.py
+staged path: tests/unit/tools/shared_lifecycle/test_preparation/__init__.py
+staged path: tests/unit/tools/shared_lifecycle/test_preparation/test_preparation_pbt.py
+staged path: tests/unit/tools/shared_lifecycle/test_preparation/test_preparation_tdd.py
+staged path: tests/unit/tools/shared_lifecycle/test_shell_transport/__init__.py
+staged path: tests/unit/tools/shared_lifecycle/test_shell_transport/test_shell_transport_tdd.py
+staged path: tools/pytest_plugin_environment.py
+staged path: tools/pytest_plugin_shell.py
+staged path: tools/pytest_plugins/llm_shared_pytest_loader.py
+```
+
+### Validation scope for step 4 shared_lifecycle_gate (round 2)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 4 shared_lifecycle_gate (round 2)
+
+Yes. Step 4 has been fully implemented.
+
+The builder, caller-code-page Windows transport and standalone loader meet the
+Step 4 plan. All four round 1 findings are accepted and addressed with focused
+regressions. No reviewer edits were made. Static review finds no architecture
+violation or impaired reporting. Processing stays linear in environment/source
+size, with fixed two-policy selection; every Python file stays below 650 lines.
+
+The three-package focused run passed, followed by `ghog day --whole-suite` at
+2026-11-09T16:06:11+01:00 and `ghog day --full=speed --whole-suite` at
+2026-11-09T16:08:38+01:00, both exit 0. The full speed walk measured 100% line
+coverage of `tools`, zero outliers/exclusions and zero failures/warnings/xfails.
+Freshness was verified and canonical status confirms completion. Logs remain
+in the ignored Step 4 artifact home. No coverage omission or budget change.
+
+The refreshed validation plan records Step 4 only. Real Windows callers remain
+Step 7 acceptance work; real Python 3.12 remains Step 6. No groundhog spawn
+integration from Step 5 was implemented. No requirement or scope definition
+changed; the bound whole-suite scope and validation commands remain unchanged.
+
+Please independently assess the exact staged Step 4 repair and its evidence.
+
+### Implementation report for step 4 shared_lifecycle_gate (round 2)
+
+Preparation normalizes selected policies, binds the checkout, preserves
+unrelated environment entries and verifies live source contracts by AST without
+executing policies. Only the immutable SHA-256 loader cache is published,
+outside both checkouts; policy sources remain live in the bound checkout.
+The standalone loader preflights every selected policy before canonical
+registration, rejects blocked or foreign modules, checks containment and reuses
+matching explicitly loaded identities.
+
+Round 1 repairs replace clock-seeded output names with exclusive temporary
+files disclosed only after complete writes. The launcher passes its active
+console code page; the adapter preserves representable non-ASCII values and
+rejects incompatible complete results and filenames. Both delayed-expansion
+states preserve metacharacters. Failure cleanup touches only the owned file;
+missing result paths/files fail before application. Selected path computation
+treats an empty incoming value as absent. The launcher also safely quotes a
+drive-root project with a final dot component.
+
+Tests use existing memory-backed scratch routing, with no child processes or
+real waits. New finite cases cover code pages 850/65001, both expansion states,
+encoding refusal, unique outputs, failure isolation, write and stdout failure,
+and no empty selected path entry. Normalization properties retain 100 examples
+per property as 20 batches of five bulk-byte examples. Counted IO verifies one
+read per required source/cache input on fresh and repeated preparation.
+
+Final validation: `ghog day --whole-suite` passed 2026-11-09T16:06:11+01:00;
+`ghog day --full=speed --whole-suite` passed 2026-11-09T16:08:38+01:00 with
+coverage 100, outliers 0, excluded 0, fail 0, warn 0 and xfail 0. The logs are
+`.reviews/a.shared_lifecycle_gate.step4.tmp.r2.day.log` and
+`.reviews/a.shared_lifecycle_gate.step4.tmp.r2.speed.log`. No duration exclusion,
+baseline increase, coverage omission, lifecycle budget or process permission
+was added. The first repair day caught test-double annotations, corrected
+before the final green walks.
+
+Production file lengths are 226/112/151 lines; the largest new test is 281
+lines, all below 650. The plan adds only Step 7 executable OEM/non-ASCII,
+refusal, concurrency and drive-root acceptance obligations. Actual shell
+execution remains unclaimed until Step 7; independent Python 3.12 is Step 6.
+All staged paths remain in the three prepared commit groups. Transcript path
+code spans were polished, with the transcript unstaged for its residual batch.
+
+Writer notes: .reviews/a.shared_lifecycle_gate.step4.journal.md and .reviews/a.shared_lifecycle_gate.step4.handoff.md
+
+### Change summary for step 4 shared_lifecycle_gate (round 2)
+
+The staged set contains 14 paths in three ordered root `a.commit` groups.
+
+Group 1: `feat(pytest): prepare bound policy loading`
+
+- `tools/pytest_plugin_environment.py`
+- `tools/pytest_plugin_shell.py`
+- `tools/pytest_plugins/llm_shared_pytest_loader.py`
+- `bin/prepare_pytest_plugins.bat`
+
+Group 2: `test(pytest): cover prepared policy loading`
+
+- `tests/memory_filesystem.py`
+- `tests/unit/tools/shared_lifecycle/test_preparation/__init__.py`
+- `tests/unit/tools/shared_lifecycle/test_preparation/test_preparation_tdd.py`
+- `tests/unit/tools/shared_lifecycle/test_preparation/test_preparation_pbt.py`
+- `tests/unit/tools/shared_lifecycle/test_shell_transport/__init__.py`
+- `tests/unit/tools/shared_lifecycle/test_shell_transport/test_shell_transport_tdd.py`
+- `tests/unit/tools/shared_lifecycle/test_loader/__init__.py`
+- `tests/unit/tools/shared_lifecycle/test_loader/test_loader_tdd.py`
+
+Group 3: `docs(shared_lifecycle_gate): record step 4 validation`
+
+- `docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.md`
+- `docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.validation.md`
+
+The plan changes only the future Step 7 executable shell obligations raised
+by review. The validation plan records refreshed Step 4 implementation,
+coverage and feature-integrity evidence; Steps 5-7 remain pending.
+The versioned review transcript remains unstaged for the authorized residual
+review-record batch. Its three bare package-marker paths were polished.
+
+### Writer response for step 4 shared_lifecycle_gate (round 2)
+
+Writer response:
+
+Accepted all four round 1 findings. The reviewer made no edits; all repairs
+are writer-owned and substantive, with no disagreement.
+
+- The launcher reads the active console code page and passes it to the
+  transport. Both transferred values and the disclosed filename must encode
+  exactly. An unrepresentable value fails before any result is applied.
+- Python exclusively creates each result with `tempfile.mkstemp`. It prints
+  that unique filename only after closing the complete result, and removes
+  only its own file on write or output failure. The launcher rejects an absent
+  result path or missing file. No clock-seeded name or cross-preparation
+  deletion remains.
+- Empty incoming `PYTHONPATH` is absent for selected path construction;
+  deselected environments still preserve originally empty unrelated keys.
+- The three package-marker paths in the round 1 transcript now have code
+  spans. Every path in this round's change summary has a code span.
+
+Focused regressions cover code pages 850 and 65001 with both expansion states,
+unrepresentable values and filenames, distinct successful outputs, failure
+isolation, interrupted writes, stdout failure, and no empty path entry.
+
+The plan retains default OEM non-ASCII/refusal, concurrent preparations and
+drive-root executable acceptance in Step 7. The drive-root argument also now
+ends in a dot component, avoiding a backslash before its closing quote.
+The advisory duplicate import-error wording is unchanged; its information and
+failure behavior are correct, and no repair was requested for it.
+
+Commit grouping is unchanged; the future acceptance clarification joins the
+trailing validation documentation group. Bodies reflect the repairs.
+
+### Reviewer focus for step 4 shared_lifecycle_gate (round 2)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-4-round-2 -->
+
+## Round 2 by reviewer - Step 4
+
+- Recorded: 2026-11-09T16:26:18+01:00
+- Exchange: code/code/v0.14.0/shared_lifecycle_gate
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 4
+- Outcome: answer
+
+### Assessed index identity for step 4 shared_lifecycle_gate (exchange 1) (round 2)
+
+Baseline index tree: d199f588c7a5eb432b3b138261ad5ad6eb66e7ca
+
+Assessed index tree: d199f588c7a5eb432b3b138261ad5ad6eb66e7ca
+
+### Implementation check for step 4 shared_lifecycle_gate (exchange 1) (round 2)
+
+Result:
+
+Yes. Step 4 has been fully implemented.
+
+All four round 1 findings are resolved, and no new finding was found. The
+builder and loader are unchanged apart from one line. The Windows transfer now
+carries the caller's code page and gives each preparation its own transfer
+file.
+
+Round 1 findings, rechecked:
+
+- Code page: fixed. The launcher reads the active code page from `chcp` and
+  passes it as `--code-page`. `publish_result` encodes the complete result in
+  that code page before creating any file, so an unrepresentable value fails
+  with `PreparationError` and nothing is applied. The transfer filename must
+  also be representable. The reviewer then ran the real launcher under
+  `chcp 850` in a scratch project named `Rémi-proj`, with `LOCALAPPDATA` and
+  `TEMP` redirected to the scratch directory. With delayed expansion off and
+  on, it exited 0, the applied `LLM_SHARED_PYTEST_ROOT` equaled the project
+  path byte for byte, the selection read `lifecycle,process`, and no
+  transfer file remained.
+- Transfer name: fixed. `tempfile.mkstemp` creates each result exclusively,
+  and Python prints its path only after the complete write is closed. The
+  launcher captures the printed path and treats a missing path or file as
+  failure. `%RANDOM%` is gone, and the failure path deletes only a path
+  that this preparation received. A failure while writing or printing
+  removes only this invocation's own file.
+- Empty `PYTHONPATH`: fixed. A present but empty value is treated as absent
+  for selected path construction, and the test now asserts no empty entry.
+  An unselected environment still keeps the original empty key.
+- Transcript lint: fixed. The three package markers at transcript lines 3015,
+  3018 and 3020 are now code spans, and the Markdown step of the reviewer
+  `ghog check` passed.
+
+The drive-root argument now ends in `\.`, so a project at `C:\` no longer
+puts a backslash before the closing quote. The plan adds the non-ASCII,
+refusal, concurrency and drive-root cases to Step 7's executable acceptance,
+which matches the round 1 instruction and changes no Step 4 scope.
+
+The rest of the step is unchanged from round 1 and still matches the plan and
+design: selection normalization, owned-entry recomputation, AST contract
+checks without policy execution, the immutable SHA-256 loader cache outside
+both checkouts, and the standalone loader's version guard, all-selected
+preflight, root containment, blocked and foreign identity rejection, and
+duplicate-safe registration.
+
+Architecture: Windows encoding and file handling stay in the shell adapter,
+which still calls the shared builder once. The loader keeps only stdlib and
+pytest dependencies. No DDD-Hexagonal violation was found, and no
+architecture issue needs addressing.
+
+Performance: encoding and serialization are linear in the result size, and
+one temporary file is created for each preparation. No performance issue
+needs addressing.
+
+Unit test coverage: the coverage source is `tools`, with a 100% gate, and the
+requestor's speed walk reports 100%. New tests cover code pages 850 and 65001
+in both expansion states, unrepresentable values, an invalid code page, an
+unrepresentable filename, distinct outputs, failure isolation, interrupted
+writes, stdout failure and the empty path entry. The launcher, outside the
+gate, is checked by fragment, including the absence of `%RANDOM%`. Test files
+sit outside the gate, and their top-level symbols are referenced. Physical
+counts are 226, 112 and 151 for the production modules, 32 for the
+launcher, and 281 for the largest test, all under 650. No unit-tested class
+is below 100%, and no top-level symbol outside the gate is unreferenced.
+
+Feature integrity: representable unrelated entries survive the shell transfer
+unchanged, unrepresentable results are refused before application, and
+concurrent preparations no longer interfere. Own-suite enforcement and
+reporting are unchanged.
+
+Validation plan effects:
+
+No reviewer edit. The writer's Step 4 rows in
+`docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.validation.md` say
+`Yes. Step 4 has been fully implemented.`, which this assessment confirms. The
+round 2 changes are accurate: the implemented row describes the code-page
+transfer, exclusive transfer files and drive-root argument; the size row
+records the adapter at 112 lines; the performance row carries the 16:06:11
+and 16:08:38 walks; and the coverage and feature integrity rows name the new
+regressions and the refusal behavior.
+
+The document-level line correctly stays `No, it is not implemented`. The
+staged plan change adds only Step 7 acceptance obligations, as requested in
+round 1. Reviewer mode completed no umbrella row, and the effort has none.
+
+### Pre-repair mandatory checks and coverage for step 4 shared_lifecycle_gate (exchange 1) (round 2)
+
+No repair was made. The pre-repair and assessed states are therefore the same
+index tree, `d199f588c7a5eb432b3b138261ad5ad6eb66e7ca`, which equals the
+request-time tree.
+
+Requestor evidence, not repeated: `ghog day --whole-suite` passed at
+2026-11-09T16:06:11+01:00, and `ghog day --full=speed --whole-suite` passed at
+2026-11-09T16:08:38+01:00 with 100% tools coverage and zero failures,
+warnings, xfails, outliers and exclusions. The speed walk reused the check and
+affected results of the 16:06:11 walk and ran the full suite fresh. The root
+`a.ghog.log` tail showed that result before the reviewer's commands ran.
+
+Reviewer evidence. Each command ran once from the project root through the
+worktree's `.\senv.bat` (guard cleared, `SWITCHPY_CHOICE=local`), with the
+log-freshness check:
+
+- `ghog check` ended at 2026-11-09T16:22:41+01:00 with `exit=0` after
+  1m 58.9s. Every static step passed, including the Markdown check that
+  failed in round 1.
+- `ghog affected --no-cov --scope-file=.reviews/a.review-scope.code.v0.14.0.shared_lifecycle_gate.json`
+  ended at 2026-11-09T16:23:53+01:00 with `exit=0`. Testmon found nothing
+  affected since the requestor's walk, so 0 tests ran.
+
+Coverage was assessed statically, and no `ghog day` or `ghog full` ran. One
+reviewer probe ran the real `bin/prepare_pytest_plugins.bat` under
+`chcp 850` with delayed expansion off and on, as described in the
+implementation check. Its project, cache and temporary directories were all
+in the reviewer's scratch directory, with no repository effect.
+
+### Resolved validation set and sources for step 4 shared_lifecycle_gate (exchange 1) (round 2)
+
+The request carries two commands:
+
+- `ghog day --full=speed --whole-suite`, from the `project` source: the
+  built-in default completed with the bound whole-suite selector, because
+  the repository has no `.review-validation` declaration.
+- `ghog day --whole-suite`, from the `plan` source: the shared checklist's
+  resolved default day.
+
+The requestor owns this set and reports the default day green at
+2026-11-09T16:06:11+01:00 and the speed day green at
+2026-11-09T16:08:38+01:00. The reviewer ran neither command.
+
+Exchange status binds the round to scope `whole` with fingerprint `686958cd`,
+and the reviewer used that `paths.scope` capture.
+
+### Resolver drift and direction for step 4 shared_lifecycle_gate (exchange 1) (round 2)
+
+No drift. There is no `.review-validation` declaration, and the bound scope is
+`whole` (fingerprint `686958cd`). The plan's staged change adds only Step 7
+acceptance text and no validation command. The resolver inputs therefore give
+the same two commands from the same sources. Neither direction adds or drops
+a command.
+
+### Repository state around validation for step 4 shared_lifecycle_gate (exchange 1) (round 2)
+
+The validation path set holds the 14 staged paths and the root `a.ghog.log`
+that the reviewer evidence commands write. It was captured before assessment
+and again after both ghog commands.
+
+- `validation-state compare` reported `acceptable: true`. No tracked or
+  untracked path changed, and one ignored path changed (`a.ghog.log`).
+- `umbrella-digest compare` reported not applicable and unchanged, because the
+  request states `Umbrella draft: none`.
+- After assessment, the live index tree is still
+  `d199f588c7a5eb432b3b138261ad5ad6eb66e7ca`.
+- The only unstaged change is the versioned review transcript
+  `docs/v0.14.0/review.code.v0.14.0.shared_lifecycle_gate.md`. The exchange
+  appended it, and the requestor's residual commit owns it.
+- The reviewer's launcher probe wrote only to its session scratch directory,
+  outside the repository.
+
+### Repair inventory for step 4 shared_lifecycle_gate (exchange 1) (round 2)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 4 shared_lifecycle_gate (exchange 1) (round 2)
+
+An independent `commit-plan-check.bat --format json` rerun on the received
+state exited 0 with `state: valid`, `ready: true` and no diagnostics. It listed
+the same 14 staged paths and the same three ordered groups as the request
+evidence:
+
+1. `feat(pytest): prepare bound policy loading`, 4 paths.
+2. `test(pytest): cover prepared policy loading`, 8 paths.
+3. `docs(shared_lifecycle_gate): record step 4 validation`, 2 paths: the plan
+   and the validation plan.
+
+Reviewer judgment on grouping and scope: every staged path belongs to exactly
+one group. The round 2 repairs sit in groups 1 and 2, and the Step 7
+acceptance text in the plan sits with the validation record in group 3,
+which keeps documentation after the code it describes. No AI attribution
+trailer is present.
+
+`a.commit` is accurate for the received state, and the reviewer did not amend
+it.
+
+### Findings and boundaries for step 4 shared_lifecycle_gate (exchange 1) (round 2)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 4 shared_lifecycle_gate (exchange 1) (round 2)
+
+No further implementation work is requested for Step 4.
+
+Non-blocking notes:
+
+- The launcher reads the code page with `tokens=2 delims=:`. Some localized
+  `chcp` messages are reported to end with a period, for example a German
+  `Aktive Codepage: 850.`. The installed `en-US` and `fr-FR` messages on this
+  machine have none, so this could not be checked here. With a trailing
+  period, `--code-page` would fail to parse and preparation would refuse, so
+  no wrong value is ever applied. Adding `.` to `delims`, or accepting only
+  the digits in Python, would remove the risk. Step 7 could include that case.
+- `_import_policy` still repeats the identifying prefix when it wraps a
+  usage error from `_live_module`. The writer chose to keep it, and the
+  failure behavior is correct.
+
+### Decision rationale for step 4 shared_lifecycle_gate (exchange 1) (round 2)
+
+The six readiness-floor results:
+
+- Identity: pass. The envelope, the readable identity, the plan, step 4,
+  round 2, occurrence 1, `Umbrella draft: none` and the request-time index tree
+  `d199f588` all agree with the live exchange and index.
+- Completeness: pass. Every Step 4 obligation is implemented, and all four
+  round 1 findings are fixed. The real launcher preserved a non-ASCII root
+  under code page 850 in both expansion states.
+- Validation and coverage: pass. Reviewer `ghog check` and
+  `ghog affected --no-cov` both exited 0, and the requestor's whole-suite
+  speed walk is green with 100% tools coverage. Static reading finds no
+  coverage gap.
+- Staged attribution: pass. All 14 staged paths are writer work in three
+  accurate groups. The reviewer staged nothing and edited nothing tracked.
+- Findings: pass. No current or carried finding is unresolved. The two
+  remaining notes are non-blocking.
+- `a.commit`: pass. The independent checker is valid and ready with no
+  diagnostics, and the grouping and bodies are accurate.
+
+This round made no repair, substantive or polishing. The request carries no
+literal `Human guidance:` block.
+
+Disposition: commit-ready. This is an advisory recommendation and does not
+authorize a commit.
+
+### Final reviewer decision for step 4 shared_lifecycle_gate (exchange 1) (round 2)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-4-round-2 -->
+
+## Round 2 by human - Step 4 - human-confirmation
+
+- Recorded: 2026-11-09T16:56:10+01:00
+- Exchange: code/code/v0.14.0/shared_lifecycle_gate
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 4
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-2 -->
