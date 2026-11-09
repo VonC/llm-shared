@@ -4,6 +4,11 @@ No subprocess or plugin autoload is used; the carrying session keeps measuring
 policy execution under its own coverage. Monkeypatch restores all host state.
 The child requests plain assertions, including bypassing the host rewrite hook.
 Output stays with the carrying session, avoiding redundant console capture setup.
+Generated policy projects omit profiled debugger/progress startup work,
+unused temporary-directory/legacy-path fixture registration and assertion
+plugin setup. Plain Python assertions still execute; their rewriting and
+comparison hooks are unnecessary here. The real terminal reporter remains
+active for summary assertions.
 """
 
 from __future__ import annotations
@@ -36,10 +41,13 @@ def run_inline(root: Path, *arguments: str, plugins: tuple[object, ...] = ()) ->
                 "-p", "no:cacheprovider", "-p", "no:capture", "--import-mode=importlib",
                 "-p", "no:logging", "-p", "no:unittest", "-p", "no:doctest",
                 "-p", "no:faulthandler", "-p", "no:junitxml", "-p", "no:pastebin",
+                "-p", "no:debugging", "-p", "no:terminalprogress",
+                "-p", "no:assertion",
+                "-p", "no:tmpdir", "-p", "no:legacypath",
                 # Generated cases create no finalizers. Avoid the child plugin's
                 # repeated full-process garbage collections during cleanup.
                 "-p", "no:unraisableexception",
-                "--assert=plain", "-q", *arguments,
+                "-q", *arguments,
             ], plugins=list(plugins))
         finally:
             # importlib mode retains generated modules between embedded sessions.

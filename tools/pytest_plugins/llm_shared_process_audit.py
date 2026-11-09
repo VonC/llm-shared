@@ -4,6 +4,8 @@ One process-lifetime dispatcher survives reload and alias imports. A bounded
 pytest adapter delimits actual setup and finalization without changing caching.
 Thread-local, live operation tokens prevent a fixture permission escaping its
 own work. Nested collection remains subject to the innermost active test.
+Workers validate before announcing collection; the controller stops on missing
+or inconsistent evidence and combines exercised permissions exactly once.
 """
 
 import sys
@@ -19,7 +21,7 @@ import inspect  # noqa: E402
 import re  # noqa: E402
 from collections.abc import Callable, Generator  # noqa: E402
 from contextlib import contextmanager  # noqa: E402
-from dataclasses import dataclass, field  # noqa: E402
+from dataclasses import asdict, dataclass, field  # noqa: E402
 from pathlib import Path  # noqa: E402
 from threading import local  # noqa: E402
 from types import ModuleType  # noqa: E402
@@ -34,6 +36,10 @@ _GROUP_SUFFIX = re.compile(r"@[A-Za-z0-9._-]+$")
 _DECLARATION = "LLM_SHARED_PROCESS_FIXTURES"
 _ADAPTER = "pytest fixture adapter"
 _CONFTESTS = "_conftest_plugins"
+_RECORDS = "llm_shared_process_permissions"
+_ERROR = "llm_shared_process_error"
+_WORKER_RECORDS = "worker permission records"
+_COLLECTION = "validated collection"
 Fixture = pytest.FixtureDef[object]
 FixtureCall = Callable[..., object]
 
@@ -62,7 +68,7 @@ class Permission:
 
 @dataclass
 class AuditSession:
-    """Keep one pytest session's permissions separate from nested executions."""
+    """Isolate nested permissions and require every initial worker's evidence."""
 
     root: Path
     active: pytest.Item | None = None
@@ -71,10 +77,38 @@ class AuditSession:
     records: dict[str, Permission] = field(default_factory=dict[str, Permission])
     collectors: list[pytest.Module | pytest.Class] = field(default_factory=list[pytest.Module | pytest.Class])
     failed_collectors: set[str] = field(default_factory=set[str])
+    expected_workers: int = 0
+    announced: set[int] = field(default_factory=set[int])
+    collection: list[str] | None = None
+    barrier_complete: bool = False
 
     def exercise(self, kind: str, identity: str, reason: str) -> Permission:
         """Record entry once without marking a permission used before an event."""
-        return self.records.setdefault(identity, Permission(kind, identity, reason))
+        previous = self.records.get(identity)
+        if previous is not None:
+            if previous.kind != kind or previous.reason != reason:
+                raise _usage(identity, "conflicting permission definition or reason")
+            return previous
+        permission = Permission(kind, identity, reason)
+        self.records[identity] = permission
+        return permission
+
+    def merge(self, payload: object) -> None:
+        """Validate transported records and OR usage without losing definitions."""
+        if not isinstance(payload, list):
+            raise _usage(_WORKER_RECORDS, "missing or invalid list")
+        for entry in cast("list[object]", payload):
+            if not isinstance(entry, dict):
+                raise _usage(_WORKER_RECORDS, "invalid entry")
+            record = cast("dict[str, object]", entry)
+            kind, identity = record.get("kind"), record.get("identity")
+            reason, used = record.get("reason"), record.get("used")
+            if (kind not in ("test", "fixture") or not isinstance(identity, str)
+                    or not identity.startswith(f"{kind}:") or not isinstance(reason, str)
+                    or not reason.strip() or type(used) is not bool):
+                raise _usage(_WORKER_RECORDS, "invalid definition or usage")
+            permission = self.exercise(cast("str", kind), identity, reason)
+            permission.used |= used
 
     def test_permission(self) -> Permission | None:
         """Return the carrying test's exercised permission, if declared."""
@@ -364,8 +398,76 @@ def pytest_sessionstart(session: pytest.Session) -> None:
 
 @pytest.hookimpl(tryfirst=True)
 def pytest_collection_finish(session: pytest.Session) -> None:
-    """Validate before setup; Step 3 adds distributed controller evidence."""
-    get_hub().configs[session.config].validate(session)
+    """Withhold xdist's announcement until declarations have been validated."""
+    try:
+        get_hub().configs[session.config].validate(session)
+    except pytest.UsageError as error:
+        output = getattr(session.config, "workeroutput", None)
+        if isinstance(output, dict):
+            output[_ERROR] = str(error)
+        raise
+
+
+@pytest.hookimpl(optionalhook=True)
+def pytest_xdist_setupnodes(config: pytest.Config, specs: list[object]) -> None:
+    """Count initial workers before any collection announcement can arrive."""
+    get_hub().configs[config].expected_workers = len(specs)
+
+
+@pytest.hookimpl(optionalhook=True)
+def pytest_xdist_node_collection_finished(node: object, ids: list[str]) -> None:
+    """Refuse mismatches before xdist adds this collection to its scheduler."""
+    state = get_hub().configs[cast("pytest.Config", getattr(node, "config", None))]
+    if state.collection is not None and state.collection != ids:
+        raise _usage(_COLLECTION, "inconsistent worker collection")
+    state.collection = ids
+    state.announced.add(id(node))
+    state.barrier_complete |= len(state.announced) == state.expected_workers
+
+
+@pytest.hookimpl(optionalhook=True)
+def pytest_testnodedown(node: object, error: object) -> None:
+    """Stop on early exit rather than waiting for evidence that cannot arrive."""
+    config = cast("pytest.Config", getattr(node, "config", None))
+    state = get_hub().configs[config]
+    output = cast("dict[str, object]", getattr(node, "workeroutput", {}))
+    diagnostic = output.get(_ERROR)
+    if diagnostic:
+        subject = "worker declaration"
+        raise _usage(subject, str(diagnostic))
+    interrupted = output.get("exitstatus") == pytest.ExitCode.INTERRUPTED
+    if not state.barrier_complete and not interrupted:
+        controller = config.pluginmanager.getplugin("dsession")
+        if not (getattr(controller, "shouldstop", False) or getattr(controller, "shuttingdown", False)):
+            raise _usage(_COLLECTION, "worker exited before all validated collection evidence arrived")
+    # A crash may have no session-finish output. Let xdist report/restart it;
+    # successful workers still owe records, and any records sent are validated.
+    if _RECORDS in output or (error is None and not interrupted):
+        state.merge(output.get(_RECORDS))
+
+
+def pytest_sessionfinish(session: pytest.Session) -> None:
+    """Publish records before xdist's outer session-finish wrapper sends them."""
+    output = getattr(session.config, "workeroutput", None)
+    if isinstance(output, dict):
+        state = get_hub().configs[session.config]
+        output[_RECORDS] = [asdict(permission) for permission in state.records.values()]
+
+
+def pytest_terminal_summary(terminalreporter: "pytest.TerminalReporter", config: pytest.Config) -> None:
+    """Print one serial or controller report, omitting unexercised declarations."""
+    records = get_hub().configs[config].records
+    if not records or hasattr(config, "workerinput"):
+        return
+    groups: dict[str, list[Permission]] = {"test": [], "fixture": []}
+    for permission in records.values():
+        groups[permission.kind].append(permission)
+    terminalreporter.section("process permissions")
+    for kind, entries in groups.items():
+        terminalreporter.write_line(f"{kind.title()} permissions ({len(entries)})")
+        for permission in entries:
+            status = "used" if permission.used else "WARNING unused"
+            terminalreporter.write_line(f"  {permission.identity}: {permission.reason} [{status}]")
 
 
 @pytest.hookimpl(wrapper=True, tryfirst=True)
