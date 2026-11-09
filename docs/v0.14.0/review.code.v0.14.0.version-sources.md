@@ -367,7 +367,7 @@ The grouping, order, scopes and subjects describe the staged changes accurately.
 
 Unresolved findings:
 
-- F1 (P2), tools/release_workflow/git.py:40 and :144-147: preserve fully peeled commit identity for annotated tags pointing to annotated tags. For outer tag v1.0.0 -> inner annotated tag 1.0.0 -> commit C, Git's %(*objectname) yields the inner tag-object ID after one dereference. _tag_records puts that value directly in TagRecord.commit, while the direct inner record contains C. The API therefore returns different commit identities for tags on the same final commit. The approved design groups tags by version and peeled commit (design lines 715-720); this discrepancy would produce false conflicts or invalid independent-tip inputs. Existing canned tests cover direct annotated tags and lightweight commit tags, and assume the starred value is a commit. Reconcile the plan's prescribed one-call format with its peeled-commit contract, retain each outer tag's own annotation, and add a process-free nested-tag regression. If the query budget requires a contract or policy change, resolve it explicitly before implementation rather than silently introducing a new tag exclusion.
+- F1 (P2), tools/release_workflow/git.py:40 and :144-147: preserve fully peeled commit identity for annotated tags pointing to annotated tags. For outer tag v1.0.0 -> inner annotated tag 1.0.0 -> commit C, Git's %(*objectname) yields the inner tag-object ID after one dereference. `_tag_records` puts that value directly in TagRecord.commit, while the direct inner record contains C. The API therefore returns different commit identities for tags on the same final commit. The approved design groups tags by version and peeled commit (design lines 715-720); this discrepancy would produce false conflicts or invalid independent-tip inputs. Existing canned tests cover direct annotated tags and lightweight commit tags, and assume the starred value is a commit. Reconcile the plan's prescribed one-call format with its peeled-commit contract, retain each outer tag's own annotation, and add a process-free nested-tag regression. If the query budget requires a contract or policy change, resolve it explicitly before implementation rather than silently introducing a new tag exclusion.
 
 Boundary-crossing work: None.
 
@@ -774,7 +774,7 @@ Membership, order, scopes and subjects remain appropriate. No a.commit edit was 
 
 Unresolved findings:
 
-- F1 (P2, carried), tools/release_workflow/git.py:150-152: do not reject valid nested tags solely because the inner tag object has no ref. On the supported Git 2.31, create an annotated inner tag on commit C, create outer annotated tag v1.0.0 on that tag, then delete only the inner ref. The outer tag and all its objects remain valid and reachable. Starred fields return type tag plus the inner object ID, but for-each-ref has no row for that inner object, so _peeled now raises GitPolicyError and aborts the entire tag observation. This is valid Git output, not corruption. It can also occur with an irrelevant nested tag because the adapter parses every tag before domain classification. The new test at test_git_releases_tdd.py:138 encodes the rejection rather than proving the promised peeled commit. The approved design does not require every inner object to retain its own ref; adding that failure to the implementation plan alone does not establish such a restriction.
+- F1 (P2, carried), tools/release_workflow/git.py:150-152: do not reject valid nested tags solely because the inner tag object has no ref. On the supported Git 2.31, create an annotated inner tag on commit C, create outer annotated tag v1.0.0 on that tag, then delete only the inner ref. The outer tag and all its objects remain valid and reachable. Starred fields return type tag plus the inner object ID, but for-each-ref has no row for that inner object, so `_peeled` now raises GitPolicyError and aborts the entire tag observation. This is valid Git output, not corruption. It can also occur with an irrelevant nested tag because the adapter parses every tag before domain classification. The new test at test_git_releases_tdd.py:138 encodes the rejection rather than proving the promised peeled commit. The approved design does not require every inner object to retain its own ref; adding that failure to the implementation plan alone does not establish such a restriction.
 
 Boundary-crossing work:
 
@@ -1593,6 +1593,439 @@ Decision: commit-ready (advisory). The evidence floor is complete, but this reco
 - Requestor LLM nature: claude
 - Reviewer LLM nature: codex
 - Implementation step: 2
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-1 -->
+
+## Round 1 by requestor - Step 3
+
+- Recorded: 2026-11-09T11:18:36+01:00
+- Exchange: code/code/v0.14.0/version-sources
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.version-sources.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: unrecorded
+- Implementation step: 3
+- Outcome: request
+
+### Review identity for step 3 version-sources (round 1)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.version-sources.md
+Implementation step: 3
+Review round: 1
+
+### Code review evidence for step 3 version-sources (round 1)
+
+request_index_tree: 6767623c8a6ed2f73a75f6c3e4e56a4ad3b3475e
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.version-sources.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(release): add declared pattern sources
+group 1 path: tools/release_workflow/sources/model.py
+group 1 path: tools/release_workflow/sources/pattern.py
+group 1 path: tools/release_workflow/sources/__init__.py
+group 1 path: tests/unit/tools/release_workflow/version_support.py
+group 1 path: tests/unit/tools/release_workflow/test_pattern_sources/__init__.py
+group 1 path: tests/unit/tools/release_workflow/test_pattern_sources/test_pattern_sources_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_pattern_sources/test_pattern_sources_pbt.py
+group 1 path: tests/unit/tools/release_workflow/test_version_registry/test_version_registry_tdd.py
+group 2: feat(release): validate version configuration
+group 2 path: tools/release_workflow/sources/settings.py
+group 2 path: tools/release_workflow/schemas.py
+group 2 path: tests/unit/tools/release_workflow/test_version_settings/__init__.py
+group 2 path: tests/unit/tools/release_workflow/test_version_settings/test_version_settings_tdd.py
+group 2 path: tests/unit/tools/release_workflow/test_schemas/test_schemas_tdd.py
+group 3: feat(release): combine detectors and claims
+group 3 path: tools/release_workflow/sources/detection.py
+group 3 path: tests/unit/tools/release_workflow/test_version_detection/__init__.py
+group 3 path: tests/unit/tools/release_workflow/test_version_detection/test_version_detection_tdd.py
+group 4: docs(version-sources): record step 3 validation
+group 4 path: docs/v0.14.0/plan.v0.14.0.version-sources.validation.md
+staged path: docs/v0.14.0/plan.v0.14.0.version-sources.validation.md
+staged path: tests/unit/tools/release_workflow/test_pattern_sources/__init__.py
+staged path: tests/unit/tools/release_workflow/test_pattern_sources/test_pattern_sources_pbt.py
+staged path: tests/unit/tools/release_workflow/test_pattern_sources/test_pattern_sources_tdd.py
+staged path: tests/unit/tools/release_workflow/test_schemas/test_schemas_tdd.py
+staged path: tests/unit/tools/release_workflow/test_version_detection/__init__.py
+staged path: tests/unit/tools/release_workflow/test_version_detection/test_version_detection_tdd.py
+staged path: tests/unit/tools/release_workflow/test_version_registry/test_version_registry_tdd.py
+staged path: tests/unit/tools/release_workflow/test_version_settings/__init__.py
+staged path: tests/unit/tools/release_workflow/test_version_settings/test_version_settings_tdd.py
+staged path: tests/unit/tools/release_workflow/version_support.py
+staged path: tools/release_workflow/schemas.py
+staged path: tools/release_workflow/sources/__init__.py
+staged path: tools/release_workflow/sources/detection.py
+staged path: tools/release_workflow/sources/model.py
+staged path: tools/release_workflow/sources/pattern.py
+staged path: tools/release_workflow/sources/settings.py
+```
+
+### Validation scope for step 3 version-sources (round 1)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 3 version-sources (round 1)
+
+Writer assessment for Step 3 of the version-sources plan, round 1: the step is
+fully implemented, and its implementation check records
+`Yes. Step 3 has been fully implemented.` in the staged validation plan.
+
+Evidence, all on the staged tree:
+
+- Tests first: `ghog single` on the three new Step 3 test folders with the
+  updated schema and registry tests failed at collection (six `ImportError`s,
+  exit 4), then passed after the implementation, together with the item 1
+  configuration tests and the Step 2 anchor and model tests. The property test
+  first exceeded the 0.1 s CPU lifecycle budget (0.234 s) and was redrawn from
+  one integer, the cheapest encoding, keeping 25 examples.
+- `ghog day --whole-suite`, the command printed by `pw scope day`, exit 0
+  (check.bat and 298 affected tests). A first run failed only at check.bat:
+  an unused test import, a test constant named like a token (S105), a dataclass
+  call default (RUF009), a `noqa` lost when ruff rewrapped the deferred import,
+  and radon grade C on `candidates`, split into two helpers.
+- `ghog day --full=speed --whole-suite`, the review validation default: exit
+  0, no failure, coverage 100%, no duration outlier, no exclusion (check and
+  affected reused by groundhog's proof); it ran in a measured quiet window (no
+  other checkout's pytest, load below 50% on three samples). No exclusion is
+  accepted in this step.
+- Completion checks: `rg -n 'import tools.release_workflow.sources|from
+  tools.release_workflow.sources' tools/release_workflow/schemas.py` shows
+  only the deferred import inside `_validate_version`; the item 1
+  configuration tests pass unchanged.
+- Markdown lint and spell check of the staged validation plan: no finding, no
+  unknown word.
+- Every file stays below 650 lines; `detection.py` is 180, `model.py` 410.
+
+Architecture: `schemas.py` keeps no load-time domain import; settings works on
+the loader's mappings and reads no file; the pattern adapter depends only on
+the model and never writes; detection reads through the injected view and
+reaches Git only through `VersionInputs.git`. Performance: claims are indexed
+by path and field, only one file's few spans are sorted, the CRLF view is one
+pass, candidates make one listing call and read each remaining file once.
+Feature integrity: a configuration without version sections loads as before
+and imports no source module; nothing ships.
+
+Please check in particular: the per-instance configuration rules and their
+messages, the CRLF-to-LF offset mapping, the claim registry (duplicate,
+outside and overlapping spans, both claimants named), adapter-major detection
+order, `plan_edits` composition and the release-only guard, candidate
+filtering, and the `model.py` extension (`PatternDeclaration`,
+`AdapterSettings.patterns`) made outside the plan's file list.
+
+### Implementation report for step 3 version-sources (round 1)
+
+Step 3, "Version configuration, participation, claims and pattern sources",
+adds the version domain of `.release.ini`, the `pattern` adapter, and the
+detection layer that combines every adapter. Nothing ships yet:
+`cli.SHIPPED_HANDLERS` stays empty, and only the configuration loader reaches
+the new code, through the deferred validator.
+
+Schema (`tools/release_workflow/schemas.py`, plan decision Q02):
+
+- `VERSION_SCHEMA`: the `source:` family (`form`, managed `file`, `pattern`)
+  and the `component:` family (required managed `root`);
+  `SHIPPED_SCHEMAS = (TOOLING_SCHEMA, VERSION_SCHEMA)`.
+- `_validate_version(sections)` returns at once when no section name starts
+  with `source:` or `component:`; otherwise it imports
+  `tools.release_workflow.sources.settings` (the only import of the package in
+  `schemas.py`, `# noqa: PLC0415`) and calls `validate_settings(sections)`.
+
+Settings (`sources/settings.py`):
+
+- `validate_settings(sections, adapters=ADAPTERS)` walks the sections once.
+  Built-in names are the registered adapters other than the reserved `anchor`
+  and `pattern`; such a section accepts only `form`, within the adapter's
+  `forms`. A reserved name fails. Any other name is a pattern source that
+  needs `file`, `pattern` and `form`; the pattern compiles with
+  `re.MULTILINE` and must have exactly one capture group. A component root
+  must differ from the project root, lie under no name of
+  `EXCLUDED_DIRECTORIES` (compared with `os.path.normcase`), and not repeat
+  another component's directory. Errors are `SettingsError` (status 2)
+  naming `[section] key=value`; the loader wraps them as `ConfigurationError`.
+- `read_settings(configuration, adapters=ADAPTERS) -> VersionSettings`
+  (project root, form overrides by adapter name, pattern declarations,
+  components by id, read-only mappings in declaration order).
+- The project root is `configuration.source.parent`, the directory of the
+  `.release.ini` the loader read: the validator only receives the section
+  mappings, whose `ConfigValue.source` is that file, so both functions use the
+  same root.
+
+Pattern sources (`sources/pattern.py`, design decision Q09):
+
+- `lf_view(text)` reads each CRLF as LF in one pass, recording the view offset
+  of each collapsed line feed; `LfView.original_offset` adds one per
+  collapsed line feed before an offset (binary search), so an offset at a
+  line end maps to the carriage return.
+- `PatternAdapter` (`ADAPTER`): name `pattern`, no default form, every form
+  allowed, no candidate names. `detect` returns nothing for a root other than
+  the project root; for each declaration it requires the file (never
+  created), decodes strict UTF-8, matches on the LF view, stops after a second
+  match, requires a nonempty group 1 that is a version token (no `-SNAPSHOT`
+  unless the form is `snapshot`), and maps the capture to a byte span through
+  `to_byte_spans`. The field is `source:<name>`. Every failure names
+  `[source:<name>]` and the file (status 2). `render` returns the raw text.
+
+Detection (`sources/detection.py`):
+
+- `participating_roots(settings)`: the project root, then each component root
+  in declaration order; a missing or non-directory component root fails.
+- `detect(inputs, view, *, adapters=ADAPTERS) -> Inventory`: adapter-major
+  ("every adapter runs over every participating root in tuple order"). Claims
+  are registered in a dictionary keyed by path and field; a second claim, a
+  span past the end of the file, or overlapping spans of one file (sorted per
+  file, consecutive comparison) fail, naming both claimants as
+  `<adapter> <field> at root <root>`. One `FileCapture` per participating
+  file comes from the same view, so nothing is read twice.
+- `plan_edits(inventory, anchor, *, adapters=ADAPTERS)`: runs
+  `check_release_only` for every source, then builds one `FileEdit` per file
+  whose values differ from `form.expected(anchor)`, composed from the captured
+  original with each adapter's `render`; an absent capture fails.
+- `candidates(inputs, inventory, view, *, adapters=ADAPTERS)`: one
+  `git.listing`; names whose file name is an adapter's manifest name are kept
+  unless under an excluded directory, the artifact home, a participating root
+  or the directory of a located manifest file (Maven modules later); each
+  remaining file is read once and kept when `has_project_version` holds, as
+  `VisibleRecord(path, "version", adapter, "not-participating undeclared")`.
+
+Registry: `ADAPTERS = (anchor.ADAPTER, pattern.ADAPTER)`,
+`SUPPORT_MODULES = frozenset({"model", "settings", "detection"})`.
+
+One file outside the plan's Step 3 list changes: `sources/model.py` gains
+`PatternDeclaration` (name, path, compiled expression, form) and the
+`AdapterSettings.patterns` property. The pattern adapter reads its
+declarations through the common `detect(root, view, settings)` signature, and
+pyright strict rejects an adapter whose `detect` takes a narrower settings type
+inside the `tuple[Adapter, ...]`. `version_support.RootSettings` gains
+`patterns=()` accordingly. The validation plan records this.
+
+Tests:
+
+- `test_schemas_tdd.py`: the shipped tuple and family owners; with the
+  `tools.release_workflow.sources*` entries removed from `sys.modules` through
+  `monkeypatch.delitem`, loading no file or a `[tooling]`-only file imports no
+  source module; a `[component:app]` section reaches
+  `settings.validate_settings` once (replaced in place, never reloaded, so no
+  duplicate classes leak into later tests).
+- `test_version_settings_tdd.py`: through `load_configuration`, each accepted
+  and rejected declaration of the plan, each asserting status 2, the section
+  and key in the message and nothing written. Built-in cases use a test
+  registry whose version validator is
+  `partial(validate_settings, adapters=...)` with synthetic `python`
+  (`core`), `npm` (all three) and `maven` (`snapshot`) adapters, until Steps
+  5 to 7 register the real ones; reserved names, pattern keys and component
+  roots use the shipped registry.
+- `test_pattern_sources_tdd.py` and `_pbt.py`: the umbrella pattern on LF and
+  CRLF; byte-order mark, accented and non-BMP text before the match on both
+  endings; two pattern sources of one file composing from one original read
+  once; zero, two and empty matches, a malformed value, a snapshot value in
+  `core` form, a missing and a non-UTF-8 file; other roots. The property
+  checks the view and offset map over one integer decoded into six lines with
+  mixed endings and stray carriage returns (25 examples, the cheapest encoding
+  under the 0.1 s CPU lifecycle budget).
+- `test_version_detection_tdd.py`: duplicate path and field, overlapping
+  fields, two pattern sources on the same bytes, a pattern on the anchor's
+  token, a span outside its file, missing and file component roots,
+  adapter-major order over three roots, one load per file with three claims
+  and two captures, two disjoint fields composed in one edit (and only the
+  anchor edited for an older target), the release-only refusal, an absent
+  capture, and candidates with one listing call (excluded names, artifact
+  home, participating root, component root, Maven-module directory, missing
+  file, manifest without a version).
+- `test_version_registry_tdd.py`: the order `("anchor", "pattern")` and the
+  support modules.
+
+Writer notes: `.reviews/a.version-sources.step3.journal.md` and
+`.reviews/a.version-sources.step3.handoff.md`.
+
+### Change summary for step 3 version-sources (round 1)
+
+Staged paths (17), grouped in the root `a.commit` (four groups, checker
+`ready: true`):
+
+1. `feat(release): add declared pattern sources`:
+   `tools/release_workflow/sources/model.py`,
+   `tools/release_workflow/sources/pattern.py`,
+   `tools/release_workflow/sources/__init__.py`,
+   `tests/unit/tools/release_workflow/version_support.py`,
+   `tests/unit/tools/release_workflow/test_pattern_sources/__init__.py`,
+   `tests/unit/tools/release_workflow/test_pattern_sources/test_pattern_sources_tdd.py`,
+   `tests/unit/tools/release_workflow/test_pattern_sources/test_pattern_sources_pbt.py`,
+   `tests/unit/tools/release_workflow/test_version_registry/test_version_registry_tdd.py`.
+2. `feat(release): validate version configuration`:
+   `tools/release_workflow/sources/settings.py`,
+   `tools/release_workflow/schemas.py`,
+   `tests/unit/tools/release_workflow/test_version_settings/__init__.py`,
+   `tests/unit/tools/release_workflow/test_version_settings/test_version_settings_tdd.py`,
+   `tests/unit/tools/release_workflow/test_schemas/test_schemas_tdd.py`.
+3. `feat(release): combine detectors and claims`:
+   `tools/release_workflow/sources/detection.py`,
+   `tests/unit/tools/release_workflow/test_version_detection/__init__.py`,
+   `tests/unit/tools/release_workflow/test_version_detection/test_version_detection_tdd.py`.
+4. `docs(version-sources): record step 3 validation`:
+   `docs/v0.14.0/plan.v0.14.0.version-sources.validation.md` (Step 3
+   sections).
+
+Group 1 declares the `settings` and `detection` support modules before they
+exist; the registry check subtracts support modules from the listed ones, so
+it holds at every group. Steps 1 and 2 are committed (`a7c0d7c` to `115105c`)
+and are not part of this review.
+
+### Writer response for step 3 version-sources (round 1)
+
+Writer response:
+
+This is the first round of the Step 3 code review; there is no earlier
+reviewer feedback to answer.
+
+Choices worth checking, all within the plan or recorded in the validation plan:
+
+- Built-in form names come from the registered adapters, the plan's "forms
+  read from the registered adapters' `forms`". Until Steps 5 to 7 register
+  `python`, `npm` and `maven`, `[source:npm]` is therefore read as a pattern
+  source and needs all three keys; the settings tests exercise the override
+  rules with synthetic adapters carrying the design's forms.
+- `read_settings` and the validator take the project root from the
+  `.release.ini` location, so `participating_roots` takes the settings alone
+  rather than the plan's `(project, settings)` pair.
+- `detect`, `plan_edits` and `candidates` take a keyword `adapters`
+  defaulting to `ADAPTERS`, and `candidates` also takes the phase's
+  `FileView`, so tests inject synthetic adapters and count reads without any
+  module-global patch.
+- `plan_edits` runs the release-only guard for every source before building
+  any edit, so a refusal leaves no partial plan.
+- Candidate exclusion treats the directory of a located manifest file as
+  participating (Maven reactor modules), but not the directory of a pattern
+  source's file.
+- A pattern capture must be a version token, without `-SNAPSHOT` unless the
+  form is `snapshot`; a snapshot-form source may hold a release token.
+
+### Reviewer focus for step 3 version-sources (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-3-round-1 -->
+
+## Round 1 by reviewer - Step 3
+
+- Recorded: 2026-11-09T11:31:54+01:00
+- Exchange: code/code/v0.14.0/version-sources
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.version-sources.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 3
+- Outcome: answer
+
+### Assessed index identity for step 3 version-sources (exchange 1) (round 1)
+
+Baseline index tree: 6767623c8a6ed2f73a75f6c3e4e56a4ad3b3475e
+
+Assessed index tree: 7eaec9757b3ed0a76f0417a7c51c7ccd8c310807
+
+### Implementation check for step 3 version-sources (exchange 1) (round 1)
+
+Result:
+
+Yes. Step 3 has been fully implemented.
+
+The schema and deferred validator implement the per-instance source and component rules. Pattern detection enforces one nonempty version capture and maps LF-view offsets back through CRLF and UTF-8 bytes. The claim registry rejects duplicate fields, out-of-file spans and overlaps; detection is adapter-major, and planning composes disjoint fields from one original after the release-only guard. Candidate filtering uses one Git listing and one cached read per remaining file.
+
+The tests cover the planned failures, declaration order, read counts, BOM and multi-byte offsets, composition and candidate exclusions. The property test exercises mixed line endings and boundary offsets. The model extension is required by the common adapter settings protocol and implements this step's pattern declaration behavior. No architecture, performance, feature-integrity or static coverage gap was found. The tools coverage gate excludes tests and initializers; their new symbols are referenced by tests or their own package.
+
+Validation plan effects:
+
+Added and staged one independent assessment paragraph in the Step 3 rows of docs/v0.14.0/plan.v0.14.0.version-sources.validation.md. The existing Yes verdict remains correct. No other step, document-level completion status or umbrella row was changed. The evidence launcher proved the patch attributable before it was applied to the index.
+
+### Pre-repair mandatory checks and coverage for step 3 version-sources (exchange 1) (round 1)
+
+The request reports green focused tests, ghog day --whole-suite and ghog day --full=speed --whole-suite, including 100% measured tools coverage, with no exclusions or duration outliers. The bound whole-suite scope capture is present. I assessed coverage statically against the implementation and unit tests; no reviewer test execution or coverage walk was needed or run. The mechanical commit-plan checker ran independently and passed.
+
+### Resolved validation set and sources for step 3 version-sources (exchange 1) (round 1)
+
+The current resolver returns ghog day --full=speed --whole-suite, with sources [project], matching the request. No plan or request additions apply. This command remains requestor-side validation and was not rerun by the reviewer.
+
+### Resolver drift and direction for step 3 version-sources (exchange 1) (round 1)
+
+No validation-set drift: the current scope-aware resolver and the request have the same command, order and source.
+
+### Repository state around validation for step 3 version-sources (exchange 1) (round 1)
+
+Request and baseline index: 6767623c8a6ed2f73a75f6c3e4e56a4ad3b3475e. Assessed index: 7eaec9757b3ed0a76f0417a7c51c7ccd8c310807.
+
+The umbrella comparison reports changed=false. Validation-state comparison reports acceptable=false because the validation plan and index changed; inspection and patch attribution show that both changes are confined to the permitted Step 3 review-metadata paragraph. No implementation, test, other tracked path or untracked validation side effect changed. No implementation repair was authorized or performed. The request's general repair prose is not a literal Human guidance block.
+
+### Repair inventory for step 3 version-sources (exchange 1) (round 1)
+
+Repairs made:
+
+- docs/v0.14.0/plan.v0.14.0.version-sources.validation.md: polishing-only review metadata; added the independent Step 3 assessment. No substantive repair.
+
+Paths staged:
+
+- docs/v0.14.0/plan.v0.14.0.version-sources.validation.md
+- tests/unit/tools/release_workflow/test_pattern_sources/__init__.py
+- tests/unit/tools/release_workflow/test_pattern_sources/test_pattern_sources_pbt.py
+- tests/unit/tools/release_workflow/test_pattern_sources/test_pattern_sources_tdd.py
+- tests/unit/tools/release_workflow/test_schemas/test_schemas_tdd.py
+- tests/unit/tools/release_workflow/test_version_detection/__init__.py
+- tests/unit/tools/release_workflow/test_version_detection/test_version_detection_tdd.py
+- tests/unit/tools/release_workflow/test_version_registry/test_version_registry_tdd.py
+- tests/unit/tools/release_workflow/test_version_settings/__init__.py
+- tests/unit/tools/release_workflow/test_version_settings/test_version_settings_tdd.py
+- tests/unit/tools/release_workflow/version_support.py
+- tools/release_workflow/schemas.py
+- tools/release_workflow/sources/__init__.py
+- tools/release_workflow/sources/detection.py
+- tools/release_workflow/sources/model.py
+- tools/release_workflow/sources/pattern.py
+- tools/release_workflow/sources/settings.py
+
+### Commit plan assessment for step 3 version-sources (exchange 1) (round 1)
+
+Independent checker: state=valid, ready=true, no diagnostics, all 17 staged paths covered exactly once. The four groups are ordered as declared pattern sources, version configuration, detector composition and claims, then Step 3 validation. Their conventional subjects accurately describe the changes. The model extension belongs with the pattern adapter that requires it. The support-module declarations may precede those modules because the completeness check subtracts support names from discovered files. The reviewer metadata remains in the existing validation group, so a.commit requires no amendment.
+
+### Findings and boundaries for step 3 version-sources (exchange 1) (round 1)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 3 version-sources (exchange 1) (round 1)
+
+No rework is required. Present the advisory commit-ready recommendation at the existing human convergence gate. Commit authorization belongs to that gate.
+
+### Decision rationale for step 3 version-sources (exchange 1) (round 1)
+
+Recommend commit-ready. All six readiness results pass: exact identity, complete Step 3 implementation, sufficient writer validation and static coverage evidence, attributable staged scope, no unresolved findings and accurate commit grouping. Only review metadata changed in this round; no substantive repair was made. This recommendation does not authorize a commit.
+
+### Final reviewer decision for step 3 version-sources (exchange 1) (round 1)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-3-round-1 -->
+
+## Round 1 by human - Step 3 - human-confirmation
+
+- Recorded: 2026-11-09T12:28:41+01:00
+- Exchange: code/code/v0.14.0/version-sources
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.version-sources.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 3
 - Outcome: human-confirmation
 
 Human choice: Commit
