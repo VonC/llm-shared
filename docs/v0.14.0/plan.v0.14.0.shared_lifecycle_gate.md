@@ -807,6 +807,9 @@ runner boundaries together in process. Complete corresponding executable
 scenarios for shell/process/xdist behavior that the audited suite cannot run.
 Apply shell results in callers with delayed expansion off and on, checking
 the preserved values and atomic failure behavior from Step 4.
+Include non-ASCII paths under the default OEM code page, refusal of values
+that code page cannot represent, concurrent preparations with distinct
+transfer files, and preparation from a drive root.
 Use all four selection combinations beside synthetic consumer `tools`/`tests`
 packages. Cover missing checkout/cache/policy, contract drift, root mismatch,
 blocked explicit policy, duplicate loading, strict declarations/settings,
