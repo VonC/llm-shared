@@ -6,6 +6,8 @@ checkout's run for hours, inside their own time budgets. The slot is gone.
 These tests keep it gone: groundhog's source takes no cross-process file
 lock, a streamed child starts at once without touching a per-user folder, and
 the canonical instruction keeps the rule that forbids such a queue.
+Read each real source once for all lock markers, avoiding repeated native IO
+inside the lifecycle budget while preserving the complete source scan.
 """
 
 from __future__ import annotations
@@ -40,12 +42,10 @@ class _Child:
 
 def test_groundhog_source_takes_no_cross_process_lock() -> None:
     """No groundhog module can lock a file shared by runs of other checkouts."""
-    offenders = sorted(
-        f"{path.name}: {marker}"
-        for path in _GROUNDHOG.glob("*.py")
-        for marker in _LOCK_MARKERS
-        if marker in path.read_text(encoding="utf-8")
-    )
+    offenders: list[str] = []
+    for path in _GROUNDHOG.glob("*.py"):
+        source = path.read_text(encoding="utf-8")
+        offenders.extend(f"{path.name}: {marker}" for marker in _LOCK_MARKERS if marker in source)
     assert offenders == []
     assert not (_GROUNDHOG / "slot.py").exists()
 
