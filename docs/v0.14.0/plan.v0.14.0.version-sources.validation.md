@@ -752,8 +752,30 @@ No existing feature or reporting capability appears impaired.
 
 ### Analysis of Step 4 implementation state
 
-Not started. Step 4 is not implemented because no evidence module or
-transition primitive exists yet.
+Yes. Step 4 has been fully implemented.
+
+`tools/release_workflow/version_evidence.py` writes, marks, deletes, lists
+and allocates the per-transition evidence, and
+`tools/release_workflow/version_transition.py` runs the recoverable
+transition, reporting one of five outcomes, with a restore handle for item 5.
+The three defects found by the round 1 code review are repaired with
+regression tests:
+
+- a manifest copy name can no longer lead residue cleanup out of its evidence
+  directory;
+- an `unchanged` run whose lock release fails now stops with status 1;
+- an evidence directory that can be neither read nor listed is unreadable
+  (status 2).
+
+Every planned test and completion check is in place, and the command printed
+by `pw scope day` reports `exit=0`.
+
+Independent reviewer assessment (code review round 2): the three carried
+findings are resolved by the staged implementation and regression tests.
+Static review finds no remaining Step 4 implementation or unit coverage gap.
+The current validation resolver matches the request's whole-suite command;
+the writer owns the reported green walk and coverage result, which the
+reviewer has not rerun.
 
 ### Goal for Step 4
 
@@ -790,27 +812,252 @@ outcomes, with a restore handle for item 5.
 
 ### What was implemented for Step 4
 
-_(empty — no check has taken place yet.)_.
+- **Evidence** (`version_evidence.py`):
+  - `EvidenceManifest` records version 1, the owner (`standalone` or a
+    lifecycle transaction), the target, the state (`writing`, `complete` or
+    `restoration-incomplete`), the creation time with its offset, and each
+    file's root-relative path, SHA-256, existence and copy name. It encodes
+    as indented UTF-8 JSON. Decoding rejects duplicate keys, unknown or
+    missing fields, wrong types, another version, an empty owner and any
+    copy name other than `original.<n>` (no traversal, absolute,
+    drive-qualified, nested or manifest name), so such a manifest is
+    unreadable evidence.
+  - `allocate(prepared, now, pid, attempts=99)` creates
+    `a.version-transition.<YYYYMMDDTHHMMSS+HHMM>-<pid>` with
+    `mkdir(exist_ok=False)` on a revalidated managed target. A taken name
+    moves to the next `-2`, `-3` suffix, and an existing directory is never
+    entered (plan decision Q17). Any other failure, or the attempt limit,
+    fails with status 1.
+  - `write_evidence` writes one copy per present file through the managed
+    replacement, then the manifest. On failure it removes the partial
+    directory, or names what remains.
+  - `EvidenceDirectory.mark` replaces the manifest atomically. `delete`
+    removes the copies, then the manifest, each authorized and required to
+    resolve directly inside the evidence directory, then the directory; a
+    failure or a destination outside the directory names the residue and
+    removes nothing further.
+  - `find_evidence` lists only the artifact home and reads each manifest
+    once. It classifies completed standalone residue (including an empty
+    directory left by a failed cleanup), interrupted, unreadable (including a
+    directory that cannot be read or listed) and lifecycle-owned evidence.
+  - `remove_managed` removes a revalidated file, if present, or an empty
+    directory.
+- **Transition** (`version_transition.py`):
+  - `TransitionOutcome` (`applied` 0, `unchanged` 0, `restored` 1,
+    `restoration incomplete` 3, `applied with cleanup failed` 1),
+    `TransitionResult`, `TransitionError`, `LifecycleOwnership`,
+    `RestoreHandle.restore` and `discard`.
+  - `TransitionPorts` (plan decision Q07): replacement, removal, lock
+    factory, process probe, local clock and process id, plus the file-view
+    factory that opens each phase's fresh view, all with production defaults.
+  - `plan_transition` and `set_versions` follow "Ownership and the
+    authoritative plan" through "Restoration and its distinct failure".
+  - A standalone call:
+    - plans without side effects (status 2 leaves no artifact home, lock or
+      evidence), then prepares the home and acquires the lock (a held lock:
+      status 1 naming its owner);
+    - removes completed standalone residue with a warning, and stops with
+      status 2 on any other evidence it does not own, before every success
+      path;
+    - replans in a fresh view and reports `unchanged` for an empty plan;
+    - writes evidence (failure: status 1, no source written);
+    - compares each file with its captured bytes just before replacing it,
+      replaces the files in path order with `version.txt` last, verifies
+      every source's expected value in a fresh view, and marks the evidence
+      `complete`.
+  - Before that marker, any failure restores the replaced files and verifies
+    them in a fresh view:
+    - when every file is back, the standalone evidence is deleted and the
+      status is 1;
+    - otherwise the evidence becomes `restoration-incomplete`, and status 3
+      names each unrestored source and its retained copy.
+  - After the marker, a cleanup or lock-release failure keeps the new
+    versions and returns `applied with cleanup failed` (status 1), naming the
+    residue. The primary outcome is fixed first, and secondary failures only
+    add diagnostics, except that an `unchanged` run whose lock release fails
+    raises `TransitionError` with status 1 naming the remaining lock record.
+    The lock is released on every path after acquisition, including an
+    exception.
+  - A lifecycle call validates its transaction identity (not `standalone`:
+    status 2) and verifies the supplied lock before any read (status 1). It
+    never acquires or releases that lock, accepts its own earlier evidence,
+    keeps its evidence `complete`, and returns a `RestoreHandle` that
+    restores with the same routine.
+- **Test support** (`version_support.py`): the fixed clock and process id, the
+  `RESTORATION_FIXTURES` registry (anchor, pattern, and one file with two
+  disjoint claims) that Steps 5 to 7 extend (plan decision Q01), `Faults`
+  (recording and failing managed replacement and removal, with tampering and
+  a concurrent writer hook), `ViewLog`, `declare_evidence`, `source_bytes` and
+  `version_project`.
+- **Tests**:
+  - `test_version_evidence_tdd.py`: copies and manifest, failed writes with
+    and without a successful cleanup, marking, deletion order and residue
+    names, a copy resolving outside the directory refused, listing
+    classification (nested and non-evidence entries ignored, a missing home
+    included), strict decoding including unsafe copy names, allocation
+    suffixes, an allocation failure and the attempt limit.
+  - `test_version_transition_tdd.py`: plan failures with whole-tree
+    snapshots, a held lock, residue removal, residue with a traversal or
+    absolute copy name stopping with every byte kept, evidence that can be
+    neither read nor listed stopping with the lock released, unfinished
+    evidence stopping an empty plan, `unchanged`, unwritable evidence, write
+    order, changes, one view per phase, marker before cleanup, and the
+    default ports.
+  - `test_version_restoration_tdd.py`: every registry set at every write
+    position, a concurrent change, a failed verification, a failed marker, a
+    restoration whose evidence cannot be deleted, an incomplete restoration
+    alone and with a lock-release failure, a marker failure or an unreadable
+    file, `writing` evidence stopping a same-target rerun, the three cleanup
+    faults followed by the next run removing their residue, and a lock-release
+    failure after an `unchanged` run (status 1) or after completion.
+  - `test_version_lifecycle_tdd.py`: a kept lock and a working handle, a
+    released handle, another project's lock and the reserved name failing
+    with no view opened, own versus foreign evidence, and two calls with
+    disjoint evidence whose first handle still restores.
+  - No property test: the failure-position domain is finite and parametrized
+    exhaustively.
+- **Validation evidence**:
+  - Tests first: `ghog single` on the two new test folders failed at
+    collection (four `ModuleNotFoundError`s; 2026-11-09T14:46). After the
+    implementation and two test-code defects (unescaped evidence names in
+    `match=`, and a declared home without its ignore file), 168 focused
+    tests passed.
+  - `ghog day --whole-suite`, the command printed by `pw scope day`, first
+    failed at check.bat: pyright, ruff, radon on one test, and MD050 on four
+    bare `__init__.py` paths in the committed step 3 review answer, which
+    the earlier markdownlint run had not reported. Once these were fixed, it
+    reported `exit=0` (15:09). Three tests added after a static coverage
+    review then passed in another `exit=0` walk (2026-11-09T15:16).
+  - `rg -n 'os\.replace|write_bytes|unlink'` on both modules finds only
+    `remove_managed`'s `unlink(missing_ok=True)` on `target.revalidate()`.
+  - Code review round 1 (changes requested) found three defects: unsafe copy
+    names, status 0 after a failed release of an `unchanged` run, and an
+    unguarded directory listing. The writer repaired all three with
+    regression tests; the Step 4 test folders pass, and the walks are rerun
+    before round 2.
+- **Line counts** (after the round 1 repairs): `version_evidence.py` 357,
+  `version_transition.py` 390, `version_support.py` 290,
+  `test_version_evidence_tdd.py` 289, `test_version_transition_tdd.py` 253,
+  `test_version_restoration_tdd.py` 282, `test_version_lifecycle_tdd.py` 168,
+  initializers 3 each; every file stays below 650. Variance:
+  `version_evidence.py` 357 (advisory 300), `version_support.py` +140
+  (advisory +60); the transition test files stay under their estimates.
 
 ### New types or classes introduced for Step 4
 
-_(empty — no check has taken place yet.)_.
+- `tools.release_workflow.version_evidence`: `EvidenceError`,
+  `EvidenceState`, `EvidenceKind`, `EvidenceFile`, `EvidenceManifest`,
+  `EvidenceDirectory`, `EvidenceEntry`, `allocate`, `write_evidence`,
+  `evidence_files`, `find_evidence`, `remove_managed`, `STANDALONE`,
+  `EVIDENCE_PREFIX`, `MANIFEST_NAME` and `ATTEMPT_LIMIT`.
+- `tools.release_workflow.version_transition`: `TransitionOutcome`,
+  `TransitionResult`, `TransitionError`, `TransitionLock`, `LockFactory`,
+  `TransitionPorts`, `DEFAULT_PORTS`, `LifecycleOwnership`, `RestoreHandle`,
+  `plan_transition` and `set_versions`.
+- Additions beyond the plan's list: the `view` port (a fresh file view per
+  phase, so tests count views and prove that a failing lifecycle call opens
+  none); `allocate` taking the clock reading and the prepared home (the
+  project comes from it); `remove_managed` tolerating an already-missing file,
+  so removing residue after a failed manifest deletion is idempotent.
+- Test support: `version_support.RestorationFixture`, `RESTORATION_FIXTURES`,
+  `Faults`, `ViewLog`, `declare_evidence`, `source_bytes`, `version_project`,
+  `FIXED_NOW`, `TRANSITION_PID`, `EVIDENCE_NAME`, `TARGET`, `PATTERN_INI`, and
+  the `test_version_evidence` and `test_version_transition` test folders.
 
 ### Architecture check for Step 4
 
-_(empty — no check has taken place yet.)_.
+- **Layering**: the transition is an application service. It drives the
+  domain (`sources.detection`, the model) and item 1's infrastructure
+  boundaries (`prepare_artifacts`, `managed_files`, `OperationLock`,
+  `windows_process.process_state`) only through `TransitionPorts`, whose
+  defaults are those boundaries. No domain module imports the transition or
+  the evidence module, and neither imports a later step's module.
+- **Writes**: every file change goes through the managed replacement or a
+  revalidated managed target; evidence allocation uses the managed target's
+  revalidated path and never item 1's `prepare_directory`. `managed_files` is
+  unchanged.
+- **Ownership**: a lifecycle call verifies, but never acquires or releases,
+  the supplied lock, and never deletes evidence owned by a transaction; only
+  `RestoreHandle.discard` does, on item 5's request.
+- **Evidence cleanup boundary**: project-level managed authorization alone
+  did not prove that a decoded copy belongs to its evidence directory (round
+  1 finding). Decoding now accepts only `original.<n>` copy names, and
+  removal requires each copy and the manifest to resolve directly inside the
+  directory.
+
+No, there is nothing that needs to be addressed: no DDD-Hexagonal violation or
+smell is visible in this step.
 
 ### Performance check for Step 4
 
-_(empty — no check has taken place yet.)_.
+- **No new `O(n^2)` or `O(n log n)` path**: each phase opens one view and
+  reads each participating file once. The only sorts are the write order over
+  the changed files and the listing of evidence directories in the home, both
+  a handful of entries. Evidence is classified in one pass, and restoration
+  touches each replaced file once.
+- **Bounded side effects**: allocation tries at most 99 names, each one
+  `mkdir`; evidence writes one copy per participating file and one manifest
+  per state change.
+- **Plan-bound alignment**: one file view per phase (initial plan, locked
+  plan, comparison, verification, restoration check), as the IO table states.
+
+No, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 4
 
-_(empty — no check has taken place yet.)_.
+The coverage gate measures `tools` only (`[tool.coverage.run] source`), with
+`*/tests/*` and `*/__init__.py` omitted.
+
+- **`tools/release_workflow/version_evidence.py`**: `test_version_evidence/`
+  exercises every branch, including every strict decoding rule, both
+  `remove_managed` branches, each residue name, the write cleanup that fails,
+  the allocation failure, the attempt limit and every listing kind. The
+  transition tests add residue deletion of a manifest-less empty directory;
+  covered.
+- **`tools/release_workflow/version_transition.py`**: the transition,
+  restoration and lifecycle tests reach every outcome and every secondary
+  failure:
+  - before any side effect: plan failures, the held lock, unwritable
+    evidence, the evidence stop with the lock released through the exception
+    path;
+  - during writes: a write, comparison, verification or marker failure, and
+    an unreadable file during the restoration check;
+  - after an outcome: deletion and release failures;
+  - lifecycle: an unbound lock, the reserved name, own evidence and the
+    handle's `restore` and `discard`;
+  - `test_default_ports_are_the_production_boundaries` reaches the default
+    clock.
+  Covered.
+- **Files outside the gate**: every new `version_support.py` symbol is
+  referenced by the Step 4 tests.
+- **Behavioral contracts beyond line coverage** (round 1 finding):
+  - unsafe copy names are tested at decoding, at deletion and through `set`
+    (status 2, every byte kept);
+  - a failed release after `unchanged` is tested (status 1, sources kept);
+  - a manifest read and a directory listing both denied is tested through
+    `set` (status 2, named directory, sources kept, lock released).
+
+No, there is no unit-tested class below 100% that needs completing for Step 4.
+No, none of the top-level symbols added outside the coverage gate is
+unreferenced.
 
 ### Feature integrity for Step 4
 
-_(empty — no check has taken place yet.)_.
+- **Existing feature behavior**: no existing tool module changes. The new
+  modules are not wired to a shipped handler until Step 9, and the item 1
+  lock, managed-file and artifact tests are unchanged.
+- **Reporting or diagnostics**: preflight and evidence stops raise with
+  status 2, lock and evidence-writing failures with status 1, and outcomes
+  carry their status and diagnostics. No diagnostic of an incomplete
+  restoration claims a complete one.
+- **Compatibility or rollout note**: Steps 5 to 7 add their adapters'
+  fixture sets to `RESTORATION_FIXTURES`. Step 9's handlers turn
+  `TransitionError`, `EvidenceError` and the outcomes into an
+  `OperationResult`.
+
+No existing feature or reporting capability appears impaired; the cleanup and
+failure-reporting contracts that round 1 found impaired are repaired and
+tested.
 
 ---
 
