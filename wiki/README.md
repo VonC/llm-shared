@@ -248,6 +248,7 @@ Exact descriptions of commands, formats, files, and supported behavior.
 - 📝 [Artifact files and naming conventions](reference/artifact-files.md)
 - 🤖 [Independent review mode contract](reference/independent-review-mode-contract.md)
 - 📝 [Question decision scanner and progress](reference/question-decisions.md)
+- 🤖 [Session journal command](reference/session-journal-command.md)
 - 📝 [Document templates](reference/templates.md)
 - 🤖 [Writing and agent rules](reference/writing-rules.md)
 - 🤖 [Repository layout and AI entry points](reference/repository-layout.md)
