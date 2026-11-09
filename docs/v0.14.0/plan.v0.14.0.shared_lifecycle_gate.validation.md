@@ -2,9 +2,10 @@
 
 No, it is not implemented
 
-Steps 1-2 of the seven-step
-[implementation plan](plan.v0.14.0.shared_lifecycle_gate.md) were checked on
-2026-11-08. Steps 3-7 remain not started; their goals describe later checks.
+Steps 1-4 of the seven-step
+[implementation plan](plan.v0.14.0.shared_lifecycle_gate.md) have been checked,
+including Step 4 on 2026-11-09. Steps 5-7 remain not started; their goals
+describe later checks.
 
 ## Runtime context for validating the pytest plugin mechanism
 
@@ -499,9 +500,12 @@ Step 6 work; shell preparation and early loading remain Step 4 work.
 
 ### Analysis of Step 4 implementation state
 
-Not started. Step 4 is not implemented because the loader, cache/environment
-builder, Windows transport module and shell preparation launcher have not
-been created.
+Yes. Step 4 has been fully implemented.
+
+The environment builder, immutable loader cache, separate Windows transfer
+adapter and standalone early loader implement the settled activation boundary.
+Focused tests and the resolved full speed day passed. Executable caller-shell
+acceptance remains in Step 7 as planned; groundhog integration remains Step 5.
 
 ### Goal for Step 4
 
@@ -529,27 +533,116 @@ zero-line baselines and the same 650-line ceiling.
 
 ### What was implemented for Step 4
 
-_(empty: no check has taken place yet.)_.
+- `tools/pytest_plugin_environment.py` normalizes and deduplicates selection,
+  rejects unknown tokens, recomputes owned paths/options, preserves unrelated
+  environment entries and returns an independent complete environment.
+- Preparation reads the loader and selected policy sources without importing
+  their bodies. AST inspection requires one literal integer contract. Only
+  the loader is published under its source SHA-256 in user-local storage
+  outside both checkouts. Existing entries are verified without repair;
+  same-parent publication handles races and removes interrupted scratch data.
+- `tools/pytest_plugin_shell.py` calls that builder once, serializes every
+  owned key, escapes delayed expansion when enabled, rejects unrepresentable
+  records and encodes them in the caller's active console code page. Python
+  exclusively creates each transfer file and discloses its name only after
+  the complete write. A failed preparation removes only its own output.
+  The batch launcher applies only an existing successful result, with no
+  clock-seeded transfer names. Drive-root arguments have no trailing slash.
+- `tools/pytest_plugins/llm_shared_pytest_loader.py` refuses old interpreters
+  before later imports, validates every selected live source before importing
+  policies, rejects missing/foreign modules and mismatched contracts, and
+  converts selected import failures to identifying pytest usage errors.
+- The initial-conftest hook checks project containment and every canonical
+  identity before registration, rejects blocked selections, and reuses
+  existing canonical modules. The loader imports only stdlib and pytest.
+- Three focused test packages cover preparation, properties, transfer and
+  startup. Existing memory-backed scratch routing includes these packages,
+  retaining process-free own-suite scenarios.
 
 ### New types or classes introduced for Step 4
 
-_(empty: no check has taken place yet.)_.
+`PreparationError` is the builder/transport configuration exception. The
+implementation otherwise uses functions, immutable selection tuples and
+independent environment dictionaries; no new runtime service class is needed.
 
 ### Architecture check for Step 4
 
-_(empty: no check has taken place yet.)_.
+Selection and environment computation stay in the shared builder. Windows
+encoding, publication and CLI handling stay in the shell adapter. The batch
+launcher applies its result without duplicating selection. The standalone
+loader has no shared-helper dependency and never exposes the shared repository
+root or its `tools` package to consumers. Policies remain live and independent.
+No domain-to-adapter dependency or DDD-Hexagonal violation was found.
+
+Fresh physical counts are 226 lines for the builder, 112 for the shell adapter,
+151 for the loader and 338 for the existing scratch router. The largest new
+test file has 281 lines; every Python file remains below 650 lines.
+No architecture or file-size issue needs addressing.
 
 ### Performance check for Step 4
 
-_(empty: no check has taken place yet.)_.
+Selection has two possible names. Path and option cleanup scan their input
+once; source hashing and AST inspection are linear in named source bytes.
+No new quadratic computation or input-size sorting was introduced. The counted
+IO regression proves one read per required live source and cached loader on
+both fresh and repeated preparation. Publication creates only a temporary
+loader directory; preparation creates no consumer artifact home. Runtime
+preflight is startup work and adds no per-test or per-event filesystem scan.
+
+Property tests use bulk byte draws in 20 batches of five examples per property,
+preserving 100 examples while keeping each measured lifecycle small. Focused
+tests passed. `ghog day --whole-suite` finished with exit 0 on
+2026-11-09 at 16:06:11 +01:00, with zero failures, warnings or expected failures.
+Default day deliberately skipped full-suite coverage and duration reporting.
+The final `ghog day --full=speed --whole-suite` finished with exit 0 at
+16:08:38 +01:00 on the same date: 100% coverage, zero duration outliers,
+zero exclusions and zero failures, warnings or expected failures.
+This refreshed evidence includes all accepted round 1 transport and empty-path
+repairs; no exclusion, process permission or budget was added.
+No performance issue needs addressing.
 
 ### Unit test coverage check for Step 4
 
-_(empty: no check has taken place yet.)_.
+The configured line-coverage source is `tools`, using `sysmon`; all three new
+production modules are inside that scope. The final full speed day measured
+100% line coverage across that source scope. Static review finds dedicated tests for public entry
+points and their helpers: invalid selection/contracts, deselection, repeated
+preparation, preserved options, cache races/corruption/interruption, counted IO,
+independent bindings, transport failures and both delayed-expansion states.
+Transport regressions cover non-ASCII values under code pages 850 and 65001,
+unrepresentable values and filenames, distinct outputs, failure isolation and
+stdout failure cleanup. Selected preparation with an empty incoming
+`PYTHONPATH` adds no empty entry.
+The first full coverage report identified one uncovered empty-variable removal
+branch. The owned-only deselection regression now verifies that no empty
+activation variables remain, and the final full run covers that branch.
+Loader tests cover selected imports, preflight order, missing checkout/cache,
+usage errors, root containment, canonical identity conflicts, duplicate-safe
+registration, the version guard and consumer package preservation.
+
+The new exception class has no executable methods. No unit-tested class below
+100% needs completing. The test/helper files outside the coverage source are
+exercised by pytest collection or the existing scratch routing; no new top-level
+symbol outside the coverage gate is unreferenced. Actual Windows execution
+and a real Python 3.12 run remain their planned later acceptance checks.
 
 ### Feature integrity for Step 4
 
-_(empty: no check has taken place yet.)_.
+Empty selection leaves unrelated environments intact; deselection removes only
+owned activation. Preparation never mutates the supplied environment or
+imports policy bodies. Cache corruption fails without overwriting an entry.
+Shell transfer preserves representable non-ASCII values and refuses the
+complete result before application when its console code page cannot encode
+it. Concurrent preparations own distinct transfer files; failure never deletes
+another preparation's output. Step 7 retains the actual OEM code-page,
+concurrency and drive-root executable checks.
+Separate prepared environments retain their own checkout binding. Only-cache
+removal uses the live loader; only-checkout removal still refuses selected
+policies through the cached bootstrap. Explicit policy imports preserve
+consumer `tools` and `tests` identities and do not change `sys.path`.
+The environment-contract search contains only the three approved binding
+variables, `PYTHONPATH` and `PYTEST_ADDOPTS`. Existing own-suite enforcement
+and reporting passed the affected-test gate; no exemption or budget changed.
 
 ## Step 5. Prepared environments for every groundhog pytest child
 
