@@ -7,37 +7,54 @@ Step 3 adds pattern declarations to those settings, `.env`-style line files,
 `.release.ini` and nested-file writers, a `VersionInputs` builder over a
 `git_sandbox` project and a synthetic adapter that locates one fixed span
 and logs each root it visits, standing in for adapters later steps add.
-Nothing here starts a process or interprets a version.
+Step 4 adds the transition's fixed clock and process id, a project builder,
+the restoration fixture registry that Steps 5 to 7 extend with their
+adapters' files (plan decision Q01), managed replacement and removal that
+record calls and fail the chosen ones, a recording view factory and evidence
+declarations. Nothing here starts a process or interprets a version.
 """
 
 from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING
 
 from tools.release_workflow.artifacts import resolve_artifacts
 from tools.release_workflow.configuration import load_configuration
+from tools.release_workflow.managed_files import ManagedWriteError, replace_bytes
 from tools.release_workflow.paths import ProjectIdentity
 from tools.release_workflow.sources.model import (
     Detection,
+    FileView,
     Form,
     LocatedSource,
     PatternDeclaration,
     Span,
     VersionInputs,
+    VersionToken,
 )
+from tools.release_workflow.version_evidence import remove_managed
+from tools.release_workflow.version_transition import TransitionPorts
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Callable, Mapping, Sequence
     from pathlib import Path
 
     from tests.unit.tools.release_workflow.git_test_support import GitSandbox
-    from tools.release_workflow.sources.model import AdapterSettings, FileView
+    from tools.release_workflow.managed_files import ManagedTarget
+    from tools.release_workflow.sources.model import AdapterSettings
+    from tools.release_workflow.windows_process import ProcessIdentity, ProcessState
 
 BOM = b"\xef\xbb\xbf"
 UMBRELLA_PATTERN = r"^APP_SERVICE_VERSION=(.+)$"
 _FIRST_SIX = Span(0, 6)
+FIXED_NOW = datetime(2026, 11, 9, 12, 0, tzinfo=timezone(timedelta(hours=1)))
+TRANSITION_PID = 4242
+EVIDENCE_NAME = "a.version-transition.20261109T120000+0100-4242"
+TARGET = VersionToken.parse("0.14.0")
+PATTERN_INI = f"[source:cicd-env]\nfile = cicd/config/.env\npattern = {UMBRELLA_PATTERN}\nform = snapshot\n"
 
 
 @dataclass(frozen=True)
@@ -145,6 +162,129 @@ class SyntheticAdapter:
         """Report a candidate when the content mentions `version`."""
         del name
         return b"version" in content
+
+
+def version_project(sandbox: GitSandbox, files: Mapping[str, bytes], ini: str = "") -> VersionInputs:
+    """Write the files and `.release.ini` of sandbox repository A and load its inputs."""
+    root = sandbox.home / "A"
+    if ini:
+        write_release_ini(root, ini)
+    for relative, content in files.items():
+        write_file(root, relative, content)
+    return version_inputs(sandbox, root)
+
+
+@dataclass(frozen=True)
+class RestorationFixture:
+    """One adapter's files at 0.13.0 and how many files a `set 0.14.0` rewrites."""
+
+    files: Mapping[str, bytes]
+    ini: str = ""
+    writes: int = 1
+
+
+# The restoration contract registry: Steps 5, 6 and 7 add their adapters' sets,
+# and Step 7 the combined five-file project (plan decision Q01).
+RESTORATION_FIXTURES: dict[str, RestorationFixture] = {
+    "anchor": RestorationFixture({"version.txt": version_txt("0.13.0 -- Old", "Notes\n", newline="\r\n", bom=True)}),
+    "pattern": RestorationFixture({
+        "version.txt": version_txt("0.13.0-SNAPSHOT"),
+        "cicd/config/.env": lines_file(["A=1", "APP_SERVICE_VERSION=0.13.0-SNAPSHOT"], newline="\r\n"),
+    }, PATTERN_INI, writes=2),
+    "two-claims": RestorationFixture({
+        "version.txt": version_txt("0.13.0"),
+        "deploy.env": lines_file(["API=0.13.0", "WEB=0.13.0"]),
+    }, "[source:api]\nfile = deploy.env\npattern = ^API=(.+)$\nform = core\n"
+       "[source:web]\nfile = deploy.env\npattern = ^WEB=(.+)$\nform = snapshot\n", writes=2),
+}
+
+
+@dataclass
+class Faults:
+    """Managed replacement and removal that record each call and fail the chosen ones.
+
+    A source write is any replacement outside the artifact home; `fail_write`
+    fails the one at that position. `fail_when` fails any replacement it
+    accepts, `tamper` changes the bytes actually written, `after_write` runs
+    after each source write, and `fail_remove` fails removing that name.
+    """
+
+    home: Path
+    fail_write: int | None = None
+    fail_when: Callable[[Path, bytes], bool] | None = None
+    tamper: Callable[[Path, bytes], bytes] | None = None
+    after_write: Callable[[int], None] | None = None
+    fail_remove: str | None = None
+    sources: list[Path] = field(default_factory=list["Path"])
+    evidence: list[tuple[str, bytes]] = field(default_factory=list[tuple[str, bytes]])
+    removed: list[str] = field(default_factory=list[str])
+
+    def replace(self, target: ManagedTarget, content: bytes) -> None:
+        """Record the write, fail it when chosen, otherwise replace the bytes."""
+        path = target.path
+        if self.fail_when is not None and self.fail_when(path, content):
+            msg = f"injected failure writing {path.name}"
+            raise ManagedWriteError(msg)
+        if path.is_relative_to(self.home):
+            self.evidence.append((path.name, content))
+            replace_bytes(target, content)
+            return
+        position = len(self.sources)
+        self.sources.append(path)
+        if position == self.fail_write:
+            msg = f"injected failure at source write {position}"
+            raise ManagedWriteError(msg)
+        replace_bytes(target, content if self.tamper is None else self.tamper(path, content))
+        if self.after_write is not None:
+            self.after_write(position)
+
+    def remove(self, target: ManagedTarget) -> None:
+        """Record the removal, fail it when chosen, otherwise remove the path."""
+        if target.path.name == self.fail_remove:
+            msg = f"injected failure removing {target.path.name}"
+            raise OSError(msg)
+        self.removed.append(target.path.name)
+        remove_managed(target)
+
+    def ports(self, probe: Callable[[ProcessIdentity], ProcessState]) -> TransitionPorts:
+        """Return transition ports with these faults, a fixed clock and process id."""
+        return TransitionPorts(replace=self.replace, remove=self.remove, probe=probe, clock=lambda: FIXED_NOW, pid=lambda: TRANSITION_PID)
+
+
+@dataclass
+class ViewLog:
+    """A file-view factory that keeps every view it creates, in order."""
+
+    views: list[FileView] = field(default_factory=list[FileView])
+
+    def __call__(self) -> FileView:
+        """Create, record and return a fresh view."""
+        view = FileView()
+        self.views.append(view)
+        return view
+
+
+def declare_evidence(home: Path, name: str, manifest: bytes | None, copies: Mapping[str, bytes] | None = None) -> Path:
+    """Declare an evidence directory as a stopped transition left it.
+
+    A home that does not exist yet is created with its `*` ignore file, as
+    an earlier transition prepared it.
+    """
+    if not home.exists():
+        home.mkdir(parents=True)
+        (home / ".gitignore").write_bytes(b"*\n")
+    directory = home / name
+    directory.mkdir()
+    for copy, content in (copies or {}).items():
+        (directory / copy).write_bytes(content)
+    if manifest is not None:
+        (directory / "manifest.json").write_bytes(manifest)
+    return directory
+
+
+def source_bytes(root: Path, relative_paths: Sequence[str]) -> dict[str, bytes]:
+    """Read the named files below a root."""
+    return {relative: (root / relative).read_bytes() for relative in relative_paths}
 
 
 # eof
