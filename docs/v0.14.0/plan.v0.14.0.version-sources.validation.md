@@ -502,9 +502,17 @@ No existing feature or reporting capability appears impaired.
 
 ### Analysis of Step 3 implementation state
 
-Not started. Step 3 is not implemented because `.release.ini` still rejects
-version sections, and no participating-root list, pattern adapter, claim
-registry or candidate listing exists.
+Yes. Step 3 has been fully implemented.
+
+`.release.ini` now accepts the version domain, `[source:<name>]` and
+`[component:<id>]`, validated for every command by a deferred validator that
+loads the source settings only when a version section exists. The pattern
+adapter matches once on a CRLF-to-LF view and maps its capture back to the
+original bytes. Detection runs every adapter over every participating root,
+registers claims by path, field and byte span, composes per-file edits from
+one original and lists undeclared candidates from one Git listing. Every
+planned test, the property test and the completion checks are in place, and
+the command printed by `pw scope day` reports `exit=0`.
 
 ### Goal for Step 3
 
@@ -527,27 +535,216 @@ undeclared candidates from one Git listing.
 
 ### What was implemented for Step 3
 
-_(empty — no check has taken place yet.)_.
+- **Version schema** (plan decision Q02): `schemas.VERSION_SCHEMA` declares
+  the `source:` family (`form`, managed `file`, `pattern`) and the
+  `component:` family (required managed `root`); `SHIPPED_SCHEMAS` is
+  `(TOOLING_SCHEMA, VERSION_SCHEMA)`. `_validate_version` returns at once when
+  no `source:` or `component:` section is declared, otherwise imports
+  `sources.settings` and calls `validate_settings`, so loading a configuration
+  without version sections imports no `tools.release_workflow.sources` module.
+- **Settings**: `validate_settings(sections, adapters=ADAPTERS)` applies the
+  per-instance rules of "Sections and keys". A registered adapter other than
+  the reserved `anchor` and `pattern` names a built-in section that takes only
+  `form`, within that adapter's `forms` (design decision Q10). `anchor` and
+  `pattern` cannot be declared. Every other name is a pattern source that
+  needs `file`, `pattern` (compiled with `re.MULTILINE`, exactly one capture
+  group) and `form`. A component root must lie below the project root, not
+  under a name of `EXCLUDED_DIRECTORIES` (compared with the filesystem's case
+  rules), and must not repeat another declaration's directory. Each failure
+  names the section and key, and the loader reports it as a
+  `ConfigurationError` (status 2). `read_settings(configuration, adapters)`
+  returns `VersionSettings` (project root, form overrides by adapter name,
+  pattern declarations, components by id, all in declaration order); the
+  project root is the directory of the `.release.ini` the loader read, the
+  only root the validator's mappings carry.
+- **Pattern sources** (design decision Q09): `pattern.lf_view` reads each CRLF
+  as LF in one pass and records where each such line feed lands, and
+  `LfView.original_offset` maps a view offset back to the original text. The
+  `pattern` adapter, with no default form and every form allowed, locates the
+  declared sources only at the project root. It requires the file to exist
+  (never created) and to be UTF-8. Its expression must match exactly once,
+  with a nonempty capture that is a version token, without `-SNAPSHOT` unless
+  the form is `snapshot`. The capture is mapped to a byte span through
+  `to_byte_spans`, so a replacement keeps every line ending; each failure
+  names `[source:<name>]` and the file (status 2).
+- **Detection**: `participating_roots(settings)` returns the project root then
+  each component root, failing when a component root is missing or not a
+  directory. `detect(inputs, view, adapters=ADAPTERS)` runs every adapter over
+  every root in tuple order. It refuses a second claim on one path and field,
+  a span outside its file and any overlapping spans of one file, naming both
+  claimants with their adapter, field and root, and captures each
+  participating file once from the same view. `plan_edits(inventory, anchor,
+  adapters=ADAPTERS)` runs the release-only guard for every source, then
+  composes one `FileEdit` per changed file from its captured original through
+  `model.compose`, with its `SourceChange` records.
+  `candidates(inputs, inventory, view, adapters=ADAPTERS)` makes one
+  `git.listing` call. It skips names under an excluded directory, the
+  artifact home, a participating root or the directory of a located manifest
+  file (a Maven module), and reads each remaining manifest file once to keep
+  those with a project version as `not-participating undeclared`.
+- **Registry**: `ADAPTERS = (anchor.ADAPTER, pattern.ADAPTER)` and
+  `SUPPORT_MODULES = frozenset({"model", "settings", "detection"})`.
+- **Model extension**: `model.PatternDeclaration` (name, path, compiled
+  expression, form) and `AdapterSettings.patterns`. The pattern adapter reads
+  its declarations through the same `detect` signature as every adapter, and
+  pyright strict refuses a narrower settings parameter in the registered
+  tuple. `model.py` is a Step 2 file outside this step's file list.
+- **Tests**: `test_schemas_tdd.py` checks the shipped tuple, the absence of any
+  source module import without version sections (the entries are removed from
+  `sys.modules` for the test first) and the delegation to the settings
+  validator. `test_version_settings_tdd.py` covers each accepted and rejected
+  declaration of the plan through `load_configuration`; until Steps 5 to 7
+  register `python`, `npm` and `maven`, synthetic adapters with the design's
+  forms stand in for them through a test registry.
+  `test_pattern_sources_tdd.py` covers the umbrella pattern on LF and CRLF,
+  the byte-order mark, accented and non-BMP text, two sources composing in one
+  file, and each failure. `test_pattern_sources_pbt.py` checks the view and
+  offset map over generated line lists. `test_version_detection_tdd.py` covers
+  claims, overlaps, root order, read counts, composition, the release-only
+  guard, component roots and candidates. `test_version_registry_tdd.py` checks
+  the new order. `version_support.py` adds pattern declarations to
+  `RootSettings` and adds line files, file and `.release.ini` writers, a
+  `VersionInputs` builder and a logging `SyntheticAdapter`.
+- **Validation evidence**: tests first, `ghog single` on the Step 3 test
+  folders with the schema and registry tests failed at collection (exit 4, six
+  `ImportError`s; 2026-11-09T09:59). After the implementation, the focused set
+  with `test_configuration`, `test_version_anchor` and `test_version_model`
+  passed except the property test's lifecycle CPU (0.234 s); redrawn from one
+  integer, it passed (10:15). `ghog day --whole-suite`, the command printed by
+  `pw scope day`, failed once at check.bat (an unused import, a test constant
+  named like a token, a dataclass call default, a lost `noqa` and radon grade
+  C on `candidates`), then reported `exit=0` on 2026-11-09T10:31 (check and
+  298 affected tests; the full stage is skipped at the default level).
+  `rg -n 'import tools.release_workflow.sources|from tools.release_workflow.sources' tools/release_workflow/schemas.py`
+  shows only the deferred import inside `_validate_version`, and the item 1
+  configuration tests pass unchanged.
+- **Line counts**: `schemas.py` 220, `sources/__init__.py` 23,
+  `sources/model.py` 410, `sources/settings.py` 175, `sources/pattern.py`
+  148, `sources/detection.py` 180, `version_support.py` 150,
+  `test_schemas_tdd.py` 151, `test_version_registry_tdd.py` 69,
+  `test_version_settings_tdd.py` 139, `test_pattern_sources_tdd.py` 131,
+  `test_pattern_sources_pbt.py` 54, `test_version_detection_tdd.py` 198,
+  initializers 3 each; every file stays below 650. Variance above the
+  advisory estimates: `pattern.py` 148 (130), `version_support.py` +102
+  (+60), `test_schemas_tdd.py` +61 (+8).
+
+- **Independent reviewer assessment (round 1)**: the staged implementation
+  satisfies Step 3. Configuration validation, CRLF offsets, duplicate and
+  overlapping claims, adapter-major order, per-file composition and candidate
+  filtering agree with the plan and their unit tests. The model extension
+  carries the pattern declarations through the existing adapter protocol and
+  stays within this step's behavior. Coverage was assessed statically against
+  the `tools` gate; the writer reports the whole-suite speed walk green with
+  100% measured coverage. The reviewer ran no test or coverage walk. The
+  current validation resolver matches the request, and the independent commit
+  checker is ready with four ordered groups and no diagnostics. No unresolved
+  finding or substantive reviewer repair remains.
 
 ### New types or classes introduced for Step 3
 
-_(empty — no check has taken place yet.)_.
+- `tools.release_workflow.schemas.VERSION_SCHEMA` and `_validate_version`.
+- `tools.release_workflow.sources.settings.VersionSettings`, `SettingsError`,
+  `EXCLUDED_DIRECTORIES`, `excluded_directory`, `validate_settings` and
+  `read_settings`.
+- `tools.release_workflow.sources.pattern.LfView`, `lf_view`,
+  `PatternAdapter` and `ADAPTER`.
+- `tools.release_workflow.sources.detection.participating_roots`, `detect`,
+  `plan_edits` and `candidates`.
+- `tools.release_workflow.sources.model.PatternDeclaration` and the
+  `AdapterSettings.patterns` property.
+- Test support: `version_support.SyntheticAdapter`, `lines_file`,
+  `write_file`, `write_release_ini`, `declare_pattern`, `project_identity`,
+  `version_inputs` and `UMBRELLA_PATTERN`, and the `test_version_settings`,
+  `test_pattern_sources` and `test_version_detection` test folders.
 
 ### Architecture check for Step 3
 
-_(empty — no check has taken place yet.)_.
+- **Foundation boundary**: `schemas.py` keeps importing no domain code at load
+  time; its one deferred import runs only for a declared version section, the
+  idiom `cli.py` and `artifacts.py` already use. `configuration.py` is
+  unchanged.
+- **Domain modules**: `settings.py` works on the loader's immutable mappings
+  and reads no file; `pattern.py` depends only on the model and never writes;
+  `detection.py` depends on the model, settings and the adapter tuple, reads
+  through the injected `FileView`, and reaches Git only through the
+  `GitExecutionContext` carried by `VersionInputs`. Foundation types are
+  imported for type checking only.
+- **Dependency direction**: the package initializer imports only the adapters;
+  `settings` and `detection` import the initializer's tuple, and no adapter
+  imports a support module, so there is no import cycle. Adapters never write,
+  lock or start a process; edits are composed for the Step 4 transition.
+
+No, there is nothing that needs to be addressed: no DDD-Hexagonal violation or
+smell is visible in this step.
 
 ### Performance check for Step 3
 
-_(empty — no check has taken place yet.)_.
+- **No new `O(n^2)` or `O(n log n)` path**: claims are indexed by path and
+  field in a dictionary; the only sort is over the spans of one file, a handful
+  of owned fields, as the plan prescribes. Candidate filtering is one pass
+  over the Git listing with set lookups, and each remaining manifest file is
+  read once.
+- **Pattern sources**: the CRLF-to-LF view is built in one pass; mapping the
+  two capture offsets costs one binary search each over the collapsed line
+  feeds; the match stops after a second occurrence.
+- **Configuration**: validation is one pass over the sections; a configuration
+  without version sections pays one scan of its section names and no import.
+- **Plan-bound alignment**: detection reads each file once per phase through
+  the view, and `list` adds exactly one Git call.
+
+No, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 3
 
-_(empty — no check has taken place yet.)_.
+The coverage gate measures `tools` only (`[tool.coverage.run] source`), with
+`*/tests/*` and `*/__init__.py` omitted.
+
+- **`tools/release_workflow/schemas.py`**: `_validate_version`'s early return
+  and its delegation are exercised by `test_schemas/test_schemas_tdd.py`; the
+  rest of the module keeps its item 1 tests; covered.
+- **`tools/release_workflow/sources/settings.py`**: every rule of
+  `_form`, `_pattern_source`, `_source` and `_component`, the accepted
+  override, pattern and component paths, and `read_settings` without version
+  sections are exercised by `test_version_settings/`; covered.
+- **`tools/release_workflow/sources/pattern.py`**: the view and offset map,
+  project and other roots, the missing and undecodable file, zero, several and
+  empty matches, both malformed values, rendering and the candidate answer are
+  exercised by `test_pattern_sources/`; covered.
+- **`tools/release_workflow/sources/detection.py`**: missing and file
+  component roots, the root order, duplicate, outside and overlapping claims,
+  captures, composition, the release-only guard, an absent capture, and every
+  candidate filter (non-manifest, excluded, artifact home, participating,
+  missing file, without version) are exercised by `test_version_detection/`;
+  covered.
+- **`tools/release_workflow/sources/model.py`**: the new `PatternDeclaration`
+  is built by the settings and pattern tests.
+- **`tools/release_workflow/sources/__init__.py`**: omitted by the gate; its
+  declarations are read by `test_version_registry`.
+- **Files outside the gate**: every new `version_support.py` symbol
+  (`SyntheticAdapter`, `lines_file`, `write_file`, `write_release_ini`,
+  `declare_pattern`, `project_identity`, `version_inputs`, `UMBRELLA_PATTERN`)
+  is referenced by the Step 3 tests or inside the module.
+
+No, there is no unit-tested class below 100% that needs completing for Step 3.
+No, none of the top-level symbols added outside the coverage gate is
+unreferenced.
 
 ### Feature integrity for Step 3
 
-_(empty — no check has taken place yet.)_.
+- **Existing feature behavior**: a configuration without version sections
+  loads as before, imports no source module, and still rejects unknown
+  sections and keys; the item 1 configuration and schema tests pass, the
+  schema test updated only for the shipped tuple. No shipped handler uses the
+  new modules yet.
+- **Reporting or diagnostics**: every new failure carries status 2 and names
+  its section and key, its `[source:<name>]` and file, or both claimants.
+- **Compatibility or rollout note**: until Steps 5 to 7 register `python`,
+  `npm` and `maven`, a `[source:npm]` section is read as a pattern source and
+  needs all three keys; the design's override semantics apply once each
+  adapter is registered. Step 4 consumes `detect` and `plan_edits`, and Step 9
+  `candidates`.
+
+No existing feature or reporting capability appears impaired.
 
 ---
 
