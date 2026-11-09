@@ -1,1 +1,1 @@
-Read and follow the canonical instruction at [`instructions/status-session.md`](../../../../../../../git/llm-shared/instructions/status-session.md).
+Read and follow the canonical instruction at [`instructions/status-session.md`](../../../instructions/status-session.md).

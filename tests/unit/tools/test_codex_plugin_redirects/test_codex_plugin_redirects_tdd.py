@@ -1,144 +1,77 @@
-"""Tests for cache-relative Codex plugin redirect validation."""
+"""Tests for clone-relative Codex skill package redirect validation.
+
+Fix: Codex reads the package through the user skills folder link, in the
+clone, so every redirect is checked relative to its own file there. The cache
+base, the manifest version lookup and the ``--installed`` mode are gone, and
+the command line takes only the clone root.
+"""
 
 from __future__ import annotations
 
-import json
 import sys
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 import pytest
 
 from tests.script_entry import run_main
+from tests.unit.tools.codex_skill_clone import write_clone
 from tools import codex_plugin_redirects
 
-if TYPE_CHECKING:
-    from pathlib import Path
-
-
-_VERSION = "1.2.3"
 _REDIRECT_KIND_COUNT = 3
+_PACKAGE = Path(".agents") / "llm-shared"
 
 
-def _roots(tmp_path: Path) -> tuple[Path, Path, Path]:
-    """Create canonical, plugin, and cache roots with a valid manifest."""
-    canonical = tmp_path / "canonical"
-    plugin = tmp_path / "plugin"
-    cache_base = tmp_path / "cache"
-    (canonical / "instructions").mkdir(parents=True)
-    (canonical / "rules").mkdir()
-    (canonical / "instructions" / "sample.md").write_text("# Sample\n", encoding="utf-8")
-    (canonical / "rules" / "docs_layout.md").write_text("# Layout\n", encoding="utf-8")
-    (plugin / ".codex-plugin").mkdir(parents=True)
-    (plugin / ".codex-plugin" / "plugin.json").write_text(
-        json.dumps({"version": _VERSION}),
-        encoding="utf-8",
-    )
-    return canonical, plugin, cache_base
-
-
-def _write_valid_redirects(
-    adapter: Path,
-    canonical: Path,
-    cache_root: Path,
-    frontmatter: str = "",
-) -> None:
-    """Write the exact redirect forms accepted by the validator."""
-    instruction = adapter / "instructions" / "sample.md"
-    skill = adapter / "skills" / "sample" / "SKILL.md"
-    rule = adapter / "rules" / "docs_layout.md"
-    instruction.parent.mkdir(parents=True)
-    skill.parent.mkdir(parents=True)
-    rule.parent.mkdir(parents=True)
-    instruction_url = codex_plugin_redirects._relative_url(
-        cache_root / "instructions" / "sample.md",
-        canonical / "instructions" / "sample.md",
-    )
-    skill_url = codex_plugin_redirects._relative_url(
-        cache_root / "skills" / "sample" / "SKILL.md",
-        canonical / "instructions" / "sample.md",
-    )
-    rule_url = codex_plugin_redirects._relative_url(
-        cache_root / "rules" / "docs_layout.md",
-        canonical / "rules" / "docs_layout.md",
-    )
-    instruction.write_text(
-        frontmatter
-        + "Read and follow the canonical instruction at "
-        f"[`instructions/sample.md`]({instruction_url}).\n",
-        encoding="utf-8",
-    )
-    skill.write_text(
-        frontmatter + f"Read and follow [the canonical instruction]({skill_url})\n",
-        encoding="utf-8",
-    )
-    rule.write_text(
-        frontmatter
-        + "Read and follow the canonical rule at "
-        f"[`rules/docs_layout.md`]({rule_url}).\n",
-        encoding="utf-8",
-    )
-
-
-def _set_argv(
-    monkeypatch: pytest.MonkeyPatch,
-    plugin: Path,
-    canonical: Path,
-    cache_base: Path,
-    *extra: str,
-) -> None:
-    """Set one complete validator command line."""
-    monkeypatch.setattr(
-        sys,
-        "argv",
-        ["codex_plugin_redirects.py", str(plugin), str(canonical), str(cache_base), *extra],
-    )
-
-
-@pytest.mark.parametrize("installed", [False, True])
 @pytest.mark.parametrize("frontmatter", ["", "---\nllm_nature: codex\n---\n\n"])
-def test_main_accepts_valid_source_and_installed_redirects(
+def test_main_accepts_clone_relative_redirects(
     tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
     frontmatter: str,
-    *,
-    installed: bool,
 ) -> None:
-    """Both supported adapter roots use links relative to the future cache."""
-    canonical, plugin, cache_base = _roots(tmp_path)
-    cache_root = cache_base / _VERSION
-    adapter = cache_root if installed else plugin
-    _write_valid_redirects(adapter, canonical, cache_root, frontmatter)
-    extra = ("--installed",) if installed else ()
-    _set_argv(monkeypatch, plugin, canonical, cache_base, *extra)
+    """Links relative to each adapter in the clone pass, with or without metadata."""
+    clone = write_clone(tmp_path / "clone", frontmatter=frontmatter)
 
-    assert codex_plugin_redirects.main() == 0
-    location = "installed cache" if installed else "plugin source"
-    assert f"in {location}:" in capsys.readouterr().out
+    assert codex_plugin_redirects.main([str(clone)]) == 0
+    assert "Validated clone-relative redirects in:" in capsys.readouterr().out
+
+
+def test_expected_links_climb_from_the_adapter_to_the_clone_root(tmp_path: Path) -> None:
+    """A wrapper climbs four levels and a compatibility redirect three."""
+    clone = tmp_path / "clone"
+    package = clone / _PACKAGE
+
+    skill = codex_plugin_redirects._relative_url(
+        package / "skills" / "sample" / "SKILL.md",
+        clone / "instructions" / "sample.md",
+    )
+    redirect = codex_plugin_redirects._relative_url(
+        package / "rules" / "docs_layout.md",
+        clone / "rules" / "docs_layout.md",
+    )
+
+    assert skill == "../../../../instructions/sample.md"
+    assert redirect == "../../../rules/docs_layout.md"
 
 
 @pytest.mark.parametrize("relative_path", ["instructions/sample.md", "rules/docs_layout.md"])
-@pytest.mark.parametrize("damage", ["wrong-link", "extra-prose", "unclosed-frontmatter"])
+@pytest.mark.parametrize("damage", ["cache-link", "extra-prose", "unclosed-frontmatter"])
 def test_metadata_does_not_hide_invalid_redirects(
     tmp_path: Path,
     relative_path: str,
     damage: str,
 ) -> None:
-    """Metadata cannot make a wrong link, forked body or unclosed header valid."""
-    canonical, plugin, cache_base = _roots(tmp_path)
-    cache_root = cache_base / _VERSION
-    _write_valid_redirects(plugin, canonical, cache_root, "---\nllm_nature: codex\n---\n\n")
-    adapter = plugin / relative_path
+    """Metadata cannot make a cache link, forked body or unclosed header valid."""
+    clone = write_clone(tmp_path / "clone", frontmatter="---\nllm_nature: codex\n---\n\n")
+    adapter = clone / _PACKAGE / relative_path
     content = adapter.read_text(encoding="utf-8")
-    if damage == "wrong-link":
-        content = content.replace("canonical/", "wrong-root/")
+    if damage == "cache-link":
+        content = content.replace("](../../../", "](../../../../../../../git/llm-shared/")
     elif damage == "extra-prose":
         content += "Additional workflow instructions.\n"
     else:
         content = content.replace("\n---\n", "\n")
     adapter.write_text(content, encoding="utf-8")
 
-    errors = codex_plugin_redirects._validate_redirects(plugin, canonical, cache_root)
+    errors = codex_plugin_redirects.validate_redirects(clone)
 
     assert len(errors) == 1
     assert str(adapter) in errors[0]
@@ -147,53 +80,38 @@ def test_metadata_does_not_hide_invalid_redirects(
 @pytest.mark.parametrize("write_wrong", [False, True])
 def test_main_reports_every_missing_or_wrong_redirect(
     tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
     *,
     write_wrong: bool,
 ) -> None:
     """Instruction, skill, and rule diagnostics are accumulated together."""
-    canonical, plugin, cache_base = _roots(tmp_path)
-    if write_wrong:
-        for path in (
-            plugin / "instructions" / "sample.md",
-            plugin / "skills" / "sample" / "SKILL.md",
-            plugin / "rules" / "docs_layout.md",
-        ):
-            path.parent.mkdir(parents=True, exist_ok=True)
+    clone = write_clone(tmp_path / "clone")
+    for relative in ("instructions/sample.md", "skills/sample/SKILL.md", "rules/docs_layout.md"):
+        path = clone / _PACKAGE / relative
+        if write_wrong:
             path.write_text("wrong\n", encoding="utf-8")
-    _set_argv(monkeypatch, plugin, canonical, cache_base)
+        else:
+            path.unlink()
 
-    assert codex_plugin_redirects.main() == 1
+    assert codex_plugin_redirects.main([str(clone)]) == 1
     error = capsys.readouterr().err
-    expected = "wrong cache-relative redirect" if write_wrong else "missing"
+    expected = "wrong clone-relative redirect" if write_wrong else "missing"
     assert error.count(expected) == _REDIRECT_KIND_COUNT
 
 
-@pytest.mark.parametrize("version", [None, ""])
-def test_plugin_version_rejects_missing_or_empty_value(tmp_path: Path, version: object) -> None:
-    """The cache directory cannot be derived without a non-empty string version."""
-    manifest = tmp_path / ".codex-plugin" / "plugin.json"
-    manifest.parent.mkdir()
-    manifest.write_text(json.dumps({"version": version}), encoding="utf-8")
-
-    with pytest.raises(ValueError, match="missing plugin version"):
-        codex_plugin_redirects._plugin_version(tmp_path)
-
-
-def test_script_guard_exits_with_main_result(
-    tmp_path: Path,
+def test_script_guard_validates_the_clone_holding_the_tool(
     monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """Direct execution delegates to the same validated CLI entry point."""
-    canonical, plugin, cache_base = _roots(tmp_path)
-    _write_valid_redirects(plugin, canonical, cache_base / _VERSION)
-    _set_argv(monkeypatch, plugin, canonical, cache_base)
+    """Direct execution without arguments checks this repository's own package."""
+    monkeypatch.setattr(sys, "argv", ["codex_plugin_redirects.py"])
 
     with pytest.raises(SystemExit) as raised:
         run_main(codex_plugin_redirects.__file__)
 
     assert raised.value.code == 0
+    root = Path(codex_plugin_redirects.__file__).resolve().parent.parent
+    assert str(root / _PACKAGE) in capsys.readouterr().out
 
 
 # eof

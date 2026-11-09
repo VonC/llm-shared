@@ -1,11 +1,15 @@
-"""Tests for the llm-shared replacement of the Codex plugin-creator helpers.
+"""Tests for the read-only validation of the llm-shared Codex skill package.
 
-Codex no longer installs the plugin-creator scripts that ``llmup`` called, so
-``tools/codex_plugin_package.py`` validates the package, replaces its manifest
-cachebuster and reads the personal marketplace name with the standard library.
+``tools/codex_plugin_package.py`` validates the manifest and every wrapper
+with the standard library, so ``llmup`` needs neither the Codex plugin-creator
+scripts nor PyYAML.
 
-Fix: typed JSON access keeps strict pyright clean; a marketplace whose plugin
-list holds non-object entries still reports the missing plugin entry.
+Fix: typed JSON access keeps strict pyright clean.
+
+Fix: Codex reads the package through the user skills folder link, so no
+cachebuster is written any more: the ``bump-version`` and
+``marketplace-name`` commands are gone, the shipped manifest keeps a plain
+version, and ``validate`` is the only command left.
 
 Locate the shipped package through its own module, so this repository contract
 does not collect unrelated prompt-workflow dependency fingerprints.
@@ -16,16 +20,13 @@ from __future__ import annotations
 import json
 import runpy
 import sys
-from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
 
 from tools import codex_plugin_package
 
-_VERSION = "0.1.0+codex.20260910164658"
-_NOW = datetime(2026, 10, 19, 8, 30, 15, tzinfo=UTC)
-_STAMP = "20261019083015"
+_VERSION = "0.1.0"
 _DEFAULT_HEADER = 'name: sample\ndescription: "Run the sample workflow."\n'
 
 
@@ -52,21 +53,16 @@ def _package(tmp_path: Path, **overrides: object) -> Path:
     return root
 
 
-def _marketplace(tmp_path: Path, data: object, encoding: str = "utf-8") -> Path:
-    """Write one marketplace file, optionally with a BOM as PowerShell writes it."""
-    path = tmp_path / "marketplace.json"
-    path.write_text(json.dumps(data), encoding=encoding)
-    return path
-
-
-def test_repository_package_is_valid() -> None:
-    """The shipped package passes the checks that llmup runs before installing."""
+def test_repository_package_is_valid_with_a_plain_version() -> None:
+    """The shipped package passes the checks llmup runs, with no cachebuster suffix."""
     root = Path(codex_plugin_package.__file__).resolve().parent.parent / ".agents" / "llm-shared"
 
     errors, count = codex_plugin_package.validate_package(root)
+    manifest = json.loads((root / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8"))
 
     assert errors == []
     assert count == len([path for path in (root / "skills").iterdir() if path.is_dir()])
+    assert manifest["version"] == _VERSION
 
 
 def test_main_validate_reports_the_skill_count(
@@ -240,94 +236,23 @@ def test_unusable_manifest_or_skills_path_stops_validation(
     assert expected in errors[0]
 
 
-@pytest.mark.parametrize(
-    ("version", "expected"),
-    [
-        (_VERSION, f"0.1.0+codex.{_STAMP}"),
-        ("1.2.3", f"1.2.3+codex.{_STAMP}"),
-        ("1.2.3+build.7", f"1.2.3+codex.{_STAMP}"),
-        ("0.1.0+codex.20991231235959", "0.1.0+codex.20991231235960"),
-    ],
-)
-def test_bump_version_replaces_only_the_version_value(
+@pytest.mark.parametrize("command", ["bump-version", "marketplace-name"])
+def test_plugin_install_commands_are_gone(
     tmp_path: Path,
-    version: str,
-    expected: str,
+    capsys: pytest.CaptureFixture[str],
+    command: str,
 ) -> None:
-    """The suffix becomes a newer cachebuster and every other byte is kept."""
-    root = _package(tmp_path, version=version)
+    """Only validate remains: nothing rewrites the manifest or reads a marketplace."""
+    root = _package(tmp_path)
     manifest = root / ".codex-plugin" / "plugin.json"
     before = manifest.read_bytes()
 
-    assert codex_plugin_package.bump_version(root, _NOW) == expected
-    assert manifest.read_bytes() == before.replace(version.encode(), expected.encode())
-    assert b"\r" not in manifest.read_bytes()
+    with pytest.raises(SystemExit) as raised:
+        codex_plugin_package.main([command, str(root)])
 
-
-@pytest.mark.parametrize("text", ['{"name": "llm-shared"}\n', '{"version": "1", "x": {"version": "2"}}\n'])
-def test_bump_version_needs_exactly_one_version_field(tmp_path: Path, text: str) -> None:
-    """An absent or repeated version field is never guessed."""
-    root = _package(tmp_path)
-    (root / ".codex-plugin" / "plugin.json").write_text(text, encoding="utf-8")
-
-    with pytest.raises(ValueError, match="exactly one version field"):
-        codex_plugin_package.bump_version(root, _NOW)
-
-
-def test_main_bump_version_prints_the_new_version(
-    tmp_path: Path,
-    capsys: pytest.CaptureFixture[str],
-) -> None:
-    """The command line uses the current time and reports the written version."""
-    root = _package(tmp_path)
-
-    assert codex_plugin_package.main(["bump-version", str(root)]) == 0
-
-    out = capsys.readouterr().out
-    assert out.startswith("Plugin version: 0.1.0+codex.")
-    assert _VERSION not in out
-
-
-def test_marketplace_name_reads_a_bom_file_with_the_plugin_entry(
-    tmp_path: Path,
-    capsys: pytest.CaptureFixture[str],
-) -> None:
-    """The name alone is printed, so the launcher can capture it."""
-    data = {"name": "personal", "plugins": [{"name": "other"}, {"name": "llm-shared"}]}
-    path = _marketplace(tmp_path, data, encoding="utf-8-sig")
-
-    assert codex_plugin_package.marketplace_name(path, "llm-shared") == "personal"
-    assert codex_plugin_package.main(["marketplace-name", str(path)]) == 0
-    assert capsys.readouterr().out == "personal\n"
-
-
-@pytest.mark.parametrize(
-    ("data", "plugin", "expected"),
-    [
-        (None, "llm-shared", "unreadable marketplace"),
-        (["personal"], "llm-shared", "marketplace name must use letters"),
-        ({"name": "my market"}, "llm-shared", "marketplace name must use letters"),
-        ({"name": "personal", "plugins": {}}, "llm-shared", "has no llm-shared entry"),
-        # A non-object entry is never a match.
-        ({"name": "personal", "plugins": ["llm-shared", None]}, "llm-shared", "has no llm-shared entry"),
-        ({"name": "personal", "plugins": [{"name": "llm-shared"}]}, "other", "has no other entry"),
-    ],
-)
-def test_marketplace_problems_fail_the_command(
-    tmp_path: Path,
-    capsys: pytest.CaptureFixture[str],
-    data: object,
-    plugin: str,
-    expected: str,
-) -> None:
-    """A missing file, unusable name or absent plugin entry prints one error."""
-    path = tmp_path / "missing.json" if data is None else _marketplace(tmp_path, data)
-
-    assert codex_plugin_package.main(["marketplace-name", str(path), "--plugin", plugin]) == 1
-
-    captured = capsys.readouterr()
-    assert captured.out == ""
-    assert expected in captured.err
+    assert raised.value.code == 2  # noqa: PLR2004 - argparse usage error
+    assert "invalid choice" in capsys.readouterr().err
+    assert manifest.read_bytes() == before
 
 
 def test_main_validate_prints_every_error(

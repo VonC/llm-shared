@@ -4,4 +4,4 @@ description: Resume an interrupted review through its typed migration, status, a
 llm_nature: codex
 ---
 
-Read and follow [the canonical instruction](../../../../../../../../git/llm-shared/instructions/review-resume.md)
+Read and follow [the canonical instruction](../../../../instructions/review-resume.md)

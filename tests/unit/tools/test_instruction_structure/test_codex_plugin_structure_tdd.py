@@ -1,8 +1,14 @@
-"""Structural checks for the packaged Codex plugin.
+r"""Structural checks for the Codex skill package.
 
 Fix: the Grok adapters (``.grok``) are scanned for canonical copies too, and
-``llmup`` validates and bumps the plugin with llm-shared's own package tool,
-since Codex no longer installs the plugin-creator helper scripts.
+``llmup`` validates the package with llm-shared's own package tool, since
+Codex no longer installs the plugin-creator helper scripts.
+
+Fix: Codex reads the skills through the ``%USERPROFILE%\.agents\skills``
+link to the clone, so every wrapper and compatibility redirect links relative
+to its own file in the clone and must resolve there. ``llmup`` became
+``bin\codex_skills_link.bat``, a read-only check of that link: no version
+bump, no plugin install, no installed cache.
 """
 
 from __future__ import annotations
@@ -70,14 +76,16 @@ def test_codex_plugin_redirects_every_instruction(instruction_name: str) -> None
     source = (ROOT / "instructions" / instruction_name).read_bytes()
     skill_redirect = (
         "Read and follow [the canonical instruction]"
-        f"(../../../../../../../../git/llm-shared/instructions/{instruction_name})"
+        f"(../../../../instructions/{instruction_name})"
     )
     packaged_redirect = (
         "Read and follow the canonical instruction at "
         f"[`instructions/{instruction_name}`]"
-        f"(../../../../../../../git/llm-shared/instructions/{instruction_name}).\n"
+        f"(../../../instructions/{instruction_name}).\n"
     )
     assert skill.rstrip().endswith(skill_redirect)
+    assert (plugin / "skills" / skill_name / "../../../../instructions" / instruction_name).is_file()
+    assert (plugin / "instructions" / "../../../instructions" / instruction_name).is_file()
     packaged_body = packaged
     if packaged.startswith("---\n"):
         assert LlmNatureDetector.adapter_nature(packaged) is LlmNature.CODEX
@@ -96,7 +104,7 @@ def test_codex_plugin_redirects_to_the_docs_layout_rule() -> None:
 
     assert packaged == (
         "Read and follow the canonical rule at "
-        "[`rules/docs_layout.md`](../../../../../../../git/llm-shared/rules/docs_layout.md).\n"
+        "[`rules/docs_layout.md`](../../../rules/docs_layout.md).\n"
     )
     assert packaged != source
 
@@ -109,46 +117,28 @@ def test_llm_specific_markdown_never_copies_canonical_markdown(adapter: Path, ca
     assert all(content != candidate.read_bytes() for candidate in candidates), adapter
 
 
-def _assert_llmup_launcher(doskeys: str, launcher: str) -> None:
-    """Check the alias and launcher validation pipeline.
-
-    The launcher runs llm-shared's own package tool with the llm-shared Python:
-    Codex no longer installs the plugin-creator helper scripts it used to call.
-    """
-    assert 'llmup="%LLM_SHARED_DIR%\\bin\\update_llm_shared_plugin.bat"' in doskeys
-    assert "codex_plugin_package.py" in launcher
-    assert 'python "%PACKAGE_TOOL%" validate "%PLUGIN_ROOT%"' in launcher
-    assert 'python "%PACKAGE_TOOL%" bump-version "%PLUGIN_ROOT%"' in launcher
-    assert "plugin-creator\\scripts" not in launcher
-    assert "uv.exe" not in launcher
-
-
-def _assert_llmup_installation(launcher: str) -> None:
-    """Check redirect generation and marketplace replacement commands."""
-    assert 'marketplace-name "%MARKETPLACE_FILE%"' in launcher
-    assert "codex_plugin_redirects.py" in launcher
-    assert "--installed" in launcher
-    assert "plugin add llm-shared@%MARKETPLACE_NAME%" in launcher
-
-
 @pytest.mark.parametrize(("page", "expected"), [
     ("how-to/pick-up-skill-edits-without-restarting.md", "llmup"),
-    ("how-to/register-skills-as-a-codex-plugin.md", "llmup"),
+    ("how-to/link-the-skills-into-codex.md", "llmup --create"),
+    ("how-to/link-the-skills-into-codex.md", "codex plugin remove llm-shared@personal"),
     ("reference/aliases-and-launchers.md", "llmup"),
-    ("reference/repository-layout.md", "update_llm_shared_plugin"),
+    ("reference/repository-layout.md", "codex_skills_link"),
 ])
 def test_llmup_documentation(page: str, expected: str) -> None:
     """Check each independently editable page against its shortcut contract."""
     assert expected in (steps.llm_shared_dir() / "wiki" / page).read_text(encoding="utf-8")
 
 
-def test_llmup_alias_refreshes_the_personal_codex_plugin() -> None:
-    """The console shortcut keeps the documented plugin update loop together."""
+def test_llmup_alias_only_checks_the_codex_skills_link() -> None:
+    """The console shortcut runs the self-locating link check, never a plugin install."""
     root = steps.llm_shared_dir()
     doskeys = (root / "senv.doskey").read_text(encoding="utf-8")
-    launcher = (root / "bin" / "update_llm_shared_plugin.bat").read_text(
-        encoding="utf-8",
-    )
-    _assert_llmup_launcher(doskeys, launcher)
-    _assert_llmup_installation(launcher)
-    assert 'findstr /I /C:"llm-shared@%MARKETPLACE_NAME%"' in launcher
+    launcher = (root / "bin" / "codex_skills_link.bat").read_text(encoding="utf-8")
+
+    assert 'llmup="%LLM_SHARED_DIR%\\bin\\codex_skills_link.bat" $*' in doskeys
+    assert "update_llm_shared_plugin" not in doskeys
+    assert not (root / "bin" / "update_llm_shared_plugin.bat").exists()
+    assert 'set "CLONE_DIR=%~dp0.."' in launcher
+    assert '-I "%CLONE_DIR%\\tools\\codex_skills_link.py" %*' in launcher
+    for removed in ("bump-version", "plugin add", "marketplace", "%LLM_SHARED_DIR%", "uv.exe"):
+        assert removed not in launcher

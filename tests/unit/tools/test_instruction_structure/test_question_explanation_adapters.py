@@ -50,11 +50,15 @@ MERMAID_LABEL_COLUMNS = 40
 
 
 @pytest.mark.parametrize(
-    "folder",
-    [".agents/llm-shared/skills", ".claude/skills", ".github/skills"],
+    ("folder", "levels"),
+    [(".agents/llm-shared/skills", 4), (".claude/skills", 3), (".github/skills", 3)],
 )
-def test_skill_discovery_and_direct_redirect(folder: str) -> None:
-    """Each skill is discoverable and carries no independent workflow body."""
+def test_skill_discovery_and_direct_redirect(folder: str, levels: int) -> None:
+    """Each skill is discoverable, carries no independent workflow body, and resolves in the clone.
+
+    Codex reads its wrapper through the user skills folder link to the clone,
+    so its link resolves from the clone like the other hosts' links.
+    """
     path = ROOT / folder / SKILL / "SKILL.md"
     content = path.read_text(encoding="utf-8")
     metadata, body = content[4:].split("\n---\n", 1)
@@ -62,12 +66,11 @@ def test_skill_discovery_and_direct_redirect(folder: str) -> None:
     assert "description:" in metadata
     assert body.strip().startswith("Read and follow [the canonical instruction]")
     assert len(body.strip().splitlines()) == 1
-    assert f"instructions/{SKILL}.md" in body
+    link = "../" * levels + f"instructions/{SKILL}.md"
+    assert f"]({link})" in body
+    assert (path.parent / link).resolve().is_file()
     if folder != ".agents/llm-shared/skills":
         assert "user-invocable: true" in metadata
-        assert (
-            (path.parent / "../../../instructions" / f"{SKILL}.md").resolve().is_file()
-        )
 
 
 @pytest.mark.parametrize(

@@ -3,6 +3,9 @@
 Step 4 keeps coordination guidance in one root instruction. Provider-specific
 Markdown carries discovery metadata and a direct redirect only, so later
 requestor integrations cannot fork the lifecycle rules.
+
+Fix: the Codex redirects link relative to their own file in the clone, which
+Codex reads through the user skills folder link, instead of a plugin cache.
 """
 
 from __future__ import annotations
@@ -72,8 +75,8 @@ def test_provider_files_redirect_directly_to_canonical_instruction() -> None:
     )
 
     assert "instructions/review-requestor.md" in workflow
-    assert "../../../../../../../git/llm-shared/instructions/review-requestor.md" in packaged
-    assert "../../../../../../../../git/llm-shared/instructions/review-requestor.md" in skill
+    assert "](../../../instructions/review-requestor.md)" in packaged
+    assert "](../../../../instructions/review-requestor.md)" in skill
     assert canonical not in workflow
     assert canonical not in packaged
     assert canonical not in skill

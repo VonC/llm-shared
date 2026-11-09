@@ -1,1 +1,1 @@
-"""Coverage package for Codex plugin package validation, versioning and lookup."""
+"""Coverage package for the read-only Codex skill package validation."""

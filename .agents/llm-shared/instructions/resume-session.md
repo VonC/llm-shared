@@ -1,1 +1,1 @@
-Read and follow the canonical instruction at [`instructions/resume-session.md`](../../../../../../../git/llm-shared/instructions/resume-session.md).
+Read and follow the canonical instruction at [`instructions/resume-session.md`](../../../instructions/resume-session.md).

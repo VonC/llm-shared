@@ -50,6 +50,7 @@ _SCENARIOS = (
     "tests/unit/tools/test_groundhog_acceptance_day.py",
     "tests/unit/tools/test_groundhog_acceptance_durations.py",
     "tests/unit/tools/test_codex_plugin_redirects/",
+    "tests/unit/tools/test_codex_skills_link/",
     "tests/unit/tools/test_effort_scope/",
     "tests/unit/tools/test_groundhog_proof/", "tests/unit/tools/test_groundhog_levels",
     "tests/unit/tools/test_groundhog_listings/", "tests/unit/tools/test_groundhog_durations_pbt.py",
