@@ -4,6 +4,7 @@ Only pytest's scratch tree is simulated. Source files, Python imports and
 runner reports keep their normal filesystem. The router is installed in a
 measured fixture, and production pathlib, parsing and publication code run
 unchanged. No real directories, processes or waits implement scenarios.
+Preparation cache publication and shell-transfer scratch use this same route.
 """
 
 from __future__ import annotations
@@ -78,6 +79,9 @@ _SCENARIOS = (
     "tests/unit/tools/test_session_journal.py",
     "tests/unit/tools/test_lifecycle_cpu_band.py",
     "tests/unit/tools/markdown_check/test_policy/",
+    "tests/unit/tools/shared_lifecycle/test_preparation/",
+    "tests/unit/tools/shared_lifecycle/test_shell_transport/",
+    "tests/unit/tools/shared_lifecycle/test_loader/",
 )
 _active_scenario = False
 _COPY_FUNCTION_POSITION = 3
