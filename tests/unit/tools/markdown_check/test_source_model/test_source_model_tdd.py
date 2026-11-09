@@ -109,21 +109,19 @@ def test_classifier_recognizes_each_bounded_adapter_shape() -> None:
         ".agents/llm-shared/instructions/example.md",
         "Read [the canonical rule](../../../instructions/example.md).\n",
     )
-    cache_pointer = parse_markdown(
-        ".agents/llm-shared/instructions/example.md",
-        "Read [the canonical rule]"
-        "(../../../../../../../git/llm-shared/instructions/example.md).\n",
-    )
     fragment = parse_markdown("templates/example.md", "## Substituted section\n")
 
     assert classify_document(frontmatter).kind is DocumentKind.ADAPTER
     assert classify_document(pointer).kind is DocumentKind.ADAPTER
-    assert classify_document(cache_pointer).kind is DocumentKind.ADAPTER
     assert classify_document(fragment).kind is DocumentKind.ADAPTER
 
 
 def test_classifier_rejects_unlinked_or_escaping_pointer_candidates() -> None:
-    """A short file is structured unless its Markdown link stays in the repository."""
+    """A short file is structured unless its Markdown link stays in the repository.
+
+    The former plugin-cache form, which left the repository and came back
+    through ``/git/llm-shared/``, is no adapter shape any more.
+    """
     unlinked = parse_markdown(
         ".github/prompts/example.md",
         "Canonical instructions live elsewhere.\n",
@@ -132,6 +130,11 @@ def test_classifier_rejects_unlinked_or_escaping_pointer_candidates() -> None:
         ".github/prompts/example.md",
         "Read [outside](../../../outside.md).\n",
     )
+    cache_relative = parse_markdown(
+        ".agents/llm-shared/instructions/example.md",
+        "Read [the canonical rule]"
+        "(../../../../../../../git/llm-shared/instructions/example.md).\n",
+    )
     too_long = parse_markdown(
         ".github/prompts/example.md",
         "[Rule](../../instructions/example.md)\n1\n2\n3\n4\n5\n",
@@ -139,6 +142,7 @@ def test_classifier_rejects_unlinked_or_escaping_pointer_candidates() -> None:
 
     assert classify_document(unlinked).kind is DocumentKind.STRUCTURED
     assert classify_document(escaping).kind is DocumentKind.STRUCTURED
+    assert classify_document(cache_relative).kind is DocumentKind.STRUCTURED
     assert classify_document(too_long).kind is DocumentKind.STRUCTURED
 
 
