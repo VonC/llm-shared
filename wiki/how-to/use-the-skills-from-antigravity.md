@@ -85,7 +85,7 @@ level), so llm-shared does not ship a dedicated copy for it: the
 `.agent/workflows/` route above is the stable, documented one, and it
 keeps the familiar slash syntax. If your Antigravity version reads
 `<workspace>/.agents/skills/`, note that llm-shared deliberately keeps
-that path empty — its Codex plugin lives one level down at
+that path empty: its Codex skill package lives one level down at
 `.agents/llm-shared/` precisely so the same skills are never loaded
 twice.
 
@@ -123,5 +123,5 @@ re-checking when a new version changes the behavior:
   assignment.
 
 Related: [Plug llm-shared into your project](../tutorials/01-plug-llm-shared-into-your-project.md),
-[Register the skills as a Codex plugin](register-skills-as-a-codex-plugin.md),
+[Link the skills into Codex](link-the-skills-into-codex.md),
 [One body, many agents](../explanation/one-body-many-agents.md).

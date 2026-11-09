@@ -69,8 +69,8 @@ distinguishes shipped integrations from explicit file loading; the
 are frontmatter plus a reference to the same `instructions/<skill>.md`.
 Codex is reached two ways: `AGENTS.md` sections and user-level prompts
 (`ghog init` writes them for groundhog), or the whole set at once through
-the self-contained plugin package under `.agents/llm-shared/`
-([the how-to](../how-to/register-skills-as-a-codex-plugin.md)).
+the skill package under `.agents/llm-shared/`, which the user skills folder
+links to ([the how-to](../how-to/link-the-skills-into-codex.md)).
 Antigravity gets one workflow wrapper per skill under
 `.agent/workflows/`, junctioned into the project
 ([the how-to](../how-to/use-the-skills-from-antigravity.md)). Grok gets
@@ -86,9 +86,10 @@ folders. A new host gets adapters to existing content rather than its own
 copy of the workflow.
 
 The usual setup keeps one clone beside the projects that use it. A workspace
-folder, `--add-dir`, symlink, or plugin junction references that shared clone,
-so one `git pull` updates the source for every integration pointing to it.
-Hosts with a cached plugin copy may require a refresh before using an edit.
+folder, `--add-dir`, symlink, or junction references that shared clone, so one
+`git pull` updates the source for every integration pointing to it. Hosts that
+freeze their skill list per session still need a new session to list a new
+skill.
 
 ## 🚪 The session references it, the project never does
 
@@ -104,7 +105,7 @@ the project, through one of two mechanisms:
   in a running Claude Code session (or `claude --add-dir=../llm-shared`
   at launch), and the same `--add-dir` flag when launching Codex (see
   [openai/codex#2797](https://github.com/openai/codex/issues/2797#issuecomment-4555303886));
-  the [Codex plugin route](../how-to/register-skills-as-a-codex-plugin.md)
+  the [Codex skills link](../how-to/link-the-skills-into-codex.md)
   makes that reference permanent instead of per-session.
 
 Close the session and your project is exactly as before: no config file
@@ -122,8 +123,8 @@ body either says it or it does not, whatever the host.
 What actually differs between hosts is kept out of the bodies:
 
 - the complete command token is decided at print time: Claude uses
-  `/write-design`, while the installed Codex plugin uses
-  `$llm-shared:write-design`; `pw skill` and
+  `/write-design`, while Codex lists the linked skills under the package
+  name and uses `$llm-shared:write-design`; `pw skill` and
   `rules/command_prefix_char.md` keep that host detail at the edge,
 - menus go through `rules/interactive_menu.md`, which picks the host's
   native choice mechanism and never assumes a TTY,

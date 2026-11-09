@@ -81,17 +81,28 @@ Run Claude in a non-blocking permission mode
 (`claude --permission-mode acceptEdits`) so the workflow chains do not stop
 on every file write.
 
-## 4. Or register it as a ChatGPT Codex plugin
+## 4. Or link it into ChatGPT Codex
 
-The clone ships a self-contained Codex plugin package under
-`.agents/llm-shared/`. Wiring it takes a personal marketplace file, one
-junction pointing at the clone, and three `codex plugin` commands; every
-new Codex session then offers the registered skills as `$llm-shared:<skill>`.
-The full recipe with its pitfalls is in
-[Register the skills as a Codex plugin](../how-to/register-skills-as-a-codex-plugin.md).
+The clone ships a Codex skill package under `.agents/llm-shared/`. Link your
+user skills folder to it once, from a `cmd` initialized by the clone's
+`senv.bat`:
+
+```cmd
+llmup --create
+```
+
+or by hand, with the clone of step 1:
+
+```cmd
+mklink /J "%USERPROFILE%\.agents\skills" "C:\Users\you\git\llm-shared\.agents\llm-shared\skills"
+```
+
+Every new Codex thread then offers the skills as `$llm-shared:<skill>`, read
+in place from the clone, so a `git pull` needs no further command. The full
+recipe, the migration from the former plugin install and the pitfalls are in
+[Link the skills into Codex](../how-to/link-the-skills-into-codex.md).
 For one session only, `codex --add-dir ..\llm-shared` puts the clone in
-scope without any registration; for groundhog alone, `ghog init` is
-enough — no plugin machinery.
+scope without any link; for groundhog alone, `ghog init` is enough.
 
 ## 5. Or open it from Google Antigravity
 

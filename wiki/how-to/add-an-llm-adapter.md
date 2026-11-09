@@ -62,12 +62,15 @@ never through another provider's adapter. Keep host-required names,
 descriptions, and invocation settings in metadata or the host registration.
 Do not add shell commands, template copies, or alternate approval rules there.
 
-Resolve the link from the path the host actually reads. Plugin caches and
-copied adapters can have a different depth from the source tree; a link that
-works in the clone may fail after installation. Use the host's documented
-resource mechanism when appropriate and verify the installed target. Avoid
-committing personal absolute paths in shared scaffolding; keep machine-specific
-registration local.
+Write the link relative to the adapter's place in the clone, as the adapter
+rule requires, and check it from the path the host actually reads. When the
+host looks for adapters outside the clone, prefer linking that host folder to
+the clone over installing a copy: the
+[Codex skills link](link-the-skills-into-codex.md) does this, and Codex then
+reads each adapter at its clone path. Plugin caches and copied adapters can
+have a different depth from the source tree, so a link that works in the clone
+may fail there. Avoid committing personal absolute paths in shared
+scaffolding; keep machine-specific registration local.
 
 ## 4. Register it and exercise it in a scratch checkout
 
@@ -106,7 +109,7 @@ adapter inventory in
 [`test_codex_plugin_structure_tdd.py`](../../tests/unit/tools/test_instruction_structure/test_codex_plugin_structure_tdd.py)
 and follow the adapter rule's duplication check. Run the project's existing
 Markdown and relevant structure checks; confirm that every redirect resolves
-in the installed layout as well as in the source tree.
+in the clone and from the path the host reads.
 
 Update the README compatibility table and
 [repository-layout reference](../reference/repository-layout.md#llm-compatibility)

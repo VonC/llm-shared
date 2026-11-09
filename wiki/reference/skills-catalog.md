@@ -7,8 +7,8 @@
 🤖 Shared skills, their triggers, inputs and outputs. Each shared skill
 resolves to the same-named body under `instructions/`; see the
 [repository layout](repository-layout.md#-shared-bodies-and-rules). GitHub Copilot and Claude Code delegate
-through `.github/skills/` and `.claude/skills/`; OpenAI ChatGPT Codex uses the
-self-contained `.agents/llm-shared/` plugin; Google Gemini Antigravity uses
+through `.github/skills/` and `.claude/skills/`; OpenAI ChatGPT Codex reads the
+`.agents/llm-shared/` skill package through the user skills folder link; Google Gemini Antigravity uses
 `.agent/workflows/`. These are the four officially supported environments.
 Portable Grok redirects under `.grok/commands/` cover the shared commands and
 one-shot prompts through explicit loading; native discovery is unverified.

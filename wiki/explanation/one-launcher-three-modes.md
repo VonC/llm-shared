@@ -75,8 +75,9 @@ and re-run it by hand.
 
 ## 🔤 The host command, decided at print time
 
-The same workflow drives Claude Code and Codex, but an installed Codex plugin
-needs both its `$` prefix and its namespace. `pw skill` reads `CLAUDECODE` or
+The same workflow drives Claude Code and Codex, but Codex lists the linked
+skill package under its namespace, so a command needs both its `$` prefix and
+that namespace. `pw skill` reads `CLAUDECODE` or
 `CODEX_THREAD_ID` and prints `/write-design` for Claude or
 `$llm-shared:write-design` for Codex. Instruction bodies can therefore use a
 neutral command placeholder instead of hard-coding either host form.

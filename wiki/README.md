@@ -209,7 +209,7 @@ Recipes for a precise goal, for readers who already know the basics.
 
 ### AI-environment compatibility
 
-- 🤖 [Register the skills as a Codex plugin](how-to/register-skills-as-a-codex-plugin.md)
+- 🤖 [Link the skills into Codex](how-to/link-the-skills-into-codex.md)
 - 🤖 [Use the skills from Google Antigravity](how-to/use-the-skills-from-antigravity.md)
 - 🤖 [Add scaffolding for another LLM](how-to/add-an-llm-adapter.md)
 - 🤖 [Pick up skill edits without restarting](how-to/pick-up-skill-edits-without-restarting.md)

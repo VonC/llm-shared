@@ -14,7 +14,7 @@ body stays in one place.
 
 | LLM / host | Current compatibility |
 | --- | --- |
-| OpenAI ChatGPT/Codex | Supported Codex plugin with skill adapters in `.agents/llm-shared/` |
+| OpenAI ChatGPT/Codex | Supported user skills: `%USERPROFILE%\.agents\skills` links to the skill adapters in `.agents/llm-shared/` |
 | Anthropic Claude Code | Supported skills in `.claude/skills/` |
 | Google Gemini through Antigravity | Supported workflows in `.agent/workflows/` |
 | GitHub Copilot | Supported skills, prompts, and agent adapters in `.github/` |
@@ -32,7 +32,7 @@ records entry points and coverage limits.
 Start with a draft and ask for `process-draft`. The agent chains the skills
 through `pw skill` and `pw handoff`; you intervene at the decisions below.
 Command names here omit the host prefix: for example, Claude uses
-`/process-draft`, and the Codex plugin uses `$llm-shared:process-draft`.
+`/process-draft`, and Codex uses `$llm-shared:process-draft`.
 
 | Stage | What the AI produces and checks | Your intervention |
 | --- | --- | --- |

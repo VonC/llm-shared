@@ -28,19 +28,40 @@ the corresponding launcher.
 | `gp` | `git push` | push shortcut |
 | `brel` | `tools\dev_workflow\t_build.bat rel` | release build: drop `-SNAPSHOT`, commit, tag `vX.Y.Z` |
 
-## Codex plugin maintenance
+## Codex skills link
 
 | Alias | Runs | Purpose |
 | --- | --- | --- |
-| `llmup` | `bin\update_llm_shared_plugin.bat` | validate `.agents\llm-shared` and its cache-relative redirects, replace its manifest cachebuster, reinstall `llm-shared@personal`, verify the installed cache copy, and print its installed row |
+| `llmup` | `bin\codex_skills_link.bat` | validate `.agents\llm-shared` and its clone-relative redirects, check that `%USERPROFILE%\.agents\skills` links to its `skills` folder, create that link with `--create` |
 
-`llmup` requires an interactive `cmd` initialized by `senv.bat`. The launcher
-runs `tools\codex_plugin_package.py` (validation, cachebuster, marketplace
-name) and `tools\codex_plugin_redirects.py` with the llm-shared Python from
-`venvs\`, so the active project's environment is not changed and no
-plugin-creator helper script, PyYAML or `uv` is needed. It locates the standalone
-Codex executable first and falls back to `codex.exe` on `PATH`. A successful
-run still needs a new Codex thread before the refreshed skill registry appears.
+`llmcodexupgrade` is the same alias under its former name. The launcher
+self-locates its clone from its own path, ignoring an inherited
+`LLM_SHARED_DIR`, since the link must target that clone, and runs
+`tools\codex_skills_link.py` with the llm-shared Python from `venvs\`. It
+never writes inside the clone and runs no `codex` command. See
+[Link the skills into Codex](../how-to/link-the-skills-into-codex.md).
+
+| Option | Effect |
+| --- | --- |
+| `--create` | create the link when `.agents\skills` is absent or an empty folder: a junction on Windows, a symbolic link elsewhere |
+| `--home <folder>` | home folder holding `.agents\skills`, the current user's home by default |
+| `--codex-home <folder>` | folder holding the Codex `config.toml`, `CODEX_HOME` by default, else `<home>\.codex` |
+
+The run validates the package first and stops there when it is invalid. It
+then checks the link, and last warns, without changing the exit code, when
+`config.toml` still enables an `llm-shared@<marketplace>` plugin, printing the
+`codex plugin remove` command that removes it.
+
+| Exit | Meaning |
+| --- | --- |
+| `0` | the package is valid and the link targets this clone's skills |
+| `1` | the package is invalid; the link is not checked |
+| `2` | no link yet, the folder is absent or empty: run again with `--create` |
+| `3` | refused, nothing changed: the folder holds other content, links to another folder, or would sit inside the clone |
+| `4` | the link could not be created, or does not read back as created |
+| `5` | usage error, or the launcher found no llm-shared Python |
+
+A new Codex thread lists the clone's current skills with no further command.
 
 ## 🧪 Test aliases (all backed by ghog)
 

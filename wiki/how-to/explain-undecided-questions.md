@@ -19,8 +19,8 @@ If a review round is active, the requestor finishes that round first. Direct
 invocation without an exchange is supported, but does not establish independent
 convergence by itself.
 
-For a newly added Codex skill, run `llmup` and start a new Codex thread to refresh
-discovery. An existing thread can read the canonical instruction explicitly;
+A newly added Codex skill appears in the next new Codex thread, with no command
+to run. An existing thread can read the canonical instruction explicitly;
 see [picking up skill edits](pick-up-skill-edits-without-restarting.md).
 
 ## Decide one question at a time
