@@ -75,9 +75,10 @@ self-locate and do not need an `senv.bat` pre-call.
    while a finding remains.
 
    Next, spell-check the same Markdown files, and only them, as
-   [`../rules/spelling.md`](../rules/spelling.md) requires: show the unknown words with their cSpell suggestions, let the
-   user choose for each one between adding it to `.vscode/settings.json`
-   (`spellcheck.bat add-words`) and a replacement, apply the choices, restage,
+   [`../rules/spelling.md`](../rules/spelling.md) requires: show the unknown words, then ask about each one with its
+   alternatives listed, letting the user choose between adding it to
+   `.vscode/settings.json` (`spellcheck.bat add-words`) and a replacement,
+   apply the choices, restage,
    and rerun the check until it reports no unknown word. A changed
    `.vscode/settings.json` joins the group of the files that needed its words:
    format `a.commit` again.

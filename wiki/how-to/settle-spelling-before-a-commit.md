@@ -51,8 +51,11 @@ replaced. Source code is not spell-checked.
    | `collectreport` | `docs/v0.14.0/review.code.md:938:12` | collecteront |
    ```
 
-3. For each word, choose: accept it, or replace it with a suggestion or a
-   word of your own.
+3. For each word, the agent asks one question that names the word, quotes
+   its line and lists its alternatives: add it to `.vscode/settings.json`,
+   or replace it with one of up to three alternatives, the cSpell
+   suggestions that fit or a rewording of its own when none does. Choose
+   one, or type your own replacement.
 
 4. Add every accepted word in one call:
 

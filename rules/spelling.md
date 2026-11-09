@@ -45,9 +45,15 @@ replaced in the text. The user decides which, word by word:
 
 1. Show the table the check printed.
 2. Ask one question per word, in groups of four with a blocking picker when
-   the host offers one (see [`interactive_menu.md`](interactive_menu.md)):
-   `Add to settings.json`, then `Replace with <suggestion>` for up to three
-   cSpell suggestions. The user can type another replacement.
+   the host offers one (see [`interactive_menu.md`](interactive_menu.md)).
+   Each question names the word, quotes the line it appears in, and gives
+   every alternative its own option: `Add to settings.json`, then
+   `Replace with <alternative>` for each alternative, at least one and up to
+   three. Take the alternatives from the cSpell suggestions that fit the
+   sentence; when none fits, propose your own, such as the correct spelling,
+   a plain English word or a rewording of the phrase. Never offer
+   `Add to settings.json` as the only option. Put the option you recommend
+   first and say why. The user can type another replacement.
 3. Add the accepted words in one call, from the project root:
 
    ```powershell

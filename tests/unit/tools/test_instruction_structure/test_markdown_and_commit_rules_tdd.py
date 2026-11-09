@@ -66,13 +66,17 @@ def test_commit_messages_carry_no_ai_attribution() -> None:
 
 
 def test_commit_gates_settle_every_spelling_finding_with_the_user() -> None:
-    """Every reported word is accepted or replaced by the user's choice before any commit choice."""
+    """Every reported word is accepted or replaced by the user's choice before any commit choice.
+
+    Each question lists the word's alternatives, so adding it is never the only option.
+    """
     spelling = _flat((ROOT / "rules/spelling.md").read_text(encoding="utf-8"))
     for required in (
         'bin\\spellcheck.bat" check <file.md>',
         "Source code and other files are never spell-checked.",
         "inside backticks, a code block or plain text alike",
-        "`Add to settings.json`, then `Replace with <suggestion>`",
+        "`Add to settings.json`, then `Replace with <alternative>` for each alternative",
+        "Never offer `Add to settings.json` as the only option.",
         'bin\\spellcheck.bat" add-words <word>',
         "no `cSpell.ignoreRegExpList` pattern, no `cspell:ignore` or `cspell:disable` comment",
         "else cspell 9.8.0 on a Node 20.18 or later",
