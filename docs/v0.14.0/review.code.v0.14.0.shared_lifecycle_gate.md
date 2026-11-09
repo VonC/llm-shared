@@ -1414,3 +1414,1471 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-2 -->
+
+## Round 1 by requestor - Step 3
+
+- Recorded: 2026-11-08T23:48:13+01:00
+- Exchange: code/code/v0.14.0/shared_lifecycle_gate
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: unrecorded
+- Implementation step: 3
+- Outcome: request
+
+### Review identity for step 3 shared_lifecycle_gate (round 1)
+
+Umbrella draft: none
+Implementation plan: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.md
+Implementation step: 3
+Review round: 1
+
+### Code review evidence for step 3 shared_lifecycle_gate (round 1)
+
+request_index_tree: eead05ac8940a0cf531c224ba9467262c005941f
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "missing", "requirement": "docs/v0.14.0/feature-request.v0.14.0.shared_lifecycle_gate.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(lifecycle): enforce worker audit barrier
+group 1 path: pyproject.toml
+group 1 path: tools/pytest_plugins/llm_shared_process_audit.py
+group 1 path: tools/lifecycle_compatibility/__init__.py
+group 1 path: tools/lifecycle_compatibility/runner.py
+group 1 path: tools/lifecycle_compatibility/scenarios.py
+group 1 path: tests/unit/tools/shared_lifecycle/conftest.py
+group 1 path: tests/unit/tools/shared_lifecycle/inline_session.py
+group 1 path: tests/unit/tools/shared_lifecycle/test_audit_workers/__init__.py
+group 1 path: tests/unit/tools/shared_lifecycle/test_audit_workers/test_audit_workers_tdd.py
+group 1 path: tests/unit/tools/shared_lifecycle/test_compatibility/__init__.py
+group 1 path: tests/unit/tools/shared_lifecycle/test_compatibility/test_compatibility_tdd.py
+group 1 path: tests/unit/tools/test_simulation_boundaries.py
+group 1 path: tests/conftest.py
+group 1 path: tests/lifecycle_cpu_record.py
+group 1 path: tests/simulation_policy.py
+group 2: perf(tests): read groundhog sources once
+group 2 path: tests/unit/tools/test_groundhog_no_machine_queue.py
+group 3: docs(shared_lifecycle_gate): record step 3 validation
+group 3 path: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.validation.md
+staged path: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.validation.md
+staged path: pyproject.toml
+staged path: tests/conftest.py
+staged path: tests/lifecycle_cpu_record.py
+staged path: tests/simulation_policy.py
+staged path: tests/unit/tools/shared_lifecycle/conftest.py
+staged path: tests/unit/tools/shared_lifecycle/inline_session.py
+staged path: tests/unit/tools/shared_lifecycle/test_audit_workers/__init__.py
+staged path: tests/unit/tools/shared_lifecycle/test_audit_workers/test_audit_workers_tdd.py
+staged path: tests/unit/tools/shared_lifecycle/test_compatibility/__init__.py
+staged path: tests/unit/tools/shared_lifecycle/test_compatibility/test_compatibility_tdd.py
+staged path: tests/unit/tools/test_groundhog_no_machine_queue.py
+staged path: tests/unit/tools/test_simulation_boundaries.py
+staged path: tools/lifecycle_compatibility/__init__.py
+staged path: tools/lifecycle_compatibility/runner.py
+staged path: tools/lifecycle_compatibility/scenarios.py
+staged path: tools/pytest_plugins/llm_shared_process_audit.py
+```
+
+### Validation scope for step 3 shared_lifecycle_gate (round 1)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 3 shared_lifecycle_gate (round 1)
+
+Step 3 is fully implemented according to its implementation-check section.
+
+The fresh `ghog day --full=speed --whole-suite` ended on 2026-11-08 at
+21:40:54+01:00 with exit 0, 100% tools coverage, zero failures, warnings,
+xfails, duration outliers or exclusions. Static checks passed in that walk.
+No budget, coverage omission or own-suite process permission was added.
+
+The standalone audit imports only stdlib and pytest. Authorization remains
+constant time per event; declaration validation and report merging are linear.
+Every changed Python file is below the 650-line ceiling (maximum 488).
+Finite worker and merge state matrices use deterministic tests; no additional
+property test is needed for those finite cases.
+
+Real Python 3.13.9 / pytest 9.1.0 / xdist 3.8.0 probes passed before migration
+and after harness refactoring. Invalid declaration, early exit and collection
+mismatch each observed a valid peer announcement, no setup/body start,
+controller exit 4 and both workers reaped. Python 3.12 executable evidence is
+reserved for step 6 and is not claimed here.
+
+Existing policy assertions passed against canonical modules before legacy
+removal. Record comparison preserved exception meaning and all other fields,
+retained all 5892 prior eligible proofs, added 9, and lost none. Private
+continuity evidence remains available for step 7; the live record was not
+overwritten.
+
+Markdown lint, canonical spelling and staged whitespace checks passed.
+The three-group root a.commit is mechanically ready. Steps 4 through 7 remain
+pending. Please assess only step 3 and its staged changes.
+
+### Implementation report for step 3 shared_lifecycle_gate (round 1)
+
+The audit validates declarations with a first-priority collection-finish hook
+before xdist announces collection. The controller checks initial worker count,
+collection consistency, absent evidence and early exits before scheduling, with
+identifying usage errors. Worker permissions are detached for transport and
+merged by stable identity with consistent reasons and boolean OR usage.
+Reports distinguish tests from fixtures, warn on unused declared permissions
+and omit unexercised declarations.
+
+The bounded external smoke harness generates isolated real xdist projects.
+Process-free unit tests retain real scenario generation and verdict logic.
+The own suite now loads canonical policies after coverage starts. Synthetic
+test hubs are isolated while the carrying real audit remains enforced, and
+test monkeypatches unwind before restoring the carrying hub. Legacy policy
+files were removed only after migrated assertions passed.
+
+Generated inner sessions omit unused debugger, terminal progress, tmpdir and
+legacy path plugins while retaining terminal reports, warnings, thread
+exception reporting and every behavior assertion. The source marker test now
+reads each file once: the actual-function profile changed from 144 reads and
+0.115832 seconds to 36 reads and 0.014754 seconds. No isolated measured CPU
+improvement is claimed for the child-plugin adjustment.
+
+Validation: fresh whole-suite speed walk exit 0, tools coverage 100%, no
+failures, warnings, xfails, outliers or accepted exclusions. Executable smoke
+evidence is Windows/Python 3.13 only. The remaining steps retain their own
+compatibility, activation and final acceptance obligations.
+
+Writer notes: .reviews/a.shared_lifecycle_gate.step3.journal.md and .reviews/a.shared_lifecycle_gate.step3.handoff.md
+
+### Change summary for step 3 shared_lifecycle_gate (round 1)
+
+Root a.commit has three ordered groups:
+
+1. feat(lifecycle): enforce worker audit barrier
+2. perf(tests): read groundhog sources once
+3. docs(shared_lifecycle_gate): record step 3 validation
+
+The 17 staged paths are:
+
+- docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.validation.md
+- pyproject.toml
+- tests/conftest.py
+- tests/lifecycle_cpu_record.py (deleted)
+- tests/simulation_policy.py (deleted)
+- tests/unit/tools/shared_lifecycle/conftest.py
+- tests/unit/tools/shared_lifecycle/inline_session.py
+- `tests/unit/tools/shared_lifecycle/test_audit_workers/__init__.py`
+- tests/unit/tools/shared_lifecycle/test_audit_workers/test_audit_workers_tdd.py
+- `tests/unit/tools/shared_lifecycle/test_compatibility/__init__.py`
+- tests/unit/tools/shared_lifecycle/test_compatibility/test_compatibility_tdd.py
+- tests/unit/tools/test_groundhog_no_machine_queue.py
+- tests/unit/tools/test_simulation_boundaries.py
+- `tools/lifecycle_compatibility/__init__.py`
+- tools/lifecycle_compatibility/runner.py
+- tools/lifecycle_compatibility/scenarios.py
+- tools/pytest_plugins/llm_shared_process_audit.py
+
+Only step 3 validation is marked complete; document-level completion remains No.
+
+### Writer response for step 3 shared_lifecycle_gate (round 1)
+
+Writer response:
+
+This is the first review round for step 3. No previous step 3 reviewer feedback
+or disagreement exists. The writer requests an independent assessment of the
+exact step and staged implementation, including barrier ordering, bounded
+worker cancellation, permission aggregation, preserved outer enforcement,
+record continuity and the accuracy of executable evidence claims.
+
+### Reviewer focus for step 3 shared_lifecycle_gate (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-3-round-1 -->
+
+## Round 1 by reviewer - Step 3
+
+- Recorded: 2026-11-09T00:22:27+01:00
+- Exchange: code/code/v0.14.0/shared_lifecycle_gate
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 3
+- Outcome: answer
+
+### Assessed index identity for step 3 shared_lifecycle_gate (exchange 1) (round 1)
+
+Baseline index tree: eead05ac8940a0cf531c224ba9467262c005941f
+
+Assessed index tree: eead05ac8940a0cf531c224ba9467262c005941f
+
+### Implementation check for step 3 shared_lifecycle_gate (exchange 1) (round 1)
+
+Result:
+
+No. Step 3 is not fully implemented. The controller's node-down hook treats
+every worker exit as missing barrier evidence, including exits after the
+barrier has completed. The unresolved findings list it with two smaller
+defects.
+
+What is in place and matches the plan:
+
+- Validation runs in a `tryfirst` `pytest_collection_finish`. That is ahead of
+  xdist 3.8.0's plain `WorkerInteractor.pytest_collection_finish`, which sends
+  the announcement. A failure stores the diagnostic in `workeroutput` and
+  re-raises, so the worker withholds its announcement. Its
+  `pytest_sessionfinish` still runs, and `workerfinished` carries the evidence.
+- `pytest_xdist_setupnodes` counts the initial workers.
+  `pytest_xdist_node_collection_finished` rejects an inconsistent collection
+  before xdist calls `add_node_collection`, as traced in `dsession.py`.
+- An invalid worker's diagnostic reaches exit 4 through `pytest_testnodedown`.
+  The barrier never completes, so no peer is scheduled.
+- Worker records are detached with `asdict`, then validated and merged by
+  identity with boolean OR, and conflicting reasons are refused. The summary
+  prints once, serially or on the controller, and workers print nothing. It
+  separates tests from fixtures, warns on unused permissions and omits
+  unexercised declarations.
+- The harness in `tools/lifecycle_compatibility/` isolates generated projects
+  from plugin autoload, `PYTEST_ADDOPTS`, `PYTHONPATH` and the
+  `LLM_SHARED_PYTEST_` variables. It bounds the controller wait at 30 s and
+  reaps leftover workers. A Ruff `py312` target and a Pyright 3.12 execution
+  environment cover it.
+- `tests/conftest.py` loads both canonical policies through `pytest_plugins`,
+  and both legacy modules are deleted. The completion searches find no
+  executable legacy reference, no `tools.pytest_plugins` import and no policy
+  selection in `senv.bat`.
+- The autouse fixture in `tests/unit/tools/shared_lifecycle/conftest.py` gives
+  synthetic tests a separate hub. The installed dispatcher keeps the carrying
+  hub, so real events stay enforced without permissions.
+
+What is missing:
+
+- After the barrier, a crashed worker, a Ctrl-C or a replacement worker is
+  reported as a declaration-barrier usage error.
+- The `runpy` entry-point test can signal real PIDs on POSIX.
+- The review transcript fails Markdown lint.
+
+Architecture: the audit still imports only stdlib and pytest. Worker
+coordination stays in its pytest hooks, and the policy never imports the
+harness. Apart from the first finding, no architecture issue needs addressing.
+
+Performance: collection comparison, record merging and summaries are linear in
+their inputs, and per-event dispatch is unchanged. No performance issue needs
+addressing.
+
+Unit test coverage: the coverage source is `tools`, with a 100% gate and no new
+omit. Static reading finds every new audit and runner branch reached by the
+two new test packages, and the requestor's speed walk reports 100%. The
+current code has no coverage gap, but the fix needs post-barrier tests. Test
+files sit outside the gate, and all their top-level symbols are referenced.
+
+Feature integrity: xdist's crash report and worker replacement are lost (first
+finding). Timing, record continuity and unrelated suite plugins are otherwise
+intact. `wiki/reference/test-lifecycle-limits.md` still names
+`tests/simulation_policy.py`, but Step 7 owns that page.
+
+Validation plan effects:
+
+No reviewer edit. The writer's Step 3 rows in
+`docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.validation.md` say
+`Yes. Step 3 has been fully implemented.`, which this assessment does not
+confirm. The feature integrity row also does not record the lost xdist crash
+handling.
+
+The writer should correct those rows together with the rework. The recorded
+audit count of 488 physical lines matches the staged file. The document-level
+line correctly stays `No, it is not implemented`, and the staged diff touches
+only the Step 3 section. Reviewer mode completed no umbrella row, and the
+effort has none.
+
+### Pre-repair mandatory checks and coverage for step 3 shared_lifecycle_gate (exchange 1) (round 1)
+
+No repair was made. The pre-repair and assessed states are therefore the same
+index tree, `eead05ac8940a0cf531c224ba9467262c005941f`, which equals the
+request-time tree.
+
+Requestor evidence, not repeated: `ghog day --full=speed --whole-suite` passed
+at 2026-11-08T21:40:54+01:00 with 100% tools coverage and zero failures,
+warnings, xfails, outliers and exclusions.
+
+Reviewer evidence, each command run once from the project root with the
+worktree environment:
+
+- `ghog check` finished at 2026-11-09T00:10:57+01:00 with `exit=1`. Ty,
+  Pyright, Ruff, Radon, Vulture, the 650-line file check, ShellCheck and the
+  EOF check all passed. The Markdown check failed with MD050 at lines 1573,
+  1575 and 1579 of the unstaged review transcript (third finding).
+- `ghog affected --no-cov --scope-file=.reviews/a.review-scope.code.v0.14.0.shared_lifecycle_gate.json`
+  finished at 2026-11-09T00:14:30+01:00 with `exit=0`. Testmon found nothing
+  affected since the requestor's walk, so 0 tests ran.
+
+Coverage was assessed statically, and no `ghog day` or `ghog full` ran. The
+first finding was traced through xdist 3.8.0's `dsession.py`. It was then
+confirmed without starting any process, by calling the audit hooks with fake
+nodes in xdist's order. A crash after the barrier, a normal finish after a
+replacement announced, and a keyboard-interrupt node-down each raised the
+`validated collection` usage error.
+
+### Resolved validation set and sources for step 3 shared_lifecycle_gate (exchange 1) (round 1)
+
+The request carries one command, `ghog day --full=speed --whole-suite`, from
+the `project` source. The repository has no `.review-validation` declaration,
+so the built-in default `ghog day --full=speed` is completed with the bound
+whole-suite selector, and the request lists no plan or request additions. The
+requestor owns this set and reports it green at 2026-11-08T21:40:54+01:00. The
+reviewer did not run it.
+
+The request's `test_scope` shows `proof: missing`. Exchange status still binds
+the round to scope `whole` with fingerprint `686958cd`, and the reviewer used
+that `paths.scope` capture.
+
+### Resolver drift and direction for step 3 shared_lifecycle_gate (exchange 1) (round 1)
+
+No drift. The current resolver input gives the same single command from the
+same source. There is no `.review-validation` declaration, the built-in
+default is completed with `--whole-suite` for the bound scope (fingerprint
+`686958cd`), and there is no plan or request addition. Neither direction adds
+or drops a command.
+
+### Repository state around validation for step 3 shared_lifecycle_gate (exchange 1) (round 1)
+
+The validation path set holds the 17 staged paths, the plan and the root
+`a.ghog.log` that the reviewer evidence commands write. It was captured before
+assessment and again after both ghog commands.
+
+- `validation-state compare` reported `acceptable: true`, with no tracked or
+  untracked path changed and one ignored path changed (`a.ghog.log`).
+- `umbrella-digest compare` reported not applicable and unchanged, because the
+  request states `Umbrella draft: none`.
+- After assessment, the live index tree is still
+  `eead05ac8940a0cf531c224ba9467262c005941f`.
+- The only unstaged change is the versioned review transcript
+  `docs/v0.14.0/review.code.v0.14.0.shared_lifecycle_gate.md`. The exchange
+  appended it, and the requestor's residual commit owns it.
+
+### Repair inventory for step 3 shared_lifecycle_gate (exchange 1) (round 1)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 3 shared_lifecycle_gate (exchange 1) (round 1)
+
+An independent `commit-plan-check.bat --format json` rerun on the received
+state exited 0 with `state: valid`, `ready: true` and no diagnostics. It listed
+the same 17 staged paths and the same three ordered groups as the request
+evidence:
+
+1. `feat(lifecycle): enforce worker audit barrier`, 15 paths.
+2. `perf(tests): read groundhog sources once`, 1 path.
+3. `docs(shared_lifecycle_gate): record step 3 validation`, 1 path.
+
+Reviewer judgment on grouping and scope: every staged path belongs to exactly
+one group, and each subject matches its diff. Group 1 holds the plan's Step 3
+files together with the migration support in `inline_session.py`, the
+`shared_lifecycle` conftest and `test_simulation_boundaries.py`. Group 2 is a
+standalone test performance change, and group 3 records the result. No AI
+attribution trailer is present.
+
+`a.commit` is accurate for the received state. The rework changes the content
+of groups 1 and 3, so their bodies need a refresh. Group 3 must not claim a
+completed step until the findings are fixed. The grouping itself can stay.
+
+### Findings and boundaries for step 3 shared_lifecycle_gate (exchange 1) (round 1)
+
+Unresolved findings:
+
+- Worker exits after the barrier become a barrier usage error
+  (`llm_shared_process_audit.py`, `pytest_testnodedown`, lines 426-437).
+  xdist 3.8.0's `DSession.worker_errordown` calls
+  `pytest_testnodedown(node, error)` before `handle_crashitem` and
+  `_clone_node`. The hook raises whenever `error` is set or the announced count
+  differs from `expected_workers`, even after every initial worker announced
+  and tests were scheduled. Three cases fail. First, a test that kills its
+  worker (a segfault or `os._exit`) ends the run with exit 4 and "worker
+  exited before all validated collection evidence arrived". Without the audit,
+  xdist reports "worker 'gw0' crashed while running ..." as a failure and
+  starts a replacement worker. Second, a Ctrl-C is reported the same way,
+  because xdist follows `workerfinished` with
+  `worker_errordown(node, "keyboard-interrupt")`. Third, once a replacement
+  worker announces, the announced count exceeds `expected_workers`, so every
+  later normal finish raises. The design limits this stop to a worker that
+  "finishes before announcing its collection". Calling the hooks in xdist's order with fake nodes confirmed all
+  three cases. The existing tests cover only exits before the barrier. A
+  related path was traced but not executed: with `--maxfail` and a collection
+  error, xdist shuts down and ignores later `collectionfinish` events, and the
+  hook would then report missing evidence instead of the interrupted run.
+- The module entry-point test can signal real processes on POSIX
+  (`test_compatibility_tdd.py`, `test_module_entrypoint_uses_same_harness`,
+  lines 231-244). `runpy` runs a second copy of `runner.py`, whose own `alive`
+  and `kill_tree` are not patched. The test replaces only `subprocess.run`,
+  which covers the Windows branch. On POSIX, `alive(101)` calls the real
+  `os.kill(101, 0)` for the fake PIDs that the transport double writes. If the
+  user owns a live process with PID 101, `kill_tree` then sends it a real
+  `SIGKILL`. If another user owns it, an uncaught `PermissionError` follows.
+  This is low severity while the suite runs only on Windows, but the test
+  claims POSIX coverage.
+- `ghog check` fails on the review transcript
+  (`docs/v0.14.0/review.code.v0.14.0.shared_lifecycle_gate.md`, lines 1573,
+  1575 and 1579, MD050). The round 1 request's change summary lists the three
+  `__init__.py` package markers outside code spans, so their double
+  underscores parse as strong emphasis. The staged files pass. The transcript
+  is unstaged and requestor-owned, but the next review-record commit would
+  carry the lint failure.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 3 shared_lifecycle_gate (exchange 1) (round 1)
+
+Fix the three findings, then rerun the focused tests and the resolved
+`ghog day --full=speed --whole-suite`:
+
+1. Barrier scope: in `pytest_testnodedown`, stop for missing evidence only
+   while the initial barrier is incomplete. For example, set a
+   `barrier_complete` flag once `announced` reaches `expected_workers`. After
+   that, a node-down with an error returns without raising, so xdist reports
+   the crash item and replaces the worker or stops, as `--max-worker-restart`
+   decides. Merge records only from a worker that sent them. A replacement
+   worker's announcement is still checked for consistency, but it must not
+   fail later finishes. Add tests for these cases: a crash after the barrier,
+   a replacement announcement followed by a normal finish, and a
+   keyboard-interrupt node-down after the barrier. Keep the pre-barrier cases.
+   Decide whether a controller that is already shutting down before the
+   barrier, for example `--maxfail` with a collection error, should keep
+   xdist's interrupted result or exit 4 with that cause named. Test whichever
+   you choose. An optional post-barrier crash scenario in the smoke harness
+   would add executable evidence.
+2. Entry-point test: monkeypatch `runner.sys.platform` to `"win32"` in
+   `test_module_entrypoint_uses_same_harness`, as the Windows probe test
+   already does. Alternatively, patch `os.kill` and `os.killpg` there too, so
+   the `runpy` copy never signals a real PID.
+3. Transcript: before the review-record commit, put the three `__init__.py`
+   paths at lines 1573, 1575 and 1579 in code spans. Write future change-summary
+   path lists as code spans.
+4. Update the Step 3 validation rows, including the status sentence and
+   feature integrity, and refresh the group 1 and group 3 bodies in
+   `a.commit`.
+
+Two non-blocking notes:
+
+- `wiki/reference/test-lifecycle-limits.md` still points to the deleted
+  `tests/simulation_policy.py`. Step 7 owns that page.
+- Optional polish: a worker declaration error is reported with the
+  `llm_shared_process_audit:` prefix twice, because `pytest_testnodedown`
+  wraps a diagnostic that already carries it.
+
+### Decision rationale for step 3 shared_lifecycle_gate (exchange 1) (round 1)
+
+The six readiness-floor results:
+
+- Identity: pass. The envelope, the readable identity, the plan, step 3,
+  round 1, occurrence 1, `Umbrella draft: none` and the request-time index tree
+  `eead05ac` all agree with the live exchange and index.
+- Completeness: fail. Every Step 3 file and test obligation is present, but
+  the controller stops on worker exits after the barrier, against the design's
+  limit to exits before announcement.
+- Validation and coverage: fail. Reviewer `ghog check` exited 1 on the
+  transcript's MD050 lint. `ghog affected --no-cov` exited 0 with nothing
+  affected, and static reading finds no coverage gap in the current code.
+- Staged attribution: pass. All 17 staged paths are writer work in three
+  accurate groups. The reviewer staged nothing and edited nothing tracked.
+- Findings: fail. Three findings are unresolved.
+- `a.commit`: pass. The independent checker is valid and ready with no
+  diagnostics, and the grouping is accurate for the received state.
+
+This round made no repair, substantive or polishing. The request carries no
+literal `Human guidance:` block, so the reviewer reports findings only.
+
+Disposition: changes requested.
+
+### Final reviewer decision for step 3 shared_lifecycle_gate (exchange 1) (round 1)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-3-round-1 -->
+
+## Round 2 by requestor - Step 3
+
+- Recorded: 2026-11-09T10:03:58+01:00
+- Exchange: code/code/v0.14.0/shared_lifecycle_gate
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 3
+- Outcome: request
+
+### Review identity for step 3 shared_lifecycle_gate (round 2)
+
+Umbrella draft: none
+Implementation plan: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.md
+Implementation step: 3
+Review round: 2
+
+### Code review evidence for step 3 shared_lifecycle_gate (round 2)
+
+request_index_tree: 3ad5da8d238b0c63f6a79d96dc1ca0cab2e5ae93
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.shared_lifecycle_gate.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(lifecycle): enforce worker audit barrier
+group 1 path: pyproject.toml
+group 1 path: tools/pytest_plugins/llm_shared_process_audit.py
+group 1 path: tools/lifecycle_compatibility/__init__.py
+group 1 path: tools/lifecycle_compatibility/runner.py
+group 1 path: tools/lifecycle_compatibility/scenarios.py
+group 1 path: tests/unit/tools/shared_lifecycle/conftest.py
+group 1 path: tests/unit/tools/shared_lifecycle/inline_session.py
+group 1 path: tests/unit/tools/shared_lifecycle/test_audit_workers/__init__.py
+group 1 path: tests/unit/tools/shared_lifecycle/test_audit_workers/test_audit_workers_tdd.py
+group 1 path: tests/unit/tools/shared_lifecycle/test_compatibility/__init__.py
+group 1 path: tests/unit/tools/shared_lifecycle/test_compatibility/test_compatibility_tdd.py
+group 1 path: tests/unit/tools/test_simulation_boundaries.py
+group 1 path: tests/conftest.py
+group 1 path: tests/lifecycle_cpu_record.py
+group 1 path: tests/simulation_policy.py
+group 2: perf(tests): read groundhog sources once
+group 2 path: tests/unit/tools/test_groundhog_no_machine_queue.py
+group 3: docs(shared_lifecycle_gate): record step 3 validation
+group 3 path: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.validation.md
+staged path: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.validation.md
+staged path: pyproject.toml
+staged path: tests/conftest.py
+staged path: tests/lifecycle_cpu_record.py
+staged path: tests/simulation_policy.py
+staged path: tests/unit/tools/shared_lifecycle/conftest.py
+staged path: tests/unit/tools/shared_lifecycle/inline_session.py
+staged path: tests/unit/tools/shared_lifecycle/test_audit_workers/__init__.py
+staged path: tests/unit/tools/shared_lifecycle/test_audit_workers/test_audit_workers_tdd.py
+staged path: tests/unit/tools/shared_lifecycle/test_compatibility/__init__.py
+staged path: tests/unit/tools/shared_lifecycle/test_compatibility/test_compatibility_tdd.py
+staged path: tests/unit/tools/test_groundhog_no_machine_queue.py
+staged path: tests/unit/tools/test_simulation_boundaries.py
+staged path: tools/lifecycle_compatibility/__init__.py
+staged path: tools/lifecycle_compatibility/runner.py
+staged path: tools/lifecycle_compatibility/scenarios.py
+staged path: tools/pytest_plugins/llm_shared_process_audit.py
+```
+
+### Validation scope for step 3 shared_lifecycle_gate (round 2)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 3 shared_lifecycle_gate (round 2)
+
+Step 3 is fully implemented according to its implementation-check section.
+
+The fresh `ghog day --full=speed --whole-suite` ended on 2026-11-09 at
+09:58:42+01:00 with exit 0, 100% tools coverage, zero failures, warnings,
+xfails, duration outliers or exclusions. Static checks passed in that walk.
+No budget, coverage omission or own-suite process permission was added.
+
+The standalone audit imports only stdlib and pytest. Authorization remains
+constant time per event; declaration validation and report merging are linear.
+Every changed Python file is below the 650-line ceiling (maximum 497).
+Finite worker and merge state matrices use deterministic tests; no additional
+property test is needed for those finite cases.
+
+Real Python 3.13.9 / pytest 9.1.0 / xdist 3.8.0 probes passed before migration
+and after harness refactoring. Invalid declaration, early exit and collection
+mismatch each observed a valid peer announcement, no setup/body start,
+controller exit 4 and both workers reaped. Python 3.12 executable evidence is
+reserved for step 6 and is not claimed here.
+
+Existing policy assertions passed against canonical modules before legacy
+removal. Record comparison preserved exception meaning and all other fields,
+retained all 5892 prior eligible proofs, added 9, and lost none. Private
+continuity evidence remains available for step 7; the live record was not
+overwritten.
+
+Static Markdown lint passed. Transcript spelling has seven xdist identifiers awaiting individual user decisions; no commit gate will be presented before they are settled.
+The three-group root a.commit is mechanically ready. Steps 4 through 7 remain
+pending. Please assess only step 3 and its staged changes.
+
+### Implementation report for step 3 shared_lifecycle_gate (round 2)
+
+The audit validates declarations with a first-priority collection-finish hook
+before xdist announces collection. The controller checks initial worker count,
+collection consistency, absent evidence and early exits before scheduling, with
+identifying usage errors. Worker permissions are detached for transport and
+merged by stable identity with consistent reasons and boolean OR usage.
+Reports distinguish tests from fixtures, warn on unused declared permissions
+and omit unexercised declarations.
+
+Review rework latches completion of the initial barrier, preserves later xdist
+crash/replacement/keyboard-interrupt handling and validates records whenever
+sent. A worker crash may omit records; successful workers still owe them.
+Controller stop/shutdown before the barrier preserves the original cause.
+Regressions retain all early-exit cases, add later worker transitions, and
+keep replacement collection mismatches invalid. The module-entrypoint test
+uses the mocked Windows process transport on every host.
+The bounded external smoke harness generates isolated real xdist projects.
+Process-free unit tests retain real scenario generation and verdict logic.
+The own suite now loads canonical policies after coverage starts. Synthetic
+test hubs are isolated while the carrying real audit remains enforced, and
+test monkeypatches unwind before restoring the carrying hub. Legacy policy
+files were removed only after migrated assertions passed.
+
+Generated inner sessions omit unused debugger, terminal progress, tmpdir and
+legacy path plugins while retaining terminal reports, warnings, thread
+exception reporting and every behavior assertion. The source marker test now
+reads each file once: the actual-function profile changed from 144 reads and
+0.115832 seconds to 36 reads and 0.014754 seconds. No isolated measured CPU
+improvement is claimed for the child-plugin adjustment.
+
+Validation: fresh whole-suite speed walk exit 0, tools coverage 100%, no
+failures, warnings, xfails, outliers or accepted exclusions. Executable smoke
+evidence is Windows/Python 3.13 only. The remaining steps retain their own
+compatibility, activation and final acceptance obligations.
+
+Writer notes: .reviews/a.shared_lifecycle_gate.step3.journal.md and .reviews/a.shared_lifecycle_gate.step3.handoff.md
+
+### Change summary for step 3 shared_lifecycle_gate (round 2)
+
+Root a.commit retains three ordered groups:
+
+1. `feat(lifecycle): enforce worker audit barrier`
+2. `perf(tests): read groundhog sources once`
+3. `docs(shared_lifecycle_gate): record step 3 validation`
+
+All 17 staged paths remain in the reviewed batch:
+
+- `docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.validation.md`
+- `pyproject.toml`
+- `tests/conftest.py`
+- `tests/lifecycle_cpu_record.py`
+- `tests/simulation_policy.py`
+- `tests/unit/tools/shared_lifecycle/conftest.py`
+- `tests/unit/tools/shared_lifecycle/inline_session.py`
+- `tests/unit/tools/shared_lifecycle/test_audit_workers/__init__.py`
+- `tests/unit/tools/shared_lifecycle/test_audit_workers/test_audit_workers_tdd.py`
+- `tests/unit/tools/shared_lifecycle/test_compatibility/__init__.py`
+- `tests/unit/tools/shared_lifecycle/test_compatibility/test_compatibility_tdd.py`
+- `tests/unit/tools/test_groundhog_no_machine_queue.py`
+- `tests/unit/tools/test_simulation_boundaries.py`
+- `tools/lifecycle_compatibility/__init__.py`
+- `tools/lifecycle_compatibility/runner.py`
+- `tools/lifecycle_compatibility/scenarios.py`
+- `tools/pytest_plugins/llm_shared_process_audit.py`
+
+Group 1 and 3 bodies now include the xdist regression repairs and validation.
+The review transcript remains unstaged for the authorized residual batch.
+Transcript spelling decisions remain pending; any resulting dictionary edit
+will accompany that transcript. No scope or group-definition change occurred.
+Only Step 3 is complete; document-level completion remains No.
+
+### Writer response for step 3 shared_lifecycle_gate (round 2)
+
+Writer response:
+
+All three round 1 findings are accepted; there is no disagreement and the
+reviewer made no repairs. The writer changed the reviewed implementation.
+
+The initial collection barrier is now latched. Later crashes retain xdist
+replacement handling, and matching replacement announcements cannot invalidate
+the completed barrier. Replacement mismatches still fail. Worker keyboard
+interrupts preserve both xdist down notifications. Missing crash records are
+allowed; any records sent are validated, and successful workers owe records.
+
+Before the barrier, an active controller stop/shutdown or worker keyboard
+interrupt preserves the original xdist interruption. An unexplained early
+exit still raises the identifying usage error. Tests model collection maxfail
+through the actual dsession stop/shutdown fields, which explain why xdist can
+withhold collection announcements. Existing pre-barrier cases remain intact.
+
+The entrypoint test now fixes shared sys.platform to win32, matching its
+subprocess mocks and preventing real POSIX signals to fake worker PIDs.
+Exactly three bare package-marker paths in the round 1 request summary were
+wrapped in code spans. Future path lists use code spans throughout.
+
+The validation document and group 1/3 commit bodies describe these repairs.
+The unrelated legacy wiki reference remains Step 7 work. No exclusion,
+budget increase, process exemption or coverage omission was added.
+
+### Reviewer focus for step 3 shared_lifecycle_gate (round 2)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-3-round-2 -->
+
+## Round 2 by reviewer - Step 3
+
+- Recorded: 2026-11-09T10:46:54+01:00
+- Exchange: code/code/v0.14.0/shared_lifecycle_gate
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 3
+- Outcome: answer
+
+### Assessed index identity for step 3 shared_lifecycle_gate (exchange 1) (round 2)
+
+Baseline index tree: 3ad5da8d238b0c63f6a79d96dc1ca0cab2e5ae93
+
+Assessed index tree: 3ad5da8d238b0c63f6a79d96dc1ca0cab2e5ae93
+
+### Implementation check for step 3 shared_lifecycle_gate (exchange 1) (round 2)
+
+Result:
+
+Yes. Step 3 has been fully implemented.
+
+The round 2 rework fixes all three round 1 findings. Two new items block
+commit-ready (see the unresolved findings), but neither changes the step
+verdict. First, one new record rule has no test that fails without it.
+Second, the reviewer's focused run was red because the machine was busy.
+
+Round 1 findings, rechecked against the xdist 3.8.0 `dsession.py` source:
+
+- Barrier scope: fixed. `AuditSession.barrier_complete` latches when the
+  announced count reaches `expected_workers` (`llm_shared_process_audit.py`
+  line 425). After that, `pytest_testnodedown` no longer raises for a crash,
+  a keyboard interrupt or a replacement worker. `worker_errordown` therefore
+  goes on to `handle_crashitem` and `_clone_node` as it does without the
+  audit. A replacement's collection is still compared with the first
+  collection (line 421), and a mismatch still fails.
+- Keyboard interrupt: `worker_workerfinished` calls the hook, then
+  `worker_errordown` calls it again. Both calls skip the barrier stop. Merging
+  the same records twice is harmless, because `merge` is keyed by identity
+  and only ORs `used`.
+- Stop before the barrier: the hook still raises, unless the worker reports
+  `ExitCode.INTERRUPTED` or the `dsession` plugin has `shouldstop` or
+  `shuttingdown` set. xdist registers that plugin under the name `dsession`
+  (`plugin.py` line 278). With `--maxfail` and a collection error,
+  `_handlefailures` sets `shouldstop` while handling the collect report. That
+  report arrives before the worker's `workerfinished`, so xdist's original
+  stop reason is kept. A worker declaration diagnostic is still checked first
+  and still exits 4.
+- Entry-point test: fixed. `test_module_entrypoint_uses_same_harness` sets
+  `runner.sys.platform` to `win32`. `alive` and `kill_tree` read
+  `sys.platform` at call time from the shared `sys` module, so the `runpy`
+  copy takes the mocked `subprocess.run` path and never calls `os.kill`.
+- Transcript lint: fixed. The three package markers in the round 1 change
+  summary are now code spans, and the Markdown step of the reviewer
+  `ghog check` passed.
+
+The rest of the step is unchanged from round 1 and still matches the plan:
+validation before the announcement, the initial worker count, the collection
+comparison, detached records merged with OR, separate test and fixture
+summaries, the bounded harness, canonical policy loading after coverage
+starts, removal of both legacy sources, and the completion searches.
+
+Architecture: the audit still imports only stdlib and pytest. The new branch
+reads xdist's controller only through `config.pluginmanager.getplugin`, with
+`getattr` defaults, so the audit adds no xdist import. No architecture issue
+needs addressing.
+
+Performance: each node-down does one plugin lookup and constant-time checks.
+Merging stays linear in the records. No performance issue needs addressing.
+
+Unit test coverage: the coverage source is `tools`, with a 100% gate and no
+new omit. Every new branch line is reached: the latch by the barrier tests,
+the controller-stop skip by the shutdown test, the interrupt skip by the
+keyboard-interrupt matrix, and the conditional merge by the crash tests with
+and without records. No line or branch is uncovered. One rule is still
+untested (first finding). The test files sit outside the gate, and all their
+top-level symbols are referenced. Physical line counts match the validation
+rows: audit 497, worker tests 287, compatibility tests 248, all under 650.
+
+Feature integrity: xdist's crash reports, worker replacement, interrupt
+handling and `--maxfail` stop reasons are preserved after validation.
+Declaration failures and unexplained exits before the barrier still exit 4.
+`wiki/reference/test-lifecycle-limits.md` still names
+`tests/simulation_policy.py`, and Step 7 owns that page.
+
+Validation plan effects:
+
+No reviewer edit. The writer's Step 3 rows in
+`docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.validation.md` now say
+`Yes. Step 3 has been fully implemented.`, which this assessment confirms for
+the plan obligations. The rows describe the latched barrier, crash and
+interrupt handling, the controller-stop case and the entry-point platform
+fix. The recorded line counts match the staged files.
+
+The unit test coverage row lists the post-barrier regressions accurately. It
+should name the new missing-records case once the first finding is fixed. The
+document-level line correctly stays `No, it is not implemented`, and the
+staged diff touches only the Step 3 section. Reviewer mode completed no
+umbrella row, and the effort has none.
+
+### Pre-repair mandatory checks and coverage for step 3 shared_lifecycle_gate (exchange 1) (round 2)
+
+No repair was made. The pre-repair and assessed states are therefore the same
+index tree, `3ad5da8d238b0c63f6a79d96dc1ca0cab2e5ae93`, which equals the
+request-time tree.
+
+Requestor evidence, not repeated: `ghog day --full=speed --whole-suite` passed
+at 2026-11-09T09:58:42+01:00 with 100% tools coverage and zero failures,
+warnings, xfails, outliers and exclusions.
+
+Reviewer evidence. Each command ran once from the project root through the
+worktree's `.\senv.bat` (guard cleared, `SWITCHPY_CHOICE=local`), with the
+log-freshness check:
+
+- `ghog check` ended at 2026-11-09T10:25:25+01:00 with `exit=0` after
+  3m 07.0s. Every static step passed, including the Markdown check that
+  failed in round 1.
+- `ghog affected --no-cov --scope-file=.reviews/a.review-scope.code.v0.14.0.shared_lifecycle_gate.json`
+  ended at 2026-11-09T10:36:53+01:00 with `exit=2` after 8m 58.4s. Testmon
+  selected the whole bound scope, not a subset. It reported `fail=31`, all
+  of them lifecycle wall-time overruns while another checkout's pytest walk
+  was running (second finding). The reviewer did not re-run it and did not
+  follow the report's next-step line.
+
+Coverage was assessed statically, and no `ghog day` or `ghog full` ran. The
+rework was traced against xdist 3.8.0's `dsession.py` and `plugin.py`: the
+hook order in `worker_workerfinished` and `worker_errordown`, the `dsession`
+registration name, and where `_handlefailures` sets `shouldstop`.
+
+### Resolved validation set and sources for step 3 shared_lifecycle_gate (exchange 1) (round 2)
+
+The request carries one command, `ghog day --full=speed --whole-suite`, from
+the `project` source. The repository has no `.review-validation` declaration,
+so the built-in default `ghog day --full=speed` is completed with the bound
+whole-suite selector. The request lists no plan or request additions. The
+requestor owns this set and reports it green at 2026-11-09T09:58:42+01:00.
+The reviewer did not run it.
+
+The request's `test_scope` now shows `proof: speed`. Exchange status binds the
+round to scope `whole` with fingerprint `686958cd`, and the reviewer used
+that `paths.scope` capture.
+
+### Resolver drift and direction for step 3 shared_lifecycle_gate (exchange 1) (round 2)
+
+No drift. The current resolver input gives the same single command from the
+same source. There is no `.review-validation` declaration, the built-in
+default is completed with `--whole-suite` for the bound scope (fingerprint
+`686958cd`), and there is no plan or request addition. Neither direction adds
+or drops a command.
+
+### Repository state around validation for step 3 shared_lifecycle_gate (exchange 1) (round 2)
+
+The validation path set holds the 17 staged paths, the plan and the root
+`a.ghog.log` that the reviewer evidence commands write. It was captured before
+assessment and again after both ghog commands.
+
+- `validation-state compare` reported `acceptable: true`. No tracked or
+  untracked path changed, and one ignored path changed (`a.ghog.log`).
+- `umbrella-digest compare` reported not applicable and unchanged, because the
+  request states `Umbrella draft: none`.
+- After assessment, the live index tree is still
+  `3ad5da8d238b0c63f6a79d96dc1ca0cab2e5ae93`.
+- The only unstaged change is the versioned review transcript
+  `docs/v0.14.0/review.code.v0.14.0.shared_lifecycle_gate.md`. The exchange
+  appended it, and the requestor's residual commit owns it. Its pending
+  spelling decisions are outside this staged batch.
+
+### Repair inventory for step 3 shared_lifecycle_gate (exchange 1) (round 2)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 3 shared_lifecycle_gate (exchange 1) (round 2)
+
+An independent `commit-plan-check.bat --format json` rerun on the received
+state exited 0 with `state: valid`, `ready: true` and no diagnostics. It listed
+the same 17 staged paths and the same three ordered groups as the request
+evidence:
+
+1. `feat(lifecycle): enforce worker audit barrier`, 15 paths.
+2. `perf(tests): read groundhog sources once`, 1 path.
+3. `docs(shared_lifecycle_gate): record step 3 validation`, 1 path.
+
+Reviewer judgment on grouping and scope: every staged path belongs to exactly
+one group, and each subject matches its diff. The group 1 body now records the
+latched barrier, preserved xdist handling, required records from successful
+workers and the POSIX-safe entry-point test. The group 3 body records the
+preserved failure handling. No AI attribution trailer is present.
+
+`a.commit` is accurate for the received state. The requested test addition
+belongs in group 1, and the coverage-row update belongs in group 3. The
+grouping itself can stay.
+
+### Findings and boundaries for step 3 shared_lifecycle_gate (exchange 1) (round 2)
+
+Unresolved findings:
+
+- No test pins the rule that a successful worker must send records
+  (`llm_shared_process_audit.py`, `pytest_testnodedown`, line 445). The merge
+  now runs only when `_RECORDS in output or (error is None and not
+  interrupted)`. The second clause is what rejects a worker that finished
+  normally without a records key, for example one that never loaded the
+  audit. Every test that reaches this line either has a records key or
+  passes an error or an interrupt. `test_missing_or_malformed_worker_records_fail_identifiably`
+  covers `None` only as a present value. Reducing the condition to
+  `_RECORDS in output` would keep every test green. A worker with no
+  records would then add nothing, and the controller would print a complete
+  report with that worker's usage missing. That is the case the test's own
+  docstring rules out ("Missing usage evidence cannot silently become an
+  empty successful report"). The validation rows also say "successful
+  workers must send them". Coverage is 100% because the condition is one
+  line.
+- The reviewer's focused run was red.
+  `ghog affected --no-cov --scope-file=.reviews/a.review-scope.code.v0.14.0.shared_lifecycle_gate.json`
+  ended at 2026-11-09T10:36:53+01:00 with `exit=2` and `fail=31`. Every one
+  of the 31 is a lifecycle teardown error for wall time above the 1.000 s
+  limit. CPU stayed within its limit in each case (0.000 to 0.094 s), and
+  there was no assertion failure. The errors are spread over 19 files and
+  none is in a Step 3 file. The only audit-related one is a Step 2 test,
+  `test_all_process_events_cover_entire_protocol[os.system]`: wall 1.597 s,
+  CPU 0.094 s. During the run, another checkout's whole-suite pytest walk
+  (another checkout, started 10:30) was running, and the processor was
+  at 99% load. The legacy `tests/simulation_policy.py` applied the same
+  1.0 s wall limit with the same condition, so the migration did not make
+  the limit stricter. This is most likely contention, not a code defect, but
+  the reviewer evidence is still red and is reported as such.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 3 shared_lifecycle_gate (exchange 1) (round 2)
+
+1. Pin the record rule. In
+   `test_missing_or_malformed_worker_records_fail_identifiably`, or in a
+   sibling test, add a case where a worker that announced finishes with
+   `error=None`, no interrupt and a `workeroutput` without the records key,
+   for example `{}`. Expect the `worker permission records` usage error.
+   Keep the crash and interrupt cases, where a missing key is allowed. The
+   test must fail if line 445 is reduced to `_RECORDS in output`.
+2. Re-run the focused tests while no other pytest walk is running on the
+   machine. Then run the resolved `ghog day --full=speed --whole-suite`.
+   Confirm that the 31 tests listed in the second finding now pass under the
+   1.000 s wall limit. If any still overruns on an idle machine, fix it
+   through the groundhog loop. Do not add an exclusion or raise a budget.
+3. Update the Step 3 unit test coverage row to mention the new case, and
+   refresh the group 1 and group 3 bodies in `a.commit` if their content
+   changes.
+
+Non-blocking notes:
+
+- `wiki/reference/test-lifecycle-limits.md` still points to the deleted
+  `tests/simulation_policy.py`. Step 7 owns that page.
+- Optional polish, carried from round 1 and not addressed: a worker
+  declaration error still shows the `llm_shared_process_audit:` prefix twice,
+  because `pytest_testnodedown` wraps a diagnostic that already carries it
+  (lines 436 and 437).
+
+### Decision rationale for step 3 shared_lifecycle_gate (exchange 1) (round 2)
+
+The six readiness-floor results:
+
+- Identity: pass. The envelope, the readable identity, the plan, step 3,
+  round 2, occurrence 1, `Umbrella draft: none` and the request-time index tree
+  `3ad5da8d` all agree with the live exchange and index.
+- Completeness: pass. Every Step 3 obligation is implemented, and the three
+  round 1 findings are fixed.
+- Validation and coverage: fail. Reviewer `ghog check` exited 0, but
+  `ghog affected --no-cov` exited 2 with 31 wall-time overruns on a loaded
+  machine. Static reading finds no uncovered line or branch, but one record
+  rule has no test that fails without it.
+- Staged attribution: pass. All 17 staged paths are writer work in three
+  accurate groups. The reviewer staged nothing and edited nothing tracked.
+- Findings: fail. Two findings are unresolved.
+- `a.commit`: pass. The independent checker is valid and ready with no
+  diagnostics, and the grouping is accurate for the received state.
+
+This round made no repair, substantive or polishing. The request carries no
+literal `Human guidance:` block, so the reviewer reports findings only.
+
+Disposition: changes requested.
+
+### Final reviewer decision for step 3 shared_lifecycle_gate (exchange 1) (round 2)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-3-round-2 -->
+
+## Round 3 by requestor - Step 3
+
+- Recorded: 2026-11-09T11:08:04+01:00
+- Exchange: code/code/v0.14.0/shared_lifecycle_gate
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 3
+- Outcome: request
+
+### Review identity for step 3 shared_lifecycle_gate (round 3)
+
+Umbrella draft: none
+Implementation plan: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.md
+Implementation step: 3
+Review round: 3
+
+### Code review evidence for step 3 shared_lifecycle_gate (round 3)
+
+request_index_tree: feb9077f3254e515d4d19e989e6938b429d952d1
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.shared_lifecycle_gate.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(lifecycle): enforce worker audit barrier
+group 1 path: pyproject.toml
+group 1 path: tools/pytest_plugins/llm_shared_process_audit.py
+group 1 path: tools/lifecycle_compatibility/__init__.py
+group 1 path: tools/lifecycle_compatibility/runner.py
+group 1 path: tools/lifecycle_compatibility/scenarios.py
+group 1 path: tests/unit/tools/shared_lifecycle/conftest.py
+group 1 path: tests/unit/tools/shared_lifecycle/inline_session.py
+group 1 path: tests/unit/tools/shared_lifecycle/test_audit_workers/__init__.py
+group 1 path: tests/unit/tools/shared_lifecycle/test_audit_workers/test_audit_workers_tdd.py
+group 1 path: tests/unit/tools/shared_lifecycle/test_compatibility/__init__.py
+group 1 path: tests/unit/tools/shared_lifecycle/test_compatibility/test_compatibility_tdd.py
+group 1 path: tests/unit/tools/test_simulation_boundaries.py
+group 1 path: tests/conftest.py
+group 1 path: tests/lifecycle_cpu_record.py
+group 1 path: tests/simulation_policy.py
+group 2: perf(tests): read groundhog sources once
+group 2 path: tests/unit/tools/test_groundhog_no_machine_queue.py
+group 3: docs(shared_lifecycle_gate): record step 3 validation
+group 3 path: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.validation.md
+staged path: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.validation.md
+staged path: pyproject.toml
+staged path: tests/conftest.py
+staged path: tests/lifecycle_cpu_record.py
+staged path: tests/simulation_policy.py
+staged path: tests/unit/tools/shared_lifecycle/conftest.py
+staged path: tests/unit/tools/shared_lifecycle/inline_session.py
+staged path: tests/unit/tools/shared_lifecycle/test_audit_workers/__init__.py
+staged path: tests/unit/tools/shared_lifecycle/test_audit_workers/test_audit_workers_tdd.py
+staged path: tests/unit/tools/shared_lifecycle/test_compatibility/__init__.py
+staged path: tests/unit/tools/shared_lifecycle/test_compatibility/test_compatibility_tdd.py
+staged path: tests/unit/tools/test_groundhog_no_machine_queue.py
+staged path: tests/unit/tools/test_simulation_boundaries.py
+staged path: tools/lifecycle_compatibility/__init__.py
+staged path: tools/lifecycle_compatibility/runner.py
+staged path: tools/lifecycle_compatibility/scenarios.py
+staged path: tools/pytest_plugins/llm_shared_process_audit.py
+```
+
+### Validation scope for step 3 shared_lifecycle_gate (round 3)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 3 shared_lifecycle_gate (round 3)
+
+Step 3 is fully implemented according to its implementation-check section.
+
+The fresh `ghog day --full=speed --whole-suite` ended on 2026-11-09 at
+11:05:14+01:00 with exit 0, 100% tools coverage, zero failures, warnings,
+xfails, duration outliers or exclusions. Static checks passed in that walk.
+No budget, coverage omission or own-suite process permission was added.
+
+The standalone audit imports only stdlib and pytest. Authorization remains
+constant time per event; declaration validation and report merging are linear.
+Every changed Python file is below the 650-line ceiling (maximum 497).
+Finite worker and merge state matrices use deterministic tests; no additional
+property test is needed for those finite cases.
+
+Real Python 3.13.9 / pytest 9.1.0 / xdist 3.8.0 probes passed before migration
+and after harness refactoring. Invalid declaration, early exit and collection
+mismatch each observed a valid peer announcement, no setup/body start,
+controller exit 4 and both workers reaped. Python 3.12 executable evidence is
+reserved for step 6 and is not claimed here.
+
+Existing policy assertions passed against canonical modules before legacy
+removal. Record comparison preserved exception meaning and all other fields,
+retained all 5892 prior eligible proofs, added 9, and lost none. Private
+continuity evidence remains available for step 7; the live record was not
+overwritten.
+
+Static Markdown lint passed. Transcript spelling has seven xdist identifiers awaiting individual user decisions; no commit gate will be presented before they are settled.
+The three-group root a.commit is mechanically ready. Steps 4 through 7 remain
+pending. Please assess only step 3 and its staged changes.
+
+### Implementation report for step 3 shared_lifecycle_gate (round 3)
+
+The audit validates declarations with a first-priority collection-finish hook
+before xdist announces collection. The controller checks initial worker count,
+collection consistency, absent evidence and early exits before scheduling, with
+identifying usage errors. Worker permissions are detached for transport and
+merged by stable identity with consistent reasons and boolean OR usage.
+Reports distinguish tests from fixtures, warn on unused declared permissions
+and omit unexercised declarations.
+
+Review rework latches completion of the initial barrier, preserves later xdist
+crash/replacement/keyboard-interrupt handling and validates records whenever
+sent. A worker crash may omit records; successful workers still owe them.
+Controller stop/shutdown before the barrier preserves the original cause.
+Regressions retain all early-exit cases, add later worker transitions, and
+keep replacement collection mismatches invalid. The module-entrypoint test
+uses the mocked Windows process transport on every host.
+The bounded external smoke harness generates isolated real xdist projects.
+Process-free unit tests retain real scenario generation and verdict logic.
+The own suite now loads canonical policies after coverage starts. Synthetic
+test hubs are isolated while the carrying real audit remains enforced, and
+test monkeypatches unwind before restoring the carrying hub. Legacy policy
+files were removed only after migrated assertions passed.
+
+Generated inner sessions omit unused debugger, terminal progress, tmpdir and
+legacy path and assertion plugins while retaining terminal reports, warnings, thread
+exception reporting and every behavior assertion. The source marker test now
+reads each file once: the actual-function profile changed from 144 reads and
+0.115832 seconds to 36 reads and 0.014754 seconds. No isolated measured CPU
+improvement is claimed for the earlier child-plugin adjustment. The round 3
+assertion-plugin removal reduced the flagged actual-function profile from
+CPU 0.171875 s / wall 0.186358 s to CPU 0.078125 s / wall 0.101997 s.
+A new regression rejects normally finished workers with no records key.
+The 19 reviewer-failing files and subsequent shared lifecycle focus passed.
+
+Validation: fresh whole-suite speed walk exit 0, tools coverage 100%, no
+failures, warnings, xfails, outliers or accepted exclusions. Executable smoke
+evidence is Windows/Python 3.13 only. The remaining steps retain their own
+compatibility, activation and final acceptance obligations.
+
+Writer notes: `.reviews/a.shared_lifecycle_gate.step3.journal.md` and
+`.reviews/a.shared_lifecycle_gate.step3.handoff.md`.
+
+### Change summary for step 3 shared_lifecycle_gate (round 3)
+
+Root a.commit retains three ordered groups:
+
+1. `feat(lifecycle): enforce worker audit barrier`
+2. `perf(tests): read groundhog sources once`
+3. `docs(shared_lifecycle_gate): record step 3 validation`
+
+All 17 staged paths remain in the reviewed batch:
+
+- `docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.validation.md`
+- `pyproject.toml`
+- `tests/conftest.py`
+- `tests/lifecycle_cpu_record.py`
+- `tests/simulation_policy.py`
+- `tests/unit/tools/shared_lifecycle/conftest.py`
+- `tests/unit/tools/shared_lifecycle/inline_session.py`
+- `tests/unit/tools/shared_lifecycle/test_audit_workers/__init__.py`
+- `tests/unit/tools/shared_lifecycle/test_audit_workers/test_audit_workers_tdd.py`
+- `tests/unit/tools/shared_lifecycle/test_compatibility/__init__.py`
+- `tests/unit/tools/shared_lifecycle/test_compatibility/test_compatibility_tdd.py`
+- `tests/unit/tools/test_groundhog_no_machine_queue.py`
+- `tests/unit/tools/test_simulation_boundaries.py`
+- `tools/lifecycle_compatibility/__init__.py`
+- `tools/lifecycle_compatibility/runner.py`
+- `tools/lifecycle_compatibility/scenarios.py`
+- `tools/pytest_plugins/llm_shared_process_audit.py`
+
+Group 1 and 3 bodies now include the xdist regression repairs and validation.
+The review transcript remains unstaged for the authorized residual batch.
+Transcript spelling decisions remain pending; any resulting dictionary edit
+will accompany that transcript. No scope or group-definition change occurred.
+Only Step 3 is complete; document-level completion remains No.
+
+### Writer response for step 3 shared_lifecycle_gate (round 3)
+
+Writer response:
+
+The missing-records finding is accepted. The new sibling regression completes
+the initial barrier, then finishes an announced worker normally with empty
+worker output and expects the identifying permission-records usage error.
+Removing the successful-finish clause would make that assertion fail. Existing
+crash and interrupt cases remain unchanged. No production fix was needed.
+
+The red reviewer validation is retained as red evidence. The 19 flagged files
+plus the worker tests passed in focus at 10:51:41+01:00 with no warnings. The
+flagged audit protocol test was then profiled: embedded pytest startup was the
+largest cost. The child helper now omits the redundant assertion plugin while
+retaining plain Python assertions, real collection and fixture execution,
+warnings, thread exception handling and terminal reporting. The actual test
+profile changed from CPU 0.171875 s / wall 0.186358 s to CPU 0.078125 s /
+wall 0.101997 s. All shared lifecycle tests passed at 10:59:53+01:00.
+
+There is one procedural disagreement: the instruction to validate only while
+no other checkout runs pytest conflicts with the canonical Groundhog rule
+that forbids a machine-wide queue or an agent convention waiting between
+checkouts. Validation follows the prescribed focused/profile repair flow
+instead; no other checkout was stopped and no budget or exclusion changed.
+The fresh whole-suite proof is recorded in the paired implementation evidence.
+
+The Step 3 coverage and size rows and group 1/3 commit bodies now describe
+the regression and timing repair. The old wiki reference remains Step 7 work.
+The seven existing transcript spelling decisions remain unanswered; they must
+settle before the commit gate.
+
+### Reviewer focus for step 3 shared_lifecycle_gate (round 3)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-3-round-3 -->
+
+## Round 3 by reviewer - Step 3
+
+- Recorded: 2026-11-09T11:17:24+01:00
+- Exchange: code/code/v0.14.0/shared_lifecycle_gate
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 3
+- Outcome: answer
+
+### Assessed index identity for step 3 shared_lifecycle_gate (exchange 1) (round 3)
+
+Baseline index tree: feb9077f3254e515d4d19e989e6938b429d952d1
+
+Assessed index tree: feb9077f3254e515d4d19e989e6938b429d952d1
+
+### Implementation check for step 3 shared_lifecycle_gate (exchange 1) (round 3)
+
+Result:
+
+Yes. Step 3 has been fully implemented.
+
+Both round 2 findings are resolved, and no new finding was found. The round 3
+rework adds one regression test and trims one plugin from the embedded test
+sessions. Production code is unchanged since round 2.
+
+Round 2 findings, rechecked:
+
+- Untested record rule: fixed.
+  `test_successful_worker_cannot_omit_permission_records` completes the
+  initial barrier with two announcements. One announced worker then finishes
+  with `error=None`, no interrupt and an empty `workeroutput`, and the test
+  expects the `worker permission records` usage error. If line 445 of
+  `llm_shared_process_audit.py` were reduced to `_RECORDS in output`, the
+  merge would be skipped and the test would fail. The crash and interrupt
+  cases, where a missing key is allowed, are unchanged.
+- Red reviewer run: resolved. This round's
+  `ghog affected --no-cov --scope-file=<paths.scope>` exited 0, and the
+  requestor's fresh whole-suite speed walk passed at 11:05:14+01:00 with
+  unchanged budgets and no exclusions.
+
+Writer disagreement, accepted: the round 2 instruction to re-run "while no
+other pytest walk is running" conflicts with `instructions/groundhog.md`. That
+rule says runs of different checkouts never wait for each other, and that no
+such wait may be added "in groundhog or as an agent convention". The writer
+instead followed the focused re-run and profiling flow, and it found and
+removed real startup cost. The reviewer withdraws that part of the
+instruction.
+
+Embedded session change in `tests/unit/tools/shared_lifecycle/inline_session.py`:
+`--assert=plain` is replaced by `-p no:assertion`. This is sound. pytest
+applies `-p no:` blocks before it imports its default plugins, so the
+assertion plugin never loads. Without it the `--assert` option is not
+registered, and the import-hook setup falls back to plain mode. The host's
+rewrite hook is still removed from `sys.meta_path` for the duration (line 34),
+so the docstring's plain-assertion claim stays true. Not loading the plugin
+also leaves the carrying session's assertion globals untouched. The measured
+profile of the flagged audit test fell from CPU 0.171875 s to 0.078125 s.
+
+Architecture: no production change since round 2. The audit still imports only
+stdlib and pytest, and the policy never imports the harness. No architecture
+issue needs addressing.
+
+Performance: unchanged production complexity. The test-side plugin removal
+lowers embedded session startup. No performance issue needs addressing.
+
+Unit test coverage: the coverage source is `tools`, with a 100% gate and no
+new omit, and the requestor's walk reports 100%. Every audit branch is
+reached, and the record rule now has a test that fails without it. Test files
+sit outside the gate, and all their top-level symbols are referenced, including
+the new test. Physical line counts match the validation rows: audit 497,
+inline helper 62, worker tests 300, all under 650. No unit-tested class is
+below 100%, and no top-level symbol outside the gate is unreferenced.
+
+Feature integrity: xdist's crash, replacement, interrupt and `--maxfail`
+handling after validation are preserved. Declaration failures and unexplained
+exits before the barrier still exit 4, and a successful worker with no records
+still fails. `wiki/reference/test-lifecycle-limits.md` still names
+`tests/simulation_policy.py`, and Step 7 owns that page.
+
+Validation plan effects:
+
+No reviewer edit. The writer's Step 3 rows in
+`docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.validation.md` say
+`Yes. Step 3 has been fully implemented.`, which this assessment confirms. The
+round 3 changes are accurate. The size row now records the inline helper at
+62 lines and the worker tests at 300, and both match the staged files. The
+performance row records the round 2 overruns, the focused re-run and the
+measured child startup reduction. The coverage row names the new
+missing-records regression, and the walk timestamp is now 11:05:14+01:00.
+
+The document-level line correctly stays `No, it is not implemented`, and the
+staged diff touches only the Step 3 section. Reviewer mode completed no
+umbrella row, and the effort has none.
+
+### Pre-repair mandatory checks and coverage for step 3 shared_lifecycle_gate (exchange 1) (round 3)
+
+No repair was made. The pre-repair and assessed states are therefore the same
+index tree, `feb9077f3254e515d4d19e989e6938b429d952d1`, which equals the
+request-time tree.
+
+Requestor evidence, not repeated: `ghog day --full=speed --whole-suite` passed
+at 2026-11-09T11:05:14+01:00 with 100% tools coverage and zero failures,
+warnings, xfails, outliers and exclusions. The root `a.ghog.log` tail showed
+that result before the reviewer's commands ran.
+
+Reviewer evidence. Each command ran once from the project root through the
+worktree's `.\senv.bat` (guard cleared, `SWITCHPY_CHOICE=local`), with the
+log-freshness check:
+
+- `ghog check` ended at 2026-11-09T11:13:57+01:00 with `exit=0` after
+  1m 14.0s. Every static step passed, including the Markdown check.
+- `ghog affected --no-cov --scope-file=.reviews/a.review-scope.code.v0.14.0.shared_lifecycle_gate.json`
+  ended at 2026-11-09T11:15:27+01:00 with `exit=0` after 26.0s, `fail=0` and
+  `warn=0`. Testmon found nothing affected since the requestor's 11:05:14
+  walk, so 0 tests ran, and groundhog treats that as green.
+
+Coverage was assessed statically, and no `ghog day` or `ghog full` ran.
+
+### Resolved validation set and sources for step 3 shared_lifecycle_gate (exchange 1) (round 3)
+
+The request carries one command, `ghog day --full=speed --whole-suite`, from
+the `project` source. The repository has no `.review-validation` declaration,
+so the built-in default `ghog day --full=speed` is completed with the bound
+whole-suite selector. The request lists no plan or request additions. The
+requestor owns this set and reports it green at 2026-11-09T11:05:14+01:00,
+which the root `a.ghog.log` tail confirmed before the reviewer's own commands
+ran. The reviewer did not run it.
+
+The request's `test_scope` shows `proof: speed`. Exchange status binds the
+round to scope `whole` with fingerprint `686958cd`, and the reviewer used
+that `paths.scope` capture.
+
+### Resolver drift and direction for step 3 shared_lifecycle_gate (exchange 1) (round 3)
+
+No drift. The current resolver input gives the same single command from the
+same source. There is no `.review-validation` declaration, the built-in
+default is completed with `--whole-suite` for the bound scope (fingerprint
+`686958cd`), and there is no plan or request addition. Neither direction adds
+or drops a command.
+
+### Repository state around validation for step 3 shared_lifecycle_gate (exchange 1) (round 3)
+
+The validation path set holds the 17 staged paths, the plan and the root
+`a.ghog.log` that the reviewer evidence commands write. It was captured before
+assessment and again after both ghog commands.
+
+- `validation-state compare` reported `acceptable: true`. No tracked or
+  untracked path changed, and one ignored path changed (`a.ghog.log`).
+- `umbrella-digest compare` reported not applicable and unchanged, because the
+  request states `Umbrella draft: none`.
+- After assessment, the live index tree is still
+  `feb9077f3254e515d4d19e989e6938b429d952d1`.
+- The only unstaged change is the versioned review transcript
+  `docs/v0.14.0/review.code.v0.14.0.shared_lifecycle_gate.md`. The exchange
+  appended it, and the requestor's residual commit owns it. Its seven pending
+  spelling decisions are outside this staged batch, and the requestor has
+  said they will be settled before the commit gate.
+
+### Repair inventory for step 3 shared_lifecycle_gate (exchange 1) (round 3)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 3 shared_lifecycle_gate (exchange 1) (round 3)
+
+An independent `commit-plan-check.bat --format json` rerun on the received
+state exited 0 with `state: valid`, `ready: true` and no diagnostics. It listed
+the same 17 staged paths and the same three ordered groups as the request
+evidence:
+
+1. `feat(lifecycle): enforce worker audit barrier`, 15 paths.
+2. `perf(tests): read groundhog sources once`, 1 path.
+3. `docs(shared_lifecycle_gate): record step 3 validation`, 1 path.
+
+Reviewer judgment on grouping and scope: every staged path belongs to exactly
+one group, and each subject matches its diff. The group 1 body now names the
+missing-records regression and the trimmed child plugin startup. The group 3
+body names the regression and the measured assertion-plugin reduction. Both
+round 3 changes belong to group 1 and its validation to group 3, so the
+grouping stays correct. No AI attribution trailer is present.
+
+`a.commit` is accurate for the received state, and the reviewer did not amend
+it.
+
+### Findings and boundaries for step 3 shared_lifecycle_gate (exchange 1) (round 3)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 3 shared_lifecycle_gate (exchange 1) (round 3)
+
+No further implementation work is requested for Step 3.
+
+Before the commit gate, settle the seven pending transcript spelling decisions
+as the request states. Any dictionary edit goes with the transcript in the
+residual review-record batch, not in the three reviewed groups.
+
+Non-blocking notes:
+
+- `wiki/reference/test-lifecycle-limits.md` still points to the deleted
+  `tests/simulation_policy.py`. Step 7 owns that page.
+- Optional polish, carried from round 1: a worker declaration error still
+  shows the `llm_shared_process_audit:` prefix twice, because
+  `pytest_testnodedown` wraps a diagnostic that already carries it (lines 436
+  and 437).
+
+### Decision rationale for step 3 shared_lifecycle_gate (exchange 1) (round 3)
+
+The six readiness-floor results:
+
+- Identity: pass. The envelope, the readable identity, the plan, step 3,
+  round 3, occurrence 1, `Umbrella draft: none` and the request-time index tree
+  `feb9077f` all agree with the live exchange and index.
+- Completeness: pass. Every Step 3 obligation is implemented, and all round 1
+  and round 2 findings are resolved.
+- Validation and coverage: pass. Reviewer `ghog check` and
+  `ghog affected --no-cov` both exited 0, and the requestor's whole-suite
+  speed walk is green with 100% tools coverage. Static reading finds no
+  coverage gap, and the record rule is now pinned by a test.
+- Staged attribution: pass. All 17 staged paths are writer work in three
+  accurate groups. The reviewer staged nothing and edited nothing tracked.
+- Findings: pass. No current or carried finding is unresolved. The writer's
+  procedural disagreement is accepted, and the conflicting round 2
+  instruction is withdrawn.
+- `a.commit`: pass. The independent checker is valid and ready with no
+  diagnostics, and the grouping and bodies are accurate.
+
+This round made no repair, substantive or polishing. The request carries no
+literal `Human guidance:` block.
+
+Disposition: commit-ready. This is an advisory recommendation and does not
+authorize a commit. The requestor still owns the pending transcript spelling
+decisions before presenting the commit gate.
+
+### Final reviewer decision for step 3 shared_lifecycle_gate (exchange 1) (round 3)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-3-round-3 -->
+
+## Round 3 by human - Step 3 - human-confirmation
+
+- Recorded: 2026-11-09T12:31:48+01:00
+- Exchange: code/code/v0.14.0/shared_lifecycle_gate
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 3
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-3 -->
