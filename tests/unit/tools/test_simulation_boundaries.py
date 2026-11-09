@@ -2,6 +2,8 @@
 
 Profiled guard cases provide synthetic source at the read boundary while
 retaining real parsing, execution and import-path restoration.
+Native-event assertions retain real rejection through the canonical audit's
+carrying-test RuntimeError diagnostic after the own-suite migration.
 """
 
 from __future__ import annotations
@@ -19,7 +21,7 @@ from tests import script_entry
 @pytest.mark.parametrize("event", ["_winapi.CreateProcess", "os.startfile", "os.exec"])
 def test_process_audit_blocks_native_events(event: str) -> None:
     """The real audit hook rejects bypasses without creating a process."""
-    with pytest.raises(AssertionError, match="attempted " + event):
+    with pytest.raises(RuntimeError, match="process event " + event + " is not permitted"):
         sys.audit(event)
 
 
