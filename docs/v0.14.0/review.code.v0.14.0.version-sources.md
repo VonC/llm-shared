@@ -2032,3 +2032,768 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-1 -->
+
+## Round 1 by requestor - Step 4
+
+- Recorded: 2026-11-09T16:37:30+01:00
+- Exchange: code/code/v0.14.0/version-sources
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.version-sources.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: unrecorded
+- Implementation step: 4
+- Outcome: request
+
+### Review identity for step 4 version-sources (round 1)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.version-sources.md
+Implementation step: 4
+Review round: 1
+
+### Code review evidence for step 4 version-sources (round 1)
+
+request_index_tree: 0c3336dad7469ce5bd722d24b40f3e9375be8c2c
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.version-sources.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: docs(version-sources): fix transcript Markdown
+group 1 path: docs/v0.14.0/review.code.v0.14.0.version-sources.md
+group 2: feat(release): add the recoverable version transition
+group 2 path: tools/release_workflow/version_evidence.py
+group 2 path: tools/release_workflow/version_transition.py
+group 2 path: tests/unit/tools/release_workflow/version_support.py
+group 2 path: tests/unit/tools/release_workflow/test_version_evidence/__init__.py
+group 2 path: tests/unit/tools/release_workflow/test_version_evidence/test_version_evidence_tdd.py
+group 2 path: tests/unit/tools/release_workflow/test_version_transition/__init__.py
+group 2 path: tests/unit/tools/release_workflow/test_version_transition/test_version_transition_tdd.py
+group 2 path: tests/unit/tools/release_workflow/test_version_transition/test_version_restoration_tdd.py
+group 2 path: tests/unit/tools/release_workflow/test_version_transition/test_version_lifecycle_tdd.py
+group 3: docs(version-sources): record step 4 validation
+group 3 path: docs/v0.14.0/plan.v0.14.0.version-sources.validation.md
+group 3 path: .vscode/settings.json
+staged path: .vscode/settings.json
+staged path: docs/v0.14.0/plan.v0.14.0.version-sources.validation.md
+staged path: docs/v0.14.0/review.code.v0.14.0.version-sources.md
+staged path: tests/unit/tools/release_workflow/test_version_evidence/__init__.py
+staged path: tests/unit/tools/release_workflow/test_version_evidence/test_version_evidence_tdd.py
+staged path: tests/unit/tools/release_workflow/test_version_transition/__init__.py
+staged path: tests/unit/tools/release_workflow/test_version_transition/test_version_lifecycle_tdd.py
+staged path: tests/unit/tools/release_workflow/test_version_transition/test_version_restoration_tdd.py
+staged path: tests/unit/tools/release_workflow/test_version_transition/test_version_transition_tdd.py
+staged path: tests/unit/tools/release_workflow/version_support.py
+staged path: tools/release_workflow/version_evidence.py
+staged path: tools/release_workflow/version_transition.py
+```
+
+### Validation scope for step 4 version-sources (round 1)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 4 version-sources (round 1)
+
+Writer assessment for Step 4 of the version-sources plan, round 1: the step is
+fully implemented, and its implementation check records
+`Yes. Step 4 has been fully implemented.` in the staged validation plan.
+
+Evidence, all on the staged tree:
+
+- Tests first: `ghog single` on the two new test folders failed at collection
+  (four `ModuleNotFoundError`s, exit 4), then passed after the implementation
+  together with the Step 2 and 3 version and schema tests (168 tests), once
+  two test-code defects were fixed (unescaped evidence names in `match=`, a
+  declared home without its ignore file).
+- `ghog day --whole-suite`, the command printed by `pw scope day`, exit 0. A
+  first run failed only at check.bat (pyright, ruff, radon on one test, and
+  MD050 on four bare `__init__.py` paths in the committed step 3 answer). A
+  static coverage review then added three tests, and the walk passed again.
+- `ghog day --full=speed --whole-suite`, the review validation default: exit
+  0, no failure, coverage 100%, no duration outlier, no exclusion (check and
+  affected reused by groundhog's proof), in a measured quiet window (no other
+  checkout's pytest, load below 50% on three samples). An earlier speed walk
+  started at a higher load failed on five unrelated tests with lifecycle wall
+  overruns at near-zero CPU; those tests pass in focus. No budget was raised
+  and no exclusion is accepted in this step.
+- Completion checks: `rg -n 'os\.replace|write_bytes|unlink'` on both modules
+  finds only `remove_managed`'s `unlink(missing_ok=True)` on
+  `target.revalidate()`; the restoration registry holds the anchor, pattern
+  and two-claim sets for Steps 5 to 7 to extend.
+- Markdown lint and spell check of the staged validation plan and transcript:
+  no finding; one word (`YYYYMMDDTHHMMSS`) added at the user's choice.
+- Every file stays below 650 lines; `version_transition.py` is 384,
+  `version_evidence.py` 326.
+
+Architecture: the transition reaches item 1's boundaries only through
+`TransitionPorts`; every write is a managed replacement or a revalidated
+managed target; a lifecycle call never acquires, releases or deletes what it
+does not own. Performance: one view per phase, each file read once per phase,
+the only sorts over a handful of changed files and evidence directories.
+Feature integrity: no existing tool module changes; nothing ships until
+Step 9.
+
+Please check in particular: the order of the locked phases and the evidence
+check before every success path, the restoration boundary (what counts as
+replaced, write-back and fresh-view verification), the secondary-failure rule
+(status 1 after the marker, status 3 kept), the empty-directory residue
+classification, the lifecycle rules (verification before any read, own
+evidence accepted, kept evidence and the restore handle), and the fixture
+registry Steps 5 to 7 will extend.
+
+### Implementation report for step 4 version-sources (round 1)
+
+Step 4, "Recoverable version transition", adds the recovery evidence module and
+the transition primitive behind `versions set` and item 5. Nothing ships yet:
+no handler calls them until Step 9.
+
+Evidence (`tools/release_workflow/version_evidence.py`):
+
+- `EvidenceManifest` (version 1, owner, target, state, created local time with
+  offset, files with root-relative path, SHA-256, existence and copy name).
+  `encode` writes indented UTF-8 JSON; `decode` rejects duplicate keys
+  (`object_pairs_hook`), unknown or missing fields, wrong types (a JSON
+  boolean is required for existence), another version and an empty owner, all
+  as `ValueError("unreadable evidence manifest: ...")`.
+- `allocate(prepared, now, pid, *, attempts=99)`: builds
+  `a.version-transition.<now %Y%m%dT%H%M%S%z>-<pid>`, authorizes it in the
+  prepared home and calls `mkdir(exist_ok=False)` on the revalidated target,
+  then revalidates. `FileExistsError` moves to `-2`, `-3`, and so on; any
+  other error, or exhausting the attempts, raises `EvidenceError` (status 1).
+  Item 1's `prepare_directory` is not used, and `managed_files` is unchanged.
+- `write_evidence(directory, manifest, captures, *, replace, remove)`: copies
+  (`original.<n>` for each present capture) through the replace port, then the
+  manifest. On failure it removes what it wrote (copies, manifest, directory)
+  and raises `EvidenceError`, naming any residue when that cleanup fails too.
+- `EvidenceDirectory.mark(state, replace)` replaces the manifest through the
+  replace port; `delete(remove)` removes the copies, the manifest, then the
+  directory, raising `EvidenceError` that names the residue: the directory
+  with its copies and manifest, the manifest alone, or the empty directory.
+- `find_evidence(declaration)`: one `iterdir` of the artifact home (sorted by
+  name), directories with the prefix only, one manifest read each. Kinds:
+  `RESIDUE` (standalone `complete`, or an empty directory), `INTERRUPTED`
+  (standalone `writing` or `restoration-incomplete`), `UNREADABLE`,
+  `LIFECYCLE` (any other owner). `EvidenceEntry.delete` removes residue
+  whatever part of it a failed cleanup left.
+- `remove_managed(target)`: `rmdir` for a directory, `unlink(missing_ok=True)`
+  otherwise, both on `target.revalidate()`.
+
+Transition (`tools/release_workflow/version_transition.py`):
+
+- `TransitionOutcome` with statuses 0, 0, 1, 3, 1; `TransitionResult`
+  (outcome, changes, diagnostics, optional `RestoreHandle`, `status`);
+  `TransitionError` (status carried); `LifecycleOwnership(lock,
+  transaction)`.
+- `TransitionPorts` (plan decision Q07): `replace` (`replace_bytes`),
+  `remove` (`remove_managed`), `lock_factory` (`OperationLock`), `probe`
+  (`process_state`), `clock` (local time with offset), `pid` (`os.getpid`),
+  and `view` (`FileView`), the factory of each phase's fresh view.
+- `plan_transition(inputs, target, view)`: detect and `plan_edits`, no side
+  effect.
+- `set_versions(inputs, target, *, lifecycle=None, ports=DEFAULT_PORTS)`,
+  standalone: unlocked plan; `prepare_artifacts`; lock acquisition
+  (`OperationLockError` becomes `TransitionError` status 1 with the owner's
+  record fields); then `_transition` inside `except BaseException:` that
+  releases the lock (suppressing a release error) and re-raises; finally the
+  release, whose failure only adds a diagnostic.
+- `_transition`: `_check_evidence` (residue removed with a warning; anything
+  but this call's own lifecycle evidence stops with status 2 naming the
+  directory, owner and state); locked plan in a fresh view; `unchanged` for no
+  edits; `allocate` and `write_evidence` with one clock reading; `_apply`.
+- `_apply`: edits ordered by (is anchor, path); `_write` opens one comparison
+  view, requires each file's current bytes to equal its capture, replaces it,
+  and records the read bytes; `_verify` re-detects in a fresh view and
+  requires every source's expected value; then `mark(COMPLETE)`. Any
+  `SourceError`, `ManagedWriteError`, `OSError` or `EvidenceError` before the
+  marker goes to `_restore`. After it: lifecycle returns `applied` with a
+  `RestoreHandle`; standalone deletes the evidence, a failure turning the
+  result into `applied with cleanup failed` with the residue named.
+- `_restore`: writes back every replaced file (last first, errors suppressed),
+  checks each in a fresh view (an unreadable file counts as unrestored). All
+  back: `restored`, standalone evidence deleted (failure adds a diagnostic
+  naming it), lifecycle evidence kept. Otherwise `restoration incomplete`
+  naming each path and `copy_path`, and the evidence marked
+  `restoration-incomplete` (failure adds a diagnostic).
+- `_secondary`: an applied outcome becomes `applied with cleanup failed` with
+  "the new versions are applied; ..."; any other outcome keeps its status and
+  gains the diagnostic.
+- Lifecycle: the transaction must be nonempty and not `standalone` (status 2);
+  `verify_held(inputs.artifacts)` runs before any read (failure: status 1);
+  no unlocked plan, since the lock is held; evidence owned by the transaction.
+
+Tests: `test_version_evidence_tdd.py` (written evidence, failed writes with and
+without cleanup, marking, deletion order and residue names, listing kinds,
+missing home, strict decoding, allocation suffixes, other allocation failure,
+attempt limit); `test_version_transition_tdd.py` (default ports, plan failures
+with whole-tree snapshots, held lock, residue removal, unfinished evidence
+stopping an empty plan, unchanged, unwritable evidence, ordered run and
+changes, one view per phase and completion before cleanup);
+`test_version_restoration_tdd.py` (the registry at every write position,
+concurrent change, failed verification, failed marker, undeletable restored
+evidence, incomplete restoration with no, release, marker or unreadable
+secondary failure, `writing` evidence on a same-target rerun, three cleanup
+faults then the next run, lock release failure after completion);
+`test_version_lifecycle_tdd.py` (kept lock and handle, unbound or reserved
+calls with no view opened, own and foreign evidence, two calls with disjoint
+evidence). `version_support.py` adds the restoration registry, `Faults`,
+`ViewLog`, `declare_evidence`, `source_bytes`, `version_project` and the fixed
+clock, process id and names.
+
+The commit plan also carries one documentation repair: the step 3 round 1
+answer in the review transcript listed four `__init__.py` paths without code
+spans, which check.bat's Markdown catalog reports as MD050 (the markdownlint
+run at the step 3 gate did not).
+
+Writer notes: `.reviews/a.version-sources.step4.journal.md` and
+`.reviews/a.version-sources.step4.handoff.md`.
+
+### Change summary for step 4 version-sources (round 1)
+
+Staged paths (12), grouped in the root `a.commit` (three groups, checker
+`ready: true`):
+
+1. `docs(version-sources): fix transcript Markdown`:
+   `docs/v0.14.0/review.code.v0.14.0.version-sources.md` (four `__init__.py`
+   paths of the step 3 answer wrapped in code spans).
+2. `feat(release): add the recoverable version transition`:
+   `tools/release_workflow/version_evidence.py`,
+   `tools/release_workflow/version_transition.py`,
+   `tests/unit/tools/release_workflow/version_support.py`,
+   `tests/unit/tools/release_workflow/test_version_evidence/__init__.py`,
+   `tests/unit/tools/release_workflow/test_version_evidence/test_version_evidence_tdd.py`,
+   `tests/unit/tools/release_workflow/test_version_transition/__init__.py`,
+   `tests/unit/tools/release_workflow/test_version_transition/test_version_transition_tdd.py`,
+   `tests/unit/tools/release_workflow/test_version_transition/test_version_restoration_tdd.py`,
+   `tests/unit/tools/release_workflow/test_version_transition/test_version_lifecycle_tdd.py`.
+3. `docs(version-sources): record step 4 validation`:
+   `docs/v0.14.0/plan.v0.14.0.version-sources.validation.md` (Step 4
+   sections), `.vscode/settings.json` (`YYYYMMDDTHHMMSS` added to
+   `cSpell.words` at the user's choice).
+
+The evidence and transition modules share one group with their tests because
+the shared test support imports the transition ports. Steps 1 to 3 are
+committed (`a7c0d7c` to `83a31eb`) and are not part of this review.
+
+### Writer response for step 4 version-sources (round 1)
+
+Writer response:
+
+This is the first round of the Step 4 code review; there is no earlier
+reviewer feedback to answer.
+
+Choices worth checking, all recorded in the validation plan or the step notes:
+
+- `TransitionPorts` carries a seventh port, `view`, the factory of each
+  phase's fresh `FileView`: tests count views (one per phase) and prove that a
+  rejected lifecycle call opens none, without patching a module global.
+- `allocate` takes `(prepared, now, pid)`: one clock reading names the
+  directory and fills `created`, and the project comes from the prepared home.
+- An empty evidence directory is classified as completed residue: a failed
+  directory removal after the `complete` marker leaves exactly that, and the
+  next `set` must remove it rather than stop on unreadable evidence. A
+  directory holding copies but no manifest stays unreadable and stops `set`.
+- `remove_managed` uses `unlink(missing_ok=True)`, so removing residue after a
+  failed manifest deletion (copies already gone) is idempotent.
+- A lifecycle call skips the unlocked plan (its lock is held), and rejects a
+  `standalone` or empty transaction identity with status 2.
+- Restoration writes back the bytes read in the comparison just before each
+  replacement, suppresses a write-back failure and lets the fresh-view check
+  decide; a lifecycle restoration (during the call or through the handle)
+  keeps the transaction's evidence.
+- A lock-release failure after `unchanged` or `restored` keeps that outcome and
+  status and only adds a diagnostic; after `applied` it becomes `applied with
+  cleanup failed`.
+
+### Reviewer focus for step 4 version-sources (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-4-round-1 -->
+
+## Round 1 by reviewer - Step 4
+
+- Recorded: 2026-11-09T16:45:29+01:00
+- Exchange: code/code/v0.14.0/version-sources
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.version-sources.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 4
+- Outcome: answer
+
+### Assessed index identity for step 4 version-sources (exchange 1) (round 1)
+
+Baseline index tree: 0c3336dad7469ce5bd722d24b40f3e9375be8c2c
+
+Assessed index tree: 2ca227630aecb72eb9337a15cbeebc6acaf1f608
+
+### Implementation check for step 4 version-sources (exchange 1) (round 1)
+
+Result:
+
+No. Step 4 has NOT been fully implemented.
+
+The planned transition, durable completion boundary, restoration registry and lifecycle reuse are implemented, but three recovery and status defects remain. The exact Step 4 validation section now records the No verdict and a concrete missing-work list. Static review found no additional layering or performance issue; every changed production file is below the 650-line ceiling.
+
+Readiness floor: identity passes; completeness fails; validation and coverage assessment identifies missing behavioral tests; staged attribution passes for the permitted validation metadata; unresolved findings fail; independent a.commit assessment passes.
+
+Validation plan effects:
+
+Updated only Step 4 in docs/v0.14.0/plan.v0.14.0.version-sources.validation.md: the No verdict, missing-work list, and matching architecture, unit-test and integrity assessments. The evidence launcher proved the patch attributable before it was staged. The umbrella is unchanged.
+
+### Pre-repair mandatory checks and coverage for step 4 version-sources (exchange 1) (round 1)
+
+Pre-repair validation blob: 94c359c1fa378f7fc40357c023e41e23754769e1. The writer's original Step 4 verdict was Yes. The original request, staged implementation and tests were reviewed independently; the transcript was not used as working context.
+
+### Resolved validation set and sources for step 4 version-sources (exchange 1) (round 1)
+
+Request and current resolver agree: ghog day --full=speed --whole-suite, source project. The bound round scope is the whole suite, fingerprint 686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6.
+
+The writer reports 168 focused tests green, a green scoped day walk and a green speed/coverage walk on the staged implementation. Reviewer assessment was static; no ghog day, ghog full, coverage run, check or affected command was repeated. The coverage gate measures tools and excludes tests and initializers. Changed test-support definitions are exercised, but the three reported behaviors lack regression tests.
+
+### Resolver drift and direction for step 4 version-sources (exchange 1) (round 1)
+
+No drift. Both sets contain the project command ghog day --full=speed --whole-suite.
+
+### Repository state around validation for step 4 version-sources (exchange 1) (round 1)
+
+The live request-time tree matched 0c3336dad7469ce5bd722d24b40f3e9375be8c2c. After the attributable Step 4 metadata update, the assessed tree is 2ca227630aecb72eb9337a15cbeebc6acaf1f608.
+
+The validation-state comparator reports acceptable=false because the validation plan and index changed. Independent classification confines both differences to the permitted, attributed Step 4 validation update. Every other tracked digest is identical; no untracked or ignored validation artifacts appeared. Umbrella digest comparison passes unchanged at 5abf0cb72800e9d07acba786dd90502fcb8879ff41cbcce55b961a95352aaa4c.
+
+### Repair inventory for step 4 version-sources (exchange 1) (round 1)
+
+Repairs made:
+
+- Updated and staged only the exact Step 4 validation metadata. No implementation or test repair was authorized by a literal Human guidance block.
+
+Paths staged:
+
+- docs/v0.14.0/plan.v0.14.0.version-sources.validation.md: attributable reviewer metadata only. All other 11 staged paths retain the requestor's bytes.
+
+### Commit plan assessment for step 4 version-sources (exchange 1) (round 1)
+
+The independent commit-plan checker returned state=valid, ready=true, no diagnostics, and exactly 12 paths covered once. Its ordered groups are docs(version-sources): fix transcript Markdown; feat(release): add the recoverable version transition; docs(version-sources): record step 4 validation.
+
+The order puts the pre-existing transcript lint correction before shared support imports the new modules, followed by validation metadata. Production code and tests form one coherent feature group. The editor dictionary addition is explicitly reported as the user's choice and grouped with metadata. Membership, scope and conventional subjects remain accurate; a.commit was not changed. This mechanical and semantic pass does not override the implementation findings.
+
+### Findings and boundaries for step 4 version-sources (exchange 1) (round 1)
+
+Unresolved findings:
+
+- [P1] Constrain decoded copy destinations before residue cleanup (tools/release_workflow/version_evidence.py:201-205). _file accepts arbitrary copy strings, and _delete joins them to the evidence directory before authorizing them against the whole project. In a complete standalone manifest under .reviews/a.version-transition.example, copy="../../version.txt" resolves to the project's anchor and is deleted before the authoritative plan runs. Absolute in-project names are also accepted. Validate all copy metadata before any removal, require safe direct copy names and physical containment in the evidence directory, and classify invalid manifests as unreadable. Add set-level tests asserting status 2 and byte-identical sources and evidence for traversal and absolute destinations.
+- [P2] Fail an unchanged run when releasing its lock fails (tools/release_workflow/version_transition.py:258-263). A same-target transition returns UNCHANGED, then a release error goes through _secondary's non-applied branch and retains status 0, although the operation lock remains. Raise or return status 1 with the lock-record diagnostic while preserving unchanged sources, and add a same-target test with the existing failing-release fixture.
+- [P2] Classify a directory that cannot be enumerated as unreadable evidence (tools/release_workflow/version_evidence.py:318-323). When reading the manifest raises PermissionError, the exception handler calls path.iterdir() outside any error guard. If directory enumeration is also denied, that second error escapes _check_evidence as a raw OSError, without the required status-2 TransitionError naming the evidence directory. Conservatively retain an unreadable entry on enumeration failure; add an injected double-failure test asserting status 2, named evidence, unchanged sources and released standalone lock.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 4 version-sources (exchange 1) (round 1)
+
+Fix all three findings within Step 4 and add the regression cases listed in its Missing work section. Reassess the validation plan, run the writer-owned resolved validation set green, refresh staged evidence and a.commit if necessary, and publish the next round through the existing requestor workflow.
+
+### Decision rationale for step 4 version-sources (exchange 1) (round 1)
+
+Changes requested. The implementation and broad writer validation establish the planned happy path and many injected faults, but do not make source-deleting residue cleanup or success after a failed lock release acceptable. The unreadable-directory fallback also violates the explicit evidence-stop contract. No commit-ready recommendation is made.
+
+### Final reviewer decision for step 4 version-sources (exchange 1) (round 1)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-4-round-1 -->
+
+## Round 2 by requestor - Step 4
+
+- Recorded: 2026-11-09T17:22:57+01:00
+- Exchange: code/code/v0.14.0/version-sources
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.version-sources.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 4
+- Outcome: request
+
+### Review identity for step 4 version-sources (round 2)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.version-sources.md
+Implementation step: 4
+Review round: 2
+
+### Code review evidence for step 4 version-sources (round 2)
+
+request_index_tree: 65f25de42b0d0df951209a95a076646cbe005b07
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.version-sources.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: docs(version-sources): fix transcript Markdown
+group 1 path: docs/v0.14.0/review.code.v0.14.0.version-sources.md
+group 2: feat(release): add the recoverable version transition
+group 2 path: tools/release_workflow/version_evidence.py
+group 2 path: tools/release_workflow/version_transition.py
+group 2 path: tests/unit/tools/release_workflow/version_support.py
+group 2 path: tests/unit/tools/release_workflow/test_version_evidence/__init__.py
+group 2 path: tests/unit/tools/release_workflow/test_version_evidence/test_version_evidence_tdd.py
+group 2 path: tests/unit/tools/release_workflow/test_version_transition/__init__.py
+group 2 path: tests/unit/tools/release_workflow/test_version_transition/test_version_transition_tdd.py
+group 2 path: tests/unit/tools/release_workflow/test_version_transition/test_version_restoration_tdd.py
+group 2 path: tests/unit/tools/release_workflow/test_version_transition/test_version_lifecycle_tdd.py
+group 3: docs(version-sources): record step 4 validation
+group 3 path: docs/v0.14.0/plan.v0.14.0.version-sources.validation.md
+group 3 path: .vscode/settings.json
+staged path: .vscode/settings.json
+staged path: docs/v0.14.0/plan.v0.14.0.version-sources.validation.md
+staged path: docs/v0.14.0/review.code.v0.14.0.version-sources.md
+staged path: tests/unit/tools/release_workflow/test_version_evidence/__init__.py
+staged path: tests/unit/tools/release_workflow/test_version_evidence/test_version_evidence_tdd.py
+staged path: tests/unit/tools/release_workflow/test_version_transition/__init__.py
+staged path: tests/unit/tools/release_workflow/test_version_transition/test_version_lifecycle_tdd.py
+staged path: tests/unit/tools/release_workflow/test_version_transition/test_version_restoration_tdd.py
+staged path: tests/unit/tools/release_workflow/test_version_transition/test_version_transition_tdd.py
+staged path: tests/unit/tools/release_workflow/version_support.py
+staged path: tools/release_workflow/version_evidence.py
+staged path: tools/release_workflow/version_transition.py
+```
+
+### Validation scope for step 4 version-sources (round 2)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 4 version-sources (round 2)
+
+Writer assessment for Step 4 of the version-sources plan, round 2: the step is
+fully implemented. The three round 1 findings are repaired with regression
+tests (see the writer response), and the staged validation plan records
+`Yes. Step 4 has been fully implemented.` again, with the reviewer's Missing
+work section removed because each item is done.
+
+Evidence, all on the staged tree:
+
+- `ghog single` on `test_version_evidence` and `test_version_transition` with
+  the repairs and the new regression tests: exit 0.
+- `ghog day --full=speed --whole-suite`, the review validation default: exit
+  0, no failure, coverage 100%, no duration outlier, no exclusion, nothing
+  reused (check, affected and full all ran). At the user's request it ran
+  without waiting for a quiet window. A first run failed only at check.bat on
+  MD032 in the rewritten validation text, which was fixed and staged.
+- The commit plan is unchanged (three groups, 12 paths, checker ready). The
+  transcript's index copy holds only the MD050 fix of group 1; this exchange's
+  rounds stay unstaged for the residual commit.
+- Every file stays below 650 lines; `version_evidence.py` is 357,
+  `version_transition.py` 390.
+
+Please check in particular: `_copy` and `_inside` (no recorded or resolved
+path can leave the evidence directory, and an unsafe manifest is unreadable
+before anything is removed), the status 1 `TransitionError` for a failed
+release after `unchanged`, and `_empty` keeping an unlistable directory
+unreadable.
+
+### Implementation report for step 4 version-sources (round 2)
+
+Step 4, "Recoverable version transition", adds the recovery evidence module and
+the transition primitive behind `versions set` and item 5. Nothing ships yet:
+no handler calls them until Step 9.
+
+Evidence (`tools/release_workflow/version_evidence.py`):
+
+- `EvidenceManifest` (version 1, owner, target, state, created local time with
+  offset, files with root-relative path, SHA-256, existence and copy name).
+  `encode` writes indented UTF-8 JSON; `decode` rejects duplicate keys
+  (`object_pairs_hook`), unknown or missing fields, wrong types (a JSON
+  boolean is required for existence), another version, an empty owner and,
+  since round 1, any copy name other than `original.<n>` (`_copy`), all as
+  `ValueError("unreadable evidence manifest: ...")`.
+- `allocate(prepared, now, pid, *, attempts=99)`: builds
+  `a.version-transition.<now %Y%m%dT%H%M%S%z>-<pid>`, authorizes it in the
+  prepared home and calls `mkdir(exist_ok=False)` on the revalidated target,
+  then revalidates. `FileExistsError` moves to `-2`, `-3`, and so on; any
+  other error, or exhausting the attempts, raises `EvidenceError` (status 1).
+  Item 1's `prepare_directory` is not used, and `managed_files` is unchanged.
+- `write_evidence(directory, manifest, captures, *, replace, remove)`: copies
+  (`original.<n>` for each present capture) through the replace port, then the
+  manifest. On failure it removes what it wrote (copies, manifest, directory)
+  and raises `EvidenceError`, naming any residue when that cleanup fails too.
+- `EvidenceDirectory.mark(state, replace)` replaces the manifest through the
+  replace port; `delete(remove)` removes the copies, the manifest, then the
+  directory, raising `EvidenceError` that names the residue: the directory
+  with its copies and manifest, the manifest alone, or the empty directory.
+  Since round 1, each copy and the manifest is authorized through `_inside`,
+  which requires the resolved path's parent to be the evidence directory.
+- `find_evidence(declaration)`: one `iterdir` of the artifact home (sorted by
+  name), directories with the prefix only, one manifest read each. Kinds:
+  `RESIDUE` (standalone `complete`, or a provably empty directory),
+  `INTERRUPTED` (standalone `writing` or `restoration-incomplete`),
+  `UNREADABLE` (including, since round 1, a directory `_empty` cannot list),
+  `LIFECYCLE` (any other owner). `EvidenceEntry.delete` removes residue
+  whatever part of it a failed cleanup left.
+- `remove_managed(target)`: `rmdir` for a directory, `unlink(missing_ok=True)`
+  otherwise, both on `target.revalidate()`.
+
+Transition (`tools/release_workflow/version_transition.py`):
+
+- `TransitionOutcome` with statuses 0, 0, 1, 3, 1; `TransitionResult`
+  (outcome, changes, diagnostics, optional `RestoreHandle`, `status`);
+  `TransitionError` (status carried); `LifecycleOwnership(lock,
+  transaction)`.
+- `TransitionPorts` (plan decision Q07): `replace` (`replace_bytes`),
+  `remove` (`remove_managed`), `lock_factory` (`OperationLock`), `probe`
+  (`process_state`), `clock` (local time with offset), `pid` (`os.getpid`),
+  and `view` (`FileView`), the factory of each phase's fresh view.
+- `plan_transition(inputs, target, view)`: detect and `plan_edits`, no side
+  effect.
+- `set_versions(inputs, target, *, lifecycle=None, ports=DEFAULT_PORTS)`,
+  standalone: unlocked plan; `prepare_artifacts`; lock acquisition
+  (`OperationLockError` becomes `TransitionError` status 1 with the owner's
+  record fields); then `_transition` inside `except BaseException:` that
+  releases the lock (suppressing a release error) and re-raises; finally the
+  release, whose failure only adds a diagnostic, except after `unchanged`,
+  where it raises `TransitionError` with status 1 (since round 1).
+- `_transition`: `_check_evidence` (residue removed with a warning; anything
+  but this call's own lifecycle evidence stops with status 2 naming the
+  directory, owner and state); locked plan in a fresh view; `unchanged` for no
+  edits; `allocate` and `write_evidence` with one clock reading; `_apply`.
+- `_apply`: edits ordered by (is anchor, path); `_write` opens one comparison
+  view, requires each file's current bytes to equal its capture, replaces it,
+  and records the read bytes; `_verify` re-detects in a fresh view and
+  requires every source's expected value; then `mark(COMPLETE)`. Any
+  `SourceError`, `ManagedWriteError`, `OSError` or `EvidenceError` before the
+  marker goes to `_restore`. After it: lifecycle returns `applied` with a
+  `RestoreHandle`; standalone deletes the evidence, a failure turning the
+  result into `applied with cleanup failed` with the residue named.
+- `_restore`: writes back every replaced file (last first, errors suppressed),
+  checks each in a fresh view (an unreadable file counts as unrestored). All
+  back: `restored`, standalone evidence deleted (failure adds a diagnostic
+  naming it), lifecycle evidence kept. Otherwise `restoration incomplete`
+  naming each path and `copy_path`, and the evidence marked
+  `restoration-incomplete` (failure adds a diagnostic).
+- `_secondary`: an applied outcome becomes `applied with cleanup failed` with
+  "the new versions are applied; ..."; any other outcome keeps its status and
+  gains the diagnostic.
+- Lifecycle: the transaction must be nonempty and not `standalone` (status 2);
+  `verify_held(inputs.artifacts)` runs before any read (failure: status 1);
+  no unlocked plan, since the lock is held; evidence owned by the transaction.
+
+Tests: `test_version_evidence_tdd.py` (written evidence, failed writes with and
+without cleanup, marking, deletion order and residue names, deletion refusing
+a copy outside its directory, listing kinds, missing home, strict decoding
+with unsafe copy names, allocation suffixes, other allocation failure, attempt
+limit); `test_version_transition_tdd.py` (default ports, plan failures with
+whole-tree snapshots, held lock, residue removal, residue with a traversal or
+absolute copy name, evidence that can be neither read nor listed, unfinished
+evidence stopping an empty plan, unchanged, unwritable evidence, ordered run
+and changes, one view per phase and completion before cleanup);
+`test_version_restoration_tdd.py` (the registry at every write position,
+concurrent change, failed verification, failed marker, undeletable restored
+evidence, incomplete restoration with no, release, marker or unreadable
+secondary failure, `writing` evidence on a same-target rerun, three cleanup
+faults then the next run, lock release failure after an `unchanged` run and
+after completion);
+`test_version_lifecycle_tdd.py` (kept lock and handle, unbound or reserved
+calls with no view opened, own and foreign evidence, two calls with disjoint
+evidence). `version_support.py` adds the restoration registry, `Faults`,
+`ViewLog`, `declare_evidence`, `source_bytes`, `version_project` and the fixed
+clock, process id and names.
+
+The commit plan also carries one documentation repair: the step 3 round 1
+answer in the review transcript listed four `__init__.py` paths without code
+spans, which check.bat's Markdown catalog reports as MD050 (the markdownlint
+run at the step 3 gate did not).
+
+Writer notes: `.reviews/a.version-sources.step4.journal.md` and
+`.reviews/a.version-sources.step4.handoff.md`.
+
+### Change summary for step 4 version-sources (round 2)
+
+Staged paths (12), grouped in the root `a.commit` (three groups, checker
+`ready: true`):
+
+1. `docs(version-sources): fix transcript Markdown`:
+   `docs/v0.14.0/review.code.v0.14.0.version-sources.md` (four `__init__.py`
+   paths of the step 3 answer wrapped in code spans).
+2. `feat(release): add the recoverable version transition`:
+   `tools/release_workflow/version_evidence.py`,
+   `tools/release_workflow/version_transition.py`,
+   `tests/unit/tools/release_workflow/version_support.py`,
+   `tests/unit/tools/release_workflow/test_version_evidence/__init__.py`,
+   `tests/unit/tools/release_workflow/test_version_evidence/test_version_evidence_tdd.py`,
+   `tests/unit/tools/release_workflow/test_version_transition/__init__.py`,
+   `tests/unit/tools/release_workflow/test_version_transition/test_version_transition_tdd.py`,
+   `tests/unit/tools/release_workflow/test_version_transition/test_version_restoration_tdd.py`,
+   `tests/unit/tools/release_workflow/test_version_transition/test_version_lifecycle_tdd.py`.
+3. `docs(version-sources): record step 4 validation`:
+   `docs/v0.14.0/plan.v0.14.0.version-sources.validation.md` (Step 4
+   sections), `.vscode/settings.json` (`YYYYMMDDTHHMMSS` added to
+   `cSpell.words` at the user's choice).
+
+The evidence and transition modules share one group with their tests because
+the shared test support imports the transition ports. Steps 1 to 3 are
+committed (`a7c0d7c` to `83a31eb`) and are not part of this review.
+
+### Writer response for step 4 version-sources (round 2)
+
+Writer response:
+
+Round 1 requested changes with three findings. The writer accepts all three,
+with no disagreement, and repaired them with regression tests.
+
+- [P1] Unsafe manifest copy names. `_copy` now accepts a copy name only when
+  it fully matches `original\.[1-9][0-9]*`, so a traversal (`../../version.txt`),
+  absolute (`C:/project/version.txt`), nested (`sub/original.1`), reserved
+  (`manifest.json`) or `original.0` name makes the manifest unreadable, and
+  `set` stops with status 2 before removing anything. As a second guard,
+  removal now authorizes each copy and the manifest through `_inside`, which
+  requires the resolved path to sit directly in the evidence directory; a
+  destination outside it raises `EvidenceError` before anything is removed.
+  Tests: five unsafe names in `test_manifest_decoding_is_strict`;
+  `test_deletion_never_leaves_the_evidence_directory` (a constructed manifest
+  with `../version.txt`: refused, outside file and manifest kept);
+  `test_residue_with_an_unsafe_copy_name_stops_and_deletes_nothing` (traversal
+  and absolute names through `set`: status 2, whole-tree snapshot unchanged).
+- [P2] `unchanged` after a failed lock release. `set_versions` now raises
+  `TransitionError` with status 1 ("no source changed; releasing the operation
+  lock failed and its record remains ...") when the release fails after an
+  empty authoritative plan; `restored` and `restoration incomplete` keep their
+  statuses 1 and 3. Test:
+  `test_lock_release_failure_after_an_unchanged_run_fails_with_status_1`
+  (same-target run with the failing-release fixture: status 1, lock record
+  named, sources unchanged, no evidence).
+- [P2] Unguarded listing after an unreadable manifest. `_entry` now asks
+  `_empty`, which treats a directory it cannot list as not empty, so the entry
+  is `unreadable` and `set` stops with the named status 2 diagnostic. Test:
+  `test_evidence_that_cannot_be_read_or_listed_stops_the_transition` (manifest
+  read and directory listing both denied: status 2, directory named, sources
+  unchanged, lock released).
+
+The reviewer's validation-plan metadata (No verdict and Missing work) is
+superseded by the writer's renewed check: the Step 4 analysis is back to
+`Yes. Step 4 has been fully implemented.`, the Missing work section is removed
+because each item is done, and the architecture, coverage and integrity
+sections record the round 1 findings as repaired.
+
+### Reviewer focus for step 4 version-sources (round 2)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-4-round-2 -->
+
+## Round 2 by reviewer - Step 4
+
+- Recorded: 2026-11-09T17:29:30+01:00
+- Exchange: code/code/v0.14.0/version-sources
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.version-sources.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 4
+- Outcome: answer
+
+### Assessed index identity for step 4 version-sources (exchange 1) (round 2)
+
+Baseline index tree: 65f25de42b0d0df951209a95a076646cbe005b07
+
+Assessed index tree: bb76d4cd846fe86baa40b7d91f087d6e46da6a7e
+
+### Implementation check for step 4 version-sources (exchange 1) (round 2)
+
+Result:
+
+Yes. Step 4 has been fully implemented.
+
+The evidence and transition services satisfy the exact Step 4 plan: exclusive recovery directories, evidence before writes, a fresh locked plan, ordered replacement with the anchor last, verification and durable completion, restoration and status 3 evidence, and lifecycle lock/restore-handle reuse. No remaining layering, performance, line-budget or static unit coverage gap was found.
+
+All three carried findings are resolved: strict copy-name decoding plus resolved-directory containment prevents cleanup from escaping its evidence directory; a failed lock release after unchanged raises status 1; failed manifest reading and directory enumeration produce the named unreadable-evidence status 2 stop. Regression tests check preserved source bytes, the unsafe manifest's unchanged tree, and lock release on the unreadable-directory path.
+
+Readiness floor: exact identity passes; implementation completeness passes; requestor validation and static coverage assessment pass; staged attribution passes; no unresolved findings remain; independent commit-plan assessment passes.
+
+Validation plan effects:
+
+Added one independent reviewer confirmation paragraph only in the exact Step 4 analysis section of `docs/v0.14.0/plan.v0.14.0.version-sources.validation.md`. The exact Yes verdict remains. No other step or umbrella row changed. Markdown lint reports zero issues.
+
+### Pre-repair mandatory checks and coverage for step 4 version-sources (exchange 1) (round 2)
+
+Before reviewer metadata changes, the request-time and live index trees matched `65f25de42b0d0df951209a95a076646cbe005b07`. The validation plan's pre-repair blob is `8bb44ba5ff88d3e5dedb52e545ff64f2c3ed5630`. No reviewer implementation or test repair was authorized or made. The request reports a fresh green whole-suite speed walk, nothing reused, 100% coverage, no outlier and no exclusion. The reviewer checked the implementation and regressions statically and did not rerun groundhog or measure coverage. The gate measures `tools`, omitting tests and initializers; the new support symbols outside it are referenced.
+
+### Resolved validation set and sources for step 4 version-sources (exchange 1) (round 2)
+
+The published request and current resolver both select `ghog day --full=speed --whole-suite`, source `project`. This is requestor-owned validation. The core-bound scope is whole-suite with fingerprint `686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6`.
+
+### Resolver drift and direction for step 4 version-sources (exchange 1) (round 2)
+
+None. Command, scope and source agree with the current resolver.
+
+### Repository state around validation for step 4 version-sources (exchange 1) (round 2)
+
+Baseline tree: `65f25de42b0d0df951209a95a076646cbe005b07`. Assessed tree: `bb76d4cd846fe86baa40b7d91f087d6e46da6a7e`.
+
+The validation-state comparator reports `acceptable=false` solely for the validation plan and index. Independent classification confines these changes to the attributed Step 4 reviewer metadata paragraph. All other tracked digests match, including the pre-existing unstaged transcript content. No untracked or ignored validation artifacts appeared. Umbrella digest is unchanged at `5abf0cb72800e9d07acba786dd90502fcb8879ff41cbcce55b961a95352aaa4c`. Attribution returned true before staging the exact validation path.
+
+### Repair inventory for step 4 version-sources (exchange 1) (round 2)
+
+Repairs made:
+
+- Polishing-only review metadata: `docs/v0.14.0/plan.v0.14.0.version-sources.validation.md`, independent Step 4 confirmation. No substantive repair.
+
+Paths staged:
+
+- `docs/v0.14.0/plan.v0.14.0.version-sources.validation.md`
+
+### Commit plan assessment for step 4 version-sources (exchange 1) (round 2)
+
+The independent checker reports `state=valid`, `ready=true`, no diagnostics, and all 12 staged paths covered exactly once. `a.commit` remains accurate and unchanged.
+
+1. `docs(version-sources): fix transcript Markdown` contains only the staged code-span correction.
+2. `feat(release): add the recoverable version transition` contains both services and their dependent tests/support.
+3. `docs(version-sources): record step 4 validation` contains validation metadata and the user-selected editor dictionary word.
+
+Order, subjects and dependencies remain appropriate after the permitted metadata update. The existing unstaged exchange transcript remains unstaged.
+
+### Findings and boundaries for step 4 version-sources (exchange 1) (round 2)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 4 version-sources (exchange 1) (round 2)
+
+No further Step 4 repair is requested. This advisory recommendation leaves the convergence choice and any commit to the human/requestor workflow.
+
+### Decision rationale for step 4 version-sources (exchange 1) (round 2)
+
+Recommend `commit-ready`. All three previous findings are resolved with behavioral regression tests, all six readiness results pass, and this round made only attributable review metadata changes. No literal `Human guidance:` block was supplied. This recommendation does not authorize a commit.
+
+### Final reviewer decision for step 4 version-sources (exchange 1) (round 2)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-4-round-2 -->
+
+## Round 2 by human - Step 4 - human-confirmation
+
+- Recorded: 2026-11-09T17:34:23+01:00
+- Exchange: code/code/v0.14.0/version-sources
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.version-sources.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 4
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-2 -->
