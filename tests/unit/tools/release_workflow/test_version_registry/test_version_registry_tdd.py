@@ -3,7 +3,9 @@
 Step 2 of v0.14.0 version-sources: the modules of `tools.release_workflow.sources`,
 minus the declared support modules, each contribute one entry to `ADAPTERS`,
 named after the module; a synthetic listing with an unregistered or a
-duplicated adapter breaks the check. The current order is `("anchor",)`.
+duplicated adapter breaks the check. Step 3 appends `pattern` and declares
+`settings` and `detection` as support modules: the order is now
+`("anchor", "pattern")`.
 """
 
 from __future__ import annotations
@@ -16,7 +18,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 from tools.release_workflow import sources
-from tools.release_workflow.sources import anchor
+from tools.release_workflow.sources import anchor, pattern
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
@@ -49,14 +51,15 @@ def test_every_adapter_module_is_registered_once() -> None:
 
 
 def test_detection_order() -> None:
-    """The anchor comes first; later steps insert adapters before `pattern`."""
-    assert tuple(adapter.name for adapter in sources.ADAPTERS) == ("anchor",)
+    """The anchor comes first and `pattern` last; later steps insert adapters before `pattern`."""
+    assert tuple(adapter.name for adapter in sources.ADAPTERS) == ("anchor", "pattern")
+    assert frozenset({"model", "settings", "detection"}) == sources.SUPPORT_MODULES
 
 
 @pytest.mark.parametrize(("modules", "adapters", "problem"), [
-    (["anchor", "model", "extra"], (anchor.ADAPTER,), "missing from ADAPTERS: extra"),
-    (["anchor", "model"], (anchor.ADAPTER, anchor.ADAPTER), "listed 2 times: anchor"),
-    (["model"], (anchor.ADAPTER,), "no adapter module: anchor"),
+    (["anchor", "model", "pattern", "extra"], (anchor.ADAPTER, pattern.ADAPTER), "missing from ADAPTERS: extra"),
+    (["anchor", "model", "pattern"], (anchor.ADAPTER, pattern.ADAPTER, anchor.ADAPTER), "listed 2 times: anchor"),
+    (["model", "pattern"], (anchor.ADAPTER, pattern.ADAPTER), "no adapter module: anchor"),
 ])
 def test_synthetic_listing_breaks_the_check(modules: list[str], adapters: tuple[Adapter, ...], problem: str) -> None:
     """An unregistered module, a duplicate entry or an entry without a module is reported."""

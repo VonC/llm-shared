@@ -9,6 +9,11 @@ sources and visible records, and never write: the transition composes every
 edit of a file from one captured original. The shared input, capture, edit,
 inventory and plan types live here for every later step (plan decision Q16).
 
+Step 3 adds `PatternDeclaration` and exposes the declared pattern sources
+through `AdapterSettings`: the pattern adapter reads them through the same
+`detect` signature as every adapter, which a narrower settings type would
+break for the registered tuple.
+
 This module imports only the standard library at run time; foundation types
 are imported for type checking only.
 """
@@ -215,12 +220,27 @@ class FileView:
         return self._loads.get(path, 0)
 
 
+@dataclass(frozen=True)
+class PatternDeclaration:
+    """One `[source:<name>]` pattern source: its file, compiled expression and form."""
+
+    name: str
+    path: Path
+    expression: re.Pattern[str]
+    form: Form
+
+
 class AdapterSettings(Protocol):
     """What an adapter needs to know about the operation's settings."""
 
     @property
     def project_root(self) -> Path:
         """Return the physical project root, whose root-only sources an adapter emits."""
+        ...
+
+    @property
+    def patterns(self) -> tuple[PatternDeclaration, ...]:
+        """Return the declared pattern sources, in declaration order."""
         ...
 
 
