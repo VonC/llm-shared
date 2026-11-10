@@ -6049,3 +6049,1389 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-2 -->
+
+## Round 1 by requestor - Step 7
+
+- Recorded: 2026-11-10T21:53:40+01:00
+- Exchange: code/code/v0.14.0/shared_lifecycle_gate
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: unrecorded
+- Implementation step: 7
+- Outcome: request
+
+### Review identity for step 7 shared_lifecycle_gate (round 1)
+
+Umbrella draft: none
+Implementation plan: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.md
+Implementation step: 7
+Review round: 1
+
+### Code review evidence for step 7 shared_lifecycle_gate (round 1)
+
+request_index_tree: baa1914e59993516d28d28a52b773e41db301585
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project, plan)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "none", "requirement": "docs/v0.14.0/feature-request.v0.14.0.shared_lifecycle_gate.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: fix(pytest): preserve cache for drive-root callers
+group 1 path: tools/pytest_plugin_environment.py
+group 1 path: tests/unit/tools/shared_lifecycle/test_preparation/test_preparation_tdd.py
+group 2: test(pytest): expand executable compatibility cases
+group 2 path: tools/lifecycle_compatibility/behavior_runner.py
+group 2 path: tools/lifecycle_compatibility/behavior_scenarios.py
+group 2 path: tools/lifecycle_compatibility/runner.py
+group 2 path: tools/lifecycle_compatibility/scenarios.py
+group 2 path: tests/unit/tools/shared_lifecycle/test_compatibility/test_behavior_runner_tdd.py
+group 3: test(pytest): join prepared consumer policies
+group 3 path: tests/memory_filesystem.py
+group 3 path: tests/unit/tools/shared_lifecycle/inline_session.py
+group 3 path: tests/acceptance/shared_lifecycle/__init__.py
+group 3 path: tests/acceptance/shared_lifecycle/test_shared_plugins/__init__.py
+group 3 path: tests/acceptance/shared_lifecycle/test_shared_plugins/test_shared_plugins_tdd.py
+group 4: docs(pytest): document shared policy adoption
+group 4 path: instructions/write-fast-python-tests.md
+group 4 path: wiki/README.md
+group 4 path: wiki/explanation/why-fast-tests-keep-the-work-they-assert.md
+group 4 path: wiki/how-to/register-groundhog-in-a-project.md
+group 4 path: wiki/how-to/set-test-lifecycle-limits.md
+group 4 path: wiki/reference/ghog-commands-and-exit-codes.md
+group 4 path: wiki/reference/test-lifecycle-limits.md
+group 4 path: wiki/how-to/enable-shared-lifecycle-gate.md
+group 4 path: wiki/how-to/enable-shared-process-audit.md
+group 4 path: wiki/how-to/validate-shared-pytest-compatibility.md
+group 4 path: docs/v0.14.0/acceptance.v0.14.0.shared_lifecycle_gate.md
+group 5: docs(shared_lifecycle_gate): record step 7 validation
+group 5 path: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.validation.md
+staged path: docs/v0.14.0/acceptance.v0.14.0.shared_lifecycle_gate.md
+staged path: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.validation.md
+staged path: instructions/write-fast-python-tests.md
+staged path: tests/acceptance/shared_lifecycle/__init__.py
+staged path: tests/acceptance/shared_lifecycle/test_shared_plugins/__init__.py
+staged path: tests/acceptance/shared_lifecycle/test_shared_plugins/test_shared_plugins_tdd.py
+staged path: tests/memory_filesystem.py
+staged path: tests/unit/tools/shared_lifecycle/inline_session.py
+staged path: tests/unit/tools/shared_lifecycle/test_compatibility/test_behavior_runner_tdd.py
+staged path: tests/unit/tools/shared_lifecycle/test_preparation/test_preparation_tdd.py
+staged path: tools/lifecycle_compatibility/behavior_runner.py
+staged path: tools/lifecycle_compatibility/behavior_scenarios.py
+staged path: tools/lifecycle_compatibility/runner.py
+staged path: tools/lifecycle_compatibility/scenarios.py
+staged path: tools/pytest_plugin_environment.py
+staged path: wiki/README.md
+staged path: wiki/explanation/why-fast-tests-keep-the-work-they-assert.md
+staged path: wiki/how-to/enable-shared-lifecycle-gate.md
+staged path: wiki/how-to/enable-shared-process-audit.md
+staged path: wiki/how-to/register-groundhog-in-a-project.md
+staged path: wiki/how-to/set-test-lifecycle-limits.md
+staged path: wiki/how-to/validate-shared-pytest-compatibility.md
+staged path: wiki/reference/ghog-commands-and-exit-codes.md
+staged path: wiki/reference/test-lifecycle-limits.md
+```
+
+### Validation scope for step 7 shared_lifecycle_gate (round 1)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 7 shared_lifecycle_gate (round 1)
+
+Yes. Step 7 has been fully implemented under the user's explicit instruction
+to continue when measured CPU is within budget and only wall time fails.
+The validation plan records that distinction; green release acceptance is
+unproven. Review the exact staged implementation and its acceptance mapping.
+
+Focused acceptance passed five tests with no warnings. Actual Python 3.12.15
+and 3.13.9 each passed all 25 executable compatibility cases, with pytest 9.1.0
+and xdist 3.8.0. Eleven real Windows shell probes passed. An anonymous consumer
+passed 23 existing tests in each of prepared-shell and genuine groundhog child
+contexts, with unchanged files and persistent activation and restored transient
+state. An earlier affected rerun passed without failures, warnings or xfails.
+
+The final self-hosted `ghog day --full=speed --whole-suite` ended
+2026-11-10T21:44:10+01:00, exit 2 after 18m00.2s. Fresh executable preflight
+and static checks passed. The full stage measured 6,221 lifecycles and reported
+11 wall-only errors: CPU 0.015625-0.156250s against the effective 0.250s band
+limit, wall 1.029650-6.201089s against 1.000s. No assertion failures, warnings
+or xfails were reported. Coverage, speed/outlier and exclusion verdicts were
+withheld. Do not interpret CPU-based continuation as a green automated verdict
+or measured 100% coverage. The user instruction supersedes the ordinary green
+walk prerequisite for this continuation; no additional timing run is requested.
+
+The coverage gate still targets `tools` at 100%, omitting tests and package
+markers. Static inspection found no missing new unit-test branch or unreferenced
+out-of-scope top-level helper. No architecture issue, impaired feature or new
+superlinear computation was identified. All changed Python files are below 650
+lines. All 12 changed Markdown files pass lint and spelling. Root `a.commit`
+passes the readiness checker with five groups and no diagnostics.
+
+Record comparison preserved all 5,892 previous eligible proofs and added 345;
+no nodes or proofs were lost and exception/raw/other document fields were
+unchanged. No limit, assertion, process permission or duration exclusion was
+added or weakened. No accepted exclusion was introduced by this step. Final
+automated exclusion assessment was withheld along with the failed full stage.
+Linux and macOS remain unvalidated.
+
+### Implementation report for step 7 shared_lifecycle_gate (round 1)
+
+The acceptance journey joins real preparation, groundhog environment isolation,
+canonical policy loading, strict settings, fixture cleanup, unused permission
+summaries and selected record writes for all four selections. Generated scratch
+files use the existing memory filesystem and a local source adapter. Explicit
+configuration and `--noconftest` use a supplied guarded startup hook; actual
+conftest discovery remains covered by the executable matrix.
+
+Executable compatibility now uses real preparation and imports consumer-owned
+`tools` and `tests` packages. Added cases cover all prepared selections, guarded
+registration orders, explicit duplicate loading, gate-only processes and
+distributed fixture aggregation. Empty child probes skip site startup and
+barrier children omit unused plugins without changing deadlines or assertions.
+A reusable Windows caller body supports real shell probes. Drive-root callers
+now retain user-local cache storage, with a unit regression preserving the
+ordinary checkout/cache boundary.
+
+Three new adoption guides explain independent activation, process ownership
+and explicit compatibility setup. Existing wiki pages and the canonical
+fast-test instruction link the supported routes. Anonymous acceptance evidence
+maps every requirement and design case to named observations and records the
+unproven whole-suite release gates. The validation plan records all seven
+implementation verdicts with the same limitation.
+
+Writer notes: `.reviews/a.shared_lifecycle_gate.step7.journal.md` and
+`.reviews/a.shared_lifecycle_gate.step7.handoff.md`.
+
+### Change summary for step 7 shared_lifecycle_gate (round 1)
+
+The staged set contains 24 paths in five ordered groups.
+
+#### Grouping commits by topic for step 7 shared_lifecycle_gate (round 1)
+
+##### Group 1: Drive-root preparation cache for step 7 shared_lifecycle_gate (round 1)
+
+git add -A tools/pytest_plugin_environment.py
+git add -A tests/unit/tools/shared_lifecycle/test_preparation/test_preparation_tdd.py
+
+```log
+fix(pytest): preserve cache for drive-root callers
+
+Why:
+
+A drive-root consumer rejected the normal user-local loader cache because every
+path on the drive appeared to be inside the project.
+
+Preparation now distinguishes a filesystem root from a checkout directory while
+retaining the cache boundary for ordinary projects and shared sources.
+
+What:
+
+- Accept user-local cache storage when the caller is a drive root.
+- Retain rejection of the project root itself and shared-checkout storage.
+- Cover drive-root binding and immutable cache publication in a regression.
+```
+
+##### Group 2: Executable compatibility acceptance for step 7 shared_lifecycle_gate (round 1)
+
+git add -A tools/lifecycle_compatibility/behavior_runner.py
+git add -A tools/lifecycle_compatibility/behavior_scenarios.py
+git add -A tools/lifecycle_compatibility/runner.py
+git add -A tools/lifecycle_compatibility/scenarios.py
+git add -A tests/unit/tools/shared_lifecycle/test_compatibility/test_behavior_runner_tdd.py
+
+```log
+test(pytest): expand executable compatibility cases
+
+Why:
+
+Release acceptance needs actual prepared selection, consumer package identity
+and distributed fixture usage beyond the individual policy units.
+
+The separate executable matrix now checks those contracts on real runtimes and
+retains bounded failure cleanup without carrying-suite process grants.
+
+What:
+
+- Exercise all prepared selections and guarded settings in both orders.
+- Import consumer-owned tools and tests packages in isolated children.
+- Check duplicate loading, gate-only processes and worker aggregation.
+- Add a reusable Windows caller probe and trim unrelated child startup.
+- Retain all existing deadlines, policy limits and evidence assertions.
+```
+
+##### Group 3: Integrated prepared-consumer acceptance for step 7 shared_lifecycle_gate (round 1)
+
+git add -A tests/memory_filesystem.py
+git add -A tests/unit/tools/shared_lifecycle/inline_session.py
+`git add -A tests/acceptance/shared_lifecycle/__init__.py`
+`git add -A tests/acceptance/shared_lifecycle/test_shared_plugins/__init__.py`
+git add -A tests/acceptance/shared_lifecycle/test_shared_plugins/test_shared_plugins_tdd.py
+
+```log
+test(pytest): join prepared consumer policies
+
+Why:
+
+Separate policy tests do not prove that preparation, groundhog child isolation,
+canonical loading and record writes work together.
+
+An in-process consumer journey checks all four selections with strict settings,
+fixture cleanup, unused permissions and parent-state restoration.
+
+What:
+
+- Join the real environment builder, runner boundary and pytest hooks.
+- Verify summary counts, unused declarations and selected record writes.
+- Route generated resources through the existing memory filesystem.
+- Keep real conftest discovery and process checks in the executable matrix.
+```
+
+##### Group 4: Shared policy adoption and acceptance evidence for step 7 shared_lifecycle_gate (round 1)
+
+git add -A instructions/write-fast-python-tests.md
+git add -A wiki/README.md
+git add -A wiki/explanation/why-fast-tests-keep-the-work-they-assert.md
+git add -A wiki/how-to/register-groundhog-in-a-project.md
+git add -A wiki/how-to/set-test-lifecycle-limits.md
+git add -A wiki/reference/ghog-commands-and-exit-codes.md
+git add -A wiki/reference/test-lifecycle-limits.md
+git add -A wiki/how-to/enable-shared-lifecycle-gate.md
+git add -A wiki/how-to/enable-shared-process-audit.md
+git add -A wiki/how-to/validate-shared-pytest-compatibility.md
+git add -A docs/v0.14.0/acceptance.v0.14.0.shared_lifecycle_gate.md
+
+```log
+docs(pytest): document shared policy adoption
+
+Why:
+
+Consumers need the supported opt-in, settings, permission and compatibility
+routes together with evidence that matches the platforms actually tested.
+
+The wiki explains independent activation and operation scope, and anonymous
+acceptance evidence maps every requirement and design case to a check.
+
+What:
+
+- Document shell preparation, strict configuration, cache and refusal paths.
+- Explain fixture ownership, worker reports and timing accountability.
+- Describe explicit per-checkout Python `3.12` compatibility setup.
+- Record real Windows, Python `3.12/3.13` and two-context consumer results.
+- Preserve record-continuity evidence and explicit validation limitations.
+```
+
+##### Group 5: Step 7 implementation validation for step 7 shared_lifecycle_gate (round 1)
+
+git add -A docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.validation.md
+
+```log
+docs(shared_lifecycle_gate): record step 7 validation
+
+Why:
+
+The final plan step needs a recorded assessment of acceptance behavior,
+documentation, architecture, performance and feature integrity.
+
+The validation plan now records the checked implementation and its evidence
+without publishing private consumer details or unsupported platform claims.
+
+What:
+
+- Record step 7 implementation and the exact observed validation boundary.
+- Link anonymous acceptance evidence and explain any outstanding gates.
+```
+
+Staged paths:
+
+- `docs/v0.14.0/acceptance.v0.14.0.shared_lifecycle_gate.md`
+- `docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.validation.md`
+- `instructions/write-fast-python-tests.md`
+- `tests/acceptance/shared_lifecycle/__init__.py`
+- `tests/acceptance/shared_lifecycle/test_shared_plugins/__init__.py`
+- `tests/acceptance/shared_lifecycle/test_shared_plugins/test_shared_plugins_tdd.py`
+- `tests/memory_filesystem.py`
+- `tests/unit/tools/shared_lifecycle/inline_session.py`
+- `tests/unit/tools/shared_lifecycle/test_compatibility/test_behavior_runner_tdd.py`
+- `tests/unit/tools/shared_lifecycle/test_preparation/test_preparation_tdd.py`
+- `tools/lifecycle_compatibility/behavior_runner.py`
+- `tools/lifecycle_compatibility/behavior_scenarios.py`
+- `tools/lifecycle_compatibility/runner.py`
+- `tools/lifecycle_compatibility/scenarios.py`
+- `tools/pytest_plugin_environment.py`
+- `wiki/README.md`
+- `wiki/explanation/why-fast-tests-keep-the-work-they-assert.md`
+- `wiki/how-to/enable-shared-lifecycle-gate.md`
+- `wiki/how-to/enable-shared-process-audit.md`
+- `wiki/how-to/register-groundhog-in-a-project.md`
+- `wiki/how-to/set-test-lifecycle-limits.md`
+- `wiki/how-to/validate-shared-pytest-compatibility.md`
+- `wiki/reference/ghog-commands-and-exit-codes.md`
+- `wiki/reference/test-lifecycle-limits.md`
+
+### Human guidance and writer response for step 7 shared_lifecycle_gate (round 1)
+
+Human guidance:
+
+User instruction: "OK, when you have CPU under budget, do move on".
+The last complete validation run has only wall-time lifecycle errors, with
+each measured CPU value within its effective budget. Continue review without
+another timing run, raised limits, weakened assertions or new exclusions.
+Retain the non-green automated result and unproven coverage/speed claims.
+This instruction does not authorize a commit or assert green release acceptance.
+
+Writer response:
+
+First implementation review of step 7. No earlier code-review feedback for
+this step. The user's approved wording uses "enabled values that are not
+booleans", "can be triggered" and "fixtures that were not requested".
+The user explicitly instructed continuation for CPU-under-budget wall-only
+failures. Automated coverage and speed acceptance remain unproven; preserve
+that qualification in the assessment and documentation.
+
+### Reviewer focus for step 7 shared_lifecycle_gate (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-7-round-1 -->
+
+## Round 1 by reviewer - Step 7
+
+- Recorded: 2026-11-10T22:12:47+01:00
+- Exchange: code/code/v0.14.0/shared_lifecycle_gate
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 7
+- Outcome: answer
+
+### Assessed index identity for step 7 shared_lifecycle_gate (exchange 1) (round 1)
+
+Baseline index tree: baa1914e59993516d28d28a52b773e41db301585
+
+Assessed index tree: baa1914e59993516d28d28a52b773e41db301585
+
+### Implementation check for step 7 shared_lifecycle_gate (exchange 1) (round 1)
+
+Result:
+
+No. Step 7 has NOT been fully implemented.
+
+Most of the step is in place and matches the plan. One plan obligation is
+not met in a tracked form. The plan says to "Keep actual calling-shell
+execution, with delayed expansion off and on, in Step 7's existing acceptance
+harness" (Step 4 analysis). It also says to "Complete corresponding executable
+scenarios for shell/process/xdist behavior that the audited suite cannot run"
+(Step 7). The process and xdist scenarios are in the tracked harness. The real
+shell probes are not. Two smaller items are listed with this one under the
+unresolved findings.
+
+What is in place and matches the plan:
+
+- `tests/acceptance/shared_lifecycle/test_shared_plugins/test_shared_plugins_tdd.py`
+  (191 lines) runs `commands.run_tests_outcome` for all four selections. It
+  uses real `prepare_environment`, the runner's child environment boundary,
+  the real early loader, `--strict-config` and `--strict-markers`, a module
+  fixture with a finalizer, and unused test and fixture permissions. It
+  checks the summary counts, the two `WARNING unused` lines, the record write
+  only when `lifecycle` is selected, a proven CPU at or below 0.1 s, the bound
+  root and policy directory, the shared root kept off `PYTHONPATH`, and an
+  unchanged parent environment. The consumer `tools` and `tests` packages raise
+  if imported, so the in-process journey cannot pick them up by accident.
+  `PreparedStartup` carries the documented plugin-manager guard.
+- `behavior_scenarios.cases()` now has 25 cases. The new ones are the four
+  prepared selections, `guard-late` (consumer guard first, gate loaded later
+  through `pytest_plugins`), `prepared-explicit`, `workers-aggregate`,
+  `workers-fixtures` (four parameters across two workers) and
+  `gate-process-only`. `write_consumer_packages` adds consumer-owned `tools`
+  and `tests` packages to every case, with a generated test that checks their
+  identity in the child. `behavior_runner.run_case` now calls the real
+  `prepare_environment` instead of setting the three variables by hand, and
+  distinguishes no preparation (`None`) from an empty selection.
+- The requestor's resolved walk log, which I saved before my own runs, shows
+  the fresh 3.12 preflight with all 25 `Compatibility <case>: passed` lines
+  before `check`.
+- `tools/pytest_plugin_environment.py` accepts a user-local cache when the
+  caller is a drive root, and still refuses a cache equal to the project, a
+  cache under an ordinary project, and one under the shared checkout. The
+  new `test_drive_root_preserves_user_cache` covers it.
+- `runner.run_smoke` barrier children now disable unrelated built-in plugins
+  and use `--assert=plain`. The barrier test uses only an autouse fixture,
+  collection hooks, xdist and the audit, so its verdict is unchanged. The empty
+  process probes add `-S`, and their 5 s timeout is unchanged.
+- The three new how-to guides and the updated wiki pages cover the plan's
+  documentation list. That includes the exact guard, loading order and
+  precedence, the hazard of older unguarded registration, cache verification
+  and explicit cleanup, stale-shell refusal and exit 4, fixture dictionary,
+  thread and token scope, finalizers, credit, timing accountability, and
+  Q03=C1 and Q04=D1 setup. I checked the "missing `enabled` key disables it"
+  wording against `compatibility_preflight._enabled`, and they agree.
+- `docs/v0.14.0/acceptance.v0.14.0.shared_lifecycle_gate.md` maps all
+  sixteen criteria and the design cases. It keeps consumer identity and paths
+  private, keeps Linux and macOS unvalidated, and records the declaration scan
+  and record continuity (5,892 proofs kept, 345 added).
+
+Human guidance: the request quotes the user: "OK, when you have CPU under
+budget, do move on". I checked the saved log of the walk that ended at
+2026-11-10T21:44:10+01:00. All 11 errors are lifecycle wall overruns: wall
+1.029650 to 6.201089 s against 1.000 s. CPU ranges from 0.015625 to
+0.156250 s, under the 0.250 s band. None of the 11 tests is in a Step 7 file.
+In line with the guidance, I treat them as disclosed rather than as findings.
+I ran no timing walk, and I assessed coverage statically. The guidance does
+not cover the shell-harness gap, the transcript lint failure or the
+validation rows.
+
+Static coverage: the configured source is `tools` at 100%. Each new `tools`
+line runs in tests:
+
+- The drive-root condition runs in the new regression and the existing
+  preparation tests.
+- Both arms of `if case.prepared is not None` run in the parametrized
+  behavior cases.
+- `write_consumer_packages` runs in every behavior case.
+- The barrier argument list runs in the existing runner tests.
+- `windows_caller` runs in the acceptance test.
+
+I found no gap. Changed Python files are 1 to 350 lines, under the 650-line
+limit.
+
+Validation plan effects:
+
+No reviewer edit. The writer's Step 7 rows in
+`docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.validation.md` say
+`Yes. Step 7 has been fully implemented.`, which this assessment does not
+confirm because of the shell-harness gap (first finding). The rows follow the
+template. Their walk figures match the saved walk log: 6,221 lifecycles, 11
+wall-only errors, CPU 0.015625 to 0.156250 s, wall 1.029650 to 6.201089 s, and
+withheld coverage and speed verdicts. They also say plainly that green release
+acceptance is not established. The implemented row does not record the
+file-list departures (third finding). The coverage row's statement that the
+Windows caller helper has "executable probe evidence" rests on the untracked
+scratch driver.
+
+The document-level line changes to `Yes, it is implemented.`, qualified by the
+unproven coverage and speed acceptance. That line should follow the Step 7
+verdict after rework. Reviewer mode completed no umbrella row, and the effort
+has none.
+
+### Pre-repair mandatory checks and coverage for step 7 shared_lifecycle_gate (exchange 1) (round 1)
+
+No repair was made. The pre-repair and assessed states are therefore the same
+index tree, `baa1914e59993516d28d28a52b773e41db301585`, which equals the
+request-time tree.
+
+Requestor evidence, not repeated: the resolved
+`ghog day --full=speed --whole-suite`, run through this worktree's own
+launcher, ended at 2026-11-10T21:44:10+01:00 with exit 2 after 18m 00.2s. The
+fresh 3.12 preflight passed all 25 cases. Its check (10m 06.7s) and affected
+stages passed. The full stage reported 11 wall-only lifecycle errors and
+withheld coverage, outliers and exclusions. I saved that log before my own
+runs as `.reviews/a.shared_lifecycle_gate.step7.tmp.r1.rv-requestor-day.log`.
+
+Reviewer evidence. Each command ran once from the project root through the
+worktree's `.\senv.bat` and `bin\ghog.bat`, with the guard cleared and
+`SWITCHPY_CHOICE=local`. Each run passed the log-freshness check:
+
+- `ghog check` ended at 2026-11-10T22:03:44+01:00 with `exit=1` after
+  2m 04.4s. ty, pyright, ruff, the static entry check (`Python 3.10
+  syntax/refusal boundary and PEP 701 negative control passed`), radon,
+  vulture, the 650-line big-file check, shellcheck and the EOF check passed.
+  Markdown failed only with `MD050` at lines 6272 and 6273 of the unstaged
+  review transcript (second finding). No staged Markdown file failed.
+- `ghog affected --no-cov --scope-file=.reviews/a.review-scope.code.v0.14.0.shared_lifecycle_gate.json`
+  ended at 2026-11-10T22:04:41+01:00 with `exit=0`. Testmon found nothing
+  affected since the requestor's walk, so 0 tests ran.
+
+Coverage was assessed statically, and no `ghog day` or `ghog full` ran.
+
+### Resolved validation set and sources for step 7 shared_lifecycle_gate (exchange 1) (round 1)
+
+The request carries one command, `ghog day --full=speed --whole-suite`, from
+the `project` and `plan` sources. That is the built-in default, completed with
+the bound whole-suite selector, and the plan's own `scope day --full=speed`
+final acceptance. The repository has no `.review-validation` declaration.
+
+The requestor owns this set. The reviewer did not run it. Its recorded result
+ended at 2026-11-10T21:44:10+01:00:
+`ghog day done fail=11 warn=0 xfail=0 cov=withheld outliers=withheld excluded=withheld exit=2 full=speed src=param proof=none reused=none scope=whole`.
+All 11 failures are lifecycle wall overruns with CPU under the band, in tests
+outside Step 7. The literal `Human guidance:` block authorizes continuing
+without another timing run, and the result stays recorded as non-green.
+
+Exchange status binds the round to scope `whole` with fingerprint `686958cd`,
+and the reviewer used that `paths.scope` capture.
+
+### Resolver drift and direction for step 7 shared_lifecycle_gate (exchange 1) (round 1)
+
+No drift. There is no `.review-validation` declaration, and the bound scope is
+`whole` (fingerprint `686958cd`). The staged change adds no validation command
+to the plan or the validation plan. The resolver inputs therefore give the same
+single command, `ghog day --full=speed --whole-suite`, from `project` and
+`plan`. Neither direction adds or drops a command.
+
+### Repository state around validation for step 7 shared_lifecycle_gate (exchange 1) (round 1)
+
+The validation path set holds the 24 staged paths, the implementation plan
+and the root `a.ghog.log` that the reviewer evidence commands write. It was
+captured before assessment and again after both ghog commands.
+
+- `validation-state compare` reported `acceptable: true`. No tracked or
+  untracked path changed, and one ignored path changed (`a.ghog.log`).
+- `umbrella-digest compare` reported not applicable and unchanged. The request
+  says `Umbrella draft: none`.
+- After assessment, the live index tree is still
+  `baa1914e59993516d28d28a52b773e41db301585`.
+- The only unstaged change is the versioned review transcript
+  `docs/v0.14.0/review.code.v0.14.0.shared_lifecycle_gate.md`. The exchange
+  appended to it, and the requestor's residual commit owns it. It fails the
+  Markdown check (second finding).
+
+### Repair inventory for step 7 shared_lifecycle_gate (exchange 1) (round 1)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 7 shared_lifecycle_gate (exchange 1) (round 1)
+
+An independent `commit-plan-check.bat --format json` rerun on the received
+state exited 0 with `state: valid`, `ready: true` and no diagnostics. It listed
+the same 24 staged paths and the same five ordered groups as the request
+evidence:
+
+1. `fix(pytest): preserve cache for drive-root callers`, 2 paths.
+2. `test(pytest): expand executable compatibility cases`, 5 paths.
+3. `test(pytest): join prepared consumer policies`, 5 paths.
+4. `docs(pytest): document shared policy adoption`, 11 paths.
+5. `docs(shared_lifecycle_gate): record step 7 validation`, 1 path.
+
+Reviewer judgment on grouping and scope: membership and order are correct.
+
+1. The drive-root preparation fix and its regression come first. That is a
+   real production defect, and the later harness relies on it.
+2. The executable harness changes are tooling that exists only to test, so
+   `test` fits.
+3. The in-process acceptance journey and its helper routing come next.
+4. The guides and the acceptance record follow.
+5. The validation record comes last.
+
+The bodies match the staged changes, and no AI attribution trailer is present.
+
+`a.commit` is accurate for the received state. The rework will need to add
+the tracked shell harness and its tests, most likely to group 2, and update
+that group's body.
+
+### Findings and boundaries for step 7 shared_lifecycle_gate (exchange 1) (round 1)
+
+Unresolved findings:
+
+- The real Windows shell probes are not in the tracked acceptance harness.
+  The plan puts "actual calling-shell execution, with delayed expansion off
+  and on" in "Step 7's existing acceptance harness" and asks for "executable
+  scenarios for shell/process/xdist behavior". The eleven probes are driven by
+  `.reviews/a.shared_lifecycle_gate.step7.tmp.shell-probes.py`, which is an
+  ignored scratch script. Those probes cover delayed expansion on and off,
+  punctuation and OEM non-ASCII paths, atomic refusal of an invalid selection
+  and of an unrepresentable value, the drive root, concurrent transfer files
+  and concurrent preparations. The tracked code holds only
+  `scenarios.windows_caller()`, a six-line batch body. Its only tracked
+  caller, `test_windows_probe_preserves_the_caller_boundary`, checks that text.
+  Neither `runner --all`, `bin\lifecycle_compatibility.bat` nor the day and
+  full preflight runs a shell probe: the resolved walk shows 25
+  `Compatibility` lines and none for the shell. Acceptance row W lists the
+  probes as a "repeatable source", but nothing in the repository can repeat
+  them, and they are lost when the `.reviews` scratch is cleaned. A later
+  change to `bin\prepare_pytest_plugins.bat` or `tools/pytest_plugin_shell.py`
+  would not be caught.
+- My `ghog check` is red: exit 1 at 2026-11-10T22:03:44+01:00. Only the
+  Markdown step failed, with `MD050` (strong style) at lines 6272 and 6273 of
+  the tracked transcript `docs/v0.14.0/review.code.v0.14.0.shared_lifecycle_gate.md`.
+  Those lines are the bare `git add -A` lines for the two new
+  `tests/acceptance/shared_lifecycle/.../__init__.py` package markers. They
+  came from the round 1 change-summary input,
+  `.reviews/a.shared_lifecycle_gate.step7.tmp.r1.change-summary.md`, which
+  puts `git add` lines outside any code span or fenced block. The exchange
+  appended them to the transcript when the request was published at 21:53.
+  The requestor's own `check` ran from 21:29 to 21:40, before that, so it
+  could not see the failure. Earlier rounds kept these paths in code spans or
+  fenced `group N path:` lines. The transcript is not staged, but it belongs to
+  this step's residual review commit, and every `ghog check` on this
+  worktree now fails until the lines are fixed.
+- The Step 7 validation rows do not record the departures from the plan's
+  file list, as the Step 6 rows do. Eight staged files are not named in
+  Step 7's file list. `tools/pytest_plugin_environment.py` and
+  `tests/unit/tools/shared_lifecycle/test_preparation/test_preparation_tdd.py`
+  hold a production fix to Step 4 preparation.
+  `tools/lifecycle_compatibility/behavior_runner.py`,
+  `tools/lifecycle_compatibility/behavior_scenarios.py`,
+  `tools/lifecycle_compatibility/runner.py` and
+  `tests/unit/tools/shared_lifecycle/test_compatibility/test_behavior_runner_tdd.py`
+  hold the behavior cases and barrier trims. `tests/memory_filesystem.py` and
+  `tests/unit/tools/shared_lifecycle/inline_session.py` are support changes.
+  The prose mentions the drive-root fix and the harness growth. No row names
+  these files as departures or says why the work landed there.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 7 shared_lifecycle_gate (exchange 1) (round 1)
+
+1. Shell harness: move the shell probe driver into the tracked executable
+   compatibility harness, for example a `tools/lifecycle_compatibility`
+   module beside `scenarios.windows_caller`. Keep the same eleven checks:
+   delayed expansion off and on, punctuation and OEM non-ASCII paths, atomic
+   refusal of an invalid selection and of an unrepresentable value, the drive
+   root, concurrent transfer files and concurrent preparations. Run it from the
+   harness on Windows, at least in `runner --all` and through
+   `bin\lifecycle_compatibility.bat --evidence`. On another platform, report it
+   as not run rather than passed. You choose whether the day and full preflight
+   also run it. Keep its process starts out of the audited suite. Cover its
+   decision logic with process-free unit tests through the existing virtual
+   storage boundary, so `tools` coverage stays at 100%. Rerun the real 3.12 and
+   3.13 harness. Point acceptance row W and the Step 7 validation rows at the
+   tracked entry, and keep its outputs private. Remove the claim that the
+   scratch script is repeatable evidence.
+2. Transcript lint: do not disable `MD050`. Before the residual transcript
+   commit, make `docs/v0.14.0/review.code.v0.14.0.shared_lifecycle_gate.md`
+   pass the Markdown check again. Lines 6272 and 6273 need their package-marker
+   paths in code spans, through whichever route your requestor instruction
+   allows for the transcript. The reviewer does not edit it. In every later
+   request input, put `git add` lines inside a fenced block or code spans, as
+   earlier rounds did. Confirm with `ghog check`.
+3. Validation rows: add a "File-list deviations" bullet to the Step 7 "What
+   was implemented" row, as Step 6 has. Name the eight files that are not in
+   Step 7's list, listed under the unresolved findings. Say why each landed
+   there. For example, the drive-root shell probe exposed the Step 4 cache
+   boundary, which is a production `fix`. The harness split from Step 6 put the
+   cases in `behavior_scenarios.py` and `behavior_runner.py`. `runner.py` holds
+   the barrier startup trims, and the two test helpers support the in-process
+   journey. Name any file that item 1 adds as well.
+4. Update `a.commit` for any file that items 1 and 3 add. The new shell
+   module and its tests most likely belong in group 2.
+
+Non-blocking notes:
+
+- `behavior_runner.run_case` now prepares with the default user-local cache,
+  so each real harness run can publish an immutable loader entry there. The
+  unit test redirects it. That fits the documented explicit cleanup. Mention
+  it in the compatibility guide if you want the effect to be visible.
+
+### Decision rationale for step 7 shared_lifecycle_gate (exchange 1) (round 1)
+
+The six readiness-floor results:
+
+- Identity: pass. The envelope, the readable identity, the plan, step 7,
+  round 1, occurrence 1, `Umbrella draft: none` and the request-time index tree
+  `baa1914e` all agree with the live exchange and index.
+- Completeness: fail. The plan's calling-shell execution scenarios are not in
+  the tracked acceptance harness. They exist only as an ignored scratch
+  driver (first finding).
+- Validation and coverage: fail. The reviewer `ghog check` is red with `MD050`
+  in the review transcript (second finding). `ghog affected --no-cov` exited 0,
+  and static reading finds no coverage gap. Under the literal human guidance,
+  the 11 wall-only, CPU-under-budget errors of the resolved walk are disclosed
+  rather than counted as findings. That walk stays non-green, and its coverage
+  and speed verdicts stay unproven.
+- Staged attribution: pass. All 24 staged paths are writer work in five
+  accurate groups. The reviewer staged nothing and edited nothing tracked.
+- Findings: fail. Three findings are unresolved. The third concerns the
+  validation rows.
+- `a.commit`: pass for the received state. The independent checker is valid
+  and ready with no diagnostics.
+
+This round made no repair, substantive or polishing. The literal
+`Human guidance:` block was applied as written. It directs continuation
+without a timing run, raised limits, weakened assertions or new exclusions. It
+instructs no repair, and it does not override the completeness or
+validation findings.
+
+Disposition: changes-requested.
+
+### Final reviewer decision for step 7 shared_lifecycle_gate (exchange 1) (round 1)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-7-round-1 -->
+
+## Round 2 by requestor - Step 7
+
+- Recorded: 2026-11-10T23:04:33+01:00
+- Exchange: code/code/v0.14.0/shared_lifecycle_gate
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 7
+- Outcome: request
+
+### Review identity for step 7 shared_lifecycle_gate (round 2)
+
+Umbrella draft: none
+Implementation plan: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.md
+Implementation step: 7
+Review round: 2
+
+### Code review evidence for step 7 shared_lifecycle_gate (round 2)
+
+request_index_tree: 3a0d82f2e1a37877f8fc396217c52fa58ed2411f
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project, plan)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "none", "requirement": "docs/v0.14.0/feature-request.v0.14.0.shared_lifecycle_gate.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: fix(pytest): preserve cache for drive-root callers
+group 1 path: tools/pytest_plugin_environment.py
+group 1 path: tests/unit/tools/shared_lifecycle/test_preparation/test_preparation_tdd.py
+group 2: test(pytest): expand executable compatibility cases
+group 2 path: tools/lifecycle_compatibility/behavior_runner.py
+group 2 path: tools/lifecycle_compatibility/behavior_scenarios.py
+group 2 path: tools/lifecycle_compatibility/runner.py
+group 2 path: tools/lifecycle_compatibility/scenarios.py
+group 2 path: tools/lifecycle_compatibility/shell_scenarios.py
+group 2 path: tools/lifecycle_compatibility/shell_runner.py
+group 2 path: tests/unit/tools/shared_lifecycle/test_compatibility/test_behavior_runner_tdd.py
+group 2 path: tests/unit/tools/shared_lifecycle/test_compatibility/test_shell_runner_tdd.py
+group 3: test(pytest): join prepared consumer policies
+group 3 path: tests/memory_filesystem.py
+group 3 path: tests/unit/tools/shared_lifecycle/inline_session.py
+group 3 path: tests/acceptance/shared_lifecycle/__init__.py
+group 3 path: tests/acceptance/shared_lifecycle/test_shared_plugins/__init__.py
+group 3 path: tests/acceptance/shared_lifecycle/test_shared_plugins/test_shared_plugins_tdd.py
+group 4: docs(pytest): document shared policy adoption
+group 4 path: instructions/write-fast-python-tests.md
+group 4 path: wiki/README.md
+group 4 path: wiki/explanation/why-fast-tests-keep-the-work-they-assert.md
+group 4 path: wiki/how-to/register-groundhog-in-a-project.md
+group 4 path: wiki/how-to/set-test-lifecycle-limits.md
+group 4 path: wiki/reference/ghog-commands-and-exit-codes.md
+group 4 path: wiki/reference/test-lifecycle-limits.md
+group 4 path: wiki/how-to/enable-shared-lifecycle-gate.md
+group 4 path: wiki/how-to/enable-shared-process-audit.md
+group 4 path: wiki/how-to/validate-shared-pytest-compatibility.md
+group 4 path: docs/v0.14.0/acceptance.v0.14.0.shared_lifecycle_gate.md
+group 5: docs(shared_lifecycle_gate): record step 7 validation
+group 5 path: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.validation.md
+staged path: docs/v0.14.0/acceptance.v0.14.0.shared_lifecycle_gate.md
+staged path: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.validation.md
+staged path: instructions/write-fast-python-tests.md
+staged path: tests/acceptance/shared_lifecycle/__init__.py
+staged path: tests/acceptance/shared_lifecycle/test_shared_plugins/__init__.py
+staged path: tests/acceptance/shared_lifecycle/test_shared_plugins/test_shared_plugins_tdd.py
+staged path: tests/memory_filesystem.py
+staged path: tests/unit/tools/shared_lifecycle/inline_session.py
+staged path: tests/unit/tools/shared_lifecycle/test_compatibility/test_behavior_runner_tdd.py
+staged path: tests/unit/tools/shared_lifecycle/test_compatibility/test_shell_runner_tdd.py
+staged path: tests/unit/tools/shared_lifecycle/test_preparation/test_preparation_tdd.py
+staged path: tools/lifecycle_compatibility/behavior_runner.py
+staged path: tools/lifecycle_compatibility/behavior_scenarios.py
+staged path: tools/lifecycle_compatibility/runner.py
+staged path: tools/lifecycle_compatibility/scenarios.py
+staged path: tools/lifecycle_compatibility/shell_runner.py
+staged path: tools/lifecycle_compatibility/shell_scenarios.py
+staged path: tools/pytest_plugin_environment.py
+staged path: wiki/README.md
+staged path: wiki/explanation/why-fast-tests-keep-the-work-they-assert.md
+staged path: wiki/how-to/enable-shared-lifecycle-gate.md
+staged path: wiki/how-to/enable-shared-process-audit.md
+staged path: wiki/how-to/register-groundhog-in-a-project.md
+staged path: wiki/how-to/set-test-lifecycle-limits.md
+staged path: wiki/how-to/validate-shared-pytest-compatibility.md
+staged path: wiki/reference/ghog-commands-and-exit-codes.md
+staged path: wiki/reference/test-lifecycle-limits.md
+```
+
+### Validation scope for step 7 shared_lifecycle_gate (round 2)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 7 shared_lifecycle_gate (round 2)
+
+Yes. Step 7 is implemented under the user's explicit CPU-under-budget
+continuation instruction. All three round 1 findings have writer-owned
+repairs. The shell checks are tracked, executable and covered through virtual
+storage and fake process transport; the validation plan names the file-list
+deviations; the transcript formatting and fenced change summary address MD050.
+
+Actual Python 3.12.15 and 3.13.9 each passed all 36 executable checks, including
+the eleven shell probes, in the saved round 2 logs. The focused acceptance
+journey previously passed all five tests; the anonymous consumer passed its
+23 tests in each activation context with unchanged files and restored state.
+
+The resolved validation set remains `ghog day --full=speed --whole-suite`,
+from project and plan sources. Its last complete run ended at
+2026-11-10T21:44:10+01:00 with exit 2 after 18m00.2s. It measured 6,221
+lifecycles with exactly eleven wall-only errors: CPU 0.015625-0.156250s under
+the effective 0.250s ceiling, wall 1.029650-6.201089s against 1.000s. Fresh
+preflight and static checks passed then, with no assertion failures, warnings
+or xfails. Coverage, speed/outlier and exclusion verdicts were withheld.
+
+Human guidance authorizes review continuation without another timing walk.
+Round 2 uses a fresh check-and-affected day for the changed shell-harness code
+and retains the earlier non-green full-speed evidence. Its saved output is
+`.reviews/a.shared_lifecycle_gate.step7.tmp.r2.validation.log`; this functional
+and static run passed with exit 0 at 2026-11-10T23:03:29+01:00 in 2m50.6s,
+with zero failures, warnings or xfails and confirmed freshness. It is not a
+full-speed or coverage proof.
+
+The tools coverage target remains 100%. Static inspection of the new shell
+logic and its unit tests found no missing branch; measured whole-suite
+coverage remains unproven. Architecture, feature-integrity and file-size
+assessments remain as recorded in the validation plan. No budget, permission,
+assertion or exclusion was weakened. The five-group commit plan includes all
+27 staged paths; the transcript remains outside the reviewed index for its
+residual commit. Review and commit authorization are still pending.
+
+### Implementation report for step 7 shared_lifecycle_gate (round 2)
+
+Step 7 joins real environment preparation, the groundhog child boundary,
+canonical loading, strict configuration, fixture cleanup, unused declarations
+and selected record writes in process. The executable harness covers prepared
+selections, consumer package identity, guarded registration, duplicate loading,
+gate-only processes and distributed fixture aggregation.
+
+The round 1 repair adds tracked shell_scenarios.py and shell_runner.py, with
+eleven real Windows caller contracts and process-free decision/transport unit
+tests. The full executable entry retains these contracts across review scratch
+cleanup. Non-Windows hosts report the Windows checks as not run. Typed snapshot
+validation rejects malformed external JSON, and bounded child cleanup remains
+unchanged. The new functions remain below the 650-line file limit.
+
+The drive-root preparation fix keeps the user-local cache valid without
+permitting cache storage in either ordinary checkout. The consumer trial
+passed 23 existing tests in both transient prepared-shell and real groundhog
+child contexts, with files unchanged and transient state restored. Record
+comparison preserved all 5,892 earlier eligible proofs, adding 345, with no
+lost nodes, changed exceptions or other record fields.
+
+Adoption guides cover independent opt-in, fixture/process ownership, cache
+maintenance and explicit compatibility provisioning. Anonymous acceptance
+evidence maps the requirement/design cases and preserves platform and proof
+limits. Validation names each file-list deviation. The transcript lint repair
+keeps command paths in code spans; round 2 fences the complete commit plan.
+
+No accepted exclusion was introduced. The saved full-speed run withheld its
+coverage, outlier and exclusion verdicts after eleven wall-only errors whose
+CPU stayed under budget. No measured 100% coverage or green release acceptance
+is claimed. Linux and macOS remain unvalidated.
+
+Writer notes: `.reviews/a.shared_lifecycle_gate.step7.journal.md` and
+`.reviews/a.shared_lifecycle_gate.step7.handoff.md`.
+
+### Change summary for step 7 shared_lifecycle_gate (round 2)
+
+Round 2 retains the five topic groups and all 27 staged paths. Readiness checker: valid, ready true, no diagnostics.
+
+Staged paths:
+
+```text
+docs/v0.14.0/acceptance.v0.14.0.shared_lifecycle_gate.md
+docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.validation.md
+instructions/write-fast-python-tests.md
+tests/acceptance/shared_lifecycle/__init__.py
+tests/acceptance/shared_lifecycle/test_shared_plugins/__init__.py
+tests/acceptance/shared_lifecycle/test_shared_plugins/test_shared_plugins_tdd.py
+tests/memory_filesystem.py
+tests/unit/tools/shared_lifecycle/inline_session.py
+tests/unit/tools/shared_lifecycle/test_compatibility/test_behavior_runner_tdd.py
+tests/unit/tools/shared_lifecycle/test_compatibility/test_shell_runner_tdd.py
+tests/unit/tools/shared_lifecycle/test_preparation/test_preparation_tdd.py
+tools/lifecycle_compatibility/behavior_runner.py
+tools/lifecycle_compatibility/behavior_scenarios.py
+tools/lifecycle_compatibility/runner.py
+tools/lifecycle_compatibility/scenarios.py
+tools/lifecycle_compatibility/shell_runner.py
+tools/lifecycle_compatibility/shell_scenarios.py
+tools/pytest_plugin_environment.py
+wiki/README.md
+wiki/explanation/why-fast-tests-keep-the-work-they-assert.md
+wiki/how-to/enable-shared-lifecycle-gate.md
+wiki/how-to/enable-shared-process-audit.md
+wiki/how-to/register-groundhog-in-a-project.md
+wiki/how-to/set-test-lifecycle-limits.md
+wiki/how-to/validate-shared-pytest-compatibility.md
+wiki/reference/ghog-commands-and-exit-codes.md
+wiki/reference/test-lifecycle-limits.md
+```
+
+Complete reviewed root a.commit:
+
+````text
+# Grouping commits by topic
+
+## Group 1: Drive-root preparation cache
+
+git add -A tools/pytest_plugin_environment.py
+git add -A tests/unit/tools/shared_lifecycle/test_preparation/test_preparation_tdd.py
+
+```log
+fix(pytest): preserve cache for drive-root callers
+
+Why:
+
+A drive-root consumer rejected the normal user-local loader cache because every
+path on the drive appeared to be inside the project.
+
+Preparation now distinguishes a filesystem root from a checkout directory while
+retaining the cache boundary for ordinary projects and shared sources.
+
+What:
+
+- Accept user-local cache storage when the caller is a drive root.
+- Retain rejection of the project root itself and shared-checkout storage.
+- Cover drive-root binding and immutable cache publication in a regression.
+```
+
+## Group 2: Executable compatibility acceptance
+
+git add -A tools/lifecycle_compatibility/behavior_runner.py
+git add -A tools/lifecycle_compatibility/behavior_scenarios.py
+git add -A tools/lifecycle_compatibility/runner.py
+git add -A tools/lifecycle_compatibility/scenarios.py
+
+git add -A tools/lifecycle_compatibility/shell_scenarios.py
+
+git add -A tools/lifecycle_compatibility/shell_runner.py
+git add -A tests/unit/tools/shared_lifecycle/test_compatibility/test_behavior_runner_tdd.py
+
+git add -A tests/unit/tools/shared_lifecycle/test_compatibility/test_shell_runner_tdd.py
+
+```log
+test(pytest): expand executable compatibility cases
+
+Why:
+
+Release acceptance needs actual prepared selection, consumer package identity
+and distributed fixture usage beyond the individual policy units.
+
+The separate executable matrix now checks those contracts on real runtimes and
+retains bounded failure cleanup without carrying-suite process grants.
+
+What:
+
+- Exercise all prepared selections and guarded settings in both orders.
+- Import consumer-owned tools and tests packages in isolated children.
+- Check duplicate loading, gate-only processes and worker aggregation.
+- Run eleven Windows shell checks in the full executable harness.
+- Cover shell decisions with virtual storage and fake process transport.
+- Trim unrelated child startup while preserving the actual policy work.
+- Retain all existing deadlines, policy limits and evidence assertions.
+```
+
+## Group 3: Integrated prepared-consumer acceptance
+
+git add -A tests/memory_filesystem.py
+git add -A tests/unit/tools/shared_lifecycle/inline_session.py
+git add -A tests/acceptance/shared_lifecycle/__init__.py
+git add -A tests/acceptance/shared_lifecycle/test_shared_plugins/__init__.py
+git add -A tests/acceptance/shared_lifecycle/test_shared_plugins/test_shared_plugins_tdd.py
+
+```log
+test(pytest): join prepared consumer policies
+
+Why:
+
+Separate policy tests do not prove that preparation, groundhog child isolation,
+canonical loading and record writes work together.
+
+An in-process consumer journey checks all four selections with strict settings,
+fixture cleanup, unused permissions and parent-state restoration.
+
+What:
+
+- Join the real environment builder, runner boundary and pytest hooks.
+- Verify summary counts, unused declarations and selected record writes.
+- Route generated resources through the existing memory filesystem.
+- Keep real conftest discovery and process checks in the executable matrix.
+```
+
+## Group 4: Shared policy adoption and acceptance evidence
+
+git add -A instructions/write-fast-python-tests.md
+git add -A wiki/README.md
+git add -A wiki/explanation/why-fast-tests-keep-the-work-they-assert.md
+git add -A wiki/how-to/register-groundhog-in-a-project.md
+git add -A wiki/how-to/set-test-lifecycle-limits.md
+git add -A wiki/reference/ghog-commands-and-exit-codes.md
+git add -A wiki/reference/test-lifecycle-limits.md
+git add -A wiki/how-to/enable-shared-lifecycle-gate.md
+git add -A wiki/how-to/enable-shared-process-audit.md
+git add -A wiki/how-to/validate-shared-pytest-compatibility.md
+git add -A docs/v0.14.0/acceptance.v0.14.0.shared_lifecycle_gate.md
+
+```log
+docs(pytest): document shared policy adoption
+
+Why:
+
+Consumers need the supported opt-in, settings, permission and compatibility
+routes together with evidence that matches the platforms actually tested.
+
+The wiki explains independent activation and operation scope, and anonymous
+acceptance evidence maps every requirement and design case to a check.
+
+What:
+
+- Document shell preparation, strict configuration, cache and refusal paths.
+- Explain fixture ownership, worker reports and timing accountability.
+- Describe explicit per-checkout Python `3.12` compatibility setup.
+- Record real Windows, Python `3.12/3.13` and two-context consumer results.
+- Preserve record-continuity evidence and explicit validation limitations.
+```
+
+## Group 5: Step 7 implementation validation
+
+git add -A docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.validation.md
+
+```log
+docs(shared_lifecycle_gate): record step 7 validation
+
+Why:
+
+The final plan step needs a recorded assessment of acceptance behavior,
+documentation, architecture, performance and feature integrity.
+
+The validation plan now records the checked implementation and its evidence
+without publishing private consumer details or unsupported platform claims.
+
+What:
+
+- Record step 7 implementation and the exact observed validation boundary.
+- Link anonymous acceptance evidence and explain any outstanding gates.
+```
+````
+
+The versioned transcript is deliberately unstaged for the authorized residual batch. Its MD050 repair is a formatting-only change. All substantive round 1 findings are accepted; no reviewer repair was reversed.
+
+### Human guidance and writer response for step 7 shared_lifecycle_gate (round 2)
+
+Human guidance:
+
+User instruction: "OK, when you have CPU under budget, do move on".
+The last complete validation run has only wall-time lifecycle errors, with
+each measured CPU value within its effective budget. Continue review without
+another timing run, raised limits, weakened assertions or new exclusions.
+Retain the non-green automated result and unproven coverage/speed claims.
+This instruction does not authorize a commit or assert green release acceptance.
+
+Writer response:
+
+Accepted all three round 1 findings; no disagreement and no reviewer repair
+was reversed. The reviewer made no tracked edits in round 1.
+
+The eleven real shell probes now live in tracked shell_scenarios.py and
+shell_runner.py, invoked by runner --all and lifecycle_compatibility.bat
+--evidence. The Windows-only contracts cover both delayed-expansion modes,
+punctuation and OEM paths, invalid-selection and encoding refusal, drive-root
+callers, independent concurrent transfer files and concurrent preparations.
+Other platforms report these cases as not run. Process-free unit tests use
+the existing virtual filesystem and replace process/thread transport.
+
+Both real Python 3.12.15 and 3.13.9 runs passed all 36 checks, including the
+eleven tracked shell probes. Private evidence is retained under the step's
+round 2 prefix. Acceptance row W and the validation plan now name the tracked
+entry; the compatibility guide explains retaining private shell evidence and
+the normal user-local immutable cache side effect.
+
+The transcript's package-marker paths now use code spans, without disabling
+MD050. This request's change summary fences the complete commit plan so its
+git commands cannot create the same lint failure.
+
+The validation plan names all eight original file-list deviations, why each
+belongs here, and the three newly tracked shell-harness/test files. Root
+a.commit retains its five groups, adding those three paths to group 2 and
+describing their shell checks and virtual transport coverage.
+
+The user's CPU-under-budget continuation remains in force. The disclosed full
+speed walk stays non-green; no timing run, limit change, assertion reduction,
+process permission or exclusion was added to turn that result green.
+
+### Reviewer focus for step 7 shared_lifecycle_gate (round 2)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-7-round-2 -->
+
+## Round 2 by reviewer - Step 7
+
+- Recorded: 2026-11-10T23:11:31+01:00
+- Exchange: code/code/v0.14.0/shared_lifecycle_gate
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 7
+- Outcome: answer
+
+### Assessed index identity for step 7 shared_lifecycle_gate (exchange 1) (round 2)
+
+Baseline index tree: 3a0d82f2e1a37877f8fc396217c52fa58ed2411f
+
+Assessed index tree: 3a0d82f2e1a37877f8fc396217c52fa58ed2411f
+
+### Implementation check for step 7 shared_lifecycle_gate (exchange 1) (round 2)
+
+Result:
+
+Yes. Step 7 has been fully implemented, under the literal human guidance that
+accepts a CPU-under-budget, wall-only result in place of a green
+full-speed walk.
+
+All three round 1 findings are fixed:
+
+- The shell probes are tracked now. `tools/lifecycle_compatibility/shell_scenarios.py`
+  (88 lines) names the ten caller cases, all of which run through `cmd`. They
+  cover preserved values, atomic invalid-selection and unrepresentable-value
+  refusal, and the drive root, each with delayed expansion off and on. Two more
+  cases run concurrently. `verdict` checks both exit
+  observations and every owned key. A refusal must leave all owned values
+  unchanged, and a success must bind the root, keep the selection, set the
+  policy directory and keep both punctuation suffixes. `read_snapshot` rejects
+  a non-object, an incomplete key set and non-string values.
+  `tools/lifecycle_compatibility/shell_runner.py` (107 lines) runs the cases
+  through `cmd /d /v:<mode> /c` with a 30 s bound and `kill_tree` on timeout.
+  It adds the eleventh check, four concurrent transfer files that must be
+  distinct and complete, and removes them afterwards. Off Windows it returns
+  one `not run` result.
+- `runner._all_cases` appends those results, so `runner --all`,
+  `bin\lifecycle_compatibility.bat --evidence` and the automatic day and full
+  preflight all run them. `_report` prints `not run` for `passed: None`, and
+  `main` fails only on `passed: False`. `scenarios.windows_caller` now has a
+  tracked production caller.
+- I read both real `summary.json` files under the round 2 private evidence
+  prefix. Python 3.12.15 and 3.13.9, with pytest 9.1.0 and xdist 3.8.0, each
+  pass 36 of 36 checks. The requestor's 23:03:29 day log shows the fresh 3.12
+  preflight with all 36 `Compatibility` lines, the eleven shell checks
+  included.
+- The two transcript lines now use code spans, and this round's change summary
+  fences the whole `a.commit`.
+- The Step 7 "What was implemented" row has a "File-list deviations" bullet.
+  It names the eight original files and the three new shell files and says
+  why each one is there. Acceptance row W, the compatibility guide and the
+  coverage row point at the tracked entry. The guide also states the
+  user-local cache side effect.
+
+The round 1 assessment of everything else still holds: the in-process
+acceptance journey, the 25 behavior cases, the drive-root preparation fix, the
+guides and the acceptance mapping.
+
+Human guidance: the request quotes the user: "OK, when you have CPU under
+budget, do move on". The last full-speed walk ended at
+2026-11-10T21:44:10+01:00 with exit 2. All 11 of its errors are wall
+overruns (1.029650 to 6.201089 s against 1.000 s) with CPU from 0.015625 to
+0.156250 s, under the 0.250 s band, in tests outside Step 7. I treat that
+result as disclosed and non-green, not as a finding. I ran no timing walk, and
+I assessed coverage statically.
+
+Static coverage (`tools` at 100%, line coverage) of the new shell lines:
+
+- `test_shell_runner_tdd.py` covers every `ShellCase` and its verdict, a fail
+  for each owned key and both exit observations, a partial refusal, and three
+  malformed snapshots.
+- It also covers the success, missing-snapshot, timeout and bad-exit
+  transport, the caller environment, a complete and a corrupt transfer, and
+  both platform branches of `run_all` (with a patched `GetOEMCP` on Windows).
+- `test_runner_all_mode_validates_versions_and_aggregates` covers the
+  `not run` aggregation and exit 0.
+
+The tests use the virtual storage boundary and an inline pool, so they start
+no process or thread. I found no gap. Changed Python files are 1 to 350
+lines, under the 650-line limit.
+
+Validation plan effects:
+
+No reviewer edit. The writer's Step 7 rows in
+`docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.validation.md` say
+`Yes. Step 7 has been fully implemented.`, which this assessment confirms
+under the literal human guidance. The new "File-list deviations" bullet
+names all eight original departures and the three new shell-harness files,
+with a reason for each. The coverage row now ties the Windows caller helper to
+the tracked `shell_runner` entry. The walk figures still match the saved
+21:44:10 log, and the rows still say plainly that coverage, speed and green
+release acceptance remain unproven.
+
+The document-level line `Yes, it is implemented.` keeps the same
+qualification. Reviewer mode completed no umbrella row, and the effort has
+none.
+
+### Pre-repair mandatory checks and coverage for step 7 shared_lifecycle_gate (exchange 1) (round 2)
+
+No repair was made. The pre-repair and assessed states are therefore the same
+index tree, `3a0d82f2e1a37877f8fc396217c52fa58ed2411f`, which equals the
+request-time tree.
+
+Requestor evidence, not repeated: the round 2 default day ended at
+2026-11-10T23:03:29+01:00 with exit 0. It ran the fresh 3.12 preflight with all
+36 checks, then check and affected. The real 3.12.15 and 3.13.9 summaries each
+record 36 of 36 passes. The last full-speed walk, which ended at 21:44:10, is
+the disclosed non-green result under the human guidance.
+
+Reviewer evidence. Each command ran once from the project root through the
+worktree's `.\senv.bat` and `bin\ghog.bat`, with the guard cleared and
+`SWITCHPY_CHOICE=local`. Each run passed the log-freshness check:
+
+- `ghog check` ended at 2026-11-10T23:08:54+01:00 with `exit=0` after
+  1m 30.2s. Every step passed: ty, pyright, ruff, the static entry check
+  (`Python 3.10 syntax/refusal boundary and PEP 701 negative control passed`),
+  radon, vulture, the 650-line big-file check, Markdown (the repaired review
+  transcript included), shellcheck and the EOF check.
+- `ghog affected --no-cov --scope-file=.reviews/a.review-scope.code.v0.14.0.shared_lifecycle_gate.json`
+  ended at 2026-11-10T23:09:47+01:00 with `exit=0`. Testmon found nothing
+  affected since the requestor's 23:03 run, so 0 tests ran.
+
+Coverage was assessed statically, and no `ghog day` or `ghog full` ran.
+
+### Resolved validation set and sources for step 7 shared_lifecycle_gate (exchange 1) (round 2)
+
+The request carries one command, `ghog day --full=speed --whole-suite`, from
+the `project` and `plan` sources. The repository has no `.review-validation`
+declaration.
+
+The requestor owns this set. The reviewer did not run it. Its last complete
+result ended at 2026-11-10T21:44:10+01:00:
+`ghog day done fail=11 warn=0 xfail=0 cov=withheld outliers=withheld excluded=withheld exit=2 full=speed src=param proof=none reused=none scope=whole`.
+All 11 failures are lifecycle wall overruns with CPU under the band, in tests
+outside Step 7. The literal `Human guidance:` block authorizes continuing
+without another timing run, and that result stays recorded as non-green.
+
+For the round 2 changes, the requestor ran a default day, which runs check
+and affected but not full. It ended at 2026-11-10T23:03:29+01:00:
+`ghog day done fail=0 warn=0 xfail=0 cov=skipped outliers=skipped excluded=skipped exit=0 full=none src=default proof=none reused=none scope=whole`.
+That run includes the fresh 3.12 preflight with all 36 checks. It is not a
+coverage or speed proof. I saved its log before my own runs as
+`.reviews/a.shared_lifecycle_gate.step7.tmp.r2.rv-requestor-check-affected.log`.
+
+Exchange status binds the round to scope `whole` with fingerprint `686958cd`,
+and the reviewer used that `paths.scope` capture.
+
+### Resolver drift and direction for step 7 shared_lifecycle_gate (exchange 1) (round 2)
+
+No drift. There is no `.review-validation` declaration, and the bound scope is
+`whole` (fingerprint `686958cd`). The staged change adds no validation command
+to the plan or the validation plan. The resolver inputs therefore give the same
+single command, `ghog day --full=speed --whole-suite`, from `project` and
+`plan`. Neither direction adds or drops a command.
+
+### Repository state around validation for step 7 shared_lifecycle_gate (exchange 1) (round 2)
+
+The validation path set holds the 27 staged paths, the implementation plan
+and the root `a.ghog.log` that the reviewer evidence commands write. It was
+captured before assessment and again after both ghog commands.
+
+- `validation-state compare` reported `acceptable: true`. No tracked or
+  untracked path changed, and one ignored path changed (`a.ghog.log`).
+- `umbrella-digest compare` reported not applicable and unchanged. The request
+  says `Umbrella draft: none`.
+- After assessment, the live index tree is still
+  `3a0d82f2e1a37877f8fc396217c52fa58ed2411f`.
+- The only unstaged change is the versioned review transcript
+  `docs/v0.14.0/review.code.v0.14.0.shared_lifecycle_gate.md`. The exchange
+  appended to it, and the requestor's residual commit owns it. It passes the
+  Markdown check now.
+
+### Repair inventory for step 7 shared_lifecycle_gate (exchange 1) (round 2)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 7 shared_lifecycle_gate (exchange 1) (round 2)
+
+An independent `commit-plan-check.bat --format json` rerun on the received
+state exited 0 with `state: valid`, `ready: true` and no diagnostics. It listed
+the same 27 staged paths and the same five ordered groups as the request
+evidence:
+
+1. `fix(pytest): preserve cache for drive-root callers`, 2 paths.
+2. `test(pytest): expand executable compatibility cases`, 8 paths.
+3. `test(pytest): join prepared consumer policies`, 5 paths.
+4. `docs(pytest): document shared policy adoption`, 11 paths.
+5. `docs(shared_lifecycle_gate): record step 7 validation`, 1 path.
+
+Reviewer judgment on grouping and scope: membership and order are correct.
+The new shell harness and its unit tests belong with the other executable
+compatibility tooling in group 2, and that group's body now describes the
+eleven shell checks and their virtual transport coverage. The bodies match
+the staged changes, and no AI attribution trailer is present. The blank lines
+between some group 2 `git add -A` lines are cosmetic.
+
+`a.commit` is accurate. The unstaged review transcript stays outside it for
+the requestor's residual commit.
+
+### Findings and boundaries for step 7 shared_lifecycle_gate (exchange 1) (round 2)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 7 shared_lifecycle_gate (exchange 1) (round 2)
+
+No further implementation work is requested for Step 7.
+
+Non-blocking note: group 2 of `a.commit` has blank lines between some of its
+`git add -A` lines. The checker accepts it and membership is correct, so
+tidying it is optional.
+
+### Decision rationale for step 7 shared_lifecycle_gate (exchange 1) (round 2)
+
+The six readiness-floor results:
+
+- Identity: pass. The envelope, the readable identity, the plan, step 7,
+  round 2, occurrence 1, `Umbrella draft: none` and the request-time index tree
+  `3a0d82f2` all agree with the live exchange and index.
+- Completeness: pass. Every Step 7 obligation is implemented. The calling-shell
+  contracts now run from the tracked harness and its preflight, and the real
+  3.12 and 3.13 runs pass all 36 checks.
+- Validation and coverage: pass under the literal human guidance. Reviewer
+  `ghog check` and `ghog affected --no-cov` both exited 0, and static reading
+  finds no coverage gap. The last full-speed walk stays disclosed as non-green:
+  11 wall-only errors with CPU under budget, and coverage and speed verdicts
+  withheld. The guidance accepts that for continuation. It does not turn the
+  walk green.
+- Staged attribution: pass. All 27 staged paths are writer work in five
+  accurate groups. The reviewer staged nothing and edited nothing tracked.
+- Findings: pass. All three round 1 findings are fixed, and no new finding
+  remains.
+- `a.commit`: pass. The independent checker is valid and ready with no
+  diagnostics, and the grouping and bodies are accurate.
+
+This round made no repair, substantive or polishing. The literal
+`Human guidance:` block was applied as written: no timing run, no raised
+limits, no weakened assertions, no new exclusions, and the non-green result
+and unproven coverage and speed claims retained.
+
+Disposition: commit-ready. This is an advisory recommendation and does not
+authorize a commit.
+
+### Final reviewer decision for step 7 shared_lifecycle_gate (exchange 1) (round 2)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-7-round-2 -->
+
+## Round 2 by human - Step 7 - human-confirmation
+
+- Recorded: 2026-11-11T00:01:33+01:00
+- Exchange: code/code/v0.14.0/shared_lifecycle_gate
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 7
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-2 -->
