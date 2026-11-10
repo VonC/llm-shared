@@ -1391,8 +1391,37 @@ No existing feature or reporting capability appears impaired.
 
 ### Analysis of Step 6 implementation state
 
-Not started. Step 6 is not implemented because no JSON scanner, `npm` adapter
-or recorded npm evidence exists yet.
+Yes. Step 6 has been fully implemented.
+
+Independent reviewer assessment, round 1: the received index tree
+`ee21c5fa76c50c6b2a62a43482898da83148faaa` matches the request. Static review
+of the scanner, adapter, registry, model seam, tests and recorder found no
+blocking implementation, architecture, performance or coverage gap. The
+retained whole-suite speed-walk log reports `exit=0 cov=100 outliers=0
+excluded=0 proof=speed`, and its scope fingerprint matches the bound review
+scope. No reviewer test or coverage run was needed. The npm accepted-pair
+hashes independently match the recorded fixture bytes; the five uv records
+are unchanged. The staged model and model-test additions are justified by
+Step 6's configured forms and once-per-view name index. The independent
+commit-plan checker reports `state=valid`, `ready=true`, two ordered groups,
+16 staged paths and no diagnostics; `a.commit` remains accurate. The only
+reviewer edit is this Step 6 validation assessment; the umbrella and other
+steps remain outside the reviewer edit boundary.
+
+`tools/release_workflow/sources/json_scan.py` locates owned JSON values by key
+path in one pass and refuses duplicate keys on those paths, and
+`tools/release_workflow/sources/npm.py` registers the `npm` adapter between
+`python` and `pattern`. The adapter applies the `release-only` default or the
+configured form and pairs `package.json` with its format 2 or 3
+`package-lock.json`, whose top-level `version` (where present) and
+`packages[""].version` compose from one original. It lists tool-only files
+and, before any write, rejects workspaces, local links into participating
+roots, shrinkwrap files, format 1 and other formats, foreign or versionless
+root entries and orphan locks. The three npm 10.8.3 records in
+`lock_evidence.v1.json` were produced by the recorder; the evidence test
+checks them against the adapter. The npm fixture sets joined the restoration
+matrix. Every planned test and completion check is in place, and the command
+printed by `pw scope day` reports `exit=0`.
 
 ### Goal for Step 6
 
@@ -1423,27 +1452,255 @@ the evidence file and check them against the adapter.
 
 ### What was implemented for Step 6
 
-_(empty — no check has taken place yet.)_.
+- **JSON scanner** (`sources/json_scan.py`):
+  - `locate(text, paths)` matches one token expression over the decoded text
+    and keeps a stack of open objects and arrays, each object holding the
+    key path that reaches it (tracked only while it can lead to an owned
+    path) and its last key, compared after decoding its escapes. It returns
+    the span of each owned path's value: a string's content between the
+    quotes, or the whole text of a number, literal, object or array, so the
+    caller checks the parsed type. A second value on an owned path fails as
+    ambiguous, since `json` keeps the last one silently; duplicates elsewhere
+    are ignored. A root that is not one object (an array, a scalar, trailing
+    text, an unterminated object or string, empty text) fails.
+  - `byte_spans(text, bom, paths, values)` locates every owned path (so a
+    duplicate `lockfileVersion` fails too), requires each string to edit to
+    read as its parsed value (an escape fails), and maps the spans to bytes
+    through one `model.to_byte_spans` walk, so both lock edits compose from
+    one original. `spell` writes a path as `packages[""].version` in
+    diagnostics and field identifiers.
+- **npm adapter** (`sources/npm.py`, `npm.ADAPTER`): name `npm`, forms
+  `{release-only, core, snapshot}`, default `release-only`, candidate file
+  `package.json`; the `[source:npm] form` override applies to every owned
+  field at every participating root.
+  - A manifest without `version` gives `not-participating tool-only` records
+    for it and its lock, which is never parsed. A `version` that is not a
+    string, a duplicate or escaped version, and a file that is not UTF-8 or
+    one JSON object fail naming the file and the remedy.
+  - Rejections before any write: a `workspaces` field, with or without a
+    version (npm workspaces are deferred); an `npm-shrinkwrap.json` beside a
+    participating manifest; in `dependencies`, `devDependencies`,
+    `optionalDependencies` and `peerDependencies`, a `file:` or `link:`
+    specifier (relative, `file:///` URL, any case on Windows) whose
+    destination, resolved against the declaring root, is a participating
+    root, and a `workspace:` specifier whose package name is a participating
+    npm manifest's name (plan decision Q15), each naming both roots.
+    Registry ranges, tarballs, outside paths, Git and URL specifiers, and
+    `workspace:` names of tool-only or unknown packages stay external.
+  - `package-lock.json` pairs with the participating manifest. Its
+    `lockfileVersion` must be in `SUPPORTED_LOCK_FORMATS = frozenset({2,
+    3})`, documented next to the evidence record identifiers: format 1 fails
+    with the remedy to regenerate the lock with npm 7 or later, and another
+    format, a string or a boolean fails. `packages[""]` must not name
+    another package (compared only when the manifest has a name, since npm
+    names the root entry after the folder otherwise) and must carry a
+    version string; the top-level `version` must be a string where present.
+    The lock gives one source per owned field (`version`, then
+    `packages[""].version`), each naming its manifest. A lock without a
+    manifest fails as an orphan; Yarn and pnpm locks are never read.
+  - Rendering returns the bytes between the quotes; `has_project_version`
+    reports a candidate only for a manifest with its own version string.
+- **Registry** (`sources/__init__.py`): `ADAPTERS = (anchor, python, npm,
+  pattern)`; `json_scan` joins `SUPPORT_MODULES`.
+- **Model seam** (`sources/model.py`, outside the plan's file list):
+  `AdapterSettings` gains `forms`, which `VersionSettings` already held and
+  the npm adapter is the first to read; `FileView.derived(key, compute)`
+  computes a value once per key and view, used for the npm index of
+  participating package names.
+- **Lock evidence** (plan decisions Q05 and Q06):
+  - The recorder now takes `--npm` and `--node-dir` beside `--uv` and
+    `--python` and rewrites the whole evidence file. For each npm scenario it
+    writes a `private: true` root `package.json` at `0.0.24`, lets npm write
+    the format 2 or 3 lock (`npm install --package-lock-only --offline
+    --lockfile-version <2|3> --ignore-scripts --no-audit --no-fund`), and
+    converts both files to CRLF for the format 3 variant. It runs `npm ci
+    --offline --ignore-scripts --no-audit --no-fund` on the "before" pair and
+    on the pair the production adapter plans for `0.0.25`, and the lock-only
+    check `npm install --package-lock-only --offline --ignore-scripts
+    --no-audit --no-fund` on both pairs and on the manifest-only control,
+    removing `node_modules` before each run. The Node directory is prepended
+    to the child `PATH` only, `npm_config_*` variables are removed, and the
+    npm cache and user configuration live in the scratch directory.
+  - `lock_evidence.v1.json` holds the five uv records, unchanged by the new
+    recording, and three npm records (`npm-10.8.3-lock2-root`,
+    `npm-10.8.3-lock3-root`, `npm-10.8.3-lock3-root-crlf`, npm 10.8.3 on
+    Node v22.9.0). Each states that `npm ci` does not compare the root
+    version. In each, the four runs on the "before" and edited pairs exit 0
+    with both files unchanged; the control's lock-only check exits 0, keeps
+    the manifest and rewrites the lock, whose format stays the recorded one
+    and whose two root version fields move to `0.0.25`.
+- **Test support** (`version_support.py`): `RootSettings.forms`;
+  `package_json` and `package_lock` builders formatted as npm writes them;
+  the `npm-lock2` (LF) and `npm-lock3-crlf` (CRLF, accented description,
+  a dependency entry) restoration sets, three writes each with two lock
+  fields in one file; Step 5's `python_pair_edit` generalized to
+  `pair_edit(adapter, root, target)` for both recorders and the evidence
+  test.
+- **Tests**:
+  - `test_version_formats/test_json_scan_tdd.py`: owned paths among nested
+    objects and arrays with decoy `version` keys; spans of non-string
+    values; duplicates on each owned path (escaped key included) and
+    duplicates elsewhere; nine texts that are not one object; the escape and
+    the unlocated value; accented and non-BMP text before each owned value,
+    with and without a byte-order mark, composing both lock edits; path
+    spelling.
+  - `test_version_formats/test_version_formats_pbt.py` (property test
+    needed): generated lock-like objects with escaped decoys, nested
+    `version` keys, whitespace, member order, an optional top-level version
+    and byte-order mark; the byte spans hold the parsed values and
+    replacing them changes only those values. One integer triple and one
+    13-bit field per example, 25 examples.
+  - `test_npm_sources/test_npm_sources_tdd.py`: workspace-halo's shape (CRLF
+    format 3 lock, a dependency entry, snapshot anchor) changing only the
+    three strings with one load per file and none of `yarn.lock` and
+    `pnpm-lock.yaml`; the three forms through `.release.ini`; the
+    release-only refusal of `set 0.0.24` through `set_versions` with no
+    source or evidence write; tool-only with and without lock; workspaces;
+    shrinkwrap; formats 2 and 3 with and without the top-level version;
+    format 1, other formats, foreign and versionless root entries,
+    duplicates, an escape and unparsable locks; an unnamed manifest; the
+    orphan lock; unusable manifests; every link kind and the external
+    references; a link through `detection.detect`; the name index read once
+    per file across three roots; candidates and rendering.
+  - `test_version_lock_evidence_tdd.py`: the npm records for every supported
+    format and the CRLF variant, their fields and note, the four accepted
+    runs, the control's rewrite and lock fields, the adapter reproducing each
+    edited pair, and format 4 failing detection.
+  - `test_version_model_tdd.py`: `FileView.derived` computes once per key and
+    view. `test_version_registry_tdd.py`: the order `("anchor", "python",
+    "npm", "pattern")` and the support modules.
+    `test_version_restoration_tdd.py`: the npm sets at every write position.
+- **Validation evidence**:
+  - A planning probe in the scratch directory confirmed the shape npm 10.8.3
+    writes for a root package without dependencies (two-space JSON, LF,
+    top-level name and version, `packages[""]` name and version).
+  - Tests first: `ghog single` on the new and changed leaves failed at
+    collection (five errors, `ImportError: cannot import name 'npm'`;
+    2026-11-10T14:13).
+  - After the implementation, only the three npm evidence tests failed,
+    pending the recording (2026-11-10T14:20).
+  - The recorder ran by hand on 2026-11-10 with the project venv's uv 0.13.4
+    and Python 3.13.9 and with npm 10.8.3 on Node 22.9.0 (the explicit 22.9.0
+    directory; the host's `node22` link now points to a later 22.x). It
+    wrote eight records with no host path; the uv records are identical to
+    the committed ones.
+  - `ghog day --whole-suite`, the command printed by `pw scope day`, first
+    failed at check.bat (ty and pyright: tuple literals as `JsonPath` keys in
+    two test files and one untyped empty set). After annotating them it
+    reported `exit=0` (2026-11-10T14:33).
+  - The implementation check found that the npm records did not yet state
+    that the frozen install ignores the root version: the recorder now adds
+    that note to each npm record, and the evidence was recorded again (uv
+    records unchanged). The next walk failed at radon (grade C for the
+    records test); with its per-record checks moved to a helper,
+    `ghog day --whole-suite` reported `exit=0` on the final tree
+    (2026-11-10T14:48).
+  - `rg -n 'lockfileVersion' tools/release_workflow/sources/npm.py` shows the
+    format check and the format 1 remedy;
+    `rg -n 'subprocess' tools/release_workflow/sources` finds nothing.
+- **Line counts**: `json_scan.py` 172 (advisory 220), `npm.py` 277 (advisory
+  270), `lock_evidence_recorder.py` 344 (+135, advisory +110),
+  `version_support.py` 397 (+41, advisory +40), new test files 118 and 304
+  (advisory 160 and 320), `test_version_formats_pbt.py` +60 (advisory +40),
+  `test_version_lock_evidence_tdd.py` +81 (advisory +30), registry +2,
+  restoration +3, initializer 3, `lock_evidence.v1.json` 431 to 875 (no
+  Python ceiling). Outside the plan's list:
+  `sources/model.py` 437 to 456 and `test_version_model_tdd.py` 236 to 253.
+  Every Python file stays below 650; the recorder split guidance was not
+  needed.
 
 ### New types or classes introduced for Step 6
 
-_(empty — no check has taken place yet.)_.
+- `tools.release_workflow.sources.json_scan`: `JsonPath`, `locate`,
+  `byte_spans` and `spell` (private `_Frame` and `_Scanner`).
+- `tools.release_workflow.sources.npm`: `NpmAdapter`, `ADAPTER` and
+  `SUPPORTED_LOCK_FORMATS`.
+- `tools.release_workflow.sources.model`: `AdapterSettings.forms` and
+  `FileView.derived`.
+- Test support: `version_support.package_json`, `package_lock`, `pair_edit`
+  (replacing `python_pair_edit`) and `RootSettings.forms`; the recorder's
+  `NpmScenario`, `NpmTools` and `record_npm`, its uv classes renamed
+  `UvScenario` and `UvTools`; the `test_npm_sources` test folder.
 
 ### Architecture check for Step 6
 
-_(empty — no check has taken place yet.)_.
+- **Layering**: the scanner and the adapter are domain code of the `sources`
+  package, a pure function of file bytes and settings. They read only through
+  the `FileView`, resolve declared link destinations with `Path.resolve`, and
+  never write, take the lock or start a process. They import only the
+  standard library and the `sources` model and scanner.
+- **Ports**: the configured form reaches the adapter through the
+  `AdapterSettings` protocol (`forms`), not through the settings module, and
+  the cross-root name index lives in the phase's `FileView`, so no adapter
+  keeps state between calls.
+- **Evidence boundary**: the process-starting recorder stays in the test tree
+  and is never imported by a test (plan decision Q03); production code holds
+  only the supported formats.
+
+No, there is nothing that needs to be addressed: no DDD-Hexagonal violation or
+smell is visible in this step.
 
 ### Performance check for Step 6
 
-_(empty — no check has taken place yet.)_.
+- **No new `O(n^2)` or `O(n log n)` path**: the scanner matches each
+  character once and keeps constant work per token (a key's escapes are
+  decoded once); `byte_spans` measures all spans in one walk. The adapter
+  reads each of its files once per view, visits each dependency specifier
+  once with one settings lookup, and builds the participating-name index at
+  most once per view, on the first `workspace:` specifier, reading manifests
+  the same view already loads: detection stays linear in roots and
+  specifiers.
+- **Bounded side effects**: none; detection probes three fixed file names
+  per participating root, and the only other filesystem query is resolving
+  each declared local destination.
+
+No, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 6
 
-_(empty — no check has taken place yet.)_.
+The coverage gate measures `tools` only (`[tool.coverage.run] source`), with
+`*/tests/*` and `*/__init__.py` omitted.
+
+- **`tools/release_workflow/sources/json_scan.py`**: `test_version_formats/`
+  reaches every token kind, the tracked and untracked paths, string,
+  scalar and container values on owned paths, the duplicate refusal, both
+  "not one object" failures, the escape and unlocated-value refusal and
+  `spell`; covered.
+- **`tools/release_workflow/sources/npm.py`**: `test_npm_sources/` and the
+  evidence test reach every failure, both tool-only outcomes, both lock
+  outcomes with and without the top-level version, the unnamed manifest,
+  every link kind and the external cases (including an unreadable component
+  manifest and a non-string specifier), rendering and candidates; covered.
+- **`sources/model.py`** (`FileView.derived`, `AdapterSettings.forms`):
+  `test_version_model_tdd.py` and the form tests through `.release.ini`;
+  covered.
+- **Files outside the gate**: every new `version_support.py` symbol is
+  referenced by the Step 6 tests. The recorder's top-level symbols are
+  referenced inside its own module from `main`; by design no test imports it,
+  and its output is checked through the committed JSON.
+
+No, there is no unit-tested class below 100% that needs completing for Step 6.
+No, none of the top-level symbols added outside the coverage gate is
+unreferenced.
 
 ### Feature integrity for Step 6
 
-_(empty — no check has taken place yet.)_.
+- **Existing feature behavior**: no shipped command uses the version domain
+  before Step 9. Registering `npm` adds detection of `package.json` and
+  `package-lock.json` at every participating root; the Step 2 to 5 version
+  tests pass unchanged, and the uv evidence records are byte-identical
+  after re-recording.
+- **Reporting or diagnostics**: every refusal is a status 2 `SourceError`
+  naming the file and the remedy; a local link names both roots, and the
+  release-only refusal names the source, its value and the target.
+- **Compatibility or rollout note**: `[source:npm] form` accepts
+  `release-only`, `core` and `snapshot`. `check` reporting drift for a
+  release-only value above the target arrives with the commands in Step 9;
+  this step proves the planned refusal and the differing expected value it
+  will report. The Step 5 entry above names `python_pair_edit`, renamed
+  `pair_edit` in this step.
+
+No existing feature or reporting capability appears impaired.
 
 ---
 

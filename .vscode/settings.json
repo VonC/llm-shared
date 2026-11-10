@@ -198,6 +198,7 @@
     "unvalidated",
     "unwritable",
     "urlsafe",
+    "urlsplit",
     "uver",
     "uverr",
     "uvloop",
