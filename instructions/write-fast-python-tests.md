@@ -68,6 +68,18 @@ in the wiki page *Why fast tests keep the work they assert*.
 
 ## Keep native work out of tests that do not assert it
 
+The shared `llm_shared_lifecycle_gate` and `llm_shared_process_audit` plugins are
+independent opt-ins for consumers; this repository selects both. Follow the
+[lifecycle activation guide](../wiki/how-to/enable-shared-lifecycle-gate.md) and
+[process permission guide](../wiki/how-to/enable-shared-process-audit.md).
+Use the exact plugin-manager guard when registering the four lifecycle keys
+for unselected strict runs. Register `process_allowed(reason)` independently
+and declare fixture permissions by decorated object in
+`LLM_SHARED_PROCESS_FIXTURES`; neither declaration needs shared imports.
+Permissions authorize only their documented operation scope and never remove
+timing charges. This repository's own tests and fixtures declare no process
+permissions. Real executable compatibility checks run in the separate harness.
+
 - Use the project's memory-backed scratch filesystem or virtual `tmp_path` when
   it has one, instead of creating and deleting native directories. Keep the
   path spelling that external tools report (for example an upper-case Windows

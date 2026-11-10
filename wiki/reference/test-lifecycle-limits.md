@@ -4,7 +4,7 @@
 
 <!-- markdownlint-disable MD013 -->
 
-🧪 The suite's pytest plugin `tests/simulation_policy.py` judges every test
+🧪 The standalone pytest plugin `llm_shared_lifecycle_gate` judges every test
 lifecycle, setup through teardown, against a CPU limit and a wall-clock limit.
 Every limit is a project setting. This page lists the settings, how one test's
 CPU limit is chosen, the per-checkout record behind the CPU stability band,
@@ -15,10 +15,13 @@ to change a value or accept a slow test, follow
 
 ## Invocation model
 
-Nobody calls the gate. `tests/conftest.py` loads `tests/simulation_policy.py`
-as a pytest plugin, so every pytest run of this suite applies it, including
-each groundhog stage. The project sets the values in its pytest configuration;
-one run can override them on the command line.
+`tests/conftest.py` loads both canonical policies for this repository's suite.
+Other projects select either independently through
+[shell preparation](../how-to/enable-shared-lifecycle-gate.md), which applies
+to prepared plain pytest and every groundhog pytest stage. No consumer is
+automatically opted in. The project sets values in its pytest configuration;
+one run can override them on the command line. The four key registrations must
+use the guide's plugin-manager guard to preserve defaults in both loading orders.
 
 ## Settings and their defaults
 
@@ -41,7 +44,8 @@ This repository sets `test_lifecycle_limit = "0.1"`,
 `test_lifecycle_cpu_drift_runs = "3"` in `pyproject.toml`, and keeps the
 default wall limit.
 
-A value outside the accepted range would switch the gate off, so pytest
+All numeric settings must be finite. There is no off, report-only or grace
+mode. A value outside the accepted range would switch the gate off, so pytest
 refuses it before collecting, with exit code 4 and a message naming the key:
 
 ```text
@@ -105,7 +109,7 @@ belongs to one checkout, because timings depend on the machine.
 ```json
 {
   "schema": 1,
-  "about": "nodes: written by tests/simulation_policy.py after each measured run. ...",
+  "about": "nodes: written by llm_shared_lifecycle_gate after each measured run. ...",
   "exceptions": {
     "tests/unit/tools/test_example.py::test_cold_grammar": {
       "cpu": 0.3,

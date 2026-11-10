@@ -216,6 +216,10 @@ Recipes for a precise goal, for readers who already know the basics.
 
 ### Additional utilities guides
 
+- 🧪 [Enable the shared lifecycle gate](how-to/enable-shared-lifecycle-gate.md)
+- 🧪 [Enable the shared process audit](how-to/enable-shared-process-audit.md)
+- 🧪 [Validate shared pytest compatibility](how-to/validate-shared-pytest-compatibility.md)
+
 - 🤖 [Create a coherent logo family for a project](how-to/create-a-logo-family-for-a-project.md)
 - 🧪 [Fix a red groundhog walk](how-to/fix-a-red-groundhog-walk.md)
 - 🧪 [Fix a slow test flagged as an outlier](how-to/fix-a-slow-test.md)
