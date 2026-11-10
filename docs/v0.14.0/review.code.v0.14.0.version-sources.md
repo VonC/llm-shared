@@ -4140,3 +4140,820 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-1 -->
+
+## Round 1 by requestor - Step 7
+
+- Recorded: 2026-11-10T18:13:22+01:00
+- Exchange: code/code/v0.14.0/version-sources
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.version-sources.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: unrecorded
+- Implementation step: 7
+- Outcome: request
+
+### Review identity for step 7 version-sources (round 1)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.version-sources.md
+Implementation step: 7
+Review round: 1
+
+### Code review evidence for step 7 version-sources (round 1)
+
+request_index_tree: 2680926ba2ad1fa9b5144dd37d9b6594b2ee5627
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.version-sources.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(release): add the maven version adapter
+group 1 path: tools/release_workflow/sources/xml_scan.py
+group 1 path: tools/release_workflow/sources/maven_references.py
+group 1 path: tools/release_workflow/sources/maven.py
+group 1 path: tools/release_workflow/sources/__init__.py
+group 1 path: tests/unit/tools/release_workflow/version_support.py
+group 1 path: tests/unit/tools/release_workflow/test_version_formats/test_xml_scan_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_version_formats/test_version_formats_pbt.py
+group 1 path: tests/unit/tools/release_workflow/test_maven_sources/__init__.py
+group 1 path: tests/unit/tools/release_workflow/test_maven_sources/test_maven_sources_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_maven_sources/test_maven_references_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_version_registry/test_version_registry_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_version_transition/test_version_restoration_tdd.py
+group 2: docs(version-sources): record step 7 validation
+group 2 path: docs/v0.14.0/plan.v0.14.0.version-sources.validation.md
+staged path: docs/v0.14.0/plan.v0.14.0.version-sources.validation.md
+staged path: tests/unit/tools/release_workflow/test_maven_sources/__init__.py
+staged path: tests/unit/tools/release_workflow/test_maven_sources/test_maven_references_tdd.py
+staged path: tests/unit/tools/release_workflow/test_maven_sources/test_maven_sources_tdd.py
+staged path: tests/unit/tools/release_workflow/test_version_formats/test_version_formats_pbt.py
+staged path: tests/unit/tools/release_workflow/test_version_formats/test_xml_scan_tdd.py
+staged path: tests/unit/tools/release_workflow/test_version_registry/test_version_registry_tdd.py
+staged path: tests/unit/tools/release_workflow/test_version_transition/test_version_restoration_tdd.py
+staged path: tests/unit/tools/release_workflow/version_support.py
+staged path: tools/release_workflow/sources/__init__.py
+staged path: tools/release_workflow/sources/maven.py
+staged path: tools/release_workflow/sources/maven_references.py
+staged path: tools/release_workflow/sources/xml_scan.py
+```
+
+### Validation scope for step 7 version-sources (round 1)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 7 version-sources (round 1)
+
+Writer assessment for Step 7 of the version-sources plan, round 1: the step is
+fully implemented, and its implementation check records
+`Yes. Step 7 has been fully implemented.` in the staged validation plan.
+
+Evidence, all on the staged tree:
+
+- Tests first: `ghog single` on the new and changed leaves failed at
+  collection (five errors, `ImportError: cannot import name 'maven'`, exit 4).
+  After the implementation, the Step 7 leaves with the restoration, detection,
+  settings, npm, Python and lock evidence leaves passed (311 tests, exit 0).
+- `ghog day --whole-suite`, the command printed by `pw scope day`, exit 0. A
+  first run failed only at check.bat (pyright on a `Literal`-keyed dict in the
+  XML property test; ruff rewrapped three imports).
+- Review validation, `ghog day --full=speed --whole-suite` (the built-in
+  default; no `.review-validation`): exit 0 with `cov=100 outliers=0
+  excluded=0 proof=speed`, on index tree
+  `2680926ba2ad1fa9b5144dd37d9b6594b2ee5627`, first attempt. No budget was
+  changed and no exclusion is accepted.
+- `rg -n 'xml.etree' tools/release_workflow/sources` and
+  `rg -n 'subprocess' tools/release_workflow/sources` find nothing; the
+  registry test pins `("anchor", "python", "npm", "maven", "pattern")`. Every
+  Python file stays below 650 lines.
+- Markdown check and cSpell on the staged validation plan: no finding; one
+  unknown word of my own wording was rephrased before staging.
+
+Architecture: the scanner, the adapter and the reference rules are pure
+domain code of the `sources` package (standard library `xml.parsers.expat`,
+`sources.model` and the scanner only), reading through the `FileView`; the
+dependency runs one way, from `maven` to `maven_references`, as plan decision
+Q10 splits them. A component that is also a reactor module is refused by the
+existing claim registry. Performance: each POM is parsed once, each module
+visited once, dependencies resolved through dictionaries and a set of module
+artifacts, and each inheritance chain resolved once. Feature integrity:
+nothing ships until Step 9; registering `maven` adds reactor detection at
+participating roots, and the earlier version tests pass unchanged.
+
+Please check in particular: the scanner's span rule (first character data to
+the end tag, whitespace trimmed on raw bytes) and its problem-instead-of-fail
+choice; the reference rules against the design's "Maven reactors" section
+and design decision Q12 (`${project.groupId}`, ambiguous groups, the two
+supported sections); inheritance through internal parents and its failures;
+and the readings listed in the writer response (plugins unread, required
+internal parent version, `pair_edit` keyed by relative path).
+
+### Implementation report for step 7 version-sources (round 1)
+
+Step 7, "Maven reactor adapter", adds the expat scanner, the `maven` adapter
+(reactor discovery) and its reference rules, completes the adapter registry
+and the restoration matrix. Nothing ships yet: no handler calls the version
+domain until Step 9.
+
+XML scanner (`tools/release_workflow/sources/xml_scan.py`):
+
+- `scan(content, name, wanted) -> PomDocument` checks strict UTF-8 with
+  `decode_utf8`, then parses the bytes once with `xml.parsers.expat` (no
+  namespace processing, so Maven's default namespace leaves names plain). A
+  `_Scan` keeps a stack of `_Open` elements named by slash-joined paths; the
+  first element is the document root.
+- For each element whose path `wanted` fully matches, character data is
+  collected and the first `CurrentByteIndex` remembered; at its end tag the
+  span runs from there to the end tag's index, moved inward past XML
+  whitespace (raw bytes, so CRLF and a byte-order mark keep offsets right).
+  The value records the parent element's start offset, which groups one
+  `<dependency>`'s fields.
+- A comment, CDATA section, processing instruction or child element inside a
+  wanted element, or span bytes that do not decode to the parsed text (an
+  entity or character reference), become the value's `problem` instead of an
+  immediate failure: the text stays readable for coordinates, and
+  `XmlValue.owned(name)` refuses the span of such a field. The scanner cannot
+  know which dependency versions are owned before the reactor index exists.
+- A declared encoding other than UTF-8 (`XmlDeclHandler`), invalid UTF-8 and
+  any `ExpatError` fail. `PomDocument.first` and `every` use a path index
+  built once (`cached_property`).
+
+Reactor discovery (`tools/release_workflow/sources/maven.py`):
+
+- `MavenAdapter`: name `maven`, forms `{snapshot}`, default `snapshot`,
+  candidate name `pom.xml`. `detect` reads the root's `pom.xml`; none gives
+  nothing.
+- `reactor` walks modules breadth first: each `<module>` is normalized against
+  its declaring POM's directory (`os.path.normpath`, no disk access), as a POM
+  file when it ends in `.xml`, otherwise the directory's `pom.xml`. A module
+  declared twice (set of declared paths) or missing fails; any
+  `project/profiles/profile/modules/module` fails as ambiguous; a root element
+  other than `<project>` fails.
+- Coordinates: literal `artifactId`, literal own or `<parent>` `groupId`; a
+  property, an empty or missing value fails.
+- The wanted paths: own and parent coordinates and version, modules (also in
+  profiles), and `groupId`, `artifactId` and `version` of every `dependency`
+  element at any depth. Plugins and `<properties>` are not read.
+
+Reference rules (`tools/release_workflow/sources/maven_references.py`):
+
+- `index` maps `(groupId, artifactId)` to `PomModule`; duplicates fail.
+- `_Rules.own`: an own `<version>` is owned. When absent,
+  `_check_inherited` follows internal parents until a module with its own
+  version, remembering resolved modules in a set; an external parent, no
+  parent or a loop fails with the remedy to declare a literal version.
+- `_Rules.parent`: an internal parent (literal coordinates in the index) has
+  its version owned and required; an external parent is skipped.
+- `_Rules.dependencies`: `_dependencies` groups a document's dependency fields
+  by parent offset in one pass. An entry is considered only when its
+  `artifactId` is a module's (a set). Its group is literal or exactly
+  `${project.groupId}` (the declaring module's group); then it is internal if
+  the pair is in the index, otherwise external; any other group, or none,
+  fails as ambiguous. An internal entry outside `project/dependencies` and
+  `project/dependencyManagement/dependencies` fails (plan decision Q15). In
+  those sections an absent version and exactly `${project.version}` stay;
+  other versions are owned as `<section>/dependency[<group>:<artifact>]/version`
+  (`#2` and on for repeated owned entries of one module).
+- `_literal_version` refuses empty values, `${` expressions and ranges (any of
+  `[](),`), naming the POM, field and expression. Every owned field takes
+  `Form.SNAPSHOT` and its span from `XmlValue.owned`.
+
+Registry, test support and tests:
+
+- `sources/__init__.py`: `ADAPTERS = (anchor, python, npm, maven, pattern)`;
+  `SUPPORT_MODULES` adds `xml_scan` and `maven_references`.
+- `version_support.py`: `DEMO_GROUP`, `gav`, `pom_xml`, `reactor_poms`
+  (my-project's shape); `pair_edit` now keys by path relative to the root; the
+  `maven-reactor` (CRLF), `maven-inherited` (byte-order mark, four writes) and
+  `combined` (five files, five writes) restoration sets.
+- New: `test_version_formats/test_xml_scan_tdd.py`,
+  `test_maven_sources/__init__.py`, `test_maven_sources/test_maven_sources_tdd.py`,
+  `test_maven_sources/test_maven_references_tdd.py`. Extended: the formats
+  property file (XML property), the registry test (final order) and the
+  restoration test docstring (the new sets run through the existing matrix).
+
+Writer notes: `.reviews/a.version-sources.step7.journal.md` and
+`.reviews/a.version-sources.step7.handoff.md`.
+
+### Change summary for step 7 version-sources (round 1)
+
+Staged paths (13), grouped in the root `a.commit` (two groups, checker
+`ready: true`):
+
+1. `feat(release): add the maven version adapter`:
+   `tools/release_workflow/sources/xml_scan.py`,
+   `tools/release_workflow/sources/maven_references.py`,
+   `tools/release_workflow/sources/maven.py`,
+   `tools/release_workflow/sources/__init__.py`,
+   `tests/unit/tools/release_workflow/version_support.py`,
+   `tests/unit/tools/release_workflow/test_version_formats/test_xml_scan_tdd.py`,
+   `tests/unit/tools/release_workflow/test_version_formats/test_version_formats_pbt.py`,
+   `tests/unit/tools/release_workflow/test_maven_sources/__init__.py`,
+   `tests/unit/tools/release_workflow/test_maven_sources/test_maven_sources_tdd.py`,
+   `tests/unit/tools/release_workflow/test_maven_sources/test_maven_references_tdd.py`,
+   `tests/unit/tools/release_workflow/test_version_registry/test_version_registry_tdd.py`,
+   `tests/unit/tools/release_workflow/test_version_transition/test_version_restoration_tdd.py`.
+2. `docs(version-sources): record step 7 validation`:
+   `docs/v0.14.0/plan.v0.14.0.version-sources.validation.md` (Step 7
+   sections).
+
+The scanner, the adapter, the reference rules and the registration share one
+group: the registry test needs all three modules registered or declared
+together, and the restoration matrix needs the adapter. Steps 1 to 6 are
+committed and pushed (`a7c0d7c` to `b217b23`) and are not part of this review.
+
+### Writer response for step 7 version-sources (round 1)
+
+Writer response:
+
+This is the first round of the Step 7 code review; there is no earlier
+reviewer feedback to answer.
+
+Choices worth checking, all recorded in the validation plan or the step notes:
+
+- The scanner records markup inside a wanted element as a `problem` rather
+  than failing at once. Only an owned field (`XmlValue.owned`) fails, so a
+  comment inside an external dependency's version never breaks a POM. The
+  plan wording "rejecting comments ... inside owned elements" is met at the
+  point ownership is known.
+- `scan(content, name, wanted)` takes a name for diagnostics beside the plan's
+  `scan(content, wanted_paths)`, and `wanted` is a compiled expression, so
+  `dependency` fields at any depth can be recorded without listing every
+  Maven location.
+- Only `dependency` elements are references. Plugin declarations are never
+  read, as the design's "external parents, external dependencies, plugins and
+  `<properties>` are never written" states; a reactor module used as a plugin
+  is therefore outside the model. An internal dependency of a plugin or a
+  profile fails (plan decision Q15).
+- `${project.groupId}` resolves to the declaring module's own or inherited
+  literal group; with that group the entry is internal only when the pair is
+  a module, as for a literal group.
+- An internal `<parent>` version is required and must be literal; an
+  absent one fails rather than relying on Maven 4 inference.
+- `pair_edit` now keys its result by path relative to the root (a reactor has
+  several `pom.xml`); the uv and npm callers keep their keys because their
+  files sit at the root.
+- The restoration test gains no new code: the three new sets run through the
+  existing parametrized matrix, so its +40 advisory was not needed.
+
+### Reviewer focus for step 7 version-sources (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-7-round-1 -->
+
+## Round 1 by reviewer - Step 7
+
+- Recorded: 2026-11-10T18:24:32+01:00
+- Exchange: code/code/v0.14.0/version-sources
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.version-sources.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 7
+- Outcome: answer
+
+### Assessed index identity for step 7 version-sources (exchange 1) (round 1)
+
+Baseline index tree: 2680926ba2ad1fa9b5144dd37d9b6594b2ee5627
+
+Assessed index tree: e58cbc01159204836ed46504ecc35bb479b59e7d
+
+### Implementation check for step 7 version-sources (exchange 1) (round 1)
+
+Result:
+
+No. Step 7 has NOT been fully implemented.
+
+The expat scanner, Maven reference rules, registry order and restoration fixtures implement the ordinary reactor behavior. Physical module identity is missing at the discovery boundary, so the required component/reactor conflict can be bypassed through a junction alias. The implementation has a concrete missing path-policy and regression-test obligation. No other architecture or performance issue was identified.
+
+Validation plan effects:
+
+Updated only Step 7 in `docs/v0.14.0/plan.v0.14.0.version-sources.validation.md`: exact No verdict, concrete missing-work section, and consistent architecture, coverage and integrity assessments. The attributable metadata patch was staged separately from the writer's existing staged changes. Other steps and the umbrella were untouched.
+
+### Pre-repair mandatory checks and coverage for step 7 version-sources (exchange 1) (round 1)
+
+No implementation repair was authorized or made; no literal Human guidance block was present. The writer's successful full speed walk ended 2026-11-10T18:12:24+01:00 with 6186 whole-suite tests, exit=0, cov=100, outliers=0, excluded=0, proof=speed and reused=none. Its check and 83-test affected phase were green, and the bound scope fingerprint matches the request. The reviewer relied on static code/test assessment and did not rerun tests or coverage. The measured source scope is `tools`, with tests and initializers omitted; the new test-support symbols are referenced. Green measured coverage does not cover the absent alias/boundary behaviors.
+
+### Resolved validation set and sources for step 7 version-sources (exchange 1) (round 1)
+
+Both the request and current resolver require `ghog day --full=speed --whole-suite`, source `project`. No declared `.review-validation` set exists. This command is writer-owned validation evidence and was not run by the reviewer.
+
+### Resolver drift and direction for step 7 version-sources (exchange 1) (round 1)
+
+None: the requested and current validation commands and sources match.
+
+### Repository state around validation for step 7 version-sources (exchange 1) (round 1)
+
+The baseline index matched the request tree `2680926ba2ad1fa9b5144dd37d9b6594b2ee5627`. After staging the attributable Step 7 metadata patch, the assessed tree is `e58cbc01159204836ed46504ecc35bb479b59e7d`. Umbrella digest comparison reports changed=false. Validation-state comparison reports acceptable=false for exactly the validation-plan path and `<index>`; this is the permitted reviewed-step metadata exception, not a validation side effect. All other tracked paths in the 13-path validation set are unchanged; no untracked path was introduced. Attribution reports attributable=true against the saved pre-edit blob.
+
+### Repair inventory for step 7 version-sources (exchange 1) (round 1)
+
+Repairs made:
+
+- Review metadata only: corrected the Step 7 assessment and missing-work list in `docs/v0.14.0/plan.v0.14.0.version-sources.validation.md`; no production or test repairs.
+
+Paths staged:
+
+- `docs/v0.14.0/plan.v0.14.0.version-sources.validation.md` (reviewer-authored Step 7 metadata patch only)
+
+### Commit plan assessment for step 7 version-sources (exchange 1) (round 1)
+
+Independent canonical commit-plan checker: state=valid, ready=true, diagnostics empty, 13 staged paths. The unchanged a.commit remains accurate after the metadata patch. Ordered groups:
+
+Group 1: feat(release): add the maven version adapter
+
+- `tools/release_workflow/sources/xml_scan.py`
+- `tools/release_workflow/sources/maven_references.py`
+- `tools/release_workflow/sources/maven.py`
+- `tools/release_workflow/sources/__init__.py`
+- `tests/unit/tools/release_workflow/version_support.py`
+- `tests/unit/tools/release_workflow/test_version_formats/test_xml_scan_tdd.py`
+- `tests/unit/tools/release_workflow/test_version_formats/test_version_formats_pbt.py`
+- `tests/unit/tools/release_workflow/test_maven_sources/__init__.py`
+- `tests/unit/tools/release_workflow/test_maven_sources/test_maven_sources_tdd.py`
+- `tests/unit/tools/release_workflow/test_maven_sources/test_maven_references_tdd.py`
+- `tests/unit/tools/release_workflow/test_version_registry/test_version_registry_tdd.py`
+- `tests/unit/tools/release_workflow/test_version_transition/test_version_restoration_tdd.py`
+
+Group 2: docs(version-sources): record step 7 validation
+
+- `docs/v0.14.0/plan.v0.14.0.version-sources.validation.md`
+
+### Findings and boundaries for step 7 version-sources (exchange 1) (round 1)
+
+Unresolved findings:
+
+- [P2] Authorize and canonicalize discovered module POMs before reads and claims — `tools/release_workflow/sources/maven.py:49-52,91-101`. `_module_path` uses only `normpath`, and `reactor` passes that lexical path through `FileView`, `PomModule` and `LocatedSource`. The claim registry keys `(source.path, source.field)` without resolving it. For a root reactor declaring `<module>alias</module>`, an in-project junction `alias -> real`, and a declared component rooted at `real` whose POM has a literal own version, the same physical project/version field is registered as both `alias/pom.xml` and `real/pom.xml`. The reactors' separate coordinate indexes do not detect that duplication, so detection accepts ownership that the design explicitly requires it to reject before writes. The same missing project path policy allows module discovery outside the physical project root or into a nested repository; downstream evidence or write authorization handles it too late. Apply the existing physical project path policy at module discovery, retain correct declaring-POM-relative resolution, and add alias/component conflict and project-boundary regression tests. This is a static finding; no implementation probe or test was run by the reviewer.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 7 version-sources (exchange 1) (round 1)
+
+Implement the Step 7 missing-work list in the validation plan. Authorize discovered POMs against the overall physical project before reading or registering them, and use canonical physical identities for module/claim tracking. Preserve supported relative modules inside the project, including siblings of component roots. Add tests for aliased component/module conflicts, two module aliases, external paths, nested repository paths and linked boundary escapes, with rejection before mutation. Run the writer-owned validation set green, refresh Step 7 evidence, and publish a replacement review request.
+
+### Decision rationale for step 7 version-sources (exchange 1) (round 1)
+
+Changes requested. Identity passes; completeness fails on the physical module identity/path-policy finding. Writer validation is green and resolver drift is absent, but static test review identifies the missing path regressions. Staged attribution passes for the permitted Step 7 metadata exception, one finding remains unresolved, and the independent commit-plan assessment is mechanically ready. No substantive reviewer repairs were made. This assessment does not authorize a commit.
+
+### Final reviewer decision for step 7 version-sources (exchange 1) (round 1)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-7-round-1 -->
+
+## Round 2 by requestor - Step 7
+
+- Recorded: 2026-11-10T18:41:13+01:00
+- Exchange: code/code/v0.14.0/version-sources
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.version-sources.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 7
+- Outcome: request
+
+### Review identity for step 7 version-sources (round 2)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.version-sources.md
+Implementation step: 7
+Review round: 2
+
+### Code review evidence for step 7 version-sources (round 2)
+
+request_index_tree: cfe584ce8b5b8c3cdd6ba2ca6e549525b56bdc1f
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.version-sources.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(release): add the maven version adapter
+group 1 path: tools/release_workflow/paths.py
+group 1 path: tools/release_workflow/sources/model.py
+group 1 path: tools/release_workflow/sources/settings.py
+group 1 path: tools/release_workflow/sources/xml_scan.py
+group 1 path: tools/release_workflow/sources/maven_references.py
+group 1 path: tools/release_workflow/sources/maven.py
+group 1 path: tools/release_workflow/sources/__init__.py
+group 1 path: tests/unit/tools/release_workflow/version_support.py
+group 1 path: tests/unit/tools/release_workflow/test_version_formats/test_xml_scan_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_version_formats/test_version_formats_pbt.py
+group 1 path: tests/unit/tools/release_workflow/test_maven_sources/__init__.py
+group 1 path: tests/unit/tools/release_workflow/test_maven_sources/test_maven_sources_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_maven_sources/test_maven_references_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_version_registry/test_version_registry_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_version_transition/test_version_restoration_tdd.py
+group 2: docs(version-sources): record step 7 validation
+group 2 path: docs/v0.14.0/plan.v0.14.0.version-sources.validation.md
+staged path: docs/v0.14.0/plan.v0.14.0.version-sources.validation.md
+staged path: tests/unit/tools/release_workflow/test_maven_sources/__init__.py
+staged path: tests/unit/tools/release_workflow/test_maven_sources/test_maven_references_tdd.py
+staged path: tests/unit/tools/release_workflow/test_maven_sources/test_maven_sources_tdd.py
+staged path: tests/unit/tools/release_workflow/test_version_formats/test_version_formats_pbt.py
+staged path: tests/unit/tools/release_workflow/test_version_formats/test_xml_scan_tdd.py
+staged path: tests/unit/tools/release_workflow/test_version_registry/test_version_registry_tdd.py
+staged path: tests/unit/tools/release_workflow/test_version_transition/test_version_restoration_tdd.py
+staged path: tests/unit/tools/release_workflow/version_support.py
+staged path: tools/release_workflow/paths.py
+staged path: tools/release_workflow/sources/__init__.py
+staged path: tools/release_workflow/sources/maven.py
+staged path: tools/release_workflow/sources/maven_references.py
+staged path: tools/release_workflow/sources/model.py
+staged path: tools/release_workflow/sources/settings.py
+staged path: tools/release_workflow/sources/xml_scan.py
+```
+
+### Validation scope for step 7 version-sources (round 2)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 7 version-sources (round 2)
+
+Writer assessment for Step 7 of the version-sources plan, round 2: the step is
+fully implemented after the round 1 repair, and the staged validation plan
+records `Yes. Step 7 has been fully implemented.` again, with the reviewer's
+round 1 assessment kept and the round 2 repair described.
+
+Round 1 finding [P2], module POM paths only normalized lexically: repaired.
+Every POM the Maven adapter reads, the root one included, goes through the
+project's physical path policy first (`AdapterSettings.authorize`, backed by
+`paths.authorize_in`, the body `authorize_path` already had), and the physical
+path names the module, its sources and their claims.
+
+Evidence, all on the staged tree:
+
+- The six new path regressions in `test_maven_sources_tdd.py` run through
+  `detection.detect` with `.release.ini` settings: the aliased component
+  conflict is refused by `set_versions` as a field claimed twice, with no
+  source or evidence write and the files unchanged; two links to one POM fail
+  as one module declared twice; modules outside the project and in a nested
+  repository, directly and through junctions, fail naming the declaring POM,
+  the module and the policy's reason, with the files unchanged; a linked
+  module and a component's `../shared` sibling stay supported under their
+  physical paths.
+- `ghog single` on the Maven, paths, managed-files, settings, detection,
+  restoration, Python and npm leaves: exit 0 (304 tests). A first run failed in
+  the fixture only (the memory filesystem keeps `.git` as a directory).
+- Review validation, `ghog day --full=speed --whole-suite`: exit 0 with
+  `cov=100 outliers=0 excluded=0 proof=speed`, on index tree
+  `cfe584ce8b5b8c3cdd6ba2ca6e549525b56bdc1f` (ruff only sorted one import in
+  `version_support.py` during the walk's check, restaged before this request).
+  No budget was changed and no exclusion is accepted.
+- `rg -n 'xml.etree' tools/release_workflow/sources` and
+  `rg -n 'subprocess' tools/release_workflow/sources` still find nothing. Every
+  Python file stays below 650 lines.
+- Markdown check and cSpell on the staged validation plan and the transcript:
+  no finding, after two polishing fixes in the transcript (a code span for the
+  reviewer's `<index>`, and the removal of an unknown word I had quoted).
+- `commit-plan-check`: ready, two groups, 16 paths; `paths.py`, `model.py`
+  and `settings.py` joined the feature group.
+
+Architecture: the domain reaches the path policy only through the
+`AdapterSettings.authorize` port; the policy itself stays in `paths.py`, once.
+Performance: one authorization per discovered POM, a fixed number of
+filesystem probes on its ancestors, no tree scan. Feature integrity:
+`authorize_path` behaves as before.
+
+Please check in particular: whether authorizing the root POM as well as the
+modules is the right boundary, the wording of the refusal, the six
+regressions against your round 1 instructions, and the validation-plan
+treatment of your round 1 metadata.
+
+### Implementation report for step 7 version-sources (round 2)
+
+Step 7, "Maven reactor adapter", adds the expat scanner, the `maven` adapter
+(reactor discovery) and its reference rules, completes the adapter registry
+and the restoration matrix. Nothing ships yet: no handler calls the version
+domain until Step 9.
+
+XML scanner (`tools/release_workflow/sources/xml_scan.py`):
+
+- `scan(content, name, wanted) -> PomDocument` checks strict UTF-8 with
+  `decode_utf8`, then parses the bytes once with `xml.parsers.expat` (no
+  namespace processing, so Maven's default namespace leaves names plain). A
+  `_Scan` keeps a stack of `_Open` elements named by slash-joined paths; the
+  first element is the document root.
+- For each element whose path `wanted` fully matches, character data is
+  collected and the first `CurrentByteIndex` remembered; at its end tag the
+  span runs from there to the end tag's index, moved inward past XML
+  whitespace (raw bytes, so CRLF and a byte-order mark keep offsets right).
+  The value records the parent element's start offset, which groups one
+  `<dependency>`'s fields.
+- A comment, CDATA section, processing instruction or child element inside a
+  wanted element, or span bytes that do not decode to the parsed text (an
+  entity or character reference), become the value's `problem` instead of an
+  immediate failure: the text stays readable for coordinates, and
+  `XmlValue.owned(name)` refuses the span of such a field. The scanner cannot
+  know which dependency versions are owned before the reactor index exists.
+- A declared encoding other than UTF-8 (`XmlDeclHandler`), invalid UTF-8 and
+  any `ExpatError` fail. `PomDocument.first` and `every` use a path index
+  built once (`cached_property`).
+
+Reactor discovery (`tools/release_workflow/sources/maven.py`):
+
+- `MavenAdapter`: name `maven`, forms `{snapshot}`, default `snapshot`,
+  candidate name `pom.xml`. `detect` reads the root's `pom.xml`; none gives
+  nothing.
+- `reactor` walks modules breadth first: each `<module>` is normalized against
+  its declaring POM's directory (`os.path.normpath`), as a POM file when it
+  ends in `.xml`, otherwise the directory's `pom.xml`. Round 2: that path then
+  goes through `settings.authorize` (the project's physical path policy) before
+  it is read; a refusal names the declaring POM and the module, and the
+  returned physical path identifies the module, its sources and claims.
+  `detect` authorizes the root POM the same way. A module declared twice (set
+  of declared physical paths, so two links to one POM collide) or missing
+  fails; any `project/profiles/profile/modules/module` fails as ambiguous; a
+  root element other than `<project>` fails.
+
+Path policy seam (round 2):
+
+- `tools/release_workflow/paths.py`: `authorize_in(root, supplied)` holds the
+  existing check of existing ancestors and of the resolved path (escape,
+  project Git metadata, nested repositories, non-directory ancestors);
+  `authorize_path(identity, supplied)` delegates to it unchanged.
+- `tools/release_workflow/sources/model.py`: `AdapterSettings.authorize(path)`.
+- `tools/release_workflow/sources/settings.py`: `authorize_source(project_root,
+  path)` wraps `authorize_in` and turns `ProjectPathError` into `SourceError`;
+  `VersionSettings.authorize` uses it from the physical project root.
+- `version_support.RootSettings.authorize` applies the same function.
+- Coordinates: literal `artifactId`, literal own or `<parent>` `groupId`; a
+  property, an empty or missing value fails.
+- The wanted paths: own and parent coordinates and version, modules (also in
+  profiles), and `groupId`, `artifactId` and `version` of every `dependency`
+  element at any depth. Plugins and `<properties>` are not read.
+
+Reference rules (`tools/release_workflow/sources/maven_references.py`):
+
+- `index` maps `(groupId, artifactId)` to `PomModule`; duplicates fail.
+- `_Rules.own`: an own `<version>` is owned. When absent,
+  `_check_inherited` follows internal parents until a module with its own
+  version, remembering resolved modules in a set; an external parent, no
+  parent or a loop fails with the remedy to declare a literal version.
+- `_Rules.parent`: an internal parent (literal coordinates in the index) has
+  its version owned and required; an external parent is skipped.
+- `_Rules.dependencies`: `_dependencies` groups a document's dependency fields
+  by parent offset in one pass. An entry is considered only when its
+  `artifactId` is a module's (a set). Its group is literal or exactly
+  `${project.groupId}` (the declaring module's group); then it is internal if
+  the pair is in the index, otherwise external; any other group, or none,
+  fails as ambiguous. An internal entry outside `project/dependencies` and
+  `project/dependencyManagement/dependencies` fails (plan decision Q15). In
+  those sections an absent version and exactly `${project.version}` stay;
+  other versions are owned as `<section>/dependency[<group>:<artifact>]/version`
+  (`#2` and on for repeated owned entries of one module).
+- `_literal_version` refuses empty values, `${` expressions and ranges (any of
+  `[](),`), naming the POM, field and expression. Every owned field takes
+  `Form.SNAPSHOT` and its span from `XmlValue.owned`.
+
+Registry, test support and tests:
+
+- `sources/__init__.py`: `ADAPTERS = (anchor, python, npm, maven, pattern)`;
+  `SUPPORT_MODULES` adds `xml_scan` and `maven_references`.
+- `version_support.py`: `DEMO_GROUP`, `gav`, `pom_xml`, `reactor_poms`
+  (my-project's shape); `pair_edit` now keys by path relative to the root; the
+  `maven-reactor` (CRLF), `maven-inherited` (byte-order mark, four writes) and
+  `combined` (five files, five writes) restoration sets.
+- New: `test_version_formats/test_xml_scan_tdd.py`,
+  `test_maven_sources/__init__.py`, `test_maven_sources/test_maven_sources_tdd.py`
+  (with the round 2 path-policy regressions),
+  `test_maven_sources/test_maven_references_tdd.py`. Extended: the formats
+  property file (XML property), the registry test (final order) and the
+  restoration test docstring (the new sets run through the existing matrix).
+
+Writer notes: `.reviews/a.version-sources.step7.journal.md` and
+`.reviews/a.version-sources.step7.handoff.md`.
+
+### Change summary for step 7 version-sources (round 2)
+
+Round 2 changes since round 1 (all staged):
+
+- `tools/release_workflow/paths.py`: `authorize_in(root, supplied)` holds the
+  physical path policy; `authorize_path` delegates to it, docstring kept.
+- `tools/release_workflow/sources/model.py`: `AdapterSettings.authorize(path)`
+  port; module docstring.
+- `tools/release_workflow/sources/settings.py`: `authorize_source` and
+  `VersionSettings.authorize`; docstrings.
+- `tools/release_workflow/sources/maven.py`: `_authorized`; `reactor` takes the
+  settings and authorizes each module POM; `detect` authorizes the root POM;
+  docstring.
+- `tests/unit/tools/release_workflow/version_support.py`:
+  `RootSettings.authorize`.
+- `tests/unit/tools/release_workflow/test_maven_sources/test_maven_sources_tdd.py`:
+  the six path-policy regressions and the `_modules` helper.
+- `docs/v0.14.0/plan.v0.14.0.version-sources.validation.md`: Step 7 back to
+  Yes with the round 1 assessment kept and the round 2 repair recorded.
+
+Staged paths (16), grouped in the root `a.commit` (two groups, checker
+`ready: true`):
+
+1. `feat(release): add the maven version adapter` (15 paths):
+   `tools/release_workflow/paths.py`,
+   `tools/release_workflow/sources/model.py`,
+   `tools/release_workflow/sources/settings.py`,
+   `tools/release_workflow/sources/xml_scan.py`,
+   `tools/release_workflow/sources/maven_references.py`,
+   `tools/release_workflow/sources/maven.py`,
+   `tools/release_workflow/sources/__init__.py`,
+   `tests/unit/tools/release_workflow/version_support.py`,
+   `tests/unit/tools/release_workflow/test_version_formats/test_xml_scan_tdd.py`,
+   `tests/unit/tools/release_workflow/test_version_formats/test_version_formats_pbt.py`,
+   `tests/unit/tools/release_workflow/test_maven_sources/__init__.py`,
+   `tests/unit/tools/release_workflow/test_maven_sources/test_maven_sources_tdd.py`,
+   `tests/unit/tools/release_workflow/test_maven_sources/test_maven_references_tdd.py`,
+   `tests/unit/tools/release_workflow/test_version_registry/test_version_registry_tdd.py`,
+   `tests/unit/tools/release_workflow/test_version_transition/test_version_restoration_tdd.py`.
+2. `docs(version-sources): record step 7 validation`:
+   `docs/v0.14.0/plan.v0.14.0.version-sources.validation.md`.
+
+The review transcript stays unstaged for the residual commit.
+
+### Writer response for step 7 version-sources (round 2)
+
+Writer response:
+
+Round 1 finding accepted and repaired; no disagreement.
+
+- [P2] Authorize and canonicalize discovered module POMs before reads and
+  claims: accepted. The Maven adapter now passes the root POM and every
+  module POM through the project's physical path policy before reading it,
+  and keeps the physical path for the module, its sources and their claims.
+  - The policy is the existing one: `paths.authorize_in(root, supplied)` is
+    the body `authorize_path(identity, supplied)` already had, which now
+    delegates to it unchanged, so managed destinations and discovered POMs
+    share one implementation.
+  - Adapters reach it through a new port, `AdapterSettings.authorize(path)`.
+    `VersionSettings.authorize` applies it from the physical project root
+    through `settings.authorize_source`, which turns a `ProjectPathError` into
+    a status 2 `SourceError`; `RootSettings` in test support does the same.
+    The adapter imports no foundation path code.
+  - Resolution stays relative to the declaring POM (`_module_path`), then
+    authorization returns the physical path; modules elsewhere inside the
+    project, such as a component's `../shared` module, stay supported.
+  - Regressions, through `detection.detect` with `.release.ini` settings so
+    `VersionSettings.authorize` runs: a module reached through an in-project
+    junction that is also a declared component (refused by `set_versions` as
+    a field claimed twice, with no source or evidence write and the files
+    unchanged); two links to one module POM (declared twice); modules outside
+    the project directly and through a junction, and inside a nested
+    repository directly and through a junction (each refused with the files
+    unchanged); and a supported linked module and component sibling, named by
+    their physical paths.
+- The reviewer's validation-plan metadata (No verdict and missing-work list)
+  was the right record for round 1. After the repair, the Step 7 entry is back
+  to `Yes`, the round 1 assessment is kept as its own paragraph, a writer
+  round 2 paragraph describes the repair, and the completed missing-work
+  section is removed, as the implementation-check instruction requires.
+- `paths.py`, `sources/model.py` and `sources/settings.py` join the feature
+  group of `a.commit` (outside the plan's Step 7 file list, recorded as
+  variance in the validation plan).
+- Transcript polishing only: the reviewer's bare `<index>` became a code span
+  (MD033), and an unknown word quoted in my round 1 assessment was removed.
+
+### Reviewer focus for step 7 version-sources (round 2)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-7-round-2 -->
+
+## Round 2 by reviewer - Step 7
+
+- Recorded: 2026-11-10T18:48:26+01:00
+- Exchange: code/code/v0.14.0/version-sources
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.version-sources.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 7
+- Outcome: answer
+
+### Assessed index identity for step 7 version-sources (exchange 1) (round 2)
+
+Baseline index tree: cfe584ce8b5b8c3cdd6ba2ca6e549525b56bdc1f
+
+Assessed index tree: 6f8935f035e0ede9d83eb8a8b0698b1791c58a43
+
+### Implementation check for step 7 version-sources (exchange 1) (round 2)
+
+Result:
+
+Yes. Step 7 has been fully implemented.
+
+The round 1 physical-path finding is resolved. Root and module POMs pass through the existing project authorization policy before reads and registration. Claims now use physical paths, so a linked reactor module and a separately configured component cannot silently claim the same field. The settings port preserves the adapter boundary and existing managed-path behavior.
+
+The Maven reactor, references, namespace-aware span scanner, byte-preserving writes, and transactional conflict handling satisfy the named step. The new regressions cover alias/component conflicts before source or evidence writes, duplicate module aliases, external and nested-repository module refusals (direct and linked), valid linked modules, and sibling module paths.
+
+Validation plan effects:
+
+Updated only the Step 7 assessment in `docs/v0.14.0/plan.v0.14.0.version-sources.validation.md`: recorded resolution of the earlier finding, the physical authorization boundary, architecture and performance assessment, and the writer's round 2 evidence. Kept the exact Yes result. No other step or umbrella status was edited.
+
+### Pre-repair mandatory checks and coverage for step 7 version-sources (exchange 1) (round 2)
+
+The writer's bound round 2 speed walk completed on 2026-11-10 at 18:40:00+01:00: check green; affected 717/6193 green; full 6193 tests green; exit=0, cov=100, outliers=0, excluded=0, proof=speed, reused=none. Its fingerprint `686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6` matches the bound round scope.
+
+The reviewer assessed this evidence and source/tests statically. No reviewer test execution, coverage measurement, `ghog check`, or `ghog affected` was needed or performed. Added support symbols are exercised, and the tests cover the new path decisions without subprocess or native lifecycle overhead. No static coverage gap was found. Authorization cost is proportional to POM ancestor depth, with no repository scan or Git subprocess.
+
+### Resolved validation set and sources for step 7 version-sources (exchange 1) (round 2)
+
+Request-time and independently resolved current set agree:
+
+- `ghog day --full=speed --whole-suite` (source: project; declared=false).
+
+This is writer validation evidence; the reviewer did not rerun the command.
+
+### Resolver drift and direction for step 7 version-sources (exchange 1) (round 2)
+
+None. Request-time and current resolved commands and sources agree.
+
+### Repository state around validation for step 7 version-sources (exchange 1) (round 2)
+
+The request-time index and captured baseline agree at `cfe584ce8b5b8c3cdd6ba2ca6e549525b56bdc1f`. After the attributable Step 7 validation metadata patch was staged, the assessed tree is `6f8935f035e0ede9d83eb8a8b0698b1791c58a43`.
+
+The final validation-state comparison reports `acceptable=false`, with tracked changes limited to the Step 7 validation file and `<index>`. This is the explicitly permitted reviewed-step metadata/index exception, not a validation side effect or an unconditional acceptable=true result. All other tracked validation paths are unchanged, and there are no new untracked paths. Attribution returned `attributable=true` before staging only the reviewer patch.
+
+The applicable umbrella digest is unchanged: `5abf0cb72800e9d07acba786dd90502fcb8879ff41cbcce55b961a95352aaa4c` before and after.
+
+### Repair inventory for step 7 version-sources (exchange 1) (round 2)
+
+Repairs made:
+
+- Review metadata only: recorded the Step 7 round 2 assessment and clarified architecture/performance evidence in `docs/v0.14.0/plan.v0.14.0.version-sources.validation.md`; no production or test repairs.
+
+Paths staged:
+
+- `docs/v0.14.0/plan.v0.14.0.version-sources.validation.md` (attributable reviewer metadata patch only).
+
+### Commit plan assessment for step 7 version-sources (exchange 1) (round 2)
+
+Independent `commit-plan-check.bat --format json` result: `state=valid`, `ready=true`; 16 staged paths; diagnostics empty. The check ran against the received state. The subsequent reviewer patch changes only the already-listed Step 7 validation file, so group membership and subjects remain accurate. `a.commit` was unchanged.
+
+Group 1: `feat(release): add the maven version adapter`
+
+- `tools/release_workflow/paths.py`
+- `tools/release_workflow/sources/model.py`
+- `tools/release_workflow/sources/settings.py`
+- `tools/release_workflow/sources/xml_scan.py`
+- `tools/release_workflow/sources/maven_references.py`
+- `tools/release_workflow/sources/maven.py`
+- `tools/release_workflow/sources/__init__.py`
+- `tests/unit/tools/release_workflow/version_support.py`
+- `tests/unit/tools/release_workflow/test_version_formats/test_xml_scan_tdd.py`
+- `tests/unit/tools/release_workflow/test_version_formats/test_version_formats_pbt.py`
+- `tests/unit/tools/release_workflow/test_maven_sources/__init__.py`
+- `tests/unit/tools/release_workflow/test_maven_sources/test_maven_sources_tdd.py`
+- `tests/unit/tools/release_workflow/test_maven_sources/test_maven_references_tdd.py`
+- `tests/unit/tools/release_workflow/test_version_registry/test_version_registry_tdd.py`
+- `tests/unit/tools/release_workflow/test_version_transition/test_version_restoration_tdd.py`
+
+Group 2: `docs(version-sources): record step 7 validation`
+
+- `docs/v0.14.0/plan.v0.14.0.version-sources.validation.md`
+
+### Findings and boundaries for step 7 version-sources (exchange 1) (round 2)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 7 version-sources (exchange 1) (round 2)
+
+No implementation rework is requested. The existing requestor owns consumption of this answer and presentation of the human convergence gate. This advisory recommendation grants no commit authority; the human owns the Commit choice.
+
+### Decision rationale for step 7 version-sources (exchange 1) (round 2)
+
+Recommend `commit-ready` for Step 7, round 2, occurrence 1. All six readiness-floor assessments pass: exact identity and baseline, complete implementation, sufficient writer validation and static coverage evidence, attributable staged scope with the explicit Step 7 metadata exception, no unresolved current or carried findings, and an accurate independently checked commit plan. No substantive reviewer repair was made. The additional shared path-policy files are necessary for the writer's documented Step 7 repair and preserve existing behavior.
+
+### Final reviewer decision for step 7 version-sources (exchange 1) (round 2)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-7-round-2 -->
+
+## Round 2 by human - Step 7 - human-confirmation
+
+- Recorded: 2026-11-10T19:14:16+01:00
+- Exchange: code/code/v0.14.0/version-sources
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.version-sources.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 7
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-2 -->
