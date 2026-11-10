@@ -177,6 +177,15 @@ exchanges are live; an absent or unresolved saved identity does not authorize
 choosing one of them. This requirement does
 not remove older handoffs' readability through ordinary `resume-session`.
 
+The user's 2026-11-09 design Q01=B discussion requests a study of explicit
+pre-use migration from the old table to JSON. This is preparation outside the
+read-only bulk command, not an interactive migration at launch. A conversion
+proposal must preserve the task, establish complete routing without guessing,
+and account for prompt digest and receipt eligibility before any rewrite.
+Consumed or ambiguous handoffs can still be resumed manually and paused again.
+The [design's migration study](design.v0.14.0.resume-paused.md#legacy-routing-migration-study)
+records proposals; it does not add a converter to the confirmed delivery.
+
 Carry pause capture, saved-routing consumption, live identity validation and
 the no-question legacy behavior into design, plans and validation before
 implementing the bulk command. Instruction/template changes document the
@@ -491,6 +500,19 @@ launch-time resumption. The current delivery handles existing panes and
 remains independent of senv. This unchecked follow-up is tracked work outside
 the current delivery, with no assigned target version or calendar reminder.
 
+Source inspection on 2026-11-09 shows that the current launcher reads the
+first-line author/title, `Session role`, exact prompt bytes, and the receipt's
+`Prompt`, `SHA-256` and `Project root` lines, without parsing routing tables.
+It ignores `Schema`; missing or malformed receipt lines stop startup resumption
+for that checkout. Preserving these grammars, including the three schema 2
+receipt lines in schema 3, is a constraint of the current delivery and must be
+checked with fixtures. A digest-changing migration can make a consumed prompt
+appear unused, including to the installed launcher's startup check; format
+readability does not prove startup-routing compatibility.
+The launcher currently selects the first declared pane per agent/checkout and
+schedules the opposite reviewer for a requestor pause. The shared tool uses
+saved targets and proves requestor takeover before activating a reviewer.
+
 - [ ] At the resume-paused completion handoff, carry this item into a separate
   senv effort once the shared command is implemented and validated. Revisit
   it when next changing senv's launch-time resume behavior.
@@ -500,6 +522,30 @@ the current delivery, with no assigned target version or calendar reminder.
 - [ ] Keep a link to this checklist in the resume-paused design, implementation
   plan and completion handoff. Preserve this section during question
   consolidation; close the follow-up only with senv integration evidence.
+- [ ] In the separate senv effort, validate additive-format and receipt
+  compatibility (building on the current delivery's installed-launcher
+  grammar constraint and fixture checks), startup and restored pane
+  identities, preserved default behavior and resume opt-out, and a single
+  delivery path that enforces saved routing and requestor takeover before
+  reviewer activation. Distinguish native
+  conversation restoration from paused-task resumption.
+- [ ] Under the user's design Q10=C qualification on 2026-11-09, demonstrate
+  that `tuitp` keeps working and can resume all eligible sessions across the
+  selected layout, including Claude-only, Codex-only and paired checkouts and
+  multiple independent sessions. Preserve default created/restored-session
+  startup behavior; already running eligible sessions remain resumable through
+  the shared command. Retain opt-out and native-conversation mode.
+- [ ] Validate the identity lifecycle across startup and daemon restoration,
+  preserving required pre-start evidence and verifying live targets after
+  agents are ready. If saved pane/session identities change, resolve the
+  integration contract explicitly before implementation; do not guess new
+  targets or waive identity checks. Cover clears and same-host restarts too.
+- [ ] Account for every paused checkout in integration results: eligible work
+  resumes once, with separate paired-role outcomes; protected, excluded, used,
+  legacy, unresolved and conflicting cases retain their documented skip/error
+  rules. A blanket restored-session skip does not satisfy complete coverage.
+  Carry this evidence requirement into the separate senv effort, later plans
+  and completion handoff; compatibility is not yet validated.
 
 ## Requirement clarifications for resume-paused
 

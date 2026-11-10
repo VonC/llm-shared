@@ -1710,7 +1710,7 @@ explicit comments, preserved verbatim:
 
 For Q25, the user rejected the original pane-selection alternatives:
 
-> No the selection must be done based on what is noted in the pause session handoff, which means you MUST evolve pause instruction to add additional information in the handoff note for Q25 to never be asked ever again: update the docs to achive this
+> No the selection must be done based on what is noted in the pause session handoff, which means you MUST evolve pause instruction to add additional information in the handoff note for Q25 to never be asked ever again: update the docs to achieve this
 
 Q26 was explained with native prefixes and trailing context included in
 Option A. The user's explicit answer was:
@@ -1844,7 +1844,7 @@ explicit comments, preserved verbatim:
 
 For Q25, the user rejected the original pane-selection alternatives:
 
-> No the selection must be done based on what is noted in the pause session handoff, which means you MUST evolve pause instruction to add additional information in the handoff note for Q25 to never be asked ever again: update the docs to achive this
+> No the selection must be done based on what is noted in the pause session handoff, which means you MUST evolve pause instruction to add additional information in the handoff note for Q25 to never be asked ever again: update the docs to achieve this
 
 Q26 was explained with native prefixes and trailing context included in
 Option A. The user's explicit answer was:
@@ -2376,7 +2376,7 @@ explicit comments, preserved verbatim:
 
 For Q25, the user rejected the original pane-selection alternatives:
 
-> No the selection must be done based on what is noted in the pause session handoff, which means you MUST evolve pause instruction to add additional information in the handoff note for Q25 to never be asked ever again: update the docs to achive this
+> No the selection must be done based on what is noted in the pause session handoff, which means you MUST evolve pause instruction to add additional information in the handoff note for Q25 to never be asked ever again: update the docs to achieve this
 
 Q26 was explained with native prefixes and trailing context included in
 Option A. The user's explicit answer was:
@@ -2526,7 +2526,7 @@ explicit comments, preserved verbatim:
 
 For Q25, the user rejected the original pane-selection alternatives:
 
-> No the selection must be done based on what is noted in the pause session handoff, which means you MUST evolve pause instruction to add additional information in the handoff note for Q25 to never be asked ever again: update the docs to achive this
+> No the selection must be done based on what is noted in the pause session handoff, which means you MUST evolve pause instruction to add additional information in the handoff note for Q25 to never be asked ever again: update the docs to achieve this
 
 Q26 was explained with native prefixes and trailing context included in
 Option A. The user's explicit answer was:
@@ -2778,7 +2778,7 @@ explicit comments, preserved verbatim:
 
 For Q25, the user rejected the original pane-selection alternatives:
 
-> No the selection must be done based on what is noted in the pause session handoff, which means you MUST evolve pause instruction to add additional information in the handoff note for Q25 to never be asked ever again: update the docs to achive this
+> No the selection must be done based on what is noted in the pause session handoff, which means you MUST evolve pause instruction to add additional information in the handoff note for Q25 to never be asked ever again: update the docs to achieve this
 
 Q26 was explained with native prefixes and trailing context included in
 Option A. The user's explicit answer was:
@@ -2855,7 +2855,7 @@ explicit comments, preserved verbatim:
 
 For Q25, the user rejected the original pane-selection alternatives:
 
-> No the selection must be done based on what is noted in the pause session handoff, which means you MUST evolve pause instruction to add additional information in the handoff note for Q25 to never be asked ever again: update the docs to achive this
+> No the selection must be done based on what is noted in the pause session handoff, which means you MUST evolve pause instruction to add additional information in the handoff note for Q25 to never be asked ever again: update the docs to achieve this
 
 Q26 was explained with native prefixes and trailing context included in
 Option A. The user's explicit answer was:
@@ -2968,7 +2968,7 @@ explicit comments, preserved verbatim:
 
 For Q25, the user rejected the original pane-selection alternatives:
 
-> No the selection must be done based on what is noted in the pause session handoff, which means you MUST evolve pause instruction to add additional information in the handoff note for Q25 to never be asked ever again: update the docs to achive this
+> No the selection must be done based on what is noted in the pause session handoff, which means you MUST evolve pause instruction to add additional information in the handoff note for Q25 to never be asked ever again: update the docs to achieve this
 
 Q26 was explained with native prefixes and trailing context included in
 Option A. The user's explicit answer was:
@@ -3299,7 +3299,7 @@ explicit comments, preserved verbatim:
 
 For Q25, the user rejected the original pane-selection alternatives:
 
-> No the selection must be done based on what is noted in the pause session handoff, which means you MUST evolve pause instruction to add additional information in the handoff note for Q25 to never be asked ever again: update the docs to achive this
+> No the selection must be done based on what is noted in the pause session handoff, which means you MUST evolve pause instruction to add additional information in the handoff note for Q25 to never be asked ever again: update the docs to achieve this
 
 Q26 was explained with native prefixes and trailing context included in
 Option A. The user's explicit answer was:
@@ -3439,7 +3439,7 @@ explicit comments, preserved verbatim:
 
 For Q25, the user rejected the original pane-selection alternatives:
 
-> No the selection must be done based on what is noted in the pause session handoff, which means you MUST evolve pause instruction to add additional information in the handoff note for Q25 to never be asked ever again: update the docs to achive this
+> No the selection must be done based on what is noted in the pause session handoff, which means you MUST evolve pause instruction to add additional information in the handoff note for Q25 to never be asked ever again: update the docs to achieve this
 
 Q26 was explained with native prefixes and trailing context included in
 Option A. The user's explicit answer was:
@@ -3608,7 +3608,7 @@ explicit comments, preserved verbatim:
 
 For Q25, the user rejected the original pane-selection alternatives:
 
-> No the selection must be done based on what is noted in the pause session handoff, which means you MUST evolve pause instruction to add additional information in the handoff note for Q25 to never be asked ever again: update the docs to achive this
+> No the selection must be done based on what is noted in the pause session handoff, which means you MUST evolve pause instruction to add additional information in the handoff note for Q25 to never be asked ever again: update the docs to achieve this
 
 Q26 was explained with native prefixes and trailing context included in
 Option A. The user's explicit answer was:
