@@ -1,4 +1,9 @@
-"""Generate isolated real-xdist projects with an observed valid peer barrier."""
+"""Generate observed worker barriers and real Windows caller transfer probes.
+
+Shell probes share one batch body for both caller expansion modes; the driver
+supplies values through the environment so command parsing cannot alter the
+input before the preparation launcher receives it.
+"""
 
 from __future__ import annotations
 
@@ -70,6 +75,22 @@ def write_project(root: Path, scenario: str) -> None:
     )
     (root / "conftest.py").write_text(_CONFTEST.format(scenario=scenario), encoding="utf-8")
     (root / "test_peer.py").write_text(_TEST, encoding="utf-8")
+
+
+def windows_caller() -> str:
+    """Capture caller state and launcher verdict without expanding input data.
+
+    The external driver binds absolute probe/launcher paths through environment
+    variables. Python captures both snapshots, including the preparation exit
+    code, and cmd's /v switch chooses the caller's expansion mode.
+    """
+    return """@echo off
+python "%PROBE_DUMPER%" before
+call "%PROBE_LAUNCHER%"
+set "PROBE_EXIT=%errorlevel%"
+python "%PROBE_DUMPER%" after
+exit /b %PROBE_EXIT%
+"""
 
 
 # eof

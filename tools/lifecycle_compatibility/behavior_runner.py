@@ -3,6 +3,8 @@
 The dependency-free variant uses -S and a temporary directory containing only
 pytest's mandatory packages. Neither xdist nor pytest-cov is on that child's
 import path; this is actual import isolation rather than a fake module.
+Every child also imports its own tools/tests packages to prove collision safety.
+Scenario construction owns those packages; this adapter owns child execution.
 """
 
 from __future__ import annotations
@@ -16,6 +18,7 @@ import sys
 from pathlib import Path
 
 from tools.lifecycle_compatibility import behavior_scenarios, runner
+from tools.pytest_plugin_environment import prepare_environment
 
 
 def mandatory_packages(destination: Path) -> None:
@@ -40,10 +43,11 @@ def run_case(evidence: Path, case: behavior_scenarios.Case) -> dict[str, object]
     (root / "pytest.ini").write_text("[pytest]\nmarkers =\n    process_allowed(reason): permission\n" + case.ini, encoding="utf-8")
     (root / "test_behavior.py").write_text(case.source, encoding="utf-8")
     (root / "conftest.py").write_text(case.conftest, encoding="utf-8")
+    behavior_scenarios.write_consumer_packages(root)
     environment = runner.isolated_environment()
-    if case.prepared:
-        environment.update(LLM_SHARED_PYTEST_PLUGINS=case.prepared, LLM_SHARED_PYTEST_ROOT=str(root),
-                           LLM_SHARED_PYTEST_POLICY_DIR=environment["PYTHONPATH"])
+    if case.prepared is not None:
+        environment["LLM_SHARED_PYTEST_PLUGINS"] = case.prepared
+        environment = prepare_environment(root, Path(__file__).resolve().parents[2], environment)
     command = [sys.executable]
     if case.optional_absent:
         vendor = evidence / "mandatory"
