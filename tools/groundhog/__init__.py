@@ -35,6 +35,9 @@ value records exact resolutions for future run and review consumers.
 Step 4 adds ``scope`` for explicit and environment selection and ``group_coverage``
 for isolated source evidence. Walks share one inventory, carry scope in reports
 and detached captures, and judge group durations without writing shared settings.
+
+Step 5 adds ``pytest_environment`` to validate shell binding and combine shared
+activation with coverage and worker overrides for every pytest child.
 """
 
 from tools.groundhog.models import (

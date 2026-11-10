@@ -4,6 +4,7 @@ Collection uses the project's ordinary pytest configuration and scope, but
 never runs fixtures or test bodies. Testmon data collection is disabled in
 the affected probe; the full probe disables testmon entirely. Neither probe
 resets the dependency map. Unavailable evidence keeps the ordinary walk.
+Step 5 prepares both children; binding and preparation errors stop the walk.
 """
 
 from __future__ import annotations
@@ -12,7 +13,7 @@ import math
 import re
 from typing import TYPE_CHECKING
 
-from tools.groundhog import runner
+from tools.groundhog import pytest_environment, runner
 
 if TYPE_CHECKING:
     from tools.groundhog.context import Deps, Invocation
@@ -36,6 +37,7 @@ def threshold(deps: Deps) -> float | None:
 
 def counts(invocation: Invocation, deps: Deps) -> tuple[int, int] | None:
     """Return affected and full selected counts, or no trustworthy estimate."""
+    pytest_environment.validate_binding(invocation.root, deps.environ)
     executable = deps.which("pytest")
     if executable is None or not deps.pytest_project(invocation.root):
         return None
@@ -68,6 +70,7 @@ def _collect(invocation: Invocation, deps: Deps, executable: str, *, affected: b
                  *options, *invocation.scope.test_files],
         cwd=invocation.root,
         popen_factory=deps.popen_factory,
+        env_overrides=pytest_environment.child_environment(invocation, deps),
     )
     code = runner.run_streaming(config, receive)
     return selected if code in (0, 5) else None

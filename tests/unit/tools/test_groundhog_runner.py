@@ -30,6 +30,8 @@ internal error, never a collection error.
 
 Step 4: verify group paths, coverage options and environment restoration on successful and raising spawns.
 
+Step 5 also covers removed variables and exact restoration of empty values.
+
 Fix: cover the bounded ``-n auto`` default (a quarter of the logical CPUs, at
 most two), the caller's ``PYTEST_XDIST_AUTO_NUM_WORKERS`` winning, and children
 started below normal priority.
@@ -447,17 +449,18 @@ def test_only_a_grouped_sequential_full_run_disables_testmon_selection() -> None
         assert "--testmon-noselect" not in command
 
 
-@pytest.mark.parametrize("previous", [None, "previous.coverage"])
+@pytest.mark.parametrize("previous", [None, "", "previous.coverage"])
+@pytest.mark.parametrize("override", [None, "group.coverage"])
 @pytest.mark.parametrize("raises", [True, False])
-def test_spawn_environment_restored(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, previous: str | None, *, raises: bool) -> None:
-    """A temporary coverage override ends immediately after either spawn outcome."""
+def test_spawn_environment_restored(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, previous: str | None, override: str | None, *, raises: bool) -> None:
+    """Overrides and removals end immediately after either spawn outcome."""
     if previous is None:
         monkeypatch.delenv("COVERAGE_FILE", raising=False)
     else:
         monkeypatch.setenv("COVERAGE_FILE", previous)
 
     def factory(_command: list[str], _cwd: Path) -> subprocess.Popen[str]:
-        assert os.environ["COVERAGE_FILE"] == "group.coverage"
+        assert os.environ.get("COVERAGE_FILE") == override
         if raises:
             message = "spawn failed"
             raise OSError(message)
@@ -466,7 +469,7 @@ def test_spawn_environment_restored(tmp_path: Path, monkeypatch: pytest.MonkeyPa
     def on_line(_line: str) -> None:
         assert os.environ.get("COVERAGE_FILE") == previous
 
-    config = runner.StreamConfig(["pytest"], tmp_path, factory, env_overrides={"COVERAGE_FILE": "group.coverage"})
+    config = runner.StreamConfig(["pytest"], tmp_path, factory, env_overrides={"COVERAGE_FILE": override})
     if raises:
         with pytest.raises(OSError, match="spawn failed"):
             runner.run_streaming(config, on_line)

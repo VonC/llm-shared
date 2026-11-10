@@ -1,4 +1,4 @@
-"""The day shortcut retains selection boundaries and truthful full proof."""
+"""The day shortcut retains selection boundaries, prepared probes and truthful proof."""
 
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ from tests.unit.tools.groundhog_acceptance_support import (
     make_deps,
     passing_transcript,
 )
+from tools import pytest_plugin_environment as env
 from tools.groundhog import cli, selection, snapshot
 from tools.groundhog.context import Deps, Invocation
 from tools.groundhog.levels import FullLevel
@@ -132,6 +133,18 @@ def test_both_probes_preserve_bound_test_files(tmp_path: Path) -> None:
     invocation = Invocation("day", (), no_cov=False, mode=Mode.LLM, root=tmp_path, scope=scope)
     assert selection.counts(invocation, make_deps(spawns)) == (1, 2)
     assert all(tuple(command[-2:]) == scope.test_files for command in spawns.commands)
+
+
+def test_missing_tooling_cannot_hide_foreign_binding(tmp_path: Path) -> None:
+    """Binding validation precedes the collection availability fallback."""
+    spawns = QueueSpawns([])
+    def missing(_name: str) -> None:
+        return None
+
+    deps = replace(make_deps(spawns, {env.ROOT: str(tmp_path / "other")}), which=missing)
+    with pytest.raises(env.PreparationError):
+        selection.counts(Invocation("day", (), no_cov=True, mode=Mode.LLM, root=tmp_path), deps)
+    assert spawns.commands == []
 
 
 # eof

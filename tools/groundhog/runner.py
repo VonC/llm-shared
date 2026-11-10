@@ -2,6 +2,7 @@
 
 Step 4 narrows group collection and applies coverage environment overrides
 only while spawning, restoring even an absent variable after a factory error.
+Step 5 also removes prepared activation variables and restores empty values.
 
 groundhog runs from the llm-shared venv and spawns pytest (or check.bat) as
 a child process of the project environment prepared by senv.bat, reading
@@ -127,7 +128,7 @@ class StreamConfig:
     command: list[str]
     cwd: Path
     popen_factory: Callable[[list[str], Path], subprocess.Popen[str]]
-    env_overrides: Mapping[str, str] = field(default_factory=dict[str, str])
+    env_overrides: Mapping[str, str | None] = field(default_factory=dict[str, str | None])
 
 
 def default_popen_factory(command: list[str], cwd: Path) -> subprocess.Popen[str]:
@@ -351,7 +352,11 @@ def run_streaming(config: StreamConfig, on_line: Callable[[str], None]) -> int:
     """
     previous = {name: os.environ.get(name) for name in config.env_overrides}
     try:
-        os.environ.update(config.env_overrides)
+        for name, value in config.env_overrides.items():
+            if value is None:
+                os.environ.pop(name, None)
+            else:
+                os.environ[name] = value
         process = config.popen_factory(config.command, config.cwd)
     finally:
         for name, value in previous.items():
