@@ -11,11 +11,16 @@ Step 4 adds the transition's fixed clock and process id, a project builder,
 the restoration fixture registry that Steps 5 to 7 extend with their
 adapters' files (plan decision Q01), managed replacement and removal that
 record calls and fail the chosen ones, a recording view factory and evidence
-declarations. Nothing here starts a process or interprets a version.
+declarations. Step 5 adds component roots to the settings, `pyproject.toml`
+and `uv.lock` builders for virtual and editable roots, their restoration
+fixture sets and `python_pair_edit`, the adapter's planned edit of one pair
+that the lock evidence recorder and its test share. Nothing here starts a
+process or interprets a version.
 """
 
 from __future__ import annotations
 
+import os
 import re
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
@@ -25,15 +30,21 @@ from tools.release_workflow.artifacts import resolve_artifacts
 from tools.release_workflow.configuration import load_configuration
 from tools.release_workflow.managed_files import ManagedWriteError, replace_bytes
 from tools.release_workflow.paths import ProjectIdentity
+from tools.release_workflow.sources import python
+from tools.release_workflow.sources.detection import plan_edits
 from tools.release_workflow.sources.model import (
+    Claim,
     Detection,
+    FileCapture,
     FileView,
     Form,
+    Inventory,
     LocatedSource,
     PatternDeclaration,
     Span,
     VersionInputs,
     VersionToken,
+    participant_names,
 )
 from tools.release_workflow.version_evidence import remove_managed
 from tools.release_workflow.version_transition import TransitionPorts
@@ -55,14 +66,23 @@ TRANSITION_PID = 4242
 EVIDENCE_NAME = "a.version-transition.20261109T120000+0100-4242"
 TARGET = VersionToken.parse("0.14.0")
 PATTERN_INI = f"[source:cicd-env]\nfile = cicd/config/.env\npattern = {UMBRELLA_PATTERN}\nform = snapshot\n"
+DEMO = "demo-app"
+REGISTRY_PACKAGE = '[[package]]\nname = "colorama"\nversion = "0.4.6"\nsource = { registry = "https://pypi.org/simple" }\n\n'
+_EDITABLE_BUILD = '[build-system]\nrequires = ["hatchling"]\nbuild-backend = "hatchling.build"\n\n'
+_VIRTUAL_TOOL = "\n[tool.uv]\npackage = false\n"
 
 
 @dataclass(frozen=True)
 class RootSettings:
-    """Adapter settings naming the project root and its declared pattern sources."""
+    """Adapter settings naming the project root, its declared pattern sources and component roots."""
 
     project_root: Path
     patterns: tuple[PatternDeclaration, ...] = ()
+    components: Mapping[str, Path] = field(default_factory=dict[str, "Path"])
+
+    def participant(self, path: Path) -> str | None:
+        """Name the participating root a physical path is, or return `None`."""
+        return participant_names(self.project_root, self.components).get(os.path.normcase(str(path)))
 
 
 def version_txt(first_line: str = "0.14.0", notes: str = "", *, newline: str = "\n", bom: bool = False) -> bytes:
@@ -87,6 +107,41 @@ def load_counts(view: FileView, *paths: Path) -> tuple[int, ...]:
 def lines_file(lines: Sequence[str], *, newline: str = "\n", bom: bool = False) -> bytes:
     """Build a line-oriented file such as `.env`, each line ended by `newline`."""
     return (BOM if bom else b"") + "".join(line + newline for line in lines).encode("utf-8")
+
+
+def pyproject_toml(version: str = "0.13.0", *, layout: str = "virtual", name: str = DEMO, extra: str = "", newline: str = "\n") -> bytes:
+    """Build a uv project manifest for a virtual or editable root; `extra` (LF) is appended."""
+    head = _EDITABLE_BUILD if layout == "editable" else ""
+    tail = _VIRTUAL_TOOL if layout == "virtual" else ""
+    text = f'{head}[project]\nname = "{name}"\nversion = "{version}"\nrequires-python = ">=3.13"\ndependencies = []\n{tail}{extra}'
+    return text.replace("\n", newline).encode("utf-8")
+
+
+def uv_lock(version: str = "0.13.0", *, layout: str = "virtual", name: str = DEMO, revision: int = 5, packages: str = "") -> bytes:
+    """Build an LF `uv.lock` whose root package follows `packages`, earlier `[[package]]` blocks."""
+    text = (f'version = 1\nrevision = {revision}\nrequires-python = ">=3.13"\n\n{packages}'
+            f'[[package]]\nname = "{name}"\nversion = "{version}"\nsource = {{ {layout} = "." }}\n')
+    return text.encode("utf-8")
+
+
+def crlf(content: bytes) -> bytes:
+    """Convert LF line endings to CRLF."""
+    return content.replace(b"\n", b"\r\n")
+
+
+def python_pair_edit(root: Path, target: VersionToken) -> dict[str, bytes]:
+    """Return, by file name, the new contents the python adapter's planned edit gives the pair at a root.
+
+    The pair is detected and planned exactly as `versions set` plans it, in
+    memory: no file is written. The lock evidence recorder applies it to the
+    "before" pair, and the evidence test compares it with the recorded pair.
+    """
+    view = FileView()
+    found = python.ADAPTER.detect(root, view, RootSettings(root))
+    captures = tuple(FileCapture.of(path, view.read(path)) for path in dict.fromkeys(source.path for source in found.sources))
+    claims = tuple(Claim(source.path, source.field, source.adapter, source.spans) for source in found.sources)
+    edits = plan_edits(Inventory(found.sources, found.visible, claims, captures), target, adapters=(python.ADAPTER,))
+    return {edit.capture.path.name: edit.new for edit in edits}
 
 
 def write_file(root: Path, relative: str, content: bytes) -> Path:
@@ -183,8 +238,9 @@ class RestorationFixture:
     writes: int = 1
 
 
-# The restoration contract registry: Steps 5, 6 and 7 add their adapters' sets,
-# and Step 7 the combined five-file project (plan decision Q01).
+# The restoration contract registry: Step 5 adds the Python virtual and editable
+# sets, Steps 6 and 7 add their adapters' sets, and Step 7 the combined
+# five-file project (plan decision Q01).
 RESTORATION_FIXTURES: dict[str, RestorationFixture] = {
     "anchor": RestorationFixture({"version.txt": version_txt("0.13.0 -- Old", "Notes\n", newline="\r\n", bom=True)}),
     "pattern": RestorationFixture({
@@ -196,6 +252,16 @@ RESTORATION_FIXTURES: dict[str, RestorationFixture] = {
         "deploy.env": lines_file(["API=0.13.0", "WEB=0.13.0"]),
     }, "[source:api]\nfile = deploy.env\npattern = ^API=(.+)$\nform = core\n"
        "[source:web]\nfile = deploy.env\npattern = ^WEB=(.+)$\nform = snapshot\n", writes=2),
+    "python-virtual": RestorationFixture({
+        "version.txt": version_txt("0.13.0"),
+        "pyproject.toml": pyproject_toml(name="Demo_App"),
+        "uv.lock": uv_lock(revision=3, packages=REGISTRY_PACKAGE),
+    }, writes=3),
+    "python-editable": RestorationFixture({
+        "version.txt": version_txt("0.13.0-SNAPSHOT", newline="\r\n"),
+        "pyproject.toml": pyproject_toml(layout="editable", newline="\r\n"),
+        "uv.lock": crlf(uv_lock(layout="editable")),
+    }, writes=3),
 }
 
 

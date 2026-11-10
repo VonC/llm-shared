@@ -1,8 +1,10 @@
 """Restoration before the completion boundary, and cleanup faults after it.
 
 Step 4 of v0.14.0 version-sources: for every fixture set of the restoration
-registry (anchor, pattern and one file with two disjoint claims; Steps 5 to 7
-add theirs), a failure at each source write restores every replaced file,
+registry (anchor, pattern and one file with two disjoint claims; Step 5 adds
+the Python virtual and editable roots with their `uv.lock`, so `pyproject.toml`
+and `uv.lock` are restored byte for byte too; Steps 6 and 7 add theirs), a
+failure at each source write restores every replaced file,
 verifies it, deletes the evidence and returns status 1. A concurrent change
 before a replacement, a failed verification and a failed completion marker
 restore too. A restoration that cannot finish returns status 3, keeps the

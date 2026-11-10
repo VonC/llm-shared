@@ -1,0 +1,431 @@
+{
+  "about": "uv lock compatibility evidence of the python adapter (v0.14.0 version-sources, Step 5), written by tests/unit/tools/release_workflow/lock_evidence_recorder.py. The 'before' pair is a pyproject.toml and its uv.lock both at before_version; the edited pair is the same files after the adapter's version-only edit to target_version; the manifest-only control edits the manifest alone. A run accepts a pair when it exits 0 and changes neither file.",
+  "format": 1,
+  "records": [
+    {
+      "before_version": "0.13.0",
+      "command": [
+        "<uv>",
+        "lock",
+        "--locked",
+        "--offline",
+        "--no-config",
+        "--python",
+        "<python>"
+      ],
+      "files": {
+        "pyproject.toml": {
+          "before": "[project]\nname = \"demo-app\"\nversion = \"0.13.0\"\nrequires-python = \">=3.13\"\ndependencies = []\n\n[tool.uv]\npackage = false\n",
+          "edited": "[project]\nname = \"demo-app\"\nversion = \"0.14.0\"\nrequires-python = \">=3.13\"\ndependencies = []\n\n[tool.uv]\npackage = false\n"
+        },
+        "uv.lock": {
+          "before": "version = 1\nrevision = 5\nrequires-python = \">=3.13\"\n\n[[package]]\nname = \"demo-app\"\nversion = \"0.13.0\"\nsource = { virtual = \".\" }\n",
+          "edited": "version = 1\nrevision = 5\nrequires-python = \">=3.13\"\n\n[[package]]\nname = \"demo-app\"\nversion = \"0.14.0\"\nsource = { virtual = \".\" }\n"
+        }
+      },
+      "generated_by": [
+        "<uv>",
+        "lock",
+        "--offline",
+        "--no-config",
+        "--python",
+        "<python>"
+      ],
+      "id": "uv-0.13.4-v1r5-virtual",
+      "layout": "virtual",
+      "line_endings": "lf",
+      "lock_schema": {
+        "revision": 5,
+        "version": 1
+      },
+      "provenance": "pyproject.toml written by the recorder; uv.lock written by <uv> lock --offline --no-config --python <python>",
+      "runs": [
+        {
+          "errors": [],
+          "exit_code": 0,
+          "pair": "before",
+          "sha256_after": {
+            "pyproject.toml": "d6b22b9d4efe451521f353efc0a7de4791b4f1706e9ee5ec97c9a50562df9efd",
+            "uv.lock": "4e5de9017959f2acb4c486ba4d5450b64ce623c35e37bbe7af0f6ec01b35b0fe"
+          },
+          "sha256_before": {
+            "pyproject.toml": "d6b22b9d4efe451521f353efc0a7de4791b4f1706e9ee5ec97c9a50562df9efd",
+            "uv.lock": "4e5de9017959f2acb4c486ba4d5450b64ce623c35e37bbe7af0f6ec01b35b0fe"
+          }
+        },
+        {
+          "errors": [],
+          "exit_code": 0,
+          "pair": "edited",
+          "sha256_after": {
+            "pyproject.toml": "7f4f4b834f7c0cd08da1f5374bae757b3bd254716d2706705b461066cec6c8f4",
+            "uv.lock": "cfa41ac70e6a334735c27a5c1e6f10681c1dbc668a1956b9810558803e3eea05"
+          },
+          "sha256_before": {
+            "pyproject.toml": "7f4f4b834f7c0cd08da1f5374bae757b3bd254716d2706705b461066cec6c8f4",
+            "uv.lock": "cfa41ac70e6a334735c27a5c1e6f10681c1dbc668a1956b9810558803e3eea05"
+          }
+        },
+        {
+          "errors": [
+            "error: The lockfile at `uv.lock` needs to be updated, but `--locked` was provided."
+          ],
+          "exit_code": 1,
+          "pair": "manifest-only",
+          "sha256_after": {
+            "pyproject.toml": "7f4f4b834f7c0cd08da1f5374bae757b3bd254716d2706705b461066cec6c8f4",
+            "uv.lock": "4e5de9017959f2acb4c486ba4d5450b64ce623c35e37bbe7af0f6ec01b35b0fe"
+          },
+          "sha256_before": {
+            "pyproject.toml": "7f4f4b834f7c0cd08da1f5374bae757b3bd254716d2706705b461066cec6c8f4",
+            "uv.lock": "4e5de9017959f2acb4c486ba4d5450b64ce623c35e37bbe7af0f6ec01b35b0fe"
+          }
+        }
+      ],
+      "target_version": "0.14.0",
+      "tool": "uv",
+      "tool_build": "uv 0.13.4 (7456b60bc 2026-10-20 x86_64-pc-windows-msvc)",
+      "tool_version": "0.13.4"
+    },
+    {
+      "before_version": "0.13.0",
+      "command": [
+        "<uv>",
+        "lock",
+        "--locked",
+        "--offline",
+        "--no-config",
+        "--python",
+        "<python>"
+      ],
+      "files": {
+        "pyproject.toml": {
+          "before": "[build-system]\nrequires = [\"hatchling\"]\nbuild-backend = \"hatchling.build\"\n\n[project]\nname = \"demo-app\"\nversion = \"0.13.0\"\nrequires-python = \">=3.13\"\ndependencies = []\n",
+          "edited": "[build-system]\nrequires = [\"hatchling\"]\nbuild-backend = \"hatchling.build\"\n\n[project]\nname = \"demo-app\"\nversion = \"0.14.0\"\nrequires-python = \">=3.13\"\ndependencies = []\n"
+        },
+        "uv.lock": {
+          "before": "version = 1\nrevision = 5\nrequires-python = \">=3.13\"\n\n[[package]]\nname = \"demo-app\"\nversion = \"0.13.0\"\nsource = { editable = \".\" }\n",
+          "edited": "version = 1\nrevision = 5\nrequires-python = \">=3.13\"\n\n[[package]]\nname = \"demo-app\"\nversion = \"0.14.0\"\nsource = { editable = \".\" }\n"
+        }
+      },
+      "generated_by": [
+        "<uv>",
+        "lock",
+        "--offline",
+        "--no-config",
+        "--python",
+        "<python>"
+      ],
+      "id": "uv-0.13.4-v1r5-editable",
+      "layout": "editable",
+      "line_endings": "lf",
+      "lock_schema": {
+        "revision": 5,
+        "version": 1
+      },
+      "provenance": "pyproject.toml written by the recorder; uv.lock written by <uv> lock --offline --no-config --python <python>",
+      "runs": [
+        {
+          "errors": [],
+          "exit_code": 0,
+          "pair": "before",
+          "sha256_after": {
+            "pyproject.toml": "53d91542af72b935f5c234a0d03555dab8d17f8ed35775daff019b6a97007c5c",
+            "uv.lock": "ad153eefe1b4ebf7cdc2a20cfafbf1fc0a2fe3d50616e4b1a9dff18f98672b68"
+          },
+          "sha256_before": {
+            "pyproject.toml": "53d91542af72b935f5c234a0d03555dab8d17f8ed35775daff019b6a97007c5c",
+            "uv.lock": "ad153eefe1b4ebf7cdc2a20cfafbf1fc0a2fe3d50616e4b1a9dff18f98672b68"
+          }
+        },
+        {
+          "errors": [],
+          "exit_code": 0,
+          "pair": "edited",
+          "sha256_after": {
+            "pyproject.toml": "684c04f73cdf9962cef714eeb2877d8f5b2826dd6e378920a3ae0c1b61c7339d",
+            "uv.lock": "d01c62f4970fa2afaee9166677e1f577d18ab42c0c143ca6efac0dd3264a24cb"
+          },
+          "sha256_before": {
+            "pyproject.toml": "684c04f73cdf9962cef714eeb2877d8f5b2826dd6e378920a3ae0c1b61c7339d",
+            "uv.lock": "d01c62f4970fa2afaee9166677e1f577d18ab42c0c143ca6efac0dd3264a24cb"
+          }
+        },
+        {
+          "errors": [
+            "error: The lockfile at `uv.lock` needs to be updated, but `--locked` was provided."
+          ],
+          "exit_code": 1,
+          "pair": "manifest-only",
+          "sha256_after": {
+            "pyproject.toml": "684c04f73cdf9962cef714eeb2877d8f5b2826dd6e378920a3ae0c1b61c7339d",
+            "uv.lock": "ad153eefe1b4ebf7cdc2a20cfafbf1fc0a2fe3d50616e4b1a9dff18f98672b68"
+          },
+          "sha256_before": {
+            "pyproject.toml": "684c04f73cdf9962cef714eeb2877d8f5b2826dd6e378920a3ae0c1b61c7339d",
+            "uv.lock": "ad153eefe1b4ebf7cdc2a20cfafbf1fc0a2fe3d50616e4b1a9dff18f98672b68"
+          }
+        }
+      ],
+      "target_version": "0.14.0",
+      "tool": "uv",
+      "tool_build": "uv 0.13.4 (7456b60bc 2026-10-20 x86_64-pc-windows-msvc)",
+      "tool_version": "0.13.4"
+    },
+    {
+      "before_version": "0.13.0",
+      "command": [
+        "<uv>",
+        "lock",
+        "--locked",
+        "--offline",
+        "--no-config",
+        "--python",
+        "<python>"
+      ],
+      "files": {
+        "pyproject.toml": {
+          "before": "[project]\nname = \"demo-app\"\nversion = \"0.13.0\"\nrequires-python = \">=3.13\"\ndependencies = []\n\n[tool.uv]\npackage = false\n",
+          "edited": "[project]\nname = \"demo-app\"\nversion = \"0.14.0\"\nrequires-python = \">=3.13\"\ndependencies = []\n\n[tool.uv]\npackage = false\n"
+        },
+        "uv.lock": {
+          "before": "version = 1\nrevision = 3\nrequires-python = \">=3.13\"\n\n[[package]]\nname = \"demo-app\"\nversion = \"0.13.0\"\nsource = { virtual = \".\" }\n",
+          "edited": "version = 1\nrevision = 3\nrequires-python = \">=3.13\"\n\n[[package]]\nname = \"demo-app\"\nversion = \"0.14.0\"\nsource = { virtual = \".\" }\n"
+        }
+      },
+      "generated_by": [
+        "<uv>",
+        "lock",
+        "--offline",
+        "--no-config",
+        "--python",
+        "<python>"
+      ],
+      "id": "uv-0.13.4-v1r3-virtual",
+      "layout": "virtual",
+      "line_endings": "lf",
+      "lock_schema": {
+        "revision": 3,
+        "version": 1
+      },
+      "provenance": "pyproject.toml written by the recorder; uv.lock written by <uv> lock --offline --no-config --python <python>; its revision line then set to 3 (plan decision Q04)",
+      "runs": [
+        {
+          "errors": [],
+          "exit_code": 0,
+          "pair": "before",
+          "sha256_after": {
+            "pyproject.toml": "d6b22b9d4efe451521f353efc0a7de4791b4f1706e9ee5ec97c9a50562df9efd",
+            "uv.lock": "d2183fd46c9e5492f7475c1ee19b9ee3ea4987fd4892bbd6128d649343e76fc2"
+          },
+          "sha256_before": {
+            "pyproject.toml": "d6b22b9d4efe451521f353efc0a7de4791b4f1706e9ee5ec97c9a50562df9efd",
+            "uv.lock": "d2183fd46c9e5492f7475c1ee19b9ee3ea4987fd4892bbd6128d649343e76fc2"
+          }
+        },
+        {
+          "errors": [],
+          "exit_code": 0,
+          "pair": "edited",
+          "sha256_after": {
+            "pyproject.toml": "7f4f4b834f7c0cd08da1f5374bae757b3bd254716d2706705b461066cec6c8f4",
+            "uv.lock": "7d1ce226ab277201b5f690da3cecb5f36de4caca3255c8bee025a557d90fbca2"
+          },
+          "sha256_before": {
+            "pyproject.toml": "7f4f4b834f7c0cd08da1f5374bae757b3bd254716d2706705b461066cec6c8f4",
+            "uv.lock": "7d1ce226ab277201b5f690da3cecb5f36de4caca3255c8bee025a557d90fbca2"
+          }
+        },
+        {
+          "errors": [
+            "error: The lockfile at `uv.lock` needs to be updated, but `--locked` was provided."
+          ],
+          "exit_code": 1,
+          "pair": "manifest-only",
+          "sha256_after": {
+            "pyproject.toml": "7f4f4b834f7c0cd08da1f5374bae757b3bd254716d2706705b461066cec6c8f4",
+            "uv.lock": "d2183fd46c9e5492f7475c1ee19b9ee3ea4987fd4892bbd6128d649343e76fc2"
+          },
+          "sha256_before": {
+            "pyproject.toml": "7f4f4b834f7c0cd08da1f5374bae757b3bd254716d2706705b461066cec6c8f4",
+            "uv.lock": "d2183fd46c9e5492f7475c1ee19b9ee3ea4987fd4892bbd6128d649343e76fc2"
+          }
+        }
+      ],
+      "target_version": "0.14.0",
+      "tool": "uv",
+      "tool_build": "uv 0.13.4 (7456b60bc 2026-10-20 x86_64-pc-windows-msvc)",
+      "tool_version": "0.13.4"
+    },
+    {
+      "before_version": "0.13.0",
+      "command": [
+        "<uv>",
+        "lock",
+        "--locked",
+        "--offline",
+        "--no-config",
+        "--python",
+        "<python>"
+      ],
+      "files": {
+        "pyproject.toml": {
+          "before": "[build-system]\nrequires = [\"hatchling\"]\nbuild-backend = \"hatchling.build\"\n\n[project]\nname = \"demo-app\"\nversion = \"0.13.0\"\nrequires-python = \">=3.13\"\ndependencies = []\n",
+          "edited": "[build-system]\nrequires = [\"hatchling\"]\nbuild-backend = \"hatchling.build\"\n\n[project]\nname = \"demo-app\"\nversion = \"0.14.0\"\nrequires-python = \">=3.13\"\ndependencies = []\n"
+        },
+        "uv.lock": {
+          "before": "version = 1\nrevision = 3\nrequires-python = \">=3.13\"\n\n[[package]]\nname = \"demo-app\"\nversion = \"0.13.0\"\nsource = { editable = \".\" }\n",
+          "edited": "version = 1\nrevision = 3\nrequires-python = \">=3.13\"\n\n[[package]]\nname = \"demo-app\"\nversion = \"0.14.0\"\nsource = { editable = \".\" }\n"
+        }
+      },
+      "generated_by": [
+        "<uv>",
+        "lock",
+        "--offline",
+        "--no-config",
+        "--python",
+        "<python>"
+      ],
+      "id": "uv-0.13.4-v1r3-editable",
+      "layout": "editable",
+      "line_endings": "lf",
+      "lock_schema": {
+        "revision": 3,
+        "version": 1
+      },
+      "provenance": "pyproject.toml written by the recorder; uv.lock written by <uv> lock --offline --no-config --python <python>; its revision line then set to 3 (plan decision Q04)",
+      "runs": [
+        {
+          "errors": [],
+          "exit_code": 0,
+          "pair": "before",
+          "sha256_after": {
+            "pyproject.toml": "53d91542af72b935f5c234a0d03555dab8d17f8ed35775daff019b6a97007c5c",
+            "uv.lock": "f5ed1d1ddad3a115d395bf7d45cf0698075d46ac459bbb45e2ffd754dc312f37"
+          },
+          "sha256_before": {
+            "pyproject.toml": "53d91542af72b935f5c234a0d03555dab8d17f8ed35775daff019b6a97007c5c",
+            "uv.lock": "f5ed1d1ddad3a115d395bf7d45cf0698075d46ac459bbb45e2ffd754dc312f37"
+          }
+        },
+        {
+          "errors": [],
+          "exit_code": 0,
+          "pair": "edited",
+          "sha256_after": {
+            "pyproject.toml": "684c04f73cdf9962cef714eeb2877d8f5b2826dd6e378920a3ae0c1b61c7339d",
+            "uv.lock": "923c3290c6965fa633ed2d676ad0343e65bcb5f2f05020f21417afaddb04d7c5"
+          },
+          "sha256_before": {
+            "pyproject.toml": "684c04f73cdf9962cef714eeb2877d8f5b2826dd6e378920a3ae0c1b61c7339d",
+            "uv.lock": "923c3290c6965fa633ed2d676ad0343e65bcb5f2f05020f21417afaddb04d7c5"
+          }
+        },
+        {
+          "errors": [
+            "error: The lockfile at `uv.lock` needs to be updated, but `--locked` was provided."
+          ],
+          "exit_code": 1,
+          "pair": "manifest-only",
+          "sha256_after": {
+            "pyproject.toml": "684c04f73cdf9962cef714eeb2877d8f5b2826dd6e378920a3ae0c1b61c7339d",
+            "uv.lock": "f5ed1d1ddad3a115d395bf7d45cf0698075d46ac459bbb45e2ffd754dc312f37"
+          },
+          "sha256_before": {
+            "pyproject.toml": "684c04f73cdf9962cef714eeb2877d8f5b2826dd6e378920a3ae0c1b61c7339d",
+            "uv.lock": "f5ed1d1ddad3a115d395bf7d45cf0698075d46ac459bbb45e2ffd754dc312f37"
+          }
+        }
+      ],
+      "target_version": "0.14.0",
+      "tool": "uv",
+      "tool_build": "uv 0.13.4 (7456b60bc 2026-10-20 x86_64-pc-windows-msvc)",
+      "tool_version": "0.13.4"
+    },
+    {
+      "before_version": "0.13.0",
+      "command": [
+        "<uv>",
+        "lock",
+        "--locked",
+        "--offline",
+        "--no-config",
+        "--python",
+        "<python>"
+      ],
+      "files": {
+        "pyproject.toml": {
+          "before": "[project]\r\nname = \"demo-app\"\r\nversion = \"0.13.0\"\r\nrequires-python = \">=3.13\"\r\ndependencies = []\r\n\r\n[tool.uv]\r\npackage = false\r\n",
+          "edited": "[project]\r\nname = \"demo-app\"\r\nversion = \"0.14.0\"\r\nrequires-python = \">=3.13\"\r\ndependencies = []\r\n\r\n[tool.uv]\r\npackage = false\r\n"
+        },
+        "uv.lock": {
+          "before": "version = 1\r\nrevision = 3\r\nrequires-python = \">=3.13\"\r\n\r\n[[package]]\r\nname = \"demo-app\"\r\nversion = \"0.13.0\"\r\nsource = { virtual = \".\" }\r\n",
+          "edited": "version = 1\r\nrevision = 3\r\nrequires-python = \">=3.13\"\r\n\r\n[[package]]\r\nname = \"demo-app\"\r\nversion = \"0.14.0\"\r\nsource = { virtual = \".\" }\r\n"
+        }
+      },
+      "generated_by": [
+        "<uv>",
+        "lock",
+        "--offline",
+        "--no-config",
+        "--python",
+        "<python>"
+      ],
+      "id": "uv-0.13.4-v1r3-virtual-crlf",
+      "layout": "virtual",
+      "line_endings": "crlf",
+      "lock_schema": {
+        "revision": 3,
+        "version": 1
+      },
+      "provenance": "pyproject.toml written by the recorder; uv.lock written by <uv> lock --offline --no-config --python <python>; its revision line then set to 3 (plan decision Q04); both files then converted from LF to CRLF",
+      "runs": [
+        {
+          "errors": [],
+          "exit_code": 0,
+          "pair": "before",
+          "sha256_after": {
+            "pyproject.toml": "0b2d8ffea5b37396d67a5f821b0cc37dcafa2700a7d897394dbbdb6eb11b5f35",
+            "uv.lock": "31d6b63a5cb9e495d165cdd82bbb9bb96d7cd0bb2751d0c76835ffe1f6b7e1de"
+          },
+          "sha256_before": {
+            "pyproject.toml": "0b2d8ffea5b37396d67a5f821b0cc37dcafa2700a7d897394dbbdb6eb11b5f35",
+            "uv.lock": "31d6b63a5cb9e495d165cdd82bbb9bb96d7cd0bb2751d0c76835ffe1f6b7e1de"
+          }
+        },
+        {
+          "errors": [],
+          "exit_code": 0,
+          "pair": "edited",
+          "sha256_after": {
+            "pyproject.toml": "e39c6fe8568e34dba836d93c334271ee7ec68141b8605780bb1810ad28546a2b",
+            "uv.lock": "3042cc7e3467bfff8cfa7b26f975f9bb2776cbed7c1d21bd72cc8d13e03fba4e"
+          },
+          "sha256_before": {
+            "pyproject.toml": "e39c6fe8568e34dba836d93c334271ee7ec68141b8605780bb1810ad28546a2b",
+            "uv.lock": "3042cc7e3467bfff8cfa7b26f975f9bb2776cbed7c1d21bd72cc8d13e03fba4e"
+          }
+        },
+        {
+          "errors": [
+            "error: The lockfile at `uv.lock` needs to be updated, but `--locked` was provided."
+          ],
+          "exit_code": 1,
+          "pair": "manifest-only",
+          "sha256_after": {
+            "pyproject.toml": "e39c6fe8568e34dba836d93c334271ee7ec68141b8605780bb1810ad28546a2b",
+            "uv.lock": "31d6b63a5cb9e495d165cdd82bbb9bb96d7cd0bb2751d0c76835ffe1f6b7e1de"
+          },
+          "sha256_before": {
+            "pyproject.toml": "e39c6fe8568e34dba836d93c334271ee7ec68141b8605780bb1810ad28546a2b",
+            "uv.lock": "31d6b63a5cb9e495d165cdd82bbb9bb96d7cd0bb2751d0c76835ffe1f6b7e1de"
+          }
+        }
+      ],
+      "target_version": "0.14.0",
+      "tool": "uv",
+      "tool_build": "uv 0.13.4 (7456b60bc 2026-10-20 x86_64-pc-windows-msvc)",
+      "tool_version": "0.13.4"
+    }
+  ]
+}

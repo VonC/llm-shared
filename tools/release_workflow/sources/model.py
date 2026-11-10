@@ -14,6 +14,12 @@ through `AdapterSettings`: the pattern adapter reads them through the same
 `detect` signature as every adapter, which a narrower settings type would
 break for the registered tuple.
 
+Step 5 adds the declared component roots and a `participant` lookup to
+`AdapterSettings`, with `participant_names`, the index behind it: the python
+adapter matches uv workspace members against the component roots, and finds
+the participating root a local link reaches in one lookup, so detection stays
+linear in the roots.
+
 This module imports only the standard library at run time; foundation types
 are imported for type checking only.
 """
@@ -21,13 +27,14 @@ are imported for type checking only.
 from __future__ import annotations
 
 import hashlib
+import os
 import re
 from dataclasses import dataclass
 from enum import StrEnum
 from typing import TYPE_CHECKING, Literal, Protocol
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Sequence
+    from collections.abc import Iterable, Mapping, Sequence
     from pathlib import Path
 
     from tools.release_workflow.artifacts import ArtifactDeclaration
@@ -243,6 +250,15 @@ class AdapterSettings(Protocol):
         """Return the declared pattern sources, in declaration order."""
         ...
 
+    @property
+    def components(self) -> Mapping[str, Path]:
+        """Return the declared component roots by component id, each a physical directory."""
+        ...
+
+    def participant(self, path: Path) -> str | None:
+        """Name the participating root a physical path is, or return `None`, in one lookup."""
+        ...
+
 
 class Adapter(Protocol):
     """A version source format: detection over one root and rendering of one value."""
@@ -278,6 +294,17 @@ class Adapter(Protocol):
     def has_project_version(self, name: str, content: bytes) -> bool:
         """Tell whether a candidate file declares its own project version."""
         ...
+
+
+def participant_names(project_root: Path, components: Mapping[str, Path]) -> dict[str, str]:
+    """Index the participating roots by physical path, compared by the filesystem's case rules.
+
+    Built once per settings value, the index answers each `participant` lookup
+    in constant time.
+    """
+    names = {os.path.normcase(str(project_root)): "the project root"}
+    names.update({os.path.normcase(str(root)): f"[component:{component}]" for component, root in components.items()})
+    return names
 
 
 def compose(original: bytes, edits: Iterable[tuple[Span, bytes]]) -> bytes:

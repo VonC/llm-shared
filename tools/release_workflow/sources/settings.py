@@ -11,7 +11,9 @@ twice. Item 1's loader has already rejected unknown sections and keys and
 authorized every managed path. The validator reads no file, so detection
 checks that declared files and directories exist. The project root is the
 directory of the `.release.ini` the loader read: it is the only root the
-validator's mappings carry, and `read_settings` uses the same one.
+validator's mappings carry, and `read_settings` uses the same one. Step 5
+adds `VersionSettings.participant`, backed by an index of the participating
+roots built once per settings value.
 """
 
 from __future__ import annotations
@@ -19,6 +21,7 @@ from __future__ import annotations
 import os
 import re
 from dataclasses import dataclass, field
+from functools import cached_property
 from types import MappingProxyType
 from typing import TYPE_CHECKING, cast
 
@@ -27,6 +30,7 @@ from tools.release_workflow.sources.model import (
     Form,
     PatternDeclaration,
     SourceError,
+    participant_names,
 )
 
 if TYPE_CHECKING:
@@ -53,12 +57,26 @@ class SettingsError(ValueError):
 
 @dataclass(frozen=True)
 class VersionSettings:
-    """The validated version domain: form overrides, pattern sources and component roots."""
+    """The validated version domain: form overrides, pattern sources and component roots.
+
+    Step 5 adds `participant`: the participating roots are indexed once per
+    settings value, so the python adapter names a local link's destination in
+    one lookup.
+    """
 
     project_root: Path
     forms: Mapping[str, Form]
     patterns: tuple[PatternDeclaration, ...]
     components: Mapping[str, Path]
+
+    @cached_property
+    def _participants(self) -> dict[str, str]:
+        """Index the project root and the component roots once."""
+        return participant_names(self.project_root, self.components)
+
+    def participant(self, path: Path) -> str | None:
+        """Name the participating root a physical path is, or return `None`."""
+        return self._participants.get(os.path.normcase(str(path)))
 
 
 @dataclass
