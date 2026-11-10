@@ -3,6 +3,7 @@
 Fix (v0.13.0 full_suite_levels, Step 4): Walk one scope with shared inventory, isolated proof and level-shaped steps.
 
 Step 5 treats collection preparation errors as setup failures without proof.
+Step 6 requires fresh checkout-owned executable compatibility before proof reuse.
 
 Split out of ``commands.py`` so that module stays under the repo line budget
 (Q22): the walk orchestration and its per-step timestamp headers live here,
@@ -20,8 +21,8 @@ Fix (v0.13.0 full_suite_levels, Step 2): the walk runs by level, with saved
 proof. It first reads the whole-suite proof marker
 (``snapshot.effective_proof``) and asks ``proof.decide``:
 
-- a noop when the valid saved proof meets the requested level: nothing runs,
-  not even check.bat, and the noop line names both levels;
+- a noop when the valid saved proof meets the requested level: check.bat and
+  tests are reused after fresh preflight, and the noop line names both levels;
 - an upgrade when the saved proof is below it: check.bat and the affected
   step are reused (their headers say so), and only the full step runs;
 - otherwise the whole chain: check.bat, the affected tests, then, above the
@@ -54,6 +55,7 @@ from typing import TYPE_CHECKING, Final
 
 from tools.groundhog import (
     commands,
+    compatibility_preflight,
     evidence,
     progress,
     pytest_environment,
@@ -183,6 +185,11 @@ def walk(invocation: Invocation, deps: Deps) -> RunOutcome:
         The walk outcome: the exit code of the first non-green step, or of
         the last step; the evidence of the closing and done lines.
     """
+    try:
+        compatibility_preflight.run(invocation.root, deps)
+    except (OSError, ValueError) as error:
+        commands.emit_summary([f"ghog: run setup failed: {error}"])
+        return replace(_close(invocation, EXIT_SETUP_ERROR, evidence.for_invocation(invocation), None), judged=False)
     level = effective_level(invocation.level, runner.SUB_DAY)
     if invocation.inventory is None:
         invocation = replace(invocation, inventory=tuple(snapshot.source_files(invocation.root)))

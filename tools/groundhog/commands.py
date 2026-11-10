@@ -50,6 +50,7 @@ failing next step from the verdict too, not only from the parsed count.
 
 Step 5 prepares shared pytest activation through the child environment adapter.
 Startup usage errors retain pytest's identifying output in the report.
+Step 6 runs checkout-owned compatibility once before a direct full test stage.
 """
 
 from __future__ import annotations
@@ -61,6 +62,7 @@ from typing import TYPE_CHECKING
 
 from tools.groundhog import (
     baseline,
+    compatibility_preflight,
     durations_report,
     durations_summary,
     evidence,
@@ -196,7 +198,9 @@ def run_tests_outcome(invocation: Invocation, deps: Deps) -> RunOutcome:
     """
     try:
         pytest_environment.validate_binding(invocation.root, deps.environ)
-    except ValueError as error:
+        if invocation.sub == runner.SUB_FULL and not invocation.in_walk:
+            compatibility_preflight.run(invocation.root, deps)
+    except (OSError, ValueError) as error:
         return _exit_before_pytest(invocation, [f"ghog: run setup failed: {error}"], EXIT_SETUP_ERROR)
     if not deps.pytest_project(invocation.root):
         return _exit_before_pytest(

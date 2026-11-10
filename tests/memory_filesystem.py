@@ -5,7 +5,7 @@ runner reports keep their normal filesystem. The router is installed in a
 measured fixture, and production pathlib, parsing and publication code run
 unchanged. No real directories, processes or waits implement scenarios.
 Preparation cache publication, shell-transfer scratch, compatibility evidence
-and groundhog activation, CLI, selection and artifact-contract scenarios use
+and groundhog activation, compatibility preflight, CLI, selection and artifact-contract scenarios use
 this same route.
 """
 
@@ -67,6 +67,7 @@ _SCENARIOS = (
     "tests/unit/tools/test_groundhog_snapshot",
     "tests/unit/tools/test_groundhog_commands.py",
     "tests/unit/tools/test_groundhog_cli.py",
+    "tests/unit/tools/test_compatibility_preflight/",
     "tests/unit/tools/test_groundhog_selection.py",
     "tests/unit/tools/test_isolate_logos.py",
     "tests/unit/tools/sensitive_history/test_install_hooks.py",
