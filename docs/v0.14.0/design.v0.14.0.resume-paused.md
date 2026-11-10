@@ -113,6 +113,13 @@ journal supplies additional duplicate evidence, never prompt authority.
 Proven older screen evidence is ignored; uncertain attribution prevents input
 and fails classification. Report resumer identity/time only when known.
 
+Review observation uses a pure validated snapshot boundary over the existing
+artifact parsers (Q09=A). It exposes the exact exchange classification and
+non-secret claim evidence without preparing an artifact home, migrating state,
+claiming a role or returning a capability. Both the bulk observer and the
+receiving validator use this boundary; parsing a general status launcher's
+output is not the selected interface.
+
 ## Saved routing and role resolution for resume-paused
 
 The routing model separates historical author, pausing pane and saved role
@@ -355,7 +362,16 @@ the additional pre-claim check covers the digest, routing and receiving pane.
 For Codex, confirmed Q15=A defines what later calls re-prove after the initial
 displayed prefix is no longer visible. The receiver passes the session
 identity and launch id from the first call; a missing or wrong value stops
-before the write. Later calls keep Q11's and Q13's pane and input proof.
+before the write. Each later call proves the same uniquely matched file, its
+latest complete typed command still unchanged, the checkout, live pane UUID,
+host and TUIOS session, and recomputes the bindings and exchange snapshot.
+Changed evidence, new typed input or ambiguity stops before the write. The
+carried values contain no capability or conversation content; they retain the
+initial Q14 tie without replacing Q11's and Q13's current pane and input proof.
+
+If a binding or selection changes between consumption and claim, stop without
+claiming another exchange. Retain any truthful completed consumption receipt
+rather than undoing it or claiming that ownership was restored (Q11=A).
 
 ## Duplicate protection and safe input eligibility
 
@@ -454,6 +470,8 @@ complete typed-input proof. A prefix or `Working` alone is insufficient.
 An `ok` result or idle status alone is insufficient. Bound the delivery and
 acceptance observation by 100 seconds per action, including any recovery;
 the transport's stall bound remains 60 seconds.
+These and the separate 120-second post-acceptance bound are fixed documented
+defaults, without human CLI timeout overrides (Q05=A). Tests inject clocks.
 The call may exhaust the full 100-second action budget. Recovery runs only
 within the remaining budget; when none remains, report unconfirmed delivery
 without a recovery Enter. No second 100-second window is created.
@@ -550,16 +568,33 @@ reviewer, and other saved roles resume only their selected agent.
 
 Before activation, apply the leave-alone check. Leave a reviewer already
 serving the exact exchange untouched when current pane and protocol evidence
-agree. Confirmed Q16=A proves a global reviewer wait, which is not bound to
-one exchange, from the pane's complete-input channel and current host waiting
-evidence, and leaves a proved waiting reviewer alone. Q17 defines the evidence
-that no wait is running; only then deliver the target host's marked
-`review-resume as reviewer` for the exact selection, preserving its conversation
-and normal claim workflow. Any other case is incomplete evidence: send no
-input and report the reviewer pending with the reason. A shell is never a
-counterpart. A background-shell indicator alone is not reviewer proof.
-Confirmed Q17=A permits activation when current host evidence proves no wait
-is running; missing or ambiguous evidence still permits no input.
+agree. A global reviewer wait is not bound to one exchange and leaves no
+durable waiter record. Prove that wait using the pane's complete-input channel
+and current host waiting evidence (Q16=A): the latest typed input must be a
+reviewer `review-resume` in this checkout, with no later typed input. For
+Claude, require a background watcher started after that input and still
+running in the same session, including one restarted after an answer. For
+Codex, an active turn is already protected by the busy-pane skip. Leave a
+proved waiting reviewer alone. The Claude profile must validate which
+transcript fields prove a currently running background task; a background-shell
+indicator alone is insufficient. A shell is never a counterpart.
+
+Activation requires positive proof that the host's waiting mechanism is
+absent (Q17=A). For Claude, the transcript tied to the pane's session id must
+prove no background task remains running in that session under a validated
+profile, including after a host restart. For Codex, require a fresh supported
+capture proving an idle pane with empty input and no active turn. Only then
+deliver the target host's marked `review-resume as reviewer` after current
+exact requestor takeover proof, all normal eligibility checks and the
+later-continuation rules, preserving the conversation and normal claim
+workflow. Never resend an uncertain prior reviewer delivery.
+
+An idle Claude pane whose validated evidence proves its watcher has stopped
+may therefore be activated; it is not automatically pending merely because
+an earlier reviewer entry command exists. Missing indicators or ambiguous
+evidence do not prove absence. If neither a wait nor its absence is proved,
+send no input and report the reviewer pending with the reason. No host profile
+or restart/absence evidence is claimed validated by these decisions.
 
 A later invocation may perform only the verified missing reviewer action.
 Reconstruct its state from the unchanged pause, bound receipt and exact
@@ -655,635 +690,32 @@ an implementation or test pass.
 | Q24, Q28, Q29 | Scoped marked consent, independent receiver proof and pause-time replacement guard. |
 | Q05 | Preserved deferred senv checklist and later-document handoff obligation. |
 
-## Open questions for the v0.14.0 resume-paused design
-
-These questions concern design choices proposed above. Recommendations and
-answer text remain proposals unless an explicit user decision is recorded
-below. They do not reopen the requirement's 29 confirmed choices.
-
-### Q01: Routing representation and compatibility boundary
-
-How should versioned JSON coexist with the unreleased branch routing table without interpreting incomplete prose as a target? The canonical main template has no routing section; no released format needs table compatibility. Its branch table cells are free prose rather than a strict grammar.
-
-#### BBQ for Q01
-
-A dispatch card can have a printed form and a machine label. In this picture: the card is the pause prompt, the printed form is the existing routing table, and the label is the versioned JSON block.
-
-#### Options for Q01
-
-- Option A: Use JSON as authoritative for new captures; accept the existing table only through one documented complete grammar, and reject conflicting duplicate values.
-  - Pro: Keeps already complete saved handoffs usable and gives future readers a stable contract.
-  - Con: Requires compatibility parsing and clear equivalence checks.
-- Option B: Require the JSON block for bulk routing; keep older table-only handoffs manual.
-  - Pro: Creates one strict parsing surface.
-  - Con: Table-only handoffs created from the unreleased branch template need ordinary manual resume.
-
-#### Recommended option for Q01
-
-Option B: One authoritative JSON block avoids inference from an unreleased prose table. The writer initially recommended A; the round 1 reviewer recommended B, and the writer adopts that proposal after checking the canonical main template. Neither recommendation is a user decision.
-
-#### Answer to Q01: option B
-
-Option B: Require the JSON block for bulk routing, render the table from it, and keep table-only or routing-free handoffs manual. This avoids interpreting unreleased prose as routing.
-
-User decision: confirmed: B, on 2026-11-09.
-
-User comment: Study a way to migrate older tables to the new format before
-eventual tool use, and examine whether the format interferes with `tuitp`'s
-default resume commands or its later reuse of the shared tool. The migration
-study and launcher compatibility analysis above record these requests.
-Conversion remains a proposal outside bulk execution; separate senv
-integration remains deferred under requirement Q05=A.
-
-### Q02: Marker transport contract and parser limits
-
-Should launch consent use a full encoded marker, named plain-text fields or a compact scope binding? All choices must bind the exact digest, independently proved receiver, assignment and exchange. The current Claude prompt log retains only 100 characters and may mask text; Codex wraps long input. A launch-id prefix alone does not satisfy the confirmed exact-command proof requirement.
-
-#### BBQ for Q02
-
-A delivery note can be one sealed packet or several labeled cards. In this picture: the packet is the encoded marker, the cards are named marker fields, and the destination is the receiving pane and role.
-
-#### Options for Q02
-
-- Option A: Use one versioned base64url JSON marker with strict fields, duplicate-key rejection and a documented size bound validated before any delivery.
-  - Pro: Moves paths, labels and exchange identity without whitespace ambiguity.
-  - Con: Needs decoding, makes raw input harder to inspect and cannot be verified in full through the truncated Claude log alone.
-- Option B: Use separate named fields with one canonical escaping grammar and the same validation rules.
-  - Pro: Makes individual bindings visible in terminal input.
-  - Con: Introduces more quoting boundaries and longer command syntax.
-- Option C: Use one strict compact versioned marker containing launch id first, receiving pane UUID, role and a SHA-256 binding over the canonical complete assignment. Recompute the binding from independently observed pane identity, saved routing and live exact exchange. Require full-command capture or pane-bound transcript proof as well as the profile's logged prefix.
-  - Pro: Reduces input length and keeps the correlation id inside the measured logged prefix while retaining all scope bindings.
-  - Con: Does not make the full marker fit a 100-character log. Requires a tested complete-input channel and canonical reconstruction; a mismatch cannot identify the differing field from the marker alone.
-
-#### Recommended option for Q02
-
-Option C: The writer initially recommended A; the reviewer proposed C after measuring truncation. The writer adopts C with an explicit full-command proof gate. Prefix-only consent is rejected because it would weaken the confirmed requirement. No host profile is enabled until complete proof and canonical binding reconstruction are validated.
-
-#### Answer to Q02: option C
-
-Option C: Use a compact versioned marker with a leading launch id, receiving pane UUID, role and canonical assignment binding. Full typed-command proof remains mandatory; logged prefixes only corroborate it. Both workflows use the same strict validator.
-
-Q14 selects the Codex complete-input channel. Pane-level `--unwrap` alone is
-insufficient for this option's full-command proof gate.
-
-User decision: confirmed: C, on 2026-11-09.
-
-### Q03: Persistence of non-secret takeover evidence
-
-A later invocation needs pane-specific claim evidence that the current coordination record does not contain. Should receiving workflows emit the proposed structured result in existing pane output, or extend existing durable resume evidence?
-
-#### BBQ for Q03
-
-A dispatcher needs proof that the assigned driver collected a parcel. In this picture: the driver is the receiving pane, the parcel is the exact pause, and the collection slip is the non-secret takeover result.
-
-#### Options for Q03
-
-- Option A: Emit structured results in existing pane output and reconstruct continuation only while attributable output and protocol evidence remain available.
-  - Pro: Adds no durable continuation file or new receipt schema.
-  - Con: Claude logs retain 256 entries in daemon memory, with prompt text capped at 100 characters; active observed panes approach capacity within about an hour. Eviction or daemon restart can prevent the required later continuation.
-- Option B: Extend the existing receipt with launch id, pane and assignment binding through a new schema, and atomically record the same non-secret marked-claim binding and issued generation in the current coordination record. Receiving workflows alone write them; no claim history is assumed.
-  - Pro: Allows later continuation when pane history is no longer available.
-  - Con: Expands durable schemas and marked-claim inputs, with legacy parsing and receipt-before-claim ordering. A superseding claim must invalidate the old takeover binding.
-
-Older llm-shared readers reject the new coordination fields or receipt schema;
-the installed `tuitp` stays compatible through the preserved receipt lines.
-The marked route ships only with every affected llm-shared reader updated.
-
-#### Recommended option for Q03
-
-Option B: The writer initially recommended A; the reviewer recommended revised B because volatile output cannot reliably support later continuation. The writer adopts B. Binding fields contain no token or token digest; the existing coordination token digest is not removed or duplicated. This adds no authorization or continuation file.
-
-#### Answer to Q03: option B
-
-Option B: Put non-secret launch/pane/assignment bindings in the existing receipt and marked claim's coordination record, with the issued generation. The bulk reader stays read-only, and later continuation survives volatile evidence loss while that claim remains current.
-
-User decision: confirmed: B, on 2026-11-09.
-
-### Q04: Takeover proof after normal protocol progress
-
-What establishes that the selected requestor restored ownership after protocol progress? Generations advance only for newly issued claims, including a counterpart's wait claim; transitions by the current owner retain them. No durable claim history exists. Apply the exact active-reviewer leave-alone check first.
-
-Confirmed Q16=A separately defines how the leave-alone check proves a global
-reviewer wait, and confirmed Q17=A defines when a wait is excluded; neither
-changes the confirmed generation rule.
-
-#### BBQ for Q04
-
-An inspector may arrive after a relay baton has already moved onward. In this picture: the baton is review ownership, the runner is the selected requestor, and the handoff record is exact-exchange claim evidence.
-
-#### Options for Q04
-
-- Option A: Correlate the pane result and claim generation with read-only exact-exchange transition evidence; accept later progress only when that lineage is demonstrated.
-  - Pro: Supports quick legitimate progress while preserving pane-specific proof.
-  - Con: No durable transition/claim history exists, so lineage would depend on volatile pane output and disappear after eviction.
-- Option B: Require the selected requestor claim generation still to be current when the tool observes it.
-  - Pro: Keeps the proof comparison simple.
-  - Con: A newer claim blocks activation. An already active reviewer is handled first by the leave-alone check; a competing pickup correctly prevents using the earlier requestor claim.
-
-#### Recommended option for Q04
-
-Option B: The writer initially recommended A; the reviewer recommended B after checking generation issuance and the absence of history. The writer adopts B: current-owner transitions retain the generation, newly issued claims advance it, active reviewers are left alone first, and competing pickups must block activation.
-
-#### Answer to Q04: option B
-
-Option B: Apply the active-reviewer leave-alone check first, then require the selected requestor's durably bound claim generation still to be current before any reviewer activation. Current-owner transitions retain that proof; a newly issued claim supersedes it.
-
-User decision: confirmed: B, on 2026-11-09.
-
-### Q05: Observation and delivery time budgets
-
-The design proposes a 100-second action budget and a separate 120-second receiving-result/takeover budget. Should these be fixed supported defaults or configurable human launch settings?
-
-The delivery call can exhaust its 100 seconds. Under either option recovery and acceptance checks use only the remaining action budget; no remaining time means unconfirmed delivery without recovery. The 120-second observation bound applies independently to each accepted receiver, including an activated reviewer.
-
-#### BBQ for Q05
-
-A station has separate clocks for dispatch and arrival. In this picture: dispatch is command acceptance, arrival is receiver/takeover evidence, and the clocks are their observation budgets.
-
-#### Options for Q05
-
-- Option A: Use documented fixed defaults of 100 seconds for delivery/acceptance and 120 seconds after acceptance, with injected clocks for tests.
-  - Pro: Keeps the CLI small and outcomes predictable across checkouts.
-  - Con: Slow receivers may need a later reviewer-only continuation.
-- Option B: Keep those defaults but offer bounded timeout overrides as additional human CLI options.
-  - Pro: Accommodates different host speeds without changing code.
-  - Con: Adds public configuration and makes timing reports more complex.
-
-#### Recommended option for Q05
-
-Option A: The required CLI already supports later continuation; fixed bounds avoid another tuning surface.
-
-#### Answer to Q05: option A
-
-Option A: Use documented fixed defaults of 100 seconds for delivery/acceptance and 120 seconds after acceptance, with injected clocks for tests. The required CLI already supports later continuation; fixed bounds avoid another tuning surface.
-
-User decision: confirmed: A, on 2026-11-09.
-
-### Q06: Supported host profile selection
-
-Fresh Codex readiness and clear confirmation depend on version-specific screen behavior that has not been validated here. How should a runtime select a supported profile without probing commands in a live pane?
-
-TUIOS discovery supplies no Codex version. Option A needs a version banner or process metadata independently tied to the target pane; the caller's CLI version does not prove it. Without such evidence A fails classification for that target, even when its pane appears usable. This consequence is stated explicitly, not silently changed to a skip; both host profiles must work before release.
-
-Q14 option B confirms session-file `cli_version` after delivery, too late to
-select the profile for that delivery. Within the confirmed choices, validate
-the version banner in that pane's attributable scrollback or process metadata
-tied to its own process read-only in the first implementation step. If neither
-validates, return to design review before release; do not ship only one host
-or add hooks silently. Mandatory hooks for version evidence would require the
-user to reopen Q14=B. Q14 option B does not itself remove this evidence gap.
-
-#### BBQ for Q06
-
-A mechanic selects the correct instrument chart before reading a dashboard. In this picture: the chart is a host profile, the dashboard is the captured screen, and the vehicle identity is observed host/version evidence.
-
-#### Options for Q06
-
-- Option A: Select from explicit tested profiles using independent host/version evidence and fail classification when no unique compatible profile is established.
-  - Pro: Makes supported readiness and clear behavior auditable and prevents live command probing.
-  - Con: New or undatable versions, including observed Codex panes lacking version evidence, fail classification until a uniquely supported profile is proved.
-- Option B: Select by a unique tested screen signature even when the exact version cannot be established, with the same failure on ambiguous signatures.
-  - Pro: Can support unchanged interfaces across more versions.
-  - Con: Visually similar versions can hide behavioral changes, especially around clearing.
-
-#### Recommended option for Q06
-
-Option A: Conservative profile selection fits the requirement to verify the Codex signature in use.
-
-#### Answer to Q06: option A
-
-Option A: Select from explicit tested profiles using independent host/version evidence and fail classification when no unique compatible profile is established. Conservative profile selection fits the requirement to verify the Codex signature in use.
-
-User decision: confirmed: A, on 2026-11-09.
-
-### Q07: Cross-invocation execution guard scope
-
-The draft uses a per-checkout OS execution guard to stop cooperating launches passing the same fresh checks simultaneously. Should that guard be per checkout or command-wide?
-
-Either guard uses an OS named lock or a root-digest-keyed lock file in the user's temporary directory, never the checkout or its artifact home. This preserves the no-checkout-writes boundary.
-
-#### BBQ for Q07
-
-Two dispatchers must not both send a driver to collect the same parcel. In this picture: dispatchers are concurrent invocations, the parcel is one checkout's pause, and the dispatch lock is the execution guard.
-
-#### Options for Q07
-
-- Option A: Use a nonblocking per-checkout OS guard keyed by canonical root, with a host-specific lock provider and an immediate contention skip.
-  - Pro: Prevents cooperating duplicate delivery while preserving independent checkout concurrency.
-  - Con: Needs equivalent lock semantics on each supported operating system.
-- Option B: Use one command-wide OS guard while retaining concurrent checkout workers inside its holder.
-  - Pro: Makes coordination between separate invocations simpler.
-  - Con: An unrelated long-running checkout prevents every other launch from proceeding.
-
-#### Recommended option for Q07
-
-Option A: Its scope matches the protected resource and the requirement to let independent checkouts proceed.
-
-#### Answer to Q07: option A
-
-Option A: Use a nonblocking per-checkout OS guard keyed by canonical root, with a host-specific lock provider and an immediate contention skip. Its scope matches the protected resource and the requirement to let independent checkouts proceed.
-
-User decision: confirmed: A, on 2026-11-09.
-
-### Q08: Human caller evidence outside TUIOS
-
-The human-only contract also applies outside TUIOS, where absence of a pane cannot prove a human launch. What additional caller evidence should the implementation inspect without pretending to establish certainty it does not have?
-
-#### BBQ for Q08
-
-A desk can reject a known automated courier without identifying every visitor. In this picture: the courier is an agent caller, the desk is the launch guard, and visitor identity is available process/host evidence.
-
-#### Options for Q08
-
-- Option A: Inspect known agent host markers and process ancestry where available, reject recognized agents, and document the remaining human-only contract when origin cannot be proved.
-  - Pro: Strengthens refusal outside TUIOS without blocking ordinary human shells merely because proof is unavailable.
-  - Con: Cannot reliably identify every possible agent-origin process.
-- Option B: Use recognized TUIOS caller classification and explicit agent host markers only, retaining the outside-TUIOS contract.
-  - Pro: Avoids dependence on platform-specific process inspection.
-  - Con: Recognizes fewer agent shell escapes when their markers are absent.
-
-#### Recommended option for Q08
-
-Option A: It improves enforceable caller refusal while stating the limits accurately and retaining normal outside-TUIOS use.
-
-#### Answer to Q08: option A
-
-Option A: Inspect known agent host markers and process ancestry where available, reject recognized agents, and document the remaining human-only contract when origin cannot be proved. It improves enforceable caller refusal while stating the limits accurately and retaining normal outside-TUIOS use.
-
-User decision: confirmed: A, on 2026-11-09.
-
-User qualification: Platform Windows. Apply the host-marker and available
-process-ancestry checks on Windows; the human-only rule and its stated
-detection limits remain unchanged.
-
-### Q09: Read-only review state interface
-
-Takeover and active-reviewer proof require strict exchange classification. Should the bulk tool call a dedicated read-only snapshot interface or invoke an existing status launcher and parse its output?
-
-#### BBQ for Q09
-
-A visitor needs to read a control panel without touching its controls. In this picture: the visitor is the bulk observer, the panel is exchange state, and the controls are migration, preparation and ownership operations.
-
-#### Options for Q09
-
-- Option A: Expose a pure validated snapshot boundary using existing artifact parsers, with no home preparation, migration, claim or capability output.
-  - Pro: Makes the no-write contract explicit and keeps unsafe operations outside observation.
-  - Con: Requires a clearly maintained boundary around shared review classification.
-- Option B: Use a documented read-only status launcher contract that returns all required non-secret snapshot evidence.
-  - Pro: Reuses an established process interface and JSON result.
-  - Con: The launcher contract must be audited for hidden preparation and expanded where pane/claim evidence is absent.
-
-#### Recommended option for Q09
-
-Option A: A pure snapshot boundary is easier to verify against the bulk reader's strict side-effect limits.
-
-#### Answer to Q09: option A
-
-Option A: Expose a pure validated snapshot boundary using existing artifact parsers, with no home preparation, migration, claim or capability output. A pure snapshot boundary is easier to verify against the bulk reader's strict side-effect limits.
-
-User decision: confirmed: A, on 2026-11-09.
-
-### Q10: Evidence that a saved pane id still names the same agent
-
-Which independent observation defines continuity of a saved target? TUIOS pane ids are UUIDs; practical reassignment means a changed host, checkout or TUIOS session. Claude clears create a new agent session, including this tool's own clear; Codex exposes no agent session id in the observed build.
-
-A saved UUID missing from discovery, or listed without an agent, is absent
-and skips. A different live agent host is a known conflict and fails.
-
-#### BBQ for Q10
-
-A room number is not proof that the same person still occupies it. In this picture: the room number is the pane id, the occupant is the agent instance, and the check-in record is log/session identity evidence.
-
-#### Options for Q10
-
-- Option A: Record an observed agent/session incarnation or start/log identity when available and validate it with current independently attributable evidence; report unknown identity without substituting a pane.
-  - Pro: Distinguishes stable pane location from actual agent continuity.
-  - Con: TUIOS or a host may not expose enough evidence, causing an unresolved-target skip.
-- Option B: Require current pane content to identify the exact saved pause/assignment as continuity evidence, in addition to live pane and host matching.
-  - Pro: Can work without a dedicated agent incarnation identifier.
-  - Con: Cleared or truncated content may remove the proof, and quoted old context must be excluded.
-- Option C: Use the live pane UUID, host, checkout and TUIOS session as target identity, with an agent session id as supporting evidence. Report a changed agent session id alone, then revalidate all current protections. Known host/checkout/session conflicts fail classification; unavailable identity is an unresolved-target skip.
-  - Pro: Survives routine clears and supports Codex without an agent session id, without choosing another pane.
-  - Con: Treats a same-host restart in the same pane as the same target. UUID uniqueness across restored TUIOS sessions must be verified before enabling that profile.
-
-#### Recommended option for Q10
-
-Option C: The writer initially recommended A; the reviewer proposed C because A cannot survive ordinary clears or current Codex evidence. The writer adopts C while retaining the confirmed classification failure for known conflicting identities, rather than the reviewer's suggested skip for reassignment. No routing or input-protection requirement is waived.
-
-#### Answer to Q10: option C
-
-Option C: Validate the live pane UUID, host, checkout and TUIOS session. An agent session id is supporting evidence; a changed id alone is reported and revalidated. Known reassignment fails classification, unavailable identity skips, and restored-session UUID behavior must be validated.
-
-User decision: confirmed: C, on 2026-11-09.
-
-User qualification: Make sure `tuitp` keeps working and can resume all
-eligible sessions. The integration completion and coverage conditions above
-record this requirement. This delivery preserves the installed launcher's
-prompt and receipt grammars, validated by fixtures. Resuming all eligible
-sessions through the shared interface remains the deferred senv completion
-condition under requirement Q05=A. Neither condition relaxes saved-target
-validation. Runtime compatibility remains to be demonstrated.
-
-### Q11: Revalidation between prompt consumption and role claim
-
-A marked requestor can write its receipt before the review claim. How should the receiving workflow handle the prompt or selected exchange changing between those actions?
-
-The existing `claim_selected` transaction rejects a changed round or occurrence under its transition lock. Q13's shared validator additionally rechecks digest, routing and receiving pane immediately before the claim; it does not replace that lock.
-
-#### BBQ for Q11
-
-A collection receipt does not permit picking a different parcel if the shelf changes. In this picture: the receipt is prompt consumption, the shelf is live exchange state, and collection is the exact role claim.
-
-#### Options for Q11
-
-- Option A: Revalidate marker bindings immediately before each protected mutation; stop a changed selection without claiming another exchange and retain truthful completed consumption evidence.
-  - Pro: Preserves the exact launch scope and records what actually happened.
-  - Con: A consumed pause can remain without restored ownership and need explicit diagnosis.
-- Option B: Validate all bindings immediately before consumption and treat the already selected claim transaction as the only later check.
-  - Pro: Keeps fewer receiving-workflow checks outside the claim transaction.
-  - Con: The transaction must also receive enough digest and routing context to reject a replaced prompt, which it currently lacks.
-
-#### Recommended option for Q11
-
-Option A: It applies the target binding across both receiving actions while keeping normal protocol locking responsible for the claim.
-
-#### Answer to Q11: option A
-
-Option A: Revalidate marker bindings immediately before each protected mutation; stop a changed selection without claiming another exchange and retain truthful completed consumption evidence. It applies the target binding across both receiving actions while keeping normal protocol locking responsible for the claim.
-
-User decision: confirmed: A, on 2026-11-09.
-
-### Q12: Receiver completion evidence at the observation deadline
-
-After accepted delivery, a single agent, resumed requestor or activated reviewer may still be processing when its 120-second observation ends. How should the report distinguish that from a proved marker/confirmation failure or unconfirmed delivery? The same rules apply to every accepted receiver; reviewer acceptance alone never proves completion.
-
-#### BBQ for Q12
-
-A courier can acknowledge departure before reaching the destination. In this picture: departure is accepted resume input, arrival is completed resume evidence, and the tracking deadline is the observation bound.
-
-#### Options for Q12
-
-- Option A: Report accepted/in progress with completion unconfirmed when acceptance is proved and no explicit failure is observed; fail observed marker/confirmation errors and all unconfirmed deliveries.
-  - Pro: Keeps acceptance, processing and completed recovery distinct without waiting indefinitely.
-  - Con: A failure arising after the observation deadline cannot be included in that invocation's result.
-- Option B: Require a structured receiving-workflow success or failure result within the observation budget and fail a missing result.
-  - Pro: Gives every successful invocation positive receiver completion evidence.
-  - Con: Treats slow processing as failure even when delivery was accepted and no automation failure is observed.
-
-#### Recommended option for Q12
-
-Option A: It preserves bounded observation without claiming completion that has not been proved; the reported limitation remains visible.
-
-#### Answer to Q12: option A
-
-Option A: Report accepted/in progress with completion unconfirmed when acceptance is proved and no explicit failure is observed; fail observed marker/confirmation errors and all unconfirmed deliveries. It preserves bounded observation without claiming completion that has not been proved; the reported limitation remains visible.
-
-User decision: confirmed: A, on 2026-11-09.
-
-### Q13: Receiving-side marker validation surface
-
-Both receiving workflows must decode the marker, independently prove their pane and full typed input, and recheck bindings before receipt or claim. The human-only `resume_paused` refuses agent callers and cannot be their validation command. Where should these deterministic checks run?
-
-#### BBQ for Q13
-
-A courier checks a parcel seal with the depot scanner instead of by eye. In this picture: the seal is the marker, the scanner is a shared validator, the parcel destination is the resolved assignment, and checking by eye is instruction-only validation.
-
-#### Options for Q13
-
-- Option A: Add a separate read-only, agent-callable validator launcher shared by `resume-session` and `review-resume`. It strictly parses the marker, recomputes canonical bindings, reads independent pane/full-input evidence and a pure exchange snapshot, and returns typed non-secret JSON without writes or capabilities.
-  - Pro: Gives both hosts and workflows one testable contract; Q11's rechecks use the same surface before each protected mutation.
-  - Con: Adds a public launcher whose validation-only boundary must stay separate from the human-only bulk command.
-- Option B: Validate through instructions only, asking the receiving agent to decode the marker and compare evidence.
-  - Pro: Adds no executable surface.
-  - Con: Strict parsing and binding comparison depend on model reasoning and cannot be covered by deterministic fake-TUIOS tests.
-
-#### Recommended option for Q13
-
-Option A: The reviewer identified the missing receiving validation surface, and the writer agrees. Shared deterministic checks make strict consent and mutation revalidation testable without authorizing agent calls to the bulk launcher.
-
-#### Answer to Q13: option A
-
-Option A: Add a separate read-only, agent-callable validator for both receiving workflows. It returns validated scope and evidence or an explicit failure, performs no receipt or claim itself, and keeps the bulk command human-only.
-
-User decision: confirmed: A, on 2026-11-09.
-
-### Q14: Codex complete-input proof channel
-
-Q02 requires proof of the complete marked command. `capture-pane --unwrap`
-joins only rows wrapped by the pane; a host's own layout breaks remain.
-Observed Codex panes report no conversation id. How should the Codex receiver
-and bulk observer prove the complete typed command?
-
-The metadata check confirms session identity, checkout, timestamp and
-`cli_version` fields. It does not validate a complete-input profile. Every
-option must prove the latest typed user input, exclude notifications and
-quoted older commands, and reject unavailable or ambiguous evidence. No
-option permits live input experiments during this design review.
-
-#### BBQ for Q14
-
-A depot can read a long address from a folded label or look the parcel up in
-its ledger by tracking number. In this picture: the label is the Codex screen,
-the ledger is the session file, and the tracking number is the unique launch
-id. The ledger still needs evidence tying that parcel to the intended desk.
-
-#### Options for Q14
-
-- Option A: Reconstruct the complete command from the screen with a tested Codex layout profile covering prompt prefix, indentation and break rules. Use `--unwrap` only for pane-level wraps.
-  - Pro: Evidence comes directly from the target pane without reading host conversation files.
-  - Con: Rendering changes can break reconstruction, and breaks at spaces remain ambiguous unless the profile proves exact preservation.
-- Option B: Find exactly one Codex session file whose latest typed user message equals this delivery's complete marked command, in the same checkout and recorded after delivery. Tie it to the target pane through the displayed command prefix containing that command's unique launch id, followed by `Working`.
-  - Pro: Preserves complete input without screen reconstruction or required hook installation. The same file can confirm `cli_version` after delivery.
-  - Con: Adds session-file location, format and user-input classification to the profile. The pane tie depends on the fresh unique launch id rather than a pane-reported conversation id; ambiguous matches fail. Files hold whole conversations, so read only defined fields in memory and never expose their contents. Version evidence after delivery cannot satisfy Q06's pre-delivery gate.
-- Option C: Require validated TUIOS Codex hooks to report the pane's conversation id, then read that exact session file for complete typed-input proof.
-  - Pro: Gives a direct pane-to-session association and can supply `cli_version` before delivery from an existing session.
-  - Con: Requires machine setup absent here, and hook attribution under the shared app-server must be proved independently of inherited pane variables. Session-file parsing remains necessary.
-
-#### Recommended option for Q14
-
-Option B: The round 2 reviewer proposed B, and the writer adopts it as the
-proposed channel after checking metadata and capture limits. It preserves
-exact complete-input proof without mandatory hook setup. Q06's independent
-pre-delivery version evidence remains required, and an unsubmitted command
-still needs exact input-box reconstruction for the single recovery Enter.
-This recommendation does not establish a validated host profile. The user's
-decision is recorded below.
-
-#### Answer to Q14: option B
-
-Option B: Prove the full Codex command from one uniquely matching session
-file's latest typed user input, tied to the intended pane by the fresh launch
-id in its displayed command prefix followed by `Working`. Require matching
-checkout and post-delivery time; fail missing or ambiguous proof. Keep Q06's
-pre-delivery version gate and the separate exact input-box recovery gate.
-
-User decision: confirmed: B, on 2026-11-09.
-
-### Q15: Codex receiving-pane proof at later protected writes
-
-Q13 makes the receiving validator prove the current pane and input before each
-protected write or claim. Q14 ties a Codex session file to its pane through the
-displayed command prefix holding the launch id, followed by `Working`. That
-screen evidence lasts only while the submitted command is still on screen,
-while the session file's latest typed user message lasts until new input
-arrives. What must later validator calls in the same receiving turn prove?
-
-#### BBQ for Q15
-
-A depot checks a courier at the gate, then checks the same parcel number at
-each later door. In this picture: the gate check is the first validation with
-the displayed prefix, the parcel number is the matched session file and launch
-id, and the later doors are the receipt and claim writes.
-
-#### Options for Q15
-
-- Option A: The first validation proves the full Q14 tie and returns the matched session identity and launch id as non-secret evidence. The receiver passes them to later calls. Each later call requires the same unique session file, its latest typed user message still exactly equal to the marked command, the same checkout, and the same live pane UUID, host and TUIOS session. It also recomputes the bindings and the exchange snapshot. Any change, new typed input or ambiguity stops before the write.
-  - Pro: The pane tie is proved once from fresh evidence, and every later check uses evidence that lasts through the turn.
-  - Con: Later calls depend on values the receiver supplies from its own context. A wrong or missing value has to fail closed, and tests must cover it.
-- Option B: Every call re-proves the displayed prefix and `Working`, accepting attributable scrollback that holds this launch id under a tested profile rule.
-  - Pro: Each call stands alone on screen evidence.
-  - Con: It depends on scrollback depth and layout, needs an exception to the rule that older scrollback grants nothing, and a long turn can still lose the line.
-- Option C: Only the first validation proves pane and input. Later calls recheck digest, routing and exchange bindings only.
-  - Pro: Simplest validator contract.
-  - Con: It drops the pane and input proof at the claim, the write that Q11 protects most, and leaves Codex weaker than Claude, whose transcript lasts.
-
-#### Recommended option for Q15
-
-Option A: The round 4 reviewer proposed A, and the writer agrees. It keeps
-Q13's pane and input proof at every protected write using evidence that lasts
-through the turn, without screen re-reading or hooks. The initial pane tie
-still comes from Q14's fresh launch-id prefix. The carried values hold no
-capability or conversation content.
-
-#### Answer to Q15: option A
-
-Option A, confirmed by the user: retain the initially proved session identity
-and launch id as non-secret evidence for later validator calls. Re-prove the
-same unique file, unchanged latest complete typed command, checkout, live pane
-UUID, host and TUIOS session, and current bindings and exchange snapshot
-before each protected write. Missing or wrong carried values, changed evidence,
-new typed input or ambiguity stop before the write.
-
-Rationale: retain evidence that lasts through the receiving turn while
-preserving Q11's revalidation and Q13's pane and input proof. The first pane
-tie still requires Q14's fresh displayed launch-id prefix followed by
-`Working`; this decision does not relax Q06's pre-input version gate.
-
-User decision: confirmed: A, on 2026-11-10.
-
-### Q16: Proof that a reviewer is already waiting
-
-Requirement Q22=A leaves a reviewer already serving or waiting on the exact
-exchange untouched, and design Q04=B runs that check first. A reviewer in
-`wait-any-request` waits for any request and leaves no durable protocol record.
-In Claude it shows an idle pane with a background watcher. What positive
-evidence proves that a reviewer pane is already waiting, and what does the
-tool do when that proof is unavailable?
-
-#### BBQ for Q16
-
-A dispatcher must not call a driver already parked at the depot waiting for
-loads. In this picture: the parked driver is a reviewer in a global wait, the
-depot is the artifact home, and the call is the marked reviewer resume.
-
-#### Options for Q16
-
-- Option A: Prove waiting from that pane's host complete-input channel. The latest typed input must be a reviewer `review-resume` in this checkout, with no later typed input. The host's waiting evidence must also hold: for Claude, a background watcher started after that typed input and still running in the same session, including one restarted after an answer; for Codex, an active turn, which requirement Q02's busy skip already protects. When the proof holds, leave the reviewer alone. When it is incomplete, send no input and report the reviewer as pending, with the reason.
-  - Pro: Respects Q22 without a new artifact, and an uncertain reviewer never receives input.
-  - Con: Ambiguous evidence, for example after the watcher stopped or other input arrived, leaves the reviewer pending until a person resumes it. The Claude profile must define which transcript fields show a running background task.
-- Option B: Deliver the marked reviewer resume whenever exact-exchange protocol evidence shows no current reviewer claim, and rely on the receiving workflow to reuse an existing watcher.
-  - Pro: Activates the reviewer in more cases.
-  - Con: It types into an already waiting reviewer, which Q22 forbids, and relies on model behavior to avoid a second watcher.
-- Option C: Have `wait-any-request` keep a non-secret waiter record in the artifact home while it runs.
-  - Pro: Gives protocol evidence for the leave-alone check.
-  - Con: It breaks the rule that the watcher keeps no durable waiter record, and a hard kill leaves a stale record that can block activation.
-
-#### Recommended option for Q16
-
-Option A: The round 4 reviewer proposed A, and the writer agrees. It follows
-Q22 and the existing rule that uncertain evidence never permits input, adds
-no durable state, and reports pending cases to the person.
-
-#### Answer to Q16: option A
-
-Option A, confirmed by the user: prove waiting from the pane's complete-input
-channel and current host waiting evidence. The latest typed input must be
-reviewer `review-resume` in this checkout, with no later typed input. For
-Claude, require a background watcher started after that input and still
-running in the same session, including one restarted after an answer. For
-Codex, an active turn is already protected by the busy-pane skip. Leave a
-proved waiting reviewer alone. Incomplete evidence permits no input; report
-the reviewer as pending with the reason.
-
-Rationale: preserve requirement Q22's leave-alone rule and design Q04's check
-order without adding durable waiter state or risking a duplicate watcher.
-The Claude profile must validate which transcript fields prove a currently
-running background task; this decision does not claim that validation exists.
-
-User decision: confirmed: A, on 2026-11-10.
-
-### Q17: Reviewer activation when no wait is running
-
-Requirement Q22=A leaves a reviewer already serving or waiting untouched and
-otherwise sends its marked reviewer resume. Confirmed Q16=A has two outcomes:
-a proved wait leaves the reviewer alone, and incomplete proof sends no input
-and reports the reviewer pending. A reviewer that is not waiting never passes
-Q16's proof, so without a third outcome the tool would never activate a
-reviewer, including a fresh conversation and the swapped pair in the
-acceptance examples. What evidence shows that no wait is running, so that the
-reviewer receives the marked resume?
-
-A reviewer waits only through its host's own mechanism: a Claude background
-watcher, or a Codex attached wait inside an active turn. An active turn is
-already skipped as busy under requirement Q02=A.
-
-#### BBQ for Q17
-
-A dispatcher may call a driver whose bay is empty, but not one who might be
-parked there. In this picture: the parked driver is a waiting reviewer, the
-empty bay is proof that no wait is running, and the call is the marked
-reviewer resume.
-
-#### Options for Q17
-
-- Option A: Treat a wait as excluded when current evidence shows that the host's wait mechanism is absent. For Claude, the transcript tied to the pane's session id shows no background task still running in that session, under a validated profile. For Codex, a fresh supported capture shows an idle pane with empty input and no active turn. Then deliver the marked reviewer resume after takeover proof, the normal eligibility checks and the later-continuation rules, which never resend an uncertain prior reviewer delivery. A case that is neither Q16's proved wait nor this exclusion is incomplete evidence: send no input and report the reviewer pending with the reason.
-  - Pro: Activates a reviewer that is not waiting on both hosts, as requirement Q22=A and Q01=D require, while any possible wait still prevents input.
-  - Con: Q16 option A's con lists a stopped watcher as a pending case; under this option an idle Claude pane whose profile proves no running task is activated instead. The Claude profile must prove that no background task is running, including after a host restart.
-- Option B: Require the option A exclusion and, in addition, proof from the pane's complete-input channel that no reviewer entry command was typed in its current conversation.
-  - Pro: Keeps Q16 option A's pending examples pending: a stopped watcher and input after a reviewer resume.
-  - Con: Before a marked delivery, Q14 ties no Codex session file to a pane, so the tool would never activate a Codex reviewer. A Claude reviewer would be activated only in a fresh or cleared conversation.
-- Option C: Never deliver after a failed waiting proof. Report the reviewer pending and leave its resume to the person.
-  - Pro: The tool never types into a reviewer pane.
-  - Con: Contradicts requirement Q22=A, which sends the reviewer resume otherwise, and Q01=D's counterpart activation. The user would have to reopen those requirement decisions.
-
-#### Recommended option for Q17
-
-Option A: The round 6 reviewer proposes A, and the writer agrees. A reviewer
-can wait only through its host's own mechanism, so proof that the mechanism
-is absent excludes a wait whatever the typed history. This activates a
-reviewer that is not waiting, as requirement Q22=A requires, and Q16's
-no-input rule still covers every uncertain case. This recommendation is not
-a user decision.
-
-#### Answer to Q17: option A
-
-Option A, confirmed by the user: deliver the marked reviewer resume only
-when current evidence excludes a wait: for Claude, no background task still
-running in the pane's session under a validated profile; for Codex, a fresh
-supported idle, empty-input capture with no active turn.
-Takeover proof, the normal eligibility checks and the later-continuation
-rules still apply; an uncertain prior reviewer delivery is diagnosed, not
-resent. Otherwise follow Q16: leave a proved waiting reviewer alone, and
-report every other case pending, with no input.
-
-Rationale: proof that the host's waiting mechanism is absent permits the
-reviewer activation required by requirement Q22=A and Q01=D while preserving
-Q16's no-input rule for uncertainty. This changes Q16 option A's
-stopped-watcher example: an idle Claude pane whose validated session profile
-proves no background task remains running can be activated, including after
-a host restart. Missing or ambiguous evidence still reports the reviewer
-pending without input. The host profiles and their absence evidence still
-require validation; this decision does not claim that proof already exists.
-
-User decision: confirmed: A, on 2026-11-10. The user selected
-"A: Prove no wait (Recommended)" after the Q17 explanation.
+## Design decisions for resume-paused
+
+These are the explicit user decisions reviewed in round 8. Q01-Q14 were
+confirmed on 2026-11-09; Q15-Q17 were confirmed on 2026-11-10. Question IDs in
+this table refer to this design; the coverage table above refers to the
+requirement. The answered questions, options and discussion are preserved in
+the pre-consolidation Git snapshot. No further design question is needed to
+write the implementation and validation plans. The evidence gates above still
+apply before enabling delivery or claiming release readiness.
+
+| Question | Decision and rationale | Integrated in | Rejected alternatives |
+| --- | --- | --- | --- |
+| Q01 | B: JSON alone governs bulk routing; render the readable table from it so free prose cannot invent a target. Study legacy conversion separately and preserve installed `tuitp` behavior. | [Saved routing](#saved-routing-and-role-resolution-for-resume-paused), [migration study](#legacy-routing-migration-study), [launcher compatibility](#existing-tuitp-compatibility-and-later-shared-integration). | A: Parsing old tables adds an unsupported prose grammar. Manual resume followed by a fresh pause remains available; conversion is a study, outside bulk execution. |
+| Q02 | C: Use one strict compact versioned marker with leading launch id, pane UUID, role and canonical assignment digest. Full typed-command proof remains mandatory; logged prefixes only corroborate it. | [Target-bound consent](#target-bound-consent-for-receiving-resume-workflows). | A: Full encoded JSON is longer and still exceeds truncated logs. B: Named fields add escaping boundaries and input length. Prefix-only proof is insufficient. |
+| Q03 | B: Extend the existing receipt and coordination record with non-secret marked bindings and issued generation. Durable evidence supports continuation after log eviction or restart while the claim remains current. | [Takeover and continuation](#takeover-observation-and-later-reviewer-continuation). | A: Pane output alone loses continuation evidence. No separate authorization/continuation file or claim history is added; compatible readers ship together. |
+| Q04 | B: Apply the active-reviewer leave-alone check first, then require the marked requestor claim generation still to be current before activation. New claims supersede old proof; current-owner transitions retain it. | [Takeover and continuation](#takeover-observation-and-later-reviewer-continuation). | A: Reconstructing claim lineage depends on volatile output because no durable claim history exists. A competing pickup blocks activation. |
+| Q05 | A: Fix delivery/acceptance at 100 seconds and post-acceptance observation at 120 seconds per receiver. Recovery uses only the remaining action budget; tests inject clocks. | [Delivery confirmation](#clearing-and-delivery-confirmation-for-resume-paused), [takeover observation](#takeover-observation-and-later-reviewer-continuation). | B: Human timeout overrides add configuration and reporting complexity; later reviewer-only continuation already handles slow processing. |
+| Q06 | A: Select explicit tested profiles from independent pane-tied host/version evidence; absent or ambiguous support fails classification without input. Both hosts must validate before release. | [Profile selection](#clearing-and-delivery-confirmation-for-resume-paused), [validation boundaries](#acceptance-examples-and-validation-boundaries-for-resume-paused). | B: A screen signature alone can hide version-dependent behavior. Codex session-file version evidence after delivery cannot satisfy this earlier gate; failed read-only candidates return to design review. |
+| Q07 | A: Use a nonblocking per-checkout OS guard keyed by canonical root, outside the checkout/artifact home. Immediate contention skips preserve independent checkout concurrency. | [Duplicate protection](#duplicate-protection-and-safe-input-eligibility). | B: One command-wide guard blocks unrelated checkouts behind a long action. The guard is not a review lease or an authorization artifact. |
+| Q08 | A, qualified to Windows: inspect known agent markers and available process ancestry; reject recognized agents, including preview calls. Unknown origin retains the human-only contract without rejecting ordinary shells solely for missing proof. | [Caller protection](#duplicate-protection-and-safe-input-eligibility). | B: Marker-only detection recognizes fewer agent shell escapes. Lack of a TUIOS pane never proves human origin. |
+| Q09 | A: Expose a pure validated review snapshot boundary over existing parsers, without preparation, migration, claims or capabilities. This makes read-only observation explicit and testable. | [Discovery and evidence](#discovery-and-evidence-model-for-resume-paused). | B: A general status launcher needs auditing for hidden preparation and expanded evidence output. |
+| Q10 | C: Validate live pane UUID, host, checkout and TUIOS session; an agent session id only supports that identity. Report changed agent ids and revalidate; known conflicts fail, unavailable identity skips. Preserve installed `tuitp` grammars now and full eligible-session coverage in deferred integration. | [Saved target identity](#saved-routing-and-role-resolution-for-resume-paused), [launcher compatibility](#existing-tuitp-compatibility-and-later-shared-integration). | A: An incarnation requirement cannot survive routine clears or current Codex evidence. B: Exact saved context can disappear from a cleared/truncated pane. Restored UUID/session continuity still needs proof. |
+| Q11 | A: Revalidate immediately before each protected mutation. A changed selection stops without claiming another exchange; retain truthful completed consumption evidence even if ownership restoration fails. | [Receiving validation](#target-bound-consent-for-receiving-resume-workflows). | B: Consumption-time validation alone leaves digest, routing and pane changes outside the existing claim transaction. The locked round/occurrence check remains required. |
+| Q12 | A: Proved acceptance without observed failure may end as in progress with completion unconfirmed for any receiver. Fail observed marker/confirmation errors and unconfirmed delivery; do not equate acceptance with completion. | [Takeover observation](#takeover-observation-and-later-reviewer-continuation), [reporting](#reporting-and-exit-semantics-for-resume-paused). | B: Requiring completion within the observation budget treats slow valid processing as failure; later failures cannot be reported by the ended invocation. |
+| Q13 | A: Share a separate read-only agent-callable validator between both receiving workflows. Strict deterministic parsing, current pane/full-input proof, bindings and snapshot checks return typed non-secret evidence or explicit failure. | [Receiving validator](#target-bound-consent-for-receiving-resume-workflows). | B: Instruction-only comparison is not deterministic or directly testable. The validator never consumes, prepares, migrates, claims or returns a capability; the bulk command stays human-only. |
+| Q14 | B: Prove Codex complete input through exactly one session file whose latest typed message matches the marked command, checkout and post-delivery time. Tie it to the pane by the fresh unique launch-id prefix followed by `Working`. | [Input proof](#target-bound-consent-for-receiving-resume-workflows), [delivery confirmation](#clearing-and-delivery-confirmation-for-resume-paused). | A: Screen-only reconstruction depends on layout/break rules. C: Mandatory hooks require unproved installation and shared-daemon attribution. Missing/ambiguous file matches fail; Q06 and exact recovery-input gates remain. |
+| Q15 | A: Carry the initially proved non-secret Codex session identity and launch id into later calls. Before each protected write, re-prove the same unique file, unchanged latest complete typed command, checkout, live pane UUID/host/session, bindings and snapshot. This preserves proof after the displayed prefix scrolls away. | [Repeated receiving validation](#target-bound-consent-for-receiving-resume-workflows). | B: Re-reading the prefix depends on scrollback depth and new exceptions for old evidence. C: Dropping later pane/input proof weakens the protected claim. Missing/wrong carried values, changes, new input or ambiguity stop the write. |
+| Q16 | A: Prove a global wait from the latest reviewer `review-resume` input in this checkout, no later typed input, and current host waiting evidence. Claude needs a still-running same-session watcher started after that input, including after an answer; Codex active turns are already protected. Leave proved waits alone. | [Reviewer classification](#takeover-observation-and-later-reviewer-continuation). | B: Delivering whenever no exact reviewer claim exists can duplicate a running watcher. C: Durable waiter records violate the no-waiter-artifact boundary and can become stale. Uncertain evidence permits no input. |
+| Q17 | A: Activate only after positive proof of no wait: Claude session-tied transcript/profile proves no background task remains running, including after restart; Codex fresh supported capture proves idle, empty input and no active turn. Keep current takeover, eligibility and no-resend continuation gates. | [Reviewer activation](#takeover-observation-and-later-reviewer-continuation), [acceptance examples](#acceptance-examples-and-validation-boundaries-for-resume-paused). | B: Requiring no earlier reviewer entry prevents Codex activation under Q14 and limits Claude to fresh conversations. C: Never activating contradicts requirement Q22=A/Q01=D. A proved stopped watcher may activate; missing or ambiguous absence evidence stays pending. |
