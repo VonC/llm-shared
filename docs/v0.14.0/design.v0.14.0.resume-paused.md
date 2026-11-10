@@ -690,6 +690,10 @@ an implementation or test pass.
 | Q24, Q28, Q29 | Scoped marked consent, independent receiver proof and pause-time replacement guard. |
 | Q05 | Preserved deferred senv checklist and later-document handoff obligation. |
 
+## File-based IO cost clarification for resume-paused
+
+Read the exact artifact-home declaration, prompt/receipt and selected exchange paths, plus the private journal index when needed. Index checkout/pane identities once per observation; avoid broad document or Markdown scans. Full latest-input proof may require reading candidate host session files, so account for bytes read and reject incomplete evidence. Re-read mutable prompt, receipt, routing, live pane/input and claim evidence at every safety boundary; never cache it as authorization. The bulk reader writes none of these files. Receiver-only persisted updates retain existing atomic replacement and locked claim semantics.
+
 ## Design decisions for resume-paused
 
 These are the explicit user decisions reviewed in round 8. Q01-Q14 were
