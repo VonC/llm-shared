@@ -1,4 +1,4 @@
-"""Exercise scenario contracts, runtime verification and complete result aggregation."""
+"""Exercise prepared/collision contracts with typed, isolated cache storage."""
 
 from __future__ import annotations
 
@@ -9,24 +9,30 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+from tools import pytest_plugin_environment
 from tools.lifecycle_compatibility import (
     behavior_runner,
     behavior_scenarios,
     environment,
     runner,
+    shell_runner,
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
     from pathlib import Path
 
 _CASE_TIMEOUT = 30
-_ALL_SCENARIOS = 16
+_ALL_SCENARIOS = 26
 
 
 @pytest.mark.parametrize("case", behavior_scenarios.cases(), ids=lambda case: case.name)
 def test_executable_scenarios_keep_real_contracts(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, case: behavior_scenarios.Case) -> None:
     """Generated code, fixed loading, diagnostics and summary counts remain real."""
     calls: list[list[str]] = []
+    def cache_root(_environment: Mapping[str, str]) -> Path:
+        return tmp_path / "loader-cache"
+    monkeypatch.setattr(pytest_plugin_environment, "default_cache_root", cache_root)
     compile(case.source, case.name, "exec")
     compile(case.conftest, "conftest.py", "exec")
     class Child:
@@ -118,13 +124,17 @@ def test_runner_all_mode_validates_versions_and_aggregates(tmp_path: Path, monke
     monkeypatch.setattr(environment, "verify", verify)
     monkeypatch.setattr(runner, "run_smoke", smoke)
     monkeypatch.setattr(behavior_runner, "run_case", case_result)
+    def shells(root: Path) -> list[dict[str, object]]:
+        assert root == tmp_path / "windows-shell"
+        return [{"scenario": "windows-shell", "passed": None, "status": "not run"}]
+    monkeypatch.setattr(shell_runner, "run_all", shells)
     assert runner.main([str(tmp_path), "--all"]) == 0
     assert len(probes) == 1
     results = json.loads((tmp_path / "summary.json").read_text(encoding="utf-8"))["scenarios"]
     assert len(results) == _ALL_SCENARIOS
     assert results == [{"scenario": name, "passed": True} for name in (
         *runner.scenarios.NAMES, *(case.name for case in behavior_scenarios.cases()),
-    )]
+    )] + [{"scenario": "windows-shell", "passed": None, "status": "not run"}]
 
 
 # eof

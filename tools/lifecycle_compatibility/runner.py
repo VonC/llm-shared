@@ -6,6 +6,8 @@ The explicit --all mode also validates executable policy behaviors and actual
 interpreter/dependency observations. Each runtime retains separate evidence.
 Failed probes print their observations and bounded controller output before
 the automatic preflight removes its temporary evidence directory.
+Barrier children disable unrelated built-ins and assertion rewriting; their
+real fixtures, collection hooks, xdist transport and audit checks stay active.
 """
 
 from __future__ import annotations
@@ -83,6 +85,12 @@ def run_smoke(evidence: Path, scenario: str = "invalid") -> dict[str, object]:
     command = [sys.executable, "-m", "pytest", "-c", str(root / "pytest.ini"),
                "--rootdir", str(root), "--confcutdir", str(root),
                "-p", "xdist.plugin", "-p", "llm_shared_process_audit",
+               "--assert=plain", "-p", "no:cacheprovider", "-p", "no:logging",
+               "-p", "no:doctest", "-p", "no:junitxml", "-p", "no:pastebin",
+               "-p", "no:debugging", "-p", "no:faulthandler", "-p", "no:unittest",
+               "-p", "no:unraisableexception", "-p", "no:threadexception",
+               "-p", "no:tmpdir", "-p", "no:legacypath", "-p", "no:monkeypatch",
+               "-p", "no:recwarn", "-p", "no:stepwise", "-p", "no:setupplan", "-p", "no:setuponly",
                "-n", "2", "--max-worker-restart=0", "-q", str(root)]
     child = subprocess.Popen(  # noqa: S603 - fixed executable and generated project
         command, cwd=root, env=isolated_environment(), stdout=subprocess.PIPE,
@@ -120,21 +128,24 @@ def _all_cases(evidence: Path) -> list[dict[str, object]]:
         behavior_runner,
         behavior_scenarios,
         environment,
+        shell_runner,
     )
 
     environment.verify(Path(__file__).resolve().parents[2], Path(sys.executable), sys.version_info[:2])
     results = [run_smoke(evidence / name, name) for name in scenarios.NAMES]
     results.extend(behavior_runner.run_case(evidence / case.name, case) for case in behavior_scenarios.cases())
+    results.extend(shell_runner.run_all(evidence / "windows-shell"))
     return results
 
 
 def _report(evidence: Path, results: list[dict[str, object]]) -> None:
     """Expose bounded failure diagnostics before temporary logs are removed."""
     for result in results:
-        sys.stdout.write(f'Compatibility {result.get("scenario", "probe")}: {"passed" if result["passed"] else "FAILED"}\n')
-        if not result["passed"]:
+        status = "not run" if result["passed"] is None else ("passed" if result["passed"] else "FAILED")
+        sys.stdout.write(f'Compatibility {result.get("scenario", "probe")}: {status}\n')
+        if result["passed"] is False:
             sys.stdout.write(json.dumps(result, sort_keys=True) + "\n")
-            log = evidence / str(result.get("scenario", "probe")) / "controller.log"
+            log = Path(str(result.get("log", evidence / str(result.get("scenario", "probe")) / "controller.log")))
             if log.is_file():
                 sys.stdout.write("\n".join(log.read_text(encoding="utf-8").splitlines()[-40:]) + "\n")
         sys.stdout.flush()
@@ -153,7 +164,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                "xdist": version("pytest-xdist"), "scenarios": results}
     (evidence / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     _report(evidence, results)
-    return 0 if all(result["passed"] for result in results) else 1
+    return 0 if all(result["passed"] is not False for result in results) else 1
 
 
 if __name__ == "__main__":
