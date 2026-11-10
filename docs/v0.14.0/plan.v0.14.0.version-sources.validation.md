@@ -1708,8 +1708,49 @@ No existing feature or reporting capability appears impaired.
 
 ### Analysis of Step 7 implementation state
 
-Not started. Step 7 is not implemented because no expat scanner or `maven`
-adapter exists yet.
+Yes. Step 7 has been fully implemented.
+
+`tools/release_workflow/sources/xml_scan.py` records wanted element text with
+its expat byte span, and the `maven` adapter, split between
+`tools/release_workflow/sources/maven.py` (reactor discovery) and
+`tools/release_workflow/sources/maven_references.py` (reference rules), sits
+between `npm` and `pattern`, completing the design's order. It keeps each
+module's own version, each internal parent version and each literal internal
+dependency or dependency-management version on the snapshot form, leaves
+`${project.version}`, absent managed versions, external parents,
+dependencies, plugins and properties unchanged, and refuses properties,
+ranges, profile modules, unresolvable groups, out-of-section internal
+references and versions inherited from outside the reactor before any write.
+Every POM it reads goes through the project's physical path policy first, so
+modules, sources and claims use physical paths. The Maven fixture sets and the
+combined five-file project joined the restoration matrix. Every planned test
+and completion check is in place, and the command printed by `pw scope day`
+reports `exit=0`.
+
+Reviewer assessment for round 1: No. Module POM paths were only normalized
+lexically, so a junction alias could bypass the physical file claim conflict
+with a declared component, and discovery did not apply the project path
+boundary before returning module sources.
+
+Writer update for round 2: `paths.authorize_in` now holds the physical path
+policy that `authorize_path` applies, `AdapterSettings.authorize` exposes it to
+adapters, and the Maven adapter authorizes the root POM and every module POM
+before reading it, keeping the physical path for modules, sources and claims.
+Regressions cover the aliased component conflict (refused by `versions set`
+before any write), two links to one module, modules outside the project and in
+a nested repository, directly and through junctions, and supported in-project
+links and component siblings.
+
+Reviewer assessment for round 2: the round 1 finding is resolved. Root and
+module POM authorization precedes reads, physical paths reach the existing
+claim registry, and the path regressions exercise the production settings
+policy. Authorizing the root POM also closes a linked-file entry point; the
+module refusal identifies its declaring POM, declaration and policy reason.
+The shared path-policy extraction preserves `authorize_path` behavior. The
+writer's full speed walk ended 2026-11-10T18:40:00+01:00 with 6,193 tests,
+`exit=0 cov=100 outliers=0 excluded=0 proof=speed reused=none`. Static review
+finds no remaining implementation or unit coverage gap; the reviewer did not
+rerun tests or coverage. The validation resolver matches the request.
 
 ### Goal for Step 7
 
@@ -1737,27 +1778,248 @@ adapter order.
 
 ### What was implemented for Step 7
 
-_(empty — no check has taken place yet.)_.
+- **XML scanner** (`sources/xml_scan.py`):
+  - `scan(content, name, wanted)` checks strict UTF-8, then parses the bytes
+    once with `xml.parsers.expat`, without namespace processing, keeping a
+    stack of open elements named by their slash-joined path. Each element
+    whose path the caller's expression fully matches becomes an `XmlValue`:
+    its text without the surrounding XML whitespace, the byte span of that
+    text (from the first character-data `CurrentByteIndex` to the end tag's,
+    moved inward past whitespace, so a byte-order mark and CRLF bytes count),
+    and its parent's start offset, which groups one `<dependency>`'s fields.
+  - A comment, CDATA section, processing instruction or child element inside
+    a wanted element, or span bytes that do not read as the parsed text (an
+    entity or character reference), become the value's `problem`. The text
+    stays readable for coordinates; `XmlValue.owned` refuses the span of such
+    a field, naming the file, the path and the markup.
+  - A declared encoding other than UTF-8, invalid UTF-8 and malformed XML fail.
+    `PomDocument` gives `first` and `every` through a path index built once.
+- **Reactor discovery** (`sources/maven.py`, `maven.ADAPTER`): name `maven`,
+  forms `{snapshot}`, default `snapshot`, candidate file `pom.xml`.
+  - The root `pom.xml` of each participating root starts a breadth-first
+    walk. Each `<module>` resolves against its declaring POM's directory, as
+    a POM file (`.xml`) or a directory's `pom.xml`, normalized. A missing
+    module POM and a module declared twice fail; modules inside a
+    `<profile>` fail as ambiguous.
+  - Round 2: the root POM and every module POM go through
+    `AdapterSettings.authorize` before they are read. A path outside the
+    physical project root or entering a nested repository, directly or
+    through a link, fails naming the declaring POM and the module; otherwise
+    the physical path identifies the module, its sources and their claims, so
+    two links to one POM are one module declared twice and a linked module
+    that is also a component is claimed twice.
+- **Path policy seam** (round 2, outside the plan's file list):
+  `paths.authorize_in(root, supplied)` holds the existing physical policy,
+  which `authorize_path(identity, supplied)` now delegates to unchanged;
+  `AdapterSettings.authorize(path)` in `sources/model.py`;
+  `settings.authorize_source` and `VersionSettings.authorize` apply it from
+  the physical project root and turn its refusal into a `SourceError`.
+  - Coordinates: the literal `artifactId` and the literal own or `<parent>`
+    `groupId`; a property, a missing value, a root element other than
+    `<project>` and an unreadable file fail.
+  - Rendering returns the text bytes; `has_project_version` reports a
+    candidate only for a POM with its own version text.
+- **Reference rules** (`sources/maven_references.py`, plan decision Q10):
+  - `PomModule` and `index`, the `(groupId, artifactId)` map; duplicate
+    coordinates fail.
+  - Own version: owned when present. When absent, the `<parent>` chain must
+    stay inside the reactor and end in a module with its own version, each
+    module's chain resolved once; an external parent, no parent and a loop
+    fail with the remedy to declare a literal version.
+  - Internal `<parent>` (literal coordinates naming a module): its version is
+    owned and required; an external parent is never edited.
+  - Each `<dependency>`, wherever it appears, is grouped from its recorded
+    fields. One naming a module's `artifactId` is internal with a literal
+    group or exactly `${project.groupId}` resolving to a module; another
+    literal group is external; any other group, or none, fails as ambiguous
+    (design decision Q12). An internal entry outside `project/dependencies`
+    and `project/dependencyManagement/dependencies` fails (plan decision
+    Q15). In those sections an absent version and exactly `${project.version}`
+    stay; other versions are owned as
+    `<section>/dependency[<group>:<artifact>]/version`, with `#2` and on for
+    repeated entries.
+  - Owned values must be literal: empty values, property expressions and
+    ranges fail naming file, field and expression. Plugins and `<properties>`
+    are never read.
+- **Registry** (`sources/__init__.py`): `ADAPTERS = (anchor, python, npm,
+  maven, pattern)`, the final order; `xml_scan` and `maven_references` join
+  `SUPPORT_MODULES`.
+- **Test support** (`version_support.py`): `gav`, `pom_xml`, `DEMO_GROUP` and
+  `reactor_poms` (my-project's shape); `pair_edit` now keys its result by
+  path relative to the root, so a reactor's several `pom.xml` stay apart; the
+  `maven-reactor` (CRLF, external parent, plugin `${project.version}`),
+  `maven-inherited` (byte-order mark, inherited versions, internal managed
+  and `${project.version}` dependencies, four writes) and `combined`
+  (`version.txt`, Python, npm, Maven and a pattern source, five writes)
+  restoration sets.
+- **Tests**:
+  - `test_version_formats/test_xml_scan_tdd.py`: wanted paths among decoys,
+    in LF, CRLF and behind a byte-order mark, with parent grouping; lookups;
+    whitespace and attributes around an owned element; empty, self-closing
+    and blank elements; the six kinds of markup inside an owned element;
+    accepted and refused encodings, invalid UTF-8, malformed and empty input;
+    byte offsets after multi-byte text.
+  - `test_version_formats/test_version_formats_pbt.py` (property test
+    needed): generated POMs with inner whitespace, attributes, indentation,
+    decoys, line endings and an optional byte-order mark; the three owned
+    spans hold their values and replacing them changes only those values.
+  - `test_maven_sources/test_maven_sources_tdd.py`: my-project's shape
+    through `detection.detect` with one load per POM; the release core;
+    recursive, relative and file modules; missing, repeated and profile
+    modules; the inherited group; coordinate failures; non-POM files; no
+    POM; the `core` form refused by configuration; candidates and rendering.
+  - `test_maven_sources/test_maven_references_tdd.py`: owned literal entries,
+    managed and `${project.version}` entries, the inheritance chain,
+    ambiguous and external groups, expressions and ranges in dependency,
+    project and parent versions, POMs without a version under an external
+    parent or without a parent, internal parent failures, untouched external parents,
+    dependencies, plugins and properties, out-of-section internal references
+    and ignored external ones, repeated entries, duplicate coordinates, a
+    loop, markup in an owned field, and the component that is also a module.
+  - `test_version_registry_tdd.py`: the final order and support modules;
+    `test_version_restoration_tdd.py`: the three new sets at every write
+    position.
+- **Validation evidence**:
+  - An expat probe in the scratch directory confirmed that
+    `CurrentByteIndex` counts the byte-order mark and raw CRLF bytes, that
+    references arrive as separate decoded character events and that CDATA
+    has its own event.
+  - Tests first: `ghog single` on the new and changed leaves failed at
+    collection (five errors, `ImportError: cannot import name 'maven'`;
+    2026-11-10T17:56).
+  - After the implementation, the step 7 leaves with the restoration,
+    detection, settings, npm, Python and evidence leaves passed (311 tests).
+  - `ghog day --whole-suite`, the command printed by `pw scope day`, first
+    failed at check.bat (pyright: a `Literal`-keyed dict in the property
+    test); after the annotation it reported `exit=0` (2026-11-10T18:04).
+  - `rg -n 'xml.etree' tools/release_workflow/sources` and
+    `rg -n 'subprocess' tools/release_workflow/sources` find nothing; the
+    registry test pins `("anchor", "python", "npm", "maven", "pattern")`.
+  - Round 1 review validation: `ghog day --full=speed --whole-suite` exit 0,
+    `cov=100 outliers=0 excluded=0` (2026-11-10T18:12). The reviewer found the
+    lexical module paths (P2) by static review.
+  - Round 2: the path tests in `test_maven_sources_tdd.py` (aliased
+    component conflict through `set_versions` with no source or evidence
+    write, two links to one module, outside, linked outside, nested and
+    linked nested modules with the files unchanged, supported linked and
+    sibling modules) and the Maven, paths, managed-files, settings,
+    detection, restoration, Python and npm leaves passed (304 tests). A first
+    run wrote the nested repository marker as a file, which the memory
+    filesystem keeps as a directory; the fixture now writes `.git/HEAD`.
+- **Line counts** (after round 2): `xml_scan.py` 191 (advisory 220),
+  `maven.py` 158 (advisory 220), `maven_references.py` 243 (advisory 280),
+  `version_support.py` 464 (+67, advisory +50), new test files 149, 281 and
+  236 (advisory 180, 260 and 320), `test_version_formats_pbt.py` +48
+  (advisory +40), `test_version_restoration_tdd.py` +2 (advisory +40: the
+  new sets run through the existing parametrized matrix, so only its
+  docstring changed), registry +2, initializer 3. Outside the plan's list,
+  for the round 2 path policy: `paths.py` 152 to 164, `sources/model.py` 456
+  to 469, `sources/settings.py` 193 to 210. Every Python file stays below
+  650; the split guidance was not needed.
 
 ### New types or classes introduced for Step 7
 
-_(empty — no check has taken place yet.)_.
+- `tools.release_workflow.sources.xml_scan`: `XmlValue`, `PomDocument` and
+  `scan` (private `_Open` and `_Scan`).
+- `tools.release_workflow.sources.maven`: `MavenAdapter`, `ADAPTER` and
+  `reactor`.
+- `tools.release_workflow.sources.maven_references`: `PomModule`,
+  `Coordinates`, `index`, `literal_coordinate` and `owned_sources` (private
+  `_Dependency` and `_Rules`).
+- Test support: `version_support.gav`, `pom_xml`, `reactor_poms` and
+  `DEMO_GROUP`; the `test_maven_sources` test folder.
+- Round 2 path policy: `tools.release_workflow.paths.authorize_in`;
+  `AdapterSettings.authorize`; `VersionSettings.authorize` and
+  `settings.authorize_source`; `RootSettings.authorize` in test support.
 
 ### Architecture check for Step 7
 
-_(empty — no check has taken place yet.)_.
+- **Layering**: the scanner, the adapter and the reference rules are domain
+  code of the `sources` package. Source bytes come through `FileView`, and
+  path authorization comes through the settings port. They never write, take
+  the lock or start a process.
+  They import only the standard library (`xml.parsers.expat`, no element
+  tree) and the `sources` model and scanner.
+- **Module split** (plan decision Q10): `maven.py` owns discovery and
+  coordinates; `maven_references.py` owns the index and the owned-field
+  rules and declares no adapter; the dependency runs one way, from `maven` to
+  `maven_references`.
+- **Claims and path boundary** (round 2): the adapter reaches the project's
+  physical path policy through the `AdapterSettings.authorize` port, which
+  `VersionSettings` implements with `paths.authorize_in`, the same policy
+  `authorize_path` applies to managed destinations, so the domain imports no
+  foundation path code and the policy lives once. Discovered POMs are keyed by
+  their physical path, and the existing claim registry refuses one physical
+  field claimed through a junction alias and a component root.
+
+No, there is nothing that needs to be addressed: no DDD-Hexagonal violation or
+smell is visible in this step.
 
 ### Performance check for Step 7
 
-_(empty — no check has taken place yet.)_.
+- **No new `O(n^2)` or `O(n log n)` path**: expat parses each POM once and
+  each wanted value is measured once; the path index of a document is built
+  once. Discovery visits each module once through a breadth-first queue and
+  a set of declared paths. The reference rules use the coordinates
+  dictionary and a set of module `artifactId`s for each dependency, group a
+  document's dependency fields in one pass, and resolve each module's
+  inheritance chain once, remembering the modules already resolved, so
+  the work stays linear in modules and dependencies.
+- **Bounded side effects**: none; detection reads the root `pom.xml` of each
+  participating root and the module POMs it declares, each once per view.
+- **Path policy**: one authorization per discovered POM checks its spelling
+  and resolved ancestors, with work proportional to path depth. It performs
+  no directory-tree scan or Git subprocess.
+
+No, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 7
 
-_(empty — no check has taken place yet.)_.
+The coverage gate measures `tools` only (`[tool.coverage.run] source`), with
+`*/tests/*` and `*/__init__.py` omitted.
+
+- **`tools/release_workflow/sources/xml_scan.py`**: `test_version_formats/`
+  reaches every handler (declaration, start, characters, comment, CDATA,
+  processing instruction, end), the problem and reference paths, empty
+  elements, `owned`, the lookups and every failure; covered.
+- **`tools/release_workflow/sources/maven.py`**: `test_maven_sources_tdd.py`
+  reaches discovery, file and directory modules, every failure, the
+  authorization failure of a module outside the project or in a nested
+  repository (directly and through junctions), linked and sibling modules,
+  the no-POM root, rendering and candidates; covered.
+- **`tools/release_workflow/sources/settings.py`** (`authorize`,
+  `authorize_source`) and **`tools/release_workflow/paths.py`**
+  (`authorize_in`): reached through `detection.detect` in the path tests,
+  success and refusal; `authorize_path` keeps its existing tests; covered.
+- **`tools/release_workflow/sources/maven_references.py`**: the two Maven
+  test files reach every owned field, every inheritance branch (own version,
+  internal chain, external parent, no parent, loop), every dependency branch
+  (external, ambiguous, out of section, kept, managed, repeated) and every
+  literal-value failure; covered.
+- **Files outside the gate**: every new `version_support.py` symbol is
+  referenced by the Step 7 tests and the restoration registry.
+
+No, there is no unit-tested class below 100% that needs completing for Step 7.
+No, none of the top-level symbols added outside the coverage gate is
+unreferenced.
 
 ### Feature integrity for Step 7
 
-_(empty — no check has taken place yet.)_.
+- **Existing feature behavior**: no shipped command uses the version domain
+  before Step 9. Registering `maven` adds reactor detection at every
+  participating root; the Step 2 to 6 version tests pass unchanged, and
+  `pair_edit` callers keep their keys because their files sit at the root.
+- **Reporting or diagnostics**: every refusal is a status 2 `SourceError`
+  naming the POM, the element or field and the remedy; a module outside the
+  project or in a nested repository is refused at detection, naming the
+  declaring POM, the module and the path policy's reason.
+- **Compatibility or rollout note**: `[source:maven] form` accepts only
+  `snapshot`. Internal plugin declarations are outside the reference model,
+  as the design's "plugins are never written" states; an internal dependency
+  of a plugin or a profile fails. `paths.authorize_path` keeps its behavior;
+  it now delegates to `authorize_in`.
+
+No existing feature or reporting capability appears impaired.
 
 ---
 
