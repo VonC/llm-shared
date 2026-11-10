@@ -1065,8 +1065,47 @@ tested.
 
 ### Analysis of Step 5 implementation state
 
-Not started. Step 5 is not implemented because no TOML scanner, `python`
-adapter, lock evidence recorder or recorded uv evidence exists yet.
+Yes. Step 5 has been fully implemented.
+
+`tools/release_workflow/sources/toml_scan.py` locates the single-line
+`version` string of `[project]` or of the named `[[package]]` block, and
+`tools/release_workflow/sources/python.py` registers the `python` adapter
+between `anchor` and `pattern`. The adapter pairs `pyproject.toml` with its
+`uv.lock`, lists tool-only files, and rejects dynamic or missing versions,
+orphan and ambiguous locks, unregistered lock schemas, uv workspaces and
+local links between participating components before any write. The
+registered schemas `(1, 3)` and `(1, 5)` are exactly those of the five uv
+0.13.4 records in the committed `lock_evidence.v1.json`, which the hand-run
+recorder produced and a test checks against the current adapter edit. The
+Python fixture sets joined the restoration matrix. Every planned test and
+completion check is in place, and the command printed by `pw scope day`
+reports `exit=0`.
+
+Reviewer assessment for round 1: the staged implementation satisfies Step 5.
+Commit readiness remains blocked: the required review command is
+`ghog day --full=speed --whole-suite`, and both disclosed attempts failed
+lifecycle timing gates, withholding coverage and duration-outlier verdicts.
+The plain day pass and focused reruns do not replace that mandatory evidence.
+
+Writer update for round 2: the radix-order overruns came from Hypothesis's
+local-constants scan, which now runs once per worker after collection, in a
+separate suite commit. The latest required walk still failed, only on wall
+overruns with CPU within its limit, at high host load from other workloads;
+the user directed to move on when CPU is under budget. Coverage and duration
+verdicts remain withheld, so coverage is still assessed statically.
+
+Reviewer assessment for round 2: Step 5 remains fully implemented; its 18
+implementation, test and evidence paths are unchanged from round 1. The
+collection hook performs Hypothesis's initial constants scan before the
+garbage-collector freeze and measured tests, without changing budgets,
+profiles or example counts. The latest log contains 30 wall-only lifecycle
+errors, each within its applicable CPU limit, and no assertion failure.
+Under the explicit human direction, "If CPU is under budget, do move on",
+those errors no longer block this round's advisory commit-ready conclusion.
+The command still exited 2: measured coverage and duration-outlier verdicts
+remain unavailable, and no green speed walk or absence of outliers is claimed.
+Static coverage review finds no Step 5 gap. The independently checked commit
+plan is ready with three accurate groups; no implementation repair was made.
 
 ### Goal for Step 5
 
@@ -1097,27 +1136,254 @@ at `0.14.0`, every other byte unchanged).
 
 ### What was implemented for Step 5
 
-_(empty — no check has taken place yet.)_.
+- **TOML scanner** (`sources/toml_scan.py`):
+  - `locate(text, table, *, package=None)` reads the text line by line (LF
+    or CRLF), tracking the current table header and each `[[array]]` block.
+    A small lexer follows strings, comments and brackets, so a line inside a
+    multi-line string, an open array or an inline table never reads as a
+    header or an assignment, and a header it cannot read (a quoted key) ends
+    the current table.
+  - The owned field is the single-line `version = "..."` (basic or literal
+    string, any spacing, optional comment) written directly in `[project]`,
+    or directly in the one `[[package]]` block whose `name` is the requested
+    package; sub-tables such as `[package.metadata]` are other tables.
+    Dotted keys, inline tables and multi-line strings are not located and
+    fail as unsupported layouts with the remedy to write the plain
+    assignment; no or several matching blocks, and a doubled assignment,
+    fail as ambiguous.
+  - `byte_span(text, bom, table, value, *, package=None)` also requires the
+    located text to equal the `tomllib` value (an escape fails) and maps the
+    span to bytes through `model.to_byte_spans`.
+- **Python adapter** (`sources/python.py`, `python.ADAPTER`): name `python`,
+  forms `{core}`, default `core`, candidate file `pyproject.toml`.
+  - A manifest without `[project]` gives `not-participating tool-only`
+    records for it and its lock. A version listed in `dynamic`, missing or
+    not a string, and a file that is not UTF-8 or TOML, fail naming the file
+    and the remedy.
+  - `uv.lock` must carry a registered `(version, revision)` schema,
+    `REGISTERED_LOCK_SCHEMAS = frozenset({(1, 3), (1, 5)})`, documented next
+    to the evidence record identifiers, and exactly one `[[package]]` with
+    the project's normalized name (`normalize`: lowercase, runs of `-`, `_`
+    and `.` as one `-`) and a `virtual = "."` or `editable = "."` source. A
+    missing project name, zero or several such packages, and a root package
+    without a version string fail before any write. An absent lock is not
+    generated; a lock without a manifest fails as an orphan. The lock source
+    names its manifest.
+  - Rejections before any write: a participating manifest declaring
+    `[tool.uv.workspace]`, with or without a lock; a tool-only project root
+    whose workspace `members`, net of `exclude`, match a component root
+    (`PurePosixPath.full_match` relative to the project root, by the
+    filesystem's case rules); a lock whose `[manifest]` lists members; a
+    `workspace = true` source; a `[tool.uv.sources]` `path` (table or list
+    form) or a `file:` direct reference in dependencies, optional
+    dependencies or dependency groups (`${PROJECT_ROOT}` expanded) whose
+    destination, resolved against the declaring root, is a participating
+    root, named with both components. Git, URL, index and outside paths stay
+    external and unchanged.
+  - Rendering returns the bytes between the quotes; `has_project_version`
+    reports a candidate only for a static project version string.
+- **Registry** (`sources/__init__.py`): `ADAPTERS = (anchor, python,
+  pattern)`; `toml_scan` joins `SUPPORT_MODULES`.
+- **Settings seam** (`sources/model.py`, `sources/settings.py`):
+  `AdapterSettings` gains `components` (the declared component roots by id)
+  and `participant(path)`, which names the participating root a physical
+  path is. `model.participant_names` builds the index that
+  `VersionSettings` keeps once per settings value, so each local-link lookup
+  is constant time.
+- **Lock evidence** (plan decisions Q03, Q04 and Q06):
+  - `tests/unit/tools/release_workflow/lock_evidence_recorder.py`, started by
+    hand and never imported by a test, records each scenario in a new
+    temporary directory outside the repository, without any `UV_*`
+    variable. It writes the virtual or editable manifest at `0.13.0`, lets uv
+    write the revision 5 lock (`uv lock --offline --no-config --python
+    <python>`), derives revision 3 by setting the revision line (provenance
+    recorded) and the CRLF variant of the virtual revision 3 pair. It runs
+    `uv lock --locked --offline --no-config --python <python>` on the
+    "before" pair, on the pair the production adapter plans for `0.14.0`
+    (`version_support.python_pair_edit`) and on the manifest-only control,
+    and writes the JSON with sorted keys, LF endings and `<uv>` and
+    `<python>` placeholders, refusing any host path.
+  - `test_version_lock_evidence/lock_evidence.v1.json` holds five uv 0.13.4
+    records (`v1r5` virtual and editable, `v1r3` virtual, editable and
+    virtual CRLF). In each, the "before" and edited runs exit 0 with both
+    files unchanged, and the manifest-only control exits 1 ("needs to be
+    updated") with both files unchanged.
+- **Test support** (`version_support.py`): `RootSettings.components` and
+  `participant`; `pyproject_toml` and `uv_lock` builders for virtual and
+  editable roots, `crlf`, `REGISTRY_PACKAGE`; the `python-virtual` and
+  `python-editable` restoration sets (three writes each, the editable one
+  CRLF with a snapshot anchor); `python_pair_edit`.
+- **Tests**:
+  - `test_version_formats/test_toml_scan_tdd.py`: quotes, spacing and
+    comments; other tables and sub-tables ignored; the named block among
+    several; lines inside strings, arrays and inline tables; the dotted,
+    inline and multi-line layouts; unread headers, missing or doubled blocks
+    and assignments; an escape; a mark, accented and non-BMP text before the
+    value in a manifest and in an earlier lock block, LF and CRLF.
+  - `test_version_formats/test_version_formats_pbt.py` (property test
+    needed): generated manifests and locks with decoys locate the parsed
+    value, and replacing it keeps every other character. Each example draws
+    an integer triple and one bit field decoded into the layout, so the
+    25-example budget stays inside the lifecycle limit.
+  - `test_python_sources/test_python_sources_tdd.py`: llm-shared's shape, an
+    editable CRLF root, zero or two lock roots, orphan, absent lock, tool-only
+    with and without lock, dynamic, missing, non-string and escaped
+    versions, unparsable TOML and UTF-8, unregistered schemas (revision 4,
+    `version = true`, no revision), no project name, no root version, a
+    snapshot anchor giving `core` edits through detection, candidates and
+    rendering.
+  - `test_python_sources/test_python_links_tdd.py`: every workspace and link
+    case above, including one link between `.release.ini` components through
+    `detection.detect`, a tool-only workspace below the project root, and
+    the external references.
+  - `test_version_lock_evidence/test_version_lock_evidence_tdd.py`: records
+    for every registered pair and layout; tool, version, schema, layout, line
+    endings, command and provenance; both accepted runs unchanged and the
+    control refused; the adapter reproducing each recorded edited pair; a
+    pair outside the registry failing detection; no host path. The JSON is
+    read once per session through the `evidence` fixture.
+  - `test_version_registry_tdd.py`: the order `("anchor", "python",
+    "pattern")` and the support modules; `test_version_restoration_tdd.py`:
+    the Python sets at every write position through the registry.
+- **Validation evidence**:
+  - Tests first: `ghog single` on the new and registry leaves failed at
+    collection (six errors, `ImportError: cannot import name 'python'`;
+    2026-11-10T07:46).
+  - After the implementation, only the two properties exceeded the 0.1 s CPU
+    lifecycle limit (0.109 s and 0.141 s); the cheaper encoding fixed them
+    without lowering the example budget.
+  - Recorder run by hand on 2026-11-10 with the project venv's uv 0.13.4 and
+    Python 3.13.9: five records, written with no host path.
+  - `ghog day --whole-suite`, the command printed by `pw scope day`, first
+    failed at check.bat (pyright: an unknown list type; ruff: magic values,
+    two six-argument functions, an S105 false positive on a lexer variable).
+    After the fixes, and a constant-time participant lookup found by self
+    review, it reported `exit=0` (2026-11-10T08:29).
+  - `rg -n 'subprocess' tools/release_workflow/sources` finds nothing.
+  - Reviewer round 1: the request discloses two failed required
+    `ghog day --full=speed --whole-suite` attempts (an anchor property CPU
+    overrun, then seven wall overruns in other leaves). Both reported
+    `cov=withheld outliers=withheld`. No full walk or coverage measurement
+    was repeated by the reviewer. The writer must establish a green required
+    walk, with coverage and duration verdicts, before commit readiness.
+  - Two focused runs at 66 % and 96 % host CPU load reported wall-time
+    overruns in unchanged Step 4 tests (CPU inside its limit); they passed at
+    35 % load. No budget was changed and nothing was excluded.
+  - Round 2 (writer): each radix batch takes 10 to 35 ms on its own, but
+    Hypothesis's local-constants scan looks up the path of every loaded
+    module on Windows and landed inside the first property test of each
+    worker. `tests/conftest.py` now runs that scan once per worker after
+    collection, in its own `perf(tests)` commit; the radix and anchor property
+    leaves then passed at 92 % host load. The whole-suite speed walk of
+    2026-11-10T09:30 passed check.bat and the affected tests; its full stage
+    failed only on 30 wall overruns (1.0 to 3.5 s) with CPU within its limit
+    (at most 0.19 s), at 78 % host load from other workloads, so coverage and
+    duration verdicts were withheld again. The user directed to move on when
+    CPU is under budget. No budget was changed and nothing was excluded.
+- **Line counts**: `toml_scan.py` 164 (advisory 170), `python.py` 307
+  (advisory 430), `lock_evidence_recorder.py` 209 (advisory 220),
+  `version_support.py` 356 (+66, advisory +50), test files 132, 100, 202,
+  142 and 131 (advisory 200, 120, 280, 260 and 140), initializers 3 each,
+  `lock_evidence.v1.json` 431 (no Python ceiling). Two files outside the
+  plan's list changed for the settings seam: `sources/model.py` 410 to 437
+  and `sources/settings.py` 175 to 193. Every Python file stays below 650;
+  the split guidance for `python.py` was not needed.
 
 ### New types or classes introduced for Step 5
 
-_(empty — no check has taken place yet.)_.
+- `tools.release_workflow.sources.toml_scan`: `locate` and `byte_span`.
+- `tools.release_workflow.sources.python`: `PythonAdapter`, `ADAPTER`,
+  `REGISTERED_LOCK_SCHEMAS` and `normalize`.
+- `tools.release_workflow.sources.model`: `AdapterSettings.components`,
+  `AdapterSettings.participant` and `participant_names`.
+- `tools.release_workflow.sources.settings`: `VersionSettings.participant`.
+- Test support: `version_support.pyproject_toml`, `uv_lock`, `crlf`,
+  `python_pair_edit`, `REGISTRY_PACKAGE`, `DEMO`, `RootSettings.components`
+  and `participant`; the recorder's `Scenario`, `Tools`, `record` and `main`;
+  the `test_version_formats`, `test_python_sources` and
+  `test_version_lock_evidence` test folders.
 
 ### Architecture check for Step 5
 
-_(empty — no check has taken place yet.)_.
+- **Layering**: the scanner and the adapter are domain code of the
+  `sources` package, a pure function of file bytes and settings. They read
+  only through the `FileView`, resolve declared link destinations with
+  `Path.resolve` (the plan's physical comparison), and never write, take the
+  lock or start a process: `rg -n 'subprocess' tools/release_workflow/sources`
+  finds nothing. They import only the standard library and `sources.model`.
+- **Ports**: the adapter learns the participating roots through the
+  `AdapterSettings` protocol (`components`, `participant`), not through the
+  settings module or the configuration loader, so the domain keeps one
+  inward-facing seam.
+- **Evidence boundary**: the process-starting recorder lives in the test
+  tree, is never imported by a test and is not part of the engine (plan
+  decision Q03); production code holds only the registered schema pairs.
+
+No, there is nothing that needs to be addressed: no DDD-Hexagonal violation or
+smell is visible in this step.
 
 ### Performance check for Step 5
 
-_(empty — no check has taken place yet.)_.
+- **No new `O(n^2)` or `O(n log n)` path**: the scanner visits each line once
+  and jumps between lexer tokens with regular expressions; block selection
+  and the version list are linear in the located assignments. The adapter
+  reads each of its two files once per view, scans the lock's packages once,
+  and answers each local-link destination with one lookup in an index built
+  once per settings value. Workspace members are matched once per component,
+  at the project root only.
+- **Bounded side effects**: none; detection probes two fixed file names per
+  participating root, and the only filesystem query besides those reads is
+  resolving each declared local destination.
+
+No, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 5
 
-_(empty — no check has taken place yet.)_.
+The coverage gate measures `tools` only (`[tool.coverage.run] source`), with
+`*/tests/*` and `*/__init__.py` omitted.
+
+- **`tools/release_workflow/sources/toml_scan.py`**: `test_version_formats/`
+  reaches every lexer branch (escape, comment, triple and single quotes,
+  brackets), both header kinds and the unread header, both block failures,
+  both assignment failures and the escape refusal; covered.
+- **`tools/release_workflow/sources/python.py`**: `test_python_sources/` and
+  the evidence test reach every failure and both lock outcomes, the tool-only
+  records with and without a lock, every workspace and link rule, the
+  external references, rendering and the candidate cases; covered.
+- **`sources/model.py`** (`participant_names`) and **`sources/settings.py`**
+  (`VersionSettings.participant`): reached through `RootSettings` and
+  through the link test that runs `detection.detect` with `.release.ini`
+  components; covered.
+- **Files outside the gate**: every new `version_support.py` symbol is
+  referenced by the Step 5 tests. The recorder's top-level symbols are
+  referenced inside its own module from `main`; by design (plan decision
+  Q03) no test imports it, and its output is checked through the committed
+  JSON.
+
+No, there is no unit-tested class below 100% that needs completing for Step 5.
+No, none of the top-level symbols added outside the coverage gate is
+unreferenced.
+
+Reviewer round 1: static inspection found no missing exercise of the added
+production functions or test-support symbols. This is a static assessment,
+not a measured coverage percentage; the required speed walks withheld their
+coverage verdicts. The recorder's symbols are connected through its module
+entry point and the committed output is checked without starting uv in tests.
 
 ### Feature integrity for Step 5
 
-_(empty — no check has taken place yet.)_.
+- **Existing feature behavior**: no shipped command uses the version domain
+  before Step 9. Registering `python` adds detection of `pyproject.toml` and
+  `uv.lock` at every participating root; the Step 2 to 4 version tests, which
+  use the shipped tuple, pass unchanged, and the readiness metadata checks
+  keep their own parser.
+- **Reporting or diagnostics**: every refusal is a status 2 `SourceError`
+  naming the file and the remedy, and a local link names both components.
+- **Compatibility or rollout note**: `[source:python] form = core` remains
+  the only accepted override. Step 6 adds the npm records to the same
+  evidence file and the `--npm` and `--node-dir` recorder arguments.
+
+No existing feature or reporting capability appears impaired.
 
 ---
 
