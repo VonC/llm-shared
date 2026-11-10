@@ -7,6 +7,8 @@ unchanged. No real directories, processes or waits implement scenarios.
 Preparation cache publication, shell-transfer scratch, compatibility evidence
 and groundhog activation, compatibility preflight, CLI, selection and artifact-contract scenarios use
 this same route.
+Shared-policy acceptance also routes generated consumer resources here; its
+local source adapter lets the real Python loader read those in-memory files.
 """
 
 from __future__ import annotations
@@ -64,6 +66,7 @@ _SCENARIOS = (
     "tests/unit/tools/test_groundhog_group_coverage/",
     "tests/unit/tools/test_full_suite_levels_acceptance/",
     "tests/acceptance/markdown_check/", "tests/unit/tools/serve_docs/",
+    "tests/acceptance/shared_lifecycle/",
     "tests/unit/tools/git_history_diagrams/",
     "tests/unit/tools/test_groundhog_status.py",
     "tests/unit/tools/test_groundhog_snapshot",

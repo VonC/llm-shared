@@ -44,8 +44,9 @@ def run_inline(root: Path, *arguments: str, plugins: tuple[object, ...] = ()) ->
                 "-p", "no:debugging", "-p", "no:terminalprogress",
                 "-p", "no:assertion",
                 "-p", "no:tmpdir", "-p", "no:legacypath",
-                # Generated cases create no finalizers. Avoid the child plugin's
-                # repeated full-process garbage collections during cleanup.
+                # Generated cases exercise explicit fixture cleanup. They do
+                # not need the child plugin's repeated full-process garbage
+                # collections to discover unrelated unraisable exceptions.
                 "-p", "no:unraisableexception",
                 "-q", *arguments,
             ], plugins=list(plugins))
