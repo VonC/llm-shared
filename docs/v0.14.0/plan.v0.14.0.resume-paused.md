@@ -125,7 +125,7 @@ Do not add a separate timeout/xfail Step 0. The first step is the required host-
 
 ## Numbered implementation steps
 
-A bare Qxx in a framing line means the consolidated design decision table; requirement decisions are explicitly written as requirement Qxx. Plan questions below are separate pending implementation choices.
+A bare Qxx in a framing line means the consolidated design decision table; requirement decisions are explicitly written as requirement Qxx. Plan Q01–Q04 refer to the consolidated Implementation decisions table below.
 
 ### Step 1. Validate pane-tied host profiles before input
 
@@ -142,6 +142,7 @@ A bare Qxx in a framing line means the consolidated design decision table; requi
 
 **Files involved**:
 
+- `tests/unit/tools/resume_paused_test_support.py` (new, to be created).
 - `tools/resume_paused_profiles.py` (new, to be created).
 - `tools/resume_paused_claude.py` (new, to be created).
 - `tools/resume_paused_codex.py` (new, to be created).
@@ -151,6 +152,8 @@ A bare Qxx in a framing line means the consolidated design decision table; requi
 - `tests/unit/tools/test_resume_paused_profiles/test_resume_paused_profiles_tdd.py` (new, to be created).
 
 **Tests first**: Prove Codex pre-input version from its attributable pane banner or pane-tied process metadata; reject caller CLI versions and post-delivery metadata as pre-input proof. Exercise Claude session-id/version/cwd linkage, watcher start/completion/restart, positive no-task evidence, and notification-versus-typed-input distinctions. Reject ambiguous, masked, truncated and unsupported evidence. Cover recognized caller ancestry inside and outside TUIOS and ordinary human shells with unavailable ancestry.
+
+Create pure synthetic host, pane and session builders in `tests/unit/tools/resume_paused_test_support.py`, following `review_exchange_test_support.py`. Share them with later unit and acceptance tests; keep scenario assertions local and split support by responsibility if needed.
 
 **Types and behavior**: Define typed host/profile/input observations, subprocess and clock protocols, and minimal allowlisted parsing. Codex initial complete-input proof requires one unique matched session file, exact latest user text/cwd/time, and unique launch-prefix then Working in its pane. Later validation retains only nonsecret matched identity and launch id, then rechecks the same unique file/latest input and live bindings after scroll-off. Confirm supported Codex new-conversation syntax from read-only evidence; never experiment by typing.
 
@@ -162,6 +165,7 @@ Define the Codex candidate set in the profile evidence document: enumerate regul
 
 **Line-budget checkpoint**:
 
+- `tests/unit/tools/resume_paused_test_support.py`: before 0; below 550, safe to extend; ceiling 650. Advisory initial size 0–400.
 - `tools/resume_paused_profiles.py`: before 0; below 550, safe to extend; ceiling 650. Advisory initial size 0–400.
 - `tools/resume_paused_claude.py`: before 0; below 550, safe to extend; ceiling 650. Advisory initial size 0–400.
 - `tools/resume_paused_codex.py`: before 0; below 550, safe to extend; ceiling 650. Advisory initial size 0–400.
@@ -189,6 +193,8 @@ All non-Python file baselines are recorded above; new non-Python files start at 
 - **Feature preservation**: Preserve legacy manual consent/readability, review-role isolation and existing ownership fencing while adding only the behavior assigned here.
 
 #### Step 2 implementation
+
+**Read dependencies**: `tests/unit/tools/resume_paused_test_support.py` from Step 1 supplies shared synthetic evidence builders; it is not a mutation target of this step.
 
 **Files involved**:
 
@@ -240,6 +246,8 @@ All non-Python file baselines are recorded above; new non-Python files start at 
 
 #### Step 3 implementation
 
+**Read dependencies**: `tests/unit/tools/resume_paused_test_support.py` from Step 1 supplies shared synthetic evidence builders; it is not a mutation target of this step.
+
 **Files involved**:
 
 - `instructions/pause-session.md` (existing, to be updated).
@@ -288,8 +296,11 @@ All non-Python file baselines are recorded above; new non-Python files start at 
 
 #### Step 4 implementation
 
+**Read dependencies**: `tests/unit/tools/resume_paused_test_support.py` from Step 1 supplies shared synthetic evidence builders; it is not a mutation target of this step.
+
 **Files involved**:
 
+- `tests/unit/tools/resume_paused_receiver_test_support.py` (new, to be created).
 - `tools/resume_paused_marker.py` (new, to be created).
 - `tools/resume_paused_validation.py` (new, to be created).
 - `tools/resume_paused_claim.py` (new, to be created).
@@ -309,13 +320,13 @@ All non-Python file baselines are recorded above; new non-Python files start at 
 - `tests/unit/tools/test_resume_paused_claims/__init__.py` (new, to be created).
 - `tests/unit/tools/test_resume_paused_claims/test_resume_paused_claims_tdd.py` (new, to be created).
 
-**Tests first**: Test version/encoding/duplicate/length rejection, canonical UTF-8 JSON SHA-256, root/digest/role/pair/session/pane/host mismatches and exact exchange round/occurrence. Test shared-daemon inherited-pane spoofing, two matching session files, newer user input, missing/ambiguous session evidence and Codex prefix scroll-off after initial proof. At every protected-write hook change evidence and assert no write/claim. Test truthful consumed receipt retained if later claim fails; manual unmarked consent remains unchanged. Instruction-contract tests cover schema-3 receipt reuse detection in `resume-session`. Test new claim clears/replaces old binding, idempotent/current-owner transitions retain it, and competing pickups invalidate it.
+**Tests first**: Test version/encoding/duplicate/length rejection, canonical UTF-8 JSON SHA-256, root/digest/role/pair/session/pane/host mismatches and exact exchange round/occurrence. Test shared-daemon inherited-pane spoofing, two matching session files, newer user input, missing/ambiguous session evidence and Codex prefix scroll-off after initial proof. Use the test-only shared receiver harness against temporary receipt/journal files, calling the real validator and real locked claim. Change evidence before each protected step and assert no write/claim on failure; pair these scenarios with separate instruction-contract tests. Test prompt, routing and locked-exchange changes, missing carried Codex session identity or launch id, and a carried launch id differing from the marker; every rejection leaves the claim unchanged. Test truthful consumed receipt retained if later claim fails; manual unmarked consent remains unchanged. Instruction-contract tests cover schema-3 receipt reuse detection in `resume-session`. Test new claim clears/replaces old binding, idempotent/current-owner transitions retain it, and competing pickups invalidate it.
 
 Test success and failure compact-result grammar and the 100-character bound. Smoke-test the separate agent-callable `bin/resume_paused_validate.bat` with temporary fixtures for argument forwarding, UTF-8 JSON output and exit codes, following the existing review-resume launcher smoke-test convention. This invokes only the read-only validator, never the bulk launcher.
 
-**Types and behavior**: Encode compact markers with random launch id first, full pane UUID, role and assignment digest. Return typed nonsecret validation JSON and a nonsecret initial matched-session identity for subsequent fresh checks. Revalidate immediately before receipt replacement, journal writes, backfill and ownership claim; do not cache authorization. Persist schema-3 nonsecret receipt bindings only in the receiver. `resume-session` reads schema 1, 2 and 3 receipts for reuse detection and writes the schema-3 variant only on a marked resume. Extend CoordinationRecord with marked launch/pane/host/assignment/round/occurrence/issued-generation evidence. Thread optional marked-claim context through parser, CLI, `claim_selected`, store and `OwnershipService` (input and derivation per plan Q04); retain locked round/occurrence rechecks and stale-record comparison. Keep ownership capabilities in session memory and existing digest storage only; no claim history or authorization file.
+**Types and behavior**: Encode compact markers with random launch id first, full pane UUID, role and assignment digest. Return typed nonsecret validation JSON and a nonsecret initial matched-session identity for subsequent fresh checks. Revalidate immediately before receipt replacement, journal writes, backfill and ownership claim; do not cache authorization. Persist schema-3 nonsecret receipt bindings only in the receiver. `resume-session` reads schema 1, 2 and 3 receipts for reuse detection and writes the schema-3 variant only on a marked resume. Extend CoordinationRecord with marked launch/pane/host/assignment/round/occurrence/issued-generation evidence. Thread the raw marker and carried Codex session identity/launch id through parser, CLI, `claim_selected`, store and `OwnershipService`; retain locked round/occurrence rechecks and stale-record comparison. Keep ownership capabilities in session memory and existing digest storage only; no claim history or authorization file.
 
-The source of that validated claim binding remains pending plan Q04. Do not treat caller-copied fields as an accepted implementation choice. Before implementation, apply the user's selected option and its corresponding prompt/routing/exchange-change tests while retaining fresh pre-claim receiver validation and the locked round/occurrence rechecks.
+Under the transition lock, parse the raw marker and recompute its assignment digest from the current prompt, routing and locked exchange; reject changed or mismatched data atomically without writing a claim. For a Codex host, require the carried session identity and launch id and reject a carried launch id differing from the marker. Record only derived nonsecret binding fields: launch id, pane, host, assignment binding, round, occurrence and issued generation. The claim reads no host session file and has no TUIOS dependency; a separate fresh validator call immediately before claim supplies pane and complete-input proof. The test-only receiver harness proves its executed sequence and instruction contract, with no production receipt writer or new authorization mechanism; it cannot prove arbitrary live-agent compliance.
 
 **Completion criteria**: Both receiving workflows invoke fresh validation before each protected mutation. Every receiving outcome emits the profile's compact result of at most 100 characters (launch id, outcome, optional claim generation, never a token or digest); on a stopping Claude turn it is the first line of the final response, and a failure emits it before stopping or asking. Marked claim evidence is atomic with its generation, never added by a later bulk write. Existing manual claim, role conflict, fencing and review isolation regressions pass. Run this step's listed test files with the shared targeted command, inspect its affected contracts with `rg`, and obtain exit 0 from the exact command printed by the scope resolver in the same repair cycle. Later steps remain unimplemented until separately checked.
 
@@ -323,6 +334,7 @@ The source of that validated claim binding remains pending plan Q04. Do not trea
 
 **Line-budget checkpoint**:
 
+- `tests/unit/tools/resume_paused_receiver_test_support.py`: before 0; below 550, safe to extend; ceiling 650. Advisory initial size 0–400.
 - `tools/resume_paused_marker.py`: before 0; below 550, safe to extend; ceiling 650. Advisory initial size 0–400.
 - `tools/resume_paused_validation.py`: before 0; below 550, safe to extend; ceiling 650. Advisory initial size 0–400.
 - `tools/resume_paused_claim.py`: before 0; below 550, safe to extend; ceiling 650. Advisory initial size 0–400.
@@ -359,6 +371,8 @@ All non-Python file baselines are recorded above; new non-Python files start at 
 - **Feature preservation**: Preserve legacy manual consent/readability, review-role isolation and existing ownership fencing while adding only the behavior assigned here.
 
 #### Step 5 implementation
+
+**Read dependencies**: `tests/unit/tools/resume_paused_test_support.py` from Step 1 supplies shared synthetic evidence builders; it is not a mutation target of this step.
 
 **Files involved**:
 
@@ -407,6 +421,8 @@ All non-Python file baselines are recorded above; new non-Python files start at 
 
 #### Step 6 implementation
 
+**Read dependencies**: `tests/unit/tools/resume_paused_test_support.py` from Step 1 supplies shared synthetic evidence builders; it is not a mutation target of this step.
+
 **Files involved**:
 
 - `tools/resume_paused_guard.py` (new, to be created).
@@ -452,6 +468,8 @@ All non-Python file baselines are recorded above; new non-Python files start at 
 
 #### Step 7 implementation
 
+**Read dependencies**: `tests/unit/tools/resume_paused_test_support.py` from Step 1 supplies shared synthetic evidence builders; it is not a mutation target of this step.
+
 **Files involved**:
 
 - `tools/resume_paused_takeover.py` (new, to be created).
@@ -495,6 +513,8 @@ All non-Python file baselines are recorded above; new non-Python files start at 
 
 #### Step 8 implementation
 
+**Read dependencies**: `tests/unit/tools/resume_paused_test_support.py` from Step 1 supplies shared synthetic evidence builders; it is not a mutation target of this step. `tests/unit/tools/resume_paused_receiver_test_support.py` from Step 4 supplies the receiver harness.
+
 **Files involved**:
 
 - `tools/resume_paused.py` (new, to be created).
@@ -507,11 +527,15 @@ All non-Python file baselines are recorded above; new non-Python files start at 
 - `tests/acceptance/resume_paused/__init__.py` (new, to be created).
 - `tests/acceptance/resume_paused/fakes.py` (new, to be created).
 - `tests/acceptance/resume_paused/test_resume_paused_acceptance/__init__.py` (new, to be created).
-- `tests/acceptance/resume_paused/test_resume_paused_acceptance/test_resume_paused_acceptance_tdd.py` (new, to be created).
+- `tests/acceptance/resume_paused/test_resume_paused_acceptance/test_resume_paused_cli_safety_tdd.py` (new, to be created).
+- `tests/acceptance/resume_paused/test_resume_paused_acceptance/test_resume_paused_delivery_tdd.py` (new, to be created).
+- `tests/acceptance/resume_paused/test_resume_paused_acceptance/test_resume_paused_continuation_tdd.py` (new, to be created).
 
 **Tests first**: Exercise CLI parser/help and recognized agent rejection (including preview), whole no-input dry run, independent failures, single-agent resume, cross-host author override, requestor/reviewer role conflict, switched pair and later continuation, --clear, blocked/draft/busy panes, custom homes, malformed artifacts, duplicate guard race and exact receiver protected-write failures. Run process-boundary acceptance with fake tuios and real temporary artifact files, invoking receiver validation/claim code rather than merely asserting expected mocks. Cover installed tuitp grammar fixtures and legacy manual resumes. Assert no live TUIOS is needed or invoked.
 
-Verify `bin/resume_paused.bat` statically: its self-locating launcher selects the shared Python and forwards arguments only to `tools/resume_paused.py`. Agents never execute it, including help or preview. Parser/main acceptance uses injected caller/transport; live Windows launcher and pane-delivery validation remains human evidence, distinct from these automated checks. Receiver test harnesses prove their executed sequence and instruction contract, not arbitrary live-agent compliance. Shared support and acceptance grouping remain pending Q01–Q03, with their exact proposed files listed below rather than silently adopted.
+Verify `bin/resume_paused.bat` statically: its self-locating launcher selects the shared Python and forwards arguments only to `tools/resume_paused.py`. Agents never execute it, including help or preview. Parser/main acceptance uses injected caller/transport; live Windows launcher and pane-delivery validation remains human evidence, distinct from these automated checks. Receiver test harnesses prove their executed sequence and instruction contract, not arbitrary live-agent compliance. Import the approved Step 1 evidence builders and Step 4 receiver harness through the read dependencies above; keep scenario assertions in their owning acceptance module and transport fakes in `fakes.py`.
+
+Acceptance ownership: `test_resume_paused_cli_safety_tdd.py` covers caller rejection, dry run, exclusion/switch validation, reporting/exit codes, `tuitp` grammar and legacy manual resumes. `test_resume_paused_delivery_tdd.py` covers clear, transport, guard races, recovery Enter and receiver protected-write failures. `test_resume_paused_continuation_tdd.py` covers takeover, reviewer leave-alone, pending/activation and later/switched continuation. Keep the eight numbered steps unchanged.
 
 **Types and behavior**: Implement only documented --dry-run, --clear, repeatable --except NAME[,NAME...] and --switch-roles forms; no timeout overrides. Use one compact line per prompt-bearing checkout and omitted-pane count; distinguish accepted/unconfirmed, reviewer pending, exclusions, contention and errors. Exit 0 for expected skips/pending/success, 1 for execution/classification failures, 2 for syntax. State human-only and agent prohibition in help and canonical docs. Ship updated pause/resume/status/list instructions, validator and review tools together; older installs fail closed on new marked data.
 
@@ -527,7 +551,9 @@ Verify `bin/resume_paused.bat` statically: its self-locating launcher selects th
 - `tests/acceptance/resume_paused/__init__.py`: before 0; below 550, safe to extend; ceiling 650. Advisory initial size 0–400.
 - `tests/acceptance/resume_paused/fakes.py`: before 0; below 550, safe to extend; ceiling 650. Advisory initial size 0–400.
 - `tests/acceptance/resume_paused/test_resume_paused_acceptance/__init__.py`: before 0; below 550, safe to extend; ceiling 650. Advisory initial size 0–400.
-- `tests/acceptance/resume_paused/test_resume_paused_acceptance/test_resume_paused_acceptance_tdd.py`: before 0; below 550, safe to extend; ceiling 650. Advisory initial size 0–400.
+- `tests/acceptance/resume_paused/test_resume_paused_acceptance/test_resume_paused_cli_safety_tdd.py`: before 0; below 550, safe to extend; ceiling 650. Advisory initial size 0–400.
+- `tests/acceptance/resume_paused/test_resume_paused_acceptance/test_resume_paused_delivery_tdd.py`: before 0; below 550, safe to extend; ceiling 650. Advisory initial size 0–400.
+- `tests/acceptance/resume_paused/test_resume_paused_acceptance/test_resume_paused_continuation_tdd.py`: before 0; below 550, safe to extend; ceiling 650. Advisory initial size 0–400.
 
 All non-Python file baselines are recorded above; new non-Python files start at 0. Recount all files at execution time.
 
@@ -537,127 +563,15 @@ All non-Python file baselines are recorded above; new non-Python files start at 
 
 **Time-gated status for Step 8**: Full acceptance uses injected time and controlled synchronization; record complete lifecycle timing through groundhog and preserve shared test budgets.
 
+## Implementation decisions
+
+| Question | Decision and rationale | Integrated in | Rejected alternatives |
+| --- | --- | --- | --- |
+| Q01 | A: Pure shared synthetic host, pane and session builders keep unit and acceptance evidence consistent; scenario assertions remain local. | [Step 1](#step-1-implementation); read dependencies in Steps 2–8. | Duplicating builders per test leaf risks fixture drift. |
+| Q02 | A: A shared test-only receiver harness calls the real validator and locked claim against temporary files, with evidence changes before every protected step and separate instruction-contract checks. Its proof covers that sequence and contract, not arbitrary live-agent compliance. | [Step 4](#step-4-implementation), [Step 8](#step-8-implementation). | Text-contract checks alone omit executable write-boundary regressions; a production writer or new authorization mechanism is outside this choice. |
+| Q03 | A: Start acceptance in separate CLI/safety, delivery and continuation modules using the shared support. Each starts at 0, below 550 safe to extend, with ceiling 650; eight steps remain unchanged. | [Step 8](#step-8-implementation). | A single growing scenario module mixes responsibilities and would need a later split. |
+| Q04 | A: Derive marked-claim binding from raw marker/current prompt/routing/locked exchange under the transition lock; validate Codex carried identity/launch id and reject mismatches without a claim write. Fresh pane/input proof remains a separate pre-claim validator call. | [Step 4](#step-4-implementation). | Caller-copied binding fields can drift from locked evidence; reading host session files inside claim would mix host validation with ownership mutation. |
+
 ## Completion handoff and validation limits
 
 Map the requirement acceptance criteria to Step 8 scenarios and record profile feasibility, fake-run evidence and whole-suite scope separately from human live validation. Keep the [deferred senv checklist](feature-request.v0.14.0.resume-paused.md#deferred-senv-integration-follow-up) unchecked: its separate effort still owes eligible-layout coverage for both hosts/review pairs, startup and daemon restoration, opt-out/native modes and saved/live pane-identity continuity. Open that effort at completion and revisit it when launch-time behavior changes. Preserve [the design's compatibility limits](design.v0.14.0.resume-paused.md#existing-tuitp-compatibility-and-later-shared-integration). No claim of full topic integration may rely on grammar fixtures alone.
-
-## Open questions for the v0.14.0 resume-paused implementation plan
-
-### Q01: Shared synthetic evidence fixtures across implementation steps
-
-Question description: Step 1 establishes host profiles, but later unit leaves and process acceptance tests need the same synthetic pane/session observations. Which file layout should own reusable fixture builders so the tests exercise one profile contract without importing another test module?
-
-#### BBQ for Q01
-
-Several cooks need the same measured ingredients; copying each recipe's measurements lets them drift. In this picture: the cooks are the unit and acceptance scenarios, the measurements are synthetic host/profile records, and the shared recipe card is a neutral test-support module.
-
-#### Options for Q01
-
-- Option A: Create `tests/unit/tools/resume_paused_test_support.py` in Step 1, new, with pure synthetic host, pane and session builders imported by unit leaves and `tests/acceptance/resume_paused`, following the existing `review_exchange_test_support.py` convention; split by responsibility if growth would exceed 650 physical lines.
-  - pro: One evidence vocabulary and no cross-imports from test functions; later steps extend helpers by responsibility.
-  - con: Introduces a shared support module that must stay free of scenario-specific assertions.
-- Option B: Keep fixture builders local to each step's test leaf and recreate acceptance inputs independently.
-  - pro: Each suite is self-contained and has no shared support dependency.
-  - con: Duplicated supported-profile fixtures can disagree as layouts and negative cases evolve.
-
-#### Recommended option for Q01
-
-Option A: The profiles are shared contracts across receiver, planner and transport tests. A neutral pure support module follows the existing repository convention without sharing runtime safety caches.
-
-#### Answer to Q01: option A
-
-Option A: The profiles are shared contracts across receiver, planner and transport tests. A neutral pure support module follows the existing repository convention without sharing runtime safety caches. If accepted, add `tests/unit/tools/resume_paused_test_support.py` to Step 1 (new, baseline 0, below 550 safe-to-extend band, ceiling 650), record it as a read dependency in later steps, and keep scenario assertions local.
-
-User decision: confirmed — Option A. Create shared pure synthetic evidence builders in Step 1; keep scenario assertions local.
-
-Decision date: 2026-11-10. User selected A. Rationale: one evidence vocabulary across unit and acceptance tests follows the existing test-support convention and reduces fixture drift.
-
-### Q02: Receiver write-boundary harness for receipt and journal regressions
-
-Question description: Step 4 requires fresh validation before receipt replacement, journal writes, backfill and claims. The claim path is executable Python, while receipt/journal sequencing is currently expressed in LLM instructions. How should tests distinguish an executed protected-write boundary from a textual instruction assertion?
-
-#### BBQ for Q02
-
-Checking that a kitchen checklist says to wash hands does not show the cook did so before each dish. In this picture: the checklist is the receiving instruction, hand washing is fresh marker validation, dishes are receipt/journal/claim mutations, and an observed cooking rehearsal is the receiver sequencing harness.
-
-#### Options for Q02
-
-- Option A: Add a test-only receiver harness at `tests/unit/tools/resume_paused_receiver_test_support.py` in Step 4, shared with Step 8 acceptance. Execute the documented validation/write sequence against temporary receipt/journal files using the real validator module and real locked claim, changing evidence between every protected step, plus separate instruction-contract tests.
-  - pro: Evidence explicitly separates executed data-path protection from the instruction contract; stale-input changes can be injected at every boundary.
-  - con: The test harness must be maintained alongside instruction sequencing and cannot prove that an arbitrary live agent obeys it.
-- Option B: Use instruction-text checks for receipt/journal sequencing and execute only the existing Python claim boundary.
-  - pro: Requires less test support and avoids modeling an LLM workflow.
-  - con: Cannot demonstrate the intended no-write behavior for receipt/journal changes after evidence becomes stale.
-
-#### Recommended option for Q02
-
-Option A: A declared harness plus text-contract checks gives useful deterministic regression coverage while stating its live-agent proof limit. It adds no production receipt writer or new authorization mechanism.
-
-#### Answer to Q02: option A
-
-Option A: A declared harness plus text-contract checks gives useful deterministic regression coverage while stating its live-agent proof limit. It adds no production receipt writer or new authorization mechanism. If accepted, list `tests/unit/tools/resume_paused_receiver_test_support.py` in Step 4 (new, baseline 0, below 550 safe-to-extend band, ceiling 650) as shared support used by Step 8. The harness calls the real validator and locked claim with evidence changes between protected steps. Carry the explicit live-agent proof limit into Step 8 acceptance and the validation plan.
-
-User decision: confirmed — Option A. Add the shared test-only receiver harness with real validator and locked-claim calls, evidence changes between protected steps, and separate instruction-contract checks. Preserve the explicit limit: this cannot prove arbitrary live-agent compliance.
-
-Decision date: 2026-11-10. User selected A. Rationale: executable stale-evidence scenarios provide regression evidence for receipt and journal write boundaries alongside instruction checks.
-
-### Q03: Acceptance scenario grouping before the final matrix grows
-
-Question description: Step 8 lists one acceptance scenario file for a large matrix spanning caller rejection, protected writes, paired continuation, transport races and compatibility. How should that matrix be divided so each responsibility stays readable without turning advisory size estimates into a stricter limit?
-
-#### BBQ for Q03
-
-A pantry is easier to inspect when shelves group ingredients by use before the pile becomes too large. In this picture: the pantry is the acceptance package, the shelves are scenario modules, the ingredients are end-to-end cases, and the shelf capacity is the existing 650-line Python ceiling.
-
-#### Options for Q03
-
-- Option A: Start Step 8 with separate CLI/safety, delivery and paired-continuation acceptance modules under the listed leaf, sharing only package fakes.
-  - pro: Makes coverage ownership visible and reduces pressure to grow one large scenario file.
-  - con: Adds several small modules and requires clear fixture ownership.
-- Option B: Keep one acceptance file initially, extracting by responsibility only if it would exceed 650 physical lines.
-  - pro: Minimizes initial file count and remains valid under the existing line-budget policy.
-  - con: The full matrix can become difficult to navigate before it reaches the ceiling.
-
-#### Recommended option for Q03
-
-Option A: The scenario groups already follow distinct implementation steps. Splitting by those responsibilities improves review without inventing a mandatory lower size target.
-
-#### Answer to Q03: option A
-
-Option A: The scenario groups already follow distinct implementation steps. Splitting by those responsibilities improves review without inventing a mandatory lower size target. If accepted, replace the single scenario file in Step 8 with three new modules under `tests/acceptance/resume_paused/test_resume_paused_acceptance/`: `test_resume_paused_cli_safety_tdd.py` owns caller rejection, dry run, exclusion and switch validation, reporting/exit codes, `tuitp` grammar and legacy manual resumes; `test_resume_paused_delivery_tdd.py` owns clear, transport, guard races, recovery Enter and receiver protected-write failures; `test_resume_paused_continuation_tdd.py` owns takeover, reviewer leave-alone, pending/activation, later and switched continuation. Each starts at baseline 0 in the below-550 safe-to-extend band with ceiling 650. Realign validation expectations; the eight numbered steps do not change.
-
-User decision: confirmed — Option A. Start Step 8 with separate CLI/safety, delivery and continuation acceptance modules, using the approved shared test support. Keep the existing 650-line ceiling and eight numbered steps.
-
-Decision date: 2026-11-10. User selected A in the native choice. Rationale: separate responsibilities make coverage ownership visible and scenarios easier to review.
-
-### Q04: Source of the durable marked-claim binding
-
-Question description: Step 4 records launch id, pane, host, assignment binding, round, occurrence and issued generation in the coordination record, and Step 7 treats that record as takeover proof. Should `claim` record values it derives from the marker, or values the receiver copies from an earlier validator result?
-
-#### BBQ for Q04
-
-A grill cook writes the order ticket from the customer's own order card rather than a waiter's retelling. In this picture: the card is the marker, the retelling is validator output copied into claim arguments, and the ticket is the durable marked claim later trusted by the bulk tool.
-
-#### Options for Q04
-
-- Option A: `claim` accepts the raw marker and, for Codex, the carried session identity and launch id. Under the transition lock it parses the marker, recomputes the assignment digest from the current prompt, routing and locked exchange, and records only derived nonsecret values. Pane and complete-input proof come from the validator call immediately before, as required by the design.
-  - pro: No hand-copied durable values; digest validation shares the round/occurrence lock, without adding TUIOS or host session-file dependencies to claim.
-  - con: Adds marker parsing and assignment reconstruction dependencies to claim; live pane/input proof still depends on the preceding separate call.
-- Option B: The receiver passes the validator's returned binding fields as claim arguments; `claim` checks syntax and the locked round/occurrence only.
-  - pro: Keeps claim generic and smallest.
-  - con: A stale or mistyped field can become takeover proof without matching the current prompt and exchange at claim time.
-- Option C: `claim` runs the full validator in process, including live pane and complete-input proof, and records its result.
-  - pro: Gives the narrowest window between proof and record.
-  - con: Adds TUIOS calls and host session-file reads to the review claim path and couples claim tests to host evidence adapters.
-
-#### Recommended option for Q04
-
-Option A: Derive durable takeover evidence without moving host evidence into the review exchange core; retain the design's separate fresh pre-claim validator call.
-
-#### Answer to Q04: option A
-
-Option A: Derive durable takeover evidence without moving host evidence into the review exchange core; retain the design's separate fresh pre-claim validator call. If accepted, thread an optional raw marker and carried Codex identity through parser, CLI, `claim_selected`, store and `OwnershipService`; under the transition lock recompute and compare the assignment digest and record only derived nonsecret fields. Add Step 4 tests for a marker no longer matching the current prompt, routing or exchange, including atomic rejection without a claim write. Existing Step 4 files own this work and retain their recorded baselines and 650-line ceilings.
-
-User decision: confirmed — Option A. Derive the durable marked-claim binding from the raw marker and current assignment under the transition lock, carrying the required Codex identity. Retain separate fresh live pane/input validation immediately before claiming ownership.
-
-Decision date: 2026-11-10. User selected A. Rationale: reconstructing and checking current assignment data prevents stale copied binding fields from becoming takeover evidence while keeping host observation separate from claim handling.
