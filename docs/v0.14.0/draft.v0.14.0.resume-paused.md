@@ -184,6 +184,9 @@ for `Working`. It protects the person's draft and forbids retyping or repeated
 Enter when submission is uncertain; the requirement defines the evidence and
 pane-targeted delivery for independent review.
 
+The design's complete-input proof under Q02 and Q14 replaces the original
+acceptance rules below.
+
 - Type with the call already proven:
   `tuios ask-agent --select 'session:S name:N' --yes --stall-timeout 60000
   --timeout 100000 --lines 1 --json -- <command>`, one worker per pane, all
@@ -220,10 +223,41 @@ HISTORICAL agent-run example: SKIP senv/Claude senv: this pane, run resume-sessi
 
 ## Deferred senv integration after resume-paused
 
+Legacy migration means preparing an older table-only pause for the new JSON
+routing reader before bulk use. The user requested this study on 2026-11-09
+while choosing design Q01=B. A separate explicit conversion could preserve
+the task text and use only complete, independently verified assignments;
+incomplete prose must not become guessed pane addresses. Ordinary manual
+resume followed by a new pause remains the available route. Conversion is
+under study, not an implemented tool or an automatic bulk-launch operation.
+
 Q05 was confirmed as Option A on 2026-11-07: deliver the command for existing
 panes first. Integration means changing senv's `tuitp` launcher to reuse the
 shared command for its launch-time resume handling, instead of maintaining
 a separate waiting-prompt check.
+
+The current launcher reads the pause heading, `Session role`, exact prompt
+bytes and the receipt's `Prompt`, `SHA-256` and `Project root` lines, not its
+routing table. It ignores `Schema`; missing or malformed receipt lines stop
+startup resumption for that checkout. Preserving these grammars, including
+the three schema 2 receipt lines in schema 3, is a constraint of this delivery
+and must be checked with fixtures. Rewriting a consumed pause changes its
+digest and can make it look unused, including to the installed launcher's
+startup check. Startup pane selection and paired delivery also differ
+from the shared tool, so format compatibility alone does not establish that
+the launcher already follows the new routing rules. The design records the
+source inspection and the deferred integration checks.
+
+The user confirmed design Q10=C on 2026-11-09 and required that `tuitp` keep
+working and be able to resume all eligible sessions. The later integration
+must cover the full selected layout, both agent types and review pairs,
+including startup and daemon restoration, without duplicate resumption.
+Preserve default created/restored-session handling, opt-out and native
+conversation mode; already running eligible sessions use the shared command.
+Validate saved/live pane identity across restoration and agent startup rather
+than silently skipping every restored session or guessing replacement panes.
+The requirement checklist and design describe the required coverage evidence.
+This remains deferred integration work, not a claim of runtime compatibility.
 
 - [ ] After the shared command is implemented and validated, open a separate
   senv effort for `tuitp` integration. Revisit it at the resume-paused completion
