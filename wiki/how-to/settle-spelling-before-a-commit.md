@@ -12,8 +12,8 @@ this guide directly to check files outside those gates, or to see what the
 agent does at them.
 
 📊 Goal: every new or modified Markdown file of a commit reports no unknown
-word, with each finding either accepted in `.vscode/settings.json` or
-replaced. Source code is not spell-checked.
+word, with each finding either accepted in project and Windows user settings
+or replaced. Source code is not spell-checked.
 
 ## 🧰 Before the first check
 
@@ -52,19 +52,30 @@ replaced. Source code is not spell-checked.
    ```
 
 3. For each word, the agent asks one question that names the word, quotes
-   its line and lists its alternatives: add it to `.vscode/settings.json`,
-   or replace it with one of up to three alternatives, the cSpell
+   its line and lists its alternatives: add it to `.vscode/settings.json`
+   and, on Windows, `%APPDATA%\Code\User\settings.json`, or replace it with
+   one of up to three alternatives, the cSpell
    suggestions that fit or a rewording of its own when none does. Choose
    one, or type your own replacement.
 
-4. Add every accepted word in one call:
+4. Add every accepted word to the project in one call:
 
    ```powershell
    & "<LLM_SHARED_DIR>\bin\spellcheck.bat" add-words collectreport addfinalizer
    ```
 
-   The words land at their place in `cSpell.words`; stage
-   `.vscode/settings.json` with the files that needed them.
+   The words land at their place in the project's `cSpell.words`. The current
+   launcher updates only that file. On Windows, also edit
+   `%APPDATA%\Code\User\settings.json` to add the same approved words to its
+   `cSpell.userWords`, preserving the existing settings and comments. Use the
+   environment variable to resolve the path, never an expanded profile path;
+   in PowerShell use `$env:APPDATA`. Follow the
+   [user settings procedure](../../rules/spelling.md#keep-approved-project-additions-in-windows-user-settings).
+
+   Verify both lists contain every approved word, including words already
+   present in one list. If either update fails, report the failure and any
+   partial change before continuing. Stage `.vscode/settings.json` with the
+   files that needed the words; keep user settings local.
 
 5. Replace the other words at the listed locations, restage, and run step 2
    again until it exits `0`.
@@ -73,8 +84,9 @@ replaced. Source code is not spell-checked.
 
 - Do not skip a word because it sits in backticks or a code block.
 - Do not add an ignore pattern or a `cspell:ignore` comment.
-- Do not put project words into your VS Code user settings: other clones of
-  the project would still report them.
+- Do not add an approved word only to user settings: the project list must
+  also contain it so other clones share it.
+- Do not skip the Windows user settings update after a project addition.
 
 For the reasons behind the check, see
 [Why the spell check mirrors VS Code](../explanation/why-the-spell-check-mirrors-vs-code.md);

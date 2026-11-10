@@ -45,8 +45,12 @@ tool drops any other file it is given.
 cSpell reads code spans and code blocks like any other text, so a pytest hook
 name such as `collectreport` in backticks is reported too. No pattern skips
 those spans: a word the reader sees underlined is either accepted into the
-project's `.vscode/settings.json`, where every clone of the project shares it,
-or replaced. The suggestions cSpell offers for code names are often useless
+project's `.vscode/settings.json` under `cSpell.words`, where every clone of
+the project shares it, and on Windows into `%APPDATA%\Code\User\settings.json`
+under `cSpell.userWords`, where the user's
+other projects can recognize it too, or replaced. Adding to user settings
+alone would leave other clones without the project's accepted word list.
+The suggestions cSpell offers for code names are often useless
 (`collecteront` for `collectreport`), which is why the user, not the agent,
 picks between the two.
 
