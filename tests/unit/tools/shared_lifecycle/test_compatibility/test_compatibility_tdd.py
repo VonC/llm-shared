@@ -163,16 +163,19 @@ def test_timeout_kills_and_reaps_controller(
 
 
 def test_cli_records_real_versions_and_reports_failure(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """The CLI aggregates all scenarios and returns a failing executable verdict."""
+    """The CLI aggregates verdicts and exposes failures before evidence cleanup."""
     runs: list[str] = []
     def smoke(root: Path, scenario: str) -> dict[str, object]:
         runs.append(scenario)
         assert root.parent == tmp_path
-        return {"passed": scenario != "exit"}
+        (root / "controller.log").parent.mkdir(parents=True)
+        (root / "controller.log").write_text("controller failure detail\n", encoding="utf-8")
+        return {"scenario": scenario, "passed": scenario != "exit"}
     monkeypatch.setattr(runner, "run_smoke", smoke)
     assert runner.main([str(tmp_path)]) == 1
+    assert "controller failure detail" in capsys.readouterr().out
     assert runs == list(scenarios.NAMES)
     evidence = json.loads((tmp_path / "summary.json").read_text(encoding="utf-8"))
     assert evidence["python"]

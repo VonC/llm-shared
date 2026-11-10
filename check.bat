@@ -65,6 +65,10 @@ if "%ruff_status%"=="0" (
   call :record_failure ruff %ruff_status%
 )
 
+REM Static entry grammar and refusal boundary only; executable evidence is a day/full preflight.
+python -m tools.lifecycle_compatibility.static_entry
+if errorlevel 1 call :record_failure static-entry 1
+
 REM The radon report is a working file: it lives in the review artifact home
 REM (.reviews unless .review-artifacts.ini declares another home), never at
 REM the project root (see rules\artifact_files.md). A root copy left by an
