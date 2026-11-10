@@ -281,6 +281,9 @@ not end or restart a bounded protocol wait.
    or authorization for the owning action. Resume its private phase before
    re-presenting a generic menu. Its authorized follow-up uses the existing
    another-round label after all explicit user decisions are recorded.
+   The convergence menu precedes commit authorization. Apply
+   [`push-before-next-step.md`](../rules/push-before-next-step.md) after the
+   authorized owning action and final cleanup, before the next-phase handoff.
 8. Pass the selected display label to `confirm --choice-label <label>`. Add
    `--guidance-file <path>` only when the human supplied guidance. Another
    round returns active authority for a replacement request. A continuing

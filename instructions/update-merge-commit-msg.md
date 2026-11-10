@@ -79,6 +79,11 @@ Only run `git-reword-merge.sh` after a go-ahead entry is selected.
 
 ## Handoff to prepare-release
 
+Before a standalone next-step report or continuation after the successful
+rewrite, apply [`push-before-next-step.md`](../rules/push-before-next-step.md).
+When returning to an active `prepare-release` caller, that caller owns the
+push gate before its next-step handoff.
+
 This skill can run on its own or as one step of the `prepare-release`
 skill. Check for the flag file `a.prepare-release.active` in the review
 artifact home (`.reviews` unless `.review-artifacts.ini` declares another

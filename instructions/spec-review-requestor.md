@@ -212,9 +212,9 @@ the settled decision marker: the open-ended questions section is absent and
 the document contains its canonical clarification or decision record. Only
 after that verification succeeds may the requestor call `complete`.
 
-After `complete` removes the retained answer and coordination state, run
-`pw progress` through its launcher (see [`run-pw.md`](run-pw.md)). Ordinary
-document routing then selects the next workflow phase, printed on its `next`
+After `complete` removes the retained answer and coordination state, finish
+the cleanup and push below before running or displaying `pw progress`.
+Ordinary document routing then selects the next workflow phase on its `next`
 line, the same command bare `pw skill` prints. If consolidation
 failed or the settled decision marker is absent, leave the authorization durable,
 report the failure, and do not complete the exchange.
@@ -224,8 +224,11 @@ empty with `git status --porcelain`. When it lists anything, stage every
 remaining non-ignored change with `git add -A` and propose a
 [`group-commits-msg.md`](group-commits-msg.md) root `a.commit` for it, through
 that instruction's normal steps and human go-ahead menu; the `Consolidate`
-authorization does not cover these leftover commits. Once the tree is empty,
-run `pw progress` again when a leftover commit happened, then print its whole
+authorization does not cover these leftover commits. After any cleanup batch,
+rerun `git status --porcelain --untracked-files=all`; require a successful
+command and empty output immediately before the push. Once the tree is empty,
+apply [`push-before-next-step.md`](../rules/push-before-next-step.md), then
+run `pw progress` through its launcher (see [`run-pw.md`](run-pw.md)), then print its whole
 report verbatim: where the topic stands (branch, topic, umbrella position or
 standalone, phase, step) and its `next` line as the next step, with the prefix
 rule of [`../rules/command_prefix_char.md`](../rules/command_prefix_char.md).

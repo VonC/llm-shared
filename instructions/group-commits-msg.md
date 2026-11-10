@@ -83,6 +83,11 @@ self-locate and do not need an `senv.bat` pre-call.
    `.vscode/settings.json` joins the group of the files that needed its words:
    format `a.commit` again.
 
+   On Windows, each approved project addition must also reach `cSpell.userWords`
+   in `%APPDATA%\Code\User\settings.json`, following the same spelling rule.
+   The current launcher updates only the project file, so perform and verify
+   the user settings edit separately. Stage only the project settings file.
+
    Then run the
    focused read-only readiness checker, `commit-plan-check.bat --format json`,
    from the project root through its full path:
@@ -130,6 +135,18 @@ self-locate and do not need an `senv.bat` pre-call.
    If the file is valid, there is nothing more to do: `git_batch_commit.py` will have proceeded automatically to create one commit per group, with the corresponding commit message.
 
    When those commits complete a plan step whose private journal exists (see [`step-journal.md`](step-journal.md)), append a `commit` line with the new hashes to that journal and update its handoff.
+
+   Before reporting the completed batch or executing the contextual next
+   command, apply [`push-before-next-step.md`](../rules/push-before-next-step.md):
+   require a successful empty `git status --porcelain --untracked-files=all`,
+   with a final `git add -A` and grouped cleanup batch when needed, before
+   pushing. That rule preserves the human go-ahead for new cleanup commits.
+   This also applies when plain `Go ahead` ends the workflow. Authorized
+   review and consolidation continuations return to their owning workflow,
+   which applies the push gate after its final clean-tree check.
+   A final cleanup invocation delegated by the same push rule also returns
+   to its caller after the batch. The caller verifies the clean tree and
+   pushes; never recursively invoke another cleanup from that batch.
 
    Do not manually replay the groups with `git restore --staged`, `git add`,
    or `git commit` after a go-ahead. The approved go-ahead path is exactly the

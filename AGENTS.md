@@ -83,6 +83,12 @@ Before merging a branch back into any target branch, read and follow
 It defines the default merge method and required message rewrite, including
 the exception for an explicit user instruction.
 
+## Pushing before the next step
+
+Before displaying or executing a next step after a commit or convergence,
+read and follow
+[`rules/push-before-next-step.md`](rules/push-before-next-step.md).
+
 ## Diataxis documentation order
 
 Whenever a task creates or maintains a Diataxis documentation set, present and link its categories in this order:

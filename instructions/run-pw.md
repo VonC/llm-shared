@@ -64,6 +64,11 @@ For a `pw handoff` command, which writes `a.prompt.txt`, `a.prompt_memory`, and 
 
 ## What the command prints
 
+At an actual post-commit or convergence handoff, apply
+[`push-before-next-step.md`](../rules/push-before-next-step.md) before showing
+or following the printed next command or `pw progress` report. Read-only
+status requests and pre-commit menu lookups remain read-only.
+
 Before using or showing a host-prefixed workflow command printed by `pw`, read
 [`../rules/command_prefix_char.md`](../rules/command_prefix_char.md).
 

@@ -255,7 +255,12 @@ Spell-check the same Markdown files as
 [`../rules/spelling.md`](../rules/spelling.md) requires, and settle every reported word with the user before the gate: an
 accepted word goes into `.vscode/settings.json` through
 `spellcheck.bat add-words`, staged as polishing; a refused one is replaced in
-place. Never show `Commit` while an unknown word remains.
+place. On Windows, also add every approved project word to `cSpell.userWords` in
+`%APPDATA%\Code\User\settings.json`, following the same spelling rule. The
+current launcher updates only the project file: edit and verify the user
+settings separately, keep that file local, and stage only project settings.
+Never show `Commit` while an unknown word remains. Complete and verify both
+settings updates before presenting that choice.
 Compare the current requirement and group definitions with the round's bound
 scope and disclose any pending scope difference at this gate. Such changes
 are not polishing. Show the bound scope, current scope and changed definitions.
@@ -317,7 +322,10 @@ tree is empty with `git status --porcelain`. When it lists anything, stage every
 remaining non-ignored change with `git add -A` and propose a
 [`group-commits-msg.md`](group-commits-msg.md) root `a.commit` for it, through
 that instruction's normal steps and human go-ahead menu; the `Commit`
-authorization does not cover these leftover commits. Once the tree is empty,
+authorization does not cover these leftover commits. After any cleanup batch,
+rerun `git status --porcelain --untracked-files=all`; require a successful
+command and empty output immediately before the push. Once the tree is empty,
+apply [`push-before-next-step.md`](../rules/push-before-next-step.md), then
 run `pw progress` through its launcher (see [`run-pw.md`](run-pw.md)) and
 print its whole report verbatim: where the topic stands (branch, topic,
 umbrella position or standalone, phase, step position) and its `next` line as

@@ -62,15 +62,17 @@ Stop and report blockers discovered by these automatic checks. In particular,
 the dirty-tree gate below lists the changed files and offers the existing
 `group-commits-msg` path; it never silently continues. Pauses remain only for
 the explicit decisions, approvals, conflict resolutions, and release-note
-review described below. `brel`, tagging, and pushing remain outside this
-skill by design.
+review described below. `brel` and tagging remain outside this skill.
+Push the committed destination branch to `origin`, when configured, before
+each post-commit or post-merge next-step handoff under
+[`push-before-next-step.md`](../rules/push-before-next-step.md).
 
 ## Workflow model: gitworkflow topic graduation
 
 Use `gitworkflow` as one word for the specific topic-graduation workflow
 described by Git's own `gitworkflows(7)` documentation and the
 `rocketraman/gitworkflow` primer. Do not call this generic "Git flow" or imply
-that it is Vincent Driessen's GitFlow.
+that it is the GitFlow model.
 
 Map the roles as follows: `main` corresponds to gitworkflow's `master`, a
 feature branch corresponds to a topic, and `develop` serves the integration
@@ -143,12 +145,14 @@ Every user choice or approval pause in this instruction follows
 before each pause, then present only the concrete choices named by the current
 step.
 
-## What this skill never does
+## Release preparation boundaries
 
 - It never creates the git tag. `brel` does that, after your review.
-- It never pushes to a remote. It does fetch `origin/main` (read-only) to
-  find the latest main, but pushing main, and the tag `brel` makes, stays a
-  manual step you do afterwards.
+- It pushes the committed destination branch to `origin` before a next-step
+  handoff when that remote exists, following
+  [`push-before-next-step.md`](../rules/push-before-next-step.md).
+  It also fetches `origin/main` to find the latest main. Publishing the tag
+  that `brel` later creates remains a separate manual step.
 - It never touches a sibling worktree folder such as `..._main`. It works
   only in the tree it runs from.
 - It never starts release-artifact work while an umbrella collection still
@@ -536,7 +540,7 @@ actual parent; do not assume the parent is main.
    that merge commit's first parent. A fast-forward or squash merge may leave
    no recoverable boundary.
 3. Keep only candidates that are ancestors of the feature tip and leave a
-   non-empty range. Prefer a clear, unsuperseded reflog positioning boundary;
+   non-empty range. Prefer a clear, current reflog positioning boundary;
    otherwise prefer the closest topology boundary to the feature tip. When
    different boundaries remain plausible, stop and present them. Let the user
    select or provide the parent branch or boundary commit; do not guess.
@@ -973,6 +977,10 @@ path:
 & "<LLM_SHARED_DIR>\bin\prompt_workflow.bat" skill --after-merge "<umbrella_draft>" --root "<PRJ_DIR>"
 ```
 
+Before presenting or following the returned next step, apply
+[`push-before-next-step.md`](../rules/push-before-next-step.md) on the current
+destination branch. A failed push blocks this checkpoint's handoff.
+
 Before using the printed host-prefixed command, read
 [`../rules/command_prefix_char.md`](../rules/command_prefix_char.md) and trust
 the prefix the tool selected.
@@ -1263,6 +1271,8 @@ Then print a summary of what changed:
   `package.json` and `package-lock.json` files when present),
 - the prepare commit hash and subject.
 
+Apply [`push-before-next-step.md`](../rules/push-before-next-step.md) to push
+the final prepare commit before displaying the next step.
 Then tell the user the next step: review everything, and run `brel` to
 build, finalize, and tag the release. This skill never runs `brel` and
 never tags.
