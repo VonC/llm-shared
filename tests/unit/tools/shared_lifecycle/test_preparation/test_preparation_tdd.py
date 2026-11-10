@@ -1,4 +1,4 @@
-"""Check atomic environment preparation without importing policy code."""
+"""Check atomic preparation and drive-root callers without importing policies."""
 
 from __future__ import annotations
 
@@ -21,6 +21,15 @@ def layout(tmp_path: Path) -> tuple[Path, Path, Path]:
     for name in (env.LOADER, *env.POLICIES.values()):
         (policy / f"{name}.py").write_text("LOADER_CONTRACT_VERSION = 1\nraise RuntimeError('never import in preparation')\n", encoding="utf-8")
     return project, shared, cache
+
+
+def test_drive_root_preserves_user_cache(layout: tuple[Path, Path, Path]) -> None:
+    """A drive root is a valid caller even when user storage is on that drive."""
+    project, shared, cache = layout
+    drive = Path(project.anchor)
+    result = env.prepare_environment(drive, shared, {env.SELECTION: "lifecycle"}, cache_root=cache)
+    assert result[env.ROOT] == str(drive.resolve())
+    assert Path(result["PYTHONPATH"].split(os.pathsep)[0]).parent == cache
 
 
 def test_preparation_preserves_inputs_and_publishes_only_loader(layout: tuple[Path, Path, Path]) -> None:

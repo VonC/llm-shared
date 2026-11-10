@@ -3,6 +3,8 @@
 The environment builder is shared by shell preparation and child runners.
 Only a verified, immutable loader is cached; policies always stay live in the
 bound checkout. No caller environment or consumer project file is modified.
+Drive-root callers retain the normal user-local cache: a filesystem root is
+not a checkout directory whose subtree must be excluded from cache storage.
 """
 
 from __future__ import annotations
@@ -171,7 +173,8 @@ def _set_or_remove(environment: dict[str, str], key: str, value: str) -> None:
 
 def _activation_paths(project: Path, shared: Path, selected: tuple[str, ...], cache: Path) -> tuple[Path, Path]:
     """Preflight all sources before publishing a checkout-independent bootstrap."""
-    if cache.is_relative_to(project) or cache.is_relative_to(shared):
+    project_contains_cache = project.parent != project and cache.is_relative_to(project)
+    if cache == project or project_contains_cache or cache.is_relative_to(shared):
         message = f"Loader cache {cache} must be outside project {project} and shared checkout {shared}"
         raise PreparationError(message)
     policy = shared / "tools" / "pytest_plugins"
