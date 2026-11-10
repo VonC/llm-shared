@@ -2,6 +2,8 @@
 
 Nested-session checks reuse the carrying pytest config as their outer session,
 avoiding a redundant generated parent project while retaining real child hooks.
+The fixture-scope matrix keeps declarations in its collected test module and
+uses explicit configuration, avoiding a second import and config discovery.
 """
 
 # pyright: reportPrivateUsage=false
@@ -40,7 +42,9 @@ def test_fixture_precedence_and_credit(tmp_path: Path, scope: str, *, fixture_al
     body = "event()" if permitted else "with pytest.raises(RuntimeError, match='subprocess.Popen'):\n        event()"
     declaration = "LLM_SHARED_PROCESS_FIXTURES = {service: 'fixture'}" if fixture_allowed else ""
     mark = "@pytest.mark.process_allowed(reason='test')\n" if test_allowed else ""
-    (tmp_path / "conftest.py").write_text(_PRELUDE + f"""
+    configuration = tmp_path / "pytest.ini"
+    configuration.write_text("[pytest]\nmarkers =\n    process_allowed(reason): process permission\n", encoding="utf-8")
+    (tmp_path / "test_case.py").write_text(_PRELUDE + f"""
 def check():
     {body}
 @pytest.fixture(scope={scope!r})
@@ -50,8 +54,8 @@ def service(request):
     yield
     check()
 {declaration}
+{mark}def test_case(service): pass
 """, encoding="utf-8")
-    (tmp_path / "test_case.py").write_text("import pytest\n" + mark + "def test_case(service): pass\n", encoding="utf-8")
     states: list[audit.AuditSession] = []
 
     class Observe:
@@ -60,7 +64,7 @@ def service(request):
         def pytest_sessionfinish(self) -> None:
             states.append(audit.get_hub().sessions[-1])
 
-    assert run_inline(tmp_path, plugins=(audit, Observe())) == pytest.ExitCode.OK
+    assert run_inline(tmp_path, "-c", str(configuration), "--noconftest", plugins=(audit, Observe())) == pytest.ExitCode.OK
     _assert_credit(states[0], (fixture_allowed, test_allowed, permitted))
     assert audit.get_hub().sessions == []
 

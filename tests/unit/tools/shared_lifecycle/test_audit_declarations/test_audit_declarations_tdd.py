@@ -29,7 +29,9 @@ def pytest_configure(config):
 ])
 def test_malformed_test_permission_prevents_setup(tmp_path: Path, capsys: pytest.CaptureFixture[str], mark: str) -> None:
     """Malformed named-test reasons are usage errors before any setup."""
-    (tmp_path / "conftest.py").write_text(_REGISTER, encoding="utf-8")
+    configuration = tmp_path / "pytest.ini"
+    configuration.write_text(
+        "[pytest]\nmarkers = process_allowed(reason): process permission\n", encoding="utf-8")
     (tmp_path / "test_case.py").write_text(f"""
 import pytest
 @pytest.fixture(autouse=True)
@@ -38,7 +40,7 @@ def never():
 @{mark}
 def test_case(): pass
 """, encoding="utf-8")
-    assert run_inline(tmp_path, plugins=(audit,)) == pytest.ExitCode.USAGE_ERROR
+    assert run_inline(tmp_path, "-c", str(configuration), "--noconftest", plugins=(audit,)) == pytest.ExitCode.USAGE_ERROR
     output = capsys.readouterr()
     assert "process_allowed" in output.err
     assert "test_case" in output.err
