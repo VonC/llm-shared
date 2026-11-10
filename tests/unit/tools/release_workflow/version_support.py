@@ -22,8 +22,11 @@ fields in one file), and generalizes that planned edit to any adapter as
 `reactor_poms`), gives the settings the production physical path policy
 (`authorize`), keys `pair_edit` by path relative to the root so a reactor's
 several `pom.xml` files stay apart, and completes the restoration registry
-with the Maven sets and the combined five-file project. Nothing here starts a
-process or interprets a version.
+with the Maven sets and the combined five-file project. Step 8 adds release
+histories: `annotation` (notes, the tooling trailer, `[valid]`), `chain` (a
+linear declared history) and `tagged_history` (a chain with tags by position
+over the sandbox's recording Git observations). Nothing here starts a process
+or interprets a version.
 """
 
 from __future__ import annotations
@@ -63,6 +66,10 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from tests.unit.tools.release_workflow.git_test_support import GitSandbox
+    from tests.unit.tools.release_workflow.repository_simulation import (
+        ReleaseHistory,
+        RepositoryObservations,
+    )
     from tools.release_workflow.managed_files import ManagedTarget
     from tools.release_workflow.sources.model import Adapter, AdapterSettings
     from tools.release_workflow.windows_process import ProcessIdentity, ProcessState
@@ -80,6 +87,7 @@ REGISTRY_PACKAGE = '[[package]]\nname = "colorama"\nversion = "0.4.6"\nsource = 
 _EDITABLE_BUILD = '[build-system]\nrequires = ["hatchling"]\nbuild-backend = "hatchling.build"\n\n'
 _VIRTUAL_TOOL = "\n[tool.uv]\npackage = false\n"
 DEMO_GROUP = "com.demo"
+ENGINE_TRAILER = "Release tooling: llm-shared v0.14.0-3-gabc1234"
 _POM_HEAD = ('<?xml version="1.0" encoding="UTF-8"?>\n<project xmlns="http://maven.apache.org/POM/4.0.0">\n'
              "  <modelVersion>4.0.0</modelVersion>\n")
 
@@ -459,6 +467,31 @@ def declare_evidence(home: Path, name: str, manifest: bytes | None, copies: Mapp
 def source_bytes(root: Path, relative_paths: Sequence[str]) -> dict[str, bytes]:
     """Read the named files below a root."""
     return {relative: (root / relative).read_bytes() for relative in relative_paths}
+
+
+def annotation(notes: str = "Release notes", *, trailer: bool = False, valid: bool = False) -> str:
+    """Build a tag annotation as item 5 writes it: notes, then the tooling trailer, then `[valid]`."""
+    lines = [notes, *([ENGINE_TRAILER] if trailer else []), *(["[valid]"] if valid else [])]
+    return "\n".join(lines) + "\n"
+
+
+def chain(history: ReleaseHistory, length: int, *, prefix: str = "c") -> list[str]:
+    """Declare a linear history `c1 <- c2 <- ... <- cN` with HEAD and `main` on its last commit."""
+    commits: list[str] = []
+    for index in range(1, length + 1):
+        commits.append(history.commit(f"{prefix}{index}", *commits[-1:]))
+    history.head = history.main = commits[-1]
+    return commits
+
+
+def tagged_history(sandbox: GitSandbox, length: int, tags: Mapping[str, tuple[int, str | None]]) -> tuple[RepositoryObservations, ReleaseHistory]:
+    """Declare a linear history and tags by name: commit position (1-based) and annotation, `None` for lightweight."""
+    git = sandbox.context()
+    history = git.facts.history
+    commits = chain(history, length)
+    for name, (position, text) in tags.items():
+        history.tag(name, commits[position - 1], text)
+    return git, history
 
 
 # eof
