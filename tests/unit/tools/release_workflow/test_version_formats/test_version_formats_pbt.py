@@ -1,4 +1,4 @@
-"""Properties of the TOML scanner over generated spacing, comment and quote variants.
+"""Properties of the TOML and JSON scanners over generated layouts.
 
 Step 5 of v0.14.0 version-sources: for generated `[project]` tables and
 `uv.lock` package lists, with decoy `version` keys in other tables and
@@ -8,17 +8,25 @@ changes only that value while every other character stays the same. Each
 example draws an integer triple and one bit field that the test decodes into
 the layout, so the properties keep their example budget inside the lifecycle
 limit; each text is parsed once.
+
+Step 6 adds the JSON scanner: for generated `package-lock.json`-like objects
+with decoy members (escaped quotes and braces, accented and non-BMP text,
+nested `version` keys in arrays and objects), optional byte-order mark,
+whitespace and member order, the byte spans of the top-level `version` (when
+present) and of `packages[""].version` hold exactly the values `json` parses,
+and replacing them changes only those two values.
 """
 
 from __future__ import annotations
 
+import json
 import tomllib
 
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from tools.release_workflow.sources import toml_scan
-from tools.release_workflow.sources.model import Span
+from tools.release_workflow.sources import json_scan, toml_scan
+from tools.release_workflow.sources.model import Span, compose
 
 _NUMBERS = st.integers(min_value=0, max_value=999)
 _TRIPLES = st.tuples(_NUMBERS, _NUMBERS, _NUMBERS)
@@ -31,6 +39,17 @@ _DECOYS = (
 _NAMES = ("alpha", "beta", "gamma", "delta")
 _LINE_BITS = 11
 _TARGET = "0.14.0"
+_JSON_SPACES = ("", " ", "\n  ", "\r\n\t")
+_JSON_DECOYS = (
+    ('"description"', '"Caf\\u00e9 é 🎉 {\\"version\\": [1]}"'),
+    ('"keywords"', '["version", {"version": "9.9.9"}, []]'),
+    ('"dependencies"', '{"version": "^1.0.0", "x": {"version": {}}}'),
+    ('"nested"', '{"packages": {"": {"version": "7.7.7"}}}'),
+)
+_JSON_BITS = 13
+_JSON_VERSION: json_scan.JsonPath = ("version",)
+_JSON_ROOT: json_scan.JsonPath = ("packages", "", "version")
+_BOM = b"\xef\xbb\xbf"
 
 
 def _bits(layout: int, shift: int, width: int) -> int:
@@ -95,6 +114,47 @@ def test_lock_span_holds_the_chosen_package_value(triple: tuple[int, int, int], 
     assert text[span.start:span.end] == values[name]
     edited = tomllib.loads(_replaced(text, span.start, span.end))["package"]
     assert {package["name"]: package["version"] for package in edited} == {**values, name: _TARGET}
+
+
+def _object(members: list[tuple[str, str]], space: str, colon: str) -> str:
+    """Write one JSON object from raw member texts with the chosen whitespace."""
+    return "{" + ",".join(f"{space}{key}:{colon}{value}" for key, value in members) + space + "}"
+
+
+def _json_lock(triple: tuple[int, int, int], layout: int) -> tuple[str, bytes]:
+    """Decode a lock-like object from 13 bits: whitespace, decoys, member order, top-level version and mark."""
+    space, colon = _JSON_SPACES[_bits(layout, 0, 2)], " " * _bits(layout, 2, 1)
+    major, minor, patch = triple
+    top, root = f'"{major}.{minor}.{patch}"', f'"{major}.{minor}.{patch + 1}"'
+    entry = [('"name"', '"demo"'), ('"version"', root)]
+    if _bits(layout, 3, 1):
+        entry.reverse()
+    packages = [('"node_modules/x"', '{"version": "8.8.8"}'), ('""', _object(entry, space, colon))]
+    if _bits(layout, 4, 1):
+        packages.reverse()
+    members = [decoy for index, decoy in enumerate(_JSON_DECOYS) if _bits(layout, 5 + index, 1)]
+    if _bits(layout, 9, 1):
+        members.insert(_bits(layout, 10, 2) % (len(members) + 1), ('"version"', top))
+    members.append(('"packages"', _object(packages, space, colon)))
+    return _object(members, space, colon) + "\n", _BOM * _bits(layout, 12, 1)
+
+
+@settings(max_examples=25)
+@given(triple=_TRIPLES, layout=st.integers(min_value=0, max_value=(1 << _JSON_BITS) - 1))
+def test_json_spans_hold_the_parsed_values(triple: tuple[int, int, int], layout: int) -> None:
+    """Each byte span holds its parsed value; replacing both changes only those values."""
+    text, bom = _json_lock(triple, layout)
+    data = json.loads(text)
+    values: dict[json_scan.JsonPath, str] = {_JSON_VERSION: data["version"]} if "version" in data else {}
+    values[_JSON_ROOT] = data["packages"][""]["version"]
+    content = bom + text.encode("utf-8")
+    spans = json_scan.byte_spans(text, bom, (_JSON_VERSION, _JSON_ROOT), values)
+    assert {path: content[span.start:span.end].decode("utf-8") for path, span in spans.items()} == values
+    edited = json.loads(compose(content, [(span, _TARGET.encode()) for span in spans.values()])[len(bom):])
+    if "version" in data:
+        data["version"] = _TARGET
+    data["packages"][""]["version"] = _TARGET
+    assert edited == data
 
 
 # eof

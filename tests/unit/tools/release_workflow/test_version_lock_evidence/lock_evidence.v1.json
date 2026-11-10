@@ -1,5 +1,5 @@
 {
-  "about": "uv lock compatibility evidence of the python adapter (v0.14.0 version-sources, Step 5), written by tests/unit/tools/release_workflow/lock_evidence_recorder.py. The 'before' pair is a pyproject.toml and its uv.lock both at before_version; the edited pair is the same files after the adapter's version-only edit to target_version; the manifest-only control edits the manifest alone. A run accepts a pair when it exits 0 and changes neither file.",
+  "about": "Lock compatibility evidence of the python adapter with uv (v0.14.0 version-sources, Step 5) and of the npm adapter with npm (Step 6), written by tests/unit/tools/release_workflow/lock_evidence_recorder.py. The 'before' pair is a manifest and its lock both at before_version; the edited pair is the same files after the adapter's version-only edit to target_version; the manifest-only control edits the manifest alone. A run accepts a pair when it exits 0 and changes neither file. npm records add the lock-only check (plan decision Q05), whose rewrite of the control's lock shows npm notices a missed lock field.",
   "format": 1,
   "records": [
     {
@@ -426,6 +426,450 @@
       "tool": "uv",
       "tool_build": "uv 0.13.4 (7456b60bc 2026-10-20 x86_64-pc-windows-msvc)",
       "tool_version": "0.13.4"
+    },
+    {
+      "before_version": "0.0.24",
+      "command": [
+        "<npm>",
+        "ci",
+        "--offline",
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund"
+      ],
+      "files": {
+        "package-lock.json": {
+          "before": "{\n  \"name\": \"demo-app\",\n  \"version\": \"0.0.24\",\n  \"lockfileVersion\": 2,\n  \"requires\": true,\n  \"packages\": {\n    \"\": {\n      \"name\": \"demo-app\",\n      \"version\": \"0.0.24\"\n    }\n  }\n}\n",
+          "edited": "{\n  \"name\": \"demo-app\",\n  \"version\": \"0.0.25\",\n  \"lockfileVersion\": 2,\n  \"requires\": true,\n  \"packages\": {\n    \"\": {\n      \"name\": \"demo-app\",\n      \"version\": \"0.0.25\"\n    }\n  }\n}\n"
+        },
+        "package.json": {
+          "before": "{\n  \"name\": \"demo-app\",\n  \"version\": \"0.0.24\",\n  \"private\": true\n}\n",
+          "edited": "{\n  \"name\": \"demo-app\",\n  \"version\": \"0.0.25\",\n  \"private\": true\n}\n"
+        }
+      },
+      "generated_by": [
+        "<npm>",
+        "install",
+        "--package-lock-only",
+        "--offline",
+        "--lockfile-version",
+        "2",
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund"
+      ],
+      "id": "npm-10.8.3-lock2-root",
+      "layout": "root",
+      "line_endings": "lf",
+      "lock_format": 2,
+      "lock_only_command": [
+        "<npm>",
+        "install",
+        "--package-lock-only",
+        "--offline",
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund"
+      ],
+      "note": "npm ci does not compare the root version, so it also accepts a manifest-only edit (planning probe of 2026-11-07); the frozen runs prove npm accepts both pairs, and the lock-only check is the run that notices a missed lock field (plan decision Q05)",
+      "provenance": "package.json written by the recorder; package-lock.json written by <npm> install --package-lock-only --offline --lockfile-version 2 --ignore-scripts --no-audit --no-fund",
+      "runs": [
+        {
+          "check": "frozen",
+          "errors": [],
+          "exit_code": 0,
+          "lock_after": {
+            "lockfileVersion": 2,
+            "packages_root_version": "0.0.24",
+            "version": "0.0.24"
+          },
+          "pair": "before",
+          "sha256_after": {
+            "package-lock.json": "23ca3105aee9f8416864bbdf99d166f9cadc22186e8be41cfab45e90182e0bd9",
+            "package.json": "959eec3840c5bb646ee73721f0c048c753dc87e65fcb62114cde88aaf8101f38"
+          },
+          "sha256_before": {
+            "package-lock.json": "23ca3105aee9f8416864bbdf99d166f9cadc22186e8be41cfab45e90182e0bd9",
+            "package.json": "959eec3840c5bb646ee73721f0c048c753dc87e65fcb62114cde88aaf8101f38"
+          }
+        },
+        {
+          "check": "lock-only",
+          "errors": [],
+          "exit_code": 0,
+          "lock_after": {
+            "lockfileVersion": 2,
+            "packages_root_version": "0.0.24",
+            "version": "0.0.24"
+          },
+          "pair": "before",
+          "sha256_after": {
+            "package-lock.json": "23ca3105aee9f8416864bbdf99d166f9cadc22186e8be41cfab45e90182e0bd9",
+            "package.json": "959eec3840c5bb646ee73721f0c048c753dc87e65fcb62114cde88aaf8101f38"
+          },
+          "sha256_before": {
+            "package-lock.json": "23ca3105aee9f8416864bbdf99d166f9cadc22186e8be41cfab45e90182e0bd9",
+            "package.json": "959eec3840c5bb646ee73721f0c048c753dc87e65fcb62114cde88aaf8101f38"
+          }
+        },
+        {
+          "check": "frozen",
+          "errors": [],
+          "exit_code": 0,
+          "lock_after": {
+            "lockfileVersion": 2,
+            "packages_root_version": "0.0.25",
+            "version": "0.0.25"
+          },
+          "pair": "edited",
+          "sha256_after": {
+            "package-lock.json": "b6e18f1accb93d896fad2c9787f3ea180393b4d397e9def3c38a0e13892f516b",
+            "package.json": "ce9c80719a694de08fac45aba47c43c024a99bbccfd81c8c68b4fec5ca7cc8d4"
+          },
+          "sha256_before": {
+            "package-lock.json": "b6e18f1accb93d896fad2c9787f3ea180393b4d397e9def3c38a0e13892f516b",
+            "package.json": "ce9c80719a694de08fac45aba47c43c024a99bbccfd81c8c68b4fec5ca7cc8d4"
+          }
+        },
+        {
+          "check": "lock-only",
+          "errors": [],
+          "exit_code": 0,
+          "lock_after": {
+            "lockfileVersion": 2,
+            "packages_root_version": "0.0.25",
+            "version": "0.0.25"
+          },
+          "pair": "edited",
+          "sha256_after": {
+            "package-lock.json": "b6e18f1accb93d896fad2c9787f3ea180393b4d397e9def3c38a0e13892f516b",
+            "package.json": "ce9c80719a694de08fac45aba47c43c024a99bbccfd81c8c68b4fec5ca7cc8d4"
+          },
+          "sha256_before": {
+            "package-lock.json": "b6e18f1accb93d896fad2c9787f3ea180393b4d397e9def3c38a0e13892f516b",
+            "package.json": "ce9c80719a694de08fac45aba47c43c024a99bbccfd81c8c68b4fec5ca7cc8d4"
+          }
+        },
+        {
+          "check": "lock-only",
+          "errors": [],
+          "exit_code": 0,
+          "lock_after": {
+            "lockfileVersion": 2,
+            "packages_root_version": "0.0.25",
+            "version": "0.0.25"
+          },
+          "pair": "manifest-only",
+          "sha256_after": {
+            "package-lock.json": "b6e18f1accb93d896fad2c9787f3ea180393b4d397e9def3c38a0e13892f516b",
+            "package.json": "ce9c80719a694de08fac45aba47c43c024a99bbccfd81c8c68b4fec5ca7cc8d4"
+          },
+          "sha256_before": {
+            "package-lock.json": "23ca3105aee9f8416864bbdf99d166f9cadc22186e8be41cfab45e90182e0bd9",
+            "package.json": "ce9c80719a694de08fac45aba47c43c024a99bbccfd81c8c68b4fec5ca7cc8d4"
+          }
+        }
+      ],
+      "target_version": "0.0.25",
+      "tool": "npm",
+      "tool_build": "npm 10.8.3 on Node v22.9.0",
+      "tool_version": "10.8.3"
+    },
+    {
+      "before_version": "0.0.24",
+      "command": [
+        "<npm>",
+        "ci",
+        "--offline",
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund"
+      ],
+      "files": {
+        "package-lock.json": {
+          "before": "{\n  \"name\": \"demo-app\",\n  \"version\": \"0.0.24\",\n  \"lockfileVersion\": 3,\n  \"requires\": true,\n  \"packages\": {\n    \"\": {\n      \"name\": \"demo-app\",\n      \"version\": \"0.0.24\"\n    }\n  }\n}\n",
+          "edited": "{\n  \"name\": \"demo-app\",\n  \"version\": \"0.0.25\",\n  \"lockfileVersion\": 3,\n  \"requires\": true,\n  \"packages\": {\n    \"\": {\n      \"name\": \"demo-app\",\n      \"version\": \"0.0.25\"\n    }\n  }\n}\n"
+        },
+        "package.json": {
+          "before": "{\n  \"name\": \"demo-app\",\n  \"version\": \"0.0.24\",\n  \"private\": true\n}\n",
+          "edited": "{\n  \"name\": \"demo-app\",\n  \"version\": \"0.0.25\",\n  \"private\": true\n}\n"
+        }
+      },
+      "generated_by": [
+        "<npm>",
+        "install",
+        "--package-lock-only",
+        "--offline",
+        "--lockfile-version",
+        "3",
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund"
+      ],
+      "id": "npm-10.8.3-lock3-root",
+      "layout": "root",
+      "line_endings": "lf",
+      "lock_format": 3,
+      "lock_only_command": [
+        "<npm>",
+        "install",
+        "--package-lock-only",
+        "--offline",
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund"
+      ],
+      "note": "npm ci does not compare the root version, so it also accepts a manifest-only edit (planning probe of 2026-11-07); the frozen runs prove npm accepts both pairs, and the lock-only check is the run that notices a missed lock field (plan decision Q05)",
+      "provenance": "package.json written by the recorder; package-lock.json written by <npm> install --package-lock-only --offline --lockfile-version 3 --ignore-scripts --no-audit --no-fund",
+      "runs": [
+        {
+          "check": "frozen",
+          "errors": [],
+          "exit_code": 0,
+          "lock_after": {
+            "lockfileVersion": 3,
+            "packages_root_version": "0.0.24",
+            "version": "0.0.24"
+          },
+          "pair": "before",
+          "sha256_after": {
+            "package-lock.json": "250aaea88b1f0e7bf9f2ce3cfde219d91484eaa0238ddd63250533cc2859cd6f",
+            "package.json": "959eec3840c5bb646ee73721f0c048c753dc87e65fcb62114cde88aaf8101f38"
+          },
+          "sha256_before": {
+            "package-lock.json": "250aaea88b1f0e7bf9f2ce3cfde219d91484eaa0238ddd63250533cc2859cd6f",
+            "package.json": "959eec3840c5bb646ee73721f0c048c753dc87e65fcb62114cde88aaf8101f38"
+          }
+        },
+        {
+          "check": "lock-only",
+          "errors": [],
+          "exit_code": 0,
+          "lock_after": {
+            "lockfileVersion": 3,
+            "packages_root_version": "0.0.24",
+            "version": "0.0.24"
+          },
+          "pair": "before",
+          "sha256_after": {
+            "package-lock.json": "250aaea88b1f0e7bf9f2ce3cfde219d91484eaa0238ddd63250533cc2859cd6f",
+            "package.json": "959eec3840c5bb646ee73721f0c048c753dc87e65fcb62114cde88aaf8101f38"
+          },
+          "sha256_before": {
+            "package-lock.json": "250aaea88b1f0e7bf9f2ce3cfde219d91484eaa0238ddd63250533cc2859cd6f",
+            "package.json": "959eec3840c5bb646ee73721f0c048c753dc87e65fcb62114cde88aaf8101f38"
+          }
+        },
+        {
+          "check": "frozen",
+          "errors": [],
+          "exit_code": 0,
+          "lock_after": {
+            "lockfileVersion": 3,
+            "packages_root_version": "0.0.25",
+            "version": "0.0.25"
+          },
+          "pair": "edited",
+          "sha256_after": {
+            "package-lock.json": "41d425efce4b7d1520e7f7e32ce5c424515d9ae315571f2098ad9f9306b63c53",
+            "package.json": "ce9c80719a694de08fac45aba47c43c024a99bbccfd81c8c68b4fec5ca7cc8d4"
+          },
+          "sha256_before": {
+            "package-lock.json": "41d425efce4b7d1520e7f7e32ce5c424515d9ae315571f2098ad9f9306b63c53",
+            "package.json": "ce9c80719a694de08fac45aba47c43c024a99bbccfd81c8c68b4fec5ca7cc8d4"
+          }
+        },
+        {
+          "check": "lock-only",
+          "errors": [],
+          "exit_code": 0,
+          "lock_after": {
+            "lockfileVersion": 3,
+            "packages_root_version": "0.0.25",
+            "version": "0.0.25"
+          },
+          "pair": "edited",
+          "sha256_after": {
+            "package-lock.json": "41d425efce4b7d1520e7f7e32ce5c424515d9ae315571f2098ad9f9306b63c53",
+            "package.json": "ce9c80719a694de08fac45aba47c43c024a99bbccfd81c8c68b4fec5ca7cc8d4"
+          },
+          "sha256_before": {
+            "package-lock.json": "41d425efce4b7d1520e7f7e32ce5c424515d9ae315571f2098ad9f9306b63c53",
+            "package.json": "ce9c80719a694de08fac45aba47c43c024a99bbccfd81c8c68b4fec5ca7cc8d4"
+          }
+        },
+        {
+          "check": "lock-only",
+          "errors": [],
+          "exit_code": 0,
+          "lock_after": {
+            "lockfileVersion": 3,
+            "packages_root_version": "0.0.25",
+            "version": "0.0.25"
+          },
+          "pair": "manifest-only",
+          "sha256_after": {
+            "package-lock.json": "41d425efce4b7d1520e7f7e32ce5c424515d9ae315571f2098ad9f9306b63c53",
+            "package.json": "ce9c80719a694de08fac45aba47c43c024a99bbccfd81c8c68b4fec5ca7cc8d4"
+          },
+          "sha256_before": {
+            "package-lock.json": "250aaea88b1f0e7bf9f2ce3cfde219d91484eaa0238ddd63250533cc2859cd6f",
+            "package.json": "ce9c80719a694de08fac45aba47c43c024a99bbccfd81c8c68b4fec5ca7cc8d4"
+          }
+        }
+      ],
+      "target_version": "0.0.25",
+      "tool": "npm",
+      "tool_build": "npm 10.8.3 on Node v22.9.0",
+      "tool_version": "10.8.3"
+    },
+    {
+      "before_version": "0.0.24",
+      "command": [
+        "<npm>",
+        "ci",
+        "--offline",
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund"
+      ],
+      "files": {
+        "package-lock.json": {
+          "before": "{\r\n  \"name\": \"demo-app\",\r\n  \"version\": \"0.0.24\",\r\n  \"lockfileVersion\": 3,\r\n  \"requires\": true,\r\n  \"packages\": {\r\n    \"\": {\r\n      \"name\": \"demo-app\",\r\n      \"version\": \"0.0.24\"\r\n    }\r\n  }\r\n}\r\n",
+          "edited": "{\r\n  \"name\": \"demo-app\",\r\n  \"version\": \"0.0.25\",\r\n  \"lockfileVersion\": 3,\r\n  \"requires\": true,\r\n  \"packages\": {\r\n    \"\": {\r\n      \"name\": \"demo-app\",\r\n      \"version\": \"0.0.25\"\r\n    }\r\n  }\r\n}\r\n"
+        },
+        "package.json": {
+          "before": "{\r\n  \"name\": \"demo-app\",\r\n  \"version\": \"0.0.24\",\r\n  \"private\": true\r\n}\r\n",
+          "edited": "{\r\n  \"name\": \"demo-app\",\r\n  \"version\": \"0.0.25\",\r\n  \"private\": true\r\n}\r\n"
+        }
+      },
+      "generated_by": [
+        "<npm>",
+        "install",
+        "--package-lock-only",
+        "--offline",
+        "--lockfile-version",
+        "3",
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund"
+      ],
+      "id": "npm-10.8.3-lock3-root-crlf",
+      "layout": "root",
+      "line_endings": "crlf",
+      "lock_format": 3,
+      "lock_only_command": [
+        "<npm>",
+        "install",
+        "--package-lock-only",
+        "--offline",
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund"
+      ],
+      "note": "npm ci does not compare the root version, so it also accepts a manifest-only edit (planning probe of 2026-11-07); the frozen runs prove npm accepts both pairs, and the lock-only check is the run that notices a missed lock field (plan decision Q05)",
+      "provenance": "package.json written by the recorder; package-lock.json written by <npm> install --package-lock-only --offline --lockfile-version 3 --ignore-scripts --no-audit --no-fund; both files then converted from LF to CRLF",
+      "runs": [
+        {
+          "check": "frozen",
+          "errors": [],
+          "exit_code": 0,
+          "lock_after": {
+            "lockfileVersion": 3,
+            "packages_root_version": "0.0.24",
+            "version": "0.0.24"
+          },
+          "pair": "before",
+          "sha256_after": {
+            "package-lock.json": "65594b33b3b00ee4dcf66586a73c473d8a38a30d28d4080f1a5dd6e7b8b9b259",
+            "package.json": "db8fd64985fba89c67db61f8f42c25204efe79896285b24ca6c4ff6715838b38"
+          },
+          "sha256_before": {
+            "package-lock.json": "65594b33b3b00ee4dcf66586a73c473d8a38a30d28d4080f1a5dd6e7b8b9b259",
+            "package.json": "db8fd64985fba89c67db61f8f42c25204efe79896285b24ca6c4ff6715838b38"
+          }
+        },
+        {
+          "check": "lock-only",
+          "errors": [],
+          "exit_code": 0,
+          "lock_after": {
+            "lockfileVersion": 3,
+            "packages_root_version": "0.0.24",
+            "version": "0.0.24"
+          },
+          "pair": "before",
+          "sha256_after": {
+            "package-lock.json": "65594b33b3b00ee4dcf66586a73c473d8a38a30d28d4080f1a5dd6e7b8b9b259",
+            "package.json": "db8fd64985fba89c67db61f8f42c25204efe79896285b24ca6c4ff6715838b38"
+          },
+          "sha256_before": {
+            "package-lock.json": "65594b33b3b00ee4dcf66586a73c473d8a38a30d28d4080f1a5dd6e7b8b9b259",
+            "package.json": "db8fd64985fba89c67db61f8f42c25204efe79896285b24ca6c4ff6715838b38"
+          }
+        },
+        {
+          "check": "frozen",
+          "errors": [],
+          "exit_code": 0,
+          "lock_after": {
+            "lockfileVersion": 3,
+            "packages_root_version": "0.0.25",
+            "version": "0.0.25"
+          },
+          "pair": "edited",
+          "sha256_after": {
+            "package-lock.json": "f4632028a98a35c80ae67a92b8588b0545fc98a3a091fc195eaa0bb526111ecd",
+            "package.json": "6e9ef3e294692a4f9cddd2e03fa719a7b35bab57fee9ca9a3472fdfb9fe3e9ff"
+          },
+          "sha256_before": {
+            "package-lock.json": "f4632028a98a35c80ae67a92b8588b0545fc98a3a091fc195eaa0bb526111ecd",
+            "package.json": "6e9ef3e294692a4f9cddd2e03fa719a7b35bab57fee9ca9a3472fdfb9fe3e9ff"
+          }
+        },
+        {
+          "check": "lock-only",
+          "errors": [],
+          "exit_code": 0,
+          "lock_after": {
+            "lockfileVersion": 3,
+            "packages_root_version": "0.0.25",
+            "version": "0.0.25"
+          },
+          "pair": "edited",
+          "sha256_after": {
+            "package-lock.json": "f4632028a98a35c80ae67a92b8588b0545fc98a3a091fc195eaa0bb526111ecd",
+            "package.json": "6e9ef3e294692a4f9cddd2e03fa719a7b35bab57fee9ca9a3472fdfb9fe3e9ff"
+          },
+          "sha256_before": {
+            "package-lock.json": "f4632028a98a35c80ae67a92b8588b0545fc98a3a091fc195eaa0bb526111ecd",
+            "package.json": "6e9ef3e294692a4f9cddd2e03fa719a7b35bab57fee9ca9a3472fdfb9fe3e9ff"
+          }
+        },
+        {
+          "check": "lock-only",
+          "errors": [],
+          "exit_code": 0,
+          "lock_after": {
+            "lockfileVersion": 3,
+            "packages_root_version": "0.0.25",
+            "version": "0.0.25"
+          },
+          "pair": "manifest-only",
+          "sha256_after": {
+            "package-lock.json": "f4632028a98a35c80ae67a92b8588b0545fc98a3a091fc195eaa0bb526111ecd",
+            "package.json": "6e9ef3e294692a4f9cddd2e03fa719a7b35bab57fee9ca9a3472fdfb9fe3e9ff"
+          },
+          "sha256_before": {
+            "package-lock.json": "65594b33b3b00ee4dcf66586a73c473d8a38a30d28d4080f1a5dd6e7b8b9b259",
+            "package.json": "6e9ef3e294692a4f9cddd2e03fa719a7b35bab57fee9ca9a3472fdfb9fe3e9ff"
+          }
+        }
+      ],
+      "target_version": "0.0.25",
+      "tool": "npm",
+      "tool_build": "npm 10.8.3 on Node v22.9.0",
+      "tool_version": "10.8.3"
     }
   ]
 }

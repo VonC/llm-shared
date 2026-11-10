@@ -13,13 +13,17 @@ adapters' files (plan decision Q01), managed replacement and removal that
 record calls and fail the chosen ones, a recording view factory and evidence
 declarations. Step 5 adds component roots to the settings, `pyproject.toml`
 and `uv.lock` builders for virtual and editable roots, their restoration
-fixture sets and `python_pair_edit`, the adapter's planned edit of one pair
-that the lock evidence recorder and its test share. Nothing here starts a
-process or interprets a version.
+fixture sets and the adapter's planned edit of one pair that the lock evidence
+recorder and its test share. Step 6 adds configured forms to the settings,
+`package.json` and `package-lock.json` builders formatted as npm writes them,
+the npm restoration fixture sets (lock formats 2 and 3, LF and CRLF, two lock
+fields in one file), and generalizes that planned edit to any adapter as
+`pair_edit`. Nothing here starts a process or interprets a version.
 """
 
 from __future__ import annotations
 
+import json
 import os
 import re
 from dataclasses import dataclass, field
@@ -30,7 +34,6 @@ from tools.release_workflow.artifacts import resolve_artifacts
 from tools.release_workflow.configuration import load_configuration
 from tools.release_workflow.managed_files import ManagedWriteError, replace_bytes
 from tools.release_workflow.paths import ProjectIdentity
-from tools.release_workflow.sources import python
 from tools.release_workflow.sources.detection import plan_edits
 from tools.release_workflow.sources.model import (
     Claim,
@@ -55,7 +58,7 @@ if TYPE_CHECKING:
 
     from tests.unit.tools.release_workflow.git_test_support import GitSandbox
     from tools.release_workflow.managed_files import ManagedTarget
-    from tools.release_workflow.sources.model import AdapterSettings
+    from tools.release_workflow.sources.model import Adapter, AdapterSettings
     from tools.release_workflow.windows_process import ProcessIdentity, ProcessState
 
 BOM = b"\xef\xbb\xbf"
@@ -74,11 +77,12 @@ _VIRTUAL_TOOL = "\n[tool.uv]\npackage = false\n"
 
 @dataclass(frozen=True)
 class RootSettings:
-    """Adapter settings naming the project root, its declared pattern sources and component roots."""
+    """Adapter settings naming the project root, its declared pattern sources, component roots and form overrides."""
 
     project_root: Path
     patterns: tuple[PatternDeclaration, ...] = ()
     components: Mapping[str, Path] = field(default_factory=dict[str, "Path"])
+    forms: Mapping[str, Form] = field(default_factory=dict[str, Form])
 
     def participant(self, path: Path) -> str | None:
         """Name the participating root a physical path is, or return `None`."""
@@ -129,18 +133,44 @@ def crlf(content: bytes) -> bytes:
     return content.replace(b"\n", b"\r\n")
 
 
-def python_pair_edit(root: Path, target: VersionToken) -> dict[str, bytes]:
-    """Return, by file name, the new contents the python adapter's planned edit gives the pair at a root.
+def _npm_json(data: Mapping[str, object]) -> bytes:
+    """Format JSON as npm writes it: two-space indent, raw non-ASCII text, a final LF."""
+    return (json.dumps(data, indent=2, ensure_ascii=False) + "\n").encode("utf-8")
 
-    The pair is detected and planned exactly as `versions set` plans it, in
-    memory: no file is written. The lock evidence recorder applies it to the
-    "before" pair, and the evidence test compares it with the recorded pair.
+
+def package_json(version: str | None = "0.13.0", *, name: str | None = DEMO, **members: object) -> bytes:
+    """Build an LF npm manifest; `None` omits the name or the version, and `members` follow them."""
+    data: dict[str, object] = {} if name is None else {"name": name}
+    if version is not None:
+        data["version"] = version
+    return _npm_json({**data, **members})
+
+
+def package_lock(version: str = "0.13.0", *, lockfile: object = 3, top: bool = True, root: Mapping[str, object] | None = None,
+                 packages: Mapping[str, object] | None = None) -> bytes:
+    """Build an LF `package-lock.json` as npm writes it for a root package without dependencies.
+
+    `top=False` omits the top-level version, `root` replaces the root package
+    entry `packages[""]`, and `packages` adds entries after it.
+    """
+    head: dict[str, object] = {"name": DEMO, "version": version} if top else {"name": DEMO}
+    entry = {"name": DEMO, "version": version} if root is None else root
+    return _npm_json({**head, "lockfileVersion": lockfile, "requires": True, "packages": {"": entry, **(packages or {})}})
+
+
+def pair_edit(adapter: Adapter, root: Path, target: VersionToken) -> dict[str, bytes]:
+    """Return, by file name, the new contents one adapter's planned edit gives the files at a root.
+
+    The files are detected and planned exactly as `versions set` plans them,
+    with the adapter's default form, in memory: no file is written. The lock
+    evidence recorder applies it to each "before" pair, and the evidence test
+    compares it with the recorded edited pair.
     """
     view = FileView()
-    found = python.ADAPTER.detect(root, view, RootSettings(root))
+    found = adapter.detect(root, view, RootSettings(root))
     captures = tuple(FileCapture.of(path, view.read(path)) for path in dict.fromkeys(source.path for source in found.sources))
     claims = tuple(Claim(source.path, source.field, source.adapter, source.spans) for source in found.sources)
-    edits = plan_edits(Inventory(found.sources, found.visible, claims, captures), target, adapters=(python.ADAPTER,))
+    edits = plan_edits(Inventory(found.sources, found.visible, claims, captures), target, adapters=(adapter,))
     return {edit.capture.path.name: edit.new for edit in edits}
 
 
@@ -239,8 +269,9 @@ class RestorationFixture:
 
 
 # The restoration contract registry: Step 5 adds the Python virtual and editable
-# sets, Steps 6 and 7 add their adapters' sets, and Step 7 the combined
-# five-file project (plan decision Q01).
+# sets, Step 6 the npm format 2 (LF) and format 3 (CRLF) sets, whose lock holds
+# two composed fields, Step 7 the Maven sets and the combined five-file
+# project (plan decision Q01).
 RESTORATION_FIXTURES: dict[str, RestorationFixture] = {
     "anchor": RestorationFixture({"version.txt": version_txt("0.13.0 -- Old", "Notes\n", newline="\r\n", bom=True)}),
     "pattern": RestorationFixture({
@@ -261,6 +292,16 @@ RESTORATION_FIXTURES: dict[str, RestorationFixture] = {
         "version.txt": version_txt("0.13.0-SNAPSHOT", newline="\r\n"),
         "pyproject.toml": pyproject_toml(layout="editable", newline="\r\n"),
         "uv.lock": crlf(uv_lock(layout="editable")),
+    }, writes=3),
+    "npm-lock2": RestorationFixture({
+        "version.txt": version_txt("0.13.0"),
+        "package.json": package_json(private=True),
+        "package-lock.json": package_lock(lockfile=2),
+    }, writes=3),
+    "npm-lock3-crlf": RestorationFixture({
+        "version.txt": version_txt("0.13.0", newline="\r\n"),
+        "package.json": crlf(package_json(private=True, description="Café 🎉")),
+        "package-lock.json": crlf(package_lock(packages={"node_modules/left-pad": {"version": "0.13.0", "dev": True}})),
     }, writes=3),
 }
 

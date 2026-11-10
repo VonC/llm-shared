@@ -20,6 +20,11 @@ adapter matches uv workspace members against the component roots, and finds
 the participating root a local link reaches in one lookup, so detection stays
 linear in the roots.
 
+Step 6 adds the configured form overrides to `AdapterSettings`, which the npm
+adapter is the first to apply, and `FileView.derived`, a value computed once
+per phase from the view's files: the npm adapter indexes the participating
+package names there once, so its `workspace:` check stays linear in the roots.
+
 This module imports only the standard library at run time; foundation types
 are imported for type checking only.
 """
@@ -31,10 +36,10 @@ import os
 import re
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import TYPE_CHECKING, Literal, Protocol
+from typing import TYPE_CHECKING, Literal, Protocol, cast
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Mapping, Sequence
+    from collections.abc import Callable, Iterable, Mapping, Sequence
     from pathlib import Path
 
     from tools.release_workflow.artifacts import ArtifactDeclaration
@@ -196,13 +201,16 @@ class FileView:
     """Read-only file access that loads each path at most once for one phase.
 
     A phase that must observe the disk again opens a fresh view. Absence is
-    loaded once too and recorded as `None`.
+    loaded once too and recorded as `None`. Step 6 adds `derived`: a value
+    computed from the view's files, such as an index across participating
+    roots, is computed once per key for the phase.
     """
 
     def __init__(self) -> None:
-        """Start with nothing loaded."""
+        """Start with nothing loaded or derived."""
         self._contents: dict[Path, bytes | None] = {}
         self._loads: dict[Path, int] = {}
+        self._derived: dict[str, object] = {}
 
     def read(self, path: Path) -> bytes | None:
         """Return the file's bytes, or `None` when it does not exist."""
@@ -225,6 +233,12 @@ class FileView:
     def loads(self, path: Path) -> int:
         """Return how many times this view loaded the path."""
         return self._loads.get(path, 0)
+
+    def derived[T](self, key: str, compute: Callable[[], T]) -> T:
+        """Return the value derived under `key`, computing it on the first request of this view."""
+        if key not in self._derived:
+            self._derived[key] = compute()
+        return cast("T", self._derived[key])
 
 
 @dataclass(frozen=True)
@@ -253,6 +267,11 @@ class AdapterSettings(Protocol):
     @property
     def components(self) -> Mapping[str, Path]:
         """Return the declared component roots by component id, each a physical directory."""
+        ...
+
+    @property
+    def forms(self) -> Mapping[str, Form]:
+        """Return the configured form of each built-in adapter that `[source:<name>] form` overrides."""
         ...
 
     def participant(self, path: Path) -> str | None:

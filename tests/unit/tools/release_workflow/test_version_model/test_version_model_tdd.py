@@ -4,7 +4,8 @@ Step 2 of v0.14.0 version-sources: one token grammar with numeric ordering of
 cores, the three forms and the release-only guard, a file view that loads each
 path once per phase, span composition from one original, the one
 character-to-byte span mapping, and the shared input, capture, edit and plan
-types every later step uses (plan decision Q16).
+types every later step uses (plan decision Q16). Step 6 adds the view's
+per-phase derived values, computed once per key and view.
 """
 
 from __future__ import annotations
@@ -148,6 +149,22 @@ def test_file_view_text_failures_name_the_path(tmp_path: Path) -> None:
         view.text(broken)
     with pytest.raises(SourceError, match=r"missing\.json.*does not exist"):
         view.text(tmp_path / "missing.json")
+
+
+def test_file_view_derives_each_value_once_per_view() -> None:
+    """A value computed from a view's files, such as an index across roots, is computed once per key and view."""
+    calls: list[str] = []
+
+    def compute(name: str) -> dict[str, int]:
+        calls.append(name)
+        return {name: len(calls)}
+
+    view = FileView()
+    first = view.derived("index", lambda: compute("first"))
+    assert view.derived("index", lambda: compute("second")) is first == {"first": 1}
+    assert view.derived("other", lambda: compute("other")) == {"other": 2}
+    assert FileView().derived("index", lambda: compute("fresh")) == {"fresh": 3}
+    assert calls == ["first", "other", "fresh"]
 
 
 def test_compose_disjoint_spans_from_one_original() -> None:
