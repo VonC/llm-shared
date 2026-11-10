@@ -33,6 +33,10 @@
 - When writing or rewriting a file, follow
   [`preserve_code.md`](preserve_code.md).
 - When running a shell command, follow [`run_commands.md`](run_commands.md).
+- When asked to merge a branch back into any target branch, follow
+  [`update-merge-commit-msg`](../instructions/update-merge-commit-msg.md#merge-back-method-and-message):
+  use `git merge --no-ff`, then rewrite the merge message before continuing.
+  Use another merge method only when the user explicitly instructs it.
 - When ending a turn on any question the user must answer, a choice or a
   plain-text question, follow [`interactive_menu.md`](interactive_menu.md): a
   blocking picker when the host offers one, otherwise the question plus a

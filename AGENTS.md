@@ -76,6 +76,13 @@ In particular:
 
 Do not copy or invent an alternate groundhog lifecycle in this file.
 
+## Merging branches back
+
+Before merging a branch back into any target branch, read and follow
+[`instructions/update-merge-commit-msg.md`](instructions/update-merge-commit-msg.md#merge-back-method-and-message).
+It defines the default merge method and required message rewrite, including
+the exception for an explicit user instruction.
+
 ## Diataxis documentation order
 
 Whenever a task creates or maintains a Diataxis documentation set, present and link its categories in this order:
