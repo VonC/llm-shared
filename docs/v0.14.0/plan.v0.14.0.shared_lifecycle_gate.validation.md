@@ -2,9 +2,9 @@
 
 No, it is not implemented
 
-Steps 1-4 of the seven-step
+Steps 1-5 of the seven-step
 [implementation plan](plan.v0.14.0.shared_lifecycle_gate.md) have been checked,
-including Step 4 on 2026-11-09. Steps 5-7 remain not started; their goals
+including Step 5 on 2026-11-10. Steps 6-7 remain not started; their goals
 describe later checks.
 
 ## Runtime context for validating the pytest plugin mechanism
@@ -648,8 +648,14 @@ and reporting passed the affected-test gate; no exemption or budget changed.
 
 ### Analysis of Step 5 implementation state
 
-Not started. Step 5 is not implemented because groundhog stages and collection
-probes do not yet use the shared preparation contract.
+Yes. Step 5 has been fully implemented.
+
+Every pytest stage and both collection probes use shared preparation. Binding
+validation precedes dispatch, detached launching and saved-proof decisions;
+spawn-only environment changes restore the parent's exact state. Preparation
+also precedes dependency-map and group-coverage resets. Focused behavioral
+assertions pass and project checks pass. The user accepted the remaining wall-only
+lifecycle failure because its CPU time was under budget, as recorded below.
 
 ### Goal for Step 5
 
@@ -677,27 +683,133 @@ interpreter, coverage overrides, worker caps or speed verdict.
 
 ### What was implemented for Step 5
 
-_(empty: no check has taken place yet.)_.
+- Added `tools/groundhog/pytest_environment.py` to validate whole normalized
+  roots and adapt the shared builder to child environment deltas, including
+  removals. Windows comparisons ignore casing; nested and shared-prefix sibling
+  projects remain distinct. Diagnostics identify bound root, target and its
+  `senv.bat`.
+- Added early CLI validation for day, full, affected, single and timings before
+  dispatch, detached launching or proof reuse. Non-pytest commands retain their
+  behavior. Stages validate again; probes validate before availability fallback.
+- Added `Deps.prepare_pytest`; the default resolves this checkout's shared
+  sources without importing selected policy bodies. Stages and both collection
+  children prepare immediately before their respective spawns, preserving the
+  consumer pytest executable, scope, coverage settings and bounded workers.
+- Extended `StreamConfig.env_overrides` with removals. The runner restores
+  absent, empty and populated values immediately after the factory returns or
+  raises, before consuming output.
+- Converted preparation I/O errors to identifying setup errors. Probe preparation
+  errors cannot become unavailable-evidence fallback; day leaves their proof
+  unjudged. Every setup failure retains its output tail. The groundhog adapter
+  exposes the preparation error type for precise CLI and day handling.
+- Moved preparation ahead of dependency-map resets and fresh group-coverage
+  preparation. Invalid activation leaves existing evidence intact with no spawn;
+  grouped coverage overrides are composed after successful preparation.
+- Added the finite selection-by-stage activation matrix and regression tests for
+  stale same-root preparation, deselection, errors before spawn, foreign day/full
+  bindings, nested and sibling roots, detached day and saved proof. Existing
+  runner tests cover restoration across successful and raising factories.
+- Removed profiled test costs through existing scratch storage, a lazy immutable
+  instruction read and declared CLI preparation. The duration property's cheaper
+  generator preserves its input domain, examples and assertions.
 
 ### New types or classes introduced for Step 5
 
-_(empty: no check has taken place yet.)_.
+No new class or domain type. `Deps.prepare_pytest` is an injectable callable
+from root and inherited mapping to prepared environment. The existing
+`StreamConfig.env_overrides` mapping now accepts `str | None` values, where
+`None` removes a key for spawning.
 
 ### Architecture check for Step 5
 
-_(empty: no check has taken place yet.)_.
+Environment construction belongs to the new groundhog adapter; the shared
+builder retains activation policy. CLI owns invocation validation, commands and
+selection own their child boundaries, and the runner owns temporary process
+environment application. Dependency injection keeps tests process-free. No
+domain dependency on a technical adapter or duplicated preparation was found.
+The spawn search accounts for command execution and both collection children;
+the remaining command-module spawn is `check.bat`. CLI and day catch the
+adapter's specific preparation error without hiding unrelated value errors.
+
+Fresh physical counts are CLI 557, commands 623, context 140, day 432, runner
+433, selection 79 and adapter 76. All affected Python files, including tests,
+remain below 650 lines. No architecture issue needs addressing.
 
 ### Performance check for Step 5
 
-_(empty: no check has taken place yet.)_.
+Root comparison is bounded path normalization; delta construction is linear in
+the fixed environment inputs and prepared keys. Shared source checks and cache
+publication retain Step 4's contract. No quadratic or sorting computation was
+introduced. Preparation occurs per child, with no added test-event I/O.
+
+The corrected focused run passed 257 tests in 9.9s, with no warnings or xfails.
+The self-hosted `ghog day --whole-suite` on 2026-11-10 ran for 11m 09.4s:
+project checks passed, followed by 6120 affected tests in 3m 08.4s. It returned
+exit 2 solely for the scenario-storage SQLite test's lifecycle wall time:
+1.730184s against 1s, with CPU 0.015625s against the 0.100s ceiling. The isolated
+profile measured about 0.005s body, 0.007s setup and 0.003s teardown; the broad
+wall delay remains unattributed. The user explicitly instructed continuation
+when CPU is under budget. This accepts that wall-only result for continuation;
+it does not change the automated verdict, limits or exclusions.
+
+After round 1 corrections, all behavioral assertions in the 291-test focus
+passed, including both evidence-preservation regressions. Its sole lifecycle
+error was wall 1.785271s with CPU 0.093750s, below the 0.100s ceiling. The
+automated exit remains 2; the same explicit user decision permits continuation.
+
+The required replacement-review walk, `ghog day --full=speed --whole-suite`,
+finished on 2026-11-10 at 10:14:45+01:00. Project checks and all 433 affected
+tests passed. The covered full run measured 6122 tests and reported six
+wall-only lifecycle errors, zero assertion failures, warnings or expected
+failures. Their CPU times were all below the 0.100s ceiling:
+
+| Test case | CPU seconds | Wall seconds |
+| --- | --- | --- |
+| Recovery acceptance: escalation append and completion replay | 0.031250 | 1.554686 |
+| Specification routing: feature request | 0.046875 | 1.452407 |
+| Specification routing: plan | 0.046875 | 9.382368 |
+| Specification routing: design | 0.062500 | 5.650682 |
+| Paired specification publication: convergence recommendation | 0.062500 | 1.483572 |
+| Paired specification publication: changes requested | 0.078125 | 1.670344 |
+
+The user instruction permits moving on for these CPU-under-budget cases.
+The automated result remains exit 2 with `proof=none`; coverage and outlier
+verdicts were withheld. No unchanged repair run, exclusion or limit change
+was used to seek a green verdict.
+
+No actionable performance issue remains under that user decision.
 
 ### Unit test coverage check for Step 5
 
-_(empty: no check has taken place yet.)_.
+The configured coverage source is `tools`, with tests and `__init__.py` omitted;
+the affected and focused runs used no coverage, so they establish no measured
+percentage. Static inspection finds the adapter's four functions referenced by
+tests or its package, including binding normalization/refusal, command filtering,
+default preparation, environment removal, preparation errors and coverage/worker
+composition. Existing CLI, command, selection, runner and day tests cover the
+modified paths alongside the activation suite. The finite matrix exhausts the
+four selections and six stage/probe modes; Step 4 retains normalization PBT.
+The two added full-run regressions verify unchanged dependency-map and group
+coverage bytes after invalid preparation, with zero subprocess spawns.
+
+Out-of-scope test helpers and fixtures are referenced by their test modules or
+pytest registration; package markers introduce no executable symbols. No
+unit-test coverage gap requiring completion was identified statically. The
+subsequent full-speed walk ran coverage instrumentation but withheld its
+coverage verdict after the wall-only lifecycle errors; 100% coverage has not
+been established for this step. No out-of-scope top-level symbol is
+unreferenced.
 
 ### Feature integrity for Step 5
 
-_(empty: no check has taken place yet.)_.
+Consumer interpreter lookup, coverage isolation, worker caps, scope and speed
+rules remain intact. No-selection behavior adds no enforcement; deselection
+removes owned values without removing unrelated inputs. Foreign bindings fail
+before source-changing checks or proof reuse. Preparation failures preserve
+dependency and coverage evidence and do not earn or contradict saved proof;
+pytest's own startup error text is retained. No
+existing reporting capability was found impaired. Step 6's executable
+compatibility prerequisite remains separate and is not imposed on consumers.
 
 ## Step 6. Fresh executable compatibility preflight
 
