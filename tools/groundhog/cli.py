@@ -3,6 +3,7 @@
 Fix (v0.13.0 full_suite_levels, Step 4): groundhog entry point, resolving explicit or ambient scope once per run.
 
 Step 5 checks inherited pytest binding before dispatch, detach and proof reuse.
+Step 6 rejects malformed compatibility declarations before dispatch or detach.
 
 Subcommands (Q02, Q15): ``check`` runs check.bat from the project root,
 ``full`` re-runs the whole suite with a fresh testmon database and
@@ -89,6 +90,7 @@ if __name__ == "__main__":
 from tools import find_project_root
 from tools.groundhog import (
     commands,
+    compatibility_preflight,
     detach,
     exclusions,
     floor,
@@ -180,10 +182,13 @@ def main(argv: Sequence[str] | None = None, deps: Deps | None = None) -> int:
         return read_only
     try:
         pytest_environment.validate_invocation(invocation, active)
+        if invocation.sub in (runner.SUB_DAY, runner.SUB_FULL):
+            compatibility_preflight.entrypoint(invocation.root)
         invocation = _with_level(invocation, getattr(args, "full", None), active)
         if invocation.sub in _LEVEL_SUBS:
             invocation = _with_scope(invocation, args, active)
-    except (LevelError, scope.ScopeError, pytest_environment.PreparationError) as error:
+    except (LevelError, scope.ScopeError, pytest_environment.PreparationError,
+            compatibility_preflight.CompatibilityError) as error:
         redirect.consume_senv_log()
         commands.emit_summary([f"ghog: {error}"])
         return EXIT_SETUP_ERROR

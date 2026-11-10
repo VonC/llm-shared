@@ -3,6 +3,7 @@
 Fix (v0.13.0 full_suite_levels, Step 4): Injectable seams and a resolved scope plus inventory for each invocation.
 
 Step 5 injects shared pytest environment preparation at every child boundary.
+Step 6 uses the same process seam for checkout-owned compatibility preflights.
 
 Split out of ``cli.py`` so the entry point stays under the repo line
 budget: this module carries the two dataclasses every command executor

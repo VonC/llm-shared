@@ -92,6 +92,9 @@ derandomize = false
 print_blob = true
 verbosity = "normal"
 
+[tool.llm-shared.lifecycle-compatibility]
+enabled = true
+
 # https://github.com/microsoft/pyright/blob/main/docs/configuration.md
 [tool.pyright]
 include = ["tools", "tests"]
