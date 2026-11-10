@@ -31,10 +31,15 @@ of ``main``: an unknown or reserved ``--full`` and an invalid ``GHOG_FULL``
 exit 5 with the accepted values before any lifecycle write, a command without
 ``--full`` never reads the variable, and a valid parameter wins over the
 variable and shapes the full run.
+
+Step 5 rejects foreign bindings before command and detached-day dispatch.
+CLI routing cases declare preparation results; the activation suite exercises
+the real shared builder, avoiding unrelated native source-path probes here.
 """
 
 from __future__ import annotations
 
+import os
 import sys
 from dataclasses import replace
 from typing import TYPE_CHECKING, cast
@@ -42,6 +47,8 @@ from typing import TYPE_CHECKING, cast
 import pytest
 
 from tests.script_entry import run_main
+from tests.unit.tools.groundhog_acceptance_support import QueueSpawns, make_deps
+from tools import pytest_plugin_environment as env
 from tools.groundhog import (
     cli,
     exclusions,
@@ -64,6 +71,7 @@ from tools.groundhog.models import (
 
 if TYPE_CHECKING:
     import subprocess
+    from collections.abc import Mapping
     from pathlib import Path
 
 _TWO_TESTS = 2
@@ -135,6 +143,11 @@ class _FakeBar:
         return None
 
 
+def _prepared(_root: Path, inherited: Mapping[str, str]) -> dict[str, str]:
+    """Declare an unchanged environment for command-routing observations."""
+    return dict(inherited)
+
+
 def _deps(
     lines: list[str],
     code: int,
@@ -180,6 +193,7 @@ def _deps(
         bar_factory=_bar_factory,
         which=_which,
         pytest_project=_pytest_project,
+        prepare_pytest=_prepared,
     )
 
 
@@ -531,6 +545,23 @@ def test_cli_script_runs_as_main(
     with pytest.raises(SystemExit) as raised:
         run_main(script_path)
     assert raised.value.code == EXIT_OBJECTIVE_MET
+
+
+@pytest.mark.parametrize("arguments", [["day"], ["day", "--detach"], ["full"], ["affected"], ["single", "test_a.py"], ["timings"]])
+@pytest.mark.parametrize("binding", ["sibling", "nested"])
+def test_foreign_binding_blocks_dispatch(tmp_path: Path, capsys: pytest.CaptureFixture[str], arguments: list[str], binding: str) -> None:
+    """Whole-root binding refusal precedes every child, including detached day."""
+    bound = tmp_path / "nested" if binding == "nested" else tmp_path.with_name(tmp_path.name + "_sibling")
+    spawns = QueueSpawns([])
+    deps = make_deps(spawns, {env.ROOT: str(bound)})
+    parent = dict(os.environ)
+    assert cli.main([*arguments, "--root", str(tmp_path)], deps) == EXIT_SETUP_ERROR
+    assert spawns.commands == []
+    assert dict(os.environ) == parent
+    out = capsys.readouterr().out
+    assert str(bound) in out
+    assert str(tmp_path) in out
+    assert "senv.bat" in out
 
 
 # eof

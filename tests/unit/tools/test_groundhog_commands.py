@@ -1,4 +1,4 @@
-"""Scope-aware repair and restart expectations.
+"""Scope-aware repair and restart expectations, retaining pytest startup errors.
 
 Unit tests for the duration-outlier wiring of the groundhog commands.
 
@@ -529,6 +529,14 @@ def test_init_reports_success_and_failure(
     monkeypatch.setattr(init_files, "run_init", _missing)
     assert cli.main(argv, deps) == EXIT_SETUP_ERROR
     assert "ghog: instruction file missing" in capsys.readouterr().out
+
+
+def test_pytest_usage_error_preserves_diagnostic(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    """A prepared child reaching pytest retains its usage error and identifying text."""
+    spawns = Spawns(["ERROR: usage: pytest [options]", "pytest: error: unrecognized arguments: --bad"], 4)
+    assert cli.main(["single", "tests/test_one.py", "--root", str(tmp_path)], make_deps(spawns)) == EXIT_SETUP_ERROR
+    assert "unrecognized arguments: --bad" in capsys.readouterr().out
+    assert len(spawns.commands) == 1
 
 
 # eof

@@ -2,6 +2,8 @@
 
 Fix (v0.13.0 full_suite_levels, Step 4): Walk one scope with shared inventory, isolated proof and level-shaped steps.
 
+Step 5 treats collection preparation errors as setup failures without proof.
+
 Split out of ``commands.py`` so that module stays under the repo line budget
 (Q22): the walk orchestration and its per-step timestamp headers live here,
 while the individual step executors (check and the pytest runs) stay in
@@ -54,6 +56,7 @@ from tools.groundhog import (
     commands,
     evidence,
     progress,
+    pytest_environment,
     reporting,
     reporting_nextstep,
     runner,
@@ -66,6 +69,7 @@ from tools.groundhog.models import (
     EXIT_COVERAGE_GAP,
     EXIT_DURATION_OUTLIERS,
     EXIT_OBJECTIVE_MET,
+    EXIT_SETUP_ERROR,
     EXIT_SUITE_CRASH,
     EXIT_TEST_FAILURES,
     RunStats,
@@ -235,13 +239,18 @@ def _whole_chain(record: _Walk) -> int:
         return code
     # check.bat may have fixed sources: the test steps judge the fixed ones.
     record.state = record.state.on_sources(snapshot.source_digest(record.invocation.root, record.invocation.inventory))
-    if _skip_affected(record):
+    try:
+        skip = _skip_affected(record)
+    except pytest_environment.PreparationError as error:
+        commands.emit_summary([f"ghog: run setup failed: {error}"])
+        record.judged = False
+        return EXIT_SETUP_ERROR
+    if skip:
         return _full_steps(record)
     code = record.run_pytest_step(_AFFECTED_LABEL, runner.SUB_AFFECTED, no_cov=True)
-    if not record.judged:
-        return code
-    if code != EXIT_OBJECTIVE_MET:
-        record.contradicted.append(Gate.CHECK_OR_AFFECTED)
+    if not record.judged or code != EXIT_OBJECTIVE_MET:
+        if record.judged:
+            record.contradicted.append(Gate.CHECK_OR_AFFECTED)
         return code
     record.earned = FullLevel.NONE
     if record.level is FullLevel.NONE:

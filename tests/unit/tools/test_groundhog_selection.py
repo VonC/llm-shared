@@ -1,4 +1,4 @@
-"""The day shortcut retains selection boundaries and truthful full proof.
+"""The day shortcut retains selection boundaries, prepared probes and truthful proof.
 
 Fix: a bound selection too long for one command line reaches both collection
 probes through one argument file holding exactly its test files, removed after
@@ -18,6 +18,7 @@ from tests.unit.tools.groundhog_acceptance_support import (
     make_deps,
     passing_transcript,
 )
+from tools import pytest_plugin_environment as env
 from tools.groundhog import args_file, cli, selection, snapshot
 from tools.groundhog.context import Deps, Invocation
 from tools.groundhog.levels import FullLevel
@@ -167,6 +168,18 @@ def test_long_bound_selection_reaches_both_probes_through_a_file(tmp_path: Path)
     assert [lines for _, lines in spawns.files] == [list(paths), list(paths)]
     assert all("--collect-only" in command for command in spawns.commands)
     assert not any(path.exists() for path, _ in spawns.files)
+
+
+def test_missing_tooling_cannot_hide_foreign_binding(tmp_path: Path) -> None:
+    """Binding validation precedes the collection availability fallback."""
+    spawns = QueueSpawns([])
+    def missing(_name: str) -> None:
+        return None
+
+    deps = replace(make_deps(spawns, {env.ROOT: str(tmp_path / "other")}), which=missing)
+    with pytest.raises(env.PreparationError):
+        selection.counts(Invocation("day", (), no_cov=True, mode=Mode.LLM, root=tmp_path), deps)
+    assert spawns.commands == []
 
 
 # eof
