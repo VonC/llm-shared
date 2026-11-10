@@ -2027,8 +2027,44 @@ No existing feature or reporting capability appears impaired.
 
 ### Analysis of Step 8 implementation state
 
-Not started. Step 8 is not implemented because `tools/release_workflow/tags.py`
-does not exist yet.
+Yes. Step 8 has been fully implemented.
+
+`tools/release_workflow/tags.py` classifies stable, snapshot and other tag
+names, reads eligibility from whole annotation lines, groups stable tags into
+release boundaries that take the most restrictive class of their aliases and
+the `vX.Y.Z` name when they have one (design decisions Q18 and Q19), and
+fails on conflicting tags. `select_range` applies the seven-step ancestry
+rule over the step 1 typed Git observations with at most four calls, and
+`check_release_version` applies umbrella decision 33 with two. Every AC13,
+AC14 and AC15 row of the design, the aliased-boundary cases and the
+consumer-shaped histories are tested on declared histories, and every
+selection and rule invocation asserts its recorded Git calls against the
+plan's call table. `rg -n 'describe' tools/release_workflow/tags.py` finds
+nothing, and the command printed by `pw scope day` reports `exit=0`.
+
+Reviewer assessment for round 1: No. Several selection tests omitted the
+complete recorded-call assertions the plan's completion criteria require (an
+ambiguous aliased boundary, the eligible aliased baseline, an ambiguous
+target, the canned records failure, the three consumer-shaped histories and
+the generated chains), and two release-version cases did not assert their two
+calls. No production defect was found.
+
+Writer update for round 2: those tests now assert their complete ordered
+calls, arguments included, one invocation at a time (`_take`) against the call
+table's sequence (`_selection_calls`); the canned failure records the query it
+refuses; the property test asserts the call sequence of every generated
+selection, the no-candidate branch included; and both release-version cases
+assert their two calls per invocation.
+
+Independent reviewer reassessment for round 2: R1 is resolved. The formerly
+unchecked cases now assert each invocation's ordered Git observations; the
+consumer histories' candidate lists match their declared ancestry, and the
+generated no-candidate branch asserts its calls before returning. Production
+code and test-support digests match round 1. Static review finds no remaining
+implementation, architecture or unit-coverage gap. The writer's speed-walk
+evidence ended at 20:53:49 +01:00 with all 6284 tests passing,
+`cov=100 outliers=0 excluded=0`; the reviewer ran no tests or coverage walk.
+Only this Step 8 review metadata was edited by the reviewer in round 2.
 
 ### Goal for Step 8
 
@@ -2057,27 +2093,180 @@ release-version rule for items 5 and 7.
 
 ### What was implemented for Step 8
 
-_(empty — no check has taken place yet.)_.
+- **Names** (`tools/release_workflow/tags.py`): `parse_name` reads `vX.Y.Z`
+  and `X.Y.Z` as `StableName` with the token grammar, `-SNAPSHOT` in any case
+  as `SnapshotName`, and returns `None` for every other name, other
+  prereleases, `V`-prefixed, leading-zero and partial versions included.
+- **Eligibility**: `eligibility(annotation)` works on nonblank lines. A
+  trailer line starts with exactly `Release tooling:`, one space and a value
+  that is not blank, and `[valid]` must match the whole line. No trailer
+  (or a lightweight tag) is `HISTORICAL`; one trailer as the last line is
+  `UNVALIDATED`, followed only by `[valid]` `VALIDATED`; several trailers,
+  `[valid]` before the trailer, or anything else after it is `AMBIGUOUS`.
+  `classify(record)` returns a `ClassifiedTag` for a stable name and `None`
+  for snapshot markers and other names (the plan's `-> ClassifiedTag`
+  signature widened so callers drop them in one pass).
+- **Boundaries**: `boundaries(tags)` groups by version and by commit in one
+  pass; a version on several commits, or a commit with several versions,
+  raises `RangeError` naming the tags, before anything is excluded. A
+  `Boundary` exposes its alias names, its `status` (`BoundaryClass`:
+  ambiguous when any alias is, otherwise ineligible when any alias is an
+  unvalidated engine tag, otherwise eligible), its `name` (the `vX.Y.Z`
+  alias, otherwise the `X.Y.Z` alias) and its `spelled` aliases for
+  diagnostics.
+- **Range selection**: `select_range(git, *, cwd, target=None)` returns a
+  `RangeSelection` (target, baseline or `None`, printed range, commit count,
+  warnings).
+  - A target that is not a stable name fails before any call; Git revisions
+    are `HEAD` or `refs/tags/<name>` and the printed range uses plain names.
+  - One `tag_records` call; a missing tag target becomes `RangeError` (status
+    2) chained from `GitRevisionNotFoundError`, and any other Git failure
+    propagates as `GitCommandError` (status 1).
+  - A tag target's whole boundary must be eligible and is removed; HEAD keeps
+    a boundary on HEAD as candidate.
+  - One candidate is the baseline; several go through `independent_commits`
+    (its command-line guard raising `GitCommandLineTooLongError`, status 1,
+    before the call starts), and several tips or a version inversion fail.
+  - `tag_names` between the baseline and the target: an ambiguous boundary
+    there fails naming its aliases, an unvalidated one is excluded with a
+    warning naming them; then `commit_count` of `baseline..target`.
+  - Without a candidate, the range is the full history: the same checks run
+    on the remaining boundaries from the records, then `commit_count` of the
+    target.
+- **Release-version rule**: `check_release_version(git, *, cwd, version)`
+  refuses a malformed token (`VersionError`) or a snapshot (`RangeError`)
+  before any call, then makes its two calls (all tag records, records merged
+  into `main`): a version any stable tag names, in either spelling and
+  whatever its class, is reserved; otherwise it must be numerically higher
+  than the highest eligible boundary on `main`, grouped as the selector
+  groups them. `RangeError(ValueError)` carries `exit_code = 2`.
+- **Test support** (`version_support.py`): `ENGINE_TRAILER`, `annotation`
+  (notes, trailer, `[valid]`), `chain` (a linear declared history) and
+  `tagged_history` (a chain with tags by position over the sandbox's
+  recording Git observations).
+- **Tests**:
+  - `test_release_tags/test_release_tags_tdd.py`: stable and snapshot names in
+    both spellings and suffix cases, ignored names, every eligibility row
+    (trailer inside a notes line, `Release tooling:` without a value, CRLF,
+    trailing blank lines, `[valid][space]` with a trailing space), classification, the
+    eight boundary class and name combinations, ordering and both conflicts.
+  - `test_release_tags/test_release_ranges_tdd.py`: every AC13, AC14 and AC15
+    row of the design; HEAD on a release; no candidate (none, snapshot and
+    other tags only, a first tag target, an unvalidated tag only); several
+    candidates; independent tips; inversion; the three conflicts; an
+    ambiguous tag after the baseline; non-stable targets with no call; a
+    missing target; a Git failure of the records call; 600 candidates over
+    the command-line limit; the aliased cases of design decisions Q18 and
+    Q19; the release-version rule (reserved, numeric bound with an unmerged
+    higher tag, boundary classes, no eligible release, unusable versions);
+    the three consumer-shaped histories. Every selection and rule invocation
+    asserts its recorded calls against the call table, one invocation at a
+    time where a test makes several (round 2).
+  - `test_release_tags/test_release_tags_pbt.py` (property test needed):
+    annotation classification against a reference predicate written another
+    way, and linear chains of up to fifteen commits where the baseline is the
+    nearest eligible tagged ancestor, the count its distance, each later
+    unvalidated release warned about and the call sequence the call table
+    gives for zero, one or several candidates (round 2).
+- **Validation evidence**:
+  - Tests first: `ghog single` on `test_release_tags` failed at collection
+    (three errors, `ImportError: cannot import name 'tags'`;
+    2026-11-10T19:43).
+  - After the implementation, `test_release_tags` and `test_git` passed
+    (152 tests).
+  - `ghog day --whole-suite`, the command printed by `pw scope day`, first
+    failed at check.bat (ty and pyright on two test typings, ruff PLR0913 on
+    one parametrized test, radon grade C on three functions and the test
+    reference predicate, each split into helpers); it then reported `exit=0`
+    (2026-11-10T19:57).
+  - `rg -n 'describe' tools/release_workflow/tags.py` finds nothing.
+  - Round 1 review validation: `ghog day --full=speed --whole-suite` exit 0,
+    `cov=100 outliers=0 excluded=0` (2026-11-10T20:13). The reviewer found
+    the missing call assertions (R1) by static review; no production defect.
+  - Round 2: with the complete call assertions, `ghog single` on
+    `test_release_tags` passed (91 tests, 2026-11-10T20:36).
+- **Line counts** (after round 2): `tags.py` 342 (advisory 380),
+  `version_support.py` 497 (+33, advisory +40), new test files 126, 398 and
+  111 (advisory 220, 380 and 120), initializer 3. Every Python file stays
+  below 650; the split guidance was not needed.
 
 ### New types or classes introduced for Step 8
 
-_(empty — no check has taken place yet.)_.
+- `tools.release_workflow.tags`: `RangeError`, `StableName`, `SnapshotName`,
+  `parse_name`, `Eligibility`, `eligibility`, `ClassifiedTag`, `classify`,
+  `BoundaryClass`, `Boundary`, `boundaries`, `RangeSelection`,
+  `select_range` and `check_release_version`.
+- Test support: `version_support.ENGINE_TRAILER`, `annotation`, `chain` and
+  `tagged_history`; the `test_release_tags` test folder.
 
 ### Architecture check for Step 8
 
-_(empty — no check has taken place yet.)_.
+- **Layering**: `tags.py` is release-domain code. It reads Git only through
+  the typed `GitExecutionContext` observations added in Step 1 and the token
+  grammar of `sources.model`; it starts no process of its own, writes
+  nothing and holds no state between calls.
+- **Ports**: tests answer the same four observations from the declared
+  `ReleaseHistory`, so the selector is exercised without Git, and the calls
+  it makes are the boundary the call table specifies.
+- **Shared rule**: classification and boundary grouping are one code path
+  for the selector and the release-version rule, so their classes cannot
+  drift apart.
+
+No, there is nothing that needs to be addressed: no DDD-Hexagonal violation or
+smell is visible in this step.
 
 ### Performance check for Step 8
 
-_(empty — no check has taken place yet.)_.
+- **Linear normal path**: classification reads each
+  annotation's lines once; grouping uses dictionaries by version and commit
+  and sorts names or commits of a conflicting group for its error message
+  (`O(k log k)` for a conflict involving `k` records); candidates, tips,
+  the names between baseline and target
+  and boundary aliases are compared through sets; the highest eligible
+  boundary is one `max`. Normal selection is linear in the reachable tags.
+- **Bounded side effects**: at most four Git calls per selection (records,
+  tips, tags between, count) and two for the release-version rule, as the
+  call table states; none when the target name is refused.
+
+No, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 8
 
-_(empty — no check has taken place yet.)_.
+The coverage gate measures `tools` only (`[tool.coverage.run] source`), with
+`*/tests/*` and `*/__init__.py` omitted.
+
+- **`tools/release_workflow/tags.py`**: `test_release_tags/` reaches every
+  name form, every eligibility branch, each boundary class and name rule,
+  both conflicts, every target refusal, the missing-target conversion, the
+  one-candidate, several-candidate, tips, inversion and no-candidate paths,
+  the ambiguous and ineligible checks after the baseline and before the
+  target, and every release-version outcome; covered.
+- **Files outside the gate**: every new `version_support.py` symbol is
+  referenced by the Step 8 tests.
+
+No, there is no unit-tested class below 100% that needs completing for Step 8.
+No, none of the top-level symbols added outside the coverage gate is
+unreferenced.
+
+The Git-call budget is a separate contract from branch coverage: after round
+2, every selection and rule invocation asserts its complete recorded calls,
+so an extra or repeated observation fails a test.
 
 ### Feature integrity for Step 8
 
-_(empty — no check has taken place yet.)_.
+- **Existing feature behavior**: no existing reader is switched; the range
+  readers of `prepare-release` and the instructions keep their own query
+  until item 7. Nothing calls `tags.py` yet; Step 9 adds `versions range`.
+- **Reporting or diagnostics**: refusals are `RangeError` (status 2) naming
+  the target, the conflicting tags, the tips, the inversion or the aliases;
+  a missing tag target names the tag; Git execution failures and an
+  oversized tips query keep their status 1 errors.
+- **Compatibility or rollout note**: existing tags need no migration: none
+  of the consumers' annotations holds a trailer, so their tags stay
+  historical and eligible, and mixed `vX.Y.Z` and `X.Y.Z` histories select
+  as before.
+
+No existing feature or reporting capability appears impaired.
 
 ---
 
