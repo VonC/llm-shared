@@ -267,7 +267,10 @@ appends one with its source (prompt or notes), agent and override outcome.
 Per checkout, a new entry replaces the older entry of the same kind, so at most
 one pause and one resume entry remain. `list-session` reads it without
 changing it, checking each waiting prompt's SHA-256 on disk. The journal is an
-index: the prompt and receipt still decide what `resume-session` does.
+index: the prompt and receipt still decide what `resume-session` does. Agents
+write it only through `bin\session_journal.bat`, a plan then a separate apply
+that keeps a backup; see the
+[session journal command](session-journal-command.md).
 
 The root `a.prompt.txt` belongs to `pw` routing and is not a session checkpoint.
 See [session templates](templates.md#session-continuity-templates) and

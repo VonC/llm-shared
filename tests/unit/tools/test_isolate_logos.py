@@ -218,9 +218,9 @@ class TestMain:
         return _cell((40, 20), [((5, 5, 15, 15), BLACK), ((25, 5, 35, 15), RED)])
 
     def test_main_writes_both_versions_of_each_kept_cell(self, tmp_path: Path) -> None:
-        """Named and renamed cells produce opaque and transparent PNG files."""
+        """Tiny named/renamed cells exercise real PNG codecs and all four outputs."""
         sheet_path = tmp_path / "sheet.png"
-        self._sheet().save(sheet_path)
+        _cell((12, 6), [((2, 2, 4, 4), BLACK), ((8, 2, 10, 4), RED)]).save(sheet_path)
         out_dir = tmp_path / "assets"
 
         exit_code = isolate_logos.main(
@@ -234,6 +234,8 @@ class TestMain:
                 "alpha,beta=custom-beta",
                 "--prefix",
                 "logo-test",
+                "--margin",
+                "0.25",
             ],
         )
 
@@ -249,7 +251,7 @@ class TestMain:
         assert opaque.mode == "RGB"
         transparent = Image.open(out_dir / "custom-beta-transparent.png")
         assert transparent.mode == "RGBA"
-        # The 10px content pastes at (0, 0) of the 11px canvas, so only the
+        # The 2px content pastes at (0, 0) of the 3px canvas, so only the
         # bottom-right corner is guaranteed to be padding background.
         side = transparent.size[0]
         corner = isolate_logos._rgb_at(transparent, side - 1, side - 1)

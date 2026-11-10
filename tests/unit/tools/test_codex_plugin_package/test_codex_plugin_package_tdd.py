@@ -6,6 +6,9 @@ cachebuster and reads the personal marketplace name with the standard library.
 
 Fix: typed JSON access keeps strict pyright clean; a marketplace whose plugin
 list holds non-object entries still reports the missing plugin entry.
+
+Locate the shipped package through its own module, so this repository contract
+does not collect unrelated prompt-workflow dependency fingerprints.
 """
 
 from __future__ import annotations
@@ -14,16 +17,11 @@ import json
 import runpy
 import sys
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 import pytest
 
 from tools import codex_plugin_package
-from tools import prompt_workflow_steps as steps
-
-if TYPE_CHECKING:
-    from pathlib import Path
-
 
 _VERSION = "0.1.0+codex.20260910164658"
 _NOW = datetime(2026, 10, 19, 8, 30, 15, tzinfo=UTC)
@@ -63,7 +61,7 @@ def _marketplace(tmp_path: Path, data: object, encoding: str = "utf-8") -> Path:
 
 def test_repository_package_is_valid() -> None:
     """The shipped package passes the checks that llmup runs before installing."""
-    root = steps.llm_shared_dir() / ".agents" / "llm-shared"
+    root = Path(codex_plugin_package.__file__).resolve().parent.parent / ".agents" / "llm-shared"
 
     errors, count = codex_plugin_package.validate_package(root)
 
