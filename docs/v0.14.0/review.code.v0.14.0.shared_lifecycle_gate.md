@@ -3870,3 +3870,1062 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-2 -->
+
+## Round 1 by requestor - Step 5
+
+- Recorded: 2026-11-10T09:27:23+01:00
+- Exchange: code/code/v0.14.0/shared_lifecycle_gate
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: unrecorded
+- Implementation step: 5
+- Outcome: request
+
+### Review identity for step 5 shared_lifecycle_gate (round 1)
+
+Umbrella draft: none
+Implementation plan: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.md
+Implementation step: 5
+Review round: 1
+
+### Code review evidence for step 5 shared_lifecycle_gate (round 1)
+
+request_index_tree: d25285c5081a72593a918582f878499077327fea
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "missing", "requirement": "docs/v0.14.0/feature-request.v0.14.0.shared_lifecycle_gate.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: perf(tests): reduce scenario setup costs
+group 1 path: tests/memory_filesystem.py
+group 1 path: tests/unit/tools/test_code_reviewer_instruction/test_code_reviewer_instruction_tdd.py
+group 1 path: tests/unit/tools/test_groundhog_durations_pbt.py
+group 2: feat(groundhog): prepare every pytest child
+group 2 path: tests/unit/tools/shared_lifecycle/test_groundhog_activation/__init__.py
+group 2 path: tests/unit/tools/shared_lifecycle/test_groundhog_activation/test_groundhog_activation_tdd.py
+group 2 path: tests/unit/tools/test_groundhog_acceptance_day.py
+group 2 path: tests/unit/tools/test_groundhog_cli.py
+group 2 path: tests/unit/tools/test_groundhog_commands.py
+group 2 path: tests/unit/tools/test_groundhog_runner.py
+group 2 path: tests/unit/tools/test_groundhog_selection.py
+group 2 path: tools/groundhog/__init__.py
+group 2 path: tools/groundhog/cli.py
+group 2 path: tools/groundhog/commands.py
+group 2 path: tools/groundhog/context.py
+group 2 path: tools/groundhog/day.py
+group 2 path: tools/groundhog/pytest_environment.py
+group 2 path: tools/groundhog/runner.py
+group 2 path: tools/groundhog/selection.py
+group 3: docs(shared_lifecycle_gate): record step 5 validation
+group 3 path: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.validation.md
+staged path: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.validation.md
+staged path: tests/memory_filesystem.py
+staged path: tests/unit/tools/shared_lifecycle/test_groundhog_activation/__init__.py
+staged path: tests/unit/tools/shared_lifecycle/test_groundhog_activation/test_groundhog_activation_tdd.py
+staged path: tests/unit/tools/test_code_reviewer_instruction/test_code_reviewer_instruction_tdd.py
+staged path: tests/unit/tools/test_groundhog_acceptance_day.py
+staged path: tests/unit/tools/test_groundhog_cli.py
+staged path: tests/unit/tools/test_groundhog_commands.py
+staged path: tests/unit/tools/test_groundhog_durations_pbt.py
+staged path: tests/unit/tools/test_groundhog_runner.py
+staged path: tests/unit/tools/test_groundhog_selection.py
+staged path: tools/groundhog/__init__.py
+staged path: tools/groundhog/cli.py
+staged path: tools/groundhog/commands.py
+staged path: tools/groundhog/context.py
+staged path: tools/groundhog/day.py
+staged path: tools/groundhog/pytest_environment.py
+staged path: tools/groundhog/runner.py
+staged path: tools/groundhog/selection.py
+```
+
+### Validation scope for step 5 shared_lifecycle_gate (round 1)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 5 shared_lifecycle_gate (round 1)
+
+Step 5 is fully implemented. The validation plan records: Yes. Step 5 has been fully implemented.
+
+The shared preparation adapter covers every pytest stage and both collection probes. Invocation binding checks happen before dispatch, detached launching and saved-proof decisions; each stage checks again. Whole normalized roots compare case insensitively on Windows, including nested and sibling root rejection. Child overrides support removals and restore the parent's exact state after the spawn factory returns or raises.
+
+Static checks: the last self-hosted groundhog day passed all project checks. Ruff corrected one import order before the test stage. Changed Python files remain below the 650 physical line ceiling; commands is 620 lines and CLI is 557.
+
+Tests: the corrected focused run passed 257 tests in 9.9s, zero warnings or expected failures. The last self-hosted ghog day --whole-suite ran 6120 affected tests, with no behavioral assertion failures, warnings or expected failures. Its authoritative result is done exit=2 because one lifecycle wall limit remained exceeded. Coverage configuration covers tools and excludes tests and package markers; no measured coverage percentage is claimed from runs without coverage.
+
+Performance exception explicitly authorized by the user: tests/unit/test_scenario_storage.py::test_sqlite_close_retains_commit_and_discards_pending_write used CPU 0.015625s against 0.100s, with wall 1.730184s against 1s. The user asked about actual CPU, then said: "OK, when you have CPU under budget, do move on". This authorizes proceeding despite this wall-only failure. Do not describe the automated gate as green or change limits to hide it. No exclusions or baselines were added or raised. Isolated profiling measured body about 0.005s, setup 0.007s and teardown 0.003s; no safe removable cost was identified. The broad wall delay remains unattributed.
+
+Architecture and integrity: one adapter bridges groundhog to the existing shared builder. Preparation errors remain setup errors and cannot be swallowed by collection fallback or produce judged proof. Existing consumer interpreter resolution, coverage, worker controls and startup diagnostic text are preserved. Steps 6 and 7 remain separate and unimplemented.
+
+Retained evidence: .reviews/a.shared_lifecycle_gate.step5.tmp.day-one-failure.log and .reviews/a.shared_lifecycle_gate.step5.tmp.profile-sqlite.txt. The user exception replaces the ordinary requirement for a green validation walk for this remaining wall-only failure; no unchanged rerun was made to seek a favorable timing result.
+
+### Implementation report for step 5 shared_lifecycle_gate (round 1)
+
+Groundhog now prepares every pytest child through the shared lifecycle environment builder from the current checkout. The adapter rejects foreign project bindings using whole normalized root equality, combines the prepared delta with existing child overrides, and represents removals explicitly.
+
+CLI invocation setup checks commands that can start pytest before any dispatch, detached child or saved-proof decision. Stage preparation rechecks the binding. Both collection probes receive preparation, and preparation failures propagate as setup errors rather than triggering ordinary collection fallback. A day probe failure exits setup with code 5 and remains unjudged for proof.
+
+The runner temporarily applies additions and removals for process creation, then restores exact prior presence and values immediately after the spawn factory, including failure. It keeps existing consumer interpreter selection, coverage environment and worker settings.
+
+Behavior tests cover the finite four-selection by six-stage/probe matrix, same-root stale preparation and deselection, foreign nested and sibling roots, detached day and saved proof, consumer interpreter, fallback and preparation failure, coverage and workers, and restoration on success and failure. Tests use injected process observations; activation tests exercise the real shared builder.
+
+Performance repairs use the established memory filesystem for CLI, selection, activation and compatibility scenarios. Only two gate contract artifact families use that route, preserving native inline pytest imports. Immutable reviewer instructions are read lazily once, with the first read measured. The excluded-duration property reuses the integer ranked generator with its original domain, example count and assertions. No test checks or timing limits were weakened.
+
+Validation: 257 focused tests passed in 9.9s; all project checks passed on the last self-hosted day. Its 6120 affected tests had no behavioral assertion failures and one accepted wall-only lifecycle failure: CPU 0.015625s below 0.100s, wall 1.730184s above 1s, authoritative exit=2. User explicitly instructed continuation when CPU is under budget. No exclusion or raised baseline exists. The resolved validation set is retained as declared by the renderer; this report does not claim a green speed proof or a measured coverage percentage.
+
+Writer notes: .reviews/a.shared_lifecycle_gate.step5.journal.md and .reviews/a.shared_lifecycle_gate.step5.handoff.md.
+
+### Change summary for step 5 shared_lifecycle_gate (round 1)
+
+All 19 intended paths are staged. Root a.commit was formatted with wac and commit-plan-check returned ready=true with no diagnostics. Changed Markdown passed markdownlint and spelling checks.
+
+Group 1, perf(tests): reduce scenario setup costs:
+
+- tests/memory_filesystem.py
+- tests/unit/tools/test_code_reviewer_instruction/test_code_reviewer_instruction_tdd.py
+- tests/unit/tools/test_groundhog_durations_pbt.py
+
+Group 2, feat(groundhog): prepare every pytest child:
+
+- `tests/unit/tools/shared_lifecycle/test_groundhog_activation/__init__.py`
+- tests/unit/tools/shared_lifecycle/test_groundhog_activation/test_groundhog_activation_tdd.py
+- tests/unit/tools/test_groundhog_acceptance_day.py
+- tests/unit/tools/test_groundhog_cli.py
+- tests/unit/tools/test_groundhog_commands.py
+- tests/unit/tools/test_groundhog_runner.py
+- tests/unit/tools/test_groundhog_selection.py
+- `tools/groundhog/__init__.py`
+- tools/groundhog/cli.py
+- tools/groundhog/commands.py
+- tools/groundhog/context.py
+- tools/groundhog/day.py
+- tools/groundhog/pytest_environment.py
+- tools/groundhog/runner.py
+- tools/groundhog/selection.py
+
+Group 3, docs(shared_lifecycle_gate): record step 5 validation:
+
+- docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.validation.md
+
+The validation group is last and uses the exact required completion title. No commits have been created.
+
+### Human guidance and writer response for step 5 shared_lifecycle_gate (round 1)
+
+Human guidance:
+
+Human guidance for this review: "OK, when you have CPU under budget, do move on". The remaining test's CPU was 0.015625s below 0.100s; wall was 1.730184s above 1s. Continue under that exception while preserving the automated exit=2 evidence. No timing limit or exclusion change is requested.
+
+Review Step 5 only. Steps 6 and 7 remain separate. Do not start or contact a requestor session. Review role isolation remains in force.
+
+Writer response:
+
+This is the first review round for Step 5. No earlier reviewer feedback exists for this step and no repair was reversed.
+
+The user explicitly accepted continuing after the one remaining wall-only lifecycle failure because its actual CPU measurement is below budget. The automated exit=2 and measured wall time remain visible. This is a user decision, not a claim that the unchanged automated validation passed.
+
+### Reviewer focus for step 5 shared_lifecycle_gate (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-5-round-1 -->
+
+## Round 1 by reviewer - Step 5
+
+- Recorded: 2026-11-10T09:52:10+01:00
+- Exchange: code/code/v0.14.0/shared_lifecycle_gate
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 5
+- Outcome: answer
+
+### Assessed index identity for step 5 shared_lifecycle_gate (exchange 1) (round 1)
+
+Baseline index tree: d25285c5081a72593a918582f878499077327fea
+
+Assessed index tree: d25285c5081a72593a918582f878499077327fea
+
+### Implementation check for step 5 shared_lifecycle_gate (exchange 1) (round 1)
+
+Result:
+
+No. Step 5 has NOT been fully implemented.
+
+Every pytest stage and both collection probes now go through the shared
+builder, and the binding refusal comes before any child, detached launch or
+saved-proof decision. One failure path is in the wrong order. When
+preparation fails in a direct `ghog full`, it runs after the run has already
+deleted the testmon map or the group coverage data. Preparation failure is a
+new pre-spawn stop that this step added. It should leave project state alone,
+as the binding refusal does. The unresolved findings list this with two
+smaller code items and a transcript lint failure.
+
+What is in place and matches the plan and the Q05=E1 decision:
+
+- `tools/groundhog/pytest_environment.py` (75 lines) is the only adapter.
+  `validate_binding` compares whole resolved paths through `os.path.normcase`,
+  never by prefix. A nested project and a `_sibling` name beside the root
+  are both refused. The message names the bound root, the target root and
+  the target's `senv.bat`. `child_environment` copies only the builder's
+  inputs (the three binding variables, `PYTHONPATH`, `PYTEST_ADDOPTS`,
+  `LOCALAPPDATA`). It returns only the keys whose prepared value differs,
+  with `None` for a removal. Coverage and worker overrides are added after
+  that, exactly as the removed `commands._child_environment` combined them.
+- `cli.main` calls `validate_invocation` after the read-only listings and
+  before level and scope resolution, the live-run refusal, the detached day
+  and every dispatch. It applies only to `day`, `full`, `affected`, `single`
+  and `timings`. `check`, `init`, `exclude`, `status` and `groups` keep their
+  behavior.
+- `commands.run_tests_outcome` checks the binding again before the project
+  and executable lookups. `_run_pytest` and `selection._collect` are the only
+  two pytest `StreamConfig` constructions, and both take
+  `pytest_environment.child_environment`. The third `StreamConfig` in
+  `commands.py` is `check.bat`. The detached day starts a new `ghog`, which
+  runs the same CLI check.
+- `selection.counts` checks the binding before the availability fallback. A
+  `PreparationError` (including a wrapped `OSError`) is a `ValueError`, so
+  the probe's `except OSError` fallback cannot hide it. `day._whole_chain`
+  turns it into exit 5, unjudged. An unavailable probe (spawn `OSError`, or
+  exit other than 0 or 5) still returns `None`, and the affected stage
+  prepares again before its own spawn.
+- `runner.run_streaming` applies removals and values and restores absent,
+  empty and populated values in `finally`, before output is consumed.
+- `Deps.prepare_pytest` defaults to `pytest_environment.prepare`, which
+  resolves this checkout's `tools/pytest_plugins`. The policy bodies are never
+  imported: the activation matrix uses policy files that raise on import and
+  checks `sys.modules` afterwards.
+- `day._whole_chain` folds the affected-step result into one condition. This
+  is a pure refactor with identical branches.
+
+Missing work:
+
+- Compute the child activation before `runner.reset_testmon` and
+  `group_coverage.prepare(fresh=True)` in `commands._run_pytest`, so that a
+  preparation failure leaves the testmon map and group coverage data in place.
+  Add a regression test for both.
+
+Architecture: preparation policy stays in the shared builder. The groundhog
+adapter only converts it to a spawn delta, and the runner owns the temporary
+process environment. Two small smells remain. `tools/groundhog/day.py`
+imports `PreparationError` from `tools.pytest_plugin_environment` directly
+instead of through the adapter that owns the boundary for every other
+groundhog module. And the CLI catches a plain `ValueError` around level and
+scope resolution as well as the binding check. These need addressing, as
+listed in the third finding.
+
+Performance: binding validation is two path resolutions. The delta is linear
+in at most six inputs plus the prepared keys. Preparation runs once per child,
+as the plan asks, and the builder keeps Step 4's IO contract. Nothing is
+quadratic or sorted. No performance issue needs addressing in the code. The
+user's wall-time exception is recorded under validation.
+
+Unit test coverage: the gate's source is `tools`, with tests and
+`__init__.py` omitted, and no run in this round measured it. Statically, each
+adapter function and branch is exercised: the same-root normalization and
+casing, the nested and sibling refusals, the command filter, the default
+`prepare`, the `OSError` wrapping, removals, coverage and an explicit worker
+count. The CLI, command, selection, runner and day changes each have a
+focused test. The `_failure_context` setup branch is covered by
+`test_pytest_usage_error_preserves_diagnostic`. No test covers keeping the
+testmon map or group coverage data after a preparation failure, because the
+code does not keep them yet. No other tools line was found uncovered. The
+staged test-support files are outside the gate, and their top-level symbols
+are referenced.
+
+Feature integrity: interpreter lookup, coverage isolation, worker caps, scope
+and the speed rules are unchanged. Reporting gains the pytest output tail on
+every exit-5 run, not only on a startup usage error. That helps, but
+`_failure_context`'s docstring does not say so. The ordering finding is the
+one way an existing capability is impaired: a configuration error can erase
+the dependency map that `ghog affected` relies on.
+
+Validation plan effects:
+
+No reviewer edit. The writer's Step 5 rows in
+`docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.validation.md` say
+`Yes. Step 5 has been fully implemented.`, which this assessment does not
+confirm. The rows follow the template. The recorded line counts (CLI 557,
+commands 620, context 140, day 432, runner 433, selection 79, adapter 75)
+match the staged files. The feature integrity row says preparation failures
+"do not earn or contradict saved proof", which is true. It does not mention
+the testmon map or group coverage data that a preparation failure deletes
+(first finding).
+
+The document-level line correctly stays `No, it is not implemented`. Its
+summary now names Steps 1-5 as checked, with Steps 6-7 not started. The
+staged diff touches only the Step 5 section and that summary. Reviewer mode
+completed no umbrella row, and the effort has none.
+
+### Pre-repair mandatory checks and coverage for step 5 shared_lifecycle_gate (exchange 1) (round 1)
+
+No repair was made. The pre-repair and assessed states are therefore the same
+index tree, `d25285c5081a72593a918582f878499077327fea`, which equals the
+request-time tree.
+
+Requestor evidence, not repeated: 257 focused tests passed in 9.9s. A default
+`ghog day --whole-suite` (`full=none`) ended at 2026-11-10T09:07:40+01:00 with
+exit 2. Its checks passed, and 6120 affected tests ran with one wall-only
+lifecycle failure, which the user accepted. The resolved `--full=speed` walk
+was not run.
+
+Reviewer evidence. Each command ran once from the project root through the
+worktree's `.\senv.bat` and `bin\ghog.bat` (guard cleared,
+`SWITCHPY_CHOICE=local`), so the staged groundhog ran itself. Each run passed
+the log-freshness check:
+
+- `ghog check` ended at 2026-11-10T09:46:31+01:00 with `exit=1` after
+  3m 10.6s. Ty, pyright, ruff, radon, vulture, the 650-line big-file check,
+  shellcheck and the EOF check all passed. The only failure was the Markdown
+  check on the unstaged review transcript:
+  `docs/v0.14.0/review.code.v0.14.0.shared_lifecycle_gate.md` lines 3998 and
+  4005, MD050 (strong style, underscore). No staged file was reported.
+- `ghog affected --no-cov --scope-file=.reviews/a.review-scope.code.v0.14.0.shared_lifecycle_gate.json`
+  ended at 2026-11-10T09:48:08+01:00 with `exit=0` after 22.6s. Testmon
+  selected one test, and it passed, with zero warnings and xfails.
+
+Coverage was assessed statically, and no `ghog day` or `ghog full` ran. The
+ordering finding comes from reading the code. The reviewer ran no ad hoc
+probe for it.
+
+### Resolved validation set and sources for step 5 shared_lifecycle_gate (exchange 1) (round 1)
+
+The request carries one command: `ghog day --full=speed --whole-suite`, from
+the `project` source. That is the built-in default completed with the bound
+whole-suite selector, because the repository has no `.review-validation`
+declaration.
+
+The requestor owns this set, and it was not run in this round. The requestor
+reports a self-hosted `ghog day --whole-suite` on 2026-11-10. Its retained log,
+`.reviews/a.shared_lifecycle_gate.step5.tmp.day-one-failure.log`, closes with
+`full=none src=default proof=unproven`, so it was the default day and not the
+resolved `--full=speed` walk. Project checks passed. Then 6120 affected tests
+ran in 3m 08.4s with no behavioral failure, warning or xfail, and the walk
+ended at exit 2, ended 2026-11-10T09:07:40+01:00. The single cause was the
+lifecycle wall limit of
+`tests/unit/test_scenario_storage.py::test_sqlite_close_retains_commit_and_discards_pending_write`:
+wall 1.730184s against 1s, CPU 0.015625s against 0.100s. No fresh whole-suite
+coverage or duration evidence exists for this round.
+
+The request's literal `Human guidance:` block records the user's decision to
+continue when CPU is under budget. The reviewer treats that as accepting this
+one wall-only result. It does not turn exit 2 into a pass, and the reviewer
+ran neither walk.
+
+Exchange status binds the round to scope `whole` with fingerprint `686958cd`,
+and the reviewer used that `paths.scope` capture.
+
+### Resolver drift and direction for step 5 shared_lifecycle_gate (exchange 1) (round 1)
+
+No drift. There is no `.review-validation` declaration, and the bound scope is
+`whole` (fingerprint `686958cd`). The staged change adds no validation
+command to the plan or the validation plan. The resolver inputs therefore give
+the same single `project` command, `ghog day --full=speed --whole-suite`.
+Neither direction adds or drops a command.
+
+### Repository state around validation for step 5 shared_lifecycle_gate (exchange 1) (round 1)
+
+The validation path set holds the 19 staged paths, the implementation plan
+and the root `a.ghog.log` that the reviewer evidence commands write. It was
+captured before assessment and again after both ghog commands.
+
+- `validation-state compare` reported `acceptable: true`. No tracked or
+  untracked path changed, and one ignored path changed (`a.ghog.log`).
+- `umbrella-digest compare` reported not applicable and unchanged, because the
+  request states `Umbrella draft: none`.
+- After assessment, the live index tree is still
+  `d25285c5081a72593a918582f878499077327fea`.
+- The only unstaged change is the versioned review transcript
+  `docs/v0.14.0/review.code.v0.14.0.shared_lifecycle_gate.md`, with 166 added
+  lines. The exchange appended them, and the requestor's residual commit owns
+  them.
+
+### Repair inventory for step 5 shared_lifecycle_gate (exchange 1) (round 1)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 5 shared_lifecycle_gate (exchange 1) (round 1)
+
+An independent `commit-plan-check.bat --format json` rerun on the received
+state exited 0 with `state: valid`, `ready: true` and no diagnostics. It listed
+the same 19 staged paths and the same three ordered groups as the request
+evidence:
+
+1. `perf(tests): reduce scenario setup costs`, 3 paths:
+   `tests/memory_filesystem.py`, the code-reviewer instruction test and the
+   durations property test.
+2. `feat(groundhog): prepare every pytest child`, 15 paths: the new adapter,
+   the six changed groundhog modules, the package docstring, the new
+   activation test package and the five updated groundhog test modules.
+3. `docs(shared_lifecycle_gate): record step 5 validation`, 1 path.
+
+Reviewer judgment on grouping and scope: every staged path belongs to exactly
+one group, and the validation record comes last. Group 1's three paths are not
+in the Step 5 file list. They only reduce test lifecycle cost: they route more
+scenarios through the existing in-memory scratch storage, cache one immutable
+instruction read, and reuse the ranked-name generator. That generator keeps
+the same `_SECS` value domain, the 1 to 20 entry range, the example count and
+the assertions. A separate `perf(tests)` commit ahead of the feature is the
+right place for them. No AI attribution trailer is present.
+
+`a.commit` is accurate for the received state. The requested fixes belong in
+group 2 and their validation in group 3, so the grouping can stay. The group 2
+and group 3 bodies will need a refresh after the rework.
+
+### Findings and boundaries for step 5 shared_lifecycle_gate (exchange 1) (round 1)
+
+Unresolved findings:
+
+- A preparation failure deletes project state before it stops the run
+  (`tools/groundhog/commands.py` lines 247, 260 and 266). `_run_pytest` calls
+  `runner.reset_testmon(invocation.root)` for a sequential, ungrouped full
+  run (line 247). For a grouped full, it calls
+  `group_coverage.prepare(..., fresh=True)`, which unlinks the group coverage
+  data file (line 260). Only then does it call
+  `pytest_environment.child_environment` (line 266). That call can now raise
+  `PreparationError` for an unknown `LLM_SHARED_PYTEST_PLUGINS` token, a
+  missing or contract-invalid policy source, a corrupt loader cache entry, or
+  a publication `OSError`. `run_tests_outcome` then reports exit 5 with no
+  spawn, but the `.testmondata` dependency map or the group coverage data is
+  already gone. Two routes reach this: a direct `ghog full`, and a day walk
+  that upgrades saved proof, whose full step is its first preparation. After
+  the shell is fixed, the next `ghog affected` has no dependency map and
+  selects everything again. Before this step, nothing between the reset and the
+  spawn could fail except the spawn itself. `test_selected_preparation_failure_stops_before_spawn`
+  covers `full` with an invalid selection, but its project has no
+  `.testmondata`, so it cannot see the deletion. The plan asks for
+  preparation failure "before spawn" with the existing setup contract, and
+  the Q05=E1 tests require unchanged state for the binding variant. A
+  preparation failure should leave the same state untouched.
+- `_failure_context`'s docstring no longer describes what it returns
+  (`tools/groundhog/commands.py` lines 468 to 490). The new branch at line 486
+  returns `result.tail` for every exit-5 run. That covers a startup usage
+  error, an empty `full` or `single`, a missing coverage TOTAL and unusable
+  group coverage evidence, not only the pytest usage error the plan names.
+  Showing the tail is reasonable for all of them. The `Returns:` section
+  still lists only the crash block, the failure block, the unparsed-failure
+  tail and "nothing for a run that did not fail". The project rules ask for
+  updated docstrings that explain the fix.
+- The preparation error type is caught inconsistently
+  (`tools/groundhog/day.py` line 83, `tools/groundhog/cli.py` line 186).
+  `day.py` imports `PreparationError` from the shared builder module
+  `tools.pytest_plugin_environment`. Every other groundhog module reaches the
+  builder only through the `pytest_environment` adapter, and the plan keeps
+  binding logic in that adapter. `cli.main` widened its handler from
+  `(LevelError, scope.ScopeError)` to also catch a plain `ValueError`. That
+  covers `_with_level` and `_with_scope` too, so any unrelated `ValueError`
+  raised there now becomes a one-line setup error instead of a traceback.
+  Both work today, but the boundary is looser than it needs to be.
+- `ghog check` fails on the review transcript
+  (`docs/v0.14.0/review.code.v0.14.0.shared_lifecycle_gate.md`, lines 3998
+  and 4005, MD050). This round's request lists
+  `tests/unit/tools/shared_lifecycle/test_groundhog_activation/__init__.py`
+  and `tools/groundhog/__init__.py` without code spans in its change summary,
+  so their double underscores parse as strong emphasis. This is the same
+  defect as Step 3 and Step 4 round 1. The staged files pass. The transcript is
+  unstaged and requestor-owned, but the next review-record commit would carry
+  the lint failure.
+
+Boundary-crossing work: None.
+
+### Human guidance response for step 5 shared_lifecycle_gate (exchange 1) (round 1)
+
+Human guidance:
+
+Human guidance for this review: "OK, when you have CPU under budget, do move on". The remaining test's CPU was 0.015625s below 0.100s; wall was 1.730184s above 1s. Continue under that exception while preserving the automated exit=2 evidence. No timing limit or exclusion change is requested.
+
+Review Step 5 only. Steps 6 and 7 remain separate. Do not start or contact a requestor session. Review role isolation remains in force.
+
+Guidance response:
+
+The guidance asks for no repair, so the reviewer edited nothing and reports
+findings only.
+
+- CPU exception: accepted as the user's decision for the one wall-only result
+  of `test_sqlite_close_retains_commit_and_discards_pending_write`. The
+  automated exit 2 stays recorded as exit 2. No limit, exclusion or baseline
+  was changed, and this round's findings do not rely on that timing result.
+  The resolved `--full=speed` walk was never run, so this round has no
+  whole-suite coverage or duration evidence. The rework needs that walk, or a
+  user decision that covers its absence too.
+- Step boundary: only Step 5 was assessed. Steps 6 and 7 stay separate. No
+  finding asks for the compatibility preflight, acceptance harness or
+  documentation work.
+- Role isolation: the reviewer was started independently, by the human
+  through `review-resume`. It did not start or contact a requestor session.
+  Publishing this answer is its only handoff.
+
+### Writer instructions for step 5 shared_lifecycle_gate (exchange 1) (round 1)
+
+1. Preparation before state changes: in `commands._run_pytest`, compute the
+   child activation before `runner.reset_testmon` and before
+   `group_coverage.prepare`. For example, call
+   `pytest_environment.child_environment(invocation, deps, parallel=parallel)`
+   first. Then run the reset and coverage preparation, and add
+   `group_coverage.environment(measure[0])` to that delta. Keep one call to the
+   builder per spawn. Add regression tests with an invalid
+   `LLM_SHARED_PYTEST_PLUGINS` (or a raising `prepare_pytest`). A sequential
+   ungrouped `full` must keep an existing `.testmondata`, and a grouped `full`
+   must keep an existing group coverage data file. Both must exit 5 with no
+   spawn.
+2. Docstring: update `_failure_context`'s description and `Returns:` section
+   for the exit-5 output tail. Either say it covers every setup error, or
+   narrow the branch to `result.pytest_exit == PYTEST_USAGE_ERROR` if only
+   startup usage errors should show it.
+3. Error boundary: have `day.py` take the preparation error type from the
+   `tools.groundhog.pytest_environment` adapter, for example through a
+   re-export, instead of importing `tools.pytest_plugin_environment`. In
+   `cli.main`, catch that error type instead of a plain `ValueError`, so
+   `_with_level` and `_with_scope` keep their previous error surface.
+4. Transcript: before the review-record commit, put the two `__init__.py`
+   paths at lines 3998 and 4005 of
+   `docs/v0.14.0/review.code.v0.14.0.shared_lifecycle_gate.md` in code spans,
+   so `ghog check` passes MD050. Write every path in later change summaries as
+   a code span, as Step 4's review already asked. This round's request repeated
+   the Step 4 defect.
+5. Validation: update the Step 5 rows (implemented, architecture, coverage,
+   feature integrity) and the group 2 and group 3 `a.commit` bodies. Rerun the
+   focused tests. Run the resolved `ghog day --full=speed --whole-suite`, or
+   record the user's explicit decision if it cannot run green, because this
+   round has no whole-suite coverage or duration evidence.
+
+Non-blocking note: `_FLOOR_VALUES` in `test_groundhog_durations_pbt.py` now
+feeds two properties, so a neutral name such as `_RANKED_VALUES` would read
+better. Its domain is correct.
+
+### Decision rationale for step 5 shared_lifecycle_gate (exchange 1) (round 1)
+
+The six readiness-floor results:
+
+- Identity: pass. The envelope, the readable identity, the plan, step 5,
+  round 1, occurrence 1, `Umbrella draft: none` and the request-time index tree
+  `d25285c5` all agree with the live exchange and index.
+- Completeness: fail. Every Step 5 file and test obligation is present. But a
+  preparation failure in `_run_pytest` runs after the testmon reset and the
+  group coverage reset, so it destroys state before stopping.
+- Validation and coverage: fail. Reviewer `ghog check` exited 1 on the
+  transcript's MD050 lint at lines 3998 and 4005; every staged file passed.
+  `ghog affected --no-cov` exited 0 with one selected test passing. The
+  resolved `--full=speed` walk was not run. Static reading finds no uncovered
+  tools line, but no test covers state preservation after a preparation
+  failure.
+- Staged attribution: pass. All 19 staged paths are writer work in three
+  accurate groups. The reviewer staged nothing and edited nothing tracked.
+- Findings: fail. Four findings are unresolved: the reset ordering, the stale
+  docstring, the error boundary and the transcript lint failure.
+- `a.commit`: pass. The independent checker is valid and ready with no
+  diagnostics, and the grouping is accurate for the received state.
+
+This round made no repair, substantive or polishing. The literal
+`Human guidance:` block accepts one wall-only timing result and asks for no
+repair, so the reviewer reports findings only.
+
+Disposition: changes requested.
+
+### Final reviewer decision for step 5 shared_lifecycle_gate (exchange 1) (round 1)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-5-round-1 -->
+
+## Round 2 by requestor - Step 5
+
+- Recorded: 2026-11-10T10:19:41+01:00
+- Exchange: code/code/v0.14.0/shared_lifecycle_gate
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 5
+- Outcome: request
+
+### Review identity for step 5 shared_lifecycle_gate (round 2)
+
+Umbrella draft: none
+Implementation plan: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.md
+Implementation step: 5
+Review round: 2
+
+### Code review evidence for step 5 shared_lifecycle_gate (round 2)
+
+request_index_tree: 4dc7818bb0995c229c6d9796c2c3e198f93430c1
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "none", "requirement": "docs/v0.14.0/feature-request.v0.14.0.shared_lifecycle_gate.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: perf(tests): reduce scenario setup costs
+group 1 path: tests/memory_filesystem.py
+group 1 path: tests/unit/tools/test_code_reviewer_instruction/test_code_reviewer_instruction_tdd.py
+group 1 path: tests/unit/tools/test_groundhog_durations_pbt.py
+group 2: feat(groundhog): prepare every pytest child
+group 2 path: tests/unit/tools/shared_lifecycle/test_groundhog_activation/__init__.py
+group 2 path: tests/unit/tools/shared_lifecycle/test_groundhog_activation/test_groundhog_activation_tdd.py
+group 2 path: tests/unit/tools/test_groundhog_acceptance_day.py
+group 2 path: tests/unit/tools/test_groundhog_cli.py
+group 2 path: tests/unit/tools/test_groundhog_commands.py
+group 2 path: tests/unit/tools/test_groundhog_runner.py
+group 2 path: tests/unit/tools/test_groundhog_selection.py
+group 2 path: tools/groundhog/__init__.py
+group 2 path: tools/groundhog/cli.py
+group 2 path: tools/groundhog/commands.py
+group 2 path: tools/groundhog/context.py
+group 2 path: tools/groundhog/day.py
+group 2 path: tools/groundhog/pytest_environment.py
+group 2 path: tools/groundhog/runner.py
+group 2 path: tools/groundhog/selection.py
+group 3: docs(shared_lifecycle_gate): record step 5 validation
+group 3 path: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.validation.md
+staged path: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.validation.md
+staged path: tests/memory_filesystem.py
+staged path: tests/unit/tools/shared_lifecycle/test_groundhog_activation/__init__.py
+staged path: tests/unit/tools/shared_lifecycle/test_groundhog_activation/test_groundhog_activation_tdd.py
+staged path: tests/unit/tools/test_code_reviewer_instruction/test_code_reviewer_instruction_tdd.py
+staged path: tests/unit/tools/test_groundhog_acceptance_day.py
+staged path: tests/unit/tools/test_groundhog_cli.py
+staged path: tests/unit/tools/test_groundhog_commands.py
+staged path: tests/unit/tools/test_groundhog_durations_pbt.py
+staged path: tests/unit/tools/test_groundhog_runner.py
+staged path: tests/unit/tools/test_groundhog_selection.py
+staged path: tools/groundhog/__init__.py
+staged path: tools/groundhog/cli.py
+staged path: tools/groundhog/commands.py
+staged path: tools/groundhog/context.py
+staged path: tools/groundhog/day.py
+staged path: tools/groundhog/pytest_environment.py
+staged path: tools/groundhog/runner.py
+staged path: tools/groundhog/selection.py
+```
+
+### Validation scope for step 5 shared_lifecycle_gate (round 2)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 5 shared_lifecycle_gate (round 2)
+
+Step 5 is fully implemented, including every accepted round 1 correction. Preparation covers all pytest stages and both collection probes. Whole normalized project-root validation precedes invocation work, detached dispatch and saved-proof decisions. Child environment additions and removals restore the parent's exact state on success and failure.
+
+Preparation now precedes destructive dependency-map and fresh group-coverage resets. The builder runs once per child; group coverage overrides are composed after successful preparation. Two regression cases preserve existing evidence bytes and assert no spawn for invalid activation. The 291-test focus passed both regressions and every behavioral assertion. Its single lifecycle error measured CPU 0.093750s below the 0.100s ceiling and wall 1.785271s above 1s; its automated exit remains 2 under the user's explicit continuation decision.
+
+CLI and day handle the adapter's exact preparation error. Setup-error output tails and their documentation agree. The duration strategy retains its domain, examples and assertions under the neutral name `_RANKED_VALUES`. No exclusions, baselines or timing limits changed.
+
+Architecture: environment construction remains in one adapter, process-state restoration in the runner, and shared activation policy in the existing builder. Consumer interpreter lookup, worker caps, selection, coverage composition, collection fallback and proof judgments retain their contracts. Physical counts: CLI 557, commands 623, context 140, day 432, runner 433, selection 79, adapter 76, activation tests 279; all below 650. No new runtime class or domain type was introduced. Steps 6 and 7 remain separate.
+
+The configured coverage source is `tools`, omitting tests and package markers. The focused run used no coverage. No coverage percentage or green speed proof is inferred from that evidence. The mandatory resolved validation set remains unchanged.
+
+The required self-hosted `ghog day --full=speed --whole-suite` finished at 10:14:45+01:00 on 2026-11-10. All project checks and 433 affected tests passed. The covered full run measured 6122 tests, with zero assertion failures, warnings or expected failures and six wall-only lifecycle errors. Their CPU/wall seconds were 0.031250/1.554686, 0.046875/1.452407, 0.046875/9.382368, 0.062500/5.650682, 0.062500/1.483572 and 0.078125/1.670344. Every failing lifecycle's CPU is below 0.100s. The user's standing instruction permits moving on; automated exit 2, proof none and withheld coverage/outlier verdicts are retained. The full measurement does not establish 100% coverage or speed proof. No unchanged repair run or exclusion was made. The validation plan records each case and the evidence is retained privately.
+
+### Implementation report for step 5 shared_lifecycle_gate (round 2)
+
+Groundhog prepares every pytest child through the current checkout's shared builder and rejects a foreign inherited project binding before dispatch, detached spawning or saved-proof decisions. Each stage checks again. Both collection probes receive preparation and preserve setup errors instead of converting them to unavailable-evidence fallback.
+
+The runner applies environment additions and removals only for process creation and restores exact prior key presence and values immediately afterward, including a raising factory. Consumer interpreter selection, coverage isolation, bounded workers and scope remain intact.
+
+Round 1 identified that full-run preparation occurred after dependency-map or group-coverage data deletion. The writer moved preparation before both state changes, retained one builder call per spawn, and composed group coverage overrides afterward. Regression cases seed both evidence files and verify unchanged bytes, setup exit 5 and zero spawns for whole-suite and grouped full runs. Both passed in the 291-test focus. All other behavioral assertions passed; its sole lifecycle failure was wall-only, with CPU 0.093750s below 0.100s and wall 1.785271s above 1s, automated exit 2 retained.
+
+The writer also corrected the setup-tail docstring, exposed the preparation error through the adapter, narrowed CLI handling from generic ValueError, and made day use the same boundary. The regression parameter is keyword-only under the project's lint policy. The transcript lint defects are repaired, and every path in the replacement change summary is a code span.
+
+Earlier profiling repairs use established memory storage for selected test scenarios, a lazy immutable instruction read and an integer-ranked duration strategy with its original domain and examples. No behavior assertions, timing limits, exclusions or baselines were weakened. The earlier SQLite test's CPU was 0.015625s and wall 1.730184s. The user explicitly instructed moving on when CPU is under budget; automated exits and proof limitations remain visible.
+
+The validation plan and root commit-plan bodies describe the corrected behavior and focused evidence. No reviewer edit is reversed. No later implementation step is included.
+
+Replacement validation ran the resolved `ghog day --full=speed --whole-suite` through the implementing checkout. Project checks and 433 affected tests passed. Its 6122-test full stage had six wall-only lifecycle errors, each CPU between 0.031250s and 0.078125s below the 0.100s ceiling. There were zero assertion failures, warnings or expected failures. The final verdict at 10:14:45+01:00 was exit 2, proof none, coverage and outlier verdicts withheld. The user instruction permits moving on for these cases; this is not a green speed or 100% coverage claim. The validation plan records CPU and wall values for all six cases. No unchanged repair run, exclusion or timing change followed.
+
+Writer notes: `.reviews/a.shared_lifecycle_gate.step5.journal.md` and `.reviews/a.shared_lifecycle_gate.step5.handoff.md`.
+
+### Change summary for step 5 shared_lifecycle_gate (round 2)
+
+The same three dependency-ordered root commit-plan groups cover all 19 staged paths. Group boundaries, membership and subjects remain accurate; bodies now describe the accepted round 1 corrections.
+
+Group 1, `perf(tests): reduce scenario setup costs`:
+
+- `tests/memory_filesystem.py`
+- `tests/unit/tools/test_code_reviewer_instruction/test_code_reviewer_instruction_tdd.py`
+- `tests/unit/tools/test_groundhog_durations_pbt.py`
+
+Group 2, `feat(groundhog): prepare every pytest child`:
+
+- `tests/unit/tools/shared_lifecycle/test_groundhog_activation/__init__.py`
+- `tests/unit/tools/shared_lifecycle/test_groundhog_activation/test_groundhog_activation_tdd.py`
+- `tests/unit/tools/test_groundhog_acceptance_day.py`
+- `tests/unit/tools/test_groundhog_cli.py`
+- `tests/unit/tools/test_groundhog_commands.py`
+- `tests/unit/tools/test_groundhog_runner.py`
+- `tests/unit/tools/test_groundhog_selection.py`
+- `tools/groundhog/__init__.py`
+- `tools/groundhog/cli.py`
+- `tools/groundhog/commands.py`
+- `tools/groundhog/context.py`
+- `tools/groundhog/day.py`
+- `tools/groundhog/pytest_environment.py`
+- `tools/groundhog/runner.py`
+- `tools/groundhog/selection.py`
+
+Group 3, `docs(shared_lifecycle_gate): record step 5 validation`:
+
+- `docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.validation.md`
+
+The workflow-owned review transcript remains unstaged for its residual documentation commit after human authorization. No source or test changes belong to Steps 6 or 7.
+
+### Human guidance and writer response for step 5 shared_lifecycle_gate (round 2)
+
+Human guidance:
+
+The user explicitly authorized moving on when CPU is under budget. Keep wall-only failures and their automated exits visible, and distinguish that authorization from a green gate. The earlier SQLite failure measured CPU 0.015625s and wall 1.730184s. After the round 1 fixes, the 291-test focus measured CPU 0.093750s and wall 1.785271s for its sole lifecycle overrun; both new preservation regressions passed. No limit, assertion, input domain, example count, exclusion or baseline was weakened. This guidance authorizes continuation through review, not a commit.
+
+The required replacement full-speed day finished at 10:14:45+01:00. Checks and 433 affected tests passed; its 6122-test full stage reported six wall-only lifecycle errors with CPU 0.031250s to 0.078125s, all below 0.100s. It reported zero assertion failures, warnings or expected failures. The same standing instruction authorizes continuation. Retain automated exit 2, proof none and withheld coverage/outlier verdicts. No unchanged repair run was made.
+
+Writer response:
+
+All round 1 findings are accepted; no disagreement or reversal.
+
+Preparation now completes before the sequential full dependency-map reset or fresh group-coverage preparation. The prepared environment delta is computed once per spawn, then group coverage overrides are composed after successful preparation. Two regression cases seed existing dependency and coverage bytes, select invalid activation and verify setup exit 5, no spawn and unchanged bytes for whole-suite and grouped full runs. Both cases passed in the 291-test focus.
+
+The setup-diagnostic docstring now describes every setup-error output tail. Day and CLI use the preparation error exposed by the groundhog adapter, and the CLI no longer catches unrelated ValueError exceptions. The reusable duration strategy has the neutral name `_RANKED_VALUES`. The transcript lint defects were corrected and the updated transcript passes Markdown lint. Later change summaries put every path in code spans.
+
+The validation plan and commit-plan bodies now record evidence preservation, exact error handling and the new focused evidence. The user explicitly instructed: "OK, when you have CPU under budget, do move on". The 291-test run has no failing behavioral assertion and one wall-only lifecycle error: CPU 0.093750s below 0.100s, wall 1.785271s above 1s, automated exit 2. That instruction permits continuation while retaining the automated verdict, limits and exclusions. No rerun seeks a favorable measurement.
+
+The required replacement `ghog day --full=speed --whole-suite` ran after the fixes. Checks and 433 affected tests passed; the covered full stage measured 6122 tests and stopped with six wall-only lifecycle errors. Each CPU was under 0.100s (range 0.031250s to 0.078125s). Zero assertion failures, warnings or expected failures were reported. The validation plan now records all six CPU/wall values. The final automated result remains exit 2, proof none and withheld coverage/outlier verdicts. Under the same user instruction, the writer proceeds to review without an unchanged repair run or weakening any gate. This addresses the request to run the declared command and record the user's explicit decision when it cannot run green.
+
+### Reviewer focus for step 5 shared_lifecycle_gate (round 2)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-5-round-2 -->
+
+## Round 2 by reviewer - Step 5
+
+- Recorded: 2026-11-10T10:36:56+01:00
+- Exchange: code/code/v0.14.0/shared_lifecycle_gate
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 5
+- Outcome: answer
+
+### Assessed index identity for step 5 shared_lifecycle_gate (exchange 1) (round 2)
+
+Baseline index tree: 4dc7818bb0995c229c6d9796c2c3e198f93430c1
+
+Assessed index tree: 4dc7818bb0995c229c6d9796c2c3e198f93430c1
+
+### Implementation check for step 5 shared_lifecycle_gate (exchange 1) (round 2)
+
+Result:
+
+Yes. Step 5 has been fully implemented.
+
+All four round 1 findings are fixed, and the round 2 delta changes nothing
+else in behavior. Every pytest stage and both collection probes use the shared
+builder through one adapter. A foreign binding is refused before any child,
+detached day or saved-proof decision. A preparation failure now stops before
+any project state is touched.
+
+Round 1 findings, rechecked against the delta from tree `d25285c5` to
+`4dc7818b`:
+
+- Reset ordering: fixed. `commands._run_pytest` now computes
+  `child_environment` (line 243) before `runner.reset_testmon` and
+  `group_coverage.prepare`. After a successful preparation it adds the group
+  coverage override to the same delta (line 263). The builder still runs once
+  per spawn. `test_full_preparation_failure_preserves_existing_evidence`
+  seeds `.testmondata` and the group coverage data file, uses an invalid
+  `LLM_SHARED_PYTEST_PLUGINS`, and asserts exit 5, zero spawns and unchanged
+  bytes for an ungrouped and a grouped `full`. Both cases would fail against
+  the round 1 ordering. The grouped acceptance suites' `CoverageSpawns` only
+  writes evidence when the child sees `COVERAGE_FILE`, so they still cover the
+  composed override on a successful grouped run.
+- Docstring: fixed. `_failure_context`'s summary and `Returns:` section now
+  name the output tail for every setup error.
+- Error boundary: fixed. `pytest_environment` re-exports `PreparationError`
+  and raises it itself. `day.py` catches `pytest_environment.PreparationError`
+  and no longer imports `tools.pytest_plugin_environment`. `cli.main` catches
+  `(LevelError, scope.ScopeError, pytest_environment.PreparationError)`, so a
+  plain `ValueError` from `_with_level` or `_with_scope` keeps its previous
+  surface.
+- Transcript lint: fixed. Every path in the round 2 change summary is a code
+  span. Reviewer `ghog check` result is recorded under validation.
+
+The rest of the Step 5 implementation is unchanged from round 1 and still
+matches the plan and Q05=E1. Whole normalized root comparison
+(case-insensitive on Windows, nested and sibling roots refused), the CLI check
+before every pytest-capable dispatch, the per-stage and per-probe recheck,
+probe setup errors that never fall back, removals with exact restoration in
+the runner, and the default `prepare` that resolves this checkout's sources
+without importing policy bodies.
+
+Architecture: activation policy stays in the shared builder. The groundhog
+adapter owns the binding check, the spawn delta and now the error type used by
+CLI and day, and the runner owns process-environment application. No layer
+imports past the adapter any more. No DDD-Hexagonal violation or smell needs
+addressing.
+
+Performance: unchanged from round 1. Two path resolutions per check, a delta
+linear in at most six inputs, and one preparation per child. Moving the call
+earlier adds no work. No performance issue needs addressing.
+
+Unit test coverage: the gate's source is `tools`, with tests and
+`__init__.py` omitted. This round's speed walk instrumented coverage but
+withheld the verdict after its wall-only lifecycle errors, so no percentage
+is measured. Statically, each changed line has a covering test. The early
+`child_environment` call and both reset branches are covered by the new
+regression and the existing full-run tests. The coverage override `update`
+is covered by the grouped acceptance suites, the narrowed CLI handler by
+`test_foreign_binding_blocks_dispatch`, and the day handler by
+`test_probe_preparation_failure_reports_setup`. The re-export is exercised by
+every binding refusal. No unit-test coverage gap was found. The staged
+test-support files are outside the gate, and their top-level symbols are
+referenced.
+
+Feature integrity: interpreter lookup, coverage isolation, worker caps, scope,
+collection fallback and the speed rules are unchanged. A preparation failure
+now preserves the dependency map and group coverage data, so `ghog affected`
+keeps its selection after a configuration error. No existing feature or
+reporting capability is impaired.
+
+Validation plan effects:
+
+No reviewer edit. The writer's Step 5 rows in
+`docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.validation.md` say
+`Yes. Step 5 has been fully implemented.`, which this assessment confirms. The
+round 2 changes are accurate. The implemented row records the earlier
+preparation and the adapter's error type. The size row records commands 623
+and adapter 76, matching the staged files. The performance row lists all six
+wall-only cases with their CPU and wall values, and they match the retained
+walk log. The coverage row now says that 100% coverage has not been
+established for this step. The feature integrity row states the evidence
+preservation.
+
+The document-level line correctly stays `No, it is not implemented`, with
+Steps 6-7 not started. The staged diff touches only the Step 5 section and
+that summary. Reviewer mode completed no umbrella row, and the effort has
+none.
+
+### Pre-repair mandatory checks and coverage for step 5 shared_lifecycle_gate (exchange 1) (round 2)
+
+No repair was made. The pre-repair and assessed states are therefore the same
+index tree, `4dc7818bb0995c229c6d9796c2c3e198f93430c1`, which equals the
+request-time tree.
+
+Requestor evidence, not repeated: a 291-test focus passed every behavioral
+assertion, including both evidence-preservation regressions. It had one
+wall-only lifecycle overrun (CPU 0.093750s, wall 1.785271s, exit 2). The
+resolved `ghog day --full=speed --whole-suite` ended at
+2026-11-10T10:14:45+01:00 with exit 2 on six wall-only lifecycle errors, as
+described under the resolved validation set.
+
+Reviewer evidence. Each command ran once from the project root through the
+worktree's `.\senv.bat` and `bin\ghog.bat` (guard cleared,
+`SWITCHPY_CHOICE=local`), so the staged groundhog ran itself. Each run passed
+the log-freshness check:
+
+- `ghog check` ended at 2026-11-10T10:33:42+01:00 with `exit=0` after
+  4m 25.0s. Every step passed: ty, pyright, ruff, radon, vulture, the
+  650-line big-file check, Markdown (including the review transcript, so the
+  round 1 MD050 defect is gone), shellcheck and the EOF check.
+- `ghog affected --no-cov --scope-file=.reviews/a.review-scope.code.v0.14.0.shared_lifecycle_gate.json`
+  ended at 2026-11-10T10:34:58+01:00 with `exit=0`. Testmon found nothing
+  affected since the requestor's walk, so 0 tests ran.
+
+Coverage was assessed statically, and no `ghog day` or `ghog full` ran.
+
+### Resolved validation set and sources for step 5 shared_lifecycle_gate (exchange 1) (round 2)
+
+The request carries one command: `ghog day --full=speed --whole-suite`, from
+the `project` source. That is the built-in default completed with the bound
+whole-suite selector, because the repository has no `.review-validation`
+declaration.
+
+The requestor owns this set and ran it after the round 1 fixes, through the
+implementing checkout. The retained log
+`.reviews/a.shared_lifecycle_gate.step5.tmp.r2.day-wall-only.log` closes with
+`ghog day done fail=6 ... cov=withheld outliers=withheld excluded=withheld exit=2 full=speed src=param proof=none`
+at 2026-11-10T10:14:45+01:00. The reviewer read that log:
+
+- `ghog check` passed every step, including the Markdown check.
+- The probes counted 433 affected out of 6122. The affected step ran and passed
+  with zero failures, warnings and xfails.
+- The full step measured 6122 tests. All six `fail` entries are teardown
+  lifecycle errors, and none is an assertion failure. Each is wall-only: CPU
+  0.031250s to 0.078125s against the 0.100s ceiling, wall 1.452407s to
+  9.382368s against 1s. They are in the recovery and specification reviewer
+  acceptance tests, outside the Step 5 code.
+
+The literal `Human guidance:` block records the user's decision to move on
+when CPU is under budget. The reviewer accepts these six results under it. The
+automated outcome stays exit 2 with `proof=none`, and the coverage and outlier
+verdicts stay withheld. This is not a green speed proof or a 100% coverage
+measurement. The reviewer ran neither walk.
+
+Exchange status binds the round to scope `whole` with fingerprint `686958cd`,
+and the reviewer used that `paths.scope` capture.
+
+### Resolver drift and direction for step 5 shared_lifecycle_gate (exchange 1) (round 2)
+
+No drift. There is no `.review-validation` declaration, and the bound scope is
+`whole` (fingerprint `686958cd`). The round 2 delta adds no validation command
+to the plan or the validation plan. The resolver inputs therefore give the same
+single `project` command, `ghog day --full=speed --whole-suite`. Neither
+direction adds or drops a command.
+
+### Repository state around validation for step 5 shared_lifecycle_gate (exchange 1) (round 2)
+
+The validation path set holds the 19 staged paths, the implementation plan
+and the root `a.ghog.log` that the reviewer evidence commands write. It was
+captured before assessment and again after both ghog commands.
+
+- `validation-state compare` reported `acceptable: true`. No tracked or
+  untracked path changed, and one ignored path changed (`a.ghog.log`).
+- `umbrella-digest compare` reported not applicable and unchanged, because the
+  request states `Umbrella draft: none`.
+- After assessment, the live index tree is still
+  `4dc7818bb0995c229c6d9796c2c3e198f93430c1`.
+- The only unstaged change is the versioned review transcript
+  `docs/v0.14.0/review.code.v0.14.0.shared_lifecycle_gate.md`. The exchange
+  appended it, and the requestor's residual commit owns it. It passes the
+  Markdown check.
+
+### Repair inventory for step 5 shared_lifecycle_gate (exchange 1) (round 2)
+
+Repairs made: None.
+
+Paths staged: None.
+
+### Commit plan assessment for step 5 shared_lifecycle_gate (exchange 1) (round 2)
+
+An independent `commit-plan-check.bat --format json` rerun on the received
+state exited 0 with `state: valid`, `ready: true` and no diagnostics. It listed
+the same 19 staged paths and the same three ordered groups as the request
+evidence:
+
+1. `perf(tests): reduce scenario setup costs`, 3 paths.
+2. `feat(groundhog): prepare every pytest child`, 15 paths.
+3. `docs(shared_lifecycle_gate): record step 5 validation`, 1 path.
+
+Reviewer judgment on grouping and scope: membership and order are unchanged
+from round 1 and remain correct. The round 2 source and test fixes are in
+group 2, the `_RANKED_VALUES` rename is in group 1, and the validation rows are
+in group 3. The group 2 body now lists preparation before the resets and the
+adapter's exact error type. The group 3 body records the evidence-preservation
+regressions, the 291-test focus and the speed walk's six wall-only errors with
+withheld proof. No AI attribution trailer is present.
+
+`a.commit` is accurate for the received state.
+
+### Findings and boundaries for step 5 shared_lifecycle_gate (exchange 1) (round 2)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Human guidance response for step 5 shared_lifecycle_gate (exchange 1) (round 2)
+
+Human guidance:
+
+The user explicitly authorized moving on when CPU is under budget. Keep wall-only failures and their automated exits visible, and distinguish that authorization from a green gate. The earlier SQLite failure measured CPU 0.015625s and wall 1.730184s. After the round 1 fixes, the 291-test focus measured CPU 0.093750s and wall 1.785271s for its sole lifecycle overrun; both new preservation regressions passed. No limit, assertion, input domain, example count, exclusion or baseline was weakened. This guidance authorizes continuation through review, not a commit.
+
+The required replacement full-speed day finished at 10:14:45+01:00. Checks and 433 affected tests passed; its 6122-test full stage reported six wall-only lifecycle errors with CPU 0.031250s to 0.078125s, all below 0.100s. It reported zero assertion failures, warnings or expected failures. The same standing instruction authorizes continuation. Retain automated exit 2, proof none and withheld coverage/outlier verdicts. No unchanged repair run was made.
+
+Guidance response:
+
+The guidance asks for no repair, so the reviewer edited nothing and reports
+its assessment only.
+
+- CPU exception: the reviewer checked the retained speed-walk log. All six
+  `fail` entries are teardown lifecycle errors whose CPU (0.031250s to
+  0.078125s) is under the 0.100s ceiling, and there is no assertion failure,
+  warning or xfail. The focused run's single overrun (CPU 0.093750s) is also
+  under it. These results are accepted under the user's decision. They are
+  recorded as exit 2 with `proof=none` and withheld coverage and outlier
+  verdicts, not as a green gate. No limit, exclusion or baseline changed.
+- Readiness: with that decision, the reviewer judged validation on its own
+  green focused evidence and a static coverage reading. A commit-ready
+  recommendation here does not claim 100% measured coverage or speed proof.
+- Authority: the guidance authorizes continuation through review, not a
+  commit, and this answer authorizes none. The reviewer stayed within Step 5
+  and did not start or contact a requestor session.
+
+### Writer instructions for step 5 shared_lifecycle_gate (exchange 1) (round 2)
+
+No further implementation work is requested for Step 5.
+
+Non-blocking note:
+
+- `pytest_environment.child_environment` still accepts the optional `measure`
+  argument and adds the group coverage override from it. No production caller
+  passes it any more: `commands._run_pytest` now adds that override itself
+  after `group_coverage.prepare`, and `selection._collect` never passed it.
+  Only `test_coverage_and_explicit_worker_settings_survive_preparation` uses
+  that branch. The behavior is correct. Removing the parameter, or using it in
+  `_run_pytest`, would leave one place that composes the coverage override.
+
+### Decision rationale for step 5 shared_lifecycle_gate (exchange 1) (round 2)
+
+The six readiness-floor results:
+
+- Identity: pass. The envelope, the readable identity, the plan, step 5,
+  round 2, occurrence 1, `Umbrella draft: none` and the request-time index tree
+  `4dc7818b` all agree with the live exchange and index.
+- Completeness: pass. Every Step 5 obligation is implemented, and all four
+  round 1 findings are fixed. A preparation failure now leaves the dependency
+  map and group coverage data untouched, and a regression test proves it for
+  both full-run shapes.
+- Validation and coverage: pass under the human guidance. Reviewer
+  `ghog check` and `ghog affected --no-cov` both exited 0. Static reading
+  finds no coverage gap. The requestor's resolved speed walk ended at exit 2
+  only on six wall-only lifecycle errors with CPU under its ceiling, which the
+  user explicitly accepted. Its coverage and outlier verdicts were withheld,
+  so this is not a measured 100% or a speed proof.
+- Staged attribution: pass. All 19 staged paths are writer work in three
+  accurate groups. The reviewer staged nothing and edited nothing tracked.
+- Findings: pass. No current or carried finding is unresolved. The one
+  remaining note is non-blocking.
+- `a.commit`: pass. The independent checker is valid and ready with no
+  diagnostics, and the grouping and bodies are accurate.
+
+This round made no repair, substantive or polishing. The literal
+`Human guidance:` block accepts wall-only results with CPU under budget and
+asks for no repair.
+
+Disposition: commit-ready. This is an advisory recommendation and does not
+authorize a commit.
+
+### Final reviewer decision for step 5 shared_lifecycle_gate (exchange 1) (round 2)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-5-round-2 -->
+
+## Round 2 by human - Step 5 - human-confirmation
+
+- Recorded: 2026-11-10T10:54:10+01:00
+- Exchange: code/code/v0.14.0/shared_lifecycle_gate
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.shared_lifecycle_gate.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Implementation step: 5
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-2 -->
