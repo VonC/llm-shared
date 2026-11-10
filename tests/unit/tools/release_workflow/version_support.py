@@ -18,7 +18,12 @@ recorder and its test share. Step 6 adds configured forms to the settings,
 `package.json` and `package-lock.json` builders formatted as npm writes them,
 the npm restoration fixture sets (lock formats 2 and 3, LF and CRLF, two lock
 fields in one file), and generalizes that planned edit to any adapter as
-`pair_edit`. Nothing here starts a process or interprets a version.
+`pair_edit`. Step 7 adds POM builders (`gav`, `pom_xml`, my-project's
+`reactor_poms`), gives the settings the production physical path policy
+(`authorize`), keys `pair_edit` by path relative to the root so a reactor's
+several `pom.xml` files stay apart, and completes the restoration registry
+with the Maven sets and the combined five-file project. Nothing here starts a
+process or interprets a version.
 """
 
 from __future__ import annotations
@@ -49,6 +54,7 @@ from tools.release_workflow.sources.model import (
     VersionToken,
     participant_names,
 )
+from tools.release_workflow.sources.settings import authorize_source
 from tools.release_workflow.version_evidence import remove_managed
 from tools.release_workflow.version_transition import TransitionPorts
 
@@ -73,11 +79,17 @@ DEMO = "demo-app"
 REGISTRY_PACKAGE = '[[package]]\nname = "colorama"\nversion = "0.4.6"\nsource = { registry = "https://pypi.org/simple" }\n\n'
 _EDITABLE_BUILD = '[build-system]\nrequires = ["hatchling"]\nbuild-backend = "hatchling.build"\n\n'
 _VIRTUAL_TOOL = "\n[tool.uv]\npackage = false\n"
+DEMO_GROUP = "com.demo"
+_POM_HEAD = ('<?xml version="1.0" encoding="UTF-8"?>\n<project xmlns="http://maven.apache.org/POM/4.0.0">\n'
+             "  <modelVersion>4.0.0</modelVersion>\n")
 
 
 @dataclass(frozen=True)
 class RootSettings:
-    """Adapter settings naming the project root, its declared pattern sources, component roots and form overrides."""
+    """Adapter settings naming the project root, its declared pattern sources, component roots and form overrides.
+
+    `authorize` applies the production physical path policy from the project root.
+    """
 
     project_root: Path
     patterns: tuple[PatternDeclaration, ...] = ()
@@ -87,6 +99,10 @@ class RootSettings:
     def participant(self, path: Path) -> str | None:
         """Name the participating root a physical path is, or return `None`."""
         return participant_names(self.project_root, self.components).get(os.path.normcase(str(path)))
+
+    def authorize(self, path: Path) -> Path:
+        """Apply the production physical path policy from the project root."""
+        return authorize_source(self.project_root, path)
 
 
 def version_txt(first_line: str = "0.14.0", notes: str = "", *, newline: str = "\n", bom: bool = False) -> bytes:
@@ -159,7 +175,7 @@ def package_lock(version: str = "0.13.0", *, lockfile: object = 3, top: bool = T
 
 
 def pair_edit(adapter: Adapter, root: Path, target: VersionToken) -> dict[str, bytes]:
-    """Return, by file name, the new contents one adapter's planned edit gives the files at a root.
+    """Return, by path relative to the root, the new contents one adapter's planned edit gives the files at a root.
 
     The files are detected and planned exactly as `versions set` plans them,
     with the adapter's default form, in memory: no file is written. The lock
@@ -171,7 +187,36 @@ def pair_edit(adapter: Adapter, root: Path, target: VersionToken) -> dict[str, b
     captures = tuple(FileCapture.of(path, view.read(path)) for path in dict.fromkeys(source.path for source in found.sources))
     claims = tuple(Claim(source.path, source.field, source.adapter, source.spans) for source in found.sources)
     edits = plan_edits(Inventory(found.sources, found.visible, claims, captures), target, adapters=(adapter,))
-    return {edit.capture.path.name: edit.new for edit in edits}
+    return {edit.capture.path.relative_to(root).as_posix(): edit.new for edit in edits}
+
+
+def gav(group: str | None, artifact: str, version: str | None = None) -> str:
+    """Write Maven coordinate elements on one line; `None` omits the groupId or the version."""
+    group_element = "" if group is None else f"<groupId>{group}</groupId>"
+    version_element = "" if version is None else f"<version>{version}</version>"
+    return f"{group_element}<artifactId>{artifact}</artifactId>{version_element}"
+
+
+def pom_xml(*elements: str) -> bytes:
+    """Build an LF POM whose `<project>` holds these element snippets, one per line."""
+    body = "".join(f"  {element}\n" for element in elements)
+    return (_POM_HEAD + body + "</project>\n").encode("utf-8")
+
+
+def reactor_poms(version: str = "0.13.0-SNAPSHOT") -> dict[str, bytes]:
+    """my-project's shape: an external parent, a literal root version and module `PDF` with a literal internal parent.
+
+    `${project.version}` appears only in a plugin configuration value and the
+    plugin version uses a property; neither is a version source.
+    """
+    plugin = (f"<build><plugins><plugin>{gav('org.demo.plugins', 'pack', '${pack.version}')}"
+              "<configuration><finalName>pdf-${project.version}</finalName></configuration></plugin></plugins></build>")
+    root = pom_xml(f"<parent>{gav('org.springframework.boot', 'spring-boot-starter-parent', '3.3.4')}</parent>",
+                   gav(DEMO_GROUP, "demo-root", version), "<packaging>pom</packaging>",
+                   "<properties><java.version>21</java.version><pack.version>1.2.3</pack.version></properties>",
+                   "<modules><module>PDF</module></modules>", plugin)
+    module = pom_xml(f"<parent>{gav(DEMO_GROUP, 'demo-root', version)}</parent>", gav(None, "PDF"))
+    return {"pom.xml": root, "PDF/pom.xml": module}
 
 
 def write_file(root: Path, relative: str, content: bytes) -> Path:
@@ -270,8 +315,9 @@ class RestorationFixture:
 
 # The restoration contract registry: Step 5 adds the Python virtual and editable
 # sets, Step 6 the npm format 2 (LF) and format 3 (CRLF) sets, whose lock holds
-# two composed fields, Step 7 the Maven sets and the combined five-file
-# project (plan decision Q01).
+# two composed fields, Step 7 the Maven sets (my-project's CRLF reactor, and a
+# marked root with inherited versions and internal dependencies) and the
+# combined five-file project, now that every adapter exists (plan decision Q01).
 RESTORATION_FIXTURES: dict[str, RestorationFixture] = {
     "anchor": RestorationFixture({"version.txt": version_txt("0.13.0 -- Old", "Notes\n", newline="\r\n", bom=True)}),
     "pattern": RestorationFixture({
@@ -303,6 +349,27 @@ RESTORATION_FIXTURES: dict[str, RestorationFixture] = {
         "package.json": crlf(package_json(private=True, description="Café 🎉")),
         "package-lock.json": crlf(package_lock(packages={"node_modules/left-pad": {"version": "0.13.0", "dev": True}})),
     }, writes=3),
+    "maven-reactor": RestorationFixture({
+        "version.txt": version_txt("0.13.0-SNAPSHOT", newline="\r\n"),
+        **{name: crlf(content) for name, content in reactor_poms().items()},
+    }, writes=3),
+    "maven-inherited": RestorationFixture({
+        "version.txt": version_txt("0.13.0-SNAPSHOT"),
+        "pom.xml": BOM + pom_xml(gav(DEMO_GROUP, "demo-root", "0.13.0-SNAPSHOT"), "<packaging>pom</packaging>",
+                                 "<modules><module>core</module><module>app</module></modules>",
+                                 f"<dependencyManagement><dependencies><dependency>{gav(DEMO_GROUP, 'core', '0.13.0-SNAPSHOT')}"
+                                 "</dependency></dependencies></dependencyManagement>"),
+        "core/pom.xml": pom_xml(f"<parent>{gav(DEMO_GROUP, 'demo-root', '0.13.0-SNAPSHOT')}</parent>", gav(None, "core")),
+        "app/pom.xml": pom_xml(f"<parent>{gav(DEMO_GROUP, 'demo-root', '0.13.0-SNAPSHOT')}</parent>", gav(None, "app"),
+                               f"<dependencies><dependency>{gav('${project.groupId}', 'core', '${project.version}')}</dependency></dependencies>"),
+    }, writes=4),
+    "combined": RestorationFixture({
+        "version.txt": version_txt("0.13.0-SNAPSHOT"),
+        "pyproject.toml": pyproject_toml(),
+        "package.json": package_json(private=True),
+        "pom.xml": pom_xml(gav(DEMO_GROUP, "demo-root", "0.13.0-SNAPSHOT")),
+        "cicd/config/.env": lines_file(["A=1", "APP_SERVICE_VERSION=0.13.0-SNAPSHOT"]),
+    }, PATTERN_INI, writes=5),
 }
 
 

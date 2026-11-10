@@ -4,6 +4,8 @@ Git metadata is distinct from managed project destinations, so linked
 worktrees may keep their Git/common directories outside the physical root.
 Destination checks visit only relevant ancestors and return a physical path;
 the write boundary must repeat authorization immediately before mutation.
+`authorize_in` holds that policy for a physical root, so version source
+detection, which knows the root but not the Git metadata, applies it too.
 """
 
 from __future__ import annotations
@@ -128,6 +130,27 @@ def _check_ancestors(target: Path, root: Path) -> None:
         current = parent
 
 
+def authorize_in(root: Path, supplied: str | Path) -> Path:
+    """Authorize an existing or future path physically inside a physical project root.
+
+    This is the policy `authorize_path` applies to a worktree. Version source
+    detection (v0.14.0 version-sources, Step 7) applies it to the module POMs
+    a Maven reactor declares, from the physical root its settings carry.
+    """
+    original = str(supplied)
+    candidate = Path(supplied)
+    if not candidate.is_absolute():
+        candidate = root / candidate
+    try:
+        _check_ancestors(candidate, root)
+        physical = candidate.resolve(strict=False)
+        _check_ancestors(physical, root)
+    except (OSError, RuntimeError, ProjectPathError) as exc:
+        msg = f"Cannot authorize managed path {original}: {exc}"
+        raise ProjectPathError(msg) from exc
+    return physical
+
+
 def authorize_path(identity: ProjectIdentity, supplied: str | Path) -> Path:
     """Authorize existing/future destinations physically inside this worktree.
 
@@ -135,18 +158,7 @@ def authorize_path(identity: ProjectIdentity, supplied: str | Path) -> Path:
     so internal links cannot hide nested repositories. This makes no directory
     and never scans siblings or runs Git once per ancestor.
     """
-    original = str(supplied)
-    candidate = Path(supplied)
-    if not candidate.is_absolute():
-        candidate = identity.root / candidate
-    try:
-        _check_ancestors(candidate, identity.root)
-        physical = candidate.resolve(strict=False)
-        _check_ancestors(physical, identity.root)
-    except (OSError, RuntimeError, ProjectPathError) as exc:
-        msg = f"Cannot authorize managed path {original}: {exc}"
-        raise ProjectPathError(msg) from exc
-    return physical
+    return authorize_in(identity.root, supplied)
 
 
 # eof

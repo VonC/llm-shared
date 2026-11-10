@@ -15,17 +15,24 @@ nested `version` keys in arrays and objects), optional byte-order mark,
 whitespace and member order, the byte spans of the top-level `version` (when
 present) and of `packages[""].version` hold exactly the values `json` parses,
 and replacing them changes only those two values.
+
+Step 7 adds the XML scanner: for generated POMs with indentation, attributes,
+whitespace inside the owned elements, decoy `version` elements at other paths,
+optional byte-order mark and LF or CRLF line endings, the spans of the project,
+parent and dependency versions hold exactly the generated values and the
+scanned text, and replacing them changes only those values.
 """
 
 from __future__ import annotations
 
 import json
+import re
 import tomllib
 
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from tools.release_workflow.sources import json_scan, toml_scan
+from tools.release_workflow.sources import json_scan, toml_scan, xml_scan
 from tools.release_workflow.sources.model import Span, compose
 
 _NUMBERS = st.integers(min_value=0, max_value=999)
@@ -50,6 +57,11 @@ _JSON_BITS = 13
 _JSON_VERSION: json_scan.JsonPath = ("version",)
 _JSON_ROOT: json_scan.JsonPath = ("packages", "", "version")
 _BOM = b"\xef\xbb\xbf"
+_XML_WANTED = re.compile(r"project/(?:version|parent/version|dependencies/dependency/version)")
+_XML_PATHS = ("project/parent/version", "project/version", "project/dependencies/dependency/version")
+_XML_SPACES = ("", " ", "\n    ", " \t\n  ")
+_XML_ATTRIBUTES = ("", ' id="v"', " a='1' b=\"2\"")
+_XML_BITS = 8
 
 
 def _bits(layout: int, shift: int, width: int) -> int:
@@ -155,6 +167,42 @@ def test_json_spans_hold_the_parsed_values(triple: tuple[int, int, int], layout:
         data["version"] = _TARGET
     data["packages"][""]["version"] = _TARGET
     assert edited == data
+
+
+def _xml_pom(triple: tuple[int, int, int], layout: int) -> tuple[bytes, dict[str, str]]:
+    """Decode a POM from 8 bits: inner whitespace, attributes, indentation, decoy order, line endings and mark."""
+    major, minor, patch = triple
+    values: dict[str, str] = dict(zip(_XML_PATHS, (f"{major}.{minor}.{patch}", f"{major}.{minor}.{patch + 1}", f"{major}.{minor + 1}.{patch}"), strict=True))
+    inner, attribute = _XML_SPACES[_bits(layout, 0, 2)], _XML_ATTRIBUTES[_bits(layout, 2, 2) % len(_XML_ATTRIBUTES)]
+    indent = "\t" if _bits(layout, 4, 1) else "  "
+
+    def owned(value: str) -> str:
+        return f"<version{attribute}>{inner}{value}{inner}</version>"
+
+    decoys = [f"{indent}<description>é 😀 <version>9.9.9</version></description>",
+              f"{indent}<build><plugins><plugin><version>{values['project/version']}</version></plugin></plugins></build>"]
+    if _bits(layout, 5, 1):
+        decoys.reverse()
+    lines = ['<?xml version="1.0" encoding="UTF-8"?>', '<project xmlns="http://maven.apache.org/POM/4.0.0">',
+             f"{indent}<parent><groupId>g</groupId>{owned(values['project/parent/version'])}</parent>", decoys[0],
+             f"{indent}{owned(values['project/version'])}",
+             f"{indent}<dependencies><dependency><artifactId>a</artifactId>{owned(values['project/dependencies/dependency/version'])}"
+             "</dependency></dependencies>", decoys[1], "</project>", ""]
+    text = ("\r\n" if _bits(layout, 6, 1) else "\n").join(lines)
+    return _BOM * _bits(layout, 7, 1) + text.encode("utf-8"), values
+
+
+@settings(max_examples=25)
+@given(triple=_TRIPLES, layout=st.integers(min_value=0, max_value=(1 << _XML_BITS) - 1))
+def test_xml_spans_hold_the_generated_values(triple: tuple[int, int, int], layout: int) -> None:
+    """Each owned span holds its value and the scanned text; replacing them changes only those values."""
+    content, values = _xml_pom(triple, layout)
+    document = xml_scan.scan(content, "pom.xml", _XML_WANTED)
+    located = {value.path: value for value in document.values}
+    assert {path: (content[value.span.start:value.span.end].decode("utf-8"), value.text) for path, value in located.items()} == {
+        path: (value, value) for path, value in values.items()}
+    edited = xml_scan.scan(compose(content, [(value.owned("pom.xml"), _TARGET.encode()) for value in located.values()]), "pom.xml", _XML_WANTED)
+    assert [value.text for value in edited.values] == [_TARGET] * len(_XML_PATHS)
 
 
 # eof

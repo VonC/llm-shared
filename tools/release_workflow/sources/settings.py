@@ -13,7 +13,10 @@ checks that declared files and directories exist. The project root is the
 directory of the `.release.ini` the loader read: it is the only root the
 validator's mappings carry, and `read_settings` uses the same one. Step 5
 adds `VersionSettings.participant`, backed by an index of the participating
-roots built once per settings value.
+roots built once per settings value. Step 7 adds `VersionSettings.authorize`
+and `authorize_source`: a discovered file goes through the project's
+physical path policy (`paths.authorize_in`), so it stays inside the project,
+outside nested repositories, and is named by its physical path.
 """
 
 from __future__ import annotations
@@ -25,6 +28,7 @@ from functools import cached_property
 from types import MappingProxyType
 from typing import TYPE_CHECKING, cast
 
+from tools.release_workflow.paths import ProjectPathError, authorize_in
 from tools.release_workflow.sources import ADAPTERS, anchor, pattern
 from tools.release_workflow.sources.model import (
     Form,
@@ -55,13 +59,22 @@ class SettingsError(ValueError):
     exit_code = 2
 
 
+def authorize_source(project_root: Path, path: Path) -> Path:
+    """Return the physical path of a discovered file inside the project, or fail as a source error."""
+    try:
+        return authorize_in(project_root, path)
+    except ProjectPathError as exc:
+        raise SourceError(str(exc)) from exc
+
+
 @dataclass(frozen=True)
 class VersionSettings:
     """The validated version domain: form overrides, pattern sources and component roots.
 
     Step 5 adds `participant`: the participating roots are indexed once per
     settings value, so the python adapter names a local link's destination in
-    one lookup.
+    one lookup. Step 7 adds `authorize`, the physical path policy for the
+    module POMs the Maven adapter discovers.
     """
 
     project_root: Path
@@ -77,6 +90,10 @@ class VersionSettings:
     def participant(self, path: Path) -> str | None:
         """Name the participating root a physical path is, or return `None`."""
         return self._participants.get(os.path.normcase(str(path)))
+
+    def authorize(self, path: Path) -> Path:
+        """Return a discovered file's physical path inside the project, or fail."""
+        return authorize_source(self.project_root, path)
 
 
 @dataclass

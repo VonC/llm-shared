@@ -6,8 +6,10 @@ the Python virtual and editable roots with their `uv.lock`, so `pyproject.toml`
 and `uv.lock` are restored byte for byte too; Step 6 adds the npm format 2
 (LF) and format 3 (CRLF) roots, whose `package-lock.json` holds two composed
 fields, so `package.json` and `package-lock.json` are restored byte for byte
-too; Step 7 adds the Maven sets), a failure at each source write restores
-every replaced file,
+too; Step 7 adds my-project's CRLF Maven reactor, a reactor with inherited
+versions and internal dependencies, and the combined five-file project with
+the anchor, Python, npm, Maven and a pattern source), a failure at each source
+write restores every replaced file,
 verifies it, deletes the evidence and returns status 1. A concurrent change
 before a replacement, a failed verification and a failed completion marker
 restore too. A restoration that cannot finish returns status 3, keeps the

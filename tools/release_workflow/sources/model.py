@@ -25,6 +25,11 @@ adapter is the first to apply, and `FileView.derived`, a value computed once
 per phase from the view's files: the npm adapter indexes the participating
 package names there once, so its `workspace:` check stays linear in the roots.
 
+Step 7 adds `AdapterSettings.authorize`: the Maven adapter authorizes every
+POM it discovers with the project's physical path policy before reading it,
+and keys modules, sources and claims by the physical path, so a link cannot
+make one file look like two.
+
 This module imports only the standard library at run time; foundation types
 are imported for type checking only.
 """
@@ -276,6 +281,14 @@ class AdapterSettings(Protocol):
 
     def participant(self, path: Path) -> str | None:
         """Name the participating root a physical path is, or return `None`, in one lookup."""
+        ...
+
+    def authorize(self, path: Path) -> Path:
+        """Return the physical path of a file an adapter discovers, failing when it leaves the project.
+
+        A path outside the physical project root, or entering a nested
+        repository, directly or through a link, fails as a `SourceError`.
+        """
         ...
 
 
