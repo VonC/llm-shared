@@ -815,8 +815,13 @@ compatibility prerequisite remains separate and is not imposed on consumers.
 
 ### Analysis of Step 6 implementation state
 
-Not started. Step 6 is not implemented because the independent compatibility
-harness, static entry checks and day/full preflight are pending.
+Yes. Step 6 has been fully implemented.
+
+Tracked applicability now requires fresh checkout-owned executable evidence
+before every day proof decision and direct full run. The independent Python
+3.12 environment, explicit setup, real prerequisite verification, executable
+behavior matrix and Python 3.10 syntax/refusal checks are implemented. Consumers
+without an enabled declaration acquire no additional prerequisites.
 
 ### Goal for Step 6
 
@@ -857,27 +862,127 @@ and the fixed project-relative `bin/lifecycle_compatibility.bat` entrypoint.
 
 ### What was implemented for Step 6
 
-_(empty: no check has taken place yet.)_.
+- `compatibility_preflight.py` validates the exact tracked table and literal
+  boolean, resolves the fixed launcher from the target checkout, rejects
+  missing entrypoints and checks inherited bindings before spawning. Invalid
+  declarations fail before CLI detach. Absence, a missing key and false disable
+  the prerequisite without accepting malformed explicit values.
+- `CompatibilityError` identifies compatibility setup failures. The CLI catches
+  this adapter type alongside existing adapter errors, preserving tracebacks
+  for unrelated errors during level or scope resolution.
+- `day.py` obtains fresh evidence before no-op, upgrade and forced proof paths.
+  Direct full invokes the same preflight; day-derived full uses `in_walk` to
+  avoid repeating it. Failed compatibility validation stops the walk and earns
+  no success proof.
+- The batch entrypoint explicitly provisions the checkout-local
+  `venvs/python_3.12_lifecycle_compatibility/` environment from its independent
+  exact manifest. Normal validation only verifies the actual interpreter and
+  installed dependencies. Absolute overrides receive the same verification;
+  unsuitable or missing prerequisites identify setup and override remedies.
+- The external harness exercises four policy selections, defaults, tracked
+  configuration and overrides, strict registration, CPU rejection, real process
+  permission enforcement, fixture finalizers, thread and nested-session
+  boundaries, prepared loading and single summaries. Optional-package absence
+  uses an isolated import path. Real xdist barrier scenarios observe peer
+  announcement, zero started tests, bounded failure and reaped workers.
+- `static_entry.py` checks each whole standalone file with Ruff's Python 3.10
+  grammar, including an executable PEP 701 negative control, and independently
+  constrains the AST prefix before version refusal. `check.bat` runs this static
+  check; executable validation belongs to day/full. Existing Ruff and Pyright
+  directory targets cover the new Python 3.12 harness modules.
+- Process-free tests cover environment probes, distinct manifest pins,
+  malformed declarations, dispatch ordering, all day levels, saved no-ops,
+  forced walks, upgrades, direct full, failures and cleanup. New preflight tests
+  use the existing virtual storage boundary. The fixture-ownership matrix
+  avoids redundant conftest/config discovery while preserving every assertion.
+  The malformed-marker cases use explicit configuration without conftest
+  discovery, retaining all seven variants and the setup-refusal sentinel.
+- File-list deviations: `scenarios.py`, `test_groundhog_acceptance_day.py` and
+  `test_groundhog_commands.py` remain unchanged. Behavior construction and
+  transport live in `behavior_scenarios.py` and `behavior_runner.py`, while
+  `environment.py` owns prerequisite verification. This responsibility split
+  keeps the earlier 75-line barrier builder focused; it was chosen before
+  approaching the plan's 650-line splitting threshold. The new test package
+  explicitly includes `tests/unit/tools/test_compatibility_preflight/__init__.py`.
+  Additional changes to `tools/groundhog/cli.py` validate declarations before
+  detach; `tests/memory_filesystem.py` routes the new tests through the existing
+  virtual storage boundary.
 
 ### New types or classes introduced for Step 6
 
-_(empty: no check has taken place yet.)_.
+The frozen `Case` dataclass describes one executable scenario: plugin selection,
+generated project content, expected exit, diagnostics, summary counts and
+optional/prepared environment settings. Production integration otherwise uses
+existing invocation, dependency and outcome types. `CompatibilityError` is a
+dedicated `ValueError` subclass for declaration and executable-evidence failures.
 
 ### Architecture check for Step 6
 
-_(empty: no check has taken place yet.)_.
+Groundhog orchestration delegates applicability and executable dispatch to a
+separate adapter through its existing process seam. Compatibility code imports
+only its package, standard library and supported pytest dependencies; it does
+not import the main runtime's Python 3.13 helpers or root conftest. The wrapper
+owns explicit provisioning, while verification remains read-only. Policies
+retain their standalone boundary. Modified production Python files remain
+below 650 lines: commands 627, CLI 562, day 439, context 141; compatibility
+modules range from 78 to 163 lines. No architecture smell or violation needs addressing.
 
 ### Performance check for Step 6
 
-_(empty: no check has taken place yet.)_.
+Declaration and manifest processing are linear in their bounded inputs. The
+scenario matrix and diagnostic fields are fixed-size; no new unbounded sorting
+or quadratic computation was introduced. Process probes, controller waits and
+failure cleanup are bounded. Real subprocess work remains outside the audited
+suite. The fixture-ownership repair removes repeated pytest preparation work
+without reducing the scope/permission matrix or altering lifecycle limits.
+The first genuine local walk ended at 17:07:06+01:00 with all 16 compatibility
+scenarios passing but a malformed-marker lifecycle consuming 0.125000s CPU
+against its 0.100s ceiling. Profiling reproduced 0.140625s CPU, locating the cost
+in embedded pytest preparation. Explicit configuration and no conftest discovery
+remove that unnecessary work; the complete focused test file then passed.
+
+Real Python 3.12.15 and 3.13.9, each with pytest 9.1.0 and xdist 3.8.0, passed
+all 16 executable scenarios on Windows. Existing launcher selectors retained
+the Python 3.13 runtime: twelve bin and three root date selectors, plus nine
+bin name selectors and `bin/mds.ps1`. The earlier
+`ghog day --full=speed --whole-suite` finished on 2026-11-10 at
+14:57:11+01:00 with exit 0, 6202 tests, 100% coverage, zero failures, warnings,
+xfails, duration outliers or exclusions. It used the canonical checkout's
+launcher, so it proves tests and coverage but does not prove the new preflight.
+The fresh resolved walk through this worktree's own `bin/ghog.bat` finished on
+2026-11-10 at 17:21:40+01:00 with exit 0: all 16 compatibility scenarios passed
+before checks, followed by 6203 tests, 100% coverage, zero failures, warnings,
+xfails, duration outliers and exclusions. The closing proof was `speed`, scope
+`whole`, with no reused stages. Log freshness was verified. No performance
+issue needs addressing.
 
 ### Unit test coverage check for Step 6
 
-_(empty: no check has taken place yet.)_.
+The configured coverage source is `tools`, omitting tests and package markers.
+The fresh local full-speed evidence reports 100% for that scope, including the
+new compatibility environment, behavior runner/builders, static checker and
+preflight modules. Static inspection confirms references and tests for every
+new top-level symbol, including module entrypoints, manifest and interpreter
+errors, subprocess timeouts, platform cleanup, negative syntax control and
+proof dispatch branches. Shared compatibility test files exercise that package;
+the dedicated preflight test package covers its adapter and public CLI paths.
+Finite declaration, scenario and level domains use exhaustive parametrization;
+earlier path-normalization properties remain applicable.
+
+Out-of-scope test helpers are referenced by their test modules or pytest
+fixtures; package markers add no executable symbols. No unit-tested module
+below 100% needs completing. No out-of-scope top-level symbol is unreferenced.
 
 ### Feature integrity for Step 6
 
-_(empty: no check has taken place yet.)_.
+Existing consumer interpreter selection, activation, proof matching, scope,
+coverage and reporting are preserved. Undeclared consumers spawn no separate
+harness; malformed or failed own-project prerequisites cannot reuse proof.
+The actual Python 3.12 executable is verified on every applicable invocation.
+No validation command provisions dependencies automatically, and no test or
+fixture process exemption was added. Public documentation and the anonymous
+consumer trial remain assigned to Step 7. No existing feature or reporting
+capability was found impaired.
 
 ## Step 7. Acceptance, transient trial and shared-use documentation
 
