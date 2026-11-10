@@ -11,7 +11,7 @@ project's agent entry points. Afterward, implementation and Groundhog skills
 invoke the registered loop automatically; rerun registration directly only to
 repair or refresh those pointers.
 
-🧪 Goal: make the groundhog fixing loop triggerable from Claude Code and
+🧪 Goal: ensure the groundhog fixing loop can be triggered from Claude Code and
 ChatGPT Codex in a given project, with one command.
 
 ## 📋 One command writes three pointers
@@ -36,6 +36,15 @@ All three pointers reference the single `instructions/groundhog.md` body:
   and project-agnostic, so one copy serves every repo.
 
 Re-running `ghog init` is idempotent.
+
+Registration does not activate the shared pytest policies. Follow
+[Enable the lifecycle gate](enable-shared-lifecycle-gate.md) or
+[Enable the process audit](enable-shared-process-audit.md) to opt into either
+policy in the consumer environment. Every groundhog pytest stage prepares its
+child using that selection while preserving the consumer interpreter and
+restoring the parent's environment after spawning. A foreign project binding
+fails before child execution. For this repository's optional real-runtime
+preflight, see [Validate compatibility](validate-shared-pytest-compatibility.md).
 
 ## 🤖 Triggering the loop from Claude Code
 

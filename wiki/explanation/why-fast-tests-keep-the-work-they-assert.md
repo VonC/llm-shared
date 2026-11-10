@@ -8,7 +8,10 @@ Nobody invokes this gate by hand. The suite's pytest policy measures every
 test lifecycle on each run, and the covered full step of
 `ghog day --full=speed` measures the whole suite on two workers with coverage.
 The AI meets the gate while it drives the groundhog loop; a human meets it by
-running `ghog day` or a focused `ghog single`.
+running `ghog day` or a focused `ghog single`. The lifecycle and process
+policies are standalone and independently selectable in other projects;
+[activation](../how-to/enable-shared-lifecycle-gate.md) is scoped to the prepared
+environment. This repository selects both for every own-suite run.
 
 ## What this page explains about test speed
 
@@ -37,6 +40,13 @@ Initialization stays inside that window. A grammar, a seed template or a
 cached observation is built lazily by the first test that needs it, and that
 test pays for it. Moving such work into worker startup or an unmeasured
 fixture would hide it, not remove it.
+
+A process permission changes authorization, never timing attribution. Shared
+fixture operations are charged to the test that performs them, including
+setup and finalizers. CPU measures the parent pytest process, excluding child
+CPU; elapsed time covers the lifecycle window and excludes a detached child's
+later lifetime. Real shell, process and worker compatibility probes therefore
+run separately from the process-free carrying suite.
 
 ## Where the time actually went
 
