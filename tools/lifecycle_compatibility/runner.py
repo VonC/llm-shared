@@ -2,7 +2,10 @@
 
 The caller supplies a fresh private evidence directory. Every project is
 isolated from parent conftests, plugin autoload and inherited policy bindings.
-Python 3.13 evidence here does not assert Python 3.12 compatibility.
+The explicit --all mode also validates executable policy behaviors and actual
+interpreter/dependency observations. Each runtime retains separate evidence.
+Failed probes print their observations and bounded controller output before
+the automatic preflight removes its temporary evidence directory.
 """
 
 from __future__ import annotations
@@ -111,17 +114,45 @@ def run_smoke(evidence: Path, scenario: str = "invalid") -> dict[str, object]:
     return result
 
 
+def _all_cases(evidence: Path) -> list[dict[str, object]]:
+    """Verify the runtime before barriers and policy behavior contracts."""
+    from tools.lifecycle_compatibility import (  # noqa: PLC0415 - avoid circular runner transport import
+        behavior_runner,
+        behavior_scenarios,
+        environment,
+    )
+
+    environment.verify(Path(__file__).resolve().parents[2], Path(sys.executable), sys.version_info[:2])
+    results = [run_smoke(evidence / name, name) for name in scenarios.NAMES]
+    results.extend(behavior_runner.run_case(evidence / case.name, case) for case in behavior_scenarios.cases())
+    return results
+
+
+def _report(evidence: Path, results: list[dict[str, object]]) -> None:
+    """Expose bounded failure diagnostics before temporary logs are removed."""
+    for result in results:
+        sys.stdout.write(f'Compatibility {result.get("scenario", "probe")}: {"passed" if result["passed"] else "FAILED"}\n')
+        if not result["passed"]:
+            sys.stdout.write(json.dumps(result, sort_keys=True) + "\n")
+            log = evidence / str(result.get("scenario", "probe")) / "controller.log"
+            if log.is_file():
+                sys.stdout.write("\n".join(log.read_text(encoding="utf-8").splitlines()[-40:]) + "\n")
+        sys.stdout.flush()
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """Record actual environment versions and fail if any barrier probe fails."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("evidence", type=Path)
+    parser.add_argument("--all", action="store_true", help="Run all standalone policy compatibility contracts")
     arguments = parser.parse_args(argv)
     evidence = Path(arguments.evidence).resolve()
     evidence.mkdir(parents=True, exist_ok=True)
-    results = [run_smoke(evidence / name, name) for name in scenarios.NAMES]
+    results = _all_cases(evidence) if arguments.all else [run_smoke(evidence / name, name) for name in scenarios.NAMES]
     summary = {"python": sys.version, "pytest": version("pytest"),
                "xdist": version("pytest-xdist"), "scenarios": results}
     (evidence / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
+    _report(evidence, results)
     return 0 if all(result["passed"] for result in results) else 1
 
 
