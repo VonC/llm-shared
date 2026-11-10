@@ -3718,3 +3718,425 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-2 -->
+
+## Round 1 by requestor - Step 6
+
+- Recorded: 2026-11-10T15:13:43+01:00
+- Exchange: code/code/v0.14.0/version-sources
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.version-sources.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: unrecorded
+- Implementation step: 6
+- Outcome: request
+
+### Review identity for step 6 version-sources (round 1)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.version-sources.md
+Implementation step: 6
+Review round: 1
+
+### Code review evidence for step 6 version-sources (round 1)
+
+request_index_tree: ee21c5fa76c50c6b2a62a43482898da83148faaa
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.version-sources.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(release): add the npm version adapter
+group 1 path: tools/release_workflow/sources/json_scan.py
+group 1 path: tools/release_workflow/sources/npm.py
+group 1 path: tools/release_workflow/sources/__init__.py
+group 1 path: tools/release_workflow/sources/model.py
+group 1 path: tests/unit/tools/release_workflow/version_support.py
+group 1 path: tests/unit/tools/release_workflow/lock_evidence_recorder.py
+group 1 path: tests/unit/tools/release_workflow/test_version_lock_evidence/lock_evidence.v1.json
+group 1 path: tests/unit/tools/release_workflow/test_version_lock_evidence/test_version_lock_evidence_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_npm_sources/__init__.py
+group 1 path: tests/unit/tools/release_workflow/test_npm_sources/test_npm_sources_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_version_formats/test_json_scan_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_version_formats/test_version_formats_pbt.py
+group 1 path: tests/unit/tools/release_workflow/test_version_model/test_version_model_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_version_registry/test_version_registry_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_version_transition/test_version_restoration_tdd.py
+group 2: docs(version-sources): record step 6 validation
+group 2 path: docs/v0.14.0/plan.v0.14.0.version-sources.validation.md
+staged path: docs/v0.14.0/plan.v0.14.0.version-sources.validation.md
+staged path: tests/unit/tools/release_workflow/lock_evidence_recorder.py
+staged path: tests/unit/tools/release_workflow/test_npm_sources/__init__.py
+staged path: tests/unit/tools/release_workflow/test_npm_sources/test_npm_sources_tdd.py
+staged path: tests/unit/tools/release_workflow/test_version_formats/test_json_scan_tdd.py
+staged path: tests/unit/tools/release_workflow/test_version_formats/test_version_formats_pbt.py
+staged path: tests/unit/tools/release_workflow/test_version_lock_evidence/lock_evidence.v1.json
+staged path: tests/unit/tools/release_workflow/test_version_lock_evidence/test_version_lock_evidence_tdd.py
+staged path: tests/unit/tools/release_workflow/test_version_model/test_version_model_tdd.py
+staged path: tests/unit/tools/release_workflow/test_version_registry/test_version_registry_tdd.py
+staged path: tests/unit/tools/release_workflow/test_version_transition/test_version_restoration_tdd.py
+staged path: tests/unit/tools/release_workflow/version_support.py
+staged path: tools/release_workflow/sources/__init__.py
+staged path: tools/release_workflow/sources/json_scan.py
+staged path: tools/release_workflow/sources/model.py
+staged path: tools/release_workflow/sources/npm.py
+```
+
+### Validation scope for step 6 version-sources (round 1)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 6 version-sources (round 1)
+
+Writer assessment for Step 6 of the version-sources plan, round 1: the step is
+fully implemented, and its implementation check records
+`Yes. Step 6 has been fully implemented.` in the staged validation plan.
+
+Evidence, all on the staged tree:
+
+- Tests first: `ghog single` on the new and changed leaves failed at
+  collection (five errors, `ImportError: cannot import name 'npm'`, exit 4).
+  After the implementation only the three npm evidence tests failed, pending
+  the recording; every scanner, adapter, registry, model and restoration test
+  passed.
+- Recorder run by hand with the project venv's uv 0.13.4 and Python 3.13.9
+  and with npm 10.8.3 on Node 22.9.0: eight records written with no host
+  path; the five uv records are byte-identical to the committed ones. In
+  every npm record, `npm ci` and the lock-only check exit 0 with both files
+  unchanged on the "before" and edited pairs, and the lock-only check on the
+  manifest-only control exits 0 and rewrites the lock to root versions
+  `0.0.25` in the same format. A second recording added the note that `npm ci`
+  ignores the root version, which the implementation check found missing.
+- `ghog day --whole-suite`, the command printed by `pw scope day`, exit 0 on
+  the final tree. Earlier runs failed only at check.bat: ty and pyright on
+  tuple literals typed as `JsonPath` keys and an untyped empty set in tests,
+  then radon grade C on the npm records test, fixed by a helper.
+- Review validation, `ghog day --full=speed --whole-suite` (the built-in
+  default; no `.review-validation`): exit 0 with `cov=100 outliers=0
+  excluded=0 proof=speed`, on index tree
+  `ee21c5fa76c50c6b2a62a43482898da83148faaa`. The first attempt failed on one
+  lifecycle wall overrun at teardown of
+  `tests/unit/tools/test_codex_plugin_package/test_codex_plugin_package_tdd.py::test_repository_package_is_valid`
+  (1.65 s wall, 0.06 s CPU within its limit; unrelated to the version
+  domain), which passed in focus; the restarted walk was green. No budget was
+  changed and no exclusion is accepted.
+- `rg -n 'lockfileVersion' tools/release_workflow/sources/npm.py` shows the
+  format check and the format 1 remedy; `rg -n 'subprocess'
+  tools/release_workflow/sources` finds nothing. Every Python file stays below
+  650 lines.
+- Markdown check and cSpell on the staged validation plan: no finding, no
+  unknown word.
+
+Architecture: the scanner and the adapter are pure domain code of the
+`sources` package (standard library, `sources.model` and `sources.json_scan`
+only), reading through the `FileView` and learning the configured form and
+participating roots through the `AdapterSettings` protocol; the cross-root
+name index lives in the phase's view, so the adapter keeps no state. The
+process-starting recorder stays in the test tree and is never imported by a
+test. Performance: each file is read once per view, the scanner matches each
+character once, each specifier costs one lookup, and the name index is built
+at most once per view. Feature integrity: nothing ships until Step 9;
+registering `npm` adds detection at participating roots, and the earlier
+version tests pass unchanged.
+
+Please check in particular: the scanner's frame tracking and its duplicate
+and root rules, the lock pairing and format rules against the design's "npm"
+section, the readings listed in the writer response (workspaces in a
+tool-only manifest, the unnamed-manifest name rule, `workspace:` matching),
+the `AdapterSettings.forms` and `FileView.derived` seam added to `model.py`
+outside the plan's file list, and whether the npm records and their test prove
+what plan decisions Q05 and Q06 require.
+
+### Implementation report for step 6 version-sources (round 1)
+
+Step 6, "npm adapter with recorded npm evidence", adds the JSON scanner, the
+`npm` adapter and the recorded npm lock evidence that backs its supported lock
+formats. Nothing ships yet: no handler calls the version domain until Step 9.
+
+JSON scanner (`tools/release_workflow/sources/json_scan.py`):
+
+- `locate(text, paths) -> dict[JsonPath, Span]` matches one token expression
+  (string, `{`/`[`, `}`/`]`, comma, colon, scalar) from position to position
+  over the decoded text. A `_Scanner` keeps a stack of `_Frame` values: each
+  open object or array, the key path reaching it (tracked only while it is a
+  prefix of an owned path, `None` below an array), its last key (decoded with
+  `json.loads` only when it holds a backslash) and, when the container itself
+  is an owned value, its start offset.
+- A value whose key path is owned is recorded: a string's content between
+  the quotes, a scalar's token, or a container's whole text at its close. A
+  second value on the same owned path fails as ambiguous (`json` keeps the
+  last one silently); duplicates elsewhere are ignored. The first token must
+  open the root object and nothing may follow its close; otherwise, or when
+  the text ends inside it, the text "is not one JSON object". Token handlers
+  are dispatched through a table to keep each function below radon's C grade.
+- `byte_spans(text, bom, paths, values)` locates every owned path (so a
+  duplicate `lockfileVersion` fails even though it is not edited), requires
+  each string to edit to read exactly as its parsed value (an escape, or a
+  value the text does not hold, fails), and maps all spans to bytes in one
+  `model.to_byte_spans` walk, so both lock edits compose from one original.
+  `spell(path)` writes `packages[""].version` for diagnostics and fields.
+
+npm adapter (`tools/release_workflow/sources/npm.py`):
+
+- `NpmAdapter`: name `npm`, forms `{release-only, core, snapshot}`, default
+  `release-only`, candidate name `package.json`. Every owned field of a root
+  takes `settings.forms.get("npm", Form.RELEASE_ONLY)`.
+- `detect` reads `package.json` and `package-lock.json` once each. No manifest:
+  no lock gives nothing, a lock fails as an orphan. A manifest is decoded
+  strictly (mark kept apart) and must parse as one JSON object.
+- A `workspaces` field fails at once, whether or not the manifest has a
+  version. A manifest without `version` gives `not-participating tool-only`
+  records for it and, when present, its lock (field `packages[""].version`,
+  never parsed).
+- A participating manifest: an `npm-shrinkwrap.json` at the root fails; then
+  each string specifier of `dependencies`, `devDependencies`,
+  `optionalDependencies` and `peerDependencies` is checked. `file:` and
+  `link:` destinations (`url2pathname(urlsplit(spec).path)`, relative to the
+  declaring root, resolved) that are a participating root fail through one
+  `settings.participant` lookup, naming both roots. A `workspace:` specifier
+  fails when its dependency name is the name of a participating npm manifest
+  (a root manifest with a string name and version), looked up in an index
+  built once per view through `FileView.derived`. A non-string version
+  fails with the remedy; the version's span comes from `byte_spans`.
+- A lock: `lockfileVersion` 1 fails with the remedy to regenerate the lock
+  with npm 7 or later; any other value outside
+  `SUPPORTED_LOCK_FORMATS = frozenset({2, 3})` (integers only, so `"3"` and
+  `true` are refused) fails. `packages[""].name`, when the manifest has a
+  name, must equal it; `packages[""].version` must be a string; a top-level
+  `version` must be a string where present. Each owned string becomes one
+  source (`version`, then `packages[""].version`) recording its manifest.
+- `render` returns the value's bytes; `has_project_version` is true only for
+  a manifest with its own version string and false for an unreadable one.
+
+Registry and model seam:
+
+- `sources/__init__.py`: `ADAPTERS = (anchor, python, npm, pattern)`;
+  `SUPPORT_MODULES` adds `json_scan`.
+- `sources/model.py` (outside the plan's Step 6 list, recorded as variance):
+  `AdapterSettings.forms`, already held by `VersionSettings`, which no
+  adapter read before; `FileView.derived(key, compute)`, a value computed
+  once per key for the view's phase. Without it, each root's `workspace:`
+  check would scan every root's manifest, quadratic in the roots.
+
+Lock evidence (plan decisions Q05 and Q06):
+
+- `lock_evidence_recorder.py` gains `--npm` and `--node-dir` (all five
+  arguments are required and the whole file is rewritten); its uv classes
+  are renamed `UvScenario` and `UvTools` beside `NpmScenario` and `NpmTools`.
+  Each npm scenario runs in a new temporary directory: write a `private:
+  true` `package.json` at `0.0.24`, `npm install --package-lock-only
+  --offline --lockfile-version <2|3> --ignore-scripts --no-audit --no-fund`,
+  convert both files to CRLF for the format 3 variant, then run `npm ci
+  --offline --ignore-scripts --no-audit --no-fund` and the lock-only check
+  `npm install --package-lock-only --offline --ignore-scripts --no-audit
+  --no-fund` on the "before" pair and on `version_support.pair_edit(npm.ADAPTER,
+  ...)` for `0.0.25`, then the lock-only check on the manifest-only control.
+  `node_modules` is removed before each run; the Node directory is prepended
+  to the child `PATH` only, `npm_config_*` variables are removed, and the
+  cache and user configuration point into the scratch directory. Each run
+  records its exit code, `npm error` lines, both files' SHA-256 before and
+  after, and the lock's format and root versions after it.
+- `lock_evidence.v1.json`: the five uv records are byte-identical to the
+  committed ones; three npm records (`npm-10.8.3-lock2-root`,
+  `npm-10.8.3-lock3-root`, `npm-10.8.3-lock3-root-crlf`, npm 10.8.3 on Node
+  v22.9.0) each carry a note that `npm ci` does not compare the root
+  version.
+
+Test support and tests:
+
+- `version_support.py`: `RootSettings.forms`; `package_json` and
+  `package_lock` (two-space JSON, LF, as npm writes them); the `npm-lock2`
+  and `npm-lock3-crlf` restoration sets (three writes each); Step 5's
+  `python_pair_edit` generalized to `pair_edit(adapter, root, target)`.
+- New: `test_version_formats/test_json_scan_tdd.py`,
+  `test_npm_sources/__init__.py`, `test_npm_sources/test_npm_sources_tdd.py`.
+  Extended: the formats property file (JSON property), the evidence test (npm
+  records), the model test (`FileView.derived`), the registry test (order and
+  support modules) and the restoration test docstring (the npm sets run
+  through the existing matrix).
+
+Writer notes: `.reviews/a.version-sources.step6.journal.md` and
+`.reviews/a.version-sources.step6.handoff.md`.
+
+### Change summary for step 6 version-sources (round 1)
+
+Staged paths (16), grouped in the root `a.commit` (two groups, checker
+`ready: true`):
+
+1. `feat(release): add the npm version adapter`:
+   `tools/release_workflow/sources/json_scan.py`,
+   `tools/release_workflow/sources/npm.py`,
+   `tools/release_workflow/sources/__init__.py`,
+   `tools/release_workflow/sources/model.py`,
+   `tests/unit/tools/release_workflow/version_support.py`,
+   `tests/unit/tools/release_workflow/lock_evidence_recorder.py`,
+   `tests/unit/tools/release_workflow/test_version_lock_evidence/lock_evidence.v1.json`,
+   `tests/unit/tools/release_workflow/test_version_lock_evidence/test_version_lock_evidence_tdd.py`,
+   `tests/unit/tools/release_workflow/test_npm_sources/__init__.py`,
+   `tests/unit/tools/release_workflow/test_npm_sources/test_npm_sources_tdd.py`,
+   `tests/unit/tools/release_workflow/test_version_formats/test_json_scan_tdd.py`,
+   `tests/unit/tools/release_workflow/test_version_formats/test_version_formats_pbt.py`,
+   `tests/unit/tools/release_workflow/test_version_model/test_version_model_tdd.py`,
+   `tests/unit/tools/release_workflow/test_version_registry/test_version_registry_tdd.py`,
+   `tests/unit/tools/release_workflow/test_version_transition/test_version_restoration_tdd.py`.
+2. `docs(version-sources): record step 6 validation`:
+   `docs/v0.14.0/plan.v0.14.0.version-sources.validation.md` (Step 6
+   sections).
+
+The adapter, its registration and its evidence share one group: plan
+decision Q06 forbids supporting a lock format without its record, and the
+registry and restoration tests need `json_scan` and `npm` registered
+together. Steps 1 to 5 are committed and pushed (`a7c0d7c` to `b8e03a5`) and
+are not part of this review.
+
+### Writer response for step 6 version-sources (round 1)
+
+Writer response:
+
+This is the first round of the Step 6 code review; there is no earlier
+reviewer feedback to answer.
+
+Choices worth checking, all recorded in the validation plan or the step notes:
+
+- The model seam: `AdapterSettings.forms` (npm is the first adapter to apply
+  a configured form) and `FileView.derived`, which holds the participating
+  npm package-name index once per view. `model.py` and
+  `test_version_model_tdd.py` are outside the plan's Step 6 file list.
+- A `workspaces` field fails even in a manifest without `version`: the
+  design's npm section states the rule without the tool-only exception the
+  Python section spells out, and npm workspaces are deferred as a whole.
+  Links, the shrinkwrap check and every lock check apply to participating
+  manifests only, as for Python.
+- `packages[""].name` is compared only when the manifest has a name: npm
+  writes the folder name there for an unnamed package, so comparing would
+  refuse a valid lock.
+- `workspace:` (plan decision Q15) matches the dependency key against the
+  names of participating manifests that carry a version; a tool-only or
+  unreadable manifest is not a participating package, and its name is
+  external.
+- The scanner relies on the caller having parsed the text with `json`
+  first: it checks only the one-object root it depends on, not bracket
+  matching or escape validity.
+- The release-only refusal is proven through `set_versions` (status 2, no
+  source or evidence write). `check` reporting drift is a Step 9 command; this
+  step asserts the differing expected value it will report.
+- The evidence: the npm fixture runs from `0.0.24` to `0.0.25` as the plan
+  states (uv stays `0.13.0` to `0.14.0`); re-recording kept the uv records
+  byte-identical. The control runs only the lock-only check, as plan decision
+  Q05 lists, and each npm record notes that `npm ci` ignores the root version.
+- Step 5's validation entry still names `python_pair_edit`, renamed
+  `pair_edit` here; the Step 6 feature-integrity note records the rename
+  rather than editing the Step 5 record.
+
+### Reviewer focus for step 6 version-sources (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-6-round-1 -->
+
+## Round 1 by reviewer - Step 6
+
+- Recorded: 2026-11-10T15:25:29+01:00
+- Exchange: code/code/v0.14.0/version-sources
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.version-sources.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 6
+- Outcome: answer
+
+### Assessed index identity for step 6 version-sources (exchange 1) (round 1)
+
+Baseline index tree: ee21c5fa76c50c6b2a62a43482898da83148faaa
+
+Assessed index tree: 32708897e9cf81050f140fb30f5a1850a33327c6
+
+### Implementation check for step 6 version-sources (exchange 1) (round 1)
+
+Result:
+
+Yes. Step 6 has been fully implemented.
+
+Reviewed the exact Step 6 plan and design, all 16 staged paths, the scanner and adapter, the model and registry changes, the recorder, recorded evidence, unit tests and restoration matrix. Scanner paths and spans distinguish nested and array decoys, reject duplicate owned values and escaped version text, and map UTF-8/BOM offsets in one pass. The npm adapter implements the configured forms, tool-only reporting, workspace and participating-link refusals, shrinkwrap and orphan rejection, formats 2 and 3, the format 1 remedy and root identity/version checks. Tests exercise the required failures, paired edits, byte preservation and restoration at every write position.
+
+The two writer-authored files outside the Step 6 plan list, `sources/model.py` and its model test, supply the existing configured forms through the protocol and compute the npm name index once per view. This is a justified Step 6 dependency with unit coverage, rather than outstanding work for another step. Architecture stays within the source domain; no production subprocess or new quadratic scan was introduced. The workspaces rule also applies to tool-only manifests as the npm design states. The unnamed-manifest rule accommodates npm's folder-derived name.
+
+Static coverage assessment: the configured gate measures `tools`, omitting test files and initializers. The scanner, adapter and model unit tests exercise their new behavior. Registry and support symbols outside the gate are referenced by tests; recorder symbols are reached within its own module, with output checked as data rather than importing the process launcher into pytest. No uncovered unit-tested class or unreferenced added top-level symbol was identified. Step 9 still owns command-level `check` reporting.
+
+Validation plan effects:
+
+Added only the independent round 1 assessment under Analysis of Step 6 implementation state in `docs/v0.14.0/plan.v0.14.0.version-sources.validation.md`. The Yes result remains justified. Other steps, document-level status and umbrella rows were not edited. This is polishing-only review metadata.
+
+### Pre-repair mandatory checks and coverage for step 6 version-sources (exchange 1) (round 1)
+
+The request-time and captured baseline index trees both equal `ee21c5fa76c50c6b2a62a43482898da83148faaa`. The retained final writer speed log ends at 2026-11-10T15:10:47+01:00 with `exit=0 cov=100 outliers=0 excluded=0 proof=speed`, whole suite, after 6101 tests. The saved day proof and core-owned scope capture have matching fingerprint `686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6`. The earlier unrelated wall overrun passed in focus and the restarted full walk was green; no timing exception is used in this assessment.
+
+Independently matched the npm accepted-pair SHA-256 values to the UTF-8 fixture bytes for all three records, inspected all five checks per record and their manifest-only lock rewrite, and compared the five unchanged uv records against HEAD. The recorder and replay tests support the format registry and CRLF variant. No reviewer test command or coverage measurement was performed; reported coverage is writer evidence, supplemented by static review.
+
+### Resolved validation set and sources for step 6 version-sources (exchange 1) (round 1)
+
+`ghog day --full=speed --whole-suite` (source: project). It is mandatory writer evidence, not a reviewer command.
+
+### Resolver drift and direction for step 6 version-sources (exchange 1) (round 1)
+
+None. The project declaration `.review-validation` is absent. An independent call to the current resolver with the bound whole-suite selector returns exactly the request's one project command; no plan or request additions are declared.
+
+### Repository state around validation for step 6 version-sources (exchange 1) (round 1)
+
+Umbrella digest comparison reports unchanged (`5abf0cb72800e9d07acba786dd90502fcb8879ff41cbcce55b961a95352aaa4c`). The ordered validation set includes all 16 staged paths and the validation plan. Its final comparison reports `acceptable: false`, with exactly the validation-plan path and `<index>` changed, and no untracked paths. This is the explicitly permitted Step 6 review-metadata exception, not a generic clean-state result. Attribution reports `attributable: true`; only that patch was staged with `git apply --cached`. The assessed tree is `32708897e9cf81050f140fb30f5a1850a33327c6`. No production/test repair, other tracked validation side effect or umbrella change occurred.
+
+### Repair inventory for step 6 version-sources (exchange 1) (round 1)
+
+Repairs made:
+
+- `docs/v0.14.0/plan.v0.14.0.version-sources.validation.md`: polishing-only; independent Step 6 round 1 assessment metadata.
+
+Paths staged:
+
+- `docs/v0.14.0/plan.v0.14.0.version-sources.validation.md`
+
+### Commit plan assessment for step 6 version-sources (exchange 1) (round 1)
+
+Independently ran `commit-plan-check.bat --format json` once before assessment: `state=valid`, `ready=true`, no diagnostics, 16 staged paths. Ordered groups: (1) `feat(release): add the npm version adapter`, the 15 source/test/evidence paths; (2) `docs(version-sources): record step 6 validation`, the validation plan. Membership, dependency order and conventional subjects match the diff. Scanner, adapter, registration and evidence correctly ship together because the supported formats require their records. The reviewer metadata patch preserves group membership and subjects; `a.commit` remains accurate without amendment. The complete checker JSON is retained in the ignored round evidence.
+
+### Findings and boundaries for step 6 version-sources (exchange 1) (round 1)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 6 version-sources (exchange 1) (round 1)
+
+Consume this advisory commit-ready answer through the exchange and continue the requestor workflow to the human convergence gate. The reviewer has not authorized or performed any commit. No implementation rework is requested.
+
+### Decision rationale for step 6 version-sources (exchange 1) (round 1)
+
+All six readiness-floor results pass: exact identity and request tree; Step 6 completeness; green mandatory writer validation and sufficient static coverage; an attributable metadata-only reviewer patch; no unresolved finding or boundary work; and accurate `a.commit`. Recommend commit-ready. There is no substantive reviewer repair and no claim of reviewer-run coverage.
+
+### Final reviewer decision for step 6 version-sources (exchange 1) (round 1)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-6-round-1 -->
+
+## Round 1 by human - Step 6 - human-confirmation
+
+- Recorded: 2026-11-10T17:23:43+01:00
+- Exchange: code/code/v0.14.0/version-sources
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.version-sources.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 6
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-1 -->
