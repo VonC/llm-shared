@@ -1,11 +1,12 @@
 # v0.14.0 shared lifecycle gate implementation tracking and validation
 
-No, it is not implemented
+Yes, it is implemented.
 
-Steps 1-5 of the seven-step
-[implementation plan](plan.v0.14.0.shared_lifecycle_gate.md) have been checked,
-including Step 5 on 2026-11-10. Steps 6-7 remain not started; their goals
-describe later checks.
+All seven steps of the
+[implementation plan](plan.v0.14.0.shared_lifecycle_gate.md) have been checked.
+Step 7 records implementation completion under the user's CPU-under-budget
+continuation instruction. Whole-suite coverage and speed acceptance remain
+unproven; this implementation status does not establish green release acceptance.
 
 ## Runtime context for validating the pytest plugin mechanism
 
@@ -988,8 +989,15 @@ capability was found impaired.
 
 ### Analysis of Step 7 implementation state
 
-Not started. Step 7 is not implemented because complete acceptance evidence,
-the anonymous two-context consumer trial and adoption documentation are pending.
+Yes. Step 7 has been fully implemented.
+
+Integrated acceptance, executable compatibility and Windows shell evidence,
+the anonymous trial in both activation contexts, and adoption documentation
+are present. The final whole-suite walk completed with only wall-time lifecycle
+errors whose measured CPU stayed within budget. The user explicitly authorized
+continuation in that situation. This verdict assesses implementation completion;
+the automated walk remains non-green and its coverage and speed verdicts were
+withheld, as recorded in the [acceptance evidence](acceptance.v0.14.0.shared_lifecycle_gate.md).
 
 ### Goal for Step 7
 
@@ -1012,24 +1020,132 @@ evidence, then publish accurate adoption and compatibility documentation.
 
 ### What was implemented for Step 7
 
-_(empty: no check has taken place yet.)_.
+The new acceptance package joins real environment preparation, groundhog's
+child-environment boundary, canonical pytest loading, strict settings, fixture
+finalization, unused-permission summaries and selected lifecycle record writes
+for all four selections. Memory-backed resources and a generated-source adapter
+keep the embedded journey inside its measured lifecycle. Explicit configuration
+and `--noconftest` use a supplied settings/startup hook; separate executable
+cases retain real conftest discovery.
+
+The compatibility matrix now has 25 cases, including prepared selections,
+consumer-owned `tools`/`tests` imports, guarded registration orders, explicit
+duplicate loading, gate-only process use and distributed fixture aggregation.
+Actual Python 3.12.15 and 3.13.9 each passed all 36 checks, comprising the
+25 policy cases and eleven Windows shell probes. The tracked
+`tools.lifecycle_compatibility.shell_runner.run_all` runs from `runner --all`
+and `bin/lifecycle_compatibility.bat --evidence`, covering both expansion modes,
+OEM paths, atomic refusal, concurrency and drive-root callers. Other platforms
+report the shell checks as not run. Drive-root preparation exposed a cache-boundary
+error, with a preparation regression test.
+
+Three new how-to guides and existing wiki references explain independent opt-in,
+settings, cache management, process ownership and explicit compatibility setup.
+The canonical fast-test instruction is updated without copying it into adapters.
+The anonymous consumer passed 23 existing tests in each activation context;
+project files and persistent activation were unchanged and transient state was
+cleaned up. The acceptance record maps every requirement and design case to
+named evidence and states the outstanding automated verdicts.
+
+- File-list deviations: `tools/pytest_plugin_environment.py` and
+  `tests/unit/tools/shared_lifecycle/test_preparation/test_preparation_tdd.py`
+  fix and pin the Step 4 cache boundary exposed by the drive-root shell probe.
+  Step 6's split places executable cases in
+  `tools/lifecycle_compatibility/behavior_scenarios.py` and transport in
+  `tools/lifecycle_compatibility/behavior_runner.py`;
+  `tools/lifecycle_compatibility/runner.py` owns barrier startup reductions and
+  full-matrix aggregation, covered by
+  `tests/unit/tools/shared_lifecycle/test_compatibility/test_behavior_runner_tdd.py`.
+  `tests/memory_filesystem.py` and
+  `tests/unit/tools/shared_lifecycle/inline_session.py` support the in-process
+  acceptance journey. New `tools/lifecycle_compatibility/shell_scenarios.py`
+  and `tools/lifecycle_compatibility/shell_runner.py` retain the eleven real
+  calling-shell contracts in the tracked executable harness; new
+  `tests/unit/tools/shared_lifecycle/test_compatibility/test_shell_runner_tdd.py`
+  checks their decisions through virtual storage and fake process transport.
 
 ### New types or classes introduced for Step 7
 
-_(empty: no check has taken place yet.)_.
+New immutable `ShellCase` describes one executable calling-shell contract.
+Existing scenario type `Case` changes
+`prepared` to `str | None`, distinguishing no preparation from preparation
+with an empty selection. Test-only `PreparedStartup` supplies guarded settings
+and invokes the real early loader within the embedded acceptance session.
+New scenario helpers construct consumer packages and the Windows caller probe.
+Test-only `InlinePool` preserves mapped operations without starting threads.
 
 ### Architecture check for Step 7
 
-_(empty: no check has taken place yet.)_.
+Preparation remains the shared environment adapter; executable compatibility
+calls it instead of reconstructing its binding contract. Scenario builders
+own generated projects, while runners own child execution and cleanup.
+Acceptance helpers remain under tests and introduce no production dependency
+on test infrastructure. Documentation follows existing Diataxis responsibilities
+and category order. Changed Python files remain below the 650-line ceiling.
+No inappropriate layer dependency or new architectural smell was identified.
+Nothing needs addressing in the architecture.
 
 ### Performance check for Step 7
 
-_(empty: no check has taken place yet.)_.
+New preparation checks are constant-time path comparisons. Consumer package
+generation and matrix execution are linear in their fixed inputs; no new
+quadratic or sorting-based computation was introduced. Embedded acceptance
+avoids repeated conftest discovery and native scratch I/O while preserving
+fixture cleanup, policy assertions and the measured boundary. Executable
+children omit unrelated startup plugins and empty probes skip site startup;
+existing deadlines and assertions are preserved.
+
+Focused acceptance passed five tests in 5.6 seconds. The earlier affected rerun
+passed without failures, warnings or xfails. The final self-hosted
+`ghog day --full=speed --whole-suite` ended on 2026-11-10 at 21:44:10+01:00,
+exit 2 after 18m00.2s. Fresh preflight and static checks passed; the full stage
+measured 6,221 lifecycles and reported 11 wall-only errors. Their CPU values
+were 0.015625-0.156250s, below the effective 0.250s band limit; wall values
+were 1.029650-6.201089s against 1.000s. No assertion failures, warnings or
+xfails were reported. Coverage, speed/outlier and exclusion verdicts were
+withheld. Under the user's explicit instruction, these CPU-under-budget
+wall-only observations require no timing repair before continuation. No limit,
+assertion, permission or exclusion was changed to obtain that continuation.
+No CPU performance issue needs addressing; whole-suite speed acceptance remains
+unproven.
 
 ### Unit test coverage check for Step 7
 
-_(empty: no check has taken place yet.)_.
+The configured coverage source is `tools`, with tests and package markers
+omitted; its required gate remains 100%. Existing preparation tests now cover
+the drive-root cache branch. The compatibility unit package parametrizes all
+25 cases, invoking generated package construction and prepared environments;
+existing runner tests exercise barrier arguments and result aggregation.
+Static inspection found no missing unit-test branch introduced by this step.
+The shell unit tests exercise generated cases, snapshot validation, independent
+negative verdicts, missing output, timeout tree cleanup, complete transfers and
+the platform reporting branch without starting processes or threads. The
+full-mode aggregation test replaces the shell runner explicitly, preserving
+the audited-suite boundary.
+The final walk withheld coverage, so a measured 100% result for the changed
+modules cannot be asserted from that walk.
+
+Out-of-scope helpers in the memory filesystem and embedded session are used
+by their existing test packages and the new acceptance journey. Every new
+top-level acceptance helper and `PreparedStartup` is referenced by that journey;
+the Windows caller helper has both an acceptance assertion and executable
+probe evidence. Package markers define no executable symbols. No unit-tested
+class is known to require coverage completion; measured gate confirmation
+remains unproven. No out-of-scope top-level symbol is unreferenced.
 
 ### Feature integrity for Step 7
 
-_(empty: no check has taken place yet.)_.
+Neither plugin's independent selection, strict settings, canonical identity,
+fixture ownership nor reporting contract was weakened. The required declaration
+scan found implementation identifiers and generated examples, with no actual
+carrying-suite process permission or new duration exclusion. No consumer file
+or persistent activation was changed. Linux and macOS remain explicitly
+unvalidated; Windows and interpreter claims match actual observations.
+
+The final read-only record comparison preserved all 5,892 previous eligible
+proofs and added 345, for 6,237 eligible proofs; no nodes or proofs were lost.
+Exception meanings, raw exception fields and other document fields remained
+unchanged. The pre-migration snapshot was never restored over the live record.
+No existing feature or reporting capability was found impaired. Release
+acceptance still requires green whole-suite coverage and speed evidence;
+the CPU-based continuation does not supply those verdicts.
