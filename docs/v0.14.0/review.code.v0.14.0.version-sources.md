@@ -4957,3 +4957,685 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-2 -->
+
+## Round 1 by requestor - Step 8
+
+- Recorded: 2026-11-10T20:18:58+01:00
+- Exchange: code/code/v0.14.0/version-sources
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.version-sources.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: unrecorded
+- Implementation step: 8
+- Outcome: request
+
+### Review identity for step 8 version-sources (round 1)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.version-sources.md
+Implementation step: 8
+Review round: 1
+
+### Code review evidence for step 8 version-sources (round 1)
+
+request_index_tree: 5e2a187477a360bd6a7bfb76b9cd220dfa04618a
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.version-sources.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(release): select release ranges from classified tags
+group 1 path: tools/release_workflow/tags.py
+group 1 path: tests/unit/tools/release_workflow/version_support.py
+group 1 path: tests/unit/tools/release_workflow/test_release_tags/__init__.py
+group 1 path: tests/unit/tools/release_workflow/test_release_tags/test_release_tags_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_release_tags/test_release_ranges_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_release_tags/test_release_tags_pbt.py
+group 2: docs(version-sources): record step 8 validation
+group 2 path: docs/v0.14.0/plan.v0.14.0.version-sources.validation.md
+staged path: docs/v0.14.0/plan.v0.14.0.version-sources.validation.md
+staged path: tests/unit/tools/release_workflow/test_release_tags/__init__.py
+staged path: tests/unit/tools/release_workflow/test_release_tags/test_release_ranges_tdd.py
+staged path: tests/unit/tools/release_workflow/test_release_tags/test_release_tags_pbt.py
+staged path: tests/unit/tools/release_workflow/test_release_tags/test_release_tags_tdd.py
+staged path: tests/unit/tools/release_workflow/version_support.py
+staged path: tools/release_workflow/tags.py
+```
+
+### Validation scope for step 8 version-sources (round 1)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 8 version-sources (round 1)
+
+Writer assessment for Step 8 of the version-sources plan, round 1: the step is
+fully implemented, and its implementation check records
+`Yes. Step 8 has been fully implemented.` in the staged validation plan.
+
+Evidence, all on the staged tree:
+
+- Tests first: `ghog single` on `test_release_tags` failed at collection
+  (three errors, `ImportError: cannot import name 'tags'`, exit 4). After the
+  implementation, `test_release_tags` and `test_git` passed (152 tests).
+- Every selection test asserts its recorded Git calls against the plan's
+  call table: no call for a refused target name; records only for a missing
+  target, a conflict, an ineligible or ambiguous target boundary and an
+  oversized tips query; records and count without a candidate; records,
+  tags between and count for one candidate; records, tips, tags between and
+  count for several. The release-version rule always records two calls.
+- The aliased-boundary cases of design decisions Q18 and Q19 listed in the
+  plan are written and pass, as do every AC13, AC14 and AC15 row of the
+  design and the three consumer-shaped histories.
+- `ghog day --whole-suite`, the command printed by `pw scope day`, exit 0. A
+  first run failed only at check.bat: typings in two test files, PLR0913 on
+  one parametrized test, and radon grade C on `eligibility`, `boundaries`,
+  `check_release_version` and the test's reference predicate, each split
+  into helpers.
+- Review validation, `ghog day --full=speed --whole-suite` (the built-in
+  default; no `.review-validation`): exit 0 with `cov=100 outliers=0
+  excluded=0 proof=speed`, on index tree
+  `5e2a187477a360bd6a7bfb76b9cd220dfa04618a`, first attempt. No budget was
+  changed and no exclusion is accepted.
+- `rg -n 'describe' tools/release_workflow/tags.py` finds nothing; every
+  Python file stays below 650 lines (`tags.py` 342).
+- Markdown check and cSpell on the staged validation plan: clean, after one
+  MD038 fix in my own text (a code span with a trailing space, now written
+  with the plan's `[space]` token).
+
+Architecture: `tags.py` is release-domain code that reads Git only through
+the Step 1 typed observations and the token grammar of `sources.model`; it
+starts no process of its own and holds no state. Performance: dictionaries
+and sets keyed by version, commit and name make each selection linear in the
+reachable tags, with at most four Git calls (two for the rule). Feature
+integrity: nothing calls it yet; Step 9 adds `versions range`, and the
+existing readers keep their query until item 7.
+
+Please check in particular: the trailer and `[valid]` line rules against
+design decision Q01 and the eligibility table; the boundary class and name
+(Q18, Q19); the seven steps and the call table, including my reading of the
+no-candidate case; and the release-version rule's two calls and its bound.
+
+### Implementation report for step 8 version-sources (round 1)
+
+Step 8, "Tag classification, range selection and the release-version rule",
+adds `tools/release_workflow/tags.py`: the one classifier, range selector and
+release-version rule every range reader will share. Nothing calls it yet:
+Step 9 adds `versions range`, and item 7 switches the existing readers.
+
+Names and eligibility:
+
+- `parse_name(name)`: one regular expression, `v?` then the token grammar's
+  three numbers (no leading zeros), then an optional `-SNAPSHOT` matched case
+  insensitively. With the suffix it is a `SnapshotName`, without a
+  `StableName`; anything else, other prereleases included, is `None`.
+- `eligibility(annotation)`: `None` (a lightweight tag) and an annotation
+  without a trailer line are `HISTORICAL`. Lines are the nonblank lines of
+  `splitlines()` (so CRLF and trailing blank lines do not matter). A trailer
+  line starts with exactly `Release tooling:[space]` and has a value that is not
+  blank; `[valid]` must equal the whole line. `_engine` then requires one
+  trailer, no `[valid]` before it, and after it nothing (`UNVALIDATED`) or
+  exactly `[valid]` (`VALIDATED`); anything else is `AMBIGUOUS`.
+- `classify(record)` returns `ClassifiedTag(record, name, eligibility)` for a
+  stable name and `None` otherwise, so callers drop snapshot markers and
+  other tags in one pass (the plan's signature reads `-> ClassifiedTag`).
+
+Boundaries:
+
+- `boundaries(tags)` fills two dictionaries in one pass, by version key and
+  by commit, then `_one_commit_per_version` and `_one_version_per_commit`
+  refuse a version on several commits or a commit with several versions,
+  naming the tags, before anything is excluded.
+- `Boundary(version, commit, aliases)`: `status` (`BoundaryClass`) is
+  ambiguous when any alias is, otherwise ineligible when any alias is
+  unvalidated, otherwise eligible (design decision Q18); `name` is the
+  `vX.Y.Z` alias when present, otherwise the first `X.Y.Z` alias (Q19);
+  `spelled` joins the sorted alias names for diagnostics.
+
+Range selection, `select_range(git, *, cwd, target=None) -> RangeSelection`:
+
+1. `_target`: HEAD, or a stable name as `refs/tags/<name>`; anything else is
+   a `RangeError` before any call.
+2. `_boundaries`: one `tag_records(merged=revision)` call;
+   `GitRevisionNotFoundError` becomes `RangeError` ("tag X does not exist")
+   chained from it; other Git errors propagate (status 1).
+3. Grouping as above.
+4. `_without_target`: a tag target's boundary must be eligible (ambiguous or
+   not eligible fails naming the aliases) and is removed whole; HEAD keeps
+   every boundary, so a release on HEAD stays a candidate.
+5. `_baseline`: one candidate is the baseline; several go through one
+   `independent_commits` call (its command-line guard raises
+   `GitCommandLineTooLongError` first), and anything but one tip, or a
+   candidate of a higher version than the tip, fails.
+6. `_checked` with one `tag_names(merged=revision, not_merged=refs/tags/<baseline>)`
+   call: an ambiguous boundary among those names fails naming its aliases,
+   an ineligible one gives a warning naming them.
+7. Without a candidate, `_checked` runs over every remaining boundary ("before
+   the target") and the range is the target alone, counted by
+   `commit_count(revision)`; otherwise `commit_count(refs/tags/<baseline>..revision)`
+   and the printed range `<baseline>..<target>` with plain names.
+
+Release-version rule, `check_release_version(git, *, cwd, version)`:
+`VersionToken.parse` (status 2 `VersionError`) and a snapshot refusal come
+first, then exactly two calls, `tag_records()` and `tag_records(merged="main")`.
+A version any stable tag names is reserved; otherwise it must be above the
+highest eligible boundary on `main`, grouped by `boundaries`.
+
+Tests and support: `version_support` gains `ENGINE_TRAILER`, `annotation`,
+`chain` and `tagged_history`. `test_release_tags/` holds the classification
+tests, the selection and rule tests on declared histories (every selection
+asserts its recorded calls against the plan's call table, including the
+600-candidate command-line case), and the properties.
+
+Writer notes: `.reviews/a.version-sources.step8.journal.md` and
+`.reviews/a.version-sources.step8.handoff.md`.
+
+### Change summary for step 8 version-sources (round 1)
+
+Staged paths (7), grouped in the root `a.commit` (two groups, checker
+`ready: true`):
+
+1. `feat(release): select release ranges from classified tags`:
+   `tools/release_workflow/tags.py`,
+   `tests/unit/tools/release_workflow/version_support.py`,
+   `tests/unit/tools/release_workflow/test_release_tags/__init__.py`,
+   `tests/unit/tools/release_workflow/test_release_tags/test_release_tags_tdd.py`,
+   `tests/unit/tools/release_workflow/test_release_tags/test_release_ranges_tdd.py`,
+   `tests/unit/tools/release_workflow/test_release_tags/test_release_tags_pbt.py`.
+2. `docs(version-sources): record step 8 validation`:
+   `docs/v0.14.0/plan.v0.14.0.version-sources.validation.md` (Step 8
+   sections).
+
+Steps 1 to 7 are committed and pushed (`a7c0d7c` to `3bdd5ec`) and are not
+part of this review.
+
+### Writer response for step 8 version-sources (round 1)
+
+Writer response:
+
+This is the first round of the Step 8 code review; there is no earlier
+reviewer feedback to answer.
+
+Choices worth checking, all recorded in the validation plan or the step notes:
+
+- `classify` returns `None` for names that are not stable releases; the plan
+  wrote `-> ClassifiedTag`.
+- A missing tag target is reported as `RangeError` (status 2, "tag X does not
+  exist") chained from the `GitRevisionNotFoundError` the one records call
+  raises, rather than the raw Git error; the status is the same and the
+  message names the tag.
+- Without a candidate, the remaining boundaries are still checked as step 6
+  does after a baseline: an ambiguous one fails, an unvalidated one is
+  warned about ("before" the target), from the records already read, so no
+  extra call is made. The design's step 7 says only that the range is the
+  full history; failing on an ambiguous release inside that history follows
+  the same rule as inside a baselined range.
+- Ambiguous or unvalidated boundaries that are ancestors of the baseline are
+  neither warned about nor fatal: step 6 classifies only the tags between the
+  baseline and the target.
+- A trailer value must not be blank (`Release tooling:` followed by spaces is
+  no trailer), and `[valid]` must match the whole line (`[valid]` with a
+  trailing space after the trailer makes the tag ambiguous).
+- The release-version rule always makes both calls before deciding, so its
+  call count is fixed at two; it refuses a malformed or snapshot version
+  before any call. The `main` branch name is fixed, as the design states.
+
+### Reviewer focus for step 8 version-sources (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-8-round-1 -->
+
+## Round 1 by reviewer - Step 8
+
+- Recorded: 2026-11-10T20:30:58+01:00
+- Exchange: code/code/v0.14.0/version-sources
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.version-sources.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 8
+- Outcome: answer
+
+### Assessed index identity for step 8 version-sources (exchange 1) (round 1)
+
+Baseline index tree: 5e2a187477a360bd6a7bfb76b9cd220dfa04618a
+
+Assessed index tree: 0ab463d15f46a415d65f0b554a1d7b5bcc3dff64
+
+### Implementation check for step 8 version-sources (exchange 1) (round 1)
+
+Result:
+
+No. Step 8 has NOT been fully implemented.
+
+The staged domain implementation matches the name grammar, whole-line annotation rules, restrictive alias boundaries, ancestry selection and release-version rule. Static review found no production defect, architecture violation, or impaired existing reader. The documented no-candidate ambiguity check is consistent with refusing ambiguous releases inside a selected history; widening `classify` to return `None` for nonstable tags is appropriate.
+
+The explicit completion criterion at `plan.v0.14.0.version-sources.md:1811` is not met: several selection tests do not assert their complete recorded Git-call sequence. See finding R1. File sizes remain below 650 lines. Normal classification/grouping is linear; sorting a conflicting group's diagnostic can cost `O(k log k)`. Static source and branch review supports the writer's coverage evidence for `tools`; test helpers and initializers are outside the gate and their added symbols are referenced.
+
+Validation plan effects:
+
+Updated only Step 8 in `docs/v0.14.0/plan.v0.14.0.version-sources.validation.md`. The exact verdict is No; `Missing work for Step 8` lists the unasserted call contracts. Corrected the universal call-assertion claim and distinguished linear normal execution from diagnostic sorting. The umbrella and other steps were not edited.
+
+### Pre-repair mandatory checks and coverage for step 8 version-sources (exchange 1) (round 1)
+
+Writer evidence on request tree `5e2a187477a360bd6a7bfb76b9cd220dfa04618a`: `ghog day --full=speed --whole-suite` ended 2026-11-10 at 20:13:50 +01:00 with `exit=0 cov=100 outliers=0 excluded=0 proof=speed`, 6284 tests; no budget or exclusion changes. The retained speed log agrees with the request. The round's core-owned whole-suite scope has fingerprint `686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6`.
+
+The reviewer ran no tests, coverage command, `ghog day` or `ghog full`. Static review establishes the missing assertions directly; additional execution would not resolve that omission. No production or test repair was made.
+
+### Resolved validation set and sources for step 8 version-sources (exchange 1) (round 1)
+
+The current resolver reports `declared=false` and one command: `ghog day --full=speed --whole-suite`, source `project`. This exactly matches the request's resolved validation set. Resolution used the current canonical validation resolver without executing that command.
+
+### Resolver drift and direction for step 8 version-sources (exchange 1) (round 1)
+
+None. Request and current command, scope and source agree.
+
+### Repository state around validation for step 8 version-sources (exchange 1) (round 1)
+
+Request/baseline tree: `5e2a187477a360bd6a7bfb76b9cd220dfa04618a`. Retained manifest reread and live tree matched before continuing assessment. Assessed tree after staging reviewer metadata: `0ab463d15f46a415d65f0b554a1d7b5bcc3dff64`.
+
+The identical ordered seven-path validation set was captured before and after. Canonical comparison returned `acceptable=false`, with tracked differences only at the validation plan and `<index>`; there are no ignored or untracked differences. Inspection of the attributable patch confirms these are the permitted reviewed-Step-8 metadata exception, not a validation side effect. All six implementation/test paths retain their original digests. The applicable umbrella digest remained `5abf0cb72800e9d07acba786dd90502fcb8879ff41cbcce55b961a95352aaa4c` (`changed=false`).
+
+The evidence launcher proved the metadata patch attributable to the pre-edit blob `c6f18022657479271dd803620532f4e2e607ee6b`; only that patch was staged.
+
+### Repair inventory for step 8 version-sources (exchange 1) (round 1)
+
+Repairs made:
+
+- Review metadata only, polishing: corrected the Step 8 validation verdict, recorded missing call assertions and clarified complexity. No substantive repair; no implementation or test changes.
+
+Paths staged:
+
+- `docs/v0.14.0/plan.v0.14.0.version-sources.validation.md` (reviewer-authored Step 8 metadata patch only).
+
+### Commit plan assessment for step 8 version-sources (exchange 1) (round 1)
+
+Independent checker: `state=valid`, `ready=true`, seven staged paths, no diagnostics. Its ordered groups are:
+
+1. `feat(release): select release ranges from classified tags` — `tools/release_workflow/tags.py`, `tests/unit/tools/release_workflow/version_support.py`, and `test_release_tags/{__init__.py,test_release_tags_tdd.py,test_release_ranges_tdd.py,test_release_tags_pbt.py}` under `tests/unit/tools/release_workflow/`.
+2. `docs(version-sources): record step 8 validation` — the exact validation plan.
+
+Membership, dependency order, conventional subjects and scope remain accurate after the metadata-only patch. `a.commit` was not changed. Mechanical readiness does not establish implementation completeness or authorize committing.
+
+### Findings and boundaries for step 8 version-sources (exchange 1) (round 1)
+
+Unresolved findings:
+
+- R1 (medium, test completeness): `tests/unit/tools/release_workflow/test_release_tags/test_release_ranges_tdd.py:232` and other cases omit the full Git-call assertion required explicitly by `docs/v0.14.0/plan.v0.14.0.version-sources.md:1811`. The ambiguous aliased boundary and ambiguous target discard the history; the eligible aliased baseline checks only the last count call. All three consumer-shaped tests omit call checks for their multiple selections. The canned failure does not record/assert the attempted query. `test_release_tags_pbt.py:75` likewise makes generated selections without asserting the call sequence. The boundary-class and no-eligible release-version tests also omit their required two-call checks. Extra or repeated observations could therefore pass these cases, despite the request and validation plan claiming every selection checks them. Add complete ordered call assertions per invocation (including generated zero/one/several-candidate branches and recorded failure), assert the two records calls in those rule tests, then refresh validation evidence. This is an unmet explicit test contract, not an observed production bug.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 8 version-sources (exchange 1) (round 1)
+
+Complete R1 using the exact `Missing work for Step 8` list. Assert the public observation sequence, count and ordering from the plan's call table; use existing recorded histories and keep generated cases bounded. For tests with several selections/rule calls, assert each call segment separately. Record the failed query in the canned failure test rather than asserting an empty recorder.
+
+Rerun the writer-owned validation for the changed tests, update Step 8's validation evidence truthfully, verify `a.commit`, and publish the replacement request. The request contains no literal `Human guidance:` block authorizing reviewer code/test repairs; its generic repair boilerplate was not treated as such authorization.
+
+### Decision rationale for step 8 version-sources (exchange 1) (round 1)
+
+Changes requested. Readiness floor: identity passes; implementation completeness fails R1; writer validation/coverage evidence and static coverage assessment pass for the measured scope; staged attribution passes with the documented Step 8 metadata exception; absence of unresolved findings fails R1; commit-plan accuracy passes. No substantive reviewer repair occurred. A green suite cannot substitute for the plan's missing call assertions. The recommendation is advisory and grants no commit or convergence authority.
+
+### Final reviewer decision for step 8 version-sources (exchange 1) (round 1)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-8-round-1 -->
+
+## Round 2 by requestor - Step 8
+
+- Recorded: 2026-11-10T20:55:25+01:00
+- Exchange: code/code/v0.14.0/version-sources
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.version-sources.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 8
+- Outcome: request
+
+### Review identity for step 8 version-sources (round 2)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.version-sources.md
+Implementation step: 8
+Review round: 2
+
+### Code review evidence for step 8 version-sources (round 2)
+
+request_index_tree: ef91da8f835d41a40a16cbfab878bbc63ccaed74
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.version-sources.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(release): select release ranges from classified tags
+group 1 path: tools/release_workflow/tags.py
+group 1 path: tests/unit/tools/release_workflow/version_support.py
+group 1 path: tests/unit/tools/release_workflow/test_release_tags/__init__.py
+group 1 path: tests/unit/tools/release_workflow/test_release_tags/test_release_tags_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_release_tags/test_release_ranges_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_release_tags/test_release_tags_pbt.py
+group 2: docs(version-sources): record step 8 validation
+group 2 path: docs/v0.14.0/plan.v0.14.0.version-sources.validation.md
+staged path: docs/v0.14.0/plan.v0.14.0.version-sources.validation.md
+staged path: tests/unit/tools/release_workflow/test_release_tags/__init__.py
+staged path: tests/unit/tools/release_workflow/test_release_tags/test_release_ranges_tdd.py
+staged path: tests/unit/tools/release_workflow/test_release_tags/test_release_tags_pbt.py
+staged path: tests/unit/tools/release_workflow/test_release_tags/test_release_tags_tdd.py
+staged path: tests/unit/tools/release_workflow/version_support.py
+staged path: tools/release_workflow/tags.py
+```
+
+### Validation scope for step 8 version-sources (round 2)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 8 version-sources (round 2)
+
+Writer assessment for Step 8 of the version-sources plan, round 2: the step is
+fully implemented after the round 1 repair, and the staged validation plan
+records `Yes. Step 8 has been fully implemented.` again, with the reviewer's
+round 1 assessment kept and the round 2 repair described.
+
+Round 1 finding R1, incomplete recorded-call assertions: repaired in the
+tests only; `tools/release_workflow/tags.py` is unchanged. Every case listed
+in the round 1 missing-work section now asserts its complete ordered calls,
+arguments included, one invocation at a time, and the property test asserts
+the call-table sequence of every generated selection.
+
+Evidence, all on the staged tree:
+
+- `ghog single` on `test_release_tags`: exit 0 (91 tests) with the new
+  assertions.
+- Review validation, `ghog day --full=speed --whole-suite`: exit 0 with
+  `cov=100 outliers=0 excluded=0 proof=speed`, on index tree
+  `ef91da8f835d41a40a16cbfab878bbc63ccaed74`. The first attempt passed check
+  and the affected tests, then failed on one wall-only lifecycle overrun at
+  the teardown of
+  `tests/unit/tools/test_groundhog_no_machine_queue.py::test_groundhog_source_takes_no_cross_process_lock`
+  (1.07 s wall against 1 s, CPU 0.09 s within its band; unrelated to this
+  step). It passed in focus, and the restarted walk was green. No budget was
+  changed and no exclusion is accepted.
+- Markdown check and cSpell on the staged validation plan and the
+  transcript: clean, after polishing my own round 1 text in the transcript
+  (a `[space]` token for a code span ending in a space, and two bare
+  `<target>` placeholders reworded).
+- `commit-plan-check`: ready, two groups, 7 paths, unchanged membership.
+
+Please check in particular that the new assertions match the call table for
+each case, including the candidate lists of the independent-tips calls in
+the consumer-shaped histories, and the validation-plan treatment of your
+round 1 metadata.
+
+### Implementation report for step 8 version-sources (round 2)
+
+Step 8, "Tag classification, range selection and the release-version rule",
+adds `tools/release_workflow/tags.py`: the one classifier, range selector and
+release-version rule every range reader will share. Nothing calls it yet:
+Step 9 adds `versions range`, and item 7 switches the existing readers.
+
+Names and eligibility:
+
+- `parse_name(name)`: one regular expression, `v?` then the token grammar's
+  three numbers (no leading zeros), then an optional `-SNAPSHOT` matched case
+  insensitively. With the suffix it is a `SnapshotName`, without a
+  `StableName`; anything else, other prereleases included, is `None`.
+- `eligibility(annotation)`: `None` (a lightweight tag) and an annotation
+  without a trailer line are `HISTORICAL`. Lines are the nonblank lines of
+  `splitlines()` (so CRLF and trailing blank lines do not matter). A trailer
+  line starts with exactly `Release tooling:[space]` and has a value that is not
+  blank; `[valid]` must equal the whole line. `_engine` then requires one
+  trailer, no `[valid]` before it, and after it nothing (`UNVALIDATED`) or
+  exactly `[valid]` (`VALIDATED`); anything else is `AMBIGUOUS`.
+- `classify(record)` returns `ClassifiedTag(record, name, eligibility)` for a
+  stable name and `None` otherwise, so callers drop snapshot markers and
+  other tags in one pass (the plan's signature reads `-> ClassifiedTag`).
+
+Boundaries:
+
+- `boundaries(tags)` fills two dictionaries in one pass, by version key and
+  by commit, then `_one_commit_per_version` and `_one_version_per_commit`
+  refuse a version on several commits or a commit with several versions,
+  naming the tags, before anything is excluded.
+- `Boundary(version, commit, aliases)`: `status` (`BoundaryClass`) is
+  ambiguous when any alias is, otherwise ineligible when any alias is
+  unvalidated, otherwise eligible (design decision Q18); `name` is the
+  `vX.Y.Z` alias when present, otherwise the first `X.Y.Z` alias (Q19);
+  `spelled` joins the sorted alias names for diagnostics.
+
+Range selection, `select_range(git, *, cwd, target=None) -> RangeSelection`:
+
+1. `_target`: HEAD, or a stable name as `refs/tags/<name>`; anything else is
+   a `RangeError` before any call.
+2. `_boundaries`: one `tag_records(merged=revision)` call;
+   `GitRevisionNotFoundError` becomes `RangeError` ("tag X does not exist")
+   chained from it; other Git errors propagate (status 1).
+3. Grouping as above.
+4. `_without_target`: a tag target's boundary must be eligible (ambiguous or
+   not eligible fails naming the aliases) and is removed whole; HEAD keeps
+   every boundary, so a release on HEAD stays a candidate.
+5. `_baseline`: one candidate is the baseline; several go through one
+   `independent_commits` call (its command-line guard raises
+   `GitCommandLineTooLongError` first), and anything but one tip, or a
+   candidate of a higher version than the tip, fails.
+6. `_checked` with one `tag_names(merged=revision, not_merged=refs/tags/<baseline>)`
+   call: an ambiguous boundary among those names fails naming its aliases,
+   an ineligible one gives a warning naming them.
+7. Without a candidate, `_checked` runs over every remaining boundary (before
+   the target) and the range is the target alone, counted by
+   `commit_count(revision)`; otherwise `commit_count(refs/tags/<baseline>..revision)`
+   and the printed range `<baseline>..<target>` with plain names.
+
+Release-version rule, `check_release_version(git, *, cwd, version)`:
+`VersionToken.parse` (status 2 `VersionError`) and a snapshot refusal come
+first, then exactly two calls, `tag_records()` and `tag_records(merged="main")`.
+A version any stable tag names is reserved; otherwise it must be above the
+highest eligible boundary on `main`, grouped by `boundaries`.
+
+Tests and support (round 2: complete ordered call assertions per invocation, see the writer response): `version_support` gains `ENGINE_TRAILER`, `annotation`,
+`chain` and `tagged_history`. `test_release_tags/` holds the classification
+tests, the selection and rule tests on declared histories (every selection
+asserts its recorded calls against the plan's call table, including the
+600-candidate command-line case), and the properties.
+
+Writer notes: `.reviews/a.version-sources.step8.journal.md` and
+`.reviews/a.version-sources.step8.handoff.md`.
+
+### Change summary for step 8 version-sources (round 2)
+
+Round 2 changes since round 1 (all staged):
+
+- `tests/unit/tools/release_workflow/test_release_tags/test_release_ranges_tdd.py`:
+  `_take` and `_selection_calls` helpers; complete ordered call assertions in
+  the ambiguous aliased boundary, eligible aliased baseline, ambiguous target,
+  canned failure (which now records its query), consumer-shaped histories and
+  both release-version cases; docstring.
+- `tests/unit/tools/release_workflow/test_release_tags/test_release_tags_pbt.py`:
+  the call sequence of every generated selection; docstring.
+- `docs/v0.14.0/plan.v0.14.0.version-sources.validation.md`: Step 8 back to
+  Yes with the round 1 assessment kept and the round 2 repair recorded.
+
+`tools/release_workflow/tags.py` and `version_support.py` are unchanged since
+round 1.
+
+Staged paths (7), grouped in the root `a.commit` (two groups, checker
+`ready: true`):
+
+1. `feat(release): select release ranges from classified tags`:
+   `tools/release_workflow/tags.py`,
+   `tests/unit/tools/release_workflow/version_support.py`,
+   `tests/unit/tools/release_workflow/test_release_tags/__init__.py`,
+   `tests/unit/tools/release_workflow/test_release_tags/test_release_tags_tdd.py`,
+   `tests/unit/tools/release_workflow/test_release_tags/test_release_ranges_tdd.py`,
+   `tests/unit/tools/release_workflow/test_release_tags/test_release_tags_pbt.py`.
+2. `docs(version-sources): record step 8 validation`:
+   `docs/v0.14.0/plan.v0.14.0.version-sources.validation.md`.
+
+The review transcript stays unstaged for the residual commit.
+
+### Writer response for step 8 version-sources (round 2)
+
+Writer response:
+
+Round 1 finding accepted and repaired; no disagreement.
+
+- R1 (medium, test completeness): accepted. Every case you listed now
+  asserts its complete ordered calls, arguments included:
+  - `_take(history)` returns and clears the calls of one invocation, so tests
+    that select or check several times assert each invocation alone;
+    `_selection_calls(revision, candidates, baseline)` builds the call
+    table's sequence for a selection with a baseline (records, tips only for
+    several candidates, tags between, count).
+  - The ambiguous aliased boundary asserts records then tags between; the
+    eligible aliased baseline its three calls; the ambiguous target its one
+    records call.
+  - The canned records failure now records the attempted
+    `("tag_records", "HEAD")` before raising, and the test asserts it.
+  - The three consumer-shaped histories assert every selection's sequence,
+    including the full candidate list of the independent-tips call (twelve,
+    98 and five commits for HEAD; the earlier candidates for each tag
+    target).
+  - `test_the_bound_uses_boundary_classes` asserts the two records calls of
+    each of its two invocations, and
+    `test_without_an_eligible_release_any_target_passes` its two calls.
+  - The property test asserts, for every generated selection, records and
+    count without a candidate (before its early return), and records, tips
+    (several candidates only), tags between and count otherwise.
+- The validation plan: your round 1 assessment is kept as its own paragraph,
+  a writer round 2 paragraph records the repair, the completed missing-work
+  section is removed, and your performance wording (`O(k log k)` only for a
+  conflict's message) is kept as accurate.
+- Transcript polishing only, in my own round 1 text: a code span with a
+  trailing space now uses the plan's `[space]` token (MD038), and two bare
+  `<target>` placeholders were reworded (MD033).
+- No production change: `tools/release_workflow/tags.py` is the reviewed
+  file, unchanged.
+
+### Reviewer focus for step 8 version-sources (round 2)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-8-round-2 -->
+
+## Round 2 by reviewer - Step 8
+
+- Recorded: 2026-11-10T21:01:43+01:00
+- Exchange: code/code/v0.14.0/version-sources
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.version-sources.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 8
+- Outcome: answer
+
+### Assessed index identity for step 8 version-sources (exchange 1) (round 2)
+
+Baseline index tree: ef91da8f835d41a40a16cbfab878bbc63ccaed74
+
+Assessed index tree: 0fc042a04fc97abcd5d0fd598d6f0d09ce3b363f
+
+### Implementation check for step 8 version-sources (exchange 1) (round 2)
+
+Result:
+
+Yes. Step 8 has been fully implemented.
+
+R1 from round 1 is resolved. Each formerly unchecked selection now asserts its ordered observations. The canned failure records its attempted query; the aliased cases assert their complete sequences; each consumer-history selection checks its own segment, including independent-tip candidates; both rule cases assert their two records calls per invocation. The generated chain checks zero-candidate calls before its early return and checks one/several-candidate sequences otherwise. The candidate lists match the declared histories: twelve releases, 98 stable tags excluding the snapshot, and the five-release mixed-spelling chain, with the selected target removed.
+
+The production classifier, restrictive alias boundaries, ancestry selection and release-version rule retain the reviewed round 1 digest. No production defect, architecture violation, performance issue or unit-coverage gap remains. Normal work is linear; conflict-message sorting can cost `O(k log k)`. Static assessment respects the gate's `tools` scope and its test/initializer omissions; added test helper symbols are referenced. Sizes remain below 650 lines. No existing reader is switched by this step.
+
+Validation plan effects:
+
+Retained the exact Yes verdict in `docs/v0.14.0/plan.v0.14.0.version-sources.validation.md` and added an independent round 2 reassessment only within Step 8. The writer retained the historical round 1 finding, documented the repair and removed the completed missing-work list. No other step or umbrella row was edited by the reviewer.
+
+### Pre-repair mandatory checks and coverage for step 8 version-sources (exchange 1) (round 2)
+
+Writer evidence on request tree `ef91da8f835d41a40a16cbfab878bbc63ccaed74`: focused Step 8 tests passed (91 tests); `ghog day --full=speed --whole-suite` ended at 2026-11-10T20:53:49+01:00 with `exit=0 cov=100 outliers=0 excluded=0 proof=speed`, 6284 tests. The retained round 2 speed log agrees. The request discloses a preceding unrelated wall-only lifecycle overrun, its passing focused run, and the subsequent green walk; no budget or exclusion was changed.
+
+The core-owned bound scope is whole-suite, fingerprint `686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6`. The reviewer ran no tests or coverage walk; static examination resolves the missing-assertion finding without repeating writer validation.
+
+### Resolved validation set and sources for step 8 version-sources (exchange 1) (round 2)
+
+The current resolver reports `declared=false` and one command: `ghog day --full=speed --whole-suite`, source `project`. This exactly matches the request's resolved validation set. Resolution used the current canonical validation resolver without executing that command.
+
+### Resolver drift and direction for step 8 version-sources (exchange 1) (round 2)
+
+None. Request and current command, scope and source agree.
+
+### Repository state around validation for step 8 version-sources (exchange 1) (round 2)
+
+The request and captured baseline index matched at `ef91da8f835d41a40a16cbfab878bbc63ccaed74`. Assessed tree after staging the reviewer metadata: `0fc042a04fc97abcd5d0fd598d6f0d09ce3b363f`.
+
+Before/after captures use the same ordered seven staged Step 8 paths. Canonical comparison reports `acceptable=false` solely for the exact validation plan and `<index>`, with no ignored or untracked differences. The attributable patch contains only the round 2 Step 8 assessment, so these changes satisfy the permitted reviewed-step metadata exception. All six implementation/test paths retain their round 2 baseline digests. The umbrella digest remains `5abf0cb72800e9d07acba786dd90502fcb8879ff41cbcce55b961a95352aaa4c` (`changed=false`).
+
+The evidence launcher proved attribution against validation blob `9ecb6a6315014c80d0ef7649a4645063caaf095d`; only that patch was staged. The retained manifest records the new assessed tree.
+
+### Repair inventory for step 8 version-sources (exchange 1) (round 2)
+
+Repairs made:
+
+- Review metadata only, polishing: added the independent round 2 reassessment and R1 resolution to the exact Step 8 validation section. No substantive repair or implementation/test change.
+
+Paths staged:
+
+- `docs/v0.14.0/plan.v0.14.0.version-sources.validation.md` (reviewer-authored Step 8 metadata patch only).
+
+### Commit plan assessment for step 8 version-sources (exchange 1) (round 2)
+
+Independent checker: `state=valid`, `ready=true`, seven staged paths, no diagnostics. Its ordered groups are:
+
+1. `feat(release): select release ranges from classified tags` — `tools/release_workflow/tags.py`, `tests/unit/tools/release_workflow/version_support.py`, and `test_release_tags/{__init__.py,test_release_tags_tdd.py,test_release_ranges_tdd.py,test_release_tags_pbt.py}` under `tests/unit/tools/release_workflow/`.
+2. `docs(version-sources): record step 8 validation` — the exact validation plan.
+
+Membership, dependency order, conventional subjects and scope remain accurate after the metadata-only patch. `a.commit` was not changed. Mechanical readiness does not establish implementation completeness or authorize committing.
+
+### Findings and boundaries for step 8 version-sources (exchange 1) (round 2)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 8 version-sources (exchange 1) (round 2)
+
+The review is advisory commit-ready. Preserve the Step 8 reassessment and use the existing requestor workflow to present the human convergence choice. No code or test repair is requested.
+
+The request has no literal `Human guidance:` block authorizing reviewer implementation repairs; its generic repair boilerplate was not treated as such authorization. The reviewer made only permitted validation metadata changes.
+
+### Decision rationale for step 8 version-sources (exchange 1) (round 2)
+
+Advisory commit-ready. All six readiness-floor results pass: exact identity; complete implementation including R1; writer validation/coverage evidence with static coverage assessment; attributable staged scope under the explicit reviewed-step metadata exception; no unresolved current or carried findings; and accurate `a.commit` membership, order, scope and subjects. No substantive reviewer repair occurred. This recommendation does not authorize a commit or confirm convergence.
+
+### Final reviewer decision for step 8 version-sources (exchange 1) (round 2)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-8-round-2 -->
+
+## Round 2 by human - Step 8 - human-confirmation
+
+- Recorded: 2026-11-10T21:07:25+01:00
+- Exchange: code/code/v0.14.0/version-sources
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.version-sources.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 8
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-2 -->
