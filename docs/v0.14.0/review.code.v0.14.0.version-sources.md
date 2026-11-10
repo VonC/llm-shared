@@ -2797,3 +2797,924 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-2 -->
+
+## Round 1 by requestor - Step 5
+
+- Recorded: 2026-11-10T08:56:47+01:00
+- Exchange: code/code/v0.14.0/version-sources
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.version-sources.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: unrecorded
+- Implementation step: 5
+- Outcome: request
+
+### Review identity for step 5 version-sources (round 1)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.version-sources.md
+Implementation step: 5
+Review round: 1
+
+### Code review evidence for step 5 version-sources (round 1)
+
+request_index_tree: 536e54b05b5dd4daa7fa7ad2c39595d52beb0c6e
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+- `rg -n 'subprocess' tools/release_workflow/sources` (sources: plan)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "none", "requirement": "docs/v0.14.0/feature-request.v0.14.0.version-sources.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(release): add the python and uv version adapter
+group 1 path: tools/release_workflow/sources/toml_scan.py
+group 1 path: tools/release_workflow/sources/python.py
+group 1 path: tools/release_workflow/sources/__init__.py
+group 1 path: tools/release_workflow/sources/model.py
+group 1 path: tools/release_workflow/sources/settings.py
+group 1 path: tests/unit/tools/release_workflow/version_support.py
+group 1 path: tests/unit/tools/release_workflow/lock_evidence_recorder.py
+group 1 path: tests/unit/tools/release_workflow/test_version_formats/__init__.py
+group 1 path: tests/unit/tools/release_workflow/test_version_formats/test_toml_scan_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_version_formats/test_version_formats_pbt.py
+group 1 path: tests/unit/tools/release_workflow/test_python_sources/__init__.py
+group 1 path: tests/unit/tools/release_workflow/test_python_sources/test_python_sources_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_python_sources/test_python_links_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_version_lock_evidence/__init__.py
+group 1 path: tests/unit/tools/release_workflow/test_version_lock_evidence/lock_evidence.v1.json
+group 1 path: tests/unit/tools/release_workflow/test_version_lock_evidence/test_version_lock_evidence_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_version_registry/test_version_registry_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_version_transition/test_version_restoration_tdd.py
+group 2: docs(version-sources): record step 5 validation
+group 2 path: docs/v0.14.0/plan.v0.14.0.version-sources.validation.md
+staged path: docs/v0.14.0/plan.v0.14.0.version-sources.validation.md
+staged path: tests/unit/tools/release_workflow/lock_evidence_recorder.py
+staged path: tests/unit/tools/release_workflow/test_python_sources/__init__.py
+staged path: tests/unit/tools/release_workflow/test_python_sources/test_python_links_tdd.py
+staged path: tests/unit/tools/release_workflow/test_python_sources/test_python_sources_tdd.py
+staged path: tests/unit/tools/release_workflow/test_version_formats/__init__.py
+staged path: tests/unit/tools/release_workflow/test_version_formats/test_toml_scan_tdd.py
+staged path: tests/unit/tools/release_workflow/test_version_formats/test_version_formats_pbt.py
+staged path: tests/unit/tools/release_workflow/test_version_lock_evidence/__init__.py
+staged path: tests/unit/tools/release_workflow/test_version_lock_evidence/lock_evidence.v1.json
+staged path: tests/unit/tools/release_workflow/test_version_lock_evidence/test_version_lock_evidence_tdd.py
+staged path: tests/unit/tools/release_workflow/test_version_registry/test_version_registry_tdd.py
+staged path: tests/unit/tools/release_workflow/test_version_transition/test_version_restoration_tdd.py
+staged path: tests/unit/tools/release_workflow/version_support.py
+staged path: tools/release_workflow/sources/__init__.py
+staged path: tools/release_workflow/sources/model.py
+staged path: tools/release_workflow/sources/python.py
+staged path: tools/release_workflow/sources/settings.py
+staged path: tools/release_workflow/sources/toml_scan.py
+```
+
+### Validation scope for step 5 version-sources (round 1)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 5 version-sources (round 1)
+
+Writer assessment for Step 5 of the version-sources plan, round 1: the step is
+fully implemented, and its implementation check records
+`Yes. Step 5 has been fully implemented.` in the staged validation plan.
+
+Evidence, all on the staged tree:
+
+- Tests first: `ghog single` on the new and registry leaves failed at
+  collection (six errors, `ImportError: cannot import name 'python'`, exit
+  4). After the implementation only the two scanner properties exceeded the
+  0.1 s CPU lifecycle limit; drawing an integer triple and one bit field per
+  example fixed them with the same 25-example budget. The Step 5 leaves and
+  the settings, pattern and detection leaves then passed.
+- Recorder run by hand with the project venv's uv 0.13.4 and Python 3.13.9:
+  five records written, each with both accepted runs unchanged and the
+  control refused; the recorder found no host path to refuse.
+- `ghog day --whole-suite`, the command printed by `pw scope day`, exit 0. A
+  first run failed only at check.bat (pyright: an unknown list type; ruff:
+  magic values, two six-argument functions, an S105 false positive on a lexer
+  variable named `token`); those fixes, a constant-time participant lookup and
+  two added tests preceded the green walk.
+- `rg -n 'subprocess' tools/release_workflow/sources` finds nothing.
+- Markdown check and cSpell on the staged validation plan: no finding, no
+  unknown word. Every Python file stays below 650 lines.
+
+Review validation, `ghog day --full=speed --whole-suite` (the built-in
+default; no `.review-validation`), is NOT green. Published at the user's
+explicit choice, with the failures disclosed:
+
+- Run 1 (08:42): one failure of 6014, a lifecycle CPU overrun (0.141 s,
+  limit 0.100 s, not yet proven) in
+  `tests/unit/tools/release_workflow/test_version_anchor/test_version_anchor_pbt.py::test_replacement_changes_only_the_token`
+  (Step 2, untouched here). It passed in focus and is now recorded as proven
+  at 0.094 s, so the CPU band applies to it.
+- Run 2 (08:49): that test passed; seven lifecycle wall overruns (1.04 to
+  1.85 s, limit 1 s) with CPU within its limit (0.00 to 0.19 s): four
+  `test_instruction_structure/test_codex_plugin_structure_tdd.py` cases,
+  `test_linear_order/test_linear_order_tdd.py::test_radix_order[0]` and two
+  `test_spec_review_requestor_acceptance/test_spec_review_requestor_acceptance_activation_tdd.py`
+  cases. None touches the version domain.
+- Focused reruns: the codex plugin and spec-review cases pass in focus;
+  `test_radix_order` overran wall in focus too, alone and at 17 % host load
+  (1.07 s and 2.55 s wall against 0.13 to 0.14 s CPU, a different parameter
+  each run), so its time is spent waiting, not computing.
+- Consequence: groundhog withheld the coverage and duration-outlier verdicts
+  of both walks (`cov=withheld outliers=withheld`). Coverage of the new
+  modules is asserted only statically in the validation plan, not measured.
+  No budget was changed and no exclusion is accepted in this step.
+
+Architecture: the scanner and the adapter are pure domain code of the
+`sources` package (standard library and `sources.model` only), reading
+through the `FileView` and learning the participating roots through the
+`AdapterSettings` protocol; the process-starting recorder stays in the test
+tree and is never imported by a test. Performance: each file is read once per
+view, the scanner visits each line once, and each local-link destination is
+one lookup in an index built once per settings value. Feature integrity:
+nothing ships until Step 9; registering `python` adds detection at
+participating roots, and the earlier version tests pass unchanged.
+
+Please check in particular: the scanner's lexer and header handling (what
+counts as a statement line, the fail-closed cases), the lock pairing and
+schema rules, the workspace and local-link rules against the design's "Python
+with uv" section, the settings seam added to `model.py` and `settings.py`
+outside the plan's file list, and whether the evidence record and its test
+prove what plan decisions Q03, Q04 and Q06 require.
+
+### Implementation report for step 5 version-sources (round 1)
+
+Step 5, "Python and uv adapter with recorded uv evidence", adds the TOML
+scanner, the `python` adapter and the recorded uv lock evidence that backs its
+registered lock schemas. Nothing ships yet: no handler calls the version
+domain until Step 9.
+
+TOML scanner (`tools/release_workflow/sources/toml_scan.py`):
+
+- `locate(text, table, *, package=None) -> Span` splits the text on LF (a
+  trailing CR is ignored when matching) and tracks the current header. A
+  small lexer, driven by one regular expression per state, follows basic,
+  literal and multi-line strings (with escapes), comments and `[`/`{`
+  nesting, so only lines that start a statement are read as a header or an
+  assignment. A line starting with `[` at statement start is a header; one
+  the header patterns cannot read (a quoted key) ends the current table.
+- It keeps the `name` and `version` single-line string assignments written
+  directly in each occurrence of the target table: `[project]`, or each
+  `[[package]]` block, whose sub-tables (`[package.metadata]`) are other
+  tables. With `package`, exactly one block must have that one `name`; zero or
+  several fail. Exactly one `version` assignment must remain: none fails as an
+  unsupported layout (dotted keys, inline tables, multi-line strings) with
+  the remedy to write `version = "X.Y.Z"` on its own line; several fail as
+  ambiguous.
+- `byte_span(text, bom, table, value, *, package=None)` requires the located
+  text to equal the `tomllib` value (an escape sequence fails) and maps it to
+  bytes through `model.to_byte_spans`.
+
+Python adapter (`tools/release_workflow/sources/python.py`):
+
+- `PythonAdapter`: name `python`, forms `{core}`, default `core`, candidate
+  name `pyproject.toml`. `detect` reads `pyproject.toml` and `uv.lock` once
+  each through the view.
+- No manifest: no lock gives nothing, a lock fails as an orphan. A manifest
+  is decoded strictly (mark kept apart) and parsed with `tomllib`; failures
+  name the file and the remedy.
+- No `[project]` table: `not-participating tool-only` records for the
+  manifest and, when present, the lock (never parsed). At the project root
+  only, a `[tool.uv.workspace]` whose `members`, net of `exclude`, match a
+  declared component root fails (`PurePosixPath.full_match`, relative to the
+  project root, case-insensitive where the filesystem is).
+- A participating manifest: `[tool.uv.workspace]` fails; then each
+  `[tool.uv.sources]` entry (table or list of tables) with `workspace = true`
+  fails, and each `path`, and each `name @ file:...` requirement in
+  `[project] dependencies`, `[project.optional-dependencies]` or
+  `[dependency-groups]` (with `${PROJECT_ROOT}` expanded), is resolved
+  against the declaring root; a destination that is a participating root
+  fails naming both. A `version` listed in `dynamic`, or not a string, fails
+  with the remedy. The value's span comes from `byte_span`.
+- A lock: the `(version, revision)` pair must be in
+  `REGISTERED_LOCK_SCHEMAS = frozenset({(1, 3), (1, 5)})` (integers only, so
+  `version = true` is refused), and a `[manifest]` listing members fails as a
+  shared workspace lock. The project needs a `name`; exactly one package must
+  have its normalized name (lowercase, `[-_.]+` as `-`) and a source equal to
+  `{virtual = "."}` or `{editable = "."}`; that package needs a version
+  string. The lock source records the manifest it pairs with.
+- `render` returns the value's bytes (the content between the quotes);
+  `has_project_version` is true only for a static version string and false
+  for an undecodable or unparsable candidate.
+
+Registry and settings seam:
+
+- `sources/__init__.py`: `ADAPTERS = (anchor, python, pattern)`;
+  `SUPPORT_MODULES` adds `toml_scan`.
+- `sources/model.py`: `AdapterSettings` gains `components` and
+  `participant(path)`; `participant_names(project_root, components)` builds
+  the case-normalized physical-path index. `sources/settings.py`:
+  `VersionSettings` keeps that index in a `cached_property`, so each lookup is
+  constant time and a detection pass stays linear in the roots. Neither file
+  is in the plan's Step 5 list; both changes are recorded as variance.
+
+Lock evidence (plan decisions Q03, Q04, Q06):
+
+- `tests/unit/tools/release_workflow/lock_evidence_recorder.py`: started by
+  hand with `--uv`, `--python` and `--output`, never imported by a test. Each
+  of five scenarios runs in a new temporary directory outside the
+  repository, with every `UV_*` variable removed: write the manifest at
+  `0.13.0`, `uv lock --offline --no-config --python <python>` (revision 5),
+  derive revision 3 by setting the revision line, convert to CRLF for the
+  CRLF variant, then run `uv lock --locked --offline --no-config --python
+  <python>` on the "before" pair, on `version_support.python_pair_edit`
+  (the production detection and `plan_edits` for `0.14.0`), and on the
+  manifest-only control. Each run records its exit code, its `error:` lines
+  and both files' SHA-256 before and after. The JSON is written with sorted
+  keys and LF endings, placeholders for the tools, and refused if it still
+  holds a host path.
+- `test_version_lock_evidence/lock_evidence.v1.json`: five uv 0.13.4 records
+  (`uv-0.13.4-v1r5-virtual`, `-v1r5-editable`, `-v1r3-virtual`,
+  `-v1r3-editable`, `-v1r3-virtual-crlf`). Every "before" and edited run
+  exited 0 with both files unchanged; every control exited 1 ("needs to be
+  updated") with both files unchanged.
+
+Tests:
+
+- `test_version_formats/test_toml_scan_tdd.py` and
+  `test_version_formats_pbt.py` (properties: generated manifests and locks
+  with decoys; an integer triple and one bit field per example keep the
+  25-example budget inside the CPU limit).
+- `test_python_sources/test_python_sources_tdd.py` (adapter) and
+  `test_python_links_tdd.py` (workspaces and links, including one link
+  between `.release.ini` components through `detection.detect`).
+- `test_version_lock_evidence/test_version_lock_evidence_tdd.py` (the JSON is
+  read once per session through the `evidence` fixture).
+- `test_version_registry_tdd.py` (order and support modules) and
+  `test_version_restoration_tdd.py`, whose matrix now runs the
+  `python-virtual` (LF, revision 3, registry package first) and
+  `python-editable` (CRLF, snapshot anchor) sets at all three write
+  positions.
+
+Writer notes: `.reviews/a.version-sources.step5.journal.md` and
+`.reviews/a.version-sources.step5.handoff.md`.
+
+### Change summary for step 5 version-sources (round 1)
+
+Staged paths (19), grouped in the root `a.commit` (two groups, checker
+`ready: true`):
+
+1. `feat(release): add the python and uv version adapter`:
+   `tools/release_workflow/sources/toml_scan.py`,
+   `tools/release_workflow/sources/python.py`,
+   `tools/release_workflow/sources/__init__.py`,
+   `tools/release_workflow/sources/model.py`,
+   `tools/release_workflow/sources/settings.py`,
+   `tests/unit/tools/release_workflow/version_support.py`,
+   `tests/unit/tools/release_workflow/lock_evidence_recorder.py`,
+   `tests/unit/tools/release_workflow/test_version_formats/__init__.py`,
+   `tests/unit/tools/release_workflow/test_version_formats/test_toml_scan_tdd.py`,
+   `tests/unit/tools/release_workflow/test_version_formats/test_version_formats_pbt.py`,
+   `tests/unit/tools/release_workflow/test_python_sources/__init__.py`,
+   `tests/unit/tools/release_workflow/test_python_sources/test_python_sources_tdd.py`,
+   `tests/unit/tools/release_workflow/test_python_sources/test_python_links_tdd.py`,
+   `tests/unit/tools/release_workflow/test_version_lock_evidence/__init__.py`,
+   `tests/unit/tools/release_workflow/test_version_lock_evidence/lock_evidence.v1.json`,
+   `tests/unit/tools/release_workflow/test_version_lock_evidence/test_version_lock_evidence_tdd.py`,
+   `tests/unit/tools/release_workflow/test_version_registry/test_version_registry_tdd.py`,
+   `tests/unit/tools/release_workflow/test_version_transition/test_version_restoration_tdd.py`.
+2. `docs(version-sources): record step 5 validation`:
+   `docs/v0.14.0/plan.v0.14.0.version-sources.validation.md` (Step 5
+   sections).
+
+The adapter, its registration and its evidence share one group: plan
+decision Q06 forbids registering a lock schema without its record, and the
+registry test needs `toml_scan` and `python` registered together. Steps 1 to
+4 are committed (`a7c0d7c` to `3a88905`) and are not part of this review.
+
+### Writer response for step 5 version-sources (round 1)
+
+Writer response:
+
+This is the first round of the Step 5 code review; there is no earlier
+reviewer feedback to answer.
+
+Choices worth checking, all recorded in the validation plan or the step notes:
+
+- The settings seam: `AdapterSettings` gains `components` (for workspace
+  members) and `participant(path)` (for local links), and `VersionSettings`
+  indexes the roots once. A first version built that name map at every
+  detected root, which is quadratic in the roots; `model.py` and
+  `settings.py` are outside the plan's Step 5 file list.
+- A local link fails only when its resolved destination is exactly a
+  participating root; a path into a file or subdirectory of a component
+  (such as a built wheel) is external, as the design's "physical destination
+  is a participating root" reads.
+- The tool-only workspace rule is applied at the project root only, as the
+  design states; a tool-only workspace at a component root stays listed.
+- `has_project_version` returns false for an undecodable or unparsable
+  candidate, so a broken nested manifest never fails `versions list`.
+- The scanner fails closed: an unread header ends the table, and a doubled
+  `version` assignment in the target (only possible through a scanning
+  mistake, since TOML forbids duplicate keys) fails as ambiguous rather than
+  editing either one.
+- The `[source:python] form = core` override is accepted by settings and
+  changes nothing, since `core` is the adapter's only form; the adapter does
+  not read `settings.forms`.
+- The recorder drops `UV_*` variables and records only `error:` lines, so no
+  user configuration or host path reaches the committed JSON.
+
+### Reviewer focus for step 5 version-sources (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-5-round-1 -->
+
+## Round 1 by reviewer - Step 5
+
+- Recorded: 2026-11-10T09:08:57+01:00
+- Exchange: code/code/v0.14.0/version-sources
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.version-sources.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 5
+- Outcome: answer
+
+### Assessed index identity for step 5 version-sources (exchange 1) (round 1)
+
+Baseline index tree: 536e54b05b5dd4daa7fa7ad2c39595d52beb0c6e
+
+Assessed index tree: c1f0cc08edc7f030e62b902a9126c54b906090c3
+
+### Implementation check for step 5 version-sources (exchange 1) (round 1)
+
+Result:
+
+Yes. Step 5 has been fully implemented.
+
+The reviewed code implements the planned TOML scanner, Python adapter, registry integration, workspace and local-link checks, and the five recorded uv evidence scenarios. The scanner tracks multiline strings and brackets and fails closed for unsupported owned layouts. Lock pairing checks normalized names, local root sources, integer schema pairs and ambiguity. Evidence tests compare both accepted pairs and the refused manifest-only control using hashes and reproduce the adapter's byte edits. Both Python fixture sets join restoration at every write position.
+
+The AdapterSettings components/participant seam in model.py and settings.py is justified by the planned checks and is already inside the staged step. Its cached physical-path map avoids rebuilding the component index per local link. No DDD-Hexagonal violation or new quadratic path was identified; all Python files remain below 650 lines.
+
+Static unit-test assessment: the gate measures tools, omitting tests and `__init__.py`. Added production functions are reached by the scanner, Python, evidence, registry, restoration and component-detection tests, or internal package calls. Test-support and recorder symbols have test or module-level/internal references. No missing exercise was identified; this is not a measured percentage. Required speed walks withheld coverage.
+
+Functional step completeness and review readiness differ here: mandatory validation remains unsuccessful.
+
+Validation plan effects:
+
+Updated only Step 5 in docs/v0.14.0/plan.v0.14.0.version-sources.validation.md. Retained the exact Yes verdict for implementation, added the failed mandatory speed evidence and clarified the static coverage assessment. No other step, document-level status or umbrella row changed. The launcher attributed the patch; git apply --cached staged only that patch. This is review metadata, with no substantive repair.
+
+### Pre-repair mandatory checks and coverage for step 5 version-sources (exchange 1) (round 1)
+
+The request-time index 536e54b05b5dd4daa7fa7ad2c39595d52beb0c6e matched the independently captured baseline. Writer evidence reports ghog day --whole-suite exit 0 and the Step 5 leaves passing. However, mandatory ghog day --full=speed --whole-suite failed twice: first the unchanged anchor property CPU limit, then seven wall-time gates in other leaves. Both withheld coverage and duration verdicts. Focused passes do not replace the required walk. No reviewer ghog check or affected command was necessary to decide this evidence-only blocker; no day/full or coverage command was run by the reviewer.
+
+### Resolved validation set and sources for step 5 version-sources (exchange 1) (round 1)
+
+- ghog day --full=speed --whole-suite (source: project; built-in ghog day --full=speed default, bound whole-suite scope).
+- rg -n 'subprocess' tools/release_workflow/sources (source: plan; expected no matches).
+
+The request records the first as failed and the second as no matches.
+
+### Resolver drift and direction for step 5 version-sources (exchange 1) (round 1)
+
+No drift identified. The current .review-validation path was sampled and is absent, so the current resolver's project default is ghog day --full=speed. The bound scope is whole-suite (fingerprint 686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6). Step 5 adds the subprocess search; there are no request additions. These reproduce the embedded command order and project/plan source labels.
+
+### Repository state around validation for step 5 version-sources (exchange 1) (round 1)
+
+The umbrella comparison reports changed=false with digest 5abf0cb72800e9d07acba786dd90502fcb8879ff41cbcce55b961a95352aaa4c before and after. The same ordered 19-path validation comparison reports only the reviewed Step 5 validation-plan metadata changed, with no ignored or untracked changes. The generic comparator marks that tracked difference unacceptable; inspection and patch attribution establish the explicit reviewed-step metadata exception. No implementation or test file changed during review. Assessed index after staging the attributable metadata is c1f0cc08edc7f030e62b902a9126c54b906090c3.
+
+### Repair inventory for step 5 version-sources (exchange 1) (round 1)
+
+Repairs made:
+
+- docs/v0.14.0/plan.v0.14.0.version-sources.validation.md: polishing-only review metadata recording mandatory validation failure and static coverage limits; staged as an attributable patch. No substantive repair.
+
+Paths staged:
+
+- docs/v0.14.0/plan.v0.14.0.version-sources.validation.md
+- tests/unit/tools/release_workflow/lock_evidence_recorder.py
+- `tests/unit/tools/release_workflow/test_python_sources/__init__.py`
+- tests/unit/tools/release_workflow/test_python_sources/test_python_links_tdd.py
+- tests/unit/tools/release_workflow/test_python_sources/test_python_sources_tdd.py
+- `tests/unit/tools/release_workflow/test_version_formats/__init__.py`
+- tests/unit/tools/release_workflow/test_version_formats/test_toml_scan_tdd.py
+- tests/unit/tools/release_workflow/test_version_formats/test_version_formats_pbt.py
+- `tests/unit/tools/release_workflow/test_version_lock_evidence/__init__.py`
+- tests/unit/tools/release_workflow/test_version_lock_evidence/lock_evidence.v1.json
+- tests/unit/tools/release_workflow/test_version_lock_evidence/test_version_lock_evidence_tdd.py
+- tests/unit/tools/release_workflow/test_version_registry/test_version_registry_tdd.py
+- tests/unit/tools/release_workflow/test_version_transition/test_version_restoration_tdd.py
+- tests/unit/tools/release_workflow/version_support.py
+- `tools/release_workflow/sources/__init__.py`
+- tools/release_workflow/sources/model.py
+- tools/release_workflow/sources/python.py
+- tools/release_workflow/sources/settings.py
+- tools/release_workflow/sources/toml_scan.py
+
+### Commit plan assessment for step 5 version-sources (exchange 1) (round 1)
+
+The reviewer independently ran the canonical commit-plan-check.bat --format json once before assessment: exit 0, schema_version 1, state valid, ready true, diagnostics empty. Its 19 staged paths and two ordered groups matched the request. Group 1, feat(release): add the python and uv version adapter, includes the 18 adapter/registry/settings/test/evidence files; keeping schema registration and its evidence together is appropriate. Group 2, docs(version-sources): record step 5 validation, includes only the validation plan. The later metadata patch changes neither membership, order nor subjects. a.commit remains accurate; no amendment was needed.
+
+### Findings and boundaries for step 5 version-sources (exchange 1) (round 1)
+
+Unresolved findings:
+
+- P1: Mandatory review validation has no green result. Both required ghog day --full=speed --whole-suite attempts failed timing gates and reported cov=withheld outliers=withheld. Publishing at the user's explicit choice permits review but does not satisfy the readiness floor. The plain day pass and static test inspection cannot establish the withheld gate verdicts. Writer action: resolve or diagnose the timing failures through the owning workflow, preserve the configured gates and scope, and publish a replacement request with a successful required walk, including coverage and duration verdicts.
+
+Boundary-crossing work:
+
+- The disclosed failures are in unchanged anchor, instruction-structure, radix-order and specification-review tests. Any fixes outside Step 5 need the owning workflow's scope handling. The reviewer made no such changes.
+
+### Writer instructions for step 5 version-sources (exchange 1) (round 1)
+
+Retain the staged Step 5 reviewer metadata. Establish a green ghog day --full=speed --whole-suite with the same required scope, coverage gate and timing limits; investigate the repeated radix-order wall failures and any remaining lifecycle failure without weakening budgets or excluding cases. Handle any out-of-step fixes through the owning workflow. Refresh validation evidence and the request-time index and publish another review round. No Step 5 implementation defect was identified in this assessment.
+
+### Decision rationale for step 5 version-sources (exchange 1) (round 1)
+
+Changes requested because the validation and coverage floor is not satisfied.
+
+- Identity: pass; exact plan, step 5, round 1, occurrence 1 and request-time index agree.
+- Completeness: pass; planned implementation and tests are present.
+- Validation and coverage: fail; required speed walks failed and withheld verdicts; static coverage review found no missing exercise.
+- Staged attribution: pass; only attributed Step 5 validation metadata was added by the reviewer.
+- Unresolved findings: fail; the mandatory validation evidence gap remains open.
+- a.commit: pass; independently checked mechanical plan and grouping remain accurate.
+
+No literal Human guidance: block is present. The generic request to make safe repairs does not authorize implementation/test edits under the reviewer instruction; none were made. This advisory disposition does not authorize a commit.
+
+### Final reviewer decision for step 5 version-sources (exchange 1) (round 1)
+
+Decision: changes-requested. The writer must address the concrete instructions and publish another review round. This advisory answer does not authorize a commit.
+
+<!-- review-entry-id: answer-step-5-round-1 -->
+
+## Round 2 by requestor - Step 5
+
+- Recorded: 2026-11-10T10:24:51+01:00
+- Exchange: code/code/v0.14.0/version-sources
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.version-sources.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 5
+- Outcome: request
+
+### Review identity for step 5 version-sources (round 2)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.version-sources.md
+Implementation step: 5
+Review round: 2
+
+### Code review evidence for step 5 version-sources (round 2)
+
+request_index_tree: f05e6db7c3e3161c9973b19e9add3d52ca244631
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+- `rg -n 'subprocess' tools/release_workflow/sources` (sources: plan)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "none", "requirement": "docs/v0.14.0/feature-request.v0.14.0.version-sources.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: perf(tests): scan Hypothesis constants at collection
+group 1 path: tests/conftest.py
+group 2: feat(release): add the python and uv version adapter
+group 2 path: tools/release_workflow/sources/toml_scan.py
+group 2 path: tools/release_workflow/sources/python.py
+group 2 path: tools/release_workflow/sources/__init__.py
+group 2 path: tools/release_workflow/sources/model.py
+group 2 path: tools/release_workflow/sources/settings.py
+group 2 path: tests/unit/tools/release_workflow/version_support.py
+group 2 path: tests/unit/tools/release_workflow/lock_evidence_recorder.py
+group 2 path: tests/unit/tools/release_workflow/test_version_formats/__init__.py
+group 2 path: tests/unit/tools/release_workflow/test_version_formats/test_toml_scan_tdd.py
+group 2 path: tests/unit/tools/release_workflow/test_version_formats/test_version_formats_pbt.py
+group 2 path: tests/unit/tools/release_workflow/test_python_sources/__init__.py
+group 2 path: tests/unit/tools/release_workflow/test_python_sources/test_python_sources_tdd.py
+group 2 path: tests/unit/tools/release_workflow/test_python_sources/test_python_links_tdd.py
+group 2 path: tests/unit/tools/release_workflow/test_version_lock_evidence/__init__.py
+group 2 path: tests/unit/tools/release_workflow/test_version_lock_evidence/lock_evidence.v1.json
+group 2 path: tests/unit/tools/release_workflow/test_version_lock_evidence/test_version_lock_evidence_tdd.py
+group 2 path: tests/unit/tools/release_workflow/test_version_registry/test_version_registry_tdd.py
+group 2 path: tests/unit/tools/release_workflow/test_version_transition/test_version_restoration_tdd.py
+group 3: docs(version-sources): record step 5 validation
+group 3 path: docs/v0.14.0/plan.v0.14.0.version-sources.validation.md
+staged path: docs/v0.14.0/plan.v0.14.0.version-sources.validation.md
+staged path: tests/conftest.py
+staged path: tests/unit/tools/release_workflow/lock_evidence_recorder.py
+staged path: tests/unit/tools/release_workflow/test_python_sources/__init__.py
+staged path: tests/unit/tools/release_workflow/test_python_sources/test_python_links_tdd.py
+staged path: tests/unit/tools/release_workflow/test_python_sources/test_python_sources_tdd.py
+staged path: tests/unit/tools/release_workflow/test_version_formats/__init__.py
+staged path: tests/unit/tools/release_workflow/test_version_formats/test_toml_scan_tdd.py
+staged path: tests/unit/tools/release_workflow/test_version_formats/test_version_formats_pbt.py
+staged path: tests/unit/tools/release_workflow/test_version_lock_evidence/__init__.py
+staged path: tests/unit/tools/release_workflow/test_version_lock_evidence/lock_evidence.v1.json
+staged path: tests/unit/tools/release_workflow/test_version_lock_evidence/test_version_lock_evidence_tdd.py
+staged path: tests/unit/tools/release_workflow/test_version_registry/test_version_registry_tdd.py
+staged path: tests/unit/tools/release_workflow/test_version_transition/test_version_restoration_tdd.py
+staged path: tests/unit/tools/release_workflow/version_support.py
+staged path: tools/release_workflow/sources/__init__.py
+staged path: tools/release_workflow/sources/model.py
+staged path: tools/release_workflow/sources/python.py
+staged path: tools/release_workflow/sources/settings.py
+staged path: tools/release_workflow/sources/toml_scan.py
+```
+
+### Validation scope for step 5 version-sources (round 2)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 5 version-sources (round 2)
+
+Writer assessment for Step 5 of the version-sources plan, round 2: the step is
+fully implemented (implementation check `Yes. Step 5 has been fully
+implemented.`), and round 1 found no Step 5 defect. Its one finding, P1 (no
+green required walk), was investigated as the writer instructions asked.
+
+Diagnosis of the timing failures:
+
+- Each radix batch takes 10 to 35 ms on its own (measured outside pytest).
+- Hypothesis 6.152.7 scans every newly loaded local module for constants
+  before the next generated input. Its site-packages shortcut tests for
+  `/site-packages/`, which a Windows path never contains, so every loaded
+  module pays a physical path lookup: 0.19 to 0.53 s wall and 0.16 s CPU for
+  440 modules in a bare interpreter, more in a pytest worker. The scan landed
+  inside the first property test of a worker: the radix overruns and the
+  anchor property's CPU overrun of round 1.
+- Fix (out of step, at the user's explicit choice, its own `perf(tests)`
+  group first in `a.commit`): `tests/conftest.py` runs that scan once per
+  worker in `pytest_collection_finish`, outside every measured lifecycle,
+  through a guarded import and lookup.
+- After the fix, `ghog single` on the radix and anchor property leaves at
+  `--full=speed` exit 0, no overrun and no band use, at 92 % host load
+  (before it, the radix leaf overran alone at 17 %).
+
+Required walk, `ghog day --full=speed --whole-suite`, 2026-11-10T09:30:
+check.bat and the affected tests green; the full stage failed only on 30
+lifecycle wall overruns (1.0 to 3.5 s wall, limit 1 s) whose CPU stayed
+within its limit (at most 0.19 s), with no assertion failure, at 78 % host
+load from other workloads. They are spread over unrelated leaves (question
+decisions, review exchange models, ownership and paths, role nature, prompt
+workflow, review resume, the radix leaf once at 1.03 s). Groundhog therefore
+withheld the coverage and duration-outlier verdicts again; coverage of the
+new modules is still assessed statically. The user then directed to move on
+when CPU is under budget (see the human guidance); no budget was changed and
+no exclusion is accepted.
+
+Other evidence, unchanged from round 1 and still valid: tests first (red at
+collection, then green), the recorded uv 0.13.4 evidence, `ghog day
+--whole-suite` exit 0, `rg -n 'subprocess' tools/release_workflow/sources`
+empty, every Python file below 650 lines. This round also wrapped five bare
+`__init__.py` paths of the round 1 answer in code spans in the transcript
+(MD050) and replaced one unknown word there at the user's choice; the
+transcript stays unstaged for its residual commit. Markdown check and cSpell
+on the staged validation plan and the transcript: clean; commit-plan-check:
+ready, three groups.
+
+Please check in particular: the conftest warm-up (placement before the
+garbage-collector freeze, the guarded lookup, that it changes no budget and
+measures nothing), whether the wall-only failures under the human guidance
+now satisfy the readiness floor, and the refreshed Step 5 validation entry.
+
+### Implementation report for step 5 version-sources (round 2)
+
+Step 5, "Python and uv adapter with recorded uv evidence", adds the TOML
+scanner, the `python` adapter and the recorded uv lock evidence that backs its
+registered lock schemas. Nothing ships yet: no handler calls the version
+domain until Step 9. The Step 5 code is unchanged since round 1; round 2
+adds one out-of-step suite change, described first.
+
+Suite change in round 2 (`tests/conftest.py`, own `perf(tests)` group):
+
+- `_scan_hypothesis_constants()` imports
+  `hypothesis.internal.conjecture.providers` and, when it still defines
+  `_get_local_constants`, calls it once; an `ImportError` or a missing name
+  leaves the suite as before. `pytest_collection_finish` calls it before
+  `gc.collect()` and `gc.freeze()`, so the scan of every collected module
+  happens once per worker, outside every measured lifecycle; a later lazy
+  import makes the next generated input scan only its own new modules.
+- The module docstring gains a `Fix:` paragraph with the cause: the scan's
+  site-packages shortcut never matches a Windows path, so each loaded module
+  paid a physical path lookup inside the first property test of a worker.
+- No budget, scope, coverage gate, Hypothesis profile setting or exclusion
+  changes.
+
+TOML scanner (`tools/release_workflow/sources/toml_scan.py`):
+
+- `locate(text, table, *, package=None) -> Span` splits the text on LF (a
+  trailing CR is ignored when matching) and tracks the current header. A
+  small lexer, driven by one regular expression per state, follows basic,
+  literal and multi-line strings (with escapes), comments and `[`/`{`
+  nesting, so only lines that start a statement are read as a header or an
+  assignment. A line starting with `[` at statement start is a header; one
+  the header patterns cannot read (a quoted key) ends the current table.
+- It keeps the `name` and `version` single-line string assignments written
+  directly in each occurrence of the target table: `[project]`, or each
+  `[[package]]` block, whose sub-tables (`[package.metadata]`) are other
+  tables. With `package`, exactly one block must have that one `name`; zero or
+  several fail. Exactly one `version` assignment must remain: none fails as an
+  unsupported layout (dotted keys, inline tables, multi-line strings) with
+  the remedy to write `version = "X.Y.Z"` on its own line; several fail as
+  ambiguous.
+- `byte_span(text, bom, table, value, *, package=None)` requires the located
+  text to equal the `tomllib` value (an escape sequence fails) and maps it to
+  bytes through `model.to_byte_spans`.
+
+Python adapter (`tools/release_workflow/sources/python.py`):
+
+- `PythonAdapter`: name `python`, forms `{core}`, default `core`, candidate
+  name `pyproject.toml`. `detect` reads `pyproject.toml` and `uv.lock` once
+  each through the view.
+- No manifest: no lock gives nothing, a lock fails as an orphan. A manifest
+  is decoded strictly (mark kept apart) and parsed with `tomllib`; failures
+  name the file and the remedy.
+- No `[project]` table: `not-participating tool-only` records for the
+  manifest and, when present, the lock (never parsed). At the project root
+  only, a `[tool.uv.workspace]` whose `members`, net of `exclude`, match a
+  declared component root fails (`PurePosixPath.full_match`, relative to the
+  project root, case-insensitive where the filesystem is).
+- A participating manifest: `[tool.uv.workspace]` fails; then each
+  `[tool.uv.sources]` entry (table or list of tables) with `workspace = true`
+  fails, and each `path`, and each `name @ file:...` requirement in
+  `[project] dependencies`, `[project.optional-dependencies]` or
+  `[dependency-groups]` (with `${PROJECT_ROOT}` expanded), is resolved
+  against the declaring root; a destination that is a participating root
+  fails naming both. A `version` listed in `dynamic`, or not a string, fails
+  with the remedy. The value's span comes from `byte_span`.
+- A lock: the `(version, revision)` pair must be in
+  `REGISTERED_LOCK_SCHEMAS = frozenset({(1, 3), (1, 5)})` (integers only, so
+  `version = true` is refused), and a `[manifest]` listing members fails as a
+  shared workspace lock. The project needs a `name`; exactly one package must
+  have its normalized name (lowercase, `[-_.]+` as `-`) and a source equal to
+  `{virtual = "."}` or `{editable = "."}`; that package needs a version
+  string. The lock source records the manifest it pairs with.
+- `render` returns the value's bytes (the content between the quotes);
+  `has_project_version` is true only for a static version string and false
+  for an undecodable or unparsable candidate.
+
+Registry and settings seam:
+
+- `sources/__init__.py`: `ADAPTERS = (anchor, python, pattern)`;
+  `SUPPORT_MODULES` adds `toml_scan`.
+- `sources/model.py`: `AdapterSettings` gains `components` and
+  `participant(path)`; `participant_names(project_root, components)` builds
+  the case-normalized physical-path index. `sources/settings.py`:
+  `VersionSettings` keeps that index in a `cached_property`, so each lookup is
+  constant time and a detection pass stays linear in the roots. Neither file
+  is in the plan's Step 5 list; both changes are recorded as variance.
+
+Lock evidence (plan decisions Q03, Q04, Q06):
+
+- `tests/unit/tools/release_workflow/lock_evidence_recorder.py`: started by
+  hand with `--uv`, `--python` and `--output`, never imported by a test. Each
+  of five scenarios runs in a new temporary directory outside the
+  repository, with every `UV_*` variable removed: write the manifest at
+  `0.13.0`, `uv lock --offline --no-config --python <python>` (revision 5),
+  derive revision 3 by setting the revision line, convert to CRLF for the
+  CRLF variant, then run `uv lock --locked --offline --no-config --python
+  <python>` on the "before" pair, on `version_support.python_pair_edit`
+  (the production detection and `plan_edits` for `0.14.0`), and on the
+  manifest-only control. Each run records its exit code, its `error:` lines
+  and both files' SHA-256 before and after. The JSON is written with sorted
+  keys and LF endings, placeholders for the tools, and refused if it still
+  holds a host path.
+- `test_version_lock_evidence/lock_evidence.v1.json`: five uv 0.13.4 records
+  (`uv-0.13.4-v1r5-virtual`, `-v1r5-editable`, `-v1r3-virtual`,
+  `-v1r3-editable`, `-v1r3-virtual-crlf`). Every "before" and edited run
+  exited 0 with both files unchanged; every control exited 1 ("needs to be
+  updated") with both files unchanged.
+
+Tests:
+
+- `test_version_formats/test_toml_scan_tdd.py` and
+  `test_version_formats_pbt.py` (properties: generated manifests and locks
+  with decoys; an integer triple and one bit field per example keep the
+  25-example budget inside the CPU limit).
+- `test_python_sources/test_python_sources_tdd.py` (adapter) and
+  `test_python_links_tdd.py` (workspaces and links, including one link
+  between `.release.ini` components through `detection.detect`).
+- `test_version_lock_evidence/test_version_lock_evidence_tdd.py` (the JSON is
+  read once per session through the `evidence` fixture).
+- `test_version_registry_tdd.py` (order and support modules) and
+  `test_version_restoration_tdd.py`, whose matrix now runs the
+  `python-virtual` (LF, revision 3, registry package first) and
+  `python-editable` (CRLF, snapshot anchor) sets at all three write
+  positions.
+
+Writer notes: `.reviews/a.version-sources.step5.journal.md` and
+`.reviews/a.version-sources.step5.handoff.md`.
+
+### Change summary for step 5 version-sources (round 2)
+
+Staged paths (20), grouped in the root `a.commit` (three groups, checker
+`ready: true`):
+
+1. `perf(tests): scan Hypothesis constants at collection`:
+   `tests/conftest.py` (new in round 2, out of step at the user's choice).
+2. `feat(release): add the python and uv version adapter`: unchanged since
+   round 1, the 18 adapter, registry, settings, test and evidence paths.
+3. `docs(version-sources): record step 5 validation`:
+   `docs/v0.14.0/plan.v0.14.0.version-sources.validation.md` (the reviewer's
+   round 1 metadata kept; writer round 2 paragraph in the analysis and a
+   round 2 validation-evidence bullet added).
+
+Changes since round 1: `tests/conftest.py` added to the index and the plan's
+first group; the Step 5 validation entry refreshed. Unstaged, for the
+residual commit: the transcript, where round 1's five bare `__init__.py`
+paths are now code spans and one unknown word became `case-normalized`. The
+bound scope (whole suite) and the requirement are unchanged.
+
+### Human guidance and writer response for step 5 version-sources (round 2)
+
+Human guidance:
+
+User direction of 2026-11-10, given after the latest required speed walk
+failed only on wall overruns with CPU under budget at 78 % host load from
+other workloads: "If CPU is under budget, do move on".
+
+The writer reads it as: lifecycle wall-time overruns whose CPU stays within
+its limit, and that come with no assertion failure, no CPU overrun and no
+duration outlier, do not block this review. No budget is changed and no test
+is excluded.
+
+Writer response:
+
+Response to the round 1 answer (changes requested; no Step 5 implementation
+defect found).
+
+- Accepted: the reviewer's metadata patch to the Step 5 validation entry is
+  kept. The writer refreshed that entry with the round 2 validation result
+  below; the reviewer's round 1 paragraph stays as the record of that round.
+- P1 (no green mandatory walk): accepted and addressed by diagnosis, not by a
+  budget change or an exclusion. As the writer instructions asked, the
+  repeated `test_radix_order` wall failures were investigated first.
+  - Outside pytest, each radix batch takes 10 to 35 ms. Hypothesis 6.152.7's
+    local-constants scan (`hypothesis.internal.conjecture.providers._get_local_constants`)
+    takes 0.19 to 0.53 s of wall time and 0.16 s of CPU for 440 modules. It
+    runs before the next generated input whenever `sys.modules` has grown,
+    and its site-packages shortcut tests for `/site-packages/`, which a
+    Windows path never contains, so every loaded module pays a physical path
+    lookup. In a pytest worker the scan landed inside the first property test
+    that saw new modules: the radix overruns, and the anchor property's CPU
+    overrun of round 1.
+  - Fix, at the user's explicit choice (out of step, own commit group, first
+    in `a.commit`): `tests/conftest.py` runs that scan once per worker in
+    `pytest_collection_finish`, outside every measured lifecycle, through a
+    guarded import. No budget, scope, coverage gate or exclusion changed.
+  - Boundary: the change is suite infrastructure, not Step 5 scope; it is
+    disclosed here and in the assessment, and committed as its own
+    `perf(tests)` group so it can be reviewed and reverted on its own.
+- No disagreement with the round 1 answer.
+
+### Reviewer focus for step 5 version-sources (round 2)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-5-round-2 -->
+
+## Round 2 by reviewer - Step 5
+
+- Recorded: 2026-11-10T10:35:52+01:00
+- Exchange: code/code/v0.14.0/version-sources
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.version-sources.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 5
+- Outcome: answer
+
+### Assessed index identity for step 5 version-sources (exchange 1) (round 2)
+
+Baseline index tree: f05e6db7c3e3161c9973b19e9add3d52ca244631
+
+Assessed index tree: 136f2f2f026346954c413583a8d714b42cb7cd08
+
+### Implementation check for step 5 version-sources (exchange 1) (round 2)
+
+Result:
+
+Yes. Step 5 has been fully implemented.
+
+The round 1 implementation assessment still applies: comparison against its assessed index tree shows that all 18 adapter, registry, settings, test and recorded-evidence paths are unchanged. The scanner, Python adapter, workspace and local-link refusals, registered uv schemas, five evidence scenarios and restoration cases fulfill the named step. No implementation defect was found.
+
+The newly staged suite hook calls the installed Hypothesis constants scanner once at collection finish, before gc.collect and gc.freeze. Inspection of Hypothesis's provider confirms that it caches seen modules and scans only newly loaded modules thereafter. Its guarded import and missing-name fallback preserve compatibility if that internal entry point disappears. It changes no lifecycle limit, profile, example budget or exclusion. The helper is referenced by the existing pytest hook; no unreferenced top-level symbol was added outside the coverage gate.
+
+Static coverage assessment finds no gap in the unchanged Step 5 production functions, support symbols or recorded-evidence checks. No measured coverage percentage is claimed. No architecture, complexity, file-size or feature-integrity regression was identified.
+
+The suite hook is outside Step 5 but was explicitly user-authorized and separately grouped by the writer according to the request. This boundary variance is reviewed and resolved; no additional boundary-crossing work is requested.
+
+Validation plan effects:
+
+Only the exact Step 5 analysis was amended with the round 2 reviewer assessment, the explicit CPU guidance, the unchanged implementation and the unavailable measured verdicts. The Yes verdict remains; no other step or umbrella status changed. This metadata-only patch was proven attributable and staged separately from any writer work.
+
+### Pre-repair mandatory checks and coverage for step 5 version-sources (exchange 1) (round 2)
+
+No reviewer implementation repair or test execution occurred. The writer's saved speed-walk output and the matching current log tail show check exit 0, affected exit 0 (zero selected tests under testmon), and full/day exit 2 with 30 lifecycle errors. Every error is wall-only: CPU is at most 0.187500 s against the applicable 0.250 s band limit; no assertion failure or traceback appears in the error report. Coverage, outlier and exclusion verdicts are withheld. The log also records radix CPU proof being lost after this run; the guidance accepts this run's applicable CPU limits and does not create proof for a future run.
+
+The earlier plain-day pass, focused passes, recorded uv evidence and subprocess search remain supporting evidence, without being relabeled as a green speed walk. Reviewer verification consisted of static inspection, an independent commit-plan check and retained boundary captures; no full walk or coverage measurement was repeated.
+
+### Resolved validation set and sources for step 5 version-sources (exchange 1) (round 2)
+
+- `ghog day --full=speed --whole-suite` (source: project; built-in default completed with the bound whole-suite scope). Executed by the writer, exit 2; accepted for this round under the explicit CPU guidance, with withheld verdicts disclosed.
+- `rg -n 'subprocess' tools/release_workflow/sources` (source: plan; expected no matches). Writer result: no matches; unchanged implementation since round 1.
+
+### Resolver drift and direction for step 5 version-sources (exchange 1) (round 2)
+
+No drift. The current .review-validation path was sampled and is absent. The built-in project default remains ghog day --full=speed; the bound whole-suite fingerprint is 686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6. The exact plan adds the subprocess search, and there are no request additions. Command order and source labels match the request. The human exception does not alter the resolver or repository budgets.
+
+### Repository state around validation for step 5 version-sources (exchange 1) (round 2)
+
+The request-time and baseline index both equal f05e6db7c3e3161c9973b19e9add3d52ca244631. The assessed index is 136f2f2f026346954c413583a8d714b42cb7cd08, differing only by the attributable Step 5 assessment patch. Relative to the round 1 assessed tree, the writer changed only tests/conftest.py and the Step 5 validation metadata.
+
+The applicable umbrella digest is unchanged (5abf0cb72800e9d07acba786dd90502fcb8879ff41cbcce55b961a95352aaa4c). The same ordered 20-path validation capture found only the intended validation-plan change; the generic comparator reports acceptable=false for that tracked path, which inspection confines to permitted Step 5 reviewer metadata. No other captured tracked or untracked path changed. No tracked command side effect or substantive reviewer repair occurred. The writer's unstaged transcript work was neither read as review context nor modified or staged.
+
+### Repair inventory for step 5 version-sources (exchange 1) (round 2)
+
+Repairs made:
+
+- `docs/v0.14.0/plan.v0.14.0.version-sources.validation.md`: polishing-only review metadata in Step 5; no implementation, test or acceptance behavior changed. Attribution succeeded; only the returned patch was staged.
+
+Paths staged:
+
+- `docs/v0.14.0/plan.v0.14.0.version-sources.validation.md`
+- `tests/conftest.py`
+- `tests/unit/tools/release_workflow/lock_evidence_recorder.py`
+- `tests/unit/tools/release_workflow/test_python_sources/__init__.py`
+- `tests/unit/tools/release_workflow/test_python_sources/test_python_links_tdd.py`
+- `tests/unit/tools/release_workflow/test_python_sources/test_python_sources_tdd.py`
+- `tests/unit/tools/release_workflow/test_version_formats/__init__.py`
+- `tests/unit/tools/release_workflow/test_version_formats/test_toml_scan_tdd.py`
+- `tests/unit/tools/release_workflow/test_version_formats/test_version_formats_pbt.py`
+- `tests/unit/tools/release_workflow/test_version_lock_evidence/__init__.py`
+- `tests/unit/tools/release_workflow/test_version_lock_evidence/lock_evidence.v1.json`
+- `tests/unit/tools/release_workflow/test_version_lock_evidence/test_version_lock_evidence_tdd.py`
+- `tests/unit/tools/release_workflow/test_version_registry/test_version_registry_tdd.py`
+- `tests/unit/tools/release_workflow/test_version_transition/test_version_restoration_tdd.py`
+- `tests/unit/tools/release_workflow/version_support.py`
+- `tools/release_workflow/sources/__init__.py`
+- `tools/release_workflow/sources/model.py`
+- `tools/release_workflow/sources/python.py`
+- `tools/release_workflow/sources/settings.py`
+- `tools/release_workflow/sources/toml_scan.py`
+
+### Commit plan assessment for step 5 version-sources (exchange 1) (round 2)
+
+The independent checker returned state=valid, ready=true, diagnostics=[] and the same ordered 20 staged paths as the request. Its three groups are accurate: perf(tests): scan Hypothesis constants at collection (tests/conftest.py); feat(release): add the python and uv version adapter (18 paths); docs(version-sources): record step 5 validation (one path). The reviewer metadata fits the existing third group; a.commit was unchanged. Mechanical readiness does not authorize a commit.
+
+### Findings and boundaries for step 5 version-sources (exchange 1) (round 2)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Human guidance response for step 5 version-sources (exchange 1) (round 2)
+
+Human guidance:
+
+Human guidance:
+
+User direction of 2026-11-10: "If CPU is under budget, do move on".
+
+The request places this direction after the latest required speed walk failed on wall overruns with CPU under its applicable limits at high host load.
+
+Guidance response:
+
+Accepted for this round. Independent log inspection confirms all 30 lifecycle errors stayed within their applicable CPU limits, with no assertion error or traceback in the full-stage error report. The writer diagnosed the previous initial Hypothesis scan cost and staged a separately grouped collection-time warm-up. No test was excluded or limit relaxed.
+
+The explicit user instruction takes precedence over the skill's default requirement for another green mandatory walk. This exception is applied transparently to the actual exit-2 result, including its withheld measured verdicts. The writer's phrase "no duration outlier" cannot be established from a withheld outlier verdict: absence of outliers is not claimed. Static coverage finds no Step 5 gap; measured coverage and outlier results remain unknown. Identity, scope, attribution and implementation requirements were independently checked and remain satisfied. No code repair was authorized or performed by the reviewer.
+
+### Writer instructions for step 5 version-sources (exchange 1) (round 2)
+
+No implementation rework is requested. Preserve the explicit validation exception and unavailable measured verdicts in the handoff. Follow the requestor's human convergence gate; this recommendation does not authorize a commit or any owning-workflow action.
+
+### Decision rationale for step 5 version-sources (exchange 1) (round 2)
+
+Advisory commit-ready under the explicit human CPU direction. Identity: pass, exact round 2/occurrence 1 and request-time tree. Completeness: pass, unchanged Step 5 implementation and reviewed collection hook. Validation and coverage: accepted with the user-directed exception for the verified wall-only errors; checks are green, no CPU/assertion failure is reported, and static coverage finds no gap. The speed command remains exit 2 and its measured coverage/outlier verdicts remain unavailable. Attribution: pass, only exact Step 5 reviewer metadata staged. Findings: none unresolved under that exception. a.commit: pass, independent checker ready and all three groups accurate. This round made no substantive reviewer repair.
+
+### Final reviewer decision for step 5 version-sources (exchange 1) (round 2)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-5-round-2 -->
+
+## Round 2 by human - Step 5 - human-confirmation
+
+- Recorded: 2026-11-10T10:53:30+01:00
+- Exchange: code/code/v0.14.0/version-sources
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.version-sources.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 5
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-2 -->
