@@ -95,7 +95,8 @@ bin/                         self-locating .bat launchers: prompt_workflow (pw),
                              ghog, gcba, gcmp, wac, oqm, covg, ghd, tth,
                              new_draft, python_check, review_exchange, the
                              family review renderers, update_llm_shared_plugin,
-                             plus bundled venvs/
+                             release_workflow, release_alias, plus bundled
+                             venvs/
 tools/                       the Python behind the launchers:
 ├─ prompt_workflow*.py       pw: menu, handoff, skill modes
 ├─ review_exchange*.py       durable exchange state and transitions
@@ -110,6 +111,7 @@ tools/                       the Python behind the launchers:
 ├─ git_history_dashboard/    the ghd builder
 ├─ git_history_diagrams/     deterministic prepare-release SVG histories
 ├─ prepare_release/          topology detection and merge-tree previews
+├─ release_workflow/         release engine: bootstrap, version and versions
 ├─ sensitive_history/        contextual commit, path, and blob scanner
 ├─ html_to_pptx/             presentation to native PPTX and PDF
 ├─ codex_plugin_package.py   Codex plugin validator, cachebuster, marketplace name
