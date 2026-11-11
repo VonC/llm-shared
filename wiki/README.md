@@ -250,6 +250,7 @@ Exact descriptions of commands, formats, files, and supported behavior.
 - 🤖 [Writing and agent rules](reference/writing-rules.md)
 - 🤖 [Repository layout and AI entry points](reference/repository-layout.md)
 - 🤖 [Automation and direct-invocation ownership](reference/automation-and-direct-invocation.md)
+- 📊 [Version sources and release ranges](reference/version-sources.md)
 
 ### Additional utilities reference
 
