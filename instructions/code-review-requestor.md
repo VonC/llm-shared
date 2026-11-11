@@ -255,12 +255,15 @@ Spell-check the same Markdown files as
 [`../rules/spelling.md`](../rules/spelling.md) requires, and settle every reported word with the user before the gate: an
 accepted word goes into `.vscode/settings.json` through
 `spellcheck.bat add-words`, staged as polishing; a refused one is replaced in
-place. On Windows, also add every approved project word to `cSpell.userWords` in
-`%APPDATA%\Code\User\settings.json`, following the same spelling rule. The
-current launcher updates only the project file: edit and verify the user
-settings separately, keep that file local, and stage only project settings.
-Never show `Commit` while an unknown word remains. Complete and verify both
-settings updates before presenting that choice.
+place. On Windows, add every original reported word presented for the decision
+to `cSpell.userWords` in `%APPDATA%\Code\User\settings.json`, even when
+replaced. Retain the original findings and verify replacements directly
+before user additions can hide missed edits. Add to project `cSpell.words`
+only the words approved for project addition. The current launcher updates
+only the project file: edit user settings separately, verify each required
+list independently, keep that file local, and stage only project settings.
+Follow the same spelling rule. Never show `Commit` while an unknown word or
+an unverified earlier decision or update remains.
 Compare the current requirement and group definitions with the round's bound
 scope and disclose any pending scope difference at this gate. Such changes
 are not polishing. Show the bound scope, current scope and changed definitions.

@@ -26,10 +26,15 @@ Call it directly from a project root to check any file.
 objects instead of the Markdown table.
 
 The current `add-words` command updates only the project file. On Windows,
-the calling workflow must also add the same approved words to `cSpell.userWords`
-in `%APPDATA%\Code\User\settings.json` and verify both files, as required by
-the [user settings rule](../../rules/spelling.md#keep-approved-project-additions-in-windows-user-settings).
-The user settings file remains local and is never staged.
+the calling workflow must add every original reported word presented for an
+add-or-rephrase decision to `cSpell.userWords` in
+`%APPDATA%\Code\User\settings.json`, even when rephrased. Project additions
+remain conditional on the user's project-add choice. The workflow retains
+original findings, verifies text replacements before user additions can hide
+missed edits, and verifies each required dictionary independently, as required
+by the [user settings rule](../../rules/spelling.md#keep-original-reported-words-in-windows-user-settings).
+Approved project additions made outside the launcher also require user
+membership. The user settings file remains local and is never staged.
 
 ## 🔢 Exit codes
 

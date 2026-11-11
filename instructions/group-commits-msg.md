@@ -83,10 +83,14 @@ self-locate and do not need an `senv.bat` pre-call.
    `.vscode/settings.json` joins the group of the files that needed its words:
    format `a.commit` again.
 
-   On Windows, each approved project addition must also reach `cSpell.userWords`
-   in `%APPDATA%\Code\User\settings.json`, following the same spelling rule.
-   The current launcher updates only the project file, so perform and verify
-   the user settings edit separately. Stage only the project settings file.
+   On Windows, every original reported word presented for the decision must
+   reach `cSpell.userWords` in `%APPDATA%\Code\User\settings.json`, even when
+   the user chooses a replacement. Retain the original findings and verify
+   replacements directly before user additions can hide missed edits. Add to
+   project `cSpell.words` only the words approved for project addition. The
+   current launcher updates only the project file, so perform the user edit
+   separately and verify each required list independently, following the
+   same spelling rule. Stage only project settings; keep user settings local.
 
    Then run the
    focused read-only readiness checker, `commit-plan-check.bat --format json`,

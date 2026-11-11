@@ -46,10 +46,18 @@ cSpell reads code spans and code blocks like any other text, so a pytest hook
 name such as `collectreport` in backticks is reported too. No pattern skips
 those spans: a word the reader sees underlined is either accepted into the
 project's `.vscode/settings.json` under `cSpell.words`, where every clone of
-the project shares it, and on Windows into `%APPDATA%\Code\User\settings.json`
-under `cSpell.userWords`, where the user's
-other projects can recognize it too, or replaced. Adding to user settings
-alone would leave other clones without the project's accepted word list.
+the project shares it, or replaced in the text. On Windows, either decision
+also adds the original reported word to `%APPDATA%\Code\User\settings.json`
+under `cSpell.userWords`. This makes the original globally accepted for the
+user even when it was a misspelling corrected in this project. A replacement
+does not add the original to the project dictionary; an approved project
+addition belongs in both dictionaries so other clones share it.
+
+Because the check merges user and project settings, adding an original word
+to user settings can hide a missed replacement. The workflow retains the
+original findings, verifies each chosen replacement directly before user
+additions, and checks membership in each required dictionary independently.
+An empty spelling report alone cannot prove that the decisions were applied.
 The suggestions cSpell offers for code names are often useless
 (`collecteront` for `collectreport`), which is why the user, not the agent,
 picks between the two.
