@@ -4,7 +4,7 @@
 
 This record maps the [requirement](feature-request.v0.14.0.shared_lifecycle_gate.md)
 and [design cases](design.v0.14.0.shared_lifecycle_gate.md) to repeatable checks.
-Evidence was collected on Windows on 2026-11-10. Linux and macOS are unvalidated;
+Evidence was collected on Windows on 2026-11-10 and 2026-11-11. Linux and macOS are unvalidated;
 the implementation retains portable-API intent.
 
 ## Evidence sources for shared-policy acceptance
@@ -37,7 +37,7 @@ Rows follow the requirement's sixteen acceptance criteria in order.
 | Neither plugin selected | A empty selection; E `policies-0`, `prepared-0`; L `test_empty_hook_is_inert`. |
 | Exactly selected plugins in both contexts; explicit duplicate loading | A all four selections; `test_every_stage_prepares_its_child` in `test_groundhog_activation`; L `test_hook_reuses_canonical_registration`; E `prepared-explicit`. |
 | Selected import failure is identifying exit 4 | L `test_selected_import_errors_are_usage_errors`, `test_import_failure_has_no_registration`, `test_startup_failures_identify_opt_in_before_execution`. |
-| Independent gate, ceilings, clocks, band and drift | G `test_one_cpu_window_keeps_initialization_hooks_cleanup_and_limits`, `test_a_run_proves_counts_drift_or_drops_the_proof`, `test_the_hook_judges_each_lifecycle_by_its_own_limit`; E `budget`, `gate-process-only`. |
+| Independent gate, ceilings, clocks, band and drift | G `test_one_cpu_window_keeps_initialization_hooks_cleanup_and_limits`, `test_a_run_proves_counts_drift_or_drops_the_proof`, `test_the_hook_judges_each_lifecycle_by_its_own_limit`; E `budget`, `gate-process-only`, `wall-only-gate`, `wall-only-both`, `cpu-only-overrun`. |
 | Independent audit across lifecycle phases; collection excluded | P `test_all_process_events_cover_entire_protocol`; E `process`, `fixtures` and barrier cases. |
 | Separate test/fixture permissions, ownership, timing and thread scope | P `test_fixture_precedence_and_credit`, `test_nested_dynamic_dependencies_and_cached_access`, `test_thread_and_copied_context_do_not_inherit_fixture_permission`; G lifecycle clock check; E `fixtures`, `workers-fixtures`. |
 | Invalid declarations refuse before tests; valid strict declarations remain harmless | P `test_malformed_test_permission_prevents_setup`, `test_inherited_permissions_are_invalid`, `test_all_fixture_entries_are_validated`; A all selections; E `invalid-declaration`, three barrier cases. |
@@ -48,7 +48,7 @@ Rows follow the requirement's sixteen acceptance criteria in order.
 | Actual Windows Python 3.12/3.13 behavior and mandatory fresh 3.12 validation | E both actual interpreters; `test_missing_interpreter_never_installs` in `test_compatibility/test_environment_tdd.py`; `test_compatibility_preflight` unit package; F. |
 | Below-3.12 refusal and repeatable 3.10 syntax validity | G `test_version_refusal_precedes_other_imports`; P `test_version_refusal_precedes_runtime_imports`; L `test_version_refusal_runs_before_newer_definitions`; `tools.lifecycle_compatibility.static_entry` run by check. |
 | Repeatable isolation and anonymous trial in both contexts | A, E, W and T; `test_same_root_refresh_and_deselection` and `test_stage_rechecks_binding_before_spawn` in `test_groundhog_activation`. |
-| Own suite preserves assertions, 100% tools coverage and no exemptions | F; required declaration/reference scan classified below. |
+| Own suite preserves assertions, 100% tools coverage and no exemptions | [Step 8 fresh whole-suite speed and coverage evidence](#step-8-cpu-based-timing-acceptance-on-2026-11-11); F remains historical. Required declaration/reference scan classified below. |
 | Adoption and supported-platform documentation | [Gate guide](../../wiki/how-to/enable-shared-lifecycle-gate.md), [audit guide](../../wiki/how-to/enable-shared-process-audit.md), [compatibility guide](../../wiki/how-to/validate-shared-pytest-compatibility.md), [limits reference](../../wiki/reference/test-lifecycle-limits.md). |
 
 ## Design-case traceability
@@ -81,7 +81,7 @@ Rows follow the requirement's sixteen acceptance criteria in order.
 | Bound root mismatch | L `test_roots_accept_descendants_but_not_siblings`; groundhog stage binding check. |
 | Documented guard in either loading order | G guarded registration orders; E `guard-late`, `tracked`, `override`. |
 
-## Final validation and declaration audit
+## Historical Step 7 validation and declaration audit
 
 The required `simulation_policy|lifecycle_cpu_record|LLM_SHARED_PROCESS_FIXTURES|process_allowed`
 scan found policy implementation identifiers, documentation examples and
@@ -97,4 +97,36 @@ added. The covered whole-suite stage completed with the wall-only errors in F;
 its coverage and speed gates remain unproven. Record continuity passed after
 that stage, preserving every previous eligible proof. Static checks and the
 earlier affected run passed. These observations do not establish green release
-acceptance.
+acceptance at Step 7.
+
+## Step 8 CPU-based timing acceptance on 2026-11-11
+
+The maintainer subsequently requested an implemented policy: CPU at or below
+the effective per-test limit passes lifecycle timing even when wall time
+exceeds its reference. This replaces the old CPU-or-wall timing predicate.
+The historical non-green Step 7 observation F above is retained. The fresh
+results below establish the new policy and the previously unproven full gates.
+
+| Check | Fresh observation |
+| --- | --- |
+| Strict CPU and wall boundary matrix | `test_one_cpu_window_keeps_initialization_hooks_cleanup_and_limits` covers CPU below/equal/above limit crossed with wall below/equal/above reference; clocks and full CPU window remain asserted. |
+| Effective band and exception limits | `test_the_hook_judges_each_lifecycle_by_its_own_limit` and `test_exception_limit_and_drift_survive_wall_excess` cover equality and overruns, retaining CPU observations for proof/drift. |
+| Independent failures | `test_cpu_within_budget_preserves_other_phase_failures` preserves setup/call/teardown failures and their text. Executable `wall-functional-failure` and `wall-process-failure` retain exit 1 with CPU below budget and wall excess. |
+| Actual Python 3.12 compatibility preflight | The worktree's resolved full-speed day freshly passed all 41 checks: 30 policy cases and eleven Windows shell probes. New `wall-only-gate`, `wall-only-both`, `cpu-only-overrun` and independent-failure cases use controlled clocks without sleeps. |
+| Actual Python 3.13.9 compatibility | Main-runtime `python -m tools.lifecycle_compatibility.runner <fresh-private-evidence> --all` passed all 41 checks with pytest 9.1.0 and xdist 3.8.0. |
+| Resolved default day | Worktree `ghog day --whole-suite` finished at 13:46:40+01:00, exit 0, in 5m13.8s. Static checks and affected tests passed; coverage and speed were deliberately skipped. |
+| Resolved whole-suite speed day | Worktree `ghog day --full=speed --whole-suite` finished at 13:52:06+01:00, exit 0, in 4m01.3s; full stage 59.3s, selection 6,288 tests. Configured `tools` coverage 100%, failures/warnings/xfails 0, duration outliers 0 and exclusions 0. Fresh `proof=speed`, `reused=none`, `state=done`. |
+
+Replacement validation after review corrections and the permission-probe
+watchdog repair passed on 2026-11-11. The worktree's whole-suite speed day
+finished at 16:29:32+01:00 in 6m00s: 6,288 tests, 100% configured coverage,
+zero failures, warnings, xfails, outliers and exclusions, with no reused stage.
+Fresh Python 3.12 preflight and separate actual Python 3.13.9 execution each
+passed 41/41 checks. The default day finished at 16:31:38+01:00 by reusing
+that speed proof; no checks or tests ran in that invocation.
+
+Both timing measurements, effective CPU limit and measured-run properties
+remain available. Defaults, accepted exceptions, CPU band/proof/drift rules,
+record schema and independent process permissions are unchanged. No duration
+exclusion or carrying-suite process permission was added. Groundhog's separate
+call-duration speed policy is unchanged. Linux and macOS remain unvalidated.

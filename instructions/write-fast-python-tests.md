@@ -11,12 +11,16 @@ in the wiki page *Why fast tests keep the work they assert*.
 ## Budget for one test lifecycle
 
 - Count the whole lifecycle, not only the call: setup, call and teardown, with
-  every fixture they create. A lifecycle stays under the project's CPU ceiling
-  and wall limit, `test_lifecycle_limit` and `test_lifecycle_wall_limit` (0.1
+  every fixture they create. Aim to keep a lifecycle under the project's CPU ceiling
+  and wall reference, `test_lifecycle_limit` and `test_lifecycle_wall_limit` (0.1
   and one second by default), and setup and teardown each stay under 0.1
   second of wall time. Aim for 0.04 second of CPU so coverage, two workers and
   a busy machine leave headroom. The stability band that lets a proven test
   pass a load spike is a tolerance for the machine, never a target.
+- The lifecycle gate passes timing when CPU is at or below the effective limit,
+  including an eligible band or accepted exception, even when wall time exceeds
+  its reference. It still measures and reports wall time. Functional failures,
+  process auditing and groundhog's separate call-duration speed rule still apply.
 - Keep first-use work inside the test that first needs it. Building a grammar,
   a template or a cache in worker startup, at collection, or in an unmeasured
   session fixture hides its cost; it does not remove it.

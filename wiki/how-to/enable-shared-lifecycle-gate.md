@@ -7,6 +7,12 @@
 Prepare the consumer shell explicitly; subsequent pytest and groundhog runs in
 that environment apply the selection automatically.
 
+The gate passes lifecycle timing when CPU is at or below the test's effective
+limit, including any eligible band or accepted exception. Wall time remains
+measured; exceeding its configured reference alone does not fail timing.
+Functional failures, selected process auditing and groundhog's separate speed
+verdict still apply.
+
 Use Python 3.12 or later with pytest in your project's environment. The gate
 needs neither pytest-cov nor pytest-xdist. Start in the consumer project root
 after selecting its interpreter. Replace `C:\shared` below with your llm-shared
