@@ -7,6 +7,10 @@ before dispatch, write non-ASCII UTF-8/LF streams and normalize a child
 status 7 to the public 1. The caller's environment object is never changed.
 Batch codepage, ``setlocal`` and cwd restoration stay source contracts of the
 launcher tests; real cmd, PowerShell and console runs belong to the host probe.
+Step 1 of v0.14.0 version-sources: a handler's status 3 (incomplete
+restoration) reaches the caller unchanged, with its diagnostic, and the five
+typed release observations of a handler's Git context are answered from the
+sandbox's declared release history.
 """
 
 from __future__ import annotations
@@ -17,16 +21,19 @@ from typing import TYPE_CHECKING
 import pytest
 
 from tests.unit.tools.release_workflow.acceptance_support import snapshot
+from tools.release_workflow import cli
+from tools.release_workflow.results import OperationResult
 
 if TYPE_CHECKING:
     from pathlib import Path
 
     from tests.unit.tools.release_workflow.launcher_simulation import ToolingSimulation
     from tests.unit.tools.release_workflow.repository_simulation import GitSandbox
-    from tools.release_workflow import cli
+    from tools.release_workflow.invocation import InvocationContext
 
 _INVALID = 2
 _FAILED = 1
+_RESTORATION_INCOMPLETE = 3
 _PAYLOAD = "Prêt pour la version 1.2.3\n"
 
 
@@ -88,6 +95,54 @@ def test_public_status_and_utf8_streams(*, command: str, status: int, entry: str
         assert b"native status 7; returning 1" in result.stderr
     elif command == "publish":
         assert not result.stdout
+
+
+def _incomplete_restoration(_context: InvocationContext) -> OperationResult:
+    """Report a restoration that kept an original copy, as status 3."""
+    return OperationResult(_RESTORATION_INCOMPLETE, diagnostics=("Restoration incomplete: version.txt kept as evidence",))
+
+
+@pytest.mark.parametrize("entry", ["explicit-native", "explicit-batch", "alias-batch"])
+def test_incomplete_restoration_status_passes_through(entry: str, launcher_tooling: ToolingSimulation,
+                                                      git_sandbox: GitSandbox, consumers: tuple[Path, Path]) -> None:
+    """Status 3 is public: neither the renderer nor the bootstrap turns it into 1."""
+    root = consumers[0].resolve()
+    arguments = ["restore"] if entry == "alias-batch" else ["restore", "--project-root", str(root)]
+    result = launcher_tooling.run(arguments, sandbox=git_sandbox, cwd=root / "sub", entry=entry,
+                                  handlers={"restore": cli.Handler(_incomplete_restoration)})
+    assert result.returncode == _RESTORATION_INCOMPLETE, result.stderr
+    assert b"Restoration incomplete: version.txt kept as evidence\n" in result.stderr
+    assert b"returning 1" not in result.stderr
+
+
+def _release_observations(context: InvocationContext) -> OperationResult:
+    """Print what each typed release observation of the handler's Git context answers."""
+    git, root = context.git, context.project.root
+    lines = (
+        " ".join(tag.name for tag in git.tag_records(cwd=root, merged="HEAD")),
+        " ".join(git.independent_commits(["c1", "c2"], cwd=root)),
+        " ".join(git.tag_names(cwd=root, merged="HEAD", not_merged="refs/tags/v0.1.0")),
+        str(git.commit_count("refs/tags/v0.1.0..HEAD", cwd=root)),
+        " ".join(git.listing(cwd=root)),
+    )
+    return OperationResult(data="\n".join(lines) + "\n")
+
+
+def test_release_observations_reach_the_declared_history(launcher_tooling: ToolingSimulation, git_sandbox: GitSandbox,
+                                                         consumers: tuple[Path, Path]) -> None:
+    """Through the real bootstrap, no observation starts Git: the sandbox history answers each one."""
+    history = git_sandbox.verified_git.facts.history
+    first = history.commit("c1")
+    history.head = history.commit("c2", first)
+    history.tag("v0.1.0", first, "Release 0.1.0\n")
+    history.tag("v0.2.0", history.head)
+    history.names = ("version.txt",)
+    root = consumers[0].resolve()
+    result = launcher_tooling.run(["releases", "--project-root", str(root)], sandbox=git_sandbox, cwd=root / "sub",
+                                  handlers={"releases": cli.Handler(_release_observations)})
+    assert result.returncode == 0, result.stderr
+    assert result.stdout == b"v0.1.0 v0.2.0\nc2\nv0.2.0\n1\nversion.txt\n"
+    assert [call[0] for call in history.calls] == ["tag_records", "independent_commits", "tag_names", "commit_count", "listing"]
 
 
 def test_process_environment_is_left_alone(launcher_tooling: ToolingSimulation, git_sandbox: GitSandbox,

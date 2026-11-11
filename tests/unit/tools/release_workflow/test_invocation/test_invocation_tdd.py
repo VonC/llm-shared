@@ -1,4 +1,8 @@
-"""Invocation policy composes production services with declared repository facts."""
+"""Invocation policy composes production services with declared repository facts.
+
+Step 1 of v0.14.0 version-sources: the parsed operation tokens are copied into
+the context, and the batch-character rule still covers every one of them.
+"""
 
 from __future__ import annotations
 
@@ -90,6 +94,25 @@ def test_batch_grammar_only(token: str) -> None:
     invocation.validate_arguments("explicit-native", (token,))
     with pytest.raises(ValueError, match="batch"):
         invocation.validate_arguments("explicit-batch", (token,))
+
+
+def test_operation_tokens_reach_context(git_sandbox: GitSandbox) -> None:
+    """The context carries the parsed operation tokens unchanged."""
+    value = context(git_sandbox, invocation.InvocationRequest(project_root="..", operation=("set", "0.14.0")))
+    assert value.operation == ("set", "0.14.0")
+    assert context(git_sandbox, invocation.InvocationRequest(project_root="..")).operation == ()
+
+
+@pytest.mark.parametrize("token", ["0.14.0%", "0.14.0^", "0.14.0!", '0.14.0"'])
+def test_batch_rule_covers_operation_tokens(git_sandbox: GitSandbox, token: str) -> None:
+    """A batch caller cannot pass an unsafe character inside an operation token."""
+    with pytest.raises(ValueError, match="batch"):
+        invocation.create_context(
+            invocation.InvocationRequest(project_root="..", operation=("set", token)),
+            runtime=RuntimeIdentity(git_sandbox.home, "venvs/prepared"), entry_kind="explicit-batch",
+            original_argv=("versions", "set", token), original_cwd=git_sandbox.home / "B" / "sub",
+            environment=dict(git_sandbox.environment), stdin_console=False,
+        )
 
 
 @pytest.mark.parametrize("console", [False, True])

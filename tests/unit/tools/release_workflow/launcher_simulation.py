@@ -3,6 +3,10 @@
 The input is an argument vector and an entry kind, never shell source. Runtime
 records, parsing, preflight, payload reads, handlers and rendering stay real.
 No checkout copy, virtualenv, executable, console or shell is started.
+Step 1 of v0.14.0 version-sources routes the five typed release observations
+to the sandbox's declared release history too. Step 9 makes `patch_git`
+public, so the version command tests that call `cli.main` directly use the
+same simulated Git as the launcher cases.
 """
 
 from __future__ import annotations
@@ -28,10 +32,11 @@ from tools.release_workflow.results import OperationResult
 from tools.release_workflow.runtime_identity import RuntimeIdentity
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence
+    from collections.abc import Callable, Mapping, Sequence
     from pathlib import Path
 
     from tests.unit.tools.release_workflow.repository_simulation import GitSandbox
+    from tools.release_workflow.git import TagRecord
     from tools.release_workflow.git_environment import ConfigEntry
     from tools.release_workflow.invocation import InvocationContext
 
@@ -63,7 +68,7 @@ HANDLERS = {"probe": cli.Handler(probe), "required": cli.Handler(probe, requires
             "fail": cli.Handler(failure), "wait": cli.Handler(interrupt)}
 
 
-def _patch_git(patch: pytest.MonkeyPatch, sandbox: GitSandbox) -> None:
+def patch_git(patch: pytest.MonkeyPatch, sandbox: GitSandbox) -> None:
     """Supply typed repository facts to the selected runtime's Git context."""
     def observations(context: GitExecutionContext) -> GitExecutionContext:
         return replace(sandbox.verified_git, executable=context.executable,
@@ -85,6 +90,32 @@ def _patch_git(patch: pytest.MonkeyPatch, sandbox: GitSandbox) -> None:
     patch.setattr(GitExecutionContext, "effective_config", effective_config)
     patch.setattr(GitExecutionContext, "metadata", project_metadata)
     patch.setattr(GitExecutionContext, "index", index)
+    _patch_release_observations(patch, observations)
+
+
+def _patch_release_observations(patch: pytest.MonkeyPatch,
+                                observations: Callable[[GitExecutionContext], GitExecutionContext]) -> None:
+    """Route the typed release observations to the sandbox's declared history."""
+    def tag_records(context: GitExecutionContext, *, cwd: Path, merged: str | None = None) -> tuple[TagRecord, ...]:
+        return observations(context).tag_records(cwd=cwd, merged=merged)
+
+    def independent_commits(context: GitExecutionContext, commits: Sequence[str], *, cwd: Path) -> tuple[str, ...]:
+        return observations(context).independent_commits(commits, cwd=cwd)
+
+    def tag_names(context: GitExecutionContext, *, cwd: Path, merged: str, not_merged: str) -> tuple[str, ...]:
+        return observations(context).tag_names(cwd=cwd, merged=merged, not_merged=not_merged)
+
+    def commit_count(context: GitExecutionContext, revision_range: str, *, cwd: Path) -> int:
+        return observations(context).commit_count(revision_range, cwd=cwd)
+
+    def listing(context: GitExecutionContext, *, cwd: Path) -> tuple[str, ...]:
+        return observations(context).listing(cwd=cwd)
+
+    patch.setattr(GitExecutionContext, "tag_records", tag_records)
+    patch.setattr(GitExecutionContext, "independent_commits", independent_commits)
+    patch.setattr(GitExecutionContext, "tag_names", tag_names)
+    patch.setattr(GitExecutionContext, "commit_count", commit_count)
+    patch.setattr(GitExecutionContext, "listing", listing)
 
 
 @dataclass(frozen=True)
@@ -139,7 +170,7 @@ class ToolingSimulation:
                 patch.setattr(bootstrap, "helper", helpers.__getitem__)
                 patch.setattr(bootstrap, "environment", lambda: dict(ENV))
                 patch.setattr(bootstrap.importlib, "import_module", import_engine)
-                _patch_git(patch, sandbox)
+                patch_git(patch, sandbox)
                 patch.setattr(cli, "stdin_is_console", lambda: console)
                 code = bootstrap.main(["--entry-kind", entry, "--", *arguments])
             stdout.flush()

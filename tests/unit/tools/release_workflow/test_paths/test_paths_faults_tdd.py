@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 @pytest.mark.parametrize("output", ["", "relative\nrelative\nrelative\n", "missing"])
 def test_malformed_metadata(output: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Malformed/truncated metadata is rejected instead of guessed."""
-    git = GitExecutionContext(tmp_path / "git.exe", (2, 31, 0), controlled_environment({}, non_interactive=True), tmp_path, non_interactive=True)
+    git = GitExecutionContext(tmp_path / "git.exe", (2, 44, 0), controlled_environment({}, non_interactive=True), tmp_path, non_interactive=True)
 
     def run(args: Sequence[str], **_kwargs: object) -> subprocess.CompletedProcess[bytes]:
         return subprocess.CompletedProcess(args, 0, b"" if "config" in args else output.encode("utf-8"), b"")
@@ -37,7 +37,7 @@ def test_malformed_metadata(output: str, tmp_path: Path, monkeypatch: pytest.Mon
 
 def test_root_resolution_error_keeps_supplied_value(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """OS failures retain the user's original root in a project diagnostic."""
-    git = GitExecutionContext(tmp_path / "git.exe", (2, 31, 0), controlled_environment({}, non_interactive=True), tmp_path, non_interactive=True)
+    git = GitExecutionContext(tmp_path / "git.exe", (2, 44, 0), controlled_environment({}, non_interactive=True), tmp_path, non_interactive=True)
 
     def fail_resolve(_path: Path, *, strict: bool = False) -> Path:
         del strict

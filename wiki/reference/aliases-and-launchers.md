@@ -116,10 +116,11 @@ repository's `senv.bat` does not call it.
 
 The v0.14.0 release foundation has two batch launchers and one native entry.
 All three run the same Python bootstrap with this checkout's recorded
-interpreter. No `release` Doskey alias is installed yet, and no release
-operation is shipped yet: every operation name ends with status 2,
+interpreter. No `release` Doskey alias is installed yet. Two operations are
+shipped, `version` and `versions` (see [Version sources](version-sources.md));
+any other operation name ends with status 2,
 `Release operation '<name>' is unavailable in this tooling checkout`, until
-its domain item registers it.
+its domain item registers it. The public statuses are 0, 1, 2 and 3.
 
 | Entry | Runs | Project selection |
 | --- | --- | --- |

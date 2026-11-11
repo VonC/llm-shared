@@ -39,6 +39,16 @@ detection set the signal they assert through ``monkeypatch`` or an explicit
 mapping; launcher acceptance already strips both through
 ``session_environment``.
 
+Fix: Hypothesis scans every newly loaded local module for constants before
+the next generated input, and its site-packages shortcut looks for
+``/site-packages/``, which a Windows path never contains, so each loaded module
+pays a physical path lookup. Run in the first property test of a worker, that
+scan cost 1 to 2.5 s of wall time and failed the lifecycle gate of tests
+whose own work takes milliseconds. Each worker now runs the scan once, right
+after collection, outside every measured lifecycle; a later lazy import adds
+only its own modules. The lookup is guarded, since the scan is Hypothesis
+internals: without it the suite runs as before.
+
 """
 
 from __future__ import annotations
@@ -77,8 +87,20 @@ settings.register_profile(
 settings.load_profile(_PROFILE)
 
 
+def _scan_hypothesis_constants() -> None:
+    """Let Hypothesis scan the collected modules for constants once, before any measured test."""
+    try:
+        from hypothesis.internal.conjecture import providers  # noqa: PLC0415
+    except ImportError:
+        return
+    scan = getattr(providers, "_get_local_constants", None)
+    if scan is not None:
+        scan()
+
+
 def pytest_collection_finish() -> None:
-    """Keep the immutable collected suite out of later cyclic-GC traversals."""
+    """Scan the collected modules once, then keep the immutable suite out of cyclic-GC traversals."""
+    _scan_hypothesis_constants()
     gc.collect()
     gc.freeze()
 

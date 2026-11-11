@@ -1,25 +1,86 @@
-"""Prove complete explicit registration and conflict-free fixed/family owners."""
+"""Prove complete explicit registration and conflict-free fixed/family owners.
+
+Step 3 of v0.14.0 version-sources ships the version domain after tooling: its
+`source:` and `component:` families are owned, and a configuration without
+them never imports the version source package, whatever earlier tests loaded.
+"""
 
 from __future__ import annotations
 
+import sys
+from typing import TYPE_CHECKING
+
 import pytest
 
+from tests.unit.tools.release_workflow.version_support import (
+    project_identity,
+    write_release_ini,
+)
+from tools.release_workflow.configuration import load_configuration
 from tools.release_workflow.schemas import (
+    SHIPPED_SCHEMAS,
     TOOLING_SCHEMA,
+    VERSION_SCHEMA,
     DomainSchema,
     SchemaError,
     SchemaRegistry,
     SectionSchema,
     ValueRule,
 )
+from tools.release_workflow.sources import settings
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from tools.release_workflow.schemas import ConfigSections
+
+_SOURCES = "tools.release_workflow.sources"
 
 
-def test_foundation_ships_only_tooling() -> None:
-    """Future release-domain settings remain unavailable until their owner ships."""
+def _source_modules() -> list[str]:
+    """Name the loaded modules of the version source package."""
+    return [name for name in sys.modules if name == _SOURCES or name.startswith(_SOURCES + ".")]
+
+
+def _unload_sources(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Remove the source modules for this test only; teardown restores them."""
+    for name in _source_modules():
+        monkeypatch.delitem(sys.modules, name)
+
+
+def test_foundation_ships_tooling_then_version() -> None:
+    """The shipped tuple is exactly tooling then version; version owns two families."""
     registry = SchemaRegistry()
-    assert registry.schemas == (TOOLING_SCHEMA,)
+    assert SHIPPED_SCHEMAS == (TOOLING_SCHEMA, VERSION_SCHEMA)
+    assert registry.schemas == SHIPPED_SCHEMAS
     assert registry.section("tooling") is not None
     assert registry.section("version") is None
+    owners = (registry.section("source:npm"), registry.section("component:frontend"))
+    assert [owner.domain if owner else None for owner in owners] == ["version", "version"]
+
+
+@pytest.mark.parametrize("text", ["", "[tooling]\n"])
+def test_configuration_without_version_sections_imports_no_source_module(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, text: str) -> None:
+    """The version validator returns before its deferred import when no version section exists."""
+    _unload_sources(monkeypatch)
+    if text:
+        write_release_ini(tmp_path, text)
+    load_configuration(project_identity(tmp_path))
+    assert _source_modules() == []
+
+
+def test_version_section_runs_the_deferred_validator(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A declared version section is handed, once, to the source settings validator.
+
+    The module is replaced in place rather than unloaded: reloading it would
+    leave classes that differ from the ones other tests imported.
+    """
+    calls: list[ConfigSections] = []
+    monkeypatch.setattr(settings, "validate_settings", calls.append)
+    write_release_ini(tmp_path, "[component:app]\nroot = app\n")
+    configuration = load_configuration(project_identity(tmp_path))
+    assert calls == [configuration.sections]
+    assert configuration.sections["component:app"]["root"].value == tmp_path / "app"
 
 
 def test_missing_or_substituted_shipped_owner_is_rejected() -> None:

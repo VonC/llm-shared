@@ -3,6 +3,8 @@
 Lock-only cases start with a prepared authorized home and declared process and
 transition observations. Contention is scheduled at the transition boundary;
 the Windows adapter has its own API contract tests, without native waits here.
+Step 1 of v0.14.0 version-sources: ``verify_held`` accepts only the current
+holder in this process, for the declared project root and artifact home.
 """
 
 from __future__ import annotations
@@ -16,6 +18,7 @@ import pytest
 
 from tools.release_workflow import operation_lock, windows_process
 from tools.release_workflow.artifacts import (
+    ArtifactDeclaration,
     PreparedArtifacts,
     prepare_artifacts,
     resolve_artifacts,
@@ -280,6 +283,55 @@ def test_failed_retention_and_transfer_keep_previous_ownership(artifacts: Prepar
             successor.transfer(proof)
     successor.transfer(proof)
     successor.release()
+
+
+def _declaration(project: ProjectIdentity, home: Path) -> ArtifactDeclaration:
+    """Declare an artifact home the way invocation preflight resolves it."""
+    return ArtifactDeclaration(project, authorize_write(project, ".review-artifacts.ini"), authorize_write(project, home), declared=False)
+
+
+def test_verify_held_returns_the_prepared_home(artifacts: PreparedArtifacts) -> None:
+    """The current holder gets back the capability its lock was taken with."""
+    owner = OperationLock(artifacts).acquire()
+    assert owner.verify_held(_declaration(artifacts.project, artifacts.home)) is artifacts
+    owner.release()
+
+
+_REJECTIONS = {
+    "released": "not held by this handle", "retained": "not held by this handle",
+    "process": "not the current process", "project": "another project root",
+    "home": "declared artifact home", "replaced": "not owned by this handle",
+}
+
+
+@pytest.mark.parametrize("case", list(_REJECTIONS))
+def test_verify_held_rejects_an_unbound_handle(case: str, artifacts: PreparedArtifacts, tmp_path: Path,
+                                               monkeypatch: pytest.MonkeyPatch) -> None:
+    """A lifecycle caller's lock must be held here, now, for this project's home."""
+    owner = OperationLock(artifacts).acquire()
+    declaration = _declaration(artifacts.project, artifacts.home)
+    record = artifacts.home / "a.release-operation.lock"
+    if case == "released":
+        owner.release()
+    elif case == "retained":
+        owner.retain("build")
+    elif case == "process":
+        monkeypatch.setattr(operation_lock, "current_identity", lambda: ProcessIdentity(43, 123))
+    elif case == "project":
+        root = tmp_path / "other-project"
+        (root / ".reviews").mkdir(parents=True)
+        other = ProjectIdentity(root, root / ".git", root / ".git", str(root))
+        declaration = _declaration(other, root / ".reviews")
+    elif case == "home":
+        declaration = _declaration(artifacts.project, artifacts.project.root / "other-home")
+    else:
+        replaced = json.loads(record.read_bytes())
+        replaced["pid"] = 43
+        record.write_text(json.dumps(replaced), encoding="utf-8")
+    before = record.read_bytes() if record.exists() else None
+    with pytest.raises(OperationLockError, match=_REJECTIONS[case]):
+        owner.verify_held(declaration)
+    assert (record.read_bytes() if record.exists() else None) == before
 
 
 # eof

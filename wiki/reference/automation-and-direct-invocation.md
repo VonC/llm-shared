@@ -83,13 +83,15 @@ This section is the contract an automation relies on.
 
 ### Availability boundary of the foundation
 
-This version ships the foundation only: runtime readiness, project and Git
+This version ships the foundation (runtime readiness, project and Git
 identity, strict configuration, read-only artifact resolution, managed writes,
-the project operation lock, input transport and result rendering. No release
-operation is registered, so every operation ends with status 2. Version
-sources, changelog generation, release transactions, installation and
-upgrades, the move of existing build and `senv` callers, alias installation and
-consumer cutover belong to later items of the sibling release tooling effort.
+the project operation lock, input transport and result rendering) and two
+operations: `version` and `versions`, described in
+[Version sources](version-sources.md). Any other operation name ends with
+status 2, `Release operation '<name>' is unavailable in this tooling checkout`.
+Changelog generation, release transactions, installation and upgrades, the
+move of existing build and `senv` callers, alias installation and consumer
+cutover belong to later items of the sibling release tooling effort.
 
 ### Runtime readiness and its repair
 
@@ -158,6 +160,7 @@ only one that accepts `--text`.
 | `0` | the operation succeeded |
 | `1` | the operation failed or was interrupted; any other child status becomes 1, with the original status in a diagnostic |
 | `2` | the invocation, the preflight or the runtime readiness failed; no operation ran |
+| `3` | a version transition's restoration is incomplete: a stop that requires recovery, never a failure to retry ([Version sources](version-sources.md#statuses-of-the-version-commands)) |
 
 Standard output carries operation data, standard error carries diagnostics;
 both are UTF-8 with LF line endings. The batch launchers switch the console

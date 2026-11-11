@@ -8,6 +8,11 @@ interpreter and repository ports. Every failed or read-only call leaves the
 consumer and tooling trees byte-identical; a mutation writes only its managed
 target and the prepared artifact home. Real launcher, console and process
 evidence comes from the separate host probe, outside pytest.
+
+Step 9 of v0.14.0 version-sources ships exactly `version` and `versions`; the
+acceptance handler names stay unavailable through production bootstrap, and
+an installed launcher's `version` on a project without `version.txt` returns
+its status 2 without any fallback.
 """
 
 from __future__ import annotations
@@ -164,9 +169,9 @@ def test_mutation_writes_only_its_target_and_home(launcher_tooling: ToolingSimul
 @pytest.mark.parametrize("name", _ACCEPTANCE_NAMES)
 def test_shipped_registry_rejects_acceptance_names(name: str, launcher_tooling: ToolingSimulation, git_sandbox: GitSandbox,
                                                    lock_facts: LockFacts) -> None:
-    """Only in-process injection reaches the acceptance handlers; production has none."""
+    """Only in-process injection reaches the acceptance handlers; production ships the version pair only."""
     assert set(handlers(lock_facts)) == set(_ACCEPTANCE_NAMES)
-    assert not cli.SHIPPED_HANDLERS
+    assert set(cli.SHIPPED_HANDLERS) == {"version", "versions"}
     result = launcher_tooling.run([name, "--project-root", str(git_sandbox.home / "B")], sandbox=git_sandbox,
                                   cwd=git_sandbox.home, handlers=None)
     assert result.returncode == _INVALID

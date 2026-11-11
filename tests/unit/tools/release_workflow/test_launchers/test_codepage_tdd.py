@@ -1,13 +1,24 @@
-"""Source contracts for batch-only behavior; no shell execution or emulation."""
+"""Source contracts for batch-only behavior; no shell execution or emulation.
+
+Step 1 of v0.14.0 version-sources: both launchers pass status 3 through, and
+one cross-site contract (plan decision Q12) reads the statuses accepted by
+``results.render``, ``bootstrap.main`` and both launchers as values and
+requires the same set, so a later status cannot reach only some sites.
+"""
 
 from __future__ import annotations
 
+import ast
+import re
 from pathlib import Path
 
 import pytest
 
 _ROOT = Path(__file__).resolve().parents[5]
 _CODEPAGE_OPERATIONS = 3
+_LAUNCHERS = ("release_workflow.bat", "release_alias.bat")
+_PUBLIC_STATUSES = frozenset({0, 1, 2, 3})
+_STATUS_LINE = re.compile(r'^if "%_release_status%"=="(\d+)" goto cleanup$', re.MULTILINE)
 
 
 @pytest.mark.parametrize(("launcher", "entry"), [
@@ -81,9 +92,50 @@ def test_native_status_normalization_source(launcher: str) -> None:
         'if "%_release_status%"=="0" goto cleanup\n'
         'if "%_release_status%"=="1" goto cleanup\n'
         'if "%_release_status%"=="2" goto cleanup\n'
+        'if "%_release_status%"=="3" goto cleanup\n'
         '>&2 echo Release operation exited with native status %_release_status%; returning 1.\n'
         'set "_release_status=1"\ngoto cleanup\n'
     ) in source
+
+
+def _python_statuses(source: str, function: str) -> frozenset[int]:
+    """Evaluate the one set literal a top-level function checks its status against."""
+    functions = {item.name: item for item in ast.parse(source).body if isinstance(item, ast.FunctionDef)}
+    literal, = (item for item in ast.walk(functions[function]) if isinstance(item, ast.Set))
+    return frozenset(ast.literal_eval(literal))
+
+
+def _site_statuses(sources: dict[str, str]) -> dict[str, frozenset[int]]:
+    """Map each of the four sites to the statuses it passes through."""
+    statuses = {"results.render": _python_statuses(sources["results.py"], "render"),
+                "bootstrap.main": _python_statuses(sources["bootstrap.py"], "main")}
+    statuses.update({name: frozenset(int(value) for value in _STATUS_LINE.findall(sources[name])) for name in _LAUNCHERS})
+    return statuses
+
+
+def _sources() -> dict[str, str]:
+    """Read the four status normalization sites as text."""
+    sources = {name: (_ROOT / "tools/release_workflow" / name).read_text(encoding="utf-8") for name in ("results.py", "bootstrap.py")}
+    sources.update({name: (_ROOT / "bin" / name).read_text(encoding="utf-8") for name in _LAUNCHERS})
+    return sources
+
+
+def test_public_statuses_agree_across_sites() -> None:
+    """The renderer, the bootstrap and both launchers accept the same statuses."""
+    assert _site_statuses(_sources()) == dict.fromkeys(("results.render", "bootstrap.main", *_LAUNCHERS), _PUBLIC_STATUSES)
+
+
+@pytest.mark.parametrize(("site", "original", "changed"), [
+    ("release_alias.bat", 'if "%_release_status%"=="3" goto cleanup\n', ""),
+    ("results.py", "{0, 1, 2, 3}", "{0, 1, 2}"),
+])
+def test_status_contract_detects_one_changed_site(site: str, original: str, changed: str) -> None:
+    """A synthetic copy that drops status 3 at one site breaks the agreement."""
+    sources = _sources()
+    assert original in sources[site]
+    sources[site] = sources[site].replace(original, changed)
+    statuses = _site_statuses(sources)
+    assert set(statuses.values()) == {_PUBLIC_STATUSES, frozenset({0, 1, 2})}
 
 
 def test_runtime_record_producer_source() -> None:
