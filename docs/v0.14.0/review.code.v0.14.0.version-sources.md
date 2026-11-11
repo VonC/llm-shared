@@ -5639,3 +5639,452 @@ Human choice: Commit
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-2 -->
+
+## Round 1 by requestor - Step 9
+
+- Recorded: 2026-11-11T14:42:22+01:00
+- Exchange: code/code/v0.14.0/version-sources
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.version-sources.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: unrecorded
+- Implementation step: 9
+- Outcome: request
+
+### Review identity for step 9 version-sources (round 1)
+
+Umbrella draft: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+Implementation plan: docs/v0.14.0/plan.v0.14.0.version-sources.md
+Implementation step: 9
+Review round: 1
+
+### Code review evidence for step 9 version-sources (round 1)
+
+request_index_tree: 109d4e200b886b36d7a4272254bf978dde2fc534
+resolved_validation_set:
+
+- `ghog day --full=speed --whole-suite` (sources: project)
+
+test_scope:
+{"fingerprint": "686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6", "group": null, "proof": "speed", "requirement": "docs/v0.14.0/feature-request.v0.14.0.version-sources.md", "scope": "whole"}
+
+commit_plan_result:
+
+```text
+state: valid
+ready: true
+group 1: feat(release): ship version and versions commands
+group 1 path: tools/release_workflow/versions.py
+group 1 path: tools/release_workflow/cli.py
+group 1 path: tools/release_workflow/sources/anchor.py
+group 1 path: tests/unit/tools/release_workflow/launcher_simulation.py
+group 1 path: tests/unit/tools/release_workflow/version_support.py
+group 1 path: tests/unit/tools/release_workflow/test_cli/test_cli_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_release_acceptance/test_release_acceptance_tdd.py
+group 1 path: tests/unit/tools/release_workflow/test_version_commands/__init__.py
+group 1 path: tests/unit/tools/release_workflow/test_version_commands/test_version_commands_tdd.py
+group 2: test(release): run version acceptance end to end
+group 2 path: tests/unit/tools/release_workflow/test_version_acceptance/__init__.py
+group 2 path: tests/unit/tools/release_workflow/test_version_acceptance/test_version_acceptance_tdd.py
+group 2 path: tests/unit/tools/release_workflow/test_version_acceptance/test_version_range_acceptance_tdd.py
+group 3: docs(wiki): document the version commands
+group 3 path: wiki/reference/version-sources.md
+group 3 path: wiki/reference/automation-and-direct-invocation.md
+group 3 path: wiki/reference/aliases-and-launchers.md
+group 3 path: wiki/README.md
+group 4: docs(version-sources): record step 9 validation
+group 4 path: docs/v0.14.0/plan.v0.14.0.version-sources.validation.md
+group 4 path: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+staged path: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+staged path: docs/v0.14.0/plan.v0.14.0.version-sources.validation.md
+staged path: tests/unit/tools/release_workflow/launcher_simulation.py
+staged path: tests/unit/tools/release_workflow/test_cli/test_cli_tdd.py
+staged path: tests/unit/tools/release_workflow/test_release_acceptance/test_release_acceptance_tdd.py
+staged path: tests/unit/tools/release_workflow/test_version_acceptance/__init__.py
+staged path: tests/unit/tools/release_workflow/test_version_acceptance/test_version_acceptance_tdd.py
+staged path: tests/unit/tools/release_workflow/test_version_acceptance/test_version_range_acceptance_tdd.py
+staged path: tests/unit/tools/release_workflow/test_version_commands/__init__.py
+staged path: tests/unit/tools/release_workflow/test_version_commands/test_version_commands_tdd.py
+staged path: tests/unit/tools/release_workflow/version_support.py
+staged path: tools/release_workflow/cli.py
+staged path: tools/release_workflow/sources/anchor.py
+staged path: tools/release_workflow/versions.py
+staged path: wiki/README.md
+staged path: wiki/reference/aliases-and-launchers.md
+staged path: wiki/reference/automation-and-direct-invocation.md
+staged path: wiki/reference/version-sources.md
+```
+
+### Validation scope for step 9 version-sources (round 1)
+
+Validation scope: the whole suite.
+
+### Requestor assessment for step 9 version-sources (round 1)
+
+Writer assessment for Step 9 of the version-sources plan, round 1: the step is
+fully implemented, and its implementation check records
+`Yes. Step 9 has been fully implemented.` in the staged validation plan, which
+now reads `Yes, it is implemented.`; the umbrella row of `version-sources` is
+completed with its requirement and validation plan paths.
+
+Evidence, all on the staged tree:
+
+- Tests first: with the production changes set aside, `ghog single` on the
+  step 9 leaves failed at collection (`ModuleNotFoundError:
+  tools.release_workflow.versions`, exit 4). After the implementation they
+  passed (295 tests with the affected leaves).
+- `ghog day --whole-suite`, the command printed by `pw scope day`, exit 0
+  after check.bat findings on deferred imports (rewrapped by `ruff --fix`).
+- `ghog day --full=cov --whole-suite`, the completion criterion, exit 0 with
+  `cov=100` (6442 tests), after adding the page's `## Invocation model`
+  section and reshaping two CRLF `set` rows that exceeded the lifecycle CPU
+  budget. One unrelated flake, `test_lifecycle_cpu_band.py::
+  test_the_gate_records_proofs_and_the_drift_guard_drops_them`, failed in one
+  full run and passed in focus and in the next runs.
+- Review validation, `ghog day --full=speed --whole-suite` (the built-in
+  default; no `.review-validation`): exit 0 with `cov=100 outliers=0
+  excluded=0 proof=speed` (6444 tests), on index tree
+  `109d4e200b886b36d7a4272254bf978dde2fc534`. No budget was changed and no
+  exclusion is accepted.
+- `rg -n 'cliff' tools/release_workflow` finds nothing; the two existing
+  reference pages keep `unavailable in this tooling checkout` only for any
+  other operation name. Every Python file stays below 650 lines
+  (`versions.py` 223, the largest test file 484).
+- Markdown check and cSpell on the six staged Markdown files: clean.
+
+Architecture: `versions.py` is the command layer over the domain modules; it
+never imports `cli`, which only wires the two handlers, and the transition's
+side effects stay behind `TransitionPorts`. Performance: each read command
+reads each source once and lists the artifact home once; `list` adds one Git
+listing and `range` keeps the selector's four calls. Feature integrity: every
+other operation name stays unavailable, and no existing caller is switched.
+
+Please check in particular: the token validator and the CLI's refusal before
+any Git context; the status each error keeps (`exit_code`, 1 otherwise); the
+stdout formats against the design's output contract; whether the acceptance
+covers every design row, including the replay of the recorded lock evidence;
+the handler-location deviation; and the reference page against the code.
+
+### Implementation report for step 9 version-sources (round 1)
+
+Step 9, "Version commands, integrated acceptance and documentation", ships
+the `version` and `versions` commands over the domain of steps 1 to 8, runs
+the design's acceptance matrix end to end and documents the commands. It is
+the last step of the plan.
+
+Commands, `tools/release_workflow/versions.py`:
+
+- `validate_versions(tokens)`: a `match` on the trailing tokens accepts
+  `list`, `check`, `range`, `set <token>` (parsed by `VersionToken.parse`)
+  and `range <tag>` (a `tags.StableName`); anything else raises `ValueError`
+  with the expected forms. The CLI runs it right after parsing, so a refused
+  token is status 2 before any identity load, Git context or file read.
+- `show_version(context)`: lists the artifact home for leftover evidence,
+  then `anchor.read_document(root, FileView())` and prints
+  `token\ntitle\n\nnotes`.
+- `VersionsCommand(ports=None)`: `__call__` copies `VersionInputs` from the
+  context; `set` calls `version_transition.set_versions` with these ports
+  (the production `DEFAULT_PORTS` when `None`) and prints
+  `path field old new` per change, `version.txt` last, or `unchanged`; a
+  nonzero outcome adds `versions set <t> failed: <outcome>`. The read
+  operations (`_list`, `_check`, `_range`) get the leftover-evidence
+  warnings first; `list` prints a header, the participating sources, the
+  tool-only records and the undeclared candidates from one view and one Git
+  listing; `check` derives each expected value from the anchor source's
+  token and returns 1 with a diagnostic on drift; `range` prints the four
+  `key=value` lines and passes the selector's warnings to stderr.
+- `_failed`: a refused command keeps the status of its error's `exit_code`
+  (every domain error is a `ValueError`), 1 when it carries none.
+- `leftover_warnings`: one `find_evidence` listing, one warning per directory
+  with its kind and remedy.
+- Imports: only `results` at module level; each function imports the domain
+  modules it uses, one line each (check.bat's `ruff --fix` rewraps import
+  lines over 88 characters, so they import modules, not names).
+
+Registry, `tools/release_workflow/cli.py`: `SHIPPED_HANDLERS` maps `version`
+to `Handler(versions.show_version)` and `versions` to
+`Handler(versions.VersionsCommand(), validate_arguments=versions.validate_versions)`.
+The plan placed `VERSION_HANDLER` and `VERSIONS_HANDLER` in `versions`; that
+module would then import `cli` while `cli` imports it, a cycle that fails when
+`versions` is imported first. The deviation is recorded in the validation
+plan, and a test pins the shipped values.
+
+`sources/anchor.py`: `read_document(root, view)` holds the read the adapter
+already did, so `version` and the adapter share the missing and malformed
+messages.
+
+Tests and support:
+
+- `launcher_simulation._patch_git` is now public `patch_git`.
+- `version_support`: `run_command` runs one command through `cli.main` for
+  repository A with that simulated Git and captured streams;
+  `command_project` writes the files and `.release.ini` without loading them
+  and declares the listing; `version_registry(ports)` is the shipped registry
+  with `VersionsCommand(ports)`, the plan decision Q07 seam.
+- `test_version_commands/`: each command's exact output, status and Git
+  calls; ten refused token lists with identity and Git context creation
+  patched to fail; warnings for each read command and each evidence kind;
+  refusals, an evidence write failure and status 3.
+- `test_version_acceptance/test_version_acceptance_tdd.py`: AC1 to AC12 with
+  whole-tree snapshots for read commands, refusals and failures; the
+  recorded uv and npm evidence replayed through `versions set`; seven
+  launcher cases through `ToolingSimulation.run` covering each command and
+  statuses 0 to 3.
+- `test_version_acceptance/test_version_range_acceptance_tdd.py`: AC13 to
+  AC15 through `versions range`, the release-version rule and `set` not
+  applying it.
+- `test_release_acceptance_tdd.py`, `test_cli_tdd.py`: the shipped registry is
+  exactly the version pair.
+
+Docs: the new `wiki/reference/version-sources.md`, the shipped pair and status
+3 in `automation-and-direct-invocation.md` and `aliases-and-launchers.md`, and
+a link in `wiki/README.md`. The validation plan records Step 9 and flips to
+`Yes, it is implemented.`; the umbrella row of `version-sources` is completed.
+
+Writer notes: `.reviews/a.version-sources.step9.journal.md` and
+`.reviews/a.version-sources.step9.handoff.md`.
+
+### Change summary for step 9 version-sources (round 1)
+
+Staged paths (18), grouped in the root `a.commit` (four groups, checker
+`ready: true`):
+
+1. `feat(release): ship version and versions commands`:
+   `tools/release_workflow/versions.py`, `tools/release_workflow/cli.py`,
+   `tools/release_workflow/sources/anchor.py`,
+   `tests/unit/tools/release_workflow/launcher_simulation.py`,
+   `tests/unit/tools/release_workflow/version_support.py`,
+   `tests/unit/tools/release_workflow/test_cli/test_cli_tdd.py`,
+   `tests/unit/tools/release_workflow/test_release_acceptance/test_release_acceptance_tdd.py`,
+   `tests/unit/tools/release_workflow/test_version_commands/__init__.py`,
+   `tests/unit/tools/release_workflow/test_version_commands/test_version_commands_tdd.py`.
+2. `test(release): run version acceptance end to end`:
+   `tests/unit/tools/release_workflow/test_version_acceptance/__init__.py`,
+   `tests/unit/tools/release_workflow/test_version_acceptance/test_version_acceptance_tdd.py`,
+   `tests/unit/tools/release_workflow/test_version_acceptance/test_version_range_acceptance_tdd.py`.
+3. `docs(wiki): document the version commands`:
+   `wiki/reference/version-sources.md`,
+   `wiki/reference/automation-and-direct-invocation.md`,
+   `wiki/reference/aliases-and-launchers.md`, `wiki/README.md`.
+4. `docs(version-sources): record step 9 validation`:
+   `docs/v0.14.0/plan.v0.14.0.version-sources.validation.md` (Step 9
+   sections, document status), `docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md`
+   (umbrella row 2 completed).
+
+Steps 1 to 8 are committed and pushed (`a7c0d7c` to `79d9a75`) and are not
+part of this review.
+
+### Writer response for step 9 version-sources (round 1)
+
+Writer response:
+
+This is the first round of the Step 9 code review; there is no earlier
+reviewer feedback to answer.
+
+Choices worth checking, all recorded in the validation plan or the step notes:
+
+- The two `Handler` values are built in `cli.py`, not exported by `versions`
+  as the plan wrote, to avoid an import cycle; `test_version_commands` pins
+  them.
+- Fault injection through the CLI uses `VersionsCommand(ports)` in an
+  explicit registry (plan decision Q07). Lock contention needs it too: the
+  production probe would recover the declared fake owner as dead.
+- `check` prints no header (the design names one for `list` only); `set`
+  prints `path field old new`; a failed `set` ends with
+  `versions set <t> failed: <outcome>`; the leftover warning names the
+  evidence kind and its remedy; `range` warnings stay as the selector words
+  them.
+- An error without `exit_code` (a lock error, a Git policy error) is status 1;
+  an `OSError` escapes to the dispatcher's status 1 as before.
+- The lifecycle row (a lock of another project) is tested in process,
+  because only item 5 reaches the primitive with a lifecycle lock.
+- Two CRLF `set` rows check each source byte for byte and the artifact home
+  listing instead of whole trees, to stay inside the 0.1 second lifecycle
+  CPU budget: a five-file `set` costs about that much, mostly in the
+  foundation's path authorization of managed writes. The every-adapter
+  project uses a pattern source on a POM property, which also composes two
+  adapters' fields in one file.
+- `version` on a project without `version.txt` through an installed launcher
+  now returns status 2 for the missing anchor; the reference caller test
+  keeps its expectation (status 2 propagates without fallback).
+
+### Reviewer focus for step 9 version-sources (round 1)
+
+Check the exact plan step, staged implementation, test evidence, repaired path inventory, and a.commit accuracy.
+
+<!-- review-entry-id: request-step-9-round-1 -->
+
+## Round 1 by reviewer - Step 9
+
+- Recorded: 2026-11-11T14:52:10+01:00
+- Exchange: code/code/v0.14.0/version-sources
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.version-sources.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 9
+- Outcome: answer
+
+### Assessed index identity for step 9 version-sources (exchange 1) (round 1)
+
+Baseline index tree: 109d4e200b886b36d7a4272254bf978dde2fc534
+
+Assessed index tree: 37d706b26ae0676f28f547a1e207715535de281f
+
+### Implementation check for step 9 version-sources (exchange 1) (round 1)
+
+Result:
+
+Yes. Step 9 has been fully implemented.
+
+The staged handlers expose `version`, `versions list`, `check`, `set` and
+`range` through the production dispatcher. The argument validator runs before
+runtime identity and Git context creation. Output matches the design's token,
+tab-separated record and key/value contracts; domain statuses and transition
+status 3 survive rendering. Read commands warn about retained evidence and use
+the read-only artifact declaration.
+
+The new `VersionsCommand` delegates mutations to `set_versions` through
+`TransitionPorts`; `show_version` shares `anchor.read_document` with detection.
+Constructing the two `Handler` values in `cli.py` avoids an import cycle and
+preserves the planned registry contract. No DDD-Hexagonal violation or
+architecture correction was found.
+
+The command tests exercise malformed arguments, exact outputs, drift,
+same-target writes, refusals, evidence warnings and error propagation. The
+acceptance tests cover the design rows across source arrangements, recorded
+uv/npm pairs, restoration, incomplete restoration, contention, interruption,
+cleanup and tag eligibility. Launcher cases carry every command and statuses
+0 through 3 through bootstrap and rendering. Existing adapter completeness
+and recorded tool evidence remain owned by their earlier test packages.
+
+Coverage assessment is static: the gate measures `tools`, omitting tests,
+initializers and ports. The changed production paths have corresponding unit
+tests, and every added test-support symbol has references. No untested branch
+or unreferenced top-level helper was identified. The reported whole-suite
+100% result is writer evidence, not an independently rerun percentage.
+
+Rendering and inventory processing are linear; discovery and range queries
+retain their bounded domain calls. No performance issue or impaired existing
+feature was found. The reference pages describe the shipped commands, formats,
+statuses, configuration, supported layouts and recovery limits accurately.
+
+Validation plan effects:
+
+Added only an independent round-1 assessment paragraph beneath the exact
+`Yes. Step 9 has been fully implemented.` sentence. The rest of the validation
+plan and its document-level status were preserved. The writer's staged
+umbrella completion was assessed read-only; the reviewer changed no umbrella
+row. No missing-work section is required for this Yes result.
+
+### Pre-repair mandatory checks and coverage for step 9 version-sources (exchange 1) (round 1)
+
+Baseline index matched request tree
+`109d4e200b886b36d7a4272254bf978dde2fc534`. The bound scope fingerprint is
+`686958cdf490661b3207a810e06364a48e923f6bf1c8c33c9a555c7f23cc75b6`
+(whole suite). Independent commit-plan-check was valid and ready with all 18
+staged paths and no diagnostics. The validation plan's pre-edit blob is
+`3bafc3309c9a0dcb8fc7985e64ae534604e0e583`.
+
+The request records successful whole-suite speed validation on that exact
+index: 6444 tests, cov=100, outliers=0, excluded=0. The reviewer did not run
+ghog day, ghog full, coverage, or additional focused tests; static assessment
+was sufficient for this round.
+
+### Resolved validation set and sources for step 9 version-sources (exchange 1) (round 1)
+
+Request and current resolver: `ghog day --full=speed --whole-suite`, source
+`project`. Sampled `.review-validation` as absent. The built-in default
+`ghog day --full=speed` is completed with the whole-suite selector, as defined
+by `complete_project_default`; no plan or request additions were declared.
+These commands are requestor-owned validation evidence and were not rerun.
+
+### Resolver drift and direction for step 9 version-sources (exchange 1) (round 1)
+
+None. Request and current resolver commands, order, scope and source agree;
+neither additions nor removals were found.
+
+### Repository state around validation for step 9 version-sources (exchange 1) (round 1)
+
+The umbrella digest comparison reports changed=false. The validation-state
+comparison names only the reviewed validation plan and `<index>` as changed;
+both are explained by staging the attributable eight-line Step 9 review
+paragraph. No other tracked, untracked or ignored validation side effect was
+reported. The generic comparison's acceptable=false reflects those expected
+metadata changes, which are permitted by reviewer assessment mode.
+
+The attribution helper reports attributable=true against the retained blob;
+only its patch was applied to the index. The retained manifest now records
+the resulting assessed index and validation-after state. No implementation,
+test, umbrella or commit grouping change was made by the reviewer.
+
+### Repair inventory for step 9 version-sources (exchange 1) (round 1)
+
+Repairs made:
+
+- Polishing-only review metadata: added the independent assessment paragraph
+  to `docs/v0.14.0/plan.v0.14.0.version-sources.validation.md`. No substantive
+  repair was made.
+
+Paths staged:
+
+- `docs/v0.14.0/plan.v0.14.0.version-sources.validation.md` (only the attributable
+  Step 9 reviewer paragraph; existing writer staging was preserved).
+
+### Commit plan assessment for step 9 version-sources (exchange 1) (round 1)
+
+Independent commit-plan-check reports state=valid, ready=true, 18 staged paths
+and diagnostics=[]. It remains valid after staging the review metadata.
+The four ordered groups remain accurate:
+
+1. `feat(release): ship version and versions commands`
+2. `test(release): run version acceptance end to end`
+3. `docs(wiki): document the version commands`
+4. `docs(version-sources): record step 9 validation`
+
+The production, test-support and unit-test changes form the first group;
+integrated acceptance, reference documentation and validation/umbrella
+evidence follow. All staged paths belong to the reviewed step. `a.commit`
+was not changed.
+
+### Findings and boundaries for step 9 version-sources (exchange 1) (round 1)
+
+Unresolved findings: None.
+
+Boundary-crossing work: None.
+
+### Writer instructions for step 9 version-sources (exchange 1) (round 1)
+
+No rework is requested. The requestor may consume this advisory answer and
+present the durable human Commit gate. This answer authorizes no commit.
+
+### Decision rationale for step 9 version-sources (exchange 1) (round 1)
+
+All six readiness-floor results pass: exact request identity and baseline;
+complete Step 9 implementation; matching requestor validation evidence and
+static coverage assessment; attributable staged scope; no unresolved findings;
+and accurate, mechanically valid `a.commit` grouping. The only reviewer edit
+is permitted review metadata. Recommend commit-ready, subject to the human
+gate; no commit has been performed or authorized by this reviewer.
+
+### Final reviewer decision for step 9 version-sources (exchange 1) (round 1)
+
+Decision: commit-ready (advisory). The evidence floor is complete, but this recommendation does not authorize a commit; authority remains at the durable human gate.
+
+<!-- review-entry-id: answer-step-9-round-1 -->
+
+## Round 1 by human - Step 9 - human-confirmation
+
+- Recorded: 2026-11-11T16:19:34+01:00
+- Exchange: code/code/v0.14.0/version-sources
+- Umbrella: docs/v0.14.0/draft.v0.14.0.sibling_release_tooling.md
+- Reviewed document: docs/v0.14.0/plan.v0.14.0.version-sources.md
+- Requestor LLM nature: claude
+- Reviewer LLM nature: codex
+- Implementation step: 9
+- Outcome: human-confirmation
+
+Human choice: Commit
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-1 -->
