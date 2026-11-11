@@ -294,6 +294,12 @@ warnings-as-errors.
 The current per-test ceiling, accepted measured CPU exceptions, eligible proof,
 band-top pass and consecutive-drift withdrawal rules remain unchanged. Only a
 passing call with no other phase failure contributes a measured observation.
+Following the maintainer's 2026-11-11 amendment (plan Step 8), timing fails
+only when measured CPU exceeds this effective per-test limit. CPU at or below
+the limit passes timing regardless of wall duration. The wall setting remains
+a finite positive reporting reference, and both measurements stay available.
+Functional and process-audit failures and groundhog's separate call-duration
+speed policy retain their existing verdicts.
 Preserve report properties, failure text, both clocks, ceiling basis and the
 documented `lifecycle CPU band` summary. Existing failures are not overwritten
 by a second budget failure.

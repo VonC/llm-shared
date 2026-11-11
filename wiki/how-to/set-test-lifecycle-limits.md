@@ -38,7 +38,9 @@ ceiling no longer holds, so those tests are strict until a run brings them
 under it. Raising the ceiling is a project decision like raising any budget;
 it must not conceal an individual slow test. For initial adoption, choose a
 temporary higher project limit based on measured costs, then reduce it
-gradually as offenders are fixed. Keep both limits finite and positive; no
+gradually as offenders are fixed. CPU at or below the effective limit passes
+lifecycle timing even when wall time exceeds `test_lifecycle_wall_limit`.
+Keep that wall setting as a reporting reference. Keep both settings finite and positive; no
 disabled, report-only or grace mode exists.
 
 To enumerate all offenders, use a complete run without file, keyword or marker

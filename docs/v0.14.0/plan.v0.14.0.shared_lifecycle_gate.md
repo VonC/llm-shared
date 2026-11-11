@@ -1,7 +1,7 @@
 # v0.14.0 shared lifecycle gate implementation plan
 
 Extract the settled policies, connect prepared environments, and validate the
-consumer boundary without changing the approved enforcement contracts.
+consumer boundary, including the approved CPU timing amendment in Step 8.
 
 ## The pytest plugin mechanism this plan implements
 
@@ -10,7 +10,8 @@ with consuming projects. A pytest plugin is a Python module registered to
 receive execution hooks: the timer measures setup through teardown, and the
 audit uses lifecycle and fixture boundaries to enforce process permissions.
 The plugins run in the consumer's pytest interpreter; llm-shared is not
-installed as a package into that environment. Implementation has not started.
+installed as a package into that environment. Steps 1-7 are implemented;
+Step 8 adds the CPU-under-budget timing pass requested on 2026-11-11.
 
 For an ordinary project, the runtime sequence is:
 
@@ -50,7 +51,8 @@ explains the component boundaries and loader cache in more detail.
 Implement the [requirement](feature-request.v0.14.0.shared_lifecycle_gate.md)
 and [settled design](design.v0.14.0.shared_lifecycle_gate.md). Their decisions
 remain authoritative. This plan assigns implementation files and verification
-work; it does not change policy, defaults, activation scope or permission rules.
+work, including the approved CPU timing amendment. Defaults, activation scope
+and permission rules remain unchanged.
 
 1. Extract the standalone lifecycle gate and preserve its record contracts.
 2. Implement independent process auditing and fixture ownership.
@@ -59,6 +61,7 @@ work; it does not change policy, defaults, activation scope or permission rules.
 5. Prepare every groundhog pytest child through the same activation contract.
 6. Add recurring executable Python 3.12 compatibility preflight.
 7. Complete acceptance evidence, anonymous consumer trial and documentation.
+8. Make CPU within the effective budget pass lifecycle timing despite wall excess.
 
 Persistent consumer adoption, speed-verdict changes, additional shared plugins,
 Linux/macOS acceptance, and changes to llm-shared's Python requirement remain
@@ -879,6 +882,46 @@ unrun obligations accurately; do not claim acceptance from default day alone.
 - [ ] Time-gated status: no remaining xfails, hung children, missing interpreter
   evidence or skipped acceptance cases may be marked complete.
 
+## Step 8. Pass lifecycle timing when CPU is within budget
+
+### Step 8 analysis and implementation intent
+
+The current OR predicate rejects wall-only overruns even when CPU is within
+the selected ceiling or stability band. Change the lifecycle timing verdict
+to fail only above the effective CPU limit, including accepted exceptions and
+eligible proofs. Keep both measured clocks, the configured wall reference,
+report properties, CPU proof/drift updates and failure diagnostics. Preserve
+functional failures and the independent process-audit gate. Groundhog and its
+compatibility preflight must observe the same plugin verdict; its separate
+call-duration speed policy remains unchanged.
+
+### Step 8 implementation files and tests
+
+- `tools/pytest_plugins/llm_shared_lifecycle_gate.py`: update the verdict and docstrings.
+- `tests/unit/tools/test_lifecycle_policy.py`: retain full-window assertions;
+  cover CPU below/equal/above budget with wall below/equal/above its reference.
+- `tests/unit/tools/test_lifecycle_cpu_band.py`: cover effective band/exception
+  boundaries and unchanged proof/drift observations with wall excess.
+- `tools/lifecycle_compatibility/behavior_scenarios.py`: add deterministic
+  real-runtime wall-only, CPU-overrun and functional/process failure cases.
+- Existing compatibility runner tests: exercise the extended case matrix
+  without starting processes in the carrying suite.
+- Requirement, design, acceptance record, lifecycle wiki pages and canonical
+  `instructions/write-fast-python-tests.md`: reconcile the timing semantics
+  and preserve historical non-green evidence.
+
+Use fake clocks in unit tests and controlled clock/report inputs in executable
+scenarios; no real sleeps or load-sensitive boundary assertions. Exhaust the
+finite decision table rather than adding redundant properties. Existing package
+markers suffice. Production gate baseline is 604 physical lines, below 650;
+resample modified Python files before validation and split only if necessary.
+
+Completion: focused policy tests and real supported-runtime compatibility
+cases pass; resolve and run `pw scope day`, then collect whole-suite speed and
+coverage evidence through this worktree's groundhog. Record any unproven gate
+accurately. Release preparation remains held until this policy is implemented
+and its implementation check is complete.
+
 ## Implementation decisions for the v0.14.0 lifecycle plan
 
 The user confirmed Q01-Q05, and independent review converged in round 4.
@@ -893,14 +936,16 @@ These implementation choices retain the requirement and settled design.
 | Q04 | D1: Default to checkout-local `venvs/python_3.12_lifecycle_compatibility/`, explicitly provisioned from that checkout's manifest. Verify actual Python/dependencies for both this default and an absolute interpreter override; isolate branch manifests and preserve main-runtime launcher selection. | Step 6 implementation files and tests; Step 7 clone/worktree setup documentation. | D2 shares one machine-local default across checkouts, allowing differing branch manifests to invalidate each other's environment and requiring a machine-level location contract. |
 | Q05 | E1: Reject another project's inherited binding at invocation setup before any child, checks, compatibility preflight or proof reuse. Compare whole normalized roots against `invocation.root`, case-insensitively on Windows; retain unbound behavior and same-root refresh. Name both roots and the target setup action. | Step 5 invocation check, stage/probe and detached-day tests; Step 6 harness zero-spawn assertion. | E2 clears activation and continues unselected with a warning, risking loss of the intended checks. |
 
-## Rollout and validation record for the seven-step sequence
+## Rollout and validation record for the eight-step sequence
 
 Steps 1 and 2 create independent modules while the original own-suite enforcer
 remains active. Step 3 requires real Python 3.13 xdist barrier-smoke evidence
 before replacing it, after declaration/reporting support is
 ready. Steps 4 and 5 expose the supported consumer route without persistently
 opting in any consumer. Step 6 makes executable compatibility a fresh
-own-project validation prerequisite. Step 7 supplies complete release evidence.
+own-project validation prerequisite. Step 7 supplies acceptance evidence with
+its recorded proof limits. Step 8 implements the subsequently requested timing
+policy before release preparation.
 
 Before committing each implemented step, check its paired validation section
 and required review gates. A plan review that renumbers or inserts steps must

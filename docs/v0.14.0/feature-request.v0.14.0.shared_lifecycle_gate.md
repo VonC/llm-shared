@@ -28,7 +28,8 @@ the project's pytest process.
 - llm-shared's own suite runs under a lifecycle gate. Each test lifecycle,
   setup through teardown, stays at or under a CPU ceiling
   (`test_lifecycle_limit`, default 0.1 s) and a wall limit
-  (`test_lifecycle_wall_limit`, default 1 s). A test proven under its ceiling on
+  (`test_lifecycle_wall_limit`, default 1 s). A lifecycle over either limit
+  fails timing. A test proven under its ceiling on
   this checkout passes up to its band top (`test_lifecycle_cpu_band_factor`,
   default 2.5), until `test_lifecycle_cpu_drift_runs` (default 3) consecutive
   measured runs above the ceiling cost its proof. Proofs and accepted
@@ -102,7 +103,7 @@ describes the modules and environment values used to meet this behavior.
    gate and the process audit. A project declares its opt-in, and its prepared
    shell and every groundhog test stage load the selected plugins. Explicit
    loading with `-p` remains possible wherever the plugin is importable.
-2. Each plugin works alone. The gate supplies both limits, CPU band and drift
+2. Each plugin works alone. The gate supplies the CPU limit, wall reference, CPU band and drift
    guard, per-checkout record and lifecycle summary. The audit tracks the
    active test independently and supplies the process policy and exemption
    summary. Both together retain current assertions, with the explicit
@@ -188,8 +189,12 @@ plugin default. No value switches enforcement off.
 | `test_lifecycle_cpu_band_factor` | 2.5 | Finite factor at least 1 |
 | `test_lifecycle_cpu_drift_runs` | 3 | Finite whole number at least 1 |
 
-A project may adopt with temporarily higher CPU and wall limits and lower
-them later. Only a full run without selection or early-stop options can list
+A project may adopt with a temporarily higher CPU limit and lower it later.
+The wall setting remains a configurable reporting reference. A lifecycle at or
+below its effective CPU limit passes timing even when wall time exceeds that
+reference; only CPU above the effective limit fails timing. Equality passes.
+This is the maintainer's 2026-11-11 amendment implemented by plan Step 8.
+Only a full run without selection or early-stop options can list
 every offender. The gate retains current band passes, drift-based proof
 withdrawal, failure diagnostics and summary semantics.
 
@@ -206,9 +211,12 @@ required.
 CPU measures only the test process, excluding child-process CPU even in
 gate-only runs. Wall time covers elapsed setup through teardown, including
 process starts and waits within that lifecycle. It does not bound the lifetime
-of a child left running afterward. Process permissions grant no CPU or wall
-exception. Shared-fixture wall work stays attributed to the carrying test and
-can affect a different test's wall verdict after reordering or redistribution.
+of a child left running afterward. Process permissions grant no CPU exception.
+Shared-fixture wall work stays attributed to the carrying test, so reordering
+or redistribution may change its reported wall duration. Wall-only excess
+does not fail timing. Functional failures and process auditing remain independent;
+CPU band eligibility, accepted exceptions, proof and drift rules are unchanged.
+Groundhog's separate call-duration speed verdict is unchanged.
 
 ### Process audit boundaries and permissions for consuming projects
 
@@ -310,8 +318,8 @@ prepared-environment boundary, supported import route, startup failures,
 independent marker registration, test and fixture permission boundaries,
 reporting, and timing that remains charged to shared-fixture lifecycles.
 
-The opt-in how-to explains adoption with temporarily higher CPU and wall
-limits, gradual reduction, and why only a full run without selection or
+The opt-in how-to explains adoption with a temporarily higher CPU limit,
+gradual reduction, the wall reporting reference, and why only a full run without selection or
 early-stop options can list every offender. Document validated interpreter and
 platform versions and unvalidated platforms as stated above. Keep consumer
 identities and private paths out of all public evidence and documentation.
@@ -344,9 +352,9 @@ clarifications preserve the accepted contracts; they add no new timing limit.
   CPU band summary or lifecycle record appear; exemption reporting remains.
 - Test and fixture permissions obey their separate boundaries with required
   reasons. Shared-fixture process permission is stable under test order and
-  xdist distribution. Timing stays enforced, including shared-fixture starts
-  and waits, while child CPU and detached-child lifetime stay outside the
-  stated measurements.
+  xdist distribution. Shared-fixture starts and waits stay attributed to the
+  carrying lifecycle: CPU decides the timing verdict and wall time is reported.
+  Child CPU and detached-child lifetime stay outside the stated measurements.
 - Invalid permission declarations fail before tests with an identifying
   usage error, exit code 4, with or without xdist. Valid declarations remain
   harmless without the audit under all stated strict settings, with no

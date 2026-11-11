@@ -25,10 +25,12 @@ apply when writing or reviewing a test, follow the dedicated instruction
 
 ## The lifecycle budget and its two clocks
 
-A test passes the timing gate when its lifecycle uses at most 0.1 second of
-CPU and at most one second of wall time, and when setup and teardown each stay
-under 0.1 second of wall time. The preferred target is 0.04 second of CPU: it
-leaves room for coverage, two workers and an ordinary busy workstation.
+A test passes the timing gate when its lifecycle CPU is at or below its
+effective limit: the 0.1-second ceiling, an eligible band top or an accepted
+exception. Wall time is measured and reported against a one-second reference.
+Aim for setup and teardown each under 0.1 second of wall time. The preferred
+target is 0.04 second of CPU: it leaves room for coverage, two workers and an
+ordinary busy workstation.
 
 CPU is counted in one window, from the start of setup to the end of teardown,
 including the report hooks that run in between. An earlier version summed
@@ -156,7 +158,11 @@ still has to meet 0.1 second.
 
 The band cannot hide a real slowdown. A proven test measured above the ceiling
 on three runs in a row loses its proof, and the strict ceiling applies again
-until a run brings it back under 0.1 second. The wall-clock limit has no band.
+until a run brings it back under 0.1 second. Wall time remains measured against
+a configured reference. CPU at or below the effective limit passes lifecycle
+timing even if wall time exceeds that reference, so waiting and machine
+contention alone do not reject a CPU-compliant test. Functional failures,
+process permissions and groundhog's call-duration speed verdict still apply.
 A test that must stay slower is accepted only as a listed exception, with its
 measured CPU, the improvement already attempted and the reason the cost stays.
 That CPU becomes the test's own ceiling, and the same band and drift guard
@@ -164,7 +170,7 @@ apply to it: one rule for every test. A fresh clone has no record, so it
 starts strict.
 
 The numbers are this repository's choice, not a property of the gate. The
-ceiling, the band factor, the drift run count and the wall limit are pytest
+ceiling, the band factor, the drift run count and the wall reference are pytest
 settings a project sets in `pyproject.toml` or overrides for one run. A proof
 counts only under the ceiling it was earned against, so lowering the ceiling
 never keeps an old, looser proof. The
