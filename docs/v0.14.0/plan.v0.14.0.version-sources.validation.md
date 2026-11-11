@@ -1,12 +1,13 @@
 # v0.14.0 version-sources implementation tracking and validation
 
-No, it is not implemented.
+Yes, it is implemented.
 
 This document tracks the nine steps of the
 [implementation plan](plan.v0.14.0.version-sources.md) for item 2 of the
-sibling release tooling umbrella. No step has started: the foundation
-extensions, the source adapters, the transition, the tag selector, the
-commands and the recorded lock evidence are all still to be written.
+sibling release tooling umbrella. Every step is implemented and checked: the
+foundation extensions, the source adapters with their recorded lock evidence,
+the recoverable transition, the tag selector and the shipped `version` and
+`versions` commands with their integrated acceptance and reference pages.
 
 > Initial-skeleton note: this first version was written by the `write-plans`
 > skill, before any implementation check. It fills `Goal for Step N` and
@@ -2274,9 +2275,28 @@ No existing feature or reporting capability appears impaired.
 
 ### Analysis of Step 9 implementation state
 
-Not started. Step 9 is not implemented because no `version` or `versions`
-handler is shipped, no integrated acceptance runs the design's matrix and the
-reference pages still describe a foundation without operations.
+Yes. Step 9 has been fully implemented.
+
+Independent reviewer assessment (round 1): the staged command handlers,
+argument validation, output and status contracts, recovery scenarios, recorded
+lock replay and reference pages satisfy Step 9. Building the handlers in
+`cli.py` avoids the documented import cycle without changing their contract.
+Static review found no architecture, performance, coverage or feature-integrity
+gap. The writer's whole-suite speed and coverage results are requestor
+evidence; the reviewer did not rerun those commands.
+
+`tools/release_workflow/versions.py` implements `version` and the four
+`versions` operations with the design's stdout formats, token validation
+before any Git process or file read, the status of each domain error and the
+leftover-evidence warning of the read commands; `cli.SHIPPED_HANDLERS` ships
+exactly that pair. The commands, every design acceptance row (AC1 to AC15),
+the replay of each recorded uv and npm evidence pair and one launcher case per
+command and per public status run through `cli.main` or production bootstrap.
+The new `wiki/reference/version-sources.md` documents the commands, statuses,
+configuration, limits, evidence and range rules, and the two existing
+reference pages describe the shipped pair and status 3. The command printed by
+`pw scope day` reports `exit=0`, and `scope day --full=cov` reports
+`cov=100` for the whole suite.
 
 ### Goal for Step 9
 
@@ -2301,24 +2321,192 @@ statuses, configuration and limits in the reference pages.
 
 ### What was implemented for Step 9
 
-_(empty — no check has taken place yet.)_.
+- **Commands** (`tools/release_workflow/versions.py`):
+  - `show_version` prints the anchor's token, its title (possibly empty), an
+    empty line and the notes, read through `anchor.read_document`.
+  - `VersionsCommand` runs `list` (a header, then participating sources,
+    tool-only records and undeclared candidates, `/` paths and `-` for a
+    non-participating form and value, one Git listing), `check` (path,
+    field, form, actual, expected, `ok` or `drift`; any drift is status 1 with
+    a diagnostic), `set <token>` (one `path field old new` record per changed
+    field, `version.txt` last, or `unchanged`; the transition outcome gives
+    the status, and a failed outcome adds a summary line) and `range
+    [<stable tag>]` (`target`, `baseline` or `none`, `range`, `commits`; the
+    selector's warnings on stderr).
+  - `validate_versions` accepts `list`, `check`, `set <token>`, `range` and
+    `range <stable tag>` and raises `ValueError` otherwise, which the CLI
+    reports with status 2 before any identity load or Git context.
+  - Every domain error is a `ValueError` whose `exit_code` is the status:
+    2 for source, version, setting, configuration, range and evidence-stop
+    refusals; an artifact, evidence or transition error keeps its own; one
+    without `exit_code`, such as a lock error, is 1.
+  - The read commands list the artifact home once and print one warning per
+    leftover version-transition evidence directory with its kind and remedy;
+    they take no lock and write nothing.
+  - Each function imports the domain modules it uses when a command runs, so
+    importing `versions`, and therefore `cli`, loads only `results` beside
+    the standard library.
+- **Registry** (`tools/release_workflow/cli.py`): `SHIPPED_HANDLERS` maps
+  `version` to `Handler(versions.show_version)` (no token accepted) and
+  `versions` to `Handler(versions.VersionsCommand(), validate_arguments=
+  versions.validate_versions)`. The plan named `versions.VERSION_HANDLER` and
+  `versions.VERSIONS_HANDLER`; the values are built in `cli` instead, because
+  `versions` importing `cli` while `cli` imports `versions` is an import cycle
+  that fails whenever `versions` loads first. A test pins the shipped pair to
+  exactly these values.
+- **Anchor read** (`sources/anchor.py`): `read_document(root, view)`, shared
+  by the adapter and `version`, so a missing or malformed anchor gives one
+  message and remedy.
+- **Fault injection**: `VersionsCommand(ports)` is the transition's explicit
+  port seam (plan decision Q07); tests build the shipped registry with
+  injected ports (`version_support.version_registry`) for injected failures,
+  a declared lock owner and a recording lock factory. No module global is
+  patched.
+- **Test support**: `version_support.run_command` runs one command through
+  `cli.main` over the launcher's simulated Git (`launcher_simulation.patch_git`,
+  made public) and captures status, stdout and stderr; `command_project`
+  writes repository A without loading it, so a broken configuration reaches
+  the command.
+- **Tests**:
+  - `test_version_commands/test_version_commands_tdd.py`: the shipped pair;
+    `version` output with titles, empty notes, CRLF and a byte-order mark;
+    ten missing, extra or malformed token cases refused before identity and
+    Git; the exact `list`, `check` (ok and drift), `set` (changes, then
+    `unchanged`) and `range` outputs with their Git calls; leftover-evidence
+    warnings for each read command and each evidence kind; status 2
+    refusals; an evidence write failure (status 1); status 3 reaching the
+    caller.
+  - `test_version_acceptance/test_version_acceptance_tdd.py`: AC1 to AC12
+    through `cli.main` with the shipped registry: malformed anchors for every
+    command; a CRLF anchor; CRLF projects with the root Python and npm pairs
+    and with every adapter (the pattern source on a POM property composed
+    with the Maven version in one file); tool-only and undeclared files;
+    fifteen refused arrangements for `list`, `check` and `set`; inherited
+    Maven versions with `${project.version}`; forms and the release-only
+    refusal and drift; the replay of every recorded uv and npm evidence pair;
+    the third-of-five failure; an incomplete restoration; a same-target run
+    with its recorded lock acquisition and release; lock contention; leftover
+    `writing` evidence before and after the last replacement; a cleanup
+    failure and the next run's residue removal; the lifecycle lock of
+    another project (in process, the only path a lifecycle caller has);
+    configuration failures for every command. Seven launcher cases cover each
+    command and the statuses 0, 1, 2 and 3 through production bootstrap.
+  - `test_version_acceptance/test_version_range_acceptance_tdd.py`: AC13 to
+    AC15: thirteen selected ranges and ten refusals through `versions range`,
+    each within four Git calls; the release-version rule on the same
+    histories with its two calls; `versions set` not applying that rule.
+  - `test_release_acceptance_tdd.py` and `test_cli_tdd.py`: the shipped
+    registry is exactly `{"version", "versions"}`; the acceptance handler
+    names stay unavailable.
+- **Reference pages**: `wiki/reference/version-sources.md` (invocation
+  model, commands, stdout, statuses 0 to 3, anchor, sources, forms and
+  limits, `.release.ini` sections, recovery evidence and what a person does,
+  range rules for instruction-driven readers, recorded tool versions);
+  `automation-and-direct-invocation.md` and `aliases-and-launchers.md` name
+  the shipped pair and status 3; `wiki/README.md` links the new page.
+- **Validation evidence**:
+  - Tests first: with the production changes set aside, `ghog single` on the
+    step 9 leaves failed at collection (`ModuleNotFoundError:
+    tools.release_workflow.versions`; 2026-11-11T13:51).
+  - After the implementation, `ghog single` passed (295 tests, 13:53).
+  - `ghog day --whole-suite`, the command printed by `pw scope day`, first
+    failed at check.bat (`ruff check --fix` rewrapped deferred imports longer
+    than 88 characters, moving their `noqa`); with one-line module imports it
+    reported `exit=0` (14:04).
+  - `ghog day --full=cov --whole-suite` first failed on the new page's
+    missing `## Invocation model` section and on the combined CRLF `set`
+    test's lifecycle CPU (0.19 s over 0.1 s; most of a `set` is the
+    foundation's path authorization). After the section was added and the
+    project reshaped to four and five files, it reported `exit=0`, 6442
+    tests, `cov=100` (14:29). A failure of
+    `test_lifecycle_cpu_band.py::test_the_gate_records_proofs_and_the_drift_guard_drops_them`
+    in one full run passed in focus and in the next full run; that test
+    reads only its own temporary record.
+  - `rg -n 'cliff' tools/release_workflow` finds nothing; in the two
+    reference pages, `unavailable in this tooling checkout` remains only for
+    any other operation name. The Markdown check passes and cSpell finds no
+    unknown word in the four pages.
+- **Line counts**: `versions.py` 223 (advisory 290), `cli.py` 176 (+8,
+  advisory +10), `version_support.py` 552 (+55, advisory +30, variance from
+  `run_command` and `version_registry`), new test files 253, 484 and 146
+  (advisory 320, 420 and 220), `test_release_acceptance_tdd.py` 211 (+5,
+  advisory +4), `test_cli_tdd.py` 201 (+1), `anchor.py` 115 (+9),
+  `launcher_simulation.py` 210 (+2), initializers 3; reference pages 180,
+  179 and 268, the new page 205 (advisory 150). Every Python file stays below
+  650; the split guidance was not needed.
 
 ### New types or classes introduced for Step 9
 
-_(empty — no check has taken place yet.)_.
+- `tools.release_workflow.versions`: `validate_versions`, `show_version`,
+  `leftover_warnings` and `VersionsCommand`.
+- `tools.release_workflow.sources.anchor.read_document`.
+- Test support: `version_support.CommandRun`, `run_command`,
+  `command_project` and `version_registry`; `launcher_simulation.patch_git`
+  (public); the `test_version_commands` and `test_version_acceptance` test
+  folders.
 
 ### Architecture check for Step 9
 
-_(empty — no check has taken place yet.)_.
+- **Layering**: `versions.py` is the command layer: it turns the validated
+  invocation into `VersionInputs`, calls the domain (`sources.detection`,
+  `version_transition`, `tags`, `version_evidence`) and renders text into an
+  `OperationResult`. It holds no domain rule of its own besides the output
+  formats and the status of each error, and it never imports `cli`; `cli`
+  only wires the two handlers.
+- **Ports**: the transition's side effects stay behind `TransitionPorts`;
+  the CLI uses the production ports and tests supply theirs through
+  `VersionsCommand(ports)`. Git stays behind `GitExecutionContext`.
+- **Import cost**: domain modules load when a command runs, so the CLI's
+  import graph is unchanged for other operations.
+
+No, there is nothing that needs to be addressed: no DDD-Hexagonal violation or
+smell is visible in this step.
 
 ### Performance check for Step 9
 
-_(empty — no check has taken place yet.)_.
+- **Commands**: each read command reads each source file once (one fresh
+  view; `list` reuses it for candidates), lists the artifact home once, and
+  `list` adds one Git listing; `range` stays within the selector's four Git
+  calls; `version`, `check` and `set` start no Git process. Rendering is one
+  pass over the records.
+- **Tests**: every new test stays within the lifecycle budget without a
+  duration exclusion; the cost of a `set` lies in the existing path
+  authorization of managed writes, unchanged by this step.
+
+No, there is no performance issue that needs to be addressed.
 
 ### Unit test coverage check for Step 9
 
-_(empty — no check has taken place yet.)_.
+The coverage gate measures `tools` only (`[tool.coverage.run] source`), with
+`*/tests/*` and `*/__init__.py` omitted.
+
+- **`tools/release_workflow/versions.py`**: `test_version_commands/` and
+  the acceptance files reach every token case, each command's success and
+  failure path, the drift and no-drift branches, the `unchanged`, applied,
+  restored, incomplete and cleanup-failed outputs and every evidence kind's
+  remedy; the whole-suite walk reports 100%.
+- **`tools/release_workflow/cli.py`** and **`sources/anchor.py`**: the
+  registry test and the anchor and command tests cover the changed lines.
+- **Files outside the gate**: every new `version_support.py` symbol and
+  `launcher_simulation.patch_git` are referenced by the step 9 tests.
+
+No, there is no unit-tested class below 100% that needs completing for Step 9.
+No, none of the top-level symbols added outside the coverage gate is
+unreferenced.
 
 ### Feature integrity for Step 9
 
-_(empty — no check has taken place yet.)_.
+- **Existing feature behavior**: only `version` and `versions` join the
+  registry; every other operation name keeps its status 2 message, and the
+  item 1 acceptance handlers stay reachable only in process. No existing
+  caller is switched: `tools/dev_workflow`, `prepare-release` and the
+  instruction range readers keep their own logic until items 7 and 8.
+- **Reporting or diagnostics**: command data stays on stdout and every
+  warning and error on stderr, in UTF-8 with LF; status 3 reaches the caller
+  through bootstrap and the renderer unchanged.
+- **Compatibility or rollout note**: an installed launcher's `version` on a
+  project without `version.txt` now returns status 2 for the missing anchor
+  instead of the unavailable operation, so a caller that falls back only on
+  a missing launcher keeps its behavior.
+
+No existing feature or reporting capability appears impaired.
