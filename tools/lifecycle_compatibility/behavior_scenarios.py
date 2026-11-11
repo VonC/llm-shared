@@ -6,6 +6,7 @@ Prepared selection and distributed fixture usage retain separate verdicts.
 Worker cases explicitly load xdist because the harness disables plugin autoload.
 Empty process probes skip site initialization while retaining real child starts.
 Consumer package construction keeps collision checks separate from execution.
+Controlled clock cases verify CPU-only timing and independent failure verdicts.
 """
 
 from __future__ import annotations
@@ -55,7 +56,9 @@ import sys
 import pytest
 
 def start():
-    return subprocess.run([sys.executable, "-I", "-S", "-c", "pass"], check=True, timeout=5)
+    # This watchdog bounds a permission probe, not lifecycle wall performance.
+    # The controller still bounds the complete scenario to thirty seconds.
+    return subprocess.run([sys.executable, "-I", "-S", "-c", "pass"], check=True, timeout=15)
 """
 _PROCESS = _START + """
 @pytest.mark.process_allowed(reason="executable permission probe")
@@ -143,6 +146,46 @@ class Case:
     optional_absent: bool = False
 
 
+def timing_cases() -> tuple[Case, ...]:
+    """Exercise controlled clocks through real pytest without sleeps or load races."""
+    clocks = """from itertools import count
+import pytest
+import llm_shared_lifecycle_gate as gate
+
+def pytest_configure(config):
+    gate.process_time = count(0.0, {cpu!r}).__next__
+
+@pytest.hookimpl(wrapper=True, trylast=True)
+def pytest_runtest_makereport(item, call):
+    report = yield
+    report.duration = {wall!r} / 3
+    return report
+
+def pytest_runtest_logreport(report):
+    if report.when == "teardown":
+        properties = dict(report.user_properties)
+        assert properties["test_lifecycle_cpu_seconds"] == pytest.approx({cpu!r})
+        assert properties["test_lifecycle_seconds"] == pytest.approx({wall!r})
+        assert properties["test_lifecycle_cpu_limit"] == pytest.approx(0.1)
+
+def pytest_terminal_summary(terminalreporter):
+    terminalreporter.write_line("controlled timing: CPU={cpu} wall={wall}")
+"""
+    passing = "def test_timing(): pass\n"
+    return (
+        *(Case(name, plugins, passing, conftest=clocks.format(cpu=0.05, wall=6.0),
+               contains=("controlled timing: CPU=0.05 wall=6.0",),
+               summaries=(("lifecycle CPU band", 1),))
+          for name, plugins in (("wall-only-gate", (GATE,)), ("wall-only-both", (GATE, AUDIT)))),
+        Case("cpu-only-overrun", (GATE,), passing, conftest=clocks.format(cpu=0.2, wall=0.03), code=1,
+             contains=("Test lifecycle CPU=0.200000s", "wall=0.030000s", "exceeds budget")),
+        Case("wall-functional-failure", (GATE, AUDIT), 'def test_failure():\n    assert False, "functional sentinel"\n',
+             conftest=clocks.format(cpu=0.05, wall=6.0), code=1, contains=("functional sentinel",)),
+        Case("wall-process-failure", (GATE, AUDIT), _START + "\ndef test_denied():\n    start()\n",
+             conftest=clocks.format(cpu=0.05, wall=6.0), code=1, contains=("not permitted",)),
+    )
+
+
 def cases() -> tuple[Case, ...]:
     """Enumerate finite policy, configuration, ownership and loading contracts."""
     matrix = tuple(
@@ -162,7 +205,7 @@ def cases() -> tuple[Case, ...]:
              summaries=(("lifecycle CPU band", int("lifecycle" in selection)),))
         for index, selection in enumerate(("", "lifecycle", "process", "lifecycle,process"))
     )
-    return (*matrix, *prepared,
+    return (*matrix, *prepared, *timing_cases(),
             Case("guard-late", (), _BASIC.format(expected=_KEYS),
                  conftest=_REGISTER.format(keys=_KEYS) + f"pytest_plugins = [{GATE!r}]\n"),
             Case("prepared-explicit", (LOADER, GATE, AUDIT), _PROCESS, prepared="lifecycle,process",
