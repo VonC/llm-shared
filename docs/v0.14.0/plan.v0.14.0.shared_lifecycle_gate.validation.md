@@ -2,11 +2,12 @@
 
 Yes, it is implemented.
 
-All seven steps of the
+All eight steps of the
 [implementation plan](plan.v0.14.0.shared_lifecycle_gate.md) have been checked.
-Step 7 records implementation completion under the user's CPU-under-budget
-continuation instruction. Whole-suite coverage and speed acceptance remain
-unproven; this implementation status does not establish green release acceptance.
+Step 8 implements the CPU-under-budget timing pass and establishes fresh green
+whole-suite coverage and speed evidence. Step 7's earlier non-green observations
+remain historical evidence, as recorded in the
+[acceptance record](acceptance.v0.14.0.shared_lifecycle_gate.md).
 
 ## Runtime context for validating the pytest plugin mechanism
 
@@ -1149,3 +1150,126 @@ unchanged. The pre-migration snapshot was never restored over the live record.
 No existing feature or reporting capability was found impaired. Release
 acceptance still requires green whole-suite coverage and speed evidence;
 the CPU-based continuation does not supply those verdicts.
+
+## Step 8. CPU within budget passes lifecycle timing
+
+### Analysis of Step 8 implementation state
+
+Yes. Step 8 has been fully implemented.
+
+The timing predicate now rejects only CPU above the effective limit. The finite
+boundary matrix and executable compatibility cases preserve both clocks and
+independent failures. Fresh whole-suite speed and coverage gates passed.
+
+### Goal for Step 8
+
+A lifecycle at or below its effective CPU limit passes timing despite wall
+excess. Functional failures and independent process auditing still fail.
+
+### Step 8 improvement expectations
+
+- Check strict, proven-band and exception CPU boundaries with both clocks.
+- Preserve measurement properties, diagnostics, proof/drift and record schema.
+- Exercise actual Python 3.12/3.13 policy cases with deterministic inputs.
+- Verify groundhog/preflight propagation and unchanged call-duration speed policy.
+- Reconcile requirement, design and adoption/reference/instruction wording.
+- Preserve historical failures; record fresh scope, coverage and speed evidence.
+- Keep all Python files below 650 lines and the own suite process-free.
+
+### What was implemented for Step 8
+
+- `_judge_lifecycle` fails timing only when CPU exceeds the effective strict,
+  proven-band or exception limit. Equality passes. Both clocks, measured-run
+  properties, CPU observations and overrun diagnostics are retained.
+- Policy tests cross CPU below/equal/above with wall below/equal/above, retain
+  the full setup-through-cleanup CPU window, and preserve failed phase reports.
+  Band tests cover effective equality, exceptions and collector observations
+  despite wall excess; existing proof/drift and round-trip cases remain active.
+- Five controlled-clock executable scenarios cover wall-only success with
+  either plugin selection, CPU overrun, functional failure and process denial.
+  The existing real CPU-overrun case remains. Runner unit tests exercise and
+  compile the expanded generated projects with replaced process transport.
+- Requirement, design, plan, acceptance record, wiki and canonical fast-test
+  instruction now describe CPU-based timing and wall reporting consistently.
+  Historical Step 7 evidence is preserved.
+- Round 1 documentation findings were accepted and corrected. The explanation
+  now states the effective CPU verdict and treats setup/teardown wall targets
+  as guidance. The requirement retains the historical CPU-or-wall baseline
+  while current shared-fixture criteria distinguish CPU timing from wall
+  reporting. Acceptance traceability includes the controlled timing cases and
+  links own-suite coverage to fresh Step 8 evidence. A repeated static
+  implementation check confirms the Step 8 Yes verdict after these repairs;
+  no tests were run inside that check.
+- Replacement validation exposed a five-second child-start watchdog timeout
+  in the independent permission probe. Its watchdog is now fifteen seconds,
+  within the unchanged thirty-second scenario bound. Permission assertions,
+  child command and lifecycle CPU policy are unchanged; this is a harness
+  startup safeguard, not a wall-performance assertion.
+- The resolved worktree `ghog day --whole-suite` passed on 2026-11-11 at
+  13:46:40+01:00 in 5m13.8s. The subsequent resolved
+  `ghog day --full=speed --whole-suite` passed at 13:52:06+01:00 in 4m01.3s:
+  6,288 selected tests, 100% configured coverage, zero failures, warnings,
+  xfails, duration outliers and exclusions; fresh speed proof, no reused stage.
+  Fresh Python 3.12 preflight and separate actual Python 3.13.9 execution each
+  passed 41/41 checks (30 policy cases and eleven Windows shell probes).
+- After review corrections and the child-start watchdog repair, the replacement
+  `ghog day --full=speed --whole-suite` passed on 2026-11-11 at
+  16:29:32+01:00 in 6m00s: 6,288 tests, 100% configured coverage, zero
+  failures, warnings, xfails, outliers and exclusions; `reused=none`.
+  Its fresh Python 3.12 preflight passed 41/41. The resolved default day
+  passed at 16:31:38+01:00 by reusing that speed proof, running no checks or
+  tests. Separate actual Python 3.13.9 execution of the repaired harness
+  passed 41/41. The subsequent static implementation check retained the exact
+  Step 8 Yes verdict and all earlier Yes verdicts without running tests.
+
+### New types or classes introduced for Step 8
+
+No production type or class was introduced. The harness helper `timing_cases()`
+builds five existing `Case` values and is called by `cases()`. Test helpers
+extend the existing synthetic report and clock support.
+
+### Architecture check for Step 8
+
+The verdict stays inside the standalone pytest timing adapter. Scenario
+generation stays in the compatibility package, separate from process transport;
+unit tests introduce no runtime dependency into production. No new imports or
+cross-layer dependency were added to the gate. Changed Python files are below
+the 650-line ceiling: gate 603, scenarios 244, CPU-band tests 387, policy tests
+128 and runner tests 144. No architecture smell or violation needs addressing.
+
+### Performance check for Step 8
+
+The changed predicate is constant time and removes one comparison. No new
+quadratic or sorting path, file access, dependency or runtime work was added to
+the gate. Fixed-size generated cases use controlled clocks without sleeps or
+load-sensitive boundaries. The fresh full-speed gate passed with zero duration
+outliers and exclusions; groundhog's separate call-duration policy is unchanged.
+No performance issue needs addressing.
+
+### Unit test coverage check for Step 8
+
+The configured coverage source is `tools`; tests and package markers are
+omitted. Both changed production modules are measured, and the completed fresh
+whole-suite speed run reported 100% for that configured scope. This check ran
+no tests. Static inspection maps the verdict and clock properties to
+`test_lifecycle_policy.py`, effective limits and collector observations to
+`test_lifecycle_cpu_band.py`, and every generated case to the parametrized
+compatibility runner tests. Existing gate tests retain proof/drift, schema,
+configuration and failure-path coverage. `timing_cases()` is reached through
+`cases()` at unit-test parametrization and by the executable runner.
+
+Out-of-scope test helpers are referenced by their test modules; no new package
+marker is needed. The finite decision table is exhausted without redundant
+property tests. No unit-tested class below 100% needs completing for Step 8.
+No top-level symbol outside the coverage scope is unreferenced.
+
+### Feature integrity for Step 8
+
+CPU at or below the effective limit intentionally passes despite wall excess.
+Functional setup/call/teardown failures, independent process denial, both clock
+properties, effective limits, exception fields, proof/drift and record schema
+remain intact. Groundhog and its fresh compatibility preflight consume the
+same plugin outcome. No duration exclusion or carrying-suite process permission
+was added. Actual runtime evidence remains Windows-specific; Linux and macOS
+remain unvalidated. No existing reporting capability or independent failure
+check was found impaired.
