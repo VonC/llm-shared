@@ -1,4 +1,8 @@
-"""Exercise prepared/collision contracts with typed, isolated cache storage."""
+"""Exercise prepared/collision contracts and controlled CPU-only timing cases.
+
+Generated clock/report code is compiled; the carrying suite replaces transport
+and keeps real pytest execution in the independent compatibility harness.
+"""
 
 from __future__ import annotations
 
@@ -23,7 +27,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 _CASE_TIMEOUT = 30
-_ALL_SCENARIOS = 26
+_ALL_SCENARIOS = 31
 
 
 @pytest.mark.parametrize("case", behavior_scenarios.cases(), ids=lambda case: case.name)

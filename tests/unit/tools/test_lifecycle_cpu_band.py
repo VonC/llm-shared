@@ -7,6 +7,7 @@ consecutive measured runs above its ceiling cost the proof. A test's ceiling is
 (user answer of 2026-11-02, 10:30). The record lives in
 an ignored artifact home under ``tmp_path``. Gate, hook and collector run in
 process with synthetic CPU readings and reports; no process is created.
+CPU within the effective band or exception limit passes even with wall excess.
 """
 
 # pyright: reportPrivateUsage=false
@@ -252,7 +253,7 @@ def _gate(nodes: dict[str, NodeState]) -> LifecycleGate:
     return LifecycleGate(_POLICY, 1.0, LifecycleRecord(nodes=nodes), None)
 
 
-def _judge(gate: LifecycleGate, cpu: float, *, call: Literal["passed", "failed"] = "passed") -> pytest.TestReport:
+def _judge(gate: LifecycleGate, cpu: float, *, call: Literal["passed", "failed"] = "passed", wall: float = 0.03) -> pytest.TestReport:
     """Run one lifecycle's reports through the real accounting hook."""
     config = SimpleNamespace(stash=pytest.Stash())
     config.stash[policy._GATE] = gate
@@ -262,7 +263,7 @@ def _judge(gate: LifecycleGate, cpu: float, *, call: Literal["passed", "failed"]
         ("setup", "passed"), ("call", call), ("teardown", "passed"),
     )
     reports = [
-        pytest.TestReport(item.nodeid, ("t.py", 0, "test"), {}, outcome, None, when, duration=0.01)
+        pytest.TestReport(item.nodeid, ("t.py", 0, "test"), {}, outcome, None, when, duration=wall / 3)
         for when, outcome in phases
     ]
     for report in reports:
@@ -273,19 +274,42 @@ def _judge(gate: LifecycleGate, cpu: float, *, call: Literal["passed", "failed"]
     return reports[-1]
 
 
+@pytest.mark.parametrize("wall", [0.03, 1.0, 6.0])
 @pytest.mark.parametrize(("proven", "cpu", "outcome", "limit"), [
     (True, 0.2, "passed", 0.25),
+    (True, 0.25, "passed", 0.25),
     (True, 0.3, "failed", 0.25),
     (False, 0.2, "failed", 0.1),
     (False, 0.1, "passed", 0.1),
 ])
-def test_the_hook_judges_each_lifecycle_by_its_own_limit(proven: bool, cpu: float, outcome: str, limit: float) -> None:  # noqa: FBT001
-    """The band top applies to a proven test; the message says which limit."""
-    report = _judge(_gate({"t.py::test": NodeState(proven=proven, over_runs=0, cpu=0.05)}), cpu)
+def test_the_hook_judges_each_lifecycle_by_its_own_limit(proven: bool, cpu: float, outcome: str, limit: float, wall: float) -> None:  # noqa: FBT001
+    """The band top applies regardless of wall time; diagnostics retain both."""
+    report = _judge(_gate({"t.py::test": NodeState(proven=proven, over_runs=0, cpu=0.05)}), cpu, wall=wall)
     properties = dict(report.user_properties)
     assert (report.outcome, properties["test_lifecycle_cpu_limit"], properties["test_lifecycle_measured"]) == (outcome, limit, True)
     if outcome == "failed":
         assert "band top 0.250s" in str(report.longrepr)
+
+
+@pytest.mark.parametrize("proven", [False, True])
+@pytest.mark.parametrize("offset", [-0.01, 0.0, 0.01])
+def test_exception_limit_and_drift_survive_wall_excess(offset: float, *, proven: bool) -> None:
+    """Exceptions keep their effective limit and CPU observations with slow wall."""
+    key = "t.py::test"
+    gate = LifecycleGate(_POLICY, 1.0, LifecycleRecord(
+        nodes={key: NodeState(proven=proven, over_runs=0, cpu=0.05)},
+        exceptions={key: CpuException(0.3, "cached grammar", "cold import")},
+    ), None)
+    limit = _SLOW_TOP if proven else _SLOW_CEILING
+    cpu = limit + offset
+    report = _judge(gate, cpu, wall=6.0)
+    assert report.outcome == ("failed" if offset > 0 else "passed")
+    properties = dict(report.user_properties)
+    assert properties["test_lifecycle_cpu_limit"] == pytest.approx(limit)
+    assert properties["test_lifecycle_seconds"] == pytest.approx(6.0)
+    collector = band.BandCollector(gate)
+    collector.pytest_runtest_logreport(report)
+    assert collector._measured == {key: cpu}
 
 
 def test_a_failed_call_is_not_a_measured_run() -> None:

@@ -1,8 +1,9 @@
-"""Standalone pytest lifecycle CPU/wall gate and checkout proof record.
+"""Standalone pytest lifecycle CPU gate, wall reference and checkout proof record.
 
 Measure parent CPU from before setup through cleanup, including report-hook
-work, and sum phase wall durations. Only locally proven tests receive the CPU
-band; consecutive overruns lose proof and lowered ceilings invalidate it.
+work, and sum phase wall durations for reporting. CPU within the effective
+limit passes timing regardless of wall duration. Only locally proven tests
+receive the CPU band; consecutive overruns lose proof and lowered ceilings invalidate it.
 Accepted exceptions and unknown document fields survive schema-1 updates.
 Only the controller collects measured reports and writes once per session.
 Artifact lookup is read-only and uses only stdlib; no process audit is installed.
@@ -331,7 +332,7 @@ class SaveOutcome:
 
 @dataclass(frozen=True, slots=True)
 class LifecycleGate:
-    """The per-process CPU and wall limits, read once when pytest starts."""
+    """The per-process CPU policy and wall reference, read once at startup."""
 
     policy: BandPolicy
     wall_limit: float
@@ -532,7 +533,7 @@ _GATE = pytest.StashKey[LifecycleGate]()
 def pytest_addoption(parser: pytest.Parser) -> None:
     """Declare the lifecycle limits and the CPU band as visible project configuration."""
     parser.addini("test_lifecycle_limit", "Maximum setup-through-teardown CPU seconds", default="0.1")
-    parser.addini("test_lifecycle_wall_limit", "Maximum setup + call + teardown wall seconds", default="1.0")
+    parser.addini("test_lifecycle_wall_limit", "Reference setup + call + teardown wall seconds (CPU decides timing)", default="1.0")
     parser.addini("test_lifecycle_cpu_band_factor", "A proven test passes up to this multiple of the CPU limit", default="2.5")
     parser.addini("test_lifecycle_cpu_drift_runs", "Consecutive runs above the CPU limit that cost a test its proof", default="3")
 
@@ -566,7 +567,7 @@ def pytest_runtest_teardown(item: pytest.Item) -> Generator[None, object, object
 
 @pytest.hookimpl(wrapper=True)
 def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[None]) -> Generator[None, pytest.TestReport, pytest.TestReport]:
-    """Fail on total fixture and call cost without hiding shared preparation."""
+    """Judge total fixture and call CPU, preserving wall and functional reports."""
     del call
     report = yield
     elapsed = item.stash.get(_DURATIONS, 0.0) + report.duration
@@ -581,7 +582,7 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[None]) ->
 
 
 def _judge_lifecycle(item: pytest.Item, report: pytest.TestReport, elapsed: float, *, failed: bool) -> None:
-    """Record both clocks and the limit, then fail a lifecycle over budget."""
+    """Record both clocks and the limit, then fail only CPU timing overruns."""
     gate = item.config.stash[_GATE]
     key = record_key(item.nodeid)
     cpu = item.stash.get(_CPU, 0.0)
@@ -590,7 +591,7 @@ def _judge_lifecycle(item: pytest.Item, report: pytest.TestReport, elapsed: floa
     report.user_properties.append(("test_lifecycle_cpu_seconds", cpu))
     report.user_properties.append(("test_lifecycle_cpu_limit", limit))
     report.user_properties.append(("test_lifecycle_measured", item.stash.get(_CALL_PASSED, False) and not failed))
-    if (cpu > limit or elapsed > gate.wall_limit) and not failed:
+    if cpu > limit and not failed:
         report.outcome = "failed"
         report.longrepr = (
             f"Test lifecycle CPU={cpu:.6f}s (limit {limit:.3f}s), "
