@@ -9,6 +9,10 @@ Step 1 of v0.14.0 version-sources: trailing operation tokens, such as
 ``set 0.14.0`` after ``versions``, parse around the options and reach the
 handler's argument validator before any identity load, Git process or file
 read. A handler without a validator still rejects every extra token.
+
+Step 9 ships `version` and `versions`, built here from the `versions` module's
+functions (that module cannot import this one, which imports it). Only those
+two names are shipped; every other operation stays unavailable.
 """
 
 from __future__ import annotations
@@ -21,6 +25,7 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import TYPE_CHECKING
 
+from tools.release_workflow import versions
 from tools.release_workflow.inputs import read_payload, stdin_is_console
 from tools.release_workflow.results import OperationResult, configure_stream, render
 from tools.release_workflow.runtime_identity import RuntimeIdentity
@@ -47,7 +52,10 @@ class Handler:
     validate_arguments: Callable[[tuple[str, ...]], None] | None = None
 
 
-SHIPPED_HANDLERS: Mapping[str, Handler] = MappingProxyType({})
+SHIPPED_HANDLERS: Mapping[str, Handler] = MappingProxyType({
+    "version": Handler(versions.show_version),
+    "versions": Handler(versions.VersionsCommand(), validate_arguments=versions.validate_versions),
+})
 
 
 class _Parser(argparse.ArgumentParser):

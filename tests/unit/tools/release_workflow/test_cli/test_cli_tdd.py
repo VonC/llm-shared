@@ -3,7 +3,8 @@
 Step 1 of v0.14.0 version-sources: trailing operation tokens parse around the
 options, reach a handler's argument validator and the invocation context, and
 are rejected with status 2 by a handler without a validator. A validator
-failure stops before any identity load or Git context creation.
+failure stops before any identity load or Git context creation. Step 9 ships
+exactly `version` and `versions`.
 """
 
 from __future__ import annotations
@@ -192,9 +193,9 @@ def test_unavailable_operation_message_is_unchanged(tmp_path: Path, capsys: pyte
     assert "Release operation 'missing' is unavailable in this tooling checkout" in capsys.readouterr().err
 
 
-def test_shipped_handlers_stay_empty() -> None:
-    """No version command ships before the version-sources commands step."""
-    assert dict(cli.SHIPPED_HANDLERS) == {}
+def test_only_the_version_commands_ship() -> None:
+    """Step 9 ships `version` and `versions`; no other operation is registered."""
+    assert set(cli.SHIPPED_HANDLERS) == {"version", "versions"}
 
 
 # eof

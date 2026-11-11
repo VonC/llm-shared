@@ -4,7 +4,9 @@ The input is an argument vector and an entry kind, never shell source. Runtime
 records, parsing, preflight, payload reads, handlers and rendering stay real.
 No checkout copy, virtualenv, executable, console or shell is started.
 Step 1 of v0.14.0 version-sources routes the five typed release observations
-to the sandbox's declared release history too.
+to the sandbox's declared release history too. Step 9 makes `patch_git`
+public, so the version command tests that call `cli.main` directly use the
+same simulated Git as the launcher cases.
 """
 
 from __future__ import annotations
@@ -66,7 +68,7 @@ HANDLERS = {"probe": cli.Handler(probe), "required": cli.Handler(probe, requires
             "fail": cli.Handler(failure), "wait": cli.Handler(interrupt)}
 
 
-def _patch_git(patch: pytest.MonkeyPatch, sandbox: GitSandbox) -> None:
+def patch_git(patch: pytest.MonkeyPatch, sandbox: GitSandbox) -> None:
     """Supply typed repository facts to the selected runtime's Git context."""
     def observations(context: GitExecutionContext) -> GitExecutionContext:
         return replace(sandbox.verified_git, executable=context.executable,
@@ -168,7 +170,7 @@ class ToolingSimulation:
                 patch.setattr(bootstrap, "helper", helpers.__getitem__)
                 patch.setattr(bootstrap, "environment", lambda: dict(ENV))
                 patch.setattr(bootstrap.importlib, "import_module", import_engine)
-                _patch_git(patch, sandbox)
+                patch_git(patch, sandbox)
                 patch.setattr(cli, "stdin_is_console", lambda: console)
                 code = bootstrap.main(["--entry-kind", entry, "--", *arguments])
             stdout.flush()

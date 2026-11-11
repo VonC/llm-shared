@@ -25,23 +25,35 @@ several `pom.xml` files stay apart, and completes the restoration registry
 with the Maven sets and the combined five-file project. Step 8 adds release
 histories: `annotation` (notes, the tooling trailer, `[valid]`), `chain` (a
 linear declared history) and `tagged_history` (a chain with tags by position
-over the sandbox's recording Git observations). Nothing here starts a process
-or interprets a version.
+over the sandbox's recording Git observations). Step 9 adds `run_command`,
+which runs one release command through `cli.main` for repository A over the
+launcher's simulated Git, capturing its status, stdout and stderr,
+`command_project`, which writes repository A without loading it (so a broken
+configuration reaches the command), and `version_registry`, the shipped
+registry whose `versions` command uses injected transition ports (plan
+decision Q07). Nothing here starts a process or interprets a version.
 """
 
 from __future__ import annotations
 
+import io
 import json
 import os
 import re
+from contextlib import redirect_stderr, redirect_stdout
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING
 
+import pytest
+
+from tests.unit.tools.release_workflow.launcher_simulation import patch_git
+from tools.release_workflow import cli
 from tools.release_workflow.artifacts import resolve_artifacts
 from tools.release_workflow.configuration import load_configuration
 from tools.release_workflow.managed_files import ManagedWriteError, replace_bytes
 from tools.release_workflow.paths import ProjectIdentity
+from tools.release_workflow.runtime_identity import RuntimeIdentity
 from tools.release_workflow.sources.detection import plan_edits
 from tools.release_workflow.sources.model import (
     Claim,
@@ -60,6 +72,7 @@ from tools.release_workflow.sources.model import (
 from tools.release_workflow.sources.settings import authorize_source
 from tools.release_workflow.version_evidence import remove_managed
 from tools.release_workflow.version_transition import TransitionPorts
+from tools.release_workflow.versions import VersionsCommand, validate_versions
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping, Sequence
@@ -492,6 +505,48 @@ def tagged_history(sandbox: GitSandbox, length: int, tags: Mapping[str, tuple[in
     for name, (position, text) in tags.items():
         history.tag(name, commits[position - 1], text)
     return git, history
+
+
+@dataclass(frozen=True)
+class CommandRun:
+    """One release command's public status and its two decoded streams."""
+
+    status: int
+    out: str
+    err: str
+
+
+def run_command(sandbox: GitSandbox, arguments: Sequence[str], *, handlers: Mapping[str, cli.Handler] | None = None) -> CommandRun:
+    """Run one command through `cli.main` for repository A, with the shipped registry by default.
+
+    Parsing, preflight, dispatch and rendering are production code; only Git
+    is the launcher's simulated port, and stdin is not a console.
+    """
+    project = sandbox.home / "A"
+    out, err = io.StringIO(), io.StringIO()
+    with pytest.MonkeyPatch.context() as patch, redirect_stdout(out), redirect_stderr(err):
+        patch_git(patch, sandbox)
+        patch.setattr(cli, "stdin_is_console", lambda: False)
+        status = cli.main([*arguments, "--project-root", str(project)], entry_kind="explicit-native", original_cwd=sandbox.home,
+                          runtime=RuntimeIdentity(sandbox.home, "venvs/prepared"), environment=sandbox.environment,
+                          handlers=handlers)
+    return CommandRun(status, out.getvalue(), err.getvalue())
+
+
+def command_project(sandbox: GitSandbox, files: Mapping[str, bytes], ini: str = "") -> Path:
+    """Write repository A's files and `.release.ini` without loading them, and declare the files as its listing."""
+    root = sandbox.home / "A"
+    if ini:
+        write_release_ini(root, ini)
+    for relative, content in files.items():
+        write_file(root, relative, content)
+    sandbox.verified_git.facts.history.names = tuple(files)
+    return root
+
+
+def version_registry(ports: TransitionPorts) -> dict[str, cli.Handler]:
+    """Return the shipped registry whose `versions` command runs its transitions with these ports."""
+    return {**cli.SHIPPED_HANDLERS, "versions": cli.Handler(VersionsCommand(ports), validate_arguments=validate_versions)}
 
 
 # eof

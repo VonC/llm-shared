@@ -7,6 +7,10 @@ token makes the anchor malformed. The following lines are the notes. The
 document records the byte span of the token, so a transition replaces exactly
 those bytes and keeps the title, the notes, the mark and every line ending.
 Only the project root's `version.txt` is a source; the adapter never writes.
+
+Step 9 adds `read_document`, the read the adapter and the `version` command
+share, so both name the file and give the same remedy when it is missing or
+malformed.
 """
 
 from __future__ import annotations
@@ -63,6 +67,20 @@ def parse_document(content: bytes) -> VersionDocument:
     return VersionDocument(token, title, notes, Span(start, start + len(match["token"])), bom)
 
 
+def read_document(root: Path, view: FileView) -> VersionDocument:
+    """Read and parse the root's `version.txt`, naming the file and the remedy when it is missing or malformed."""
+    path = root / _NAME
+    content = view.read(path)
+    if content is None:
+        msg = f"{path} does not exist: create it with the version token on its first line, such as {_EXAMPLE!r}"
+        raise SourceError(msg)
+    try:
+        return parse_document(content)
+    except (SourceError, VersionError) as exc:
+        msg = f"{path}: {exc}"
+        raise SourceError(msg) from exc
+
+
 @dataclass(frozen=True)
 class AnchorAdapter:
     """Locate the project root's `version.txt` and render its raw token."""
@@ -76,17 +94,8 @@ class AnchorAdapter:
         """Return the anchor source at the project root; other roots have none."""
         if root != settings.project_root:
             return Detection()
-        path = root / _NAME
-        content = view.read(path)
-        if content is None:
-            msg = f"{path} does not exist: create it with the version token on its first line, such as {_EXAMPLE!r}"
-            raise SourceError(msg)
-        try:
-            document = parse_document(content)
-        except (SourceError, VersionError) as exc:
-            msg = f"{path}: {exc}"
-            raise SourceError(msg) from exc
-        source = LocatedSource(path, "version", self.name, Form.SNAPSHOT, str(document.token), (document.token_span,), root)
+        document = read_document(root, view)
+        source = LocatedSource(root / _NAME, "version", self.name, Form.SNAPSHOT, str(document.token), (document.token_span,), root)
         return Detection((source,))
 
     def render(self, source: LocatedSource, value: str) -> bytes:
