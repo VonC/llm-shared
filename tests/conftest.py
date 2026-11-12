@@ -28,7 +28,8 @@ most two) instead of a separate cap, so the two never disagree.
 
 Fix: groundhog no longer has a machine-wide run slot, so the session does not
 mark itself as a slot holder. The suite needs no Git isolation either: the
-process audit of ``tests.simulation_policy`` fails any test that starts Git.
+standalone process audit fails any test that starts Git. Both shared policies
+load here, after pytest-cov starts, so their import-time code stays covered.
 
 Host-agent signals (``CLAUDECODE``, ``CODEX_THREAD_ID``) select the detected
 LLM nature. Each worker drops them from its own environment once, at import:
@@ -52,7 +53,8 @@ from hypothesis import HealthCheck, settings
 from tools.groundhog.runner import auto_workers
 
 pytest_plugins = [
-    "tests.simulation_policy", "tests.memory_filesystem", "tests.scenario_cli",
+    "llm_shared_lifecycle_gate", "llm_shared_process_audit",
+    "tests.memory_filesystem", "tests.scenario_cli",
     "tests.scenario_generation", "tests.testmon_monitoring",
 ]
 

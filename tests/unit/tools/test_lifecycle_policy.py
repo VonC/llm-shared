@@ -1,12 +1,13 @@
-"""Verify the complete CPU window and unchanged hard lifecycle thresholds.
+"""Verify the complete CPU window and CPU-based lifecycle timing verdict.
 
 Synthetic clock samples exercise accounting directly; no workload is moved
 outside its test and no real process is created.
 
 Fix (CPU stability band, 2026-11-02): the hook now reads its limits from the
 configured ``LifecycleGate``. A strict gate with no record keeps the original
-0.1 s CPU and 1 s wall thresholds, and the final report also carries the limit
-it was judged by and that the lifecycle was measured.
+0.1 s CPU limit and 1 s wall reference, and the final report also carries the
+limit it was judged by and that the lifecycle was measured. CPU within budget
+passes timing despite wall excess (user policy of 2026-11-11).
 """
 
 from __future__ import annotations
@@ -14,10 +15,9 @@ from __future__ import annotations
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, cast
 
+import llm_shared_lifecycle_gate as policy
 import pytest
-
-from tests import simulation_policy as policy
-from tests.lifecycle_cpu_record import LifecycleGate
+from llm_shared_lifecycle_gate import LifecycleGate
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -26,11 +26,8 @@ _CPU_LIMIT = 0.1
 
 
 @pytest.mark.parametrize("setup_fails", [False, True])
-@pytest.mark.parametrize(("cpu", "wall", "outcome"), [
-    (0.1, 1.0, "passed"),
-    (0.125, 0.05, "failed"),
-    (0.0625, 1.125, "failed"),
-])
+@pytest.mark.parametrize("wall", [0.5, 1.0, 1.125])
+@pytest.mark.parametrize(("cpu", "outcome"), [(0.0625, "passed"), (0.1, "passed"), (0.125, "failed")])
 def test_one_cpu_window_keeps_initialization_hooks_cleanup_and_limits(
     cpu: float, wall: float, outcome: str, *, setup_fails: bool,
 ) -> None:
@@ -75,7 +72,7 @@ def test_one_cpu_window_keeps_initialization_hooks_cleanup_and_limits(
 
 
 def _assert_final_report(item: pytest.Item, cpu: float, wall: float, outcome: str) -> None:
-    """Verify both reported clocks and the unchanged pass/fail thresholds."""
+    """Verify both reported clocks and CPU-only pass/fail boundaries."""
     assert item.stash[policy._CPU] == cpu
     report = pytest.TestReport(
         nodeid=item.nodeid, location=("boundary", 0, "boundary"), keywords={},
@@ -88,6 +85,25 @@ def _assert_final_report(item: pytest.Item, cpu: float, wall: float, outcome: st
     assert properties["test_lifecycle_seconds"] == wall
     assert properties["test_lifecycle_cpu_limit"] == _CPU_LIMIT
     assert properties["test_lifecycle_measured"] is True
+
+
+@pytest.mark.parametrize("phase", ["setup", "call", "teardown"])
+def test_cpu_within_budget_preserves_other_phase_failures(phase: str) -> None:
+    """Wall-only timing passes never erase a functional or process failure."""
+    config = SimpleNamespace(stash=pytest.Stash())
+    config.stash[policy._GATE] = LifecycleGate.strict(_CPU_LIMIT, 1.0)
+    item = cast("pytest.Item", SimpleNamespace(stash=pytest.Stash(), config=config, nodeid="failure"))
+    item.stash[policy._CPU] = 0.0625
+    for when in ("setup", "call", "teardown"):
+        failed = when == phase
+        report = pytest.TestReport(
+            item.nodeid, ("failure", 0, "failure"), {}, "failed" if failed else "passed",
+            "original failure" if failed else None, when, duration=2.0,
+        )
+        _deliver_report(item, report)
+        assert report.outcome == ("failed" if failed else "passed")
+        assert report.longrepr == ("original failure" if failed else None)
+    assert dict(report.user_properties)["test_lifecycle_measured"] is False
 
 
 def _finish_setup(setup: Generator[None, object, object], *, fails: bool) -> None:

@@ -75,8 +75,8 @@ def test_commit_gates_settle_every_spelling_finding_with_the_user() -> None:
         'bin\\spellcheck.bat" check <file.md>',
         "Source code and other files are never spell-checked.",
         "inside backticks, a code block or plain text alike",
-        "`Add to settings.json`, then `Replace with <alternative>` for each alternative",
-        "Never offer `Add to settings.json` as the only option.",
+        "`Add to project settings.json`, then `Replace with <alternative>` for each alternative",
+        "Never offer `Add to project settings.json` as the only option.",
         'bin\\spellcheck.bat" add-words <word>',
         "no `cSpell.ignoreRegExpList` pattern, no `cspell:ignore` or `cspell:disable` comment",
         "else cspell 9.8.0 on a Node 20.18 or later",
@@ -87,7 +87,9 @@ def test_commit_gates_settle_every_spelling_finding_with_the_user() -> None:
     grouping = _flat((ROOT / "instructions/group-commits-msg.md").read_text(encoding="utf-8"))
     assert "spell-check the same Markdown files, and only them" in grouping
     requestor = _flat((ROOT / "instructions/code-review-requestor.md").read_text(encoding="utf-8"))
-    assert "Never show `Commit` while an unknown word remains." in requestor
+    assert (
+        "Never show `Commit` while an unknown word or an unverified earlier decision or update remains."
+    ) in requestor
 
 
 # eof

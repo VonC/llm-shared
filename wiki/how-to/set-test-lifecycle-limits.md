@@ -6,8 +6,9 @@
 
 ## Invocation model
 
-The lifecycle gate runs inside every pytest run of the suite, groundhog
-stages included; nobody starts it. Use this guide when a project needs a
+The lifecycle gate runs in this repository's suite and in consumer runs that
+[select it](enable-shared-lifecycle-gate.md), including groundhog stages.
+Use this guide when a project needs a
 different CPU ceiling or band, when one run needs other limits, or when a test
 must stay slower than its ceiling after a real attempt to speed it up.
 
@@ -35,7 +36,16 @@ exception. Every key and file format is listed in the
 Lowering the ceiling takes effect on the next run: a proof earned above the new
 ceiling no longer holds, so those tests are strict until a run brings them
 under it. Raising the ceiling is a project decision like raising any budget;
-it is never a way to pass one slow test.
+it must not conceal an individual slow test. For initial adoption, choose a
+temporary higher project limit based on measured costs, then reduce it
+gradually as offenders are fixed. CPU at or below the effective limit passes
+lifecycle timing even when wall time exceeds `test_lifecycle_wall_limit`.
+Keep that wall setting as a reporting reference. Keep both settings finite and positive; no
+disabled, report-only or grace mode exists.
+
+To enumerate all offenders, use a complete run without file, keyword or marker
+selection and without `-x` or `--maxfail`. An affected or early-stopped run
+cannot establish the complete inventory.
 
 ## Override the limits for one run
 

@@ -12,6 +12,8 @@ three-step chain (AT11); the snapshot is the key=value proof marker, rewritten
 with ``proof=none`` by a green default walk, met by the next default walk as a
 noop, and removed when a failing walk leaves nothing proven (AT16).
 
+Step 5 rejects foreign bindings before saved proof and preserves setup failures.
+
 Fix: the whole walk also ends with its own timestamped ``ended`` header,
 right after the day closing line.
 """
@@ -19,6 +21,7 @@ right after the day closing line.
 from __future__ import annotations
 
 import re
+from dataclasses import replace
 from typing import TYPE_CHECKING
 
 from tests.unit.tools.groundhog_acceptance_support import (
@@ -29,11 +32,13 @@ from tests.unit.tools.groundhog_acceptance_support import (
     make_deps,
     passing_transcript,
 )
+from tools import pytest_plugin_environment as env
 from tools.groundhog import cli, reporting_nextstep, snapshot
 from tools.groundhog.levels import FullLevel
 from tools.groundhog.models import (
     EXIT_COVERAGE_GAP,
     EXIT_OBJECTIVE_MET,
+    EXIT_SETUP_ERROR,
     EXIT_TEST_FAILURES,
 )
 
@@ -305,6 +310,37 @@ def _assert_walk_ends_with_its_header(out: str, project: str, timestamp: str) ->
     lines = [line for line in out.splitlines() if line]
     assert lines[-2] == closing_line_of(out)
     assert re.fullmatch(rf"{project}: == ghog day == ended \| {timestamp} \| duration=\d+\.\d+s", lines[-1])
+
+
+def test_foreign_binding_precedes_saved_proof_and_check(tmp_path: Path) -> None:
+    """A previously green day cannot authorize a foreign shell or a full run."""
+    check = tmp_path / "check.bat"
+    check.write_text("@echo off\n", encoding="utf-8")
+    spawns = QueueSpawns([([], 0), (passing_transcript(1, None), 0)])
+    assert cli.main(["day", "--root", str(tmp_path)], make_deps(spawns)) == 0
+    marker = snapshot.marker_path(tmp_path).read_bytes()
+    before = check.read_bytes()
+    blocked = QueueSpawns([])
+    deps = make_deps(blocked, {env.ROOT: str(tmp_path / "other")})
+    for arguments in (["day"], ["day", "--full=speed"], ["full"]):
+        assert cli.main([*arguments, "--root", str(tmp_path)], deps) == EXIT_SETUP_ERROR
+    assert blocked.commands == []
+    assert check.read_bytes() == before
+    assert snapshot.marker_path(tmp_path).read_bytes() == marker
+
+
+def test_probe_preparation_failure_reports_setup(tmp_path: Path) -> None:
+    """A failed preparation stops day instead of becoming unavailable evidence."""
+    spawns = QueueSpawns([])
+
+    def broken(_invocation: cli.Invocation, _deps: cli.Deps) -> None:
+        message = "selected source missing"
+        raise env.PreparationError(message)
+
+    deps = replace(make_deps(spawns), selection_counts=broken)
+    assert cli.main(["day", "--full=pass", "--root", str(tmp_path)], deps) == EXIT_SETUP_ERROR
+    assert _proof(tmp_path) is None
+    assert spawns.commands == []
 
 
 # eof

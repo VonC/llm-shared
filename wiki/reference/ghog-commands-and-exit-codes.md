@@ -289,6 +289,23 @@ tests/unit/pkg/test_mod.py::test_x = 11.41
 
 ## ⚙️ Configuration read by ghog
 
+`LLM_SHARED_PYTEST_PLUGINS` selects independent `lifecycle` and `process`
+policies for every pytest child, including collection probes, affected, single,
+timings and sequential or parallel full stages. Prepared bindings in
+`LLM_SHARED_PYTEST_ROOT` and `LLM_SHARED_PYTEST_POLICY_DIR` are refreshed for the
+same project; a foreign root is a setup error before any child or proof reuse.
+The consumer interpreter stays selected. See
+[activation](../how-to/enable-shared-lifecycle-gate.md) and
+[process permissions](../how-to/enable-shared-process-audit.md).
+
+The strict `[tool.llm-shared.lifecycle-compatibility]` opt-in uses literal
+`enabled = true` and the fixed `bin/lifecycle_compatibility.bat` entrypoint.
+Fresh day/direct-full preflight precedes proof reuse. Missing/false selection
+requires no harness; malformed declarations fail setup. Explicit per-checkout
+[compatibility setup](../how-to/validate-shared-pytest-compatibility.md) is
+required. Policy startup exit 4 is pytest's usage error; groundhog reports a
+failed child through its own exit-code contract.
+
 The coverage gate is `fail_under` (default 100) from `pyproject.toml`,
 `.coveragerc` or `setup.cfg`. The duration gate reads its floor and
 exclusions from the artifact-home `a.ghog.outliers` (see above). The full spec, decision

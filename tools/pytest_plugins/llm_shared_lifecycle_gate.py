@@ -1,48 +1,32 @@
-"""Record which tests proved the lifecycle CPU ceiling on this checkout.
+"""Standalone pytest lifecycle CPU gate, wall reference and checkout proof record.
 
-User decision of 2026-11-02, the CPU stability band: CPU-load variation must
-stop costing extra walks while the ceiling stays enforced. One rule holds for
-every test. Its ceiling is ``test_lifecycle_limit``, or the measured CPU of its
-accepted exception when that is higher. A test is proven once a measured run
-saw its setup-through-teardown CPU at or below its ceiling. A proven test
-passes up to its band top, ``test_lifecycle_cpu_band_factor`` times its
-ceiling, without a rerun. A test that was never proven, or lands above its band
-top, is held to its ceiling. A proven test measured above its ceiling on
-``test_lifecycle_cpu_drift_runs`` consecutive runs, in the band or above it,
-loses its proof, so a real slowdown cannot stay in the band. A later run at or
-below its ceiling proves it again. A proof holds only while the CPU that earned
-it stays at or below the test's current ceiling, so lowering a ceiling, in
-``pyproject.toml`` or with ``-o`` for one run, never keeps a looser proof. Only
-a lifecycle whose call passed with no other failure is a measured run.
-
-The record is untracked and per checkout: ``a.test-lifecycle-cpu.local.json``
-in the review artifact home. Its ``nodes`` object belongs to the gate, which
-updates it once per run on the controller. Its ``exceptions`` object belongs to
-whoever accepts a slow test, as ``ghog exclude`` accepts a slow call: each entry
-gives the measured CPU, the improvement already attempted and the reason the
-cost stays, and raises that test's ceiling to the measured CPU; the band and
-the drift guard then apply to that ceiling. The gate keeps that object as
-written, rejects an entry without all three fields, and lists every exception
-at the end of a run. A fresh clone has no record and starts strict. The
-wall-clock limit is not part of the band.
+Measure parent CPU from before setup through cleanup, including report-hook
+work, and sum phase wall durations for reporting. CPU within the effective
+limit passes timing regardless of wall duration. Only locally proven tests
+receive the CPU band; consecutive overruns lose proof and lowered ceilings invalidate it.
+Accepted exceptions and unknown document fields survive schema-1 updates.
+Only the controller collects measured reports and writes once per session.
+Artifact lookup is read-only and uses only stdlib; no process audit is installed.
 """
 
-from __future__ import annotations
+import sys
 
-import json
-import math
-import re
-from dataclasses import dataclass, field, replace
-from typing import TYPE_CHECKING, Final, cast
+import pytest
 
-from tools.review_artifact_configuration import ReviewArtifactConfiguration
-from tools.review_exchange_models import ReviewExchangeError
+if sys.version_info < (3, 12):
+    raise pytest.UsageError("llm_shared_lifecycle_gate requires Python 3.12 or later")  # noqa: EM101, TRY003 - approved pre-refusal boundary
 
-if TYPE_CHECKING:
-    from collections.abc import Callable, Iterator, Mapping
-    from pathlib import Path
+LOADER_CONTRACT_VERSION = 1
 
-    import pytest
+import configparser  # noqa: E402
+import json  # noqa: E402
+import math  # noqa: E402
+import re  # noqa: E402
+from collections.abc import Callable, Generator, Iterator, Mapping  # noqa: E402
+from dataclasses import dataclass, field, replace  # noqa: E402
+from pathlib import Path, PureWindowsPath  # noqa: E402
+from time import process_time  # noqa: E402
+from typing import Final, cast  # noqa: E402
 
 RECORD_NAME: Final = "a.test-lifecycle-cpu.local.json"
 _SCHEMA: Final = 1
@@ -50,7 +34,7 @@ _IGNORE_BYTES: Final = b"*\n"
 _GROUP_SUFFIX: Final = re.compile(r"@[A-Za-z0-9._-]+$")
 _NO_HOME: Final = "no ignored artifact home; nothing recorded"
 _ABOUT: Final = (
-    "nodes: written by tests/simulation_policy.py after each measured run. "
+    "nodes: written by llm_shared_lifecycle_gate after each measured run. "
     "exceptions: kept as written, one entry per accepted slow test: "
     '"<node id>": {"cpu": <measured seconds>, "attempted": "<improvement tried>", '
     '"reason": "<why the cost stays>"}.'
@@ -113,7 +97,7 @@ class BandPolicy:
     drift_runs: int
 
     @classmethod
-    def from_ini(cls, getini: Callable[[str], object]) -> BandPolicy:
+    def from_ini(cls, getini: Callable[[str], object]) -> "BandPolicy":
         """Read the policy from the visible pytest configuration.
 
         Args:
@@ -206,7 +190,7 @@ class LifecycleRecord:
         ceiling = self.ceiling(key, policy)
         return policy.band_top(ceiling) if self.proven(key, policy) else ceiling
 
-    def advanced(self, measured: Mapping[str, float], policy: BandPolicy) -> LifecycleRecord:
+    def advanced(self, measured: Mapping[str, float], policy: BandPolicy) -> "LifecycleRecord":
         """Return the record after one run's measured lifecycles."""
         nodes = dict(self.nodes)
         for key, cpu in measured.items():
@@ -321,35 +305,6 @@ def _node_fields(state: NodeState) -> dict[str, object]:
     return fields
 
 
-def _unignored_home(root: Path, relative: str) -> bool:
-    """Treat a home without its exact catch-all ignore file as unsafe.
-
-    ``ReviewArtifactConfiguration`` asks Git whether the home is tracked. Every
-    xdist worker loads the gate, so this check reads the home's ``.gitignore``
-    instead of starting one Git process per worker.
-    """
-    try:
-        return (root / relative / ".gitignore").read_bytes() != _IGNORE_BYTES
-    except OSError:
-        return True
-
-
-def artifact_record_path(root: Path) -> Path | None:
-    """Return the record path in an existing, ignored artifact home.
-
-    Args:
-        root: The project root.
-
-    Returns:
-        The record path, or ``None`` when no ignored home exists yet.
-    """
-    try:
-        home = ReviewArtifactConfiguration.load(root, tracked_directory=_unignored_home).home
-    except (ReviewExchangeError, OSError):
-        return None
-    return home / RECORD_NAME if home.is_dir() else None
-
-
 def _read(path: Path) -> tuple[LifecycleRecord, dict[str, object]]:
     """Read the record; a missing file is an empty record."""
     try:
@@ -377,7 +332,7 @@ class SaveOutcome:
 
 @dataclass(frozen=True, slots=True)
 class LifecycleGate:
-    """The per-process CPU and wall limits, read once when pytest starts."""
+    """The per-process CPU policy and wall reference, read once at startup."""
 
     policy: BandPolicy
     wall_limit: float
@@ -386,7 +341,7 @@ class LifecycleGate:
     problem: str | None = None
 
     @classmethod
-    def load(cls, root: Path, getini: Callable[[str], object]) -> LifecycleGate:
+    def load(cls, root: Path, getini: Callable[[str], object]) -> "LifecycleGate":
         """Read the policy and this checkout's record; a damaged record is strict.
 
         Args:
@@ -408,7 +363,7 @@ class LifecycleGate:
         return cls(policy, wall_limit, record, path)
 
     @classmethod
-    def strict(cls, ceiling: float, wall_limit: float) -> LifecycleGate:
+    def strict(cls, ceiling: float, wall_limit: float) -> "LifecycleGate":
         """Return a gate with no record: every test is held to the ceiling."""
         return cls(BandPolicy(ceiling, 1.0, 1), wall_limit, LifecycleRecord(), None)
 
@@ -476,7 +431,7 @@ class BandCollector:
         """Write the run's proofs before the terminal summary reports them."""
         self._outcome = self._gate.save(self._measured)
 
-    def pytest_terminal_summary(self, terminalreporter: pytest.TerminalReporter) -> None:
+    def pytest_terminal_summary(self, terminalreporter: "pytest.TerminalReporter") -> None:
         """Show the record, band passes, lost proofs and every exception."""
         terminalreporter.write_sep("-", "lifecycle CPU band")
         for line in self.summary_lines():
@@ -519,6 +474,130 @@ def _problem_lines(*problems: str | None) -> Iterator[str]:
             yield problem
         elif problem is not None:
             yield f"record problem: {problem}"
+
+
+def _artifact_value(root: Path) -> str | None:
+    """Read the same strict declaration and DEFAULT inheritance as the shared parser."""
+    declaration = root / ".review-artifacts.ini"
+    if not declaration.exists():
+        return ".reviews"
+    if not declaration.is_file():
+        return None
+    parser = configparser.ConfigParser(interpolation=None, strict=True)
+    parser.read_string(declaration.read_text(encoding="utf-8"))
+    if parser.sections() != ["review-artifacts"] or set(parser["review-artifacts"]) != {"home"}:
+        return None
+    return parser["review-artifacts"]["home"].strip()
+
+
+def _unsafe_home(value: str) -> bool:
+    """Reject absolute or expanded spellings before resolving any home."""
+    windows = PureWindowsPath(value)
+    return (
+        not value or Path(value).is_absolute() or windows.is_absolute()
+        or bool(windows.drive) or value.startswith(("~", "\\", "/"))
+        or "$" in value or "%" in value
+    )
+
+
+def artifact_record_path(root: Path) -> Path | None:
+    """Copy strict artifact lookup without creation, Git or shared helpers.
+
+    DEFAULT inheritance and case handling follow ConfigParser, as in the
+    existing artifact declaration. Both lexical and physical containment must
+    hold, and only an existing directory with exact ignore bytes is writable.
+    Invalid, unreadable or unavailable homes leave the gate strict.
+    """
+    try:
+        root = root.resolve(strict=True)
+        value = _artifact_value(root)
+        if value is None or _unsafe_home(value):
+            return None
+        home = (root / value.replace("\\", "/")).resolve(strict=False)
+        relative = home.relative_to(root)
+        if relative == Path() or not home.is_dir() or (home / ".gitignore").read_bytes() != _IGNORE_BYTES:
+            return None
+        return home / RECORD_NAME
+    except (OSError, UnicodeError, ValueError, RuntimeError, configparser.Error):
+        return None
+
+
+_DURATIONS = pytest.StashKey[float]()
+_CPU = pytest.StashKey[float]()
+_CPU_START = pytest.StashKey[float]()
+_FAILED = pytest.StashKey[bool]()
+_CALL_PASSED = pytest.StashKey[bool]()
+_GATE = pytest.StashKey[LifecycleGate]()
+
+
+def pytest_addoption(parser: pytest.Parser) -> None:
+    """Declare the lifecycle limits and the CPU band as visible project configuration."""
+    parser.addini("test_lifecycle_limit", "Maximum setup-through-teardown CPU seconds", default="0.1")
+    parser.addini("test_lifecycle_wall_limit", "Reference setup + call + teardown wall seconds (CPU decides timing)", default="1.0")
+    parser.addini("test_lifecycle_cpu_band_factor", "A proven test passes up to this multiple of the CPU limit", default="2.5")
+    parser.addini("test_lifecycle_cpu_drift_runs", "Consecutive runs above the CPU limit that cost a test its proof", default="3")
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    """Load this checkout's gate; only the controller collects and records."""
+    try:
+        gate = LifecycleGate.load(config.rootpath, config.getini)
+    except ValueError as error:
+        raise pytest.UsageError(str(error)) from error
+    config.stash[_GATE] = gate
+    if not hasattr(config, "workerinput"):
+        config.pluginmanager.register(BandCollector(gate), "lifecycle-cpu-band")
+
+
+@pytest.hookimpl(wrapper=True, tryfirst=True)
+def pytest_runtest_setup(item: pytest.Item) -> Generator[None, object, object]:
+    """Start one CPU window before all fixtures, including shared initialization."""
+    item.stash[_CPU_START] = process_time()
+    return (yield)
+
+
+@pytest.hookimpl(wrapper=True, tryfirst=True)
+def pytest_runtest_teardown(item: pytest.Item) -> Generator[None, object, object]:
+    """End after cleanup; intervening call and report-hook CPU stays included."""
+    try:
+        return (yield)
+    finally:
+        item.stash[_CPU] = process_time() - item.stash[_CPU_START]
+
+
+@pytest.hookimpl(wrapper=True)
+def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[None]) -> Generator[None, pytest.TestReport, pytest.TestReport]:
+    """Judge total fixture and call CPU, preserving wall and functional reports."""
+    del call
+    report = yield
+    elapsed = item.stash.get(_DURATIONS, 0.0) + report.duration
+    item.stash[_DURATIONS] = elapsed
+    failed = item.stash.get(_FAILED, False) or report.failed
+    item.stash[_FAILED] = failed
+    if report.when == "call":
+        item.stash[_CALL_PASSED] = report.passed
+    if report.when == "teardown":
+        _judge_lifecycle(item, report, elapsed, failed=failed)
+    return report
+
+
+def _judge_lifecycle(item: pytest.Item, report: pytest.TestReport, elapsed: float, *, failed: bool) -> None:
+    """Record both clocks and the limit, then fail only CPU timing overruns."""
+    gate = item.config.stash[_GATE]
+    key = record_key(item.nodeid)
+    cpu = item.stash.get(_CPU, 0.0)
+    limit = gate.cpu_limit(key)
+    report.user_properties.append(("test_lifecycle_seconds", elapsed))
+    report.user_properties.append(("test_lifecycle_cpu_seconds", cpu))
+    report.user_properties.append(("test_lifecycle_cpu_limit", limit))
+    report.user_properties.append(("test_lifecycle_measured", item.stash.get(_CALL_PASSED, False) and not failed))
+    if cpu > limit and not failed:
+        report.outcome = "failed"
+        report.longrepr = (
+            f"Test lifecycle CPU={cpu:.6f}s (limit {limit:.3f}s), "
+            f"wall={elapsed:.6f}s (limit {gate.wall_limit:.3f}s) "
+            f"exceeds budget (setup + call + teardown): {item.nodeid}; {gate.describe(key)}"
+        )
 
 
 # eof
