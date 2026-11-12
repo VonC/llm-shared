@@ -36,7 +36,12 @@ that link and trigger. No later version or calendar reminder is assigned.
 
 ## Confirmed source facts for resume-paused
 
-These facts describe the checkout at `518080e`, before runtime implementation.
+The source facts describe the checkout at `518080e`, before runtime
+implementation. The explicitly dated host observations below were added on
+2026-11-10 during the Step 1 feasibility investigation and independent review;
+they establish candidate channels, not supported profiles. The separately
+dated 2026-11-11 and 2026-11-12 findings are reviewer observations and source analysis,
+not requestor validation.
 
 | Source | Confirmed behavior and design consequence |
 | --- | --- |
@@ -53,6 +58,11 @@ These facts describe the checkout at `518080e`, before runtime implementation.
 | Read-only `tuios capture-pane --help` and pane captures | `--unwrap` joins only rows wrapped by the pane, returning other rows as the program wrote them. A Claude capture retains interface-created breaks; Codex screen reconstruction also needs a tested layout profile. Unwrapping alone does not prove a complete long command. |
 | Read-only Codex session-file metadata keys | An observed `session_meta` record has `id`, `session_id`, `cwd`, `timestamp` and `cli_version` (0.167.0). These are metadata facts, not proof that a file belongs to a particular pane. Conversation content was not inspected for this check. Q14=B selects this user-input record channel; its profile is still to be validated. |
 | Read-only `tuios integration status codex` | Codex hooks are supported but not installed here. Hook installation and attribution to the correct pane under a shared app-server remain unvalidated; hooks were Q14's option C, which was not selected. |
+| Read-only Windows image queries, independently reproduced on 2026-11-10 | For five pane-linked Codex child processes, `QueryFullProcessImageNameW` and `GetMappedFileNameW` resolve the running image to a versioned standalone release, and its `codex-package.json` agrees on version 0.167.0, target and entrypoint. Ordinary process listings expose the unversioned `current` junction instead. The manifest has `layoutVersion` 1 and eight keys, listed in the profile contract below. |
+| Independent review's Windows updater observation on 2026-11-10 | Running Claude images had been renamed aside by the updater while a newer executable occupied the launch path. The launch-path file's version therefore cannot prove the running host's version. The reviewer also tested junction retargeting and release-directory renaming using a disposable sleeper; these are reviewer observations, not this writer's host-profile validation. |
+| Independent reviewer observations on 2026-11-11, Windows image identity | `NtQueryInformationProcess` class 44 (`ProcessImageFileMapping`, undocumented by Microsoft) returned `STATUS_SUCCESS` for seven running Codex images. Disposable sleepers accepted the original and renamed original, but returned `STATUS_UNSUCCESSFUL` for unrelated, byte-identical and tunneled replacement files. Directory rename could leave a stale kernel name. Limited process-query rights or a read-only file handle returned `STATUS_ACCESS_DENIED`; the observed query needed `PROCESS_QUERY_INFORMATION` and file execute access. These are reviewer observations, not requestor validation of supported Windows builds or the updater lifecycle. |
+| Independent reviewer observation on 2026-11-12, Windows 11 build 26200 | On a disposable sleeper, `EnumProcessModulesEx` was denied with error 5 under query rights alone and succeeded only with `PROCESS_VM_READ`. A query-rights-only `VirtualQueryEx` walk of 499 regions found exactly one `MEM_IMAGE` allocation whose `GetMappedFileNameW` name matched the native `QueryFullProcessImageNameW` name. This is reviewer observation, not requestor validation; the address-source contract and supported OS builds still need validation. |
+| Independent reviewer observations on 2026-11-10 and launcher source analysis on 2026-11-11, Claude 2.1.321 | Eleven PowerShell-tool background starts use `taskType` `local_bash`. Existing SessionStart commands are recorded as `hook_success` with `SessionStart:startup` or `SessionStart:compact`; pane identity source is `report` although managed integration status says not installed. The reviewer traced the source to senv `tuitp_windows.py`, `write_claude_hooks`: it generates TUIOS Claude hooks in a temporary configuration and copies them into launcher-owned settings. `tuitp.pane.bat` passes that existing file via `--settings`; the reviewer's pane had 14 hook events invoking TUIOS Claude integration. This is optional launcher behavior, not universal TUIOS injection. The pinned [TUIOS integration documentation](https://github.com/Gaurav-Gosain/tuios/blob/850335c0c08bb8b802406fcc7f254355c89af04a/integrations/claude-code/README.md) describes settings hooks, and its [Claude event map](https://github.com/Gaurav-Gosain/tuios/blob/850335c0c08bb8b802406fcc7f254355c89af04a/internal/integration/hook_claude.go) maps SessionStart to identity and transcript reporting. Marker completeness and process-generation binding still require validation. |
 | [Program status](../../tools/program_status.py) | OSC 7501 reports provide app state. They are supplementary evidence, not proof that an input was accepted. |
 
 The [draft](draft.v0.14.0.resume-paused.md) supplies observed TUIOS delivery
@@ -250,6 +260,11 @@ delivery and reviewer sequencing; merely substituting `waiting_prompt` is
 insufficient. Avoid two competing delivery paths for the same pause. Preserve
 the intended default startup behavior, its opt-out and the separate native
 conversation mode, with integration evidence before claiming compatibility.
+Claude positive-absence proof depends on the existing `tuitp` launch settings
+or an already installed TUIOS integration. The deferred senv effort must
+preserve those settings or affected Claude panes remain pending. The shared
+command installs nothing and operates independently of the launcher; panes
+without either source have no marker and remain pending.
 No senv code change is included in this design discussion.
 
 The user's Q10=C qualification requires `tuitp` to keep working and to resume
@@ -429,17 +444,88 @@ transcript named by the pane's observed `agent_session_id` records `version`
 and `cwd` on its user, assistant and system entries, giving pane-tied version
 evidence before delivery once its profile is validated. Q14's selected
 session-file lookup confirms `cli_version` only after delivery and cannot
-justify the pre-delivery profile selection. Within the confirmed choices,
-the candidate Codex sources before input are the version banner in that
-pane's attributable scrollback and process metadata tied to that pane's own
-process. The first implementation step validates one of them read-only. If
-neither validates, the work returns to design review; it does not ship one
-host or add hooks silently. Requiring hooks for version evidence would need
-the user to reopen Q14=B. Missing unique profile/version evidence is reported
-as unsupported evidence and a classification failure under confirmed Q06=A,
-without input. Codex new-conversation syntax must be confirmed for the
-supported version before enabling that profile's clear action; do not try
-alternate commands in a live pane to discover it.
+justify the pre-delivery profile selection.
+
+For the observed Windows standalone Codex layout, obtain the kernel image
+name using `QueryFullProcessImageNameW` on the pane's single direct Codex
+child, using `PROCESS_NAME_NATIVE`. Corroborate the native name with
+`GetMappedFileNameW`. Locate the main image for that call with `VirtualQueryEx`
+over the same process handle: exactly one committed `MEM_IMAGE` allocation
+must map the native name returned by `QueryFullProcessImageNameW`. Group
+regions by allocation base; incomplete walks, no match or multiple matching
+allocations are unsupported evidence. Module enumeration, process environment
+block reads and any other source needing `PROCESS_VM_READ` are excluded.
+These queries inspect address-space metadata, never memory contents. Require
+the resolved image to have this shape:
+
+```text
+<CODEX_HOME>/packages/standalone/releases/<version>-<target>/<entrypoint>
+```
+
+The root is derived from that image, never from the caller's environment.
+The release root and its manifest are read through the same `\\?\GLOBALROOT`
+prefixed native path.
+Read the same release's `codex-package.json`. The observed schema is
+`layoutVersion` 1 with exactly `entrypoint`, `execServer`, `layoutVersion`,
+`pathDir`, `resourcesDir`, `target`, `variant` and `version`. A pinned profile
+validates their types and values; require directory name, version, target and
+entrypoint to agree, reject traversal or escaping paths, and match the
+profile's SHA-256 for the mapped image. Unknown layouts or schema keys,
+renamed or missing images, digest mismatch, API disagreement and ambiguous
+pane/process linkage are unsupported evidence. This includes unvalidated npm
+layouts. Never resolve `current`, use PATH or invoke a caller CLI as proof.
+The banner remains a possible corroborating source.
+
+The kernel path and manifest agreement are confirmed locally; an upstream
+manifest compatibility guarantee has not been established. The reviewer's
+2026-11-11 observations supply the strict loaded-image identity contract
+within the approved process-metadata channel. Open the pane's single direct
+Codex child with `PROCESS_QUERY_INFORMATION`, never memory-read rights. Open
+the file at the corroborated kernel image name through the `\\?\GLOBALROOT`
+prefix with read and execute access,
+sharing read and delete only. Call `NtQueryInformationProcess` with information
+class 44, `ProcessImageFileMapping`, using that file handle, and require
+`STATUS_SUCCESS`. Every other status, failed open or missing file is
+unsupported evidence. A missing stale path fails closed.
+
+Hash through that same identity-checked handle and compare the profile's
+pinned SHA-256; require agreement with the same release's manifest. Retain
+the handle and cache the digest only within this invocation, keyed by process
+id, process creation time and kernel image name. Before each input, recheck
+the process creation identity, both image-name APIs and manifest bytes, and
+repeat the identity query with the retained handle. Changed or contradictory
+bindings fail closed. The identity query supersedes creation-time ordering:
+neither matching bytes nor NTFS name tunneling makes a replacement the
+original loaded image. No same-user replacement exception applies.
+
+Microsoft does not document this information class. Each profile pins
+validated OS build numbers, for example 26200, and records the update revision
+observed during validation. The runtime reads the OS build number from the
+`dwBuildNumber` that `RtlGetVersion` returns, requiring a valid decimal value.
+System file versions, such as Python's
+`sys.getwindowsversion().platform_version`, are not build evidence.
+Missing or invalid metadata and a build outside the pinned set
+are unsupported evidence with no input. The update revision is validation
+evidence, not an additional runtime pin. Within a pinned build, unavailable or
+denied queries and every non-success result still fail closed.
+The strict attribution contract is resolved, but the
+channel remains unsupported until Step 1 validates it and the rest of the
+profile. No process memory is read; the reviewer's observations are not
+requestor lifecycle validation.
+
+The matched Q14 session file must subsequently report the same `cli_version`
+as the pre-input proof. A difference is contradictory evidence: the receiver
+stops before consumption or claim and reports evidence failure. This check
+can detect a differing shared-server version; it never selects or repairs
+the profile after input.
+
+Step 1 must validate this channel and the remaining profile signatures before
+support is enabled. Failed validation returns to design review; it does not
+ship one host or add hooks silently. Requiring hooks for version evidence
+would need the user to reopen Q14=B. Missing unique profile/version evidence
+is a classification failure under confirmed Q06=A without input. Codex
+new-conversation syntax must also be confirmed for the supported version;
+do not try alternate commands in a live pane to discover it.
 
 With `--clear`, clear only the selected resumed conversation. For Claude,
 skip a redundant clear only when the current-pause log shows
@@ -467,7 +553,10 @@ form as a `prompt` entry after delivery, plus complete typed-input proof from
 the session-id-tied transcript. Codex acceptance requires the displayed command
 prefix with this delivery's unique launch id followed by `Working`, plus Q14's
 complete typed-input proof. A prefix or `Working` alone is insufficient.
-An `ok` result or idle status alone is insufficient. Bound the delivery and
+An `ok` result or idle status alone is insufficient. Codex acceptance also
+requires the Q14 version cross-check above; disagreement prevents receiving
+consumption and claim, even if the marked text was accepted.
+Bound the delivery and
 acceptance observation by 100 seconds per action, including any recovery;
 the transport's stall bound remains 60 seconds.
 These and the separate 120-second post-acceptance bound are fixed documented
@@ -572,18 +661,116 @@ agree. A global reviewer wait is not bound to one exchange and leaves no
 durable waiter record. Prove that wait using the pane's complete-input channel
 and current host waiting evidence (Q16=A): the latest typed input must be a
 reviewer `review-resume` in this checkout, with no later typed input. For
-Claude, require a background watcher started after that input and still
-running in the same session, including one restarted after an answer. For
+Claude, that proof would require a background watcher started after that input
+and still running in the same session, including one restarted after an answer.
+No permitted channel supplies current Claude watcher liveness in this delivery:
+the proved-global-wait branch is unavailable and every potential Claude wait
+is reported pending without input. Requirement Q04=A excludes enumerating the
+Claude process's background descendants. For
 Codex, an active turn is already protected by the busy-pane skip. Leave a
-proved waiting reviewer alone. The Claude profile must validate which
-transcript fields prove a currently running background task; a background-shell
-indicator alone is insufficient. A shell is never a counterpart.
+proved waiting reviewer alone. A shell is never a counterpart.
+
+The concrete Claude candidate is a transcript lifecycle ledger tied to the
+pane's current `agent_session_id` and host-process generation. A generation
+is the lifetime of the pane's own Claude process, identified by its creation
+time and process identity. Reading that process's metadata does not enumerate
+background shells. No hooks, waiter record or new durable artifact is added.
+
+The independent reviewer observed these shapes in its own version 2.1.321
+session, across compactions; they remain version-pinned profile candidates:
+
+- The eleven observed starts came from the PowerShell tool, recorded with
+  `taskType` equal to `local_bash`, and have
+  `toolUseResult.backgroundTaskId`. Bash-tool starts remain unobserved.
+- A terminal notification is a `queue-operation` enqueue carrying the same
+  task id and terminal status, followed by a user record whose `origin.kind`
+  is `task-notification` and `promptSource` is `system`. Validate exact status
+  values, ordering, duplicate handling and notification-only cases.
+- Typed input has `origin.kind` equal to `human` and `promptSource` equal to
+  `typed`. Validate slash-command records separately; notifications cannot
+  replace the latest typed reviewer entry.
+- `task_status` attachments are individual snapshots, never a complete
+  inventory or a zero-task assertion. The reviewer observed a host-killed
+  watcher whose older snapshot still said `running`; a later terminal event
+  takes precedence over that snapshot.
+
+The ledger is a hypothesis to validate, not proof that every host transition
+is persisted. For Q16, identify a watcher start for `wait-any-request` after
+the latest typed reviewer `review-resume`, within this generation and with
+no later terminal event. Such a start only names the pending reason.
+A missing terminal event alone does not prove
+current liveness. No permitted affirmative same-session current-liveness
+channel is available in this delivery. Retain every potential Claude wait as
+unknown and report pending without input. A background-shell indicator alone
+is insufficient.
+
+A measured terminal-persistence delay does not supply current liveness. Even
+if a hard bound `D` existed, no terminal record by `t + D` could establish at
+most that a task was running at the earlier time `t`; it might have ended
+before the current decision. Finite timing samples also do not establish a
+hard bound under arbitrary host scheduling. Treat these measurements as
+validation data only. No affirmative current liveness channel is established
+by this review. Both a proved wait and an unknown potential wait send no input;
+activation depends solely on positive absence, never on a liveness timeout.
+
+An unexpired session-scoped scheduled prompt, including `CronCreate` and
+scheduled wakeups, or a background subagent can also produce reviewer work.
+Treat validated current waiting evidence as waiting and incomplete evidence
+as unknown; neither permits activation. Reconstruct restored schedules from
+the complete relevant session history, including definitions before process
+creation, rather than assuming a fresh process has no scheduled work.
 
 Activation requires positive proof that the host's waiting mechanism is
 absent (Q17=A). For Claude, the transcript tied to the pane's session id must
 prove no background task remains running in that session under a validated
-profile, including after a host restart. For Codex, require a fresh supported
-capture proving an idle pane with empty input and no active turn. Only then
+profile, including after a host restart. The candidate positive-absence
+contract requires all of the following:
+
+1. The transcript covers the complete current generation. The candidate origin
+   marker is a recorded `hook_success` for `SessionStart:startup`, observed by
+   the reviewer with a TUIOS executable command. It must be the first relevant
+   session-start record after process creation, before any background start,
+   under a validated source contract tying it to this process and proving
+   complete lifecycle coverage. Timestamp proximity and the word `startup`
+   alone cannot exclude an earlier session. `clear`, `fork`, unvalidated
+   `resume`, an in-process switch, a missing prefix or an ambiguous boundary
+   remain pending. The reviewer's 2026-11-11 source analysis traced the command
+   to `tuitp`'s generated TUIOS hook settings, passed to Claude via `--settings`
+   when that file exists. This is optional launcher behavior. A pane with
+   neither those settings nor an installed TUIOS integration has no marker and stays
+   pending. Installing a hook is not authorized; reading an existing recorded
+   command installs nothing. Validate complete generation/session coverage
+   before using the marker.
+2. Every background start has a later validated terminal event for the same
+   id. The profile must establish complete start/end persistence for every
+   enabled background mechanism, not merely pair the events that happened
+   to be present. Unrecognized task kinds or record shapes remain pending.
+3. No restored or newly created session-scoped scheduled prompt remains
+   unexpired, and no background subagent, `Monitor`, PowerShell task, moved
+   foreground command or other supported background activity remains running.
+   Unknown scheduling or task state remains pending.
+4. The file is read completely, without missing bytes or a truncated last
+   record. Fresh idle/empty-input evidence and stable session/process binding
+   agree with the ledger. Refresh all required state under the execution
+   guard immediately before delivery; it is never cached authorization.
+5. Earlier-generation tasks are treated as ended only when the pinned host
+   profile has validated cleanup for orderly exit, interruption, window close
+   and forced termination on the supported platform. Include sessions moved
+   to the background and later reattached: their tasks can survive the pane's
+   process boundary and must not be counted as ended. General cleanup docs do
+   not establish these lifecycle paths. A restarted, backgrounded or reattached
+   session remains pending until its task continuity or cleanup is validated.
+
+These are proof obligations for the candidate ledger. A cleared, forked or
+switched session cannot prove absence from its current transcript alone,
+because earlier background work can survive a clear. A crash with unproved
+cleanup, unsupported version, incomplete history or unknown lifecycle stays
+pending. The host documentation describes cleanup on exit and retained work
+when backgrounding a session; these descriptions are not a complete JSONL
+schema or crash/restart contract.
+
+For Codex, require a fresh supported capture proving an idle pane with empty
+input and no active turn. Only then
 deliver the target host's marked `review-resume as reviewer` after current
 exact requestor takeover proof, all normal eligibility checks and the
 later-continuation rules, preserving the conversation and normal claim
@@ -643,9 +830,19 @@ Dry runs apply the same classification and name-validation failures.
 | Codex delivery leaves this run's exact text unsubmitted | One full-id Enter only after all ownership/non-submission checks; otherwise no recovery. |
 | Marker names a different pane, digest, role or exchange | Receiver stops before receipt or claim; invocation fails without another consent question. |
 | Reviewer already serves the selected exchange | Leave it untouched on initial and subsequent launches. |
-| A Claude reviewer's watcher, restarted after an answer, still runs after its typed `review-resume` | Leave it untouched (Q16). |
+| A Claude reviewer's watcher, restarted after an answer, still runs after its typed `review-resume` | Leave it untouched; report the reviewer pending unless validated current liveness proves the wait (Q16). No permitted current-liveness proof is available in this delivery. |
 | Reviewer evidence neither proves a wait nor shows that none is running | Send no input; report the reviewer pending with the reason (Q16). |
 | Reviewer evidence shows that no wait is running (Q17=A) | Deliver the marked reviewer resume after takeover proof, eligibility checks and later-continuation rules; never resend uncertain prior delivery. |
+| Host records a watcher as `killed`, and the validated complete ledger proves every background activity ended | Positive absence permits activation after the remaining takeover and eligibility gates. |
+| A Claude reviewer clears or switches sessions after starting background work | Current-transcript absence is unproved; reviewer stays pending. |
+| An old `task_status` says `running`, followed by a validated terminal event | The task is ended; activation still requires complete absence proof for all activities. |
+| A watcher start has no terminal event, but no fresh affirmative liveness proof | Potential wait is unknown; leave pending without input. |
+| An unexpired restored scheduled prompt or unproved background subagent remains | Waiting or unknown; no reviewer activation. |
+| Codex mapped image is outside the pinned release layout, or its manifest/digest disagrees | Unsupported profile evidence; no input. |
+| A different file, including a byte-identical copy or another pinned release, occupies the kernel image name after a rename | Identity query fails; unsupported evidence, no input. |
+| The identity query is unavailable or denied on the Windows build | Unsupported evidence; no input. |
+| The OS build number is not pinned by the Codex profile | Unsupported evidence; no input. |
+| Post-delivery Codex `cli_version` differs from independent pre-input version | Receiver stops before consumption or claim; evidence failure, no resend. |
 | Requestor receipt exists but pane-specific claim proof is missing | Do not activate reviewer. Report the missing proof. |
 | Later switched continuation omits the switch flag | Expected already-resuming skip with the flag explained; no requestor input. |
 | Two cooperating launches target one checkout | Only the execution-guard holder can revalidate and deliver; the other skips. |
@@ -677,6 +874,55 @@ watcher restarted after an answer, later typed input after a reviewer resume,
 a stopped watcher, and each leave-alone, pending and activation outcome
 (Q16, Q17). Validate both hosts' profiles before release; the currently
 observed evidence gaps are not permission to ship only one supported host.
+
+Profile validation requires controlled disposable sessions, never live review
+panes. Synthetic fixtures can verify a known contract but cannot establish a
+host's persistence or lifecycle guarantees. Pin validated versions, layouts,
+manifest schema and image digests before declaring a profile supported.
+
+For Claude, establish complete start/end and typed-input shapes for ordinary
+completion, explicit stop, host kill, `Ctrl+B` and timeout moves, PowerShell
+and Bash tools, `Monitor`, background subagents and their commands, and
+compaction. Determine whether subagent commands persist in the main transcript
+or only a subagent transcript, and account for complete relevant history.
+Exercise clear with running work, fork, orderly exit, launch-time resume,
+in-process resume, background sessions, reattach, window close and forced
+termination, checking only the disposable process tree. Validate that the
+startup marker is the first relevant record of a `tuitp`-launched process
+using its generated TUIOS hook settings and covers the complete generation
+and session. Also validate an installed TUIOS integration without `tuitp`
+settings, and both sources together, including duplicate or merged SessionStart
+records. The recorded command cannot distinguish the sources; command-line
+inspection is excluded because it reads process memory. Test neither settings
+nor integration: no marker means pending. The source finding does not itself
+validate that binding or coverage.
+Test restored `CronCreate` prompts and scheduled wakeups,
+notification persistence while idle and during an active turn, partial writes
+and unknown mechanisms. Notification delay measurements cannot substitute for
+current liveness. No current Claude watcher-liveness proof is available through
+the permitted channels in this delivery; every potential wait remains pending.
+A mechanism that can start without a
+recognizable persisted record invalidates affirmative absence for that
+profile; return the evidence gap to design review rather than guess.
+
+For Codex, validate the identity query on every pinned OS build number,
+record the observed update revision, and test runtime build-metadata parsing
+and rejection outside the pinned set. Validate the query-rights-only
+`VirtualQueryEx` allocation walk and native image-name comparison, including
+incomplete walks, missing or ambiguous matches and excluded memory-read paths.
+Test the identity query's required process/file access, unavailable/denied calls and every
+non-success status. Test directory rename and stale paths, tunneled recreation,
+byte-identical copies and another valid pinned release: replacement handles
+must fail while the renamed original succeeds at the primitive query. The
+full profile still requires its supported path/layout and manifest. Exercise
+junction updates, the actual updater's rename and cleanup behavior, old-release
+retention or refused deletion, manifest disagreements, both image-name APIs,
+same-handle hashing, retained-handle and process races, process restart and
+post-delivery version equality. These experiments remain outstanding.
+A human owns later live validation under the implementation
+plan; this design review performs read-only observations and documents the
+required experiments without sending input to existing panes.
+
 The selected final scope remains the whole suite; this design does not claim
 an implementation or test pass.
 
@@ -692,7 +938,7 @@ an implementation or test pass.
 
 ## File-based IO cost clarification for resume-paused
 
-Read the exact artifact-home declaration, prompt/receipt and selected exchange paths, plus the private journal index when needed. Index checkout/pane identities once per observation; avoid broad document or Markdown scans. Full latest-input proof may require reading candidate host session files, so account for bytes read and reject incomplete evidence. Re-read mutable prompt, receipt, routing, live pane/input and claim evidence at every safety boundary; never cache it as authorization. The bulk reader writes none of these files. Receiver-only persisted updates retain existing atomic replacement and locked claim semantics.
+Read the exact artifact-home declaration, prompt/receipt and selected exchange paths, plus the private journal index when needed. Index checkout/pane identities once per observation; avoid broad document or Markdown scans. Full latest-input proof may require reading candidate host session files, so account for bytes read and reject incomplete evidence. The Claude ledger reads the complete generation range and relevant restored-schedule history at each decision, with all bytes accounted. A Codex image digest is read through the identity-checked handle once per distinct image per invocation; process linkage, the retained-handle identity query and current bindings are still refreshed. Neither result is cached authorization. Re-read mutable prompt, receipt, routing, live pane/input and claim evidence at every safety boundary; never cache it as authorization. The bulk reader writes none of these files. Receiver-only persisted updates retain existing atomic replacement and locked claim semantics.
 
 ## Design decisions for resume-paused
 
