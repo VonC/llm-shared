@@ -11,18 +11,17 @@ branch carried.
 ## Invocation model
 
 The integration and release workflows ask the AI to update the merge message
-after a successful no-fast-forward merge. This applies when a feature enters
-`develop` and when a feature, integration, or promotion branch enters `main`.
+after a successful no-fast-forward merge back into any target branch,
+including an umbrella integration branch, `develop`, or `main`.
 Use this procedure directly only to repair the current merge commit or to
 review the exact mechanics before approving the automated step.
 
 ## 📋 Steps from merge to reworded message
 
-1. Create the merge from an up-to-date target branch. Use `develop` when
-   integrating a feature, or `main` when accepting work for release:
+1. Create the merge from the up-to-date target selected by the workflow:
 
    ```cmd
-   git switch <develop-or-main>
+   git switch <target-branch>
    git pull
    git merge --no-ff <your-branch>
    ```
@@ -48,8 +47,17 @@ review the exact mechanics before approving the automated step.
    `commit.gpgsign`, so the script adds `-S` when that setting is true: the
    reworded merge stays signed like the one it replaces.
 
-6. Push with `gp` (or `git push`). Never push `develop` or `main` between
-   the merge and the reword.
+6. Let the owning workflow require a clean tree and push the current branch
+   before its next-step handoff. A standalone invocation performs that gate
+   itself. With `origin` configured, it uses an explicit branch-only refspec
+   and disables automatic tag following:
+
+   ```cmd
+   git -c push.followTags=false push origin HEAD:refs/heads/<target-branch>
+   ```
+
+   Every configured push destination must succeed. Never push the default
+   merge message between the merge and the reword.
 
 ## 🚀 Inside a release preparation
 

@@ -79,9 +79,11 @@ ghog day --full=cov --whole-suite
 ```
 
 If sources, gate configuration, and scope still match the saved proof, this
-second run skips everything, even check. `proof=cov reused=all scope=whole`
-shows why. The marker `a.ghog.day.ok` lives in the artifact home (`.reviews`
-by default). Change a Python file and the walk re-arms; add `--force` to run
+second run skips check and tests. `proof=cov reused=all scope=whole`
+shows why. If your project opts into the shared pytest compatibility harness,
+its preflight still runs fresh before that reuse. The marker `a.ghog.day.ok`
+lives in the artifact home (`.reviews` by default). Change a Python file and
+the walk re-arms; add `--force` to run
 regardless. A later `--full=speed` request can reuse check and affected tests
 while upgrading the proof with a full speed run.
 

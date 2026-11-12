@@ -98,8 +98,8 @@ the user-confirmed commits, validate it, then re-enter from that branch.
 
 The skill never ends an unsupported result with only “the planner cannot do
 this.” Its handoff contains the release intent, the safety reason for stopping,
-actual branch and commit evidence, pasteable commands with real OIDs, checks
-for the result, and the exact re-entry branch and invocation context.
+actual branch and commit evidence, commands you can paste with real OIDs,
+checks for the result, and the exact re-entry branch and invocation context.
 
 | Unsupported path | Required user handoff |
 | --- | --- |
@@ -183,8 +183,11 @@ The skill always produces and rewords the first structured merge when invoked
 from a feature. With a pending umbrella row, that merge plus the next
 `process-draft` command is the complete output; `main`, `version.txt`, and
 `CHANGELOG.md` remain untouched. With no pending row, it updates release files
-and creates one `chore(release): prepare for vX.Y.Z release` commit. It never
-pushes, runs `brel`, or creates a tag.
+and creates one `chore(release): prepare for vX.Y.Z release` commit. Before
+each next-step handoff it requires a clean tree and pushes the committed
+current branch to every configured `origin` destination. With no `origin`,
+it reports that and continues; a failed push blocks the handoff. It never
+runs `brel` or creates a tag.
 
 Feature promotion branches remain until the author finishes review and
 `brel`; the original feature refs are never rewritten.

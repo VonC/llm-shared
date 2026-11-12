@@ -22,8 +22,9 @@ umbrella is exhausted.
 Before each promotion merge, let the skill run
 `ghog day --full=cov --whole-suite` in the source or landing tree that will be
 merged. This applies to already synchronized branches, replayed ranges, and
-resumed handoffs. A valid whole-suite `cov` or `speed` proof can make the gate
-a noop; group proof cannot satisfy it. Keep these explicit selectors so local
+resumed handoffs. A valid whole-suite `cov` or `speed` proof lets the gate
+reuse check and tests; any opted-in compatibility preflight still runs
+fresh. Group proof cannot satisfy it. Keep these explicit selectors so local
 `GHOG_FULL` and `GHOG_GROUP` settings cannot weaken the release gate.
 
 ## 🧭 Choose the invocation branch
@@ -74,8 +75,11 @@ synchronizes the first destination, confirms the selected scope, merges with
 run there. An exhausted umbrella, a standalone feature, or a run from main or
 integration continues through the Diataxis audit, `version.txt`,
 `CHANGELOG.md`, `pyproject.toml`, `uv.lock`, and one prepare commit. You do not
-run the planner or set `LLM_SHARED_DIR` yourself. It never tags and never
-pushes.
+run the planner or set `LLM_SHARED_DIR` yourself. Before each next-step
+handoff, the skill requires a clean tree and pushes the current branch to
+every configured `origin` destination. With no `origin`, it reports that and
+continues; a failed push blocks the handoff. It stops before tagging, which
+remains the author's `brel` step.
 
 If a feature boundary is ambiguous, the skill presents the candidates and
 reruns its planner with the boundary or parent you choose. It never asks you

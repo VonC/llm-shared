@@ -19,7 +19,7 @@ same contract into local automation.
 
 | Alias | Subcommand | Behavior |
 | --- | --- | --- |
-| — | `ghog day` | check, then `affected --no-cov`, with an optional full step at the selected level; stops at the first non-green step; valid saved proof can make it a noop (`--force` overrides); `--detach` runs a survivor process observed through `ghog status` |
+| — | `ghog day` | check, then `affected --no-cov`, with an optional full step at the selected level; stops at the first non-green step; valid saved proof can skip check and tests after any opted-in compatibility preflight (`--force` overrides reuse); `--detach` runs a survivor process observed through `ghog status` |
 | — | `ghog status` | replay the run lifecycle from `a.ghog.status` without starting anything |
 | — | `ghog check` | run `check.bat` from the project root, exit code passed through |
 | `ptr` | `ghog full` | selected suite at `speed` by default; the default sequential mode rebuilds `.testmondata` with `--testmon` for the whole suite, and keeps it with `--testmon-noselect` for a group |
@@ -102,6 +102,17 @@ and exit 5 means invalid input or membership. Exclusion listings also leave
 proof and run lifecycle untouched. A `--since` comparison reports `changed`,
 `unchanged`, or `unverified`; invalid evidence exits 5.
 
+## Long pytest selections
+
+When a rendered pytest command exceeds 8,000 characters and its selection
+tail fits one argument per line, groundhog moves that tail into
+`a.ghog.pytest-args.<pid>.txt` in the artifact home and
+passes `@<file>` to pytest. This requires pytest 8.2 or newer and prevents
+Windows command-line limits from rejecting large selections. Test paths,
+coverage folders, argument order, spaces and non-ASCII names are preserved.
+Short commands run unchanged. The temporary file is removed after the child
+exits, including on failure.
+
 ## Saved day proof
 
 A green day stores proof in the artifact home: `a.ghog.day.ok` for the whole
@@ -110,8 +121,9 @@ suite, or `a.ghog.day.<group>.ok` for a group. Each marker contains five
 The digest covers Python files and gate configuration; the scope fingerprint
 must match too. Legacy one-line snapshots provide no valid proof.
 
-Valid proof at or above the requested level skips the entire walk, including
-`check.bat`. An upgrade from a lower valid proof reuses check and affected tests
+Valid proof at or above the requested level skips `check.bat` and tests.
+An opted-in compatibility preflight still runs fresh before reuse.
+An upgrade from a lower valid proof reuses check and affected tests
 and runs the full step at the requested level. Changing the duration floor or
 exclusions caps a saved `speed` proof at `cov`. The timing fingerprint also
 identifies the measurement method: speed proof from the former separate

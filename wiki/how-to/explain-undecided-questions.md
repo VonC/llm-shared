@@ -44,9 +44,10 @@ on its own. The explanation then covers the behavior, a realistic example, an
 analogy, the options and tradeoffs, a recommendation, effects on related
 questions, and the plan step where the choice lands.
 It ends with a choice your host presents, such as a Claude Code question
-dialog, so the agent shows as waiting for you rather than done. Codex in
-Default mode has no such dialog: it lists the options and reports a `blocked`
-status to your terminal, which tuios and Windows Terminal show. Pick an
+dialog, so the agent shows as waiting for you rather than done. Codex uses
+its blocking picker when the current turn provides one. Otherwise it lists
+the options and reports a `blocked` status to your terminal, which tuios and
+Windows Terminal show. Pick an
 option, or type your qualifications or a clarification request. When you ask
 what a notion means, the agent explains it, then introduces it in the umbrella
 draft, the topic draft and the effort's documents up to the one under review,

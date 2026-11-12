@@ -82,6 +82,13 @@ until it is empty.
 
 ## ✅ Check after the replay
 
+Before displaying or executing the next workflow step, let the owning
+workflow require a clean tree and push the current branch to every configured
+`origin` destination. A standalone grouping invocation owns this gate itself.
+If changes remain, it groups them for the applicable commit review first;
+a failed cleanup or push blocks the handoff. See the
+[push rule](../reference/writing-rules.md#push-before-the-next-step).
+
 `git log --oneline` shows one commit per group, least dependent first,
 each title 52 characters or less, each body carrying `Why:` and `What:`
 sections wrapped at 80 columns. An authorized cleanup continuation additionally

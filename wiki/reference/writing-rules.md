@@ -53,10 +53,10 @@ still-relevant comments and docstrings preserved.
 Get every shell command right on the first attempt — each one costs
 tokens twice, call and output:
 
-- file reads never go through an environment wrapper: `senv.bat` is for
+- file reads never go through an environment wrapper: `.\senv.bat` is for
   toolchain commands (build, check, test, deps), not for reading files,
 - one shell per command, no nested quoting: the chain form is
-  `cmd /d /v:on /c "senv.bat && <one-exe> <plain args>"`, issued from
+  `cmd /d /v:on /c ".\senv.bat && <one-exe> <plain args>"`, issued from
   PowerShell or cmd, never from Git Bash,
 - llm-shared launchers run by full path with no environment setup: they
   self-locate `LLM_SHARED_DIR` and their Python from their own `bin\`
@@ -85,11 +85,24 @@ only when the host renders them interactively. Never assume a live TTY:
 no `gum choose`, no `fzf`, no `Read-Host`. The default concrete choice of
 a go-ahead menu is `Go ahead`.
 
-When no blocking picker holds the turn (Codex in Default mode), the agent
+Codex uses `request_user_input` when the current turn lists it, including
+Default mode with the corresponding host feature enabled.
+When no blocking picker holds the turn, the agent
 shows the choices, reports `blocked` with `kind=question` to its terminal
 through `bin\program_status.bat` (OSC 7501), and ends the turn without
 polling. It never decides for the user, and reports `working` once the answer
 comes, then `done`, `error`, `idle` or `clear`.
+
+## Push before the next step
+
+`push-before-next-step.md` requires a clean working tree after commits or
+authorized review actions, before displaying or executing the next workflow
+step. Remaining changes go through grouped commits and the applicable human
+commit gate. With `origin` configured, push only the current branch using
+`git -c push.followTags=false push origin HEAD:refs/heads/<branch>`; every
+configured destination must succeed. A failed status check or push blocks
+the handoff. An explicit user instruction to defer or omit pushing takes
+precedence.
 
 ## 💬 Chat rules from CLAUDE.md and copilot-instructions.md
 

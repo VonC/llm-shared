@@ -51,8 +51,10 @@ decisions**.
   stops on integration with the next ordered requirement while any row is
   pending. An exhausted umbrella continues with release notes, versions,
   changelog, and a final preparation
-  commit—without silently tagging or pushing. The human approves the topology
-  and later runs the final build/tag action. Start with
+  commit. The workflow requires a clean tree and pushes the committed branch
+  to every configured `origin` destination before each next-step handoff;
+  a failed push blocks it. The human approves the topology and later runs the
+  final build/tag action. Start with
   [why release branch roles matter](explanation/why-release-branch-roles-matter.md)
   or [prepare a release from any branch](how-to/prepare-a-release.md).
 

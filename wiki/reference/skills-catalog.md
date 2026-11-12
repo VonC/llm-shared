@@ -40,8 +40,9 @@ prerequisites already satisfied.
 | `/prepare_release_notes` | `version.txt`, git history | `a.md`, `version.txt` summary, `CHANGELOG.md` |
 | `/prepare-release` | `main`, integration, or an isolated effort branch | collection feature returned to its umbrella-slug integration branch plus the next handoff, or standalone/full release artifacts and one `chore(release): prepare` commit |
 
-`/update-merge-commit-msg` runs immediately after a feature merge into its
-integration branch or any no-fast-forward merge into `main`. The merge must still be the
+`/update-merge-commit-msg` runs immediately after every no-fast-forward merge
+back into any target branch, including a feature merge into its integration branch
+and any no-fast-forward merge into `main`. The merge must still be the
 current commit, and the target branch must not be pushed or used for later
 integration work first. Rewording a historical merge requires a separate
 history-repair plan.
