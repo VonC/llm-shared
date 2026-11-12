@@ -578,6 +578,73 @@ Publish/version-choice consumers in a later repository migration must also
 exclude snapshot markers from release choices and require explicit snapshot
 intent (including the `publish_pdf_nexus*.sh` follow-up in my-project).
 
+### Snapshot-tag readers still to migrate
+
+Item 2 delivered the shared classifier and range selector
+(`tools/release_workflow/tags.py`, exposed as `versions <root> range
+[<stable tag>]`), with the commit count read from `git rev-list --count` on
+the selected range. Its tests cover a marker on HEAD, a marker inside a
+tag-targeted range, histories with only snapshot markers or no tag at all, and
+every snapshot suffix spelling. No existing reader calls the selector yet, so
+the protection is not end to end: items 4, 5 and 7 switch the readers below,
+and item 8 removes the legacy ones only after that.
+
+Audit of 2026-11-12 at `sibling_release_tooling` `16080e00`; main `a5d140de`
+has the same readers, with its line numbers in brackets where they differ.
+`tools/dev_workflow` is the submodule pinned at `f90bfc6`.
+
+| Reader | Snapshot-tag defect | Owner |
+| --- | --- | --- |
+| `scripts/prepare_release_notes.sh:125` | `describe --tags --abbrev=0`: a marker becomes the notes baseline and drops the commits before it | 7 |
+| `instructions/prepare-release-notes.md:68` and its adapters | Document that same unfiltered command | 7 |
+| `instructions/prepare-release.md:271` [275], Step 1 | The unfiltered last tag sets the effort and documentation scope | 7 |
+| `instructions/prepare-release.md:298` [302] and `:306` [310], Step 2 | `describe --tags --exact-match HEAD` and `tag --contains HEAD` read a marker as a release: a marker on HEAD stops the run with "release already done" | 7 |
+| `tools/prepare_release/prepare_release_plan_git.py:208` (`latest_tag`), used at `prepare_release_plan_workflow.py:146` | The on-main plan scope starts at the newest tag, a marker included | 7 |
+| `tools/prepare_release/prepare_release_plan_git.py:198` (`tags_containing`), used at `prepare_release_plan_workflow.py:423` | A marker containing the branch tip gives the `already-released` action | 7 |
+| Adapter summaries, such as `.github/skills/prepare-release/SKILL.md:7` | Repeat `git describe --tags --abbrev=0` | 7 |
+| "Since the last tag" wording in `tools/prompt_workflow_models.py:40`, `tools/prompt_workflow.steps.json:144` and the skill descriptions | Describe the old baseline instead of the last eligible stable release | 7 |
+| The same wording in `DEVELOPMENT.md`, `wiki/how-to/prepare-a-release.md`, `wiki/tutorials/05-prepare-a-release-from-develop.md`, `wiki/reference/prepare-release-scenarios.md` and `wiki/explanation/why-documents-before-code.md` | Same | 8 |
+| `tools/dev_workflow/update-changelog.sh:22`, `:25` and `:49` | Unfiltered nearest tag, unfiltered version-sorted previous tag, exact-match HEAD | 4 replaces, 8 removes |
+| `tools/dev_workflow/cliff.toml:82` to `:86` | No `tag_pattern`, `ignore_tags` or `skip_tags`: every tag, markers included, opens a release section | 4 |
+| `tools/dev_workflow/update-version.bat:75`, `:76` and `:143` | Token two of `git describe --long` is taken as the commit count: `v2.3.1-SNAPSHOT-4-g1a2b3c4-dirty` gives `SNAPSHOT`, not `4` | 5 replaces, 8 removes |
+| `tools/dev_workflow/update-version.bat:501` | The existing-tag check looks for `vX.Y.Z` only, never legacy `X.Y.Z` | 5 replaces, 8 removes |
+| `tools/dev_workflow/init.bat:102` (`crel`) | Resets and deletes the newest tag by creation date, which can be a marker or a valid release | 5 replaces, 8 removes |
+
+The release-state checks (Step 2, `tags_containing`) ask another question
+than a range: whether a commit is an eligible stable release, or is contained
+by one. `versions range` answers the first (an eligible baseline with
+`commits=0` sits on the target); nothing answers the second yet. Item 7 owns
+that supporting reader code.
+
+my-project gives the concrete shape. It commits on `main`, merges `main` into
+`develop` with `--no-ff`, sets `X.Y.Z-SNAPSHOT` in its Maven sources and
+`version.txt` (plain `X.Y.Z` in Python metadata and the uv root), then creates
+an annotated `vX.Y.Z-SNAPSHOT` tag on the final commit for its integration
+build. Commits follow that marker, and an earlier production release and its
+tag must stay unchanged. Every switched reader is tested on these histories:
+
+- a stable release, then a snapshot marker, then more commits (the marker below
+  HEAD, the my-project shape);
+- a snapshot marker on HEAD;
+- snapshot markers only, and no tag at all;
+- legacy snapshot spellings: unprefixed `X.Y.Z-SNAPSHOT` and other suffix cases.
+
+Each must give the range since the last eligible stable release (or the full
+history), a commit count equal to `git rev-list --count` of that range, no
+released section and no "already released" result for a marker. Cancellation
+and recovery keep markers and valid releases (item 5, tested separately).
+Reuse the selector tests where they already establish an outcome and add
+checks only for real gaps: at selector level, a HEAD-target range with a
+marker below HEAD is covered only indirectly, through a marker inside a
+tag-targeted range.
+
+A legacy fix for consumers who need relief before they migrate belongs in the
+`senv_dev_workflow` repository, separately authorized, and each consumer
+adopts it explicitly: editing one consumer's submodule does not move another
+consumer's pin. my-project's local count correction changes no baseline
+selection; its migration, CI call paths and clean-tree handling stay in its
+own effort.
+
 ### Temporary files move out of the tooling tree
 
 With one shared copy of the tooling, consumer scratch files must not be written
@@ -1700,6 +1767,10 @@ implementation mechanisms to the child designs.
     `## [vX.Y.Z] - YYYY-MM-DD - <title>` headings, with the captured release date.
     No filter.changelog; snapshot tags never truncate commits or create a
     released section, including a snapshot marker on HEAD.
+    Restrict git-cliff's release tags to the stable rule; never exclude a
+    marker through `skip_tags`, which drops its commits. Replace the
+    unfiltered readers of `update-changelog.sh` and `cliff.toml` listed in
+    "Snapshot-tag readers still to migrate", tested on its histories.
   - Apply numeric recent/archive policy to root plus
     `docs/CHANGELOG.vA.B.C-vD.E.F.md`; validate bounds, destinations, overlap,
     coverage and links. Repartition complete sections when bounds change,
@@ -1764,6 +1835,11 @@ implementation mechanisms to the child designs.
   - Recover skipped post/interruption with conflict checks and durable evidence;
     repeat post/recover safely. Never let crel remove an unrelated snapshot tag
     or valid release; report incomplete recovery truthfully.
+    Test a marker or valid release that is the newest tag by creation date
+    (legacy `init.bat` `crel` deletes it). Count commits through the shared
+    selector, never from `git describe` tokens (legacy `update-version.bat`
+    reads `SNAPSHOT` as the count), as "Snapshot-tag readers still to migrate"
+    records.
   - Serialize same-root/shared-tag mutations across worktrees, allow independent
     projects, escape/clean unique handoffs and keep consumer scratch state local.
   - Keep br equivalent to brel. Ordinary builds do not bump; next snapshot is
@@ -1837,6 +1913,13 @@ implementation mechanisms to the child designs.
   - Replace unfiltered last-tag queries in notes, release planning and documentation
     scope with the shared stable selector. Test stable then snapshot tags,
     snapshot at HEAD and histories containing only snapshot markers.
+    Switch every reader this item owns in "Snapshot-tag readers still to
+    migrate", including Step 2's release-state checks and the planner's
+    `latest_tag` and `tags_containing`, adding the stable-only release-state
+    reader they need. Test each on that section's histories, with no tag at
+    all, legacy spellings and commit counts matching the selected range.
+    Canonical instructions, scripts, planner and adapters must agree; reword
+    "since the last tag" as the last eligible stable release.
   - Run the tooling upgrade check before preparation, offering the helper's
     concrete action and revalidating after update. Record the executing revision
     in the final trailer, never a recommended-but-unused version.
@@ -1883,7 +1966,10 @@ implementation mechanisms to the child designs.
   - Convert its two fix rules automatically; add explicit config/pin/archive
     policy and cache ignore; use direct colors/add shcolors on linux branch.
     Remove dev_workflow/.gitmodules and only the obsolete Git filter after
-    callers and parity/recovery checks pass.
+    callers and parity/recovery checks pass. Every reader in "Snapshot-tag
+    readers still to migrate" must be switched or removed first, with the
+    wiki and DEVELOPMENT wording it lists; keep my-project's snapshot-marker
+    history as consumer evidence, outside this repository's changes.
   - Rehearse on isolated histories using legacy scripts for comparison, with
     documented intentional version/lock/changelog/trailer/snapshot differences.
     Include validity and failure recovery; retain evidence before removal.
