@@ -942,13 +942,28 @@ Read the exact artifact-home declaration, prompt/receipt and selected exchange p
 
 ## Design decisions for resume-paused
 
-These are the explicit user decisions reviewed in round 8. Q01-Q14 were
+These are the explicit user decisions reviewed in exchange 1 round 8. Q01-Q14 were
 confirmed on 2026-11-09; Q15-Q17 were confirmed on 2026-11-10. Question IDs in
 this table refer to this design; the coverage table above refers to the
 requirement. The answered questions, options and discussion are preserved in
 the pre-consolidation Git snapshot. No further design question is needed to
 write the implementation and validation plans. The evidence gates above still
 apply before enabling delivery or claiming release readiness.
+
+Exchange 2 round 5 settled the Codex attribution and Claude lifecycle-evidence
+contracts without reopening these decisions. Consolidation was explicitly
+authorized on 2026-11-12. Both Codex and Claude remain required; neither profile
+is supported yet, and Step 1 remains incomplete. The implementation agent must
+revise Step 1 of both plans to these contracts before resuming validation in
+disposable sessions. Reviewer observations do not replace that validation.
+
+If validation finds a background mechanism whose start or end lacks a
+recognizable record, Claude reviewer activation remains pending because the
+ledger cannot prove that all background work ended. An additional channel
+means a specific further source of task-state evidence. The implementation
+agent must return the gap to design review with a concrete proposal before
+asking the human to approve that source. No unspecified channel is approved,
+and this conditional review does not permit shipping only one supported host.
 
 | Question | Decision and rationale | Integrated in | Rejected alternatives |
 | --- | --- | --- | --- |

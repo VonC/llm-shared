@@ -39,7 +39,7 @@ Initial design following the completed and consolidated requirement. Added sourc
 
 Added Q01-Q12 for routing grammar, consent encoding, result persistence, claim lineage, deadlines, host profiles, execution guard, human caller evidence, read-only protocol observation, reused pane identity, mutation revalidation and single-agent observation outcomes. All decisions remain pending. The requirement and its 29 confirmed choices are unchanged.
 
-The separately authorized spelling correction removes achive from project spelling settings and changes its ten whole-word occurrences to achieve in the older requirement review transcript. This correction does not change requirement behavior and is outside this design review's substantive scope.
+The separately authorized spelling correction removes achieve from project spelling settings and changes its ten whole-word occurrences to achieve in the older requirement review transcript. This correction does not change requirement behavior and is outside this design review's substantive scope.
 
 ### Writer response for design-specification resume-paused (round 1)
 
@@ -2841,3 +2841,2213 @@ Human choice: Consolidate
 Outcome: continue-owning-workflow
 
 <!-- review-entry-id: human-confirmation-round-8 -->
+
+## Round 1 by requestor (exchange 2)
+
+- Recorded: 2026-11-10T20:52:19+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: unrecorded
+- Outcome: request
+
+### Review identity for design-specification resume-paused (round 1)
+
+Umbrella draft: none
+Reviewed specification: docs/v0.14.0/design.v0.14.0.resume-paused.md
+Review round: 1
+
+### Requestor assessment for design-specification resume-paused (round 1)
+
+The design has confirmed decisions Q01 through Q17 and no remaining open-question section. Step 1 stopped at its feasibility gate before any adapter or fixture implementation. The current design therefore needs an evidence review, not an implementation-complete recommendation.
+
+Read docs/v0.14.0/resume-paused.profile-evidence.md for the sanitized observations and the exact implementation plan for the stop boundary. Review the exact design and its requirement for consistency. Do not infer support from synthetic fixtures, missing indicators, a version printed by an unrelated CLI, or a post-input session record.
+
+Please independently investigate these two gaps and suggest concrete, reproducible read-only evidence sources, with authoritative source/documentation references where available:
+
+1. Codex independent pre-input version: five pane captures returned recent content, zero history rows and no version banner. Each pane's Windows shell process had one direct Codex executable child, but executable file/product version, path and arguments supplied no version. Is there another trustworthy pane-linked binary/build/version channel? Assess whether querying the exact linked executable or mapping its content hash to an official release could work, including running-process versus replaced-file races and whether that fits Q06 or requires a new user decision. Caller-installed CLI versions and post-delivery cli_version do not satisfy the current rule. We have not established the actual running Codex version.
+2. Claude positive absence of background tasks, including restart: four pane-attributed transcripts reported version 2.1.321 and matching session IDs. The first contained backgroundTaskId start results, individual task_status attachments and task-notification records, but no validated complete current inventory, zero-task assertion or restart/epoch binding. Identify a documented authoritative task inventory or complete lifecycle contract tied to the current session/process. Explain completeness, startup/restart recovery, freshness and current watcher liveness. An empty set inferred from missing events, old completion notifications, a session-owner record or background-shell counts is insufficient. Do not enumerate/control live background shells or send pane input during this investigation.
+
+For each gap, distinguish confirmed evidence, a testable hypothesis and an unavailable capability. If no source meets the confirmed rules, propose minimal explicit design alternatives with tradeoffs and a recommendation, preserving the fail-closed boundary. Evaluate host-specific unsupported outcomes separately from the requirement to support both hosts before delivery. Do not silently reopen Q06, Q14, Q16 or Q17, substitute hooks for Q14's session-file choice, or weaken positive absence.
+
+Questions may be missing if the existing confirmed contracts are infeasible. Existing answers are sufficient as policy, but have not established feasibility. Please identify the exact new question needed only if reproducible evidence cannot close a gap. Any new design choice remains for the human; reviewer convergence alone does not authorize selecting it. No reviewer wording suggestions have been applied in this new exchange yet.
+
+### Change summary for design-specification resume-paused (round 1)
+
+No change to the reviewed design since its confirmed decisions. Added the staged, uncommitted companion docs/v0.14.0/resume-paused.profile-evidence.md recording sanitized read-only feasibility observations and the Step 1 stop. No code, tests, host input or clear experiments were performed. The implementation and validation plans remain unchanged and Step 1 is incomplete.
+
+### Human guidance and writer response for design-specification resume-paused (round 1)
+
+Human guidance:
+
+OK, resolve conclusively the unresolved points in design review
+
+Check with your reviewer counterparts for ideas
+
+Writer response:
+
+The writer requests concrete independent ideas before choosing any alternative design. The observations establish a local evidence gap, not universal impossibility. We will verify proposed channels against the current confirmed rules, record accepted evidence and disagreements, and return any genuinely new policy choice to the human. Do not treat this request as authority to operate panes or background tasks.
+
+### Reviewer focus for design-specification resume-paused (round 1)
+
+Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
+
+<!-- review-entry-id: request-round-1-exchange-2 -->
+
+### LLM nature completion for reviewer (exchange 2)
+
+Recorded nature: `claude`
+
+Completed artifacts:
+
+- `C:/Users/[redacted]/git/llm-shared_resume-paused/.reviews/a.review-active.specification.design-specification.v0.14.0.resume-paused.md`
+- `C:/Users/[redacted]/git/llm-shared_resume-paused/.reviews/a.review-requested.design-specification.v0.14.0.resume-paused.md`
+
+<!-- review-entry-id: llm-nature-completion-reviewer-exchange-2 -->
+
+## Round 1 by reviewer (exchange 2)
+
+- Recorded: 2026-11-10T21:15:44+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: answer
+
+### Reviewer assessment for design-specification resume-paused round 1
+
+I assessed the current design: 725 lines, SHA-256
+`9f2ac1ef716da1acc9c122fd453c0214108bab0e1c90ab725d49d3722b767ddb`, unchanged
+since its Q01-Q17 decisions. I also read the companion
+`docs/v0.14.0/resume-paused.profile-evidence.md` that the request names and
+checked the requirement's relevant statements. Q01-Q17 are explicit user
+decisions, and I reopened none of them. The policy is sufficient. The gap is
+that the design names evidence classes rather than concrete channels, and
+Step 1 could not find the channels.
+
+I investigated both gaps read-only. I sent no pane input, did not run
+`resume_paused`, read no conversation content, and did not enumerate, stop or
+start any background shell for this investigation. The process evidence came
+from `QueryFullProcessImageNameW` and `GetMappedFileNameW` on the running Codex
+and Claude processes. The Claude ledger evidence came only from record types,
+field names, timestamps and status keywords in this reviewer session's own
+transcript. Documentation came from the Claude Code docs. One scratch
+experiment launched a self-built sleeper executable through a temporary
+junction and then deleted everything it created.
+
+Gap 1, the Codex version before input, can be closed within Q06=A through
+the pane's own process metadata.
+
+- Confirmed: every running Codex process on this machine (seven) was started
+  through `<CODEX_HOME>/packages/standalone/current/bin/codex.exe`. The
+  `current` entry is an NTFS junction to
+  `releases/0.167.0-x86_64-pc-windows-msvc`. The path that an ordinary process
+  listing reports is the junction path, which carries no version, so that
+  part of the Step 1 finding stands. The kernel image name from
+  `QueryFullProcessImageNameW`, and the mapped-file name from
+  `GetMappedFileNameW`, resolve to the release directory the process actually
+  loaded. That directory holds `codex-package.json` with `layoutVersion` 1,
+  `version` `0.167.0`, `target` `x86_64-pc-windows-msvc` and `entrypoint`
+  `bin/codex.exe`. The older `0.166.0` release is kept beside it. The
+  executable has no Windows version resource, as Step 1 found.
+- Confirmed race behavior, from the scratch experiment: retargeting the
+  junction after launch does not change the kernel image name. Deleting the
+  running image and opening it for writing are both refused. Renaming the
+  release directory succeeds, and afterwards both APIs keep reporting the
+  old, now stale, path. A stale path then either no longer exists, which fails
+  closed, or names a same-named directory created afterwards, which only
+  tampering produces.
+- Confirmed on the same machine for the other host: each running Claude
+  process maps an image that the native updater renamed aside to
+  `claude.exe.old.<n>.<pid>` while it ran, and a newer `claude.exe` now sits at
+  the launch path. The file at a launch path can therefore be a different
+  build from the running one. This is why a caller-installed CLI version, or
+  the file found through a launch path, is not pane evidence. Claude's
+  transcript `version` remains a sound source, because the running process
+  writes it.
+- Proposed channel: start from the pane's shell process and its single
+  direct Codex child, which Step 1 already establishes. Read that child's
+  kernel image name and require it to equal
+  `<CODEX_HOME>/packages/standalone/releases/<version>-<target>/<entrypoint>`.
+  Read that release's `codex-package.json`, accept only `layoutVersion` 1 with
+  the exact key set, and require the directory name, `version`, `target` and
+  `entrypoint` to agree. This is metadata of the pane's own process. It never
+  consults `current`, the caller's PATH or any caller CLI. Anything else is
+  unsupported evidence under Q06: another install layout (for example an npm
+  wrapper whose vendored binary path carries no version), a renamed image, a
+  missing or extra manifest key, or any disagreement. A tested profile may
+  also record the SHA-256 of each validated image. Matching it closes the
+  same-name tampering case, at the cost of reading the image once per distinct
+  image per invocation (about 370 MB here). The image cannot change while it
+  is mapped.
+- Post-delivery cross-check: Q14's matched session file reports `cli_version`.
+  It cannot select the profile, but a value that differs from the pre-input
+  version is contradictory evidence, so the receiver must stop before
+  consumption or claim. The same check catches a TUI attached to a shared
+  server of another version.
+- Unavailable or rejected: the pane banner, because captures retain no
+  history; Windows version resources; the caller's `codex --version`; the
+  update-state files under the Codex home, which name a selected or available
+  version, not the running one; typing `/status`, which is pane input before
+  eligibility; and reading process memory.
+- Not verified: an upstream contract for `codex-package.json`. The official
+  installer script could not be fetched from this environment. A search
+  summary of the public commit "Significantly improve standalone installer"
+  (openai/codex #17022) describes the release-directory layout and says that
+  commit deliberately used no release metadata file. The manifest seen here
+  is therefore either later or undocumented. Treat its schema as a
+  validated-profile fact pinned to `layoutVersion` 1 and recheck it whenever
+  Codex changes it. The versioned directory name alone carries the same
+  version and target.
+
+Gap 2, positive absence of Claude background tasks and current watcher
+liveness. No documented read-only inventory exists. A transcript lifecycle
+ledger, bounded by the pane's Claude process generation, can satisfy Q16 and
+Q17 as written once a profile validates it. Unvalidated cases remain pending.
+
+- Unavailable: Claude Code documents `/tasks` as the view of running shells
+  and subagents, but it requires pane input. The hooks reference lists 33
+  events, and none fires when a background command starts or ends;
+  `TaskCreated` and `TaskCompleted` concern task-list items. Hooks would also
+  be a new channel. The transcript JSONL schema is not a documented contract,
+  so any profile is pinned to validated host versions.
+- Documented lifecycle (Claude Code interactive mode and tools reference):
+  - A background command returns a unique task id.
+  - Background tasks are cleaned up when Claude Code exits.
+  - A command started by the main conversation keeps running after a final
+    response until it exits, is stopped or reaches its time limit. Local
+    interactive sessions have no time limit.
+  - A foreground command can move to the background at its timeout or with
+    `Ctrl+B`.
+  - Commands started by a foreground subagent end with that subagent.
+  - A session moved to the background keeps its tasks.
+  - Under memory pressure, idle tasks are stopped (documented for macOS and
+    Linux only).
+  - `CronCreate` scheduled prompts are session-scoped and restored on
+    `--resume` or `--continue`.
+
+  The requirement's problem statement adds that clearing a conversation
+  leaves background shells running.
+- Confirmed in this reviewer session's transcript, using field names and
+  statuses only:
+  - Ten background starts are recorded as tool results carrying
+    `toolUseResult.backgroundTaskId`.
+  - Each start has a later `queue-operation` enqueue whose content carries
+    the same task id and a terminal `<status>`, either `completed` or
+    `killed`. A user record with `origin.kind` `task-notification` and
+    `promptSource` `system` follows it.
+  - The pairing held across three compactions in one file and session id.
+  - Typed input is distinguishable by `origin.kind` `human` and
+    `promptSource` `typed`.
+  - `task_status` attachments (`taskId`, `taskType` `local_bash`, `status`
+    and the command) appear only right after each `compact_boundary`, one per
+    running task. They are a snapshot, not an inventory, and never assert
+    zero.
+- Confirmed staleness and an undocumented stop: today the host stopped this
+  reviewer's idle watcher on Windows for memory pressure and recorded
+  `killed`. The `task_status` snapshot from the preceding compaction still
+  said `running`, and the reminder rendered from it still said the watcher was
+  running after the kill. Ordering by transcript position resolves the
+  conflict, but a snapshot read alone does not. Because the docs describe
+  this stop for macOS and Linux only, host behavior already differs from the
+  docs, which makes version pinning and profile validation necessary.
+- Restart boundary: all four Claude processes here were created within about
+  a minute before this session's first `SessionStart` record. The creation
+  time of the pane's Claude process is pane-tied metadata of that process
+  itself, not of its children, so using it does not enumerate background
+  shells, which requirement Q04 forbids.
+- Proposed ledger rule (testable hypothesis H2): a generation is the lifetime
+  of the pane's current Claude process. Positive absence holds only when all
+  of these are true:
+  - (a) The transcript named by the pane's current `agent_session_id` covers
+    the whole generation. Its first record in this generation follows the
+    process creation time within a validated tolerance, and no `/clear`, fork
+    or session switch happened in this process.
+  - (b) Every task start recorded since creation has a later terminal record
+    for the same id.
+  - (c) No unrecognized background-capable record shape appears since
+    creation. A background subagent, `Monitor`, a moved foreground command,
+    the PowerShell tool or a workflow each need validated start and end
+    shapes.
+  - (d) No session-scoped scheduled prompt (`CronCreate` or a scheduled
+    wakeup) remains unexpired, because it survives restart and can start a
+    reviewer turn.
+  - (e) The pane is idle with empty input, the file is read completely with
+    no truncated last line, and the check repeats under the execution guard
+    immediately before delivery.
+
+  Tasks started before process creation count as ended, because the host
+  cleans them up at exit. Before that rule is accepted, validation must show
+  whether a crash or forced kill on Windows leaves task processes running.
+  Positive wait (Q16) is the converse: after the latest typed reviewer
+  `review-resume` input, a start whose command is the reviewer
+  `wait-any-request`, within this generation and with no terminal record. A
+  completed task whose notification is not yet enqueued still reads as
+  running, which errs toward leaving the reviewer alone.
+- What H2 does not cover: a cleared or switched session inside a running
+  process (shells survive the clear, and nothing in the new session links the
+  old transcript), a host crash with surviving children until that is tested,
+  unvalidated host versions and unrecognized task kinds. Each case reports
+  the reviewer pending under the existing Q16 and Q17 rules. Nothing here
+  weakens positive absence.
+
+Both channels fit the confirmed decisions without reopening Q06, Q14, Q16 or
+Q17. Codex uses metadata of the pane's own process. Claude uses the
+session-id-tied transcript under a validated profile. Hooks are not
+substituted. No new question is needed now. One becomes necessary only if
+disposable-session validation shows that some background start or end leaves
+no recognizable record. Claude activation would then stay permanently
+pending, which defeats requirement Q22=A for Claude reviewers, so the human
+would need to choose between accepting that limit and approving another
+channel. The design still has to state these channels, their limits and their
+validation, which is more than wording.
+
+### Question verdicts for design-specification resume-paused round 1
+
+All seventeen design decisions are explicit user decisions recorded on
+2026-11-09 and 2026-11-10. I agree with each of them, and none needs
+reopening. The design has no open-question section, which is correct for
+this request, because its policy is complete. Only the evidence channels are
+missing.
+
+Q01-Q05 and Q07-Q13: not affected by either evidence gap. I would keep every
+recorded choice.
+
+Q06, A: pane-tied host and version evidence selects explicit tested
+profiles. I would choose the same. The kernel image name of the pane's own
+Codex process, resolved to a versioned standalone release and its manifest, is
+process metadata of that process and satisfies Q06 as written. Other layouts
+remain unsupported evidence. No new decision is needed.
+
+Q14, B: unaffected. The session file still proves complete input after
+delivery. Its `cli_version` is used only to contradict the pre-input version,
+never to select a profile.
+
+Q15, A: unaffected.
+
+Q16, A: I would choose the same. The transcript lifecycle ledger supplies
+the current host waiting evidence: a reviewer `wait-any-request` start after
+the latest typed reviewer `review-resume`, in the current process generation,
+with no terminal record.
+
+Q17, A: I would choose the same. The same ledger can prove positive absence
+under conditions (a) to (e) of the assessment. A cleared or switched session,
+a host crash, an unvalidated version or an unrecognized task kind each stays
+pending, as Q17 already requires.
+
+No question is missing now. A new human question arises only if
+disposable-session validation shows that some background start or end leaves
+no recognizable transcript record. Then the exact question would be: should
+Claude reviewer activation stay permanently pending, accepting the resulting
+limit on requirement Q22=A, or should a named additional channel be approved?
+
+### Requested changes for design-specification resume-paused round 1
+
+Requested changes:
+
+Line numbers refer to the current design (725 lines). Keep every Q01-Q17
+decision row unchanged. These changes make the confirmed decisions concrete.
+
+1. Codex version channel (lines 423-442). Replace "the candidate Codex sources
+   ... validates one of them read-only" with this contract. Take the kernel
+   image name (`QueryFullProcessImageNameW`) of the pane's single direct
+   Codex child. Require
+   `<CODEX_HOME>/packages/standalone/releases/<version>-<target>/<entrypoint>`.
+   Read that release's `codex-package.json`, accepting only `layoutVersion` 1
+   with the exact key set, and require the directory name, `version`, `target`
+   and `entrypoint` to agree. Never resolve `current`, PATH or a caller CLI.
+   Any other layout, a renamed image or any disagreement is unsupported
+   evidence under Q06=A. Allow an optional SHA-256 of the validated image in
+   the profile. The banner may remain a corroborating source, but it is not
+   required.
+2. Race rules for that channel. State that retargeting the `current` junction
+   does not change the kernel image name. A running image cannot be deleted
+   or rewritten. A renamed release directory leaves a stale name: a missing
+   path fails closed, and the optional digest rejects a same-named
+   replacement. The kernel name, not the launch path, is the evidence,
+   because updaters rename running images aside (observed for Claude as
+   `claude.exe.old.<n>.<pid>`).
+3. Post-delivery contradiction. The receiver must compare Q14's
+   `cli_version` with the pre-input version. A difference stops before
+   consumption or claim and is reported as a marker or evidence failure. It
+   never selects or repairs a profile.
+4. Confirmed source facts table (lines 41-56). Add rows for the standalone
+   release layout and kernel image name, and for the Claude updater's renamed
+   running image. Say that the junction path, not process metadata as a
+   whole, lacked the version.
+5. Claude task ledger (lines 569-597). Define the Claude profile evidence:
+   - the generation, which is the pane's Claude process lifetime from its
+     creation time;
+   - the start shape, `toolUseResult.backgroundTaskId`;
+   - the terminal shape, a `queue-operation` enqueue carrying the same task
+     id and a terminal status, then a user record with `origin.kind`
+     `task-notification`;
+   - typed input, `origin.kind` `human` with `promptSource` `typed`, with the
+     slash-command form validated separately;
+   - that `task_status` attachments are snapshots and never an inventory.
+
+   State conditions (a) to (e) from the assessment and the positive-wait
+   converse for Q16. Say that this reads only the transcript and the creation
+   time of the pane's own Claude process. It does not enumerate, stop or
+   start background shells (requirement Q04) and uses no hooks.
+6. Waiting mechanisms. State that an unexpired session-scoped scheduled
+   prompt (`CronCreate` or a scheduled wakeup) and a background subagent
+   count as waiting, or as unknown, for Q16 and Q17. A scheduled prompt
+   survives `--resume` and can start a reviewer turn.
+7. Restart and clear. Tasks from an earlier generation count as ended only
+   once validation shows that every way the host process can end on Windows
+   (exit, interrupt, window close and forced kill) stops them; until then,
+   report pending. A pane whose current session did not begin with its
+   process (`/clear`, fork or session switch) cannot prove absence, because
+   the requirement records that shells survive a clear; report pending.
+8. Acceptance examples (lines 637-655). Add these rows:
+   - A watcher stopped by the host and recorded `killed`, with a complete
+     ledger, proves absence and permits activation.
+   - A Claude reviewer cleared after starting a watcher stays pending.
+   - A `task_status` snapshot that says `running` but is followed by a
+     terminal record counts as ended.
+   - An unexpired scheduled prompt stays pending.
+   - A Codex image outside a recognized release layout is unsupported, and no
+     input is sent.
+   - A post-delivery `cli_version` that differs from the pre-input version
+     makes the receiver stop.
+9. Validation boundaries (lines 657-681). Require disposable-session
+   validation before either profile is marked supported, never on live
+   reviewer or requestor panes. For Claude, cover:
+   - completed, stopped and host-killed tasks;
+   - `Ctrl+B` and timeout moves;
+   - the PowerShell tool, `Monitor` and background subagents;
+   - compaction;
+   - `/clear` with a running task;
+   - orderly exit then `--resume`;
+   - forced kill of the host process, inspecting only that disposable
+     process tree;
+   - a `CronCreate` prompt across resume.
+
+   For Codex, cover an update while a disposable pane runs, the retained or
+   delete-refused old release, and `cli_version` equality. Pin each profile to
+   the validated host versions and to `layoutVersion` 1.
+10. IO cost (line 695). Add that the ledger reads the generation's transcript
+    range completely at each decision, with bytes accounted, and that an
+    image digest is read once per distinct mapped image per invocation.
+    Neither is cached as authorization.
+
+### Human guidance response for design-specification resume-paused round 1
+
+Human guidance:
+
+The round 1 request carries this human guidance:
+
+> OK, resolve conclusively the unresolved points in design review
+>
+> Check with your reviewer counterparts for ideas
+
+The writer's response asks for concrete independent ideas before any
+alternative design is chosen. It returns any genuinely new policy choice to
+the human and does not treat the request as authority to operate panes or
+background tasks.
+
+Guidance response:
+
+I read the guidance as a request to close both gaps as far as evidence
+allows, without new policy.
+
+The Codex gap is closed on reproducible evidence from this machine. The
+kernel image name of each running Codex process names a versioned standalone
+release whose manifest states the version. A scratch experiment confirmed
+that junction updates cannot mislead this channel. It fits Q06 as written.
+
+The Claude gap is reduced to one concrete channel within Q16 and Q17: a
+transcript lifecycle ledger bounded by the pane's process generation. This
+session's own transcript confirms its start, end and typed-input shapes. It
+can be closed conclusively only by the disposable-session validation listed
+in requested change 9. The cases that matter, namely clear, crash, restart and
+scheduled prompts, have to be exercised deliberately, and read-only
+observation of live panes cannot do that.
+
+On checking with reviewer counterparts: I am the independent reviewer
+counterpart for this exchange. Role isolation forbids me from contacting the
+requestor or another agent, so these ideas come from my own investigation.
+Nothing here authorizes operating panes or background tasks, or
+consolidation.
+
+### Writer instructions for design-specification resume-paused round 1
+
+Apply requested changes 1 to 10 to the design. Keep every Q01-Q17 decision,
+rationale and rejected alternative unchanged, and add no open-question
+section. Write the new text as evidence contracts under the existing
+decisions, and label each item as confirmed here, documented by the host or
+a hypothesis still to validate.
+
+Also correct the companion `resume-paused.profile-evidence.md`. Its
+process-metadata row should say that the junction path carried no version,
+while the kernel image name of the same process resolves to a versioned
+release with a manifest. Keep Step 1 incomplete. Do not mark either profile
+supported until disposable-session validation passes.
+
+Run no validation on live review panes, and send no input to them. Starting
+or stopping background tasks in a disposable Claude session needs the
+human's permission. Raise the new question in the question verdicts only if
+that validation shows an unrecognizable start or end record.
+
+Then request another automated review round. This answer authorizes neither
+consolidation nor implementation.
+
+### Final reviewer decision for design-specification resume-paused round 1
+
+Decision: changes-requested. The writer should apply the concrete instructions and publish another automated review round.
+
+<!-- review-entry-id: answer-round-1-exchange-2 -->
+
+## Round 2 by requestor (exchange 2)
+
+- Recorded: 2026-11-10T21:27:05+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: request
+
+### Review identity for design-specification resume-paused (exchange 2) (round 2)
+
+Umbrella draft: none
+Reviewed specification: docs/v0.14.0/design.v0.14.0.resume-paused.md
+Review round: 2
+
+### Requestor assessment for design-specification resume-paused (exchange 2) (round 2)
+
+The design now names concrete candidate evidence contracts for both original
+Step 1 gaps. All Q01-Q17 decision rows, rationales and rejected alternatives
+remain unchanged. No question is missing on the evidence currently available;
+the existing answers remain sufficient to specify the required behavior.
+No open-question section was added or removed.
+
+The writer independently reproduced both Windows image APIs and same-release
+manifest agreement on five pane-linked Codex processes, version 0.167.0.
+The observed manifest has eight keys, now explicitly listed. This closes the
+original missing pre-input version source, with the design's race tests still
+required before a supported profile exists.
+
+Claude's generation-bounded ledger remains a testable hypothesis. Its
+completeness, clear/restart handling, restored schedules and current liveness
+are not established by the read-only observations. The design distinguishes
+those proof obligations from facts and documentation. Neither profile is
+marked supported, and Step 1 remains incomplete.
+
+Reviewer wording and substantive requests 1-10 were applied, with the explicit
+liveness disagreement and required digest described in the writer response.
+Please distinguish a settled design contract from demonstrated feasibility:
+do not call the Claude evidence gap conclusively resolved merely because its
+validation matrix is documented.
+
+### Change summary for design-specification resume-paused (exchange 2) (round 2)
+
+The design now specifies the pane-linked kernel-image channel, exact standalone
+layout and eight-key manifest schema, required pinned image digest, updater and
+stale-path rejection, process-creation rechecks and post-delivery version
+contradiction before consumption or claim.
+
+It also specifies the Claude ledger's observed start/end/typed-input shapes,
+generation and complete-history obligations, schedules and other background
+mechanisms, unsupported clear/switch cases, cleanup requirements and fresh
+liveness distinction. Acceptance examples, disposable-session validation and
+IO accounting were expanded. The evidence companion records the independently
+reproduced Codex result and the remaining Claude validation limits.
+
+No implementation, test, validation-plan completion or live-pane input was
+introduced. No design decision row was changed. The human-owned later live
+validation and deferred senv checklist remain outstanding.
+
+### Human guidance and writer response for design-specification resume-paused (exchange 2) (round 2)
+
+Human guidance:
+
+OK, resolve conclusively the unresolved points in design review
+
+Check with your reviewer counterparts for ideas
+
+Writer response:
+
+Accepted requests 1-10, with two explicit qualifications:
+
+1. The mapped-image SHA-256 is required rather than optional. The stated
+   same-name replacement case remains unresolved without it. Please challenge
+   whether cached hashing once per mapped image still needs file-identity or
+   other rechecks to reject rename/replacement races before each input.
+2. I disagree that a start without a terminal event alone proves a current
+   Q16 wait. It safely warrants pending without input, but the task may already
+   have ended before its notification is persisted. Q16 requires current
+   affirmative running evidence. The design preserves that requirement.
+
+Please identify a concrete permissible fresh Claude liveness source if one
+exists. Individual compaction snapshots are stale and an unmatched start is
+only a potential wait. If the ledger cannot prove liveness or complete absence
+without an additional channel, say so explicitly rather than accepting an
+unspecified profile field as a resolution. Pending is the safe classification,
+but cannot silently replace the requirement's activation behavior forever.
+
+Please also assess whether session-start proximity plus complete JSONL can
+actually prove no clear/fork/switch across the process generation, and whether
+all enabled background mechanisms persist recognizable starts/ends. Separate
+observed facts, host documentation, and hypotheses requiring disposable tests.
+
+The writer has reproduced the Codex kernel channel on five pane-linked hosts;
+no lifecycle experiments were run on existing review panes or tasks. Per the
+implementation plan, later live validation belongs to the human. This round
+requests design review and concrete evidence ideas, not authority to operate
+background tasks or consolidate. Keep every existing decision intact and raise
+a human question only for a genuinely new policy choice.
+
+Protocol-generated request headings from exchange 2 round 1 still have known
+MD024/LS003 collisions and an older transcript line has the cSpell word
+`achieve`. The documented repair was rejected after reviewer ownership passed;
+no historical protocol content was edited manually. Round 2 scratch outputs
+receive the same mechanical exchange qualifier in both paired outputs before
+publication to avoid adding more collisions.
+
+### Reviewer focus for design-specification resume-paused (exchange 2) (round 2)
+
+Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
+
+<!-- review-entry-id: request-round-2-exchange-2 -->
+
+## Round 2 by reviewer (exchange 2)
+
+- Recorded: 2026-11-10T21:42:16+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: answer
+
+### Reviewer assessment for design-specification resume-paused (exchange 2) round 2
+
+I assessed the current design: 871 lines, SHA-256
+`7a02bb64df2110cd4efc1fe971507a72bd99e523ba38f5cd063c4bd929b05675`, and
+the updated companion `resume-paused.profile-evidence.md` (192 lines). The
+Q01-Q17 decision rows are unchanged. All ten round 1 requests are applied:
+
+- the Codex channel and race rules (lines 439-475);
+- the source facts rows (lines 59-60);
+- the Claude ledger and waiting mechanisms (lines 624-697);
+- the acceptance rows (lines 763-769);
+- disposable validation (lines 802-824);
+- IO accounting (line 841).
+
+The writer's two qualifications, a mandatory image digest and no liveness
+from a missing terminal record alone, are stricter than my requests and
+weaken nothing. I accept both.
+
+Contract and feasibility are separate questions:
+
+- Codex: the pre-input channel is observed on five pane-linked processes by
+  the writer and on seven processes by me. The contract is settled except for
+  the binding rule in point 1 below. Updater lifecycle experiments remain
+  outstanding.
+- Claude: the contract is close to complete, but its feasibility is
+  undemonstrated. I do not call the Claude gap resolved. Only
+  disposable-session validation can show that the ledger is complete.
+
+This round's investigation was read-only. I sent no input, started or probed
+no background task, and read no conversation content. I found the following:
+
+- Observed: all eleven background starts in this reviewer session came from
+  the PowerShell tool and are recorded with `taskType` `local_bash`. I
+  observed no Bash-tool background start. PowerShell is therefore the
+  observed case, and Bash-tool commands belong among the shapes still to
+  validate.
+- Observed: no hook is configured in the Claude user settings, and
+  `tuios integration status claude` reports the integration as not installed.
+  Yet every session start and compaction in this pane ran a `tuios.exe`
+  SessionStart command. The transcript records it as `hook_success` with
+  `hookName` `SessionStart:startup` or `SessionStart:compact`. TUIOS lists
+  this pane with identity source `report`. TUIOS therefore appears to inject
+  its own SessionStart command when it launches Claude, and that report likely
+  supplies the `agent_session_id` the design already relies on. This is a
+  hypothesis to confirm from TUIOS.
+- Observed: TUIOS discovery exposes no background-task or shell inventory for
+  a Claude pane. It reports subagent counts only.
+- Observed: the reviewer watcher (`GlobalReviewerWait`) holds no lock or
+  per-session handle while it waits. It relies on file-system notifications
+  and polling, so it offers no liveness signal of its own.
+
+Answers to the writer's questions:
+
+1. Digest and races. I agree the digest should be mandatory. Hashing once per
+   mapped image per invocation is enough for content, because a mapped image
+   cannot be written. Key that result by process id, process creation time and
+   kernel image name. However, no hashing, cached or repeated, and no file
+   identity recheck of the path can bind the hashed file to the mapped image
+   after a release-directory rename. The kernel name then goes stale, and
+   neither API returns the mapped file's identity. Rechecks only detect changes
+   inside the invocation window. The check that closes the benign case is
+   creation-time ordering: the release directory and the image file at the
+   kernel path must have been created no later than the host process, while a
+   same-name replacement made after launch is newer. NTFS name tunneling can
+   give a name reused within a short interval its old creation time, so
+   validation must test rename-and-recreate inside that interval. What
+   tunneling still leaves needs a deliberate same-user swap within seconds.
+   That user can type into the pane directly, so the design should name this
+   case as outside its threat model. A stronger binding would compare the
+   running module's in-memory header with the file. That reads process memory,
+   a new evidence class that would need a human decision, and I do not
+   recommend it. Before each input, recheck the kernel name, the process
+   creation identity, the manifest bytes and the creation-time ordering, which
+   are all cheap. The digest itself does not need recomputing.
+2. Liveness. I agree that a missing terminal record alone is not current
+   liveness. The ledger can supply affirmative liveness through a validated
+   persistence bound `D`. Suppose disposable tests show that, while the host
+   process lives, the terminal `queue-operation` enqueue for an ended task is
+   written within `D` seconds whatever the turn state. Then an unmatched start
+   observed at time `t`, with still no terminal record at `t + D` and the same
+   host process alive throughout, proves that the task was running at `t`.
+   This adds no channel; `D` becomes a pinned profile value. If `D` cannot be
+   bounded, for example because the enqueue is deferred while a turn runs,
+   then the transcript cannot prove a current wait, and the design should say
+   so plainly. That shortfall changes only the report. A proved wait (leave
+   alone) and an unknown wait (pending) both send no input. Activation depends
+   on proved absence, never on liveness. I considered a further signal,
+   whether the task's output file is held open for writing. It is an untested
+   assumption about host internals, it could support liveness only and never
+   absence, and I would not add it.
+3. Clear, fork and switch. I agree that proximity plus complete JSONL cannot
+   exclude an earlier session in the same process. A clear starts a new
+   transcript under a new id, and nothing observed in that transcript names
+   its predecessor. An origin marker can do what proximity cannot. The
+   transcript records each SessionStart command with its source, and the
+   documented sources are `startup`, `resume`, `clear`, `compact` and `fork`.
+   - `SessionStart:startup` as the first record after process creation, with
+     no background start before it, proves that this is the process's first
+     session.
+   - `clear` and `fork` stay pending.
+   - `resume` stays pending unless validation distinguishes a launch-time
+     resume from an in-process switch or a reattached background session.
+
+   The marker exists only where a SessionStart command runs. Here that command
+   is TUIOS's own launch-time command, apparently the same mechanism that
+   supplies `agent_session_id`. Reading its recorded result installs nothing,
+   and a missing marker fails closed. I therefore do not treat this as a new
+   policy choice. If the writer or the human reads Q14's rejection of hooks as
+   covering Claude evidence too, the exact question is in the question
+   verdicts.
+4. Persistence of background mechanisms, separated by evidence level:
+   - Observed: PowerShell-tool background commands (start, completed and
+     killed), across three compactions in one file and session id.
+   - Documented behavior, with record shapes not documented:
+     - Bash background commands;
+     - `Ctrl+B` and timeout moves;
+     - commands of a foreground subagent ending with it;
+     - background subagents;
+     - `Monitor`;
+     - scheduled prompts restored on `--resume`;
+     - session backgrounding, which keeps tasks running in the background
+       session;
+     - memory-pressure stops.
+   - Hypotheses that need disposable tests:
+     - record shapes for every documented mechanism;
+     - whether subagent-started commands appear in the main transcript or
+       only in the subagent's own transcript;
+     - whether a backgrounded and reattached session carries tasks across a
+       pane's process generation;
+     - the bound `D`;
+     - origin markers for clear, fork, resume and reattach.
+
+   Session backgrounding is a new completeness gap. Tasks can outlive the
+   pane's process without cleanup at exit, so obligation 5 must not count
+   them as ended until validation covers that path.
+
+### Question verdicts for design-specification resume-paused (exchange 2) round 2
+
+The seventeen design decisions remain explicit user decisions. I agree with
+each of them, and none needs reopening.
+
+Q01-Q05 and Q07-Q15: unaffected. I would keep every recorded choice.
+
+Q06, A: I would choose the same. The kernel-image channel with a mandatory
+digest and creation-time ordering is metadata of the pane's own process.
+Comparing in-memory headers would be a new evidence class; it is not
+needed and not recommended.
+
+Q16, A: I would choose the same. Affirmative liveness can come from a
+validated persistence bound `D` within the existing transcript channel. If
+`D` cannot be validated, a potential wait is reported as pending. That
+outcome, like a proved wait, sends no input.
+
+Q17, A: I would choose the same. Positive absence needs the complete ledger
+plus a `SessionStart:startup` origin marker for the current session. A
+`clear`, `fork`, unvalidated `resume`, backgrounded session or unrecognized
+mechanism stays pending.
+
+No question is missing today. Two questions are conditional:
+
+- If disposable validation shows that some enabled background mechanism can
+  start or end without a recognizable record, the human must choose between
+  two options. Claude reviewer activation can stay pending, which limits
+  requirement Q22=A for Claude, or a named additional channel can be
+  approved.
+- If the writer or the human reads Q14's rejection of hooks as also covering
+  Claude evidence, the exact question is: "May Claude positive absence rely on
+  the recorded `SessionStart` source written by TUIOS's own launch-time
+  command, so that panes without it stay pending?" I would answer yes. It
+  installs nothing, it is part of the mechanism that appears to supply
+  `agent_session_id`, and a missing record fails closed.
+
+### Requested changes for design-specification resume-paused (exchange 2) round 2
+
+Requested changes:
+
+Line numbers refer to the current design (871 lines). Keep every Q01-Q17
+decision row unchanged.
+
+1. Codex binding (lines 460-469). Make these changes:
+   - Key the mandatory digest result by process id, process creation time
+     and kernel image name, once per invocation.
+   - Add creation-time ordering: the release directory and image file at the
+     kernel path must not be newer than the host process.
+   - Before each input, recheck the kernel name, process creation identity,
+     manifest bytes and that ordering.
+   - Say that neither rehashing nor path file-identity rechecks can bind a
+     hashed file to the mapped image after a directory rename.
+   - Add NTFS name tunneling to the race validation.
+   - Name a deliberate same-user swap within the tunneling interval as
+     outside the threat model.
+2. Liveness (lines 646-653). Add the validated persistence bound `D`. An
+   unmatched start observed at `t`, with no terminal record at `t + D` and
+   the same host process alive throughout, proves that the task was running
+   at `t`. If `D` cannot be validated, state that the transcript cannot prove
+   a current wait and that the reviewer is reported pending. Also state that
+   activation depends on proved absence, never on liveness, and that neither
+   outcome sends input.
+3. Coverage boundary (obligation 1, lines 668-672). Replace the bare "Prove
+   there was no clear, fork or session switch" with the origin-marker method:
+   - `SessionStart:startup` must be the first record after process creation,
+     before any background start;
+   - `clear` and `fork` stay pending;
+   - `resume` stays pending unless validated.
+
+   Name the source of the marker: the `tuios.exe` SessionStart command that
+   TUIOS runs when it launches Claude, recorded as `hook_success`. Add a source
+   facts row for this observation and for the pane's identity source `report`.
+   Require confirmation from TUIOS that every TUIOS-launched Claude pane runs
+   it, and that its report supplies `agent_session_id`. State that nothing is
+   installed and that a missing marker stays pending.
+4. Session backgrounding (obligation 5, lines 685-689, and validation lines
+   807-816). Tasks of a session moved to the background keep running, so they
+   are not ended by the pane's process boundary. A backgrounded or reattached
+   session stays pending until validated.
+5. Observed shapes (lines 630-644, 679 and 808). State that the observed
+   starts came from the PowerShell tool, recorded with `taskType`
+   `local_bash`. Move PowerShell to observed, and add Bash-tool background
+   commands and subagent-transcript placement to the shapes to validate.
+6. Claude validation (lines 807-816). Add four items:
+   - measuring `D` while idle and during a running turn;
+   - origin markers for clear, fork, launch-time resume, in-process resume
+     and reattach;
+   - whether a TUIOS-launched pane always records the startup marker;
+   - background subagent commands.
+7. Companion. Qualify the original process-metadata row (line 41): the
+   launch path carried no version, but the kernel image path does. Add this
+   round's observations, labeled observed or hypothesis.
+
+### Human guidance response for design-specification resume-paused (exchange 2) round 2
+
+Human guidance:
+
+The round 2 request repeats this human guidance:
+
+> OK, resolve conclusively the unresolved points in design review
+>
+> Check with your reviewer counterparts for ideas
+
+The writer accepted requests 1 to 10. It made the image digest mandatory and
+disagreed that an unmatched start proves a current wait. It asked for a
+concrete fresh Claude liveness source, an assessment of clear, fork and
+switch detection, and a separation of observed facts, documentation and
+hypotheses. It also asked that the Claude gap not be called resolved merely
+because its validation matrix is documented.
+
+Guidance response:
+
+On Codex, the gap is conclusively resolved as a design contract. The
+pane-linked channel is observed on real hosts. The binding rule this answer
+adds, creation-time ordering, closes the benign replacement case, and the
+remaining case is outside the threat model. Updater experiments must still
+confirm the race rules before support is enabled.
+
+On Claude, I answered each writer question with a concrete method:
+
+- a persistence bound `D` for liveness;
+- the recorded SessionStart origin for clear, fork and switch detection;
+- an evidence-level split of the background mechanisms.
+
+With these, the contract leaves no unspecified method. Feasibility is not
+demonstrated, and review alone cannot demonstrate it. Only the
+disposable-session validation can, and it needs the human's permission to
+run. I also found one more gap: tasks of a backgrounded session survive the
+pane's process.
+
+On checking with reviewer counterparts: role isolation still keeps me from
+contacting other agents, so these are my own findings. Nothing here
+authorizes operating panes or background tasks, or consolidation.
+
+### Writer instructions for design-specification resume-paused (exchange 2) round 2
+
+Apply requested changes 1 to 7 to the design and its companion. Keep every
+Q01-Q17 decision, rationale and rejected alternative unchanged, and add no
+open-question section. Label every new statement as observed, documented
+behavior or hypothesis still to validate. Do not describe the Claude gap as
+resolved: its contract becomes complete, while its feasibility still depends
+on disposable-session validation.
+
+Before relying on the origin marker, confirm from TUIOS documentation or
+source that TUIOS runs its SessionStart command for every Claude pane it
+launches. Raise either conditional question from the question verdicts only
+if its condition occurs. Do not send input to review panes and do not
+operate background tasks.
+
+Then request another automated review round. This answer authorizes neither
+consolidation nor implementation.
+
+### Final reviewer decision for design-specification resume-paused (exchange 2) round 2
+
+Decision: changes-requested. The writer should apply the concrete instructions and publish another automated review round.
+
+<!-- review-entry-id: answer-round-2-exchange-2 -->
+
+## Round 2 by requestor
+
+- Recorded: 2026-11-10T21:51:12+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: escalation
+
+review disagreement remained after the clarification round
+
+<!-- review-entry-id: escalation-round-2 -->
+
+## Round 2 by human - human-reclaim
+
+- Recorded: 2026-11-11T14:10:25+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: human-reclaim
+
+The user decided that the round 2 escalation of exchange 2 is a stopped
+handoff, not a review failure. It came from `consume-answer --disagreement`
+after the clarification round was already used. The round 2 request, the
+reviewer answer (`changes-requested`, seven requested changes) and the
+transcript are intact.
+
+Round 2 resumes in place with the requestor. The requestor consumes the
+retained answer without `--disagreement`, applies the requested changes it
+accepts, states any point it still contests in the round 3 request with its
+evidence, and publishes round 3 to the same reviewer.
+
+<!-- review-entry-id: human-reclaim-round-2 -->
+
+## Round 3 by requestor (exchange 2)
+
+- Recorded: 2026-11-11T14:25:08+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: request
+
+### Review identity for design-specification resume-paused (exchange 2) (round 3)
+
+Umbrella draft: none
+Reviewed specification: docs/v0.14.0/design.v0.14.0.resume-paused.md
+Review round: 3
+
+### Requestor assessment for design-specification resume-paused (exchange 2) (round 3)
+
+The design retains all seventeen explicit decision rows, verified unchanged
+against HEAD. No new question is needed for the proposed same-user exception:
+the human explicitly selected strict original-loaded-image attribution.
+Candidates remain unsupported where attribution is unproved.
+Existing decisions and their answers remain sufficient to reject input when
+evidence is incomplete. They do not establish that the proposed channels are
+feasible. The proposed validation contract is explicit; feasibility is still
+unproved for original-loaded-image attribution, Claude current liveness and
+complete positive absence. A complete contract does not close these gaps.
+No profile, implementation, test pass or validation-plan completion is claimed.
+
+Accepted wording and completeness corrections cover observed PowerShell
+starts, Bash-tool uncertainty, origin markers, background sessions, reattach,
+subagent commands and creation-time checks. Two substantive disagreements
+remain: timestamps cannot bind a replacement to the loaded image, and delayed
+terminal persistence cannot establish current liveness. The reviewed source
+does not confirm universal launch-time SessionStart injection.
+
+No open-ended section has been removed or consolidated in this exchange.
+Writer notes: `.reviews/a.resume-paused.step1.journal.md` and
+`.reviews/a.resume-paused.step1.handoff.md`.
+
+### Change summary for design-specification resume-paused (exchange 2) (round 3)
+
+- Added invocation-local digest cache identity, creation-time ordering and
+  fresh manifest/image/process rechecks. Explicitly documented why these
+  remain insufficient after a stale-path replacement and NTFS name reuse.
+- Applied the human's explicit strict-attribution decision: no same-user
+  replacement exception. No process-memory evidence channel was authorized.
+  Codex attribution remains an unresolved feasibility prerequisite.
+- Recorded that a notification delay can prove at most past liveness;
+  current liveness remains unproved and pending sends no input. Activation
+  still requires positive absence.
+- Added the observed SessionStart marker as a candidate with a source and
+  generation completeness obligation. Missing, clear, fork and unvalidated
+  resume/switch paths remain pending. No hook is installed or required to be
+  installed by this work.
+- Added source findings from pinned TUIOS v0.12.1 documentation and code,
+  without treating the unconfirmed launch-injection hypothesis as fact.
+- Corrected observed starts to PowerShell `local_bash`; added Bash-tool
+  starts, subagent transcript placement, background sessions and reattach to
+  validation coverage.
+- Corrected the original companion table to distinguish the unversioned
+  launch junction path from the versioned kernel image path, and added
+  round 2 observations separately from hypotheses. Removed remaining wording
+  that overstated path/release metadata as proof of the original loaded image.
+
+### Human guidance and writer response for design-specification resume-paused (exchange 2) (round 3)
+
+Human guidance:
+
+The user decided that the round 2 escalation of exchange 2 is a stopped
+handoff, not a review failure. It came from `consume-answer --disagreement`
+after the clarification round was already used. The round 2 request, the
+reviewer answer (`changes-requested`, seven requested changes) and the
+transcript are intact.
+
+Round 2 resumes in place with the requestor. The requestor consumes the
+retained answer without `--disagreement`, applies the requested changes it
+accepts, states any point it still contests in the round 3 request with its
+evidence, and publishes round 3 to the same reviewer.
+
+#### Earlier human guidance retained for round 3 for design-specification resume-paused (exchange 2) (round 3)
+
+OK, resolve conclusively the unresolved points in design review
+
+Check with your reviewer counterparts for ideas
+
+#### Strict attribution selected for resume on 2026-11-11 for design-specification resume-paused (exchange 2) (round 3)
+
+Latest user direction, supplied at pause on 2026-11-10:
+
+> $llm-shared:pause-session on resume, go with choice "1. Keep strict attribution (recommended): support stays blocked until reliable evidence exists". And explain what that means and what the next step is.
+
+The explicit policy decision resolves the proposed same-user replacement
+exception: keep original-loaded-image attribution mandatory. File path,
+manifest, pinned digest and creation-time ordering alone cannot establish it.
+No process-memory reading or other new evidence channel is authorized.
+Claude current liveness and positive absence remain unproved. Neither host
+profile is supported; Step 1 and all later steps remain incomplete.
+
+Writer response:
+
+Accepted changes 4, 5 and 7, and the noncontroversial checks/coverage in 1, 3
+and 6. The existing seventeen decision rows remain unchanged. I disagree with
+the proposed resolution of 1 and 2:
+
+1. Creation-time ordering does not close loaded-image attribution under NTFS
+   name tunneling. Consider an older process whose release directory was
+   renamed, then a different valid pinned release placed at that stale name
+   before our invocation. Both the path hash and manifest agree on the new
+   release while the old process still executes another version. A cached or
+   repeated path hash cannot fix this. The human explicitly selected strict
+   original-loaded-image attribution and rejected the proposed same-user
+   exception. Apply that decision as review input; do not offer that exception
+   as the accepted resolution. Please identify a concrete source within
+   approved process metadata that binds the original image, or acknowledge
+   the remaining feasibility blocker under the selected policy. Process-memory
+   reading and other new evidence channels remain unauthorized.
+2. Even granting a true bound D, the inference at t+D says only that a task
+   was running at t. It can have ended in the interval, so this is not current
+   Q16 liveness. Finite tests also cannot promise an unconditional scheduling
+   bound. I retained notification timing measurements as validation only.
+   Current liveness remains unproved, so report pending. This does not
+   authorize activation; positive absence remains mandatory. Please confirm
+   the precise temporal limit or identify current evidence within the permitted
+   channels. A configurable fresh-evidence field does not settle whether the
+   host provides that evidence.
+
+For 3, I inspected pinned TUIOS v0.12.1 source at commit
+`850335c0c08bb8b802406fcc7f254355c89af04a`. The integration README describes
+writing hooks to Claude settings. `targets.go` registers SessionStart for
+that managed integration, and `hook_claude.go` maps it to identity and
+transcript reporting. The inspected start-agent and session launch code does
+not establish automatic SessionStart injection into every Claude launch.
+This is not an exhaustive negative claim about the source tree. It does mean
+that the observed command origin remains unconfirmed. Could its launch
+arguments or a local wrapper explain it? Please inspect only the pertinent
+command/schema or public source, without quoting private paths or conversation
+text, and separate an optional marker from a universal guarantee.
+
+Even an observed startup marker must establish complete process/session
+coverage; its label and timestamp alone do not prove no earlier session.
+Reading an already recorded command installs nothing, and Q14 specifically
+selected the Codex input channel, so I do not reopen that question merely to
+read an existing Claude record. Missing markers remain pending.
+
+The human decided that the round 2 escalation is a stopped handoff, not a
+failure, and expressly authorized forced reclaim in place. Reclaim returned
+`force-reclaimed`; the retained answer was read and consumed without
+`--disagreement`. This is round 3 of exchange 2 with the same reviewer.
+The contested points above are submitted as evidence in this request, as the
+human directed, rather than triggering another clarification escalation.
+
+The user asked for conclusive resolution. A fully specified validation matrix
+is not evidence that its proof source exists. If an approved source cannot
+meet the contract, say so and propose the concrete choice for the human,
+rather than calling a blocking hypothesis resolved. The human owns later
+live validation. No input, task operation or hook installation is authorized
+by this review, and no consolidation is authorized.
+
+Spelling of one existing authored word is awaiting the user's answer;
+historical protocol content has existing spelling and duplicate-heading
+findings and remains untouched. Paired round 3 scratch outputs receive the
+same mechanical exchange qualifier before publication.
+
+### Reviewer focus for design-specification resume-paused (exchange 2) (round 3)
+
+Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
+
+<!-- review-entry-id: request-round-3-exchange-2 -->
+
+## Round 3 by human - escalation
+
+- Recorded: 2026-11-11T17:25:57+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: escalation
+
+exchange was abandoned while waiting for reviewer
+
+<!-- review-entry-id: escalation-round-3 -->
+
+## Round 3 by human - human-reclaim
+
+- Recorded: 2026-11-11T17:50:55+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: human-reclaim
+
+The user decided that the round 3 escalation of exchange 2 is a stopped
+handoff, not a review failure. The requestor published the round 3 request at
+14:25, but no reviewer watcher was running: `wait-any-request` refuses to
+start while an exchange is escalated, so the reviewer could not watch for
+round 3 before the round 2 escalation was cleared, and nothing started it
+afterwards. The lease expired after three hours and the exchange escalated at
+17:25.
+
+The round 3 request and the transcript are intact. Round 3 resumes in place
+with the reviewer, which assesses the published request and publishes its
+answer. At the user's explicit instruction, the reviewer session runs this
+forced reclaim.
+
+<!-- review-entry-id: human-reclaim-round-3 -->
+
+## Round 3 by reviewer (exchange 2)
+
+- Recorded: 2026-11-11T18:07:14+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: answer
+
+### Reviewer assessment for design-specification resume-paused (exchange 2) round 3
+
+I assessed the current design: 913 lines, SHA-256
+`6d4043cc4404f5a235ee118ad6c07b748c73790c21399f4a9f6efe858d38f0a1`, and
+the companion `resume-paused.profile-evidence.md` (231 lines). The Q01-Q17
+decision rows are unchanged. The writer applied requests 4, 5 and 7 and the
+uncontested parts of 1, 3 and 6, and it applied the human's strict-attribution
+decision. I accept that decision and withdraw my round 2 request to place a
+same-user swap outside the threat model.
+
+The writer contested two points and asked me to settle a third. Read-only
+checks this round settle all three.
+
+1. Codex loaded-image attribution is resolved within process metadata. The
+   writer is right that path, manifest, digest and creation-time checks
+   cannot bind the file at the kernel name to the loaded image. A process
+   information query can. `NtQueryInformationProcess` with information class
+   44, named `ProcessImageFileMapping` in community NT headers and not
+   documented by Microsoft, takes a file handle and reports whether that file
+   is the process's image file. It compares file identity, not names, bytes
+   or timestamps, and it reads no process memory.
+
+   Observed on disposable sleeper processes started for this check:
+
+   - The loaded file returned `STATUS_SUCCESS`.
+   - An unrelated file, and a byte-identical copy at another path, returned
+     `STATUS_UNSUCCESSFUL`.
+   - After a release-directory rename the kernel name stayed stale. A
+     different file placed at that stale name returned `STATUS_UNSUCCESSFUL`;
+     the renamed original returned `STATUS_SUCCESS`.
+   - After a same-directory rename and immediate recreation, NTFS tunneling
+     gave the replacement the original creation time. The replacement, and
+     later a byte-identical new file at that name, returned
+     `STATUS_UNSUCCESSFUL`; the renamed original returned `STATUS_SUCCESS`.
+     In this case the Win32 kernel name followed the rename.
+   - The query needs `PROCESS_QUERY_INFORMATION` on the process and execute
+     access on the file handle. Limited query rights or a read-only file
+     handle returned `STATUS_ACCESS_DENIED`.
+
+   Observed read-only on all seven running `codex.exe` processes: each image
+   is in the standalone releases layout, and the query returned
+   `STATUS_SUCCESS` for the file at its kernel name. I retained only counts
+   and status codes.
+
+   The binding therefore exists. Open the file at the kernel name with read
+   and execute access, require `STATUS_SUCCESS`, then hash through that same
+   handle and compare with the pinned digest. A mapped image cannot be
+   written (round 1 observation), so those bytes are the loaded bytes. This
+   meets strict attribution without process memory, hooks or a same-user
+   exception, and it makes creation-time ordering redundant. The remaining
+   risk is the undocumented class: the profile must pin validated Windows
+   builds and treat any other status as unsupported evidence.
+
+2. Claude current liveness: I agree with the writer. A persistence bound `D`
+   proves at most that a task was running at `t`; it may have ended before
+   the decision. No permitted channel supplies current liveness. The
+   transcript records events, and TUIOS discovery exposes no task inventory.
+   Command lines of the Claude process's descendants would show a running
+   watcher, but requirement Q04=A rejected enumerating background shells,
+   and the only gain would be report precision. A proved wait and a pending
+   report both leave the pane untouched, so I do not recommend reopening Q04.
+   The design should state the consequence: for Claude in this delivery,
+   every potential wait is reported pending.
+
+3. The SessionStart origin is settled from source. The marker comes from the
+   user's senv `tuitp` launcher, not from TUIOS itself:
+
+   - `tuitp_windows.py` (`write_claude_hooks`) runs
+     `tuios integration install claude-code --no-skill` against a temporary
+     Claude configuration folder and copies the generated hooks into a
+     settings file that `tuitp` owns.
+   - `tuitp.pane.bat` starts Claude with `--settings` on that file, only for
+     the panes `tuitp` launches and only when the file exists.
+   - This pane confirms it: its `claude.exe` runs from the pane's `cmd.exe`
+     under the TUIOS daemon, with `--settings` naming a hooks-only file. Its
+     14 hook events, SessionStart included, all run
+     `tuios.exe agent-hook claude-code --integration 3`.
+
+   This explains both the not-installed integration status and the `report`
+   identity source. The marker is optional: a Claude pane started without
+   these settings, and without an installed TUIOS integration, records no
+   marker and stays pending. It depends on an external launcher, so the
+   deferred senv effort must preserve it.
+
+Contract and feasibility, after this round:
+
+- Codex: the pre-input contract is complete under strict attribution.
+  Lifecycle experiments remain, now including the identity query on each
+  supported Windows build and the updater's actual rename behavior.
+- Claude: the contract is complete, but feasibility is not yet demonstrated.
+  Only disposable-session validation can show that the ledger is complete.
+
+Apart from my own disposable sleeper processes and scratch files, which I
+removed, these checks were read-only. I sent no input to any pane, operated
+no background task and read no conversation content.
+
+### Question verdicts for design-specification resume-paused (exchange 2) round 3
+
+The seventeen design decisions remain explicit user decisions. I agree with
+each of them, and none needs reopening.
+
+Q01-Q05, Q07-Q13 and Q15: unaffected. I would keep every recorded choice.
+
+Q06, A: I would choose the same. The image-identity query is metadata of the
+pane's own process, like the two image-name queries already selected. It
+binds the hashed file to the loaded image under the human's strict
+attribution, and it supersedes creation-time ordering.
+
+Q14, B: unaffected. Q14 selects the Codex input channel. Reading the
+SessionStart result that Claude already recorded installs nothing.
+
+Q16, A: I would choose the same. Its consequence must be explicit: no
+permitted channel proves current Claude watcher liveness, so every potential
+Claude wait is reported pending, which leaves the pane untouched. Reopening
+requirement Q04 to inspect descendant processes would only refine the report;
+I do not recommend it.
+
+Q17, A: I would choose the same. The origin marker exists only in panes
+launched with the `tuitp` settings file or an installed TUIOS integration.
+Every other pane stays pending.
+
+No question is missing, and no outstanding human decision blocks the next
+round. Two questions are conditional:
+
+- If the human reads Q06's process-metadata choice as excluding undocumented
+  NT information classes, the Codex pre-input gap stays a blocker. The exact
+  question would be: "May the Codex profile bind the loaded image with the
+  undocumented process information query class 44, pinned to validated
+  Windows builds and failing closed on any other result?" I would answer yes:
+  it reads no process memory and adds no artifact or hook.
+- From round 2, unchanged: if disposable validation shows that an enabled
+  background mechanism can start or end without a recognizable record, the
+  human must choose between keeping Claude reviewer activation pending and
+  approving a named additional channel.
+
+### Requested changes for design-specification resume-paused (exchange 2) round 3
+
+Requested changes:
+
+Line numbers refer to the current design (913 lines). Keep every Q01-Q17
+decision row unchanged.
+
+1. Codex binding (lines 461-484). Replace the paragraphs from "The kernel
+   path and manifest agreement" through "does not exclude replacement before
+   that probe" with the image-identity contract:
+   - Open the pane's direct Codex child with `PROCESS_QUERY_INFORMATION`.
+     Never request memory-read rights.
+   - Open the file at the kernel image name with read and execute access,
+     sharing read and delete only.
+   - Call `NtQueryInformationProcess` with information class 44 and that
+     handle, and require `STATUS_SUCCESS`. Any other status, a failed open or
+     a missing file is unsupported evidence.
+   - Hash through that same handle and compare with the pinned digest. Read
+     the same release's manifest and require agreement.
+   - Cache the result for the invocation, keyed by process id, process
+     creation time and kernel image name, and keep the handle open. Before
+     each input, recheck the process identity and repeat the identity query.
+   - Remove the creation-time ordering requirement; the identity query
+     supersedes it.
+   - State that the class is undocumented, so the profile pins validated
+     Windows builds.
+   - Keep the statements that a stale name without a file fails closed and
+     that process memory is never read.
+2. Source facts (after line 60). Add a row for the reviewer's 2026-11-11
+   observations: the identity query on seven running `codex.exe` processes,
+   and the disposable directory-rename, tunneling and byte-identical cases
+   with their status codes and access needs.
+3. SessionStart origin (line 61, obligation 1 at lines 694-703, validation at
+   lines 847-850). Replace the launch-injection hypothesis with the source
+   finding: `tuitp` generates TUIOS's Claude hooks into its own settings file
+   and starts its Claude panes with `--settings` on that file. The marker is
+   optional; a pane launched without those settings or an installed TUIOS
+   integration records none and stays pending. In validation, test that the
+   startup marker is the first relevant record of a `tuitp`-launched process
+   and covers its generation.
+4. Deferred senv dependency (lines 31-35 or 252-259). State that Claude
+   positive absence relies on the `tuitp` launch settings, and that the
+   deferred senv effort must preserve them or the affected panes stay
+   pending.
+5. Liveness (lines 634-636, 663-679 and acceptance row 793). State that no
+   permitted channel supplies current Claude watcher liveness in this
+   delivery, so the proved-wait branch is unavailable for Claude and every
+   potential Claude wait is reported pending. Note that requirement Q04=A
+   excludes descendant-process enumeration. Change row 793's result to:
+   "Leave it untouched; report the reviewer pending unless validated current
+   liveness proves the wait (Q16)."
+6. Acceptance examples (after line 801). Add two rows:
+   - "A different file, including a byte-identical copy or another pinned
+     release, occupies the kernel image name after a rename" with result
+     "Identity query fails; unsupported evidence, no input."
+   - "The identity query is unavailable or denied on the Windows build" with
+     result "Unsupported evidence; no input."
+7. Codex validation (lines 858-866). Add the identity query on each supported
+   Windows build, its access needs, and the replacement cases: directory
+   rename, tunneled recreation, byte-identical copy and another pinned
+   release must fail, while the renamed original succeeds. Add the
+   updater's actual rename and cleanup behavior. Remove creation-time
+   ordering from the list.
+8. IO accounting (line 883). Say the image digest is read through the
+   identity-checked handle, once per distinct image per invocation.
+9. Companion. Update the Step 1 outcome (lines 11-16), the Codex follow-up
+   (lines 183-189) and the design-review return item 1 (lines 195-199) with
+   the identity-query finding. Replace the SessionStart hypothesis (lines
+   165-176) with the `tuitp` source finding. Label each 2026-11-11 statement
+   as observed or still to validate.
+
+### Human guidance response for design-specification resume-paused (exchange 2) round 3
+
+Human guidance:
+
+The round 3 request carries three pieces of human guidance:
+
+- The human decided that the round 2 escalation was a stopped handoff, and
+  directed the writer to state contested points in the round 3 request
+  instead of escalating again.
+- The earlier guidance still applies:
+
+  > OK, resolve conclusively the unresolved points in design review
+  >
+  > Check with your reviewer counterparts for ideas
+
+- At the pause on 2026-11-10, the human chose strict attribution: support
+  stays blocked until reliable evidence exists, with no same-user
+  replacement exception, no process-memory reading and no other new evidence
+  channel.
+
+The writer asked for a concrete source within approved process metadata that
+binds the original image, or an acknowledged blocker; for the precise
+temporal limit of liveness or a current source within permitted channels;
+and for the actual origin of the observed SessionStart command.
+
+Guidance response:
+
+Strict attribution is applied, and I withdraw the same-user exception. The
+image-identity query satisfies the strict policy inside the approved
+process-metadata channel. It reads no process memory and adds no new
+artifact, hook or evidence class.
+
+On resolving conclusively, this round closes three points:
+
+- Codex attribution is resolved as a contract, by a source observed on
+  disposable processes and on all seven running Codex processes.
+- The liveness limit is settled in the writer's favor: Claude current
+  liveness is unprovable with the permitted channels, and that costs report
+  precision only.
+- The SessionStart origin is settled from the `tuitp` source and this pane's
+  launch settings.
+
+One point remains open, and review cannot close it: whether the Claude
+ledger is complete enough for positive absence. Only disposable-session
+validation, which the human owns, can show that.
+
+On checking with reviewer counterparts: role isolation still keeps me from
+contacting other agents, so these findings are my own.
+
+The round 3 escalation came from a lease that expired while no reviewer was
+watching. At the human's explicit instruction, this reviewer session ran the
+forced reclaim and recorded the human's summary. Nothing here authorizes
+operating panes or background tasks, or consolidation.
+
+### Writer instructions for design-specification resume-paused (exchange 2) round 3
+
+Apply requested changes 1 to 9 to the design and its companion. Keep every
+Q01-Q17 decision, rationale and rejected alternative unchanged, and add no
+open-question section. Label every new statement as observed, documented
+behavior or still to validate.
+
+Describe the Codex attribution gap as resolved as a contract under the
+human's strict policy; support still waits for the listed validation. Do not
+describe the Claude feasibility gap as resolved. Raise either conditional
+question from the question verdicts only if its condition occurs.
+
+If you still contest a point, state it with evidence in the round 4 request,
+as the human directed for round 3. Do not send input to review panes and do
+not operate background tasks. Then request another automated review round.
+This answer authorizes neither consolidation nor implementation.
+
+### Final reviewer decision for design-specification resume-paused (exchange 2) round 3
+
+Decision: changes-requested. The writer should apply the concrete instructions and publish another automated review round.
+
+<!-- review-entry-id: answer-round-3-exchange-2 -->
+
+## Round 3 by human - escalation - attempt 2
+
+- Recorded: 2026-11-12T07:46:08+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: escalation
+
+exchange was abandoned while waiting for requestor
+
+<!-- review-entry-id: escalation-round-3-2 -->
+
+## Round 3 by human - human-reclaim - attempt 2
+
+- Recorded: 2026-11-12T07:48:58+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: human-reclaim
+
+The user explicitly resolved exchange 2 round 3 on 2026-11-12: "Just to be clear: process round 3 answer: no expiry". This answers the pending stopped-handoff/forced-reclaim question. The expiry escalation is a stopped handoff, not a review failure, and must not prevent processing the intact round 3 answer.
+
+Resume the same round in place with the requestor, apply and assess its nine requested changes, consume without --disagreement, and publish round 4 to the same reviewer as previously authorized. Preserve strict loaded-image attribution, all recorded decisions, evidence boundaries and incomplete Step 1. No consolidation, implementation advancement, commit or push is authorized. This resolution does not change timeout configuration or grant blanket recovery for other exchanges.
+
+<!-- review-entry-id: human-reclaim-round-3-2 -->
+
+## Round 4 by requestor (exchange 2)
+
+- Recorded: 2026-11-12T07:57:24+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: request
+
+### Review identity for design-specification resume-paused (exchange 2) (round 4)
+
+Umbrella draft: none
+Reviewed specification: docs/v0.14.0/design.v0.14.0.resume-paused.md
+Review round: 4
+
+### Requestor assessment for design-specification resume-paused (exchange 2) (round 4)
+
+The design and its evidence companion apply all nine requests from exchange 2
+round 3. All 17 design decision rows match HEAD unchanged, including rationales
+and rejected alternatives. No question is missing and no open-question section
+is needed: the existing choices suffice for this contract review. Neither
+conditional question in the answer has been triggered by validation.
+
+Codex strict attribution now uses the reviewer-observed class-44 image-identity
+query within the approved process-metadata channel. Its contract is resolved;
+Windows-build, access/status, updater, file-handle and lifecycle validation
+remain outstanding. Reviewer observations are distinguished from requestor
+validation. Neither host profile is supported, Step 1 remains incomplete and
+later implementation steps are not enabled.
+
+Claude's SessionStart source is now recorded as optional senv launcher settings
+generated from TUIOS hooks, with a preservation obligation for the deferred
+integration. Current watcher liveness has no permitted proof in this delivery;
+every potential Claude wait is pending without input. Positive absence still
+requires complete validated ledger and generation/session coverage.
+
+Reviewer wording suggestions were applied, including the acceptance examples,
+missing-marker behavior and same-handle IO accounting. No contested point
+remains. This requests contract review only, without consolidation, live
+validation, implementation advancement, commit or push.
+
+### Change summary for design-specification resume-paused (exchange 2) (round 4)
+
+1. Replaced Codex path/timestamp attribution with `NtQueryInformationProcess`
+   class 44 on the pane's direct child and retained file handle. Specified
+   process query rights without memory-read rights, file read/execute access,
+   read/delete sharing, success-only status handling, same-handle digest,
+   manifest agreement, invocation-only cache and pre-input rechecks.
+2. Added the reviewer's dated seven-process and disposable-file observations,
+   including access denial, stale directory names, tunneling and byte-identical
+   replacement. Removed creation-time ordering as a requirement.
+3. Replaced the Claude launch-injection hypothesis with the reviewer's senv
+   source finding and optional `--settings` path. Required first-relevant-record
+   and complete generation/session validation; missing settings/integration
+   means no marker and pending.
+4. Carried launcher-settings preservation into deferred senv integration while
+   retaining independent shared-command operation and no hook installation.
+5. Made Claude's unavailable proved-global-wait branch explicit under the
+   permitted channels and requirement Q04=A. Potential waits stay pending;
+   positive absence remains a separate unvalidated contract.
+6. Updated the running-Claude-watcher acceptance result and added Codex
+   replacement and unavailable/denied-query examples.
+7. Expanded Codex validation for each supported Windows build, required access
+   and statuses, renamed originals versus replacement handles, actual updater
+   rename/cleanup, same-handle hashing and process/handle races.
+8. Updated image-digest IO accounting through the identity-checked handle once
+   per distinct image per invocation.
+9. Updated the companion outcome, Codex follow-up, Claude source/liveness and
+   design-review return. New 2026-11-11 evidence is reviewer-observed or still
+   to validate. All 17 decision rows, the staged older companion and both plans
+   are preserved.
+
+### Human guidance and writer response for design-specification resume-paused (exchange 2) (round 4)
+
+Human guidance:
+
+The user explicitly resolved exchange 2 round 3 on 2026-11-12: "Just to be clear: process round 3 answer: no expiry". This answers the pending stopped-handoff/forced-reclaim question. The expiry escalation is a stopped handoff, not a review failure, and must not prevent processing the intact round 3 answer.
+
+Resume the same round in place with the requestor, apply and assess its nine requested changes, consume without --disagreement, and publish round 4 to the same reviewer as previously authorized. Preserve strict loaded-image attribution, all recorded decisions, evidence boundaries and incomplete Step 1. No consolidation, implementation advancement, commit or push is authorized. This resolution does not change timeout configuration or grant blanket recovery for other exchanges.
+
+#### Earlier human guidance retained for round 4 for design-specification resume-paused (exchange 2) (round 4)
+
+The user decided that the round 2 escalation of exchange 2 is a stopped
+handoff, not a review failure. It came from `consume-answer --disagreement`
+after the clarification round was already used. The round 2 request, the
+reviewer answer (`changes-requested`, seven requested changes) and the
+transcript are intact.
+
+Round 2 resumes in place with the requestor. The requestor consumes the
+retained answer without `--disagreement`, applies the requested changes it
+accepts, states any point it still contests in the round 3 request with its
+evidence, and publishes round 3 to the same reviewer.
+
+#### Earlier human guidance retained for round 3 for design-specification resume-paused (exchange 2) (round 4)
+
+OK, resolve conclusively the unresolved points in design review
+
+Check with your reviewer counterparts for ideas
+
+#### Strict attribution selected for resume on 2026-11-11 for design-specification resume-paused (exchange 2) (round 4)
+
+Latest user direction, supplied at pause on 2026-11-10:
+
+> $llm-shared:pause-session on resume, go with choice "1. Keep strict attribution (recommended): support stays blocked until reliable evidence exists". And explain what that means and what the next step is.
+
+The explicit policy decision resolves the proposed same-user replacement
+exception: keep original-loaded-image attribution mandatory. File path,
+manifest, pinned digest and creation-time ordering alone cannot establish it.
+No process-memory reading or other new evidence channel is authorized.
+Claude current liveness and positive absence remain unproved. Neither host
+profile is supported; Step 1 and all later steps remain incomplete.
+
+Writer response:
+
+Accepted all nine requests from exchange 2 round 3. There is no disagreement.
+The retained answer was consumed with reviewed-work-changed true and without
+`--disagreement`, then canonical `continue` selected round 4.
+
+The human's latest no-expiry clarification resolved the stopped round 3 handoff;
+canonical forced reclaim preserved the intact answer for processing. This
+round retains that exact confirmed guidance and the earlier strict-attribution
+direction. No timeout configuration was changed.
+
+Please verify that the Codex attribution contract now meets the strict policy
+without any same-user replacement exception or process-memory read, that the
+optional Claude marker source and deferred integration obligation are accurate,
+and that Claude pending versus positive-absence behavior is internally
+consistent. Check that contract resolution is never presented as validated
+support. Both hosts and Step 1 remain unsupported/incomplete pending the listed
+disposable validation. Consolidation and implementation are outside this round.
+
+### Reviewer focus for design-specification resume-paused (exchange 2) (round 4)
+
+Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
+
+<!-- review-entry-id: request-round-4-exchange-2 -->
+
+## Round 4 by reviewer (exchange 2)
+
+- Recorded: 2026-11-12T08:08:31+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: answer
+
+### Reviewer assessment for design-specification resume-paused (exchange 2) round 4
+
+I assessed the current design (942 lines, SHA-256
+`26d1b1404af51d785955b5e3584b06184c58300ad1ff4a17c0816dc2d8f7ffb0`) and the
+companion `resume-paused.profile-evidence.md` (273 lines, SHA-256
+`c785154d0e1908bbeb52785ce8ef6cc0e2703471eb7f8b288e3971e9dc17c73b`). Every
+Q01-Q17 decision row matches HEAD, including rationale and rejected
+alternatives.
+
+All nine round 3 requests are applied faithfully:
+
+- The Codex binding uses the class 44 identity query on the pane's direct
+  child: process query rights without memory-read rights, a read/execute file
+  handle sharing read and delete, success only, hashing through the same
+  handle, manifest agreement, an invocation-only cache and pre-input rechecks.
+  Creation-time ordering is gone.
+- The 2026-11-11 source-facts row, the `tuitp` SessionStart source, the
+  deferred senv preservation duty, the unavailable Claude proved-wait branch,
+  the two new acceptance rows, the Codex validation list, the IO accounting and
+  the companion updates are all present.
+- New 2026-11-11 statements are labelled as reviewer observations or source
+  analysis, not requestor validation. Contract resolution is never presented
+  as validated support: both hosts stay unsupported and Step 1 stays
+  incomplete (design lines 490-495, companion lines 5-17).
+
+Claude pending versus positive absence is internally consistent. A proved
+wait is unavailable, so every potential Claude wait is reported pending
+without input (lines 647-649, 682-685, 693-694, row 813). Activation needs
+positive absence under the five obligations (lines 703-742), and rows 814-820
+match. Codex keeps its fresh idle-capture path.
+
+Three contract gaps remain. Each needs a sentence or two, but each changes
+what an implementer builds, so this is more than wording.
+
+1. The `GetMappedFileNameW` corroboration has no permitted address source.
+   The design requires both image-name APIs at selection and before every
+   input (lines 449-451 and 483-485), and forbids memory-read rights
+   (line 473). `GetMappedFileNameW` needs an address inside the main image.
+   The usual ways to get one, module enumeration or reading the process
+   environment block, need `PROCESS_VM_READ`. That is a memory-read right,
+   and it conflicts with the human's "no process-memory reading" direction.
+
+   Observed today on a disposable sleeper I started and stopped, read-only,
+   on this Windows 11 build 26200:
+
+   - `EnumProcessModulesEx` failed with error 5 (access denied) under
+     `PROCESS_QUERY_INFORMATION` alone, and succeeded only after
+     `PROCESS_VM_READ` was added.
+   - A `VirtualQueryEx` walk of the address space with query rights only
+     (499 regions) found exactly one `MEM_IMAGE` allocation whose
+     `GetMappedFileNameW` name equals the native name from
+     `QueryFullProcessImageNameW`.
+   - Both calls also worked with limited query rights. The class 44 query
+     still needs `PROCESS_QUERY_INFORMATION`, so the single process handle
+     keeps that right.
+
+   The design must name this memory-read-free source, or stop requiring
+   `GetMappedFileNameW`. I recommend keeping it with the source named:
+   it preserves the reviewed two-API corroboration at no extra risk.
+
+2. The pinning granularity for Windows builds is undefined. "Each profile
+   must pin validated Windows builds" (line 491) can mean the OS build number
+   (26200) or that number plus the monthly update revision. The full revision
+   changes with every cumulative update, so every Patch Tuesday would turn
+   Codex support off until revalidated. The plan cannot write Step 1 tests or
+   the runtime build check without this choice.
+
+   I recommend pinning the OS build number and recording the observed update
+   revision as evidence. A build outside the pinned set is unsupported
+   evidence, with no input. Within a pinned build, success-only status
+   handling and the identity semantics carry the safety: a changed query
+   fails closed rather than accepting another file. The design must also say
+   where the runtime reads the build from.
+
+3. Marker-source validation covers only `tuitp`-launched panes. The scope
+   section (lines 262-266), obligation 1 (lines 717-721) and the companion
+   (lines 213-215) accept two marker sources: the `tuitp` launch settings or
+   an already installed TUIOS integration. Validation (lines 869-873) tests
+   only the `tuitp` source, plus missing settings and missing integration.
+
+   Both sources record the same `hook_success` command, and the receiver
+   cannot tell them apart without reading the Claude process command line.
+   That is process memory, which is not permitted. A profile validated on
+   `tuitp` panes alone would therefore also accept unvalidated
+   installed-integration records. Validation must cover the installed
+   integration alone and both sources together (duplicate or merged
+   SessionStart records), or the design must drop the installed integration
+   as an accepted source.
+
+One cross-document follow-up: plan Step 1 still describes generic
+pre-input sources and "positive no-task evidence". It does not carry the
+class 44 contract, build pinning, marker-source tests or the unavailable
+Claude proved-wait branch. The plans are deliberately unchanged during this
+design review, but the companion must record that Step 1 of both plans is
+revised to the converged contract before Step 1 resumes.
+
+Apart from the disposable sleeper, which the probe started and stopped, every
+check this round was read-only. I sent no input to any pane, operated no
+background task and read no conversation content.
+
+### Question verdicts for design-specification resume-paused (exchange 2) round 4
+
+The seventeen design decisions remain explicit user decisions. I agree with
+each one, and none needs reopening.
+
+Q01-Q05, Q07-Q13 and Q15: unaffected. I would keep every recorded choice.
+
+Q06, A: I would choose the same. Requested changes 1 and 2 complete its
+process-metadata source: a memory-read-free address for the second image-name
+API, and a defined build pin for the undocumented query. Neither adds a
+channel or relaxes strict attribution.
+
+Q14, B: unaffected.
+
+Q16, A: I would choose the same. The design now states its consequence for
+Claude correctly: no proved wait is available, so every potential wait is
+pending without input.
+
+Q17, A: I would choose the same. Requested change 3 makes its marker
+precondition match what validation will actually cover.
+
+No human question is missing. The build-pinning choice in change 2 is a
+technical default rather than a policy choice: success-only handling keeps it
+fail-closed either way. Raise it as a question only if you prefer
+full-revision pinning and want the human to accept monthly revalidation.
+
+The round 2 conditional question still applies unchanged: if disposable
+validation shows that an enabled background mechanism can start or end
+without a recognizable record, the human must choose between keeping Claude
+reviewer activation pending and approving a named additional channel. The
+class 44 conditional from round 3 is now moot, because the human's
+strict-attribution direction and the applied contract accept it.
+
+### Requested changes for design-specification resume-paused (exchange 2) round 4
+
+Requested changes:
+
+Line numbers refer to the current design (942 lines) and companion (273
+lines). Keep every Q01-Q17 decision row unchanged.
+
+1. Image-name corroboration source (design lines 448-451 and 483-485). After
+   "Corroborate it with `GetMappedFileNameW`", add: "Locate the main image for
+   that call with `VirtualQueryEx` over the same process handle: exactly one
+   committed `MEM_IMAGE` allocation must map the name returned by
+   `QueryFullProcessImageNameW` with `PROCESS_NAME_NATIVE`. Module
+   enumeration, process environment block reads and any other source that
+   needs `PROCESS_VM_READ` are excluded." Then simplify "normalizing only the
+   Windows device-path representation" to a comparison of native names. In
+   the source facts (after line 63), add the reviewer's 2026-11-12 disposable
+   observation: `EnumProcessModulesEx` was denied without `PROCESS_VM_READ`,
+   and the query-rights-only walk found exactly one matching allocation.
+   Add the address source to the Codex validation list (lines 883-892).
+
+2. Windows build pinning (design lines 490-492; companion lines 119-120).
+   Replace "Each profile must pin validated Windows builds" with: "Each
+   profile pins validated OS build numbers, for example 26200, and records
+   the update revision observed during validation. The runtime reads the
+   build from OS version metadata; a build outside the pinned set is
+   unsupported evidence with no input. Within a pinned build, any non-success
+   query result still fails closed." Add an acceptance row: "The OS build
+   number is not pinned by the Codex profile" with result "Unsupported
+   evidence; no input." If you prefer full-revision pinning, state that
+   instead and say that each cumulative update needs revalidation.
+
+3. Marker-source validation (design lines 869-873; companion lines 213-218).
+   Extend the validation sentence to cover a pane with an installed TUIOS
+   integration and no `tuitp` settings, and a pane with both sources
+   (duplicate or merged SessionStart records). State that the receiver
+   cannot tell the sources apart from the recorded command, and that
+   command-line inspection is excluded because it reads process memory. If
+   you would rather not validate the installed integration, remove it from
+   the accepted sources at lines 262-266, 717-721 and companion line 214.
+   Panes started that way then stay pending.
+
+4. Plan follow-up (companion lines 255-259). Add: "After design
+   consolidation, Step 1 of the implementation and validation plans must be
+   revised to the converged Codex identity, build-pinning and image-name
+   contract and to the Claude marker-source and pending rules before Step 1
+   resumes."
+
+5. Wording (optional, apply with the above):
+   - Design lines 720-721: "A pane without those settings or an installed
+     TUIOS integration" becomes "A pane with neither those settings nor an
+     installed TUIOS integration". Make the same change at companion lines
+     213-214 ("A pane without the launcher settings or an installed TUIOS
+     integration").
+   - Companion lines 54 and 226: replace "The round 3 identity-query
+     contract" and "Round 3 supersedes" with "The 2026-11-11 identity-query
+     contract" and "The 2026-11-11 identity query supersedes". Review-round
+     numbers restart per exchange and are ambiguous in a standing document.
+   - Design lines 679-681: after "with no later terminal event", add "Such a
+     start only names the pending reason".
+
+### Human guidance response for design-specification resume-paused (exchange 2) round 4
+
+Human guidance:
+
+The round 4 request carries the human's guidance from earlier rounds plus one
+new decision:
+
+- On 2026-11-12 the human ruled that the round 3 expiry escalation was a
+  stopped handoff, not a review failure:
+
+  > Just to be clear: process round 3 answer: no expiry
+
+  The intact round 3 answer was consumed without disagreement and round 4 was
+  published to this reviewer. No timeout configuration changed, and no
+  blanket recovery was granted for other exchanges.
+- Strict attribution still applies: no same-user replacement exception, no
+  process-memory reading and no other new evidence channel.
+- The earlier direction to resolve the open design points conclusively
+  still applies.
+
+The writer asked me to confirm that the Codex contract meets the strict
+policy, that the Claude marker source and deferred duty are accurate, that
+pending and positive absence are consistent, and that contract resolution is
+never presented as validated support.
+
+Guidance response:
+
+I processed round 4 under the human's no-expiry ruling and kept every
+boundary it restates.
+
+On the four checks the writer asked for:
+
+- Strict policy: the class 44 contract meets it, with no same-user exception.
+  One hole remains: the design requires `GetMappedFileNameW` but names no
+  address source. The usual source needs a memory-read right that the
+  human's direction excludes. Requested change 1 names a source that needs
+  query rights only, as observed today on a disposable sleeper.
+- Claude marker source and deferred duty: both are accurate. Validation must
+  also cover the second accepted source, or drop it (change 3).
+- Pending versus positive absence: consistent across the body, acceptance
+  rows and companion.
+- Support claims: none. Contract resolution is kept apart from validated
+  support throughout.
+
+Resolving conclusively: the attribution and liveness points stay closed.
+The three gaps above are small contract completions, not reopened decisions.
+The remaining open question, whether the Claude ledger is complete enough
+for positive absence, belongs to disposable-session validation, which the
+human owns.
+
+Role isolation still keeps me from contacting other agents, so these
+findings are my own.
+
+### Writer instructions for design-specification resume-paused (exchange 2) round 4
+
+Apply requested changes 1 to 4 to the design and its companion, plus the
+optional wording in change 5. Keep every Q01-Q17 decision, rationale and
+rejected alternative unchanged, and add no open-question section. Label the
+2026-11-12 sleeper result as a reviewer observation, not requestor
+validation.
+
+Keep both hosts unsupported and Step 1 incomplete. Do not edit the plans in
+this round; change 4 only records the follow-up. If you contest a point, state
+it with evidence in the round 5 request. Do not send input to review panes and
+do not operate background tasks. Then request another automated review round.
+I expect the next round to converge if these changes land as written. This
+answer authorizes neither consolidation nor implementation.
+
+### Final reviewer decision for design-specification resume-paused (exchange 2) round 4
+
+Decision: changes-requested. The writer should apply the concrete instructions and publish another automated review round.
+
+<!-- review-entry-id: answer-round-4-exchange-2 -->
+
+## Round 5 by requestor (exchange 2)
+
+- Recorded: 2026-11-12T08:13:22+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: request
+
+### Review identity for design-specification resume-paused (exchange 2) (round 5)
+
+Umbrella draft: none
+Reviewed specification: docs/v0.14.0/design.v0.14.0.resume-paused.md
+Review round: 5
+
+### Requestor assessment for design-specification resume-paused (exchange 2) (round 5)
+
+Applied every requested change from exchange 2 round 4, including the optional
+wording. No human question is missing, no decision needs reopening and no
+open-question section is needed. All 17 design decision rows, rationales and
+rejected alternatives are preserved unchanged. There is no disagreement.
+
+The two-API image-name contract now names a query-rights-only `VirtualQueryEx`
+allocation walk and native-name comparison, excluding module enumeration,
+process environment block reads and memory-read rights. Reviewer observations
+on 2026-11-12 are explicitly distinguished from requestor validation.
+
+OS build numbers are the runtime pin; update revisions are recorded validation
+evidence. The runtime uses `Win32_OperatingSystem.BuildNumber` OS metadata,
+rejecting missing/invalid decimal values and builds outside the pinned set.
+This is a technical default within the existing strict attribution contract.
+
+Both accepted Claude marker sources and their combination now require
+validation, including merged or duplicate SessionStart records. The recorded
+command cannot distinguish sources, and target command-line inspection is
+excluded. All potential Claude waits remain pending; positive absence requires
+the complete validated ledger. Neither profile is supported, Step 1 remains
+incomplete and no implementation or live validation is claimed.
+
+### Change summary for design-specification resume-paused (exchange 2) (round 5)
+
+1. Named `VirtualQueryEx` over the same query-only process handle as the
+   `GetMappedFileNameW` address source, requiring a complete walk and exactly
+   one committed matching `MEM_IMAGE` allocation, grouped by allocation base.
+   Compared native names from `PROCESS_NAME_NATIVE`; excluded memory-read
+   sources. Added the dated reviewer sleeper observation to design and
+   companion and extended the Codex validation cases.
+2. Defined OS build-number pinning with update revision retained as validation
+   evidence. Named runtime `Win32_OperatingSystem.BuildNumber` metadata and
+   invalid/unknown-build rejection. Added the unpinned-build acceptance row.
+3. Added installed TUIOS integration alone and both marker sources together
+   to Claude validation, including duplicate/merged records. Stated the
+   source-indistinguishability and command-line inspection boundary.
+4. Recorded in the companion that Step 1 of both plans must be revised to the
+   converged contract after design consolidation and before Step 1 resumes.
+   The plans remain unchanged in this review.
+5. Applied the optional neither/nor wording, replaced ambiguous standing
+   review-round references with the 2026-11-11 date, and clarified that a
+   watcher start only supplies the pending reason.
+
+### Human guidance and writer response for design-specification resume-paused (exchange 2) (round 5)
+
+Human guidance:
+
+The user explicitly resolved exchange 2 round 3 on 2026-11-12: "Just to be clear: process round 3 answer: no expiry". This answers the pending stopped-handoff/forced-reclaim question. The expiry escalation is a stopped handoff, not a review failure, and must not prevent processing the intact round 3 answer.
+
+Resume the same round in place with the requestor, apply and assess its nine requested changes, consume without --disagreement, and publish round 4 to the same reviewer as previously authorized. Preserve strict loaded-image attribution, all recorded decisions, evidence boundaries and incomplete Step 1. No consolidation, implementation advancement, commit or push is authorized. This resolution does not change timeout configuration or grant blanket recovery for other exchanges.
+
+#### Earlier human guidance retained for round 4 for design-specification resume-paused (exchange 2) (round 5)
+
+The user decided that the round 2 escalation of exchange 2 is a stopped
+handoff, not a review failure. It came from `consume-answer --disagreement`
+after the clarification round was already used. The round 2 request, the
+reviewer answer (`changes-requested`, seven requested changes) and the
+transcript are intact.
+
+Round 2 resumes in place with the requestor. The requestor consumes the
+retained answer without `--disagreement`, applies the requested changes it
+accepts, states any point it still contests in the round 3 request with its
+evidence, and publishes round 3 to the same reviewer.
+
+#### Earlier human guidance retained for round 3 for design-specification resume-paused (exchange 2) (round 5)
+
+OK, resolve conclusively the unresolved points in design review
+
+Check with your reviewer counterparts for ideas
+
+#### Strict attribution selected for resume on 2026-11-11 for design-specification resume-paused (exchange 2) (round 5)
+
+Latest user direction, supplied at pause on 2026-11-10:
+
+> $llm-shared:pause-session on resume, go with choice "1. Keep strict attribution (recommended): support stays blocked until reliable evidence exists". And explain what that means and what the next step is.
+
+The explicit policy decision resolves the proposed same-user replacement
+exception: keep original-loaded-image attribution mandatory. File path,
+manifest, pinned digest and creation-time ordering alone cannot establish it.
+No process-memory reading or other new evidence channel is authorized.
+Claude current liveness and positive absence remain unproved. Neither host
+profile is supported; Step 1 and all later steps remain incomplete.
+
+Writer response:
+
+Accepted requests 1 through 4 and the optional wording in request 5. No point
+is contested and no conditional question was triggered. Round 4 was consumed
+with reviewed-work-changed true and without disagreement.
+
+Please verify that the named image address source completes the approved
+metadata contract without memory-read access, that the build-number pin and
+runtime source are precise enough for implementation, and that all accepted
+Claude marker sources are covered by validation. The companion now preserves
+the required plan revision before Step 1 resumes.
+
+Strict loaded-image attribution, unchanged decisions, no same-user exception,
+no new evidence channel and no process-memory reading remain binding. Both
+hosts remain unsupported and Step 1 incomplete. No consolidation, plan edits,
+implementation advancement, live pane input, hook installation, commit or push
+has occurred. The exact confirmed guidance and earlier human direction remain
+in the separate guidance input.
+
+### Reviewer focus for design-specification resume-paused (exchange 2) (round 5)
+
+Check for missing questions, assess the existing options and answers, and suggest any clearer wording.
+
+<!-- review-entry-id: request-round-5-exchange-2 -->
+
+## Round 5 by reviewer (exchange 2)
+
+- Recorded: 2026-11-12T08:19:21+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: answer
+
+### Reviewer assessment for design-specification resume-paused (exchange 2) round 5
+
+I assessed the current design (966 lines, SHA-256
+`5b93168b48a3acc2db8ccf985e42a7559f126c8d9fb901ec49862265edad77f5`) and the
+companion `resume-paused.profile-evidence.md` (299 lines, SHA-256
+`57b1aea436379166861b8274a921f379d84ffce7712a393a801b7f73c3754960`). Every
+Q01-Q17 decision row still matches HEAD.
+
+All round 4 requests are applied as written, including the optional wording:
+
+- Image address source (design lines 449-458, source row 64, validation
+  lines 905-907, companion lines 132-143): a `VirtualQueryEx` walk over the
+  same query-only handle, grouped by allocation base, needing a complete walk
+  and exactly one committed matching `MEM_IMAGE` allocation, with native-name
+  comparison. Module enumeration, process environment block reads and every
+  `PROCESS_VM_READ` source are excluded. This completes the approved
+  process-metadata contract without memory-read access.
+- Build pinning (design lines 498-505, row 839, validation lines 903-904,
+  companion lines 119-124): OS build numbers are the runtime pin and the
+  update revision is validation evidence. Missing, invalid or unpinned builds
+  are unsupported evidence; non-success queries still fail closed. This is
+  precise enough to implement.
+- Marker sources (design lines 885-893): `tuitp` settings alone, the
+  installed integration alone, both together with duplicate or merged
+  records, and neither. The text says why the sources cannot be told apart.
+  Every accepted source is now covered by validation.
+- The plan follow-up (companion lines 281-284), the neither/nor wording, the
+  dated identity-query references and the pending-reason sentence (line 695)
+  are in place.
+
+The strict policy holds throughout: no same-user exception, no process
+memory, no hook, no new evidence class. Contract resolution stays separate
+from validated support: both hosts are unsupported and Step 1 is incomplete.
+Claude pending versus positive absence is unchanged and consistent.
+
+A read-only probe today, against this interpreter's own process and
+executable only, gave two precision points. Neither changes a decision, the
+contract or the validation scope:
+
+1. Build source. `Win32_OperatingSystem.BuildNumber` returned 26200, but the
+   project has no WMI binding, so it needs a PowerShell subprocess; that call
+   took 1.42 s. `RtlGetVersion` returned the same 26200 in-process, from
+   ntdll, the layer that already serves the class 44 query. Python's
+   `sys.getwindowsversion().platform_version` reported 26100, because it
+   reflects a system file version rather than the running OS build. Either
+   named source satisfies the contract. I recommend `RtlGetVersion` and
+   naming the file-version source as excluded.
+2. Native-name file open. `CreateFileW` on the bare native name returned
+   error 3 (path not found); the same name with the `\\?\GLOBALROOT` prefix
+   opened with read/execute access sharing read and delete. The design opens
+   the image, and reads the manifest, at the "corroborated kernel image
+   name", which is now native. An unprefixed open fails closed, so this is
+   not a safety gap, but naming the prefix saves a Step 1 detour.
+
+Apart from that local probe, every check was read-only. I sent no input to
+any pane, operated no background task and read no conversation content.
+
+### Question verdicts for design-specification resume-paused (exchange 2) round 5
+
+The seventeen design decisions remain explicit user decisions. I agree with
+each one, and none needs reopening. No human question is missing.
+
+Q01-Q05, Q07-Q16: unaffected. I would keep every recorded choice.
+
+Q06, A: I would choose the same. Its process-metadata source is now complete
+for Codex: name, address-space corroboration, image identity, digest,
+manifest and a defined build pin. None needs memory-read rights.
+
+Q17, A: I would choose the same. Its Claude marker precondition now matches
+what validation covers.
+
+Build-number pinning stays a technical default inside strict attribution,
+not a human question.
+
+Outstanding human-owned items, none of which blocks convergence of this
+formulation:
+
+- Consolidation itself is the human's choice.
+- Disposable Step 1 validation is human-owned. Until it passes, neither host
+  is supported.
+- The round 2 conditional question still stands: if validation shows that an
+  enabled background mechanism can start or end without a recognizable
+  record, the human chooses between keeping Claude reviewer activation
+  pending and approving a named additional channel.
+- After consolidation, Step 1 of both plans must be revised before Step 1
+  resumes, as the companion records.
+
+### Convergence evidence for design-specification resume-paused (exchange 2) round 5
+
+Covered wording:
+
+Covered formulation: the current design (SHA-256
+`5b93168b48a3acc2db8ccf985e42a7559f126c8d9fb901ec49862265edad77f5`) and
+companion (SHA-256
+`57b1aea436379166861b8274a921f379d84ffce7712a393a801b7f73c3754960`), plus
+the wording-only edits below. Apply them during consolidation or in a final
+polish; neither needs another review round.
+
+1. Build source (design lines 500-502, companion lines 120-121, validation
+   line 904). Replace "`Win32_OperatingSystem.BuildNumber` operating-system
+   metadata" with "the `dwBuildNumber` that `RtlGetVersion` returns". After
+   "requiring a valid decimal value", add: "System file versions, such as
+   Python's `sys.getwindowsversion().platform_version`, are not build
+   evidence." If you keep WMI, keep the added sentence and state that the
+   query runs once per invocation.
+
+2. Native-name open (design line 482, companion line 110). After "Open the
+   file at the corroborated kernel image name", add "through the
+   `\\?\GLOBALROOT` prefix". Add one sentence after line 466: "The release
+   root and its manifest are read through the same prefixed native path."
+
+Convergence rationale:
+
+Every requested change from exchange 2 rounds 2 to 4 is applied, and the writer
+contests none. The seventeen decisions are unchanged, and no human question
+is missing.
+
+The Codex contract now meets strict attribution entirely within process
+metadata: the native name, the corroborating address-space walk, the class 44
+identity query on a retained handle, same-handle hashing, manifest agreement
+and an OS build pin. It needs no memory-read right and no same-user
+exception. The Claude contract is consistent: every potential wait is
+pending, activation needs validated positive absence, and every accepted
+marker source is under validation.
+
+The two remaining items are wording-only precision edits: they name an
+in-process build source and the path prefix for native-name opens. Neither
+alters a decision, a fail-closed rule or the validation scope.
+
+This recommendation covers the design formulation only. It does not claim
+either host is supported, mark Step 1 complete or authorize consolidation,
+plan edits or implementation. Those remain human decisions.
+
+### Human guidance response for design-specification resume-paused (exchange 2) round 5
+
+Human guidance:
+
+The round 5 request carries the same human guidance as round 4:
+
+- On 2026-11-12 the human ruled that the round 3 expiry escalation was a
+  stopped handoff, not a review failure:
+
+  > Just to be clear: process round 3 answer: no expiry
+
+  No timeout configuration changed, and no blanket recovery was granted for
+  other exchanges. No consolidation, implementation advancement, commit or
+  push is authorized.
+- Strict attribution still applies: no same-user replacement exception, no
+  process-memory reading and no other new evidence channel.
+- The earlier direction to resolve the open design points conclusively
+  still applies.
+
+The writer asked me to confirm three points: that the named image address
+source completes the metadata contract without memory-read access, that the
+build pin and its runtime source are precise enough to implement, and that
+every accepted Claude marker source is under validation.
+
+Guidance response:
+
+All three confirmations hold:
+
+- Address source: yes. The `VirtualQueryEx` walk over the query-only handle
+  reads address-space metadata, never memory contents, and every
+  `PROCESS_VM_READ` path is excluded.
+- Build pin: yes, precise enough. The wording edits only swap a slower
+  subprocess-backed source for an in-process one, and add the native-path
+  prefix.
+- Marker sources: yes. Both accepted sources, their combination and their
+  absence are under validation.
+
+Resolving conclusively: the design points that review can settle are now
+settled. Whether the Claude ledger is complete enough for positive absence
+remains open. Only disposable Step 1 validation, which the human owns, can
+answer it.
+
+The no-expiry ruling and the strict-attribution direction are respected.
+Nothing here authorizes consolidation, plan edits, implementation, pane
+input, hook installation, commit or push. Role isolation still keeps me from
+contacting other agents, so these findings are my own.
+
+### Writer instructions for design-specification resume-paused (exchange 2) round 5
+
+No further automated review round is needed. Hold the two wording-only
+edits from the covered wording until the human chooses at the convergence
+gate. Apply them in the consolidation pass if the human picks Consolidate,
+or in the next revision if the human asks for another round.
+
+Keep every Q01-Q17 decision, rationale and rejected alternative unchanged.
+Keep both hosts unsupported and Step 1 incomplete. Do not edit the plans
+until after consolidation, as the companion records. Do not send input to
+review panes, operate background tasks or install hooks. This answer
+authorizes neither consolidation nor implementation.
+
+### Final reviewer decision for design-specification resume-paused (exchange 2) round 5
+
+Decision: convergence-recommended. This recommendation is advisory; consolidation is not confirmed and remains at the durable human gate.
+
+<!-- review-entry-id: answer-round-5-exchange-2 -->
+
+## Round 5 by human - human-confirmation
+
+- Recorded: 2026-11-12T09:08:13+01:00
+- Exchange: specification/design-specification/v0.14.0/resume-paused
+- Umbrella: none
+- Reviewed document: docs/v0.14.0/design.v0.14.0.resume-paused.md
+- Requestor LLM nature: codex
+- Reviewer LLM nature: claude
+- Outcome: human-confirmation
+
+Human choice: Consolidate
+Outcome: continue-owning-workflow
+
+<!-- review-entry-id: human-confirmation-round-5 -->
