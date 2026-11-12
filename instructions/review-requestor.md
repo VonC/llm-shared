@@ -272,13 +272,18 @@ not end or restart a bounded protocol wait.
    publication releases that wait into the next reviewer assessment.
 7. At convergence, retain the answer and present the specialized assessment,
    reviewer recommendation, identity summary, and registered labels to the
-   human. The reviewer cannot call `confirm`.
+   human, the labels as a choice under
+   [interactive_menu.md](../rules/interactive_menu.md). The reviewer cannot
+   call `confirm`.
    A specification requestor may also offer `Explain undecided questions`
    under [explain-undecided-questions.md](explain-undecided-questions.md).
    This discussion retains `convergence-gate`; it is not a registered label
    or authorization for the owning action. Resume its private phase before
    re-presenting a generic menu. Its authorized follow-up uses the existing
    another-round label after all explicit user decisions are recorded.
+   The convergence menu precedes commit authorization. Apply
+   [`push-before-next-step.md`](../rules/push-before-next-step.md) after the
+   authorized owning action and final cleanup, before the next-phase handoff.
 8. Pass the selected display label to `confirm --choice-label <label>`. Add
    `--guidance-file <path>` only when the human supplied guidance. Another
    round returns active authority for a replacement request. A continuing

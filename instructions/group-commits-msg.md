@@ -64,7 +64,35 @@ self-locate and do not need an `senv.bat` pre-call.
 
    The tool rewrites `a.commit` in place. An exit status of 0 means the file is now canonically formatted (whether or not changes were applied); a non-zero status means the file is missing or unreadable and the underlying issue must be fixed before proceeding.
 
-7. After `a.commit` is formatted and every intended path is staged, run the
+7. After `a.commit` is formatted and every intended path is staged, lint every
+   new or modified Markdown file this commit adds or changes, and every
+   modified Markdown file the same workflow commits later (such as a review
+   transcript kept for a residual commit), as
+   [`../rules/markdown.md`](../rules/markdown.md) requires under "Lint every new
+   or modified Markdown file before asking to commit". List them with
+   `git status --porcelain -- "*.md"`. Fix every finding, restage, and format
+   `a.commit` again when its membership changed: no commit choice is presented
+   while a finding remains.
+
+   Next, spell-check the same Markdown files, and only them, as
+   [`../rules/spelling.md`](../rules/spelling.md) requires: show the unknown words, then ask about each one with its
+   alternatives listed, letting the user choose between adding it to
+   `.vscode/settings.json` (`spellcheck.bat add-words`) and a replacement,
+   apply the choices, restage,
+   and rerun the check until it reports no unknown word. A changed
+   `.vscode/settings.json` joins the group of the files that needed its words:
+   format `a.commit` again.
+
+   On Windows, every original reported word presented for the decision must
+   reach `cSpell.userWords` in `%APPDATA%\Code\User\settings.json`, even when
+   the user chooses a replacement. Retain the original findings and verify
+   replacements directly before user additions can hide missed edits. Add to
+   project `cSpell.words` only the words approved for project addition. The
+   current launcher updates only the project file, so perform the user edit
+   separately and verify each required list independently, following the
+   same spelling rule. Stage only project settings; keep user settings local.
+
+   Then run the
    focused read-only readiness checker, `commit-plan-check.bat --format json`,
    from the project root through its full path:
 
@@ -111,6 +139,18 @@ self-locate and do not need an `senv.bat` pre-call.
    If the file is valid, there is nothing more to do: `git_batch_commit.py` will have proceeded automatically to create one commit per group, with the corresponding commit message.
 
    When those commits complete a plan step whose private journal exists (see [`step-journal.md`](step-journal.md)), append a `commit` line with the new hashes to that journal and update its handoff.
+
+   Before reporting the completed batch or executing the contextual next
+   command, apply [`push-before-next-step.md`](../rules/push-before-next-step.md):
+   require a successful empty `git status --porcelain --untracked-files=all`,
+   with a final `git add -A` and grouped cleanup batch when needed, before
+   pushing. That rule preserves the human go-ahead for new cleanup commits.
+   This also applies when plain `Go ahead` ends the workflow. Authorized
+   review and consolidation continuations return to their owning workflow,
+   which applies the push gate after its final clean-tree check.
+   A final cleanup invocation delegated by the same push rule also returns
+   to its caller after the batch. The caller verifies the clean tree and
+   pushes; never recursively invoke another cleanup from that batch.
 
    Do not manually replay the groups with `git restore --staged`, `git add`,
    or `git commit` after a go-ahead. The approved go-ahead path is exactly the
@@ -179,6 +219,9 @@ Types other than `fix:` and `feat:` are `build:`, `chore:`, `ci:`, `docs:`, `sty
 - The title must not exceed 52 characters.
 - The body and footer lines must not exceed 80 characters, and must not be indented, no prefix spaces.
   Make sure each line in the body and footer is wrapped at 80 characters or less, which means it must go up to 80 characters and then break to the next line without indentation.
+- No AI attribution: never add a `Co-Authored-By:` trailer naming an assistant,
+  a `Generated with ...` line, or any other footer the template does not show,
+  whatever the host's own default asks. The message ends with the `What:` list.
 
 Make sure the body includes two sections, 'Why' and 'What':
 

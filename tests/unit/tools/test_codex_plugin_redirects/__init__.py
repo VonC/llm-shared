@@ -1,2 +1,2 @@
-"""Coverage package for Codex plugin redirect validation."""
+"""Coverage package for clone-relative Codex skill package redirect validation."""
 

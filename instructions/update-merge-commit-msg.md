@@ -2,8 +2,23 @@
 
 When you merge a branch, the default commit message is not very informative. Use this skill to update the merge commit message with a conventional commit message based on docs found in the merged branch.
 
-Run this skill immediately after every no-fast-forward merge into a shared
-target branch. The required cases include:
+## Merge-back method and message
+
+When the user asks to "merge back" into a branch, use `git merge --no-ff`
+unless the user explicitly instructs a different merge method. This applies
+to every target branch, including feature and integration branches as well
+as `develop` and `main`. A fast-forward does not satisfy a merge-back request
+under this default.
+
+Immediately after the merge, run this `update-merge-commit-msg` skill to
+replace the default message with the conventional message below. Finish the
+reword before replaying later commits, merging another branch, continuing
+integration or release work, or pushing the target. If the user explicitly
+requests a method that creates no merge commit, honor that instruction and
+report that there is no merge message to rewrite.
+
+Run this skill immediately after every no-fast-forward merge into any target
+branch. The required cases include:
 
 - merging a feature branch into `develop` for integration;
 - merging a feature, integration, or promotion branch into `main`.
@@ -12,6 +27,8 @@ Do not push the target branch or continue with later integration or release
 work while its current merge still has Git's default message. The reworded
 merge must be the current commit before this skill applies it; a historical
 merge needs a separate history-repair plan.
+
+## Prepare the conventional merge message
 
 Your goal is to write an `a.commit` with a conventional commit message explaining what is merged (why and what).
 
@@ -61,6 +78,11 @@ go-ahead choices:
 Only run `git-reword-merge.sh` after a go-ahead entry is selected.
 
 ## Handoff to prepare-release
+
+Before a standalone next-step report or continuation after the successful
+rewrite, apply [`push-before-next-step.md`](../rules/push-before-next-step.md).
+When returning to an active `prepare-release` caller, that caller owns the
+push gate before its next-step handoff.
 
 This skill can run on its own or as one step of the `prepare-release`
 skill. Check for the flag file `a.prepare-release.active` in the review

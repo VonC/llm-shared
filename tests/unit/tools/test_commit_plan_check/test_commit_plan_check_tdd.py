@@ -2,6 +2,8 @@
 
 Step 2 exposes the same parser, staged inventory, and validator through a
 side-effect-free service, a platform-neutral CLI, and a root batch launcher.
+
+Fix (linked worktrees): an explicit root may carry a `.git` file.
 """
 
 from __future__ import annotations
@@ -444,6 +446,27 @@ def test_invalid_arguments_return_two_without_running_service(
 
     assert commit_plan_check.main(arguments) == OPERATIONAL_STATUS
     assert "commit-plan-check:" in capsys.readouterr().err
+
+
+def test_explicit_root_accepts_a_linked_worktree(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A linked worktree's `.git` file is a valid explicit root marker."""
+    (tmp_path / ".git").write_text("gitdir: ../main/.git/worktrees/linked\n", encoding="utf-8")
+    seen: list[Path] = []
+    result = commit_plan_check.CommitPlanCheckResult(state=commit_plan_check.CommitPlanCheckState.VALID)
+
+    def check(root: Path) -> commit_plan_check.CommitPlanCheckResult:
+        seen.append(root)
+        return result
+
+    monkeypatch.setattr(commit_plan_check, "check_commit_plan", check)
+
+    assert commit_plan_check.main(["--root", str(tmp_path), "--format", "json"]) == 0
+    assert seen == [tmp_path.resolve()]
+    assert capsys.readouterr().err == ""
 
 
 def test_invalid_explicit_root_and_unexpected_error_return_two(

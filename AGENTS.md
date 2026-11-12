@@ -26,6 +26,20 @@ Full access / never
 * If the effective permissions do not match the repository's expected configuration, report the mismatch rather than weakening global configuration or repeatedly retrying the blocked command.
 * Ordinary clarification questions to the user remain allowed when useful.
 
+## Questions that need the user's answer
+
+Before ending a turn on any question the user must answer, a choice or a
+plain-text question, read and follow:
+
+```txt
+rules/interactive_menu.md
+```
+
+Use `request_user_input` whenever this turn lists it: Codex then reports the
+wait to the terminal itself. In Default mode it is listed only with the
+`default_mode_request_user_input` feature; without it, that rule's `blocked`
+report keeps the terminal showing that the user is awaited.
+
 ## Review role isolation
 
 Whenever acting in a review exchange, follow:
@@ -61,6 +75,19 @@ In particular:
 * Follow the global quota-hygiene instructions when waiting for long-running work.
 
 Do not copy or invent an alternate groundhog lifecycle in this file.
+
+## Merging branches back
+
+Before merging a branch back into any target branch, read and follow
+[`instructions/update-merge-commit-msg.md`](instructions/update-merge-commit-msg.md#merge-back-method-and-message).
+It defines the default merge method and required message rewrite, including
+the exception for an explicit user instruction.
+
+## Pushing before the next step
+
+Before displaying or executing a next step after a commit or convergence,
+read and follow
+[`rules/push-before-next-step.md`](rules/push-before-next-step.md).
 
 ## Diataxis documentation order
 

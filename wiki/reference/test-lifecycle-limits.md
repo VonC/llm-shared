@@ -4,9 +4,9 @@
 
 <!-- markdownlint-disable MD013 -->
 
-🧪 The suite's pytest plugin `tests/simulation_policy.py` judges every test
-lifecycle, setup through teardown, against a CPU limit and a wall-clock limit.
-Every limit is a project setting. This page lists the settings, how one test's
+🧪 The standalone pytest plugin `llm_shared_lifecycle_gate` judges every test
+lifecycle, setup through teardown, against a CPU limit and reports wall time
+against a configurable reference. This page lists the settings, how one test's
 CPU limit is chosen, the per-checkout record behind the CPU stability band,
 exception entries and the end-of-run summary. For the reasons, see
 [Why fast tests keep the work they assert](../explanation/why-fast-tests-keep-the-work-they-assert.md);
@@ -15,10 +15,13 @@ to change a value or accept a slow test, follow
 
 ## Invocation model
 
-Nobody calls the gate. `tests/conftest.py` loads `tests/simulation_policy.py`
-as a pytest plugin, so every pytest run of this suite applies it, including
-each groundhog stage. The project sets the values in its pytest configuration;
-one run can override them on the command line.
+`tests/conftest.py` loads both canonical policies for this repository's suite.
+Other projects select either independently through
+[shell preparation](../how-to/enable-shared-lifecycle-gate.md), which applies
+to prepared plain pytest and every groundhog pytest stage. No consumer is
+automatically opted in. The project sets values in its pytest configuration;
+one run can override them on the command line. The four key registrations must
+use the guide's plugin-manager guard to preserve defaults in both loading orders.
 
 ## Settings and their defaults
 
@@ -27,7 +30,7 @@ one run can override them on the command line.
 | `test_lifecycle_limit` | `0.1` | seconds above 0 | default CPU ceiling of one lifecycle |
 | `test_lifecycle_cpu_band_factor` | `2.5` | a number of at least 1 | a proven test may use this multiple of its ceiling |
 | `test_lifecycle_cpu_drift_runs` | `3` | a whole number of at least 1 | consecutive measured runs above the ceiling that cost the proof |
-| `test_lifecycle_wall_limit` | `1.0` | seconds above 0 | wall-clock limit of one lifecycle; no band applies |
+| `test_lifecycle_wall_limit` | `1.0` | seconds above 0 | wall-clock reporting reference; wall-only excess passes timing |
 
 A value is read in this order, the first found wins:
 
@@ -39,9 +42,10 @@ A value is read in this order, the first found wins:
 This repository sets `test_lifecycle_limit = "0.1"`,
 `test_lifecycle_cpu_band_factor = "2.5"` and
 `test_lifecycle_cpu_drift_runs = "3"` in `pyproject.toml`, and keeps the
-default wall limit.
+default wall reference.
 
-A value outside the accepted range would switch the gate off, so pytest
+All numeric settings must be finite. There is no off, report-only or grace
+mode. A value outside the accepted range would switch the gate off, so pytest
 refuses it before collecting, with exit code 4 and a message naming the key:
 
 ```text
@@ -68,8 +72,11 @@ With the defaults:
 | exception at 0.3 s, not proven | 0.3 s | no | 0.3 s |
 | exception at 0.3 s, proven | 0.3 s | yes | 0.75 s |
 
-The wall limit is the same for every test. A lifecycle over either limit
-fails, unless it already failed for another reason. Its message gives both
+CPU at or below the effective limit passes timing, even when wall time exceeds
+the configured reference. CPU above that limit fails timing, unless the lifecycle
+already failed for another reason. Functional failures and process auditing
+remain independent. Groundhog's separate call-duration speed rule is unchanged.
+The timing failure message gives both
 clocks and the basis of the CPU limit, for example
 `ceiling 0.100s, not proven here, band top 0.250s`.
 
@@ -105,7 +112,7 @@ belongs to one checkout, because timings depend on the machine.
 ```json
 {
   "schema": 1,
-  "about": "nodes: written by tests/simulation_policy.py after each measured run. ...",
+  "about": "nodes: written by llm_shared_lifecycle_gate after each measured run. ...",
   "exceptions": {
     "tests/unit/tools/test_example.py::test_cold_grammar": {
       "cpu": 0.3,

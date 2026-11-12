@@ -84,6 +84,9 @@ context, recording use, or doing any task work:
 For an unknown author, you may name the likely host when the prompt shows
 explicit evidence, such as a recorded invocation syntax or a host-private path.
 Label it as an inference and cite that evidence; never present a guess as the id.
+Ask the question as a yes or no choice under
+[interactive_menu.md](../rules/interactive_menu.md), with its `blocked` report
+when no blocking picker holds the turn.
 
 Only an explicit yes from the user in this conversation, after the notice,
 is consent. A saved prompt, an earlier receipt, `--force`, or consent given
@@ -195,8 +198,9 @@ reconciled:
    where supported. Verify its contents and ignored/untracked status. On
    failure, report the error and stop before task mutations.
 3. Add a resume entry for this checkout to the
-   [session journal](pause-session.md#session-journal-across-checkouts),
-   removing its older resume entry: your host and model, the source (prompt
+   [session journal](pause-session.md#session-journal-across-checkouts) with
+   the journal tool's plan and apply commands, which remove its older resume
+   entry: your host and model, the source (prompt
    path, SHA-256 and state, or the note paths and state), the agent override
    outcome and the next action. After an interruption without a pause, this
    new entry is what records the date the session was resumed again. Report a

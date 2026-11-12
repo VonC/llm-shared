@@ -47,18 +47,27 @@ test now fails closed (``verdicts.classify``). Its failure context is
 ``verdicts.MSG_UNPARSED_FAILURE`` plus the output tail, chosen by
 :func:`_failure_context`, and the uncovered affected and focus runs take their
 failing next step from the verdict too, not only from the parsed count.
+
+Fix: a group of a few hundred test files failed to spawn (``[WinError 206]``,
+exit 5). The child now spawns inside ``args_file.spilled``, which moves the
+selection tail of a command over budget into one ``@<file>`` argument, in order.
+
+Step 5 prepares shared pytest activation through the child environment adapter.
+Startup usage errors retain pytest's identifying output in the report.
+Step 6 runs checkout-owned compatibility once before a direct full test stage.
 """
 
 from __future__ import annotations
 
 import logging
-import os
 import re
 from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING
 
 from tools.groundhog import (
+    args_file,
     baseline,
+    compatibility_preflight,
     durations_report,
     durations_summary,
     evidence,
@@ -66,6 +75,7 @@ from tools.groundhog import (
     group_coverage,
     init_files,
     progress,
+    pytest_environment,
     redirect,
     reporting,
     reporting_nextstep,
@@ -191,6 +201,12 @@ def run_tests_outcome(invocation: Invocation, deps: Deps) -> RunOutcome:
         evidence, with the earned proof of a direct ``ghog full``; and the
         counters and closing values the day walk repeats in its own line.
     """
+    try:
+        pytest_environment.validate_binding(invocation.root, deps.environ)
+        if invocation.sub == runner.SUB_FULL and not invocation.in_walk:
+            compatibility_preflight.run(invocation.root, deps)
+    except (OSError, ValueError) as error:
+        return _exit_before_pytest(invocation, [f"ghog: run setup failed: {error}"], EXIT_SETUP_ERROR)
     if not deps.pytest_project(invocation.root):
         return _exit_before_pytest(
             invocation,
@@ -232,12 +248,15 @@ def _run_pytest(invocation: Invocation, deps: Deps, pytest_exe: str) -> _Judged:
     """
     parallel = runner.parallel_enabled(invocation.root)
     grouped = invocation.scope.kind is ScopeKind.GROUP
+    # Refuse invalid activation before deleting dependency or coverage evidence.
+    child_environment = pytest_environment.child_environment(invocation, deps, parallel=parallel)
     if invocation.sub == runner.SUB_FULL and not parallel and not grouped:
         # A worker run carries no testmon, so it owns no map to reset and
         # must leave the affected run's database alone. A grouped run
         # refreshes only its own tests' records: a reset would drop every
         # other test and make the next out-of-group affected run select it.
         runner.reset_testmon(invocation.root)
+    cov_folders = group_coverage.cov_folders(invocation.scope.source_files)
     command = runner.pytest_command(
         pytest_exe,
         invocation.sub,
@@ -246,19 +265,22 @@ def _run_pytest(invocation: Invocation, deps: Deps, pytest_exe: str) -> _Judged:
         parallel=parallel,
         level=effective_level(invocation.level, invocation.sub),
         test_paths=invocation.scope.test_files,
-        cov_folders=group_coverage.cov_folders(invocation.scope.source_files),
+        cov_folders=cov_folders,
     )
     measure = None
     if grouped and verdicts.measures_coverage(invocation):
         measure = group_coverage.prepare(invocation.root, invocation.scope.name, fresh=invocation.sub == runner.SUB_FULL)
+        child_environment.update(group_coverage.environment(measure[0]))
     sink = progress.Progress(invocation, deps)
-    config = runner.StreamConfig(
-        command=command,
-        cwd=invocation.root,
-        popen_factory=deps.popen_factory,
-        env_overrides=_child_environment(invocation, deps, measure, parallel=parallel),
-    )
-    result = runner.run_pytest(config, sink.update)
+    chosen = args_file.selection_arguments(invocation.scope.test_files, invocation.files, cov_folders)
+    with args_file.spilled(command, chosen, invocation.root) as spawned:
+        config = runner.StreamConfig(
+            command=spawned,
+            cwd=invocation.root,
+            popen_factory=deps.popen_factory,
+            env_overrides=child_environment,
+        )
+        result = runner.run_pytest(config, sink.update)
     result, gate_value, evidence_error = _coverage_result(invocation, result, measure)
     # Judge outliers last (Q34): the base code gates the verdict, so a failure
     # or a gap keeps its own exit code and withholds the timing verdict.
@@ -271,28 +293,6 @@ def _run_pytest(invocation: Invocation, deps: Deps, pytest_exe: str) -> _Judged:
     flagged = 0 if summary is None else len(summary.outliers) + reporting.excluded_count(summary)
     exit_code = verdicts.classify(invocation, result, gate_value, flagged, evidence_error=evidence_error)
     return _Judged(result, exit_code, gate_value, summary, parallel, evidence_error)
-
-
-def _child_environment(
-    invocation: Invocation, deps: Deps, measure: tuple[Path, float] | None, *, parallel: bool,
-) -> dict[str, str]:
-    """Return the spawn-only environment of one pytest child.
-
-    Args:
-        invocation: The parsed invocation.
-        deps: The injectable seams, for the environment lookup.
-        measure: The group coverage file and its start time, if any.
-        parallel: Whether the project opted its full run into workers.
-
-    Returns:
-        The group coverage file override, and the worker bound of a parallel
-        full run unless the caller chose one.
-    """
-    overrides = group_coverage.environment(measure[0]) if measure is not None else {}
-    workers = runner.worker_environment(
-        deps.environ, parallel=parallel and invocation.sub == runner.SUB_FULL, cpu_count=os.cpu_count(),
-    )
-    return {**overrides, **workers}
 
 
 def _coverage_result(
@@ -481,16 +481,16 @@ def _report_run_context(invocation: Invocation, judged: _Judged) -> None:
 
 
 def _failure_context(invocation: Invocation, judged: _Judged) -> Sequence[str]:
-    """Choose the failure material of the run: crash, failures or unparsed exit.
+    """Choose crash, failure or setup diagnostics, preserving setup output tails.
 
     Args:
         invocation: The parsed invocation.
         judged: The judged run.
 
     Returns:
-        The crash block (Q06), the verbatim failure block (Q08), the unparsed
-        failure diagnostic with the output tail, or nothing for a run that
-        did not fail.
+        The crash block (Q06), the verbatim failure block (Q08), the output
+        tail for every setup error, the unparsed failure diagnostic with its
+        output tail, or nothing for a run that did not fail.
     """
     result = judged.result
     if result.crashed:
@@ -498,6 +498,8 @@ def _failure_context(invocation: Invocation, judged: _Judged) -> Sequence[str]:
         return reporting.crash_block(result.stats, result.tail, level, invocation.scope.selector())
     if result.stats.failed > 0:
         return result.failure_block
+    if judged.code == EXIT_SETUP_ERROR:
+        return result.tail
     if judged.code == EXIT_TEST_FAILURES:
         return [verdicts.MSG_UNPARSED_FAILURE, *result.tail]
     return ()

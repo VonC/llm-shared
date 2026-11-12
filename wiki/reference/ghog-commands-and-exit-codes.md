@@ -19,7 +19,7 @@ same contract into local automation.
 
 | Alias | Subcommand | Behavior |
 | --- | --- | --- |
-| — | `ghog day` | check, then `affected --no-cov`, with an optional full step at the selected level; stops at the first non-green step; valid saved proof can make it a noop (`--force` overrides); `--detach` runs a survivor process observed through `ghog status` |
+| — | `ghog day` | check, then `affected --no-cov`, with an optional full step at the selected level; stops at the first non-green step; valid saved proof can skip check and tests after any opted-in compatibility preflight (`--force` overrides reuse); `--detach` runs a survivor process observed through `ghog status` |
 | — | `ghog status` | replay the run lifecycle from `a.ghog.status` without starting anything |
 | — | `ghog check` | run `check.bat` from the project root, exit code passed through |
 | `ptr` | `ghog full` | selected suite at `speed` by default; the default sequential mode rebuilds `.testmondata` with `--testmon` for the whole suite, and keeps it with `--testmon-noselect` for a group |
@@ -102,6 +102,17 @@ and exit 5 means invalid input or membership. Exclusion listings also leave
 proof and run lifecycle untouched. A `--since` comparison reports `changed`,
 `unchanged`, or `unverified`; invalid evidence exits 5.
 
+## Long pytest selections
+
+When a rendered pytest command exceeds 8,000 characters and its selection
+tail fits one argument per line, groundhog moves that tail into
+`a.ghog.pytest-args.<pid>.txt` in the artifact home and
+passes `@<file>` to pytest. This requires pytest 8.2 or newer and prevents
+Windows command-line limits from rejecting large selections. Test paths,
+coverage folders, argument order, spaces and non-ASCII names are preserved.
+Short commands run unchanged. The temporary file is removed after the child
+exits, including on failure.
+
 ## Saved day proof
 
 A green day stores proof in the artifact home: `a.ghog.day.ok` for the whole
@@ -110,8 +121,9 @@ suite, or `a.ghog.day.<group>.ok` for a group. Each marker contains five
 The digest covers Python files and gate configuration; the scope fingerprint
 must match too. Legacy one-line snapshots provide no valid proof.
 
-Valid proof at or above the requested level skips the entire walk, including
-`check.bat`. An upgrade from a lower valid proof reuses check and affected tests
+Valid proof at or above the requested level skips `check.bat` and tests.
+An opted-in compatibility preflight still runs fresh before reuse.
+An upgrade from a lower valid proof reuses check and affected tests
 and runs the full step at the requested level. Changing the duration floor or
 exclusions caps a saved `speed` proof at `cov`. The timing fingerprint also
 identifies the measurement method: speed proof from the former separate
@@ -140,8 +152,10 @@ groundhog sets it for the child to a quarter of the logical CPUs, at least 1
 and at most 2. Each worker's file and process churn also keeps the virus
 scanner busy at normal priority, so the bound stays low on a shared
 workstation. On Windows, every child that groundhog starts (`check.bat` or
-pytest) runs below normal priority, and its workers and `git` calls inherit
-that, so interactive applications keep the CPUs first.
+pytest) runs at normal priority, set explicitly, and its workers and `git`
+calls inherit it. Below normal priority starved the workers on a busy machine:
+they waited for a CPU inside their own tests, and the wall limit failed tests
+at random while the run took three times as long.
 
 ## 🚦 Exit codes
 
@@ -191,8 +205,7 @@ Groundhog never makes a run wait for a run of another checkout or project:
 there is no machine-wide slot, lock or queue, and each stage starts at once.
 A former per-user run slot let one slow suite block every other checkout for
 hours, inside their own time budgets, so it was removed. Each run bounds its
-own load instead, through the worker bound and the below-normal priority
-described above.
+own load instead, through the worker bound described above.
 
 A run that keeps the machine busy far beyond its suite's usual duration is a
 defect, not a queue to wait behind. Stop its process tree from the `pid` that
@@ -287,6 +300,23 @@ tests/unit/pkg/test_mod.py::test_x = 11.41
   floor is removed by the tool, returning the test to the normal rule.
 
 ## ⚙️ Configuration read by ghog
+
+`LLM_SHARED_PYTEST_PLUGINS` selects independent `lifecycle` and `process`
+policies for every pytest child, including collection probes, affected, single,
+timings and sequential or parallel full stages. Prepared bindings in
+`LLM_SHARED_PYTEST_ROOT` and `LLM_SHARED_PYTEST_POLICY_DIR` are refreshed for the
+same project; a foreign root is a setup error before any child or proof reuse.
+The consumer interpreter stays selected. See
+[activation](../how-to/enable-shared-lifecycle-gate.md) and
+[process permissions](../how-to/enable-shared-process-audit.md).
+
+The strict `[tool.llm-shared.lifecycle-compatibility]` opt-in uses literal
+`enabled = true` and the fixed `bin/lifecycle_compatibility.bat` entrypoint.
+Fresh day/direct-full preflight precedes proof reuse. Missing/false selection
+requires no harness; malformed declarations fail setup. Explicit per-checkout
+[compatibility setup](../how-to/validate-shared-pytest-compatibility.md) is
+required. Policy startup exit 4 is pytest's usage error; groundhog reports a
+failed child through its own exit-code contract.
 
 The coverage gate is `fail_under` (default 100) from `pyproject.toml`,
 `.coveragerc` or `setup.cfg`. The duration gate reads its floor and

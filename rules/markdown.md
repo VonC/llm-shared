@@ -72,20 +72,76 @@ Group 2:
 ```
 
 That avoids "`MD032/blanks-around-lists: Lists should be surrounded by blank lines`".
+The usual slip is a generated report or review answer where a sentence such as
+`The commands agree:` is followed on the very next line by `- first command`:
+insert the empty line between them.
 
 Do not use 3 or 4 spaces for sub-list before the list item, always 2 spaces more than the parent item list.
 
 Do not use in comments/docstring `'`, always `'`
 
+## Code-like names and bold text
+
+Wrap every file name, path, identifier, option or command fragment that
+contains `_` or `*` in backticks, in prose, list items, table cells and
+headings alike: `__init__.py`, `src/pkg/__init__.py`, `_load_state`,
+`store_reader.py`, `--max_items`. Markdown otherwise reads those characters as
+emphasis markers, and the resulting warnings surface far from their cause:
+
+- "`MD037/no-space-in-emphasis: Spaces inside emphasis markers`": two bare
+  names such as `_load_state` and `_save_state` on one line open and close an
+  emphasis whose text starts or ends with a space.
+- "`MD050/strong-style: Strong style [Expected: underscore; Actual: asterisk]`":
+  a bare `__init__` is read as bold text written with underscores. The
+  default `consistent` style takes the first bold marker of the document as
+  its norm, so that hidden underscore turns every later `**bold**` into a
+  warning, even thousands of lines away.
+
+Write bold text with `**`, never with `__`, and never use `_` or `*` for
+emphasis around a code-like name. `**` is the bold style of every document, so
+an MD050 warning reading `Expected: underscore; Actual: asterisk` is never
+fixed by switching the bold to `__`. It means a bare Python-style name, such as
+`__init__.py`, `__main__` or `__name__`, sits earlier in the document and set
+the underscore style. Search the document for it (`rg -n "__[A-Za-z]" <file>`
+lists the candidates), wrap it in backticks, and lint again until the warning
+is gone.
+
+Before appending to a document that several authors or tools write, such as a
+review transcript, read its earlier lines the same way. When the bare name sits
+in generated or protocol content you must not edit, keep `**` in your own lines
+and report the remaining warning at the commit gate instead of hiding it.
+
 ## Validate a Markdown document with markdownlint
 
-After writing or editing a Markdown document, you can validate it with `markdownlint-cli2`. Node.js does not need to be on the `PATH` beforehand: the Node versions installed under `%PRGS%\nodes` are available, and the `switchnode` senv utility puts the chosen one first in the `PATH` for that shell. From the project root, so the repository's `.markdownlint.json` applies:
+After writing or editing a Markdown document, validate it with `markdownlint-cli2`. Node.js does not need to be on the `PATH` beforehand: the Node versions installed under `%PRGS%\nodes` are available, and the `switchnode` senv utility puts the chosen one first in the `PATH` for that shell. From the project root, so the repository's `.markdownlint.json` applies:
 
 ```bat
 cmd /c "switchnode 22 && npx --yes markdownlint-cli2 my_markdown_document_to_validate.md"
 ```
 
 Several files or a glob can follow the command name. Exit code `0` with `Summary: 0 issues` means the document is clean; any other result lists each finding as `path:line rule/name description`, to fix in the file. Run the call from PowerShell or `cmd.exe`, never from Git Bash, which rewrites `/c` into a path and runs nothing.
+
+## Lint every new or modified Markdown file before asking to commit
+
+Before presenting any choice that commits (the go-ahead menu of a grouped
+commit plan, a review convergence gate, or any other confirmation that leads
+to a commit), lint every Markdown file the commit would add or modify with the
+command above, and fix every finding first. Include the modified Markdown
+files that the same workflow commits later, such as a review transcript kept
+unstaged for a residual commit: the person approving the commit approves those
+too. List them with `git status --porcelain -- "*.md"` rather than from memory.
+Then spell-check the same Markdown files as [`spelling.md`](spelling.md)
+requires.
+
+Fixing a finding is part of preparing the commit, not a later cleanup: restage
+the fixed files, refresh the commit plan if its membership changed, and only
+then ask. Never present the commit choice while a finding remains, and never
+disable a rule or add an exception comment to make a file pass. In a document
+that several authors or tools append to, fix only the lines this work added,
+following the earlier section on code-like names and bold text. The only
+finding that may remain is one in a line this work must not edit, such as
+generated or protocol content: name it, with its file and line, in the commit
+question itself.
 
 ## No em dash
 
@@ -119,3 +175,46 @@ Forms to avoid:
 | -------- | -------- |
 | value 1  | value 2  |
 ```
+
+## Mermaid diagrams that Codex can draw
+
+Codex draws a fenced `mermaid` block in its terminal with its own small
+renderer, [`codex-rs/mermaid`](https://github.com/openai/codex/tree/main/codex-rs/mermaid),
+whose limits are fixed in its code (Codex 0.167.0): no setting raises them.
+Past a limit, Codex shows the diagram's source under one of these notices,
+not a drawing:
+
+- "This Mermaid diagram exceeds the terminal renderer's size limits."
+- "This Mermaid diagram uses features the terminal renderer doesn't support."
+- "This Mermaid diagram doesn't fit the current terminal width."
+
+A document can end up in a Codex terminal as well as an answer, so write every
+Mermaid diagram as a `flowchart` within these limits:
+
+- Each line of a node label holds at most 40 columns. Split a longer label
+  with `<br>` inside its double quotes, each part counting on its own:
+  `A["Consumer senv:<br>own Python + selected checks"]`, not
+  `A["Consumer senv: own Python + selected checks"]` (43 columns).
+- An edge label is one line of at most 40 columns, without `<br>`:
+  `A -->|reads| B` or `A -- reads --> B`. Keep it to a word or two: its width
+  widens the whole diagram.
+- At most 16 nodes and 24 edges. `A & B --> C & D` counts as four edges.
+- Use only the node shapes `A["text"]`, `A{"text"}` and `A(["text"])`, and
+  the links `-->`, `---`, `-.->`, `-.-`, `<-->` and `<-.->`. Other shapes,
+  such as `A[(text)]` or `A[[text]]`, and links such as `==>`, `--o` or `--x`
+  are refused.
+- No `subgraph`, `style`, `classDef`, `class`, `linkStyle`, `click` or
+  `%%{init: ...}%%` line, no Markdown string (``A["`text`"]``), no HTML tag
+  other than `<br>`, and no entity such as `#quot;` or `&amp;`. Write a label
+  holding punctuation between double quotes, and never put a `"` inside it.
+- Prefer `flowchart TD`. The renderer draws every node in one column, in the
+  order the nodes first appear, with each edge in its own lane beside them.
+  The width is the longest node label line plus 4, plus the longest edge
+  label plus 5, plus 2 per edge, minus 1: keep it under 80 columns.
+  `flowchart LR` puts every node on one row, as wide as all the boxes
+  together, and soon no longer fits.
+- Two flows that no edge connects make two diagrams, each one shorter.
+
+Count the widest label line, the nodes and the edges before writing the
+diagram. For example, 12 nodes, 11 edges, no edge label and a widest line of
+38 columns give a diagram 68 columns wide (38 + 4 + 0 + 5 + 22 - 1).

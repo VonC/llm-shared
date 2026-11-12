@@ -108,8 +108,10 @@ chore(release): prepare for vX.Y.Z release
 ## 6. Finish outside the skill
 
 Review the merge and prepare commits on main. Then run `brel` yourself to
-build, finalize the version, and create the tag. The skill never pushes and
-never tags.
+build, finalize the version, and create the tag. Preparation has already
+pushed the clean committed branch to every configured `origin` destination
+before handing off to you. A failed push stops the handoff; the skill leaves
+tagging to `brel`.
 
 ## What you learned
 

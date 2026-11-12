@@ -99,7 +99,8 @@ def test_resume_stops_after_an_authorized_owning_action_completes() -> None:
     assert (
         "The one exception is a release through `complete` after an authorized "
         "`Commit` or `Consolidate`: make sure the working tree is empty, proposing a "
-        "`group-commits-msg` `a.commit` for any leftover change, then print the "
+        "`group-commits-msg` `a.commit` for any leftover change, then "
+        "apply [`push-before-next-step.md`](../rules/push-before-next-step.md), then print the "
         "`pw progress` report with its next step and stop"
     ) in content
 

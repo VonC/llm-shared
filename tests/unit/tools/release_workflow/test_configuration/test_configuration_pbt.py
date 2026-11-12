@@ -5,6 +5,8 @@ except CR and LF, the same domain as ``characters`` excluding category ``Cs``
 and those two characters, without loading Hypothesis's Unicode category tables
 on first use. Length bounds, example budget and the explicit example are
 unchanged.
+
+Finite key strings use lists of sampled letters to avoid loading Unicode tables.
 """
 
 from __future__ import annotations
@@ -54,7 +56,7 @@ def test_literal_data_reaches_owner_unchanged(_batch: int, value: str) -> None:
 
 @pytest.mark.parametrize("_batch", range(5))
 @settings(max_examples=5)
-@given(key=st.text(alphabet="abcdefgh", min_size=1, max_size=20))
+@given(key=st.lists(st.sampled_from(tuple("abcdefgh")), min_size=1, max_size=20).map("".join))
 def test_unknown_and_duplicate_keys_always_fail(_batch: int, key: str) -> None:
     """Generated unowned keys and duplicate declarations cannot be ignored."""
     root = Path.cwd()

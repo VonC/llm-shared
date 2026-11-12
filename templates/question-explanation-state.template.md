@@ -4,6 +4,11 @@ Private requestor-owned note in the configured artifact home. This is not a
 review protocol artifact. Replace all placeholders; never save capabilities.
 
 - Document: {absolute path}
+- Document type: {feature-request / issue / design / plan}
+- Topic and phase: {version and slug; phase and position, such as `requirement (2/5)`}
+- Umbrella: {slug, item x/N: key title, completed/N items completed, umbrella draft path; or none, standalone topic}
+- Topic draft: {path, or not resolved}
+- Context source and refresh: {`pw progress` or drafts, with timestamp}
 - Last observed document SHA-256: {scanner digest}
 - Updated: {timestamp with timezone}
 - Review identity and role: {exact exchange, requestor, or no live exchange}
@@ -22,6 +27,25 @@ review protocol artifact. Replace all placeholders; never save capabilities.
 - Follow-up round/publication: {none or round, outcome, evidence}
 - Reviewed batch evidence: {none or convergence round and document identity}
 - Next action: {one concrete action and its prerequisite}
+
+## Big picture shown before each question
+
+Composed once per batch, as the instruction's "Compose the big picture shown
+before every question" describes; recomposed after a resume or a decision that
+changes the flow. Write `not resolved` for a part no source establishes.
+
+- Sources and refresh: {umbrella draft, topic draft and effort documents read, with timestamp}
+- Purpose: {umbrella goal and this item's place, then the topic's purpose and implementation state}
+- Walkthrough steps: {numbered end-to-end steps on an ordinary concrete case}
+- Step of each batch question: {question ID, then the walkthrough step or component it concerns}
+
+## Notions explained to the user
+
+One entry per notion the user asked about, as the instruction's "Explain a
+notion the user asks about" describes. Every later question that involves one
+explains it again, in more detail.
+
+- {notion}: {short definition}; raised at {question ID}; introduced in {each document path and section updated}
 
 ## Decisions and comments to include in the review
 

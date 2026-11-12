@@ -7,8 +7,8 @@
 🤖 Shared skills, their triggers, inputs and outputs. Each shared skill
 resolves to the same-named body under `instructions/`; see the
 [repository layout](repository-layout.md#-shared-bodies-and-rules). GitHub Copilot and Claude Code delegate
-through `.github/skills/` and `.claude/skills/`; OpenAI ChatGPT Codex uses the
-self-contained `.agents/llm-shared/` plugin; Google Gemini Antigravity uses
+through `.github/skills/` and `.claude/skills/`; OpenAI ChatGPT Codex reads the
+`.agents/llm-shared/` skill package through the user skills folder link; Google Gemini Antigravity uses
 `.agent/workflows/`. These are the four officially supported environments.
 Portable Grok redirects under `.grok/commands/` cover the shared commands and
 one-shot prompts through explicit loading; native discovery is unverified.
@@ -40,8 +40,9 @@ prerequisites already satisfied.
 | `/prepare_release_notes` | `version.txt`, git history | `a.md`, `version.txt` summary, `CHANGELOG.md` |
 | `/prepare-release` | `main`, integration, or an isolated effort branch | collection feature returned to its umbrella-slug integration branch plus the next handoff, or standalone/full release artifacts and one `chore(release): prepare` commit |
 
-`/update-merge-commit-msg` runs immediately after a feature merge into its
-integration branch or any no-fast-forward merge into `main`. The merge must still be the
+`/update-merge-commit-msg` runs immediately after every no-fast-forward merge
+back into any target branch, including a feature merge into its integration branch
+and any no-fast-forward merge into `main`. The merge must still be the
 current commit, and the target branch must not be pushed or used for later
 integration work first. Rewording a historical merge requires a separate
 history-repair plan.
@@ -59,6 +60,7 @@ history-repair plan.
 | `git-history-report` | build the standalone commit-history dashboard |
 | `activity-report` | French activity report from commit messages and md diffs |
 | `/isolate-logos` | split an AI-generated logo sheet into named opaque and transparent PNG assets |
+| `/copy-conversation` | copy the running Claude or Codex session to the clipboard, unwrapped and trimmed as `tth` trims an export, under a `<tab title>:` line and an empty line |
 | `/install-sensitive-git-hooks` | install, repair, or verify shared/local sensitive pre-commit and commit-msg protection in the current repository |
 | `/sanitize-git-history` | automatically run the contextual history scanner, settle confidential-term rules, then optionally rewrite with git filter-repo |
 | `prepare_release_plan.bat` | internal read-only single-source tool called automatically by `/prepare-release`; its standalone interface supports diagnostics, while the skill guards empty integration ranges and explains unsupported revert, multi-topic, and non-contiguous paths |

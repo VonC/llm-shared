@@ -86,8 +86,10 @@ commits first — a follow-up never skips the gate.
 `/prepare-release` pauses wherever the repository's history is about to
 change shape: the dirty-tree decision, the rebase-or-merge choice when
 the branch is behind `main`, each rebase conflict, the merge message
-review, the title pick, the notes review — and it never tags and never
-pushes. `brel`, the tag, is always typed by the author.
+review, the title pick, and the notes review. Committed branch tips are pushed
+to every configured `origin` destination before a next-step handoff, once the
+tree is clean. A failed push blocks that handoff. Tagging remains a separate
+human decision: the author runs `brel` after preparation review.
 
 ## Independent review decisions remain human
 

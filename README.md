@@ -14,7 +14,7 @@ body stays in one place.
 
 | LLM / host | Current compatibility |
 | --- | --- |
-| OpenAI ChatGPT/Codex | Supported Codex plugin with skill adapters in `.agents/llm-shared/` |
+| OpenAI ChatGPT/Codex | Supported user skills: `%USERPROFILE%\.agents\skills` links to the skill adapters in `.agents/llm-shared/` |
 | Anthropic Claude Code | Supported skills in `.claude/skills/` |
 | Google Gemini through Antigravity | Supported workflows in `.agent/workflows/` |
 | GitHub Copilot | Supported skills, prompts, and agent adapters in `.github/` |
@@ -32,7 +32,7 @@ records entry points and coverage limits.
 Start with a draft and ask for `process-draft`. The agent chains the skills
 through `pw skill` and `pw handoff`; you intervene at the decisions below.
 Command names here omit the host prefix: for example, Claude uses
-`/process-draft`, and the Codex plugin uses `$llm-shared:process-draft`.
+`/process-draft`, and Codex uses `$llm-shared:process-draft`.
 
 | Stage | What the AI produces and checks | Your intervention |
 | --- | --- | --- |
@@ -95,7 +95,7 @@ Use these independently or add them to the development cycle.
 | Sensitive-content protection | [Commit hooks](wiki/how-to/install-sensitive-commit-hooks.md), plus [history scanning and sanitization](wiki/how-to/sanitize-history-before-publishing.md). |
 | History and reporting | [Interactive Git-history dashboards](wiki/how-to/build-the-git-history-dashboard.md), [activity reports](wiki/how-to/write-an-activity-report.md), and [Git history diagrams](wiki/how-to/update-git-history-diagrams.md). |
 | Presentations and visual assets | [PPTX/PDF presentation generation](wiki/how-to/rebuild-the-presentation.md), [coherent logo families](wiki/how-to/create-a-logo-family-for-a-project.md), and [logo-sheet extraction](instructions/isolate-logos.md). |
-| Reading and writing aids | [Local Markdown website](wiki/how-to/serve-a-docs-folder-as-a-website.md), [conversation-export trimming](wiki/how-to/trim-an-exported-conversation.md), and [humanizer](instructions/prompts/humanizer.md). |
+| Reading and writing aids | [Local Markdown website](wiki/how-to/serve-a-docs-folder-as-a-website.md), [conversation-export trimming](wiki/how-to/trim-an-exported-conversation.md), [copying the running session, trimmed](wiki/how-to/trim-an-exported-conversation.md#copy-the-running-session-instead), and [humanizer](instructions/prompts/humanizer.md). |
 
 The full [Diátaxis wiki](wiki/README.md) is organized as
 [explanation](wiki/README.md#-explanation),

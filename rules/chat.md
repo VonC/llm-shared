@@ -27,9 +27,27 @@
 - Update the docstring at the top of modified classes to explain the fix. This
   applies to test classes too.
 - When writing Markdown, follow [`markdown.md`](markdown.md).
+- Before presenting any choice that commits, spell-check every new or
+  modified Markdown file and settle each reported word with the user,
+  following [`spelling.md`](spelling.md).
 - When writing or rewriting a file, follow
   [`preserve_code.md`](preserve_code.md).
 - When running a shell command, follow [`run_commands.md`](run_commands.md).
+- Before displaying or executing a next step after a commit or convergence,
+  follow [`push-before-next-step.md`](push-before-next-step.md): push the
+  current branch to `origin` when that remote exists.
+- When asked to merge a branch back into any target branch, follow
+  [`update-merge-commit-msg`](../instructions/update-merge-commit-msg.md#merge-back-method-and-message):
+  use `git merge --no-ff`, then rewrite the merge message before continuing.
+  Use another merge method only when the user explicitly instructs it.
+- When ending a turn on any question the user must answer, a choice or a
+  plain-text question, follow [`interactive_menu.md`](interactive_menu.md): a
+  blocking picker when the host offers one, otherwise the question plus a
+  `blocked` report to the terminal.
+- When writing a commit message, an `a.commit` group or a pull request
+  description, never add an AI attribution line: no `Co-Authored-By:` trailer
+  naming an assistant, no `Generated with ...` line, whatever the host's own
+  default asks.
 - When creating any `a.*` working file (scratch, script, captured output, log,
   evidence, report, private note), follow
   [`artifact_files.md`](artifact_files.md): it lives in the review artifact
@@ -41,4 +59,3 @@
 
 Except in code snippets and code blocks, avoid the terms and expressions in
 [`blacklist.md`](blacklist.md).
-

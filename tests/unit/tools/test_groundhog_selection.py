@@ -1,8 +1,14 @@
-"""The day shortcut retains selection boundaries and truthful full proof."""
+"""The day shortcut retains selection boundaries, prepared probes and truthful proof.
+
+Fix: a bound selection too long for one command line reaches both collection
+probes through one argument file holding exactly its test files, removed after
+each probe; a spawn refused with ``ValueError`` falls back like an ``OSError``.
+"""
 
 from __future__ import annotations
 
 from dataclasses import replace
+from pathlib import Path
 from typing import TYPE_CHECKING, NoReturn
 
 import pytest
@@ -12,16 +18,32 @@ from tests.unit.tools.groundhog_acceptance_support import (
     make_deps,
     passing_transcript,
 )
-from tools.groundhog import cli, selection, snapshot
+from tools import pytest_plugin_environment as env
+from tools.groundhog import args_file, cli, selection, snapshot
 from tools.groundhog.context import Deps, Invocation
 from tools.groundhog.levels import FullLevel
 from tools.groundhog.models import Mode
 from tools.scope_capture import WHOLE_SCOPE
 
 if TYPE_CHECKING:
-    from pathlib import Path
+    import subprocess
 
 type Transcript = tuple[list[str], int]
+
+
+class _ArgsFileQueue(QueueSpawns):
+    """Read each probe's argument file at spawn time, while it still exists."""
+
+    def __init__(self, children: list[tuple[list[str], int]]) -> None:
+        """Script the probes and start with no file read."""
+        super().__init__(children)
+        self.files: list[tuple[Path, list[str]]] = []
+
+    def __call__(self, command: list[str], cwd: Path) -> subprocess.Popen[str]:
+        """Record the argument file and its lines, then return the next probe."""
+        path = Path(command[-1].removeprefix(args_file.FILE_PREFIX))
+        self.files.append((path, path.read_text(encoding="utf-8").splitlines()))
+        return super().__call__(command, cwd)
 
 
 @pytest.mark.parametrize(("raw", "expected"), [(None, 75), ("0", 0), ("75.5", 75.5),
@@ -103,7 +125,7 @@ def test_collection_counts_only_successful_selected_cases(
         assert "--testmon-nocollect" in spawns.commands[1]
 
 
-@pytest.mark.parametrize("missing", ["pytest", "project", "spawn"])
+@pytest.mark.parametrize("missing", ["pytest", "project", "spawn", "spawn-value"])
 def test_unavailable_collection_falls_back(tmp_path: Path, missing: str) -> None:
     """Missing tooling or failed spawning retains the ordinary sequence."""
     deps = make_deps(QueueSpawns([]))
@@ -118,9 +140,11 @@ def test_unavailable_collection_falls_back(tmp_path: Path, missing: str) -> None
     elif missing == "project":
         deps = replace(deps, pytest_project=non_project)
     else:
+        error = OSError if missing == "spawn" else ValueError
+
         def broken(_command: list[str], _cwd: Path) -> NoReturn:
             message = "cannot spawn"
-            raise OSError(message)
+            raise error(message)
         deps = replace(deps, popen_factory=broken)
     assert selection.counts(Invocation("day", (), no_cov=False, mode=Mode.LLM, root=tmp_path), deps) is None
 
@@ -132,6 +156,30 @@ def test_both_probes_preserve_bound_test_files(tmp_path: Path) -> None:
     invocation = Invocation("day", (), no_cov=False, mode=Mode.LLM, root=tmp_path, scope=scope)
     assert selection.counts(invocation, make_deps(spawns)) == (1, 2)
     assert all(tuple(command[-2:]) == scope.test_files for command in spawns.commands)
+
+
+def test_long_bound_selection_reaches_both_probes_through_a_file(tmp_path: Path) -> None:
+    """Each probe reads the exact test files from one argument file, removed afterwards."""
+    paths = tuple(f"tests/my dir/test_{index:03}_{'x' * 150}.py" for index in range(60))
+    scope = replace(WHOLE_SCOPE, test_files=paths)
+    spawns = _ArgsFileQueue([(["collected 60 items"], 0), (["collected 6 items"], 0)])
+    invocation = Invocation("day", (), no_cov=False, mode=Mode.LLM, root=tmp_path, scope=scope)
+    assert selection.counts(invocation, make_deps(spawns)) == (6, 60)
+    assert [lines for _, lines in spawns.files] == [list(paths), list(paths)]
+    assert all("--collect-only" in command for command in spawns.commands)
+    assert not any(path.exists() for path, _ in spawns.files)
+
+
+def test_missing_tooling_cannot_hide_foreign_binding(tmp_path: Path) -> None:
+    """Binding validation precedes the collection availability fallback."""
+    spawns = QueueSpawns([])
+    def missing(_name: str) -> None:
+        return None
+
+    deps = replace(make_deps(spawns, {env.ROOT: str(tmp_path / "other")}), which=missing)
+    with pytest.raises(env.PreparationError):
+        selection.counts(Invocation("day", (), no_cov=True, mode=Mode.LLM, root=tmp_path), deps)
+    assert spawns.commands == []
 
 
 # eof

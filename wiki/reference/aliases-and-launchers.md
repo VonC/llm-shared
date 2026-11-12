@@ -28,19 +28,40 @@ the corresponding launcher.
 | `gp` | `git push` | push shortcut |
 | `brel` | `tools\dev_workflow\t_build.bat rel` | release build: drop `-SNAPSHOT`, commit, tag `vX.Y.Z` |
 
-## Codex plugin maintenance
+## Codex skills link
 
 | Alias | Runs | Purpose |
 | --- | --- | --- |
-| `llmup` | `bin\update_llm_shared_plugin.bat` | validate `.agents\llm-shared` and its cache-relative redirects, replace its manifest cachebuster, reinstall `llm-shared@personal`, verify the installed cache copy, and print its installed row |
+| `llmup` | `bin\codex_skills_link.bat` | validate `.agents\llm-shared` and its clone-relative redirects, check that `%USERPROFILE%\.agents\skills` links to its `skills` folder, create that link with `--create` |
 
-`llmup` requires an interactive `cmd` initialized by `senv.bat`. The launcher
-runs `tools\codex_plugin_package.py` (validation, cachebuster, marketplace
-name) and `tools\codex_plugin_redirects.py` with the llm-shared Python from
-`venvs\`, so the active project's environment is not changed and no
-plugin-creator helper script, PyYAML or `uv` is needed. It locates the standalone
-Codex executable first and falls back to `codex.exe` on `PATH`. A successful
-run still needs a new Codex thread before the refreshed skill registry appears.
+`llmcodexupgrade` is the same alias under its former name. The launcher
+self-locates its clone from its own path, ignoring an inherited
+`LLM_SHARED_DIR`, since the link must target that clone, and runs
+`tools\codex_skills_link.py` with the llm-shared Python from `venvs\`. It
+never writes inside the clone and runs no `codex` command. See
+[Link the skills into Codex](../how-to/link-the-skills-into-codex.md).
+
+| Option | Effect |
+| --- | --- |
+| `--create` | create the link when `.agents\skills` is absent or an empty folder: a junction on Windows, a symbolic link elsewhere |
+| `--home <folder>` | home folder holding `.agents\skills`, the current user's home by default |
+| `--codex-home <folder>` | folder holding the Codex `config.toml`, `CODEX_HOME` by default, else `<home>\.codex` |
+
+The run validates the package first and stops there when it is invalid. It
+then checks the link, and last warns, without changing the exit code, when
+`config.toml` still enables an `llm-shared@<marketplace>` plugin, printing the
+`codex plugin remove` command that removes it.
+
+| Exit | Meaning |
+| --- | --- |
+| `0` | the package is valid and the link targets this clone's skills |
+| `1` | the package is invalid; the link is not checked |
+| `2` | no link yet, the folder is absent or empty: run again with `--create` |
+| `3` | refused, nothing changed: the folder holds other content, links to another folder, or would sit inside the clone |
+| `4` | the link could not be created, or does not read back as created |
+| `5` | usage error, or the launcher found no llm-shared Python |
+
+A new Codex thread lists the clone's current skills with no further command.
 
 ## 🧪 Test aliases (all backed by ghog)
 
@@ -77,12 +98,16 @@ trims a file; the alias forwards every argument. See
 | `wac.bat` | `tools\wrap_commit.py` | reflow and format a commit message (`--no-delimiters` for a single message) |
 | `oqm.bat` | `tools\open_questions_md.py` | manage open-questions sections: `--create`, `--strip`, `--append` |
 | `question_decisions.bat` | `tools\question_decisions.py` | read-only JSON report of explicit user decisions, next and last undecided questions; optional `--after Qxx`; [contract](question-decisions.md) |
+| `program_status.bat` | `tools\program_status.py` | report the agent's state to its terminal with OSC 7501 (`blocked --kind question` while a decision waits, then `working`, `done`, `idle`, `error` or `clear`); writes to the agent's own console, not the captured output; exit 3 when no terminal is reachable; [rule](../../rules/interactive_menu.md) |
+| `session_journal.bat` | `tools\session_journal.py` | the only writer of the private session journal: `plan --add FILE` checks the new content in memory and writes nothing to the journal, then a separate `apply --manifest FILE` replaces it after a backup; exit 2 when refused; [reference](session-journal-command.md) |
+| `spellcheck.bat` | `tools\spell_check.py` | `check FILE.md...` lists the words VS Code's Code Spell Checker would report (merged user, workspace and folder `cSpell` settings, installed language dictionaries), exit 1 when any; `add-words WORD...` adds accepted words to `.vscode/settings.json`; [rule](../../rules/spelling.md), [reference](spell-check-command.md) |
 | `new_draft.bat` | `tools\new_draft.py` | rename a draft and create its effort branch or worktree |
 | `ghd.bat` | `tools\git_history_dashboard\build.py` | build the commit-history dashboard |
 | `sensitive_history_scan.bat` | `tools\sensitive_history\sensitive_history_scan.py` | report sensitive terms across commit, tag, path, and blob history |
 | `git_history_diagrams.bat` | `tools\git_history_diagrams\generate_git_history_diagrams.py` | generate or check the prepare-release SVG histories |
 | `mds.ps1` | `tools\serve_docs\serve_docs.py` | serve a markdown folder as a local website and open the browser (PowerShell so Ctrl-C stops it without cmd's terminate-batch question) |
 | `tth.bat` | `tools\trim_thinking_cli.py` | trim an exported conversation from a file or the clipboard, result to the clipboard |
+| `copy_conversation.bat` | `tools\copy_conversation.py` | render the running Claude or Codex session unwrapped, trim it as `tth` does, and put it under a `<tab title>:` line in the clipboard; the `copy-conversation` skill calls it |
 | `python_check.bat` | vulture, big-file check, `enforce_eof.py` | the check station of the walk |
 | `python_check_types.bat` | type checking | the typing gate |
 | `ghog_cycle.bat` | `bin\ghog.bat` | activate once for a sequence; default `day` alone, following level selection; stop at the first nonzero exit |

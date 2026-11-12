@@ -80,7 +80,9 @@ Before replacing an existing prompt, check its first line and receipt with the
 If that prompt is unused or new since previous use, and its id differs from
 yours or is missing, tell the user which agent paused it (or that it is
 unknown) and ask before replacing it: replacing it discards a checkpoint that
-was never resumed. If the user declines, stop without writing a new prompt.
+was never resumed. Ask it as a choice under
+[interactive_menu.md](../rules/interactive_menu.md). If the user declines, stop
+without writing a new prompt.
 
 ## Session journal across checkouts
 
@@ -93,10 +95,10 @@ which conversation and which agent should resume it.
   `USERPROFILE` is unset (Linux, macOS), use
   `$HOME/.llm-shared/sessions.journal.md`. Do not use `HOME` on Windows: a
   shell can point it at another folder, and other agents would not find it.
-- When the `.llm-shared` folder is missing, create it with a `.gitignore`
-  containing exactly `*` and a newline. Create a missing journal with the title
-  and first paragraph of
-  [session-journal.template.md](../templates/session-journal.template.md).
+- A missing `.llm-shared` folder gets a `.gitignore` containing exactly `*`
+  and a newline, and a missing journal the title and first paragraph of
+  [session-journal.template.md](../templates/session-journal.template.md):
+  the journal tool below creates both.
 - Each entry follows one of that template's two forms: a level-two heading
   naming the event, agent id, timestamp and resolved checkout path, then its
   fields. Append new entries at the end of the file.
@@ -104,10 +106,33 @@ which conversation and which agent should resume it.
   Writing a pause entry removes that checkout's older pause entry; writing a
   resume entry removes its older resume entry. Compare checkout paths using
   the filesystem's rules, and leave every other entry byte for byte.
-- Re-read the journal immediately before writing, write the complete UTF-8
-  result to a temporary file beside it, then replace it atomically where
-  supported. If it changed while you composed the update, apply your update
-  to the new content instead of overwriting it.
+- Write the journal only through the journal tool, never by hand: no editor,
+  no regular-expression replacement, no one-off script, in any shell. Write
+  your new entry alone, in the template's form, to a scratch file such as
+  `a.tmp.session-journal-entry.md` in the artifact home. Then run two
+  commands, each in its own shell call, never chained with each other or with
+  the command that wrote the entry:
+
+  1. `& "<LLM_SHARED_DIR>\bin\session_journal.bat" plan --add <entry file>`
+     re-reads the journal, builds the new content in memory and refuses unless
+     every other entry stays byte for byte and the entry count equals before,
+     minus removed, plus added. It only reads the journal, and prints a JSON
+     report. Check that `added` names your entry and that `removed` holds at
+     most this checkout's older entry of the same kind; otherwise report the
+     plan and do not apply it.
+  2. `& "<LLM_SHARED_DIR>\bin\session_journal.bat" apply --manifest <manifest>`,
+     with the `manifest` path the plan printed, replaces the journal only if it
+     still has the bytes the plan read: after a timestamped backup (the newest
+     50 are kept), through a temporary file beside it that is read back, then
+     read back again.
+
+  Where the Windows launcher does not apply, run
+  `python3 -I <LLM_SHARED_DIR>/tools/session_journal.py` with the same
+  arguments. Exit `2` means refused, with nothing written: fix the entry file,
+  or plan again when the journal changed meanwhile. Never work around a
+  refusal by editing the journal another way. Exit `3` means the replaced
+  journal did not read back as planned: report it with the backup path it
+  names.
 - The journal is an index, not an authority: the prompt and receipt decide
   what resume-session does. If the host needs approval to write outside the
   checkout, ask for it. Report a write failure; it does not undo a published
@@ -194,8 +219,9 @@ gates in [review-resume.md](review-resume.md), not a saved capability.
    is tracked, report the problem without changing the user's index. Do not
    claim a private checkpoint was saved safely.
 6. Add a pause entry for this checkout to the
-   [session journal](#session-journal-across-checkouts), removing its older
-   pause entry: your host and model, branch and short HEAD, the prompt's
+   [session journal](#session-journal-across-checkouts) with the journal
+   tool's plan and apply commands, which remove its older pause entry: your
+   host and model, branch and short HEAD, the prompt's
    relative path and SHA-256, and a summary of two or three sentences (the
    task, where it stopped, and the next action or blocker).
 

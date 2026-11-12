@@ -5,6 +5,9 @@ may carry discovery metadata, but their bodies must point straight to that
 canonical file and must not copy policy or lifecycle prose. Each host keeps
 the redirect form its own loader resolves, so the workflow wrapper follows the
 repository-wide locate steps rather than a clone-relative link.
+
+Fix: the Codex redirects link relative to their own file in the clone, which
+Codex reads through the user skills folder link, instead of a plugin cache.
 """
 
 from __future__ import annotations
@@ -64,12 +67,12 @@ def test_codex_adapters_match_the_plugin_redirect_contract() -> None:
     assert packaged == (
         "Read and follow the canonical instruction at "
         "[`instructions/spec-review-requestor.md`]"
-        "(../../../../../../../git/llm-shared/instructions/spec-review-requestor.md).\n"
+        "(../../../instructions/spec-review-requestor.md).\n"
     )
     skill = _LINK_ADAPTERS[1].read_text(encoding="utf-8")
     assert skill.rstrip().endswith(
         "Read and follow [the canonical instruction]"
-        "(../../../../../../../../git/llm-shared/instructions/spec-review-requestor.md)",
+        "(../../../../instructions/spec-review-requestor.md)",
     )
 
 

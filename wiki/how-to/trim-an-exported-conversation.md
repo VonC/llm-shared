@@ -12,9 +12,10 @@ paste into a report, an issue, or a document.
 ## Invocation model
 
 This is a human-run command. Export a session, run `tth`, paste the result.
-The AI may run it when explicitly asked to shorten a transcript it was handed,
-but no skill calls it as a hidden step, so direct invocation is the normal
-path.
+The AI may run it when explicitly asked to shorten a transcript it was handed.
+The one skill that uses the same trimmer is `copy-conversation`, which the user
+invokes in the session to copy; see
+[Copy the running session instead](#copy-the-running-session-instead).
 
 ## When to reach for the trimmer
 
@@ -61,6 +62,33 @@ From a shell with no Doskey aliases, call the self-locating launcher:
 ```text
 & "<LLM_SHARED_DIR>\bin\tth.bat" docs\session-export.md
 ```
+
+## Copy the running session instead
+
+`/export` wraps Claude prose near 80 columns, and no setting turns that off.
+To copy the session you are in, skip the export: invoke `copy-conversation` in
+that session (`/copy-conversation` in Claude Code,
+`$llm-shared:copy-conversation` in Codex). The agent reads its own transcript,
+renders it unwrapped, trims it with this same trimmer, and leaves this in the
+clipboard:
+
+```text
+<tab title>:
+
+<trimmed conversation>
+```
+
+The title comes from `%HOME%\bin\tuitp.list`: the tab whose expanded project
+folder contains the current directory, choosing the deepest match. An inherited
+`TUIOS_SESSION` only breaks ties between matching projects; it cannot select a
+different checkout's title. If the layout has no unique match, the current
+folder name is used. Add a `YYYYMMDD` date as for `tth`, or `--title <text>` to
+name the block yourself. The request itself, the last turn, is left out of the copy.
+
+In Claude Code the skill runs the copy while it loads, so the agent only
+repeats the one result line, with no command of its own. A new or cleared chat
+has nothing before the request: the copy then fails with `Nothing to copy` and
+leaves the clipboard alone.
 
 ## Force the export format
 

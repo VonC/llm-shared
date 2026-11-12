@@ -9,9 +9,14 @@ executed evidence to `ghog check` and `ghog affected --no-cov`.
 
 Fix: the always-wait test checks its phrases through `_assert_contains_all`
 instead of one `assert` each, which kept its radon complexity at C.
+
+Immutable policy text is read lazily once; the first lifecycle pays for the
+source read and subsequent content contracts reuse exactly those bytes.
 """
 
 from __future__ import annotations
+
+from functools import cache
 
 from tools import prompt_workflow_steps as steps
 
@@ -19,8 +24,9 @@ _INSTRUCTION = steps.llm_shared_dir() / "instructions" / "code-reviewer.md"
 _MINIMUM_EVIDENCE_REFERENCES = 7
 
 
+@cache
 def _content() -> str:
-    """Read the canonical policy once for one assertion phase."""
+    """Read immutable canonical policy once, charging its first consumer."""
     return _INSTRUCTION.read_text(encoding="utf-8")
 
 

@@ -15,6 +15,8 @@ returns to the normal rule.
 
 Node names come from ``tests.scalar_text``, the default-text domain of every
 Unicode scalar value drawn without Hypothesis's Unicode category tables.
+The all-excluded property also uses integer-ranked names to avoid uniqueness
+rejection work while retaining every original dictionary and example count.
 """
 
 from __future__ import annotations
@@ -26,7 +28,7 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from tests.scalar_text import scalar_text
+from tests.scalar_text import last_index, scalar_character, scalar_text
 from tools.groundhog import durations
 
 if TYPE_CHECKING:
@@ -64,6 +66,35 @@ _SCALE: SearchStrategy[float] = st.floats(
 )
 
 
+def _decoded_node(encoded: int) -> str:
+    """Decode every nonempty scalar string up to twelve characters bijectively."""
+    base = last_index() + 1
+    characters: list[str] = []
+    encoded += 1
+    while encoded:
+        encoded, character = divmod(encoded - 1, base)
+        characters.append(scalar_character(character))
+    return "".join(characters)
+
+
+# The below-floor and all-excluded properties need arbitrary names, not
+# uniqueness-rejection work.
+# Integer ranks retain every bounded string, and repeated keys have normal dict
+# semantics. Every original 1..20-entry dictionary remains reachable.
+_RANKED_NODES = st.integers(0, sum((last_index() + 1) ** size for size in range(1, 13)) - 1).map(_decoded_node)
+_RANKED_VALUES = st.lists(st.tuples(_RANKED_NODES, _SECS), min_size=1, max_size=20).map(dict)
+
+
+@pytest.mark.parametrize(("rank", "expected"), [
+    (0, "\0"), (last_index(), chr(0x10FFFF)),
+    (last_index() + 1, "\0\0"),
+    (sum((last_index() + 1) ** size for size in range(1, 13)) - 1, chr(0x10FFFF) * 12),
+])
+def test_ranked_node_domain_edges(rank: int, expected: str) -> None:
+    """The cheap encoding spans scalar endpoints and both length boundaries."""
+    assert _decoded_node(rank) == expected
+
+
 @pytest.mark.parametrize("_batch", range(_BATCHES))
 @settings(max_examples=_MAX_EXAMPLES, deadline=_DEADLINE_MS)
 @given(values=_DURATIONS, factor=_SCALE)
@@ -83,7 +114,7 @@ def test_auto_floor_scales_with_the_durations(
 
 @pytest.mark.parametrize("_batch", range(_BATCHES))
 @settings(max_examples=_MAX_EXAMPLES, deadline=_DEADLINE_MS)
-@given(values=_DURATIONS)
+@given(values=_RANKED_VALUES)
 def test_a_call_below_the_floor_is_never_an_outlier(
     _batch: int,
     values: dict[str, float],
@@ -99,7 +130,7 @@ def test_a_call_below_the_floor_is_never_an_outlier(
 
 @pytest.mark.parametrize("_batch", range(_BATCHES))
 @settings(max_examples=_MAX_EXAMPLES, deadline=_DEADLINE_MS)
-@given(values=_DURATIONS)
+@given(values=_RANKED_VALUES)
 def test_excluding_every_node_leaves_no_outlier(
     _batch: int,
     values: dict[str, float],

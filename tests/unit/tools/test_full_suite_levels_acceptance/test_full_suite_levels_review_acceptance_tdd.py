@@ -53,8 +53,12 @@ def test_speed_walk_produces_renderable_group_proof(
     # inventory and settings observations; retain real proof production, digest
     # checks, persisted SQLite coverage, and the consuming renderer.
     monkeypatch.setattr(snapshot, "source_files", cache(snapshot.source_files))
+    # Source bytes are fixed too: ignored proof/report artifacts are the only writes.
+    monkeypatch.setattr(snapshot, "source_digest", cache(snapshot.source_digest))
     monkeypatch.setattr(Settings, "load", cache(Settings.load))
-    assert effort.walk("day", "--full=speed", "--group=sentinel")[0] == 0
+    # This tiny producer journey needs both stages, not collection-count probes.
+    assert effort.walk("day", "--full=speed", "--group=sentinel",
+                       environment={"GHOG_AFFECTED_MAX_PERCENT": "100"})[0] == 0
     assert effort.render() == 0
     _assert_grouped_request(effort)
 

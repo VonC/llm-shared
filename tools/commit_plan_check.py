@@ -2,6 +2,11 @@
 
 Step 2 exposes immutable human and JSON evidence over the existing parser,
 shared staged inventory, and public validator without entering commit execution.
+
+Fix (linked worktrees): `--root` accepted only a `.git` directory, so a linked
+worktree, whose `.git` is a file, could never be checked explicitly, and a
+reviewer whose `PRJ_DIR` named another checkout had no way to assess the right
+plan. An explicit root now accepts either marker.
 """
 
 from __future__ import annotations
@@ -196,11 +201,15 @@ def _parser() -> argparse.ArgumentParser:
 
 
 def _resolve_root(explicit_root: Path | None) -> Path:
-    """Resolve and validate either an explicit root or upward discovery."""
+    """Resolve and validate either an explicit root or upward discovery.
+
+    An explicit root is a main worktree (a `.git` directory) or a linked
+    worktree (a `.git` file pointing at its Git directory).
+    """
     if explicit_root is None:
         return find_project_root(Path.cwd())
     root = explicit_root.resolve()
-    if not (root / ".git").is_dir():
+    if not (root / ".git").exists():
         msg = f"not a Git repository root: {root}"
         raise FileNotFoundError(msg)
     return root

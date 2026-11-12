@@ -170,19 +170,21 @@ def test_instruction_completes_only_after_canonical_consolidation() -> None:
 
 
 def test_instruction_stops_on_a_clean_tree_after_consolidation() -> None:
-    """The completed consolidation prints the next step and stops."""
+    """The completed consolidation cleans and pushes before printing the next step."""
     content = " ".join(_content().split())
 
     _assert_in_order(
         content,
         (
-            "run `pw progress`",
             "Make sure the working tree is empty",
             "`git status --porcelain`",
             "`git add -A`",
             "root `a.commit`",
             "human go-ahead menu",
+            "rerun `git status --porcelain --untracked-files=all`",
             "Once the tree is empty",
+            "apply [`push-before-next-step.md`](../rules/push-before-next-step.md)",
+            "run `pw progress`",
             "print its whole report verbatim",
             "its `next` line as the next step",
             "Then stop",

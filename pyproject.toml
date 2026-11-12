@@ -6,7 +6,7 @@ authors = [
   { name = "VonC", email = "vonc@laposte.net" },
 ]
 requires-python = ">=3.13, <3.14"
-version = "0.13.0"
+version = "0.14.0"
 
 # Tooling-only repository: the helper scripts under tools/ are run in
 # place (see senv.bat), not installed. `package = false` makes
@@ -23,11 +23,12 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+pythonpath = ["tools/pytest_plugins"]
 test_lifecycle_limit = "0.1"
 # CPU stability band (user decision, 2026-11-02): a test proven at or below the
 # limit on this checkout passes up to 2.5 times it, until 3 consecutive runs
 # above the limit cost its proof. The record lives in the artifact home; see
-# tests/lifecycle_cpu_record.py.
+# tools/pytest_plugins/llm_shared_lifecycle_gate.py.
 test_lifecycle_cpu_band_factor = "2.5"
 test_lifecycle_cpu_drift_runs = "3"
 # Keep verbose outcomes without formatting a terminal progress bar per report.
@@ -91,6 +92,9 @@ derandomize = false
 print_blob = true
 verbosity = "normal"
 
+[tool.llm-shared.lifecycle-compatibility]
+enabled = true
+
 # https://github.com/microsoft/pyright/blob/main/docs/configuration.md
 [tool.pyright]
 include = ["tools", "tests"]
@@ -111,7 +115,9 @@ reportUnknownVariableType = "error"
 reportUnknownMemberType = "error"
 
 executionEnvironments= [
-  { "root" = "tests", extraPaths = [".", "tools"], "reportPrivateUsage" = false },
+  { "root" = "tools/pytest_plugins", "pythonVersion" = "3.12" },
+  { "root" = "tools/lifecycle_compatibility", "pythonVersion" = "3.12" },
+  { "root" = "tests", extraPaths = [".", "tools", "tools/pytest_plugins"], "reportPrivateUsage" = false },
 ]
 
 
@@ -164,6 +170,10 @@ exclude = [
 ]
 
 # https://www.reddit.com/r/Python/comments/1kttfst/ruff_users_what_rules_are_using_and_what_are_you/
+[tool.ruff.per-file-target-version]
+"tools/pytest_plugins/**" = "py310"
+"tools/lifecycle_compatibility/**" = "py312"
+
 [tool.ruff.lint]
 # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`) codes by default.
 # Unlike Flake8, Ruff doesn't enable pycodestyle warnings (`W`) or
@@ -260,6 +270,9 @@ dev = [
     "watchdog",
     "wheel",
 ]
+
+[tool.ty.environment]
+extra-paths = ["tools/pytest_plugins"]
 
 [tool.ty.src]
 exclude = [

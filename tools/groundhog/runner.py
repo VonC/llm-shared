@@ -2,6 +2,7 @@
 
 Step 4 narrows group collection and applies coverage environment overrides
 only while spawning, restoring even an absent variable after a factory error.
+Step 5 also removes prepared activation variables and restores empty values.
 
 groundhog runs from the llm-shared venv and spawns pytest (or check.bat) as
 a child process of the project environment prepared by senv.bat, reading
@@ -38,14 +39,22 @@ shared map now belongs to the whole-suite full run alone.
 Fix: the machine-wide run slot is gone. Serializing every checkout's children
 behind one per-user lock let one slow suite block the runs of every other
 checkout for hours, inside their own time budgets. :func:`run_streaming` now
-starts its child at once; the worker bound and the below-normal priority below
-keep each run's load on the machine bounded.
+starts its child at once; the worker bound below keeps each run's load on the
+machine bounded.
 
 Fix: ``-n auto`` spawned one worker per logical CPU on a shared workstation.
 :func:`worker_environment` bounds it through ``PYTEST_XDIST_AUTO_NUM_WORKERS``
 (a quarter of the logical CPUs, at most two) unless the caller set that variable,
-and :func:`default_popen_factory` starts every child below normal priority
-on Windows.
+and :func:`default_popen_factory` started every child below normal priority
+on Windows (normal priority since the next fix).
+
+Fix (2026-11-05): :func:`default_popen_factory` starts every child at normal
+priority again, set explicitly so a below-normal caller cannot pass its class
+down. Below normal starved the workers on a busy workstation: they waited for a
+CPU inside their own test phases, so wall time grew while CPU time did not, and
+the strict wall limit failed tests at random. The same whole suite took 356 s
+with 5 such failures below normal and 102 s with none at normal priority, with
+the same CPU per worker. The two-worker bound alone now limits a run's load.
 """
 
 from __future__ import annotations
@@ -84,10 +93,12 @@ AUTO_WORKERS_VARIABLE: Final = "PYTEST_XDIST_AUTO_NUM_WORKERS"
 MAX_AUTO_WORKERS: Final = 2
 # The share of the logical CPUs an automatic run may take: one in this many.
 _CPUS_PER_WORKER: Final = 4
-# Every child runs below normal priority on Windows, its own children (xdist
-# workers, git) inheriting it, so interactive work keeps the CPUs first. The
-# attribute is absent elsewhere, where 0 means no creation flag.
-CHILD_PRIORITY_FLAGS: Final[int] = getattr(subprocess, "BELOW_NORMAL_PRIORITY_CLASS", 0)
+# Every child runs at normal priority on Windows, its own children (xdist
+# workers, git) inheriting it. Below normal starved the workers on a busy
+# workstation (see the module docstring). The class is explicit because a child
+# created without one inherits a below-normal caller's class. The attribute is
+# absent elsewhere, where 0 means no creation flag.
+CHILD_PRIORITY_FLAGS: Final[int] = getattr(subprocess, "NORMAL_PRIORITY_CLASS", 0)
 # The testmon database a whole-suite sequential full run resets, the reset of ptr (Q05).
 TESTMON_DATA_FILE: Final = ".testmondata"
 # Versioned opt-in marker at the consuming project root. groundhog is shared
@@ -127,13 +138,14 @@ class StreamConfig:
     command: list[str]
     cwd: Path
     popen_factory: Callable[[list[str], Path], subprocess.Popen[str]]
-    env_overrides: Mapping[str, str] = field(default_factory=dict[str, str])
+    env_overrides: Mapping[str, str | None] = field(default_factory=dict[str, str | None])
 
 
 def default_popen_factory(command: list[str], cwd: Path) -> subprocess.Popen[str]:
     """Spawn a streaming child process, stderr folded into stdout.
 
-    The child starts below normal priority on Windows (``CHILD_PRIORITY_FLAGS``).
+    The child starts at normal priority on Windows (``CHILD_PRIORITY_FLAGS``),
+    even when groundhog itself runs below normal.
 
     Args:
         command: The child command line.
@@ -351,7 +363,11 @@ def run_streaming(config: StreamConfig, on_line: Callable[[str], None]) -> int:
     """
     previous = {name: os.environ.get(name) for name in config.env_overrides}
     try:
-        os.environ.update(config.env_overrides)
+        for name, value in config.env_overrides.items():
+            if value is None:
+                os.environ.pop(name, None)
+            else:
+                os.environ[name] = value
         process = config.popen_factory(config.command, config.cwd)
     finally:
         for name, value in previous.items():

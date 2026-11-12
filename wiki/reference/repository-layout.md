@@ -22,7 +22,7 @@ adapter there. Canonical instructions remain available for explicit loading.
 
 | LLM / host | Entry point | Coverage and limits |
 | --- | --- | --- |
-| OpenAI ChatGPT/Codex | `.agents/llm-shared/skills/<skill>/SKILL.md` and `.codex-plugin/plugin.json` | Supported plugin registration; commands use `$llm-shared:<skill>`; redirects resolve from the installed plugin layout |
+| OpenAI ChatGPT/Codex | `.agents/llm-shared/skills/<skill>/SKILL.md` and `.codex-plugin/plugin.json` | Supported user skills through the `%USERPROFILE%\.agents\skills` link to the clone; commands use `$llm-shared:<skill>`; redirects resolve in the clone |
 | Anthropic Claude Code | `.claude/skills/<skill>/SKILL.md` | Supported skill discovery; includes humanizer and the family-specific review roles |
 | Google Gemini through Antigravity | `.agent/workflows/<skill>.md` | Supported workflow registration through the host's workflow directory; applies to Antigravity, not every Gemini interface |
 | GitHub Copilot | `.github/skills/`, `.github/prompts/`, `.github/agents/` | Supported skill, one-shot prompt, and agent entry points; command surfaces depend on the entry-point type |
@@ -49,10 +49,12 @@ To integrate another host, follow
 ├─ CLAUDE.md                 redirect to rules/chat.md
 └─ skills/<skill>/SKILL.md   mirrors .github/skills/
 AGENTS.md                    the Codex channel: run_commands pointer + groundhog section
-.agents/llm-shared/          source-linked ChatGPT Codex plugin package
-├─ .codex-plugin/plugin.json manifest; "skills": "./skills/" drives discovery
+.agents/llm-shared/          ChatGPT Codex skill package, linked from
+│                            %USERPROFILE%\.agents\skills
+├─ .codex-plugin/plugin.json manifest; its name gives the llm-shared: prefix
 ├─ skills/<skill>/SKILL.md   BOM-less wrappers with discovery metadata
-└─ instructions/             compatibility redirects to root instructions/
+├─ instructions/             compatibility redirects to root instructions/
+└─ rules/                    compatibility redirect to root rules/
 .agent/workflows/<skill>.md  Google Antigravity workflow wrappers,
                              junctioned into projects, slash-invoked
 .grok/commands/<command>.md  portable Grok redirects, explicitly loaded
@@ -67,6 +69,7 @@ shared `review-requestor` wrapper. The exact host matrix is in the
 
 ```txt
 instructions/                one canonical markdown body per shared skill
+├─ copy-conversation.md      copy the running session, trimmed, to the clipboard
 ├─ list-session.md           list paused sessions across checkouts
 ├─ status-session.md         inspect the checkpoint or latest recorded work
 ├─ pause-session.md          save the latest private session checkpoint
@@ -93,8 +96,9 @@ session journal in `%USERPROFILE%\.llm-shared`. See
 ```txt
 bin/                         self-locating .bat launchers: prompt_workflow (pw),
                              ghog, gcba, gcmp, wac, oqm, covg, ghd, tth,
-                             new_draft, python_check, review_exchange, the
-                             family review renderers, update_llm_shared_plugin,
+                             copy_conversation, new_draft, python_check,
+                             review_exchange, the
+                             family review renderers, codex_skills_link (llmup),
                              release_workflow, release_alias, plus bundled
                              venvs/
 tools/                       the Python behind the launchers:
@@ -107,6 +111,7 @@ tools/                       the Python behind the launchers:
 ├─ coverage_gap_functions*.py  covg
 ├─ wrap_commit*.py           wac
 ├─ trim_thinking*.py         tth: trim an exported conversation
+├─ copy_conversation*.py     copy-conversation: render a session transcript
 ├─ groundhog/                the ghog CLI: runner, gate, snapshot, durations
 ├─ git_history_dashboard/    the ghd builder
 ├─ git_history_diagrams/     deterministic prepare-release SVG histories
@@ -114,8 +119,9 @@ tools/                       the Python behind the launchers:
 ├─ release_workflow/         release engine: bootstrap, version and versions
 ├─ sensitive_history/        contextual commit, path, and blob scanner
 ├─ html_to_pptx/             presentation to native PPTX and PDF
-├─ codex_plugin_package.py   Codex plugin validator, cachebuster, marketplace name
-├─ codex_plugin_redirects.py  cache-relative plugin redirect validator
+├─ codex_plugin_package.py   Codex skill package validator
+├─ codex_plugin_redirects.py  clone-relative package redirect validator
+├─ codex_skills_link.py      llmup: check or create the Codex user skills link
 ├─ uv_run.py                 cert-aware uv launcher
 ├─ batcolors/                vendored batch coloring (submodule)
 └─ dev_workflow/             vendored release tooling: update-changelog,

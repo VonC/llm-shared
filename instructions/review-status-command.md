@@ -39,7 +39,7 @@ background completion behavior are unchanged.
 ## Run the status command
 
 Read [`../rules/run_commands.md`](../rules/run_commands.md) before invoking the
-launcher. Resolve `<LLM_SHARED_DIR>` as the repository or installed plugin root
+launcher. Resolve `<LLM_SHARED_DIR>` as the llm-shared clone root
 that contains this canonical instruction, then run the launcher by full path
 from the caller's project root:
 

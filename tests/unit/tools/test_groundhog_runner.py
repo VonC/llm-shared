@@ -30,6 +30,8 @@ internal error, never a collection error.
 
 Step 4: verify group paths, coverage options and environment restoration on successful and raising spawns.
 
+Step 5 also covers removed variables and exact restoration of empty values.
+
 Fix: cover the bounded ``-n auto`` default (a quarter of the logical CPUs, at
 most two), the caller's ``PYTEST_XDIST_AUTO_NUM_WORKERS`` winning, and children
 started below normal priority.
@@ -37,6 +39,10 @@ started below normal priority.
 Fix (merge of release-project-root): the streaming test keeps the sibling's
 in-memory ``Popen`` double, which the process audit requires, and now also
 expects the factory's below-normal ``creationflags``.
+
+Fix (2026-11-05): children start at an explicit normal priority instead of
+below normal, which starved the workers on a busy workstation and broke the
+wall limit at random; the priority test now expects ``NORMAL_PRIORITY_CLASS``.
 """
 
 from __future__ import annotations
@@ -318,10 +324,10 @@ def test_run_streaming_with_the_real_factory(tmp_path: Path, monkeypatch: pytest
     )
 
 
-def test_default_factory_starts_children_below_normal_priority(
+def test_default_factory_starts_children_at_normal_priority(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Every child, and so its workers, yields the CPUs to interactive work."""
+    """Every child, and so its workers, gets an explicit normal priority, never a caller's lower one."""
     seen: dict[str, object] = {}
 
     def popen(command: list[str], **kwargs: object) -> list[str]:
@@ -332,7 +338,7 @@ def test_default_factory_starts_children_below_normal_priority(
     runner.default_popen_factory(["pytest"], tmp_path)
     assert seen["creationflags"] == runner.CHILD_PRIORITY_FLAGS
     if sys.platform == "win32":
-        assert runner.CHILD_PRIORITY_FLAGS == runner.subprocess.BELOW_NORMAL_PRIORITY_CLASS
+        assert runner.CHILD_PRIORITY_FLAGS == runner.subprocess.NORMAL_PRIORITY_CLASS
 
 
 @pytest.mark.parametrize(("cpus", "workers"), [(None, 1), (1, 1), (4, 1), (8, 2), (14, 2), (64, 2)])
@@ -447,17 +453,18 @@ def test_only_a_grouped_sequential_full_run_disables_testmon_selection() -> None
         assert "--testmon-noselect" not in command
 
 
-@pytest.mark.parametrize("previous", [None, "previous.coverage"])
+@pytest.mark.parametrize("previous", [None, "", "previous.coverage"])
+@pytest.mark.parametrize("override", [None, "group.coverage"])
 @pytest.mark.parametrize("raises", [True, False])
-def test_spawn_environment_restored(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, previous: str | None, *, raises: bool) -> None:
-    """A temporary coverage override ends immediately after either spawn outcome."""
+def test_spawn_environment_restored(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, previous: str | None, override: str | None, *, raises: bool) -> None:
+    """Overrides and removals end immediately after either spawn outcome."""
     if previous is None:
         monkeypatch.delenv("COVERAGE_FILE", raising=False)
     else:
         monkeypatch.setenv("COVERAGE_FILE", previous)
 
     def factory(_command: list[str], _cwd: Path) -> subprocess.Popen[str]:
-        assert os.environ["COVERAGE_FILE"] == "group.coverage"
+        assert os.environ.get("COVERAGE_FILE") == override
         if raises:
             message = "spawn failed"
             raise OSError(message)
@@ -466,7 +473,7 @@ def test_spawn_environment_restored(tmp_path: Path, monkeypatch: pytest.MonkeyPa
     def on_line(_line: str) -> None:
         assert os.environ.get("COVERAGE_FILE") == previous
 
-    config = runner.StreamConfig(["pytest"], tmp_path, factory, env_overrides={"COVERAGE_FILE": "group.coverage"})
+    config = runner.StreamConfig(["pytest"], tmp_path, factory, env_overrides={"COVERAGE_FILE": override})
     if raises:
         with pytest.raises(OSError, match="spawn failed"):
             runner.run_streaming(config, on_line)

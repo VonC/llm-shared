@@ -39,7 +39,14 @@ ordered series of conventional commits, each with a `Why:` / `What:` body.
    a feature and an unrelated refactor are mixed, edit the file by hand or
    stage in two passes. `.reviews\a.diff` is there to justify each group.
 
-5. Replay:
+5. Before its go-ahead menu, the skill lints the new or modified Markdown
+   files and spell-checks the same files (never source code). It shows each unknown
+   word with its cSpell suggestions and asks you, word by word, to accept it
+   into `.vscode/settings.json` or to replace it; see
+   [Settle spelling before a commit](settle-spelling-before-a-commit.md).
+   The menu appears only once both report nothing.
+
+6. Replay:
 
    ```cmd
    gcba
@@ -74,6 +81,13 @@ grouping skill—checks `git status --porcelain` afterward and refuses to advanc
 until it is empty.
 
 ## ✅ Check after the replay
+
+Before displaying or executing the next workflow step, let the owning
+workflow require a clean tree and push the current branch to every configured
+`origin` destination. A standalone grouping invocation owns this gate itself.
+If changes remain, it groups them for the applicable commit review first;
+a failed cleanup or push blocks the handoff. See the
+[push rule](../reference/writing-rules.md#push-before-the-next-step).
 
 `git log --oneline` shows one commit per group, least dependent first,
 each title 52 characters or less, each body carrying `Why:` and `What:`

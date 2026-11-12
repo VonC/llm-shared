@@ -3,6 +3,9 @@
 Step 3 keeps reusable reviewer orchestration in the root instruction. The
 workflow host retains the repository locate sequence, while packaged Codex and
 Claude files use their loader-relative canonical links without copied policy.
+
+Fix: the Codex redirects link relative to their own file in the clone, which
+Codex reads through the user skills folder link, instead of a plugin cache.
 """
 
 from __future__ import annotations
@@ -57,12 +60,12 @@ def test_codex_adapters_match_the_plugin_redirect_contract() -> None:
     assert packaged == (
         "Read and follow the canonical instruction at "
         "[`instructions/spec-reviewer.md`]"
-        "(../../../../../../../git/llm-shared/instructions/spec-reviewer.md).\n"
+        "(../../../instructions/spec-reviewer.md).\n"
     )
     skill = _LINK_ADAPTERS[1].read_text(encoding="utf-8")
     assert skill.rstrip().endswith(
         "Read and follow [the canonical instruction]"
-        "(../../../../../../../../git/llm-shared/instructions/spec-reviewer.md)",
+        "(../../../../instructions/spec-reviewer.md)",
     )
 
 

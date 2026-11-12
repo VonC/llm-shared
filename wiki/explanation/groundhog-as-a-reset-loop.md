@@ -38,7 +38,9 @@ A saved green result is useful only for the objective it proved. A passing
 suite does not establish coverage, and a group's coverage does not establish
 whole-suite coverage. Separate scope markers and ordered proof levels let a
 walk reuse a valid lower result while running the stronger requested gate.
-Proof at or above the request makes the whole walk free, including check.
+Proof at or above the request lets check and tests be reused. An opted-in
+compatibility preflight still runs fresh before proof reuse: saved source
+evidence cannot establish that the checkout's executable environment works now.
 
 Python or gate-configuration changes invalidate source proof. Scope patterns
 and membership must also match. Duration-floor or exclusion changes retain

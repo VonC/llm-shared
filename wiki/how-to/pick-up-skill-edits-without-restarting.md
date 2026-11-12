@@ -6,9 +6,9 @@
 
 ## Invocation model
 
-These are human-run host-maintenance actions because they change plugin,
-session, or workspace discovery state. An AI may perform the repository-side
-refresh when asked, but the user opens the new thread or reloads the host.
+These are human-run host-maintenance actions because they change session or
+workspace discovery state. An AI may run the repository-side check when asked,
+but the user opens the new thread or reloads the host.
 
 🤖 Goal: after editing a skill — its instruction body, its `SKILL.md`, or
 the Python behind a launcher — know which host picks the change up live
@@ -37,19 +37,19 @@ Only two cases still need a new session:
 
 Codex injects the available-skills registry when a thread is created,
 and never retroactively: a resumed thread does not gain new or fixed
-skills. After editing the plugin package under `.agents/llm-shared/`:
+skills. Codex reads the skills through the `%USERPROFILE%\.agents\skills`
+link to the clone's `.agents/llm-shared/skills` folder, so no command
+refreshes anything after an edit, a new skill or a `git pull`:
 
-1. From an interactive `cmd` initialized by `senv.bat`, run:
+| What changed | When it takes effect | Command? |
+| --- | --- | --- |
+| `instructions/*.md` (a skill body) | read fresh on the next skill invocation | none |
+| `.agents/llm-shared/skills/*/SKILL.md` or a new skill folder | listed by the next **new** thread | none |
 
-   ```cmd
-   llmup
-   ```
-
-   The alias validates the complete plugin and its cache-relative redirects
-   with the llm-shared Python, replaces the manifest cachebuster, reinstalls
-   `llm-shared@personal`, verifies the installed cache copy, and prints only
-   that plugin's installed row.
-2. Start a **new** thread — resuming the old one is not enough.
+Codex detects skill changes on its own; if one does not appear in a new
+thread, restart Codex. `llmup` only checks the link, from an interactive `cmd`
+initialized by `senv.bat`, and never writes inside the clone; see
+[Link the skills into Codex](link-the-skills-into-codex.md).
 
 `codex debug prompt-input` shows, outside any session, exactly which
 skills the next thread will receive.
@@ -77,5 +77,5 @@ is what it will execute. For Codex, prefer the `codex debug
 prompt-input` check above, since the in-thread list can be stale by
 design.
 
-Related: [Register the skills as a Codex plugin](register-skills-as-a-codex-plugin.md),
+Related: [Link the skills into Codex](link-the-skills-into-codex.md),
 [One body, many agents](../explanation/one-body-many-agents.md).

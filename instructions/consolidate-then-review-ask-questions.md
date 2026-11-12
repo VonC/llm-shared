@@ -258,7 +258,9 @@ Run this sequence from the project root:
    complete a live review exchange, or enter the next phase with a dirty tree.
 
 Only a successful grouped-commit pass followed by an empty
-`git status --porcelain` grants the handoff below. Do not make another
+`git status --porcelain` permits the final push gate:
+apply [`push-before-next-step.md`](../rules/push-before-next-step.md) before
+the handoff below. Do not make another
 non-ignored working-tree change between that clean check and `pw skill`.
 
 ## Handoff

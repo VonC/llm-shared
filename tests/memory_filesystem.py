@@ -4,6 +4,11 @@ Only pytest's scratch tree is simulated. Source files, Python imports and
 runner reports keep their normal filesystem. The router is installed in a
 measured fixture, and production pathlib, parsing and publication code run
 unchanged. No real directories, processes or waits implement scenarios.
+Preparation cache publication, shell-transfer scratch, compatibility evidence
+and groundhog activation, compatibility preflight, CLI, selection and artifact-contract scenarios use
+this same route.
+Shared-policy acceptance also routes generated consumer resources here; its
+local source adapter lets the real Python loader read those in-memory files.
 """
 
 from __future__ import annotations
@@ -50,19 +55,25 @@ _SCENARIOS = (
     "tests/unit/tools/test_groundhog_acceptance_day.py",
     "tests/unit/tools/test_groundhog_acceptance_durations.py",
     "tests/unit/tools/test_codex_plugin_redirects/",
+    "tests/unit/tools/test_codex_skills_link/",
     "tests/unit/tools/test_effort_scope/",
     "tests/unit/tools/test_groundhog_proof/", "tests/unit/tools/test_groundhog_levels",
     "tests/unit/tools/test_groundhog_listings/", "tests/unit/tools/test_groundhog_durations_pbt.py",
     "tests/unit/tools/test_prompt_workflow", "tests/unit/tools/test_scope_capture/",
     "tests/unit/tools/git_history_dashboard/",
     "tests/unit/tools/test_groundhog_acceptance_groups/",
+    "tests/unit/tools/test_groundhog_args_file/",
     "tests/unit/tools/test_groundhog_group_coverage/",
     "tests/unit/tools/test_full_suite_levels_acceptance/",
     "tests/acceptance/markdown_check/", "tests/unit/tools/serve_docs/",
+    "tests/acceptance/shared_lifecycle/",
     "tests/unit/tools/git_history_diagrams/",
     "tests/unit/tools/test_groundhog_status.py",
     "tests/unit/tools/test_groundhog_snapshot",
     "tests/unit/tools/test_groundhog_commands.py",
+    "tests/unit/tools/test_groundhog_cli.py",
+    "tests/unit/tools/test_compatibility_preflight/",
+    "tests/unit/tools/test_groundhog_selection.py",
     "tests/unit/tools/test_isolate_logos.py",
     "tests/unit/tools/sensitive_history/test_install_hooks.py",
     "tests/unit/tools/sensitive_history/test_history_scan.py",
@@ -73,7 +84,16 @@ _SCENARIOS = (
     "tests/unit/tools/test_groundhog_runner.py", "tests/unit/tools/test_groundhog_acceptance.py",
     "tests/unit/tools/test_new_draft_workflow_from_draft.py",
     "tests/unit/tools/test_open_questions_md.py",
+    "tests/unit/tools/test_session_journal.py",
+    "tests/unit/tools/test_lifecycle_cpu_band.py",
     "tests/unit/tools/markdown_check/test_policy/",
+    "tests/unit/tools/shared_lifecycle/test_preparation/",
+    "tests/unit/tools/shared_lifecycle/test_shell_transport/",
+    "tests/unit/tools/shared_lifecycle/test_loader/",
+    "tests/unit/tools/shared_lifecycle/test_groundhog_activation/",
+    "tests/unit/tools/shared_lifecycle/test_compatibility/",
+    "tests/unit/tools/shared_lifecycle/test_gate_contract/test_gate_contract_tdd.py::test_home_spelling_and_containment_are_strict",
+    "tests/unit/tools/shared_lifecycle/test_gate_contract/test_gate_contract_tdd.py::test_invalid_declaration_never_falls_back",
 )
 _active_scenario = False
 _COPY_FUNCTION_POSITION = 3

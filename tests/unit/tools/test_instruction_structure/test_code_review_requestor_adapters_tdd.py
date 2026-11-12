@@ -2,6 +2,9 @@
 
 Provider files retain discovery metadata and point directly to the canonical
 root instruction. Policy and lifecycle prose must never be copied into them.
+
+Fix: the Codex redirects link relative to their own file in the clone, which
+Codex reads through the user skills folder link, instead of a plugin cache.
 """
 
 from __future__ import annotations
@@ -54,18 +57,18 @@ def test_link_adapters_keep_metadata_plus_one_redirect() -> None:
             assert "description:" in content
 
 
-def test_codex_redirects_match_direct_plugin_paths() -> None:
+def test_codex_redirects_match_direct_clone_paths() -> None:
     """Packaged instruction and skill paths resolve straight to root prose."""
     packaged = _LINK_ADAPTERS[0].read_text(encoding="utf-8")
     assert packaged == (
         "Read and follow the canonical instruction at "
         "[`instructions/code-review-requestor.md`]"
-        "(../../../../../../../git/llm-shared/instructions/code-review-requestor.md).\n"
+        "(../../../instructions/code-review-requestor.md).\n"
     )
     skill = _LINK_ADAPTERS[1].read_text(encoding="utf-8")
     assert skill.rstrip().endswith(
         "Read and follow [the canonical instruction]"
-        "(../../../../../../../../git/llm-shared/instructions/code-review-requestor.md)",
+        "(../../../../instructions/code-review-requestor.md)",
     )
 
 

@@ -244,6 +244,26 @@ answers remain evidence at the human gate.
 ## Commit-ready convergence and human authority
 
 At a commit-ready answer, perform no validation walk and start no new round.
+Before presenting the gate, lint every new or modified Markdown file of the
+staged set and the versioned review transcript, as
+[`../rules/markdown.md`](../rules/markdown.md) requires under "Lint every new
+or modified Markdown file before asking to commit", and fix every finding.
+Those fixes are polishing-only: restage the staged files, leave the transcript
+unstaged for its residual commit, and rerun the readiness checker. Never show
+`Commit` while a finding remains.
+Spell-check the same Markdown files as
+[`../rules/spelling.md`](../rules/spelling.md) requires, and settle every reported word with the user before the gate: an
+accepted word goes into `.vscode/settings.json` through
+`spellcheck.bat add-words`, staged as polishing; a refused one is replaced in
+place. On Windows, add every original reported word presented for the decision
+to `cSpell.userWords` in `%APPDATA%\Code\User\settings.json`, even when
+replaced. Retain the original findings and verify replacements directly
+before user additions can hide missed edits. Add to project `cSpell.words`
+only the words approved for project addition. The current launcher updates
+only the project file: edit user settings separately, verify each required
+list independently, keep that file local, and stage only project settings.
+Follow the same spelling rule. Never show `Commit` while an unknown word or
+an unverified earlier decision or update remains.
 Compare the current requirement and group definitions with the round's bound
 scope and disclose any pending scope difference at this gate. Such changes
 are not polishing. Show the bound scope, current scope and changed definitions.
@@ -305,7 +325,10 @@ tree is empty with `git status --porcelain`. When it lists anything, stage every
 remaining non-ignored change with `git add -A` and propose a
 [`group-commits-msg.md`](group-commits-msg.md) root `a.commit` for it, through
 that instruction's normal steps and human go-ahead menu; the `Commit`
-authorization does not cover these leftover commits. Once the tree is empty,
+authorization does not cover these leftover commits. After any cleanup batch,
+rerun `git status --porcelain --untracked-files=all`; require a successful
+command and empty output immediately before the push. Once the tree is empty,
+apply [`push-before-next-step.md`](../rules/push-before-next-step.md), then
 run `pw progress` through its launcher (see [`run-pw.md`](run-pw.md)) and
 print its whole report verbatim: where the topic stands (branch, topic,
 umbrella position or standalone, phase, step position) and its `next` line as

@@ -1,23 +1,21 @@
-r"""Validate, version and locate the llm-shared Codex plugin package.
+r"""Validate the llm-shared Codex skill package.
 
-These commands replace the plugin-creator helper scripts that ``llmup`` used to
-call from ``%USERPROFILE%\.codex\skills\.system\plugin-creator\scripts``.
-Codex no longer installs them there, so ``llmup`` stopped before reinstalling
-the plugin. They use the standard library only, so the launcher runs them with
-the llm-shared Python, without PyYAML or an isolated ``uv`` environment:
-
-- ``validate`` checks the manifest and every ``skills/<name>/SKILL.md``
-  wrapper: no BOM, closed front matter limited to ``name``, ``description``,
-  a ``metadata`` mapping and the ``llm_nature: codex`` adapter hint.
-- ``bump-version`` replaces the manifest ``+codex.<cachebuster>`` suffix with
-  a newer timestamp, so Codex installs a fresh cache copy.
-- ``marketplace-name`` prints the personal marketplace name once it lists the
-  plugin.
+``validate`` checks the manifest and every ``skills/<name>/SKILL.md`` wrapper:
+no BOM, closed front matter limited to ``name``, ``description``, a
+``metadata`` mapping and the ``llm_nature: codex`` adapter hint. It uses the
+standard library only, so ``llmup`` runs it with the llm-shared Python,
+without PyYAML or an isolated ``uv`` environment, and it never writes.
 
 Fix: decoded JSON values go through ``_json_object``, which types an object as
 ``dict[str, object]`` and returns None for anything else, so strict pyright
-sees no partially unknown manifest or marketplace value; a non-object plugin
-entry still never matches.
+sees no partially unknown manifest value.
+
+Fix: Codex now reads the skills through the ``%USERPROFILE%\.agents\skills``
+link to this package in the clone, not from an installed plugin cache. The
+``bump-version`` command, which rewrote the tracked manifest with a
+``+codex.<timestamp>`` cachebuster on every ``llmup``, and the
+``marketplace-name`` command, which only the plugin install needed, are gone.
+The manifest keeps a fixed version.
 """
 
 from __future__ import annotations
@@ -26,14 +24,11 @@ import argparse
 import json
 import re
 import sys
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import cast
 
 _KEBAB = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 _SEMVER = re.compile(r"\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?")
-_MARKETPLACE = re.compile(r"[A-Za-z0-9_.-]+")
-_VERSION_FIELD = re.compile(rb'("version"\s*:\s*)"([^"\\]*)"')
 _SKILL_KEYS = frozenset({"name", "description", "metadata", "llm_nature"})
 _MAX_NAME = 64
 _MAX_DESCRIPTION = 1024
@@ -216,77 +211,19 @@ def validate_package(plugin_root: Path) -> tuple[list[str], int]:
     return errors, len(folders)
 
 
-def bump_version(plugin_root: Path, now: datetime | None = None) -> str:
-    """Write a newer +codex.<timestamp> suffix, keeping every other manifest byte."""
-    manifest = plugin_root / ".codex-plugin" / "plugin.json"
-    content = manifest.read_bytes()
-    matches = _VERSION_FIELD.findall(content)
-    if len(matches) != 1:
-        message = f"expected exactly one version field in {manifest}"
-        raise ValueError(message)
-    base, _, build = matches[0][1].decode("utf-8").partition("+")
-    stamp = int((now or datetime.now(UTC)).strftime("%Y%m%d%H%M%S"))
-    previous = build.removeprefix("codex.")
-    if build.startswith("codex.") and previous.isdigit():
-        stamp = max(stamp, int(previous) + 1)
-    version = f"{base}+codex.{stamp}"
-    manifest.write_bytes(
-        _VERSION_FIELD.sub(lambda match: match[1] + f'"{version}"'.encode(), content, count=1),
-    )
-    return version
-
-
-def marketplace_name(marketplace: Path, plugin: str) -> str:
-    """Return the marketplace name once it lists the given plugin."""
-    try:
-        data = json.loads(marketplace.read_text(encoding="utf-8-sig"))
-    except (OSError, ValueError) as error:
-        message = f"unreadable marketplace {marketplace}: {error}"
-        raise ValueError(message) from error
-    fields = _json_object(data) or {}
-    name = fields.get("name")
-    if not isinstance(name, str) or not _MARKETPLACE.fullmatch(name):
-        message = f"marketplace name must use letters, digits, '_', '.' or '-': {marketplace}"
-        raise ValueError(message)
-    entries = fields.get("plugins")
-    if not isinstance(entries, list) or not any(
-        (_json_object(entry) or {}).get("name") == plugin for entry in cast("list[object]", entries)
-    ):
-        message = f"marketplace {name} has no {plugin} entry: {marketplace}"
-        raise ValueError(message)
-    return name
-
-
-def _run(args: argparse.Namespace) -> int:
-    """Run one parsed command; ValueError reports a problem to the caller."""
-    if args.command == "validate":
-        errors, count = validate_package(args.plugin_root)
-        for error in errors:
-            sys.stderr.write(f"ERROR: {error}\n")
-        if errors:
-            return 1
-        sys.stdout.write(f"Validated {count} skills in plugin package: {args.plugin_root}\n")
-    elif args.command == "bump-version":
-        sys.stdout.write(f"Plugin version: {bump_version(args.plugin_root)}\n")
-    else:
-        sys.stdout.write(f"{marketplace_name(args.marketplace, args.plugin)}\n")
-    return 0
-
-
 def main(argv: list[str] | None = None) -> int:
-    """Parse the command line and run validate, bump-version or marketplace-name."""
-    parser = argparse.ArgumentParser(description="Validate, version and locate the llm-shared Codex plugin.")
+    """Parse the command line and run validate, the only command."""
+    parser = argparse.ArgumentParser(description="Validate the llm-shared Codex skill package.")
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("validate").add_argument("plugin_root", type=Path)
-    commands.add_parser("bump-version").add_argument("plugin_root", type=Path)
-    reader = commands.add_parser("marketplace-name")
-    reader.add_argument("marketplace", type=Path)
-    reader.add_argument("--plugin", default="llm-shared")
-    try:
-        return _run(parser.parse_args(argv))
-    except ValueError as error:
+    args = parser.parse_args(argv)
+    errors, count = validate_package(args.plugin_root)
+    for error in errors:
         sys.stderr.write(f"ERROR: {error}\n")
+    if errors:
         return 1
+    sys.stdout.write(f"Validated {count} skills in plugin package: {args.plugin_root}\n")
+    return 0
 
 
 if __name__ == "__main__":

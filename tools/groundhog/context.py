@@ -2,6 +2,9 @@
 
 Fix (v0.13.0 full_suite_levels, Step 4): Injectable seams and a resolved scope plus inventory for each invocation.
 
+Step 5 injects shared pytest environment preparation at every child boundary.
+Step 6 uses the same process seam for checkout-owned compatibility preflights.
+
 Split out of ``cli.py`` so the entry point stays under the repo line
 budget: this module carries the two dataclasses every command executor
 receives — the ``Deps`` seams faked by the tests, and the ``Invocation``
@@ -36,13 +39,13 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from tools.groundhog import detach, render, runner, selection
+from tools.groundhog import detach, pytest_environment, render, runner, selection
 from tools.groundhog.levels import LevelSource
 from tools.scope_capture import WHOLE_SCOPE, ResolvedScope
 
 if TYPE_CHECKING:
     import subprocess
-    from collections.abc import Callable
+    from collections.abc import Callable, Mapping
 
     from tools.groundhog.levels import FullLevel
     from tools.groundhog.models import Mode
@@ -67,6 +70,7 @@ class Deps:
             ``--full`` parameter selects a level, and for the affected threshold.
         selection_counts: Collection-only affected/full counts; no result
             retains the ordinary day sequence.
+        prepare_pytest: Pure environment preparation for each pytest spawn.
     """
 
     popen_factory: Callable[[list[str], Path], subprocess.Popen[str]] = (
@@ -83,6 +87,7 @@ class Deps:
     pytest_project: Callable[[Path], bool] = runner.is_pytest_project
     environ: Callable[[str], str | None] = os.environ.get
     selection_counts: Callable[[Invocation, Deps], tuple[int, int] | None] = selection.counts
+    prepare_pytest: Callable[[Path, Mapping[str, str]], dict[str, str]] = pytest_environment.prepare
 
 
 @dataclass(frozen=True)

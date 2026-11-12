@@ -6,6 +6,320 @@ release. The groundhog test loop (ghog), the prompt-workflow cycle (pw),
 and the commit and changelog helpers are mutualized across sibling
 projects.
 
+## [v0.14.0] - 2026-11-12 - Groundhog Shares the Stopwatch
+
+Consumer pytest runs choose lifecycle budgets, process audits, or both.
+
+- CPU Gets the Final Say
+  -- Wall time stays visible; lifecycle timing follows the effective CPU limit.
+- Same Gates, New Burrows
+  -- Prepared shells carry shared pytest policies into each consumer checkout.
+
+Release 0.14.0 makes the lifecycle gate and process audit independently
+available to consumer pytest runs on Python 3.12 or later. Shell preparation
+binds the selected policies to a project and shared checkout without importing
+the shared repository's tools or tests packages. Lifecycle timing passes when
+CPU stays within the effective budget, including an eligible band or accepted
+exception. Wall time remains visible; functional and process failures retain
+their own verdicts. Fixture ownership and worker reports keep permission use
+and timing records attributable across distributed runs.
+
+Groundhog prepares every pytest child and measures speed during the covered
+full run. Declared compatibility checks run fresh before saved-proof reuse.
+Session checkpoints, guarded journals and cross-checkout listings preserve
+work between conversations. Guided question decisions, terminal wait status,
+commit spelling checks and clean-tree pushes make human handoffs explicit.
+Shared prompt bodies and Codex skills linked to the clone reduce adapter
+copies. Release tooling adds the project-identity foundation: runtime checks,
+strict configuration, guarded writes and project locks.
+
+### Key changes (v0.14.0)
+
+- **Select shared pytest policies**: Use lifecycle, process, both or neither
+  through prepared-shell activation. The loader checks selected sources before
+  registration, preserves consumer package identity and refuses stale project
+  bindings. Guarded settings and fixture-scoped process grants support gradual
+  adoption. Executable checks cover Python 3.12 and 3.13 and Windows shell
+  preparation; lifecycle timing uses the effective CPU budget.
+
+- **Collect coverage and speed together**: Full runs judge call durations in
+  the same covered execution, with sys.monitoring line coverage. Grouped full
+  runs retain testmon records outside the selected group. Bounded workers,
+  normal Windows process priority and argument files for long selections
+  reduce contention and command-length failures. Unexplained pytest failures
+  fail the walk, and opted-in compatibility preflight precedes proof reuse.
+
+- **Carry work through explicit handoffs**: Pause, resume, status and list
+  commands retain agent identity and private journal evidence. Copy-conversation
+  exports a trimmed transcript; guided decisions preserve human answers.
+  Independent review recovery supports corrected requests and explicit role
+  takeover. Commit gates check Markdown and spelling; merge-back uses explicit
+  merge commits, structured rewording and clean-tree pushes before handoff.
+
+### 🚀 Features (v0.14.0)
+
+- *(session)* Add pause and resume checkpoints
+- *(grok)* Add shared command adapters
+- *(session)* Add read-only status summaries
+- *(codex-plugin)* Own the plugin package checks
+- *(session)* Track agents, list paused sessions
+- *(questions)* Scan explicit user decisions
+- *(templates)* Mark answers pending user decision
+- *(skills)* Add explain-undecided-questions
+- *(review)* Offer guided decisions at convergence
+- *(groundhog)* End every run with a dated header
+- *(groundhog)* Bound test load on the machine
+- *(trim-thinking)* Cut tool output under prompts
+- *(review-resume)* Let Override take over a role
+- *(release)* Validate setup-owned runtime
+- *(release)* Isolate Git and physical roots
+- *(release)* Register owned configuration schemas
+- *(release)* Validate optional project configuration
+- *(review-artifacts)* Add home validation hook
+- *(release)* Guard managed writes and artifacts
+- *(release)* Retain project operation ownership
+- *(release)* Wire context and Windows launchers
+- *(review-resume)* Let Override take over a role
+- *(release)* Integrate explicit project identity
+- *(release)* Merge explicit project identity
+- *(copy-conversation)* Render session transcripts
+- *(copy-conversation)* Copy a trimmed session
+- *(copy-conversation)* Add the agent skill
+- *(copy-conversation)* Merge the session copy
+- *(explain-undecided-questions)* Show the context
+- *(explain-undecided-questions)* End with a choice
+- *(program-status)* Report waits to the terminal
+- *(interactive-menu)* Signal pending decisions
+- *(explain-undecided-questions)* Show the bigger picture
+- *(commit-gates)* Lint Markdown before committing
+- *(tools)* Report cSpell words outside VS Code
+- *(session)* Add a guarded session journal writer
+- *(codex)* Read the skills from the clone through a link
+- *(lifecycle)* Extract standalone timing gate
+- *(audit)* Isolate process permissions
+- *(lifecycle)* Enforce worker audit barrier
+- *(pytest)* Prepare bound policy loading
+- *(groundhog)* Prepare every pytest child
+- *(lifecycle)* Validate real Python compatibility
+- *(ghog)* Require fresh compatibility evidence
+- *(pytest)* Share lifecycle and process policies
+
+### 🐛 Bug Fixes (v0.14.0)
+
+- *(groundhog)* Keep testmon data for grouped runs
+- *(session)* Announce pause and resume prompt paths
+- *(codex-plugin)* Run llmup without plugin-creator
+- *(review)* Allow pending request corrections
+- *(workflow)* Require human consolidation intent
+- *(codex-plugin)* Type decoded JSON objects
+- *(groundhog)* Retry side files held by scanners
+- *(deps)* Patch Pillow and uv vulnerabilities
+- *(session)* Pause and resume in plan mode
+- *(review-resume)* Offer reviewers only requests
+- *(skills)* Repair review-ask-questions header
+- *(ghog)* Drop the machine-wide run slot
+- *(ghog)* Count failures no result line names
+- *(ghog)* Fail closed on unexplained pytest exit 1
+- *(review)* Retry transient role-nature replace
+- *(deps)* Patch Pillow and uv vulnerabilities
+- *(release)* Reject drive-relative managed paths
+- *(update-merge-commit-msg)* Sign reworded merges
+- *(groundhog)* Run children at normal priority
+- *(copy-conversation)* Title from the checkout
+- *(groundhog)* Pass long selections via a file
+- *(commit-plan-check)* Accept linked worktree roots
+- *(interactive-menu)* Use Codex's blocking picker
+- *(interactive-menu)* Cover plain-text questions
+- *(explain-undecided-questions)* Fit Codex Mermaid
+- *(tools)* Fall back to cspell 9 on an older Node
+- *(session)* Write the journal through its guard
+- *(session)* Integrate the guarded session journal writer
+- *(testmon)* Hash source without invoking Git
+- *(pytest)* Preserve cache for drive-root callers
+- *(lifecycle)* Pass timing within CPU budget
+
+### 🚜 Refactor (v0.14.0)
+
+- *(prompts)* Share canonical prompt bodies
+- *(questions)* Split the decision scan helpers
+- *(skills)* Reduce Claude skills to redirects
+- *(review-resume)* Split exchange selection
+- *(review)* Share one template reader
+- *(review)* Expose repository observations
+- *(markdown)* Drop cache-relative pointers
+
+### 📚 Documentation (v0.14.0)
+
+- *(release)* Remove sibling tooling draft
+- *(groundhog)* Describe grouped testmon retention
+- *(workflow)* Shorten README and cover sessions
+- *(adapters)* Explain support and scaffolding
+- *(session)* Explain status inspection
+- *(codex-plugin)* Describe llmup's own checks
+- *(session)* Explain agents, journal and listing
+- *(wiki)* State the invocation model of 3 how-tos
+- *(groundhog)* Describe the single speed full run
+- *(wiki)* Explain same-run coverage and timings
+- *(wiki)* Document the guided question phase
+- *(trim-thinking)* Describe the tool-output cut
+- *(review-resume)* Describe reviewer discovery
+- *(ghog)* Explain affected selection threshold
+- *(ghog)* Forbid any machine-wide run queue
+- *(review-resume)* Describe Override takeover
+- *(review-resume)* Mark Override criterion superseded
+- *(ghog)* Document exit 2 for unnamed failures
+- *(release)* Define sibling tooling umbrella
+- *(design)* Record pre-consolidation questions
+- *(design)* Record pre-consolidation questions
+- *(release)* Record project identity requirements
+- *(release)* Consolidate project identity design
+- *(design)* Record pre-consolidation questions
+- *(release-project-root)* Amend runtime scope
+- *(release-project-root)* Consolidate design
+- *(plan)* Record pre-consolidation questions
+- *(release-project-root)* Clarify file IO costs
+- *(release-project-root)* Consolidate reviewed plan
+- *(review)* Qualify duplicate headings
+- *(release-project-root)* Record step 1 validation
+- *(review)* Record step 1 code review
+- *(review)* Record step 2 code review
+- *(release-project-root)* Record step 2 validation
+- *(release-project-root)* Record step 3 validation
+- *(release)* Record step 3 code review
+- *(review)* Record step 4 release ownership review
+- *(release-project-root)* Record step 4 validation
+- *(tests)* Explain fast tests and add instruction
+- *(release)* Retain step 5 review exchange
+- *(release-project-root)* Record step 5 validation
+- *(review-resume)* Describe Override takeover
+- *(release)* Code-span two transcript paths
+- *(lifecycle)* Document the CPU band settings
+- *(release-project-root)* Record step 6 evidence route
+- *(release)* Document the foundation launchers
+- *(release-project-root)* Record step 6 validation
+- *(release)* Retain step 6 review exchange
+- *(copy-conversation)* Document the session copy
+- *(markdown)* Wrap code-like names, write bold with asterisks
+- *(markdown)* Keep Mermaid within Codex limits
+- *(markdown)* Lint changed files before commit
+- *(markdown)* Fix MD050 at its dunder cause
+- *(commits)* Forbid AI attribution lines
+- *(rules)* Settle spelling before any commit
+- *(wiki)* Document the pre-commit spell check
+- *(spelling)* Describe the Node fallback
+- *(wiki)* Document the session journal command
+- *(wiki)* Document the Codex skills link
+- *(rules)* List each spelling word with its alternatives
+- *(git)* Require explicit merge commits when merging back
+- *(spelling)* Sync accepted words to user settings
+- *(workflow)* Clean and push before handoff
+- *(spelling)* Accept rephrased words globally
+- *(feature)* Record pre-consolidation questions
+- *(feature)* Consolidate lifecycle gate decisions
+- *(design)* Record pre-consolidation questions
+- *(design)* Consolidate lifecycle gate decisions
+- *(plan)* Record pre-consolidation questions
+- *(lifecycle)* Explain shared pytest activation
+- *(plan)* Consolidate lifecycle gate decisions
+- *(shared_lifecycle_gate)* Record step 1 validation
+- *(shared_lifecycle_gate)* Record step 1 code review
+- *(shared_lifecycle_gate)* Record step 2 validation
+- *(shared_lifecycle_gate)* Record step 2 review
+- *(shared_lifecycle_gate)* Record step 3 validation
+- *(shared_lifecycle_gate)* Record step 3 review
+- *(shared_lifecycle_gate)* Record step 4 validation
+- *(shared_lifecycle_gate)* Record step 4 review
+- *(shared_lifecycle_gate)* Record step 5 validation
+- *(shared_lifecycle_gate)* Record step 5 review
+- *(shared_lifecycle_gate)* Record step 6 validation
+- *(shared_lifecycle_gate)* Record step 6 code review
+- *(pytest)* Document shared policy adoption
+- *(shared_lifecycle_gate)* Record step 7 validation
+- *(shared_lifecycle_gate)* Record step 7 code review
+- *(lifecycle)* Describe CPU-based timing passes
+- *(shared_lifecycle_gate)* Record step 8 validation
+- *(lifecycle)* Record step 8 code review
+- *(wiki)* Align release workflow guidance
+
+### ⚡ Performance (v0.14.0)
+
+- *(groundhog)* Time calls in the covered full run
+- *(coverage)* Trace lines with sys.monitoring
+- *(tests)* Reuse repositories and Git setup
+- *(tests)* Cap property examples with boundaries
+- *(tests)* Move setup out of measured calls
+- *(review-status)* Read request names only
+- *(review-resume)* Back off idle request rescans
+- *(ghog)* Skip nearly full affected execution
+- *(tests)* Reuse CLI and repository initialization
+- *(tools)* Reduce import and scan overhead
+- *(review)* Build only the selected subcommand
+- *(copy-conversation)* Skip the PowerShell start
+- *(copy-conversation)* Copy while the skill loads
+- *(tests)* Prove the args-file spill with 3 paths
+- *(tests)* Reuse parent capture in child sessions
+- *(tests)* Read groundhog sources once
+- *(tests)* Reduce scenario setup costs
+- *(tests)* Trim embedded pytest preparation
+
+### 🎨 Styling (v0.14.0)
+
+- *(explain-undecided-questions)* Fix quotes
+
+### 🧪 Testing (v0.14.0)
+
+- *(process-draft)* Match the shortened README
+- *(spec-review)* Anchor the consolidation handoff
+- *(review-mode)* Read moved entries on wiki home
+- *(suite)* Isolate Git and bound xdist workers
+- *(review-resume)* Reuse seeds and end waiters
+- *(review-resume)* Run the stand-in in one process
+- *(review-resume)* Type the status collector stub
+- *(review-resume)* Expect Override takeover in AC9
+- *(review-resume)* Isolate immediate discovery
+- *(suite)* Bound covered suite contention
+- *(release)* Isolate physical root alias setup
+- *(suite)* Bound every lifecycle with shared seams
+- *(review)* Replace replayed journeys with records
+- *(reviewers)* Declare code and spec review state
+- *(release)* Cover invocation and real launchers
+- *(groundhog)* Keep walks free of native lookups
+- *(tools)* Bound utility tests to their own work
+- *(review-resume)* Expect Override takeover in AC9
+- *(groundhog)* One random draw per lifecycle
+- *(lifecycle)* Add the CPU stability band
+- *(release)* Accept the assembled foundation
+- *(rules)* Pin MD050 bold and no attribution
+- *(lifecycle)* Trim measured test overhead
+- *(suite)* Run two file-writing tests in memory
+- *(lifecycle)* Trim measured test overhead
+- *(pytest)* Cover prepared policy loading
+- *(pytest)* Expand executable compatibility cases
+- *(pytest)* Join prepared consumer policies
+- *(workflow)* Align instruction checks with current rules
+
+### ⚙️ Miscellaneous Tasks (v0.14.0)
+
+- *(codex)* Refresh local plugin metadata
+- *(codex)* Refresh local plugin metadata
+- *(editor)* Extend project spelling words
+- *(editor)* Update lint and spelling settings
+- *(editor)* Set active tab background
+- *(editor)* Add release planning vocabulary
+- *(editor)* Recognize release boundary terms
+- *(editor)* Recognize release ownership terms
+- *(vscode)* Adjust active tab color
+- *(codex)* Refresh local plugin metadata
+- *(editor)* Add pytest hook dictionary words
+- *(vscode)* Add lifecycle gate vocabulary
+- *(vscode)* Extend lifecycle planning vocabulary
+- *(editor)* Recognize unraisable test terminology
+- *(editor)* Accept process audit vocabulary
+
+### 🔨 Build (v0.14.0)
+
+- *(check)* Bound pyright to two threads
+
 ## [v0.13.0] - 2026-10-06 - Groundhog Gets a Receipt
 
 Each test group keeps captured membership and its own validation proof.

@@ -51,8 +51,10 @@ decisions**.
   stops on integration with the next ordered requirement while any row is
   pending. An exhausted umbrella continues with release notes, versions,
   changelog, and a final preparation
-  commit—without silently tagging or pushing. The human approves the topology
-  and later runs the final build/tag action. Start with
+  commit. The workflow requires a clean tree and pushes the committed branch
+  to every configured `origin` destination before each next-step handoff;
+  a failed push blocks it. The human approves the topology and later runs the
+  final build/tag action. Start with
   [why release branch roles matter](explanation/why-release-branch-roles-matter.md)
   or [prepare a release from any branch](how-to/prepare-a-release.md).
 
@@ -161,6 +163,7 @@ their choices.
 - 🧪 [Groundhog as a reset loop](explanation/groundhog-as-a-reset-loop.md)
 - 🧪 [Why fast tests keep the work they assert](explanation/why-fast-tests-keep-the-work-they-assert.md)
 - 📊 [Why grouped commits, least dependent first](explanation/why-grouped-commits.md)
+- 📊 [Why the spell check mirrors VS Code](explanation/why-the-spell-check-mirrors-vs-code.md)
 - 📊 [Why release branch roles matter](explanation/why-release-branch-roles-matter.md)
 - 📊 [Why Git history diagrams use explicit arrows](explanation/why-git-history-diagrams-use-explicit-arrows.md)
 - 📊 [Why sensitive-history replacement needs context](explanation/why-sensitive-history-needs-context.md)
@@ -208,12 +211,16 @@ Recipes for a precise goal, for readers who already know the basics.
 
 ### AI-environment compatibility
 
-- 🤖 [Register the skills as a Codex plugin](how-to/register-skills-as-a-codex-plugin.md)
+- 🤖 [Link the skills into Codex](how-to/link-the-skills-into-codex.md)
 - 🤖 [Use the skills from Google Antigravity](how-to/use-the-skills-from-antigravity.md)
 - 🤖 [Add scaffolding for another LLM](how-to/add-an-llm-adapter.md)
 - 🤖 [Pick up skill edits without restarting](how-to/pick-up-skill-edits-without-restarting.md)
 
 ### Additional utilities guides
+
+- 🧪 [Enable the shared lifecycle gate](how-to/enable-shared-lifecycle-gate.md)
+- 🧪 [Enable the shared process audit](how-to/enable-shared-process-audit.md)
+- 🧪 [Validate shared pytest compatibility](how-to/validate-shared-pytest-compatibility.md)
 
 - 🤖 [Create a coherent logo family for a project](how-to/create-a-logo-family-for-a-project.md)
 - 🧪 [Fix a red groundhog walk](how-to/fix-a-red-groundhog-walk.md)
@@ -222,6 +229,7 @@ Recipes for a precise goal, for readers who already know the basics.
 - 🧪 [Set the test lifecycle limits](how-to/set-test-lifecycle-limits.md)
 - 🧪 [Split a large file](how-to/split-a-large-file.md)
 - 📊 [Group a dirty tree into conventional commits](how-to/group-commits-into-conventional-messages.md)
+- 📊 [Settle spelling before a commit](how-to/settle-spelling-before-a-commit.md)
 - 📊 [Reword a merge commit from the branch docs](how-to/reword-a-merge-commit.md)
 - 📊 [Prepare a release from any branch](how-to/prepare-a-release.md)
 - 📊 [Build the Git-history dashboard](how-to/build-the-git-history-dashboard.md)
@@ -246,6 +254,7 @@ Exact descriptions of commands, formats, files, and supported behavior.
 - 📝 [Artifact files and naming conventions](reference/artifact-files.md)
 - 🤖 [Independent review mode contract](reference/independent-review-mode-contract.md)
 - 📝 [Question decision scanner and progress](reference/question-decisions.md)
+- 🤖 [Session journal command](reference/session-journal-command.md)
 - 📝 [Document templates](reference/templates.md)
 - 🤖 [Writing and agent rules](reference/writing-rules.md)
 - 🤖 [Repository layout and AI entry points](reference/repository-layout.md)
@@ -257,6 +266,7 @@ Exact descriptions of commands, formats, files, and supported behavior.
 - 🤖 [Project logo prompt template and asset conventions](reference/project-logo-prompt-template.md)
 - 🤖 [Aliases and bin launchers](reference/aliases-and-launchers.md)
 - 📊 [Commit message format](reference/commit-message-format.md)
+- 📊 [Spell check command](reference/spell-check-command.md)
 - 🧪 [ghog commands and exit codes](reference/ghog-commands-and-exit-codes.md)
 - 🧪 [Test lifecycle limits](reference/test-lifecycle-limits.md)
 - 📊 [Prepare-release scenarios](reference/prepare-release-scenarios.md)

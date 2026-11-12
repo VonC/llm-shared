@@ -1,9 +1,9 @@
 ---
 name: prepare-release
-description: 'Finish a feature by returning its exact range to its umbrella-slug integration branch, or to generic integration for a standalone topic, then stop with the next umbrella requirement from pw skill. When the umbrella is exhausted, continue through the Diataxis wiki audit and release preparation. Validate with ghog day --full=cov --whole-suite. Stop before brel and never push.'
+description: 'Finish a feature by returning its exact range to its umbrella-slug integration branch, or to generic integration for a standalone topic, then stop with the next umbrella requirement from pw skill. When the umbrella is exhausted, continue through the Diataxis wiki audit and release preparation. Validate with ghog day --full=cov --whole-suite. Push the committed branch to origin when configured before the next-step handoff; stop before brel.'
 user-invocable: true
 metadata:
-  - "Feature mode may stop after the destination merge and umbrella handoff without touching release artifacts; a full release stops before brel, never creates the tag, and never pushes."
+  - "Feature mode may stop after the destination merge and umbrella handoff without touching release artifacts; a full release stops before brel and never creates the tag. Push the committed destination branch to origin when configured before each next-step handoff."
   - "Step 1-2: find the last tag (git describe --tags --abbrev=0) and detect a development effort (a commit since the tag touching docs/{feature,issue,design,plan}.*). With none, stop with 'release already done' (HEAD on a tag) or 'nothing to release yet'."
   - "Step 3: resolve an umbrella-slug integration branch before planning, then classify on-main, integration, or feature mode; recover the actual feature fork and stop when Git evidence is ambiguous."
   - "Apply gitworkflow topic graduation (one word, not GitFlow): collection topics return to their umbrella branch; standalone topics use generic integration when present, otherwise main."

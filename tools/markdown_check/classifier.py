@@ -1,4 +1,11 @@
-"""Classify bounded Markdown adapters without filesystem access."""
+"""Classify bounded Markdown adapters without filesystem access.
+
+Fix: the Codex package redirects under ``.agents/llm-shared`` now link
+relative to their place in the clone, so they are ordinary bounded pointers.
+The cache-relative pointer shape, which exempted a short adapter linking out
+of the repository through ``/git/llm-shared/``, is gone: such a link escapes
+the repository and the document is structured again.
+"""
 
 from __future__ import annotations
 
@@ -20,7 +27,6 @@ _POINTER_ROOTS = (
 )
 _MAX_POINTER_LINES = 5
 _FRAGMENT_MIN_LEVEL = 2
-_CACHE_POINTER_FRAGMENT = "/git/llm-shared/"
 
 
 class DocumentKind(Enum):
@@ -78,24 +84,6 @@ def _is_bounded_pointer(source: MarkdownSource) -> bool:
     )
 
 
-def _is_cache_relative_pointer(source: MarkdownSource) -> bool:
-    """Recognize installed Codex adapters that point back to this checkout."""
-    if not _in_pointer_root(source.path) or len(source.body_lines) > _MAX_POINTER_LINES:
-        return False
-    return any(_is_cache_relative_link(link.target) for link in source.links)
-
-
-def _is_cache_relative_link(target: str) -> bool:
-    """Return whether one Markdown target names the canonical checkout path."""
-    parsed = urlsplit(target)
-    if parsed.scheme or parsed.netloc:
-        return False
-    normalized = parsed.path.replace("\\", "/")
-    return normalized.endswith(".md") and (
-        _CACHE_POINTER_FRAGMENT in f"/{normalized.lstrip('/')}"
-    )
-
-
 def classify_document(source: MarkdownSource) -> DocumentClassification:
     """Classify one source while exempting only the three confirmed adapter shapes."""
     if source.frontmatter is not None and source.frontmatter.description:
@@ -108,8 +96,6 @@ def classify_document(source: MarkdownSource) -> DocumentClassification:
         and source.headings[0].level >= _FRAGMENT_MIN_LEVEL
     ):
         return DocumentClassification(DocumentKind.ADAPTER, "template-fragment")
-    if _is_cache_relative_pointer(source):
-        return DocumentClassification(DocumentKind.ADAPTER, "cache-relative-pointer")
     if _is_bounded_pointer(source):
         return DocumentClassification(DocumentKind.ADAPTER, "bounded-pointer")
     return DocumentClassification(DocumentKind.STRUCTURED, "default")
